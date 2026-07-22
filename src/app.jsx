@@ -444,7 +444,7 @@ function observedTDEE(s) {
   const cals = Object.entries(s.dailyLogs).filter(([d, v]) => d >= cutoff && v && v.cal != null).map(([, v]) => v.cal);
   if (cals.length < 8) return null;
   const avg = cals.reduce((a, b) => a + b, 0) / cals.length;
-  const fatWk = r.scale + s.model.drip;
+  const fatWk = Math.min(1.6, r.scale + s.model.drip);
   const perDay = (fatWk * 3500 - s.model.drip * 600) / 7;
   return { tdee: Math.round(avg + perDay), days: cals.length, avg: Math.round(avg) };
 }
@@ -1358,9 +1358,9 @@ function BodyTab({ s, setS, save }) {
             <div style={{ marginTop: 8 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                 <Num size={26} c={T.jade}>~{obs.tdee}</Num>
-                <span style={{ fontFamily: mono, fontSize: 10, color: T.dim }}>±100 · OBSERVED — {obs.days} logged days, avg intake {obs.avg}, your measured rate + the muscle-drip correction</span>
+                <span style={{ fontFamily: mono, fontSize: 10, color: T.dim }}>±150 · OBSERVED — {obs.days} logged days, avg intake {obs.avg}, your measured rate + the muscle-drip correction</span>
               </div>
-              <div style={{ fontFamily: mono, fontSize: 10, color: T.steel, marginTop: 8 }}>Recalculates as you log. Falls as you shrink (~10 kcal/lb). The reverse in September aims at THIS number, not June's.</div>
+              <div style={{ fontFamily: mono, fontSize: 10, color: T.steel, marginTop: 8 }}>Recalculates as you log — first estimates run hot off the whoosh week, then converge. Falls as you shrink (~10 kcal/lb). The reverse in September aims at THIS number, not June's.</div>
             </div>
           ) : (
             <div style={{ fontFamily: mono, fontSize: 11, color: T.steel, marginTop: 8 }}>

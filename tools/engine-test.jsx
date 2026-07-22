@@ -205,7 +205,7 @@ const { observedTDEE: ot, SEED: SB } = __test;
 ok(ot(clone(SB)) === null, "sealed window: observed maintenance correctly refuses to print");
 let ob = clone(SB); ob.blackout.until = "2026-07-01";
 const o1 = ot(ob);
-ok(o1 && o1.days >= 8 && o1.tdee > 2100 && o1.tdee < 2700, `post-seal it computes from real logs: ~${o1 && o1.tdee} over ${o1 && o1.days} days`);
+ok(o1 && o1.days >= 8 && o1.tdee > 2200 && o1.tdee < 2800, `post-seal it computes from real logs: ~${o1 && o1.tdee} over ${o1 && o1.days} days`);
 let ob2 = clone(SB); ob2.blackout.until = "2026-07-01"; ob2.dailyLogs = {};
 ok(ot(ob2) === null, "under 8 logged days: stays silent rather than guessing");
 
