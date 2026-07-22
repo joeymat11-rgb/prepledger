@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "2.2.1";
+const APP_V = "2.2.2";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -416,6 +416,20 @@ function applyProposal(state, pid) {
   return s;
 }
 
+/* undo a same-day scale read — restores trend and clears this week's snapshot if orphaned */
+function undoRead(state, iso) {
+  const s = JSON.parse(JSON.stringify(state));
+  const i = s.reads.findIndex((r) => r.d === iso);
+  if (i === -1) return s;
+  const r = s.reads[i];
+  s.reads.splice(i, 1);
+  if (!r.sealed && r.pt != null) s.trend = r.pt;
+  const d = mk(iso); const off = (d.getDay() + 6) % 7; const monday = isoOf(new Date(d - off * DAY));
+  const stillClean = s.reads.some((x) => !x.sealed && x.d >= monday && weeksBetween(monday, x.d) < 1);
+  if (!stillClean) s.weekly = s.weekly.filter((w) => w.wk !== monday);
+  return s;
+}
+
 /* DEXA anchoring — one input recalibrates the whole model */
 function anchorDexa(state, pct) {
   const s = JSON.parse(JSON.stringify(state));
@@ -463,7 +477,7 @@ function migrate(old) {
   return patchV4(s);
 }
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- storage ---------- */
 const KEY = "prep-ledger-v1";
@@ -996,7 +1010,7 @@ function BodyTab({ s, setS, save }) {
   const logWeight = () => {
     if (already) return;
     const ns = JSON.parse(JSON.stringify(s));
-    ns.reads.push({ d: tISO, w, sealed, note: sealed ? "sealed — excluded from trend" : "" });
+    ns.reads.push({ d: tISO, w, sealed, note: sealed ? "sealed — excluded from trend" : "", pt: ns.trend });
     if (!sealed) ns.trend = +(ns.trend * 0.7 + w * 0.3).toFixed(1);
     const ns2 = runAdaptive(ns, tISO);
     setS(ns2); save(ns2);
@@ -1039,6 +1053,11 @@ function BodyTab({ s, setS, save }) {
             <Btn full small onClick={logWeight} disabled={already}>{already ? "Logged — once a day is the cap" : sealed ? "Log read (auto-sealed)" : "Log fasted read"}</Btn>
           </div>
         </div>
+        {already && (
+          <div style={{ marginTop: 8 }}>
+            <Btn small onClick={() => { const ns = undoRead(s, tISO); setS(ns); save(ns); }}>Undo today's read — fat-fingers happen</Btn>
+          </div>
+        )}
         <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>PROTOCOL: fasted · post-void · pre-food/water · 16 oz water ≈ +0.5–1 lb</div>
       </Card>
 
@@ -1083,6 +1102,11 @@ function BodyTab({ s, setS, save }) {
                   }}>{due ? (lastW ? "Log this week's waist" : "Log baseline waist") : `Logged — next ${fmtShort(isoOf(new Date(mk(lastW.d).getTime() + 7 * DAY)))}`}</Btn>
                 </div>
               </div>
+              {lastW && lastW.d === tISO && (
+                <div style={{ marginTop: 8 }}>
+                  <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.waist = ns.waist.filter((x) => x.d !== tISO); setS(ns); save(ns); }}>Undo today's waist</Btn>
+                </div>
+              )}
               <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>PROTOCOL: fasted · post-void · at navel · relaxed tape · weekly</div>
             </>
           );
@@ -1182,6 +1206,11 @@ function SleepTab({ s, setS, save, slp }) {
           <Stepper v={h} set={setH} step={0.5} min={0} />
           <div style={{ flex: 1 }}><Btn full small tone="jade" disabled={already} onClick={log}>{already ? "Logged" : "Bank it"}</Btn></div>
         </div>
+        {already && (
+          <div style={{ marginTop: 8 }}>
+            <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.sleep.nights = ns.sleep.nights.filter((n) => n.d !== lastNight); setS(ns); save(ns); }}>Undo last night's entry</Btn>
+          </div>
+        )}
       </Card>
 
       <Card>
