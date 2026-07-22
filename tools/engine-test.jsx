@@ -198,5 +198,16 @@ ok(JSON.stringify(SA).indexOf("ghtoken") === -1 && SA.v === 9 && Array.isArray(S
 const oldV8 = clone(SA); oldV8.v = 8; delete oldV8.photos; delete oldV8.sync;
 ok(mgA(oldV8).v === 9 && Array.isArray(mgA(oldV8).photos), "v8 phones patch to v9 cleanly");
 
-console.log(`\nFINAL7: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.1 — observed maintenance
+const { observedTDEE: ot, SEED: SB } = __test;
+ok(ot(clone(SB)) === null, "sealed window: observed maintenance correctly refuses to print");
+let ob = clone(SB); ob.blackout.until = "2026-07-01";
+const o1 = ot(ob);
+ok(o1 && o1.days >= 8 && o1.tdee > 2100 && o1.tdee < 2700, `post-seal it computes from real logs: ~${o1 && o1.tdee} over ${o1 && o1.days} days`);
+let ob2 = clone(SB); ob2.blackout.until = "2026-07-01"; ob2.dailyLogs = {};
+ok(ot(ob2) === null, "under 8 logged days: stays silent rather than guessing");
+
+console.log(`\nFINAL8: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

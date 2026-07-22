@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.0.0";
+const APP_V = "3.1.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -435,6 +435,20 @@ function applyRead(state, iso, w) {
   return s;
 }
 
+/* observed maintenance — your own intake and measured rate are the only honest calculator */
+function observedTDEE(s) {
+  if (daysUntil(s.blackout.until) > 0) return null;
+  const r = currentRate(s);
+  if (!r.measured) return null;
+  const cutoff = isoOf(new Date(todayStart().getTime() - 21 * DAY));
+  const cals = Object.entries(s.dailyLogs).filter(([d, v]) => d >= cutoff && v && v.cal != null).map(([, v]) => v.cal);
+  if (cals.length < 8) return null;
+  const avg = cals.reduce((a, b) => a + b, 0) / cals.length;
+  const fatWk = r.scale + s.model.drip;
+  const perDay = (fatWk * 3500 - s.model.drip * 600) / 7;
+  return { tdee: Math.round(avg + perDay), days: cals.length, avg: Math.round(avg) };
+}
+
 /* ETA (weeks) until est. BF reaches a target, simulating trend − rate, lean + drip */
 function etaWeeks(s, targetPct) {
   const r = currentRate(s);
@@ -596,7 +610,7 @@ function migrate(old) {
   return patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))));
 }
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1337,10 +1351,26 @@ function BodyTab({ s, setS, save }) {
       </Card>
 
       <Card>
-        <Eyebrow>MAINTENANCE LEDGER</Eyebrow>
-        <div style={{ display: "flex", gap: 20, marginTop: 8 }}>
+        <Eyebrow>MAINTENANCE LEDGER · LIVE</Eyebrow>
+        {(() => {
+          const obs = observedTDEE(s);
+          return obs ? (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+                <Num size={26} c={T.jade}>~{obs.tdee}</Num>
+                <span style={{ fontFamily: mono, fontSize: 10, color: T.dim }}>±100 · OBSERVED — {obs.days} logged days, avg intake {obs.avg}, your measured rate + the muscle-drip correction</span>
+              </div>
+              <div style={{ fontFamily: mono, fontSize: 10, color: T.steel, marginTop: 8 }}>Recalculates as you log. Falls as you shrink (~10 kcal/lb). The reverse in September aims at THIS number, not June's.</div>
+            </div>
+          ) : (
+            <div style={{ fontFamily: mono, fontSize: 11, color: T.steel, marginTop: 8 }}>
+              Observed maintenance prints when the seal lifts — computed from your logged intake and measured rate, then live for the rest of prep.
+            </div>
+          );
+        })()}
+        <div style={{ display: "flex", gap: 20, marginTop: 12, opacity: 0.75 }}>
           {s.maintenance.map((m, i) => (
-            <div key={i}><Num size={20}>{m.cal}</Num><div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textTransform: "uppercase" }}>{m.label}{m.note ? ` · ${m.note}` : ""}</div></div>
+            <div key={i}><Num size={16} c={T.steel}>{m.cal}</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim, textTransform: "uppercase" }}>{m.label} · JUNE ANCHOR</div></div>
           ))}
         </div>
       </Card>
