@@ -111,7 +111,7 @@ console.log(`\nFINAL2: ${pass} passed, ${fail} failed`);
 
 // v2.3 — order + completeness
 const { genSession: gs3, SEED: S6, migrate: mg3 } = __test;
-ok(S6.v === 5 && S6.exercises.some(e => e.id === "sulek") && S6.exercises.some(e => e.id === "hanging"), "Sulek + hanging raise now exist (the doc omitted them; the sheet didn't)");
+ok(S6.v >= 5 && S6.exercises.some(e => e.id === "sulek") && S6.exercises.some(e => e.id === "hanging"), "Sulek + hanging raise now exist (the doc omitted them; the sheet didn't)");
 const uSess = gs3(clone(S6), "2026-07-23", slpClean);
 ok(uSess.ex[0].id === "lateral" && uSess.ex[uSess.ex.length - 1].id === "pronated", "upper runs lateral-first, pronated-last — the 7/20 gym order");
 const lSess = gs3(clone(S6), "2026-07-24", slpClean);
@@ -120,7 +120,19 @@ let co = clone(S6); co.exOrder.U = [...co.exOrder.U].reverse();
 ok(gs3(co, "2026-07-23", slpClean).ex[0].id === "pronated", "custom reorder persists into generated sessions");
 const oldV4 = clone(S6); oldV4.v = 4; delete oldV4.exOrder; oldV4.exercises = oldV4.exercises.filter(e => e.id !== "sulek" && e.id !== "hanging");
 const m5 = mg3(oldV4);
-ok(m5.v === 5 && m5.exercises.some(e => e.id === "sulek") && Array.isArray(m5.exOrder.L), "existing phone states gain the new lifts and order cleanly");
+ok(m5.v >= 5 && m5.exercises.some(e => e.id === "sulek") && Array.isArray(m5.exOrder.L), "existing phone states gain the new lifts and order cleanly");
 
 console.log(`\nFINAL3: ${pass} passed, ${fail} failed`);
 // (summary moved to end)
+
+// v2.4 — setups
+const { SEED: S7, migrate: mg4, genSession: gs4 } = __test;
+ok(S7.v === 6 && S7.exercises.every(e => typeof e.setup === "string" && e.setup.length > 10), "every lift carries its settings + cues");
+ok(S7.exercises.find(e => e.id === "sulek").n.indexOf("forearm") > -1, "Sulek corrected to what it actually is — forearm work");
+ok(gs4(clone(S7), "2026-07-23", slpClean).ex[0].setup.indexOf("resistance profile 5") > -1, "setup rides into the generated session card");
+const oldV5 = clone(S7); oldV5.v = 5; oldV5.exercises.forEach(e => { delete e.setup; e.n = e.n === "Sulek curl (forearm)" ? "Sulek raise" : e.n; });
+const m6 = mg4(oldV5);
+ok(m6.v === 6 && m6.exercises.every(e => e.setup) && m6.exercises.find(e => e.id === "sulek").n.indexOf("forearm") > -1, "existing phones gain blurbs and the name fix");
+
+console.log(`\nFINAL4: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);

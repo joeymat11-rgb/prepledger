@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "2.3.0";
+const APP_V = "2.4.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -44,22 +44,37 @@ const REFEED = { cal: "2,450–2,500", note: "weekly Wednesday — prescribed, n
 /* ---------- exercise seed (state as of Wed 7/22/26) ---------- */
 const EXERCISES = [
   /* UPPER — order per the 7/20 session note */
-  { id: "lateral", n: "Lateral machine", day: "U", w: 80, inc: 5, sets: 3, hi: 15, last: [14, 13, 13] },
-  { id: "rearDelt", n: "Rear delts", day: "U", w: 20, inc: 2.5, sets: 2, hi: 12, last: [10, 10], note: "honest 10s — no hot opener" },
-  { id: "rows", n: "Rows (strapless)", day: "U", w: 175, inc: 5, sets: 2, hi: 10, last: [10, 10] },
-  { id: "curl", n: "Curls", day: "U", w: "55·55·50", inc: 5, sets: 3, hi: 12, last: [12, 8, 10], ladder: { set: 1, top: 12 } },
-  { id: "press", n: "Press", day: "U", w: 245, inc: 5, sets: 3, hi: 9, last: [8, 7, 6], std: [8, 8, 7], own: true, ownNote: "repeat 8,8,7 on a clean day — no load until owned" },
-  { id: "pulldown", n: "Pulldown", day: "U", w: 160, inc: 10, sets: 2, hi: 10, last: [8, 8] },
-  { id: "sulek", n: "Sulek raise", day: "U", w: 87.5, inc: 2.5, sets: 2, hi: 15, last: [12, 8], note: "moving to fixed cable at the Prime delt machine — baseline resets there (coach call)" },
-  { id: "tricep", n: "Tricep", day: "U", w: 55, inc: 5, sets: 3, hi: 13, last: [12, 11, 10] },
-  { id: "pronated", n: "Pronated curl", day: "U", w: 40, inc: 5, sets: 2, hi: 13, last: [12, 11] },
+  { id: "lateral", n: "Lateral machine", day: "U", w: 80, inc: 5, sets: 3, hi: 15, last: [14, 13, 13],
+    setup: "SET · resistance profile 5 · seat 5\nUpright, elbow-led (the set-4 fix) · no shrug creep · smooth top, no swing" },
+  { id: "rearDelt", n: "Rear-delt fly (cable)", day: "U", w: 20, inc: 2.5, sets: 2, hi: 12, last: [10, 10], note: "honest 10s — no hot opener",
+    setup: "SET · unilateral · cable at highest height\nChest tall, shoulders back & down (?) · pure sweep — the opener fix is proven here" },
+  { id: "rows", n: "Rows (strapless)", day: "U", w: 175, inc: 5, sets: 2, hi: 10, last: [10, 10],
+    setup: "SET · seat 4 · chest pad 7 · retrace profile 1\nChest stays glued to pad · pinch the blades at the back · strapless is the standard" },
+  { id: "curl", n: "Curls", day: "U", w: "55·55·50", inc: 5, sets: 3, hi: 12, last: [12, 8, 10], ladder: { set: 1, top: 12 },
+    setup: "SET · resistance profile 5 · seat 3\nSet 2 is the money set · no shoulder creep when it grinds" },
+  { id: "press", n: "Press", day: "U", w: 245, inc: 5, sets: 3, hi: 9, last: [8, 7, 6], std: [8, 8, 7], own: true, ownNote: "repeat 8,8,7 on a clean day — no load until owned",
+    setup: "SET · cam 5 · lowest seat\nShoulders back & down into the pad · controlled 8s, no bottom bounce — this lift was won on the honest opener" },
+  { id: "pulldown", n: "Pulldown", day: "U", w: 160, inc: 10, sets: 2, hi: 10, last: [8, 8],
+    setup: "SET · silver bar · thumbs in the same spot every session\nSame grip = comparable reps · chest up, elbows down-and-in · strapless" },
+  { id: "sulek", n: "Sulek curl (forearm)", day: "U", w: 87.5, inc: 2.5, sets: 2, hi: 15, last: [12, 8],
+    setup: "SET · cable, highest rung · straight bar\nSam Sulek's signature — strict curl biasing the forearm flexors · elbows quiet, slow negative" },
+  { id: "tricep", n: "Tricep", day: "U", w: 55, inc: 5, sets: 3, hi: 13, last: [12, 11, 10],
+    setup: "SET · seat 4 · back pad all the way forward · middle peg through the cut\nElbows pinned · bottom-peg stretch waits for the build phase" },
+  { id: "pronated", n: "Pronated EZ curl", day: "U", w: 40, inc: 5, sets: 2, hi: 13, last: [12, 11],
+    setup: "SET · EZ bar, pronated grip\nElbows pinned to sides, zero swing · wrists locked — don't let them bend back under load · 2–3 s negative, that's where this one grows · your 11,6 session was the hot-opener demo" },
   /* LOWER — order per the 7/17 & 7/21 notes, identical both days */
-  { id: "calves", n: "Calves", day: "L", w: 315, inc: 15, sets: 4, hi: 13, last: [12, 10, 9, 8], reclaim: [13, 12, 11, 10] },
-  { id: "abs", n: "Abs", day: "L", w: 100, inc: 5, sets: 3, hi: 14, last: null, first: [12, 12, 12], debutNote: "DEBUT — new baseline, log honest" },
-  { id: "hanging", n: "Hanging raise", day: "L", w: "BW", inc: null, sets: 2, hi: 8, last: [6, 5] },
-  { id: "hack", n: "Hack squat", day: "L", w: "hold", inc: null, sets: 2, hi: 13, last: [13, 12], pendingThird: true },
-  { id: "extension", n: "Leg extension", day: "L", w: 150, inc: 5, sets: 2, hi: 10, last: [9, 6], std: [9, 9], own: true, ownNote: "own 150×9,9 — then the 155 gate reopens" },
-  { id: "ham", n: "Ham curl", day: "L", w: 120, inc: 10, sets: 2, hi: 12, last: [10, 10] },
+  { id: "calves", n: "Calves", day: "L", w: 315, inc: 15, sets: 4, hi: 13, last: [12, 10, 9, 8], reclaim: [13, 12, 11, 10],
+    setup: "SET · shoulder height 4\n5 s pause in the stretched position · back up to neutral · no bounce out of the hole — the pause IS the rep · drive through the big toe" },
+  { id: "abs", n: "Abs", day: "L", w: 100, inc: 5, sets: 3, hi: 14, last: null, first: [12, 12, 12], debutNote: "DEBUT — new baseline, log honest",
+    setup: "SET · back pad A · seat 6\nSame tempo every session — the load only moves on clean, even reps" },
+  { id: "hanging", n: "Hanging raise", day: "L", w: "BW", inc: null, sets: 2, hi: 8, last: [6, 5],
+    setup: "SET · bodyweight\nSlouch down/out to engage the core at rep 1 · constant tension, spine stays rounded · no swing between reps" },
+  { id: "hack", n: "Hack squat", day: "L", w: "hold", inc: null, sets: 2, hi: 13, last: [13, 12], pendingThird: true,
+    setup: "SET · foot placement = your favorited pic\nSame depth every rep · even sets are the standard here (11,11 → 12,12 → 13,13)" },
+  { id: "extension", n: "Leg extension", day: "L", w: 150, inc: 5, sets: 2, hi: 10, last: [9, 6], std: [9, 9], own: true, ownNote: "own 150×9,9 — then the 155 gate reopens",
+    setup: "SET · shin pad height A · depth 3 · seat back all the way back — max quad stretch\nNo jerk at lockout · runs after hack by design, read dips as order effect" },
+  { id: "ham", n: "Ham curl", day: "L", w: 120, inc: 10, sets: 2, hi: 12, last: [10, 10],
+    setup: "SET · back 5 · calf pad height C · depth 3 · resistance profile 5\nHips pinned down, no lift-off · full stretch at the top of every rep" },
 ];
 
 /* ---------- seed state ---------- */
@@ -129,7 +144,7 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 5;
+  SEED.v = 6;
   SEED.exOrder = { U: SEED.exercises.filter((e) => e.day === "U").map((e) => e.id), L: SEED.exercises.filter((e) => e.day === "L").map((e) => e.id) };
   SEED.waist = [];
   SEED.exercises.forEach((e) => { e.rirHist = []; });
@@ -231,7 +246,7 @@ function genSession(s, iso, slp) {
     else if (q && !e.last) { tgt = targetsFor(e); note = e.debutNote || `DEBUT at ${w}`; }
     else { tgt = targetsFor(e); note = e.own ? `OWN-IT — ${e.ownNote}` : e.reclaim ? "RECLAIM — the exact standard" : e.ladder ? `set ${e.ladder.set + 1} is the ladder — top of rung ${e.ladder.top}` : e.note; }
     if (e.holdFlag) note = "HELD — opener ran 0 RIR twice · one honest session releases it";
-    return { id: e.id, n: e.n, w, tgt, note, isDebutNow };
+    return { id: e.id, n: e.n, w, tgt, note, isDebutNow, setup: e.setup };
   });
   return { name: dt === "U" ? "UPPER" : "LOWER", structural: main ? main.t : "none queued — rep progression day", structuralId: main ? main.id : null, riderIds: riders.map((r) => r.id), ex };
 }
@@ -464,9 +479,17 @@ function patchV5(s) {
   s.v = 5;
   return s;
 }
+function patchV6(s) {
+  SEED.exercises.forEach((se) => {
+    const e = s.exercises.find((x) => x.id === se.id);
+    if (e) { e.setup = se.setup; e.n = se.n; }
+  });
+  s.v = 6;
+  return s;
+}
 function migrate(old) {
-  if (old && old.v === 5) return old;
-  if (old && (old.v === 4 || old.v === 3)) return patchV5(patchV4(JSON.parse(JSON.stringify(old))));
+  if (old && old.v === 6) return old;
+  if (old && old.v >= 3 && old.v <= 5) return patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -492,7 +515,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV5(patchV4(s));
+  return patchV6(patchV5(patchV4(s)));
 }
 
 export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, SEED, dayType, HISTORY, ROLLUPS };
@@ -798,6 +821,7 @@ function LogTab({ s, setS, save, slp }) {
   const [note, setNote] = useState("");
   const [nig, setNig] = useState([]);
   const [reorder, setReorder] = useState(false);
+  const [showSetup, setShowSetup] = useState({});
   const [recap, setRecap] = useState(null);
   const [boosted, setBoosted] = useState(false);
   const trueShort = slp.last && slp.last.h < 4.5;
@@ -881,6 +905,17 @@ function LogTab({ s, setS, save, slp }) {
             )}
           </div>
           {ex.note && <div style={{ fontFamily: mono, fontSize: 10, color: ex.isDebutNow || (ex.note || "").startsWith("OWN") ? T.orange : T.dim, marginTop: 3, letterSpacing: "0.04em" }}>{ex.note}</div>}
+          {ex.setup && (
+            <div style={{ marginTop: 7 }}>
+              <button onClick={() => setShowSetup({ ...showSetup, [ex.id]: !showSetup[ex.id] })}
+                style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.12em", color: showSetup[ex.id] ? T.chalk : T.dim, background: "none", border: "none", padding: 0 }}>
+                {showSetup[ex.id] ? "▾ SETUP + CUES" : "▸ SETUP + CUES"}
+              </button>
+              {showSetup[ex.id] && ex.setup.split("\n").map((l, i) => (
+                <div key={i} style={{ fontFamily: mono, fontSize: 10, color: i === 0 ? T.chalk : T.steel, marginTop: i === 0 ? 6 : 4, lineHeight: 1.55 }}>{l}</div>
+              ))}
+            </div>
+          )}
           <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
             {getReps(ex).map((r, i) => (
               <div key={i}>
