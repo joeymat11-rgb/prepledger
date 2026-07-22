@@ -28,6 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
+const APP_V = "2.2.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1340,7 +1341,7 @@ function Rules({ onClose, onReset, onExport, onImport }) {
           <Btn small onClick={onReset}>Reset to seeded state (7/22)</Btn>
         </div>
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 12 }}>
-          The ledger lives on this device only. Export after big weeks — the backup file is the insurance policy.
+          The ledger lives on this device only. Export after big weeks — the backup file is the insurance policy. · Prep Ledger v{APP_V}
         </div>
       </div>
     </div>
