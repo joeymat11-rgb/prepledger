@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.2.1";
+const APP_V = "3.3.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -472,8 +472,9 @@ function labAnalytics(s) {
   const reads = s.reads.filter((r) => !r.sealed);
   const readByD = {}; reads.forEach((r) => { readByD[r.d] = r.w; });
   const nextDay = (d) => isoOf(new Date(mk(d).getTime() + DAY));
+  const bfNow = bfEst(s);
 
-  /* 1 · whoosh signature (event spikes → clearance) */
+  /* 1 · whoosh signature */
   const eps = [];
   for (let i = 1; i < reads.length; i++) {
     if (reads[i].w - reads[i - 1].w >= 2) {
@@ -484,17 +485,28 @@ function labAnalytics(s) {
     }
   }
   const ev = s.events.find((e) => !e.estimated && daysUntil(e.d) >= -1 && daysUntil(e.d) <= 3);
+  const ds0 = eps.map((e) => e.days).sort((a, b) => a - b);
+  const hiC = ds0.length >= 3 ? ds0[ds0.length - 2] : ds0[ds0.length - 1];
   out.push({ id: "whoosh", t: "WHOOSH SIGNATURE", status: eps.length >= 2 ? "LIVE" : "ARMED", prog: { n: eps.length, need: 2, label: "spike→drain episodes" },
+    tag: "How fast event water leaves YOUR body — measured, per event.",
+    deep: "Big meals spike the scale with sodium, glycogen, and gut content — not fat (a 4.6 lb fat gain would need ~16,000 surplus calories, not one dinner). This model measured how long each of your spikes took to clear, so future spikes arrive pre-labeled with an exit date instead of a panic.",
+    forYou: eps.length >= 2
+      ? (ev ? `${ev.t} ${fmtShort(ev.d)}: expect a next-morning spike somewhere in your +${Math.min(...eps.map(e => e.jump))} to +${Math.max(...eps.map(e => e.jump))} range, clearing in ${ds0[0]}–${hiC} days. Every reading in that window is pre-dismissed. Monday's first clean read may still carry residue — the damped trend already knows.`
+        : "No event in range — nothing to brace for. The model sits ready for the next one life schedules.")
+      : "Needs one more spike→clear cycle to speak.",
     lines: eps.length >= 2 ? [
-      `${eps.length} episodes in you · spikes +${Math.min(...eps.map(e => e.jump))} to +${Math.max(...eps.map(e => e.jump))} · clearance ${Math.min(...eps.map(e => e.days))}–${Math.max(...eps.map(e => e.days))} days`,
-      (() => { const ds = eps.map((e) => e.days).sort((a, b) => a - b); const hi = ds.length >= 3 ? ds[ds.length - 2] : ds[ds.length - 1]; return ev ? `next test: ${ev.t} ${fmtShort(ev.d)} → clear window ${fmtShort(isoOf(new Date(mk(ev.d).getTime() + ds[0] * DAY)))}–${fmtShort(isoOf(new Date(mk(ev.d).getTime() + hi * DAY)))} (chained events ran ${ds[ds.length - 1]}d once) · hands off levers until it lands` : "no event in range — model idle, watching"; })(),
+      `${eps.length} episodes in you · spikes +${Math.min(...eps.map(e => e.jump))} to +${Math.max(...eps.map(e => e.jump))} · clearance ${ds0[0]}–${hiC} days (one chained-event stretch ran ${ds0[ds0.length - 1]}d)`,
     ] : [] });
 
   /* 2 · refeed bump line */
   const refDs = HISTORY.filter((h) => h.cal != null && h.cal >= 2100 && /\bREFEED\b/.test(h.note || "") && !/REFEED SKIPPED/i.test(h.note || "")).map((h) => h.d);
   const bumps = refDs.map((d) => (readByD[d] != null && readByD[nextDay(d)] != null ? +(readByD[nextDay(d)] - readByD[d]).toFixed(1) : null)).filter((x) => x != null);
+  const nxtWed = (() => { let d = todayStart(); for (let i = 1; i <= 7; i++) { const t2 = new Date(d.getTime() + i * DAY); if (t2.getDay() === 3) return isoOf(t2); } return null; })();
   out.push({ id: "refeed", t: "REFEED BUMP LINE", status: bumps.length >= 2 ? "LIVE" : "ARMED", prog: { n: bumps.length, need: 2, label: "measured refeed mornings" },
-    lines: bumps.length >= 2 ? [`your next-morning delta: ${bumps.slice().sort((a,b)=>a-b).map((x)=>x>0?`+${x}`:`${x}`).join(" · ")} (n=${bumps.length}) · water, prescribed — tomorrow's bump is pre-explained tonight`] : [] });
+    tag: "Your personal morning-after-refeed number.",
+    deep: "Refeed carbs bind water into muscle glycogen (~3 g of water per gram of carbohydrate stored). The next-morning bump is that storage — it is literally the fullness you are dieting FOR, wearing a scary costume on the scale.",
+    forYou: bumps.length >= 2 ? `Next refeed ${nxtWed ? fmtShort(nxtWed) : "Wednesday"}: the morning after can land anywhere in your measured spread. A Thursday +1 is chapter and verse — you lift heavier ON the bump, not despite it.` : "Two measured refeed mornings unlock it.",
+    lines: bumps.length >= 2 ? [`your next-morning delta: ${bumps.slice().sort((a, b) => a - b).map((x) => x > 0 ? `+${x}` : `${x}`).join(" · ")} (n=${bumps.length})`] : [] });
 
   /* 3 · personal noise floor */
   const deltas = [];
@@ -503,7 +515,10 @@ function labAnalytics(s) {
   }
   const sdN = deltas.length >= 8 ? Math.sqrt(deltas.reduce((a, b) => a + b * b, 0) / deltas.length) : null;
   out.push({ id: "noise", t: "YOUR NOISE FLOOR", status: sdN ? "LIVE" : "ARMED", prog: { n: deltas.length, need: 8, label: "clean day-pairs" },
-    lines: sdN ? [`±${sdN.toFixed(1)} lb day-to-day (n=${deltas.length}) — a morning move inside that band is not information, and the scale card now says so`] : [] });
+    tag: "The size of a meaningless scale move, in you specifically.",
+    deep: "Even at perfect protocol — fasted, post-void — daily weight wobbles from water, sodium, gut content, and timing. Below your measured band a change is statistically indistinguishable from nothing. This converts 'don't react to one day' from advice into a calibrated instrument.",
+    forYou: sdN ? `Monday's first clean read: judge it against the trend (${s.trend}), never against 7/21's 163.2 — and any morning within ±${sdN.toFixed(1)} of expectation is zero information. The scale card now stamps those automatically. Two consecutive lows = signal beginning.` : "Eight clean consecutive-day pairs calibrate it.",
+    lines: sdN ? [`±${sdN.toFixed(1)} lb day-to-day (n=${deltas.length})`] : [] });
 
   /* 4 · masked-loss monitor */
   const last5 = reads.slice(-5);
@@ -512,27 +527,36 @@ function labAnalytics(s) {
   const cals5 = last5.map((r) => (s.dailyLogs[r.d] || {}).cal).filter((c) => c != null);
   const compliant = cals5.length >= 4 && cals5.every((c) => c <= ph.band[1] + 150);
   out.push({ id: "masked", t: "MASKED-LOSS MONITOR", status: "LIVE", prog: null,
-    lines: sealed ? ["sealed — monitor resumes Monday with the first clean read"] : flatWin && compliant ? ["FLAT + COMPLIANT ≥5 DAYS — water is holding a drop that's coming. This is the exact moment people panic-cut. Hands off; your 6/28–7/2 whoosh is the receipt."] : ["watching — fires when the trend flattens under compliant intake"] });
+    tag: "Catches the fake stall before you react to it.",
+    deep: "Water can hold the scale flat for days while fat loss continues underneath, then release at once — your 6/28→7/2 whoosh was exactly this. Flat trend plus compliant intake for 5+ days means the drop is loading, not missing. It is the single most common moment people panic-cut, and the one your last prep's ghosts live in.",
+    forYou: sealed ? "Sealed until Monday. For the record: in six weeks of history, every flat stretch under compliant intake broke DOWNWARD. The system has never actually stalled on you — remember that Tuesday if the scale plays dead."
+      : flatWin && compliant ? "FIRING NOW — flat + compliant ≥5 days. The drop is loading. Touch nothing."
+      : "Watching. If it fires, the card will say so here, and the correct response is written on it: hands off.",
+    lines: [] });
 
-  /* 5 · step-creep v2 */
+  /* 5 · step-creep radar v2 */
   const stepDays = Object.entries(s.dailyLogs).filter(([d, v]) => d > "2026-07-21" && v.steps != null);
   out.push({ id: "creep", t: "STEP-CREEP RADAR v2", status: stepDays.length >= 14 ? "LIVE" : "ARMED", prog: { n: stepDays.length, need: 14, label: "post-handoff step days" },
-    lines: stepDays.length >= 14 ? ["watching the 7-day floor — a rising floor with rate in band gets named at recurrence 2, not 7"] : [] });
+    tag: "Names manufactured steps at recurrence 2, not 7.",
+    deep: "Organic high-step days get fed and forgotten. A quietly rising 7-day step FLOOR — the minimum creeping up — is compensation sneaking in the back door. That pattern took seven recurrences to catch by hand last time; the radar flags the floor at two.",
+    forYou: stepDays.length >= 14 ? "Live and watching the floor." : `Armed at ${stepDays.length}/14. Until then the manual tell stands: a step day that feels EARNED rather than HAPPENED is the creep talking.`,
+    lines: [] });
 
-  /* 6 · the Tuesday/Friday natural experiment */
+  /* 6 · Tue/Fri experiment */
   const wkKey = (d) => { const dt = mk(d); const off = (dt.getDay() + 6) % 7; return isoOf(new Date(dt - off * DAY)); };
   const weeks = {};
   Object.keys(s.sessionLog).forEach((d) => { const dow = mk(d).getDay(); if (dayType(d) === "L") { (weeks[wkKey(d)] = weeks[wkKey(d)] || {})[dow === 2 ? "tue" : dow === 5 ? "fri" : "x"] = d; } });
   const pairs = Object.values(weeks).filter((w) => w.tue && w.fri);
-  let tf = [];
+  let tfAvg = 0;
   if (pairs.length >= 4) {
-    pairs.forEach((pr) => {
-      const sum = (d) => (s.sessionLog[d].entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0);
-      tf.push(sum(pr.fri) - sum(pr.tue));
-    });
+    const sums = pairs.map((pr) => { const sum = (d) => (s.sessionLog[d].entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0); return sum(pr.fri) - sum(pr.tue); });
+    tfAvg = Math.round(sums.reduce((a, b) => a + b, 0) / sums.length);
   }
   out.push({ id: "tuefri", t: "TUE/FRI EXPERIMENT — REFEED DISTANCE", status: pairs.length >= 4 ? "LIVE" : "ARMED", prog: { n: pairs.length, need: 4, label: "paired weeks" },
-    lines: pairs.length >= 4 ? [`Friday (2 days post-refeed) runs ${tf.reduce((a, b) => a + b, 0) / tf.length > 0 ? "+" : ""}${Math.round(tf.reduce((a, b) => a + b, 0) / tf.length)} total lower-day reps vs Tuesday (6 days out), n=${tf.length} — glycogen distance, measured in you`] : ["your split accidentally built a controlled experiment · first pair completes Tue 7/28 + Fri 7/31"] });
+    tag: "Your split accidentally built a controlled experiment.",
+    deep: "Friday lower sits 2 days after the Wednesday refeed; Tuesday lower sits 6 days out. Same lifts, same you, different glycogen distance, repeating weekly — the cleanest causal test of refeed timing a training week could construct, and yours did it by accident.",
+    forYou: pairs.length >= 4 ? `Friday runs ${tfAvg >= 0 ? "+" : ""}${tfAvg} total reps vs Tuesday on average — ${Math.abs(tfAvg) >= 5 ? "a real gap: evidence for repositioning or doubling refeeds at Ease 2, a coach conversation with data instead of vibes." : "no meaningful gap yet; refeed placement is fine as is."}` : "First pair completes Tue 7/28 + Fri 7/31. If a consistent gap shows by mid-August, that's ammunition for the Ease-2 refeed conversation — data, not vibes.",
+    lines: [] });
 
   /* 7 · rep-drop fingerprints */
   const sesN = Object.keys(s.sessionLog).length;
@@ -550,33 +574,49 @@ function labAnalytics(s) {
     }));
   }
   out.push({ id: "fingerprint", t: "REP-DROP FINGERPRINTS", status: sesN >= 8 ? "LIVE" : "ARMED", prog: { n: sesN, need: 8, label: "completed sessions" },
-    lines: sesN >= 8 ? [`opener-down ${fp.opener} (readiness) · tail-down ${fp.tail} (fuel) · broad ${fp.broad} (systemic) — where reps fall tells you which lever to pull`] : [] });
+    tag: "WHERE reps fall says WHY they fell.",
+    deep: "Opener down, tail intact = readiness (sleep, CNS). Opener intact, tail collapsing = fuel (glycogen, refeed distance). Everything down = systemic recovery. Different diagnoses, different levers — pulling the wrong one is how good preps get wrecked.",
+    forYou: sesN >= 8 ? `Your distribution: opener ${fp.opener} · tail ${fp.tail} · broad ${fp.broad}. The dominant pattern names your dominant lever.` : `${sesN}/8 sessions. Already usable by hand: your 7/21 lower was the textbook BROAD dip — systemic, sleep-attributed, correctly blamed on the ledger and not the programming.`,
+    lines: [] });
 
   /* 8 · sleep→lift lag */
   const shortNights = s.sleep.nights.filter((n) => n.d > "2026-07-21" && n.h < 6.5).length;
-  out.push({ id: "sleeplag", t: "SLEEP→LIFT LAG MAP", status: shortNights >= 6 ? "LIVE" : "ARMED", prog: { n: shortNights, need: 6, label: "short-night observations (no need to rush these)" }, lines: [] });
+  out.push({ id: "sleeplag", t: "SLEEP→LIFT LAG MAP", status: shortNights >= 6 ? "LIVE" : "ARMED", prog: { n: shortNights, need: 6, label: "short-night observations (no need to rush these)" },
+    tag: "Does a bad night hit you same-day or the day after?",
+    deep: "Sleep-debt effects on performance can land immediately or ~24–48 h delayed, and differently by lift class — heavy compounds usually pay first. Your lag decides which day own-attempts get scheduled after a rough night.",
+    forYou: shortNights >= 6 ? "Live — check the per-class lag before scheduling own-attempts." : `${shortNights}/6 — the one gate you should fail to feed quickly. Until it speaks, assume next-day risk on compounds: your 4.5 h night of 7/16 landed hardest on the 7/17 lower.`,
+    lines: [] });
 
   /* 9 · RIR truth-check */
   const rir1 = [];
   Object.values(s.sessionLog).forEach((sl) => (sl.entries || []).forEach((e) => { if (e.rir === 1 && e.reps && e.reps.length >= 2) rir1.push(e.reps[e.reps.length - 1] <= e.reps[0] - 3); }));
   out.push({ id: "rirtruth", t: "RIR CALIBRATION CHECK", status: rir1.length >= 10 ? "LIVE" : "ARMED", prog: { n: rir1.length, need: 10, label: "logged RIR-1 openers" },
-    lines: rir1.length >= 10 ? [`${Math.round(100 * rir1.filter(Boolean).length / rir1.length)}% of your "1"s preceded a tail crater — ${rir1.filter(Boolean).length / rir1.length > 0.4 ? "your 1 behaves like a 0 in the stim window; call it a 0" : "your 1 is honest; carry on"}`] : [] });
+    tag: "Is your 'one left in the tank' actually a one?",
+    deep: "Stimulants suppress perceived effort, and you lift at peak stack. If your logged 1s keep preceding tail craters, your 1 is behaving like a 0 — measurable, and correctable with a stated offset instead of a vague warning.",
+    forYou: rir1.length >= 10 ? `${Math.round(100 * rir1.filter(Boolean).length / rir1.length)}% of your 1s preceded a crater — ${rir1.filter(Boolean).length / rir1.length > 0.4 ? "call your noon 1 a 0 from here." : "your 1 is honest; carry on."}` : `${rir1.length}/10. Until it speaks, the standing rule covers you: unsure between 1 and 0 at noon = it was 0.`,
+    lines: [] });
 
-  /* 10 · note-mining + cue graduation */
+  /* 10 · note-mining */
   const notes = Object.values(s.sessionLog).map((sl) => sl.note).filter((n) => n && n.length > 3);
   const stop = new Set(["with", "that", "this", "from", "sets", "reps", "good", "than", "last", "next", "after", "then", "were", "just", "very", "when", "session"]);
   const tok = {};
   notes.forEach((n) => n.toLowerCase().split(/[^a-z]+/).forEach((w) => { if (w.length >= 4 && !stop.has(w)) tok[w] = (tok[w] || 0) + 1; }));
   const top = Object.entries(tok).filter(([, c]) => c >= 3).sort((a, b) => b[1] - a[1]).slice(0, 5);
   out.push({ id: "notes", t: "NOTE-MINING · CUE GRADUATION", status: notes.length >= 10 ? "LIVE" : "ARMED", prog: { n: notes.length, need: 10, label: "session notes" },
-    lines: notes.length >= 10 ? (top.length ? [`repeating in your own words: ${top.map(([w, c]) => `"${w}" ×${c}`).join(" · ")} — anything ×3+ can graduate into SETUP; say the word`] : ["no phrase has repeated 3× yet — your notes are still all originals"]) : [] });
+    tag: "Your own words, mined for the patterns you keep repeating.",
+    deep: "Free text catches what numbers can't — 'wired', 'set-4 anomaly', 'grinding'. A word repeating across 3+ sessions is a pattern announcing itself, and a technique cue that keeps recurring can graduate into the permanent SETUP blurb. Your notes literally author the app.",
+    forYou: notes.length >= 10 ? (top.length ? `Repeating in your own words: ${top.map(([w, c]) => `"${w}" ×${c}`).join(" · ")} — say the word and any of them graduates into SETUP.` : "No phrase has repeated 3× yet — all originals so far.") : `${notes.length}/10 notes. The lateral 'upright, elbow-led' cue in SETUP came from exactly one of these — that's the bar.`,
+    lines: [] });
 
   /* 11 · miss-antecedent map */
   const misses = Object.entries(s.dailyLogs).filter(([d, v]) => d > "2026-07-21" && v.pro != null && Math.abs(v.pro - PROTEIN) > 10);
   out.push({ id: "miss", t: "MISS-ANTECEDENT MAP", status: misses.length >= 4 ? "LIVE" : "ARMED", prog: { n: misses.length, need: 4, label: "protein misses (may this stay armed forever)" },
-    lines: misses.length >= 4 ? [misses.map(([d]) => fmtShort(d)).join(" · ") + " — checking each for event-adjacency and short sleep the night before; prevention beats recovery"] : [] });
+    tag: "Turns protein recovery into protein prevention.",
+    deep: "Every miss gets its context attached — event-adjacent? travel? short sleep the night before? Repeated antecedents become trap-day warnings issued in advance, converting your excellent 24-hour-fix record into not-needing-the-fix.",
+    forYou: misses.length >= 4 ? misses.map(([d]) => fmtShort(d)).join(" · ") + " — checking each for shared antecedents." : "0 misses since handoff — the correct number. Staying armed all prep is this card's win condition.",
+    lines: [] });
 
-  /* 14 · pivot probability cone (Monte Carlo on your rate variance) */
+  /* 14 · pivot probability cone */
   const w2 = s.weekly;
   const rts = [];
   for (let i = 1; i < w2.length; i++) rts.push((w2[i - 1].trend - w2[i].trend) / Math.max(0.5, weeksBetween(w2[i - 1].wk, w2[i].wk)));
@@ -587,7 +627,7 @@ function labAnalytics(s) {
     const gauss = () => Math.sqrt(-2 * Math.log(Math.max(1e-9, rnd()))) * Math.cos(2 * Math.PI * rnd());
     const hits = [];
     for (let k = 0; k < 400; k++) {
-      let tr = s.trend, ln = bfEst(s).lean, wk3 = 0;
+      let tr = s.trend, ln = bfNow.lean, wk3 = 0;
       for (; wk3 < 30; wk3++) {
         if (((tr - ln) / tr) * 100 <= 11.2) break;
         tr -= Math.max(0.2, mu + sg * gauss()); ln += s.model.drip;
@@ -595,20 +635,36 @@ function labAnalytics(s) {
       hits.push(wk3);
     }
     hits.sort((a, b) => a - b);
-    const dAt = (wq) => fmtShort(isoOf(new Date(todayStart().getTime() + hits[Math.floor(hits.length * wq)] * 7 * DAY)));
+    const dISO = (wq) => isoOf(new Date(todayStart().getTime() + hits[Math.floor(hits.length * wq)] * 7 * DAY));
+    const p50 = dISO(0.5);
+    const inWindow = p50 >= "2026-09-02" && p50 <= "2026-09-29";
     out.push({ id: "cone", t: "PIVOT PROBABILITY CONE", status: "LIVE", prog: null,
-      lines: [`80% of simulated preps hit the pivot band between ${dAt(0.1)} and ${dAt(0.9)} · median ${dAt(0.5)} · drawn from YOUR ${rts.length} weekly rates (μ ${mu.toFixed(2)}, σ ${sg.toFixed(2)}) — the cone narrows as clean weeks land`] });
+      tag: "400 simulated versions of your prep, racing to the pivot.",
+      deep: `Instead of one fake-precise date, it runs your prep 400 times. Each simulated week draws a loss rate from YOUR measured mean and spread (μ ${mu.toFixed(2)}, σ ${sg.toFixed(2)}), adds the muscle drip, and records when that run crosses ~11%. The gap between the fast and slow runs IS the honest uncertainty — a cone, not a promise.`,
+      forYou: `Median run lands ${fmtShort(p50)} — ${inWindow ? "your own data independently CONFIRMS the coach's-eye 'mid/late September' call. Two different instruments, same answer." : "your data currently runs " + (p50 < "2026-09-02" ? "ahead of" : "behind") + " the doc's September window — worth a coach conversation, not a lever pull."} The cone narrows with every clean Monday read, shifts honestly when Ease 2 slows the scale by design, and re-anchors entirely the day DEXA lands.`,
+      lines: [`80% of runs hit the pivot band between ${fmtShort(dISO(0.1))} and ${fmtShort(dISO(0.9))} · median ${fmtShort(p50)} · from your ${rts.length} weekly rates`] });
   } else {
-    out.push({ id: "cone", t: "PIVOT PROBABILITY CONE", status: "ARMED", prog: { n: rts.length, need: 4, label: "weekly rates" }, lines: [] });
+    out.push({ id: "cone", t: "PIVOT PROBABILITY CONE", status: "ARMED", prog: { n: rts.length, need: 4, label: "weekly rates" }, tag: "400 simulated preps racing to the pivot.", deep: "Monte Carlo over your measured weekly rates.", forYou: "Four weekly rates unlock it.", lines: [] });
   }
 
   /* 15 · DEXA reconciliation */
   out.push({ id: "dexarecon", t: "DEXA RECONCILIATION", status: s.dexaRecon ? "LIVE" : "ARMED", prog: { n: s.dexaRecon ? 1 : 0, need: 1, label: "DEXA anchor" },
-    lines: s.dexaRecon ? [`eye model read ${s.dexaRecon.eye}% when DEXA said ${s.dexaRecon.dexa}% (Δ ${s.dexaRecon.delta > 0 ? "+" : ""}${s.dexaRecon.delta}) — every estimate since runs on measured ground`] : [] });
+    tag: "Scores the eye against the machine — once.",
+    deep: "The instant DEXA lands, the model's estimate at that moment is frozen next to the measured number. The delta tells us whose eye to trust, and every downstream estimate and ETA re-anchors to measured ground.",
+    forYou: s.dexaRecon ? `The eye read ${s.dexaRecon.eye}% when DEXA said ${s.dexaRecon.dexa}% (Δ ${s.dexaRecon.delta > 0 ? "+" : ""}${s.dexaRecon.delta}). Everything since runs on measured ground.` : `Expected outcome: DEXA reads HIGHER than the eye (~16 vs ~${bfNow.pct}) — that's method offset, not bad news; lean mass is the number to watch (predicted 138–142). Cleanest booking: Tue 7/28+, fully clear of the wedding.`,
+    lines: [] });
 
-  /* 12/13 · build-phase slots, honestly locked */
-  out.push({ id: "mrv", t: "EMPIRICAL MRV — YOUR VOLUME CEILINGS", status: "LOCKED", prog: null, lines: ["engine ships with the September program push · funded by the per-set RIR you'll log then"] });
-  out.push({ id: "debutmodel", t: "DEBUT-READINESS MODEL", status: "LOCKED", prog: null, lines: ["needs ~15 build-phase debuts · the cut doesn't generate enough to train on"] });
+  /* 12/13 · locked build-phase slots */
+  out.push({ id: "mrv", t: "EMPIRICAL MRV — YOUR VOLUME CEILINGS", status: "LOCKED", prog: null,
+    tag: "Finds your real volume ceilings instead of borrowing a template's.",
+    deep: "Weekly sets per muscle plotted against performance and recovery response — your maximum recoverable volume, discovered rather than assumed. The flagship analytic of the build.",
+    forYou: "Until then the cut answer stands: minimum effective volume while leaning out is correct — you are growing on the minimum on purpose.",
+    lines: ["engine ships with the September program push"] });
+  out.push({ id: "debutmodel", t: "DEBUT-READINESS MODEL", status: "LOCKED", prog: null,
+    tag: "Learns the exact conditions under which your debuts land.",
+    deep: "Sleep, refeed distance, recovery score at each debut vs its outcome — a trained gate replacing the hand-tuned sleep-only one, once ~15 build-phase debuts exist to learn from.",
+    forYou: "The current sleep-clean gate is the hand-tuned version and it has not been wrong yet.",
+    lines: ["needs ~15 build-phase debuts"] });
 
   const rank = { LIVE: 0, ARMED: 1, LOCKED: 2 };
   return out.sort((a, b) => rank[a.status] - rank[b.status]);
@@ -1641,6 +1697,7 @@ function SleepTab({ s, setS, save, slp }) {
 
 function HistTab({ s }) {
   const [open, setOpen] = useState(null);
+  const [labOpen, setLabOpen] = useState(null);
   const first = ROLLUPS[ROLLUPS.length - 1], latest = ROLLUPS[0];
   const wDelta = first && latest && first.avgW && latest.avgW ? +(first.avgW - latest.avgW).toFixed(1) : null;
   const proHitTot = ROLLUPS.reduce((a, w) => a + w.proHit, 0), proNTot = ROLLUPS.reduce((a, w) => a + w.proN, 0);
@@ -1660,20 +1717,34 @@ function HistTab({ s }) {
         <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 8 }}>Weight fell while every headline lift rose — the whole thesis, in one screen. Tap a week for the day-by-day.</div>
       </Card>
 
-      <Eyebrow>THE LAB · PATTERNS FOUND IN YOU — EACH UNLOCKS WHEN ITS DATA EARNS IT</Eyebrow>
+      <Eyebrow>THE LAB · PATTERNS FOUND IN YOU — TAP ANY CARD FOR THE FULL STORY</Eyebrow>
       {labAnalytics(s).map((a) => (
-        <Card key={a.id} style={{ padding: 12 }} accent={a.status === "LIVE" ? T.jade : undefined}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
-            <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 15.5, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk }}>{a.t}</div>
-            <Stamp st={a.status} />
+        <Card key={a.id} style={{ padding: 12, cursor: "pointer" }} accent={a.status === "LIVE" ? T.jade : undefined}>
+          <div onClick={() => setLabOpen(labOpen === a.id ? null : a.id)}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
+              <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 15.5, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk }}>{a.t}</div>
+              <Stamp st={a.status} />
+            </div>
+            <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 3 }}>{a.tag}</div>
+            {a.lines.map((l, i) => (
+              <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{l}</div>
+            ))}
+            {a.status === "ARMED" && a.prog && (
+              <div style={{ marginTop: 8 }}>
+                <Bar pct={(a.prog.n / a.prog.need) * 100} c={T.brass} />
+                <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 4 }}>{a.prog.n} / {a.prog.need} {a.prog.label}</div>
+              </div>
+            )}
+            <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 6, letterSpacing: "0.1em" }}>{labOpen === a.id ? "▾ CLOSE" : "▸ MORE"}</div>
           </div>
-          {a.lines.map((l, i) => (
-            <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{l}</div>
-          ))}
-          {a.status === "ARMED" && a.prog && (
-            <div style={{ marginTop: 8 }}>
-              <Bar pct={(a.prog.n / a.prog.need) * 100} c={T.brass} />
-              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 4 }}>{a.prog.n} / {a.prog.need} {a.prog.label}</div>
+          {labOpen === a.id && (
+            <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
+              <Eyebrow>WHAT IT IS</Eyebrow>
+              <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{a.deep}</div>
+              <div style={{ marginTop: 10 }}>
+                <Eyebrow c={a.status === "LIVE" ? T.jade : T.brass}>FOR YOU · RIGHT NOW</Eyebrow>
+                <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{a.forYou}</div>
+              </div>
             </div>
           )}
         </Card>

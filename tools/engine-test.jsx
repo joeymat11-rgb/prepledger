@@ -229,5 +229,16 @@ let nz = clone(SC); nz.blackout.until = "2026-07-01";
 const nzr = ar2(nz, "2026-07-28", nz.trend + 0.2);
 ok(nzr.reads[nzr.reads.length - 1].note.indexOf("inside your noise") === 0, "scale card now speaks the calibrated noise floor");
 
-console.log(`\nFINAL9: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.3 — three-layer lab cards
+const { labAnalytics: la3, SEED: SD } = __test;
+const lab3 = la3(clone(SD));
+ok(lab3.every(a => a.tag && a.tag.length > 10 && a.deep && a.deep.length > 40 && a.forYou && a.forYou.length > 20), "every card carries tag + deep + for-you layers");
+const cone3 = lab3.find(a => a.id === "cone");
+ok(cone3.forYou.indexOf("CONFIRMS") > -1 || cone3.forYou.indexOf("window") > -1, "cone's for-you speaks to the September call: " + cone3.forYou.slice(0, 60));
+ok(lab3.find(a => a.id === "whoosh").forYou.indexOf("WEDDING") > -1, "whoosh for-you is aimed at Saturday");
+ok(lab3.find(a => a.id === "masked").forYou.indexOf("broke DOWNWARD") > -1, "masked-loss for-you carries the six-week receipt");
+
+console.log(`\nFINAL10: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
