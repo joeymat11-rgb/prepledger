@@ -259,5 +259,21 @@ const oldV9 = clone(SE); oldV9.v = 9; delete oldV9.creatine; oldV9.exercises.for
 const m10 = mg5(oldV9);
 ok(m10.v === 10 && m10.creatine === null && m10.exercises.find(e => e.id === "press").mg === "chest", "v9 phones patch to v10 with muscle tags");
 
-console.log(`\nFINAL11: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.5.1 — live debt audit
+const { debtLedger: dl, SEED: SF } = __test;
+ok(dl(clone(SF)).length === clone(SF).sleep.debts.length && !dl(clone(SF)).some(x => x.live), "seeded receipts intact, no live charges before in-app debt sessions");
+let dbt = clone(SF);
+dbt.sleep.nights = [{d:"2026-07-23",h:8},{d:"2026-07-24",h:8},{d:"2026-07-25",h:8},{d:"2026-07-27",h:5},{d:"2026-07-28",h:5},{d:"2026-07-29",h:5}];
+dbt.sessionLog = {
+  "2026-07-26": { entries: [{ id: "press", reps: [8, 8, 7], rir: 1 }], at: 1 },
+  "2026-07-30": { entries: [{ id: "press", reps: [8, 7, 5], rir: null }], at: 2 },
+};
+const charged = dl(dbt);
+ok(charged.some(x => x.live && x.txt.indexOf("Press") === 0 && x.txt.indexOf("-3 reps on debt") > -1), "a debt session gets charged against its clean twin: " + (charged.find(x => x.live) || {}).txt);
+dbt.sessionLog["2026-07-30"].entries[0].reps = [8, 8, 7];
+ok(!dl(dbt).some(x => x.live), "matching the clean twin = no charge; only losses get written");
+
+console.log(`\nFINAL12: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

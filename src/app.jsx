@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.5.0";
+const APP_V = "3.5.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -684,6 +684,37 @@ function labAnalytics(s) {
   return out.sort((a, b) => rank[a.status] - rank[b.status]);
 }
 
+/* was the sleeper clean walking into a given date? */
+function cleanAtDate(s, iso) {
+  const nights = s.sleep.nights.filter((n) => n.d < iso);
+  let run = 0;
+  for (let i = nights.length - 1; i >= 0; i--) { if (nights[i].h >= s.sleep.cleanH) run++; else break; }
+  return run >= s.sleep.needed;
+}
+
+/* the debt ledger: seeded receipts + live-computed charges as sessions accrue */
+function debtLedger(s) {
+  const seeded = s.sleep.debts.map((t) => ({ txt: t, live: false }));
+  const out = [];
+  const dates = Object.keys(s.sessionLog).sort();
+  dates.forEach((d, di) => {
+    if (cleanAtDate(s, d)) return;
+    (s.sessionLog[d].entries || []).forEach((e) => {
+      if (!e.reps || !e.reps.length) return;
+      for (let i = di - 1; i >= 0; i--) {
+        const pd = dates[i];
+        if (!cleanAtDate(s, pd)) continue;
+        const pe = (s.sessionLog[pd].entries || []).find((x) => x.id === e.id && x.reps && x.reps.length === e.reps.length);
+        if (!pe) continue;
+        const delta = e.reps.reduce((a, b) => a + b, 0) - pe.reps.reduce((a, b) => a + b, 0);
+        if (delta < 0) { const ex = exById(s, e.id); out.push({ txt: `${ex ? ex.n : e.id} ${fmtShort(d)}: ${e.reps.join(",")} vs clean ${pe.reps.join(",")} — ${delta} reps on debt`, live: true }); }
+        break;
+      }
+    });
+  });
+  return [...seeded, ...out];
+}
+
 /* THE SHELF — established literature, imported as priors, computed at his numbers. The LAB tests; the shelf informs. */
 function shelfItems(s) {
   const kg = +(s.trend / 2.205).toFixed(1);
@@ -875,7 +906,7 @@ function migrate(old) {
   return patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))));
 }
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1798,11 +1829,17 @@ function SleepTab({ s, setS, save, slp }) {
       <Card>
         <Eyebrow c={T.brass}>WHAT THE DEBT COST — ATTRIBUTED, NOT BLAMED</Eyebrow>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
-          {s.sleep.debts.map((d, i) => (
-            <div key={i} style={{ fontFamily: mono, fontSize: 11, color: T.steel }}>· {d}</div>
+          {debtLedger(s).map((d, i) => (
+            <div key={i} style={{ fontFamily: mono, fontSize: 11, color: d.live ? T.chalk : T.steel }}>· {d.txt}</div>
           ))}
         </div>
+        {!debtLedger(s).some((d) => d.live) && (
+          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 6 }}>live audit armed — any in-app session on a debt day gets charged here automatically</div>
+        )}
         <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 8 }}>Down sessions on debt read as context, not regression.</div>
+        <More c={T.brass}
+          deep="Debt costs output before it costs recovery — motor drive and honest RIR fade first, and it shows up as missing tail reps. The audit method: every in-app session logged on a non-clean day is compared to your nearest prior CLEAN session of the same lift at the same set count, and only losses get written. One honest caveat: if the load changed between the two sessions, an entry can muddy — the recap context usually settles it. Attribution, not blame: the grey lines are the sheet-era receipts; white lines are charges the app computed itself."
+          forYou={slp.clean ? "CLEAN — the meter is off. Today's sessions get filed as clean baselines that future debt days will be audited against." : `${slp.need - slp.run} night${slp.need - slp.run === 1 ? "" : "s"} from CLEAN — until then, sessions are audited against their clean twins. Tonight ≥7.5 h ${slp.run + 1 >= slp.need ? "stops the meter entirely." : "keeps the reset alive."}`} />
       </Card>
 
       <Card>
