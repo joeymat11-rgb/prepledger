@@ -194,9 +194,9 @@ ok(Math.abs(sd2.trend - +(t0b + 0.45).toFixed(1)) < 0.001 && sd2.reads[sd2.reads
 const sd3 = ar(clone(sd), "2026-07-28", sd.trend - 0.6);
 ok(Math.abs(sd3.trend - +(t0b - 0.18).toFixed(1)) < 0.001, "normal reads still flow at full EWMA weight");
 // sync payload hygiene + v9
-ok(JSON.stringify(SA).indexOf("ghtoken") === -1 && SA.v === 9 && Array.isArray(SA.photos), "state v9, token never inside the payload");
+ok(JSON.stringify(SA).indexOf("ghtoken") === -1 && SA.v >= 9 && Array.isArray(SA.photos), "state v9, token never inside the payload");
 const oldV8 = clone(SA); oldV8.v = 8; delete oldV8.photos; delete oldV8.sync;
-ok(mgA(oldV8).v === 9 && Array.isArray(mgA(oldV8).photos), "v8 phones patch to v9 cleanly");
+ok(mgA(oldV8).v >= 9 && Array.isArray(mgA(oldV8).photos), "v8 phones patch to v9 cleanly");
 
 // (interim)
 
@@ -240,5 +240,24 @@ ok(cone3.forYou.indexOf("CONFIRMS") > -1 || cone3.forYou.indexOf("window") > -1,
 ok(lab3.find(a => a.id === "whoosh").forYou.indexOf("WEDDING") > -1, "whoosh for-you is aimed at Saturday");
 ok(lab3.find(a => a.id === "masked").forYou.indexOf("broke DOWNWARD") > -1, "masked-loss for-you carries the six-week receipt");
 
-console.log(`\nFINAL10: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.5 — the shelf + sleep-dose + v10
+const { shelfItems: sh, labAnalytics: la5, migrate: mg5, SEED: SE } = __test;
+const shelf = sh(clone(SE));
+ok(shelf.length === 5 && shelf.every(a => a.tag && a.deep && a.forYou), "five evidence cards, all three layers present");
+ok(/mg at 74\.\d kg/.test(shelf.find(a => a.id === "caffdose").lines[0]) === false && shelf.find(a => a.id === "caffdose").lines[0].indexOf("224–449 mg") > -1 || /\d+–\d+ mg at \d+(\.\d+)? kg/.test(shelf.find(a => a.id === "caffdose").lines[0]), "caffeine range computed at his live weight");
+ok(shelf.find(a => a.id === "spread").lines[0].indexOf("44 g × 4") > -1 || shelf.find(a => a.id === "spread").lines[0].indexOf("~44 g") > -1, "protein spread derives from THE number");
+ok(["2013", "2017", "2018", "2011", "2019"].every(y => JSON.stringify(shelf).indexOf(y) > -1), "citations ride the cards");
+let cre = clone(SE); cre.creatine = { start: "2026-07-20" };
+ok(sh(cre).find(a => a.id === "creatine").status === "TRACKING" && sh(cre).find(a => a.id === "creatine").lines[0].indexOf("day 3") === 0, "creatine tracker counts saturation days");
+const dose = la5(clone(SE)).find(a => a.id === "sleepdose");
+ok(dose && dose.status === "ARMED" && dose.prog.need === 5, "sleep-dose experiment armed, Mah prior attached");
+const mrv5 = la5(clone(SE)).find(a => a.id === "mrv");
+ok(mrv5.deep.indexOf("Schoenfeld") > -1 && mrv5.forYou.indexOf("10+") > -1, "MRV carries the literature prior");
+const oldV9 = clone(SE); oldV9.v = 9; delete oldV9.creatine; oldV9.exercises.forEach(e => delete e.mg);
+const m10 = mg5(oldV9);
+ok(m10.v === 10 && m10.creatine === null && m10.exercises.find(e => e.id === "press").mg === "chest", "v9 phones patch to v10 with muscle tags");
+
+console.log(`\nFINAL11: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

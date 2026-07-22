@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.4.0";
+const APP_V = "3.5.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -44,36 +44,36 @@ const REFEED = { cal: "2,450–2,500", note: "weekly Wednesday — prescribed, n
 /* ---------- exercise seed (state as of Wed 7/22/26) ---------- */
 const EXERCISES = [
   /* UPPER — order per the 7/20 session note */
-  { id: "lateral", lastMeta: { d: "2026-07-20", w: 80, reps: [14, 13, 13], debt: true }, n: "Lateral machine", day: "U", w: 80, inc: 5, sets: 3, hi: 15, last: [14, 13, 13],
+  { id: "lateral", mg: "delts", lastMeta: { d: "2026-07-20", w: 80, reps: [14, 13, 13], debt: true }, n: "Lateral machine", day: "U", w: 80, inc: 5, sets: 3, hi: 15, last: [14, 13, 13],
     setup: "SET · resistance profile 5 · seat 5\nUpright, elbow-led (the set-4 fix) · no shrug creep · smooth top, no swing" },
-  { id: "rearDelt", lastMeta: { d: "2026-07-20", w: 20, reps: [10, 10], debt: true }, n: "Rear-delt fly (cable)", day: "U", w: 20, inc: 2.5, sets: 2, hi: 12, last: [10, 10], note: "honest 10s — no hot opener",
+  { id: "rearDelt", mg: "delts", lastMeta: { d: "2026-07-20", w: 20, reps: [10, 10], debt: true }, n: "Rear-delt fly (cable)", day: "U", w: 20, inc: 2.5, sets: 2, hi: 12, last: [10, 10], note: "honest 10s — no hot opener",
     setup: "SET · unilateral · cable at highest height\nChest tall, shoulders back & down (?) · pure sweep — the opener fix is proven here" },
-  { id: "rows", lastMeta: { d: "2026-07-20", w: 175, reps: [10, 10], debt: true }, n: "Rows (strapless)", day: "U", w: 175, inc: 5, sets: 2, hi: 10, last: [10, 10],
+  { id: "rows", mg: "back", lastMeta: { d: "2026-07-20", w: 175, reps: [10, 10], debt: true }, n: "Rows (strapless)", day: "U", w: 175, inc: 5, sets: 2, hi: 10, last: [10, 10],
     setup: "SET · seat 4 · chest pad 7 · retrace profile 1\nChest stays glued to pad · pinch the blades at the back · strapless is the standard" },
-  { id: "curl", lastMeta: { d: "2026-07-20", w: "55·55·50", reps: [12, 8, 10], debt: true }, n: "Curls", day: "U", w: "55·55·50", inc: 5, sets: 3, hi: 12, last: [12, 8, 10], ladder: { set: 1, top: 12 },
+  { id: "curl", mg: "biceps", lastMeta: { d: "2026-07-20", w: "55·55·50", reps: [12, 8, 10], debt: true }, n: "Curls", day: "U", w: "55·55·50", inc: 5, sets: 3, hi: 12, last: [12, 8, 10], ladder: { set: 1, top: 12 },
     setup: "SET · resistance profile 5 · seat 3\nSet 2 is the money set · no shoulder creep when it grinds" },
-  { id: "press", lastMeta: { d: "2026-07-20", w: 245, reps: [8, 7, 6], debt: true }, n: "Press", day: "U", w: 245, inc: 5, sets: 3, hi: 9, last: [8, 7, 6], std: [8, 8, 7], own: true, ownNote: "repeat 8,8,7 on a clean day — no load until owned",
+  { id: "press", mg: "chest", lastMeta: { d: "2026-07-20", w: 245, reps: [8, 7, 6], debt: true }, n: "Press", day: "U", w: 245, inc: 5, sets: 3, hi: 9, last: [8, 7, 6], std: [8, 8, 7], own: true, ownNote: "repeat 8,8,7 on a clean day — no load until owned",
     setup: "SET · cam 5 · lowest seat\nShoulders back & down into the pad · no bottom bounce — this lift was won on the honest opener" },
-  { id: "pulldown", lastMeta: { d: "2026-07-20", w: 160, reps: [8, 8], debt: true }, n: "Pulldown", day: "U", w: 160, inc: 10, sets: 2, hi: 10, last: [8, 8],
+  { id: "pulldown", mg: "back", lastMeta: { d: "2026-07-20", w: 160, reps: [8, 8], debt: true }, n: "Pulldown", day: "U", w: 160, inc: 10, sets: 2, hi: 10, last: [8, 8],
     setup: "SET · silver bar · thumbs in the same spot every session\nSame grip = comparable reps · chest up, elbows down-and-in · strapless" },
-  { id: "sulek", lastMeta: { d: "2026-07-20", w: 87.5, reps: [12, 8], debt: true }, n: "Sulek curl (forearm)", day: "U", w: 87.5, inc: 2.5, sets: 2, hi: 15, last: [12, 8],
+  { id: "sulek", mg: "forearms", lastMeta: { d: "2026-07-20", w: 87.5, reps: [12, 8], debt: true }, n: "Sulek curl (forearm)", day: "U", w: 87.5, inc: 2.5, sets: 2, hi: 15, last: [12, 8],
     setup: "SET · cable, highest rung · straight bar\nSam Sulek's signature — strict curl biasing the forearm flexors · elbows quiet, slow negative" },
-  { id: "tricep", lastMeta: { d: "2026-07-20", w: 55, reps: [12, 11, 10], debt: true }, n: "Tricep", day: "U", w: 55, inc: 5, sets: 3, hi: 13, last: [12, 11, 10],
+  { id: "tricep", mg: "triceps", lastMeta: { d: "2026-07-20", w: 55, reps: [12, 11, 10], debt: true }, n: "Tricep", day: "U", w: 55, inc: 5, sets: 3, hi: 13, last: [12, 11, 10],
     setup: "SET · seat 4 · back pad all the way forward · middle peg through the cut\nElbows pinned · bottom-peg stretch waits for the build phase" },
-  { id: "pronated", lastMeta: { d: "2026-07-20", w: 40, reps: [12, 11], debt: true }, n: "Pronated EZ curl", day: "U", w: 40, inc: 5, sets: 2, hi: 13, last: [12, 11],
+  { id: "pronated", mg: "forearms", lastMeta: { d: "2026-07-20", w: 40, reps: [12, 11], debt: true }, n: "Pronated EZ curl", day: "U", w: 40, inc: 5, sets: 2, hi: 13, last: [12, 11],
     setup: "SET · EZ bar, pronated grip\nElbows pinned to sides, zero swing · wrists locked — don't let them bend back under load · 2–3 s negative, that's where this one grows · your 11,6 session was the hot-opener demo" },
   /* LOWER — order per the 7/17 & 7/21 notes, identical both days */
-  { id: "calves", lastMeta: { d: "2026-07-21", w: 315, reps: [12, 10, 9, 8], debt: true }, n: "Calves", day: "L", w: 315, inc: 15, sets: 4, hi: 13, last: [12, 10, 9, 8], reclaim: [13, 12, 11, 10],
+  { id: "calves", mg: "calves", lastMeta: { d: "2026-07-21", w: 315, reps: [12, 10, 9, 8], debt: true }, n: "Calves", day: "L", w: 315, inc: 15, sets: 4, hi: 13, last: [12, 10, 9, 8], reclaim: [13, 12, 11, 10],
     setup: "SET · shoulder height 4\n5 s pause in the stretched position · back up to neutral · no bounce out of the hole — the pause IS the rep · drive through the big toe" },
-  { id: "abs", lastMeta: { d: "2026-07-21", w: 95, reps: [14, 13, 13], debt: true }, n: "Abs", day: "L", w: 100, inc: 5, sets: 3, hi: 14, last: null, first: [12, 12, 12], debutNote: "DEBUT — new baseline, log honest",
+  { id: "abs", mg: "abs", lastMeta: { d: "2026-07-21", w: 95, reps: [14, 13, 13], debt: true }, n: "Abs", day: "L", w: 100, inc: 5, sets: 3, hi: 14, last: null, first: [12, 12, 12], debutNote: "DEBUT — new baseline, log honest",
     setup: "SET · back pad A · seat 6\nSame tempo every session — the load only moves on clean, even reps" },
-  { id: "hanging", lastMeta: { d: "2026-07-21", w: "BW", reps: [6, 5], debt: true }, n: "Hanging raise", day: "L", w: "BW", inc: null, sets: 2, hi: 8, last: [6, 5],
+  { id: "hanging", mg: "abs", lastMeta: { d: "2026-07-21", w: "BW", reps: [6, 5], debt: true }, n: "Hanging raise", day: "L", w: "BW", inc: null, sets: 2, hi: 8, last: [6, 5],
     setup: "SET · bodyweight\nSlouch down/out to engage the core at rep 1 · constant tension, spine stays rounded · no swing between reps" },
-  { id: "hack", lastMeta: { d: "2026-07-21", w: "hold", reps: [13, 12], debt: true }, n: "Hack squat", day: "L", w: "hold", inc: null, sets: 2, hi: 13, last: [13, 12], pendingThird: true,
+  { id: "hack", mg: "quads", lastMeta: { d: "2026-07-21", w: "hold", reps: [13, 12], debt: true }, n: "Hack squat", day: "L", w: "hold", inc: null, sets: 2, hi: 13, last: [13, 12], pendingThird: true,
     setup: "SET · foot placement = your favorited pic\nSame depth every rep · even sets are the standard here (11,11 → 12,12 → 13,13)" },
-  { id: "extension", lastMeta: { d: "2026-07-21", w: 155, reps: [9, 6], debt: true }, n: "Leg extension", day: "L", w: 150, inc: 5, sets: 2, hi: 10, last: [9, 6], std: [9, 9], own: true, ownNote: "own 150×9,9 — then the 155 gate reopens",
+  { id: "extension", mg: "quads", lastMeta: { d: "2026-07-21", w: 155, reps: [9, 6], debt: true }, n: "Leg extension", day: "L", w: 150, inc: 5, sets: 2, hi: 10, last: [9, 6], std: [9, 9], own: true, ownNote: "own 150×9,9 — then the 155 gate reopens",
     setup: "SET · shin pad height A · depth 3 · seat back all the way back — max quad stretch\nNo jerk at lockout · runs after hack by design — read dips as order effect, not regression" },
-  { id: "ham", lastMeta: { d: "2026-07-21", w: 120, reps: [10, 10], debt: true }, n: "Ham curl", day: "L", w: 120, inc: 10, sets: 2, hi: 12, last: [10, 10],
+  { id: "ham", mg: "hams", lastMeta: { d: "2026-07-21", w: 120, reps: [10, 10], debt: true }, n: "Ham curl", day: "L", w: 120, inc: 10, sets: 2, hi: 12, last: [10, 10],
     setup: "SET · back 5 · calf pad height C · depth 3 · resistance profile 5\nHips pinned down, no lift-off · full stretch at the top of every rep" },
 ];
 
@@ -144,7 +144,8 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 9;
+  SEED.v = 10;
+  SEED.creatine = null;
   SEED.photos = [];
   SEED.sync = { last: null, status: "" };
   SEED.exOrder = { U: SEED.exercises.filter((e) => e.day === "U").map((e) => e.id), L: SEED.exercises.filter((e) => e.day === "L").map((e) => e.id) };
@@ -587,6 +588,19 @@ function labAnalytics(s) {
     forYou: shortNights >= 6 ? "Live — check the per-class lag before scheduling own-attempts." : `${shortNights}/6 — the one gate you should fail to feed quickly. Until it speaks, assume next-day risk on compounds: your 4.5 h night of 7/16 landed hardest on the 7/17 lower.`,
     lines: [] });
 
+  /* 8b · sleep dose experiment — floor vs ceiling, tested in you */
+  const postN = s.sleep.nights.filter((n) => n.d > "2026-07-21");
+  const armLong = postN.filter((n) => n.h >= 8.5 && s.sessionLog[nextDay(n.d)]);
+  const armStd = postN.filter((n) => n.h >= 7.5 && n.h < 8.5 && s.sessionLog[nextDay(n.d)]);
+  const repsAfter = (arr) => arr.map((n) => ((s.sessionLog[nextDay(n.d)] || {}).entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0));
+  const doseLive = armLong.length >= 5 && armStd.length >= 5;
+  const avg2 = (a) => (a.length ? Math.round(a.reduce((x, y) => x + y, 0) / a.length) : 0);
+  out.push({ id: "sleepdose", t: "SLEEP DOSE — 7.5 FLOOR vs 8.5 CEILING", status: doseLive ? "LIVE" : "ARMED", prog: { n: Math.min(armLong.length, armStd.length), need: 5, label: "nights per arm (with a next-day session)" },
+    tag: "Does 8.5+ beat your 7.5 clean-floor in YOUR lifts? (Mah 2011 prior)",
+    deep: "Mah et al. 2011 (Sleep) extended college athletes toward 10 h in bed and got objectively faster sprints, better shooting accuracy, and improved mood — suggesting habitual sleep is a floor, not an optimum. Your CLEAN gate treats 7.5 as the line; this experiment asks whether ≥8.5 buys measurable next-day output in you specifically.",
+    forYou: doseLive ? `Next-day total reps: after 8.5+ h → ~${avg2(repsAfter(armLong))} vs after 7.5–8.5 h → ~${avg2(repsAfter(armStd))} (n=${armLong.length}/${armStd.length}). ${avg2(repsAfter(armLong)) > avg2(repsAfter(armStd)) + 3 ? "The ceiling pays — bank long nights before big attempts." : "No clear edge yet — the 7.5 floor is holding its own."}` : `${armLong.length}/5 long nights · ${armStd.length}/5 standard banked. You control this experiment's pace — the long-night arm is the fun one to fill.`,
+    lines: [] });
+
   /* 9 · RIR truth-check */
   const rir1 = [];
   Object.values(s.sessionLog).forEach((sl) => (sl.entries || []).forEach((e) => { if (e.rir === 1 && e.reps && e.reps.length >= 2) rir1.push(e.reps[e.reps.length - 1] <= e.reps[0] - 3); }));
@@ -657,8 +671,8 @@ function labAnalytics(s) {
   /* 12/13 · locked build-phase slots */
   out.push({ id: "mrv", t: "EMPIRICAL MRV — YOUR VOLUME CEILINGS", status: "LOCKED", prog: null,
     tag: "Finds your real volume ceilings instead of borrowing a template's.",
-    deep: "Weekly sets per muscle plotted against performance and recovery response — your maximum recoverable volume, discovered rather than assumed. The flagship analytic of the build.",
-    forYou: "Until then the cut answer stands: minimum effective volume while leaning out is correct — you are growing on the minimum on purpose.",
+    deep: "Weekly sets per muscle plotted against performance and recovery response — your maximum recoverable volume, discovered rather than assumed. The literature prior it starts from: Schoenfeld, Ogborn & Krieger 2017 (meta-analysis) found a graded dose-response with 10+ weekly sets per muscle outgrowing lower volumes. That's the build-phase climb target; the cut deliberately sits below it.",
+    forYou: (() => { const cut7 = isoOf(new Date(todayStart().getTime() - 7 * DAY)); const perMg = {}; Object.entries(s.sessionLog).forEach(([d, sl]) => { if (d >= cut7) (sl.entries || []).forEach((e2) => { const ex2 = exById(s, e2.id); if (ex2 && ex2.mg && e2.reps) perMg[ex2.mg] = (perMg[ex2.mg] || 0) + e2.reps.length; }); }); const parts = Object.entries(perMg).map(([m, n2]) => `${m} ${n2}`); return `MEV on purpose while cutting — growing on the minimum is the plan. Your logged sets this week: ${parts.length ? parts.join(" · ") : "none in-app yet"} · the build climbs each toward the 10+ landmark, then past it until YOUR ceiling shows.`; })(),
     lines: ["engine ships with the September program push"] });
   out.push({ id: "debutmodel", t: "DEBUT-READINESS MODEL", status: "LOCKED", prog: null,
     tag: "Learns the exact conditions under which your debuts land.",
@@ -668,6 +682,40 @@ function labAnalytics(s) {
 
   const rank = { LIVE: 0, ARMED: 1, LOCKED: 2 };
   return out.sort((a, b) => rank[a.status] - rank[b.status]);
+}
+
+/* THE SHELF — established literature, imported as priors, computed at his numbers. The LAB tests; the shelf informs. */
+function shelfItems(s) {
+  const kg = +(s.trend / 2.205).toFixed(1);
+  const perFeed = Math.round(PROTEIN / 4);
+  const out = [];
+  out.push({ id: "spread", t: "PROTEIN SPREAD", status: "ON FILE",
+    tag: `${PROTEIN} works harder split into 4.`,
+    lines: [`~${perFeed} g × 4 feeds · every 3–4 h · wake / pre-lift / post-lift / pre-bed`],
+    deep: "Areta et al. 2013 (J Physiol): 20 g every 3 h beat both 40 g every 6 h and 10 g every 1.5 h for 24-hour muscle protein synthesis at equal totals. Mamerow et al. 2014: even distribution across meals out-synthesized the typical dinner-skewed pattern. In a deficit, distribution is muscle protection — the same grams, better spent.",
+    forYou: `No new logging — this is a shape, not a chore. Your noon lift makes the anchors natural: feed ~1 h pre-lift, feed after, and keep the last feed near bed (slow protein there works with the overnight fast). Four ~${perFeed} g landings and the day's ${PROTEIN} places itself.` });
+  out.push({ id: "caffdose", t: "CAFFEINE — THE STUDY RANGE, AT YOUR WEIGHT", status: "ON FILE",
+    tag: "Dose by bodyweight, not by habit.",
+    lines: [`3–6 mg/kg (Grgic 2019 meta) ≈ ${Math.round(3 * kg)}–${Math.round(6 * kg)} mg at ${kg} kg · ~45–60 min pre-lift`],
+    deep: "Grgic et al. 2019/2020 meta-analyses support caffeine at ~3–6 mg/kg for strength and power. The range recomputes here as your weight falls. Timing matters more than most supplements' entire effect: ~45–60 minutes pre-training.",
+    forYou: "The safety frame outranks the range: you stack prescribed Adderall + a pre-workout, so TOTAL stimulant load is a prescriber conversation — the study range is information, never a target to climb. Read your pre-workout's actual mg once, know your number, and your existing early-afternoon cutoff keeps protecting the sleep ledger." });
+  out.push({ id: "creatine", t: "CREATINE PROTOCOL", status: s.creatine ? "TRACKING" : "ON FILE",
+    tag: "The most-proven supplement, timed to hide its own water.",
+    lines: s.creatine ? [`day ${Math.max(1, Math.round((todayStart() - mk(s.creatine.start)) / DAY) + 1)} of ~28 to saturation · 5 g/day`] : ["5 g/day · no loading needed · start inside the sealed window"],
+    deep: "Kreider et al. 2017 (JISSN position stand): creatine monohydrate is the most effective legal ergogenic for high-intensity work; 5 g/day saturates in ~3–4 weeks without loading (loading just gets there faster). Bonus relevant to you: evidence for cognitive support under sleep restriction.",
+    forYou: s.creatine ? "The 1–2 lb water bump is folding into the trend while the seal holds and the noise floor absorbs the rest — by the time it matters, it's just part of your baseline. Never stop-start; consistency is the whole mechanism." : "Start now and the water bump lands while the scale is quarantined — it never pollutes a clean read. One button below files the start date so saturation day is visible.",
+    action: !s.creatine });
+  out.push({ id: "matador", t: "DIET-BREAK EVIDENCE", status: "ON FILE",
+    tag: "Your Ease ladder, with a citation.",
+    lines: ["MATADOR · Byrne 2018 · Int J Obes"],
+    deep: "The MATADOR trial (Byrne et al. 2018): 2 weeks dieting alternated with 2 weeks at maintenance preserved more resting metabolic rate and produced greater fat loss than continuous restriction at matched deficits. The mechanism story: periodic maintenance blunts adaptive slowdown.",
+    forYou: "Ease 1 → Ease 2 already breathes like this — stepped, not white-knuckled. On file for one specific future: if the cut runs past week 16, the cited move is a full 2-week maintenance break before pushing on. Coach call, evidence attached." });
+  out.push({ id: "sleepceil", t: "SLEEP CEILING", status: "ON FILE",
+    tag: "7.5 is your floor; the ceiling may pay.",
+    lines: ["Mah 2011 · tested live in THE LAB above"],
+    deep: "Mah et al. 2011: extending athletes' sleep produced objectively better performance — habitual sleep is a floor, not an optimum. Your CLEAN gate guards the floor; the ceiling question is answerable only in your own data.",
+    forYou: "The SLEEP DOSE experiment in the LAB is this study, running on you. Bank ≥8.5 h nights — especially before big attempts — and the experiment arms itself as a side effect of good decisions." });
+  return out;
 }
 
 /* the macro engine: snapshots + rule proposals. Idempotent per day. */
@@ -790,9 +838,15 @@ function patchV9(s) {
   s.v = 9;
   return s;
 }
+function patchV10(s) {
+  if (s.creatine === undefined) s.creatine = null;
+  SEED.exercises.forEach((se) => { const e = s.exercises.find((x) => x.id === se.id); if (e && se.mg) e.mg = se.mg; });
+  s.v = 10;
+  return s;
+}
 function migrate(old) {
-  if (old && old.v === 9) return old;
-  if (old && old.v >= 3 && old.v <= 8) return patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))));
+  if (old && old.v === 10) return old;
+  if (old && old.v >= 3 && old.v <= 9) return patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -818,10 +872,10 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))));
+  return patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))));
 }
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -874,6 +928,8 @@ const stampColor = (st) => {
   if (["DEBUT"].includes(st)) return T.orange;
   if (st === "LIVE") return T.jade;
   if (st === "LOCKED") return T.dim;
+  if (st === "ON FILE") return T.steel;
+  if (st === "TRACKING") return T.jade;
   if (["PARKED", "UNBOOKED", "COACH'S EYE", "ARMS @ ~13%", "COACH FLAG"].includes(st)) return T.dim;
   return T.brass;
 };
@@ -1153,6 +1209,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ marginTop: 10, fontFamily: mono, fontSize: 11, color: T.brass }}>FIX WINDOW OPEN — a miss fixed inside 24 h extends the standard. No resets here.</div>
         )}
         <div style={{ marginTop: 10 }}><Btn tone="jade" full onClick={saveDaily}>Log today</Btn></div>
+        <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 8 }}>spread: ~4 feeds × ~44 g · every 3–4 h · wake / pre-lift / post-lift / pre-bed</div>
         <More deep="175 is THE number — proximity, not a floor to beat; chronic overshoot is drift too. Calories live in a band, not a point. A protein miss opens a 24-hour fix window, and closing it EXTENDS the standard instead of resetting it — recovery speed is the metric, never an unbroken chain."
           forYou={s.fixWindow ? "The fix window is OPEN — hitting 175 today closes it and the record extends." : "Standard intact. Log once, done — the app rewards the logging, never the checking."} />
       </Card>
@@ -1760,7 +1817,7 @@ function SleepTab({ s, setS, save, slp }) {
   );
 }
 
-function HistTab({ s }) {
+function HistTab({ s, setS, save }) {
   const [open, setOpen] = useState(null);
   const [labOpen, setLabOpen] = useState(null);
   const first = ROLLUPS[ROLLUPS.length - 1], latest = ROLLUPS[0];
@@ -1810,6 +1867,38 @@ function HistTab({ s }) {
                 <Eyebrow c={a.status === "LIVE" ? T.jade : T.brass}>FOR YOU · RIGHT NOW</Eyebrow>
                 <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{a.forYou}</div>
               </div>
+            </div>
+          )}
+        </Card>
+      ))}
+
+      <Eyebrow>THE SHELF · EVIDENCE ON FILE — GENERAL SCIENCE, YOUR NUMBERS</Eyebrow>
+      {shelfItems(s).map((a) => (
+        <Card key={a.id} style={{ padding: 12, cursor: "pointer" }}>
+          <div onClick={() => setLabOpen(labOpen === a.id ? null : a.id)}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
+              <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 15.5, textTransform: "uppercase", color: T.chalk }}>{a.t}</div>
+              <Stamp st={a.status} />
+            </div>
+            <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 3 }}>{a.tag}</div>
+            {a.lines.map((l, i) => (
+              <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{l}</div>
+            ))}
+            <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 6, letterSpacing: "0.1em" }}>{labOpen === a.id ? "▾ CLOSE" : "▸ MORE"}</div>
+          </div>
+          {labOpen === a.id && (
+            <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
+              <Eyebrow>WHAT IT IS</Eyebrow>
+              <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{a.deep}</div>
+              <div style={{ marginTop: 10 }}>
+                <Eyebrow c={T.jade}>FOR YOU · RIGHT NOW</Eyebrow>
+                <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{a.forYou}</div>
+              </div>
+              {a.action && (
+                <div style={{ marginTop: 10 }}>
+                  <Btn small tone="jade" onClick={(e) => { e.stopPropagation(); const ns = JSON.parse(JSON.stringify(s)); ns.creatine = { start: isoOf(todayStart()) }; ns.feed.unshift({ d: isoOf(todayStart()), t: "CREATINE STARTED", how: "5 g/day begins inside the sealed window — the water bump files itself under quarantine (Kreider 2017)" }); setS(ns); save(ns); }}>Log creatine start — today</Btn>
+                </div>
+              )}
             </div>
           )}
         </Card>
@@ -2112,7 +2201,7 @@ export default function PrepLedger() {
         {tab === "QUEUE" && <QueueTab s={s} slp={slp} />}
         {tab === "BODY" && <BodyTab s={s} setS={setS} save={save} />}
         {tab === "SLEEP" && <SleepTab s={s} setS={setS} save={save} slp={slp} />}
-        {tab === "HIST" && <HistTab s={s} />}
+        {tab === "HIST" && <HistTab s={s} setS={setS} save={save} />}
       </div>
 
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(14,17,21,0.96)", borderTop: `1px solid ${T.line}`, backdropFilter: "blur(8px)" }}>
