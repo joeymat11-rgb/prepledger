@@ -127,12 +127,28 @@ console.log(`\nFINAL3: ${pass} passed, ${fail} failed`);
 
 // v2.4 — setups
 const { SEED: S7, migrate: mg4, genSession: gs4 } = __test;
-ok(S7.v === 6 && S7.exercises.every(e => typeof e.setup === "string" && e.setup.length > 10), "every lift carries its settings + cues");
+ok(S7.v >= 6 && S7.exercises.every(e => typeof e.setup === "string" && e.setup.length > 10), "every lift carries its settings + cues");
 ok(S7.exercises.find(e => e.id === "sulek").n.indexOf("forearm") > -1, "Sulek corrected to what it actually is — forearm work");
 ok(gs4(clone(S7), "2026-07-23", slpClean).ex[0].setup.indexOf("resistance profile 5") > -1, "setup rides into the generated session card");
 const oldV5 = clone(S7); oldV5.v = 5; oldV5.exercises.forEach(e => { delete e.setup; e.n = e.n === "Sulek curl (forearm)" ? "Sulek raise" : e.n; });
 const m6 = mg4(oldV5);
-ok(m6.v === 6 && m6.exercises.every(e => e.setup) && m6.exercises.find(e => e.id === "sulek").n.indexOf("forearm") > -1, "existing phones gain blurbs and the name fix");
+ok(m6.v >= 6 && m6.exercises.every(e => e.setup) && m6.exercises.find(e => e.id === "sulek").n.indexOf("forearm") > -1, "existing phones gain blurbs and the name fix");
 
 console.log(`\nFINAL4: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+// v2.5 — live cue layer
+const { genSession: gs5, completeSession: cs5, SEED: S8 } = __test;
+const u5 = gs5(clone(S8), "2026-07-23", slpClean);
+ok(u5.ex.find(e => e.id === "press").live.indexOf("8,8,7 clean owns it") === 0, "press NOW-line reads the live own standard");
+ok(u5.ex.find(e => e.id === "rows").live.indexOf("debut at 180") === 0, "rows NOW-line reads the debut context");
+ok(S8.exercises.find(e => e.id === "press").setup.indexOf("controlled 8s") === -1, "stale rep numbers purged from the static layer");
+// after owning, the same lift's NOW-line changes by itself
+const en5 = u5.ex.map(e => ({ id: e.id, n: e.n, w: e.w, tgt: e.tgt, reps: e.tgt.slice(), isDebutNow: e.isDebutNow, rir: null }));
+en5.find(e => e.id === "press").reps = [8, 8, 7];
+const s5b = cs5(clone(S8), "2026-07-23", en5, slpClean).s;
+const mon5 = gs5(s5b, "2026-07-27", slpClean);
+ok(mon5.ex.find(e => e.id === "press").live.indexOf("debut at 250") === 0, "own it Thursday → Monday's press NOW-line flips to the 250 debut on its own");
+
+console.log(`\nFINAL5: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
