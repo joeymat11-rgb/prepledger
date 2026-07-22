@@ -209,5 +209,25 @@ ok(o1 && o1.days >= 8 && o1.tdee > 2200 && o1.tdee < 2800, `post-seal it compute
 let ob2 = clone(SB); ob2.blackout.until = "2026-07-01"; ob2.dailyLogs = {};
 ok(ot(ob2) === null, "under 8 logged days: stays silent rather than guessing");
 
-console.log(`\nFINAL8: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.2 — THE LAB
+const { labAnalytics: la, anchorDexa: ad, applyRead: ar2, SEED: SC } = __test;
+const lab = la(clone(SC));
+const get = (id) => lab.find(x => x.id === id);
+ok(get("whoosh").status === "LIVE" && get("whoosh").prog.n >= 2, "whoosh signature LIVE off " + get("whoosh").prog.n + " historical episodes");
+ok(get("whoosh").lines.some(l => l.indexOf("WEDDING #2") > -1), "whoosh model already aimed at Saturday's wedding");
+ok(get("refeed").status === "LIVE" && get("refeed").prog.n === 4 && get("refeed").lines[0].indexOf("+4.6") === -1, "refeed line cleaned: real refeeds only, n=4, birthday spike evicted");
+ok(get("noise").status === "LIVE" && /±0\.[3-9]/.test(get("noise").lines[0]), "personal noise floor computed: " + get("noise").lines[0].slice(0, 24));
+ok(get("cone").status === "LIVE" && get("cone").lines[0].indexOf("80%") === 0, "pivot cone runs Monte Carlo on his measured rates");
+ok(get("tuefri").status === "ARMED" && get("tuefri").prog.n === 0, "Tue/Fri experiment armed at 0/4 pairs");
+ok(get("fingerprint").status === "ARMED" && get("rirtruth").status === "ARMED" && get("mrv").status === "LOCKED", "gates hold: no correlations under N");
+ok(get("masked").lines[0].indexOf("sealed") === 0, "masked-loss monitor respects the seal");
+const withDexa = ad(clone(SC), 15.8);
+ok(la(withDexa).find(x => x.id === "dexarecon").status === "LIVE" && withDexa.dexaRecon.dexa === 15.8, "DEXA reconciliation fires on anchor with the delta recorded");
+let nz = clone(SC); nz.blackout.until = "2026-07-01";
+const nzr = ar2(nz, "2026-07-28", nz.trend + 0.2);
+ok(nzr.reads[nzr.reads.length - 1].note.indexOf("inside your noise") === 0, "scale card now speaks the calibrated noise floor");
+
+console.log(`\nFINAL9: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

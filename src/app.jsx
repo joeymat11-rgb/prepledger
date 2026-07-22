@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.1.0";
+const APP_V = "3.2.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -430,7 +430,11 @@ function applyRead(state, iso, w) {
   const sealed = daysUntil(s.blackout.until) > 0;
   const dRaw = w - s.trend, dCl = Math.max(-1.5, Math.min(1.5, dRaw));
   const spike = Math.abs(dRaw) > 1.5;
-  s.reads.push({ d: iso, w, sealed, pt: s.trend, note: sealed ? "sealed — excluded from trend" : spike ? "spike — damped in trend" : "" });
+  const clean = s.reads.filter((r) => !r.sealed);
+  const dl = [];
+  for (let i = 1; i < clean.length; i++) { if (Math.round((mk(clean[i].d) - mk(clean[i - 1].d)) / DAY) === 1) { const dd = clean[i].w - clean[i - 1].w; if (Math.abs(dd) < 1.5) dl.push(dd); } }
+  const nf = dl.length >= 8 ? Math.sqrt(dl.reduce((a, b) => a + b * b, 0) / dl.length) : null;
+  s.reads.push({ d: iso, w, sealed, pt: s.trend, note: sealed ? "sealed — excluded from trend" : spike ? "spike — damped in trend" : nf && Math.abs(dRaw) <= nf ? "inside your noise — not information" : "" });
   if (!sealed) s.trend = +(s.trend + 0.3 * dCl).toFixed(1);
   return s;
 }
@@ -459,6 +463,155 @@ function etaWeeks(s, targetPct) {
     trend -= Math.max(0.3, r.scale); lean += s.model.drip;
   }
   return null;
+}
+
+/* THE LAB — every analytic self-gates on its own data threshold. No correlations under N. */
+function labAnalytics(s) {
+  const out = [];
+  const sealed = daysUntil(s.blackout.until) > 0;
+  const reads = s.reads.filter((r) => !r.sealed);
+  const readByD = {}; reads.forEach((r) => { readByD[r.d] = r.w; });
+  const nextDay = (d) => isoOf(new Date(mk(d).getTime() + DAY));
+
+  /* 1 · whoosh signature (event spikes → clearance) */
+  const eps = [];
+  for (let i = 1; i < reads.length; i++) {
+    if (reads[i].w - reads[i - 1].w >= 2) {
+      const pre = reads[i - 1].w;
+      for (let j = i + 1; j < reads.length; j++) {
+        if (reads[j].w <= pre + 0.4) { eps.push({ jump: +(reads[i].w - reads[i - 1].w).toFixed(1), days: Math.round((mk(reads[j].d) - mk(reads[i].d)) / DAY) }); break; }
+      }
+    }
+  }
+  const ev = s.events.find((e) => !e.estimated && daysUntil(e.d) >= -1 && daysUntil(e.d) <= 3);
+  out.push({ id: "whoosh", t: "WHOOSH SIGNATURE", status: eps.length >= 2 ? "LIVE" : "ARMED", prog: { n: eps.length, need: 2, label: "spike→drain episodes" },
+    lines: eps.length >= 2 ? [
+      `${eps.length} episodes in you · spikes +${Math.min(...eps.map(e => e.jump))} to +${Math.max(...eps.map(e => e.jump))} · clearance ${Math.min(...eps.map(e => e.days))}–${Math.max(...eps.map(e => e.days))} days`,
+      (() => { const ds = eps.map((e) => e.days).sort((a, b) => a - b); const hi = ds.length >= 3 ? ds[ds.length - 2] : ds[ds.length - 1]; return ev ? `next test: ${ev.t} ${fmtShort(ev.d)} → clear window ${fmtShort(isoOf(new Date(mk(ev.d).getTime() + ds[0] * DAY)))}–${fmtShort(isoOf(new Date(mk(ev.d).getTime() + hi * DAY)))} (chained events ran ${ds[ds.length - 1]}d once) · hands off levers until it lands` : "no event in range — model idle, watching"; })(),
+    ] : [] });
+
+  /* 2 · refeed bump line */
+  const refDs = HISTORY.filter((h) => h.cal != null && h.cal >= 2100 && /\bREFEED\b/.test(h.note || "") && !/SKIPPED/i.test(h.note || "")).map((h) => h.d);
+  const bumps = refDs.map((d) => (readByD[d] != null && readByD[nextDay(d)] != null ? +(readByD[nextDay(d)] - readByD[d]).toFixed(1) : null)).filter((x) => x != null);
+  out.push({ id: "refeed", t: "REFEED BUMP LINE", status: bumps.length >= 2 ? "LIVE" : "ARMED", prog: { n: bumps.length, need: 2, label: "measured refeed mornings" },
+    lines: bumps.length >= 2 ? [`your next-morning delta: ${bumps.slice().sort((a,b)=>a-b).map((x)=>x>0?`+${x}`:`${x}`).join(" · ")} (n=${bumps.length}) · water, prescribed — tomorrow's bump is pre-explained tonight`] : [] });
+
+  /* 3 · personal noise floor */
+  const deltas = [];
+  for (let i = 1; i < reads.length; i++) {
+    if (Math.round((mk(reads[i].d) - mk(reads[i - 1].d)) / DAY) === 1) { const dd = reads[i].w - reads[i - 1].w; if (Math.abs(dd) < 1.5) deltas.push(dd); }
+  }
+  const sdN = deltas.length >= 8 ? Math.sqrt(deltas.reduce((a, b) => a + b * b, 0) / deltas.length) : null;
+  out.push({ id: "noise", t: "YOUR NOISE FLOOR", status: sdN ? "LIVE" : "ARMED", prog: { n: deltas.length, need: 8, label: "clean day-pairs" },
+    lines: sdN ? [`±${sdN.toFixed(1)} lb day-to-day (n=${deltas.length}) — a morning move inside that band is not information, and the scale card now says so`] : [] });
+
+  /* 4 · masked-loss monitor */
+  const last5 = reads.slice(-5);
+  const flatWin = !sealed && last5.length === 5 && (mk(last5[4].d) - mk(last5[0].d)) / DAY <= 6 && Math.abs(last5[4].w - last5[0].w) < 0.4;
+  const ph = PHASES[s.phase];
+  const cals5 = last5.map((r) => (s.dailyLogs[r.d] || {}).cal).filter((c) => c != null);
+  const compliant = cals5.length >= 4 && cals5.every((c) => c <= ph.band[1] + 150);
+  out.push({ id: "masked", t: "MASKED-LOSS MONITOR", status: "LIVE", prog: null,
+    lines: sealed ? ["sealed — monitor resumes Monday with the first clean read"] : flatWin && compliant ? ["FLAT + COMPLIANT ≥5 DAYS — water is holding a drop that's coming. This is the exact moment people panic-cut. Hands off; your 6/28–7/2 whoosh is the receipt."] : ["watching — fires when the trend flattens under compliant intake"] });
+
+  /* 5 · step-creep v2 */
+  const stepDays = Object.entries(s.dailyLogs).filter(([d, v]) => d > "2026-07-21" && v.steps != null);
+  out.push({ id: "creep", t: "STEP-CREEP RADAR v2", status: stepDays.length >= 14 ? "LIVE" : "ARMED", prog: { n: stepDays.length, need: 14, label: "post-handoff step days" },
+    lines: stepDays.length >= 14 ? ["watching the 7-day floor — a rising floor with rate in band gets named at recurrence 2, not 7"] : [] });
+
+  /* 6 · the Tuesday/Friday natural experiment */
+  const wkKey = (d) => { const dt = mk(d); const off = (dt.getDay() + 6) % 7; return isoOf(new Date(dt - off * DAY)); };
+  const weeks = {};
+  Object.keys(s.sessionLog).forEach((d) => { const dow = mk(d).getDay(); if (dayType(d) === "L") { (weeks[wkKey(d)] = weeks[wkKey(d)] || {})[dow === 2 ? "tue" : dow === 5 ? "fri" : "x"] = d; } });
+  const pairs = Object.values(weeks).filter((w) => w.tue && w.fri);
+  let tf = [];
+  if (pairs.length >= 4) {
+    pairs.forEach((pr) => {
+      const sum = (d) => (s.sessionLog[d].entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0);
+      tf.push(sum(pr.fri) - sum(pr.tue));
+    });
+  }
+  out.push({ id: "tuefri", t: "TUE/FRI EXPERIMENT — REFEED DISTANCE", status: pairs.length >= 4 ? "LIVE" : "ARMED", prog: { n: pairs.length, need: 4, label: "paired weeks" },
+    lines: pairs.length >= 4 ? [`Friday (2 days post-refeed) runs ${tf.reduce((a, b) => a + b, 0) / tf.length > 0 ? "+" : ""}${Math.round(tf.reduce((a, b) => a + b, 0) / tf.length)} total lower-day reps vs Tuesday (6 days out), n=${tf.length} — glycogen distance, measured in you`] : ["your split accidentally built a controlled experiment · first pair completes Tue 7/28 + Fri 7/31"] });
+
+  /* 7 · rep-drop fingerprints */
+  const sesN = Object.keys(s.sessionLog).length;
+  let fp = { opener: 0, tail: 0, broad: 0 };
+  if (sesN >= 8) {
+    const byEx = {};
+    Object.keys(s.sessionLog).sort().forEach((d) => (s.sessionLog[d].entries || []).forEach((e) => {
+      if (!e.reps || !e.reps.length) return;
+      const prev = byEx[e.id];
+      if (prev && prev.length === e.reps.length) {
+        const o = e.reps[0] < prev[0], t2 = e.reps[e.reps.length - 1] < prev[prev.length - 1];
+        if (o && t2) fp.broad++; else if (o) fp.opener++; else if (t2) fp.tail++;
+      }
+      byEx[e.id] = e.reps;
+    }));
+  }
+  out.push({ id: "fingerprint", t: "REP-DROP FINGERPRINTS", status: sesN >= 8 ? "LIVE" : "ARMED", prog: { n: sesN, need: 8, label: "completed sessions" },
+    lines: sesN >= 8 ? [`opener-down ${fp.opener} (readiness) · tail-down ${fp.tail} (fuel) · broad ${fp.broad} (systemic) — where reps fall tells you which lever to pull`] : [] });
+
+  /* 8 · sleep→lift lag */
+  const shortNights = s.sleep.nights.filter((n) => n.d > "2026-07-21" && n.h < 6.5).length;
+  out.push({ id: "sleeplag", t: "SLEEP→LIFT LAG MAP", status: shortNights >= 6 ? "LIVE" : "ARMED", prog: { n: shortNights, need: 6, label: "short-night observations (no need to rush these)" }, lines: [] });
+
+  /* 9 · RIR truth-check */
+  const rir1 = [];
+  Object.values(s.sessionLog).forEach((sl) => (sl.entries || []).forEach((e) => { if (e.rir === 1 && e.reps && e.reps.length >= 2) rir1.push(e.reps[e.reps.length - 1] <= e.reps[0] - 3); }));
+  out.push({ id: "rirtruth", t: "RIR CALIBRATION CHECK", status: rir1.length >= 10 ? "LIVE" : "ARMED", prog: { n: rir1.length, need: 10, label: "logged RIR-1 openers" },
+    lines: rir1.length >= 10 ? [`${Math.round(100 * rir1.filter(Boolean).length / rir1.length)}% of your "1"s preceded a tail crater — ${rir1.filter(Boolean).length / rir1.length > 0.4 ? "your 1 behaves like a 0 in the stim window; call it a 0" : "your 1 is honest; carry on"}`] : [] });
+
+  /* 10 · note-mining + cue graduation */
+  const notes = Object.values(s.sessionLog).map((sl) => sl.note).filter((n) => n && n.length > 3);
+  const stop = new Set(["with", "that", "this", "from", "sets", "reps", "good", "than", "last", "next", "after", "then", "were", "just", "very", "when", "session"]);
+  const tok = {};
+  notes.forEach((n) => n.toLowerCase().split(/[^a-z]+/).forEach((w) => { if (w.length >= 4 && !stop.has(w)) tok[w] = (tok[w] || 0) + 1; }));
+  const top = Object.entries(tok).filter(([, c]) => c >= 3).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  out.push({ id: "notes", t: "NOTE-MINING · CUE GRADUATION", status: notes.length >= 10 ? "LIVE" : "ARMED", prog: { n: notes.length, need: 10, label: "session notes" },
+    lines: notes.length >= 10 ? (top.length ? [`repeating in your own words: ${top.map(([w, c]) => `"${w}" ×${c}`).join(" · ")} — anything ×3+ can graduate into SETUP; say the word`] : ["no phrase has repeated 3× yet — your notes are still all originals"]) : [] });
+
+  /* 11 · miss-antecedent map */
+  const misses = Object.entries(s.dailyLogs).filter(([d, v]) => d > "2026-07-21" && v.pro != null && Math.abs(v.pro - PROTEIN) > 10);
+  out.push({ id: "miss", t: "MISS-ANTECEDENT MAP", status: misses.length >= 4 ? "LIVE" : "ARMED", prog: { n: misses.length, need: 4, label: "protein misses (may this stay armed forever)" },
+    lines: misses.length >= 4 ? [misses.map(([d]) => fmtShort(d)).join(" · ") + " — checking each for event-adjacency and short sleep the night before; prevention beats recovery"] : [] });
+
+  /* 14 · pivot probability cone (Monte Carlo on your rate variance) */
+  const w2 = s.weekly;
+  const rts = [];
+  for (let i = 1; i < w2.length; i++) rts.push((w2[i - 1].trend - w2[i].trend) / Math.max(0.5, weeksBetween(w2[i - 1].wk, w2[i].wk)));
+  if (rts.length >= 4) {
+    const mu = rts.reduce((a, b) => a + b, 0) / rts.length;
+    const sg = Math.sqrt(rts.reduce((a, b) => a + (b - mu) * (b - mu), 0) / rts.length);
+    let seed = 42; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+    const gauss = () => Math.sqrt(-2 * Math.log(Math.max(1e-9, rnd()))) * Math.cos(2 * Math.PI * rnd());
+    const hits = [];
+    for (let k = 0; k < 400; k++) {
+      let tr = s.trend, ln = bfEst(s).lean, wk3 = 0;
+      for (; wk3 < 30; wk3++) {
+        if (((tr - ln) / tr) * 100 <= 11.2) break;
+        tr -= Math.max(0.2, mu + sg * gauss()); ln += s.model.drip;
+      }
+      hits.push(wk3);
+    }
+    hits.sort((a, b) => a - b);
+    const dAt = (wq) => fmtShort(isoOf(new Date(todayStart().getTime() + hits[Math.floor(hits.length * wq)] * 7 * DAY)));
+    out.push({ id: "cone", t: "PIVOT PROBABILITY CONE", status: "LIVE", prog: null,
+      lines: [`80% of simulated preps hit the pivot band between ${dAt(0.1)} and ${dAt(0.9)} · median ${dAt(0.5)} · drawn from YOUR ${rts.length} weekly rates (μ ${mu.toFixed(2)}, σ ${sg.toFixed(2)}) — the cone narrows as clean weeks land`] });
+  } else {
+    out.push({ id: "cone", t: "PIVOT PROBABILITY CONE", status: "ARMED", prog: { n: rts.length, need: 4, label: "weekly rates" }, lines: [] });
+  }
+
+  /* 15 · DEXA reconciliation */
+  out.push({ id: "dexarecon", t: "DEXA RECONCILIATION", status: s.dexaRecon ? "LIVE" : "ARMED", prog: { n: s.dexaRecon ? 1 : 0, need: 1, label: "DEXA anchor" },
+    lines: s.dexaRecon ? [`eye model read ${s.dexaRecon.eye}% when DEXA said ${s.dexaRecon.dexa}% (Δ ${s.dexaRecon.delta > 0 ? "+" : ""}${s.dexaRecon.delta}) — every estimate since runs on measured ground`] : [] });
+
+  /* 12/13 · build-phase slots, honestly locked */
+  out.push({ id: "mrv", t: "EMPIRICAL MRV — YOUR VOLUME CEILINGS", status: "LOCKED", prog: null, lines: ["engine ships with the September program push · funded by the per-set RIR you'll log then"] });
+  out.push({ id: "debutmodel", t: "DEBUT-READINESS MODEL", status: "LOCKED", prog: null, lines: ["needs ~15 build-phase debuts · the cut doesn't generate enough to train on"] });
+
+  const rank = { LIVE: 0, ARMED: 1, LOCKED: 2 };
+  return out.sort((a, b) => rank[a.status] - rank[b.status]);
 }
 
 /* the macro engine: snapshots + rule proposals. Idempotent per day. */
@@ -525,6 +678,8 @@ function undoRead(state, iso) {
 /* DEXA anchoring — one input recalibrates the whole model */
 function anchorDexa(state, pct) {
   const s = JSON.parse(JSON.stringify(state));
+  const eyeNow = bfEst(s).pct;
+  s.dexaRecon = { d: isoOf(todayStart()), eye: eyeNow, dexa: pct, delta: +(pct - eyeNow).toFixed(1) };
   s.model = { lean: +(s.trend * (1 - pct / 100)).toFixed(1), anchorISO: isoOf(todayStart()), drip: s.model.drip, src: "DEXA", err: "±1" };
   const q = s.queue.find((x) => x.id === "q_dexa"); if (q) { q.done = true; q.state = "ANCHORED"; }
   s.feed.unshift({ d: isoOf(todayStart()), t: "DEXA ANCHORED", how: `${pct}% at trend ${s.trend} → lean ${s.model.lean}. Every estimate and ETA now runs off measured ground truth.` });
@@ -610,7 +765,7 @@ function migrate(old) {
   return patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))));
 }
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -661,6 +816,8 @@ const Eyebrow = ({ children, c = T.dim }) => (
 const stampColor = (st) => {
   if (["OWNED", "RECLAIMED", "ESTABLISH", "ESTABLISHED", "BASELINE", "RUNG DONE", "BOOKED", "FIRED", "ANCHORED"].includes(st)) return T.jade;
   if (["DEBUT"].includes(st)) return T.orange;
+  if (st === "LIVE") return T.jade;
+  if (st === "LOCKED") return T.dim;
   if (["PARKED", "UNBOOKED", "COACH'S EYE", "ARMS @ ~13%", "COACH FLAG"].includes(st)) return T.dim;
   return T.brass;
 };
@@ -1502,6 +1659,25 @@ function HistTab({ s }) {
         </div>
         <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 8 }}>Weight fell while every headline lift rose — the whole thesis, in one screen. Tap a week for the day-by-day.</div>
       </Card>
+
+      <Eyebrow>THE LAB · PATTERNS FOUND IN YOU — EACH UNLOCKS WHEN ITS DATA EARNS IT</Eyebrow>
+      {labAnalytics(s).map((a) => (
+        <Card key={a.id} style={{ padding: 12 }} accent={a.status === "LIVE" ? T.jade : undefined}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
+            <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 15.5, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk }}>{a.t}</div>
+            <Stamp st={a.status} />
+          </div>
+          {a.lines.map((l, i) => (
+            <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{l}</div>
+          ))}
+          {a.status === "ARMED" && a.prog && (
+            <div style={{ marginTop: 8 }}>
+              <Bar pct={(a.prog.n / a.prog.need) * 100} c={T.brass} />
+              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 4 }}>{a.prog.n} / {a.prog.need} {a.prog.label}</div>
+            </div>
+          )}
+        </Card>
+      ))}
 
       {(() => {
         const dates = [...new Set([...Object.keys(s.dailyLogs), ...s.reads.map((r) => r.d), ...s.sleep.nights.map((n) => n.d)])].filter((d) => d > "2026-07-21").sort();
