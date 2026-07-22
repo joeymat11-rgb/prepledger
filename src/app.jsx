@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "2.6.0";
+const APP_V = "3.0.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,9 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 8;
+  SEED.v = 9;
+  SEED.photos = [];
+  SEED.sync = { last: null, status: "" };
   SEED.exOrder = { U: SEED.exercises.filter((e) => e.day === "U").map((e) => e.id), L: SEED.exercises.filter((e) => e.day === "L").map((e) => e.id) };
   SEED.waist = [];
   SEED.exercises.forEach((e) => { e.rirHist = []; });
@@ -263,6 +265,7 @@ function genSession(s, iso, slp) {
 function completeSession(state, iso, entries, slp, extras = {}) {
   const s = JSON.parse(JSON.stringify(state));
   const lines = [];
+  let dipCount = 0;
   const push = (t, how) => lines.push({ t, how });
   const debtTag = slp.clean ? "" : " · on debt — provisional";
   const qFind = (pred) => s.queue.find(pred);
@@ -273,6 +276,8 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     const r = en.reps.map((x) => Number(x) || 0);
     const q = qFind((x) => x.exId === ex.id && !x.done && (x.kind === "debut" || x.kind === "unlock"));
 
+    const prevMeta = ex.lastMeta;
+    if (prevMeta && prevMeta.reps && String(prevMeta.w) === String(en.w) && r.reduce((a, b) => a + b, 0) < prevMeta.reps.reduce((a, b) => a + b, 0)) dipCount++;
     ex.lastMeta = { d: iso, w: en.w, reps: r.slice(), rir: en.rir ?? null, debt: !slp.clean };
 
     /* opener RIR — the honest-opener rule with teeth */
@@ -364,7 +369,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
   });
 
   const niggles = extras.niggles || [];
-  s.sessionLog[iso] = { entries: entries.map((e) => ({ id: e.id, reps: e.reps, rir: e.rir ?? null })), at: Date.now(), note: extras.note || "", niggles };
+  s.sessionLog[iso] = { entries: entries.map((e) => ({ id: e.id, reps: e.reps, rir: e.rir ?? null })), at: Date.now(), note: extras.note || "", niggles, dips: dipCount };
   const cutoff = isoOf(new Date(mk(iso).getTime() - 21 * DAY));
   const counts = {};
   Object.entries(s.sessionLog).forEach(([d, sl]) => { if (d >= cutoff) (sl.niggles || []).forEach((j) => { counts[j] = (counts[j] || 0) + 1; }); });
@@ -394,6 +399,40 @@ function currentRate(s) {
     return { scale, fat: +(scale + s.model.drip).toFixed(2), measured: true, rates };
   }
   return { scale: 1.0, fat: 1.25, measured: false, rates: [] };
+}
+
+/* recovery index — sleep, RIR drift, joint flags, rep dips converge into one number */
+function recoveryIndex(s) {
+  const factors = []; let score = 100;
+  const slp = sleepInfo(s);
+  if (!slp.clean) { const miss = Math.min(3, s.sleep.needed - slp.run); score -= miss * 10; factors.push(`sleep reset ${slp.run}/${s.sleep.needed}`); }
+  const last5 = s.sleep.nights.slice(-5).map((n) => n.h);
+  if (last5.length === 5 && last5.reduce((a, b) => a + b, 0) / 5 < 7) { score -= 10; factors.push("5-night avg under 7 h"); }
+  const holds = s.exercises.filter((e) => e.holdFlag);
+  if (holds.length) { score -= Math.min(20, holds.length * 10); factors.push(`${holds.length} lift${holds.length > 1 ? "s" : ""} held (RIR)`); }
+  const rirs = [];
+  Object.keys(s.sessionLog).sort().slice(-3).forEach((d) => (s.sessionLog[d].entries || []).forEach((e) => { if (e.rir != null) rirs.push(e.rir); }));
+  if (rirs.length >= 4 && rirs.filter((x) => x === 0).length / rirs.length >= 0.5) { score -= 10; factors.push("half of logged openers at RIR 0"); }
+  const cutoff = isoOf(new Date(todayStart().getTime() - 14 * DAY));
+  let ng = 0;
+  Object.entries(s.sessionLog).forEach(([d, sl]) => { if (d >= cutoff) ng += (sl.niggles || []).length; });
+  if (ng) { score -= Math.min(21, ng * 7); factors.push(`${ng} joint flag${ng > 1 ? "s" : ""} in 14 d`); }
+  const dips = Object.keys(s.sessionLog).sort().slice(-2).reduce((a, d) => a + (s.sessionLog[d].dips || 0), 0);
+  if (dips) { score -= Math.min(15, dips * 5); factors.push(`${dips} rep dip${dips > 1 ? "s" : ""} last 2 sessions`); }
+  score = Math.max(0, Math.round(score));
+  return { score, factors, band: score >= 80 ? "GREEN" : score >= 55 ? "WATCH" : "LOW" };
+}
+
+/* apply a scale read with spike damping — one meal can move a morning, not the trend */
+function applyRead(state, iso, w) {
+  const s = JSON.parse(JSON.stringify(state));
+  if (s.reads.some((r) => r.d === iso)) return s;
+  const sealed = daysUntil(s.blackout.until) > 0;
+  const dRaw = w - s.trend, dCl = Math.max(-1.5, Math.min(1.5, dRaw));
+  const spike = Math.abs(dRaw) > 1.5;
+  s.reads.push({ d: iso, w, sealed, pt: s.trend, note: sealed ? "sealed — excluded from trend" : spike ? "spike — damped in trend" : "" });
+  if (!sealed) s.trend = +(s.trend + 0.3 * dCl).toFixed(1);
+  return s;
 }
 
 /* ETA (weeks) until est. BF reaches a target, simulating trend − rate, lean + drip */
@@ -431,6 +470,10 @@ function runAdaptive(state, todayISO) {
     propose("ease2", "EASE 2 — CONDITIONS MET", `Est. BF ${bf.pct}% has crossed the ~13% line. Applying moves you to ${PHASES["EASE 2"].band.join("–")} cal with the step taper — scale will slow by design while fat loss holds.`, { kind: "phase", to: "EASE 2" });
   if (!sealed && bf.pct <= 11.2 && !s.queue.find((q) => q.id === "q_pivot").done)
     propose("pivot", "PIVOT WINDOW — COACH'S EYE", `Est. BF ${bf.pct}% is in the 10.5–11 band. This one is not a tap — book the look with your coach. The app proposes; humans authorize.`, { kind: "note" });
+
+  const rec = recoveryIndex(s);
+  if (rec.band === "LOW")
+    propose("recovery_" + monday, `RECOVERY LOW — ${rec.score}/100`, `Converging signals: ${rec.factors.join(" · ")}. The rule: hold all structural changes this week and flag your coach for a lighter one. Nothing auto-changes.`, { kind: "note" });
 
   return s;
 }
@@ -516,15 +559,21 @@ function patchV8(s) {
   s.v = 8;
   return s;
 }
+function patchV9(s) {
+  s.photos = s.photos || [];
+  s.sync = s.sync || { last: null, status: "" };
+  s.v = 9;
+  return s;
+}
 function migrate(old) {
-  if (old && old.v === 8) return old;
-  if (old && old.v >= 3 && old.v <= 7) return patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))));
+  if (old && old.v === 9) return old;
+  if (old && old.v >= 3 && old.v <= 8) return patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
   (old.reads || []).forEach((r) => { if (!s.reads.some((x) => x.d === r.d)) s.reads.push(r); });
   s.reads.sort((a, b) => (a.d < b.d ? -1 : 1));
-  s.reads.filter((r) => !r.sealed && r.d > "2026-07-21").forEach((r) => { s.trend = +(s.trend * 0.7 + r.w * 0.3).toFixed(1); });
+  s.reads.filter((r) => !r.sealed && r.d > "2026-07-21").forEach((r) => { const dCl = Math.max(-1.5, Math.min(1.5, r.w - s.trend)); s.trend = +(s.trend + 0.3 * dCl).toFixed(1); });
   ((old.sleep && old.sleep.nights) || []).forEach((n) => { if (!s.sleep.nights.some((x) => x.d === n.d)) s.sleep.nights.push(n); });
   s.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
   Object.entries(old.dailyLogs || {}).forEach(([d, v]) => { s.dailyLogs[d] = v; });
@@ -544,10 +593,27 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV8(patchV7(patchV6(patchV5(patchV4(s)))));
+  return patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))));
 }
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, SEED, dayType, HISTORY, ROLLUPS };
+
+/* ---------- github self-filing (token never enters exportable state) ---------- */
+const TOKEN_KEY = "prep-ledger-ghtoken";
+async function ghSync(state) {
+  let tok = null;
+  try { tok = localStorage.getItem(TOKEN_KEY); } catch (e) {}
+  if (!tok) return { ok: false, msg: "no token saved" };
+  const url = "https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/state.json";
+  const hdr = { Authorization: "Bearer " + tok, Accept: "application/vnd.github+json" };
+  let sha = null;
+  try { const g = await fetch(url, { headers: hdr }); if (g.ok) sha = (await g.json()).sha; } catch (e) {}
+  const body = { message: "ledger auto-sync " + isoOf(todayStart()), content: btoa(unescape(encodeURIComponent(JSON.stringify(state)))), ...(sha ? { sha } : {}) };
+  try {
+    const put = await fetch(url, { method: "PUT", headers: { ...hdr, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    return put.ok ? { ok: true } : { ok: false, msg: "HTTP " + put.status + (put.status === 401 ? " — token expired?" : "") };
+  } catch (e) { return { ok: false, msg: "network" }; }
+}
 
 /* ---------- storage ---------- */
 const KEY = "prep-ledger-v1";
@@ -690,7 +756,7 @@ function Proposals({ s, setS, save }) {
   );
 }
 
-function NowTab({ s, setS, save, slp, openRules }) {
+function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const tISO = isoOf(todayStart());
   const wd = weekDay();
   const dt = dayType(tISO);
@@ -733,7 +799,10 @@ function NowTab({ s, setS, save, slp, openRules }) {
           <H size={21}>Prep Ledger</H>
           <Eyebrow>WK {wd.wk} · DAY {wd.day} · {s.phase} · EST BF {bf.pct}%</Eyebrow>
         </div>
-        <button onClick={openRules} style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "6px 10px" }}>RULES</button>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button onClick={openCoach} style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "6px 10px" }}>COACH</button>
+          <button onClick={openRules} style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "6px 10px" }}>RULES</button>
+        </div>
       </div>
 
       <Proposals s={s} setS={setS} save={save} />
@@ -771,6 +840,21 @@ function NowTab({ s, setS, save, slp, openRules }) {
         <Chip c={slp.clean ? T.jade : T.brass}>Sleep {slp.clean ? "CLEAN" : `reset ${slp.run}/${slp.need}`}</Chip>
         {ev && <Chip c={T.chalk}>{ev.t} · {fmtShort(ev.d)}</Chip>}
       </div>
+
+      {(() => {
+        const rec = recoveryIndex(s);
+        const c = rec.band === "GREEN" ? T.jade : rec.band === "WATCH" ? T.brass : T.brass;
+        return (
+          <Card accent={c}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Eyebrow>RECOVERY — HOW BEAT-UP AM I?</Eyebrow>
+              <span style={{ fontFamily: mono, fontSize: 12, color: c }}>{rec.score} · {rec.band}</span>
+            </div>
+            <div style={{ margin: "8px 0 4px" }}><Bar pct={rec.score} c={c} /></div>
+            <div style={{ fontFamily: mono, fontSize: 10, color: T.steel }}>{rec.factors.length ? rec.factors.join(" · ") : "no drag on the system — earns count, send it"}</div>
+          </Card>
+        );
+      })()}
 
       <Card>
         <Eyebrow>CLOSEST UNLOCKS · THE QUEUE REFILLS ITSELF</Eyebrow>
@@ -1122,10 +1206,7 @@ function BodyTab({ s, setS, save }) {
 
   const logWeight = () => {
     if (already) return;
-    const ns = JSON.parse(JSON.stringify(s));
-    ns.reads.push({ d: tISO, w, sealed, note: sealed ? "sealed — excluded from trend" : "", pt: ns.trend });
-    if (!sealed) ns.trend = +(ns.trend * 0.7 + w * 0.3).toFixed(1);
-    const ns2 = runAdaptive(ns, tISO);
+    const ns2 = runAdaptive(applyRead(s, tISO, w), tISO);
     setS(ns2); save(ns2);
   };
 
@@ -1172,6 +1253,29 @@ function BodyTab({ s, setS, save }) {
           </div>
         )}
         <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>PROTOCOL: fasted · post-void · pre-food/water · 16 oz water ≈ +0.5–1 lb</div>
+      </Card>
+
+      <Card>
+        {(() => {
+          const wk = weekDay().wk;
+          const lastP = s.photos[s.photos.length - 1];
+          const due = !lastP || Math.round((mk(tISO) - mk(lastP.d)) / DAY) >= 7;
+          return (
+            <>
+              <Eyebrow c={wk >= 10 ? T.brass : T.dim}>{wk >= 10 ? "PHOTOS · MIRROR ERA — OUTRANKS THE SCALE" : "PHOTOS · WEEKLY — HABIT NOW, ERA STARTS WK 10"}</Eyebrow>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+                {["same light", "same spot", "fasted AM", "front / side / back", "relaxed + flexed"].map((c2, i) => (<Chip key={i}>{c2}</Chip>))}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+                <Btn small tone={due ? "jade" : "ghost"} disabled={!due} onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.photos.push({ d: tISO }); setS(ns); save(ns); }}>
+                  {due ? "Mark this week's photos taken" : `Done — next ${fmtShort(isoOf(new Date(mk(lastP.d).getTime() + 7 * DAY)))}`}
+                </Btn>
+                {s.photos.length > 0 && <span style={{ fontFamily: mono, fontSize: 10.5, color: T.jade }}>×{s.photos.length}</span>}
+              </div>
+              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>Images live in your camera roll — make an album called PREP and compare there. The app tracks the habit, never the pictures.</div>
+            </>
+          );
+        })()}
       </Card>
 
       <Card>
@@ -1445,7 +1549,54 @@ function HistTab({ s }) {
   );
 }
 
-function Rules({ onClose, onReset, onExport, onImport }) {
+function CoachView({ s, onClose }) {
+  const bf = bfEst(s);
+  const cur = currentRate(s);
+  const rec = recoveryIndex(s);
+  const slp = sleepInfo(s);
+  const holds = s.exercises.filter((e) => e.holdFlag).map((e) => e.n);
+  const pending = s.queue.filter((q) => !q.done && (q.kind === "own" || q.kind === "reclaim")).map((q) => q.t);
+  const upcoming = s.queue.filter((q) => !q.done && q.kind === "debut").slice(0, 4).map((q) => q.t);
+  const flagged = s.queue.filter((q) => !q.done && ((q.rule || "").toLowerCase().includes("coach") || q.state === "COACH FLAG" || q.state === "COACH'S EYE")).map((q) => q.t);
+  const unsure = s.exercises.filter((e) => (e.setup || "").includes("(?)")).map((e) => e.n);
+  const cutoff = isoOf(new Date(todayStart().getTime() - 14 * DAY));
+  let ng = [];
+  Object.entries(s.sessionLog).forEach(([d, sl]) => { if (d >= cutoff) ng = ng.concat(sl.niggles || []); });
+  const Sec = ({ t, items, c = T.chalk }) => items.length ? (
+    <div style={{ marginTop: 14 }}>
+      <Eyebrow c={T.brass}>{t}</Eyebrow>
+      {items.map((x, i) => (<div key={i} style={{ fontFamily: body, fontSize: 14, color: c, marginTop: 4 }}>· {x}</div>))}
+    </div>
+  ) : null;
+  return (
+    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 70, overflowY: "auto" }} onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480, margin: "0 auto", padding: "calc(26px + env(safe-area-inset-top)) 18px 60px" }}>
+        <H size={26}>Coach One-Pager</H>
+        <Eyebrow>{fmtShort(isoOf(todayStart()))} · WK {weekDay().wk} · {s.phase} · GENERATED LIVE</Eyebrow>
+        <div style={{ display: "flex", gap: 18, marginTop: 16, flexWrap: "wrap" }}>
+          <div><Num size={24} c={T.jade}>{s.trend}</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>TREND</div></div>
+          <div><Num size={24}>{bf.pct}%</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>EST BF {s.model.err}</div></div>
+          <div><Num size={24}>{cur.fat}</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>FAT/WK{cur.measured ? " · MEASURED" : ""}</div></div>
+          <div><Num size={24} c={rec.band === "GREEN" ? T.jade : T.brass}>{rec.score}</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>RECOVERY</div></div>
+          <div><Num size={24}>{s.zeroComp.count}</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>ZERO-COMP</div></div>
+        </div>
+        <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 10 }}>
+          Sleep: {slp.clean ? "CLEAN" : `reset ${slp.run}/${slp.need}`} · scale {daysUntil(s.blackout.until) > 0 ? `sealed → ${fmtShort(SEAL_UNTIL)}` : "live"}
+        </div>
+        <Sec t="NEEDS YOUR CALL" items={[...flagged, ...unsure.map((n) => `Confirm (?) cues — ${n}`)]} />
+        <Sec t="IN THE QUEUE (STRUCTURAL)" items={upcoming} />
+        <Sec t="OPEN STANDARDS" items={pending} />
+        <Sec t="HELD ON RIR" items={holds} c={T.brass} />
+        <Sec t="JOINT FLAGS · 14 D" items={ng.length ? [ng.join(" · ")] : []} c={T.brass} />
+        <div style={{ marginTop: 24 }}><Btn small onClick={onClose}>Close</Btn></div>
+      </div>
+    </div>
+  );
+}
+
+function Rules({ onClose, onReset, onExport, onImport, sync, onSync }) {
+  const [tok, setTok] = useState("");
+  const [hasTok, setHasTok] = useState(() => { try { return !!localStorage.getItem(TOKEN_KEY); } catch (e) { return false; } });
   const rules = [
     ["ADAPTIVE", "Session targets, earned loads, and the queue update themselves from what you log. Calorie & phase changes arm themselves from trend data but take one tap — nothing macro moves invisibly."],
     ["RATE", "IF <0.8/wk two weeks → restore steps first, THEN trim. IF ≥1.9 → redline, add back, coach flag. The app watches; you tap."],
@@ -1482,6 +1633,25 @@ function Rules({ onClose, onReset, onExport, onImport }) {
           </label>
           <Btn small onClick={onReset}>Reset to seeded state (7/22)</Btn>
         </div>
+        <div style={{ marginTop: 22, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
+          <Eyebrow c={T.brass}>SELF-FILING · SUNDAY AUTO-SYNC TO YOUR PRIVATE REPO</Eyebrow>
+          {hasTok ? (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel }}>Token saved on this device · last sync: {sync && sync.last ? `${fmtShort(sync.last)} — ${sync.status}` : "never"}</div>
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                <Btn small tone="jade" onClick={onSync}>Sync now</Btn>
+                <Btn small onClick={() => { try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} setHasTok(false); }}>Remove token</Btn>
+              </div>
+            </div>
+          ) : (
+            <div style={{ marginTop: 8 }}>
+              <input type="password" placeholder="paste the github_pat_ token" value={tok} onChange={(e) => setTok(e.target.value)}
+                style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: 10, outline: "none" }} />
+              <div style={{ marginTop: 8 }}><Btn small tone="jade" onClick={() => { if (tok.indexOf("github_pat_") === 0) { try { localStorage.setItem(TOKEN_KEY, tok.trim()); } catch (e) {} setHasTok(true); setTok(""); } }}>Save token</Btn></div>
+            </div>
+          )}
+          <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>Stays on this device · never included in exports or sync payloads · scoped to prepledger only. Every Sunday the ledger commits itself — backup and coach review in one move.</div>
+        </div>
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 12 }}>
           The ledger lives on this device only. Export after big weeks — the backup file is the insurance policy. · Prep Ledger v{APP_V}
         </div>
@@ -1495,12 +1665,39 @@ export default function PrepLedger() {
   const [s, setS] = useState(null);
   const [tab, setTab] = useState("NOW");
   const [rules, setRules] = useState(false);
+  const [coach, setCoach] = useState(false);
+  const [updReady, setUpdReady] = useState(false);
   const [offline, setOffline] = useState(false);
 
   useEffect(() => {
     try { setS(loadState()); }
     catch (e) { setS(JSON.parse(JSON.stringify(SEED))); setOffline(true); }
   }, []);
+
+  /* update-ready detection — replaces the kill-twice ritual */
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const had = !!navigator.serviceWorker.controller;
+    const onCtrl = () => { if (had) setUpdReady(true); };
+    navigator.serviceWorker.addEventListener("controllerchange", onCtrl);
+    const check = () => { navigator.serviceWorker.getRegistration().then((r) => r && r.update()).catch(() => {}); };
+    check();
+    const onVis = () => { if (document.visibilityState === "visible") check(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => { navigator.serviceWorker.removeEventListener("controllerchange", onCtrl); document.removeEventListener("visibilitychange", onVis); };
+  }, []);
+
+  /* sunday self-filing to github, once per day, only with a saved token */
+  useEffect(() => {
+    if (!s) return;
+    const today = todayStart();
+    let tok = null; try { tok = localStorage.getItem(TOKEN_KEY); } catch (e) {}
+    if (!tok || today.getDay() !== 0 || s.sync.last === isoOf(today)) return;
+    ghSync(s).then((res) => {
+      const ns = { ...s, sync: { last: isoOf(today), status: res.ok ? "synced" : res.msg } };
+      setS(ns); save(ns);
+    });
+  }, [s === null]);
 
   const save = useCallback((ns) => {
     try { localStorage.setItem(KEY, JSON.stringify(ns)); }
@@ -1559,10 +1756,16 @@ export default function PrepLedger() {
         </div>
       )}
 
+      {updReady && (
+        <button onClick={() => location.reload()} style={{ position: "fixed", top: "env(safe-area-inset-top)", left: 0, right: 0, zIndex: 58, background: T.orange, color: T.ink, border: "none", padding: "11px 14px", fontFamily: mono, fontSize: 11.5, letterSpacing: "0.08em", fontWeight: 700 }}>
+          UPDATE READY — TAP TO LOAD IT
+        </button>
+      )}
+
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "env(safe-area-inset-top)", background: T.ink, zIndex: 55 }} />
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(14px + env(safe-area-inset-top)) 14px 132px" }}>
-        {tab === "NOW" && <NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} />}
+        {tab === "NOW" && <NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} openCoach={() => setCoach(true)} />}
         {tab === "TRAIN" && <LogTab s={s} setS={setS} save={save} slp={slp} />}
         {tab === "QUEUE" && <QueueTab s={s} />}
         {tab === "BODY" && <BodyTab s={s} setS={setS} save={save} />}
@@ -1580,7 +1783,8 @@ export default function PrepLedger() {
         </div>
       </div>
 
-      {rules && <Rules onClose={() => setRules(false)} onReset={reset} onExport={doExport} onImport={doImport} />}
+      {rules && <Rules onClose={() => setRules(false)} onReset={reset} onExport={doExport} onImport={doImport} sync={s.sync} onSync={async () => { const res = await ghSync(s); const ns = { ...s, sync: { last: isoOf(todayStart()), status: res.ok ? "synced" : res.msg } }; setS(ns); save(ns); }} />}
+      {coach && <CoachView s={s} onClose={() => setCoach(false)} />}
     </div>
   );
 }

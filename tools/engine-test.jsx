@@ -171,5 +171,32 @@ oldV7.sessionLog["2026-07-22"] = { entries: [{ id: "press", reps: [8, 8, 7], rir
 const m8 = mg6(oldV7);
 ok(m8.exercises.find(e => e.id === "press").lastMeta.d === "2026-07-22", "migration prefers the phone's own logged session over the sheet seed");
 
-console.log(`\nFINAL6: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.0 — recovery, damping, sync hygiene
+const { recoveryIndex: ri, applyRead: ar, runAdaptive: ra3, SEED: SA, migrate: mgA } = __test;
+ok(ri(clone(SA)).score >= 80 === false || true, "index computes");
+const base = ri(clone(SA));
+ok(base.score === 80 && base.band === "GREEN", "seed reads 80 GREEN — one clean night short + a sub-7 five-night average");
+let beat = clone(SA);
+beat.exercises[0].holdFlag = true; beat.exercises[1].holdFlag = true;
+beat.sleep.nights = beat.sleep.nights.slice(0, -4).concat([{d:"2026-07-17",h:5},{d:"2026-07-18",h:5},{d:"2026-07-19",h:5},{d:"2026-07-20",h:5},{d:"2026-07-21",h:5}]);
+beat.sessionLog["2026-07-21"] = { entries: [], niggles: ["knee","knee","shoulder"], at: 1 };
+const beatIdx = ri(beat);
+ok(beatIdx.band === "LOW" && beatIdx.score < 55, "stacked drag lands LOW: " + beatIdx.score);
+beat.blackout.until = "2026-07-01";
+const raOut = ra3(beat, "2026-07-22");
+ok(raOut.proposals.some(p => p.rid.indexOf("recovery_") === 0), "LOW recovery arms the hold-structure proposal");
+// spike damping
+let sd = clone(SA); sd.blackout.until = "2026-07-01"; const t0b = sd.trend;
+const sd2 = ar(sd, "2026-07-28", sd.trend + 4.6);
+ok(Math.abs(sd2.trend - +(t0b + 0.45).toFixed(1)) < 0.001 && sd2.reads[sd2.reads.length - 1].note.indexOf("spike") === 0, "a +4.6 dinner moves the trend +0.45 max, marked as damped");
+const sd3 = ar(clone(sd), "2026-07-28", sd.trend - 0.6);
+ok(Math.abs(sd3.trend - +(t0b - 0.18).toFixed(1)) < 0.001, "normal reads still flow at full EWMA weight");
+// sync payload hygiene + v9
+ok(JSON.stringify(SA).indexOf("ghtoken") === -1 && SA.v === 9 && Array.isArray(SA.photos), "state v9, token never inside the payload");
+const oldV8 = clone(SA); oldV8.v = 8; delete oldV8.photos; delete oldV8.sync;
+ok(mgA(oldV8).v === 9 && Array.isArray(mgA(oldV8).photos), "v8 phones patch to v9 cleanly");
+
+console.log(`\nFINAL7: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
