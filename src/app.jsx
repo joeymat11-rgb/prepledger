@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "2.2.2";
+const APP_V = "2.3.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -43,18 +43,22 @@ const REFEED = { cal: "2,450–2,500", note: "weekly Wednesday — prescribed, n
 
 /* ---------- exercise seed (state as of Wed 7/22/26) ---------- */
 const EXERCISES = [
-  { id: "rows", n: "Rows (strapless)", day: "U", w: 175, inc: 5, sets: 2, hi: 10, last: [10, 10] },
-  { id: "press", n: "Press", day: "U", w: 245, inc: 5, sets: 3, hi: 9, last: [8, 7, 6], std: [8, 8, 7], own: true, ownNote: "repeat 8,8,7 on a clean day — no load until owned" },
+  /* UPPER — order per the 7/20 session note */
   { id: "lateral", n: "Lateral machine", day: "U", w: 80, inc: 5, sets: 3, hi: 15, last: [14, 13, 13] },
-  { id: "curl", n: "Curls", day: "U", w: "55·55·50", inc: 5, sets: 3, hi: 12, last: [12, 8, 10], ladder: { set: 1, top: 12 } },
   { id: "rearDelt", n: "Rear delts", day: "U", w: 20, inc: 2.5, sets: 2, hi: 12, last: [10, 10], note: "honest 10s — no hot opener" },
+  { id: "rows", n: "Rows (strapless)", day: "U", w: 175, inc: 5, sets: 2, hi: 10, last: [10, 10] },
+  { id: "curl", n: "Curls", day: "U", w: "55·55·50", inc: 5, sets: 3, hi: 12, last: [12, 8, 10], ladder: { set: 1, top: 12 } },
+  { id: "press", n: "Press", day: "U", w: 245, inc: 5, sets: 3, hi: 9, last: [8, 7, 6], std: [8, 8, 7], own: true, ownNote: "repeat 8,8,7 on a clean day — no load until owned" },
   { id: "pulldown", n: "Pulldown", day: "U", w: 160, inc: 10, sets: 2, hi: 10, last: [8, 8] },
+  { id: "sulek", n: "Sulek raise", day: "U", w: 87.5, inc: 2.5, sets: 2, hi: 15, last: [12, 8], note: "moving to fixed cable at the Prime delt machine — baseline resets there (coach call)" },
   { id: "tricep", n: "Tricep", day: "U", w: 55, inc: 5, sets: 3, hi: 13, last: [12, 11, 10] },
   { id: "pronated", n: "Pronated curl", day: "U", w: 40, inc: 5, sets: 2, hi: 13, last: [12, 11] },
-  { id: "hack", n: "Hack squat", day: "L", w: "hold", inc: null, sets: 2, hi: 13, last: [13, 12], pendingThird: true },
-  { id: "abs", n: "Abs", day: "L", w: 100, inc: 5, sets: 3, hi: 14, last: null, first: [12, 12, 12], debutNote: "DEBUT — new baseline, log honest" },
-  { id: "extension", n: "Leg extension", day: "L", w: 150, inc: 5, sets: 2, hi: 10, last: [9, 6], std: [9, 9], own: true, ownNote: "own 150×9,9 — then the 155 gate reopens" },
+  /* LOWER — order per the 7/17 & 7/21 notes, identical both days */
   { id: "calves", n: "Calves", day: "L", w: 315, inc: 15, sets: 4, hi: 13, last: [12, 10, 9, 8], reclaim: [13, 12, 11, 10] },
+  { id: "abs", n: "Abs", day: "L", w: 100, inc: 5, sets: 3, hi: 14, last: null, first: [12, 12, 12], debutNote: "DEBUT — new baseline, log honest" },
+  { id: "hanging", n: "Hanging raise", day: "L", w: "BW", inc: null, sets: 2, hi: 8, last: [6, 5] },
+  { id: "hack", n: "Hack squat", day: "L", w: "hold", inc: null, sets: 2, hi: 13, last: [13, 12], pendingThird: true },
+  { id: "extension", n: "Leg extension", day: "L", w: 150, inc: 5, sets: 2, hi: 10, last: [9, 6], std: [9, 9], own: true, ownNote: "own 150×9,9 — then the 155 gate reopens" },
   { id: "ham", n: "Ham curl", day: "L", w: 120, inc: 10, sets: 2, hi: 12, last: [10, 10] },
 ];
 
@@ -125,7 +129,8 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 4;
+  SEED.v = 5;
+  SEED.exOrder = { U: SEED.exercises.filter((e) => e.day === "U").map((e) => e.id), L: SEED.exercises.filter((e) => e.day === "L").map((e) => e.id) };
   SEED.waist = [];
   SEED.exercises.forEach((e) => { e.rirHist = []; });
   SEED.reads = HISTORY.filter((h) => h.w != null).map((h) => ({ d: h.d, w: h.w, note: "", sealed: false }));
@@ -211,7 +216,12 @@ function genSession(s, iso, slp) {
   if (dt !== "U" && dt !== "L") return null;
   const { main, riders } = pickStructural(s, iso, slp);
   const active = new Set([main, ...riders].filter(Boolean).map((q) => q.exId));
-  const ex = s.exercises.filter((e) => e.day === dt).map((e) => {
+  const ord = (s.exOrder && s.exOrder[dt]) || [];
+  const pool = s.exercises.filter((e) => e.day === dt).sort((a, b) => {
+    const ia = ord.indexOf(a.id), ib = ord.indexOf(b.id);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+  const ex = pool.map((e) => {
     const isDebutNow = active.has(e.id);
     const q = isDebutNow ? s.queue.find((x) => x.exId === e.id && !x.done && (x.kind === "debut" || x.kind === "unlock")) : null;
     const w = q && q.newW != null ? q.newW : e.w;
@@ -446,9 +456,17 @@ function patchV4(s) {
   s.v = 4;
   return s;
 }
+function patchV5(s) {
+  SEED.exercises.forEach((se, i) => {
+    if (!s.exercises.some((e) => e.id === se.id)) s.exercises.splice(Math.min(i, s.exercises.length), 0, JSON.parse(JSON.stringify(se)));
+  });
+  if (!s.exOrder) s.exOrder = JSON.parse(JSON.stringify(SEED.exOrder));
+  s.v = 5;
+  return s;
+}
 function migrate(old) {
-  if (old && old.v === 4) return old;
-  if (old && old.v === 3) return patchV4(JSON.parse(JSON.stringify(old)));
+  if (old && old.v === 5) return old;
+  if (old && (old.v === 4 || old.v === 3)) return patchV5(patchV4(JSON.parse(JSON.stringify(old))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -474,7 +492,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV4(s);
+  return patchV5(patchV4(s));
 }
 
 export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, SEED, dayType, HISTORY, ROLLUPS };
@@ -779,6 +797,7 @@ function LogTab({ s, setS, save, slp }) {
   const [rir, setRir] = useState({});
   const [note, setNote] = useState("");
   const [nig, setNig] = useState([]);
+  const [reorder, setReorder] = useState(false);
   const [recap, setRecap] = useState(null);
   const [boosted, setBoosted] = useState(false);
   const trueShort = slp.last && slp.last.h < 4.5;
@@ -816,8 +835,13 @@ function LogTab({ s, setS, save, slp }) {
       </div>
 
       <Card accent={T.orange}>
-        <Eyebrow c={T.orange}>STRUCTURAL BUDGET · 1 OF 1 — AUTO-PICKED</Eyebrow>
-        <H size={22}>{sess.structural}</H>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+          <div>
+            <Eyebrow c={T.orange}>STRUCTURAL BUDGET · 1 OF 1 — AUTO-PICKED</Eyebrow>
+            <H size={22}>{sess.structural}</H>
+          </div>
+          <button onClick={() => setReorder(!reorder)} style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.1em", color: reorder ? T.chalk : T.steel, background: reorder ? T.plate2 : "none", border: `1px solid ${reorder ? T.chalk : T.line}`, borderRadius: 6, padding: "6px 9px", whiteSpace: "nowrap" }}>{reorder ? "DONE" : "REORDER"}</button>
+        </div>
         <div style={{ fontFamily: mono, fontSize: 10.5, color: T.dim, marginTop: 4 }}>Everything else is rep progression — unlimited. New earns queue themselves for future slots.</div>
       </Card>
 
@@ -837,9 +861,24 @@ function LogTab({ s, setS, save, slp }) {
 
       {sess.ex.map((ex) => (
         <Card key={ex.id} style={{ padding: 12 }} accent={ex.isDebutNow ? T.orange : undefined}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
             <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 17, textTransform: "uppercase", color: T.chalk }}>{ex.n}</div>
-            <div style={{ fontFamily: mono, fontSize: 12, color: T.steel }}>{ex.w} · tgt {ex.tgt.join(",")}</div>
+            {reorder ? (
+              <div style={{ display: "flex", gap: 6 }}>
+                {[["▲", -1], ["▼", 1]].map(([g, dir]) => (
+                  <button key={g} onClick={() => {
+                    const ns = JSON.parse(JSON.stringify(s));
+                    const arr = ns.exOrder[dayType(dateSel)];
+                    const i = arr.indexOf(ex.id), j = i + dir;
+                    if (i < 0 || j < 0 || j >= arr.length) return;
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                    setS(ns); save(ns);
+                  }} style={{ width: 34, height: 28, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, fontFamily: mono, fontSize: 12 }}>{g}</button>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontFamily: mono, fontSize: 12, color: T.steel }}>{ex.w} · tgt {ex.tgt.join(",")}</div>
+            )}
           </div>
           {ex.note && <div style={{ fontFamily: mono, fontSize: 10, color: ex.isDebutNow || (ex.note || "").startsWith("OWN") ? T.orange : T.dim, marginTop: 3, letterSpacing: "0.04em" }}>{ex.note}</div>}
           <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap" }}>

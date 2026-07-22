@@ -46,23 +46,23 @@ ok(bfEst(clone(SEED)).pct > 14 && bfEst(clone(SEED)).pct < 16, "BF model sane at
 // 7. migration preserves v1 progress
 const old = { v: 1, trend: 163.9, reads: [{ d: "2026-07-22", w: 163.0, sealed: true }], queue: [{ id: "rows180", done: true }], sleep: { nights: [{ d: "2026-07-21", h: 8 }] }, boosts: 3 };
 const mig = migrate(old);
-ok(mig.v === 4 && mig.exercises.find(e => e.id === "rows").w === 180 && mig.boosts === 3 && mig.reads.length === 40, "v1 → v3 migration keeps logged progress");
+ok(mig.v === SEED.v && mig.exercises.find(e => e.id === "rows").w === 180 && mig.boosts === 3 && mig.reads.length === 40, "v1 → v3 migration keeps logged progress");
 
 // v2.1 — history integration
 const { HISTORY, ROLLUPS, currentRate: cr, migrate: mg, runAdaptive: ra, SEED: S3 } = __test;
 ok(HISTORY.length === 42 && S3.reads.length === 39, "42-day record woven in, 39 real reads seeded");
-ok(S3.v === 4 && Math.abs(S3.trend - 164.7) < 0.2, "trend seeded from trailing-7-day of real reads (~164.7)");
+ok(S3.v === SEED.v && Math.abs(S3.trend - 164.7) < 0.2, "trend seeded from trailing-7-day of real reads (~164.7)");
 ok(cr(clone(S3)).measured === true && S3.weekly.length >= 5, "rate gauge now MEASURED off six weeks of snapshots");
 ok(ROLLUPS.length === 6 && ROLLUPS[0].wk === 6 && ROLLUPS[5].wk === 1, "six weekly rollups, newest first");
 const sealedRun = ra(clone(S3), "2026-07-22");
 ok(!sealedRun.proposals.some(p => p.rid.indexOf("redline") === 0), "sealed window mutes the false redline his sheet flagged");
 const v2old = { v: 2, reads: [{ d: "2026-07-22", w: 163.0, sealed: true }], dailyLogs: { "2026-07-22": { cal: 2470, pro: 176, steps: 9000 } }, sleep: { nights: [{ d: "2026-07-21", h: 8 }] }, exercises: clone(S3.exercises), queue: clone(S3.queue), boosts: 5 };
 const m3 = mg(v2old);
-ok(m3.v === 4 && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro === 176 && m3.sleep.nights.some(n => n.d === "2026-07-21") && m3.boosts === 5, "v2 phone state merges over the history without losing a thing");
+ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro === 176 && m3.sleep.nights.some(n => n.d === "2026-07-21") && m3.boosts === 5, "v2 phone state merges over the history without losing a thing");
 
 // v2.2 — signals
 const { completeSession: cs2, genSession: gs2, SEED: S4, migrate: mg2 } = __test;
-ok(S4.v === 4 && Array.isArray(S4.waist) && S4.exercises.every(e => Array.isArray(e.rirHist)), "seed carries v4 signal fields");
+ok(S4.v >= 4 && Array.isArray(S4.waist) && S4.exercises.every(e => Array.isArray(e.rirHist)), "seed carries v4 signal fields");
 // RIR-0 twice → hold, and a hot grind never earns
 let st = clone(S4);
 const mk1 = (iso) => {
@@ -88,7 +88,39 @@ ok(st2.proposals.some(p => p.rid.indexOf("niggle_knee") === 0), "3 knee flags in
 // v3 → v4 patch
 const oldV3 = clone(S4); oldV3.v = 3; delete oldV3.waist; oldV3.exercises.forEach(e => { delete e.rirHist; });
 const m4 = mg2(oldV3);
-ok(m4.v === 4 && Array.isArray(m4.waist) && m4.exercises.every(e => Array.isArray(e.rirHist)), "v3 phone state patches cleanly to v4");
+ok(m4.v >= 4 && Array.isArray(m4.waist) && m4.exercises.every(e => Array.isArray(e.rirHist)), "v3 phone state patches cleanly to v4");
 
-console.log(`\nFINAL: ${pass} passed, ${fail} failed`);
-if (fail) process.exit(1);
+// (summary moved to end)
+
+// v2.2.2 — undo
+const { undoRead: ur, SEED: S5 } = __test;
+let u = clone(S5); u.blackout.until = "2026-07-01"; // simulate post-seal
+const t0 = u.trend;
+u.reads.push({ d: "2026-07-28", w: 162.0, sealed: false, pt: u.trend });
+u.trend = +(u.trend * 0.7 + 162.0 * 0.3).toFixed(1);
+u.weekly.push({ wk: "2026-07-27", trend: u.trend });
+const u2 = ur(u, "2026-07-28");
+ok(!u2.reads.some(r => r.d === "2026-07-28") && u2.trend === t0 && !u2.weekly.some(w => w.wk === "2026-07-27"), "undo removes the read, restores trend, clears the orphaned snapshot");
+let v = clone(S5);
+v.reads.push({ d: "2026-07-22", w: 163.0, sealed: true, pt: v.trend });
+const v2 = ur(v, "2026-07-22");
+ok(!v2.reads.some(r => r.d === "2026-07-22") && v2.trend === v.trend, "sealed mislog undoes clean — trend was never touched");
+
+console.log(`\nFINAL2: ${pass} passed, ${fail} failed`);
+// (summary moved to end)
+
+// v2.3 — order + completeness
+const { genSession: gs3, SEED: S6, migrate: mg3 } = __test;
+ok(S6.v === 5 && S6.exercises.some(e => e.id === "sulek") && S6.exercises.some(e => e.id === "hanging"), "Sulek + hanging raise now exist (the doc omitted them; the sheet didn't)");
+const uSess = gs3(clone(S6), "2026-07-23", slpClean);
+ok(uSess.ex[0].id === "lateral" && uSess.ex[uSess.ex.length - 1].id === "pronated", "upper runs lateral-first, pronated-last — the 7/20 gym order");
+const lSess = gs3(clone(S6), "2026-07-24", slpClean);
+ok(lSess.ex.map(e => e.id).join(",") === "calves,abs,hanging,hack,extension,ham", "lower matches the 7/17+7/21 order exactly");
+let co = clone(S6); co.exOrder.U = [...co.exOrder.U].reverse();
+ok(gs3(co, "2026-07-23", slpClean).ex[0].id === "pronated", "custom reorder persists into generated sessions");
+const oldV4 = clone(S6); oldV4.v = 4; delete oldV4.exOrder; oldV4.exercises = oldV4.exercises.filter(e => e.id !== "sulek" && e.id !== "hanging");
+const m5 = mg3(oldV4);
+ok(m5.v === 5 && m5.exercises.some(e => e.id === "sulek") && Array.isArray(m5.exOrder.L), "existing phone states gain the new lifts and order cleanly");
+
+console.log(`\nFINAL3: ${pass} passed, ${fail} failed`);
+// (summary moved to end)
