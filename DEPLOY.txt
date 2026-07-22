@@ -1,0 +1,51 @@
+PREP LEDGER — DEPLOY GUIDE (~10 minutes, one time, desktop)
+
+WHAT THIS IS
+A fully self-contained installable web app (PWA). No accounts, no database,
+no build step. All data lives in your phone's local storage. Works offline
+at the gym once installed. Backup/restore lives under RULES in the app.
+
+FOLDER CONTENTS (deploy all of it, exactly as-is)
+  index.html               the shell
+  app.js                   the entire app (React bundled in)
+  fonts.css                self-hosted fonts (works offline)
+  sw.js                    service worker (offline caching)
+  manifest.webmanifest     install metadata
+  icon-*.png, apple-touch-icon.png
+
+STEP 1 — PUT IT ON THE WEB (pick one)
+
+  Option A: Netlify (fastest)
+  1. Make a free account at netlify.com
+  2. Go to app.netlify.com/drop
+  3. Drag this whole folder onto the page
+  4. It gives you a URL like https://something.netlify.app — done.
+     (Site settings lets you rename it, e.g. prep-ledger.netlify.app)
+
+  Option B: GitHub Pages
+  1. New public repo, upload these files to the root
+  2. Settings > Pages > Deploy from branch > main / root
+  3. URL: https://<you>.github.io/<repo>/
+
+STEP 2 — INSTALL ON YOUR PHONE
+  iPhone: open the URL in Safari > Share button > Add to Home Screen.
+  Android: open in Chrome > menu > Add to Home screen / Install app.
+  Launch from the icon: full screen, no browser chrome, offline-capable.
+
+UPDATES (when you deploy a new version)
+  1. Redeploy the folder (Netlify: drag again onto the same site's
+     Deploys tab; GitHub: commit the new files)
+  2. In sw.js, the CACHE version should be bumped (any new build I give
+     you will have this done)
+  3. On your phone: open the app, close it fully, open it again —
+     second launch runs the new version.
+
+DATA SAFETY
+  - Everything is on-device. Clearing Safari/Chrome site data erases it.
+  - RULES > "Export backup (JSON)" downloads the whole ledger.
+    Do it after big weeks. "Import backup" restores it anywhere.
+  - Reset to the seeded 7/22 state also lives under RULES.
+
+ONE GOTCHA
+  iOS ties PWA storage to the exact URL. If you later move the app to a
+  different domain, export first, install at the new URL, import there.
