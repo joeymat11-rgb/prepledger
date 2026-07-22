@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.3.0";
+const APP_V = "3.4.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -911,6 +911,27 @@ const Num = ({ children, size = 30, c = T.chalk }) => (
 const H = ({ children, size = 26, c = T.chalk }) => (
   <div style={{ fontFamily: disp, fontWeight: 700, fontSize: size, lineHeight: 1.02, color: c, textTransform: "uppercase", letterSpacing: "0.01em" }}>{children}</div>
 );
+function More({ deep, forYou, c = T.jade }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginTop: 8 }}>
+      <button onClick={() => setOpen(!open)} style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: "0.1em", color: open ? T.chalk : T.dim, background: "none", border: "none", padding: 0 }}>{open ? "▾ CLOSE" : "▸ MORE"}</button>
+      {open && (
+        <div style={{ marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
+          <Eyebrow>WHAT IT IS</Eyebrow>
+          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{deep}</div>
+          {forYou && (
+            <div style={{ marginTop: 10 }}>
+              <Eyebrow c={c}>FOR YOU · RIGHT NOW</Eyebrow>
+              <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{forYou}</div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const Bar = ({ pct, c = T.jade, h = 5 }) => (
   <div style={{ height: h, background: T.plate2, borderRadius: 99, overflow: "hidden" }}>
     <div style={{ width: `${Math.min(100, Math.max(0, pct))}%`, height: "100%", background: c, borderRadius: 99 }} />
@@ -1058,6 +1079,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             <Num size={22} c={T.jade}>{REFEED.cal}</Num>
           </div>
           <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 6 }}>{REFEED.note}. Protein still {PROTEIN}.</div>
+          <More deep="The weekly elevated-carb day refills muscle glycogen (fullness plus next-day performance), gives adherence and hormones a breather, and is prescribed — an on-plan green day that the streak logic treats as compliance, because it is."
+            forYou="Tomorrow's session runs on this fuel — your PR-heavy days historically follow refeeds. Expect the next-morning bump from the LAB's refeed line; it's storage wearing a costume, and you lift heavier ON it." />
         </Card>
       )}
 
@@ -1079,6 +1102,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             </div>
             <div style={{ margin: "8px 0 4px" }}><Bar pct={rec.score} c={c} /></div>
             <div style={{ fontFamily: mono, fontSize: 10, color: T.steel }}>{rec.factors.length ? rec.factors.join(" · ") : "no drag on the system — earns count, send it"}</div>
+            <More c={c} deep="Four drag sources converge into one number: sleep (reset progress and 5-night average), opener honesty (active RIR holds), joint flags over 14 days, and rep dips across your last two sessions. 80+ = full send, earns and owns count. 55–79 = consolidate. Under 55 arms the hold-structure rule — nothing auto-changes, but the card appears."
+              forYou={!slp.clean ? `Biggest lever tonight: ≥7.5 h returns +10 instantly${slp.run + 1 >= slp.need ? " and flips you CLEAN — tomorrow's owns and earns count" : ""}.` : s.exercises.some((e) => e.holdFlag) ? "One honest opener session (RIR ≥1) releases the active hold and returns the points." : "Nothing dragging. The rarest state in a deficit — protect it."} />
           </Card>
         );
       })()}
@@ -1105,6 +1130,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </div>
         <div style={{ margin: "8px 0 6px" }}><Bar pct={xPct} c={T.chalk} /></div>
         <div style={{ fontFamily: body, fontSize: 12, color: T.steel }}>~158.5 at ~12% — last cut's best with 4–5 lb more muscle. The marquee.</div>
+        <More c={T.chalk} deep="Aug 28 is the weight where last cut looked its best — except arriving with ~4–5 lb more muscle, lifts climbing instead of stalled, and zero panic adjustments on the books. Same scale number, different physique: the entire thesis compressed into one checkpoint."
+          forYou={(() => { const cr = currentRate(s); const proj = +(s.trend - cr.scale * (daysUntil(CROSSOVER) / 7)).toFixed(1); return `${daysUntil(CROSSOVER)} days out. At your measured rate the trend projects ~${proj} by then vs the ~158.5 mark — ${proj <= 159.5 ? "on script." : "close; Ease 2 firing changes the slope by design, and the cone in HIST carries the honest range."}`; })()} />
       </Card>
 
       <Card>
@@ -1126,6 +1153,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ marginTop: 10, fontFamily: mono, fontSize: 11, color: T.brass }}>FIX WINDOW OPEN — a miss fixed inside 24 h extends the standard. No resets here.</div>
         )}
         <div style={{ marginTop: 10 }}><Btn tone="jade" full onClick={saveDaily}>Log today</Btn></div>
+        <More deep="175 is THE number — proximity, not a floor to beat; chronic overshoot is drift too. Calories live in a band, not a point. A protein miss opens a 24-hour fix window, and closing it EXTENDS the standard instead of resetting it — recovery speed is the metric, never an unbroken chain."
+          forYou={s.fixWindow ? "The fix window is OPEN — hitting 175 today closes it and the record extends." : "Standard intact. Log once, done — the app rewards the logging, never the checking."} />
       </Card>
 
       {ev && (
@@ -1207,6 +1236,8 @@ function LogTab({ s, setS, save, slp }) {
           <button onClick={() => setReorder(!reorder)} style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.1em", color: reorder ? T.chalk : T.steel, background: reorder ? T.plate2 : "none", border: `1px solid ${reorder ? T.chalk : T.line}`, borderRadius: 6, padding: "6px 9px", whiteSpace: "nowrap" }}>{reorder ? "DONE" : "REORDER"}</button>
         </div>
         <div style={{ fontFamily: mono, fontSize: 10.5, color: T.dim, marginTop: 4 }}>Everything else is rep progression — unlimited. New earns queue themselves for future slots.</div>
+        <More c={T.orange} deep="One structural change per session keeps the signal clean — when something moves, you know exactly what caused the response. Rep progression stays unlimited because it's the noise-free kind of change. The scheduler auto-picks from the queue in order; doc-approved riders are the only exception."
+          forYou={(() => { const cand = s.queue.filter((q) => !q.done && q.kind === "debut" && q.exId && exById(s, q.exId) && exById(s, q.exId).day === dayType(dateSel)); return cand.length > 1 ? `Waiting behind today's slot: ${cand.slice(1).map((q) => q.t).join(" · ")} — each gets its own session.` : cand.length === 1 ? "The queue empties after this one — new earns will refill it as you log." : "Nothing structural queued for this day type — pure rep-progression day, which is where most muscle actually gets built."; })()} />
       </Card>
 
       {dayType(dateSel) === "L" && hackPending && (
@@ -1347,7 +1378,8 @@ function LogTab({ s, setS, save, slp }) {
   );
 }
 
-function QueueTab({ s }) {
+function QueueTab({ s, slp }) {
+  const nextOfType = (t2) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); if (dayType(d) === t2) return d; } return null; };
   const live = s.queue.filter((x) => !x.done);
   const flipped = s.queue.filter((x) => x.done);
   const curl = exById(s, "curl");
@@ -1368,6 +1400,26 @@ function QueueTab({ s }) {
               <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 4 }}>set 2 · {curl.last ? curl.last[curl.ladder.set] : 8} of {curl.ladder.top}</div>
             </div>
           )}
+          <More c={T.brass}
+            deep={({
+              debut: "EARNED → DEBUT: this load was bought with reps at the top of the window on a sleep-clean day. It runs when it wins its day's single structural slot — one change per session keeps the response readable.",
+              unlock: "EARNED → DEBUT: bought at the top of the window on a clean day; it runs when it wins the day's single structural slot.",
+              own: "One hit isn't ownership — the standard has to repeat on a sleep-clean day before anything loads. A debt-day hit logs as provisional: real, but not spendable.",
+              reclaim: "The standard slipped, so the exact rep line has to be re-earned before the increment unlocks. Records here can fall and be won back — that's what makes the ledger honest.",
+              ladder: "A rep ladder on the money set: top out the rung and the next gate opens. Load moves on this lift stay coach-flag.",
+              phase: "Fires from the live body-fat estimate, not the calendar. Applying it swaps every daily target at once — one tap, whole new phase.",
+              info: "Parked with a named trigger, so the condition decides instead of memory. Parked isn't forgotten; it's staged.",
+            })[u.kind] || "A gate with a named condition — it resolves itself the moment the condition is met, and the queue refills as you log."}
+            forYou={(() => {
+              const ex = u.exId ? exById(s, u.exId) : null;
+              const nd = ex ? nextOfType(ex.day) : null;
+              if (u.kind === "own" && ex && nd) return `Next attempt ${fmtShort(nd)} — needs sleep CLEAN, currently ${slp.run}/${slp.need}${slp.clean ? " ✓ it counts" : ""}.`;
+              if ((u.kind === "debut" || u.kind === "unlock") && ex && nd) { const mn = pickStructural(s, nd, slp).main; return mn && mn.id === u.id ? `Holds the structural slot for ${fmtShort(nd)} — it runs.` : `Waits behind ${mn ? mn.t : "the current pick"} — one structural change per session, each earns its own day.`; }
+              if (u.kind === "reclaim" && ex && ex.reclaim && nd) return `The exact line: ${ex.reclaim.join(",")} — next chance ${fmtShort(nd)}.`;
+              if (u.kind === "ladder" && curl && curl.ladder) return `Set ${curl.ladder.set + 1} sits at ${curl.last ? curl.last[curl.ladder.set] : "?"} of ${curl.ladder.top} — every session is a climb attempt.`;
+              if (u.kind === "phase") return `Est BF ${bfEst(s).pct}% now; arms at ≤13.2% — the cone in HIST carries the honest timing.`;
+              return "Resolves on its own the moment its condition is met — the queue never needs your memory.";
+            })()} />
         </Card>
       ))}
 
@@ -1480,6 +1532,8 @@ function BodyTab({ s, setS, save }) {
           </div>
         )}
         <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>PROTOCOL: fasted · post-void · pre-food/water · 16 oz water ≈ +0.5–1 lb</div>
+        <More deep="The trend is a damped average: each clean read moves it 30% of the way toward the morning's number, spikes clamp at ±1.5 lb so one dinner can't lie to it, sealed reads never touch it, and moves inside your measured ±0.8 noise floor get auto-stamped 'not information'. Daily reads render small and grey on purpose — the trend is the instrument; mornings are static."
+          forYou={sealed ? `First clean read Monday: judge it against the trend (${s.trend}), not against 163.2 — residual wedding water is expected and already forgiven by the math.` : `Trend ${s.trend}. Whatever tomorrow's scale screams, it moves this number by ±0.45 at most.`} />
       </Card>
 
       <Card>
@@ -1517,6 +1571,8 @@ function BodyTab({ s, setS, save }) {
           <Btn small onClick={() => { const p = Number(dexaIn); if (p > 5 && p < 30) { const ns = anchorDexa(s, p); setS(ns); save(ns); setDexaIn(""); } }}>Anchor model to DEXA</Btn>
         </div>
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 6 }}>One measured number recalibrates every estimate and ETA below.</div>
+        <More deep="A lean-mass model, not a formula: anchored lean weight plus the muscle-memory drip (+0.3/wk), so BF% = (trend − lean) ÷ trend. It falls as the trend falls and rises as muscle returns. The eye and DEXA disagree by method (~1.5 points) — both are shown until a real scan replaces estimation with measurement."
+          forYou={`Lean mass ≈ ${bf.lean} lb today and drifting up weekly — that number rising while the trend falls IS the recomp, in two digits. One DEXA input re-anchors everything; Tue 7/28+ is the clean booking window.`} />
       </Card>
 
       <Card>
@@ -1561,6 +1617,8 @@ function BodyTab({ s, setS, save }) {
         <Eyebrow>RATE OF LOSS · PHASE-AWARE</Eyebrow>
         <div style={{ marginTop: 10 }}><RateGauge rate={s.rate} cur={cur} /></div>
         <div style={{ fontFamily: mono, fontSize: 10, color: T.dim, marginTop: 8 }}>Rules run themselves: floor and redline arm one-tap adjustments on the NOW screen when trend data trips them.</div>
+        <More deep="The green band (1.0–1.4/wk) is the muscle-safe corridor for this phase. Floor rule: two weeks under 0.8 → restore steps FIRST, then trim calories. Redline: ≥1.9 → add ~100 back and coach-flag, because speed there is muscle risk, not a win. Sealed windows mute both rules so event noise can never fire them."
+          forYou={sealed ? "Rules muted until Monday's clean read — your sheet's own REDLINE flag this week was exactly the gap-artifact this muting exists for." : cur.measured ? `Measured ~${cur.fat}/wk fat-equivalent right now — ${cur.fat >= 1.0 && cur.fat <= 1.4 ? "inside the corridor; nothing to do." : cur.fat < 1.0 ? "under the corridor; the floor rule is the nearest tripwire." : "hot; the redline is the nearest tripwire."}` : "Two clean weekly snapshots and this goes fully measured."} />
       </Card>
 
       <Card>
@@ -1586,6 +1644,8 @@ function BodyTab({ s, setS, save }) {
             <div key={i}><Num size={16} c={T.steel}>{m.cal}</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim, textTransform: "uppercase" }}>{m.label} · JUNE ANCHOR</div></div>
           ))}
         </div>
+        <More deep="Observed TDEE = your average logged intake + the daily energy your measured loss represents (fat at 3,500 kcal/lb, minus what the muscle drip stores). No textbook formulas — arithmetic from your own ledger, recomputed over a rolling 3 weeks, sliding down ~10 kcal for every pound you lose."
+          forYou={(() => { const obs = observedTDEE(s); return obs ? `~${obs.tdee} is what the September reverse aims at — eat to it fast, then build the surplus above it. Landing on today's truth instead of June's is the whole anti-overshoot plan.` : "Prints Monday when the seal lifts. Every day you log between now and the pivot sharpens the number the entire reverse will be built on."; })()} />
       </Card>
 
       <Card>
@@ -1597,6 +1657,8 @@ function BodyTab({ s, setS, save }) {
           <div style={{ color: T.dim }}>{cur.measured ? "ETAs from your measured trend + drip model" : "ETAs on prior rates until 2 clean weeks exist — they self-correct as reads land"}</div>
         </div>
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass, marginTop: 8 }}>Weeks 8–13 = visual acceleration: each BF point worth 2–3× the visible change.</div>
+        <More c={T.brass} deep="Straight-line ETAs from your measured rate plus the drip — useful for direction, honest about nothing else; the cone in HIST is the version with uncertainty attached. The acceleration note is subcutaneous math: below ~13%, the same pound of fat comes off a smaller, leaner surface, so each BF point shows 2–3× the visible change of earlier points."
+          forYou={`Week ${wd.wk} now — the acceleration window opens wk 8 (~${fmtShort(isoOf(new Date(mk(START).getTime() + 49 * DAY)))}), the mirror outranks the scale from wk 10, and the pivot band ETA above is the straight line the cone bends around. The boring middle is almost over.`} />
       </Card>
 
       <Card>
@@ -1645,6 +1707,9 @@ function SleepTab({ s, setS, save, slp }) {
         <div style={{ fontFamily: body, fontSize: 12, color: T.steel, marginTop: 8 }}>
           {slp.clean ? "Own-it attempts count. Earns bank. Reward circuitry back online." : `${slp.need - slp.run} more clean night${slp.need - slp.run === 1 ? "" : "s"} → clean. Debt downregulates dopamine receptors — it costs focus, drive, and honest RIR, not just recovery.`}
         </div>
+        <More c={slp.clean ? T.jade : T.brass}
+          deep="Three consecutive ≥7.5 h nights = CLEAN, because one good night repays acute debt but consolidation and hormone normalization lag ~2–3 nights behind. Debt also downregulates dopamine D2/D3 receptor availability — the same circuitry ADHD already taxes — which is why it costs drive, focus, and honest RIR before it ever costs recovery. Owns and earns require CLEAN because PRs bought on debt don't repeat, and the ledger only banks what repeats."
+          forYou={slp.clean ? "CLEAN — everything counts today. This is simultaneously your best muscle-retention lever and your sharpest ADHD lever; protect the streak like a PR." : `${slp.need - slp.run} clean night${slp.need - slp.run === 1 ? "" : "s"} from CLEAN. Tonight ≥7.5 ${slp.run + 1 >= slp.need ? "flips it — tomorrow's attempts count for keeps." : "keeps the reset alive."} Fixed wake time is the strongest single move.`} />
       </Card>
 
       <Card>
@@ -2044,7 +2109,7 @@ export default function PrepLedger() {
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(14px + env(safe-area-inset-top)) 14px 132px" }}>
         {tab === "NOW" && <NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} openCoach={() => setCoach(true)} />}
         {tab === "TRAIN" && <LogTab s={s} setS={setS} save={save} slp={slp} />}
-        {tab === "QUEUE" && <QueueTab s={s} />}
+        {tab === "QUEUE" && <QueueTab s={s} slp={slp} />}
         {tab === "BODY" && <BodyTab s={s} setS={setS} save={save} />}
         {tab === "SLEEP" && <SleepTab s={s} setS={setS} save={save} slp={slp} />}
         {tab === "HIST" && <HistTab s={s} />}
