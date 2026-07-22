@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.2.0";
+const APP_V = "3.2.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -491,7 +491,7 @@ function labAnalytics(s) {
     ] : [] });
 
   /* 2 · refeed bump line */
-  const refDs = HISTORY.filter((h) => h.cal != null && h.cal >= 2100 && /\bREFEED\b/.test(h.note || "") && !/SKIPPED/i.test(h.note || "")).map((h) => h.d);
+  const refDs = HISTORY.filter((h) => h.cal != null && h.cal >= 2100 && /\bREFEED\b/.test(h.note || "") && !/REFEED SKIPPED/i.test(h.note || "")).map((h) => h.d);
   const bumps = refDs.map((d) => (readByD[d] != null && readByD[nextDay(d)] != null ? +(readByD[nextDay(d)] - readByD[d]).toFixed(1) : null)).filter((x) => x != null);
   out.push({ id: "refeed", t: "REFEED BUMP LINE", status: bumps.length >= 2 ? "LIVE" : "ARMED", prog: { n: bumps.length, need: 2, label: "measured refeed mornings" },
     lines: bumps.length >= 2 ? [`your next-morning delta: ${bumps.slice().sort((a,b)=>a-b).map((x)=>x>0?`+${x}`:`${x}`).join(" · ")} (n=${bumps.length}) · water, prescribed — tomorrow's bump is pre-explained tonight`] : [] });
