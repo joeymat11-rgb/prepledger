@@ -275,5 +275,22 @@ ok(charged.some(x => x.live && x.txt.indexOf("Press") === 0 && x.txt.indexOf("-3
 dbt.sessionLog["2026-07-30"].entries[0].reps = [8, 8, 7];
 ok(!dl(dbt).some(x => x.live), "matching the clean twin = no charge; only losses get written");
 
-console.log(`\nFINAL12: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.6 — everything breathes
+const { liveRollups: lr, SEED: SG } = __test;
+ok(lr(clone(SG)).length === 0, "no live weeks before any post-handoff logging");
+let lv = clone(SG);
+lv.dailyLogs["2026-07-22"] = { cal: 2470, pro: 176, steps: 9000 };
+lv.dailyLogs["2026-07-23"] = { cal: 1760, pro: 178, steps: 16500 };
+lv.reads.push({ d: "2026-07-22", w: 164.7, sealed: true });
+lv.sleep.nights.push({ d: "2026-07-22", h: 8 });
+lv.sessionLog["2026-07-23"] = { entries: [], at: 1, note: "rows 180 landed", niggles: [] };
+const wk7 = lr(lv);
+ok(wk7.length === 1 && wk7[0].wk === 7 && wk7[0].live === true, "post-handoff days roll into a live week-7 card");
+ok(wk7[0].proHit === 2 && wk7[0].proN === 2 && wk7[0].avgCal === 2115, "live rollup math: protein hits and averages compute");
+ok(wk7[0].rows.some(r => r.sealedW === 164.7) && wk7[0].rows.some(r => r.note === "rows 180 landed"), "sealed reads and session notes ride the live rows");
+ok(JSON.stringify(__test.SEED).indexOf("Tue 7/28+ is the clean") === -1, "hardcoded booking date purged from state-adjacent strings");
+
+console.log(`\nFINAL13: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

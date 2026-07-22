@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.5.1";
+const APP_V = "3.6.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -684,6 +684,38 @@ function labAnalytics(s) {
   return out.sort((a, b) => rank[a.status] - rank[b.status]);
 }
 
+/* live weekly rollups — post-handoff weeks, same shape as the sheet era, accruing forever */
+function liveRollups(s) {
+  const dates = [...new Set([...Object.keys(s.dailyLogs), ...s.reads.map((r) => r.d), ...s.sleep.nights.map((n) => n.d), ...Object.keys(s.sessionLog)])].filter((d) => d > "2026-07-21").sort();
+  if (!dates.length) return [];
+  const wkOf = (d) => Math.floor((mk(d) - mk(START)) / (7 * DAY)) + 1;
+  const wks = {};
+  dates.forEach((d) => { (wks[wkOf(d)] = wks[wkOf(d)] || []).push(d); });
+  const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+  return Object.keys(wks).map(Number).sort((a, b) => b - a).map((wk) => {
+    const rows = wks[wk].map((d) => ({
+      d,
+      w: (s.reads.find((r) => r.d === d && !r.sealed) || {}).w ?? null,
+      sealedW: (s.reads.find((r) => r.d === d && r.sealed) || {}).w ?? null,
+      cal: (s.dailyLogs[d] || {}).cal ?? null, pro: (s.dailyLogs[d] || {}).pro ?? null,
+      steps: (s.dailyLogs[d] || {}).steps ?? null, slp: (s.sleep.nights.find((n) => n.d === d) || {}).h ?? null,
+      note: (s.sessionLog[d] || {}).note || "", niggles: (s.sessionLog[d] || {}).niggles || [],
+    }));
+    const ws = rows.filter((r) => r.w != null).map((r) => r.w);
+    const cals = rows.filter((r) => r.cal != null).map((r) => r.cal);
+    const pros = rows.filter((r) => r.pro != null).map((r) => r.pro);
+    const st = rows.filter((r) => r.steps != null).map((r) => r.steps);
+    const sl = rows.filter((r) => r.slp != null).map((r) => r.slp);
+    const startD = isoOf(new Date(mk(START).getTime() + (wk - 1) * 7 * DAY));
+    const endRaw = new Date(mk(START).getTime() + ((wk - 1) * 7 + 6) * DAY);
+    const endD = isoOf(endRaw > todayStart() ? todayStart() : endRaw);
+    return { wk, live: true, rows, range: `${fmtShort(startD)} – ${fmtShort(endD)}`,
+      avgW: ws.length ? +avg(ws).toFixed(1) : null, avgCal: cals.length ? Math.round(avg(cals)) : null,
+      avgPro: pros.length ? Math.round(avg(pros)) : null, proHit: pros.filter((x) => Math.abs(x - PROTEIN) <= 10).length, proN: pros.length,
+      avgSteps: st.length ? +(avg(st) / 1000).toFixed(1) : null, avgSlp: sl.length ? +avg(sl).toFixed(1) : null, flags: 0 };
+  });
+}
+
 /* was the sleeper clean walking into a given date? */
 function cleanAtDate(s, iso) {
   const nights = s.sleep.nights.filter((n) => n.d < iso);
@@ -906,7 +938,7 @@ function migrate(old) {
   return patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))));
 }
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1240,7 +1272,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ marginTop: 10, fontFamily: mono, fontSize: 11, color: T.brass }}>FIX WINDOW OPEN — a miss fixed inside 24 h extends the standard. No resets here.</div>
         )}
         <div style={{ marginTop: 10 }}><Btn tone="jade" full onClick={saveDaily}>Log today</Btn></div>
-        <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 8 }}>spread: ~4 feeds × ~44 g · every 3–4 h · wake / pre-lift / post-lift / pre-bed</div>
+        <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 8 }}>{`spread: ~4 feeds × ~${Math.round(PROTEIN / 4)} g · every 3–4 h · wake / pre-lift / post-lift / pre-bed`}</div>
         <More deep="175 is THE number — proximity, not a floor to beat; chronic overshoot is drift too. Calories live in a band, not a point. A protein miss opens a 24-hour fix window, and closing it EXTENDS the standard instead of resetting it — recovery speed is the metric, never an unbroken chain."
           forYou={s.fixWindow ? "The fix window is OPEN — hitting 175 today closes it and the record extends." : "Standard intact. Log once, done — the app rewards the logging, never the checking."} />
       </Card>
@@ -1621,7 +1653,7 @@ function BodyTab({ s, setS, save }) {
         )}
         <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>PROTOCOL: fasted · post-void · pre-food/water · 16 oz water ≈ +0.5–1 lb</div>
         <More deep="The trend is a damped average: each clean read moves it 30% of the way toward the morning's number, spikes clamp at ±1.5 lb so one dinner can't lie to it, sealed reads never touch it, and moves inside your measured ±0.8 noise floor get auto-stamped 'not information'. Daily reads render small and grey on purpose — the trend is the instrument; mornings are static."
-          forYou={sealed ? `First clean read Monday: judge it against the trend (${s.trend}), not against 163.2 — residual wedding water is expected and already forgiven by the math.` : `Trend ${s.trend}. Whatever tomorrow's scale screams, it moves this number by ±0.45 at most.`} />
+          forYou={sealed ? `First clean read ${fmtShort(SEAL_UNTIL)}: judge it against the trend (${s.trend}), not against ${(s.reads.filter((r) => !r.sealed).slice(-1)[0] || {}).w ?? s.trend} — residual event water is expected and already forgiven by the math.` : `Trend ${s.trend}. Whatever tomorrow's scale screams, it moves this number by ±0.45 at most.`} />
       </Card>
 
       <Card>
@@ -1660,7 +1692,7 @@ function BodyTab({ s, setS, save }) {
         </div>
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 6 }}>One measured number recalibrates every estimate and ETA below.</div>
         <More deep="A lean-mass model, not a formula: anchored lean weight plus the muscle-memory drip (+0.3/wk), so BF% = (trend − lean) ÷ trend. It falls as the trend falls and rises as muscle returns. The eye and DEXA disagree by method (~1.5 points) — both are shown until a real scan replaces estimation with measurement."
-          forYou={`Lean mass ≈ ${bf.lean} lb today and drifting up weekly — that number rising while the trend falls IS the recomp, in two digits. One DEXA input re-anchors everything; Tue 7/28+ is the clean booking window.`} />
+          forYou={s.model.src === "DEXA" ? `Anchored to your DEXA — lean ≈ ${bf.lean} lb and the drip carries it forward. A post-pivot re-scan re-trues the build phase.` : `Lean mass ≈ ${bf.lean} lb today and drifting up weekly — that number rising while the trend falls IS the recomp, in two digits. One DEXA input re-anchors everything; book any clean morning ≥2 days clear of a refeed or event.`} />
       </Card>
 
       <Card>
@@ -1706,7 +1738,7 @@ function BodyTab({ s, setS, save }) {
         <div style={{ marginTop: 10 }}><RateGauge rate={s.rate} cur={cur} /></div>
         <div style={{ fontFamily: mono, fontSize: 10, color: T.dim, marginTop: 8 }}>Rules run themselves: floor and redline arm one-tap adjustments on the NOW screen when trend data trips them.</div>
         <More deep="The green band (1.0–1.4/wk) is the muscle-safe corridor for this phase. Floor rule: two weeks under 0.8 → restore steps FIRST, then trim calories. Redline: ≥1.9 → add ~100 back and coach-flag, because speed there is muscle risk, not a win. Sealed windows mute both rules so event noise can never fire them."
-          forYou={sealed ? "Rules muted until Monday's clean read — your sheet's own REDLINE flag this week was exactly the gap-artifact this muting exists for." : cur.measured ? `Measured ~${cur.fat}/wk fat-equivalent right now — ${cur.fat >= 1.0 && cur.fat <= 1.4 ? "inside the corridor; nothing to do." : cur.fat < 1.0 ? "under the corridor; the floor rule is the nearest tripwire." : "hot; the redline is the nearest tripwire."}` : "Two clean weekly snapshots and this goes fully measured."} />
+          forYou={sealed ? `Rules muted while sealed (clean read ${fmtShort(SEAL_UNTIL)}) — your sheet's 7/21 REDLINE gap-artifact is exactly what this muting exists to prevent.` : cur.measured ? `Measured ~${cur.fat}/wk fat-equivalent right now — ${cur.fat >= 1.0 && cur.fat <= 1.4 ? "inside the corridor; nothing to do." : cur.fat < 1.0 ? "under the corridor; the floor rule is the nearest tripwire." : "hot; the redline is the nearest tripwire."}` : "Two clean weekly snapshots and this goes fully measured."} />
       </Card>
 
       <Card>
@@ -1746,7 +1778,7 @@ function BodyTab({ s, setS, save }) {
         </div>
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass, marginTop: 8 }}>Weeks 8–13 = visual acceleration: each BF point worth 2–3× the visible change.</div>
         <More c={T.brass} deep="Straight-line ETAs from your measured rate plus the drip — useful for direction, honest about nothing else; the cone in HIST is the version with uncertainty attached. The acceleration note is subcutaneous math: below ~13%, the same pound of fat comes off a smaller, leaner surface, so each BF point shows 2–3× the visible change of earlier points."
-          forYou={`Week ${wd.wk} now — the acceleration window opens wk 8 (~${fmtShort(isoOf(new Date(mk(START).getTime() + 49 * DAY)))}), the mirror outranks the scale from wk 10, and the pivot band ETA above is the straight line the cone bends around. The boring middle is almost over.`} />
+          forYou={wd.wk < 8 ? `Week ${wd.wk} now — the acceleration window opens wk 8 (~${fmtShort(isoOf(new Date(mk(START).getTime() + 49 * DAY)))}), the mirror outranks the scale from wk 10, and the pivot ETA above is the straight line the cone bends around. The boring middle is almost over.` : wd.wk < 10 ? `Week ${wd.wk} — you are IN the acceleration window: each BF point now shows 2–3× the visual change. Mirror takes over at wk 10; the pivot ETA above is the straight line the cone bends around.` : `Week ${wd.wk} — mirror era. Photos and waist outrank everything on this card; the ETAs are background math now.`} />
       </Card>
 
       <Card>
@@ -1857,21 +1889,25 @@ function SleepTab({ s, setS, save, slp }) {
 function HistTab({ s, setS, save }) {
   const [open, setOpen] = useState(null);
   const [labOpen, setLabOpen] = useState(null);
-  const first = ROLLUPS[ROLLUPS.length - 1], latest = ROLLUPS[0];
+  const liveWks = liveRollups(s);
+  const first = ROLLUPS[ROLLUPS.length - 1];
+  const latest = (liveWks.find((w) => w.avgW != null || w.avgCal != null)) || ROLLUPS[0];
   const wDelta = first && latest && first.avgW && latest.avgW ? +(first.avgW - latest.avgW).toFixed(1) : null;
-  const proHitTot = ROLLUPS.reduce((a, w) => a + w.proHit, 0), proNTot = ROLLUPS.reduce((a, w) => a + w.proN, 0);
+  const proHitTot = ROLLUPS.reduce((a, w) => a + w.proHit, 0) + liveWks.reduce((a, w) => a + w.proHit, 0);
+  const proNTot = ROLLUPS.reduce((a, w) => a + w.proN, 0) + liveWks.reduce((a, w) => a + w.proN, 0);
+  const liveDayCount = liveWks.reduce((a, w) => a + w.rows.length, 0);
   const stat = (v, l) => (
     <div><Num size={19}>{v}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.08em", textTransform: "uppercase" }}>{l}</div></div>
   );
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <Card accent={T.jade}>
-        <Eyebrow>THE RECORD · {HISTORY.length} DAYS · 6/10 →</Eyebrow>
+        <Eyebrow>THE RECORD · {HISTORY.length + liveDayCount} DAYS · 6/10 → LIVE</Eyebrow>
         <div style={{ display: "flex", gap: 18, marginTop: 10, flexWrap: "wrap" }}>
           {stat(wDelta != null ? `−${wDelta}` : "—", "lb · wk-avg vs wk 1")}
           {stat(`${proHitTot}/${proNTot}`, "protein on target")}
           {stat(`${s.zeroComp.count}`, "events · zero comp")}
-          {stat(`${latest && latest.avgSteps != null ? latest.avgSteps + "k" : "—"}`, "steps avg · this wk")}
+          {stat(`${latest && latest.avgSteps != null ? latest.avgSteps + "k" : "—"}`, "steps avg · latest wk")}
         </div>
         <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 8 }}>Weight fell while every headline lift rose — the whole thesis, in one screen. Tap a week for the day-by-day.</div>
       </Card>
@@ -1941,36 +1977,42 @@ function HistTab({ s, setS, save }) {
         </Card>
       ))}
 
-      {(() => {
-        const dates = [...new Set([...Object.keys(s.dailyLogs), ...s.reads.map((r) => r.d), ...s.sleep.nights.map((n) => n.d)])].filter((d) => d > "2026-07-21").sort();
-        if (!dates.length) return null;
-        const live = dates.map((d) => ({
-          d, w: (s.reads.find((r) => r.d === d) || {}).w ?? null,
-          cal: (s.dailyLogs[d] || {}).cal ?? null, pro: (s.dailyLogs[d] || {}).pro ?? null,
-          steps: (s.dailyLogs[d] || {}).steps ?? null, slp: (s.sleep.nights.find((n) => n.d === d) || {}).h ?? null,
-          sealed: (s.reads.find((r) => r.d === d) || {}).sealed,
-        }));
-        return (
+      {liveWks.map((w) => (
+        <div key={"live" + w.wk}>
           <Card style={{ padding: 12 }} accent={T.orange}>
-            <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 18, color: T.chalk, textTransform: "uppercase" }}>Live · since handoff</div>
-            <div style={{ marginTop: 6 }}>
-              {live.map((h, i) => (
-                <div key={i} style={{ display: "flex", gap: 10, fontFamily: mono, fontSize: 10.5, color: T.steel, padding: "8px 0", borderBottom: i < live.length - 1 ? `1px solid ${T.line}` : "none", flexWrap: "wrap" }}>
-                  <span style={{ color: T.chalk, minWidth: 34 }}>{fmtShort(h.d).split(" ")[1]}</span>
-                  <span style={{ color: h.sealed ? T.dim : T.chalk }}>{h.w != null ? h.w + (h.sealed ? " (sealed)" : "") : "—"}</span>
-                  <span>{h.cal != null ? Math.round(h.cal) : "—"}/{h.pro != null ? Math.round(h.pro) : "—"}</span>
-                  <span>{h.steps != null ? (h.steps >= 1000 ? (h.steps / 1000).toFixed(1) + "k" : h.steps + "k") : "—"}</span>
-                  <span>{h.slp != null ? h.slp + "h" : "—"}</span>
-                  {((s.sessionLog[h.d] || {}).niggles || []).map((j, k) => (<span key={k} style={{ color: T.brass }}>{j}</span>))}
-                </div>
-              ))}
+            <div onClick={() => setOpen(open === w.wk ? null : w.wk)} style={{ cursor: "pointer" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 18, color: T.chalk, textTransform: "uppercase" }}>Week {w.wk} · LIVE</div>
+                <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim }}>{w.range}</div>
+              </div>
+              <div style={{ display: "flex", gap: 14, marginTop: 8, fontFamily: mono, fontSize: 10.5, color: T.steel, flexWrap: "wrap" }}>
+                <span style={{ color: T.chalk }}>{w.avgW != null ? `${w.avgW} avg` : "sealed / no reads"}</span>
+                <span>{w.avgCal != null ? `${w.avgCal} cal` : "—"}</span>
+                <span style={{ color: w.proN && w.proHit / w.proN >= 0.6 ? T.jade : T.steel }}>pro {w.proHit}/{w.proN}</span>
+                <span>{w.avgSteps != null ? `${w.avgSteps}k` : "—"}</span>
+                <span>{w.avgSlp != null ? `${w.avgSlp}h` : "—"}</span>
+              </div>
             </div>
-            {live.some((h) => (s.sessionLog[h.d] || {}).note) && live.filter((h) => (s.sessionLog[h.d] || {}).note).map((h, i) => (
-              <div key={i} style={{ fontFamily: body, fontSize: 11, color: T.dim, marginTop: 6, lineHeight: 1.45 }}><span style={{ fontFamily: mono, color: T.steel }}>{fmtShort(h.d).split(" ")[1]}</span> — {s.sessionLog[h.d].note}</div>
-            ))}
+            {open === w.wk && (
+              <div style={{ marginTop: 12, borderTop: `1px solid ${T.line}`, paddingTop: 4 }}>
+                {w.rows.map((h, i) => (
+                  <div key={i} style={{ padding: "9px 0", borderBottom: i < w.rows.length - 1 ? `1px solid ${T.line}` : "none" }}>
+                    <div style={{ display: "flex", gap: 10, fontFamily: mono, fontSize: 10.5, color: T.steel, flexWrap: "wrap" }}>
+                      <span style={{ color: T.chalk, minWidth: 34 }}>{fmtShort(h.d).split(" ")[1]}</span>
+                      <span style={{ color: h.w != null ? T.chalk : T.dim }}>{h.w != null ? h.w : h.sealedW != null ? h.sealedW + " (sealed)" : "—"}</span>
+                      <span>{h.cal != null ? Math.round(h.cal) : "—"}/{h.pro != null ? Math.round(h.pro) : "—"}</span>
+                      <span>{h.steps != null ? (h.steps / 1000).toFixed(1) + "k" : "—"}</span>
+                      <span>{h.slp != null ? h.slp + "h" : "—"}</span>
+                      {h.niggles.map((j, k) => (<span key={k} style={{ color: T.brass }}>{j}</span>))}
+                    </div>
+                    {h.note && <div style={{ fontFamily: body, fontSize: 11, color: T.dim, marginTop: 3, lineHeight: 1.45 }}>{h.note}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
-        );
-      })()}
+        </div>
+      ))}
 
       {ROLLUPS.map((w) => (
         <div key={w.wk}>

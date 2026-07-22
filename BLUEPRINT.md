@@ -142,6 +142,7 @@ No history? Seed minimal, mark every model "prior — self-corrects as you log,"
 10. Every disclosure/analytic needs the FOR YOU layer computed from live state — static explanations go stale and stale text is quiet lying (the "controlled 8s" lesson).
 11. sw cache string + APP_V bump every release, or the deploy is invisible.
 12. Sensitive keys (sync token) live in their own localStorage key, excluded from exports and sync payloads — verify with a test.
+13. Audit every card for static-wearing-a-dynamic-costume: any string containing a date, a number, or a claim about "now" must compute from state, or it will eventually lie ("controlled 8s", the frozen debt card, week cards that stopped accruing). The client will find these — find them first.
 
 ---
 
