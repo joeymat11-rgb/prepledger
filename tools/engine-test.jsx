@@ -150,5 +150,26 @@ const s5b = cs5(clone(S8), "2026-07-23", en5, slpClean).s;
 const mon5 = gs5(s5b, "2026-07-27", slpClean);
 ok(mon5.ex.find(e => e.id === "press").live.indexOf("debut at 250") === 0, "own it Thursday → Monday's press NOW-line flips to the 250 debut on its own");
 
-console.log(`\nFINAL5: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v2.6 — PREV anchor
+const { genSession: gs6, completeSession: cs6, SEED: S9, migrate: mg6 } = __test;
+const u6 = gs6(clone(S9), "2026-07-23", slpClean);
+const pPrev = u6.ex.find(e => e.id === "press").prev;
+ok(pPrev && pPrev.reps.join(",") === "8,7,6" && pPrev.debt === true, "press PREV carries 8,7,6 with the on-debt context");
+ok(u6.ex.find(e => e.id === "extension") === undefined, "extension correctly absent from upper (sanity)");
+const l6 = gs6(clone(S9), "2026-07-24", slpClean);
+ok(l6.ex.find(e => e.id === "extension").prev.w === 155, "extension PREV shows the honest 155×9,6 crater, not a fake 150");
+const en6 = u6.ex.map(e => ({ id: e.id, n: e.n, w: e.w, tgt: e.tgt, reps: e.tgt.slice(), isDebutNow: e.isDebutNow, rir: e.id === "lateral" ? 1 : null }));
+const s6b = cs6(clone(S9), "2026-07-23", en6, slpClean).s;
+const latMeta = s6b.exercises.find(e => e.id === "lateral").lastMeta;
+ok(latMeta.d === "2026-07-23" && latMeta.rir === 1 && latMeta.debt === false, "completing a session rewrites PREV with date, RIR, and clean context");
+const rowsMeta = s6b.exercises.find(e => e.id === "rows").lastMeta;
+ok(rowsMeta.w === 180, "debut PREV records the weight actually lifted");
+const oldV7 = clone(S9); oldV7.v = 7; oldV7.exercises.forEach(e => delete e.lastMeta);
+oldV7.sessionLog["2026-07-22"] = { entries: [{ id: "press", reps: [8, 8, 7], rir: 1 }], at: 1 };
+const m8 = mg6(oldV7);
+ok(m8.exercises.find(e => e.id === "press").lastMeta.d === "2026-07-22", "migration prefers the phone's own logged session over the sheet seed");
+
+console.log(`\nFINAL6: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
