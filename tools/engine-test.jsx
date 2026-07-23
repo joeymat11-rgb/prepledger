@@ -387,7 +387,7 @@ ok(swp(ann2) === null, "no re-announcement — quiet until the next flip");
 // v3.13 — the outside-the-box wing
 const { labAnalytics2: la2, labGroups: lg2, completeSession: csW, genSession: gsW, SEED: SN } = __test;
 const wing = la2(clone(SN));
-ok(wing.length === 24, "twenty-four instruments, all constructed without a single crash: " + wing.length);
+ok(wing.length === 26, "twenty-six instruments, all constructed without a single crash: " + wing.length);
 ok(wing.every(c => c.tag && c.deep && c.forYou && c.status), "every card carries all three layers plus a status");
 const ids2 = wing.map(c => c.id);
 ok(["adaptmeter","strvelocity","canary","regularity","missarch","weekend","stepeff","refeedroi","sessionshape","compound","ghost","sentinel","letter"].every(x => ids2.includes(x)), "the full roster reports");
@@ -396,7 +396,7 @@ ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id ==
 const gAll = lg2(clone(SN));
 ok(gAll.length === 11 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,trials,road,models,locked,shelf", "eleven shelves, fixed order");
 const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
-ok(tot2 === 47, "all 47 instruments filed exactly once: " + tot2);
+ok(tot2 === 49, "all 49 instruments filed exactly once: " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
@@ -426,7 +426,7 @@ const j1 = swp3(clone(SO));
 ok(j1 && j1.forecasts.length === 1 && typeof j1.forecasts[0].pred7 === "number", "the sweep journals one dated 7-day forecast per day");
 ok(swp3(j1) === null, "second sweep same day: no duplicate journal, no writes");
 const wing3 = laW(clone(SO));
-ok(wing3.length === 24, "twenty-four instruments in the wing now: " + wing3.length);
+ok(wing3.length === 26, "twenty-six instruments in the wing now: " + wing3.length);
 const pr = wing3.find(c => c.id === "prophet");
 ok(pr && pr.status === "ARMED" && pr.deep.indexOf("error bars") > -1, "prophet armed, philosophy attached");
 let fcS = clone(SO);
@@ -446,7 +446,7 @@ ok(dock.next.every(n => n.n < n.need) && dock.next[0].pct >= (dock.next[1] ? doc
 ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "sentinel line reads");
 const ranked = sl1(clone(SP));
 const rk = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
-ok(ranked.length === 47 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 38 cards, monotone rank order");
+ok(ranked.length === 49 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 38 cards, monotone rank order");
 // a flip lands on the docket's fresh row
 const swD = __test.sweepLab(clone(SP));
 let dkF = JSON.parse(JSON.stringify(swD));
@@ -471,7 +471,7 @@ ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 ph
 // v3.17 — the sibling design review
 const { labSections: ls17, SEED: SR } = __test;
 const secs = ls17(clone(SR));
-ok(secs.reduce((a, x) => a + x.cards.length, 0) === 47, "all 47 filed across the plain-language sections, none lost");
+ok(secs.reduce((a, x) => a + x.cards.length, 0) === 49, "all 49 filed across the plain-language sections, none lost");
 const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "gathering");
 ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
 ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
@@ -638,7 +638,7 @@ let dpS = clone(TC);
 for (let k = 1; k <= 3; k++) dpS.sleep.nights.push({ d: isoL(Date.now() - k * 864e5), h: 8, tags: [] });
 dpS.sleep.nights = dpS.sleep.nights.filter((n, i, a) => a.findIndex(x => x.d === n.d) === i);
 const proto = dp37(dpS, { clean: true, run: 3, need: 3 });
-ok(proto.lead && proto.lead.t.length > 3 && proto.steps.length >= 2 && proto.steps.length <= 4, "one lead + a short ranked day: " + proto.steps.length + " steps");
+ok(proto.lead && proto.lead.t.length > 3 && proto.steps.length >= 2 && proto.steps.length <= 5, "one lead + a short ranked day: " + proto.steps.length + " steps");
 ok(proto.steps.some(x => x.a.indexOf("Lights out") === 0 && /\d\d:\d\d/.test(x.a)), "bedtime step carries the derived time");
 ok(proto.steps.some(x => x.a.indexOf("Protein 175") === 0), "protein step present with the spread");
 ok(proto.steps.every(x => x.a && x.why), "every step is action + reason, nothing bare");
@@ -686,5 +686,30 @@ ok(typeof dd40.topline === "string" && dd40.topline.length > 20, "top line reads
 ok(doss.indexOf("COACH DOSSIER") > 0 && doss.indexOf("Machine trust") > -1 && doss.indexOf("THIS WEEK:") > -1 && doss.indexOf("TOP LINE:") > -1, "dossier compiles header, trust, top line, and the week");
 ok(doss.indexOf("provisional") === -1 && doss.indexOf("CLEAN") === -1, "dossier speaks only plain English");
 
-console.log(`\nFINAL40: ${pass} passed, ${fail} failed`);
+// (interim)
+
+
+// v3.42 — the furnace + the reactive protocol
+const { tempRead: tr42, dayProtocol: dp42, migrate: mg42, SEED: TF } = __test;
+const oldV20f = clone(TF); oldV20f.v = 20; delete oldV20f.temp;
+ok(mg42(oldV20f).v >= 21 && Array.isArray(mg42(oldV20f).temp), "phones patch to v21 with the furnace");
+let tf = clone(TF);
+for (let k = 12; k >= 1; k--) tf.temp.push({ d: isoL(Date.now() - k * 864e5), f: k > 6 ? 97.8 : 97.2 });
+const T42 = tr42(tf);
+ok(T42.base != null && T42.drift <= -0.4, "cooling furnace measured: drift " + T42.drift);
+// short last night → tonight's repair appears, 20 early, anchor protected
+let snX = clone(TF);
+for (let k = 3; k >= 2; k--) snX.sleep.nights.push({ d: isoL(Date.now() - k * 864e5), h: 8, tags: [] });
+snX.sleep.nights.push({ d: isoL(Date.now() - 864e5), h: 6.2, sol: 15, tags: [] });
+snX.sleep.nights = snX.sleep.nights.filter((n, i, a) => a.findIndex(x => x.d === n.d) === i);
+const pr42 = dp42(snX, { clean: false, run: 1, need: 3 });
+ok(pr42.steps.some(x => x.a.indexOf("20 early") > -1 && x.why.indexOf("6.2 h") > -1 && x.why.indexOf("never oversleep the anchor") > -1), "short night triggers tonight's repair with the anchor protected");
+// pulse spike this morning outranks everything below the lead
+let sp = clone(TF);
+for (let k = 14; k >= 1; k--) sp.pulse.push({ d: isoL(Date.now() - k * 864e5), bpm: 56 });
+sp.pulse.push({ d: isoL(Date.now()), bpm: 65 });
+const pr43 = dp42(sp, { clean: true, run: 3, need: 3 });
+ok(pr43.steps[0].a.indexOf("Go easy today") === 0 && pr43.steps[0].why.indexOf("65 vs your 56") > -1, "a morning pulse spike takes rank one: " + pr43.steps[0].a);
+
+console.log(`\nFINAL41: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

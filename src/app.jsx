@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.41.1";
+const APP_V = "3.42.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,8 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 20;
+  SEED.v = 21;
+  SEED.temp = [];
   SEED.trials = [];
   SEED.pulse = [];
   SEED.sleep.anchor = { wake: "06:45", inBed: 8.25, asleepTarget: 8 };
@@ -1353,6 +1354,26 @@ function labAnalytics2(s) {
     deep: "Generated fresh on request — never stale, never stored. It compiles the machine-trust line, every speaking instrument's current verdict in plain words, running trials, this week's review, and anything athlete-called awaiting sign-off. Its whole job: your coach gets the lab's depth in two minutes of reading, whenever he asks.",
     forYou: "Open the card and tap GENERATE — then copy it straight into a text to him.",
     lines: [] }));
+
+  /* 25 · YOUR FURNACE */
+  add(() => {
+    const T2 = tempRead(s);
+    return { id: "furnacebase", t: "YOUR FURNACE", status: T2.base != null ? "LIVE" : "ARMED", prog: { n: T2.n, need: 7, label: "morning temperatures (15 seconds, on NOW)" },
+      tag: "Morning temperature — the deficit's most honest gauge.",
+      deep: "Your body literally turns the thermostat down as a diet deepens — morning temperature is the most direct read on metabolic adaptation that exists outside a lab. Seven readings set your early baseline; from there, a sustained drop of ~0.4°F+ means the furnace is banking energy, which is normal, expected, and exactly what the refeeds and the eventual diet-exit are for.",
+      forYou: T2.base != null ? `Early baseline ${T2.base}°F · recent ${T2.last5}°F (${T2.drift > 0 ? "+" : ""}${T2.drift}). ${T2.drift <= -0.4 ? "The furnace is cooling — adaptation is visible in you now, not just in theory. The band's top end exists for weeks like this." : "Holding warm — the deficit is being absorbed without the thermostat flinching."}` : `${T2.n}/7 readings. The thermometer takes 15 seconds, right after the pulse — same card on NOW.`,
+      lines: [] };
+  });
+
+  /* 26 · THE EXIT THERMOMETER */
+  add(() => {
+    const T2 = tempRead(s);
+    return { id: "exittherm", t: "THE EXIT THERMOMETER", status: "ARMED", prog: { n: T2.n, need: 7, label: "building your cut-depth baseline now — fires at the diet-exit" },
+      tag: "September's reverse ends when your body re-warms — not when the calendar says.",
+      deep: "This is the instrument nothing on the market has: a physiological finish line for the post-cut reverse. Every temperature you log now maps how cool the cut runs; when the diet-exit begins, calories climb until your mornings warm back to baseline — that re-warming IS metabolic recovery, measured. The reverse stops being a calendar guess and becomes a thermostat reading.",
+      forYou: `Learning your cut-depth signature (${T2.n} readings${T2.drift != null ? `, currently ${T2.drift > 0 ? "+" : ""}${T2.drift}°F vs early baseline` : ""}). At the diet-exit this card flips LIVE and calls the finish line itself.`,
+      lines: [] };
+  });
   return out;
 }
 
@@ -1364,7 +1385,7 @@ function labGroups(s) {
     engine: ["adaptmeter", "stepeff", "refeedroi"],
     training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss"],
     sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "canary"],
-    pulse: ["pulsebase", "cutstress", "pulsewarn", "refeedpulse"],
+    pulse: ["pulsebase", "cutstress", "pulsewarn", "refeedpulse", "furnacebase", "exittherm"],
     behavior: ["missarch", "weekend", "compound", "miner"],
     trials: ["trialsdesk"],
     road: ["cone", "dexarecon", "seasonone"],
@@ -1377,7 +1398,7 @@ function labGroups(s) {
     engine: "THE ENGINE — your metabolism, measured",
     training: "TRAINING — what the reps are saying",
     sleep: "SLEEP — the master-variable wing",
-    pulse: "THE PULSE — five seconds, four verdicts",
+    pulse: "PULSE & FURNACE — seconds a day, deep truths",
     trials: "THE TRIALS DESK — experiments you approved",
     behavior: "PATTERNS OF A HUMAN — behavior, decoded",
     road: "THE ROAD — timing the pivot",
@@ -1395,6 +1416,20 @@ function labGroups(s) {
     g.rest = g.cards.length - g.live - g.armed;
   });
   return groups;
+}
+
+/* quick pulse read — shared by cards and the day protocol */
+function pulseRead(s) {
+  const pr = (s.pulse || []).slice().sort((a, b) => (a.d < b.d ? -1 : 1));
+  const base = pr.length >= 7 ? pr.slice(-14).map((x) => x.bpm).sort((a, b) => a - b)[Math.floor(Math.min(14, pr.length) / 2)] : null;
+  const latest = pr[pr.length - 1] || null;
+  return { base, latest, spike: base && latest ? latest.bpm - base : null };
+}
+function tempRead(s) {
+  const tr = (s.temp || []).slice().sort((a, b) => (a.d < b.d ? -1 : 1));
+  const base = tr.length >= 7 ? +(tr.slice(0, 5).reduce((a, x) => a + x.f, 0) / Math.min(5, tr.length)).toFixed(1) : null;
+  const last5 = tr.length >= 5 ? +(tr.slice(-5).reduce((a, x) => a + x.f, 0) / 5).toFixed(1) : null;
+  return { n: tr.length, base, last5, drift: base != null && last5 != null ? +(last5 - base).toFixed(1) : null, latest: tr[tr.length - 1] || null };
 }
 
 /* THE HANDOFF DOSSIER — every live verdict, compiled plain, on request */
@@ -1500,24 +1535,47 @@ function dayProtocol(s, slp) {
   const lead = theOneThing(s, slp);
   const steps = [];
   const tI = isoOf(todayStart());
+  const yISO = isoOf(new Date(todayStart().getTime() - DAY));
   const t = dayType(tI);
   const trainDay = t === "U" || t === "L";
   const sessDone = !!s.sessionLog[tI];
-  try { const dk = labDocket(s); if (!dk.sentinel.quiet) steps.push({ a: "Go easy today", why: "recent days tripped your own baselines — " + dk.sentinel.txt }); } catch (e) {}
+  const lastNight = s.sleep.nights.find((n) => n.d === yISO);
+  const pr4 = pulseRead(s);
+  const T4 = tempRead(s);
+  const lo = lightsOutT(s);
+
+  /* 1 · body alarms first */
+  if (pr4.spike != null && pr4.spike >= 7 && pr4.latest && pr4.latest.d === tI) steps.push({ a: "Go easy today — pulse +"+ pr4.spike, why: `${pr4.latest.bpm} vs your ${pr4.base} baseline with nothing obvious to blame — hydrate, keep effort honest, protect tonight; often you skip the sickness entirely` });
+  else { try { const dk = labDocket(s); if (!dk.sentinel.quiet) steps.push({ a: "Go easy today", why: "recent days tripped your own baselines — " + dk.sentinel.txt }); } catch (e) {} }
+
+  /* 2 · trial arm */
+  const at2 = activeTrial(s);
+  if (at2) steps.push({ a: `Trial: ${at2.arm.tpl.arms[at2.arm.armIdx]}`, why: `${at2.arm.tpl.t.toLowerCase()} · block ${at2.arm.block}/${at2.arm.of} — the lab is measuring, just follow the arm` });
+
+  /* 3 · the session */
   if (trainDay && !sessDone) {
     const g = genSession(s, tI, slp);
     if (g && g.ex && g.ex.length) steps.push({ a: `Session: ${g.ex.length} lifts`, why: (g.structural && g.structural.indexOf("NONE") !== 0 ? g.structural.toLowerCase() + " · " : "") + (slp.clean ? "records can become official today" : "short sleep — effort +1 unless overridden, records pend") });
   }
-  const at2 = activeTrial(s);
-  if (at2) steps.push({ a: `Trial: ${at2.arm.tpl.arms[at2.arm.armIdx]}`, why: `${at2.arm.tpl.t.toLowerCase()} · block ${at2.arm.block}/${at2.arm.of} — the lab is measuring, just follow the arm` });
+
+  /* 4 · food */
   if (s.fixWindow) steps.push({ a: "Protein 175 — non-negotiable today", why: "closes the open fix window; the miss becomes a save" });
   else steps.push({ a: "Protein 175", why: "~44 g × 4 feeds · wake / pre-lift / post-lift / pre-bed" });
-  const lo = lightsOutT(s);
-  const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length;
-  steps.push({ a: `Lights out ${lo.t}`, why: `wake ${(s.sleep.anchor || {}).wake || "06:45"} · ${lo.target} h asleep + ~${lo.sol} min drift-off${melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off in the morning` : ""}` });
-  if (s.sleep.caffMg) { const at = caffAt(s.sleep.caffMg, 12, lo.mins / 60); if (at > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at} mg would still be aboard at lights-out — above ~50 mg deep sleep measurably thins` }); }
+  if (T4.drift != null && T4.drift <= -0.4) steps.push({ a: "Eat the top of the range (1,800)", why: `your furnace runs ${T4.drift}°F under baseline — the band's ceiling exists for exactly this; still a full deficit` });
+  if (dayType(isoOf(new Date(todayStart().getTime() + DAY))) === "REFEED") steps.push({ a: "Normal day — refeed is tomorrow", why: "no pre-saving calories tonight; the refeed works because the days around it stay ordinary" });
+
+  /* 5 · repair last night, tonight */
+  if (lastNight) {
+    if (lastNight.h < (s.sleep.cleanH || 7.5)) steps.push({ a: `Lights out ${(() => { let m = lo.mins - 20; if (m < 0) m += 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; })()} — 20 early`, why: `last night ran ${lastNight.h} h — one modestly early night repays most of it; wake stays ${(s.sleep.anchor || {}).wake || "06:45"} (never oversleep the anchor). If you must nap: ≤25 min, before 3 pm` });
+    else if (lastNight.sol != null && lastNight.sol >= 30) steps.push({ a: `Wind-down 30 min before ${lo.t}`, why: `drift-off ran ${lastNight.sol} min last night — screens off, lights low; the drift is usually paying for the evening's light` });
+    else if ((lastNight.awakeMin || 0) >= 30) steps.push({ a: "Tonight: cooler room, no fluids after ~8:30", why: `you were awake ${lastNight.awakeMin} min mid-night — the two cheapest fixes first` });
+    else steps.push({ a: `Lights out ${lo.t}`, why: `wake ${(s.sleep.anchor || {}).wake || "06:45"} · ${lo.target} h asleep + ~${lo.sol} min drift-off${(() => { const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length; return melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off` : ""; })()}` });
+  } else steps.push({ a: `Lights out ${lo.t}`, why: `wake ${(s.sleep.anchor || {}).wake || "06:45"} · ${lo.target} h asleep + ~${lo.sol} min drift-off` });
+  if (s.sleep.caffMg) { const at3 = caffAt(s.sleep.caffMg, 12, lo.mins / 60); if (at3 > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at3} mg would still be aboard at lights-out — above ~50 mg deep sleep measurably thins` }); }
+
+  /* 6 · floor */
   steps.push({ a: "Steps 16.5k", why: "walking is the deficit's quiet engine — calories do the cutting, steps keep it moving" });
-  return { lead, steps: steps.slice(0, 4) };
+  return { lead, steps: steps.slice(0, 5) };
 }
 
 /* PLAIN ENGLISH LAYER — house vocabulary translated at render time, everywhere, forever */
@@ -1786,6 +1844,7 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV21(s) { s.temp = s.temp || []; s.v = 21; return s; }
 function patchV20(s) { s.trials = s.trials || []; s.v = 20; return s; }
 function patchV19(s) { s.pulse = s.pulse || []; s.v = 19; return s; }
 function patchV18(s) {
@@ -1829,8 +1888,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 20) return old;
-  if (old && old.v >= 3 && old.v <= 19) return patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))))))));
+  if (old && old.v === 21) return old;
+  if (old && old.v >= 3 && old.v <= 20) return patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -1856,7 +1915,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))))))));
+  return patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))))))))));
 }
 
 const GLOSSARY = {
@@ -1881,7 +1940,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2116,6 +2175,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [wIn, setWIn] = useState(s.trend);
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
   const [pulseIn, setPulseIn] = useState(((s.pulse || [])[Math.max(0, (s.pulse || []).length - 1)] || {}).bpm || 58);
+  const [tempIn, setTempIn] = useState(((s.temp || [])[Math.max(0, (s.temp || []).length - 1)] || {}).f || 97.6);
   const wd = weekDay();
   const dt = dayType(tISO);
   const isRefeed = dt === "REFEED";
@@ -2412,6 +2472,18 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                 <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.pulse = [...(ns.pulse || []), { d: tISO, bpm: pulseIn }]; setS(ns); save(ns); }}>Log</Btn>
               </div>
             )}
+            {(() => { const todayT = (s.temp || []).find((x) => x.d === tISO); return todayT ? (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 8 }}>
+                <span style={{ fontFamily: mono, fontSize: 11, color: T.jade }}>✓ temperature {todayT.f}°F logged</span>
+                <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.temp = ns.temp.filter((x) => x.d !== tISO); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, cursor: "pointer" }}>undo</span>
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 8 }}>
+                <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, letterSpacing: "0.08em" }}>TEMPERATURE °F<div style={{ fontSize: 8 }}>optional · 15 s · the furnace</div></div>
+                <Stepper v={tempIn} set={setTempIn} step={0.1} min={94} />
+                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.temp = [...(ns.temp || []), { d: tISO, f: +tempIn.toFixed(1) }]; setS(ns); save(ns); }}>Log</Btn>
+              </div>
+            ); })()}
           </Card>
         );
       })()}
