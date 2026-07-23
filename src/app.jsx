@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.17.0";
+const APP_V = "3.18.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2592,8 +2592,8 @@ function WhatIfConsole({ s }) {
 function HistTab({ s, setS, save }) {
   const [open, setOpen] = useState(null);
   const [labOpen, setLabOpen] = useState(null);
-  const [grpOpen, setGrpOpen] = useState(null);
-  const [lens, setLens] = useState("status");
+  const [secOpen, setSecOpen] = useState({ speaking: true, gathering: true });
+  const [gatherAll, setGatherAll] = useState(false);
   const liveWks = liveRollups(s);
   const first = ROLLUPS[ROLLUPS.length - 1];
   const latest = (liveWks.find((w) => w.avgW != null || w.avgCal != null)) || ROLLUPS[0];
@@ -2664,79 +2664,43 @@ function HistTab({ s, setS, save }) {
         return (
           <>
             {(() => {
-              const jump = (id) => { const g2 = groups.find((g3) => g3.cards.some((c) => c.id === id)); if (g2) { setLens("shelves"); setGrpOpen(g2.id); setLabOpen(id); } };
-              const dk = labDocket(s);
+              const wkAgo = isoOf(new Date(todayStart().getTime() - 7 * DAY));
+              const freshMap = {};
+              (s.feed || []).forEach((f) => { if (f.t && f.t.indexOf("LAB LIVE — ") === 0 && f.d >= wkAgo) freshMap[f.t.replace("LAB LIVE — ", "")] = f.d; });
+              const secs = labSections(s);
+              const row = (a) => labOpen === a.id ? (
+                <div key={a.id} style={{ margin: "8px 0" }}>{renderCard(a)}</div>
+              ) : (
+                <div key={a.id} onClick={() => setLabOpen(a.id)} style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 0", borderBottom: `1px solid ${T.line}`, cursor: "pointer" }}>
+                  <span style={{ width: 7, height: 7, borderRadius: 99, background: stampColor(a.status), flexShrink: 0 }} />
+                  <span style={{ fontFamily: disp, fontWeight: 600, fontSize: 14.5, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk, flex: 1, lineHeight: 1.2 }}>{a.t.split(" — ")[0]}</span>
+                  <span style={{ fontFamily: mono, fontSize: 9.5, color: freshMap[a.t] ? T.jade : a.status === "LIVE" || a.status === "TRACKING" ? T.jade : a.status === "ARMED" ? T.brass : T.dim, whiteSpace: "nowrap" }}>
+                    {freshMap[a.t] ? `new · ${fmtShort(freshMap[a.t])}` : a.status === "ARMED" && a.prog ? `${a.prog.n}/${a.prog.need}` : a.status.toLowerCase()} <span style={{ color: T.dim }}>▸</span>
+                  </span>
+                </div>
+              );
               return (
-                <Card accent={T.jade} style={{ padding: 12 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                    <Eyebrow c={T.jade}>THE LAB · {totLive} SPEAKING · {totArmed} GATHERING · {tot} TOTAL</Eyebrow>
-                    <div style={{ display: "flex", gap: 4 }}>
-                      {["shelves", "status"].map((m) => (
-                        <button key={m} onClick={() => setLens(m)} style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: "0.08em", padding: "4px 8px", borderRadius: 5, border: `1px solid ${lens === m ? T.jade : T.line}`, background: "none", color: lens === m ? T.jade : T.dim, textTransform: "uppercase" }}>{m}</button>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{ fontFamily: body, fontSize: 11, color: T.dim, marginTop: 4 }}>Tap any line for the full story, in plain words.</div>
-                  <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9 }}>
-                    <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.1em", color: T.dim }}>FRESH VERDICTS · LAST 7 DAYS</div>
-                    {dk.fresh.length ? dk.fresh.slice(0, 3).map((f, i) => (
-                      <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.jade, marginTop: 4 }}>◆ {f.t.toLowerCase()} · {fmtShort(f.d)}</div>
-                    )) : <div style={{ fontFamily: mono, fontSize: 10.5, color: T.dim, marginTop: 4 }}>none — the lab is watching, not talking</div>}
-                    <div style={{ fontFamily: mono, fontSize: 10, color: dk.sentinel.quiet ? T.dim : T.brass, marginTop: 9 }}>SENTINEL · {dk.sentinel.txt}</div>
-                  </div>
+                <Card accent={T.jade} style={{ padding: "12px 12px 10px" }}>
+                  <Eyebrow c={T.jade}>THE LAB · {totLive} SPEAKING · {totArmed} GATHERING · {tot} TOTAL</Eyebrow>
+                  <div style={{ fontFamily: body, fontSize: 11, color: T.dim, marginTop: 4 }}>Tap any line for the full story, in plain words. Fresh verdicts carry their date.</div>
+                  {secs.map((sec) => {
+                    const openSec = secOpen[sec.k] !== undefined ? secOpen[sec.k] : false;
+                    const cards = sec.k === "gathering" && !gatherAll ? sec.cards.slice(0, 5) : sec.cards;
+                    return (
+                      <div key={sec.k}>
+                        <div onClick={() => setSecOpen({ ...secOpen, [sec.k]: !openSec })} style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.12em", color: T.dim, marginTop: 12, cursor: "pointer" }}>{sec.title} {openSec ? "" : "▸"}</div>
+                        {openSec && sec.sub && <div style={{ fontFamily: body, fontSize: 10.5, color: T.dim, marginTop: 2 }}>{sec.sub}</div>}
+                        {openSec && cards.map(row)}
+                        {openSec && sec.k === "gathering" && sec.cards.length > 5 && (
+                          <div onClick={() => setGatherAll(!gatherAll)} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, padding: "9px 0", cursor: "pointer" }}>{gatherAll ? "▴ show the closest five only" : `▸ ${sec.cards.length - 5} more gathering — further from speaking`}</div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </Card>
               );
             })()}
-            {lens === "shelves" && groups.map((g) => {
-              const dormant = g.live === 0 && !g.cards.some((c) => c.status === "ARMED" && c.prog && c.prog.n / c.prog.need >= 0.5);
-              const sorted = [...g.cards].sort((a, b) => { const r = (STATUS_RANK[a.status] ?? 5) - (STATUS_RANK[b.status] ?? 5); if (r !== 0) return r; if (a.status === "ARMED" && b.status === "ARMED") { const pa = a.prog ? a.prog.n / a.prog.need : 0, pb = b.prog ? b.prog.n / b.prog.need : 0; return pb - pa; } return 0; });
-              return (
-                <Card key={g.id} style={{ padding: 12 }} accent={grpOpen === g.id ? T.chalk : undefined}>
-                  <div onClick={() => { setGrpOpen(grpOpen === g.id ? null : g.id); setLabOpen(null); }} style={{ cursor: "pointer" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                      <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 16, color: dormant ? T.steel : T.chalk, textTransform: "uppercase" }}>{g.title}</div>
-                      <div style={{ fontFamily: mono, fontSize: 9.5, whiteSpace: "nowrap", opacity: dormant ? 0.55 : 1 }}>
-                        {g.live > 0 && <span style={{ color: T.jade }}>{g.live} live</span>}
-                        {g.armed > 0 && <span style={{ color: T.brass }}>{g.live > 0 ? " · " : ""}{g.armed} armed</span>}
-                        {g.rest > 0 && <span style={{ color: T.dim }}>{g.live + g.armed > 0 ? " · " : ""}{g.rest} filed</span>}
-                        <span style={{ color: T.dim }}>  {grpOpen === g.id ? "▾" : "▸"}</span>
-                      </div>
-                    </div>
-                  </div>
-                  {grpOpen === g.id && <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 10 }}>{sorted.map(renderCard)}</div>}
-                </Card>
-              );
-            })}
-            {lens === "status" && (
-              <Card style={{ padding: "4px 12px 10px" }}>
-                {labSections(s).map((sec) => (
-                  <div key={sec.k}>
-                    <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.12em", color: T.dim, marginTop: 12 }}>{sec.title}</div>
-                    {sec.sub && <div style={{ fontFamily: body, fontSize: 10.5, color: T.dim, marginTop: 2 }}>{sec.sub}</div>}
-                    {sec.cards.map((a) => labOpen === a.id ? (
-                      <div key={a.id} style={{ margin: "8px 0" }}>{renderCard(a)}</div>
-                    ) : (
-                      <div key={a.id} onClick={() => setLabOpen(a.id)} style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 0", borderBottom: `1px solid ${T.line}`, cursor: "pointer" }}>
-                        <span style={{ width: 7, height: 7, borderRadius: 99, background: stampColor(a.status), flexShrink: 0 }} />
-                        <span style={{ fontFamily: disp, fontWeight: 600, fontSize: 14.5, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk, flex: 1, lineHeight: 1.2 }}>{a.t}</span>
-                        <span style={{ fontFamily: mono, fontSize: 9.5, color: a.status === "LIVE" || a.status === "TRACKING" ? T.jade : a.status === "ARMED" ? T.brass : T.dim, whiteSpace: "nowrap" }}>
-                          {a.status === "ARMED" && a.prog ? `${a.prog.n}/${a.prog.need}` : a.status.toLowerCase()} <span style={{ color: T.dim }}>▸</span>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </Card>
-            )}
-            <Card style={{ padding: 12 }}>
-              <Eyebrow>THE INDEX — EVERY INSTRUMENT, ONE TAP</Eyebrow>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-                {groups.flatMap((g) => g.cards.map((c) => (
-                  <button key={c.id} onClick={() => { setLens("shelves"); setGrpOpen(g.id); setLabOpen(c.id); }}
-                    style={{ fontFamily: mono, fontSize: 8.5, padding: "5px 8px", borderRadius: 999, border: `1px solid ${c.status === "LIVE" || c.status === "TRACKING" ? T.jade : T.line}`, background: "none", color: c.status === "LIVE" || c.status === "TRACKING" ? T.jade : T.steel, textTransform: "lowercase" }}>{c.t.split(" — ")[0].toLowerCase()}</button>
-                )))}
-              </div>
-            </Card>
+
           </>
         );
       })()}

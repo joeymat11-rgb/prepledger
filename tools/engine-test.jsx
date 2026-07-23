@@ -475,5 +475,12 @@ const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "ga
 ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
 ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
 
-console.log(`\nFINAL25: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.18 — the lab on one card
+ok(typeof __test.labSections === "function" && typeof __test.labGroups === "function", "engine keeps the taxonomy even though the UI stopped wearing it");
+const secs18 = __test.labSections(clone(__test.SEED));
+ok(secs18[0].k === "speaking" && secs18[1].k === "gathering", "speaking leads, gathering follows — the page's whole grammar");
+
+console.log(`\nFINAL26: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
