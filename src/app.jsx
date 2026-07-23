@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.8.0";
+const APP_V = "3.8.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -684,18 +684,29 @@ function labAnalytics(s) {
   return out.sort((a, b) => rank[a.status] - rank[b.status]);
 }
 
+/* which nights are owed? dated by the evening they began; logged the morning after; pre-5am still means the night you finished */
+function owedNights(s, hour = new Date().getHours()) {
+  const ref = hour < 5 ? new Date(todayStart().getTime() - DAY) : todayStart();
+  const out = [];
+  for (let k = 1; k <= 3; k++) {
+    const d = isoOf(new Date(ref.getTime() - k * DAY));
+    if (!s.sleep.nights.some((n) => n.d === d)) out.push(d);
+  }
+  return out.slice(0, 2);
+}
+
 /* THE ONE THING — the priority ladder that answers "what do I do?" before scrolling */
 function theOneThing(s, slp, hour = new Date().getHours()) {
   const tISO = isoOf(todayStart());
-  const lastNight = isoOf(new Date(todayStart().getTime() - DAY));
-  const slLogged = s.sleep.nights.some((n) => n.d === lastNight);
+  const owed = owedNights(s, hour);
+  const slLogged = owed.length === 0;
   const dLogged = s.dailyLogs[tISO] && s.dailyLogs[tISO].cal != null;
   const dt = dayType(tISO);
   const trainToday = dt === "U" || dt === "L";
   const sessDone = !!s.sessionLog[tISO];
   if (!slLogged) {
     const flips = !slp.clean && slp.run + 1 >= slp.need;
-    return { t: "Log last night's sleep", sub: flips ? "one tap — ≥7.5 flips you CLEAN and today's attempts count for keeps" : "one tap — the whole engine keys off it" };
+    return { t: `Log ${fmtShort(owed[0])}'s night`, sub: flips ? "one tap — ≥7.5 flips you CLEAN and today's attempts count for keeps" : "one tap — the whole engine keys off it" };
   }
   if (s.fixWindow && !dLogged) return { t: "Fix window is open", sub: "175 today closes it and EXTENDS the record — recovery is the metric" };
   if (trainToday && !sessDone && hour >= 10) { const g = genSession(s, tISO, slp); return { t: "Today: " + (g.structural || g.name), sub: "log it in TRAIN when the iron's down" }; }
@@ -991,10 +1002,11 @@ const GLOSSARY = {
   parked: ["PARKED", "Deliberately shelved with a written trigger (a date, a phase, a coach call). Parked isn't forgotten; it's staged."],
   structural: ["Structural change", "A load jump, new set, or machine change. One per session, auto-picked from the queue — so every response stays attributable. Rep progression is unlimited."],
   whoosh: ["Whoosh", "Event water leaving days after the event — a spike that drains to a NEW low. Yours clears in 1–3 days; the LAB predicts the window in advance."],
+  nightdate: ["How nights are dated", "A night belongs to the evening it began: Tuesday night = Tue evening → Wed morning, filed under Tuesday. You log it the morning after. Before 5 a.m. the app still means the night you already finished — never the one you haven't slept yet. Missed a morning? The row stays, dated, for up to 3 days."],
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1307,18 +1319,11 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       ); })()}
 
       {(() => {
-        const lastNight = isoOf(new Date(todayStart().getTime() - DAY));
-        const slAlready = s.sleep.nights.some((n) => n.d === lastNight);
+        const owed = owedNights(s);
+        const lastNight = isoOf(new Date((new Date().getHours() < 5 ? todayStart().getTime() - DAY : todayStart().getTime()) - DAY));
+        const slAlready = owed.length === 0;
         const wAlready = s.reads.some((r) => r.d === tISO);
         const sealedNow = blackoutOn(s);
-        const logSleep = () => {
-          const ns = JSON.parse(JSON.stringify(s));
-          ns.sleep.nights.push({ d: lastNight, h: slpH });
-          let run = 0;
-          for (let i = ns.sleep.nights.length - 1; i >= 0; i--) { if (ns.sleep.nights[i].h >= ns.sleep.cleanH) run++; else break; }
-          if (run === ns.sleep.needed) ns.feed.unshift({ d: tISO, t: "SLEEP RESET COMPLETE", how: `${run} consecutive clean nights — PRs can be OWNED again · #1 lever for the back half, and for the ADHD` });
-          setS(ns); save(ns);
-        };
         const logW = () => { const ns2 = runAdaptive(applyRead(s, tISO, wIn), tISO); setS(ns2); save(ns2); };
         const lastWaist = s.waist[s.waist.length - 1];
         const waistDue = !lastWaist || Math.round((mk(tISO) - mk(lastWaist.d)) / DAY) >= 7;
@@ -1328,15 +1333,23 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <>
             <Card accent={T.chalk}>
               <Eyebrow>MORNING · CAPTURE — EVERYTHING LOGS HERE</Eyebrow>
-              {!slAlready ? (
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
-                  <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, width: 62 }}>SLEEP<br />last night</div>
+              {!slAlready ? owed.map((od, oi) => (
+                <div key={od} style={{ display: "flex", alignItems: "center", gap: 10, marginTop: oi === 0 ? 10 : 8 }}>
+                  <div style={{ fontFamily: mono, fontSize: 9.5, color: oi === 0 ? T.dim : T.brass, width: 74 }}><Term k="nightdate" c={T.dim}>SLEEP</Term><br />{fmtShort(od)} night{oi > 0 ? " · missed" : ""}</div>
                   <Stepper v={slpH} set={setSlpH} step={0.5} min={0} />
-                  <div style={{ flex: 1 }}><Btn full small tone="jade" onClick={logSleep}>Log sleep</Btn></div>
+                  <div style={{ flex: 1 }}><Btn full small tone="jade" onClick={() => {
+                    const ns = JSON.parse(JSON.stringify(s));
+                    ns.sleep.nights.push({ d: od, h: slpH });
+                    ns.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
+                    let run = 0;
+                    for (let i = ns.sleep.nights.length - 1; i >= 0; i--) { if (ns.sleep.nights[i].h >= ns.sleep.cleanH) run++; else break; }
+                    if (run === ns.sleep.needed) ns.feed.unshift({ d: tISO, t: "SLEEP RESET COMPLETE", how: `${run} consecutive clean nights — PRs can be OWNED again · #1 lever for the back half, and for the ADHD` });
+                    setS(ns); save(ns);
+                  }}>Log {fmtShort(od).split(" ")[1]}</Btn></div>
                 </div>
-              ) : (
+              )) : (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
-                  <span style={{ fontFamily: mono, fontSize: 11, color: T.jade }}>✓ sleep {(s.sleep.nights.find((n) => n.d === lastNight) || {}).h} h banked</span>
+                  <span style={{ fontFamily: mono, fontSize: 11, color: T.jade }}>✓ {fmtShort(lastNight)} night · {(s.sleep.nights.find((n) => n.d === lastNight) || {}).h} h banked</span>
                   <button onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.sleep.nights = ns.sleep.nights.filter((n) => n.d !== lastNight); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, background: "none", border: "none" }}>undo</button>
                 </div>
               )}

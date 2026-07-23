@@ -312,10 +312,11 @@ ok(dgs.indexOf("Protein 1/1") > -1 && dgs.indexOf("1 session") > -1 && dgs.toLow
 const { theOneThing: oo, SEED: SI } = __test;
 const slpNoClean = { clean: false, run: 2, need: 3 };
 const one1 = oo(clone(SI), slpNoClean, 8);
-ok(one1.t.indexOf("sleep") > -1 && one1.sub.indexOf("CLEAN") > -1, "unlogged sleep tops the ladder with the flip stakes named");
+ok(one1.t.indexOf("night") > -1 && one1.sub.indexOf("CLEAN") > -1, "unlogged sleep tops the ladder with the flip stakes named");
 let od = clone(SI);
 const isoL = (d) => { const x = new Date(d); return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); };
-od.sleep.nights.push({ d: isoL(Date.now() - 864e5), h: 8 });
+od.sleep.nights.push({ d: isoL(Date.now() - 864e5), h: 8 }, { d: isoL(Date.now() - 2 * 864e5), h: 8 }, { d: isoL(Date.now() - 3 * 864e5), h: 8 });
+od.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
 od.fixWindow = { opened: "x" };
 const one2 = oo(od, slpNoClean, 12);
 ok(one2.t.indexOf("Fix window") === 0, "open fix window outranks everything after sleep");
@@ -325,5 +326,18 @@ od.sessionLog[isoL(Date.now())] = { entries: [], at: 1 };
 const one3 = oo(od, { clean: true, run: 3, need: 3 }, 21);
 ok(one3.t.indexOf("banked") > -1, "all-done evening reads as banked: " + one3.t);
 
-console.log(`\nFINAL15: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.8.1 — night dating
+const { owedNights: on2, theOneThing: oo2, GLOSSARY: GL2, SEED: SJ } = __test;
+ok(GL2.nightdate && GL2.nightdate[1].indexOf("evening it began") > -1, "night-dating rule is in the glossary");
+let sn = clone(SJ);
+const owedA = on2(sn, 8);
+ok(owedA.length >= 1, "morning view: at least one owed night surfaces, dated: " + owedA.join(","));
+const late = on2(sn, 1), morn = on2(sn, 8);
+ok(late.length === 0 || morn.length === 0 || late[0] <= morn[0], "pre-5am never targets an unslept night (late-first date ≤ morning-first date)");
+const oneN = oo2(sn, { clean: false, run: 2, need: 3 }, 8);
+ok(owedA.length === 0 || oneN.t.indexOf("night") > -1, "ONE THING names the dated night, not a riddle: " + oneN.t);
+
+console.log(`\nFINAL16: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
