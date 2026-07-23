@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.28.0";
+const APP_V = "3.29.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -856,6 +856,9 @@ function theOneThing(s, slp, hour = new Date().getHours()) {
     return { t: `Log ${fmtShort(owed[0])}'s night`, sub: flips ? "one tap — ≥7.5 flips you CLEAN and today's attempts count for keeps" : "one tap — the whole engine keys off it" };
   }
   if (s.fixWindow && !dLogged) return { t: "Fix window is open", sub: "175 today closes it and EXTENDS the record — recovery is the metric" };
+  const openEv = s.events.find((e) => !e.estimated && daysUntil(e.d) < 0);
+  if (openEv) return { t: "Close out " + openEv.t, sub: "zero-comp or honest — one tap, the ledger doesn't guess" };
+  if (trainToday && sessDone && !dLogged && hour < 17) return { t: "Session banked ✓ — day open", sub: "numbers close it tonight · everything else is reading" };
   if (trainToday && !sessDone && hour >= 10) { const g = genSession(s, tISO, slp); return { t: "Today: " + (g.structural || g.name), sub: "log it in TRAIN when the iron's down" }; }
   if (!dLogged && hour >= 17) return { t: "Close the day", sub: "cal · protein · steps — pre-filled to targets, adjust and tap" };
   if (!dLogged) return { t: "Day open — nothing owed yet", sub: "numbers close it tonight · everything else is optional reading" };
@@ -1812,6 +1815,23 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       <Proposals s={s} setS={setS} save={save} />
 
+      {(s.labNews || []).length > 0 && (
+        <Card accent={T.jade} style={{ padding: 10, cursor: "pointer" }}>
+          <div onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.labNews = []; setS(ns); save(ns); }}>
+            <div style={{ fontFamily: mono, fontSize: 10.5, color: T.jade, letterSpacing: "0.06em" }}>🧪 LAB LIVE — {s.labNews.join(" · ")}</div>
+            <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 3 }}>verdict waiting on the LAB tab · tap to dismiss</div>
+          </div>
+        </Card>
+      )}
+
+      {(() => { const one = theOneThing(s, slp); return (
+        <Card accent={T.jade} style={{ padding: 12 }}>
+          <Eyebrow c={T.jade}>THE ONE THING</Eyebrow>
+          <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 19, color: T.chalk, textTransform: "uppercase", marginTop: 2 }}>{one.t}</div>
+          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 4 }}>{one.sub}</div>
+        </Card>
+      ); })()}
+
       {sess && (
         <div style={{ border: `1px solid ${T.line}`, borderRadius: 10, padding: "18px 16px 16px", background: `linear-gradient(180deg, ${T.plate} 0%, ${T.ink} 100%)`, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: T.orange }} />
@@ -1854,28 +1874,16 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       ); })()}
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {s.sessionLog[tISO] && <Chip c={T.jade}>Session ✓ — receipt in TRAIN</Chip>}
         {cleanIn > 0 && <Chip c={T.chalk}>Scale sealed · clean read {fmtShort(SEAL_UNTIL)} · {cleanIn}d</Chip>}
         {ev && <Chip c={T.chalk}>{ev.t} · {fmtShort(ev.d)}</Chip>}
       </div>
 
 
 
-      {(s.labNews || []).length > 0 && (
-        <Card accent={T.jade} style={{ padding: 10, cursor: "pointer" }}>
-          <div onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.labNews = []; setS(ns); save(ns); }}>
-            <div style={{ fontFamily: mono, fontSize: 10.5, color: T.jade, letterSpacing: "0.06em" }}>🧪 LAB LIVE — {s.labNews.join(" · ")}</div>
-            <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 3 }}>verdict waiting on the LAB tab · tap to dismiss</div>
-          </div>
-        </Card>
-      )}
 
-      {(() => { const one = theOneThing(s, slp); return (
-        <Card accent={T.jade} style={{ padding: 12 }}>
-          <Eyebrow c={T.jade}>THE ONE THING</Eyebrow>
-          <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 19, color: T.chalk, textTransform: "uppercase", marginTop: 2 }}>{one.t}</div>
-          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 4 }}>{one.sub}</div>
-        </Card>
-      ); })()}
+
+
 
       {(() => {
         const owed = owedNights(s);
@@ -1886,8 +1894,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         const logW = () => { const ns2 = runAdaptive(applyRead(s, tISO, wIn), tISO); setS(ns2); save(ns2); };
         return (
           <>
-            <Card accent={T.chalk}>
-              <Eyebrow>MORNING · CAPTURE — EVERYTHING LOGS HERE</Eyebrow>
+            <Card accent={T.chalk} style={slAlready && wAlready ? { padding: 10 } : undefined}>
+              {!(slAlready && wAlready) && <Eyebrow>MORNING · CAPTURE — EVERYTHING LOGS HERE</Eyebrow>}
               {!slAlready ? (
                 <div style={{ marginTop: 10 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -1948,7 +1956,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                   <button onClick={() => { const ns = undoRead(s, tISO); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, background: "none", border: "none" }}>undo</button>
                 </div>
               )}
-              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 10 }}>evening numbers below · sessions in TRAIN · everything else is reading</div>
+              {!(slAlready && wAlready) && <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 10 }}>evening numbers below · sessions in TRAIN · everything else is reading</div>}
             </Card>
           </>
         );

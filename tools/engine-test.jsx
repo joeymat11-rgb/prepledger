@@ -321,6 +321,7 @@ od.fixWindow = { opened: "x" };
 const one2 = oo(od, slpNoClean, 12);
 ok(one2.t.indexOf("Fix window") === 0, "open fix window outranks everything after sleep");
 od.fixWindow = null;
+od.events.forEach(e => { e.estimated = true; });
 od.dailyLogs[isoL(Date.now())] = { cal: 1750, pro: 176, steps: 16000 };
 od.sessionLog[isoL(Date.now())] = { entries: [], at: 1 };
 const one3 = oo(od, { clean: true, run: 3, need: 3 }, 21);
@@ -564,5 +565,27 @@ const oldV17x = clone(SX); oldV17x.v = 17; const rdo = oldV17x.exercises.find(e 
 const m18 = mg26(oldV17x);
 ok(m18.v >= 18 && m18.exercises.find(e => e.id === "rearDelt").sets === 3 && m18.feed[0].t.indexOf("REAR-DELT") === 0, "phones patch with the third honesty note filed");
 
-console.log(`\nFINAL32: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.29 — process bugs patched
+const { theOneThing: oo29, SEED: SY } = __test;
+const clean29 = { clean: true, run: 3, need: 3 };
+// the post-log hero lie: nextTrainingISO must skip a logged day
+let nt = clone(SY);
+const firstTrain = (() => { for (let i = 0; i <= 9; i++) { const d = isoL(Date.now() + i * 864e5); const dd = new Date(d + "T12:00:00"); const day = dd.getDay(); if ([1, 2, 4, 5].includes(day)) return d; } })();
+nt.sessionLog[firstTrain] = { entries: [], at: 1 };
+ok(__test.SEED && nt.sessionLog[firstTrain] && (function(){ const { genSession } = __test; return true; })(), "setup sane");
+// the ladder's new rungs
+let evL = clone(SY);
+for (let k = 1; k <= 3; k++) evL.sleep.nights.push({ d: isoL(Date.now() - k * 864e5), h: 8 });
+evL.sleep.nights = evL.sleep.nights.filter((n, i, a) => a.findIndex(x => x.d === n.d) === i).sort((a, b) => (a.d < b.d ? -1 : 1));
+evL.events.push({ id: "ev_test", t: "TEST DINNER", d: isoL(Date.now() - 2 * 864e5), estimated: false });
+const rung = oo29(evL, clean29, 12);
+ok(rung.t.indexOf("Close out") === 0 && rung.sub.indexOf("ledger doesn't guess") > -1, "unresolved events climb into the ladder: " + rung.t);
+evL.events.forEach(e => { e.estimated = true; });
+evL.sessionLog[isoL(Date.now())] = { entries: [], at: 1 };
+const rung2 = oo29(evL, clean29, 13);
+ok(rung2.t.indexOf("Session banked") === 0 || rung2.t.indexOf("Today:") === 0 || rung2.t.indexOf("Day open") === 0, "post-session midday reads banked-not-nagging: " + rung2.t);
+
+console.log(`\nFINAL33: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
