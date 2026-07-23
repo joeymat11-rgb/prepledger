@@ -356,5 +356,18 @@ const oldV10 = clone(SK); oldV10.v = 10; delete oldV10.sleep.anchor; delete oldV
 const m11 = mgB(oldV10);
 ok(m11.v === 11 && m11.sleep.anchor.wake === "06:45" && m11.sleep.melaExp.arm === "none", "v10 phones patch to v11 with the anchor and the experiment");
 
-console.log(`\nFINAL17: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.10 — the shelving system
+const { labGroups: lg, labAnalytics: laX, sleepLab: slX, SEED: SL } = __test;
+const gs = lg(clone(SL));
+ok(gs.length === 6 && gs.map(g => g.id).join(",") === "scale,training,sleep,road,locked,shelf", "six shelves, fixed order, no strays");
+const totCards = gs.reduce((a, g) => a + g.cards.length, 0);
+const expected = laX(clone(SL)).length + slX(clone(SL)).length + 5;
+ok(totCards === expected, `every card filed exactly once (${totCards}/${expected}) — no orphans, no dupes`);
+const slG = gs.find(g => g.id === "sleep");
+ok(slG.cards.some(c => c.id === "melaexp") && slG.cards.some(c => c.id === "sleepdose") && slG.cards.some(c => c.id === "sleeplag"), "sleep shelf holds the moved experiments plus the lag map");
+ok(gs.every(g => g.live + g.armed + g.rest === g.cards.length), "shelf counters add up on every shelf");
+
+console.log(`\nFINAL18: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

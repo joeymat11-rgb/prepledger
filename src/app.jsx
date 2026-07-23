@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.9.0";
+const APP_V = "3.10.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -876,6 +876,37 @@ function shelfItems(s) {
   return out;
 }
 
+/* LAB GROUPS — every analytic, experiment, and evidence card filed on one shelf system */
+function labGroups(s) {
+  const all = [...labAnalytics(s), ...sleepLab(s), ...shelfItems(s)];
+  const MAP = {
+    scale: ["whoosh", "refeed", "noise", "masked", "creep"],
+    training: ["tuefri", "fingerprint", "rirtruth", "notes", "miss"],
+    sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig"],
+    road: ["cone", "dexarecon"],
+    locked: ["mrv", "debutmodel"],
+    shelf: ["spread", "caffdose", "creatine", "matador", "sleepceil"],
+  };
+  const TITLES = {
+    scale: "SCALE & BODY — decoding the number",
+    training: "TRAINING — what the reps are saying",
+    sleep: "SLEEP — the master-variable wing",
+    road: "THE ROAD — timing the pivot",
+    locked: "BUILD PHASE — sealed until September",
+    shelf: "THE SHELF — evidence on file",
+  };
+  const groups = Object.keys(MAP).map((k) => ({ id: k, title: TITLES[k], cards: MAP[k].map((id) => all.find((c) => c.id === id)).filter(Boolean) }));
+  const placed = new Set(Object.values(MAP).flat());
+  const orphans = all.filter((c) => !placed.has(c.id));
+  if (orphans.length) groups.push({ id: "more", title: "UNFILED", cards: orphans });
+  groups.forEach((g) => {
+    g.live = g.cards.filter((c) => c.status === "LIVE" || c.status === "TRACKING").length;
+    g.armed = g.cards.filter((c) => c.status === "ARMED").length;
+    g.rest = g.cards.length - g.live - g.armed;
+  });
+  return groups;
+}
+
 /* the macro engine: snapshots + rule proposals. Idempotent per day. */
 function runAdaptive(state, todayISO) {
   const s = JSON.parse(JSON.stringify(state));
@@ -1059,7 +1090,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, sleepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, sleepLab, labGroups, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2029,7 +2060,6 @@ function BodyTab({ s, setS, save }) {
 
 function SleepTab({ s, setS, save, slp }) {
   const [caffIn, setCaffIn] = useState(200);
-  const [slpOpen, setSlpOpen] = useState(null);
   const nights = s.sleep.nights.slice(-8);
   const maxH = 9;
   return (
@@ -2114,36 +2144,7 @@ function SleepTab({ s, setS, save, slp }) {
         )}
       </Card>
 
-      {/* the sleep lab */}
-      <Eyebrow>THE SLEEP LAB · RUNNING ON THE MASTER VARIABLE</Eyebrow>
-      {sleepLab(s).map((a) => (
-        <Card key={a.id} style={{ padding: 12, cursor: "pointer" }} accent={a.status === "LIVE" ? T.jade : undefined}>
-          <div onClick={() => setSlpOpen(slpOpen === a.id ? null : a.id)}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
-              <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 15.5, textTransform: "uppercase", color: T.chalk }}>{a.t}</div>
-              <Stamp st={a.status} />
-            </div>
-            <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 3 }}>{a.tag}</div>
-            {a.status === "ARMED" && a.prog && (
-              <div style={{ marginTop: 8 }}>
-                <Bar pct={(a.prog.n / a.prog.need) * 100} c={T.brass} />
-                <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 4 }}>{a.prog.n} / {a.prog.need} {a.prog.label}</div>
-              </div>
-            )}
-            <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 6, letterSpacing: "0.1em" }}>{slpOpen === a.id ? "▾ CLOSE" : "▸ MORE"}</div>
-          </div>
-          {slpOpen === a.id && (
-            <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
-              <Eyebrow>WHAT IT IS</Eyebrow>
-              <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{a.deep}</div>
-              <div style={{ marginTop: 10 }}>
-                <Eyebrow c={a.status === "LIVE" ? T.jade : T.brass}>FOR YOU · RIGHT NOW</Eyebrow>
-                <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{a.forYou}</div>
-              </div>
-            </div>
-          )}
-        </Card>
-      ))}
+      <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", padding: "2px 0" }}>the melatonin experiment + wake signature live in HIST → THE LAB → SLEEP shelf</div>
 
       <Card>
         <Eyebrow c={T.brass}>WHAT THE DEBT COST — ATTRIBUTED, NOT BLAMED</Eyebrow>
@@ -2176,6 +2177,7 @@ function SleepTab({ s, setS, save, slp }) {
 function HistTab({ s, setS, save }) {
   const [open, setOpen] = useState(null);
   const [labOpen, setLabOpen] = useState(null);
+  const [grpOpen, setGrpOpen] = useState(null);
   const liveWks = liveRollups(s);
   const first = ROLLUPS[ROLLUPS.length - 1];
   const latest = (liveWks.find((w) => w.avgW != null || w.avgCal != null)) || ROLLUPS[0];
@@ -2200,70 +2202,72 @@ function HistTab({ s, setS, save }) {
         <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 8 }}>Weight fell while every headline lift rose — the whole thesis, in one screen. Tap a week for the day-by-day.</div>
       </Card>
 
-      <Eyebrow>THE LAB · PATTERNS FOUND IN YOU — TAP ANY CARD FOR THE FULL STORY</Eyebrow>
-      {labAnalytics(s).map((a) => (
-        <Card key={a.id} style={{ padding: 12, cursor: "pointer" }} accent={a.status === "LIVE" ? T.jade : undefined}>
-          <div onClick={() => setLabOpen(labOpen === a.id ? null : a.id)}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
-              <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 15.5, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk }}>{a.t}</div>
-              <Stamp st={a.status} />
-            </div>
-            <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 3 }}>{a.tag}</div>
-            {a.lines.map((l, i) => (
-              <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{l}</div>
-            ))}
-            {a.status === "ARMED" && a.prog && (
-              <div style={{ marginTop: 8 }}>
-                <Bar pct={(a.prog.n / a.prog.need) * 100} c={T.brass} />
-                <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 4 }}>{a.prog.n} / {a.prog.need} {a.prog.label}</div>
+      {(() => {
+        const groups = labGroups(s);
+        const tot = groups.reduce((a, g) => a + g.cards.length, 0);
+        const totLive = groups.reduce((a, g) => a + g.live, 0);
+        const totArmed = groups.reduce((a, g) => a + g.armed, 0);
+        const renderCard = (a) => (
+          <Card key={a.id} style={{ padding: 12, cursor: "pointer" }} accent={a.status === "LIVE" ? T.jade : undefined}>
+            <div onClick={() => setLabOpen(labOpen === a.id ? null : a.id)}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
+                <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 15.5, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk }}>{a.t}</div>
+                <Stamp st={a.status} />
               </div>
-            )}
-            <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 6, letterSpacing: "0.1em" }}>{labOpen === a.id ? "▾ CLOSE" : "▸ MORE"}</div>
-          </div>
-          {labOpen === a.id && (
-            <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
-              <Eyebrow>WHAT IT IS</Eyebrow>
-              <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{a.deep}</div>
-              <div style={{ marginTop: 10 }}>
-                <Eyebrow c={a.status === "LIVE" ? T.jade : T.brass}>FOR YOU · RIGHT NOW</Eyebrow>
-                <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{a.forYou}</div>
-              </div>
-            </div>
-          )}
-        </Card>
-      ))}
-
-      <Eyebrow>THE SHELF · EVIDENCE ON FILE — GENERAL SCIENCE, YOUR NUMBERS</Eyebrow>
-      {shelfItems(s).map((a) => (
-        <Card key={a.id} style={{ padding: 12, cursor: "pointer" }}>
-          <div onClick={() => setLabOpen(labOpen === a.id ? null : a.id)}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
-              <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 15.5, textTransform: "uppercase", color: T.chalk }}>{a.t}</div>
-              <Stamp st={a.status} />
-            </div>
-            <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 3 }}>{a.tag}</div>
-            {a.lines.map((l, i) => (
-              <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{l}</div>
-            ))}
-            <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 6, letterSpacing: "0.1em" }}>{labOpen === a.id ? "▾ CLOSE" : "▸ MORE"}</div>
-          </div>
-          {labOpen === a.id && (
-            <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
-              <Eyebrow>WHAT IT IS</Eyebrow>
-              <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{a.deep}</div>
-              <div style={{ marginTop: 10 }}>
-                <Eyebrow c={T.jade}>FOR YOU · RIGHT NOW</Eyebrow>
-                <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{a.forYou}</div>
-              </div>
-              {a.action && (
-                <div style={{ marginTop: 10 }}>
-                  <Btn small tone="jade" onClick={(e) => { e.stopPropagation(); const ns = JSON.parse(JSON.stringify(s)); ns.creatine = { start: isoOf(todayStart()) }; ns.feed.unshift({ d: isoOf(todayStart()), t: "CREATINE STARTED", how: "5 g/day begins inside the sealed window — the water bump files itself under quarantine (Kreider 2017)" }); setS(ns); save(ns); }}>Log creatine start — today</Btn>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 3 }}>{a.tag}</div>
+              {(a.lines || []).map((l, i) => (
+                <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{l}</div>
+              ))}
+              {a.status === "ARMED" && a.prog && (
+                <div style={{ marginTop: 8 }}>
+                  <Bar pct={(a.prog.n / a.prog.need) * 100} c={T.brass} />
+                  <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 4 }}>{a.prog.n} / {a.prog.need} {a.prog.label}</div>
                 </div>
               )}
+              <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 6, letterSpacing: "0.1em" }}>{labOpen === a.id ? "▾ CLOSE" : "▸ MORE"}</div>
             </div>
-          )}
-        </Card>
-      ))}
+            {labOpen === a.id && (
+              <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
+                <Eyebrow>WHAT IT IS</Eyebrow>
+                <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{a.deep}</div>
+                <div style={{ marginTop: 10 }}>
+                  <Eyebrow c={a.status === "LIVE" ? T.jade : T.brass}>FOR YOU · RIGHT NOW</Eyebrow>
+                  <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{a.forYou}</div>
+                </div>
+                {a.action && (
+                  <div style={{ marginTop: 10 }}>
+                    <Btn small tone="jade" onClick={(e) => { e.stopPropagation(); const ns = JSON.parse(JSON.stringify(s)); ns.creatine = { start: isoOf(todayStart()) }; ns.feed.unshift({ d: isoOf(todayStart()), t: "CREATINE STARTED", how: "5 g/day begins inside the sealed window — the water bump files itself under quarantine (Kreider 2017)" }); setS(ns); save(ns); }}>Log creatine start — today</Btn>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+        );
+        return (
+          <>
+            <Card accent={T.jade} style={{ padding: 12 }}>
+              <Eyebrow c={T.jade}>THE LAB · {tot} INSTRUMENTS · {totLive} LIVE · {totArmed} ARMED</Eyebrow>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 4 }}>Everything measured, filed on six shelves. Tap a shelf, then a card — depth on demand, silence by default.</div>
+            </Card>
+            {groups.map((g) => (
+              <Card key={g.id} style={{ padding: 12 }} accent={grpOpen === g.id ? T.chalk : undefined}>
+                <div onClick={() => { setGrpOpen(grpOpen === g.id ? null : g.id); setLabOpen(null); }} style={{ cursor: "pointer" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                    <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 16, color: T.chalk, textTransform: "uppercase" }}>{g.title}</div>
+                    <div style={{ fontFamily: mono, fontSize: 9.5, whiteSpace: "nowrap" }}>
+                      {g.live > 0 && <span style={{ color: T.jade }}>{g.live} live</span>}
+                      {g.armed > 0 && <span style={{ color: T.brass }}>{g.live > 0 ? " · " : ""}{g.armed} armed</span>}
+                      {g.rest > 0 && <span style={{ color: T.dim }}>{g.live + g.armed > 0 ? " · " : ""}{g.rest} filed</span>}
+                      <span style={{ color: T.dim }}>  {grpOpen === g.id ? "▾" : "▸"}</span>
+                    </div>
+                  </div>
+                </div>
+                {grpOpen === g.id && <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 10 }}>{g.cards.map(renderCard)}</div>}
+              </Card>
+            ))}
+          </>
+        );
+      })()}
 
       {liveWks.map((w) => (
         <div key={"live" + w.wk}>
