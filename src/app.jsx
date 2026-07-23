@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.42.0";
+const APP_V = "3.43.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1418,6 +1418,44 @@ function labGroups(s) {
   return groups;
 }
 
+/* THE BODY ALARM — when physiology deviates, the answer is a prescription with numbers */
+function bodyAlarm(s, slp) {
+  const tI = isoOf(todayStart());
+  const yISO = isoOf(new Date(todayStart().getTime() - DAY));
+  const pr5 = pulseRead(s);
+  const lastNight = s.sleep.nights.find((n) => n.d === yISO);
+  const todaySpike = pr5.latest && pr5.latest.d === tI && pr5.spike != null && pr5.spike >= 7 ? pr5.spike : null;
+  const prevRead = (s.pulse || []).slice().sort((a, b) => (a.d < b.d ? -1 : 1)).slice(-2)[0];
+  const prevSpike = pr5.base && prevRead && prevRead.d === yISO ? prevRead.bpm - pr5.base : null;
+  let sentinelHot = false;
+  try { sentinelHot = !labDocket(s).sentinel.quiet; } catch (e) {}
+  if (!todaySpike && !sentinelHot) return null;
+  const red = todaySpike != null && (todaySpike >= 10 || (prevSpike != null && prevSpike >= 7) || (lastNight && lastNight.h < 6));
+  const t = dayType(tI);
+  const trainDay = (t === "U" || t === "L") && !s.sessionLog[tI];
+  let canaryName = null;
+  try { const can = labGroups(s).flatMap((g) => g.cards).find((c) => c.id === "canary"); if (can && can.status === "LIVE") { const m = (can.forYou || "").match(/Canary: ([^(]+)\(/); if (m) canaryName = m[1].trim(); } } catch (e) {}
+  const lo = lightsOutT(s);
+  const early = (() => { let m = lo.mins - 30; if (m < 0) m += 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; })();
+  const lines = [];
+  if (trainDay) {
+    if (red) lines.push("Session: convert to a walk or push it a day — nothing is lost; targets wait, the structural pick keeps its slot, and no gate closes.");
+    else {
+      lines.push("Session runs, modified: every set +1 RIR over today's plan, and SKIP the final 0-RIR set on each 4-set lift (laterals go 3 sets).");
+      lines.push("No make-it-official attempts and no new-weight tries today — those need a quiet nervous system to mean anything; the standards wait untouched.");
+      lines.push(canaryName ? `Watch ${canaryName} — your measured stress-first lift; a dip there today is the alarm confirming, not you failing.` : "Judge the day by your opener, not your ego — your stress-first lift isn't named yet (canary still arming).");
+    }
+  }
+  lines.push("Hydrate +24 oz across the morning — an elevated resting pulse frequently rides mild dehydration, and it's the cheapest test of the alarm.");
+  lines.push("Protein stays 175 and calories stay on plan — recovery is protein-hungry, and eating extra doesn't lower a pulse.");
+  lines.push(`Tonight: lights out ${early} (30 early, wake stays ${(s.sleep.anchor || {}).wake || "06:45"})${s.sleep.caffMg ? " · skip any afternoon caffeine entirely today" : ""}.`);
+  lines.push(`Exit test — tomorrow 6:45: pulse within 3 of your ${pr5.base ?? "—"} baseline → every limit above lifts automatically. Still +7? ${red ? "Full rest day, and if a third day, that's a doctor conversation, not a training one." : "Tomorrow escalates to a rest-day recommendation."}`);
+  const basis = todaySpike != null
+    ? `${pr5.latest.bpm} bpm vs your ${pr5.base} baseline (+${todaySpike})${prevSpike != null && prevSpike >= 7 ? " · second elevated morning" : ""}${lastNight ? ` · slept ${lastNight.h} h` : ""} · ${(s.pulse || []).length} mornings behind the baseline`
+    : "multiple daily metrics tripped your own 30-day baselines together — the multivariate signature of incoming illness or unlogged stress";
+  return { tier: red ? "RED" : "AMBER", head: red ? `Body alarm — RED (pulse +${todaySpike ?? "?"}, second signal)` : todaySpike != null ? `Body alarm — dial back (pulse +${todaySpike})` : "Body alarm — dial back (baselines tripped)", lines, basis };
+}
+
 /* quick pulse read — shared by cards and the day protocol */
 function pulseRead(s) {
   const pr = (s.pulse || []).slice().sort((a, b) => (a.d < b.d ? -1 : 1));
@@ -1544,9 +1582,9 @@ function dayProtocol(s, slp) {
   const T4 = tempRead(s);
   const lo = lightsOutT(s);
 
-  /* 1 · body alarms first */
-  if (pr4.spike != null && pr4.spike >= 7 && pr4.latest && pr4.latest.d === tI) steps.push({ a: "Go easy today — pulse +"+ pr4.spike, why: `${pr4.latest.bpm} vs your ${pr4.base} baseline with nothing obvious to blame — hydrate, keep effort honest, protect tonight; often you skip the sickness entirely` });
-  else { try { const dk = labDocket(s); if (!dk.sentinel.quiet) steps.push({ a: "Go easy today", why: "recent days tripped your own baselines — " + dk.sentinel.txt }); } catch (e) {} }
+  /* 1 · body alarms first — a prescription with numbers, never a mood */
+  const al = bodyAlarm(s, slp);
+  if (al) steps.push({ a: al.head, why: al.basis, detail: al.lines });
 
   /* 2 · trial arm */
   const at2 = activeTrial(s);
@@ -1940,7 +1978,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2245,8 +2283,11 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <div key={i} style={{ display: "flex", gap: 8 }}>
                 <span style={{ fontFamily: mono, fontSize: 10, color: T.dim, flexShrink: 0 }}>{i + 2}.</span>
                 <div>
-                  <div style={{ fontFamily: mono, fontSize: 11, color: T.chalk }}>{plainify(st2.a)}</div>
+                  <div style={{ fontFamily: mono, fontSize: 11, color: st2.detail ? T.brass : T.chalk }}>{plainify(st2.a)}</div>
                   <div style={{ fontFamily: body, fontSize: 11, color: T.dim, lineHeight: 1.45 }}>{plainify(st2.why)}</div>
+                  {(st2.detail || []).map((dl, k) => (
+                    <div key={k} style={{ fontFamily: body, fontSize: 11, color: T.chalk, lineHeight: 1.5, marginTop: 4, paddingLeft: 8, borderLeft: `2px solid ${T.line}` }}>{plainify(dl)}</div>
+                  ))}
                 </div>
               </div>
             ))}

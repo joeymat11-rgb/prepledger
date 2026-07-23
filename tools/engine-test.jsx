@@ -709,7 +709,32 @@ let sp = clone(TF);
 for (let k = 14; k >= 1; k--) sp.pulse.push({ d: isoL(Date.now() - k * 864e5), bpm: 56 });
 sp.pulse.push({ d: isoL(Date.now()), bpm: 65 });
 const pr43 = dp42(sp, { clean: true, run: 3, need: 3 });
-ok(pr43.steps[0].a.indexOf("Go easy today") === 0 && pr43.steps[0].why.indexOf("65 vs your 56") > -1, "a morning pulse spike takes rank one: " + pr43.steps[0].a);
+ok(pr43.steps[0].a.indexOf("Body alarm") === 0 && pr43.steps[0].why.indexOf("65 bpm vs your 56") === 0 && (pr43.steps[0].detail || []).length >= 4, "a morning pulse spike takes rank one as a full prescription: " + pr43.steps[0].a);
 
-console.log(`\nFINAL41: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.43 — the alarm prescribes
+const { bodyAlarm: ba43, SEED: TG } = __test;
+let amb = clone(TG);
+for (let k = 14; k >= 1; k--) amb.pulse.push({ d: isoL(Date.now() - k * 864e5), bpm: 56 });
+amb.pulse.push({ d: isoL(Date.now()), bpm: 64 });
+const A = ba43(amb, { clean: true, run: 3, need: 3 });
+ok(A && A.tier === "AMBER" && A.lines.length >= 4, "spike yields an AMBER prescription, not a mood: " + A.lines.length + " lines");
+ok(A.lines.some(l => l.indexOf("+1 RIR") > -1 && l.indexOf("SKIP the final 0-RIR") > -1), "session surgery is exact: effort shift + set trim");
+ok(A.lines.some(l => l.indexOf("+24 oz") > -1) && A.lines.some(l => l.indexOf("30 early") > -1), "hydration and tonight carry numbers");
+ok(A.lines.some(l => l.indexOf("Exit test") === 0 && l.indexOf("within 3") > -1), "the alarm defines its own exit criterion");
+ok(A.basis.indexOf("64 bpm vs your 56") === 0, "every claim traceable: " + A.basis.slice(0, 40));
+let redS = clone(TG);
+for (let k = 14; k >= 2; k--) redS.pulse.push({ d: isoL(Date.now() - k * 864e5), bpm: 56 });
+redS.pulse.push({ d: isoL(Date.now() - 864e5), bpm: 64 });
+redS.pulse.push({ d: isoL(Date.now()), bpm: 65 });
+const R = ba43(redS, { clean: true, run: 3, need: 3 });
+ok(R && R.tier === "RED" && R.lines.some(l => l.indexOf("convert to a walk") > -1), "second elevated morning escalates to RED with the session converted");
+let quietB = clone(TG);
+Object.keys(quietB.dailyLogs).forEach(d => { if (quietB.dailyLogs[d].steps) quietB.dailyLogs[d].steps = 16000; });
+quietB.sleep.nights.forEach(n => { n.h = 7.6; });
+quietB.reads.forEach(r => { if (!r.sealed) r.w = quietB.trend; });
+ok(ba43(quietB, { clean: true, run: 3, need: 3 }) === null, "quiet body, silent alarm — flat baselines, no cry");
+
+console.log(`\nFINAL42: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
