@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.45.0";
+const APP_V = "3.46.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2001,7 +2001,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2737,6 +2737,7 @@ function LogTab({ s, setS, save, slp }) {
   const getReps = (ex) => reps[ex.id] ?? ex.tgt.slice();
   const setRep = (ex, i, v) => setReps({ ...reps, [ex.id]: getReps(ex).map((r, j) => (j === i ? v : r)) });
 
+  const [gym, setGym] = useState(false);
   const complete = () => {
     const entries = sess.ex.map((ex) => ({ id: ex.id, n: ex.n, w: ex.w, tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null }));
     const { s: ns, lines } = completeSession(s, dateSel, entries, slp, { note: note.trim(), niggles: nig });
@@ -2745,6 +2746,10 @@ function LogTab({ s, setS, save, slp }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {gym && sess && <GymMode s={s} setS={setS} save={save} slp={slp} sess={sess} dateSel={dateSel} onClose={() => setGym(false)} />}
+      {sess && !s.sessionLog[dateSel] && (
+        <Btn full tone="jade" onClick={() => setGym(true)}>▶ GYM MODE — one lift at a time, timers on</Btn>
+      )}
       <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
         {dateSel && !options.includes(dateSel) && (
           <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>
@@ -3549,6 +3554,93 @@ function DossierBlock({ s }) {
             <Btn small onClick={() => { setD(null); setCopied(false); }}>Close</Btn>
           </div>
         </>
+      )}
+    </div>
+  );
+}
+
+const COMPOUND_IDS = ["press", "row", "hack", "rdl", "pull", "bench", "dip", "squat"];
+function restFor(exId) { return COMPOUND_IDS.some((c) => exId.indexOf(c) === 0) ? 150 : 75; }
+
+function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
+  const [idx, setIdx] = useState(0);
+  const [setN, setSetN] = useState(0);
+  const [phase, setPhase] = useState("lift");
+  const [t, setT] = useState(0);
+  const [reps, setReps] = useState({});
+  const [rir, setRir] = useState({});
+  const ex = sess.ex[idx];
+  const rp2 = rirPlan(s, ex, slp);
+  const getR = (e2) => reps[e2.id] ?? e2.tgt.slice();
+  const al2 = bodyAlarm(s, slp);
+  useEffect(() => {
+    if (phase !== "rest") return;
+    const iv = setInterval(() => setT((x) => { if (x <= 1) { clearInterval(iv); setPhase("lift"); try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} return 0; } return x - 1; }), 1000);
+    return () => clearInterval(iv);
+  }, [phase]);
+  const doneSet = () => {
+    const nSets = getR(ex).length;
+    if (setN + 1 < nSets) { setSetN(setN + 1); setT(restFor(ex.id)); setPhase("rest"); }
+    else setPhase("lift-done");
+  };
+  const nextLift = () => { if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } else setPhase("all-done"); };
+  const finish = () => {
+    const entries = sess.ex.map((e2) => ({ id: e2.id, n: e2.n, w: e2.w, tgt: e2.tgt, reps: getR(e2), isDebutNow: e2.isDebutNow, rir: rir[e2.id] ?? null }));
+    const { s: ns } = completeSession(s, dateSel, entries, slp, { note: "gym mode", niggles: [] });
+    setS(ns); save(ns); onClose();
+  };
+  const big = { fontFamily: mono, fontWeight: 800, letterSpacing: "-0.02em" };
+  return (
+    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 60, display: "flex", flexDirection: "column", padding: "18px 16px", overflowY: "auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontFamily: mono, fontSize: 9.5, color: T.dim }}>GYM MODE · LIFT {idx + 1}/{sess.ex.length}</span>
+        <span onClick={onClose} style={{ fontFamily: mono, fontSize: 10, color: T.dim, cursor: "pointer" }}>exit ✕</span>
+      </div>
+      {al2 && <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass, marginTop: 6 }}>⚠ ALARM DAY — every 0 becomes a 1 · no official attempts</div>}
+      {phase === "rest" ? (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: 16 }}>
+          <div style={{ fontFamily: mono, fontSize: 10, color: T.dim, letterSpacing: "0.15em" }}>REST</div>
+          <div style={{ ...big, fontSize: 84, color: T.jade }}>{Math.floor(t / 60)}:{String(t % 60).padStart(2, "0")}</div>
+          <div style={{ fontFamily: mono, fontSize: 10, color: T.steel }}>next: SET {setN + 1} of {getR(ex).length} · {ex.n}</div>
+          <Btn small onClick={() => { setT(0); setPhase("lift"); }}>Skip rest</Btn>
+        </div>
+      ) : phase === "lift-done" ? (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
+          <H size={26}>{ex.n} — done</H>
+          <div style={{ fontFamily: mono, fontSize: 11, color: T.steel }}>logged: {getR(ex).join(" · ")} at {ex.w}</div>
+          <div>
+            <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, letterSpacing: "0.1em" }}>FIRST SET RIR · optional · 1 = honest</div>
+            <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+              {[0, 1, 2, 3].map((v) => <button key={v} onClick={() => setRir({ ...rir, [ex.id]: v })} style={{ fontFamily: mono, fontSize: 16, padding: "10px 16px", borderRadius: 8, border: `1px solid ${rir[ex.id] === v ? T.jade : T.line}`, background: T.plate2, color: rir[ex.id] === v ? T.jade : T.steel }}>{v === 3 ? "3+" : v}</button>)}
+            </div>
+          </div>
+          <Btn full tone="jade" onClick={nextLift}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</Btn>
+        </div>
+      ) : phase === "all-done" ? (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
+          <H size={26}>Session complete</H>
+          <div style={{ fontFamily: mono, fontSize: 11, color: T.steel, lineHeight: 1.7 }}>{sess.ex.map((e2) => `${e2.n}: ${getR(e2).join(",")} @ ${e2.w}`).join("\n")}</div>
+          <Btn full tone="jade" onClick={finish}>LOG IT — receipt + debrief</Btn>
+        </div>
+      ) : (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 10 }}>
+          <H size={30}>{ex.n}</H>
+          <div style={{ fontFamily: mono, fontSize: 12, color: T.steel }}>{ex.w} · target {ex.tgt.join(",")}{ex.isDebutNow ? " · FIRST RUN — log what it gives" : ""}</div>
+          {ex.cue && <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim }}>{ex.cue}</div>}
+          <div style={{ marginTop: 10 }}>
+            <div style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>SET {setN + 1} OF {getR(ex).length} · <span style={{ color: rp2.plan[setN] === 0 ? T.brass : rp2.plan[setN] === 1 ? T.chalk : T.jade, fontWeight: 700 }}>RIR {rp2.plan[setN] ?? "—"}</span></div>
+            <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 8 }}>
+              <button onClick={() => { const r2 = getR(ex).slice(); r2[setN] = Math.max(0, r2[setN] - 1); setReps({ ...reps, [ex.id]: r2 }); }} style={{ ...big, fontSize: 40, width: 64, height: 64, borderRadius: 12, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>−</button>
+              <div style={{ ...big, fontSize: 72, color: T.chalk, minWidth: 96, textAlign: "center" }}>{getR(ex)[setN]}</div>
+              <button onClick={() => { const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ ...big, fontSize: 40, width: 64, height: 64, borderRadius: 12, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>+</button>
+            </div>
+          </div>
+          <Btn full tone="jade" onClick={doneSet}>SET DONE {setN + 1 < getR(ex).length ? "→ REST " + restFor(ex.id) + "s" : "→"}</Btn>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontFamily: mono, fontSize: 10, color: "transparent" }}>.</span>
+            <span onClick={nextLift} style={{ fontFamily: mono, fontSize: 10, color: T.dim, cursor: "pointer" }}>skip lift ▸</span>
+          </div>
+        </div>
       )}
     </div>
   );

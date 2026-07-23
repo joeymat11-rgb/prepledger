@@ -766,5 +766,12 @@ const oldSnap = clone(TI); oldSnap.v = 12;
 const restored = __test.migrate(JSON.parse(JSON.stringify(oldSnap)));
 ok(restored.v >= 21 && Array.isArray(restored.trials) && Array.isArray(restored.temp), "an old snapshot restores through the full patch chain to current schema");
 
-console.log(`\nFINAL44: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.46 — gym mode's timer brain
+const { restFor: rf46 } = __test;
+ok(rf46("press") === 150 && rf46("hack") === 150, "compounds rest long: press/hack 150s");
+ok(rf46("lateral") === 75 && rf46("curl") === 75, "isolations rest short: 75s");
+
+console.log(`\nFINAL45: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
