@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.47.0";
+const APP_V = "3.48.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,8 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 21;
+  SEED.v = 22;
+  SEED.agentProposals = [];
   SEED.temp = [];
   SEED.trials = [];
   SEED.pulse = [];
@@ -1905,6 +1906,7 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV22(s) { s.agentProposals = s.agentProposals || []; s.v = 22; return s; }
 function patchV21(s) { s.temp = s.temp || []; s.v = 21; return s; }
 function patchV20(s) { s.trials = s.trials || []; s.v = 20; return s; }
 function patchV19(s) { s.pulse = s.pulse || []; s.v = 19; return s; }
@@ -1949,8 +1951,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 21) return old;
-  if (old && old.v >= 3 && old.v <= 20) return patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))))))))));
+  if (old && old.v === 22) return old;
+  if (old && old.v >= 3 && old.v <= 21) return patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -1976,7 +1978,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))))))))));
+  return patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))))))))));
 }
 
 const GLOSSARY = {
@@ -2001,7 +2003,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2034,6 +2036,7 @@ class TabGuard extends React.Component {
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           <Btn small tone="jade" onClick={() => this.setState({ err: null })}>Try again</Btn>
           <Btn small onClick={() => { try { navigator.clipboard.writeText(report); } catch (e) {} }}>Copy report</Btn>
+          <Btn small onClick={() => { try { localStorage.setItem("prep-ledger-crash", report); alert("Saved. Open LAB → Ask the Ledger and ask: diagnose my last crash"); } catch (e) {} }}>Ask the Ledger</Btn>
         </div>
       </Card>
     );
@@ -2056,6 +2059,65 @@ function askContext(s) {
   const laws = "HOUSE LAWS: fat-loss corridor 1.0–1.4 lb/wk (1.9+ = too fast); calorie floor 1,700; protein 175 daily; records/weight-increases only become official on a completed good-sleep streak (3 nights ≥7.5h); one structural change per session; effort runs RIR 2→1→0 with debt days +1; the scale seal quarantines event water; every change is a proposal — the athlete consents, the coach holds structural authority.";
   return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== LAST 6 SESSIONS ===\n${sess2}`;
 }
+const AGENT_TOOLS = [
+  { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
+  { name: "read_instruments", description: "All current lab instrument verdicts, compiled plain.", input_schema: { type: "object", properties: {} } },
+  { name: "run_whatif", description: "Forward-model a lever change. Any of: steps, cal, sleep, refeed.", input_schema: { type: "object", properties: { steps: { type: "number" }, cal: { type: "number" }, sleep: { type: "number" }, refeed: { type: "number" } } } },
+  { name: "stage_proposal", description: "Stage a proposal for the athlete's one-tap consent. NEVER changes anything itself. kind: trial|note|coach", input_schema: { type: "object", properties: { kind: { type: "string" }, title: { type: "string" }, body: { type: "string" }, tplId: { type: "string" } }, required: ["kind", "title", "body"] } },
+];
+function agentToolExec(s, name, input, staged) {
+  try {
+    if (name === "get_range") {
+      const inR = (d) => d >= input.from && d <= input.to;
+      if (input.kind === "days") return Object.entries(s.dailyLogs).filter(([d]) => inR(d)).map(([d, v]) => `${d}: cal ${v.cal ?? "—"} pro ${v.pro ?? "—"} steps ${v.steps ?? "—"}`).join("\n") || "no rows";
+      if (input.kind === "nights") return s.sleep.nights.filter((n) => inR(n.d)).map((n) => `${n.d}: ${n.h}h sol${n.sol ?? "?"} ${(n.tags || []).join("/")}`).join("\n") || "no rows";
+      if (input.kind === "sessions") return Object.keys(s.sessionLog).filter(inR).map((d) => `${d}: ` + (s.sessionLog[d].entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ")).join("\n") || "no rows";
+      if (input.kind === "pulse") return (s.pulse || []).filter((x) => inR(x.d)).map((x) => `${x.d}: ${x.bpm}`).join("\n") || "no rows";
+      if (input.kind === "temp") return (s.temp || []).filter((x) => inR(x.d)).map((x) => `${x.d}: ${x.f}°F`).join("\n") || "no rows";
+      if (input.kind === "reads") return s.reads.filter((r) => inR(r.d)).map((r) => `${r.d}: ${r.w}${r.sealed ? " (sealed)" : ""}`).join("\n") || "no rows";
+      if (input.kind === "crash") { try { return localStorage.getItem("prep-ledger-crash") || "no crash on file"; } catch (e) { return "no crash on file"; } }
+      return "unknown kind";
+    }
+    if (name === "read_instruments") return dossierText(s);
+    if (name === "run_whatif") {
+      const cur = currentRate(s);
+      const base = cur.measured ? cur.scale : 1.2;
+      const dSteps = input.steps != null ? ((input.steps - 16500) * 0.35 * 7) / 3500 : 0;
+      const dCal = input.cal != null ? ((1760 - input.cal) * 7) / 3500 : 0;
+      const rate = +(base + dSteps + dCal).toFixed(2);
+      return `modeled rate: ${rate} lb/wk (base ${base}${input.sleep != null && input.sleep < 7.5 ? " · WARNING: at that sleep the good-sleep streak never completes — nothing becomes official" : ""}${rate > 1.55 ? " · WARNING: past the muscle-safe zone" : ""})`;
+    }
+    if (name === "stage_proposal") { staged.push({ id: "ap" + Date.now() + Math.floor(Math.random() * 999), kind: input.kind, title: input.title, body: input.body, tplId: input.tplId || null, at: isoOf(todayStart()) }); return "staged for the athlete's consent — do not assume it will be accepted"; }
+  } catch (e) { return "tool error: " + e.message; }
+  return "unknown tool";
+}
+async function agentLoop(s, question, history, onStatus) {
+  const key = localStorage.getItem(ANTH_KEY);
+  if (!key) return { ok: false, msg: "no API key saved — RULES → ASK THE LEDGER" };
+  const staged = [];
+  const msgs = [...history, { role: "user", content: question }];
+  const sys = askContext(s) + "\n\nYou also have TOOLS. Investigate before answering: pull the exact ranges you need, contrast periods, use run_whatif for counterfactuals. If you find something actionable, stage_proposal it (kind trial|note|coach) — you can change NOTHING directly; every proposal waits for the athlete's tap. Then answer plainly, numbers first, honesty badges on.";
+  try {
+    for (let turn = 0; turn < 6; turn++) {
+      const r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json", "anthropic-dangerous-direct-browser-access": "true" },
+        body: JSON.stringify({ model: "claude-sonnet-4-5", max_tokens: 1500, system: sys, tools: AGENT_TOOLS, messages: msgs }),
+      });
+      if (!r.ok) return { ok: false, msg: r.status === 401 ? "key rejected — check RULES" : "HTTP " + r.status, staged };
+      const j = await r.json();
+      msgs.push({ role: "assistant", content: j.content });
+      const uses = (j.content || []).filter((c) => c.type === "tool_use");
+      if (!uses.length || j.stop_reason !== "tool_use") {
+        return { ok: true, text: (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join(""), staged };
+      }
+      onStatus && onStatus("investigating: " + uses.map((u) => u.name).join(", "));
+      msgs.push({ role: "user", content: uses.map((u) => ({ type: "tool_result", tool_use_id: u.id, content: String(agentToolExec(s, u.name, u.input || {}, staged)).slice(0, 6000) })) });
+    }
+    return { ok: true, text: "(investigation ran long — ask a narrower question)", staged };
+  } catch (e) { return { ok: false, msg: "network — the API needs a signal", staged }; }
+}
+
 async function askLedger(s, question, history) {
   const key = localStorage.getItem(ANTH_KEY);
   if (!key) return { ok: false, msg: "no API key saved — RULES → ASK THE LEDGER" };
@@ -2070,18 +2132,24 @@ async function askLedger(s, question, history) {
     return { ok: true, text: (j.content || []).map((c) => c.text || "").join("") };
   } catch (e) { return { ok: false, msg: "network — the API needs a signal" }; }
 }
-function AskLedger({ s, onClose }) {
+function AskLedger({ s, setS, save, onClose }) {
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const [log, setLog] = useState([]);
+  const [status, setStatus] = useState(null);
   const ask = async () => {
     const question = q.trim();
     if (!question || busy) return;
-    setBusy(true); setQ("");
-    const history = log.flatMap((x) => [{ role: "user", content: x.q }, { role: "assistant", content: x.a }]).slice(-8);
-    const r = await askLedger(s, question, history);
-    setLog([...log, { q: question, a: r.ok ? r.text : "⚠ " + r.msg }]);
-    setBusy(false);
+    setBusy(true); setQ(""); setStatus(null);
+    const history = log.flatMap((x) => [{ role: "user", content: x.q }, { role: "assistant", content: typeof x.a === "string" ? x.a : "" }]).slice(-8);
+    const r = await agentLoop(s, question, history, setStatus);
+    if (r.staged && r.staged.length && setS && save) {
+      const ns = JSON.parse(JSON.stringify(s));
+      ns.agentProposals = [...(ns.agentProposals || []), ...r.staged];
+      setS(ns); save(ns);
+    }
+    setLog([...log, { q: question, a: (r.ok ? r.text : "⚠ " + r.msg) + (r.staged && r.staged.length ? `\n\n📥 staged ${r.staged.length} proposal${r.staged.length > 1 ? "s" : ""} — waiting on NOW for your tap` : "") }]);
+    setBusy(false); setStatus(null);
   };
   return (
     <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 70, display: "flex", flexDirection: "column", padding: "18px 16px" }}>
@@ -2097,7 +2165,7 @@ function AskLedger({ s, onClose }) {
             <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{x.a}</div>
           </div>
         ))}
-        {busy && <div style={{ fontFamily: mono, fontSize: 10, color: T.dim }}>assembling the instrument…</div>}
+        {busy && <div style={{ fontFamily: mono, fontSize: 10, color: T.dim }}>{status || "assembling the instrument…"}</div>}
       </div>
       <div style={{ display: "flex", gap: 8, paddingTop: 10, borderTop: `1px solid ${T.line}` }}>
         <input value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && ask()} placeholder="ask anything about your data…"
@@ -2147,6 +2215,30 @@ function ApiKeyBlock() {
         <Btn small tone="jade" onClick={() => { try { v.trim() ? localStorage.setItem(ANTH_KEY, v.trim()) : localStorage.removeItem(ANTH_KEY); setSaved(true); } catch (e) {} }}>{saved ? "Saved ✓" : "Save"}</Btn>
       </div>
     </div>
+  );
+}
+
+function BriefCard({ s }) {
+  const [brief, setBrief] = useState(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const tok = localStorage.getItem(TOKEN_KEY);
+        if (!tok) return;
+        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/brief.md", { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" } });
+        if (!r.ok) return;
+        const txt = await r.text();
+        const m = txt.match(/^<!-- (\d{4}-\d{2}-\d{2}) -->/);
+        if (m && (isoOf(todayStart()) === m[1] || isoOf(new Date(todayStart().getTime() - DAY)) === m[1])) setBrief(txt.replace(/^<!--.*-->\n?/, ""));
+      } catch (e) {}
+    })();
+  }, []);
+  if (!brief) return null;
+  return (
+    <Card accent={T.jade}>
+      <Eyebrow c={T.jade}>OVERNIGHT BRIEF — YOUR ANALYST WORKED WHILE YOU SLEPT</Eyebrow>
+      <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{brief.slice(0, 2200)}</div>
+    </Card>
   );
 }
 
@@ -2678,6 +2770,26 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </>
         );
       })()}
+
+      {(s.agentProposals || []).length > 0 && (
+        <Card accent={T.jade}>
+          <Eyebrow c={T.jade}>FROM YOUR ANALYST — WAITING ON YOUR TAP</Eyebrow>
+          {(s.agentProposals || []).map((ap) => (
+            <div key={ap.id} style={{ marginTop: 9, paddingTop: 9, borderTop: `1px solid ${T.line}` }}>
+              <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>{ap.title}</div>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{plainify(ap.body)}</div>
+              <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
+                {ap.kind === "trial" && ap.tplId && TRIAL_TPL[ap.tplId] && !(s.trials || []).some((t) => t.tplId === ap.tplId) && (
+                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.trials = [...(ns.trials || []), { tplId: ap.tplId, started: tISO }]; ns.feed.unshift({ d: tISO, t: "TRIAL STARTED — " + TRIAL_TPL[ap.tplId].t, how: "proposed by your analyst, consented by you" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Start trial — I consent</Btn>
+                )}
+                <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Dismiss</Btn>
+              </div>
+            </div>
+          ))}
+        </Card>
+      )}
+
+      <BriefCard s={s} />
 
       {(() => {
         const todayP = (s.pulse || []).find((x) => x.d === tISO);
@@ -3801,7 +3913,7 @@ function HistTab({ s, setS, save }) {
         <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 8 }}>Weight fell while every headline lift rose — the whole thesis, in one screen. Tap a week for the day-by-day.</div>
       </Card>
 
-      {askOpen && <AskLedger s={s} onClose={() => setAskOpen(false)} />}
+      {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
       <Section title="The Lab" meta={(() => { const g2 = labGroups(s); return `${g2.reduce((a3, g3) => a3 + g3.cards.length, 0)} instruments · ${g2.reduce((a3, g3) => a3 + g3.live, 0)} live`; })()} c={T.jade}>
         {(() => {
         const groups = labGroupsM(s);

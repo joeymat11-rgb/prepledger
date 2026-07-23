@@ -782,5 +782,22 @@ ok(ctx.indexOf("HOUSE LAWS") > -1 && ctx.indexOf("COACH DOSSIER") > -1 && ctx.in
 ok(ctx.indexOf("(measured)") > -1 && ctx.indexOf("Never invent data") > -1, "honesty rules travel with every question");
 ok(ctx.length < 20000, "context stays bounded: " + ctx.length + " chars");
 
-console.log(`\nFINAL46: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.48 — the agent's hands are read-only + one consent door
+const { agentToolExec: ate48, migrate: mg48, SEED: TK } = __test;
+const oldV21a = clone(TK); oldV21a.v = 21; delete oldV21a.agentProposals;
+ok(mg48(oldV21a).v >= 22 && Array.isArray(mg48(oldV21a).agentProposals), "phones patch to v22 with the analyst inbox");
+let agS = clone(TK);
+const stagedT = [];
+const days48 = ate48(agS, "get_range", { kind: "days", from: "2026-06-15", to: "2026-06-20" }, stagedT);
+ok(days48.indexOf("2026-06-15") > -1 && days48.indexOf("cal") > -1, "get_range pulls real rows");
+const wi48 = ate48(agS, "run_whatif", { steps: 18500 }, stagedT);
+ok(wi48.indexOf("modeled rate:") === 0, "whatif models forward: " + wi48.slice(0, 28));
+const before = JSON.stringify(agS);
+ate48(agS, "stage_proposal", { kind: "trial", title: "Test caffeine timing", body: "noon vs morning", tplId: "caffcut" }, stagedT);
+ok(stagedT.length === 1 && JSON.stringify(agS) === before, "stage_proposal stages WITHOUT touching state — consent architecture intact");
+ok(ate48(agS, "get_range", { kind: "sessions", from: "2000-01-01", to: "2000-01-02" }, stagedT) === "no rows", "empty ranges say so instead of inventing");
+
+console.log(`\nFINAL47: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
