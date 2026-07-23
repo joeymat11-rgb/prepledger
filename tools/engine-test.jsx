@@ -799,5 +799,21 @@ ate48(agS, "stage_proposal", { kind: "trial", title: "Test caffeine timing", bod
 ok(stagedT.length === 1 && JSON.stringify(agS) === before, "stage_proposal stages WITHOUT touching state — consent architecture intact");
 ok(ate48(agS, "get_range", { kind: "sessions", from: "2000-01-01", to: "2000-01-02" }, stagedT) === "no rows", "empty ranges say so instead of inventing");
 
-console.log(`\nFINAL47: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.49 — the designer: custom trials through the full lifecycle
+const { agentToolExec: ate49, trialArmOn: ta49, trialVerdict: tv49, SEED: TL } = __test;
+let dS = clone(TL);
+const st49 = [];
+const res49 = ate49(dS, "stage_proposal", { kind: "trial", title: "Tuesday timing", body: "pattern: tue lags thu", custom: { t: "SESSION TIME — NOON vs 5PM", q: "Does the later slot lift Tuesdays?", arms: ["noon", "5pm"], blockDays: 3, cycles: 4, metric: "session_reps" } }, st49);
+ok(st49.length === 1 && st49[0].custom && st49[0].custom.arms.length === 2, "agent designs a custom trial into the consent inbox");
+ok(ate49(dS, "stage_proposal", { kind: "trial", title: "x", body: "y", custom: { t: "bad", q: "?", arms: ["a", "b"], blockDays: 3, cycles: 4, metric: "vibes" } }, st49).indexOf("rejected") === 0, "unmeasurable metrics are refused at the tool boundary");
+let run49 = clone(TL);
+run49.trials = [{ custom: st49[0].custom, started: isoL(Date.now() - 4 * 864e5) }];
+const arm49 = ta49(run49.trials[0], isoL(Date.now()));
+ok(arm49 && arm49.block === 2 && arm49.tpl.arms[arm49.armIdx] === "5pm", "day 4 of 3-day blocks: block 2, arm B — custom schedules run on the same engine");
+run49.trials[0].started = isoL(Date.now() - 20 * 864e5);
+ok(tv49(run49, run49.trials[0]).done === true, "custom trials self-grade done like the canned ones");
+
+console.log(`\nFINAL48: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

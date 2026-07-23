@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.48.0";
+const APP_V = "3.49.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1503,7 +1503,7 @@ function dossierData(s) {
   const secDef = [["THE BODY", ["scale", "engine"]], ["TRAINING", ["training"]], ["SLEEP & PULSE", ["sleep", "pulse"]], ["BEHAVIOR", ["behavior"]], ["MODELS & FORECASTS", ["road", "models"]]];
   const sections = secDef.map(([h, ids]) => ({ h, items: bySh(ids).map((c) => ({ t: c.t.split(" — ")[0], line: plainify(firstLine(c.forYou || c.tag)) })) })).filter((x) => x.items.length);
   const wr = weekReview(s);
-  const trials = (s.trials || []).filter((t) => !t.declined).map((t) => { const tpl = TRIAL_TPL[t.tplId]; const v = trialVerdict(s, t); const arm = trialArmOn(t, isoOf(todayStart())); return { t: tpl.t, line: v.done ? `finished: ${tpl.arms[0]} ${v.a ?? "—"} vs ${tpl.arms[1]} ${v.b ?? "—"} (${v.nA + v.nB} blocks — direction, not gospel)` : arm ? `running · block ${arm.block}/${arm.of} · current arm: ${tpl.arms[arm.armIdx]}` : "scheduled" }; });
+  const trials = (s.trials || []).filter((t) => !t.declined).map((t) => { const tpl = trialTpl(t); const v = trialVerdict(s, t); const arm = trialArmOn(t, isoOf(todayStart())); return { t: tpl.t, line: v.done ? `finished: ${tpl.arms[0]} ${v.a ?? "—"} vs ${tpl.arms[1]} ${v.b ?? "—"} (${v.nA + v.nB} blocks — direction, not gospel)` : arm ? `running · block ${arm.block}/${arm.of} · current arm: ${tpl.arms[arm.armIdx]}` : "scheduled" }; });
   const signoff = s.feed.filter((f) => f.d >= isoOf(new Date(todayStart().getTime() - 7 * DAY)) && /4TH SET|UNI|DEBUT|OVERRIDDEN/.test(f.t)).map((f) => f.t.toLowerCase());
   return {
     header: { d: fmtShort(isoOf(todayStart())), wk: weekDay().wk, trend: s.trend, bf: bfEst(s).pct, pace: currentRate(s).fat, sealed: blackoutOn(s) ? fmtShort(SEAL_UNTIL) : null },
@@ -1549,15 +1549,16 @@ const TRIAL_TPL = {
 function trialProposals(s) {
   return Object.entries(TRIAL_TPL).filter(([id, t]) => !(s.trials || []).some((x) => x.tplId === id) && t.eligible(s)).map(([id, t]) => ({ id, ...t }));
 }
+function trialTpl(trial) { return trial.custom ? trial.custom : TRIAL_TPL[trial.tplId]; }
 function trialArmOn(trial, iso) {
-  const tpl = TRIAL_TPL[trial.tplId];
+  const tpl = trialTpl(trial);
   if (!tpl) return null;
   const day = Math.floor((mk(iso) - mk(trial.started)) / DAY);
   if (day < 0 || day >= tpl.blockDays * tpl.cycles) return null;
   return { armIdx: Math.floor(day / tpl.blockDays) % 2, block: Math.floor(day / tpl.blockDays) + 1, of: tpl.cycles, tpl };
 }
 function trialVerdict(s, trial) {
-  const tpl = TRIAL_TPL[trial.tplId];
+  const tpl = trialTpl(trial);
   if (!tpl) return null;
   const endISO = isoOf(new Date(mk(trial.started).getTime() + tpl.blockDays * tpl.cycles * DAY));
   const done = isoOf(todayStart()) >= endISO;
@@ -1568,10 +1569,13 @@ function trialVerdict(s, trial) {
       const to = from + tpl.blockDays * DAY;
       const inBlock = (d) => mk(d).getTime() >= from && mk(d).getTime() < to;
       let val = null;
-      if (trial.tplId === "steptarget") {
+      if (trial.tplId === "steptarget" || (trial.custom && trial.custom.metric === "trend_delta")) {
         const ts2 = trendSeries(s.reads);
         const a2 = ts2.filter((x) => inBlock(x.d));
         if (a2.length >= 2) val = +(a2[0].t - a2[a2.length - 1].t).toFixed(1);
+      } else if (trial.custom && trial.custom.metric === "sleep_h") {
+        const ns2 = s.sleep.nights.filter((n) => inBlock(n.d));
+        if (ns2.length >= 2) val = +(ns2.reduce((a3, n) => a3 + n.h, 0) / ns2.length).toFixed(2);
       } else {
         const sessDs = Object.keys(s.sessionLog).filter(inBlock);
         if (sessDs.length) val = Math.round(sessDs.reduce((a3, d) => a3 + (s.sessionLog[d].entries || []).reduce((x, e) => x + (e.reps || []).reduce((p, q) => p + q, 0), 0), 0) / sessDs.length);
@@ -2003,7 +2007,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2063,7 +2067,7 @@ const AGENT_TOOLS = [
   { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
   { name: "read_instruments", description: "All current lab instrument verdicts, compiled plain.", input_schema: { type: "object", properties: {} } },
   { name: "run_whatif", description: "Forward-model a lever change. Any of: steps, cal, sleep, refeed.", input_schema: { type: "object", properties: { steps: { type: "number" }, cal: { type: "number" }, sleep: { type: "number" }, refeed: { type: "number" } } } },
-  { name: "stage_proposal", description: "Stage a proposal for the athlete's one-tap consent. NEVER changes anything itself. kind: trial|note|coach", input_schema: { type: "object", properties: { kind: { type: "string" }, title: { type: "string" }, body: { type: "string" }, tplId: { type: "string" } }, required: ["kind", "title", "body"] } },
+  { name: "stage_proposal", description: "Stage a proposal for the athlete's one-tap consent. NEVER changes anything itself. kind: trial|note|coach. For trials: either tplId (refeedsize|caffcut|lightsshift|steptarget) OR a custom design.", input_schema: { type: "object", properties: { kind: { type: "string" }, title: { type: "string" }, body: { type: "string" }, tplId: { type: "string" }, custom: { type: "object", properties: { t: { type: "string" }, q: { type: "string" }, arms: { type: "array", items: { type: "string" } }, blockDays: { type: "number" }, cycles: { type: "number" }, metric: { type: "string", enum: ["session_reps", "sleep_h", "trend_delta"] } }, required: ["t", "q", "arms", "blockDays", "cycles", "metric"] } }, required: ["kind", "title", "body"] } },
 ];
 function agentToolExec(s, name, input, staged) {
   try {
@@ -2087,7 +2091,17 @@ function agentToolExec(s, name, input, staged) {
       const rate = +(base + dSteps + dCal).toFixed(2);
       return `modeled rate: ${rate} lb/wk (base ${base}${input.sleep != null && input.sleep < 7.5 ? " · WARNING: at that sleep the good-sleep streak never completes — nothing becomes official" : ""}${rate > 1.55 ? " · WARNING: past the muscle-safe zone" : ""})`;
     }
-    if (name === "stage_proposal") { staged.push({ id: "ap" + Date.now() + Math.floor(Math.random() * 999), kind: input.kind, title: input.title, body: input.body, tplId: input.tplId || null, at: isoOf(todayStart()) }); return "staged for the athlete's consent — do not assume it will be accepted"; }
+    if (name === "stage_proposal") {
+      let custom = null;
+      if (input.custom) {
+        const c = input.custom;
+        if (!Array.isArray(c.arms) || c.arms.length !== 2) return "rejected: custom trials need exactly 2 arms";
+        if (!["session_reps", "sleep_h", "trend_delta"].includes(c.metric)) return "rejected: metric must be one the engines can measure";
+        custom = { t: String(c.t).slice(0, 60), q: String(c.q).slice(0, 140), arms: [String(c.arms[0]).slice(0, 40), String(c.arms[1]).slice(0, 40)], blockDays: Math.min(7, Math.max(3, Math.round(c.blockDays))), cycles: Math.min(6, Math.max(3, Math.round(c.cycles))), metric: c.metric };
+      }
+      staged.push({ id: "ap" + Date.now() + Math.floor(Math.random() * 999), kind: input.kind, title: input.title, body: input.body, tplId: input.tplId || null, custom, at: isoOf(todayStart()) });
+      return "staged for the athlete's consent — do not assume it will be accepted";
+    }
   } catch (e) { return "tool error: " + e.message; }
   return "unknown tool";
 }
@@ -2096,7 +2110,7 @@ async function agentLoop(s, question, history, onStatus) {
   if (!key) return { ok: false, msg: "no API key saved — RULES → ASK THE LEDGER" };
   const staged = [];
   const msgs = [...history, { role: "user", content: question }];
-  const sys = askContext(s) + "\n\nYou also have TOOLS. Investigate before answering: pull the exact ranges you need, contrast periods, use run_whatif for counterfactuals. If you find something actionable, stage_proposal it (kind trial|note|coach) — you can change NOTHING directly; every proposal waits for the athlete's tap. Then answer plainly, numbers first, honesty badges on.";
+  const sys = askContext(s) + "\n\nYou also have TOOLS. Investigate before answering: pull the exact ranges you need, contrast periods, use run_whatif for counterfactuals. If you find something actionable, stage_proposal it (kind trial|note|coach) — you can change NOTHING directly; every proposal waits for the athlete's tap. You may DESIGN custom trials when no canned template fits: 2 arms, 3-7 day blocks, 3-6 cycles, metric strictly from [session_reps, sleep_h, trend_delta]. In the body, state the pattern that motivated it (with n), the expected effect size, and roughly why the block count could detect it through his noise — if it can't, say the honest thing: more blocks or don't run it. Then answer plainly, numbers first, honesty badges on.";
   try {
     for (let turn = 0; turn < 6; turn++) {
       const r = await fetch("https://api.anthropic.com/v1/messages", {
@@ -2779,8 +2793,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>{ap.title}</div>
               <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{plainify(ap.body)}</div>
               <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
-                {ap.kind === "trial" && ap.tplId && TRIAL_TPL[ap.tplId] && !(s.trials || []).some((t) => t.tplId === ap.tplId) && (
-                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.trials = [...(ns.trials || []), { tplId: ap.tplId, started: tISO }]; ns.feed.unshift({ d: tISO, t: "TRIAL STARTED — " + TRIAL_TPL[ap.tplId].t, how: "proposed by your analyst, consented by you" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Start trial — I consent</Btn>
+                {ap.kind === "trial" && (ap.custom || (ap.tplId && TRIAL_TPL[ap.tplId] && !(s.trials || []).some((t) => t.tplId === ap.tplId))) && (
+                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const rec = ap.custom ? { custom: ap.custom, started: tISO } : { tplId: ap.tplId, started: tISO }; ns.trials = [...(ns.trials || []), rec]; ns.feed.unshift({ d: tISO, t: "TRIAL STARTED — " + (ap.custom ? ap.custom.t : TRIAL_TPL[ap.tplId].t), how: ap.custom ? "designed by your analyst for a pattern in YOUR data, consented by you" : "proposed by your analyst, consented by you" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Start trial — I consent</Btn>
                 )}
                 <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Dismiss</Btn>
               </div>
@@ -3673,7 +3687,7 @@ function TrialsDesk({ s, setS, save }) {
   const act = (tplId, declined) => { const ns = JSON.parse(JSON.stringify(s)); ns.trials = [...(ns.trials || []), declined ? { tplId, declined: true } : { tplId, started: tI }]; if (!declined) ns.feed.unshift({ d: tI, t: "TRIAL STARTED — " + TRIAL_TPL[tplId].t, how: "you consented with one tap · the day's arm rides TODAY'S PROTOCOL · verdict lands when the blocks finish" }); setS(ns); save(ns); };
   return (
     <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
-      {recs.map((t, i) => { const v = trialVerdict(s, t); const arm = trialArmOn(t, tI); const tpl = TRIAL_TPL[t.tplId]; return (
+      {recs.map((t, i) => { const v = trialVerdict(s, t); const arm = trialArmOn(t, tI); const tpl = trialTpl(t); return (
         <div key={i} style={{ marginBottom: 12 }}>
           <div style={{ fontFamily: mono, fontSize: 10.5, color: v.done ? T.jade : T.brass }}>{v.done ? "◆ FINISHED" : "▸ RUNNING"} · {tpl.t}</div>
           <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, marginTop: 3, lineHeight: 1.5 }}>
