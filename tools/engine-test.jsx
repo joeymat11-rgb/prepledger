@@ -773,5 +773,14 @@ const { restFor: rf46 } = __test;
 ok(rf46("press") === 150 && rf46("hack") === 150, "compounds rest long: press/hack 150s");
 ok(rf46("lateral") === 75 && rf46("curl") === 75, "isolations rest short: 75s");
 
-console.log(`\nFINAL45: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.47 — the instrument factory's context bundle
+const { askContext: ac47, SEED: TJ } = __test;
+const ctx = ac47(clone(TJ));
+ok(ctx.indexOf("HOUSE LAWS") > -1 && ctx.indexOf("COACH DOSSIER") > -1 && ctx.indexOf("LAST 14 DAYS") > -1, "context carries laws, instrument verdicts, and raw rollups");
+ok(ctx.indexOf("(measured)") > -1 && ctx.indexOf("Never invent data") > -1, "honesty rules travel with every question");
+ok(ctx.length < 20000, "context stays bounded: " + ctx.length + " chars");
+
+console.log(`\nFINAL46: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

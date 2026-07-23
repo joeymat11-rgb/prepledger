@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.46.0";
+const APP_V = "3.47.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2001,7 +2001,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2046,6 +2046,68 @@ function labGroupsM(s) { if (_labMemo.has(s)) return _labMemo.get(s); const g = 
 const _docketMemo = new WeakMap();
 function labDocketM(s) { if (_docketMemo.has(s)) return _docketMemo.get(s); const d = labDocket(s); _docketMemo.set(s, d); return d; }
 
+/* ASK THE LEDGER — bespoke instruments on demand, standing on the 49 built ones */
+const ANTH_KEY = "prep-ledger-anthkey";
+function askContext(s) {
+  const days = Object.entries(s.dailyLogs).sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(-14)
+    .map(([d, v]) => `${d}: cal ${v.cal ?? "—"} · pro ${v.pro ?? "—"} · steps ${v.steps ?? "—"}`).join("\n");
+  const sess2 = Object.keys(s.sessionLog).sort().slice(-6).map((d) => `${d}: ` + (s.sessionLog[d].entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ")).join("\n");
+  const nights2 = s.sleep.nights.slice(-14).map((n) => `${n.d}: ${n.h}h${n.sol != null ? ` sol${n.sol}` : ""}${(n.tags || []).length ? " " + n.tags.join("/") : ""}`).join("\n");
+  const laws = "HOUSE LAWS: fat-loss corridor 1.0–1.4 lb/wk (1.9+ = too fast); calorie floor 1,700; protein 175 daily; records/weight-increases only become official on a completed good-sleep streak (3 nights ≥7.5h); one structural change per session; effort runs RIR 2→1→0 with debt days +1; the scale seal quarantines event water; every change is a proposal — the athlete consents, the coach holds structural authority.";
+  return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== LAST 6 SESSIONS ===\n${sess2}`;
+}
+async function askLedger(s, question, history) {
+  const key = localStorage.getItem(ANTH_KEY);
+  if (!key) return { ok: false, msg: "no API key saved — RULES → ASK THE LEDGER" };
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json", "anthropic-dangerous-direct-browser-access": "true" },
+      body: JSON.stringify({ model: "claude-sonnet-4-5", max_tokens: 1024, system: askContext(s), messages: [...history, { role: "user", content: question }] }),
+    });
+    if (!r.ok) return { ok: false, msg: r.status === 401 ? "key rejected — check it in RULES" : "HTTP " + r.status };
+    const j = await r.json();
+    return { ok: true, text: (j.content || []).map((c) => c.text || "").join("") };
+  } catch (e) { return { ok: false, msg: "network — the API needs a signal" }; }
+}
+function AskLedger({ s, onClose }) {
+  const [q, setQ] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [log, setLog] = useState([]);
+  const ask = async () => {
+    const question = q.trim();
+    if (!question || busy) return;
+    setBusy(true); setQ("");
+    const history = log.flatMap((x) => [{ role: "user", content: x.q }, { role: "assistant", content: x.a }]).slice(-8);
+    const r = await askLedger(s, question, history);
+    setLog([...log, { q: question, a: r.ok ? r.text : "⚠ " + r.msg }]);
+    setBusy(false);
+  };
+  return (
+    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 70, display: "flex", flexDirection: "column", padding: "18px 16px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Eyebrow c={T.jade}>ASK THE LEDGER — YOUR DATA, ANY QUESTION</Eyebrow>
+        <span onClick={onClose} style={{ fontFamily: mono, fontSize: 10, color: T.dim, cursor: "pointer" }}>close ✕</span>
+      </div>
+      <div style={{ flex: 1, overflowY: "auto", marginTop: 10 }}>
+        {!log.length && <div style={{ fontFamily: body, fontSize: 12, color: T.dim, lineHeight: 1.6 }}>Try: "why did week 4 stall?" · "what conditions show up on my best press days?" · "is my refeed earning its calories?" It answers from your instruments and raw logs only — badged (measured) or (speculation), never invented.</div>}
+        {log.map((x, i) => (
+          <div key={i} style={{ marginBottom: 14 }}>
+            <div style={{ fontFamily: mono, fontSize: 10.5, color: T.jade }}>▸ {x.q}</div>
+            <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{x.a}</div>
+          </div>
+        ))}
+        {busy && <div style={{ fontFamily: mono, fontSize: 10, color: T.dim }}>assembling the instrument…</div>}
+      </div>
+      <div style={{ display: "flex", gap: 8, paddingTop: 10, borderTop: `1px solid ${T.line}` }}>
+        <input value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && ask()} placeholder="ask anything about your data…"
+          style={{ flex: 1, fontFamily: body, fontSize: 13, padding: "11px 12px", borderRadius: 9, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, outline: "none" }} />
+        <Btn small tone="jade" onClick={ask}>{busy ? "…" : "Ask"}</Btn>
+      </div>
+    </div>
+  );
+}
+
 /* dated snapshots — a weekly vault beside the live state */
 async function snapshotMaybe(state, tok) {
   const last = +(localStorage.getItem("prep-ledger-lastsnap") || 0);
@@ -2071,6 +2133,21 @@ async function fetchStateFile(path) {
   const r = await fetch(`https://api.github.com/repos/joeymat11-rgb/prepledger/contents/${path}`, { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" } });
   if (!r.ok) throw new Error("HTTP " + r.status);
   return JSON.parse(await r.text());
+}
+
+function ApiKeyBlock() {
+  const [v, setV] = useState(() => { try { return localStorage.getItem(ANTH_KEY) || ""; } catch (e) { return ""; } });
+  const [saved, setSaved] = useState(false);
+  return (
+    <div style={{ marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid ${T.line}` }}>
+      <Eyebrow c={T.jade}>ASK THE LEDGER · API KEY (SEPARATE FROM THE GITHUB TOKEN)</Eyebrow>
+      <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 5, lineHeight: 1.5 }}>Two locks, two keys: the GitHub token files your data; this Anthropic key answers questions about it. Both live only on this phone — neither syncs, neither replaces the other. Get one at console.anthropic.com → API Keys.</div>
+      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+        <input value={v} onChange={(e) => { setV(e.target.value); setSaved(false); }} placeholder="sk-ant-…" style={{ flex: 1, fontFamily: mono, fontSize: 10.5, padding: "9px 10px", borderRadius: 8, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, outline: "none" }} />
+        <Btn small tone="jade" onClick={() => { try { v.trim() ? localStorage.setItem(ANTH_KEY, v.trim()) : localStorage.removeItem(ANTH_KEY); setSaved(true); } catch (e) {} }}>{saved ? "Saved ✓" : "Save"}</Btn>
+      </div>
+    </div>
+  );
 }
 
 function BackupsBlock() {
@@ -3698,6 +3775,7 @@ function HistTab({ s, setS, save }) {
   const [labOpen, setLabOpen] = useState(null);
   const [secOpen, setSecOpen] = useState({ speaking: true, gathering: true });
   const [deskOpen, setDeskOpen] = useState(false);
+  const [askOpen, setAskOpen] = useState(false);
   const [gatherAll, setGatherAll] = useState(false);
   const liveWks = liveRollups(s);
   const first = ROLLUPS[ROLLUPS.length - 1];
@@ -3723,6 +3801,7 @@ function HistTab({ s, setS, save }) {
         <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 8 }}>Weight fell while every headline lift rose — the whole thesis, in one screen. Tap a week for the day-by-day.</div>
       </Card>
 
+      {askOpen && <AskLedger s={s} onClose={() => setAskOpen(false)} />}
       <Section title="The Lab" meta={(() => { const g2 = labGroups(s); return `${g2.reduce((a3, g3) => a3 + g3.cards.length, 0)} instruments · ${g2.reduce((a3, g3) => a3 + g3.live, 0)} live`; })()} c={T.jade}>
         {(() => {
         const groups = labGroupsM(s);
@@ -3805,6 +3884,7 @@ function HistTab({ s, setS, save }) {
                     </div>
                   ); })()}
                   {deskOpen && <TrialsDesk s={s} setS={setS} save={save} />}
+                  <div onClick={() => setAskOpen(true)} style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.04em", color: T.jade, marginTop: 5, cursor: "pointer" }}>🜁 ASK THE LEDGER — any question, answered from your data ▸</div>
                   <div style={{ fontFamily: body, fontSize: 11, color: T.dim, marginTop: 4 }}>Tap any line for the full story, in plain words. Fresh verdicts carry their date.</div>
                   {secs.map((sec) => {
                     const openSec = secOpen[sec.k] !== undefined ? secOpen[sec.k] : false;
@@ -4016,6 +4096,7 @@ function Rules({ onClose, onReset, onExport, onImport, sync, onSync }) {
         </div>
         <div style={{ marginTop: 22, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
           <BackupsBlock />
+          <ApiKeyBlock />
           <Eyebrow c={T.brass}>SELF-FILING · SUNDAY AUTO-SYNC TO YOUR PRIVATE REPO</Eyebrow>
           {hasTok ? (
             <div style={{ marginTop: 8 }}>
