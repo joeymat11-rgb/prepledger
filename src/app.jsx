@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.26.1";
+const APP_V = "3.27.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2126,6 +2126,49 @@ function LogTab({ s, setS, save, slp }) {
         ))}
       </div>
 
+      {logged ? (() => {
+        const done = s.sessionLog[dateSel];
+        const nd = (() => { for (let i = 1; i <= 7; i++) { const d2 = isoOf(new Date(mk(dateSel).getTime() + i * DAY)); if (dayType(d2) === dayType(dateSel)) return d2; } return null; })();
+        const preview = nd ? genSession(s, nd, slp) : null;
+        const wins = s.feed.filter((f) => f.d === dateSel && /OWNED|DEBUT|EARNED|RECLAIM|COMPLETE|4TH SET|UNI/.test(f.t)).slice(0, 4);
+        return (
+          <>
+            <Card accent={T.jade}>
+              <Eyebrow c={T.jade}>SESSION LOGGED · {fmtShort(dateSel)}</Eyebrow>
+              <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 7 }}>
+                {done.entries.map((e, i) => { const ex = exById(s, e.id); return (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: 11 }}>
+                    <span style={{ color: T.chalk }}>{ex ? ex.n : e.id}</span>
+                    <span style={{ color: T.steel }}>{e.w != null ? e.w + " × " : ""}{(e.reps || []).join(",")}{e.rir != null ? " · RIR " + e.rir : ""}</span>
+                  </div>
+                ); })}
+              </div>
+              {done.note && <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 8 }}>{done.note}</div>}
+              {wins.length > 0 && (
+                <div style={{ marginTop: 9, borderTop: `1px solid ${T.line}`, paddingTop: 8 }}>
+                  {wins.map((w2, i) => <div key={i} style={{ fontFamily: mono, fontSize: 9.5, color: T.jade, marginTop: i ? 3 : 0 }}>◆ {w2.t.toLowerCase()}</div>)}
+                </div>
+              )}
+            </Card>
+            {preview && (
+              <Card>
+                <Eyebrow>NEXT {dayType(dateSel) === "U" ? "UPPER" : "LOWER"} · {fmtShort(nd)} — TARGETS ALREADY SET</Eyebrow>
+                <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 5 }}>
+                  {(preview.blocks || []).map((b, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: 10.5 }}>
+                      <span style={{ color: T.steel }}>{b.n}</span>
+                      <span style={{ color: T.dim }}>{b.w} · tgt {(b.target || []).join(",")}</span>
+                    </div>
+                  ))}
+                </div>
+                {preview.structural && <div style={{ fontFamily: mono, fontSize: 9.5, color: T.orange, marginTop: 8 }}>structural: {preview.structural}</div>}
+                <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>these numbers belong to {fmtShort(nd)} — today's receipt above is closed</div>
+              </Card>
+            )}
+          </>
+        );
+      })() : (<>
+
       <Card accent={T.orange}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
           <div>
@@ -2279,6 +2322,8 @@ function LogTab({ s, setS, save, slp }) {
           </div>
         </div>
       )}
+</>)}
+
     </div>
   );
 }
