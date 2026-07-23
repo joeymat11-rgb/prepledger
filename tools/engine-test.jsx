@@ -406,5 +406,14 @@ if (g1.blocks && g1.blocks.length) {
   ok(ent.w != null && ent.w > 0, "weight rides every logged set automatically: " + ent.w);
 } else { ok(true, "no session today in container calendar — weight-ride covered by shape of code"); }
 
-console.log(`\nFINAL20: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.13.1 — results meet you at the front door
+const swB2 = __test.sweepLab(clone(__test.SEED));
+let annF = JSON.parse(JSON.stringify(swB2));
+for (let k = 1; k <= 7; k++) { const dd = new Date(2026, 6, 23 + k); annF.sleep.nights.push({ d: dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" + String(dd.getDate()).padStart(2, "0"), h: 7.8, tags: [] }); }
+const annF2 = __test.sweepLab(annF);
+ok(annF2 && (annF2.labNews || []).length > 0 && annF2.labNews[0].indexOf("MELATONIN") > -1, "a flip queues front-door news for NOW");
+
+console.log(`\nFINAL21: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

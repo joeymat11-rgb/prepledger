@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.13.0";
+const APP_V = "3.13.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1117,7 +1117,14 @@ function sweepLab(s) {
   const ns = JSON.parse(JSON.stringify(s));
   ns.labSeen = {};
   flat.forEach((c) => { ns.labSeen[c.id] = c.status; });
-  if (!first) flips.forEach((c) => ns.feed.unshift({ d: isoOf(todayStart()), t: "LAB LIVE — " + c.t, how: (c.forYou || (c.lines || [])[0] || "the shelf turned jade — open it").slice(0, 170) }));
+  if (!first) {
+    ns.labNews = ns.labNews || [];
+    flips.forEach((c) => {
+      ns.feed.unshift({ d: isoOf(todayStart()), t: "LAB LIVE — " + c.t, how: (c.forYou || (c.lines || [])[0] || "the shelf turned jade — open it").slice(0, 170) });
+      ns.labNews.unshift(c.t);
+    });
+    ns.labNews = ns.labNews.slice(0, 4);
+  }
   return ns;
 }
 
@@ -1609,6 +1616,15 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       </div>
 
 
+
+      {(s.labNews || []).length > 0 && (
+        <Card accent={T.jade} style={{ padding: 10, cursor: "pointer" }}>
+          <div onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.labNews = []; setS(ns); save(ns); }}>
+            <div style={{ fontFamily: mono, fontSize: 10.5, color: T.jade, letterSpacing: "0.06em" }}>🧪 LAB LIVE — {s.labNews.join(" · ")}</div>
+            <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 3 }}>verdict waiting in HIST → THE LAB · tap to dismiss</div>
+          </div>
+        </Card>
+      )}
 
       {(() => { const one = theOneThing(s, slp); return (
         <Card accent={T.jade} style={{ padding: 12 }}>
