@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.35.2";
+const APP_V = "3.36.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -768,7 +768,7 @@ function sessionDebrief(s, iso) {
 
 /* per-set RIR prescription — literature base, tuned by his own logs */
 function rirPlan(s, ex, slp) {
-  const n = ex.sets || (ex.target ? ex.target.length : ex.last ? ex.last.length : 3);
+  const n = ex.sets || (ex.tgt ? ex.tgt.length : ex.target ? ex.target.length : ex.last ? ex.last.length : 3);
   let plan = Array.from({ length: n }, (_, i) => (i === 0 ? 2 : i === 1 && n > 2 ? 1 : 0));
   const why = [];
   const overridden = s.rirOverride === isoOf(todayStart());
@@ -2319,10 +2319,10 @@ function LogTab({ s, setS, save, slp }) {
               <Card>
                 <Eyebrow>NEXT {dayType(dateSel) === "U" ? "UPPER" : "LOWER"} · {fmtShort(nd)} — TARGETS ALREADY SET</Eyebrow>
                 <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 5 }}>
-                  {(preview.blocks || []).map((b, i) => (
+                  {(preview.ex || []).map((b, i) => (
                     <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: 10.5 }}>
                       <span style={{ color: T.steel }}>{b.n}</span>
-                      <span style={{ color: T.dim }}>{b.w} · tgt {(b.target || []).join(",")}</span>
+                      <span style={{ color: T.dim }}>{b.w} · tgt {(b.tgt || []).join(",")}</span>
                     </div>
                   ))}
                 </div>
