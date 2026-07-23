@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.34.0";
+const APP_V = "3.35.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1292,6 +1292,50 @@ function labGroups(s) {
   return groups;
 }
 
+/* PLAIN ENGLISH LAYER — house vocabulary translated at render time, everywhere, forever */
+const PLAIN_MAP = [
+  ["provisional until a clean-sleep repeat", "pending until you repeat it after good sleep"],
+  ["logs provisional", "counts as pending for now"],
+  ["log as provisional", "count as pending for now"],
+  ["log provisional", "count as pending for now"],
+  ["stamp provisional", "get marked pending"],
+  ["provisional", "pending"],
+  ["CLEAN is unreachable", "a good-sleep streak can't happen"],
+  ["CLEAN unreachable", "a good-sleep streak impossible"],
+  ["CLEAN stays reachable", "a good-sleep streak stays possible"],
+  ["CLEAN sustainable", "the good-sleep streak holds"],
+  ["needs sleep CLEAN", "needs the good-sleep streak complete (3 nights of 7.5+ h)"],
+  ["sleep CLEAN", "a complete good-sleep streak"],
+  ["Sleep clean", "Sleep streak complete"],
+  ["CLEAN", "good-sleep streak"],
+  ["own-attempts", "make-it-official attempts"],
+  ["own-attempt", "make-it-official attempt"],
+  ["coach-flag Monday", "a your-coach conversation Monday — the app never moves it alone"],
+  ["coach-flag", "a your-coach conversation — the app never moves it alone"],
+  ["stay coach-flag", "stay a your-coach decision"],
+  ["nothing banks", "nothing becomes official"],
+  ["everything banks", "everything becomes official"],
+  ["everything here banks for real", "everything here counts as official"],
+  ["it counts for real", "it counts as official"],
+  ["debt-day", "short-sleep-day"],
+  ["debt days", "short-sleep days"],
+  ["debt day", "short-sleep day"],
+  ["on debt", "on short sleep"],
+  ["PRs", "records"],
+  ["the governor", "the safety brake"],
+  ["The governor", "The safety brake"],
+  ["governor hold", "safety-brake hold"],
+  ["zero-comp", "no-make-up-eating"],
+  ["RIR", "reps-left-in-tank"],
+];
+function plainify(t) {
+  if (t == null) return t;
+  if (typeof t !== "string") return t;
+  let out = t;
+  PLAIN_MAP.forEach(([a, b]) => { out = out.split(a).join(b); });
+  return out;
+}
+
 /* shared grading math — the masthead and the scorecard read one truth */
 function prophetGrades(s) {
   const fc = s.forecasts || [];
@@ -1605,7 +1649,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1728,12 +1772,12 @@ function More({ deep, forYou, c = T.jade }) {
       {open && (
         <div style={{ marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
           <Eyebrow>WHAT IT IS</Eyebrow>
-          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{deep}</div>
+          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{plainify(deep)}</div>
           {forYou && (
             <div style={{ marginTop: 10 }}>
               <Eyebrow c={c}>FOR YOU · RIGHT NOW</Eyebrow>
               {(Array.isArray(forYou) ? forYou : [forYou]).map((l, i) => (
-                <div key={i} style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: i ? 6 : 5, lineHeight: 1.55 }}>{l}</div>
+                <div key={i} style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: i ? 6 : 5, lineHeight: 1.55 }}>{plainify(l)}</div>
               ))}
             </div>
           )}
@@ -1901,7 +1945,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <Card accent={T.jade} style={{ padding: 12 }}>
           <Eyebrow c={T.jade}>THE ONE THING</Eyebrow>
           <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 19, color: T.chalk, textTransform: "uppercase", marginTop: 2 }}>{one.t}</div>
-          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 4 }}>{one.sub}</div>
+          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 4 }}>{plainify(one.sub)}</div>
         </Card>
       ); })()}
 
@@ -2150,7 +2194,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             <div key={u.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
               <div>
                 <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 16, color: T.chalk, textTransform: "uppercase" }}>{u.t}</div>
-                <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel }}>{u.gate}</div>
+                <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel }}>{plainify(u.gate)}</div>
               </div>
               <Stamp st={u.state} />
             </div>
@@ -2370,13 +2414,13 @@ function LogTab({ s, setS, save, slp }) {
             ))}
           </div>
           {(() => { const rp = rirPlan(s, ex, slp); const ov = s.rirOverride === tISO; return (
-            <div style={{ fontFamily: mono, fontSize: 9, color: T.steel, marginTop: 9 }}>suggested <Term k="rirplan" c={T.steel}>RIR</Term> · {rp.plan.join(" · ")}{rp.why.length ? (
+            <div style={{ fontFamily: mono, fontSize: 9, color: T.steel, marginTop: 9 }}>effort plan — <Term k="rirplan" c={T.steel}>reps left in tank</Term> · {rp.plan.join(" · ")}{rp.why.length ? (
               <span onClick={() => { if (slp.clean) return; const ns = JSON.parse(JSON.stringify(s)); ns.rirOverride = ov ? null : tISO; if (!ov) ns.feed.unshift({ d: tISO, t: "RIR DEBT BUFFER — OVERRIDDEN", how: "athlete call, this session only · banking rules unchanged: today still logs provisional" }); setS(ns); save(ns); }}
                 style={{ color: ov ? T.dim : T.brass, cursor: "pointer" }}> — {rp.why[0]}{!slp.clean ? " · tap to " + (ov ? "restore" : "override") : ""}</span>
             ) : null}</div>
           ); })()}
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8 }}>
-            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em" }}>OPENER <Term k="rir" c={T.dim}>RIR</Term></span>
+            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em" }}>FIRST SET — <Term k="rir" c={T.dim}>REPS LEFT IN TANK</Term></span>
             {[0, 1, 2, 3].map((v) => {
               const on = rir[ex.id] === v;
               const c = v === 0 ? T.brass : T.jade;
@@ -2387,7 +2431,7 @@ function LogTab({ s, setS, save, slp }) {
                 </button>
               );
             })}
-            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>optional · 1 = honest</span>
+            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>optional · 1 left = honest effort</span>
           </div>
         </Card>
       ))}
@@ -2485,8 +2529,8 @@ function QueueTab({ s, slp }) {
             <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 17, textTransform: "uppercase", color: T.chalk }}>{u.t}</div>
             <Stamp st={u.state} />
           </div>
-          <div style={{ fontFamily: mono, fontSize: 11, color: T.steel, marginTop: 6 }}>{u.gate}</div>
-          {u.rule && <div style={{ fontFamily: mono, fontSize: 10, color: T.dim, marginTop: 3 }}>{u.rule}</div>}
+          <div style={{ fontFamily: mono, fontSize: 11, color: T.steel, marginTop: 6 }}>{plainify(u.gate)}</div>
+          {u.rule && <div style={{ fontFamily: mono, fontSize: 10, color: T.dim, marginTop: 3 }}>{plainify(u.rule)}</div>}
           {u.kind === "ladder" && curl && curl.ladder && (
             <div style={{ marginTop: 8 }}>
               <Bar pct={((curl.last ? curl.last[curl.ladder.set] : 8) / curl.ladder.top) * 100} c={T.brass} />
@@ -2547,7 +2591,7 @@ function QueueTab({ s, slp }) {
                 <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 16, textTransform: "uppercase", color: T.chalk }}>{u.t}</div>
                 <Stamp st={u.state} />
               </div>
-              <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 4 }}>{u.gate}</div>
+              <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 4 }}>{plainify(u.gate)}</div>
             </Card>
           ))}
         </Section>
@@ -2934,13 +2978,13 @@ function WhatIfConsole({ s }) {
       <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
         <div><Num size={20} c={T.jade}>{rate}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>LB/WK</div></div>
         <div><Num size={20}>{aug28}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>AUG 28 PROJ</div></div>
-        <div><Num size={20} c={shift > 3 ? T.brass : T.chalk}>{fmtShort(pivotD)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>PIVOT ETA {shift !== 0 ? `(${shift > 0 ? "+" : ""}${shift}d)` : ""}</div></div>
+        <div><Num size={20} c={shift > 3 ? T.brass : T.chalk}>{fmtShort(pivotD)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>SWITCH TO BUILDING {shift !== 0 ? `(${shift > 0 ? "+" : ""}${shift}d)` : ""}</div></div>
       </div>
       <div style={{ fontFamily: body, fontSize: 11.5, color: wSlp < 7.5 ? T.brass : T.steel, marginTop: 10, lineHeight: 1.5 }}>
-        {wSlp < 7.5 ? "At this sleep average CLEAN is unreachable — every own-attempt logs provisional, nothing banks. The scale barely notices; the ledger absolutely does." : wSlp >= 8.5 ? "Ceiling territory — the SLEEP DOSE experiment says whether this buys reps in you." : "CLEAN sustainable — owns and earns count."}
-        {" "}Refeed at {wRef}: scale effect ~nil per week; next-day output is REFEED ROI's question{wRef < 2350 ? " — a lighter refeed is an informative experiment, coach-flag" : ""}.
+        {wSlp < 7.5 ? `At ${wSlp} h average, the 3-night good-sleep streak never completes — so no record or weight increase can become official, on any of your ~4 sessions a week. The scale barely notices sleep; the record books absolutely do.` : wSlp >= 8.5 ? "That's ceiling territory — the sleep-dose experiment in this lab measures whether the extra hour buys you reps." : "Good-sleep streaks stay alive at this average — records and weight increases can become official."}
+        {" "}Refeed at {wRef}: almost zero effect on the week's weight (~{Math.abs(Math.round(((wRef - 2450) / 7 / 3500) * 70) / 100)} lb/wk); what it actually buys is next-day lifting output{wRef < 2350 ? " — a lighter refeed would be a real experiment worth asking your coach about" : ""}.
       </div>
-      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 8 }}>rate 1.0–1.4 = the muscle-safe corridor · redline ≥1.9 · measured coefficients replace priors as they go live</div>
+      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 8 }}>losing 1.0–1.4 lb/week = the muscle-safe zone · 1.9+ = losing too fast · as the lab measures your real numbers, they replace the textbook guesses here automatically</div>
     </div>
   );
 }
@@ -2987,7 +3031,7 @@ function HistTab({ s, setS, save }) {
                 <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 15.5, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk }}>{a.t}</div>
                 <Stamp st={a.status} />
               </div>
-              <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 3 }}>{a.tag}</div>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 3 }}>{plainify(a.tag)}</div>
               {(a.lines || []).map((l, i) => (
                 <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{l}</div>
               ))}
@@ -3002,10 +3046,10 @@ function HistTab({ s, setS, save }) {
             {labOpen === a.id && (
               <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
                 <Eyebrow>WHAT IT IS</Eyebrow>
-                <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{a.deep}</div>
+                <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{plainify(a.deep)}</div>
                 <div style={{ marginTop: 10 }}>
                   <Eyebrow c={a.status === "LIVE" ? T.jade : T.brass}>FOR YOU · RIGHT NOW</Eyebrow>
-                  <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{a.forYou}</div>
+                  <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{plainify(a.forYou)}</div>
                 </div>
                 {a.action && (
                   <div style={{ marginTop: 10 }}>

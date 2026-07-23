@@ -613,5 +613,14 @@ pgS.forecasts = [{ d: isoQ(-14), trend: 165.0, rate: 1.2, pred7: 163.8, sealed: 
 const g34 = pg34(pgS);
 ok(g34.n >= 2 && typeof g34.mae === "number" && typeof g34.bias === "number", "masthead and card share one grading truth: n=" + g34.n + " mae=" + g34.mae);
 
-console.log(`\nFINAL35: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.35 — the plain-English layer
+const { plainify: pl35 } = __test;
+ok(pl35("PRs log provisional on debt days — coach-flag") === "records count as pending for now on short-sleep days — a your-coach conversation — the app never moves it alone", "house vocabulary translates in one pass: " + pl35("PRs log provisional on debt days — coach-flag"));
+ok(pl35("needs sleep CLEAN, the governor watching") === "needs the good-sleep streak complete (3 nights of 7.5+ h), the safety brake watching", "streak + brake translate");
+ok(pl35("A normal sentence stays untouched.") === "A normal sentence stays untouched.", "plain text passes through unchanged");
+ok(pl35(null) === null && pl35(42) === 42, "non-strings pass through safely");
+
+console.log(`\nFINAL36: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
