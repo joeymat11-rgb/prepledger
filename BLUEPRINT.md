@@ -22,6 +22,8 @@ These ten laws are why the first app worked. They are person-independent even th
 9. **One channel of human authority.** If a human coach exists, structural program changes are theirs; the app proposes and one-taps, never silently applies. If the operator (the person running these builds) is the coach, say so explicitly in config and route authority there. Ambiguity here wrecks trust.
 10. **The app is a ledger, not a judge.** No red-number shaming, no penance mechanics, no compensation prompts after events. Events get protocols (protein-forward, zero-comp) and their aftermath gets pre-explained. Honest ≠ harsh.
 
+11. **The lab watches so the human never has to.** Analysis can be unbounded — dozens of instruments, every threshold re-checked on every open — precisely BECAUSE attention-calls are rare, earned, and only fired by true threshold crossings. Never notify, never poll the user, never cry wolf: an announcement channel that only carries news stays trusted forever. Vigilance is the machine's job; verdicts are the human's reward.
+
 **The standing audit:** before shipping any feature, ask — does this reward *doing* or *checking*? Does it add a decision or just data? Would it survive the client's worst week? Kill anything that fails.
 
 ---
