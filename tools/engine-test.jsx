@@ -387,16 +387,16 @@ ok(swp(ann2) === null, "no re-announcement — quiet until the next flip");
 // v3.13 — the outside-the-box wing
 const { labAnalytics2: la2, labGroups: lg2, completeSession: csW, genSession: gsW, SEED: SN } = __test;
 const wing = la2(clone(SN));
-ok(wing.length === 15, "fifteen instruments, all constructed without a single crash: " + wing.length);
+ok(wing.length === 20, "twenty instruments, all constructed without a single crash: " + wing.length);
 ok(wing.every(c => c.tag && c.deep && c.forYou && c.status), "every card carries all three layers plus a status");
 const ids2 = wing.map(c => c.id);
 ok(["adaptmeter","strvelocity","canary","regularity","missarch","weekend","stepeff","refeedroi","sessionshape","compound","ghost","sentinel","letter"].every(x => ids2.includes(x)), "the full roster reports");
 ok(wing.find(c => c.id === "weekend").status === "LIVE" && wing.find(c => c.id === "missarch").status === "LIVE", "sheet history powers instant verdicts on day one");
 ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id === "ghost").forYou.indexOf("behind you") > -1, "ghost is badged a MODEL and running");
 const gAll = lg2(clone(SN));
-ok(gAll.length === 9 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,behavior,road,models,locked,shelf", "nine shelves, fixed order");
+ok(gAll.length === 10 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,road,models,locked,shelf", "ten shelves, fixed order");
 const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
-ok(tot2 === 38, "all 38 instruments filed exactly once: " + tot2);
+ok(tot2 === 43, "all 43 instruments filed exactly once: " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
@@ -426,7 +426,7 @@ const j1 = swp3(clone(SO));
 ok(j1 && j1.forecasts.length === 1 && typeof j1.forecasts[0].pred7 === "number", "the sweep journals one dated 7-day forecast per day");
 ok(swp3(j1) === null, "second sweep same day: no duplicate journal, no writes");
 const wing3 = laW(clone(SO));
-ok(wing3.length === 15, "fifteen instruments in the wing now: " + wing3.length);
+ok(wing3.length === 20, "twenty instruments in the wing now: " + wing3.length);
 const pr = wing3.find(c => c.id === "prophet");
 ok(pr && pr.status === "ARMED" && pr.deep.indexOf("error bars") > -1, "prophet armed, philosophy attached");
 let fcS = clone(SO);
@@ -446,7 +446,7 @@ ok(dock.next.every(n => n.n < n.need) && dock.next[0].pct >= (dock.next[1] ? doc
 ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "sentinel line reads");
 const ranked = sl1(clone(SP));
 const rk = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
-ok(ranked.length === 38 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 38 cards, monotone rank order");
+ok(ranked.length === 43 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 38 cards, monotone rank order");
 // a flip lands on the docket's fresh row
 const swD = __test.sweepLab(clone(SP));
 let dkF = JSON.parse(JSON.stringify(swD));
@@ -471,7 +471,7 @@ ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 ph
 // v3.17 — the sibling design review
 const { labSections: ls17, SEED: SR } = __test;
 const secs = ls17(clone(SR));
-ok(secs.reduce((a, x) => a + x.cards.length, 0) === 38, "all 38 filed across the plain-language sections, none lost");
+ok(secs.reduce((a, x) => a + x.cards.length, 0) === 43, "all 43 filed across the plain-language sections, none lost");
 const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "gathering");
 ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
 ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
@@ -643,5 +643,22 @@ ok(proto.steps.some(x => x.a.indexOf("Lights out") === 0 && /\d\d:\d\d/.test(x.a
 ok(proto.steps.some(x => x.a.indexOf("Protein 175") === 0), "protein step present with the spread");
 ok(proto.steps.every(x => x.a && x.why), "every step is action + reason, nothing bare");
 
-console.log(`\nFINAL38: ${pass} passed, ${fail} failed`);
+// (interim)
+
+
+// v3.39 — the pulse wing + negotiator + miner
+const { labAnalytics2: laP, migrate: mgP, SEED: TD } = __test;
+const oldV18p = clone(TD); oldV18p.v = 18; delete oldV18p.pulse;
+ok(mgP(oldV18p).v >= 19 && Array.isArray(mgP(oldV18p).pulse), "phones patch to v19 with the pulse array");
+let pS = clone(TD);
+for (let k = 14; k >= 1; k--) pS.pulse.push({ d: isoL(Date.now() - k * 864e5), bpm: 56 + (k % 3) });
+pS.pulse.push({ d: isoL(Date.now()), bpm: 66 });
+const wingP = laP(pS);
+const pb = wingP.find(c => c.id === "pulsebase"), pw = wingP.find(c => c.id === "pulsewarn"), cs = wingP.find(c => c.id === "cutstress");
+ok(pb.status === "LIVE" && /Baseline: 5\d bpm/.test(pb.forYou), "baseline computes from the median: " + pb.forYou.slice(0, 30));
+ok(pw.status === "LIVE" && pw.forYou.indexOf("Treat today gently") > -1, "a +7 spike trips the early warning without panic");
+ok(cs.status === "LIVE" && cs.forYou.indexOf("bpm") > -1, "cut-stress drift reads in bpm");
+ok(wingP.find(c => c.id === "negotiator").status === "MODEL" && wingP.find(c => c.id === "miner").status === "ARMED", "negotiator badged MODEL, miner gathering pairs");
+
+console.log(`\nFINAL39: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.38.0";
+const APP_V = "3.39.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,8 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 18;
+  SEED.v = 19;
+  SEED.pulse = [];
   SEED.sleep.anchor = { wake: "06:45", inBed: 8.25, asleepTarget: 8 };
   SEED.forecasts = [];
   SEED.labSeen = {};
@@ -1252,6 +1253,59 @@ function labAnalytics2(s) {
     forYou: "Open the card — the sliders are inside. Try sleep at 6.5 first and watch what it says about your own-attempts; that one isn't hypothetical this week.",
     lines: [] }));
 
+
+  /* 16-18 · THE PULSE WING */
+  const pReads = (s.pulse || []).slice().sort((a, b) => (a.d < b.d ? -1 : 1));
+  const pBase = pReads.length >= 7 ? pReads.slice(-14).map((x) => x.bpm).sort((a, b) => a - b)[Math.floor(Math.min(14, pReads.length) / 2)] : null;
+  add(() => ({ id: "pulsebase", t: "YOUR RESTING PULSE", status: pBase ? "LIVE" : "ARMED", prog: { n: pReads.length, need: 7, label: "morning pulse readings (5 seconds, on NOW)" },
+    tag: "Your engine's idle speed — the cheapest recovery dial that exists.",
+    deep: "Morning resting heart rate is the most information-dense five-second measurement in sports science: it reflects recovery, stress, illness, and diet strain all at once. Seven readings build your personal baseline (a rolling median, so one weird morning can't move it); everything else in this wing reads against that number.",
+    forYou: pBase ? `Baseline: ${pBase} bpm. Last reading ${pReads[pReads.length - 1].bpm} (${pReads[pReads.length - 1].bpm - pBase >= 0 ? "+" : ""}${pReads[pReads.length - 1].bpm - pBase} vs you). Steady is the goal — steady means the deficit is being absorbed, not endured.` : `${pReads.length}/7 readings. The input lives at the bottom of NOW's log cards — five seconds after the weigh-in.`,
+    lines: [] }));
+  add(() => {
+    if (pReads.length < 10 || !pBase) return { id: "cutstress", t: "CUT-STRESS INDEX", status: "ARMED", prog: { n: pReads.length, need: 10, label: "readings across 10+ days" }, tag: "Is the diet being absorbed or endured? Your pulse answers first.", deep: "A sustained climb in resting pulse (~+5 bpm over baseline) is the classic sign a deficit has outrun recovery — it shows up before strength stalls and before the mirror changes. It's the physiological answer to when September's diet-exit is DUE, versus when the calendar says so.", forYou: "Arms at 10 readings — then the reverse gets timed by your body, not the calendar.", lines: [] };
+    const firstWk = pReads.slice(0, 5).map((x) => x.bpm).reduce((a, b) => a + b, 0) / Math.min(5, pReads.length);
+    const last5 = pReads.slice(-5).map((x) => x.bpm).reduce((a, b) => a + b, 0) / Math.min(5, pReads.length);
+    const drift = +(last5 - firstWk).toFixed(1);
+    return { id: "cutstress", t: "CUT-STRESS INDEX", status: "LIVE", prog: null,
+      tag: "Is the diet being absorbed or endured? Your pulse answers first.",
+      deep: "A sustained climb of ~5+ bpm over your early baseline is the classic signature of a deficit outrunning recovery — visible before strength stalls or the mirror changes. Flat or falling pulse deep into a cut is the green light that the pace is sustainable; a climb is the body's own vote for the diet-exit date.",
+      forYou: `Drift so far: ${drift >= 0 ? "+" : ""}${drift} bpm vs your first readings. ${drift >= 5 ? "That's the strain signature — worth showing your coach; the diet-exit conversation may be due early." : drift >= 3 ? "Mild climb — watch it alongside sleep; not alarming yet." : "Being absorbed, not endured — the pace is sustainable by your own physiology."}`,
+      lines: [] };
+  });
+  add(() => {
+    const latest = pReads[pReads.length - 1];
+    const spike = pBase && latest ? latest.bpm - pBase : null;
+    return { id: "pulsewarn", t: "ILLNESS EARLY-WARNING", status: pBase ? "LIVE" : "ARMED", prog: { n: pReads.length, need: 7, label: "readings to build the baseline" },
+      tag: "A pulse spike usually beats the sore throat by a day.",
+      deep: "A single-morning jump of ~7+ bpm over baseline — without a hard session or bad night to explain it — precedes noticeable illness with startling reliability. The play is never to panic: it's to go easy for 24 hours, hydrate, sleep early, and often skip the sickness entirely because you saw it coming.",
+      forYou: spike != null ? (spike >= 7 ? `${latest.bpm} today vs ${pBase} baseline — +${spike}. No hard session or short night to blame it on? Treat today gently and protect tonight's sleep; check again tomorrow.` : `${latest.bpm} today vs ${pBase} baseline — inside normal. The best report this card gives is boredom.`) : "Builds with the baseline — seven readings.",
+      lines: [] };
+  });
+
+  /* 19 · THE NEGOTIATOR */
+  add(() => ({ id: "negotiator", t: "THE NEGOTIATOR", status: "MODEL", prog: null,
+    tag: "Name the goal — it solves backward for the cheapest path, priced by YOUR habits.",
+    deep: "The what-if console runs forward from levers; this runs backward from a goal. You set the target and date; it computes the required weekly pace, checks it against the muscle-safe zone, and proposes the cheapest lever set — where 'cheapest' is priced by your own record: it prefers steps (your most consistent lever) before calorie cuts, respects a 1,700-calorie floor, and warns where your history says risk lives. It proposes; you and your coach decide.",
+    forYou: "Open the card — the goal controls are inside. Try the current plan's own goal first and see how much slack you actually have.",
+    lines: [] }));
+
+  /* 20 · THE NATURAL-EXPERIMENT MINER */
+  add(() => {
+    const sess2 = Object.keys(s.sessionLog).sort();
+    const rows2 = sess2.map((d) => { const n = s.sleep.nights.find((x) => x.d === isoOf(new Date(mk(d).getTime() - DAY))); const dl2 = s.dailyLogs[isoOf(new Date(mk(d).getTime() - DAY))]; return { d, t: dayType(d), slp: n ? n.h : null, cal: dl2 ? dl2.cal : null, reps: ((s.sessionLog[d] || {}).entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0), postRefeed: dayType(isoOf(new Date(mk(d).getTime() - DAY))) === "REFEED" }; }).filter((r) => r.slp != null && r.cal != null && r.reps > 0);
+    const pairs2 = [];
+    for (let i = 0; i < rows2.length; i++) for (let j = i + 1; j < rows2.length; j++) {
+      const a2 = rows2[i], b2 = rows2[j];
+      if (a2.t === b2.t && Math.abs(a2.slp - b2.slp) <= 0.5 && Math.abs(a2.cal - b2.cal) <= 75 && a2.postRefeed !== b2.postRefeed) pairs2.push({ diff: (a2.postRefeed ? a2.reps - b2.reps : b2.reps - a2.reps) });
+    }
+    const avgD2 = pairs2.length ? Math.round(pairs2.reduce((x, y) => x + y.diff, 0) / pairs2.length) : null;
+    return { id: "miner", t: "NATURAL-EXPERIMENT MINER", status: pairs2.length >= 3 ? "LIVE" : "ARMED", prog: { n: pairs2.length, need: 3, label: "matched day-pairs (same day type, sleep ±0.5 h, calories ±75)" },
+      tag: "Controlled studies you accidentally ran on yourself — found and reported.",
+      deep: "The miner hunts your history for near-twin days — same session type, same sleep, same calories — where exactly one thing differed, then reports the contrast like the experiment it accidentally was. First contrast under study: the day-after-refeed effect on total output. More contrasts join as your record deepens. It's the closest thing to causal evidence a single human life can produce.",
+      forYou: pairs2.length >= 3 ? `${pairs2.length} matched pairs found: the post-refeed twin averages ${avgD2 >= 0 ? "+" : ""}${avgD2} reps over its match. That's your refeed's real next-day purchase, measured under fair conditions.` : `${pairs2.length}/3 pairs so far — every logged session gives the miner more twins to hunt. This one rewards patience with the rarest kind of proof.`,
+      lines: [] };
+  });
   return out;
 }
 
@@ -1263,9 +1317,10 @@ function labGroups(s) {
     engine: ["adaptmeter", "stepeff", "refeedroi"],
     training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss"],
     sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "canary"],
-    behavior: ["missarch", "weekend", "compound"],
+    pulse: ["pulsebase", "cutstress", "pulsewarn"],
+    behavior: ["missarch", "weekend", "compound", "miner"],
     road: ["cone", "dexarecon"],
-    models: ["ghost", "sentinel", "letter", "prophet", "whatif"],
+    models: ["ghost", "sentinel", "letter", "prophet", "whatif", "negotiator"],
     locked: ["mrv", "debutmodel"],
     shelf: ["spread", "caffdose", "creatine", "matador", "sleepceil"],
   };
@@ -1274,6 +1329,7 @@ function labGroups(s) {
     engine: "THE ENGINE — your metabolism, measured",
     training: "TRAINING — what the reps are saying",
     sleep: "SLEEP — the master-variable wing",
+    pulse: "THE PULSE — five seconds, four verdicts",
     behavior: "PATTERNS OF A HUMAN — behavior, decoded",
     road: "THE ROAD — timing the pivot",
     models: "MODELS, SENTINELS & META — badged honestly",
@@ -1581,6 +1637,7 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV19(s) { s.pulse = s.pulse || []; s.v = 19; return s; }
 function patchV18(s) {
   const rd = s.exercises.find((x) => x.id === "rearDelt");
   if (rd && rd.sets < 3) {
@@ -1622,8 +1679,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 18) return old;
-  if (old && old.v >= 3 && old.v <= 17) return patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))))));
+  if (old && old.v === 19) return old;
+  if (old && old.v >= 3 && old.v <= 18) return patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -1649,7 +1706,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))))));
+  return patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))))))));
 }
 
 const GLOSSARY = {
@@ -1908,6 +1965,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [dayEdit, setDayEdit] = useState(false);
   const [wIn, setWIn] = useState(s.trend);
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
+  const [pulseIn, setPulseIn] = useState(((s.pulse || [])[Math.max(0, (s.pulse || []).length - 1)] || {}).bpm || 58);
   const wd = weekDay();
   const dt = dayType(tISO);
   const isRefeed = dt === "REFEED";
@@ -2185,6 +2243,26 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               </Card>
             )}
           </>
+        );
+      })()}
+
+      {(() => {
+        const todayP = (s.pulse || []).find((x) => x.d === tISO);
+        return (
+          <Card style={{ padding: 11 }}>
+            {todayP ? (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontFamily: mono, fontSize: 11, color: T.jade }}>✓ morning pulse {todayP.bpm} logged</span>
+                <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.pulse = ns.pulse.filter((x) => x.d !== tISO); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, cursor: "pointer" }}>undo</span>
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, letterSpacing: "0.08em" }}>MORNING PULSE<div style={{ fontSize: 8 }}>optional · 5 s · feeds the lab</div></div>
+                <Stepper v={pulseIn} set={setPulseIn} step={1} min={35} />
+                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.pulse = [...(ns.pulse || []), { d: tISO, bpm: pulseIn }]; setS(ns); save(ns); }}>Log</Btn>
+              </div>
+            )}
+          </Card>
         );
       })()}
 
@@ -3026,6 +3104,53 @@ function WhatIfConsole({ s }) {
   );
 }
 
+function NegotiatorConsole({ s }) {
+  const [tBF, setTBF] = useState(11);
+  const [dOff, setDOff] = useState(0);
+  const bf = bfEst(s);
+  const cur = currentRate(s);
+  const baseRate = cur.measured ? cur.scale : 1.2;
+  const goalDate = isoOf(new Date(mk("2026-09-05").getTime() + dOff * DAY));
+  const targetW = +(bf.lean / (1 - tBF / 100)).toFixed(1);
+  const wks = Math.max(0.5, (mk(goalDate) - todayStart().getTime()) / (7 * DAY));
+  const need = +((s.trend - targetW) / wks).toFixed(2);
+  const gap = +(need - baseRate).toFixed(2);
+  const extraSteps = gap > 0 ? Math.round((gap * 3500) / 7 / 0.35 / 100) * 100 : 0;
+  const wkD = Object.entries(s.dailyLogs).filter(([d]) => [0, 6].includes(mk(d).getDay()) && s.dailyLogs[d].cal);
+  const wdD = Object.entries(s.dailyLogs).filter(([d]) => ![0, 6].includes(mk(d).getDay()) && s.dailyLogs[d].cal);
+  const weekendGap = wkD.length >= 2 && wdD.length >= 4 ? Math.round(wkD.reduce((a, [, v]) => a + v.cal, 0) / wkD.length - wdD.reduce((a, [, v]) => a + v.cal, 0) / wdD.length) : null;
+  const row = (lbl, v, set, step, min, max, fmt) => (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
+      <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, width: 84 }}>{lbl}</div>
+      <Stepper v={v} set={(x) => set(Math.min(max, Math.max(min, x)))} step={step} min={min} />
+      {fmt && <span style={{ fontFamily: mono, fontSize: 10, color: T.steel }}>{fmt}</span>}
+    </div>
+  );
+  return (
+    <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
+      <Eyebrow c={T.chalk}>THE GOAL — IT SOLVES BACKWARD</Eyebrow>
+      {row("TARGET BF %", tBF, setTBF, 0.5, 9, 14)}
+      {row("DATE ±days", dOff, setDOff, 3, -21, 30, fmtShort(goalDate))}
+      <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
+        <div><Num size={20} c={need > 1.55 ? T.brass : T.jade}>{need}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>LB/WK NEEDED</div></div>
+        <div><Num size={20}>{baseRate}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>YOUR PACE NOW</div></div>
+        <div><Num size={20}>{targetW}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>GOAL WEIGHT</div></div>
+      </div>
+      <div style={{ fontFamily: body, fontSize: 11.5, color: need > 1.55 ? T.brass : T.chalk, marginTop: 10, lineHeight: 1.55 }}>
+        {need > 1.55
+          ? `Verdict: this goal needs ${need} lb/wk — past the muscle-safe zone (1.0–1.4). The honest fixes: move the date ${Math.ceil(((s.trend - targetW) / 1.35 - wks) * 7)} days later, or raise the target to ~${Math.max(9, +((1 - bf.lean / (s.trend - 1.35 * wks)) * 100).toFixed(1))}%. Losing muscle to hit a date is a trade this app won't price.`
+          : gap <= 0.05
+          ? `Verdict: your current pace already covers it — arrive ~${fmtShort(isoOf(new Date(todayStart().getTime() + Math.round(((s.trend - targetW) / Math.max(0.1, baseRate)) * 7) * DAY)))} with ${Math.abs(Math.round((baseRate - need) * wks * 10) / 10)} lb of slack. Cheapest plan: change nothing.`
+          : extraSteps <= 2500
+          ? `Verdict: reachable without touching food. +${extraSteps.toLocaleString()} steps/day covers the whole gap — steps first because they're your most consistent lever, and the 1,700-calorie floor stays untouched.`
+          : `Verdict: steps alone won't cover it. Plan: +2,000 steps/day AND −${Math.round(((gap - (2000 * 0.35 * 7) / 3500) * 3500) / 7 / 25) * 25} cal/day${1760 - Math.round(((gap - (2000 * 0.35 * 7) / 3500) * 3500) / 7 / 25) * 25 < 1700 ? " — but that breaks the 1,700 floor, so the date has to give instead" : " (floor respected)"}. Take it to your coach as a proposal, not a decision.`}
+        {weekendGap != null && weekendGap > 120 ? ` One more thing your record says: weekends run ~+${weekendGap} cal over weekdays — schedule any tightening Mon–Fri, where your adherence actually lives.` : ""}
+      </div>
+      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 8 }}>sandbox — proposes only · steps priced at your 0.35 kcal/step · floor 1,700 · muscle-safe 1.0–1.4 lb/wk</div>
+    </div>
+  );
+}
+
 function HistTab({ s, setS, save }) {
   const [open, setOpen] = useState(null);
   const [labOpen, setLabOpen] = useState(null);
@@ -3094,6 +3219,7 @@ function HistTab({ s, setS, save }) {
                   </div>
                 )}
                 {a.id === "whatif" && <WhatIfConsole s={s} />}
+                {a.id === "negotiator" && <NegotiatorConsole s={s} />}
               </div>
             )}
           </Card>
