@@ -622,5 +622,13 @@ ok(pl35("needs sleep CLEAN, the governor watching") === "needs the good-sleep st
 ok(pl35("A normal sentence stays untouched.") === "A normal sentence stays untouched.", "plain text passes through unchanged");
 ok(pl35(null) === null && pl35(42) === 42, "non-strings pass through safely");
 
-console.log(`\nFINAL36: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.35.2 — session blocks get real plans
+const { rirPlan: rp352, SEED: TB } = __test;
+const blockShaped = { id: "x", target: [13, 12, 11, 10], w: 315 };
+const bp = rp352(clone(TB), blockShaped, { clean: false, run: 1, need: 3 });
+ok(bp.plan.length === 4 && bp.plan.join(",") === "3,2,1,1", "a target-only session block sizes its own plan: " + bp.plan.join(","));
+
+console.log(`\nFINAL37: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

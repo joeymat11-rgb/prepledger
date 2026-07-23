@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.35.1";
+const APP_V = "3.35.2";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -768,7 +768,7 @@ function sessionDebrief(s, iso) {
 
 /* per-set RIR prescription — literature base, tuned by his own logs */
 function rirPlan(s, ex, slp) {
-  const n = ex.sets;
+  const n = ex.sets || (ex.target ? ex.target.length : ex.last ? ex.last.length : 3);
   let plan = Array.from({ length: n }, (_, i) => (i === 0 ? 2 : i === 1 && n > 2 ? 1 : 0));
   const why = [];
   const overridden = s.rirOverride === isoOf(todayStart());
