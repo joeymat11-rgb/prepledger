@@ -510,5 +510,19 @@ ok(honest.zeroComp.count === 0 && honest.feed[0].t === "EVENT LOGGED HONEST" && 
 const bumps = rb21(clone(ST));
 ok(bumps.length >= 2 && bumps.every(b => b > -3 && b < 4), "refeed bumps computed from his own mornings: " + bumps.join(", "));
 
-console.log(`\nFINAL28: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.23 — the week reviews itself
+const { weekReview: wr23, sweepLab: swp23, SEED: SU } = __test;
+const rev = wr23(clone(SU));
+ok(typeof rev.verdict === "string" && rev.verdict.length > 20 && rev.lines.length === 3, "review renders a verdict plus three coaching lines");
+ok(rev.verdict.indexOf("Sealed week") === 0, "sealed-week verdict fires while the quarantine holds: " + rev.verdict.slice(0, 40));
+let quiet = clone(SU); quiet.dailyLogs = {}; quiet.sessionLog = {}; quiet.sleep.nights = [];
+ok(wr23(quiet).verdict.indexOf("quiet week") > -1, "a silent week gets the door-is-open verdict, never a scolding");
+const swBase23 = swp23(clone(SU));
+const filed = swp23(swBase23, 0);
+ok(filed && filed.feed[0].t.indexOf("WEEK IN REVIEW · WK") === 0, "Sunday sweep files the review into the permanent record");
+ok(swp23(filed, 0) === null, "one review per week — never a duplicate");
+
+console.log(`\nFINAL29: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

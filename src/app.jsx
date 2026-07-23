@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.22.0";
+const APP_V = "3.23.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -703,6 +703,37 @@ function caffAt(mg, doseHour, atHour) {
   return Math.round(mg * Math.pow(0.5, dt / 5));
 }
 
+/* THE WEEK IN REVIEW — the coaching read, written by the data */
+function weekReview(s) {
+  const endD = todayStart();
+  const winStart = isoOf(new Date(endD.getTime() - 6 * DAY));
+  const endISO = isoOf(endD);
+  const inWin = (d) => d >= winStart && d <= endISO;
+  const dls = Object.entries(s.dailyLogs).filter(([d]) => inWin(d));
+  const proN = dls.filter(([, v]) => v.pro != null).length;
+  const proHit = dls.filter(([, v]) => v.pro != null && Math.abs(v.pro - PROTEIN) <= 10).length;
+  const sess = Object.keys(s.sessionLog).filter(inWin);
+  const wins = s.feed.filter((f) => inWin(f.d) && /OWNED|DEBUT|EARNED|RECLAIM|ZERO-COMP|RESET COMPLETE/.test(f.t));
+  const nights = s.sleep.nights.filter((n) => inWin(n.d));
+  const cleanN = nights.filter((n) => n.h >= s.sleep.cleanH).length;
+  const fixes = s.feed.filter((f) => inWin(f.d) && f.t.indexOf("FIX WINDOW CLOSED") === 0).length;
+  const holds = s.exercises.filter((e) => e.holdFlag).length;
+  const cur = currentRate(s);
+  const sealedNow = blackoutOn(s);
+  const lines = [
+    `protein ${proHit}/${proN} on target${fixes ? ` · ${fixes} fix window${fixes > 1 ? "s" : ""} closed same-day` : ""}`,
+    `${sess.length} session${sess.length === 1 ? "" : "s"} logged · ${wins.length} win${wins.length === 1 ? "" : "s"} filed${holds ? ` · ${holds} lift on hold` : ""}`,
+    `sleep ${cleanN}/${nights.length} clean${sealedNow ? " · scale sealed — verdict Monday" : cur.measured ? ` · rate ~${cur.fat}/wk vs band ${s.rate.band.join("–")}` : ""}`,
+  ];
+  let verdict;
+  if (proN + sess.length + nights.length === 0) verdict = "A quiet week on the log — the return is the whole skill, and the door is open.";
+  else if (sealedNow) verdict = "Sealed week: adherence carried it while the scale sat quarantined — Monday's read inherits a clean house.";
+  else if (cur.measured && cur.fat >= s.rate.band[0] && cur.fat <= s.rate.band[1] && wins.length) verdict = "Textbook week: strength moved while the trend held the corridor.";
+  else if (proN && proHit / proN >= 0.7 && sess.length >= 3) verdict = "The boring, winning kind of week — the kind the crossover is made of.";
+  else verdict = "Mixed week, honestly logged — the ledger's favorite kind to coach from.";
+  return { wk: weekDay().wk, window: `${fmtShort(winStart)} – ${fmtShort(endISO)}`, lines, verdict };
+}
+
 /* events resolve themselves — the coach closes its own loops */
 function closeEvent(s, evId, zero) {
   const ns = JSON.parse(JSON.stringify(s));
@@ -1225,19 +1256,25 @@ function labStatusList(s) {
 }
 
 /* results announce themselves — any card crossing its threshold posts to the feed */
-function sweepLab(s) {
+function sweepLab(s, dow = new Date().getDay()) {
   const flat = labGroups(s).flatMap((g) => g.cards);
   const seen = s.labSeen || {};
   const first = Object.keys(seen).length === 0;
   const flips = flat.filter((c) => (c.status === "LIVE" || c.status === "TRACKING") && seen[c.id] !== c.status);
   const tISO2 = isoOf(todayStart());
   const needJournal = !(s.forecasts || []).some((f) => f.d === tISO2);
-  if (!flips.length && !first && !needJournal) return null;
+  const wkAgo2 = isoOf(new Date(todayStart().getTime() - 6 * DAY));
+  const needReview = (dow === 0 || dow === 1) && !(s.feed || []).some((f) => f.d >= wkAgo2 && f.t && f.t.indexOf("WEEK IN REVIEW") === 0);
+  if (!flips.length && !first && !needJournal && !needReview) return null;
   const ns = JSON.parse(JSON.stringify(s));
   if (needJournal) {
     const cur2 = currentRate(ns);
     const r2 = cur2.measured ? cur2.scale : 1.2;
     ns.forecasts = [...(ns.forecasts || []), { d: tISO2, trend: ns.trend, rate: r2, pred7: +(ns.trend - r2).toFixed(1), sealed: blackoutOn(ns) }].slice(-60);
+  }
+  if (needReview) {
+    const wr = weekReview(ns);
+    ns.feed.unshift({ d: tISO2, t: `WEEK IN REVIEW · WK ${wr.wk}`, how: `${wr.verdict} — ${wr.lines.join(" · ")}`.slice(0, 220) });
   }
   ns.labSeen = {};
   flat.forEach((c) => { ns.labSeen[c.id] = c.status; });
@@ -1444,7 +1481,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1752,7 +1789,19 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <More deep="The weekly elevated-carb day refills muscle glycogen (fullness plus next-day performance), gives adherence and hormones a breather, and is prescribed — an on-plan green day that the streak logic treats as compliance, because it is."
             forYou={(() => { const b = refeedBumps(s); return b.length ? `Your last ${b.length} refeeds moved the next morning ${Math.min(...b) > 0 ? "+" : ""}${Math.min(...b)} to +${Math.max(...b)} lb — storage wearing a costume, measured in you. Tomorrow's session runs on this fuel; you lift heavier ON it.` : "Tomorrow's session runs on this fuel — the next-morning bump is storage wearing a costume, and you lift heavier ON it."; })()} />
         </Card>
+
+
       )}
+
+      {[0, 1].includes(new Date().getDay()) && (() => { const wr = weekReview(s); return (
+        <Card accent={T.jade}>
+          <Eyebrow c={T.jade}>THE WEEK IN REVIEW — WRITTEN BY YOUR DATA · {wr.window}</Eyebrow>
+          <div style={{ fontFamily: body, fontSize: 13.5, color: T.chalk, marginTop: 6, lineHeight: 1.5 }}>{wr.verdict}</div>
+          {wr.lines.map((l, i) => (
+            <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: i ? 4 : 8 }}>{l}</div>
+          ))}
+        </Card>
+      ); })()}
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {cleanIn > 0 && <Chip c={T.chalk}>Scale sealed · clean read {fmtShort(SEAL_UNTIL)} · {cleanIn}d</Chip>}
