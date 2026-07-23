@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.10.0";
+const APP_V = "3.10.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,8 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 11;
+  SEED.v = 12;
+  SEED.labSeen = {};
   SEED.sleep.anchor = { wake: "06:45", inBed: 8.25 };
   SEED.sleep.caffMg = null;
   SEED.sleep.melaExp = { started: "2026-07-23", arm: "none", baseline: "5 mg most nights · ~6 h wakes" };
@@ -907,6 +908,20 @@ function labGroups(s) {
   return groups;
 }
 
+/* results announce themselves — any card crossing its threshold posts to the feed */
+function sweepLab(s) {
+  const flat = labGroups(s).flatMap((g) => g.cards);
+  const seen = s.labSeen || {};
+  const first = Object.keys(seen).length === 0;
+  const flips = flat.filter((c) => (c.status === "LIVE" || c.status === "TRACKING") && seen[c.id] !== c.status);
+  if (!flips.length && !first) return null;
+  const ns = JSON.parse(JSON.stringify(s));
+  ns.labSeen = {};
+  flat.forEach((c) => { ns.labSeen[c.id] = c.status; });
+  if (!first) flips.forEach((c) => ns.feed.unshift({ d: isoOf(todayStart()), t: "LAB LIVE — " + c.t, how: (c.forYou || (c.lines || [])[0] || "the shelf turned jade — open it").slice(0, 170) }));
+  return ns;
+}
+
 /* the macro engine: snapshots + rule proposals. Idempotent per day. */
 function runAdaptive(state, todayISO) {
   const s = JSON.parse(JSON.stringify(state));
@@ -1033,6 +1048,7 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV12(s) { s.labSeen = s.labSeen || {}; s.v = 12; return s; }
 function patchV11(s) {
   s.sleep.anchor = s.sleep.anchor || { wake: "06:45", inBed: 8.25 };
   if (s.sleep.caffMg === undefined) s.sleep.caffMg = null;
@@ -1041,8 +1057,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 11) return old;
-  if (old && old.v >= 3 && old.v <= 10) return patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))));
+  if (old && old.v === 12) return old;
+  if (old && old.v >= 3 && old.v <= 11) return patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -1068,7 +1084,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))));
+  return patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))));
 }
 
 const GLOSSARY = {
@@ -1090,7 +1106,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, sleepLab, labGroups, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, sleepLab, labGroups, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2478,15 +2494,23 @@ export default function PrepLedger() {
   const [offline, setOffline] = useState(false);
 
   useEffect(() => {
-    try { setS(loadState()); }
-    catch (e) { setS(JSON.parse(JSON.stringify(SEED))); setOffline(true); }
+    try {
+      let st = loadState();
+      const sw2 = sweepLab(st);
+      if (sw2) { st = sw2; save(st); }
+      setS(st);
+    } catch (e) { setS(JSON.parse(JSON.stringify(SEED))); setOffline(true); }
   }, []);
 
   const [gloss, setGloss] = useState(null);
   const [, setWake] = useState(0);
   useEffect(() => { window.__setGloss = setGloss; return () => { window.__setGloss = null; }; }, []);
   useEffect(() => {
-    const onVis2 = () => { if (document.visibilityState === "visible") setWake((x) => x + 1); };
+    const onVis2 = () => {
+      if (document.visibilityState !== "visible") return;
+      setS((prev) => { if (!prev) return prev; const sw2 = sweepLab(prev); if (sw2) { save(sw2); return sw2; } return prev; });
+      setWake((x) => x + 1);
+    };
     document.addEventListener("visibilitychange", onVis2);
     return () => document.removeEventListener("visibilitychange", onVis2);
   }, []);

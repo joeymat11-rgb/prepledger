@@ -354,7 +354,7 @@ const lab9b = slb(se);
 ok(lab9b[0].status === "LIVE" && lab9b[0].forYou.indexOf("avg 7.8") > -1, "seven none-nights flip the experiment LIVE with the verdict math");
 const oldV10 = clone(SK); oldV10.v = 10; delete oldV10.sleep.anchor; delete oldV10.sleep.caffMg; delete oldV10.sleep.melaExp;
 const m11 = mgB(oldV10);
-ok(m11.v === 11 && m11.sleep.anchor.wake === "06:45" && m11.sleep.melaExp.arm === "none", "v10 phones patch to v11 with the anchor and the experiment");
+ok(m11.v >= 11 && m11.sleep.anchor.wake === "06:45" && m11.sleep.melaExp.arm === "none", "v10 phones patch to v11 with the anchor and the experiment");
 
 // (interim)
 
@@ -369,5 +369,17 @@ const slG = gs.find(g => g.id === "sleep");
 ok(slG.cards.some(c => c.id === "melaexp") && slG.cards.some(c => c.id === "sleepdose") && slG.cards.some(c => c.id === "sleeplag"), "sleep shelf holds the moved experiments plus the lag map");
 ok(gs.every(g => g.live + g.armed + g.rest === g.cards.length), "shelf counters add up on every shelf");
 
-console.log(`\nFINAL18: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.10.1 — results announce themselves
+const { sweepLab: swp, SEED: SM } = __test;
+const swBase = swp(clone(SM));
+ok(swBase && Object.keys(swBase.labSeen).length >= 20 && swBase.feed.length === clone(SM).feed.length, "first sweep baselines every card silently — no spam on migration");
+let ann = JSON.parse(JSON.stringify(swBase));
+for (let k = 1; k <= 7; k++) { const dd = new Date(2026, 6, 23 + k); ann.sleep.nights.push({ d: dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" + String(dd.getDate()).padStart(2, "0"), h: 7.8, tags: [] }); }
+const ann2 = swp(ann);
+ok(ann2 && ann2.feed[0].t.indexOf("LAB LIVE — MELATONIN") === 0 && ann2.labSeen.melaexp === "LIVE", "threshold crossed → the feed announces the verdict");
+ok(swp(ann2) === null, "no re-announcement — quiet until the next flip");
+
+console.log(`\nFINAL19: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
