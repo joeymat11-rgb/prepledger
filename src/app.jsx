@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.51.0";
+const APP_V = "3.51.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -4391,7 +4391,7 @@ export default function PrepLedger() {
   const [tab, setTab] = useState("NOW");
   const [rules, setRules] = useState(false);
   const [coach, setCoach] = useState(false);
-  const [kitPerson, setKitPerson] = useState(() => { try { return new URLSearchParams(window.location.search).get("p") || localStorage.getItem(KIT_KEY); } catch (e) { return null; } });
+  const [kitPerson, setKitPerson] = useState(() => { try { const qp = new URLSearchParams(window.location.search).get("p"); if (qp && KIT_SPECS[qp]) { localStorage.setItem(KIT_KEY, qp); return qp; } return localStorage.getItem(KIT_KEY); } catch (e) { return null; } });
   const [updReady, setUpdReady] = useState(false);
   const [offline, setOffline] = useState(false);
 
