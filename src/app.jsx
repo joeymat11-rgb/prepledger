@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.39.0";
+const APP_V = "3.40.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,8 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 19;
+  SEED.v = 20;
+  SEED.trials = [];
   SEED.pulse = [];
   SEED.sleep.anchor = { wake: "06:45", inBed: 8.25, asleepTarget: 8 };
   SEED.forecasts = [];
@@ -1306,6 +1307,52 @@ function labAnalytics2(s) {
       forYou: pairs2.length >= 3 ? `${pairs2.length} matched pairs found: the post-refeed twin averages ${avgD2 >= 0 ? "+" : ""}${avgD2} reps over its match. That's your refeed's real next-day purchase, measured under fair conditions.` : `${pairs2.length}/3 pairs so far — every logged session gives the miner more twins to hunt. This one rewards patience with the rarest kind of proof.`,
       lines: [] };
   });
+
+  /* 21 · THE TRIALS DESK */
+  add(() => {
+    const props3 = trialProposals(s);
+    const recs = (s.trials || []).filter((t) => !t.declined);
+    const runningN = recs.filter((t) => { const v = trialVerdict(s, t); return v && !v.done; }).length;
+    return { id: "trialsdesk", t: "THE TRIALS DESK", status: runningN ? "TRACKING" : "LIVE", prog: null,
+      tag: props3.length ? `${props3.length} experiment${props3.length > 1 ? "s" : ""} proposed — one tap starts, nothing runs without you.` : runningN ? `${runningN} trial${runningN > 1 ? "s" : ""} running — follow the day's arm on NOW.` : "Watching for the next worthwhile experiment.",
+      deep: "This is the lab going from watching to testing. It proposes formal experiments on your levers — alternating blocks, fair comparisons, honest sample sizes — and runs them only after your one-tap consent. The day's arm appears in TODAY'S PROTOCOL so following a trial costs zero thought. Verdicts come badged like everything else: direction, sample size, and never gospel.",
+      forYou: "Open the card — proposals, running trials, and finished verdicts all live inside.",
+      lines: [] };
+  });
+
+  /* 22 · REFEED REBOUND (pulse × refeed) */
+  add(() => {
+    const pairsRB = [];
+    (s.pulse || []).forEach((pr) => {
+      const dayBefore = isoOf(new Date(mk(pr.d).getTime() - DAY));
+      if (dayType(dayBefore) === "REFEED" && pBase) pairsRB.push(pr.bpm - pBase);
+    });
+    const avgRB = pairsRB.length ? +(pairsRB.reduce((a, b) => a + b, 0) / pairsRB.length).toFixed(1) : null;
+    return { id: "refeedpulse", t: "REFEED REBOUND", status: pairsRB.length >= 2 ? "LIVE" : "ARMED", prog: { n: pairsRB.length, need: 2, label: "post-refeed pulse mornings" },
+      tag: "Does Wednesday's food show up in Thursday's heartbeat?",
+      deep: "A resting-pulse dip the morning after a refeed is the parasympathetic rebound — the nervous system cashing the recovery the extra food bought. If your Thursdays reliably beat baseline, the refeed is doing systemic work far beyond glycogen; if they don't, its value is purely the fuel and the psychology.",
+      forYou: avgRB != null ? `Your post-refeed mornings run ${avgRB > 0 ? "+" : ""}${avgRB} bpm vs baseline (${pairsRB.length} measured). ${avgRB <= -1 ? "That's the rebound — recovery, purchased and visible." : "No systemic dip yet — the refeed's value is fuel and sanity, which still counts."}` : "Arms with two post-refeed pulse mornings — the first candidate is the morning after your next Wednesday.",
+      lines: [] };
+  });
+
+  /* 23 · SEASON ONE */
+  add(() => {
+    const wkNow = weekDay().wk;
+    const letters = s.feed.filter((f) => f.t.indexOf("WEEK IN REVIEW") === 0).length;
+    const wins2 = s.feed.filter((f) => /OWNED|DEBUT|EARNED|RECLAIM|ZERO-COMP/.test(f.t)).length;
+    return { id: "seasonone", t: "SEASON ONE — THE BOOK OF THE CUT", status: "ARMED", prog: { n: wkNow, need: 12, label: "weeks of story (compiles in full at the diet-exit)" },
+      tag: "When the cut ends, the app writes the book — chapters, turning points, receipts.",
+      deep: "Every feed entry, weekly review, letter, and debrief is a page already written. At the diet-exit the app compiles them into chapters — The Sheet Era, The Handoff, The Wedding Fortnight, The Crossover — with the numbers as plot. A document you keep; proof the whole thing happened the way you remember it.",
+      forYou: `${wkNow} weeks of story so far · ${s.feed.length} entries · ${wins2} wins · ${letters} weekly reviews on file. The manuscript is accumulating on its own — nothing to do but live the chapters.`,
+      lines: [] };
+  });
+
+  /* 24 · THE HANDOFF DOSSIER */
+  add(() => ({ id: "dossier", t: "THE HANDOFF DOSSIER", status: "LIVE", prog: null,
+    tag: "One tap: every live verdict, compiled plain, for your coach.",
+    deep: "Generated fresh on request — never stale, never stored. It compiles the machine-trust line, every speaking instrument's current verdict in plain words, running trials, this week's review, and anything athlete-called awaiting sign-off. Its whole job: your coach gets the lab's depth in two minutes of reading, whenever he asks.",
+    forYou: "Open the card and tap GENERATE — then copy it straight into a text to him.",
+    lines: [] }));
   return out;
 }
 
@@ -1317,10 +1364,11 @@ function labGroups(s) {
     engine: ["adaptmeter", "stepeff", "refeedroi"],
     training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss"],
     sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "canary"],
-    pulse: ["pulsebase", "cutstress", "pulsewarn"],
+    pulse: ["pulsebase", "cutstress", "pulsewarn", "refeedpulse"],
     behavior: ["missarch", "weekend", "compound", "miner"],
-    road: ["cone", "dexarecon"],
-    models: ["ghost", "sentinel", "letter", "prophet", "whatif", "negotiator"],
+    trials: ["trialsdesk"],
+    road: ["cone", "dexarecon", "seasonone"],
+    models: ["ghost", "sentinel", "letter", "prophet", "whatif", "negotiator", "dossier"],
     locked: ["mrv", "debutmodel"],
     shelf: ["spread", "caffdose", "creatine", "matador", "sleepceil"],
   };
@@ -1330,6 +1378,7 @@ function labGroups(s) {
     training: "TRAINING — what the reps are saying",
     sleep: "SLEEP — the master-variable wing",
     pulse: "THE PULSE — five seconds, four verdicts",
+    trials: "THE TRIALS DESK — experiments you approved",
     behavior: "PATTERNS OF A HUMAN — behavior, decoded",
     road: "THE ROAD — timing the pivot",
     models: "MODELS, SENTINELS & META — badged honestly",
@@ -1348,6 +1397,103 @@ function labGroups(s) {
   return groups;
 }
 
+/* THE HANDOFF DOSSIER — every live verdict, compiled plain, on request */
+function dossierText(s) {
+  const L = [];
+  const pg = prophetGrades(s);
+  L.push(`PREP LEDGER — COACH DOSSIER · ${fmtShort(isoOf(todayStart()))} · wk ${weekDay().wk}`);
+  L.push(`Trend ${s.trend} lb · est body fat ~${bfEst(s).pct}% · pace ${currentRate(s).fat} lb/wk${blackoutOn(s) ? " · scale sealed, clean read " + fmtShort(SEAL_UNTIL) : ""}`);
+  L.push(pg.n >= 2 ? `Machine trust: forecasts run ±${pg.mae} lb, bias ${pg.bias > 0 ? "+" : ""}${pg.bias}.` : `Machine trust: still calibrating (first self-grades ~1 week in).`);
+  L.push("");
+  labGroups(s).forEach((g) => {
+    const speak = g.cards.filter((c) => c.status === "LIVE" || c.status === "TRACKING");
+    if (!speak.length) return;
+    L.push(g.title.split(" — ")[0] + ":");
+    speak.forEach((c) => { const fy = Array.isArray(c.forYou) ? c.forYou.join(" ") : c.forYou; L.push(`  • ${c.t.split(" — ")[0]}: ${plainify(fy || c.tag)}`); });
+  });
+  L.push("");
+  const running = (s.trials || []).filter((t) => !t.declined).map((t) => ({ t, v: trialVerdict(s, t), arm: trialArmOn(t, isoOf(todayStart())) }));
+  if (running.length) {
+    L.push("Trials:");
+    running.forEach(({ t, v, arm }) => {
+      const tpl = TRIAL_TPL[t.tplId];
+      L.push(`  • ${tpl.t}: ${v.done ? `finished — arm A ${v.a} vs arm B ${v.b} (${v.nA + v.nB} blocks; direction, not gospel)` : arm ? `running, block ${arm.block}/${arm.of}` : "scheduled"}`);
+    });
+    L.push("");
+  }
+  const wr = weekReview(s);
+  L.push("This week: " + plainify(wr.verdict));
+  wr.lines.forEach((l) => L.push("  " + plainify(l)));
+  const recent = s.feed.filter((f) => f.d >= isoOf(new Date(todayStart().getTime() - 7 * DAY)) && /4TH SET|UNI|DEBUT|OVERRIDDEN/.test(f.t));
+  if (recent.length) { L.push(""); L.push("For your sign-off (athlete-called this week):"); recent.forEach((f) => L.push(`  • ${f.t.toLowerCase()} — ${plainify(f.how).slice(0, 110)}`)); }
+  return L.join("\n");
+}
+
+/* THE TRIALS ENGINE — the lab proposes, you consent, it runs and grades */
+const TRIAL_TPL = {
+  refeedsize: { t: "REFEED SIZE — 2,450 vs 2,300", blockDays: 7, cycles: 4, arms: ["refeed 2,450", "refeed 2,300"],
+    q: "Does the smaller refeed buy the same next-day lifting?",
+    eligible: (s) => Object.keys(s.dailyLogs).filter((d) => dayType(d) === "REFEED").length >= 1,
+    metric: "next-day session total reps per block" },
+  caffcut: { t: "CAFFEINE — USUAL vs −100 MG", blockDays: 3, cycles: 6, arms: ["usual dose", "usual −100 mg"],
+    q: "Does a smaller pre-lift dose cost reps — or buy sleep?",
+    eligible: (s) => !!s.sleep.caffMg,
+    metric: "session reps + hours asleep per block" },
+  lightsshift: { t: "LIGHTS-OUT — ON TIME vs 30 MIN EARLIER", blockDays: 3, cycles: 4, arms: ["derived time", "30 min earlier"],
+    q: "Does the earlier window buy next-day output?",
+    eligible: (s) => s.sleep.nights.filter((n) => n.sol != null).length >= 5,
+    metric: "hours asleep + next-day reps per block" },
+  steptarget: { t: "STEPS — 16.5K vs 18K", blockDays: 7, cycles: 4, arms: ["16.5k/day", "18k/day"],
+    q: "Do the extra steps show up on your scale, in you?",
+    eligible: () => true,
+    metric: "weekly weight change per block" },
+};
+function trialProposals(s) {
+  return Object.entries(TRIAL_TPL).filter(([id, t]) => !(s.trials || []).some((x) => x.tplId === id) && t.eligible(s)).map(([id, t]) => ({ id, ...t }));
+}
+function trialArmOn(trial, iso) {
+  const tpl = TRIAL_TPL[trial.tplId];
+  if (!tpl) return null;
+  const day = Math.floor((mk(iso) - mk(trial.started)) / DAY);
+  if (day < 0 || day >= tpl.blockDays * tpl.cycles) return null;
+  return { armIdx: Math.floor(day / tpl.blockDays) % 2, block: Math.floor(day / tpl.blockDays) + 1, of: tpl.cycles, tpl };
+}
+function trialVerdict(s, trial) {
+  const tpl = TRIAL_TPL[trial.tplId];
+  if (!tpl) return null;
+  const endISO = isoOf(new Date(mk(trial.started).getTime() + tpl.blockDays * tpl.cycles * DAY));
+  const done = isoOf(todayStart()) >= endISO;
+  const perArm = [[], []];
+  try {
+    for (let b = 0; b < tpl.cycles; b++) {
+      const from = mk(trial.started).getTime() + b * tpl.blockDays * DAY;
+      const to = from + tpl.blockDays * DAY;
+      const inBlock = (d) => mk(d).getTime() >= from && mk(d).getTime() < to;
+      let val = null;
+      if (trial.tplId === "steptarget") {
+        const ts2 = trendSeries(s.reads);
+        const a2 = ts2.filter((x) => inBlock(x.d));
+        if (a2.length >= 2) val = +(a2[0].t - a2[a2.length - 1].t).toFixed(1);
+      } else {
+        const sessDs = Object.keys(s.sessionLog).filter(inBlock);
+        if (sessDs.length) val = Math.round(sessDs.reduce((a3, d) => a3 + (s.sessionLog[d].entries || []).reduce((x, e) => x + (e.reps || []).reduce((p, q) => p + q, 0), 0), 0) / sessDs.length);
+      }
+      if (val != null) perArm[b % 2].push(val);
+    }
+  } catch (e) {}
+  const mean = (a2) => (a2.length ? +(a2.reduce((x, y) => x + y, 0) / a2.length).toFixed(1) : null);
+  return { done, endISO, a: mean(perArm[0]), b: mean(perArm[1]), nA: perArm[0].length, nB: perArm[1].length };
+}
+function activeTrial(s) {
+  const tI = isoOf(todayStart());
+  for (const tr of s.trials || []) {
+    if (tr.declined) continue;
+    const arm = trialArmOn(tr, tI);
+    if (arm) return { tr, arm };
+  }
+  return null;
+}
+
 /* TODAY'S PROTOCOL — one lead action, then the day ranked, every line from live data */
 function dayProtocol(s, slp) {
   const lead = theOneThing(s, slp);
@@ -1361,6 +1507,8 @@ function dayProtocol(s, slp) {
     const g = genSession(s, tI, slp);
     if (g && g.ex && g.ex.length) steps.push({ a: `Session: ${g.ex.length} lifts`, why: (g.structural && g.structural.indexOf("NONE") !== 0 ? g.structural.toLowerCase() + " · " : "") + (slp.clean ? "records can become official today" : "short sleep — effort +1 unless overridden, records pend") });
   }
+  const at2 = activeTrial(s);
+  if (at2) steps.push({ a: `Trial: ${at2.arm.tpl.arms[at2.arm.armIdx]}`, why: `${at2.arm.tpl.t.toLowerCase()} · block ${at2.arm.block}/${at2.arm.of} — the lab is measuring, just follow the arm` });
   if (s.fixWindow) steps.push({ a: "Protein 175 — non-negotiable today", why: "closes the open fix window; the miss becomes a save" });
   else steps.push({ a: "Protein 175", why: "~44 g × 4 feeds · wake / pre-lift / post-lift / pre-bed" });
   const lo = lightsOutT(s);
@@ -1637,6 +1785,7 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV20(s) { s.trials = s.trials || []; s.v = 20; return s; }
 function patchV19(s) { s.pulse = s.pulse || []; s.v = 19; return s; }
 function patchV18(s) {
   const rd = s.exercises.find((x) => x.id === "rearDelt");
@@ -1679,8 +1828,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 19) return old;
-  if (old && old.v >= 3 && old.v <= 18) return patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))))))));
+  if (old && old.v === 20) return old;
+  if (old && old.v >= 3 && old.v <= 19) return patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -1706,7 +1855,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))))))));
+  return patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))))))));
 }
 
 const GLOSSARY = {
@@ -1731,7 +1880,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -3104,6 +3253,53 @@ function WhatIfConsole({ s }) {
   );
 }
 
+function TrialsDesk({ s, setS, save }) {
+  const tI = isoOf(todayStart());
+  const props3 = trialProposals(s);
+  const recs = (s.trials || []).filter((t) => !t.declined);
+  const act = (tplId, declined) => { const ns = JSON.parse(JSON.stringify(s)); ns.trials = [...(ns.trials || []), declined ? { tplId, declined: true } : { tplId, started: tI }]; if (!declined) ns.feed.unshift({ d: tI, t: "TRIAL STARTED — " + TRIAL_TPL[tplId].t, how: "you consented with one tap · the day's arm rides TODAY'S PROTOCOL · verdict lands when the blocks finish" }); setS(ns); save(ns); };
+  return (
+    <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
+      {recs.map((t, i) => { const v = trialVerdict(s, t); const arm = trialArmOn(t, tI); const tpl = TRIAL_TPL[t.tplId]; return (
+        <div key={i} style={{ marginBottom: 12 }}>
+          <div style={{ fontFamily: mono, fontSize: 10.5, color: v.done ? T.jade : T.brass }}>{v.done ? "◆ FINISHED" : "▸ RUNNING"} · {tpl.t}</div>
+          <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, marginTop: 3, lineHeight: 1.5 }}>
+            {v.done ? `${tpl.arms[0]}: ${v.a ?? "—"} vs ${tpl.arms[1]}: ${v.b ?? "—"} (${tpl.metric}, ${v.nA + v.nB} blocks). Direction, not gospel — worth one line in the coach dossier.` : arm ? `Block ${arm.block}/${arm.of} · this block's arm: ${tpl.arms[arm.armIdx]} — it's already on TODAY'S PROTOCOL.` : `Scheduled — begins ${fmtShort(t.started)}.`}
+          </div>
+        </div>
+      ); })}
+      {props3.map((pr2) => (
+        <div key={pr2.id} style={{ marginBottom: 12 }}>
+          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>PROPOSED · {pr2.t}</div>
+          <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 3 }}>{pr2.q} {pr2.cycles} blocks of {pr2.blockDays} days, alternating. Measures: {pr2.metric}.</div>
+          <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
+            <Btn small tone="jade" onClick={() => act(pr2.id, false)}>Start — I consent</Btn>
+            <Btn small onClick={() => act(pr2.id, true)}>Not now</Btn>
+          </div>
+        </div>
+      ))}
+      {!recs.length && !props3.length && <div style={{ fontFamily: mono, fontSize: 10, color: T.dim }}>nothing proposed right now — eligibility is data-driven and re-checked daily</div>}
+    </div>
+  );
+}
+function DossierBlock({ s }) {
+  const [txt, setTxt] = useState(null);
+  const [copied, setCopied] = useState(false);
+  return (
+    <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
+      {!txt ? <Btn full tone="jade" onClick={() => setTxt(dossierText(s))}>Generate — fresh, right now</Btn> : (
+        <>
+          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.chalk, whiteSpace: "pre-wrap", lineHeight: 1.6, maxHeight: 340, overflowY: "auto", background: T.plate2, borderRadius: 8, padding: 10 }}>{txt}</div>
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <Btn small tone="jade" onClick={() => { try { navigator.clipboard.writeText(txt); setCopied(true); } catch (e) {} }}>{copied ? "Copied ✓" : "Copy for coach"}</Btn>
+            <Btn small onClick={() => { setTxt(null); setCopied(false); }}>Close</Btn>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function NegotiatorConsole({ s }) {
   const [tBF, setTBF] = useState(11);
   const [dOff, setDOff] = useState(0);
@@ -3220,6 +3416,8 @@ function HistTab({ s, setS, save }) {
                 )}
                 {a.id === "whatif" && <WhatIfConsole s={s} />}
                 {a.id === "negotiator" && <NegotiatorConsole s={s} />}
+                {a.id === "trialsdesk" && <TrialsDesk s={s} setS={setS} save={save} />}
+                {a.id === "dossier" && <DossierBlock s={s} />}
               </div>
             )}
           </Card>

@@ -387,16 +387,16 @@ ok(swp(ann2) === null, "no re-announcement — quiet until the next flip");
 // v3.13 — the outside-the-box wing
 const { labAnalytics2: la2, labGroups: lg2, completeSession: csW, genSession: gsW, SEED: SN } = __test;
 const wing = la2(clone(SN));
-ok(wing.length === 20, "twenty instruments, all constructed without a single crash: " + wing.length);
+ok(wing.length === 24, "twenty-four instruments, all constructed without a single crash: " + wing.length);
 ok(wing.every(c => c.tag && c.deep && c.forYou && c.status), "every card carries all three layers plus a status");
 const ids2 = wing.map(c => c.id);
 ok(["adaptmeter","strvelocity","canary","regularity","missarch","weekend","stepeff","refeedroi","sessionshape","compound","ghost","sentinel","letter"].every(x => ids2.includes(x)), "the full roster reports");
 ok(wing.find(c => c.id === "weekend").status === "LIVE" && wing.find(c => c.id === "missarch").status === "LIVE", "sheet history powers instant verdicts on day one");
 ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id === "ghost").forYou.indexOf("behind you") > -1, "ghost is badged a MODEL and running");
 const gAll = lg2(clone(SN));
-ok(gAll.length === 10 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,road,models,locked,shelf", "ten shelves, fixed order");
+ok(gAll.length === 11 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,trials,road,models,locked,shelf", "eleven shelves, fixed order");
 const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
-ok(tot2 === 43, "all 43 instruments filed exactly once: " + tot2);
+ok(tot2 === 47, "all 47 instruments filed exactly once: " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
@@ -426,7 +426,7 @@ const j1 = swp3(clone(SO));
 ok(j1 && j1.forecasts.length === 1 && typeof j1.forecasts[0].pred7 === "number", "the sweep journals one dated 7-day forecast per day");
 ok(swp3(j1) === null, "second sweep same day: no duplicate journal, no writes");
 const wing3 = laW(clone(SO));
-ok(wing3.length === 20, "twenty instruments in the wing now: " + wing3.length);
+ok(wing3.length === 24, "twenty-four instruments in the wing now: " + wing3.length);
 const pr = wing3.find(c => c.id === "prophet");
 ok(pr && pr.status === "ARMED" && pr.deep.indexOf("error bars") > -1, "prophet armed, philosophy attached");
 let fcS = clone(SO);
@@ -446,7 +446,7 @@ ok(dock.next.every(n => n.n < n.need) && dock.next[0].pct >= (dock.next[1] ? doc
 ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "sentinel line reads");
 const ranked = sl1(clone(SP));
 const rk = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
-ok(ranked.length === 43 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 38 cards, monotone rank order");
+ok(ranked.length === 47 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 38 cards, monotone rank order");
 // a flip lands on the docket's fresh row
 const swD = __test.sweepLab(clone(SP));
 let dkF = JSON.parse(JSON.stringify(swD));
@@ -471,7 +471,7 @@ ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 ph
 // v3.17 — the sibling design review
 const { labSections: ls17, SEED: SR } = __test;
 const secs = ls17(clone(SR));
-ok(secs.reduce((a, x) => a + x.cards.length, 0) === 43, "all 43 filed across the plain-language sections, none lost");
+ok(secs.reduce((a, x) => a + x.cards.length, 0) === 47, "all 47 filed across the plain-language sections, none lost");
 const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "gathering");
 ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
 ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
@@ -660,5 +660,28 @@ ok(pw.status === "LIVE" && pw.forYou.indexOf("Treat today gently") > -1, "a +7 s
 ok(cs.status === "LIVE" && cs.forYou.indexOf("bpm") > -1, "cut-stress drift reads in bpm");
 ok(wingP.find(c => c.id === "negotiator").status === "MODEL" && wingP.find(c => c.id === "miner").status === "ARMED", "negotiator badged MODEL, miner gathering pairs");
 
-console.log(`\nFINAL39: ${pass} passed, ${fail} failed`);
+// (interim)
+
+
+// v3.40 — the lab starts experimenting
+const { trialProposals: tp40, trialArmOn: ta40, trialVerdict: tv40, activeTrial: at40, dossierText: dt40, migrate: mg40, SEED: TE } = __test;
+const oldV19t = clone(TE); oldV19t.v = 19; delete oldV19t.trials;
+ok(mg40(oldV19t).v >= 20 && Array.isArray(mg40(oldV19t).trials), "phones patch to v20 with the trials ledger");
+const props40 = tp40(clone(TE));
+ok(props40.length >= 2 && props40.every(x => x.q && x.arms.length === 2), "data-eligible proposals stand ready, each a fair two-arm question: " + props40.map(x => x.id).join(","));
+let trS = clone(TE);
+trS.trials = [{ tplId: "refeedsize", started: isoL(Date.now() - 2 * 864e5) }];
+const arm0 = ta40(trS.trials[0], isoL(Date.now()));
+ok(arm0 && arm0.block === 1 && arm0.armIdx === 0, "day 2 of a 7-day block sits in block 1, arm A");
+const act40 = at40(trS);
+ok(act40 && act40.arm.tpl.t.indexOf("REFEED") === 0, "the active trial surfaces for the day protocol");
+let doneS = clone(TE);
+doneS.trials = [{ tplId: "refeedsize", started: isoL(Date.now() - 40 * 864e5) }];
+const v40 = tv40(doneS, doneS.trials[0]);
+ok(v40.done === true && typeof v40.nA === "number", "elapsed schedules grade themselves done");
+const doss = dt40(clone(TE));
+ok(doss.indexOf("COACH DOSSIER") > 0 && doss.indexOf("Machine trust") > -1 && doss.indexOf("This week:") > -1, "dossier compiles header, trust, and the week");
+ok(doss.indexOf("provisional") === -1 && doss.indexOf("CLEAN") === -1, "dossier speaks only plain English");
+
+console.log(`\nFINAL40: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
