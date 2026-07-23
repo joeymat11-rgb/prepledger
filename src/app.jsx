@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.8.2";
+const APP_V = "3.9.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,10 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 10;
+  SEED.v = 11;
+  SEED.sleep.anchor = { wake: "06:45", inBed: 8.25 };
+  SEED.sleep.caffMg = null;
+  SEED.sleep.melaExp = { started: "2026-07-23", arm: "none", baseline: "5 mg most nights · ~6 h wakes" };
   SEED.creatine = null;
   SEED.photos = [];
   SEED.sync = { last: null, status: "" };
@@ -684,6 +687,45 @@ function labAnalytics(s) {
   return out.sort((a, b) => rank[a.status] - rank[b.status]);
 }
 
+/* sleep math helpers */
+function sleepSpanH(bed, wake, awakeMin = 0) {
+  const m = (t) => { const [h2, m2] = t.split(":").map(Number); return h2 * 60 + m2; };
+  let span = m(wake) - m(bed);
+  if (span <= 0) span += 1440;
+  return Math.max(0, +(((span - awakeMin) / 60)).toFixed(2));
+}
+function caffAt(mg, doseHour, atHour) {
+  if (!mg) return 0;
+  const dt = atHour - doseHour;
+  return Math.round(mg * Math.pow(0.5, dt / 5));
+}
+
+/* THE SLEEP LAB — experiments running on the master variable */
+function sleepLab(s) {
+  const out = [];
+  const exp = s.sleep.melaExp || { started: "2026-07-23", arm: "none" };
+  const post = s.sleep.nights.filter((n) => n.d >= exp.started);
+  const noneN = post.filter((n) => !(n.tags || []).includes("mela"));
+  const melaN = post.filter((n) => (n.tags || []).includes("mela"));
+  const pre = s.sleep.nights.filter((n) => n.d < exp.started);
+  const avg = (a) => (a.length ? +(a.reduce((x, y) => x + y.h, 0) / a.length).toFixed(2) : null);
+  const wokeRate = (a) => (a.length ? Math.round(100 * a.filter((n) => (n.tags || []).includes("woke")).length / a.length) : null);
+  out.push({ id: "melaexp", t: "MELATONIN EXPERIMENT — ARM 1: NONE", status: noneN.length >= 7 ? "LIVE" : "ARMED", prog: { n: noneN.length, need: 7, label: "nights off melatonin" },
+    tag: "Do you need the pill at all? Pre-registered " + fmtShort(exp.started) + ".",
+    deep: "Baseline on file: 5 mg most nights, waking ~6 h in — right where a 5 mg bolus finishes clearing (half-life ~40–60 min). The literature says melatonin's average effect is minutes, not hours (Ferracioli-Oda 2013: ~7 min faster onset), it works as a clock signal at 0.3–0.5 mg (Zhdanova), and OTC labels are unreliable (−83% to +478% measured content). Arm 1 removes it entirely. If a low-dose arm is ever warranted — onset consistently ballooning past ~30–40 min — it gets pre-registered the same way.",
+    forYou: noneN.length >= 7
+      ? `Off melatonin: avg ${avg(noneN)} h over ${noneN.length} nights (baseline ${avg(pre) ?? "—"} h) · mid-night wakes ${wokeRate(noneN)}% of nights${melaN.length ? ` · on-nights logged for contrast: ${melaN.length}` : ""}. ${avg(noneN) != null && avg(pre) != null && avg(noneN) >= avg(pre) ? "The pill was doing nothing you'll miss — case closing." : "Wake pattern persisting off the pill shifts suspicion to the caffeine tail or deficit-cortisol — next lever below."}`
+      : `${noneN.length}/7 nights banked. Tag any night you do take it (chip on the morning log) — contrast data is still data. Tonight counts.`,
+    lines: [] });
+  const woke = post.filter((n) => (n.tags || []).includes("woke"));
+  out.push({ id: "wakesig", t: "WAKE SIGNATURE", status: woke.length >= 5 ? "LIVE" : "ARMED", prog: { n: woke.length, need: 5, label: "tagged mid-night wakes" },
+    tag: "Is the 6-hour wake a pattern with an address, or noise?",
+    deep: "Every mid-night wake you tag carries a duration. Enough of them reveal whether the wakes cluster (a clock/clearance signature pointing at melatonin timing or the caffeine tail) or scatter (ordinary arousals everyone has and forgets). Deficit-cortisol wakes — the 3–4 a.m. classic in deep cuts — are also on the suspect list, and the pre-bed protein feed is their counter.",
+    forYou: woke.length >= 5 ? `${woke.length} tagged wakes · avg ${Math.round(woke.reduce((a, n) => a + (n.awakeMin || 30), 0) / woke.length)} min awake · on ${wokeRate(post)}% of nights. Persisting off melatonin = caffeine-tail or cortisol; tell me and the clock-time capture ships.` : `${woke.length}/5 — may this one starve. Tag honestly; untagged solid nights are data too.`,
+    lines: [] });
+  return out;
+}
+
 /* which nights are owed? dated by the evening they began; logged the morning after; pre-5am still means the night you finished */
 function owedNights(s, hour = new Date().getHours()) {
   const ref = hour < 5 ? new Date(todayStart().getTime() - DAY) : todayStart();
@@ -712,7 +754,11 @@ function theOneThing(s, slp, hour = new Date().getHours()) {
   if (trainToday && !sessDone && hour >= 10) { const g = genSession(s, tISO, slp); return { t: "Today: " + (g.structural || g.name), sub: "log it in TRAIN when the iron's down" }; }
   if (!dLogged && hour >= 17) return { t: "Close the day", sub: "cal · protein · steps — pre-filled to targets, adjust and tap" };
   if (!dLogged) return { t: "Day open — nothing owed yet", sub: "numbers close it tonight · everything else is optional reading" };
-  return { t: "Everything's banked ✓", sub: slp.clean ? "protect the streak — same bedtime tonight" : "tonight ≥7.5 keeps the reset alive" };
+  const a2 = s.sleep.anchor || { wake: "06:45", inBed: 8.25 };
+  const wm2 = a2.wake.split(":").map(Number);
+  let lo2 = wm2[0] * 60 + wm2[1] - Math.round(a2.inBed * 60); if (lo2 < 0) lo2 += 1440;
+  const loT2 = `${String(Math.floor(lo2 / 60)).padStart(2, "0")}:${String(lo2 % 60).padStart(2, "0")}`;
+  return { t: "Everything's banked ✓", sub: (slp.clean ? "protect the streak" : "tonight rebuilds the reset") + ` — lights out ${loT2}, wake ${a2.wake}` };
 }
 
 /* the week, in one paragraph — auto-written from state */
@@ -956,9 +1002,16 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV11(s) {
+  s.sleep.anchor = s.sleep.anchor || { wake: "06:45", inBed: 8.25 };
+  if (s.sleep.caffMg === undefined) s.sleep.caffMg = null;
+  s.sleep.melaExp = s.sleep.melaExp || { started: "2026-07-23", arm: "none", baseline: "5 mg most nights · ~6 h wakes" };
+  s.v = 11;
+  return s;
+}
 function migrate(old) {
-  if (old && old.v === 10) return old;
-  if (old && old.v >= 3 && old.v <= 9) return patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))));
+  if (old && old.v === 11) return old;
+  if (old && old.v >= 3 && old.v <= 10) return patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -984,7 +1037,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))));
+  return patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))));
 }
 
 const GLOSSARY = {
@@ -1006,7 +1059,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, sleepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1200,7 +1253,10 @@ function Proposals({ s, setS, save }) {
 
 function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const tISO = isoOf(todayStart());
-  const [slpH, setSlpH] = useState(7.5);
+  const [bedT, setBedT] = useState("23:00");
+  const [wakeT, setWakeT] = useState((s.sleep.anchor || {}).wake || "06:45");
+  const [slTags, setSlTags] = useState([]);
+  const [awakeMin, setAwakeMin] = useState(30);
   const [dayEdit, setDayEdit] = useState(false);
   const [density, setDensity] = useState(() => { try { return localStorage.getItem("prep-ledger-density") || "focus"; } catch (e) { return "focus"; } });
   const setDens = (v) => { setDensity(v); try { localStorage.setItem("prep-ledger-density", v); } catch (e) {} };
@@ -1333,21 +1389,46 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <>
             <Card accent={T.chalk}>
               <Eyebrow>MORNING · CAPTURE — EVERYTHING LOGS HERE</Eyebrow>
-              {!slAlready ? owed.map((od, oi) => (
-                <div key={od} style={{ display: "flex", alignItems: "center", gap: 10, marginTop: oi === 0 ? 10 : 8 }}>
-                  <div style={{ fontFamily: mono, fontSize: 9.5, color: oi === 0 ? T.dim : T.brass, width: 74 }}><Term k="nightdate" c={T.dim}>SLEEP</Term><br />{fmtShort(od)} night{oi > 0 ? " · missed" : ""}</div>
-                  <Stepper v={slpH} set={setSlpH} step={0.5} min={0} />
-                  <div style={{ flex: 1 }}><Btn full small tone="jade" onClick={() => {
-                    const ns = JSON.parse(JSON.stringify(s));
-                    ns.sleep.nights.push({ d: od, h: slpH });
-                    ns.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
-                    let run = 0;
-                    for (let i = ns.sleep.nights.length - 1; i >= 0; i--) { if (ns.sleep.nights[i].h >= ns.sleep.cleanH) run++; else break; }
-                    if (run === ns.sleep.needed) ns.feed.unshift({ d: tISO, t: "SLEEP RESET COMPLETE", how: `${run} consecutive clean nights — PRs can be OWNED again · #1 lever for the back half, and for the ADHD` });
-                    setS(ns); save(ns);
-                  }}>Log {fmtShort(od).split(" ")[1]}</Btn></div>
+              {!slAlready ? (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                    <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim }}><Term k="nightdate" c={T.dim}>SLEEP</Term> · {fmtShort(owed[0])} night{owed.length > 1 ? " (+" + (owed.length - 1) + " missed)" : ""}</div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", fontFamily: mono, fontSize: 10.5, color: T.steel }}>
+                      <span>bed</span>
+                      <input type="time" value={bedT} onChange={(e) => setBedT(e.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 6px" }} />
+                      <span>wake</span>
+                      <input type="time" value={wakeT} onChange={(e) => setWakeT(e.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 6px" }} />
+                      <span style={{ color: T.jade }}>= {sleepSpanH(bedT, wakeT, slTags.includes("woke") ? awakeMin : 0)} h</span>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+                    {[["mela", "melatonin"], ["caff", "late caffeine"], ["woke", "woke mid-night"], ["screen", "late screens"]].map(([k2, lbl]) => {
+                      const on = slTags.includes(k2);
+                      return (
+                        <button key={k2} onClick={() => setSlTags(on ? slTags.filter((x) => x !== k2) : [...slTags, k2])}
+                          style={{ fontFamily: mono, fontSize: 9.5, padding: "5px 9px", borderRadius: 999, border: `1px solid ${on ? T.brass : T.line}`, background: on ? T.plate2 : "transparent", color: on ? T.brass : T.dim }}>{lbl}</button>
+                      );
+                    })}
+                    {slTags.includes("woke") && (
+                      <span style={{ display: "flex", gap: 5, alignItems: "center", fontFamily: mono, fontSize: 9.5, color: T.brass }}>
+                        ~<Stepper v={awakeMin} set={setAwakeMin} step={15} min={0} /> min awake
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ marginTop: 8 }}>
+                    <Btn full small tone="jade" onClick={() => {
+                      const od = owed[0];
+                      const ns = JSON.parse(JSON.stringify(s));
+                      ns.sleep.nights.push({ d: od, h: sleepSpanH(bedT, wakeT, slTags.includes("woke") ? awakeMin : 0), bed: bedT, wake: wakeT, tags: slTags.slice(), awakeMin: slTags.includes("woke") ? awakeMin : 0 });
+                      ns.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
+                      let run = 0;
+                      for (let i = ns.sleep.nights.length - 1; i >= 0; i--) { if (ns.sleep.nights[i].h >= ns.sleep.cleanH) run++; else break; }
+                      if (run === ns.sleep.needed) ns.feed.unshift({ d: tISO, t: "SLEEP RESET COMPLETE", how: `${run} consecutive clean nights — PRs can be OWNED again · #1 lever for the back half, and for the ADHD` });
+                      setS(ns); save(ns); setSlTags([]);
+                    }}>Log {fmtShort(owed[0]).split(" ")[1]} night</Btn>
+                  </div>
                 </div>
-              )) : (
+              ) : (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
                   <span style={{ fontFamily: mono, fontSize: 11, color: T.jade }}>✓ {fmtShort(lastNight)} night · {(s.sleep.nights.find((n) => n.d === lastNight) || {}).h} h banked</span>
                   <button onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.sleep.nights = ns.sleep.nights.filter((n) => n.d !== lastNight); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, background: "none", border: "none" }}>undo</button>
@@ -1947,6 +2028,8 @@ function BodyTab({ s, setS, save }) {
 }
 
 function SleepTab({ s, setS, save, slp }) {
+  const [caffIn, setCaffIn] = useState(200);
+  const [slpOpen, setSlpOpen] = useState(null);
   const nights = s.sleep.nights.slice(-8);
   const maxH = 9;
   return (
@@ -1981,6 +2064,86 @@ function SleepTab({ s, setS, save, slp }) {
       </Card>
 
       <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", padding: "2px 0" }}>logging lives on NOW · this tab is the ledger</div>
+
+      {/* the anchor */}
+      <Card accent={T.jade}>
+        <Eyebrow c={T.jade}>THE ANCHOR — FOUNDED {fmtShort("2026-07-23")}, BY ACCIDENT</Eyebrow>
+        {(() => {
+          const a = s.sleep.anchor || { wake: "06:45", inBed: 8.25 };
+          const wm = a.wake.split(":").map(Number);
+          let lo = wm[0] * 60 + wm[1] - Math.round(a.inBed * 60);
+          if (lo < 0) lo += 1440;
+          const loT = `${String(Math.floor(lo / 60)).padStart(2, "0")}:${String(lo % 60).padStart(2, "0")}`;
+          const hr = new Date().getHours() + new Date().getMinutes() / 60;
+          const loH = lo / 60;
+          const until = hr < loH ? loH - hr : hr >= 17 ? 24 - hr + loH : null;
+          return (
+            <>
+              <div style={{ display: "flex", gap: 18, marginTop: 8 }}>
+                <div><Num size={22}>{a.wake}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>WAKE · 7 DAYS/WK</div></div>
+                <div><Num size={22} c={T.jade}>{loT}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>LIGHTS OUT · {a.inBed} H IN BED</div></div>
+                {until != null && hr >= 17 && <div><Num size={22} c={T.brass}>{Math.floor(until)}h {Math.round((until % 1) * 60)}m</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>UNTIL LIGHTS OUT</div></div>}
+              </div>
+              <More deep="Wake-time consistency is the strongest single circadian lever — stronger than duration targeting — and it doubles as a direct ADHD-symptom lever. The wake anchors everything: lights-out is derived (wake minus in-bed target), sleep pressure builds on schedule, and weekends don't get to vote."
+                forYou={`Anchor ${a.wake}, in bed by ${loT}. Tonight it's on easy mode — you're carrying real debt, and pressure does the work. Say the word to move either number.`} />
+            </>
+          );
+        })()}
+      </Card>
+
+      {/* caffeine tail */}
+      <Card>
+        <Eyebrow>CAFFEINE TAIL — WHAT'S STILL IN YOUR BLOOD AT LIGHTS-OUT</Eyebrow>
+        {s.sleep.caffMg ? (
+          <>
+            <div style={{ display: "flex", gap: 18, marginTop: 8 }}>
+              <div><Num size={22}>{s.sleep.caffMg}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG · NOON DOSE</div></div>
+              <div><Num size={22} c={caffAt(s.sleep.caffMg, 12, 22.5) > 50 ? T.brass : T.jade}>~{caffAt(s.sleep.caffMg, 12, 22.5)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG AT 22:30 · HALF-LIFE ~5 H</div></div>
+            </div>
+            <More deep="Caffeine's half-life is ~5 hours (range 3–7 by genetics): a noon dose is still ~25% circulating at bedtime. That residue doesn't always stop sleep onset — it fragments depth and can surface as mid-night wakes. If the wake signature persists off melatonin, this number is suspect #1."
+              forYou={`~${caffAt(s.sleep.caffMg, 12, 22.5)} mg on board at lights-out. If the experiment points here, the move is dose-down or earlier — not willpower.`} />
+          </>
+        ) : (
+          <div style={{ marginTop: 8 }}>
+            <div style={{ fontFamily: body, fontSize: 12, color: T.steel }}>One number unlocks this card: your total midday caffeine (pre-workout label + any coffee), in mg.</div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+              <Stepper v={caffIn} set={setCaffIn} step={25} min={0} />
+              <div style={{ flex: 1 }}><Btn full small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.sleep.caffMg = caffIn; setS(ns); save(ns); }}>Save caffeine dose</Btn></div>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* the sleep lab */}
+      <Eyebrow>THE SLEEP LAB · RUNNING ON THE MASTER VARIABLE</Eyebrow>
+      {sleepLab(s).map((a) => (
+        <Card key={a.id} style={{ padding: 12, cursor: "pointer" }} accent={a.status === "LIVE" ? T.jade : undefined}>
+          <div onClick={() => setSlpOpen(slpOpen === a.id ? null : a.id)}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
+              <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 15.5, textTransform: "uppercase", color: T.chalk }}>{a.t}</div>
+              <Stamp st={a.status} />
+            </div>
+            <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 3 }}>{a.tag}</div>
+            {a.status === "ARMED" && a.prog && (
+              <div style={{ marginTop: 8 }}>
+                <Bar pct={(a.prog.n / a.prog.need) * 100} c={T.brass} />
+                <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 4 }}>{a.prog.n} / {a.prog.need} {a.prog.label}</div>
+              </div>
+            )}
+            <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 6, letterSpacing: "0.1em" }}>{slpOpen === a.id ? "▾ CLOSE" : "▸ MORE"}</div>
+          </div>
+          {slpOpen === a.id && (
+            <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
+              <Eyebrow>WHAT IT IS</Eyebrow>
+              <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{a.deep}</div>
+              <div style={{ marginTop: 10 }}>
+                <Eyebrow c={a.status === "LIVE" ? T.jade : T.brass}>FOR YOU · RIGHT NOW</Eyebrow>
+                <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{a.forYou}</div>
+              </div>
+            </div>
+          )}
+        </Card>
+      ))}
 
       <Card>
         <Eyebrow c={T.brass}>WHAT THE DEBT COST — ATTRIBUTED, NOT BLAMED</Eyebrow>

@@ -258,7 +258,7 @@ const mrv5 = la5(clone(SE)).find(a => a.id === "mrv");
 ok(mrv5.deep.indexOf("Schoenfeld") > -1 && mrv5.forYou.indexOf("10+") > -1, "MRV carries the literature prior");
 const oldV9 = clone(SE); oldV9.v = 9; delete oldV9.creatine; oldV9.exercises.forEach(e => delete e.mg);
 const m10 = mg5(oldV9);
-ok(m10.v === 10 && m10.creatine === null && m10.exercises.find(e => e.id === "press").mg === "chest", "v9 phones patch to v10 with muscle tags");
+ok(m10.v >= 10 && m10.creatine === null && m10.exercises.find(e => e.id === "press").mg === "chest", "v9 phones patch to v10 with muscle tags");
 
 // (interim)
 
@@ -339,5 +339,22 @@ ok(late.length === 0 || morn.length === 0 || late[0] <= morn[0], "pre-5am never 
 const oneN = oo2(sn, { clean: false, run: 2, need: 3 }, 8);
 ok(owedA.length === 0 || oneN.t.indexOf("night") > -1, "ONE THING names the dated night, not a riddle: " + oneN.t);
 
-console.log(`\nFINAL16: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.9 — the sleep build
+const { sleepSpanH: ssp, caffAt: cfa, sleepLab: slb, migrate: mgB, SEED: SK } = __test;
+ok(ssp("23:00", "06:45") === 7.75 && ssp("01:00", "06:45") === 5.75 && ssp("23:30", "06:45", 30) === 6.75, "bed→wake math: cross-midnight, late nights, and mid-night wake deductions");
+ok(cfa(300, 12, 22.5) === 70 && cfa(0, 12, 22.5) === 0, "caffeine tail: 300 mg at noon ≈ 70 mg at lights-out");
+const lab9 = slb(clone(SK));
+ok(lab9.length === 2 && lab9[0].id === "melaexp" && lab9[0].status === "ARMED" && lab9[0].deep.indexOf("Ferracioli") > -1, "melatonin experiment pre-registered, armed, citations attached");
+let se = clone(SK);
+for (let k = 1; k <= 7; k++) { const dd = new Date(2026, 6, 23 + k); se.sleep.nights.push({ d: dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" + String(dd.getDate()).padStart(2, "0"), h: 7.8, tags: [] }); }
+se.sleep.nights = se.sleep.nights.filter((n, i, a) => a.findIndex((x) => x.d === n.d) === i).sort((a, b) => (a.d < b.d ? -1 : 1));
+const lab9b = slb(se);
+ok(lab9b[0].status === "LIVE" && lab9b[0].forYou.indexOf("avg 7.8") > -1, "seven none-nights flip the experiment LIVE with the verdict math");
+const oldV10 = clone(SK); oldV10.v = 10; delete oldV10.sleep.anchor; delete oldV10.sleep.caffMg; delete oldV10.sleep.melaExp;
+const m11 = mgB(oldV10);
+ok(m11.v === 11 && m11.sleep.anchor.wake === "06:45" && m11.sleep.melaExp.arm === "none", "v10 phones patch to v11 with the anchor and the experiment");
+
+console.log(`\nFINAL17: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
