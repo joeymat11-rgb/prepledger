@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.6.1";
+const APP_V = "3.7.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -684,6 +684,24 @@ function labAnalytics(s) {
   return out.sort((a, b) => rank[a.status] - rank[b.status]);
 }
 
+/* the week, in one paragraph — auto-written from state */
+function weekDigest(s) {
+  const lw = liveRollups(s)[0];
+  if (!lw) return "The digest writes itself from your first logged day — trend, protein, sessions, sleep, wins, in one paragraph.";
+  const parts = [];
+  const cur = currentRate(s);
+  const sealedNow = daysUntil(s.blackout.until) > 0;
+  parts.push(sealedNow ? `Scale sealed — trend holds at ${s.trend} until ${fmtShort(SEAL_UNTIL)}.` : cur.measured ? `Trend ${s.trend}, moving ~${cur.scale}/wk.` : `Trend ${s.trend}.`);
+  if (lw.proN) parts.push(`Protein ${lw.proHit}/${lw.proN} on target${s.fixWindow ? " — one fix window open" : ""}.`);
+  const wkStart = isoOf(new Date(mk(START).getTime() + (lw.wk - 1) * 7 * DAY));
+  const sess = Object.keys(s.sessionLog).filter((d) => d >= wkStart).length;
+  if (sess) parts.push(`${sess} session${sess > 1 ? "s" : ""} logged.`);
+  const wins = s.feed.filter((f) => f.d >= wkStart && /OWNED|DEBUT|EARNED|COMPLETE|RECLAIM/.test(f.t)).slice(0, 2).map((f) => f.t.toLowerCase());
+  if (wins.length) parts.push(`Wins: ${wins.join(", ")}.`);
+  if (lw.avgSlp != null) parts.push(`Sleep avg ${lw.avgSlp} h.`);
+  return parts.join(" ");
+}
+
 /* live weekly rollups — post-handoff weeks, same shape as the sheet era, accruing forever */
 function liveRollups(s) {
   const dates = [...new Set([...Object.keys(s.dailyLogs), ...s.reads.map((r) => r.d), ...s.sleep.nights.map((n) => n.d), ...Object.keys(s.sessionLog)])].filter((d) => d > "2026-07-21").sort();
@@ -938,7 +956,25 @@ function migrate(old) {
   return patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))));
 }
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+const GLOSSARY = {
+  fixwindow: ["Fix window", "Yesterday's protein landed outside the band, so a 24-hour repair window opened. Hit 175±10 today and the record EXTENDS — the app measures recovery speed, never an unbroken chain. Unfixed, it just closes; nothing compounds."],
+  rir: ["RIR — reps in reserve", "How many clean reps were left when you racked it. 1 is 'honest' — one more good rep existed. 0 is a grind. Rate only the first set, and when unsure at noon on the stim stack, call it 0."],
+  debt: ["On debt", "That session happened before three consecutive ≥7.5 h nights. Down numbers on debt read as context, not regression — and PRs hit on debt log as provisional, because they don't reliably repeat."],
+  clean: ["CLEAN (sleep)", "Three consecutive nights of ≥7.5 h. One good night repays acute debt, but consolidation lags ~2–3 nights — so owns and earns only count when CLEAN."],
+  seal: ["Sealed scale", "Around events, reads are quarantined: logged but excluded from the trend, and every rate rule is muted. The seal exists so event water can never trigger a false alarm."],
+  trend: ["Trend", "The damped average the whole app runs on: each clean read moves it 30% of the way, spikes clamp at ±1.5 lb, sealed reads don't touch it. Mornings are static; the trend is the instrument."],
+  own: ["OWNED", "The standard repeated on a clean day. One hit is a visit; a repeat is an address. Only owned standards let the load move."],
+  earned: ["EARNED", "Reps hit the top of the window on a clean day — the increment is bought and queues itself for a debut. Grinds at RIR 0 never earn."],
+  debut: ["DEBUT", "An earned load's first outing. It runs when it wins its day's single structural slot, with zero rep expectations — log what it gives."],
+  gated: ["GATED", "Visible but locked behind a named condition. The condition decides, not memory or mood."],
+  reclaim: ["RECLAIM", "A standard that slipped. The exact rep line must be re-earned before anything moves — records here can fall and be won back."],
+  parked: ["PARKED", "Deliberately shelved with a written trigger (a date, a phase, a coach call). Parked isn't forgotten; it's staged."],
+  structural: ["Structural change", "A load jump, new set, or machine change. One per session, auto-picked from the queue — so every response stays attributable. Rep progression is unlimited."],
+  whoosh: ["Whoosh", "Event water leaving days after the event — a spike that drains to a NEW low. Yours clears in 1–3 days; the LAB predicts the window in advance."],
+  noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
+};
+
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1030,6 +1066,13 @@ const Num = ({ children, size = 30, c = T.chalk }) => (
 const H = ({ children, size = 26, c = T.chalk }) => (
   <div style={{ fontFamily: disp, fontWeight: 700, fontSize: size, lineHeight: 1.02, color: c, textTransform: "uppercase", letterSpacing: "0.01em" }}>{children}</div>
 );
+function Term({ k, children, c }) {
+  return (
+    <span onClick={(e) => { e.stopPropagation(); if (window.__setGloss) window.__setGloss(k); }}
+      style={{ borderBottom: `1px dotted ${c || T.steel}`, cursor: "pointer" }}>{children}</span>
+  );
+}
+
 function More({ deep, forYou, c = T.jade }) {
   const [open, setOpen] = useState(false);
   return (
@@ -1125,6 +1168,9 @@ function Proposals({ s, setS, save }) {
 
 function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const tISO = isoOf(todayStart());
+  const [slpH, setSlpH] = useState(7.5);
+  const [wIn, setWIn] = useState(s.trend);
+  const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
   const wd = weekDay();
   const dt = dayType(tISO);
   const isRefeed = dt === "REFEED";
@@ -1205,7 +1251,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
         {cleanIn > 0 && <Chip c={T.chalk}>Scale sealed · clean read {fmtShort(SEAL_UNTIL)} · {cleanIn}d</Chip>}
-        {(!s.waist.length || Math.round((mk(tISO) - mk(s.waist[s.waist.length - 1].d)) / DAY) >= 7) && <Chip c={T.brass}>Waist due — 10 sec in BODY</Chip>}
+        {null}
         <Chip c={slp.clean ? T.jade : T.brass}>Sleep {slp.clean ? "CLEAN" : `reset ${slp.run}/${slp.need}`}</Chip>
         {ev && <Chip c={T.chalk}>{ev.t} · {fmtShort(ev.d)}</Chip>}
       </div>
@@ -1224,6 +1270,81 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             <More c={c} deep="Four drag sources converge into one number: sleep (reset progress and 5-night average), opener honesty (active RIR holds), joint flags over 14 days, and rep dips across your last two sessions. 80+ = full send, earns and owns count. 55–79 = consolidate. Under 55 arms the hold-structure rule — nothing auto-changes, but the card appears."
               forYou={!slp.clean ? `Biggest lever tonight: ≥7.5 h returns +10 instantly${slp.run + 1 >= slp.need ? " and flips you CLEAN — tomorrow's owns and earns count" : ""}.` : s.exercises.some((e) => e.holdFlag) ? "One honest opener session (RIR ≥1) releases the active hold and returns the points." : "Nothing dragging. The rarest state in a deficit — protect it."} />
           </Card>
+        );
+      })()}
+
+      {(() => {
+        const lastNight = isoOf(new Date(todayStart().getTime() - DAY));
+        const slAlready = s.sleep.nights.some((n) => n.d === lastNight);
+        const wAlready = s.reads.some((r) => r.d === tISO);
+        const sealedNow = blackoutOn(s);
+        const logSleep = () => {
+          const ns = JSON.parse(JSON.stringify(s));
+          ns.sleep.nights.push({ d: lastNight, h: slpH });
+          let run = 0;
+          for (let i = ns.sleep.nights.length - 1; i >= 0; i--) { if (ns.sleep.nights[i].h >= ns.sleep.cleanH) run++; else break; }
+          if (run === ns.sleep.needed) ns.feed.unshift({ d: tISO, t: "SLEEP RESET COMPLETE", how: `${run} consecutive clean nights — PRs can be OWNED again · #1 lever for the back half, and for the ADHD` });
+          setS(ns); save(ns);
+        };
+        const logW = () => { const ns2 = runAdaptive(applyRead(s, tISO, wIn), tISO); setS(ns2); save(ns2); };
+        const lastWaist = s.waist[s.waist.length - 1];
+        const waistDue = !lastWaist || Math.round((mk(tISO) - mk(lastWaist.d)) / DAY) >= 7;
+        const lastP = s.photos[s.photos.length - 1];
+        const photoDue = !lastP || Math.round((mk(tISO) - mk(lastP.d)) / DAY) >= 7;
+        return (
+          <>
+            <Card accent={T.chalk}>
+              <Eyebrow>MORNING · CAPTURE — EVERYTHING LOGS HERE</Eyebrow>
+              {!slAlready ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+                  <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, width: 62 }}>SLEEP<br />last night</div>
+                  <Stepper v={slpH} set={setSlpH} step={0.5} min={0} />
+                  <div style={{ flex: 1 }}><Btn full small tone="jade" onClick={logSleep}>Log sleep</Btn></div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
+                  <span style={{ fontFamily: mono, fontSize: 11, color: T.jade }}>✓ sleep {(s.sleep.nights.find((n) => n.d === lastNight) || {}).h} h banked</span>
+                  <button onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.sleep.nights = ns.sleep.nights.filter((n) => n.d !== lastNight); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, background: "none", border: "none" }}>undo</button>
+                </div>
+              )}
+              {!wAlready ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
+                  <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, width: 62 }}>WEIGHT<br />{sealedNow ? <Term k="seal" c={T.dim}>sealed</Term> : "fasted"}</div>
+                  <Stepper v={wIn} set={setWIn} step={0.1} min={140} />
+                  <div style={{ flex: 1 }}><Btn full small onClick={logW}>{sealedNow ? "Log weight (quarantined)" : "Log weight"}</Btn></div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
+                  <span style={{ fontFamily: mono, fontSize: 11, color: T.jade }}>✓ weight {(s.reads.find((r) => r.d === tISO) || {}).w} logged{(s.reads.find((r) => r.d === tISO) || {}).sealed ? " · sealed" : ""}</span>
+                  <button onClick={() => { const ns = undoRead(s, tISO); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, background: "none", border: "none" }}>undo</button>
+                </div>
+              )}
+              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 10 }}>evening numbers log below · sessions log in TRAIN · every other tab is reading, not homework</div>
+            </Card>
+            {(waistDue || photoDue) && (
+              <Card accent={T.brass}>
+                <Eyebrow c={T.brass}>WEEKLY · DUE — APPEARS ONLY WHEN IT'S TIME</Eyebrow>
+                {waistDue && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+                    <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, width: 62 }}>WAIST<br />at navel</div>
+                    <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
+                    <div style={{ flex: 1 }}><Btn full small tone="jade" onClick={() => {
+                      const ns = JSON.parse(JSON.stringify(s));
+                      const prev = ns.waist[ns.waist.length - 1];
+                      ns.waist.push({ d: tISO, v: waistIn });
+                      if (prev && waistIn < prev.v) ns.feed.unshift({ d: tISO, t: "WAIST DOWN", how: `${prev.v}" → ${waistIn}" at trend ${ns.trend} — fat loss the scale can't argue with` });
+                      setS(ns); save(ns);
+                    }}>{lastWaist ? "Log waist" : "Log baseline waist"}</Btn></div>
+                  </div>
+                )}
+                {photoDue && (
+                  <div style={{ marginTop: waistDue ? 12 : 10 }}>
+                    <Btn full small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.photos.push({ d: tISO }); setS(ns); save(ns); }}>Mark photos done — same light · same spots · fasted</Btn>
+                  </div>
+                )}
+              </Card>
+            )}
+          </>
         );
       })()}
 
@@ -1269,7 +1390,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           ))}
         </div>
         {s.fixWindow && (
-          <div style={{ marginTop: 10, fontFamily: mono, fontSize: 11, color: T.brass }}>FIX WINDOW OPEN — a miss fixed inside 24 h extends the standard. No resets here.</div>
+          <div style={{ marginTop: 10, fontFamily: mono, fontSize: 11, color: T.brass }}><Term k="fixwindow" c={T.brass}>FIX WINDOW OPEN</Term> — a miss fixed inside 24 h extends the standard. No resets here.</div>
         )}
         <div style={{ marginTop: 10 }}><Btn tone="jade" full onClick={saveDaily}>Log today</Btn></div>
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 8 }}>{`spread: ~4 feeds × ~${Math.round(PROTEIN / 4)} g · every 3–4 h · wake / pre-lift / post-lift / pre-bed`}</div>
@@ -1399,7 +1520,7 @@ function LogTab({ s, setS, save, slp }) {
             <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 3 }}>
               PREV ▸ {fmtShort(ex.prev.d)} · {ex.prev.w} × {ex.prev.reps.join(",")}
               {ex.prev.rir != null && <span> · RIR {ex.prev.rir}</span>}
-              {ex.prev.debt && <span style={{ color: T.brass }}> · on debt</span>}
+              {ex.prev.debt && <span style={{ color: T.brass }}> · <Term k="debt" c={T.brass}>on debt</Term></span>}
             </div>
           )}
           {ex.note && <div style={{ fontFamily: mono, fontSize: 10, color: ex.isDebutNow || (ex.note || "").startsWith("OWN") ? T.orange : T.dim, marginTop: 3, letterSpacing: "0.04em" }}>{ex.note}</div>}
@@ -1426,7 +1547,7 @@ function LogTab({ s, setS, save, slp }) {
             ))}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 10 }}>
-            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em" }}>OPENER RIR</span>
+            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em" }}>OPENER <Term k="rir" c={T.dim}>RIR</Term></span>
             {[0, 1, 2, 3].map((v) => {
               const on = rir[ex.id] === v;
               const c = v === 0 ? T.brass : T.jade;
@@ -1506,6 +1627,13 @@ function QueueTab({ s, slp }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <Eyebrow>THE LIVE QUEUE · REFILLS ITSELF AS GATES RESOLVE</Eyebrow>
+      <Card style={{ padding: 11 }}>
+        <div style={{ fontFamily: mono, fontSize: 10, color: T.steel, letterSpacing: "0.05em", lineHeight: 2 }}>
+          <Term k="gated" c={T.dim}>GATED</Term> → <Term k="earned" c={T.jade}>EARNED</Term> → <Term k="debut" c={T.orange}>DEBUT</Term> → <Term k="own" c={T.jade}>OWNED</Term>
+          <span style={{ color: T.dim }}>  ·  side doors: </span><Term k="reclaim" c={T.brass}>RECLAIM</Term> · <Term k="parked" c={T.dim}>PARKED</Term>
+          <span style={{ color: T.dim }}>  — tap any word</span>
+        </div>
+      </Card>
       {live.map((u) => (
         <Card key={u.id}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
@@ -1591,9 +1719,6 @@ function QueueTab({ s, slp }) {
 function BodyTab({ s, setS, save }) {
   const tISO = isoOf(todayStart());
   const sealed = blackoutOn(s);
-  const already = s.reads.some((r) => r.d === tISO);
-  const [w, setW] = useState(s.trend);
-  const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
   const [dexaIn, setDexaIn] = useState("");
   const wd = weekDay();
   const xPct = Math.round(((todayStart() - mk(START)) / (mk(CROSSOVER) - mk(START))) * 100);
@@ -1602,12 +1727,6 @@ function BodyTab({ s, setS, save }) {
   const eta12 = etaWeeks(s, 12), eta11 = etaWeeks(s, 11);
   const canThesis = wd.wk > s.lastThesisWk;
   const mirrorEra = wd.wk >= 10;
-
-  const logWeight = () => {
-    if (already) return;
-    const ns2 = runAdaptive(applyRead(s, tISO, w), tISO);
-    setS(ns2); save(ns2);
-  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -1627,7 +1746,7 @@ function BodyTab({ s, setS, save }) {
       )}
 
       <Card>
-        <Eyebrow>TREND — THE HERO NUMBER</Eyebrow>
+        <Eyebrow><Term k="trend" c={T.dim}>TREND</Term> — THE HERO NUMBER</Eyebrow>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 4 }}>
           <Num size={40} c={T.jade}>{s.trend}</Num>
           <span style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>daily reads render small & grey — by design</span>
@@ -1640,17 +1759,7 @@ function BodyTab({ s, setS, save }) {
             </div>
           ))}
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 12 }}>
-          <Stepper v={w} set={setW} step={0.1} min={140} />
-          <div style={{ flex: 1 }}>
-            <Btn full small onClick={logWeight} disabled={already}>{already ? "Logged — once a day is the cap" : sealed ? "Log read (auto-sealed)" : "Log fasted read"}</Btn>
-          </div>
-        </div>
-        {already && (
-          <div style={{ marginTop: 8 }}>
-            <Btn small onClick={() => { const ns = undoRead(s, tISO); setS(ns); save(ns); }}>Undo today's read — fat-fingers happen</Btn>
-          </div>
-        )}
+        <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 10 }}>weigh-in lives on NOW · mornings, once a day</div>
         <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>PROTOCOL: fasted · post-void · pre-food/water · 16 oz water ≈ +0.5–1 lb</div>
         <More deep="The trend is a damped average: each clean read moves it 30% of the way toward the morning's number, spikes clamp at ±1.5 lb so one dinner can't lie to it, sealed reads never touch it, and moves inside your measured ±0.8 noise floor get auto-stamped 'not information'. Daily reads render small and grey on purpose — the trend is the instrument; mornings are static."
           forYou={sealed ? `First clean read ${fmtShort(SEAL_UNTIL)}: judge it against the trend (${s.trend}), not against ${(s.reads.filter((r) => !r.sealed).slice(-1)[0] || {}).w ?? s.trend} — residual event water is expected and already forgiven by the math.` : `Trend ${s.trend}. Whatever tomorrow's scale screams, it moves this number by ±0.45 at most.`} />
@@ -1667,11 +1776,9 @@ function BodyTab({ s, setS, save }) {
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
                 {["same light", "same spot", "fasted AM", "front / side / back", "relaxed + flexed"].map((c2, i) => (<Chip key={i}>{c2}</Chip>))}
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
-                <Btn small tone={due ? "jade" : "ghost"} disabled={!due} onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.photos.push({ d: tISO }); setS(ns); save(ns); }}>
-                  {due ? "Mark this week's photos taken" : `Done — next ${fmtShort(isoOf(new Date(mk(lastP.d).getTime() + 7 * DAY)))}`}
-                </Btn>
-                {s.photos.length > 0 && <span style={{ fontFamily: mono, fontSize: 10.5, color: T.jade }}>×{s.photos.length}</span>}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, fontFamily: mono, fontSize: 9.5, color: T.dim }}>
+                <span>{due ? "due — the mark button is on NOW" : `done — next ${fmtShort(isoOf(new Date(mk(lastP.d).getTime() + 7 * DAY)))}`}</span>
+                {s.photos.length > 0 && <span style={{ color: T.jade }}>×{s.photos.length}</span>}
               </div>
               <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>Images live in your camera roll — make an album called PREP and compare there. The app tracks the habit, never the pictures.</div>
             </>
@@ -1710,23 +1817,7 @@ function BodyTab({ s, setS, save }) {
                   )}
                 </div>
               )}
-              <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10 }}>
-                <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
-                <div style={{ flex: 1 }}>
-                  <Btn full small tone={due ? "jade" : "ghost"} disabled={!due} onClick={() => {
-                    const ns = JSON.parse(JSON.stringify(s));
-                    const prev = ns.waist[ns.waist.length - 1];
-                    ns.waist.push({ d: tISO, v: waistIn });
-                    if (prev && waistIn < prev.v) ns.feed.unshift({ d: tISO, t: "WAIST DOWN", how: `${prev.v}" → ${waistIn}" at trend ${ns.trend} — fat loss the scale can't argue with` });
-                    setS(ns); save(ns);
-                  }}>{due ? (lastW ? "Log this week's waist" : "Log baseline waist") : `Logged — next ${fmtShort(isoOf(new Date(mk(lastW.d).getTime() + 7 * DAY)))}`}</Btn>
-                </div>
-              </div>
-              {lastW && lastW.d === tISO && (
-                <div style={{ marginTop: 8 }}>
-                  <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.waist = ns.waist.filter((x) => x.d !== tISO); setS(ns); save(ns); }}>Undo today's waist</Btn>
-                </div>
-              )}
+              <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 10 }}>{due ? "due now — the card is waiting on NOW" : `logged — next due ${fmtShort(isoOf(new Date(mk(lastW.d).getTime() + 7 * DAY)))} · logs on NOW`}</div>
               <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>PROTOCOL: fasted · post-void · at navel · relaxed tape · weekly</div>
             </>
           );
@@ -1797,30 +1888,15 @@ function BodyTab({ s, setS, save }) {
 }
 
 function SleepTab({ s, setS, save, slp }) {
-  const [h, setH] = useState(7.5);
-  const tISO = isoOf(todayStart());
-  const lastNight = isoOf(new Date(todayStart().getTime() - DAY));
-  const already = s.sleep.nights.some((n) => n.d === lastNight);
   const nights = s.sleep.nights.slice(-8);
   const maxH = 9;
-
-  const log = () => {
-    if (already) return;
-    const ns = JSON.parse(JSON.stringify(s));
-    ns.sleep.nights.push({ d: lastNight, h });
-    let run = 0;
-    for (let i = ns.sleep.nights.length - 1; i >= 0; i--) { if (ns.sleep.nights[i].h >= ns.sleep.cleanH) run++; else break; }
-    if (run === ns.sleep.needed) ns.feed.unshift({ d: tISO, t: "SLEEP RESET COMPLETE", how: `${run} consecutive clean nights — PRs can be OWNED again · #1 lever for the back half, and for the ADHD` });
-    setS(ns); save(ns);
-  };
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <Card accent={slp.clean ? T.jade : T.brass}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <Eyebrow>THE MASTER VARIABLE</Eyebrow>
-            <H size={24} c={slp.clean ? T.jade : T.brass}>{slp.clean ? "CLEAN" : `RESET ${slp.run} / ${slp.need}`}</H>
+            <H size={24} c={slp.clean ? T.jade : T.brass}>{slp.clean ? <Term k="clean" c={T.jade}>CLEAN</Term> : <span>RESET {slp.run} / {slp.need}</span>}</H>
           </div>
           <div style={{ textAlign: "right", fontFamily: mono, fontSize: 10.5, color: T.steel }}>target 7.5–8 h<br />clean night = ≥7.5</div>
         </div>
@@ -1845,18 +1921,7 @@ function SleepTab({ s, setS, save, slp }) {
         </div>
       </Card>
 
-      <Card>
-        <Eyebrow>LOG LAST NIGHT</Eyebrow>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 10 }}>
-          <Stepper v={h} set={setH} step={0.5} min={0} />
-          <div style={{ flex: 1 }}><Btn full small tone="jade" disabled={already} onClick={log}>{already ? "Logged" : "Bank it"}</Btn></div>
-        </div>
-        {already && (
-          <div style={{ marginTop: 8 }}>
-            <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.sleep.nights = ns.sleep.nights.filter((n) => n.d !== lastNight); setS(ns); save(ns); }}>Undo last night's entry</Btn>
-          </div>
-        )}
-      </Card>
+      <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", padding: "2px 0" }}>logging lives on NOW · this tab is the ledger</div>
 
       <Card>
         <Eyebrow c={T.brass}>WHAT THE DEBT COST — ATTRIBUTED, NOT BLAMED</Eyebrow>
@@ -1903,6 +1968,7 @@ function HistTab({ s, setS, save }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <Card accent={T.jade}>
         <Eyebrow>THE RECORD · {HISTORY.length + liveDayCount} DAYS · 6/10 → LIVE</Eyebrow>
+        <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 8, lineHeight: 1.6 }}>{weekDigest(s)}</div>
         <div style={{ display: "flex", gap: 18, marginTop: 10, flexWrap: "wrap" }}>
           {stat(wDelta != null ? `−${wDelta}` : "—", "lb · wk-avg vs wk 1")}
           {stat(`${proHitTot}/${proNTot}`, "protein on target")}
@@ -2144,6 +2210,12 @@ function Rules({ onClose, onReset, onExport, onImport, sync, onSync }) {
           <Btn small onClick={onReset}>Reset to seeded state (7/22)</Btn>
         </div>
         <div style={{ marginTop: 22, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
+          <Eyebrow c={T.brass}>THE MAP — SIX TABS, ONE SENTENCE EACH</Eyebrow>
+          <div style={{ fontFamily: body, fontSize: 12, color: T.steel, marginTop: 8, lineHeight: 1.8 }}>
+            <span style={{ color: T.chalk }}>NOW</span> — do: every daily log lives here. · <span style={{ color: T.chalk }}>TRAIN</span> — lift: today's session, generated. · <span style={{ color: T.chalk }}>QUEUE</span> — what's coming, and what it takes. · <span style={{ color: T.chalk }}>BODY</span> — is it working. · <span style={{ color: T.chalk }}>SLEEP</span> — the master lever's ledger. · <span style={{ color: T.chalk }}>HIST</span> — proof, patterns, and the science.
+          </div>
+        </div>
+        <div style={{ marginTop: 22, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
           <Eyebrow c={T.brass}>SELF-FILING · SUNDAY AUTO-SYNC TO YOUR PRIVATE REPO</Eyebrow>
           {hasTok ? (
             <div style={{ marginTop: 8 }}>
@@ -2183,6 +2255,9 @@ export default function PrepLedger() {
     try { setS(loadState()); }
     catch (e) { setS(JSON.parse(JSON.stringify(SEED))); setOffline(true); }
   }, []);
+
+  const [gloss, setGloss] = useState(null);
+  useEffect(() => { window.__setGloss = setGloss; return () => { window.__setGloss = null; }; }, []);
 
   /* update-ready detection — replaces the kill-twice ritual */
   useEffect(() => {
@@ -2295,6 +2370,15 @@ export default function PrepLedger() {
 
       {rules && <Rules onClose={() => setRules(false)} onReset={reset} onExport={doExport} onImport={doImport} sync={s.sync} onSync={async () => { const res = await ghSync(s); const ns = { ...s, sync: { last: isoOf(todayStart()), status: res.ok ? "synced" : res.msg } }; setS(ns); save(ns); }} />}
       {coach && <CoachView s={s} onClose={() => setCoach(false)} />}
+      {gloss && GLOSSARY[gloss] && (
+        <div onClick={() => setGloss(null)} style={{ position: "fixed", inset: 0, zIndex: 66, background: "rgba(8,10,12,0.55)" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", left: 0, right: 0, bottom: 0, background: T.plate, borderTop: `1px solid ${T.line}`, padding: "16px 18px calc(20px + env(safe-area-inset-bottom))", maxWidth: 520, margin: "0 auto", borderRadius: "14px 14px 0 0" }}>
+            <Eyebrow c={T.jade}>{GLOSSARY[gloss][0]}</Eyebrow>
+            <div style={{ fontFamily: body, fontSize: 13.5, color: T.chalk, marginTop: 6, lineHeight: 1.6 }}>{GLOSSARY[gloss][1]}</div>
+            <div style={{ marginTop: 12 }}><Btn small onClick={() => setGloss(null)}>Close</Btn></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

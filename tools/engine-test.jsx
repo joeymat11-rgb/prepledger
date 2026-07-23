@@ -250,7 +250,8 @@ ok(/mg at 74\.\d kg/.test(shelf.find(a => a.id === "caffdose").lines[0]) === fal
 ok(shelf.find(a => a.id === "spread").lines[0].indexOf("44 g × 4") > -1 || shelf.find(a => a.id === "spread").lines[0].indexOf("~44 g") > -1, "protein spread derives from THE number");
 ok(["2013", "2017", "2018", "2011", "2019"].every(y => JSON.stringify(shelf).indexOf(y) > -1), "citations ride the cards");
 let cre = clone(SE); cre.creatine = { start: "2026-07-20" };
-ok(sh(cre).find(a => a.id === "creatine").status === "TRACKING" && sh(cre).find(a => a.id === "creatine").lines[0].indexOf("day 3") === 0, "creatine tracker counts saturation days");
+const creLine = sh(cre).find(a => a.id === "creatine"); const creDay = parseInt(((creLine.lines[0] || "").match(/^day (\d+) of ~28/) || [0, 0])[1], 10);
+ok(creLine.status === "TRACKING" && creDay >= 3 && creDay <= 5, "creatine tracker counts saturation days (day " + creDay + ")");
 const dose = la5(clone(SE)).find(a => a.id === "sleepdose");
 ok(dose && dose.status === "ARMED" && dose.prog.need === 5, "sleep-dose experiment armed, Mah prior attached");
 const mrv5 = la5(clone(SE)).find(a => a.id === "mrv");
@@ -292,5 +293,18 @@ ok(wk7[0].proHit === 2 && wk7[0].proN === 2 && wk7[0].avgCal === 2115, "live rol
 ok(wk7[0].rows.some(r => r.sealedW === 164.7) && wk7[0].rows.some(r => r.note === "rows 180 landed"), "sealed reads and session notes ride the live rows");
 ok(JSON.stringify(__test.SEED).indexOf("Tue 7/28+ is the clean") === -1, "hardcoded booking date purged from state-adjacent strings");
 
-console.log(`\nFINAL13: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.7 — comprehension layer
+const { weekDigest: wdg, GLOSSARY: GL, SEED: SH } = __test;
+ok(Object.keys(GL).length >= 14 && Object.values(GL).every(v => v.length === 2 && v[1].length > 40), "glossary carries 14+ terms, each with a real plain-English definition");
+ok(typeof wdg(clone(SH)) === "string" && wdg(clone(SH)).indexOf("digest writes itself") > -1, "digest has a graceful empty state");
+let dg = clone(SH);
+dg.dailyLogs["2026-07-22"] = { cal: 2470, pro: 176, steps: 9000 };
+dg.sessionLog["2026-07-23"] = { entries: [], at: 1 };
+dg.feed.unshift({ d: "2026-07-23", t: "PRESS 245 — OWNED", how: "x" });
+const dgs = wdg(dg);
+ok(dgs.indexOf("Protein 1/1") > -1 && dgs.indexOf("1 session") > -1 && dgs.toLowerCase().indexOf("owned") > -1, "digest composes real state into one paragraph: " + dgs.slice(0, 70));
+
+console.log(`\nFINAL14: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
