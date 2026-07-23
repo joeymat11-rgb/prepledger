@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.21.0";
+const APP_V = "3.22.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1684,7 +1684,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const dl = s.dailyLogs[tISO] || {};
   const [cal, setCal] = useState(dl.cal ?? 1760);
   const [pro, setPro] = useState(dl.pro ?? 175);
-  const [stp, setStp] = useState(dl.steps ?? "");
+  const [stp, setStp] = useState(dl.steps ?? 16500);
   const cleanIn = daysUntil(SEAL_UNTIL);
   const xoverIn = daysUntil(CROSSOVER);
   const xPct = Math.round(((todayStart() - mk(START)) / (mk(CROSSOVER) - mk(START))) * 100);
@@ -1765,7 +1765,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <Card accent={T.jade} style={{ padding: 10, cursor: "pointer" }}>
           <div onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.labNews = []; setS(ns); save(ns); }}>
             <div style={{ fontFamily: mono, fontSize: 10.5, color: T.jade, letterSpacing: "0.06em" }}>🧪 LAB LIVE — {s.labNews.join(" · ")}</div>
-            <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 3 }}>verdict waiting in HIST → THE LAB · tap to dismiss</div>
+            <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 3 }}>verdict waiting on the LAB tab · tap to dismiss</div>
           </div>
         </Card>
       )}
@@ -1908,12 +1908,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                       ns.waist.push({ d: tISO, v: waistIn });
                       if (prev && waistIn < prev.v) ns.feed.unshift({ d: tISO, t: "WAIST DOWN", how: `${prev.v}" → ${waistIn}" at trend ${ns.trend} — fat loss the scale can't argue with` });
                       setS(ns); save(ns);
-                    }}>{lastWaist ? "Log waist" : "Log baseline waist"}</Btn></div>
+                    }}>{lastWaist ? "Log waist" : "Log baseline"}</Btn></div>
                   </div>
                 )}
                 {photoDue && (
                   <div style={{ marginTop: waistDue ? 12 : 10 }}>
-                    <Btn full small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.photos.push({ d: tISO }); setS(ns); save(ns); }}>Mark photos done — same light · same spots · fasted</Btn>
+                    <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginBottom: 6 }}>same light · same spots · fasted</div>
+                    <Btn full small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.photos.push({ d: tISO }); setS(ns); save(ns); }}>Mark photos done</Btn>
                   </div>
                 )}
               </Card>
@@ -1980,7 +1981,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <div style={{ margin: "8px 0 6px" }}><Bar pct={xPct} c={T.chalk} /></div>
         <div style={{ fontFamily: body, fontSize: 12, color: T.steel }}>~158.5 at ~12% — last cut's best with 4–5 lb more muscle. The marquee.</div>
         <More c={T.chalk} deep="Aug 28 is the weight where last cut looked its best — except arriving with ~4–5 lb more muscle, lifts climbing instead of stalled, and zero panic adjustments on the books. Same scale number, different physique: the entire thesis compressed into one checkpoint."
-          forYou={(() => { const cr = currentRate(s); const proj = +(s.trend - cr.scale * (daysUntil(CROSSOVER) / 7)).toFixed(1); return `${daysUntil(CROSSOVER)} days out. At your measured rate the trend projects ~${proj} by then vs the ~158.5 mark — ${proj <= 159.5 ? "on script." : "close; Ease 2 firing changes the slope by design, and the cone in HIST carries the honest range."}`; })()} />
+          forYou={(() => { const cr = currentRate(s); const proj = +(s.trend - cr.scale * (daysUntil(CROSSOVER) / 7)).toFixed(1); return `${daysUntil(CROSSOVER)} days out. At your measured rate the trend projects ~${proj} by then vs the ~158.5 mark — ${proj <= 159.5 ? "on script." : "close; Ease 2 firing changes the slope by design, and the cone on the LAB tab carries the honest range."}`; })()} />
       </Card>
       </Section>
 
@@ -2233,7 +2234,7 @@ function QueueTab({ s, slp }) {
               if ((u.kind === "debut" || u.kind === "unlock") && ex && nd) { const mn = pickStructural(s, nd, slp).main; return mn && mn.id === u.id ? `Holds the structural slot for ${fmtShort(nd)} — it runs.` : `Waits behind ${mn ? mn.t : "the current pick"} — one structural change per session, each earns its own day.`; }
               if (u.kind === "reclaim" && ex && ex.reclaim && nd) return `The exact line: ${ex.reclaim.join(",")} — next chance ${fmtShort(nd)}.`;
               if (u.kind === "ladder" && curl && curl.ladder) return `Set ${curl.ladder.set + 1} sits at ${curl.last ? curl.last[curl.ladder.set] : "?"} of ${curl.ladder.top} — every session is a climb attempt.`;
-              if (u.kind === "phase") return `Est BF ${bfEst(s).pct}% now; arms at ≤13.2% — the cone in HIST carries the honest timing.`;
+              if (u.kind === "phase") return `Est BF ${bfEst(s).pct}% now; arms at ≤13.2% — the cone on the LAB tab carries the honest timing.`;
               return "Resolves on its own the moment its condition is met — the queue never needs your memory.";
             })()} />
         </Card>
@@ -2321,7 +2322,7 @@ function BodyTab({ s, setS, save }) {
           <div><Num size={20}>{cur.fat}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>FAT/WK{cur.measured ? " · MEAS" : ""}</div></div>
           <div><Num size={20}>{s.waist.length ? s.waist[s.waist.length - 1].v + '"' : "—"}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>WAIST</div></div>
         </div>
-        <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>four rooms below · tap to enter · every card intact inside</div>
+        <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>four rooms below — tap any to enter</div>
       </Card>
 
       <Section title="The Scale" meta={`${s.trend}${sealed ? " · sealed → " + fmtShort(SEAL_UNTIL) : " · live"}`}>
@@ -2407,7 +2408,7 @@ function BodyTab({ s, setS, save }) {
           <div style={{ color: T.dim }}>{cur.measured ? "ETAs from your measured trend + drip model" : "ETAs on prior rates until 2 clean weeks exist — they self-correct as reads land"}</div>
         </div>
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass, marginTop: 8 }}>Weeks 8–13 = visual acceleration: each BF point worth 2–3× the visible change.</div>
-        <More c={T.brass} deep="Straight-line ETAs from your measured rate plus the drip — useful for direction, honest about nothing else; the cone in HIST is the version with uncertainty attached. The acceleration note is subcutaneous math: below ~13%, the same pound of fat comes off a smaller, leaner surface, so each BF point shows 2–3× the visible change of earlier points."
+        <More c={T.brass} deep="Straight-line ETAs from your measured rate plus the drip — useful for direction, honest about nothing else; the cone on the LAB tab is the version with uncertainty attached. The acceleration note is subcutaneous math: below ~13%, the same pound of fat comes off a smaller, leaner surface, so each BF point shows 2–3× the visible change of earlier points."
           forYou={wd.wk < 8 ? `Week ${wd.wk} now — the acceleration window opens wk 8 (~${fmtShort(isoOf(new Date(mk(START).getTime() + 49 * DAY)))}), the mirror outranks the scale from wk 10, and the pivot ETA above is the straight line the cone bends around. The boring middle is almost over.` : wd.wk < 10 ? `Week ${wd.wk} — you are IN the acceleration window: each BF point now shows 2–3× the visual change. Mirror takes over at wk 10; the pivot ETA above is the straight line the cone bends around.` : `Week ${wd.wk} — mirror era. Photos and waist outrank everything on this card; the ETAs are background math now.`} />
       </Card>
       </Section>
@@ -2585,7 +2586,7 @@ function SleepTab({ s, setS, save, slp }) {
 
       {/* the anchor */}
       {/* caffeine tail */}
-      <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", padding: "2px 0" }}>the melatonin experiment + wake signature live in HIST → THE LAB → SLEEP shelf</div>
+      <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", padding: "2px 0" }}>the melatonin experiment + wake signature live on the LAB tab</div>
 
       
     </div>
@@ -2932,7 +2933,7 @@ function Rules({ onClose, onReset, onExport, onImport, sync, onSync }) {
         <div style={{ marginTop: 22, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
           <Eyebrow c={T.brass}>THE MAP — SIX TABS, ONE SENTENCE EACH</Eyebrow>
           <div style={{ fontFamily: body, fontSize: 12, color: T.steel, marginTop: 8, lineHeight: 1.8 }}>
-            <span style={{ color: T.chalk }}>NOW</span> — do: every daily log lives here. · <span style={{ color: T.chalk }}>TRAIN</span> — lift: today's session, generated. · <span style={{ color: T.chalk }}>QUEUE</span> — what's coming, and what it takes. · <span style={{ color: T.chalk }}>BODY</span> — is it working. · <span style={{ color: T.chalk }}>SLEEP</span> — the master lever's ledger. · <span style={{ color: T.chalk }}>HIST</span> — proof, patterns, and the science.
+            <span style={{ color: T.chalk }}>NOW</span> — do: every daily log lives here. · <span style={{ color: T.chalk }}>TRAIN</span> — lift: today's session, generated. · <span style={{ color: T.chalk }}>QUEUE</span> — what's coming, and what it takes. · <span style={{ color: T.chalk }}>BODY</span> — is it working. · <span style={{ color: T.chalk }}>SLEEP</span> — the master lever's ledger. · <span style={{ color: T.chalk }}>LAB</span> — the science, the record, the proof.
           </div>
         </div>
         <div style={{ marginTop: 22, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
@@ -3096,7 +3097,7 @@ export default function PrepLedger() {
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
             <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "14px 0 calc(16px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: tab === t2 ? `2px solid ${T.chalk}` : "2px solid transparent", fontFamily: mono, fontSize: 9.5, letterSpacing: "0.09em", color: tab === t2 ? T.chalk : T.dim }}>
-              {t2}
+              {t2 === "HIST" ? "LAB" : t2}
             </button>
           ))}
         </div>
