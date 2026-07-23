@@ -48,7 +48,7 @@ jobs:
       - name: Beacon — success
         if: success()
         run: |
-          V=$(grep -o "prep-ledger-v[0-9.]*" prep-ledger-pwa/sw.js | head -1 | sed 's/prep-ledger-//')
+          V=$(python3 -c 'import re;print(re.search(r"prep-ledger-(v[0-9.]+)", open("prep-ledger-pwa/sw.js").read()).group(1))' 2>/dev/null || echo unknown)
           python3 -c "import json,os,datetime; json.dump({'sha': os.environ['GITHUB_SHA'], 'version': '$V', 'state': 'published', 'at': datetime.datetime.utcnow().isoformat()+'Z'}, open('ledger/deploy.json','w'), indent=1)"
           git config user.name beacon && git config user.email beacon@prepledger
           git add ledger/deploy.json && git commit -m "[skip ci] deploy beacon: $V published" && git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:main
