@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.19.0";
+const APP_V = "3.20.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1568,7 +1568,7 @@ function trendSeries(reads) {
   });
 }
 function Spark({ reads, trend }) {
-  const W = 300, Hh = 84, pad = 8;
+  const W = 300, Hh = 96, pad = 8;
   const all = reads.slice(-45);
   if (!all.length) return null;
   const ts = trendSeries(reads).slice(-45);
@@ -1579,16 +1579,19 @@ function Spark({ reads, trend }) {
   const y = (w) => pad + (1 - (w - lo) / (hi - lo)) * (Hh - 2 * pad);
   const tPath = ts.map((pnt, i) => `${i ? "L" : "M"}${x(pnt.d).toFixed(1)},${y(pnt.t).toFixed(1)}`).join(" ");
   const yEnd = y(ts[ts.length - 1].t);
-  const labelY = Math.max(11, Math.min(Hh - 4, yEnd < 20 ? yEnd + 13 : yEnd - 7));
   return (
-    <svg width="100%" viewBox={`0 0 ${W} ${Hh}`} style={{ display: "block" }}>
-      {all.map((r, i) => (
-        <circle key={i} cx={x(r.d)} cy={y(r.w)} r={r.sealed ? 2 : 1.7} fill={r.sealed ? "none" : T.steel} stroke={r.sealed ? T.dim : "none"} strokeWidth="1" opacity={r.sealed ? 0.8 : 0.55} />
-      ))}
-      <path d={tPath} fill="none" stroke={T.jade} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={x(ts[ts.length - 1].d)} cy={yEnd} r="2.6" fill={T.jade} />
-      <text x={W - pad} y={labelY} textAnchor="end" fontFamily={mono} fontSize="9" fill={T.jade}>trend {trend}</text>
-    </svg>
+    <div>
+      <svg width="100%" viewBox={`0 0 ${W} ${Hh}`} style={{ display: "block" }}>
+        {all.map((r, i) => (
+          <circle key={i} cx={x(r.d)} cy={y(r.w)} r={r.sealed ? 1.9 : 1.5} fill={r.sealed ? "none" : T.steel} stroke={r.sealed ? T.dim : "none"} strokeWidth="1" opacity={r.sealed ? 0.75 : 0.5} />
+        ))}
+        <path d={tPath} fill="none" stroke={T.jade} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx={x(ts[ts.length - 1].d)} cy={yEnd} r="2.8" fill={T.jade} />
+      </svg>
+      <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 5 }}>
+        <span style={{ color: T.jade }}>— trend {trend}</span> · grey = mornings · hollow = sealed · last {all.length} reads
+      </div>
+    </div>
   );
 }
 
@@ -1755,10 +1758,6 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         const wAlready = s.reads.some((r) => r.d === tISO);
         const sealedNow = blackoutOn(s);
         const logW = () => { const ns2 = runAdaptive(applyRead(s, tISO, wIn), tISO); setS(ns2); save(ns2); };
-        const lastWaist = s.waist[s.waist.length - 1];
-        const waistDue = !lastWaist || Math.round((mk(tISO) - mk(lastWaist.d)) / DAY) >= 7;
-        const lastP = s.photos[s.photos.length - 1];
-        const photoDue = !lastP || Math.round((mk(tISO) - mk(lastP.d)) / DAY) >= 7;
         return (
           <>
             <Card accent={T.chalk}>
@@ -1825,38 +1824,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               )}
               <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 10 }}>evening numbers below · sessions in TRAIN · everything else is reading</div>
             </Card>
-            {(waistDue || photoDue) && (
-              <Card accent={T.brass}>
-                <Eyebrow c={T.brass}>WEEKLY · DUE — APPEARS ONLY WHEN IT'S TIME</Eyebrow>
-                {waistDue && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
-                    <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, width: 62 }}>WAIST<br />at navel</div>
-                    <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
-                    <div style={{ flex: 1 }}><Btn full small tone="jade" onClick={() => {
-                      const ns = JSON.parse(JSON.stringify(s));
-                      const prev = ns.waist[ns.waist.length - 1];
-                      ns.waist.push({ d: tISO, v: waistIn });
-                      if (prev && waistIn < prev.v) ns.feed.unshift({ d: tISO, t: "WAIST DOWN", how: `${prev.v}" → ${waistIn}" at trend ${ns.trend} — fat loss the scale can't argue with` });
-                      setS(ns); save(ns);
-                    }}>{lastWaist ? "Log waist" : "Log baseline waist"}</Btn></div>
-                  </div>
-                )}
-                {photoDue && (
-                  <div style={{ marginTop: waistDue ? 12 : 10 }}>
-                    <Btn full small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.photos.push({ d: tISO }); setS(ns); save(ns); }}>Mark photos done — same light · same spots · fasted</Btn>
-                  </div>
-                )}
-              </Card>
-            )}
           </>
         );
       })()}
-
-      
-
-      
-
-      
 
       {dl.cal != null && !dayEdit ? (
         <Card style={{ padding: 12 }} accent={T.jade}>
@@ -1889,6 +1859,61 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <More deep="175 is THE number — proximity, not a floor to beat; chronic overshoot is drift too. Calories live in a band, not a point. A protein miss opens a 24-hour fix window, and closing it EXTENDS the standard instead of resetting it — recovery speed is the metric, never an unbroken chain."
           forYou={s.fixWindow ? "The fix window is OPEN — hitting 175 today closes it and the record extends." : "Standard intact. Log once, done — the app rewards the logging, never the checking."} />
       </Card>
+      )}
+
+      {(() => {
+        const lastWaist = s.waist[s.waist.length - 1];
+        const waistDue = !lastWaist || Math.round((mk(tISO) - mk(lastWaist.d)) / DAY) >= 7;
+        const lastP = s.photos[s.photos.length - 1];
+        const photoDue = !lastP || Math.round((mk(tISO) - mk(lastP.d)) / DAY) >= 7;
+        return (
+          <>
+            {(waistDue || photoDue) && (
+              <Card accent={T.brass}>
+                <Eyebrow c={T.brass}>WEEKLY · DUE — APPEARS ONLY WHEN IT'S TIME</Eyebrow>
+                {waistDue && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+                    <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, width: 62 }}>WAIST<br />at navel</div>
+                    <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
+                    <div style={{ flex: 1 }}><Btn full small tone="jade" onClick={() => {
+                      const ns = JSON.parse(JSON.stringify(s));
+                      const prev = ns.waist[ns.waist.length - 1];
+                      ns.waist.push({ d: tISO, v: waistIn });
+                      if (prev && waistIn < prev.v) ns.feed.unshift({ d: tISO, t: "WAIST DOWN", how: `${prev.v}" → ${waistIn}" at trend ${ns.trend} — fat loss the scale can't argue with` });
+                      setS(ns); save(ns);
+                    }}>{lastWaist ? "Log waist" : "Log baseline waist"}</Btn></div>
+                  </div>
+                )}
+                {photoDue && (
+                  <div style={{ marginTop: waistDue ? 12 : 10 }}>
+                    <Btn full small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.photos.push({ d: tISO }); setS(ns); save(ns); }}>Mark photos done — same light · same spots · fasted</Btn>
+                  </div>
+                )}
+              </Card>
+            )}
+          </>
+        );
+      })()}
+
+
+
+      {ev && (
+        <Card accent={T.chalk}>
+          <Eyebrow>EVENT MODE · {fmtShort(ev.d)}</Eyebrow>
+          <H size={19}>{ev.t}</H>
+          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 4 }}>{ev.protocol}. Zero-comp streak rides at <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> — compensation does not exist in this app.</div>
+          {daysUntil(ev.d) <= 0 && (
+            <div style={{ marginTop: 10 }}>
+              <Btn full onClick={() => {
+                const ns = JSON.parse(JSON.stringify(s));
+                ns.events.find((x) => x.id === ev.id).estimated = true;
+                ns.zeroComp = { count: ns.zeroComp.count + 1, last: `${ev.t} · ${fmtShort(ev.d)}` };
+                ns.feed.unshift({ d: tISO, t: `ZERO-COMP EVENT #${ns.zeroComp.count}`, how: `${ev.t} — estimated once, after · targets unchanged tomorrow · no penance` });
+                setS(ns); save(ns);
+              }}>Estimated once, after — close it out</Btn>
+            </div>
+          )}
+        </Card>
       )}
 
       <Section title="The Wider Board" meta={(() => { const rec = recoveryIndex(s); return `recovery ${rec.score} · crossover ${daysUntil(CROSSOVER)}d`; })()}>
@@ -1933,25 +1958,6 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           forYou={(() => { const cr = currentRate(s); const proj = +(s.trend - cr.scale * (daysUntil(CROSSOVER) / 7)).toFixed(1); return `${daysUntil(CROSSOVER)} days out. At your measured rate the trend projects ~${proj} by then vs the ~158.5 mark — ${proj <= 159.5 ? "on script." : "close; Ease 2 firing changes the slope by design, and the cone in HIST carries the honest range."}`; })()} />
       </Card>
       </Section>
-
-      {ev && (
-        <Card accent={T.chalk}>
-          <Eyebrow>EVENT MODE · {fmtShort(ev.d)}</Eyebrow>
-          <H size={19}>{ev.t}</H>
-          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 4 }}>{ev.protocol}. Zero-comp streak rides at <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> — compensation does not exist in this app.</div>
-          {daysUntil(ev.d) <= 0 && (
-            <div style={{ marginTop: 10 }}>
-              <Btn full onClick={() => {
-                const ns = JSON.parse(JSON.stringify(s));
-                ns.events.find((x) => x.id === ev.id).estimated = true;
-                ns.zeroComp = { count: ns.zeroComp.count + 1, last: `${ev.t} · ${fmtShort(ev.d)}` };
-                ns.feed.unshift({ d: tISO, t: `ZERO-COMP EVENT #${ns.zeroComp.count}`, how: `${ev.t} — estimated once, after · targets unchanged tomorrow · no penance` });
-                setS(ns); save(ns);
-              }}>Estimated once, after — close it out</Btn>
-            </div>
-          )}
-        </Card>
-      )}
     </div>
   );
 }
