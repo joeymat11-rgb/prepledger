@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.31.0";
+const APP_V = "3.31.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2184,7 +2184,7 @@ function LogTab({ s, setS, save, slp }) {
     if (t2 === "U" || t2 === "L") options.push(d);
   }
 
-  if (!sess) return (
+  if (!sess && !logged) return (
     <Card><Eyebrow>{dayType(tISO) === "REFEED" ? "REST + REFEED TODAY" : "REST DAY"}</Eyebrow>
       <div style={{ fontFamily: body, color: T.steel, fontSize: 13, marginTop: 6 }}>Next session {nextISO ? fmtShort(nextISO) : "—"} — targets will be waiting, generated from your last logs.</div></Card>
   );
