@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.49.0";
+const APP_V = "3.50.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2232,8 +2232,10 @@ function ApiKeyBlock() {
   );
 }
 
-function BriefCard({ s }) {
+function BriefCard({ s, setS: setS2, save: save2 }) {
   const [brief, setBrief] = useState(null);
+  const [ans, setAns] = useState("");
+  const [answered, setAnswered] = useState(false);
   useEffect(() => {
     (async () => {
       try {
@@ -2248,10 +2250,21 @@ function BriefCard({ s }) {
     })();
   }, []);
   if (!brief) return null;
+  const qm = brief.match(/^QUESTION:\s*(.+)$/m);
   return (
     <Card accent={T.jade}>
       <Eyebrow c={T.jade}>OVERNIGHT BRIEF — YOUR ANALYST WORKED WHILE YOU SLEPT</Eyebrow>
       <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{brief.slice(0, 2200)}</div>
+      {qm && !answered && (
+        <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9 }}>
+          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass, letterSpacing: "0.06em" }}>THE ANALYST ASKS — 10 SECONDS, BECOMES LABELED DATA</div>
+          <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
+            <input value={ans} onChange={(e) => setAns(e.target.value)} placeholder="your answer…" style={{ flex: 1, fontFamily: body, fontSize: 12, padding: "9px 10px", borderRadius: 8, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, outline: "none" }} />
+            <Btn small tone="jade" onClick={() => { if (!ans.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: isoOf(todayStart()), t: "ANALYST ANSWER", how: qm[1].slice(0, 120) + " → " + ans.trim().slice(0, 200) }); setS2 && setS2(ns); save2 && save2(ns); setAnswered(true); }}>File it</Btn>
+          </div>
+        </div>
+      )}
+      {answered && <div style={{ fontFamily: mono, fontSize: 10, color: T.jade, marginTop: 8 }}>✓ filed — the night shift reads it on its next run</div>}
     </Card>
   );
 }
@@ -2803,7 +2816,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       )}
 
-      <BriefCard s={s} />
+      <BriefCard s={s} setS={setS} save={save} />
 
       {(() => {
         const todayP = (s.pulse || []).find((x) => x.d === tISO);
@@ -3709,6 +3722,30 @@ function TrialsDesk({ s, setS, save }) {
     </div>
   );
 }
+function NightDraft() {
+  const [draft, setDraft] = useState(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const tok = localStorage.getItem(TOKEN_KEY);
+        if (!tok) return;
+        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/coach-draft.md", { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" } });
+        if (!r.ok) return;
+        const txt = await r.text();
+        const m = txt.match(/^<!-- (\d{4}-\d{2}-\d{2}) -->/);
+        if (m && (mk(isoOf(todayStart())) - mk(m[1])) / DAY <= 2) setDraft(txt.replace(/^<!--.*-->\n?/, ""));
+      } catch (e) {}
+    })();
+  }, []);
+  if (!draft) return null;
+  return (
+    <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
+      <Eyebrow c={T.brass}>THE NIGHT SHIFT'S DRAFT — WRITTEN AT 4 AM FOR THIS MEETING</Eyebrow>
+      <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{draft.slice(0, 1800)}</div>
+    </div>
+  );
+}
+
 function DossierBlock({ s }) {
   const [d, setD] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -4144,7 +4181,7 @@ function CoachView({ s, onClose }) {
     <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 70, overflowY: "auto" }} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480, margin: "0 auto", padding: "calc(26px + env(safe-area-inset-top)) 18px 60px" }}>
         <H size={26}>Coach One-Pager</H>
-          <div style={{ marginTop: 10 }}><DossierBlock s={s} /></div>
+          <div style={{ marginTop: 10 }}><DossierBlock s={s} /><NightDraft /></div>
         <Eyebrow>{fmtShort(isoOf(todayStart()))} · WK {weekDay().wk} · {s.phase} · GENERATED LIVE</Eyebrow>
         <div style={{ display: "flex", gap: 18, marginTop: 16, flexWrap: "wrap" }}>
           <div><Num size={24} c={T.jade}>{s.trend}</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>TREND</div></div>
