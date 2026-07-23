@@ -596,10 +596,10 @@ const d1 = isoL(Date.now() - 4 * 864e5), d2 = isoL(Date.now());
 dbS.sessionLog[d1] = { entries: [{ id: "press", reps: [8, 8, 7], rir: 1, w: 245 }], at: 1, niggles: [] };
 dbS.sessionLog[d2] = { entries: [{ id: "press", reps: [8, 8, 8], rir: 1, w: 245 }], at: 2, niggles: ["left elbow"] };
 const db = sd30(dbS, d2);
-ok(db && db.lifts.length === 1 && db.lifts[0].lines.some(l => l.indexOf("+1 reps") > -1), "vs-last-time delta computes: " + db.lifts[0].lines[0]);
-ok(db.lifts[0].lines.some(l => l.indexOf("all-time high") > -1), "all-time highs get named at matched load");
-ok(db.lifts[0].lines.some(l => l.indexOf("shape:") === 0) && db.lifts[0].lines.some(l => l.indexOf("opener RIR 1") > -1), "shape read + honest-opener read present");
-ok(db.summary.some(l => l.indexOf("flags: left elbow") > -1), "niggles surface with the governor warning");
+ok(db && db.lifts.length === 1 && db.lifts[0].lines.some(l => l.indexOf("1 more than last time") > -1), "plain-words delta: " + db.lifts[0].lines[0]);
+ok(db.lifts[0].lines.some(l => l.indexOf("ever done at this weight") > -1) && db.lifts[0].lines.some(l => l.indexOf("Total work:") === 0), "best-ever named + volume load computed");
+ok(db.lifts[0].lines.some(l => l.indexOf("Sets went") === 0) && db.lifts[0].lines.some(l => l.indexOf("in the tank") > -1), "fade + effort reads in plain sentences");
+ok(db.summary.some(l => l.indexOf("Watch list: left elbow") > -1), "niggles surface with the governor warning");
 ok(sd30(dbS, "2020-01-01") === null, "unlogged dates return nothing, never crash");
 
 console.log(`\nFINAL34: ${pass} passed, ${fail} failed`);
