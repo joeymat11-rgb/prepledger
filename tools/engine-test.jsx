@@ -829,5 +829,22 @@ ok(kl51(spec51, { v: 1, days: {} }).indexOf("keep showing up") > -1, "an empty w
 const one51 = { v: 1, days: {} }; one51.days[isoL(Date.now() - 2 * 864e5)] = { walkMin: 45 };
 ok(kl51(spec51, one51).indexOf("1 good walk this week") > -1, "grammar: one walk is singular");
 
-console.log(`\nFINAL49: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.53 — the data weather
+const { dayWeather: dw53, weekWeather: ww53, migrate: mg53, SEED: TM } = __test;
+const oldV22d = clone(TM); oldV22d.v = 22; delete oldV22d.dayCtx;
+ok(mg53(oldV22d).v >= 23 && typeof mg53(oldV22d).dayCtx === "object", "phones patch to v23 with day contexts");
+let wS = clone(TM);
+wS.dayCtx["2026-07-18"] = { est: true, note: "wedding weekend" };
+const w1 = dw53(wS, "2026-07-18");
+ok(w1.est && w1.noisy && w1.flags.some(f => f.k === "estimate"), "a declared estimate day reads as noisy weather");
+const sealDay = dw53(wS, "2026-07-24");
+ok(sealDay.flags.some(f => f.k === "sealwater"), "sealed-window days auto-flag as event water");
+ok(ww53(wS, ["2026-07-17", "2026-07-18", "2026-07-24"]).clean === false, "a week soaked in flags is not clean");
+ok(dw53(wS, "2026-07-06").noisy === false, "an ordinary Monday stays clean weather");
+const ctx53 = __test.askContext(wS);
+ok(ctx53.indexOf("DATA WEATHER LAW") > -1 && ctx53.indexOf("⌁[") > -1, "the agent's table carries the flags and the law");
+
+console.log(`\nFINAL50: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.52.2";
+const APP_V = "3.53.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,8 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 22;
+  SEED.v = 23;
+  SEED.dayCtx = {};
   SEED.agentProposals = [];
   SEED.temp = [];
   SEED.trials = [];
@@ -1146,7 +1147,12 @@ function labAnalytics2(s) {
   add(() => {
     const wks = [...liveRollups(s), ...ROLLUPS].filter((w) => w.avgSteps != null && w.avgW != null);
     const pairs = [];
-    for (let i = 0; i < wks.length - 1; i++) { const drop = wks[i + 1].avgW - wks[i].avgW; pairs.push({ steps: wks[i].avgSteps, drop }); }
+    let excluded = 0;
+    for (let i = 0; i < wks.length - 1; i++) {
+      const wkDays = (wks[i].days || []).concat(wks[i + 1].days || []);
+      if (wkDays.length && !weekWeather(s, wkDays).clean) { excluded++; continue; }
+      const drop = wks[i + 1].avgW - wks[i].avgW; pairs.push({ steps: wks[i].avgSteps, drop });
+    }
     if (pairs.length < 4) return { id: "stepeff", t: "STEP EFFICACY", status: "ARMED", prog: { n: pairs.length, need: 4, label: "week pairs" }, tag: "Do your extra steps actually show up on the scale?", deep: "Weekly step averages vs that week's scale movement.", forYou: "Accruing weekly.", lines: [] };
     const ms = pairs.reduce((a, p) => a + p.steps, 0) / pairs.length, md = pairs.reduce((a, p) => a + p.drop, 0) / pairs.length;
     let num = 0, den = 0; pairs.forEach((p2) => { num += (p2.steps - ms) * (p2.drop - md); den += (p2.steps - ms) ** 2; });
@@ -1154,7 +1160,7 @@ function labAnalytics2(s) {
     return { id: "stepeff", t: "STEP EFFICACY", status: "LIVE", prog: null,
       tag: "Do your extra steps show up on the scale? Directional verdict.",
       deep: "Weekly average steps vs that week's weight change, across every week on file. Small n and confounded (calories move too) — stated honestly as directional, not causal. But if high-step weeks consistently out-drop low-step weeks at similar intake, your NEAT is doing real work; if not, steps are cardiovascular health, and calories are the fat lever.",
-      forYou: `Across ${pairs.length} week-pairs: each extra 1k daily steps associates with ~${Math.abs(Math.round(slope * 10) / 10)} lb/wk ${slope > 0 ? "faster" : "slower"} loss (directional, n=${pairs.length}). ${slope > 0.05 ? "Your 16–17k target is earning its keep." : "Signal weak so far — steps stay for health; the deficit does the cutting."}`,
+      forYou: `Across ${pairs.length} clean week-pairs${excluded ? ` (${excluded} excluded for event water/estimates — they were poisoning this read)` : ""}: each extra 1k daily steps associates with ~${Math.abs(Math.round(slope * 10) / 10)} lb/wk ${slope > 0 ? "faster" : "slower"} loss (directional, n=${pairs.length}). ${slope > 0.05 ? "Your 16–17k target is earning its keep." : "Signal weak so far — steps stay for health; the deficit does the cutting."}`,
       lines: [] };
   });
 
@@ -1215,7 +1221,7 @@ function labAnalytics2(s) {
     const stB = base(allDaily.slice(-30).filter((x) => x.steps).map((x) => x.steps));
     if (!slB || !stB) return null;
     let flagged = null;
-    [...allDaily].slice(-10).forEach((d2) => { const n = nightOf(prevISO(d2.d)); let hits = 0; if (n && Math.abs((n.h - slB.m) / slB.sdv) > 1.8) hits++; if (d2.steps && Math.abs((d2.steps - stB.m) / stB.sdv) > 1.8) hits++; const rd = s.reads.find((r) => r.d === d2.d && !r.sealed); if (rd && Math.abs(rd.w - s.trend) > 1.6) hits++; if (hits >= 2) flagged = { d: d2.d, hits }; });
+    [...allDaily].slice(-10).forEach((d2) => { const n = nightOf(prevISO(d2.d)); let hits = 0; if (n && Math.abs((n.h - slB.m) / slB.sdv) > 1.8) hits++; if (d2.steps && Math.abs((d2.steps - stB.m) / stB.sdv) > 1.8) hits++; const rd = s.reads.find((r) => r.d === d2.d && !r.sealed); if (rd && Math.abs(rd.w - s.trend) > 1.6) hits++; if (hits >= 2 && !dayWeather(s, d2.d).hard) flagged = { d: d2.d, hits }; });
     return { id: "sentinel", t: "THE SENTINEL", status: "LIVE", prog: null,
       tag: "Multivariate weird-day detector — often smells illness a day early.",
       deep: "Each recent day is z-scored against your own 30-day baselines across sleep, steps, and scale-vs-trend. Two or more dimensions going strange TOGETHER is the signature of incoming illness, unlogged stress, or a tracking slip — usually a day before you'd feel or notice it. It never diagnoses; it points.",
@@ -1445,7 +1451,7 @@ function bodyAlarm(s, slp) {
       if (stB && dl2 && dl2.steps && Math.abs((dl2.steps - stB.m) / stB.sdv) > 1.8) { hits++; parts.push(`steps ${(dl2.steps / 1000).toFixed(1)}k (norm ${(stB.m / 1000).toFixed(1)}k)`); }
       const rd = s.reads.find((r) => r.d === d2 && !r.sealed);
       if (rd && Math.abs(rd.w - s.trend) > 1.6) { hits++; parts.push(`scale ${rd.w} vs trend ${s.trend}`); }
-      if (hits >= 2) patParts = parts;
+      if (hits >= 2 && !dayWeather(s, d2).hard) patParts = parts;
     }
   } catch (e) {}
   const patternHot = patParts.length >= 2;
@@ -1910,6 +1916,7 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV23(s) { s.dayCtx = s.dayCtx || {}; s.v = 23; return s; }
 function patchV22(s) { s.agentProposals = s.agentProposals || []; s.v = 22; return s; }
 function patchV21(s) { s.temp = s.temp || []; s.v = 21; return s; }
 function patchV20(s) { s.trials = s.trials || []; s.v = 20; return s; }
@@ -1955,8 +1962,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 22) return old;
-  if (old && old.v >= 3 && old.v <= 21) return patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))))))))));
+  if (old && old.v === 23) return old;
+  if (old && old.v >= 3 && old.v <= 22) return patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -1982,7 +1989,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))))))))));
+  return patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))))))))))));
 }
 
 const GLOSSARY = {
@@ -2007,7 +2014,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2052,6 +2059,21 @@ const _labMemo = new WeakMap();
 function labGroupsM(s) { if (_labMemo.has(s)) return _labMemo.get(s); const g = labGroups(s); _labMemo.set(s, g); return g; }
 const _docketMemo = new WeakMap();
 function labDocketM(s) { if (_docketMemo.has(s)) return _docketMemo.get(s); const d = labDocket(s); _docketMemo.set(s, d); return d; }
+
+/* DATA WEATHER — every day carries its quality context; every consumer respects it */
+function dayWeather(s, iso) {
+  const flags = [];
+  const manual = (s.dayCtx || {})[iso];
+  if (manual && manual.est) flags.push({ k: "estimate", why: manual.note || "declared estimate day" });
+  (s.events || []).forEach((e) => { const gap = (mk(iso) - mk(e.d)) / DAY; if (gap >= -1 && gap <= 2) flags.push({ k: "event", why: e.t || "event window" }); });
+  if (s.blackout && iso <= s.blackout.until && (mk(s.blackout.until) - mk(iso)) / DAY <= 9) flags.push({ k: "sealwater", why: "scale carries event water — sealed window" });
+  if (dayType(isoOf(new Date(mk(iso).getTime() - DAY))) === "REFEED") flags.push({ k: "postrefeed", why: "morning after refeed — storage bump expected" });
+  return { flags, noisy: flags.some((f) => f.k === "estimate" || f.k === "event" || f.k === "sealwater"), hard: flags.some((f) => f.k === "estimate" || f.k === "event"), est: flags.some((f) => f.k === "estimate") };
+}
+function weekWeather(s, days) {
+  const hits = days.filter((d) => dayWeather(s, d).noisy).length;
+  return { noisyDays: hits, clean: hits <= 1 };
+}
 
 /* KIT MODE — the replicator: a person is a JSON spec, not a codebase */
 const KIT_SPECS = {
@@ -2150,10 +2172,10 @@ function KitApp({ spec, onExit }) {
 const ANTH_KEY = "prep-ledger-anthkey";
 function askContext(s) {
   const days = Object.entries(s.dailyLogs).sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(-14)
-    .map(([d, v]) => `${d}: cal ${v.cal ?? "—"} · pro ${v.pro ?? "—"} · steps ${v.steps ?? "—"}`).join("\n");
+    .map(([d, v]) => { const w2 = dayWeather(s, d); return `${d}: cal ${v.cal ?? "—"} · pro ${v.pro ?? "—"} · steps ${v.steps ?? "—"}${w2.flags.length ? "  ⌁[" + w2.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n");
   const sess2 = Object.keys(s.sessionLog).sort().slice(-6).map((d) => `${d}: ` + (s.sessionLog[d].entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ")).join("\n");
   const nights2 = s.sleep.nights.slice(-14).map((n) => `${n.d}: ${n.h}h${n.sol != null ? ` sol${n.sol}` : ""}${(n.tags || []).length ? " " + n.tags.join("/") : ""}`).join("\n");
-  const laws = "HOUSE LAWS: fat-loss corridor 1.0–1.4 lb/wk (1.9+ = too fast); calorie floor 1,700; protein 175 daily; records/weight-increases only become official on a completed good-sleep streak (3 nights ≥7.5h); one structural change per session; effort runs RIR 2→1→0 with debt days +1; the scale seal quarantines event water; every change is a proposal — the athlete consents, the coach holds structural authority.";
+  const laws = "DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor 1.0–1.4 lb/wk (1.9+ = too fast); calorie floor 1,700; protein 175 daily; records/weight-increases only become official on a completed good-sleep streak (3 nights ≥7.5h); one structural change per session; effort runs RIR 2→1→0 with debt days +1; the scale seal quarantines event water; every change is a proposal — the athlete consents, the coach holds structural authority.";
   return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== LAST 6 SESSIONS ===\n${sess2}`;
 }
 const AGENT_TOOLS = [
@@ -2866,7 +2888,15 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       ) : (
       <Card>
-        <Eyebrow>TODAY'S NUMBERS — LOG THESE TONIGHT</Eyebrow>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Eyebrow>TODAY'S NUMBERS — LOG THESE TONIGHT</Eyebrow>
+          {(() => { const est = ((s.dayCtx || {})[tISO] || {}).est; return (
+            <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if (est) delete ns.dayCtx[tISO]; else ns.dayCtx[tISO] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
+              style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.05em", color: est ? T.brass : T.dim, border: `1px solid ${est ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>
+              {est ? "⌁ ESTIMATE DAY ✓" : "estimates today?"}
+            </span>
+          ); })()}
+        </div>
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           {[
             { l: `CAL ${calT[0]}–${calT[1]}`, v: cal, set: setCal },
