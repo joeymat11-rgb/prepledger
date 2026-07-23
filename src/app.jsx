@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.43.1";
+const APP_V = "3.44.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3873,8 +3873,21 @@ export default function PrepLedger() {
       setS((prev) => { if (!prev) return prev; const sw2 = sweepLab(prev); if (sw2) { save(sw2); return sw2; } return prev; });
       setWake((x) => x + 1);
     };
+    const autoFile = () => {
+      try {
+        if (document.visibilityState !== "visible") return;
+        if (!localStorage.getItem(TOKEN_KEY)) return;
+        const lastA = +(localStorage.getItem("prep-ledger-autosync") || 0);
+        if (Date.now() - lastA < 12 * 3600 * 1000) return;
+        localStorage.setItem("prep-ledger-autosync", String(Date.now()));
+        const raw = localStorage.getItem(LS_KEY);
+        if (raw) ghSync(JSON.parse(raw)).catch(() => {});
+      } catch (e) {}
+    };
+    document.addEventListener("visibilitychange", autoFile);
+    autoFile();
     document.addEventListener("visibilitychange", onVis2);
-    return () => document.removeEventListener("visibilitychange", onVis2);
+    return () => { document.removeEventListener("visibilitychange", autoFile); document.removeEventListener("visibilitychange", onVis2); };
   }, []);
 
   /* update-ready detection — replaces the kill-twice ritual */
