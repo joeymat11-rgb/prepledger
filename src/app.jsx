@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.31.1";
+const APP_V = "3.32.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -918,7 +918,7 @@ function theOneThing(s, slp, hour = new Date().getHours()) {
     const flips = !slp.clean && slp.run + 1 >= slp.need;
     return { t: `Log ${fmtShort(owed[0])}'s night`, sub: flips ? "one tap — ≥7.5 flips you CLEAN and today's attempts count for keeps" : "one tap — the whole engine keys off it" };
   }
-  if (s.fixWindow && !dLogged) return { t: "Fix window is open", sub: "175 today closes it and EXTENDS the record — recovery is the metric" };
+  if (s.fixWindow && !dLogged) return { t: "Fix window is open", sub: "hit 175 today and yesterday's miss becomes a save — bouncing back is the skill being scored" };
   const openEv = s.events.find((e) => !e.estimated && daysUntil(e.d) < 0);
   if (openEv) return { t: "Close out " + openEv.t, sub: "zero-comp or honest — one tap, the ledger doesn't guess" };
   if (trainToday && sessDone && !dLogged && hour < 17) return { t: "Session banked ✓ — day open", sub: "numbers close it tonight · everything else is reading" };
@@ -1591,6 +1591,7 @@ const GLOSSARY = {
   parked: ["PARKED", "Deliberately shelved with a written trigger (a date, a phase, a coach call). Parked isn't forgotten; it's staged."],
   structural: ["Structural change", "A load jump, new set, or machine change. One per session, auto-picked from the queue — so every response stays attributable. Rep progression is unlimited."],
   whoosh: ["Whoosh", "Event water leaving days after the event — a spike that drains to a NEW low. Yours clears in 1–3 days; the LAB predicts the window in advance."],
+  noonwindow: ["Why noon lifts read easy", "You lift at your stimulant peak, and stimulants mask effort — a set that feels like 2 in the tank is often 1 or 0. That's why the app asks you to read effort conservatively at noon, and why the honest-opener rule matters most here: the governor can only protect you from numbers you report truthfully."],
   rirplan: ["Suggested RIR — where it comes from", "The literature (Refalo 2023–24 meta-analyses; Helms-style RIR prescription) says 0–5 reps-in-reserve all build muscle, with a slight edge nearer failure — so everything runs 2→1→0 — and four-set movements double the 0 (2·1·0·0); your machine-based setup makes true failure safe, and the opener stays the honest gatekeeper (earns judge the opener, so the final 0 can never corrupt the signal). Then YOUR data adjusts it: debt days add +1 everywhere (nothing banks anyway), a governor hold floors everything at 2, and lifts where your logged openers run hot get one extra in the bank up front. It recomputes every session."],
   driftoff: ["Estimating drift-off", "Morning-after guessing is the clinical standard (it's how sleep diaries work). Anchor on the last thing you remember — final position change, a thought, a sound — and count minutes from lights-out to that, rounded to 5. Truly no idea? Leave the 15: the math uses a rolling median and within-you comparisons, so honest-rough beats fake-precise. A wearable's latency number can go in the same box anytime."],
   nightdate: ["How nights are dated", "A night belongs to the evening it began: Tuesday night = Tue evening → Wed morning, filed under Tuesday. You log it the morning after. Before 5 a.m. the app still means the night you already finished — never the one you haven't slept yet. Missed a morning? The row stays, dated, for up to 3 days."],
@@ -1901,7 +1902,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <Eyebrow c={T.orange}>{heroToday ? "TODAY" : daysUntil(nextISO) === 1 ? "TOMORROW" : "NEXT"} · {fmtShort(nextISO)}</Eyebrow>
           <div style={{ marginTop: 6 }}><H size={32}>{sess.structural}</H></div>
           <div style={{ fontFamily: body, fontSize: 13.5, color: T.steel, marginTop: 6 }}>
-            {sess.name} — targets already generated from your last logs. {slp.clean ? "Sleep clean: PRs can be owned." : `Sleep reset ${slp.run}/${slp.need}: PRs log provisional.`}
+            {sess.name} — your numbers are ready, built from what you did last time. {slp.clean ? "Sleep is clean: records set today count for real." : <>Short-sleep reset {slp.run}/{slp.need}: records today count as <Term k="provisional" c={T.steel}>pending</Term> until sleep is clean.</>}
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
             <Chip c={T.orange}>1 structural change — auto-picked from the queue</Chip>
@@ -2034,7 +2035,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       ) : (
       <Card>
-        <Eyebrow>TODAY'S NUMBERS · TARGETS FOLLOW THE PHASE</Eyebrow>
+        <Eyebrow>TODAY'S NUMBERS — LOG THESE TONIGHT</Eyebrow>
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           {[
             { l: `CAL ${calT[0]}–${calT[1]}`, v: cal, set: setCal },
@@ -2049,7 +2050,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           ))}
         </div>
         {s.fixWindow && (
-          <div style={{ marginTop: 10, fontFamily: mono, fontSize: 11, color: T.brass }}><Term k="fixwindow" c={T.brass}>FIX WINDOW OPEN</Term> — a miss fixed inside 24 h extends the standard. No resets here.</div>
+          <div style={{ marginTop: 10, fontFamily: mono, fontSize: 11, color: T.brass }}><Term k="fixwindow" c={T.brass}>FIX WINDOW OPEN</Term> — hit protein today and yesterday's miss counts as a save, not a break. Nothing resets.</div>
         )}
         <div style={{ marginTop: 10 }}><Btn tone="jade" full onClick={() => { saveDaily(); setDayEdit(false); }}>Log today</Btn></div>
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 8 }}>{`spread: ~4 feeds × ~${Math.round(PROTEIN / 4)} g · every 3–4 h · wake / pre-lift / post-lift / pre-bed`}</div>
@@ -2186,7 +2187,7 @@ function LogTab({ s, setS, save, slp }) {
 
   if (!sess && !logged) return (
     <Card><Eyebrow>{dayType(tISO) === "REFEED" ? "REST + REFEED TODAY" : "REST DAY"}</Eyebrow>
-      <div style={{ fontFamily: body, color: T.steel, fontSize: 13, marginTop: 6 }}>Next session {nextISO ? fmtShort(nextISO) : "—"} — targets will be waiting, generated from your last logs.</div></Card>
+      <div style={{ fontFamily: body, color: T.steel, fontSize: 13, marginTop: 6 }}>Next session {nextISO ? fmtShort(nextISO) : "—"} — your numbers will be waiting, built from last time.</div></Card>
   );
 
   const getReps = (ex) => reps[ex.id] ?? ex.tgt.slice();
@@ -2276,12 +2277,12 @@ function LogTab({ s, setS, save, slp }) {
       <Card accent={T.orange}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
           <div>
-            <Eyebrow c={T.orange}>STRUCTURAL BUDGET · 1 OF 1 — AUTO-PICKED</Eyebrow>
+            <Eyebrow c={T.orange}>TODAY'S ONE <Term k="structural" c={T.orange}>CHANGE</Term> — PICKED FOR YOU</Eyebrow>
             <H size={22}>{sess.structural}</H>
           </div>
           <button onClick={() => setReorder(!reorder)} style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.1em", color: reorder ? T.chalk : T.steel, background: reorder ? T.plate2 : "none", border: `1px solid ${reorder ? T.chalk : T.line}`, borderRadius: 6, padding: "6px 9px", whiteSpace: "nowrap" }}>{reorder ? "DONE" : "REORDER"}</button>
         </div>
-        <div style={{ fontFamily: mono, fontSize: 10.5, color: T.dim, marginTop: 4 }}>Everything else is rep progression — unlimited. New earns queue themselves for future slots.</div>
+        <div style={{ fontFamily: mono, fontSize: 10.5, color: T.dim, marginTop: 4 }}>Everything else just chases reps — no limit on that. New weight increases you earn wait in line for their own day.</div>
         <More c={T.orange} deep="One structural change per session keeps the signal clean — when something moves, you know exactly what caused the response. Rep progression stays unlimited because it's the noise-free kind of change. The scheduler auto-picks from the queue in order; doc-approved riders are the only exception."
           forYou={(() => { const cand = s.queue.filter((q) => !q.done && q.kind === "debut" && q.exId && exById(s, q.exId) && exById(s, q.exId).day === dayType(dateSel)); return cand.length > 1 ? `Waiting behind today's slot: ${cand.slice(1).map((q) => q.t).join(" · ")} — each gets its own session.` : cand.length === 1 ? "The queue empties after this one — new earns will refill it as you log." : "Nothing structural queued for this day type — pure rep-progression day, which is where most muscle actually gets built."; })()} />
       </Card>
@@ -2296,8 +2297,8 @@ function LogTab({ s, setS, save, slp }) {
       )}
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <Chip c={slp.clean ? T.jade : T.brass}>{slp.clean ? "SLEEP CLEAN — earns & owns count today" : `SLEEP DEBT ${slp.run}/${slp.need} — PRs log provisional`}</Chip>
-        <Chip>NOON WINDOW — peak stim · read RIR conservative</Chip>
+        <Chip c={slp.clean ? T.jade : T.brass}>{slp.clean ? "SLEEP CLEAN — records set today count for real" : <>SHORT SLEEP {slp.run}/{slp.need} — records count as <Term k="provisional" c={T.brass}>pending</Term></>}</Chip>
+        <Chip><Term k="noonwindow" c={T.steel}>NOON LIFT</Term> — meds peaking · effort feels easier than it is</Chip>
       </div>
 
       {sess.ex.map((ex) => (
@@ -2577,7 +2578,7 @@ function BodyTab({ s, setS, save }) {
         <div style={{ display: "flex", gap: 16, marginTop: 8, flexWrap: "wrap" }}>
           <div><Num size={20}>{s.trend}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>TREND{sealed ? " · SEALED" : ""}</div></div>
           <div><Num size={20}>{bf.pct}%</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>EST BF {s.model.err}</div></div>
-          <div><Num size={20}>{cur.fat}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>FAT/WK{cur.measured ? " · MEAS" : ""}</div></div>
+          <div><Num size={20}>{cur.fat}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>FAT/WK{cur.measured ? " · MEASURED" : ""}</div></div>
           <div><Num size={20}>{s.waist.length ? s.waist[s.waist.length - 1].v + '"' : "—"}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>WAIST</div></div>
         </div>
         <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>four rooms below — tap any to enter</div>
@@ -2588,7 +2589,7 @@ function BodyTab({ s, setS, save }) {
         <Eyebrow><Term k="trend" c={T.dim}>TREND</Term> — THE HERO NUMBER</Eyebrow>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 4 }}>
           <Num size={40} c={T.jade}>{s.trend}</Num>
-          <span style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>daily reads render small & grey — by design</span>
+          <span style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>daily weigh-ins draw small & grey on purpose — the green line is the one to believe</span>
         </div>
         <div style={{ marginTop: 8 }}><Spark reads={s.reads} trend={s.trend} /></div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 8 }}>
