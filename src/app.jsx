@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.7.0";
+const APP_V = "3.8.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -684,6 +684,26 @@ function labAnalytics(s) {
   return out.sort((a, b) => rank[a.status] - rank[b.status]);
 }
 
+/* THE ONE THING — the priority ladder that answers "what do I do?" before scrolling */
+function theOneThing(s, slp, hour = new Date().getHours()) {
+  const tISO = isoOf(todayStart());
+  const lastNight = isoOf(new Date(todayStart().getTime() - DAY));
+  const slLogged = s.sleep.nights.some((n) => n.d === lastNight);
+  const dLogged = s.dailyLogs[tISO] && s.dailyLogs[tISO].cal != null;
+  const dt = dayType(tISO);
+  const trainToday = dt === "U" || dt === "L";
+  const sessDone = !!s.sessionLog[tISO];
+  if (!slLogged) {
+    const flips = !slp.clean && slp.run + 1 >= slp.need;
+    return { t: "Log last night's sleep", sub: flips ? "one tap — ≥7.5 flips you CLEAN and today's attempts count for keeps" : "one tap — the whole engine keys off it" };
+  }
+  if (s.fixWindow && !dLogged) return { t: "Fix window is open", sub: "175 today closes it and EXTENDS the record — recovery is the metric" };
+  if (trainToday && !sessDone && hour >= 10) { const g = genSession(s, tISO, slp); return { t: "Today: " + (g.structural || g.name), sub: "log it in TRAIN when the iron's down" }; }
+  if (!dLogged && hour >= 17) return { t: "Close the day", sub: "cal · protein · steps — pre-filled to targets, adjust and tap" };
+  if (!dLogged) return { t: "Day open — nothing owed yet", sub: "numbers close it tonight · everything else is optional reading" };
+  return { t: "Everything's banked ✓", sub: slp.clean ? "protect the streak — same bedtime tonight" : "tonight ≥7.5 keeps the reset alive" };
+}
+
 /* the week, in one paragraph — auto-written from state */
 function weekDigest(s) {
   const lw = liveRollups(s)[0];
@@ -974,7 +994,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1169,6 +1189,9 @@ function Proposals({ s, setS, save }) {
 function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const tISO = isoOf(todayStart());
   const [slpH, setSlpH] = useState(7.5);
+  const [dayEdit, setDayEdit] = useState(false);
+  const [density, setDensity] = useState(() => { try { return localStorage.getItem("prep-ledger-density") || "focus"; } catch (e) { return "focus"; } });
+  const setDens = (v) => { setDensity(v); try { localStorage.setItem("prep-ledger-density", v); } catch (e) {} };
   const [wIn, setWIn] = useState(s.trend);
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
   const wd = weekDay();
@@ -1178,8 +1201,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const sess = nextISO ? genSession(s, nextISO, slp) : null;
   const heroToday = nextISO === tISO;
   const dl = s.dailyLogs[tISO] || {};
-  const [cal, setCal] = useState(dl.cal ?? "");
-  const [pro, setPro] = useState(dl.pro ?? "");
+  const [cal, setCal] = useState(dl.cal ?? 1760);
+  const [pro, setPro] = useState(dl.pro ?? 175);
   const [stp, setStp] = useState(dl.steps ?? "");
   const cleanIn = daysUntil(SEAL_UNTIL);
   const xoverIn = daysUntil(CROSSOVER);
@@ -1213,6 +1236,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <Eyebrow>WK {wd.wk} · DAY {wd.day} · {s.phase} · EST BF {bf.pct}%</Eyebrow>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
+          <button onClick={() => setDens(density === "focus" ? "full" : "focus")} style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: density === "full" ? T.chalk : T.steel, background: "none", border: `1px solid ${density === "full" ? T.chalk : T.line}`, borderRadius: 6, padding: "6px 10px" }}>{density === "focus" ? "FULL" : "FOCUS"}</button>
           <button onClick={openCoach} style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "6px 10px" }}>COACH</button>
           <button onClick={openRules} style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "6px 10px" }}>RULES</button>
         </div>
@@ -1257,6 +1281,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       </div>
 
       {(() => {
+        if (density !== "full") return null;
         const rec = recoveryIndex(s);
         const c = rec.band === "GREEN" ? T.jade : rec.band === "WATCH" ? T.brass : T.brass;
         return (
@@ -1272,6 +1297,14 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </Card>
         );
       })()}
+
+      {(() => { const one = theOneThing(s, slp); return (
+        <Card accent={T.jade} style={{ padding: 12 }}>
+          <Eyebrow c={T.jade}>THE ONE THING</Eyebrow>
+          <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 19, color: T.chalk, textTransform: "uppercase", marginTop: 2 }}>{one.t}</div>
+          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 4 }}>{one.sub}</div>
+        </Card>
+      ); })()}
 
       {(() => {
         const lastNight = isoOf(new Date(todayStart().getTime() - DAY));
@@ -1348,7 +1381,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         );
       })()}
 
-      <Card>
+      {density === "full" && (<Card>
         <Eyebrow>CLOSEST UNLOCKS · THE QUEUE REFILLS ITSELF</Eyebrow>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}>
           {nextUnlocks.map((u) => (
@@ -1361,9 +1394,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             </div>
           ))}
         </div>
-      </Card>
+      </Card>)}
 
-      <Card>
+      {density === "full" && (<Card>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
           <Eyebrow c={T.chalk}>CROSSOVER · AUG 28</Eyebrow>
           <span style={{ fontFamily: mono, fontSize: 11, color: T.steel }}>{xoverIn}d · {xPct}%</span>
@@ -1372,8 +1405,20 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <div style={{ fontFamily: body, fontSize: 12, color: T.steel }}>~158.5 at ~12% — last cut's best with 4–5 lb more muscle. The marquee.</div>
         <More c={T.chalk} deep="Aug 28 is the weight where last cut looked its best — except arriving with ~4–5 lb more muscle, lifts climbing instead of stalled, and zero panic adjustments on the books. Same scale number, different physique: the entire thesis compressed into one checkpoint."
           forYou={(() => { const cr = currentRate(s); const proj = +(s.trend - cr.scale * (daysUntil(CROSSOVER) / 7)).toFixed(1); return `${daysUntil(CROSSOVER)} days out. At your measured rate the trend projects ~${proj} by then vs the ~158.5 mark — ${proj <= 159.5 ? "on script." : "close; Ease 2 firing changes the slope by design, and the cone in HIST carries the honest range."}`; })()} />
-      </Card>
+      </Card>)}
 
+      {density === "focus" && (
+        <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, textAlign: "center", letterSpacing: "0.08em" }}>FOCUS MODE · recovery, unlocks, crossover live under FULL — nothing is gone</div>
+      )}
+
+      {dl.cal != null && !dayEdit ? (
+        <Card style={{ padding: 12 }} accent={T.jade}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontFamily: mono, fontSize: 11.5, color: T.jade }}>✓ day closed · {Math.round(dl.cal)} cal · {Math.round(dl.pro)} pro · {dl.steps != null ? (dl.steps / 1000).toFixed(1) + "k" : "—"}</span>
+            <button onClick={() => setDayEdit(true)} style={{ fontFamily: mono, fontSize: 9, color: T.dim, background: "none", border: "none" }}>edit</button>
+          </div>
+        </Card>
+      ) : (
       <Card>
         <Eyebrow>TODAY'S NUMBERS · TARGETS FOLLOW THE PHASE</Eyebrow>
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
@@ -1392,11 +1437,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         {s.fixWindow && (
           <div style={{ marginTop: 10, fontFamily: mono, fontSize: 11, color: T.brass }}><Term k="fixwindow" c={T.brass}>FIX WINDOW OPEN</Term> — a miss fixed inside 24 h extends the standard. No resets here.</div>
         )}
-        <div style={{ marginTop: 10 }}><Btn tone="jade" full onClick={saveDaily}>Log today</Btn></div>
+        <div style={{ marginTop: 10 }}><Btn tone="jade" full onClick={() => { saveDaily(); setDayEdit(false); }}>Log today</Btn></div>
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 8 }}>{`spread: ~4 feeds × ~${Math.round(PROTEIN / 4)} g · every 3–4 h · wake / pre-lift / post-lift / pre-bed`}</div>
         <More deep="175 is THE number — proximity, not a floor to beat; chronic overshoot is drift too. Calories live in a band, not a point. A protein miss opens a 24-hour fix window, and closing it EXTENDS the standard instead of resetting it — recovery speed is the metric, never an unbroken chain."
           forYou={s.fixWindow ? "The fix window is OPEN — hitting 175 today closes it and the record extends." : "Standard intact. Log once, done — the app rewards the logging, never the checking."} />
       </Card>
+      )}
 
       {ev && (
         <Card accent={T.chalk}>

@@ -306,5 +306,24 @@ dg.feed.unshift({ d: "2026-07-23", t: "PRESS 245 — OWNED", how: "x" });
 const dgs = wdg(dg);
 ok(dgs.indexOf("Protein 1/1") > -1 && dgs.indexOf("1 session") > -1 && dgs.toLowerCase().indexOf("owned") > -1, "digest composes real state into one paragraph: " + dgs.slice(0, 70));
 
-console.log(`\nFINAL14: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.8 — the one thing
+const { theOneThing: oo, SEED: SI } = __test;
+const slpNoClean = { clean: false, run: 2, need: 3 };
+const one1 = oo(clone(SI), slpNoClean, 8);
+ok(one1.t.indexOf("sleep") > -1 && one1.sub.indexOf("CLEAN") > -1, "unlogged sleep tops the ladder with the flip stakes named");
+let od = clone(SI);
+const isoL = (d) => { const x = new Date(d); return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); };
+od.sleep.nights.push({ d: isoL(Date.now() - 864e5), h: 8 });
+od.fixWindow = { opened: "x" };
+const one2 = oo(od, slpNoClean, 12);
+ok(one2.t.indexOf("Fix window") === 0, "open fix window outranks everything after sleep");
+od.fixWindow = null;
+od.dailyLogs[isoL(Date.now())] = { cal: 1750, pro: 176, steps: 16000 };
+od.sessionLog[isoL(Date.now())] = { entries: [], at: 1 };
+const one3 = oo(od, { clean: true, run: 3, need: 3 }, 21);
+ok(one3.t.indexOf("banked") > -1, "all-done evening reads as banked: " + one3.t);
+
+console.log(`\nFINAL15: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
