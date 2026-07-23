@@ -515,7 +515,7 @@ ok(bumps.length >= 2 && bumps.every(b => b > -3 && b < 4), "refeed bumps compute
 // v3.23 — the week reviews itself
 const { weekReview: wr23, sweepLab: swp23, SEED: SU } = __test;
 const rev = wr23(clone(SU));
-ok(typeof rev.verdict === "string" && rev.verdict.length > 20 && rev.lines.length === 3, "review renders a verdict plus three coaching lines");
+ok(typeof rev.verdict === "string" && rev.verdict.length > 20 && rev.lines.length === 4 && rev.lines[3].indexOf("adjustments") === 0, "review renders a verdict, three reads, and the adjustments line");
 ok(rev.verdict.indexOf("Sealed week") === 0, "sealed-week verdict fires while the quarantine holds: " + rev.verdict.slice(0, 40));
 let quiet = clone(SU); quiet.dailyLogs = {}; quiet.sessionLog = {}; quiet.sleep.nights = [];
 ok(wr23(quiet).verdict.indexOf("quiet week") > -1, "a silent week gets the door-is-open verdict, never a scolding");

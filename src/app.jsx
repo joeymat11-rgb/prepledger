@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.27.0";
+const APP_V = "3.28.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -734,10 +734,20 @@ function weekReview(s) {
   const holds = s.exercises.filter((e) => e.holdFlag).length;
   const cur = currentRate(s);
   const sealedNow = blackoutOn(s);
+  const props = (s.proposals || []).filter((p) => !p.applied && !p.dismissed);
+  const appliedAdj = s.feed.filter((f) => inWin(f.d) && /(PROPOSAL|EASE|RATE RULE|4TH SET|UNI|OVERRIDDEN)/.test(f.t)).length;
+  const adjLine = props.length
+    ? `adjustments armed on NOW: ${props.slice(0, 2).map((p) => p.t || p.id).join(" · ")} — one tap applies`
+    : appliedAdj
+    ? `adjustments this week: ${appliedAdj} — all filed in the story, all reversible`
+    : sealedNow
+    ? "adjustments: rate rules muted under the seal — they re-arm with Monday's clean read"
+    : "adjustments: none needed — targets moved themselves per-session, the band is holding";
   const lines = [
     `protein ${proHit}/${proN} on target${fixes ? ` · ${fixes} fix window${fixes > 1 ? "s" : ""} closed same-day` : ""}`,
     `${sess.length} session${sess.length === 1 ? "" : "s"} logged · ${wins.length} win${wins.length === 1 ? "" : "s"} filed${holds ? ` · ${holds} lift on hold` : ""}`,
     `sleep ${cleanN}/${nights.length} clean${sealedNow ? " · scale sealed — verdict Monday" : cur.measured ? ` · rate ~${cur.fat}/wk vs band ${s.rate.band.join("–")}` : ""}`,
+    adjLine,
   ];
   let verdict;
   if (proN + sess.length + nights.length === 0) verdict = "A quiet week on the log — the return is the whole skill, and the door is open.";
@@ -2096,7 +2106,7 @@ function LogTab({ s, setS, save, slp }) {
   const hackPending = s.queue.some((q) => q.id === "q_hack3" && !q.done);
 
   const options = [];
-  for (let i = 0; i <= 6 && options.length < 2; i++) {
+  for (let i = 0; i <= 10 && options.length < 4; i++) {
     const d = isoOf(new Date(todayStart().getTime() + i * DAY));
     const t2 = dayType(d);
     if (t2 === "U" || t2 === "L") options.push(d);
@@ -2118,9 +2128,10 @@ function LogTab({ s, setS, save, slp }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <div style={{ display: "flex", gap: 8 }}>
+      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
         {options.map((d) => (
-          <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setNote(""); setNig([]); }} style={{ flex: 1, fontFamily: mono, fontSize: 11.5, letterSpacing: "0.06em", padding: "9px 0", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : T.steel }}>
+          <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setNote(""); setNig([]); }} style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : s.sessionLog[d] ? T.jade : T.steel }}>
+            {s.sessionLog[d] ? "✓ " : ""}
             {fmtShort(d)} · {dayType(d) === "U" ? "UPPER" : "LOWER"}
           </button>
         ))}
