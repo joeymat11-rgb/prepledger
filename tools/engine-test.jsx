@@ -465,5 +465,15 @@ ok(mso(sq) === 30 && lot(sq).t === "22:15", "measured 30-min drift-off pulls lig
 const oldV13 = clone(SQ); oldV13.v = 13; delete oldV13.sleep.anchor.asleepTarget;
 ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 phones patch to v14 with the asleep target");
 
-console.log(`\nFINAL24: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.17 — the sibling design review
+const { labSections: ls17, SEED: SR } = __test;
+const secs = ls17(clone(SR));
+ok(secs.reduce((a, x) => a + x.cards.length, 0) === 38, "all 38 filed across the plain-language sections, none lost");
+const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "gathering");
+ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
+ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
+
+console.log(`\nFINAL25: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

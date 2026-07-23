@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.16.1";
+const APP_V = "3.17.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1172,6 +1172,21 @@ function labDocket(s) {
   return { fresh, next: withEta, sentinel: { quiet, txt: sen ? (quiet ? "all quiet — every recent day inside your own baselines" : sen.forYou.split(".")[0]) : "arming" } };
 }
 const STATUS_RANK = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
+function labSections(s) {
+  const flat = labGroups(s).flatMap((g) => g.cards);
+  const speaking = flat.filter((c) => c.status === "LIVE" || c.status === "TRACKING");
+  const gathering = flat.filter((c) => c.status === "ARMED").sort((a, b) => ((b.prog ? b.prog.n / b.prog.need : 0) - (a.prog ? a.prog.n / a.prog.need : 0)));
+  const models = flat.filter((c) => c.status === "MODEL");
+  const shelf2 = flat.filter((c) => c.status === "ON FILE");
+  const later = flat.filter((c) => c.status === "LOCKED");
+  return [
+    { k: "speaking", title: `SPEAKING NOW (${speaking.length})`, sub: null, cards: speaking },
+    { k: "gathering", title: `GATHERING — YOUR LOGGING FUNDS THESE (${gathering.length})`, sub: null, cards: gathering },
+    { k: "models", title: `SANDBOX MODELS (${models.length})`, sub: "simulations, badged — touch, nothing real moves", cards: models },
+    { k: "shelf2", title: `ON THE SHELF (${shelf2.length})`, sub: "settled science at your numbers — nothing to do here", cards: shelf2 },
+    { k: "later", title: `LATER (${later.length})`, sub: null, cards: later },
+  ].filter((sec) => sec.cards.length);
+}
 function labStatusList(s) {
   const flat = labGroups(s).flatMap((g) => g.cards);
   return [...flat].sort((a, b) => {
@@ -1397,7 +1412,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2578,7 +2593,7 @@ function HistTab({ s, setS, save }) {
   const [open, setOpen] = useState(null);
   const [labOpen, setLabOpen] = useState(null);
   const [grpOpen, setGrpOpen] = useState(null);
-  const [lens, setLens] = useState("shelves");
+  const [lens, setLens] = useState("status");
   const liveWks = liveRollups(s);
   const first = ROLLUPS[ROLLUPS.length - 1];
   const latest = (liveWks.find((w) => w.avgW != null || w.avgCal != null)) || ROLLUPS[0];
@@ -2654,22 +2669,19 @@ function HistTab({ s, setS, save }) {
               return (
                 <Card accent={T.jade} style={{ padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                    <Eyebrow c={T.jade}>THE LAB · {tot} INSTRUMENTS · {totLive} LIVE · {totArmed} ARMED</Eyebrow>
+                    <Eyebrow c={T.jade}>THE LAB · {totLive} SPEAKING · {totArmed} GATHERING · {tot} TOTAL</Eyebrow>
                     <div style={{ display: "flex", gap: 4 }}>
                       {["shelves", "status"].map((m) => (
                         <button key={m} onClick={() => setLens(m)} style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: "0.08em", padding: "4px 8px", borderRadius: 5, border: `1px solid ${lens === m ? T.jade : T.line}`, background: "none", color: lens === m ? T.jade : T.dim, textTransform: "uppercase" }}>{m}</button>
                       ))}
                     </div>
                   </div>
+                  <div style={{ fontFamily: body, fontSize: 11, color: T.dim, marginTop: 4 }}>Tap any line for the full story, in plain words.</div>
                   <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9 }}>
                     <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.1em", color: T.dim }}>FRESH VERDICTS · LAST 7 DAYS</div>
                     {dk.fresh.length ? dk.fresh.slice(0, 3).map((f, i) => (
                       <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.jade, marginTop: 4 }}>◆ {f.t.toLowerCase()} · {fmtShort(f.d)}</div>
                     )) : <div style={{ fontFamily: mono, fontSize: 10.5, color: T.dim, marginTop: 4 }}>none — the lab is watching, not talking</div>}
-                    <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.1em", color: T.dim, marginTop: 9 }}>NEXT TO SPEAK</div>
-                    {dk.next.length ? dk.next.map((n2) => (
-                      <div key={n2.id} onClick={() => jump(n2.id)} style={{ fontFamily: mono, fontSize: 10.5, color: T.brass, marginTop: 4, cursor: "pointer" }}>▸ {n2.t.toLowerCase()} · {n2.n}/{n2.need}{n2.eta ? " · ~" + fmtShort(n2.eta) : ""}</div>
-                    )) : <div style={{ fontFamily: mono, fontSize: 10.5, color: T.dim, marginTop: 4 }}>everything armed is waiting on the calendar</div>}
                     <div style={{ fontFamily: mono, fontSize: 10, color: dk.sentinel.quiet ? T.dim : T.brass, marginTop: 9 }}>SENTINEL · {dk.sentinel.txt}</div>
                   </div>
                 </Card>
@@ -2695,7 +2707,27 @@ function HistTab({ s, setS, save }) {
                 </Card>
               );
             })}
-            {lens === "status" && <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>{labStatusList(s).map(renderCard)}</div>}
+            {lens === "status" && (
+              <Card style={{ padding: "4px 12px 10px" }}>
+                {labSections(s).map((sec) => (
+                  <div key={sec.k}>
+                    <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.12em", color: T.dim, marginTop: 12 }}>{sec.title}</div>
+                    {sec.sub && <div style={{ fontFamily: body, fontSize: 10.5, color: T.dim, marginTop: 2 }}>{sec.sub}</div>}
+                    {sec.cards.map((a) => labOpen === a.id ? (
+                      <div key={a.id} style={{ margin: "8px 0" }}>{renderCard(a)}</div>
+                    ) : (
+                      <div key={a.id} onClick={() => setLabOpen(a.id)} style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 0", borderBottom: `1px solid ${T.line}`, cursor: "pointer" }}>
+                        <span style={{ width: 7, height: 7, borderRadius: 99, background: stampColor(a.status), flexShrink: 0 }} />
+                        <span style={{ fontFamily: disp, fontWeight: 600, fontSize: 14.5, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk, flex: 1, lineHeight: 1.2 }}>{a.t}</span>
+                        <span style={{ fontFamily: mono, fontSize: 9.5, color: a.status === "LIVE" || a.status === "TRACKING" ? T.jade : a.status === "ARMED" ? T.brass : T.dim, whiteSpace: "nowrap" }}>
+                          {a.status === "ARMED" && a.prog ? `${a.prog.n}/${a.prog.need}` : a.status.toLowerCase()} <span style={{ color: T.dim }}>▸</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </Card>
+            )}
             <Card style={{ padding: 12 }}>
               <Eyebrow>THE INDEX — EVERY INSTRUMENT, ONE TAP</Eyebrow>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
