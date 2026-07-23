@@ -554,5 +554,15 @@ ok(rp25(exS, exS.exercises.find(e => e.id === "lateral"), dSlp).plan[0] === 3, "
 const oldV16 = clone(SW); oldV16.v = 16; delete oldV16.rirOverride;
 ok(mg25(oldV16).v >= 17 && mg25(oldV16).rirOverride === "2026-07-23", "his stated decision pre-applied on phones");
 
-console.log(`\nFINAL31: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.26 — rear delt goes unilateral
+const { targetsFor: tf26, migrate: mg26, SEED: SX } = __test;
+const rdX = clone(SX).exercises.find(e => e.id === "rearDelt");
+ok(rdX.sets === 3 && rdX.n.indexOf("uni") > -1 && tf26(rdX).join(",") === "10,10,10", "3 rounds per side — the engine calls for matched 10s: " + tf26(rdX).join(","));
+const oldV17x = clone(SX); oldV17x.v = 17; const rdo = oldV17x.exercises.find(e => e.id === "rearDelt"); rdo.sets = 2; rdo.n = "Rear-delt fly (cable)";
+const m18 = mg26(oldV17x);
+ok(m18.v >= 18 && m18.exercises.find(e => e.id === "rearDelt").sets === 3 && m18.feed[0].t.indexOf("REAR-DELT") === 0, "phones patch with the third honesty note filed");
+
+console.log(`\nFINAL32: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
