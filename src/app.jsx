@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.20.0";
+const APP_V = "3.21.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -491,7 +491,7 @@ function labAnalytics(s) {
       }
     }
   }
-  const ev = s.events.find((e) => !e.estimated && daysUntil(e.d) >= -1 && daysUntil(e.d) <= 3);
+  const ev = s.events.find((e) => !e.estimated && daysUntil(e.d) <= 3);
   const ds0 = eps.map((e) => e.days).sort((a, b) => a - b);
   const hiC = ds0.length >= 3 ? ds0[ds0.length - 2] : ds0[ds0.length - 1];
   out.push({ id: "whoosh", t: "WHOOSH SIGNATURE", status: eps.length >= 2 ? "LIVE" : "ARMED", prog: { n: eps.length, need: 2, label: "spike→drain episodes" },
@@ -701,6 +701,33 @@ function caffAt(mg, doseHour, atHour) {
   if (!mg) return 0;
   const dt = atHour - doseHour;
   return Math.round(mg * Math.pow(0.5, dt / 5));
+}
+
+/* events resolve themselves — the coach closes its own loops */
+function closeEvent(s, evId, zero) {
+  const ns = JSON.parse(JSON.stringify(s));
+  const e = ns.events.find((x) => x.id === evId);
+  if (!e) return ns;
+  e.estimated = true;
+  const tI = isoOf(todayStart());
+  if (zero) {
+    ns.zeroComp = { count: ns.zeroComp.count + 1, last: `${e.t} · ${fmtShort(e.d)}` };
+    ns.feed.unshift({ d: tI, t: `ZERO-COMP EVENT #${ns.zeroComp.count}`, how: `${e.t} — estimated once, after · targets unchanged tomorrow · no penance` });
+  } else {
+    ns.zeroComp = { count: 0, last: `reset · ${e.t}` };
+    ns.feed.unshift({ d: tI, t: "EVENT LOGGED HONEST", how: `${e.t} — off-plan, named without ceremony · streak restarts at 0 · targets unchanged tomorrow, because penance does not exist here` });
+  }
+  return ns;
+}
+/* your refeeds' measured next-morning bumps */
+function refeedBumps(s) {
+  const out = [];
+  s.reads.forEach((r) => {
+    if (r.sealed || dayType(r.d) !== "REFEED") return;
+    const nx = s.reads.find((x) => x.d === isoOf(new Date(mk(r.d).getTime() + DAY)) && !x.sealed);
+    if (nx) out.push(+(nx.w - r.w).toFixed(1));
+  });
+  return out;
 }
 
 /* onset latency — median of measured, honest default until data */
@@ -1417,7 +1444,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1723,7 +1750,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </div>
           <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 6 }}>{REFEED.note}. Protein still {PROTEIN}.</div>
           <More deep="The weekly elevated-carb day refills muscle glycogen (fullness plus next-day performance), gives adherence and hormones a breather, and is prescribed — an on-plan green day that the streak logic treats as compliance, because it is."
-            forYou="Tomorrow's session runs on this fuel — your PR-heavy days historically follow refeeds. Expect the next-morning bump from the LAB's refeed line; it's storage wearing a costume, and you lift heavier ON it." />
+            forYou={(() => { const b = refeedBumps(s); return b.length ? `Your last ${b.length} refeeds moved the next morning ${Math.min(...b) > 0 ? "+" : ""}${Math.min(...b)} to +${Math.max(...b)} lb — storage wearing a costume, measured in you. Tomorrow's session runs on this fuel; you lift heavier ON it.` : "Tomorrow's session runs on this fuel — the next-morning bump is storage wearing a costume, and you lift heavier ON it."; })()} />
         </Card>
       )}
 
@@ -1903,18 +1930,16 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <H size={19}>{ev.t}</H>
           <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 4 }}>{ev.protocol}. Zero-comp streak rides at <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> — compensation does not exist in this app.</div>
           {daysUntil(ev.d) <= 0 && (
-            <div style={{ marginTop: 10 }}>
-              <Btn full onClick={() => {
-                const ns = JSON.parse(JSON.stringify(s));
-                ns.events.find((x) => x.id === ev.id).estimated = true;
-                ns.zeroComp = { count: ns.zeroComp.count + 1, last: `${ev.t} · ${fmtShort(ev.d)}` };
-                ns.feed.unshift({ d: tISO, t: `ZERO-COMP EVENT #${ns.zeroComp.count}`, how: `${ev.t} — estimated once, after · targets unchanged tomorrow · no penance` });
-                setS(ns); save(ns);
-              }}>Estimated once, after — close it out</Btn>
+            <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+              {daysUntil(ev.d) < 0 && <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass }}>waiting on you to close it — the ledger doesn't guess</div>}
+              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>Zero comp — estimated once, close it out</Btn>
+              <Btn full small onClick={() => { const ns = closeEvent(s, ev.id, false); setS(ns); save(ns); }}>It got away from plan — log it honest</Btn>
             </div>
           )}
         </Card>
       )}
+
+
 
       <Section title="The Wider Board" meta={(() => { const rec = recoveryIndex(s); return `recovery ${rec.score} · crossover ${daysUntil(CROSSOVER)}d`; })()}>
       {(() => {
@@ -1949,7 +1974,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       </Card>
 <Card>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <Eyebrow c={T.chalk}>CROSSOVER · AUG 28</Eyebrow>
+          <Eyebrow c={T.chalk}>CROSSOVER · {fmtShort(CROSSOVER).toUpperCase()}</Eyebrow>
           <span style={{ fontFamily: mono, fontSize: 11, color: T.steel }}>{xoverIn}d · {xPct}%</span>
         </div>
         <div style={{ margin: "8px 0 6px" }}><Bar pct={xPct} c={T.chalk} /></div>
@@ -1958,6 +1983,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           forYou={(() => { const cr = currentRate(s); const proj = +(s.trend - cr.scale * (daysUntil(CROSSOVER) / 7)).toFixed(1); return `${daysUntil(CROSSOVER)} days out. At your measured rate the trend projects ~${proj} by then vs the ~158.5 mark — ${proj <= 159.5 ? "on script." : "close; Ease 2 firing changes the slope by design, and the cone in HIST carries the honest range."}`; })()} />
       </Card>
       </Section>
+
     </div>
   );
 }

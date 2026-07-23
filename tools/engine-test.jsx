@@ -496,5 +496,19 @@ const oldV14 = clone(SS); oldV14.v = 14; oldV14.queue.push({ id: "q_x", rule: "L
 const m15 = mg19(oldV14);
 ok(m15.v >= 15 && m15.queue.find(q => q.id === "q_x").rule.indexOf("Gate passed") === 0, "confusing LOCKED wording patched away on phones");
 
-console.log(`\nFINAL27: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.21 — the coach closes its own loops
+const { closeEvent: ce21, refeedBumps: rb21, SEED: ST } = __test;
+let evS = clone(ST);
+const evId = evS.events.find(e => !e.estimated).id;
+const zc0 = evS.zeroComp.count;
+const banked = ce21(evS, evId, true);
+ok(banked.zeroComp.count === zc0 + 1 && banked.events.find(e => e.id === evId).estimated === true && banked.feed[0].t.indexOf("ZERO-COMP EVENT") === 0, "zero-comp outcome: streak +1, event closed, story written");
+const honest = ce21(evS, evId, false);
+ok(honest.zeroComp.count === 0 && honest.feed[0].t === "EVENT LOGGED HONEST" && honest.feed[0].how.indexOf("penance does not exist") > -1, "honest outcome: streak resets without ceremony or punishment");
+const bumps = rb21(clone(ST));
+ok(bumps.length >= 2 && bumps.every(b => b > -3 && b < 4), "refeed bumps computed from his own mornings: " + bumps.join(", "));
+
+console.log(`\nFINAL28: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
