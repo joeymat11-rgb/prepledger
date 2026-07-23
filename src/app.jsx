@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.29.0";
+const APP_V = "3.30.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -701,6 +701,52 @@ function caffAt(mg, doseHour, atHour) {
   if (!mg) return 0;
   const dt = atHour - doseHour;
   return Math.round(mg * Math.pow(0.5, dt / 5));
+}
+
+/* THE DEBRIEF — per-lift depth for any logged session, recomputed on demand */
+function sessionDebrief(s, iso) {
+  const sess = s.sessionLog[iso];
+  if (!sess) return null;
+  const dates = Object.keys(s.sessionLog).sort();
+  const wasClean = cleanAtDate(s, iso);
+  const night = s.sleep.nights.find((n) => n.d === isoOf(new Date(mk(iso).getTime() - DAY)));
+  const lifts = (sess.entries || []).map((e) => {
+    const ex = exById(s, e.id);
+    const name = ex ? ex.n : e.id;
+    const tot = (e.reps || []).reduce((a, b) => a + b, 0);
+    const lines = [];
+    try {
+      const prevD = dates.filter((d) => d < iso && ((s.sessionLog[d].entries || []).some((x) => x.id === e.id))).pop();
+      const prev = prevD ? (s.sessionLog[prevD].entries || []).find((x) => x.id === e.id) : null;
+      const pTot = prev ? (prev.reps || []).reduce((a, b) => a + b, 0) : null;
+      const meta = ex && ex.lastMeta && ex.lastMeta.d < iso ? ex.lastMeta : null;
+      const baseTot = pTot != null ? pTot : meta ? meta.reps.reduce((a, b) => a + b, 0) : null;
+      const baseW = prev && prev.w != null ? prev.w : meta ? meta.w : null;
+      if (baseTot != null) {
+        const dR = tot - baseTot;
+        const sameW = e.w == null || baseW == null || e.w === baseW;
+        lines.push(`${tot} total ${sameW ? "" : `at ${e.w} (was ${baseW}) `}vs ${baseTot} last time — ${dR > 0 ? "+" + dR + " reps" : dR < 0 ? dR + " reps" : "matched"}${!sameW && e.w > baseW ? " on MORE load" : ""}`);
+      } else lines.push(`${tot} total — first print on record for this lift`);
+      const allTots = dates.filter((d) => d <= iso).map((d) => { const x = (s.sessionLog[d].entries || []).find((y) => y.id === e.id); return x && x.w === e.w ? (x.reps || []).reduce((a, b) => a + b, 0) : null; }).filter((x) => x != null);
+      if (allTots.length >= 2 && tot >= Math.max(...allTots)) lines.push(`all-time high at this load (${allTots.length} sessions deep)${wasClean ? "" : " · provisional — debt day"}`);
+      if ((e.reps || []).length >= 2) {
+        const fade = e.reps[0] - e.reps[e.reps.length - 1];
+        lines.push(`shape: ${e.reps.join("→")} — ${fade <= 1 ? "flat fade, plenty in the system" : fade >= 3 ? "steep fade — last sets bought at full price" : "normal fade"}`);
+      }
+      if (e.rir != null) lines.push(`opener RIR ${e.rir} — ${e.rir === 0 ? "grind territory: doesn't earn, watch the governor" : e.rir === 1 ? "honest, exactly the standard" : "banked reserve — room above"}`);
+    } catch (err) { lines.push(`${tot} total`); }
+    return { n: name, lines };
+  });
+  const totalReps = lifts.reduce((a, l) => a + ((sess.entries.find((e) => (exById(s, e.id) || { n: e.id }).n === l.n) || { reps: [] }).reps || []).reduce((x, y) => x + y, 0), 0);
+  const sameType = dates.filter((d) => d < iso && dayType(d) === dayType(iso));
+  const typeTots = sameType.map((d) => (s.sessionLog[d].entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0));
+  const med = typeTots.length ? typeTots.sort((a, b) => a - b)[Math.floor(typeTots.length / 2)] : null;
+  const summary = [
+    `${sess.entries.length} lifts · ${totalReps} total reps${med ? ` vs ~${med} typical for this day type` : ""}`,
+    `${wasClean ? "CLEAN day — everything banks" : "debt day — prints provisional, context not regression"}${night ? ` · slept ${night.h} h into it` : ""}`,
+  ];
+  if (sess.niggles && sess.niggles.length) summary.push(`flags: ${sess.niggles.join(" · ")} — the governor is watching these`);
+  return { lifts, summary };
 }
 
 /* per-set RIR prescription — literature base, tuned by his own logs */
@@ -1534,7 +1580,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2105,6 +2151,7 @@ function LogTab({ s, setS, save, slp }) {
   const [reps, setReps] = useState({});
   const [rir, setRir] = useState({});
   const [note, setNote] = useState("");
+  const [dbOpen, setDbOpen] = useState(false);
   const [nig, setNig] = useState([]);
   const [reorder, setReorder] = useState(false);
   const [showSetup, setShowSetup] = useState({});
@@ -2168,6 +2215,19 @@ function LogTab({ s, setS, save, slp }) {
                   {wins.map((w2, i) => <div key={i} style={{ fontFamily: mono, fontSize: 9.5, color: T.jade, marginTop: i ? 3 : 0 }}>◆ {w2.t.toLowerCase()}</div>)}
                 </div>
               )}
+              <div onClick={() => setDbOpen(!dbOpen)} style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 8, letterSpacing: "0.1em", cursor: "pointer" }}>{dbOpen ? "▾ CLOSE DEBRIEF" : "▸ FULL DEBRIEF — PER-LIFT DEPTH"}</div>
+              {dbOpen && (() => { const db = sessionDebrief(s, dateSel); return db && (
+                <div style={{ marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
+                  {db.summary.map((l, i) => <div key={i} style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: i ? 4 : 0, lineHeight: 1.5 }}>{l}</div>)}
+                  {db.lifts.map((L, i) => (
+                    <div key={i} style={{ marginTop: 10 }}>
+                      <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 13.5, textTransform: "uppercase", color: T.chalk }}>{L.n}</div>
+                      {L.lines.map((l, j) => <div key={j} style={{ fontFamily: mono, fontSize: 10, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{l}</div>)}
+                    </div>
+                  ))}
+                  <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 10 }}>recomputed live — old sessions get smarter as the engine does</div>
+                </div>
+              ); })()}
             </Card>
             {preview && (
               <Card>
@@ -2342,6 +2402,20 @@ function LogTab({ s, setS, save, slp }) {
         </div>
       )}
 </>)}
+
+
+      {Object.keys(s.sessionLog).length > 0 && (
+        <Section title="The Session Archive" meta={`${Object.keys(s.sessionLog).length} logged · tap any for its receipt + debrief`}>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {Object.keys(s.sessionLog).sort().reverse().map((d) => { const sl = s.sessionLog[d]; const tr = (sl.entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0); return (
+              <div key={d} onClick={() => { setDateSel(d); setDbOpen(true); }} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "10px 0", borderBottom: `1px solid ${T.line}`, cursor: "pointer", fontFamily: mono, fontSize: 10.5 }}>
+                <span style={{ color: T.chalk }}>{fmtShort(d)} · {dayType(d) === "U" ? "UPPER" : "LOWER"}</span>
+                <span style={{ color: T.steel }}>{(sl.entries || []).length} lifts · {tr} reps{cleanAtDate(s, d) ? "" : " · debt"} <span style={{ color: T.dim }}>▸</span></span>
+              </div>
+            ); })}
+          </div>
+        </Section>
+      )}
 
     </div>
   );

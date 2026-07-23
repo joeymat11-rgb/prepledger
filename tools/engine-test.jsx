@@ -587,5 +587,20 @@ evL.sessionLog[isoL(Date.now())] = { entries: [], at: 1 };
 const rung2 = oo29(evL, clean29, 13);
 ok(rung2.t.indexOf("Session banked") === 0 || rung2.t.indexOf("Today:") === 0 || rung2.t.indexOf("Day open") === 0, "post-session midday reads banked-not-nagging: " + rung2.t);
 
-console.log(`\nFINAL33: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.30 — the debrief
+const { sessionDebrief: sd30, SEED: SZ } = __test;
+let dbS = clone(SZ);
+const d1 = isoL(Date.now() - 4 * 864e5), d2 = isoL(Date.now());
+dbS.sessionLog[d1] = { entries: [{ id: "press", reps: [8, 8, 7], rir: 1, w: 245 }], at: 1, niggles: [] };
+dbS.sessionLog[d2] = { entries: [{ id: "press", reps: [8, 8, 8], rir: 1, w: 245 }], at: 2, niggles: ["left elbow"] };
+const db = sd30(dbS, d2);
+ok(db && db.lifts.length === 1 && db.lifts[0].lines.some(l => l.indexOf("+1 reps") > -1), "vs-last-time delta computes: " + db.lifts[0].lines[0]);
+ok(db.lifts[0].lines.some(l => l.indexOf("all-time high") > -1), "all-time highs get named at matched load");
+ok(db.lifts[0].lines.some(l => l.indexOf("shape:") === 0) && db.lifts[0].lines.some(l => l.indexOf("opener RIR 1") > -1), "shape read + honest-opener read present");
+ok(db.summary.some(l => l.indexOf("flags: left elbow") > -1), "niggles surface with the governor warning");
+ok(sd30(dbS, "2020-01-01") === null, "unlogged dates return nothing, never crash");
+
+console.log(`\nFINAL34: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
