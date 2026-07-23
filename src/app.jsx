@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.52.0";
+const APP_V = "3.52.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2435,8 +2435,8 @@ const STAMP_LABEL = { GATED: "LOCKED", DEBUT: "FIRST RUN", OWNED: "YOURS", "OWN-
 const Stamp = ({ st }) => (
   <span style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.14em", color: stampColor(st), border: `1px solid ${stampColor(st)}`, borderRadius: 3, padding: "2px 6px", whiteSpace: "nowrap" }}>{STAMP_LABEL[st] || st}</span>
 );
-const Card = ({ children, style = {}, accent }) => (
-  <div style={{ background: T.plate, border: `1px solid ${T.line}`, borderLeft: accent ? `3px solid ${accent}` : `1px solid ${T.line}`, borderRadius: 8, padding: 14, ...style }}>{children}</div>
+const Card = ({ children, style = {}, accent, ...rest }) => (
+  <div {...rest} style={{ background: T.plate, border: `1px solid ${T.line}`, borderLeft: accent ? `3px solid ${accent}` : `1px solid ${T.line}`, borderRadius: 8, padding: 14, ...style }}>{children}</div>
 );
 const Chip = ({ children, c = T.steel }) => (
   <span style={{ fontFamily: mono, fontSize: 10.5, color: c, border: `1px solid ${T.line}`, borderRadius: 999, padding: "4px 9px", whiteSpace: "nowrap" }}>{children}</span>
