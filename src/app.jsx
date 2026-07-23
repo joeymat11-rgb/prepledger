@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.11.0";
+const APP_V = "3.12.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1320,8 +1320,6 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [slTags, setSlTags] = useState([]);
   const [awakeMin, setAwakeMin] = useState(30);
   const [dayEdit, setDayEdit] = useState(false);
-  const [density, setDensity] = useState(() => { try { return localStorage.getItem("prep-ledger-density") || "focus"; } catch (e) { return "focus"; } });
-  const setDens = (v) => { setDensity(v); try { localStorage.setItem("prep-ledger-density", v); } catch (e) {} };
   const [wIn, setWIn] = useState(s.trend);
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
   const wd = weekDay();
@@ -1366,7 +1364,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <Eyebrow>WK {wd.wk} · DAY {wd.day} · {s.phase} · EST BF {bf.pct}%</Eyebrow>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
-          <button onClick={() => setDens(density === "focus" ? "full" : "focus")} style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: density === "full" ? T.chalk : T.steel, background: "none", border: `1px solid ${density === "full" ? T.chalk : T.line}`, borderRadius: 6, padding: "6px 10px" }}>{density === "focus" ? "FULL" : "FOCUS"}</button>
+          
           <button onClick={openCoach} style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "6px 10px" }}>COACH</button>
           <button onClick={openRules} style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "6px 10px" }}>RULES</button>
         </div>
@@ -1410,23 +1408,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         {ev && <Chip c={T.chalk}>{ev.t} · {fmtShort(ev.d)}</Chip>}
       </div>
 
-      {(() => {
-        if (density !== "full") return null;
-        const rec = recoveryIndex(s);
-        const c = rec.band === "GREEN" ? T.jade : rec.band === "WATCH" ? T.brass : T.brass;
-        return (
-          <Card accent={c}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <Eyebrow>RECOVERY — HOW BEAT-UP AM I?</Eyebrow>
-              <span style={{ fontFamily: mono, fontSize: 12, color: c }}>{rec.score} · {rec.band}</span>
-            </div>
-            <div style={{ margin: "8px 0 4px" }}><Bar pct={rec.score} c={c} /></div>
-            <div style={{ fontFamily: mono, fontSize: 10, color: T.steel }}>{rec.factors.length ? rec.factors.join(" · ") : "no drag on the system — earns count, send it"}</div>
-            <More c={c} deep="Four drag sources converge into one number: sleep (reset progress and 5-night average), opener honesty (active RIR holds), joint flags over 14 days, and rep dips across your last two sessions. 80+ = full send, earns and owns count. 55–79 = consolidate. Under 55 arms the hold-structure rule — nothing auto-changes, but the card appears."
-              forYou={!slp.clean ? `Biggest lever tonight: ≥7.5 h returns +10 instantly${slp.run + 1 >= slp.need ? " and flips you CLEAN — tomorrow's owns and earns count" : ""}.` : s.exercises.some((e) => e.holdFlag) ? "One honest opener session (RIR ≥1) releases the active hold and returns the points." : "Nothing dragging. The rarest state in a deficit — protect it."} />
-          </Card>
-        );
-      })()}
+
 
       {(() => { const one = theOneThing(s, slp); return (
         <Card accent={T.jade} style={{ padding: 12 }}>
@@ -1537,35 +1519,11 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         );
       })()}
 
-      {density === "full" && (<Card>
-        <Eyebrow>CLOSEST UNLOCKS · THE QUEUE REFILLS ITSELF</Eyebrow>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}>
-          {nextUnlocks.map((u) => (
-            <div key={u.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-              <div>
-                <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 16, color: T.chalk, textTransform: "uppercase" }}>{u.t}</div>
-                <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel }}>{u.gate}</div>
-              </div>
-              <Stamp st={u.state} />
-            </div>
-          ))}
-        </div>
-      </Card>)}
+      
 
-      {density === "full" && (<Card>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <Eyebrow c={T.chalk}>CROSSOVER · AUG 28</Eyebrow>
-          <span style={{ fontFamily: mono, fontSize: 11, color: T.steel }}>{xoverIn}d · {xPct}%</span>
-        </div>
-        <div style={{ margin: "8px 0 6px" }}><Bar pct={xPct} c={T.chalk} /></div>
-        <div style={{ fontFamily: body, fontSize: 12, color: T.steel }}>~158.5 at ~12% — last cut's best with 4–5 lb more muscle. The marquee.</div>
-        <More c={T.chalk} deep="Aug 28 is the weight where last cut looked its best — except arriving with ~4–5 lb more muscle, lifts climbing instead of stalled, and zero panic adjustments on the books. Same scale number, different physique: the entire thesis compressed into one checkpoint."
-          forYou={(() => { const cr = currentRate(s); const proj = +(s.trend - cr.scale * (daysUntil(CROSSOVER) / 7)).toFixed(1); return `${daysUntil(CROSSOVER)} days out. At your measured rate the trend projects ~${proj} by then vs the ~158.5 mark — ${proj <= 159.5 ? "on script." : "close; Ease 2 firing changes the slope by design, and the cone in HIST carries the honest range."}`; })()} />
-      </Card>)}
+      
 
-      {density === "focus" && (
-        <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, textAlign: "center", letterSpacing: "0.08em" }}>FOCUS MODE · recovery, unlocks, crossover live under FULL — nothing is gone</div>
-      )}
+      
 
       {dl.cal != null && !dayEdit ? (
         <Card style={{ padding: 12 }} accent={T.jade}>
@@ -1599,6 +1557,49 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           forYou={s.fixWindow ? "The fix window is OPEN — hitting 175 today closes it and the record extends." : "Standard intact. Log once, done — the app rewards the logging, never the checking."} />
       </Card>
       )}
+
+      <Section title="The Wider Board" meta={(() => { const rec = recoveryIndex(s); return `recovery ${rec.score} · crossover ${daysUntil(CROSSOVER)}d`; })()}>
+      {(() => {
+        const rec = recoveryIndex(s);
+        const c = rec.band === "GREEN" ? T.jade : rec.band === "WATCH" ? T.brass : T.brass;
+        return (
+          <Card accent={c}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Eyebrow>RECOVERY — HOW BEAT-UP AM I?</Eyebrow>
+              <span style={{ fontFamily: mono, fontSize: 12, color: c }}>{rec.score} · {rec.band}</span>
+            </div>
+            <div style={{ margin: "8px 0 4px" }}><Bar pct={rec.score} c={c} /></div>
+            <div style={{ fontFamily: mono, fontSize: 10, color: T.steel }}>{rec.factors.length ? rec.factors.join(" · ") : "no drag on the system — earns count, send it"}</div>
+            <More c={c} deep="Four drag sources converge into one number: sleep (reset progress and 5-night average), opener honesty (active RIR holds), joint flags over 14 days, and rep dips across your last two sessions. 80+ = full send, earns and owns count. 55–79 = consolidate. Under 55 arms the hold-structure rule — nothing auto-changes, but the card appears."
+              forYou={!slp.clean ? `Biggest lever tonight: ≥7.5 h returns +10 instantly${slp.run + 1 >= slp.need ? " and flips you CLEAN — tomorrow's owns and earns count" : ""}.` : s.exercises.some((e) => e.holdFlag) ? "One honest opener session (RIR ≥1) releases the active hold and returns the points." : "Nothing dragging. The rarest state in a deficit — protect it."} />
+          </Card>
+        );
+      })()}
+<Card>
+        <Eyebrow>CLOSEST UNLOCKS · THE QUEUE REFILLS ITSELF</Eyebrow>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}>
+          {nextUnlocks.map((u) => (
+            <div key={u.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+              <div>
+                <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 16, color: T.chalk, textTransform: "uppercase" }}>{u.t}</div>
+                <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel }}>{u.gate}</div>
+              </div>
+              <Stamp st={u.state} />
+            </div>
+          ))}
+        </div>
+      </Card>
+<Card>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <Eyebrow c={T.chalk}>CROSSOVER · AUG 28</Eyebrow>
+          <span style={{ fontFamily: mono, fontSize: 11, color: T.steel }}>{xoverIn}d · {xPct}%</span>
+        </div>
+        <div style={{ margin: "8px 0 6px" }}><Bar pct={xPct} c={T.chalk} /></div>
+        <div style={{ fontFamily: body, fontSize: 12, color: T.steel }}>~158.5 at ~12% — last cut's best with 4–5 lb more muscle. The marquee.</div>
+        <More c={T.chalk} deep="Aug 28 is the weight where last cut looked its best — except arriving with ~4–5 lb more muscle, lifts climbing instead of stalled, and zero panic adjustments on the books. Same scale number, different physique: the entire thesis compressed into one checkpoint."
+          forYou={(() => { const cr = currentRate(s); const proj = +(s.trend - cr.scale * (daysUntil(CROSSOVER) / 7)).toFixed(1); return `${daysUntil(CROSSOVER)} days out. At your measured rate the trend projects ~${proj} by then vs the ~158.5 mark — ${proj <= 159.5 ? "on script." : "close; Ease 2 firing changes the slope by design, and the cone in HIST carries the honest range."}`; })()} />
+      </Card>
+      </Section>
 
       {ev && (
         <Card accent={T.chalk}>
@@ -1874,8 +1875,7 @@ function QueueTab({ s, slp }) {
       ))}
 
       {flipped.length > 0 && (
-        <>
-          <Eyebrow c={T.jade}>FLIPPED</Eyebrow>
+        <Section title="Gates Won" meta={`${flipped.length} flipped · earned the hard way`} c={T.jade}>
           {flipped.map((u) => (
             <Card key={u.id} accent={T.jade}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
@@ -1885,7 +1885,7 @@ function QueueTab({ s, slp }) {
               <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 4 }}>{u.gate}</div>
             </Card>
           ))}
-        </>
+        </Section>
       )}
 
       <Section title="The Story So Far" meta={`${s.feed.length} entries · latest: ${((s.feed[0] || {}).t || "—").slice(0, 22)}`} c={T.jade}>
@@ -2495,6 +2495,14 @@ function Rules({ onClose, onReset, onExport, onImport, sync, onSync }) {
             <input type="file" accept="application/json,.json" style={{ display: "none" }} onChange={(e) => onImport(e.target.files && e.target.files[0])} />
           </label>
           <Btn small onClick={onReset}>Reset to seeded state (7/22)</Btn>
+        </div>
+        <div style={{ marginTop: 22, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
+          <Eyebrow c={T.brass}>THE LANGUAGE — TAP ANY TERM</Eyebrow>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+            {Object.keys(GLOSSARY).map((k) => (
+              <span key={k} style={{ fontFamily: mono, fontSize: 9.5, padding: "5px 9px", borderRadius: 999, border: `1px solid ${T.line}`, color: T.steel }}><Term k={k} c={T.steel}>{GLOSSARY[k][0]}</Term></span>
+            ))}
+          </div>
         </div>
         <div style={{ marginTop: 22, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
           <Eyebrow c={T.brass}>THE MAP — SIX TABS, ONE SENTENCE EACH</Eyebrow>
