@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.32.0";
+const APP_V = "3.33.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1725,7 +1725,9 @@ function More({ deep, forYou, c = T.jade }) {
           {forYou && (
             <div style={{ marginTop: 10 }}>
               <Eyebrow c={c}>FOR YOU · RIGHT NOW</Eyebrow>
-              <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{forYou}</div>
+              {(Array.isArray(forYou) ? forYou : [forYou]).map((l, i) => (
+                <div key={i} style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: i ? 6 : 5, lineHeight: 1.55 }}>{l}</div>
+              ))}
             </div>
           )}
         </div>
@@ -1921,7 +1923,11 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </div>
           <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 6 }}>{REFEED.note}. Protein still {PROTEIN}.</div>
           <More deep="The weekly elevated-carb day refills muscle glycogen (fullness plus next-day performance), gives adherence and hormones a breather, and is prescribed — an on-plan green day that the streak logic treats as compliance, because it is."
-            forYou={(() => { const b = refeedBumps(s); return b.length ? `Your last ${b.length} refeeds moved the next morning ${Math.min(...b) > 0 ? "+" : ""}${Math.min(...b)} to +${Math.max(...b)} lb — storage wearing a costume, measured in you. Tomorrow's session runs on this fuel; you lift heavier ON it.` : "Tomorrow's session runs on this fuel — the next-morning bump is storage wearing a costume, and you lift heavier ON it."; })()} />
+            forYou={(() => { const b = refeedBumps(s); return b.length ? [
+                `Your last ${b.length} refeeds moved the next morning's scale by ${Math.min(...b) > 0 ? "+" : ""}${Math.min(...b)} to +${Math.max(...b)} lb.`,
+                "That's stored carbs and water — not fat. In your record it drains back off within a couple of days.",
+                "Tomorrow you lift on this fuel: the heavy sets should feel noticeably better.",
+              ] : "Tomorrow's session runs on this fuel — the next-morning scale bump is stored carbs and water, not fat, and you lift heavier ON it."; })()} />
         </Card>
 
 
@@ -2152,7 +2158,11 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <div style={{ margin: "8px 0 6px" }}><Bar pct={xPct} c={T.chalk} /></div>
         <div style={{ fontFamily: body, fontSize: 12, color: T.steel }}>~158.5 at ~12% — last cut's best with 4–5 lb more muscle. The marquee.</div>
         <More c={T.chalk} deep="Aug 28 is the weight where last cut looked its best — except arriving with ~4–5 lb more muscle, lifts climbing instead of stalled, and zero panic adjustments on the books. Same scale number, different physique: the entire thesis compressed into one checkpoint."
-          forYou={(() => { const cr = currentRate(s); const proj = +(s.trend - cr.scale * (daysUntil(CROSSOVER) / 7)).toFixed(1); return `${daysUntil(CROSSOVER)} days out. At your measured rate the trend projects ~${proj} by then vs the ~158.5 mark — ${proj <= 159.5 ? "on script." : "close; Ease 2 firing changes the slope by design, and the cone on the LAB tab carries the honest range."}`; })()} />
+          forYou={(() => { const cr = currentRate(s); const proj = +(s.trend - cr.scale * (daysUntil(CROSSOVER) / 7)).toFixed(1); return [
+            `${daysUntil(CROSSOVER)} days out.`,
+            `At your current pace you'd arrive around ${proj} lb against the ~158.5 line — ${proj <= 159.5 ? "right on script." : "close, and the planned calorie step-down would bend the slope further by design."}`,
+            "The cone on the LAB tab shows the honest range, not just the middle guess.",
+          ]; })()} />
       </Card>
       </Section>
 
@@ -2489,11 +2499,34 @@ function QueueTab({ s, slp }) {
             forYou={(() => {
               const ex = u.exId ? exById(s, u.exId) : null;
               const nd = ex ? nextOfType(ex.day) : null;
-              if (u.kind === "own" && ex && nd) return `Next attempt ${fmtShort(nd)} — needs sleep CLEAN, currently ${slp.run}/${slp.need}${slp.clean ? " ✓ it counts" : ""}.`;
-              if ((u.kind === "debut" || u.kind === "unlock") && ex && nd) { const mn = pickStructural(s, nd, slp).main; return mn && mn.id === u.id ? `Holds the structural slot for ${fmtShort(nd)} — it runs.` : `Waits behind ${mn ? mn.t : "the current pick"} — one structural change per session, each earns its own day.`; }
-              if (u.kind === "reclaim" && ex && ex.reclaim && nd) return `The exact line: ${ex.reclaim.join(",")} — next chance ${fmtShort(nd)}.`;
-              if (u.kind === "ladder" && curl && curl.ladder) return `Set ${curl.ladder.set + 1} sits at ${curl.last ? curl.last[curl.ladder.set] : "?"} of ${curl.ladder.top} — every session is a climb attempt.`;
-              if (u.kind === "phase") return `Est BF ${bfEst(s).pct}% now; arms at ≤13.2% — the cone on the LAB tab carries the honest timing.`;
+              if (u.kind === "own" && ex && nd) return [
+                `Your next try is ${fmtShort(nd)} at ${ex.w}.`,
+                `Last time you got ${ex.last ? ex.last.join(", ") : "—"}${ex.lastMeta && ex.lastMeta.debt ? " on short sleep — so that day couldn't count" : ""}.`,
+                `To make the weight officially yours: repeat the line on a clean-sleep day. Sleep is at ${slp.run}/${slp.need}` + (slp.clean ? " \u2713 \u2014 a hit today counts for real." : " \u2014 so sleep decides before your muscles do."),
+              ];
+              if ((u.kind === "debut" || u.kind === "unlock") && ex && nd) { const mn = pickStructural(s, nd, slp).main; return mn && mn.id === u.id ? [
+                `This is the one change running on ${fmtShort(nd)} — the slot is yours.`,
+                `First outing rule: no targets, no grades. Log whatever it gives and that becomes the baseline everything else is measured against.`,
+              ] : [
+                `In line behind ${mn ? mn.t : "the current pick"}.`,
+                `The app allows one change per session on purpose: if two things change and something improves — or hurts — you can't tell which one did it.`,
+                `It runs on its own day, automatically.`,
+              ]; }
+              if (u.kind === "reclaim" && ex && ex.reclaim && nd) return [
+                `The exact line to win back: ${ex.reclaim.join(", ")} at ${ex.w}.`,
+                `Next chance is ${fmtShort(nd)}. Until then the weight holds — no increase, no penalty, just a bar to clear.`,
+                `You set those numbers before; this is recovery of proof, not new ground.`,
+              ];
+              if (u.kind === "ladder" && curl && curl.ladder) return [
+                `The money set sits at ${curl.last ? curl.last[curl.ladder.set] : "?"} of ${curl.ladder.top}.`,
+                `Every session is one climb attempt — top the rung and the next gate opens by itself.`,
+                `Weight changes on this lift stay a coach conversation.`,
+              ];
+              if (u.kind === "phase") return [
+                `Your body-fat estimate reads ${bfEst(s).pct}% right now; this fires at ≤13.2%.`,
+                `When it fires, one tap swaps every daily target at once — calories, steps, the whole phase.`,
+                `The cone on the LAB tab shows the honest date range for when that lands.`,
+              ];
               return "Resolves on its own the moment its condition is met — the queue never needs your memory.";
             })()} />
         </Card>
@@ -2646,7 +2679,14 @@ function BodyTab({ s, setS, save }) {
           ))}
         </div>
         <More deep="Observed TDEE = your average logged intake + the daily energy your measured loss represents (fat at 3,500 kcal/lb, minus what the muscle drip stores). No textbook formulas — arithmetic from your own ledger, recomputed over a rolling 3 weeks, sliding down ~10 kcal for every pound you lose."
-          forYou={(() => { const obs = observedTDEE(s); return obs ? `~${obs.tdee} is what the September reverse aims at — eat to it fast, then build the surplus above it. Landing on today's truth instead of June's is the whole anti-overshoot plan.` : "Prints Monday when the seal lifts. Every day you log between now and the pivot sharpens the number the entire reverse will be built on."; })()} />
+          forYou={(() => { const obs = observedTDEE(s); return obs ? [
+            `Your measured maintenance right now: ~${obs.tdee} calories.`,
+            "That's the number September's diet-exit aims at — climb to it quickly, then build your muscle-gain surplus on top of it.",
+            "Using today's measured truth instead of a June guess is the whole plan against overshooting into fat regain.",
+          ] : [
+            "This prints Monday, the moment the scale seal lifts.",
+            "Every day you log between now and then sharpens the single number the entire post-cut plan gets built on.",
+          ]; })()} />
       </Card>
       </Section>
 
@@ -2786,7 +2826,11 @@ function SleepTab({ s, setS, save, slp }) {
               <div><Num size={22} c={caffAt(s.sleep.caffMg, 12, lightsOutT(s).mins / 60) > 50 ? T.brass : T.jade}>~{caffAt(s.sleep.caffMg, 12, lightsOutT(s).mins / 60)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG AT {lightsOutT(s).t} · HALF-LIFE ~5 H</div></div>
             </div>
             <More deep="Caffeine's half-life is ~5 hours (range 3–7 by genetics): a noon dose is still ~25% circulating at bedtime. That residue doesn't always stop sleep onset — it fragments depth and can surface as mid-night wakes. If the wake signature persists off melatonin, this number is suspect #1."
-              forYou={`~${caffAt(s.sleep.caffMg, 12, lightsOutT(s).mins / 60)} mg on board at lights-out. If the experiment points here, the move is dose-down or earlier — not willpower.`} />
+              forYou={[
+                `~${caffAt(s.sleep.caffMg, 12, lightsOutT(s).mins / 60)} mg would still be in your system at lights-out (${lightsOutT(s).t}).`,
+                "Above roughly 50 mg, most people lose measurable deep sleep even when they fall asleep fine.",
+                "If the sleep experiment points here, the fix is a smaller dose or an earlier one — never willpower.",
+              ]} />
           </>
         ) : (
           <div style={{ marginTop: 8 }}>
