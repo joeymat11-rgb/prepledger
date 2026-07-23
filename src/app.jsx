@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.14.0";
+const APP_V = "3.15.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1134,6 +1134,36 @@ function labGroups(s) {
   return groups;
 }
 
+/* THE DOCKET — the lab's self-writing front page */
+function labDocket(s) {
+  const flat = labGroups(s).flatMap((g) => g.cards);
+  const wkAgo = isoOf(new Date(todayStart().getTime() - 7 * DAY));
+  const fresh = (s.feed || []).filter((f) => f.t && f.t.indexOf("LAB LIVE — ") === 0 && f.d >= wkAgo).map((f) => ({ t: f.t.replace("LAB LIVE — ", ""), d: f.d }));
+  const armed = flat.filter((c) => c.status === "ARMED" && c.prog && c.prog.need > 0);
+  const withEta = armed.map((c) => {
+    const pct = c.prog.n / c.prog.need;
+    const lbl = (c.prog.label || "").toLowerCase();
+    let days = null;
+    if (lbl.indexOf("night") > -1) days = c.prog.need - c.prog.n;
+    else if (lbl.indexOf("week") > -1) days = (c.prog.need - c.prog.n) * 7;
+    else if (lbl.indexOf("session") > -1 || lbl.indexOf("pair") > -1) days = Math.ceil((c.prog.need - c.prog.n) * 1.75);
+    return { id: c.id, t: c.t, n: c.prog.n, need: c.prog.need, pct, eta: days != null ? isoOf(new Date(todayStart().getTime() + Math.max(1, days) * DAY)) : null };
+  }).sort((a, b) => b.pct - a.pct).slice(0, 3);
+  const sen = flat.find((c) => c.id === "sentinel");
+  const quiet = sen ? sen.forYou.indexOf("quiet") > -1 : true;
+  return { fresh, next: withEta, sentinel: { quiet, txt: sen ? (quiet ? "all quiet — every recent day inside your own baselines" : sen.forYou.split(".")[0]) : "arming" } };
+}
+const STATUS_RANK = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
+function labStatusList(s) {
+  const flat = labGroups(s).flatMap((g) => g.cards);
+  return [...flat].sort((a, b) => {
+    const r = (STATUS_RANK[a.status] ?? 5) - (STATUS_RANK[b.status] ?? 5);
+    if (r !== 0) return r;
+    if (a.status === "ARMED" && b.status === "ARMED") { const pa = a.prog ? a.prog.n / a.prog.need : 0, pb = b.prog ? b.prog.n / b.prog.need : 0; return pb - pa; }
+    return 0;
+  });
+}
+
 /* results announce themselves — any card crossing its threshold posts to the feed */
 function sweepLab(s) {
   const flat = labGroups(s).flatMap((g) => g.cards);
@@ -1347,7 +1377,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, sleepLab, labAnalytics2, labGroups, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2526,6 +2556,7 @@ function HistTab({ s, setS, save }) {
   const [open, setOpen] = useState(null);
   const [labOpen, setLabOpen] = useState(null);
   const [grpOpen, setGrpOpen] = useState(null);
+  const [lens, setLens] = useState("shelves");
   const liveWks = liveRollups(s);
   const first = ROLLUPS[ROLLUPS.length - 1];
   const latest = (liveWks.find((w) => w.avgW != null || w.avgCal != null)) || ROLLUPS[0];
@@ -2595,26 +2626,63 @@ function HistTab({ s, setS, save }) {
         );
         return (
           <>
-            <Card accent={T.jade} style={{ padding: 12 }}>
-              <Eyebrow c={T.jade}>THE LAB · {tot} INSTRUMENTS · {totLive} LIVE · {totArmed} ARMED</Eyebrow>
-              <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 4 }}>Everything measured, filed on six shelves. Tap a shelf, then a card — depth on demand, silence by default.</div>
-            </Card>
-            {groups.map((g) => (
-              <Card key={g.id} style={{ padding: 12 }} accent={grpOpen === g.id ? T.chalk : undefined}>
-                <div onClick={() => { setGrpOpen(grpOpen === g.id ? null : g.id); setLabOpen(null); }} style={{ cursor: "pointer" }}>
+            {(() => {
+              const jump = (id) => { const g2 = groups.find((g3) => g3.cards.some((c) => c.id === id)); if (g2) { setLens("shelves"); setGrpOpen(g2.id); setLabOpen(id); } };
+              const dk = labDocket(s);
+              return (
+                <Card accent={T.jade} style={{ padding: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                    <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 16, color: T.chalk, textTransform: "uppercase" }}>{g.title}</div>
-                    <div style={{ fontFamily: mono, fontSize: 9.5, whiteSpace: "nowrap" }}>
-                      {g.live > 0 && <span style={{ color: T.jade }}>{g.live} live</span>}
-                      {g.armed > 0 && <span style={{ color: T.brass }}>{g.live > 0 ? " · " : ""}{g.armed} armed</span>}
-                      {g.rest > 0 && <span style={{ color: T.dim }}>{g.live + g.armed > 0 ? " · " : ""}{g.rest} filed</span>}
-                      <span style={{ color: T.dim }}>  {grpOpen === g.id ? "▾" : "▸"}</span>
+                    <Eyebrow c={T.jade}>THE LAB · {tot} INSTRUMENTS · {totLive} LIVE · {totArmed} ARMED</Eyebrow>
+                    <div style={{ display: "flex", gap: 4 }}>
+                      {["shelves", "status"].map((m) => (
+                        <button key={m} onClick={() => setLens(m)} style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: "0.08em", padding: "4px 8px", borderRadius: 5, border: `1px solid ${lens === m ? T.jade : T.line}`, background: "none", color: lens === m ? T.jade : T.dim, textTransform: "uppercase" }}>{m}</button>
+                      ))}
                     </div>
                   </div>
-                </div>
-                {grpOpen === g.id && <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 10 }}>{g.cards.map(renderCard)}</div>}
-              </Card>
-            ))}
+                  <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9 }}>
+                    <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.1em", color: T.dim }}>FRESH VERDICTS · LAST 7 DAYS</div>
+                    {dk.fresh.length ? dk.fresh.slice(0, 3).map((f, i) => (
+                      <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.jade, marginTop: 4 }}>◆ {f.t.toLowerCase()} · {fmtShort(f.d)}</div>
+                    )) : <div style={{ fontFamily: mono, fontSize: 10.5, color: T.dim, marginTop: 4 }}>none — the lab is watching, not talking</div>}
+                    <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.1em", color: T.dim, marginTop: 9 }}>NEXT TO SPEAK</div>
+                    {dk.next.length ? dk.next.map((n2) => (
+                      <div key={n2.id} onClick={() => jump(n2.id)} style={{ fontFamily: mono, fontSize: 10.5, color: T.brass, marginTop: 4, cursor: "pointer" }}>▸ {n2.t.toLowerCase()} · {n2.n}/{n2.need}{n2.eta ? " · ~" + fmtShort(n2.eta) : ""}</div>
+                    )) : <div style={{ fontFamily: mono, fontSize: 10.5, color: T.dim, marginTop: 4 }}>everything armed is waiting on the calendar</div>}
+                    <div style={{ fontFamily: mono, fontSize: 10, color: dk.sentinel.quiet ? T.dim : T.brass, marginTop: 9 }}>SENTINEL · {dk.sentinel.txt}</div>
+                  </div>
+                </Card>
+              );
+            })()}
+            {lens === "shelves" && groups.map((g) => {
+              const dormant = g.live === 0 && !g.cards.some((c) => c.status === "ARMED" && c.prog && c.prog.n / c.prog.need >= 0.5);
+              const sorted = [...g.cards].sort((a, b) => { const r = (STATUS_RANK[a.status] ?? 5) - (STATUS_RANK[b.status] ?? 5); if (r !== 0) return r; if (a.status === "ARMED" && b.status === "ARMED") { const pa = a.prog ? a.prog.n / a.prog.need : 0, pb = b.prog ? b.prog.n / b.prog.need : 0; return pb - pa; } return 0; });
+              return (
+                <Card key={g.id} style={{ padding: 12 }} accent={grpOpen === g.id ? T.chalk : undefined}>
+                  <div onClick={() => { setGrpOpen(grpOpen === g.id ? null : g.id); setLabOpen(null); }} style={{ cursor: "pointer" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                      <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 16, color: dormant ? T.steel : T.chalk, textTransform: "uppercase" }}>{g.title}</div>
+                      <div style={{ fontFamily: mono, fontSize: 9.5, whiteSpace: "nowrap", opacity: dormant ? 0.55 : 1 }}>
+                        {g.live > 0 && <span style={{ color: T.jade }}>{g.live} live</span>}
+                        {g.armed > 0 && <span style={{ color: T.brass }}>{g.live > 0 ? " · " : ""}{g.armed} armed</span>}
+                        {g.rest > 0 && <span style={{ color: T.dim }}>{g.live + g.armed > 0 ? " · " : ""}{g.rest} filed</span>}
+                        <span style={{ color: T.dim }}>  {grpOpen === g.id ? "▾" : "▸"}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {grpOpen === g.id && <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 10 }}>{sorted.map(renderCard)}</div>}
+                </Card>
+              );
+            })}
+            {lens === "status" && <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>{labStatusList(s).map(renderCard)}</div>}
+            <Card style={{ padding: 12 }}>
+              <Eyebrow>THE INDEX — EVERY INSTRUMENT, ONE TAP</Eyebrow>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                {groups.flatMap((g) => g.cards.map((c) => (
+                  <button key={c.id} onClick={() => { setLens("shelves"); setGrpOpen(g.id); setLabOpen(c.id); }}
+                    style={{ fontFamily: mono, fontSize: 8.5, padding: "5px 8px", borderRadius: 999, border: `1px solid ${c.status === "LIVE" || c.status === "TRACKING" ? T.jade : T.line}`, background: "none", color: c.status === "LIVE" || c.status === "TRACKING" ? T.jade : T.steel, textTransform: "lowercase" }}>{c.t.split(" — ")[0].toLowerCase()}</button>
+                )))}
+              </div>
+            </Card>
           </>
         );
       })()}

@@ -435,5 +435,23 @@ const pr2 = laW(fcS).find(c => c.id === "prophet");
 ok(pr2.status === "LIVE" && pr2.forYou.indexOf("±") > -1, "graded forecasts flip the scorecard live with a trust radius: " + pr2.forYou.slice(0, 60));
 ok(wing3.find(c => c.id === "whatif").status === "MODEL", "the console is badged a MODEL");
 
-console.log(`\nFINAL22: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.15 — the lab organizes itself
+const { labDocket: dk1, labStatusList: sl1, SEED: SP } = __test;
+const dock = dk1(clone(SP));
+ok(dock.fresh.length === 0 && dock.next.length >= 1 && dock.next.length <= 3, "docket: quiet feed, up to three next-to-speak");
+ok(dock.next.every(n => n.n < n.need) && dock.next[0].pct >= (dock.next[1] ? dock.next[1].pct : 0), "next-to-speak sorted by closeness to threshold");
+ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "sentinel line reads");
+const ranked = sl1(clone(SP));
+const rk = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
+ok(ranked.length === 38 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 38 cards, monotone rank order");
+// a flip lands on the docket's fresh row
+const swD = __test.sweepLab(clone(SP));
+let dkF = JSON.parse(JSON.stringify(swD));
+for (let k = 1; k <= 7; k++) { const dd = new Date(2026, 6, 23 + k); dkF.sleep.nights.push({ d: dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" + String(dd.getDate()).padStart(2, "0"), h: 7.8, tags: [] }); }
+const dkF2 = __test.sweepLab(dkF);
+ok(dk1(dkF2).fresh.some(f => f.t.indexOf("MELATONIN") > -1), "a flip lands on the docket front page, dated");
+
+console.log(`\nFINAL23: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
