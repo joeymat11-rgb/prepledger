@@ -9,6 +9,8 @@ on:
     paths-ignore:
       - 'ledger/**'
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -16,6 +18,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Zip site and direct-deploy
         run: |
+          set -o pipefail
+          exec > >(tee /tmp/deploy.log) 2>&1
           NT="${{ secrets.NETLIFY_AUTH_TOKEN }}"
           SITE=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/sites?per_page=50" | python3 -c "import json,sys;s=[x for x in json.load(sys.stdin) if 'prepledger' in ((x.get('build_settings') or {}).get('repo_url') or '')];print(s[0]['id'] if s else '')")
           if [ -z "$SITE" ]; then echo "no prepledger-linked site found"; exit 1; fi
@@ -40,3 +44,21 @@ jobs:
             sleep 4
           done
           exit 1
+
+      - name: Beacon — success
+        if: success()
+        run: |
+          V=$(grep -o "prep-ledger-v[0-9.]*" prep-ledger-pwa/sw.js | head -1 | sed 's/prep-ledger-//')
+          python3 -c "import json,os,datetime; json.dump({'sha': os.environ['GITHUB_SHA'], 'version': '$V', 'state': 'published', 'at': datetime.datetime.utcnow().isoformat()+'Z'}, open('ledger/deploy.json','w'), indent=1)"
+          git config user.name beacon && git config user.email beacon@prepledger
+          git add ledger/deploy.json && git commit -m "[skip ci] deploy beacon: $V published" && git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:main
+      - name: Beacon — failure
+        if: failure()
+        run: |
+          python3 -c "
+          import json, os, datetime
+          try: log = open('/tmp/deploy.log').read().splitlines()[-30:]
+          except Exception: log = ['no log captured']
+          json.dump({'sha': os.environ['GITHUB_SHA'], 'state': 'error', 'at': datetime.datetime.utcnow().isoformat()+'Z', 'log': log}, open('ledger/deploy.json','w'), indent=1)"
+          git config user.name beacon && git config user.email beacon@prepledger
+          git add ledger/deploy.json && git commit -m "[skip ci] deploy beacon: FAILED" && git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:main
