@@ -26,6 +26,8 @@ These ten laws are why the first app worked. They are person-independent even th
 
 12. **The cockpit remembers so the human never has to.** Every element on the capture surface is conditional on live state, re-derived at arrival: owed items appear dated, done items shrink to checks, due items surface only in their window, and a priority ladder answers 'what do I do?' before scrolling. Silence is a report, not a gap - when the surface shows nothing owed, nothing is owed, and the client may leave guilt-free. The app never notifies and never asks twice; arrival is the human's only job.
 
+15. **Instruments get shelves; actions get doors.** Anything the human taps to DO (generate, consent, start) must live at a fixed, named, top-level door — never filed among the things that merely report. Filed actions get lost twice before this law gets written down.
+
 **The standing audit:** before shipping any feature, ask — does this reward *doing* or *checking*? Does it add a decision or just data? Would it survive the client's worst week? Kill anything that fails.
 
 ---
