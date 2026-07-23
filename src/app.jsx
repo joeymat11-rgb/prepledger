@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.33.1";
+const APP_V = "3.34.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1236,16 +1236,8 @@ function labAnalytics2(s) {
 
   /* 14 · the prophet's scorecard */
   add(() => {
+    const { graded, mae, bias } = prophetGrades(s);
     const fc = s.forecasts || [];
-    const graded = [];
-    fc.forEach((f) => {
-      if (f.sealed) return;
-      const targetD = isoOf(new Date(mk(f.d).getTime() + 7 * DAY));
-      const g = fc.find((x) => x.d === targetD);
-      if (g) graded.push({ err: +(g.trend - f.pred7).toFixed(1) });
-    });
-    const mae = graded.length ? +(graded.reduce((a, x) => a + Math.abs(x.err), 0) / graded.length).toFixed(2) : null;
-    const bias = graded.length ? +(graded.reduce((a, x) => a + x.err, 0) / graded.length).toFixed(2) : null;
     return { id: "prophet", t: "THE PROPHET'S SCORECARD", status: graded.length >= 2 ? "LIVE" : "ARMED", prog: { n: graded.length, need: 2, label: "graded 7-day forecasts (journaling began today, first grades in ~1 wk)" },
       tag: "The lab grades its own predictions — trust, with error bars.",
       deep: "Every day the lab quietly journals a 7-day trend forecast; a week later, reality grades it. Mean absolute error = how far to trust any forecast in this app; bias = whether the machine runs optimistic or pessimistic about you. The cone's long-range September calls are journaled too, gradable at the pivot. An instrument that publishes its own error bars is the only kind worth believing — most coaching advice never submits to this test.",
@@ -1298,6 +1290,21 @@ function labGroups(s) {
     g.rest = g.cards.length - g.live - g.armed;
   });
   return groups;
+}
+
+/* shared grading math — the masthead and the scorecard read one truth */
+function prophetGrades(s) {
+  const fc = s.forecasts || [];
+  const graded = [];
+  fc.forEach((f) => {
+    if (f.sealed) return;
+    const targetD = isoOf(new Date(mk(f.d).getTime() + 7 * DAY));
+    const g = fc.find((x) => x.d === targetD);
+    if (g) graded.push({ err: +(g.trend - f.pred7).toFixed(1) });
+  });
+  const mae = graded.length ? +(graded.reduce((a, x) => a + Math.abs(x.err), 0) / graded.length).toFixed(2) : null;
+  const bias = graded.length ? +(graded.reduce((a, x) => a + x.err, 0) / graded.length).toFixed(2) : null;
+  return { graded, mae, bias, n: graded.length };
 }
 
 /* THE DOCKET — the lab's self-writing front page */
@@ -1598,7 +1605,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -3031,6 +3038,15 @@ function HistTab({ s, setS, save }) {
               return (
                 <Card accent={T.jade} style={{ padding: "12px 12px 10px" }}>
                   <Eyebrow c={T.jade}>THE LAB · {totLive} SPEAKING · {totArmed} GATHERING · {tot} TOTAL</Eyebrow>
+                  {(() => { const pg = prophetGrades(s); const first = (s.forecasts || [])[0];
+                    const firstGrade = first ? fmtShort(isoOf(new Date(mk(first.d).getTime() + 7 * DAY))) : "~1 week out";
+                    return (
+                      <div onClick={() => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); }} style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.04em", color: pg.n >= 2 ? T.jade : T.brass, marginTop: 6, cursor: "pointer", lineHeight: 1.5 }}>
+                        {pg.n >= 2
+                          ? `MACHINE TRUST · typical miss ±${pg.mae} lb · bias ${pg.bias > 0 ? "+" + pg.bias + " (runs optimistic)" : pg.bias < 0 ? pg.bias + " (runs pessimistic — you beat it)" : "0.00 (dead-on)"} — read every date below through this ▸`
+                          : `MACHINE TRUST · the lab is grading its own predictions against reality — first marks ${firstGrade} ▸`}
+                      </div>
+                    ); })()}
                   <div style={{ fontFamily: body, fontSize: 11, color: T.dim, marginTop: 4 }}>Tap any line for the full story, in plain words. Fresh verdicts carry their date.</div>
                   {secs.map((sec) => {
                     const openSec = secOpen[sec.k] !== undefined ? secOpen[sec.k] : false;

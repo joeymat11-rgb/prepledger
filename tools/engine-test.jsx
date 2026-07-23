@@ -602,5 +602,16 @@ ok(db.lifts[0].lines.some(l => l.indexOf("Sets went") === 0) && db.lifts[0].line
 ok(db.summary.some(l => l.indexOf("Watch list: left elbow") > -1), "niggles surface with the governor warning");
 ok(sd30(dbS, "2020-01-01") === null, "unlogged dates return nothing, never crash");
 
-console.log(`\nFINAL34: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.34 — machine trust crowns the lab
+const { prophetGrades: pg34, SEED: TA } = __test;
+ok(pg34(clone(TA)).n === 0 && pg34(clone(TA)).mae === null, "fresh ledger: zero grades, no invented precision");
+let pgS = clone(TA);
+const isoQ = (off) => { const d = new Date(Date.now() + off * 864e5); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+pgS.forecasts = [{ d: isoQ(-14), trend: 165.0, rate: 1.2, pred7: 163.8, sealed: false }, { d: isoQ(-7), trend: 163.6, rate: 1.2, pred7: 162.4, sealed: false }, { d: isoQ(-8), trend: 163.9, rate: 1.2, pred7: 162.7, sealed: false }, { d: isoQ(-1), trend: 162.5, rate: 1.2, pred7: 161.3, sealed: false }];
+const g34 = pg34(pgS);
+ok(g34.n >= 2 && typeof g34.mae === "number" && typeof g34.bias === "number", "masthead and card share one grading truth: n=" + g34.n + " mae=" + g34.mae);
+
+console.log(`\nFINAL35: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
