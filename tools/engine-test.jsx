@@ -524,5 +524,22 @@ const filed = swp23(swBase23, 0);
 ok(filed && filed.feed[0].t.indexOf("WEEK IN REVIEW · WK") === 0, "Sunday sweep files the review into the permanent record");
 ok(swp23(filed, 0) === null, "one review per week — never a duplicate");
 
-console.log(`\nFINAL29: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.24 — mid-gym service
+const { rirPlan: rp24, targetsFor: tf24, migrate: mg24, SEED: SV } = __test;
+const latX = clone(SV).exercises.find(e => e.id === "lateral");
+ok(latX.sets === 4 && tf24(latX).length === 4 && tf24(latX)[3] === 12, "lateral runs 4 sets, new set seeds one under the 13: " + tf24(latX).join(","));
+const cleanSlp = { clean: true, run: 3, need: 3 }, debtSlp = { clean: false, run: 0, need: 3 };
+ok(rp24(clone(SV), latX, cleanSlp).plan.join(",") === "2,1,1,0", "isolation base: 2·1·1·0, hardest set last");
+ok(rp24(clone(SV), latX, debtSlp).plan.join(",") === "3,2,2,1" && rp24(clone(SV), latX, debtSlp).why[0].indexOf("debt") > -1, "debt day banks one everywhere, and says why");
+const rowsEx = clone(SV).exercises.find(e => e.id === "rows");
+ok(rp24(clone(SV), rowsEx, cleanSlp).plan.join(",") === "3,1", "compound base holds more back up front");
+const heldEx = { ...latX, holdFlag: true };
+ok(rp24(clone(SV), heldEx, cleanSlp).plan.every(r => r >= 2), "governor hold floors every set at 2");
+const oldV15 = clone(SV); oldV15.v = 15; oldV15.exercises.find(e => e.id === "lateral").sets = 3;
+const m16 = mg24(oldV15);
+ok(m16.v >= 16 && m16.exercises.find(e => e.id === "lateral").sets === 4 && m16.feed[0].t.indexOf("LATERAL 4TH SET") === 0, "phones get the 4th set with the honesty note filed");
+
+console.log(`\nFINAL30: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.23.0";
+const APP_V = "3.24.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -44,7 +44,7 @@ const REFEED = { cal: "2,450–2,500", note: "weekly Wednesday — prescribed, n
 /* ---------- exercise seed (state as of Wed 7/22/26) ---------- */
 const EXERCISES = [
   /* UPPER — order per the 7/20 session note */
-  { id: "lateral", mg: "delts", lastMeta: { d: "2026-07-20", w: 80, reps: [14, 13, 13], debt: true }, n: "Lateral machine", day: "U", w: 80, inc: 5, sets: 3, hi: 15, last: [14, 13, 13],
+  { id: "lateral", mg: "delts", lastMeta: { d: "2026-07-20", w: 80, reps: [14, 13, 13], debt: true }, n: "Lateral machine", day: "U", w: 80, inc: 5, sets: 4, hi: 15, last: [14, 13, 13],
     setup: "SET · resistance profile 5 · seat 5\nUpright, elbow-led (the set-4 fix) · no shrug creep · smooth top, no swing" },
   { id: "rearDelt", mg: "delts", lastMeta: { d: "2026-07-20", w: 20, reps: [10, 10], debt: true }, n: "Rear-delt fly (cable)", day: "U", w: 20, inc: 2.5, sets: 2, hi: 12, last: [10, 10], note: "honest 10s — no hot opener",
     setup: "SET · unilateral · cable at highest height\nChest tall, shoulders back & down (?) · pure sweep — the opener fix is proven here" },
@@ -144,7 +144,7 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 15;
+  SEED.v = 16;
   SEED.sleep.anchor = { wake: "06:45", inBed: 8.25, asleepTarget: 8 };
   SEED.forecasts = [];
   SEED.labSeen = {};
@@ -216,7 +216,7 @@ function targetsFor(ex) {
   if (ex.reclaim) return ex.reclaim.slice();
   if (!ex.last) return (ex.first || Array(ex.sets).fill(Math.max(1, ex.hi - 2))).slice();
   const t = ex.last.slice(0, ex.sets);
-  while (t.length < ex.sets) t.push(Math.max(1, (t[t.length - 1] || ex.hi - 2) - 2));
+  while (t.length < ex.sets) t.push(Math.max(1, (t[t.length - 1] || ex.hi - 2) - 1));
   let idx = -1;
   for (let i = 1; i < t.length; i++) if (t[i] < t[i - 1]) { idx = i; break; }
   if (idx === -1 && t[0] < ex.hi) idx = 0;
@@ -701,6 +701,23 @@ function caffAt(mg, doseHour, atHour) {
   if (!mg) return 0;
   const dt = atHour - doseHour;
   return Math.round(mg * Math.pow(0.5, dt / 5));
+}
+
+/* per-set RIR prescription — literature base, tuned by his own logs */
+function rirPlan(s, ex, slp) {
+  const iso = !["back", "chest", "quads", "hams"].includes(ex.mg);
+  const n = ex.sets;
+  let plan = Array.from({ length: n }, (_, i) => {
+    const lastSet = i === n - 1;
+    if (iso) return lastSet ? 0 : i === 0 ? 2 : 1;
+    return lastSet ? 1 : i === 0 ? 3 : 2;
+  });
+  const why = [];
+  if (!slp.clean) { plan = plan.map((r) => r + 1); why.push("debt day +1 — nothing banks today anyway"); }
+  if (ex.holdFlag) { plan = plan.map((r) => Math.max(r, 2)); why.push("governor hold — stay two clean reps back"); }
+  const opens = Object.values(s.sessionLog).flatMap((sl) => (sl.entries || []).filter((e) => e.id === ex.id && e.rir != null).map((e) => e.rir)).sort((a, b) => a - b);
+  if (opens.length >= 3 && opens[Math.floor(opens.length / 2)] <= 0) { plan = plan.map((r, i) => (i === 0 ? r + 1 : r)); why.push("your openers run hot on this lift — bank one early"); }
+  return { plan, why };
 }
 
 /* THE WEEK IN REVIEW — the coaching read, written by the data */
@@ -1415,6 +1432,15 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV16(s) {
+  const lat = s.exercises.find((x) => x.id === "lateral");
+  if (lat && lat.sets < 4) {
+    lat.sets = 4;
+    s.feed.unshift({ d: isoOf(todayStart()), t: "LATERAL 4TH SET — USER-CALLED", how: "added mid-session 7/23 · reference: last set ran 13 · rides beside today's rows debut — two structural moves in one day, flagged for the coach Monday" });
+  }
+  s.v = 16;
+  return s;
+}
 function patchV15(s) {
   (s.queue || []).forEach((q) => { if (q.rule && q.rule.indexOf("LOCKED — runs unless") === 0) q.rule = q.rule.replace("LOCKED — runs unless", "Gate passed — runs unless"); });
   s.v = 15;
@@ -1431,8 +1457,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 15) return old;
-  if (old && old.v >= 3 && old.v <= 14) return patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))));
+  if (old && old.v === 16) return old;
+  if (old && old.v >= 3 && old.v <= 15) return patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -1458,7 +1484,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))));
+  return patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))));
 }
 
 const GLOSSARY = {
@@ -1476,12 +1502,13 @@ const GLOSSARY = {
   parked: ["PARKED", "Deliberately shelved with a written trigger (a date, a phase, a coach call). Parked isn't forgotten; it's staged."],
   structural: ["Structural change", "A load jump, new set, or machine change. One per session, auto-picked from the queue — so every response stays attributable. Rep progression is unlimited."],
   whoosh: ["Whoosh", "Event water leaving days after the event — a spike that drains to a NEW low. Yours clears in 1–3 days; the LAB predicts the window in advance."],
+  rirplan: ["Suggested RIR — where it comes from", "The literature (Refalo 2023–24 meta-analyses; Helms-style RIR prescription) says 0–5 reps-in-reserve all build muscle, with a slight edge nearer failure — so the base plan runs compounds 3→2→1 and isolations 2→1→0, hardest set last. Then YOUR data adjusts it: debt days add +1 everywhere (nothing banks anyway), a governor hold floors everything at 2, and lifts where your logged openers run hot get one extra in the bank up front. It recomputes every session."],
   driftoff: ["Estimating drift-off", "Morning-after guessing is the clinical standard (it's how sleep diaries work). Anchor on the last thing you remember — final position change, a thought, a sound — and count minutes from lights-out to that, rounded to 5. Truly no idea? Leave the 15: the math uses a rolling median and within-you comparisons, so honest-rough beats fake-precise. A wearable's latency number can go in the same box anytime."],
   nightdate: ["How nights are dated", "A night belongs to the evening it began: Tuesday night = Tue evening → Wed morning, filed under Tuesday. You log it the morning after. Before 5 a.m. the app still means the night you already finished — never the one you haven't slept yet. Missed a morning? The row stays, dated, for up to 3 days."],
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2164,7 +2191,10 @@ function LogTab({ s, setS, save, slp }) {
               </div>
             ))}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 10 }}>
+          {(() => { const rp = rirPlan(s, ex, slp); return (
+            <div style={{ fontFamily: mono, fontSize: 9, color: T.steel, marginTop: 9 }}>suggested <Term k="rirplan" c={T.steel}>RIR</Term> · {rp.plan.join(" · ")}{rp.why.length ? <span style={{ color: T.brass }}> — {rp.why[0]}</span> : null}</div>
+          ); })()}
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8 }}>
             <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em" }}>OPENER <Term k="rir" c={T.dim}>RIR</Term></span>
             {[0, 1, 2, 3].map((v) => {
               const on = rir[ex.id] === v;
