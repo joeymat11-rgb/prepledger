@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.36.0";
+const APP_V = "3.37.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1292,6 +1292,29 @@ function labGroups(s) {
   return groups;
 }
 
+/* TODAY'S PROTOCOL — one lead action, then the day ranked, every line from live data */
+function dayProtocol(s, slp) {
+  const lead = theOneThing(s, slp);
+  const steps = [];
+  const tI = isoOf(todayStart());
+  const t = dayType(tI);
+  const trainDay = t === "U" || t === "L";
+  const sessDone = !!s.sessionLog[tI];
+  try { const dk = labDocket(s); if (!dk.sentinel.quiet) steps.push({ a: "Go easy today", why: "recent days tripped your own baselines — " + dk.sentinel.txt }); } catch (e) {}
+  if (trainDay && !sessDone) {
+    const g = genSession(s, tI, slp);
+    if (g && g.ex && g.ex.length) steps.push({ a: `Session: ${g.ex.length} lifts`, why: (g.structural && g.structural.indexOf("NONE") !== 0 ? g.structural.toLowerCase() + " · " : "") + (slp.clean ? "records can become official today" : "short sleep — effort +1 unless overridden, records pend") });
+  }
+  if (s.fixWindow) steps.push({ a: "Protein 175 — non-negotiable today", why: "closes the open fix window; the miss becomes a save" });
+  else steps.push({ a: "Protein 175", why: "~44 g × 4 feeds · wake / pre-lift / post-lift / pre-bed" });
+  const lo = lightsOutT(s);
+  const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length;
+  steps.push({ a: `Lights out ${lo.t}`, why: `wake ${(s.sleep.anchor || {}).wake || "06:45"} · ${lo.target} h asleep + ~${lo.sol} min drift-off${melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off in the morning` : ""}` });
+  if (s.sleep.caffMg) { const at = caffAt(s.sleep.caffMg, 12, lo.mins / 60); if (at > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at} mg would still be aboard at lights-out — above ~50 mg deep sleep measurably thins` }); }
+  steps.push({ a: "Steps 16.5k", why: "walking is the deficit's quiet engine — calories do the cutting, steps keep it moving" });
+  return { lead, steps: steps.slice(0, 4) };
+}
+
 /* PLAIN ENGLISH LAYER — house vocabulary translated at render time, everywhere, forever */
 const PLAIN_MAP = [
   ["provisional until a clean-sleep repeat", "pending until you repeat it after good sleep"],
@@ -1648,7 +1671,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1940,11 +1963,22 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       )}
 
-      {(() => { const one = theOneThing(s, slp); return (
-        <Card accent={T.jade} style={{ padding: 12 }}>
-          <Eyebrow c={T.jade}>THE ONE THING</Eyebrow>
-          <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 19, color: T.chalk, textTransform: "uppercase", marginTop: 2 }}>{one.t}</div>
-          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 4 }}>{plainify(one.sub)}</div>
+      {(() => { const pr = dayProtocol(s, slp); return (
+        <Card accent={T.jade}>
+          <Eyebrow c={T.jade}>TODAY'S PROTOCOL — RANKED, FROM YOUR DATA</Eyebrow>
+          <div style={{ marginTop: 6 }}><H size={22}>{pr.lead.t}</H></div>
+          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 4 }}>{plainify(pr.lead.sub)}</div>
+          <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9, display: "flex", flexDirection: "column", gap: 7 }}>
+            {pr.steps.map((st2, i) => (
+              <div key={i} style={{ display: "flex", gap: 8 }}>
+                <span style={{ fontFamily: mono, fontSize: 10, color: T.dim, flexShrink: 0 }}>{i + 2}.</span>
+                <div>
+                  <div style={{ fontFamily: mono, fontSize: 11, color: T.chalk }}>{plainify(st2.a)}</div>
+                  <div style={{ fontFamily: body, fontSize: 11, color: T.dim, lineHeight: 1.45 }}>{plainify(st2.why)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </Card>
       ); })()}
 
@@ -2169,7 +2203,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
 
 
-      <Section title="The Wider Board" meta={(() => { const rec = recoveryIndex(s); return `recovery ${rec.score} · crossover ${daysUntil(CROSSOVER)}d`; })()}>
+      <Section title="The Big Picture" meta={(() => { const rec = recoveryIndex(s); return `recovery ${rec.score} · crossover ${daysUntil(CROSSOVER)}d`; })()}>
       {(() => {
         const rec = recoveryIndex(s);
         const c = rec.band === "GREEN" ? T.jade : rec.band === "WATCH" ? T.brass : T.brass;
@@ -2667,7 +2701,7 @@ function BodyTab({ s, setS, save }) {
         <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>four rooms below — tap any to enter</div>
       </Card>
 
-      <Section title="The Scale" meta={`${s.trend}${sealed ? " · sealed → " + fmtShort(SEAL_UNTIL) : " · live"}`}>
+      <Section title="Weight" meta={`${s.trend}${sealed ? " · sealed → " + fmtShort(SEAL_UNTIL) : " · live"}`}>
         <Card>
         <Eyebrow><Term k="trend" c={T.dim}>TREND</Term> — THE HERO NUMBER</Eyebrow>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 4 }}>
@@ -2689,7 +2723,7 @@ function BodyTab({ s, setS, save }) {
       </Card>
       </Section>
 
-      <Section title="The Model" meta={`~${bf.pct}% · ${s.model.src}${observedTDEE(s) ? " · maint ~" + observedTDEE(s).tdee : ""}`}>
+      <Section title="Body Fat" meta={`~${bf.pct}% · ${s.model.src}${observedTDEE(s) ? " · maint ~" + observedTDEE(s).tdee : ""}`}>
         <Card>
         <Eyebrow>BODY FAT — LIVE MODEL · ANCHORED TO {s.model.src.toUpperCase()}</Eyebrow>
         <div style={{ display: "flex", gap: 18, marginTop: 8, alignItems: "baseline" }}>
@@ -2740,7 +2774,7 @@ function BodyTab({ s, setS, save }) {
       </Card>
       </Section>
 
-      <Section title="The Road" meta={`${cur.fat}/wk · wk ${wd.wk}`}>
+      <Section title="Pace & Timeline" meta={`${cur.fat}/wk · wk ${wd.wk}`}>
         <Card>
         <Eyebrow>RATE OF LOSS · PHASE-AWARE</Eyebrow>
         <div style={{ marginTop: 10 }}><RateGauge rate={s.rate} cur={cur} /></div>
@@ -2762,7 +2796,7 @@ function BodyTab({ s, setS, save }) {
       </Card>
       </Section>
 
-      <Section title="Tape & Mirror" meta={`${s.waist.length ? s.waist[s.waist.length - 1].v + '"' : "waist due"} · photos ×${s.photos.length}`}>
+      <Section title="Waist & Photos" meta={`${s.waist.length ? s.waist[s.waist.length - 1].v + '"' : "waist due"} · photos ×${s.photos.length}`}>
         <Card>
         <Eyebrow>WAIST · WEEKLY — THE SIGNAL THE SCALE CAN'T FAKE</Eyebrow>
         {(() => {
@@ -2844,7 +2878,7 @@ function SleepTab({ s, setS, save, slp }) {
           forYou={slp.clean ? "CLEAN — everything counts today. This is simultaneously your best muscle-retention lever and your sharpest ADHD lever; protect the streak like a PR." : `${slp.need - slp.run} clean night${slp.need - slp.run === 1 ? "" : "s"} from CLEAN. Tonight ≥7.5 ${slp.run + 1 >= slp.need ? "flips it — tomorrow's attempts count for keeps." : "keeps the reset alive."} Fixed wake time is the strongest single move.`} />
       </Card>
 
-      <Section title="Anchor & Tail" meta={`wake ${(s.sleep.anchor || {}).wake || "06:45"} · caffeine ${s.sleep.caffMg ? s.sleep.caffMg + " mg" : "unset"}`} c={T.jade}>
+      <Section title="Wake, Bedtime & Caffeine" meta={`wake ${(s.sleep.anchor || {}).wake || "06:45"} · caffeine ${s.sleep.caffMg ? s.sleep.caffMg + " mg" : "unset"}`} c={T.jade}>
         <Card accent={T.jade}>
         <Eyebrow c={T.jade}>THE ANCHOR — FOUNDED {fmtShort("2026-07-23")}, BY ACCIDENT</Eyebrow>
         {(() => {
@@ -2894,7 +2928,7 @@ function SleepTab({ s, setS, save, slp }) {
       </Card>
       </Section>
 
-      <Section title="The Ledger" meta={`${s.sleep.nights.length} nights on file`}>
+      <Section title="Night Log" meta={`${s.sleep.nights.length} nights on file`}>
         <Card>
         <Eyebrow>LAST 8 NIGHTS</Eyebrow>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 92, marginTop: 12 }}>
@@ -2924,7 +2958,7 @@ function SleepTab({ s, setS, save, slp }) {
       </Card>
       </Section>
 
-      <Section title="Protocol" meta="standing orders">
+      <Section title="Sleep Rules" meta="the standing orders">
         <Card>
         <Eyebrow>PROTOCOL</Eyebrow>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8, fontFamily: mono, fontSize: 10.5, color: T.steel }}>

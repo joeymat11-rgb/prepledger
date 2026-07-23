@@ -630,5 +630,18 @@ const blockShaped = { id: "x", tgt: [13, 12, 11, 10], w: 315 };
 const bp = rp352(clone(TB), blockShaped, { clean: false, run: 1, need: 3 });
 ok(bp.plan.length === 4 && bp.plan.join(",") === "3,2,1,1", "a real tgt-shaped session block sizes its own plan: " + bp.plan.join(","));
 
-console.log(`\nFINAL37: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.37 — the day, ranked from data
+const { dayProtocol: dp37, SEED: TC } = __test;
+let dpS = clone(TC);
+for (let k = 1; k <= 3; k++) dpS.sleep.nights.push({ d: isoL(Date.now() - k * 864e5), h: 8, tags: [] });
+dpS.sleep.nights = dpS.sleep.nights.filter((n, i, a) => a.findIndex(x => x.d === n.d) === i);
+const proto = dp37(dpS, { clean: true, run: 3, need: 3 });
+ok(proto.lead && proto.lead.t.length > 3 && proto.steps.length >= 2 && proto.steps.length <= 4, "one lead + a short ranked day: " + proto.steps.length + " steps");
+ok(proto.steps.some(x => x.a.indexOf("Lights out") === 0 && /\d\d:\d\d/.test(x.a)), "bedtime step carries the derived time");
+ok(proto.steps.some(x => x.a.indexOf("Protein 175") === 0), "protein step present with the spread");
+ok(proto.steps.every(x => x.a && x.why), "every step is action + reason, nothing bare");
+
+console.log(`\nFINAL38: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
