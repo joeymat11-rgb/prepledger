@@ -1,5 +1,5 @@
 /* Prep Ledger service worker — bump CACHE on every redeploy */
-const CACHE = "prep-ledger-v3.12.0";
+const CACHE = "prep-ledger-v3.13.0";
 const ASSETS = [
   "./",
   "./index.html",

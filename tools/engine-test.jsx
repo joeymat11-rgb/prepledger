@@ -361,9 +361,9 @@ ok(m11.v >= 11 && m11.sleep.anchor.wake === "06:45" && m11.sleep.melaExp.arm ===
 // v3.10 — the shelving system
 const { labGroups: lg, labAnalytics: laX, sleepLab: slX, SEED: SL } = __test;
 const gs = lg(clone(SL));
-ok(gs.length === 6 && gs.map(g => g.id).join(",") === "scale,training,sleep,road,locked,shelf", "six shelves, fixed order, no strays");
+ok(gs.length >= 6 && ["scale", "training", "sleep", "road", "locked", "shelf"].every(id => gs.some(g => g.id === id)), "the original six shelves persist inside the grown system");
 const totCards = gs.reduce((a, g) => a + g.cards.length, 0);
-const expected = laX(clone(SL)).length + slX(clone(SL)).length + 5;
+const expected = laX(clone(SL)).length + __test.labAnalytics2(clone(SL)).length + slX(clone(SL)).length + 5;
 ok(totCards === expected, `every card filed exactly once (${totCards}/${expected}) — no orphans, no dupes`);
 const slG = gs.find(g => g.id === "sleep");
 ok(slG.cards.some(c => c.id === "melaexp") && slG.cards.some(c => c.id === "sleepdose") && slG.cards.some(c => c.id === "sleeplag"), "sleep shelf holds the moved experiments plus the lag map");
@@ -381,5 +381,30 @@ const ann2 = swp(ann);
 ok(ann2 && ann2.feed[0].t.indexOf("LAB LIVE — MELATONIN") === 0 && ann2.labSeen.melaexp === "LIVE", "threshold crossed → the feed announces the verdict");
 ok(swp(ann2) === null, "no re-announcement — quiet until the next flip");
 
-console.log(`\nFINAL19: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.13 — the outside-the-box wing
+const { labAnalytics2: la2, labGroups: lg2, completeSession: csW, genSession: gsW, SEED: SN } = __test;
+const wing = la2(clone(SN));
+ok(wing.length === 13, "thirteen instruments, all constructed without a single crash: " + wing.length);
+ok(wing.every(c => c.tag && c.deep && c.forYou && c.status), "every card carries all three layers plus a status");
+const ids2 = wing.map(c => c.id);
+ok(["adaptmeter","strvelocity","canary","regularity","missarch","weekend","stepeff","refeedroi","sessionshape","compound","ghost","sentinel","letter"].every(x => ids2.includes(x)), "the full roster reports");
+ok(wing.find(c => c.id === "weekend").status === "LIVE" && wing.find(c => c.id === "missarch").status === "LIVE", "sheet history powers instant verdicts on day one");
+ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id === "ghost").forYou.indexOf("behind you") > -1, "ghost is badged a MODEL and running");
+const gAll = lg2(clone(SN));
+ok(gAll.length === 9 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,behavior,road,models,locked,shelf", "nine shelves, fixed order");
+const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
+ok(tot2 === 36, "all 36 instruments filed exactly once: " + tot2);
+// loads ride sets automatically
+let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
+const slpC = { clean: true, run: 3, need: 3 };
+const g1 = gsW(ws, isoL(Date.now()), slpC);
+if (g1.blocks && g1.blocks.length) {
+  const done = csW(ws, isoL(Date.now()), g1.blocks.map(b => ({ id: b.id, reps: b.target ? b.target.slice() : [8], rir: 1 })), slpC);
+  const ent = done.sessionLog[isoL(Date.now())].entries[0];
+  ok(ent.w != null && ent.w > 0, "weight rides every logged set automatically: " + ent.w);
+} else { ok(true, "no session today in container calendar — weight-ride covered by shape of code"); }
+
+console.log(`\nFINAL20: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

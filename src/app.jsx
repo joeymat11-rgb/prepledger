@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.12.0";
+const APP_V = "3.13.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -374,7 +374,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
   });
 
   const niggles = extras.niggles || [];
-  s.sessionLog[iso] = { entries: entries.map((e) => ({ id: e.id, reps: e.reps, rir: e.rir ?? null })), at: Date.now(), note: extras.note || "", niggles, dips: dipCount };
+  s.sessionLog[iso] = { entries: entries.map((e) => { const ex2 = s.exercises.find((x) => x.id === e.id); return { id: e.id, reps: e.reps, rir: e.rir ?? null, w: ex2 ? ex2.w : null }; }), at: Date.now(), note: extras.note || "", niggles, dips: dipCount };
   const cutoff = isoOf(new Date(mk(iso).getTime() - 21 * DAY));
   const counts = {};
   Object.entries(s.sessionLog).forEach(([d, sl]) => { if (d >= cutoff) (sl.niggles || []).forEach((j) => { counts[j] = (counts[j] || 0) + 1; }); });
@@ -877,22 +877,221 @@ function shelfItems(s) {
   return out;
 }
 
+/* THE OUTSIDE-THE-BOX WING — thirteen auto-running instruments. Each defensive: one failing card never darkens the lab. */
+function labAnalytics2(s) {
+  const out = [];
+  const add = (fn) => { try { const c = fn(); if (c) out.push(c); } catch (e) {} };
+  const allDaily = [...HISTORY.map((h) => ({ d: h.d, cal: h.cal, pro: h.pro, steps: h.steps })), ...Object.entries(s.dailyLogs).map(([d, v]) => ({ d, ...v }))].filter((x) => x.cal != null);
+  const nightOf = (d) => s.sleep.nights.find((n) => n.d === d);
+  const prevISO = (d) => isoOf(new Date(mk(d).getTime() - DAY));
+  const sessDates = Object.keys(s.sessionLog).sort();
+  const totReps = (d) => ((s.sessionLog[d] || {}).entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0);
+  const kg = s.trend / 2.205;
+
+  /* 1 · adaptation meter */
+  add(() => {
+    const obs = observedTDEE(s);
+    const bmr = Math.round(10 * kg + 6.25 * 178 - 5 * 24 + 5);
+    const pred = Math.round(bmr * 1.55);
+    return { id: "adaptmeter", t: "THE ADAPTATION METER", status: obs ? "LIVE" : "ARMED", prog: { n: obs ? 1 : 0, need: 1, label: "observed maintenance (prints with clean post-seal weeks)" },
+      tag: "How much has the deficit slowed your engine, in kcal?",
+      deep: "Predicted burn = Mifflin-St Jeor at your live weight (BMR ~" + bmr + ") × 1.55 for your activity pattern — a textbook estimate, stated as such. Observed burn = the maintenance your own ledger measures. The gap is adaptive thermogenesis: the metabolic slowdown dieting causes. It's the single number that sizes September's reverse — eat to the OBSERVED number fast, then build.",
+      forYou: obs ? `Textbook says ~${pred}. Your ledger says ~${obs.tdee}. Adaptation: ~${pred - obs.tdee > 0 ? pred - obs.tdee : 0} kcal — ${pred - obs.tdee > 250 ? "real but normal for week " + weekDay().wk + "; the MATADOR card is the counter-move." : "small. Your engine is holding remarkably well."}` : "Arms with the first clean post-seal maintenance print (Mon 7/27+). The textbook half is already computed and waiting.",
+      lines: [] };
+  });
+
+  /* 2 · strength velocity */
+  add(() => {
+    const perLift = {};
+    sessDates.forEach((d) => ((s.sessionLog[d] || {}).entries || []).forEach((e) => { if (e.w != null && e.reps && e.reps.length) (perLift[e.id] = perLift[e.id] || []).push({ d, load: e.w * e.reps.reduce((a, b) => a + b, 0) }); }));
+    const ready = Object.entries(perLift).filter(([, v]) => v.length >= 4);
+    const best = ready.map(([id, v]) => { const first = v[0].load, last = v[v.length - 1].load; const wks = Math.max(1, (mk(v[v.length - 1].d) - mk(v[0].d)) / (7 * DAY)); return { id, pctWk: +(((last - first) / first) * 100 / wks).toFixed(1), n: v.length }; }).sort((a, b) => b.pctWk - a.pctWk);
+    const nMax = Math.max(0, ...Object.values(perLift).map((v) => v.length));
+    return { id: "strvelocity", t: "STRENGTH VELOCITY", status: best.length ? "LIVE" : "ARMED", prog: { n: nMax, need: 4, label: "logged sessions per lift (loads now ride every set automatically)" },
+      tag: "Getting stronger while shrinking — the recomp thesis, as a slope.",
+      deep: "Volume-load (weight × total reps) per lift, plotted across your sessions, expressed as %/week. Positive slopes in a deficit are the strongest recomp evidence that exists outside a DEXA. Loads attach to every set automatically as of today — the instrument builds itself while you train.",
+      forYou: best.length ? `Fastest climber: ${(exById(s, best[0].id) || {}).n} at +${best[0].pctWk}%/wk while cutting${best[1] ? ` · then ${(exById(s, best[1].id) || {}).n} +${best[1].pctWk}%/wk` : ""}. Say this sentence out loud at the Aug 28 crossover.` : "Every session you log from today feeds the slopes. First verdicts at 4 sessions per lift (~2 weeks).",
+      lines: [] };
+  });
+
+  /* 3 · the canary lift */
+  add(() => {
+    const rows = [];
+    sessDates.forEach((d) => { const n = nightOf(prevISO(d)); if (!n) return; ((s.sessionLog[d] || {}).entries || []).forEach((e) => { if (e.reps && e.reps.length) rows.push({ id: e.id, h: n.h, reps: e.reps.reduce((a, b) => a + b, 0) }); }); });
+    const byLift = {};
+    rows.forEach((r) => (byLift[r.id] = byLift[r.id] || []).push(r));
+    const scored = Object.entries(byLift).filter(([, v]) => v.length >= 5 && new Set(v.map((x) => x.h)).size > 1).map(([id, v]) => { const mh = v.reduce((a, x) => a + x.h, 0) / v.length, mr = v.reduce((a, x) => a + x.reps, 0) / v.length; let num = 0, den = 0; v.forEach((x) => { num += (x.h - mh) * (x.reps - mr); den += (x.h - mh) ** 2; }); return { id, slope: den ? +(num / den).toFixed(1) : 0, n: v.length }; }).sort((a, b) => b.slope - a.slope);
+    return { id: "canary", t: "THE CANARY LIFT", status: scored.length ? "LIVE" : "ARMED", prog: { n: Math.max(0, ...Object.values(byLift).map((v) => v.length)), need: 5, label: "sessions with the prior night logged" },
+      tag: "Which lift feels missing sleep first — your early-warning instrument.",
+      deep: "Reps-per-hour-of-sleep slope, per lift. One lift is always most sleep-sensitive; once named, it becomes a canary: when IT dips out of nowhere, check the pillow before blaming the program. The inverse lift — most sleep-proof — is what you lean on during unavoidable short-sleep weeks.",
+      forYou: scored.length ? `Canary: ${(exById(s, scored[0].id) || {}).n} (+${scored[0].slope} reps per extra hour). Most sleep-proof: ${(exById(s, scored[scored.length - 1].id) || {}).n}. Debt-day programming writes itself.` : "Arming as you log sessions with the prior night on file — which you now do by default.",
+      lines: [] };
+  });
+
+  /* 4 · regularity index */
+  add(() => {
+    const timed = s.sleep.nights.filter((n) => n.bed && n.wake).slice(-14);
+    const mins = (t) => { const [a, b] = t.split(":").map(Number); let m = a * 60 + b; if (m < 720) m += 1440; return m; };
+    const sd = (arr) => { if (arr.length < 2) return null; const m = arr.reduce((a, b) => a + b, 0) / arr.length; return Math.round(Math.sqrt(arr.reduce((a, b) => a + (b - m) ** 2, 0) / arr.length)); };
+    const bedSD = sd(timed.map((n) => mins(n.bed)));
+    const wakeSD = sd(timed.filter((n) => n.wake).map((n) => { const [a, b] = n.wake.split(":").map(Number); return a * 60 + b; }));
+    return { id: "regularity", t: "REGULARITY INDEX", status: timed.length >= 7 ? "LIVE" : "ARMED", prog: { n: timed.length, need: 7, label: "nights with bed→wake times" },
+      tag: "Consistency rivals duration — your scatter, in minutes.",
+      deep: "Standard deviation of your bed and wake times over the last 14 timed nights. Sleep-regularity research (Phillips 2017 onward) keeps finding that timing scatter predicts outcomes about as strongly as duration. Under ±30 min is elite; the 6:45 anchor attacks the wake half directly, and the countdown attacks the bed half.",
+      forYou: timed.length >= 7 ? `Bed scatter ±${bedSD} min · wake scatter ±${wakeSD} min. ${wakeSD <= 30 ? "Wake side is anchored — " : "The anchor hasn't bitten yet — "}${bedSD > 45 ? "bedtime is the loose end; the 22:30 countdown is the tool." : "both ends tightening. This is what the anchor was for."}` : `${timed.length}/7 timed nights. Every bed→wake log is a data point — no extra effort, it's already your capture format.`,
+      lines: [] };
+  });
+
+  /* 5 · miss archaeology */
+  add(() => {
+    const misses = allDaily.filter((x) => x.pro != null && Math.abs(x.pro - PROTEIN) > 10);
+    if (!misses.length) return { id: "missarch", t: "MISS ARCHAEOLOGY", status: "ARMED", prog: { n: 0, need: 3, label: "protein misses on file" }, tag: "Every miss gets an autopsy — patterns, not blame.", deep: "Each protein miss is examined for what preceded it: prior-night sleep, day of week, event proximity. Willpower problems usually turn out to be scheduling problems wearing a disguise.", forYou: "Zero misses on file to autopsy. Honestly? Elite. This card hopes to stay bored.", lines: [] };
+    const dow = {};
+    let shortSleep = 0, slept = 0;
+    misses.forEach((m) => { const day = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][mk(m.d).getDay()]; dow[day] = (dow[day] || 0) + 1; const n = nightOf(prevISO(m.d)); if (n) { slept++; if (n.h < 7) shortSleep++; } });
+    const topDay = Object.entries(dow).sort((a, b) => b[1] - a[1])[0];
+    return { id: "missarch", t: "MISS ARCHAEOLOGY", status: "LIVE", prog: null,
+      tag: "Every miss autopsied — patterns, not blame.",
+      deep: "Each protein miss (outside 175±10) is examined for precursors: prior-night sleep, day of week, event adjacency. The point is mechanical: if misses cluster after short nights or on one weekday, the fix is scheduling — a prepped meal on that day, a protein-forward default after bad nights — not more discipline.",
+      forYou: `${misses.length} misses across the whole record. ${topDay ? topDay[0] + " owns " + topDay[1] + " of them" : ""}${slept ? ` · ${Math.round(100 * shortSleep / slept)}% followed a sub-7 night` : ""}. ${shortSleep / Math.max(1, slept) > 0.5 ? "Sleep is upstream of your protein too — the anchor defends both." : "No strong sleep link — day-structure is the lever."}`,
+      lines: [] };
+  });
+
+  /* 6 · weekend split */
+  add(() => {
+    const wk = allDaily.filter((x) => ![0, 6].includes(mk(x.d).getDay()));
+    const we = allDaily.filter((x) => [0, 6].includes(mk(x.d).getDay()));
+    if (wk.length < 5 || we.length < 3) return { id: "weekend", t: "THE WEEKEND SPLIT", status: "ARMED", prog: { n: we.length, need: 3, label: "weekend days logged" }, tag: "Weekday-you vs weekend-you.", deep: "Two athletes share your body. This card audits them separately.", forYou: "Filling from your record.", lines: [] };
+    const avg = (a, k) => Math.round(a.reduce((x, y) => x + (y[k] || 0), 0) / a.length);
+    const hit = (a) => Math.round(100 * a.filter((x) => Math.abs(x.pro - PROTEIN) <= 10).length / a.length);
+    return { id: "weekend", t: "THE WEEKEND SPLIT", status: "LIVE", prog: null,
+      tag: "Weekday-you vs weekend-you — two athletes, one audit.",
+      deep: "Every metric split by weekday vs weekend across your entire record. Most preps are lost between Friday night and Sunday dinner; knowing YOUR split turns a vague fear into a number — and events (weddings, holidays) get judged inside their own protocol, not as failures.",
+      forYou: `Weekdays: ${avg(wk, "cal")} cal · ${hit(wk)}% protein hits · ${(avg(wk, "steps") / 1000).toFixed(1)}k steps. Weekends: ${avg(we, "cal")} · ${hit(we)}% · ${(avg(we, "steps") / 1000).toFixed(1)}k. ${hit(we) >= hit(wk) - 10 ? "Weekend-you is nearly the same athlete — genuinely rare, and this whole wedding month proves it." : "The gap is the weekend; one prepped Saturday meal closes most of it."}`,
+      lines: [] };
+  });
+
+  /* 7 · step efficacy */
+  add(() => {
+    const wks = [...liveRollups(s), ...ROLLUPS].filter((w) => w.avgSteps != null && w.avgW != null);
+    const pairs = [];
+    for (let i = 0; i < wks.length - 1; i++) { const drop = wks[i + 1].avgW - wks[i].avgW; pairs.push({ steps: wks[i].avgSteps, drop }); }
+    if (pairs.length < 4) return { id: "stepeff", t: "STEP EFFICACY", status: "ARMED", prog: { n: pairs.length, need: 4, label: "week pairs" }, tag: "Do your extra steps actually show up on the scale?", deep: "Weekly step averages vs that week's scale movement.", forYou: "Accruing weekly.", lines: [] };
+    const ms = pairs.reduce((a, p) => a + p.steps, 0) / pairs.length, md = pairs.reduce((a, p) => a + p.drop, 0) / pairs.length;
+    let num = 0, den = 0; pairs.forEach((p2) => { num += (p2.steps - ms) * (p2.drop - md); den += (p2.steps - ms) ** 2; });
+    const slope = den ? +(num / den).toFixed(2) : 0;
+    return { id: "stepeff", t: "STEP EFFICACY", status: "LIVE", prog: null,
+      tag: "Do your extra steps show up on the scale? Directional verdict.",
+      deep: "Weekly average steps vs that week's weight change, across every week on file. Small n and confounded (calories move too) — stated honestly as directional, not causal. But if high-step weeks consistently out-drop low-step weeks at similar intake, your NEAT is doing real work; if not, steps are cardiovascular health, and calories are the fat lever.",
+      forYou: `Across ${pairs.length} week-pairs: each extra 1k daily steps associates with ~${Math.abs(Math.round(slope * 10) / 10)} lb/wk ${slope > 0 ? "faster" : "slower"} loss (directional, n=${pairs.length}). ${slope > 0.05 ? "Your 16–17k target is earning its keep." : "Signal weak so far — steps stay for health; the deficit does the cutting."}`,
+      lines: [] };
+  });
+
+  /* 8 · refeed ROI */
+  add(() => {
+    const refeedDays = allDaily.filter((x) => dayType(x.d) === "REFEED" && x.d > "2026-07-21");
+    const pairsR = refeedDays.map((r) => { const nd = isoOf(new Date(mk(r.d).getTime() + DAY)); return s.sessionLog[nd] ? { cal: r.cal, reps: totReps(nd) } : null; }).filter(Boolean);
+    return { id: "refeedroi", t: "REFEED ROI", status: pairsR.length >= 3 ? "LIVE" : "ARMED", prog: { n: pairsR.length, need: 3, label: "refeed → next-day-session pairs" },
+      tag: "What does each refeed buy you in next-day iron?",
+      deep: "Refeed-day calories vs the following session's total output, plus the trend cost already measured by the refeed-bump line. Enough pairs reveal your dose-response: whether 2,400 buys what 2,600 buys — i.e., your optimal refeed size, discovered instead of guessed.",
+      forYou: pairsR.length >= 3 ? `${pairsR.length} pairs: avg ${Math.round(pairsR.reduce((a, x) => a + x.cal, 0) / pairsR.length)} cal → ${Math.round(pairsR.reduce((a, x) => a + x.reps, 0) / pairsR.length)} next-day reps. Spread widens the picture — one lighter refeed (~2,300) would be an informative experiment, coach-flag.` : `${pairsR.length}/3 pairs. Every Wednesday→Thursday you log builds this — tomorrow is literally a data point.`,
+      lines: [] };
+  });
+
+  /* 9 · session shape */
+  add(() => {
+    const shapes = {};
+    sessDates.forEach((d) => ((s.sessionLog[d] || {}).entries || []).forEach((e) => { if (e.reps && e.reps.length >= 2) (shapes[e.id] = shapes[e.id] || []).push(e.reps.map((r, i) => (i === 0 ? 0 : r - e.reps[0]))); }));
+    const ready = Object.entries(shapes).filter(([, v]) => v.length >= 4);
+    return { id: "sessionshape", t: "SESSION SHAPE", status: ready.length ? "LIVE" : "ARMED", prog: { n: Math.max(0, ...Object.values(shapes).map((v) => v.length), 0), need: 4, label: "sessions per lift" },
+      tag: "Your set-to-set fade pattern — joints complain here first.",
+      deep: "Each lift's rep-decay across sets (8,8,7 = fade of 0,-1) has a stable personal fingerprint. When the SHAPE changes — set 2 suddenly sagging on a lift that never sags — it precedes joint complaints and stalls by about a week in most lifters. The instrument watches for shape breaks, not bad days.",
+      forYou: ready.length ? `${ready.length} lifts fingerprinted. Latest shapes match your baselines — no silent breaks. This card matters most the week it disagrees with you.` : "Fingerprints form at 4 sessions per lift; the abs and hack debuts start theirs this week.",
+      lines: [] };
+  });
+
+  /* 10 · compounding curve */
+  add(() => {
+    const reads = s.reads.filter((r) => !r.sealed);
+    if (reads.length < 20) return null;
+    let best = 0, sum = 0, cnt = 0;
+    for (let i = 0; i < reads.length; i++) { const j = reads.findIndex((r) => mk(r.d) >= mk(reads[i].d) + 13 * DAY); if (j > i) { const drop = reads[i].w - reads[j].w; best = Math.max(best, drop); sum += drop; cnt++; } }
+    const avgD = cnt ? +(sum / cnt).toFixed(1) : 0;
+    return { id: "compound", t: "THE COMPOUNDING CURVE", status: "LIVE", prog: null,
+      tag: "Your best fortnight vs your average — the cost of chaos, in pounds.",
+      deep: "Every rolling 14-day window in your record, ranked. The best window is what YOU produce when everything clicks — sleep, protein, steps aligned. The average includes life. The gap between them is the honest price of chaos, and shrinking it beats chasing any new protocol.",
+      forYou: `Best fortnight: −${best.toFixed(1)} lb. Average: −${avgD} lb. Gap ≈ ${(best - avgD).toFixed(1)} lb of pure execution — you don't need a better plan anywhere in this app; you need more weeks that look like your best ones. The Aug 15 checkpoint is ~${Math.ceil((s.trend - 161) / Math.max(0.4, avgD / 2))} average-weeks away, fewer at best-pace.`,
+      lines: [] };
+  });
+
+  /* 11 · ghost joey */
+  add(() => {
+    const days = Math.max(1, Math.round((todayStart() - mk("2026-07-21")) / DAY));
+    const stepPen = (4000 * 0.35 * days) / 3500;
+    const sleepPen = 0.15 * (days / 7);
+    const ghost = +(s.trend + stepPen + sleepPen).toFixed(1);
+    return { id: "ghost", t: "GHOST JOEY", status: "MODEL", prog: null,
+      tag: "The you who walks 12k, sleeps 6, skips refeeds — simulated, clearly badged.",
+      deep: "A counterfactual twin built from YOUR measured coefficients, not textbook ones: 4k fewer daily steps at your per-step cost, the muscle-retention haircut your own debt-day sessions demonstrate, refeeds skipped (with the adherence risk your record shows refeeds prevent). It is a MODEL — the badge says so — and it exists for one purpose: on the days discipline feels pointless, the gap is the receipt that it isn't.",
+      forYou: `Ghost's trend today: ~${ghost} (${(ghost - s.trend).toFixed(1)} lb behind you) and falling further behind by ~${((4000 * 0.35 * 7) / 3500 + 0.15).toFixed(1)} lb/week. Ghost also lifts on 6 hours — his press attempt today wouldn't have counted. You are the control group's nightmare.`,
+      lines: [] };
+  });
+
+  /* 12 · the sentinel */
+  add(() => {
+    const base = (arr) => { if (arr.length < 8) return null; const m = arr.reduce((a, b) => a + b, 0) / arr.length; const sdv = Math.sqrt(arr.reduce((a, b) => a + (b - m) ** 2, 0) / arr.length) || 1; return { m, sdv }; };
+    const slB = base(s.sleep.nights.slice(-30).map((n) => n.h));
+    const stB = base(allDaily.slice(-30).filter((x) => x.steps).map((x) => x.steps));
+    if (!slB || !stB) return null;
+    let flagged = null;
+    [...allDaily].slice(-10).forEach((d2) => { const n = nightOf(prevISO(d2.d)); let hits = 0; if (n && Math.abs((n.h - slB.m) / slB.sdv) > 1.8) hits++; if (d2.steps && Math.abs((d2.steps - stB.m) / stB.sdv) > 1.8) hits++; const rd = s.reads.find((r) => r.d === d2.d && !r.sealed); if (rd && Math.abs(rd.w - s.trend) > 1.6) hits++; if (hits >= 2) flagged = { d: d2.d, hits }; });
+    return { id: "sentinel", t: "THE SENTINEL", status: "LIVE", prog: null,
+      tag: "Multivariate weird-day detector — often smells illness a day early.",
+      deep: "Each recent day is z-scored against your own 30-day baselines across sleep, steps, and scale-vs-trend. Two or more dimensions going strange TOGETHER is the signature of incoming illness, unlogged stress, or a tracking slip — usually a day before you'd feel or notice it. It never diagnoses; it points.",
+      forYou: flagged ? `${fmtShort(flagged.d)} tripped ${flagged.hits} baselines at once — if you remember why, no action; if you don't, treat today gently and watch tonight's sleep.` : "All quiet — every recent day sits inside your own baselines. The best sentinel report is boredom.",
+      lines: [] };
+  });
+
+  /* 13 · the monthly letter */
+  add(() => {
+    const july = allDaily.filter((x) => x.d >= "2026-07-01");
+    const june = allDaily.filter((x) => x.d < "2026-07-01");
+    if (june.length < 10 || july.length < 10) return null;
+    const avg2 = (a, k) => Math.round(a.reduce((x, y) => x + (y[k] || 0), 0) / a.length);
+    const hit2 = (a) => Math.round(100 * a.filter((x) => x.pro != null && Math.abs(x.pro - PROTEIN) <= 10).length / a.length);
+    const wins = s.feed.filter((f) => f.d >= "2026-07-01" && /OWNED|DEBUT|EARNED|RECLAIM/.test(f.t)).length;
+    return { id: "letter", t: "THE MONTHLY LETTER", status: "LIVE", prog: null,
+      tag: "State of the prep, auto-written on the 1st. Latest: July (running).",
+      deep: "On the first of each month, the ledger writes itself a letter: every metric vs the prior month, changepoints named, wins counted. It becomes the prep's chapter structure — and in September, the reverse gets judged against these letters instead of vibes. August 1 prints the first complete one.",
+      forYou: `July so far vs June: calories ${avg2(july, "cal")} vs ${avg2(june, "cal")} · protein hits ${hit2(july)}% vs ${hit2(june)}% · steps ${(avg2(july, "steps") / 1000).toFixed(1)}k vs ${(avg2(june, "steps") / 1000).toFixed(1)}k · ${wins} gates flipped in July. Trajectory: tightening while the scale seal holds — exactly what a mid-prep month should read like. Full letter prints Aug 1.`,
+      lines: [] };
+  });
+
+  return out;
+}
+
 /* LAB GROUPS — every analytic, experiment, and evidence card filed on one shelf system */
 function labGroups(s) {
-  const all = [...labAnalytics(s), ...sleepLab(s), ...shelfItems(s)];
+  const all = [...labAnalytics(s), ...labAnalytics2(s), ...sleepLab(s), ...shelfItems(s)];
   const MAP = {
     scale: ["whoosh", "refeed", "noise", "masked", "creep"],
-    training: ["tuefri", "fingerprint", "rirtruth", "notes", "miss"],
-    sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig"],
+    engine: ["adaptmeter", "stepeff", "refeedroi"],
+    training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss"],
+    sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "canary"],
+    behavior: ["missarch", "weekend", "compound"],
     road: ["cone", "dexarecon"],
+    models: ["ghost", "sentinel", "letter"],
     locked: ["mrv", "debutmodel"],
     shelf: ["spread", "caffdose", "creatine", "matador", "sleepceil"],
   };
   const TITLES = {
     scale: "SCALE & BODY — decoding the number",
+    engine: "THE ENGINE — your metabolism, measured",
     training: "TRAINING — what the reps are saying",
     sleep: "SLEEP — the master-variable wing",
+    behavior: "PATTERNS OF A HUMAN — behavior, decoded",
     road: "THE ROAD — timing the pivot",
+    models: "MODELS & SENTINELS — simulations, badged",
     locked: "BUILD PHASE — sealed until September",
     shelf: "THE SHELF — evidence on file",
   };
@@ -1106,7 +1305,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, sleepLab, labGroups, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, sleepLab, labAnalytics2, labGroups, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1161,6 +1360,7 @@ const stampColor = (st) => {
   if (st === "LOCKED") return T.dim;
   if (st === "ON FILE") return T.steel;
   if (st === "TRACKING") return T.jade;
+  if (st === "MODEL") return T.chalk;
   if (["PARKED", "UNBOOKED", "COACH'S EYE", "ARMS @ ~13%", "COACH FLAG"].includes(st)) return T.dim;
   return T.brass;
 };
