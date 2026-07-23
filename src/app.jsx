@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.35.0";
+const APP_V = "3.35.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1326,7 +1326,6 @@ const PLAIN_MAP = [
   ["The governor", "The safety brake"],
   ["governor hold", "safety-brake hold"],
   ["zero-comp", "no-make-up-eating"],
-  ["RIR", "reps-left-in-tank"],
 ];
 function plainify(t) {
   if (t == null) return t;
@@ -2406,21 +2405,21 @@ function LogTab({ s, setS, save, slp }) {
             </div>
           )}
           <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
-            {getReps(ex).map((r, i) => (
+            {(() => { const rp2 = rirPlan(s, ex, slp); return getReps(ex).map((r, i) => (
               <div key={i}>
-                <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginBottom: 3 }}>SET {i + 1}</div>
+                <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginBottom: 3 }}>SET {i + 1} · <span style={{ color: rp2.plan[i] === 0 ? T.brass : rp2.plan[i] === 1 ? T.chalk : T.jade, fontWeight: 700 }}>RIR {rp2.plan[i] ?? "—"}</span></div>
                 <Stepper v={r} set={(v) => setRep(ex, i, v)} />
               </div>
-            ))}
+            )); })()}
           </div>
-          {(() => { const rp = rirPlan(s, ex, slp); const ov = s.rirOverride === tISO; return (
-            <div style={{ fontFamily: mono, fontSize: 9, color: T.steel, marginTop: 9 }}>effort plan — <Term k="rirplan" c={T.steel}>reps left in tank</Term> · {rp.plan.join(" · ")}{rp.why.length ? (
+          {(() => { const rp = rirPlan(s, ex, slp); const ov = s.rirOverride === tISO; return rp.why.length ? (
+            <div style={{ fontFamily: mono, fontSize: 9, color: T.steel, marginTop: 9 }}><Term k="rirplan" c={T.steel}>RIR plan</Term>
               <span onClick={() => { if (slp.clean) return; const ns = JSON.parse(JSON.stringify(s)); ns.rirOverride = ov ? null : tISO; if (!ov) ns.feed.unshift({ d: tISO, t: "RIR DEBT BUFFER — OVERRIDDEN", how: "athlete call, this session only · banking rules unchanged: today still logs provisional" }); setS(ns); save(ns); }}
                 style={{ color: ov ? T.dim : T.brass, cursor: "pointer" }}> — {rp.why[0]}{!slp.clean ? " · tap to " + (ov ? "restore" : "override") : ""}</span>
-            ) : null}</div>
-          ); })()}
+            </div>
+          ) : null; })()}
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8 }}>
-            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em" }}>FIRST SET — <Term k="rir" c={T.dim}>REPS LEFT IN TANK</Term></span>
+            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em" }}>FIRST SET <Term k="rir" c={T.dim}>RIR</Term></span>
             {[0, 1, 2, 3].map((v) => {
               const on = rir[ex.id] === v;
               const c = v === 0 ? T.brass : T.jade;
@@ -2431,7 +2430,7 @@ function LogTab({ s, setS, save, slp }) {
                 </button>
               );
             })}
-            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>optional · 1 left = honest effort</span>
+            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>optional · 1 = honest</span>
           </div>
         </Card>
       ))}
