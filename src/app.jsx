@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.10.1";
+const APP_V = "3.11.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1205,6 +1205,21 @@ function Term({ k, children, c }) {
   );
 }
 
+function Section({ title, meta, c = T.chalk, children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Card style={{ padding: 12 }} accent={open ? c : undefined}>
+      <div onClick={() => setOpen(!open)} style={{ cursor: "pointer" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+          <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 16, color: T.chalk, textTransform: "uppercase" }}>{title}</div>
+          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, whiteSpace: "nowrap", textAlign: "right" }}>{meta} {open ? "▾" : "▸"}</div>
+        </div>
+      </div>
+      {open && <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 12 }}>{children}</div>}
+    </Card>
+  );
+}
+
 function More({ deep, forYou, c = T.jade }) {
   const [open, setOpen] = useState(false);
   return (
@@ -1873,8 +1888,8 @@ function QueueTab({ s, slp }) {
         </>
       )}
 
-      <Eyebrow>EARNED · THE DATED FEED — HOW IT WAS WON</Eyebrow>
-      <Card style={{ padding: 0 }}>
+      <Section title="The Story So Far" meta={`${s.feed.length} entries · latest: ${((s.feed[0] || {}).t || "—").slice(0, 22)}`} c={T.jade}>
+        <Card style={{ padding: 0 }}>
         {s.feed.slice(0, 40).map((f, i) => (
           <div key={i} style={{ padding: "12px 14px", borderBottom: i < Math.min(s.feed.length, 40) - 1 ? `1px solid ${T.line}` : "none" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
@@ -1885,6 +1900,7 @@ function QueueTab({ s, slp }) {
           </div>
         ))}
       </Card>
+      </Section>
 
       <Card>
         <Eyebrow>STANDING GAINS · ALL WHILE CUTTING</Eyebrow>
@@ -1932,7 +1948,19 @@ function BodyTab({ s, setS, save }) {
         </Card>
       )}
 
-      <Card>
+      <Card accent={T.jade} style={{ padding: 12 }}>
+        <Eyebrow c={T.jade}>VITALS — THE FOUR NUMBERS THAT MATTER</Eyebrow>
+        <div style={{ display: "flex", gap: 16, marginTop: 8, flexWrap: "wrap" }}>
+          <div><Num size={20}>{s.trend}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>TREND{sealed ? " · SEALED" : ""}</div></div>
+          <div><Num size={20}>{bf.pct}%</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>EST BF {s.model.err}</div></div>
+          <div><Num size={20}>{cur.fat}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>FAT/WK{cur.measured ? " · MEAS" : ""}</div></div>
+          <div><Num size={20}>{s.waist.length ? s.waist[s.waist.length - 1].v + '"' : "—"}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>WAIST</div></div>
+        </div>
+        <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>four rooms below · tap to enter · every card intact inside</div>
+      </Card>
+
+      <Section title="The Scale" meta={`${s.trend}${sealed ? " · sealed → " + fmtShort(SEAL_UNTIL) : " · live"}`}>
+        <Card>
         <Eyebrow><Term k="trend" c={T.dim}>TREND</Term> — THE HERO NUMBER</Eyebrow>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 4 }}>
           <Num size={40} c={T.jade}>{s.trend}</Num>
@@ -1951,29 +1979,10 @@ function BodyTab({ s, setS, save }) {
         <More deep="The trend is a damped average: each clean read moves it 30% of the way toward the morning's number, spikes clamp at ±1.5 lb so one dinner can't lie to it, sealed reads never touch it, and moves inside your measured ±0.8 noise floor get auto-stamped 'not information'. Daily reads render small and grey on purpose — the trend is the instrument; mornings are static."
           forYou={sealed ? `First clean read ${fmtShort(SEAL_UNTIL)}: judge it against the trend (${s.trend}), not against ${(s.reads.filter((r) => !r.sealed).slice(-1)[0] || {}).w ?? s.trend} — residual event water is expected and already forgiven by the math.` : `Trend ${s.trend}. Whatever tomorrow's scale screams, it moves this number by ±0.45 at most.`} />
       </Card>
+      </Section>
 
-      <Card>
-        {(() => {
-          const wk = weekDay().wk;
-          const lastP = s.photos[s.photos.length - 1];
-          const due = !lastP || Math.round((mk(tISO) - mk(lastP.d)) / DAY) >= 7;
-          return (
-            <>
-              <Eyebrow c={wk >= 10 ? T.brass : T.dim}>{wk >= 10 ? "PHOTOS · MIRROR ERA — OUTRANKS THE SCALE" : "PHOTOS · WEEKLY — HABIT NOW, ERA STARTS WK 10"}</Eyebrow>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
-                {["same light", "same spot", "fasted AM", "front / side / back", "relaxed + flexed"].map((c2, i) => (<Chip key={i}>{c2}</Chip>))}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, fontFamily: mono, fontSize: 9.5, color: T.dim }}>
-                <span>{due ? "due — the mark button is on NOW" : `done — next ${fmtShort(isoOf(new Date(mk(lastP.d).getTime() + 7 * DAY)))}`}</span>
-                {s.photos.length > 0 && <span style={{ color: T.jade }}>×{s.photos.length}</span>}
-              </div>
-              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>Images live in your camera roll — make an album called PREP and compare there. The app tracks the habit, never the pictures.</div>
-            </>
-          );
-        })()}
-      </Card>
-
-      <Card>
+      <Section title="The Model" meta={`~${bf.pct}% · ${s.model.src}${observedTDEE(s) ? " · maint ~" + observedTDEE(s).tdee : ""}`}>
+        <Card>
         <Eyebrow>BODY FAT — LIVE MODEL · ANCHORED TO {s.model.src.toUpperCase()}</Eyebrow>
         <div style={{ display: "flex", gap: 18, marginTop: 8, alignItems: "baseline" }}>
           <div><Num size={26}>{bf.pct}%</Num><div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim }}>EST NOW {s.model.err} · LEAN ~{bf.lean}</div></div>
@@ -1988,38 +1997,7 @@ function BodyTab({ s, setS, save }) {
         <More deep="A lean-mass model, not a formula: anchored lean weight plus the muscle-memory drip (+0.3/wk), so BF% = (trend − lean) ÷ trend. It falls as the trend falls and rises as muscle returns. The eye and DEXA disagree by method (~1.5 points) — both are shown until a real scan replaces estimation with measurement."
           forYou={s.model.src === "DEXA" ? `Anchored to your DEXA — lean ≈ ${bf.lean} lb and the drip carries it forward. A post-pivot re-scan re-trues the build phase.` : `Lean mass ≈ ${bf.lean} lb today and drifting up weekly — that number rising while the trend falls IS the recomp, in two digits. One DEXA input re-anchors everything; book any clean morning ≥2 days clear of a refeed or event.`} />
       </Card>
-
-      <Card>
-        <Eyebrow>WAIST · WEEKLY — THE SIGNAL THE SCALE CAN'T FAKE</Eyebrow>
-        {(() => {
-          const lastW = s.waist[s.waist.length - 1];
-          const due = !lastW || Math.round((mk(tISO) - mk(lastW.d)) / DAY) >= 7;
-          return (
-            <>
-              {s.waist.length > 0 && (
-                <div style={{ display: "flex", gap: 14, marginTop: 8, fontFamily: mono, fontSize: 10.5, color: T.steel, flexWrap: "wrap" }}>
-                  {s.waist.slice(-4).map((x, i) => (<span key={i}>{fmtShort(x.d)} · <span style={{ color: T.chalk }}>{x.v}"</span></span>))}
-                  {s.waist.length >= 2 && (
-                    <span style={{ color: T.jade }}>Δ −{(s.waist[0].v - lastW.v).toFixed(1)}" total</span>
-                  )}
-                </div>
-              )}
-              <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 10 }}>{due ? "due now — the card is waiting on NOW" : `logged — next due ${fmtShort(isoOf(new Date(mk(lastW.d).getTime() + 7 * DAY)))} · logs on NOW`}</div>
-              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>PROTOCOL: fasted · post-void · at navel · relaxed tape · weekly</div>
-            </>
-          );
-        })()}
-      </Card>
-
-      <Card>
-        <Eyebrow>RATE OF LOSS · PHASE-AWARE</Eyebrow>
-        <div style={{ marginTop: 10 }}><RateGauge rate={s.rate} cur={cur} /></div>
-        <div style={{ fontFamily: mono, fontSize: 10, color: T.dim, marginTop: 8 }}>Rules run themselves: floor and redline arm one-tap adjustments on the NOW screen when trend data trips them.</div>
-        <More deep="The green band (1.0–1.4/wk) is the muscle-safe corridor for this phase. Floor rule: two weeks under 0.8 → restore steps FIRST, then trim calories. Redline: ≥1.9 → add ~100 back and coach-flag, because speed there is muscle risk, not a win. Sealed windows mute both rules so event noise can never fire them."
-          forYou={sealed ? `Rules muted while sealed (clean read ${fmtShort(SEAL_UNTIL)}) — your sheet's 7/21 REDLINE gap-artifact is exactly what this muting exists to prevent.` : cur.measured ? `Measured ~${cur.fat}/wk fat-equivalent right now — ${cur.fat >= 1.0 && cur.fat <= 1.4 ? "inside the corridor; nothing to do." : cur.fat < 1.0 ? "under the corridor; the floor rule is the nearest tripwire." : "hot; the redline is the nearest tripwire."}` : "Two clean weekly snapshots and this goes fully measured."} />
-      </Card>
-
-      <Card>
+        <Card>
         <Eyebrow>MAINTENANCE LEDGER · LIVE</Eyebrow>
         {(() => {
           const obs = observedTDEE(s);
@@ -2045,8 +2023,17 @@ function BodyTab({ s, setS, save }) {
         <More deep="Observed TDEE = your average logged intake + the daily energy your measured loss represents (fat at 3,500 kcal/lb, minus what the muscle drip stores). No textbook formulas — arithmetic from your own ledger, recomputed over a rolling 3 weeks, sliding down ~10 kcal for every pound you lose."
           forYou={(() => { const obs = observedTDEE(s); return obs ? `~${obs.tdee} is what the September reverse aims at — eat to it fast, then build the surplus above it. Landing on today's truth instead of June's is the whole anti-overshoot plan.` : "Prints Monday when the seal lifts. Every day you log between now and the pivot sharpens the number the entire reverse will be built on."; })()} />
       </Card>
+      </Section>
 
-      <Card>
+      <Section title="The Road" meta={`${cur.fat}/wk · wk ${wd.wk}`}>
+        <Card>
+        <Eyebrow>RATE OF LOSS · PHASE-AWARE</Eyebrow>
+        <div style={{ marginTop: 10 }}><RateGauge rate={s.rate} cur={cur} /></div>
+        <div style={{ fontFamily: mono, fontSize: 10, color: T.dim, marginTop: 8 }}>Rules run themselves: floor and redline arm one-tap adjustments on the NOW screen when trend data trips them.</div>
+        <More deep="The green band (1.0–1.4/wk) is the muscle-safe corridor for this phase. Floor rule: two weeks under 0.8 → restore steps FIRST, then trim calories. Redline: ≥1.9 → add ~100 back and coach-flag, because speed there is muscle risk, not a win. Sealed windows mute both rules so event noise can never fire them."
+          forYou={sealed ? `Rules muted while sealed (clean read ${fmtShort(SEAL_UNTIL)}) — your sheet's 7/21 REDLINE gap-artifact is exactly what this muting exists to prevent.` : cur.measured ? `Measured ~${cur.fat}/wk fat-equivalent right now — ${cur.fat >= 1.0 && cur.fat <= 1.4 ? "inside the corridor; nothing to do." : cur.fat < 1.0 ? "under the corridor; the floor rule is the nearest tripwire." : "hot; the redline is the nearest tripwire."}` : "Two clean weekly snapshots and this goes fully measured."} />
+      </Card>
+        <Card>
         <Eyebrow>ROAD · LIVE ETAS OFF YOUR ACTUAL RATE</Eyebrow>
         <div style={{ margin: "10px 0 4px" }}><Bar pct={xPct} c={T.chalk} /></div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10, fontFamily: mono, fontSize: 11, color: T.steel }}>
@@ -2058,8 +2045,51 @@ function BodyTab({ s, setS, save }) {
         <More c={T.brass} deep="Straight-line ETAs from your measured rate plus the drip — useful for direction, honest about nothing else; the cone in HIST is the version with uncertainty attached. The acceleration note is subcutaneous math: below ~13%, the same pound of fat comes off a smaller, leaner surface, so each BF point shows 2–3× the visible change of earlier points."
           forYou={wd.wk < 8 ? `Week ${wd.wk} now — the acceleration window opens wk 8 (~${fmtShort(isoOf(new Date(mk(START).getTime() + 49 * DAY)))}), the mirror outranks the scale from wk 10, and the pivot ETA above is the straight line the cone bends around. The boring middle is almost over.` : wd.wk < 10 ? `Week ${wd.wk} — you are IN the acceleration window: each BF point now shows 2–3× the visual change. Mirror takes over at wk 10; the pivot ETA above is the straight line the cone bends around.` : `Week ${wd.wk} — mirror era. Photos and waist outrank everything on this card; the ETAs are background math now.`} />
       </Card>
+      </Section>
 
-      <Card>
+      <Section title="Tape & Mirror" meta={`${s.waist.length ? s.waist[s.waist.length - 1].v + '"' : "waist due"} · photos ×${s.photos.length}`}>
+        <Card>
+        <Eyebrow>WAIST · WEEKLY — THE SIGNAL THE SCALE CAN'T FAKE</Eyebrow>
+        {(() => {
+          const lastW = s.waist[s.waist.length - 1];
+          const due = !lastW || Math.round((mk(tISO) - mk(lastW.d)) / DAY) >= 7;
+          return (
+            <>
+              {s.waist.length > 0 && (
+                <div style={{ display: "flex", gap: 14, marginTop: 8, fontFamily: mono, fontSize: 10.5, color: T.steel, flexWrap: "wrap" }}>
+                  {s.waist.slice(-4).map((x, i) => (<span key={i}>{fmtShort(x.d)} · <span style={{ color: T.chalk }}>{x.v}"</span></span>))}
+                  {s.waist.length >= 2 && (
+                    <span style={{ color: T.jade }}>Δ −{(s.waist[0].v - lastW.v).toFixed(1)}" total</span>
+                  )}
+                </div>
+              )}
+              <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 10 }}>{due ? "due now — the card is waiting on NOW" : `logged — next due ${fmtShort(isoOf(new Date(mk(lastW.d).getTime() + 7 * DAY)))} · logs on NOW`}</div>
+              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>PROTOCOL: fasted · post-void · at navel · relaxed tape · weekly</div>
+            </>
+          );
+        })()}
+      </Card>
+        <Card>
+        {(() => {
+          const wk = weekDay().wk;
+          const lastP = s.photos[s.photos.length - 1];
+          const due = !lastP || Math.round((mk(tISO) - mk(lastP.d)) / DAY) >= 7;
+          return (
+            <>
+              <Eyebrow c={wk >= 10 ? T.brass : T.dim}>{wk >= 10 ? "PHOTOS · MIRROR ERA — OUTRANKS THE SCALE" : "PHOTOS · WEEKLY — HABIT NOW, ERA STARTS WK 10"}</Eyebrow>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+                {["same light", "same spot", "fasted AM", "front / side / back", "relaxed + flexed"].map((c2, i) => (<Chip key={i}>{c2}</Chip>))}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, fontFamily: mono, fontSize: 9.5, color: T.dim }}>
+                <span>{due ? "due — the mark button is on NOW" : `done — next ${fmtShort(isoOf(new Date(mk(lastP.d).getTime() + 7 * DAY)))}`}</span>
+                {s.photos.length > 0 && <span style={{ color: T.jade }}>×{s.photos.length}</span>}
+              </div>
+              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>Images live in your camera roll — make an album called PREP and compare there. The app tracks the habit, never the pictures.</div>
+            </>
+          );
+        })()}
+      </Card>
+        <Card>
         <Eyebrow>THE THESIS · VS LAST CUT</Eyebrow>
         <div style={{ fontFamily: body, fontSize: 12, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>
           Last cut: 1,400–1,600 · 140 g · hours of incline · stalled lifts → muscle LOSS, flat at 163.<br />
@@ -2070,6 +2100,9 @@ function BodyTab({ s, setS, save }) {
           <Btn small disabled={!canThesis} onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.thesisConfirms++; ns.lastThesisWk = wd.wk; ns.feed.unshift({ d: tISO, t: `THESIS CONFIRMED · WK ${wd.wk}`, how: "fuller, not flatter — the identity claim holds another week" }); setS(ns); save(ns); }}>{canThesis ? `Confirm wk ${wd.wk}` : "Weekly — done"}</Btn>
         </div>
       </Card>
+      </Section>
+
+      
     </div>
   );
 }
@@ -2096,23 +2129,8 @@ function SleepTab({ s, setS, save, slp }) {
           forYou={slp.clean ? "CLEAN — everything counts today. This is simultaneously your best muscle-retention lever and your sharpest ADHD lever; protect the streak like a PR." : `${slp.need - slp.run} clean night${slp.need - slp.run === 1 ? "" : "s"} from CLEAN. Tonight ≥7.5 ${slp.run + 1 >= slp.need ? "flips it — tomorrow's attempts count for keeps." : "keeps the reset alive."} Fixed wake time is the strongest single move.`} />
       </Card>
 
-      <Card>
-        <Eyebrow>LAST 8 NIGHTS</Eyebrow>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 92, marginTop: 12 }}>
-          {nights.map((n, i) => (
-            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-              <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>{n.h}</div>
-              <div style={{ width: "100%", height: `${(n.h / maxH) * 68}px`, background: n.h >= s.sleep.cleanH ? T.jade : n.h < 5 ? T.brass : T.dim, borderRadius: 3, opacity: n.h >= s.sleep.cleanH ? 1 : 0.8 }} />
-              <div style={{ fontFamily: mono, fontSize: 7.5, color: T.dim }}>{mk(n.d).getMonth() + 1}/{mk(n.d).getDate()}</div>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", padding: "2px 0" }}>logging lives on NOW · this tab is the ledger</div>
-
-      {/* the anchor */}
-      <Card accent={T.jade}>
+      <Section title="Anchor & Tail" meta={`wake ${(s.sleep.anchor || {}).wake || "06:45"} · caffeine ${s.sleep.caffMg ? s.sleep.caffMg + " mg" : "unset"}`} c={T.jade}>
+        <Card accent={T.jade}>
         <Eyebrow c={T.jade}>THE ANCHOR — FOUNDED {fmtShort("2026-07-23")}, BY ACCIDENT</Eyebrow>
         {(() => {
           const a = s.sleep.anchor || { wake: "06:45", inBed: 8.25 };
@@ -2136,9 +2154,7 @@ function SleepTab({ s, setS, save, slp }) {
           );
         })()}
       </Card>
-
-      {/* caffeine tail */}
-      <Card>
+        <Card>
         <Eyebrow>CAFFEINE TAIL — WHAT'S STILL IN YOUR BLOOD AT LIGHTS-OUT</Eyebrow>
         {s.sleep.caffMg ? (
           <>
@@ -2159,10 +2175,22 @@ function SleepTab({ s, setS, save, slp }) {
           </div>
         )}
       </Card>
+      </Section>
 
-      <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", padding: "2px 0" }}>the melatonin experiment + wake signature live in HIST → THE LAB → SLEEP shelf</div>
-
-      <Card>
+      <Section title="The Ledger" meta={`${s.sleep.nights.length} nights on file`}>
+        <Card>
+        <Eyebrow>LAST 8 NIGHTS</Eyebrow>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 92, marginTop: 12 }}>
+          {nights.map((n, i) => (
+            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>{n.h}</div>
+              <div style={{ width: "100%", height: `${(n.h / maxH) * 68}px`, background: n.h >= s.sleep.cleanH ? T.jade : n.h < 5 ? T.brass : T.dim, borderRadius: 3, opacity: n.h >= s.sleep.cleanH ? 1 : 0.8 }} />
+              <div style={{ fontFamily: mono, fontSize: 7.5, color: T.dim }}>{mk(n.d).getMonth() + 1}/{mk(n.d).getDate()}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+        <Card>
         <Eyebrow c={T.brass}>WHAT THE DEBT COST — ATTRIBUTED, NOT BLAMED</Eyebrow>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
           {debtLedger(s).map((d, i) => (
@@ -2177,8 +2205,10 @@ function SleepTab({ s, setS, save, slp }) {
           deep="Debt costs output before it costs recovery — motor drive and honest RIR fade first, and it shows up as missing tail reps. The audit method: every in-app session logged on a non-clean day is compared to your nearest prior CLEAN session of the same lift at the same set count, and only losses get written. One honest caveat: if the load changed between the two sessions, an entry can muddy — the recap context usually settles it. Attribution, not blame: the grey lines are the sheet-era receipts; white lines are charges the app computed itself."
           forYou={slp.clean ? "CLEAN — the meter is off. Today's sessions get filed as clean baselines that future debt days will be audited against." : `${slp.need - slp.run} night${slp.need - slp.run === 1 ? "" : "s"} from CLEAN — until then, sessions are audited against their clean twins. Tonight ≥7.5 h ${slp.run + 1 >= slp.need ? "stops the meter entirely." : "keeps the reset alive."}`} />
       </Card>
+      </Section>
 
-      <Card>
+      <Section title="Protocol" meta="standing orders">
+        <Card>
         <Eyebrow>PROTOCOL</Eyebrow>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8, fontFamily: mono, fontSize: 10.5, color: T.steel }}>
           <div>· Caffeine cutoff early afternoon · 100 mg &gt; 200 mg on sleep nights</div>
@@ -2186,6 +2216,15 @@ function SleepTab({ s, setS, save, slp }) {
           <div>· Dose timing = prescriber territory — this ledger tracks, it does not advise</div>
         </div>
       </Card>
+      </Section>
+
+      <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", padding: "2px 0" }}>logging lives on NOW · this tab is the ledger</div>
+
+      {/* the anchor */}
+      {/* caffeine tail */}
+      <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", padding: "2px 0" }}>the melatonin experiment + wake signature live in HIST → THE LAB → SLEEP shelf</div>
+
+      
     </div>
   );
 }
@@ -2218,7 +2257,8 @@ function HistTab({ s, setS, save }) {
         <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 8 }}>Weight fell while every headline lift rose — the whole thesis, in one screen. Tap a week for the day-by-day.</div>
       </Card>
 
-      {(() => {
+      <Section title="The Lab" meta={(() => { const g2 = labGroups(s); return `${g2.reduce((a3, g3) => a3 + g3.cards.length, 0)} instruments · ${g2.reduce((a3, g3) => a3 + g3.live, 0)} live`; })()} c={T.jade}>
+        {(() => {
         const groups = labGroups(s);
         const tot = groups.reduce((a, g) => a + g.cards.length, 0);
         const totLive = groups.reduce((a, g) => a + g.live, 0);
@@ -2284,8 +2324,10 @@ function HistTab({ s, setS, save }) {
           </>
         );
       })()}
+      </Section>
 
-      {liveWks.map((w) => (
+      <Section title="Live Weeks" meta={`${liveWks.length} accruing${liveWks.length ? " · wk " + liveWks[0].wk + " current" : ""}`} c={T.orange}>
+        {liveWks.map((w) => (
         <div key={"live" + w.wk}>
           <Card style={{ padding: 12 }} accent={T.orange}>
             <div onClick={() => setOpen(open === w.wk ? null : w.wk)} style={{ cursor: "pointer" }}>
@@ -2321,8 +2363,10 @@ function HistTab({ s, setS, save }) {
           </Card>
         </div>
       ))}
+      </Section>
 
-      {ROLLUPS.map((w) => (
+      <Section title="Sheet Era · Wks 1–6" meta="the origin story · 42 days">
+        {ROLLUPS.map((w) => (
         <div key={w.wk}>
           <Card style={{ padding: 12 }} accent={open === w.wk ? T.chalk : undefined}>
             <div onClick={() => setOpen(open === w.wk ? null : w.wk)} style={{ cursor: "pointer" }}>
@@ -2363,6 +2407,7 @@ function HistTab({ s, setS, save }) {
       <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", padding: "2px 0 6px" }}>
         Verbatim from Prep-Tracker.xlsx · new days accrue automatically as you log
       </div>
+      </Section>
     </div>
   );
 }
