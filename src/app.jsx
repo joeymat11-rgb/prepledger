@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.41.0";
+const APP_V = "3.41.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3387,6 +3387,7 @@ function HistTab({ s, setS, save }) {
   const [open, setOpen] = useState(null);
   const [labOpen, setLabOpen] = useState(null);
   const [secOpen, setSecOpen] = useState({ speaking: true, gathering: true });
+  const [deskOpen, setDeskOpen] = useState(false);
   const [gatherAll, setGatherAll] = useState(false);
   const liveWks = liveRollups(s);
   const first = ROLLUPS[ROLLUPS.length - 1];
@@ -3488,6 +3489,12 @@ function HistTab({ s, setS, save }) {
                           : `MACHINE TRUST · the lab is grading its own predictions against reality — first marks ${firstGrade} ▸`}
                       </div>
                     ); })()}
+                  {(() => { const pr3 = trialProposals(s); const run3 = (s.trials || []).filter((t) => !t.declined && !trialVerdict(s, t).done).length; return (
+                    <div onClick={() => setDeskOpen(!deskOpen)} style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.04em", color: run3 ? T.brass : T.chalk, marginTop: 6, cursor: "pointer" }}>
+                      ⚗ TRIALS DESK · {run3 ? `${run3} running` : "none running"} · {pr3.length} proposed {deskOpen ? "▾" : "▸"}
+                    </div>
+                  ); })()}
+                  {deskOpen && <TrialsDesk s={s} setS={setS} save={save} />}
                   <div style={{ fontFamily: body, fontSize: 11, color: T.dim, marginTop: 4 }}>Tap any line for the full story, in plain words. Fresh verdicts carry their date.</div>
                   {secs.map((sec) => {
                     const openSec = secOpen[sec.k] !== undefined ? secOpen[sec.k] : false;
