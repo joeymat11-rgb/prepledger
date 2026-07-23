@@ -823,9 +823,11 @@ const spec51 = { name: "Demo", greeting: "Good morning", modules: { walk: true, 
 const st51 = { v: 1, days: {} };
 for (let k = 1; k <= 6; k++) st51.days[isoL(Date.now() - k * 864e5)] = { walkMin: k % 2 ? 30 : 10, weight: 152 + (k % 3) * 0.5, bp: k === 2 ? "128/82" : null };
 const letter = kl51(spec51, st51);
-ok(letter.indexOf("Good morning, Demo") === 0 && letter.indexOf("walks this week") > -1, "the letter speaks their dialect: " + letter.slice(0, 40));
+ok(letter.indexOf("Your week, in plain words:") === 0 && letter.indexOf("good walks this week") > -1, "the letter opens plainly and counts in their dialect: " + letter.slice(0, 40));
 ok(letter.indexOf("average is the truth") > -1 && letter.indexOf("doctor") > -1, "weight framed gently, bp referred out — never interpreted");
 ok(kl51(spec51, { v: 1, days: {} }).indexOf("keep showing up") > -1, "an empty week still gets warmth, never guilt");
+const one51 = { v: 1, days: {} }; one51.days[isoL(Date.now() - 2 * 864e5)] = { walkMin: 45 };
+ok(kl51(spec51, one51).indexOf("1 good walk this week") > -1, "grammar: one walk is singular");
 
 console.log(`\nFINAL49: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

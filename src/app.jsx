@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.51.1";
+const APP_V = "3.52.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2076,13 +2076,14 @@ function kitLetter(spec, st) {
   const thisW = wk(1), lastW = wk(2);
   const walks = (a) => a.filter((x) => x.walkMin >= (spec.walkGoalMin || 20)).length;
   const avgW = (a) => { const v = a.filter((x) => x.weight).map((x) => x.weight); return v.length ? +(v.reduce((p, q) => p + q, 0) / v.length).toFixed(1) : null; };
-  const L = [`${spec.greeting}, ${spec.name}. Your week, in plain words:`];
-  if (spec.modules.walk) L.push(`You took ${walks(thisW)} good walks this week${lastW.length ? ` (${walks(lastW)} the week before${walks(thisW) > walks(lastW) ? " — more than last week, which is the whole game" : walks(thisW) === walks(lastW) ? " — steady, which counts" : ""})` : ""}.`);
+  const L = ["Your week, in plain words:"];
+  if (spec.modules.walk) { const wN = walks(thisW); L.push(`You took ${wN} good ${wN === 1 ? "walk" : "walks"} this week${lastW.length ? ` (${walks(lastW)} the week before${walks(thisW) > walks(lastW) ? " — more than last week, which is the whole game" : walks(thisW) === walks(lastW) ? " — steady, which counts" : ""})` : ""}.`); }
   if (spec.modules.weight) { const a2 = avgW(thisW), b2 = avgW(lastW); if (a2) L.push(`Average ${spec.vocab.weight}: ${a2} ${spec.weightUnit}${b2 ? ` (was ${b2})` : ""} — single days wiggle; the average is the truth.`); }
   if (spec.modules.bp) { const n2 = thisW.filter((x) => x.bp).length; if (n2) L.push(`${n2} ${spec.vocab.bp} reading${n2 > 1 ? "s" : ""} on file this week — a tidy record is exactly what your doctor wants to see.`); }
   L.push("Nothing to fix. Just keep showing up.");
   return L.join(" ");
 }
+function kitGreet() { const h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"; }
 function KitApp({ spec, onExit }) {
   const [st, setSt] = useState(() => kitLoad(spec.id));
   const tI = isoOf(todayStart());
@@ -2092,10 +2093,10 @@ function KitApp({ spec, onExit }) {
   const [w2, setW2] = useState(day.weight || 150);
   const [bp1, setBp1] = useState(120); const [bp2, setBp2] = useState(80);
   return (
-    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 80, overflowY: "auto", padding: "20px 16px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <H size={F(22)}>{spec.greeting}, {spec.name}</H>
-        <span onClick={onExit} style={{ fontFamily: mono, fontSize: 9, color: T.dim, cursor: "pointer" }}>switch ✕</span>
+    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 80, overflowY: "auto", padding: "16px", paddingTop: "calc(env(safe-area-inset-top, 24px) + 18px)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+        <H size={F(20)}>{kitGreet()}, {spec.name}</H>
+        <button onClick={onExit} style={{ fontFamily: mono, fontSize: 10, color: T.steel, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8, padding: "8px 12px", flexShrink: 0 }}>switch ✕</button>
       </div>
       {spec.modules.walk && (
         <Card accent={day.walkMin >= spec.walkGoalMin ? T.jade : undefined} style={{ marginTop: 12 }}>
@@ -2596,6 +2597,7 @@ function Proposals({ s, setS, save }) {
 }
 
 function NowTab({ s, setS, save, slp, openRules, openCoach }) {
+  const [askOpen, setAskOpen] = useState(false);
   const tISO = isoOf(todayStart());
   const [bedT, setBedT] = useState("23:00");
   const [wakeT, setWakeT] = useState((s.sleep.anchor || {}).wake || "06:45");
@@ -2666,6 +2668,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       )}
 
+      {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
+      <BriefCard s={s} setS={setS} save={save} />
+
       {(() => { const pr = dayProtocol(s, slp); return (
         <Card accent={T.jade}>
           <Eyebrow c={T.jade}>TODAY'S PROTOCOL — RANKED, FROM YOUR DATA</Eyebrow>
@@ -2687,6 +2692,36 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </div>
         </Card>
       ); })()}
+
+      {(s.agentProposals || []).length > 0 && (
+        <Card accent={T.jade}>
+          <Eyebrow c={T.jade}>FROM YOUR ANALYST — WAITING ON YOUR TAP</Eyebrow>
+          {(s.agentProposals || []).map((ap) => (
+            <div key={ap.id} style={{ marginTop: 9, paddingTop: 9, borderTop: `1px solid ${T.line}` }}>
+              <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>{ap.title}</div>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{plainify(ap.body)}</div>
+              <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
+                {ap.kind === "trial" && (ap.custom || (ap.tplId && TRIAL_TPL[ap.tplId] && !(s.trials || []).some((t) => t.tplId === ap.tplId))) && (
+                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const rec = ap.custom ? { custom: ap.custom, started: tISO } : { tplId: ap.tplId, started: tISO }; ns.trials = [...(ns.trials || []), rec]; ns.feed.unshift({ d: tISO, t: "TRIAL STARTED — " + (ap.custom ? ap.custom.t : TRIAL_TPL[ap.tplId].t), how: ap.custom ? "designed by your analyst for a pattern in YOUR data, consented by you" : "proposed by your analyst, consented by you" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Start trial — I consent</Btn>
+                )}
+                <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Dismiss</Btn>
+              </div>
+            </div>
+          ))}
+        </Card>
+      )}
+
+
+      <Card style={{ padding: 12, cursor: "pointer" }} onClick={() => setAskOpen(true)}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <Eyebrow c={T.jade}>🜁 ASK THE LEDGER</Eyebrow>
+            <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 3 }}>Any question, answered from your data — it investigates before it speaks.</div>
+          </div>
+          <span style={{ fontFamily: mono, fontSize: 14, color: T.jade }}>▸</span>
+        </div>
+      </Card>
+
 
       {sess && (
         <div style={{ border: `1px solid ${T.line}`, borderRadius: 10, padding: "18px 16px 16px", background: `linear-gradient(180deg, ${T.plate} 0%, ${T.ink} 100%)`, position: "relative", overflow: "hidden" }}>
@@ -2890,25 +2925,6 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         );
       })()}
 
-      {(s.agentProposals || []).length > 0 && (
-        <Card accent={T.jade}>
-          <Eyebrow c={T.jade}>FROM YOUR ANALYST — WAITING ON YOUR TAP</Eyebrow>
-          {(s.agentProposals || []).map((ap) => (
-            <div key={ap.id} style={{ marginTop: 9, paddingTop: 9, borderTop: `1px solid ${T.line}` }}>
-              <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>{ap.title}</div>
-              <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{plainify(ap.body)}</div>
-              <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
-                {ap.kind === "trial" && (ap.custom || (ap.tplId && TRIAL_TPL[ap.tplId] && !(s.trials || []).some((t) => t.tplId === ap.tplId))) && (
-                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const rec = ap.custom ? { custom: ap.custom, started: tISO } : { tplId: ap.tplId, started: tISO }; ns.trials = [...(ns.trials || []), rec]; ns.feed.unshift({ d: tISO, t: "TRIAL STARTED — " + (ap.custom ? ap.custom.t : TRIAL_TPL[ap.tplId].t), how: ap.custom ? "designed by your analyst for a pattern in YOUR data, consented by you" : "proposed by your analyst, consented by you" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Start trial — I consent</Btn>
-                )}
-                <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Dismiss</Btn>
-              </div>
-            </div>
-          ))}
-        </Card>
-      )}
-
-      <BriefCard s={s} setS={setS} save={save} />
 
       {(() => {
         const todayP = (s.pulse || []).find((x) => x.d === tISO);
