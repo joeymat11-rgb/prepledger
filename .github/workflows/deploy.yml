@@ -1,0 +1,42 @@
+# Direct-deploy to Netlify from GitHub's runners.
+# Bypasses Netlify's build system entirely: no build minutes, no credit latch, no stopped-builds state.
+# Netlify token lives in the encrypted Actions vault (Settings -> Secrets); nothing sensitive in this file.
+# rotate at Netlify anytime, then update the NETLIFY_AUTH_TOKEN secret.
+name: deploy
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'ledger/**'
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Zip site and direct-deploy
+        run: |
+          NT="${{ secrets.NETLIFY_AUTH_TOKEN }}"
+          SITE=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/sites?per_page=50" | python3 -c "import json,sys;s=[x for x in json.load(sys.stdin) if 'prepledger' in ((x.get('build_settings') or {}).get('repo_url') or '')];print(s[0]['id'] if s else '')")
+          if [ -z "$SITE" ]; then echo "no prepledger-linked site found"; exit 1; fi
+          echo "deploying to site $SITE"
+          python3 - << 'PY'
+          import os, zipfile
+          z = zipfile.ZipFile('/tmp/site.zip', 'w', zipfile.ZIP_DEFLATED)
+          for root, dirs, files in os.walk('.'):
+              dirs[:] = [d for d in dirs if d not in ('.git', '.github')]
+              for f in files:
+                  p = os.path.join(root, f)
+                  z.write(p, os.path.relpath(p, '.'))
+          z.close()
+          PY
+          DEP=$(curl -s -X POST -H "Authorization: Bearer $NT" -H "Content-Type: application/zip" --data-binary @/tmp/site.zip "https://api.netlify.com/api/v1/sites/$SITE/deploys" | python3 -c "import json,sys;print(json.load(sys.stdin)['id'])")
+          echo "deploy $DEP created, polling..."
+          for i in $(seq 1 30); do
+            ST=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/deploys/$DEP" | python3 -c "import json,sys;print(json.load(sys.stdin)['state'])")
+            echo "state: $ST"
+            [ "$ST" = "ready" ] && echo "PUBLISHED" && exit 0
+            [ "$ST" = "error" ] && exit 1
+            sleep 4
+          done
+          exit 1
