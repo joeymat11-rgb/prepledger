@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.13.1";
+const APP_V = "3.14.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,8 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 12;
+  SEED.v = 13;
+  SEED.forecasts = [];
   SEED.labSeen = {};
   SEED.sleep.anchor = { wake: "06:45", inBed: 8.25 };
   SEED.sleep.caffMg = null;
@@ -1067,6 +1068,32 @@ function labAnalytics2(s) {
       lines: [] };
   });
 
+  /* 14 · the prophet's scorecard */
+  add(() => {
+    const fc = s.forecasts || [];
+    const graded = [];
+    fc.forEach((f) => {
+      if (f.sealed) return;
+      const targetD = isoOf(new Date(mk(f.d).getTime() + 7 * DAY));
+      const g = fc.find((x) => x.d === targetD);
+      if (g) graded.push({ err: +(g.trend - f.pred7).toFixed(1) });
+    });
+    const mae = graded.length ? +(graded.reduce((a, x) => a + Math.abs(x.err), 0) / graded.length).toFixed(2) : null;
+    const bias = graded.length ? +(graded.reduce((a, x) => a + x.err, 0) / graded.length).toFixed(2) : null;
+    return { id: "prophet", t: "THE PROPHET'S SCORECARD", status: graded.length >= 2 ? "LIVE" : "ARMED", prog: { n: graded.length, need: 2, label: "graded 7-day forecasts (journaling began today, first grades in ~1 wk)" },
+      tag: "The lab grades its own predictions — trust, with error bars.",
+      deep: "Every day the lab quietly journals a 7-day trend forecast; a week later, reality grades it. Mean absolute error = how far to trust any forecast in this app; bias = whether the machine runs optimistic or pessimistic about you. The cone's long-range September calls are journaled too, gradable at the pivot. An instrument that publishes its own error bars is the only kind worth believing — most coaching advice never submits to this test.",
+      forYou: graded.length >= 2 ? `${graded.length} forecasts graded: typical miss ±${mae} lb, bias ${bias > 0 ? "+" + bias + " (runs optimistic — mentally pad ETAs)" : bias < 0 ? bias + " (runs pessimistic — you keep beating the machine)" : "0.00 (dead calibrated)"}. Read every ETA in this lab through that lens.` : `Journal opened today — entry #${fc.length} on file. The machine has put its predictions in writing; in a week, reality starts marking the homework.`,
+      lines: [] };
+  });
+
+  /* 15 · the what-if console */
+  add(() => ({ id: "whatif", t: "THE WHAT-IF CONSOLE", status: "MODEL", prog: null,
+    tag: "Touch the levers — steps, calories, refeed, sleep — watch the dates move.",
+    deep: "A live counterfactual engine: sliders re-run the model with hypothetical settings and show what moves — the Aug 28 projection, the pivot ETA, the weekly rate, and whether CLEAN stays reachable. Coefficients are your measured ones where they exist (rate, noise, per-step cost prior of 0.35 kcal/step) and disclosed priors where they don't — and as STEP EFFICACY and REFEED ROI go live, their measured verdicts replace the priors automatically. It answers 'what if I just…' with arithmetic instead of vibes. Changes here change NOTHING real — it is a sandbox, badged MODEL, and actual target changes stay coach-flag.",
+    forYou: "Open the card — the sliders are inside. Try sleep at 6.5 first and watch what it says about your own-attempts; that one isn't hypothetical this week.",
+    lines: [] }));
+
   return out;
 }
 
@@ -1080,7 +1107,7 @@ function labGroups(s) {
     sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "canary"],
     behavior: ["missarch", "weekend", "compound"],
     road: ["cone", "dexarecon"],
-    models: ["ghost", "sentinel", "letter"],
+    models: ["ghost", "sentinel", "letter", "prophet", "whatif"],
     locked: ["mrv", "debutmodel"],
     shelf: ["spread", "caffdose", "creatine", "matador", "sleepceil"],
   };
@@ -1091,7 +1118,7 @@ function labGroups(s) {
     sleep: "SLEEP — the master-variable wing",
     behavior: "PATTERNS OF A HUMAN — behavior, decoded",
     road: "THE ROAD — timing the pivot",
-    models: "MODELS & SENTINELS — simulations, badged",
+    models: "MODELS, SENTINELS & META — badged honestly",
     locked: "BUILD PHASE — sealed until September",
     shelf: "THE SHELF — evidence on file",
   };
@@ -1113,8 +1140,15 @@ function sweepLab(s) {
   const seen = s.labSeen || {};
   const first = Object.keys(seen).length === 0;
   const flips = flat.filter((c) => (c.status === "LIVE" || c.status === "TRACKING") && seen[c.id] !== c.status);
-  if (!flips.length && !first) return null;
+  const tISO2 = isoOf(todayStart());
+  const needJournal = !(s.forecasts || []).some((f) => f.d === tISO2);
+  if (!flips.length && !first && !needJournal) return null;
   const ns = JSON.parse(JSON.stringify(s));
+  if (needJournal) {
+    const cur2 = currentRate(ns);
+    const r2 = cur2.measured ? cur2.scale : 1.2;
+    ns.forecasts = [...(ns.forecasts || []), { d: tISO2, trend: ns.trend, rate: r2, pred7: +(ns.trend - r2).toFixed(1), sealed: blackoutOn(ns) }].slice(-60);
+  }
   ns.labSeen = {};
   flat.forEach((c) => { ns.labSeen[c.id] = c.status; });
   if (!first) {
@@ -1254,6 +1288,7 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV13(s) { s.forecasts = s.forecasts || []; s.v = 13; return s; }
 function patchV12(s) { s.labSeen = s.labSeen || {}; s.v = 12; return s; }
 function patchV11(s) {
   s.sleep.anchor = s.sleep.anchor || { wake: "06:45", inBed: 8.25 };
@@ -1263,8 +1298,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 12) return old;
-  if (old && old.v >= 3 && old.v <= 11) return patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))));
+  if (old && old.v === 13) return old;
+  if (old && old.v >= 3 && old.v <= 12) return patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -1290,7 +1325,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))));
+  return patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))));
 }
 
 const GLOSSARY = {
@@ -2445,6 +2480,48 @@ function SleepTab({ s, setS, save, slp }) {
   );
 }
 
+function WhatIfConsole({ s }) {
+  const cur = currentRate(s);
+  const [wSteps, setWSteps] = useState(16500);
+  const [wCal, setWCal] = useState(1760);
+  const [wSlp, setWSlp] = useState(7.5);
+  const [wRef, setWRef] = useState(2450);
+  const baseRate = cur.measured ? cur.scale : 1.2;
+  const rate = Math.max(0.1, +(baseRate - ((wCal - 1760) * 7) / 3500 + ((wSteps - 16500) * 0.35 * 7) / 3500).toFixed(2));
+  const bf = bfEst(s);
+  const target11 = +(bf.lean / 0.89).toFixed(1);
+  const wksToPivot = (s.trend - target11) / rate;
+  const pivotD = isoOf(new Date(todayStart().getTime() + Math.max(0, Math.round(wksToPivot * 7)) * DAY));
+  const aug28 = +(s.trend - rate * (Math.max(0, daysUntil(CROSSOVER)) / 7)).toFixed(1);
+  const basePivot = isoOf(new Date(todayStart().getTime() + Math.max(0, Math.round(((s.trend - target11) / Math.max(0.1, baseRate)) * 7)) * DAY));
+  const shift = Math.round((mk(pivotD) - mk(basePivot)) / DAY);
+  const row = (lbl, v, set, step, min, max) => (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
+      <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, width: 74 }}>{lbl}</div>
+      <Stepper v={v} set={(x) => set(Math.min(max, Math.max(min, x)))} step={step} min={min} />
+    </div>
+  );
+  return (
+    <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
+      <Eyebrow c={T.chalk}>THE LEVERS — SANDBOX ONLY, NOTHING REAL MOVES</Eyebrow>
+      {row("STEPS /day", wSteps, setWSteps, 500, 12000, 19000)}
+      {row("CAL /day", wCal, setWCal, 25, 1600, 2000)}
+      {row("SLEEP avg h", wSlp, setWSlp, 0.25, 6, 9)}
+      {row("REFEED cal", wRef, setWRef, 100, 2100, 2700)}
+      <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
+        <div><Num size={20} c={T.jade}>{rate}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>LB/WK</div></div>
+        <div><Num size={20}>{aug28}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>AUG 28 PROJ</div></div>
+        <div><Num size={20} c={shift > 3 ? T.brass : T.chalk}>{fmtShort(pivotD)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>PIVOT ETA {shift !== 0 ? `(${shift > 0 ? "+" : ""}${shift}d)` : ""}</div></div>
+      </div>
+      <div style={{ fontFamily: body, fontSize: 11.5, color: wSlp < 7.5 ? T.brass : T.steel, marginTop: 10, lineHeight: 1.5 }}>
+        {wSlp < 7.5 ? "At this sleep average CLEAN is unreachable — every own-attempt logs provisional, nothing banks. The scale barely notices; the ledger absolutely does." : wSlp >= 8.5 ? "Ceiling territory — the SLEEP DOSE experiment says whether this buys reps in you." : "CLEAN sustainable — owns and earns count."}
+        {" "}Refeed at {wRef}: scale effect ~nil per week; next-day output is REFEED ROI's question{wRef < 2350 ? " — a lighter refeed is an informative experiment, coach-flag" : ""}.
+      </div>
+      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 8 }}>rate 1.0–1.4 = the muscle-safe corridor · redline ≥1.9 · measured coefficients replace priors as they go live</div>
+    </div>
+  );
+}
+
 function HistTab({ s, setS, save }) {
   const [open, setOpen] = useState(null);
   const [labOpen, setLabOpen] = useState(null);
@@ -2511,6 +2588,7 @@ function HistTab({ s, setS, save }) {
                     <Btn small tone="jade" onClick={(e) => { e.stopPropagation(); const ns = JSON.parse(JSON.stringify(s)); ns.creatine = { start: isoOf(todayStart()) }; ns.feed.unshift({ d: isoOf(todayStart()), t: "CREATINE STARTED", how: "5 g/day begins inside the sealed window — the water bump files itself under quarantine (Kreider 2017)" }); setS(ns); save(ns); }}>Log creatine start — today</Btn>
                   </div>
                 )}
+                {a.id === "whatif" && <WhatIfConsole s={s} />}
               </div>
             )}
           </Card>

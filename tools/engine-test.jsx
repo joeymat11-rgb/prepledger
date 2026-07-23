@@ -386,7 +386,7 @@ ok(swp(ann2) === null, "no re-announcement — quiet until the next flip");
 // v3.13 — the outside-the-box wing
 const { labAnalytics2: la2, labGroups: lg2, completeSession: csW, genSession: gsW, SEED: SN } = __test;
 const wing = la2(clone(SN));
-ok(wing.length === 13, "thirteen instruments, all constructed without a single crash: " + wing.length);
+ok(wing.length === 15, "fifteen instruments, all constructed without a single crash: " + wing.length);
 ok(wing.every(c => c.tag && c.deep && c.forYou && c.status), "every card carries all three layers plus a status");
 const ids2 = wing.map(c => c.id);
 ok(["adaptmeter","strvelocity","canary","regularity","missarch","weekend","stepeff","refeedroi","sessionshape","compound","ghost","sentinel","letter"].every(x => ids2.includes(x)), "the full roster reports");
@@ -395,7 +395,7 @@ ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id ==
 const gAll = lg2(clone(SN));
 ok(gAll.length === 9 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,behavior,road,models,locked,shelf", "nine shelves, fixed order");
 const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
-ok(tot2 === 36, "all 36 instruments filed exactly once: " + tot2);
+ok(tot2 === 38, "all 38 instruments filed exactly once: " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
@@ -415,5 +415,25 @@ for (let k = 1; k <= 7; k++) { const dd = new Date(2026, 6, 23 + k); annF.sleep.
 const annF2 = __test.sweepLab(annF);
 ok(annF2 && (annF2.labNews || []).length > 0 && annF2.labNews[0].indexOf("MELATONIN") > -1, "a flip queues front-door news for NOW");
 
-console.log(`\nFINAL21: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.14 — prophet + console
+const { labAnalytics2: laW, sweepLab: swp3, migrate: mg14, SEED: SO } = __test;
+const oldV12 = clone(SO); oldV12.v = 12; delete oldV12.forecasts;
+ok(mg14(oldV12).v >= 13 && Array.isArray(mg14(oldV12).forecasts), "v12 phones patch to v13 with the forecast journal");
+const j1 = swp3(clone(SO));
+ok(j1 && j1.forecasts.length === 1 && typeof j1.forecasts[0].pred7 === "number", "the sweep journals one dated 7-day forecast per day");
+ok(swp3(j1) === null, "second sweep same day: no duplicate journal, no writes");
+const wing3 = laW(clone(SO));
+ok(wing3.length === 15, "fifteen instruments in the wing now: " + wing3.length);
+const pr = wing3.find(c => c.id === "prophet");
+ok(pr && pr.status === "ARMED" && pr.deep.indexOf("error bars") > -1, "prophet armed, philosophy attached");
+let fcS = clone(SO);
+const isoP = (off) => { const d = new Date(Date.now() + off * 864e5); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+fcS.forecasts = [{ d: isoP(-14), trend: 165.0, rate: 1.2, pred7: 163.8, sealed: false }, { d: isoP(-7), trend: 163.6, rate: 1.2, pred7: 162.4, sealed: false }, { d: isoP(-8), trend: 163.8, rate: 1.2, pred7: 162.6, sealed: false }, { d: isoP(-1), trend: 162.5, rate: 1.2, pred7: 161.3, sealed: false }];
+const pr2 = laW(fcS).find(c => c.id === "prophet");
+ok(pr2.status === "LIVE" && pr2.forYou.indexOf("±") > -1, "graded forecasts flip the scorecard live with a trust radius: " + pr2.forYou.slice(0, 60));
+ok(wing3.find(c => c.id === "whatif").status === "MODEL", "the console is badged a MODEL");
+
+console.log(`\nFINAL22: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
