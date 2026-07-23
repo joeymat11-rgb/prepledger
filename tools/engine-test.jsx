@@ -720,7 +720,7 @@ for (let k = 14; k >= 1; k--) amb.pulse.push({ d: isoL(Date.now() - k * 864e5), 
 amb.pulse.push({ d: isoL(Date.now()), bpm: 64 });
 const A = ba43(amb, { clean: true, run: 3, need: 3 });
 ok(A && A.tier === "AMBER" && A.lines.length >= 4, "spike yields an AMBER prescription, not a mood: " + A.lines.length + " lines");
-ok(A.lines.some(l => l.indexOf("+1 RIR") > -1 && l.indexOf("SKIP the final 0-RIR") > -1), "session surgery is exact: effort shift + set trim");
+ok(A.lines.some(l => l.indexOf("every 0 becomes a 1") > -1 && l.indexOf("no failure today") > -1), "session surgery is his cap-the-zeros rule");
 ok(A.lines.some(l => l.indexOf("+24 oz") > -1) && A.lines.some(l => l.indexOf("30 early") > -1), "hydration and tonight carry numbers");
 ok(A.lines.some(l => l.indexOf("Exit test") === 0 && l.indexOf("within 3") > -1), "the alarm defines its own exit criterion");
 ok(A.basis.indexOf("64 bpm vs your 56") === 0, "every claim traceable: " + A.basis.slice(0, 40));

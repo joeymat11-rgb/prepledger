@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.43.0";
+const APP_V = "3.43.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1429,8 +1429,10 @@ function bodyAlarm(s, slp) {
   const prevSpike = pr5.base && prevRead && prevRead.d === yISO ? prevRead.bpm - pr5.base : null;
   let sentinelHot = false;
   try { sentinelHot = !labDocket(s).sentinel.quiet; } catch (e) {}
-  if (!todaySpike && !sentinelHot) return null;
-  const red = todaySpike != null && (todaySpike >= 10 || (prevSpike != null && prevSpike >= 7) || (lastNight && lastNight.h < 6));
+
+  const partial = todaySpike == null && pr5.latest && pr5.latest.d === tI && pr5.spike != null && pr5.spike >= 4 && prevSpike != null && prevSpike >= 7;
+  const red = todaySpike != null && (todaySpike >= 10 || (prevSpike != null && prevSpike >= 7 && todaySpike >= 7) || (lastNight && lastNight.h < 6));
+  if (!todaySpike && !partial && !sentinelHot) return null;
   const t = dayType(tI);
   const trainDay = (t === "U" || t === "L") && !s.sessionLog[tI];
   let canaryName = null;
@@ -1441,7 +1443,7 @@ function bodyAlarm(s, slp) {
   if (trainDay) {
     if (red) lines.push("Session: convert to a walk or push it a day — nothing is lost; targets wait, the structural pick keeps its slot, and no gate closes.");
     else {
-      lines.push("Session runs, modified: every set +1 RIR over today's plan, and SKIP the final 0-RIR set on each 4-set lift (laterals go 3 sets).");
+      lines.push("Session runs, one rule changed: normal plan, but every 0 becomes a 1 — no failure today. The early sets carry the growth cheap; the zeros carry the strain, and those are the only thing benched.");
       lines.push("No make-it-official attempts and no new-weight tries today — those need a quiet nervous system to mean anything; the standards wait untouched.");
       lines.push(canaryName ? `Watch ${canaryName} — your measured stress-first lift; a dip there today is the alarm confirming, not you failing.` : "Judge the day by your opener, not your ego — your stress-first lift isn't named yet (canary still arming).");
     }
@@ -1451,9 +1453,9 @@ function bodyAlarm(s, slp) {
   lines.push(`Tonight: lights out ${early} (30 early, wake stays ${(s.sleep.anchor || {}).wake || "06:45"})${s.sleep.caffMg ? " · skip any afternoon caffeine entirely today" : ""}.`);
   lines.push(`Exit test — tomorrow 6:45: pulse within 3 of your ${pr5.base ?? "—"} baseline → every limit above lifts automatically. Still +7? ${red ? "Full rest day, and if a third day, that's a doctor conversation, not a training one." : "Tomorrow escalates to a rest-day recommendation."}`);
   const basis = todaySpike != null
-    ? `${pr5.latest.bpm} bpm vs your ${pr5.base} baseline (+${todaySpike})${prevSpike != null && prevSpike >= 7 ? " · second elevated morning" : ""}${lastNight ? ` · slept ${lastNight.h} h` : ""} · ${(s.pulse || []).length} mornings behind the baseline`
+    ? `${pr5.latest.bpm} bpm vs your ${pr5.base} baseline (+${todaySpike ?? pr5.spike})${prevSpike != null && prevSpike >= 7 ? (todaySpike != null ? " · second elevated morning" : " · recovering from yesterday") : ""}${lastNight ? ` · slept ${lastNight.h} h` : ""}${s.sessionLog[yISO] ? " · trained yesterday (a day-after bump is common — weigh that)" : ""} · ${(s.pulse || []).length} mornings behind the baseline`
     : "multiple daily metrics tripped your own 30-day baselines together — the multivariate signature of incoming illness or unlogged stress";
-  return { tier: red ? "RED" : "AMBER", head: red ? `Body alarm — RED (pulse +${todaySpike ?? "?"}, second signal)` : todaySpike != null ? `Body alarm — dial back (pulse +${todaySpike})` : "Body alarm — dial back (baselines tripped)", lines, basis };
+  return { tier: red ? "RED" : "AMBER", head: red ? `Body alarm — RED (pulse +${todaySpike ?? "?"}, second signal)` : partial ? `Body alarm — recovering (pulse +${pr5.spike}, down from +${prevSpike})` : todaySpike != null ? `Body alarm — dial back (pulse +${todaySpike})` : "Body alarm — dial back (baselines tripped)", lines, basis };
 }
 
 /* quick pulse read — shared by cards and the day protocol */
