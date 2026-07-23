@@ -482,5 +482,19 @@ ok(typeof __test.labSections === "function" && typeof __test.labGroups === "func
 const secs18 = __test.labSections(clone(__test.SEED));
 ok(secs18[0].k === "speaking" && secs18[1].k === "gathering", "speaking leads, gathering follows — the page's whole grammar");
 
-console.log(`\nFINAL26: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.19 — the chart tells the truth beautifully
+const { trendSeries: tsr, migrate: mg19, SEED: SS } = __test;
+const trds = [{ d: "2026-07-01", w: 168 }, { d: "2026-07-02", w: 171, sealed: true }, { d: "2026-07-03", w: 167 }];
+const ser = tsr(trds);
+ok(ser.length === 3 && ser[1].t === ser[0].t, "sealed reads carry the trend flat — quarantine drawn, not just stored");
+ok(Math.abs(ser[2].t - (168 - 0.3)) < 0.01, "clean reads step the curve 30% toward the morning, clamped");
+const full = tsr(clone(SS).reads);
+ok(Math.abs(full[full.length - 1].t - clone(SS).trend) < 1.2, "recomputed curve lands near the live trend: " + full[full.length - 1].t);
+const oldV14 = clone(SS); oldV14.v = 14; oldV14.queue.push({ id: "q_x", rule: "LOCKED — runs unless a true <4.5 h night", t: "X", state: "Y", gate: "Z", kind: "info", done: false });
+const m15 = mg19(oldV14);
+ok(m15.v >= 15 && m15.queue.find(q => q.id === "q_x").rule.indexOf("Gate passed") === 0, "confusing LOCKED wording patched away on phones");
+
+console.log(`\nFINAL27: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

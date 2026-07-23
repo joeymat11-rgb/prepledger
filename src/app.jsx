@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.18.0";
+const APP_V = "3.19.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,7 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 14;
+  SEED.v = 15;
   SEED.sleep.anchor = { wake: "06:45", inBed: 8.25, asleepTarget: 8 };
   SEED.forecasts = [];
   SEED.labSeen = {};
@@ -1351,6 +1351,11 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV15(s) {
+  (s.queue || []).forEach((q) => { if (q.rule && q.rule.indexOf("LOCKED — runs unless") === 0) q.rule = q.rule.replace("LOCKED — runs unless", "Gate passed — runs unless"); });
+  s.v = 15;
+  return s;
+}
 function patchV14(s) { s.sleep.anchor = s.sleep.anchor || { wake: "06:45", inBed: 8.25 }; if (!s.sleep.anchor.asleepTarget) s.sleep.anchor.asleepTarget = 8; s.v = 14; return s; }
 function patchV13(s) { s.forecasts = s.forecasts || []; s.v = 13; return s; }
 function patchV12(s) { s.labSeen = s.labSeen || {}; s.v = 12; return s; }
@@ -1362,8 +1367,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 14) return old;
-  if (old && old.v >= 3 && old.v <= 13) return patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))));
+  if (old && old.v === 15) return old;
+  if (old && old.v >= 3 && old.v <= 14) return patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -1389,7 +1394,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))));
+  return patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))));
 }
 
 const GLOSSARY = {
@@ -1412,7 +1417,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1554,25 +1559,35 @@ const Bar = ({ pct, c = T.jade, h = 5 }) => (
   </div>
 );
 
+function trendSeries(reads) {
+  let t = null;
+  return reads.map((r) => {
+    if (t === null) t = r.w;
+    else if (!r.sealed) t = +(t + Math.max(-1.5, Math.min(1.5, r.w - t)) * 0.3).toFixed(2);
+    return { d: r.d, t };
+  });
+}
 function Spark({ reads, trend }) {
   const W = 300, Hh = 84, pad = 8;
-  const clean = reads.filter((r) => !r.sealed);
-  const all = reads;
+  const all = reads.slice(-45);
   if (!all.length) return null;
+  const ts = trendSeries(reads).slice(-45);
   const t0 = mk(all[0].d).getTime(), t1 = Math.max(mk(all[all.length - 1].d).getTime(), todayStart().getTime());
-  const ws = all.map((r) => r.w).concat([trend]);
-  const lo = Math.min(...ws) - 1, hi = Math.max(...ws) + 1;
+  const ws = all.map((r) => r.w).concat(ts.map((p) => p.t)).concat([trend]);
+  const lo = Math.min(...ws) - 0.8, hi = Math.max(...ws) + 0.8;
   const x = (d) => pad + ((mk(d).getTime() - t0) / Math.max(1, t1 - t0)) * (W - 2 * pad);
   const y = (w) => pad + (1 - (w - lo) / (hi - lo)) * (Hh - 2 * pad);
-  const path = clean.map((r, i) => `${i ? "L" : "M"}${x(r.d).toFixed(1)},${y(r.w).toFixed(1)}`).join(" ");
+  const tPath = ts.map((pnt, i) => `${i ? "L" : "M"}${x(pnt.d).toFixed(1)},${y(pnt.t).toFixed(1)}`).join(" ");
+  const yEnd = y(ts[ts.length - 1].t);
+  const labelY = Math.max(11, Math.min(Hh - 4, yEnd < 20 ? yEnd + 13 : yEnd - 7));
   return (
     <svg width="100%" viewBox={`0 0 ${W} ${Hh}`} style={{ display: "block" }}>
-      <line x1={pad} x2={W - pad} y1={y(trend)} y2={y(trend)} stroke={T.jade} strokeDasharray="3 4" strokeWidth="1" opacity="0.7" />
-      <path d={path} fill="none" stroke={T.steel} strokeWidth="1.4" />
       {all.map((r, i) => (
-        <circle key={i} cx={x(r.d)} cy={y(r.w)} r="3.2" fill={r.sealed ? "none" : T.chalk} stroke={r.sealed ? T.dim : "none"} strokeWidth="1.2" />
+        <circle key={i} cx={x(r.d)} cy={y(r.w)} r={r.sealed ? 2 : 1.7} fill={r.sealed ? "none" : T.steel} stroke={r.sealed ? T.dim : "none"} strokeWidth="1" opacity={r.sealed ? 0.8 : 0.55} />
       ))}
-      <text x={W - pad} y={y(trend) - 4} textAnchor="end" fontFamily={mono} fontSize="9" fill={T.jade}>trend {trend}</text>
+      <path d={tPath} fill="none" stroke={T.jade} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={x(ts[ts.length - 1].d)} cy={yEnd} r="2.6" fill={T.jade} />
+      <text x={W - pad} y={labelY} textAnchor="end" fontFamily={mono} fontSize="9" fill={T.jade}>trend {trend}</text>
     </svg>
   );
 }
@@ -1669,7 +1684,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <div>
           <H size={21}>Prep Ledger</H>
-          <Eyebrow>WK {wd.wk} · DAY {wd.day} · {s.phase} · EST BF {bf.pct}%</Eyebrow>
+          <Eyebrow>WK {wd.wk} · D{wd.day} · {s.phase} · BF {bf.pct}%</Eyebrow>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           
@@ -1709,10 +1724,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       )}
 
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {cleanIn > 0 && <Chip c={T.chalk}>Scale sealed · clean read {fmtShort(SEAL_UNTIL)} · {cleanIn}d</Chip>}
-        {null}
-        <Chip c={slp.clean ? T.jade : T.brass}>Sleep {slp.clean ? "CLEAN" : `reset ${slp.run}/${slp.need}`}</Chip>
         {ev && <Chip c={T.chalk}>{ev.t} · {fmtShort(ev.d)}</Chip>}
       </div>
 
@@ -1810,7 +1823,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                   <button onClick={() => { const ns = undoRead(s, tISO); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, background: "none", border: "none" }}>undo</button>
                 </div>
               )}
-              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 10 }}>evening numbers log below · sessions log in TRAIN · every other tab is reading, not homework</div>
+              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 10 }}>evening numbers below · sessions in TRAIN · everything else is reading</div>
             </Card>
             {(waistDue || photoDue) && (
               <Card accent={T.brass}>
