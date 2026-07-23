@@ -710,57 +710,59 @@ function sessionDebrief(s, iso) {
   const dates = Object.keys(s.sessionLog).sort();
   const wasClean = cleanAtDate(s, iso);
   const night = s.sleep.nights.find((n) => n.d === isoOf(new Date(mk(iso).getTime() - DAY)));
-  const ts2 = trendSeries(s.reads);
-  const trendAt = (ts2.filter((x) => x.d <= iso).pop() || {}).t;
+  let sessLoad = 0, prevSessLoad = 0;
   const lifts = (sess.entries || []).map((e) => {
     const ex = exById(s, e.id);
     const name = ex ? ex.n : e.id;
-    const tot = (e.reps || []).reduce((a, b) => a + b, 0);
+    const reps = e.reps || [];
+    const tot = reps.reduce((a, b) => a + b, 0);
     const lines = [];
     try {
-      const priorEntries = dates.filter((d) => d < iso).map((d) => (s.sessionLog[d].entries || []).find((x) => x.id === e.id)).filter(Boolean);
-      const meta = ex && ex.lastMeta && ex.lastMeta.d < iso ? { reps: ex.lastMeta.reps, w: ex.lastMeta.w, rir: null } : null;
-      const hist = meta ? [meta, ...priorEntries] : priorEntries;
-      const prev = hist[hist.length - 1] || null;
-      const pTot = prev ? (prev.reps || []).reduce((a, b) => a + b, 0) : null;
-      const sameW = !prev || e.w == null || prev.w == null || e.w === prev.w;
-      if (pTot != null) {
-        const dR = tot - pTot;
-        lines.push(`You got ${tot} reps — ${dR > 0 ? dR + " more than last time" : dR < 0 ? Math.abs(dR) + " fewer than last time" : "matched last time exactly"}${!sameW && e.w > prev.w ? `, on heavier weight (${e.w} vs ${prev.w})` : ""}.`);
+      const prevD = dates.filter((d) => d < iso && (s.sessionLog[d].entries || []).some((x) => x.id === e.id)).pop();
+      const prev = prevD ? (s.sessionLog[prevD].entries || []).find((x) => x.id === e.id) : null;
+      const meta = ex && ex.lastMeta && ex.lastMeta.d < iso ? ex.lastMeta : null;
+      const baseReps = prev ? prev.reps || [] : meta ? meta.reps : null;
+      const baseTot = baseReps ? baseReps.reduce((a, b) => a + b, 0) : null;
+      const baseW = prev && prev.w != null ? prev.w : meta ? meta.w : null;
+      if (baseTot != null) {
+        const dR = tot - baseTot;
+        const heavier = e.w != null && baseW != null && e.w > baseW;
+        lines.push(`You got ${tot} reps — ${dR > 0 ? dR + " more than last time" : dR < 0 ? Math.abs(dR) + " fewer than last time" : "same as last time"}${heavier ? ", on heavier weight" : ""}.`);
+        lines.push(`Set by set: ` + reps.map((r, i) => `${r}${baseReps[i] == null ? " (new set)" : r > baseReps[i] ? " (+" + (r - baseReps[i]) + ")" : r < baseReps[i] ? " (−" + (baseReps[i] - r) + ")" : " (=)"}`).join(" · "));
       } else lines.push(`You got ${tot} reps — first time this lift is on record.`);
       if (e.w != null) {
-        const vl = e.w * tot;
-        const pvl = prev && prev.w != null && pTot != null ? prev.w * pTot : null;
-        lines.push(`Total work: ${vl.toLocaleString()} lb moved${pvl ? ` (${vl >= pvl ? "+" : ""}${Math.round(((vl - pvl) / pvl) * 100)}% vs last time)` : ""}.`);
+        const load = e.w * tot;
+        sessLoad += load;
+        const pLoad = baseW != null && baseTot != null ? baseW * baseTot : null;
+        if (pLoad) { prevSessLoad += pLoad; lines.push(`Total work: ${load.toLocaleString()} lb moved (${load >= pLoad ? "+" : ""}${Math.round(((load - pLoad) / pLoad) * 100)}% vs last time).`); }
+        else lines.push(`Total work: ${load.toLocaleString()} lb moved.`);
+        const allTots = dates.filter((d) => d <= iso).map((d) => { const x = (s.sessionLog[d].entries || []).find((y) => y.id === e.id); return x && x.w === e.w ? (x.reps || []).reduce((a, b) => a + b, 0) : null; }).filter((x) => x != null);
+        if (allTots.length >= 2 && tot >= Math.max(...allTots)) lines.push(`Best you\u2019ve ever done at this weight${wasClean ? "." : " — provisional until a clean-sleep repeat."}`);
       }
-      const sameLoad = hist.filter((h) => h.w == null || e.w == null || h.w === e.w).map((h) => (h.reps || []).reduce((a, b) => a + b, 0));
-      if (sameLoad.length >= 1 && tot >= Math.max(...sameLoad, 0)) lines.push(`Best you've ever done at this weight${wasClean ? "." : " — provisional until a clean-day repeat."}`);
-      const bestSet = Math.max(...(e.reps || [0]));
-      const bestEver = Math.max(...hist.flatMap((h) => (h.w == null || e.w == null || h.w === e.w ? h.reps || [] : [])), 0);
-      if (bestSet > bestEver && hist.length) lines.push(`Set of ${bestSet} — your biggest single set at this weight.`);
-      if ((e.reps || []).length >= 2) {
-        const fade = e.reps[0] - e.reps[e.reps.length - 1];
-        lines.push(`Sets went ${e.reps.join(" → ")}: ${fade <= 1 ? "barely faded — you had gas left." : fade >= 3 ? "a steep drop — the last sets cost full price." : "a normal fade — well paced."}`);
+      if (reps.length >= 2) {
+        const fade = reps[0] - reps[reps.length - 1];
+        const bigSet = Math.max(...reps);
+        lines.push(`Sets went ${reps.join(" \u2192 ")}: ${fade <= 1 ? "you barely faded — strength held to the end" : fade >= 3 ? "a steep drop — those last sets cost full price" : "a normal fade"}. Set of ${bigSet} — biggest single set.`);
       }
       if (e.rir != null) {
-        const trail = [...priorEntries.map((h) => h.rir).filter((r) => r != null), e.rir].slice(-3);
-        lines.push(`First set felt like ${e.rir} rep${e.rir === 1 ? "" : "s"} in the tank — ${e.rir === 0 ? "a grind: real work, but grinds never earn." : e.rir === 1 ? "honest, right on the standard." : "reserve banked — room to push next time."}${trail.length >= 2 ? ` Recent openers: ${trail.join(" → ")}.` : ""}`);
+        const trail = dates.filter((d) => d <= iso).map((d) => { const x = (s.sessionLog[d].entries || []).find((y) => y.id === e.id); return x && x.rir != null ? x.rir : null; }).filter((x) => x != null).slice(-3);
+        lines.push(`First set felt like ${e.rir} rep${e.rir === 1 ? "" : "s"} in the tank — ${e.rir === 0 ? "that\u2019s a grind; it can\u2019t earn a weight increase" : e.rir === 1 ? "honest effort, exactly the standard" : "reserve banked, room above"}.${trail.length > 1 ? ` Recent openers: ${trail.join(" \u2192 ")}.` : ""}`);
       }
-      if (trendAt != null && pTot != null && tot > pTot) lines.push(`You weighed ~${trendAt} doing it — more reps in a lighter body is the whole recomp, live.`);
-    } catch (err) { lines.push(`${tot} reps total.`); }
+      const laterPrint = dates.some((d) => d > iso && (s.sessionLog[d].entries || []).some((x) => x.id === e.id));
+      if (!laterPrint && ex) lines.push(`Because of today, next time asks for: ${targetsFor(ex).join(", ")} at ${ex.w}.`);
+    } catch (err) { if (!lines.length) lines.push(`${tot} total reps.`); }
     return { n: name, lines };
   });
   const totalReps = (sess.entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0);
-  const totalLoad = (sess.entries || []).reduce((a, e) => a + (e.w || 0) * (e.reps || []).reduce((x, y) => x + y, 0), 0);
   const sameType = dates.filter((d) => d < iso && dayType(d) === dayType(iso));
   const typeTots = sameType.map((d) => (s.sessionLog[d].entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0)).sort((a, b) => a - b);
   const med = typeTots.length ? typeTots[Math.floor(typeTots.length / 2)] : null;
   const summary = [
-    `${(sess.entries || []).length} lifts · ${totalReps} reps · ${totalLoad.toLocaleString()} lb of total work${med ? ` — a typical ${dayType(iso) === "U" ? "upper" : "lower"} day for you runs ~${med} reps` : ""}.`,
-    wasClean ? "Clean-sleep day: everything here banks for real." : `Short-sleep day${night ? ` (${night.h} h)` : ""}: prints are provisional — context, never regression.`,
+    `${(sess.entries || []).length} lifts \u00b7 ${totalReps} total reps${med ? ` (your typical ${dayType(iso) === "U" ? "upper" : "lower"} day: ~${med})` : ""}${sessLoad ? ` \u00b7 ${sessLoad.toLocaleString()} lb moved${prevSessLoad ? ` (${sessLoad >= prevSessLoad ? "+" : ""}${Math.round(((sessLoad - prevSessLoad) / prevSessLoad) * 100)}% vs comparable lifts last time)` : ""}` : ""}`,
+    wasClean ? `Clean-sleep day: everything here banks for real.${night ? ` You slept ${night.h} h into it.` : ""}` : `Short-sleep day${night ? ` (${night.h} h)` : ""}: records log as provisional \u2014 the reps still count in every trend, they just wait for a clean repeat before standards move.`,
   ];
-  if (sess.niggles && sess.niggles.length) summary.push(`Watch list: ${sess.niggles.join(" · ")} — the governor tracks these across two weeks.`);
-  if (sess.note) summary.push(`Your note that day: "${sess.note}"`);
+  if (sess.niggles && sess.niggles.length) summary.push(`Watch list: ${sess.niggles.join(" \u00b7 ")} \u2014 the governor tracks these across the next two weeks.`);
+  if (sess.note) summary.push(`Your note that day: \u201c${sess.note}\u201d`);
   return { lifts, summary };
 }
 
@@ -2203,6 +2205,9 @@ function LogTab({ s, setS, save, slp }) {
           <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>
             ✓ {fmtShort(dateSel)} · RECEIPT
           </button>
+        )}
+        {logged && !options.includes(dateSel) && (
+          <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>✓ {fmtShort(dateSel)} · RECEIPT</button>
         )}
         {options.map((d) => (
           <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setNote(""); setNig([]); }} style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : s.sessionLog[d] ? T.jade : T.steel }}>
