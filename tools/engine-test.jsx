@@ -755,5 +755,16 @@ const F = ba44(fresh, { clean: false, run: 0, need: 3 });
 ok(F && F.head.indexOf("off-pattern") > -1 && F.basis.indexOf("No pulse data involved") > -1 && F.basis.indexOf("slept 4.6 h") > -1, "fresh pattern trip: honest trigger, exact numbers, zero pulse talk");
 ok(F.lines.every(l => l.indexOf("resting pulse") === -1 || l.indexOf("elevated") === -1) && F.lines.some(l => l.indexOf("Exit test") === 0 && l.indexOf("bands") > -1), "prescription language matches the trigger");
 
-console.log(`\nFINAL43: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.45 — tier 0: the armor
+const { labGroups: lg45, SEED: TI } = __test;
+const sMemo = clone(TI);
+const gm1 = lg45(sMemo), gm2 = lg45(sMemo);
+ok(Array.isArray(gm1) && gm1.length === gm2.length, "analytics stable across repeated calls on one state");
+const oldSnap = clone(TI); oldSnap.v = 12;
+const restored = __test.migrate(JSON.parse(JSON.stringify(oldSnap)));
+ok(restored.v >= 21 && Array.isArray(restored.trials) && Array.isArray(restored.temp), "an old snapshot restores through the full patch chain to current schema");
+
+console.log(`\nFINAL44: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

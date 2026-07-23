@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { HISTORY } from "./history.js";
 
 /* ============================================================
@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.44.2";
+const APP_V = "3.45.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1455,7 +1455,7 @@ function bodyAlarm(s, slp) {
   const t = dayType(tI);
   const trainDay = (t === "U" || t === "L") && !s.sessionLog[tI];
   let canaryName = null;
-  try { const can = labGroups(s).flatMap((g) => g.cards).find((c) => c.id === "canary"); if (can && can.status === "LIVE") { const m = (can.forYou || "").match(/Canary: ([^(]+)\(/); if (m) canaryName = m[1].trim(); } } catch (e) {}
+  try { const can = labGroupsM(s).flatMap((g) => g.cards).find((c) => c.id === "canary"); if (can && can.status === "LIVE") { const m = (can.forYou || "").match(/Canary: ([^(]+)\(/); if (m) canaryName = m[1].trim(); } } catch (e) {}
   const lo = lightsOutT(s);
   const early = (() => { let m = lo.mins - 30; if (m < 0) m += 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; })();
   const lines = [];
@@ -1497,7 +1497,7 @@ function tempRead(s) {
 function dossierData(s) {
   const firstLine = (t) => { const x = Array.isArray(t) ? t[0] : t || ""; const cut = x.indexOf(". "); return (cut > 25 ? x.slice(0, cut + 1) : x).slice(0, 165); };
   const pg = prophetGrades(s);
-  const groups = labGroups(s);
+  const groups = labGroupsM(s);
   const bySh = (ids) => groups.filter((g) => ids.includes(g.id)).flatMap((g) => g.cards).filter((c) => (c.status === "LIVE" || c.status === "TRACKING") && c.id !== "dossier" && c.id !== "trialsdesk");
   const secDef = [["THE BODY", ["scale", "engine"]], ["TRAINING", ["training"]], ["SLEEP & PULSE", ["sleep", "pulse"]], ["BEHAVIOR", ["behavior"]], ["MODELS & FORECASTS", ["road", "models"]]];
   const sections = secDef.map(([h, ids]) => ({ h, items: bySh(ids).map((c) => ({ t: c.t.split(" — ")[0], line: plainify(firstLine(c.forYou || c.tag)) })) })).filter((x) => x.items.length);
@@ -2016,8 +2016,90 @@ async function ghSync(state) {
   const body = { message: "ledger auto-sync " + isoOf(todayStart()) + " [skip ci]", content: btoa(unescape(encodeURIComponent(JSON.stringify(state)))), ...(sha ? { sha } : {}) };
   try {
     const put = await fetch(url, { method: "PUT", headers: { ...hdr, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (put.ok) { try { snapshotMaybe(state, tok); } catch (e) {} }
     return put.ok ? { ok: true } : { ok: false, msg: "HTTP " + put.status + (put.status === 401 ? " — token expired?" : "") };
   } catch (e) { return { ok: false, msg: "network" }; }
+}
+class TabGuard extends React.Component {
+  constructor(p) { super(p); this.state = { err: null }; }
+  static getDerivedStateFromError(err) { return { err }; }
+  render() {
+    if (!this.state.err) return this.props.children;
+    const report = `Prep Ledger ${APP_V} · tab ${this.props.name} · ${new Date().toISOString()}\n${this.state.err.message}\n${(this.state.err.stack || "").slice(0, 600)}`;
+    return (
+      <Card accent={T.brass}>
+        <Eyebrow c={T.brass}>THIS TAB HIT AN ERROR</Eyebrow>
+        <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 6 }}>Your data is safe — this is a display error, and the other tabs still work.</div>
+        <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>{this.state.err.message}</div>
+        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+          <Btn small tone="jade" onClick={() => this.setState({ err: null })}>Try again</Btn>
+          <Btn small onClick={() => { try { navigator.clipboard.writeText(report); } catch (e) {} }}>Copy report</Btn>
+        </div>
+      </Card>
+    );
+  }
+}
+
+/* analytics memo — the 49 instruments compute once per state object, not once per render */
+const _labMemo = new WeakMap();
+function labGroupsM(s) { if (_labMemo.has(s)) return _labMemo.get(s); const g = labGroups(s); _labMemo.set(s, g); return g; }
+const _docketMemo = new WeakMap();
+function labDocketM(s) { if (_docketMemo.has(s)) return _docketMemo.get(s); const d = labDocket(s); _docketMemo.set(s, d); return d; }
+
+/* dated snapshots — a weekly vault beside the live state */
+async function snapshotMaybe(state, tok) {
+  const last = +(localStorage.getItem("prep-ledger-lastsnap") || 0);
+  if (Date.now() - last < 6 * 86400 * 1000) return;
+  localStorage.setItem("prep-ledger-lastsnap", String(Date.now()));
+  const d = isoOf(todayStart());
+  const url2 = `https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/snapshots/state-${d}.json`;
+  const hdr2 = { Authorization: "Bearer " + tok, Accept: "application/vnd.github+json", "Content-Type": "application/json" };
+  try { await fetch(url2, { method: "PUT", headers: hdr2, body: JSON.stringify({ message: `weekly snapshot ${d} [skip ci]`, content: btoa(unescape(encodeURIComponent(JSON.stringify(state)))) }) }); } catch (e) {}
+}
+async function listSnapshots() {
+  const tok = localStorage.getItem(TOKEN_KEY);
+  if (!tok) return { ok: false, msg: "no token saved" };
+  try {
+    const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/snapshots", { headers: { Authorization: "Bearer " + tok } });
+    if (!r.ok) return { ok: false, msg: r.status === 404 ? "no snapshots yet — the first files this Sunday" : "HTTP " + r.status };
+    const arr = await r.json();
+    return { ok: true, items: arr.filter((x) => x.name.endsWith(".json")).map((x) => ({ name: x.name, path: x.path })).reverse() };
+  } catch (e) { return { ok: false, msg: "network" }; }
+}
+async function fetchStateFile(path) {
+  const tok = localStorage.getItem(TOKEN_KEY);
+  const r = await fetch(`https://api.github.com/repos/joeymat11-rgb/prepledger/contents/${path}`, { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" } });
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return JSON.parse(await r.text());
+}
+
+function BackupsBlock() {
+  const [items, setItems] = useState(null);
+  const [msg, setMsg] = useState(null);
+  const restore = async (path, label) => {
+    if (!window.confirm(`Restore "${label}"? Current state will be replaced (a pre-restore copy is saved locally first).`)) return;
+    try {
+      try { localStorage.setItem("prep-ledger-prerestore", localStorage.getItem(KEY) || ""); } catch (e) {}
+      const st = migrate(await fetchStateFile(path));
+      localStorage.setItem(KEY, JSON.stringify(st));
+      setMsg("restored — reloading…");
+      setTimeout(() => window.location.reload(), 600);
+    } catch (e) { setMsg("restore failed: " + e.message); }
+  };
+  return (
+    <div style={{ marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid ${T.line}` }}>
+      <Eyebrow c={T.jade}>BACKUPS · WEEKLY VAULT + ONE-TAP RESTORE</Eyebrow>
+      <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 5, lineHeight: 1.5 }}>A dated snapshot files itself beside the live state every ~7 days. A lost or wiped phone costs at most a week — usually nothing, since the live copy syncs too.</div>
+      <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+        <Btn small onClick={async () => { setMsg(null); const r = await listSnapshots(); if (r.ok) setItems(r.items); else setMsg(r.msg); }}>List backups</Btn>
+        <Btn small onClick={() => restore("ledger/state.json", "live synced state")}>Restore live copy</Btn>
+      </div>
+      {msg && <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass, marginTop: 6 }}>{msg}</div>}
+      {(items || []).map((it) => (
+        <div key={it.path} onClick={() => restore(it.path, it.name)} style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk, marginTop: 6, cursor: "pointer" }}>↺ {it.name.replace("state-", "").replace(".json", "")}</div>
+      ))}
+    </div>
+  );
 }
 
 /* ---------- storage ---------- */
@@ -3551,7 +3633,7 @@ function HistTab({ s, setS, save }) {
 
       <Section title="The Lab" meta={(() => { const g2 = labGroups(s); return `${g2.reduce((a3, g3) => a3 + g3.cards.length, 0)} instruments · ${g2.reduce((a3, g3) => a3 + g3.live, 0)} live`; })()} c={T.jade}>
         {(() => {
-        const groups = labGroups(s);
+        const groups = labGroupsM(s);
         const tot = groups.reduce((a, g) => a + g.cards.length, 0);
         const totLive = groups.reduce((a, g) => a + g.live, 0);
         const totArmed = groups.reduce((a, g) => a + g.armed, 0);
@@ -3841,6 +3923,7 @@ function Rules({ onClose, onReset, onExport, onImport, sync, onSync }) {
           </div>
         </div>
         <div style={{ marginTop: 22, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
+          <BackupsBlock />
           <Eyebrow c={T.brass}>SELF-FILING · SUNDAY AUTO-SYNC TO YOUR PRIVATE REPO</Eyebrow>
           {hasTok ? (
             <div style={{ marginTop: 8 }}>
@@ -4002,12 +4085,12 @@ export default function PrepLedger() {
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "env(safe-area-inset-top)", background: T.ink, zIndex: 55 }} />
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(14px + env(safe-area-inset-top)) 14px 132px" }}>
-        {tab === "NOW" && <NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} openCoach={() => setCoach(true)} />}
-        {tab === "TRAIN" && <LogTab s={s} setS={setS} save={save} slp={slp} />}
-        {tab === "QUEUE" && <QueueTab s={s} slp={slp} />}
-        {tab === "BODY" && <BodyTab s={s} setS={setS} save={save} />}
-        {tab === "SLEEP" && <SleepTab s={s} setS={setS} save={save} slp={slp} />}
-        {tab === "HIST" && <HistTab s={s} setS={setS} save={save} />}
+        {tab === "NOW" && <TabGuard name="NOW"><NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}
+        {tab === "TRAIN" && <TabGuard name="TRAIN"><LogTab s={s} setS={setS} save={save} slp={slp} /></TabGuard>}
+        {tab === "QUEUE" && <TabGuard name="QUEUE"><QueueTab s={s} slp={slp} /></TabGuard>}
+        {tab === "BODY" && <TabGuard name="BODY"><BodyTab s={s} setS={setS} save={save} /></TabGuard>}
+        {tab === "SLEEP" && <TabGuard name="SLEEP"><SleepTab s={s} setS={setS} save={save} slp={slp} /></TabGuard>}
+        {tab === "HIST" && <TabGuard name="HIST"><HistTab s={s} setS={setS} save={save} /></TabGuard>}
       </div>
 
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(14,17,21,0.96)", borderTop: `1px solid ${T.line}`, backdropFilter: "blur(8px)" }}>
