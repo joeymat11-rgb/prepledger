@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.24.1";
+const APP_V = "3.25.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,7 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 16;
+  SEED.v = 17;
   SEED.sleep.anchor = { wake: "06:45", inBed: 8.25, asleepTarget: 8 };
   SEED.forecasts = [];
   SEED.labSeen = {};
@@ -711,7 +711,9 @@ function rirPlan(s, ex, slp) {
     return lastSet ? 0 : i === 0 ? 2 : 1;
   });
   const why = [];
-  if (!slp.clean) { plan = plan.map((r) => r + 1); why.push("debt day +1 — nothing banks today anyway"); }
+  const overridden = s.rirOverride === isoOf(todayStart());
+  if (!slp.clean && !overridden) { plan = plan.map((r) => r + 1); why.push("debt day +1 — nothing banks today anyway"); }
+  if (!slp.clean && overridden) why.push("debt buffer overridden — athlete call, today only");
   if (ex.holdFlag) { plan = plan.map((r) => Math.max(r, 2)); why.push("governor hold — stay two clean reps back"); }
   const opens = Object.values(s.sessionLog).flatMap((sl) => (sl.entries || []).filter((e) => e.id === ex.id && e.rir != null).map((e) => e.rir)).sort((a, b) => a - b);
   if (opens.length >= 3 && opens[Math.floor(opens.length / 2)] <= 0) { plan = plan.map((r, i) => (i === 0 ? r + 1 : r)); why.push("your openers run hot on this lift — bank one early"); }
@@ -1430,6 +1432,11 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV17(s) {
+  if (s.rirOverride === undefined) s.rirOverride = "2026-07-23";
+  s.v = 17;
+  return s;
+}
 function patchV16(s) {
   const lat = s.exercises.find((x) => x.id === "lateral");
   if (lat && lat.sets < 4) {
@@ -1455,8 +1462,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 16) return old;
-  if (old && old.v >= 3 && old.v <= 15) return patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))));
+  if (old && old.v === 17) return old;
+  if (old && old.v >= 3 && old.v <= 16) return patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -1482,7 +1489,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))));
+  return patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))))));
 }
 
 const GLOSSARY = {
@@ -2189,8 +2196,11 @@ function LogTab({ s, setS, save, slp }) {
               </div>
             ))}
           </div>
-          {(() => { const rp = rirPlan(s, ex, slp); return (
-            <div style={{ fontFamily: mono, fontSize: 9, color: T.steel, marginTop: 9 }}>suggested <Term k="rirplan" c={T.steel}>RIR</Term> · {rp.plan.join(" · ")}{rp.why.length ? <span style={{ color: T.brass }}> — {rp.why[0]}</span> : null}</div>
+          {(() => { const rp = rirPlan(s, ex, slp); const ov = s.rirOverride === tISO; return (
+            <div style={{ fontFamily: mono, fontSize: 9, color: T.steel, marginTop: 9 }}>suggested <Term k="rirplan" c={T.steel}>RIR</Term> · {rp.plan.join(" · ")}{rp.why.length ? (
+              <span onClick={() => { if (slp.clean) return; const ns = JSON.parse(JSON.stringify(s)); ns.rirOverride = ov ? null : tISO; if (!ov) ns.feed.unshift({ d: tISO, t: "RIR DEBT BUFFER — OVERRIDDEN", how: "athlete call, this session only · banking rules unchanged: today still logs provisional" }); setS(ns); save(ns); }}
+                style={{ color: ov ? T.dim : T.brass, cursor: "pointer" }}> — {rp.why[0]}{!slp.clean ? " · tap to " + (ov ? "restore" : "override") : ""}</span>
+            ) : null}</div>
           ); })()}
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8 }}>
             <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em" }}>OPENER <Term k="rir" c={T.dim}>RIR</Term></span>

@@ -541,5 +541,18 @@ const oldV15 = clone(SV); oldV15.v = 15; oldV15.exercises.find(e => e.id === "la
 const m16 = mg24(oldV15);
 ok(m16.v >= 16 && m16.exercises.find(e => e.id === "lateral").sets === 4 && m16.feed[0].t.indexOf("LATERAL 4TH SET") === 0, "phones get the 4th set with the honesty note filed");
 
-console.log(`\nFINAL30: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.25 — the athlete outranks the buffer, dated and expiring
+const { rirPlan: rp25, migrate: mg25, SEED: SW } = __test;
+const dSlp = { clean: false, run: 0, need: 3 };
+let ovS = clone(SW); ovS.rirOverride = isoL(Date.now());
+const latO = ovS.exercises.find(e => e.id === "lateral");
+ok(rp25(ovS, latO, dSlp).plan.join(",") === "2,1,1,0" && rp25(ovS, latO, dSlp).why[0].indexOf("overridden") > -1, "override on debt: base plan runs, the call is named");
+let exS = clone(SW); exS.rirOverride = "2026-01-01";
+ok(rp25(exS, exS.exercises.find(e => e.id === "lateral"), dSlp).plan[0] === 3, "stale override expires by date — the buffer returns on its own");
+const oldV16 = clone(SW); oldV16.v = 16; delete oldV16.rirOverride;
+ok(mg25(oldV16).v >= 17 && mg25(oldV16).rirOverride === "2026-07-23", "his stated decision pre-applied on phones");
+
+console.log(`\nFINAL31: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
