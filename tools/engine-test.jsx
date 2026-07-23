@@ -534,7 +534,7 @@ const cleanSlp = { clean: true, run: 3, need: 3 }, debtSlp = { clean: false, run
 ok(rp24(clone(SV), latX, cleanSlp).plan.join(",") === "2,1,1,0", "isolation base: 2·1·1·0, hardest set last");
 ok(rp24(clone(SV), latX, debtSlp).plan.join(",") === "3,2,2,1" && rp24(clone(SV), latX, debtSlp).why[0].indexOf("debt") > -1, "debt day banks one everywhere, and says why");
 const rowsEx = clone(SV).exercises.find(e => e.id === "rows");
-ok(rp24(clone(SV), rowsEx, cleanSlp).plan.join(",") === "3,1", "compound base holds more back up front");
+ok(rp24(clone(SV), rowsEx, cleanSlp).plan.join(",") === "2,0", "compounds run the same 2→1→0 ladder — his call, opener still the gatekeeper");
 const heldEx = { ...latX, holdFlag: true };
 ok(rp24(clone(SV), heldEx, cleanSlp).plan.every(r => r >= 2), "governor hold floors every set at 2");
 const oldV15 = clone(SV); oldV15.v = 15; oldV15.exercises.find(e => e.id === "lateral").sets = 3;

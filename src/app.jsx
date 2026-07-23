@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.24.0";
+const APP_V = "3.24.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -705,12 +705,10 @@ function caffAt(mg, doseHour, atHour) {
 
 /* per-set RIR prescription — literature base, tuned by his own logs */
 function rirPlan(s, ex, slp) {
-  const iso = !["back", "chest", "quads", "hams"].includes(ex.mg);
   const n = ex.sets;
   let plan = Array.from({ length: n }, (_, i) => {
     const lastSet = i === n - 1;
-    if (iso) return lastSet ? 0 : i === 0 ? 2 : 1;
-    return lastSet ? 1 : i === 0 ? 3 : 2;
+    return lastSet ? 0 : i === 0 ? 2 : 1;
   });
   const why = [];
   if (!slp.clean) { plan = plan.map((r) => r + 1); why.push("debt day +1 — nothing banks today anyway"); }
@@ -1502,7 +1500,7 @@ const GLOSSARY = {
   parked: ["PARKED", "Deliberately shelved with a written trigger (a date, a phase, a coach call). Parked isn't forgotten; it's staged."],
   structural: ["Structural change", "A load jump, new set, or machine change. One per session, auto-picked from the queue — so every response stays attributable. Rep progression is unlimited."],
   whoosh: ["Whoosh", "Event water leaving days after the event — a spike that drains to a NEW low. Yours clears in 1–3 days; the LAB predicts the window in advance."],
-  rirplan: ["Suggested RIR — where it comes from", "The literature (Refalo 2023–24 meta-analyses; Helms-style RIR prescription) says 0–5 reps-in-reserve all build muscle, with a slight edge nearer failure — so the base plan runs compounds 3→2→1 and isolations 2→1→0, hardest set last. Then YOUR data adjusts it: debt days add +1 everywhere (nothing banks anyway), a governor hold floors everything at 2, and lifts where your logged openers run hot get one extra in the bank up front. It recomputes every session."],
+  rirplan: ["Suggested RIR — where it comes from", "The literature (Refalo 2023–24 meta-analyses; Helms-style RIR prescription) says 0–5 reps-in-reserve all build muscle, with a slight edge nearer failure — so everything runs 2→1→0, hardest set last; your machine-based setup makes true failure safe, and the opener stays the honest gatekeeper (earns judge the opener, so the final 0 can never corrupt the signal). Then YOUR data adjusts it: debt days add +1 everywhere (nothing banks anyway), a governor hold floors everything at 2, and lifts where your logged openers run hot get one extra in the bank up front. It recomputes every session."],
   driftoff: ["Estimating drift-off", "Morning-after guessing is the clinical standard (it's how sleep diaries work). Anchor on the last thing you remember — final position change, a thought, a sound — and count minutes from lights-out to that, rounded to 5. Truly no idea? Leave the 15: the math uses a rolling median and within-you comparisons, so honest-rough beats fake-precise. A wearable's latency number can go in the same box anytime."],
   nightdate: ["How nights are dated", "A night belongs to the evening it began: Tuesday night = Tue evening → Wed morning, filed under Tuesday. You log it the morning after. Before 5 a.m. the app still means the night you already finished — never the one you haven't slept yet. Missed a morning? The row stays, dated, for up to 3 days."],
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
