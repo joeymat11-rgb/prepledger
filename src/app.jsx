@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.16.0";
+const APP_V = "3.16.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1392,6 +1392,7 @@ const GLOSSARY = {
   parked: ["PARKED", "Deliberately shelved with a written trigger (a date, a phase, a coach call). Parked isn't forgotten; it's staged."],
   structural: ["Structural change", "A load jump, new set, or machine change. One per session, auto-picked from the queue — so every response stays attributable. Rep progression is unlimited."],
   whoosh: ["Whoosh", "Event water leaving days after the event — a spike that drains to a NEW low. Yours clears in 1–3 days; the LAB predicts the window in advance."],
+  driftoff: ["Estimating drift-off", "Morning-after guessing is the clinical standard (it's how sleep diaries work). Anchor on the last thing you remember — final position change, a thought, a sound — and count minutes from lights-out to that, rounded to 5. Truly no idea? Leave the 15: the math uses a rolling median and within-you comparisons, so honest-rough beats fake-precise. A wearable's latency number can go in the same box anytime."],
   nightdate: ["How nights are dated", "A night belongs to the evening it began: Tuesday night = Tue evening → Wed morning, filed under Tuesday. You log it the morning after. Before 5 a.m. the app still means the night you already finished — never the one you haven't slept yet. Missed a morning? The row stays, dated, for up to 3 days."],
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
@@ -1743,7 +1744,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                       <input type="time" value={bedT} onChange={(e) => setBedT(e.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 6px" }} />
                       <span>wake</span>
                       <input type="time" value={wakeT} onChange={(e) => setWakeT(e.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 6px" }} />
-                      <span>asleep in</span>
+                      <span><Term k="driftoff" c={T.steel}>asleep in</Term></span>
                       <Stepper v={solMin} set={setSolMin} step={5} min={0} />
                       <span>m</span>
                       <span style={{ color: T.jade }}>= {sleepSpanH(bedT, wakeT, solMin + (slTags.includes("woke") ? awakeMin : 0))} h asleep</span>
