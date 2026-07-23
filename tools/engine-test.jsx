@@ -815,5 +815,17 @@ ok(arm49 && arm49.block === 2 && arm49.tpl.arms[arm49.armIdx] === "5pm", "day 4 
 run49.trials[0].started = isoL(Date.now() - 20 * 864e5);
 ok(tv49(run49, run49.trials[0]).done === true, "custom trials self-grade done like the canned ones");
 
-console.log(`\nFINAL48: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.51 — the replicator: a person is data
+const { kitLetter: kl51 } = __test;
+const spec51 = { name: "Demo", greeting: "Good morning", modules: { walk: true, weight: true, bp: true, letter: true }, vocab: { walk: "your walk", weight: "morning weight", sleep: "sleep", bp: "blood pressure" }, walkGoalMin: 30, weightUnit: "lb" };
+const st51 = { v: 1, days: {} };
+for (let k = 1; k <= 6; k++) st51.days[isoL(Date.now() - k * 864e5)] = { walkMin: k % 2 ? 30 : 10, weight: 152 + (k % 3) * 0.5, bp: k === 2 ? "128/82" : null };
+const letter = kl51(spec51, st51);
+ok(letter.indexOf("Good morning, Demo") === 0 && letter.indexOf("walks this week") > -1, "the letter speaks their dialect: " + letter.slice(0, 40));
+ok(letter.indexOf("average is the truth") > -1 && letter.indexOf("doctor") > -1, "weight framed gently, bp referred out — never interpreted");
+ok(kl51(spec51, { v: 1, days: {} }).indexOf("keep showing up") > -1, "an empty week still gets warmth, never guilt");
+
+console.log(`\nFINAL49: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

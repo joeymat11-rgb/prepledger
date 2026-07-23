@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.50.0";
+const APP_V = "3.51.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2007,7 +2007,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -2052,6 +2052,98 @@ const _labMemo = new WeakMap();
 function labGroupsM(s) { if (_labMemo.has(s)) return _labMemo.get(s); const g = labGroups(s); _labMemo.set(s, g); return g; }
 const _docketMemo = new WeakMap();
 function labDocketM(s) { if (_docketMemo.has(s)) return _docketMemo.get(s); const d = labDocket(s); _docketMemo.set(s, d); return d; }
+
+/* KIT MODE — the replicator: a person is a JSON spec, not a codebase */
+const KIT_SPECS = {
+  demo: {
+    name: "Demo", greeting: "Good morning", textScale: 1.25,
+    modules: { walk: true, weight: true, sleep: true, bp: true, letter: true },
+    vocab: { walk: "your walk", weight: "morning weight", sleep: "last night's sleep", bp: "blood pressure" },
+    walkGoalMin: 30, weightUnit: "lb",
+    safety: "This app never interprets blood pressure — it only keeps the record tidy for your doctor.",
+  },
+};
+const KIT_KEY = "prep-ledger-person";
+function kitLoad(name) {
+  try { const raw = localStorage.getItem("prep-ledger-p-" + name); return raw ? JSON.parse(raw) : { v: 1, days: {} }; } catch (e) { return { v: 1, days: {} }; }
+}
+function kitSave(name, st) { try { localStorage.setItem("prep-ledger-p-" + name, JSON.stringify(st)); } catch (e) {} }
+function kitLetter(spec, st) {
+  const ds = Object.keys(st.days).sort();
+  const now = todayStart().getTime();
+  const inWk = (d, back) => { const t2 = mk(d).getTime(); return t2 > now - back * 7 * DAY && t2 <= now - (back - 1) * 7 * DAY; };
+  const wk = (back) => ds.filter((d) => inWk(d, back)).map((d) => st.days[d]);
+  const thisW = wk(1), lastW = wk(2);
+  const walks = (a) => a.filter((x) => x.walkMin >= (spec.walkGoalMin || 20)).length;
+  const avgW = (a) => { const v = a.filter((x) => x.weight).map((x) => x.weight); return v.length ? +(v.reduce((p, q) => p + q, 0) / v.length).toFixed(1) : null; };
+  const L = [`${spec.greeting}, ${spec.name}. Your week, in plain words:`];
+  if (spec.modules.walk) L.push(`You took ${walks(thisW)} good walks this week${lastW.length ? ` (${walks(lastW)} the week before${walks(thisW) > walks(lastW) ? " — more than last week, which is the whole game" : walks(thisW) === walks(lastW) ? " — steady, which counts" : ""})` : ""}.`);
+  if (spec.modules.weight) { const a2 = avgW(thisW), b2 = avgW(lastW); if (a2) L.push(`Average ${spec.vocab.weight}: ${a2} ${spec.weightUnit}${b2 ? ` (was ${b2})` : ""} — single days wiggle; the average is the truth.`); }
+  if (spec.modules.bp) { const n2 = thisW.filter((x) => x.bp).length; if (n2) L.push(`${n2} ${spec.vocab.bp} reading${n2 > 1 ? "s" : ""} on file this week — a tidy record is exactly what your doctor wants to see.`); }
+  L.push("Nothing to fix. Just keep showing up.");
+  return L.join(" ");
+}
+function KitApp({ spec, onExit }) {
+  const [st, setSt] = useState(() => kitLoad(spec.id));
+  const tI = isoOf(todayStart());
+  const day = st.days[tI] || {};
+  const up = (patch) => { const ns = { ...st, days: { ...st.days, [tI]: { ...day, ...patch } } }; setSt(ns); kitSave(spec.id, ns); };
+  const F = (x) => Math.round(x * (spec.textScale || 1));
+  const [w2, setW2] = useState(day.weight || 150);
+  const [bp1, setBp1] = useState(120); const [bp2, setBp2] = useState(80);
+  return (
+    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 80, overflowY: "auto", padding: "20px 16px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <H size={F(22)}>{spec.greeting}, {spec.name}</H>
+        <span onClick={onExit} style={{ fontFamily: mono, fontSize: 9, color: T.dim, cursor: "pointer" }}>switch ✕</span>
+      </div>
+      {spec.modules.walk && (
+        <Card accent={day.walkMin >= spec.walkGoalMin ? T.jade : undefined} style={{ marginTop: 12 }}>
+          <Eyebrow c={T.jade}>{spec.vocab.walk.toUpperCase()}</Eyebrow>
+          {day.walkMin >= spec.walkGoalMin ? <div style={{ fontFamily: body, fontSize: F(15), color: T.jade, marginTop: 6 }}>✓ done — {day.walkMin} minutes</div> : (
+            <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+              {[spec.walkGoalMin, spec.walkGoalMin + 15].map((m2) => <Btn key={m2} tone="jade" onClick={() => up({ walkMin: m2 })}><span style={{ fontSize: F(13) }}>{m2} min ✓</span></Btn>)}
+            </div>
+          )}
+        </Card>
+      )}
+      {spec.modules.weight && (
+        <Card style={{ marginTop: 10 }}>
+          <Eyebrow>{spec.vocab.weight.toUpperCase()}</Eyebrow>
+          {day.weight ? <div style={{ fontFamily: mono, fontSize: F(15), color: T.jade, marginTop: 6 }}>✓ {day.weight} {spec.weightUnit}</div> : (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}><Stepper v={w2} set={setW2} step={0.5} min={60} /><Btn small tone="jade" onClick={() => up({ weight: w2 })}>Save</Btn></div>
+          )}
+        </Card>
+      )}
+      {spec.modules.sleep && (
+        <Card style={{ marginTop: 10 }}>
+          <Eyebrow>{spec.vocab.sleep.toUpperCase()}</Eyebrow>
+          <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+            {["good", "ok", "rough"].map((v2) => <Btn key={v2} small tone={day.sleepQ === v2 ? "jade" : undefined} onClick={() => up({ sleepQ: v2 })}><span style={{ fontSize: F(12) }}>{v2}{day.sleepQ === v2 ? " ✓" : ""}</span></Btn>)}
+          </div>
+        </Card>
+      )}
+      {spec.modules.bp && (
+        <Card style={{ marginTop: 10 }}>
+          <Eyebrow>{spec.vocab.bp.toUpperCase()} — WHEN YOU TAKE IT</Eyebrow>
+          {day.bp ? <div style={{ fontFamily: mono, fontSize: F(14), color: T.jade, marginTop: 6 }}>✓ {day.bp} on file</div> : (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+              <Stepper v={bp1} set={setBp1} step={2} min={70} /><span style={{ color: T.dim }}>/</span><Stepper v={bp2} set={setBp2} step={2} min={40} />
+              <Btn small tone="jade" onClick={() => up({ bp: bp1 + "/" + bp2 })}>Save</Btn>
+            </div>
+          )}
+          <div style={{ fontFamily: body, fontSize: F(9.5), color: T.dim, marginTop: 7 }}>{spec.safety}</div>
+        </Card>
+      )}
+      {spec.modules.letter && (
+        <Card accent={T.jade} style={{ marginTop: 10 }}>
+          <Eyebrow c={T.jade}>YOUR SUNDAY LETTER</Eyebrow>
+          <div style={{ fontFamily: body, fontSize: F(12.5), color: T.chalk, marginTop: 6, lineHeight: 1.65 }}>{kitLetter(spec, st)}</div>
+        </Card>
+      )}
+    </div>
+  );
+}
 
 /* ASK THE LEDGER — bespoke instruments on demand, standing on the 49 built ones */
 const ANTH_KEY = "prep-ledger-anthkey";
@@ -4258,6 +4350,13 @@ function Rules({ onClose, onReset, onExport, onImport, sync, onSync }) {
           </div>
         </div>
         <div style={{ marginTop: 22, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
+          <div style={{ marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid ${T.line}` }}>
+            <Eyebrow c={T.jade}>FAMILY — ONE APP, MANY PEOPLE</Eyebrow>
+            <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 5, lineHeight: 1.5 }}>Each person is a spec, not an app. Their data lives on their own phone under their own name; this full cockpit stays yours.</div>
+            <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+              {Object.keys(KIT_SPECS).map((k2) => <Btn key={k2} small onClick={() => { localStorage.setItem(KIT_KEY, k2); window.location.reload(); }}>Open as {KIT_SPECS[k2].name}</Btn>)}
+            </div>
+          </div>
           <BackupsBlock />
           <ApiKeyBlock />
           <Eyebrow c={T.brass}>SELF-FILING · SUNDAY AUTO-SYNC TO YOUR PRIVATE REPO</Eyebrow>
@@ -4292,6 +4391,7 @@ export default function PrepLedger() {
   const [tab, setTab] = useState("NOW");
   const [rules, setRules] = useState(false);
   const [coach, setCoach] = useState(false);
+  const [kitPerson, setKitPerson] = useState(() => { try { return new URLSearchParams(window.location.search).get("p") || localStorage.getItem(KIT_KEY); } catch (e) { return null; } });
   const [updReady, setUpdReady] = useState(false);
   const [offline, setOffline] = useState(false);
 
@@ -4439,6 +4539,7 @@ export default function PrepLedger() {
         </div>
       </div>
 
+      {kitPerson && KIT_SPECS[kitPerson] && <KitApp spec={{ ...KIT_SPECS[kitPerson], id: kitPerson }} onExit={() => { localStorage.removeItem(KIT_KEY); setKitPerson(null); }} />}
       {rules && <Rules onClose={() => setRules(false)} onReset={reset} onExport={doExport} onImport={doImport} sync={s.sync} onSync={async () => { const res = await ghSync(s); const ns = { ...s, sync: { last: isoOf(todayStart()), status: res.ok ? "synced" : res.msg } }; setS(ns); save(ns); }} />}
       {coach && <CoachView s={s} onClose={() => setCoach(false)} />}
       {gloss && GLOSSARY[gloss] && (
