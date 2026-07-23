@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.44.1";
+const APP_V = "3.44.2";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1427,12 +1427,31 @@ function bodyAlarm(s, slp) {
   const todaySpike = pr5.latest && pr5.latest.d === tI && pr5.spike != null && pr5.spike >= 7 ? pr5.spike : null;
   const prevRead = (s.pulse || []).slice().sort((a, b) => (a.d < b.d ? -1 : 1)).slice(-2)[0];
   const prevSpike = pr5.base && prevRead && prevRead.d === yISO ? prevRead.bpm - pr5.base : null;
-  let sentinelHot = false;
-  try { sentinelHot = !labDocket(s).sentinel.quiet; } catch (e) {}
-
   const partial = todaySpike == null && pr5.latest && pr5.latest.d === tI && pr5.spike != null && pr5.spike >= 4 && prevSpike != null && prevSpike >= 7;
+
+  /* pattern check — yesterday and today ONLY; old anomalies are the sentinel card's business, not today's orders */
+  let patParts = [];
+  try {
+    const zbase = (arr) => { if (arr.length < 8) return null; const m = arr.reduce((a, b) => a + b, 0) / arr.length; const sdv = Math.sqrt(arr.reduce((a, b) => a + (b - m) ** 2, 0) / arr.length) || 1; return { m, sdv }; };
+    const slB = zbase(s.sleep.nights.slice(-30).map((n) => n.h));
+    const dls = Object.entries(s.dailyLogs).sort((a, b) => (a[0] < b[0] ? -1 : 1));
+    const stB = zbase(dls.slice(-30).map(([, v]) => v.steps).filter(Boolean));
+    for (const d2 of [yISO, tI]) {
+      let hits = 0, parts = [];
+      const n = s.sleep.nights.find((x) => x.d === isoOf(new Date(mk(d2).getTime() - DAY)));
+      if (slB && n && Math.abs((n.h - slB.m) / slB.sdv) > 1.8) { hits++; parts.push(`slept ${n.h} h (your norm ${slB.m.toFixed(1)}±${slB.sdv.toFixed(1)})`); }
+      const dl2 = s.dailyLogs[d2];
+      if (stB && dl2 && dl2.steps && Math.abs((dl2.steps - stB.m) / stB.sdv) > 1.8) { hits++; parts.push(`steps ${(dl2.steps / 1000).toFixed(1)}k (norm ${(stB.m / 1000).toFixed(1)}k)`); }
+      const rd = s.reads.find((r) => r.d === d2 && !r.sealed);
+      if (rd && Math.abs(rd.w - s.trend) > 1.6) { hits++; parts.push(`scale ${rd.w} vs trend ${s.trend}`); }
+      if (hits >= 2) patParts = parts;
+    }
+  } catch (e) {}
+  const patternHot = patParts.length >= 2;
+  if (!todaySpike && !partial && !patternHot) return null;
+
+  const pulseTrig = todaySpike != null || partial;
   const red = todaySpike != null && (todaySpike >= 10 || (prevSpike != null && prevSpike >= 7 && todaySpike >= 7) || (lastNight && lastNight.h < 6));
-  if (!todaySpike && !partial && !sentinelHot) return null;
   const t = dayType(tI);
   const trainDay = (t === "U" || t === "L") && !s.sessionLog[tI];
   let canaryName = null;
@@ -1444,18 +1463,20 @@ function bodyAlarm(s, slp) {
     if (red) lines.push("Session: convert to a walk or push it a day — nothing is lost; targets wait, the structural pick keeps its slot, and no gate closes.");
     else {
       lines.push("Session runs, one rule changed: normal plan, but every 0 becomes a 1 — no failure today. The early sets carry the growth cheap; the zeros carry the strain, and those are the only thing benched.");
-      lines.push("No make-it-official attempts and no new-weight tries today — those need a quiet nervous system to mean anything; the standards wait untouched.");
-      lines.push(canaryName ? `Watch ${canaryName} — your measured stress-first lift; a dip there today is the alarm confirming, not you failing.` : "Judge the day by your opener, not your ego — your stress-first lift isn't named yet (canary still arming).");
+      lines.push("No make-it-official attempts and no new-weight tries today — those need a normal body to mean anything; the standards wait untouched.");
+      if (canaryName) lines.push(`Watch ${canaryName} — your measured stress-first lift; a dip there today is the alarm confirming, not you failing.`);
     }
   }
-  lines.push("Hydrate +24 oz across the morning — an elevated resting pulse frequently rides mild dehydration, and it's the cheapest test of the alarm.");
-  lines.push("Protein stays 175 and calories stay on plan — recovery is protein-hungry, and eating extra doesn't lower a pulse.");
+  lines.push(pulseTrig ? "Hydrate +24 oz across the morning — an elevated resting pulse frequently rides mild dehydration, and it's the cheapest test of the alarm." : "Hydrate +24 oz across the morning — the cheapest first test of an off-pattern day.");
+  lines.push("Protein stays 175 and calories stay on plan — recovery is protein-hungry, and eating extra fixes nothing here.");
   lines.push(`Tonight: lights out ${early} (30 early, wake stays ${(s.sleep.anchor || {}).wake || "06:45"})${s.sleep.caffMg ? " · skip any afternoon caffeine entirely today" : ""}.`);
-  lines.push(`Exit test — tomorrow 6:45: pulse within 3 of your ${pr5.base ?? "—"} baseline → every limit above lifts automatically. Still +7? ${red ? "Full rest day, and if a third day, that's a doctor conversation, not a training one." : "Tomorrow escalates to a rest-day recommendation."}`);
-  const basis = todaySpike != null
+  lines.push(pulseTrig && pr5.base != null
+    ? `Exit test — tomorrow 6:45: pulse within 3 of your ${pr5.base} baseline → every limit above lifts automatically. Still +7? ${red ? "Full rest day, and a third day is a doctor conversation, not a training one." : "Tomorrow escalates to a rest-day recommendation."}`
+    : "Exit test — this clears the moment today's logs land back inside your own bands; a second off-pattern day in a row means treat it as real, not noise.");
+  const basis = pulseTrig
     ? `${pr5.latest.bpm} bpm vs your ${pr5.base} baseline (+${todaySpike ?? pr5.spike})${prevSpike != null && prevSpike >= 7 ? (todaySpike != null ? " · second elevated morning" : " · recovering from yesterday") : ""}${lastNight ? ` · slept ${lastNight.h} h` : ""}${s.sessionLog[yISO] ? " · trained yesterday (a day-after bump is common — weigh that)" : ""} · ${(s.pulse || []).length} mornings behind the baseline`
-    : "multiple daily metrics tripped your own 30-day baselines together — the multivariate signature of incoming illness or unlogged stress";
-  return { tier: red ? "RED" : "AMBER", head: red ? `Body alarm — RED (pulse +${todaySpike ?? "?"}, second signal)` : partial ? `Body alarm — recovering (pulse +${pr5.spike}, down from +${prevSpike})` : todaySpike != null ? `Body alarm — dial back (pulse +${todaySpike})` : "Body alarm — dial back (baselines tripped)", lines, basis };
+    : `in the last day: ${patParts.join(" + ")} — two of your own baselines at once. No pulse data involved${(s.pulse || []).length === 0 ? " (none logged yet)" : ""}.`;
+  return { tier: red ? "RED" : "AMBER", head: red ? `Body alarm — RED (pulse +${todaySpike ?? "?"}, second signal)` : partial ? `Body alarm — recovering (pulse +${pr5.spike}, down from +${prevSpike})` : pulseTrig ? `Body alarm — dial back (pulse +${todaySpike})` : "Body alarm — off-pattern day (dial back)", lines, basis };
 }
 
 /* quick pulse read — shared by cards and the day protocol */

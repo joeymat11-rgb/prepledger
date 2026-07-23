@@ -736,5 +736,24 @@ quietB.sleep.nights.forEach(n => { n.h = 7.6; });
 quietB.reads.forEach(r => { if (!r.sealed) r.w = quietB.trend; });
 ok(ba43(quietB, { clean: true, run: 3, need: 3 }) === null, "quiet body, silent alarm — flat baselines, no cry");
 
-console.log(`\nFINAL42: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.44.2 — the alarm learns recency and honesty about its trigger
+const { bodyAlarm: ba44, SEED: TH } = __test;
+let stale = clone(TH);
+stale.sleep.nights.push({ d: isoL(Date.now() - 7 * 864e5), h: 4.4, tags: [] });
+stale.dailyLogs[isoL(Date.now() - 6 * 864e5)] = { cal: 1750, pro: 175, steps: 11000 };
+for (let k = 5; k >= 1; k--) { stale.sleep.nights.push({ d: isoL(Date.now() - k * 864e5), h: 7.4, tags: [] }); stale.dailyLogs[isoL(Date.now() - k * 864e5)] = { cal: 1750, pro: 175, steps: 17800 }; }
+stale.sleep.nights = stale.sleep.nights.filter((n, i, a) => a.findIndex(x => x.d === n.d) === i);
+ok(ba44(stale, { clean: true, run: 3, need: 3 }) === null, "a six-day-old party no longer commands today");
+let fresh = clone(TH);
+for (let k = 12; k >= 2; k--) { fresh.sleep.nights.push({ d: isoL(Date.now() - k * 864e5), h: 7.3, tags: [] }); fresh.dailyLogs[isoL(Date.now() - k * 864e5)] = { cal: 1750, pro: 175, steps: 17500 }; }
+fresh.sleep.nights.push({ d: isoL(Date.now() - 864e5), h: 4.6, tags: [] });
+fresh.dailyLogs[isoL(Date.now())] = { cal: 1750, pro: 175, steps: 9000 };
+fresh.sleep.nights = fresh.sleep.nights.filter((n, i, a) => a.findIndex(x => x.d === n.d) === i);
+const F = ba44(fresh, { clean: false, run: 0, need: 3 });
+ok(F && F.head.indexOf("off-pattern") > -1 && F.basis.indexOf("No pulse data involved") > -1 && F.basis.indexOf("slept 4.6 h") > -1, "fresh pattern trip: honest trigger, exact numbers, zero pulse talk");
+ok(F.lines.every(l => l.indexOf("resting pulse") === -1 || l.indexOf("elevated") === -1) && F.lines.some(l => l.indexOf("Exit test") === 0 && l.indexOf("bands") > -1), "prescription language matches the trigger");
+
+console.log(`\nFINAL43: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
