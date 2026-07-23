@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.15.0";
+const APP_V = "3.16.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,8 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 13;
+  SEED.v = 14;
+  SEED.sleep.anchor = { wake: "06:45", inBed: 8.25, asleepTarget: 8 };
   SEED.forecasts = [];
   SEED.labSeen = {};
   SEED.sleep.anchor = { wake: "06:45", inBed: 8.25 };
@@ -702,6 +703,23 @@ function caffAt(mg, doseHour, atHour) {
   return Math.round(mg * Math.pow(0.5, dt / 5));
 }
 
+/* onset latency — median of measured, honest default until data */
+function medianSOL(s) {
+  const sols = s.sleep.nights.filter((n) => n.sol != null).slice(-14).map((n) => n.sol).sort((a, b) => a - b);
+  if (sols.length < 5) return 15;
+  return sols[Math.floor(sols.length / 2)];
+}
+/* lights-out derived from ASLEEP target + measured drift-off time */
+function lightsOutT(s) {
+  const a = s.sleep.anchor || { wake: "06:45" };
+  const target = a.asleepTarget || 8;
+  const sol = medianSOL(s);
+  const wm = a.wake.split(":").map(Number);
+  let lo = wm[0] * 60 + wm[1] - Math.round(target * 60) - sol;
+  if (lo < 0) lo += 1440;
+  return { t: `${String(Math.floor(lo / 60)).padStart(2, "0")}:${String(lo % 60).padStart(2, "0")}`, mins: lo, sol, target };
+}
+
 /* THE SLEEP LAB — experiments running on the master variable */
 function sleepLab(s) {
   const out = [];
@@ -715,9 +733,12 @@ function sleepLab(s) {
   out.push({ id: "melaexp", t: "MELATONIN EXPERIMENT — ARM 1: NONE", status: noneN.length >= 7 ? "LIVE" : "ARMED", prog: { n: noneN.length, need: 7, label: "nights off melatonin" },
     tag: "Do you need the pill at all? Pre-registered " + fmtShort(exp.started) + ".",
     deep: "Baseline on file: 5 mg most nights, waking ~6 h in — right where a 5 mg bolus finishes clearing (half-life ~40–60 min). The literature says melatonin's average effect is minutes, not hours (Ferracioli-Oda 2013: ~7 min faster onset), it works as a clock signal at 0.3–0.5 mg (Zhdanova), and OTC labels are unreliable (−83% to +478% measured content). Arm 1 removes it entirely. If a low-dose arm is ever warranted — onset consistently ballooning past ~30–40 min — it gets pre-registered the same way.",
-    forYou: noneN.length >= 7
-      ? `Off melatonin: avg ${avg(noneN)} h over ${noneN.length} nights (baseline ${avg(pre) ?? "—"} h) · mid-night wakes ${wokeRate(noneN)}% of nights${melaN.length ? ` · on-nights logged for contrast: ${melaN.length}` : ""}. ${avg(noneN) != null && avg(pre) != null && avg(noneN) >= avg(pre) ? "The pill was doing nothing you'll miss — case closing." : "Wake pattern persisting off the pill shifts suspicion to the caffeine tail or deficit-cortisol — next lever below."}`
-      : `${noneN.length}/7 nights banked. Tag any night you do take it (chip on the morning log) — contrast data is still data. Tonight counts.`,
+    forYou: (() => {
+      const solAvg = (arr) => { const v = arr.filter((n) => n.sol != null); return v.length ? Math.round(v.reduce((a, n) => a + n.sol, 0) / v.length) : null; };
+      return noneN.length >= 7
+        ? `Off melatonin: avg ${avg(noneN)} h ASLEEP over ${noneN.length} nights (baseline ${avg(pre) ?? "—"} h)${solAvg(noneN) != null ? ` · drifting off in ~${solAvg(noneN)} min` : ""} · mid-night wakes ${wokeRate(noneN)}% of nights. ${solAvg(noneN) != null && solAvg(noneN) > 35 ? "Onset is the one signature where the 0.5 mg-early arm earns a trial — prescriber conversation attached." : avg(noneN) != null && avg(pre) != null && avg(noneN) >= avg(pre) ? "The pill was doing nothing you'll miss — case closing." : "Wake pattern persisting off the pill shifts suspicion to the caffeine tail or deficit-cortisol — next lever below."}`
+        : `${noneN.length}/7 nights banked. Onset now measures itself from your drift-off entry — the low-dose trigger (>35 min) is finally a number, not a guess. Tonight counts.`;
+    })(),
     lines: [] });
   const woke = post.filter((n) => (n.tags || []).includes("woke"));
   out.push({ id: "wakesig", t: "WAKE SIGNATURE", status: woke.length >= 5 ? "LIVE" : "ARMED", prog: { n: woke.length, need: 5, label: "tagged mid-night wakes" },
@@ -756,11 +777,8 @@ function theOneThing(s, slp, hour = new Date().getHours()) {
   if (trainToday && !sessDone && hour >= 10) { const g = genSession(s, tISO, slp); return { t: "Today: " + (g.structural || g.name), sub: "log it in TRAIN when the iron's down" }; }
   if (!dLogged && hour >= 17) return { t: "Close the day", sub: "cal · protein · steps — pre-filled to targets, adjust and tap" };
   if (!dLogged) return { t: "Day open — nothing owed yet", sub: "numbers close it tonight · everything else is optional reading" };
-  const a2 = s.sleep.anchor || { wake: "06:45", inBed: 8.25 };
-  const wm2 = a2.wake.split(":").map(Number);
-  let lo2 = wm2[0] * 60 + wm2[1] - Math.round(a2.inBed * 60); if (lo2 < 0) lo2 += 1440;
-  const loT2 = `${String(Math.floor(lo2 / 60)).padStart(2, "0")}:${String(lo2 % 60).padStart(2, "0")}`;
-  return { t: "Everything's banked ✓", sub: (slp.clean ? "protect the streak" : "tonight rebuilds the reset") + ` — lights out ${loT2}, wake ${a2.wake}` };
+  const lo2 = lightsOutT(s);
+  return { t: "Everything's banked ✓", sub: (slp.clean ? "protect the streak" : "tonight rebuilds the reset") + ` — lights out ${lo2.t}, wake ${(s.sleep.anchor || {}).wake || "06:45"}` };
 }
 
 /* the week, in one paragraph — auto-written from state */
@@ -1318,6 +1336,7 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV14(s) { s.sleep.anchor = s.sleep.anchor || { wake: "06:45", inBed: 8.25 }; if (!s.sleep.anchor.asleepTarget) s.sleep.anchor.asleepTarget = 8; s.v = 14; return s; }
 function patchV13(s) { s.forecasts = s.forecasts || []; s.v = 13; return s; }
 function patchV12(s) { s.labSeen = s.labSeen || {}; s.v = 12; return s; }
 function patchV11(s) {
@@ -1328,8 +1347,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 13) return old;
-  if (old && old.v >= 3 && old.v <= 12) return patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))));
+  if (old && old.v === 14) return old;
+  if (old && old.v >= 3 && old.v <= 13) return patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -1355,7 +1374,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))));
+  return patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))));
 }
 
 const GLOSSARY = {
@@ -1377,7 +1396,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -1591,6 +1610,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [wakeT, setWakeT] = useState((s.sleep.anchor || {}).wake || "06:45");
   const [slTags, setSlTags] = useState([]);
   const [awakeMin, setAwakeMin] = useState(30);
+  const [solMin, setSolMin] = useState(15);
   const [dayEdit, setDayEdit] = useState(false);
   const [wIn, setWIn] = useState(s.trend);
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
@@ -1723,7 +1743,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                       <input type="time" value={bedT} onChange={(e) => setBedT(e.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 6px" }} />
                       <span>wake</span>
                       <input type="time" value={wakeT} onChange={(e) => setWakeT(e.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 6px" }} />
-                      <span style={{ color: T.jade }}>= {sleepSpanH(bedT, wakeT, slTags.includes("woke") ? awakeMin : 0)} h</span>
+                      <span>asleep in</span>
+                      <Stepper v={solMin} set={setSolMin} step={5} min={0} />
+                      <span>m</span>
+                      <span style={{ color: T.jade }}>= {sleepSpanH(bedT, wakeT, solMin + (slTags.includes("woke") ? awakeMin : 0))} h asleep</span>
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
@@ -1744,7 +1767,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                     <Btn full small tone="jade" onClick={() => {
                       const od = owed[0];
                       const ns = JSON.parse(JSON.stringify(s));
-                      ns.sleep.nights.push({ d: od, h: sleepSpanH(bedT, wakeT, slTags.includes("woke") ? awakeMin : 0), bed: bedT, wake: wakeT, tags: slTags.slice(), awakeMin: slTags.includes("woke") ? awakeMin : 0 });
+                      ns.sleep.nights.push({ d: od, h: sleepSpanH(bedT, wakeT, solMin + (slTags.includes("woke") ? awakeMin : 0)), bed: bedT, wake: wakeT, tags: slTags.slice(), awakeMin: slTags.includes("woke") ? awakeMin : 0, sol: solMin });
                       ns.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
                       let run = 0;
                       for (let i = ns.sleep.nights.length - 1; i >= 0; i--) { if (ns.sleep.nights[i].h >= ns.sleep.cleanH) run++; else break; }
@@ -2414,23 +2437,21 @@ function SleepTab({ s, setS, save, slp }) {
         <Card accent={T.jade}>
         <Eyebrow c={T.jade}>THE ANCHOR — FOUNDED {fmtShort("2026-07-23")}, BY ACCIDENT</Eyebrow>
         {(() => {
-          const a = s.sleep.anchor || { wake: "06:45", inBed: 8.25 };
-          const wm = a.wake.split(":").map(Number);
-          let lo = wm[0] * 60 + wm[1] - Math.round(a.inBed * 60);
-          if (lo < 0) lo += 1440;
-          const loT = `${String(Math.floor(lo / 60)).padStart(2, "0")}:${String(lo % 60).padStart(2, "0")}`;
+          const a = s.sleep.anchor || { wake: "06:45", asleepTarget: 8 };
+          const lo = lightsOutT(s);
           const hr = new Date().getHours() + new Date().getMinutes() / 60;
-          const loH = lo / 60;
+          const loH = lo.mins / 60;
           const until = hr < loH ? loH - hr : hr >= 17 ? 24 - hr + loH : null;
+          const measured = s.sleep.nights.filter((n) => n.sol != null).length >= 5;
           return (
             <>
               <div style={{ display: "flex", gap: 18, marginTop: 8 }}>
                 <div><Num size={22}>{a.wake}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>WAKE · 7 DAYS/WK</div></div>
-                <div><Num size={22} c={T.jade}>{loT}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>LIGHTS OUT · {a.inBed} H IN BED</div></div>
+                <div><Num size={22} c={T.jade}>{lo.t}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>LIGHTS OUT = {lo.target} H ASLEEP + ~{lo.sol} M DRIFT{measured ? " (YOURS, MEASURED)" : " (DEFAULT)"}</div></div>
                 {until != null && hr >= 17 && <div><Num size={22} c={T.brass}>{Math.floor(until)}h {Math.round((until % 1) * 60)}m</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>UNTIL LIGHTS OUT</div></div>}
               </div>
-              <More deep="Wake-time consistency is the strongest single circadian lever — stronger than duration targeting — and it doubles as a direct ADHD-symptom lever. The wake anchors everything: lights-out is derived (wake minus in-bed target), sleep pressure builds on schedule, and weekends don't get to vote."
-                forYou={`Anchor ${a.wake}, in bed by ${loT}. Tonight it's on easy mode — you're carrying real debt, and pressure does the work. Say the word to move either number.`} />
+              <More deep="Wake-time consistency is the strongest circadian lever, and lights-out is now derived from what actually matters: the ASLEEP target plus your real drift-off time. Every morning's 'asleep in' entry feeds a rolling median; once 5 nights are measured, the default 15 minutes is replaced by YOUR number and lights-out auto-shifts to protect actual sleep, not bed-shaped time. Slow drift-off nights literally move tomorrow's bedtime earlier."
+                forYou={measured ? `Your measured drift-off: ~${lo.sol} min — lights-out ${lo.t} buys a true ${lo.target} h asleep. The number keeps itself honest nightly.` : `Default 15 min drift assumed until 5 nights are measured — ${5 - s.sleep.nights.filter((n) => n.sol != null).length} to go, then ${lo.t} becomes personally calibrated.`} />
             </>
           );
         })()}
@@ -2441,10 +2462,10 @@ function SleepTab({ s, setS, save, slp }) {
           <>
             <div style={{ display: "flex", gap: 18, marginTop: 8 }}>
               <div><Num size={22}>{s.sleep.caffMg}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG · NOON DOSE</div></div>
-              <div><Num size={22} c={caffAt(s.sleep.caffMg, 12, 22.5) > 50 ? T.brass : T.jade}>~{caffAt(s.sleep.caffMg, 12, 22.5)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG AT 22:30 · HALF-LIFE ~5 H</div></div>
+              <div><Num size={22} c={caffAt(s.sleep.caffMg, 12, lightsOutT(s).mins / 60) > 50 ? T.brass : T.jade}>~{caffAt(s.sleep.caffMg, 12, lightsOutT(s).mins / 60)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG AT {lightsOutT(s).t} · HALF-LIFE ~5 H</div></div>
             </div>
             <More deep="Caffeine's half-life is ~5 hours (range 3–7 by genetics): a noon dose is still ~25% circulating at bedtime. That residue doesn't always stop sleep onset — it fragments depth and can surface as mid-night wakes. If the wake signature persists off melatonin, this number is suspect #1."
-              forYou={`~${caffAt(s.sleep.caffMg, 12, 22.5)} mg on board at lights-out. If the experiment points here, the move is dose-down or earlier — not willpower.`} />
+              forYou={`~${caffAt(s.sleep.caffMg, 12, lightsOutT(s).mins / 60)} mg on board at lights-out. If the experiment points here, the move is dose-down or earlier — not willpower.`} />
           </>
         ) : (
           <div style={{ marginTop: 8 }}>

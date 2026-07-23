@@ -453,5 +453,17 @@ for (let k = 1; k <= 7; k++) { const dd = new Date(2026, 6, 23 + k); dkF.sleep.n
 const dkF2 = __test.sweepLab(dkF);
 ok(dk1(dkF2).fresh.some(f => f.t.indexOf("MELATONIN") > -1), "a flip lands on the docket front page, dated");
 
-console.log(`\nFINAL23: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.16 — falling asleep is now real
+const { medianSOL: mso, lightsOutT: lot, migrate: mg16, SEED: SQ } = __test;
+ok(mso(clone(SQ)) === 15, "honest 15-min default until five nights are measured");
+ok(lot(clone(SQ)).t === "22:30" && lot(clone(SQ)).target === 8, "default math: 8 h asleep + 15 m drift = tonight's 22:30, unchanged");
+let sq = clone(SQ);
+for (let k = 0; k < 6; k++) sq.sleep.nights.push({ d: "2026-08-0" + (k + 1), h: 7.5, sol: 30 });
+ok(mso(sq) === 30 && lot(sq).t === "22:15", "measured 30-min drift-off pulls lights-out 15 min earlier automatically");
+const oldV13 = clone(SQ); oldV13.v = 13; delete oldV13.sleep.anchor.asleepTarget;
+ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 phones patch to v14 with the asleep target");
+
+console.log(`\nFINAL24: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
