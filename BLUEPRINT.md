@@ -24,6 +24,8 @@ These ten laws are why the first app worked. They are person-independent even th
 
 11. **The lab watches so the human never has to.** Analysis can be unbounded — dozens of instruments, every threshold re-checked on every open — precisely BECAUSE attention-calls are rare, earned, and only fired by true threshold crossings. Never notify, never poll the user, never cry wolf: an announcement channel that only carries news stays trusted forever. Vigilance is the machine's job; verdicts are the human's reward.
 
+12. **The cockpit remembers so the human never has to.** Every element on the capture surface is conditional on live state, re-derived at arrival: owed items appear dated, done items shrink to checks, due items surface only in their window, and a priority ladder answers 'what do I do?' before scrolling. Silence is a report, not a gap - when the surface shows nothing owed, nothing is owed, and the client may leave guilt-free. The app never notifies and never asks twice; arrival is the human's only job.
+
 **The standing audit:** before shipping any feature, ask — does this reward *doing* or *checking*? Does it add a decision or just data? Would it survive the client's worst week? Kill anything that fails.
 
 ---
