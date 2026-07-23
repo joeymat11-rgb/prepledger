@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.40.1";
+const APP_V = "3.41.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1398,34 +1398,35 @@ function labGroups(s) {
 }
 
 /* THE HANDOFF DOSSIER — every live verdict, compiled plain, on request */
-function dossierText(s) {
-  const L = [];
+function dossierData(s) {
+  const firstLine = (t) => { const x = Array.isArray(t) ? t[0] : t || ""; const cut = x.indexOf(". "); return (cut > 25 ? x.slice(0, cut + 1) : x).slice(0, 165); };
   const pg = prophetGrades(s);
-  L.push(`PREP LEDGER — COACH DOSSIER · ${fmtShort(isoOf(todayStart()))} · wk ${weekDay().wk}`);
-  L.push(`Trend ${s.trend} lb · est body fat ~${bfEst(s).pct}% · pace ${currentRate(s).fat} lb/wk${blackoutOn(s) ? " · scale sealed, clean read " + fmtShort(SEAL_UNTIL) : ""}`);
-  L.push(pg.n >= 2 ? `Machine trust: forecasts run ±${pg.mae} lb, bias ${pg.bias > 0 ? "+" : ""}${pg.bias}.` : `Machine trust: still calibrating (first self-grades ~1 week in).`);
-  L.push("");
-  labGroups(s).forEach((g) => {
-    const speak = g.cards.filter((c) => c.status === "LIVE" || c.status === "TRACKING");
-    if (!speak.length) return;
-    L.push(g.title.split(" — ")[0] + ":");
-    speak.forEach((c) => { const fy = Array.isArray(c.forYou) ? c.forYou.join(" ") : c.forYou; L.push(`  • ${c.t.split(" — ")[0]}: ${plainify(fy || c.tag)}`); });
-  });
-  L.push("");
-  const running = (s.trials || []).filter((t) => !t.declined).map((t) => ({ t, v: trialVerdict(s, t), arm: trialArmOn(t, isoOf(todayStart())) }));
-  if (running.length) {
-    L.push("Trials:");
-    running.forEach(({ t, v, arm }) => {
-      const tpl = TRIAL_TPL[t.tplId];
-      L.push(`  • ${tpl.t}: ${v.done ? `finished — arm A ${v.a} vs arm B ${v.b} (${v.nA + v.nB} blocks; direction, not gospel)` : arm ? `running, block ${arm.block}/${arm.of}` : "scheduled"}`);
-    });
-    L.push("");
-  }
+  const groups = labGroups(s);
+  const bySh = (ids) => groups.filter((g) => ids.includes(g.id)).flatMap((g) => g.cards).filter((c) => (c.status === "LIVE" || c.status === "TRACKING") && c.id !== "dossier" && c.id !== "trialsdesk");
+  const secDef = [["THE BODY", ["scale", "engine"]], ["TRAINING", ["training"]], ["SLEEP & PULSE", ["sleep", "pulse"]], ["BEHAVIOR", ["behavior"]], ["MODELS & FORECASTS", ["road", "models"]]];
+  const sections = secDef.map(([h, ids]) => ({ h, items: bySh(ids).map((c) => ({ t: c.t.split(" — ")[0], line: plainify(firstLine(c.forYou || c.tag)) })) })).filter((x) => x.items.length);
   const wr = weekReview(s);
-  L.push("This week: " + plainify(wr.verdict));
-  wr.lines.forEach((l) => L.push("  " + plainify(l)));
-  const recent = s.feed.filter((f) => f.d >= isoOf(new Date(todayStart().getTime() - 7 * DAY)) && /4TH SET|UNI|DEBUT|OVERRIDDEN/.test(f.t));
-  if (recent.length) { L.push(""); L.push("For your sign-off (athlete-called this week):"); recent.forEach((f) => L.push(`  • ${f.t.toLowerCase()} — ${plainify(f.how).slice(0, 110)}`)); }
+  const trials = (s.trials || []).filter((t) => !t.declined).map((t) => { const tpl = TRIAL_TPL[t.tplId]; const v = trialVerdict(s, t); const arm = trialArmOn(t, isoOf(todayStart())); return { t: tpl.t, line: v.done ? `finished: ${tpl.arms[0]} ${v.a ?? "—"} vs ${tpl.arms[1]} ${v.b ?? "—"} (${v.nA + v.nB} blocks — direction, not gospel)` : arm ? `running · block ${arm.block}/${arm.of} · current arm: ${tpl.arms[arm.armIdx]}` : "scheduled" }; });
+  const signoff = s.feed.filter((f) => f.d >= isoOf(new Date(todayStart().getTime() - 7 * DAY)) && /4TH SET|UNI|DEBUT|OVERRIDDEN/.test(f.t)).map((f) => f.t.toLowerCase());
+  return {
+    header: { d: fmtShort(isoOf(todayStart())), wk: weekDay().wk, trend: s.trend, bf: bfEst(s).pct, pace: currentRate(s).fat, sealed: blackoutOn(s) ? fmtShort(SEAL_UNTIL) : null },
+    trust: pg.n >= 2 ? `Forecasts run ±${pg.mae} lb, bias ${pg.bias > 0 ? "+" : ""}${pg.bias} — read every projection through that.` : "Machine still calibrating its own forecasts — first self-grades land ~1 week in.",
+    topline: plainify(`${wr.verdict} ${signoff.length ? signoff.length + " athlete-called change" + (signoff.length > 1 ? "s" : "") + " below need your sign-off." : "Nothing awaits your sign-off."}`),
+    sections, trials,
+    week: { verdict: plainify(wr.verdict), lines: wr.lines.map(plainify) },
+    signoff,
+  };
+}
+function dossierText(s) {
+  const d = dossierData(s);
+  const L = [`PREP LEDGER — COACH DOSSIER · ${d.header.d} · wk ${d.header.wk}`,
+    `Trend ${d.header.trend} lb · body fat ~${d.header.bf}% · pace ${d.header.pace} lb/wk${d.header.sealed ? ` · scale sealed until ${d.header.sealed}` : ""}`,
+    `Machine trust: ${d.trust}`, "", `TOP LINE: ${d.topline}`, ""];
+  d.sections.forEach((sec) => { L.push(sec.h); sec.items.forEach((it) => L.push(`  • ${it.t}: ${it.line}`)); L.push(""); });
+  if (d.trials.length) { L.push("TRIALS"); d.trials.forEach((t) => L.push(`  • ${t.t}: ${t.line}`)); L.push(""); }
+  L.push("THIS WEEK: " + d.week.verdict);
+  d.week.lines.forEach((l) => L.push("  " + l));
+  if (d.signoff.length) { L.push(""); L.push("NEEDS YOUR SIGN-OFF"); d.signoff.forEach((x) => L.push("  • " + x)); }
   return L.join("\n");
 }
 
@@ -1880,7 +1881,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -3283,16 +3284,51 @@ function TrialsDesk({ s, setS, save }) {
   );
 }
 function DossierBlock({ s }) {
-  const [txt, setTxt] = useState(null);
+  const [d, setD] = useState(null);
   const [copied, setCopied] = useState(false);
   return (
     <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
-      {!txt ? <Btn full tone="jade" onClick={() => setTxt(dossierText(s))}>Generate — fresh, right now</Btn> : (
+      {!d ? <Btn full tone="jade" onClick={() => setD(dossierData(s))}>Generate — fresh, right now</Btn> : (
         <>
-          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.chalk, whiteSpace: "pre-wrap", lineHeight: 1.6, maxHeight: 340, overflowY: "auto", background: T.plate2, borderRadius: 8, padding: 10 }}>{txt}</div>
-          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-            <Btn small tone="jade" onClick={() => { try { navigator.clipboard.writeText(txt); setCopied(true); } catch (e) {} }}>{copied ? "Copied ✓" : "Copy for coach"}</Btn>
-            <Btn small onClick={() => { setTxt(null); setCopied(false); }}>Close</Btn>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <div><Num size={19}>{d.header.trend}</Num><div style={{ fontFamily: mono, fontSize: 8, color: T.dim }}>TREND{d.header.sealed ? " · SEALED" : ""}</div></div>
+            <div><Num size={19}>{d.header.bf}%</Num><div style={{ fontFamily: mono, fontSize: 8, color: T.dim }}>BODY FAT</div></div>
+            <div><Num size={19}>{d.header.pace}</Num><div style={{ fontFamily: mono, fontSize: 8, color: T.dim }}>LB/WK</div></div>
+            <div><Num size={19}>WK {d.header.wk}</Num><div style={{ fontFamily: mono, fontSize: 8, color: T.dim }}>{d.header.d}</div></div>
+          </div>
+          <div style={{ fontFamily: mono, fontSize: 9, color: T.jade, marginTop: 8 }}>{d.trust}</div>
+          <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 10, lineHeight: 1.55, borderLeft: `2px solid ${T.jade}`, paddingLeft: 9 }}>{d.topline}</div>
+          {d.sections.map((sec, i) => (
+            <div key={i} style={{ marginTop: 13 }}>
+              <Eyebrow>{sec.h}</Eyebrow>
+              {sec.items.map((it, j) => (
+                <div key={j} style={{ marginTop: 6 }}>
+                  <span style={{ fontFamily: mono, fontSize: 9.5, color: T.steel }}>{it.t} — </span>
+                  <span style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, lineHeight: 1.5 }}>{it.line}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+          {d.trials.length > 0 && (
+            <div style={{ marginTop: 13 }}>
+              <Eyebrow c={T.brass}>TRIALS</Eyebrow>
+              {d.trials.map((t, i) => <div key={i} style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, marginTop: 5 }}><span style={{ fontFamily: mono, fontSize: 9.5, color: T.steel }}>{t.t} — </span>{t.line}</div>)}
+            </div>
+          )}
+          <div style={{ marginTop: 13 }}>
+            <Eyebrow c={T.jade}>THIS WEEK</Eyebrow>
+            <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 5, lineHeight: 1.5 }}>{d.week.verdict}</div>
+            {d.week.lines.map((l, i) => <div key={i} style={{ fontFamily: mono, fontSize: 9.5, color: T.steel, marginTop: 3 }}>{l}</div>)}
+          </div>
+          {d.signoff.length > 0 && (
+            <div style={{ marginTop: 13 }}>
+              <Eyebrow c={T.orange}>NEEDS YOUR SIGN-OFF</Eyebrow>
+              {d.signoff.map((x, i) => <div key={i} style={{ fontFamily: mono, fontSize: 10, color: T.chalk, marginTop: 4 }}>• {x}</div>)}
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+            <Btn small tone="jade" onClick={() => { try { navigator.clipboard.writeText(dossierText(s)); setCopied(true); } catch (e) { setCopied(false); } }}>{copied ? "Copied ✓" : "Copy as text"}</Btn>
+            <Btn small onClick={() => { setD(null); setCopied(false); }}>Close</Btn>
           </div>
         </>
       )}

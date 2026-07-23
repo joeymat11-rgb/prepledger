@@ -680,7 +680,10 @@ doneS.trials = [{ tplId: "refeedsize", started: isoL(Date.now() - 40 * 864e5) }]
 const v40 = tv40(doneS, doneS.trials[0]);
 ok(v40.done === true && typeof v40.nA === "number", "elapsed schedules grade themselves done");
 const doss = dt40(clone(TE));
-ok(doss.indexOf("COACH DOSSIER") > 0 && doss.indexOf("Machine trust") > -1 && doss.indexOf("This week:") > -1, "dossier compiles header, trust, and the week");
+const dd40 = __test.dossierData(clone(TE));
+ok(dd40.sections.length >= 3 && dd40.sections.every(x => x.items.every(it => it.line.length <= 170)), "structured dossier: sections present, every line first-sentence tight");
+ok(typeof dd40.topline === "string" && dd40.topline.length > 20, "top line reads as an executive summary");
+ok(doss.indexOf("COACH DOSSIER") > 0 && doss.indexOf("Machine trust") > -1 && doss.indexOf("THIS WEEK:") > -1 && doss.indexOf("TOP LINE:") > -1, "dossier compiles header, trust, top line, and the week");
 ok(doss.indexOf("provisional") === -1 && doss.indexOf("CLEAN") === -1, "dossier speaks only plain English");
 
 console.log(`\nFINAL40: ${pass} passed, ${fail} failed`);
