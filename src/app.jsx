@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.8.1";
+const APP_V = "3.8.2";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2316,7 +2316,13 @@ export default function PrepLedger() {
   }, []);
 
   const [gloss, setGloss] = useState(null);
+  const [, setWake] = useState(0);
   useEffect(() => { window.__setGloss = setGloss; return () => { window.__setGloss = null; }; }, []);
+  useEffect(() => {
+    const onVis2 = () => { if (document.visibilityState === "visible") setWake((x) => x + 1); };
+    document.addEventListener("visibilitychange", onVis2);
+    return () => document.removeEventListener("visibilitychange", onVis2);
+  }, []);
 
   /* update-ready detection — replaces the kill-twice ritual */
   useEffect(() => {
