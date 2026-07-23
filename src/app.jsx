@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.52.1";
+const APP_V = "3.52.2";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2259,7 +2259,7 @@ function AskLedger({ s, setS, save, onClose }) {
     setBusy(false); setStatus(null);
   };
   return (
-    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 70, display: "flex", flexDirection: "column", padding: "18px 16px" }}>
+    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 70, display: "flex", flexDirection: "column", padding: "0 16px", paddingTop: "calc(env(safe-area-inset-top, 24px) + 14px)", paddingBottom: "calc(env(safe-area-inset-bottom, 10px) + 10px)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Eyebrow c={T.jade}>ASK THE LEDGER — YOUR DATA, ANY QUESTION</Eyebrow>
         <span onClick={onClose} style={{ fontFamily: mono, fontSize: 10, color: T.dim, cursor: "pointer" }}>close ✕</span>
@@ -3939,7 +3939,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   };
   const big = { fontFamily: mono, fontWeight: 800, letterSpacing: "-0.02em" };
   return (
-    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 60, display: "flex", flexDirection: "column", padding: "18px 16px", overflowY: "auto" }}>
+    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 60, display: "flex", flexDirection: "column", padding: "0 16px", paddingTop: "calc(env(safe-area-inset-top, 24px) + 14px)", paddingBottom: "calc(env(safe-area-inset-bottom, 10px) + 12px)", overflowY: "auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ fontFamily: mono, fontSize: 9.5, color: T.dim }}>GYM MODE · LIFT {idx + 1}/{sess.ex.length}</span>
         <span onClick={onClose} style={{ fontFamily: mono, fontSize: 10, color: T.dim, cursor: "pointer" }}>exit ✕</span>
