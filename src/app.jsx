@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.37.0";
+const APP_V = "3.38.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1349,6 +1349,9 @@ const PLAIN_MAP = [
   ["The governor", "The safety brake"],
   ["governor hold", "safety-brake hold"],
   ["zero-comp", "no-make-up-eating"],
+  ["until owned", "until it's officially yours"],
+  ["Gate passed", "Requirement met"],
+  ["increment stays locked", "the weight increase stays locked"],
 ];
 function plainify(t) {
   if (t == null) return t;
@@ -1730,8 +1733,9 @@ const stampColor = (st) => {
   if (["PARKED", "UNBOOKED", "COACH'S EYE", "ARMS @ ~13%", "COACH FLAG"].includes(st)) return T.dim;
   return T.brass;
 };
+const STAMP_LABEL = { GATED: "LOCKED", DEBUT: "FIRST RUN", OWNED: "YOURS", "OWN-IT": "MAKE IT YOURS", RECLAIM: "WIN IT BACK", PARKED: "ON HOLD", REVERT: "ROLLED BACK" };
 const Stamp = ({ st }) => (
-  <span style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.14em", color: stampColor(st), border: `1px solid ${stampColor(st)}`, borderRadius: 3, padding: "2px 6px", whiteSpace: "nowrap" }}>{st}</span>
+  <span style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.14em", color: stampColor(st), border: `1px solid ${stampColor(st)}`, borderRadius: 3, padding: "2px 6px", whiteSpace: "nowrap" }}>{STAMP_LABEL[st] || st}</span>
 );
 const Card = ({ children, style = {}, accent }) => (
   <div style={{ background: T.plate, border: `1px solid ${T.line}`, borderLeft: accent ? `3px solid ${accent}` : `1px solid ${T.line}`, borderRadius: 8, padding: 14, ...style }}>{children}</div>
@@ -2548,11 +2552,11 @@ function QueueTab({ s, slp }) {
   const curl = exById(s, "curl");
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <Eyebrow>THE LIVE QUEUE · REFILLS ITSELF AS GATES RESOLVE</Eyebrow>
+      <Eyebrow>WHAT'S NEXT — UPDATES ITSELF AS YOU TRAIN</Eyebrow>
       <Card style={{ padding: 11 }}>
         <div style={{ fontFamily: mono, fontSize: 10, color: T.steel, letterSpacing: "0.05em", lineHeight: 2 }}>
-          <Term k="gated" c={T.dim}>GATED</Term> → <Term k="earned" c={T.jade}>EARNED</Term> → <Term k="debut" c={T.orange}>DEBUT</Term> → <Term k="own" c={T.jade}>OWNED</Term>
-          <span style={{ color: T.dim }}>  ·  side doors: </span><Term k="reclaim" c={T.brass}>RECLAIM</Term> · <Term k="parked" c={T.dim}>PARKED</Term>
+          <Term k="gated" c={T.dim}>LOCKED</Term> → <Term k="earned" c={T.jade}>EARNED</Term> → <Term k="debut" c={T.orange}>FIRST RUN</Term> → <Term k="own" c={T.jade}>YOURS</Term>
+          <span style={{ color: T.dim }}>  ·  other paths: </span><Term k="reclaim" c={T.brass}>WIN IT BACK</Term> · <Term k="parked" c={T.dim}>ON HOLD</Term>
           <span style={{ color: T.dim }}>  — tap any word</span>
         </div>
       </Card>
@@ -2617,7 +2621,7 @@ function QueueTab({ s, slp }) {
       ))}
 
       {flipped.length > 0 && (
-        <Section title="Gates Won" meta={`${flipped.length} flipped · earned the hard way`} c={T.jade}>
+        <Section title="Wins" meta={`${flipped.length} on the board · earned the hard way`} c={T.jade}>
           {flipped.map((u) => (
             <Card key={u.id} accent={T.jade}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
@@ -2880,7 +2884,7 @@ function SleepTab({ s, setS, save, slp }) {
 
       <Section title="Wake, Bedtime & Caffeine" meta={`wake ${(s.sleep.anchor || {}).wake || "06:45"} · caffeine ${s.sleep.caffMg ? s.sleep.caffMg + " mg" : "unset"}`} c={T.jade}>
         <Card accent={T.jade}>
-        <Eyebrow c={T.jade}>THE ANCHOR — FOUNDED {fmtShort("2026-07-23")}, BY ACCIDENT</Eyebrow>
+        <Eyebrow c={T.jade}>WAKE TIME — SAME EVERY DAY, SINCE {fmtShort("2026-07-23")}</Eyebrow>
         {(() => {
           const a = s.sleep.anchor || { wake: "06:45", asleepTarget: 8 };
           const lo = lightsOutT(s);
