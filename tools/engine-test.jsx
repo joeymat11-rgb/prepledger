@@ -919,5 +919,22 @@ ok((r56.s.sessionLog[skIso].skipped || []).some((k) => k.id === "pronated"), "th
 ok(!r56.s.sessionLog[skIso].entries.some((e) => e.id === "pronated"), "no phantom reps: the skipped lift never enters entries");
 ok(r56.lines.some((l) => l.t.indexOf("SKIPPED") === 0 && l.how.indexOf("phantom") > -1), "the recap names the skip honestly");
 
-console.log(`\nFINAL54: ${pass} passed, ${fail} failed`);
+// (interim)
+
+
+// v3.57.1 — live books outrank dawn prose
+const { liveBooks: lb57, SEED: TL57 } = __test;
+let bk = clone(TL57);
+const yIso = isoL(Date.now() - 864e5);
+bk.dailyLogs[yIso] = { cal: 1760, pro: 175, steps: 16500 };
+if (!bk.sleep.nights.some(n => n.d === yIso)) bk.sleep.nights.push({ d: yIso, h: 7.5 });
+const r57 = lb57(bk);
+ok(r57.y === yIso && r57.items.some(i => i.k === "numbers" && i.ok), "live books read the ledger this second, not the sync");
+ok(!r57.items.some(i => i.k === "pulse") || (bk.pulse || []).some(x => x.d < yIso), "instruments not yet adopted are never demanded");
+let bk2 = clone(TL57);
+delete bk2.dailyLogs[yIso];
+bk2.sleep.nights = bk2.sleep.nights.filter(n => n.d !== yIso);
+ok(lb57(bk2).gaps.length >= 1 && lb57(bk2).complete === false, "real gaps get named as ✗s");
+
+console.log(`\nFINAL55: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

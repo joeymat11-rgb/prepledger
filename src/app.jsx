@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.57.0";
+const APP_V = "3.57.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2445,6 +2445,22 @@ function ApiKeyBlock() {
   );
 }
 
+function liveBooks(s) {
+  const y = isoOf(new Date(todayStart().getTime() - DAY));
+  const est = !!(((s.dayCtx || {})[y] || {}).est);
+  const items = [];
+  const dl = s.dailyLogs[y];
+  items.push({ k: "numbers", ok: !!(dl && dl.cal != null) });
+  items.push({ k: "night", ok: s.sleep.nights.some((n) => n.d === y) });
+  const t2 = dayType(y);
+  if (t2 === "U" || t2 === "L") items.push({ k: "session", ok: !!s.sessionLog[y] });
+  if ((s.pulse || []).some((x) => x.d < y)) items.push({ k: "pulse", ok: (s.pulse || []).some((x) => x.d === y) });
+  if ((s.temp || []).some((x) => x.d < y)) items.push({ k: "temp", ok: (s.temp || []).some((x) => x.d === y) });
+  if (!blackoutOn(s, y)) items.push({ k: "scale", ok: s.reads.some((r) => r.d === y) });
+  const gaps = items.filter((i) => !i.ok);
+  return { y, est, items, gaps, complete: gaps.length === 0 };
+}
+
 function useRepoDoc(path) {
   const [txt, setTxt] = useState(null);
   useEffect(() => {
@@ -2486,9 +2502,16 @@ function BriefCard({ s, setS: setS2, save: save2 }) {
   const qm = brief.match(/^QUESTION:\s*(.+)$/m);
   return (
     <Card accent={T.jade}>
-      <Eyebrow c={T.jade}>OVERNIGHT BRIEF — YOUR ANALYST WORKED WHILE YOU SLEPT</Eyebrow>
-      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 3 }}>written before dawn from the last sync — anything logged after appears in tomorrow's brief</div>
-      <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{plainify(brief).slice(0, 2200)}</div>
+      <div onClick={() => setOpenB(!openB)} style={{ cursor: "pointer" }}>
+        <Eyebrow c={T.jade}>OVERNIGHT BRIEF — YOUR ANALYST WORKED WHILE YOU SLEPT {openB ? "▾" : "▸"}</Eyebrow>
+        <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 3 }}>written before dawn from the last sync — the line below is LIVE and outranks it</div>
+      </div>
+      {(() => { const lb = liveBooks(s); return (
+        <div style={{ fontFamily: mono, fontSize: 10, color: lb.complete ? T.jade : T.brass, marginTop: 7, lineHeight: 1.6 }}>
+          BOOKS · {fmtShort(lb.y)} (live) — {lb.complete ? "complete ✓ — whatever the brief says above, the ledger has it all" : lb.items.map((i) => `${i.k} ${i.ok ? "✓" : "✗"}`).join(" · ") + " — the ✗s take 30 seconds"}
+        </div>
+      ); })()}
+      {openB && <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{plainify(brief).slice(0, 2200)}</div>}
       {qm && !answered && (
         <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9 }}>
           <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass, letterSpacing: "0.06em" }}>THE ANALYST ASKS — 10 SECONDS, BECOMES LABELED DATA</div>
@@ -2614,6 +2637,7 @@ const blackoutOn = (s) => daysUntil(s.blackout.until) > 0;
 const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d); if ((t === "U" || t === "L") && !s.sessionLog[d]) return d; } return null; };
 __test.nextTrainingISO = nextTrainingISO;
 __test.INS_MAP = INS_MAP;
+__test.liveBooks = liveBooks;
 
 /* ---------- atoms ---------- */
 const Eyebrow = ({ children, c = T.dim }) => (
