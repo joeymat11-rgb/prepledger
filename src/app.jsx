@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.56.2";
+const APP_V = "3.57.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2487,6 +2487,7 @@ function BriefCard({ s, setS: setS2, save: save2 }) {
   return (
     <Card accent={T.jade}>
       <Eyebrow c={T.jade}>OVERNIGHT BRIEF — YOUR ANALYST WORKED WHILE YOU SLEPT</Eyebrow>
+      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 3 }}>written before dawn from the last sync — anything logged after appears in tomorrow's brief</div>
       <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{plainify(brief).slice(0, 2200)}</div>
       {qm && !answered && (
         <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9 }}>
@@ -4641,6 +4642,20 @@ export default function PrepLedger() {
   const [tab, setTab] = useState("NOW");
   const [rules, setRules] = useState(false);
   const [coach, setCoach] = useState(false);
+  const syncTimer = useRef(null);
+  const lastPush = useRef(0);
+  useEffect(() => {
+    if (!s) return;
+    if (!localStorage.getItem(TOKEN_KEY)) return;
+    if (syncTimer.current) clearTimeout(syncTimer.current);
+    syncTimer.current = setTimeout(() => {
+      if (Date.now() - lastPush.current < 10 * 60e3) return;
+      if (!navigator.onLine) return;
+      lastPush.current = Date.now();
+      ghSync(s).catch(() => {});
+    }, 90e3);
+    return () => { if (syncTimer.current) clearTimeout(syncTimer.current); };
+  }, [s]);
   const [kitPerson, setKitPerson] = useState(() => { try { const qp = new URLSearchParams(window.location.search).get("p"); if (qp && KIT_SPECS[qp]) { localStorage.setItem(KIT_KEY, qp); return qp; } return localStorage.getItem(KIT_KEY); } catch (e) { return null; } });
   const [updReady, setUpdReady] = useState(false);
   const [offline, setOffline] = useState(false);
