@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.59.1";
+const APP_V = "3.60.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -216,6 +216,22 @@ function dayType(iso) {
 }
 
 /* target generator: climb the earliest set that lags the one before it */
+function liftCall(s, exId) {
+  const hist = Object.keys(s.sessionLog).sort().map((d) => { const e = (s.sessionLog[d].entries || []).find((x) => x.id === exId); return e ? { d, tot: (e.reps || []).reduce((a, b) => a + b, 0), rir: e.rir, w: e.w } : null; }).filter(Boolean).slice(-5);
+  if (hist.length < 2) return { verdict: "PUSH", why: "young lift — chase reps, build the file", n: hist.length };
+  const clean = hist.filter((h) => !dayWeather(s, h.d).hard);
+  const vel = clean.length >= 2 ? +(((clean[clean.length - 1].tot - clean[0].tot) / (clean.length - 1)).toFixed(1)) : null;
+  let stall = 0;
+  for (let i = clean.length - 1; i >= 1; i--) { if (clean[i].tot <= clean[i - 1].tot && (clean[i].rir == null || clean[i].rir <= 2)) stall++; else break; }
+  const slp2 = sleepInfo(s);
+  const postRf = dayWeather(s, isoOf(todayStart())).flags.some((f) => f.k === "postrefeed");
+  if (stall >= 3) { const ex2 = s.exercises.find((x) => x.id === exId); const newW = ex2 && ex2.w ? Math.max(5, Math.round((ex2.w * 0.95) / 5) * 5) : null; return { verdict: "RESET", why: `${stall} honest sessions without total-rep gain (weather-clean) — the evidence-based move is a small load reset to rebuild momentum`, n: clean.length, newW, vel }; }
+  if (!slp2.clean) return { verdict: "HOLD", why: `sleep debt ${slp2.run}/${slp2.need} — repeat the targets, bank nothing, protect the pattern`, n: clean.length, vel };
+  if (postRf) return { verdict: "PUSH", why: `post-refeed window — glycogen is aboard; your best conditions to chase${vel != null ? ` (velocity ${vel >= 0 ? "+" : ""}${vel} reps/session)` : ""}`, n: clean.length, vel };
+  if (vel != null && vel <= 0 && stall > 0) return { verdict: "PUSH", why: `velocity flat (${vel} reps/session, ${stall} stalled) — chase honestly; one more stall triggers the reset question`, n: clean.length, vel };
+  return { verdict: "PUSH", why: `velocity ${vel != null ? (vel >= 0 ? "+" : "") + vel + " reps/session" : "building"} — keep chasing, weight bumps queue when standards fall`, n: clean.length, vel };
+}
+
 function targetsFor(ex) {
   if (ex.std) return ex.std.slice();
   if (ex.reclaim) return ex.reclaim.slice();
@@ -1855,7 +1871,22 @@ function labStatusList(s) {
 }
 
 /* results announce themselves — any card crossing its threshold posts to the feed */
+function sweepStalls(s) {
+  let ns = null;
+  (s.exercises || []).forEach((ex) => {
+    if (!ex.w) return;
+    const lc = liftCall(s, ex.id);
+    if (lc.verdict !== "RESET" || !lc.newW) return;
+    const already = (s.agentProposals || []).some((ap) => ap.kind === "reset" && ap.exId === ex.id) || (s.feed || []).slice(0, 40).some((f) => f.t && f.t.indexOf("RESET APPLIED — " + ex.n) === 0);
+    if (already) return;
+    ns = ns || JSON.parse(JSON.stringify(s));
+    ns.agentProposals = [...(ns.agentProposals || []), { id: "rs" + ex.id + Date.now(), kind: "reset", exId: ex.id, newW: lc.newW, title: `RESET ${ex.n} — ${ex.w} → ${lc.newW}`, body: lc.why + ` Rebuild the reps at ${lc.newW}; the bar comes back stronger than the stall left it.`, at: isoOf(todayStart()) }];
+  });
+  return ns;
+}
+
 function sweepLab(s, dow = new Date().getDay()) {
+  const st0 = sweepStalls(s); if (st0) s = st0;
   const flat = labGroups(s).flatMap((g) => g.cards);
   const seen = s.labSeen || {};
   const first = Object.keys(seen).length === 0;
@@ -1864,7 +1895,7 @@ function sweepLab(s, dow = new Date().getDay()) {
   const needJournal = !(s.forecasts || []).some((f) => f.d === tISO2);
   const wkAgo2 = isoOf(new Date(todayStart().getTime() - 6 * DAY));
   const needReview = (dow === 0 || dow === 1) && !(s.feed || []).some((f) => f.d >= wkAgo2 && f.t && f.t.indexOf("WEEK IN REVIEW") === 0);
-  if (!flips.length && !first && !needJournal && !needReview) return null;
+  if (!flips.length && !first && !needJournal && !needReview) return st0 || null;
   const ns = JSON.parse(JSON.stringify(s));
   if (needJournal) {
     const cur2 = currentRate(ns);
@@ -2280,7 +2311,7 @@ function askContext(s) {
   const trls = (s.trials || []).map((t3) => { const tp = trialTpl(t3); return tp ? `${tp.t} (started ${t3.started})` : ""; }).filter(Boolean).join(" · ") || "none";
   const gate2 = sleepInfo(s);
   const dict = LEDGER_DICT + " SLEEP GATE RIGHT NOW (do not re-derive): clean run " + gate2.run + "/" + gate2.need + " — records currently " + (gate2.clean ? "OFFICIAL" : "PENDING") + ". EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
-  return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== LAST 6 SESSIONS ===\n${sess2}`;
+  return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
 }
 const AGENT_TOOLS = [
   { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads|feed. Feed = the app event log; amendments there override older raw rows. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
@@ -2652,6 +2683,8 @@ __test.INS_MAP = INS_MAP;
 __test.liveBooks = liveBooks;
 __test.LEDGER_DICT = LEDGER_DICT;
 __test.briefAnswered = briefAnswered;
+__test.liftCall = liftCall;
+__test.sweepStalls = sweepStalls;
 
 /* ---------- atoms ---------- */
 const Eyebrow = ({ children, c = T.dim }) => (
@@ -2944,6 +2977,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>{ap.title}</div>
               <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{plainify(ap.body)}</div>
               <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
+                {ap.kind === "reset" && ap.exId && ap.newW && (
+                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex3 = ns.exercises.find((x) => x.id === ap.exId); if (ex3) { const oldW = ex3.w; ex3.w = ap.newW; ex3.last = null; ns.feed.unshift({ d: tISO, t: "RESET APPLIED — " + ex3.n + " " + oldW + " → " + ap.newW, how: "3-session stall, evidence-based back-off, your consent — rebuild starts next session" }); } ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Apply reset — I consent</Btn>
+                )}
                 {ap.kind === "trial" && (ap.custom || (ap.tplId && TRIAL_TPL[ap.tplId] && !(s.trials || []).some((t) => t.tplId === ap.tplId))) && (
                   <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const rec = ap.custom ? { custom: ap.custom, started: tISO } : { tplId: ap.tplId, started: tISO }; ns.trials = [...(ns.trials || []), rec]; ns.feed.unshift({ d: tISO, t: "TRIAL STARTED — " + (ap.custom ? ap.custom.t : TRIAL_TPL[ap.tplId].t), how: ap.custom ? "designed by your analyst for a pattern in YOUR data, consented by you" : "proposed by your analyst, consented by you" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Start trial — I consent</Btn>
                 )}
@@ -3437,6 +3473,9 @@ function LogTab({ s, setS, save, slp }) {
         <Card key={ex.id} style={{ padding: 12, opacity: skipped[ex.id] ? 0.45 : 1 }} accent={ex.isDebutNow && !skipped[ex.id] ? T.orange : undefined}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
             <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 17, textTransform: "uppercase", color: T.chalk, textDecoration: skipped[ex.id] ? "line-through" : "none" }}>{ex.n}</div>
+            {!reorder && (() => { const lc = liftCall(s, ex.id); return (
+              <span title={lc.why} style={{ fontFamily: mono, fontSize: 8.5, color: lc.verdict === "RESET" ? T.redline : lc.verdict === "HOLD" ? T.brass : T.jade, border: `1px solid ${T.line}`, borderRadius: 999, padding: "3px 8px", flexShrink: 0 }}>{lc.verdict}{lc.vel != null ? ` ${lc.vel >= 0 ? "+" : ""}${lc.vel}/ses` : ""}</span>
+            ); })()}
             {!reorder && (
               <button onClick={() => setSkipped({ ...skipped, [ex.id]: !skipped[ex.id] })} style={{ fontFamily: mono, fontSize: 9, color: skipped[ex.id] ? T.brass : T.dim, background: "none", border: `1px solid ${skipped[ex.id] ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", flexShrink: 0 }}>{skipped[ex.id] ? "skipped — undo" : "skip"}</button>
             )}

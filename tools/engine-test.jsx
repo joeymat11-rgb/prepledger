@@ -984,3 +984,22 @@ ok(ba59(anS, "a different question entirely") === false, "new questions get fres
 
 console.log(`\nFINAL58: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+// v3.60 — the prescription desk: velocity writes the next session, resets need consent
+const { liftCall: lc60, sweepStalls: ss60, SEED: TD60 } = __test;
+let pd = clone(TD60);
+for (let k = 3; k >= 1; k--) { const d = isoL(Date.now() - k * 864e5); pd.sleep.nights = pd.sleep.nights.filter((n) => n.d !== d); pd.sleep.nights.push({ d, h: 7.8, bed: "22:30", wake: "06:30" }); }
+const exW60 = pd.exercises.find((x) => x.id === "lateral").w;
+const expW60 = Math.max(5, Math.round((exW60 * 0.95) / 5) * 5);
+const mk60 = (k, tot, rir) => { const d = isoL(Date.now() - k * 864e5); pd.sessionLog[d] = { entries: [{ id: "lateral", reps: [tot], rir, w: exW60 }], at: 1 }; };
+mk60(8, 40, 2); mk60(6, 43, 2);
+ok(lc60(pd, "lateral").verdict === "PUSH" && lc60(pd, "lateral").vel > 0, "rising velocity keeps the chase on: " + lc60(pd, "lateral").why.slice(0, 40));
+mk60(4, 43, 1); mk60(2, 42, 0); mk60(1, 41, 0);
+const stalled = lc60(pd, "lateral");
+ok(stalled.verdict === "RESET" && stalled.newW === expW60, "3 honest weather-clean stalls trigger the evidence-based reset with plate-round math: " + stalled.newW);
+const swept = ss60(pd);
+ok(swept && swept.agentProposals.some((ap) => ap.kind === "reset" && ap.exId === "lateral" && ap.newW === expW60), "the stall files a consent-gated proposal — no load ever changes itself");
+ok(ss60(swept) === null || !ss60(swept), "one stall, one proposal — never nags twice");
+
+console.log(`\nFINAL59: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
