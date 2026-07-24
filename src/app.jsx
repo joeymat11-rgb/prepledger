@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.70.0";
+const APP_V = "3.70.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3352,7 +3352,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       ) : (
       <Card accent={new Date().getHours() >= 17 && !(dl && dl.cal != null) ? T.brass : undefined}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Eyebrow c={new Date().getHours() >= 17 && !(dl && dl.cal != null) ? T.brass : undefined}>{new Date().getHours() >= 17 && !(dl && dl.cal != null) ? "TONIGHT — CLOSE THE DAY" : "TODAY'S NUMBERS — LOG THESE TONIGHT"}</Eyebrow>
+          <Eyebrow c={((s.dayCtx || {})[tISO] || {}).est ? T.brass : new Date().getHours() >= 17 && !(dl && dl.cal != null) ? T.brass : undefined}>{((s.dayCtx || {})[tISO] || {}).est ? "ESTIMATE DAY — ROUGH NUMBERS COUNT" : new Date().getHours() >= 17 && !(dl && dl.cal != null) ? "TONIGHT — CLOSE THE DAY" : "TODAY'S NUMBERS — LOG THESE TONIGHT"}</Eyebrow>
           {(() => { const est = ((s.dayCtx || {})[tISO] || {}).est; return (
             <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if (est) delete ns.dayCtx[tISO]; else ns.dayCtx[tISO] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
               style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.05em", color: est ? T.brass : T.dim, border: `1px solid ${est ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>
@@ -3360,6 +3360,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             </span>
           ); })()}
         </div>
+        {((s.dayCtx || {})[tISO] || {}).est && (
+          <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 8, lineHeight: 1.55 }}>The method: anchor protein first — four palm-sized servings still lands near 175. Then calories as the midpoint of your honest bracket: "definitely over 2,300, definitely under 2,700" writes 2,500. One entry after the event, never the optimistic edge. A labeled estimate protects the trend; false precision poisons it.</div>
+        )}
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           {[
             { l: `CAL ${calT[0]}–${calT[1]}`, v: cal, set: setCal },
