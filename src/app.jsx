@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.67.0";
+const APP_V = "3.68.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -759,7 +759,7 @@ function labAnalytics(s) {
     const line = mv.slice().sort((a, b) => (a.zone === "UNDER" ? -1 : b.zone === "UNDER" ? 1 : a.n7 - b.n7)).map((m) => `${m.mg} ${m.n7}${m.zone === "IN-BAND" ? " ✓" : m.zone === "UNDER" ? " ▼▼" : m.zone === "LOW" ? " ▼" : m.zone === "OVER" ? " ▲▲" : " ▲"}`).join(" · ");
     out.push({ id: "volumeledger", t: "THE VOLUME LEDGER — WEEKLY SETS PER MUSCLE", status: mv.length ? "LIVE" : "ARMED", prog: { n: mv.length, need: 1, label: "muscle groups with logged sets" },
       tag: "The biggest dial in hypertrophy, counted from your actual logs.",
-      deep: "Weekly hard sets per muscle is the strongest known volume dial. This counts DIRECT sets only (a press works triceps too, but indirect counting invites double-book fantasy — the simplification is stated, not hidden). The bands are deficit-calibrated: " + VOL_BANDS.floor + " is the retention floor (below it for two straight weeks and the ledger proposes +1 as cheap insurance), " + VOL_BANDS.lo + "–" + VOL_BANDS.hi + " is the working zone, past " + VOL_BANDS.ceil + " is caution — recoverable volume compresses in a cut, and sets you cannot recover from are pure fatigue. Every proposal cross-references the muscle's lift velocities, your sleep gate, and the alarm before it fires; changes go one set at a time through your consent inbox, and each muscle rests two weeks between moves so the change has time to speak. Adds go to the muscle's strongest mover, trims come off its weakest.",
+      deep: "Weekly hard sets per muscle is the strongest known volume dial. Counting here uses the half-credit convention: direct sets count 1, and heavy secondary work lends half — pressing lends 0.5 to triceps and delts, rows and pulldowns lend 0.5 to biceps, curls lend 0.5 to forearms. Counting conventions genuinely differ across the literature; half-credit is the defensible middle — direct-only starves muscles that live off compounds, full-credit double-books the same set twice. The bands are deficit-calibrated: " + VOL_BANDS.floor + " is the retention floor (below it for two straight weeks and the ledger proposes +1 as cheap insurance), " + VOL_BANDS.lo + "–" + VOL_BANDS.hi + " is the working zone, past " + VOL_BANDS.ceil + " is caution — recoverable volume compresses in a cut, and sets you cannot recover from are pure fatigue. Every proposal cross-references the muscle's lift velocities, your sleep gate, and the alarm before it fires; changes go one set at a time through your consent inbox, and each muscle rests two weeks between moves so the change has time to speak. Adds go to the muscle's strongest mover, trims come off its weakest.",
       forYou: mv.length ? `This week: ${line}. ✓ in the working zone · ▼ light · ▼▼ under the retention floor · ▲ high · ▲▲ past the deficit ceiling. Proposals arrive in your inbox only when the signals agree.` : "Log a session and the ledger opens.",
       lines: [] });
   })();
@@ -1938,10 +1938,11 @@ function labStatusList(s) {
 
 /* results announce themselves — any card crossing its threshold posts to the feed */
 const VOL_BANDS = { floor: 6, lo: 8, hi: 14, ceil: 16 };
+const INDIRECT = { press: { triceps: 0.5, delts: 0.5 }, rows: { biceps: 0.5 }, pulldown: { biceps: 0.5 }, curl: { forearms: 0.5 } };
 function muscleVolume(s) {
   const tISO6 = isoOf(todayStart());
   const win = (backLo, backHi) => Object.keys(s.sessionLog).filter((d) => { const g = (mk(tISO6) - mk(d)) / DAY; return g >= backLo && g < backHi; });
-  const count = (days2) => { const by = {}; days2.forEach((d) => { (s.sessionLog[d].entries || []).forEach((e) => { const ex6 = (s.exercises || []).find((x) => x.id === e.id); if (!ex6 || !ex6.mg) return; by[ex6.mg] = (by[ex6.mg] || 0) + (e.reps || []).length; }); }); return by; };
+  const count = (days2) => { const by = {}; days2.forEach((d) => { (s.sessionLog[d].entries || []).forEach((e) => { const ex6 = (s.exercises || []).find((x) => x.id === e.id); if (!ex6 || !ex6.mg) return; const n6 = (e.reps || []).length; by[ex6.mg] = (by[ex6.mg] || 0) + n6; const lend = INDIRECT[e.id]; if (lend) Object.entries(lend).forEach(([mg2, f2]) => { by[mg2] = (by[mg2] || 0) + n6 * f2; }); }); }); return by; };
   const now7 = count(win(0, 7)), prev7 = count(win(7, 14));
   const mgs = [...new Set((s.exercises || []).map((x) => x.mg).filter(Boolean))];
   return mgs.map((mg) => {
@@ -1951,7 +1952,8 @@ function muscleVolume(s) {
     const vels = lifts.map((x) => ({ id: x.id, n: x.n, v: liftCall(s, x.id).vel })).filter((x) => x.v != null);
     const slipping = vels.filter((x) => x.v < -0.2).length;
     const gaining = vels.filter((x) => x.v > 0.2).length;
-    return { mg, n7, p7, zone, lifts, vels, slipping, gaining };
+    const fmtN = (x2) => (Number.isInteger(x2) ? x2 : +x2.toFixed(1));
+    return { mg, n7: fmtN(n7), p7: fmtN(p7), zone, lifts, vels, slipping, gaining };
   }).filter((m) => m.n7 > 0 || m.p7 > 0);
 }
 function sweepVolume(s) {
@@ -1970,7 +1972,7 @@ function sweepVolume(s) {
     const pick = dir > 0 ? pool.slice().sort((a, b) => (b.v ?? 0) - (a.v ?? 0))[0] : pool.slice().sort((a, b) => (a.v ?? 0) - (b.v ?? 0))[0];
     if (!pick) return;
     ns = ns || JSON.parse(JSON.stringify(s));
-    ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + m.mg + Date.now(), kind: "volume", mg: m.mg, exId: pick.id, dir, title: `VOLUME ${dir > 0 ? "+1" : "−1"} — ${m.mg.toUpperCase()} via ${pick.n}`, body: why + ` ${dir > 0 ? "Adds one set to " + pick.n + " (its strongest mover)." : "Removes one set from " + pick.n + " (its weakest mover)."} Two weeks of data before the ledger revisits this muscle.`, at: tISO7 }];
+    ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + m.mg + Date.now(), kind: "volume", mg: m.mg, exId: pick.id, dir, title: `VOLUME ${dir > 0 ? "+1" : "−1"} — ${m.mg.toUpperCase()} via ${pick.n}`, body: why + ` ${dir > 0 ? "Adds one set to " + pick.n + " (its strongest mover). The new set arrives as the final set — the effort ladder re-keys itself: it becomes the all-out set, the old final pulls back to 1 in reserve, and its rep target seeds one under your current last set." : "Removes the final set from " + pick.n + " (its weakest mover) — the effort ladder re-keys to the shorter shape automatically."} Two weeks of data before the ledger revisits this muscle.`, at: tISO7 }];
   });
   return ns;
 }
@@ -2826,6 +2828,7 @@ __test.CALL_PLAIN = CALL_PLAIN;
 __test.sweepStalls = sweepStalls;
 __test.muscleVolume = muscleVolume;
 __test.sweepVolume = sweepVolume;
+__test.INDIRECT = INDIRECT;
 
 /* ---------- atoms ---------- */
 const Eyebrow = ({ children, c = T.dim }) => (

@@ -1096,3 +1096,21 @@ ok(inb.body.indexOf("retention floor") > -1 || inb.body.indexOf("insurance") > -
 
 console.log(`\nFINAL65: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+// v3.68 — fractional counting + the ladder re-keys, stated at consent
+const { muscleVolume: mv68, sweepVolume: sv68, rirPlan: rp68, INDIRECT: IN68, SEED: TK68 } = __test;
+let fc = clone(TK68);
+const df1 = isoL(Date.now() - 2 * 864e5);
+fc.sessionLog[df1] = { entries: [{ id: "press", reps: [8, 8, 7], rir: 2, w: 245 }, { id: "tricep", reps: [12, 11], rir: 2, w: 55 }], at: 1 };
+const tri = mv68(fc).find((m) => m.mg === "triceps");
+ok(tri && tri.n7 === 3.5, "pressing lends half a set: triceps = 2 direct + 3×0.5 = " + tri.n7);
+ok(IN68.press.triceps === 0.5 && IN68.rows.biceps === 0.5, "the lending table is data, inspectable");
+let lad = clone(TK68);
+const tr68 = lad.exercises.find((x) => x.id === "tricep");
+const before68 = rp68(lad, tr68, { clean: true, run: 3, need: 3 }).plan.join(",");
+tr68.sets = tr68.sets + 1;
+const after68 = rp68(lad, tr68, { clean: true, run: 3, need: 3 }).plan.join(",");
+ok(before68 === "2,1,0" && after68 === "2,1,1,0", "a consented +1 re-keys the ladder: new set takes the 0, old final pulls to 1: " + before68 + " → " + after68);
+
+console.log(`\nFINAL66: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
