@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.69.0";
+const APP_V = "3.70.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2313,7 +2313,7 @@ async function ghSync(state) {
   const body = { message: "ledger auto-sync " + isoOf(todayStart()) + " [skip ci]", content: btoa(unescape(encodeURIComponent(JSON.stringify({ ...state, _dictionary: LEDGER_DICT })))), ...(sha ? { sha } : {}) };
   try {
     const put = await fetch(url, { method: "PUT", headers: { ...hdr, "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    if (put.ok) { try { snapshotMaybe(state, tok); } catch (e) {} }
+    if (put.ok) { try { snapshotMaybe(state, tok); localStorage.setItem("pl-lastsync", String(Date.now())); } catch (e) {} }
     return put.ok ? { ok: true } : { ok: false, msg: "HTTP " + put.status + (put.status === 401 ? " — token expired?" : "") };
   } catch (e) { return { ok: false, msg: "network" }; }
 }
@@ -2638,6 +2638,24 @@ function ApiKeyBlock() {
   );
 }
 
+const CONSTITUTION = [
+  ["Attention lives on NOW", "If something deserves your eyes, it comes to the front page when it does — never buried in a tab."],
+  ["Simple surface, real depth", "Every card reads in one glance; every card opens into its receipts. Plain words are enforced by tests."],
+  ["Many sources, one door", "Every change the machine wants — sets, weights, trials — arrives as an inbox proposal. Your tap decides."],
+  ["Facts are live, prose is dawn", "Numbers come from engines reading this second; the analyst's essay is a morning newspaper and says so."],
+  ["Done-ness is derived", "The ledger decides what's complete — never a screen's memory. In-progress work is a draft that survives."],
+  ["Smallest honest increment", "Weight moves by the machine's real smallest step; new sets and loads expect to keep almost every rep."],
+  ["One terminal failure set", "Each exercise ends in exactly one all-out set. On debt days only that set pulls back — the rest run as written."],
+  ["The tilt", "Volume is presumed useful until your own bar speed says otherwise. Adds come easier than trims."],
+  ["Records need clean sleep", "Nothing banks on a short-sleep streak. Pending isn't punishment — it's meaning protection."],
+  ["The athlete overrides", "Every number is yours to change on the floor. The machine rebases instantly and files your ruling as precedent."],
+];
+function filingsFor(dow, dom) {
+  const out9 = [];
+  if (dow === 1) out9.push("COACH DAY — the dossier and your night shift's draft are ready behind the COACH button");
+  if (dom >= 1 && dom <= 3) out9.push("THE RED CELL files this week — the case against your prep waits in LAB");
+  return out9;
+}
 function liveBooks(s) {
   const y = isoOf(new Date(todayStart().getTime() - DAY));
   const est = !!(((s.dayCtx || {})[y] || {}).est);
@@ -2842,6 +2860,9 @@ __test.sweepStalls = sweepStalls;
 __test.muscleVolume = muscleVolume;
 __test.sweepVolume = sweepVolume;
 __test.INDIRECT = INDIRECT;
+__test.filingsFor = filingsFor;
+__test.bodyAlarm = bodyAlarm;
+__test.CONSTITUTION = CONSTITUTION;
 
 /* ---------- atoms ---------- */
 const Eyebrow = ({ children, c = T.dim }) => (
@@ -3100,7 +3121,19 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         {s.sessionLog[tISO] && <Chip c={T.jade}>Session ✓ — receipt in TRAIN</Chip>}
         {cleanIn > 0 && <Chip c={T.chalk}>Scale sealed · clean read {fmtShort(SEAL_UNTIL)} · {cleanIn}d</Chip>}
         {ev && <Chip c={T.chalk}>{ev.t} · {fmtShort(ev.d)}</Chip>}
+        {(() => { try { const ls2 = +(localStorage.getItem("pl-lastsync") || 0); if (localStorage.getItem(TOKEN_KEY) && ls2 && Date.now() - ls2 > 36 * 36e5) return <Chip c={T.brass}>books haven't reached your analyst since {new Date(ls2).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })} — tap sync in RULES</Chip>; } catch (e) {} return null; })()}
       </div>
+      {(() => { const al9 = bodyAlarm(s, slp); if (!al9 || (al9.level !== "RED" && al9.level !== "AMBER")) return null; return (
+        <Card accent={al9.level === "RED" ? T.redline : T.brass}>
+          <Eyebrow c={al9.level === "RED" ? T.redline : T.brass}>{al9.level === "RED" ? "⚠ BODY ALARM — REST TODAY" : "⚠ BODY ALARM — OFF DAY"}</Eyebrow>
+          <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{al9.level === "RED" ? "The pattern held a second day. Today buys nothing worth its cost — walk, eat, sleep, and come back tomorrow ahead. Every lift's desk already says REST TODAY." : "Normal session, one rule changed: no all-out sets and no record attempts. Every zero becomes a one — the desk chips already carry it."}</div>
+        </Card>
+      ); })()}
+      {(() => { const fl = filingsFor(new Date().getDay(), new Date().getDate()); if (!fl.length) return null; return (
+        <Card style={{ padding: "9px 14px" }}>
+          {fl.map((f9, i9) => <div key={i9} style={{ fontFamily: mono, fontSize: 9.5, color: T.steel, lineHeight: 1.7 }}>🗎 {f9}</div>)}
+        </Card>
+      ); })()}
 
       <BriefCard s={s} setS={setS} save={save} />
 
@@ -3202,6 +3235,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
 
       )}
+
+      <Card style={{ padding: "10px 14px" }}>
+        <div onClick={() => window.__setGloss && window.__setGloss(["The house laws", CONSTITUTION.map((c9) => c9[0].toUpperCase() + " — " + c9[1]).join("\n\n")])} style={{ cursor: "pointer", fontFamily: mono, fontSize: 9.5, color: T.dim }}>⚖ THE HOUSE LAWS — ten rules this app runs on · tap to read ▸</div>
+      </Card>
 
       <RndCard />
 
