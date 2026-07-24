@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.53.2";
+const APP_V = "3.54.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -896,6 +896,29 @@ function sleepLab(s) {
     deep: "Every mid-night wake you tag carries a duration. Enough of them reveal whether the wakes cluster (a clock/clearance signature pointing at melatonin timing or the caffeine tail) or scatter (ordinary arousals everyone has and forgets). Deficit-cortisol wakes — the 3–4 a.m. classic in deep cuts — are also on the suspect list, and the pre-bed protein feed is their counter.",
     forYou: woke.length >= 5 ? `${woke.length} tagged wakes · avg ${Math.round(woke.reduce((a, n) => a + (n.awakeMin || 30), 0) / woke.length)} min awake · on ${wokeRate(post)}% of nights. Persisting off melatonin = caffeine-tail or cortisol; tell me and the clock-time capture ships.` : `${woke.length}/5 — may this one starve. Tag honestly; untagged solid nights are data too.`,
     lines: [] });
+  /* variance tax — deviation from your own median bedtime, priced */
+  (() => {
+    const mins2 = (t) => { const [a2, b2] = t.split(":").map(Number); let m2 = a2 * 60 + b2; if (m2 < 720) m2 += 1440; return m2; };
+    const timed = s.sleep.nights.filter((n) => n.bed).slice(-30);
+    const med = (arr) => { const v = arr.slice().sort((a2, b2) => a2 - b2); return v.length ? v[Math.floor(v.length / 2)] : null; };
+    const mB = med(timed.map((n) => mins2(n.bed)));
+    const nd2 = (d) => isoOf(new Date(mk(d).getTime() + DAY));
+    const bucket = (lo2, hi2) => timed.filter((n) => { const dv = Math.abs(mins2(n.bed) - mB); return dv >= lo2 && (hi2 == null || dv < hi2); });
+    const onT = mB != null ? bucket(0, 31) : [];
+    const offT = mB != null ? timed.filter((n) => Math.abs(mins2(n.bed) - mB) > 45) : [];
+    const avgH = (a2) => (a2.length ? +(a2.reduce((x2, n) => x2 + n.h, 0) / a2.length).toFixed(1) : null);
+    const reps2 = (a2) => { const v = a2.map((n) => s.sessionLog[nd2(n.d)]).filter(Boolean).map((sl2) => (sl2.entries || []).reduce((x2, e2) => x2 + (e2.reps || []).reduce((p2, q2) => p2 + q2, 0), 0)); return v.length >= 3 ? Math.round(v.reduce((x2, y2) => x2 + y2, 0) / v.length) : null; };
+    const live2 = onT.length >= 5 && offT.length >= 5;
+    const dH = live2 ? +(avgH(offT) - avgH(onT)).toFixed(1) : null;
+    const rOn = live2 ? reps2(onT) : null, rOff = live2 ? reps2(offT) : null;
+    out.push({ id: "variancetax", t: "THE VARIANCE TAX", status: live2 ? "LIVE" : "ARMED", prog: { n: Math.min(onT.length, offT.length), need: 5, label: "timed nights per bucket (on-schedule vs 45+ min off)" },
+      tag: "Life will move your bedtime — this measures what each move costs YOU.",
+      deep: "Regularity research (Phillips 2017 onward) says timing scatter predicts outcomes about as strongly as duration — but that's a population claim. This instrument prices YOUR scatter: every timed night is measured against your own rolling median bedtime, bucketed on-schedule (within 30 min) vs off (45+ min), then the buckets are compared on hours slept and next-day session output. If the tax is real in you, the anchor earns its keep with receipts; if it's tiny, the app relaxes about bedtime honestly. Either verdict is a win — and the aim-time on NOW is a bearing, never a test.",
+      forYou: live2
+        ? `Off-schedule nights (${offT.length}) vs on-schedule (${onT.length}): ${dH > 0 ? "+" : ""}${dH} h sleep${rOn != null && rOff != null ? ` · next-day output ${rOff - rOn >= 0 ? "+" : ""}${rOff - rOn} reps` : ""} (measured). ${dH <= -0.5 || (rOn != null && rOff != null && rOff - rOn <= -5) ? "The tax is real in you — drifting bedtime costs actual iron; the anchor is earning its keep." : "The tax runs small so far — your system absorbs bedtime drift better than the literature's average. The anchor stays a bearing, not a leash."}`
+        : `${Math.min(onT.length, offT.length)}/5 per bucket. It funds itself from the bed times you already log — ordinary messy life fills the off-schedule arm without you trying. No behavior required except honesty.`,
+      lines: [] });
+  })();
   return out;
 }
 
@@ -1391,7 +1414,7 @@ function labGroups(s) {
     scale: ["whoosh", "refeed", "noise", "masked", "creep"],
     engine: ["adaptmeter", "stepeff", "refeedroi"],
     training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss"],
-    sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "canary"],
+    sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "variancetax", "canary"],
     pulse: ["pulsebase", "cutstress", "pulsewarn", "refeedpulse", "furnacebase", "exittherm"],
     behavior: ["missarch", "weekend", "compound", "miner"],
     trials: ["trialsdesk"],
@@ -1638,11 +1661,11 @@ function dayProtocol(s, slp) {
 
   /* 5 · repair last night, tonight */
   if (lastNight) {
-    if (lastNight.h < (s.sleep.cleanH || 7.5)) steps.push({ a: `Lights out ${(() => { let m = lo.mins - 20; if (m < 0) m += 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; })()} — 20 early`, why: `last night ran ${lastNight.h} h — one modestly early night repays most of it; wake stays ${(s.sleep.anchor || {}).wake || "06:45"} (never oversleep the anchor). If you must nap: ≤25 min, before 3 pm` });
+    if (lastNight.h < (s.sleep.cleanH || 7.5)) steps.push({ a: `Lights out ~${(() => { let m = lo.mins - 20; if (m < 0) m += 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; })()} — 20 early`, why: `last night ran ${lastNight.h} h — one modestly early night repays most of it; wake stays ~${(s.sleep.anchor || {}).wake || "06:45"} (aim near it — the morning log takes whatever really happened). If you must nap: ≤25 min, before 3 pm` });
     else if (lastNight.sol != null && lastNight.sol >= 30) steps.push({ a: `Wind-down 30 min before ${lo.t}`, why: `drift-off ran ${lastNight.sol} min last night — screens off, lights low; the drift is usually paying for the evening's light` });
     else if ((lastNight.awakeMin || 0) >= 30) steps.push({ a: "Tonight: cooler room, no fluids after ~8:30", why: `you were awake ${lastNight.awakeMin} min mid-night — the two cheapest fixes first` });
-    else steps.push({ a: `Lights out ${lo.t}`, why: `wake ${(s.sleep.anchor || {}).wake || "06:45"} · ${lo.target} h asleep + ~${lo.sol} min drift-off${(() => { const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length; return melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off` : ""; })()}` });
-  } else steps.push({ a: `Lights out ${lo.t}`, why: `wake ${(s.sleep.anchor || {}).wake || "06:45"} · ${lo.target} h asleep + ~${lo.sol} min drift-off` });
+    else steps.push({ a: `Lights out ~${lo.t}`, why: `a bearing, not a test — wake ~${(s.sleep.anchor || {}).wake || "06:45"} · ${lo.target} h asleep + ~${lo.sol} min drift-off${(() => { const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length; return melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off` : ""; })()}` });
+  } else steps.push({ a: `Lights out ~${lo.t}`, why: `a bearing, not a test — wake ~${(s.sleep.anchor || {}).wake || "06:45"} · ${lo.target} h asleep + ~${lo.sol} min drift-off` });
   if (s.sleep.caffMg) { const at3 = caffAt(s.sleep.caffMg, 12, lo.mins / 60); if (at3 > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at3} mg would still be aboard at lights-out — above ~50 mg deep sleep measurably thins` }); }
 
   /* 6 · floor */

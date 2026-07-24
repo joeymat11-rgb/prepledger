@@ -347,7 +347,7 @@ const { sleepSpanH: ssp, caffAt: cfa, sleepLab: slb, migrate: mgB, SEED: SK } = 
 ok(ssp("23:00", "06:45") === 7.75 && ssp("01:00", "06:45") === 5.75 && ssp("23:30", "06:45", 30) === 6.75, "bed→wake math: cross-midnight, late nights, and mid-night wake deductions");
 ok(cfa(300, 12, 22.5) === 70 && cfa(0, 12, 22.5) === 0, "caffeine tail: 300 mg at noon ≈ 70 mg at lights-out");
 const lab9 = slb(clone(SK));
-ok(lab9.length === 2 && lab9[0].id === "melaexp" && lab9[0].status === "ARMED" && lab9[0].deep.indexOf("Ferracioli") > -1, "melatonin experiment pre-registered, armed, citations attached");
+ok(lab9.length === 3 && lab9[0].id === "melaexp" && lab9[0].status === "ARMED" && lab9[0].deep.indexOf("Ferracioli") > -1, "melatonin experiment pre-registered, armed, citations attached");
 let se = clone(SK);
 for (let k = 1; k <= 7; k++) { const dd = new Date(2026, 6, 23 + k); se.sleep.nights.push({ d: dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" + String(dd.getDate()).padStart(2, "0"), h: 7.8, tags: [] }); }
 se.sleep.nights = se.sleep.nights.filter((n, i, a) => a.findIndex((x) => x.d === n.d) === i).sort((a, b) => (a.d < b.d ? -1 : 1));
@@ -396,7 +396,7 @@ ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id ==
 const gAll = lg2(clone(SN));
 ok(gAll.length === 11 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,trials,road,models,locked,shelf", "eleven shelves, fixed order");
 const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
-ok(tot2 === 49, "all 49 instruments filed exactly once: " + tot2);
+ok(tot2 === 50, "all 50 instruments filed exactly once: " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
@@ -446,7 +446,7 @@ ok(dock.next.every(n => n.n < n.need) && dock.next[0].pct >= (dock.next[1] ? doc
 ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "sentinel line reads");
 const ranked = sl1(clone(SP));
 const rk = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
-ok(ranked.length === 49 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 38 cards, monotone rank order");
+ok(ranked.length === 50 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 50 cards, monotone rank order");
 // a flip lands on the docket's fresh row
 const swD = __test.sweepLab(clone(SP));
 let dkF = JSON.parse(JSON.stringify(swD));
@@ -471,7 +471,7 @@ ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 ph
 // v3.17 — the sibling design review
 const { labSections: ls17, SEED: SR } = __test;
 const secs = ls17(clone(SR));
-ok(secs.reduce((a, x) => a + x.cards.length, 0) === 49, "all 49 filed across the plain-language sections, none lost");
+ok(secs.reduce((a, x) => a + x.cards.length, 0) === 50, "all 50 filed across the plain-language sections, none lost");
 const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "gathering");
 ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
 ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
@@ -703,7 +703,7 @@ for (let k = 3; k >= 2; k--) snX.sleep.nights.push({ d: isoL(Date.now() - k * 86
 snX.sleep.nights.push({ d: isoL(Date.now() - 864e5), h: 6.2, sol: 15, tags: [] });
 snX.sleep.nights = snX.sleep.nights.filter((n, i, a) => a.findIndex(x => x.d === n.d) === i);
 const pr42 = dp42(snX, { clean: false, run: 1, need: 3 });
-ok(pr42.steps.some(x => x.a.indexOf("20 early") > -1 && x.why.indexOf("6.2 h") > -1 && x.why.indexOf("never oversleep the anchor") > -1), "short night triggers tonight's repair with the anchor protected");
+ok(pr42.steps.some(x => x.a.indexOf("20 early") > -1 && x.why.indexOf("6.2 h") > -1 && x.why.indexOf("aim near it") > -1), "short night triggers tonight's repair with the anchor protected");
 // pulse spike this morning outranks everything below the lead
 let sp = clone(TF);
 for (let k = 14; k >= 1; k--) sp.pulse.push({ d: isoL(Date.now() - k * 864e5), bpm: 56 });
@@ -874,5 +874,26 @@ hero53.sessionLog[heroFirst53] = { entries: [{ id: "press", reps: [8, 8, 7] }], 
 const after53 = nti53(hero53);
 ok(after53 != null && after53 > heroFirst53, "banking the session advances the hero to the next unlogged day: " + heroFirst53 + " → " + after53);
 
-console.log(`\nFINAL51: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.54 — the variance tax: scatter, priced in the athlete's own ledger
+const { sleepLab: sl54, SEED: TV } = __test;
+let vt = clone(TV);
+vt.sleep.nights = vt.sleep.nights.filter((n) => !n.bed);
+for (let k = 26; k >= 2; k--) {
+  const d = isoL(Date.now() - k * 864e5);
+  const off = k % 3 === 0;
+  vt.sleep.nights.push({ d, h: off ? 6.8 : 7.9, bed: off ? "00:45" : "23:00", wake: "06:45" });
+  if (k % 2 === 0) vt.sessionLog[isoL(Date.now() - (k - 1) * 864e5)] = { entries: [{ id: "press", reps: off ? [7, 6, 5] : [9, 8, 8] }], at: 1 };
+}
+const tax = sl54(vt).find((c) => c.id === "variancetax");
+ok(tax && tax.status === "LIVE", "the tax goes live with 5+ timed nights per bucket");
+ok(tax.forYou.indexOf("-1.1 h sleep") > -1, "prices the sleep cost from his own buckets: " + tax.forYou.slice(0, 60));
+ok(tax.forYou.indexOf("tax is real") > -1, "a real measured tax gets named as such");
+let vt2 = clone(TV);
+vt2.sleep.nights = vt2.sleep.nights.filter((n) => !n.bed);
+const tax2 = sl54(vt2).find((c) => c.id === "variancetax");
+ok(tax2 && tax2.status === "ARMED" && tax2.forYou.indexOf("funds itself") > -1, "unarmed, it explains it feeds on ordinary honesty");
+
+console.log(`\nFINAL52: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
