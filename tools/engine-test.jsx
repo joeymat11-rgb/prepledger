@@ -1190,3 +1190,14 @@ if (lo73) {
 
 console.log(`\nFINAL71: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+// v3.73.1 — the half-life respects midnight
+const { caffAt: ca73 } = __test;
+const past = ca73(400, 14, 1 + 10 / 60);
+ok(past > 75 && past < 95, "a 2 PM dose against a 1:10 AM lights-out decays across midnight: ~" + past + " mg");
+const same = ca73(400, 14, 22.5);
+ok(same > 110 && same < 135, "same-evening math unchanged: ~" + same + " mg at 10:30 PM");
+ok(ca73(400, 14, 1 + 10 / 60) < ca73(400, 14, 22.5), "later bedtimes always mean smaller tails — monotone, as physiology demands");
+
+console.log(`\nFINAL72: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);

@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.73.0";
+const APP_V = "3.73.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -796,7 +796,8 @@ function todayCaff(s) {
 }
 function caffAt(mg, doseHour, atHour) {
   if (!mg) return 0;
-  const dt = atHour - doseHour;
+  let dt = atHour - doseHour;
+  if (dt < 0) dt += 24;
   return Math.round(mg * Math.pow(0.5, dt / 5));
 }
 
@@ -3376,7 +3377,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ marginTop: 10, fontFamily: mono, fontSize: 11, color: T.brass }}><Term k="fixwindow" c={T.brass}>FIX WINDOW OPEN</Term> — hit protein today and yesterday's miss counts as a save, not a break. Nothing resets.</div>
         )}
         <div style={{ marginTop: 10 }}><Btn tone="jade" full onClick={() => { saveDaily(); setDayEdit(false); }}>Log today</Btn></div>
-        <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 8 }}>{`spread: ~4 feeds × ~${Math.round(PROTEIN / 4)} g · every 3–4 h · wake / pre-lift / post-lift / pre-bed`}</div>
+
         <More deep="175 is THE number — proximity, not a floor to beat; chronic overshoot is drift too. Calories live in a band, not a point. A protein miss opens a 24-hour fix window, and closing it EXTENDS the standard instead of resetting it — recovery speed is the metric, never an unbroken chain."
           forYou={s.fixWindow ? "The fix window is OPEN — hitting 175 today closes it and the record extends." : "Standard intact. Log once, done — the app rewards the logging, never the checking."} />
       </Card>
@@ -4347,14 +4348,7 @@ function SleepTab({ s, setS, save, slp }) {
           }
           return (
             <div style={{ marginTop: 8 }}>
-              <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel }}>Nothing logged today. Ten seconds: what did you actually take, and when?</div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8, alignItems: "center" }}>
-                {[0, 100, 175, 200, 350, 400].map((m9) => (
-                  <span key={m9} onClick={() => setCMg(m9)} style={{ fontFamily: mono, fontSize: 10, color: cMg === m9 ? T.jade : T.dim, border: `1px solid ${cMg === m9 ? T.jade : T.line}`, borderRadius: 999, padding: "5px 10px", cursor: "pointer" }}>{m9 === 0 ? "none ✓" : m9}</span>
-                ))}
-                <input type="time" value={cAt} onChange={(e3) => setCAt(e3.target.value)} style={{ width: 64, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 7px", outline: "none", opacity: cMg === 0 ? 0.4 : 1 }} />
-                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = [...(ns.caffLog || []).filter((x) => x.d !== tISO9), { d: tISO9, mg: cMg, at: cMg === 0 ? "—" : cAt }]; ns.feed.unshift({ d: tISO9, t: cMg === 0 ? "CAFFEINE — NONE TODAY" : `CAFFEINE — ${cMg} mg at ${fmt12(cAt)}`, how: "logged in SLEEP — the tail math runs on this, not an assumption" }); setS(ns); save(ns); }}>Log it</Btn>
-              </div>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel }}>Nothing logged today — the ten-second entry lives on NOW, with today's work. This card is the ledger: it shows the entry and the tail once logged.</div>
               {s.sleep.caffMg != null && (
                 <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>planning fallback: your typical {s.sleep.caffMg} mg midday — standing advice uses it only until today's real entry exists</div>
               )}
