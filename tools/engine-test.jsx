@@ -533,7 +533,7 @@ const latX = clone(SV).exercises.find(e => e.id === "lateral");
 ok(latX.sets === 4 && tf24(latX).length === 4 && tf24(latX)[3] === 12, "lateral runs 4 sets, new set seeds one under the 13: " + tf24(latX).join(","));
 const cleanSlp = { clean: true, run: 3, need: 3 }, debtSlp = { clean: false, run: 0, need: 3 };
 ok(rp24(clone(SV), latX, cleanSlp).plan.join(",") === "2,1,0,0", "four-set base doubles the zero: 2·1·0·0");
-ok(rp24(clone(SV), latX, debtSlp).plan.join(",") === "3,2,1,1" && rp24(clone(SV), latX, debtSlp).why[0].indexOf("debt") > -1, "debt day banks one everywhere, and says why");
+ok(rp24(clone(SV), latX, debtSlp).plan.join(",") === "2,1,1,1" && rp24(clone(SV), latX, debtSlp).why[0].indexOf("0 becomes a 1") > -1, "debt day: zeros become ones, honest sets untouched, and it says why");
 const rowsEx = clone(SV).exercises.find(e => e.id === "rows");
 ok(rp24(clone(SV), rowsEx, cleanSlp).plan.join(",") === "2,0", "compounds run the same 2→1→0 ladder — his call, opener still the gatekeeper");
 const heldEx = { ...latX, holdFlag: true };
@@ -551,7 +551,7 @@ let ovS = clone(SW); ovS.rirOverride = isoL(Date.now());
 const latO = ovS.exercises.find(e => e.id === "lateral");
 ok(rp25(ovS, latO, dSlp).plan.join(",") === "2,1,0,0" && rp25(ovS, latO, dSlp).why[0].indexOf("overridden") > -1, "override on debt: base plan runs, the call is named");
 let exS = clone(SW); exS.rirOverride = "2026-01-01";
-ok(rp25(exS, exS.exercises.find(e => e.id === "lateral"), dSlp).plan[0] === 3, "stale override expires by date — the buffer returns on its own");
+ok(rp25(exS, exS.exercises.find(e => e.id === "lateral"), dSlp).plan.join(",") === "2,1,1,1", "stale override expires by date — the debt law returns on its own");
 const oldV16 = clone(SW); oldV16.v = 16; delete oldV16.rirOverride;
 ok(mg25(oldV16).v >= 17 && mg25(oldV16).rirOverride === "2026-07-23", "his stated decision pre-applied on phones");
 
@@ -628,7 +628,7 @@ ok(pl35(null) === null && pl35(42) === 42, "non-strings pass through safely");
 const { rirPlan: rp352, SEED: TB } = __test;
 const blockShaped = { id: "x", tgt: [13, 12, 11, 10], w: 315 };
 const bp = rp352(clone(TB), blockShaped, { clean: false, run: 1, need: 3 });
-ok(bp.plan.length === 4 && bp.plan.join(",") === "3,2,1,1", "a real tgt-shaped session block sizes its own plan: " + bp.plan.join(","));
+ok(bp.plan.length === 4 && bp.plan.join(",") === "2,1,1,1", "a real tgt-shaped session block sizes its own plan under the debt law: " + bp.plan.join(","));
 
 // (interim)
 
