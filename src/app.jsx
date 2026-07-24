@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.70.2";
+const APP_V = "3.71.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,8 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 27;
+  SEED.v = 28;
+  SEED.caffLog = [];
   SEED.dayCtx = {};
   SEED.agentProposals = [];
   SEED.temp = [];
@@ -784,6 +785,13 @@ function sleepSpanH(bed, wake, awakeMin = 0) {
   let span = m(wake) - m(bed);
   if (span <= 0) span += 1440;
   return Math.max(0, +(((span - awakeMin) / 60)).toFixed(2));
+}
+function parseHM(t2) { const [a3, b3] = (t2 || "12:00").split(":").map(Number); return a3 + (b3 || 0) / 60; }
+function todayCaff(s) {
+  const e2 = (s.caffLog || []).find((x) => x.d === isoOf(todayStart()));
+  if (e2) return { mg: e2.mg, atH: parseHM(e2.at), at: e2.at, logged: true };
+  if (s.sleep && s.sleep.caffMg != null) return { mg: s.sleep.caffMg, atH: 12, at: "12:00", logged: false };
+  return null;
 }
 function caffAt(mg, doseHour, atHour) {
   if (!mg) return 0;
@@ -1823,7 +1831,7 @@ function dayProtocol(s, slp) {
     else if ((lastNight.awakeMin || 0) >= 30) steps.push({ a: "Tonight: cooler room, no fluids after ~8:30", why: `you were awake ${lastNight.awakeMin} min mid-night — the two cheapest fixes first` });
     else steps.push({ a: `Lights out ~${lo.t}`, why: `a bearing, not a test — wake ~${(s.sleep.anchor || {}).wake || "06:45"} · ${lo.target} h asleep + ~${lo.sol} min drift-off${(() => { const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length; return melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off` : ""; })()}` });
   } else steps.push({ a: `Lights out ~${lo.t}`, why: `a bearing, not a test — wake ~${(s.sleep.anchor || {}).wake || "06:45"} · ${lo.target} h asleep + ~${lo.sol} min drift-off` });
-  if (s.sleep.caffMg) { const at3 = caffAt(s.sleep.caffMg, 12, lo.mins / 60); if (at3 > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at3} mg would still be aboard at lights-out — above ~50 mg deep sleep measurably thins` }); }
+  { const tc3 = todayCaff(s); if (tc3 && tc3.mg > 0) { const at3 = caffAt(tc3.mg, tc3.atH, lo.mins / 60); if (at3 > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at3} mg still aboard at lights-out${tc3.logged ? "" : " (typical dose — log today's real one in SLEEP)"} — above ~50 mg deep sleep measurably thins` }); } }
 
   /* 6 · floor */
   steps.push({ a: "Steps 16.5k", why: "walking is the deficit's quiet engine — calories do the cutting, steps keep it moving" });
@@ -2158,6 +2166,10 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV28(s) {
+  s.caffLog = s.caffLog || [];
+  s.v = 28; return s;
+}
 function patchV27(s) {
   const had = (s.agentProposals || []).some((ap) => ap.kind === "volume");
   s.agentProposals = (s.agentProposals || []).filter((ap) => ap.kind !== "volume");
@@ -2244,8 +2256,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 27) return old;
-  if (old && old.v >= 3 && old.v <= 26) return patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))))))))))))))));
+  if (old && old.v === 28) return old;
+  if (old && old.v >= 3 && old.v <= 27) return patchV28(patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -2271,7 +2283,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))))))))))))))));
+  return patchV28(patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))))))))))))))));
 }
 
 const GLOSSARY = {
@@ -2300,7 +2312,7 @@ export const __test = { targetsFor, genSession, completeSession, runAdaptive, bf
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
-const LEDGER_DICT = "FIELD DICTIONARY (authoritative — never guess a meaning): NIGHTS: h = hours asleep · bed/wake = clock times as logged (they vary; that is expected) · sol = drift-off, minutes to fall asleep · tags: woke = woke mid-night, caff = late caffeine. DAYS: cal/pro/steps as logged · dayCtx est = athlete-declared estimate day (rough numbers, lower evidentiary weight) · ⌁flags = day weather (event window / seal water / post-refeed / estimate). SESSIONS: entries = performed lifts only, w = load, reps per set, rir = reps in reserve on the opener · skipped = lifts deliberately not done (structured truth, zero phantom reps) · note = athlete prose, read it · niggles = flagged aches · dips = incidental dip count. READS: raw morning scale, sealed = quarantined event water, judge only via damped trend. PULSE bpm / TEMP °F = 60s wrist count and oral reading at wake. FEED: the app's event log — amendments and corrections here OVERRIDE older raw rows. RECORDS: pending = awaiting the 3-night ≥7.5h clean streak. LAWS: single terminal failure set per exercise; on debt only that final set pulls to 1.";
+const LEDGER_DICT = "FIELD DICTIONARY (authoritative — never guess a meaning): NIGHTS: h = hours asleep · bed/wake = clock times as logged (they vary; that is expected) · sol = drift-off, minutes to fall asleep · tags: woke = woke mid-night, caff = late caffeine. DAYS: cal/pro/steps as logged · dayCtx est = athlete-declared estimate day (rough numbers, lower evidentiary weight) · ⌁flags = day weather (event window / seal water / post-refeed / estimate). SESSIONS: entries = performed lifts only, w = load, reps per set, rir = reps in reserve on the opener · skipped = lifts deliberately not done (structured truth, zero phantom reps) · note = athlete prose, read it · niggles = flagged aches · dips = incidental dip count. READS: raw morning scale, sealed = quarantined event water, judge only via damped trend. PULSE bpm / TEMP °F = 60s wrist count and oral reading at wake. CAFFLOG: actual daily caffeine — mg and clock time as logged (mg 0 = a deliberate none-day); tail math runs on these, never an assumed noon. FEED: the app's event log — amendments and corrections here OVERRIDE older raw rows. RECORDS: pending = awaiting the 3-night ≥7.5h clean streak. LAWS: single terminal failure set per exercise; on debt only that final set pulls to 1.";
 
 async function ghSync(state) {
   let tok = null;
@@ -2464,7 +2476,7 @@ function askContext(s) {
   const trls = (s.trials || []).map((t3) => { const tp = trialTpl(t3); return tp ? `${tp.t} (started ${t3.started})` : ""; }).filter(Boolean).join(" · ") || "none";
   const gate2 = sleepInfo(s);
   const dict = LEDGER_DICT + " SLEEP GATE RIGHT NOW (do not re-derive): clean run " + gate2.run + "/" + gate2.need + " — records currently " + (gate2.clean ? "OFFICIAL" : "PENDING") + ". EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
-  return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
+  return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
 }
 const AGENT_TOOLS = [
   { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads|feed. Feed = the app event log; amendments there override older raw rows. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
@@ -2879,6 +2891,8 @@ __test.sweepVolume = sweepVolume;
 __test.INDIRECT = INDIRECT;
 __test.filingsFor = filingsFor;
 __test.bodyAlarm = bodyAlarm;
+__test.todayCaff = todayCaff;
+__test.caffAt = caffAt;
 __test.CONSTITUTION = CONSTITUTION;
 
 /* ---------- atoms ---------- */
@@ -3710,7 +3724,7 @@ function LogTab({ s, setS, save, slp }) {
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <Chip c={slp.clean ? T.jade : T.brass}>{slp.clean ? "SLEEP CLEAN — records set today count for real" : <>SHORT SLEEP {slp.run}/{slp.need} — records count as <Term k="provisional" c={T.brass}>pending</Term></>}</Chip>
-        <Chip><Term k="noonwindow" c={T.steel}>NOON LIFT</Term> — meds peaking · effort feels easier than it is</Chip>
+        <Chip><Term k="noonwindow" c={T.steel}>STIM CHECK</Term> — meds peak midday · if lifting then, effort feels easier than it is</Chip>
       </div>
 
       {(() => { const mv2 = muscleVolume(s); if (!mv2.length) return null; return (
@@ -4210,6 +4224,8 @@ function BodyTab({ s, setS, save }) {
 }
 
 function SleepTab({ s, setS, save, slp }) {
+  const [cMg, setCMg] = useState(200);
+  const [cAt, setCAt] = useState(() => { const d9 = new Date(); return String(d9.getHours()).padStart(2, "0") + ":" + String(Math.floor(d9.getMinutes() / 15) * 15).padStart(2, "0"); });
   const [caffIn, setCaffIn] = useState(200);
   const nights = s.sleep.nights.slice(-8);
   const maxH = 9;
@@ -4231,7 +4247,7 @@ function SleepTab({ s, setS, save, slp }) {
           forYou={slp.clean ? "CLEAN — everything counts today. This is simultaneously your best muscle-retention lever and your sharpest ADHD lever; protect the streak like a PR." : `${slp.need - slp.run} clean night${slp.need - slp.run === 1 ? "" : "s"} from CLEAN. Tonight ≥7.5 ${slp.run + 1 >= slp.need ? "flips it — tomorrow's attempts count for keeps." : "keeps the reset alive."} Fixed wake time is the strongest single move.`} />
       </Card>
 
-      <Section title="Wake, Bedtime & Caffeine" meta={`wake ${(s.sleep.anchor || {}).wake || "06:45"} · caffeine ${s.sleep.caffMg ? s.sleep.caffMg + " mg" : "unset"}`} c={T.jade}>
+      <Section title="Wake, Bedtime & Caffeine" meta={(() => { const tc9 = todayCaff(s); return `wake ${(s.sleep.anchor || {}).wake || "06:45"} · caffeine today: ${tc9 && tc9.logged ? (tc9.mg > 0 ? tc9.mg + " mg @ " + tc9.at : "none ✓") : "not logged"}`; })()} c={T.jade}>
         <Card accent={T.jade}>
         <Eyebrow c={T.jade}>WAKE TIME — SAME EVERY DAY, SINCE {fmtShort("2026-07-23")}</Eyebrow>
         {(() => {
@@ -4255,29 +4271,41 @@ function SleepTab({ s, setS, save, slp }) {
         })()}
       </Card>
         <Card>
-        <Eyebrow>CAFFEINE TAIL — WHAT'S STILL IN YOUR BLOOD AT LIGHTS-OUT</Eyebrow>
-        {s.sleep.caffMg ? (
-          <>
-            <div style={{ display: "flex", gap: 18, marginTop: 8 }}>
-              <div><Num size={22}>{s.sleep.caffMg}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG · NOON DOSE</div></div>
-              <div><Num size={22} c={caffAt(s.sleep.caffMg, 12, lightsOutT(s).mins / 60) > 50 ? T.brass : T.jade}>~{caffAt(s.sleep.caffMg, 12, lightsOutT(s).mins / 60)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG AT {lightsOutT(s).t} · HALF-LIFE ~5 H</div></div>
+        <Eyebrow>CAFFEINE — TODAY'S ACTUAL, THEN THE TAIL</Eyebrow>
+        {(() => {
+          const tISO9 = isoOf(todayStart());
+          const e9 = (s.caffLog || []).find((x) => x.d === tISO9);
+          const lo9 = lightsOutT(s);
+          if (e9) {
+            const tail9 = e9.mg > 0 ? caffAt(e9.mg, parseHM(e9.at), lo9.mins / 60) : 0;
+            return (
+              <div style={{ marginTop: 8 }}>
+                <div style={{ display: "flex", gap: 18, alignItems: "baseline" }}>
+                  <div><Num size={22}>{e9.mg}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG · LOGGED {e9.mg > 0 ? "AT " + e9.at : "— NONE TODAY"}</div></div>
+                  <div><Num size={22} c={tail9 > 50 ? T.brass : T.jade}>~{tail9}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG AT {lo9.t} · HALF-LIFE ~5 H</div></div>
+                  <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = (ns.caffLog || []).filter((x) => x.d !== tISO9); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, cursor: "pointer", marginLeft: "auto" }}>undo</span>
+                </div>
+                <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 7, lineHeight: 1.5 }}>{tail9 > 50 ? "Above ~50 mg at lights-out, deep sleep measurably thins — tonight's drift-off is worth an honest note." : tail9 > 0 ? "Under the ~50 mg line — tonight should be largely clear of it." : "A zero-caffeine day is data too. Clean night, clean read."}</div>
+              </div>
+            );
+          }
+          return (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel }}>Nothing logged today. Ten seconds: what did you actually take, and when?</div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8, alignItems: "center" }}>
+                {[0, 100, 175, 200, 350, 400].map((m9) => (
+                  <span key={m9} onClick={() => setCMg(m9)} style={{ fontFamily: mono, fontSize: 10, color: cMg === m9 ? T.jade : T.dim, border: `1px solid ${cMg === m9 ? T.jade : T.line}`, borderRadius: 999, padding: "5px 10px", cursor: "pointer" }}>{m9 === 0 ? "none ✓" : m9}</span>
+                ))}
+                <input value={cAt} onChange={(e3) => setCAt(e3.target.value)} inputMode="numeric" placeholder="HH:MM" style={{ width: 64, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 7px", outline: "none", opacity: cMg === 0 ? 0.4 : 1 }} />
+                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = [...(ns.caffLog || []).filter((x) => x.d !== tISO9), { d: tISO9, mg: cMg, at: cMg === 0 ? "—" : cAt }]; ns.feed.unshift({ d: tISO9, t: cMg === 0 ? "CAFFEINE — NONE TODAY" : `CAFFEINE — ${cMg} mg at ${cAt}`, how: "logged in SLEEP — the tail math runs on this, not an assumption" }); setS(ns); save(ns); }}>Log it</Btn>
+              </div>
+              {s.sleep.caffMg != null && (
+                <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>planning fallback: your typical {s.sleep.caffMg} mg midday — standing advice uses it only until today's real entry exists</div>
+              )}
             </div>
-            <More deep="Caffeine's half-life is ~5 hours (range 3–7 by genetics): a noon dose is still ~25% circulating at bedtime. That residue doesn't always stop sleep onset — it fragments depth and can surface as mid-night wakes. If the wake signature persists off melatonin, this number is suspect #1."
-              forYou={[
-                `~${caffAt(s.sleep.caffMg, 12, lightsOutT(s).mins / 60)} mg would still be in your system at lights-out (${lightsOutT(s).t}).`,
-                "Above roughly 50 mg, most people lose measurable deep sleep even when they fall asleep fine.",
-                "If the sleep experiment points here, the fix is a smaller dose or an earlier one — never willpower.",
-              ]} />
-          </>
-        ) : (
-          <div style={{ marginTop: 8 }}>
-            <div style={{ fontFamily: body, fontSize: 12, color: T.steel }}>One number unlocks this card: your total midday caffeine (pre-workout label + any coffee), in mg.</div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
-              <Stepper v={caffIn} set={setCaffIn} step={25} min={0} />
-              <div style={{ flex: 1 }}><Btn full small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.sleep.caffMg = caffIn; setS(ns); save(ns); }}>Save caffeine dose</Btn></div>
-            </div>
-          </div>
-        )}
+          );
+        })()}
+        <More deep="Caffeine's half-life is ~5 hours (3–7 by genetics). The tail number is computed from the dose and clock time you actually log — never an assumed noon. Residue at lights-out doesn't always block falling asleep; it thins deep sleep and can surface as mid-night wakes. Zero-days matter as much as dose-days: they're the control arm your caffeine trial will need." />
       </Card>
       </Section>
 

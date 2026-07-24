@@ -1146,3 +1146,22 @@ ok(typeof ba70 === "function", "the alarm engine is exported — its NOW banner 
 
 console.log(`\nFINAL68: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+// v3.71 — caffeine is a log, not an assumption
+const { todayCaff: tc71, caffAt: ca71, migrate: mg71, SEED: TN71 } = __test;
+let cf = clone(TN71);
+const tI71 = isoL(Date.now());
+cf.sleep.caffMg = 400;
+ok(tc71(cf).logged === false && tc71(cf).atH === 12, "with no entry, the typical dose serves as clearly-labeled fallback");
+cf.caffLog = [{ d: tI71, mg: 350, at: "15:45" }];
+const t71 = tc71(cf);
+ok(t71.logged === true && t71.mg === 350 && Math.abs(t71.atH - 15.75) < 0.01, "today's real entry beats the profile: " + t71.mg + " @ " + t71.at);
+const tail71 = ca71(350, 15.75, 22.5);
+ok(tail71 > 120 && tail71 < 155, "the tail runs on the actual clock: 350 @ 3:45p leaves ~" + tail71 + " at 22:30");
+cf.caffLog = [{ d: tI71, mg: 0, at: "—" }];
+ok(tc71(cf).logged === true && tc71(cf).mg === 0, "a deliberate none-day is logged data, not absence");
+const oldV27a = clone(TN71); oldV27a.v = 27; delete oldV27a.caffLog;
+ok(Array.isArray(mg71(oldV27a).caffLog) && mg71(oldV27a).v >= 28, "phones inherit the caffeine ledger");
+
+console.log(`\nFINAL69: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
