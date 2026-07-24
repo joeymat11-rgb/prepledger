@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.61.2";
+const APP_V = "3.62.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3388,6 +3388,16 @@ function LogTab({ s, setS, save, slp }) {
   const [callOpen, setCallOpen] = useState(null);
   const [wEdit, setWEdit] = useState(null);
   const [wVal, setWVal] = useState(180);
+  const draftKey = "prep-ledger-draft-" + dateSel;
+  useEffect(() => {
+    try {
+      const d = JSON.parse(localStorage.getItem(draftKey) || "null");
+      setReps(d && d.reps ? d.reps : {}); setRir(d && d.rir ? d.rir : {}); setSkipped(d && d.skipped ? d.skipped : {}); setNote(d && d.note ? d.note : ""); setNig(d && d.nig ? d.nig : []);
+    } catch (e) {}
+  }, [dateSel]);
+  useEffect(() => {
+    try { localStorage.setItem(draftKey, JSON.stringify({ reps, rir, skipped, note, nig })); } catch (e) {}
+  }, [reps, rir, skipped, note, nig, draftKey]);
   const [recap, setRecap] = useState(null);
   const [boosted, setBoosted] = useState(false);
   const trueShort = slp.last && slp.last.h < 4.5;
@@ -3413,7 +3423,7 @@ function LogTab({ s, setS, save, slp }) {
     const entries = sess.ex.filter((ex) => !skipped[ex.id]).map((ex) => ({ id: ex.id, n: ex.n, w: ex.w, tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null }));
     const skippedList = sess.ex.filter((ex) => skipped[ex.id]).map((ex) => ({ id: ex.id }));
     const { s: ns, lines } = completeSession(s, dateSel, entries, slp, { note: note.trim(), niggles: nig, skipped: skippedList });
-    setS(ns); save(ns); setRecap(lines); setBoosted(false); setReps({}); setRir({}); setNote(""); setNig([]); setSkipped({});
+    setS(ns); save(ns); setRecap(lines); setBoosted(false); setReps({}); setRir({}); setNote(""); setNig([]); setSkipped({}); try { localStorage.removeItem(draftKey); } catch (e) {}
   };
 
   return (
@@ -4292,6 +4302,13 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [reps, setReps] = useState({});
   const [rir, setRir] = useState({});
   const [gskip, setGskip] = useState({});
+  const gymKey = "prep-ledger-gymdraft-" + dateSel;
+  useEffect(() => {
+    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { setReps(d.reps || {}); setRir(d.rir || {}); setGskip(d.gskip || {}); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); } } catch (e) {}
+  }, []);
+  useEffect(() => {
+    try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, gskip, idx, setN })); } catch (e) {}
+  }, [reps, rir, gskip, idx, setN, gymKey]);
   const ex = sess.ex[idx];
   const rp2 = rirPlan(s, ex, slp);
   const getR = (e2) => reps[e2.id] ?? e2.tgt.slice();
@@ -4309,6 +4326,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const nextLift = () => { if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } else setPhase("all-done"); };
   const finish = () => {
     const entries = sess.ex.filter((e2) => !gskip[e2.id]).map((e2) => ({ id: e2.id, n: e2.n, w: e2.w, tgt: e2.tgt, reps: getR(e2), isDebutNow: e2.isDebutNow, rir: rir[e2.id] ?? null }));
+    try { localStorage.removeItem(gymKey); } catch (e) {}
     const { s: ns } = completeSession(s, dateSel, entries, slp, { note: "gym mode", niggles: [], skipped: sess.ex.filter((e2) => gskip[e2.id]).map((e2) => ({ id: e2.id })) });
     setS(ns); save(ns); onClose();
   };
