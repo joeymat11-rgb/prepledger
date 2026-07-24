@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.54.2";
+const APP_V = "3.55.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1407,6 +1407,87 @@ function labAnalytics2(s) {
   return out;
 }
 
+/* THE MAP — what feeds every instrument; the suite refuses cards that aren't on it */
+const INS_MAP = {
+  whoosh: ["weigh-in"], refeed: ["weigh-in"], noise: ["weigh-in"], masked: ["weigh-in", "day numbers"], creep: ["day numbers"],
+  adaptmeter: ["day numbers", "weigh-in"], stepeff: ["day numbers", "weigh-in"], refeedroi: ["day numbers", "session"],
+  tuefri: ["session"], fingerprint: ["session"], strvelocity: ["session"], sessionshape: ["session"], rirtruth: ["session"], notes: ["session"], miss: ["day numbers"],
+  sleepdose: ["sleep night", "session"], sleeplag: ["sleep night", "session"], melaexp: ["sleep night"], wakesig: ["sleep night"], regularity: ["sleep night"], variancetax: ["sleep night", "session"], canary: ["sleep night", "session"],
+  pulsebase: ["pulse"], cutstress: ["pulse"], pulsewarn: ["pulse"], refeedpulse: ["pulse"], furnacebase: ["temperature"], exittherm: ["temperature"],
+  missarch: ["day numbers", "sleep night"], weekend: ["day numbers"], compound: ["weigh-in"], miner: ["session", "sleep night", "day numbers"],
+  trialsdesk: ["your consent"], cone: ["weigh-in"], dexarecon: ["a DEXA scan"], seasonone: ["the feed"],
+  ghost: ["weigh-in", "day numbers"], sentinel: ["sleep night", "day numbers", "weigh-in"], letter: ["day numbers", "the feed"], prophet: ["weigh-in"], whatif: ["weigh-in", "day numbers"], negotiator: ["weigh-in", "day numbers"], dossier: ["the whole lab"],
+  mrv: ["session"], debutmodel: ["session", "sleep night"],
+  spread: ["the shelf"], caffdose: ["the shelf"], creatine: ["the shelf"], matador: ["the shelf"], sleepceil: ["the shelf"],
+};
+const MAP_CHAINS = [
+  "weigh-in → TREND → rate → cone · negotiator · what-if · ghost · prophet",
+  "weigh-in → NOISE FLOOR → sentinel's scale-band · the 'not information' stamps",
+  "sleep nights → CLEAN streak → what banks · RIR plan · debut gates",
+  "sessions → strength velocity · fingerprints → the recomp thesis itself",
+  "day flags (⌁ weather) → step efficacy · miner · sentinel · the agent's law",
+  "trial verdicts → measured coefficients → protocol & negotiator sharpen",
+];
+function MapView({ s, onClose }) {
+  const groups = labGroupsM(s);
+  const byId = {}; groups.forEach((g) => g.cards.forEach((c) => { byId[c.id] = c; }));
+  const inputs = {};
+  Object.entries(INS_MAP).forEach(([id, srcs]) => srcs.forEach((src) => { (inputs[src] = inputs[src] || []).push(id); }));
+  const order = ["weigh-in", "sleep night", "session", "day numbers", "pulse", "temperature", "your consent", "a DEXA scan", "the feed", "the whole lab", "the shelf"];
+  return (
+    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 70, overflowY: "auto", padding: "0 16px", paddingTop: "calc(env(safe-area-inset-top, 24px) + 14px)", paddingBottom: "calc(env(safe-area-inset-bottom, 10px) + 14px)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Eyebrow c={T.jade}>THE MAP — WHAT FEEDS WHAT</Eyebrow>
+        <span onClick={onClose} style={{ fontFamily: mono, fontSize: 10, color: T.dim, cursor: "pointer", padding: "8px" }}>close ✕</span>
+      </div>
+      <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 6, lineHeight: 1.5 }}>Every instrument, traced to the logging that funds it. The test suite refuses any instrument that isn't on this map — nothing gets built unplaced.</div>
+      {order.filter((k) => inputs[k]).map((k) => (
+        <div key={k} style={{ marginTop: 14 }}>
+          <div style={{ fontFamily: mono, fontSize: 10, color: T.brass, letterSpacing: "0.1em", textTransform: "uppercase" }}>{k} feeds {inputs[k].length}:</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
+            {inputs[k].map((id) => { const c = byId[id]; const live = c && (c.status === "LIVE" || c.status === "TRACKING"); return (
+              <span key={id} style={{ fontFamily: mono, fontSize: 9.5, color: live ? T.jade : T.dim, border: `1px solid ${live ? T.jade : T.line}`, borderRadius: 999, padding: "4px 9px" }}>{c ? c.t.split(" — ")[0].split(" · ")[0] : id}</span>
+            ); })}
+          </div>
+        </div>
+      ))}
+      <div style={{ marginTop: 16, borderTop: `1px solid ${T.line}`, paddingTop: 12 }}>
+        <div style={{ fontFamily: mono, fontSize: 10, color: T.brass, letterSpacing: "0.1em" }}>THE CHAINS — DERIVED TRUTHS</div>
+        {MAP_CHAINS.map((c2, i) => <div key={i} style={{ fontFamily: mono, fontSize: 10, color: T.steel, marginTop: 6, lineHeight: 1.5 }}>{c2}</div>)}
+      </div>
+    </div>
+  );
+}
+
+/* THE RED CELL — the prosecution's monthly filing, rendered when fresh */
+function RedCellCard() {
+  const [txt, setTxt] = useState(null);
+  useEffect(() => {
+    (async () => {
+      try {
+        const tok = localStorage.getItem(TOKEN_KEY);
+        if (!tok) return;
+        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/redcell.md", { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" } });
+        if (!r.ok) return;
+        const t2 = await r.text();
+        const m = t2.match(/^<!-- (\d{4}-\d{2}-\d{2}) -->/);
+        if (m && (mk(isoOf(todayStart())) - mk(m[1])) / DAY <= 35) setTxt(t2.replace(/^<!--.*-->\n?/, ""));
+      } catch (e) {}
+    })();
+  }, []);
+  const [open2, setOpen2] = useState(false);
+  if (!txt) return null;
+  return (
+    <Card accent={T.redline} style={{ marginTop: 10 }}>
+      <div onClick={() => setOpen2(!open2)} style={{ cursor: "pointer" }}>
+        <Eyebrow c={T.redline}>⚔ THE RED CELL — THE CASE AGAINST YOUR PREP {open2 ? "▾" : "▸"}</Eyebrow>
+        <div style={{ fontFamily: body, fontSize: 11, color: T.dim, marginTop: 4 }}>An adversary hired to argue the thesis is failing, from your own numbers. Prosecution, not belief — if this case is weak, your confidence is earned.</div>
+      </div>
+      {open2 && <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 8, lineHeight: 1.6, whiteSpace: "pre-wrap", borderTop: `1px solid ${T.line}`, paddingTop: 9 }}>{txt.slice(0, 3000)}</div>}
+    </Card>
+  );
+}
+
 /* LAB GROUPS — every analytic, experiment, and evidence card filed on one shelf system */
 function labGroups(s) {
   const all = [...labAnalytics(s), ...labAnalytics2(s), ...sleepLab(s), ...shelfItems(s)];
@@ -2529,6 +2610,7 @@ function weekDay() {
 const blackoutOn = (s) => daysUntil(s.blackout.until) > 0;
 const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d); if ((t === "U" || t === "L") && !s.sessionLog[d]) return d; } return null; };
 __test.nextTrainingISO = nextTrainingISO;
+__test.INS_MAP = INS_MAP;
 
 /* ---------- atoms ---------- */
 const Eyebrow = ({ children, c = T.dim }) => (
@@ -4172,6 +4254,7 @@ function NegotiatorConsole({ s }) {
 }
 
 function HistTab({ s, setS, save }) {
+  const [mapOpen, setMapOpen] = useState(false);
   const [open, setOpen] = useState(null);
   const [labOpen, setLabOpen] = useState(null);
   const [secOpen, setSecOpen] = useState({ speaking: true, gathering: true });
@@ -4203,6 +4286,17 @@ function HistTab({ s, setS, save }) {
       </Card>
 
       {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
+      {mapOpen && <MapView s={s} onClose={() => setMapOpen(false)} />}
+      <Card style={{ padding: 11, cursor: "pointer" }} onClick={() => setMapOpen(true)}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <Eyebrow c={T.jade}>🗺 THE MAP</Eyebrow>
+            <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 3 }}>All 50 instruments, traced to the logging that feeds them.</div>
+          </div>
+          <span style={{ fontFamily: mono, fontSize: 14, color: T.jade }}>▸</span>
+        </div>
+      </Card>
+      <RedCellCard />
       <Section title="The Lab" meta={(() => { const g2 = labGroups(s); return `${g2.reduce((a3, g3) => a3 + g3.cards.length, 0)} instruments · ${g2.reduce((a3, g3) => a3 + g3.live, 0)} live`; })()} c={T.jade}>
         {(() => {
         const groups = labGroupsM(s);

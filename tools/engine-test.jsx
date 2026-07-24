@@ -895,5 +895,17 @@ vt2.sleep.nights = vt2.sleep.nights.filter((n) => !n.bed);
 const tax2 = sl54(vt2).find((c) => c.id === "variancetax");
 ok(tax2 && tax2.status === "ARMED" && tax2.forYou.indexOf("funds itself") > -1, "unarmed, it explains it feeds on ordinary honesty");
 
-console.log(`\nFINAL52: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.55 — the cartographer's law: no instrument exists off the map
+const { INS_MAP: IM55, labGroups: lg55, SEED: TC55 } = __test;
+const allIds55 = lg55(clone(TC55)).flatMap((g) => g.cards).map((c) => c.id);
+const mapped55 = Object.keys(IM55);
+const unmapped = allIds55.filter((id) => !mapped55.includes(id));
+const phantom = mapped55.filter((id) => !allIds55.includes(id));
+ok(unmapped.length === 0, "every living instrument is placed on the map (unmapped: " + (unmapped.join(",") || "none") + ")");
+ok(phantom.length === 0, "the map claims no phantom instruments (phantoms: " + (phantom.join(",") || "none") + ")");
+ok(Object.values(IM55).every((srcs) => Array.isArray(srcs) && srcs.length >= 1), "every placement names at least one feeding input");
+
+console.log(`\nFINAL53: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
