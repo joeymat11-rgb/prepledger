@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.70.1";
+const APP_V = "3.70.2";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2650,6 +2650,23 @@ const CONSTITUTION = [
   ["Records need clean sleep", "Nothing banks on a short-sleep streak. Pending isn't punishment — it's meaning protection."],
   ["The athlete overrides", "Every number is yours to change on the floor. The machine rebases instantly and files your ruling as precedent."],
 ];
+function LawsView({ onClose }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 70, overflowY: "auto", padding: "0 16px", paddingTop: "calc(env(safe-area-inset-top, 24px) + 14px)", paddingBottom: "calc(env(safe-area-inset-bottom, 10px) + 20px)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Eyebrow c={T.jade}>⚖ THE HOUSE LAWS</Eyebrow>
+        <span onClick={onClose} style={{ fontFamily: mono, fontSize: 10, color: T.dim, cursor: "pointer", padding: "8px" }}>close ✕</span>
+      </div>
+      <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 4 }}>Ten rules this app runs on. Every feature answers to them; two were written by the athlete.</div>
+      {CONSTITUTION.map((c9, i9) => (
+        <div key={i9} style={{ marginTop: 14, paddingBottom: 12, borderBottom: i9 < CONSTITUTION.length - 1 ? `1px solid ${T.line}` : "none" }}>
+          <div style={{ fontFamily: mono, fontSize: 11, color: T.jade, letterSpacing: "0.06em", textTransform: "uppercase" }}>{i9 + 1}. {c9[0]}</div>
+          <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 4, lineHeight: 1.6 }}>{c9[1]}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 function filingsFor(dow, dom) {
   const out9 = [];
   if (dow === 1) out9.push("COACH DAY — the dossier and your night shift's draft are ready behind the COACH button");
@@ -3046,6 +3063,7 @@ function Proposals({ s, setS, save }) {
 
 function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [askOpen, setAskOpen] = useState(false);
+  const [lawsOpen, setLawsOpen] = useState(false);
   const tISO = isoOf(todayStart());
   const [bedT, setBedT] = useState("23:00");
   const [wakeT, setWakeT] = useState((s.sleep.anchor || {}).wake || "06:45");
@@ -3117,6 +3135,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       )}
 
       {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
+      {lawsOpen && <LawsView onClose={() => setLawsOpen(false)} />}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {s.sessionLog[tISO] && <Chip c={T.jade}>Session ✓ — receipt in TRAIN</Chip>}
         {cleanIn > 0 && <Chip c={T.chalk}>Scale sealed · clean read {fmtShort(SEAL_UNTIL)} · {cleanIn}d</Chip>}
@@ -3237,7 +3256,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       )}
 
       <Card style={{ padding: "10px 14px" }}>
-        <div onClick={() => window.__setGloss && window.__setGloss(["The house laws", CONSTITUTION.map((c9) => c9[0].toUpperCase() + " — " + c9[1]).join("\n\n")])} style={{ cursor: "pointer", fontFamily: mono, fontSize: 9.5, color: T.dim }}>⚖ THE HOUSE LAWS — ten rules this app runs on · tap to read ▸</div>
+        <div onClick={() => setLawsOpen(true)} style={{ cursor: "pointer", fontFamily: mono, fontSize: 9.5, color: T.dim }}>⚖ THE HOUSE LAWS — ten rules this app runs on · tap to read ▸</div>
       </Card>
 
       <RndCard />
