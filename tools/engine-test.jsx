@@ -1204,7 +1204,7 @@ if (fail) process.exit(1);
 
 // v3.74 — the Minute is law: registered steps, derived needs, closing books
 const { minuteNeeds: mn74, booksToday: bt74, MORNING_REGISTRY: MR74, CONSTITUTION: CN74, SEED: TP74 } = __test;
-ok(MR74.length === 5 && ["night", "weight", "pulse", "temp", "brief"].every((k) => MR74.includes(k)), "the morning registry names every morning input");
+ok(MR74.length === 8 && ["night", "weight", "pulse", "temp", "energy", "soreness", "grip", "brief"].every((k) => MR74.includes(k)), "the morning registry names every morning input — all eight");
 ok(CN74[10][0] === "The morning lives in the Minute", "law 11 is carved: " + CN74[10][0]);
 let mm = clone(TP74);
 const tI74 = isoL(Date.now()), yI74 = isoL(Date.now() - 864e5);
@@ -1222,4 +1222,25 @@ const bt = bt74(mm);
 ok(bt.items.some((i) => i.k === "numbers" && i.ok), "the day's books know their own state");
 
 console.log(`\nFINAL73: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+// v3.75 — five inputs, born lawful
+const { minuteNeeds: mn75, booksToday: bt75, MORNING_REGISTRY: MR75, MUSCLE_CHIPS: MC75, migrate: mg75, SEED: TQ75 } = __test;
+ok(["energy", "soreness", "grip"].every((k) => MR75.includes(k)), "law 11 enforced at birth: the three morning inputs are in the registry");
+ok(MC75.length === 10 && MC75.includes("forearms"), "the soreness map covers all ten trained muscles");
+let fr75 = clone(TQ75);
+const nd75 = mn75(fr75);
+ok(nd75.includes("energy") && nd75.includes("soreness") && !nd75.includes("grip"), "the Minute offers energy and soreness to everyone; grip waits for the dynamometer: " + nd75.join(","));
+fr75.grip = [{ d: isoL(Date.now() - 864e5), l: 110, r: 118 }];
+ok(mn75(fr75).includes("grip"), "one grip entry adopts the instrument — the Minute asks from then on");
+let bk75 = clone(TQ75);
+ok(!bt75(bk75).items.some((i) => i.k === "energy"), "unadopted instruments never count as gaps");
+bk75.energy = [{ d: isoL(Date.now() - 864e5), v: 3 }];
+const bi75 = bt75(bk75).items.find((i) => i.k === "energy");
+ok(bi75 && bi75.ok === false, "adopted-but-unlogged shows as the day's open item");
+const old75 = clone(TQ75); old75.v = 28; delete old75.energy; delete old75.soreness; delete old75.grip;
+const m75 = mg75(old75);
+ok(Array.isArray(m75.energy) && Array.isArray(m75.soreness) && Array.isArray(m75.grip) && m75.v >= 29, "phones inherit the three ledgers");
+
+console.log(`\nFINAL74: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

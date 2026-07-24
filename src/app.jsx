@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.74.0";
+const APP_V = "3.75.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,8 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 28;
+  SEED.v = 29;
+  SEED.energy = []; SEED.soreness = []; SEED.grip = [];
   SEED.caffLog = [];
   SEED.dayCtx = {};
   SEED.agentProposals = [];
@@ -2171,6 +2172,10 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV29(s) {
+  s.energy = s.energy || []; s.soreness = s.soreness || []; s.grip = s.grip || [];
+  s.v = 29; return s;
+}
 function patchV28(s) {
   s.caffLog = s.caffLog || [];
   s.v = 28; return s;
@@ -2261,8 +2266,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 28) return old;
-  if (old && old.v >= 3 && old.v <= 27) return patchV28(patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))))))))))))))));
+  if (old && old.v === 29) return old;
+  if (old && old.v >= 3 && old.v <= 28) return patchV29(patchV28(patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))))))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -2288,7 +2293,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV28(patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))))))))))))))));
+  return patchV29(patchV28(patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))))))))))))))))));
 }
 
 const GLOSSARY = {
@@ -2317,7 +2322,7 @@ export const __test = { targetsFor, genSession, completeSession, runAdaptive, bf
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
-const LEDGER_DICT = "FIELD DICTIONARY (authoritative — never guess a meaning): NIGHTS: h = hours asleep · bed/wake = clock times as logged (they vary; that is expected) · sol = drift-off, minutes to fall asleep · tags: woke = woke mid-night, caff = late caffeine. DAYS: cal/pro/steps as logged · dayCtx est = athlete-declared estimate day (rough numbers, lower evidentiary weight) · ⌁flags = day weather (event window / seal water / post-refeed / estimate). SESSIONS: entries = performed lifts only, w = load, reps per set, rir = reps in reserve on the opener · skipped = lifts deliberately not done (structured truth, zero phantom reps) · note = athlete prose, read it · niggles = flagged aches · dips = incidental dip count. READS: raw morning scale, sealed = quarantined event water, judge only via damped trend. PULSE bpm / TEMP °F = 60s wrist count and oral reading at wake. CAFFLOG: actual daily caffeine — mg and clock time as logged (mg 0 = a deliberate none-day); tail math runs on these, never an assumed noon. FEED: the app's event log — amendments and corrections here OVERRIDE older raw rows. RECORDS: pending = awaiting the 3-night ≥7.5h clean streak. LAWS: single terminal failure set per exercise; on debt only that final set pulls to 1.";
+const LEDGER_DICT = "FIELD DICTIONARY (authoritative — never guess a meaning): NIGHTS: h = hours asleep · bed/wake = clock times as logged (they vary; that is expected) · sol = drift-off, minutes to fall asleep · tags: woke = woke mid-night, caff = late caffeine. DAYS: cal/pro/steps as logged · dayCtx est = athlete-declared estimate day (rough numbers, lower evidentiary weight) · ⌁flags = day weather (event window / seal water / post-refeed / estimate). SESSIONS: entries = performed lifts only, w = load, reps per set, rir = reps in reserve on the opener · skipped = lifts deliberately not done (structured truth, zero phantom reps) · note = athlete prose, read it · niggles = flagged aches · dips = incidental dip count. READS: raw morning scale, sealed = quarantined event water, judge only via damped trend. PULSE bpm / TEMP °F = 60s wrist count and oral reading at wake. ENERGY: morning 1–5 (1 fumes · 5 caged animal). SORENESS: muscles tapped sore at wake (empty list = nothing sore, logged). GRIP: best squeeze per hand in lb, same posture daily — a CNS-readiness number. DAILY sodium low/med/high and alcohol units ride the day numbers. CAFFLOG: actual daily caffeine — mg and clock time as logged (mg 0 = a deliberate none-day); tail math runs on these, never an assumed noon. FEED: the app's event log — amendments and corrections here OVERRIDE older raw rows. RECORDS: pending = awaiting the 3-night ≥7.5h clean streak. LAWS: single terminal failure set per exercise; on debt only that final set pulls to 1.";
 
 async function ghSync(state) {
   let tok = null;
@@ -2481,7 +2486,7 @@ function askContext(s) {
   const trls = (s.trials || []).map((t3) => { const tp = trialTpl(t3); return tp ? `${tp.t} (started ${t3.started})` : ""; }).filter(Boolean).join(" · ") || "none";
   const gate2 = sleepInfo(s);
   const dict = LEDGER_DICT + " SLEEP GATE RIGHT NOW (do not re-derive): clean run " + gate2.run + "/" + gate2.need + " — records currently " + (gate2.clean ? "OFFICIAL" : "PENDING") + ". EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
-  return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
+  return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
 }
 const AGENT_TOOLS = [
   { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads|feed. Feed = the app event log; amendments there override older raw rows. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
@@ -2686,6 +2691,9 @@ function MinuteView({ s, setS, save, onClose }) {
   const [tf9, setTf9] = useState(() => { const tr = (s.temp || []); return tr.length ? tr[tr.length - 1].f : 97.6; });
   const [wt9, setWt9] = useState(() => +(s.trend || 164.5));
   const [ans9, setAns9] = useState("");
+  const [sore9, setSore9] = useState([]);
+  const [gl9, setGl9] = useState(() => { const g = (s.grip || []); return g.length ? String(g[g.length - 1].l || "") : ""; });
+  const [gr9, setGr9] = useState(() => { const g = (s.grip || []); return g.length ? String(g[g.length - 1].r || "") : ""; });
   const cur = steps[idx9];
   const advance = () => { if (idx9 + 1 < steps.length) setIdx9(idx9 + 1); else onClose(); };
   const w9 = (fn) => { const ns = JSON.parse(JSON.stringify(s)); fn(ns); setS(ns); save(ns); advance(); };
@@ -2718,6 +2726,42 @@ function MinuteView({ s, setS, save, onClose }) {
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Scale, fasted</div>
           <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={wt9} set={setWt9} step={0.1} min={100} /><span style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>lb</span></div>
           <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.reads = ns.reads.filter((r) => r.d !== t9); ns.reads.push({ d: t9, w: +wt9 }); })}>Log weight →</Btn>
+        </div>
+      )}
+      {cur === "energy" && (
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontFamily: body, fontSize: 13, color: T.chalk }}>How's the engine this morning?</div>
+          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            {[1, 2, 3, 4, 5].map((v9) => (
+              <span key={v9} onClick={() => w9((ns) => { ns.energy = [...(ns.energy || []).filter((x) => x.d !== t9), { d: t9, v: v9 }]; })}
+                style={{ flex: 1, textAlign: "center", fontFamily: mono, fontSize: 16, color: T.chalk, border: `1px solid ${T.line}`, borderRadius: 8, padding: "14px 0", cursor: "pointer" }}>{v9}</span>
+            ))}
+          </div>
+          <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>1 = running on fumes · 3 = normal · 5 = caged animal</div>
+        </div>
+      )}
+      {cur === "soreness" && (
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontFamily: body, fontSize: 13, color: T.chalk }}>Anything sore? Tap all that apply.</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12 }}>
+            {MUSCLE_CHIPS.map((m9) => (
+              <span key={m9} onClick={() => setSore9(sore9.includes(m9) ? sore9.filter((x) => x !== m9) : [...sore9, m9])}
+                style={{ fontFamily: mono, fontSize: 10.5, color: sore9.includes(m9) ? T.brass : T.dim, border: `1px solid ${sore9.includes(m9) ? T.brass : T.line}`, borderRadius: 999, padding: "7px 12px", cursor: "pointer" }}>{m9}</span>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            <Btn full tone="jade" onClick={() => w9((ns) => { ns.soreness = [...(ns.soreness || []).filter((x) => x.d !== t9), { d: t9, mgs: sore9.slice() }]; })}>{sore9.length ? "Log soreness →" : "Nothing sore ✓ →"}</Btn>
+          </div>
+        </div>
+      )}
+      {cur === "grip" && (
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontFamily: body, fontSize: 13, color: T.chalk }}>Grip — best of 2–3 squeezes each hand, same posture as always.</div>
+          <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+            <div style={{ flex: 1 }}><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>LEFT (lb)</div><input inputMode="decimal" value={gl9} onChange={(e9) => setGl9(e9.target.value)} style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 16, padding: "10px", outline: "none", marginTop: 4 }} /></div>
+            <div style={{ flex: 1 }}><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>RIGHT (lb)</div><input inputMode="decimal" value={gr9} onChange={(e9) => setGr9(e9.target.value)} style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 16, padding: "10px", outline: "none", marginTop: 4 }} /></div>
+          </div>
+          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.grip = [...(ns.grip || []).filter((x) => x.d !== t9), { d: t9, l: +gl9 || null, r: +gr9 || null }]; })}>Log grip →</Btn>
         </div>
       )}
       {cur === "pulse" && (
@@ -2778,7 +2822,8 @@ function filingsFor(dow, dom) {
   if (dom >= 1 && dom <= 3) out9.push("THE RED CELL files this week — the case against your prep waits in LAB");
   return out9;
 }
-const MORNING_REGISTRY = ["night", "weight", "pulse", "temp", "brief"];
+const MORNING_REGISTRY = ["night", "weight", "pulse", "temp", "energy", "soreness", "grip", "brief"];
+const MUSCLE_CHIPS = ["quads", "hams", "calves", "chest", "back", "delts", "biceps", "triceps", "forearms", "abs"];
 function minuteNeeds(s) {
   const t9 = isoOf(todayStart());
   const y9 = isoOf(new Date(todayStart().getTime() - DAY));
@@ -2787,6 +2832,9 @@ function minuteNeeds(s) {
   if (!blackoutOn(s, t9) && !s.reads.some((r) => r.d === t9)) out9.push("weight");
   if ((s.pulse || []).some((x) => x.d < t9) && !(s.pulse || []).some((x) => x.d === t9)) out9.push("pulse");
   if ((s.temp || []).some((x) => x.d < t9) && !(s.temp || []).some((x) => x.d === t9)) out9.push("temp");
+  if (!(s.energy || []).some((x) => x.d === t9)) out9.push("energy");
+  if (!(s.soreness || []).some((x) => x.d === t9)) out9.push("soreness");
+  if ((s.grip || []).some((x) => x.d < t9) && !(s.grip || []).some((x) => x.d === t9)) out9.push("grip");
   return out9;
 }
 function booksToday(s) {
@@ -2800,6 +2848,8 @@ function booksToday(s) {
   if (ty9 === "U" || ty9 === "L") items.push({ k: "session", ok: !!s.sessionLog[t9] });
   if ((s.pulse || []).some((x) => x.d < t9)) items.push({ k: "pulse", ok: (s.pulse || []).some((x) => x.d === t9) });
   if ((s.temp || []).some((x) => x.d < t9)) items.push({ k: "temp", ok: (s.temp || []).some((x) => x.d === t9) });
+  if ((s.energy || []).some((x) => x.d < t9)) items.push({ k: "energy", ok: (s.energy || []).some((x) => x.d === t9) });
+  if ((s.grip || []).some((x) => x.d < t9)) items.push({ k: "grip", ok: (s.grip || []).some((x) => x.d === t9) });
   if (!blackoutOn(s, t9)) items.push({ k: "scale", ok: s.reads.some((r) => r.d === t9) });
   return { items, complete: items.every((i) => i.ok) };
 }
@@ -3022,6 +3072,7 @@ __test.lightsOutT = lightsOutT;
 __test.minuteNeeds = minuteNeeds;
 __test.booksToday = booksToday;
 __test.MORNING_REGISTRY = MORNING_REGISTRY;
+__test.MUSCLE_CHIPS = MUSCLE_CHIPS;
 __test.caffAt = caffAt;
 __test.CONSTITUTION = CONSTITUTION;
 
@@ -3241,10 +3292,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const bf = bfEst(s);
   const nextUnlocks = s.queue.filter((x) => !x.done && x.kind !== "info" && x.kind !== "phase").slice(0, 2);
 
+  const [sod9, setSod9] = useState(() => (s.dailyLogs[tISO] || {}).sodium || null);
+  const [alc9, setAlc9] = useState(() => (s.dailyLogs[tISO] || {}).alc ?? 0);
   const saveDaily = () => {
     const ns = { ...s };
     const c = cal === "" ? null : Number(cal), p = pro === "" ? null : Number(pro), st = stp === "" ? null : Number(stp);
-    ns.dailyLogs = { ...ns.dailyLogs, [tISO]: { cal: c, pro: p, steps: st } };
+    ns.dailyLogs = { ...ns.dailyLogs, [tISO]: { cal: c, pro: p, steps: st, sodium: sod9, alc: +alc9 || 0 } };
     if (p != null) {
       const hit = Math.abs(p - PROTEIN) <= 10;
       if (!hit && !ns.fixWindow) ns.fixWindow = { opened: tISO };
@@ -3501,6 +3554,16 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                 style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 15, padding: "8px 8px", outline: "none" }} />
             </div>
           ))}
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>SODIUM</span>
+          {["low", "med", "high"].map((sv) => (
+            <span key={sv} onClick={() => { setSod9(sv); if (dl) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].sodium = sv; setS(ns); save(ns); } }}
+              style={{ fontFamily: mono, fontSize: 9.5, color: sod9 === sv ? T.jade : T.dim, border: `1px solid ${sod9 === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px", cursor: "pointer" }}>{sv}</span>
+          ))}
+          <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginLeft: 8 }}>ALCOHOL</span>
+          <Stepper v={+alc9} set={(v0) => { setAlc9(v0); if (dl) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].alc = v0; setS(ns); save(ns); } }} step={1} min={0} />
+          <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>units</span>
         </div>
         {(() => { const yd9 = s.dailyLogs[isoOf(new Date(todayStart().getTime() - DAY))]; if (!yd9) return null; return <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>yest: {yd9.cal ?? "—"} · {yd9.pro ?? "—"} · {yd9.steps != null ? (yd9.steps / 1000).toFixed(1) + "k" : "—"}</div>; })()}
         {s.fixWindow && (
