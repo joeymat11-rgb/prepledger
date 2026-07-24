@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.72.0";
+const APP_V = "3.72.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1569,7 +1569,8 @@ function RedCellCard() {
       </div>
       {open2 && <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 8, lineHeight: 1.6, whiteSpace: "pre-wrap", borderTop: `1px solid ${T.line}`, paddingTop: 9 }}>{txt.slice(0, 3000)}</div>}
     </Card>
-  );
+
+);
 }
 
 /* LAB GROUPS — every analytic, experiment, and evidence card filed on one shelf system */
@@ -3085,6 +3086,8 @@ function Proposals({ s, setS, save }) {
 function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [askOpen, setAskOpen] = useState(false);
   const [lawsOpen, setLawsOpen] = useState(false);
+  const [nCMg, setNCMg] = useState(200);
+  const [nCAt, setNCAt] = useState(() => { const d9 = new Date(); return String(d9.getHours()).padStart(2, "0") + ":" + String(Math.floor(d9.getMinutes() / 15) * 15).padStart(2, "0"); });
   const tISO = isoOf(todayStart());
   const [bedT, setBedT] = useState("23:00");
   const [wakeT, setWakeT] = useState((s.sleep.anchor || {}).wake || "06:45");
@@ -3372,7 +3375,37 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <More deep="175 is THE number — proximity, not a floor to beat; chronic overshoot is drift too. Calories live in a band, not a point. A protein miss opens a 24-hour fix window, and closing it EXTENDS the standard instead of resetting it — recovery speed is the metric, never an unbroken chain."
           forYou={s.fixWindow ? "The fix window is OPEN — hitting 175 today closes it and the record extends." : "Standard intact. Log once, done — the app rewards the logging, never the checking."} />
       </Card>
-      )}
+
+)}
+
+      {(() => {
+        const tc0 = todayCaff(s);
+        const e0 = (s.caffLog || []).find((x) => x.d === tISO);
+        const lo0 = lightsOutT(s);
+        if (e0) {
+          const tl0 = e0.mg > 0 ? caffAt(e0.mg, parseHM(e0.at), lo0.mins / 60) : 0;
+          return (
+            <Card style={{ padding: "9px 14px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                <span style={{ fontFamily: mono, fontSize: 10, color: T.jade }}>✓ caffeine · {e0.mg === 0 ? "none today" : `${e0.mg} mg @ ${e0.at}`}{e0.mg > 0 ? ` · ~${tl0} mg at ${lo0.t}` : ""}</span>
+                <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = (ns.caffLog || []).filter((x) => x.d !== tISO); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, cursor: "pointer" }}>undo</span>
+              </div>
+            </Card>
+          );
+        }
+        return (
+          <Card style={{ padding: "10px 14px" }}>
+            <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, letterSpacing: "0.06em" }}>CAFFEINE — WHAT DID YOU ACTUALLY TAKE TODAY?</div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 7, alignItems: "center" }}>
+              {[0, 100, 175, 200, 350, 400].map((m0) => (
+                <span key={m0} onClick={() => setNCMg(m0)} style={{ fontFamily: mono, fontSize: 10, color: nCMg === m0 ? T.jade : T.dim, border: `1px solid ${nCMg === m0 ? T.jade : T.line}`, borderRadius: 999, padding: "5px 10px", cursor: "pointer" }}>{m0 === 0 ? "none ✓" : m0}</span>
+              ))}
+              <input value={nCAt} onChange={(e3) => setNCAt(e3.target.value)} inputMode="numeric" placeholder="HH:MM" style={{ width: 60, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 7px", outline: "none", opacity: nCMg === 0 ? 0.4 : 1 }} />
+              <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = [...(ns.caffLog || []).filter((x) => x.d !== tISO), { d: tISO, mg: nCMg, at: nCMg === 0 ? "—" : nCAt }]; ns.feed.unshift({ d: tISO, t: nCMg === 0 ? "CAFFEINE — NONE TODAY" : `CAFFEINE — ${nCMg} mg at ${nCAt}`, how: "logged on NOW — the tail math runs on this" }); setS(ns); save(ns); }}>Log</Btn>
+            </div>
+          </Card>
+        );
+      })()}
 
       {(() => {
         const lastWaist = s.waist[s.waist.length - 1];
@@ -3382,7 +3415,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         return (
           <>
             {(waistDue || photoDue) && (
-              <Card accent={T.brass}>
+<Card accent={T.brass}>
                 <Eyebrow c={T.brass}>WEEKLY · DUE — APPEARS ONLY WHEN IT'S TIME</Eyebrow>
                 {waistDue && (
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
