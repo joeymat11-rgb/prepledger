@@ -1,0 +1,3 @@
+# Analyst running narrative
+
+**2026-07-24 (Fri) — Run 1.** First analyst pass on record: no prior briefs to grade, so the scorecard opens fresh and today's CONSIDER + AUDIT calls become the first entries to be judged on future runs. Athlete is mid wedding-fortnight blackout (refeed 7/22, Wedding #2 on 7/25); weight is sealed through 7/27, so tonight's read is on sleep, session debt, and log integrity rather than the scale. Notable: the 7/23 upper day ran full but entirely on debt with the press only provisional, and a session note contradicts the pronated log — flagged as tonight's one question. Sleep dipped to 6.0h on the refeed night after a 4-night clean run; the wedding night is the one to watch.
