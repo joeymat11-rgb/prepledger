@@ -1051,3 +1051,17 @@ ok(tf63(hk63).every((r) => r <= 10), "fresh targets seed under the new ceiling: 
 
 console.log(`\nFINAL62: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+// v3.64 — the smallest-honest-increment law
+const { migrate: mg64, SEED: TH64 } = __test;
+const oldV24a = clone(TH64); oldV24a.v = 24;
+oldV24a.exercises.find((x) => x.id === "calves").inc = 15;
+oldV24a.queue.push({ id: "q_calves_330", kind: "debut", exId: "calves", newW: 330, t: "CALVES 330 DEBUT", state: "DEBUT", gate: "Earned via 315×13,12,11,10", rule: "Auto-queued", done: false });
+const m64 = mg64(oldV24a);
+ok(m64.v >= 25 && m64.exercises.find((x) => x.id === "calves").inc === 5, "the machine's smallest step becomes the law: calves inc 5");
+const q64 = m64.queue.find((q) => q.id === "q_calves_330");
+ok(q64.newW === 320 && q64.t === "CALVES 320 DEBUT", "the already-queued 330 debut is rewritten to 320: " + q64.t);
+ok(m64.feed.some((f) => f.t.indexOf("RULING — SMALLEST HONEST INCREMENT") === 0), "the ruling is filed for the clerk");
+
+console.log(`\nFINAL63: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);

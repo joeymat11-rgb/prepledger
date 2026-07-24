@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.63.0";
+const APP_V = "3.64.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -63,7 +63,7 @@ const EXERCISES = [
   { id: "pronated", mg: "forearms", lastMeta: { d: "2026-07-20", w: 40, reps: [12, 11], debt: true }, n: "Pronated EZ curl", day: "U", w: 40, inc: 5, sets: 2, hi: 13, last: [12, 11],
     setup: "SET · EZ bar, pronated grip\nElbows pinned to sides, zero swing · wrists locked — don't let them bend back under load · 2–3 s negative, that's where this one grows · your 11,6 session was the hot-opener demo" },
   /* LOWER — order per the 7/17 & 7/21 notes, identical both days */
-  { id: "calves", mg: "calves", lastMeta: { d: "2026-07-21", w: 315, reps: [12, 10, 9, 8], debt: true }, n: "Calves", day: "L", w: 315, inc: 15, sets: 4, hi: 13, last: [12, 10, 9, 8], reclaim: [13, 12, 11, 10],
+  { id: "calves", mg: "calves", lastMeta: { d: "2026-07-21", w: 315, reps: [12, 10, 9, 8], debt: true }, n: "Calves", day: "L", w: 315, inc: 5, sets: 4, hi: 13, last: [12, 10, 9, 8], reclaim: [13, 12, 11, 10],
     setup: "SET · shoulder height 4\n5 s pause in the stretched position · back up to neutral · no bounce out of the hole — the pause IS the rep · drive through the big toe" },
   { id: "abs", mg: "abs", lastMeta: { d: "2026-07-21", w: 95, reps: [14, 13, 13], debt: true }, n: "Abs", day: "L", w: 100, inc: 5, sets: 3, hi: 14, last: null, first: [12, 12, 12], debutNote: "DEBUT — new baseline, log honest",
     setup: "SET · back pad A · seat 6\nSame tempo every session — the load only moves on clean, even reps" },
@@ -144,7 +144,7 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 24;
+  SEED.v = 25;
   SEED.dayCtx = {};
   SEED.agentProposals = [];
   SEED.temp = [];
@@ -329,7 +329,7 @@ function genSession(s, iso, slp) {
     const w = q && q.newW != null ? q.newW : e.w;
     let tgt, note;
     if (e.id === "hack" && e.pendingThird && isDebutNow) { tgt = [...targetsFor(e), Math.max(8, e.hi - 3)]; note = "DEBUT — third set banks whatever it gives"; }
-    else if (q && q.kind === "debut" && e.last) { tgt = e.last.map((r) => Math.max(6, r - 2)); note = `DEBUT at ${w} — log what it gives`; }
+    else if (q && q.kind === "debut" && e.last) { tgt = e.last.map((r) => Math.max(6, r - 1)); note = `DEBUT at ${w} — smallest honest jump: expect to keep almost every rep`; }
     else if (q && !e.last) { tgt = targetsFor(e); note = e.debutNote || `DEBUT at ${w}`; }
     else { tgt = targetsFor(e); note = e.own ? `OWN-IT — ${e.ownNote}` : e.reclaim ? "RECLAIM — the exact standard" : e.ladder ? `set ${e.ladder.set + 1} is the ladder — top of rung ${e.ladder.top}` : e.note; }
     if (e.holdFlag) note = "HELD — opener ran 0 RIR twice · one honest session releases it";
@@ -2102,6 +2102,20 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV25(s) {
+  const cv = (s.exercises || []).find((x) => x.id === "calves");
+  if (cv) cv.inc = 5;
+  (s.queue || []).forEach((q) => {
+    if (q.exId === "calves" && q.kind === "debut" && !q.done && typeof q.newW === "number" && q.newW > 320) {
+      q.newW = 320; q.t = "CALVES 320 DEBUT"; q.gate = (q.gate || "") + " · rewritten to the machine's smallest step";
+    }
+  });
+  s.feed = s.feed || [];
+  if (!s.feed.some((f) => f.t && f.t.indexOf("RULING — SMALLEST HONEST INCREMENT") === 0)) {
+    s.feed.unshift({ d: isoOf(todayStart()), t: "RULING — SMALLEST HONEST INCREMENT", how: "weight jumps take the machine's smallest step (calves 315 → 320, not 330) and debut targets expect to keep almost every rep — small steps, fast rebuilds, more honest sets near the top" });
+  }
+  s.v = 25; return s;
+}
 function patchV24(s) {
   const hk = (s.exercises || []).find((x) => x.id === "hack");
   if (hk) { hk.hi = 12; hk.last = null; }
@@ -2157,8 +2171,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 24) return old;
-  if (old && old.v >= 3 && old.v <= 23) return patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))))))))))));
+  if (old && old.v === 25) return old;
+  if (old && old.v >= 3 && old.v <= 24) return patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -2184,7 +2198,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))))))))))));
+  return patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))))))))))))));
 }
 
 const GLOSSARY = {
