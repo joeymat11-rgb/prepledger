@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { HISTORY } from "./history.js";
 
 /* ============================================================
@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.55.1";
+const APP_V = "3.55.2";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1461,20 +1461,13 @@ function MapView({ s, onClose }) {
 
 /* THE RED CELL — the prosecution's monthly filing, rendered when fresh */
 function RedCellCard() {
-  const [txt, setTxt] = useState(null);
-  useEffect(() => {
-    (async () => {
-      try {
-        const tok = localStorage.getItem(TOKEN_KEY);
-        if (!tok) return;
-        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/redcell.md", { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" } });
-        if (!r.ok) return;
-        const t2 = await r.text();
-        const m = t2.match(/^<!-- (\d{4}-\d{2}-\d{2}) -->/);
-        if (m && (mk(isoOf(todayStart())) - mk(m[1])) / DAY <= 35) setTxt(t2.replace(/^<!--.*-->\n?/, ""));
-      } catch (e) {}
-    })();
-  }, []);
+  const raw = useRepoDoc("ledger/redcell.md");
+  const txt = (() => {
+    if (!raw) return null;
+    const m = raw.match(/^<!-- (\d{4}-\d{2}-\d{2}) -->/);
+    if (m && (mk(isoOf(todayStart())) - mk(m[1])) / DAY <= 35) return raw.replace(/^<!--.*-->\n?/, "");
+    return null;
+  })();
   const [open2, setOpen2] = useState(false);
   if (!txt) return null;
   return (
@@ -2451,23 +2444,43 @@ function ApiKeyBlock() {
   );
 }
 
-function BriefCard({ s, setS: setS2, save: save2 }) {
-  const [brief, setBrief] = useState(null);
-  const [ans, setAns] = useState("");
-  const [answered, setAnswered] = useState(false);
+function useRepoDoc(path) {
+  const [txt, setTxt] = useState(null);
   useEffect(() => {
-    (async () => {
+    let dead = false;
+    const go = async () => {
       try {
         const tok = localStorage.getItem(TOKEN_KEY);
         if (!tok) return;
-        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/brief.md", { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" } });
+        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/" + path, { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" }, cache: "no-store" });
         if (!r.ok) return;
-        const txt = await r.text();
-        const m = txt.match(/^<!-- (\d{4}-\d{2}-\d{2}) -->/);
-        if (m && (isoOf(todayStart()) === m[1] || isoOf(new Date(todayStart().getTime() - DAY)) === m[1])) setBrief(txt.replace(/^<!--.*-->\n?/, ""));
+        const t2 = await r.text();
+        if (!dead) setTxt(t2);
       } catch (e) {}
-    })();
-  }, []);
+    };
+    let last = 0;
+    const goT = () => { const n2 = Date.now(); if (n2 - last < 45e3) return; last = n2; go(); };
+    goT();
+    const onVis = () => { if (document.visibilityState === "visible") goT(); };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", onVis);
+    window.addEventListener("pageshow", onVis);
+    const iv = setInterval(() => { if (document.visibilityState === "visible") goT(); }, 15 * 60 * 1000);
+    return () => { dead = true; document.removeEventListener("visibilitychange", onVis); window.removeEventListener("focus", onVis); window.removeEventListener("pageshow", onVis); clearInterval(iv); };
+  }, [path]);
+  return txt;
+}
+
+function BriefCard({ s, setS: setS2, save: save2 }) {
+  const raw = useRepoDoc("ledger/brief.md");
+  const [ans, setAns] = useState("");
+  const [answered, setAnswered] = useState(false);
+  const brief = (() => {
+    if (!raw) return null;
+    const m = raw.match(/^<!-- (\d{4}-\d{2}-\d{2}) -->/);
+    if (m && (isoOf(todayStart()) === m[1] || isoOf(new Date(todayStart().getTime() - DAY)) === m[1])) return raw.replace(/^<!--.*-->\n?/, "");
+    return null;
+  })();
   if (!brief) return null;
   const qm = brief.match(/^QUESTION:\s*(.+)$/m);
   return (
@@ -2532,20 +2545,8 @@ function RndDesk({ s, setS: sS, save: sv }) {
 }
 
 function RndCard() {
-  const [rnd, setRnd] = useState(null);
-  useEffect(() => {
-    if (![0, 1].includes(new Date().getDay())) return;
-    (async () => {
-      try {
-        const tok = localStorage.getItem(TOKEN_KEY);
-        if (!tok) return;
-        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/rnd.md", { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" } });
-        if (!r.ok) return;
-        const txt = await r.text();
-        setRnd(txt);
-      } catch (e) {}
-    })();
-  }, []);
+  const rnd = useRepoDoc("ledger/rnd.md");
+  if (![0, 1].includes(new Date().getDay())) return null;
   if (!rnd) return null;
   return (
     <Card accent={T.brass}>
@@ -4043,20 +4044,13 @@ function TrialsDesk({ s, setS, save }) {
   );
 }
 function NightDraft() {
-  const [draft, setDraft] = useState(null);
-  useEffect(() => {
-    (async () => {
-      try {
-        const tok = localStorage.getItem(TOKEN_KEY);
-        if (!tok) return;
-        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/coach-draft.md", { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" } });
-        if (!r.ok) return;
-        const txt = await r.text();
-        const m = txt.match(/^<!-- (\d{4}-\d{2}-\d{2}) -->/);
-        if (m && (mk(isoOf(todayStart())) - mk(m[1])) / DAY <= 2) setDraft(txt.replace(/^<!--.*-->\n?/, ""));
-      } catch (e) {}
-    })();
-  }, []);
+  const raw = useRepoDoc("ledger/coach-draft.md");
+  const draft = (() => {
+    if (!raw) return null;
+    const m = raw.match(/^<!-- (\d{4}-\d{2}-\d{2}) -->/);
+    if (m && (mk(isoOf(todayStart())) - mk(m[1])) / DAY <= 2) return raw.replace(/^<!--.*-->\n?/, "");
+    return null;
+  })();
   if (!draft) return null;
   return (
     <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
