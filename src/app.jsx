@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.57.2";
+const APP_V = "3.57.3";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2948,17 +2948,15 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
 
       {sess && (
-        <div style={{ border: `1px solid ${T.line}`, borderRadius: 10, padding: "18px 16px 16px", background: `linear-gradient(180deg, ${T.plate} 0%, ${T.ink} 100%)`, position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: T.orange }} />
-          <Eyebrow c={T.orange}>{heroToday ? "TODAY" : daysUntil(nextISO) === 1 ? "TOMORROW" : "NEXT"} · {fmtShort(nextISO)}</Eyebrow>
-          <div style={{ marginTop: 6 }}><H size={32}>{sess.structural}</H></div>
-          <div style={{ fontFamily: body, fontSize: 13.5, color: T.steel, marginTop: 6 }}>
-            {sess.name} — your numbers are ready, built from what you did last time. {slp.clean ? "Sleep is clean: records set today count for real." : <>Short-sleep reset {slp.run}/{slp.need}: records today count as <Term k="provisional" c={T.steel}>pending</Term> until sleep is clean.</>}
+        <Card style={{ padding: "11px 14px", borderLeft: `3px solid ${T.orange}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: mono, fontSize: 10, color: T.orange, letterSpacing: "0.08em" }}>{heroToday ? "TODAY" : daysUntil(nextISO) === 1 ? "TOMORROW" : "NEXT"} · {fmtShort(nextISO)} · {sess.name.toUpperCase()}</div>
+              <div style={{ fontFamily: mono, fontSize: 11.5, color: T.chalk, marginTop: 4 }}>{sess.ex.length} lifts · {sess.structural.toLowerCase()} · full plan in TRAIN</div>
+            </div>
+            <span style={{ fontFamily: mono, fontSize: 9.5, color: slp.clean ? T.jade : T.brass, flexShrink: 0, textAlign: "right" }}>{slp.clean ? "records live" : "records pend"}</span>
           </div>
-          <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-            <Chip c={T.orange}>1 structural change — auto-picked from the queue</Chip>
-          </div>
-        </div>
+        </Card>
       )}
 
       {isRefeed && (
