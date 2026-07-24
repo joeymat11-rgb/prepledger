@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.59.0";
+const APP_V = "3.59.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2366,10 +2366,12 @@ async function askLedger(s, question, history) {
     return { ok: true, text: (j.content || []).map((c) => c.text || "").join("") };
   } catch (e) { return { ok: false, msg: "network — the API needs a signal" }; }
 }
+const ASKHIST_KEY = "prep-ledger-askhist";
 function AskLedger({ s, setS, save, onClose }) {
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
-  const [log, setLog] = useState([]);
+  const [log, setLog] = useState(() => { try { return JSON.parse(localStorage.getItem(ASKHIST_KEY) || "[]"); } catch (e) { return []; } });
+  useEffect(() => { try { localStorage.setItem(ASKHIST_KEY, JSON.stringify(log.slice(-12))); } catch (e) {} }, [log]);
   const [status, setStatus] = useState(null);
   const ask = async () => {
     const question = q.trim();
@@ -2495,6 +2497,7 @@ function useRepoDoc(path) {
   return txt;
 }
 
+function briefAnswered(s, q) { return (s.feed || []).some((f) => f.t === "ANALYST ANSWER" && (f.how || "").indexOf(q.slice(0, 120) + " →") === 0); }
 function BriefCard({ s, setS: setS2, save: save2 }) {
   const raw = useRepoDoc("ledger/brief.md");
   const [openB, setOpenB] = useState(() => new Date().getHours() < 12);
@@ -2508,6 +2511,7 @@ function BriefCard({ s, setS: setS2, save: save2 }) {
   })();
   if (!brief) return null;
   const qm = brief.match(/^QUESTION:\s*(.+)$/m);
+  const already = qm ? briefAnswered(s, qm[1]) : false;
   return (
     <Card accent={T.jade}>
       <div onClick={() => setOpenB(!openB)} style={{ cursor: "pointer" }}>
@@ -2520,7 +2524,7 @@ function BriefCard({ s, setS: setS2, save: save2 }) {
         </div>
       ); })()}
       {openB && <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{plainify(brief).slice(0, 2200)}</div>}
-      {qm && !answered && (
+      {qm && !already && !answered && (
         <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9 }}>
           <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass, letterSpacing: "0.06em" }}>THE ANALYST ASKS — 10 SECONDS, BECOMES LABELED DATA</div>
           <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
@@ -2529,7 +2533,7 @@ function BriefCard({ s, setS: setS2, save: save2 }) {
           </div>
         </div>
       )}
-      {answered && <div style={{ fontFamily: mono, fontSize: 10, color: T.jade, marginTop: 8 }}>✓ filed — the night shift reads it on its next run</div>}
+      {(answered || (qm && already)) && <div style={{ fontFamily: mono, fontSize: 10, color: T.jade, marginTop: 8 }}>✓ filed — the night shift reads it on its next run</div>}
     </Card>
   );
 }
@@ -2647,6 +2651,7 @@ __test.nextTrainingISO = nextTrainingISO;
 __test.INS_MAP = INS_MAP;
 __test.liveBooks = liveBooks;
 __test.LEDGER_DICT = LEDGER_DICT;
+__test.briefAnswered = briefAnswered;
 
 /* ---------- atoms ---------- */
 const Eyebrow = ({ children, c = T.dim }) => (

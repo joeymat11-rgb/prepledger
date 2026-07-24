@@ -970,5 +970,17 @@ ok(LD59.indexOf("drift-off") > -1 && LD59.indexOf("phantom reps") > -1, "one dic
 const ctx59 = ac59(pa);
 ok(ctx59.indexOf("EVENTS: ") > -1 && ctx59.indexOf("ACTIVE TRIALS: ") > -1, "events and trials ride every context");
 
-console.log(`\nFINAL57: ${pass} passed, ${fail} failed`);
+// (interim)
+
+
+// v3.59.1 — done-ness is derived from the ledger, never remembered by a screen
+const { briefAnswered: ba59, SEED: TB59 } = __test;
+let anS = clone(TB59);
+const q59 = "scale +2.1 on clean logs: travel, sodium, new supplement?";
+ok(ba59(anS, q59) === false, "an unanswered question shows its box");
+anS.feed.unshift({ d: isoL(Date.now()), t: "ANALYST ANSWER", how: q59.slice(0, 120) + " → sodium, wedding tasting menu" });
+ok(ba59(anS, q59) === true, "a filed answer stays filed across every remount");
+ok(ba59(anS, "a different question entirely") === false, "new questions get fresh boxes");
+
+console.log(`\nFINAL58: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
