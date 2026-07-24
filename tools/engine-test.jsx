@@ -1012,13 +1012,28 @@ const wq = dv.exercises.find((x) => x.id === "lateral").w;
 const mk61 = (k, tot, rir) => { const d = isoL(Date.now() - k * 864e5); dv.sessionLog[d] = { entries: [{ id: "lateral", reps: [tot], rir, w: wq }], at: 1 }; };
 mk61(8, 40, 2); mk61(6, 43, 2); mk61(4, 45, 2);
 const call61 = lc61(dv, "lateral");
-ok(call61.verdict.indexOf("PUSH") === 0 && Array.isArray(call61.receipts) && call61.receipts.some((r) => r.indexOf("velocity") === 0), "a healthy lift gets PUSH with velocity receipts: " + call61.receipts[0]);
+ok(call61.verdict.indexOf("PUSH") === 0 && Array.isArray(call61.receipts) && call61.receipts.some((r) => r.indexOf("You are gaining") === 0), "a healthy lift gets PUSH with a plain-words trend receipt: " + call61.receipts[0]);
 ok(lc61(dv, "lateral", { alarm: { level: "RED" } }).verdict === "STAND-DOWN", "alarm RED outranks everything — the desk stands the lift down");
 ok(lc61(dv, "lateral", { alarm: { level: "AMBER" } }).verdict === "HOLD", "AMBER caps the day: hold, zeros become ones");
 const nm61 = dv.exercises.find((x) => x.id === "lateral").n;
 dv.feed.unshift({ d: isoL(Date.now() - 3 * 864e5), t: "RESET APPLIED — " + nm61 + " " + wq + " → " + (wq - 5), how: "test" });
 const rb61 = lc61(dv, "lateral");
-ok(rb61.verdict === "REBUILD" && rb61.receipts.some((r) => r.indexOf("rebuild window") === 0), "a recent consented reset flips the lift into its rebuild window");
+ok(rb61.verdict === "REBUILD" && rb61.receipts.some((r) => r.indexOf("Day ") === 0), "a recent consented reset flips the lift into its climb-back window");
 
-console.log(`\nFINAL60: ${pass} passed, ${fail} failed`);
+// (interim)
+
+
+// v3.61.1 — the desk speaks the house dialect, enforced
+const { liftCall: lc611, CALL_PLAIN: CP611, SEED: TF61 } = __test;
+ok(["PUSH", "PUSH+", "HOLD", "RESET", "REBUILD", "STAND-DOWN"].every((v) => CP611[v] && CP611[v].chip && CP611[v].mean), "every verdict has a plain chip and a plain meaning");
+let pl = clone(TF61);
+for (let k = 3; k >= 1; k--) { const d = isoL(Date.now() - k * 864e5); pl.sleep.nights = pl.sleep.nights.filter((n) => n.d !== d); pl.sleep.nights.push({ d, h: 7.8, bed: "22:30", wake: "06:30" }); }
+const wq2 = pl.exercises.find((x) => x.id === "lateral").w;
+[8, 6, 4].forEach((k, i) => { const d = isoL(Date.now() - k * 864e5); pl.sessionLog[d] = { entries: [{ id: "lateral", reps: [40 + i * 2], rir: 2, w: wq2 }], at: 1 }; });
+const banned = ["velocity", "stall streak", "n=", "evidentiary", "weather-clean"];
+const out61 = lc611(pl, "lateral");
+const blob = (out61.receipts || []).join(" ") + " " + out61.why;
+ok(banned.every((b) => blob.indexOf(b) === -1), "no jargon survives in receipts or reasons — plain words only");
+
+console.log(`\nFINAL61: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

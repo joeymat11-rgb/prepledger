@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.61.0";
+const APP_V = "3.61.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -216,6 +216,14 @@ function dayType(iso) {
 }
 
 /* target generator: climb the earliest set that lags the one before it */
+const CALL_PLAIN = {
+  "PUSH": { chip: "CHASE", mean: "Beat last time. Add reps wherever you honestly can — weight bumps queue themselves when you hit the standard." },
+  "PUSH+": { chip: "CHASE — GREEN LIGHT", mean: "Best conditions you get: refeed fuel aboard, sleep clean. If a record is coming, it comes today." },
+  "HOLD": { chip: "REPEAT", mean: "Run the exact same numbers as last time. Nothing banks today, so we protect the pattern instead of spending it." },
+  "RESET": { chip: "LIGHTEN", mean: "Drop the weight a notch and rebuild. Grinding a stall just burns recovery — stepping back is how walls fall." },
+  "REBUILD": { chip: "CLIMB BACK", mean: "You just lightened this lift. Climb the reps back up — the old numbers usually fall within three sessions." },
+  "STAND-DOWN": { chip: "REST TODAY", mean: "The body alarm is on. Today buys nothing worth its cost — walk, eat, sleep, come back." },
+};
 /* THE DESK CHARTER: maximize muscle retained per unit of recovery while the
    deficit does the cutting; strike for records only in green windows. Precision
    = named inputs with receipts, each gated on its own n — never a composite score. */
@@ -224,16 +232,16 @@ function liftCall(s, exId, opts = {}) {
   const R2 = [];
   const all = Object.keys(s.sessionLog).sort().map((d) => { const e = (s.sessionLog[d].entries || []).find((x) => x.id === exId); return e ? { d, tot: (e.reps || []).reduce((a, b) => a + b, 0), rir: e.rir, w: e.w } : null; }).filter(Boolean);
   const hist = all.slice(-5);
-  if (hist.length < 2) return { verdict: "PUSH", vel: null, n: hist.length, why: "young lift — chase reps, build the file", receipts: ["history: " + hist.length + " session(s) — the desk needs 2+ to compute velocity"] };
+  if (hist.length < 2) return { verdict: "PUSH", vel: null, n: hist.length, why: "New lift — just chase reps and build the story.", receipts: ["Only " + hist.length + " session" + (hist.length === 1 ? "" : "s") + " on file — two more and the desk starts reading your trend."] };
   const clean = hist.filter((h) => !dayWeather(s, h.d).hard);
   const vel = clean.length >= 2 ? +(((clean[clean.length - 1].tot - clean[0].tot) / (clean.length - 1)).toFixed(1)) : null;
-  if (vel != null) R2.push(`velocity ${vel >= 0 ? "+" : ""}${vel} reps/session over ${clean.length} weather-clean outings (measured)`);
+  if (vel != null) R2.push(vel > 0.2 ? `You are gaining about ${vel} reps per session lately (last ${clean.length} normal days).` : vel < -0.2 ? `You have been slipping about ${Math.abs(vel)} reps per session (last ${clean.length} normal days).` : `Your total reps have been flat across the last ${clean.length} normal days.`);
   let stall = 0;
   for (let i = clean.length - 1; i >= 1; i--) { if (clean[i].tot <= clean[i - 1].tot && (clean[i].rir == null || clean[i].rir <= 2)) stall++; else break; }
-  if (stall) R2.push(`stall streak ${stall} (no total-rep gain at honest RIR, flagged days excluded)`);
+  if (stall) R2.push(`${stall} session${stall > 1 ? "s" : ""} in a row without beating your total — honestly fought; party and estimate days not counted.`);
   const slp2 = sleepInfo(s);
   const lastN = s.sleep.nights[s.sleep.nights.length - 1];
-  if (lastN) R2.push(`last night ${lastN.h}h` + (lastN.sol != null ? ` · drift-off ${lastN.sol}m` : ""));
+  if (lastN) R2.push(`Last night: ${lastN.h} hours` + (lastN.sol != null ? `, took about ${lastN.sol} min to fall asleep.` : "."));
   /* per-lift day-of-week pattern — computed, n-gated at 3 per bucket */
   const dow3 = mk(tISO3).getDay();
   const byDow = all.filter((h) => mk(h.d).getDay() === dow3 && !dayWeather(s, h.d).hard);
@@ -242,7 +250,7 @@ function liftCall(s, exId, opts = {}) {
   if (byDow.length >= 3 && byOther.length >= 3) {
     const m1 = byDow.reduce((a, h) => a + h.tot, 0) / byDow.length, m2 = byOther.reduce((a, h) => a + h.tot, 0) / byOther.length;
     dowLag = +(m1 - m2).toFixed(1);
-    if (Math.abs(dowLag) >= 2) R2.push(`this weekday runs ${dowLag > 0 ? "+" : ""}${dowLag} reps vs your other days on this lift (n=${byDow.length}/${byOther.length}, measured)`);
+    if (Math.abs(dowLag) >= 2) R2.push(`${["Sundays","Mondays","Tuesdays","Wednesdays","Thursdays","Fridays","Saturdays"][dow3]} usually run about ${Math.abs(dowLag)} reps ${dowLag > 0 ? "stronger" : "lighter"} for you on this lift — judge today against that, not your best ever.`);
   }
   /* bedtime scatter — the variance tax's live coefficient, applied when its instrument is armed */
   if (lastN && lastN.bed) {
@@ -251,7 +259,7 @@ function liftCall(s, exId, opts = {}) {
     if (timed.length >= 8) {
       const med2 = timed.map((n) => mins3(n.bed)).sort((a3, b3) => a3 - b3)[Math.floor(timed.length / 2)];
       const dev = Math.abs(mins3(lastN.bed) - med2);
-      if (dev > 45) R2.push(`last night ran ${dev}m off your median bedtime — the variance tax is watching this class of night`);
+      if (dev > 45) R2.push(`Bedtime was about ${Math.round(dev / 15) * 15} min off your usual last night — the kind of night the lab is pricing.`);
     }
   }
   /* pulse vs baseline — cut-stress context when both exist */
@@ -260,7 +268,7 @@ function liftCall(s, exId, opts = {}) {
   if (pReads2.length >= 7 && pToday) {
     const base2 = pReads2.map((x) => x.bpm).sort((a3, b3) => a3 - b3)[Math.floor(pReads2.length / 2)];
     const dp = pToday.bpm - base2;
-    if (dp >= 5) R2.push(`pulse +${dp} over your baseline this morning — recovery is paying interest; don't buy records with it`);
+    if (dp >= 5) R2.push(`Your pulse ran ${dp} beats above normal this morning — your body is still paying for something. Do not spend records on a day like this.`);
   }
   const wx = dayWeather(s, tISO3);
   const postRf = wx.flags.some((f) => f.k === "postrefeed");
@@ -268,17 +276,17 @@ function liftCall(s, exId, opts = {}) {
   const alarm = opts.alarm !== undefined ? opts.alarm : (typeof bodyAlarm === "function" ? bodyAlarm(s, slp2) : null);
   const ex2 = s.exercises.find((x) => x.id === exId);
   /* verdict ladder — most protective first */
-  if (alarm && alarm.level === "RED") return { verdict: "STAND-DOWN", vel, n: clean.length, why: "body alarm RED — today buys nothing worth its cost; walk, eat, sleep, return", receipts: R2.concat(["alarm: RED (sentinel pattern sustained)"]) };
+  if (alarm && alarm.level === "RED") return { verdict: "STAND-DOWN", vel, n: clean.length, why: "Body alarm is RED. Skip the iron today — walk, eat, sleep, and come back tomorrow ahead.", receipts: R2.concat(["Body alarm: RED — the pattern held a second day."]) };
   const recentReset = (s.feed || []).slice(0, 60).find((f) => f.t && ex2 && f.t.indexOf("RESET APPLIED — " + ex2.n) === 0 && (mk(tISO3) - mk(f.d)) / DAY <= 14);
-  if (recentReset) return { verdict: "REBUILD", vel, n: clean.length, why: `reset applied ${fmtShort(recentReset.d)} — climb the reps back; the old wall usually falls inside 3 sessions`, receipts: R2.concat(["rebuild window: day " + Math.round((mk(tISO3) - mk(recentReset.d)) / DAY) + " of 14"]) };
-  if (stall >= 3) { const newW = ex2 && ex2.w ? Math.max(5, Math.round((ex2.w * 0.95) / 5) * 5) : null; return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest weather-clean sessions without gain — the evidence-based move is a small load reset to rebuild momentum`, receipts: R2 }; }
-  if (alarm && alarm.level === "AMBER") return { verdict: "HOLD", vel, n: clean.length, why: "body alarm AMBER — normal plan, every 0 becomes a 1, no records today", receipts: R2.concat(["alarm: AMBER"]) };
-  if (!slp2.clean) return { verdict: "HOLD", vel, n: clean.length, why: `sleep debt ${slp2.run}/${slp2.need} — repeat targets, bank nothing, protect the pattern; recovery is the scarce currency of a cut`, receipts: R2 };
-  if (estToday) return { verdict: "PUSH", vel, n: clean.length, why: "estimate day — train normally, but today's numbers carry lower evidentiary weight by your own declaration", receipts: R2.concat(["⌁ estimate day declared"]) };
-  if (postRf && (vel == null || vel >= 0)) return { verdict: "PUSH+", vel, n: clean.length, why: `green window: post-refeed glycogen + clean sleep${vel != null ? ` + velocity ${vel >= 0 ? "+" : ""}${vel}` : ""} — attempt territory, records live`, receipts: R2.concat(["⌁ post-refeed window"]) };
-  if (dowLag != null && dowLag <= -3) return { verdict: "PUSH", vel, n: clean.length, why: `chase honestly — but this weekday historically runs ${dowLag} reps on this lift; judge today against that line, not your best day`, receipts: R2 };
-  if (vel != null && vel <= 0 && stall > 0) return { verdict: "PUSH", vel, n: clean.length, why: `velocity flat (${vel}/session, ${stall} stalled) — chase honestly; one more honest stall triggers the reset question`, receipts: R2 };
-  return { verdict: "PUSH", vel, n: clean.length, why: `velocity ${vel != null ? (vel >= 0 ? "+" : "") + vel + "/session" : "building"} — keep chasing; weight bumps queue when standards fall`, receipts: R2 };
+  if (recentReset) return { verdict: "REBUILD", vel, n: clean.length, why: `You lightened this on ${fmtShort(recentReset.d)}. Climb the reps back — the old numbers usually fall within three sessions.`, receipts: R2.concat(["Day " + Math.round((mk(tISO3) - mk(recentReset.d)) / DAY) + " of your 14-day climb-back."]) };
+  if (stall >= 3) { const newW = ex2 && ex2.w ? Math.max(5, Math.round((ex2.w * 0.95) / 5) * 5) : null; return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest sessions without beating your total. Time to lighten a notch and rebuild — that is how walls fall.`, receipts: R2 }; }
+  if (alarm && alarm.level === "AMBER") return { verdict: "HOLD", vel, n: clean.length, why: "Body alarm is AMBER. Normal session, but no all-out sets and no record attempts today.", receipts: R2.concat(["Body alarm: AMBER — off day, not a failure."]) };
+  if (!slp2.clean) return { verdict: "HOLD", vel, n: clean.length, why: `Sleep is rebuilding (${slp2.run}/${slp2.need} good nights). Repeat last time — nothing counts as a record today anyway.`, receipts: R2 };
+  if (estToday) return { verdict: "PUSH", vel, n: clean.length, why: "Estimate day — train normally; the numbers just count a little lighter, like you asked.", receipts: R2.concat(["You declared today an estimate day — numbers count, just lighter."]) };
+  if (postRf && (vel == null || vel >= 0)) return { verdict: "PUSH+", vel, n: clean.length, why: `Green light: refeed fuel aboard and sleep is clean${vel != null && vel > 0 ? ", and you have been gaining" : ""}. If a record is in you, today is the day.`, receipts: R2.concat(["Yesterday was the refeed — its fuel is in you today."]) };
+  if (dowLag != null && dowLag <= -3) return { verdict: "PUSH", vel, n: clean.length, why: `Chase — but this weekday usually runs about ${Math.abs(dowLag)} reps lighter for you here. Beat THAT line and it is a win.`, receipts: R2 };
+  if (vel != null && vel <= 0 && stall > 0) return { verdict: "PUSH", vel, n: clean.length, why: `Progress has gone flat here. Chase honestly — one more session without a gain and the desk suggests lightening.`, receipts: R2 };
+  return { verdict: "PUSH", vel, n: clean.length, why: `${vel != null && vel > 0.2 ? "You are gaining here — keep chasing." : "Keep chasing."} Weight goes up on its own the day you hit the standard.`, receipts: R2 };
 }
 
 function targetsFor(ex) {
@@ -2733,6 +2741,7 @@ __test.liveBooks = liveBooks;
 __test.LEDGER_DICT = LEDGER_DICT;
 __test.briefAnswered = briefAnswered;
 __test.liftCall = liftCall;
+__test.CALL_PLAIN = CALL_PLAIN;
 __test.sweepStalls = sweepStalls;
 
 /* ---------- atoms ---------- */
@@ -3525,7 +3534,7 @@ function LogTab({ s, setS, save, slp }) {
             <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 17, textTransform: "uppercase", color: T.chalk, textDecoration: skipped[ex.id] ? "line-through" : "none" }}>{ex.n}</div>
 
             {!reorder && (() => { const lc = liftCall(s, ex.id); const vc = lc.verdict === "RESET" || lc.verdict === "STAND-DOWN" ? T.redline : lc.verdict === "HOLD" ? T.brass : lc.verdict === "PUSH+" ? T.jade : lc.verdict === "REBUILD" ? T.orange : T.jade; return (
-              <span onClick={(ev2) => { ev2.stopPropagation(); setCallOpen(callOpen === ex.id ? null : ex.id); }} style={{ fontFamily: mono, fontSize: 8.5, color: vc, border: `1px solid ${vc}`, borderRadius: 999, padding: "3px 8px", flexShrink: 0, cursor: "pointer" }}>{lc.verdict}{lc.vel != null ? ` ${lc.vel >= 0 ? "+" : ""}${lc.vel}/ses` : ""} ▾</span>
+              <span onClick={(ev2) => { ev2.stopPropagation(); setCallOpen(callOpen === ex.id ? null : ex.id); }} style={{ fontFamily: mono, fontSize: 8.5, color: vc, border: `1px solid ${vc}`, borderRadius: 999, padding: "3px 8px", flexShrink: 0, cursor: "pointer" }}>{(CALL_PLAIN[lc.verdict] || { chip: lc.verdict }).chip}{lc.vel != null ? (lc.vel > 0.2 ? " ▲" : lc.vel < -0.2 ? " ▼" : " ▶") : ""} ▾</span>
             ); })()}
             {!reorder && (
               <button onClick={() => setSkipped({ ...skipped, [ex.id]: !skipped[ex.id] })} style={{ fontFamily: mono, fontSize: 9, color: skipped[ex.id] ? T.brass : T.dim, background: "none", border: `1px solid ${skipped[ex.id] ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", flexShrink: 0 }}>{skipped[ex.id] ? "skipped — undo" : "skip"}</button>
@@ -3549,7 +3558,8 @@ function LogTab({ s, setS, save, slp }) {
           </div>
           {callOpen === ex.id && (() => { const lc2 = liftCall(s, ex.id); return (
             <div style={{ marginTop: 8, padding: "9px 11px", background: T.plate2, borderRadius: 8, border: `1px solid ${T.line}` }}>
-              <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, lineHeight: 1.55 }}>{lc2.why}</div>
+              <div style={{ fontFamily: mono, fontSize: 9.5, color: T.jade, letterSpacing: "0.05em" }}>{(CALL_PLAIN[lc2.verdict] || { mean: "" }).mean}</div>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, lineHeight: 1.55, marginTop: 6 }}>{lc2.why}</div>
               {(lc2.receipts || []).map((r3, i3) => <div key={i3} style={{ fontFamily: mono, fontSize: 9.5, color: T.steel, marginTop: 5, lineHeight: 1.5 }}>· {r3}</div>)}
               <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 7 }}>THE CHARTER: retain muscle per unit of recovery; the deficit does the cutting; records only in green windows.</div>
             </div>
