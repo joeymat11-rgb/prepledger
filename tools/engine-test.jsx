@@ -1165,3 +1165,12 @@ ok(Array.isArray(mg71(oldV27a).caffLog) && mg71(oldV27a).v >= 28, "phones inheri
 
 console.log(`\nFINAL69: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+// v3.72.2 — clock times speak the athlete's dialect
+const { fmt12: f72 } = __test;
+ok(f72("15:45") === "3:45 PM" && f72("06:45") === "6:45 AM", "afternoon and morning render in regular time");
+ok(f72("00:15") === "12:15 AM" && f72("12:00") === "12:00 PM", "midnight and noon edges are right");
+ok(f72("—") === "—", "none-days pass through untouched");
+
+console.log(`\nFINAL70: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);

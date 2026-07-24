@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.72.1";
+const APP_V = "3.72.2";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -786,6 +786,7 @@ function sleepSpanH(bed, wake, awakeMin = 0) {
   if (span <= 0) span += 1440;
   return Math.max(0, +(((span - awakeMin) / 60)).toFixed(2));
 }
+function fmt12(t2) { if (!t2 || t2 === "—") return t2; const [a3, b3] = t2.split(":").map(Number); const ap = a3 >= 12 ? "PM" : "AM"; const h12 = a3 % 12 === 0 ? 12 : a3 % 12; return `${h12}:${String(b3 || 0).padStart(2, "0")} ${ap}`; }
 function parseHM(t2) { const [a3, b3] = (t2 || "12:00").split(":").map(Number); return a3 + (b3 || 0) / 60; }
 function todayCaff(s) {
   const e2 = (s.caffLog || []).find((x) => x.d === isoOf(todayStart()));
@@ -2900,6 +2901,7 @@ __test.INDIRECT = INDIRECT;
 __test.filingsFor = filingsFor;
 __test.bodyAlarm = bodyAlarm;
 __test.todayCaff = todayCaff;
+__test.fmt12 = fmt12;
 __test.caffAt = caffAt;
 __test.CONSTITUTION = CONSTITUTION;
 
@@ -3387,7 +3389,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           return (
             <Card style={{ padding: "9px 14px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                <span style={{ fontFamily: mono, fontSize: 10, color: T.jade }}>✓ caffeine · {e0.mg === 0 ? "none today" : `${e0.mg} mg @ ${e0.at}`}{e0.mg > 0 ? ` · ~${tl0} mg at ${lo0.t}` : ""}</span>
+                <span style={{ fontFamily: mono, fontSize: 10, color: T.jade }}>✓ caffeine · {e0.mg === 0 ? "none today" : `${e0.mg} mg @ ${fmt12(e0.at)}`}{e0.mg > 0 ? ` · ~${tl0} mg at ${lo0.t}` : ""}</span>
                 <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = (ns.caffLog || []).filter((x) => x.d !== tISO); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, cursor: "pointer" }}>undo</span>
               </div>
             </Card>
@@ -3400,8 +3402,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               {[0, 100, 175, 200, 350, 400].map((m0) => (
                 <span key={m0} onClick={() => setNCMg(m0)} style={{ fontFamily: mono, fontSize: 10, color: nCMg === m0 ? T.jade : T.dim, border: `1px solid ${nCMg === m0 ? T.jade : T.line}`, borderRadius: 999, padding: "5px 10px", cursor: "pointer" }}>{m0 === 0 ? "none ✓" : m0}</span>
               ))}
-              <input value={nCAt} onChange={(e3) => setNCAt(e3.target.value)} inputMode="numeric" placeholder="HH:MM" style={{ width: 60, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 7px", outline: "none", opacity: nCMg === 0 ? 0.4 : 1 }} />
-              <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = [...(ns.caffLog || []).filter((x) => x.d !== tISO), { d: tISO, mg: nCMg, at: nCMg === 0 ? "—" : nCAt }]; ns.feed.unshift({ d: tISO, t: nCMg === 0 ? "CAFFEINE — NONE TODAY" : `CAFFEINE — ${nCMg} mg at ${nCAt}`, how: "logged on NOW — the tail math runs on this" }); setS(ns); save(ns); }}>Log</Btn>
+              <input type="time" value={nCAt} onChange={(e3) => setNCAt(e3.target.value)} style={{ width: 60, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 7px", outline: "none", opacity: nCMg === 0 ? 0.4 : 1 }} />
+              <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = [...(ns.caffLog || []).filter((x) => x.d !== tISO), { d: tISO, mg: nCMg, at: nCMg === 0 ? "—" : nCAt }]; ns.feed.unshift({ d: tISO, t: nCMg === 0 ? "CAFFEINE — NONE TODAY" : `CAFFEINE — ${nCMg} mg at ${fmt12(nCAt)}`, how: "logged on NOW — the tail math runs on this" }); setS(ns); save(ns); }}>Log</Btn>
             </div>
           </Card>
         );
@@ -4294,7 +4296,7 @@ function SleepTab({ s, setS, save, slp }) {
           forYou={slp.clean ? "CLEAN — everything counts today. This is simultaneously your best muscle-retention lever and your sharpest ADHD lever; protect the streak like a PR." : `${slp.need - slp.run} clean night${slp.need - slp.run === 1 ? "" : "s"} from CLEAN. Tonight ≥7.5 ${slp.run + 1 >= slp.need ? "flips it — tomorrow's attempts count for keeps." : "keeps the reset alive."} Fixed wake time is the strongest single move.`} />
       </Card>
 
-      <Section title="Wake, Bedtime & Caffeine" meta={(() => { const tc9 = todayCaff(s); return `wake ${(s.sleep.anchor || {}).wake || "06:45"} · caffeine today: ${tc9 && tc9.logged ? (tc9.mg > 0 ? tc9.mg + " mg @ " + tc9.at : "none ✓") : "not logged"}`; })()} c={T.jade}>
+      <Section title="Wake, Bedtime & Caffeine" meta={(() => { const tc9 = todayCaff(s); return `wake ${(s.sleep.anchor || {}).wake || "06:45"} · caffeine today: ${tc9 && tc9.logged ? (tc9.mg > 0 ? tc9.mg + " mg @ " + fmt12(tc9.at) : "none ✓") : "not logged"}`; })()} c={T.jade}>
         <Card accent={T.jade}>
         <Eyebrow c={T.jade}>WAKE TIME — SAME EVERY DAY, SINCE {fmtShort("2026-07-23")}</Eyebrow>
         {(() => {
@@ -4328,7 +4330,7 @@ function SleepTab({ s, setS, save, slp }) {
             return (
               <div style={{ marginTop: 8 }}>
                 <div style={{ display: "flex", gap: 18, alignItems: "baseline" }}>
-                  <div><Num size={22}>{e9.mg}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG · LOGGED {e9.mg > 0 ? "AT " + e9.at : "— NONE TODAY"}</div></div>
+                  <div><Num size={22}>{e9.mg}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG · LOGGED {e9.mg > 0 ? "AT " + fmt12(e9.at) : "— NONE TODAY"}</div></div>
                   <div><Num size={22} c={tail9 > 50 ? T.brass : T.jade}>~{tail9}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG AT {lo9.t} · HALF-LIFE ~5 H</div></div>
                   <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = (ns.caffLog || []).filter((x) => x.d !== tISO9); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, cursor: "pointer", marginLeft: "auto" }}>undo</span>
                 </div>
@@ -4343,8 +4345,8 @@ function SleepTab({ s, setS, save, slp }) {
                 {[0, 100, 175, 200, 350, 400].map((m9) => (
                   <span key={m9} onClick={() => setCMg(m9)} style={{ fontFamily: mono, fontSize: 10, color: cMg === m9 ? T.jade : T.dim, border: `1px solid ${cMg === m9 ? T.jade : T.line}`, borderRadius: 999, padding: "5px 10px", cursor: "pointer" }}>{m9 === 0 ? "none ✓" : m9}</span>
                 ))}
-                <input value={cAt} onChange={(e3) => setCAt(e3.target.value)} inputMode="numeric" placeholder="HH:MM" style={{ width: 64, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 7px", outline: "none", opacity: cMg === 0 ? 0.4 : 1 }} />
-                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = [...(ns.caffLog || []).filter((x) => x.d !== tISO9), { d: tISO9, mg: cMg, at: cMg === 0 ? "—" : cAt }]; ns.feed.unshift({ d: tISO9, t: cMg === 0 ? "CAFFEINE — NONE TODAY" : `CAFFEINE — ${cMg} mg at ${cAt}`, how: "logged in SLEEP — the tail math runs on this, not an assumption" }); setS(ns); save(ns); }}>Log it</Btn>
+                <input type="time" value={cAt} onChange={(e3) => setCAt(e3.target.value)} style={{ width: 64, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 7px", outline: "none", opacity: cMg === 0 ? 0.4 : 1 }} />
+                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = [...(ns.caffLog || []).filter((x) => x.d !== tISO9), { d: tISO9, mg: cMg, at: cMg === 0 ? "—" : cAt }]; ns.feed.unshift({ d: tISO9, t: cMg === 0 ? "CAFFEINE — NONE TODAY" : `CAFFEINE — ${cMg} mg at ${fmt12(cAt)}`, how: "logged in SLEEP — the tail math runs on this, not an assumption" }); setS(ns); save(ns); }}>Log it</Btn>
               </div>
               {s.sleep.caffMg != null && (
                 <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>planning fallback: your typical {s.sleep.caffMg} mg midday — standing advice uses it only until today's real entry exists</div>
