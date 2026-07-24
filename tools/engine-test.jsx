@@ -379,7 +379,7 @@ ok(swBase && Object.keys(swBase.labSeen).length >= 20 && swBase.feed.length === 
 let ann = JSON.parse(JSON.stringify(swBase));
 for (let k = 1; k <= 7; k++) { const dd = new Date(2026, 6, 23 + k); ann.sleep.nights.push({ d: dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" + String(dd.getDate()).padStart(2, "0"), h: 7.8, tags: [] }); }
 const ann2 = swp(ann);
-ok(ann2 && ann2.feed[0].t.indexOf("LAB LIVE — MELATONIN") === 0 && ann2.labSeen.melaexp === "LIVE", "threshold crossed → the feed announces the verdict");
+ok(ann2 && ann2.feed.some(f => f.t.indexOf("LAB LIVE — MELATONIN") === 0) && ann2.labSeen.melaexp === "LIVE", "threshold crossed → the feed announces the verdict");
 ok(swp(ann2) === null, "no re-announcement — quiet until the next flip");
 
 // (interim)
@@ -505,7 +505,7 @@ let evS = clone(ST);
 const evId = evS.events.find(e => !e.estimated).id;
 const zc0 = evS.zeroComp.count;
 const banked = ce21(evS, evId, true);
-ok(banked.zeroComp.count === zc0 + 1 && banked.events.find(e => e.id === evId).estimated === true && banked.feed[0].t.indexOf("ZERO-COMP EVENT") === 0, "zero-comp outcome: streak +1, event closed, story written");
+ok(banked.zeroComp.count === zc0 + 1 && banked.events.find(e => e.id === evId).estimated === true && banked.feed.some(f => f.t.indexOf("ZERO-COMP EVENT") === 0), "zero-comp outcome: streak +1, event closed, story written");
 const honest = ce21(evS, evId, false);
 ok(honest.zeroComp.count === 0 && honest.feed[0].t === "EVENT LOGGED HONEST" && honest.feed[0].how.indexOf("penance does not exist") > -1, "honest outcome: streak resets without ceremony or punishment");
 const bumps = rb21(clone(ST));
@@ -522,7 +522,7 @@ let quiet = clone(SU); quiet.dailyLogs = {}; quiet.sessionLog = {}; quiet.sleep.
 ok(wr23(quiet).verdict.indexOf("quiet week") > -1, "a silent week gets the door-is-open verdict, never a scolding");
 const swBase23 = swp23(clone(SU));
 const filed = swp23(swBase23, 0);
-ok(filed && filed.feed[0].t.indexOf("WEEK IN REVIEW · WK") === 0, "Sunday sweep files the review into the permanent record");
+ok(filed && filed.feed.some(f => f.t.indexOf("WEEK IN REVIEW · WK") === 0), "Sunday sweep files the review into the permanent record");
 ok(swp23(filed, 0) === null, "one review per week — never a duplicate");
 
 // (interim)
@@ -540,7 +540,7 @@ const heldEx = { ...latX, holdFlag: true };
 ok(rp24(clone(SV), heldEx, cleanSlp).plan.every(r => r >= 2), "governor hold floors every set at 2");
 const oldV15 = clone(SV); oldV15.v = 15; oldV15.exercises.find(e => e.id === "lateral").sets = 3;
 const m16 = mg24(oldV15);
-ok(m16.v >= 16 && m16.exercises.find(e => e.id === "lateral").sets === 4 && m16.feed[0].t.indexOf("LATERAL 4TH SET") === 0, "phones get the 4th set with the honesty note filed");
+ok(m16.v >= 16 && m16.exercises.find(e => e.id === "lateral").sets === 4 && m16.feed.some(f => f.t.indexOf("LATERAL 4TH SET") === 0), "phones get the 4th set with the honesty note filed");
 
 // (interim)
 
@@ -563,7 +563,7 @@ const rdX = clone(SX).exercises.find(e => e.id === "rearDelt");
 ok(rdX.sets === 3 && rdX.n.indexOf("uni") > -1 && tf26(rdX).join(",") === "10,10,10", "3 rounds per side — the engine calls for matched 10s: " + tf26(rdX).join(","));
 const oldV17x = clone(SX); oldV17x.v = 17; const rdo = oldV17x.exercises.find(e => e.id === "rearDelt"); rdo.sets = 2; rdo.n = "Rear-delt fly (cable)";
 const m18 = mg26(oldV17x);
-ok(m18.v >= 18 && m18.exercises.find(e => e.id === "rearDelt").sets === 3 && m18.feed[0].t.indexOf("REAR-DELT") === 0, "phones patch with the third honesty note filed");
+ok(m18.v >= 18 && m18.exercises.find(e => e.id === "rearDelt").sets === 3 && m18.feed.some(f => f.t.indexOf("REAR-DELT") === 0), "phones patch with the third honesty note filed");
 
 // (interim)
 
@@ -1036,4 +1036,18 @@ const blob = (out61.receipts || []).join(" ") + " " + out61.why;
 ok(banned.every((b) => blob.indexOf(b) === -1), "no jargon survives in receipts or reasons — plain words only");
 
 console.log(`\nFINAL61: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+// v3.63 — the hack ruling: load up, reps down, precedent filed
+const { migrate: mg63, targetsFor: tf63, SEED: TG63 } = __test;
+const oldV23a = clone(TG63); oldV23a.v = 23;
+oldV23a.exercises.find((x) => x.id === "hack").hi = 13;
+oldV23a.exercises.find((x) => x.id === "hack").last = [13, 12];
+const m63 = mg63(oldV23a);
+const hk63 = m63.exercises.find((x) => x.id === "hack");
+ok(m63.v >= 24 && hk63.hi === 12 && hk63.last === null, "phones inherit the ruling: rep ceiling 12, fresh block at the new load");
+ok(m63.feed.some((f) => f.t.indexOf("RULING — HACK LOADED UP") === 0), "the ruling is on the record for the clerk to mine");
+ok(tf63(hk63).every((r) => r <= 10), "fresh targets seed under the new ceiling: " + tf63(hk63).join(","));
+
+console.log(`\nFINAL62: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
