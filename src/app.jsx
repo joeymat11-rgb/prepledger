@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.54.0";
+const APP_V = "3.55.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2407,6 +2407,74 @@ function BriefCard({ s, setS: setS2, save: save2 }) {
   );
 }
 
+function RndDesk({ s, setS: sS, save: sv }) {
+  const [draft, setDraft] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [ruling, setRuling] = useState("");
+  const [filed, setFiled] = useState(false);
+  useEffect(() => {
+    (async () => {
+      try {
+        const tok = localStorage.getItem(TOKEN_KEY);
+        if (!tok) return;
+        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/rnd.md", { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" } });
+        if (!r.ok) return;
+        const txt = await r.text();
+        const m = txt.match(/^<!-- (\d{4}-\d{2}-\d{2}) -->/);
+        if (m && (mk(isoOf(todayStart())) - mk(m[1])) / DAY <= 8) setDraft(txt.replace(/^<!--.*-->\n?/, ""));
+      } catch (e) {}
+    })();
+  }, []);
+  if (!draft) return null;
+  return (
+    <Card accent={T.brass} style={{ padding: 12 }}>
+      <div onClick={() => setOpen(!open)} style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Eyebrow c={T.brass}>🜍 R&D DESK — THE IDEA SHIFT'S WEEKLY DRAFT</Eyebrow>
+        <span style={{ fontFamily: mono, fontSize: 10, color: T.dim }}>{open ? "▾" : "▸"}</span>
+      </div>
+      {open && (
+        <>
+          <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, marginTop: 8, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{draft.slice(0, 2600)}</div>
+          <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9 }}>
+            <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, letterSpacing: "0.06em" }}>YOUR RULING — read next Sunday by the desk (e.g. "variance map: build" · "idea 2: refine, smaller" · "idea 3: kill")</div>
+            {!filed ? (
+              <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
+                <input value={ruling} onChange={(e) => setRuling(e.target.value)} placeholder="your ruling…" style={{ flex: 1, fontFamily: body, fontSize: 12, padding: "9px 10px", borderRadius: 8, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, outline: "none" }} />
+                <Btn small tone="jade" onClick={() => { if (!ruling.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: isoOf(todayStart()), t: "RND VERDICT", how: ruling.trim().slice(0, 220) }); sS && sS(ns); sv && sv(ns); setFiled(true); }}>File ruling</Btn>
+              </div>
+            ) : <div style={{ fontFamily: mono, fontSize: 10, color: T.jade, marginTop: 7 }}>✓ filed — the desk reads it on Sunday's run</div>}
+          </div>
+        </>
+      )}
+    </Card>
+  );
+}
+
+function RndCard() {
+  const [rnd, setRnd] = useState(null);
+  useEffect(() => {
+    if (![0, 1].includes(new Date().getDay())) return;
+    (async () => {
+      try {
+        const tok = localStorage.getItem(TOKEN_KEY);
+        if (!tok) return;
+        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/rnd.md", { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" } });
+        if (!r.ok) return;
+        const txt = await r.text();
+        setRnd(txt);
+      } catch (e) {}
+    })();
+  }, []);
+  if (!rnd) return null;
+  return (
+    <Card accent={T.brass}>
+      <Eyebrow c={T.brass}>THE DRAWING BOARD — YOUR R&D LAB'S WEEKLY PITCH</Eyebrow>
+      <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{rnd.slice(0, 2400)}</div>
+      <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>anything you like: tell the builder, it ships through the gate</div>
+    </Card>
+  );
+}
+
 function BackupsBlock() {
   const [items, setItems] = useState(null);
   const [msg, setMsg] = useState(null);
@@ -2803,6 +2871,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
 
       )}
+
+      <RndCard />
 
       {[0, 1].includes(new Date().getDay()) && (() => { const wr = weekReview(s); return (
         <Card accent={T.jade}>
