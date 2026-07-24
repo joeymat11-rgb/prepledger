@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.65.0";
+const APP_V = "3.66.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -754,6 +754,15 @@ function labAnalytics(s) {
     lines: [] });
 
   /* 12/13 · locked build-phase slots */
+  (() => {
+    const mv = muscleVolume(s);
+    const line = mv.slice().sort((a, b) => (a.zone === "UNDER" ? -1 : b.zone === "UNDER" ? 1 : a.n7 - b.n7)).map((m) => `${m.mg} ${m.n7}${m.zone === "IN-BAND" ? " ✓" : m.zone === "UNDER" ? " ▼▼" : m.zone === "LOW" ? " ▼" : m.zone === "OVER" ? " ▲▲" : " ▲"}`).join(" · ");
+    out.push({ id: "volumeledger", t: "THE VOLUME LEDGER — WEEKLY SETS PER MUSCLE", status: mv.length ? "LIVE" : "ARMED", prog: { n: mv.length, need: 1, label: "muscle groups with logged sets" },
+      tag: "The biggest dial in hypertrophy, counted from your actual logs.",
+      deep: "Weekly hard sets per muscle is the strongest known volume dial. This counts DIRECT sets only (a press works triceps too, but indirect counting invites double-book fantasy — the simplification is stated, not hidden). The bands are deficit-calibrated: " + VOL_BANDS.floor + " is the retention floor (below it for two straight weeks and the ledger proposes +1 as cheap insurance), " + VOL_BANDS.lo + "–" + VOL_BANDS.hi + " is the working zone, past " + VOL_BANDS.ceil + " is caution — recoverable volume compresses in a cut, and sets you cannot recover from are pure fatigue. Every proposal cross-references the muscle's lift velocities, your sleep gate, and the alarm before it fires; changes go one set at a time through your consent inbox, and each muscle rests two weeks between moves so the change has time to speak. Adds go to the muscle's strongest mover, trims come off its weakest.",
+      forYou: mv.length ? `This week: ${line}. ✓ in the working zone · ▼ light · ▼▼ under the retention floor · ▲ high · ▲▲ past the deficit ceiling. Proposals arrive in your inbox only when the signals agree.` : "Log a session and the ledger opens.",
+      lines: [] });
+  })();
   out.push({ id: "mrv", t: "EMPIRICAL MRV — YOUR VOLUME CEILINGS", status: "LOCKED", prog: null,
     tag: "Finds your real volume ceilings instead of borrowing a template's.",
     deep: "Weekly sets per muscle plotted against performance and recovery response — your maximum recoverable volume, discovered rather than assumed. The literature prior it starts from: Schoenfeld, Ogborn & Krieger 2017 (meta-analysis) found a graded dose-response with 10+ weekly sets per muscle outgrowing lower volumes. That's the build-phase climb target; the cut deliberately sits below it.",
@@ -1485,7 +1494,7 @@ function labAnalytics2(s) {
 const INS_MAP = {
   whoosh: ["weigh-in"], refeed: ["weigh-in"], noise: ["weigh-in"], masked: ["weigh-in", "day numbers"], creep: ["day numbers"],
   adaptmeter: ["day numbers", "weigh-in"], stepeff: ["day numbers", "weigh-in"], refeedroi: ["day numbers", "session"],
-  tuefri: ["session"], fingerprint: ["session"], strvelocity: ["session"], sessionshape: ["session"], rirtruth: ["session"], notes: ["session"], miss: ["day numbers"],
+  tuefri: ["session"], volumeledger: ["session"], fingerprint: ["session"], strvelocity: ["session"], sessionshape: ["session"], rirtruth: ["session"], notes: ["session"], miss: ["day numbers"],
   sleepdose: ["sleep night", "session"], sleeplag: ["sleep night", "session"], melaexp: ["sleep night"], wakesig: ["sleep night"], regularity: ["sleep night"], variancetax: ["sleep night", "session"], canary: ["sleep night", "session"],
   pulsebase: ["pulse"], cutstress: ["pulse"], pulsewarn: ["pulse"], refeedpulse: ["pulse"], furnacebase: ["temperature"], exittherm: ["temperature"],
   missarch: ["day numbers", "sleep night"], weekend: ["day numbers"], compound: ["weigh-in"], miner: ["session", "sleep night", "day numbers"],
@@ -1561,7 +1570,7 @@ function labGroups(s) {
   const MAP = {
     scale: ["whoosh", "refeed", "noise", "masked", "creep"],
     engine: ["adaptmeter", "stepeff", "refeedroi"],
-    training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss"],
+    training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss", "volumeledger"],
     sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "variancetax", "canary"],
     pulse: ["pulsebase", "cutstress", "pulsewarn", "refeedpulse", "furnacebase", "exittherm"],
     behavior: ["missarch", "weekend", "compound", "miner"],
@@ -1928,6 +1937,43 @@ function labStatusList(s) {
 }
 
 /* results announce themselves — any card crossing its threshold posts to the feed */
+const VOL_BANDS = { floor: 6, lo: 8, hi: 14, ceil: 16 };
+function muscleVolume(s) {
+  const tISO6 = isoOf(todayStart());
+  const win = (backLo, backHi) => Object.keys(s.sessionLog).filter((d) => { const g = (mk(tISO6) - mk(d)) / DAY; return g >= backLo && g < backHi; });
+  const count = (days2) => { const by = {}; days2.forEach((d) => { (s.sessionLog[d].entries || []).forEach((e) => { const ex6 = (s.exercises || []).find((x) => x.id === e.id); if (!ex6 || !ex6.mg) return; by[ex6.mg] = (by[ex6.mg] || 0) + (e.reps || []).length; }); }); return by; };
+  const now7 = count(win(0, 7)), prev7 = count(win(7, 14));
+  const mgs = [...new Set((s.exercises || []).map((x) => x.mg).filter(Boolean))];
+  return mgs.map((mg) => {
+    const n7 = now7[mg] || 0, p7 = prev7[mg] || 0;
+    const zone = n7 < VOL_BANDS.floor ? "UNDER" : n7 < VOL_BANDS.lo ? "LOW" : n7 <= VOL_BANDS.hi ? "IN-BAND" : n7 <= VOL_BANDS.ceil ? "HIGH" : "OVER";
+    const lifts = (s.exercises || []).filter((x) => x.mg === mg && typeof x.w !== "undefined");
+    const vels = lifts.map((x) => ({ id: x.id, n: x.n, v: liftCall(s, x.id).vel })).filter((x) => x.v != null);
+    const slipping = vels.filter((x) => x.v < -0.2).length;
+    const gaining = vels.filter((x) => x.v > 0.2).length;
+    return { mg, n7, p7, zone, lifts, vels, slipping, gaining };
+  }).filter((m) => m.n7 > 0 || m.p7 > 0);
+}
+function sweepVolume(s) {
+  const tISO7 = isoOf(todayStart());
+  const slp7 = sleepInfo(s);
+  let ns = null;
+  muscleVolume(s).forEach((m) => {
+    const recent = (s.agentProposals || []).some((ap) => ap.kind === "volume" && ap.mg === m.mg) || (s.feed || []).slice(0, 80).some((f) => f.t && f.t.indexOf("VOLUME ") === 0 && f.t.indexOf("— " + m.mg.toUpperCase()) > -1 && (mk(tISO7) - mk(f.d)) / DAY < 14);
+    if (recent) return;
+    let dir = 0, why = "";
+    if (m.zone === "UNDER" && m.p7 < VOL_BANDS.floor) { dir = +1; why = `${m.mg} has run under the retention floor (${m.n7} sets this week, ${m.p7} last week — floor is ${VOL_BANDS.floor}). One more weekly set is cheap insurance for keeping this muscle through the cut.`; }
+    else if (m.zone === "OVER" || (m.zone === "HIGH" && m.slipping >= 2)) { dir = -1; why = m.zone === "OVER" ? `${m.mg} is past the deficit ceiling (${m.n7} sets — caution starts at ${VOL_BANDS.ceil}). In a cut, sets past what you can recover from are pure fatigue.` : `${m.mg} sits high (${m.n7} sets) and ${m.slipping} of its lifts are slipping — the classic sign of more volume than this deficit can pay for. Trimming one set usually turns the trend around.`; }
+    else if (m.zone === "IN-BAND" && m.n7 <= (VOL_BANDS.lo + VOL_BANDS.hi) / 2 && m.gaining >= 1 && m.slipping === 0 && slp7.clean) { dir = +1; why = `${m.mg} is mid-band (${m.n7} sets), every lift is holding or gaining, and sleep is clean — the signals say there is headroom. One added set is the smallest honest experiment.`; }
+    if (!dir) return;
+    const pool = m.vels.length ? m.vels : m.lifts.map((x) => ({ id: x.id, n: x.n, v: 0 }));
+    const pick = dir > 0 ? pool.slice().sort((a, b) => (b.v ?? 0) - (a.v ?? 0))[0] : pool.slice().sort((a, b) => (a.v ?? 0) - (b.v ?? 0))[0];
+    if (!pick) return;
+    ns = ns || JSON.parse(JSON.stringify(s));
+    ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + m.mg + Date.now(), kind: "volume", mg: m.mg, exId: pick.id, dir, title: `VOLUME ${dir > 0 ? "+1" : "−1"} — ${m.mg.toUpperCase()} via ${pick.n}`, body: why + ` ${dir > 0 ? "Adds one set to " + pick.n + " (its strongest mover)." : "Removes one set from " + pick.n + " (its weakest mover)."} Two weeks of data before the ledger revisits this muscle.`, at: tISO7 }];
+  });
+  return ns;
+}
 function sweepStalls(s) {
   let ns = null;
   (s.exercises || []).forEach((ex) => {
@@ -1943,7 +1989,8 @@ function sweepStalls(s) {
 }
 
 function sweepLab(s, dow = new Date().getDay()) {
-  const st0 = sweepStalls(s); if (st0) s = st0;
+  let st0 = sweepStalls(s); if (st0) s = st0;
+  const sv0 = sweepVolume(s); if (sv0) { s = sv0; st0 = sv0; }
   const flat = labGroups(s).flatMap((g) => g.cards);
   const seen = s.labSeen || {};
   const first = Object.keys(seen).length === 0;
@@ -2777,6 +2824,8 @@ __test.briefAnswered = briefAnswered;
 __test.liftCall = liftCall;
 __test.CALL_PLAIN = CALL_PLAIN;
 __test.sweepStalls = sweepStalls;
+__test.muscleVolume = muscleVolume;
+__test.sweepVolume = sweepVolume;
 
 /* ---------- atoms ---------- */
 const Eyebrow = ({ children, c = T.dim }) => (
@@ -3069,6 +3118,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>{ap.title}</div>
               <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{plainify(ap.body)}</div>
               <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
+                {ap.kind === "volume" && ap.exId && ap.dir && (
+                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex7 = ns.exercises.find((x) => x.id === ap.exId); if (ex7) { ex7.sets = Math.max(1, (ex7.sets || 1) + ap.dir); ns.feed.unshift({ d: tISO, t: `VOLUME ${ap.dir > 0 ? "+1" : "−1"} — ${ap.mg.toUpperCase()} via ${ex7.n} (now ${ex7.sets} sets)`, how: "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited" }); } ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>{ap.dir > 0 ? "Add the set — I consent" : "Trim the set — I consent"}</Btn>
+                )}
                 {ap.kind === "reset" && ap.exId && ap.newW && (
                   <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex3 = ns.exercises.find((x) => x.id === ap.exId); if (ex3) { const oldW = ex3.w; ex3.w = ap.newW; ex3.last = null; ns.feed.unshift({ d: tISO, t: "RESET APPLIED — " + ex3.n + " " + oldW + " → " + ap.newW, how: "3-session stall, evidence-based back-off, your consent — rebuild starts next session" }); } ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Apply reset — I consent</Btn>
                 )}
@@ -3575,6 +3627,11 @@ function LogTab({ s, setS, save, slp }) {
         <Chip><Term k="noonwindow" c={T.steel}>NOON LIFT</Term> — meds peaking · effort feels easier than it is</Chip>
       </div>
 
+      {(() => { const mv2 = muscleVolume(s); if (!mv2.length) return null; return (
+        <div style={{ fontFamily: mono, fontSize: 9.5, color: T.steel, padding: "8px 2px", lineHeight: 1.7 }}>
+          THIS WEEK'S SETS · {mv2.map((m) => <span key={m.mg} style={{ color: m.zone === "IN-BAND" ? T.jade : m.zone === "UNDER" || m.zone === "OVER" ? T.redline : T.brass, marginRight: 8 }}>{m.mg} {m.n7}{m.zone === "IN-BAND" ? " ✓" : m.zone === "UNDER" ? " ▼▼" : m.zone === "LOW" ? " ▼" : m.zone === "OVER" ? " ▲▲" : " ▲"}</span>)}
+        </div>
+      ); })()}
       {sess.ex.map((ex) => (
         <Card key={ex.id} style={{ padding: 12, opacity: skipped[ex.id] ? 0.45 : 1 }} accent={ex.isDebutNow && !skipped[ex.id] ? T.orange : undefined}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>

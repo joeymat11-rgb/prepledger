@@ -396,7 +396,7 @@ ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id ==
 const gAll = lg2(clone(SN));
 ok(gAll.length === 11 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,trials,road,models,locked,shelf", "eleven shelves, fixed order");
 const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
-ok(tot2 === 50, "all 50 instruments filed exactly once: " + tot2);
+ok(tot2 === 51, "all 51 instruments filed exactly once: " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
@@ -446,7 +446,7 @@ ok(dock.next.every(n => n.n < n.need) && dock.next[0].pct >= (dock.next[1] ? doc
 ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "sentinel line reads");
 const ranked = sl1(clone(SP));
 const rk = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
-ok(ranked.length === 50 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 50 cards, monotone rank order");
+ok(ranked.length === 51 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 51 cards, monotone rank order");
 // a flip lands on the docket's fresh row
 const swD = __test.sweepLab(clone(SP));
 let dkF = JSON.parse(JSON.stringify(swD));
@@ -471,7 +471,7 @@ ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 ph
 // v3.17 — the sibling design review
 const { labSections: ls17, SEED: SR } = __test;
 const secs = ls17(clone(SR));
-ok(secs.reduce((a, x) => a + x.cards.length, 0) === 50, "all 50 filed across the plain-language sections, none lost");
+ok(secs.reduce((a, x) => a + x.cards.length, 0) === 51, "all 51 filed across the plain-language sections, none lost");
 const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "gathering");
 ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
 ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
@@ -1077,4 +1077,22 @@ ok(m65.exercises.find((x) => x.id === "hack").inc === 10, "the plate-loaded hack
 ok(m65.feed.some((f) => f.t.indexOf("RULING — SMALLEST STEP, EVERY LIFT") === 0), "the audit is on the record");
 
 console.log(`\nFINAL64: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+// v3.66 — the volume ledger: the biggest dial, counted, judged, consent-gated
+const { muscleVolume: mv66, sweepVolume: sv66, SEED: TJ66 } = __test;
+let vl = clone(TJ66);
+for (let k = 3; k >= 1; k--) { const d = isoL(Date.now() - k * 864e5); vl.sleep.nights = vl.sleep.nights.filter((n) => n.d !== k); vl.sleep.nights.push({ d, h: 7.8, bed: "22:30", wake: "06:30" }); }
+const d1v = isoL(Date.now() - 2 * 864e5), d2x = isoL(Date.now() - 9 * 864e5);
+vl.sessionLog[d1v] = { entries: [{ id: "ham", reps: [10, 10], rir: 2, w: 120 }], at: 1 };
+vl.sessionLog[d2x] = { entries: [{ id: "ham", reps: [10, 10], rir: 2, w: 120 }], at: 1 };
+const hams = mv66(vl).find((m) => m.mg === "hams");
+ok(hams && hams.n7 === 2 && hams.zone === "UNDER", "sets counted per rolling week, judged against the retention floor: " + hams.n7 + " " + hams.zone);
+const swept66 = sv66(vl);
+ok(swept66 && swept66.agentProposals.some((ap) => ap.kind === "volume" && ap.mg === "hams" && ap.dir === 1), "two weeks under the floor files a +1 proposal to the inbox");
+ok(!sv66(swept66), "one proposal per muscle — the throttle holds");
+const inb = swept66.agentProposals.find((ap) => ap.kind === "volume");
+ok(inb.body.indexOf("retention floor") > -1 || inb.body.indexOf("insurance") > -1, "the proposal explains itself in plain words: " + inb.body.slice(0, 50));
+
+console.log(`\nFINAL65: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
