@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.57.1";
+const APP_V = "3.57.2";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2490,6 +2490,7 @@ function useRepoDoc(path) {
 
 function BriefCard({ s, setS: setS2, save: save2 }) {
   const raw = useRepoDoc("ledger/brief.md");
+  const [openB, setOpenB] = useState(() => new Date().getHours() < 12);
   const [ans, setAns] = useState("");
   const [answered, setAnswered] = useState(false);
   const brief = (() => {
