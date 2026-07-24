@@ -907,5 +907,17 @@ ok(unmapped.length === 0, "every living instrument is placed on the map (unmappe
 ok(phantom.length === 0, "the map claims no phantom instruments (phantoms: " + (phantom.join(",") || "none") + ")");
 ok(Object.values(IM55).every((srcs) => Array.isArray(srcs) && srcs.length >= 1), "every placement names at least one feeding input");
 
-console.log(`\nFINAL53: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.56 — skipped lifts are structured truth, not prose
+const { completeSession: cs56, SEED: TS56 } = __test;
+let sk56 = clone(TS56);
+const skIso = (() => { for (let i = 0; i <= 9; i++) { const d = isoL(Date.now() + i * 864e5); if (!sk56.sessionLog[d]) return d; } })();
+const perf56 = [{ id: "press", n: "press", w: 245, tgt: [8, 8, 7], reps: [8, 8, 7], rir: 2 }];
+const r56 = cs56(sk56, skIso, perf56, { clean: true, last: { h: 7.8 } }, { note: "", niggles: [], skipped: [{ id: "pronated" }] });
+ok((r56.s.sessionLog[skIso].skipped || []).some((k) => k.id === "pronated"), "the skip is a structured field on the session record");
+ok(!r56.s.sessionLog[skIso].entries.some((e) => e.id === "pronated"), "no phantom reps: the skipped lift never enters entries");
+ok(r56.lines.some((l) => l.t.indexOf("SKIPPED") === 0 && l.how.indexOf("phantom") > -1), "the recap names the skip honestly");
+
+console.log(`\nFINAL54: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

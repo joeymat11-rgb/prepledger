@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.55.2";
+const APP_V = "3.56.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -381,7 +381,8 @@ function completeSession(state, iso, entries, slp, extras = {}) {
   });
 
   const niggles = extras.niggles || [];
-  s.sessionLog[iso] = { entries: entries.map((e) => { const ex2 = s.exercises.find((x) => x.id === e.id); return { id: e.id, reps: e.reps, rir: e.rir ?? null, w: ex2 ? ex2.w : null }; }), at: Date.now(), note: extras.note || "", niggles, dips: dipCount };
+  s.sessionLog[iso] = { entries: entries.map((e) => { const ex2 = s.exercises.find((x) => x.id === e.id); return { id: e.id, reps: e.reps, rir: e.rir ?? null, w: ex2 ? ex2.w : null }; }), at: Date.now(), note: extras.note || "", niggles, dips: dipCount, skipped: extras.skipped || [] };
+  if ((extras.skipped || []).length) push("SKIPPED — " + extras.skipped.map((k) => { const ex3 = exById(s, k.id); return ex3 ? ex3.n : k.id; }).join(", "), "your call, on the record — zero phantom reps, nothing counted");
   const cutoff = isoOf(new Date(mk(iso).getTime() - 21 * DAY));
   const counts = {};
   Object.entries(s.sessionLog).forEach(([d, sl]) => { if (d >= cutoff) (sl.niggles || []).forEach((j) => { counts[j] = (counts[j] || 0) + 1; }); });
@@ -3254,6 +3255,7 @@ function LogTab({ s, setS, save, slp }) {
   const [nig, setNig] = useState([]);
   const [reorder, setReorder] = useState(false);
   const [showSetup, setShowSetup] = useState({});
+  const [skipped, setSkipped] = useState({});
   const [recap, setRecap] = useState(null);
   const [boosted, setBoosted] = useState(false);
   const trueShort = slp.last && slp.last.h < 4.5;
@@ -3276,9 +3278,10 @@ function LogTab({ s, setS, save, slp }) {
 
   const [gym, setGym] = useState(false);
   const complete = () => {
-    const entries = sess.ex.map((ex) => ({ id: ex.id, n: ex.n, w: ex.w, tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null }));
-    const { s: ns, lines } = completeSession(s, dateSel, entries, slp, { note: note.trim(), niggles: nig });
-    setS(ns); save(ns); setRecap(lines); setBoosted(false); setReps({}); setRir({}); setNote(""); setNig([]);
+    const entries = sess.ex.filter((ex) => !skipped[ex.id]).map((ex) => ({ id: ex.id, n: ex.n, w: ex.w, tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null }));
+    const skippedList = sess.ex.filter((ex) => skipped[ex.id]).map((ex) => ({ id: ex.id }));
+    const { s: ns, lines } = completeSession(s, dateSel, entries, slp, { note: note.trim(), niggles: nig, skipped: skippedList });
+    setS(ns); save(ns); setRecap(lines); setBoosted(false); setReps({}); setRir({}); setNote(""); setNig([]); setSkipped({});
   };
 
   return (
@@ -3297,7 +3300,7 @@ function LogTab({ s, setS, save, slp }) {
           <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>✓ {fmtShort(dateSel)} · RECEIPT</button>
         )}
         {options.map((d) => (
-          <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setNote(""); setNig([]); }} style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : s.sessionLog[d] ? T.jade : T.steel }}>
+          <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setNote(""); setNig([]); setSkipped({}); }} style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : s.sessionLog[d] ? T.jade : T.steel }}>
             {s.sessionLog[d] ? "✓ " : ""}
             {fmtShort(d)} · {dayType(d) === "U" ? "UPPER" : "LOWER"}
           </button>
@@ -3315,9 +3318,17 @@ function LogTab({ s, setS, save, slp }) {
               <Eyebrow c={T.jade}>SESSION LOGGED · {fmtShort(dateSel)}</Eyebrow>
               <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 7 }}>
                 {done.entries.map((e, i) => { const ex = exById(s, e.id); return (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: 11 }}>
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: 11, alignItems: "center" }}>
                     <span style={{ color: T.chalk }}>{ex ? ex.n : e.id}</span>
-                    <span style={{ color: T.steel }}>{e.w != null ? e.w + " × " : ""}{(e.reps || []).join(",")}{e.rir != null ? " · RIR " + e.rir : ""}</span>
+                    <span style={{ color: T.steel, display: "flex", gap: 8, alignItems: "center" }}>{e.w != null ? e.w + " × " : ""}{(e.reps || []).join(",")}{e.rir != null ? " · RIR " + e.rir : ""}
+                      <span onClick={() => { if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
+                    </span>
+                  </div>
+                ); })}
+                {(done.skipped || []).map((k, i) => { const ex = exById(s, k.id); return (
+                  <div key={"sk" + i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: 11 }}>
+                    <span style={{ color: T.dim, textDecoration: "line-through" }}>{ex ? ex.n : k.id}</span>
+                    <span style={{ color: T.brass, fontSize: 9.5 }}>skipped — on record</span>
                   </div>
                 ); })}
               </div>
@@ -3388,9 +3399,12 @@ function LogTab({ s, setS, save, slp }) {
       </div>
 
       {sess.ex.map((ex) => (
-        <Card key={ex.id} style={{ padding: 12 }} accent={ex.isDebutNow ? T.orange : undefined}>
+        <Card key={ex.id} style={{ padding: 12, opacity: skipped[ex.id] ? 0.45 : 1 }} accent={ex.isDebutNow && !skipped[ex.id] ? T.orange : undefined}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-            <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 17, textTransform: "uppercase", color: T.chalk }}>{ex.n}</div>
+            <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 17, textTransform: "uppercase", color: T.chalk, textDecoration: skipped[ex.id] ? "line-through" : "none" }}>{ex.n}</div>
+            {!reorder && (
+              <button onClick={() => setSkipped({ ...skipped, [ex.id]: !skipped[ex.id] })} style={{ fontFamily: mono, fontSize: 9, color: skipped[ex.id] ? T.brass : T.dim, background: "none", border: `1px solid ${skipped[ex.id] ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", flexShrink: 0 }}>{skipped[ex.id] ? "skipped — undo" : "skip"}</button>
+            )}
             {reorder ? (
               <div style={{ display: "flex", gap: 6 }}>
                 {[["▲", -1], ["▼", 1]].map(([g, dir]) => (
@@ -3463,7 +3477,7 @@ function LogTab({ s, setS, save, slp }) {
 
       <Card style={{ padding: 12 }}>
         <Eyebrow>SESSION NOTES · OPTIONAL — THE "SET-4 ANOMALY" BOX</Eyebrow>
-        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="anything the numbers missed…"
+        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="anything the numbers missed — your night analyst reads this; the engines only read the numbers…"
           style={{ width: "100%", boxSizing: "border-box", marginTop: 8, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 13, padding: 10, outline: "none", resize: "vertical" }} />
         <div style={{ marginTop: 12 }}>
           <Eyebrow>JOINT CHECK · TAP ONLY IF SOMETHING TALKED</Eyebrow>
@@ -4123,6 +4137,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [t, setT] = useState(0);
   const [reps, setReps] = useState({});
   const [rir, setRir] = useState({});
+  const [gskip, setGskip] = useState({});
   const ex = sess.ex[idx];
   const rp2 = rirPlan(s, ex, slp);
   const getR = (e2) => reps[e2.id] ?? e2.tgt.slice();
@@ -4139,8 +4154,8 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   };
   const nextLift = () => { if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } else setPhase("all-done"); };
   const finish = () => {
-    const entries = sess.ex.map((e2) => ({ id: e2.id, n: e2.n, w: e2.w, tgt: e2.tgt, reps: getR(e2), isDebutNow: e2.isDebutNow, rir: rir[e2.id] ?? null }));
-    const { s: ns } = completeSession(s, dateSel, entries, slp, { note: "gym mode", niggles: [] });
+    const entries = sess.ex.filter((e2) => !gskip[e2.id]).map((e2) => ({ id: e2.id, n: e2.n, w: e2.w, tgt: e2.tgt, reps: getR(e2), isDebutNow: e2.isDebutNow, rir: rir[e2.id] ?? null }));
+    const { s: ns } = completeSession(s, dateSel, entries, slp, { note: "gym mode", niggles: [], skipped: sess.ex.filter((e2) => gskip[e2.id]).map((e2) => ({ id: e2.id })) });
     setS(ns); save(ns); onClose();
   };
   const big = { fontFamily: mono, fontWeight: 800, letterSpacing: "-0.02em" };
@@ -4169,6 +4184,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             </div>
           </div>
           <Btn full tone="jade" onClick={nextLift}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</Btn>
+          <button onClick={() => { setGskip({ ...gskip, [ex.id]: true }); if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } }} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "9px", width: "100%", marginTop: 8 }}>skip this lift — goes on the record, no phantom reps</button>
         </div>
       ) : phase === "all-done" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
