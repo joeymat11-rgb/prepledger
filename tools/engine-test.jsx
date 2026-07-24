@@ -1140,7 +1140,7 @@ if (fail) process.exit(1);
 const { filingsFor: ff70, CONSTITUTION: CN70, bodyAlarm: ba70, SEED: TM70 } = __test;
 ok(ff70(1, 15).some((x) => x.indexOf("COACH DAY") === 0), "Mondays point NOW at the dossier");
 ok(ff70(3, 2).some((x) => x.indexOf("THE RED CELL") === 0) && ff70(3, 15).length === 0, "the prosecution gets its pointer only in filing week");
-ok(CN70.length === 10 && CN70.every((c) => c[0] && c[1] && c[1].length > 30), "ten laws, each with a name and a plain sentence");
+ok(CN70.length === 11 && CN70.every((c) => c[0] && c[1] && c[1].length > 30), "eleven laws, each with a name and a plain sentence");
 ok(CN70.some((c) => c[0] === "Attention lives on NOW") && CN70.some((c) => c[0] === "Simple surface, real depth"), "the athlete's two new laws are carved first");
 ok(typeof ba70 === "function", "the alarm engine is exported — its NOW banner reads the same source as the desk");
 
@@ -1200,4 +1200,26 @@ ok(same > 110 && same < 135, "same-evening math unchanged: ~" + same + " mg at 1
 ok(ca73(400, 14, 1 + 10 / 60) < ca73(400, 14, 22.5), "later bedtimes always mean smaller tails — monotone, as physiology demands");
 
 console.log(`\nFINAL72: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+// v3.74 — the Minute is law: registered steps, derived needs, closing books
+const { minuteNeeds: mn74, booksToday: bt74, MORNING_REGISTRY: MR74, CONSTITUTION: CN74, SEED: TP74 } = __test;
+ok(MR74.length === 5 && ["night", "weight", "pulse", "temp", "brief"].every((k) => MR74.includes(k)), "the morning registry names every morning input");
+ok(CN74[10][0] === "The morning lives in the Minute", "law 11 is carved: " + CN74[10][0]);
+let mm = clone(TP74);
+const tI74 = isoL(Date.now()), yI74 = isoL(Date.now() - 864e5);
+mm.sleep.nights = mm.sleep.nights.filter((n) => n.d !== yI74);
+mm.pulse = [{ d: isoL(Date.now() - 2 * 864e5), bpm: 55 }];
+mm.temp = [{ d: isoL(Date.now() - 2 * 864e5), f: 97.6 }];
+const nd74 = mn74(mm);
+ok(nd74.includes("night") && nd74.includes("pulse") && nd74.includes("temp"), "unlogged mornings list their steps: " + nd74.join(","));
+mm.sleep.nights.push({ d: yI74, h: 7.6, bed: "22:45", wake: "06:30", sol: 15 });
+mm.pulse.push({ d: tI74, bpm: 56 });
+mm.temp.push({ d: tI74, f: 97.5 });
+ok(!mn74(mm).includes("night") && !mn74(mm).includes("pulse"), "logged steps leave the list — derived, never remembered");
+mm.dailyLogs[tI74] = { cal: 1760, pro: 175, steps: 16500 };
+const bt = bt74(mm);
+ok(bt.items.some((i) => i.k === "numbers" && i.ok), "the day's books know their own state");
+
+console.log(`\nFINAL73: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

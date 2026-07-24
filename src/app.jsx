@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.73.1";
+const APP_V = "3.74.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2666,7 +2666,95 @@ const CONSTITUTION = [
   ["The tilt", "Volume is presumed useful until your own bar speed says otherwise. Adds come easier than trims."],
   ["Records need clean sleep", "Nothing banks on a short-sleep streak. Pending isn't punishment — it's meaning protection."],
   ["The athlete overrides", "Every number is yours to change on the floor. The machine rebases instantly and files your ruling as precedent."],
+  ["The morning lives in the Minute", "Any input that belongs to the morning joins the Morning Minute — one guided flow, about sixty seconds, before the day starts pulling. New morning inputs must register a step; the test suite enforces it."],
 ];
+function MinuteView({ s, setS, save, onClose }) {
+  const t9 = isoOf(todayStart());
+  const y9 = isoOf(new Date(todayStart().getTime() - DAY));
+  const needs = minuteNeeds(s);
+  const briefRaw = useRepoDoc("ledger/brief.md");
+  const brief9 = briefRaw ? briefRaw.replace(/^<!--.*-->\n?/, "") : null;
+  const qm9 = brief9 ? brief9.match(/^QUESTION:\s*(.+)$/m) : null;
+  const qOpen = qm9 && !briefAnswered(s, qm9[1]);
+  const steps = [...needs, ...(brief9 || qOpen ? ["brief"] : [])];
+  const [idx9, setIdx9] = useState(0);
+  const [bed9, setBed9] = useState("22:45");
+  const [wake9, setWake9] = useState((s.sleep.anchor || {}).wake || "06:45");
+  const [sol9, setSol9] = useState(15);
+  const [tags9, setTags9] = useState([]);
+  const [bpm9, setBpm9] = useState(() => { const pr = (s.pulse || []); return pr.length ? pr[pr.length - 1].bpm : 55; });
+  const [tf9, setTf9] = useState(() => { const tr = (s.temp || []); return tr.length ? tr[tr.length - 1].f : 97.6; });
+  const [wt9, setWt9] = useState(() => +(s.trend || 164.5));
+  const [ans9, setAns9] = useState("");
+  const cur = steps[idx9];
+  const advance = () => { if (idx9 + 1 < steps.length) setIdx9(idx9 + 1); else onClose(); };
+  const w9 = (fn) => { const ns = JSON.parse(JSON.stringify(s)); fn(ns); setS(ns); save(ns); advance(); };
+  const spanH = (() => { const [bh, bm] = bed9.split(":").map(Number); const [wh, wm] = wake9.split(":").map(Number); const mins = ((wh * 60 + wm) - (bh * 60 + bm) + 1440) % 1440; return Math.round(((mins - sol9) / 60) * 4) / 4; })();
+  if (!steps.length) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 70, overflowY: "auto", padding: "0 16px", paddingTop: "calc(env(safe-area-inset-top, 24px) + 14px)", paddingBottom: "calc(env(safe-area-inset-bottom, 10px) + 20px)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Eyebrow c={T.jade}>☀ THE MORNING MINUTE · {idx9 + 1} / {steps.length}</Eyebrow>
+        <span onClick={onClose} style={{ fontFamily: mono, fontSize: 10, color: T.dim, cursor: "pointer", padding: "8px" }}>close ✕</span>
+      </div>
+      <div style={{ display: "flex", gap: 5, marginTop: 8 }}>{steps.map((st, i) => <div key={st} style={{ flex: 1, height: 3, borderRadius: 2, background: i < idx9 ? T.jade : i === idx9 ? T.chalk : T.line }} />)}</div>
+      {cur === "night" && (
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Last night</div>
+          <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center", flexWrap: "wrap", fontFamily: mono, fontSize: 11, color: T.steel }}>
+            <span>bed</span><input type="time" value={bed9} onChange={(e) => setBed9(e.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 13, padding: "6px" }} />
+            <span>wake</span><input type="time" value={wake9} onChange={(e) => setWake9(e.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 13, padding: "6px" }} />
+            <span>drift-off</span><Stepper v={sol9} set={setSol9} step={5} min={0} /><span>m</span>
+            <span style={{ color: T.jade }}>= {spanH} h asleep</span>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
+            {["woke", "caff", "screens", "mela"].map((tg) => <span key={tg} onClick={() => setTags9(tags9.includes(tg) ? tags9.filter((x) => x !== tg) : [...tags9, tg])} style={{ fontFamily: mono, fontSize: 10, color: tags9.includes(tg) ? T.brass : T.dim, border: `1px solid ${tags9.includes(tg) ? T.brass : T.line}`, borderRadius: 999, padding: "5px 10px" }}>{tg === "woke" ? "woke mid-night" : tg === "caff" ? "late caffeine" : tg === "mela" ? "melatonin" : "screens"}</span>)}
+          </div>
+          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.sleep.nights = ns.sleep.nights.filter((n) => n.d !== y9); ns.sleep.nights.push({ d: y9, h: spanH, bed: bed9, wake: wake9, sol: sol9, tags: tags9 }); })}>Bank the night →</Btn>
+        </div>
+      )}
+      {cur === "weight" && (
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Scale, fasted</div>
+          <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={wt9} set={setWt9} step={0.1} min={100} /><span style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>lb</span></div>
+          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.reads = ns.reads.filter((r) => r.d !== t9); ns.reads.push({ d: t9, w: +wt9 }); })}>Log weight →</Btn>
+        </div>
+      )}
+      {cur === "pulse" && (
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Morning pulse</div>
+          <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 4 }}>Still in bed, 60-second count (or 30 × 2).</div>
+          <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={bpm9} set={setBpm9} step={1} min={30} /><span style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>bpm</span></div>
+          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.pulse = [...(ns.pulse || []).filter((x) => x.d !== t9), { d: t9, bpm: bpm9 }]; })}>Log pulse →</Btn>
+        </div>
+      )}
+      {cur === "temp" && (
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Temperature</div>
+          <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={tf9} set={setTf9} step={0.1} min={90} /><span style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>°F</span></div>
+          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.temp = [...(ns.temp || []).filter((x) => x.d !== t9), { d: t9, f: +tf9 }]; })}>Log temp →</Btn>
+        </div>
+      )}
+      {cur === "brief" && (
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>The overnight brief</div>
+          {brief9 ? <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 8, lineHeight: 1.6, whiteSpace: "pre-wrap", maxHeight: "44vh", overflowY: "auto", border: `1px solid ${T.line}`, borderRadius: 8, padding: "10px 12px" }}>{plainify(brief9).slice(0, 2200)}</div> : <div style={{ fontFamily: mono, fontSize: 10, color: T.dim, marginTop: 8 }}>no brief on file yet this morning</div>}
+          {qOpen && (
+            <div style={{ marginTop: 10 }}>
+              <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass }}>THE ANALYST ASKS — 10 SECONDS, BECOMES LABELED DATA</div>
+              <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+                <input value={ans9} onChange={(e) => setAns9(e.target.value)} placeholder="your answer…" style={{ flex: 1, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8, color: T.chalk, fontFamily: body, fontSize: 12, padding: "9px 10px", outline: "none" }} />
+                <Btn small tone="jade" onClick={() => { if (!ans9.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: t9, t: "ANALYST ANSWER", how: qm9[1].slice(0, 120) + " → " + ans9.trim() }); setS(ns); save(ns); setAns9(""); }}>File it</Btn>
+              </div>
+            </div>
+          )}
+          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={advance}>Done ☀</Btn>
+        </div>
+      )}
+      <div onClick={advance} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", marginTop: 16, cursor: "pointer" }}>skip this step — its card stays open on NOW</div>
+    </div>
+  );
+}
 function LawsView({ onClose }) {
   return (
     <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 70, overflowY: "auto", padding: "0 16px", paddingTop: "calc(env(safe-area-inset-top, 24px) + 14px)", paddingBottom: "calc(env(safe-area-inset-bottom, 10px) + 20px)" }}>
@@ -2674,7 +2762,7 @@ function LawsView({ onClose }) {
         <Eyebrow c={T.jade}>⚖ THE HOUSE LAWS</Eyebrow>
         <span onClick={onClose} style={{ fontFamily: mono, fontSize: 10, color: T.dim, cursor: "pointer", padding: "8px" }}>close ✕</span>
       </div>
-      <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 4 }}>Ten rules this app runs on. Every feature answers to them; two were written by the athlete.</div>
+      <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 4 }}>The rules this app runs on. Every feature answers to them; three were written by the athlete.</div>
       {CONSTITUTION.map((c9, i9) => (
         <div key={i9} style={{ marginTop: 14, paddingBottom: 12, borderBottom: i9 < CONSTITUTION.length - 1 ? `1px solid ${T.line}` : "none" }}>
           <div style={{ fontFamily: mono, fontSize: 11, color: T.jade, letterSpacing: "0.06em", textTransform: "uppercase" }}>{i9 + 1}. {c9[0]}</div>
@@ -2689,6 +2777,31 @@ function filingsFor(dow, dom) {
   if (dow === 1) out9.push("COACH DAY — the dossier and your night shift's draft are ready behind the COACH button");
   if (dom >= 1 && dom <= 3) out9.push("THE RED CELL files this week — the case against your prep waits in LAB");
   return out9;
+}
+const MORNING_REGISTRY = ["night", "weight", "pulse", "temp", "brief"];
+function minuteNeeds(s) {
+  const t9 = isoOf(todayStart());
+  const y9 = isoOf(new Date(todayStart().getTime() - DAY));
+  const out9 = [];
+  if (!s.sleep.nights.some((n) => n.d === y9)) out9.push("night");
+  if (!blackoutOn(s, t9) && !s.reads.some((r) => r.d === t9)) out9.push("weight");
+  if ((s.pulse || []).some((x) => x.d < t9) && !(s.pulse || []).some((x) => x.d === t9)) out9.push("pulse");
+  if ((s.temp || []).some((x) => x.d < t9) && !(s.temp || []).some((x) => x.d === t9)) out9.push("temp");
+  return out9;
+}
+function booksToday(s) {
+  const t9 = isoOf(todayStart());
+  const y9 = isoOf(new Date(todayStart().getTime() - DAY));
+  const items = [];
+  const dl9 = s.dailyLogs[t9];
+  items.push({ k: "numbers", ok: !!(dl9 && dl9.cal != null) });
+  items.push({ k: "night", ok: s.sleep.nights.some((n) => n.d === y9) });
+  const ty9 = dayType(t9);
+  if (ty9 === "U" || ty9 === "L") items.push({ k: "session", ok: !!s.sessionLog[t9] });
+  if ((s.pulse || []).some((x) => x.d < t9)) items.push({ k: "pulse", ok: (s.pulse || []).some((x) => x.d === t9) });
+  if ((s.temp || []).some((x) => x.d < t9)) items.push({ k: "temp", ok: (s.temp || []).some((x) => x.d === t9) });
+  if (!blackoutOn(s, t9)) items.push({ k: "scale", ok: s.reads.some((r) => r.d === t9) });
+  return { items, complete: items.every((i) => i.ok) };
 }
 function liveBooks(s) {
   const y = isoOf(new Date(todayStart().getTime() - DAY));
@@ -2906,6 +3019,9 @@ __test.bodyAlarm = bodyAlarm;
 __test.todayCaff = todayCaff;
 __test.fmt12 = fmt12;
 __test.lightsOutT = lightsOutT;
+__test.minuteNeeds = minuteNeeds;
+__test.booksToday = booksToday;
+__test.MORNING_REGISTRY = MORNING_REGISTRY;
 __test.caffAt = caffAt;
 __test.CONSTITUTION = CONSTITUTION;
 
@@ -3092,6 +3208,7 @@ function Proposals({ s, setS, save }) {
 function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [askOpen, setAskOpen] = useState(false);
   const [lawsOpen, setLawsOpen] = useState(false);
+  const [minOpen, setMinOpen] = useState(false);
   const [nCMg, setNCMg] = useState(200);
   const [nCAt, setNCAt] = useState(() => { const d9 = new Date(); return String(d9.getHours()).padStart(2, "0") + ":" + String(Math.floor(d9.getMinutes() / 15) * 15).padStart(2, "0"); });
   const tISO = isoOf(todayStart());
@@ -3166,6 +3283,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
       {lawsOpen && <LawsView onClose={() => setLawsOpen(false)} />}
+      {minOpen && <MinuteView s={s} setS={setS} save={save} onClose={() => setMinOpen(false)} />}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {s.sessionLog[tISO] && <Chip c={T.jade}>Session ✓ — receipt in TRAIN</Chip>}
         {cleanIn > 0 && <Chip c={T.chalk}>Scale sealed · clean read {fmtShort(SEAL_UNTIL)} · {cleanIn}d</Chip>}
@@ -3262,6 +3380,17 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         const logW = () => { const ns2 = runAdaptive(applyRead(s, tISO, wIn), tISO); setS(ns2); save(ns2); };
         return (
           <>
+      {(() => { const bk9 = booksToday(s); if (bk9.complete) return (
+        <Card style={{ padding: "9px 14px" }}><div style={{ fontFamily: mono, fontSize: 10, color: T.jade }}>📕 {fmtShort(isoOf(todayStart()))} closed — everything the analysts need is in.</div></Card>
+      ); const mn9 = minuteNeeds(s); if (new Date().getHours() < 12 && mn9.length) return (
+        <Card accent={T.jade} style={{ padding: "11px 14px", cursor: "pointer" }} onClick={() => setMinOpen(true)}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>☀ THE MORNING MINUTE <span style={{ color: T.dim }}>— {mn9.length + 1} steps · ~60 seconds, then the day's yours</span></div>
+            <span style={{ fontFamily: mono, fontSize: 14, color: T.jade }}>▸</span>
+          </div>
+        </Card>
+      ); return null; })()}
+
             <Card accent={T.chalk} style={slAlready && wAlready ? { padding: 10 } : undefined}>
               {!(slAlready && wAlready) && <Eyebrow>MORNING · CAPTURE — EVERYTHING LOGS HERE</Eyebrow>}
               {!slAlready ? (
@@ -3373,6 +3502,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             </div>
           ))}
         </div>
+        {(() => { const yd9 = s.dailyLogs[isoOf(new Date(todayStart().getTime() - DAY))]; if (!yd9) return null; return <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>yest: {yd9.cal ?? "—"} · {yd9.pro ?? "—"} · {yd9.steps != null ? (yd9.steps / 1000).toFixed(1) + "k" : "—"}</div>; })()}
         {s.fixWindow && (
           <div style={{ marginTop: 10, fontFamily: mono, fontSize: 11, color: T.brass }}><Term k="fixwindow" c={T.brass}>FIX WINDOW OPEN</Term> — hit protein today and yesterday's miss counts as a save, not a break. Nothing resets.</div>
         )}
@@ -3607,7 +3737,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       </Section>
 
       <Card style={{ padding: "10px 14px" }}>
-        <div onClick={() => setLawsOpen(true)} style={{ cursor: "pointer", fontFamily: mono, fontSize: 9.5, color: T.dim }}>⚖ THE HOUSE LAWS — ten rules this app runs on · tap to read ▸</div>
+        <div onClick={() => setLawsOpen(true)} style={{ cursor: "pointer", fontFamily: mono, fontSize: 9.5, color: T.dim }}>⚖ THE HOUSE LAWS — the rules this app runs on · tap to read ▸</div>
       </Card>
 
     </div>
