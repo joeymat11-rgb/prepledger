@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.60.0";
+const APP_V = "3.61.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -216,20 +216,69 @@ function dayType(iso) {
 }
 
 /* target generator: climb the earliest set that lags the one before it */
-function liftCall(s, exId) {
-  const hist = Object.keys(s.sessionLog).sort().map((d) => { const e = (s.sessionLog[d].entries || []).find((x) => x.id === exId); return e ? { d, tot: (e.reps || []).reduce((a, b) => a + b, 0), rir: e.rir, w: e.w } : null; }).filter(Boolean).slice(-5);
-  if (hist.length < 2) return { verdict: "PUSH", why: "young lift — chase reps, build the file", n: hist.length };
+/* THE DESK CHARTER: maximize muscle retained per unit of recovery while the
+   deficit does the cutting; strike for records only in green windows. Precision
+   = named inputs with receipts, each gated on its own n — never a composite score. */
+function liftCall(s, exId, opts = {}) {
+  const tISO3 = isoOf(todayStart());
+  const R2 = [];
+  const all = Object.keys(s.sessionLog).sort().map((d) => { const e = (s.sessionLog[d].entries || []).find((x) => x.id === exId); return e ? { d, tot: (e.reps || []).reduce((a, b) => a + b, 0), rir: e.rir, w: e.w } : null; }).filter(Boolean);
+  const hist = all.slice(-5);
+  if (hist.length < 2) return { verdict: "PUSH", vel: null, n: hist.length, why: "young lift — chase reps, build the file", receipts: ["history: " + hist.length + " session(s) — the desk needs 2+ to compute velocity"] };
   const clean = hist.filter((h) => !dayWeather(s, h.d).hard);
   const vel = clean.length >= 2 ? +(((clean[clean.length - 1].tot - clean[0].tot) / (clean.length - 1)).toFixed(1)) : null;
+  if (vel != null) R2.push(`velocity ${vel >= 0 ? "+" : ""}${vel} reps/session over ${clean.length} weather-clean outings (measured)`);
   let stall = 0;
   for (let i = clean.length - 1; i >= 1; i--) { if (clean[i].tot <= clean[i - 1].tot && (clean[i].rir == null || clean[i].rir <= 2)) stall++; else break; }
+  if (stall) R2.push(`stall streak ${stall} (no total-rep gain at honest RIR, flagged days excluded)`);
   const slp2 = sleepInfo(s);
-  const postRf = dayWeather(s, isoOf(todayStart())).flags.some((f) => f.k === "postrefeed");
-  if (stall >= 3) { const ex2 = s.exercises.find((x) => x.id === exId); const newW = ex2 && ex2.w ? Math.max(5, Math.round((ex2.w * 0.95) / 5) * 5) : null; return { verdict: "RESET", why: `${stall} honest sessions without total-rep gain (weather-clean) — the evidence-based move is a small load reset to rebuild momentum`, n: clean.length, newW, vel }; }
-  if (!slp2.clean) return { verdict: "HOLD", why: `sleep debt ${slp2.run}/${slp2.need} — repeat the targets, bank nothing, protect the pattern`, n: clean.length, vel };
-  if (postRf) return { verdict: "PUSH", why: `post-refeed window — glycogen is aboard; your best conditions to chase${vel != null ? ` (velocity ${vel >= 0 ? "+" : ""}${vel} reps/session)` : ""}`, n: clean.length, vel };
-  if (vel != null && vel <= 0 && stall > 0) return { verdict: "PUSH", why: `velocity flat (${vel} reps/session, ${stall} stalled) — chase honestly; one more stall triggers the reset question`, n: clean.length, vel };
-  return { verdict: "PUSH", why: `velocity ${vel != null ? (vel >= 0 ? "+" : "") + vel + " reps/session" : "building"} — keep chasing, weight bumps queue when standards fall`, n: clean.length, vel };
+  const lastN = s.sleep.nights[s.sleep.nights.length - 1];
+  if (lastN) R2.push(`last night ${lastN.h}h` + (lastN.sol != null ? ` · drift-off ${lastN.sol}m` : ""));
+  /* per-lift day-of-week pattern — computed, n-gated at 3 per bucket */
+  const dow3 = mk(tISO3).getDay();
+  const byDow = all.filter((h) => mk(h.d).getDay() === dow3 && !dayWeather(s, h.d).hard);
+  const byOther = all.filter((h) => mk(h.d).getDay() !== dow3 && !dayWeather(s, h.d).hard);
+  let dowLag = null;
+  if (byDow.length >= 3 && byOther.length >= 3) {
+    const m1 = byDow.reduce((a, h) => a + h.tot, 0) / byDow.length, m2 = byOther.reduce((a, h) => a + h.tot, 0) / byOther.length;
+    dowLag = +(m1 - m2).toFixed(1);
+    if (Math.abs(dowLag) >= 2) R2.push(`this weekday runs ${dowLag > 0 ? "+" : ""}${dowLag} reps vs your other days on this lift (n=${byDow.length}/${byOther.length}, measured)`);
+  }
+  /* bedtime scatter — the variance tax's live coefficient, applied when its instrument is armed */
+  if (lastN && lastN.bed) {
+    const mins3 = (t2) => { const [a3, b3] = t2.split(":").map(Number); let m3 = a3 * 60 + b3; if (m3 < 720) m3 += 1440; return m3; };
+    const timed = s.sleep.nights.filter((n) => n.bed).slice(-21);
+    if (timed.length >= 8) {
+      const med2 = timed.map((n) => mins3(n.bed)).sort((a3, b3) => a3 - b3)[Math.floor(timed.length / 2)];
+      const dev = Math.abs(mins3(lastN.bed) - med2);
+      if (dev > 45) R2.push(`last night ran ${dev}m off your median bedtime — the variance tax is watching this class of night`);
+    }
+  }
+  /* pulse vs baseline — cut-stress context when both exist */
+  const pReads2 = (s.pulse || []).slice(-14);
+  const pToday = (s.pulse || []).find((x) => x.d === tISO3);
+  if (pReads2.length >= 7 && pToday) {
+    const base2 = pReads2.map((x) => x.bpm).sort((a3, b3) => a3 - b3)[Math.floor(pReads2.length / 2)];
+    const dp = pToday.bpm - base2;
+    if (dp >= 5) R2.push(`pulse +${dp} over your baseline this morning — recovery is paying interest; don't buy records with it`);
+  }
+  const wx = dayWeather(s, tISO3);
+  const postRf = wx.flags.some((f) => f.k === "postrefeed");
+  const estToday = wx.est;
+  const alarm = opts.alarm !== undefined ? opts.alarm : (typeof bodyAlarm === "function" ? bodyAlarm(s, slp2) : null);
+  const ex2 = s.exercises.find((x) => x.id === exId);
+  /* verdict ladder — most protective first */
+  if (alarm && alarm.level === "RED") return { verdict: "STAND-DOWN", vel, n: clean.length, why: "body alarm RED — today buys nothing worth its cost; walk, eat, sleep, return", receipts: R2.concat(["alarm: RED (sentinel pattern sustained)"]) };
+  const recentReset = (s.feed || []).slice(0, 60).find((f) => f.t && ex2 && f.t.indexOf("RESET APPLIED — " + ex2.n) === 0 && (mk(tISO3) - mk(f.d)) / DAY <= 14);
+  if (recentReset) return { verdict: "REBUILD", vel, n: clean.length, why: `reset applied ${fmtShort(recentReset.d)} — climb the reps back; the old wall usually falls inside 3 sessions`, receipts: R2.concat(["rebuild window: day " + Math.round((mk(tISO3) - mk(recentReset.d)) / DAY) + " of 14"]) };
+  if (stall >= 3) { const newW = ex2 && ex2.w ? Math.max(5, Math.round((ex2.w * 0.95) / 5) * 5) : null; return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest weather-clean sessions without gain — the evidence-based move is a small load reset to rebuild momentum`, receipts: R2 }; }
+  if (alarm && alarm.level === "AMBER") return { verdict: "HOLD", vel, n: clean.length, why: "body alarm AMBER — normal plan, every 0 becomes a 1, no records today", receipts: R2.concat(["alarm: AMBER"]) };
+  if (!slp2.clean) return { verdict: "HOLD", vel, n: clean.length, why: `sleep debt ${slp2.run}/${slp2.need} — repeat targets, bank nothing, protect the pattern; recovery is the scarce currency of a cut`, receipts: R2 };
+  if (estToday) return { verdict: "PUSH", vel, n: clean.length, why: "estimate day — train normally, but today's numbers carry lower evidentiary weight by your own declaration", receipts: R2.concat(["⌁ estimate day declared"]) };
+  if (postRf && (vel == null || vel >= 0)) return { verdict: "PUSH+", vel, n: clean.length, why: `green window: post-refeed glycogen + clean sleep${vel != null ? ` + velocity ${vel >= 0 ? "+" : ""}${vel}` : ""} — attempt territory, records live`, receipts: R2.concat(["⌁ post-refeed window"]) };
+  if (dowLag != null && dowLag <= -3) return { verdict: "PUSH", vel, n: clean.length, why: `chase honestly — but this weekday historically runs ${dowLag} reps on this lift; judge today against that line, not your best day`, receipts: R2 };
+  if (vel != null && vel <= 0 && stall > 0) return { verdict: "PUSH", vel, n: clean.length, why: `velocity flat (${vel}/session, ${stall} stalled) — chase honestly; one more honest stall triggers the reset question`, receipts: R2 };
+  return { verdict: "PUSH", vel, n: clean.length, why: `velocity ${vel != null ? (vel >= 0 ? "+" : "") + vel + "/session" : "building"} — keep chasing; weight bumps queue when standards fall`, receipts: R2 };
 }
 
 function targetsFor(ex) {
@@ -3327,6 +3376,7 @@ function LogTab({ s, setS, save, slp }) {
   const [reorder, setReorder] = useState(false);
   const [showSetup, setShowSetup] = useState({});
   const [skipped, setSkipped] = useState({});
+  const [callOpen, setCallOpen] = useState(null);
   const [recap, setRecap] = useState(null);
   const [boosted, setBoosted] = useState(false);
   const trueShort = slp.last && slp.last.h < 4.5;
@@ -3473,8 +3523,9 @@ function LogTab({ s, setS, save, slp }) {
         <Card key={ex.id} style={{ padding: 12, opacity: skipped[ex.id] ? 0.45 : 1 }} accent={ex.isDebutNow && !skipped[ex.id] ? T.orange : undefined}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
             <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 17, textTransform: "uppercase", color: T.chalk, textDecoration: skipped[ex.id] ? "line-through" : "none" }}>{ex.n}</div>
-            {!reorder && (() => { const lc = liftCall(s, ex.id); return (
-              <span title={lc.why} style={{ fontFamily: mono, fontSize: 8.5, color: lc.verdict === "RESET" ? T.redline : lc.verdict === "HOLD" ? T.brass : T.jade, border: `1px solid ${T.line}`, borderRadius: 999, padding: "3px 8px", flexShrink: 0 }}>{lc.verdict}{lc.vel != null ? ` ${lc.vel >= 0 ? "+" : ""}${lc.vel}/ses` : ""}</span>
+
+            {!reorder && (() => { const lc = liftCall(s, ex.id); const vc = lc.verdict === "RESET" || lc.verdict === "STAND-DOWN" ? T.redline : lc.verdict === "HOLD" ? T.brass : lc.verdict === "PUSH+" ? T.jade : lc.verdict === "REBUILD" ? T.orange : T.jade; return (
+              <span onClick={(ev2) => { ev2.stopPropagation(); setCallOpen(callOpen === ex.id ? null : ex.id); }} style={{ fontFamily: mono, fontSize: 8.5, color: vc, border: `1px solid ${vc}`, borderRadius: 999, padding: "3px 8px", flexShrink: 0, cursor: "pointer" }}>{lc.verdict}{lc.vel != null ? ` ${lc.vel >= 0 ? "+" : ""}${lc.vel}/ses` : ""} ▾</span>
             ); })()}
             {!reorder && (
               <button onClick={() => setSkipped({ ...skipped, [ex.id]: !skipped[ex.id] })} style={{ fontFamily: mono, fontSize: 9, color: skipped[ex.id] ? T.brass : T.dim, background: "none", border: `1px solid ${skipped[ex.id] ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", flexShrink: 0 }}>{skipped[ex.id] ? "skipped — undo" : "skip"}</button>
@@ -3496,6 +3547,13 @@ function LogTab({ s, setS, save, slp }) {
               <div style={{ fontFamily: mono, fontSize: 12, color: T.steel }}>{ex.w} · tgt {ex.tgt.join(",")}</div>
             )}
           </div>
+          {callOpen === ex.id && (() => { const lc2 = liftCall(s, ex.id); return (
+            <div style={{ marginTop: 8, padding: "9px 11px", background: T.plate2, borderRadius: 8, border: `1px solid ${T.line}` }}>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, lineHeight: 1.55 }}>{lc2.why}</div>
+              {(lc2.receipts || []).map((r3, i3) => <div key={i3} style={{ fontFamily: mono, fontSize: 9.5, color: T.steel, marginTop: 5, lineHeight: 1.5 }}>· {r3}</div>)}
+              <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 7 }}>THE CHARTER: retain muscle per unit of recovery; the deficit does the cutting; records only in green windows.</div>
+            </div>
+          ); })()}
           {ex.prev && (
             <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 3 }}>
               PREV ▸ {fmtShort(ex.prev.d)} · {ex.prev.w} × {ex.prev.reps.join(",")}
