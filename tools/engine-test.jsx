@@ -1065,3 +1065,16 @@ ok(m64.feed.some((f) => f.t.indexOf("RULING — SMALLEST HONEST INCREMENT") === 
 
 console.log(`\nFINAL63: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+// v3.65 — the smallest step governs every lift
+const { migrate: mg65, SEED: TI65 } = __test;
+const oldV25a = clone(TI65); oldV25a.v = 25;
+oldV25a.exercises.find((x) => x.id === "pulldown").inc = 10;
+oldV25a.exercises.find((x) => x.id === "ham").inc = 10;
+const m65 = mg65(oldV25a);
+ok(m65.v >= 26 && m65.exercises.find((x) => x.id === "pulldown").inc === 5 && m65.exercises.find((x) => x.id === "ham").inc === 5, "stack machines normalized to the 5");
+ok(m65.exercises.find((x) => x.id === "hack").inc === 10, "the plate-loaded hack keeps its honest 10");
+ok(m65.feed.some((f) => f.t.indexOf("RULING — SMALLEST STEP, EVERY LIFT") === 0), "the audit is on the record");
+
+console.log(`\nFINAL64: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);

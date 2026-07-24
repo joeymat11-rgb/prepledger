@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.64.0";
+const APP_V = "3.65.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -54,7 +54,7 @@ const EXERCISES = [
     setup: "SET · resistance profile 5 · seat 3\nSet 2 is the money set · no shoulder creep when it grinds" },
   { id: "press", mg: "chest", lastMeta: { d: "2026-07-20", w: 245, reps: [8, 7, 6], debt: true }, n: "Press", day: "U", w: 245, inc: 5, sets: 3, hi: 9, last: [8, 7, 6], std: [8, 8, 7], own: true, ownNote: "repeat 8,8,7 on a clean day — no load until owned",
     setup: "SET · cam 5 · lowest seat\nShoulders back & down into the pad · no bottom bounce — this lift was won on the honest opener" },
-  { id: "pulldown", mg: "back", lastMeta: { d: "2026-07-20", w: 160, reps: [8, 8], debt: true }, n: "Pulldown", day: "U", w: 160, inc: 10, sets: 2, hi: 10, last: [8, 8],
+  { id: "pulldown", mg: "back", lastMeta: { d: "2026-07-20", w: 160, reps: [8, 8], debt: true }, n: "Pulldown", day: "U", w: 160, inc: 5, sets: 2, hi: 10, last: [8, 8],
     setup: "SET · silver bar · thumbs in the same spot every session\nSame grip = comparable reps · chest up, elbows down-and-in · strapless" },
   { id: "sulek", mg: "forearms", lastMeta: { d: "2026-07-20", w: 87.5, reps: [12, 8], debt: true }, n: "Sulek curl (forearm)", day: "U", w: 87.5, inc: 2.5, sets: 2, hi: 15, last: [12, 8],
     setup: "SET · cable, highest rung · straight bar\nSam Sulek's signature — strict curl biasing the forearm flexors · elbows quiet, slow negative" },
@@ -73,7 +73,7 @@ const EXERCISES = [
     setup: "SET · foot placement = your favorited pic\nSame depth every rep · even sets are the standard here (11,11 → 12,12 → 13,13)" },
   { id: "extension", mg: "quads", lastMeta: { d: "2026-07-21", w: 155, reps: [9, 6], debt: true }, n: "Leg extension", day: "L", w: 150, inc: 5, sets: 2, hi: 10, last: [9, 6], std: [9, 9], own: true, ownNote: "own 150×9,9 — then the 155 gate reopens",
     setup: "SET · shin pad height A · depth 3 · seat back all the way back — max quad stretch\nNo jerk at lockout · runs after hack by design — read dips as order effect, not regression" },
-  { id: "ham", mg: "hams", lastMeta: { d: "2026-07-21", w: 120, reps: [10, 10], debt: true }, n: "Ham curl", day: "L", w: 120, inc: 10, sets: 2, hi: 12, last: [10, 10],
+  { id: "ham", mg: "hams", lastMeta: { d: "2026-07-21", w: 120, reps: [10, 10], debt: true }, n: "Ham curl", day: "L", w: 120, inc: 5, sets: 2, hi: 12, last: [10, 10],
     setup: "SET · back 5 · calf pad height C · depth 3 · resistance profile 5\nHips pinned down, no lift-off · full stretch at the top of every rep" },
 ];
 
@@ -144,7 +144,7 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 25;
+  SEED.v = 26;
   SEED.dayCtx = {};
   SEED.agentProposals = [];
   SEED.temp = [];
@@ -2102,6 +2102,17 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV26(s) {
+  (s.exercises || []).forEach((ex) => {
+    if (ex.id === "hack") return;
+    if (typeof ex.inc === "number" && ex.inc > 5) ex.inc = 5;
+  });
+  s.feed = s.feed || [];
+  if (!s.feed.some((f) => f.t && f.t.indexOf("RULING — SMALLEST STEP, EVERY LIFT") === 0)) {
+    s.feed.unshift({ d: isoOf(todayStart()), t: "RULING — SMALLEST STEP, EVERY LIFT", how: "every increment audited: stack machines take 5s (pulldown and ham curl were jumping 10); the hack stays 10 as plate-loaded; jump size is now editable on any card via the pencil" });
+  }
+  s.v = 26; return s;
+}
 function patchV25(s) {
   const cv = (s.exercises || []).find((x) => x.id === "calves");
   if (cv) cv.inc = 5;
@@ -2171,8 +2182,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 25) return old;
-  if (old && old.v >= 3 && old.v <= 24) return patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))))))))))))));
+  if (old && old.v === 26) return old;
+  if (old && old.v >= 3 && old.v <= 25) return patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -2198,7 +2209,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))))))))))))));
+  return patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))))))))))))));
 }
 
 const GLOSSARY = {
@@ -3520,6 +3531,7 @@ function LogTab({ s, setS, save, slp }) {
             {preview && (
               <Card>
                 <Eyebrow>NEXT {dayType(dateSel) === "U" ? "UPPER" : "LOWER"} · {fmtShort(nd)} — TARGETS ALREADY SET</Eyebrow>
+                {(() => { const t5 = dayType(nd); for (let k5 = 1; k5 < 10; k5++) { const dd = isoOf(new Date(mk(nd).getTime() - k5 * DAY)); if (dd <= isoOf(todayStart())) break; if (dayType(dd) === t5 && !s.sessionLog[dd]) return <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 3 }}>provisional — these re-key the moment {fmtShort(dd)} is logged</div>; } return null; })()}
                 <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 5 }}>
                   {(preview.ex || []).map((b, i) => (
                     <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: 10.5 }}>
@@ -3590,8 +3602,13 @@ function LogTab({ s, setS, save, slp }) {
             ) : (
               <div style={{ fontFamily: mono, fontSize: 12, color: T.steel, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 {wEdit === ex.id ? (
-                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                     <Stepper v={wVal} set={setWVal} step={ex.inc || 5} min={5} />
+                    <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>jump:</span>
+                    {[2.5, 5, 10].map((jz) => (
+                      <span key={jz} onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex5 = ns.exercises.find((x) => x.id === ex.id); ex5.inc = jz; ns.feed.unshift({ d: isoOf(todayStart()), t: `JUMP SIZE — ${ex5.n.toUpperCase()} steps by ${jz}`, how: "athlete set the machine's smallest honest increment" }); setS(ns); save(ns); }}
+                        style={{ fontFamily: mono, fontSize: 9, color: (ex.inc || 5) === jz ? T.jade : T.dim, border: `1px solid ${(ex.inc || 5) === jz ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>{jz}</span>
+                    ))}
                     <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id); const oldW = ex4.w; ex4.w = wVal; if (oldW !== wVal) ex4.last = null; ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${wVal}`, how: "athlete entry on the card — targets re-seeded for the new load" }); setS(ns); save(ns); setWEdit(null); }}>Save</Btn>
                   </span>
                 ) : (
