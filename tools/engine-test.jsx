@@ -863,5 +863,16 @@ const dayRow = ate53(wSB, "get_range", { kind: "days", from: "2026-07-18", to: "
 ok(dayRow.indexOf("⌁[") > -1 && dayRow.indexOf("estimate") > -1, "the agent's own range pulls carry the weather: " + dayRow.slice(0, 46));
 ok((lr53(wSB)[0] || { days: [] }).days !== undefined || lr53(wSB).length === 0, "live rollups expose their day lists for week-pair weather checks");
 
-console.log(`\nFINAL50: ${pass} passed, ${fail} failed`);
+// (interim)
+
+// v3.53.2 — the session hero rolls forward once today is banked
+const { nextTrainingISO: nti53, SEED: TN } = __test;
+let hero53 = clone(TN);
+const heroFirst53 = nti53(hero53);
+ok(heroFirst53 != null, "a next training day exists");
+hero53.sessionLog[heroFirst53] = { entries: [{ id: "press", reps: [8, 8, 7] }], at: Date.now() };
+const after53 = nti53(hero53);
+ok(after53 != null && after53 > heroFirst53, "banking the session advances the hero to the next unlogged day: " + heroFirst53 + " → " + after53);
+
+console.log(`\nFINAL51: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

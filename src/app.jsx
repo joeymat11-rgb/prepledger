@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.53.1";
+const APP_V = "3.53.2";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2436,7 +2436,8 @@ function weekDay() {
   return { wk: Math.floor(diff / 7) + 1, day: diff + 1 };
 }
 const blackoutOn = (s) => daysUntil(s.blackout.until) > 0;
-const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d); if (t === "U" || t === "L") return d; } return null; };
+const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d); if ((t === "U" || t === "L") && !s.sessionLog[d]) return d; } return null; };
+__test.nextTrainingISO = nextTrainingISO;
 
 /* ---------- atoms ---------- */
 const Eyebrow = ({ children, c = T.dim }) => (
