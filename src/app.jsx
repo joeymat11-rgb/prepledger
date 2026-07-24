@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.71.0";
+const APP_V = "3.72.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2740,7 +2740,14 @@ function BriefCard({ s, setS: setS2, save: save2 }) {
     if (m && (isoOf(todayStart()) === m[1] || isoOf(new Date(todayStart().getTime() - DAY)) === m[1])) return raw.replace(/^<!--.*-->\n?/, "");
     return null;
   })();
-  if (!brief) return null;
+  if (!brief) { const lb0 = liveBooks(s); return (
+    <Card style={{ padding: "10px 14px" }}>
+      <div style={{ fontFamily: mono, fontSize: 10, color: lb0.complete ? T.jade : T.brass, lineHeight: 1.6 }}>
+        BOOKS · {fmtShort(lb0.y)} (live) — {lb0.complete ? "complete ✓" : lb0.items.map((i) => `${i.k} ${i.ok ? "✓" : "✗"}`).join(" · ") + " — the ✗s take 30 seconds"}
+      </div>
+      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 3 }}>no overnight brief on file yet — the live line above is the ledger's own reading</div>
+    </Card>
+  ); }
   const qm = brief.match(/^QUESTION:\s*(.+)$/m);
   const already = qm ? briefAnswered(s, qm[1]) : false;
   return (
@@ -3228,62 +3235,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       )}
 
 
-      <Card style={{ padding: "11px 14px", cursor: "pointer", borderLeft: `3px solid ${T.jade}` }} onClick={() => setAskOpen(true)}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>🜁 ASK THE LEDGER <span style={{ color: T.dim }}>— any question, from your data</span></div>
-          <span style={{ fontFamily: mono, fontSize: 14, color: T.jade, flexShrink: 0 }}>▸</span>
-        </div>
-      </Card>
 
-
-      {sess && (
-        <Card style={{ padding: "11px 14px", borderLeft: `3px solid ${T.orange}` }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontFamily: mono, fontSize: 10, color: T.orange, letterSpacing: "0.08em" }}>{heroToday ? "TODAY" : daysUntil(nextISO) === 1 ? "TOMORROW" : "NEXT"} · {fmtShort(nextISO)} · {sess.name.toUpperCase()}</div>
-              <div style={{ fontFamily: mono, fontSize: 11.5, color: T.chalk, marginTop: 4 }}>{sess.ex.length} lifts · {sess.structural.toLowerCase()} · full plan in TRAIN</div>
-            </div>
-            <span style={{ fontFamily: mono, fontSize: 9.5, color: slp.clean ? T.jade : T.brass, flexShrink: 0, textAlign: "right" }}>{slp.clean ? "records live" : "records pend"}</span>
-          </div>
-        </Card>
-      )}
-
-      {isRefeed && (
-        <Card accent={T.jade}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <Eyebrow c={T.jade}>TODAY · ON-PLAN GREEN DAY</Eyebrow>
-              <H size={22}>Rest + Refeed</H>
-            </div>
-            <Num size={22} c={T.jade}>{REFEED.cal}</Num>
-          </div>
-          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 6 }}>{REFEED.note}. Protein still {PROTEIN}.</div>
-          <More deep="The weekly elevated-carb day refills muscle glycogen (fullness plus next-day performance), gives adherence and hormones a breather, and is prescribed — an on-plan green day that the streak logic treats as compliance, because it is."
-            forYou={(() => { const b = refeedBumps(s); return b.length ? [
-                `Your last ${b.length} refeeds moved the next morning's scale by ${Math.min(...b) > 0 ? "+" : ""}${Math.min(...b)} to +${Math.max(...b)} lb.`,
-                "That's stored carbs and water — not fat. In your record it drains back off within a couple of days.",
-                "Tomorrow you lift on this fuel: the heavy sets should feel noticeably better.",
-              ] : "Tomorrow's session runs on this fuel — the next-morning scale bump is stored carbs and water, not fat, and you lift heavier ON it."; })()} />
-        </Card>
-
-
-      )}
-
-      <Card style={{ padding: "10px 14px" }}>
-        <div onClick={() => setLawsOpen(true)} style={{ cursor: "pointer", fontFamily: mono, fontSize: 9.5, color: T.dim }}>⚖ THE HOUSE LAWS — ten rules this app runs on · tap to read ▸</div>
-      </Card>
-
-      <RndCard />
-
-      {[0, 1].includes(new Date().getDay()) && (() => { const wr = weekReview(s); return (
-        <Card accent={T.jade}>
-          <Eyebrow c={T.jade}>THE WEEK IN REVIEW — WRITTEN BY YOUR DATA · {wr.window}</Eyebrow>
-          <div style={{ fontFamily: body, fontSize: 13.5, color: T.chalk, marginTop: 6, lineHeight: 1.5 }}>{wr.verdict}</div>
-          {wr.lines.map((l, i) => (
-            <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: i ? 4 : 8 }}>{l}</div>
-          ))}
-        </Card>
-      ); })()}
 
 
 
@@ -3393,6 +3345,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             </span>
           ); })()}
         </div>
+        {ev && ev.d === tISO && !((s.dayCtx || {})[tISO] || {}).est && (
+          <div style={{ fontFamily: mono, fontSize: 10, color: T.brass, marginTop: 8 }}>today is {ev.t} — days like this usually get the estimates chip (top right of this card)</div>
+        )}
         {((s.dayCtx || {})[tISO] || {}).est && (
           <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 8, lineHeight: 1.55 }}>The method: anchor protein first — four palm-sized servings still lands near 175. Then calories as the midpoint of your honest bracket: "definitely over 2,300, definitely under 2,700" writes 2,500. One entry after the event, never the optimistic edge. A labeled estimate protects the trend; false precision poisons it.</div>
         )}
@@ -3506,6 +3461,61 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
 
 
+      <Card style={{ padding: "11px 14px", cursor: "pointer", borderLeft: `3px solid ${T.jade}` }} onClick={() => setAskOpen(true)}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>🜁 ASK THE LEDGER <span style={{ color: T.dim }}>— any question, from your data</span></div>
+          <span style={{ fontFamily: mono, fontSize: 14, color: T.jade, flexShrink: 0 }}>▸</span>
+        </div>
+      </Card>
+
+
+      {sess && (
+        <Card style={{ padding: "11px 14px", borderLeft: `3px solid ${T.orange}` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: mono, fontSize: 10, color: T.orange, letterSpacing: "0.08em" }}>{heroToday ? "TODAY" : daysUntil(nextISO) === 1 ? "TOMORROW" : "NEXT"} · {fmtShort(nextISO)} · {sess.name.toUpperCase()}</div>
+              <div style={{ fontFamily: mono, fontSize: 11.5, color: T.chalk, marginTop: 4 }}>{sess.ex.length} lifts · {sess.structural.toLowerCase()} · full plan in TRAIN</div>
+            </div>
+            <span style={{ fontFamily: mono, fontSize: 9.5, color: slp.clean ? T.jade : T.brass, flexShrink: 0, textAlign: "right" }}>{slp.clean ? "records live" : "records pend"}</span>
+          </div>
+        </Card>
+      )}
+
+      {isRefeed && (
+        <Card accent={T.jade}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <Eyebrow c={T.jade}>TODAY · ON-PLAN GREEN DAY</Eyebrow>
+              <H size={22}>Rest + Refeed</H>
+            </div>
+            <Num size={22} c={T.jade}>{REFEED.cal}</Num>
+          </div>
+          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 6 }}>{REFEED.note}. Protein still {PROTEIN}.</div>
+          <More deep="The weekly elevated-carb day refills muscle glycogen (fullness plus next-day performance), gives adherence and hormones a breather, and is prescribed — an on-plan green day that the streak logic treats as compliance, because it is."
+            forYou={(() => { const b = refeedBumps(s); return b.length ? [
+                `Your last ${b.length} refeeds moved the next morning's scale by ${Math.min(...b) > 0 ? "+" : ""}${Math.min(...b)} to +${Math.max(...b)} lb.`,
+                "That's stored carbs and water — not fat. In your record it drains back off within a couple of days.",
+                "Tomorrow you lift on this fuel: the heavy sets should feel noticeably better.",
+              ] : "Tomorrow's session runs on this fuel — the next-morning scale bump is stored carbs and water, not fat, and you lift heavier ON it."; })()} />
+        </Card>
+
+
+      )}
+
+
+
+      <RndCard />
+
+      {[0, 1].includes(new Date().getDay()) && (() => { const wr = weekReview(s); return (
+        <Card accent={T.jade}>
+          <Eyebrow c={T.jade}>THE WEEK IN REVIEW — WRITTEN BY YOUR DATA · {wr.window}</Eyebrow>
+          <div style={{ fontFamily: body, fontSize: 13.5, color: T.chalk, marginTop: 6, lineHeight: 1.5 }}>{wr.verdict}</div>
+          {wr.lines.map((l, i) => (
+            <div key={i} style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: i ? 4 : 8 }}>{l}</div>
+          ))}
+        </Card>
+      ); })()}
+
       <Section title="The Big Picture" meta={(() => { const rec = recoveryIndex(s); return `recovery ${rec.score} · crossover ${daysUntil(CROSSOVER)}d`; })()}>
       {(() => {
         const rec = recoveryIndex(s);
@@ -3552,6 +3562,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           ]; })()} />
       </Card>
       </Section>
+
+      <Card style={{ padding: "10px 14px" }}>
+        <div onClick={() => setLawsOpen(true)} style={{ cursor: "pointer", fontFamily: mono, fontSize: 9.5, color: T.dim }}>⚖ THE HOUSE LAWS — ten rules this app runs on · tap to read ▸</div>
+      </Card>
 
     </div>
   );
