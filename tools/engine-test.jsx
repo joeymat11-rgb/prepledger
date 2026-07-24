@@ -949,9 +949,26 @@ ag58.sleep.nights.push({ d: nIso, h: 7.5, bed: "22:45", wake: "06:45", sol: 15, 
 const row58 = ate58(ag58, "get_range", { kind: "nights", from: nIso, to: nIso }, []);
 ok(row58.indexOf("bed 22:45") > -1 && row58.indexOf("wake 06:45") > -1 && row58.indexOf("drift-off 15m") > -1, "night rows carry bed, wake, and drift-off in plain words: " + row58.slice(0, 60));
 const ctx58 = ac58(ag58);
-ok(ctx58.indexOf("FIELD DICTIONARY") > -1 && ctx58.indexOf("drift-off (sol)") > -1, "the dictionary is authoritative in every context");
+ok(ctx58.indexOf("FIELD DICTIONARY") > -1 && ctx58.indexOf("drift-off, minutes to fall asleep") > -1, "the dictionary is authoritative in every context");
 ok(ctx58.indexOf("SLEEP GATE RIGHT NOW") > -1, "the live gate state ships with the context — no re-derived streaks");
 ok(ctx58.indexOf("debt days +1") === -1 && ctx58.indexOf("only that final set pulls to 1") > -1, "the law sheet teaches the current debt rule");
 
-console.log(`\nFINAL56: ${pass} passed, ${fail} failed`);
+// (interim)
+
+
+// v3.59 — the pipe audit: nothing the athlete records can vanish in translation
+const { agentToolExec: ate59, askContext: ac59, LEDGER_DICT: LD59, SEED: TP59 } = __test;
+let pa = clone(TP59);
+const pIso = isoL(Date.now() - 864e5);
+pa.sessionLog[pIso] = { entries: [{ id: "press", reps: [8, 8, 7], rir: 2, w: 245 }], skipped: [{ id: "pronated" }], note: "ran short on time", niggles: ["left knee"], dips: 3, at: 1 };
+const sRow = ate59(pa, "get_range", { kind: "sessions", from: pIso, to: pIso }, []);
+ok(sRow.indexOf("SKIPPED: pronated") > -1 && sRow.indexOf('note: "ran short on time"') > -1 && sRow.indexOf("niggles: left knee") > -1 && sRow.indexOf("dips 3") > -1, "session rows carry skips, prose, niggles, dips — the whole record");
+pa.feed.unshift({ d: pIso, t: "RECORD AMENDED — pronated marked skipped", how: "honesty over history" });
+const fRow = ate59(pa, "get_range", { kind: "feed", from: pIso, to: pIso }, []);
+ok(fRow.indexOf("RECORD AMENDED") > -1, "the feed is pullable — amendments reach the agent");
+ok(LD59.indexOf("drift-off") > -1 && LD59.indexOf("phantom reps") > -1, "one dictionary, complete");
+const ctx59 = ac59(pa);
+ok(ctx59.indexOf("EVENTS: ") > -1 && ctx59.indexOf("ACTIVE TRIALS: ") > -1, "events and trials ride every context");
+
+console.log(`\nFINAL57: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

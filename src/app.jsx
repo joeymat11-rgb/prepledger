@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.58.1";
+const APP_V = "3.59.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2116,6 +2116,8 @@ export const __test = { targetsFor, genSession, completeSession, runAdaptive, bf
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
+const LEDGER_DICT = "FIELD DICTIONARY (authoritative — never guess a meaning): NIGHTS: h = hours asleep · bed/wake = clock times as logged (they vary; that is expected) · sol = drift-off, minutes to fall asleep · tags: woke = woke mid-night, caff = late caffeine. DAYS: cal/pro/steps as logged · dayCtx est = athlete-declared estimate day (rough numbers, lower evidentiary weight) · ⌁flags = day weather (event window / seal water / post-refeed / estimate). SESSIONS: entries = performed lifts only, w = load, reps per set, rir = reps in reserve on the opener · skipped = lifts deliberately not done (structured truth, zero phantom reps) · note = athlete prose, read it · niggles = flagged aches · dips = incidental dip count. READS: raw morning scale, sealed = quarantined event water, judge only via damped trend. PULSE bpm / TEMP °F = 60s wrist count and oral reading at wake. FEED: the app's event log — amendments and corrections here OVERRIDE older raw rows. RECORDS: pending = awaiting the 3-night ≥7.5h clean streak. LAWS: single terminal failure set per exercise; on debt only that final set pulls to 1.";
+
 async function ghSync(state) {
   let tok = null;
   try { tok = localStorage.getItem(TOKEN_KEY); } catch (e) {}
@@ -2124,7 +2126,7 @@ async function ghSync(state) {
   const hdr = { Authorization: "Bearer " + tok, Accept: "application/vnd.github+json" };
   let sha = null;
   try { const g = await fetch(url, { headers: hdr }); if (g.ok) sha = (await g.json()).sha; } catch (e) {}
-  const body = { message: "ledger auto-sync " + isoOf(todayStart()) + " [skip ci]", content: btoa(unescape(encodeURIComponent(JSON.stringify(state)))), ...(sha ? { sha } : {}) };
+  const body = { message: "ledger auto-sync " + isoOf(todayStart()) + " [skip ci]", content: btoa(unescape(encodeURIComponent(JSON.stringify({ ...state, _dictionary: LEDGER_DICT })))), ...(sha ? { sha } : {}) };
   try {
     const put = await fetch(url, { method: "PUT", headers: { ...hdr, "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (put.ok) { try { snapshotMaybe(state, tok); } catch (e) {} }
@@ -2271,15 +2273,17 @@ const ANTH_KEY = "prep-ledger-anthkey";
 function askContext(s) {
   const days = Object.entries(s.dailyLogs).sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(-14)
     .map(([d, v]) => { const w2 = dayWeather(s, d); return `${d}: cal ${v.cal ?? "—"} · pro ${v.pro ?? "—"} · steps ${v.steps ?? "—"}${w2.flags.length ? "  ⌁[" + w2.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n");
-  const sess2 = Object.keys(s.sessionLog).sort().slice(-6).map((d) => `${d}: ` + (s.sessionLog[d].entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ")).join("\n");
+  const sess2 = Object.keys(s.sessionLog).sort().slice(-6).map((d) => { const sl2 = s.sessionLog[d]; const parts = [(sl2.entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ") || "no lifts"]; if ((sl2.skipped || []).length) parts.push("SKIPPED: " + sl2.skipped.map((k) => k.id).join(", ")); if (sl2.note) parts.push(`note: "${sl2.note.slice(0, 120)}"`); return `${d}: ` + parts.join(" · "); }).join("\n");
   const nights2 = s.sleep.nights.slice(-14).map((n) => `${n.d}: ${n.h}h · bed ${n.bed || "—"} → wake ${n.wake || "—"} · drift-off ${n.sol ?? "?"}m${(n.tags || []).length ? " · " + n.tags.join("/") : ""}`).join("\n");
   const laws = "DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor 1.0–1.4 lb/wk (1.9+ = too fast); calorie floor 1,700; protein 175 daily; records/weight-increases only become official on a completed good-sleep streak (3 nights ≥7.5h); one structural change per session; effort tapers to a single terminal failure set per exercise (RIR 2→1→…→0); on debt days only that final set pulls to 1, everything earlier runs as written; the scale seal quarantines event water; every change is a proposal — the athlete consents, the coach holds structural authority.";
+  const evs = (s.events || []).map((e) => `${e.d}: ${e.t}${e.estimated ? " (est-declared)" : ""}`).join(" · ") || "none";
+  const trls = (s.trials || []).map((t3) => { const tp = trialTpl(t3); return tp ? `${tp.t} (started ${t3.started})` : ""; }).filter(Boolean).join(" · ") || "none";
   const gate2 = sleepInfo(s);
-  const dict = "FIELD DICTIONARY (authoritative — never guess a meaning): h = hours asleep · bed/wake = clock times as logged · drift-off (sol) = minutes to fall asleep · tag woke = woke mid-night · tag caff = late caffeine · pending = a record waiting on the 3-night clean streak · ⌁flags = day weather. SLEEP GATE RIGHT NOW (do not re-derive): clean run " + gate2.run + "/" + gate2.need + " — records currently " + (gate2.clean ? "OFFICIAL" : "PENDING") + ".";
+  const dict = LEDGER_DICT + " SLEEP GATE RIGHT NOW (do not re-derive): clean run " + gate2.run + "/" + gate2.need + " — records currently " + (gate2.clean ? "OFFICIAL" : "PENDING") + ". EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
   return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== LAST 6 SESSIONS ===\n${sess2}`;
 }
 const AGENT_TOOLS = [
-  { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
+  { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads|feed. Feed = the app event log; amendments there override older raw rows. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
   { name: "read_instruments", description: "All current lab instrument verdicts, compiled plain.", input_schema: { type: "object", properties: {} } },
   { name: "run_whatif", description: "Forward-model a lever change. Any of: steps, cal, sleep, refeed.", input_schema: { type: "object", properties: { steps: { type: "number" }, cal: { type: "number" }, sleep: { type: "number" }, refeed: { type: "number" } } } },
   { name: "stage_proposal", description: "Stage a proposal for the athlete's one-tap consent. NEVER changes anything itself. kind: trial|note|coach. For trials: either tplId (refeedsize|caffcut|lightsshift|steptarget) OR a custom design.", input_schema: { type: "object", properties: { kind: { type: "string" }, title: { type: "string" }, body: { type: "string" }, tplId: { type: "string" }, custom: { type: "object", properties: { t: { type: "string" }, q: { type: "string" }, arms: { type: "array", items: { type: "string" } }, blockDays: { type: "number" }, cycles: { type: "number" }, metric: { type: "string", enum: ["session_reps", "sleep_h", "trend_delta"] } }, required: ["t", "q", "arms", "blockDays", "cycles", "metric"] } }, required: ["kind", "title", "body"] } },
@@ -2290,10 +2294,11 @@ function agentToolExec(s, name, input, staged) {
       const inR = (d) => d >= input.from && d <= input.to;
       if (input.kind === "days") return Object.entries(s.dailyLogs).filter(([d]) => inR(d)).map(([d, v]) => { const w3 = dayWeather(s, d); return `${d}: cal ${v.cal ?? "—"} pro ${v.pro ?? "—"} steps ${v.steps ?? "—"}${w3.flags.length ? "  ⌁[" + w3.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n") || "no rows";
       if (input.kind === "nights") return s.sleep.nights.filter((n) => inR(n.d)).map((n) => `${n.d}: ${n.h}h · bed ${n.bed || "—"} → wake ${n.wake || "—"} · drift-off ${n.sol ?? "?"}m${(n.tags || []).length ? " · " + n.tags.join("/") : ""}`).join("\n") || "no rows";
-      if (input.kind === "sessions") return Object.keys(s.sessionLog).filter(inR).map((d) => `${d}: ` + (s.sessionLog[d].entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ")).join("\n") || "no rows";
+      if (input.kind === "sessions") return Object.keys(s.sessionLog).filter(inR).map((d) => { const sl2 = s.sessionLog[d]; const parts = [(sl2.entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ") || "no lifts"]; if ((sl2.skipped || []).length) parts.push("SKIPPED: " + sl2.skipped.map((k) => k.id).join(", ")); if (sl2.dips) parts.push(`dips ${sl2.dips}`); if ((sl2.niggles || []).length) parts.push("niggles: " + sl2.niggles.join(", ")); if (sl2.note) parts.push(`note: "${sl2.note.slice(0, 140)}"`); return `${d}: ` + parts.join(" · "); }).join("\n") || "no rows";
       if (input.kind === "pulse") return (s.pulse || []).filter((x) => inR(x.d)).map((x) => `${x.d}: ${x.bpm}`).join("\n") || "no rows";
       if (input.kind === "temp") return (s.temp || []).filter((x) => inR(x.d)).map((x) => `${x.d}: ${x.f}°F`).join("\n") || "no rows";
-      if (input.kind === "reads") return s.reads.filter((r) => inR(r.d)).map((r) => `${r.d}: ${r.w}${r.sealed ? " (sealed)" : ""}`).join("\n") || "no rows";
+      if (input.kind === "reads") return s.reads.filter((r) => inR(r.d)).map((r) => { const w4 = dayWeather(s, r.d); return `${r.d}: ${r.w}${r.sealed ? " (sealed — event water, trend only)" : ""}${w4.flags.length ? "  ⌁[" + w4.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n") || "no rows";
+      if (input.kind === "feed") return (s.feed || []).slice(0, 25).map((f) => `${f.d}: ${f.t}${f.how ? " — " + f.how.slice(0, 100) : ""}`).join("\n") || "no rows";
       if (input.kind === "crash") { try { return localStorage.getItem("prep-ledger-crash") || "no crash on file"; } catch (e) { return "no crash on file"; } }
       return "unknown kind";
     }
@@ -2641,6 +2646,7 @@ const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(
 __test.nextTrainingISO = nextTrainingISO;
 __test.INS_MAP = INS_MAP;
 __test.liveBooks = liveBooks;
+__test.LEDGER_DICT = LEDGER_DICT;
 
 /* ---------- atoms ---------- */
 const Eyebrow = ({ children, c = T.dim }) => (
