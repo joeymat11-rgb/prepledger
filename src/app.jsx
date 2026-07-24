@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.68.0";
+const APP_V = "3.69.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,7 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 26;
+  SEED.v = 27;
   SEED.dayCtx = {};
   SEED.agentProposals = [];
   SEED.temp = [];
@@ -759,7 +759,7 @@ function labAnalytics(s) {
     const line = mv.slice().sort((a, b) => (a.zone === "UNDER" ? -1 : b.zone === "UNDER" ? 1 : a.n7 - b.n7)).map((m) => `${m.mg} ${m.n7}${m.zone === "IN-BAND" ? " ✓" : m.zone === "UNDER" ? " ▼▼" : m.zone === "LOW" ? " ▼" : m.zone === "OVER" ? " ▲▲" : " ▲"}`).join(" · ");
     out.push({ id: "volumeledger", t: "THE VOLUME LEDGER — WEEKLY SETS PER MUSCLE", status: mv.length ? "LIVE" : "ARMED", prog: { n: mv.length, need: 1, label: "muscle groups with logged sets" },
       tag: "The biggest dial in hypertrophy, counted from your actual logs.",
-      deep: "Weekly hard sets per muscle is the strongest known volume dial. Counting here uses the half-credit convention: direct sets count 1, and heavy secondary work lends half — pressing lends 0.5 to triceps and delts, rows and pulldowns lend 0.5 to biceps, curls lend 0.5 to forearms. Counting conventions genuinely differ across the literature; half-credit is the defensible middle — direct-only starves muscles that live off compounds, full-credit double-books the same set twice. The bands are deficit-calibrated: " + VOL_BANDS.floor + " is the retention floor (below it for two straight weeks and the ledger proposes +1 as cheap insurance), " + VOL_BANDS.lo + "–" + VOL_BANDS.hi + " is the working zone, past " + VOL_BANDS.ceil + " is caution — recoverable volume compresses in a cut, and sets you cannot recover from are pure fatigue. Every proposal cross-references the muscle's lift velocities, your sleep gate, and the alarm before it fires; changes go one set at a time through your consent inbox, and each muscle rests two weeks between moves so the change has time to speak. Adds go to the muscle's strongest mover, trims come off its weakest.",
+      deep: "Weekly hard sets per muscle is the strongest known volume dial. Counting here uses the half-credit convention: direct sets count 1, and heavy secondary work lends half — pressing lends 0.5 to triceps and delts, rows and pulldowns lend 0.5 to biceps, curls lend 0.5 to forearms. Counting conventions genuinely differ across the literature; half-credit is the defensible middle — direct-only starves muscles that live off compounds, full-credit double-books the same set twice. The bands are deficit-calibrated: " + VOL_BANDS.floor + " is the retention floor (below it for two straight weeks and the ledger proposes +1 as cheap insurance), " + VOL_BANDS.lo + "–" + VOL_BANDS.hi + " is the working zone, past " + VOL_BANDS.ceil + " is caution — recoverable volume compresses in a cut, and sets you cannot recover from are pure fatigue. THE TILT: this house presumes volume useful until your own bar speed says otherwise — adds fire on lighter evidence, while trims demand two confirmed weeks past the ceiling or slipping bars on clean sleep. Every proposal also cross-references the muscle's lift velocities, your sleep gate, and the alarm before it fires; changes go one set at a time through your consent inbox, and each muscle rests two weeks between moves so the change has time to speak. Adds go to the muscle's strongest mover, trims come off its weakest.",
       forYou: mv.length ? `This week: ${line}. ✓ in the working zone · ▼ light · ▼▼ under the retention floor · ▲ high · ▲▲ past the deficit ceiling. Proposals arrive in your inbox only when the signals agree.` : "Log a session and the ledger opens.",
       lines: [] });
   })();
@@ -1956,21 +1956,28 @@ function muscleVolume(s) {
     return { mg, n7: fmtN(n7), p7: fmtN(p7), zone, lifts, vels, slipping, gaining };
   }).filter((m) => m.n7 > 0 || m.p7 > 0);
 }
-function sweepVolume(s) {
+function sweepVolume(s, dow7 = new Date().getDay()) {
   const tISO7 = isoOf(todayStart());
+  const firstS = Object.keys(s.sessionLog).sort()[0];
+  if (!firstS || (mk(tISO7) - mk(firstS)) / DAY < 14) return null;
+  if (![0, 1].includes(dow7)) return null;
   const slp7 = sleepInfo(s);
   let ns = null;
+  const cands = [];
   muscleVolume(s).forEach((m) => {
     const recent = (s.agentProposals || []).some((ap) => ap.kind === "volume" && ap.mg === m.mg) || (s.feed || []).slice(0, 80).some((f) => f.t && f.t.indexOf("VOLUME ") === 0 && f.t.indexOf("— " + m.mg.toUpperCase()) > -1 && (mk(tISO7) - mk(f.d)) / DAY < 14);
     if (recent) return;
     let dir = 0, why = "";
     if (m.zone === "UNDER" && m.p7 < VOL_BANDS.floor) { dir = +1; why = `${m.mg} has run under the retention floor (${m.n7} sets this week, ${m.p7} last week — floor is ${VOL_BANDS.floor}). One more weekly set is cheap insurance for keeping this muscle through the cut.`; }
-    else if (m.zone === "OVER" || (m.zone === "HIGH" && m.slipping >= 2)) { dir = -1; why = m.zone === "OVER" ? `${m.mg} is past the deficit ceiling (${m.n7} sets — caution starts at ${VOL_BANDS.ceil}). In a cut, sets past what you can recover from are pure fatigue.` : `${m.mg} sits high (${m.n7} sets) and ${m.slipping} of its lifts are slipping — the classic sign of more volume than this deficit can pay for. Trimming one set usually turns the trend around.`; }
+    else if ((m.zone === "OVER" && m.p7 > VOL_BANDS.ceil) || (m.zone === "HIGH" && m.slipping >= 2 && slp7.clean)) { dir = -1; why = m.zone === "OVER" ? `${m.mg} has run past the deficit ceiling two weeks straight (${m.n7} now, ${m.p7} last — caution starts at ${VOL_BANDS.ceil}). This house tilts toward stimulus, but two confirmed weeks over the line is the data speaking.` : `${m.mg} sits high (${m.n7} sets) and ${m.slipping} of its lifts are slipping on clean sleep — that is your own bar speed saying this specific volume is costing more than it buys.`; }
     else if (m.zone === "IN-BAND" && m.n7 <= (VOL_BANDS.lo + VOL_BANDS.hi) / 2 && m.gaining >= 1 && m.slipping === 0 && slp7.clean) { dir = +1; why = `${m.mg} is mid-band (${m.n7} sets), every lift is holding or gaining, and sleep is clean — the signals say there is headroom. One added set is the smallest honest experiment.`; }
     if (!dir) return;
     const pool = m.vels.length ? m.vels : m.lifts.map((x) => ({ id: x.id, n: x.n, v: 0 }));
     const pick = dir > 0 ? pool.slice().sort((a, b) => (b.v ?? 0) - (a.v ?? 0))[0] : pool.slice().sort((a, b) => (a.v ?? 0) - (b.v ?? 0))[0];
     if (!pick) return;
+    cands.push({ m, dir, why, pick, sev: dir > 0 ? VOL_BANDS.floor - m.n7 : m.n7 - VOL_BANDS.hi });
+  });
+  cands.sort((a, b) => b.sev - a.sev).slice(0, 2).forEach(({ m, dir, why, pick }) => {
     ns = ns || JSON.parse(JSON.stringify(s));
     ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + m.mg + Date.now(), kind: "volume", mg: m.mg, exId: pick.id, dir, title: `VOLUME ${dir > 0 ? "+1" : "−1"} — ${m.mg.toUpperCase()} via ${pick.n}`, body: why + ` ${dir > 0 ? "Adds one set to " + pick.n + " (its strongest mover). The new set arrives as the final set — the effort ladder re-keys itself: it becomes the all-out set, the old final pulls back to 1 in reserve, and its rep target seeds one under your current last set." : "Removes the final set from " + pick.n + " (its weakest mover) — the effort ladder re-keys to the shorter shape automatically."} Two weeks of data before the ledger revisits this muscle.`, at: tISO7 }];
   });
@@ -2151,6 +2158,12 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV27(s) {
+  const had = (s.agentProposals || []).some((ap) => ap.kind === "volume");
+  s.agentProposals = (s.agentProposals || []).filter((ap) => ap.kind !== "volume");
+  if (had) { s.feed = s.feed || []; s.feed.unshift({ d: isoOf(todayStart()), t: "VOLUME PROPOSALS RECALLED", how: "cold-start misfire — the ledger compared your first logged week against a week before this app existed. It now waits for 14 full days of your logs and speaks on Sundays, two proposals at most." }); }
+  s.v = 27; return s;
+}
 function patchV26(s) {
   (s.exercises || []).forEach((ex) => {
     if (ex.id === "hack") return;
@@ -2231,8 +2244,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 26) return old;
-  if (old && old.v >= 3 && old.v <= 25) return patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))))))))))))));
+  if (old && old.v === 27) return old;
+  if (old && old.v >= 3 && old.v <= 26) return patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -2258,7 +2271,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))))))))))))));
+  return patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))))))))))))))));
 }
 
 const GLOSSARY = {
@@ -3141,7 +3154,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                 {ap.kind === "trial" && (ap.custom || (ap.tplId && TRIAL_TPL[ap.tplId] && !(s.trials || []).some((t) => t.tplId === ap.tplId))) && (
                   <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const rec = ap.custom ? { custom: ap.custom, started: tISO } : { tplId: ap.tplId, started: tISO }; ns.trials = [...(ns.trials || []), rec]; ns.feed.unshift({ d: tISO, t: "TRIAL STARTED — " + (ap.custom ? ap.custom.t : TRIAL_TPL[ap.tplId].t), how: ap.custom ? "designed by your analyst for a pattern in YOUR data, consented by you" : "proposed by your analyst, consented by you" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Start trial — I consent</Btn>
                 )}
-                <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Dismiss</Btn>
+                <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); if (ap.kind === "volume" && ap.mg) ns.feed.unshift({ d: tISO, t: `VOLUME PASSED — ${ap.mg.toUpperCase()}`, how: "athlete dismissed — the ledger waits two weeks before raising this muscle again" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Dismiss</Btn>
               </div>
             </div>
           ))}

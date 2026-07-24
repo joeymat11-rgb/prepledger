@@ -1083,14 +1083,15 @@ if (fail) process.exit(1);
 const { muscleVolume: mv66, sweepVolume: sv66, SEED: TJ66 } = __test;
 let vl = clone(TJ66);
 for (let k = 3; k >= 1; k--) { const d = isoL(Date.now() - k * 864e5); vl.sleep.nights = vl.sleep.nights.filter((n) => n.d !== k); vl.sleep.nights.push({ d, h: 7.8, bed: "22:30", wake: "06:30" }); }
-const d1v = isoL(Date.now() - 2 * 864e5), d2x = isoL(Date.now() - 9 * 864e5);
+const d1v = isoL(Date.now() - 2 * 864e5), d2x = isoL(Date.now() - 9 * 864e5), d3x = isoL(Date.now() - 16 * 864e5);
 vl.sessionLog[d1v] = { entries: [{ id: "ham", reps: [10, 10], rir: 2, w: 120 }], at: 1 };
 vl.sessionLog[d2x] = { entries: [{ id: "ham", reps: [10, 10], rir: 2, w: 120 }], at: 1 };
+vl.sessionLog[d3x] = { entries: [{ id: "ham", reps: [10, 10], rir: 2, w: 120 }], at: 1 };
 const hams = mv66(vl).find((m) => m.mg === "hams");
 ok(hams && hams.n7 === 2 && hams.zone === "UNDER", "sets counted per rolling week, judged against the retention floor: " + hams.n7 + " " + hams.zone);
-const swept66 = sv66(vl);
+const swept66 = sv66(vl, 0);
 ok(swept66 && swept66.agentProposals.some((ap) => ap.kind === "volume" && ap.mg === "hams" && ap.dir === 1), "two weeks under the floor files a +1 proposal to the inbox");
-ok(!sv66(swept66), "one proposal per muscle — the throttle holds");
+ok(!sv66(swept66, 0), "one proposal per muscle — the throttle holds");
 const inb = swept66.agentProposals.find((ap) => ap.kind === "volume");
 ok(inb.body.indexOf("retention floor") > -1 || inb.body.indexOf("insurance") > -1, "the proposal explains itself in plain words: " + inb.body.slice(0, 50));
 
@@ -1113,4 +1114,24 @@ const after68 = rp68(lad, tr68, { clean: true, run: 3, need: 3 }).plan.join(",")
 ok(before68 === "2,1,0" && after68 === "2,1,1,0", "a consented +1 re-keys the ladder: new set takes the 0, old final pulls to 1: " + before68 + " → " + after68);
 
 console.log(`\nFINAL66: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+// v3.69 — the ledger learns patience: maturity, cadence, restraint, the tilt
+const { sweepVolume: sv69, migrate: mg69, SEED: TL69 } = __test;
+let yg = clone(TL69);
+const yd = isoL(Date.now() - 2 * 864e5);
+yg.sessionLog = { [yd]: { entries: [{ id: "ham", reps: [10, 10], rir: 2, w: 120 }], at: 1 } };
+ok(sv69(yg, 0) === null, "young ledgers stay silent — 14 days of logs before a single volume word");
+let mt = clone(TL69);
+for (const k of [2, 5, 9, 12, 16]) mt.sessionLog[isoL(Date.now() - k * 864e5)] = { entries: [{ id: "ham", reps: [10, 10], rir: 2, w: 120 }], at: 1 };
+ok(sv69(mt, 3) === null, "midweek says nothing — volume is a Sunday conversation");
+const sun69 = sv69(mt, 0);
+ok(sun69 && sun69.agentProposals.filter((ap) => ap.kind === "volume").length <= 2, "at most two proposals per sweep — worst first, the rest wait");
+const oldV26a = clone(TL69); oldV26a.v = 26;
+oldV26a.agentProposals = [{ id: "v1", kind: "volume", mg: "chest", dir: 1 }, { id: "t1", kind: "trial", title: "keep me" }];
+const m69 = mg69(oldV26a);
+ok(!m69.agentProposals.some((ap) => ap.kind === "volume") && m69.agentProposals.some((ap) => ap.kind === "trial"), "the misfires are recalled; everything else stays");
+ok(m69.feed.some((f) => f.t === "VOLUME PROPOSALS RECALLED"), "the recall is explained on the record");
+
+console.log(`\nFINAL67: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
