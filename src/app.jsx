@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.72.2";
+const APP_V = "3.73.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -953,6 +953,8 @@ function medianSOL(s) {
 }
 /* lights-out derived from ASLEEP target + measured drift-off time */
 function lightsOutT(s) {
+  const ov = ((s.dayCtx || {})[isoOf(todayStart())] || {}).lightsOut;
+  if (ov) { const [oh, om] = ov.split(":").map(Number); return { t: ov, mins: oh * 60 + om, target: (s.sleep.anchor || {}).asleepTarget || 8, sol: medianSOL(s), override: true }; }
   const a = s.sleep.anchor || { wake: "06:45" };
   const target = a.asleepTarget || 8;
   const sol = medianSOL(s);
@@ -1829,10 +1831,10 @@ function dayProtocol(s, slp) {
   /* 5 · repair last night, tonight */
   if (lastNight) {
     if (lastNight.h < (s.sleep.cleanH || 7.5)) steps.push({ a: `Lights out ~${(() => { let m = lo.mins - 20; if (m < 0) m += 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; })()} — 20 early`, why: `last night ran ${lastNight.h} h — one modestly early night repays most of it; wake stays ~${(s.sleep.anchor || {}).wake || "06:45"} (aim near it — the morning log takes whatever really happened). If you must nap: ≤25 min, before 3 pm` });
-    else if (lastNight.sol != null && lastNight.sol >= 30) steps.push({ a: `Wind-down 30 min before ${lo.t}`, why: `drift-off ran ${lastNight.sol} min last night — screens off, lights low; the drift is usually paying for the evening's light` });
+    else if (lastNight.sol != null && lastNight.sol >= 30) steps.push({ a: `Wind-down 30 min before ${fmt12(lo.t)}`, why: `drift-off ran ${lastNight.sol} min last night — screens off, lights low; the drift is usually paying for the evening's light` });
     else if ((lastNight.awakeMin || 0) >= 30) steps.push({ a: "Tonight: cooler room, no fluids after ~8:30", why: `you were awake ${lastNight.awakeMin} min mid-night — the two cheapest fixes first` });
-    else steps.push({ a: `Lights out ~${lo.t}`, why: `a bearing, not a test — wake ~${(s.sleep.anchor || {}).wake || "06:45"} · ${lo.target} h asleep + ~${lo.sol} min drift-off${(() => { const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length; return melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off` : ""; })()}` });
-  } else steps.push({ a: `Lights out ~${lo.t}`, why: `a bearing, not a test — wake ~${(s.sleep.anchor || {}).wake || "06:45"} · ${lo.target} h asleep + ~${lo.sol} min drift-off` });
+    else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — wake ~${fmt12((s.sleep.anchor || {}).wake || "06:45")} · ${lo.target} h asleep + ~${lo.sol} min drift-off${(() => { const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length; return melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off` : ""; })()}` });
+  } else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — wake ~${fmt12((s.sleep.anchor || {}).wake || "06:45")} · ${lo.target} h asleep + ~${lo.sol} min drift-off` });
   { const tc3 = todayCaff(s); if (tc3 && tc3.mg > 0) { const at3 = caffAt(tc3.mg, tc3.atH, lo.mins / 60); if (at3 > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at3} mg still aboard at lights-out${tc3.logged ? "" : " (typical dose — log today's real one in SLEEP)"} — above ~50 mg deep sleep measurably thins` }); } }
 
   /* 6 · floor */
@@ -2902,6 +2904,7 @@ __test.filingsFor = filingsFor;
 __test.bodyAlarm = bodyAlarm;
 __test.todayCaff = todayCaff;
 __test.fmt12 = fmt12;
+__test.lightsOutT = lightsOutT;
 __test.caffAt = caffAt;
 __test.CONSTITUTION = CONSTITUTION;
 
@@ -3389,8 +3392,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           return (
             <Card style={{ padding: "9px 14px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                <span style={{ fontFamily: mono, fontSize: 10, color: T.jade }}>✓ caffeine · {e0.mg === 0 ? "none today" : `${e0.mg} mg @ ${fmt12(e0.at)}`}{e0.mg > 0 ? ` · ~${tl0} mg at ${lo0.t}` : ""}</span>
+                <span style={{ fontFamily: mono, fontSize: 10, color: T.jade }}>✓ caffeine · {e0.mg === 0 ? "none today" : `${e0.mg} mg @ ${fmt12(e0.at)}`}{e0.mg > 0 ? ` · ~${tl0} mg at ${fmt12(lo0.t)}` : ""}</span>
                 <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = (ns.caffLog || []).filter((x) => x.d !== tISO); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, cursor: "pointer" }}>undo</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
+                <span style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>tonight's lights-out:</span>
+                <input type="time" value={lo0.t} onChange={(e5) => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; ns.dayCtx[tISO] = { ...(ns.dayCtx[tISO] || {}), lightsOut: e5.target.value }; setS(ns); save(ns); }} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 11, padding: "3px 6px", outline: "none" }} />
+                <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>{lo0.override ? "set by you — tail math follows it" : "default bearing — tap to set tonight's real one"}</span>
               </div>
             </Card>
           );
@@ -3408,6 +3416,40 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </Card>
         );
       })()}
+
+{(() => {
+        const todayP = (s.pulse || []).find((x) => x.d === tISO);
+        return (
+          <Card style={{ padding: 11 }}>
+            {todayP ? (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontFamily: mono, fontSize: 11, color: T.jade }}>✓ morning pulse {todayP.bpm} logged</span>
+                <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.pulse = ns.pulse.filter((x) => x.d !== tISO); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, cursor: "pointer" }}>undo</span>
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, letterSpacing: "0.08em" }}>MORNING PULSE<div style={{ fontSize: 8 }}>optional · 5 s · feeds the lab</div></div>
+                <Stepper v={pulseIn} set={setPulseIn} step={1} min={35} />
+                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.pulse = [...(ns.pulse || []), { d: tISO, bpm: pulseIn }]; setS(ns); save(ns); }}>Log</Btn>
+              </div>
+            )}
+            {(() => { const todayT = (s.temp || []).find((x) => x.d === tISO); return todayT ? (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 8 }}>
+                <span style={{ fontFamily: mono, fontSize: 11, color: T.jade }}>✓ temperature {todayT.f}°F logged</span>
+                <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.temp = ns.temp.filter((x) => x.d !== tISO); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, cursor: "pointer" }}>undo</span>
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 8 }}>
+                <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, letterSpacing: "0.08em" }}>TEMPERATURE °F<div style={{ fontSize: 8 }}>optional · 15 s · the furnace</div></div>
+                <Stepper v={tempIn} set={setTempIn} step={0.1} min={94} />
+                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.temp = [...(ns.temp || []), { d: tISO, f: +tempIn.toFixed(1) }]; setS(ns); save(ns); }}>Log</Btn>
+              </div>
+            ); })()}
+          </Card>
+        );
+      })()}
+
+
 
       {(() => {
         const lastWaist = s.waist[s.waist.length - 1];
@@ -3443,41 +3485,6 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </>
         );
       })()}
-
-
-      {(() => {
-        const todayP = (s.pulse || []).find((x) => x.d === tISO);
-        return (
-          <Card style={{ padding: 11 }}>
-            {todayP ? (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontFamily: mono, fontSize: 11, color: T.jade }}>✓ morning pulse {todayP.bpm} logged</span>
-                <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.pulse = ns.pulse.filter((x) => x.d !== tISO); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, cursor: "pointer" }}>undo</span>
-              </div>
-            ) : (
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, letterSpacing: "0.08em" }}>MORNING PULSE<div style={{ fontSize: 8 }}>optional · 5 s · feeds the lab</div></div>
-                <Stepper v={pulseIn} set={setPulseIn} step={1} min={35} />
-                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.pulse = [...(ns.pulse || []), { d: tISO, bpm: pulseIn }]; setS(ns); save(ns); }}>Log</Btn>
-              </div>
-            )}
-            {(() => { const todayT = (s.temp || []).find((x) => x.d === tISO); return todayT ? (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 8 }}>
-                <span style={{ fontFamily: mono, fontSize: 11, color: T.jade }}>✓ temperature {todayT.f}°F logged</span>
-                <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.temp = ns.temp.filter((x) => x.d !== tISO); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, cursor: "pointer" }}>undo</span>
-              </div>
-            ) : (
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 8 }}>
-                <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, letterSpacing: "0.08em" }}>TEMPERATURE °F<div style={{ fontSize: 8 }}>optional · 15 s · the furnace</div></div>
-                <Stepper v={tempIn} set={setTempIn} step={0.1} min={94} />
-                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.temp = [...(ns.temp || []), { d: tISO, f: +tempIn.toFixed(1) }]; setS(ns); save(ns); }}>Log</Btn>
-              </div>
-            ); })()}
-          </Card>
-        );
-      })()}
-
-
 
       {ev && (
         <Card accent={T.chalk}>
@@ -4309,8 +4316,8 @@ function SleepTab({ s, setS, save, slp }) {
           return (
             <>
               <div style={{ display: "flex", gap: 18, marginTop: 8 }}>
-                <div><Num size={22}>{a.wake}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>WAKE · 7 DAYS/WK</div></div>
-                <div><Num size={22} c={T.jade}>{lo.t}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>LIGHTS OUT = {lo.target} H ASLEEP + ~{lo.sol} M DRIFT{measured ? " (YOURS, MEASURED)" : " (DEFAULT)"}</div></div>
+                <div><Num size={22}>{fmt12(a.wake)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>WAKE · 7 DAYS/WK</div></div>
+                <div><Num size={22} c={T.jade}>{fmt12(lo.t)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>{lo.override ? "TONIGHT — SET BY YOU ON NOW" : `LIGHTS OUT = ${lo.target} H ASLEEP + ~${lo.sol} M DRIFT${measured ? " (YOURS, MEASURED)" : " (DEFAULT)"}`}</div></div>
                 {until != null && hr >= 17 && <div><Num size={22} c={T.brass}>{Math.floor(until)}h {Math.round((until % 1) * 60)}m</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>UNTIL LIGHTS OUT</div></div>}
               </div>
               <More deep="Wake-time consistency is the strongest circadian lever, and lights-out is now derived from what actually matters: the ASLEEP target plus your real drift-off time. Every morning's 'asleep in' entry feeds a rolling median; once 5 nights are measured, the default 15 minutes is replaced by YOUR number and lights-out auto-shifts to protect actual sleep, not bed-shaped time. Slow drift-off nights literally move tomorrow's bedtime earlier."
@@ -4331,7 +4338,7 @@ function SleepTab({ s, setS, save, slp }) {
               <div style={{ marginTop: 8 }}>
                 <div style={{ display: "flex", gap: 18, alignItems: "baseline" }}>
                   <div><Num size={22}>{e9.mg}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG · LOGGED {e9.mg > 0 ? "AT " + fmt12(e9.at) : "— NONE TODAY"}</div></div>
-                  <div><Num size={22} c={tail9 > 50 ? T.brass : T.jade}>~{tail9}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG AT {lo9.t} · HALF-LIFE ~5 H</div></div>
+                  <div><Num size={22} c={tail9 > 50 ? T.brass : T.jade}>~{tail9}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>MG AT {fmt12(lo9.t)} · HALF-LIFE ~5 H</div></div>
                   <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = (ns.caffLog || []).filter((x) => x.d !== tISO9); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, cursor: "pointer", marginLeft: "auto" }}>undo</span>
                 </div>
                 <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 7, lineHeight: 1.5 }}>{tail9 > 50 ? "Above ~50 mg at lights-out, deep sleep measurably thins — tonight's drift-off is worth an honest note." : tail9 > 0 ? "Under the ~50 mg line — tonight should be largely clear of it." : "A zero-caffeine day is data too. Clean night, clean read."}</div>

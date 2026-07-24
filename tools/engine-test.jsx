@@ -1174,3 +1174,19 @@ ok(f72("—") === "—", "none-days pass through untouched");
 
 console.log(`\nFINAL70: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+// v3.73 — tonight's lights-out is a settable bearing
+const { SEED: TO73 } = __test;
+const lo73 = __test.lightsOutT ? __test.lightsOutT : null;
+if (lo73) {
+  let bo = clone(TO73);
+  const base73 = lo73(bo);
+  bo.dayCtx = bo.dayCtx || {};
+  bo.dayCtx[isoL(Date.now())] = { lightsOut: "23:15" };
+  const ov73 = lo73(bo);
+  ok(ov73.t === "23:15" && ov73.mins === 23 * 60 + 15 && ov73.override === true, "a per-day lights-out overrides the bearing: " + ov73.t);
+  ok(base73.override !== true, "without a setting, the default bearing stands unlabeled");
+}
+
+console.log(`\nFINAL71: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
