@@ -191,7 +191,7 @@ function weekRollups() {
     const stepsA = rows.filter((r) => r.steps != null).map((r) => r.steps);
     const slps = rows.filter((r) => r.slp != null).map((r) => r.slp);
     return {
-      wk, rows,
+      wk, rows, days: rows.map((r) => r.d),
       range: `${fmtShort(rows[0].d)} – ${fmtShort(rows[rows.length - 1].d)}`,
       avgW: ws.length ? +avg(ws).toFixed(1) : null,
       avgCal: cals.length ? Math.round(avg(cals)) : null,
@@ -977,7 +977,7 @@ function liveRollups(s) {
     const startD = isoOf(new Date(mk(START).getTime() + (wk - 1) * 7 * DAY));
     const endRaw = new Date(mk(START).getTime() + ((wk - 1) * 7 + 6) * DAY);
     const endD = isoOf(endRaw > todayStart() ? todayStart() : endRaw);
-    return { wk, live: true, rows, range: `${fmtShort(startD)} – ${fmtShort(endD)}`,
+    return { wk, live: true, rows, days: rows.map((r) => r.d), range: `${fmtShort(startD)} – ${fmtShort(endD)}`,
       avgW: ws.length ? +avg(ws).toFixed(1) : null, avgCal: cals.length ? Math.round(avg(cals)) : null,
       avgPro: pros.length ? Math.round(avg(pros)) : null, proHit: pros.filter((x) => Math.abs(x - PROTEIN) <= 10).length, proN: pros.length,
       avgSteps: st.length ? +(avg(st) / 1000).toFixed(1) : null, avgSlp: sl.length ? +avg(sl).toFixed(1) : null, flags: 0 };
@@ -1302,7 +1302,7 @@ function labAnalytics2(s) {
   /* 20 · THE NATURAL-EXPERIMENT MINER */
   add(() => {
     const sess2 = Object.keys(s.sessionLog).sort();
-    const rows2 = sess2.map((d) => { const n = s.sleep.nights.find((x) => x.d === isoOf(new Date(mk(d).getTime() - DAY))); const dl2 = s.dailyLogs[isoOf(new Date(mk(d).getTime() - DAY))]; return { d, t: dayType(d), slp: n ? n.h : null, cal: dl2 ? dl2.cal : null, reps: ((s.sessionLog[d] || {}).entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0), postRefeed: dayType(isoOf(new Date(mk(d).getTime() - DAY))) === "REFEED" }; }).filter((r) => r.slp != null && r.cal != null && r.reps > 0);
+    const rows2 = sess2.map((d) => { const n = s.sleep.nights.find((x) => x.d === isoOf(new Date(mk(d).getTime() - DAY))); const dl2 = s.dailyLogs[isoOf(new Date(mk(d).getTime() - DAY))]; return { d, t: dayType(d), slp: n ? n.h : null, cal: dl2 ? dl2.cal : null, reps: ((s.sessionLog[d] || {}).entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0), postRefeed: dayType(isoOf(new Date(mk(d).getTime() - DAY))) === "REFEED" }; }).filter((r) => r.slp != null && r.cal != null && r.reps > 0 && !dayWeather(s, r.d).hard && !dayWeather(s, isoOf(new Date(mk(r.d).getTime() - DAY))).hard);
     const pairs2 = [];
     for (let i = 0; i < rows2.length; i++) for (let j = i + 1; j < rows2.length; j++) {
       const a2 = rows2[i], b2 = rows2[j];
@@ -2065,10 +2065,10 @@ function dayWeather(s, iso) {
   const flags = [];
   const manual = (s.dayCtx || {})[iso];
   if (manual && manual.est) flags.push({ k: "estimate", why: manual.note || "declared estimate day" });
-  (s.events || []).forEach((e) => { const gap = (mk(iso) - mk(e.d)) / DAY; if (gap >= -1 && gap <= 2) flags.push({ k: "event", why: e.t || "event window" }); });
+  (s.events || []).forEach((e) => { const gap = (mk(iso) - mk(e.d)) / DAY; if (gap >= -1 && gap <= 2) flags.push({ k: "event", why: e.t || "event window", pre: gap < 0 }); });
   if (s.blackout && iso <= s.blackout.until && (mk(s.blackout.until) - mk(iso)) / DAY <= 9) flags.push({ k: "sealwater", why: "scale carries event water — sealed window" });
   if (dayType(isoOf(new Date(mk(iso).getTime() - DAY))) === "REFEED") flags.push({ k: "postrefeed", why: "morning after refeed — storage bump expected" });
-  return { flags, noisy: flags.some((f) => f.k === "estimate" || f.k === "event" || f.k === "sealwater"), hard: flags.some((f) => f.k === "estimate" || f.k === "event"), est: flags.some((f) => f.k === "estimate") };
+  return { flags, noisy: flags.some((f) => f.k === "estimate" || f.k === "event" || f.k === "sealwater"), hard: flags.some((f) => f.k === "estimate" || (f.k === "event" && !f.pre)), est: flags.some((f) => f.k === "estimate") };
 }
 function weekWeather(s, days) {
   const hits = days.filter((d) => dayWeather(s, d).noisy).length;
@@ -2179,7 +2179,7 @@ function askContext(s) {
   return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== LAST 6 SESSIONS ===\n${sess2}`;
 }
 const AGENT_TOOLS = [
-  { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
+  { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
   { name: "read_instruments", description: "All current lab instrument verdicts, compiled plain.", input_schema: { type: "object", properties: {} } },
   { name: "run_whatif", description: "Forward-model a lever change. Any of: steps, cal, sleep, refeed.", input_schema: { type: "object", properties: { steps: { type: "number" }, cal: { type: "number" }, sleep: { type: "number" }, refeed: { type: "number" } } } },
   { name: "stage_proposal", description: "Stage a proposal for the athlete's one-tap consent. NEVER changes anything itself. kind: trial|note|coach. For trials: either tplId (refeedsize|caffcut|lightsshift|steptarget) OR a custom design.", input_schema: { type: "object", properties: { kind: { type: "string" }, title: { type: "string" }, body: { type: "string" }, tplId: { type: "string" }, custom: { type: "object", properties: { t: { type: "string" }, q: { type: "string" }, arms: { type: "array", items: { type: "string" } }, blockDays: { type: "number" }, cycles: { type: "number" }, metric: { type: "string", enum: ["session_reps", "sleep_h", "trend_delta"] } }, required: ["t", "q", "arms", "blockDays", "cycles", "metric"] } }, required: ["kind", "title", "body"] } },
@@ -2188,7 +2188,7 @@ function agentToolExec(s, name, input, staged) {
   try {
     if (name === "get_range") {
       const inR = (d) => d >= input.from && d <= input.to;
-      if (input.kind === "days") return Object.entries(s.dailyLogs).filter(([d]) => inR(d)).map(([d, v]) => `${d}: cal ${v.cal ?? "—"} pro ${v.pro ?? "—"} steps ${v.steps ?? "—"}`).join("\n") || "no rows";
+      if (input.kind === "days") return Object.entries(s.dailyLogs).filter(([d]) => inR(d)).map(([d, v]) => { const w3 = dayWeather(s, d); return `${d}: cal ${v.cal ?? "—"} pro ${v.pro ?? "—"} steps ${v.steps ?? "—"}${w3.flags.length ? "  ⌁[" + w3.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n") || "no rows";
       if (input.kind === "nights") return s.sleep.nights.filter((n) => inR(n.d)).map((n) => `${n.d}: ${n.h}h sol${n.sol ?? "?"} ${(n.tags || []).join("/")}`).join("\n") || "no rows";
       if (input.kind === "sessions") return Object.keys(s.sessionLog).filter(inR).map((d) => `${d}: ` + (s.sessionLog[d].entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ")).join("\n") || "no rows";
       if (input.kind === "pulse") return (s.pulse || []).filter((x) => inR(x.d)).map((x) => `${x.d}: ${x.bpm}`).join("\n") || "no rows";

@@ -846,5 +846,22 @@ ok(dw53(wS, "2026-07-06").noisy === false, "an ordinary Monday stays clean weath
 const ctx53 = __test.askContext(wS);
 ok(ctx53.indexOf("DATA WEATHER LAW") > -1 && ctx53.indexOf("⌁[") > -1, "the agent's table carries the flags and the law");
 
+// (interim)
+
+// v3.53 — DATA WEATHER: every day knows its own quality; every consumer respects it
+const { dayWeather: dwB, weekWeather: wwB, migrate: mg53c, agentToolExec: ate53, liveRollups: lr53, SEED: TW } = __test;
+const oldV22a = clone(TW); oldV22a.v = 22; delete oldV22a.dayCtx;
+ok(mg53c(oldV22a).v >= 23 && typeof mg53c(oldV22a).dayCtx === "object", "phones patch to v23 with day-context");
+let wSB = clone(TW);
+wSB.dayCtx["2026-07-18"] = { est: true, note: "wedding #1" };
+ok(dwB(wSB, "2026-07-18").est && dwB(wSB, "2026-07-18").hard, "a declared estimate day flags est + hard");
+ok(dwB(wSB, "2026-07-26").flags.some((f) => f.k === "event"), "the day after the 7/25 wedding sits in the event window");
+ok(dwB(wSB, "2026-07-16").flags.some((f) => f.k === "postrefeed"), "the morning after Wednesday refeed carries its storage-bump flag");
+ok(wwB(wSB, ["2026-07-17", "2026-07-18", "2026-07-19", "2026-07-25"]).clean === false, "a week with 2+ noisy days is not clean");
+ok(wwB(wSB, ["2026-07-06", "2026-07-07", "2026-07-08"]).clean === true, "an ordinary week stays clean");
+const dayRow = ate53(wSB, "get_range", { kind: "days", from: "2026-07-18", to: "2026-07-18" }, []);
+ok(dayRow.indexOf("⌁[") > -1 && dayRow.indexOf("estimate") > -1, "the agent's own range pulls carry the weather: " + dayRow.slice(0, 46));
+ok((lr53(wSB)[0] || { days: [] }).days !== undefined || lr53(wSB).length === 0, "live rollups expose their day lists for week-pair weather checks");
+
 console.log(`\nFINAL50: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
