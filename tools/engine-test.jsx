@@ -938,3 +938,20 @@ ok(lb57(bk2).gaps.length >= 1 && lb57(bk2).complete === false, "real gaps get na
 
 console.log(`\nFINAL55: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+
+// v3.58.1 — the agent sees whole nights and never guesses vocabulary
+const { agentToolExec: ate58, askContext: ac58, SEED: TA58 } = __test;
+let ag58 = clone(TA58);
+const nIso = isoL(Date.now() - 864e5);
+ag58.sleep.nights = ag58.sleep.nights.filter(n => n.d !== nIso);
+ag58.sleep.nights.push({ d: nIso, h: 7.5, bed: "22:45", wake: "06:45", sol: 15, tags: ["woke"] });
+const row58 = ate58(ag58, "get_range", { kind: "nights", from: nIso, to: nIso }, []);
+ok(row58.indexOf("bed 22:45") > -1 && row58.indexOf("wake 06:45") > -1 && row58.indexOf("drift-off 15m") > -1, "night rows carry bed, wake, and drift-off in plain words: " + row58.slice(0, 60));
+const ctx58 = ac58(ag58);
+ok(ctx58.indexOf("FIELD DICTIONARY") > -1 && ctx58.indexOf("drift-off (sol)") > -1, "the dictionary is authoritative in every context");
+ok(ctx58.indexOf("SLEEP GATE RIGHT NOW") > -1, "the live gate state ships with the context — no re-derived streaks");
+ok(ctx58.indexOf("debt days +1") === -1 && ctx58.indexOf("only that final set pulls to 1") > -1, "the law sheet teaches the current debt rule");
+
+console.log(`\nFINAL56: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);

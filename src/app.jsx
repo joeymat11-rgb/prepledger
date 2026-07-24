@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.58.0";
+const APP_V = "3.58.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2272,9 +2272,11 @@ function askContext(s) {
   const days = Object.entries(s.dailyLogs).sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(-14)
     .map(([d, v]) => { const w2 = dayWeather(s, d); return `${d}: cal ${v.cal ?? "—"} · pro ${v.pro ?? "—"} · steps ${v.steps ?? "—"}${w2.flags.length ? "  ⌁[" + w2.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n");
   const sess2 = Object.keys(s.sessionLog).sort().slice(-6).map((d) => `${d}: ` + (s.sessionLog[d].entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ")).join("\n");
-  const nights2 = s.sleep.nights.slice(-14).map((n) => `${n.d}: ${n.h}h${n.sol != null ? ` sol${n.sol}` : ""}${(n.tags || []).length ? " " + n.tags.join("/") : ""}`).join("\n");
-  const laws = "DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor 1.0–1.4 lb/wk (1.9+ = too fast); calorie floor 1,700; protein 175 daily; records/weight-increases only become official on a completed good-sleep streak (3 nights ≥7.5h); one structural change per session; effort runs RIR 2→1→0 with debt days +1; the scale seal quarantines event water; every change is a proposal — the athlete consents, the coach holds structural authority.";
-  return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== LAST 6 SESSIONS ===\n${sess2}`;
+  const nights2 = s.sleep.nights.slice(-14).map((n) => `${n.d}: ${n.h}h · bed ${n.bed || "—"} → wake ${n.wake || "—"} · drift-off ${n.sol ?? "?"}m${(n.tags || []).length ? " · " + n.tags.join("/") : ""}`).join("\n");
+  const laws = "DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor 1.0–1.4 lb/wk (1.9+ = too fast); calorie floor 1,700; protein 175 daily; records/weight-increases only become official on a completed good-sleep streak (3 nights ≥7.5h); one structural change per session; effort tapers to a single terminal failure set per exercise (RIR 2→1→…→0); on debt days only that final set pulls to 1, everything earlier runs as written; the scale seal quarantines event water; every change is a proposal — the athlete consents, the coach holds structural authority.";
+  const gate2 = sleepInfo(s);
+  const dict = "FIELD DICTIONARY (authoritative — never guess a meaning): h = hours asleep · bed/wake = clock times as logged · drift-off (sol) = minutes to fall asleep · tag woke = woke mid-night · tag caff = late caffeine · pending = a record waiting on the 3-night clean streak · ⌁flags = day weather. SLEEP GATE RIGHT NOW (do not re-derive): clean run " + gate2.run + "/" + gate2.need + " — records currently " + (gate2.clean ? "OFFICIAL" : "PENDING") + ".";
+  return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== LAST 6 SESSIONS ===\n${sess2}`;
 }
 const AGENT_TOOLS = [
   { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
@@ -2287,7 +2289,7 @@ function agentToolExec(s, name, input, staged) {
     if (name === "get_range") {
       const inR = (d) => d >= input.from && d <= input.to;
       if (input.kind === "days") return Object.entries(s.dailyLogs).filter(([d]) => inR(d)).map(([d, v]) => { const w3 = dayWeather(s, d); return `${d}: cal ${v.cal ?? "—"} pro ${v.pro ?? "—"} steps ${v.steps ?? "—"}${w3.flags.length ? "  ⌁[" + w3.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n") || "no rows";
-      if (input.kind === "nights") return s.sleep.nights.filter((n) => inR(n.d)).map((n) => `${n.d}: ${n.h}h sol${n.sol ?? "?"} ${(n.tags || []).join("/")}`).join("\n") || "no rows";
+      if (input.kind === "nights") return s.sleep.nights.filter((n) => inR(n.d)).map((n) => `${n.d}: ${n.h}h · bed ${n.bed || "—"} → wake ${n.wake || "—"} · drift-off ${n.sol ?? "?"}m${(n.tags || []).length ? " · " + n.tags.join("/") : ""}`).join("\n") || "no rows";
       if (input.kind === "sessions") return Object.keys(s.sessionLog).filter(inR).map((d) => `${d}: ` + (s.sessionLog[d].entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ")).join("\n") || "no rows";
       if (input.kind === "pulse") return (s.pulse || []).filter((x) => inR(x.d)).map((x) => `${x.d}: ${x.bpm}`).join("\n") || "no rows";
       if (input.kind === "temp") return (s.temp || []).filter((x) => inR(x.d)).map((x) => `${x.d}: ${x.f}°F`).join("\n") || "no rows";
