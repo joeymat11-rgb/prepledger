@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.57.3";
+const APP_V = "3.58.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2893,6 +2893,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       )}
 
       {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {s.sessionLog[tISO] && <Chip c={T.jade}>Session ✓ — receipt in TRAIN</Chip>}
+        {cleanIn > 0 && <Chip c={T.chalk}>Scale sealed · clean read {fmtShort(SEAL_UNTIL)} · {cleanIn}d</Chip>}
+        {ev && <Chip c={T.chalk}>{ev.t} · {fmtShort(ev.d)}</Chip>}
+      </div>
+
       <BriefCard s={s} setS={setS} save={save} />
 
       {(() => { const pr = dayProtocol(s, slp); return (
@@ -2936,13 +2942,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       )}
 
 
-      <Card style={{ padding: 12, cursor: "pointer" }} onClick={() => setAskOpen(true)}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <Eyebrow c={T.jade}>🜁 ASK THE LEDGER</Eyebrow>
-            <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 3 }}>Any question, answered from your data — it investigates before it speaks.</div>
-          </div>
-          <span style={{ fontFamily: mono, fontSize: 14, color: T.jade }}>▸</span>
+      <Card style={{ padding: "11px 14px", cursor: "pointer", borderLeft: `3px solid ${T.jade}` }} onClick={() => setAskOpen(true)}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>🜁 ASK THE LEDGER <span style={{ color: T.dim }}>— any question, from your data</span></div>
+          <span style={{ fontFamily: mono, fontSize: 14, color: T.jade, flexShrink: 0 }}>▸</span>
         </div>
       </Card>
 
@@ -2992,11 +2995,6 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       ); })()}
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {s.sessionLog[tISO] && <Chip c={T.jade}>Session ✓ — receipt in TRAIN</Chip>}
-        {cleanIn > 0 && <Chip c={T.chalk}>Scale sealed · clean read {fmtShort(SEAL_UNTIL)} · {cleanIn}d</Chip>}
-        {ev && <Chip c={T.chalk}>{ev.t} · {fmtShort(ev.d)}</Chip>}
-      </div>
 
 
 
@@ -3095,9 +3093,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </div>
         </Card>
       ) : (
-      <Card>
+      <Card accent={new Date().getHours() >= 17 && !(dl && dl.cal != null) ? T.brass : undefined}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Eyebrow>TODAY'S NUMBERS — LOG THESE TONIGHT</Eyebrow>
+          <Eyebrow c={new Date().getHours() >= 17 && !(dl && dl.cal != null) ? T.brass : undefined}>{new Date().getHours() >= 17 && !(dl && dl.cal != null) ? "TONIGHT — CLOSE THE DAY" : "TODAY'S NUMBERS — LOG THESE TONIGHT"}</Eyebrow>
           {(() => { const est = ((s.dayCtx || {})[tISO] || {}).est; return (
             <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if (est) delete ns.dayCtx[tISO]; else ns.dayCtx[tISO] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
               style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.05em", color: est ? T.brass : T.dim, border: `1px solid ${est ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>
