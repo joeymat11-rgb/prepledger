@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.56.1";
+const APP_V = "3.56.2";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -775,10 +775,10 @@ function sessionDebrief(s, iso) {
 /* per-set RIR prescription — literature base, tuned by his own logs */
 function rirPlan(s, ex, slp) {
   const n = ex.sets || (ex.tgt ? ex.tgt.length : ex.target ? ex.target.length : ex.last ? ex.last.length : 3);
-  let plan = Array.from({ length: n }, (_, i) => (i === 0 ? 2 : i === 1 && n > 2 ? 1 : 0));
+  let plan = Array.from({ length: n }, (_, i) => (i === n - 1 ? 0 : i === 0 ? 2 : 1));
   const why = [];
   const overridden = s.rirOverride === isoOf(todayStart());
-  if (!slp.clean && !overridden) { plan = plan.map((r) => (r === 0 ? 1 : r)); why.push("debt day — every 0 becomes a 1: no true failure while nothing banks; the rest stays honest"); }
+  if (!slp.clean && !overridden) { plan = plan.map((r, i) => (i === plan.length - 1 && r === 0 ? 1 : r)); why.push("debt day — the final failure set pulls to 1; every other set runs exactly as written"); }
   if (!slp.clean && overridden) why.push("debt buffer overridden — athlete call, today only");
   if (ex.holdFlag) { plan = plan.map((r) => Math.max(r, 2)); why.push("governor hold — stay two clean reps back"); }
   const opens = Object.values(s.sessionLog).flatMap((sl) => (sl.entries || []).filter((e) => e.id === ex.id && e.rir != null).map((e) => e.rir)).sort((a, b) => a - b);
@@ -2106,7 +2106,7 @@ const GLOSSARY = {
   structural: ["Structural change", "A load jump, new set, or machine change. One per session, auto-picked from the queue — so every response stays attributable. Rep progression is unlimited."],
   whoosh: ["Whoosh", "Event water leaving days after the event — a spike that drains to a NEW low. Yours clears in 1–3 days; the LAB predicts the window in advance."],
   noonwindow: ["Why noon lifts read easy", "You lift at your stimulant peak, and stimulants mask effort — a set that feels like 2 in the tank is often 1 or 0. That's why the app asks you to read effort conservatively at noon, and why the honest-opener rule matters most here: the governor can only protect you from numbers you report truthfully."],
-  rirplan: ["Suggested RIR — where it comes from", "The literature (Refalo 2023–24 meta-analyses; Helms-style RIR prescription) says 0–5 reps-in-reserve all build muscle, with a slight edge nearer failure — so everything runs 2→1→0 — and four-set movements double the 0 (2·1·0·0); your machine-based setup makes true failure safe, and the opener stays the honest gatekeeper (earns judge the opener, so the final 0 can never corrupt the signal). Then YOUR data adjusts it: on debt days every 0 becomes a 1 — no true failure while records only count as pending — with the rest of the ladder untouched; a governor hold floors everything at 2; and lifts where your logged openers run hot get one extra in the bank up front. It recomputes every session."],
+  rirplan: ["Suggested RIR — where it comes from", "The literature (Refalo 2023–24 meta-analyses; Helms-style RIR prescription) says 0–5 reps-in-reserve all build muscle, with a slight edge nearer failure — so everything tapers to a single terminal failure set — 2→1→0, and four-set movements run 2·1·1·0; only the last set of an exercise is ever programmed to failure. Your machine-based setup makes that true failure safe, and the opener stays the honest gatekeeper (earns judge the opener, so the final 0 can never corrupt the signal). Then YOUR data adjusts it: on debt days only the final set — the one programmed to failure — pulls back to 1, and every other set runs exactly as written; a governor hold floors everything at 2; and lifts where your logged openers run hot get one extra in the bank up front. It recomputes every session."],
   driftoff: ["Estimating drift-off", "Morning-after guessing is the clinical standard (it's how sleep diaries work). Anchor on the last thing you remember — final position change, a thought, a sound — and count minutes from lights-out to that, rounded to 5. Truly no idea? Leave the 15: the math uses a rolling median and within-you comparisons, so honest-rough beats fake-precise. A wearable's latency number can go in the same box anytime."],
   nightdate: ["How nights are dated", "A night belongs to the evening it began: Tuesday night = Tue evening → Wed morning, filed under Tuesday. You log it the morning after. Before 5 a.m. the app still means the night you already finished — never the one you haven't slept yet. Missed a morning? The row stays, dated, for up to 3 days."],
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
@@ -2487,7 +2487,7 @@ function BriefCard({ s, setS: setS2, save: save2 }) {
   return (
     <Card accent={T.jade}>
       <Eyebrow c={T.jade}>OVERNIGHT BRIEF — YOUR ANALYST WORKED WHILE YOU SLEPT</Eyebrow>
-      <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{brief.slice(0, 2200)}</div>
+      <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 6, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{plainify(brief).slice(0, 2200)}</div>
       {qm && !answered && (
         <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9 }}>
           <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass, letterSpacing: "0.06em" }}>THE ANALYST ASKS — 10 SECONDS, BECOMES LABELED DATA</div>
