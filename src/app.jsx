@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.66.0";
+const APP_V = "3.67.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3110,13 +3110,24 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       ); })()}
 
+      {(s.agentProposals || []).length === 0 && (
+        <Card style={{ padding: "9px 14px" }}>
+          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim }}>📥 PROPOSALS — none waiting · every change the machine wants arrives here first, in plain words, for your tap</div>
+        </Card>
+      )}
       {(s.agentProposals || []).length > 0 && (
-        <Card accent={T.jade}>
-          <Eyebrow c={T.jade}>FROM YOUR ANALYST — WAITING ON YOUR TAP</Eyebrow>
+        <Card accent={T.jade} style={{ border: `1px solid ${T.jade}` }}>
+          <Eyebrow c={T.jade}>📥 PROPOSALS — {(s.agentProposals || []).length} WAITING · YOUR TAP DECIDES</Eyebrow>
           {(s.agentProposals || []).map((ap) => (
             <div key={ap.id} style={{ marginTop: 9, paddingTop: 9, borderTop: `1px solid ${T.line}` }}>
               <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>{ap.title}</div>
               <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{plainify(ap.body)}</div>
+              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 5 }}>{
+                ap.kind === "volume" ? (ap.dir > 0 ? "If you consent: one set is added to that lift starting next session. Dismiss: nothing changes." : "If you consent: one set comes off that lift starting next session. Dismiss: nothing changes.")
+                : ap.kind === "reset" ? `If you consent: the weight drops to ${ap.newW} and rep targets re-seed for the lighter load. Dismiss: nothing changes.`
+                : ap.kind === "trial" ? "If you start it: the experiment rides your daily protocol in blocks and files its own verdict when done. Dismiss: nothing runs."
+                : "Nothing changes unless you act — dismiss files it away."
+              }</div>
               <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
                 {ap.kind === "volume" && ap.exId && ap.dir && (
                   <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex7 = ns.exercises.find((x) => x.id === ap.exId); if (ex7) { ex7.sets = Math.max(1, (ex7.sets || 1) + ap.dir); ns.feed.unshift({ d: tISO, t: `VOLUME ${ap.dir > 0 ? "+1" : "−1"} — ${ap.mg.toUpperCase()} via ${ex7.n} (now ${ex7.sets} sets)`, how: "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited" }); } ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>{ap.dir > 0 ? "Add the set — I consent" : "Trim the set — I consent"}</Btn>
@@ -5066,7 +5077,7 @@ export default function PrepLedger() {
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
             <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "14px 0 calc(16px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: tab === t2 ? `2px solid ${T.chalk}` : "2px solid transparent", fontFamily: mono, fontSize: 9.5, letterSpacing: "0.09em", color: tab === t2 ? T.chalk : T.dim }}>
-              {t2 === "HIST" ? "LAB" : t2}
+              {t2 === "HIST" ? "LAB" : t2}{t2 === "NOW" && (s.agentProposals || []).length > 0 ? <span style={{ color: T.jade, fontWeight: 700 }}> ●{(s.agentProposals || []).length}</span> : null}
             </button>
           ))}
         </div>
