@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.55.0";
+const APP_V = "3.55.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2993,7 +2993,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                 <div style={{ marginTop: 10 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                     <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim }}><Term k="nightdate" c={T.dim}>SLEEP</Term> · {fmtShort(owed[0])} night{owed.length > 1 ? " (+" + (owed.length - 1) + " missed)" : ""}</div>
-                    <div style={{ display: "flex", gap: 8, alignItems: "center", fontFamily: mono, fontSize: 10.5, color: T.steel }}>
+                    <div style={{ display: "flex", gap: 8, rowGap: 10, alignItems: "center", flexWrap: "wrap", fontFamily: mono, fontSize: 10.5, color: T.steel }}>
                       <span>bed</span>
                       <input type="time" value={bedT} onChange={(e) => setBedT(e.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 6px" }} />
                       <span>wake</span>
@@ -4738,7 +4738,7 @@ export default function PrepLedger() {
   const tabs = ["NOW", "TRAIN", "QUEUE", "BODY", "SLEEP", "HIST"];
 
   return (
-    <div style={{ minHeight: "100vh", background: T.ink, color: T.chalk }}>
+    <div style={{ minHeight: "100vh", background: T.ink, color: T.chalk, maxWidth: "100vw", overflowX: "hidden" }}>
       <style>{`
         * { -webkit-tap-highlight-color: transparent; }
         input:focus, button:focus-visible { outline: 2px solid ${T.brass}; outline-offset: 1px; }
