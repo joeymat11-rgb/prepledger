@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.61.1";
+const APP_V = "3.61.2";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -279,7 +279,7 @@ function liftCall(s, exId, opts = {}) {
   if (alarm && alarm.level === "RED") return { verdict: "STAND-DOWN", vel, n: clean.length, why: "Body alarm is RED. Skip the iron today — walk, eat, sleep, and come back tomorrow ahead.", receipts: R2.concat(["Body alarm: RED — the pattern held a second day."]) };
   const recentReset = (s.feed || []).slice(0, 60).find((f) => f.t && ex2 && f.t.indexOf("RESET APPLIED — " + ex2.n) === 0 && (mk(tISO3) - mk(f.d)) / DAY <= 14);
   if (recentReset) return { verdict: "REBUILD", vel, n: clean.length, why: `You lightened this on ${fmtShort(recentReset.d)}. Climb the reps back — the old numbers usually fall within three sessions.`, receipts: R2.concat(["Day " + Math.round((mk(tISO3) - mk(recentReset.d)) / DAY) + " of your 14-day climb-back."]) };
-  if (stall >= 3) { const newW = ex2 && ex2.w ? Math.max(5, Math.round((ex2.w * 0.95) / 5) * 5) : null; return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest sessions without beating your total. Time to lighten a notch and rebuild — that is how walls fall.`, receipts: R2 }; }
+  if (stall >= 3) { const newW = ex2 && typeof ex2.w === "number" ? Math.max(5, Math.round((ex2.w * 0.95) / 5) * 5) : null; return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest sessions without beating your total. Time to lighten a notch and rebuild — that is how walls fall.`, receipts: R2 }; }
   if (alarm && alarm.level === "AMBER") return { verdict: "HOLD", vel, n: clean.length, why: "Body alarm is AMBER. Normal session, but no all-out sets and no record attempts today.", receipts: R2.concat(["Body alarm: AMBER — off day, not a failure."]) };
   if (!slp2.clean) return { verdict: "HOLD", vel, n: clean.length, why: `Sleep is rebuilding (${slp2.run}/${slp2.need} good nights). Repeat last time — nothing counts as a record today anyway.`, receipts: R2 };
   if (estToday) return { verdict: "PUSH", vel, n: clean.length, why: "Estimate day — train normally; the numbers just count a little lighter, like you asked.", receipts: R2.concat(["You declared today an estimate day — numbers count, just lighter."]) };
@@ -454,7 +454,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
   });
 
   const niggles = extras.niggles || [];
-  s.sessionLog[iso] = { entries: entries.map((e) => { const ex2 = s.exercises.find((x) => x.id === e.id); return { id: e.id, reps: e.reps, rir: e.rir ?? null, w: ex2 ? ex2.w : null }; }), at: Date.now(), note: extras.note || "", niggles, dips: dipCount, skipped: extras.skipped || [] };
+  s.sessionLog[iso] = { entries: entries.map((e) => { const ex2 = s.exercises.find((x) => x.id === e.id); return { id: e.id, reps: e.reps, rir: e.rir ?? null, w: ex2 && typeof ex2.w === "number" ? ex2.w : null }; }), at: Date.now(), note: extras.note || "", niggles, dips: dipCount, skipped: extras.skipped || [] };
   if ((extras.skipped || []).length) push("SKIPPED — " + extras.skipped.map((k) => { const ex3 = exById(s, k.id); return ex3 ? ex3.n : k.id; }).join(", "), "your call, on the record — zero phantom reps, nothing counted");
   const cutoff = isoOf(new Date(mk(iso).getTime() - 21 * DAY));
   const counts = {};
@@ -1931,7 +1931,7 @@ function labStatusList(s) {
 function sweepStalls(s) {
   let ns = null;
   (s.exercises || []).forEach((ex) => {
-    if (!ex.w) return;
+    if (typeof ex.w !== "number") return;
     const lc = liftCall(s, ex.id);
     if (lc.verdict !== "RESET" || !lc.newW) return;
     const already = (s.agentProposals || []).some((ap) => ap.kind === "reset" && ap.exId === ex.id) || (s.feed || []).slice(0, 40).some((f) => f.t && f.t.indexOf("RESET APPLIED — " + ex.n) === 0);
@@ -3386,6 +3386,8 @@ function LogTab({ s, setS, save, slp }) {
   const [showSetup, setShowSetup] = useState({});
   const [skipped, setSkipped] = useState({});
   const [callOpen, setCallOpen] = useState(null);
+  const [wEdit, setWEdit] = useState(null);
+  const [wVal, setWVal] = useState(180);
   const [recap, setRecap] = useState(null);
   const [boosted, setBoosted] = useState(false);
   const trueShort = slp.last && slp.last.h < 4.5;
@@ -3553,7 +3555,17 @@ function LogTab({ s, setS, save, slp }) {
                 ))}
               </div>
             ) : (
-              <div style={{ fontFamily: mono, fontSize: 12, color: T.steel }}>{ex.w} · tgt {ex.tgt.join(",")}</div>
+              <div style={{ fontFamily: mono, fontSize: 12, color: T.steel, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                {wEdit === ex.id ? (
+                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <Stepper v={wVal} set={setWVal} step={ex.inc || 5} min={5} />
+                    <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id); const oldW = ex4.w; ex4.w = wVal; ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${wVal}`, how: "athlete entry on the card" }); setS(ns); save(ns); setWEdit(null); }}>Save</Btn>
+                  </span>
+                ) : (
+                  <span onClick={() => { setWEdit(ex.id); setWVal(typeof ex.w === "number" ? ex.w : 180); }} style={{ cursor: "pointer", color: typeof ex.w === "number" ? T.steel : T.brass }}>{typeof ex.w === "number" ? ex.w : "set weight"} ✎</span>
+                )}
+                <span>· tgt {ex.tgt.join(",")}</span>
+              </div>
             )}
           </div>
           {callOpen === ex.id && (() => { const lc2 = liftCall(s, ex.id); return (
