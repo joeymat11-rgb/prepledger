@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.91.0";
+const APP_V = "3.91.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2775,7 +2775,7 @@ function MinuteView({ s, setS, save, onClose }) {
             <span style={{ color: T.jade }}>= {spanH} h asleep</span>
           </div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
-            {["woke", "screens", "mela"].map((tg) => <span key={tg} onClick={() => setTags9(tags9.includes(tg) ? tags9.filter((x) => x !== tg) : [...tags9, tg])} style={{ fontFamily: mono, fontSize: 10, color: tags9.includes(tg) ? T.brass : T.dim, border: `1px solid ${tags9.includes(tg) ? T.brass : T.line}`, borderRadius: 999, padding: "5px 10px" }}>{tg === "woke" ? "woke mid-night" : tg === "caff" ? "late caffeine" : tg === "mela" ? "melatonin" : "screens"}</span>)}
+            {["woke", "screens", "mela"].map((tg) => <span key={tg} onClick={() => setTags9(tags9.includes(tg) ? tags9.filter((x) => x !== tg) : [...tags9, tg])} style={{ fontFamily: mono, fontSize: 10, color: tags9.includes(tg) ? T.brass : T.dim, border: `1px solid ${tags9.includes(tg) ? T.brass : T.line}`, borderRadius: 999, padding: "5px 10px" }}>{tg === "woke" ? "woke mid-night" : tg === "mela" ? "melatonin" : "screens"}</span>)}
           </div>
           <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.sleep.nights = ns.sleep.nights.filter((n) => n.d !== y9); ns.sleep.nights.push({ d: y9, h: spanH, bed: bed9, wake: wake9, sol: sol9, tags: tags9 }); })}>Bank the night →</Btn>
         </div>
@@ -3644,7 +3644,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: mono, fontSize: 10, color: T.brass, marginTop: 8 }}>today is {ev.t} — days like this usually get the estimates chip (top right of this card)</div>
         )}
         {((s.dayCtx || {})[tISO] || {}).est && (
-          <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 8, lineHeight: 1.55 }}>The method: anchor protein first — four palm-sized servings still lands near 175. Then calories as the midpoint of your honest bracket: "definitely over 2,300, definitely under 2,700" writes 2,500. Units the same way — "somewhere 11–15" writes 13. One entry after the event, never the optimistic edge. A labeled estimate protects the trend; false precision poisons it.</div>
+          <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 8, lineHeight: 1.55 }}>The method: anchor protein first — four palm-sized servings still lands near 175. Then calories as the midpoint of your honest bracket: "definitely over 2,300, definitely under 2,700" writes 2,500. Units the same way — "somewhere 10–14" writes 12. One entry after the event, never the optimistic edge. A labeled estimate protects the trend; false precision poisons it.</div>
         )}
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           {[
@@ -3666,7 +3666,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               style={{ fontFamily: mono, fontSize: 9.5, color: sod9 === sv ? T.jade : T.dim, border: `1px solid ${sod9 === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px", cursor: "pointer" }}>{sv}</span>
           ))}
           <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginLeft: 8 }}>ALCOHOL{((s.dayCtx || {})[tISO] || {}).est ? " ~ est" : ""}</span>
-          {[2, 4, 6, 8, 10, 13].map((u0) => (
+          {[2, 4, 6, 8, 10, 12].map((u0) => (
             <span key={u0} onClick={() => { setAlc9(u0); if (dl) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].alc = u0; setS(ns); save(ns); } }}
               style={{ fontFamily: mono, fontSize: 9.5, color: +alc9 === u0 ? T.jade : T.dim, border: `1px solid ${+alc9 === u0 ? T.jade : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>{u0}</span>
           ))}
