@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.89.1";
+const APP_V = "3.90.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3817,9 +3817,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           {daysUntil(ev.d) <= 0 && (
             <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
               {daysUntil(ev.d) < 0 && <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass }}>waiting on you to close it — the ledger doesn't guess</div>}
-            <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginBottom: 8 }}>after tonight: one tap files the day as an estimate and locks tomorrow to the normal plan — either button, same rule</div>
-              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>File the event — went as planned, estimated once</Btn>
-              <Btn full small onClick={() => { const ns = closeEvent(s, ev.id, false); setS(ns); save(ns); }}>File it — went bigger than planned (still no make-up day)</Btn>
+            <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginBottom: 8 }}>after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button</div>
+              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>File the event ✓ — your estimate goes in tonight's numbers</Btn>
             </div>
           )}
         </Card>
