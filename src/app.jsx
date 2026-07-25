@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "html,body{height:100%;width:100%;overflow:hidden;-webkit-text-size-adjust:100%} #root{height:100%} body{touch-action:pan-y pinch-zoom;-webkit-touch-callout:none;overscroll-behavior:none} *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} input,select,textarea{font-size:16px !important;max-width:100%;-webkit-user-select:text;user-select:text} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.80.1";
+const APP_V = "3.80.2";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -5406,8 +5406,16 @@ export default function PrepLedger() {
   const [gloss, setGloss] = useState(null);
   const [, setWake] = useState(0);
   useEffect(() => { window.__setGloss = setGloss; return () => { window.__setGloss = null; }; }, []);
+  const shellRef = useRef(null);
+  const [vh9, setVh9] = useState(0);
   useEffect(() => {
-    const setH = () => { try { document.documentElement.style.setProperty("--app-h", window.innerHeight + "px"); } catch (e) {} };
+    const setH = () => { try {
+      const cands = [window.innerHeight || 0, (window.visualViewport && window.visualViewport.height) || 0, (document.documentElement && document.documentElement.clientHeight) || 0];
+      const h = Math.round(Math.max(...cands));
+      document.documentElement.style.setProperty("--app-h", h + "px");
+      if (shellRef.current) shellRef.current.style.height = h + "px";
+      setVh9(h);
+    } catch (e) {} };
     setH(); const t1 = setTimeout(setH, 250); const t2 = setTimeout(setH, 1000);
     window.addEventListener("resize", setH); window.addEventListener("orientationchange", setH); window.addEventListener("pageshow", setH);
     if (window.visualViewport) window.visualViewport.addEventListener("resize", setH);
@@ -5504,7 +5512,7 @@ export default function PrepLedger() {
   const tabs = ["NOW", "TRAIN", "QUEUE", "BODY", "SLEEP", "HIST"];
 
   return (
-    <div style={{ height: "var(--app-h, 100vh)", background: T.ink, color: T.chalk, maxWidth: "100%", display: "flex", flexDirection: "column", overflow: "hidden", overflowWrap: "anywhere" }}>
+    <div ref={shellRef} style={{ height: "var(--app-h, 100vh)", background: T.ink, color: T.chalk, maxWidth: "100%", display: "flex", flexDirection: "column", overflow: "hidden", overflowWrap: "anywhere" }}>
       <style>{`
         * { -webkit-tap-highlight-color: transparent; }
         input:focus, button:focus-visible { outline: 2px solid ${T.brass}; outline-offset: 1px; }
@@ -5538,7 +5546,8 @@ export default function PrepLedger() {
 
       </div>
 
-      <div style={{ flex: "none", background: "rgba(14,17,21,0.96)", borderTop: `1px solid ${T.line}`, backdropFilter: "blur(8px)", paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <div style={{ flex: "none", position: "relative", background: "rgba(14,17,21,0.96)", borderTop: `1px solid ${T.line}`, backdropFilter: "blur(8px)", paddingBottom: "env(safe-area-inset-bottom)" }}>
+        <div style={{ position: "absolute", top: 2, right: 8, fontFamily: mono, fontSize: 7, color: T.dim, opacity: 0.7 }}>v{APP_V} · {vh9}px</div>
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
             <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "14px 0 calc(16px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: tab === t2 ? `2px solid ${T.chalk}` : "2px solid transparent", fontFamily: mono, fontSize: 9.5, letterSpacing: "0.09em", color: tab === t2 ? T.chalk : T.dim }}>
