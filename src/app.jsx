@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.88.0";
+const APP_V = "3.89.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2764,6 +2764,7 @@ function MinuteView({ s, setS, save, onClose }) {
         </div>
       )}
       <div style={{ maxWidth: 480, margin: "0 auto", width: "100%" }}>
+      {cur && <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.12em", color: T.dim, marginTop: 14 }}>{["pulse", "energy", "soreness", "night"].includes(cur) ? "STILL IN BED" : ["temp", "weight", "grip"].includes(cur) ? "ON YOUR FEET" : "WITH COFFEE"}</div>}
       {cur === "night" && (
         <div style={{ marginTop: 18 }}>
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Last night</div>
@@ -2883,18 +2884,18 @@ function filingsFor(dow, dom) {
   if (dom >= 1 && dom <= 3) out9.push("THE RED CELL files this week — the case against your prep waits in LAB");
   return out9;
 }
-const MORNING_REGISTRY = ["night", "weight", "pulse", "temp", "energy", "soreness", "grip", "brief"];
+const MORNING_REGISTRY = ["pulse", "energy", "soreness", "night", "temp", "weight", "grip", "brief"];
 const MUSCLE_CHIPS = ["quads", "hams", "calves", "chest", "back", "delts", "biceps", "triceps", "forearms", "abs"];
 function minuteNeeds(s) {
   const t9 = isoOf(todayStart());
   const y9 = isoOf(new Date(todayStart().getTime() - DAY));
   const out9 = [];
-  if (!s.sleep.nights.some((n) => n.d === y9)) out9.push("night");
-  if (!s.reads.some((r) => r.d === t9)) out9.push("weight");
   if ((s.pulse || []).some((x) => x.d < t9) && !(s.pulse || []).some((x) => x.d === t9)) out9.push("pulse");
-  if ((s.temp || []).some((x) => x.d < t9) && !(s.temp || []).some((x) => x.d === t9)) out9.push("temp");
   if (!(s.energy || []).some((x) => x.d === t9)) out9.push("energy");
   if (!(s.soreness || []).some((x) => x.d === t9)) out9.push("soreness");
+  if (!s.sleep.nights.some((n) => n.d === y9)) out9.push("night");
+  if ((s.temp || []).some((x) => x.d < t9) && !(s.temp || []).some((x) => x.d === t9)) out9.push("temp");
+  if (!s.reads.some((r) => r.d === t9)) out9.push("weight");
   if (!(s.grip || []).some((x) => x.d === t9)) out9.push("grip");
   return out9;
 }
