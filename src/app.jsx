@@ -30,10 +30,10 @@ const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
 if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   const st0 = document.createElement("style"); st0.id = "pl-gx";
-  st0.textContent = "html,body{height:100%;width:100%;overflow:hidden;-webkit-text-size-adjust:100%} #root{height:100%} body{touch-action:pan-y pinch-zoom;-webkit-touch-callout:none;overscroll-behavior:none} *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} input,select,textarea{font-size:16px !important;max-width:100%;-webkit-user-select:text;user-select:text} button{max-width:100%}";
+  st0.textContent = "html,body,#root{background:#0e1115} html,body{height:100%;width:100%;overflow:hidden;-webkit-text-size-adjust:100%} #root{height:100%} body{touch-action:pan-y pinch-zoom;-webkit-touch-callout:none;overscroll-behavior:none} *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} input,select,textarea{font-size:16px !important;max-width:100%;-webkit-user-select:text;user-select:text} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.80.2";
+const APP_V = "3.80.3";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -5413,7 +5413,6 @@ export default function PrepLedger() {
       const cands = [window.innerHeight || 0, (window.visualViewport && window.visualViewport.height) || 0, (document.documentElement && document.documentElement.clientHeight) || 0];
       const h = Math.round(Math.max(...cands));
       document.documentElement.style.setProperty("--app-h", h + "px");
-      if (shellRef.current) shellRef.current.style.height = h + "px";
       setVh9(h);
     } catch (e) {} };
     setH(); const t1 = setTimeout(setH, 250); const t2 = setTimeout(setH, 1000);
@@ -5512,7 +5511,7 @@ export default function PrepLedger() {
   const tabs = ["NOW", "TRAIN", "QUEUE", "BODY", "SLEEP", "HIST"];
 
   return (
-    <div ref={shellRef} style={{ height: "var(--app-h, 100vh)", background: T.ink, color: T.chalk, maxWidth: "100%", display: "flex", flexDirection: "column", overflow: "hidden", overflowWrap: "anywhere" }}>
+    <div ref={shellRef} style={{ position: "fixed", inset: 0, background: T.ink, color: T.chalk, maxWidth: "100%", display: "flex", flexDirection: "column", overflow: "hidden", overflowWrap: "anywhere" }}>
       <style>{`
         * { -webkit-tap-highlight-color: transparent; }
         input:focus, button:focus-visible { outline: 2px solid ${T.brass}; outline-offset: 1px; }
