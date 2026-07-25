@@ -1,11 +1,13 @@
-<!-- 2026-07-24 -->
+<!-- 2026-07-25 -->
 
-LAST 24H (measured) — Sleep: last logged night 7/22 = 6.0h, −1.5h vs 7.5 clean baseline, on the refeed; 7/23 night not yet logged. Nutrition: 7/23 not logged; last full day 7/22 = 2530 cal / 186 g protein / 17.0k steps (refeed). Session 7/23 (upper): 9 lifts, 3 dips, all on debt (fix-window open 7/22) — Press 245×8,8,7 provisional, Rows 180 debut 7,7. Pulse/temp: not logged. Weight sealed through the 7/27 blackout — no trend claims.
+YESTERDAY'S GAPS — last night's sleep isn't in the synced books yet. Last sync errored (HTTP 409) — reopen the app. 30 seconds closes it.
 
-WATCHING — sleep vs event days: the week's only sub-7.5 night (7/22, 6.0h) fell on the refeed, ending a 4-night clean run; Wedding #2 on 7/25 is the next event night. Watch whether events cost sleep. (measured, small n)
+LAST 24H — clean day. Sleep 7/23: 7.5h, streak holds. Logs 7/24: 2150 cal / 180g pro / 16.5k steps. Lower session clean, no debt — calves 315×13,12,11,10. Pulse 56, temp 97.6 — first on record. (measured, n=1)
 
-AUDIT — Step Efficacy ("+1k daily steps ≈ −0.3 lb/wk slower loss, n=5"): weakened. Five week-pairs is thin, steps and intake co-move, and recent pairs sit inside refeed/blackout weeks; reverse causation (slow weeks → more compensatory walking) fits the data equally. Keep steps for health — it can't drive a step change. (measured, n=5)
+WATCHING — do events dent sleep? The run's only sub-7.5 night (7/22 refeed, 6.0h) was an event. Wedding #2 is tonight — the test. (measured, small n)
 
-CONSIDER — pre-declare 7/25 Wedding #2 an estimate/event day now (currently estimated=false) so the post-wedding scale bounce can't seed a false claim. (speculation)
+AUDIT — Weekend Split weakened. Weekends read 50% protein hits vs 81% weekdays. But recent Saturdays are event days — two weddings, a refeed — untracked at the table. Real gap, wrong cause. (measured)
 
-QUESTION: 7/23 note says pronated was skipped for time, yet it's logged 40×12,12 — which is right?
+CONSIDER — mark today an estimate/event day, so tonight's wedding meal reads as a sanctioned event, not a miss. (speculation)
+
+QUESTION: Extension 7/24 logged 150×6,9 — second set above the first is odd. Real, or transposed?
