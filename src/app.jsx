@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.86.0";
+const APP_V = "3.87.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2780,9 +2780,10 @@ function MinuteView({ s, setS, save, onClose }) {
       )}
       {cur === "weight" && (
         <div style={{ marginTop: 18 }}>
+          {blackoutOn(s, t9) && <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass, marginBottom: 8 }}>scale sealed through the blackout — this read files quarantined and never touches the trend</div>}
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Scale, fasted</div>
           <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={wt9} set={setWt9} step={0.1} min={100} /><span style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>lb</span></div>
-          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.reads = ns.reads.filter((r) => r.d !== t9); ns.reads.push({ d: t9, w: +wt9 }); })}>Log weight →</Btn>
+          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.reads = ns.reads.filter((r) => r.d !== t9); const r2 = applyRead(ns, t9, +wt9); Object.assign(ns, r2); })}>{blackoutOn(s, t9) ? "Log weight (quarantined) →" : "Log weight →"}</Btn>
         </div>
       )}
       {cur === "energy" && (
@@ -2888,7 +2889,7 @@ function minuteNeeds(s) {
   const y9 = isoOf(new Date(todayStart().getTime() - DAY));
   const out9 = [];
   if (!s.sleep.nights.some((n) => n.d === y9)) out9.push("night");
-  if (!blackoutOn(s, t9) && !s.reads.some((r) => r.d === t9)) out9.push("weight");
+  if (!s.reads.some((r) => r.d === t9)) out9.push("weight");
   if ((s.pulse || []).some((x) => x.d < t9) && !(s.pulse || []).some((x) => x.d === t9)) out9.push("pulse");
   if ((s.temp || []).some((x) => x.d < t9) && !(s.temp || []).some((x) => x.d === t9)) out9.push("temp");
   if (!(s.energy || []).some((x) => x.d === t9)) out9.push("energy");
