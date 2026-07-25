@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.87.0";
+const APP_V = "3.88.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -298,6 +298,7 @@ function liftCall(s, exId, opts = {}) {
     if (eT) R2.push(`Morning energy ${eT.v}/5${eH.length >= 5 ? ` — your usual is ${md2(eH)}` : ""}.`);
     const gS = gT ? (gT.l || 0) + (gT.r || 0) : 0;
     if (gS > 0) R2.push(`Grip ${gS} lb today${gH.length >= 4 ? ` — ${md2(gH)} lb is your recent median` : ""}.`);
+    if (gT && gT.l > 0 && gT.r > 0) { const gA = Math.abs(gT.l - gT.r) / Math.max(gT.l, gT.r); if (gA >= 0.12) R2.push(`Grip asymmetry ${Math.round(gA * 100)}% — ${gT.l < gT.r ? "left" : "right"} side lagging today; worth an eye if it holds.`); }
     const eLow = eT && eH.length >= 5 && eT.v <= 2 && eT.v <= md2(eH) - 1;
     const gLow = gS > 0 && gH.length >= 4 && gS <= md2(gH) * 0.92;
     if (eLow || gLow) return { verdict: "HOLD", vel, n: clean.length,
@@ -798,7 +799,7 @@ function labAnalytics(s) {
     out.push({ id: "signals", t: "MORNING SIGNALS — WIRED INTO THE MACHINE", status: nsig >= 5 ? "LIVE" : "ARMED", prog: { n: nsig, need: 5, label: "morning entries banked" },
       tag: "Energy, grip, soreness, meds — collected in the Minute, consumed by the desk, the volume ledger, the weather, and the scale.",
       deep: "Nothing here is decoration; each signal has a law. ENERGY GATE: 2-or-under on a morning at least a point below your usual (five-plus mornings on file) and the desk caps every push at HOLD — repeat, don't chase. GRIP GATE: today's left-plus-right at or under 92% of your recent median (four-plus entries) triggers the same cap; the nervous system testifies before the bar does. SORENESS LAW: two-plus sore mornings this week blocks a headroom add for that muscle; three sore mornings on a high-volume week can propose the trim before bar speed slips. MEDS: none-days flag the day's weather and the desk's receipts so appetite, energy, and effort read against the truth. SALT AND ALCOHOL: a high-sodium or alcohol evening annotates the next morning's scale read — water noise, named at the moment you'd otherwise worry. Every gate is silence until its data has standing.",
-      forYou: nsig ? `Today: energy ${eT2 ? eT2.v + "/5" : "—"} · grip ${gT2 ? ((gT2.l || 0) + (gT2.r || 0)) + " lb" : "—"} · sore ${soreToday ? (soreToday.mgs.length ? soreToday.mgs.join(", ") : "nothing") : "—"}. The desk's receipts on TRAIN show these being consulted, lift by lift.` : "Log a first morning signal and this card wakes; the gates arm themselves as history accrues.",
+      forYou: nsig ? `Today: energy ${eT2 ? eT2.v + "/5" : "—"} · grip ${gT2 ? ((gT2.l || 0) + (gT2.r || 0)) + " lb" + (() => { const gh = (s.grip || []).filter((x) => x.d < isoOf(todayStart())).slice(-7).map((x) => (x.l || 0) + (x.r || 0)).filter((v) => v > 0); if (gh.length < 4) return ""; const b = gh.slice().sort((a, c) => a - c); const m = b[Math.floor(b.length / 2)]; const d = Math.round((((gT2.l || 0) + (gT2.r || 0)) / m - 1) * 100); return ` (${d >= 0 ? "+" : ""}${d}% vs median)`; })() : "—"} · sore ${soreToday ? (soreToday.mgs.length ? soreToday.mgs.join(", ") : "nothing") : "—"}. The desk's receipts on TRAIN show these being consulted, lift by lift.` : "Log a first morning signal and this card wakes; the gates arm themselves as history accrues.",
       lines: [] });
   })();
   out.push({ id: "mrv", t: "EMPIRICAL MRV — YOUR VOLUME CEILINGS", status: "LOCKED", prog: null,
@@ -2894,7 +2895,7 @@ function minuteNeeds(s) {
   if ((s.temp || []).some((x) => x.d < t9) && !(s.temp || []).some((x) => x.d === t9)) out9.push("temp");
   if (!(s.energy || []).some((x) => x.d === t9)) out9.push("energy");
   if (!(s.soreness || []).some((x) => x.d === t9)) out9.push("soreness");
-  if ((s.grip || []).some((x) => x.d < t9) && !(s.grip || []).some((x) => x.d === t9)) out9.push("grip");
+  if (!(s.grip || []).some((x) => x.d === t9)) out9.push("grip");
   return out9;
 }
 function booksToday(s) {
