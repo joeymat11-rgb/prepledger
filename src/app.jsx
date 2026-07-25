@@ -28,7 +28,12 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.78.0";
+if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
+  const st0 = document.createElement("style"); st0.id = "pl-gx";
+  st0.textContent = "html,body,#root{max-width:100vw;overflow-x:hidden} *{box-sizing:border-box} input,select,button{max-width:100%}";
+  document.head.appendChild(st0);
+}
+const APP_V = "3.78.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -5483,7 +5488,7 @@ export default function PrepLedger() {
   };
 
   if (!s) return (
-    <div style={{ minHeight: "100vh", background: T.ink, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ minHeight: "100vh", background: T.ink, display: "flex", alignItems: "center", justifyContent: "center" , maxWidth: "100vw", overflowX: "hidden", overflowWrap: "anywhere"}}>
       <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: "0.2em", color: T.steel }}>OPENING THE LEDGER…</div>
     </div>
   );
