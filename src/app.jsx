@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.89.0";
+const APP_V = "3.89.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3813,12 +3813,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <Card accent={T.chalk}>
           <Eyebrow>EVENT MODE · {fmtShort(ev.d)}</Eyebrow>
           <H size={19}>{ev.t}</H>
-          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 4 }}>{ev.protocol}. Zero-comp streak rides at <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> — compensation does not exist in this app.</div>
+          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 4 }}>{ev.protocol}. Events filed without a make-up day: <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> straight — an event never buys a punishment here: tomorrow runs exactly as planned.</div>
           {daysUntil(ev.d) <= 0 && (
             <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
               {daysUntil(ev.d) < 0 && <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass }}>waiting on you to close it — the ledger doesn't guess</div>}
-              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>Zero comp — estimated once, close it out</Btn>
-              <Btn full small onClick={() => { const ns = closeEvent(s, ev.id, false); setS(ns); save(ns); }}>It got away from plan — log it honest</Btn>
+            <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginBottom: 8 }}>after tonight: one tap files the day as an estimate and locks tomorrow to the normal plan — either button, same rule</div>
+              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>File the event — went as planned, estimated once</Btn>
+              <Btn full small onClick={() => { const ns = closeEvent(s, ev.id, false); setS(ns); save(ns); }}>File it — went bigger than planned (still no make-up day)</Btn>
             </div>
           )}
         </Card>
