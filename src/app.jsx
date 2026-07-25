@@ -30,10 +30,10 @@ const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
 if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   const st0 = document.createElement("style"); st0.id = "pl-gx";
-  st0.textContent = "html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none} #root{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y} *{box-sizing:border-box} img,svg,input,select,button{max-width:100%}";
+  st0.textContent = "html,body{height:100%;width:100%;overflow:hidden;position:fixed;inset:0;-webkit-text-size-adjust:100%} #root{height:100%} body{touch-action:pan-y pinch-zoom;-webkit-touch-callout:none} *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} input,select,textarea{font-size:16px !important;max-width:100%;-webkit-user-select:text;user-select:text} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.79.0";
+const APP_V = "3.80.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -5497,13 +5497,14 @@ export default function PrepLedger() {
   const tabs = ["NOW", "TRAIN", "QUEUE", "BODY", "SLEEP", "HIST"];
 
   return (
-    <div style={{ minHeight: "100vh", background: T.ink, color: T.chalk, maxWidth: "100%", overflowX: "hidden", overflowWrap: "anywhere" }}>
+    <div style={{ height: "100dvh", background: T.ink, color: T.chalk, maxWidth: "100%", display: "flex", flexDirection: "column", overflow: "hidden", overflowWrap: "anywhere" }}>
       <style>{`
         * { -webkit-tap-highlight-color: transparent; }
         input:focus, button:focus-visible { outline: 2px solid ${T.brass}; outline-offset: 1px; }
         button { cursor: pointer; }
         ::-webkit-scrollbar { display: none; }
       `}</style>
+      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehaviorY: "contain" }}>
 
       {offline && (
         <div style={{ background: T.plate2, borderBottom: `1px solid ${T.line}`, padding: "calc(8px + env(safe-area-inset-top)) 14px 8px", fontFamily: mono, fontSize: 10, color: T.brass, textAlign: "center" }}>
@@ -5528,7 +5529,9 @@ export default function PrepLedger() {
         {tab === "HIST" && <TabGuard name="HIST"><HistTab s={s} setS={setS} save={save} /></TabGuard>}
       </div>
 
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(14,17,21,0.96)", borderTop: `1px solid ${T.line}`, backdropFilter: "blur(8px)" }}>
+      </div>
+
+      <div style={{ flex: "none", background: "rgba(14,17,21,0.96)", borderTop: `1px solid ${T.line}`, backdropFilter: "blur(8px)", paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
             <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "14px 0 calc(16px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: tab === t2 ? `2px solid ${T.chalk}` : "2px solid transparent", fontFamily: mono, fontSize: 9.5, letterSpacing: "0.09em", color: tab === t2 ? T.chalk : T.dim }}>
