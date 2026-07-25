@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.84.0";
+const APP_V = "3.85.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1876,7 +1876,7 @@ function dayProtocol(s, slp) {
     else if ((lastNight.awakeMin || 0) >= 30) steps.push({ a: "Tonight: cooler room, no fluids after ~8:30", why: `you were awake ${lastNight.awakeMin} min mid-night — the two cheapest fixes first` });
     else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — wake ~${fmt12((s.sleep.anchor || {}).wake || "06:45")} · ${lo.target} h asleep + ~${lo.sol} min drift-off${(() => { const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length; return melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off` : ""; })()}` });
   } else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — wake ~${fmt12((s.sleep.anchor || {}).wake || "06:45")} · ${lo.target} h asleep + ~${lo.sol} min drift-off` });
-  { const tc3 = todayCaff(s); if (tc3 && tc3.mg > 0) { const at3 = caffAt(tc3.mg, tc3.atH, lo.mins / 60); if (at3 > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at3} mg still aboard at lights-out${tc3.logged ? "" : " (typical dose — log today's real one in SLEEP)"} — above ~50 mg deep sleep measurably thins` }); } }
+  { const tc3 = todayCaff(s); if (tc3 && tc3.mg > 0) { const at3 = caffAt(tc3.mg, tc3.atH, lo.mins / 60); if (at3 > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at3} mg still aboard at lights-out${tc3.logged ? "" : " (typical dose — log today's real one on NOW)"} — above ~50 mg deep sleep measurably thins` }); } }
 
   /* 6 · floor */
   steps.push({ a: "Steps 16.5k", why: "walking is the deficit's quiet engine — calories do the cutting, steps keep it moving" });
@@ -2722,12 +2722,11 @@ const CONSTITUTION = [
 function MinuteView({ s, setS, save, onClose }) {
   const t9 = isoOf(todayStart());
   const y9 = isoOf(new Date(todayStart().getTime() - DAY));
-  const needs = minuteNeeds(s);
   const briefRaw = useRepoDoc("ledger/brief.md");
   const brief9 = briefRaw ? briefRaw.replace(/^<!--.*-->\n?/, "") : null;
   const qm9 = brief9 ? brief9.match(/^QUESTION:\s*(.+)$/m) : null;
   const qOpen = qm9 && !briefAnswered(s, qm9[1]);
-  const steps = [...needs, ...(brief9 || qOpen ? ["brief"] : [])];
+  const [steps] = useState(() => [...minuteNeeds(s), "brief"]);
   const [idx9, setIdx9] = useState(0);
   const [bed9, setBed9] = useState("22:45");
   const [wake9, setWake9] = useState((s.sleep.anchor || {}).wake || "06:45");
@@ -2748,10 +2747,18 @@ function MinuteView({ s, setS, save, onClose }) {
   return (
     <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 70, overflowY: "auto", padding: "0 16px", paddingTop: "calc(env(safe-area-inset-top, 24px) + 14px)", paddingBottom: "calc(env(safe-area-inset-bottom, 10px) + 20px)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Eyebrow c={T.jade}>☀ THE MORNING MINUTE · {idx9 + 1} / {steps.length}</Eyebrow>
+        <Eyebrow c={T.jade}>☀ THE MORNING MINUTE · {Math.min(idx9 + 1, steps.length)} / {steps.length}</Eyebrow>
         <span onClick={onClose} style={{ fontFamily: mono, fontSize: 10, color: T.dim, cursor: "pointer", padding: "8px" }}>close ✕</span>
       </div>
       <div style={{ display: "flex", gap: 5, marginTop: 8 }}>{steps.map((st, i) => <div key={st} style={{ flex: 1, height: 3, borderRadius: 2, background: i < idx9 ? T.jade : i === idx9 ? T.chalk : T.line }} />)}</div>
+      {idx9 >= steps.length && (
+        <div style={{ maxWidth: 480, margin: "60px auto 0", textAlign: "center" }}>
+          <div style={{ fontSize: 44, color: T.jade }}>✓</div>
+          <div style={{ fontFamily: body, fontSize: 15, color: T.chalk, marginTop: 10 }}>Morning banked — the day's yours.</div>
+          <Btn tone="jade" full style={{ marginTop: 18 }} onClick={onClose}>Close</Btn>
+        </div>
+      )}
+      <div style={{ maxWidth: 480, margin: "0 auto", width: "100%" }}>
       {cur === "night" && (
         <div style={{ marginTop: 18 }}>
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Last night</div>
@@ -2842,6 +2849,7 @@ function MinuteView({ s, setS, save, onClose }) {
         </div>
       )}
       <div onClick={advance} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", marginTop: 16, cursor: "pointer" }}>skip this step — its card stays open on NOW</div>
+      </div>
     </div>
   );
 }
@@ -3523,7 +3531,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <>
       {(() => { const bk9 = booksToday(s); if (bk9.complete) return (
         <Card style={{ padding: "9px 14px" }}><div style={{ fontFamily: mono, fontSize: 10, color: T.jade }}>📕 {fmtShort(isoOf(todayStart()))} closed — everything the analysts need is in.</div></Card>
-      ); const mn9 = minuteNeeds(s); if (new Date().getHours() < 12 && mn9.length) return (
+      ); const mn9 = minuteNeeds(s); if (new Date().getHours() < 14 && !mn9.length) return (<Card style={{ padding: "9px 14px" }}><div style={{ fontFamily: mono, fontSize: 10, color: T.jade }}>✓ the morning minute · complete</div></Card>); if (new Date().getHours() < 12 && mn9.length) return (
         <Card accent={T.jade} style={{ padding: "11px 14px", cursor: "pointer" }} onClick={() => setMinOpen(true)}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>☀ THE MORNING MINUTE <span style={{ color: T.dim }}>— {mn9.length + 1} steps · ~60 seconds, then the day's yours</span></div>
