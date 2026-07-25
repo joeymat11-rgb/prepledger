@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.82.0";
+const APP_V = "3.82.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -5520,7 +5520,7 @@ export default function PrepLedger() {
         button { cursor: pointer; }
         ::-webkit-scrollbar { display: none; }
       `}</style>
-      <div style={{ minWidth: 0, overflowX: "hidden", paddingBottom: "calc(78px + env(safe-area-inset-bottom))" }}>
+      <div style={{ minWidth: 0, overflowX: "hidden" }}>
 
       {offline && (
         <div style={{ background: T.plate2, borderBottom: `1px solid ${T.line}`, padding: "calc(8px + env(safe-area-inset-top)) 14px 8px", fontFamily: mono, fontSize: 10, color: T.brass, textAlign: "center" }}>
