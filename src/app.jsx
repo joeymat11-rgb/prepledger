@@ -30,10 +30,10 @@ const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
 if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   const st0 = document.createElement("style"); st0.id = "pl-gx";
-  st0.textContent = "html,body,#root{background:#0e1115} html,body{height:100%;width:100%;overflow:hidden;-webkit-text-size-adjust:100%} #root{height:100%} body{touch-action:pan-y pinch-zoom;-webkit-touch-callout:none;overscroll-behavior:none} *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} input,select,textarea{font-size:16px !important;max-width:100%;-webkit-user-select:text;user-select:text} button{max-width:100%}";
+  st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.80.4";
+const APP_V = "3.81.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -5511,14 +5511,14 @@ export default function PrepLedger() {
   const tabs = ["NOW", "TRAIN", "QUEUE", "BODY", "SLEEP", "HIST"];
 
   return (
-    <div ref={shellRef} style={{ position: "fixed", inset: 0, background: T.ink, color: T.chalk, maxWidth: "100%", display: "flex", flexDirection: "column", overflow: "hidden", overflowWrap: "anywhere" }}>
+    <div ref={shellRef} style={{ minHeight: "100vh", background: T.ink, color: T.chalk, maxWidth: "100%", overflowX: "hidden", overflowWrap: "anywhere" }}>
       <style>{`
         * { -webkit-tap-highlight-color: transparent; }
         input:focus, button:focus-visible { outline: 2px solid ${T.brass}; outline-offset: 1px; }
         button { cursor: pointer; }
         ::-webkit-scrollbar { display: none; }
       `}</style>
-      <div style={{ flex: 1, minWidth: 0, overflowY: "auto", overflowX: "hidden", WebkitOverflowScrolling: "touch", overscrollBehaviorY: "contain", overscrollBehaviorX: "none" }}>
+      <div style={{ minWidth: 0, overflowX: "hidden", paddingBottom: "calc(78px + env(safe-area-inset-bottom))" }}>
 
       {offline && (
         <div style={{ background: T.plate2, borderBottom: `1px solid ${T.line}`, padding: "calc(8px + env(safe-area-inset-top)) 14px 8px", fontFamily: mono, fontSize: 10, color: T.brass, textAlign: "center" }}>
@@ -5545,7 +5545,7 @@ export default function PrepLedger() {
 
       </div>
 
-      <div style={{ flex: "none", position: "relative", background: "rgba(14,17,21,0.96)", borderTop: `1px solid ${T.line}`, backdropFilter: "blur(8px)", paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "rgba(14,17,21,0.96)", borderTop: `1px solid ${T.line}`, backdropFilter: "blur(8px)", paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div style={{ position: "absolute", top: 2, right: 8, fontFamily: mono, fontSize: 7, color: T.dim, opacity: 0.7 }}>v{APP_V} · {vh9}px</div>
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
