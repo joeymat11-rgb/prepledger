@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.91.1";
+const APP_V = "3.92.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -5434,6 +5434,13 @@ export default function PrepLedger() {
   useEffect(() => { window.__setGloss = setGloss; return () => { window.__setGloss = null; }; }, []);
   const shellRef = useRef(null);
   const [vh9, setVh9] = useState(0);
+  const [, beat9] = useState(0);
+  useEffect(() => {
+    const th9 = setInterval(() => beat9((b) => b + 1), 60000);
+    const onVis9 = () => { if (document.visibilityState === "visible") beat9((b) => b + 1); };
+    document.addEventListener("visibilitychange", onVis9);
+    return () => { clearInterval(th9); document.removeEventListener("visibilitychange", onVis9); };
+  }, []);
   useEffect(() => {
     const setH = () => { try {
       const cands = [window.innerHeight || 0, (window.visualViewport && window.visualViewport.height) || 0, (document.documentElement && document.documentElement.clientHeight) || 0];
