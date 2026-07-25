@@ -30,10 +30,10 @@ const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
 if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   const st0 = document.createElement("style"); st0.id = "pl-gx";
-  st0.textContent = "html,body,#root{max-width:100vw;overflow-x:hidden} *{box-sizing:border-box} input,select,button{max-width:100%}";
+  st0.textContent = "html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none} #root{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y} *{box-sizing:border-box} img,svg,input,select,button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.78.1";
+const APP_V = "3.79.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3191,7 +3191,7 @@ function Section({ title, meta, c = T.chalk, children }) {
       <div onClick={() => setOpen(!open)} style={{ cursor: "pointer" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
           <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 16, color: T.chalk, textTransform: "uppercase" }}>{title}</div>
-          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, whiteSpace: "nowrap", textAlign: "right" }}>{meta} {open ? "▾" : "▸"}</div>
+          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "right", minWidth: 0, flex: "1 1 auto", overflowWrap: "anywhere" }}>{meta} {open ? "▾" : "▸"}</div>
         </div>
       </div>
       {open && <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 12 }}>{children}</div>}
@@ -3977,7 +3977,7 @@ function LogTab({ s, setS, save, slp }) {
       {sess && !s.sessionLog[dateSel] && (
         <Btn full tone="jade" onClick={() => setGym(true)}>▶ GYM MODE — one lift at a time, timers on</Btn>
       )}
-      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
+      <div style={{ display: "flex", gap: 8, overflowX: "auto", touchAction: "pan-x", paddingBottom: 2 }}>
         {dateSel && !options.includes(dateSel) && (
           <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>
             ✓ {fmtShort(dateSel)} · RECEIPT
@@ -5488,7 +5488,7 @@ export default function PrepLedger() {
   };
 
   if (!s) return (
-    <div style={{ minHeight: "100vh", background: T.ink, display: "flex", alignItems: "center", justifyContent: "center" , maxWidth: "100vw", overflowX: "hidden", overflowWrap: "anywhere"}}>
+    <div style={{ minHeight: "100vh", background: T.ink, display: "flex", alignItems: "center", justifyContent: "center" , maxWidth: "100%", overflowX: "hidden", overflowWrap: "anywhere"}}>
       <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: "0.2em", color: T.steel }}>OPENING THE LEDGER…</div>
     </div>
   );
@@ -5497,7 +5497,7 @@ export default function PrepLedger() {
   const tabs = ["NOW", "TRAIN", "QUEUE", "BODY", "SLEEP", "HIST"];
 
   return (
-    <div style={{ minHeight: "100vh", background: T.ink, color: T.chalk, maxWidth: "100vw", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: T.ink, color: T.chalk, maxWidth: "100%", overflowX: "hidden", overflowWrap: "anywhere" }}>
       <style>{`
         * { -webkit-tap-highlight-color: transparent; }
         input:focus, button:focus-visible { outline: 2px solid ${T.brass}; outline-offset: 1px; }
