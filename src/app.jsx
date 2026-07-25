@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.76.0";
+const APP_V = "3.77.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -285,6 +285,22 @@ function liftCall(s, exId, opts = {}) {
   if (stall >= 3) { const newW = ex2 && typeof ex2.w === "number" ? Math.max(5, Math.round((ex2.w * 0.95) / 5) * 5) : null; return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest sessions without beating your total. Time to lighten a notch and rebuild — that is how walls fall.`, receipts: R2 }; }
   if (alarm && alarm.level === "AMBER") return { verdict: "HOLD", vel, n: clean.length, why: "Body alarm is AMBER. Normal session, but no all-out sets and no record attempts today.", receipts: R2.concat(["Body alarm: AMBER — off day, not a failure."]) };
   if (!slp2.clean) return { verdict: "HOLD", vel, n: clean.length, why: `Sleep is rebuilding (${slp2.run}/${slp2.need} good nights). Repeat last time — nothing counts as a record today anyway.`, receipts: R2 };
+  {
+    const md2 = (a2) => { const b2 = a2.slice().sort((x2, y2) => x2 - y2); return b2.length ? b2[Math.floor(b2.length / 2)] : 0; };
+    const mT = todayMeds(s); if (mT && !mT.taken) R2.push("No meds today — effort reads truer; energy may sit lower than usual.");
+    const eT = (s.energy || []).find((x) => x.d === tISO3); const eH = (s.energy || []).filter((x) => x.d < tISO3).slice(-14).map((x) => x.v);
+    const gT = (s.grip || []).find((x) => x.d === tISO3); const gH = (s.grip || []).filter((x) => x.d < tISO3).slice(-7).map((x) => (x.l || 0) + (x.r || 0)).filter((v) => v > 0);
+    if (eT) R2.push(`Morning energy ${eT.v}/5${eH.length >= 5 ? ` — your usual is ${md2(eH)}` : ""}.`);
+    const gS = gT ? (gT.l || 0) + (gT.r || 0) : 0;
+    if (gS > 0) R2.push(`Grip ${gS} lb today${gH.length >= 4 ? ` — ${md2(gH)} lb is your recent median` : ""}.`);
+    const eLow = eT && eH.length >= 5 && eT.v <= 2 && eT.v <= md2(eH) - 1;
+    const gLow = gS > 0 && gH.length >= 4 && gS <= md2(gH) * 0.92;
+    if (eLow || gLow) return { verdict: "HOLD", vel, n: clean.length,
+      why: eLow && gLow ? "Engine and grip both read low this morning — repeat last time; records wait for a day your body co-signs."
+        : eLow ? `Morning energy ${eT.v}/5 against your usual ${md2(eH)} — low-fuel day. Repeat last time; the reps will be there when the fuel is.`
+        : `Grip ${gS} lb against your ${md2(gH)} lb median — the nervous system is running warm. Repeat today, don't chase.`,
+      receipts: R2.concat([eLow ? `Energy gate: ${eT.v}/5 vs usual ${md2(eH)} (${eH.length} mornings on file).` : null, gLow ? `Grip gate: ${gS} vs ${md2(gH)} lb median (${gH.length} entries on file).` : null].filter(Boolean)) };
+  }
   if (estToday) return { verdict: "PUSH", vel, n: clean.length, why: "Estimate day — train normally; the numbers just count a little lighter, like you asked.", receipts: R2.concat(["You declared today an estimate day — numbers count, just lighter."]) };
   if (postRf && (vel == null || vel >= 0)) return { verdict: "PUSH+", vel, n: clean.length, why: `Green light: refeed fuel aboard and sleep is clean${vel != null && vel > 0 ? ", and you have been gaining" : ""}. If a record is in you, today is the day.`, receipts: R2.concat(["Yesterday was the refeed — its fuel is in you today."]) };
   if (dowLag != null && dowLag <= -3) return { verdict: "PUSH", vel, n: clean.length, why: `Chase — but this weekday usually runs about ${Math.abs(dowLag)} reps lighter for you here. Beat THAT line and it is a win.`, receipts: R2 };
@@ -523,7 +539,10 @@ function applyRead(state, iso, w) {
   const dl = [];
   for (let i = 1; i < clean.length; i++) { if (Math.round((mk(clean[i].d) - mk(clean[i - 1].d)) / DAY) === 1) { const dd = clean[i].w - clean[i - 1].w; if (Math.abs(dd) < 1.5) dl.push(dd); } }
   const nf = dl.length >= 8 ? Math.sqrt(dl.reduce((a, b) => a + b * b, 0) / dl.length) : null;
-  s.reads.push({ d: iso, w, sealed, pt: s.trend, note: sealed ? "sealed — excluded from trend" : spike ? "spike — damped in trend" : nf && Math.abs(dRaw) <= nf ? "inside your noise — not information" : "" });
+  const ydl9 = (s.dailyLogs || {})[isoOf(new Date(mk(iso).getTime() - DAY))] || {};
+  const water9 = ydl9.sodium === "high" || (ydl9.alc || 0) > 0 ? "salt or alcohol yesterday — water noise likely" : "";
+  const base9 = sealed ? "sealed — excluded from trend" : spike ? "spike — damped in trend" : nf && Math.abs(dRaw) <= nf ? "inside your noise — not information" : "";
+  s.reads.push({ d: iso, w, sealed, pt: s.trend, note: water9 && base9 ? water9 + " · " + base9 : water9 || base9 });
   if (!sealed) s.trend = +(s.trend + 0.3 * dCl).toFixed(1);
   return s;
 }
@@ -762,8 +781,19 @@ function labAnalytics(s) {
     const line = mv.slice().sort((a, b) => (a.zone === "UNDER" ? -1 : b.zone === "UNDER" ? 1 : a.n7 - b.n7)).map((m) => `${m.mg} ${m.n7}${m.zone === "IN-BAND" ? " ✓" : m.zone === "UNDER" ? " ▼▼" : m.zone === "LOW" ? " ▼" : m.zone === "OVER" ? " ▲▲" : " ▲"}`).join(" · ");
     out.push({ id: "volumeledger", t: "THE VOLUME LEDGER — WEEKLY SETS PER MUSCLE", status: mv.length ? "LIVE" : "ARMED", prog: { n: mv.length, need: 1, label: "muscle groups with logged sets" },
       tag: "The biggest dial in hypertrophy, counted from your actual logs.",
-      deep: "Weekly hard sets per muscle is the strongest known volume dial. Counting here uses the half-credit convention: direct sets count 1, and heavy secondary work lends half — pressing lends 0.5 to triceps and delts, rows and pulldowns lend 0.5 to biceps, curls lend 0.5 to forearms. Counting conventions genuinely differ across the literature; half-credit is the defensible middle — direct-only starves muscles that live off compounds, full-credit double-books the same set twice. The bands are deficit-calibrated: " + VOL_BANDS.floor + " is the retention floor (below it for two straight weeks and the ledger proposes +1 as cheap insurance), " + VOL_BANDS.lo + "–" + VOL_BANDS.hi + " is the working zone, past " + VOL_BANDS.ceil + " is caution — recoverable volume compresses in a cut, and sets you cannot recover from are pure fatigue. THE TILT: this house presumes volume useful until your own bar speed says otherwise — adds fire on lighter evidence, while trims demand two confirmed weeks past the ceiling or slipping bars on clean sleep. Every proposal also cross-references the muscle's lift velocities, your sleep gate, and the alarm before it fires; changes go one set at a time through your consent inbox, and each muscle rests two weeks between moves so the change has time to speak. Adds go to the muscle's strongest mover, trims come off its weakest.",
+      deep: "Weekly hard sets per muscle is the strongest known volume dial. Counting here uses the half-credit convention: direct sets count 1, and heavy secondary work lends half — pressing lends 0.5 to triceps and delts, rows and pulldowns lend 0.5 to biceps, curls lend 0.5 to forearms. Counting conventions genuinely differ across the literature; half-credit is the defensible middle — direct-only starves muscles that live off compounds, full-credit double-books the same set twice. The bands are deficit-calibrated: " + VOL_BANDS.floor + " is the retention floor (below it for two straight weeks and the ledger proposes +1 as cheap insurance), " + VOL_BANDS.lo + "–" + VOL_BANDS.hi + " is the working zone, past " + VOL_BANDS.ceil + " is caution — recoverable volume compresses in a cut, and sets you cannot recover from are pure fatigue. THE TILT: this house presumes volume useful until your own bar speed says otherwise — adds fire on lighter evidence, while trims demand two confirmed weeks past the ceiling or slipping bars on clean sleep. Every proposal also cross-references the muscle's lift velocities, your sleep gate, and the alarm before it fires; changes go one set at a time through your consent inbox, and each muscle rests two weeks between moves so the change has time to speak. Adds go to the muscle's strongest mover, trims come off its weakest. Soreness testifies too: two-plus sore mornings blocks a headroom add for that muscle, and three sore mornings on a high week can propose the trim before the bar speed slips.",
       forYou: mv.length ? `This week: ${line}. ✓ in the working zone · ▼ light · ▼▼ under the retention floor · ▲ high · ▲▲ past the deficit ceiling. Proposals arrive in your inbox only when the signals agree.` : "Log a session and the ledger opens.",
+      lines: [] });
+  })();
+  (() => {
+    const nsig = (s.energy || []).length + (s.grip || []).length + (s.soreness || []).length;
+    const eT2 = (s.energy || []).find((x) => x.d === isoOf(todayStart()));
+    const gT2 = (s.grip || []).find((x) => x.d === isoOf(todayStart()));
+    const soreToday = (s.soreness || []).find((x) => x.d === isoOf(todayStart()));
+    out.push({ id: "signals", t: "MORNING SIGNALS — WIRED INTO THE MACHINE", status: nsig >= 5 ? "LIVE" : "ARMED", prog: { n: nsig, need: 5, label: "morning entries banked" },
+      tag: "Energy, grip, soreness, meds — collected in the Minute, consumed by the desk, the volume ledger, the weather, and the scale.",
+      deep: "Nothing here is decoration; each signal has a law. ENERGY GATE: 2-or-under on a morning at least a point below your usual (five-plus mornings on file) and the desk caps every push at HOLD — repeat, don't chase. GRIP GATE: today's left-plus-right at or under 92% of your recent median (four-plus entries) triggers the same cap; the nervous system testifies before the bar does. SORENESS LAW: two-plus sore mornings this week blocks a headroom add for that muscle; three sore mornings on a high-volume week can propose the trim before bar speed slips. MEDS: none-days flag the day's weather and the desk's receipts so appetite, energy, and effort read against the truth. SALT AND ALCOHOL: a high-sodium or alcohol evening annotates the next morning's scale read — water noise, named at the moment you'd otherwise worry. Every gate is silence until its data has standing.",
+      forYou: nsig ? `Today: energy ${eT2 ? eT2.v + "/5" : "—"} · grip ${gT2 ? ((gT2.l || 0) + (gT2.r || 0)) + " lb" : "—"} · sore ${soreToday ? (soreToday.mgs.length ? soreToday.mgs.join(", ") : "nothing") : "—"}. The desk's receipts on TRAIN show these being consulted, lift by lift.` : "Log a first morning signal and this card wakes; the gates arm themselves as history accrues.",
       lines: [] });
   })();
   out.push({ id: "mrv", t: "EMPIRICAL MRV — YOUR VOLUME CEILINGS", status: "LOCKED", prog: null,
@@ -1511,7 +1541,7 @@ function labAnalytics2(s) {
 const INS_MAP = {
   whoosh: ["weigh-in"], refeed: ["weigh-in"], noise: ["weigh-in"], masked: ["weigh-in", "day numbers"], creep: ["day numbers"],
   adaptmeter: ["day numbers", "weigh-in"], stepeff: ["day numbers", "weigh-in"], refeedroi: ["day numbers", "session"],
-  tuefri: ["session"], volumeledger: ["session"], fingerprint: ["session"], strvelocity: ["session"], sessionshape: ["session"], rirtruth: ["session"], notes: ["session"], miss: ["day numbers"],
+  tuefri: ["session"], volumeledger: ["session"], signals: ["morning"], fingerprint: ["session"], strvelocity: ["session"], sessionshape: ["session"], rirtruth: ["session"], notes: ["session"], miss: ["day numbers"],
   sleepdose: ["sleep night", "session"], sleeplag: ["sleep night", "session"], melaexp: ["sleep night"], wakesig: ["sleep night"], regularity: ["sleep night"], variancetax: ["sleep night", "session"], canary: ["sleep night", "session"],
   pulsebase: ["pulse"], cutstress: ["pulse"], pulsewarn: ["pulse"], refeedpulse: ["pulse"], furnacebase: ["temperature"], exittherm: ["temperature"],
   missarch: ["day numbers", "sleep night"], weekend: ["day numbers"], compound: ["weigh-in"], miner: ["session", "sleep night", "day numbers"],
@@ -1588,7 +1618,7 @@ function labGroups(s) {
   const MAP = {
     scale: ["whoosh", "refeed", "noise", "masked", "creep"],
     engine: ["adaptmeter", "stepeff", "refeedroi"],
-    training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss", "volumeledger"],
+    training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss", "volumeledger", "signals"],
     sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "variancetax", "canary"],
     pulse: ["pulsebase", "cutstress", "pulsewarn", "refeedpulse", "furnacebase", "exittherm"],
     behavior: ["missarch", "weekend", "compound", "miner"],
@@ -1970,8 +2000,9 @@ function muscleVolume(s) {
     const vels = lifts.map((x) => ({ id: x.id, n: x.n, v: liftCall(s, x.id).vel })).filter((x) => x.v != null);
     const slipping = vels.filter((x) => x.v < -0.2).length;
     const gaining = vels.filter((x) => x.v > 0.2).length;
+    const sore7 = (s.soreness || []).filter((x) => (mk(tISO6) - mk(x.d)) / DAY < 7 && (x.mgs || []).includes(mg)).length;
     const fmtN = (x2) => (Number.isInteger(x2) ? x2 : +x2.toFixed(1));
-    return { mg, n7: fmtN(n7), p7: fmtN(p7), zone, lifts, vels, slipping, gaining };
+    return { mg, n7: fmtN(n7), p7: fmtN(p7), zone, lifts, vels, slipping, gaining, sore7 };
   }).filter((m) => m.n7 > 0 || m.p7 > 0);
 }
 function sweepVolume(s, dow7 = new Date().getDay()) {
@@ -1987,8 +2018,8 @@ function sweepVolume(s, dow7 = new Date().getDay()) {
     if (recent) return;
     let dir = 0, why = "";
     if (m.zone === "UNDER" && m.p7 < VOL_BANDS.floor) { dir = +1; why = `${m.mg} has run under the retention floor (${m.n7} sets this week, ${m.p7} last week — floor is ${VOL_BANDS.floor}). One more weekly set is cheap insurance for keeping this muscle through the cut.`; }
-    else if ((m.zone === "OVER" && m.p7 > VOL_BANDS.ceil) || (m.zone === "HIGH" && m.slipping >= 2 && slp7.clean)) { dir = -1; why = m.zone === "OVER" ? `${m.mg} has run past the deficit ceiling two weeks straight (${m.n7} now, ${m.p7} last — caution starts at ${VOL_BANDS.ceil}). This house tilts toward stimulus, but two confirmed weeks over the line is the data speaking.` : `${m.mg} sits high (${m.n7} sets) and ${m.slipping} of its lifts are slipping on clean sleep — that is your own bar speed saying this specific volume is costing more than it buys.`; }
-    else if (m.zone === "IN-BAND" && m.n7 <= (VOL_BANDS.lo + VOL_BANDS.hi) / 2 && m.gaining >= 1 && m.slipping === 0 && slp7.clean) { dir = +1; why = `${m.mg} is mid-band (${m.n7} sets), every lift is holding or gaining, and sleep is clean — the signals say there is headroom. One added set is the smallest honest experiment.`; }
+    else if ((m.zone === "OVER" && m.p7 > VOL_BANDS.ceil) || (m.zone === "HIGH" && m.slipping >= 2 && slp7.clean) || (m.zone === "HIGH" && m.sore7 >= 3 && (s.soreness || []).length >= 7)) { dir = -1; why = m.zone === "OVER" ? `${m.mg} has run past the deficit ceiling two weeks straight (${m.n7} now, ${m.p7} last — caution starts at ${VOL_BANDS.ceil}). This house tilts toward stimulus, but two confirmed weeks over the line is the data speaking.` : (m.slipping >= 2 && slp7.clean) ? `${m.mg} sits high (${m.n7} sets) and ${m.slipping} of its lifts are slipping on clean sleep — that is your own bar speed saying this specific volume is costing more than it buys.` : `${m.mg} sits high (${m.n7} sets) and reported sore ${m.sore7} of the last 7 mornings — recovery is the constraint speaking before the bar speed does.`; }
+    else if (m.zone === "IN-BAND" && m.n7 <= (VOL_BANDS.lo + VOL_BANDS.hi) / 2 && m.gaining >= 1 && m.slipping === 0 && slp7.clean && m.sore7 <= 1) { dir = +1; why = `${m.mg} is mid-band (${m.n7} sets), every lift is holding or gaining, and sleep is clean — the signals say there is headroom. One added set is the smallest honest experiment.`; }
     if (!dir) return;
     const pool = m.vels.length ? m.vels : m.lifts.map((x) => ({ id: x.id, n: x.n, v: 0 }));
     const pick = dir > 0 ? pool.slice().sort((a, b) => (b.v ?? 0) - (a.v ?? 0))[0] : pool.slice().sort((a, b) => (a.v ?? 0) - (b.v ?? 0))[0];
@@ -2381,6 +2412,7 @@ function dayWeather(s, iso) {
   if (manual && manual.est) flags.push({ k: "estimate", why: manual.note || "declared estimate day" });
   (s.events || []).forEach((e) => { const gap = (mk(iso) - mk(e.d)) / DAY; if (gap >= -1 && gap <= 2) flags.push({ k: "event", why: e.t || "event window", pre: gap < 0 }); });
   if (s.blackout && iso <= s.blackout.until && (mk(s.blackout.until) - mk(iso)) / DAY <= 9) flags.push({ k: "sealwater", why: "scale carries event water — sealed window" });
+  { const mm2 = (s.medsLog || []).find((x) => x.d === iso); if (mm2 && !mm2.taken) flags.push({ k: "nomeds", why: "no meds this day — appetite, energy, and effort read differently" }); }
   if (dayType(isoOf(new Date(mk(iso).getTime() - DAY))) === "REFEED") flags.push({ k: "postrefeed", why: "morning after refeed — storage bump expected" });
   return { flags, noisy: flags.some((f) => f.k === "estimate" || f.k === "event" || f.k === "sealwater"), hard: flags.some((f) => f.k === "estimate" || (f.k === "event" && !f.pre)), est: flags.some((f) => f.k === "estimate") };
 }
@@ -3067,6 +3099,8 @@ __test.liveBooks = liveBooks;
 __test.LEDGER_DICT = LEDGER_DICT;
 __test.briefAnswered = briefAnswered;
 __test.liftCall = liftCall;
+__test.applyRead = applyRead;
+__test.dayWeather = dayWeather;
 __test.CALL_PLAIN = CALL_PLAIN;
 __test.sweepStalls = sweepStalls;
 __test.muscleVolume = muscleVolume;

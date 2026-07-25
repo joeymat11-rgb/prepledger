@@ -397,7 +397,7 @@ ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id ==
 const gAll = lg2(clone(SN));
 ok(gAll.length === 11 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,trials,road,models,locked,shelf", "eleven shelves, fixed order");
 const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
-ok(tot2 === 51, "all 51 instruments filed exactly once: " + tot2);
+ok(tot2 === 52, "all 52 instruments filed exactly once: " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
@@ -447,7 +447,7 @@ ok(dock.next.every(n => n.n < n.need) && dock.next[0].pct >= (dock.next[1] ? doc
 ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "sentinel line reads");
 const ranked = sl1(clone(SP));
 const rk = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
-ok(ranked.length === 51 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 51 cards, monotone rank order");
+ok(ranked.length === 52 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 52 cards, monotone rank order");
 // a flip lands on the docket's fresh row
 const swD = __test.sweepLab(clone(SP));
 let dkF = JSON.parse(JSON.stringify(swD));
@@ -472,7 +472,7 @@ ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 ph
 // v3.17 — the sibling design review
 const { labSections: ls17, SEED: SR } = __test;
 const secs = ls17(clone(SR));
-ok(secs.reduce((a, x) => a + x.cards.length, 0) === 51, "all 51 filed across the plain-language sections, none lost");
+ok(secs.reduce((a, x) => a + x.cards.length, 0) === 52, "all 52 filed across the plain-language sections, none lost");
 const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "gathering");
 ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
 ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
@@ -1262,4 +1262,54 @@ const old76 = clone(TR76); old76.v = 29; delete old76.medsLog;
 ok(Array.isArray(mg76(old76).medsLog) && mg76(old76).v >= 30, "phones inherit the meds ledger");
 
 console.log(`\nFINAL75: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+// v3.77 — the signals earn their keep: every collected input consumed
+const { liftCall: lc77, muscleVolume: mv77, sweepVolume: sv77, dayWeather: dw77, applyRead: ar77, migrate: mg77x, SEED: TS77 } = __test;
+const td77 = isoL(Date.now());
+
+// soreness column + the two volume laws
+let vq = clone(TS77);
+vq.sessionLog[isoL(Date.now() - 2 * 864e5)] = { entries: [{ id: "hack", reps: [8, 8, 8, 8, 8], rir: 1, w: 160 }, { id: "extension", reps: [9, 9, 9, 9, 9], rir: 1, w: 150 }], at: 1 };
+vq.sessionLog[isoL(Date.now() - 4 * 864e5)] = { entries: [{ id: "hack", reps: [8, 8, 8, 8, 8], rir: 1, w: 160 }], at: 1 };
+vq.sessionLog[isoL(Date.now() - 16 * 864e5)] = { entries: [{ id: "hack", reps: [8, 8], rir: 1, w: 160 }], at: 1 };
+for (let k = 7; k >= 1; k--) vq.soreness = [...(vq.soreness || []), { d: isoL(Date.now() - k * 864e5), mgs: k <= 3 ? ["quads"] : [] }];
+const q77 = mv77(vq).find((m) => m.mg === "quads");
+ok(q77 && q77.sore7 === 3 && (q77.zone === "HIGH" || q77.zone === "OVER"), "soreness counts per muscle per rolling week: " + q77.sore7 + " on a " + q77.zone + " load");
+for (let k = 3; k >= 1; k--) { const d = isoL(Date.now() - k * 864e5); vq.sleep.nights = vq.sleep.nights.filter((n) => n.d !== d); vq.sleep.nights.push({ d, h: 7.8 }); }
+const sw77 = sv77(vq, 0);
+ok(sw77 && sw77.agentProposals.some((ap) => ap.kind === "volume" && ap.dir === -1 && ap.body.indexOf("sore") > -1), "three sore mornings on a high week proposes the trim — recovery speaks before bar speed");
+
+// the desk's energy gate
+let eg = clone(TS77);
+for (const [k, reps] of [[6, [10, 9]], [4, [11, 9]], [2, [12, 10]]]) eg.sessionLog[isoL(Date.now() - k * 864e5)] = { entries: [{ id: "rows", reps, rir: 1, w: 175 }], at: 1 };
+for (let k = 3; k >= 1; k--) { const d = isoL(Date.now() - k * 864e5); eg.sleep.nights = eg.sleep.nights.filter((n) => n.d !== d); eg.sleep.nights.push({ d, h: 7.8 }); }
+for (let k = 6; k >= 2; k--) eg.energy = [...(eg.energy || []), { d: isoL(Date.now() - k * 864e5), v: 4 }];
+let egBase = lc77(eg, "rows");
+eg.energy.push({ d: td77, v: 2 });
+const egCall = lc77(eg, "rows");
+ok(egCall.verdict === "HOLD" && egCall.receipts.join(" ").indexOf("Energy gate") > -1, "a 2/5 morning against a usual 4 caps the desk at HOLD, receipt on file (was " + egBase.verdict + ")");
+
+// the grip gate
+let gg = clone(TS77);
+for (const [k, reps] of [[6, [10, 9]], [4, [11, 9]], [2, [12, 10]]]) gg.sessionLog[isoL(Date.now() - k * 864e5)] = { entries: [{ id: "rows", reps, rir: 1, w: 175 }], at: 1 };
+for (let k = 3; k >= 1; k--) { const d = isoL(Date.now() - k * 864e5); gg.sleep.nights = gg.sleep.nights.filter((n) => n.d !== d); gg.sleep.nights.push({ d, h: 7.8 }); }
+for (let k = 5; k >= 2; k--) gg.grip = [...(gg.grip || []), { d: isoL(Date.now() - k * 864e5), l: 115, r: 115 }];
+gg.grip.push({ d: td77, l: 100, r: 100 });
+const ggCall = lc77(gg, "rows");
+ok(ggCall.verdict === "HOLD" && ggCall.receipts.join(" ").indexOf("Grip gate") > -1, "a 13% grip drop caps the desk — the nervous system testifies first");
+
+// meds none-day flags the weather
+let mw = clone(TS77);
+mw.medsLog = [{ d: td77, taken: false, at: "—" }];
+ok(dw77(mw, td77).flags.some((f) => f.k === "nomeds"), "a none-med day is named in the weather, not hidden");
+
+// salt/alcohol yesterday annotates this morning's read
+let wr = clone(TS77);
+wr.blackout = { until: isoL(Date.now() - 6 * 864e5) };
+wr.dailyLogs[isoL(Date.now() - 864e5)] = { cal: 2400, pro: 170, steps: 12000, sodium: "high", alc: 3 };
+const wr2 = ar77(wr, td77, 164.2);
+ok(wr2.reads[wr2.reads.length - 1].note.indexOf("water noise likely") > -1, "the scale read carries its own explanation: " + wr2.reads[wr2.reads.length - 1].note.slice(0, 44));
+
+console.log(`\nFINAL76: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
