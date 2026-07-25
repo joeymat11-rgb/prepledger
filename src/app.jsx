@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.75.0";
+const APP_V = "3.76.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -144,7 +144,8 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 29;
+  SEED.v = 30;
+  SEED.medsLog = [];
   SEED.energy = []; SEED.soreness = []; SEED.grip = [];
   SEED.caffLog = [];
   SEED.dayCtx = {};
@@ -789,6 +790,9 @@ function sleepSpanH(bed, wake, awakeMin = 0) {
 }
 function fmt12(t2) { if (!t2 || t2 === "—") return t2; const [a3, b3] = t2.split(":").map(Number); const ap = a3 >= 12 ? "PM" : "AM"; const h12 = a3 % 12 === 0 ? 12 : a3 % 12; return `${h12}:${String(b3 || 0).padStart(2, "0")} ${ap}`; }
 function parseHM(t2) { const [a3, b3] = (t2 || "12:00").split(":").map(Number); return a3 + (b3 || 0) / 60; }
+function todayMeds(s) {
+  return (s.medsLog || []).find((x) => x.d === isoOf(todayStart())) || null;
+}
 function todayCaff(s) {
   const e2 = (s.caffLog || []).find((x) => x.d === isoOf(todayStart()));
   if (e2) return { mg: e2.mg, atH: parseHM(e2.at), at: e2.at, logged: true };
@@ -2172,6 +2176,10 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV30(s) {
+  s.medsLog = s.medsLog || [];
+  s.v = 30; return s;
+}
 function patchV29(s) {
   s.energy = s.energy || []; s.soreness = s.soreness || []; s.grip = s.grip || [];
   s.v = 29; return s;
@@ -2266,8 +2274,8 @@ function patchV11(s) {
   return s;
 }
 function migrate(old) {
-  if (old && old.v === 29) return old;
-  if (old && old.v >= 3 && old.v <= 28) return patchV29(patchV28(patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old))))))))))))))))))))))))))));
+  if (old && old.v === 30) return old;
+  if (old && old.v >= 3 && old.v <= 29) return patchV30(patchV29(patchV28(patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))))))))))))))))));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -2293,7 +2301,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV29(patchV28(patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s))))))))))))))))))))))))));
+  return patchV30(patchV29(patchV28(patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))))))))))))))))));
 }
 
 const GLOSSARY = {
@@ -2322,7 +2330,7 @@ export const __test = { targetsFor, genSession, completeSession, runAdaptive, bf
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
-const LEDGER_DICT = "FIELD DICTIONARY (authoritative — never guess a meaning): NIGHTS: h = hours asleep · bed/wake = clock times as logged (they vary; that is expected) · sol = drift-off, minutes to fall asleep · tags: woke = woke mid-night, caff = late caffeine. DAYS: cal/pro/steps as logged · dayCtx est = athlete-declared estimate day (rough numbers, lower evidentiary weight) · ⌁flags = day weather (event window / seal water / post-refeed / estimate). SESSIONS: entries = performed lifts only, w = load, reps per set, rir = reps in reserve on the opener · skipped = lifts deliberately not done (structured truth, zero phantom reps) · note = athlete prose, read it · niggles = flagged aches · dips = incidental dip count. READS: raw morning scale, sealed = quarantined event water, judge only via damped trend. PULSE bpm / TEMP °F = 60s wrist count and oral reading at wake. ENERGY: morning 1–5 (1 fumes · 5 caged animal). SORENESS: muscles tapped sore at wake (empty list = nothing sore, logged). GRIP: best squeeze per hand in lb, same posture daily — a CNS-readiness number. DAILY sodium low/med/high and alcohol units ride the day numbers. CAFFLOG: actual daily caffeine — mg and clock time as logged (mg 0 = a deliberate none-day); tail math runs on these, never an assumed noon. FEED: the app's event log — amendments and corrections here OVERRIDE older raw rows. RECORDS: pending = awaiting the 3-night ≥7.5h clean streak. LAWS: single terminal failure set per exercise; on debt only that final set pulls to 1.";
+const LEDGER_DICT = "FIELD DICTIONARY (authoritative — never guess a meaning): NIGHTS: h = hours asleep · bed/wake = clock times as logged (they vary; that is expected) · sol = drift-off, minutes to fall asleep · tags: woke = woke mid-night, caff = late caffeine. DAYS: cal/pro/steps as logged · dayCtx est = athlete-declared estimate day (rough numbers, lower evidentiary weight) · ⌁flags = day weather (event window / seal water / post-refeed / estimate). SESSIONS: entries = performed lifts only, w = load, reps per set, rir = reps in reserve on the opener · skipped = lifts deliberately not done (structured truth, zero phantom reps) · note = athlete prose, read it · niggles = flagged aches · dips = incidental dip count. READS: raw morning scale, sealed = quarantined event water, judge only via damped trend. PULSE bpm / TEMP °F = 60s wrist count and oral reading at wake. MEDSLOG: prescription taken/none with clock time — pure adherence bookkeeping; the system's biggest confound (appetite, pulse, effort, drift-off all move with it) now has a clock. ENERGY: morning 1–5 (1 fumes · 5 caged animal). SORENESS: muscles tapped sore at wake (empty list = nothing sore, logged). GRIP: best squeeze per hand in lb, same posture daily — a CNS-readiness number. DAILY sodium low/med/high and alcohol units ride the day numbers. CAFFLOG: actual daily caffeine — mg and clock time as logged (mg 0 = a deliberate none-day); tail math runs on these, never an assumed noon. FEED: the app's event log — amendments and corrections here OVERRIDE older raw rows. RECORDS: pending = awaiting the 3-night ≥7.5h clean streak. LAWS: single terminal failure set per exercise; on debt only that final set pulls to 1.";
 
 async function ghSync(state) {
   let tok = null;
@@ -2486,7 +2494,7 @@ function askContext(s) {
   const trls = (s.trials || []).map((t3) => { const tp = trialTpl(t3); return tp ? `${tp.t} (started ${t3.started})` : ""; }).filter(Boolean).join(" · ") || "none";
   const gate2 = sleepInfo(s);
   const dict = LEDGER_DICT + " SLEEP GATE RIGHT NOW (do not re-derive): clean run " + gate2.run + "/" + gate2.need + " — records currently " + (gate2.clean ? "OFFICIAL" : "PENDING") + ". EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
-  return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
+  return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== MEDS (last 7 logged) ===\n${(s.medsLog || []).slice(-7).map((m8) => `${m8.d}: ${m8.taken ? "taken @ " + m8.at : "none"}`).join("\\n") || "none logged"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
 }
 const AGENT_TOOLS = [
   { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads|feed. Feed = the app event log; amendments there override older raw rows. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
@@ -3073,6 +3081,8 @@ __test.minuteNeeds = minuteNeeds;
 __test.booksToday = booksToday;
 __test.MORNING_REGISTRY = MORNING_REGISTRY;
 __test.MUSCLE_CHIPS = MUSCLE_CHIPS;
+__test.todayMeds = todayMeds;
+__test.dayType = dayType;
 __test.caffAt = caffAt;
 __test.CONSTITUTION = CONSTITUTION;
 
@@ -3262,6 +3272,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [minOpen, setMinOpen] = useState(false);
   const [nCMg, setNCMg] = useState(200);
   const [nCAt, setNCAt] = useState(() => { const d9 = new Date(); return String(d9.getHours()).padStart(2, "0") + ":" + String(Math.floor(d9.getMinutes() / 15) * 15).padStart(2, "0"); });
+  const [mAt, setMAt] = useState(() => { const ml = (s.medsLog || []).filter((x) => x.taken && x.at && x.at !== "—"); return ml.length ? ml[ml.length - 1].at : "12:00"; });
   const tISO = isoOf(todayStart());
   const [bedT, setBedT] = useState("23:00");
   const [wakeT, setWakeT] = useState((s.sleep.anchor || {}).wake || "06:45");
@@ -3606,6 +3617,31 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               ))}
               <input type="time" value={nCAt} onChange={(e3) => setNCAt(e3.target.value)} style={{ width: 60, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 7px", outline: "none", opacity: nCMg === 0 ? 0.4 : 1 }} />
               <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = [...(ns.caffLog || []).filter((x) => x.d !== tISO), { d: tISO, mg: nCMg, at: nCMg === 0 ? "—" : nCAt }]; ns.feed.unshift({ d: tISO, t: nCMg === 0 ? "CAFFEINE — NONE TODAY" : `CAFFEINE — ${nCMg} mg at ${fmt12(nCAt)}`, how: "logged on NOW — the tail math runs on this" }); setS(ns); save(ns); }}>Log</Btn>
+            </div>
+          </Card>
+        );
+      })()}
+
+      {(() => {
+        const me0 = todayMeds(s);
+        if (me0) {
+          return (
+            <Card style={{ padding: "9px 14px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                <span style={{ fontFamily: mono, fontSize: 10, color: T.jade }}>✓ meds · {me0.taken ? `taken @ ${fmt12(me0.at)}` : "none today"}</span>
+                <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.medsLog = (ns.medsLog || []).filter((x) => x.d !== tISO); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, cursor: "pointer" }}>undo</span>
+              </div>
+            </Card>
+          );
+        }
+        return (
+          <Card style={{ padding: "10px 14px" }}>
+            <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, letterSpacing: "0.06em" }}>MEDS — TAKEN TODAY? (adherence bookkeeping, nothing more)</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 7, alignItems: "center" }}>
+              <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.medsLog = [...(ns.medsLog || []).filter((x) => x.d !== tISO), { d: tISO, taken: false, at: "—" }]; ns.feed.unshift({ d: tISO, t: "MEDS — NONE TODAY", how: "logged — the analysts read appetite, pulse, and effort against this" }); setS(ns); save(ns); }}
+                style={{ fontFamily: mono, fontSize: 10, color: T.dim, border: `1px solid ${T.line}`, borderRadius: 999, padding: "5px 10px", cursor: "pointer" }}>none today ✓</span>
+              <input type="time" value={mAt} onChange={(e6) => setMAt(e6.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: "6px 7px", outline: "none" }} />
+              <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.medsLog = [...(ns.medsLog || []).filter((x) => x.d !== tISO), { d: tISO, taken: true, at: mAt }]; ns.feed.unshift({ d: tISO, t: `MEDS — TAKEN AT ${fmt12(mAt)}`, how: "logged — the biggest confound in the system now has a clock" }); setS(ns); save(ns); }}>Log</Btn>
             </div>
           </Card>
         );
@@ -3974,7 +4010,7 @@ function LogTab({ s, setS, save, slp }) {
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <Chip c={slp.clean ? T.jade : T.brass}>{slp.clean ? "SLEEP CLEAN — records set today count for real" : <>SHORT SLEEP {slp.run}/{slp.need} — records count as <Term k="provisional" c={T.brass}>pending</Term></>}</Chip>
-        <Chip><Term k="noonwindow" c={T.steel}>STIM CHECK</Term> — meds peak midday · if lifting then, effort feels easier than it is</Chip>
+        <Chip><Term k="noonwindow" c={T.steel}>STIM CHECK</Term>{(() => { const me1 = todayMeds(s); if (me1 && me1.taken) return <> — meds @ {fmt12(me1.at)} · effort feels easier mid-peak than it is</>; if (me1 && !me1.taken) return <> — none today · effort reads truer, energy may run lower</>; return <> — meds peak midday · if lifting then, effort feels easier than it is · log it on NOW</>; })()}</Chip>
       </div>
 
       {(() => { const mv2 = muscleVolume(s); if (!mv2.length) return null; return (
