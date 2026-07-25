@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.81.3";
+const APP_V = "3.82.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3316,6 +3316,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [mAt, setMAt] = useState(() => { const ml = (s.medsLog || []).filter((x) => x.taken && x.at && x.at !== "—"); return ml.length ? ml[ml.length - 1].at : "12:00"; });
   const [yCal, setYCal] = useState(""); const [yPro, setYPro] = useState(""); const [yStp, setYStp] = useState("");
   const [ySod, setYSod] = useState(null); const [yAlc, setYAlc] = useState(0);
+  const [amendY, setAmendY] = useState(false);
   const tISO = isoOf(todayStart());
   const [bedT, setBedT] = useState("23:00");
   const [wakeT, setWakeT] = useState((s.sleep.anchor || {}).wake || "06:45");
@@ -3413,11 +3414,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       {(() => {
         const y8 = isoOf(new Date(todayStart().getTime() - DAY));
-        if (s.dailyLogs[y8] || Object.keys(s.dailyLogs).length === 0) return null;
+        if ((s.dailyLogs[y8] && !amendY) || Object.keys(s.dailyLogs).length === 0) return null;
+        const isAmend = !!s.dailyLogs[y8];
         return (
           <Card accent={T.brass}>
-            <Eyebrow c={T.brass}>YESTERDAY'S BOOKS STILL OPEN — CLOSE {fmtShort(y8).toUpperCase()} IN 30 SECONDS</Eyebrow>
-            <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 4 }}>Midnight passed but the day didn't file itself. Same numbers, honest timestamp — the ledger marks it logged-late, which is a fact, not a fault.</div>
+            <Eyebrow c={T.brass}>{isAmend ? `AMEND ${fmtShort(y8).toUpperCase()} — HONEST CORRECTIONS WELCOME` : `YESTERDAY'S BOOKS STILL OPEN — CLOSE ${fmtShort(y8).toUpperCase()} IN 30 SECONDS`}</Eyebrow>
+            <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 4 }}>{isAmend ? "Late bites count on the day they belong to. Corrected numbers replace the old ones; the amendment itself goes on the record — that is accuracy, not failure." : "Midnight passed but the day didn't file itself. Same numbers, honest timestamp — the ledger marks it logged-late, which is a fact, not a fault."}</div>
             <div style={{ display: "flex", gap: 8, marginTop: 9 }}>
               {[["CAL", yCal, setYCal], ["PRO", yPro, setYPro], ["STEPS", yStp, setYStp]].map(([l8, v8, f8]) => (
                 <div key={l8} style={{ flex: 1 }}>
@@ -3435,7 +3437,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <Stepper v={+yAlc} set={setYAlc} step={1} min={0} />
             </div>
             <div style={{ marginTop: 10 }}>
-              <Btn full tone="jade" onClick={() => { if (yCal === "" && yPro === "" && yStp === "") return; const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: yCal === "" ? null : +yCal, pro: yPro === "" ? null : +yPro, steps: yStp === "" ? null : +yStp, sodium: ySod, alc: +yAlc || 0 }; ns.feed.unshift({ d: y8, t: `BOOKS CLOSED LATE — ${fmtShort(y8)} logged after midnight`, how: "the repair door on NOW — same numbers, honest timestamp" }); setS(ns); save(ns); }}>Close {fmtShort(y8)} — file it</Btn>
+              <Btn full tone="jade" onClick={() => { if (yCal === "" && yPro === "" && yStp === "") return; const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: yCal === "" ? null : +yCal, pro: yPro === "" ? null : +yPro, steps: yStp === "" ? null : +yStp, sodium: ySod, alc: +yAlc || 0 }; ns.feed.unshift(isAmend ? { d: y8, t: `DAY AMENDED — ${fmtShort(y8)}: ${(s.dailyLogs[y8] || {}).cal ?? "—"}→${yCal || "—"} cal · ${(s.dailyLogs[y8] || {}).pro ?? "—"}→${yPro || "—"} g`, how: "athlete corrected the record after close — late bites logged where they belong" } : { d: y8, t: `BOOKS CLOSED LATE — ${fmtShort(y8)} logged after midnight`, how: "the repair door on NOW — same numbers, honest timestamp" }); setAmendY(false); setS(ns); save(ns); }}>{isAmend ? `Refile ${fmtShort(y8)} — corrected` : `Close ${fmtShort(y8)} — file it`}</Btn>
             </div>
           </Card>
         );
@@ -3649,7 +3651,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <Stepper v={+alc9} set={(v0) => { setAlc9(v0); if (dl) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].alc = v0; setS(ns); save(ns); } }} step={1} min={0} />
           <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>units</span>
         </div>
-        {(() => { const yd9 = s.dailyLogs[isoOf(new Date(todayStart().getTime() - DAY))]; if (!yd9) return null; return <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>yest: {yd9.cal ?? "—"} · {yd9.pro ?? "—"} · {yd9.steps != null ? (yd9.steps / 1000).toFixed(1) + "k" : "—"}</div>; })()}
+        {(() => { const yd9 = s.dailyLogs[isoOf(new Date(todayStart().getTime() - DAY))]; if (!yd9) return null; return <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>yest: {yd9.cal ?? "—"} · {yd9.pro ?? "—"} · {yd9.steps != null ? (yd9.steps / 1000).toFixed(1) + "k" : "—"} <span onClick={() => { setYCal(yd9.cal != null ? String(yd9.cal) : ""); setYPro(yd9.pro != null ? String(yd9.pro) : ""); setYStp(yd9.steps != null ? String(yd9.steps) : ""); setYSod(yd9.sodium || null); setYAlc(yd9.alc || 0); setAmendY(true); }} style={{ cursor: "pointer", color: T.steel }}>✎ amend</span></div>; })()}
         {s.fixWindow && (
           <div style={{ marginTop: 10, fontFamily: mono, fontSize: 11, color: T.brass }}><Term k="fixwindow" c={T.brass}>FIX WINDOW OPEN</Term> — hit protein today and yesterday's miss counts as a save, not a break. Nothing resets.</div>
         )}
