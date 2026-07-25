@@ -1144,7 +1144,7 @@ if (fail) process.exit(1);
 const { filingsFor: ff70, CONSTITUTION: CN70, bodyAlarm: ba70, SEED: TM70 } = __test;
 ok(ff70(1, 15).some((x) => x.indexOf("COACH DAY") === 0), "Mondays point NOW at the dossier");
 ok(ff70(3, 2).some((x) => x.indexOf("THE RED CELL") === 0) && ff70(3, 15).length === 0, "the prosecution gets its pointer only in filing week");
-ok(CN70.length === 11 && CN70.every((c) => c[0] && c[1] && c[1].length > 30), "eleven laws, each with a name and a plain sentence");
+ok(CN70.length === 12 && CN70.every((c) => c[0] && c[1] && c[1].length > 30), "twelve laws, each with a name and a plain sentence");
 ok(CN70.some((c) => c[0] === "Attention lives on NOW") && CN70.some((c) => c[0] === "Simple surface, real depth"), "the athlete's two new laws are carved first");
 ok(typeof ba70 === "function", "the alarm engine is exported — its NOW banner reads the same source as the desk");
 
