@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.83.0";
+const APP_V = "3.84.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2717,6 +2717,7 @@ const CONSTITUTION = [
   ["Records need clean sleep", "Nothing banks on a short-sleep streak. Pending isn't punishment — it's meaning protection."],
   ["The athlete overrides", "Every number is yours to change on the floor. The machine rebases instantly and files your ruling as precedent."],
   ["The morning lives in the Minute", "Any input that belongs to the morning joins the Morning Minute — one guided flow, about sixty seconds, before the day starts pulling. New morning inputs must register a step; the test suite enforces it."],
+  ["No decorative fields", "Every field must buy attribution — a clock, a tap, a number that changes what the machine can conclude. Friction that buys nothing is deleted, because friction is what kills tracking systems by week nine."],
 ];
 function MinuteView({ s, setS, save, onClose }) {
   const t9 = isoOf(todayStart());
@@ -2761,7 +2762,7 @@ function MinuteView({ s, setS, save, onClose }) {
             <span style={{ color: T.jade }}>= {spanH} h asleep</span>
           </div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
-            {["woke", "caff", "screens", "mela"].map((tg) => <span key={tg} onClick={() => setTags9(tags9.includes(tg) ? tags9.filter((x) => x !== tg) : [...tags9, tg])} style={{ fontFamily: mono, fontSize: 10, color: tags9.includes(tg) ? T.brass : T.dim, border: `1px solid ${tags9.includes(tg) ? T.brass : T.line}`, borderRadius: 999, padding: "5px 10px" }}>{tg === "woke" ? "woke mid-night" : tg === "caff" ? "late caffeine" : tg === "mela" ? "melatonin" : "screens"}</span>)}
+            {["woke", "screens", "mela"].map((tg) => <span key={tg} onClick={() => setTags9(tags9.includes(tg) ? tags9.filter((x) => x !== tg) : [...tags9, tg])} style={{ fontFamily: mono, fontSize: 10, color: tags9.includes(tg) ? T.brass : T.dim, border: `1px solid ${tags9.includes(tg) ? T.brass : T.line}`, borderRadius: 999, padding: "5px 10px" }}>{tg === "woke" ? "woke mid-night" : tg === "caff" ? "late caffeine" : tg === "mela" ? "melatonin" : "screens"}</span>)}
           </div>
           <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.sleep.nights = ns.sleep.nights.filter((n) => n.d !== y9); ns.sleep.nights.push({ d: y9, h: spanH, bed: bed9, wake: wake9, sol: sol9, tags: tags9 }); })}>Bank the night →</Btn>
         </div>
@@ -2851,7 +2852,7 @@ function LawsView({ onClose }) {
         <Eyebrow c={T.jade}>⚖ THE HOUSE LAWS</Eyebrow>
         <span onClick={onClose} style={{ fontFamily: mono, fontSize: 10, color: T.dim, cursor: "pointer", padding: "8px" }}>close ✕</span>
       </div>
-      <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 4 }}>The rules this app runs on. Every feature answers to them; three were written by the athlete.</div>
+      <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 4 }}>The rules this app runs on. Every feature answers to them; four were written by the athlete.</div>
       {CONSTITUTION.map((c9, i9) => (
         <div key={i9} style={{ marginTop: 14, paddingBottom: 12, borderBottom: i9 < CONSTITUTION.length - 1 ? `1px solid ${T.line}` : "none" }}>
           <div style={{ fontFamily: mono, fontSize: 11, color: T.jade, letterSpacing: "0.06em", textTransform: "uppercase" }}>{i9 + 1}. {c9[0]}</div>
@@ -3349,6 +3350,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
   const [sod9, setSod9] = useState(() => (s.dailyLogs[tISO] || {}).sodium || null);
   const [alc9, setAlc9] = useState(() => (s.dailyLogs[tISO] || {}).alc ?? 0);
+  useEffect(() => { const d0 = s.dailyLogs[tISO] || {}; setCal(d0.cal ?? 1760); setPro(d0.pro ?? 175); setStp(d0.steps ?? 16500); setSod9(d0.sodium ?? null); setAlc9(d0.alc ?? 0); }, [tISO]);
   const saveDaily = () => {
     const ns = { ...s };
     const c = cal === "" ? null : Number(cal), p = pro === "" ? null : Number(pro), st = stp === "" ? null : Number(stp);
@@ -3548,7 +3550,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
-                    {[["mela", "melatonin"], ["caff", "late caffeine"], ["woke", "woke mid-night"], ["screen", "late screens"]].map(([k2, lbl]) => {
+                    {[["mela", "melatonin"], ["woke", "woke mid-night"], ["screen", "late screens"]].map(([k2, lbl]) => {
                       const on = slTags.includes(k2);
                       return (
                         <button key={k2} onClick={() => setSlTags(on ? slTags.filter((x) => x !== k2) : [...slTags, k2])}

@@ -1324,3 +1324,11 @@ ok(!lb77(clone(TT77)).items.some((i) => i.k === "grip"), "unadopted stays invisi
 
 console.log(`\nFINAL77: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+// v3.84 — law 12: no decorative fields
+const { CONSTITUTION: CN84 } = __test;
+ok(CN84.length === 12 && CN84[11][0] === "No decorative fields", "law 12 carved: " + CN84[11][0]);
+ok(CN84[11][1].indexOf("week nine") > -1, "the law keeps its teeth in its own words");
+
+console.log(`\nFINAL78: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
