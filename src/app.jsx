@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.85.0";
+const APP_V = "3.86.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2378,7 +2378,11 @@ async function ghSync(state) {
   try { const g = await fetch(url, { headers: hdr }); if (g.ok) sha = (await g.json()).sha; } catch (e) {}
   const body = { message: "ledger auto-sync " + isoOf(todayStart()) + " [skip ci]", content: btoa(unescape(encodeURIComponent(JSON.stringify({ ...state, _dictionary: LEDGER_DICT })))), ...(sha ? { sha } : {}) };
   try {
-    const put = await fetch(url, { method: "PUT", headers: { ...hdr, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    let put = await fetch(url, { method: "PUT", headers: { ...hdr, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    for (let rt = 0; !put.ok && (put.status === 409 || put.status === 422) && rt < 2; rt++) {
+      try { const g2 = await fetch(url + "?t=" + Date.now(), { headers: hdr }); if (g2.ok) body.sha = (await g2.json()).sha; } catch (e) {}
+      put = await fetch(url, { method: "PUT", headers: { ...hdr, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    }
     if (put.ok) { try { snapshotMaybe(state, tok); localStorage.setItem("pl-lastsync", String(Date.now())); } catch (e) {} }
     return put.ok ? { ok: true } : { ok: false, msg: "HTTP " + put.status + (put.status === 401 ? " — token expired?" : "") };
   } catch (e) { return { ok: false, msg: "network" }; }
@@ -2783,7 +2787,8 @@ function MinuteView({ s, setS, save, onClose }) {
       )}
       {cur === "energy" && (
         <div style={{ marginTop: 18 }}>
-          <div style={{ fontFamily: body, fontSize: 13, color: T.chalk }}>How's the engine this morning?</div>
+          <div style={{ fontFamily: body, fontSize: 16, color: T.chalk, fontWeight: 600 }}>Morning energy</div>
+          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 3 }}>One tap — how much do you have today?</div>
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
             {[1, 2, 3, 4, 5].map((v9) => (
               <span key={v9} onClick={() => w9((ns) => { ns.energy = [...(ns.energy || []).filter((x) => x.d !== t9), { d: t9, v: v9 }]; })}
