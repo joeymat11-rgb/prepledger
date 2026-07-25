@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.82.1";
+const APP_V = "3.83.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3914,6 +3914,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <div onClick={() => setLawsOpen(true)} style={{ cursor: "pointer", fontFamily: mono, fontSize: 9.5, color: T.dim }}>⚖ THE HOUSE LAWS — the rules this app runs on · tap to read ▸</div>
       </Card>
 
+      <div style={{ textAlign: "center", fontFamily: mono, fontSize: 8, color: T.dim, opacity: 0.55, padding: "10px 0 2px" }}>PREP LEDGER · v{APP_V}</div>
+
     </div>
   );
 }
@@ -5520,7 +5522,7 @@ export default function PrepLedger() {
         button { cursor: pointer; }
         ::-webkit-scrollbar { display: none; }
       `}</style>
-      <div style={{ minWidth: 0, overflowX: "hidden" }}>
+      <div id="pl-scroll" style={{ minWidth: 0, overflowX: "hidden" }}>
 
       {offline && (
         <div style={{ background: T.plate2, borderBottom: `1px solid ${T.line}`, padding: "calc(8px + env(safe-area-inset-top)) 14px 8px", fontFamily: mono, fontSize: 10, color: T.brass, textAlign: "center" }}>
@@ -5536,7 +5538,7 @@ export default function PrepLedger() {
 
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "env(safe-area-inset-top)", background: T.ink, zIndex: 55 }} />
 
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(14px + env(safe-area-inset-top)) 14px 132px" }}>
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(14px + env(safe-area-inset-top)) 14px 88px" }}>
         {tab === "NOW" && <TabGuard name="NOW"><NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}
         {tab === "TRAIN" && <TabGuard name="TRAIN"><LogTab s={s} setS={setS} save={save} slp={slp} /></TabGuard>}
         {tab === "QUEUE" && <TabGuard name="QUEUE"><QueueTab s={s} slp={slp} /></TabGuard>}
@@ -5548,7 +5550,7 @@ export default function PrepLedger() {
       </div>
 
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: T.plate, borderTop: `1px solid ${T.line}` }}>
-        <div style={{ position: "absolute", top: 2, right: 8, fontFamily: mono, fontSize: 7, color: T.dim, opacity: 0.7 }}>v{APP_V} · {vh9}px</div>
+        <div onClick={() => { try { const w = document.getElementById("pl-scroll"); const kids = [...(w ? w.children : [])].map((el) => ({ t: el.tagName + (el.id ? "#" + el.id : ""), h: Math.round(el.getBoundingClientRect().height) })).filter((k) => k.h > 40).sort((a, b) => b.h - a.h).slice(0, 6); alert("glass " + window.innerHeight + " | page " + Math.round(document.documentElement.scrollHeight) + " | wrap " + (w ? Math.round(w.getBoundingClientRect().height) : "?") + "\n" + kids.map((k) => k.t + " " + k.h).join("\n")); } catch (e) { alert("probe error"); } }} style={{ position: "absolute", top: 2, right: 8, fontFamily: mono, fontSize: 7, color: T.dim, opacity: 0.7, padding: 4 }}>v{APP_V} · {vh9}px</div>
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
             <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: tab === t2 ? `2px solid ${T.chalk}` : "2px solid transparent", fontFamily: mono, fontSize: 9.5, letterSpacing: "0.09em", color: tab === t2 ? T.chalk : T.dim }}>
