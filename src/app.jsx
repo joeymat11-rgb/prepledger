@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.77.1";
+const APP_V = "3.78.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3309,6 +3309,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [nCMg, setNCMg] = useState(200);
   const [nCAt, setNCAt] = useState(() => { const d9 = new Date(); return String(d9.getHours()).padStart(2, "0") + ":" + String(Math.floor(d9.getMinutes() / 15) * 15).padStart(2, "0"); });
   const [mAt, setMAt] = useState(() => { const ml = (s.medsLog || []).filter((x) => x.taken && x.at && x.at !== "—"); return ml.length ? ml[ml.length - 1].at : "12:00"; });
+  const [yCal, setYCal] = useState(""); const [yPro, setYPro] = useState(""); const [yStp, setYStp] = useState("");
+  const [ySod, setYSod] = useState(null); const [yAlc, setYAlc] = useState(0);
   const tISO = isoOf(todayStart());
   const [bedT, setBedT] = useState("23:00");
   const [wakeT, setWakeT] = useState((s.sleep.anchor || {}).wake || "06:45");
@@ -3403,6 +3405,36 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       ); })()}
 
       <BriefCard s={s} setS={setS} save={save} />
+
+      {(() => {
+        const y8 = isoOf(new Date(todayStart().getTime() - DAY));
+        if (s.dailyLogs[y8] || Object.keys(s.dailyLogs).length === 0) return null;
+        return (
+          <Card accent={T.brass}>
+            <Eyebrow c={T.brass}>YESTERDAY'S BOOKS STILL OPEN — CLOSE {fmtShort(y8).toUpperCase()} IN 30 SECONDS</Eyebrow>
+            <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 4 }}>Midnight passed but the day didn't file itself. Same numbers, honest timestamp — the ledger marks it logged-late, which is a fact, not a fault.</div>
+            <div style={{ display: "flex", gap: 8, marginTop: 9 }}>
+              {[["CAL", yCal, setYCal], ["PRO", yPro, setYPro], ["STEPS", yStp, setYStp]].map(([l8, v8, f8]) => (
+                <div key={l8} style={{ flex: 1 }}>
+                  <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em", marginBottom: 4 }}>{l8}</div>
+                  <input inputMode="decimal" value={v8} onChange={(e8) => f8(e8.target.value)} style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8, color: T.chalk, fontFamily: mono, fontSize: 15, padding: "9px 8px", outline: "none" }} />
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>SODIUM</span>
+              {["low", "med", "high"].map((sv) => (
+                <span key={sv} onClick={() => setYSod(sv)} style={{ fontFamily: mono, fontSize: 9.5, color: ySod === sv ? T.jade : T.dim, border: `1px solid ${ySod === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px", cursor: "pointer" }}>{sv}</span>
+              ))}
+              <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginLeft: 8 }}>ALCOHOL</span>
+              <Stepper v={+yAlc} set={setYAlc} step={1} min={0} />
+            </div>
+            <div style={{ marginTop: 10 }}>
+              <Btn full tone="jade" onClick={() => { if (yCal === "" && yPro === "" && yStp === "") return; const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: yCal === "" ? null : +yCal, pro: yPro === "" ? null : +yPro, steps: yStp === "" ? null : +yStp, sodium: ySod, alc: +yAlc || 0 }; ns.feed.unshift({ d: y8, t: `BOOKS CLOSED LATE — ${fmtShort(y8)} logged after midnight`, how: "the repair door on NOW — same numbers, honest timestamp" }); setS(ns); save(ns); }}>Close {fmtShort(y8)} — file it</Btn>
+            </div>
+          </Card>
+        );
+      })()}
 
       {(() => { const pr = dayProtocol(s, slp); return (
         <Card accent={T.jade}>
