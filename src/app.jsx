@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "html,body,#root{background:#0e1115} html,body{height:100%;width:100%;overflow:hidden;-webkit-text-size-adjust:100%} #root{height:100%} body{touch-action:pan-y pinch-zoom;-webkit-touch-callout:none;overscroll-behavior:none} *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} input,select,textarea{font-size:16px !important;max-width:100%;-webkit-user-select:text;user-select:text} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.80.3";
+const APP_V = "3.80.4";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -4086,9 +4086,9 @@ function LogTab({ s, setS, save, slp }) {
         <Chip><Term k="noonwindow" c={T.steel}>STIM CHECK</Term>{(() => { const me1 = todayMeds(s); if (me1 && me1.taken) return <> — meds @ {fmt12(me1.at)} · effort feels easier mid-peak than it is</>; if (me1 && !me1.taken) return <> — none today · effort reads truer, energy may run lower</>; return <> — meds peak midday · if lifting then, effort feels easier than it is · log it on NOW</>; })()}</Chip>
       </div>
 
-      {(() => { const mv2 = muscleVolume(s); if (!mv2.length) return null; return (
+      {(() => { const mv2 = muscleVolume(s); if (!mv2.length) return null; const fS = Object.keys(s.sessionLog).sort()[0]; const matureV = !!fS && (mk(isoOf(todayStart())) - mk(fS)) / DAY >= 14; return (
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.steel, padding: "8px 2px", lineHeight: 1.7 }}>
-          THIS WEEK'S SETS · {mv2.map((m) => <span key={m.mg} style={{ color: m.zone === "IN-BAND" ? T.jade : m.zone === "UNDER" || m.zone === "OVER" ? T.redline : T.brass, marginRight: 8 }}>{m.mg} {m.n7}{m.zone === "IN-BAND" ? " ✓" : m.zone === "UNDER" ? " ▼▼" : m.zone === "LOW" ? " ▼" : m.zone === "OVER" ? " ▲▲" : " ▲"}</span>)}
+          {matureV ? "THIS WEEK'S SETS · " : "SETS THIS WEEK — counting only, no verdicts until the ledger has 14 days of your logs · "}{mv2.map((m) => <span key={m.mg} style={{ color: !matureV ? T.dim : m.zone === "IN-BAND" ? T.jade : m.zone === "UNDER" || m.zone === "OVER" ? T.redline : T.brass, marginRight: 8 }}>{m.mg} {m.n7}{!matureV ? "" : m.zone === "IN-BAND" ? " ✓" : m.zone === "UNDER" ? " ▼▼" : m.zone === "LOW" ? " ▼" : m.zone === "OVER" ? " ▲▲" : " ▲"}</span>)}
         </div>
       ); })()}
       {sess.ex.map((ex) => (
@@ -5518,7 +5518,7 @@ export default function PrepLedger() {
         button { cursor: pointer; }
         ::-webkit-scrollbar { display: none; }
       `}</style>
-      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", overscrollBehaviorY: "contain" }}>
+      <div style={{ flex: 1, minWidth: 0, overflowY: "auto", overflowX: "hidden", WebkitOverflowScrolling: "touch", overscrollBehaviorY: "contain", overscrollBehaviorX: "none" }}>
 
       {offline && (
         <div style={{ background: T.plate2, borderBottom: `1px solid ${T.line}`, padding: "calc(8px + env(safe-area-inset-top)) 14px 8px", fontFamily: mono, fontSize: 10, color: T.brass, textAlign: "center" }}>
