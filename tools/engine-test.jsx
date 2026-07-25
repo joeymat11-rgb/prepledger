@@ -1234,9 +1234,9 @@ ok(["energy", "soreness", "grip"].every((k) => MR75.includes(k)), "law 11 enforc
 ok(MC75.length === 10 && MC75.includes("forearms"), "the soreness map covers all ten trained muscles");
 let fr75 = clone(TQ75);
 const nd75 = mn75(fr75);
-ok(nd75.includes("energy") && nd75.includes("soreness") && !nd75.includes("grip"), "the Minute offers energy and soreness to everyone; grip waits for the dynamometer: " + nd75.join(","));
-fr75.grip = [{ d: isoL(Date.now() - 864e5), l: 110, r: 118 }];
-ok(mn75(fr75).includes("grip"), "one grip entry adopts the instrument — the Minute asks from then on");
+ok(nd75.includes("energy") && nd75.includes("soreness") && nd75.includes("grip"), "the Minute offers energy, soreness, and grip to everyone — the athlete ordered the device: " + nd75.join(","));
+fr75.grip = [{ d: isoL(Date.now()), l: 110, r: 118 }];
+ok(!mn75(fr75).includes("grip"), "a logged grip leaves the Minute for the day — done is done");
 let bk75 = clone(TQ75);
 ok(!bt75(bk75).items.some((i) => i.k === "energy"), "unadopted instruments never count as gaps");
 bk75.energy = [{ d: isoL(Date.now() - 864e5), v: 3 }];
