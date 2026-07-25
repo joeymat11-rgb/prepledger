@@ -30,10 +30,10 @@ const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
 if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   const st0 = document.createElement("style"); st0.id = "pl-gx";
-  st0.textContent = "html,body{height:100%;width:100%;overflow:hidden;position:fixed;inset:0;-webkit-text-size-adjust:100%} #root{height:100%} body{touch-action:pan-y pinch-zoom;-webkit-touch-callout:none} *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} input,select,textarea{font-size:16px !important;max-width:100%;-webkit-user-select:text;user-select:text} button{max-width:100%}";
+  st0.textContent = "html,body{height:100%;width:100%;overflow:hidden;-webkit-text-size-adjust:100%} #root{height:100%} body{touch-action:pan-y pinch-zoom;-webkit-touch-callout:none;overscroll-behavior:none} *{box-sizing:border-box;-webkit-tap-highlight-color:transparent} input,select,textarea{font-size:16px !important;max-width:100%;-webkit-user-select:text;user-select:text} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.80.0";
+const APP_V = "3.80.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -5407,6 +5407,13 @@ export default function PrepLedger() {
   const [, setWake] = useState(0);
   useEffect(() => { window.__setGloss = setGloss; return () => { window.__setGloss = null; }; }, []);
   useEffect(() => {
+    const setH = () => { try { document.documentElement.style.setProperty("--app-h", window.innerHeight + "px"); } catch (e) {} };
+    setH(); const t1 = setTimeout(setH, 250); const t2 = setTimeout(setH, 1000);
+    window.addEventListener("resize", setH); window.addEventListener("orientationchange", setH); window.addEventListener("pageshow", setH);
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", setH);
+    return () => { clearTimeout(t1); clearTimeout(t2); window.removeEventListener("resize", setH); window.removeEventListener("orientationchange", setH); window.removeEventListener("pageshow", setH); if (window.visualViewport) window.visualViewport.removeEventListener("resize", setH); };
+  }, []);
+  useEffect(() => {
     const onVis2 = () => {
       if (document.visibilityState !== "visible") return;
       setS((prev) => { if (!prev) return prev; const sw2 = sweepLab(prev); if (sw2) { save(sw2); return sw2; } return prev; });
@@ -5497,7 +5504,7 @@ export default function PrepLedger() {
   const tabs = ["NOW", "TRAIN", "QUEUE", "BODY", "SLEEP", "HIST"];
 
   return (
-    <div style={{ height: "100dvh", background: T.ink, color: T.chalk, maxWidth: "100%", display: "flex", flexDirection: "column", overflow: "hidden", overflowWrap: "anywhere" }}>
+    <div style={{ height: "var(--app-h, 100vh)", background: T.ink, color: T.chalk, maxWidth: "100%", display: "flex", flexDirection: "column", overflow: "hidden", overflowWrap: "anywhere" }}>
       <style>{`
         * { -webkit-tap-highlight-color: transparent; }
         input:focus, button:focus-visible { outline: 2px solid ${T.brass}; outline-offset: 1px; }
