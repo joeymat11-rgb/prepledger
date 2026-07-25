@@ -1313,3 +1313,14 @@ ok(wr2.reads[wr2.reads.length - 1].note.indexOf("water noise likely") > -1, "the
 
 console.log(`\nFINAL76: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+// v3.77.1 — yesterday's books and today's books agree on the law
+const { liveBooks: lb77, booksToday: bt77x, SEED: TT77 } = __test;
+let ag = clone(TT77);
+ag.energy = [{ d: isoL(Date.now() - 3 * 864e5), v: 4 }];
+const yb = lb77(ag).items.find((i) => i.k === "energy");
+ok(yb && yb.ok === false, "an adopted instrument missing yesterday shows in the brief's gap line too");
+ok(!lb77(clone(TT77)).items.some((i) => i.k === "grip"), "unadopted stays invisible in both ledgers — same law, both days");
+
+console.log(`\nFINAL77: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);

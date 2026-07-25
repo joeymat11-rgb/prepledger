@@ -28,7 +28,7 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
 
-const APP_V = "3.77.0";
+const APP_V = "3.77.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2904,6 +2904,8 @@ function liveBooks(s) {
   if (t2 === "U" || t2 === "L") items.push({ k: "session", ok: !!s.sessionLog[y] });
   if ((s.pulse || []).some((x) => x.d < y)) items.push({ k: "pulse", ok: (s.pulse || []).some((x) => x.d === y) });
   if ((s.temp || []).some((x) => x.d < y)) items.push({ k: "temp", ok: (s.temp || []).some((x) => x.d === y) });
+  if ((s.energy || []).some((x) => x.d < y)) items.push({ k: "energy", ok: (s.energy || []).some((x) => x.d === y) });
+  if ((s.grip || []).some((x) => x.d < y)) items.push({ k: "grip", ok: (s.grip || []).some((x) => x.d === y) });
   if (!blackoutOn(s, y)) items.push({ k: "scale", ok: s.reads.some((r) => r.d === y) });
   const gaps = items.filter((i) => !i.ok);
   return { y, est, items, gaps, complete: gaps.length === 0 };
