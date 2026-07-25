@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.90.1";
+const APP_V = "3.91.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2367,7 +2367,7 @@ export const __test = { targetsFor, genSession, completeSession, runAdaptive, bf
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
-const LEDGER_DICT = "FIELD DICTIONARY (authoritative — never guess a meaning): NIGHTS: h = hours asleep · bed/wake = clock times as logged (they vary; that is expected) · sol = drift-off, minutes to fall asleep · tags: woke = woke mid-night, caff = late caffeine. DAYS: cal/pro/steps as logged · dayCtx est = athlete-declared estimate day (rough numbers, lower evidentiary weight) · ⌁flags = day weather (event window / seal water / post-refeed / estimate). SESSIONS: entries = performed lifts only, w = load, reps per set, rir = reps in reserve on the opener · skipped = lifts deliberately not done (structured truth, zero phantom reps) · note = athlete prose, read it · niggles = flagged aches · dips = incidental dip count. READS: raw morning scale, sealed = quarantined event water, judge only via damped trend. PULSE bpm / TEMP °F = 60s wrist count and oral reading at wake. MEDSLOG: prescription taken/none with clock time — pure adherence bookkeeping; the system's biggest confound (appetite, pulse, effort, drift-off all move with it) now has a clock. ENERGY: morning 1–5 (1 fumes · 5 caged animal). SORENESS: muscles tapped sore at wake (empty list = nothing sore, logged). GRIP: best squeeze per hand in lb, same posture daily — a CNS-readiness number. DAILY sodium low/med/high and alcohol units ride the day numbers — units are a COUNT ONLY, a covariate for sleep/pulse/scale attribution; their calories live inside the athlete's logged cal and are never added by the app. CAFFLOG: actual daily caffeine — mg and clock time as logged (mg 0 = a deliberate none-day); tail math runs on these, never an assumed noon. FEED: the app's event log — amendments and corrections here OVERRIDE older raw rows. RECORDS: pending = awaiting the 3-night ≥7.5h clean streak. LAWS: single terminal failure set per exercise; on debt only that final set pulls to 1.";
+const LEDGER_DICT = "FIELD DICTIONARY (authoritative — never guess a meaning): NIGHTS: h = hours asleep · bed/wake = clock times as logged (they vary; that is expected) · sol = drift-off, minutes to fall asleep · tags: woke = woke mid-night, caff = late caffeine. DAYS: cal/pro/steps as logged · dayCtx est = athlete-declared estimate day (rough numbers, lower evidentiary weight) · ⌁flags = day weather (event window / seal water / post-refeed / estimate). SESSIONS: entries = performed lifts only, w = load, reps per set, rir = reps in reserve on the opener · skipped = lifts deliberately not done (structured truth, zero phantom reps) · note = athlete prose, read it · niggles = flagged aches · dips = incidental dip count. READS: raw morning scale, sealed = quarantined event water, judge only via damped trend. PULSE bpm / TEMP °F = 60s wrist count and oral reading at wake. MEDSLOG: prescription taken/none with clock time — pure adherence bookkeeping; the system's biggest confound (appetite, pulse, effort, drift-off all move with it) now has a clock. ENERGY: morning 1–5 (1 fumes · 5 caged animal). SORENESS: muscles tapped sore at wake (empty list = nothing sore, logged). GRIP: best squeeze per hand in lb, same posture daily — a CNS-readiness number. DAILY sodium low/med/high and alcohol units ride the day numbers — units are a COUNT ONLY, a covariate for sleep/pulse/scale attribution; their calories live inside the athlete's logged cal and are never added by the app; on estimate days the unit count is a bracket midpoint like everything else. CAFFLOG: actual daily caffeine — mg and clock time as logged (mg 0 = a deliberate none-day); tail math runs on these, never an assumed noon. FEED: the app's event log — amendments and corrections here OVERRIDE older raw rows. RECORDS: pending = awaiting the 3-night ≥7.5h clean streak. LAWS: single terminal failure set per exercise; on debt only that final set pulls to 1.";
 
 async function ghSync(state) {
   let tok = null;
@@ -3644,7 +3644,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: mono, fontSize: 10, color: T.brass, marginTop: 8 }}>today is {ev.t} — days like this usually get the estimates chip (top right of this card)</div>
         )}
         {((s.dayCtx || {})[tISO] || {}).est && (
-          <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 8, lineHeight: 1.55 }}>The method: anchor protein first — four palm-sized servings still lands near 175. Then calories as the midpoint of your honest bracket: "definitely over 2,300, definitely under 2,700" writes 2,500. One entry after the event, never the optimistic edge. A labeled estimate protects the trend; false precision poisons it.</div>
+          <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 8, lineHeight: 1.55 }}>The method: anchor protein first — four palm-sized servings still lands near 175. Then calories as the midpoint of your honest bracket: "definitely over 2,300, definitely under 2,700" writes 2,500. Units the same way — "somewhere 11–15" writes 13. One entry after the event, never the optimistic edge. A labeled estimate protects the trend; false precision poisons it.</div>
         )}
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           {[
@@ -3665,7 +3665,11 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             <span key={sv} onClick={() => { setSod9(sv); if (dl) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].sodium = sv; setS(ns); save(ns); } }}
               style={{ fontFamily: mono, fontSize: 9.5, color: sod9 === sv ? T.jade : T.dim, border: `1px solid ${sod9 === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px", cursor: "pointer" }}>{sv}</span>
           ))}
-          <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginLeft: 8 }}>ALCOHOL</span>
+          <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginLeft: 8 }}>ALCOHOL{((s.dayCtx || {})[tISO] || {}).est ? " ~ est" : ""}</span>
+          {[2, 4, 6, 8, 10, 13].map((u0) => (
+            <span key={u0} onClick={() => { setAlc9(u0); if (dl) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].alc = u0; setS(ns); save(ns); } }}
+              style={{ fontFamily: mono, fontSize: 9.5, color: +alc9 === u0 ? T.jade : T.dim, border: `1px solid ${+alc9 === u0 ? T.jade : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>{u0}</span>
+          ))}
           <Stepper v={+alc9} set={(v0) => { setAlc9(v0); if (dl) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].alc = v0; setS(ns); save(ns); } }} step={1} min={0} />
           <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>units</span>
         </div>
