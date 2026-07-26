@@ -375,13 +375,13 @@ ok(gs.every(g => g.live + g.armed + g.rest === g.cards.length), "shelf counters 
 
 // v3.10.1 — results announce themselves
 const { sweepLab: swp, SEED: SM } = __test;
-const swBase = swp(clone(SM));
+const swBase = swp(clone(SM), 3);
 ok(swBase && Object.keys(swBase.labSeen).length >= 20 && swBase.feed.length === clone(SM).feed.length, "first sweep baselines every card silently — no spam on migration");
 let ann = JSON.parse(JSON.stringify(swBase));
 for (let k = 1; k <= 7; k++) { const dd = new Date(2026, 6, 23 + k); ann.sleep.nights.push({ d: dd.getFullYear() + "-" + String(dd.getMonth() + 1).padStart(2, "0") + "-" + String(dd.getDate()).padStart(2, "0"), h: 7.8, tags: [] }); }
-const ann2 = swp(ann);
+const ann2 = swp(ann, 3);
 ok(ann2 && ann2.feed.some(f => f.t.indexOf("LAB LIVE — MELATONIN") === 0) && ann2.labSeen.melaexp === "LIVE", "threshold crossed → the feed announces the verdict");
-ok(swp(ann2) === null, "no re-announcement — quiet until the next flip");
+ok(swp(ann2, 3) === null, "no re-announcement — quiet until the next flip");
 
 // (interim)
 
@@ -521,7 +521,7 @@ ok(typeof rev.verdict === "string" && rev.verdict.length > 20 && rev.lines.lengt
 ok(rev.verdict.indexOf("Sealed week") === 0, "sealed-week verdict fires while the quarantine holds: " + rev.verdict.slice(0, 40));
 let quiet = clone(SU); quiet.dailyLogs = {}; quiet.sessionLog = {}; quiet.sleep.nights = [];
 ok(wr23(quiet).verdict.indexOf("quiet week") > -1, "a silent week gets the door-is-open verdict, never a scolding");
-const swBase23 = swp23(clone(SU));
+const swBase23 = swp23(clone(SU), 3);
 const filed = swp23(swBase23, 0);
 ok(filed && filed.feed.some(f => f.t.indexOf("WEEK IN REVIEW · WK") === 0), "Sunday sweep files the review into the permanent record");
 ok(swp23(filed, 0) === null, "one review per week — never a duplicate");
@@ -996,9 +996,9 @@ for (let k = 3; k >= 1; k--) { const d = isoL(Date.now() - k * 864e5); pd.sleep.
 const exW60 = pd.exercises.find((x) => x.id === "lateral").w;
 const expW60 = Math.max(5, Math.round((exW60 * 0.95) / 5) * 5);
 const mk60 = (k, tot, rir) => { const d = isoL(Date.now() - k * 864e5); pd.sessionLog[d] = { entries: [{ id: "lateral", reps: [tot], rir, w: exW60 }], at: 1 }; };
-mk60(8, 40, 2); mk60(6, 43, 2);
+mk60(12, 40, 2); mk60(10, 43, 2);
 ok(lc60(pd, "lateral").verdict === "PUSH" && lc60(pd, "lateral").vel > 0, "rising velocity keeps the chase on: " + lc60(pd, "lateral").why.slice(0, 40));
-mk60(4, 43, 1); mk60(2, 42, 0); mk60(1, 41, 0);
+mk60(8, 43, 1); mk60(6, 42, 0); mk60(5, 41, 0);
 const stalled = lc60(pd, "lateral");
 ok(stalled.verdict === "RESET" && stalled.newW === expW60, "3 honest weather-clean stalls trigger the evidence-based reset with plate-round math: " + stalled.newW);
 const swept = ss60(pd);

@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.92.0";
+const APP_V = "3.93.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2384,9 +2384,10 @@ async function ghSync(state) {
       try { const g2 = await fetch(url + "?t=" + Date.now(), { headers: hdr }); if (g2.ok) body.sha = (await g2.json()).sha; } catch (e) {}
       put = await fetch(url, { method: "PUT", headers: { ...hdr, "Content-Type": "application/json" }, body: JSON.stringify(body) });
     }
-    if (put.ok) { try { snapshotMaybe(state, tok); localStorage.setItem("pl-lastsync", String(Date.now())); } catch (e) {} }
+    if (put.ok) { try { snapshotMaybe(state, tok); localStorage.setItem("pl-lastsync", String(Date.now())); localStorage.removeItem("plSyncErr"); } catch (e) {} }
+    if (!put.ok) { let et9 = ""; try { et9 = (await put.text()).slice(0, 140); } catch (e) {} try { localStorage.setItem("plSyncErr", JSON.stringify({ at: new Date().toISOString(), status: put.status, msg: et9 })); } catch (e) {} }
     return put.ok ? { ok: true } : { ok: false, msg: "HTTP " + put.status + (put.status === 401 ? " — token expired?" : "") };
-  } catch (e) { return { ok: false, msg: "network" }; }
+  } catch (e) { try { localStorage.setItem("plSyncErr", JSON.stringify({ at: new Date().toISOString(), status: 0, msg: "network" })); } catch (e2) {} return { ok: false, msg: "network" }; }
 }
 class TabGuard extends React.Component {
   constructor(p) { super(p); this.state = { err: null }; }
@@ -2941,7 +2942,7 @@ function useRepoDoc(path) {
       try {
         const tok = localStorage.getItem(TOKEN_KEY);
         if (!tok) return;
-        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/" + path, { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" }, cache: "no-store" });
+        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/" + path + "?t=" + Date.now(), { headers: { "Cache-Control": "no-cache", Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" }, cache: "no-store" });
         if (!r.ok) return;
         const t2 = await r.text();
         if (!dead) setTxt(t2);
@@ -3413,6 +3414,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {s.sessionLog[tISO] && <Chip c={T.jade}>Session ✓ — receipt in TRAIN</Chip>}
         {cleanIn > 0 && <Chip c={T.chalk}>Scale sealed · clean read {fmtShort(SEAL_UNTIL)} · {cleanIn}d</Chip>}
+        {(() => { try { const se9 = JSON.parse(localStorage.getItem("plSyncErr") || "null"); if (se9) return <Chip c={T.redline}>⚠ SYNC FAILING · HTTP {se9.status} since {se9.at.slice(11, 16)} — RULES → Sync now</Chip>; } catch (e) {} return null; })()}
         {ev && <Chip c={T.chalk}>{ev.t} · {fmtShort(ev.d)}</Chip>}
         {(() => { try { const ls2 = +(localStorage.getItem("pl-lastsync") || 0); if (localStorage.getItem(TOKEN_KEY) && ls2 && Date.now() - ls2 > 36 * 36e5) return <Chip c={T.brass}>books haven't reached your analyst since {new Date(ls2).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })} — tap sync in RULES</Chip>; } catch (e) {} return null; })()}
       </div>
@@ -5384,6 +5386,15 @@ function Rules({ onClose, onReset, onExport, onImport, sync, onSync }) {
               <input type="password" placeholder="paste the github_pat_ token" value={tok} onChange={(e) => setTok(e.target.value)}
                 style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 12, padding: 10, outline: "none" }} />
               <div style={{ marginTop: 8 }}><Btn small tone="jade" onClick={() => { if (tok.indexOf("github_pat_") === 0) { try { localStorage.setItem(TOKEN_KEY, tok.trim()); } catch (e) {} setHasTok(true); setTok(""); } }}>Save token</Btn></div>
+              <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${T.line}` }}>
+                <Eyebrow c={T.brass}>SYNC DOCTOR — the pipe, in the open</Eyebrow>
+                {(() => { const ok9 = +(localStorage.getItem("pl-lastsync") || 0); let se9 = null; try { se9 = JSON.parse(localStorage.getItem("plSyncErr") || "null"); } catch (e) {}
+                  return (<div style={{ fontFamily: mono, fontSize: 10, color: T.steel, marginTop: 6 }}>
+                    last success: {ok9 ? new Date(ok9).toLocaleString() : "never"}<br />
+                    last error: {se9 ? `HTTP ${se9.status} at ${se9.at.slice(11, 19)} · ${se9.msg || "no body"}` : "none on record"}
+                  </div>); })()}
+                <div style={{ marginTop: 10 }}><Btn small tone="jade" onClick={async () => { const r9 = await ghSync(s); alert(r9.ok ? "Synced ✓ — the server has everything on this phone now." : "STILL FAILING — " + r9.msg + "\nScreenshot this and send it to your builder."); }}>Sync now</Btn></div>
+              </div>
             </div>
           )}
           <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>Stays on this device · never included in exports or sync payloads · scoped to prepledger only. Every Sunday the ledger commits itself — backup and coach review in one move.</div>
