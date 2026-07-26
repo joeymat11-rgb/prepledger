@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.98.1";
+const APP_V = "3.99.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -827,6 +827,52 @@ function labAnalytics(s) {
       forYou: liveM ? rowsM.join(" \u00b7 ") : (onD9.length + " days on meds and " + offD9.length + " without are on file. Three of each opens the comparison \u2014 until then this card counts and says nothing."),
       lines: [] });
   })();
+  (() => {
+    const rateF = currentRate(s);
+    const t0F = isoOf(todayStart());
+    const rsF = rateF.rates || [];
+    const mF = rsF.length ? rsF.reduce((a, b) => a + b, 0) / rsF.length : 0;
+    const sdF = rsF.length >= 2 ? Math.sqrt(rsF.reduce((a, r) => a + (r - mF) * (r - mF), 0) / (rsF.length - 1)) : null;
+    const rowsF = [];
+    if (rateF.measured && s.trend) {
+      for (let k = 1; k <= 8; k++) {
+        const wF = +(s.trend - rateF.scale * k).toFixed(1);
+        const dF = isoOf(new Date(mk(t0F).getTime() + k * 7 * DAY));
+        const bF = bfEst(s, wF, dF);
+        rowsF.push("wk +" + k + " \u00b7 " + fmtShort(dF) + " \u00b7 " + wF.toFixed(1) + " lb" + (sdF ? " \u00b1" + (sdF * k).toFixed(1) : "") + " \u00b7 " + bF.pct.toFixed(1) + "% bf \u00b7 lean " + bF.lean.toFixed(1));
+      }
+    }
+    const ptsF = (id) => Object.keys(s.sessionLog || {}).map((d) => {
+      const e = ((s.sessionLog[d] || {}).entries || []).find((x) => x.id === id);
+      return e && e.reps && e.reps.length ? { d, top: Math.max.apply(null, e.reps) } : null;
+    }).filter(Boolean).sort((a, b) => (a.d < b.d ? -1 : 1));
+    const slopeF = (pts) => {
+      if (pts.length < 3) return null;
+      const x = pts.map((q) => weeksBetween(pts[0].d, q.d)), y = pts.map((q) => q.top);
+      const n = x.length, mx = x.reduce((a, b) => a + b, 0) / n, my = y.reduce((a, b) => a + b, 0) / n;
+      let num = 0, den = 0;
+      for (let i = 0; i < n; i++) { num += (x[i] - mx) * (y[i] - my); den += (x[i] - mx) * (x[i] - mx); }
+      return den > 0 ? num / den : null;
+    };
+    const liftF = [];
+    (s.exercises || []).forEach((ex) => {
+      const pts = ptsF(ex.id), sl = slopeF(pts);
+      if (!sl || sl <= 0.02 || typeof ex.w !== "number") return;
+      let reps = pts[pts.length - 1].top, w = ex.w;
+      for (let k = 1; k <= 8; k++) { reps += sl; while (reps > (ex.hi || 12)) { w += (ex.inc || 5); reps -= 3; } }
+      liftF.push({ s: sl, line: ex.n + ": " + ex.w + "\u00d7" + pts[pts.length - 1].top + " now \u2192 " + w + "\u00d7" + Math.round(reps) + " in 8 wks (+" + sl.toFixed(2) + " reps/wk, n=" + pts.length + ")" });
+    });
+    liftF.sort((a, b) => b.s - a.s);
+    const linesF = rowsF.concat(liftF.length ? ["\u2014"].concat(liftF.slice(0, 5).map((x) => x.line)) : []);
+    const liveF = rowsF.length > 0;
+    const endF = liveF ? rowsF[rowsF.length - 1] : null;
+    out.push({ id: "forecast", t: "THE FORECAST \u2014 WEEK BY WEEK, ON YOUR OWN SLOPE", status: liveF ? "LIVE" : "ARMED",
+      prog: { n: (s.weekly || []).length, need: 2, label: "weekly snapshots" },
+      tag: "Where the current data lands you, week by week \u2014 body first, then the lifts. It refits itself every time you log.",
+      deep: "Method, body: your weekly trend snapshots give a measured rate of loss; the projection walks that rate forward eight weeks and runs each future weight through the same body model the app uses today, so lean mass drips at your fitted rate rather than being assumed constant. The band is not decoration \u2014 it is the spread of your own weekly rates, widening with each week out, because uncertainty in a slope compounds the further you extrapolate. Two snapshots is the minimum; a single rate has no spread and therefore no honest band. Method, lifts: for every exercise with three or more logged sessions, the top set is regressed against time to get a reps-per-week slope, then walked forward under your own double-progression rules \u2014 when projected reps pass the top of the range, the bar goes up by that lift's increment and the reps reset the way they actually do in the gym. Lifts with fewer than three sessions are absent rather than guessed. What this is: a forecast, and it is labelled one everywhere it appears. It assumes the deficit holds, adherence holds, sleep holds, and nothing intervenes \u2014 assumptions that a single wedding, a cold, or a bad fortnight will break. It is not a promise and it never acts: no target changes, no volume moves, no proposal is filed off the back of it. When the data disagrees with the line, the data is right and the line redraws itself the next morning.",
+      forYou: liveF ? (endF.split(" \u00b7 ").slice(1).join(" \u00b7 ") + " \u2014 eight weeks out at your measured rate of " + rateF.scale.toFixed(2) + " lb/wk" + (blackoutOn(s, t0F) ? ", drawn from the pre-blackout trend while the scale is sealed" : "") + ". (forecast \u2014 refits every log)") : "Two weekly snapshots open the projection. Until then the trend has no measured rate to walk forward, and a guessed line is worse than none.",
+      lines: linesF });
+  })();
   out.push({ id: "mrv", t: "EMPIRICAL MRV — YOUR VOLUME CEILINGS", status: "LOCKED", prog: null,
     tag: "Finds your real volume ceilings instead of borrowing a template's.",
     deep: "Weekly sets per muscle plotted against performance and recovery response — your maximum recoverable volume, discovered rather than assumed. The literature prior it starts from: Schoenfeld, Ogborn & Krieger 2017 (meta-analysis) found a graded dose-response with 10+ weekly sets per muscle outgrowing lower volumes. That's the build-phase climb target; the cut deliberately sits below it.",
@@ -1578,7 +1624,7 @@ const INS_MAP = {
   missarch: ["day numbers", "sleep night"], weekend: ["day numbers"], compound: ["weigh-in"], miner: ["session", "sleep night", "day numbers"],
   trialsdesk: ["your consent"], cone: ["weigh-in"], dexarecon: ["a DEXA scan"], seasonone: ["the feed"],
   ghost: ["weigh-in", "day numbers"], sentinel: ["sleep night", "day numbers", "weigh-in"], letter: ["day numbers", "the feed"], prophet: ["weigh-in"], whatif: ["weigh-in", "day numbers"], negotiator: ["weigh-in", "day numbers"], dossier: ["the whole lab"],
-  mrv: ["session"], debutmodel: ["session", "sleep night"], medswindow: ["morning", "day numbers"],
+  mrv: ["session"], debutmodel: ["session", "sleep night"], medswindow: ["morning", "day numbers"], forecast: ["weigh-in", "session", "day numbers"],
   spread: ["the shelf"], caffdose: ["the shelf"], creatine: ["the shelf"], matador: ["the shelf"], sleepceil: ["the shelf"],
 };
 const MAP_CHAINS = [
@@ -1655,7 +1701,7 @@ function labGroups(s) {
     behavior: ["missarch", "weekend", "compound", "miner", "medswindow"],
     trials: ["trialsdesk"],
     road: ["cone", "dexarecon", "seasonone"],
-    models: ["ghost", "sentinel", "letter", "prophet", "whatif", "negotiator", "dossier"],
+    models: ["forecast", "ghost", "sentinel", "letter", "prophet", "whatif", "negotiator", "dossier"],
     locked: ["mrv", "debutmodel"],
     shelf: ["spread", "caffdose", "creatine", "matador", "sleepceil"],
   };

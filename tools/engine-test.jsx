@@ -397,7 +397,7 @@ ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id ==
 const gAll = lg2(clone(SN));
 ok(gAll.length === 11 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,trials,road,models,locked,shelf", "eleven shelves, fixed order");
 const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
-ok(tot2 === 53, "all 53 instruments filed exactly once: " + tot2);
+ok(tot2 === 54, "all 54 instruments filed exactly once: " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
@@ -447,7 +447,7 @@ ok(dock.next.every(n => n.n < n.need) && dock.next[0].pct >= (dock.next[1] ? doc
 ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "sentinel line reads");
 const ranked = sl1(clone(SP));
 const rk = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
-ok(ranked.length === 53 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 53 cards, monotone rank order");
+ok(ranked.length === 54 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 54 cards, monotone rank order");
 // a flip lands on the docket's fresh row
 const swD = __test.sweepLab(clone(SP));
 let dkF = JSON.parse(JSON.stringify(swD));
@@ -472,7 +472,7 @@ ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 ph
 // v3.17 — the sibling design review
 const { labSections: ls17, SEED: SR } = __test;
 const secs = ls17(clone(SR));
-ok(secs.reduce((a, x) => a + x.cards.length, 0) === 53, "all 53 filed across the plain-language sections, none lost");
+ok(secs.reduce((a, x) => a + x.cards.length, 0) === 54, "all 54 filed across the plain-language sections, none lost");
 const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "gathering");
 ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
 ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
@@ -1355,4 +1355,36 @@ ok(mw98b.status === "LIVE" && mw98b.forYou.indexOf("1800 on meds vs 2300 without
 ok(!!IM98.medswindow, "the meds window declares its inputs — the census test proves it sits on exactly one shelf");
 
 console.log(`\nFINAL79: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+// v3.99 — the forecast: measured slope, honest band, acts on nothing
+const { labAnalytics: la99, INS_MAP: IM99, SEED: TS99 } = __test;
+let f99 = clone(TS99);
+f99.weekly = [];
+const fc99a = la99(f99).find((c) => c.id === "forecast");
+ok(!!fc99a && fc99a.status === "ARMED" && fc99a.forYou.indexOf("guessed line is worse than none") > -1,
+   "with no weekly snapshots the forecast refuses to draw a line");
+
+let g99 = clone(TS99);
+g99.trend = 165;
+g99.weekly = [{ wk: isoL(Date.now() - 21 * 864e5), trend: 167.4 }, { wk: isoL(Date.now() - 14 * 864e5), trend: 166.3 }, { wk: isoL(Date.now() - 7 * 864e5), trend: 165.4 }];
+const fc99 = la99(g99).find((c) => c.id === "forecast");
+ok(fc99.status === "LIVE" && fc99.lines.filter((l) => l.indexOf("wk +") === 0).length === 8, "eight weeks projected, one row each");
+ok(fc99.lines[0].indexOf("% bf") > -1 && fc99.lines[0].indexOf("lean") > -1, "each week carries weight, body fat and lean: " + fc99.lines[0].slice(0, 46));
+ok(fc99.lines[7].indexOf("\u00b1") > -1 && parseFloat(fc99.lines[7].split("\u00b1")[1]) > parseFloat(fc99.lines[0].split("\u00b1")[1]),
+   "the band widens with distance — slope uncertainty compounds");
+ok(fc99.forYou.indexOf("(forecast") > -1 && fc99.deep.indexOf("never acts") > -1, "labelled a forecast and bound to act on nothing");
+
+// lifts need three sessions before they are projected
+let h99 = clone(g99);
+h99.sessionLog = {};
+h99.sessionLog[isoL(Date.now() - 14 * 864e5)] = { entries: [{ id: "calves", reps: [10, 10], rir: 1, w: 315 }], at: 1 };
+h99.sessionLog[isoL(Date.now() - 7 * 864e5)] = { entries: [{ id: "calves", reps: [11, 11], rir: 1, w: 315 }], at: 1 };
+ok(!la99(h99).find((c) => c.id === "forecast").lines.some((l) => l.indexOf("reps/wk") > -1), "two sessions is not a slope — the lift stays absent");
+h99.sessionLog[isoL(Date.now() - 2 * 864e5)] = { entries: [{ id: "calves", reps: [13, 12], rir: 1, w: 315 }], at: 1 };
+const lift99 = la99(h99).find((c) => c.id === "forecast").lines.find((l) => l.indexOf("reps/wk") > -1);
+ok(!!lift99 && lift99.indexOf("n=3") > -1, "the third session opens the lift projection: " + (lift99 || "").slice(0, 54));
+ok(!!IM99.forecast, "the forecast declares its inputs");
+
+console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
