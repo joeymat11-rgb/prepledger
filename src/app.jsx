@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.94.0";
+const APP_V = "3.94.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3457,6 +3457,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                 <span key={sv} onClick={() => setYSod(sv)} style={{ fontFamily: mono, fontSize: 9.5, color: ySod === sv ? T.jade : T.dim, border: `1px solid ${ySod === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px", cursor: "pointer" }}>{sv}</span>
               ))}
               <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginLeft: 8 }}>ALCOHOL</span>
+              {[2, 4, 6, 8, 10, 12].map((u0) => (
+                <span key={u0} onClick={() => setYAlc(u0)} style={{ fontFamily: mono, fontSize: 9.5, color: +yAlc === u0 ? T.jade : T.dim, border: `1px solid ${+yAlc === u0 ? T.jade : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>{u0}</span>
+              ))}
               <Stepper v={+yAlc} set={setYAlc} step={1} min={0} />
             </div>
             <div style={{ marginTop: 10 }}>
