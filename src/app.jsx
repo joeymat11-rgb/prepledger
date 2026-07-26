@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.95.0";
+const APP_V = "3.96.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3170,6 +3170,12 @@ const Stamp = ({ st }) => (
 const Card = ({ children, style = {}, accent, ...rest }) => (
   <div {...rest} style={{ background: T.plate, border: `1px solid ${T.line}`, borderLeft: accent ? `3px solid ${accent}` : `1px solid ${T.line}`, borderRadius: 8, padding: 14, ...style }}>{children}</div>
 );
+const SecRule = ({ children }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "22px 2px 8px" }}>
+    <span style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: "0.18em", color: T.dim, whiteSpace: "nowrap" }}>{children}</span>
+    <span style={{ flex: 1, height: 1, background: T.line }} />
+  </div>
+);
 const Chip = ({ children, c = T.steel }) => (
   <span style={{ fontFamily: mono, fontSize: 10.5, color: c, border: `1px solid ${T.line}`, borderRadius: 999, padding: "4px 9px", whiteSpace: "nowrap" }}>{children}</span>
 );
@@ -3434,6 +3440,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       ); })()}
 
+      <SecRule>THE READ · what the machine says</SecRule>
       <BriefCard s={s} setS={setS} save={save} />
 
       {(() => {
@@ -3443,6 +3450,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         return (
           <Card id="pl-amend" accent={T.brass}>
             <Eyebrow c={T.brass}>{isAmend ? `AMEND ${fmtShort(y8).toUpperCase()} — HONEST CORRECTIONS WELCOME` : `YESTERDAY'S BOOKS STILL OPEN — CLOSE ${fmtShort(y8).toUpperCase()} IN 30 SECONDS`}</Eyebrow>
+            <div style={{ marginTop: 6 }}>
+              <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if ((ns.dayCtx[y8] || {}).est) delete ns.dayCtx[y8]; else ns.dayCtx[y8] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
+                style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.05em", color: ((s.dayCtx || {})[y8] || {}).est ? T.brass : T.dim, border: `1px solid ${((s.dayCtx || {})[y8] || {}).est ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>
+                {((s.dayCtx || {})[y8] || {}).est ? "⌁ ESTIMATE DAY ✓" : "was it an estimate day?"}
+              </span>
+            </div>
             <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 4 }}>{isAmend ? "Late bites count on the day they belong to. Corrected numbers replace the old ones; the amendment itself goes on the record — that is accuracy, not failure." : "Midnight passed but the day didn't file itself. Same numbers, honest timestamp — the ledger marks it logged-late, which is a fact, not a fault."}</div>
             <div style={{ display: "flex", gap: 8, marginTop: 9 }}>
               {[["CAL", yCal, setYCal], ["PRO", yPro, setYPro], ["STEPS", yStp, setYStp]].map(([l8, v8, f8]) => (
@@ -3546,6 +3559,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         const logW = () => { const ns2 = runAdaptive(applyRead(s, tISO, wIn), tISO); setS(ns2); save(ns2); };
         return (
           <>
+      <SecRule>THIS MORNING</SecRule>
       {(() => { const bk9 = booksToday(s); if (bk9.complete) return (
         <Card style={{ padding: "9px 14px" }}><div style={{ fontFamily: mono, fontSize: 10, color: T.jade }}>📕 {fmtShort(isoOf(todayStart()))} closed — everything the analysts need is in.</div></Card>
       ); const mn9 = minuteNeeds(s); if (new Date().getHours() < 14 && !mn9.length) return (<Card style={{ padding: "9px 14px" }}><div style={{ fontFamily: mono, fontSize: 10, color: T.jade }}>✓ the morning minute · complete</div></Card>); if (new Date().getHours() < 12 && mn9.length) return (
@@ -3625,6 +3639,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         );
       })()}
 
+      <SecRule>TODAY'S LOGS · what you file</SecRule>
       {dl.cal != null && !dayEdit ? (
         <Card style={{ padding: 12 }} accent={T.jade}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
@@ -3840,6 +3855,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
 
 
+      <SecRule>THE ROOM · ask, plan, rules</SecRule>
       <Card style={{ padding: "11px 14px", cursor: "pointer", borderLeft: `3px solid ${T.jade}` }} onClick={() => setAskOpen(true)}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
           <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>🜁 ASK THE LEDGER <span style={{ color: T.dim }}>— any question, from your data</span></div>
