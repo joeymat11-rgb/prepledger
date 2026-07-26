@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.93.0";
+const APP_V = "3.93.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2942,7 +2942,7 @@ function useRepoDoc(path) {
       try {
         const tok = localStorage.getItem(TOKEN_KEY);
         if (!tok) return;
-        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/" + path + "?t=" + Date.now(), { headers: { "Cache-Control": "no-cache", Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" }, cache: "no-store" });
+        const r = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/" + path + "?t=" + Date.now(), { headers: { Authorization: "Bearer " + tok, Accept: "application/vnd.github.raw" }, cache: "no-store" });
         if (!r.ok) return;
         const t2 = await r.text();
         if (!dead) setTxt(t2);
