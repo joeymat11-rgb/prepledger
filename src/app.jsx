@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.97.0";
+const APP_V = "3.98.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -802,6 +802,63 @@ function labAnalytics(s) {
       forYou: nsig ? `Today: energy ${eT2 ? eT2.v + "/5" : "—"} · grip ${gT2 ? ((gT2.l || 0) + (gT2.r || 0)) + " lb" + (() => { const gh = (s.grip || []).filter((x) => x.d < isoOf(todayStart())).slice(-7).map((x) => (x.l || 0) + (x.r || 0)).filter((v) => v > 0); if (gh.length < 4) return ""; const b = gh.slice().sort((a, c) => a - c); const m = b[Math.floor(b.length / 2)]; const d = Math.round((((gT2.l || 0) + (gT2.r || 0)) / m - 1) * 100); return ` (${d >= 0 ? "+" : ""}${d}% vs median)`; })() : "—"} · sore ${soreToday ? (soreToday.mgs.length ? soreToday.mgs.join(", ") : "nothing") : "—"}. The desk's receipts on TRAIN show these being consulted, lift by lift.` : "Log a first morning signal and this card wakes; the gates arm themselves as history accrues.",
       lines: [] });
   })();
+  (() => {
+    const ml9 = s.medsLog || [];
+    const onD9 = ml9.filter((x) => x.taken).map((x) => x.d);
+    const offD9 = ml9.filter((x) => !x.taken).map((x) => x.d);
+    const nMin9 = Math.min(onD9.length, offD9.length);
+    const avgM = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+    const grabM = (days, f) => days.map(f).filter((v) => v != null && !isNaN(v));
+    const rowsM = [];
+    const cmpM = (label, f, fmt) => {
+      const a = grabM(onD9, f), b = grabM(offD9, f);
+      if (a.length < 2 || b.length < 2) return;
+      rowsM.push(label + ": " + fmt(avgM(a)) + " on meds vs " + fmt(avgM(b)) + " without (n=" + a.length + "/" + b.length + ")");
+    };
+    cmpM("calories", (d) => (s.dailyLogs[d] || {}).cal, (v) => String(Math.round(v)));
+    cmpM("protein", (d) => (s.dailyLogs[d] || {}).pro, (v) => Math.round(v) + " g");
+    cmpM("steps", (d) => (s.dailyLogs[d] || {}).steps, (v) => (v / 1000).toFixed(1) + "k");
+    cmpM("morning energy", (d) => { const e = (s.energy || []).find((x) => x.d === d); return e ? e.v : null; }, (v) => v.toFixed(1) + "/5");
+    const liveM = nMin9 >= 3 && rowsM.length > 0;
+    out.push({ id: "medswindow", t: "THE MEDS WINDOW \u2014 WHAT CHANGES WHEN THEY DON'T", status: liveM ? "LIVE" : "ARMED",
+      prog: { n: nMin9, need: 3, label: "paired days on file" },
+      tag: "Adherence already has a clock. This reads what that clock is worth \u2014 your days on meds against your days without, in your own numbers.",
+      deep: "Method: every entry in the meds log is either taken or none. This card sorts your logged days into those two piles and reports the plain average of each \u2014 no modelling, no adjustment, no attempt to explain the gap. It needs three days on each side before it speaks, because two days of anything is an anecdote wearing a lab coat. What this is not: a verdict on medication. The house treats meds as weather, never as judgment, and this card will never propose a dose, a schedule, or a change \u2014 that conversation belongs to you and your prescriber, and the app has no standing in it. Read the confound before the numbers: none-days are not randomly assigned. If yours cluster on weekends, travel, or event days, part of what you are seeing is weekends rather than medication, and the honest reading is a flag for attention, never a causal claim. The nightly analyst is bound to name that confound whenever it quotes these lines.",
+      forYou: liveM ? rowsM.join(" \u00b7 ") : (onD9.length + " days on meds and " + offD9.length + " without are on file. Three of each opens the comparison \u2014 until then this card counts and says nothing."),
+      lines: [] });
+  })();
+  (() => {
+    const sorR = (s.soreness || []).slice().sort((a, b) => (a.d < b.d ? -1 : 1));
+    const hasR = (d) => sorR.some((x) => x.d === d);
+    const soreR = (d, mg) => { const r = sorR.find((x) => x.d === d); return !!r && (r.mgs || []).includes(mg); };
+    const addR = (d, k) => isoOf(new Date(mk(d).getTime() + k * DAY));
+    const obsR = {};
+    Object.keys(s.sessionLog || {}).forEach((d0) => {
+      const ent = (s.sessionLog[d0] || {}).entries || [];
+      const mgs0 = [...new Set(ent.map((e) => { const x = (s.exercises || []).find((y) => y.id === e.id); return x ? x.mg : null; }).filter(Boolean))];
+      mgs0.forEach((mg) => {
+        let saw = false, closed = null;
+        for (let k = 1; k <= 6; k++) {
+          const dk = addR(d0, k);
+          if (!hasR(dk)) continue;
+          if (soreR(dk, mg)) { saw = true; continue; }
+          closed = saw ? k : 0; break;
+        }
+        if (closed != null) { obsR[mg] = obsR[mg] || []; obsR[mg].push(closed); }
+      });
+    });
+    const medR = (a) => { const b = a.slice().sort((x, y) => x - y); return b.length ? b[Math.floor(b.length / 2)] : null; };
+    const linesR = Object.keys(obsR).filter((mg) => obsR[mg].length >= 2).sort((a, b) => medR(obsR[b]) - medR(obsR[a]))
+      .map((mg) => mg + " clears in " + medR(obsR[mg]) + (medR(obsR[mg]) === 1 ? " day" : " days") + " (n=" + obsR[mg].length + ")");
+    const totR = Object.keys(obsR).reduce((a, k) => a + obsR[k].length, 0);
+    const liveR = linesR.length > 0;
+    out.push({ id: "recovery", t: "RECOVERY WINDOW \u2014 HOW LONG EACH MUSCLE STAYS SORE", status: liveR ? "LIVE" : "ARMED",
+      prog: { n: totR, need: 4, label: "closed windows" },
+      tag: "Your soreness taps, turned into a number: how many days each muscle takes to come back after you train it.",
+      deep: "Method: for every muscle you trained, the ledger walks forward through your soreness mornings and counts the days until that muscle stops being reported sore. Each completed pass is one observation, and the number shown is the median of yours \u2014 never a population average, never a textbook figure. Windows that have not closed yet are excluded rather than guessed, because a censored observation is not a short one; two closed windows per muscle is the minimum before any number appears. Why it matters: recovery time, not enthusiasm, is the real constraint on training frequency. When a muscle's window runs longer than the gap between the sessions that hit it, you are training it into standing soreness, and that shows up later as slipping bar speed rather than as pain \u2014 which is precisely the failure this house is built to catch early. What it does not do is act. Nothing here changes a set count on its own: the volume ledger already blocks a headroom add for any muscle sore two-plus mornings in a week and proposes a trim at three on a high week, and both of those arrive in the inbox for your tap like everything else.",
+      forYou: liveR ? linesR.join(" \u00b7 ") : (totR + " recovery windows have closed so far. Two per muscle opens its first honest number \u2014 soreness mornings in the Minute are what feed this."),
+      lines: [] });
+  })();
   out.push({ id: "mrv", t: "EMPIRICAL MRV — YOUR VOLUME CEILINGS", status: "LOCKED", prog: null,
     tag: "Finds your real volume ceilings instead of borrowing a template's.",
     deep: "Weekly sets per muscle plotted against performance and recovery response — your maximum recoverable volume, discovered rather than assumed. The literature prior it starts from: Schoenfeld, Ogborn & Krieger 2017 (meta-analysis) found a graded dose-response with 10+ weekly sets per muscle outgrowing lower volumes. That's the build-phase climb target; the cut deliberately sits below it.",
@@ -1553,7 +1610,7 @@ const INS_MAP = {
   missarch: ["day numbers", "sleep night"], weekend: ["day numbers"], compound: ["weigh-in"], miner: ["session", "sleep night", "day numbers"],
   trialsdesk: ["your consent"], cone: ["weigh-in"], dexarecon: ["a DEXA scan"], seasonone: ["the feed"],
   ghost: ["weigh-in", "day numbers"], sentinel: ["sleep night", "day numbers", "weigh-in"], letter: ["day numbers", "the feed"], prophet: ["weigh-in"], whatif: ["weigh-in", "day numbers"], negotiator: ["weigh-in", "day numbers"], dossier: ["the whole lab"],
-  mrv: ["session"], debutmodel: ["session", "sleep night"],
+  mrv: ["session"], debutmodel: ["session", "sleep night"], medswindow: ["morning", "day numbers"], recovery: ["morning", "session"],
   spread: ["the shelf"], caffdose: ["the shelf"], creatine: ["the shelf"], matador: ["the shelf"], sleepceil: ["the shelf"],
 };
 const MAP_CHAINS = [
@@ -1624,10 +1681,10 @@ function labGroups(s) {
   const MAP = {
     scale: ["whoosh", "refeed", "noise", "masked", "creep"],
     engine: ["adaptmeter", "stepeff", "refeedroi"],
-    training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss", "volumeledger", "signals"],
+    training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss", "volumeledger", "signals", "recovery"],
     sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "variancetax", "canary"],
     pulse: ["pulsebase", "cutstress", "pulsewarn", "refeedpulse", "furnacebase", "exittherm"],
-    behavior: ["missarch", "weekend", "compound", "miner"],
+    behavior: ["missarch", "weekend", "compound", "miner", "medswindow"],
     trials: ["trialsdesk"],
     road: ["cone", "dexarecon", "seasonone"],
     models: ["ghost", "sentinel", "letter", "prophet", "whatif", "negotiator", "dossier"],
@@ -3131,6 +3188,7 @@ function weekDay() {
 const blackoutOn = (s) => daysUntil(s.blackout.until) > 0;
 const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d); if ((t === "U" || t === "L") && !s.sessionLog[d]) return d; } return null; };
 __test.nextTrainingISO = nextTrainingISO;
+__test.labAnalytics = labAnalytics;
 __test.INS_MAP = INS_MAP;
 __test.liveBooks = liveBooks;
 __test.LEDGER_DICT = LEDGER_DICT;
