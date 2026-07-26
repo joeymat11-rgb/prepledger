@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.93.1";
+const APP_V = "3.94.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2376,16 +2376,19 @@ async function ghSync(state) {
   const url = "https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/state.json";
   const hdr = { Authorization: "Bearer " + tok, Accept: "application/vnd.github+json" };
   let sha = null;
-  try { const g = await fetch(url, { headers: hdr }); if (g.ok) sha = (await g.json()).sha; } catch (e) {}
+  try { const g = await fetch(url + "?t=" + Date.now(), { cache: "no-store", headers: hdr }); if (g.ok) sha = (await g.json()).sha; } catch (e) {}
   const body = { message: "ledger auto-sync " + isoOf(todayStart()) + " [skip ci]", content: btoa(unescape(encodeURIComponent(JSON.stringify({ ...state, _dictionary: LEDGER_DICT })))), ...(sha ? { sha } : {}) };
   try {
     let put = await fetch(url, { method: "PUT", headers: { ...hdr, "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    for (let rt = 0; !put.ok && (put.status === 409 || put.status === 422) && rt < 2; rt++) {
-      try { const g2 = await fetch(url + "?t=" + Date.now(), { headers: hdr }); if (g2.ok) body.sha = (await g2.json()).sha; } catch (e) {}
+    const tr9 = [put.status];
+    for (let rt = 0; !put.ok && (put.status === 409 || put.status === 422) && rt < 4; rt++) {
+      await new Promise((r9) => setTimeout(r9, 500 + rt * 300));
+      try { const g2 = await fetch(url + "?t=" + Date.now(), { cache: "no-store", headers: hdr }); if (g2.ok) body.sha = (await g2.json()).sha; } catch (e) {}
       put = await fetch(url, { method: "PUT", headers: { ...hdr, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      tr9.push(put.status);
     }
     if (put.ok) { try { snapshotMaybe(state, tok); localStorage.setItem("pl-lastsync", String(Date.now())); localStorage.removeItem("plSyncErr"); } catch (e) {} }
-    if (!put.ok) { let et9 = ""; try { et9 = (await put.text()).slice(0, 140); } catch (e) {} try { localStorage.setItem("plSyncErr", JSON.stringify({ at: new Date().toISOString(), status: put.status, msg: et9 })); } catch (e) {} }
+    if (!put.ok) { let et9 = ""; try { et9 = (await put.text()).slice(0, 140); } catch (e) {} try { localStorage.setItem("plSyncErr", JSON.stringify({ at: new Date().toISOString(), status: put.status, msg: et9, tr: tr9 })); } catch (e) {} }
     return put.ok ? { ok: true } : { ok: false, msg: "HTTP " + put.status + (put.status === 401 ? " — token expired?" : "") };
   } catch (e) { try { localStorage.setItem("plSyncErr", JSON.stringify({ at: new Date().toISOString(), status: 0, msg: "network" })); } catch (e2) {} return { ok: false, msg: "network" }; }
 }
@@ -3675,11 +3678,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <Stepper v={+alc9} set={(v0) => { setAlc9(v0); if (dl) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].alc = v0; setS(ns); save(ns); } }} step={1} min={0} />
           <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>units</span>
         </div>
-        {(() => { const yd9 = s.dailyLogs[isoOf(new Date(todayStart().getTime() - DAY))]; if (!yd9) return null; return <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>yest: {yd9.cal ?? "—"} · {yd9.pro ?? "—"} · {yd9.steps != null ? (yd9.steps / 1000).toFixed(1) + "k" : "—"} <span onClick={() => { setYCal(yd9.cal != null ? String(yd9.cal) : ""); setYPro(yd9.pro != null ? String(yd9.pro) : ""); setYStp(yd9.steps != null ? String(yd9.steps) : ""); setYSod(yd9.sodium || null); setYAlc(yd9.alc || 0); setAmendY(true); }} style={{ cursor: "pointer", color: T.steel }}>✎ amend</span></div>; })()}
+        {(() => { const yd9 = s.dailyLogs[isoOf(new Date(todayStart().getTime() - DAY))]; if (!yd9) return null; return <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>yest: {yd9.cal ?? "—"} · {yd9.pro ?? "—"} · {yd9.steps != null ? (yd9.steps / 1000).toFixed(1) + "k" : "—"} · {(yd9.alc ?? 0)}u <span onClick={() => { setYCal(yd9.cal != null ? String(yd9.cal) : ""); setYPro(yd9.pro != null ? String(yd9.pro) : ""); setYStp(yd9.steps != null ? String(yd9.steps) : ""); setYSod(yd9.sodium || null); setYAlc(yd9.alc || 0); setAmendY(true); }} style={{ cursor: "pointer", color: T.steel }}>✎ amend</span></div>; })()}
         {s.fixWindow && (
           <div style={{ marginTop: 10, fontFamily: mono, fontSize: 11, color: T.brass }}><Term k="fixwindow" c={T.brass}>FIX WINDOW OPEN</Term> — hit protein today and yesterday's miss counts as a save, not a break. Nothing resets.</div>
         )}
-        <div style={{ marginTop: 10 }}><Btn tone="jade" full onClick={() => { saveDaily(); setDayEdit(false); }}>Log today</Btn></div>
+        <div style={{ marginTop: 10 }}><Btn tone="jade" full onClick={() => { const h9 = new Date().getHours(); if (h9 < 4) { const y8 = isoOf(new Date(todayStart().getTime() - DAY)); if (window.confirm("It's after midnight — should these numbers file as YESTERDAY (" + fmtShort(y8) + ")?\n\nOK = yesterday, the day they belong to\nCancel = today")) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: cal === "" ? null : +cal, pro: pro === "" ? null : +pro, steps: stp === "" ? null : +stp, sodium: sod9, alc: +alc9 || 0 }; ns.feed.unshift({ d: y8, t: "FILED TO YESTERDAY — " + fmtShort(y8) + " logged after midnight", how: "the midnight intercept asked; the athlete chose the day it belonged to" }); setS(ns); save(ns); setDayEdit(false); return; } } saveDaily(); setDayEdit(false); }}>Log today</Btn></div>
+        {dl && <div style={{ textAlign: "center", marginTop: 6 }}><span onClick={() => { if (window.confirm("Clear today's saved numbers? Use this if last night's log landed on the wrong day. Tonight's real numbers will close the day fresh.")) { const ns = JSON.parse(JSON.stringify(s)); delete ns.dailyLogs[tISO]; ns.feed.unshift({ d: tISO, t: "TODAY'S LOG CLEARED — filed in error after midnight", how: "the day reopens; tonight closes it honestly" }); setS(ns); save(ns); setCal(""); setPro(""); setStp(""); setSod9(null); setAlc9(0); } }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, cursor: "pointer" }}>logged by mistake? clear today ✗</span></div>}
 
         <More deep="175 is THE number — proximity, not a floor to beat; chronic overshoot is drift too. Calories live in a band, not a point. A protein miss opens a 24-hour fix window, and closing it EXTENDS the standard instead of resetting it — recovery speed is the metric, never an unbroken chain."
           forYou={s.fixWindow ? "The fix window is OPEN — hitting 175 today closes it and the record extends." : "Standard intact. Log once, done — the app rewards the logging, never the checking."} />
@@ -5391,7 +5395,7 @@ function Rules({ onClose, onReset, onExport, onImport, sync, onSync }) {
                 {(() => { const ok9 = +(localStorage.getItem("pl-lastsync") || 0); let se9 = null; try { se9 = JSON.parse(localStorage.getItem("plSyncErr") || "null"); } catch (e) {}
                   return (<div style={{ fontFamily: mono, fontSize: 10, color: T.steel, marginTop: 6 }}>
                     last success: {ok9 ? new Date(ok9).toLocaleString() : "never"}<br />
-                    last error: {se9 ? `HTTP ${se9.status} at ${se9.at.slice(11, 19)} · ${se9.msg || "no body"}` : "none on record"}
+                    last error: {se9 ? `HTTP ${se9.status} at ${se9.at.slice(11, 19)} · ${se9.msg || "no body"}${se9.tr ? " · attempts " + se9.tr.join("→") : ""}` : "none on record"}
                   </div>); })()}
                 <div style={{ marginTop: 10 }}><Btn small tone="jade" onClick={async () => { const r9 = await ghSync(s); alert(r9.ok ? "Synced ✓ — the server has everything on this phone now." : "STILL FAILING — " + r9.msg + "\nScreenshot this and send it to your builder."); }}>Sync now</Btn></div>
               </div>
@@ -5446,8 +5450,11 @@ export default function PrepLedger() {
   const shellRef = useRef(null);
   const [vh9, setVh9] = useState(0);
   const [, beat9] = useState(0);
+  const sRef9 = useRef(null);
+  sRef9.current = s;
   useEffect(() => {
-    const th9 = setInterval(() => beat9((b) => b + 1), 60000);
+    const heal9 = () => { try { const se = localStorage.getItem("plSyncErr"); const last = +(localStorage.getItem("plSyncTry") || 0); if (se && Date.now() - last > 150000 && sRef9.current) { localStorage.setItem("plSyncTry", String(Date.now())); ghSync(sRef9.current); } } catch (e) {} };
+    const th9 = setInterval(() => { beat9((b) => b + 1); heal9(); }, 60000);
     const onVis9 = () => { if (document.visibilityState === "visible") beat9((b) => b + 1); };
     document.addEventListener("visibilitychange", onVis9);
     return () => { clearInterval(th9); document.removeEventListener("visibilitychange", onVis9); };
