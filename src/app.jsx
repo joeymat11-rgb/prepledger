@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.96.0";
+const APP_V = "3.97.0";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2772,6 +2772,7 @@ function MinuteView({ s, setS, save, onClose }) {
       {cur === "night" && (
         <div style={{ marginTop: 18 }}>
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Last night</div>
+          <Cond how="Bed and wake are clock times. Drift-off is your best guess at the minutes it took to fall asleep." when="Any time you remember the night. Within fifteen minutes is close enough — consistency beats precision here." />
           <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center", flexWrap: "wrap", fontFamily: mono, fontSize: 11, color: T.steel }}>
             <span>bed</span><input type="time" value={bed9} onChange={(e) => setBed9(e.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 13, padding: "6px" }} />
             <span>wake</span><input type="time" value={wake9} onChange={(e) => setWake9(e.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 13, padding: "6px" }} />
@@ -2788,13 +2789,15 @@ function MinuteView({ s, setS, save, onClose }) {
         <div style={{ marginTop: 18 }}>
           {blackoutOn(s, t9) && <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass, marginBottom: 8 }}>scale sealed through the blackout — this read files quarantined and never touches the trend</div>}
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Scale, fasted</div>
+          <Cond how="Same scale, minimal clothing, same spot on the floor." when="After the bathroom, before food or water. Same order every morning or the number drifts for reasons that are not you." />
           <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={wt9} set={setWt9} step={0.1} min={100} /><span style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>lb</span></div>
           <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.reads = ns.reads.filter((r) => r.d !== t9); const r2 = applyRead(ns, t9, +wt9); Object.assign(ns, r2); })}>{blackoutOn(s, t9) ? "Log weight (quarantined) →" : "Log weight →"}</Btn>
         </div>
       )}
       {cur === "energy" && (
         <div style={{ marginTop: 18 }}>
-          <div style={{ fontFamily: body, fontSize: 16, color: T.chalk, fontWeight: 600 }}>Morning energy</div>
+          <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Morning energy</div>
+          <Cond how="One tap. 1 is running on fumes, 3 is normal, 5 is caged animal." when="Any time this morning. No conditions at all — this one just needs an honest answer." />
           <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 3 }}>One tap — how much do you have today?</div>
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
             {[1, 2, 3, 4, 5].map((v9) => (
@@ -2807,7 +2810,9 @@ function MinuteView({ s, setS, save, onClose }) {
       )}
       {cur === "soreness" && (
         <div style={{ marginTop: 18 }}>
+          <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Soreness</div>
           <div style={{ fontFamily: body, fontSize: 13, color: T.chalk }}>Anything sore? Tap all that apply.</div>
+          <Cond how="Tap any muscle sore to the touch or on the first movement. Nothing sore is an answer — log it empty." when="Any time today. You are reporting on what yesterday's training left behind." />
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12 }}>
             {MUSCLE_CHIPS.map((m9) => (
               <span key={m9} onClick={() => setSore9(sore9.includes(m9) ? sore9.filter((x) => x !== m9) : [...sore9, m9])}
@@ -2821,7 +2826,9 @@ function MinuteView({ s, setS, save, onClose }) {
       )}
       {cur === "grip" && (
         <div style={{ marginTop: 18 }}>
+          <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Grip</div>
           <div style={{ fontFamily: body, fontSize: 13, color: T.chalk }}>Grip — best of 2–3 squeezes each hand, same posture as always.</div>
+          <Cond how="Standing, arm at your side, elbow about 90 degrees. Two or three squeezes per hand — log the best of each." when="Same handle setting forever, same point in the morning. The number only means something against your own past numbers." />
           <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
             <div style={{ flex: 1 }}><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>LEFT (lb)</div><input inputMode="decimal" value={gl9} onChange={(e9) => setGl9(e9.target.value)} style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 16, padding: "10px", outline: "none", marginTop: 4 }} /></div>
             <div style={{ flex: 1 }}><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>RIGHT (lb)</div><input inputMode="decimal" value={gr9} onChange={(e9) => setGr9(e9.target.value)} style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 16, padding: "10px", outline: "none", marginTop: 4 }} /></div>
@@ -2832,7 +2839,7 @@ function MinuteView({ s, setS, save, onClose }) {
       {cur === "pulse" && (
         <div style={{ marginTop: 18 }}>
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Morning pulse</div>
-          <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 4 }}>Still in bed, 60-second count (or 30 × 2).</div>
+          <Cond how="Count beats for 60 seconds, or 30 and double it." when="Within a few minutes of waking, still lying down, before coffee, food, or getting up. Already up and moving? Skip it — a contaminated number is worse than none." />
           <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={bpm9} set={setBpm9} step={1} min={30} /><span style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>bpm</span></div>
           <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.pulse = [...(ns.pulse || []).filter((x) => x.d !== t9), { d: t9, bpm: bpm9 }]; })}>Log pulse →</Btn>
         </div>
@@ -2840,6 +2847,7 @@ function MinuteView({ s, setS, save, onClose }) {
       {cur === "temp" && (
         <div style={{ marginTop: 18 }}>
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Temperature</div>
+          <Cond how="Same thermometer, same site, every single time." when="Right after waking, before food, drink, or a shower. Anything warm in your mouth invalidates it." />
           <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={tf9} set={setTf9} step={0.1} min={90} /><span style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>°F</span></div>
           <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.temp = [...(ns.temp || []).filter((x) => x.d !== t9), { d: t9, f: +tf9 }]; })}>Log temp →</Btn>
         </div>
@@ -2847,6 +2855,7 @@ function MinuteView({ s, setS, save, onClose }) {
       {cur === "brief" && (
         <div style={{ marginTop: 18 }}>
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>The overnight brief</div>
+          <Cond how="Read it. If it asks a question, answer — your reply goes straight to tonight's analyst." when="Any time. It was written at 4 AM from the last sync, so the live lines on NOW outrank it." />
           {brief9 ? <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 8, lineHeight: 1.6, whiteSpace: "pre-wrap", maxHeight: "44vh", overflowY: "auto", border: `1px solid ${T.line}`, borderRadius: 8, padding: "10px 12px" }}>{plainify(brief9).slice(0, 2200)}</div> : <div style={{ fontFamily: mono, fontSize: 10, color: T.dim, marginTop: 8 }}>no brief on file yet this morning</div>}
           {qOpen && (
             <div style={{ marginTop: 10 }}>
@@ -2860,7 +2869,7 @@ function MinuteView({ s, setS, save, onClose }) {
           <Btn full tone="jade" style={{ marginTop: 14 }} onClick={advance}>Done ☀</Btn>
         </div>
       )}
-      <div onClick={advance} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", marginTop: 16, cursor: "pointer" }}>skip this step — its card stays open on NOW</div>
+      <div onClick={advance} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "center", marginTop: 16, cursor: "pointer" }}>conditions not right? skip — its card stays open on NOW, and a skip is never a miss</div>
       </div>
     </div>
   );
@@ -3169,6 +3178,14 @@ const Stamp = ({ st }) => (
 );
 const Card = ({ children, style = {}, accent, ...rest }) => (
   <div {...rest} style={{ background: T.plate, border: `1px solid ${T.line}`, borderLeft: accent ? `3px solid ${accent}` : `1px solid ${T.line}`, borderRadius: 8, padding: 14, ...style }}>{children}</div>
+);
+const Cond = ({ how, when }) => (
+  <div style={{ marginTop: 12, padding: "10px 12px", background: T.plate2, borderRadius: 8, border: `1px solid ${T.line}` }}>
+    <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: "0.16em", color: T.dim }}>HOW</div>
+    <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 3, lineHeight: 1.45 }}>{how}</div>
+    <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: "0.16em", color: T.dim, marginTop: 9 }}>COUNTS WHEN</div>
+    <div style={{ fontFamily: body, fontSize: 12, color: T.steel, marginTop: 3, lineHeight: 1.45 }}>{when}</div>
+  </div>
 );
 const SecRule = ({ children }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "22px 2px 8px" }}>
