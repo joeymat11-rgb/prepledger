@@ -397,7 +397,7 @@ ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id ==
 const gAll = lg2(clone(SN));
 ok(gAll.length === 11 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,trials,road,models,locked,shelf", "eleven shelves, fixed order");
 const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
-ok(tot2 === 54, "all 54 instruments filed exactly once: " + tot2);
+ok(tot2 === 53, "all 53 instruments filed exactly once: " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
@@ -447,7 +447,7 @@ ok(dock.next.every(n => n.n < n.need) && dock.next[0].pct >= (dock.next[1] ? doc
 ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "sentinel line reads");
 const ranked = sl1(clone(SP));
 const rk = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
-ok(ranked.length === 54 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 54 cards, monotone rank order");
+ok(ranked.length === 53 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 53 cards, monotone rank order");
 // a flip lands on the docket's fresh row
 const swD = __test.sweepLab(clone(SP));
 let dkF = JSON.parse(JSON.stringify(swD));
@@ -472,7 +472,7 @@ ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 ph
 // v3.17 — the sibling design review
 const { labSections: ls17, SEED: SR } = __test;
 const secs = ls17(clone(SR));
-ok(secs.reduce((a, x) => a + x.cards.length, 0) === 54, "all 54 filed across the plain-language sections, none lost");
+ok(secs.reduce((a, x) => a + x.cards.length, 0) === 53, "all 53 filed across the plain-language sections, none lost");
 const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "gathering");
 ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
 ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
@@ -1337,11 +1337,9 @@ if (fail) process.exit(1);
 const { labAnalytics: lc98, INS_MAP: IM98, SEED: TS98 } = __test;
 const cards98 = lc98(clone(TS98));
 const mw98 = cards98.find((c) => c.id === "medswindow");
-const rc98 = cards98.find((c) => c.id === "recovery");
-ok(!!mw98 && !!rc98, "both instruments file into the lab");
+ok(!!mw98, "the meds window files into the lab");
 ok(mw98.status === "ARMED" && mw98.forYou.indexOf("Three of each") > -1, "meds window stays silent until three paired days exist");
 ok(mw98.deep.indexOf("never propose a dose") > -1 && mw98.deep.indexOf("confound") > -1, "the meds card forbids itself a dose opinion and names its own confound");
-ok(rc98.status === "ARMED" && rc98.prog.need === 4, "recovery window counts closed windows before it speaks");
 
 // meds window wakes with paired days and reports both piles
 let mstate = clone(TS98);
@@ -1351,29 +1349,10 @@ for (let k = 5; k <= 8; k++) { const d = isoL(Date.now() - k * 864e5); mstate.me
 const mw98b = lc98(mstate).find((c) => c.id === "medswindow");
 ok(mw98b.status === "LIVE" && mw98b.forYou.indexOf("1800 on meds vs 2300 without") > -1, "both piles reported plainly: " + mw98b.forYou.slice(0, 52));
 
-// recovery closes a window and takes the median
-let rstate = clone(TS98);
-rstate.soreness = []; rstate.sessionLog = {};
-const mkWin = (start, len) => {
-  const d0 = isoL(Date.now() - start * 864e5);
-  rstate.sessionLog[d0] = { entries: [{ id: "calves", reps: [10, 10], rir: 1, w: 315 }], at: 1 };
-  for (let k = 1; k <= 4; k++) rstate.soreness.push({ d: isoL(Date.now() - (start - k) * 864e5), mgs: k <= len ? ["calves"] : [] });
-};
-mkWin(20, 2); mkWin(12, 2);
-const rc98b = lc98(rstate).find((c) => c.id === "recovery");
-ok(rc98b.status === "LIVE" && rc98b.forYou.indexOf("calves clears in 3 days (n=2)") > -1, "recovery reports the median of closed windows only: " + rc98b.forYou.slice(0, 46));
 
-// censored windows are excluded, never guessed short
-let cstate = clone(TS98);
-cstate.soreness = []; cstate.sessionLog = {};
-const dC = isoL(Date.now() - 3 * 864e5);
-cstate.sessionLog[dC] = { entries: [{ id: "calves", reps: [10], rir: 1, w: 315 }], at: 1 };
-for (let k = 1; k <= 2; k++) cstate.soreness.push({ d: isoL(Date.now() - (3 - k) * 864e5), mgs: ["calves"] });
-const rc98c = lc98(cstate).find((c) => c.id === "recovery");
-ok(rc98c.status === "ARMED" && rc98c.prog.n === 0, "a still-sore muscle is a censored window — counted as nothing, never as fast");
 
 // both are mapped and shelved exactly once
-ok(!!IM98.medswindow && !!IM98.recovery, "both instruments declare their inputs — the census test proves each sits on exactly one shelf");
+ok(!!IM98.medswindow, "the meds window declares its inputs — the census test proves it sits on exactly one shelf");
 
 console.log(`\nFINAL79: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

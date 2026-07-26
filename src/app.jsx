@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.98.0";
+const APP_V = "3.98.1";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -827,38 +827,6 @@ function labAnalytics(s) {
       forYou: liveM ? rowsM.join(" \u00b7 ") : (onD9.length + " days on meds and " + offD9.length + " without are on file. Three of each opens the comparison \u2014 until then this card counts and says nothing."),
       lines: [] });
   })();
-  (() => {
-    const sorR = (s.soreness || []).slice().sort((a, b) => (a.d < b.d ? -1 : 1));
-    const hasR = (d) => sorR.some((x) => x.d === d);
-    const soreR = (d, mg) => { const r = sorR.find((x) => x.d === d); return !!r && (r.mgs || []).includes(mg); };
-    const addR = (d, k) => isoOf(new Date(mk(d).getTime() + k * DAY));
-    const obsR = {};
-    Object.keys(s.sessionLog || {}).forEach((d0) => {
-      const ent = (s.sessionLog[d0] || {}).entries || [];
-      const mgs0 = [...new Set(ent.map((e) => { const x = (s.exercises || []).find((y) => y.id === e.id); return x ? x.mg : null; }).filter(Boolean))];
-      mgs0.forEach((mg) => {
-        let saw = false, closed = null;
-        for (let k = 1; k <= 6; k++) {
-          const dk = addR(d0, k);
-          if (!hasR(dk)) continue;
-          if (soreR(dk, mg)) { saw = true; continue; }
-          closed = saw ? k : 0; break;
-        }
-        if (closed != null) { obsR[mg] = obsR[mg] || []; obsR[mg].push(closed); }
-      });
-    });
-    const medR = (a) => { const b = a.slice().sort((x, y) => x - y); return b.length ? b[Math.floor(b.length / 2)] : null; };
-    const linesR = Object.keys(obsR).filter((mg) => obsR[mg].length >= 2).sort((a, b) => medR(obsR[b]) - medR(obsR[a]))
-      .map((mg) => mg + " clears in " + medR(obsR[mg]) + (medR(obsR[mg]) === 1 ? " day" : " days") + " (n=" + obsR[mg].length + ")");
-    const totR = Object.keys(obsR).reduce((a, k) => a + obsR[k].length, 0);
-    const liveR = linesR.length > 0;
-    out.push({ id: "recovery", t: "RECOVERY WINDOW \u2014 HOW LONG EACH MUSCLE STAYS SORE", status: liveR ? "LIVE" : "ARMED",
-      prog: { n: totR, need: 4, label: "closed windows" },
-      tag: "Your soreness taps, turned into a number: how many days each muscle takes to come back after you train it.",
-      deep: "Method: for every muscle you trained, the ledger walks forward through your soreness mornings and counts the days until that muscle stops being reported sore. Each completed pass is one observation, and the number shown is the median of yours \u2014 never a population average, never a textbook figure. Windows that have not closed yet are excluded rather than guessed, because a censored observation is not a short one; two closed windows per muscle is the minimum before any number appears. Why it matters: recovery time, not enthusiasm, is the real constraint on training frequency. When a muscle's window runs longer than the gap between the sessions that hit it, you are training it into standing soreness, and that shows up later as slipping bar speed rather than as pain \u2014 which is precisely the failure this house is built to catch early. What it does not do is act. Nothing here changes a set count on its own: the volume ledger already blocks a headroom add for any muscle sore two-plus mornings in a week and proposes a trim at three on a high week, and both of those arrive in the inbox for your tap like everything else.",
-      forYou: liveR ? linesR.join(" \u00b7 ") : (totR + " recovery windows have closed so far. Two per muscle opens its first honest number \u2014 soreness mornings in the Minute are what feed this."),
-      lines: [] });
-  })();
   out.push({ id: "mrv", t: "EMPIRICAL MRV — YOUR VOLUME CEILINGS", status: "LOCKED", prog: null,
     tag: "Finds your real volume ceilings instead of borrowing a template's.",
     deep: "Weekly sets per muscle plotted against performance and recovery response — your maximum recoverable volume, discovered rather than assumed. The literature prior it starts from: Schoenfeld, Ogborn & Krieger 2017 (meta-analysis) found a graded dose-response with 10+ weekly sets per muscle outgrowing lower volumes. That's the build-phase climb target; the cut deliberately sits below it.",
@@ -1610,7 +1578,7 @@ const INS_MAP = {
   missarch: ["day numbers", "sleep night"], weekend: ["day numbers"], compound: ["weigh-in"], miner: ["session", "sleep night", "day numbers"],
   trialsdesk: ["your consent"], cone: ["weigh-in"], dexarecon: ["a DEXA scan"], seasonone: ["the feed"],
   ghost: ["weigh-in", "day numbers"], sentinel: ["sleep night", "day numbers", "weigh-in"], letter: ["day numbers", "the feed"], prophet: ["weigh-in"], whatif: ["weigh-in", "day numbers"], negotiator: ["weigh-in", "day numbers"], dossier: ["the whole lab"],
-  mrv: ["session"], debutmodel: ["session", "sleep night"], medswindow: ["morning", "day numbers"], recovery: ["morning", "session"],
+  mrv: ["session"], debutmodel: ["session", "sleep night"], medswindow: ["morning", "day numbers"],
   spread: ["the shelf"], caffdose: ["the shelf"], creatine: ["the shelf"], matador: ["the shelf"], sleepceil: ["the shelf"],
 };
 const MAP_CHAINS = [
@@ -1681,7 +1649,7 @@ function labGroups(s) {
   const MAP = {
     scale: ["whoosh", "refeed", "noise", "masked", "creep"],
     engine: ["adaptmeter", "stepeff", "refeedroi"],
-    training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss", "volumeledger", "signals", "recovery"],
+    training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss", "volumeledger", "signals"],
     sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "variancetax", "canary"],
     pulse: ["pulsebase", "cutstress", "pulsewarn", "refeedpulse", "furnacebase", "exittherm"],
     behavior: ["missarch", "weekend", "compound", "miner", "medswindow"],
