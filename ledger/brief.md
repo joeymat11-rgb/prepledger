@@ -1,11 +1,11 @@
 <!-- 2026-07-27 -->
 
-YESTERDAY'S GAPS — Sunday's numbers (cal / protein / steps) and last night's sleep aren't in the synced books yet · 30 seconds in the app closes them. Last sync looks old — 5:11 PM Sunday. Sync cleared its 409 and Saturday's books landed.
+You're mid-whoosh. This morning's scale (161.8) is sitting about 3 lb under your trend — that's the wedding water finally clearing, not new fat. Hold the line and let this week's clean reads confirm it; the trend should catch down on its own. Don't let the first read or two after the seal spook you.
 
-LAST 24H — Quiet Sunday. Energy 3/5, caffeine 200 mg, temp 97.6 baseline. No meds — weather, not a verdict. Food and sleep pending. (measured, n=1)
+Pace: you're losing about 1.3 lb a week. That's right in your target band and squarely in the range that protects muscle — nothing to change there.
 
-WATCHING — Events don't reliably dent sleep. Wedding #2's night came in full — 7.6h. Two short (Wedding #1 7.0h, refeed 6.0h), one clean. Dented, not doomed. (measured, n=3)
+The one thing that matters most right now is sleep. You've averaged 6.9 hours over the last two weeks, and four of the last few days had a big or late caffeine hit (the 400 mg at noon is the main culprit). On a cut, short sleep is the difference between losing fat and losing muscle — it's the highest-leverage lever you've got. Aim for 7.5 hours and pull the caffeine earlier in the day.
 
-AUDIT — The sleep reset survived. Declared 7/22, the night sleep fell to 6.0h — fair to doubt. Three clean nights since (7/23–25, all ≥7.5h) re-cover it. PRs stay ownable. (measured, n=3)
+Training: recovery's a little low this week — short sleep plus a couple of rep dips. Hold off on adding load or starting new progressions for a few days; keep the intensity honest and let some good nights bank first. The strength is yours to keep, not to chase right now.
 
-CONSIDER — The seal lifts today. Don't trust the first read — Saturday ran 8 drinks and high sodium. Ignore the first two. Anchor on the third. (speculation)
+Protein's dialed at 174 g and your steps are strong — the parts that are supposed to be automatic already are. Nice work.

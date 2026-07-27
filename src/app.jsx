@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.3";
+const APP_V = "3.99.4";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -605,7 +605,7 @@ function labAnalytics(s) {
     tag: "How fast event water leaves YOUR body — measured, per event.",
     deep: "Big meals spike the scale with sodium, glycogen, and gut content — not fat (a 4.6 lb fat gain would need ~16,000 surplus calories, not one dinner). This model measured how long each of your spikes took to clear, so future spikes arrive pre-labeled with an exit date instead of a panic.",
     forYou: eps.length >= 2
-      ? (ev ? `${ev.t} ${fmtShort(ev.d)}: expect a next-morning spike somewhere in your +${Math.min(...eps.map(e => e.jump))} to +${Math.max(...eps.map(e => e.jump))} range, clearing in ${ds0[0]}–${hiC} days. Every reading in that window is pre-dismissed. Monday's first clean read may still carry residue — the damped trend already knows.`
+      ? (ev ? `${ev.t} ${fmtShort(ev.d)}: expect a next-morning spike somewhere in your +${Math.min(...eps.map(e => e.jump))} to +${Math.max(...eps.map(e => e.jump))} range, clearing in ${ds0[0]}–${hiC} days. Every reading in that window is pre-dismissed. the first clean read after may still carry residue — the damped trend already knows.`
         : "No event in range — nothing to brace for. The model sits ready for the next one life schedules.")
       : "Needs one more spike→clear cycle to speak.",
     lines: eps.length >= 2 ? [
@@ -631,7 +631,7 @@ function labAnalytics(s) {
   out.push({ id: "noise", t: "YOUR NOISE FLOOR", status: sdN ? "LIVE" : "ARMED", prog: { n: deltas.length, need: 8, label: "clean day-pairs" },
     tag: "The size of a meaningless scale move, in you specifically.",
     deep: "Even at perfect protocol — fasted, post-void — daily weight wobbles from water, sodium, gut content, and timing. Below your measured band a change is statistically indistinguishable from nothing. This converts 'don't react to one day' from advice into a calibrated instrument.",
-    forYou: sdN ? `Monday's first clean read: judge it against the trend (${s.trend}), never against 7/21's 163.2 — and any morning within ±${sdN.toFixed(1)} of expectation is zero information. The scale card now stamps those automatically. Two consecutive lows = signal beginning.` : "Eight clean consecutive-day pairs calibrate it.",
+    forYou: sdN ? `Judge any morning against the trend (${s.trend}), never against a single prior read — a move within ±${sdN.toFixed(1)} of expectation is zero information. The scale card now stamps those automatically. Two consecutive lows = signal beginning.` : "Eight clean consecutive-day pairs calibrate it.",
     lines: sdN ? [`±${sdN.toFixed(1)} lb day-to-day (n=${deltas.length})`] : [] });
 
   /* 4 · masked-loss monitor */
@@ -1141,7 +1141,7 @@ function owedNights(s, hour = new Date().getHours()) {
 }
 
 /* THE ONE THING — the priority ladder that answers "what do I do?" before scrolling */
-function theOneThing(s, slp, hour = new Date().getHours()) {
+function theOneThing(s, slp, hour = new Date().getHours(), graceDays = Infinity) {
   const tISO = isoOf(todayStart());
   const owed = owedNights(s, hour);
   const slLogged = owed.length === 0;
@@ -1154,7 +1154,7 @@ function theOneThing(s, slp, hour = new Date().getHours()) {
     return { t: `Log ${fmtShort(owed[0])}'s night`, sub: flips ? "one tap — ≥7.5 flips you CLEAN and today's attempts count for keeps" : "one tap — the whole engine keys off it" };
   }
   if (s.fixWindow && !dLogged) return { t: "Fix window is open", sub: "hit 175 today and yesterday's miss becomes a save — bouncing back is the skill being scored" };
-  const openEv = s.events.find((e) => !e.estimated && daysUntil(e.d) < 0);
+  const openEv = s.events.find((e) => !e.estimated && daysUntil(e.d) < 0 && daysUntil(e.d) >= -graceDays);
   if (openEv) return { t: "Close out " + openEv.t, sub: "zero-comp or honest — one tap, the ledger doesn't guess" };
   if (trainToday && sessDone && !dLogged && hour < 17) return { t: "Session banked ✓ — day open", sub: "numbers close it tonight · everything else is reading" };
   if (trainToday && !sessDone && hour >= 10) { const g = genSession(s, tISO, slp); return { t: "Today: " + (g.structural || g.name), sub: "log it in TRAIN when the iron's down" }; }
@@ -1909,7 +1909,7 @@ function activeTrial(s) {
 
 /* TODAY'S PROTOCOL — one lead action, then the day ranked, every line from live data */
 function dayProtocol(s, slp) {
-  const lead = theOneThing(s, slp);
+  const lead = theOneThing(s, slp, undefined, 1);
   const steps = [];
   const tI = isoOf(todayStart());
   const yISO = isoOf(new Date(todayStart().getTime() - DAY));
@@ -3090,7 +3090,7 @@ function BriefCard({ s, setS: setS2, save: save2 }) {
       <div style={{ fontFamily: mono, fontSize: 10, color: lb0.complete ? T.jade : T.brass, lineHeight: 1.6 }}>
         BOOKS · {fmtShort(lb0.y)} (live) — {lb0.complete ? "complete ✓" : lb0.items.map((i) => `${i.k} ${i.ok ? "✓" : "✗"}`).join(" · ") + " — the ✗s take 30 seconds"}
       </div>
-      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 3 }}>no overnight brief on file yet — the live line above is the ledger's own reading</div>
+      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 3 }}>no analyst read on file yet — the live line above is the ledger's own reading</div>
     </Card>
   ); }
   const qm = brief.match(/^QUESTION:\s*(.+)$/m);
@@ -3098,8 +3098,8 @@ function BriefCard({ s, setS: setS2, save: save2 }) {
   return (
     <Card accent={T.jade}>
       <div onClick={() => setOpenB(!openB)} style={{ cursor: "pointer" }}>
-        <Eyebrow c={T.jade}>OVERNIGHT BRIEF — YOUR ANALYST WORKED WHILE YOU SLEPT {openB ? "▾" : "▸"}</Eyebrow>
-        <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 3 }}>written before dawn from the last sync — the line below is LIVE and outranks it</div>
+        <Eyebrow c={T.jade}>THE ANALYST'S READ {openB ? "▾" : "▸"}</Eyebrow>
+        <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 3 }}>your nightly read, in plain English — the live line below always outranks it</div>
       </div>
       {(() => { const lb = liveBooks(s); return (
         <div style={{ fontFamily: mono, fontSize: 10, color: lb.complete ? T.jade : T.brass, marginTop: 7, lineHeight: 1.6 }}>
