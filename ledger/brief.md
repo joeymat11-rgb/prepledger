@@ -1,11 +1,11 @@
-<!-- 2026-07-26 -->
+<!-- 2026-07-27 -->
 
-YESTERDAY'S GAPS — Saturday's numbers (cal / protein / steps) and last night's sleep aren't in the synced books yet. Last sync looks old — 7/24, still erroring 409 — open the app once to clear it.
+YESTERDAY'S GAPS — Sunday's numbers (cal / protein / steps) and last night's sleep aren't in the synced books yet · 30 seconds in the app closes them. Last sync looks old — 5:11 PM Sunday. Sync cleared its 409 and Saturday's books landed.
 
-LAST 24H — Wedding #2 ran clean. Meds 1:00 PM, caffeine 350 mg, energy 3/5. Pulse 57, temp 97.6 on baseline. Food and sleep pending sync. (measured, n=2)
+LAST 24H — Quiet Sunday. Energy 3/5, caffeine 200 mg, temp 97.6 baseline. No meds — weather, not a verdict. Food and sleep pending. (measured, n=1)
 
-WATCHING — do events dent sleep? Both event nights ran short — Wedding #1 7.0h, refeed 6.0h — under a 7.5h streak. Wedding #2's night is the tiebreaker, not synced. (measured, n=2)
+WATCHING — Events don't reliably dent sleep. Wedding #2's night came in full — 7.6h. Two short (Wedding #1 7.0h, refeed 6.0h), one clean. Dented, not doomed. (measured, n=3)
 
-AUDIT — Miss Archaeology weakened. Its key line — "0% of misses followed a sub-7 night" — rests on only two sub-7 nights. Too thin for a null. Day-structure stays the lever. (measured, n=17)
+AUDIT — The sleep reset survived. Declared 7/22, the night sleep fell to 6.0h — fair to doubt. Three clean nights since (7/23–25, all ≥7.5h) re-cover it. PRs stay ownable. (measured, n=3)
 
-CONSIDER — stage a grip baseline this week: three quiet mornings, same posture. Grip is your CNS-readiness number and it's still empty. A floor helps the reverse phase. (speculation)
+CONSIDER — The seal lifts today. Don't trust the first read — Saturday ran 8 drinks and high sodium. Ignore the first two. Anchor on the third. (speculation)
