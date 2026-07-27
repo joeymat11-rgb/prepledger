@@ -1,0 +1,39 @@
+{
+  "gen": "2026-07-27T20:37:00.539Z",
+  "analystVersion": "rebuild-1",
+  "suggestions": [
+    {
+      "sid": "sug_2026-07-27_sleep",
+      "title": "Protect sleep: aim 7.5 h, cap afternoon caffeine",
+      "apply": {
+        "kind": "sleep",
+        "to": 7.5
+      },
+      "rationale": {
+        "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss 55% and raised lean-mass loss 60% (Nedeltcheva 2010).",
+        "data": "Last 13 nights average 6.9 h (7-night debt 1.8 h); 4 recent days had >=300 mg or afternoon caffeine.",
+        "relationship": "Short sleep + late caffeine track with your low recovery score and rep dips - the lever that protects lean while you cut."
+      },
+      "predict": "Higher share of loss as fat; lean protected; better session quality.",
+      "confidence": "high",
+      "gate": "approve",
+      "rank": 1
+    },
+    {
+      "sid": "sug_2026-07-27_hold",
+      "title": "Hold structural training changes this week",
+      "apply": {
+        "kind": "note"
+      },
+      "rationale": {
+        "science": "Under-recovery blunts the training stimulus that preserves muscle on a cut (Schoenfeld 2017).",
+        "data": "Recovery signals are low (short sleep, rep dips) with a progression queued.",
+        "relationship": "Pushing loads while under-recovered converts to missed reps, not muscle."
+      },
+      "predict": "Keeps intensity honest; resume progression when recovery returns.",
+      "confidence": "medium",
+      "gate": "approve",
+      "rank": 2
+    }
+  ]
+}

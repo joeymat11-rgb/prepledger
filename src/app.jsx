@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.2";
+const APP_V = "3.99.3";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2205,6 +2205,35 @@ function applyProposal(state, pid) {
   return s;
 }
 
+/* analyst suggestions (from ledger/suggestions.json) — approve applies + logs; dismiss logs. Both sync back for grading. */
+function applySuggestion(state, sug) {
+  const s = JSON.parse(JSON.stringify(state));
+  s.suggestionLog = s.suggestionLog || [];
+  s.targets = s.targets || {};
+  if (s.suggestionLog.some((x) => x.sid === sug.sid)) return s;
+  const d = isoOf(todayStart());
+  const a = sug.apply || { kind: "note" };
+  let how = sug.title;
+  if (a.kind === "protein" && a.to != null) { s.targets.proteinG = a.to; how = `protein target set to ${a.to} g/day`; }
+  else if (a.kind === "sleep" && a.to != null) { s.targets.sleepH = a.to; how = `sleep target set to ${a.to} h`; }
+  else if (a.kind === "cal" && a.delta != null) { s.targets.calDelta = (s.targets.calDelta || 0) + a.delta; how = `calorie band nudged ${a.delta > 0 ? "+" : ""}${a.delta} kcal`; }
+  else if (a.kind === "dietbreak") { s.targets.dietBreak = d; how = "diet break armed — hold at maintenance this week"; }
+  else if (a.kind === "progression") { s.targets.progression = a.to || true; how = "training progression noted — coach territory"; }
+  s.suggestionLog.push({ sid: sug.sid, decided: "approved", d, title: sug.title, apply: a, predict: sug.predict || "" });
+  s.adjustments.push({ rid: sug.sid, d, title: sug.title });
+  s.feed.unshift({ d, t: "ANALYST SUGGESTION APPLIED", how: `${sug.title} — ${how}` });
+  return s;
+}
+function dismissSuggestion(state, sug) {
+  const s = JSON.parse(JSON.stringify(state));
+  s.suggestionLog = s.suggestionLog || [];
+  if (s.suggestionLog.some((x) => x.sid === sug.sid)) return s;
+  const d = isoOf(todayStart());
+  s.suggestionLog.push({ sid: sug.sid, decided: "dismissed", d, title: sug.title });
+  s.feed.unshift({ d, t: "ANALYST SUGGESTION DISMISSED", how: sug.title });
+  return s;
+}
+
 /* undo a same-day scale read — restores trend and clears this week's snapshot if orphaned */
 function undoRead(state, iso) {
   const s = JSON.parse(JSON.stringify(state));
@@ -3423,6 +3452,35 @@ function Proposals({ s, setS, save }) {
   );
 }
 
+function AnalystSuggestions({ s, setS, save }) {
+  const raw = useRepoDoc("ledger/suggestions.json");
+  const data = (() => { try { return raw ? JSON.parse(raw) : null; } catch (e) { return null; } })();
+  if (!data || !Array.isArray(data.suggestions)) return null;
+  const done = new Set((s.suggestionLog || []).map((x) => x.sid));
+  const open = data.suggestions.filter((x) => x && x.sid && !done.has(x.sid));
+  if (!open.length) return null;
+  const cc = { high: T.jade, medium: T.brass, low: T.steel };
+  const line = { fontFamily: body, fontSize: 12, color: T.steel, lineHeight: 1.5, marginTop: 3 };
+  return (
+    <>
+      {open.map((p) => (
+        <Card key={p.sid} accent={T.jade}>
+          <Eyebrow c={T.jade}>ANALYST · SUGGESTION{p.confidence ? " · " + String(p.confidence).toUpperCase() + " CONFIDENCE" : ""}</Eyebrow>
+          <H size={19}>{p.title}</H>
+          {p.rationale && p.rationale.science && <div style={line}><b style={{ color: T.chalk }}>Science:</b> {p.rationale.science}</div>}
+          {p.rationale && p.rationale.data && <div style={line}><b style={{ color: T.chalk }}>Your data:</b> {p.rationale.data}</div>}
+          {p.rationale && p.rationale.relationship && <div style={line}><b style={{ color: T.chalk }}>Why it matters:</b> {p.rationale.relationship}</div>}
+          {p.predict && <div style={{ fontFamily: mono, fontSize: 10.5, color: cc[p.confidence] || T.steel, marginTop: 7 }}>→ expected: {p.predict}</div>}
+          <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+            <Btn small tone="jade" onClick={() => { const ns = applySuggestion(s, p); setS(ns); save(ns); }}>Approve — apply it</Btn>
+            <Btn small tone="ghost" onClick={() => { const ns = dismissSuggestion(s, p); setS(ns); save(ns); }}>Dismiss</Btn>
+          </div>
+        </Card>
+      ))}
+    </>
+  );
+}
+
 function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [askOpen, setAskOpen] = useState(false);
   const [lawsOpen, setLawsOpen] = useState(false);
@@ -3497,6 +3555,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       </div>
 
       <Proposals s={s} setS={setS} save={save} />
+
+      <AnalystSuggestions s={s} setS={setS} save={save} />
 
       {(s.labNews || []).length > 0 && (
         <Card accent={T.jade} style={{ padding: 10, cursor: "pointer" }}>
