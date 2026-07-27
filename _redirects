@@ -1,0 +1,12 @@
+# Block public access to private/sensitive files.
+# Files remain in the repo so the token/GitHub-API sync and the agents keep working.
+/ledger/*        /404.html  404!
+/src/*           /404.html  404!
+/tools/*         /404.html  404!
+/setup.sh        /404.html  404!
+/HANDOFF.md      /404.html  404!
+/DEPLOY.txt      /404.html  404!
+/BLUEPRINT.md    /404.html  404!
+/CLAUDE.md       /404.html  404!
+/netlify.toml    /404.html  404!
+/_redirects      /404.html  404!
