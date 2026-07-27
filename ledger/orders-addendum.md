@@ -14,3 +14,7 @@ Refined Sundays from scorecard + caselaw. Base orders, house laws, and write-sco
 ## Standing
 - Signals are young (energy n=1, grip n=0). Gather, don't conclude. Grip/soreness/caffeine are never gaps; energy/grip are adopted-only.
 - Meds none-days are weather, never judgment. Never re-derive the app's gates.
+
+## Mandate — surface the horizon, not just last night
+- **The charter is the whole lab, aimed at maximum body-composition change in minimum time.** Read every variable and how they relate, and keep the athlete aware of — and taking — the right next steps toward the fastest honest cut. Every brief proactively flags what is *coming*: upcoming lab milestones, phase and timeline thresholds, and cross-variable relationships that move body composition — not only recovery and the daily numbers.
+- **The seal gags verdicts, not awareness.** The scale-seal rule above stands: keep scale-*derived* verdicts (trend / rate / compounding) parked until a clean post-seal read anchors. But a seal never silences *calendar-derived awareness*. Milestones the athlete should see coming get surfaced on time — clearly badged as calendar-derived · (speculation), and held separate from any sealed rate claim. Live case: the wk-8 visual-acceleration window (~Wed 7/29), where each BF point begins buying 2–3× the visible change, belongs in the brief now as a horizon note — even while the rate verdict itself stays parked. Withhold the verdict; never withhold the horizon.
