@@ -203,13 +203,18 @@ const cW = { high: 3, medium: 2, low: 1 };
 sugg.sort((a, b) => cW[b.confidence] - cW[a.confidence]);
 sugg.forEach((x, i) => (x.rank = i + 1));
 
+// prior decisions (Joe's approvals/dismissals synced back in state) — the analyst grades these next run
+const priorDecisions = (state.suggestionLog || []).slice(-10).map((x) => ({ sid: x.sid, decided: x.decided, d: x.d, title: x.title, apply: x.apply || null, predict: x.predict || "" }));
+const priorApproved = priorDecisions.filter((x) => x.decided === "approved").length;
+const priorDismissed = priorDecisions.filter((x) => x.decided === "dismissed").length;
+
 const analysis = {
   gen, stateRead: STATE_PATH,
   trend: { soft: last.trend, lastRaw: last.w, appTrend: state.trend, noiseFloor, gap },
   rate: { perWeekLb: rateWk, perWeekPct: ratePct, bandLb: rateBand, personalBand: (state.rate || {}).band, window: winDays },
   coefficients: { tdee, tdeeWinDays, meanCal: meanCal != null ? Math.round(meanCal) : null, waterSensitivityLb: waterSens, waterSensDays: waterSensN, meanSleepH: meanSleep != null ? r1(meanSleep, 1) : null, sleepDebt7H: r1(sleepDebt7, 1), ffmKg: FFM_KG ? r1(FFM_KG, 1) : null, proteinTargetG: proTarget },
   regime: { regime, why: regimeWhy },
-  weeks: weekRows.slice(-6), suggestions: sugg
+  weeks: weekRows.slice(-6), priorDecisions, suggestions: sugg
 };
 const suggestionsOut = { gen, analystVersion: "rebuild-1", suggestions: sugg };
 if (WRITE) {
@@ -227,6 +232,7 @@ L.push("water sensitivity: " + (waterSens != null ? (waterSens > 0 ? "+" : "") +
 L.push("sleep: mean " + (meanSleep != null ? r1(meanSleep, 1) : "?") + " h  -  7-night debt " + r1(sleepDebt7, 1) + " h");
 L.push("protein: target " + proTarget + "-" + proHi + " g  -  recent avg " + (proAvg != null ? Math.round(proAvg) : "?") + " g");
 L.push("regime: " + regime + (regimeWhy ? " - " + regimeWhy : ""));
+L.push("prior decisions to grade: " + priorDecisions.length + " (approved " + priorApproved + " / dismissed " + priorDismissed + ")");
 L.push("SUGGESTIONS (" + sugg.length + "):");
 sugg.forEach(x => { L.push("  [" + x.rank + "] " + x.title + "  (" + x.confidence + ", " + x.gate + ")"); L.push("      science: " + x.rationale.science); L.push("      data:    " + x.rationale.data); L.push("      rel:     " + x.rationale.relationship); L.push("      -> " + x.predict); });
 console.log(L.join("\n"));

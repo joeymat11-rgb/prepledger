@@ -1,5 +1,5 @@
 {
-  "gen": "2026-07-27T20:37:00.539Z",
+  "gen": "2026-07-27T21:13:43.631Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-dev\\ledger\\state.json",
   "trend": {
     "soft": 164.85,
@@ -77,6 +77,7 @@
       "meanSteps": 16500
     }
   ],
+  "priorDecisions": [],
   "suggestions": [
     {
       "sid": "sug_2026-07-27_sleep",
