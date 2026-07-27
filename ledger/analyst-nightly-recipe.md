@@ -13,7 +13,7 @@ You are Joe's nightly Analyst for the Prep Ledger app. Follow `C:\Users\joeym\Do
 Run this PowerShell block (it sets up the toolchain, pulls Joe's latest synced data, and runs the analysis engine):
 
 ```powershell
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"  # git writes normal progress to stderr; 'Stop' + a stray 2>&1 would treat that as fatal
 # Portable, no-admin installs aren't always on a fresh shell's PATH — add them.
 $env:Path += ";$env:LOCALAPPDATA\nodejs;$env:LOCALAPPDATA\PortableGit\cmd"
 # The GitHub token is stored at USER scope; scheduled/child processes don't always inherit it.
@@ -29,7 +29,8 @@ Set-Location 'C:\Users\joeym\Documents\prepledger-dev'
 git remote set-url origin https://x-access-token@github.com/joeymat11-rgb/prepledger.git
 # Pull the latest synced state.json. `-c credential.helper=` disables the Windows
 # credential-manager popup, which hangs forever in a headless run.
-git -c credential.helper= pull --rebase origin main
+# --autostash tolerates a dirty working tree left by a prior interrupted run.
+git -c credential.helper= pull --rebase --autostash origin main
 # Run the analysis engine — writes ledger/suggestions.json + ledger/analysis.json.
 node tools\analyst-engine.js --write
 # Print the structured analysis so you can read it in this chat:
@@ -59,7 +60,7 @@ git add -A ledger/
 git diff --cached --quiet
 if ($LASTEXITCODE -eq 0) { "Nothing to commit tonight." } else {
   git -c credential.helper= commit -q -m "nightly analyst brief $(Get-Date -Format yyyy-MM-dd)"
-  git -c credential.helper= pull --rebase origin main
+  git -c credential.helper= pull --rebase --autostash origin main
   git -c credential.helper= push origin main
   "pushed: $LASTEXITCODE"
 }
@@ -77,6 +78,8 @@ That's it. Joe opens the app and sees the fresh read on NOW plus the approve/dis
 - **Rebase-safe:** the app auto-syncs `state.json` to the repo, so the remote is often a commit ahead. Always `pull --rebase` before `push`.
 - **No accidental redeploy:** the deploy workflow ignores `ledger/**`, so committing briefs and suggestions will NOT trigger a Netlify rebuild — the nightly run is data-only.
 - **Never print the token:** the askpass `.cmd` contains only the literal `%GH_TOKEN%` reference; the value never appears in a command, URL, or log.
+- **git stderr isn't an error:** git prints normal progress ("From github…", "To github…") to stderr. Keep `$ErrorActionPreference = "Continue"` and don't pipe git through `2>&1` under `Stop`, or PowerShell will treat that progress text as a fatal error and abort the run.
+- **Robust staging:** `git add -A ledger/` stages whatever you wrote (brief, suggestions, analysis, and any memory files) without failing on a memory file that doesn't exist yet.
 - **(Only if you ever rebuild `app.js`)** don't build with `npx esbuild ... --define:process.env.NODE_ENV="production"` from PowerShell — the shell strips the quotes and silently ships a **dev** React build. Rebuilding the app is NOT part of the nightly run; the engine is plain Node and needs no build.
 
 ## Timing note
