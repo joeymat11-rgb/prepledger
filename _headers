@@ -1,0 +1,29 @@
+/ledger/*
+  Cache-Control: no-store, max-age=0
+
+/src/*
+  Cache-Control: no-store, max-age=0
+
+/tools/*
+  Cache-Control: no-store, max-age=0
+
+/HANDOFF.md
+  Cache-Control: no-store, max-age=0
+
+/DEPLOY.txt
+  Cache-Control: no-store, max-age=0
+
+/BLUEPRINT.md
+  Cache-Control: no-store, max-age=0
+
+/CLAUDE.md
+  Cache-Control: no-store, max-age=0
+
+/setup.sh
+  Cache-Control: no-store, max-age=0
+
+/netlify.toml
+  Cache-Control: no-store, max-age=0
+
+/_redirects
+  Cache-Control: no-store, max-age=0

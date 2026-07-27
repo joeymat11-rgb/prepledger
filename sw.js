@@ -1,5 +1,5 @@
 /* Prep Ledger service worker — bump CACHE on every redeploy */
-const CACHE = "prep-ledger-v3.99.1";
+const CACHE = "prep-ledger-v3.99.1-priv";
 const ASSETS = [
   "./",
   "./index.html",
@@ -26,7 +26,8 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
-  try { const u9 = new URL(e.request.url); if (u9.hostname === "api.github.com" || u9.hostname.endsWith("githubusercontent.com")) return; } catch (err) {}
+  let u9; try { u9 = new URL(e.request.url); if (u9.hostname === "api.github.com" || u9.hostname.endsWith("githubusercontent.com")) return; } catch (err) {}
+  if (u9 && u9.origin === self.location.origin && /^\/ledger\//.test(u9.pathname)) { e.respondWith(fetch(e.request)); return; }
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then(
       (hit) =>
