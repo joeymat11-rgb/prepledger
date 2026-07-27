@@ -38,11 +38,11 @@ Get-Content ledger\analysis.json -Raw
 
 ### Step 2 — Think and write (your job, per the constitution)
 
-Read the `analysis.json` you just printed, plus `ledger/state.json` and your memory files (`ledger/notes.md`, `ledger/scorecard.md`, `ledger/caselaw.md`). Then, following the constitution:
+Read the `analysis.json` you just printed, plus `ledger/state.json` and your memory files (`ledger/notes.md`, `ledger/caselaw.md`, and `ledger/training/scorecard.md`). Then, following the constitution:
 
 1. **Write `ledger/brief.md`** — a short, plain-voice read (no jargon, no "provisional", no dense shorthand). The very first line must be an HTML date comment for today, e.g. `<!-- 2026-07-28 -->`. Cover: the trend and what it means, the two or three drivers that matter this week, whether lean is safe, the single highest-leverage move, and the horizon.
 2. **Curate `ledger/suggestions.json`** — start from the engine's draft, keep the few genuinely high-leverage, well-supported suggestions, sharpen each into your voice, and make sure every one has all three rationale parts (science / your-data / relationship) plus a `predict` and a `confidence`. Drop weak ones. Keep the JSON shape exactly as the engine wrote it.
-3. **Grade last night** — look at `priorDecisions` in `analysis.json`; note in `scorecard.md` which suggestions Joe approved and whether the numbers moved as predicted, and let confirmed patterns harden into `caselaw.md`.
+3. **Grade last night** — look at `priorDecisions` in `analysis.json`; note in `ledger/training/scorecard.md` which suggestions Joe approved and whether the numbers moved as predicted, and let confirmed patterns harden into `ledger/caselaw.md`.
 4. **Update `notes.md`** with anything worth remembering for next time.
 
 ### Step 3 — Commit and push
@@ -51,11 +51,18 @@ Run this PowerShell block:
 
 ```powershell
 Set-Location 'C:\Users\joeym\Documents\prepledger-dev'
-git add ledger/brief.md ledger/suggestions.json ledger/analysis.json ledger/notes.md ledger/scorecard.md ledger/caselaw.md
-git -c credential.helper= commit -q -m "nightly analyst brief $(Get-Date -Format yyyy-MM-dd)"
-git -c credential.helper= pull --rebase origin main
-git -c credential.helper= push origin main
-"pushed: $LASTEXITCODE"
+# Stage everything you wrote under ledger/ (brief, suggestions, analysis, memory files).
+# `-A ledger/` is robust: it never fails on a not-yet-created memory file, and after the
+# pull in Step 1 the only working-tree changes under ledger/ are your own.
+git add -A ledger/
+# Only commit/push if something actually changed (a quiet night is fine).
+git diff --cached --quiet
+if ($LASTEXITCODE -eq 0) { "Nothing to commit tonight." } else {
+  git -c credential.helper= commit -q -m "nightly analyst brief $(Get-Date -Format yyyy-MM-dd)"
+  git -c credential.helper= pull --rebase origin main
+  git -c credential.helper= push origin main
+  "pushed: $LASTEXITCODE"
+}
 ```
 
 That's it. Joe opens the app and sees the fresh read on NOW plus the approve/dismiss cards.

@@ -1,11 +1,11 @@
 <!-- 2026-07-27 -->
 
-You're mid-whoosh. This morning's scale (161.8) is sitting about 3 lb under your trend — that's the wedding water finally clearing, not new fat. Hold the line and let this week's clean reads confirm it; the trend should catch down on its own. Don't let the first read or two after the seal spook you.
+Where you stand: still mid-whoosh. This morning's 161.8 is about 3 lb below your trend — that's wedding water leaving, not fat coming back. Let the next few clean reads confirm it and the trend will catch down on its own; don't overreact to the first read or two.
 
-Pace: you're losing about 1.3 lb a week. That's right in your target band and squarely in the range that protects muscle — nothing to change there.
+Pace check: you're about 1.3 lb/week off the trend — right in your target band and in the muscle-safe zone. Leave the deficit where it is.
 
-The one thing that matters most right now is sleep. You've averaged 6.9 hours over the last two weeks, and four of the last few days had a big or late caffeine hit (the 400 mg at noon is the main culprit). On a cut, short sleep is the difference between losing fat and losing muscle — it's the highest-leverage lever you've got. Aim for 7.5 hours and pull the caffeine earlier in the day.
+Biggest lever tonight is sleep. Your two-week average is 6.9 hours, and caffeine has been landing late and heavy (the 400 mg at noon is the one to move). On a cut this is the single thing most likely to decide whether what you lose is fat or muscle. Aim for 7.5 hours and pull the caffeine into the morning.
 
-Training: recovery's a little low this week — short sleep plus a couple of rep dips. Hold off on adding load or starting new progressions for a few days; keep the intensity honest and let some good nights bank first. The strength is yours to keep, not to chase right now.
+Training: recovery's dipped a little — short nights plus a couple of rep dips — so hold new load and progressions for a few days. Defend what you're lifting rather than chase it; it comes back quickly once you bank a few good nights.
 
-Protein's dialed at 174 g and your steps are strong — the parts that are supposed to be automatic already are. Nice work.
+Already handled: protein's at 174 g and your steps are strong. Those are the quiet wins that do the real work — keep them boring.
