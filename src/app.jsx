@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.4";
+const APP_V = "3.99.5";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -3554,10 +3554,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </div>
       </div>
 
-      <Proposals s={s} setS={setS} save={save} />
-
-      <AnalystSuggestions s={s} setS={setS} save={save} />
-
+      {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
+      {lawsOpen && <LawsView onClose={() => setLawsOpen(false)} />}
+      {minOpen && <MinuteView s={s} setS={setS} save={save} onClose={() => setMinOpen(false)} />}
       {(s.labNews || []).length > 0 && (
         <Card accent={T.jade} style={{ padding: 10, cursor: "pointer" }}>
           <div onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.labNews = []; setS(ns); save(ns); }}>
@@ -3567,9 +3566,6 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       )}
 
-      {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
-      {lawsOpen && <LawsView onClose={() => setLawsOpen(false)} />}
-      {minOpen && <MinuteView s={s} setS={setS} save={save} onClose={() => setMinOpen(false)} />}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {s.sessionLog[tISO] && <Chip c={T.jade}>Session ✓ — receipt in TRAIN</Chip>}
         {cleanIn > 0 && <Chip c={T.chalk}>Scale sealed · clean read {fmtShort(SEAL_UNTIL)} · {cleanIn}d</Chip>}
@@ -3583,122 +3579,6 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{al9.level === "RED" ? "The pattern held a second day. Today buys nothing worth its cost — walk, eat, sleep, and come back tomorrow ahead. Every lift's desk already says REST TODAY." : "Normal session, one rule changed: no all-out sets and no record attempts. Every zero becomes a one — the desk chips already carry it."}</div>
         </Card>
       ); })()}
-      {(() => { const fl = filingsFor(new Date().getDay(), new Date().getDate()); if (!fl.length) return null; return (
-        <Card style={{ padding: "9px 14px" }}>
-          {fl.map((f9, i9) => <div key={i9} style={{ fontFamily: mono, fontSize: 9.5, color: T.steel, lineHeight: 1.7 }}>🗎 {f9}</div>)}
-        </Card>
-      ); })()}
-
-      <SecRule>THE READ · what the machine says</SecRule>
-      <BriefCard s={s} setS={setS} save={save} />
-
-      {(() => {
-        const y8 = isoOf(new Date(todayStart().getTime() - DAY));
-        if ((s.dailyLogs[y8] && !amendY) || Object.keys(s.dailyLogs).length === 0) return null;
-        const isAmend = !!s.dailyLogs[y8];
-        return (
-          <Card id="pl-amend" accent={T.brass}>
-            <Eyebrow c={T.brass}>{isAmend ? `AMEND ${fmtShort(y8).toUpperCase()} — HONEST CORRECTIONS WELCOME` : `YESTERDAY'S BOOKS STILL OPEN — CLOSE ${fmtShort(y8).toUpperCase()} IN 30 SECONDS`}</Eyebrow>
-            <div style={{ marginTop: 6 }}>
-              <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if ((ns.dayCtx[y8] || {}).est) delete ns.dayCtx[y8]; else ns.dayCtx[y8] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
-                style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.05em", color: ((s.dayCtx || {})[y8] || {}).est ? T.brass : T.dim, border: `1px solid ${((s.dayCtx || {})[y8] || {}).est ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>
-                {((s.dayCtx || {})[y8] || {}).est ? "⌁ ESTIMATE DAY ✓" : "was it an estimate day?"}
-              </span>
-            </div>
-            <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 4 }}>{isAmend ? "Late bites count on the day they belong to. Corrected numbers replace the old ones; the amendment itself goes on the record — that is accuracy, not failure." : "Midnight passed but the day didn't file itself. Same numbers, honest timestamp — the ledger marks it logged-late, which is a fact, not a fault."}</div>
-            <div style={{ display: "flex", gap: 8, marginTop: 9 }}>
-              {[["CAL", yCal, setYCal], ["PRO", yPro, setYPro], ["STEPS", yStp, setYStp]].map(([l8, v8, f8]) => (
-                <div key={l8} style={{ flex: 1 }}>
-                  <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em", marginBottom: 4 }}>{l8}</div>
-                  <input inputMode="decimal" value={v8} onChange={(e8) => f8(e8.target.value)} style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8, color: T.chalk, fontFamily: mono, fontSize: 15, padding: "9px 8px", outline: "none" }} />
-                </div>
-              ))}
-            </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}>
-              <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>SODIUM</span>
-              {["low", "med", "high"].map((sv) => (
-                <span key={sv} onClick={() => setYSod(sv)} style={{ fontFamily: mono, fontSize: 9.5, color: ySod === sv ? T.jade : T.dim, border: `1px solid ${ySod === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px", cursor: "pointer" }}>{sv}</span>
-              ))}
-              <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginLeft: 8 }}>ALCOHOL</span>
-              {[2, 4, 6, 8, 10, 12].map((u0) => (
-                <span key={u0} onClick={() => setYAlc(u0)} style={{ fontFamily: mono, fontSize: 9.5, color: +yAlc === u0 ? T.jade : T.dim, border: `1px solid ${+yAlc === u0 ? T.jade : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>{u0}</span>
-              ))}
-              <Stepper v={+yAlc} set={setYAlc} step={1} min={0} />
-            </div>
-            <div style={{ marginTop: 10 }}>
-              <Btn full tone="jade" onClick={() => { if (yCal === "" && yPro === "" && yStp === "") return; const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: yCal === "" ? null : +yCal, pro: yPro === "" ? null : +yPro, steps: yStp === "" ? null : +yStp, sodium: ySod, alc: +yAlc || 0 }; ns.feed.unshift(isAmend ? { d: y8, t: `DAY AMENDED — ${fmtShort(y8)}: ${(s.dailyLogs[y8] || {}).cal ?? "—"}→${yCal || "—"} cal · ${(s.dailyLogs[y8] || {}).pro ?? "—"}→${yPro || "—"} g`, how: "athlete corrected the record after close — late bites logged where they belong" } : { d: y8, t: `BOOKS CLOSED LATE — ${fmtShort(y8)} logged after midnight`, how: "the repair door on NOW — same numbers, honest timestamp" }); setAmendY(false); setS(ns); save(ns); }}>{isAmend ? `Refile ${fmtShort(y8)} — corrected` : `Close ${fmtShort(y8)} — file it`}</Btn>
-            </div>
-          </Card>
-        );
-      })()}
-
-      {(() => { const pr = dayProtocol(s, slp); return (
-        <Card accent={T.jade}>
-          <Eyebrow c={T.jade}>TODAY'S PROTOCOL — RANKED, FROM YOUR DATA</Eyebrow>
-          <div style={{ marginTop: 6 }}><H size={22}>{pr.lead.t}</H></div>
-          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 4 }}>{plainify(pr.lead.sub)}</div>
-          <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9, display: "flex", flexDirection: "column", gap: 7 }}>
-            {pr.steps.map((st2, i) => (
-              <div key={i} style={{ display: "flex", gap: 8 }}>
-                <span style={{ fontFamily: mono, fontSize: 10, color: T.dim, flexShrink: 0 }}>{i + 2}.</span>
-                <div>
-                  <div style={{ fontFamily: mono, fontSize: 11, color: st2.detail ? T.brass : T.chalk }}>{plainify(st2.a)}</div>
-                  <div style={{ fontFamily: body, fontSize: 11, color: T.dim, lineHeight: 1.45 }}>{plainify(st2.why)}</div>
-                  {(st2.detail || []).map((dl, k) => (
-                    <div key={k} style={{ fontFamily: body, fontSize: 11, color: T.chalk, lineHeight: 1.5, marginTop: 4, paddingLeft: 8, borderLeft: `2px solid ${T.line}` }}>{plainify(dl)}</div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      ); })()}
-
-      {(s.agentProposals || []).length === 0 && (
-        <Card style={{ padding: "9px 14px" }}>
-          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim }}>📥 PROPOSALS — none waiting · every change the machine wants arrives here first, in plain words, for your tap</div>
-        </Card>
-      )}
-      {(s.agentProposals || []).length > 0 && (
-        <Card accent={T.jade} style={{ border: `1px solid ${T.jade}` }}>
-          <Eyebrow c={T.jade}>📥 PROPOSALS — {(s.agentProposals || []).length} WAITING · YOUR TAP DECIDES</Eyebrow>
-          {(s.agentProposals || []).map((ap) => (
-            <div key={ap.id} style={{ marginTop: 9, paddingTop: 9, borderTop: `1px solid ${T.line}` }}>
-              <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>{ap.title}</div>
-              <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{plainify(ap.body)}</div>
-              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 5 }}>{
-                ap.kind === "volume" ? (ap.dir > 0 ? "If you consent: one set is added to that lift starting next session. Dismiss: nothing changes." : "If you consent: one set comes off that lift starting next session. Dismiss: nothing changes.")
-                : ap.kind === "reset" ? `If you consent: the weight drops to ${ap.newW} and rep targets re-seed for the lighter load. Dismiss: nothing changes.`
-                : ap.kind === "trial" ? "If you start it: the experiment rides your daily protocol in blocks and files its own verdict when done. Dismiss: nothing runs."
-                : "Nothing changes unless you act — dismiss files it away."
-              }</div>
-              <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
-                {ap.kind === "volume" && ap.exId && ap.dir && (
-                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex7 = ns.exercises.find((x) => x.id === ap.exId); if (ex7) { ex7.sets = Math.max(1, (ex7.sets || 1) + ap.dir); ns.feed.unshift({ d: tISO, t: `VOLUME ${ap.dir > 0 ? "+1" : "−1"} — ${ap.mg.toUpperCase()} via ${ex7.n} (now ${ex7.sets} sets)`, how: "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited" }); } ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>{ap.dir > 0 ? "Add the set — I consent" : "Trim the set — I consent"}</Btn>
-                )}
-                {ap.kind === "reset" && ap.exId && ap.newW && (
-                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex3 = ns.exercises.find((x) => x.id === ap.exId); if (ex3) { const oldW = ex3.w; ex3.w = ap.newW; ex3.last = null; ns.feed.unshift({ d: tISO, t: "RESET APPLIED — " + ex3.n + " " + oldW + " → " + ap.newW, how: "3-session stall, evidence-based back-off, your consent — rebuild starts next session" }); } ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Apply reset — I consent</Btn>
-                )}
-                {ap.kind === "trial" && (ap.custom || (ap.tplId && TRIAL_TPL[ap.tplId] && !(s.trials || []).some((t) => t.tplId === ap.tplId))) && (
-                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const rec = ap.custom ? { custom: ap.custom, started: tISO } : { tplId: ap.tplId, started: tISO }; ns.trials = [...(ns.trials || []), rec]; ns.feed.unshift({ d: tISO, t: "TRIAL STARTED — " + (ap.custom ? ap.custom.t : TRIAL_TPL[ap.tplId].t), how: ap.custom ? "designed by your analyst for a pattern in YOUR data, consented by you" : "proposed by your analyst, consented by you" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Start trial — I consent</Btn>
-                )}
-                <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); if (ap.kind === "volume" && ap.mg) ns.feed.unshift({ d: tISO, t: `VOLUME PASSED — ${ap.mg.toUpperCase()}`, how: "athlete dismissed — the ledger waits two weeks before raising this muscle again" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Dismiss</Btn>
-              </div>
-            </div>
-          ))}
-        </Card>
-      )}
-
-
-
-
-
-
-
-
-
-
-
       {(() => {
         const owed = owedNights(s);
         const lastNight = isoOf(new Date((new Date().getHours() < 5 ? todayStart().getTime() - DAY : todayStart().getTime()) - DAY));
@@ -3785,6 +3665,139 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               {!(slAlready && wAlready) && <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 10 }}>evening numbers below · sessions in TRAIN · everything else is reading</div>}
             </Card>
           </>
+        );
+      })()}
+
+      <SecRule>THE READ · what the machine says</SecRule>
+      <BriefCard s={s} setS={setS} save={save} />
+
+      <SecRule>FOR YOUR APPROVAL · your tap decides</SecRule>
+      <AnalystSuggestions s={s} setS={setS} save={save} />
+
+      <Proposals s={s} setS={setS} save={save} />
+
+      {(s.agentProposals || []).length === 0 && (
+        <Card style={{ padding: "9px 14px" }}>
+          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim }}>📥 PROPOSALS — none waiting · every change the machine wants arrives here first, in plain words, for your tap</div>
+        </Card>
+      )}
+      {(s.agentProposals || []).length > 0 && (
+        <Card accent={T.jade} style={{ border: `1px solid ${T.jade}` }}>
+          <Eyebrow c={T.jade}>📥 PROPOSALS — {(s.agentProposals || []).length} WAITING · YOUR TAP DECIDES</Eyebrow>
+          {(s.agentProposals || []).map((ap) => (
+            <div key={ap.id} style={{ marginTop: 9, paddingTop: 9, borderTop: `1px solid ${T.line}` }}>
+              <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>{ap.title}</div>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{plainify(ap.body)}</div>
+              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 5 }}>{
+                ap.kind === "volume" ? (ap.dir > 0 ? "If you consent: one set is added to that lift starting next session. Dismiss: nothing changes." : "If you consent: one set comes off that lift starting next session. Dismiss: nothing changes.")
+                : ap.kind === "reset" ? `If you consent: the weight drops to ${ap.newW} and rep targets re-seed for the lighter load. Dismiss: nothing changes.`
+                : ap.kind === "trial" ? "If you start it: the experiment rides your daily protocol in blocks and files its own verdict when done. Dismiss: nothing runs."
+                : "Nothing changes unless you act — dismiss files it away."
+              }</div>
+              <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
+                {ap.kind === "volume" && ap.exId && ap.dir && (
+                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex7 = ns.exercises.find((x) => x.id === ap.exId); if (ex7) { ex7.sets = Math.max(1, (ex7.sets || 1) + ap.dir); ns.feed.unshift({ d: tISO, t: `VOLUME ${ap.dir > 0 ? "+1" : "−1"} — ${ap.mg.toUpperCase()} via ${ex7.n} (now ${ex7.sets} sets)`, how: "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited" }); } ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>{ap.dir > 0 ? "Add the set — I consent" : "Trim the set — I consent"}</Btn>
+                )}
+                {ap.kind === "reset" && ap.exId && ap.newW && (
+                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex3 = ns.exercises.find((x) => x.id === ap.exId); if (ex3) { const oldW = ex3.w; ex3.w = ap.newW; ex3.last = null; ns.feed.unshift({ d: tISO, t: "RESET APPLIED — " + ex3.n + " " + oldW + " → " + ap.newW, how: "3-session stall, evidence-based back-off, your consent — rebuild starts next session" }); } ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Apply reset — I consent</Btn>
+                )}
+                {ap.kind === "trial" && (ap.custom || (ap.tplId && TRIAL_TPL[ap.tplId] && !(s.trials || []).some((t) => t.tplId === ap.tplId))) && (
+                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const rec = ap.custom ? { custom: ap.custom, started: tISO } : { tplId: ap.tplId, started: tISO }; ns.trials = [...(ns.trials || []), rec]; ns.feed.unshift({ d: tISO, t: "TRIAL STARTED — " + (ap.custom ? ap.custom.t : TRIAL_TPL[ap.tplId].t), how: ap.custom ? "designed by your analyst for a pattern in YOUR data, consented by you" : "proposed by your analyst, consented by you" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Start trial — I consent</Btn>
+                )}
+                <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); if (ap.kind === "volume" && ap.mg) ns.feed.unshift({ d: tISO, t: `VOLUME PASSED — ${ap.mg.toUpperCase()}`, how: "athlete dismissed — the ledger waits two weeks before raising this muscle again" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Dismiss</Btn>
+              </div>
+            </div>
+          ))}
+        </Card>
+      )}
+
+
+
+
+
+
+
+
+
+
+
+      <SecRule>TODAY'S PLAN · what to do today</SecRule>
+      {(() => { const pr = dayProtocol(s, slp); return (
+        <Card accent={T.jade}>
+          <Eyebrow c={T.jade}>TODAY'S PROTOCOL — RANKED, FROM YOUR DATA</Eyebrow>
+          <div style={{ marginTop: 6 }}><H size={22}>{pr.lead.t}</H></div>
+          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 4 }}>{plainify(pr.lead.sub)}</div>
+          <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9, display: "flex", flexDirection: "column", gap: 7 }}>
+            {pr.steps.map((st2, i) => (
+              <div key={i} style={{ display: "flex", gap: 8 }}>
+                <span style={{ fontFamily: mono, fontSize: 10, color: T.dim, flexShrink: 0 }}>{i + 2}.</span>
+                <div>
+                  <div style={{ fontFamily: mono, fontSize: 11, color: st2.detail ? T.brass : T.chalk }}>{plainify(st2.a)}</div>
+                  <div style={{ fontFamily: body, fontSize: 11, color: T.dim, lineHeight: 1.45 }}>{plainify(st2.why)}</div>
+                  {(st2.detail || []).map((dl, k) => (
+                    <div key={k} style={{ fontFamily: body, fontSize: 11, color: T.chalk, lineHeight: 1.5, marginTop: 4, paddingLeft: 8, borderLeft: `2px solid ${T.line}` }}>{plainify(dl)}</div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ); })()}
+
+      {ev && (
+        <Card accent={T.chalk}>
+          <Eyebrow>EVENT MODE · {fmtShort(ev.d)}</Eyebrow>
+          <H size={19}>{ev.t}</H>
+          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 4 }}>{ev.protocol}. Events filed without a make-up day: <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> straight — an event never buys a punishment here: tomorrow runs exactly as planned.</div>
+          {daysUntil(ev.d) <= 0 && (
+            <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+              {daysUntil(ev.d) < 0 && <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass }}>waiting on you to close it — the ledger doesn't guess</div>}
+            <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginBottom: 8 }}>after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button</div>
+              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>File the event ✓ — your estimate goes in tonight's numbers</Btn>
+            </div>
+          )}
+        </Card>
+      )}
+
+
+
+      {(() => {
+        const y8 = isoOf(new Date(todayStart().getTime() - DAY));
+        if ((s.dailyLogs[y8] && !amendY) || Object.keys(s.dailyLogs).length === 0) return null;
+        const isAmend = !!s.dailyLogs[y8];
+        return (
+          <Card id="pl-amend" accent={T.brass}>
+            <Eyebrow c={T.brass}>{isAmend ? `AMEND ${fmtShort(y8).toUpperCase()} — HONEST CORRECTIONS WELCOME` : `YESTERDAY'S BOOKS STILL OPEN — CLOSE ${fmtShort(y8).toUpperCase()} IN 30 SECONDS`}</Eyebrow>
+            <div style={{ marginTop: 6 }}>
+              <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if ((ns.dayCtx[y8] || {}).est) delete ns.dayCtx[y8]; else ns.dayCtx[y8] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
+                style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.05em", color: ((s.dayCtx || {})[y8] || {}).est ? T.brass : T.dim, border: `1px solid ${((s.dayCtx || {})[y8] || {}).est ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>
+                {((s.dayCtx || {})[y8] || {}).est ? "⌁ ESTIMATE DAY ✓" : "was it an estimate day?"}
+              </span>
+            </div>
+            <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 4 }}>{isAmend ? "Late bites count on the day they belong to. Corrected numbers replace the old ones; the amendment itself goes on the record — that is accuracy, not failure." : "Midnight passed but the day didn't file itself. Same numbers, honest timestamp — the ledger marks it logged-late, which is a fact, not a fault."}</div>
+            <div style={{ display: "flex", gap: 8, marginTop: 9 }}>
+              {[["CAL", yCal, setYCal], ["PRO", yPro, setYPro], ["STEPS", yStp, setYStp]].map(([l8, v8, f8]) => (
+                <div key={l8} style={{ flex: 1 }}>
+                  <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em", marginBottom: 4 }}>{l8}</div>
+                  <input inputMode="decimal" value={v8} onChange={(e8) => f8(e8.target.value)} style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8, color: T.chalk, fontFamily: mono, fontSize: 15, padding: "9px 8px", outline: "none" }} />
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>SODIUM</span>
+              {["low", "med", "high"].map((sv) => (
+                <span key={sv} onClick={() => setYSod(sv)} style={{ fontFamily: mono, fontSize: 9.5, color: ySod === sv ? T.jade : T.dim, border: `1px solid ${ySod === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px", cursor: "pointer" }}>{sv}</span>
+              ))}
+              <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginLeft: 8 }}>ALCOHOL</span>
+              {[2, 4, 6, 8, 10, 12].map((u0) => (
+                <span key={u0} onClick={() => setYAlc(u0)} style={{ fontFamily: mono, fontSize: 9.5, color: +yAlc === u0 ? T.jade : T.dim, border: `1px solid ${+yAlc === u0 ? T.jade : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>{u0}</span>
+              ))}
+              <Stepper v={+yAlc} set={setYAlc} step={1} min={0} />
+            </div>
+            <div style={{ marginTop: 10 }}>
+              <Btn full tone="jade" onClick={() => { if (yCal === "" && yPro === "" && yStp === "") return; const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: yCal === "" ? null : +yCal, pro: yPro === "" ? null : +yPro, steps: yStp === "" ? null : +yStp, sodium: ySod, alc: +yAlc || 0 }; ns.feed.unshift(isAmend ? { d: y8, t: `DAY AMENDED — ${fmtShort(y8)}: ${(s.dailyLogs[y8] || {}).cal ?? "—"}→${yCal || "—"} cal · ${(s.dailyLogs[y8] || {}).pro ?? "—"}→${yPro || "—"} g`, how: "athlete corrected the record after close — late bites logged where they belong" } : { d: y8, t: `BOOKS CLOSED LATE — ${fmtShort(y8)} logged after midnight`, how: "the repair door on NOW — same numbers, honest timestamp" }); setAmendY(false); setS(ns); save(ns); }}>{isAmend ? `Refile ${fmtShort(y8)} — corrected` : `Close ${fmtShort(y8)} — file it`}</Btn>
+            </div>
+          </Card>
         );
       })()}
 
@@ -3987,22 +4000,11 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         );
       })()}
 
-      {ev && (
-        <Card accent={T.chalk}>
-          <Eyebrow>EVENT MODE · {fmtShort(ev.d)}</Eyebrow>
-          <H size={19}>{ev.t}</H>
-          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 4 }}>{ev.protocol}. Events filed without a make-up day: <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> straight — an event never buys a punishment here: tomorrow runs exactly as planned.</div>
-          {daysUntil(ev.d) <= 0 && (
-            <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-              {daysUntil(ev.d) < 0 && <div style={{ fontFamily: mono, fontSize: 9.5, color: T.brass }}>waiting on you to close it — the ledger doesn't guess</div>}
-            <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginBottom: 8 }}>after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button</div>
-              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>File the event ✓ — your estimate goes in tonight's numbers</Btn>
-            </div>
-          )}
+      {(() => { const fl = filingsFor(new Date().getDay(), new Date().getDate()); if (!fl.length) return null; return (
+        <Card style={{ padding: "9px 14px" }}>
+          {fl.map((f9, i9) => <div key={i9} style={{ fontFamily: mono, fontSize: 9.5, color: T.steel, lineHeight: 1.7 }}>🗎 {f9}</div>)}
         </Card>
-      )}
-
-
+      ); })()}
 
       <SecRule>THE ROOM · ask, plan, rules</SecRule>
       <Card style={{ padding: "11px 14px", cursor: "pointer", borderLeft: `3px solid ${T.jade}` }} onClick={() => setAskOpen(true)}>
