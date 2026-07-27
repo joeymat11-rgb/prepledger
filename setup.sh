@@ -37,8 +37,13 @@ else
 fi
 
 say "Live deployment"
-ver=$(curl -s "https://raw.githubusercontent.com/joeymat11-rgb/prepledger/main/ledger/deploy.json?t=$(date +%s)" 2>/dev/null | tr -d ' \n')
-[ -n "$ver" ] && pass "beacon: $ver" || fail "could not read the deploy beacon (network?)"
+if [ -n "${GH_TOKEN:-}" ]; then
+  ver=$(curl -s -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github.raw" \
+        "https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/deploy.json?t=$(date +%s)" | tr -d " \n")
+  case "$ver" in *version*) pass "beacon: $ver";; *) fail "beacon unreadable — check the token scope";; esac
+else
+  printf "  - beacon check skipped (no GH_TOKEN)\n"
+fi
 
 say "Result"
 if [ "$bad" -eq 0 ]; then
