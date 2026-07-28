@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.16";
+const APP_V = "3.99.17";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -784,17 +784,60 @@ function proteinTarget(s) {
   };
 }
 
-/* current weekly rate from snapshots (falls back to seeded prior) */
+/* ---------- RATE_NOTE — one rate, and it stops changing its mind ----------
+   This used to be the mean of the last TWO weekly snapshots. Two points, each
+   of which is already a damped average, is the noisiest estimator available.
+   On his real record the weekly rates run 1.80, 0.80, 0.20, 0.40, 1.80, 1.30 —
+   and the answer you get depends entirely on the method you pick:
+
+     mean of last 2 weekly    1.55 lb/wk
+     mean of last 3 weekly    1.17
+     regression, 28 days      0.97
+     regression, 14 days      1.73
+
+   A 0.8 lb/wk spread on the number the entire calorie prescription hangs off.
+   Worse, it fed observedTDEE, which then reported "measured" TDEEs 160 kcal
+   apart depending on where a Monday happened to fall.
+
+   So the rate is now a least-squares slope across the daily reads themselves.
+   More points, and it does not care where a week boundary lands. It carries
+   its own standard error, so the uncertainty is shown rather than implied, and
+   it keeps the snapshot rates alongside so the disagreement between methods is
+   visible instead of quietly resolved in the estimator's favour. Below ten
+   unsealed reads it falls back to snapshots, and below two of those to a
+   labelled prior. */
 function currentRate(s) {
-  const w = s.weekly;
-  if (w.length >= 2) {
-    const rates = [];
-    for (let i = 1; i < w.length; i++) rates.push((w[i - 1].trend - w[i].trend) / Math.max(0.5, weeksBetween(w[i - 1].wk, w[i].wk)));
+  const w = s.weekly || [];
+  const rates = [];
+  for (let i = 1; i < w.length; i++) rates.push((w[i - 1].trend - w[i].trend) / Math.max(0.5, weeksBetween(w[i - 1].wk, w[i].wk)));
+  const reads = (s.reads || []).filter((r) => !r.sealed && r.w != null).slice(-28);
+  if (reads.length >= 10) {
+    const t0 = mk(reads[0].d).getTime();
+    const xs = reads.map((r) => (mk(r.d).getTime() - t0) / DAY), ys = reads.map((r) => r.w);
+    const n = xs.length;
+    const mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+    let sxy = 0, sxx = 0;
+    for (let i = 0; i < n; i++) { sxy += (xs[i] - mx) * (ys[i] - my); sxx += (xs[i] - mx) ** 2; }
+    if (sxx > 0) {
+      const slope = sxy / sxx;
+      let sse = 0;
+      for (let i = 0; i < n; i++) { const fit = my + slope * (xs[i] - mx); sse += (ys[i] - fit) ** 2; }
+      const se = n > 2 && sxx > 0 ? Math.sqrt(sse / (n - 2) / sxx) : 0;
+      const scale = +(-slope * 7).toFixed(2);
+      const ci = +(1.96 * se * 7).toFixed(2);
+      return {
+        scale, fat: +(scale + s.model.drip).toFixed(2), measured: true, rates,
+        method: "regression", n, ci, lo: +(scale - ci).toFixed(2), hi: +(scale + ci).toFixed(2),
+        span: `${reads[0].d} → ${reads[n - 1].d}`,
+      };
+    }
+  }
+  if (rates.length >= 2) {
     const recent = rates.slice(-2);
     const scale = +(recent.reduce((a, b) => a + b, 0) / recent.length).toFixed(2);
-    return { scale, fat: +(scale + s.model.drip).toFixed(2), measured: true, rates };
+    return { scale, fat: +(scale + s.model.drip).toFixed(2), measured: true, rates, method: "snapshots", n: recent.length, ci: null };
   }
-  return { scale: 1.0, fat: 1.25, measured: false, rates: [] };
+  return { scale: 1.0, fat: 1.25, measured: false, rates, method: "prior", n: 0, ci: null };
 }
 
 const cap = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
@@ -889,9 +932,59 @@ function observedTDEE(s) {
   const cals = Object.entries(s.dailyLogs).filter(([d, v]) => d >= cutoff && v && v.cal != null).map(([, v]) => v.cal);
   if (cals.length < 8) return null;
   const avg = cals.reduce((a, b) => a + b, 0) / cals.length;
-  const fatWk = Math.min(1.6, r.scale + s.model.drip);
-  const perDay = (fatWk * 3500 - s.model.drip * 600) / 7;
-  return { tdee: Math.round(avg + perDay), days: cals.length, avg: Math.round(avg) };
+  /* The old ceiling was 1.6 lb/wk, and it BOUND on his real data: a rate of 1.55
+     and a rate of 1.73 both saturated to the same number, so the estimate
+     stopped responding to the data exactly where the data had most to say. The
+     ceiling now sits at a genuinely physiological bound rather than a typical
+     one, and it reports when it binds instead of silently truncating. */
+  const RAW = r.scale + s.model.drip;
+  const CEIL = 3.0;
+  const fatWk = Math.min(CEIL, RAW);
+  const kcal = (f) => Math.round(avg + (f * 3500 - s.model.drip * 600) / 7);
+  const tdee = kcal(fatWk);
+  /* The rate's own confidence interval, carried through to the TDEE. A single
+     "measured TDEE" with no band invites a precision nobody has. */
+  const lo = r.ci != null ? kcal(Math.min(CEIL, Math.max(0, r.lo + s.model.drip))) : null;
+  const hi = r.ci != null ? kcal(Math.min(CEIL, r.hi + s.model.drip)) : null;
+  return {
+    tdee, days: cals.length, avg: Math.round(avg),
+    lo, hi, clamped: RAW > CEIL, method: r.method, rateN: r.n,
+    rate: r.scale, rateCi: r.ci,
+  };
+}
+
+/* ---------- CALORIE_TARGET — the number the app should have been giving him ----------
+   The phase band is a constant authored months ago: EASE 1 says 1,725–1,800.
+   His measured TDEE and his own target rate band imply something else entirely,
+   and nothing in the app reconciled them — so the prescription said 1,750 while
+   the record said 2,072, and both were labelled correct.
+
+   This derives intake the only way that survives contact with his data: take the
+   measured TDEE, subtract the deficit his own stated rate band asks for, and
+   carry the TDEE's uncertainty into the answer instead of hiding it. 3,500 kcal
+   per pound is the conventional figure and is itself an approximation — which is
+   why the output is a band, and why it never overrides the calorie floor. */
+function calorieTarget(s) {
+  const td = observedTDEE(s);
+  const band = (s.rate && s.rate.band) || [1.0, 1.4];
+  const floor = 1700;
+  if (!td) {
+    const ph = PHASES[s.phase];
+    return { gated: true, from: "phase", lo: ph ? ph.band[0] : null, hi: ph ? ph.band[1] : null,
+      why: "Not enough clean days to measure your own maintenance yet, so this is the phase band as authored." };
+  }
+  const kcalFor = (lbWk) => Math.round((lbWk * 3500) / 7);
+  const hi = Math.max(floor, td.tdee - kcalFor(band[0]));
+  const lo = Math.max(floor, td.tdee - kcalFor(band[1]));
+  const ph = PHASES[s.phase];
+  const phaseLo = ph ? ph.band[0] : null, phaseHi = ph ? ph.band[1] : null;
+  const drift = phaseHi != null ? Math.round((lo + hi) / 2 - (phaseLo + phaseHi) / 2) : 0;
+  return {
+    gated: false, from: "measured", lo, hi, mid: Math.round((lo + hi) / 2),
+    tdee: td.tdee, tdeeLo: td.lo, tdeeHi: td.hi, days: td.days, avg: td.avg,
+    band, phaseLo, phaseHi, drift, floorHit: lo === floor,
+    why: `Your measured maintenance is ${td.tdee}${td.lo && td.hi ? ` (${td.lo}–${td.hi} once the rate's own error is carried through)` : ""}, from ${td.days} logged days and a ${td.method === "regression" ? `least-squares rate across ${td.rateN} daily reads` : "snapshot rate"}. Your band asks for ${band[0]}–${band[1]} lb/wk, which is ${kcalFor(band[0])}–${kcalFor(band[1])} kcal/day under it. That lands at ${lo}–${hi}.`,
+  };
 }
 
 /* ---------- ENERGY_AVAILABILITY ----------
@@ -1245,7 +1338,12 @@ function labAnalytics(s) {
     const mF = rsF.length ? rsF.reduce((a, b) => a + b, 0) / rsF.length : 0;
     const sdF = rsF.length >= 2 ? Math.sqrt(rsF.reduce((a, r) => a + (r - mF) * (r - mF), 0) / (rsF.length - 1)) : null;
     const rowsF = [];
-    if (rateF.measured && s.trend) {
+    /* The rate can now come from a regression over daily reads, which means it
+       exists before any weekly snapshot does. The BAND cannot: it is the spread
+       of his own weekly rates, and with fewer than two of those there is no
+       spread to widen. A line without a band is the fake-precise forecast this
+       card exists to refuse, so the gate stays on snapshots. */
+    if (rateF.measured && s.trend && sdF != null) {
       for (let k = 1; k <= 8; k++) {
         const wF = +(s.trend - rateF.scale * k).toFixed(1);
         const dF = isoOf(new Date(mk(t0F).getTime() + k * 7 * DAY));
@@ -2489,7 +2587,18 @@ function dayProtocol(s, slp) {
     });
   }
 
-  /* 4 · food */
+  /* 4 · food — calories first, because deficit magnitude is the dominant term
+     for body composition and it is the one number here derived from his own
+     measured maintenance rather than an authored constant. */
+  const ct = calorieTarget(s);
+  if (!ct.gated) {
+    const off = ct.avg != null ? ct.avg - ct.mid : 0;
+    steps.push({
+      a: `Calories ${ct.lo}–${ct.hi}`,
+      why: `${ct.why}${Math.abs(off) > 120 ? ` You have been averaging ${ct.avg}, which is ${Math.abs(off)} ${off > 0 ? "above" : "below"} the middle of that — worth knowing before you change anything.` : ` You have been averaging ${ct.avg}, which sits inside it.`}`,
+      w: 84,
+    });
+  }
   const pt = proteinTarget(s);
   /* Weight rises when he is near or under the evidence floor, and when he has
      crossed into the sub-group where the coefficient is largest. */
@@ -2758,6 +2867,27 @@ function runAdaptive(state, todayISO) {
     propose("ease2", "EASE 2 — CONDITIONS MET", `Est. BF ${bf.pct}% has crossed the ~13% line. Applying moves you to ${PHASES["EASE 2"].band.join("–")} cal with the step taper — scale will slow by design while fat loss holds.`, { kind: "phase", to: "EASE 2" });
   if (!sealed && bf.pct <= 11.2 && !s.queue.find((q) => q.id === "q_pivot").done)
     propose("pivot", "PIVOT WINDOW — COACH'S EYE", `Est. BF ${bf.pct}% is in the 10.5–11 band. This one is not a tap — book the look with your coach. The app proposes; humans authorize.`, { kind: "note" });
+
+  /* ---------- PROGRAM_NOTE — the app has to make its own suggestions ----------
+     The point of this ledger is to optimise the programme. A recommendation
+     that only exists in a conversation is a recommendation the app failed to
+     make. These are the standing evidence-vs-programme gaps, filed the same way
+     every other change is: as a proposal, with the receipt, for his tap. They
+     re-arm weekly while the gap is open and go quiet when it closes. */
+
+  /* The prescribed calorie band vs the one his own maintenance implies. */
+  const ct = calorieTarget(s);
+  if (!sealed && !ct.gated && Math.abs(ct.drift) >= 150)
+    propose("calband_" + monday, "CALORIE BAND HAS DRIFTED FROM YOUR DATA",
+      `Your phase band says ${ct.phaseLo}–${ct.phaseHi}. Your own measured maintenance and your own target rate say ${ct.lo}–${ct.hi} — a gap of about ${Math.abs(ct.drift)} kcal/day. ${ct.why} The band was authored before there was data to check it against; there is now. Nothing here changes automatically, and the phase band stays exactly as written until you say otherwise.`,
+      { kind: "cal", delta: ct.drift });
+
+  /* The volume band vs the dose-response evidence, in a deficit. */
+  const volDrift = VOL_BANDS.lo !== 6 || VOL_BANDS.hi !== 12;
+  if (!sealed && volDrift && !applied("volband") && !armed("volband"))
+    propose("volband", "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER",
+      `Your working zone is ${VOL_BANDS.lo}–${VOL_BANDS.hi} weekly sets per muscle. The largest dose-response analysis available (67 studies, 2,058 participants) finds returns per set highest at 5–10 sets, intermediate at 11–18, and lower above that — each added set keeps buying something, and buys less than the one before it. In a deficit the marginal set is worth less AND costs recovery you do not have, which argues for living in the high-return tier rather than the middle one. The proposal is to tighten to 6–12. This is a programme change, so it is a coach conversation as much as a tap — the app will not move it on its own.`,
+      { kind: "note" });
 
   const rec = recoveryIndex(s);
   /* A proposal whose trigger no longer holds should stand down, not sit on the
@@ -3290,7 +3420,20 @@ function askContext(s, docs) {
   const evs = (s.events || []).map((e) => `${e.d}: ${e.t}${e.estimated ? " (est-declared)" : ""}`).join(" · ") || "none";
   const trls = (s.trials || []).map((t3) => { const tp = trialTpl(t3); return tp ? `${tp.t} (started ${t3.started})` : ""; }).filter(Boolean).join(" · ") || "none";
   const gate2 = sleepInfo(s);
-  const dict = LEDGER_DICT + " SLEEP GATE RIGHT NOW (do not re-derive): clean run " + gate2.run + "/" + gate2.need + " — records currently " + (gate2.clean ? "OFFICIAL" : "PENDING") + ". EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
+  /* The canonical numbers, handed over rather than left to be re-derived. The
+     analyst and the engine were quoting TDEEs 200+ kcal apart because each was
+     computing its own rate from the same ledger by a different method. One
+     source, stated method, stated uncertainty — and an instruction not to
+     recompute it, because a second opinion here is not insight, it is drift. */
+  const rC = currentRate(s), tdC = observedTDEE(s), ctC = calorieTarget(s), eaC = energyAvailability(s);
+  const canon = " CANONICAL NUMBERS (use these verbatim; do NOT re-derive them from the raw logs — the engine already did, with a stated method): "
+    + `RATE ${rC.scale} lb/wk by ${rC.method}${rC.ci ? ` (95% CI ${rC.lo}–${rC.hi}, n=${rC.n} daily reads)` : ""}. `
+    + (tdC ? `MEASURED TDEE ${tdC.tdee} kcal${tdC.lo && tdC.hi ? ` (${tdC.lo}–${tdC.hi} carrying the rate's error)` : ""} from ${tdC.days} logged days at ${tdC.avg} kcal/day average intake. ` : "MEASURED TDEE: not enough clean days yet. ")
+    + (ctC.gated ? "" : `TARGET INTAKE ${ctC.lo}–${ctC.hi} kcal/day, derived from that maintenance and his ${ctC.band[0]}–${ctC.band[1]} lb/wk band. `)
+    + (eaC.gated ? "" : `ENERGY AVAILABILITY ${eaC.lo}–${eaC.hi} kcal/kg lean (${eaC.band}); the sparing threshold for a lean male is ${EA_SPARING} and below ${EA_LOW} most of the loss comes off lean mass. `)
+    + `PROTEIN TARGET ${proteinTarget(s).g} g, floor ${proteinTarget(s).floor} g, scaled to measured lean mass. `
+    + "If you disagree with any of these, say WHY and by how much rather than quietly substituting your own — a number that changes between screens is worse than one that is slightly wrong.";
+  const dict = LEDGER_DICT + canon + " SLEEP GATE RIGHT NOW (do not re-derive): clean run " + gate2.run + "/" + gate2.need + " — records currently " + (gate2.clean ? "OFFICIAL" : "PENDING") + ". EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
   const clip = (t, n) => (t ? String(t).replace(/^<!--.*-->\n?/, "").slice(0, n) : "");
   const analysisSec = docs.analysis ? `\n\n=== TONIGHT'S ENGINE ANALYSIS (analysis.json — soft trend, rate, TDEE, drivers, regime, prior decisions) ===\n${clip(docs.analysis, 3500)}` : "";
   const suggSec = docs.suggestions ? `\n\n=== YOUR CURRENT APPROVE/DISMISS SUGGESTIONS (the NOW cards) ===\n${clip(docs.suggestions, 1800)}` : "";
@@ -3926,6 +4069,8 @@ __test.PACE = PACE;
 __test.progressStep = progressStep;
 __test.proteinTarget = proteinTarget;
 __test.energyAvailability = energyAvailability;
+__test.calorieTarget = calorieTarget;
+__test.VOL_BANDS = VOL_BANDS;
 __test.proposalDial = proposalDial;
 __test.EA_SPARING = EA_SPARING;
 __test.EA_LOW = EA_LOW;
@@ -4228,21 +4373,26 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const sess = nextISO ? genSession(s, nextISO, slp) : null;
   const heroToday = nextISO === tISO;
   const dl = s.dailyLogs[tISO] || {};
-  const [cal, setCal] = useState(dl.cal ?? 1760);
-  const [pro, setPro] = useState(dl.pro ?? 175);
+  const [cal, setCal] = useState(dl.cal ?? calorieTarget(s).mid ?? 1760);
+  const [pro, setPro] = useState(dl.pro ?? proteinTarget(s).g);
   const [stp, setStp] = useState(dl.steps ?? 16500);
   const cleanIn = daysUntil(SEAL_UNTIL);
   const xoverIn = daysUntil(CROSSOVER);
   const xPct = Math.round(((todayStart() - mk(START)) / (mk(CROSSOVER) - mk(START))) * 100);
   const ev = s.events.find((e) => !e.estimated && daysUntil(e.d) >= 0);
   const ph = PHASES[s.phase];
-  const calT = isRefeed ? [2450, 2500] : ph.band;
+  /* The band he is actually shown. Measured maintenance beats an authored
+     constant whenever it exists — see CALORIE_TARGET. Refeed days keep their
+     own number, because that one is a deliberate protocol choice rather than a
+     derived target. */
+  const ctT = calorieTarget(s);
+  const calT = isRefeed ? [2450, 2500] : (!ctT.gated ? [ctT.lo, ctT.hi] : ph.band);
   const bf = bfEst(s);
   const nextUnlocks = s.queue.filter((x) => !x.done && x.kind !== "info" && x.kind !== "phase").slice(0, 2);
 
   const [sod9, setSod9] = useState(() => (s.dailyLogs[tISO] || {}).sodium || null);
   const [alc9, setAlc9] = useState(() => (s.dailyLogs[tISO] || {}).alc ?? 0);
-  useEffect(() => { const d0 = s.dailyLogs[tISO] || {}; setCal(d0.cal ?? 1760); setPro(d0.pro ?? 175); setStp(d0.steps ?? 16500); setSod9(d0.sodium ?? null); setAlc9(d0.alc ?? 0); }, [tISO]);
+  useEffect(() => { const d0 = s.dailyLogs[tISO] || {}; setCal(d0.cal ?? (calorieTarget(s).mid ?? 1760)); setPro(d0.pro ?? proteinTarget(s).g); setStp(d0.steps ?? 16500); setSod9(d0.sodium ?? null); setAlc9(d0.alc ?? 0); }, [tISO]);
   const saveDaily = () => {
     const ns = { ...s };
     const c = cal === "" ? null : Number(cal), p = pro === "" ? null : Number(pro), st = stp === "" ? null : Number(stp);
@@ -4562,8 +4712,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         )}
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           {[
-            { l: `CAL ${calT[0]}–${calT[1]}`, v: cal, set: setCal },
-            { l: `PRO — ${PROTEIN} is THE number`, v: pro, set: setPro },
+            { l: `CAL ${calT[0]}–${calT[1]}${!isRefeed && !ctT.gated ? " · from your measured maintenance" : ""}`, v: cal, set: setCal },
+            { l: `PRO — ${proteinTarget(s).g} is THE number`, v: pro, set: setPro },
             { l: `STEPS ${ph.steps}`, v: stp, set: setStp },
           ].map((f, i) => (
             <div key={i} style={{ flex: 1 }}>

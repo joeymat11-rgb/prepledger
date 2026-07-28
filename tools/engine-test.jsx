@@ -646,7 +646,17 @@ for (let k = 1; k <= 3; k++) dpS.sleep.nights.push({ d: isoL(Date.now() - k * 86
 dpS.sleep.nights = dpS.sleep.nights.filter((n, i, a) => a.findIndex(x => x.d === n.d) === i);
 const proto = dp37(dpS, { clean: true, run: 3, need: 3 });
 ok(proto.lead && proto.lead.t.length > 3 && proto.steps.length >= 2 && proto.steps.length <= 5, "one lead + a short ranked day: " + proto.steps.length + " steps");
-ok(proto.steps.some(x => x.a.indexOf("Lights out") === 0 && /\d\d:\d\d/.test(x.a)), "bedtime step carries the derived time");
+/* On a CLEAN sleep night the lights-out line is a bearing, not a fix, and the
+   ranking is right to drop it below five things that are actually actionable.
+   On a short night it has to climb back — that is the test that matters. */
+let dpShort = clone(TC);
+dpShort.sleep.nights.push({ d: isoL(Date.now() - 864e5), h: 5.8, tags: [] });
+const protoShort = dp37(dpShort, { clean: false, run: 0, need: 3, last: { h: 5.8 } });
+const lights = protoShort.steps.find(x => x.a.indexOf("Lights out") === 0);
+ok(!!lights && /\d\d:\d\d/.test(lights.a), "after a short night the bedtime step is on the page and carries the derived time: " + (lights ? lights.a : "absent"));
+ok(lights.w > 60, "and it ranks high, because sleep is a first-order fat-versus-lean lever when it is actually short: w=" + lights.w);
+ok(!proto.steps.some(x => x.a.indexOf("Lights out") === 0) || proto.steps.find(x => x.a.indexOf("Lights out") === 0).w < 40,
+   "on a clean night it either drops off or ranks low — a reminder to do what you already did is the definition of filler");
 ok(proto.steps.some(x => x.a.indexOf("Protein 175") === 0), "protein step present with the spread");
 ok(proto.steps.every(x => x.a && x.why), "every step is action + reason, nothing bare");
 
@@ -1886,6 +1896,74 @@ thinLog.sessionLog = { [isoL(Date.now() - 2 * 864e5)]: { entries: [{ id: "ham", 
 const thinEA = eaB(thinLog);
 ok(thinEA.sessPerWk >= 4, `a one-session log still charges the programme's four sessions a week, not one: ${thinEA.sessPerWk}`);
 ok(thinEA.receipts.some((r) => r.indexOf("would flatter this number") > -1), "and it says out loud that it is using the schedule rather than the log, and why");
+
+// v3.99.17 — one rate, one TDEE, and a calorie target derived from both
+const { currentRate: crR, observedTDEE: otR, calorieTarget: ctR, askContext: acR, runAdaptive: raR, dayProtocol: dpR, VOL_BANDS: VBR, SEED: TR17 } = __test;
+
+const mkReads = (n2, perDay, startW) => {
+  const st = clone(TR17);
+  st.blackout.until = "2026-01-01";
+  st.reads = [];
+  st.dailyLogs = {};
+  for (let i = n2 - 1; i >= 0; i--) {
+    const d = isoL(Date.now() - i * 864e5);
+    st.reads.push({ d, w: +(startW - (n2 - 1 - i) * perDay).toFixed(1), sealed: false });
+    st.dailyLogs[d] = { cal: 2000, pro: 175, steps: 12000 };
+  }
+  st.trend = st.reads[st.reads.length - 1].w;
+  return st;
+};
+
+// the rate is a slope now, and it carries its own error
+const rr = crR(mkReads(28, 0.2, 170));
+ok(rr.method === "regression" && rr.n === 28, "with enough daily reads the rate is a least-squares slope, not the mean of two snapshots");
+ok(Math.abs(rr.scale - 1.4) < 0.05, `and it recovers a known slope: 0.2 lb/day is 1.4 lb/wk, it says ${rr.scale}`);
+ok(rr.ci === 0, "a perfectly linear record has zero residual and honestly reports a zero-width interval rather than manufacturing doubt");
+const wobbly = mkReads(28, 0.2, 170);
+wobbly.reads.forEach((r, i) => { r.w = +(r.w + [0.4, -0.3, 0.5, -0.6, 0.2][i % 5]).toFixed(1); });
+const rwob = crR(wobbly);
+ok(rwob.ci > 0 && rwob.lo < rwob.scale && rwob.hi > rwob.scale, `real scale noise produces a real interval: ${rwob.scale} ±${rwob.ci}`);
+ok(Array.isArray(rr.rates) && rr.rates.length > 0, "and it keeps the snapshot rates alongside, so the disagreement between methods stays visible");
+const noisy = mkReads(28, 0.2, 170);
+noisy.reads.forEach((r, i) => { r.w = +(r.w + (i % 2 ? 1.2 : -1.2)).toFixed(1); });
+ok(crR(noisy).ci > rr.ci, "noisier reads widen the interval instead of quietly producing the same confident number");
+const few17 = clone(TR17); few17.reads = []; few17.weekly = [{ wk: "2026-07-13", trend: 170 }, { wk: "2026-07-20", trend: 168.6 }, { wk: "2026-07-27", trend: 167.4 }];
+ok(crR(few17).method === "snapshots", "under ten daily reads it falls back to snapshots");
+const none17 = clone(TR17); none17.reads = []; none17.weekly = [];
+ok(crR(none17).method === "prior" && none17.reads.length === 0, "and with nothing at all it says prior rather than inventing a measurement");
+
+/* The clamp used to bind at 1.6 and flatten every fast17 rate onto one TDEE. */
+const fast17 = mkReads(28, 0.28, 175);
+const slower = mkReads(28, 0.22, 175);
+ok(otR(fast17).tdee !== otR(slower).tdee, "two different rates now give two different TDEEs — the old 1.6 ceiling made 1.55 and 1.73 produce the identical number");
+ok(otR(fast17).lo < otR(fast17).tdee && otR(fast17).hi > otR(fast17).tdee, "and the TDEE carries the rate's error through, instead of arriving as a bare integer");
+ok(otR(fast17).method === "regression", "it says which method produced it");
+
+// the calorie target
+const ct1 = ctR(mkReads(28, 0.2, 170));
+ok(!ct1.gated && ct1.lo < ct1.hi, "the target is a band, because the maintenance it derives from is one");
+ok(ct1.hi === ct1.tdee - Math.round((ct1.band[0] * 3500) / 7), "the top of the band is maintenance minus the slow end of his rate band");
+ok(ct1.lo === Math.max(1700, ct1.tdee - Math.round((ct1.band[1] * 3500) / 7)), "the bottom is maintenance minus the fast17 end, floored at the calorie floor");
+ok(ct1.why.indexOf("measured maintenance") > -1 && ct1.why.indexOf("daily reads") > -1, "and it shows its working: " + ct1.why.slice(0, 80));
+const gated17 = clone(TR17); gated17.dailyLogs = {}; gated17.reads = [];
+ok(ctR(gated17).gated === true && ctR(gated17).from === "phase", "without enough data it falls back to the authored phase band and says so");
+const prot = dpR(mkReads(28, 0.2, 170), { clean: true, run: 3, need: 3, last: { h: 8 } });
+const calStep = prot.steps.find((x) => x.a.indexOf("Calories") === 0);
+ok(!!calStep && calStep.w > 80, "the daily calorie number reaches the protocol and ranks near the top — deficit magnitude is the dominant term");
+
+/* Suggestions belong in the app, not in a conversation. */
+const progS = raR(mkReads(28, 0.2, 170), isoL(Date.now()));
+const volCard = progS.proposals.find((p) => p.rid === "volband" && !p.resolved);
+ok(!!volCard, "the volume-band gap is filed as a proposal he can act on, not left in a chat window");
+ok(volCard.why.indexOf("2,058 participants") > -1 && volCard.why.indexOf("5–10") > -1, "with the evidence attached rather than asserted");
+ok(volCard.why.indexOf("will not move it on its own") > -1, "and it is explicit that a programme change stays his call");
+ok(VBR.lo === 8 && VBR.hi === 14, "the band itself is unchanged — the app proposes, it does not reprogram him");
+
+/* The analyst and the engine must stop quoting different numbers. */
+const ctx17 = acR(mkReads(28, 0.2, 170));
+ok(ctx17.indexOf("CANONICAL NUMBERS") > -1, "the analyst is handed the engine's numbers rather than left to re-derive them");
+ok(ctx17.indexOf("do NOT re-derive") > -1, "and told not to recompute them — a number that changes between screens is worse than one slightly wrong");
+["RATE", "MEASURED TDEE", "TARGET INTAKE", "PROTEIN TARGET"].forEach((k) => ok(ctx17.indexOf(k) > -1, `canonical block carries ${k}`));
 
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
