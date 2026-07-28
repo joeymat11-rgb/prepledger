@@ -1463,5 +1463,52 @@ const twiceRS = clone(migRS); twiceRS.v = 30;
 ok(eq(mgRS(twiceRS).sessionLog["2026-07-20"].entries.find((e) => e.id === "press").rirSets, [1, null, null]),
    "a state that already has rirSets is left alone even if the version is rolled back");
 
+// v3.99.10 — the rest tag: attribution, scoped to the size of the effect
+const { PACE: PC, paceRushed: prz, liftCall: lcP, completeSession: csP, genSession: gsP, SEED: TP, restFor: rfP } = __test;
+
+ok(PC.rushed === "rushed" && PC.normal === "normal", "the two pace values are named, not stringly-typed at each call site");
+ok(prz({ pace: "rushed" }) === true && prz({ pace: "normal" }) === false && prz({}) === false && prz(null) === false,
+   "absent pace reads as unknown, never as rushed — pre-feature sessions are not retroactively accused");
+
+// it is written on the way in, and only ever as one of the two values
+const slpP = { clean: true, run: 3, need: 3, last: { h: 8 } };
+const dP = "2026-07-23";
+const gP = gsP(clone(TP), dP, slpP);
+const enP = gP.ex.map((e) => ({ id: e.id, n: e.n, w: e.w, tgt: e.tgt, reps: e.tgt.slice(), isDebutNow: e.isDebutNow }));
+ok(csP(clone(TP), dP, enP, slpP, { pace: "rushed" }).s.sessionLog[dP].pace === "rushed", "a rushed session is recorded as rushed");
+ok(csP(clone(TP), dP, enP, slpP, { pace: "normal" }).s.sessionLog[dP].pace === "normal", "a full-rest session is recorded as normal");
+ok(csP(clone(TP), dP, enP, slpP).s.sessionLog[dP].pace === null, "no tap, no claim — the field lands null");
+ok(csP(clone(TP), dP, enP, slpP, { pace: "kinda quick" }).s.sessionLog[dP].pace === null, "anything that is not one of the two values is discarded, not stored");
+const rushLines = csP(clone(TP), dP, enP, slpP, { pace: "rushed" }).lines;
+ok(rushLines.some((l) => l.t.indexOf("RUSHED") > -1), "the feed says out loud what the tag will and will not do");
+ok(!csP(clone(TP), dP, enP, slpP, { pace: "normal" }).lines.some((l) => l.t.indexOf("RUSHED") > -1), "a normal session gets no rushed line");
+
+/* The point of the whole feature: three declining sessions RESET the lift —
+   lightening the bar 5%. That must not fire off compressed days. */
+const stallDays = ["2026-07-06", "2026-07-09", "2026-07-13", "2026-07-16"];
+const mkStall = (paces) => {
+  const st = clone(TP);
+  st.sessionLog = {};
+  [[10, 10], [9, 9], [8, 8], [7, 7]].forEach((reps, i) => {
+    st.sessionLog[stallDays[i]] = { entries: [{ id: "rows", reps, rir: 1, rirSets: [1, null], w: 175 }], at: i + 1, pace: paces[i] };
+  });
+  return st;
+};
+const allHonest = lcP(mkStall([null, null, null, null]), "rows");
+ok(allHonest.verdict === "RESET", "four honestly-fought declining sessions still reset the lift — the safety net is not a mute button: " + allHonest.verdict);
+const someRushed = lcP(mkStall([null, "rushed", "rushed", "rushed"]), "rows");
+ok(someRushed.verdict !== "RESET", "the same declining numbers on rushed days do NOT lighten the bar: " + someRushed.verdict);
+ok(someRushed.receipts.some((r) => r.indexOf("rushed") > -1), "and it says why, in his words, on the card");
+ok(someRushed.vel === allHonest.vel, "velocity is unchanged — a ~0.15 SMD does not justify throwing the reading away");
+const markedNormal = lcP(mkStall([null, "normal", "normal", "normal"]), "rows");
+ok(markedNormal.verdict === "RESET", "tapping FULL REST does not buy an exemption — only 'rushed' changes anything");
+
+// the Gym Mode derivation thresholds, stated as arithmetic rather than left in the component
+const paceOf = (n, cut) => (n >= 3 ? (cut / n >= 0.5 ? PC.rushed : PC.normal) : null);
+ok(paceOf(0, 0) === null && paceOf(2, 2) === null, "under three rests there is no session-level statement to make");
+ok(paceOf(6, 3) === PC.rushed && paceOf(6, 2) === PC.normal, "half the rests cut short is the line, and it is inclusive");
+ok(paceOf(8, 0) === PC.normal, "letting every timer run out reads as full rest, with no tap from him");
+ok(rfP("press") === 150 && rfP("curl") === 75, "compounds still rest 150 s and isolation 75 s — the tag records pace, it does not reprogram it");
+
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

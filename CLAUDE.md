@@ -211,6 +211,14 @@ happened here:
   a version behind, so fresh installs and migrated states disagreed. One
   constant, referenced from both, plus a test.
 
+**Not every new field needs a version.** `pace` (v3.99.10) added a field to
+`sessionLog` with no patch and no bump, on purpose: there was nothing in the old
+records to derive it from, so a patch could only have written `null` onto four
+historical sessions. Law 12 calls that a decorative field. Absent reads as
+unknown at every call site (`paceRushed`), which is the correct answer for a day
+the app never asked about. Bump the version when old data can be *restated* into
+the new shape; skip it when the only honest value is "we don't know".
+
 A patch may only restate what was already recorded. `patchV31` lifts the legacy
 `rir` into `rirSets[0]` because `rir` has always meant the opener — that is a
 restatement. It leaves every other slot `null`, because the app never asked. A

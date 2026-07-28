@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.9";
+const APP_V = "3.99.10";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -248,15 +248,22 @@ const CALL_PLAIN = {
 function liftCall(s, exId, opts = {}) {
   const tISO3 = isoOf(todayStart());
   const R2 = [];
-  const all = Object.keys(s.sessionLog).sort().map((d) => { const e = (s.sessionLog[d].entries || []).find((x) => x.id === exId); return e ? { d, tot: (e.reps || []).reduce((a, b) => a + b, 0), rir: e.rir, w: e.w } : null; }).filter(Boolean);
+  const all = Object.keys(s.sessionLog).sort().map((d) => { const sl0 = s.sessionLog[d]; const e = (sl0.entries || []).find((x) => x.id === exId); return e ? { d, tot: (e.reps || []).reduce((a, b) => a + b, 0), rir: e.rir, w: e.w, rushed: paceRushed(sl0) } : null; }).filter(Boolean);
   const hist = all.slice(-5);
   if (hist.length < 2) return { verdict: "PUSH", vel: null, n: hist.length, why: "New lift — just chase reps and build the story.", receipts: ["Only " + hist.length + " session" + (hist.length === 1 ? "" : "s") + " on file — two more and the desk starts reading your trend."] };
   const clean = hist.filter((h) => !dayWeather(s, h.d).hard);
   const vel = clean.length >= 2 ? +(((clean[clean.length - 1].tot - clean[0].tot) / (clean.length - 1)).toFixed(1)) : null;
   if (vel != null) R2.push(vel > 0.2 ? `You are gaining about ${vel} reps per session lately (last ${clean.length} normal days).` : vel < -0.2 ? `You have been slipping about ${Math.abs(vel)} reps per session (last ${clean.length} normal days).` : `Your total reps have been flat across the last ${clean.length} normal days.`);
+  /* Stalls are counted over UNRUSHED days only. Three of them lighten the bar
+     5%, and a compressed session is not evidence that the weight is too heavy —
+     see PACE_NOTE. Velocity above still uses every non-hard day, because the
+     rest effect is too small to justify discarding the reading. */
+  const honest = clean.filter((h) => !h.rushed);
+  const rushedN = clean.length - honest.length;
   let stall = 0;
-  for (let i = clean.length - 1; i >= 1; i--) { if (clean[i].tot <= clean[i - 1].tot && (clean[i].rir == null || clean[i].rir <= 2)) stall++; else break; }
-  if (stall) R2.push(`${stall} session${stall > 1 ? "s" : ""} in a row without beating your total — honestly fought; party and estimate days not counted.`);
+  for (let i = honest.length - 1; i >= 1; i--) { if (honest[i].tot <= honest[i - 1].tot && (honest[i].rir == null || honest[i].rir <= 2)) stall++; else break; }
+  if (stall) R2.push(`${stall} session${stall > 1 ? "s" : ""} in a row without beating your total — honestly fought; party, estimate and rushed days not counted.`);
+  if (rushedN) R2.push(`${rushedN} of your last ${clean.length} on this lift ${rushedN === 1 ? "was" : "were"} logged rushed — short rest costs you reps on the back sets, so ${rushedN === 1 ? "it does" : "they do"} not count toward a stall.`);
   const slp2 = sleepInfo(s);
   const lastN = s.sleep.nights[s.sleep.nights.length - 1];
   if (lastN) R2.push(`Last night: ${lastN.h} hours` + (lastN.sol != null ? `, took about ${lastN.sol} min to fall asleep.` : "."));
@@ -415,6 +422,34 @@ function rirSetsOf(en) {
   if (len && arr[0] == null && en.rir != null) arr[0] = en.rir;
   return arr;
 }
+/* ---------- PACE_NOTE — why a session carries a rest tag ----------
+   Rest between sets is NOT an independent driver worth its own instrument. The
+   2024 Bayesian meta-analysis (9 studies, 19 measurements) puts short vs long
+   rest at 0.13 [-0.27, 0.51] for arms and 0.17 [-0.13, 0.43] for thigh — small,
+   credible intervals crossing zero — and finds the effect is mediated by
+   reductions in VOLUME LOAD, with nothing detectable beyond ~90 s. This app
+   already measures volume load directly, set by set. Logging rest to predict
+   rep decay would be measuring the cause when the effect is already on file.
+
+   What rest buys that volume load cannot is ATTRIBUTION. When reps fall on the
+   later sets, the engine has to decide between two very different worlds: real
+   fatigue at this volume (stop adding sets, maybe lighten) or a session he had
+   to compress. Same numbers, opposite correct response. `pace` is the flag that
+   separates them — the training-side analogue of `debt` for short sleep.
+
+   Scope is deliberately narrow, because the effect is small. A rushed session
+   still counts for rep velocity: throwing the day away entirely would cost more
+   information than the ~0.15 SMD justifies. It cannot count toward a STALL,
+   because three stalls trigger a RESET — lightening the bar 5% — and that is an
+   expensive action to take on a day he simply ran out of time.
+
+   The signal was already there in prose. His 2026-07-23 note reads "Had to skip
+   pronated today due to time constraints" — and the notes box says outright that
+   the engines only read the numbers. This promotes that to something they can. */
+const PACE = { rushed: "rushed", normal: "normal" };
+/** True when a logged session was compressed — short rest, under ~60-90 s. */
+function paceRushed(sl) { return !!sl && sl.pace === PACE.rushed; }
+
 function openerRir(en) { const a = rirSetsOf(en); return a.length ? a[0] : null; }
 /** RIR on the set that was programmed to failure. null = not rated, never assumed. */
 function terminalRir(en) { const a = rirSetsOf(en); return a.length ? a[a.length - 1] : null; }
@@ -526,7 +561,11 @@ function completeSession(state, iso, entries, slp, extras = {}) {
   });
 
   const niggles = extras.niggles || [];
-  s.sessionLog[iso] = { entries: entries.map((e) => { const ex2 = s.exercises.find((x) => x.id === e.id); return { id: e.id, reps: e.reps, rir: e.rir ?? null, rirSets: buildRirSets(e), w: ex2 && typeof ex2.w === "number" ? ex2.w : null }; }), at: Date.now(), note: extras.note || "", niggles, dips: dipCount, skipped: extras.skipped || [] };
+  /* `pace` — see PACE_NOTE. Written on every session from here on; deliberately
+     NOT back-filled onto older ones, because there is nothing to back-fill and
+     law 12 forbids a field that buys no attribution. Absent reads as unknown. */
+  s.sessionLog[iso] = { entries: entries.map((e) => { const ex2 = s.exercises.find((x) => x.id === e.id); return { id: e.id, reps: e.reps, rir: e.rir ?? null, rirSets: buildRirSets(e), w: ex2 && typeof ex2.w === "number" ? ex2.w : null }; }), at: Date.now(), note: extras.note || "", niggles, dips: dipCount, skipped: extras.skipped || [], pace: extras.pace === "rushed" || extras.pace === "normal" ? extras.pace : null };
+  if (extras.pace === "rushed") push("RUSHED SESSION — LOGGED AS SUCH", "reps still count; this day cannot count toward a stall, because short rest lowers volume load on the later sets");
   if ((extras.skipped || []).length) push("SKIPPED — " + extras.skipped.map((k) => { const ex3 = exById(s, k.id); return ex3 ? ex3.n : k.id; }).join(", "), "your call, on the record — zero phantom reps, nothing counted");
   const cutoff = isoOf(new Date(mk(iso).getTime() - 21 * DAY));
   const counts = {};
@@ -2510,6 +2549,7 @@ function migrate(old) {
 const GLOSSARY = {
   fixwindow: ["Fix window", "Yesterday's protein landed outside the band, so a 24-hour repair window opened. Hit 175±10 today and the record EXTENDS — the app measures recovery speed, never an unbroken chain. Unfixed, it just closes; nothing compounds."],
   rir: ["RIR — reps in reserve", "How many clean reps were left when you racked it. 1 is 'honest' — one more good rep existed. 0 is a grind. Rate two sets: the FIRST, which says whether the load is still honest (0 twice running holds the weight), and the LAST, which the taper programs to failure — 0 there is the target, not a warning. Middle sets are prescribed, so they go unrated on purpose. When unsure at noon on the stim stack, call it 0."],
+  pace: ["RUSHED (pace)", "That session ran on short rest — under about a minute between sets. It matters for one reason: less rest means fewer reps on the back sets, so the volume load drops. The reps still count and still move your trend. What a rushed day can't do is count toward a stall — three stalls lighten the bar 5%, and running out of time is not evidence that the weight is too heavy. The research here is modest and honest about itself: pooled across nine studies the rest effect is small and mostly runs through volume load, with nothing measurable past ~90 s. So the app records it as context, not as a verdict on the session."],
   debt: ["On debt", "That session happened before three consecutive ≥7.5 h nights. Down numbers on debt read as context, not regression — and PRs hit on debt log as provisional, because they don't reliably repeat."],
   clean: ["CLEAN (sleep)", "Three consecutive nights of ≥7.5 h. One good night repays acute debt, but consolidation lags ~2–3 nights — so owns and earns only count when CLEAN."],
   seal: ["Sealed scale", "Around events, reads are quarantined: logged but excluded from the trend, and every rate rule is muted. The seal exists so event water can never trigger a false alarm."],
@@ -3338,6 +3378,9 @@ __test.dayType = dayType;
 __test.caffAt = caffAt;
 __test.CONSTITUTION = CONSTITUTION;
 __test.SCHEMA_V = SCHEMA_V;
+__test.PACE = PACE;
+__test.paceRushed = paceRushed;
+__test.restFor = restFor;
 __test.buildRirSets = buildRirSets;
 __test.rirSetsOf = rirSetsOf;
 __test.openerRir = openerRir;
@@ -4224,16 +4267,17 @@ function LogTab({ s, setS, save, slp }) {
   /* terminal-set RIR — the set the taper programs to failure. Separate from the
      opener, which answers a different question (is the load still honest). */
   const [rirEnd, setRirEnd] = useState({});
+  const [pace, setPace] = useState(null);
   const draftKey = "prep-ledger-draft-" + dateSel;
   useEffect(() => {
     try {
       const d = JSON.parse(localStorage.getItem(draftKey) || "null");
-      setReps(d && d.reps ? d.reps : {}); setRir(d && d.rir ? d.rir : {}); setRirEnd(d && d.rirEnd ? d.rirEnd : {}); setSkipped(d && d.skipped ? d.skipped : {}); setNote(d && d.note ? d.note : ""); setNig(d && d.nig ? d.nig : []);
+      setReps(d && d.reps ? d.reps : {}); setRir(d && d.rir ? d.rir : {}); setRirEnd(d && d.rirEnd ? d.rirEnd : {}); setSkipped(d && d.skipped ? d.skipped : {}); setNote(d && d.note ? d.note : ""); setNig(d && d.nig ? d.nig : []); setPace(d && d.pace ? d.pace : null);
     } catch (e) {}
   }, [dateSel]);
   useEffect(() => {
-    try { localStorage.setItem(draftKey, JSON.stringify({ reps, rir, rirEnd, skipped, note, nig })); } catch (e) {}
-  }, [reps, rir, rirEnd, skipped, note, nig, draftKey]);
+    try { localStorage.setItem(draftKey, JSON.stringify({ reps, rir, rirEnd, skipped, note, nig, pace })); } catch (e) {}
+  }, [reps, rir, rirEnd, skipped, note, nig, pace, draftKey]);
   const [recap, setRecap] = useState(null);
   const [boosted, setBoosted] = useState(false);
   const trueShort = slp.last && slp.last.h < 4.5;
@@ -4258,8 +4302,8 @@ function LogTab({ s, setS, save, slp }) {
   const complete = () => {
     const entries = sess.ex.filter((ex) => !skipped[ex.id]).map((ex) => ({ id: ex.id, n: ex.n, w: ex.w, tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null, rirEnd: rirEnd[ex.id] ?? null }));
     const skippedList = sess.ex.filter((ex) => skipped[ex.id]).map((ex) => ({ id: ex.id }));
-    const { s: ns, lines } = completeSession(s, dateSel, entries, slp, { note: note.trim(), niggles: nig, skipped: skippedList });
-    setS(ns); save(ns); setRecap(lines); setBoosted(false); setReps({}); setRir({}); setRirEnd({}); setNote(""); setNig([]); setSkipped({}); try { localStorage.removeItem(draftKey); } catch (e) {}
+    const { s: ns, lines } = completeSession(s, dateSel, entries, slp, { note: note.trim(), niggles: nig, skipped: skippedList, pace });
+    setS(ns); save(ns); setRecap(lines); setBoosted(false); setReps({}); setRir({}); setRirEnd({}); setNote(""); setNig([]); setSkipped({}); setPace(null); try { localStorage.removeItem(draftKey); } catch (e) {}
   };
 
   return (
@@ -4278,7 +4322,7 @@ function LogTab({ s, setS, save, slp }) {
           <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>✓ {fmtShort(dateSel)} · RECEIPT</button>
         )}
         {options.map((d) => (
-          <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setRirEnd({}); setNote(""); setNig([]); setSkipped({}); }} style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : s.sessionLog[d] ? T.jade : T.steel }}>
+          <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setRirEnd({}); setPace(null); setNote(""); setNig([]); setSkipped({}); }} style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : s.sessionLog[d] ? T.jade : T.steel }}>
             {s.sessionLog[d] ? "✓ " : ""}
             {fmtShort(d)} · {dayType(d) === "U" ? "UPPER" : "LOWER"}
           </button>
@@ -4310,6 +4354,11 @@ function LogTab({ s, setS, save, slp }) {
                   </div>
                 ); })}
               </div>
+              {done.pace && (
+                <div style={{ fontFamily: mono, fontSize: 9.5, color: done.pace === PACE.rushed ? T.brass : T.jade, marginTop: 8 }}>
+                  {done.pace === PACE.rushed ? <>◆ <Term k="pace" c={T.brass}>RUSHED</Term> — logged; reps count, stalls don't</> : "◆ FULL REST — a clean read on this volume"}
+                </div>
+              )}
               {done.note && <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 8 }}>{done.note}</div>}
               {wins.length > 0 && (
                 <div style={{ marginTop: 9, borderTop: `1px solid ${T.line}`, paddingTop: 8 }}>
@@ -4508,6 +4557,24 @@ function LogTab({ s, setS, save, slp }) {
           </div>
         </Card>
       ))}
+
+      <Card style={{ padding: 12 }}>
+        <Eyebrow>PACE · HOW LONG BETWEEN SETS</Eyebrow>
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          {[["normal", "FULL REST", T.jade], ["rushed", "RUSHED", T.brass]].map(([v, label, c]) => {
+            const on = pace === v;
+            return (
+              <button key={v} onClick={() => setPace(on ? null : v)}
+                style={{ flex: 1, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.06em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${on ? c : T.line}`, background: on ? T.plate2 : "transparent", color: on ? c : T.steel }}>
+                {label}
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 6, lineHeight: 1.5 }}>
+          RUSHED = under about a minute between sets. Reps still count — but a compressed day can't count toward a stall, so it never lightens your bar by mistake.
+        </div>
+      </Card>
 
       <Card style={{ padding: 12 }}>
         <Eyebrow>SESSION NOTES · OPTIONAL — THE "SET-4 ANOMALY" BOX</Eyebrow>
@@ -5180,13 +5247,18 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [rir, setRir] = useState({});
   const [rirEnd, setRirEnd] = useState({});
   const [gskip, setGskip] = useState({});
+  /* Pace is MEASURED here, not asked — the timer already knows. Every rest gets
+     counted, and a rest cut short by more than half its prescription counts as
+     compressed. See PACE_NOTE for why the threshold is coarse: the evidence
+     resolves "under about a minute" versus "not", and nothing finer. */
+  const [rests, setRests] = useState({ n: 0, cut: 0 });
   const gymKey = "prep-ledger-gymdraft-" + dateSel;
   useEffect(() => {
-    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); } } catch (e) {}
+    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); } } catch (e) {}
   }, []);
   useEffect(() => {
-    try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, rirEnd, gskip, idx, setN })); } catch (e) {}
-  }, [reps, rir, rirEnd, gskip, idx, setN, gymKey]);
+    try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, rirEnd, gskip, rests, idx, setN })); } catch (e) {}
+  }, [reps, rir, rirEnd, gskip, rests, idx, setN, gymKey]);
   const ex = sess.ex[idx];
   const rp2 = rirPlan(s, ex, slp);
   const getR = (e2) => reps[e2.id] ?? e2.tgt.slice();
@@ -5198,14 +5270,17 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   }, [phase]);
   const doneSet = () => {
     const nSets = getR(ex).length;
-    if (setN + 1 < nSets) { setSetN(setN + 1); setT(restFor(ex.id)); setPhase("rest"); }
+    if (setN + 1 < nSets) { setSetN(setN + 1); setT(restFor(ex.id)); setPhase("rest"); setRests((r) => ({ ...r, n: r.n + 1 })); }
     else setPhase("lift-done");
   };
   const nextLift = () => { if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } else setPhase("all-done"); };
   const finish = () => {
     const entries = sess.ex.filter((e2) => !gskip[e2.id]).map((e2) => ({ id: e2.id, n: e2.n, w: e2.w, tgt: e2.tgt, reps: getR(e2), isDebutNow: e2.isDebutNow, rir: rir[e2.id] ?? null, rirEnd: rirEnd[e2.id] ?? null }));
     try { localStorage.removeItem(gymKey); } catch (e) {}
-    const { s: ns } = completeSession(s, dateSel, entries, slp, { note: "gym mode", niggles: [], skipped: sess.ex.filter((e2) => gskip[e2.id]).map((e2) => ({ id: e2.id })) });
+    /* n-gated like every other read in here: under three rests there is no
+       session-level statement to make, so it stays unknown rather than guessed. */
+    const pace = rests.n >= 3 ? (rests.cut / rests.n >= 0.5 ? PACE.rushed : PACE.normal) : null;
+    const { s: ns } = completeSession(s, dateSel, entries, slp, { note: "gym mode", niggles: [], skipped: sess.ex.filter((e2) => gskip[e2.id]).map((e2) => ({ id: e2.id })), pace });
     setS(ns); save(ns); onClose();
   };
   const big = { fontFamily: mono, fontWeight: 800, letterSpacing: "-0.02em" };
@@ -5221,7 +5296,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <div style={{ fontFamily: mono, fontSize: 10, color: T.dim, letterSpacing: "0.15em" }}>REST</div>
           <div style={{ ...big, fontSize: 84, color: T.jade }}>{Math.floor(t / 60)}:{String(t % 60).padStart(2, "0")}</div>
           <div style={{ fontFamily: mono, fontSize: 10, color: T.steel }}>next: SET {setN + 1} of {getR(ex).length} · {ex.n}</div>
-          <Btn small onClick={() => { setT(0); setPhase("lift"); }}>Skip rest</Btn>
+          <Btn small onClick={() => { const full = restFor(ex.id); if (t > full / 2) setRests((r) => ({ ...r, cut: r.cut + 1 })); setT(0); setPhase("lift"); }}>Skip rest</Btn>
         </div>
       ) : phase === "lift-done" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
