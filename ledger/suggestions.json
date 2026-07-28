@@ -1,36 +1,36 @@
 {
-  "gen": "2026-07-27T21:57:45.647Z",
+  "gen": "2026-07-28T09:05:11.680Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-07-27_sleep",
-      "title": "Protect sleep: aim 7.5 h, cap afternoon caffeine",
+      "sid": "sug_2026-07-28_sleep",
+      "title": "Fix lights-out: pick a time, take 7.5 h",
       "apply": {
         "kind": "sleep",
         "to": 7.5
       },
       "rationale": {
-        "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss 55% and raised lean-mass loss 60% (Nedeltcheva 2010).",
-        "data": "Last 13 nights average 6.9 h (7-night debt 1.8 h); 4 recent days had >=300 mg or afternoon caffeine.",
-        "relationship": "Short sleep + late caffeine track with your low recovery score and rep dips - the lever that protects lean while you cut."
+        "science": "At the same deficit, short sleep (5.5 vs 8.5 h) cut fat loss ~55% and raised lean-mass loss ~60% (Nedeltcheva 2010).",
+        "data": "Last 7 nights average 7.1 h against your own 7.5 h bar (14-night average 6.9). Lights-out walked 01:00 to 01:45 to 01:45 to 02:00, and 7/26 came in at 6.2 h.",
+        "relationship": "The one lift that lost reps Monday - press 245, third set 7 to 5 - came the morning after that 6.2 h night, while rows, laterals and forearms all held or climbed. And it is not caffeine: your shortest night followed your lowest-caffeine day (200 mg). Bedtime is the lever."
       },
-      "predict": "Higher share of loss as fat; lean protected; better session quality.",
+      "predict": "Back at 7.5 h, the press third set returns to 7 and the loss keeps coming off fat rather than lean.",
       "confidence": "high",
       "gate": "approve",
       "rank": 1
     },
     {
-      "sid": "sug_2026-07-27_hold",
-      "title": "Hold structural training changes this week",
+      "sid": "sug_2026-07-28_hold",
+      "title": "Hold the Calves 320 debut until a clean week",
       "apply": {
         "kind": "note"
       },
       "rationale": {
-        "science": "Under-recovery blunts the training stimulus that preserves muscle on a cut (Schoenfeld 2017).",
-        "data": "Recovery signals are low (short sleep, rep dips) with a progression queued.",
-        "relationship": "Pushing loads while under-recovered converts to missed reps, not muscle."
+        "science": "On a cut, defend load rather than add volume - under-recovery blunts the stimulus that preserves muscle (Schoenfeld 2017; Robinson 2024).",
+        "data": "Recovery read 45/100 on 7/27 - sleep reset 0/3, five-night average under 7 h, rep dips across the last two sessions - with Calves 320 sitting in the queue as the next structural change.",
+        "relationship": "This is your own rule (CL-3): recovery gates structural additions, even earned ones. Adding a debut load on a 45/100 week turns into missed reps, not muscle - and the press is already pending at 245."
       },
-      "predict": "Keeps intensity honest; resume progression when recovery returns.",
+      "predict": "The 320 debut lands on a clean week and sticks first time; nothing you own gets contested on recovery grounds.",
       "confidence": "medium",
       "gate": "approve",
       "rank": 2
