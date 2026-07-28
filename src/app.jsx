@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.7";
+const APP_V = "3.99.8";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -873,10 +873,10 @@ function labAnalytics(s) {
       forYou: liveF ? (endF.split(" \u00b7 ").slice(1).join(" \u00b7 ") + " \u2014 eight weeks out at your measured rate of " + rateF.scale.toFixed(2) + " lb/wk" + (blackoutOn(s, t0F) ? ", drawn from the pre-blackout trend while the scale is sealed" : "") + ". (forecast \u2014 refits every log)") : "Two weekly snapshots open the projection. Until then the trend has no measured rate to walk forward, and a guessed line is worse than none.",
       lines: linesF });
   })();
-  out.push({ id: "mrv", t: "EMPIRICAL MRV — YOUR VOLUME CEILINGS", status: "LOCKED", prog: null,
-    tag: "Finds your real volume ceilings instead of borrowing a template's.",
-    deep: "Weekly sets per muscle plotted against performance and recovery response — your maximum recoverable volume, discovered rather than assumed. The literature prior it starts from: Schoenfeld, Ogborn & Krieger 2017 (meta-analysis) found a graded dose-response with 10+ weekly sets per muscle outgrowing lower volumes. That's the build-phase climb target; the cut deliberately sits below it.",
-    forYou: (() => { const cut7 = isoOf(new Date(todayStart().getTime() - 7 * DAY)); const perMg = {}; Object.entries(s.sessionLog).forEach(([d, sl]) => { if (d >= cut7) (sl.entries || []).forEach((e2) => { const ex2 = exById(s, e2.id); if (ex2 && ex2.mg && e2.reps) perMg[ex2.mg] = (perMg[ex2.mg] || 0) + e2.reps.length; }); }); const parts = Object.entries(perMg).map(([m, n2]) => `${m} ${n2}`); return `MEV on purpose while cutting — growing on the minimum is the plan. Your logged sets this week: ${parts.length ? parts.join(" · ") : "none in-app yet"} · the build climbs each toward the 10+ landmark, then past it until YOUR ceiling shows.`; })(),
+  out.push({ id: "mrv", t: "VOLUME RETURN CURVE — WHERE ADDED SETS STOP PAYING", status: "LOCKED", prog: null,
+    tag: "Finds where your own added sets stop earning their fatigue — not a template's number.",
+    deep: "Weekly sets per muscle plotted against volume-load slope and recovery response — the point where an added set stops improving output. What this can find is a marginal-return inflection, NOT a 'maximum recoverable volume': MRV is a coaching model, not a measured quantity, and no study validates training just beneath it. The literature prior it starts from: Schoenfeld, Ogborn & Krieger 2017 (meta-analysis) found a graded dose-response, 10+ weekly sets per muscle outgrowing lower volumes; later meta-regressions sharpen that to roughly logarithmic returns — each added set keeps buying a little, and buys less than the one before it. That's the build-phase climb target. The cut deliberately sits below it, because in a deficit load is what protects muscle and volume is the lever that comes down.",
+    forYou: (() => { const cut7 = isoOf(new Date(todayStart().getTime() - 7 * DAY)); const perMg = {}; Object.entries(s.sessionLog).forEach(([d, sl]) => { if (d >= cut7) (sl.entries || []).forEach((e2) => { const ex2 = exById(s, e2.id); if (ex2 && ex2.mg && e2.reps) perMg[ex2.mg] = (perMg[ex2.mg] || 0) + e2.reps.length; }); }); const parts = Object.entries(perMg).map(([m, n2]) => `${m} ${n2}`); return `MEV on purpose while cutting — growing on the minimum is the plan. Your logged sets this week: ${parts.length ? parts.join(" · ") : "none in-app yet"} · the build climbs each toward the 10+ landmark, then keeps climbing only while the volume-load slope still pays for the fatigue.`; })(),
     lines: ["engine ships with the September program push"] });
   out.push({ id: "debutmodel", t: "DEBUT-READINESS MODEL", status: "LOCKED", prog: null,
     tag: "Learns the exact conditions under which your debuts land.",
