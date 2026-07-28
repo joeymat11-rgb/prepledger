@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.18";
+const APP_V = "3.99.19";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -248,22 +248,33 @@ const CALL_PLAIN = {
 function liftCall(s, exId, opts = {}) {
   const tISO3 = isoOf(todayStart());
   const R2 = [];
-  const all = Object.keys(s.sessionLog).sort().map((d) => { const sl0 = s.sessionLog[d]; const e = (sl0.entries || []).find((x) => x.id === exId); return e ? { d, tot: (e.reps || []).reduce((a, b) => a + b, 0), rir: e.rir, w: e.w, rushed: paceRushed(sl0) } : null; }).filter(Boolean);
+  const all = Object.keys(s.sessionLog).sort().map((d) => { const sl0 = s.sessionLog[d]; const e = (sl0.entries || []).find((x) => x.id === exId); return e ? { d, tot: (e.reps || []).reduce((a, b) => a + b, 0), rir: e.rir, w: e.w, rushed: paceRushed(sl0), debt: !cleanAtDate(s, d) } : null; }).filter(Boolean);
   const hist = all.slice(-5);
   if (hist.length < 2) return { verdict: "PUSH", vel: null, n: hist.length, why: "New lift — just chase reps and build the story.", receipts: ["Only " + hist.length + " session" + (hist.length === 1 ? "" : "s") + " on file — two more and the desk starts reading your trend."] };
   const clean = hist.filter((h) => !dayWeather(s, h.d).hard);
   const vel = clean.length >= 2 ? +(((clean[clean.length - 1].tot - clean[0].tot) / (clean.length - 1)).toFixed(1)) : null;
   if (vel != null) R2.push(vel > 0.2 ? `You are gaining about ${vel} reps per session lately (last ${clean.length} normal days).` : vel < -0.2 ? `You have been slipping about ${Math.abs(vel)} reps per session (last ${clean.length} normal days).` : `Your total reps have been flat across the last ${clean.length} normal days.`);
-  /* Stalls are counted over UNRUSHED days only. Three of them lighten the bar
-     5%, and a compressed session is not evidence that the weight is too heavy —
-     see PACE_NOTE. Velocity above still uses every non-hard day, because the
-     rest effect is too small to justify discarding the reading. */
-  const honest = clean.filter((h) => !h.rushed);
-  const rushedN = clean.length - honest.length;
+  /* Stalls are counted over UNRUSHED, UNFLAGGED days only. Three of them lighten
+     the bar 5%, and neither a compressed session nor a short-sleep one is
+     evidence that the weight is too heavy — see PACE_NOTE and SLEEP_NOTE.
+
+     This is where the sleep flag now earns its keep. It used to sit on the
+     upside, blocking a record from banking; the evidence for that was empty.
+     Craven 2022 does establish a real if small performance decrement (-2.85% on
+     strength, -9.85% on multi-rep efforts), and the honest use of a known small
+     decrement is to stop it being read as a stall — i.e. to protect him from
+     being deloaded for a bad night, not to stop him gaining on one.
+
+     Velocity above still uses every non-hard day, because both effects are too
+     small to justify discarding the reading. */
+  const honest = clean.filter((h) => !h.rushed && !h.debt);
+  const rushedN = clean.filter((h) => h.rushed).length;
+  const debtN = clean.filter((h) => h.debt && !h.rushed).length;
   let stall = 0;
   for (let i = honest.length - 1; i >= 1; i--) { if (honest[i].tot <= honest[i - 1].tot && (honest[i].rir == null || honest[i].rir <= 2)) stall++; else break; }
-  if (stall) R2.push(`${stall} session${stall > 1 ? "s" : ""} in a row without beating your total — honestly fought; party, estimate and rushed days not counted.`);
+  if (stall) R2.push(`${stall} session${stall > 1 ? "s" : ""} in a row without beating your total — honestly fought; party, estimate, rushed and short-sleep days not counted.`);
   if (rushedN) R2.push(`${rushedN} of your last ${clean.length} on this lift ${rushedN === 1 ? "was" : "were"} logged rushed — short rest costs you reps on the back sets, so ${rushedN === 1 ? "it does" : "they do"} not count toward a stall.`);
+  if (debtN) R2.push(`${debtN} of your last ${clean.length} ran on short sleep — worth about 3% on a heavy set and closer to 10% on a long one, so ${debtN === 1 ? "it does" : "they do"} not count toward a stall either. ${debtN === 1 ? "It still counts" : "They still count"} for reps, records and every trend on this page.`);
   const slp2 = sleepInfo(s);
   const lastN = s.sleep.nights[s.sleep.nights.length - 1];
   if (lastN) R2.push(`Last night: ${lastN.h} hours` + (lastN.sol != null ? `, took about ${lastN.sol} min to fall asleep.` : "."));
@@ -327,7 +338,14 @@ function liftCall(s, exId, opts = {}) {
       receipts: R2.concat([eLow ? `Energy gate: ${eT.v}/5 vs usual ${md2(eH)} (${eH.length} mornings on file).` : null, gLow ? `Grip gate: ${gS} vs ${md2(gH)} lb median (${gH.length} entries on file).` : null].filter(Boolean)) };
   }
   if (estToday) return { verdict: "PUSH", vel, n: clean.length, why: "Estimate day — train normally; the numbers just count a little lighter, like you asked.", receipts: R2.concat(["You declared today an estimate day — numbers count, just lighter."]) };
-  if (postRf && (vel == null || vel >= 0)) return { verdict: "PUSH+", vel, n: clean.length, why: `Green light: refeed fuel aboard and sleep is clean${vel != null && vel > 0 ? ", and you have been gaining" : ""}. If a record is in you, today is the day.`, receipts: R2.concat(["Yesterday was the refeed — its fuel is in you today."]) };
+  /* The old line here promised "refeed fuel aboard" as if that were an
+     established performance edge. It is not: 11 of 19 acute carbohydrate studies
+     found no effect, every study that favoured higher carbs also had higher
+     energy intake, and no isocaloric comparison has ever favoured the high-carb
+     arm (Henselmans 2022, 49 studies). What survives is the honest half — the
+     day after a refeed is a day he is well fed and well slept, which is a fine
+     day to try for a record without needing a mechanism story attached. */
+  if (postRf && (vel == null || vel >= 0)) return { verdict: "PUSH+", vel, n: clean.length, why: `Green light: fed and slept${vel != null && vel > 0 ? ", and you have been gaining" : ""}. If a record is in you, today is a good day for it.`, receipts: R2.concat(["Yesterday was the refeed. Worth being straight about why that helps: no isocaloric study has ever shown extra carbohydrate improves the next session, so this is not glycogen — it is that you are rested and not hungry."]) };
   if (dowLag != null && dowLag <= -3) return { verdict: "PUSH", vel, n: clean.length, why: `Chase — but this weekday usually runs about ${Math.abs(dowLag)} reps lighter for you here. Beat THAT line and it is a win.`, receipts: R2 };
   if (vel != null && vel <= 0 && stall > 0) return { verdict: "PUSH", vel, n: clean.length, why: `Progress has gone flat here. Chase honestly — one more session without a gain and the desk suggests lightening.`, receipts: R2 };
   return { verdict: "PUSH", vel, n: clean.length, why: `${vel != null && vel > 0.2 ? "You are gaining here — keep chasing." : "Keep chasing."} Weight goes up on its own the day you hit the standard.`, receipts: R2 };
@@ -373,12 +391,34 @@ function liftCall(s, exId, opts = {}) {
      was built by climbing off the dip. That ratchets him down permanently for
      one bad night. Flagged days (debt, rushed) no longer set the anchor. An
      honest decline on a clean, unhurried day still does — that one is real. */
+/* ---------- SLEEP_NOTE — why short sleep no longer caps the step ----------
+   This branch used to sit first and return a flat +1 on any short-sleep day,
+   which meant the RIR branches below it never ran. On this athlete's record
+   that was not an edge case: every one of 30 logged entries carried debt, so
+   every progression decision he has ever received fell through to a token
+   single rep while he was faithfully rating 28 of those 30 sets.
+
+   The evidence does not support the branch either. Craven et al. (2022; 69
+   studies, 959 participants) put acute sleep loss at -2.85% on strength — below
+   the 1.8-3.3% test-retest CV of a trained lifter (Grgic 2020), i.e. inside the
+   measurement noise. The subgroup matching his pattern (late bedtime rather
+   than early waking) is -5.85%, 95% CI -13.4 to +1.66, p=0.125 — not
+   distinguishable from zero. And no trial has ever tested damping progression
+   on low-readiness days against not damping it: the literature on that question
+   is empty. Meanwhile RIR autoregulation, which he already supplies, is the one
+   readiness method with outcome evidence behind it (Helms 2018, ES 0.48, 72%
+   likelihood of benefit; Larsen 2021, ES 0.51-0.64 across 14 studies).
+
+   So RIR now drives the step and sleep stays out of it. Sleep did not vanish
+   from the engine — it moved to where it is actually earned: a short-sleep day
+   cannot count toward a STALL (three of which lighten the bar 5%), the same
+   protection a rushed session already gets. The flag now shields him from being
+   punished for a bad night instead of blocking him from gaining on one. */
 function progressStep(ex) {
   if (ex.holdFlag) return { add: 0, why: "governor hold — the opener has run hot two sessions straight, so nothing climbs until an honest one lands" };
   const rs = ex.lastMeta ? rirSetsOf(ex.lastMeta) : [];
   const term = rs.length > 1 ? rs[rs.length - 1] : null;
   const open = rs.length ? rs[0] : null;
-  if (ex.lastMeta && ex.lastMeta.debt) return { add: 1, why: "last one ran on short sleep — the reps count, but a depressed day does not get to set a bigger bar" };
   if (term != null) {
     if (term >= 3) return { add: 3, why: `you finished the last set with ${term} reps still in the tank, on the set the taper sends to failure — that is unspent stimulus, so the step is real` };
     if (term === 2) return { add: 2, why: "two reps left on the set meant to reach failure — there is room above, and a token single rep would waste it" };
@@ -396,22 +436,36 @@ function progressStep(ex) {
  *  flagged, in which case the best unflagged session at this same weight. */
 function progressAnchor(ex, s) {
   const base = (ex.last || []).slice();
-  const meta = ex.lastMeta;
-  const flagged = !!(meta && meta.debt);
-  if (!s || !flagged || !base.length) return base;
-  const better = [];
+  if (!s || !base.length) return base;
+  /* The anchor is the best RECENT session at this same load, not the most
+     recent one. The old version only reached for a better line when the last
+     session was sleep-flagged, and required the replacement to come from a
+     sleep-clean day — on a record with no clean days at all, that made the whole
+     mechanism inert while still ratcheting him down off any dip.
+
+     Capacity is what the anchor is trying to estimate, and a single low session
+     is the noisiest possible estimate of it: his own set-to-set spread is ±0.75
+     reps, so one bad set moves the whole next target. Taking the best of the
+     last three sessions at this load is a max-of-three estimator, which is
+     biased slightly high and therefore ambitious — the correct direction of
+     error when the cost of an over-ambitious target is one missed rep and the
+     cost of an under-ambitious one is a block of wasted progression.
+
+     A rushed session still cannot set the line: short rest lowers volume load
+     on the later sets by construction, so it is measuring something else. */
+  const window = 3;
+  const seen = [];
   Object.keys(s.sessionLog || {}).sort().forEach((d) => {
     const sl = s.sessionLog[d];
-    /* Only genuinely clean days may serve as the benchmark. A second short-sleep
-       session is no more of a fair line than the first one was. */
     if (paceRushed(sl)) return;
-    if (typeof cleanAtDate === "function" && !cleanAtDate(s, d)) return;
     const en = (sl.entries || []).find((x) => x.id === ex.id);
-    if (!en || !en.reps || String(en.w) !== String(ex.w)) return;
-    if (meta && d === meta.d) return;
-    en.reps.forEach((r, i) => { better[i] = Math.max(better[i] ?? 0, r); });
+    if (!en || !en.reps || !en.reps.length || String(en.w) !== String(ex.w)) return;
+    seen.push(en.reps);
   });
-  if (!better.length) return base;
+  const recent = seen.slice(-window);
+  if (!recent.length) return base;
+  const better = [];
+  recent.forEach((reps) => reps.forEach((r, i) => { better[i] = Math.max(better[i] ?? 0, Number(r) || 0); }));
   return base.map((r, i) => Math.max(r, better[i] ?? 0));
 }
 function targetsFor(ex, s) {
@@ -612,12 +666,74 @@ function openerRir(en) { const a = rirSetsOf(en); return a.length ? a[0] : null;
 /** RIR on the set that was programmed to failure. null = not rated, never assumed. */
 function terminalRir(en) { const a = rirSetsOf(en); return a.length ? a[a.length - 1] : null; }
 
+/* ---------- NOISE_NOTE — the number the confirmation rule should have used ----------
+   The app already refused to promote a new best on the first sighting, which is
+   correct. It justified that with sleep, which is not.
+
+   The real justification is measurement error, and it applies every day.
+   Mitter et al. (2022; n=24 resistance-trained, sessions a week apart) report
+   reps-to-failure at 70-80% 1RM with ICC 0.82-0.86 and a standard error of
+   measurement of 0.7-1.1 reps — a standard error of PREDICTION for a single
+   future observation of 0.9-1.4 reps. A +1 rep "record" is inside that. It is
+   not evidence, on any amount of sleep. Grgic et al. (2020; 32 studies, 1,595
+   participants) put trained 1RM test-retest CV at a median 3.3%, so a 5 lb jump
+   on a 160 lb machine (3.1%) is inside one standard error too.
+
+   Rather than hard-code the published figure, this measures HIS. Set-wise
+   differences between consecutive sessions at an identical load are pooled and
+   the standard deviation halved by root-two (the difference of two independent
+   observations carries twice the variance). On the ledger as it stands that
+   returns 0.75 reps per set across 33 paired sets — the middle of Mitter's
+   published range, arrived at from his own record.
+
+   Consequence, and it is the whole point: confirmation now scales with noise
+   instead of sleep. A gain inside the noise band waits for a repeat whatever
+   the night was; a gain clearly outside it banks immediately, also whatever the
+   night was. That is the ACSM two-for-two rule (Ratamess 2009), which is the
+   only published precedent for this decision and carries no readiness
+   qualifier of any kind. */
+const PUBLISHED_SET_SEM = 0.9;
+function typicalError(s, exId) {
+  const byId = {};
+  Object.keys((s && s.sessionLog) || {}).sort().forEach((d) =>
+    ((s.sessionLog[d] || {}).entries || []).forEach((e) => { if (e && e.reps && e.reps.length) (byId[e.id] = byId[e.id] || []).push(e); }));
+  const pooled = [], mine = [];
+  Object.keys(byId).forEach((id) => {
+    const rs = byId[id];
+    for (let i = 1; i < rs.length; i++) {
+      const a = rs[i - 1], b = rs[i];
+      if (a.w == null || b.w == null || String(a.w) !== String(b.w) || a.reps.length !== b.reps.length) continue;
+      b.reps.forEach((x, j) => { const dlt = (Number(x) || 0) - (Number(a.reps[j]) || 0); pooled.push(dlt); if (id === exId) mine.push(dlt); });
+    }
+  });
+  const sd = (arr) => {
+    if (arr.length < 6) return null;
+    const m = arr.reduce((a, b) => a + b, 0) / arr.length;
+    return Math.sqrt(arr.reduce((a, b) => a + (b - m) * (b - m), 0) / (arr.length - 1)) / Math.SQRT2;
+  };
+  const own = sd(mine);
+  if (own != null && own > 0) return { reps: +own.toFixed(2), n: mine.length, src: "this lift's own repeats" };
+  const all = sd(pooled);
+  if (all != null && all > 0) return { reps: +all.toFixed(2), n: pooled.length, src: "your lifts pooled" };
+  return { reps: PUBLISHED_SET_SEM, n: 0, src: "published (Mitter 2022) until you have repeats on file" };
+}
+/** Does a session clear the old line by enough to bank on one sighting? */
+function beatsNoise(s, exId, reps, prev) {
+  const te = typicalError(s, exId);
+  if (!prev || !prev.length || !reps || !reps.length) return { clear: false, te, margin: 0, need: 0 };
+  const n = Math.min(reps.length, prev.length);
+  const margin = reps.slice(0, n).reduce((a, b) => a + (Number(b) || 0), 0) - prev.slice(0, n).reduce((a, b) => a + (Number(b) || 0), 0);
+  /* two standard errors of the SESSION total, which grows as root-n across sets */
+  const need = +(2 * te.reps * Math.sqrt(n)).toFixed(1);
+  return { clear: margin >= need, te, margin, need, n };
+}
+
 function completeSession(state, iso, entries, slp, extras = {}) {
   const s = JSON.parse(JSON.stringify(state));
   const lines = [];
   let dipCount = 0;
   const push = (t, how) => lines.push({ t, how });
-  const debtTag = slp.clean ? "" : " · on debt — provisional";
+  const debtTag = slp.clean ? "" : " · short sleep, logged as such";
   const qFind = (pred) => s.queue.find(pred);
 
   entries.forEach((en) => {
@@ -652,22 +768,25 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     /* own / revert standards */
     if (ex.std && ex.own) {
       const hit = ex.std.every((n, i) => (r[i] ?? 0) >= n);
-      if (hit && slp.clean) {
+      /* This IS the confirmation. The standard was written down on a previous
+         session; hitting it again is the second independent observation, which
+         is the whole statistical content of the rule. Sleep used to be a third
+         condition on top of it and is now gone — see NOISE_NOTE. */
+      if (hit) {
         ex.own = false; const oldStd = ex.std.join(","); ex.std = null; ex.last = r.slice();
         const oq = qFind((x) => x.exId === ex.id && (x.kind === "own"));
         if (oq) { oq.done = true; oq.state = "OWNED"; }
         if (ex.id === "press") {
           const upP = nextLoad(ex);
           if (upP != null) {
-            s.queue.push({ id: "q_press250", kind: "debut", exId: "press", newW: upP, t: `PRESS ${upP} DEBUT`, state: "DEBUT", gate: `Earned by owning ${ex.w}×${oldStd} clean`, rule: "Coach flag before it runs — structural queue", done: false });
-            push(`PRESS ${ex.w} OWNED`, `${oldStd} repeated clean — ${upP} enters the queue at coach flag`);
-          } else push(`PRESS ${ex.w} OWNED`, `${oldStd} repeated clean — but ${ex.w} is the top rung this machine makes, so there is nothing to queue`);
+            s.queue.push({ id: "q_press250", kind: "debut", exId: "press", newW: upP, t: `PRESS ${upP} DEBUT`, state: "DEBUT", gate: `Earned by repeating ${ex.w}×${oldStd}`, rule: "Coach flag before it runs — structural queue", done: false });
+            push(`PRESS ${ex.w} OWNED`, `${oldStd} repeated — that is the confirmation, so ${upP} enters the queue at coach flag`);
+          } else push(`PRESS ${ex.w} OWNED`, `${oldStd} repeated — but ${ex.w} is the top rung this machine makes, so there is nothing to queue`);
         } else if (ex.id === "extension") {
           s.queue.push({ id: "q_ext155", kind: "debut", exId: "extension", newW: ex.w + 5, t: `EXTENSION ${ex.w + 5} — GATE REOPENED`, state: "DEBUT", gate: `Earned this time: ${ex.w}×${oldStd}`, rule: "Queued as a structural change", done: false });
           push(`EXTENSION ${ex.w} RE-OWNED`, `${oldStd} — the ${ex.w + 5} gate reopens, earned`);
-        } else push(`${ex.n.toUpperCase()} OWNED`, `${oldStd} clean`);
-      } else if (hit) push(`${ex.n.toUpperCase()} — PROVISIONAL`, `${r.join(",")} landed on debt · must repeat clean before it counts`);
-      else push(`${ex.n.toUpperCase()} — NOT YET`, `${r.join(",")} · standard stays ${ex.std.join(",")} clean · nothing loads`);
+        } else push(`${ex.n.toUpperCase()} OWNED`, `${oldStd} repeated — confirmed`);
+      } else push(`${ex.n.toUpperCase()} — NOT YET`, `${r.join(",")} · the standard stays ${ex.std.join(",")} · nothing loads`);
       ex.lastAttempt = r.slice();
       return;
     }
@@ -708,13 +827,36 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     const upNext = typeof ex.w === "number" ? nextLoad(ex) : null;
     if (atTop && typeof ex.w === "number" && upNext != null) {
       const already = s.queue.some((x) => x.exId === ex.id && !x.done && x.kind === "debut");
+      /* Two-for-two, from measurement error rather than sleep. Topping the rep
+         window once at a given load can be a good day: Mitter 2022 puts a single
+         set's prediction error at 0.9-1.4 reps, and his own repeats put it at
+         0.75, so the last rep of a window is routinely inside the noise. Two
+         sightings at the same load is the ACSM rule (Ratamess 2009) and is the
+         only published precedent — applied there, as here, with no readiness
+         qualifier. The escape hatch is size: a session that clears the previous
+         line by two standard errors of the session total is not a good day, it
+         is a different capacity, and it banks on the spot. */
+      const topRun = String(ex.topAt) === String(ex.w) ? (ex.topRun || 0) + 1 : 1;
+      ex.topAt = ex.w; ex.topRun = topRun;
+      const bn = beatsNoise(s, ex.id, r, (prevMeta && String(prevMeta.w) === String(en.w) && prevMeta.reps) || null);
+      const confirmed = topRun >= 2 || bn.clear;
       if (en.rir === 0 || ex.holdFlag) {
         if (!already) push(`${ex.n.toUpperCase()} — TOP OF WINDOW, BUT HOT`, `${r.join(",")} at RIR 0 — a grind is not an earn; repeat it honest and the load queues itself`);
-      } else if (slp.clean && !already) {
+      } else if (confirmed && !already) {
+        ex.topRun = 0; ex.topAt = null;
+        const how = bn.clear && topRun < 2
+          ? `${ex.w}×${r.join(",")} — ${bn.margin} reps clear of last time, and two standard errors of your own measured spread is ${bn.need}. That is outside the noise, so it banks on one sighting.`
+          : `${ex.w}×${r.join(",")} — second session at the top of the window at this load. One is inside your ±${(typicalError(s, ex.id).reps).toFixed(2)}-rep spread; two is not.`;
         s.queue.push({ id: `q_${ex.id}_${upNext}`, kind: "debut", exId: ex.id, newW: upNext, t: `${ex.n.toUpperCase()} ${upNext} DEBUT`, state: "DEBUT", gate: `Earned via ${ex.w}×${r.join(",")}`, rule: "Auto-queued — runs when it wins the structural slot", done: false });
-        push(`${ex.n.toUpperCase()} ${upNext} EARNED`, `${ex.w}×${r.join(",")} — top of the window, clean · queued${loadRungs(ex) ? ` · next rung this machine makes` : ""}`);
-      } else if (atTop && !slp.clean) push(`${ex.n.toUpperCase()} — TOP OF WINDOW, PROVISIONAL`, `${r.join(",")} on debt — repeat clean to earn the load`);
-    } else if (tgtMet) push(`${ex.n.toUpperCase()} — TARGET MET`, `${en.w} × ${r.join(",")}`);
+        push(`${ex.n.toUpperCase()} ${upNext} EARNED`, how + (loadRungs(ex) ? " Next rung this machine makes." : ""));
+      } else if (!already) {
+        const te = typicalError(s, ex.id);
+        push(`${ex.n.toUpperCase()} — TOP OF WINDOW, PROVISIONAL`, `${r.join(",")} tops the window${bn.margin > 0 ? `, ${bn.margin} rep${bn.margin === 1 ? "" : "s"} up on last time` : ""} — but your own set-to-set spread is ±${te.reps.toFixed(2)} reps (${te.src}), so one sighting cannot be told apart from a good day. Repeat it and the load queues itself. Sleep does not enter into it.`);
+      }
+    } else {
+      if (typeof ex.w === "number" && String(ex.topAt) === String(ex.w)) { ex.topRun = 0; }
+      if (tgtMet) push(`${ex.n.toUpperCase()} — TARGET MET`, `${en.w} × ${r.join(",")}`);
+    }
 
     /* rows special: establish → earn 185 via 10,10 handled by generic atTop (hi=10) */
 
@@ -779,8 +921,65 @@ function proteinTarget(s) {
   return {
     g, floor, perKg, inLeanSubgroup, ffmKg: +ffmKg.toFixed(1), bf: bf.pct,
     why: inLeanSubgroup
-      ? `${perKg} g per kg of your ${(+ffmKg.toFixed(1))} kg lean mass — under ${LEAN_SUBGROUP_BF}% body fat the measured return per gram is at its largest, so the target steps up rather than down`
-      : `${floor} g is the floor (${PROTEIN_FLOOR_G_PER_KG} g per kg of your ${(+ffmKg.toFixed(1))} kg lean mass, where the evidence stops protecting lean mass) — you run ${g}, comfortably above it`,
+      ? `${perKg} g per kg of your ${(+ffmKg.toFixed(1))} kg lean mass — under ${LEAN_SUBGROUP_BF}% body fat the measured return per gram is at its largest (the per-FFM coefficient roughly doubles), so the target steps up rather than down`
+      /* Say plainly that this is ONE number, held every day, and why it does not
+         move: the only direct training-day-vs-rest-day comparison (Moore 2024,
+         indicator amino acid oxidation) found requirement HIGHER on the rest day,
+         and no study has ever tested raising protein on a short-sleep day. */
+      : `Same number every day — ${g} g, which is ${(+(g / ffmKg).toFixed(2))} g per kg of your ${(+ffmKg.toFixed(1))} kg lean mass. The deficit meta-regression's trend line crosses zero net lean-mass change at ${PROTEIN_FLOOR_G_PER_KG} g/kg (${floor} g for you), so you sit clear of it. It does not rise on training days: the one study that compared day types found requirement higher on REST days, not lower`,
+  };
+}
+
+/* ---------- STEP_NOTE — why the step target is now his own number ----------
+   16-17k was authored, not derived, and nothing recalculated it. Two problems
+   with a fixed step target, one arithmetic and one evidential.
+
+   The arithmetic one is the important one. His measured maintenance is measured
+   AT a step count. Walking is a large share of his daily expenditure — about 370
+   kcal above a sedentary baseline at 16.5k — so the TDEE the calorie target is
+   derived from is only valid while the walking that produced it continues. Drift
+   down 3,000 steps and maintenance drifts down with it by roughly 90 kcal, and
+   the calorie band silently becomes 90 kcal too generous. He HAS drifted: the
+   last fourteen logged days average 15,657 against a June average of 18,924.
+   The target therefore anchors to the window the maintenance figure came from,
+   and says what a deviation costs, rather than naming a round number.
+
+   The evidential one: there is no trial of a step prescription in lean trained
+   people in a deficit — the step-target RCT literature is sedentary and
+   overweight populations. What there IS: no concurrent-training meta-analysis
+   has ever included a walking arm (Schumann 2022, 43 studies, hypertrophy SMD
+   -0.01, 95% CI -0.16 to 0.18, modality non-significant), so the interference
+   case against walking is a plausibility argument with nothing behind it; and
+   walking economy improves under a prescribed programme (Knaan 2026), so the
+   same target buys fewer calories in month four than in week one.
+
+   So this is a band, not a point, with a floor — and when energy availability
+   needs to rise, the app names food first and steps second, because the
+   trained-population evidence links lean-mass loss to deficit magnitude
+   (Murphy & Koehler 2022) and has nothing at all against walking. */
+function stepTarget(s) {
+  const cutoff = isoOf(new Date(todayStart().getTime() - 21 * DAY));
+  /* SORTED, not insertion-ordered. dailyLogs is a plain object and its key order
+     is whatever the writes happened to be; taking .slice(-7) off that gave the
+     oldest seven days on a state written newest-first, which flipped the sign of
+     the drift. A test caught it, which is the only reason this comment exists. */
+  const rows = Object.entries(s.dailyLogs || {}).filter(([d, v]) => d >= cutoff && v && v.steps != null)
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([, v]) => v.steps);
+  const bwKg = s.trend / 2.2046;
+  const kcalPer1k = +(EA_KCAL_PER_1K_STEPS_PER_KG * bwKg).toFixed(1);
+  if (rows.length < 8) return { gated: true, have: rows.length, need: 8, kcalPer1k, why: `${rows.length} of 8 logged step days — until then the target stays as written.` };
+  const avg = rows.reduce((a, b) => a + b, 0) / rows.length;
+  const r5 = (x) => Math.round(x / 500) * 500;
+  const mid = r5(avg);
+  const lo = r5(avg - 1000), hi = r5(avg + 1000);
+  const recent = rows.slice(-7);
+  const recentAvg = recent.length >= 5 ? recent.reduce((a, b) => a + b, 0) / recent.length : null;
+  const drift = recentAvg != null ? Math.round(recentAvg - avg) : 0;
+  const driftKcal = Math.round((drift / 1000) * kcalPer1k);
+  return {
+    gated: false, lo, hi, mid, days: rows.length, kcalPer1k, avg: Math.round(avg),
+    recentAvg: recentAvg == null ? null : Math.round(recentAvg), drift, driftKcal,
+    why: `Your measured maintenance was measured across ${rows.length} days averaging ${Math.round(avg).toLocaleString()} steps — so the calorie band is only right while the walking that produced it continues. Every 1,000 steps is worth about ${kcalPer1k} kcal at your bodyweight.${Math.abs(driftKcal) >= 40 ? ` Your last week runs ${drift > 0 ? "+" : ""}${drift.toLocaleString()} against that, which is about ${driftKcal > 0 ? "+" : ""}${driftKcal} kcal/day of maintenance the target has not caught up with yet.` : ""}`,
   };
 }
 
@@ -1001,17 +1200,42 @@ function calorieTarget(s) {
    most of the LEA literature is female and built on instruments (LEAF-Q) that
    are unusable in men because half the items concern menstrual function.
 
-   The honest difficulty is what counts as EXERCISE. The convention counts
-   purposeful training. His 16k steps are not incidental — they are prescribed
-   as a fat-loss tool, which makes them purposeful by intent while remaining
-   ambulatory in character, exactly the boundary the convention does not
-   resolve. So this refuses to pick: it reports BOTH ends and bands on where the
-   range sits. A single number here would be false confidence about a genuinely
-   unsettled accounting question.
+   The honest difficulty is what counts as EXERCISE, and the first version of
+   this got it wrong in a way that mattered. It reported both ends — training
+   only, and training plus deliberate walking — which was right. But it then
+   BANDED on the walking-inclusive end, which is the one the published
+   thresholds were never built against.
+
+   The IOC's 2023 REDs consensus states the formula as (EI - EEE) / FFM where
+   EEE is purposeful structured exercise. Fagerberg 2018, the source of the 25,
+   is explicit in the other direction: non-exercise expenditure gets subtracted
+   OUT of gross exercise cost before it becomes EEE. And Espinar et al. (2026)
+   measured exactly this substitution in free-living athletes — swapping
+   structured EEE for activity-induced expenditure dropped estimated EA from
+   ~32 to ~20 kcal/kg FFM/day in the same people, with nothing changing
+   physiologically. On this ledger the same swap runs 29.9 to 24: the entire
+   distance between "adequate" and "below the male line", produced by
+   bookkeeping.
+
+   So the band is now taken on the conventional number, which is the only one
+   comparable to 25. The walking-inclusive figure is still shown, because it is
+   a real and useful reading of total load — it is just labelled as a different
+   convention rather than silently used as the verdict.
+
+   The 25 itself is flagged as extrapolated, because it is. Fagerberg derives it
+   from Keys' 1950 semi-starvation work, Müller 2015, Pasiakos 2013 and natural
+   bodybuilder case reports with self-reported intake; he states outright that no
+   controlled male threshold study comparable to Loucks' exists. The IOC 2023
+   declines a universal cut-off and gives males a range of roughly 9-25. The only
+   controlled male data anywhere is endurance athletes at 17-22 over 14 days
+   (Jurov 2021/2022) and a single combat-athlete case study. Nobody has tested a
+   lean resistance-trained male at 23 versus 30 for eight weeks.
 
    Everything below is an ESTIMATE and says so. Session cost and walking cost
-   are population averages, not his measured expenditure. The instrument's job
-   is to say which side of 25 he is on, not to claim a decimal place. */
+   are population averages, not his measured expenditure — and walking economy
+   improves under a prescribed programme (Knaan 2026), so the same step count
+   buys progressively fewer calories as the block runs. The instrument's job is
+   to say which side of the line he is on, not to claim a decimal place. */
 const EA_SPARING = 25;
 const EA_LOW = 20;
 const EA_STEP_BASELINE = 4000;
@@ -1046,19 +1270,28 @@ function energyAvailability(s) {
   const trainKcal = sessPerDay * EA_KCAL_PER_SESSION;
   const walkKcal = steps == null ? 0 : Math.max(0, (steps - EA_STEP_BASELINE) / 1000) * EA_KCAL_PER_1K_STEPS_PER_KG * bwKg;
 
+  /* eaTrain is the CONVENTIONAL number and the only one comparable to the
+     published thresholds. eaAll counts deliberate walking as training — a real
+     reading of total load, but against no published line. */
   const eaTrain = +((intake - trainKcal) / ffmKg).toFixed(1);
   const eaAll = +((intake - trainKcal - walkKcal) / ffmKg).toFixed(1);
   const lo = Math.min(eaTrain, eaAll), hi = Math.max(eaTrain, eaAll);
-  const band = lo < EA_LOW ? "VERY LOW" : hi < EA_SPARING ? "LOW" : lo < EA_SPARING ? "MARGINAL" : "ADEQUATE";
+  /* MARGINAL is a narrow early-warning band just above the line, not a wide
+     anxious one: 25 is itself extrapolated, so a number 20% clear of it should
+     read as clear rather than as nearly-in-trouble. */
+  const band = eaTrain < EA_LOW ? "VERY LOW" : eaTrain < EA_SPARING ? "LOW" : eaTrain < EA_SPARING + 3 ? "MARGINAL" : "ADEQUATE";
 
-  /* Which lever is cheaper — this is the actionable half. To clear the sparing
-     threshold he can eat more or walk less, and the app should say how much of
-     each rather than leaving him to solve it. */
-  const needKcal = Math.max(0, Math.round(EA_SPARING * ffmKg - (intake - trainKcal - walkKcal)));
-  const stepsToDrop = walkKcal > 0 ? Math.round((needKcal / (EA_KCAL_PER_1K_STEPS_PER_KG * bwKg)) * 1000) : null;
+  /* Which lever is cheaper — the actionable half, now priced off the
+     conventional number so the instruction matches the verdict. Order matters:
+     the trained-population evidence links LEAN MASS LOSS to deficit magnitude
+     (Murphy & Koehler 2022, ES -3.1e-4 per kcal/day of deficit), and has nothing
+     against walking as such — no concurrent-training meta-analysis has ever
+     included a walking arm. So food is named first and steps second. */
+  const needKcal = Math.max(0, Math.round(EA_SPARING * ffmKg - (intake - trainKcal)));
+  const stepsToDrop = needKcal > 0 && walkKcal > 0 ? Math.round((needKcal / (EA_KCAL_PER_1K_STEPS_PER_KG * bwKg)) * 1000) : null;
 
   return {
-    gated: false, lo, hi, band, intake: Math.round(intake), steps: steps == null ? null : Math.round(steps),
+    gated: false, lo, hi, band, ea: eaTrain, eaAll, intake: Math.round(intake), steps: steps == null ? null : Math.round(steps),
     ffmKg: +ffmKg.toFixed(1), trainKcal: Math.round(trainKcal), walkKcal: Math.round(walkKcal),
     sessPerWk: +(sessPerDay * 7).toFixed(1), days: rows.length, needKcal, stepsToDrop,
     receipts: [
@@ -1066,7 +1299,8 @@ function energyAvailability(s) {
       `Training costs about ${Math.round(trainKcal)} kcal/day at ${(+perWk.toFixed(1))} sessions a week${logged < scheduled ? ` (the programme's ${scheduled}, not the ${(+logged.toFixed(1))} in the log — in-app logging started part way through, and under-charging training would flatter this number)` : ""} — an estimate, not a measurement.`,
       steps == null ? "No step data in the window." : `Walking ${Math.round(steps).toLocaleString()} steps/day costs roughly ${Math.round(walkKcal)} kcal/day above a sedentary baseline.`,
       `Fat-free mass ${(+ffmKg.toFixed(1))} kg, from the anchored lean model.`,
-      `Counting training only: ${eaTrain}. Counting training plus deliberate walking: ${eaAll}. The convention does not settle which is right, so both are shown.`,
+      `Counting structured training only — ${eaTrain} — is the convention the IOC's 2023 formula uses and the only one comparable to the 25 line, so it is the one banded above. Counting deliberate walking as training gives ${eaAll}; that is a true reading of total load but there is no published threshold built that way. Espinar 2026 measured the same swap in free-living athletes and it moved EA from ~32 to ~20 with nothing changing physiologically.`,
+      `The 25 itself is extrapolated, not measured. Fagerberg 2018 proposes it from semi-starvation work and bodybuilder case reports and says plainly that no controlled male threshold study exists; the IOC 2023 declines a universal cut-off and gives males roughly 9-25. Treat it as a direction, and watch resting pulse, morning temperature and whether the lifts hold — those are measurements.`,
     ],
   };
 }
@@ -1824,12 +2058,61 @@ function liveRollups(s) {
   });
 }
 
-/* was the sleeper clean walking into a given date? */
+/* ---------- DEBT_NOTE — what "short sleep" has to mean to be worth flagging ----------
+   This asked for three consecutive nights at or above his 7.5 h TARGET. On the
+   record that produced 3 qualifying days out of 42 and zero clean sessions ever:
+   his modal night is exactly 7.0 h — 17 of 42 — so the gate sat half an hour
+   above where his sleep actually lives, and a flag that fires 93% of the time is
+   not a flag, it is a constant.
+
+   Two different questions were being answered by one number:
+
+   1. Is he sleeping as much as he should? That is 7.5 h, it is his target, and
+      it belongs to the sleep score and the lean-mass argument. Nedeltcheva 2010
+      is the citation there — 5.5 h vs 8.5 h in a deficit shifted 60% more of the
+      loss onto fat-free mass — and it is a NUTRITION finding, not a session one.
+   2. Was last night short enough to depress this session measurably? That is a
+      performance question and it has its own literature, which does not live at
+      7 h. Craven 2022's protocols run 3-5.5 h; Knowles 2022 ran nine straight
+      nights at 5 h and volume load fell under 1%; Gong 2024 finds start-of-night
+      restriction indistinguishable from zero (d=-0.25, 95% CI -0.53 to +0.04).
+
+   So the performance flag now sits where the performance evidence sits: a night
+   under 6.5 h, or a three-night mean under 7. On his record that flags roughly
+   one day in eight instead of eight in eight, which is what a flag is for.
+
+   Also fixed: "back to back" now checks the calendar. The old loop walked
+   backwards through the ARRAY, so a night he simply did not log counted as
+   consecutive with the one before the gap. */
+const DEBT_LAST_H = 6.5;
+const DEBT_MEAN3_H = 7.0;
+function nightsBefore(s, iso) {
+  return (((s || {}).sleep || {}).nights || []).filter((n) => n.d < iso).slice().sort((a, b) => (a.d < b.d ? -1 : 1));
+}
 function cleanAtDate(s, iso) {
-  const nights = s.sleep.nights.filter((n) => n.d < iso);
+  const nights = nightsBefore(s, iso);
+  if (!nights.length) return true;
+  const last = nights[nights.length - 1];
+  if (last.h < DEBT_LAST_H) return false;
+  /* three CALENDAR-consecutive nights ending last night, if we have them */
+  const run = [last];
+  for (let i = nights.length - 2; i >= 0 && run.length < 3; i--) {
+    if (Math.round((mk(run[0].d) - mk(nights[i].d)) / DAY) !== 1) break;
+    run.unshift(nights[i]);
+  }
+  if (run.length < 3) return true;
+  return run.reduce((a, b) => a + b.h, 0) / run.length >= DEBT_MEAN3_H;
+}
+/* Is he hitting his sleep TARGET? A separate question from the one above, and
+   the one the sleep score, the lights-out nudge and the lean-mass line ask. */
+function atSleepTarget(s, iso) {
+  const nights = iso ? nightsBefore(s, iso) : (((s || {}).sleep || {}).nights || []);
   let run = 0;
-  for (let i = nights.length - 1; i >= 0; i--) { if (nights[i].h >= s.sleep.cleanH) run++; else break; }
-  return run >= s.sleep.needed;
+  for (let i = nights.length - 1; i >= 0; i--) {
+    if (i < nights.length - 1 && Math.round((mk(nights[i + 1].d) - mk(nights[i].d)) / DAY) !== 1) break;
+    if (nights[i].h >= s.sleep.cleanH) run++; else break;
+  }
+  return { run, at: run >= s.sleep.needed };
 }
 
 /* the debt ledger: seeded receipts + live-computed charges as sessions accrue */
@@ -2567,7 +2850,7 @@ function dayProtocol(s, slp) {
   /* 3 · the session */
   if (trainDay && !sessDone) {
     const g = genSession(s, tI, slp);
-    if (g && g.ex && g.ex.length) steps.push({ a: `Session: ${g.ex.length} lifts`, why: (g.structural && g.structural.indexOf("NONE") !== 0 ? g.structural.toLowerCase() + " · " : "") + (slp.clean ? "records can become official today" : "short sleep — effort +1 unless overridden, records pend"), w: 90 });
+    if (g && g.ex && g.ex.length) steps.push({ a: `Session: ${g.ex.length} lifts`, why: (g.structural && g.structural.indexOf("NONE") !== 0 ? g.structural.toLowerCase() + " · " : "") + (slp.clean ? "rate the LAST set of each lift — that is the number that sizes the next jump" : "short sleep — the reps still count and a record can still bank; what the flag buys you is that today cannot be read as a stall. Rate the last set anyway"), w: 90 });
   }
 
   /* 3.5 · energy availability — the reading that outranks everything except an
@@ -2576,14 +2859,18 @@ function dayProtocol(s, slp) {
      session run at 20 kcal/kg FFM is not the same session. */
   const ea = energyAvailability(s);
   if (!ea.gated && (ea.band === "LOW" || ea.band === "VERY LOW" || ea.band === "MARGINAL")) {
-    const fix = ea.needKcal > 0 && ea.stepsToDrop
-      ? `Either eat ~${ea.needKcal} more, or walk ~${ea.stepsToDrop.toLocaleString()} fewer steps — the same gap, two ways, and the steps are the cheaper one to give back`
-      : ea.needKcal > 0 ? `You are ~${ea.needKcal} kcal/day short of the sparing threshold`
-      : `Counting the walking puts you under the line; counting training alone puts you over it — the gap is the accounting question, not an error`;
+    /* Eating first, walking second — deliberately. The trained-population
+       evidence ties lean-mass loss to deficit magnitude (Murphy & Koehler 2022,
+       ES -3.1e-4 per kcal/day) and has nothing at all against walking: no
+       concurrent-training meta-analysis has ever included a walking arm. The old
+       line called steps "the cheaper one to give back", which had it backwards. */
+    const fix = ea.needKcal > 0
+      ? `Closing it takes ~${ea.needKcal} kcal/day. Food is the first lever — deficit size is what the trained-population evidence actually links to lean-mass loss${ea.stepsToDrop ? `, and walking ~${ea.stepsToDrop.toLocaleString()} fewer steps is the same arithmetic if you would rather not eat it` : ""}`
+      : `Nothing to close — this is the accounting question, not a shortfall`;
     steps.push({
-      a: `Energy availability ${ea.lo}–${ea.hi} — ${ea.band.toLowerCase()}`,
-      why: `Below ${EA_SPARING} kcal per kg of lean mass is where a lean male stops sparing muscle in a deficit; below ${EA_LOW}, most of what comes off is lean. ${fix}. This is an estimate of training and walking cost, not a measurement — but the side of the line is what matters, not the decimal.`,
-      w: ea.band === "VERY LOW" ? 96 : ea.band === "LOW" ? 94 : 78,
+      a: `Energy availability ${ea.ea} — ${ea.band.toLowerCase()}`,
+      why: `Counting structured training only, which is the convention the ${EA_SPARING} line was built on. Counting your walking as training too gives ${ea.eaAll} — a real reading of total load, but against no published threshold. ${fix}. And treat ${EA_SPARING} as a direction rather than a cliff: it is extrapolated from semi-starvation work and bodybuilder case reports, and the IOC's own 2023 range for males spans 9 to 25.`,
+      w: ea.band === "VERY LOW" ? 96 : ea.band === "LOW" ? 94 : 62,
     });
   }
 
@@ -2606,7 +2893,10 @@ function dayProtocol(s, slp) {
   if (s.fixWindow) steps.push({ a: `Protein ${pt.g} — non-negotiable today`, why: "closes the open fix window; the miss becomes a save · " + pt.why, w: pW + 15 });
   else steps.push({ a: `Protein ${pt.g}`, why: `~${Math.round(pt.g / 4)} g × 4 feeds · wake / pre-lift / post-lift / pre-bed. ${pt.why}.`, w: pW });
   if (T4.drift != null && T4.drift <= -0.4) steps.push({ a: "Eat the top of the range (1,800)", why: `your furnace runs ${T4.drift}°F under baseline — the band's ceiling exists for exactly this; still a full deficit`, w: 70 });
-  if (dayType(isoOf(new Date(todayStart().getTime() + DAY))) === "REFEED") steps.push({ a: "Normal day — refeed is tomorrow", why: "no pre-saving calories tonight; the refeed works because the days around it stay ordinary", w: 35 });
+  /* The refeed is still on the calendar because it is his programme and the app
+     does not reprogramme him — but it no longer gets a sentence claiming it
+     works. See REFEED_NOTE. */
+  if (dayType(isoOf(new Date(todayStart().getTime() + DAY))) === "REFEED") steps.push({ a: "Normal day — refeed is tomorrow", why: "no pre-saving calories tonight. Worth knowing what tomorrow does and does not buy: at a matched weekly total, the only refeed RCT in trained people did not survive independent reanalysis, and across 12 trials the resting-metabolism benefit in resistance-trained subgroups is 11 kcal/day, 95% CI −67 to +46. It is a day you enjoy, not a metabolic intervention — and it is not free, because a higher Wednesday against a fixed week is a deeper Monday.", w: 35 });
 
   /* 5 · repair last night, tonight */
   if (lastNight) {
@@ -2624,7 +2914,13 @@ function dayProtocol(s, slp) {
      directly. What they do is deepen the deficit, and deficit magnitude IS the
      dominant term for lean mass. That is the honest framing, and it is why this
      ranks last rather than being cheered. */
-  steps.push({ a: "Steps 16.5k", why: "walking is the deficit's quiet engine, and it has never been shown to cost muscle the way hard cardio can — what it does is deepen the deficit, so it is a fat-loss lever with a lean-mass price, not a free one", w: 22 });
+  /* Derived, not authored — see STEP_NOTE. Ranks up when he has drifted far
+     enough off the window his maintenance was measured in that the calorie band
+     is quietly wrong. */
+  const stT = stepTarget(s);
+  steps.push(stT.gated
+    ? { a: "Steps 16.5k", why: `${stT.why} Walking is the deficit's quiet engine, and no concurrent-training meta-analysis has ever included a walking arm — the interference case against it is a plausibility argument, not a finding.`, w: 22 }
+    : { a: `Steps ${(stT.lo / 1000).toFixed(1)}–${(stT.hi / 1000).toFixed(1)}k`, why: `${stT.why} No trial has ever tested a step prescription in a lean trained lifter in a deficit, and no concurrent-training meta-analysis has included a walking arm, so this is arithmetic rather than an evidence claim: it holds the number your calorie target is derived from.`, w: 22 + Math.min(30, Math.round(Math.abs(stT.driftKcal) / 4)) });
   const SHOW = 5;
   steps.sort((x, y) => (y.w || 0) - (x.w || 0));
   const held = Math.max(0, steps.length - SHOW);
@@ -2894,6 +3190,47 @@ function runAdaptive(state, todayISO) {
     propose("calband_" + monday, "CALORIE BAND HAS DRIFTED FROM YOUR DATA",
       `Your phase band says ${ct.phaseLo}–${ct.phaseHi}. Your own measured maintenance and your own target rate say ${ct.lo}–${ct.hi} — a gap of about ${Math.abs(ct.drift)} kcal/day. ${ct.why} The band was authored before there was data to check it against; there is now. Nothing here changes automatically, and the phase band stays exactly as written until you say otherwise.`,
       { kind: "cal", delta: ct.drift });
+
+  /* ---------- REFEED_NOTE — the standing recommendation the app owed him ----------
+     The programme runs a weekly Wednesday refeed at 2,450-2,500. The evidence
+     for that, examined properly, is this:
+
+     - Campbell et al. 2020 (JFMK) is the ONLY refeed RCT at a matched weekly
+       total in resistance-trained people. Peos, Brown, Vorland, Allison &
+       Sainsbury reanalysed it in the same journal later that year and found only
+       DRY fat-free mass differed between arms — total FFM did not — because the
+       original compared within-group significance across arms instead of testing
+       the interaction. The headline did not survive.
+     - Poon et al. 2025 (Nutrition Reviews), 12 RCTs, n=881: body mass -0.01 kg,
+       fat mass 0.26 kg (p=0.38), FFM 0.17 kg (p=0.67). RMR favours intermittent
+       by 47 kcal/day overall — but the RESISTANCE-TRAINED subgroup is 11 kcal/day,
+       95% CI -67 to +46, p=0.71.
+     - Peos 2021 measured leptin, testosterone and free T3 across a full week at
+       maintenance in trained athletes. All three were unchanged. The mechanism a
+       refeed is supposed to work through was flat.
+     - Henselmans 2022 (49 studies) and 2026 (11 RCTs, hypertrophy SMD 0.15,
+       95% CI -0.10 to 0.40, p=0.230): no isocaloric carbohydrate study has shown
+       a strength or hypertrophy benefit, so the "fuel for tomorrow's session"
+       case has nothing behind it either.
+
+     And it is not free. Against a fixed weekly total, a Wednesday 400 kcal above
+     the band means the other six days run ~67 kcal deeper, and deficit magnitude
+     is the one variable the trained-population evidence does link to lean-mass
+     loss (Murphy & Koehler 2022, ES -3.1e-4 per kcal/day).
+
+     Where the evidence IS positive is DIET BREAKS — a full week at maintenance —
+     and it is positive on adherence, not metabolism: ICECAP found lower hunger
+     (p=0.002) and higher satisfaction (p=0.016); Siedler 2023 found disinhibition
+     improved with breaks and worsened without (p<0.01). No trial has ever
+     randomised a weekly refeed DAY with adherence as the outcome, so there is no
+     basis for assuming one day inherits that.
+
+     This is filed as a proposal rather than applied, because the calendar is his
+     programme and law 3 says every change arrives as a proposal. */
+  if (!sealed && dayType("2026-07-29") === "REFEED")
+    propose("refeed_review", "THE WEEKLY REFEED HAS NO EVIDENCE BEHIND IT",
+      `Your Wednesday refeed is prescribed at 2,450-2,500 against a band that is now ${ct.gated ? "derived from your maintenance" : `${ct.lo}-${ct.hi}`}. The case for refeeds does not hold up: the only matched-energy RCT in trained people (Campbell 2020) had its fat-free-mass result overturned on independent reanalysis, and across 12 trials the resting-metabolism advantage in resistance-trained subgroups is 11 kcal/day with a confidence interval from -67 to +46. Leptin, testosterone and free T3 were all unchanged across a full week at maintenance in the one trial that measured them. Higher-carbohydrate days have never beaten matched-calorie days for strength or hypertrophy in any isocaloric comparison. Meanwhile it costs something real: a Wednesday above the band deepens the other six days, and deficit size is the variable that actually predicts lean-mass loss. The proposal is to retire the fixed weekly refeed and simply run the band every day — keeping a DIET BREAK (a full week at maintenance) in reserve, which is the intervention the adherence evidence actually supports. If you keep the refeed, keep it because you enjoy it and it keeps you in the game. That is a real reason. It is just not the one the app has been giving you.`,
+      { kind: "note" });
 
   /* The volume band vs the dose-response evidence, in a deficit. */
   const volDrift = VOL_BANDS.lo !== 6 || VOL_BANDS.hi !== 12;
@@ -3429,7 +3766,7 @@ function askContext(s, docs) {
     .map(([d, v]) => { const w2 = dayWeather(s, d); return `${d}: cal ${v.cal ?? "—"} · pro ${v.pro ?? "—"} · steps ${v.steps ?? "—"}${w2.flags.length ? "  ⌁[" + w2.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n");
   const sess2 = Object.keys(s.sessionLog).sort().slice(-6).map((d) => { const sl2 = s.sessionLog[d]; const parts = [(sl2.entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ") || "no lifts"]; if ((sl2.skipped || []).length) parts.push("SKIPPED: " + sl2.skipped.map((k) => k.id).join(", ")); if (sl2.note) parts.push(`note: "${sl2.note.slice(0, 120)}"`); return `${d}: ` + parts.join(" · "); }).join("\n");
   const nights2 = s.sleep.nights.slice(-14).map((n) => `${n.d}: ${n.h}h · bed ${n.bed || "—"} → wake ${n.wake || "—"} · drift-off ${n.sol ?? "?"}m${(n.tags || []).length ? " · " + n.tags.join("/") : ""}`).join("\n");
-  const laws = "DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor 1.0–1.4 lb/wk (1.9+ = too fast); calorie floor 1,700; protein 175 daily; records/weight-increases only become official on a completed good-sleep streak (3 nights ≥7.5h); one structural change per session; effort tapers to a single terminal failure set per exercise (RIR 2→1→…→0); on debt days only that final set pulls to 1, everything earlier runs as written; the scale seal quarantines event water; every change is a proposal — the athlete consents, the coach holds structural authority.";
+  const laws = "DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor 1.0–1.4 lb/wk (1.9+ = too fast); calorie floor 1,700; calories, protein and steps are all DERIVED from his record, never quoted as constants — take them from the CANONICAL NUMBERS block and nowhere else; a new best becomes official on ONE repeat, because his own measured set-to-set spread is about ±0.8 reps and a +1 record sits inside it — a jump two standard errors clear of the old line banks on the first sighting instead; short sleep does NOT block a record and does NOT cap the step (that rule was retired — Craven 2022 puts acute sleep loss at −2.85% on strength, inside the 1.8–3.3% test-retest CV, and no trial has ever tested damping progression on low-readiness days), what it does is exempt the day from counting toward a stall; RIR on the LAST set is what sizes the next jump and is the most valuable number he enters; one structural change per session; effort tapers to a single terminal failure set per exercise (RIR 2→1→…→0); the scale seal quarantines event water; the weekly refeed is on the calendar but has no evidence behind it — never claim it aids fat loss, muscle retention, metabolism or next-day performance; every change is a proposal — the athlete consents, the coach holds structural authority. NEVER assert a mechanism this app cannot cite; saying 'there is no good evidence either way' is always available and always preferred to a confident guess.";
   const evs = (s.events || []).map((e) => `${e.d}: ${e.t}${e.estimated ? " (est-declared)" : ""}`).join(" · ") || "none";
   const trls = (s.trials || []).map((t3) => { const tp = trialTpl(t3); return tp ? `${tp.t} (started ${t3.started})` : ""; }).filter(Boolean).join(" · ") || "none";
   const gate2 = sleepInfo(s);
@@ -3443,16 +3780,18 @@ function askContext(s, docs) {
     + `RATE ${rC.scale} lb/wk by ${rC.method}${rC.ci ? ` (95% CI ${rC.lo}–${rC.hi}, n=${rC.n} daily reads)` : ""}. `
     + (tdC ? `MEASURED TDEE ${tdC.tdee} kcal${tdC.lo && tdC.hi ? ` (${tdC.lo}–${tdC.hi} carrying the rate's error)` : ""} from ${tdC.days} logged days at ${tdC.avg} kcal/day average intake. ` : "MEASURED TDEE: not enough clean days yet. ")
     + (ctC.gated ? "" : `TARGET INTAKE ${ctC.lo}–${ctC.hi} kcal/day, derived from that maintenance and his ${ctC.band[0]}–${ctC.band[1]} lb/wk band. `)
-    + (eaC.gated ? "" : `ENERGY AVAILABILITY ${eaC.lo}–${eaC.hi} kcal/kg lean (${eaC.band}); the sparing threshold for a lean male is ${EA_SPARING} and below ${EA_LOW} most of the loss comes off lean mass. `)
-    + `PROTEIN TARGET ${proteinTarget(s).g} g, floor ${proteinTarget(s).floor} g, scaled to measured lean mass. `
+    + (eaC.gated ? "" : `ENERGY AVAILABILITY ${eaC.ea} kcal/kg lean (${eaC.band}) counting structured training only — that is the IOC's convention and the only figure comparable to the ${EA_SPARING} threshold. Counting his deliberate walking as training instead gives ${eaC.eaAll}, which is a real reading of total load but has no published threshold behind it: quote ${eaC.ea} against the line and mention ${eaC.eaAll} only as the other convention. The ${EA_SPARING} itself is EXTRAPOLATED from semi-starvation work and bodybuilder case reports — the IOC's 2023 male range is roughly 9–25 and no controlled study has tested a lean resistance-trained male at 23 vs 30. Say so if you cite it. `)
+    + `PROTEIN TARGET ${proteinTarget(s).g} g (${proteinTarget(s).perKg} g/kg of ${proteinTarget(s).ffmKg} kg lean), floor ${proteinTarget(s).floor} g. Do NOT vary it by day type: the only direct training-vs-rest-day comparison (Moore 2024, indicator amino acid oxidation) found requirement HIGHER on rest days, and no study has ever tested raising protein on a short-sleep or low-recovery day. `
+    + (() => { const stC = stepTarget(s); return stC.gated ? "" : `STEP TARGET ${stC.lo.toLocaleString()}–${stC.hi.toLocaleString()}/day — this is not a health guideline, it is the step count his measured maintenance was measured at (${stC.avg.toLocaleString()} across ${stC.days} days). Every 1,000 steps is about ${stC.kcalPer1k} kcal at his bodyweight, so drifting off it silently invalidates the calorie band. `; })()
+    + `HIS MEASURED SET-TO-SET REP SPREAD ${typicalError(s, null).reps} reps (n=${typicalError(s, null).n} paired sets at identical load) — use this when judging whether a rep change is real. A +1 rep session is inside it. `
     + "If you disagree with any of these, say WHY and by how much rather than quietly substituting your own — a number that changes between screens is worse than one that is slightly wrong.";
-  const dict = LEDGER_DICT + canon + " SLEEP GATE RIGHT NOW (do not re-derive): clean run " + gate2.run + "/" + gate2.need + " — records currently " + (gate2.clean ? "OFFICIAL" : "PENDING") + ". EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
+  const dict = LEDGER_DICT + canon + " SLEEP RIGHT NOW (do not re-derive): last night " + ((gate2.last || {}).h ?? "—") + " h; " + gate2.run + " consecutive night(s) at his " + s.sleep.cleanH + " h target; the session is flagged " + (gate2.clean ? "NORMAL" : "SHORT SLEEP") + ". Short sleep no longer blocks a record or caps a progression step — it only exempts the day from counting toward a stall. EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
   const clip = (t, n) => (t ? String(t).replace(/^<!--.*-->\n?/, "").slice(0, n) : "");
   const analysisSec = docs.analysis ? `\n\n=== TONIGHT'S ENGINE ANALYSIS (analysis.json — soft trend, rate, TDEE, drivers, regime, prior decisions) ===\n${clip(docs.analysis, 3500)}` : "";
   const suggSec = docs.suggestions ? `\n\n=== YOUR CURRENT APPROVE/DISMISS SUGGESTIONS (the NOW cards) ===\n${clip(docs.suggestions, 1800)}` : "";
   const briefSec = docs.brief ? `\n\n=== YOUR LATEST READ (brief.md — your own nightly words, the voice to match) ===\n${clip(docs.brief, 1800)}` : "";
   const caselawSec = docs.caselaw ? `\n\n=== CASE-LAW / MEMORY (what has held true before) ===\n${clip(docs.caselaw, 1800)}` : "";
-  return `You are Joe's Analyst — the same analyst that writes his nightly read. When Joe asks something here, he is asking you: answer in the same voice, from the same knowledge. Your one goal: the best body-composition change — fat down, lean held or built — as fast as he can sustain. Read everything through two lenses only: established sports-science research, and Joe's own data. HOW YOU TALK: plain conversational prose, exactly like your nightly read — the way you'd say it out loud to a sharp friend who lifts. Use no markdown at all — no # headers, no **bold**, no bullet lists or numbered scaffolding, no tables. No jargon, no (measured)/(speculation) tags, no "provisional". Lead with the answer and the one thing that matters, use his real numbers, keep it tight; if the data is thin, just say so in plain words. TWO LAWS: look at everything relevant and how the variables move each other; and weigh science and his own data together — where they agree, say it plainly, where they disagree, name the tension. Never go dark on a noisy number: a single scale reading is noise around a slow trend, so attribute spikes to their cause (water from sodium, carbs, a big meal, a short night) instead of hiding them. THE SCIENCE FLOOR (your prior): lean-safe loss is about 0.5–1.0%/wk (~1.0–1.4 lb/wk for him; 1.9+ is too fast); protein ~2.3–3.1 g/kg fat-free mass (≈150–190 g/day); sleep is a first-order fat-vs-lean lever (under ~7 h blunts fat loss and costs lean); train to roughly 10+ hard sets per muscle per week at 1–3 reps in reserve and defend load on a cut; sodium, carbs and creatine move water, not fat; caffeine helps training but taken late steals sleep; refeeds and diet breaks help adherence, not metabolism; adherence is the biggest lever; metabolic adaptation is real but small. Answer only from the knowledge below plus that science. Never invent data.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}${analysisSec}${suggSec}${briefSec}${caselawSec}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== MEDS (last 7 logged) ===\n${(s.medsLog || []).slice(-7).map((m8) => `${m8.d}: ${m8.taken ? "taken @ " + m8.at : "none"}`).join("\\n") || "none logged"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
+  return `You are Joe's Analyst — the same analyst that writes his nightly read. When Joe asks something here, he is asking you: answer in the same voice, from the same knowledge. Your one goal: the best body-composition change — fat down, lean held or built — as fast as he can sustain. Read everything through two lenses only: established sports-science research, and Joe's own data. HOW YOU TALK: plain conversational prose, exactly like your nightly read — the way you'd say it out loud to a sharp friend who lifts. Use no markdown at all — no # headers, no **bold**, no bullet lists or numbered scaffolding, no tables. No jargon, no (measured)/(speculation) tags, no "provisional". Lead with the answer and the one thing that matters, use his real numbers, keep it tight; if the data is thin, just say so in plain words. TWO LAWS: look at everything relevant and how the variables move each other; and weigh science and his own data together — where they agree, say it plainly, where they disagree, name the tension. Never go dark on a noisy number: a single scale reading is noise around a slow trend, so attribute spikes to their cause (water from sodium, carbs, a big meal, a short night) instead of hiding them. THE SCIENCE FLOOR (your prior): lean-safe loss is about 0.5–1.0%/wk (~1.0–1.4 lb/wk for him; 1.9+ is too fast) and deficit MAGNITUDE is the variable most tightly linked to lean-mass loss in trained people; protein ~2.3–3.1 g/kg fat-free mass, fixed daily, not varied by training vs rest day; sleep is a first-order fat-vs-LEAN lever in a deficit (Nedeltcheva 2010: 5.5 h vs 8.5 h shifted 60% more of the loss onto fat-free mass) but only a small SESSION lever (Craven 2022: −2.85% on strength, inside the test-retest CV) — do not tell him a short night ruins a session or invalidates a record, because the app no longer treats it that way and the evidence never did; train to roughly 6–12 hard sets per muscle per week at 0–2 reps in reserve, where the dose-response return per set is highest, and defend load on a cut; sodium, carbs and creatine move water, not fat; caffeine helps training but taken late steals sleep; DIET BREAKS (a full week at maintenance) have replicated adherence benefits and no metabolic ones in trained people; weekly REFEED DAYS have neither — the only matched-energy RCT was overturned on reanalysis and no isocaloric carbohydrate study has ever improved strength or hypertrophy, so never claim a refeed buys fat loss, lean retention, metabolism or next-day performance; adherence is the biggest lever; metabolic adaptation is real but small. A single set of reps carries about ±0.8 reps of noise for him, so treat a one-rep change as weather, not signal. Answer only from the knowledge below plus that science. Never invent data, and when the evidence is absent say so — "nobody has tested this" is a better answer than a confident mechanism.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}${analysisSec}${suggSec}${briefSec}${caselawSec}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== MEDS (last 7 logged) ===\n${(s.medsLog || []).slice(-7).map((m8) => `${m8.d}: ${m8.taken ? "taken @ " + m8.at : "none"}`).join("\\n") || "none logged"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
 }
 const AGENT_TOOLS = [
   { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads|feed. Feed = the app event log; amendments there override older raw rows. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
@@ -3641,9 +3980,12 @@ const CONSTITUTION = [
   ["Facts are live, prose is dawn", "Numbers come from engines reading this second; the analyst's essay is a morning newspaper and says so."],
   ["Done-ness is derived", "The ledger decides what's complete — never a screen's memory. In-progress work is a draft that survives."],
   ["Smallest honest increment", "Weight moves by the machine's real smallest step; new sets and loads expect to keep almost every rep."],
-  ["One terminal failure set", "Each exercise ends in exactly one all-out set. On debt days only that set pulls back — the rest run as written."],
+  ["One terminal failure set", "Each exercise ends in exactly one all-out set, and the RIR you give that set is what sizes the next session's jump. It is the single most valuable number you enter."],
   ["The tilt", "Volume is presumed useful until your own bar speed says otherwise. Adds come easier than trims."],
-  ["Records need clean sleep", "Nothing banks on a short-sleep streak. Pending isn't punishment — it's meaning protection."],
+  ["Records need repeating, not good sleep", "A new best waits for one confirmation — because your own set-to-set spread is about ±0.8 reps, so a +1 record cannot be told apart from a good day. A jump clearly outside that spread banks immediately. This used to depend on a three-night sleep streak; that condition had no evidence behind it and, at 7.5 h against your 7 h median, it never once opened."],
+  ["Short sleep protects, it does not punish", "A short night is logged and it counts — for reps, for records, for every trend. What the flag buys you is that the day cannot be read as a stall, so you are never deloaded for a bad night. Sleep still matters most where it is actually measured: in a deficit, short sleep shifts what you lose toward lean mass."],
+  ["Every target is derived, none authored", "Calories come from your measured maintenance, protein from your measured lean mass, steps from the window that measured that maintenance. A number the app cannot derive from your record is a number it should not be showing you as if it could."],
+  ["Cite or say you cannot", "Every rule here names the evidence it rests on, and says plainly when there is none. Three of this app's rules were retired for having nothing behind them; that is the mechanism working, not failing."],
   ["The athlete overrides", "Every number is yours to change on the floor. The machine rebases instantly and files your ruling as precedent."],
   ["The morning lives in the Minute", "Any input that belongs to the morning joins the Morning Minute — one guided flow, about sixty seconds, before the day starts pulling. New morning inputs must register a step; the test suite enforces it."],
   ["No decorative fields", "Every field must buy attribution — a clock, a tap, a number that changes what the machine can conclude. Friction that buys nothing is deleted, because friction is what kills tracking systems by week nine."],
@@ -4038,11 +4380,14 @@ function loadState() {
 }
 
 /* ---------- derived ---------- */
+/* `clean` is the PERFORMANCE question — see DEBT_NOTE — and now answers it with
+   the threshold the performance literature uses. `run`/`at` stay as the TARGET
+   question, which is what the sleep score and the lean-mass line ask. */
 function sleepInfo(s) {
   const n = s.sleep.nights;
-  let run = 0;
-  for (let i = n.length - 1; i >= 0; i--) { if (n[i].h >= s.sleep.cleanH) run++; else break; }
-  return { run, clean: run >= s.sleep.needed, last: n[n.length - 1], need: s.sleep.needed };
+  const tomorrow = isoOf(new Date(todayStart().getTime() + DAY));
+  const t = atSleepTarget(s, null);
+  return { run: t.run, atTarget: t.at, clean: cleanAtDate(s, tomorrow), last: n[n.length - 1], need: s.sleep.needed };
 }
 function weekDay() {
   const diff = Math.round((todayStart() - mk(START)) / DAY);
@@ -4051,6 +4396,13 @@ function weekDay() {
 const blackoutOn = (s) => daysUntil(s.blackout.until) > 0;
 const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d); if ((t === "U" || t === "L") && !s.sessionLog[d]) return d; } return null; };
 __test.nextTrainingISO = nextTrainingISO;
+__test.typicalError = typicalError;
+__test.stepTarget = stepTarget;
+__test.beatsNoise = beatsNoise;
+__test.cleanAtDate = cleanAtDate;
+__test.progressStep = progressStep;
+__test.sleepInfo = sleepInfo;
+__test.atSleepTarget = atSleepTarget;
 __test.labAnalytics = labAnalytics;
 __test.INS_MAP = INS_MAP;
 __test.liveBooks = liveBooks;
@@ -4725,9 +5077,15 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         )}
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           {[
+            /* All three numbers now come from the same place: his own record.
+               Calories from measured maintenance, protein from measured lean
+               mass, steps from the window that measured the maintenance. The
+               protein and step lines used to be constants sitting next to a
+               derived calorie number, which made the card look like it knew
+               three things when it knew one. */
             { l: `CAL ${calT[0]}–${calT[1]}${!isRefeed && !ctT.gated ? " · from your measured maintenance" : ""}`, v: cal, set: setCal },
-            { l: `PRO — ${proteinTarget(s).g} is THE number`, v: pro, set: setPro },
-            { l: `STEPS ${ph.steps}`, v: stp, set: setStp },
+            { l: `PRO ${proteinTarget(s).g} · ${proteinTarget(s).perKg} g per kg lean`, v: pro, set: setPro },
+            { l: (() => { const st9 = stepTarget(s); return st9.gated ? `STEPS ${ph.steps}` : `STEPS ${(st9.lo / 1000).toFixed(1)}–${(st9.hi / 1000).toFixed(1)}k · what your maintenance was measured at`; })(), v: stp, set: setStp },
           ].map((f, i) => (
             <div key={i} style={{ flex: 1 }}>
               <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em", marginBottom: 4, textTransform: "uppercase" }}>{f.l}</div>
@@ -5331,6 +5689,25 @@ function LogTab({ s, setS, save, slp }) {
             </div>
           ) : null; })()}
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8 }}>
+            {/* LAST SET first, deliberately. This is the field the progression
+                engine reads; the opener only feeds the hot-opener governor. The
+                two sat the other way round with both marked "optional", and the
+                record shows exactly what that produced — 28 openers rated, zero
+                terminal sets, and every jump defaulting to a token single rep. */}
+            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.jade, letterSpacing: "0.1em" }}>LAST SET <Term k="rir" c={T.jade}>RIR</Term></span>
+            {[0, 1, 2, 3].map((v) => {
+              const on = rirEnd[ex.id] === v;
+              const c = v === 0 ? T.jade : T.brass;
+              return (
+                <button key={v} onClick={() => setRirEnd({ ...rirEnd, [ex.id]: on ? null : v })}
+                  style={{ width: 34, height: 26, borderRadius: 6, border: `1px solid ${on ? c : T.line}`, background: on ? T.plate2 : "transparent", color: on ? c : T.steel, fontFamily: mono, fontSize: 11 }}>
+                  {v === 3 ? "3+" : v}
+                </button>
+              );
+            })}
+            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.jade }}>this one sizes the jump · 0 = it was the failure set</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 6 }}>
             <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em" }}>FIRST SET <Term k="rir" c={T.dim}>RIR</Term></span>
             {[0, 1, 2, 3].map((v) => {
               const on = rir[ex.id] === v;
@@ -5343,20 +5720,6 @@ function LogTab({ s, setS, save, slp }) {
               );
             })}
             <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>optional · 1 = honest</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 6 }}>
-            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em" }}>LAST SET <Term k="rir" c={T.dim}>RIR</Term></span>
-            {[0, 1, 2, 3].map((v) => {
-              const on = rirEnd[ex.id] === v;
-              const c = v === 0 ? T.jade : T.brass;
-              return (
-                <button key={v} onClick={() => setRirEnd({ ...rirEnd, [ex.id]: on ? null : v })}
-                  style={{ width: 34, height: 26, borderRadius: 6, border: `1px solid ${on ? c : T.line}`, background: on ? T.plate2 : "transparent", color: on ? c : T.steel, fontFamily: mono, fontSize: 11 }}>
-                  {v === 3 ? "3+" : v}
-                </button>
-              );
-            })}
-            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>optional · 0 = it was the failure set</span>
           </div>
         </Card>
       ))}

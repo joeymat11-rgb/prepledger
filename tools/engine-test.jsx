@@ -29,9 +29,14 @@ ok(after.exercises.find(e => e.id === "rows").w === 180 && after.queue.find(q =>
 ok(after.exercises.find(e => e.id === "press").own === false, "press owned on clean day");
 ok(!!after.queue.find(q => q.id === "q_press250"), "press 250 auto-queued at coach flag");
 
-// 5. same press reps on DEBT: stays provisional, no 250
+/* 5. Same press reps on a SHORT-SLEEP day now bank exactly the same way. The
+   confirmation is that the standard was written down last session and hit this
+   one — a second independent observation — and measurement error does not care
+   how he slept. See NOISE_NOTE and SLEEP_NOTE. */
 const { s: afterDebt } = completeSession(clone(SEED), "2026-07-23", entries, slpDebt);
-ok(afterDebt.exercises.find(e => e.id === "press").own === true && !afterDebt.queue.find(q => q.id === "q_press250"), "debt day = provisional, nothing loads");
+ok(afterDebt.exercises.find(e => e.id === "press").own === false, "hitting a written standard owns it regardless of sleep — repetition is the confirmation, not the night");
+ok(!!afterDebt.queue.find(q => q.id === "q_press250"), "and the load queues off it, same as a clean day");
+ok(afterDebt.exercises.find(e => e.id === "press").lastMeta.debt === true, "the short-sleep flag is still recorded on the session — it just no longer vetoes the standard");
 
 // 6. macro engine: two sub-floor weeks arm the floor rule; low BF arms Ease 2
 let m = clone(SEED);
@@ -177,7 +182,13 @@ ok(m8.exercises.find(e => e.id === "press").lastMeta.d === "2026-07-22", "migrat
 const { recoveryIndex: ri, applyRead: ar, runAdaptive: ra3, SEED: SA, migrate: mgA } = __test;
 ok(ri(clone(SA)).score >= 80 === false || true, "index computes");
 const base = ri(clone(SA));
-ok(base.score === 80 && base.band === "GREEN", "seed reads 80 GREEN — one clean night short + a sub-7 five-night average");
+/* The seed's last three nights are 7, 7.5, 7.5 — fine on the PERFORMANCE
+   question, which is what cleanAtDate now answers, so no session flag. The
+   five-night average is 6.90 h because of one 4.5 h night five back, which is
+   the TARGET question and still flags. Two questions, two answers; the old
+   single 7.5-hour gate conflated them and fired on both. See DEBT_NOTE. */
+ok(base.score === 90 && base.band === "GREEN", "seed reads 90 GREEN — the chronic five-night average flags, the acute session flag does not");
+ok(base.flags.some(f => f.k === "avg5") && !base.flags.some(f => f.k === "sleep"), "and the flag that fires is the chronic one, named");
 let beat = clone(SA);
 beat.exercises[0].holdFlag = true; beat.exercises[1].holdFlag = true;
 beat.sleep.nights = beat.sleep.nights.slice(0, -4).concat([{d:"2026-07-17",h:5},{d:"2026-07-18",h:5},{d:"2026-07-19",h:5},{d:"2026-07-20",h:5},{d:"2026-07-21",h:5}]);
@@ -970,7 +981,13 @@ const row58 = ate58(ag58, "get_range", { kind: "nights", from: nIso, to: nIso },
 ok(row58.indexOf("bed 22:45") > -1 && row58.indexOf("wake 06:45") > -1 && row58.indexOf("drift-off 15m") > -1, "night rows carry bed, wake, and drift-off in plain words: " + row58.slice(0, 60));
 const ctx58 = ac58(ag58);
 ok(ctx58.indexOf("FIELD DICTIONARY") > -1 && ctx58.indexOf("drift-off, minutes to fall asleep") > -1, "the dictionary is authoritative in every context");
-ok(ctx58.indexOf("SLEEP GATE RIGHT NOW") > -1, "the live gate state ships with the context — no re-derived streaks");
+/* It is no longer a GATE — short sleep does not block a record. The live state
+   still ships so the analyst never re-derives a streak, and it now also carries
+   the instruction not to tell him a short night invalidated anything. */
+ok(ctx58.indexOf("SLEEP RIGHT NOW") > -1, "the live sleep state ships with the context — no re-derived streaks");
+ok(ctx58.indexOf("no longer blocks a record") > -1, "and the analyst is told plainly that a short night does not invalidate one");
+ok(ctx58.indexOf("STEP TARGET") > -1 && ctx58.indexOf("SET-TO-SET REP SPREAD") > -1, "the canonical block now carries the derived step target and his own measured rep noise");
+ok(ctx58.indexOf("never claim a refeed buys") > -1, "and forbids the refeed claims the evidence does not support");
 ok(ctx58.indexOf("debt days +1") === -1 && ctx58.indexOf("only that final set pulls to 1") > -1, "the law sheet teaches the current debt rule");
 
 // (interim)
@@ -1008,7 +1025,12 @@ if (fail) process.exit(1);
 // v3.60 — the prescription desk: velocity writes the next session, resets need consent
 const { liftCall: lc60, sweepStalls: ss60, SEED: TD60 } = __test;
 let pd = clone(TD60);
-for (let k = 3; k >= 1; k--) { const d = isoL(Date.now() - k * 864e5); pd.sleep.nights = pd.sleep.nights.filter((n) => n.d !== d); pd.sleep.nights.push({ d, h: 7.8, bed: "22:30", wake: "06:30" }); }
+/* Clean nights across the WHOLE window, not just the last three. The stall
+   counter now discards short-sleep sessions the same way it discards rushed
+   ones (see SLEEP_NOTE), so a session five days back needs a clean night five
+   days back to be counted at all. */
+for (let k = 16; k >= 1; k--) { const d = isoL(Date.now() - k * 864e5); pd.sleep.nights = pd.sleep.nights.filter((n) => n.d !== d); pd.sleep.nights.push({ d, h: 7.8, bed: "22:30", wake: "06:30" }); }
+pd.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
 const exW60 = pd.exercises.find((x) => x.id === "lateral").w;
 const expW60 = Math.max(5, Math.round((exW60 * 0.95) / 5) * 5);
 const mk60 = (k, tot, rir) => { const d = isoL(Date.now() - k * 864e5); pd.sessionLog[d] = { entries: [{ id: "lateral", reps: [tot], rir, w: exW60 }], at: 1 }; };
@@ -1160,8 +1182,17 @@ if (fail) process.exit(1);
 const { filingsFor: ff70, CONSTITUTION: CN70, bodyAlarm: ba70, SEED: TM70 } = __test;
 ok(ff70(1, 15).some((x) => x.indexOf("COACH DAY") === 0), "Mondays point NOW at the dossier");
 ok(ff70(3, 2).some((x) => x.indexOf("THE RED CELL") === 0) && ff70(3, 15).length === 0, "the prosecution gets its pointer only in filing week");
-ok(CN70.length === 12 && CN70.every((c) => c[0] && c[1] && c[1].length > 30), "twelve laws, each with a name and a plain sentence");
+ok(CN70.length === 15 && CN70.every((c) => c[0] && c[1] && c[1].length > 30), "fifteen laws, each with a name and a plain sentence");
 ok(CN70.some((c) => c[0] === "Attention lives on NOW") && CN70.some((c) => c[0] === "Simple surface, real depth"), "the athlete's two new laws are carved first");
+/* The sleep law was rewritten, not deleted. "Records need clean sleep" had no
+   evidence behind it and, at 7.5 h against a 7 h median, never once opened; what
+   replaced it is the confirmation rule the measurement error actually justifies,
+   plus a law saying what the sleep flag DOES buy him. */
+ok(!CN70.some((c) => c[0] === "Records need clean sleep"), "the sleep gate is no longer a law of the house");
+ok(CN70.some((c) => c[0].indexOf("Records need repeating") === 0), "what replaced it is the confirmation rule");
+ok(CN70.some((c) => c[0].indexOf("Short sleep protects") === 0), "and a law stating what the short-sleep flag actually buys");
+ok(CN70.some((c) => c[0].indexOf("Every target is derived") === 0), "a law forbidding authored targets — calories, protein and steps all come from his record now");
+ok(CN70.some((c) => c[0].indexOf("Cite or say you cannot") === 0), "and one requiring every rule to name its evidence or admit it has none");
 ok(typeof ba70 === "function", "the alarm engine is exported — its NOW banner reads the same source as the desk");
 
 console.log(`\nFINAL68: ${pass} passed, ${fail} failed`);
@@ -1225,7 +1256,9 @@ if (fail) process.exit(1);
 // v3.74 — the Minute is law: registered steps, derived needs, closing books
 const { minuteNeeds: mn74, booksToday: bt74, MORNING_REGISTRY: MR74, CONSTITUTION: CN74, SEED: TP74 } = __test;
 ok(MR74.length === 8 && ["night", "weight", "pulse", "temp", "energy", "soreness", "grip", "brief"].every((k) => MR74.includes(k)), "the morning registry names every morning input — all eight");
-ok(CN74[10][0] === "The morning lives in the Minute", "law 11 is carved: " + CN74[10][0]);
+/* By NAME, not by index — a law's position shifts every time one is added, and
+   a test that breaks on insertion is testing the ordering rather than the law. */
+ok(CN74.some((c) => c[0] === "The morning lives in the Minute"), "the Morning Minute law is carved");
 let mm = clone(TP74);
 const tI74 = isoL(Date.now()), yI74 = isoL(Date.now() - 864e5);
 mm.sleep.nights = mm.sleep.nights.filter((n) => n.d !== yI74);
@@ -1343,8 +1376,8 @@ if (fail) process.exit(1);
 
 // v3.84 — law 12: no decorative fields
 const { CONSTITUTION: CN84 } = __test;
-ok(CN84.length === 12 && CN84[11][0] === "No decorative fields", "law 12 carved: " + CN84[11][0]);
-ok(CN84[11][1].indexOf("week nine") > -1, "the law keeps its teeth in its own words");
+ok(CN84.length >= 12 && CN84[CN84.length - 1][0] === "No decorative fields", "the no-decorative-fields law is carved, and stays last: " + CN84[CN84.length - 1][0]);
+ok(CN84[CN84.length - 1][1].indexOf("week nine") > -1, "the law keeps its teeth in its own words");
 
 console.log(`\nFINAL78: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
@@ -1496,8 +1529,18 @@ ok(!csP(clone(TP), dP, enP, slpP, { pace: "normal" }).lines.some((l) => l.t.inde
 /* The point of the whole feature: three declining sessions RESET the lift —
    lightening the bar 5%. That must not fire off compressed days. */
 const stallDays = ["2026-07-06", "2026-07-09", "2026-07-13", "2026-07-16"];
+/* Clean nights across the window: a short-sleep session no longer counts toward
+   a stall either (SLEEP_NOTE), so this fixture has to state its sleep or it is
+   testing two rules at once. */
+const cleanNightsOver = (st, fromISO, toISO) => {
+  const a = new Date(fromISO + "T00:00:00"), b = new Date(toISO + "T00:00:00");
+  st.sleep.nights = (st.sleep.nights || []).filter((n) => n.d < fromISO || n.d > toISO);
+  for (let t = a.getTime(); t <= b.getTime(); t += 864e5) st.sleep.nights.push({ d: new Date(t).toISOString().slice(0, 10), h: 7.8 });
+  st.sleep.nights.sort((x, y) => (x.d < y.d ? -1 : 1));
+  return st;
+};
 const mkStall = (paces) => {
-  const st = clone(TP);
+  const st = cleanNightsOver(clone(TP), "2026-07-01", "2026-07-20");
   st.sessionLog = {};
   [[10, 10], [9, 9], [8, 8], [7, 7]].forEach((reps, i) => {
     st.sessionLog[stallDays[i]] = { entries: [{ id: "rows", reps, rir: 1, rirSets: [1, null], w: 175 }], at: i + 1, pace: paces[i] };
@@ -1538,7 +1581,14 @@ ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [3, null, null, null]) })).add === 2,
 ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [0, null, null, null]) })).add === 1, "a hot opener holds the step at one");
 ok(ps(lift({})).add === 1 && ps(lift({ lastMeta: meta([10, 8], [null, null]) })).add === 1, "nothing rated → the old default, unchanged");
 ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3]), holdFlag: true })).add === 0, "the governor hold outranks every reserve reading — nothing climbs");
-ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3], true) })).add === 1, "a short-sleep session does not get to set a bigger bar, however much was left in the tank");
+/* The short-sleep short-circuit is gone. It sat above every RIR branch, so on a
+   record where every session carried debt it made all of them unreachable — and
+   it had no evidence behind it: Craven 2022 puts acute sleep loss at -2.85% on
+   strength, inside the 1.8-3.3% test-retest CV, and no trial has ever tested
+   damping progression on low-readiness days. RIR is what sizes the step now, on
+   any night. See SLEEP_NOTE. */
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3], true) })).add === 3, "three reps left in the tank buys three reps whether or not the night was short — RIR is the readiness signal, and it is the one with outcome evidence");
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 0], true) })).add === 1, "and a set taken to failure on a short-sleep night still buys exactly one — the rating drives it, not the sleep");
 ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 2]) })).why.indexOf("failure") > -1, "and every step carries the reason it is that size");
 
 // the targets that come out the other end
@@ -1557,12 +1607,23 @@ const mkAnchor = (pace, nightsH) => {
   st.sessionLog = { "2026-07-10": { entries: [{ id: "rows", reps: [10, 10], rir: 1, w: 180 }], at: 1, pace } };
   return st;
 };
+/* The anchor is now the best of the last three unrushed sessions at this load,
+   full stop — no sleep condition. One session is the noisiest possible estimate
+   of capacity (his own set-to-set spread is ±0.75 reps), so building the next
+   target off a single dip ratchets him down for noise. Max-of-three is biased
+   slightly high, which is the correct direction: an over-ambitious target costs
+   one missed rep, an under-ambitious one costs a block. */
 const anchEx = { id: "rows", sets: 2, hi: 12, w: 180, last: [7, 7], lastMeta: meta([7, 7], [1, 0], true) };
-ok(JSON.stringify(pa2(anchEx, mkAnchor("normal", 8))) === "[10,10]", "after a short-sleep dip the anchor returns to his best clean session at that weight");
-ok(JSON.stringify(pa2({ ...anchEx, lastMeta: meta([7, 7], [1, 0], false) }, mkAnchor("normal", 8))) === "[7,7]", "an honest decline on a clean day is real and DOES set the anchor");
-ok(JSON.stringify(pa2(anchEx, mkAnchor("rushed", 8))) === "[7,7]", "a rushed session is not a clean benchmark either — it cannot become the anchor");
-ok(JSON.stringify(pa2(anchEx, mkAnchor("normal", 5))) === "[7,7]", "and neither is a second short-sleep session — one bad night is not repaired by another");
+ok(JSON.stringify(pa2(anchEx, mkAnchor("normal", 8))) === "[10,10]", "after a dip the anchor returns to his best recent session at that weight");
+ok(JSON.stringify(pa2({ ...anchEx, lastMeta: meta([7, 7], [1, 0], false) }, mkAnchor("normal", 8))) === "[10,10]", "and it does so whether or not the dip was flagged — capacity is what the anchor estimates, and one low session does not revise it");
+ok(JSON.stringify(pa2(anchEx, mkAnchor("rushed", 8))) === "[7,7]", "a rushed session cannot become the anchor — short rest lowers the back sets by construction, so it is measuring something else");
+ok(JSON.stringify(pa2(anchEx, mkAnchor("normal", 5))) === "[10,10]", "a short-sleep session CAN — Knowles 2022 ran nine straight nights at 5 h and volume load fell under 1%, so those reps are real reps");
 ok(JSON.stringify(pa2(anchEx, null)) === "[7,7]", "with no state to look through, the anchor is simply the last session");
+/* and it only looks back three sessions, so a number from two months ago cannot
+   hold a target hostage after a genuine regression */
+const staleAnchor = mkAnchor("normal", 8);
+[["2026-07-11", [8, 8]], ["2026-07-12", [8, 8]], ["2026-07-13", [8, 8]]].forEach(([d, reps], i) => { staleAnchor.sessionLog[d] = { entries: [{ id: "rows", reps, rir: 1, w: 180 }], at: 9 + i }; });
+ok(JSON.stringify(pa2(anchEx, staleAnchor)) === "[8,8]", "the window is three sessions deep — an old high rolls off instead of anchoring forever");
 
 // the load gate, with the fade allowance that unblocks a descending scheme
 const g4 = { sets: 4, hi: 13 };
@@ -1661,10 +1722,26 @@ const cal = rungS.exercises.find((e2) => e2.id === "calves");
 cal.steps = [300, 310, 315, 320, 335, 350];
 cal.w = 320; cal.sets = 4; cal.hi = 13; cal.reclaim = null; cal.last = [13, 12, 11, 10];
 const enR = [{ id: "calves", n: cal.n, w: 320, tgt: [13, 12, 11, 10], reps: [13, 12, 11, 10], rir: 1 }];
-const afterR = csR(rungS, "2026-07-24", enR, { clean: true, run: 3, need: 3, last: { h: 8 } }).s;
+const slpR9 = { clean: true, run: 3, need: 3, last: { h: 8 } };
+/* Topping the window ONCE is now provisional — two-for-two, from measurement
+   error rather than sleep (NOISE_NOTE). The first sighting cannot be told apart
+   from a good day; the second can. */
+const onceR = csR(rungS, "2026-07-24", enR, slpR9).s;
+ok(!onceR.queue.some((q) => q.exId === "calves" && !q.done && q.kind === "debut"), "one top-of-window session queues nothing — a single sighting is inside the noise");
+ok(onceR.feed.some((f) => f.t.indexOf("PROVISIONAL") > -1), "and it says provisional, with the spread that makes it so");
+ok(onceR.exercises.find((e2) => e2.id === "calves").topRun === 1, "the sighting is counted rather than forgotten");
+const afterR = csR(onceR, "2026-07-27", enR, slpR9).s;
 const qR = afterR.queue.find((q) => q.exId === "calves" && !q.done && q.kind === "debut");
-ok(qR && qR.newW === 335, "earning the window queues 335 — the next rung — not 325, which this machine cannot make: " + (qR ? qR.newW : "none"));
+ok(qR && qR.newW === 335, "the second one earns it, and queues 335 — the next rung — not 325, which this machine cannot make: " + (qR ? qR.newW : "none"));
 ok(afterR.feed.some((f) => f.t.indexOf("335 EARNED") > -1), "and the feed names the real weight");
+/* the escape hatch: a jump clearly outside the noise band banks on one sighting */
+const bigS = clone(TR9);
+const calB = bigS.exercises.find((e2) => e2.id === "calves");
+calB.steps = [300, 310, 315, 320, 335, 350]; calB.w = 320; calB.sets = 4; calB.hi = 13; calB.reclaim = null; calB.last = [8, 7, 6, 6];
+calB.lastMeta = { d: "2026-07-20", w: 320, reps: [8, 7, 6, 6], rirSets: [1, null, null, null], debt: false };
+const bigAfter = csR(bigS, "2026-07-24", enR, slpR9).s;
+ok(bigAfter.queue.some((q) => q.exId === "calves" && !q.done && q.kind === "debut"), "a session 13 reps clear of the last one banks immediately — that is not a good day, it is a different capacity");
+ok(bigAfter.feed.some((f) => (f.how || "").indexOf("standard errors") > -1), "and the receipt names the arithmetic that let it skip the confirmation");
 
 // at the top of the stack, nothing is queued and it says so
 const topS = clone(TR9);
@@ -1674,7 +1751,7 @@ const afterT = csR(topS, "2026-07-24", [{ id: "calves", n: cal2.n, w: 320, tgt: 
 ok(!afterT.queue.some((q) => q.exId === "calves" && !q.done && q.kind === "debut"), "at the top rung nothing is queued — the app does not invent a weight above the stack");
 
 // a RESET lands on a rung too
-const resS = clone(TR9);
+const resS = cleanNightsOver(clone(TR9), "2026-07-01", "2026-07-20");
 const rw = resS.exercises.find((e2) => e2.id === "rows");
 rw.steps = [150, 160, 175, 180, 195]; rw.w = 180;
 resS.sessionLog = {};
@@ -1826,13 +1903,32 @@ const eaLow = eaF(mkEA(1800, 16000));
 ok(!eaLow.gated && eaLow.lo < eaLow.hi, "it reports a RANGE, because the convention does not settle whether deliberate walking counts as exercise");
 ok(Math.abs(eaLow.hi - (eaLow.intake - eaLow.trainKcal) / eaLow.ffmKg) < 0.15, "the upper end counts training only, and nothing else");
 ok(eaLow.lo < eaLow.hi && eaLow.walkKcal > 0, "the lower end also charges the walking, and the walking is not free: " + eaLow.walkKcal + " kcal/day");
-ok(eaLow.lo < EAS, `at 1,800 kcal on 16k steps he is under the ${EAS} sparing threshold: ${eaLow.lo}`);
+ok(eaLow.lo < EAS, `counting the walking, 1,800 kcal on 16k steps lands under ${EAS}: ${eaLow.lo}`);
 ok(eaLow.receipts.length >= 4 && eaLow.receipts.some((r) => r.indexOf("estimate, not a measurement") > -1),
    "every input is shown, and the estimated ones say they are estimates");
 
-/* The actionable half: it must say how much of each lever closes the gap. */
-ok(eaLow.needKcal > 0 && eaLow.stepsToDrop > 0, "it quantifies both ways out — eat more, or walk less");
-ok(Math.abs((eaLow.lo + eaLow.needKcal / eaLow.ffmKg) - EAS) < 0.6, "and the calorie figure actually lands on the threshold, not near it");
+/* THE CONVENTION FIX. Both numbers were always shown, which was right — but the
+   BAND was taken on the walking-inclusive one, which is the number the published
+   thresholds were never built against. The IOC 2023 formula counts structured
+   exercise only; Fagerberg 2018, the source of the 25, subtracts non-exercise
+   expenditure OUT of exercise cost; Espinar 2026 measured the same swap moving
+   free-living athletes from ~32 to ~20 with nothing changing physiologically.
+   Doing both — subtracting steps AND comparing to 25 — was the one thing that
+   was definitely wrong. */
+ok(eaLow.ea === eaLow.hi && eaLow.eaAll === eaLow.lo, "the conventional figure is named separately from the walking-inclusive one");
+ok(eaLow.band !== "LOW" && eaLow.band !== "VERY LOW", `the band is taken on the conventional number (${eaLow.ea}), not the walking-inclusive one (${eaLow.eaAll}): ${eaLow.band}`);
+ok(eaLow.receipts.some((r) => r.indexOf("Espinar") > -1) && eaLow.receipts.some((r) => r.indexOf("extrapolated") > -1),
+   "and the receipts name both the accounting question and the fact that 25 is extrapolated rather than measured");
+
+/* The actionable half: it must say how much of each lever closes the gap — priced
+   off the conventional number so the instruction matches the verdict, and with
+   food named before steps, because deficit magnitude is what the trained-
+   population evidence links to lean-mass loss and nothing links walking to it. */
+const eaReal = eaF(mkEA(1450, 16000));
+ok(eaReal.band === "LOW" || eaReal.band === "VERY LOW", "a genuinely low intake reads low on the conventional number too: " + eaReal.ea);
+ok(eaReal.needKcal > 0 && eaReal.stepsToDrop > 0, "it quantifies both ways out — eat more, or walk less");
+ok(Math.abs((eaReal.ea + eaReal.needKcal / eaReal.ffmKg) - EAS) < 0.6, "and the calorie figure lands on the threshold, measured from the conventional number: " + eaReal.needKcal);
+ok(eaF(mkEA(1800, 16000)).needKcal === 0, "when the conventional number already clears the line there is nothing to close, and the app stops telling him to eat more");
 
 // the bands
 ok(eaF(mkEA(3200, 5000)).band === "ADEQUATE", "a fed athlete on low steps reads adequate");
@@ -1988,6 +2084,71 @@ const acted18 = __test.applyProposal(st18b, id18, 0);
 ok(acted18.proposals.find((p) => p.id === id18).resolved === true, "applying resolves it");
 const after18 = raR(acted18, dayB18);
 ok(!after18.proposals.some((p) => p.rid === card18a.rid && !p.resolved), "and it does not come back to life on the next run");
+
+/* ================= v3.99.19 — noise, not sleep ================= */
+const { typicalError: teN, beatsNoise: bnN, cleanAtDate: caN, stepTarget: stN, proteinTarget: ptN, SEED: TN19 } = __test;
+
+/* HIS OWN spread, measured, with the published figure only as a fallback. */
+const noiseS = clone(TN19);
+noiseS.sessionLog = {};
+[[0, [10, 9, 8]], [1, [11, 9, 7]], [2, [10, 10, 8]], [3, [9, 9, 9]]].forEach(([k, reps]) => {
+  noiseS.sessionLog[isoL(Date.now() - (9 - k * 2) * 864e5)] = { entries: [{ id: "press", reps, rir: 1, w: 245 }], at: k + 1 };
+});
+const teA = teN(noiseS, "press");
+ok(teA.reps > 0 && teA.reps < 3 && teA.n === 9, "his own set-to-set spread is measured from repeats at identical load, not assumed: ±" + teA.reps + " over " + teA.n + " paired sets");
+ok(teA.src.indexOf("this lift") === 0, "and it says which lift's repeats produced it");
+ok(teN(clone(TN19), "press").reps === 0.9 && teN(clone(TN19), "press").src.indexOf("Mitter") > -1,
+   "with no repeats on file it falls back to the published SEM and names the paper rather than inventing a number");
+/* a load change breaks the pairing — comparing 245 to 250 measures the load, not the noise */
+const noiseW = clone(noiseS);
+Object.keys(noiseW.sessionLog).forEach((d, i) => { if (i % 2) noiseW.sessionLog[d].entries[0].w = 250; });
+ok(teN(noiseW, "press").n < teA.n, "sessions at different loads are not paired — that difference measures the weight, not the spread");
+
+/* the escape hatch: is this session outside the noise band? */
+const bn1 = bnN(noiseS, "press", [11, 10, 9], [10, 9, 8]);
+ok(bn1.margin === 3 && bn1.need > 0, "the margin is the session total against the old line, and the bar is stated: " + bn1.margin + " vs " + bn1.need);
+ok(bnN(noiseS, "press", [16, 15, 14], [10, 9, 8]).clear === true, "a session far clear of the old line banks on one sighting");
+ok(bnN(noiseS, "press", [11, 9, 8], [10, 9, 8]).clear === false, "a single extra rep does not — that is inside anyone's noise, on any amount of sleep");
+ok(bnN(noiseS, "press", [10, 9, 8], null).clear === false, "with nothing to compare against, nothing banks early");
+/* the bar scales with the number of sets, because a session total accumulates error */
+ok(bnN(noiseS, "press", [11, 10, 9], [10, 9, 8]).need > bnN(noiseS, "press", [11], [10]).need, "the bar grows with set count — a four-set total carries more error than a one-set total");
+
+/* the short-sleep flag: performance threshold, calendar-consecutive */
+const slpS = clone(TN19);
+const mkN = (arr) => { const st = clone(slpS); st.sleep.nights = arr.map(([d, h]) => ({ d, h })); return st; };
+ok(caN(mkN([["2026-07-10", 7], ["2026-07-11", 7], ["2026-07-12", 7]]), "2026-07-13") === true,
+   "three 7-hour nights is not short sleep — his median night is 7 h and the performance literature's protocols run 3-5.5 h");
+ok(caN(mkN([["2026-07-10", 7], ["2026-07-11", 7], ["2026-07-12", 6]]), "2026-07-13") === false, "a 6-hour night is");
+ok(caN(mkN([["2026-07-10", 6], ["2026-07-11", 6.5], ["2026-07-12", 7]]), "2026-07-13") === false, "and so is a three-night mean under 7, even when last night was fine");
+ok(caN(mkN([["2026-07-08", 4], ["2026-07-12", 7.5]]), "2026-07-13") === true,
+   "a gap in the record breaks the run rather than counting through it — the old loop walked the ARRAY, so an unlogged night read as consecutive");
+ok(caN(mkN([]), "2026-07-13") === true, "with no nights on file nothing is claimed either way");
+/* the old rule, on his real shape of sleep, essentially never opened */
+const oldShape = mkN([["2026-07-10", 7], ["2026-07-11", 7], ["2026-07-12", 7], ["2026-07-13", 7.5]]);
+ok(caN(oldShape, "2026-07-14") === true && __test.atSleepTarget(oldShape, "2026-07-14").at === false,
+   "the two questions now give different answers: fine for today's session, still short of his 7.5 h target — which is the distinction the single gate could not make");
+
+/* steps, derived from the window the maintenance was measured in */
+const stS = clone(TN19);
+stS.dailyLogs = {};
+for (let k = 0; k < 14; k++) stS.dailyLogs[isoL(Date.now() - k * 864e5)] = { cal: 2000, pro: 175, steps: 16000 + (k % 2 ? 400 : -400) };
+const stA = stN(stS);
+ok(!stA.gated && stA.lo < stA.mid && stA.mid < stA.hi, "the step target is a band around what he actually walks: " + stA.lo + "–" + stA.hi);
+ok(Math.abs(stA.mid - 16000) <= 500, "centred on the measured average rather than a round authored number");
+ok(stA.kcalPer1k > 20 && stA.kcalPer1k < 40, "and it prices a thousand steps at his bodyweight: ~" + stA.kcalPer1k + " kcal");
+ok(stA.why.indexOf("measured maintenance was measured") > -1, "the receipt says why the number exists — it protects the calorie band, it is not a health guideline");
+const stFew = clone(TN19); stFew.dailyLogs = { "2026-07-27": { cal: 1800, steps: 16000 } };
+ok(stN(stFew).gated === true && stN(stFew).need === 8, "under eight logged step days it declines to derive one");
+/* drift off the window is priced, because it silently invalidates the calorie target */
+const stDrift = clone(stS);
+for (let k = 0; k < 6; k++) stDrift.dailyLogs[isoL(Date.now() - k * 864e5)].steps = 10000;
+ok(stN(stDrift).driftKcal < -30, "a week of shorter walks is reported as the kcal/day of maintenance it costs: " + stN(stDrift).driftKcal);
+
+/* protein holds still, and says why */
+const ptA = ptN(clone(TN19));
+ok(ptA.g === 175 && ptA.perKg === 2.5, "at 14.8% body fat he is in the medium band, so the per-FFM figure is 2.5 — the 3.0 unlocks under 12.2%");
+ok(ptA.why.indexOf("Same number every day") === 0, "and the receipt leads with the fact that it does not move");
+ok(ptA.why.indexOf("REST days") > -1, "naming the one study that compared day types, which found requirement higher on rest days — the opposite of the intuition");
 
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
