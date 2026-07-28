@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.15";
+const APP_V = "3.99.16";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -1274,7 +1274,8 @@ function labAnalytics(s) {
       liftF.push({ s: sl, line: ex.n + ": " + ex.w + "\u00d7" + pts[pts.length - 1].top + " now \u2192 " + w + "\u00d7" + Math.round(reps) + " in 8 wks (+" + sl.toFixed(2) + " reps/wk, n=" + pts.length + ")" });
     });
     liftF.sort((a, b) => b.s - a.s);
-    const linesF = rowsF.concat(liftF.length ? ["\u2014"].concat(liftF.slice(0, 5).map((x) => x.line)) : []);
+    const heldF = Math.max(0, liftF.length - 5);
+    const linesF = rowsF.concat(liftF.length ? ["\u2014"].concat(liftF.slice(0, 5).map((x) => x.line), heldF ? [`+ ${heldF} more lift${heldF === 1 ? "" : "s"} projected but not shown — the five climbing fastest are here`] : []) : []);
     const liveF = rowsF.length > 0;
     const endF = liveF ? rowsF[rowsF.length - 1] : null;
     out.push({ id: "forecast", t: "THE FORECAST \u2014 WEEK BY WEEK, ON YOUR OWN SLOPE", status: liveF ? "LIVE" : "ARMED",
@@ -1664,7 +1665,7 @@ function theOneThing(s, slp, hour = new Date().getHours(), graceDays = Infinity)
     const flips = !slp.clean && slp.run + 1 >= slp.need;
     return { t: `Log ${fmtShort(owed[0])}'s night`, sub: flips ? "one tap — ≥7.5 flips you CLEAN and today's attempts count for keeps" : "one tap — the whole engine keys off it" };
   }
-  if (s.fixWindow && !dLogged) return { t: "Fix window is open", sub: "hit 175 today and yesterday's miss becomes a save — bouncing back is the skill being scored" };
+  if (s.fixWindow && !dLogged) return { t: "Fix window is open", sub: `hit ${proteinTarget(s).g} today and yesterday's miss becomes a save — bouncing back is the skill being scored` };
   const openEv = s.events.find((e) => !e.estimated && daysUntil(e.d) < 0 && daysUntil(e.d) >= -graceDays);
   if (openEv) return { t: "Close out " + openEv.t, sub: "zero-comp or honest — one tap, the ledger doesn't guess" };
   if (trainToday && sessDone && !dLogged && hour < 17) return { t: "Session banked ✓ — day open", sub: "numbers close it tonight · everything else is reading" };
@@ -1865,7 +1866,7 @@ function labAnalytics2(s) {
     const topDay = Object.entries(dow).sort((a, b) => b[1] - a[1])[0];
     return { id: "missarch", t: "MISS ARCHAEOLOGY", status: "LIVE", prog: null,
       tag: "Every miss autopsied — patterns, not blame.",
-      deep: "Each protein miss (outside 175±10) is examined for precursors: prior-night sleep, day of week, event adjacency. The point is mechanical: if misses cluster after short nights or on one weekday, the fix is scheduling — a prepped meal on that day, a protein-forward default after bad nights — not more discipline.",
+      deep: `Each protein miss (outside ${proteinTarget(s).g}±10) is examined for precursors: prior-night sleep, day of week, event adjacency. The point is mechanical: if misses cluster after short nights or on one weekday, the fix is scheduling — a prepped meal on that day, a protein-forward default after bad nights — not more discipline.`,
       forYou: `${misses.length} misses across the whole record. ${topDay ? topDay[0] + " owns " + topDay[1] + " of them" : ""}${slept ? ` · ${Math.round(100 * shortSleep / slept)}% followed a sub-7 night` : ""}. ${shortSleep / Math.max(1, slept) > 0.5 ? "Sleep is upstream of your protein too — the anchor defends both." : "No strong sleep link — day-structure is the lever."}`,
       lines: [] };
   });
@@ -2291,7 +2292,7 @@ function bodyAlarm(s, slp) {
     }
   }
   lines.push(pulseTrig ? "Hydrate +24 oz across the morning — an elevated resting pulse frequently rides mild dehydration, and it's the cheapest test of the alarm." : "Hydrate +24 oz across the morning — the cheapest first test of an off-pattern day.");
-  lines.push("Protein stays 175 and calories stay on plan — recovery is protein-hungry, and eating extra fixes nothing here.");
+  lines.push(`Protein stays ${proteinTarget(s).g} and calories stay on plan — recovery is protein-hungry, and eating extra fixes nothing here.`);
   lines.push(`Tonight: lights out ${early} (30 early, wake stays ${(s.sleep.anchor || {}).wake || "06:45"})${s.sleep.caffMg ? " · skip any afternoon caffeine entirely today" : ""}.`);
   lines.push(pulseTrig && pr5.base != null
     ? `Exit test — tomorrow 6:45: pulse within 3 of your ${pr5.base} baseline → every limit above lifts automatically. Still +7? ${red ? "Full rest day, and a third day is a doctor conversation, not a training one." : "Tomorrow escalates to a rest-day recommendation."}`
