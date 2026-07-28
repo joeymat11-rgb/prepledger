@@ -1,0 +1,20 @@
+# Line endings are load-bearing here.
+#
+# app.js is a committed build artifact. scripts/check.mjs proves it is not
+# stale by rebuilding src/ and comparing bytes. With Windows' core.autocrlf,
+# a checkout rewrites LF -> CRLF and that comparison can never pass, so a
+# Windows clone would look permanently stale while production was fine.
+#
+# Forcing LF in the working tree on every platform makes the byte comparison
+# mean the same thing everywhere. Do not remove this file.
+
+* text=auto eol=lf
+
+*.png    binary
+*.woff2  binary
+*.woff   binary
+*.ico    binary
+*.zip    binary
+*.jpg    binary
+*.jpeg   binary
+*.webp   binary
