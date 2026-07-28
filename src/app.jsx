@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.14";
+const APP_V = "3.99.15";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -843,11 +843,20 @@ function recoveryIndex(s) {
   }, 0);
   const excluded = recent.reduce((a, d) => a + (paceRushed(s.sessionLog[d]) || !cleanAtDate(s, d) ? (s.sessionLog[d].dips || 0) : 0), 0);
   if (fairDips) add("dips", `${fairDips} rep dip${fairDips > 1 ? "s" : ""} across your last two sessions, on days that were a fair test`, "one session that beats its own previous totals clears this", Math.min(15, fairDips * 5));
+  /* Energy availability belongs here too. It is the only flag on this card that
+     is about the DEFICIT rather than about training or sleep, and it is the one
+     with a published male threshold attached — see ENERGY_AVAILABILITY. */
+  const eaR = energyAvailability(s);
+  if (!eaR.gated && eaR.hi < EA_SPARING) {
+    add("ea", `energy availability ${eaR.lo}–${eaR.hi} kcal per kg lean — under the ${EA_SPARING} where a lean male spares muscle`,
+      eaR.stepsToDrop ? `eat ~${eaR.needKcal} more or walk ~${eaR.stepsToDrop.toLocaleString()} fewer steps — the steps are the cheaper half to give back` : `close a ~${eaR.needKcal} kcal/day gap`,
+      eaR.lo < EA_LOW ? 25 : 15);
+  }
   const score = Math.max(0, Math.round(100 - flags.reduce((a, f) => a + f.cost, 0)));
   const lever = flags.slice().sort((a, b) => b.cost - a.cost)[0] || null;
   return {
     score, band: score >= 80 ? "GREEN" : score >= 55 ? "WATCH" : "LOW",
-    flags, lever, watched: 6, excludedDips: excluded,
+    flags, lever, watched: 7, excludedDips: excluded,
     factors: flags.map((f) => f.receipt),
   };
 }
@@ -883,6 +892,90 @@ function observedTDEE(s) {
   const fatWk = Math.min(1.6, r.scale + s.model.drip);
   const perDay = (fatWk * 3500 - s.model.drip * 600) / 7;
   return { tdee: Math.round(avg + perDay), days: cals.length, avg: Math.round(avg) };
+}
+
+/* ---------- ENERGY_AVAILABILITY ----------
+   The reading this ledger was missing. Everything else here measures what he
+   does; this measures what is LEFT after training is paid for, which is the
+   variable that governs whether a lean male keeps muscle in a deficit.
+
+     EA = (intake − exercise energy expenditure) / fat-free mass
+
+   Fagerberg's 2018 review of lean male physique athletes puts the thresholds at
+   >25 kcal/kg FFM/day to spare muscle, and below ~20 more than 40% of the
+   weight lost comes off fat-free mass — with testosterone, T3, leptin and RMR
+   falling alongside. Those are the only male-specific numbers in this space;
+   most of the LEA literature is female and built on instruments (LEAF-Q) that
+   are unusable in men because half the items concern menstrual function.
+
+   The honest difficulty is what counts as EXERCISE. The convention counts
+   purposeful training. His 16k steps are not incidental — they are prescribed
+   as a fat-loss tool, which makes them purposeful by intent while remaining
+   ambulatory in character, exactly the boundary the convention does not
+   resolve. So this refuses to pick: it reports BOTH ends and bands on where the
+   range sits. A single number here would be false confidence about a genuinely
+   unsettled accounting question.
+
+   Everything below is an ESTIMATE and says so. Session cost and walking cost
+   are population averages, not his measured expenditure. The instrument's job
+   is to say which side of 25 he is on, not to claim a decimal place. */
+const EA_SPARING = 25;
+const EA_LOW = 20;
+const EA_STEP_BASELINE = 4000;
+const EA_KCAL_PER_1K_STEPS_PER_KG = 0.4;
+const EA_KCAL_PER_SESSION = 300;
+function energyAvailability(s) {
+  const cutoff = isoOf(new Date(todayStart().getTime() - 21 * DAY));
+  const rows = Object.entries(s.dailyLogs || {}).filter(([d, v]) => d >= cutoff && v && v.cal != null);
+  if (rows.length < 8) return { gated: true, have: rows.length, need: 8 };
+  const cals = rows.map(([, v]) => v.cal);
+  const intake = cals.reduce((a, b) => a + b, 0) / cals.length;
+  const stepRows = rows.filter(([, v]) => v.steps != null).map(([, v]) => v.steps);
+  const steps = stepRows.length ? stepRows.reduce((a, b) => a + b, 0) / stepRows.length : null;
+  const bf = bfEst(s);
+  const ffmKg = bf.lean / 2.2046;
+  const bwKg = s.trend / 2.2046;
+  if (!(ffmKg > 0)) return { gated: true, have: rows.length, need: 8 };
+
+  /* Sessions per week. Measured from the log where the log is complete — but he
+     started logging in-app part way through, so a raw count read 1.5 sessions a
+     week for a man who trains four times, and under-charged training by two
+     thirds. The programme itself knows the answer: dayType marks the upper and
+     lower days. Take the higher of the two, because under-charging exercise
+     inflates energy availability, which is the direction that hides a problem. */
+  const sessDays = Object.keys(s.sessionLog || {}).filter((d) => d >= cutoff).length;
+  const wks = Math.max(1, rows.length / 7);
+  const logged = sessDays / wks;
+  let scheduled = 0;
+  for (let i = 0; i < 7; i++) { const d = isoOf(new Date(todayStart().getTime() - i * DAY)); const t2 = dayType(d); if (t2 === "U" || t2 === "L") scheduled++; }
+  const perWk = Math.max(logged, scheduled);
+  const sessPerDay = perWk / 7;
+  const trainKcal = sessPerDay * EA_KCAL_PER_SESSION;
+  const walkKcal = steps == null ? 0 : Math.max(0, (steps - EA_STEP_BASELINE) / 1000) * EA_KCAL_PER_1K_STEPS_PER_KG * bwKg;
+
+  const eaTrain = +((intake - trainKcal) / ffmKg).toFixed(1);
+  const eaAll = +((intake - trainKcal - walkKcal) / ffmKg).toFixed(1);
+  const lo = Math.min(eaTrain, eaAll), hi = Math.max(eaTrain, eaAll);
+  const band = lo < EA_LOW ? "VERY LOW" : hi < EA_SPARING ? "LOW" : lo < EA_SPARING ? "MARGINAL" : "ADEQUATE";
+
+  /* Which lever is cheaper — this is the actionable half. To clear the sparing
+     threshold he can eat more or walk less, and the app should say how much of
+     each rather than leaving him to solve it. */
+  const needKcal = Math.max(0, Math.round(EA_SPARING * ffmKg - (intake - trainKcal - walkKcal)));
+  const stepsToDrop = walkKcal > 0 ? Math.round((needKcal / (EA_KCAL_PER_1K_STEPS_PER_KG * bwKg)) * 1000) : null;
+
+  return {
+    gated: false, lo, hi, band, intake: Math.round(intake), steps: steps == null ? null : Math.round(steps),
+    ffmKg: +ffmKg.toFixed(1), trainKcal: Math.round(trainKcal), walkKcal: Math.round(walkKcal),
+    sessPerWk: +(sessPerDay * 7).toFixed(1), days: rows.length, needKcal, stepsToDrop,
+    receipts: [
+      `Intake ${Math.round(intake)} kcal/day averaged over ${rows.length} logged days.`,
+      `Training costs about ${Math.round(trainKcal)} kcal/day at ${(+perWk.toFixed(1))} sessions a week${logged < scheduled ? ` (the programme's ${scheduled}, not the ${(+logged.toFixed(1))} in the log — in-app logging started part way through, and under-charging training would flatter this number)` : ""} — an estimate, not a measurement.`,
+      steps == null ? "No step data in the window." : `Walking ${Math.round(steps).toLocaleString()} steps/day costs roughly ${Math.round(walkKcal)} kcal/day above a sedentary baseline.`,
+      `Fat-free mass ${(+ffmKg.toFixed(1))} kg, from the anchored lean model.`,
+      `Counting training only: ${eaTrain}. Counting training plus deliberate walking: ${eaAll}. The convention does not settle which is right, so both are shown.`,
+    ],
+  };
 }
 
 /* ETA (weeks) until est. BF reaches a target, simulating trend − rate, lean + drip */
@@ -1190,6 +1283,19 @@ function labAnalytics(s) {
       deep: "Method, body: your weekly trend snapshots give a measured rate of loss; the projection walks that rate forward eight weeks and runs each future weight through the same body model the app uses today, so lean mass drips at your fitted rate rather than being assumed constant. The band is not decoration \u2014 it is the spread of your own weekly rates, widening with each week out, because uncertainty in a slope compounds the further you extrapolate. Two snapshots is the minimum; a single rate has no spread and therefore no honest band. Method, lifts: for every exercise with three or more logged sessions, the top set is regressed against time to get a reps-per-week slope, then walked forward under your own double-progression rules \u2014 when projected reps pass the top of the range, the bar goes up by that lift's increment and the reps reset the way they actually do in the gym. Lifts with fewer than three sessions are absent rather than guessed. What this is: a forecast, and it is labelled one everywhere it appears. It assumes the deficit holds, adherence holds, sleep holds, and nothing intervenes \u2014 assumptions that a single wedding, a cold, or a bad fortnight will break. It is not a promise and it never acts: no target changes, no volume moves, no proposal is filed off the back of it. When the data disagrees with the line, the data is right and the line redraws itself the next morning.",
       forYou: liveF ? (endF.split(" \u00b7 ").slice(1).join(" \u00b7 ") + " \u2014 eight weeks out at your measured rate of " + rateF.scale.toFixed(2) + " lb/wk" + (blackoutOn(s, t0F) ? ", drawn from the pre-blackout trend while the scale is sealed" : "") + ". (forecast \u2014 refits every log)") : "Two weekly snapshots open the projection. Until then the trend has no measured rate to walk forward, and a guessed line is worse than none.",
       lines: linesF });
+  })();
+  (() => {
+    const ea = energyAvailability(s);
+    out.push({
+      id: "ea", t: "ENERGY AVAILABILITY — WHAT IS LEFT AFTER TRAINING IS PAID FOR", status: ea.gated ? "ARMED" : "LIVE",
+      prog: ea.gated ? { n: ea.have, need: ea.need, label: "logged days of calories" } : null,
+      tag: "The one reading that decides whether the deficit costs you muscle rather than fat.",
+      deep: `Energy availability is intake minus the energy training costs, divided by fat-free mass — what is left to run the body on. Fagerberg's 2018 review of lean male physique athletes puts the sparing threshold at ${EA_SPARING} kcal per kg of fat-free mass per day; below about ${EA_LOW}, more than 40% of the weight lost comes off lean mass, alongside falls in testosterone, T3, leptin and resting metabolic rate. Those are the only male-specific thresholds in this literature — most low-energy-availability work is female and built on a questionnaire (LEAF-Q) that cannot be used in men, since half its items concern menstrual function. Two honesty notes. First, the convention counts PURPOSEFUL exercise, and a deliberate 16k-step day sits exactly on the boundary between training and incidental movement, which the convention does not resolve — so this shows both ends of the range rather than picking one and pretending. Second, session cost and walking cost are population estimates, not your measured expenditure. The instrument's job is to say which side of ${EA_SPARING} you are on, and to say which lever closes the gap more cheaply. It is not precise enough to argue about a decimal, and it never changes anything on its own.`,
+      forYou: ea.gated
+        ? `${ea.have} of ${ea.need} logged calorie days — this opens once there is enough intake data to average honestly.`
+        : `${ea.lo}–${ea.hi} kcal per kg lean, which reads ${ea.band}. ${ea.hi < EA_SPARING ? `You are under the ${EA_SPARING} line on every way of counting it. ${ea.stepsToDrop ? `Closing it takes about ${ea.needKcal} more calories a day, or about ${ea.stepsToDrop.toLocaleString()} fewer steps — and steps are the cheaper half to give back, because they cost you nothing you are trying to keep.` : ""}` : ea.lo < EA_SPARING ? `Counting the walking you are under the line; counting training alone you are over it. That gap is the accounting question, not a measurement error — and at 16k deliberate steps a day the lower number is the more honest one.` : `Above the sparing threshold on both ways of counting.`}`,
+      lines: ea.gated ? [] : ea.receipts,
+    });
   })();
   out.push({ id: "mrv", t: "VOLUME RETURN CURVE — WHERE ADDED SETS STOP PAYING", status: "LOCKED", prog: null,
     tag: "Finds where your own added sets stop earning their fatigue — not a template's number.",
@@ -2029,7 +2135,7 @@ const INS_MAP = {
   missarch: ["day numbers", "sleep night"], weekend: ["day numbers"], compound: ["weigh-in"], miner: ["session", "sleep night", "day numbers"],
   trialsdesk: ["your consent"], cone: ["weigh-in"], dexarecon: ["a DEXA scan"], seasonone: ["the feed"],
   ghost: ["weigh-in", "day numbers"], sentinel: ["sleep night", "day numbers", "weigh-in"], letter: ["day numbers", "the feed"], prophet: ["weigh-in"], whatif: ["weigh-in", "day numbers"], negotiator: ["weigh-in", "day numbers"], dossier: ["the whole lab"],
-  mrv: ["session"], debutmodel: ["session", "sleep night"], medswindow: ["morning", "day numbers"], forecast: ["weigh-in", "session", "day numbers"],
+  ea: ["day numbers", "session", "weigh-in"], mrv: ["session"], debutmodel: ["session", "sleep night"], medswindow: ["morning", "day numbers"], forecast: ["weigh-in", "session", "day numbers"],
   spread: ["the shelf"], caffdose: ["the shelf"], creatine: ["the shelf"], matador: ["the shelf"], sleepceil: ["the shelf"],
 };
 const MAP_CHAINS = [
@@ -2099,7 +2205,7 @@ function labGroups(s) {
   const all = [...labAnalytics(s), ...labAnalytics2(s), ...sleepLab(s), ...shelfItems(s)];
   const MAP = {
     scale: ["whoosh", "refeed", "noise", "masked", "creep"],
-    engine: ["adaptmeter", "stepeff", "refeedroi"],
+    engine: ["ea", "adaptmeter", "stepeff", "refeedroi"],
     training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss", "volumeledger", "signals"],
     sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "variancetax", "canary"],
     pulse: ["pulsebase", "cutstress", "pulsewarn", "refeedpulse", "furnacebase", "exittherm"],
@@ -2365,6 +2471,23 @@ function dayProtocol(s, slp) {
     if (g && g.ex && g.ex.length) steps.push({ a: `Session: ${g.ex.length} lifts`, why: (g.structural && g.structural.indexOf("NONE") !== 0 ? g.structural.toLowerCase() + " · " : "") + (slp.clean ? "records can become official today" : "short sleep — effort +1 unless overridden, records pend"), w: 90 });
   }
 
+  /* 3.5 · energy availability — the reading that outranks everything except an
+     alarm when it is low, because it is the variable that decides whether the
+     deficit costs him muscle. Weighted above the session deliberately: a
+     session run at 20 kcal/kg FFM is not the same session. */
+  const ea = energyAvailability(s);
+  if (!ea.gated && (ea.band === "LOW" || ea.band === "VERY LOW" || ea.band === "MARGINAL")) {
+    const fix = ea.needKcal > 0 && ea.stepsToDrop
+      ? `Either eat ~${ea.needKcal} more, or walk ~${ea.stepsToDrop.toLocaleString()} fewer steps — the same gap, two ways, and the steps are the cheaper one to give back`
+      : ea.needKcal > 0 ? `You are ~${ea.needKcal} kcal/day short of the sparing threshold`
+      : `Counting the walking puts you under the line; counting training alone puts you over it — the gap is the accounting question, not an error`;
+    steps.push({
+      a: `Energy availability ${ea.lo}–${ea.hi} — ${ea.band.toLowerCase()}`,
+      why: `Below ${EA_SPARING} kcal per kg of lean mass is where a lean male stops sparing muscle in a deficit; below ${EA_LOW}, most of what comes off is lean. ${fix}. This is an estimate of training and walking cost, not a measurement — but the side of the line is what matters, not the decimal.`,
+      w: ea.band === "VERY LOW" ? 96 : ea.band === "LOW" ? 94 : 78,
+    });
+  }
+
   /* 4 · food */
   const pt = proteinTarget(s);
   /* Weight rises when he is near or under the evidence floor, and when he has
@@ -2616,6 +2739,16 @@ function runAdaptive(state, todayISO) {
   const r = currentRate(s);
   if (!sealed && r.measured && r.rates.slice(-2).length === 2 && r.rates.slice(-2).every((x) => x < s.rate.floor))
     propose("floor_" + monday, "RATE FLOOR TRIPPED", `Two weeks under ${s.rate.floor}/wk (${r.rates.slice(-2).map((x) => x.toFixed(1)).join(", ")}). Your rule: restore steps FIRST. If steps are already at target, trim ~50 off the calorie band.`, { kind: "note" });
+  /* The band had no teeth. floor and redline both fired, but the stated working
+     band's UPPER edge did nothing — he could run above his own band for weeks
+     and hear nothing until the redline, which sits far above it. His band top
+     is 1.4 lb/wk; the redline is 1.9. That gap is 0.3%/wk of bodyweight, and it
+     is exactly the gap Garthe 2011 measured: the 0.7%/wk arm gained 1.7% lean
+     mass while the 1.0%/wk arm lost 2.0%, on identical total weight lost. A
+     stated band that never speaks is decoration. */
+  const above = r.measured ? r.rates.slice(-2).filter((x) => x > s.rate.band[1] && x < s.rate.redline) : [];
+  if (!sealed && above.length === 2)
+    propose("bandtop_" + monday, "RUNNING ABOVE YOUR BAND", `Two weeks at ${above.map((x) => x.toFixed(1)).join(" and ")} lb/wk, against a band that tops out at ${s.rate.band[1]}. Not a redline — the redline is ${s.rate.redline} and nothing is on fire. But this is the range where the evidence starts charging you: matched for total weight lost, the slower arm of the closest trial kept more muscle AND lost more fat than the faster one. The cheapest fix is not food — it is steps, because they cost you nothing you are trying to keep.`, { kind: "cal", delta: 75 });
   if (!sealed && r.measured && r.rates[r.rates.length - 1] >= s.rate.redline)
     propose("redline_" + monday, "REDLINE RATE", `${r.rates[r.rates.length - 1].toFixed(1)}/wk ≥ ${s.rate.redline}. Your rule: add ~100 back and flag your coach — this is not a win, it's muscle risk.`, { kind: "cal", delta: 100 });
 
@@ -2656,18 +2789,45 @@ function runAdaptive(state, todayISO) {
   return s;
 }
 
-function applyProposal(state, pid) {
+/* ---------- ADJUST_NOTE — why every proposal now carries a dial ----------
+   These arrived as a single Apply button: take the number the machine chose, or
+   take nothing. Dietvorst, Simmons & Massey (2018, Management Science, three
+   studies, n = 288 / 816 / 818) tested exactly that against a version where the
+   person could nudge the recommendation before accepting it. Uptake went from
+   32% to 73-76% in one study and 47% to 68-71% in another.
+
+   Two details decide the design. First, the effect was INSENSITIVE to how much
+   adjustment was allowed — letting people move it by 2 worked as well as by 10.
+   Second, CONSTRAINED adjustment produced more accurate outcomes than unlimited
+   adjustment, because bounded users deviated less from the algorithm than users
+   handed a blank field. So the dial is small on purpose: it is there to convert
+   a decision he is refusing into one he will make, not to let him rewrite the
+   engine. A free-text field would cost accuracy and buy nothing extra.
+
+   The adjustment is recorded with the adjustment, so the record still says what
+   actually happened rather than what was proposed. */
+function proposalDial(p) {
+  if (!p || !p.apply) return null;
+  if (p.apply.kind === "cal") return { unit: "kcal", step: 25, max: 50, base: p.apply.delta || 0 };
+  if (p.apply.kind === "sets") return { unit: "set", step: 1, max: 1, base: p.apply.delta || 0 };
+  return null;
+}
+function applyProposal(state, pid, nudge = 0) {
   const s = JSON.parse(JSON.stringify(state));
   const p = s.proposals.find((x) => x.id === pid);
   if (!p || p.resolved) return s;
+  const dial = proposalDial(p);
+  const adj = dial ? Math.max(-dial.max, Math.min(dial.max, Math.round(nudge / dial.step) * dial.step)) : 0;
   p.resolved = true;
-  s.adjustments.push({ rid: p.rid, d: isoOf(todayStart()), title: p.title });
+  p.nudge = adj;
+  s.adjustments.push({ rid: p.rid, d: isoOf(todayStart()), title: p.title, nudge: adj });
   if (p.apply.kind === "phase" && p.apply.to) {
     s.phase = p.apply.to;
     const q = s.queue.find((x) => x.id === "q_ease2"); if (q) { q.done = true; q.state = "FIRED"; }
     s.feed.unshift({ d: isoOf(todayStart()), t: `${p.apply.to} FIRED`, how: `est. BF crossed the line — targets now ${PHASES[p.apply.to].band.join("–")} · steps: ${PHASES[p.apply.to].steps}. Mirror outranks scale from here.` });
   } else {
-    s.feed.unshift({ d: isoOf(todayStart()), t: "ADJUSTMENT LOGGED", how: `${p.title} — ${p.why}` });
+    const tail = adj ? ` · you took it ${adj > 0 ? "+" : ""}${adj}${dial ? " " + dial.unit : ""} off the proposed number — recorded as applied, your version` : "";
+    s.feed.unshift({ d: isoOf(todayStart()), t: "ADJUSTMENT LOGGED", how: `${p.title} — ${p.why}${tail}` });
   }
   return s;
 }
@@ -2930,6 +3090,7 @@ function migrate(old) {
 const GLOSSARY = {
   fixwindow: ["Fix window", "Yesterday's protein landed outside the band, so a 24-hour repair window opened. Hit 175±10 today and the record EXTENDS — the app measures recovery speed, never an unbroken chain. Unfixed, it just closes; nothing compounds."],
   rir: ["RIR — reps in reserve", "How many clean reps were left when you racked it. 1 is 'honest' — one more good rep existed. 0 is a grind. Rate two sets: the FIRST, which says whether the load is still honest (0 twice running holds the weight), and the LAST, which the taper programs to failure — 0 there is the target, not a warning. Middle sets are prescribed, so they go unrated on purpose. When unsure at noon on the stim stack, call it 0."],
+  ea: ["Energy availability", "What is left to run your body on after training is paid for: calories in, minus what training and deliberate walking cost, divided by your lean mass. The threshold that matters for a lean man is 25 kcal per kg of lean mass per day — above it, a deficit mostly takes fat; below about 20, more than 40% of what you lose comes off lean mass, and testosterone, thyroid and resting metabolism go with it. It shows a RANGE, not a number, and that is deliberate: the convention counts purposeful exercise, and 16,000 deliberate steps sit exactly on the line between training and just moving. Nobody has settled that, so the app shows both ways of counting instead of picking one and sounding certain. The session and step costs are population estimates, not measurements of you — which is why this instrument only ever claims which side of the line you are on."],
   rest: ["Rest between sets", "90 s on isolation, 150 s on compounds, and 30 s more before the final set. The number comes from where the evidence stops moving: pooled across nine studies, longer rest beats short rest by a small margin that runs through volume load — you keep more reps on the back sets — but no further benefit is measurable past about 90 s. So 90 is the floor worth holding and anything beyond it on isolation work is session time you are spending for nothing. Compounds sit at 150 s because that is inside the 2–3 min band tested directly in trained lifters. The extra 30 s before the last set is a judgement call, not a finding: that set is the one prescribed to failure, and it is the one the progression engine reads to size your next jump — so it is the set worth protecting."],
   pace: ["RUSHED (pace)", "That session ran on short rest — under about a minute between sets. It matters for one reason: less rest means fewer reps on the back sets, so the volume load drops. The reps still count and still move your trend. What a rushed day can't do is count toward a stall — three stalls lighten the bar 5%, and running out of time is not evidence that the weight is too heavy. The research here is modest and honest about itself: pooled across nine studies the rest effect is small and mostly runs through volume load, with nothing measurable past ~90 s. So the app records it as context, not as a verdict on the session."],
   debt: ["On debt", "That session happened before three consecutive ≥7.5 h nights. Down numbers on debt read as context, not regression — and PRs hit on debt log as provisional, because they don't reliably repeat."],
@@ -3763,6 +3924,10 @@ __test.SCHEMA_V = SCHEMA_V;
 __test.PACE = PACE;
 __test.progressStep = progressStep;
 __test.proteinTarget = proteinTarget;
+__test.energyAvailability = energyAvailability;
+__test.proposalDial = proposalDial;
+__test.EA_SPARING = EA_SPARING;
+__test.EA_LOW = EA_LOW;
 __test.PROTEIN = PROTEIN;
 __test.loadRungs = loadRungs;
 __test.nextLoad = nextLoad;
@@ -3958,6 +4123,7 @@ function RateGauge({ rate, cur }) {
 /* ============================================================ TABS */
 
 function Proposals({ s, setS, save }) {
+  const [nudge, setNudge] = useState({});
   const open = s.proposals.filter((p) => !p.resolved);
   if (!open.length) return null;
   return (
@@ -3967,9 +4133,36 @@ function Proposals({ s, setS, save }) {
           <Eyebrow c={T.brass}>ADJUSTMENT ARMED · {fmtShort(p.d)}</Eyebrow>
           <H size={19}>{p.title}</H>
           <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5 }}>{p.why}</div>
-          <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-            <Btn small tone="jade" onClick={() => { const ns = applyProposal(s, p.id); setS(ns); save(ns); }}>Apply — log it</Btn>
-          </div>
+          {(() => {
+            const dial = proposalDial(p);
+            if (!dial) return (
+              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                <Btn small tone="jade" onClick={() => { const ns = applyProposal(s, p.id); setS(ns); save(ns); }}>Apply — log it</Btn>
+              </div>
+            );
+            const n = nudge[p.id] || 0;
+            const shown = dial.base + n;
+            return (
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.08em" }}>TAKE IT AS PROPOSED, OR MOVE IT — YOUR CALL EITHER WAY</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 7, flexWrap: "wrap" }}>
+                  <button onClick={() => setNudge({ ...nudge, [p.id]: Math.max(-dial.max, n - dial.step) })}
+                    style={{ width: 34, height: 30, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>−</button>
+                  <div style={{ fontFamily: mono, fontSize: 14, color: n ? T.jade : T.chalk, minWidth: 74, textAlign: "center" }}>
+                    {shown > 0 ? "+" : ""}{shown} {dial.unit}{Math.abs(shown) === 1 ? "" : "s"}
+                  </div>
+                  <button onClick={() => setNudge({ ...nudge, [p.id]: Math.min(dial.max, n + dial.step) })}
+                    style={{ width: 34, height: 30, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
+                  <Btn small tone="jade" onClick={() => { const ns = applyProposal(s, p.id, n); setS(ns); save(ns); setNudge({ ...nudge, [p.id]: 0 }); }}>
+                    {n ? "Apply my version — log it" : "Apply — log it"}
+                  </Btn>
+                </div>
+                <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 6, lineHeight: 1.5 }}>
+                  the dial is small on purpose — bounded adjustments stay closer to the number the data supports than a blank field does, and either way the record logs what you actually did
+                </div>
+              </div>
+            );
+          })()}
         </Card>
       ))}
     </>

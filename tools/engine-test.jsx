@@ -401,7 +401,7 @@ ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id ==
 const gAll = lg2(clone(SN));
 ok(gAll.length === 11 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,trials,road,models,locked,shelf", "eleven shelves, fixed order");
 const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
-ok(tot2 === 54, "all 54 instruments filed exactly once: " + tot2);
+ok(tot2 === 55, "all 55 instruments filed exactly once: " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
@@ -451,7 +451,7 @@ ok(dock.next.every(n => n.n < n.need) && dock.next[0].pct >= (dock.next[1] ? doc
 ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "sentinel line reads");
 const ranked = sl1(clone(SP));
 const rk = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
-ok(ranked.length === 54 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 54 cards, monotone rank order");
+ok(ranked.length === 55 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 55 cards, monotone rank order");
 // a flip lands on the docket's fresh row
 const swD = __test.sweepLab(clone(SP));
 let dkF = JSON.parse(JSON.stringify(swD));
@@ -476,7 +476,7 @@ ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 ph
 // v3.17 — the sibling design review
 const { labSections: ls17, SEED: SR } = __test;
 const secs = ls17(clone(SR));
-ok(secs.reduce((a, x) => a + x.cards.length, 0) === 54, "all 54 filed across the plain-language sections, none lost");
+ok(secs.reduce((a, x) => a + x.cards.length, 0) === 55, "all 55 filed across the plain-language sections, none lost");
 const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "gathering");
 ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
 ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
@@ -1701,7 +1701,7 @@ ok(rl2("press", 1) === "150s between sets", "a one-set lift gets the short form"
 let recS = clone(TV13);
 recS.sleep.nights = [{ d: "2026-07-24", h: 6 }, { d: "2026-07-25", h: 6.2 }, { d: "2026-07-26", h: 6.1 }, { d: "2026-07-27", h: 6 }, { d: "2026-07-28", h: 6.4 }];
 const rec1 = ri2(recS);
-ok(Array.isArray(rec1.flags) && rec1.watched === 6, "recovery returns named flags out of a stated number watched");
+ok(Array.isArray(rec1.flags) && rec1.watched === 7, "recovery returns named flags out of a stated number watched");
 ok(rec1.flags.every((f) => f.k && f.receipt && f.fix), "every flag carries what raised it AND what clears it — a problem with no lever is not analysis");
 ok(rec1.flags.some((f) => f.k === "sleep") && rec1.flags.some((f) => f.k === "avg5"), "five nights under 7 h raises both the reset flag and the chronic-average flag");
 ok(rec1.lever && rec1.flags.every((f) => f.cost <= rec1.lever.cost), "the lever is the heaviest flag, so the card can say 'start here' instead of listing five problems");
@@ -1732,7 +1732,7 @@ const propR = ra2(propS, "2026-07-27");
 const recCard = propR.proposals.find((p) => p.rid && p.rid.indexOf("recovery_") === 0);
 ok(!!recCard, "a low-recovery week still arms the card");
 ok(!/\d+\/100/.test(recCard.title), "the headline is no longer a score out of 100 — the charter forbids a composite: " + recCard.title);
-ok(/\d+ OF 6 SIGNALS UP/.test(recCard.title), "it counts named signals instead, which is an enumeration rather than an index");
+ok(/\d+ OF \d+ SIGNALS UP/.test(recCard.title), "it counts named signals instead, which is an enumeration rather than an index: " + recCard.title);
 ok(recCard.why.indexOf("Start here:") > -1, "the body leads with the single biggest lever");
 ok(recCard.why.indexOf("Converging signals") === -1, "and the old jargon opener is gone");
 ok(recCard.why.indexOf("nothing auto-changes") > -1 && recCard.why.indexOf("Reps still progress") > -1,
@@ -1794,6 +1794,98 @@ trainS.sleep.nights = [{ d: "2026-07-27", h: 6 }];
 const prTrain = dp14(trainS, slp14);
 const sessW = wOf(prTrain, "Session");
 ok(sessW == null || sessW >= proteinW, "on a training day the session outranks food — it is the entire stimulus");
+
+// v3.99.15 — energy availability, and proposals you can move
+const { energyAvailability: eaF, proposalDial: pdF, applyProposal: apF, dayProtocol: dpE, recoveryIndex: riE, labAnalytics2: la15, INS_MAP: IM15, EA_SPARING: EAS, EA_LOW: EAL, SEED: TE15 } = __test;
+
+const mkEA = (cal, steps, days = 14) => {
+  const st = clone(TE15);
+  st.dailyLogs = {};
+  for (let i = 0; i < days; i++) {
+    const d = isoL(Date.now() - (i + 1) * 864e5);
+    st.dailyLogs[d] = { cal, pro: 175, steps };
+  }
+  st.sessionLog = {};
+  for (const k of [2, 4, 6, 9]) st.sessionLog[isoL(Date.now() - k * 864e5)] = { entries: [{ id: "ham", reps: [10, 10], rir: 1, w: 120 }], at: 1 };
+  return st;
+};
+
+ok(eaF(mkEA(1800, 16000, 4)).gated === true, "under eight logged calorie days it stays shut rather than averaging three numbers and calling it a reading");
+ok(eaF(mkEA(1800, 16000, 4)).need === 8, "and it says how many days it needs");
+const eaLow = eaF(mkEA(1800, 16000));
+ok(!eaLow.gated && eaLow.lo < eaLow.hi, "it reports a RANGE, because the convention does not settle whether deliberate walking counts as exercise");
+ok(Math.abs(eaLow.hi - (eaLow.intake - eaLow.trainKcal) / eaLow.ffmKg) < 0.15, "the upper end counts training only, and nothing else");
+ok(eaLow.lo < eaLow.hi && eaLow.walkKcal > 0, "the lower end also charges the walking, and the walking is not free: " + eaLow.walkKcal + " kcal/day");
+ok(eaLow.lo < EAS, `at 1,800 kcal on 16k steps he is under the ${EAS} sparing threshold: ${eaLow.lo}`);
+ok(eaLow.receipts.length >= 4 && eaLow.receipts.some((r) => r.indexOf("estimate, not a measurement") > -1),
+   "every input is shown, and the estimated ones say they are estimates");
+
+/* The actionable half: it must say how much of each lever closes the gap. */
+ok(eaLow.needKcal > 0 && eaLow.stepsToDrop > 0, "it quantifies both ways out — eat more, or walk less");
+ok(Math.abs((eaLow.lo + eaLow.needKcal / eaLow.ffmKg) - EAS) < 0.6, "and the calorie figure actually lands on the threshold, not near it");
+
+// the bands
+ok(eaF(mkEA(3200, 5000)).band === "ADEQUATE", "a fed athlete on low steps reads adequate");
+ok(eaF(mkEA(1200, 20000)).band === "VERY LOW", "a deep deficit on high steps reads very low");
+ok(["LOW", "VERY LOW", "MARGINAL"].includes(eaF(mkEA(1800, 16000)).band), "and his shape of day is not read as fine");
+
+// it reaches the surfaces that matter, not just the lab
+const prE = dpE(mkEA(1500, 18000), { clean: true, run: 3, need: 3, last: { h: 8 } });
+const eaStep = prE.steps.find((x) => x.a.indexOf("Energy availability") > -1);
+ok(!!eaStep, "a low reading reaches today's protocol rather than sitting in the lab");
+ok(eaStep.w > 90, "and it outranks the session, because a session run under the threshold is not the same session");
+ok(riE(mkEA(1500, 18000)).flags.some((f) => f.k === "ea"), "it is also a recovery signal — the only one about the deficit rather than about training or sleep");
+ok(riE(mkEA(3200, 5000)).flags.every((f) => f.k !== "ea"), "and it stays quiet when there is nothing to say");
+ok(!!IM15.ea, "the instrument declares its inputs on the map — the suite refuses cards that are not on it");
+
+// proposals you can move
+ok(pdF({ apply: { kind: "cal", delta: 100 } }).max === 50, "a calorie proposal gets a bounded dial, not a blank field");
+ok(pdF({ apply: { kind: "note" } }) === null && pdF({ apply: { kind: "phase", to: "EASE 2" } }) === null,
+   "notes and phase changes get no dial — there is no number to move");
+let propSt = clone(TE15);
+propSt.proposals = [{ rid: "r1", id: "p1", d: "2026-07-27", title: "REDLINE RATE", why: "test", apply: { kind: "cal", delta: 100 }, resolved: false }];
+const applied0 = apF(propSt, "p1");
+ok(applied0.adjustments[0].nudge === 0 && applied0.proposals[0].resolved, "taking it as proposed records a zero adjustment, exactly as before");
+const applied1 = apF(propSt, "p1", 25);
+ok(applied1.adjustments[0].nudge === 25, "moving it records what he actually chose, not what was proposed");
+ok(applied1.feed[0].how.indexOf("your version") > -1, "and the feed says it was his version");
+const applied2 = apF(propSt, "p1", 500);
+ok(applied2.adjustments[0].nudge === 50, "the dial is clamped — bounded adjustment stays closer to the supported number than a blank field does");
+const applied3 = apF(propSt, "p1", -500);
+ok(applied3.adjustments[0].nudge === -50, "clamped both ways");
+const applied4 = apF(propSt, "p1", 13);
+ok(applied4.adjustments[0].nudge === 25, "and it snaps to the step, so the record never carries a number the dial could not produce");
+
+// v3.99.15b — the band gets teeth, and training frequency stops being under-read
+const { runAdaptive: raB, energyAvailability: eaB, SEED: TB15 } = __test;
+const mkRate = (r1, r2) => {
+  const st = clone(TB15);
+  st.blackout.until = "2026-01-01";
+  st.weekly = [{ wk: "2026-07-06", trend: 170 }, { wk: "2026-07-13", trend: 170 - r1 }, { wk: "2026-07-20", trend: 170 - r1 - r2 }];
+  st.trend = 170 - r1 - r2;
+  return st;
+};
+const inBand = raB(mkRate(1.2, 1.3), "2026-07-27").proposals.filter((p) => !p.resolved && p.rid.indexOf("bandtop_") === 0);
+ok(inBand.length === 0, "inside the band nothing fires — the band top is a threshold, not a nag");
+const overBand = raB(mkRate(1.55, 1.6), "2026-07-27").proposals.filter((p) => !p.resolved && p.rid.indexOf("bandtop_") === 0);
+ok(overBand.length === 1, "two weeks above the band top finally says something — before this, the stated band had no teeth at all and he could run over it until the redline");
+ok(overBand[0].why.indexOf("redline") > -1 && overBand[0].why.indexOf("nothing is on fire") > -1,
+   "and it is explicit that this is not an emergency — a warning that reads like an alarm gets ignored like one");
+ok(overBand[0].why.indexOf("steps") > -1, "it names the cheapest lever, which is steps rather than food");
+ok(!!__test.proposalDial(overBand[0]), "and it carries a dial, like every other numeric proposal");
+const redlined = raB(mkRate(2.0, 2.1), "2026-07-27").proposals.filter((p) => !p.resolved);
+ok(redlined.some((p) => p.rid.indexOf("redline_") === 0), "past the redline the redline still fires");
+ok(!redlined.some((p) => p.rid.indexOf("bandtop_") === 0), "and the band-top card stands aside rather than double-billing the same week");
+
+/* Training frequency must not be read off an incomplete log — under-charging
+   exercise inflates energy availability, which hides the problem it exists to find. */
+const thinLog = clone(TB15);
+thinLog.dailyLogs = {};
+for (let i = 0; i < 14; i++) thinLog.dailyLogs[isoL(Date.now() - (i + 1) * 864e5)] = { cal: 2000, pro: 175, steps: 16000 };
+thinLog.sessionLog = { [isoL(Date.now() - 2 * 864e5)]: { entries: [{ id: "ham", reps: [10, 10], rir: 1, w: 120 }], at: 1 } };
+const thinEA = eaB(thinLog);
+ok(thinEA.sessPerWk >= 4, `a one-session log still charges the programme's four sessions a week, not one: ${thinEA.sessPerWk}`);
+ok(thinEA.receipts.some((r) => r.indexOf("would flatter this number") > -1), "and it says out loud that it is using the schedule rather than the log, and why");
 
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
