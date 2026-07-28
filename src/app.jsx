@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.21";
+const APP_V = "3.99.22";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -1156,8 +1156,12 @@ function observedTDEE(s) {
      steps, the later one 2,072 kcal on 16,526. Roughly 220 kcal/day of extra
      deficit produced part of the measured rate and never entered the intake
      average, so recent higher eating was being credited with a rate partly
-     earned by an older, leaner period. Result: maintenance read 2,681 when the
-     matched-window figure is 2,631.
+     earned by an older, lower-intake, higher-step period. Result: maintenance
+     read 2,681 when the matched-window figure is 2,631.
+
+     ("Leaner" is the wrong word for that period and this file used it once. In
+     an app that tracks lean mass as a quantity, and where he was six pounds
+     HEAVIER then, it reads as body composition every time. Say kcal and steps.)
 
      The intake window is therefore taken from the rate's own endpoints. If the
      rate came from weekly snapshots rather than a regression it has no
@@ -1173,6 +1177,19 @@ function observedTDEE(s) {
   const cals = rows.map(([, v]) => v.cal);
   if (cals.length < 8) return null;
   const avg = cals.reduce((a, b) => a + b, 0) / cals.length;
+  /* The two halves of the window, so the card can SHOW the difference rather
+     than assert it. The first draft of that sentence said his earlier weeks
+     "ran leaner", meaning ate less — in an app where lean mass is a tracked
+     quantity and he was in fact six pounds heavier then, that is the one word
+     it could not afford. Numbers do not have synonyms. */
+  const sorted = rows.slice().sort((a, b) => (a[0] < b[0] ? -1 : 1));
+  const halfAt = Math.floor(sorted.length / 2);
+  const halfAvg = (arr, k) => (arr.length ? Math.round(arr.reduce((a, [, v]) => a + (k === "cal" ? v.cal : v.steps || 0), 0) / arr.length) : null);
+  const stepsOf = (arr) => { const w = arr.filter(([, v]) => v.steps != null); return w.length ? Math.round(w.reduce((a, [, v]) => a + v.steps, 0) / w.length) : null; };
+  const half1 = sorted.slice(0, halfAt), half2 = sorted.slice(halfAt);
+  const split = half1.length >= 4 && half2.length >= 4
+    ? { calA: halfAvg(half1, "cal"), calB: halfAvg(half2, "cal"), stepA: stepsOf(half1), stepB: stepsOf(half2) }
+    : null;
   /* The old ceiling was 1.6 lb/wk, and it BOUND on his real data: a rate of 1.55
      and a rate of 1.73 both saturated to the same number, so the estimate
      stopped responding to the data exactly where the data had most to say. The
@@ -1190,7 +1207,7 @@ function observedTDEE(s) {
   return {
     tdee, days: cals.length, avg: Math.round(avg),
     lo, hi, clamped: RAW > CEIL, method: r.method, rateN: r.n,
-    rate: r.scale, rateCi: r.ci, from, to, matched,
+    rate: r.scale, rateCi: r.ci, from, to, matched, split,
   };
 }
 
@@ -1239,7 +1256,7 @@ function calorieTarget(s) {
       : `Your last ${wkRows.length} logged days average ${wkAvg}, which is ${Math.abs(wkOff)} kcal/day ${wkOff > 0 ? "above" : "below"} the middle of this band — about ${(Math.abs(wkOff) * 7 / 3500).toFixed(2)} lb/wk ${wkOff > 0 ? "slower" : "faster"} than the band is aiming for. Not a scolding, just the arithmetic: a daily target and a weekly result are different numbers and only one of them moves you.`,
     tdee: td.tdee, tdeeLo: td.lo, tdeeHi: td.hi, days: td.days, avg: td.avg,
     band, phaseLo, phaseHi, drift, floorHit: lo === floor,
-    why: `Your measured maintenance is ${td.tdee}${td.lo && td.hi ? ` (${td.lo}–${td.hi} once the rate's own error is carried through)` : ""}, from ${td.days} logged days and a ${td.method === "regression" ? `least-squares rate across ${td.rateN} daily reads` : "snapshot rate"}${td.matched && td.from ? `, both measured over the same stretch — ${fmtShort(td.from)} to ${fmtShort(td.to)}. That matters: your earlier weeks ran leaner and walked further, and averaging recent intake against a rate those weeks helped produce would read maintenance high` : ""}. Your band asks for ${band[0]}–${band[1]} lb/wk, which is ${kcalFor(band[0])}–${kcalFor(band[1])} kcal/day under it. That lands at ${lo}–${hi}.`,
+    why: `Your measured maintenance is ${td.tdee}${td.lo && td.hi ? ` (${td.lo}–${td.hi} once the rate's own error is carried through)` : ""}, from ${td.days} logged days and a ${td.method === "regression" ? `least-squares rate across ${td.rateN} daily reads` : "snapshot rate"}${td.matched && td.from ? `, both measured over the same stretch — ${fmtShort(td.from)} to ${fmtShort(td.to)}. That matters because the two halves of that stretch are not the same: ${td.split ? `you averaged ${td.split.calA} kcal on ${td.split.stepA != null ? td.split.stepA.toLocaleString() + " steps" : "more walking"} in the first half and ${td.split.calB} on ${td.split.stepB != null ? td.split.stepB.toLocaleString() : "fewer"} in the second` : "you ate less and walked more earlier on"}. Averaging only the recent food against a rate the earlier weeks helped produce would read maintenance high` : ""}. Your band asks for ${band[0]}–${band[1]} lb/wk, which is ${kcalFor(band[0])}–${kcalFor(band[1])} kcal/day under it. That lands at ${lo}–${hi}.`,
   };
 }
 
@@ -1276,7 +1293,7 @@ function calorieTarget(s) {
 
    So the band is now taken on the conventional number, which is the only one
    comparable to 25. The walking-inclusive figure is still shown, because it is
-   a real and useful reading of total load — it is just labelled as a different
+   a real and useful reading of everything he burns in a day — it is just labelled as a different
    convention rather than silently used as the verdict.
 
    The 25 itself is flagged as extrapolated, because it is. Fagerberg derives it
@@ -1329,7 +1346,7 @@ function energyAvailability(s) {
 
   /* eaTrain is the CONVENTIONAL number and the only one comparable to the
      published thresholds. eaAll counts deliberate walking as training — a real
-     reading of total load, but against no published line. */
+     reading of everything he burns in a day, but against no published line. */
   const eaTrain = +((intake - trainKcal) / ffmKg).toFixed(1);
   const eaAll = +((intake - trainKcal - walkKcal) / ffmKg).toFixed(1);
   const lo = Math.min(eaTrain, eaAll), hi = Math.max(eaTrain, eaAll);
@@ -1356,7 +1373,7 @@ function energyAvailability(s) {
       `Training costs about ${Math.round(trainKcal)} kcal/day at ${(+perWk.toFixed(1))} sessions a week${logged < scheduled ? ` (the programme's ${scheduled}, not the ${(+logged.toFixed(1))} in the log — in-app logging started part way through, and under-charging training would flatter this number)` : ""} — an estimate, not a measurement.`,
       steps == null ? "No step data in the window." : `Walking ${Math.round(steps).toLocaleString()} steps/day costs roughly ${Math.round(walkKcal)} kcal/day above a sedentary baseline.`,
       `Fat-free mass ${(+ffmKg.toFixed(1))} kg, from the anchored lean model.`,
-      `Counting structured training only — ${eaTrain} — is the convention the IOC's 2023 formula uses and the only one comparable to the 25 line, so it is the one banded above. Counting deliberate walking as training gives ${eaAll}; that is a true reading of total load but there is no published threshold built that way. Espinar 2026 measured the same swap in free-living athletes and it moved EA from ~32 to ~20 with nothing changing physiologically.`,
+      `Counting structured training only — ${eaTrain} — is the convention the IOC's 2023 formula uses and the only one comparable to the 25 line, so it is the one banded above. Counting deliberate walking as training gives ${eaAll}; that is a true reading of everything you burn in a day but there is no published threshold built that way. Espinar 2026 measured the same swap in free-living athletes and it moved EA from ~32 to ~20 with nothing changing physiologically.`,
       `The 25 itself is extrapolated, not measured. Fagerberg 2018 proposes it from semi-starvation work and bodybuilder case reports and says plainly that no controlled male threshold study exists; the IOC 2023 declines a universal cut-off and gives males roughly 9-25. Treat it as a direction, and watch resting pulse, morning temperature and whether the lifts hold — those are measurements.`,
     ],
   };
@@ -2935,7 +2952,7 @@ function dayProtocol(s, slp) {
       : `Nothing to close — this is the accounting question, not a shortfall`;
     steps.push({
       a: `Energy availability ${ea.ea} — ${ea.band.toLowerCase()}`,
-      why: `Counting structured training only, which is the convention the ${EA_SPARING} line was built on. Counting your walking as training too gives ${ea.eaAll} — a real reading of total load, but against no published threshold. ${fix}. And treat ${EA_SPARING} as a direction rather than a cliff: it is extrapolated from semi-starvation work and bodybuilder case reports, and the IOC's own 2023 range for males spans 9 to 25.`,
+      why: `Counting structured training only, which is the convention the ${EA_SPARING} line was built on. Counting your walking as training too gives ${ea.eaAll} — a real reading of everything you burn in a day, but against no published threshold. ${fix}. And treat ${EA_SPARING} as a direction rather than a cliff: it is extrapolated from semi-starvation work and bodybuilder case reports, and the IOC's own 2023 range for males spans 9 to 25.`,
       w: ea.band === "VERY LOW" ? 96 : ea.band === "LOW" ? 94 : 62,
     });
   }
@@ -3872,7 +3889,7 @@ function askContext(s, docs) {
     + `RATE ${rC.scale} lb/wk by ${rC.method}${rC.ci ? ` (95% CI ${rC.lo}–${rC.hi}, n=${rC.n} daily reads)` : ""}. `
     + (tdC ? `MEASURED TDEE ${tdC.tdee} kcal${tdC.lo && tdC.hi ? ` (${tdC.lo}–${tdC.hi} carrying the rate's error)` : ""} from ${tdC.days} logged days at ${tdC.avg} kcal/day average intake. ` : "MEASURED TDEE: not enough clean days yet. ")
     + (ctC.gated ? "" : `TARGET INTAKE ${ctC.lo}–${ctC.hi} kcal/day, derived from that maintenance and his ${ctC.band[0]}–${ctC.band[1]} lb/wk band. `)
-    + (eaC.gated ? "" : `ENERGY AVAILABILITY ${eaC.ea} kcal/kg lean (${eaC.band}) counting structured training only — that is the IOC's convention and the only figure comparable to the ${EA_SPARING} threshold. Counting his deliberate walking as training instead gives ${eaC.eaAll}, which is a real reading of total load but has no published threshold behind it: quote ${eaC.ea} against the line and mention ${eaC.eaAll} only as the other convention. The ${EA_SPARING} itself is EXTRAPOLATED from semi-starvation work and bodybuilder case reports — the IOC's 2023 male range is roughly 9–25 and no controlled study has tested a lean resistance-trained male at 23 vs 30. Say so if you cite it. `)
+    + (eaC.gated ? "" : `ENERGY AVAILABILITY ${eaC.ea} kcal/kg lean (${eaC.band}) counting structured training only — that is the IOC's convention and the only figure comparable to the ${EA_SPARING} threshold. Counting his deliberate walking as training instead gives ${eaC.eaAll}, which is a real reading of everything he burns in a day but has no published threshold behind it: quote ${eaC.ea} against the line and mention ${eaC.eaAll} only as the other convention. The ${EA_SPARING} itself is EXTRAPOLATED from semi-starvation work and bodybuilder case reports — the IOC's 2023 male range is roughly 9–25 and no controlled study has tested a lean resistance-trained male at 23 vs 30. Say so if you cite it. `)
     + `PROTEIN TARGET ${proteinTarget(s).g} g (${proteinTarget(s).perKg} g/kg of ${proteinTarget(s).ffmKg} kg lean), floor ${proteinTarget(s).floor} g. Do NOT vary it by day type: the only direct training-vs-rest-day comparison (Moore 2024, indicator amino acid oxidation) found requirement HIGHER on rest days, and no study has ever tested raising protein on a short-sleep or low-recovery day. `
     + (() => { const stC = stepTarget(s); return stC.gated ? "" : `STEP TARGET ${stC.lo.toLocaleString()}–${stC.hi.toLocaleString()}/day — this is not a health guideline, it is the step count his measured maintenance was measured at (${stC.avg.toLocaleString()} across ${stC.days} days). Every 1,000 steps is about ${stC.kcalPer1k} kcal at his bodyweight, so drifting off it silently invalidates the calorie band. `; })()
     + `HIS MEASURED SET-TO-SET REP SPREAD ${typicalError(s, null).reps} reps (n=${typicalError(s, null).n} paired sets at identical load) — use this when judging whether a rep change is real. A +1 rep session is inside it. `

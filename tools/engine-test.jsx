@@ -2231,5 +2231,35 @@ const noAdj = clone(TW21); noAdj.v = 31; noAdj.adjustments = [];
 ok(!((mgW(noAdj).targets || {}).refeedOff), "and a state with no such approval is left entirely alone — the patch does not even create the key");
 ok(dtW("2026-07-29", mgW(noAdj)) === "REFEED", "so Wednesday stays a refeed for anyone who has not asked for it to stop");
 
+/* ================= v3.99.22 — words this app is not allowed to reuse ================= */
+/* Law 2 says plain words are enforced by tests. This is the sharper version of
+   that: some words already MEAN something specific here, and reusing them
+   colloquially reads as the technical sense every time.
+
+   "your earlier weeks ran leaner" meant ate less. In a ledger that tracks lean
+   mass as a quantity — and where he was six pounds heavier in those weeks — it
+   read as body composition, which is not just unclear but backwards. Same trap
+   with "total load", where load is the weight on the bar.
+
+   The fix is not a better adjective. It is the numbers. */
+const RESERVED = [
+  ["leaner", "means body composition here — say the kcal and the steps"],
+  ["total load", "load is weight on the bar — say what you actually mean by it"],
+  ["lean week", "same collision as leaner"],
+];
+const winW = mkWin(1700, 2100, 30);
+const ctW22 = ctW(winW), tdW22 = otW(winW);
+const surfaces = [ctW22.why, ctW22.wkWhy, __test.energyAvailability(winW).receipts.join(" "), __test.dayProtocol(winW, isoL(Date.now())).steps.map((x) => x.a + " " + x.why).join(" ")].filter(Boolean).join("  ");
+RESERVED.forEach(([w, why]) => ok(surfaces.toLowerCase().indexOf(w) === -1, `no surface says "${w}" — ${why}`));
+/* and the replacement is arithmetic rather than an adjective */
+ok(tdW22.split && tdW22.split.calA != null && tdW22.split.calB != null, "maintenance carries the two halves of its own window as numbers");
+ok(tdW22.split.calA < tdW22.split.calB, "in date order, so 'the first half' means the earlier one");
+ok(ctW22.why.indexOf(String(tdW22.split.calA)) > -1 && ctW22.why.indexOf(String(tdW22.split.calB)) > -1,
+   "and the card shows both figures instead of describing the difference: " + ctW22.why.slice(ctW22.why.indexOf("two halves"), ctW22.why.indexOf("two halves") + 150));
+/* a window with too few days in one half describes nothing rather than guessing */
+const shortW = mkWin(1900, 1900, 12);
+const tdShort = otW(shortW);
+ok(!tdShort.split || (tdShort.split.calA != null), "a window too short to split cleanly returns null rather than half a claim");
+
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
