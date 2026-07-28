@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.10";
+const APP_V = "3.99.11";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -331,17 +331,113 @@ function liftCall(s, exId, opts = {}) {
   return { verdict: "PUSH", vel, n: clean.length, why: `${vel != null && vel > 0.2 ? "You are gaining here — keep chasing." : "Keep chasing."} Weight goes up on its own the day you hit the standard.`, receipts: R2 };
 }
 
-function targetsFor(ex) {
+/* ---------- PROGRESSION_NOTE — how big the next step should be ----------
+   The old rule added exactly +1 rep to one set, every session, forever. Run
+   against his real state that produced a median of ~3.5 weeks to a single load
+   increase and TEN WEEKS on calves (10,8,7,7 at 320, ceiling 13, needing a flat
+   13,13,13,13 before the weight could move). On a 12-20 week prep that is one
+   load increase for the whole block. Progressive overload that arrives after
+   the block ends is not progressive overload.
+
+   Three things the evidence actually says:
+
+   1. HOW you progress barely matters. Bergamasco et al. 2024 randomised each
+      leg of 39 participants to load-progression vs rep-progression for 10
+      weeks: 1RM 52.9->69.1 kg vs 51.7->66.8 kg, vastus lateralis CSA
+      21.3->23.5 cm2 vs 21.1->23.4 cm2, no statistical difference on either.
+      So there is no evidence basis for demanding a maxed flat rep window
+      before the load is allowed to move. The RATE is the lever, not the mode.
+
+   2. Proximity to failure has a dose-response with hypertrophy. Refalo et al.'s
+      meta-regressions find muscle size increases as sets are terminated closer
+      to failure, while strength gains are flat across a wide RIR range. His
+      goal is the hypertrophy side. Reps left in reserve are therefore not just
+      a safety readout — they are a direct measure of unspent stimulus, and the
+      right thing to do with unspent stimulus is spend it.
+
+   3. Self-reported RIR is least accurate far from failure — lifters
+      systematically underestimate how many reps they have left. So the step
+      scales with reported reserve but is CAPPED: a claimed 3 RIR buys a
+      3-rep step across the whole session, never 3 reps on every set. It stays
+      inside what he said he had, with room for the estimate to be wrong.
+
+   And two things his own data says:
+
+   - Every opener on file sits at 1 or 2 RIR (median 2, n=28), which is exactly
+     what the 2-1-1-0 taper prescribes. So the opener is a weak progression
+     signal: it reports compliance, not headroom. The TERMINAL set is the one
+     that carries information, which is why it is now logged.
+   - A short-sleep session used to become the new baseline, and the next target
+     was built by climbing off the dip. That ratchets him down permanently for
+     one bad night. Flagged days (debt, rushed) no longer set the anchor. An
+     honest decline on a clean, unhurried day still does — that one is real. */
+function progressStep(ex) {
+  if (ex.holdFlag) return { add: 0, why: "governor hold — the opener has run hot two sessions straight, so nothing climbs until an honest one lands" };
+  const rs = ex.lastMeta ? rirSetsOf(ex.lastMeta) : [];
+  const term = rs.length > 1 ? rs[rs.length - 1] : null;
+  const open = rs.length ? rs[0] : null;
+  if (ex.lastMeta && ex.lastMeta.debt) return { add: 1, why: "last one ran on short sleep — the reps count, but a depressed day does not get to set a bigger bar" };
+  if (term != null) {
+    if (term >= 3) return { add: 3, why: `you finished the last set with ${term} reps still in the tank, on the set the taper sends to failure — that is unspent stimulus, so the step is real` };
+    if (term === 2) return { add: 2, why: "two reps left on the set meant to reach failure — there is room above, and a token single rep would waste it" };
+    if (term === 1) return { add: 2, why: "one rep short of failure on the last set — close enough that the next step can be more than a token" };
+    return { add: 1, why: "you took the last set to failure exactly as prescribed — one rep is the honest step from there" };
+  }
+  if (open != null) {
+    if (open >= 3) return { add: 2, why: `opener at ${open} RIR and no last-set rating — the opener alone says there was headroom` };
+    if (open === 2) return { add: 1, why: "opener at the prescribed 2 RIR, last set unrated — one rep until the terminal set is on file to say otherwise" };
+    return { add: 1, why: "opener ran at 1 RIR or hotter — the step holds at one rep" };
+  }
+  return { add: 1, why: "nothing rated last time, so the step defaults to a single rep — rate the last set and this gets sharper" };
+}
+/** The per-set line to build from: the last session, unless that session was
+ *  flagged, in which case the best unflagged session at this same weight. */
+function progressAnchor(ex, s) {
+  const base = (ex.last || []).slice();
+  const meta = ex.lastMeta;
+  const flagged = !!(meta && meta.debt);
+  if (!s || !flagged || !base.length) return base;
+  const better = [];
+  Object.keys(s.sessionLog || {}).sort().forEach((d) => {
+    const sl = s.sessionLog[d];
+    /* Only genuinely clean days may serve as the benchmark. A second short-sleep
+       session is no more of a fair line than the first one was. */
+    if (paceRushed(sl)) return;
+    if (typeof cleanAtDate === "function" && !cleanAtDate(s, d)) return;
+    const en = (sl.entries || []).find((x) => x.id === ex.id);
+    if (!en || !en.reps || String(en.w) !== String(ex.w)) return;
+    if (meta && d === meta.d) return;
+    en.reps.forEach((r, i) => { better[i] = Math.max(better[i] ?? 0, r); });
+  });
+  if (!better.length) return base;
+  return base.map((r, i) => Math.max(r, better[i] ?? 0));
+}
+function targetsFor(ex, s) {
   if (ex.std) return ex.std.slice();
   if (ex.reclaim) return ex.reclaim.slice();
   if (!ex.last) return (ex.first || Array(ex.sets).fill(Math.max(1, ex.hi - 2))).slice();
-  const t = ex.last.slice(0, ex.sets);
+  const t = progressAnchor(ex, s).slice(0, ex.sets);
   while (t.length < ex.sets) t.push(Math.max(1, (t[t.length - 1] || ex.hi - 2) - 1));
-  let idx = -1;
-  for (let i = 1; i < t.length; i++) if (t[i] < t[i - 1]) { idx = i; break; }
-  if (idx === -1 && t[0] < ex.hi) idx = 0;
-  if (idx >= 0) t[idx] = Math.min(ex.hi, t[idx] + 1);
+  const { add } = progressStep(ex);
+  for (let n = 0; n < add; n++) {
+    let idx = -1;
+    for (let i = 1; i < t.length; i++) if (t[i] < t[i - 1]) { idx = i; break; }
+    if (idx === -1 && t[0] < ex.hi) idx = 0;
+    if (idx < 0) break;
+    t[idx] = Math.min(ex.hi, t[idx] + 1);
+  }
   return t.map((r) => Math.min(ex.hi, r));
+}
+/* The load gate. It used to demand every set at the ceiling — a flat window a
+   descending scheme may never reach. Sets fade; that is what sets do. A natural
+   one-rep-per-set descent off a ceiling opener is the top of the window, and
+   per Bergamasco 2024 there is no reason to hold the load hostage past it. The
+   real guards stay exactly where they were: clean sleep, and an opener that is
+   not a grind. */
+function atTopOfWindow(reps, ex) {
+  const r = (reps || []).slice(0, ex.sets);
+  if (r.length < ex.sets) return false;
+  return r[0] >= ex.hi && r.every((x, i) => x >= ex.hi - i);
 }
 
 /* pick THE structural change for a session (one per session, hard rule) */
@@ -370,10 +466,10 @@ function genSession(s, iso, slp) {
     const q = isDebutNow ? s.queue.find((x) => x.exId === e.id && !x.done && (x.kind === "debut" || x.kind === "unlock")) : null;
     const w = q && q.newW != null ? q.newW : e.w;
     let tgt, note;
-    if (e.id === "hack" && e.pendingThird && isDebutNow) { tgt = [...targetsFor(e), Math.max(8, e.hi - 3)]; note = "DEBUT — third set banks whatever it gives"; }
+    if (e.id === "hack" && e.pendingThird && isDebutNow) { tgt = [...targetsFor(e, s), Math.max(8, e.hi - 3)]; note = "DEBUT — third set banks whatever it gives"; }
     else if (q && q.kind === "debut" && e.last) { tgt = e.last.map((r) => Math.max(6, r - 1)); note = `DEBUT at ${w} — smallest honest jump: expect to keep almost every rep`; }
-    else if (q && !e.last) { tgt = targetsFor(e); note = e.debutNote || `DEBUT at ${w}`; }
-    else { tgt = targetsFor(e); note = e.own ? `OWN-IT — ${e.ownNote}` : e.reclaim ? "RECLAIM — the exact standard" : e.ladder ? `set ${e.ladder.set + 1} is the ladder — top of rung ${e.ladder.top}` : e.note; }
+    else if (q && !e.last) { tgt = targetsFor(e, s); note = e.debutNote || `DEBUT at ${w}`; }
+    else { tgt = targetsFor(e, s); note = e.own ? `OWN-IT — ${e.ownNote}` : e.reclaim ? "RECLAIM — the exact standard" : e.ladder ? `set ${e.ladder.set + 1} is the ladder — top of rung ${e.ladder.top}` : e.note; }
     if (e.holdFlag) note = "HELD — opener ran 0 RIR twice · one honest session releases it";
     const live = (() => {
       if (e.holdFlag) return "HELD — one honest opener (RIR ≥1) releases the load";
@@ -381,7 +477,7 @@ function genSession(s, iso, slp) {
       if (e.std && e.own) return `${e.std.join(",")} clean owns it — honest opener, controlled every rep`;
       if (e.reclaim) return `reclaim the exact ${e.reclaim.join(",")} — ${e.reclaim.reduce((a, b) => a + b, 0)} honest reps buys the increment`;
       if (e.ladder) return `set ${e.ladder.set + 1} is the money set — ${e.last ? e.last[e.ladder.set] : "?"} → ${e.ladder.top} finishes the rung`;
-      return `chase ${tgt.join(",")} — one over the weakest set, opener at RIR 1`;
+      return `chase ${tgt.join(",")} — ${progressStep(e).why}`;
     })();
     return { id: e.id, n: e.n, w, tgt, note, isDebutNow, setup: e.setup, live, prev: e.lastMeta };
   });
@@ -541,7 +637,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
 
     /* generic progression + earn */
     const tgtMet = en.tgt && en.tgt.every((t2, i) => (r[i] ?? 0) >= t2);
-    const atTop = r.length >= ex.sets && r.slice(0, ex.sets).every((x) => x >= ex.hi);
+    const atTop = atTopOfWindow(r, ex);
     ex.last = r.slice();
     if (atTop && typeof ex.w === "number" && ex.inc) {
       const already = s.queue.some((x) => x.exId === ex.id && !x.done && x.kind === "debut");
@@ -999,14 +1095,44 @@ function caffAt(mg, doseHour, atHour) {
   return Math.round(mg * Math.pow(0.5, dt / 5));
 }
 
-/* THE DEBRIEF — per-lift depth for any logged session, recomputed on demand */
+/* ---------- THE DEBRIEF ----------
+   Held to the same standard as the NOW page: lead with what it means and what
+   to do, plain voice, no jargon, and never a sentence that would read the same
+   on a different lift. The version this replaced emitted three fixed templates
+   per lift, so a six-lift day printed "First set felt like 2 reps in the tank —
+   reserve banked, room above" six times word for word. That is filler wearing
+   the costume of analysis. Rules for anything added here:
+
+   1. A line must be able to come out DIFFERENT for a different lift. If it
+      can't, it belongs in the summary once, or nowhere.
+   2. Say why, not just what. "Next time asks for 10,9,7,7" is a readout; the
+      reason it asks for that is the analysis.
+   3. Volunteer nothing that is merely true. "Set of 6 — biggest single set" on
+      a two-set lift buys no attribution — law 12 applies to sentences too.
+   4. Read the shape honestly. Sets that ASCEND are not a fade. The old rule
+      computed first-minus-last and called 5 → 6 "you barely faded". */
+function fadeRead(reps) {
+  if (reps.length < 2) return null;
+  const first = reps[0], last = reps[reps.length - 1], drop = first - last;
+  const peak = Math.max(...reps), peakAt = reps.indexOf(peak);
+  const seq = reps.join(" → ");
+  if (last > first) return `Sets went ${seq} — you climbed into it. Set ${reps.length} beat set 1, which usually means set 1 was a warm-up in disguise: start heavier, or take the opener closer in.`;
+  if (peakAt > 0 && peak > first) return `Sets went ${seq} — you peaked on set ${peakAt + 1}, not set 1. The opener left something behind.`;
+  if (drop === 0) return `Sets went ${seq} — dead flat. Nothing was near the limit; the whole lift had room.`;
+  if (drop <= 1) return `Sets went ${seq} — barely faded. Strength held to the end, so the last set was not the wall.`;
+  if (drop >= Math.max(3, Math.round(first * 0.3))) return `Sets went ${seq} — a steep drop of ${drop}. Those back sets cost full price; that is fatigue, not weakness.`;
+  return `Sets went ${seq} — a normal fade of ${drop}.`;
+}
 function sessionDebrief(s, iso) {
   const sess = s.sessionLog[iso];
   if (!sess) return null;
   const dates = Object.keys(s.sessionLog).sort();
   const wasClean = cleanAtDate(s, iso);
   const night = s.sleep.nights.find((n) => n.d === isoOf(new Date(mk(iso).getTime() - DAY)));
+  const rushedDay = paceRushed(sess);
   let sessLoad = 0, prevSessLoad = 0;
+  const marks = { up: [], down: [], pr: [], hot: [], room: [], unrated: [] };
+  const whys = [];
   const lifts = (sess.entries || []).map((e) => {
     const ex = exById(s, e.id);
     const name = ex ? ex.n : e.id;
@@ -1020,32 +1146,55 @@ function sessionDebrief(s, iso) {
       const baseReps = prev ? prev.reps || [] : meta ? meta.reps : null;
       const baseTot = baseReps ? baseReps.reduce((a, b) => a + b, 0) : null;
       const baseW = prev && prev.w != null ? prev.w : meta ? meta.w : null;
+      const heavier = e.w != null && baseW != null && Number(e.w) > Number(baseW);
       if (baseTot != null) {
         const dR = tot - baseTot;
-        const heavier = e.w != null && baseW != null && e.w > baseW;
-        lines.push(`You got ${tot} reps — ${dR > 0 ? dR + " more than last time" : dR < 0 ? Math.abs(dR) + " fewer than last time" : "same as last time"}${heavier ? ", on heavier weight" : ""}.`);
-        lines.push(`Set by set: ` + reps.map((r, i) => `${r}${baseReps[i] == null ? " (new set)" : r > baseReps[i] ? " (+" + (r - baseReps[i]) + ")" : r < baseReps[i] ? " (−" + (baseReps[i] - r) + ")" : " (=)"}`).join(" · "));
-      } else lines.push(`You got ${tot} reps — first time this lift is on record.`);
-      if (e.w != null) {
+        if (dR > 0) marks.up.push(name); else if (dR < 0) marks.down.push(name);
+        const perSet = reps.map((r, i) => `${r}${baseReps[i] == null ? " (new set)" : r > baseReps[i] ? " (+" + (r - baseReps[i]) + ")" : r < baseReps[i] ? " (−" + (baseReps[i] - r) + ")" : " (=)"}`).join(" · ");
+        lines.push(`${tot} reps, ${dR > 0 ? dR + " up on" : dR < 0 ? Math.abs(dR) + " down on" : "level with"} last time${heavier ? " — and the bar was heavier, so reps given back here are the price of the jump, not a step backwards" : ""}. Set by set: ${perSet}.`);
+      } else lines.push(`${tot} reps — first time this lift is on record, so there is nothing to judge it against yet. This is the line everything later gets measured from.`);
+      if (typeof e.w === "number") {
         const load = e.w * tot;
         sessLoad += load;
-        const pLoad = baseW != null && baseTot != null ? baseW * baseTot : null;
-        if (pLoad) { prevSessLoad += pLoad; lines.push(`Total work: ${load.toLocaleString()} lb moved (${load >= pLoad ? "+" : ""}${Math.round(((load - pLoad) / pLoad) * 100)}% vs last time).`); }
-        else lines.push(`Total work: ${load.toLocaleString()} lb moved.`);
-        const allTots = dates.filter((d) => d <= iso).map((d) => { const x = (s.sessionLog[d].entries || []).find((y) => y.id === e.id); return x && x.w === e.w ? (x.reps || []).reduce((a, b) => a + b, 0) : null; }).filter((x) => x != null);
-        if (allTots.length >= 2 && tot >= Math.max(...allTots)) lines.push(`Best you\u2019ve ever done at this weight${wasClean ? "." : " — provisional until a clean-sleep repeat."}`);
+        const pLoad = typeof baseW === "number" && baseTot != null ? baseW * baseTot : null;
+        if (pLoad) { prevSessLoad += pLoad; const pc = Math.round(((load - pLoad) / pLoad) * 100); lines.push(`Work done: ${load.toLocaleString()} lb (${pc >= 0 ? "+" : ""}${pc}% vs last time)${heavier && pc < 0 ? " — the heavier bar has not paid for the lost reps yet; on a jump this usually turns positive within two sessions" : ""}.`); }
+        else lines.push(`Work done: ${load.toLocaleString()} lb.`);
+        const allTots = dates.filter((d) => d <= iso).map((d) => { const x = (s.sessionLog[d].entries || []).find((y) => y.id === e.id); return x && String(x.w) === String(e.w) ? (x.reps || []).reduce((a, b) => a + b, 0) : null; }).filter((x) => x != null);
+        if (allTots.length >= 2 && tot >= Math.max(...allTots)) {
+          marks.pr.push(name);
+          lines.push(`Best you have ever done at ${e.w}${wasClean ? " — and it counts, because sleep was clean." : " — provisional: it needs one clean-sleep repeat before a standard can move off it."}`);
+        }
       }
-      if (reps.length >= 2) {
-        const fade = reps[0] - reps[reps.length - 1];
-        const bigSet = Math.max(...reps);
-        lines.push(`Sets went ${reps.join(" \u2192 ")}: ${fade <= 1 ? "you barely faded — strength held to the end" : fade >= 3 ? "a steep drop — those last sets cost full price" : "a normal fade"}. Set of ${bigSet} — biggest single set.`);
-      }
-      if (e.rir != null) {
-        const trail = dates.filter((d) => d <= iso).map((d) => { const x = (s.sessionLog[d].entries || []).find((y) => y.id === e.id); return x && x.rir != null ? x.rir : null; }).filter((x) => x != null).slice(-3);
-        lines.push(`First set felt like ${e.rir} rep${e.rir === 1 ? "" : "s"} in the tank — ${e.rir === 0 ? "that\u2019s a grind; it can\u2019t earn a weight increase" : e.rir === 1 ? "honest effort, exactly the standard" : "reserve banked, room above"}.${trail.length > 1 ? ` Recent openers: ${trail.join(" \u2192 ")}.` : ""}`);
+      const fr = fadeRead(reps);
+      if (fr) lines.push(fr);
+      /* RIR is said once, and only where it carries something about THIS lift. */
+      const rs = rirSetsOf(e);
+      const opener = rs.length ? rs[0] : null;
+      const term = rs.length > 1 ? rs[rs.length - 1] : null;
+      if (term != null) {
+        const nS = reps.length, lastR = reps[nS - 1];
+        if (term === 0) lines.push(`Set ${nS} of ${nS} went to failure at ${lastR} reps, exactly as the taper asks — that is the set that buys the next weight.`);
+        else { marks.room.push(name); lines.push(`Set ${nS} of ${nS} stopped at ${lastR} with ${term} left. That is the set prescribed to reach failure, so ${term >= 2 ? `you paid the fatigue for roughly ${term} more reps and did not collect them` : "you were one rep short of collecting all of it"}.`); }
+      } else {
+        marks.unrated.push(name);
+        if (opener === 0) { marks.hot.push(name); lines.push(`Opener ground out at 0. That is the one reading that can freeze the load, because a grind is not an earn.`); }
       }
       const laterPrint = dates.some((d) => d > iso && (s.sessionLog[d].entries || []).some((x) => x.id === e.id));
-      if (!laterPrint && ex) lines.push(`Because of today, next time asks for: ${targetsFor(ex).join(", ")} at ${ex.w}.`);
+      if (!laterPrint && ex) {
+        const step = progressStep(ex);
+        const t2 = targetsFor(ex, s);
+        /* The reason clause is collected, not printed, so that a reason shared by
+           EVERY lift gets hoisted into the summary and said once. Six lifts on
+           one short-sleep day used to print the same excuse six times. */
+        whys.push(step.why);
+        lines.push({ t: "next", add: step.add, why: step.why, text: `Next time: ${t2.join(", ")} at ${ex.w}` });
+        if (ex.hi && typeof ex.w === "number" && ex.inc && !ex.std && !ex.reclaim && !ex.ladder) {
+          const gate = Array.from({ length: ex.sets }, (_, i) => Math.max(1, ex.hi - i));
+          const gap = gate.reduce((a2, g, i) => a2 + Math.max(0, g - (t2[i] ?? 0)), 0);
+          if (gap === 0) lines.push(`That line IS the top of the window — hit it on clean sleep without grinding the opener and ${ex.w + ex.inc} queues itself.`);
+          else if (step.add > 0) { const n2 = Math.ceil(gap / step.add); lines.push(`${gap} more rep${gap === 1 ? "" : "s"} above that and ${ex.w + ex.inc} queues itself — about ${n2} more session${n2 === 1 ? "" : "s"} at the current step.`); }
+        }
+      }
     } catch (err) { if (!lines.length) lines.push(`${tot} total reps.`); }
     return { n: name, lines };
   });
@@ -1053,12 +1202,43 @@ function sessionDebrief(s, iso) {
   const sameType = dates.filter((d) => d < iso && dayType(d) === dayType(iso));
   const typeTots = sameType.map((d) => (s.sessionLog[d].entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0)).sort((a, b) => a - b);
   const med = typeTots.length ? typeTots[Math.floor(typeTots.length / 2)] : null;
-  const summary = [
-    `${(sess.entries || []).length} lifts \u00b7 ${totalReps} total reps${med ? ` (your typical ${dayType(iso) === "U" ? "upper" : "lower"} day: ~${med})` : ""}${sessLoad ? ` \u00b7 ${sessLoad.toLocaleString()} lb moved${prevSessLoad ? ` (${sessLoad >= prevSessLoad ? "+" : ""}${Math.round(((sessLoad - prevSessLoad) / prevSessLoad) * 100)}% vs comparable lifts last time)` : ""}` : ""}`,
-    wasClean ? `Clean-sleep day: everything here banks for real.${night ? ` You slept ${night.h} h into it.` : ""}` : `Short-sleep day${night ? ` (${night.h} h)` : ""}: records log as provisional \u2014 the reps still count in every trend, they just wait for a clean repeat before standards move.`,
-  ];
-  if (sess.niggles && sess.niggles.length) summary.push(`Watch list: ${sess.niggles.join(" \u00b7 ")} \u2014 the governor tracks these across the next two weeks.`);
-  if (sess.note) summary.push(`Your note that day: \u201c${sess.note}\u201d`);
+  /* Resolve the deferred "Next time" lines. A reason every lift shares is a
+     fact about the SESSION, not about any lift, so it is said once up top and
+     struck from all of them. Rule 1: a line that cannot come out different for
+     a different lift does not belong on the lift. */
+  const sharedWhy = whys.length > 1 && whys.every((w) => w === whys[0]) ? whys[0] : null;
+  lifts.forEach((L) => {
+    L.lines = L.lines.map((l) => {
+      if (typeof l === "string") return l;
+      const tail = l.add === 0 ? " — unchanged" : ` — ${l.add} rep${l.add === 1 ? "" : "s"} added`;
+      return `${l.text}${tail}${sharedWhy ? "" : `, because ${l.why}`}.`;
+    });
+  });
+  const loadPc = prevSessLoad ? Math.round(((sessLoad - prevSessLoad) / prevSessLoad) * 100) : null;
+  const nLift = (sess.entries || []).length;
+  const summary = [];
+  /* The read first — one sentence saying what this session WAS. */
+  summary.push((() => {
+    if (marks.pr.length >= 2) return `A strong day: your best ever at this weight on ${marks.pr.length} lifts (${marks.pr.join(", ")}).`;
+    if (marks.pr.length === 1) return `${marks.pr[0]} was the story — your best ever at that weight.`;
+    if (loadPc != null && loadPc <= -8 && marks.down.length > marks.up.length) return `A down day: ${marks.down.length} of ${nLift} lifts gave back reps and total work fell ${Math.abs(loadPc)}%. Worth knowing why before reading anything into it.`;
+    if (marks.up.length > marks.down.length) return `A quietly good day — ${marks.up.length} lifts up, ${marks.down.length} down.`;
+    if (!marks.up.length && !marks.down.length) return `Baseline day — nothing here has a comparison yet.`;
+    return `A holding day — ${marks.up.length} up, ${marks.down.length} down, nothing decided either way.`;
+  })());
+  /* Then the one thing that explains it, if there is one. */
+  if (!wasClean) summary.push(`Short sleep${night ? ` (${night.h} h)` : ""} — the likeliest reason for anything down here. The reps count in every trend; they just cannot move a standard until a clean-sleep repeat.`);
+  else if (rushedDay) summary.push(`You logged this one rushed. Short rest costs reps on the back sets, so nothing here counts toward a stall.`);
+  else summary.push(`Clean sleep, unhurried — a true reading, and everything in it banks for real.${night ? ` ${night.h} h into it.` : ""}`);
+  summary.push(`${nLift} lifts · ${totalReps} reps${med ? ` (your usual ${dayType(iso) === "U" ? "upper" : "lower"} day: ~${med})` : ""}${sessLoad ? ` · ${sessLoad.toLocaleString()} lb moved${loadPc != null ? ` (${loadPc >= 0 ? "+" : ""}${loadPc}% vs the same lifts last time)` : ""}` : ""}.`);
+  /* Cross-lift reads. Each earns its place by needing more than one lift to see. */
+  if (marks.room.length >= 2) summary.push(`${marks.room.length} lifts finished with reps left on the set that is meant to reach failure (${marks.room.join(", ")}). Muscle growth tracks how close a set ends to failure, so that is the cheapest thing on this page to fix — and the app has already sized bigger steps there because of it.`);
+  if (nLift && marks.unrated.length === nLift) summary.push(`No last-set ratings anywhere today, so every step below defaults to a single rep. Rating the final set is what lets the app size the jump to what you actually had left.`);
+  else if (marks.unrated.length >= 2) summary.push(`${marks.unrated.length} lifts have no last-set rating (${marks.unrated.join(", ")}) — those default to the smallest step until the terminal set is on file.`);
+  if (marks.hot.length) summary.push(`Opener ground out at 0 on ${marks.hot.join(", ")}. Two in a row and the load holds itself — that is the governor, not a punishment.`);
+  if (sharedWhy) summary.push(`Every lift here steps the same way, for the same reason: ${sharedWhy}.`);
+  if (sess.niggles && sess.niggles.length) summary.push(`Watch list: ${sess.niggles.join(" · ")} — three flags in three weeks and it goes to your coach as a pattern, not a day.`);
+  if (sess.note) summary.push(`Your note: \u201c${sess.note}\u201d`);
   return { lifts, summary };
 }
 
@@ -3379,6 +3559,10 @@ __test.caffAt = caffAt;
 __test.CONSTITUTION = CONSTITUTION;
 __test.SCHEMA_V = SCHEMA_V;
 __test.PACE = PACE;
+__test.progressStep = progressStep;
+__test.progressAnchor = progressAnchor;
+__test.atTopOfWindow = atTopOfWindow;
+__test.fadeRead = fadeRead;
 __test.paceRushed = paceRushed;
 __test.restFor = restFor;
 __test.buildRirSets = buildRirSets;

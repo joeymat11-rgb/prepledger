@@ -187,6 +187,25 @@ Paths derive from `ROOT` in `scripts/lib.mjs`; servers bind to port 0.
 - The beacon deliberately lives in `src/beacon.js` and wires in through
   `src/main.jsx`, so error reporting stays outside that 5,800-line blast radius.
 
+### Progression and the debrief
+
+`targetsFor` is autoregulated — see PROGRESSION_NOTE in `src/app.jsx` for the
+evidence and the numbers that forced it. Three invariants:
+
+- **The step is sized by the terminal RIR, capped at 3.** RIR is least accurate
+  far from failure, so a claimed 5 buys the same step as a claimed 3.
+- **A flagged day never sets the anchor.** Short sleep or a rushed session
+  cannot become the line the next target is built from, and cannot serve as the
+  historical benchmark either. An honest decline on a clean, unhurried day can.
+- **`atTopOfWindow` allows a natural one-rep-per-set fade.** Demanding a flat
+  maxed window was what produced the 10-week calves gate.
+
+`sessionDebrief` has four rules in its header comment. The one that keeps
+getting violated: **a line must be able to come out different for a different
+lift**. If it can't, hoist it into the summary and say it once — that is what
+`sharedWhy` does for the step reason. There is a test that fails on any sentence
+repeated verbatim across lifts; do not weaken it.
+
 ### Adding a schema version
 
 State on his phone is versioned, and every old version has to walk forward

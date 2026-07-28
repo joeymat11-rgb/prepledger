@@ -603,9 +603,9 @@ const d1 = isoL(Date.now() - 4 * 864e5), d2 = isoL(Date.now());
 dbS.sessionLog[d1] = { entries: [{ id: "press", reps: [8, 8, 7], rir: 1, w: 245 }], at: 1, niggles: [] };
 dbS.sessionLog[d2] = { entries: [{ id: "press", reps: [8, 8, 8], rir: 1, w: 245 }], at: 2, niggles: ["left elbow"] };
 const db = sd30(dbS, d2);
-ok(db && db.lifts.length === 1 && db.lifts[0].lines.some(l => l.indexOf("1 more than last time") > -1), "plain-words delta: " + db.lifts[0].lines[0]);
-ok(db.lifts[0].lines.some(l => l.indexOf("ever done at this weight") > -1) && db.lifts[0].lines.some(l => l.indexOf("Total work:") === 0), "best-ever named + volume load computed");
-ok(db.lifts[0].lines.some(l => l.indexOf("Sets went") === 0) && db.lifts[0].lines.some(l => l.indexOf("in the tank") > -1), "fade + effort reads in plain sentences");
+ok(db && db.lifts.length === 1 && db.lifts[0].lines.some(l => l.indexOf("1 up on last time") > -1), "plain-words delta: " + db.lifts[0].lines[0]);
+ok(db.lifts[0].lines.some(l => l.indexOf("Best you have ever done at 245") > -1) && db.lifts[0].lines.some(l => l.indexOf("Work done:") === 0), "best-ever named + volume load computed");
+ok(db.lifts[0].lines.some(l => l.indexOf("Sets went") === 0), "the fade read still leads with the set sequence");
 ok(db.summary.some(l => l.indexOf("Watch list: left elbow") > -1), "niggles surface with the governor warning");
 ok(sd30(dbS, "2020-01-01") === null, "unlogged dates return nothing, never crash");
 
@@ -1509,6 +1509,115 @@ ok(paceOf(0, 0) === null && paceOf(2, 2) === null, "under three rests there is n
 ok(paceOf(6, 3) === PC.rushed && paceOf(6, 2) === PC.normal, "half the rests cut short is the line, and it is inclusive");
 ok(paceOf(8, 0) === PC.normal, "letting every timer run out reads as full rest, with no tap from him");
 ok(rfP("press") === 150 && rfP("curl") === 75, "compounds still rest 150 s and isolation 75 s — the tag records pace, it does not reprogram it");
+
+// v3.99.11 — autoregulated progression: the step is sized by what he had left
+const { progressStep: ps, progressAnchor: pa2, atTopOfWindow: atw, targetsFor: tfA, fadeRead: frd, sessionDebrief: sdA, SEED: TA9, genSession: gsA, completeSession: csA } = __test;
+const lift = (o) => Object.assign({ id: "x", n: "X", sets: 4, hi: 13, w: 100, inc: 5, last: [10, 8, 7, 7] }, o);
+const meta = (reps, rirSets, debt) => ({ d: "2026-07-20", w: 100, reps, rirSets, debt: !!debt });
+
+// the step scales with the terminal rating, and is capped at what he claimed
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 0]) })).add === 1, "terminal set taken to failure → the honest step is one rep");
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 1]) })).add === 2, "one rep short of failure → a two-rep step");
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 2]) })).add === 2, "two left on the failure set → two reps back, exactly what he said he had");
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3]) })).add === 3, "three left → three, and the cap stops there because RIR is least accurate far from failure");
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 5]) })).add === 3, "a claimed 5 RIR still buys only three — the estimate is not trusted that far out");
+
+// with no terminal rating it falls back to the opener, conservatively
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, null]) })).add === 1, "opener at the prescribed 2 with no terminal rating → still one rep, because 2 is compliance not headroom");
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [3, null, null, null]) })).add === 2, "opener at 3 says headroom even without a terminal rating");
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [0, null, null, null]) })).add === 1, "a hot opener holds the step at one");
+ok(ps(lift({})).add === 1 && ps(lift({ lastMeta: meta([10, 8], [null, null]) })).add === 1, "nothing rated → the old default, unchanged");
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3]), holdFlag: true })).add === 0, "the governor hold outranks every reserve reading — nothing climbs");
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3], true) })).add === 1, "a short-sleep session does not get to set a bigger bar, however much was left in the tank");
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 2]) })).why.indexOf("failure") > -1, "and every step carries the reason it is that size");
+
+// the targets that come out the other end
+ok(JSON.stringify(tfA(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 0]) }))) === "[10,9,7,7]", "RIR 0 reproduces the old single-rep behaviour exactly");
+ok(JSON.stringify(tfA(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3]) }))) === "[10,10,8,7]",
+   "three reps of reserve buys three reps of target, and they spread across the faded sets rather than spiking one: 10,8,7,7 → 10,10,8,7");
+ok(JSON.stringify(tfA(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3]), holdFlag: true }))) === "[10,8,7,7]", "held lifts repeat the line exactly — no climb");
+ok(JSON.stringify(tfA({ last: [14, 13, 13], hi: 15, sets: 3 })) === "[14,14,13]", "the original rule still holds when nothing is rated");
+ok(JSON.stringify(tfA({ last: [10, 10], hi: 10, sets: 2 })) === "[10,10]", "and a full window still refuses to invent reps above the ceiling");
+ok(JSON.stringify(tfA(lift({ hi: 9, last: [9, 9, 9, 9], lastMeta: meta([9, 9, 9, 9], [2, null, null, 3]) }))) === "[9,9,9,9]", "at the ceiling the step has nowhere to go and stops cleanly");
+
+// the anchor: a flagged day stops ratcheting him down
+const mkAnchor = (pace, nightsH) => {
+  const st = clone(TA9);
+  st.sleep.nights = ["2026-07-07", "2026-07-08", "2026-07-09"].map((d) => ({ d, h: nightsH }));
+  st.sessionLog = { "2026-07-10": { entries: [{ id: "rows", reps: [10, 10], rir: 1, w: 180 }], at: 1, pace } };
+  return st;
+};
+const anchEx = { id: "rows", sets: 2, hi: 12, w: 180, last: [7, 7], lastMeta: meta([7, 7], [1, 0], true) };
+ok(JSON.stringify(pa2(anchEx, mkAnchor("normal", 8))) === "[10,10]", "after a short-sleep dip the anchor returns to his best clean session at that weight");
+ok(JSON.stringify(pa2({ ...anchEx, lastMeta: meta([7, 7], [1, 0], false) }, mkAnchor("normal", 8))) === "[7,7]", "an honest decline on a clean day is real and DOES set the anchor");
+ok(JSON.stringify(pa2(anchEx, mkAnchor("rushed", 8))) === "[7,7]", "a rushed session is not a clean benchmark either — it cannot become the anchor");
+ok(JSON.stringify(pa2(anchEx, mkAnchor("normal", 5))) === "[7,7]", "and neither is a second short-sleep session — one bad night is not repaired by another");
+ok(JSON.stringify(pa2(anchEx, null)) === "[7,7]", "with no state to look through, the anchor is simply the last session");
+
+// the load gate, with the fade allowance that unblocks a descending scheme
+const g4 = { sets: 4, hi: 13 };
+ok(atw([13, 13, 13, 13], g4) === true, "a flat maxed window is still the top of the window");
+ok(atw([13, 12, 11, 10], g4) === true, "so is a natural one-rep-per-set fade off a ceiling opener — this is the change");
+ok(atw([13, 12, 11, 9], g4) === false, "one rep below that natural line and it is not earned");
+ok(atw([12, 12, 12, 12], g4) === false, "the opener must actually reach the ceiling — no earning from below it");
+ok(atw([10, 8, 7, 7], g4) === false && atw([13, 12], g4) === false, "his current calves line does not earn, and a short session cannot earn at all");
+
+// the fade read no longer calls an ascending pair a fade
+ok(frd([5, 6]).indexOf("climbed into it") > -1, "5 then 6 is climbing into the lift, not fading — the old rule called this 'barely faded'");
+ok(frd([10, 12, 10]).indexOf("peaked on set 2") > -1, "a mid-session peak is named as one");
+ok(frd([9, 9, 9]).indexOf("dead flat") > -1, "flat is flat");
+ok(frd([10, 8, 7, 7]).indexOf("steep drop of 3") > -1, "and a real drop is still called a steep drop");
+ok(frd([8, 7]).indexOf("barely faded") > -1 && frd([5]) === null && frd([]) === null, "a one-rep fade is minor, and a single set has no shape to read");
+
+// the debrief: no sentence may repeat verbatim across lifts
+const dbD = isoL(Date.now());
+let dbX = clone(TA9);
+dbX.sessionLog = {};
+dbX.sessionLog[isoL(Date.now() - 4 * 864e5)] = { entries: [{ id: "hack", reps: [9, 9, 9], rir: 2, rirSets: [2, null, 2], w: 160 }, { id: "ham", reps: [10, 10], rir: 2, rirSets: [2, 2], w: 120 }, { id: "abs", reps: [10, 10, 10], rir: 2, rirSets: [2, null, 2], w: 100 }], at: 1 };
+dbX.sessionLog[dbD] = { entries: [{ id: "hack", reps: [9, 9, 9], rir: 2, rirSets: [2, null, 2], w: 160 }, { id: "ham", reps: [10, 10], rir: 2, rirSets: [2, 2], w: 120 }, { id: "abs", reps: [10, 10, 10], rir: 2, rirSets: [2, null, 2], w: 100 }], at: 2, pace: "normal" };
+const dbR = sdA(dbX, dbD);
+const allLines = dbR.lifts.flatMap((L) => L.lines);
+const dupes = allLines.filter((l, i) => allLines.indexOf(l) !== i);
+ok(dupes.length === 0, "three lifts rated identically produce zero repeated sentences — the filler is gone" + (dupes.length ? ": " + dupes[0] : ""));
+ok(dbR.lifts.every((L) => L.lines.some((l) => typeof l === "string" && l.indexOf("Next time:") === 0)), "every lift says exactly what it will ask for next time");
+ok(dbR.lifts.every((L) => L.lines.every((l) => typeof l === "string")), "no deferred placeholder objects leak out to the UI");
+/* The reason is either on the lift (when lifts differ) or hoisted into the
+   summary once (when every lift steps for the same reason). Never six times. */
+const nextLines = dbR.lifts.map((L) => L.lines.find((l) => l.indexOf("Next time:") === 0));
+const hoisted = dbR.summary.some((l) => l.indexOf("for the same reason") > -1);
+ok(hoisted !== nextLines.some((l) => l.indexOf("because") > -1), "the step reason appears either per-lift or once in the summary — never both, never neither");
+ok(hoisted && new Set(nextLines.map((l) => l.replace(/[0-9,]/g, ""))).size >= 1, "with a session-wide reason the per-lift lines carry only the numbers");
+/* And when the lifts genuinely differ, the reason comes back down to the lift.
+   Driven through completeSession, because the step is read off ex.lastMeta —
+   the state's own view — not off the archived session row. */
+const dMix = "2026-07-24";
+const gMix = gsA(clone(TA9), dMix, { clean: true, run: 3, need: 3, last: { h: 8 } });
+const enMix = gMix.ex.map((e2) => ({ id: e2.id, n: e2.n, w: e2.w, tgt: e2.tgt, reps: e2.tgt.slice(), isDebutNow: e2.isDebutNow, rir: 2, rirEnd: e2.id === "ham" ? 3 : 0 }));
+const stMix = csA(clone(TA9), dMix, enMix, { clean: true, run: 3, need: 3, last: { h: 8 } }, { pace: "normal" }).s;
+const dbMr = sdA(stMix, dMix);
+const mixed = dbMr.lifts.map((L) => L.lines.find((l) => l.indexOf("Next time:") === 0)).filter(Boolean);
+ok(mixed.length >= 2 && mixed.every((l) => l.indexOf("because") > -1), "with mixed ratings the reason comes back down onto each lift");
+ok(!dbMr.summary.some((l) => l.indexOf("for the same reason") > -1), "and nothing gets hoisted when the reasons differ");
+ok(mixed.some((l) => l.indexOf("3 reps added") > -1) && mixed.some((l) => l.indexOf("1 rep added") > -1),
+   "the lift with 3 in the tank steps three, the lifts taken to failure step one — same session, different answers");
+ok(new Set(mixed.map((l) => l.slice(l.indexOf("because")))).size >= 2, "and those answers are worded differently, not one template with the number swapped");
+ok(dbR.summary[0].length > 0 && !/^\d+ lifts/.test(dbR.summary[0]), "the summary leads with a read, not a stat line");
+ok(dbR.summary.some((l) => l.indexOf("meant to reach failure") > -1), "three lifts with reserve left gets one cross-lift observation, not three copies");
+ok(dbR.summary.some((l) => l.indexOf("lb moved") > -1), "the stat line is still there, just no longer first");
+const dbNo = sdA(dbX, "2020-01-01");
+ok(dbNo === null, "unlogged dates still return nothing");
+
+// end to end: a real session logged with a terminal rating produces a bigger next target
+const slpA = { clean: true, run: 3, need: 3, last: { h: 8 } };
+const dA = "2026-07-24";
+const gA = gsA(clone(TA9), dA, slpA);
+const mkEn = (rirEnd) => gA.ex.map((e) => ({ id: e.id, n: e.n, w: e.w, tgt: e.tgt, reps: e.tgt.slice(), isDebutNow: e.isDebutNow, rir: 2, rirEnd }));
+const softA = csA(clone(TA9), dA, mkEn(3), slpA).s;
+const hardA = csA(clone(TA9), dA, mkEn(0), slpA).s;
+const pickA = (st) => st.exercises.find((e) => e.id === "ham");
+const softT = tfA(pickA(softA), softA), hardT = tfA(pickA(hardA), hardA);
+ok(softT.reduce((a, b) => a + b, 0) > hardT.reduce((a, b) => a + b, 0),
+   `the same reps with 3 left over ask for more next time than the same reps taken to failure: ${softT.join(",")} vs ${hardT.join(",")}`);
 
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
