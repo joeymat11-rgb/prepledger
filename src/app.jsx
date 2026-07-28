@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.13";
+const APP_V = "3.99.14";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -746,6 +746,42 @@ function bfEst(s, trend = s.trend, atISO = isoOf(todayStart())) {
   const wks = Math.max(0, weeksBetween(s.model.anchorISO, atISO));
   const lean = s.model.lean + s.model.drip * wks;
   return { pct: +(((trend - lean) / trend) * 100).toFixed(1), lean: +lean.toFixed(1) };
+}
+
+/* ---------- PROTEIN_NOTE — why the number is no longer a constant ----------
+   175 g was hard-coded. The current best evidence scales protein to FAT-FREE
+   MASS, not bodyweight, and says so with numbers: Refalo, Trexler & Helms
+   (2025) meta-regressed 29 studies / 729 participants and found the per-FFM
+   model's interval EXCLUDES zero (b = 0.06 [0.01, 0.12], 99% probability of
+   direction) while the per-bodyweight model's does not (b = 0.07 [-0.01, 0.14]).
+   Scaling to lean mass is therefore the better-supported unit, not a preference.
+
+   Two numbers matter. 2.5 g/kg FFM is where the trend line crosses zero — the
+   floor below which protein stops reliably protecting lean mass. And the
+   sub-group with the LARGEST coefficient is lean males under 12.2% body fat
+   (b = 0.12, 94% probability) — leaner means more return per gram, which is the
+   opposite of the intuition that a smaller person needs less.
+
+   So: the floor tracks his measured lean mass, and crossing 12.2% body fat
+   steps the target up, because that is where his own subgroup's evidence gets
+   stronger. It never drops below the house number he already runs. */
+const PROTEIN_FLOOR_G_PER_KG = 2.5;
+const PROTEIN_LEAN_G_PER_KG = 3.0;
+const LEAN_SUBGROUP_BF = 12.2;
+function proteinTarget(s) {
+  const bf = bfEst(s);
+  const ffmKg = bf.lean / 2.2046;
+  const inLeanSubgroup = bf.pct <= LEAN_SUBGROUP_BF;
+  const perKg = inLeanSubgroup ? PROTEIN_LEAN_G_PER_KG : PROTEIN_FLOOR_G_PER_KG;
+  const evidence = Math.round((ffmKg * perKg) / 5) * 5;
+  const floor = Math.round(ffmKg * PROTEIN_FLOOR_G_PER_KG);
+  const g = Math.max(PROTEIN, evidence);
+  return {
+    g, floor, perKg, inLeanSubgroup, ffmKg: +ffmKg.toFixed(1), bf: bf.pct,
+    why: inLeanSubgroup
+      ? `${perKg} g per kg of your ${(+ffmKg.toFixed(1))} kg lean mass — under ${LEAN_SUBGROUP_BF}% body fat the measured return per gram is at its largest, so the target steps up rather than down`
+      : `${floor} g is the floor (${PROTEIN_FLOOR_G_PER_KG} g per kg of your ${(+ffmKg.toFixed(1))} kg lean mass, where the evidence stops protecting lean mass) — you run ${g}, comfortably above it`,
+  };
 }
 
 /* current weekly rate from snapshots (falls back to seeded prior) */
@@ -2278,6 +2314,31 @@ function activeTrial(s) {
 
 /* TODAY'S PROTOCOL — one lead action, then the day ranked, every line from live data */
 function dayProtocol(s, slp) {
+  /* ---------- PROTOCOL_NOTE — what "ranked, from your data" has to mean ----------
+     The header promised a ranking and the code delivered a fixed script: alarms,
+     then trial, then session, then food, then sleep, then steps, truncated to
+     five with no word about what fell off. Order never moved, whatever the data
+     said. So it is a real ranking now: every candidate carries a weight built
+     from (a) how much the evidence says the lever moves body composition and
+     (b) how far HE currently sits from it. Ties break toward the safety items.
+
+     The weights come from the size of the effects, not from taste:
+     - Deficit magnitude is the dominant term. Murphy & Koehler's meta-regression
+       (52 studies, 1,213 participants) puts each extra 100 kcal/day of deficit
+       at -0.031 on the lean-mass effect size, with ~500 kcal/day predicted to
+       blunt lean-mass gains entirely. Nothing else on this page is that big.
+     - Protein scaled to FAT-FREE MASS is the next lever, and it is the one with
+       an interval that excludes zero (Refalo, Trexler & Helms 2025 meta-
+       regression, 29 studies, 729 participants: per-FFM b = 0.06 [0.01, 0.12],
+       99% probability of direction; the per-bodyweight model's interval does
+       NOT exclude zero). That is why the target below is computed off lean mass.
+     - The session itself is the entire training stimulus, so on a training day
+       it outranks everything except an alarm.
+     - Sleep is his live constraint and gates whether anything counts.
+     - Caffeine and steps are real but small, and they say so by ranking low.
+
+     No silent caps: if the list is trimmed, the count that was held back is
+     reported rather than quietly dropped. */
   const lead = theOneThing(s, slp, undefined, 1);
   const steps = [];
   const tI = isoOf(todayStart());
@@ -2292,36 +2353,49 @@ function dayProtocol(s, slp) {
 
   /* 1 · body alarms first — a prescription with numbers, never a mood */
   const al = bodyAlarm(s, slp);
-  if (al) steps.push({ a: al.head, why: al.basis, detail: al.lines });
+  if (al) steps.push({ a: al.head, why: al.basis, detail: al.lines, w: 100 });
 
   /* 2 · trial arm */
   const at2 = activeTrial(s);
-  if (at2) steps.push({ a: `Trial: ${at2.arm.tpl.arms[at2.arm.armIdx]}`, why: `${at2.arm.tpl.t.toLowerCase()} · block ${at2.arm.block}/${at2.arm.of} — the lab is measuring, just follow the arm` });
+  if (at2) steps.push({ a: `Trial: ${at2.arm.tpl.arms[at2.arm.armIdx]}`, why: `${at2.arm.tpl.t.toLowerCase()} · block ${at2.arm.block}/${at2.arm.of} — the lab is measuring, just follow the arm`, w: 45 });
 
   /* 3 · the session */
   if (trainDay && !sessDone) {
     const g = genSession(s, tI, slp);
-    if (g && g.ex && g.ex.length) steps.push({ a: `Session: ${g.ex.length} lifts`, why: (g.structural && g.structural.indexOf("NONE") !== 0 ? g.structural.toLowerCase() + " · " : "") + (slp.clean ? "records can become official today" : "short sleep — effort +1 unless overridden, records pend") });
+    if (g && g.ex && g.ex.length) steps.push({ a: `Session: ${g.ex.length} lifts`, why: (g.structural && g.structural.indexOf("NONE") !== 0 ? g.structural.toLowerCase() + " · " : "") + (slp.clean ? "records can become official today" : "short sleep — effort +1 unless overridden, records pend"), w: 90 });
   }
 
   /* 4 · food */
-  if (s.fixWindow) steps.push({ a: "Protein 175 — non-negotiable today", why: "closes the open fix window; the miss becomes a save" });
-  else steps.push({ a: "Protein 175", why: "~44 g × 4 feeds · wake / pre-lift / post-lift / pre-bed" });
-  if (T4.drift != null && T4.drift <= -0.4) steps.push({ a: "Eat the top of the range (1,800)", why: `your furnace runs ${T4.drift}°F under baseline — the band's ceiling exists for exactly this; still a full deficit` });
-  if (dayType(isoOf(new Date(todayStart().getTime() + DAY))) === "REFEED") steps.push({ a: "Normal day — refeed is tomorrow", why: "no pre-saving calories tonight; the refeed works because the days around it stay ordinary" });
+  const pt = proteinTarget(s);
+  /* Weight rises when he is near or under the evidence floor, and when he has
+     crossed into the sub-group where the coefficient is largest. */
+  const pW = 62 + (pt.inLeanSubgroup ? 12 : 0) + (pt.g > PROTEIN ? 10 : 0);
+  if (s.fixWindow) steps.push({ a: `Protein ${pt.g} — non-negotiable today`, why: "closes the open fix window; the miss becomes a save · " + pt.why, w: pW + 15 });
+  else steps.push({ a: `Protein ${pt.g}`, why: `~${Math.round(pt.g / 4)} g × 4 feeds · wake / pre-lift / post-lift / pre-bed. ${pt.why}.`, w: pW });
+  if (T4.drift != null && T4.drift <= -0.4) steps.push({ a: "Eat the top of the range (1,800)", why: `your furnace runs ${T4.drift}°F under baseline — the band's ceiling exists for exactly this; still a full deficit`, w: 70 });
+  if (dayType(isoOf(new Date(todayStart().getTime() + DAY))) === "REFEED") steps.push({ a: "Normal day — refeed is tomorrow", why: "no pre-saving calories tonight; the refeed works because the days around it stay ordinary", w: 35 });
 
   /* 5 · repair last night, tonight */
   if (lastNight) {
-    if (lastNight.h < (s.sleep.cleanH || 7.5)) steps.push({ a: `Lights out ~${(() => { let m = lo.mins - 20; if (m < 0) m += 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; })()} — 20 early`, why: `last night ran ${lastNight.h} h — one modestly early night repays most of it; wake stays ~${(s.sleep.anchor || {}).wake || "06:45"} (aim near it — the morning log takes whatever really happened). If you must nap: ≤25 min, before 3 pm` });
-    else if (lastNight.sol != null && lastNight.sol >= 30) steps.push({ a: `Wind-down 30 min before ${fmt12(lo.t)}`, why: `drift-off ran ${lastNight.sol} min last night — screens off, lights low; the drift is usually paying for the evening's light` });
-    else if ((lastNight.awakeMin || 0) >= 30) steps.push({ a: "Tonight: cooler room, no fluids after ~8:30", why: `you were awake ${lastNight.awakeMin} min mid-night — the two cheapest fixes first` });
-    else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — wake ~${fmt12((s.sleep.anchor || {}).wake || "06:45")} · ${lo.target} h asleep + ~${lo.sol} min drift-off${(() => { const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length; return melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off` : ""; })()}` });
-  } else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — wake ~${fmt12((s.sleep.anchor || {}).wake || "06:45")} · ${lo.target} h asleep + ~${lo.sol} min drift-off` });
-  { const tc3 = todayCaff(s); if (tc3 && tc3.mg > 0) { const at3 = caffAt(tc3.mg, tc3.atH, lo.mins / 60); if (at3 > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at3} mg still aboard at lights-out${tc3.logged ? "" : " (typical dose — log today's real one on NOW)"} — above ~50 mg deep sleep measurably thins` }); } }
+    if (lastNight.h < (s.sleep.cleanH || 7.5)) steps.push({ a: `Lights out ~${(() => { let m = lo.mins - 20; if (m < 0) m += 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; })()} — 20 early`, why: `last night ran ${lastNight.h} h — one modestly early night repays most of it; wake stays ~${(s.sleep.anchor || {}).wake || "06:45"} (aim near it — the morning log takes whatever really happened). If you must nap: ≤25 min, before 3 pm`, w: 55 + Math.min(25, Math.round(((s.sleep.cleanH || 7.5) - lastNight.h) * 12)) });
+    else if (lastNight.sol != null && lastNight.sol >= 30) steps.push({ a: `Wind-down 30 min before ${fmt12(lo.t)}`, why: `drift-off ran ${lastNight.sol} min last night — screens off, lights low; the drift is usually paying for the evening's light`, w: 50 });
+    else if ((lastNight.awakeMin || 0) >= 30) steps.push({ a: "Tonight: cooler room, no fluids after ~8:30", why: `you were awake ${lastNight.awakeMin} min mid-night — the two cheapest fixes first`, w: 48 });
+    else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — wake ~${fmt12((s.sleep.anchor || {}).wake || "06:45")} · ${lo.target} h asleep + ~${lo.sol} min drift-off${(() => { const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length; return melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off` : ""; })()}`, w: 30 });
+  } else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — wake ~${fmt12((s.sleep.anchor || {}).wake || "06:45")} · ${lo.target} h asleep + ~${lo.sol} min drift-off`, w: 30 });
+  { const tc3 = todayCaff(s); if (tc3 && tc3.mg > 0) { const at3 = caffAt(tc3.mg, tc3.atH, lo.mins / 60); if (at3 > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at3} mg still aboard at lights-out${tc3.logged ? "" : " (typical dose — log today's real one on NOW)"} — above ~50 mg deep sleep measurably thins`, w: 28 }); } }
 
   /* 6 · floor */
-  steps.push({ a: "Steps 16.5k", why: "walking is the deficit's quiet engine — calories do the cutting, steps keep it moving" });
-  return { lead, steps: steps.slice(0, 5) };
+  /* Walking has never been tested as an interference modality — the concurrent-
+     training literature studies running and cycling, and even there hypertrophy
+     interference pools at SMD -0.01 to -0.04. So steps do not cost muscle
+     directly. What they do is deepen the deficit, and deficit magnitude IS the
+     dominant term for lean mass. That is the honest framing, and it is why this
+     ranks last rather than being cheered. */
+  steps.push({ a: "Steps 16.5k", why: "walking is the deficit's quiet engine, and it has never been shown to cost muscle the way hard cardio can — what it does is deepen the deficit, so it is a fat-loss lever with a lean-mass price, not a free one", w: 22 });
+  const SHOW = 5;
+  steps.sort((x, y) => (y.w || 0) - (x.w || 0));
+  const held = Math.max(0, steps.length - SHOW);
+  return { lead, steps: steps.slice(0, SHOW), held, ranked: true };
 }
 
 /* PLAIN ENGLISH LAYER — house vocabulary translated at render time, everywhere, forever */
@@ -3688,6 +3762,8 @@ __test.CONSTITUTION = CONSTITUTION;
 __test.SCHEMA_V = SCHEMA_V;
 __test.PACE = PACE;
 __test.progressStep = progressStep;
+__test.proteinTarget = proteinTarget;
+__test.PROTEIN = PROTEIN;
 __test.loadRungs = loadRungs;
 __test.nextLoad = nextLoad;
 __test.prevLoad = prevLoad;
@@ -4194,6 +4270,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                 </div>
               </div>
             ))}
+          </div>
+          <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 9, lineHeight: 1.5 }}>
+            ranked by how much each moves body composition and how far you sit from it — deficit and protein outrank sleep, sleep outranks caffeine and steps
+            {pr.held > 0 ? ` · ${pr.held} more held back, not dropped — open the day's full read for the rest` : ""}
           </div>
         </Card>
       ); })()}

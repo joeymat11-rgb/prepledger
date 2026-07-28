@@ -1749,5 +1749,51 @@ ok(stillArmed.length === 0, "once the signals clear the card stands down instead
 ok(clearR.proposals.some((p) => p.stoodDown), "it resolves rather than vanishing — nothing is deleted");
 ok(clearR.feed.some((f) => f.t === "RECOVERY CARD STOOD DOWN"), "and the stand-down is written into the record, so the history still explains itself");
 
+// v3.99.14 — the protocol is actually ranked, and protein scales off lean mass
+const { dayProtocol: dp14, proteinTarget: pt14, bfEst: bf14, PROTEIN: P14, SEED: TW14 } = __test;
+
+// protein: the unit is fat-free mass, because that is the model whose interval excludes zero
+const ptS = clone(TW14);
+const p0 = pt14(ptS);
+ok(p0.ffmKg > 0 && p0.floor > 0, "the target is computed from measured lean mass, not from bodyweight or a constant");
+ok(p0.g >= P14, "it never drops below the house number he already runs — a floor is a floor, not a cut");
+ok(p0.g >= p0.floor, "and never below the evidence floor either");
+ok(p0.why.indexOf("lean mass") > -1, "the receipt names the unit, so the number can be argued with");
+/* Crossing into the lean sub-group RAISES the target — that is the counter-
+   intuitive part, and the part the evidence is clearest about. */
+const leanS = clone(TW14);
+leanS.model.lean = leanS.trend * 0.89;
+const pLean = pt14(leanS);
+ok(pLean.bf <= 12.2 && pLean.inLeanSubgroup, "under 12.2% body fat he enters the sub-group with the largest coefficient");
+ok(pLean.perKg === 3.0 && pLean.g > P14, `and the target steps UP, not down: ${pLean.g} g vs the flat ${P14} g it used to print`);
+const fatS = clone(TW14);
+fatS.model.lean = fatS.trend * 0.82;
+ok(!pt14(fatS).inLeanSubgroup && pt14(fatS).perKg === 2.5, "above that line it sits at the 2.5 g/kg floor multiplier");
+
+// the protocol: a real ranking, and no silent truncation
+const slp14 = { clean: false, run: 0, need: 3, last: { h: 6 } };
+const prS = clone(TW14);
+prS.sleep.nights = [{ d: "2026-07-27", h: 6 }];
+const pr14 = dp14(prS, slp14);
+ok(Array.isArray(pr14.steps) && pr14.ranked === true, "the protocol declares itself ranked");
+ok(pr14.steps.every((x) => typeof x.w === "number"), "every step carries the weight it was ranked by — nothing rides along unscored");
+const ws14 = pr14.steps.map((x) => x.w);
+ok(ws14.every((w, i) => i === 0 || ws14[i - 1] >= w), "and they come out in descending order: " + ws14.join(" > "));
+ok(typeof pr14.held === "number", "what was held back is counted");
+ok(pr14.held === 0 || pr14.steps.length === 5, "the list is capped at five, and anything past it is reported rather than dropped");
+
+/* The ordering claim has to survive contact with the data. Protein outranks
+   steps and caffeine; a training session outranks both; an alarm outranks all. */
+const wOf = (p, frag) => { const st = p.steps.find((x) => x.a.indexOf(frag) > -1); return st ? st.w : null; };
+const proteinW = wOf(pr14, "Protein"), stepsW = wOf(pr14, "Steps");
+ok(proteinW != null, "protein is always on the page");
+ok(stepsW == null || proteinW > stepsW, "protein outranks steps — one has an interval excluding zero, the other has never been tested");
+const trainS = clone(TW14);
+trainS.sessionLog = {};
+trainS.sleep.nights = [{ d: "2026-07-27", h: 6 }];
+const prTrain = dp14(trainS, slp14);
+const sessW = wOf(prTrain, "Session");
+ok(sessW == null || sessW >= proteinW, "on a training day the session outranks food — it is the entire stimulus");
+
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
