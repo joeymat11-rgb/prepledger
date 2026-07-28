@@ -33,7 +33,13 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.8";
+const APP_V = "3.99.9";
+/* The schema version, declared once. Two places must agree: the SEED (which is
+   authored already-current) and migrate() (which walks old states up to it).
+   They used to carry the number independently and drifted — the seed sat a
+   version behind for a whole release. Bumping this constant plus appending to
+   PATCHES is now the entire ritual. */
+const SCHEMA_V = 31;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -149,7 +155,7 @@ const SEED = {
 
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
-  SEED.v = 30;
+  SEED.v = SCHEMA_V;
   SEED.medsLog = [];
   SEED.energy = []; SEED.soreness = []; SEED.grip = [];
   SEED.caffLog = [];
@@ -170,6 +176,10 @@ const SEED = {
   SEED.exOrder = { U: SEED.exercises.filter((e) => e.day === "U").map((e) => e.id), L: SEED.exercises.filter((e) => e.day === "L").map((e) => e.id) };
   SEED.waist = [];
   SEED.exercises.forEach((e) => { e.rirHist = []; });
+  /* seeded PREV blocks predate per-set RIR, so their arrays are all-null —
+     exactly what patchV31 produces for the same data. A fresh install and a
+     migrated one must be indistinguishable. */
+  SEED.exercises.forEach((e) => { if (e.lastMeta) e.lastMeta.rirSets = new Array(((e.lastMeta.reps) || []).length).fill(null); });
   SEED.reads = HISTORY.filter((h) => h.w != null).map((h) => ({ d: h.d, w: h.w, note: "", sealed: false }));
   const t7 = (endISO) => {
     const end = mk(endISO).getTime();
@@ -372,6 +382,43 @@ function genSession(s, iso, slp) {
 }
 
 /* evaluate a completed session — transitions, earns, own-flips, refills */
+/* ---------- per-set RIR ----------
+   `rir` has always meant the OPENER's reps-in-reserve, and every existing
+   consumer reads it that way — the opener is the diagnostic set for whether a
+   load is still honest. That stays exactly as it was.
+
+   `rirSets` extends it to an array aligned index-for-index with `reps`, null
+   wherever a set was not rated. The opener is mirrored into slot 0, so nothing
+   downstream has to change.
+
+   The TERMINAL set is what this adds. The prescription tapers to one failure
+   set (2·1·1·0), so whether that last set actually reached failure is the
+   question that separates a real working set from junk volume — and it is the
+   signal the build-phase volume ramp needs before it can add sets safely.
+   Middle sets stay unrated on purpose: they are prescribed and predictable, and
+   asking for a tap on every set buys little while costing adherence. */
+function buildRirSets(en, n) {
+  const len = n != null ? n : ((en && en.reps) || []).length;
+  if (!len) return [];
+  const arr = new Array(len).fill(null);
+  if (len === 1) { arr[0] = en.rirEnd != null ? en.rirEnd : (en.rir != null ? en.rir : null); return arr; }
+  if (en.rir != null) arr[0] = en.rir;
+  if (en.rirEnd != null) arr[len - 1] = en.rirEnd;
+  return arr;
+}
+/** Per-set RIR for a logged entry, back-filling the opener from legacy `rir`. */
+function rirSetsOf(en) {
+  if (!en) return [];
+  const len = (en.reps || []).length;
+  const arr = Array.isArray(en.rirSets) ? en.rirSets.slice(0, len) : [];
+  while (arr.length < len) arr.push(null);
+  if (len && arr[0] == null && en.rir != null) arr[0] = en.rir;
+  return arr;
+}
+function openerRir(en) { const a = rirSetsOf(en); return a.length ? a[0] : null; }
+/** RIR on the set that was programmed to failure. null = not rated, never assumed. */
+function terminalRir(en) { const a = rirSetsOf(en); return a.length ? a[a.length - 1] : null; }
+
 function completeSession(state, iso, entries, slp, extras = {}) {
   const s = JSON.parse(JSON.stringify(state));
   const lines = [];
@@ -388,7 +435,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
 
     const prevMeta = ex.lastMeta;
     if (prevMeta && prevMeta.reps && String(prevMeta.w) === String(en.w) && r.reduce((a, b) => a + b, 0) < prevMeta.reps.reduce((a, b) => a + b, 0)) dipCount++;
-    ex.lastMeta = { d: iso, w: en.w, reps: r.slice(), rir: en.rir ?? null, debt: !slp.clean };
+    ex.lastMeta = { d: iso, w: en.w, reps: r.slice(), rir: en.rir ?? null, rirSets: buildRirSets(en, r.length), debt: !slp.clean };
 
     /* opener RIR — the honest-opener rule with teeth */
     if (en.rir != null) {
@@ -479,7 +526,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
   });
 
   const niggles = extras.niggles || [];
-  s.sessionLog[iso] = { entries: entries.map((e) => { const ex2 = s.exercises.find((x) => x.id === e.id); return { id: e.id, reps: e.reps, rir: e.rir ?? null, w: ex2 && typeof ex2.w === "number" ? ex2.w : null }; }), at: Date.now(), note: extras.note || "", niggles, dips: dipCount, skipped: extras.skipped || [] };
+  s.sessionLog[iso] = { entries: entries.map((e) => { const ex2 = s.exercises.find((x) => x.id === e.id); return { id: e.id, reps: e.reps, rir: e.rir ?? null, rirSets: buildRirSets(e), w: ex2 && typeof ex2.w === "number" ? ex2.w : null }; }), at: Date.now(), note: extras.note || "", niggles, dips: dipCount, skipped: extras.skipped || [] };
   if ((extras.skipped || []).length) push("SKIPPED — " + extras.skipped.map((k) => { const ex3 = exById(s, k.id); return ex3 ? ex3.n : k.id; }).join(", "), "your call, on the record — zero phantom reps, nothing counted");
   const cutoff = isoOf(new Date(mk(iso).getTime() - 21 * DAY));
   const counts = {};
@@ -2313,6 +2360,21 @@ function patchV10(s) {
   s.v = 10;
   return s;
 }
+function patchV31(s) {
+  /* `rir` has always been the OPENER's value, so lifting it into rirSets[0] is a
+     lossless restatement of what was already recorded — not a guess. Every other
+     slot stays null: the app did not ask for those sets, so it does not know. */
+  const lift = (o) => {
+    if (!o || Array.isArray(o.rirSets)) return;
+    const len = ((o.reps) || []).length;
+    const arr = new Array(len).fill(null);
+    if (len && o.rir != null) arr[0] = o.rir;
+    o.rirSets = arr;
+  };
+  Object.values(s.sessionLog || {}).forEach((sl) => (sl.entries || []).forEach(lift));
+  (s.exercises || []).forEach((e) => lift(e.lastMeta));
+  s.v = 31; return s;
+}
 function patchV30(s) {
   s.medsLog = s.medsLog || [];
   s.v = 30; return s;
@@ -2410,9 +2472,13 @@ function patchV11(s) {
   s.v = 11;
   return s;
 }
+/* Applied in order, oldest first. To add a schema version: write patchVn, append
+   it here, and bump SCHEMA_V — nothing else. The old nested-call chain was 31
+   parentheses deep and a missing one only showed up at build time. */
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31];
 function migrate(old) {
-  if (old && old.v === 30) return old;
-  if (old && old.v >= 3 && old.v <= 29) return patchV30(patchV29(patchV28(patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(JSON.parse(JSON.stringify(old)))))))))))))))))))))))))))));
+  if (old && old.v === SCHEMA_V) return old;
+  if (old && old.v >= 3 && old.v < SCHEMA_V) return PATCHES.reduce((s, p) => p(s), JSON.parse(JSON.stringify(old)));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -2438,12 +2504,12 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return patchV30(patchV29(patchV28(patchV27(patchV26(patchV25(patchV24(patchV23(patchV22(patchV21(patchV20(patchV19(patchV18(patchV17(patchV16(patchV15(patchV14(patchV13(patchV12(patchV11(patchV10(patchV9(patchV8(patchV7(patchV6(patchV5(patchV4(s)))))))))))))))))))))))))));
+  return PATCHES.reduce((acc, p) => p(acc), s);
 }
 
 const GLOSSARY = {
   fixwindow: ["Fix window", "Yesterday's protein landed outside the band, so a 24-hour repair window opened. Hit 175±10 today and the record EXTENDS — the app measures recovery speed, never an unbroken chain. Unfixed, it just closes; nothing compounds."],
-  rir: ["RIR — reps in reserve", "How many clean reps were left when you racked it. 1 is 'honest' — one more good rep existed. 0 is a grind. Rate only the first set, and when unsure at noon on the stim stack, call it 0."],
+  rir: ["RIR — reps in reserve", "How many clean reps were left when you racked it. 1 is 'honest' — one more good rep existed. 0 is a grind. Rate two sets: the FIRST, which says whether the load is still honest (0 twice running holds the weight), and the LAST, which the taper programs to failure — 0 there is the target, not a warning. Middle sets are prescribed, so they go unrated on purpose. When unsure at noon on the stim stack, call it 0."],
   debt: ["On debt", "That session happened before three consecutive ≥7.5 h nights. Down numbers on debt read as context, not regression — and PRs hit on debt log as provisional, because they don't reliably repeat."],
   clean: ["CLEAN (sleep)", "Three consecutive nights of ≥7.5 h. One good night repays acute debt, but consolidation lags ~2–3 nights — so owns and earns only count when CLEAN."],
   seal: ["Sealed scale", "Around events, reads are quarantined: logged but excluded from the trend, and every rate rule is muted. The seal exists so event water can never trigger a false alarm."],
@@ -3271,6 +3337,11 @@ __test.todayMeds = todayMeds;
 __test.dayType = dayType;
 __test.caffAt = caffAt;
 __test.CONSTITUTION = CONSTITUTION;
+__test.SCHEMA_V = SCHEMA_V;
+__test.buildRirSets = buildRirSets;
+__test.rirSetsOf = rirSetsOf;
+__test.openerRir = openerRir;
+__test.terminalRir = terminalRir;
 
 /* ---------- atoms ---------- */
 const Eyebrow = ({ children, c = T.dim }) => (
@@ -4150,16 +4221,19 @@ function LogTab({ s, setS, save, slp }) {
   const [callOpen, setCallOpen] = useState(null);
   const [wEdit, setWEdit] = useState(null);
   const [wVal, setWVal] = useState(180);
+  /* terminal-set RIR — the set the taper programs to failure. Separate from the
+     opener, which answers a different question (is the load still honest). */
+  const [rirEnd, setRirEnd] = useState({});
   const draftKey = "prep-ledger-draft-" + dateSel;
   useEffect(() => {
     try {
       const d = JSON.parse(localStorage.getItem(draftKey) || "null");
-      setReps(d && d.reps ? d.reps : {}); setRir(d && d.rir ? d.rir : {}); setSkipped(d && d.skipped ? d.skipped : {}); setNote(d && d.note ? d.note : ""); setNig(d && d.nig ? d.nig : []);
+      setReps(d && d.reps ? d.reps : {}); setRir(d && d.rir ? d.rir : {}); setRirEnd(d && d.rirEnd ? d.rirEnd : {}); setSkipped(d && d.skipped ? d.skipped : {}); setNote(d && d.note ? d.note : ""); setNig(d && d.nig ? d.nig : []);
     } catch (e) {}
   }, [dateSel]);
   useEffect(() => {
-    try { localStorage.setItem(draftKey, JSON.stringify({ reps, rir, skipped, note, nig })); } catch (e) {}
-  }, [reps, rir, skipped, note, nig, draftKey]);
+    try { localStorage.setItem(draftKey, JSON.stringify({ reps, rir, rirEnd, skipped, note, nig })); } catch (e) {}
+  }, [reps, rir, rirEnd, skipped, note, nig, draftKey]);
   const [recap, setRecap] = useState(null);
   const [boosted, setBoosted] = useState(false);
   const trueShort = slp.last && slp.last.h < 4.5;
@@ -4182,10 +4256,10 @@ function LogTab({ s, setS, save, slp }) {
 
   const [gym, setGym] = useState(false);
   const complete = () => {
-    const entries = sess.ex.filter((ex) => !skipped[ex.id]).map((ex) => ({ id: ex.id, n: ex.n, w: ex.w, tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null }));
+    const entries = sess.ex.filter((ex) => !skipped[ex.id]).map((ex) => ({ id: ex.id, n: ex.n, w: ex.w, tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null, rirEnd: rirEnd[ex.id] ?? null }));
     const skippedList = sess.ex.filter((ex) => skipped[ex.id]).map((ex) => ({ id: ex.id }));
     const { s: ns, lines } = completeSession(s, dateSel, entries, slp, { note: note.trim(), niggles: nig, skipped: skippedList });
-    setS(ns); save(ns); setRecap(lines); setBoosted(false); setReps({}); setRir({}); setNote(""); setNig([]); setSkipped({}); try { localStorage.removeItem(draftKey); } catch (e) {}
+    setS(ns); save(ns); setRecap(lines); setBoosted(false); setReps({}); setRir({}); setRirEnd({}); setNote(""); setNig([]); setSkipped({}); try { localStorage.removeItem(draftKey); } catch (e) {}
   };
 
   return (
@@ -4204,7 +4278,7 @@ function LogTab({ s, setS, save, slp }) {
           <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>✓ {fmtShort(dateSel)} · RECEIPT</button>
         )}
         {options.map((d) => (
-          <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setNote(""); setNig([]); setSkipped({}); }} style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : s.sessionLog[d] ? T.jade : T.steel }}>
+          <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setRirEnd({}); setNote(""); setNig([]); setSkipped({}); }} style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : s.sessionLog[d] ? T.jade : T.steel }}>
             {s.sessionLog[d] ? "✓ " : ""}
             {fmtShort(d)} · {dayType(d) === "U" ? "UPPER" : "LOWER"}
           </button>
@@ -4362,7 +4436,16 @@ function LogTab({ s, setS, save, slp }) {
           {ex.prev && (
             <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 3 }}>
               PREV ▸ {fmtShort(ex.prev.d)} · {ex.prev.w} × {ex.prev.reps.join(",")}
-              {ex.prev.rir != null && <span> · RIR {ex.prev.rir}</span>}
+              {(() => {
+                const rs = rirSetsOf(ex.prev);
+                const o = rs.length ? rs[0] : null, t = rs.length > 1 ? rs[rs.length - 1] : null;
+                if (o == null && t == null) return null;
+                return (
+                  <span> · RIR {o == null ? "?" : o}
+                    {t != null && <span> → <span style={{ color: t === 0 ? T.jade : T.brass }}>{t}</span> last</span>}
+                  </span>
+                );
+              })()}
               {ex.prev.debt && <span style={{ color: T.brass }}> · <Term k="debt" c={T.brass}>on debt</Term></span>}
             </div>
           )}
@@ -4408,6 +4491,20 @@ function LogTab({ s, setS, save, slp }) {
               );
             })}
             <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>optional · 1 = honest</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 6 }}>
+            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em" }}>LAST SET <Term k="rir" c={T.dim}>RIR</Term></span>
+            {[0, 1, 2, 3].map((v) => {
+              const on = rirEnd[ex.id] === v;
+              const c = v === 0 ? T.jade : T.brass;
+              return (
+                <button key={v} onClick={() => setRirEnd({ ...rirEnd, [ex.id]: on ? null : v })}
+                  style={{ width: 34, height: 26, borderRadius: 6, border: `1px solid ${on ? c : T.line}`, background: on ? T.plate2 : "transparent", color: on ? c : T.steel, fontFamily: mono, fontSize: 11 }}>
+                  {v === 3 ? "3+" : v}
+                </button>
+              );
+            })}
+            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>optional · 0 = it was the failure set</span>
           </div>
         </Card>
       ))}
@@ -5081,14 +5178,15 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [t, setT] = useState(0);
   const [reps, setReps] = useState({});
   const [rir, setRir] = useState({});
+  const [rirEnd, setRirEnd] = useState({});
   const [gskip, setGskip] = useState({});
   const gymKey = "prep-ledger-gymdraft-" + dateSel;
   useEffect(() => {
-    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { setReps(d.reps || {}); setRir(d.rir || {}); setGskip(d.gskip || {}); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); } } catch (e) {}
+    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); } } catch (e) {}
   }, []);
   useEffect(() => {
-    try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, gskip, idx, setN })); } catch (e) {}
-  }, [reps, rir, gskip, idx, setN, gymKey]);
+    try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, rirEnd, gskip, idx, setN })); } catch (e) {}
+  }, [reps, rir, rirEnd, gskip, idx, setN, gymKey]);
   const ex = sess.ex[idx];
   const rp2 = rirPlan(s, ex, slp);
   const getR = (e2) => reps[e2.id] ?? e2.tgt.slice();
@@ -5105,7 +5203,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   };
   const nextLift = () => { if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } else setPhase("all-done"); };
   const finish = () => {
-    const entries = sess.ex.filter((e2) => !gskip[e2.id]).map((e2) => ({ id: e2.id, n: e2.n, w: e2.w, tgt: e2.tgt, reps: getR(e2), isDebutNow: e2.isDebutNow, rir: rir[e2.id] ?? null }));
+    const entries = sess.ex.filter((e2) => !gskip[e2.id]).map((e2) => ({ id: e2.id, n: e2.n, w: e2.w, tgt: e2.tgt, reps: getR(e2), isDebutNow: e2.isDebutNow, rir: rir[e2.id] ?? null, rirEnd: rirEnd[e2.id] ?? null }));
     try { localStorage.removeItem(gymKey); } catch (e) {}
     const { s: ns } = completeSession(s, dateSel, entries, slp, { note: "gym mode", niggles: [], skipped: sess.ex.filter((e2) => gskip[e2.id]).map((e2) => ({ id: e2.id })) });
     setS(ns); save(ns); onClose();
@@ -5132,7 +5230,11 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <div>
             <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, letterSpacing: "0.1em" }}>FIRST SET RIR · optional · 1 = honest</div>
             <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-              {[0, 1, 2, 3].map((v) => <button key={v} onClick={() => setRir({ ...rir, [ex.id]: v })} style={{ fontFamily: mono, fontSize: 16, padding: "10px 16px", borderRadius: 8, border: `1px solid ${rir[ex.id] === v ? T.jade : T.line}`, background: T.plate2, color: rir[ex.id] === v ? T.jade : T.steel }}>{v === 3 ? "3+" : v}</button>)}
+              {[0, 1, 2, 3].map((v) => <button key={v} onClick={() => setRir({ ...rir, [ex.id]: rir[ex.id] === v ? null : v })} style={{ fontFamily: mono, fontSize: 16, padding: "10px 16px", borderRadius: 8, border: `1px solid ${rir[ex.id] === v ? (v === 0 ? T.brass : T.jade) : T.line}`, background: T.plate2, color: rir[ex.id] === v ? (v === 0 ? T.brass : T.jade) : T.steel }}>{v === 3 ? "3+" : v}</button>)}
+            </div>
+            <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, letterSpacing: "0.1em", marginTop: 12 }}>LAST SET RIR · optional · 0 = it was the failure set</div>
+            <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+              {[0, 1, 2, 3].map((v) => <button key={v} onClick={() => setRirEnd({ ...rirEnd, [ex.id]: rirEnd[ex.id] === v ? null : v })} style={{ fontFamily: mono, fontSize: 16, padding: "10px 16px", borderRadius: 8, border: `1px solid ${rirEnd[ex.id] === v ? (v === 0 ? T.jade : T.brass) : T.line}`, background: T.plate2, color: rirEnd[ex.id] === v ? (v === 0 ? T.jade : T.brass) : T.steel }}>{v === 3 ? "3+" : v}</button>)}
             </div>
           </div>
           <Btn full tone="jade" onClick={nextLift}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</Btn>

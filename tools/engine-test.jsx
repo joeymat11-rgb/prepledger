@@ -1392,5 +1392,76 @@ const lift99 = la99(h99).find((c) => c.id === "forecast").lines.find((l) => l.in
 ok(!!lift99 && lift99.indexOf("n=3") > -1, "the third session opens the lift projection: " + (lift99 || "").slice(0, 54));
 ok(!!IM99.forecast, "the forecast declares its inputs");
 
+// v3.99.9 — per-set RIR: the terminal set is recorded, never assumed
+const { buildRirSets: brs, rirSetsOf: rso, openerRir: orr, terminalRir: trr, migrate: mgRS, SEED: TRS, genSession: gsRS, completeSession: csRS, SCHEMA_V: SVRS } = __test;
+const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+/* The seed is authored already-current while migrate() walks old states up to
+   the same number. They carried that number separately and the seed silently
+   fell a version behind. These two hold them together. */
+ok(TRS.v === SVRS, "the seed is authored at the current schema version — no silent drift behind migrate()");
+ok(TRS.exercises.every((e) => !e.lastMeta || (Array.isArray(e.lastMeta.rirSets) && e.lastMeta.rirSets.length === (e.lastMeta.reps || []).length)),
+   "a fresh install's PREV blocks are shaped exactly like migrated ones");
+
+// the shape: opener in slot 0, terminal in the last slot, middle sets left unknown
+ok(eq(brs({ reps: [8, 8, 7], rir: 1, rirEnd: 0 }), [1, null, 0]), "three sets rated at both ends → [1,null,0]; the middle stays unknown, not guessed");
+ok(eq(brs({ reps: [8, 8, 7], rir: 1 }), [1, null, null]), "opener alone never fabricates a terminal value");
+ok(eq(brs({ reps: [8, 8, 7], rirEnd: 0 }), [null, null, 0]), "terminal alone never back-fills the opener");
+ok(eq(brs({ reps: [8, 8, 7] }), [null, null, null]), "an unrated entry is three nulls, not three zeros");
+ok(eq(brs({ reps: [] }), []) && eq(brs({}), []), "no reps, no array — nothing to align to");
+
+// a single-set lift: opener and terminal are the same set, so the terminal rating wins
+ok(eq(brs({ reps: [15], rir: 2, rirEnd: 0 }), [0]), "one set means opener IS terminal — the last-set rating is the truthful one");
+ok(eq(brs({ reps: [15], rir: 2 }), [2]), "one set, opener only → that value still lands");
+ok(eq(brs({ reps: [8, 8, 7] }, 2), [null, null]), "an explicit length overrides the reps array");
+
+// reading back: legacy entries answer the opener question without a migration
+ok(eq(rso({ reps: [8, 8, 7], rir: 1 }), [1, null, null]), "a pre-v31 entry still reports its opener — `rir` always meant slot 0");
+ok(eq(rso({ reps: [8, 8, 7], rirSets: [2] }), [2, null, null]), "a short rirSets is padded to the rep count, never left ragged");
+ok(eq(rso({ reps: [8, 8], rirSets: [2, 1, 0] }), [2, 1]), "a long rirSets is trimmed — reps are the source of truth for set count");
+ok(eq(rso(null), []) && eq(rso({}), []), "no entry, no array");
+ok(orr({ reps: [8, 8, 7], rir: 1, rirSets: [1, null, 0] }) === 1 && trr({ reps: [8, 8, 7], rir: 1, rirSets: [1, null, 0] }) === 0,
+   "opener and terminal read off opposite ends of the same array");
+ok(trr({ reps: [8, 8, 7], rir: 1 }) === null, "an unrated terminal reads null — the ramp must never mistake silence for failure");
+ok(orr({ reps: [8, 8, 7], rirSets: [0, null, null] }) === 0 && trr({ reps: [10], rirSets: [0] }) === 0, "0 is a value, not an absence");
+
+// logging a real session stores both ends
+const slpRS = { clean: true, run: 3, need: 3, last: { h: 8 } };
+const dRS = "2026-07-23";
+const gRS = gsRS(clone(TRS), dRS, slpRS);
+const enRS = gRS.ex.map((e) => ({ id: e.id, n: e.n, w: e.w, tgt: e.tgt, reps: e.tgt.slice(), isDebutNow: e.isDebutNow, rir: e.id === "press" ? 2 : null, rirEnd: e.id === "press" ? 0 : null }));
+const { s: afterRS } = csRS(clone(TRS), dRS, enRS, slpRS);
+const logRS = afterRS.sessionLog[dRS].entries.find((e) => e.id === "press");
+ok(logRS.rirSets[0] === 2 && logRS.rirSets[logRS.rirSets.length - 1] === 0 && logRS.rirSets.length === logRS.reps.length,
+   "the session log carries a per-set array aligned to reps: [" + logRS.rirSets.join(",") + "]");
+ok(trr(logRS) === 0 && orr(logRS) === 2, "and it reads back through the same accessors the ramp will use");
+ok(logRS.rir === 2, "legacy `rir` is still written — every existing consumer keeps working untouched");
+const metaRS = afterRS.exercises.find((e) => e.id === "press").lastMeta;
+ok(eq(metaRS.rirSets, logRS.rirSets) && metaRS.rir === 2, "PREV carries the same array, so the lift card can show both ends");
+const unratedRS = afterRS.sessionLog[dRS].entries.find((e) => e.id !== "press");
+ok(trr(unratedRS) === null, "lifts he did not rate stay null across the whole round trip");
+
+// the opener rule is untouched: rirHist and holdFlag still read `rir` only
+const hotRS = gRS.ex.map((e) => ({ id: e.id, n: e.n, w: e.w, tgt: e.tgt, reps: e.tgt.slice(), isDebutNow: e.isDebutNow, rir: e.id === "press" ? 0 : null, rirEnd: e.id === "press" ? 3 : null }));
+const { s: h1RS } = csRS(clone(TRS), dRS, hotRS, slpRS);
+const { s: h2RS } = csRS(h1RS, "2026-07-30", hotRS, slpRS);
+ok(h2RS.exercises.find((e) => e.id === "press").holdFlag === true, "two hot openers still trip the hold — a soft terminal set does not rescue it");
+
+// migration: v30 phones gain the array without gaining a claim
+const oldRS = clone(TRS);
+oldRS.v = 30;
+oldRS.sessionLog = { "2026-07-20": { entries: [{ id: "press", reps: [8, 8, 7], rir: 1, w: 245 }, { id: "curl", reps: [12, 8, 10], w: 55 }], at: 1 } };
+const migRS = mgRS(oldRS);
+ok(migRS.v === 31, "a v30 phone lands on v31");
+const mPress = migRS.sessionLog["2026-07-20"].entries.find((e) => e.id === "press");
+ok(eq(mPress.rirSets, [1, null, null]), "the old opener value is lifted into slot 0 — a restatement, not a guess");
+ok(trr(mPress) === null, "and the terminal slot stays null: the app never asked, so it does not know");
+ok(eq(migRS.sessionLog["2026-07-20"].entries.find((e) => e.id === "curl").rirSets, [null, null, null]), "an entry with no RIR at all migrates to nulls, aligned to its reps");
+ok(migRS.exercises.every((e) => !e.lastMeta || Array.isArray(e.lastMeta.rirSets)), "every PREV block gets the array too — no half-migrated states");
+ok(eq(mgRS(migRS), migRS), "migration is idempotent — re-running it on a v31 state changes nothing");
+const twiceRS = clone(migRS); twiceRS.v = 30;
+ok(eq(mgRS(twiceRS).sessionLog["2026-07-20"].entries.find((e) => e.id === "press").rirSets, [1, null, null]),
+   "a state that already has rirSets is left alone even if the version is rolled back");
+
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

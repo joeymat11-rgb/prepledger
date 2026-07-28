@@ -4,7 +4,7 @@
 //   npm test
 //
 // Three layers, cheapest first:
-//   1. engine suite  — ~359 assertions over the rules engine (tools/engine-test.jsx)
+//   1. engine suite  — ~389 assertions over the rules engine (tools/engine-test.jsx)
 //   2. render smoke  — every tab, in three states, must render without
 //                      "undefined" / "NaN" / an empty screen
 //   3. dom smoke     — the *committed* app.js (the exact bytes Netlify serves)
@@ -17,9 +17,11 @@
 import esbuild from "esbuild";
 import { ROOT, at, tmp, isMain, head, pass, fail, note, node, bold, red, green, dim } from "./lib.mjs";
 
-// The engine suite stood at 359 assertions when this gate was written. Adding
-// assertions is expected; losing them silently is the failure this guards.
-const MIN_ASSERTIONS = 350;
+// The engine suite stood at 389 assertions when this floor was last raised.
+// Adding assertions is expected; losing them silently is the failure this
+// guards. Raise the floor whenever the suite grows — a floor left far below the
+// real count stops guarding anything.
+const MIN_ASSERTIONS = 380;
 
 async function engineSuite() {
   const out = tmp("engine-test.cjs");

@@ -187,6 +187,36 @@ Paths derive from `ROOT` in `scripts/lib.mjs`; servers bind to port 0.
 - The beacon deliberately lives in `src/beacon.js` and wires in through
   `src/main.jsx`, so error reporting stays outside that 5,800-line blast radius.
 
+### Adding a schema version
+
+State on his phone is versioned, and every old version has to walk forward
+without losing a byte. The ritual is three steps and nothing else:
+
+1. Write `patchVn(s)` — mutate, set `s.v = n`, `return s`. It must be safe to
+   run on a state that already has the field (`s.x = s.x || []`), because the
+   v1/v2 path replays the whole chain over a fresh seed.
+2. Append it to `PATCHES` and bump `SCHEMA_V` (declared once, next to `APP_V`).
+3. Author the same shape into `SEED` inside `weave()`. **The seed is authored
+   already-current — it does not go through the patch chain on a fresh
+   install.** Two assertions hold `SEED.v === SCHEMA_V` and check that a fresh
+   install's PREV blocks are shaped like migrated ones.
+
+Two failures this design exists to prevent, both of which have actually
+happened here:
+
+- `migrate()` used to be a 31-deep nest of `patchV31(patchV30(...))`. A missing
+  paren is invisible on review and only surfaces as an esbuild error. It is a
+  `reduce` over `PATCHES` now — appending is a one-token edit.
+- `SEED.v` carried the version number independently of `migrate()` and drifted
+  a version behind, so fresh installs and migrated states disagreed. One
+  constant, referenced from both, plus a test.
+
+A patch may only restate what was already recorded. `patchV31` lifts the legacy
+`rir` into `rirSets[0]` because `rir` has always meant the opener — that is a
+restatement. It leaves every other slot `null`, because the app never asked. A
+migration that invents a plausible value is worse than no migration: the ramp
+cannot tell a real reading from a manufactured one.
+
 ## Workflow
 
 Recon before editing. One batch. Grep-verify each change. Parse-check. Run the
