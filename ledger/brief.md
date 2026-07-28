@@ -1,11 +1,11 @@
-<!-- 2026-07-27 -->
+<!-- 2026-07-28 -->
 
-The short version: you're mid-whoosh and everything's pointing the right way. This morning's 161.8 is about 3 lb under your trend — that's wedding water leaving, not fat returning. Give the next few clean reads a chance to confirm it; the trend will drop to meet them on its own.
+YESTERDAY'S GAPS — last night's sleep and yesterday's pulse and temp aren't in the synced books yet. Your sync is old, from 3:47 yesterday afternoon — open the app once and this likely clears. The day numbers, session, and 161.8 read landed.
 
-Pace is right where you want it — roughly 1.3 lb a week, inside your target band and inside the muscle-safe zone. No change to the deficit.
+LAST 24H — Clean deficit day, full session. Press came in 8,8,5, so it stays pending — it still needs a clean 8,8,7. Rows hit 180 for 8,7.
 
-The lever that matters most tonight is sleep. Two-week average is 6.9 hours and caffeine's been landing late and heavy (the 400 mg at noon is the one to move). On a cut, this is the single biggest factor in whether what you lose is fat or muscle. Get to 7.5 hours and pull the caffeine earlier.
+WATCHING — The light press wasn't a stall. It fell on a 6-hour night with recovery flagged low. Fuel, not failure — one night, so hold it loosely.
 
-Training: hold new load and progressions for a few days — recovery's dipped a little (short sleep, a couple of rep dips). Defend what you're lifting; it climbs again fast once you bank two or three good nights.
+AUDIT — The Adaptation Meter's "zero adaptation" read got weaker. It reads your burn off two weeks that mostly sat sealed at a frozen 164.7. Wait for a clean post-seal fortnight.
 
-The rest is already handled — protein at 174 g, steps strong. Keep those quietly ticking and let sleep do the heavy lifting this week.
+CONSIDER — Book the DEXA. Seal's lifted and you're clear of the wedding, so a fasted scan is honest — and it lands at tomorrow's week-8 window, where each body-fat point starts buying two to three times the visible change.
