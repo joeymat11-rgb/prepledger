@@ -2272,9 +2272,20 @@ const { programmeVolume: pvN, volumeImbalance: viN, muscleVolume: mvN, VOL_BANDS
 const pv23 = pvN(clone(TV23));
 ok(pv23.length >= 8, "every muscle the programme touches gets a line: " + pv23.length);
 ok(pv23[0].sets >= pv23[pv23.length - 1].sets, "sorted heaviest first, so the imbalance is the first thing read");
-const hams23 = pv23.find((m) => m.mg === "hams"), delts23 = pv23.find((m) => m.mg === "delts");
+const hams23 = pv23.find((m) => m.mg === "hams");
 ok(hams23 && hams23.sets === 4 && hams23.zone === "UNDER", "hams come out at 4 sets a week — under the retention floor, by construction: " + (hams23 || {}).sets);
-ok(delts23 && delts23.sets > VBN.hi && delts23.zone === "OVER", "delts come out past the ceiling: " + (delts23 || {}).sets);
+/* THE POOLING FIX. "delts" is not a muscle — Pelland 2025 classifies anterior,
+   lateral and posterior deltoid separately with separate exercise lists. Pooled,
+   this programme scored 17 and looked excessive; that number is not comparable
+   to any per-muscle band under any convention, and it is what produced a
+   reallocation recommendation the same paper's detection threshold calls
+   indistinguishable from zero. */
+ok(!pv23.some((m) => m.mg === "delts"), "there is no pooled delts bucket any more — the three heads are trained separately, so they are counted separately");
+const side23 = pv23.find((m) => m.mg === "delts_side"), rear23 = pv23.find((m) => m.mg === "delts_rear"), front23 = pv23.find((m) => m.mg === "delts_front");
+ok(side23 && rear23 && front23, "all three heads appear: side " + (side23 || {}).sets + ", rear " + (rear23 || {}).sets + ", front " + (front23 || {}).sets);
+ok([side23, rear23, front23].every((m) => m.sets <= 10 && m.tier === "highest return per set"),
+   "and each lands in the HIGH-RETURN tier rather than the pooled 17 that read as an excess");
+ok(front23.sets === 3, "the anterior head is credited from pressing at half — bench is indirect for the front delt only, which is exactly what Pelland's table says");
 /* half-credit, same convention as the log-based ledger, so the two are comparable */
 const tri23 = pv23.find((m) => m.mg === "triceps");
 ok(tri23 && tri23.sets === 9, "a compound lends half to its secondary: triceps read 6 direct plus 3 from pressing = 9, not 6 and not 12");
@@ -2285,10 +2296,24 @@ ok(pvN(noLog23).find((m) => m.mg === "hams").sets === 4, "with an empty session 
 ok(mvN(noLog23).length === 0, "while the log-based ledger correctly goes silent, which is the gap this fills");
 
 const vi23 = viN(clone(TV23));
-ok(vi23 && vi23.donor.mg === "delts" && vi23.taker.mg === "hams", "the cheapest move is named in both directions: from " + vi23.donor.mg + " to " + vi23.taker.mg);
+ok(vi23 && vi23.taker.mg === "hams", "the muscle at the minimum effective dose is named: " + vi23.taker.mg);
+/* THE NOISE-FLOOR FIX. Pelland's smallest detectable effect for hypertrophy is
+   2.05%. A three-set move off a base of four is worth about 0.5 — a
+   recommendation the literature cannot tell apart from zero. The card now sizes
+   the move to clear that bar or does not appear at all. */
+ok(vi23.sdes === 2.05, "the detection threshold is stated, not implied");
+ok(vi23.need >= 5, "and the honest move is " + vi23.need + " sets, not the two or three that reads as a sensible nudge");
+ok(vi23.gain >= vi23.sdes, "because that is the smallest move whose modelled effect (" + vi23.gain + "%) clears it");
+const smallMove = 1.76 * (Math.sqrt(7) - Math.sqrt(4));
+ok(smallMove < vi23.sdes, "a three-set move is worth " + smallMove.toFixed(2) + "% — under the bar, and therefore not something to surface");
+ok(Math.abs(1.76 * (Math.sqrt(10) - Math.sqrt(4)) - 2.05) < 0.05, "and the calibration checks out against Pelland's own published tier step: six sets off a base of four lands on exactly one SDES");
+/* a bucket fed only by what a compound lends has no exercise to add sets to */
+const front = pvN(clone(TV23)).find((m) => m.mg === "delts_front");
+ok(front && front.indirectOnly === true, "the anterior delt is credited from pressing and has no direct lift of its own");
+ok(!viN(clone(TV23)).under.some((m) => m.indirectOnly), "so it is never named as a muscle to add sets to — the lever there is the press itself");
 const balanced23 = clone(TV23);
-balanced23.exercises.forEach((e) => { if (e.mg === "hams") e.sets = 4; if (e.id === "lateral") e.sets = 2; if (e.id === "rearDelt") e.sets = 2; });
-ok(!viN(balanced23), "a balanced programme raises nothing — the card is a finding, not a fixture");
+balanced23.exercises.forEach((e) => { if (e.mg === "hams") e.sets = 6; });
+ok(!viN(balanced23) || !viN(balanced23).detectable, "a programme with nothing under the floor raises nothing — the card is a finding, not a fixture");
 
 /* the proposal, and the one it must not duplicate */
 let volS = clone(TV23);
@@ -2298,7 +2323,9 @@ volS.reads.sort((a, b) => (a.d < b.d ? -1 : 1));
 volS = raW(volS, isoL(Date.now()));
 const vCard = volS.proposals.find((p) => p.rid.indexOf("volstruct_") === 0 && !p.resolved);
 ok(!!vCard, "the imbalance is filed as a proposal");
-ok(vCard.why.indexOf("hams 4") > -1 && vCard.why.indexOf("delts 17") > -1, "with the whole allocation shown, so he can check the arithmetic himself");
+ok(vCard.why.indexOf("hams 4") > -1 && vCard.why.indexOf("delt side") > -1, "with the whole allocation shown by head, so he can check the arithmetic himself");
+ok(vCard.title.indexOf("MINIMUM EFFECTIVE DOSE") > -1, "and the headline says what 4 sets actually means — holding, not growing: " + vCard.title);
+ok(vCard.why.indexOf("Bickel") > -1, "citing the trial where ~3 sets a week held quad size for 32 weeks, so he is not alarmed into adding work he does not need");
 ok(vCard.why.indexOf("does not need more weeks to become true") > -1, "and says why it is not waiting for the fourteen-day log gate");
 ok(volS.proposals.filter((p) => !p.resolved && p.rid.indexOf("volband") === 0).length === 1, "the band-width proposal is a different question and still stands on its own");
 

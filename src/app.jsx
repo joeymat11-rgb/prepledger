@@ -33,13 +33,13 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.23";
+const APP_V = "3.99.24";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 32;
+const SCHEMA_V = 33;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -55,9 +55,9 @@ const REFEED = { cal: "2,450–2,500", note: "weekly Wednesday — prescribed, n
 /* ---------- exercise seed (state as of Wed 7/22/26) ---------- */
 const EXERCISES = [
   /* UPPER — order per the 7/20 session note */
-  { id: "lateral", mg: "delts", lastMeta: { d: "2026-07-20", w: 80, reps: [14, 13, 13], debt: true }, n: "Lateral machine", day: "U", w: 80, inc: 5, sets: 4, hi: 15, last: [14, 13, 13],
+  { id: "lateral", mg: "delts", head: "delts_side", lastMeta: { d: "2026-07-20", w: 80, reps: [14, 13, 13], debt: true }, n: "Lateral machine", day: "U", w: 80, inc: 5, sets: 4, hi: 15, last: [14, 13, 13],
     setup: "SET · resistance profile 5 · seat 5\nUpright, elbow-led (the set-4 fix) · no shrug creep · smooth top, no swing" },
-  { id: "rearDelt", mg: "delts", lastMeta: { d: "2026-07-20", w: 20, reps: [10, 10], debt: true }, n: "Rear-delt fly (cable · uni)", day: "U", w: 20, inc: 2.5, sets: 3, hi: 12, last: [10, 10], note: "honest 10s — no hot opener · 3 sets per side, log the weaker side",
+  { id: "rearDelt", mg: "delts", head: "delts_rear", lastMeta: { d: "2026-07-20", w: 20, reps: [10, 10], debt: true }, n: "Rear-delt fly (cable · uni)", day: "U", w: 20, inc: 2.5, sets: 3, hi: 12, last: [10, 10], note: "honest 10s — no hot opener · 3 sets per side, log the weaker side",
     setup: "SET · unilateral · cable at highest height\nChest tall, shoulders back & down (?) · pure sweep — the opener fix is proven here" },
   { id: "rows", mg: "back", lastMeta: { d: "2026-07-20", w: 175, reps: [10, 10], debt: true }, n: "Rows (strapless)", day: "U", w: 175, inc: 5, sets: 2, hi: 10, last: [10, 10],
     setup: "SET · seat 4 · chest pad 7 · retrace profile 1\nChest stays glued to pad · pinch the blades at the back · strapless is the standard" },
@@ -95,7 +95,7 @@ const SEED = {
   rate: { band: [1.0, 1.4], redline: 1.9, floor: 0.8 },
   maintenance: [{ label: "Hard-block steps", cal: 2590, note: "validated" }, { label: "Ease-1 steps", cal: 2470 }],
   trend: 164.2,
-  model: { lean: 139.7, anchorISO: "2026-07-21", drip: 0.3, src: "coach's eye", err: "±1.5–3" },
+  model: { lean: 139.7, anchorISO: "2026-07-21", drip: 0, src: "coach's eye", err: "±1.5–3" },
   dexaPred: "~16 (15–17)",
   reads: [
     { d: "2026-06-10", w: 169.8, note: "baseline · ~18% BF", sealed: false },
@@ -901,10 +901,71 @@ function completeSession(state, iso, entries, slp, extras = {}) {
 }
 
 /* live BF estimate from the anchored lean-mass model */
+/* ---------- DRIP_NOTE — the worst number this app ever contained ----------
+   `drip` was +0.3 lb/wk: an assumption that a lean, multi-year-trained male
+   GAINS lean mass while running a 600 kcal/day deficit. It was hardcoded, never
+   verified, and load-bearing in three places at once — the body-fat estimate,
+   the maintenance calculation, and every forecast.
+
+   It is not optimistic. It is the wrong sign, and the app's own arithmetic says
+   so without needing a single citation:
+
+     maintenance 2,631 − intake 2,021 = 610 kcal/day = 4,270 kcal/week
+     against 0.97 lb/week of scale loss = 4,402 kcal per pound
+     pure body fat is 4,282 kcal/lb (Hall 2008)
+
+   The app was claiming he liberated more energy per pound than lipid contains.
+   That is only possible if lean mass genuinely rose.
+
+   It did not. Every study matched to this population shows lean flat to falling:
+   Roth, Schoenfeld & Behringer 2022 (EJAP) — trained males, 14.9% body fat, 6.0
+   years trained, 3.06 g/kg FFM protein, essentially this athlete — median
+   −0.11 lb/wk, mean −0.34. Roth et al. 2023 (Scand J Med Sci Sports, n=38
+   resistance-trained males at 2.8 g/kg FFM) lost 0.5–0.9 kg of lean in six
+   weeks. Murphy & Koehler 2022's meta-regression puts the deficit at which lean
+   gains stop at ~500 kcal/day; he runs 610. And Forbes' partitioning (Hall 2007)
+   says at his 11 kg of fat mass the untreated baseline is 49% of loss coming
+   off fat-free mass — leanness is a headwind here, not a tailwind.
+
+   The two studies that DO show gains are the two that do not describe him:
+   Longland 2016 (overweight, explicitly untrained, 4 weeks of a novel stimulus)
+   and Garthe 2011's slow arm (elite athletes newly added to a strength
+   programme, 1.6 g/kg protein, n≈6 men). Taking +0.3 from those is applying the
+   upper tail of the wrong population.
+
+   What it cost him: body fat understated 1.3–2.7 percentage points and drifting
+   a further 0.2–0.4 pp per week; maintenance overstated ~100 kcal/day; the ETA
+   to 10% reading 6.7 weeks against an honest ~11.5. And worst — because it told
+   him he was gaining muscle anyway, it made the 610 kcal/day deficit look free,
+   which is exactly the deficit the evidence says costs him lean tissue. A wrong
+   constant that argues for the behaviour that makes it wronger.
+
+   Now 0.0, with the band the evidence supports, and body fat is reported as a
+   RANGE that widens with distance from the last real measurement — because an
+   anchor from a coach's eye carries ±3–4 points that never wash out, and open-
+   loop integration of an unverified constant off an unverified initial
+   condition is the one thing a model must not do quietly. */
+const DRIP_DEFAULT = 0.0;
+const DRIP_LO = -0.35, DRIP_HI = 0.10;
+const KCAL_PER_LB_FAT = 4282;   /* Hall 2008: 39.5 MJ/kg */
+const KCAL_PER_LB_MIX = 3800;   /* ~87% fat for a lean, high-protein, training male */
+const ANCHOR_ERR_EYE = 3.5, ANCHOR_ERR_DEXA = 1.0;
+function dripOf(s) { const d = s && s.model ? s.model.drip : null; return d == null ? DRIP_DEFAULT : d; }
 function bfEst(s, trend = s.trend, atISO = isoOf(todayStart())) {
   const wks = Math.max(0, weeksBetween(s.model.anchorISO, atISO));
-  const lean = s.model.lean + s.model.drip * wks;
-  return { pct: +(((trend - lean) / trend) * 100).toFixed(1), lean: +lean.toFixed(1) };
+  const drip = dripOf(s);
+  const lean = s.model.lean + drip * wks;
+  const pct = +(((trend - lean) / trend) * 100).toFixed(1);
+  /* The band. Two independent sources of error, neither of which shrinks with
+     time: the anchor's own accuracy, and the unknown lean trajectory since. */
+  const anchorErr = s.model.src === "DEXA" ? ANCHOR_ERR_DEXA : ANCHOR_ERR_EYE;
+  const fromLean = (l) => ((trend - l) / trend) * 100;
+  const lo = +(fromLean(s.model.lean + DRIP_HI * wks) - anchorErr).toFixed(1);
+  const hi = +(fromLean(s.model.lean + DRIP_LO * wks) + anchorErr).toFixed(1);
+  return {
+    pct, lean: +lean.toFixed(1), lo, hi, wks: +wks.toFixed(1), anchorErr, src: s.model.src, drip,
+    why: `Anchored ${wks < 1 ? "today" : `${Math.round(wks)} week${Math.round(wks) === 1 ? "" : "s"} ago`} by ${s.model.src === "DEXA" ? "DEXA (±1 point)" : "your coach's eye (±3–4 points, and that error never washes out)"}. Lean mass since then is assumed flat — the evidence for a trained lean male in a deficit is −0.11 lb/wk median, and nothing in this app can measure it. The band is that uncertainty made visible rather than hidden behind a decimal.`,
+  };
 }
 
 /* ---------- PROTEIN_NOTE — why the number is no longer a constant ----------
@@ -1195,19 +1256,37 @@ function observedTDEE(s) {
      stopped responding to the data exactly where the data had most to say. The
      ceiling now sits at a genuinely physiological bound rather than a typical
      one, and it reports when it binds instead of silently truncating. */
-  const RAW = r.scale + s.model.drip;
+  /* ---------- Two errors that were partly cancelling each other ----------
+     The rate had the drip ADDED to it — the app assumed he must be losing more
+     fat than the scale showed, because lean was going up. It was not (DRIP_NOTE).
+     And the conversion used 3,500 kcal/lb, which is Wishnofsky's 1958 figure and
+     is arithmetically equivalent to assuming 23% of the loss is lean tissue —
+     a sedentary partitioning. For a lean male training hard on 2.76 g/kg FFM of
+     protein, ~87% of the loss is fat, which prices at ~3,800 kcal/lb (Hall 2008:
+     fat 4,282, lean 816).
+
+     Inflating the pounds and under-pricing each pound pushed in opposite
+     directions, which is why the total error is only ~100 kcal/day rather than
+     300. Both are now correct rather than conveniently wrong together. */
+  const RAW = r.scale;
   const CEIL = 3.0;
   const fatWk = Math.min(CEIL, RAW);
-  const kcal = (f) => Math.round(avg + (f * 3500 - s.model.drip * 600) / 7);
+  const kcal = (f) => Math.round(avg + (f * KCAL_PER_LB_MIX) / 7);
   const tdee = kcal(fatWk);
+  /* A thermodynamic floor check. If the implied deficit per pound exceeds the
+     energy density of pure lipid, the model is claiming something impossible and
+     should say so rather than print it. This is the check that caught the drip. */
+  const impliedPerLb = fatWk > 0 ? Math.round(((tdee - avg) * 7) / fatWk) : null;
+  const impossible = impliedPerLb != null && impliedPerLb > KCAL_PER_LB_FAT;
   /* The rate's own confidence interval, carried through to the TDEE. A single
      "measured TDEE" with no band invites a precision nobody has. */
-  const lo = r.ci != null ? kcal(Math.min(CEIL, Math.max(0, r.lo + s.model.drip))) : null;
-  const hi = r.ci != null ? kcal(Math.min(CEIL, r.hi + s.model.drip)) : null;
+  const lo = r.ci != null ? kcal(Math.min(CEIL, Math.max(0, r.lo))) : null;
+  const hi = r.ci != null ? kcal(Math.min(CEIL, r.hi)) : null;
   return {
     tdee, days: cals.length, avg: Math.round(avg),
     lo, hi, clamped: RAW > CEIL, method: r.method, rateN: r.n,
     rate: r.scale, rateCi: r.ci, from, to, matched, split,
+    perLb: KCAL_PER_LB_MIX, impliedPerLb, impossible,
   };
 }
 
@@ -1380,15 +1459,30 @@ function energyAvailability(s) {
 }
 
 /* ETA (weeks) until est. BF reaches a target, simulating trend − rate, lean + drip */
-function etaWeeks(s, targetPct) {
+function etaWeeks(s, targetPct, leanRate) {
   const r = currentRate(s);
+  const dr = leanRate == null ? dripOf(s) : leanRate;
   let trend = s.trend, wks = 0;
   let lean = bfEst(s).lean;
   for (; wks < 30; wks++) {
     if (((trend - lean) / trend) * 100 <= targetPct) return wks;
-    trend -= Math.max(0.3, r.scale); lean += s.model.drip;
+    trend -= Math.max(0.3, r.scale); lean += dr;
   }
   return null;
+}
+/* An ETA is a range or it is a fiction. The old one walked a single line off a
+   drip of +0.3, which made it ~41% too short: 6.7 weeks to 10% where the honest
+   answer under flat lean mass is ~11.5. This runs the same walk at both ends of
+   the evidence-supported lean band and reports the spread, plus the one figure
+   that is arithmetic rather than prophecy — the weight at which he hits the
+   target IF lean mass holds. */
+function etaRange(s, targetPct) {
+  const mid = etaWeeks(s, targetPct, DRIP_DEFAULT);
+  const fast = etaWeeks(s, targetPct, DRIP_HI);
+  const slow = etaWeeks(s, targetPct, DRIP_LO);
+  const lean = bfEst(s).lean;
+  const atWeight = +(lean / (1 - targetPct / 100)).toFixed(1);
+  return { mid, fast, slow, atWeight, lean: +lean.toFixed(1) };
 }
 
 /* THE LAB — every analytic self-gates on its own data threshold. No correlations under N. */
@@ -3167,34 +3261,67 @@ function programmeVolume(s) {
   for (let i = 0; i < 7; i++) { const t = dayType(isoOf(new Date(mk("2026-07-27").getTime() + i * DAY)), s); if (t === "U" || t === "L") perWeek[t] = (perWeek[t] || 0) + 1; }
   const by = {};
   const add = (mg, n) => { if (mg) by[mg] = (by[mg] || 0) + n; };
+  /* Bucket by HEAD where a muscle has separately-trained heads. Pelland 2025
+     classifies anterior, lateral and posterior deltoid as different muscles with
+     different exercise lists — pooling them produces a number that cannot be
+     compared to any per-muscle band under any counting convention, and on this
+     programme it produced a 17 that looked like an excess when the three heads
+     are 5-7 each: the highest-return tier. Bench press is indirect for the
+     ANTERIOR head only, which is what INDIRECT already encodes. */
+  const bucket = (e) => e.head || e.mg;
   (s.exercises || []).forEach((e) => {
     const days = perWeek[e.day] || 0;
     if (!days || !e.sets) return;
     const n = e.sets * days;
-    add(e.mg, n);
+    add(bucket(e), n);
     const lend = INDIRECT[e.id];
-    if (lend) Object.entries(lend).forEach(([mg2, f2]) => add(mg2, n * f2));
+    if (lend) Object.entries(lend).forEach(([mg2, f2]) => add(mg2 === "delts" ? "delts_front" : mg2, n * f2));
   });
   return Object.keys(by).map((mg) => {
     const sets = +by[mg].toFixed(1);
     const zone = sets < VOL_BANDS.floor ? "UNDER" : sets < VOL_BANDS.lo ? "LOW" : sets <= VOL_BANDS.hi ? "IN-BAND" : sets <= VOL_BANDS.ceil ? "HIGH" : "OVER";
     const tier = sets <= 10 ? "highest return per set" : sets <= 18 ? "intermediate return" : "lowest return";
-    const lifts = (s.exercises || []).filter((x) => x.mg === mg);
-    return { mg, sets, zone, tier, lifts: lifts.map((x) => ({ id: x.id, n: x.n, sets: x.sets, day: x.day })) };
+    const lifts = (s.exercises || []).filter((x) => (x.head || x.mg) === mg);
+    /* A bucket fed only by what compounds lend has no exercise to add sets to,
+       so it cannot be the subject of a volume recommendation — the anterior delt
+       here is pressing, and the honest lever on it is the press. */
+    return { mg, sets, zone, tier, indirectOnly: lifts.length === 0, lifts: lifts.map((x) => ({ id: x.id, n: x.n, sets: x.sets, day: x.day })) };
   }).sort((a, b) => b.sets - a.sets);
 }
+/* Pelland 2025's smallest detectable effect for hypertrophy is 2.05%. Their
+   model is a square root of fractional weekly sets, calibrated so the marginal
+   slope at 12.25 sets is 0.24%/set — which reproduces their own published
+   "~6 extra sets from a base of 4" tier step, so the calibration holds.
+   A recommendation whose modelled effect is under 2.05% is beneath the noise
+   floor of the literature it comes from, and this app does not surface those. */
+const HYP_SDES = 2.05, HYP_B = 1.76;
+const hypGain = (from, to) => +(HYP_B * (Math.sqrt(Math.max(0, to)) - Math.sqrt(Math.max(0, from)))).toFixed(2);
 /* The cheapest change available: sets moved from the flat part of one curve to
    the steep part of another cost nothing in recovery and buy real growth. */
 function volumeImbalance(s) {
   const pv = programmeVolume(s);
   if (!pv.length) return null;
-  const under = pv.filter((m) => m.sets < VOL_BANDS.floor);
-  const low = pv.filter((m) => m.sets >= VOL_BANDS.floor && m.sets < VOL_BANDS.lo);
-  const over = pv.filter((m) => m.sets > VOL_BANDS.hi);
+  const under = pv.filter((m) => m.sets < VOL_BANDS.floor && !m.indirectOnly);
+  const low = pv.filter((m) => m.sets >= VOL_BANDS.floor && m.sets < VOL_BANDS.lo && !m.indirectOnly);
+  const over = pv.filter((m) => m.sets > VOL_BANDS.hi && !m.indirectOnly);
   if (!under.length && !over.length) return null;
   const donor = over.length ? over[0] : null;
   const taker = under.length ? under[under.length - 1] : (low.length ? low[low.length - 1] : null);
-  return { pv, under, low, over, donor, taker };
+  /* How many sets does the taker actually need before the modelled gain clears
+     the literature's own smallest detectable effect? On this programme the
+     answer for hamstrings is SIX, not the two or three that reads as a sensible
+     nudge — a three-set move is worth 0.47 percentage points against an SDES of
+     2.05, which is a recommendation dressed as a finding. If nothing on the
+     board clears the bar, this returns null and the app says nothing. */
+  let need = null, gain = null;
+  if (taker) {
+    for (let k = 1; k <= 12; k++) {
+      const g = hypGain(taker.sets, taker.sets + k);
+      if (g >= HYP_SDES) { need = k; gain = g; break; }
+    }
+  }
+  const detectable = need != null && (!donor || donor.sets - need >= VOL_BANDS.lo);
+  return { pv, under, low, over, donor, taker, need, gain, detectable, sdes: HYP_SDES };
 }
 
 function sweepVolume(s, dow7 = new Date().getDay()) {
@@ -3378,13 +3505,10 @@ function runAdaptive(state, todayISO) {
 
   /* The programme's own set allocation, which is arithmetic and needs no waiting. */
   const vi = volumeImbalance(s);
-  if (!sealed && vi && (vi.under.length || vi.over.length)) {
-    const line = (m) => `${m.mg} ${m.sets}`;
-    const move = vi.donor && vi.taker
-      ? ` The cheapest change on this page is not adding work, it is moving it: two sets off ${vi.donor.mg} (${vi.donor.lifts.map((l) => `${l.n} ${l.sets}×`).join(", ")}) and onto ${vi.taker.mg} (${vi.taker.lifts.map((l) => `${l.n} ${l.sets}×`).join(", ")}) costs you nothing in recovery, because the weekly total does not change. It just spends those sets where the curve is still steep instead of where it has gone flat.`
-      : "";
-    propose("volstruct_" + monday, "YOUR SETS ARE NOT WHERE THE RETURN IS",
-      `Counting what the programme actually allocates — two upper days and two lower, each lift's own set count, half-credit for what compounds lend — your week runs: ${vi.pv.map(line).join(" · ")}. Against the largest dose-response analysis available (Pelland 2025, 67 studies, 2,058 participants), return per set is highest at 5-10 weekly sets, intermediate at 11-18, and lower above that.${vi.over.length ? ` ${vi.over.map((m) => `${cap(m.mg)} at ${m.sets} is past your own ceiling of ${VOL_BANDS.hi} and into the ${vi.over[0].tier} band.`).join(" ")}` : ""}${vi.under.length ? ` ${vi.under.map((m) => `${cap(m.mg)} at ${m.sets} is under the ${VOL_BANDS.floor}-set retention floor — in a deficit that is the end of the range where a muscle is actually at risk, not just growing slowly.`).join(" ")}` : ""}${move} This is arithmetic from your programme, not a reading of your log, so it does not need more weeks to become true — and it is a programme change, which makes it a coach conversation as much as a tap.`,
+  if (!sealed && vi && vi.detectable && vi.taker) {
+    const line = (m) => `${m.mg.replace("delts_", "delt ")} ${m.sets}`;
+    propose("volstruct_" + monday, `${cap(vi.taker.mg.replace("delts_", "delt "))} IS AT THE MINIMUM EFFECTIVE DOSE`,
+      `Counting what the programme allocates — two upper days and two lower, each lift's own set count, half-credit for what compounds lend, and deltoid heads counted separately because they are separately trained — your week runs: ${vi.pv.map(line).join(" · ")}. ${cap(vi.taker.mg.replace("delts_", "delt "))} sits at ${vi.taker.sets}, which Pelland 2025 (67 studies, 2,058 participants) identifies as the minimum effective dose: enough to HOLD the muscle, not enough to grow it. Bickel 2011 is the reassurance there — in young adults roughly three sets a week held quadriceps size across thirty-two weeks of otherwise no training, so nothing is being lost. The point is that nothing is being gained either. To move it into growth territory the honest number is ${vi.need} more sets a week, not two or three: their model's smallest detectable effect for hypertrophy is ${vi.sdes}%, and ${vi.need} sets is worth ${vi.gain}% where three would be worth under half of that — a recommendation the literature cannot tell apart from zero. ${vi.donor ? `${cap(vi.donor.mg.replace("delts_", "delt "))} at ${vi.donor.sets} is the only bucket with sets to spare, and it would still sit in the working band after giving them up.` : "There is no obvious donor, so this is an addition rather than a reallocation — which costs recovery you are short of in a deficit, and is a coach conversation."} This is arithmetic from your programme rather than a reading of your log, so it does not need more weeks to become true.`,
       { kind: "note" });
   }
 
@@ -3624,6 +3748,34 @@ function patchV32(s) {
   }
   s.v = 32; return s;
 }
+function patchV33(s) {
+  /* The drip goes to zero — see DRIP_NOTE. Not a preference: the app's own
+     arithmetic was claiming 4,402 kcal liberated per pound of scale weight
+     against 4,282 in pure lipid, which is impossible, and every population-
+     matched study puts lean mass flat to falling in a deficit this size.
+
+     Kept as a field rather than deleted, because a DEXA re-anchor may one day
+     give it a measured value. Assumed values are what this replaces. */
+  if (s.model && s.model.drip !== 0) { s.model.dripWas = s.model.drip; s.model.drip = 0; }
+  /* Deltoid heads, separated. Pelland 2025 classifies anterior, lateral and
+     posterior deltoid as different muscles with different exercises — pooling
+     them made a 17-set bucket that is not comparable to any per-muscle band, and
+     that pooling is what produced a set-reallocation recommendation the same
+     paper's own detection threshold says is indistinguishable from zero. */
+  (s.exercises || []).forEach((e) => {
+    if (e.head) return;
+    if (e.id === "lateral") e.head = "delts_side";
+    else if (e.id === "rearDelt") e.head = "delts_rear";
+  });
+  /* Retract the reallocation card if it is still open and unacted-on. It was
+     built on the pooled bucket and sized below the literature's noise floor;
+     leaving it up would be leaving a recommendation I know to be wrong. */
+  (s.proposals || []).filter((p) => p.rid && p.rid.indexOf("volstruct_") === 0 && !p.resolved).forEach((p) => {
+    p.resolved = true; p.stoodDown = true; p.retracted = true;
+    (s.feed || []).unshift({ d: isoOf(todayStart()), t: "SET-REALLOCATION CARD WITHDRAWN", how: "It counted your three deltoid heads as one muscle, which made 17 sets look excessive when split by head it is 5-7 each — the high-return tier. And the move it proposed was worth about 0.5 percentage points of growth against a smallest-detectable-effect of 2.05%. It was a recommendation the evidence cannot distinguish from zero, so it is withdrawn rather than left standing." });
+  });
+  s.v = 33; return s;
+}
 function patchV30(s) {
   s.medsLog = s.medsLog || [];
   s.v = 30; return s;
@@ -3724,7 +3876,7 @@ function patchV11(s) {
 /* Applied in order, oldest first. To add a schema version: write patchVn, append
    it here, and bump SCHEMA_V — nothing else. The old nested-call chain was 31
    parentheses deep and a missing one only showed up at build time. */
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32];
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33];
 function migrate(old) {
   if (old && old.v === SCHEMA_V) return old;
   if (old && old.v >= 3 && old.v < SCHEMA_V) return PATCHES.reduce((s, p) => p(s), JSON.parse(JSON.stringify(old)));
@@ -3954,7 +4106,7 @@ function askContext(s, docs) {
     .map(([d, v]) => { const w2 = dayWeather(s, d); return `${d}: cal ${v.cal ?? "—"} · pro ${v.pro ?? "—"} · steps ${v.steps ?? "—"}${w2.flags.length ? "  ⌁[" + w2.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n");
   const sess2 = Object.keys(s.sessionLog).sort().slice(-6).map((d) => { const sl2 = s.sessionLog[d]; const parts = [(sl2.entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ") || "no lifts"]; if ((sl2.skipped || []).length) parts.push("SKIPPED: " + sl2.skipped.map((k) => k.id).join(", ")); if (sl2.note) parts.push(`note: "${sl2.note.slice(0, 120)}"`); return `${d}: ` + parts.join(" · "); }).join("\n");
   const nights2 = s.sleep.nights.slice(-14).map((n) => `${n.d}: ${n.h}h · bed ${n.bed || "—"} → wake ${n.wake || "—"} · drift-off ${n.sol ?? "?"}m${(n.tags || []).length ? " · " + n.tags.join("/") : ""}`).join("\n");
-  const laws = "DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor 1.0–1.4 lb/wk (1.9+ = too fast); calorie floor 1,700; calories, protein and steps are all DERIVED from his record, never quoted as constants — take them from the CANONICAL NUMBERS block and nowhere else; a new best becomes official on ONE repeat, because his own measured set-to-set spread is about ±0.8 reps and a +1 record sits inside it — a jump two standard errors clear of the old line banks on the first sighting instead; short sleep does NOT block a record and does NOT cap the step (that rule was retired — Craven 2022 puts acute sleep loss at −2.85% on strength, inside the 1.8–3.3% test-retest CV, and no trial has ever tested damping progression on low-readiness days), what it does is exempt the day from counting toward a stall; RIR on the LAST set is what sizes the next jump and is the most valuable number he enters; one structural change per session; effort tapers to a single terminal failure set per exercise (RIR 2→1→…→0); the scale seal quarantines event water; the weekly refeed is on the calendar but has no evidence behind it — never claim it aids fat loss, muscle retention, metabolism or next-day performance; every change is a proposal — the athlete consents, the coach holds structural authority. NEVER assert a mechanism this app cannot cite; saying 'there is no good evidence either way' is always available and always preferred to a confident guess.";
+  const laws = "DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor 1.0–1.4 lb/wk (1.9+ = too fast); calorie floor 1,700; calories, protein and steps are all DERIVED from his record, never quoted as constants — take them from the CANONICAL NUMBERS block and nowhere else; a new best becomes official on ONE repeat, because his own measured set-to-set spread is about ±0.8 reps and a +1 record sits inside it — a jump two standard errors clear of the old line banks on the first sighting instead; short sleep does NOT block a record and does NOT cap the step (that rule was retired — Craven 2022 puts acute sleep loss at −2.85% on strength, inside the 1.8–3.3% test-retest CV, and no trial has ever tested damping progression on low-readiness days), what it does is exempt the day from counting toward a stall; RIR on the LAST set is what sizes the next jump and is the most valuable number he enters; one structural change per session; effort tapers to a single terminal failure set per exercise (RIR 2→1→…→0) — proximity to failure is the training variable with the dose-response, not load or rep range, which are interchangeable from about 5 to 30 reps; the scale seal quarantines event water; the weekly refeed is on the calendar but has no evidence behind it — never claim it aids fat loss, muscle retention, metabolism or next-day performance; every change is a proposal — the athlete consents, the coach holds structural authority. NEVER assert a mechanism this app cannot cite; saying 'there is no good evidence either way' is always available and always preferred to a confident guess.";
   const evs = (s.events || []).map((e) => `${e.d}: ${e.t}${e.estimated ? " (est-declared)" : ""}`).join(" · ") || "none";
   const trls = (s.trials || []).map((t3) => { const tp = trialTpl(t3); return tp ? `${tp.t} (started ${t3.started})` : ""; }).filter(Boolean).join(" · ") || "none";
   const gate2 = sleepInfo(s);
@@ -3979,7 +4131,7 @@ function askContext(s, docs) {
   const suggSec = docs.suggestions ? `\n\n=== YOUR CURRENT APPROVE/DISMISS SUGGESTIONS (the NOW cards) ===\n${clip(docs.suggestions, 1800)}` : "";
   const briefSec = docs.brief ? `\n\n=== YOUR LATEST READ (brief.md — your own nightly words, the voice to match) ===\n${clip(docs.brief, 1800)}` : "";
   const caselawSec = docs.caselaw ? `\n\n=== CASE-LAW / MEMORY (what has held true before) ===\n${clip(docs.caselaw, 1800)}` : "";
-  return `You are Joe's Analyst — the same analyst that writes his nightly read. When Joe asks something here, he is asking you: answer in the same voice, from the same knowledge. Your one goal: the best body-composition change — fat down, lean held or built — as fast as he can sustain. Read everything through two lenses only: established sports-science research, and Joe's own data. HOW YOU TALK: plain conversational prose, exactly like your nightly read — the way you'd say it out loud to a sharp friend who lifts. Use no markdown at all — no # headers, no **bold**, no bullet lists or numbered scaffolding, no tables. No jargon, no (measured)/(speculation) tags, no "provisional". Lead with the answer and the one thing that matters, use his real numbers, keep it tight; if the data is thin, just say so in plain words. TWO LAWS: look at everything relevant and how the variables move each other; and weigh science and his own data together — where they agree, say it plainly, where they disagree, name the tension. Never go dark on a noisy number: a single scale reading is noise around a slow trend, so attribute spikes to their cause (water from sodium, carbs, a big meal, a short night) instead of hiding them. THE SCIENCE FLOOR (your prior): lean-safe loss is about 0.5–1.0%/wk (~1.0–1.4 lb/wk for him; 1.9+ is too fast) and deficit MAGNITUDE is the variable most tightly linked to lean-mass loss in trained people; protein ~2.3–3.1 g/kg fat-free mass, fixed daily, not varied by training vs rest day; sleep is a first-order fat-vs-LEAN lever in a deficit (Nedeltcheva 2010: 5.5 h vs 8.5 h shifted 60% more of the loss onto fat-free mass) but only a small SESSION lever (Craven 2022: −2.85% on strength, inside the test-retest CV) — do not tell him a short night ruins a session or invalidates a record, because the app no longer treats it that way and the evidence never did; train to roughly 6–12 hard sets per muscle per week at 0–2 reps in reserve, where the dose-response return per set is highest, and defend load on a cut; sodium, carbs and creatine move water, not fat; caffeine helps training but taken late steals sleep; DIET BREAKS (a full week at maintenance) have replicated adherence benefits and no metabolic ones in trained people; weekly REFEED DAYS have neither — the only matched-energy RCT was overturned on reanalysis and no isocaloric carbohydrate study has ever improved strength or hypertrophy, so never claim a refeed buys fat loss, lean retention, metabolism or next-day performance; adherence is the biggest lever; metabolic adaptation is real but small. A single set of reps carries about ±0.8 reps of noise for him, so treat a one-rep change as weather, not signal. Answer only from the knowledge below plus that science. Never invent data, and when the evidence is absent say so — "nobody has tested this" is a better answer than a confident mechanism.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}${analysisSec}${suggSec}${briefSec}${caselawSec}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== MEDS (last 7 logged) ===\n${(s.medsLog || []).slice(-7).map((m8) => `${m8.d}: ${m8.taken ? "taken @ " + m8.at : "none"}`).join("\\n") || "none logged"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
+  return `You are Joe's Analyst — the same analyst that writes his nightly read. When Joe asks something here, he is asking you: answer in the same voice, from the same knowledge. Your one goal: the best body-composition change — fat down, lean held or built — as fast as he can sustain. Read everything through two lenses only: established sports-science research, and Joe's own data. HOW YOU TALK: plain conversational prose, exactly like your nightly read — the way you'd say it out loud to a sharp friend who lifts. Use no markdown at all — no # headers, no **bold**, no bullet lists or numbered scaffolding, no tables. No jargon, no (measured)/(speculation) tags, no "provisional". Lead with the answer and the one thing that matters, use his real numbers, keep it tight; if the data is thin, just say so in plain words. TWO LAWS: look at everything relevant and how the variables move each other; and weigh science and his own data together — where they agree, say it plainly, where they disagree, name the tension. Never go dark on a noisy number: a single scale reading is noise around a slow trend, so attribute spikes to their cause (water from sodium, carbs, a big meal, a short night) instead of hiding them. THE SCIENCE FLOOR (your prior): lean-safe loss is about 0.5–1.0%/wk (~1.0–1.4 lb/wk for him; 1.9+ is too fast) and deficit MAGNITUDE is the variable most tightly linked to lean-mass loss in trained people; protein ~2.3–3.1 g/kg fat-free mass, fixed daily, not varied by training vs rest day; sleep is a first-order fat-vs-LEAN lever in a deficit (Nedeltcheva 2010: 5.5 h vs 8.5 h shifted 60% more of the loss onto fat-free mass) but only a small SESSION lever (Craven 2022: −2.85% on strength, inside the test-retest CV) — do not tell him a short night ruins a session or invalidates a record, because the app no longer treats it that way and the evidence never did; train to roughly 6–12 hard sets per muscle per week at 0–2 reps in reserve, where the dose-response return per set is highest; "defend load on a cut" is folklore — the only trial that manipulated load under energy restriction (Carlson 2022, n=115 trained, 80% vs 60% 1RM both to failure) found no difference in fat or lean mass, so defend EFFORT and keep the deficit under ~500 kcal/day instead; sodium, carbs and creatine move water, not fat; caffeine helps training but taken late steals sleep; DIET BREAKS (a full week at maintenance) have replicated adherence benefits and no metabolic ones in trained people; weekly REFEED DAYS have neither — the only matched-energy RCT was overturned on reanalysis and no isocaloric carbohydrate study has ever improved strength or hypertrophy, so never claim a refeed buys fat loss, lean retention, metabolism or next-day performance; adherence is the biggest lever; metabolic adaptation is real but small. A single set of reps carries about ±0.8 reps of noise for him, so treat a one-rep change as weather, not signal. Answer only from the knowledge below plus that science. Never invent data, and when the evidence is absent say so — "nobody has tested this" is a better answer than a confident mechanism.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}${analysisSec}${suggSec}${briefSec}${caselawSec}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== MEDS (last 7 logged) ===\n${(s.medsLog || []).slice(-7).map((m8) => `${m8.d}: ${m8.taken ? "taken @ " + m8.at : "none"}`).join("\\n") || "none logged"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
 }
 const AGENT_TOOLS = [
   { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads|feed. Feed = the app event log; amendments there override older raw rows. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
@@ -4585,6 +4737,8 @@ const blackoutOn = (s) => daysUntil(s.blackout.until) > 0;
 const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d); if ((t === "U" || t === "L") && !s.sessionLog[d]) return d; } return null; };
 __test.nextTrainingISO = nextTrainingISO;
 __test.typicalError = typicalError;
+__test.etaRange = etaRange;
+__test.bfEst = bfEst;
 __test.stepTarget = stepTarget;
 __test.beatsNoise = beatsNoise;
 __test.cleanAtDate = cleanAtDate;

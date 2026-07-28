@@ -367,3 +367,49 @@ already spent on a tracked quantity cannot be reused colloquially — `leaner`
 means body composition, `load` means weight on the bar. The fix is never a better
 adjective; it is printing the numbers. `observedTDEE.split` exists for exactly
 this reason.
+
+## The drip, and the check that should have caught it years earlier (v3.99.24)
+
+**`model.drip` is 0.0 and must stay there absent a measurement.** It was +0.3
+lb/wk — an assumption that a lean multi-year-trained male gains lean mass in a
+600 kcal/day deficit. See DRIP_NOTE for the evidence. The one-line refutation
+needs no citations: the app's own numbers implied 4,402 kcal liberated per pound
+of scale weight, and pure lipid is 4,282 (Hall 2008). `observedTDEE` now carries
+`impliedPerLb` and `impossible` so that check runs continuously.
+
+**Never integrate an unverified constant off an unverified anchor.** The old
+model projected lean mass forward week by week from a coach's-eye estimate. Error
+accumulated monotonically and never self-corrected. `bfEst` now returns `lo`/`hi`
+as well as `pct`, widening with distance from the anchor, because the anchor's
+own ±3–4 points never wash out either.
+
+**Energy density is ~3,800 kcal/lb here, not 3,500.** Wishnofsky 1958's figure is
+arithmetically equivalent to assuming 23% of loss is lean tissue — a sedentary
+partitioning. For a lean, high-protein, training male it is ~87% fat.
+
+**Never present strength as evidence of muscle retention in a deficit.** Murphy &
+Koehler 2022's title is literally "impairs lean mass but *not* strength." Roth
+2023 and the 2026 EJCN trial replicate. Lifts holding up is exactly what the
+literature predicts while lean mass falls.
+
+**Muscles with separately-trained heads get separate buckets.** Pooling the three
+deltoid heads produced a 17 comparable to no published band, and that number is
+what generated a reallocation recommendation below the literature's own noise
+floor. `programmeVolume` buckets by `head || mg`, and marks `indirectOnly` for
+buckets fed solely by what compounds lend — those have no exercise to add sets to.
+
+**A recommendation below the source's smallest detectable effect must not ship.**
+Pelland 2025's SDES for hypertrophy is 2.05%. `volumeImbalance` computes how many
+sets are needed to clear it and stays silent when nothing does. `HYP_B = 1.76`
+is calibrated so the marginal slope at 12.25 sets is 0.24%/set, which reproduces
+their published "~6 sets from a base of 4" tier step.
+
+**Half-credit for indirect sets is CORRECT** — Pelland 2025 tested exactly that
+convention and made it the primary method (Bayes factors favour it over both
+direct-only and total). Earlier bands (Schoenfeld 2017, Baz-Valle 2022) counted
+everything as 1.0, so quoting them next to a fractional count understates.
+Convert or quote Pelland's tiers.
+
+**"Defend load on a cut" is folklore.** One trial manipulated load under energy
+restriction (Carlson 2022, n=115 trained, 80% vs 60% 1RM both to failure) and
+found nothing. Defend effort; keep the deficit under ~500 kcal/day.
