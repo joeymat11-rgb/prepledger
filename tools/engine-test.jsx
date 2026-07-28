@@ -1965,5 +1965,29 @@ ok(ctx17.indexOf("CANONICAL NUMBERS") > -1, "the analyst is handed the engine's 
 ok(ctx17.indexOf("do NOT re-derive") > -1, "and told not to recompute them — a number that changes between screens is worse than one slightly wrong");
 ["RATE", "MEASURED TDEE", "TARGET INTAKE", "PROTEIN TARGET"].forEach((k) => ok(ctx17.indexOf(k) > -1, `canonical block carries ${k}`));
 
+/* An open proposal must carry today's numbers, not the day-it-was-raised ones.
+   The old propose() bailed out whenever one was already armed, so the card's
+   title and receipt froze — and after an engine change they could freeze on a
+   quantity the engine no longer even computes. */
+const dayA18 = isoL(Date.now() - 864e5), dayB18 = isoL(Date.now());
+const st18 = raR(mkReads(28, 0.2, 170), dayA18);
+const card18a = st18.proposals.find((p) => p.rid.indexOf("calband_") === 0 && !p.resolved);
+ok(!!card18a, "the calorie-drift card is raised on the day the drift appears");
+const raisedOn18 = card18a.d, id18 = card18a.id, why18 = card18a.why;
+/* the ledger moves on — he eats 400 more a day — while the card stays open */
+const st18m = clone(st18);
+Object.keys(st18m.dailyLogs).forEach((k) => { if (st18m.dailyLogs[k] && st18m.dailyLogs[k].cal != null) st18m.dailyLogs[k].cal += 400; });
+const st18b = raR(st18m, dayB18);
+const open18 = st18b.proposals.filter((p) => p.rid.indexOf("calband_") === 0 && !p.resolved);
+ok(open18.length === 1, "a day later there is still exactly one open drift card — refreshed, not duplicated");
+ok(open18[0].why !== why18, "and its receipt has moved with the data instead of freezing on the day it was raised");
+ok(open18[0].d === raisedOn18 && open18[0].id === id18, "while the raised-on date and id hold, so the age of the flag stays honest");
+ok(open18[0].refreshed === dayB18, "the refresh is stamped, so a card quoting stale arithmetic is diagnosable rather than invisible");
+/* one he has already acted on is never resurrected or rewritten */
+const acted18 = __test.applyProposal(st18b, id18, 0);
+ok(acted18.proposals.find((p) => p.id === id18).resolved === true, "applying resolves it");
+const after18 = raR(acted18, dayB18);
+ok(!after18.proposals.some((p) => p.rid === card18a.rid && !p.resolved), "and it does not come back to life on the next run");
+
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

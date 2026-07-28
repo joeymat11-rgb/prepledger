@@ -17,11 +17,13 @@
 import esbuild from "esbuild";
 import { ROOT, at, tmp, isMain, head, pass, fail, note, node, bold, red, green, dim } from "./lib.mjs";
 
-// The engine suite stood at 389 assertions when this floor was last raised.
+// The engine suite stood at 591 assertions when this floor was last raised.
 // Adding assertions is expected; losing them silently is the failure this
 // guards. Raise the floor whenever the suite grows — a floor left far below the
-// real count stops guarding anything.
-const MIN_ASSERTIONS = 380;
+// real count stops guarding anything, which is exactly what happened: it sat at
+// 380 while the suite ran 591, so a change that silently dropped a third of the
+// assertions would still have shipped green.
+const MIN_ASSERTIONS = 580;
 
 async function engineSuite() {
   const out = tmp("engine-test.cjs");

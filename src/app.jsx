@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.17";
+const APP_V = "3.99.18";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -2841,9 +2841,22 @@ function runAdaptive(state, todayISO) {
   if (!s.weekly.some((w) => w.wk === monday) && s.reads.some((r) => !r.sealed && weeksBetween(monday, r.d) >= 0 && weeksBetween(monday, r.d) < 1))
     s.weekly.push({ wk: monday, trend: s.trend });
 
-  const armed = (rid) => s.proposals.some((p) => p.rid === rid && !p.resolved);
   const applied = (rid) => s.adjustments.some((a) => a.rid === rid);
-  const propose = (rid, title, why, apply) => { if (!armed(rid) && !applied(rid)) s.proposals.push({ rid, id: `${rid}_${todayISO}`, d: todayISO, title, why, apply, resolved: false }); };
+  /* An open proposal is a live recommendation, not a postcard from the day it
+     was raised. The old propose() skipped entirely when one was already armed,
+     so its title and receipt froze at whatever the engine said the first time —
+     and after an engine change they could freeze at something the engine no
+     longer computes at all. A recovery card was still reading "45/100" weeks
+     after the composite score it quotes was removed for violating this app's
+     own rule against composite scores. Refresh the text and the dial on
+     anything he has not acted on; leave the raised-on date alone so the age of
+     the flag stays honest, and never resurrect one he already applied. */
+  const propose = (rid, title, why, apply) => {
+    if (applied(rid)) return;
+    const open = s.proposals.find((p) => p.rid === rid && !p.resolved);
+    if (open) { open.title = title; open.why = why; open.apply = apply; open.refreshed = todayISO; return; }
+    s.proposals.push({ rid, id: `${rid}_${todayISO}`, d: todayISO, title, why, apply, resolved: false });
+  };
 
   const sealed = daysUntil(s.blackout.until) > 0;
   const r = currentRate(s);
@@ -2884,7 +2897,7 @@ function runAdaptive(state, todayISO) {
 
   /* The volume band vs the dose-response evidence, in a deficit. */
   const volDrift = VOL_BANDS.lo !== 6 || VOL_BANDS.hi !== 12;
-  if (!sealed && volDrift && !applied("volband") && !armed("volband"))
+  if (!sealed && volDrift)
     propose("volband", "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER",
       `Your working zone is ${VOL_BANDS.lo}–${VOL_BANDS.hi} weekly sets per muscle. The largest dose-response analysis available (67 studies, 2,058 participants) finds returns per set highest at 5–10 sets, intermediate at 11–18, and lower above that — each added set keeps buying something, and buys less than the one before it. In a deficit the marginal set is worth less AND costs recovery you do not have, which argues for living in the high-return tier rather than the middle one. The proposal is to tighten to 6–12. This is a programme change, so it is a coach conversation as much as a tap — the app will not move it on its own.`,
       { kind: "note" });
