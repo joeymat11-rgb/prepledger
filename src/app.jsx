@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.5";
+const APP_V = "3.99.6";
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -2630,7 +2630,8 @@ function KitApp({ spec, onExit }) {
 
 /* ASK THE LEDGER — bespoke instruments on demand, standing on the 49 built ones */
 const ANTH_KEY = "prep-ledger-anthkey";
-function askContext(s) {
+function askContext(s, docs) {
+  docs = docs || {};
   const days = Object.entries(s.dailyLogs).sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(-14)
     .map(([d, v]) => { const w2 = dayWeather(s, d); return `${d}: cal ${v.cal ?? "—"} · pro ${v.pro ?? "—"} · steps ${v.steps ?? "—"}${w2.flags.length ? "  ⌁[" + w2.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n");
   const sess2 = Object.keys(s.sessionLog).sort().slice(-6).map((d) => { const sl2 = s.sessionLog[d]; const parts = [(sl2.entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ") || "no lifts"]; if ((sl2.skipped || []).length) parts.push("SKIPPED: " + sl2.skipped.map((k) => k.id).join(", ")); if (sl2.note) parts.push(`note: "${sl2.note.slice(0, 120)}"`); return `${d}: ` + parts.join(" · "); }).join("\n");
@@ -2640,7 +2641,12 @@ function askContext(s) {
   const trls = (s.trials || []).map((t3) => { const tp = trialTpl(t3); return tp ? `${tp.t} (started ${t3.started})` : ""; }).filter(Boolean).join(" · ") || "none";
   const gate2 = sleepInfo(s);
   const dict = LEDGER_DICT + " SLEEP GATE RIGHT NOW (do not re-derive): clean run " + gate2.run + "/" + gate2.need + " — records currently " + (gate2.clean ? "OFFICIAL" : "PENDING") + ". EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
-  return `You are the analyst living inside Prep Ledger, this athlete's self-built coaching app. Answer ONLY from the data below. Cite instrument verdicts when they cover the question instead of re-deriving. Badge every claim: (measured) with n, or (speculation). Confess small samples. Keep answers under 250 words, plain language, numbers first. Never invent data.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== MEDS (last 7 logged) ===\n${(s.medsLog || []).slice(-7).map((m8) => `${m8.d}: ${m8.taken ? "taken @ " + m8.at : "none"}`).join("\\n") || "none logged"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
+  const clip = (t, n) => (t ? String(t).replace(/^<!--.*-->\n?/, "").slice(0, n) : "");
+  const analysisSec = docs.analysis ? `\n\n=== TONIGHT'S ENGINE ANALYSIS (analysis.json — soft trend, rate, TDEE, drivers, regime, prior decisions) ===\n${clip(docs.analysis, 3500)}` : "";
+  const suggSec = docs.suggestions ? `\n\n=== YOUR CURRENT APPROVE/DISMISS SUGGESTIONS (the NOW cards) ===\n${clip(docs.suggestions, 1800)}` : "";
+  const briefSec = docs.brief ? `\n\n=== YOUR LATEST READ (brief.md — your own nightly words, the voice to match) ===\n${clip(docs.brief, 1800)}` : "";
+  const caselawSec = docs.caselaw ? `\n\n=== CASE-LAW / MEMORY (what has held true before) ===\n${clip(docs.caselaw, 1800)}` : "";
+  return `You are Joe's Analyst — the same analyst that writes his nightly read. When Joe asks something here, he is asking you: answer in the same voice, from the same knowledge. Your one goal: the best body-composition change — fat down, lean held or built — as fast as he can sustain. Read everything through two lenses only: established sports-science research, and Joe's own data. HOW YOU TALK: plain conversational prose, exactly like your nightly read — the way you'd say it out loud to a sharp friend who lifts. Use no markdown at all — no # headers, no **bold**, no bullet lists or numbered scaffolding, no tables. No jargon, no (measured)/(speculation) tags, no "provisional". Lead with the answer and the one thing that matters, use his real numbers, keep it tight; if the data is thin, just say so in plain words. TWO LAWS: look at everything relevant and how the variables move each other; and weigh science and his own data together — where they agree, say it plainly, where they disagree, name the tension. Never go dark on a noisy number: a single scale reading is noise around a slow trend, so attribute spikes to their cause (water from sodium, carbs, a big meal, a short night) instead of hiding them. THE SCIENCE FLOOR (your prior): lean-safe loss is about 0.5–1.0%/wk (~1.0–1.4 lb/wk for him; 1.9+ is too fast); protein ~2.3–3.1 g/kg fat-free mass (≈150–190 g/day); sleep is a first-order fat-vs-lean lever (under ~7 h blunts fat loss and costs lean); train to roughly 10+ hard sets per muscle per week at 1–3 reps in reserve and defend load on a cut; sodium, carbs and creatine move water, not fat; caffeine helps training but taken late steals sleep; refeeds and diet breaks help adherence, not metabolism; adherence is the biggest lever; metabolic adaptation is real but small. Answer only from the knowledge below plus that science. Never invent data.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}${analysisSec}${suggSec}${briefSec}${caselawSec}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== MEDS (last 7 logged) ===\n${(s.medsLog || []).slice(-7).map((m8) => `${m8.d}: ${m8.taken ? "taken @ " + m8.at : "none"}`).join("\\n") || "none logged"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
 }
 const AGENT_TOOLS = [
   { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads|feed. Feed = the app event log; amendments there override older raw rows. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
@@ -2685,12 +2691,12 @@ function agentToolExec(s, name, input, staged) {
   } catch (e) { return "tool error: " + e.message; }
   return "unknown tool";
 }
-async function agentLoop(s, question, history, onStatus) {
+async function agentLoop(s, question, history, onStatus, docs) {
   const key = localStorage.getItem(ANTH_KEY);
   if (!key) return { ok: false, msg: "no API key saved — RULES → ASK THE LEDGER" };
   const staged = [];
   const msgs = [...history, { role: "user", content: question }];
-  const sys = askContext(s) + "\n\nYou also have TOOLS. Investigate before answering: pull the exact ranges you need, contrast periods, use run_whatif for counterfactuals. If you find something actionable, stage_proposal it (kind trial|note|coach) — you can change NOTHING directly; every proposal waits for the athlete's tap. You may DESIGN custom trials when no canned template fits: 2 arms, 3-7 day blocks, 3-6 cycles, metric strictly from [session_reps, sleep_h, trend_delta]. In the body, state the pattern that motivated it (with n), the expected effect size, and roughly why the block count could detect it through his noise — if it can't, say the honest thing: more blocks or don't run it. Then answer plainly, numbers first, honesty badges on.";
+  const sys = askContext(s, docs) + "\n\nYou also have TOOLS. Investigate before answering: pull the exact ranges you need, contrast periods, use run_whatif for counterfactuals. If you find something actionable, stage_proposal it (kind trial|note|coach) — you can change NOTHING directly; every proposal waits for the athlete's tap. You may DESIGN custom trials when no canned template fits: 2 arms, 3-7 day blocks, 3-6 cycles, metric strictly from [session_reps, sleep_h, trend_delta]. In the body, state the pattern that motivated it (with n), the expected effect size, and roughly why the block count could detect it through his noise — if it can't, say the honest thing: more blocks or don't run it. Then answer in plain conversational prose — no markdown, no headers, no bullet scaffolding, no badges — exactly the way your nightly read sounds.";
   try {
     for (let turn = 0; turn < 6; turn++) {
       const r = await fetch("https://api.anthropic.com/v1/messages", {
@@ -2727,7 +2733,15 @@ async function askLedger(s, question, history) {
   } catch (e) { return { ok: false, msg: "network — the API needs a signal" }; }
 }
 const ASKHIST_KEY = "prep-ledger-askhist";
+function stripMd(t) {
+  if (typeof t !== "string") return t;
+  return t.replace(/^\s{0,3}#{1,6}\s+/gm, "").replace(/\*\*/g, "").replace(/__/g, "").replace(/`+/g, "").replace(/^\s{0,3}[-*+]\s+/gm, "• ").replace(/^\s{0,3}>\s?/gm, "");
+}
 function AskLedger({ s, setS, save, onClose }) {
+  const askBrief = useRepoDoc("ledger/brief.md");
+  const askAnalysis = useRepoDoc("ledger/analysis.json");
+  const askSuggestions = useRepoDoc("ledger/suggestions.json");
+  const askCaselaw = useRepoDoc("ledger/caselaw.md");
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const [log, setLog] = useState(() => { try { return JSON.parse(localStorage.getItem(ASKHIST_KEY) || "[]"); } catch (e) { return []; } });
@@ -2738,7 +2752,7 @@ function AskLedger({ s, setS, save, onClose }) {
     if (!question || busy) return;
     setBusy(true); setQ(""); setStatus(null);
     const history = log.flatMap((x) => [{ role: "user", content: x.q }, { role: "assistant", content: typeof x.a === "string" ? x.a : "" }]).slice(-8);
-    const r = await agentLoop(s, question, history, setStatus);
+    const r = await agentLoop(s, question, history, setStatus, { brief: askBrief, analysis: askAnalysis, suggestions: askSuggestions, caselaw: askCaselaw });
     if (r.staged && r.staged.length && setS && save) {
       const ns = JSON.parse(JSON.stringify(s));
       ns.agentProposals = [...(ns.agentProposals || []), ...r.staged];
@@ -2750,15 +2764,15 @@ function AskLedger({ s, setS, save, onClose }) {
   return (
     <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 70, display: "flex", flexDirection: "column", padding: "0 16px", paddingTop: "calc(env(safe-area-inset-top, 24px) + 14px)", paddingBottom: "calc(env(safe-area-inset-bottom, 10px) + 10px)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Eyebrow c={T.jade}>ASK THE LEDGER — YOUR DATA, ANY QUESTION</Eyebrow>
+        <Eyebrow c={T.jade}>ASK THE ANALYST — SAME BRAIN AS YOUR READ</Eyebrow>
         <span onClick={onClose} style={{ fontFamily: mono, fontSize: 10, color: T.dim, cursor: "pointer" }}>close ✕</span>
       </div>
       <div style={{ flex: 1, overflowY: "auto", marginTop: 10 }}>
-        {!log.length && <div style={{ fontFamily: body, fontSize: 12, color: T.dim, lineHeight: 1.6 }}>Try: "why did week 4 stall?" · "what conditions show up on my best press days?" · "is my refeed earning its calories?" It answers from your instruments and raw logs only — badged (measured) or (speculation), never invented.</div>}
+        {!log.length && <div style={{ fontFamily: body, fontSize: 12, color: T.dim, lineHeight: 1.6 }}>Try: "why did week 4 stall?" · "what's my one thing this week?" · "is my refeed earning its calories?" — it's the same analyst that writes your read, answering in plain words from your data and the science.</div>}
         {log.map((x, i) => (
           <div key={i} style={{ marginBottom: 14 }}>
             <div style={{ fontFamily: mono, fontSize: 10.5, color: T.jade }}>▸ {x.q}</div>
-            <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{x.a}</div>
+            <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 5, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{stripMd(x.a)}</div>
           </div>
         ))}
         {busy && <div style={{ fontFamily: mono, fontSize: 10, color: T.dim }}>{status || "assembling the instrument…"}</div>}
@@ -3670,6 +3684,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       <SecRule>THE READ · what the machine says</SecRule>
       <BriefCard s={s} setS={setS} save={save} />
+      <Card accent={T.jade} style={{ padding: "11px 14px", cursor: "pointer" }} onClick={() => setAskOpen(true)}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>🜁 ASK THE ANALYST <span style={{ color: T.dim }}>— anything about your data, same voice as the read</span></div>
+          <span style={{ fontFamily: mono, fontSize: 14, color: T.jade, flexShrink: 0 }}>▸</span>
+        </div>
+      </Card>
 
       <SecRule>FOR YOUR APPROVAL · your tap decides</SecRule>
       <AnalystSuggestions s={s} setS={setS} save={save} />
@@ -4006,13 +4026,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       ); })()}
 
-      <SecRule>THE ROOM · ask, plan, rules</SecRule>
-      <Card style={{ padding: "11px 14px", cursor: "pointer", borderLeft: `3px solid ${T.jade}` }} onClick={() => setAskOpen(true)}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>🜁 ASK THE LEDGER <span style={{ color: T.dim }}>— any question, from your data</span></div>
-          <span style={{ fontFamily: mono, fontSize: 14, color: T.jade, flexShrink: 0 }}>▸</span>
-        </div>
-      </Card>
+      <SecRule>THE ROOM · plan and rules</SecRule>
 
 
       {sess && (
