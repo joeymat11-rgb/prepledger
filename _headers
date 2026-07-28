@@ -7,6 +7,9 @@
 /tools/*
   Cache-Control: no-store, max-age=0
 
+/scripts/*
+  Cache-Control: no-store, max-age=0
+
 /HANDOFF.md
   Cache-Control: no-store, max-age=0
 

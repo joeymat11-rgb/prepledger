@@ -61,7 +61,7 @@ function swMatch() {
 }
 
 // --------------------------------------------------------------- 4. lockdown --
-const LOCKED = ["/ledger/", "/src/", "/tools/"];
+const LOCKED = ["/ledger/", "/src/", "/tools/", "/scripts/"];
 function lockdown() {
   const redirects = fs.existsSync(at("_redirects")) ? fs.readFileSync(at("_redirects"), "utf8") : "";
   const headers = fs.existsSync(at("_headers")) ? fs.readFileSync(at("_headers"), "utf8") : "";
