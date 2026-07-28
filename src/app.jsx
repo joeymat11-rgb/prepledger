@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.12";
+const APP_V = "3.99.13";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -761,26 +761,59 @@ function currentRate(s) {
   return { scale: 1.0, fat: 1.25, measured: false, rates: [] };
 }
 
-/* recovery index — sleep, RIR drift, joint flags, rep dips converge into one number */
+const cap = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
+/* recovery signals — named, individually gated, each with a receipt and a fix */
 function recoveryIndex(s) {
-  const factors = []; let score = 100;
+  /* ---------- RECOVERY_NOTE ----------
+     This used to hand back "45/100" as a headline. The app's own charter says
+     precision means named inputs with receipts, each gated on its own n, and
+     NEVER a composite score — so the headline was breaking the rule the rest of
+     the engine keeps. Worse, the weights behind it (−10, −20, −21, −15) have no
+     evidence behind them at all; readiness indices of this kind are widely used
+     and poorly validated, and a single number hides which input moved.
+
+     So the unit is now a FLAG: a named signal, individually gated, carrying the
+     receipt that raised it and the specific thing that clears it. The count of
+     flags is what gets shown, because a count of named things is an
+     enumeration, not an index. `score` survives only to drive the old bar.
+
+     One correctness fix while here: rep dips on a short-sleep or rushed session
+     are not evidence of poor recovery — the sleep flag already accounts for the
+     first, and a compressed session lowers reps by itself. Counting them again
+     double-charged him for one bad night. Same rule the stall counter uses. */
+  const flags = [];
+  const add = (k, receipt, fix, cost) => flags.push({ k, receipt, fix, cost });
   const slp = sleepInfo(s);
-  if (!slp.clean) { const miss = Math.min(3, s.sleep.needed - slp.run); score -= miss * 10; factors.push(`sleep reset ${slp.run}/${s.sleep.needed}`); }
+  if (!slp.clean) add("sleep", `sleep reset — ${slp.run} of ${s.sleep.needed} clean nights`, `${s.sleep.needed - slp.run} more night${s.sleep.needed - slp.run === 1 ? "" : "s"} at ${s.sleep.cleanH} h or better, back to back`, Math.min(3, s.sleep.needed - slp.run) * 10);
   const last5 = s.sleep.nights.slice(-5).map((n) => n.h);
-  if (last5.length === 5 && last5.reduce((a, b) => a + b, 0) / 5 < 7) { score -= 10; factors.push("5-night avg under 7 h"); }
+  /* two decimals, because 6.96 rounded to one reads "7.0 h — under 7" and looks
+     like the app cannot do arithmetic. A receipt that looks wrong is not a receipt. */
+  if (last5.length === 5 && last5.reduce((a, b) => a + b, 0) / 5 < 7) add("avg5", `five-night average is ${(last5.reduce((a, b) => a + b, 0) / 5).toFixed(2)} h — under 7`, "this one is chronic, not last night — it needs a week of earlier lights-out, not one long lie-in", 10);
   const holds = s.exercises.filter((e) => e.holdFlag);
-  if (holds.length) { score -= Math.min(20, holds.length * 10); factors.push(`${holds.length} lift${holds.length > 1 ? "s" : ""} held (RIR)`); }
+  if (holds.length) add("held", `${holds.length} lift${holds.length > 1 ? "s" : ""} held by the governor: ${holds.map((e) => e.n).join(", ")}`, "one honest opener at 1 RIR or better on each releases it — the load is not lost, just parked", Math.min(20, holds.length * 10));
   const rirs = [];
   Object.keys(s.sessionLog).sort().slice(-3).forEach((d) => (s.sessionLog[d].entries || []).forEach((e) => { if (e.rir != null) rirs.push(e.rir); }));
-  if (rirs.length >= 4 && rirs.filter((x) => x === 0).length / rirs.length >= 0.5) { score -= 10; factors.push("half of logged openers at RIR 0"); }
+  if (rirs.length >= 4 && rirs.filter((x) => x === 0).length / rirs.length >= 0.5) add("hot", `${rirs.filter((x) => x === 0).length} of your last ${rirs.length} openers ground out at 0 RIR`, "the taper asks for 2 on the opener, not 0 — back the first set off and let the LAST set be the one that goes to failure", 10);
   const cutoff = isoOf(new Date(todayStart().getTime() - 14 * DAY));
   let ng = 0;
   Object.entries(s.sessionLog).forEach(([d, sl]) => { if (d >= cutoff) ng += (sl.niggles || []).length; });
-  if (ng) { score -= Math.min(21, ng * 7); factors.push(`${ng} joint flag${ng > 1 ? "s" : ""} in 14 d`); }
-  const dips = Object.keys(s.sessionLog).sort().slice(-2).reduce((a, d) => a + (s.sessionLog[d].dips || 0), 0);
-  if (dips) { score -= Math.min(15, dips * 5); factors.push(`${dips} rep dip${dips > 1 ? "s" : ""} last 2 sessions`); }
-  score = Math.max(0, Math.round(score));
-  return { score, factors, band: score >= 80 ? "GREEN" : score >= 55 ? "WATCH" : "LOW" };
+  if (ng) add("joints", `${ng} joint flag${ng > 1 ? "s" : ""} in the last 14 days`, "three of the same joint in three weeks and it goes to your coach as a pattern rather than a day", Math.min(21, ng * 7));
+  /* dips, counted only on days that were a fair test */
+  const recent = Object.keys(s.sessionLog).sort().slice(-2);
+  const fairDips = recent.reduce((a, d) => {
+    const sl = s.sessionLog[d];
+    if (paceRushed(sl) || !cleanAtDate(s, d)) return a;
+    return a + (sl.dips || 0);
+  }, 0);
+  const excluded = recent.reduce((a, d) => a + (paceRushed(s.sessionLog[d]) || !cleanAtDate(s, d) ? (s.sessionLog[d].dips || 0) : 0), 0);
+  if (fairDips) add("dips", `${fairDips} rep dip${fairDips > 1 ? "s" : ""} across your last two sessions, on days that were a fair test`, "one session that beats its own previous totals clears this", Math.min(15, fairDips * 5));
+  const score = Math.max(0, Math.round(100 - flags.reduce((a, f) => a + f.cost, 0)));
+  const lever = flags.slice().sort((a, b) => b.cost - a.cost)[0] || null;
+  return {
+    score, band: score >= 80 ? "GREEN" : score >= 55 ? "WATCH" : "LOW",
+    flags, lever, watched: 6, excludedDips: excluded,
+    factors: flags.map((f) => f.receipt),
+  };
 }
 
 /* apply a scale read with spike damping — one meal can move a morning, not the trend */
@@ -2519,8 +2552,32 @@ function runAdaptive(state, todayISO) {
     propose("pivot", "PIVOT WINDOW — COACH'S EYE", `Est. BF ${bf.pct}% is in the 10.5–11 band. This one is not a tap — book the look with your coach. The app proposes; humans authorize.`, { kind: "note" });
 
   const rec = recoveryIndex(s);
-  if (rec.band === "LOW")
-    propose("recovery_" + monday, `RECOVERY LOW — ${rec.score}/100`, `Converging signals: ${rec.factors.join(" · ")}. The rule: hold all structural changes this week and flag your coach for a lighter one. Nothing auto-changes.`, { kind: "note" });
+  /* A proposal whose trigger no longer holds should stand down, not sit on the
+     NOW page asking to be applied. This one was armed partly off rep dips that
+     are no longer counted, so without this it would linger forever making a
+     claim the engine has stopped making. It resolves rather than vanishing —
+     the record keeps it, the screen does not. */
+  if (rec.band !== "LOW") {
+    s.proposals.filter((p) => p.rid && p.rid.indexOf("recovery_") === 0 && !p.resolved).forEach((p) => {
+      p.resolved = true; p.stoodDown = true;
+      s.feed.unshift({ d: todayISO, t: "RECOVERY CARD STOOD DOWN", how: `the signals that raised it have cleared — ${rec.flags.length} of ${rec.watched} still up, which is below the line that holds structural changes` });
+    });
+  }
+  if (rec.band === "LOW") {
+    /* Named inputs, each with the receipt that raised it and the thing that
+       clears it — not a composite score. Leads with the single biggest lever,
+       because "here are five problems" is a list and "fix this one first" is
+       advice. See RECOVERY_NOTE. */
+    const others = rec.flags.filter((f) => f !== rec.lever);
+    const why = [
+      `${rec.flags.length} of the ${rec.watched} signals I watch are up.`,
+      rec.lever ? `Start here: ${rec.lever.receipt}. ${cap(rec.lever.fix)}.` : "",
+      others.length ? `Also up — ${others.map((f) => f.receipt).join("; ")}.` : "",
+      rec.excludedDips ? `Not counted: ${rec.excludedDips} rep dip${rec.excludedDips > 1 ? "s" : ""} on short-sleep or rushed sessions, because those days lower reps by themselves and the sleep signal already has them.` : "",
+      "Until these clear, no structural change runs this week — loads hold exactly where they are. Reps still progress, the record still counts, and nothing auto-changes. Tap to log the hold; leave it and the app re-reads it every morning.",
+    ].filter(Boolean).join(" ");
+    propose("recovery_" + monday, `RECOVERY LOW — ${rec.flags.length} OF ${rec.watched} SIGNALS UP`, why, { kind: "note" });
+  }
 
   return s;
 }
@@ -2799,6 +2856,7 @@ function migrate(old) {
 const GLOSSARY = {
   fixwindow: ["Fix window", "Yesterday's protein landed outside the band, so a 24-hour repair window opened. Hit 175±10 today and the record EXTENDS — the app measures recovery speed, never an unbroken chain. Unfixed, it just closes; nothing compounds."],
   rir: ["RIR — reps in reserve", "How many clean reps were left when you racked it. 1 is 'honest' — one more good rep existed. 0 is a grind. Rate two sets: the FIRST, which says whether the load is still honest (0 twice running holds the weight), and the LAST, which the taper programs to failure — 0 there is the target, not a warning. Middle sets are prescribed, so they go unrated on purpose. When unsure at noon on the stim stack, call it 0."],
+  rest: ["Rest between sets", "90 s on isolation, 150 s on compounds, and 30 s more before the final set. The number comes from where the evidence stops moving: pooled across nine studies, longer rest beats short rest by a small margin that runs through volume load — you keep more reps on the back sets — but no further benefit is measurable past about 90 s. So 90 is the floor worth holding and anything beyond it on isolation work is session time you are spending for nothing. Compounds sit at 150 s because that is inside the 2–3 min band tested directly in trained lifters. The extra 30 s before the last set is a judgement call, not a finding: that set is the one prescribed to failure, and it is the one the progression engine reads to size your next jump — so it is the set worth protecting."],
   pace: ["RUSHED (pace)", "That session ran on short rest — under about a minute between sets. It matters for one reason: less rest means fewer reps on the back sets, so the volume load drops. The reps still count and still move your trend. What a rushed day can't do is count toward a stall — three stalls lighten the bar 5%, and running out of time is not evidence that the weight is too heavy. The research here is modest and honest about itself: pooled across nine studies the rest effect is small and mostly runs through volume load, with nothing measurable past ~90 s. So the app records it as context, not as a verdict on the session."],
   debt: ["On debt", "That session happened before three consecutive ≥7.5 h nights. Down numbers on debt read as context, not regression — and PRs hit on debt log as provisional, because they don't reliably repeat."],
   clean: ["CLEAN (sleep)", "Three consecutive nights of ≥7.5 h. One good night repays acute debt, but consolidation lags ~2–3 nights — so owns and earns only count when CLEAN."],
@@ -3641,6 +3699,8 @@ __test.atTopOfWindow = atTopOfWindow;
 __test.fadeRead = fadeRead;
 __test.paceRushed = paceRushed;
 __test.restFor = restFor;
+__test.restLine = restLine;
+__test.REST_BASE = REST_BASE;
 __test.buildRirSets = buildRirSets;
 __test.rirSetsOf = rirSetsOf;
 __test.openerRir = openerRir;
@@ -4450,7 +4510,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       ); })()}
 
-      <Section title="The Big Picture" meta={(() => { const rec = recoveryIndex(s); return `recovery ${rec.score} · crossover ${daysUntil(CROSSOVER)}d`; })()}>
+      <Section title="The Big Picture" meta={(() => { const rec = recoveryIndex(s); return `${rec.flags.length}/${rec.watched} signals up · crossover ${daysUntil(CROSSOVER)}d`; })()}>
       {(() => {
         const rec = recoveryIndex(s);
         const c = rec.band === "GREEN" ? T.jade : rec.band === "WATCH" ? T.brass : T.brass;
@@ -4458,12 +4518,18 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <Card accent={c}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Eyebrow>RECOVERY — HOW BEAT-UP AM I?</Eyebrow>
-              <span style={{ fontFamily: mono, fontSize: 12, color: c }}>{rec.score} · {rec.band}</span>
+              <span style={{ fontFamily: mono, fontSize: 12, color: c }}>{rec.flags.length} of {rec.watched} signals up</span>
             </div>
             <div style={{ margin: "8px 0 4px" }}><Bar pct={rec.score} c={c} /></div>
-            <div style={{ fontFamily: mono, fontSize: 10, color: T.steel }}>{rec.factors.length ? rec.factors.join(" · ") : "no drag on the system — earns count, send it"}</div>
-            <More c={c} deep="Four drag sources converge into one number: sleep (reset progress and 5-night average), opener honesty (active RIR holds), joint flags over 14 days, and rep dips across your last two sessions. 80+ = full send, earns and owns count. 55–79 = consolidate. Under 55 arms the hold-structure rule — nothing auto-changes, but the card appears."
-              forYou={!slp.clean ? `Biggest lever tonight: ≥7.5 h returns +10 instantly${slp.run + 1 >= slp.need ? " and flips you CLEAN — tomorrow's owns and earns count" : ""}.` : s.exercises.some((e) => e.holdFlag) ? "One honest opener session (RIR ≥1) releases the active hold and returns the points." : "Nothing dragging. The rarest state in a deficit — protect it."} />
+            {rec.flags.length ? rec.flags.map((f, i) => (
+              <div key={f.k} style={{ marginTop: i ? 7 : 4 }}>
+                <div style={{ fontFamily: mono, fontSize: 10, color: T.chalk, lineHeight: 1.45 }}>· {f.receipt}</div>
+                <div style={{ fontFamily: body, fontSize: 11, color: T.dim, lineHeight: 1.45, paddingLeft: 10 }}>{cap(f.fix)}.</div>
+              </div>
+            )) : <div style={{ fontFamily: mono, fontSize: 10, color: T.steel }}>no drag on the system — earns count, send it</div>}
+            {rec.excludedDips > 0 && <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 7, lineHeight: 1.5 }}>not counted: {rec.excludedDips} rep dip{rec.excludedDips > 1 ? "s" : ""} on short-sleep or rushed sessions — those days lower reps by themselves</div>}
+            <More c={c} deep="Six signals, each watched separately and each gated on its own evidence: sleep reset progress; the five-night average (only once five nights exist); lifts the governor is holding; openers grinding at 0 RIR (only once four are on file); joint flags over 14 days; and rep dips across your last two sessions — counted ONLY on days that were a fair test, because a short-sleep or rushed session lowers reps by itself and the sleep signal already carries it. What is deliberately NOT here is a single readiness number to act on. The bar is a rough visual, nothing more: the charter says named inputs with receipts, never a composite score, and a score would hide which input actually moved. Three or more signals arms the hold-structure rule — loads stay put, reps still progress, and nothing auto-changes."
+              forYou={rec.lever ? `Start with one thing: ${rec.lever.receipt}. ${cap(rec.lever.fix)}.` : "Nothing dragging. The rarest state in a deficit — protect it."} />
           </Card>
         );
       })()}
@@ -4768,6 +4834,9 @@ function LogTab({ s, setS, save, slp }) {
                   <span onClick={() => { setWEdit(ex.id); setWVal(typeof ex.w === "number" ? ex.w : 180); }} style={{ cursor: "pointer", color: typeof ex.w === "number" ? T.steel : T.brass }}>{typeof ex.w === "number" ? ex.w : "set weight"} ✎</span>
                 )}
                 <span>· tgt {ex.tgt.join(",")}</span>
+                <span style={{ fontFamily: mono, fontSize: 9, color: T.dim, width: "100%" }}>
+                  <Term k="rest" c={T.dim}>REST</Term> · {restLine(ex.id, ex.tgt.length)}
+                </span>
               </div>
             )}
           </div>
@@ -5533,7 +5602,40 @@ function DossierBlock({ s }) {
 }
 
 const COMPOUND_IDS = ["press", "row", "hack", "rdl", "pull", "bench", "dip", "squat"];
-function restFor(exId) { return COMPOUND_IDS.some((c) => exId.indexOf(c) === 0) ? 150 : 75; }
+/* ---------- REST_NOTE — why isolation moved from 75 s to 90 s ----------
+   The 2024 Bayesian meta-analysis compares SHORT (<=60 s) against LONGER
+   (>60 s) and finds a small benefit to longer, mediated by volume load — but
+   explicitly reports no appreciable difference in hypertrophy once rest exceeds
+   about 90 s. That makes ~90 s the point where the measurable return stops, and
+   it is therefore the cheapest correct floor: everything below it is giving up
+   reps on the back sets for nothing, everything above it costs session time the
+   evidence cannot justify.
+
+   75 s sat under that line. On a 4-set isolation lift that is three rests a
+   lift, and the reps it costs land on exactly the sets the volume ramp reads.
+   90 s is +15 s per rest — about three minutes across a whole session.
+
+   Compounds stay at 150 s: still comfortably past the plateau, and inside the
+   2-3 min band that Schoenfeld 2016 supported directly in trained men.
+
+   The bump before the FINAL set is reasoning from the mechanism rather than a
+   trial result, and is labelled as such: rest protects volume load, the taper
+   sends the last set to failure, and that set is the one the progression engine
+   now reads to size the next step. Protecting it is where an extra 30 s buys
+   the most. It is a small, cheap, reversible bet — not a finding. */
+const REST_BASE = { compound: 150, isolation: 90 };
+const REST_TERMINAL_BUMP = 30;
+function restFor(exId, nextSetIdx, nSets) {
+  const base = COMPOUND_IDS.some((c) => String(exId).indexOf(c) === 0) ? REST_BASE.compound : REST_BASE.isolation;
+  const isBeforeTerminal = nSets != null && nextSetIdx != null && nSets >= 2 && nextSetIdx === nSets - 1;
+  return isBeforeTerminal ? base + REST_TERMINAL_BUMP : base;
+}
+/** The one-line prescription, for the card he actually logs from. */
+function restLine(exId, nSets) {
+  const base = restFor(exId);
+  if (!nSets || nSets < 2) return `${base}s between sets`;
+  return `${base}s between sets · ${base + REST_TERMINAL_BUMP}s before the last one`;
+}
 
 function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [idx, setIdx] = useState(0);
@@ -5567,7 +5669,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   }, [phase]);
   const doneSet = () => {
     const nSets = getR(ex).length;
-    if (setN + 1 < nSets) { setSetN(setN + 1); setT(restFor(ex.id)); setPhase("rest"); setRests((r) => ({ ...r, n: r.n + 1 })); }
+    if (setN + 1 < nSets) { setSetN(setN + 1); setT(restFor(ex.id, setN + 1, nSets)); setPhase("rest"); setRests((r) => ({ ...r, n: r.n + 1 })); }
     else setPhase("lift-done");
   };
   const nextLift = () => { if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } else setPhase("all-done"); };
@@ -5593,7 +5695,10 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <div style={{ fontFamily: mono, fontSize: 10, color: T.dim, letterSpacing: "0.15em" }}>REST</div>
           <div style={{ ...big, fontSize: 84, color: T.jade }}>{Math.floor(t / 60)}:{String(t % 60).padStart(2, "0")}</div>
           <div style={{ fontFamily: mono, fontSize: 10, color: T.steel }}>next: SET {setN + 1} of {getR(ex).length} · {ex.n}</div>
-          <Btn small onClick={() => { const full = restFor(ex.id); if (t > full / 2) setRests((r) => ({ ...r, cut: r.cut + 1 })); setT(0); setPhase("lift"); }}>Skip rest</Btn>
+          {/* A rest counts as CUT when the actual rest lands under 60 s — the
+              threshold the meta-analysis actually resolves, not a fraction of
+              the prescription. See REST_NOTE and PACE_NOTE. */}
+          <Btn small onClick={() => { const full = restFor(ex.id, setN, getR(ex).length); if (full - t < 60) setRests((r) => ({ ...r, cut: r.cut + 1 })); setT(0); setPhase("lift"); }}>Skip rest</Btn>
         </div>
       ) : phase === "lift-done" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
@@ -5631,7 +5736,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
               <button onClick={() => { const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ ...big, fontSize: 40, width: 64, height: 64, borderRadius: 12, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>+</button>
             </div>
           </div>
-          <Btn full tone="jade" onClick={doneSet}>SET DONE {setN + 1 < getR(ex).length ? "→ REST " + restFor(ex.id) + "s" : "→"}</Btn>
+          <Btn full tone="jade" onClick={doneSet}>SET DONE {setN + 1 < getR(ex).length ? "→ REST " + restFor(ex.id, setN + 1, getR(ex).length) + "s" : "→"}</Btn>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span style={{ fontFamily: mono, fontSize: 10, color: "transparent" }}>.</span>
             <span onClick={nextLift} style={{ fontFamily: mono, fontSize: 10, color: T.dim, cursor: "pointer" }}>skip lift ▸</span>
@@ -5955,7 +6060,7 @@ function CoachView({ s, onClose }) {
           <div><Num size={24} c={T.jade}>{s.trend}</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>TREND</div></div>
           <div><Num size={24}>{bf.pct}%</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>EST BF {s.model.err}</div></div>
           <div><Num size={24}>{cur.fat}</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>FAT/WK{cur.measured ? " · MEASURED" : ""}</div></div>
-          <div><Num size={24} c={rec.band === "GREEN" ? T.jade : T.brass}>{rec.score}</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>RECOVERY</div></div>
+          <div><Num size={24} c={rec.band === "GREEN" ? T.jade : T.brass}>{rec.flags.length}/{rec.watched}</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>RECOVERY FLAGS</div></div>
           <div><Num size={24}>{s.zeroComp.count}</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim }}>ZERO-COMP</div></div>
         </div>
         <div style={{ fontFamily: mono, fontSize: 10.5, color: T.steel, marginTop: 10 }}>

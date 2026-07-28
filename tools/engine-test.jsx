@@ -781,7 +781,7 @@ ok(restored.v >= 21 && Array.isArray(restored.trials) && Array.isArray(restored.
 // v3.46 — gym mode's timer brain
 const { restFor: rf46 } = __test;
 ok(rf46("press") === 150 && rf46("hack") === 150, "compounds rest long: press/hack 150s");
-ok(rf46("lateral") === 75 && rf46("curl") === 75, "isolations rest short: 75s");
+ok(rf46("lateral") === 90 && rf46("curl") === 90, "isolations rest 90s — raised from 75s, which sat under the plateau where the evidence stops improving");
 
 // (interim)
 
@@ -1508,7 +1508,7 @@ const paceOf = (n, cut) => (n >= 3 ? (cut / n >= 0.5 ? PC.rushed : PC.normal) : 
 ok(paceOf(0, 0) === null && paceOf(2, 2) === null, "under three rests there is no session-level statement to make");
 ok(paceOf(6, 3) === PC.rushed && paceOf(6, 2) === PC.normal, "half the rests cut short is the line, and it is inclusive");
 ok(paceOf(8, 0) === PC.normal, "letting every timer run out reads as full rest, with no tap from him");
-ok(rfP("press") === 150 && rfP("curl") === 75, "compounds still rest 150 s and isolation 75 s — the tag records pace, it does not reprogram it");
+ok(rfP("press") === 150 && rfP("curl") === 90, "the pace tag records what happened; the prescription itself lives in restFor and is set by the evidence, not by the tag");
 
 // v3.99.11 — autoregulated progression: the step is sized by what he had left
 const { progressStep: ps, progressAnchor: pa2, atTopOfWindow: atw, targetsFor: tfA, fadeRead: frd, sessionDebrief: sdA, SEED: TA9, genSession: gsA, completeSession: csA } = __test;
@@ -1683,6 +1683,71 @@ ok(dld({ w: 180, steps: [150, 160, 175, 180, 195] }) === 175, "180 on a coarse s
 ok(dld({ w: 180, steps: [150, 160, 170, 180] }) === 170, "where a rung sits near the 5% mark, that is the one it takes");
 ok(dld({ w: 100, steps: [100, 110] }) === 100, "at the bottom rung there is nowhere to deload to, and it says so by not moving");
 ok(dld({ w: 180, inc: 5 }) === 170 && dld({ w: 10, inc: 5 }) === 10, "with no ladder it is the old arithmetic, and it never goes below 5");
+
+// v3.99.13 — rest prescribed at the evidence plateau, and recovery stops being a score
+const { restFor: rf2, restLine: rl2, recoveryIndex: ri2, runAdaptive: ra2, SEED: TV13 } = __test;
+
+ok(rf2("curl") === 90 && rf2("lateral") === 90 && rf2("tricep") === 90,
+   "isolation rests 90 s — 75 s sat under the point where the measurable benefit stops, and the reps it cost landed on the sets the ramp reads");
+ok(rf2("press") === 150 && rf2("rows") === 150 && rf2("hack") === 150, "compounds hold at 150 s, inside the 2-3 min band tested in trained lifters");
+ok(rf2("curl", 2, 3) === 120 && rf2("press", 2, 3) === 180, "the set before the final one gets 30 s more — that is the set the taper sends to failure");
+ok(rf2("curl", 1, 3) === 90 && rf2("press", 1, 3) === 150, "middle rests are unchanged");
+ok(rf2("curl", 0, 1) === 90 && rf2("curl", 1, 1) === 90, "a single-set lift has no terminal bump to give");
+ok(rf2("curl") >= 90 && rf2("press") >= 90, "nothing the app prescribes now sits under the 90 s plateau");
+ok(rl2("curl", 3).indexOf("90s") === 0 && rl2("curl", 3).indexOf("120s before the last") > -1, "and the card he actually logs from states it: " + rl2("curl", 3));
+ok(rl2("press", 1) === "150s between sets", "a one-set lift gets the short form");
+
+// recovery: named signals with receipts and fixes, not a composite number
+let recS = clone(TV13);
+recS.sleep.nights = [{ d: "2026-07-24", h: 6 }, { d: "2026-07-25", h: 6.2 }, { d: "2026-07-26", h: 6.1 }, { d: "2026-07-27", h: 6 }, { d: "2026-07-28", h: 6.4 }];
+const rec1 = ri2(recS);
+ok(Array.isArray(rec1.flags) && rec1.watched === 6, "recovery returns named flags out of a stated number watched");
+ok(rec1.flags.every((f) => f.k && f.receipt && f.fix), "every flag carries what raised it AND what clears it — a problem with no lever is not analysis");
+ok(rec1.flags.some((f) => f.k === "sleep") && rec1.flags.some((f) => f.k === "avg5"), "five nights under 7 h raises both the reset flag and the chronic-average flag");
+ok(rec1.lever && rec1.flags.every((f) => f.cost <= rec1.lever.cost), "the lever is the heaviest flag, so the card can say 'start here' instead of listing five problems");
+ok(rec1.factors.length === rec1.flags.length, "the old factors array still resolves, so nothing downstream broke");
+
+/* The correctness fix: a rep dip on a day that was not a fair test is not
+   evidence of poor recovery. It used to be counted twice — once as the sleep
+   flag, once as the dip. */
+const mkDip = (pace, nightsH) => {
+  const st = clone(TV13);
+  st.sleep.nights = ["2026-07-24", "2026-07-25", "2026-07-26", "2026-07-27"].map((d) => ({ d, h: nightsH }));
+  st.sessionLog = { "2026-07-28": { entries: [{ id: "ham", reps: [8, 8], rir: 1, w: 120 }], at: 1, dips: 3, pace } };
+  return st;
+};
+ok(ri2(mkDip("normal", 8)).flags.some((f) => f.k === "dips"), "dips on a clean, unhurried day are real and do flag");
+ok(!ri2(mkDip("rushed", 8)).flags.some((f) => f.k === "dips"), "the same dips on a rushed session do not — a compressed day lowers reps by itself");
+ok(!ri2(mkDip("normal", 5)).flags.some((f) => f.k === "dips"), "and not on short sleep either — the sleep flag already carries that day");
+ok(ri2(mkDip("rushed", 8)).excludedDips === 3, "what was excluded is reported, not silently dropped");
+ok(ri2(mkDip("normal", 8)).excludedDips === 0, "and nothing is reported as excluded when nothing was");
+
+// the proposal card: no composite score in the headline, a lever in the body
+let propS = clone(TV13);
+propS.sleep.nights = [{ d: "2026-07-22", h: 5.5 }, { d: "2026-07-23", h: 5.6 }, { d: "2026-07-24", h: 5.4 }, { d: "2026-07-25", h: 5.8 }, { d: "2026-07-26", h: 5.5 }];
+propS.exercises.find((e) => e.id === "ham").holdFlag = true;
+propS.exercises.find((e) => e.id === "hack").holdFlag = true;
+propS.blackout.until = "2026-01-01";
+const propR = ra2(propS, "2026-07-27");
+const recCard = propR.proposals.find((p) => p.rid && p.rid.indexOf("recovery_") === 0);
+ok(!!recCard, "a low-recovery week still arms the card");
+ok(!/\d+\/100/.test(recCard.title), "the headline is no longer a score out of 100 — the charter forbids a composite: " + recCard.title);
+ok(/\d+ OF 6 SIGNALS UP/.test(recCard.title), "it counts named signals instead, which is an enumeration rather than an index");
+ok(recCard.why.indexOf("Start here:") > -1, "the body leads with the single biggest lever");
+ok(recCard.why.indexOf("Converging signals") === -1, "and the old jargon opener is gone");
+ok(recCard.why.indexOf("nothing auto-changes") > -1 && recCard.why.indexOf("Reps still progress") > -1,
+   "it still says exactly what is held and what is not — a hold on loads is not a hold on progress");
+ok(recCard.why.indexOf("re-reads it every morning") > -1, "and says when it looks again, so an unread card is not a dead end");
+/* A card whose trigger has cleared must stand down rather than sit there asking
+   to be applied. His live card was armed partly off dips that no longer count. */
+let clearS = clone(propR);
+clearS.sleep.nights = ["2026-07-24", "2026-07-25", "2026-07-26", "2026-07-27"].map((d) => ({ d, h: 8.2 }));
+clearS.exercises.forEach((e) => { e.holdFlag = false; });
+const clearR = ra2(clearS, "2026-07-28");
+const stillArmed = (clearR.proposals || []).filter((p) => p.rid && p.rid.indexOf("recovery_") === 0 && !p.resolved);
+ok(stillArmed.length === 0, "once the signals clear the card stands down instead of lingering with a claim the engine stopped making");
+ok(clearR.proposals.some((p) => p.stoodDown), "it resolves rather than vanishing — nothing is deleted");
+ok(clearR.feed.some((f) => f.t === "RECOVERY CARD STOOD DOWN"), "and the stand-down is written into the record, so the history still explains itself");
 
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
