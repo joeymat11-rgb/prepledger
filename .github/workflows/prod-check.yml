@@ -1,0 +1,79 @@
+# Once a day, ask the live site whether it is still right.
+#
+# The suite proves the code is correct. This proves the thing on the internet
+# is that code — still serving, still locked down, still able to reach GitHub
+# and Anthropic. Those two facts drift apart silently, and the only person who
+# would otherwise notice is the athlete, when the app stops working for her.
+#
+# On failure it files a GitHub issue (and comments on the existing one rather
+# than opening a new one every morning), so a future session picks it up cold.
+
+name: production check
+
+on:
+  schedule:
+    # 11:10 UTC ≈ 07:10 America/New_York — after the overnight sync, before
+    # she is likely to open the app. Cron here is always UTC.
+    - cron: '10 11 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: is production still right
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check production
+        id: check
+        run: |
+          set -o pipefail
+          node scripts/prod-check.mjs 2>&1 | tee "$RUNNER_TEMP/prod.log"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: File an issue if it is broken
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          BODY_FILE="$RUNNER_TEMP/body.md"
+          {
+            echo "The daily production check failed."
+            echo
+            echo "- run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "- when: $(date -u '+%Y-%m-%d %H:%M UTC')"
+            echo
+            echo '```'
+            sed -e 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/prod.log" | tail -60
+            echo '```'
+          } > "$BODY_FILE"
+
+          EXISTING=$(gh issue list --label production-check --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body-file "$BODY_FILE"
+            echo "commented on #$EXISTING"
+          else
+            gh label create production-check --description "Automated daily production check" --color B60205 2>/dev/null || true
+            gh issue create --title "Production check failed" --label production-check --body-file "$BODY_FILE"
+          fi
+
+      - name: Close the issue once production is healthy again
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          EXISTING=$(gh issue list --label production-check --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "Production check passed on $(date -u '+%Y-%m-%d %H:%M UTC'). Closing."
+            gh issue close "$EXISTING"
+          fi

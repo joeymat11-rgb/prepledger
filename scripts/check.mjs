@@ -142,41 +142,23 @@ function pipeline() {
 
   const jobs = (doc && doc.jobs) || {};
   const problems = [];
-  // No deploy job at all means nothing would ever reach production — that is a
-  // real break, not a transitional gap.
+  if (!jobs.test) problems.push("no `test` job");
   if (!jobs.deploy) problems.push("no `deploy` job — nothing would ever deploy");
 
   const needs = [].concat((jobs.deploy && jobs.deploy.needs) || []);
-  const cond = String((jobs.deploy && jobs.deploy.if) || "");
-  const gated = !!jobs.test && needs.includes("test") && cond.includes("refs/heads/main");
-  const watched = fs.existsSync(at(".github", "workflows", "prod-check.yml"));
+  if (!needs.includes("test")) problems.push("`deploy` does not require `test` — production would ship untested");
 
-  if (watched) {
-    try { YAML.parse(fs.readFileSync(at(".github", "workflows", "prod-check.yml"), "utf8")); }
+  const cond = String((jobs.deploy && jobs.deploy.if) || "");
+  if (!cond.includes("refs/heads/main")) problems.push("`deploy` is not restricted to main");
+
+  const other = at(".github", "workflows", "prod-check.yml");
+  if (!fs.existsSync(other)) problems.push("prod-check.yml is missing — nothing watches production");
+  else {
+    try { YAML.parse(fs.readFileSync(other, "utf8")); }
     catch (e) { problems.push("prod-check.yml is not valid YAML — " + (e && e.message)); }
   }
-  if (problems.length) return { ok: false, detail: problems.join("; ") };
 
-  // KNOWN GAP, deliberately a warning rather than a hard failure.
-  //
-  // The reworked pipeline (test -> deploy-from-main-only -> branch previews) and
-  // the daily production check are written and ready in .tmp/pending-workflows/.
-  // They cannot be pushed because the fine-grained PAT lacks the "Workflows"
-  // permission, and GitHub rejects the entire push when one is present.
-  //
-  // Blocking here would mean nothing could ship at all, which is worse than
-  // shipping to the pipeline that has been running all along. Once the token
-  // has Workflows: Read and write, copy those two files into .github/workflows/
-  // and ship — then turn this back into a hard failure.
-  if (!gated || !watched) {
-    return {
-      soft: true,
-      ok: true,
-      detail: "CI parses, but deploy.yml has no test gate yet — the reworked pipeline is " +
-              "written and waiting in .tmp/pending-workflows/. Add 'Workflows: Read and write' " +
-              "to the PAT, then ship those two files. See CLAUDE.md, 'Token permissions'.",
-    };
-  }
+  if (problems.length) return { ok: false, detail: problems.join("; ") };
   return { ok: true, detail: "CI parses, deploy needs test, production is main-only" };
 }
 

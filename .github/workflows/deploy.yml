@@ -1,43 +1,96 @@
-# Direct-deploy to Netlify from GitHub's runners.
-# Bypasses Netlify's build system entirely: no build minutes, no credit latch, no stopped-builds state.
-# Netlify token lives in the encrypted Actions vault (Settings -> Secrets); nothing sensitive in this file.
-# rotate at Netlify anytime, then update the NETLIFY_AUTH_TOKEN secret.
-name: deploy
+# THE PIPELINE — nothing reaches her phone that has not been through `test`.
+#
+# Before: this workflow deployed straight to production on every push to main,
+# with no test step of any kind. A future session that forgot to run the suite
+# could ship a regression and never know.
+#
+# Now:
+#   test      runs on every push and every PR, on every branch
+#   deploy    production — only from main, and only after test is green
+#   preview   any other branch gets a Netlify draft URL, never production
+#
+# Still a direct zip deploy from GitHub's runners rather than a Netlify build:
+# no build minutes, no credit latch, no stopped-builds state. The Netlify token
+# lives in the encrypted Actions vault (Settings -> Secrets); nothing sensitive
+# is in this file. Rotate it at Netlify anytime, then update NETLIFY_AUTH_TOKEN.
+
+name: pipeline
+
 on:
   push:
-    branches: [main]
+    branches: ['**']
     paths-ignore:
       - 'ledger/**'
+  pull_request:
+    branches: ['**']
   workflow_dispatch:
+
 permissions:
   contents: write
+
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  deploy:
+  # ---------------------------------------------------------------- the wall --
+  test:
+    name: suite
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci --no-audit --no-fund --include=dev
+      - name: Gate
+        # --strict makes a stale app.js a hard failure. app.js is a committed
+        # build artifact, so an un-rebuilt commit would silently deploy
+        # yesterday's app while every test passed.
+        run: node scripts/check.mjs --strict
+
+  # ------------------------------------------------------------- production --
+  deploy:
+    name: production
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Zip site and direct-deploy
         run: |
           set -o pipefail
-          exec > >(tee /tmp/deploy.log) 2>&1
+          exec > >(tee "$RUNNER_TEMP/deploy.log") 2>&1
           NT="${{ secrets.NETLIFY_AUTH_TOKEN }}"
-          SITE=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/sites?per_page=50" | python3 -c "import json,sys;s=[x for x in json.load(sys.stdin) if 'prepledger' in ((x.get('build_settings') or {}).get('repo_url') or '')];print(s[0]['id'] if s else '')")
+
+          SITE=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/sites?per_page=50" \
+            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const s=JSON.parse(d).filter(x=>(((x.build_settings||{}).repo_url)||'').includes('prepledger'));process.stdout.write(s[0]?s[0].id:'')})")
           if [ -z "$SITE" ]; then echo "no prepledger-linked site found"; exit 1; fi
           echo "deploying to site $SITE"
-          python3 - << 'PY'
-          import os, zipfile
-          z = zipfile.ZipFile('/tmp/site.zip', 'w', zipfile.ZIP_DEFLATED)
-          for root, dirs, files in os.walk('.'):
-              dirs[:] = [d for d in dirs if d not in ('.git', '.github')]
-              for f in files:
-                  p = os.path.join(root, f)
-                  z.write(p, os.path.relpath(p, '.'))
-          z.close()
-          PY
-          DEP=$(curl -s -X POST -H "Authorization: Bearer $NT" -H "Content-Type: application/zip" --data-binary @/tmp/site.zip "https://api.netlify.com/api/v1/sites/$SITE/deploys" | python3 -c "import json,sys;print(json.load(sys.stdin)['id'])")
+
+          # Only the site ships. ledger/ holds her health data and never reaches
+          # the CDN at all — the _redirects 404 rules stay as a second layer,
+          # but data that is not uploaded cannot be exposed by a bad redirect.
+          # The list comes from git, so untracked junk on the runner cannot ride
+          # along, and scripts/check.mjs has already asserted its contents.
+          node scripts/site-manifest.mjs > "$RUNNER_TEMP/manifest.txt"
+          echo "shipping $(wc -l < "$RUNNER_TEMP/manifest.txt") files:"
+          cat "$RUNNER_TEMP/manifest.txt"
+          zip -q "$RUNNER_TEMP/site.zip" -@ < "$RUNNER_TEMP/manifest.txt"
+
+          DEP=$(curl -s -X POST -H "Authorization: Bearer $NT" -H "Content-Type: application/zip" \
+                --data-binary @"$RUNNER_TEMP/site.zip" "https://api.netlify.com/api/v1/sites/$SITE/deploys" \
+            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).id))")
           echo "deploy $DEP created, polling..."
+
           for i in $(seq 1 30); do
-            ST=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/deploys/$DEP" | python3 -c "import json,sys;print(json.load(sys.stdin)['state'])")
+            ST=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/deploys/$DEP" \
+              | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).state))")
             echo "state: $ST"
             [ "$ST" = "ready" ] && echo "PUBLISHED" && exit 0
             [ "$ST" = "error" ] && exit 1
@@ -48,17 +101,68 @@ jobs:
       - name: Beacon — success
         if: success()
         run: |
-          V=$(python3 -c 'import re;print(re.search(r"prep-ledger-(v[0-9.]+)", open("sw.js").read()).group(1))' 2>/dev/null || echo unknown)
-          python3 -c "import json,os,datetime; json.dump({'sha': os.environ['GITHUB_SHA'], 'version': '$V', 'state': 'published', 'at': datetime.datetime.utcnow().isoformat()+'Z'}, open('ledger/deploy.json','w'), indent=1)"
+          node -e "
+            const fs=require('fs');
+            const m=fs.readFileSync('sw.js','utf8').match(/prep-ledger-(v[0-9.]+)/);
+            fs.writeFileSync('ledger/deploy.json', JSON.stringify({
+              sha: process.env.GITHUB_SHA,
+              version: m ? m[1] : 'unknown',
+              state: 'published',
+              at: new Date().toISOString(),
+            }, null, 1));
+          "
           git config user.name beacon && git config user.email beacon@prepledger
-          git add ledger/deploy.json && git commit -m "[skip ci] deploy beacon: $V published" && git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:main
+          git add ledger/deploy.json
+          git commit -m "[skip ci] deploy beacon: published" || exit 0
+          git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:main
+
       - name: Beacon — failure
         if: failure()
         run: |
-          python3 -c "
-          import json, os, datetime
-          try: log = open('/tmp/deploy.log').read().splitlines()[-30:]
-          except Exception: log = ['no log captured']
-          json.dump({'sha': os.environ['GITHUB_SHA'], 'state': 'error', 'at': datetime.datetime.utcnow().isoformat()+'Z', 'log': log}, open('ledger/deploy.json','w'), indent=1)"
+          node -e "
+            const fs=require('fs');
+            let log=['no log captured'];
+            try { log = fs.readFileSync(process.env.RUNNER_TEMP + '/deploy.log','utf8').split('\n').slice(-30); } catch (e) {}
+            fs.writeFileSync('ledger/deploy.json', JSON.stringify({
+              sha: process.env.GITHUB_SHA,
+              state: 'error',
+              at: new Date().toISOString(),
+              log,
+            }, null, 1));
+          "
           git config user.name beacon && git config user.email beacon@prepledger
-          git add ledger/deploy.json && git commit -m "[skip ci] deploy beacon: FAILED" && git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:main
+          git add ledger/deploy.json
+          git commit -m "[skip ci] deploy beacon: FAILED" || exit 0
+          git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:main
+
+  # ---------------------------------------------------------------- previews --
+  preview:
+    name: preview
+    needs: test
+    if: github.ref != 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Draft deploy
+        run: |
+          set -o pipefail
+          NT="${{ secrets.NETLIFY_AUTH_TOKEN }}"
+          SITE=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/sites?per_page=50" \
+            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const s=JSON.parse(d).filter(x=>(((x.build_settings||{}).repo_url)||'').includes('prepledger'));process.stdout.write(s[0]?s[0].id:'')})")
+          if [ -z "$SITE" ]; then echo "no prepledger-linked site found"; exit 1; fi
+
+          node scripts/site-manifest.mjs > "$RUNNER_TEMP/manifest.txt"
+          zip -q "$RUNNER_TEMP/site.zip" -@ < "$RUNNER_TEMP/manifest.txt"
+
+          # draft=true is what keeps this off the live domain. A branch build
+          # gets its own URL and can never become production.
+          URL=$(curl -s -X POST -H "Authorization: Bearer $NT" -H "Content-Type: application/zip" \
+                --data-binary @"$RUNNER_TEMP/site.zip" \
+                "https://api.netlify.com/api/v1/sites/$SITE/deploys?draft=true" \
+            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);process.stdout.write(j.deploy_ssl_url||j.deploy_url||'(no url)')})")
+          echo "Preview: $URL"
+          echo "### Preview deploy" >> "$GITHUB_STEP_SUMMARY"
+          echo "$URL" >> "$GITHUB_STEP_SUMMARY"
