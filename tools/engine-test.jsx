@@ -1495,7 +1495,7 @@ const oldRS = clone(TRS);
 oldRS.v = 30;
 oldRS.sessionLog = { "2026-07-20": { entries: [{ id: "press", reps: [8, 8, 7], rir: 1, w: 245 }, { id: "curl", reps: [12, 8, 10], w: 55 }], at: 1 } };
 const migRS = mgRS(oldRS);
-ok(migRS.v === 31, "a v30 phone lands on v31");
+ok(migRS.v === __test.SEED.v, "a v30 phone lands on the current schema version, whatever it is: v" + migRS.v);
 const mPress = migRS.sessionLog["2026-07-20"].entries.find((e) => e.id === "press");
 ok(eq(mPress.rirSets, [1, null, null]), "the old opener value is lifted into slot 0 — a restatement, not a guess");
 ok(trr(mPress) === null, "and the terminal slot stays null: the app never asked, so it does not know");
@@ -2149,6 +2149,87 @@ const ptA = ptN(clone(TN19));
 ok(ptA.g === 175 && ptA.perKg === 2.5, "at 14.8% body fat he is in the medium band, so the per-FFM figure is 2.5 — the 3.0 unlocks under 12.2%");
 ok(ptA.why.indexOf("Same number every day") === 0, "and the receipt leads with the fact that it does not move");
 ok(ptA.why.indexOf("REST days") > -1, "naming the one study that compared day types, which found requirement higher on rest days — the opposite of the intuition");
+
+/* ================= v3.99.21 — matched windows, and a proposal with hands ================= */
+const { observedTDEE: otW, currentRate: crW, calorieTarget: ctW, dayType: dtW, applyProposal: apW, runAdaptive: raW, migrate: mgW, SEED: TW21 } = __test;
+
+/* THE WINDOW FIX. Maintenance is (mean intake) + (weight lost x 3500 / days) and
+   both halves have to come from the same stretch of calendar. The rate ran 28
+   reads across 35 days while the intake average ran a fixed 21-day window, so a
+   leaner, higher-stepping early fortnight produced part of the rate and never
+   entered the intake average. */
+const mkWin = (earlyCal, lateCal, days) => {
+  const st = clone(TW21);
+  st.blackout.until = "2026-01-01";
+  st.reads = []; st.dailyLogs = {};
+  for (let i = days - 1; i >= 0; i--) {
+    const d = isoL(Date.now() - i * 864e5);
+    st.reads.push({ d, w: +(175 - (days - 1 - i) * 0.2).toFixed(1), sealed: false });
+    st.dailyLogs[d] = { cal: i >= days / 2 ? earlyCal : lateCal, pro: 175, steps: 16000 };
+  }
+  st.trend = st.reads[st.reads.length - 1].w;
+  return st;
+};
+const winS = mkWin(1700, 2100, 30);
+const rW = crW(winS), tdW = otW(winS);
+ok(rW.from && rW.to && rW.from < rW.to, "the rate reports the endpoints it was measured between, not just a printable span");
+ok(tdW.from === rW.from && tdW.to === rW.to, "and maintenance averages intake over exactly that period");
+ok(tdW.matched === true, "it says so, rather than leaving the reader to assume it");
+ok(tdW.avg > 1800 && tdW.avg < 2000, "so a run that started lean and ended looser averages BOTH halves (" + tdW.avg + "), not just the recent one");
+/* the bias it removes, stated: pairing recent intake with an older rate reads high */
+const lateOnly = Math.round(2100 + (rW.scale + winS.model.drip) * 3500 / 7 - winS.model.drip * 600 / 7);
+ok(lateOnly > tdW.tdee + 100, `pairing only the recent half against the same rate would read ~${lateOnly} against the matched ${tdW.tdee} — the bias this removes`);
+/* a snapshot rate has no endpoints, so the old window is the fallback and says so */
+const snapS = clone(TW21);
+snapS.blackout.until = "2026-01-01"; snapS.reads = [];
+snapS.weekly = [{ wk: "2026-07-06", trend: 168 }, { wk: "2026-07-13", trend: 167 }, { wk: "2026-07-20", trend: 166 }];
+for (let i = 0; i < 14; i++) snapS.dailyLogs[isoL(Date.now() - i * 864e5)] = { cal: 1900, pro: 175, steps: 16000 };
+const tdSnap = otW(snapS);
+ok(tdSnap && tdSnap.matched === false, "with a snapshot rate there are no endpoints to match, and the fallback window is flagged rather than hidden");
+
+/* THE WEEKLY AVERAGE — a daily target does not tell him whether he ate it. */
+const ctWin = ctW(winS);
+ok(ctWin.wkAvg === 2100 && ctWin.wkN === 7, "the card now carries what he actually averaged over the rolling week: " + ctWin.wkAvg);
+ok(ctWin.wkOff === ctWin.wkAvg - ctWin.mid, "against the middle of the band, signed");
+ok(Math.abs(ctWin.wkOff) <= 60 && ctWin.wkWhy.indexOf("inside the band") > -1, "and says plainly when target and result agree: " + ctWin.wkOff);
+/* a week clearly outside the band converts the gap into the rate it costs —
+   kcal/day means nothing on its own, lb/wk is the unit he actually thinks in */
+const over21 = mkWin(1700, 2600, 30);
+const ctOver = ctW(over21);
+ok(Math.abs(ctOver.wkOff) > 60 && ctOver.wkWhy.indexOf("lb/wk") > -1, "and when it does not, the gap is priced in lb/wk: " + ctOver.wkWhy.slice(0, 90));
+ok(ctOver.wkWhy.indexOf("above") > -1, "with the direction named rather than left as an absolute value");
+
+/* THE REFEED, RETIRED FOR REAL. */
+ok(dtW("2026-07-29") === "REFEED", "a Wednesday is a refeed day by default — it is his programme");
+const offS = { targets: { refeedOff: "2026-07-28" } };
+ok(dtW("2026-07-29", offS) === "REST", "once retired it stops being one, from that date forward");
+ok(dtW("2026-07-22", offS) === "REFEED", "but every Wednesday BEFORE the retirement stays a refeed — the bump line and the water flag are reading history and it has to stay true");
+ok(dtW("2026-07-30", offS) === "U" && dtW("2026-07-31", offS) === "L", "and no other day type is touched");
+/* applying it actually does something — the defect this fixes is that it did not */
+let rfS = clone(TW21);
+rfS.blackout.until = "2026-01-01"; rfS.proposals = []; rfS.adjustments = [];
+for (let i = 0; i < 20; i++) { const d = isoL(Date.now() - i * 864e5); rfS.dailyLogs[d] = { cal: 2000, pro: 175, steps: 16000 }; rfS.reads.push({ d, w: +(170 - i * 0.15).toFixed(1), sealed: false }); }
+rfS.reads.sort((a, b) => (a.d < b.d ? -1 : 1));
+rfS = raW(rfS, isoL(Date.now()));
+const rfCard = rfS.proposals.find((p) => p.rid === "refeed_review" && !p.resolved);
+ok(!!rfCard, "the refeed card is raised");
+ok(rfCard.apply.kind === "refeed", "and it carries a kind that DOES something — it used to carry 'note', so applying it wrote a feed line and left Wednesday a refeed day in all 34 places dayType is called");
+const rfDone = apW(rfS, rfCard.id, 0);
+ok(!!rfDone.targets.refeedOff, "applying it dates the retirement");
+const nextWed21 = (() => { const n = new Date(); n.setHours(0, 0, 0, 0); const off = ((3 - n.getDay()) + 7) % 7 || 7; return isoL(n.getTime() + off * 864e5); })();
+ok(dtW(nextWed21, rfS) === "REFEED" && dtW(nextWed21, rfDone) === "REST", "and next Wednesday stops being a refeed the moment he taps");
+ok(rfDone.feed.some((f) => f.t === "WEEKLY REFEED RETIRED"), "with the change named on the record, not buried in a generic adjustment line");
+
+/* the self-heal: a tap already made on the build where it did nothing */
+const stranded = clone(TW21);
+stranded.v = 31; stranded.targets = { sleepH: 7.5 };
+stranded.adjustments = [{ rid: "refeed_review", d: "2026-07-28", title: "THE WEEKLY REFEED HAS NO EVIDENCE BEHIND IT" }];
+const healed = mgW(stranded);
+ok(healed.targets.refeedOff === "2026-07-28", "a retirement he already approved is honoured on migration, dated from the day he approved it — not from today, and not requiring him to tap a card he has already dismissed");
+ok(dtW("2026-07-22", healed) === "REFEED" && dtW("2026-07-29", healed) === "REST", "so history reads as history and the future reads as retired");
+const noAdj = clone(TW21); noAdj.v = 31; noAdj.adjustments = [];
+ok(!((mgW(noAdj).targets || {}).refeedOff), "and a state with no such approval is left entirely alone — the patch does not even create the key");
+ok(dtW("2026-07-29", mgW(noAdj)) === "REFEED", "so Wednesday stays a refeed for anyone who has not asked for it to stop");
 
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

@@ -311,3 +311,34 @@ adherence evidence; keep the two distinct.
 `.slice()`. This silently flipped the sign of the step-drift figure; a test caught
 it. Assume the same trap anywhere else you take a recency window off a plain
 object.
+
+## Matched windows, and proposals with hands (v3.99.21)
+
+**Maintenance is a sum whose halves must share a calendar.** `observedTDEE` is
+`mean intake + (weight lost × 3500 / days)`. Both terms have to come from the
+same period. They did not — the rate ran a 28-read regression across 35 days
+while the intake average ran a fixed 21-day window, and his early fortnight was
+genuinely different (1,953 kcal on 20,471 steps vs 2,072 on 16,526). That read
+maintenance 50 kcal high. `currentRate` now returns `from`/`to` and
+`observedTDEE` averages intake over exactly that span, reporting `matched` so a
+snapshot-rate fallback is visible rather than assumed. If you ever add another
+window, ask what it is being paired against.
+
+**A proposal must do what its own text says it does.** `refeed_review` shipped
+with `{ kind: "note" }` while its body read "the proposal is to retire the fixed
+weekly refeed". He applied it; nothing happened. Before shipping a proposal,
+check that `applyProposal` has a branch for its `kind` and that the branch
+changes the thing the body promises. A card that takes a tap and files a note is
+worse than no card.
+
+**`dayType(iso, s)` takes optional state.** Callers reasoning about today or
+tomorrow pass it; callers analysing history do not. The refeed retirement is
+DATED, so past Wednesdays stay refeeds — `refeedBumps`, the post-refeed water
+flag and the Tue/Fri experiment all read history and must keep reading it
+truthfully. Do not make this a boolean.
+
+**Show the weekly result next to the daily target.** A daily band says what to
+eat; it does not say whether he ate it, and with one high day a week those differ
+by ~72 kcal/day. `calorieTarget` now returns `wkAvg` / `wkOff` / `wkWhy` over the
+last seven logged days, priced in lb/wk rather than kcal/day because that is the
+unit he thinks in.

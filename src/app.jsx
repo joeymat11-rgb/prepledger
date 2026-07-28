@@ -33,13 +33,13 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.20";
+const APP_V = "3.99.21";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 31;
+const SCHEMA_V = 32;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -228,9 +228,26 @@ const ROLLUPS = weekRollups();
    ============================================================ */
 const exById = (s, id) => s.exercises.find((e) => e.id === id);
 
-function dayType(iso) {
+/* ---------- REFEED_RETIREMENT ----------
+   Wednesday is a refeed because his programme says so. When he retires it — a
+   proposal, applied — it has to actually stop being one, and the first version
+   of that proposal had no hands: applying it logged a note and Wednesday stayed
+   a refeed day in all 34 places this function is called. A card that says "the
+   proposal is to retire the weekly refeed", takes the tap, and changes nothing
+   is worse than no card.
+
+   The retirement is dated, and only applies FORWARD. Past Wednesdays stay
+   refeeds because they were refeeds — the refeed-bump line, the post-refeed
+   water flag and the Tue/Fri experiment are all reading history and must keep
+   reading it truthfully. Callers reasoning about today or tomorrow pass state;
+   callers analysing the record do not, and get the historical answer. */
+function dayType(iso, s) {
   const d = mk(iso).getDay();
-  return d === 1 || d === 4 ? "U" : d === 2 || d === 5 ? "L" : d === 3 ? "REFEED" : "REST";
+  if (d === 3) {
+    const off = s && s.targets && s.targets.refeedOff;
+    return off && iso >= off ? "REST" : "REFEED";
+  }
+  return d === 1 || d === 4 ? "U" : d === 2 || d === 5 ? "L" : "REST";
 }
 
 /* target generator: climb the earliest set that lags the one before it */
@@ -558,7 +575,7 @@ function atTopOfWindow(reps, ex) {
 
 /* pick THE structural change for a session (one per session, hard rule) */
 function pickStructural(s, iso, slp) {
-  const dt = dayType(iso);
+  const dt = dayType(iso, s);
   const candidates = s.queue.filter((q) => !q.done && (q.kind === "debut" || q.kind === "unlock") && q.exId && exById(s, q.exId) && exById(s, q.exId).day === dt);
   const passes = candidates.filter((q) => !(q.exId === "hack" && slp.last && slp.last.h < 4.5));
   const main = passes.find((q) => !q.coApproved) || null;
@@ -568,7 +585,7 @@ function pickStructural(s, iso, slp) {
 
 /* generate a full session for any date */
 function genSession(s, iso, slp) {
-  const dt = dayType(iso);
+  const dt = dayType(iso, s);
   if (dt !== "U" && dt !== "L") return null;
   const { main, riders } = pickStructural(s, iso, slp);
   const active = new Set([main, ...riders].filter(Boolean).map((q) => q.exId));
@@ -1027,6 +1044,9 @@ function currentRate(s) {
       return {
         scale, fat: +(scale + s.model.drip).toFixed(2), measured: true, rates,
         method: "regression", n, ci, lo: +(scale - ci).toFixed(2), hi: +(scale + ci).toFixed(2),
+        /* the endpoints, not just the printable span — observedTDEE has to
+           average intake over exactly this period or the arithmetic is wrong */
+        from: reads[0].d, to: reads[n - 1].d,
         span: `${reads[0].d} → ${reads[n - 1].d}`,
       };
     }
@@ -1127,8 +1147,30 @@ function observedTDEE(s) {
   if (daysUntil(s.blackout.until) > 0) return null;
   const r = currentRate(s);
   if (!r.measured) return null;
-  const cutoff = isoOf(new Date(todayStart().getTime() - 21 * DAY));
-  const cals = Object.entries(s.dailyLogs).filter(([d, v]) => d >= cutoff && v && v.cal != null).map(([, v]) => v.cal);
+  /* ---------- WINDOW_NOTE — the two halves of this sum must be the same period ----------
+     Maintenance is (mean intake) + (weight lost x 3500 / days). Both terms have
+     to come from the SAME stretch of calendar or the identity does not hold, and
+     they did not: the rate ran a 28-read regression across 35 days while the
+     intake average ran a fixed 21-day window. On this ledger those halves are
+     genuinely different — the earlier fortnight averaged 1,953 kcal on 20,471
+     steps, the later one 2,072 kcal on 16,526. Roughly 220 kcal/day of extra
+     deficit produced part of the measured rate and never entered the intake
+     average, so recent higher eating was being credited with a rate partly
+     earned by an older, leaner period. Result: maintenance read 2,681 when the
+     matched-window figure is 2,631.
+
+     The intake window is therefore taken from the rate's own endpoints. If the
+     rate came from weekly snapshots rather than a regression it has no
+     endpoints, and the old 21-day window is the fallback — stated, not hidden. */
+  const fallback = isoOf(new Date(todayStart().getTime() - 21 * DAY));
+  const from = r.from || fallback, to = r.to || isoOf(todayStart());
+  let rows = Object.entries(s.dailyLogs).filter(([d, v]) => d >= from && d <= to && v && v.cal != null);
+  /* matched only when the rate actually HAD endpoints to match against — a
+     snapshot rate has none, and claiming a match there would be the same
+     quiet fiction this whole note exists to remove */
+  let matched = !!(r.from && r.to);
+  if (rows.length < 8) { rows = Object.entries(s.dailyLogs).filter(([d, v]) => d >= fallback && v && v.cal != null); matched = false; }
+  const cals = rows.map(([, v]) => v.cal);
   if (cals.length < 8) return null;
   const avg = cals.reduce((a, b) => a + b, 0) / cals.length;
   /* The old ceiling was 1.6 lb/wk, and it BOUND on his real data: a rate of 1.55
@@ -1148,7 +1190,7 @@ function observedTDEE(s) {
   return {
     tdee, days: cals.length, avg: Math.round(avg),
     lo, hi, clamped: RAW > CEIL, method: r.method, rateN: r.n,
-    rate: r.scale, rateCi: r.ci,
+    rate: r.scale, rateCi: r.ci, from, to, matched,
   };
 }
 
@@ -1178,11 +1220,26 @@ function calorieTarget(s) {
   const ph = PHASES[s.phase];
   const phaseLo = ph ? ph.band[0] : null, phaseHi = ph ? ph.band[1] : null;
   const drift = phaseHi != null ? Math.round((lo + hi) / 2 - (phaseLo + phaseHi) / 2) : 0;
+  /* ---------- The number he was never shown: what he ACTUALLY averaged ----------
+     A daily band tells him what to eat. It does not tell him whether he ate it,
+     and on a plan with one high day a week those are different questions — his
+     Wednesdays ran 2,395 against 1,893 on every other day, which lifted his
+     weekly average about 72 kcal/day above his own band without a single card
+     ever saying so. The target is daily; the result is weekly; both belong on
+     the screen. */
+  const wkRows = Object.entries(s.dailyLogs || {}).filter(([d, v]) => v && v.cal != null)
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(-7);
+  const wkAvg = wkRows.length >= 4 ? Math.round(wkRows.reduce((a, [, v]) => a + v.cal, 0) / wkRows.length) : null;
+  const wkOff = wkAvg == null ? null : wkAvg - Math.round((lo + hi) / 2);
   return {
     gated: false, from: "measured", lo, hi, mid: Math.round((lo + hi) / 2),
+    wkAvg, wkN: wkRows.length, wkOff,
+    wkWhy: wkAvg == null ? null
+      : Math.abs(wkOff) <= 60 ? `Your last ${wkRows.length} logged days average ${wkAvg} — inside the band. The target and the result agree, which is the only state worth being in.`
+      : `Your last ${wkRows.length} logged days average ${wkAvg}, which is ${Math.abs(wkOff)} kcal/day ${wkOff > 0 ? "above" : "below"} the middle of this band — about ${(Math.abs(wkOff) * 7 / 3500).toFixed(2)} lb/wk ${wkOff > 0 ? "slower" : "faster"} than the band is aiming for. Not a scolding, just the arithmetic: a daily target and a weekly result are different numbers and only one of them moves you.`,
     tdee: td.tdee, tdeeLo: td.lo, tdeeHi: td.hi, days: td.days, avg: td.avg,
     band, phaseLo, phaseHi, drift, floorHit: lo === floor,
-    why: `Your measured maintenance is ${td.tdee}${td.lo && td.hi ? ` (${td.lo}–${td.hi} once the rate's own error is carried through)` : ""}, from ${td.days} logged days and a ${td.method === "regression" ? `least-squares rate across ${td.rateN} daily reads` : "snapshot rate"}. Your band asks for ${band[0]}–${band[1]} lb/wk, which is ${kcalFor(band[0])}–${kcalFor(band[1])} kcal/day under it. That lands at ${lo}–${hi}.`,
+    why: `Your measured maintenance is ${td.tdee}${td.lo && td.hi ? ` (${td.lo}–${td.hi} once the rate's own error is carried through)` : ""}, from ${td.days} logged days and a ${td.method === "regression" ? `least-squares rate across ${td.rateN} daily reads` : "snapshot rate"}${td.matched && td.from ? `, both measured over the same stretch — ${fmtShort(td.from)} to ${fmtShort(td.to)}. That matters: your earlier weeks ran leaner and walked further, and averaging recent intake against a rate those weeks helped produce would read maintenance high` : ""}. Your band asks for ${band[0]}–${band[1]} lb/wk, which is ${kcalFor(band[0])}–${kcalFor(band[1])} kcal/day under it. That lands at ${lo}–${hi}.`,
   };
 }
 
@@ -1999,7 +2056,7 @@ function theOneThing(s, slp, hour = new Date().getHours(), graceDays = Infinity)
   const owed = owedNights(s, hour);
   const slLogged = owed.length === 0;
   const dLogged = s.dailyLogs[tISO] && s.dailyLogs[tISO].cal != null;
-  const dt = dayType(tISO);
+  const dt = dayType(tISO, s);
   const trainToday = dt === "U" || dt === "L";
   const sessDone = !!s.sessionLog[tISO];
   if (!slLogged) {
@@ -2666,7 +2723,7 @@ function bodyAlarm(s, slp) {
 
   const pulseTrig = todaySpike != null || partial;
   const red = todaySpike != null && (todaySpike >= 10 || (prevSpike != null && prevSpike >= 7 && todaySpike >= 7) || (lastNight && lastNight.h < 6));
-  const t = dayType(tI);
+  const t = dayType(tI, s);
   const trainDay = (t === "U" || t === "L") && !s.sessionLog[tI];
   let canaryName = null;
   try { const can = labGroupsM(s).flatMap((g) => g.cards).find((c) => c.id === "canary"); if (can && can.status === "LIVE") { const m = (can.forYou || "").match(/Canary: ([^(]+)\(/); if (m) canaryName = m[1].trim(); } } catch (e) {}
@@ -2840,7 +2897,7 @@ function dayProtocol(s, slp) {
   const steps = [];
   const tI = isoOf(todayStart());
   const yISO = isoOf(new Date(todayStart().getTime() - DAY));
-  const t = dayType(tI);
+  const t = dayType(tI, s);
   const trainDay = t === "U" || t === "L";
   const sessDone = !!s.sessionLog[tI];
   const lastNight = s.sleep.nights.find((n) => n.d === yISO);
@@ -2888,11 +2945,12 @@ function dayProtocol(s, slp) {
      measured maintenance rather than an authored constant. */
   const ct = calorieTarget(s);
   if (!ct.gated) {
-    const off = ct.avg != null ? ct.avg - ct.mid : 0;
+    /* The rolling week, not the whole measurement window — that is the number
+       that answers "am I actually eating this?", and it is the one that moves. */
     steps.push({
       a: `Calories ${ct.lo}–${ct.hi}`,
-      why: `${ct.why}${Math.abs(off) > 120 ? ` You have been averaging ${ct.avg}, which is ${Math.abs(off)} ${off > 0 ? "above" : "below"} the middle of that — worth knowing before you change anything.` : ` You have been averaging ${ct.avg}, which sits inside it.`}`,
-      w: 84,
+      why: `${ct.why}${ct.wkWhy ? " " + ct.wkWhy : ""}`,
+      w: 84 + (ct.wkOff != null && Math.abs(ct.wkOff) > 120 ? 6 : 0),
     });
   }
   const pt = proteinTarget(s);
@@ -2905,7 +2963,7 @@ function dayProtocol(s, slp) {
   /* The refeed is still on the calendar because it is his programme and the app
      does not reprogramme him — but it no longer gets a sentence claiming it
      works. See REFEED_NOTE. */
-  if (dayType(isoOf(new Date(todayStart().getTime() + DAY))) === "REFEED") steps.push({ a: "Normal day — refeed is tomorrow", why: "no pre-saving calories tonight. Worth knowing what tomorrow does and does not buy: at a matched weekly total, the only refeed RCT in trained people did not survive independent reanalysis, and across 12 trials the resting-metabolism benefit in resistance-trained subgroups is 11 kcal/day, 95% CI −67 to +46. It is a day you enjoy, not a metabolic intervention — and it is not free, because a higher Wednesday against a fixed week is a deeper Monday.", w: 35 });
+  if (dayType(isoOf(new Date(todayStart().getTime() + DAY)), s) === "REFEED") steps.push({ a: "Normal day — refeed is tomorrow", why: "no pre-saving calories tonight. Worth knowing what tomorrow does and does not buy: at a matched weekly total, the only refeed RCT in trained people did not survive independent reanalysis, and across 12 trials the resting-metabolism benefit in resistance-trained subgroups is 11 kcal/day, 95% CI −67 to +46. It is a day you enjoy, not a metabolic intervention — and it is not free, because a higher Wednesday against a fixed week is a deeper Monday.", w: 35 });
 
   /* 5 · repair last night, tonight */
   if (lastNight) {
@@ -3236,10 +3294,11 @@ function runAdaptive(state, todayISO) {
 
      This is filed as a proposal rather than applied, because the calendar is his
      programme and law 3 says every change arrives as a proposal. */
-  if (!sealed && dayType("2026-07-29") === "REFEED")
+  const nextWed = (() => { const t9 = todayStart(); const off9 = ((3 - t9.getDay()) + 7) % 7 || 7; return isoOf(new Date(t9.getTime() + off9 * DAY)); })();
+  if (!sealed && dayType(nextWed, s) === "REFEED")
     propose("refeed_review", "THE WEEKLY REFEED HAS NO EVIDENCE BEHIND IT",
-      `Your Wednesday refeed is prescribed at 2,450-2,500 against a band that is now ${ct.gated ? "derived from your maintenance" : `${ct.lo}-${ct.hi}`}. The case for refeeds does not hold up: the only matched-energy RCT in trained people (Campbell 2020) had its fat-free-mass result overturned on independent reanalysis, and across 12 trials the resting-metabolism advantage in resistance-trained subgroups is 11 kcal/day with a confidence interval from -67 to +46. Leptin, testosterone and free T3 were all unchanged across a full week at maintenance in the one trial that measured them. Higher-carbohydrate days have never beaten matched-calorie days for strength or hypertrophy in any isocaloric comparison. Meanwhile it costs something real: a Wednesday above the band deepens the other six days, and deficit size is the variable that actually predicts lean-mass loss. The proposal is to retire the fixed weekly refeed and simply run the band every day — keeping a DIET BREAK (a full week at maintenance) in reserve, which is the intervention the adherence evidence actually supports. If you keep the refeed, keep it because you enjoy it and it keeps you in the game. That is a real reason. It is just not the one the app has been giving you.`,
-      { kind: "note" });
+      `Your Wednesday refeed is prescribed at 2,450-2,500 against a band that is now ${ct.gated ? "derived from your maintenance" : `${ct.lo}-${ct.hi}`}. Applying this actually retires it: Wednesdays stop being refeed days from the day you tap, everywhere in the app, while every past Wednesday stays a refeed on the record because it was one. The case for refeeds does not hold up: the only matched-energy RCT in trained people (Campbell 2020) had its fat-free-mass result overturned on independent reanalysis, and across 12 trials the resting-metabolism advantage in resistance-trained subgroups is 11 kcal/day with a confidence interval from -67 to +46. Leptin, testosterone and free T3 were all unchanged across a full week at maintenance in the one trial that measured them. Higher-carbohydrate days have never beaten matched-calorie days for strength or hypertrophy in any isocaloric comparison. Meanwhile it costs something real: a Wednesday above the band deepens the other six days, and deficit size is the variable that actually predicts lean-mass loss. The proposal is to retire the fixed weekly refeed and simply run the band every day — keeping a DIET BREAK (a full week at maintenance) in reserve, which is the intervention the adherence evidence actually supports. If you keep the refeed, keep it because you enjoy it and it keeps you in the game. That is a real reason. It is just not the one the app has been giving you.`,
+      { kind: "refeed" });
 
   /* The volume band vs the dose-response evidence, in a deficit. */
   const volDrift = VOL_BANDS.lo !== 6 || VOL_BANDS.hi !== 12;
@@ -3311,7 +3370,12 @@ function applyProposal(state, pid, nudge = 0) {
   p.resolved = true;
   p.nudge = adj;
   s.adjustments.push({ rid: p.rid, d: isoOf(todayStart()), title: p.title, nudge: adj });
-  if (p.apply.kind === "phase" && p.apply.to) {
+  if (p.apply.kind === "refeed") {
+    /* Dated, so history keeps reading as history — see REFEED_RETIREMENT. */
+    s.targets = s.targets || {};
+    s.targets.refeedOff = isoOf(todayStart());
+    s.feed.unshift({ d: isoOf(todayStart()), t: "WEEKLY REFEED RETIRED", how: `Wednesdays stop being refeed days from today. Past ones stay on the record as refeeds, because they were. Your band is the same every day now — which is also about ${Math.round((2395 - 1893) / 7)} kcal/day less than you were averaging, since a 2,400 Wednesday against a 1,900 week was quietly raising the average nobody was showing you.` });
+  } else if (p.apply.kind === "phase" && p.apply.to) {
     s.phase = p.apply.to;
     const q = s.queue.find((x) => x.id === "q_ease2"); if (q) { q.done = true; q.state = "FIRED"; }
     s.feed.unshift({ d: isoOf(todayStart()), t: `${p.apply.to} FIRED`, how: `est. BF crossed the line — targets now ${PHASES[p.apply.to].band.join("–")} · steps: ${PHASES[p.apply.to].steps}. Mirror outranks scale from here.` });
@@ -3445,6 +3509,25 @@ function patchV31(s) {
   (s.exercises || []).forEach((e) => lift(e.lastMeta));
   s.v = 31; return s;
 }
+function patchV32(s) {
+  /* He applied the refeed-retirement proposal on a build where applying it did
+     nothing but write a feed line — the proposal carried { kind: "note" }, so
+     `dayType` never heard about it and Wednesday stayed a refeed day in all 34
+     places it is called. The tap was real and his intent was recorded in
+     `adjustments`; only the effect was missing. This honours it rather than
+     asking him to tap a card he has already dismissed.
+
+     Dated from the adjustment, not from today, so the retirement starts where he
+     actually made it and every Wednesday before that stays a refeed on the
+     record — which is what the refeed-bump line and the post-refeed water flag
+     need in order to keep reading history truthfully. */
+  const adj = (s.adjustments || []).find((a) => a.rid === "refeed_review");
+  if (adj) {
+    s.targets = s.targets || {};
+    if (!s.targets.refeedOff) s.targets.refeedOff = adj.d || isoOf(todayStart());
+  }
+  s.v = 32; return s;
+}
 function patchV30(s) {
   s.medsLog = s.medsLog || [];
   s.v = 30; return s;
@@ -3545,7 +3628,7 @@ function patchV11(s) {
 /* Applied in order, oldest first. To add a schema version: write patchVn, append
    it here, and bump SCHEMA_V — nothing else. The old nested-call chain was 31
    parentheses deep and a missing one only showed up at build time. */
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31];
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32];
 function migrate(old) {
   if (old && old.v === SCHEMA_V) return old;
   if (old && old.v >= 3 && old.v < SCHEMA_V) return PATCHES.reduce((s, p) => p(s), JSON.parse(JSON.stringify(old)));
@@ -3666,7 +3749,7 @@ function dayWeather(s, iso) {
   (s.events || []).forEach((e) => { const gap = (mk(iso) - mk(e.d)) / DAY; if (gap >= -1 && gap <= 2) flags.push({ k: "event", why: e.t || "event window", pre: gap < 0 }); });
   if (s.blackout && iso <= s.blackout.until && (mk(s.blackout.until) - mk(iso)) / DAY <= 9) flags.push({ k: "sealwater", why: "scale carries event water — sealed window" });
   { const mm2 = (s.medsLog || []).find((x) => x.d === iso); if (mm2 && !mm2.taken) flags.push({ k: "nomeds", why: "no meds this day — appetite, energy, and effort read differently" }); }
-  if (dayType(isoOf(new Date(mk(iso).getTime() - DAY))) === "REFEED") flags.push({ k: "postrefeed", why: "morning after refeed — storage bump expected" });
+  if (dayType(isoOf(new Date(mk(iso).getTime() - DAY)), s) === "REFEED") flags.push({ k: "postrefeed", why: "morning after refeed — storage bump expected" });
   return { flags, noisy: flags.some((f) => f.k === "estimate" || f.k === "event" || f.k === "sealwater"), hard: flags.some((f) => f.k === "estimate" || (f.k === "event" && !f.pre)), est: flags.some((f) => f.k === "estimate") };
 }
 function weekWeather(s, days) {
@@ -4190,7 +4273,7 @@ function booksToday(s) {
   const dl9 = s.dailyLogs[t9];
   items.push({ k: "numbers", ok: !!(dl9 && dl9.cal != null) });
   items.push({ k: "night", ok: s.sleep.nights.some((n) => n.d === y9) });
-  const ty9 = dayType(t9);
+  const ty9 = dayType(t9, s);
   if (ty9 === "U" || ty9 === "L") items.push({ k: "session", ok: !!s.sessionLog[t9] });
   if ((s.pulse || []).some((x) => x.d < t9)) items.push({ k: "pulse", ok: (s.pulse || []).some((x) => x.d === t9) });
   if ((s.temp || []).some((x) => x.d < t9)) items.push({ k: "temp", ok: (s.temp || []).some((x) => x.d === t9) });
@@ -4206,7 +4289,7 @@ function liveBooks(s) {
   const dl = s.dailyLogs[y];
   items.push({ k: "numbers", ok: !!(dl && dl.cal != null) });
   items.push({ k: "night", ok: s.sleep.nights.some((n) => n.d === y) });
-  const t2 = dayType(y);
+  const t2 = dayType(y, s);
   if (t2 === "U" || t2 === "L") items.push({ k: "session", ok: !!s.sessionLog[y] });
   if ((s.pulse || []).some((x) => x.d < y)) items.push({ k: "pulse", ok: (s.pulse || []).some((x) => x.d === y) });
   if ((s.temp || []).some((x) => x.d < y)) items.push({ k: "temp", ok: (s.temp || []).some((x) => x.d === y) });
@@ -4741,7 +4824,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [pulseIn, setPulseIn] = useState(((s.pulse || [])[Math.max(0, (s.pulse || []).length - 1)] || {}).bpm || 58);
   const [tempIn, setTempIn] = useState(((s.temp || [])[Math.max(0, (s.temp || []).length - 1)] || {}).f || 97.6);
   const wd = weekDay();
-  const dt = dayType(tISO);
+  const dt = dayType(tISO, s);
   const isRefeed = dt === "REFEED";
   const nextISO = nextTrainingISO(s);
   const sess = nextISO ? genSession(s, nextISO, slp) : null;
@@ -5422,7 +5505,7 @@ function LogTab({ s, setS, save, slp }) {
   }
 
   if (!sess && !logged) return (
-    <Card><Eyebrow>{dayType(tISO) === "REFEED" ? "REST + REFEED TODAY" : "REST DAY"}</Eyebrow>
+    <Card><Eyebrow>{dayType(tISO, s) === "REFEED" ? "REST + REFEED TODAY" : "REST DAY"}</Eyebrow>
       <div style={{ fontFamily: body, color: T.steel, fontSize: 13, marginTop: 6 }}>Next session {nextISO ? fmtShort(nextISO) : "—"} — your numbers will be waiting, built from last time.</div></Card>
   );
 
