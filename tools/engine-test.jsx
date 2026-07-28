@@ -2261,5 +2261,55 @@ const shortW = mkWin(1900, 1900, 12);
 const tdShort = otW(shortW);
 ok(!tdShort.split || (tdShort.split.calA != null), "a window too short to split cleanly returns null rather than half a claim");
 
+/* ================= v3.99.23 — volume the programme allocates, and a band that drifts ================= */
+const { programmeVolume: pvN, volumeImbalance: viN, muscleVolume: mvN, VOL_BANDS: VBN, SEED: TV23 } = __test;
+
+/* Weekly sets per muscle is DESIGNED here, not observed: a fixed split times a
+   set count written into each lift. muscleVolume() reads the log and
+   sweepVolume() waits fourteen days of it — right for recovery questions, wrong
+   for an arithmetic one. Hamstrings get one exercise at two sets twice a week;
+   that is four, it is under the floor, and no further logging discovers it. */
+const pv23 = pvN(clone(TV23));
+ok(pv23.length >= 8, "every muscle the programme touches gets a line: " + pv23.length);
+ok(pv23[0].sets >= pv23[pv23.length - 1].sets, "sorted heaviest first, so the imbalance is the first thing read");
+const hams23 = pv23.find((m) => m.mg === "hams"), delts23 = pv23.find((m) => m.mg === "delts");
+ok(hams23 && hams23.sets === 4 && hams23.zone === "UNDER", "hams come out at 4 sets a week — under the retention floor, by construction: " + (hams23 || {}).sets);
+ok(delts23 && delts23.sets > VBN.hi && delts23.zone === "OVER", "delts come out past the ceiling: " + (delts23 || {}).sets);
+/* half-credit, same convention as the log-based ledger, so the two are comparable */
+const tri23 = pv23.find((m) => m.mg === "triceps");
+ok(tri23 && tri23.sets === 9, "a compound lends half to its secondary: triceps read 6 direct plus 3 from pressing = 9, not 6 and not 12");
+ok(pv23.every((m) => m.tier === (m.sets <= 10 ? "highest return per set" : m.sets <= 18 ? "intermediate return" : "lowest return")), "each muscle carries which tier of the dose-response curve it is sitting on");
+/* it reads the PROGRAMME, so an empty log changes nothing */
+const noLog23 = clone(TV23); noLog23.sessionLog = {};
+ok(pvN(noLog23).find((m) => m.mg === "hams").sets === 4, "with an empty session log the answer is identical — this is arithmetic, not a reading");
+ok(mvN(noLog23).length === 0, "while the log-based ledger correctly goes silent, which is the gap this fills");
+
+const vi23 = viN(clone(TV23));
+ok(vi23 && vi23.donor.mg === "delts" && vi23.taker.mg === "hams", "the cheapest move is named in both directions: from " + vi23.donor.mg + " to " + vi23.taker.mg);
+const balanced23 = clone(TV23);
+balanced23.exercises.forEach((e) => { if (e.mg === "hams") e.sets = 4; if (e.id === "lateral") e.sets = 2; if (e.id === "rearDelt") e.sets = 2; });
+ok(!viN(balanced23), "a balanced programme raises nothing — the card is a finding, not a fixture");
+
+/* the proposal, and the one it must not duplicate */
+let volS = clone(TV23);
+volS.blackout.until = "2026-01-01"; volS.proposals = []; volS.adjustments = [];
+for (let i = 0; i < 20; i++) { const d = isoL(Date.now() - i * 864e5); volS.dailyLogs[d] = { cal: 2000, pro: 175, steps: 16000 }; volS.reads.push({ d, w: +(170 - i * 0.15).toFixed(1), sealed: false }); }
+volS.reads.sort((a, b) => (a.d < b.d ? -1 : 1));
+volS = raW(volS, isoL(Date.now()));
+const vCard = volS.proposals.find((p) => p.rid.indexOf("volstruct_") === 0 && !p.resolved);
+ok(!!vCard, "the imbalance is filed as a proposal");
+ok(vCard.why.indexOf("hams 4") > -1 && vCard.why.indexOf("delts 17") > -1, "with the whole allocation shown, so he can check the arithmetic himself");
+ok(vCard.why.indexOf("does not need more weeks to become true") > -1, "and says why it is not waiting for the fourteen-day log gate");
+ok(volS.proposals.filter((p) => !p.resolved && p.rid.indexOf("volband") === 0).length === 1, "the band-width proposal is a different question and still stands on its own");
+
+/* THE RATE BAND'S UNIT. Written in pounds, it tightens as he lightens. */
+const rateCard = volS.proposals.find((p) => p.rid === "rateunit" && !p.resolved);
+ok(!!rateCard, "the unit problem is raised");
+const bw23 = volS.trend;
+const pctLo = (volS.rate.band[0] / bw23) * 100, pctAt148 = (volS.rate.band[0] / 148) * 100;
+ok(pctAt148 > pctLo, "the same pound figure is a LARGER share of a smaller man — which is the whole defect: " + pctLo.toFixed(2) + "% now, " + pctAt148.toFixed(2) + "% at 148");
+ok(rateCard.why.indexOf("Garthe") > -1, "and it cites the trial where the faster arm lost lean mass while the slower one gained it");
+ok(rateCard.why.indexOf("% of bodyweight") > -1, "proposing the unit that does not drift");
+
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

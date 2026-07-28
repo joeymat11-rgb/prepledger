@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.22";
+const APP_V = "3.99.23";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -3138,6 +3138,65 @@ function muscleVolume(s) {
     return { mg, n7: fmtN(n7), p7: fmtN(p7), zone, lifts, vels, slipping, gaining, sore7 };
   }).filter((m) => m.n7 > 0 || m.p7 > 0);
 }
+/* ---------- STRUCTURAL_VOLUME ----------
+   muscleVolume() counts sets out of the session LOG, and sweepVolume() waits
+   fourteen days of it before proposing anything. That is right for the fine
+   adjustments — whether a muscle is recovering, whether bar speed is slipping —
+   because those are questions only the log can answer.
+
+   It is wrong for the question underneath. Weekly sets per muscle is not
+   observed here, it is DESIGNED: the split is fixed at two upper and two lower
+   days, and each lift has a set count written into it. Hamstrings get one
+   exercise at two sets, twice a week. That is four sets a week by construction,
+   below the retention floor, and no quantity of further logging will discover
+   otherwise. Waiting a fortnight to notice an arithmetic fact is not caution.
+
+   So this reads the programme rather than the record, and fires immediately.
+   Same half-credit convention as the log-based ledger, so the two numbers are
+   comparable and neither double-books a set.
+
+   What the bands mean, from Pelland et al. 2025 (67 studies, 2,058 participants,
+   the largest dose-response analysis available): return per set is highest at
+   5-10 weekly sets, intermediate at 11-18, and lower above that. Every added set
+   keeps buying something and buys less than the one before it. In a deficit the
+   marginal set is worth less AND costs recovery he does not have — which makes
+   an imbalance expensive in both directions at once: sets sitting on the flat
+   part of one muscle's curve are sets not spent on the steep part of another's. */
+function programmeVolume(s) {
+  const perWeek = {};
+  for (let i = 0; i < 7; i++) { const t = dayType(isoOf(new Date(mk("2026-07-27").getTime() + i * DAY)), s); if (t === "U" || t === "L") perWeek[t] = (perWeek[t] || 0) + 1; }
+  const by = {};
+  const add = (mg, n) => { if (mg) by[mg] = (by[mg] || 0) + n; };
+  (s.exercises || []).forEach((e) => {
+    const days = perWeek[e.day] || 0;
+    if (!days || !e.sets) return;
+    const n = e.sets * days;
+    add(e.mg, n);
+    const lend = INDIRECT[e.id];
+    if (lend) Object.entries(lend).forEach(([mg2, f2]) => add(mg2, n * f2));
+  });
+  return Object.keys(by).map((mg) => {
+    const sets = +by[mg].toFixed(1);
+    const zone = sets < VOL_BANDS.floor ? "UNDER" : sets < VOL_BANDS.lo ? "LOW" : sets <= VOL_BANDS.hi ? "IN-BAND" : sets <= VOL_BANDS.ceil ? "HIGH" : "OVER";
+    const tier = sets <= 10 ? "highest return per set" : sets <= 18 ? "intermediate return" : "lowest return";
+    const lifts = (s.exercises || []).filter((x) => x.mg === mg);
+    return { mg, sets, zone, tier, lifts: lifts.map((x) => ({ id: x.id, n: x.n, sets: x.sets, day: x.day })) };
+  }).sort((a, b) => b.sets - a.sets);
+}
+/* The cheapest change available: sets moved from the flat part of one curve to
+   the steep part of another cost nothing in recovery and buy real growth. */
+function volumeImbalance(s) {
+  const pv = programmeVolume(s);
+  if (!pv.length) return null;
+  const under = pv.filter((m) => m.sets < VOL_BANDS.floor);
+  const low = pv.filter((m) => m.sets >= VOL_BANDS.floor && m.sets < VOL_BANDS.lo);
+  const over = pv.filter((m) => m.sets > VOL_BANDS.hi);
+  if (!under.length && !over.length) return null;
+  const donor = over.length ? over[0] : null;
+  const taker = under.length ? under[under.length - 1] : (low.length ? low[low.length - 1] : null);
+  return { pv, under, low, over, donor, taker };
+}
+
 function sweepVolume(s, dow7 = new Date().getDay()) {
   const tISO7 = isoOf(todayStart());
   const firstS = Object.keys(s.sessionLog).sort()[0];
@@ -3316,6 +3375,26 @@ function runAdaptive(state, todayISO) {
     propose("refeed_review", "THE WEEKLY REFEED HAS NO EVIDENCE BEHIND IT",
       `Your Wednesday refeed is prescribed at 2,450-2,500 against a band that is now ${ct.gated ? "derived from your maintenance" : `${ct.lo}-${ct.hi}`}. Applying this actually retires it: Wednesdays stop being refeed days from the day you tap, everywhere in the app, while every past Wednesday stays a refeed on the record because it was one. The case for refeeds does not hold up: the only matched-energy RCT in trained people (Campbell 2020) had its fat-free-mass result overturned on independent reanalysis, and across 12 trials the resting-metabolism advantage in resistance-trained subgroups is 11 kcal/day with a confidence interval from -67 to +46. Leptin, testosterone and free T3 were all unchanged across a full week at maintenance in the one trial that measured them. Higher-carbohydrate days have never beaten matched-calorie days for strength or hypertrophy in any isocaloric comparison. Meanwhile it costs something real: a Wednesday above the band deepens the other six days, and deficit size is the variable that actually predicts lean-mass loss. The proposal is to retire the fixed weekly refeed and simply run the band every day — keeping a DIET BREAK (a full week at maintenance) in reserve, which is the intervention the adherence evidence actually supports. If you keep the refeed, keep it because you enjoy it and it keeps you in the game. That is a real reason. It is just not the one the app has been giving you.`,
       { kind: "refeed" });
+
+  /* The programme's own set allocation, which is arithmetic and needs no waiting. */
+  const vi = volumeImbalance(s);
+  if (!sealed && vi && (vi.under.length || vi.over.length)) {
+    const line = (m) => `${m.mg} ${m.sets}`;
+    const move = vi.donor && vi.taker
+      ? ` The cheapest change on this page is not adding work, it is moving it: two sets off ${vi.donor.mg} (${vi.donor.lifts.map((l) => `${l.n} ${l.sets}×`).join(", ")}) and onto ${vi.taker.mg} (${vi.taker.lifts.map((l) => `${l.n} ${l.sets}×`).join(", ")}) costs you nothing in recovery, because the weekly total does not change. It just spends those sets where the curve is still steep instead of where it has gone flat.`
+      : "";
+    propose("volstruct_" + monday, "YOUR SETS ARE NOT WHERE THE RETURN IS",
+      `Counting what the programme actually allocates — two upper days and two lower, each lift's own set count, half-credit for what compounds lend — your week runs: ${vi.pv.map(line).join(" · ")}. Against the largest dose-response analysis available (Pelland 2025, 67 studies, 2,058 participants), return per set is highest at 5-10 weekly sets, intermediate at 11-18, and lower above that.${vi.over.length ? ` ${vi.over.map((m) => `${cap(m.mg)} at ${m.sets} is past your own ceiling of ${VOL_BANDS.hi} and into the ${vi.over[0].tier} band.`).join(" ")}` : ""}${vi.under.length ? ` ${vi.under.map((m) => `${cap(m.mg)} at ${m.sets} is under the ${VOL_BANDS.floor}-set retention floor — in a deficit that is the end of the range where a muscle is actually at risk, not just growing slowly.`).join(" ")}` : ""}${move} This is arithmetic from your programme, not a reading of your log, so it does not need more weeks to become true — and it is a programme change, which makes it a coach conversation as much as a tap.`,
+      { kind: "note" });
+  }
+
+  /* The rate band's UNIT, which quietly tightens the screw as he leans out. */
+  const bwNow = s.trend;
+  const bandPct = [((s.rate.band[0] / bwNow) * 100), ((s.rate.band[1] / bwNow) * 100)];
+  if (!sealed && r.measured && bwNow > 0)
+    propose("rateunit", "YOUR RATE BAND IS IN THE WRONG UNIT",
+      `Your band is written as ${s.rate.band[0]}-${s.rate.band[1]} lb/wk — an absolute weight. At today's ${bwNow} lb that is ${bandPct[0].toFixed(2)}-${bandPct[1].toFixed(2)}% of bodyweight per week. At 148 lb the same band would be ${((s.rate.band[0] / 148) * 100).toFixed(2)}-${((s.rate.band[1] / 148) * 100).toFixed(2)}%. So the band gets steadily more aggressive as you get lighter, which is backwards twice over: the leaner you are the more of any deficit comes off lean tissue, and the closest trial we have (Garthe 2011) had the 0.7%/wk arm gain 1.7% lean mass while the 1.0%/wk arm lost 2.0% — on identical total weight lost. A band anchored in pounds tightens the screw exactly where it should loosen it. The proposal is to restate it as ${bandPct[0].toFixed(2)}-${bandPct[1].toFixed(2)}% of bodyweight and let the pound figures follow your weight down. Nothing about today changes — you are running ${((r.scale / bwNow) * 100).toFixed(2)}%/wk, which is ${r.scale / bwNow * 100 < bandPct[0] ? "just under the slow end already" : "inside it"}.`,
+      { kind: "note" });
 
   /* The volume band vs the dose-response evidence, in a deficit. */
   const volDrift = VOL_BANDS.lo !== 6 || VOL_BANDS.hi !== 12;
@@ -4523,6 +4602,8 @@ __test.dayWeather = dayWeather;
 __test.CALL_PLAIN = CALL_PLAIN;
 __test.sweepStalls = sweepStalls;
 __test.muscleVolume = muscleVolume;
+__test.programmeVolume = programmeVolume;
+__test.volumeImbalance = volumeImbalance;
 __test.sweepVolume = sweepVolume;
 __test.INDIRECT = INDIRECT;
 __test.filingsFor = filingsFor;

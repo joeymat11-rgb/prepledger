@@ -342,3 +342,28 @@ eat; it does not say whether he ate it, and with one high day a week those diffe
 by ~72 kcal/day. `calorieTarget` now returns `wkAvg` / `wkOff` / `wkWhy` over the
 last seven logged days, priced in lb/wk rather than kcal/day because that is the
 unit he thinks in.
+
+## Designed vs observed, and units that drift (v3.99.23)
+
+**Some questions are arithmetic, not evidence.** `muscleVolume` counts sets out
+of the session log and `sweepVolume` waits 14 days of it. That is right for
+recovery and bar-speed questions. It is wrong for weekly sets per muscle, which
+is *designed* here — a fixed split times a set count written into each lift.
+Hamstrings get one exercise at two sets, twice a week: four sets, under the
+retention floor, and no further logging discovers otherwise. `programmeVolume`
+reads the programme and fires immediately; `muscleVolume` still reads the log.
+Before gating a finding behind more data, ask whether the data could change it.
+
+**Watch for units that drift with the thing they measure.** The rate band was
+written in absolute lb/wk. At 170 lb that is 0.59–0.82 %bw/wk; at 148 lb the same
+band is 0.68–0.95 %bw/wk. So it tightens as he leans out, which is backwards —
+the leaner you get, the more of any deficit comes off lean tissue, and Garthe
+2011's 0.7 %/wk arm gained 1.7% lean while the 1.0 %/wk arm lost 2.0%. Any
+threshold expressed as an absolute against a shrinking denominator has this bug.
+Check the calorie floor (1,700) the same way when he gets lighter.
+
+**Reserved words.** See the RESERVED list in the test file. Words this app has
+already spent on a tracked quantity cannot be reused colloquially — `leaner`
+means body composition, `load` means weight on the bar. The fix is never a better
+adjective; it is printing the numbers. `observedTDEE.split` exists for exactly
+this reason.
