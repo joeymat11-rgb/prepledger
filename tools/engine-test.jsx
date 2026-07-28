@@ -1619,5 +1619,70 @@ const softT = tfA(pickA(softA), softA), hardT = tfA(pickA(hardA), hardA);
 ok(softT.reduce((a, b) => a + b, 0) > hardT.reduce((a, b) => a + b, 0),
    `the same reps with 3 left over ask for more next time than the same reps taken to failure: ${softT.join(",")} vs ${hardT.join(",")}`);
 
+// v3.99.12 — load rungs: the app may only ask for weights the machine can make
+const { loadRungs: lrG, nextLoad: nl, prevLoad: plG, snapLoad: sl2, parseRungs: prG, liftCall: lcR, completeSession: csR, SEED: TR9 } = __test;
+const cybex = { id: "c", n: "Cybex cable", sets: 2, hi: 10, w: 85, inc: 5, steps: [80, 82.5, 85, 90, 92.5, 95, 100] };
+const even = { id: "e", n: "Even stack", sets: 2, hi: 10, w: 85, inc: 5 };
+
+ok(lrG(even) === null && lrG({ steps: [] }) === null && lrG({ steps: [50] }) === null, "no ladder, one rung, or an empty list all mean 'use the even increment'");
+ok(JSON.stringify(lrG({ steps: [90, 80, 85, 80] })) === "[80,85,90]", "a ladder is sorted and de-duplicated however he types it");
+ok(JSON.stringify(lrG({ steps: [80, "x", -5, 90, 0] })) === "[80,90]", "junk and non-positive numbers are dropped, not stored");
+
+// the mini-jumps he actually asked for
+ok(nl(cybex) === 90, "from 85 the next real rung is 90, not 85+5 by luck — it happens to agree here");
+ok(nl(cybex, 80) === 82.5, "from 80 the attachment gives a 2.5 mini-jump, which a fixed +5 would have skipped");
+ok(nl(cybex, 90) === 92.5 && nl(cybex, 92.5) === 95, "and it keeps stepping through the uneven rungs in order");
+ok(nl(cybex, 100) === null, "the top of the stack is real — there is no next rung, and the app must not invent one");
+ok(nl(even) === 90 && nl(even, 100) === 105, "with no ladder the old fixed increment is byte-for-byte unchanged");
+ok(nl({ w: "BW", inc: null }) === null && nl({ w: 100, inc: null }) === null, "bodyweight and incrementless lifts have no next load");
+ok(plG(cybex, 90) === 85 && plG(cybex, 82.5) === 80 && plG(cybex, 80) === null, "down the ladder works the same way, and the bottom rung is the bottom");
+ok(sl2(cybex, 91) === 90 && sl2(cybex, 92.5) === 92.5 && sl2(cybex, 10) === 80, "an arbitrary number snaps to the rung at or below it, never above");
+ok(sl2(even, 91) === 91, "with no ladder there is nothing to snap to");
+
+// parsing whatever he types
+ok(JSON.stringify(prG("80, 82.5, 85, 90")) === "[80,82.5,85,90]", "commas work");
+ok(JSON.stringify(prG("80 82.5\n85  90")) === "[80,82.5,85,90]", "so do spaces and newlines");
+ok(JSON.stringify(prG("90,80,85,85")) === "[80,85,90]", "out of order and duplicated still lands sorted and unique");
+ok(prG("") === null && prG("  ") === null && prG("100") === null && prG("abc") === null, "empty or a single number clears the ladder rather than half-setting it");
+
+// the engine only ever offers a real weight
+const rungS = clone(TR9);
+const cal = rungS.exercises.find((e2) => e2.id === "calves");
+cal.steps = [300, 310, 315, 320, 335, 350];
+cal.w = 320; cal.sets = 4; cal.hi = 13; cal.reclaim = null; cal.last = [13, 12, 11, 10];
+const enR = [{ id: "calves", n: cal.n, w: 320, tgt: [13, 12, 11, 10], reps: [13, 12, 11, 10], rir: 1 }];
+const afterR = csR(rungS, "2026-07-24", enR, { clean: true, run: 3, need: 3, last: { h: 8 } }).s;
+const qR = afterR.queue.find((q) => q.exId === "calves" && !q.done && q.kind === "debut");
+ok(qR && qR.newW === 335, "earning the window queues 335 — the next rung — not 325, which this machine cannot make: " + (qR ? qR.newW : "none"));
+ok(afterR.feed.some((f) => f.t.indexOf("335 EARNED") > -1), "and the feed names the real weight");
+
+// at the top of the stack, nothing is queued and it says so
+const topS = clone(TR9);
+const cal2 = topS.exercises.find((e2) => e2.id === "calves");
+cal2.steps = [300, 310, 320]; cal2.w = 320; cal2.sets = 4; cal2.hi = 13; cal2.reclaim = null; cal2.last = [13, 12, 11, 10];
+const afterT = csR(topS, "2026-07-24", [{ id: "calves", n: cal2.n, w: 320, tgt: [13, 12, 11, 10], reps: [13, 12, 11, 10], rir: 1 }], { clean: true, run: 3, need: 3, last: { h: 8 } }).s;
+ok(!afterT.queue.some((q) => q.exId === "calves" && !q.done && q.kind === "debut"), "at the top rung nothing is queued — the app does not invent a weight above the stack");
+
+// a RESET lands on a rung too
+const resS = clone(TR9);
+const rw = resS.exercises.find((e2) => e2.id === "rows");
+rw.steps = [150, 160, 175, 180, 195]; rw.w = 180;
+resS.sessionLog = {};
+[["2026-07-06", [10, 10]], ["2026-07-09", [9, 9]], ["2026-07-13", [8, 8]], ["2026-07-16", [7, 7]]].forEach(([d, reps], i) => {
+  resS.sessionLog[d] = { entries: [{ id: "rows", reps, rir: 1, rirSets: [1, null], w: 180 }], at: i + 1 };
+});
+const resR = lcR(resS, "rows");
+ok(resR.verdict === "RESET" && resR.newW === 175, "a reset lands on 175 — a real rung — instead of 171, a weight this machine cannot make: " + resR.newW);
+const resEven = clone(resS);
+delete resEven.exercises.find((e2) => e2.id === "rows").steps;
+ok(lcR(resEven, "rows").newW === 170, "with no ladder the old 5% round-to-5 is unchanged");
+/* The deload picks the NEAREST rung below, not the nearest rung at-or-below the
+   5% target — on a coarse stack those are different, and one is a cliff. */
+const { deloadLoad: dld } = __test;
+ok(dld({ w: 180, steps: [150, 160, 175, 180, 195] }) === 175, "180 on a coarse stack deloads one notch to 175, not two notches to 160");
+ok(dld({ w: 180, steps: [150, 160, 170, 180] }) === 170, "where a rung sits near the 5% mark, that is the one it takes");
+ok(dld({ w: 100, steps: [100, 110] }) === 100, "at the bottom rung there is nowhere to deload to, and it says so by not moving");
+ok(dld({ w: 180, inc: 5 }) === 170 && dld({ w: 10, inc: 5 }) === 10, "with no ladder it is the old arithmetic, and it never goes below 5");
+
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

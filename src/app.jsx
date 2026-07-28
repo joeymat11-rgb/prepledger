@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.11";
+const APP_V = "3.99.12";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -304,7 +304,9 @@ function liftCall(s, exId, opts = {}) {
   if (alarm && alarm.level === "RED") return { verdict: "STAND-DOWN", vel, n: clean.length, why: "Body alarm is RED. Skip the iron today — walk, eat, sleep, and come back tomorrow ahead.", receipts: R2.concat(["Body alarm: RED — the pattern held a second day."]) };
   const recentReset = (s.feed || []).slice(0, 60).find((f) => f.t && ex2 && f.t.indexOf("RESET APPLIED — " + ex2.n) === 0 && (mk(tISO3) - mk(f.d)) / DAY <= 14);
   if (recentReset) return { verdict: "REBUILD", vel, n: clean.length, why: `You lightened this on ${fmtShort(recentReset.d)}. Climb the reps back — the old numbers usually fall within three sessions.`, receipts: R2.concat(["Day " + Math.round((mk(tISO3) - mk(recentReset.d)) / DAY) + " of your 14-day climb-back."]) };
-  if (stall >= 3) { const newW = ex2 && typeof ex2.w === "number" ? Math.max(5, Math.round((ex2.w * 0.95) / 5) * 5) : null; return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest sessions without beating your total. Time to lighten a notch and rebuild — that is how walls fall.`, receipts: R2 }; }
+  /* A reset must land on a weight the machine can actually make — see
+     deloadLoad. Never a number he cannot set on the machine. */
+  if (stall >= 3) { const newW = ex2 && typeof ex2.w === "number" ? deloadLoad(ex2) : null; return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest sessions without beating your total. Time to lighten a notch and rebuild — that is how walls fall.`, receipts: R2 }; }
   if (alarm && alarm.level === "AMBER") return { verdict: "HOLD", vel, n: clean.length, why: "Body alarm is AMBER. Normal session, but no all-out sets and no record attempts today.", receipts: R2.concat(["Body alarm: AMBER — off day, not a failure."]) };
   if (!slp2.clean) return { verdict: "HOLD", vel, n: clean.length, why: `Sleep is rebuilding (${slp2.run}/${slp2.need} good nights). Repeat last time — nothing counts as a record today anyway.`, receipts: R2 };
   {
@@ -428,6 +430,66 @@ function targetsFor(ex, s) {
   }
   return t.map((r) => Math.min(ex.hi, r));
 }
+/* ---------- LOAD RUNGS — what this machine can actually make ----------
+   A single `inc` assumes every machine steps evenly. Real ones do not. A Cybex
+   cable stack with hang-on attachments makes 80, 82.5, 85, 90, 100; dumbbells
+   go up in 5s then jump to 10s at the top; some pin stacks are 15 lb plates
+   with a 5 lb adder. Guessing +5 on those either invents a weight that does not
+   exist or skips a rung he could have used.
+
+   `steps` is the explicit ladder of loads the machine can produce, in order. It
+   is optional: with no ladder the old `inc` behaviour is exactly unchanged, so
+   nothing needed a migration. Every load decision — earning up, resetting down,
+   forecasting forward — goes through these three helpers, so a machine gets
+   described once and the whole engine respects it. */
+function loadRungs(ex) {
+  const r = Array.isArray(ex && ex.steps) ? ex.steps.map(Number).filter((x) => isFinite(x) && x > 0) : [];
+  if (r.length < 2) return null;
+  return [...new Set(r)].sort((a, b) => a - b);
+}
+/** The next load up, or null when there is none — the top of the stack is real. */
+function nextLoad(ex, from) {
+  const w = Number(from != null ? from : ex.w);
+  if (!isFinite(w)) return null;
+  const rungs = loadRungs(ex);
+  if (rungs) { const up = rungs.find((x) => x > w); return up == null ? null : up; }
+  return ex.inc ? +(w + ex.inc).toFixed(2) : null;
+}
+/** The next load down. Used by RESET, which must never invent a weight either. */
+function prevLoad(ex, from) {
+  const w = Number(from != null ? from : ex.w);
+  if (!isFinite(w)) return null;
+  const rungs = loadRungs(ex);
+  if (rungs) { const down = rungs.filter((x) => x < w); return down.length ? down[down.length - 1] : null; }
+  return ex.inc ? Math.max(ex.inc, +(w - ex.inc).toFixed(2)) : null;
+}
+/** Snap an arbitrary number to the nearest rung at or below it. */
+function snapLoad(ex, w) {
+  const rungs = loadRungs(ex);
+  if (!rungs) return w;
+  const at = rungs.filter((x) => x <= w);
+  return at.length ? at[at.length - 1] : rungs[0];
+}
+/** A deload target that exists. Snapping DOWN to the nearest rung is wrong on a
+ *  coarse ladder — 180 on a 150/160/175/180 stack would land at 160, an 11%
+ *  drop, when the intent was 5%. So: the rung NEAREST the target, constrained
+ *  to be strictly lighter than where he is now. One notch, not a cliff. */
+function deloadLoad(ex, pct = 0.95) {
+  const w = Number(ex.w);
+  if (!isFinite(w)) return null;
+  const rungs = loadRungs(ex);
+  if (!rungs) return Math.max(5, Math.round((w * pct) / 5) * 5);
+  const below = rungs.filter((x) => x < w);
+  if (!below.length) return w;
+  const want = w * pct;
+  return below.reduce((best, x) => (Math.abs(x - want) < Math.abs(best - want) ? x : best), below[below.length - 1]);
+}
+/** Parse the ladder he types: commas, spaces, newlines all work. */
+function parseRungs(text) {
+  const r = String(text || "").split(/[^0-9.]+/).map(Number).filter((x) => isFinite(x) && x > 0);
+  return r.length >= 2 ? [...new Set(r)].sort((a, b) => a - b) : null;
+}
+
 /* The load gate. It used to demand every set at the ceiling — a flat window a
    descending scheme may never reach. Sets fade; that is what sets do. A natural
    one-rep-per-set descent off a ceiling opener is the top of the window, and
@@ -595,8 +657,11 @@ function completeSession(state, iso, entries, slp, extras = {}) {
         const oq = qFind((x) => x.exId === ex.id && (x.kind === "own"));
         if (oq) { oq.done = true; oq.state = "OWNED"; }
         if (ex.id === "press") {
-          s.queue.push({ id: "q_press250", kind: "debut", exId: "press", newW: ex.w + ex.inc, t: `PRESS ${ex.w + ex.inc} DEBUT`, state: "DEBUT", gate: `Earned by owning ${ex.w}×${oldStd} clean`, rule: "Coach flag before it runs — structural queue", done: false });
-          push(`PRESS ${ex.w} OWNED`, `${oldStd} repeated clean — ${ex.w + ex.inc} enters the queue at coach flag`);
+          const upP = nextLoad(ex);
+          if (upP != null) {
+            s.queue.push({ id: "q_press250", kind: "debut", exId: "press", newW: upP, t: `PRESS ${upP} DEBUT`, state: "DEBUT", gate: `Earned by owning ${ex.w}×${oldStd} clean`, rule: "Coach flag before it runs — structural queue", done: false });
+            push(`PRESS ${ex.w} OWNED`, `${oldStd} repeated clean — ${upP} enters the queue at coach flag`);
+          } else push(`PRESS ${ex.w} OWNED`, `${oldStd} repeated clean — but ${ex.w} is the top rung this machine makes, so there is nothing to queue`);
         } else if (ex.id === "extension") {
           s.queue.push({ id: "q_ext155", kind: "debut", exId: "extension", newW: ex.w + 5, t: `EXTENSION ${ex.w + 5} — GATE REOPENED`, state: "DEBUT", gate: `Earned this time: ${ex.w}×${oldStd}`, rule: "Queued as a structural change", done: false });
           push(`EXTENSION ${ex.w} RE-OWNED`, `${oldStd} — the ${ex.w + 5} gate reopens, earned`);
@@ -614,7 +679,8 @@ function completeSession(state, iso, entries, slp, extras = {}) {
         const std = ex.reclaim.join(","); ex.reclaim = null; ex.last = r.slice();
         const rq = qFind((x) => x.exId === ex.id && x.kind === "reclaim");
         if (rq) { rq.done = true; rq.state = "RECLAIMED"; }
-        s.queue.push({ id: `q_${ex.id}_inc`, kind: "debut", exId: ex.id, newW: (Number(ex.w) || 0) + ex.inc, t: `${ex.n.toUpperCase()} ${(Number(ex.w) || 0) + ex.inc} DEBUT`, state: "DEBUT", gate: `Re-earned ${ex.w}×${std}`, rule: "Increment unlocked — queued as a structural change", done: false });
+        const upR = nextLoad(ex) ?? (Number(ex.w) || 0);
+        s.queue.push({ id: `q_${ex.id}_inc`, kind: "debut", exId: ex.id, newW: upR, t: `${ex.n.toUpperCase()} ${upR} DEBUT`, state: "DEBUT", gate: `Re-earned ${ex.w}×${std}`, rule: "Increment unlocked — queued as a structural change", done: false });
         push(`${ex.n.toUpperCase()} ${ex.w} RECLAIMED`, `${std} re-earned — increment unlocked`);
       } else push(`${ex.n.toUpperCase()} — RECLAIM CONTINUES`, `${r.join(",")} vs ${ex.reclaim.join(",")} · ${r.reduce((a, b) => a + b, 0)}/${ex.reclaim.reduce((a, b) => a + b, 0)} reps`);
       return;
@@ -639,13 +705,14 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     const tgtMet = en.tgt && en.tgt.every((t2, i) => (r[i] ?? 0) >= t2);
     const atTop = atTopOfWindow(r, ex);
     ex.last = r.slice();
-    if (atTop && typeof ex.w === "number" && ex.inc) {
+    const upNext = typeof ex.w === "number" ? nextLoad(ex) : null;
+    if (atTop && typeof ex.w === "number" && upNext != null) {
       const already = s.queue.some((x) => x.exId === ex.id && !x.done && x.kind === "debut");
       if (en.rir === 0 || ex.holdFlag) {
         if (!already) push(`${ex.n.toUpperCase()} — TOP OF WINDOW, BUT HOT`, `${r.join(",")} at RIR 0 — a grind is not an earn; repeat it honest and the load queues itself`);
       } else if (slp.clean && !already) {
-        s.queue.push({ id: `q_${ex.id}_${ex.w + ex.inc}`, kind: "debut", exId: ex.id, newW: ex.w + ex.inc, t: `${ex.n.toUpperCase()} ${ex.w + ex.inc} DEBUT`, state: "DEBUT", gate: `Earned via ${ex.w}×${r.join(",")}`, rule: "Auto-queued — runs when it wins the structural slot", done: false });
-        push(`${ex.n.toUpperCase()} ${ex.w + ex.inc} EARNED`, `${ex.w}×${r.join(",")} — top of the window, clean · queued`);
+        s.queue.push({ id: `q_${ex.id}_${upNext}`, kind: "debut", exId: ex.id, newW: upNext, t: `${ex.n.toUpperCase()} ${upNext} DEBUT`, state: "DEBUT", gate: `Earned via ${ex.w}×${r.join(",")}`, rule: "Auto-queued — runs when it wins the structural slot", done: false });
+        push(`${ex.n.toUpperCase()} ${upNext} EARNED`, `${ex.w}×${r.join(",")} — top of the window, clean · queued${loadRungs(ex) ? ` · next rung this machine makes` : ""}`);
       } else if (atTop && !slp.clean) push(`${ex.n.toUpperCase()} — TOP OF WINDOW, PROVISIONAL`, `${r.join(",")} on debt — repeat clean to earn the load`);
     } else if (tgtMet) push(`${ex.n.toUpperCase()} — TARGET MET`, `${en.w} × ${r.join(",")}`);
 
@@ -1041,7 +1108,7 @@ function labAnalytics(s) {
       const pts = ptsF(ex.id), sl = slopeF(pts);
       if (!sl || sl <= 0.02 || typeof ex.w !== "number") return;
       let reps = pts[pts.length - 1].top, w = ex.w;
-      for (let k = 1; k <= 8; k++) { reps += sl; while (reps > (ex.hi || 12)) { w += (ex.inc || 5); reps -= 3; } }
+      for (let k = 1; k <= 8; k++) { reps += sl; while (reps > (ex.hi || 12)) { const up = nextLoad(ex, w); if (up == null) { reps = ex.hi || 12; break; } w = up; reps -= 3; } }
       liftF.push({ s: sl, line: ex.n + ": " + ex.w + "\u00d7" + pts[pts.length - 1].top + " now \u2192 " + w + "\u00d7" + Math.round(reps) + " in 8 wks (+" + sl.toFixed(2) + " reps/wk, n=" + pts.length + ")" });
     });
     liftF.sort((a, b) => b.s - a.s);
@@ -1188,11 +1255,14 @@ function sessionDebrief(s, iso) {
            one short-sleep day used to print the same excuse six times. */
         whys.push(step.why);
         lines.push({ t: "next", add: step.add, why: step.why, text: `Next time: ${t2.join(", ")} at ${ex.w}` });
-        if (ex.hi && typeof ex.w === "number" && ex.inc && !ex.std && !ex.reclaim && !ex.ladder) {
+        const upW = typeof ex.w === "number" ? nextLoad(ex) : null;
+        if (ex.hi && upW != null && !ex.std && !ex.reclaim && !ex.ladder) {
           const gate = Array.from({ length: ex.sets }, (_, i) => Math.max(1, ex.hi - i));
           const gap = gate.reduce((a2, g, i) => a2 + Math.max(0, g - (t2[i] ?? 0)), 0);
-          if (gap === 0) lines.push(`That line IS the top of the window — hit it on clean sleep without grinding the opener and ${ex.w + ex.inc} queues itself.`);
-          else if (step.add > 0) { const n2 = Math.ceil(gap / step.add); lines.push(`${gap} more rep${gap === 1 ? "" : "s"} above that and ${ex.w + ex.inc} queues itself — about ${n2} more session${n2 === 1 ? "" : "s"} at the current step.`); }
+          if (gap === 0) lines.push(`That line IS the top of the window — hit it on clean sleep without grinding the opener and ${upW} queues itself.`);
+          else if (step.add > 0) { const n2 = Math.ceil(gap / step.add); lines.push(`${gap} more rep${gap === 1 ? "" : "s"} above that and ${upW} queues itself — about ${n2} more session${n2 === 1 ? "" : "s"} at the current step.`); }
+        } else if (ex.hi && typeof ex.w === "number" && loadRungs(ex) && !ex.std && !ex.reclaim) {
+          lines.push(`${ex.w} is the top rung this machine makes — reps are the only progression left here until the exercise changes.`);
         }
       }
     } catch (err) { if (!lines.length) lines.push(`${tot} total reps.`); }
@@ -3560,6 +3630,12 @@ __test.CONSTITUTION = CONSTITUTION;
 __test.SCHEMA_V = SCHEMA_V;
 __test.PACE = PACE;
 __test.progressStep = progressStep;
+__test.loadRungs = loadRungs;
+__test.nextLoad = nextLoad;
+__test.prevLoad = prevLoad;
+__test.snapLoad = snapLoad;
+__test.deloadLoad = deloadLoad;
+__test.parseRungs = parseRungs;
 __test.progressAnchor = progressAnchor;
 __test.atTopOfWindow = atTopOfWindow;
 __test.fadeRead = fadeRead;
@@ -4448,6 +4524,7 @@ function LogTab({ s, setS, save, slp }) {
   const [callOpen, setCallOpen] = useState(null);
   const [wEdit, setWEdit] = useState(null);
   const [wVal, setWVal] = useState(180);
+  const [rungEdit, setRungEdit] = useState(null);
   /* terminal-set RIR — the set the taper programs to failure. Separate from the
      opener, which answers a different question (is the load still honest). */
   const [rirEnd, setRirEnd] = useState({});
@@ -4643,13 +4720,49 @@ function LogTab({ s, setS, save, slp }) {
               <div style={{ fontFamily: mono, fontSize: 12, color: T.steel, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 {wEdit === ex.id ? (
                   <span style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                    <Stepper v={wVal} set={setWVal} step={ex.inc || 5} min={5} />
+                    {loadRungs(ex) ? (
+                      <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <button onClick={() => setWVal(prevLoad(ex, wVal) ?? wVal)} style={{ width: 30, height: 30, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>−</button>
+                        <div style={{ fontFamily: mono, fontSize: 15, color: T.chalk, minWidth: 44, textAlign: "center" }}>{wVal}</div>
+                        <button onClick={() => setWVal(nextLoad(ex, wVal) ?? wVal)} style={{ width: 30, height: 30, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
+                        <span style={{ fontFamily: mono, fontSize: 8.5, color: T.jade }}>rung {loadRungs(ex).indexOf(snapLoad(ex, wVal)) + 1}/{loadRungs(ex).length}</span>
+                      </span>
+                    ) : (
+                      <Stepper v={wVal} set={setWVal} step={ex.inc || 5} min={5} />
+                    )}
                     <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>jump:</span>
                     {[2.5, 5, 10].map((jz) => (
-                      <span key={jz} onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex5 = ns.exercises.find((x) => x.id === ex.id); ex5.inc = jz; ns.feed.unshift({ d: isoOf(todayStart()), t: `JUMP SIZE — ${ex5.n.toUpperCase()} steps by ${jz}`, how: "athlete set the machine's smallest honest increment" }); setS(ns); save(ns); }}
-                        style={{ fontFamily: mono, fontSize: 9, color: (ex.inc || 5) === jz ? T.jade : T.dim, border: `1px solid ${(ex.inc || 5) === jz ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>{jz}</span>
+                      <span key={jz} onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex5 = ns.exercises.find((x) => x.id === ex.id); ex5.inc = jz; delete ex5.steps; ns.feed.unshift({ d: isoOf(todayStart()), t: `JUMP SIZE — ${ex5.n.toUpperCase()} steps by ${jz}`, how: "athlete set the machine's smallest honest increment — even ladder" }); setS(ns); save(ns); }}
+                        style={{ fontFamily: mono, fontSize: 9, color: !loadRungs(ex) && (ex.inc || 5) === jz ? T.jade : T.dim, border: `1px solid ${!loadRungs(ex) && (ex.inc || 5) === jz ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>{jz}</span>
                     ))}
-                    <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id); const oldW = ex4.w; ex4.w = wVal; if (oldW !== wVal) ex4.last = null; ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${wVal}`, how: "athlete entry on the card — targets re-seeded for the new load" }); setS(ns); save(ns); setWEdit(null); }}>Save</Btn>
+                    <span onClick={() => setRungEdit(rungEdit === ex.id ? null : ex.id)}
+                      style={{ fontFamily: mono, fontSize: 9, color: loadRungs(ex) ? T.jade : T.dim, border: `1px solid ${loadRungs(ex) ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>
+                      {loadRungs(ex) ? `uneven · ${loadRungs(ex).length} rungs ✎` : "uneven ✎"}
+                    </span>
+                    <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id); const oldW = ex4.w; ex4.w = loadRungs(ex4) ? snapLoad(ex4, wVal) : wVal; if (oldW !== ex4.w) ex4.last = null; ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${ex4.w}`, how: "athlete entry on the card — targets re-seeded for the new load" }); setS(ns); save(ns); setWEdit(null); setRungEdit(null); }}>Save</Btn>
+                    {rungEdit === ex.id && (
+                      <div style={{ width: "100%", marginTop: 6, padding: "9px 10px", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8 }}>
+                        <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.08em", lineHeight: 1.6 }}>
+                          EVERY WEIGHT THIS MACHINE CAN ACTUALLY MAKE — commas or spaces.<br />
+                          For a stack with hang-on attachments, list the real rungs: 80, 82.5, 85, 90, 92.5, 95, 100…
+                        </div>
+                        <textarea defaultValue={(loadRungs(ex) || []).join(", ")} rows={2} id={"rungs-" + ex.id}
+                          placeholder="80, 82.5, 85, 90, 100"
+                          style={{ width: "100%", boxSizing: "border-box", marginTop: 7, background: T.ink, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 13, padding: 8, outline: "none", resize: "vertical" }} />
+                        <div style={{ display: "flex", gap: 8, marginTop: 7, flexWrap: "wrap" }}>
+                          <Btn small tone="jade" onClick={() => {
+                            const el = document.getElementById("rungs-" + ex.id);
+                            const parsed = parseRungs(el ? el.value : "");
+                            const ns = JSON.parse(JSON.stringify(s)); const ex6 = ns.exercises.find((x) => x.id === ex.id);
+                            if (!parsed) { delete ex6.steps; ns.feed.unshift({ d: isoOf(todayStart()), t: `LADDER CLEARED — ${ex6.n.toUpperCase()}`, how: `back to even ${ex6.inc || 5} lb jumps` }); }
+                            else { ex6.steps = parsed; ex6.w = snapLoad(ex6, typeof ex6.w === "number" ? ex6.w : parsed[0]); setWVal(ex6.w); ns.feed.unshift({ d: isoOf(todayStart()), t: `LADDER SET — ${ex6.n.toUpperCase()} ${parsed.length} rungs`, how: `${parsed[0]} to ${parsed[parsed.length - 1]} — every earn, reset and forecast now lands on a weight this machine makes` }); }
+                            setS(ns); save(ns); setRungEdit(null);
+                          }}>Save ladder</Btn>
+                          <button onClick={() => setRungEdit(null)} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "7px 12px" }}>cancel</button>
+                          <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, alignSelf: "center" }}>empty = back to even jumps</span>
+                        </div>
+                      </div>
+                    )}
                   </span>
                 ) : (
                   <span onClick={() => { setWEdit(ex.id); setWVal(typeof ex.w === "number" ? ex.w : 180); }} style={{ cursor: "pointer", color: typeof ex.w === "number" ? T.steel : T.brass }}>{typeof ex.w === "number" ? ex.w : "set weight"} ✎</span>
