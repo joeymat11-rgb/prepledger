@@ -251,3 +251,63 @@ suite. Ship. Confirm the beacon shows the new version.
 
 When something is broken, find the mechanism before shipping a fix. Ship an
 instrument, not a theory.
+
+## Records, noise, and sleep (v3.99.19)
+
+Three rules were retired in this release for having no evidence behind them. If
+you find yourself re-adding any of them, read this first.
+
+**A record is confirmed against measurement error, not against sleep.**
+`typicalError(s, exId)` measures his own set-to-set spread from repeats at an
+identical load (currently ±0.77 reps over 31 paired sets — the middle of Mitter
+2022's published 0.7–1.1 SEM range). `beatsNoise()` asks whether a session clears
+the old line by two standard errors of the session total. Inside that band, a new
+best waits for one repeat; outside it, it banks immediately. That is the ACSM
+two-for-two rule (Ratamess 2009), which is the only published precedent and
+carries no readiness qualifier.
+
+**Short sleep does not gate progression.** Craven 2022 (69 studies, 959
+participants) puts acute sleep loss at −2.85% on strength — smaller than the
+1.8–3.3% test-retest CV of a trained lifter. No trial has ever tested damping
+progression on low-readiness days. `progressStep` is driven by RIR, which is the
+one readiness method with outcome evidence (Helms 2018, ES 0.48). The sleep flag
+now sits on the *downside* only: a short-sleep session cannot count toward a
+STALL, the same protection a rushed session gets.
+
+**Two different sleep questions, two different thresholds.** `cleanAtDate()`
+answers the PERFORMANCE question and uses `DEBT_LAST_H` (6.5) / `DEBT_MEAN3_H`
+(7.0), because that is where the performance literature lives. `atSleepTarget()`
+answers the TARGET question against `sleep.cleanH` (7.5) and drives the sleep
+score and the lean-mass argument. Do not merge them: the single 7.5-hour gate
+opened on 3 of his 42 nights and produced zero clean sessions ever.
+
+**Every target is derived.** `calorieTarget` from measured maintenance,
+`proteinTarget` from measured lean mass, `stepTarget` from the window the
+maintenance was measured in. A constant in the UI next to a derived number makes
+the card look like it knows three things when it knows one. If you add a fourth
+target, derive it or gate it.
+
+**Energy availability is banded on the conventional number.** `ea` (structured
+training only) is the only figure comparable to the published 25 threshold —
+that is the IOC 2023 formula. `eaAll` (walking included) is shown as a second
+convention and must never drive the band or the `needKcal` instruction. Espinar
+2026 measured the same swap moving free-living athletes from ~32 to ~20 with no
+physiological change. Subtracting steps *and* comparing to 25 is the one thing
+that is definitely wrong.
+
+**When EA needs to rise, name food before steps.** Deficit magnitude is what the
+trained-population evidence links to lean-mass loss (Murphy & Koehler 2022). No
+concurrent-training meta-analysis has ever included a walking arm.
+
+**Never claim a refeed does anything.** The only matched-energy RCT in trained
+people (Campbell 2020) had its FFM result overturned by Peos 2020's reanalysis;
+the resistance-trained RMR subgroup across 12 trials is 11 kcal/day, CI −67 to
++46. The refeed stays on the calendar because it is his programme, and the app
+proposes rather than reprograms — but every line about it states what it does not
+buy. Diet breaks (a full week at maintenance) are the intervention with real
+adherence evidence; keep the two distinct.
+
+**`dailyLogs` key order is insertion order, not date order.** Sort before any
+`.slice()`. This silently flipped the sign of the step-drift figure; a test caught
+it. Assume the same trap anywhere else you take a recency window off a plain
+object.

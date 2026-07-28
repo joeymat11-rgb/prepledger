@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.19";
+const APP_V = "3.99.20";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -1737,7 +1737,16 @@ function sessionDebrief(s, iso) {
         const allTots = dates.filter((d) => d <= iso).map((d) => { const x = (s.sessionLog[d].entries || []).find((y) => y.id === e.id); return x && String(x.w) === String(e.w) ? (x.reps || []).reduce((a, b) => a + b, 0) : null; }).filter((x) => x != null);
         if (allTots.length >= 2 && tot >= Math.max(...allTots)) {
           marks.pr.push(name);
-          lines.push(`Best you have ever done at ${e.w}${wasClean ? " — and it counts, because sleep was clean." : " — provisional: it needs one clean-sleep repeat before a standard can move off it."}`);
+          /* The confirmation line is now sized against HIS measured spread, and
+             says the arithmetic out loud. A best that clears the old line by two
+             standard errors banks on the spot; one inside it waits for a repeat.
+             Sleep is not part of this sentence any more — see NOISE_NOTE. */
+          const prev9 = allTots.slice(0, -1);
+          const bn9 = beatsNoise(s, e.id, reps, prev9.length ? [Math.max(...prev9)] : null);
+          const te9 = typicalError(s, e.id);
+          lines.push(prev9.length && tot - Math.max(...prev9) >= 2 * te9.reps * Math.sqrt(Math.max(1, reps.length))
+            ? `Best you have ever done at ${e.w} — and it clears the old line by ${tot - Math.max(...prev9)} reps against a spread of ±${te9.reps} per set, so it banks now rather than waiting for a repeat.`
+            : `Best you have ever done at ${e.w} — pending one repeat. Your own set-to-set spread is ±${te9.reps} reps (${te9.src}), so a margin this size cannot yet be told apart from a good day. Nothing to do with how you slept.`);
         }
       }
       const fr = fadeRead(reps);
@@ -1805,9 +1814,9 @@ function sessionDebrief(s, iso) {
     return `A holding day — ${marks.up.length} up, ${marks.down.length} down, nothing decided either way.`;
   })());
   /* Then the one thing that explains it, if there is one. */
-  if (!wasClean) summary.push(`Short sleep${night ? ` (${night.h} h)` : ""} — the likeliest reason for anything down here. The reps count in every trend; they just cannot move a standard until a clean-sleep repeat.`);
+  if (!wasClean) summary.push(`Short sleep${night ? ` (${night.h} h)` : ""} — worth about 3% on a heavy set and closer to 10% on a long one, so it is the likeliest reason for anything down here. It does not cost you anything else: the reps count, a record can still bank, and the step is still sized by what you had left. What the flag buys is that today cannot be read as a stall.`);
   else if (rushedDay) summary.push(`You logged this one rushed. Short rest costs reps on the back sets, so nothing here counts toward a stall.`);
-  else summary.push(`Clean sleep, unhurried — a true reading, and everything in it banks for real.${night ? ` ${night.h} h into it.` : ""}`);
+  else summary.push(`Normal sleep, unhurried — nothing here needs discounting.${night ? ` ${night.h} h into it.` : ""}`);
   summary.push(`${nLift} lifts · ${totalReps} reps${med ? ` (your usual ${dayType(iso) === "U" ? "upper" : "lower"} day: ~${med})` : ""}${sessLoad ? ` · ${sessLoad.toLocaleString()} lb moved${loadPc != null ? ` (${loadPc >= 0 ? "+" : ""}${loadPc}% vs the same lifts last time)` : ""}` : ""}.`);
   /* Cross-lift reads. Each earns its place by needing more than one lift to see. */
   if (marks.room.length >= 2) summary.push(`${marks.room.length} lifts finished with reps left on the set that is meant to reach failure (${marks.room.join(", ")}). Muscle growth tracks how close a set ends to failure, so that is the cheapest thing on this page to fix — and the app has already sized bigger steps there because of it.`);
@@ -2929,7 +2938,7 @@ function dayProtocol(s, slp) {
 
 /* PLAIN ENGLISH LAYER — house vocabulary translated at render time, everywhere, forever */
 const PLAIN_MAP = [
-  ["provisional until a clean-sleep repeat", "pending until you repeat it after good sleep"],
+  ["provisional until a clean-sleep repeat", "pending until you repeat it"],
   ["logs provisional", "counts as pending for now"],
   ["log as provisional", "count as pending for now"],
   ["log provisional", "count as pending for now"],
