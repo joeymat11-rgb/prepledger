@@ -2,7 +2,7 @@
 
 > **§0 below is the branch handoff for `audit/research-corpus` (v4.0.0), written
 > 2026-07-29. §1 onward is the older general onboarding brief — still broadly
-> useful, but see §0.13 before trusting its
+> useful but has DRIFTED — see §0.14 for corrections before trusting its
 > numbers.**
 
 ---
@@ -248,7 +248,225 @@ fastest — not by how interesting they are to build:
   athlete, no general-purpose patterns imported. Every generalisation is a
   regression against the only user.
 
-## 0.13 · Stale in the old brief below
+## 0.14 · CORRECTIONS TO §1–§10 BELOW — read before trusting any of it
+
+The old brief is a good document that has drifted. Some of its drift is
+dangerous. Corrections, most important first:
+
+**§5, LAW 9 IS WRONG AND MUST NOT BE "RESTORED."** The old brief lists law 9 as
+*"Records need clean sleep."* That rule is retired. The app's actual
+`CONSTITUTION` array now reads **"Records need repeating, not good sleep"** with
+the subtitle *"Short sleep protects, it does not punish."* If you read §5 and
+"fix" the code to match it, you will reintroduce the single largest defect this
+branch removed. The code is right; §5 is stale.
+
+**§5, LAW 11** says the Minute has 8 steps. `MORNING_REGISTRY` is now 5
+(`energy, soreness, night, weight, brief`) with `MORNING_PARKED = [pulse, temp,
+grip]`. Pulse, temp and grip were removed because each fired inside its own
+measurement noise — grip's threshold was 8% against a minimal detectable change
+of ~11%, on a 4-entry baseline, and it does not measure what it was asked to
+(10×10 squats moved leg-extension torque p=0.03 and jump velocity p=0.04 while
+grip did not budge, p=0.47). He logged it zero times.
+
+**§4, THE SHIP RITUAL IS OBSOLETE.** `tools/ship.sh` is superseded. Use:
+
+```
+node scripts/ship.mjs "<release note>"      # sync sw version → rebuild → gate → commit → push → wait for beacon
+node scripts/prod-check.mjs                 # verify live version, assets, /ledger 404s, service reachability
+node scripts/test.mjs                       # suite + 3 smokes, standalone
+node scripts/build.mjs                      # bundle only
+```
+
+`ship.mjs` refuses to push on a red gate and says so. It reads `APP_V` from
+`src/app.jsx` and syncs `sw.js`'s cache name to match — **bump `APP_V` and
+`sw.js` together or the service worker serves a stale bundle.**
+
+**§2, REPO LAYOUT.** No `prep-ledger-pwa/` directory and no GitHub Pages. The app
+deploys **GitHub Actions → Netlify**, and `app.js` is committed at repo root
+because Netlify serves the repo as-is. `_headers` carries the `/ledger/*`
+lockdown; `scripts/prod-check.mjs` asserts those paths 404 in production.
+
+**§3, ENVIRONMENT.** There is no `python3` on the current dev machine. Do all
+source surgery through Node scripts written to a file — **not** shell heredocs,
+which silently ate `\s`/`\d` from two regexes in this session and left them
+matching nothing.
+
+**§7, CURRENT STATE.** Now v4.0.0 · schema v34 · **856 assertions**. `src/app.jsx`
+is ~8,700 lines, not 5,000.
+
+**§9, PENDING DOCKET** is largely superseded — see §0.4 and §0.11 above.
+
+---
+
+## 0.15 · ARCHITECTURE MAP — where things live in one 8,900-line file
+
+The file runs in this order. Function declarations hoist, so ordering is for
+humans, not the parser.
+
+| region | approx | contents |
+|---|---|---|
+| constants & seed | 1–250 | `APP_V`, `SCHEMA_V`, `PHASES`, `EXERCISES`, `HISTORY`, `SEED` |
+| history rollups | 200–260 | `weekRollups`, `rollupHits`, `ROLLUPS` (module-load, no state) |
+| **the desk** | 260–700 | `liftCall`, `progressStep`, `targetsFor`, load ladders (`loadRungs`/`nextLoad`/`snapLoad`/`deloadLoad`), `repsLostOnJump`, `windowFor` |
+| session engine | 700–1050 | `pickStructural`, `genSession`, `completeSession`, RIR helpers, `typicalError`, `beatsNoise` |
+| **body & nutrition** | 1050–1700 | `bfEst`, `proteinTarget`, `proteinHit`, `stepTarget`, `currentRate`, `observedTDEE`, `calorieFloor`, `dietExit`, `calorieTarget`, `energyAvailability` |
+| sleep | 2400–2600 | `cleanAtDate`, `atSleepTarget`, `sleepAnchor`, `lightsOutT`, `medianSOL`, `owedNights` |
+| lab instruments | 1800–3100 | `labAnalytics`, `labAnalytics2`, `shelfItems`, `dossierText`, trials |
+| daily read | 3200–3600 | `dayProtocol`, `theOneThing`, `weekReview`, `weekDigest`, `plainify` |
+| **volume** | 3600–3800 | `muscleVolume`, `programmeVolume`, `volumeImbalance`, `sweepVolume`, `exerciseSelection`, `nowFocus` |
+| proposals | 3800–4150 | `runAdaptive` (raises everything), `proposalDial`, `applyProposal` |
+| **migrations** | 4150–4500 | `patchV4`…`patchV34`, `PATCHES`, `migrate` |
+| analyst | 4600–4900 | `askContext` (the prompt), `LEDGER_DICT`, `agentToolExec`, `AGENT_TOOLS` |
+| `__test` export | ~4720 | **everything testable must be added here or the suite cannot see it** |
+| UI primitives | 5100–5700 | `T` (palette), `Card`, `Btn`, `More`, `Section`, `CONSTITUTION` |
+| screens | 5700–8500 | `NowTab`, `LogTab`(=TRAIN), `QueueTab`, `BodyTab`, `SleepTab`, `HistTab`(=LAB), `MoreTab`, `GymMode`, `Rules`, `CoachView` |
+| shell | 8500–8900 | tab state, routing, tab bar, modals |
+
+**Naming traps:** `LogTab` renders the **TRAIN** tab. `HistTab` renders the
+**LAB** tab. `QUEUE`/`BODY`/`SLEEP`/`HIST` are reachable only through `MoreTab`.
+
+## 0.16 · ENGINE CONTRACTS — what the load-bearing functions return
+
+Only the ones you will actually need. All take the full state `s`.
+
+- `bfEst(s)` → `{pct, lean, lo, hi, wks, anchorErr, src, drip, why}` — **always a
+  band.** `drip` is 0 and must stay 0 without a DEXA. Showing `pct` without
+  `lo`–`hi` is a defect.
+- `proteinTarget(s)` → `{g, lo, hi, floor, perKg, inLeanSubgroup, straddles, ffmKg, bf, bfLo, bfHi, why}`. `g` is the headline; **`lo` is what `proteinHit` must be
+  tested against.** `straddles` is true when his BF *interval* spans 12.2%, which
+  is why the target is a range.
+- `proteinHit(floorG, logged)` → bool. **Tolerance is 0.** A floor, not a band.
+- `currentRate(s)` → `{scale, fat, measured, method, n, ci, lo, hi, rates, from, to}`. `method` ∈ `regression | snapshots | prior`. Prefer `regression`.
+- `observedTDEE(s)` → `{tdee, lo, hi, days, avg, matched, impliedPerLb, impossible, perLb}` or `null`. Uses `KCAL_PER_LB_MIX`. `matched` means intake and rate share a window.
+- `calorieTarget(s)` → `{gated, lo, hi, mid, band, tdee, floor, floorBinds, wkAvg, wkOff, wkWhy, why}`. **`mid` does not exist when `gated`** — guard it.
+- `calorieFloor(s)` → `{floor, soft, ffmKg, eee, why}` — derived from energy availability at his lean mass. Currently 1750. Never hardcode 1700.
+- `stepTarget(s)` → `{gated, lo, hi, mid, avg, days, kcalPer1k, driftKcal, why}`.
+- `sleepAnchor(s)` → `{measured, n, bed, wake, bedSDmin, wakeSDmin, curH, needBed, shiftMin, sol, target, lever, why}`. **Check `.measured` before touching any other field.**
+- `lightsOutT(s)` → `{t, mins, sol, target, wakeRef, measured, override}`. Must agree with `sleepAnchor`; they disagreed by 2h45m before this branch.
+- `cleanAtDate(s, iso)` → bool — *performance* flag (last night <6.5 h, or 3-night mean <7.0). `atSleepTarget(s, iso)` → `{run, at}` — *target* question. **Two different questions; do not re-merge them.**
+- `liftCall(s, exId)` → `{verdict, vel, n, why, receipts, newW?}`. Verdicts: `PUSH · PUSH+ · HOLD · RESET · REBUILD · STAND-DOWN`. **No sleep verdict exists any more.**
+- `typicalError(s, exId)` → `{reps, n, src}` — his own measured set-to-set spread; `beatsNoise(...)` → `{clear, margin, need, te, n}`.
+- `volumeImbalance(s)` → `{pv, under, low, over, taker, donor, need, gain, detectable, actionable, cutting, why}`. **`detectable` ≠ `actionable`** — see §0.5.
+- `exerciseSelection(s)` → `{items[], allGood}`.
+- `nowFocus(s, hour?)` → `{phase, hour, owed[], clear, lead:{t, sub, more}}`.
+- `dietExit(s)` → `{gated, started, wksHeld, maintenance, from, step, holdMin, holdFull, readReady, decideReady, plan[], why, unknown}`.
+- `migrate(s)` → state at `SCHEMA_V`. Pure enough to run twice; **all patches must be idempotent.**
+- `askContext(s, docs?)` → the Analyst's entire system prompt. Anything the
+  Analyst must not contradict has to be in here.
+
+## 0.17 · HOW TO VERIFY A CHANGE AGAINST HIS REAL DATA
+
+This recipe caught more than the suite did. Use it before shipping anything that
+changes a number he sees.
+
+```bash
+cat > .tmp/check.jsx <<'EOF'
+import { __test } from "../src/app.jsx";
+const raw = JSON.parse(require("fs").readFileSync("ledger/state.json", "utf8"));
+const s = __test.migrate(JSON.parse(JSON.stringify(raw)));
+console.log(JSON.stringify(__test.proteinTarget(s), null, 1));   // whatever you changed
+EOF
+npx esbuild .tmp/check.jsx --bundle --platform=node --format=cjs \
+  --loader:.jsx=jsx --outfile=.tmp/check.cjs --log-level=error && node .tmp/check.cjs
+```
+
+**Always run the data-integrity assertion after a migration change:**
+
+```js
+const B = {reads: raw.reads.length, nights: raw.sleep.nights.length,
+           days: Object.keys(raw.dailyLogs).length,
+           sess: Object.keys(raw.sessionLog).length, queue: (raw.queue||[]).length};
+// ...migrate...
+// every count must be >= its "before". Current truth: 46 / 42 / 47 / 4 / 13.
+```
+
+## 0.18 · THE TEST SYSTEM — and its one sharp edge
+
+- `node scripts/test.mjs` runs the engine suite plus three smokes.
+- **`MIN_ASSERTIONS = 850`.** A suite that silently stops running is the failure
+  this guards. If you legitimately remove assertions, lower it deliberately.
+- **`tools/engine-test.jsx` is ONE FLAT SCOPE.** Every `const` shares a namespace
+  across ~2,900 lines. New blocks need unique suffixes (`pt27`, `mg37`, `sel38`).
+  A collision is a build error, not a test failure — read the esbuild message.
+- Anything you want to test must be added to the `__test` export near line 4720.
+  Adding `__test.foo = foo` *before* that line throws at load — the object does
+  not exist yet.
+- The smokes and what each actually catches:
+  - **render-smoke** — mounts the real bundle in jsdom, walks every room in three
+    states, fails on `undefined`/`NaN`/`[object Object]` or a suspiciously empty
+    screen. It now reaches QUEUE/BODY/SLEEP/LAB **through MORE**. This is the one
+    that catches a screen you broke without noticing.
+  - **dom-smoke** — the shipped `app.js` boots clean.
+  - **beacon-smoke** — the crash reporter records faults, **redacts tokens**, and
+    cannot itself break the app.
+- The suite is **headless only.** iOS Safari is unexercised by any automated
+  check. GOALS.md names an unreported iPhone error as *the* failure mode that
+  matters. Reason explicitly about Safari, and open it on the real device after
+  merge.
+
+## 0.19 · ADDING A MIGRATION CORRECTLY
+
+1. Write `patchVn(s)`, ending `s.v = n; return s;`
+2. Append it to the `PATCHES` array — **append, never insert**; order is applied order.
+3. Bump `SCHEMA_V`.
+4. Obey both invariants: **never touch a `done` queue item** (its `gate` is a
+   receipt, not a gate), and **be idempotent** (guard every feed entry so
+   re-running files no duplicate).
+5. Test three states: the real `ledger/state.json`, the `SEED`, and a
+   deliberately malformed one (missing `queue`, missing `feed`, `gate` not a
+   string). `patchV34`'s tests are the template.
+6. Explain the change in `s.feed` — he reads it, and a silent state rewrite is
+   indistinguishable from a bug.
+
+## 0.20 · CITATION INDEX — every claim the app now makes, and its source
+
+So the next hand can check rather than trust. All are load-bearing.
+
+| claim in the app | source |
+|---|---|
+| volume dose-response; return peaks 5–10 weekly sets; SDES 2.05%; half-credit for indirect is primary | Pelland 2025, 67 studies, n=2,058 |
+| **volume does not change lean retention in a deficit** | Roth 2023, n=38, 6 wk, 30 kcal/kg deficit, 2.8 g/kg protein |
+| retention runs on ~1/9 of building volume | Bickel 2011, n=70, 32 wk |
+| short sleep costs ~2.85% strength — inside test-retest CV | Craven 2022 |
+| 9 nights at 5 h → <1% volume-load loss | Knowles 2022 |
+| **5.5 h vs 8.5 h → ~60% more loss from fat-free mass** | Nedeltcheva 2010 |
+| start-of-night restriction ≈ zero, d=−0.25 (−0.53 to +0.04) | Gong 2024 |
+| protein scales to FFM, not bodyweight; zero-crossing ~2.5 g/kg FFM | Refalo/Trexler/Helms 2025, 29 studies, n=729 |
+| protein requirement **higher on rest days** | Moore 2024 (IAAO) |
+| rep tempo SMD 0.09 (favours faster) | tempo meta-analysis |
+| eccentrics −0.06 growth, +1.72 perceived effort | eccentric meta-analysis |
+| periodisation d = −0.02 | linear vs undulating |
+| machines vs free weights −0.055, p=0.751 | — |
+| lengthened partials ≈ full ROM; BF 0.16–0.30 favour null | 297-person multi-site trial |
+| **exercise selection: standing vs seated calf raise d = 0.88–1.58; overhead vs pushdown triceps d = 0.54–0.61** | biarticular length literature |
+| load 80% vs 60% under restriction: no fat/lean difference | Carlson 2022, n=115 |
+| diet breaks help adherence, not metabolism; **refeeds do neither** | MATADOR / Byrne 2018 + reanalysis |
+| ~0.7%/wk arm gained lean, 1.0%/wk lost it, matched total loss | Garthe 2011 |
+| 4,282 kcal/lb adipose (not 3,500) | Hall 2008 |
+| energy-availability threshold 25 kcal/kg FFM is **extrapolated**, IOC declines to set one | IOC 2023 / Fagerberg 2018 / Espinar 2026 |
+| adaptive menus ~8% slower than static; adaptable preferred 15:4 | Findlater & McGrenere, CHI 2004, n=27 |
+| lower-burden logging → worse habit formation, half the weight loss | dietary self-monitoring burden study |
+| goal pursuit dominates adherence; habit fades by day 21; tailored feedback sustains | JMIR 2025, n=97 |
+| personalised > generic messaging, +13.6% adherence | REINFORCE trial, n=60 |
+
+## 0.21 · DO NOT
+
+- Do not reintroduce anything in **NEGATIVE FINDINGS** in `research-brief.md`.
+- Do not make `volumeImbalance` fire during a deficit.
+- Do not make the tab bar adapt to what has news.
+- Do not automate away the act of logging.
+- Do not show `bfEst().pct` without its band.
+- Do not test `proteinHit` against `proteinTarget().g` — it takes `.lo`.
+- Do not add a countdown, a target date, or a percentage-complete bar. No date exists.
+- Do not re-architect the layout frame — eight attempts failed; see old §6.
+- Do not let inputs render below 16px (iOS zoom-on-focus).
+- Do not cache `api.github.com` in the service worker.
+- Do not generalise the app toward other users.
+- Do not push to `main` without the owner's word — it deploys live to his phone.
+- Do not print, log or echo `GH_TOKEN`. The remote URL contains a credential;
+  redact it if you ever surface `git remote -v`.
+
+## 0.22 · Stale in the old brief below (short version — full corrections in §0.14)
 
 §2 says `src/app.jsx` is ~5,000 lines (now ~8,900) and the suite is 359
 assertions (now 856). It references `prep-ledger-pwa/` and GitHub Pages; the app
