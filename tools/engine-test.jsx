@@ -2432,12 +2432,42 @@ volS.blackout.until = "2026-01-01"; volS.proposals = []; volS.adjustments = [];
 for (let i = 0; i < 20; i++) { const d = isoL(Date.now() - i * 864e5); volS.dailyLogs[d] = { cal: 2000, pro: 175, steps: 16000 }; volS.reads.push({ d, w: +(170 - i * 0.15).toFixed(1), sealed: false }); }
 volS.reads.sort((a, b) => (a.d < b.d ? -1 : 1));
 volS = raW(volS, isoL(Date.now()));
+/* ---- THE CATEGORY ERROR: a growth curve applied to a man in a deficit ----
+   This block used to assert that the imbalance FIRES as a proposal during the
+   cut. It computed that hamstrings needed +7 weekly sets to clear the smallest
+   detectable growth effect, and was ready to ask him for them.
+
+   The arithmetic was right and the recommendation was wrong. Pelland 2025's
+   6-12 band is a GROWTH dose-response, measured in people eating enough to
+   build. Roth et al. 2023 put the same question to trained men in energy
+   restriction — n=38, six weeks, 30 kcal/kg deficit, 2.8 g/kg protein, which is
+   nearly his exact situation — and found ~20 weekly sets and ~12 preserved lean
+   mass identically (0.51 kg lost vs 0.92, not significant; no muscle-thickness
+   difference either). Bickel 2011 held young adults' thigh lean mass for 32
+   weeks on one-NINTH of their prior volume. Retention is cheap; growth is not;
+   he is buying retention. Same class of error as the sleep gate — a real
+   finding, applied where it does not hold. ---- */
 const vCard = volS.proposals.find((p) => p.rid.indexOf("volstruct_") === 0 && !p.resolved);
-ok(!!vCard, "the imbalance is filed as a proposal");
-ok(vCard.why.indexOf("hams 4") > -1 && vCard.why.indexOf("delt side") > -1, "with the whole allocation shown by head, so he can check the arithmetic himself");
-ok(vCard.title.indexOf("MINIMUM EFFECTIVE DOSE") > -1, "and the headline says what 4 sets actually means — holding, not growing: " + vCard.title);
-ok(vCard.why.indexOf("Bickel") > -1, "citing the trial where ~3 sets a week held quad size for 32 weeks, so he is not alarmed into adding work he does not need");
-ok(vCard.why.indexOf("does not need more weeks to become true") > -1, "and says why it is not waiting for the fourteen-day log gate");
+const viCut = viN(volS);
+ok(viCut && viCut.cutting === true, "the engine knows he is still in a deficit");
+ok(viCut.detectable === true && viCut.actionable === false, "the gap is still DETECTED — the arithmetic did not change — but it is not actionable while cutting");
+ok(!vCard, "so no proposal fires: the app does not ask a man in a deficit to add seven weekly sets for a growth effect he is not currently buying");
+ok(viCut.why.indexOf("Roth 2023") > -1 && viCut.why.indexOf("Bickel 2011") > -1, "and the receipt cites both trials rather than asserting it");
+ok(viCut.why.indexOf("Filed, not proposed") === 0, "it is filed for the build phase, not discarded — the finding is real, the timing is not");
+ok(viCut.why.indexOf("hams at 4 sets") > -1, "naming the muscle and the number, so it is checkable");
+
+/* once the deficit ends, the growth band is the right yardstick again */
+const volDone = clone(volS);
+volDone.targets = { ...(volDone.targets || {}), exitStart: isoL(Date.now() - 7 * 864e5) };
+volDone.proposals = []; volDone.adjustments = [];
+const viBuild = viN(volDone);
+ok(viBuild.cutting === false && viBuild.actionable === true, "off the deficit it becomes actionable — the same gap, now worth acting on");
+ok(viBuild.why.indexOf("no longer in a deficit") > -1, "and says why it changed: " + viBuild.why.slice(0, 60));
+const volDone2 = raW(volDone, isoL(Date.now()));
+const vCard2 = volDone2.proposals.find((p) => p.rid.indexOf("volstruct_") === 0 && !p.resolved);
+ok(!!vCard2, "and only THEN is it put to him as a proposal");
+ok(vCard2.why.indexOf("hams 4") > -1 && vCard2.why.indexOf("delt side") > -1, "with the whole allocation shown by head, so he can check the arithmetic himself");
+ok(vCard2.title.indexOf("MINIMUM EFFECTIVE DOSE") > -1, "and the headline says what 4 sets actually means: " + vCard2.title);
 ok(volS.proposals.filter((p) => !p.resolved && p.rid.indexOf("volband") === 0).length === 1, "the band-width proposal is a different question and still stands on its own");
 
 /* THE RATE BAND'S UNIT. Written in pounds, it tightens as he lightens. */
@@ -2743,6 +2773,46 @@ ok(__test.proposalDial({ apply: { kind: "exit" } }) === null, "the exit proposal
 const anMV = sa37(twoSV7);
 ok(anMV.measured && anMV.bed === "01:40", "the anchor the night-entry defaults must use: " + anMV.bed + " / " + anMV.wake);
 ok(anMV.bed !== "22:45" && anMV.wake !== "06:45", "which is emphatically not the 22:45 / 06:45 the Morning Minute used to seed into his sleep record");
+
+/* ---- exercise selection: the biggest lever, and the app must SAY he has it right ---- */
+const { exerciseSelection: es38, mgLabel: ml38 } = __test;
+const sel38 = es38(clone(SD37));
+ok(sel38.items.length === 3, "all three biarticular lifts are audited: " + sel38.items.map((i) => i.n).join(", "));
+ok(sel38.allGood === true, "his selection is on the right side of every one — the largest effect in the training literature, and the app had never mentioned it");
+ok(sel38.items.every((i) => /[d.]|favoured/.test(i.d)), "each carries its effect size, so the claim is checkable: " + sel38.items.map((i) => i.d).join(" | "));
+ok(sel38.items.find((i) => i.id === "calves").why.indexOf("gastrocnemius crosses the knee") > -1, "and the mechanism, not just the number");
+/* a seated calf raise must be caught */
+const seatedS = clone(SD37);
+const cx38 = seatedS.exercises.find((e) => e.id === "calves");
+cx38.setup = "SET · seated · knee pad snug\\nControlled reps";
+ok(es38(seatedS).allGood === false, "swap in a seated calf raise and the audit catches it");
+ok(es38(seatedS).items.find((i) => i.id === "calves").why.indexOf("largest single upgrade") > -1, "naming it as the biggest available upgrade rather than a footnote");
+/* head keys must never reach a screen raw */
+ok(ml38("delts_side") === "side delt" && ml38("delts_rear") === "rear delt", "head buckets get readable labels — without these the TRAIN chip row would have printed delts_side");
+ok(ml38("hams") === "hams", "and anything without a mapping passes through unchanged");
+
+/* ---- muscleVolume must bucket by head, like programmeVolume already did ----
+   patchV33 split the delts and retracted a card built on the pooled bucket, then
+   this function kept counting by mg — so the TRAIN chip went on printing
+   `delts 17` flagged OVER, in red, while his own feed said 5-7 each. The
+   retraction shipped; the instrument behind it did not. */
+const mvS38 = clone(SD37);
+mvS38.sessionLog = { ...(mvS38.sessionLog || {}) };
+mvS38.sessionLog[isoL(Date.now() - 2 * 864e5)] = { entries: [{ id: "lateral", w: 80, reps: [14, 13, 13], rir: 1 }, { id: "rearDelt", w: 20, reps: [10, 10], rir: 1 }, { id: "press", w: 245, reps: [8, 7, 6], rir: 1 }], at: 1 };
+const mv38 = __test.muscleVolume(mvS38);
+ok(!mv38.some((m) => m.mg === "delts"), "no pooled deltoid bucket survives");
+ok(mv38.some((m) => m.mg === "delts_side") && mv38.some((m) => m.mg === "delts_rear"), "the heads are counted separately, as Pelland classifies them");
+ok(!mv38.some((m) => m.mg === "delts_side" && m.zone === "OVER"), "so the side delt no longer reads OVER off a 17 that was three muscles added together");
+
+/* ---- the triceps close must reach his SAVED state, not just the seed ---- */
+const pegS = clone(SD37); pegS.v = 33;
+const pg38 = (pegS.queue || []).find((q) => q.id === "q_peg");
+if (pg38) { pg38.done = false; pg38.t = "TRICEP BOTTOM-PEG (STRETCH)"; pg38.gate = "Middle peg through the cut"; pg38.rule = "Unparks at build phase"; }
+const pegM = mg37(pegS);
+const pg39 = (pegM.queue || []).find((q) => q.id === "q_peg");
+ok(!pg39 || pg39.done === true, "the triceps question closes on his phone, not just in the seed");
+ok(!pg39 || pg39.rule.indexOf("build phase") === -1, "and stops waiting on a build phase that has no date and that he has not chosen");
+ok((pegM.feed || []).some((f) => f.t === "TRICEP QUESTION CLOSED"), "with the reasoning filed, including why the peg was never the overhead question");
 
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
