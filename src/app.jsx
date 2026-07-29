@@ -48,7 +48,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.3";
+const APP_V = "4.0.4";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -6007,8 +6007,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: SP.md }}>
+        <div style={{ minWidth: 0 }}>
           <H size={24}>Prep Ledger</H>
           {/* The band, not just the point. bfEst has carried lo/hi since the
               drip was zeroed, but the interval only ever showed on BODY — a tab
@@ -6019,10 +6019,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               calls a regression. */}
           <div style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, marginTop: SP.sm, textTransform: "uppercase" }}>WK {wd.wk} · D{wd.day} · {s.phase} · BF {bf.pct}%<span style={{ color: T.dim }}> ({bf.lo}–{bf.hi})</span></div>
         </div>
-        <div style={{ display: "flex", gap: 6 }}>
-          
-          <button onClick={openCoach} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "7px 11px" }}>COACH</button>
-          <button onClick={openRules} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "7px 11px" }}>RULES</button>
+        <div style={{ display: "flex", gap: SP.sm, flexShrink: 0 }}>
+          <button onClick={openCoach} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "7px 11px", whiteSpace: "nowrap" }}>COACH</button>
+          <button onClick={openRules} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "7px 11px", whiteSpace: "nowrap" }}>RULES</button>
         </div>
       </div>
 
