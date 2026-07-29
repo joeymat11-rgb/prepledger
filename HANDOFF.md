@@ -2,7 +2,7 @@
 
 > **§0 below is the branch handoff for `audit/research-corpus` (v4.0.0), written
 > 2026-07-29. §1 onward is the older general onboarding brief — still broadly
-> useful, but see "stale in the old brief" at the end of §0 before trusting its
+> useful, but see §0.13 before trusting its
 > numbers.**
 
 ---
@@ -152,7 +152,103 @@ interactive agent are editing the same working copy with no coordination.**
 Consider making it refuse to run when a feature branch is checked out, or having
 it restore the previous branch. Not changed here — it is the owner's automation.
 
-## 0.8 · Stale in the old brief below
+## 0.9 · How to find defects in this codebase (the method that worked)
+
+Roughly fifty real defects came out of one session using two questions. Both are
+mechanical and neither needs new research:
+
+1. **"Does the code keep this claim?"** Take any sentence the app shows the
+   athlete and go find the line that enforces it. The gap between copy and
+   behaviour is where nearly everything was hiding — a retired rule still stated
+   as fact, a card displaying a derived number while the logic judged a constant,
+   a charter clause the engine stopped honouring.
+2. **"Where did this number come from?"** Any literal in a computation or on a
+   screen is guilty until it can name its source. Nine authored constants fell to
+   this. The tell is a round number: 175, 1700, 16500, 3500.
+
+A third, learned late: **grep for the same quantity computed twice.** `3500`
+vs `KCAL_PER_LB_MIX` vs `KCAL_PER_LB_FAT` were three conversions of one quantity
+in one app. Two surfaces disagreeing about the same number is the app's single
+most common failure shape.
+
+**Verify against `ledger/state.json`, never only against `SEED`.** The seed is
+idealised; his real state has gaps, done items, historical text and edge cases the
+seed does not. Several defects — including the migration data loss — were only
+visible against the real file.
+
+**Use adversarial review, and do not skip it because the work feels finished.**
+Two independent review passes over this session's own diff found **30 further
+defects**, including a migration that would have destroyed a queue receipt and
+Morning-Minute defaults that would have written authored bed/wake times into the
+sleep record, silently poisoning the measured clock every other surface had just
+been rebuilt on. The author could not find these. Budget for the second pass.
+
+## 0.10 · Mistakes made in this session, so they are not repeated
+
+- **Compounding estimate errors.** An early answer put his deficit at ~1,100
+  kcal/day: it used the *prescribed* intake instead of the *logged* one, trusted
+  a mean-of-two-snapshots rate (the noisiest available estimator), and hit a
+  clamp that saturated. Three small errors, one large wrong number. Prefer the
+  regression, prefer logged over prescribed, and check whether a clamp is binding.
+- **"Leaner" used to mean "ate less"** in an app that tracks lean mass as a
+  quantity — while he was six pounds heavier in the period described. There is a
+  RESERVED-words test guarding this now. Say kcal and steps.
+- **A recommendation built on a pooled muscle bucket**, sized below the
+  literature's own smallest detectable effect. Retracted via `patchV33`. Check any
+  proposal against the SDES before it ships.
+- **Regexes written through a shell heredoc lost their backslashes** (`\s`→`s`,
+  `\d`→`d`) and silently matched nothing. Author source edits through a script
+  file, not a heredoc.
+- **Offering the athlete an option the evidence rejects.** He was asked whether
+  the nav should adapt; adaptive was the *worst* of the three measured options.
+  Research before offering choices, not after.
+
+## 0.11 · What would most improve the app's ability to serve its goal
+
+Ranked by expected effect on the actual objective — best body-composition change,
+fastest — not by how interesting they are to build:
+
+1. **A real body-fat anchor.** The current one is "coach's eye, ±3.5 points."
+   That single uncertainty is why protein is a *range* rather than a number, why
+   the diet-exit prompt cannot fire on a point estimate, and why several
+   instruments have to hedge. A DEXA collapses it and sharpens everything
+   downstream. `q_dexa` is already in the queue.
+2. **Waist and photos.** He has logged **zero** of each. They are the two
+   body-composition measures that do not lie and they cost nothing. The scale
+   cannot distinguish fat from water; these can.
+3. **The bedtime research.** The lever is identified (bed ~25 min earlier) but
+   *how to actually move a bedtime* was never researched — light exposure,
+   chronotype, whether he is a genuine late type. Sleep is his largest
+   body-composition lever and only half the job is done.
+4. **Caffeine (~350 mg) interacting with his prescribed stimulant**, against a
+   01:40 bedtime. Both are logged, neither has been researched, and they plausibly
+   *cause* the thing identified as his biggest lever.
+5. **NEAT compensation.** In a deficit, non-exercise movement falls involuntarily.
+   It is the main reason measured maintenance drifts down over a cut — and his
+   entire calorie band is derived from that maintenance figure.
+
+## 0.12 · Working with this athlete
+
+- **Ask him.** Four direct questions produced four of this session's best
+  decisions — including confirming his exercise selection was already optimal,
+  which redirected the whole training audit and saved proposing changes he did not
+  need. He answers decisively and without hedging.
+- **He uses NOW, TRAIN and the Analyst.** LAB occasionally, BODY very rarely.
+  This was only learned by asking, and it should govern where design effort goes.
+  A fix on BODY reaches him rarely; a fix on NOW reaches him twice a day.
+- **He catches real problems.** "My earlier weeks ran leaner? I'm leaner now"
+  and "I thought you were completely redesigning the app?" were both correct and
+  both changed the work. Push-back from him is signal.
+- **Tell him what is going *right*.** Until v4.0.0 the app had never once told
+  him his exercise selection was already on the correct side of the largest effect
+  in the training literature. An app that only speaks up to correct you teaches
+  nothing about what to protect — and tailored feedback is an adherence mechanism,
+  not decoration.
+- **Never generalise this app.** GOALS.md §"What this is" is explicit: one
+  athlete, no general-purpose patterns imported. Every generalisation is a
+  regression against the only user.
+
+## 0.13 · Stale in the old brief below
 
 §2 says `src/app.jsx` is ~5,000 lines (now ~8,900) and the suite is 359
 assertions (now 856). It references `prep-ledger-pwa/` and GitHub Pages; the app
