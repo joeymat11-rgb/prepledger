@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.0";
+const APP_V = "4.0.1";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -7420,7 +7420,7 @@ function BodyTab({ s, setS, save }) {
             <div key={i}><Num size={16} c={T.steel}>{m.cal}</Num><div style={{ fontFamily: mono, fontSize: 9, color: T.dim, textTransform: "uppercase" }}>{m.label} · JUNE ANCHOR</div></div>
           ))}
         </div>
-        <More deep="Observed TDEE = your average logged intake + the daily energy your measured loss represents (fat at 3,500 kcal/lb, minus what the muscle drip stores). No textbook formulas — arithmetic from your own ledger, recomputed over a rolling 3 weeks, sliding down ~10 kcal for every pound you lose."
+        <More deep="Observed TDEE = your average logged intake + the daily energy your measured loss represents (the mixed tissue you actually lose, ~3,800 kcal/lb per Hall 2008 — not the retired 3,500 pure-fat figure — minus what the muscle drip stores). No textbook formulas — arithmetic from your own ledger, recomputed over a rolling 3 weeks, sliding down ~10 kcal for every pound you lose."
           forYou={(() => { const obs = observedTDEE(s); return obs ? [
             `Your measured maintenance right now: ~${obs.tdee} calories.`,
             "That's the number September's diet-exit aims at — climb to it quickly, then build your muscle-gain surplus on top of it.",
@@ -8688,6 +8688,9 @@ export default function PrepLedger() {
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "env(safe-area-inset-top)", background: T.ink, zIndex: 55 }} />
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(14px + env(safe-area-inset-top)) 14px 88px", visibility: (rules || coach || kitPerson) ? "hidden" : "visible" }}>
+        {inMore && (
+          <div onClick={() => setTab("MORE")} role="button" tabIndex={0} aria-label="Back to More" style={{ fontFamily: mono, fontSize: 11, color: T.steel, cursor: "pointer", padding: "0 0 12px", letterSpacing: "0.06em", display: "inline-block" }}>‹ MORE</div>
+        )}
         {tab === "NOW" && <TabGuard name="NOW"><NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}
         {tab === "TRAIN" && <TabGuard name="TRAIN"><LogTab s={s} setS={setS} save={save} slp={slp} /></TabGuard>}
         {tab === "QUEUE" && <TabGuard name="QUEUE"><QueueTab s={s} slp={slp} /></TabGuard>}
