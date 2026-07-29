@@ -99,15 +99,67 @@ heads produced a "17" comparable to no published band and generated a reallocati
 recommendation below the literature's own noise floor. `programmeVolume()` buckets by
 `head || mg`; `indirectOnly` marks buckets fed solely by what compounds lend.
 
-**Retention is cheap; growth is expensive.** **Bickel et al. 2011** (n=70): in young adults
-**~3 sets/week held quadriceps size across 32 weeks**. ⚠ Older adults could not.
-**Roth et al. 2023** (n=38 trained males, real deficit): 12 vs 20 sets/wk — no difference in
-lean-mass retention.
+**Retention is cheap; growth is expensive — AND THE APP DID NOT KEEP THIS.** This entry
+already existed when `volumeImbalance()` was still preparing to propose **+7 weekly sets on
+hamstrings** to a man in a deficit. The finding was written down and the code ignored it.
+That is this file's whole reason for existing; see RECURRING FAILURE MODES.
+
+- **Roth et al. 2023** (*Scand J Med Sci Sports*), n=38 resistance-trained males, ≤25% BF,
+  6 wk at a **30 kcal/kg deficit** with protein **2.8 g/kg FFM** — close to Joe's exact
+  situation. High volume (5 sets/exercise, **~20 weekly sets** on quads) vs moderate
+  (3 sets, **~12**). Lean mass **−0.51 kg vs −0.92 kg, NOT significant**; **no difference
+  in muscle thickness**; comparable total weight loss (~1.7 kg) and similar load
+  progression. Title states the finding: *volume does not influence lean mass preservation
+  during energy restriction*.
+- **Bickel et al. 2011** (n=70; 39 young 20–35, 31 older 60–75). 16 wk training, then 32 wk
+  at a reduced dose. Young adults held thigh lean mass on **one-ninth** of the original
+  volume (1 day/wk, **1 set**/exercise) and *gained* strength. One-third also held.
+  ⚠ Older adults could not hold mass on either dose — do not generalise across age.
+- Practical synthesis: growth wants ~9–18 weekly sets; **maintenance runs on ~2–5.**
+
+**⇒ THE RULE THIS IMPLIES, now enforced in code.** Pelland's 6–12 band is a **growth**
+dose-response measured in people eating enough to build. It is the wrong yardstick for a
+man in a deficit, where the goal is retention and retention is not volume-sensitive.
+`volumeImbalance()` therefore returns `cutting` and `actionable`: during a deficit the gap
+is **detected and filed with its citations, never proposed**, and the proposal only fires
+once `targets.exitStart` is set. Adding sets in a deficit costs recovery he has less of and
+session time he has to find, for an effect the direct evidence cannot detect.
 
 **Do not ramp volume across a block.** **Barsuhn et al. 2025** (trained males, +30%/+60% vs
 maintenance): maintenance produced the **greatest** 1RM strength, no group differences in
 size. **Enes et al. 2024** (n=31, 5.1 yr trained): clear dose-response for strength, **no
 between-group difference in CSA**.
+
+---
+
+## 2b. EXERCISE SELECTION — THE LARGEST TRAINING LEVER, AND HIS IS ALREADY RIGHT
+
+For a **biarticular** muscle the joint you are *not* training sets the muscle's length, and
+length under load is what the growth difference tracks. These dwarf everything the app used
+to prescribe:
+
+| comparison | effect | what the app used to fuss over | effect |
+|---|---|---|---|
+| standing vs seated calf raise | **d = 0.88–1.58** | rep tempo | SMD 0.09 |
+| overhead vs pushdown triceps | **d = 0.54–0.61** | accentuated eccentrics | −0.06 |
+| seated vs lying ham curl | favours seated | periodisation model | d = −0.02 |
+| | | machines vs free weights | −0.055, p=0.751 |
+
+**Audited against his real gym, confirmed by him directly (July 2026):** calf raise is
+**standing** with a stretch pause; ham curl is **seated**, hips pinned; leg extension is
+**reclined** for max quad stretch. He is on the right side of every one. `exerciseSelection()`
+checks this and the TRAIN card says so — an app that only speaks up to correct you teaches
+nothing about what to protect.
+
+**Triceps: settled, do not reopen.** He uses a Prime 3-peg (pushdown pattern) rather than an
+overhead variation. The peg changes the **resistance profile**, not the **shoulder angle** —
+so no peg setting could ever have bought the overhead effect; the old `q_peg` queue item had
+those two variables confused. Shown the d = 0.54–0.61 case, he chose to keep the Prime.
+Defensible: it is the lift he will actually do, adherence is the largest lever in the
+literature, triceps are one muscle of ~10, and his pressing loads them indirectly.
+
+**Consequence worth stating plainly: there is no training-side upgrade left to chase.** The
+remaining levers are volume *when he starts building*, and everything on the nutrition side.
 
 ---
 

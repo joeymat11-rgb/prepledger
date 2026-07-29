@@ -70,7 +70,7 @@ const EXERCISES = [
   { id: "sulek", mg: "forearms", lastMeta: { d: "2026-07-20", w: 87.5, reps: [12, 8], debt: true }, n: "Sulek curl (forearm)", day: "U", w: 87.5, inc: 2.5, sets: 2, hi: 15, last: [12, 8],
     setup: "SET · cable, highest rung · straight bar\nSam Sulek's signature — strict curl biasing the forearm flexors · elbows quiet, control the weight rather than drop it" },
   { id: "tricep", mg: "triceps", lastMeta: { d: "2026-07-20", w: 55, reps: [12, 11, 10], debt: true }, n: "Tricep", day: "U", w: 55, inc: 5, sets: 3, hi: 13, last: [12, 11, 10],
-    setup: "SET · seat 4 · back pad all the way forward · middle peg through the cut\nElbows pinned · bottom-peg stretch waits for the build phase" },
+    setup: "SET · seat 4 · back pad all the way forward · middle peg through the cut\nElbows pinned · middle peg, settled — the peg sets the resistance profile, not the shoulder angle, so it was never the overhead question" },
   { id: "pronated", mg: "forearms", lastMeta: { d: "2026-07-20", w: 40, reps: [12, 11], debt: true }, n: "Pronated EZ curl", day: "U", w: 40, inc: 5, sets: 2, hi: 13, last: [12, 11],
     setup: "SET · EZ bar, pronated grip\nElbows pinned to sides, zero swing · wrists locked — don't let them bend back under load · your 11,6 session was the hot-opener demo" },
   /* LOWER — order per the 7/17 & 7/21 notes, identical both days */
@@ -126,7 +126,26 @@ const SEED = {
     { id: "q_ext", kind: "own", exId: "extension", t: "EXTENSION · OWN 150×9,9", state: "REVERT", gate: "Self-bump to 155 cratered (9,6) — back to 150", rule: "155 reopens after 9,9 lands", done: false },
     { id: "q_curl", kind: "ladder", exId: "curl", t: "CURL 55 LADDER", state: "LADDER", gate: "Set 2: 8 → 9–10 → 12", done: false },
     { id: "q_primeRD", kind: "info", t: "PRIME REAR-DELT SWITCH", state: "PARKED", gate: "Cable + conscious retraction is working", rule: "Fires only if rounding returns at fatigue — coach territory", done: false },
-    { id: "q_peg", kind: "info", t: "TRICEP BOTTOM-PEG (STRETCH)", state: "PARKED", gate: "Middle peg through the cut", rule: "Unparks at build phase", done: false },
+    /* ---------- TRICEP_NOTE — asked, answered, closed ----------
+       The literature says overhead beats pushdown for the long head at d =
+       0.54-0.61, because the long head crosses the shoulder and only an
+       overhead position lengthens it. His Prime 3-peg is a pushdown-pattern
+       machine: changing the peg changes the RESISTANCE PROFILE — where in the
+       range the load peaks — not the shoulder angle. So no peg setting can buy
+       the overhead effect. They are different variables, and this queue item
+       had them confused.
+
+       Asked directly, he chose to keep the Prime. That is defensible and the
+       app should stop raising it: it is the lift he will actually do, adherence
+       is the largest lever in the whole literature, triceps are one muscle of
+       roughly ten, and his pressing already loads them indirectly. A d = 0.55
+       on one muscle's long head, against a swap he does not want, is not a
+       trade worth nagging a man about twice a week.
+
+       It also stops waiting for a "build phase" that has no date and that he
+       has not decided on — see DIET_EXIT. A queue item gated on an undecided
+       phase is a phantom that never resolves. */
+    { id: "q_peg", kind: "info", t: "TRICEP SETUP — SETTLED", state: "PARKED", gate: "Your call: the Prime 3-peg stays", rule: "Closed — the app stops raising this", done: true },
     { id: "q_ease2", kind: "phase", t: "EASE 2", state: "ARMS @ ~13%", gate: "~2,350–2,400 cal · step taper", rule: "Arms itself from the live BF estimate", done: false },
     { id: "q_pivot", kind: "exit", t: "THE DIET EXIT", state: "COACH'S EYE", gate: "When you and your coach call it — no date", rule: "One step to your MEASURED maintenance, hold, then decide", done: false },
     { id: "q_dexa", kind: "info", t: "DEXA BASELINE", state: "UNBOOKED", gate: "Jericho NY · fasted · normal day · 2+ days clear of refeed", rule: "Result re-anchors the whole BF model in the Body tab", done: false },
@@ -3649,20 +3668,89 @@ function labStatusList(s) {
 /* results announce themselves — any card crossing its threshold posts to the feed */
 const VOL_BANDS = { floor: 6, lo: 8, hi: 14, ceil: 16 };
 const INDIRECT = { press: { triceps: 0.5, delts: 0.5 }, rows: { biceps: 0.5 }, pulldown: { biceps: 0.5 }, curl: { forearms: 0.5 } };
+/* ---------- HEAD_BUCKET_NOTE — the instrument behind a card I already retracted ----------
+   patchV33 split the deltoids into heads, withdrew a set-reallocation proposal
+   built on the pooled bucket, and told him in his own feed that "when split by
+   head it is 5-7 each — the high-return tier". Then this function went on
+   counting by ex.mg, so the TRAIN chip kept printing `delts 17` flagged OVER in
+   red, and sweepVolume kept reading OVER as grounds to trim a set.
+
+   The retraction shipped. The instrument that produced it did not. Pelland 2025
+   classifies anterior, lateral and posterior deltoid as separate muscles with
+   separate exercises; pooling them makes a 17-set bucket that is not comparable
+   to any per-muscle band in the literature. It buckets by head now, exactly like
+   programmeVolume, so the two cannot disagree about the same athlete on the same
+   day — which they did, on screen, for three commits. */
+/* Head buckets are internal keys. They must never reach a screen raw — the
+   TRAIN chip row and every volume card print this name. */
+const MG_LABEL = { delts_side: "side delt", delts_rear: "rear delt", delts_front: "front delt" };
+const mgLabel = (k) => MG_LABEL[k] || k;
+
+/* ---------- EXERCISE_SELECTION — the biggest training lever, finally audited ----------
+   The app spent its attention on rep tempo (SMD 0.09), eccentric speed (-0.06),
+   periodisation (d = -0.02) and machines-vs-free-weights (-0.055, p=0.751) —
+   all of them retired this session for being indistinguishable from zero. The
+   variable that is 5-15x larger never appeared anywhere in the app at all.
+
+   For a biarticular muscle, the joint you are NOT training sets the muscle's
+   length, and length under load is what the growth difference tracks:
+     standing vs seated calf raise   d = 0.88-1.58   (knee straight = gastroc loaded)
+     overhead vs pushdown triceps    d = 0.54-0.61   (shoulder flexed = long head loaded)
+     seated vs lying ham curl        favours seated  (hip flexed = hamstring lengthened)
+
+   Audited against his actual gym, confirmed by him directly: his calf raise is
+   standing, his ham curl is seated, and his leg extension seats him back for
+   maximum quad stretch. He is already on the right side of every one of these.
+   That is worth more than everything else this session removed, and the app had
+   never once said so — an app that only speaks up to correct you is an app that
+   teaches you nothing about what you are getting right.
+
+   The triceps are the one deliberate exception and stay that way by his call.
+   See TRICEP_NOTE. */
+const SELECTION_AUDIT = [
+  { id: "calves", ok: (ex) => /pause|stretch|standing|shoulder height/i.test(ex.setup || ""),
+    lever: "knee angle", d: "0.88-1.58",
+    right: "Standing, knee straight, with a pause in the stretch. The gastrocnemius crosses the knee, so a seated calf raise takes it almost entirely out of the movement and trains soleus instead. This is the single largest exercise-selection effect anywhere in the hypertrophy literature and you are on the right side of it.",
+    wrong: "A seated calf raise bends the knee and slackens the gastrocnemius. Switching to a standing or leg-press calf raise is the largest single upgrade available in this programme." },
+  { id: "ham", ok: (ex) => /seated|back d|hips pinned/i.test(ex.setup || ""),
+    lever: "hip angle", d: "seated favoured",
+    right: "Seated, hips flexed, hips pinned down. Flexing the hip lengthens the hamstring across it before the knee even moves, and the lengthened position is where the growth difference lives. A lying curl leaves the hip extended and the muscle short.",
+    wrong: "A lying or standing curl keeps the hip extended, so the hamstring works short. A seated curl is the better buy if the gym has one." },
+  { id: "extension", ok: (ex) => /max quad stretch|seat back/i.test(ex.setup || ""),
+    lever: "hip angle", d: "smaller, same direction",
+    right: "Seat back for maximum stretch. Rectus femoris crosses the hip too, so reclining lengthens it — the same principle as the other two, with a smaller effect because three of the four quad heads are single-joint.",
+    wrong: "An upright seat shortens rectus femoris. Reclining the seat back is free." },
+];
+function exerciseSelection(s) {
+  const out = [];
+  SELECTION_AUDIT.forEach((a) => {
+    const ex = (s.exercises || []).find((x) => x.id === a.id);
+    if (!ex) return;
+    const good = a.ok(ex);
+    out.push({ id: a.id, n: ex.n, lever: a.lever, d: a.d, good, why: good ? a.right : a.wrong });
+  });
+  return { items: out, allGood: out.length > 0 && out.every((x) => x.good) };
+}
+
+const volBucket = (ex) => (ex && (ex.head || ex.mg)) || null;
 function muscleVolume(s) {
   const tISO6 = isoOf(todayStart());
   const win = (backLo, backHi) => Object.keys(s.sessionLog).filter((d) => { const g = (mk(tISO6) - mk(d)) / DAY; return g >= backLo && g < backHi; });
-  const count = (days2) => { const by = {}; days2.forEach((d) => { (s.sessionLog[d].entries || []).forEach((e) => { const ex6 = (s.exercises || []).find((x) => x.id === e.id); if (!ex6 || !ex6.mg) return; const n6 = (e.reps || []).length; by[ex6.mg] = (by[ex6.mg] || 0) + n6; const lend = INDIRECT[e.id]; if (lend) Object.entries(lend).forEach(([mg2, f2]) => { by[mg2] = (by[mg2] || 0) + n6 * f2; }); }); }); return by; };
+  const count = (days2) => { const by = {}; days2.forEach((d) => { (s.sessionLog[d].entries || []).forEach((e) => { const ex6 = (s.exercises || []).find((x) => x.id === e.id); const b6 = volBucket(ex6); if (!b6) return; const n6 = (e.reps || []).length; by[b6] = (by[b6] || 0) + n6; const lend = INDIRECT[e.id]; if (lend) Object.entries(lend).forEach(([mg2, f2]) => { by[mg2] = (by[mg2] || 0) + n6 * f2; }); }); }); return by; };
   const now7 = count(win(0, 7)), prev7 = count(win(7, 14));
-  const mgs = [...new Set((s.exercises || []).map((x) => x.mg).filter(Boolean))];
+  const mgs = [...new Set((s.exercises || []).map(volBucket).filter(Boolean))];
   return mgs.map((mg) => {
     const n7 = now7[mg] || 0, p7 = prev7[mg] || 0;
     const zone = n7 < VOL_BANDS.floor ? "UNDER" : n7 < VOL_BANDS.lo ? "LOW" : n7 <= VOL_BANDS.hi ? "IN-BAND" : n7 <= VOL_BANDS.ceil ? "HIGH" : "OVER";
-    const lifts = (s.exercises || []).filter((x) => x.mg === mg && typeof x.w !== "undefined");
+    const lifts = (s.exercises || []).filter((x) => volBucket(x) === mg && typeof x.w !== "undefined");
     const vels = lifts.map((x) => ({ id: x.id, n: x.n, v: liftCall(s, x.id).vel })).filter((x) => x.v != null);
     const slipping = vels.filter((x) => x.v < -0.2).length;
     const gaining = vels.filter((x) => x.v > 0.2).length;
-    const sore7 = (s.soreness || []).filter((x) => (mk(tISO6) - mk(x.d)) / DAY < 7 && (x.mgs || []).includes(mg)).length;
+    /* Soreness stays keyed to the coarse muscle name, because that is what he
+       taps on the morning card. A man reports sore shoulders, not a sore
+       posterior deltoid. */
+    const soreKey = (lifts[0] && lifts[0].mg) || mg;
+    const sore7 = (s.soreness || []).filter((x) => (mk(tISO6) - mk(x.d)) / DAY < 7 && (x.mgs || []).includes(soreKey)).length;
     const fmtN = (x2) => (Number.isInteger(x2) ? x2 : +x2.toFixed(1));
     return { mg, n7: fmtN(n7), p7: fmtN(p7), zone, lifts, vels, slipping, gaining, sore7 };
   }).filter((m) => m.n7 > 0 || m.p7 > 0);
@@ -3733,12 +3821,42 @@ const HYP_SDES = 2.05, HYP_B = 1.76;
 const hypGain = (from, to) => +(HYP_B * (Math.sqrt(Math.max(0, to)) - Math.sqrt(Math.max(0, from)))).toFixed(2);
 /* The cheapest change available: sets moved from the flat part of one curve to
    the steep part of another cost nothing in recovery and buy real growth. */
+/* ---------- CUTTING_VOLUME_NOTE — the right curve, the wrong phase ----------
+   This function was about to propose adding SEVEN sets a week to his
+   hamstrings. The arithmetic was correct and the recommendation was wrong,
+   because the curve it reads is a GROWTH dose-response and he is in a DEFICIT.
+
+   Pelland 2025 measures return-per-set for hypertrophy, in people eating enough
+   to build. The one trial that put the same question to trained men in energy
+   restriction found the opposite of a dose-response — Roth et al. 2023, n=38,
+   six weeks at a 30 kcal/kg deficit with protein at 2.8 g/kg fat-free mass,
+   which is close to his exact situation: high volume (5 sets per exercise, ~20
+   weekly sets on quads) against moderate (3 sets, ~12). Lean mass fell 0.51 kg
+   against 0.92 kg, NOT significantly different, with no difference in muscle
+   thickness either. The paper's title is the finding: resistance training volume
+   does not influence lean mass preservation during energy restriction.
+
+   And retention is far cheaper than the growth band implies. Bickel 2011 took
+   seventy adults through sixteen weeks of training, then cut them to a fraction
+   of it for thirty-two weeks: young adults held their thigh lean mass on
+   one-NINTH of the original volume — one session a week, one set per exercise —
+   and gained strength doing it.
+
+   So during a cut the honest bar is retention, and his four hamstring sets clear
+   it. Adding seven would buy nothing measurable, cost recovery he does not have
+   in a deficit, and lengthen every lower session — in service of a number
+   borrowed from the wrong context. The distribution is still worth SHOWING,
+   because it is real and it is the first thing to fix when he starts building.
+   It is filed, not pushed. When the deficit ends the growth band becomes the
+   right yardstick and this unparks itself. */
 function volumeImbalance(s) {
   const pv = programmeVolume(s);
   if (!pv.length) return null;
   const under = pv.filter((m) => m.sets < VOL_BANDS.floor && !m.indirectOnly);
   const low = pv.filter((m) => m.sets >= VOL_BANDS.floor && m.sets < VOL_BANDS.lo && !m.indirectOnly);
   const over = pv.filter((m) => m.sets > VOL_BANDS.hi && !m.indirectOnly);
+  /* Cutting is the default state of this app; the exit is what changes it. */
+  const cutting = !((s.targets || {}).exitStart);
   if (!under.length && !over.length) return null;
   const donor = over.length ? over[0] : null;
   const taker = under.length ? under[under.length - 1] : (low.length ? low[low.length - 1] : null);
@@ -3756,7 +3874,12 @@ function volumeImbalance(s) {
     }
   }
   const detectable = need != null && (!donor || donor.sets - need >= VOL_BANDS.lo);
-  return { pv, under, low, over, donor, taker, need, gain, detectable, sdes: HYP_SDES };
+  /* The gate that matters: a proposal only fires when the deficit is over. */
+  const actionable = detectable && !cutting;
+  return { pv, under, low, over, donor, taker, need, gain, detectable, actionable, cutting, sdes: HYP_SDES,
+    why: cutting
+      ? `Filed, not proposed — you are in a deficit. The 6-12 band is a GROWTH dose-response measured in people eating enough to build. The one trial that asked the same question of trained men in energy restriction (Roth 2023, n=38, six weeks at a 30 kcal/kg deficit and 2.8 g/kg protein) found 20 weekly sets and 12 preserved lean mass identically — 0.51 kg lost against 0.92, not a significant difference, and no difference in muscle thickness. Retention is cheaper still: Bickel 2011 held young adults' thigh lean mass for 32 weeks on one-ninth of their original volume. So ${taker ? `${mgLabel(taker.mg)} at ${taker.sets} sets` : "your current allocation"} is adequate for what you are actually asking of it right now, which is to keep what you have while the deficit does the cutting. This is the first thing worth fixing when you start building — and it is on the record so nobody has to rediscover it then.`
+      : `You are no longer in a deficit, so the growth band is the right yardstick again. ${taker ? `${cap(mgLabel(taker.mg))} sits at ${taker.sets} sets a week` : "One muscle sits below the band"}${need ? `, and it takes +${need} before the modelled gain clears the literature's own smallest detectable effect of ${HYP_SDES}% — a two-set nudge is worth about ${hypGain(taker.sets, taker.sets + 2)}pp, which is a recommendation dressed as a finding` : ""}.` };
 }
 
 function sweepVolume(s, dow7 = new Date().getDay()) {
@@ -3963,7 +4086,7 @@ function runAdaptive(state, todayISO) {
 
   /* The programme's own set allocation, which is arithmetic and needs no waiting. */
   const vi = volumeImbalance(s);
-  if (!sealed && vi && vi.detectable && vi.taker) {
+  if (!sealed && vi && vi.actionable && vi.taker) {
     const line = (m) => `${m.mg.replace("delts_", "delt ")} ${m.sets}`;
     propose("volstruct_" + monday, `${cap(vi.taker.mg.replace("delts_", "delt "))} IS AT THE MINIMUM EFFECTIVE DOSE`,
       `Counting what the programme allocates — two upper days and two lower, each lift's own set count, half-credit for what compounds lend, and deltoid heads counted separately because they are separately trained — your week runs: ${vi.pv.map(line).join(" · ")}. ${cap(vi.taker.mg.replace("delts_", "delt "))} sits at ${vi.taker.sets}, which Pelland 2025 (67 studies, 2,058 participants) identifies as the minimum effective dose: enough to HOLD the muscle, not enough to grow it. Bickel 2011 is the reassurance there — in young adults roughly three sets a week held quadriceps size across thirty-two weeks of otherwise no training, so nothing is being lost. The point is that nothing is being gained either. To move it into growth territory the honest number is ${vi.need} more sets a week, not two or three: their model's smallest detectable effect for hypertrophy is ${vi.sdes}%, and ${vi.need} sets is worth ${vi.gain}% where three would be worth under half of that — a recommendation the literature cannot tell apart from zero. ${vi.donor ? `${cap(vi.donor.mg.replace("delts_", "delt "))} at ${vi.donor.sets} is the only bucket with sets to spare, and it would still sit in the working band after giving them up.` : "There is no obvious donor, so this is an addition rather than a reallocation — which costs recovery you are short of in a deficit, and is a coach conversation."} This is arithmetic from your programme rather than a reading of your log, so it does not need more weeks to become true.`,
@@ -4332,6 +4455,21 @@ function patchV34(s) {
      authored "Fast reverse (~1-2 wk to ~2,450) → lean surplus 2,700-2,950 ·
      MRV build" — the exact text the DIET_EXIT note says was deleted, rendering
      through a branch that describes a different card entirely. */
+  /* The triceps question, closed on his answer. Same lesson as q_pivot: the
+     seed is not the state. It was also waiting on a "build phase" that has no
+     date and that he has not chosen — a gate on an undecided phase never
+     resolves, it just sits there implying an unfinished decision. */
+  const pg = (s.queue || []).find((x) => x.id === "q_peg");
+  if (pg && !pg.done && /bottom-peg|BOTTOM-PEG/i.test(pg.t + " " + (pg.gate || "") + " " + (pg.rule || ""))) {
+    pg.t = "TRICEP SETUP — SETTLED";
+    pg.gate = "Your call: the Prime 3-peg stays";
+    pg.rule = "Closed — the app stops raising this";
+    pg.done = true;
+    pg.state = "PARKED";
+    touched++;
+    (s.feed || []).unshift({ d: isoOf(todayStart()), t: "TRICEP QUESTION CLOSED",
+      how: "This sat in your queue waiting for a build phase that has no date and that you have not decided on. It was also a confused question: the research says overhead beats pushdown for the long head at d = 0.54-0.61, because the long head crosses the shoulder — but the Prime's peg changes the RESISTANCE PROFILE, not the shoulder angle, so no peg setting could ever have bought that effect. Different variables. Asked directly, you chose to keep the Prime, and that holds up: it is the lift you will actually do, adherence is the biggest lever in the literature, triceps are one muscle of about ten, and your pressing already loads them indirectly. Closed. The app will not raise it again." });
+  }
   const pv = (s.queue || []).find((x) => x.id === "q_pivot");
   if (pv && !pv.done && pv.kind !== "exit") {
     pv.kind = "exit";
@@ -4715,6 +4853,10 @@ function askContext(s, docs) {
         return `HIS SLEEP CLOCK (measured, do NOT re-derive): bed ${an.bed} +/-${an.bedSDmin} min, up ${an.wake} +/-${an.wakeSDmin} min, ${an.curH} h asleep across ${an.n} nights. ${shift} His BEDTIME is the steadier end of the night and his WAKE is the variable one, so name bedtime as the lever — never 'fix your wake time', which asks him to control the end he controls least. Sleep is a BODY-COMPOSITION lever here, not a session one: at a matched deficit short sleep shifts roughly 60% more of the loss onto lean mass (Nedeltcheva 2010), while the session cost sits inside the noise. `; })()
     + (() => { const dx = dietExit(s); if (dx.gated) return "";
         return `THE DIET EXIT (his stated plan, not a default): straight to maintenance, hold, then decide. One step from ${dx.from} to ${dx.maintenance} — his MEASURED maintenance — then hold ${dx.holdMin}-${dx.holdFull} weeks before choosing anything else. Do NOT propose a reverse-diet ramp: it has no controlled trial behind it, only practitioner convention, and what is replicated is time spent AT maintenance (MATADOR, Byrne 2018), which does not require arriving slowly. Do NOT assume a surplus or a build follows — he has not decided that, and the hold exists so the decision has data behind it. If he asks when to stop cutting, say plainly that no study answers it and his body-fat interval (${dx.bfLo}-${dx.bfHi}%) is wider than the decision. `; })()
+    + (() => { const se8 = exerciseSelection(s); if (!se8.items.length || !se8.allGood) return "";
+        return `EXERCISE SELECTION (audited against his real gym, confirmed by him directly): every biarticular lift in his programme is already in the lengthened position — standing calf raise with a stretch pause, seated ham curl with hips pinned, reclined leg extension. That is the largest effect in the training literature (standing vs seated calf raise d = 0.88-1.58, against rep tempo at 0.09) and he is on the right side of all of it. Say so if training comes up, and do NOT go hunting for exercise-selection upgrades that are not there. His triceps use a Prime 3-peg rather than an overhead position: he was shown the d = 0.54-0.61 case and chose to keep it. That is settled — the peg changes the resistance profile, not the shoulder angle, so it was never the same variable — and it must not be raised again. `; })()
+    + (() => { const vi8 = volumeImbalance(s); if (!vi8) return "";
+        return `WEEKLY SET ALLOCATION (by head; deltoids counted separately because they are separately trained): ${vi8.pv.map((m) => mgLabel(m.mg) + " " + m.sets + (m.indirectOnly ? " (indirect only)" : "")).join(", ")}. ${vi8.cutting ? "He is in a DEFICIT, so do NOT recommend adding sets to a muscle sitting below the 6-12 band. That band is a GROWTH dose-response measured in people eating enough to build. Roth 2023 (n=38, six weeks, 30 kcal/kg deficit, 2.8 g/kg protein) compared ~20 weekly sets against ~12 and found lean mass preserved identically with no muscle-thickness difference; Bickel 2011 held young adults' thigh lean mass for 32 weeks on one-ninth of the volume that built it. Retention is cheap and is not volume-sensitive. If he asks about a low muscle, say it is adequate for holding and is the first thing to raise when he starts building." : "He is no longer in a deficit, so the growth band applies again and raising the lowest muscle is worth proposing."} `; })()
     + `HIS MEASURED SET-TO-SET REP SPREAD ${typicalError(s, null).reps} reps (n=${typicalError(s, null).n} paired sets at identical load) — use this when judging whether a rep change is real. A +1 rep session is inside it. `
     + "If you disagree with any of these, say WHY and by how much rather than quietly substituting your own — a number that changes between screens is worse than one that is slightly wrong.";
   const dict = LEDGER_DICT + canon + " SLEEP RIGHT NOW (do not re-derive): last night " + ((gate2.last || {}).h ?? "—") + " h; " + gate2.run + " consecutive night(s) at his " + s.sleep.cleanH + " h target; the session is flagged " + (gate2.clean ? "NORMAL" : "SHORT SLEEP") + ". Short sleep no longer blocks a record or caps a progression step — it only exempts the day from counting toward a stall. EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
@@ -5377,6 +5519,8 @@ __test.windowFor = windowFor;
 __test.repsLostOnJump = repsLostOnJump;
 __test.coarseLifts = coarseLifts;
 __test.calorieFloor = calorieFloor;
+__test.mgLabel = mgLabel;
+__test.exerciseSelection = exerciseSelection;
 __test.dietExit = dietExit;
 __test.KCAL_PER_LB_MIX = KCAL_PER_LB_MIX;
 __test.KCAL_PER_LB_FAT = KCAL_PER_LB_FAT;
@@ -6607,9 +6751,70 @@ function LogTab({ s, setS, save, slp }) {
 
       {(() => { const mv2 = muscleVolume(s); if (!mv2.length) return null; const fS = Object.keys(s.sessionLog).sort()[0]; const matureV = !!fS && (mk(isoOf(todayStart())) - mk(fS)) / DAY >= 14; return (
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.steel, padding: "8px 2px", lineHeight: 1.7 }}>
-          {matureV ? "THIS WEEK'S SETS · " : "SETS THIS WEEK — counting only, no verdicts until the ledger has 14 days of your logs · "}{mv2.map((m) => <span key={m.mg} style={{ color: !matureV ? T.dim : m.zone === "IN-BAND" ? T.jade : m.zone === "UNDER" || m.zone === "OVER" ? T.redline : T.brass, marginRight: 8 }}>{m.mg} {m.n7}{!matureV ? "" : m.zone === "IN-BAND" ? " ✓" : m.zone === "UNDER" ? " ▼▼" : m.zone === "LOW" ? " ▼" : m.zone === "OVER" ? " ▲▲" : " ▲"}</span>)}
+          {matureV ? "THIS WEEK'S SETS · holding, not growing — see below · " : "SETS THIS WEEK — counting only, no verdicts until the ledger has 14 days of your logs · "}{(() => { const cut9 = !((s.targets || {}).exitStart); return mv2.map((m) => {
+            /* In a deficit, red on a muscle below the GROWTH band is the app
+               telling him to add work the direct evidence says buys nothing —
+               and it would contradict the card immediately below. Below-band
+               reads as neutral while cutting; the card explains why. */
+            const c9 = !matureV ? T.dim
+              : m.zone === "IN-BAND" ? T.jade
+              : (m.zone === "UNDER" || m.zone === "LOW") ? (cut9 ? T.steel : T.brass)
+              : m.zone === "OVER" ? T.redline : T.brass;
+            const mark = !matureV ? "" : m.zone === "IN-BAND" ? " ✓" : (m.zone === "UNDER" || m.zone === "LOW") ? (cut9 ? " · holding" : " ▼") : m.zone === "OVER" ? " ▲▲" : " ▲";
+            return <span key={m.mg} style={{ color: c9, marginRight: 8 }}>{mgLabel(m.mg)} {m.n7}{mark}</span>;
+          }); })()}
         </div>
       ); })()}
+      {/* ---------- The thing he is getting right, said out loud ----------
+          An app that only ever speaks to correct you teaches you nothing about
+          what to protect. His exercise selection is on the right side of the
+          largest effect in the training literature — larger than everything
+          this session removed put together — and the app had never mentioned
+          it. See EXERCISE_SELECTION. */}
+      {(() => { const sel = exerciseSelection(s); if (!sel.items.length) return null; return (
+        <Card accent={sel.allGood ? T.jade : T.brass} style={{ padding: 12 }}>
+          <Eyebrow c={sel.allGood ? T.jade : T.brass}>{sel.allGood ? "EXERCISE SELECTION — ALREADY RIGHT, AND IT IS THE BIGGEST ONE" : "EXERCISE SELECTION — ONE TO LOOK AT"}</Eyebrow>
+          <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, marginTop: 6, lineHeight: 1.55 }}>
+            For a muscle that crosses two joints, the joint you are NOT training sets its length — and length under load is where the growth difference actually lives. These effects run {"d ="} 0.5 to 1.6. Rep tempo is 0.09. Eccentric speed is −0.06. Periodisation is −0.02. This is the lever; those were rounding.
+          </div>
+          <div style={{ marginTop: 9, display: "flex", flexDirection: "column", gap: 7 }}>
+            {sel.items.map((it) => (
+              <div key={it.id} style={{ borderLeft: `2px solid ${it.good ? T.jade : T.brass}`, paddingLeft: 8 }}>
+                <div style={{ fontFamily: mono, fontSize: 10, color: it.good ? T.jade : T.brass }}>{it.good ? "✓" : "▸"} {it.n.toUpperCase()} · {it.lever} · d {it.d}</div>
+                <div style={{ fontFamily: body, fontSize: 11, color: T.steel, lineHeight: 1.5, marginTop: 2 }}>{it.why}</div>
+              </div>
+            ))}
+          </div>
+          <More c={sel.allGood ? T.jade : T.brass}
+            deep="Standing versus seated calf raise is d = 0.88 to 1.58 — the largest exercise-selection effect measured anywhere in hypertrophy research, and it comes from one thing: the gastrocnemius crosses the knee, so bending the knee slackens it and a seated raise trains mostly soleus instead. Overhead versus pushdown triceps is d = 0.54 to 0.61 for the same structural reason at the shoulder. Seated versus lying ham curl runs the same way at the hip. Set against those, the variables this app used to fuss over are noise: rep tempo SMD 0.09 (and favouring FASTER, not slower), accentuated eccentrics −0.06 on growth while perceived effort rises +1.72, periodisation model d = −0.02, machines versus free weights −0.055 at p = 0.751. Every one of those has been removed from this app. This is what replaced them."
+            forYou={sel.allGood
+              ? ["Every biarticular lift in your programme is already in the lengthened position — the calf raise standing with a pause in the stretch, the ham curl seated with the hips pinned, the leg extension reclined.",
+                 "Nobody set that up by accident and nothing in this app told you to do it. It is the most valuable thing in your training and the app had never once mentioned it.",
+                 "What it means practically: there is no training-side upgrade left worth chasing here. The remaining levers are volume where a muscle is short, and everything on the nutrition side."]
+              : sel.items.filter((x) => !x.good).map((x) => x.n + ": " + x.why)} />
+        </Card>
+      ); })()}
+
+      {/* What the set counts mean while he is cutting — see CUTTING_VOLUME_NOTE.
+          Colouring a muscle red against a GROWTH band, in a deficit, tells a man
+          to add work the one direct trial says buys him nothing. */}
+      {(() => { const vi9 = volumeImbalance(s); if (!vi9) return null; return (
+        <Card style={{ padding: 12 }} accent={vi9.cutting ? undefined : T.brass}>
+          <Eyebrow c={vi9.cutting ? T.steel : T.brass}>{vi9.cutting ? "YOUR SET ALLOCATION — AND WHY IT IS FINE RIGHT NOW" : "YOUR SET ALLOCATION — WORTH ACTING ON NOW"}</Eyebrow>
+          <div style={{ fontFamily: mono, fontSize: 10, color: T.steel, marginTop: 6, lineHeight: 1.7 }}>
+            {vi9.pv.map((m) => <span key={m.mg} style={{ marginRight: 9, color: m.indirectOnly ? T.dim : T.steel }}>{mgLabel(m.mg)} {m.sets}{m.indirectOnly ? "*" : ""}</span>)}
+          </div>
+          <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, marginTop: 8, lineHeight: 1.55 }}>{vi9.why}</div>
+          <More c={vi9.cutting ? T.steel : T.brass}
+            deep="Two different questions wear the same units. How many sets per muscle per week to GROW is Pelland 2025's dose-response — 67 studies, 2,058 participants — and return per set peaks between five and ten weekly sets, measured in people eating enough to build. How many to KEEP what you have in a deficit is a different question with its own direct evidence, and the answer is: fewer than you would guess, and not sensitive to volume. Roth 2023 ran trained men six weeks at a 30 kcal/kg deficit with protein at 2.8 g/kg fat-free mass and compared roughly twenty weekly sets against twelve — lean mass fell 0.51 kg and 0.92 kg, not a significant difference, with no difference in muscle thickness either. Bickel 2011 is starker: after sixteen weeks of building, young adults held their thigh lean mass for thirty-two weeks on ONE-NINTH of the volume that built it, one session a week, and got stronger doing it. Adding sets in a deficit costs recovery you have less of and session time you have to find, in exchange for an effect the direct evidence cannot detect. The allocation still matters — it is the first thing to fix when you start building — which is why it is on this card instead of thrown away."
+            forYou={(() => { const out = []; const th = vi9.taker; if (th) out.push(vi9.cutting
+              ? cap(mgLabel(th.mg)) + " at " + th.sets + " sets a week is the lowest allocation in your programme, and while you are cutting that is adequate — you are asking it to hold, and holding is cheap."
+              : cap(mgLabel(th.mg)) + " at " + th.sets + " sets is the first thing to raise now that you are building.");
+              out.push("Your deltoids read correctly here for the first time — they were being counted as one 17-set muscle instead of three heads at 5 to 8 each, which is why the app used to flag them red.");
+              out.push("* = credited from compound work only, with no direct lift of its own. The lever there is the press, not another isolation movement."); return out; })()} />
+        </Card>
+      ); })()}
+
       {sess.ex.map((ex) => (
         <Card key={ex.id} style={{ padding: 12, opacity: skipped[ex.id] ? 0.45 : 1 }} accent={ex.isDebutNow && !skipped[ex.id] ? T.orange : undefined}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
