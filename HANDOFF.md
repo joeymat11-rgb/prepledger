@@ -580,6 +580,18 @@ automation, push ONLY the default branch - feature branches are not yours.
   only, no app code.
 - Zero uncommitted, zero stashes.
 - `v4.0.0`, `SCHEMA_V = 34`, `MIN_ASSERTIONS = 850`, **856 assertions green**.
+- Full gate re-verified from a **bare clone** on 2026-07-29: suite green, `app.js`
+  matches a fresh build of `src/`, `APP_V 4.0.0` matches the service-worker cache
+  name, health data unreadable from the public site, no token-shaped string
+  anywhere in the tree. *"All checks passed. Safe to ship."*
+- **One real defect was caught by that check and fixed here.** The committed
+  `app.js` had been built one commit *before* the version bump, so the shipped
+  bundle still reported `3.99.26` while `src/` said `4.0.0`. Everything else in
+  the redesign was present - only the version constant was stale - but merging it
+  as-is would have deployed a bundle whose version disagreed with its own
+  service-worker cache name, which is how a PWA fails to update on his phone.
+  Rebuilt and committed. **Run `npm run check` before merging.** A stale `app.js`
+  is invisible in a source diff and only the gate sees it.
 - **Not merged, deliberately.** Joe asked that merging be done by the receiving
   agent rather than by the session that wrote it. Read 0.6 (migration safety)
   before you merge - `patchV34` nearly deleted a completed queue receipt, and the
