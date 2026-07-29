@@ -48,7 +48,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.12";
+const APP_V = "4.0.13";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -6418,15 +6418,15 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
           <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>SODIUM</span>
           {["low", "med", "high"].map((sv) => (
-            <span key={sv} onClick={() => { setSod9(sv); if (dl) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].sodium = sv; setS(ns); save(ns); } }}
+            <span key={sv} onClick={() => { setSod9(sv); if (s.dailyLogs[tISO]) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].sodium = sv; setS(ns); save(ns); } }}
               style={{ fontFamily: mono, fontSize: 9.5, color: sod9 === sv ? T.jade : T.dim, border: `1px solid ${sod9 === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px", cursor: "pointer" }}>{sv}</span>
           ))}
           <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginLeft: 8 }}>ALCOHOL{((s.dayCtx || {})[tISO] || {}).est ? " ~ est" : ""}</span>
           {[2, 4, 6, 8, 10, 12].map((u0) => (
-            <span key={u0} onClick={() => { setAlc9(u0); if (dl) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].alc = u0; setS(ns); save(ns); } }}
+            <span key={u0} onClick={() => { setAlc9(u0); if (s.dailyLogs[tISO]) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].alc = u0; setS(ns); save(ns); } }}
               style={{ fontFamily: mono, fontSize: 9.5, color: +alc9 === u0 ? T.jade : T.dim, border: `1px solid ${+alc9 === u0 ? T.jade : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>{u0}</span>
           ))}
-          <Stepper v={+alc9} set={(v0) => { setAlc9(v0); if (dl) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].alc = v0; setS(ns); save(ns); } }} step={1} min={0} />
+          <Stepper v={+alc9} set={(v0) => { setAlc9(v0); if (s.dailyLogs[tISO]) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].alc = v0; setS(ns); save(ns); } }} step={1} min={0} />
           <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>units</span>
         </div>
         {(() => { const yd9 = s.dailyLogs[isoOf(new Date(todayStart().getTime() - DAY))]; if (!yd9) return null; return <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 6 }}>yest: {yd9.cal ?? "—"} · {yd9.pro ?? "—"} · {yd9.steps != null ? (yd9.steps / 1000).toFixed(1) + "k" : "—"} · {(yd9.alc ?? 0)}u <span onClick={() => { setYCal(yd9.cal != null ? String(yd9.cal) : ""); setYPro(yd9.pro != null ? String(yd9.pro) : ""); setYStp(yd9.steps != null ? String(yd9.steps) : ""); setYSod(yd9.sodium || null); setYAlc(yd9.alc || 0); setAmendY(true); }} style={{ cursor: "pointer", color: T.steel }}>✎ amend</span></div>; })()}
