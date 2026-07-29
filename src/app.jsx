@@ -48,7 +48,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.6";
+const APP_V = "4.0.7";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -8738,7 +8738,7 @@ export default function PrepLedger() {
 
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "env(safe-area-inset-top)", background: T.ink, zIndex: 55 }} />
 
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(14px + env(safe-area-inset-top)) 14px 88px", visibility: (rules || coach || kitPerson) ? "hidden" : "visible" }}>
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(14px + env(safe-area-inset-top)) 14px calc(88px + env(safe-area-inset-bottom))", visibility: (rules || coach || kitPerson) ? "hidden" : "visible" }}>
         {inMore && (
           <div onClick={() => setTab("MORE")} role="button" tabIndex={0} aria-label="Back to More" style={{ fontFamily: mono, fontSize: 11, color: T.steel, cursor: "pointer", padding: "0 0 12px", letterSpacing: "0.06em", display: "inline-block" }}>‹ MORE</div>
         )}
@@ -8753,7 +8753,7 @@ export default function PrepLedger() {
 
       </div>
 
-      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50, background: T.plate, borderTop: `1px solid ${T.line}`, transform: "translateZ(0)", WebkitTransform: "translateZ(0)", willChange: "transform", backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50, background: T.plate, borderTop: `1px solid ${T.line}`, transform: "translate3d(0,0,0)", WebkitTransform: "translate3d(0,0,0)", willChange: "transform", backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", isolation: "isolate", contain: "paint" }}>
         <div onClick={() => { try { const w = document.getElementById("pl-scroll"); const kids = [...(w ? w.children : [])].map((el) => ({ t: el.tagName + (el.id ? "#" + el.id : ""), h: Math.round(el.getBoundingClientRect().height) })).filter((k) => k.h > 40).sort((a, b) => b.h - a.h).slice(0, 6); alert("glass " + window.innerHeight + " | page " + Math.round(document.documentElement.scrollHeight) + " | wrap " + (w ? Math.round(w.getBoundingClientRect().height) : "?") + "\n" + kids.map((k) => k.t + " " + k.h).join("\n")); } catch (e) { alert("probe error"); } }} style={{ position: "absolute", top: 2, right: 8, fontFamily: mono, fontSize: 7, color: T.dim, opacity: 0.7, padding: 4 }}>v{APP_V}</div>
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
