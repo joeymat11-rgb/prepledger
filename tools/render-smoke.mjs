@@ -12,7 +12,15 @@ import { JSDOM } from "jsdom";
 import { buildForTests } from "../scripts/build.mjs";
 
 const BANNED = ["RIR —", "undefined", "NaN", "[object Object]"];
-const TABS = ["NOW", "TRAIN", "QUEUE", "BODY", "SLEEP", "LAB"];
+/* The rail is NOW / TRAIN / MORE, and the four rooms he rarely opens live one
+   predictable tap behind MORE — static demotion, never adaptive, because an
+   interface that rearranges itself measured ~8% SLOWER than one that does not
+   (Findlater & McGrenere, CHI 2004). This smoke must still walk every room in
+   every state: demoting a screen must never mean it stops being exercised.
+   PRIMARY are reachable from the bar; BEHIND_MORE need MORE clicked first. */
+const PRIMARY = ["NOW", "TRAIN"];
+const BEHIND_MORE = ["QUEUE", "BODY", "SLEEP", "LAB"];
+const TABS = [...PRIMARY, ...BEHIND_MORE];
 const MIN = { NOW: 300, TRAIN: 150, QUEUE: 200, BODY: 250, SLEEP: 250, LAB: 200 };
 
 const bundle = fs.readFileSync(await buildForTests(), "utf8");
@@ -44,14 +52,32 @@ async function mount(mutateState) {
   return window;
 }
 
+async function findClickable(window, label, pred) {
+  let el = null;
+  for (let tries = 0; tries < 40 && !el; tries++) {
+    const cands = [...window.document.querySelectorAll("button, [role=button], div")];
+    el = cands.find((b) => (pred ? pred(b) : b.textContent.trim().startsWith(label)));
+    if (!el) await new Promise((r) => setTimeout(r, 50));
+  }
+  return el;
+}
+
 async function tabText(window, label) {
+  /* Rooms behind MORE need two taps, exactly as he would make them. If MORE
+     itself is missing, that is a real failure and must not be swallowed. */
+  if (BEHIND_MORE.includes(label)) {
+    const more = await findClickable(window, "MORE", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("MORE"));
+    if (!more) throw new Error("MORE tab button missing — the demoted rooms are unreachable");
+    more.click();
+    await new Promise((r) => setTimeout(r, 60));
+  }
   let btn = null;
   for (let tries = 0; tries < 40 && !btn; tries++) {
-    btn = [...window.document.querySelectorAll("button")]
-      .find((b) => b.textContent.trim().startsWith(label));
+    btn = [...window.document.querySelectorAll("button, div")]
+      .find((b) => b.textContent.trim().startsWith(label) && b.textContent.trim().length < 400);
     if (!btn) await new Promise((r) => setTimeout(r, 50));
   }
-  if (!btn) throw new Error("tab button missing after wait: " + label);
+  if (!btn) throw new Error("tab entry missing after wait: " + label);
   btn.click();
   return new Promise((r) =>
     setTimeout(() => r(window.document.getElementById("root").textContent || ""), 60));
