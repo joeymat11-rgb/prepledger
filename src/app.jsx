@@ -128,7 +128,7 @@ const SEED = {
     { id: "q_primeRD", kind: "info", t: "PRIME REAR-DELT SWITCH", state: "PARKED", gate: "Cable + conscious retraction is working", rule: "Fires only if rounding returns at fatigue — coach territory", done: false },
     { id: "q_peg", kind: "info", t: "TRICEP BOTTOM-PEG (STRETCH)", state: "PARKED", gate: "Middle peg through the cut", rule: "Unparks at build phase", done: false },
     { id: "q_ease2", kind: "phase", t: "EASE 2", state: "ARMS @ ~13%", gate: "~2,350–2,400 cal · step taper", rule: "Arms itself from the live BF estimate", done: false },
-    { id: "q_pivot", kind: "phase", t: "PIVOT → REVERSE", state: "COACH'S EYE", gate: "~10.5–11% · weeks 13–16", rule: "Fast reverse (~1–2 wk to ~2,450) → lean surplus 2,700–2,950 · MRV build", done: false },
+    { id: "q_pivot", kind: "exit", t: "THE DIET EXIT", state: "COACH'S EYE", gate: "When you and your coach call it — no date", rule: "One step to your MEASURED maintenance, hold, then decide", done: false },
     { id: "q_dexa", kind: "info", t: "DEXA BASELINE", state: "UNBOOKED", gate: "Jericho NY · fasted · normal day · 2+ days clear of refeed", rule: "Result re-anchors the whole BF model in the Body tab", done: false },
   ],
   feed: [
@@ -1520,6 +1520,70 @@ function calorieFloor(s) {
   return {
     floor, soft, ffmKg: +ffmKg.toFixed(1), eee: Math.round(eee),
     why: `${floor} is ${EA_SPARING} kcal per kg of your ${(+ffmKg.toFixed(1))} kg lean mass plus the ~${Math.round(eee)} a day your training costs — the IOC's own energy-availability formula, run backwards. No position stand anywhere states an absolute calorie floor for an athlete; all four I checked express it per kg of lean mass, which is why this one moves with you instead of sitting at a round number. Treat the 25 as a convention rather than a measurement: it comes from three single-subject case reports, and the IOC declines to set a threshold at all.`,
+  };
+}
+
+/* ---------- DIET_EXIT — straight to maintenance, hold, then decide ----------
+   The app's exit plan was a queue item reading "Fast reverse (~1-2 wk to
+   ~2,450) → lean surplus 2,700-2,950 · MRV build". Three problems, in order of
+   size.
+
+   First, it is not what the athlete wants. Asked directly, he said: straight to
+   maintenance, hold, then decide. The queue item committed him to a surplus and
+   a build phase before the hold had produced a single number to decide on.
+
+   Second, the numbers were authored. 2,450 was never his maintenance — his
+   measured maintenance is what observedTDEE computes from his own intake and
+   his own rate, and it is nowhere near 2,450. Walking into a "maintenance" that
+   is several hundred kcal under actual maintenance is not maintenance; it is a
+   smaller cut with a reassuring label, which is the single most common way a
+   diet exit fails.
+
+   Third, "fast reverse over 1-2 weeks" implies a ramp, and the ramp has no
+   evidence behind it. Reverse dieting as a protocol has no controlled trial —
+   the literature is case series and practitioner convention. What DOES have
+   replicated support is time spent AT maintenance: MATADOR (Byrne 2018) and the
+   diet-break literature show adherence and metabolic benefits from maintenance
+   blocks, and none of it requires approaching maintenance slowly. A ramp mostly
+   buys anxiety management, and it costs weeks at a deficit he has already
+   decided to stop running.
+
+   So: one step to his own measured number, hold long enough to get a clean read
+   of it, then decide with data instead of on a schedule. The hold length is a
+   judgement call and is labelled as one — two weeks is where glycogen and water
+   finish rebounding, which is the minimum before the scale means anything again,
+   and four is where a re-measured maintenance has enough days behind it to be
+   worth trusting. No date, no countdown, no automatic surplus. */
+const EXIT_HOLD_MIN_WK = 2, EXIT_HOLD_FULL_WK = 4;
+function dietExit(s) {
+  const td = observedTDEE(s);
+  const ct = calorieTarget(s);
+  const bf = bfEst(s);
+  const started = (s.targets || {}).exitStart || null;
+  if (!td) {
+    return { gated: true, started, why: "Your maintenance is not measured yet, and the whole point of this plan is that the number you step up to is YOURS. Two clean weekly snapshots and it prints." };
+  }
+  const wksHeld = started ? +(((todayStart() - mk(started)) / DAY) / 7).toFixed(1) : 0;
+  const step = ct.gated ? null : td.tdee - ct.mid;
+  return {
+    gated: false, started, wksHeld,
+    maintenance: td.tdee, lo: td.lo, hi: td.hi, days: td.days,
+    from: ct.gated ? null : ct.mid, step,
+    holdMin: EXIT_HOLD_MIN_WK, holdFull: EXIT_HOLD_FULL_WK,
+    readReady: started ? wksHeld >= EXIT_HOLD_MIN_WK : false,
+    decideReady: started ? wksHeld >= EXIT_HOLD_FULL_WK : false,
+    bf: bf.pct, bfLo: bf.lo, bfHi: bf.hi,
+    /* The plan, in his words, with his numbers in it. */
+    plan: [
+      step == null
+        ? `Step one: eat at ${td.tdee} — your measured maintenance, from ${td.days} logged days of your own intake against your own measured rate.`
+        : `Step one: ${ct.mid} → ${td.tdee}. That is ${step > 0 ? "+" : ""}${step} kcal a day, in ONE step, not a ramp. ${td.tdee} is your measured maintenance from ${td.days} logged days — not a number anyone picked.`,
+      `Step two: hold it. ${EXIT_HOLD_MIN_WK} weeks before the scale means anything again — the first few pounds back are glycogen and the water bound to it, and reading those as fat is how people talk themselves back into a deficit they do not need. ${EXIT_HOLD_FULL_WK} weeks before your re-measured maintenance has enough days behind it to trust.`,
+      `Step three: decide, with the numbers the hold produced. Not before, and not on a date. A surplus is one option; staying here is another, and there is no rule that says the next phase has to be a build.`,
+    ],
+    why: `Reverse dieting — creeping up a hundred calories a week — has no controlled trial behind it; it is practitioner convention. What is replicated is the value of time spent AT maintenance (MATADOR, Byrne 2018, and the diet-break literature), and none of that requires arriving there slowly. The old plan in this app aimed at ~2,450, which was authored and sits ${td.tdee - 2450 > 0 ? `${td.tdee - 2450} kcal under` : `${2450 - td.tdee} kcal over`} your actual measured maintenance — walking into a "maintenance" that is not your maintenance is just a smaller cut wearing a better name.`,
+    /* Honest about what nobody knows. */
+    unknown: `What no study can tell you: where to stop cutting. Your body fat reads ${bf.pct}% and the honest interval is ${bf.lo}–${bf.hi}%, which is too wide to hang a decision on. That call is yours and your coach's, from the mirror and the lifts — the app's job is to make sure the number you step UP to is real, not to tell you when to step.`,
   };
 }
 
@@ -3784,8 +3848,20 @@ function runAdaptive(state, todayISO) {
   const bf = bfEst(s);
   if (!sealed && s.phase === "EASE 1" && bf.pct <= 13.2 && s.trend < 163)
     propose("ease2", "EASE 2 — CONDITIONS MET", `Est. BF ${bf.pct}% has crossed the ~13% line. Applying moves you to ${PHASES["EASE 2"].band.join("–")} cal with the step taper — scale will slow by design while fat loss holds.`, { kind: "phase", to: "EASE 2" });
-  if (!sealed && bf.pct <= 11.2 && !s.queue.find((q) => q.id === "q_pivot").done)
-    propose("pivot", "PIVOT WINDOW — COACH'S EYE", `Est. BF ${bf.pct}% is in the 10.5–11 band. This one is not a tap — book the look with your coach. The app proposes; humans authorize.`, { kind: "note" });
+  /* The exit prompt fires on the INTERVAL, not the point estimate. His anchor
+     carries +/-3.5 points, so "BF crossed 11.2" is a claim the instrument
+     cannot make — and prompting a man to end his cut on a number that could be
+     three points out either way is exactly the false precision the charter
+     forbids. It now fires when the estimate is low enough that the question is
+     worth ASKING, and says out loud that the number cannot answer it. */
+  const pivQ = s.queue.find((q) => q.id === "q_pivot");
+  if (!sealed && bf.lo <= 11.2 && pivQ && !pivQ.done) {
+    const dx = dietExit(s);
+    propose("pivot", "WORTH ASKING: IS THE CUT DONE?",
+      `Your body fat reads ${bf.pct}% and the honest range is ${bf.lo}–${bf.hi}% — the bottom of that range is into the zone where this question belongs on the table. The number cannot decide it; the range is ${(bf.hi - bf.lo).toFixed(1)} points wide, which is wider than the decision. Book the look with your coach.` +
+      (dx.gated ? "" : ` If the answer is yes: one step from ${dx.from ?? "your current band"} to ${dx.maintenance} — your own measured maintenance, from ${dx.days} logged days — then hold ${dx.holdMin}–${dx.holdFull} weeks before deciding anything else. No ramp, no surplus on a schedule.`),
+      { kind: "note" });
+  }
 
   /* ---------- PROGRAM_NOTE — the app has to make its own suggestions ----------
      The point of this ledger is to optimise the programme. A recommendation
@@ -4556,6 +4632,8 @@ function askContext(s, docs) {
     + (() => { const an = sleepAnchor(s); if (!an.measured) return `SLEEP CLOCK: not enough nights with bed and wake times yet — ${an.why} `;
         const shift = an.shiftMin > 0 ? `To clear his ${an.target} h target at the wake time he already keeps, lights out ${an.needBed} — ${an.shiftMin} minutes earlier.` : "He already clears his target.";
         return `HIS SLEEP CLOCK (measured, do NOT re-derive): bed ${an.bed} +/-${an.bedSDmin} min, up ${an.wake} +/-${an.wakeSDmin} min, ${an.curH} h asleep across ${an.n} nights. ${shift} His BEDTIME is the steadier end of the night and his WAKE is the variable one, so name bedtime as the lever — never 'fix your wake time', which asks him to control the end he controls least. Sleep is a BODY-COMPOSITION lever here, not a session one: at a matched deficit short sleep shifts roughly 60% more of the loss onto lean mass (Nedeltcheva 2010), while the session cost sits inside the noise. `; })()
+    + (() => { const dx = dietExit(s); if (dx.gated) return "";
+        return `THE DIET EXIT (his stated plan, not a default): straight to maintenance, hold, then decide. One step from ${dx.from} to ${dx.maintenance} — his MEASURED maintenance — then hold ${dx.holdMin}-${dx.holdFull} weeks before choosing anything else. Do NOT propose a reverse-diet ramp: it has no controlled trial behind it, only practitioner convention, and what is replicated is time spent AT maintenance (MATADOR, Byrne 2018), which does not require arriving slowly. Do NOT assume a surplus or a build follows — he has not decided that, and the hold exists so the decision has data behind it. If he asks when to stop cutting, say plainly that no study answers it and his body-fat interval (${dx.bfLo}-${dx.bfHi}%) is wider than the decision. `; })()
     + `HIS MEASURED SET-TO-SET REP SPREAD ${typicalError(s, null).reps} reps (n=${typicalError(s, null).n} paired sets at identical load) — use this when judging whether a rep change is real. A +1 rep session is inside it. `
     + "If you disagree with any of these, say WHY and by how much rather than quietly substituting your own — a number that changes between screens is worse than one that is slightly wrong.";
   const dict = LEDGER_DICT + canon + " SLEEP RIGHT NOW (do not re-derive): last night " + ((gate2.last || {}).h ?? "—") + " h; " + gate2.run + " consecutive night(s) at his " + s.sleep.cleanH + " h target; the session is flagged " + (gate2.clean ? "NORMAL" : "SHORT SLEEP") + ". Short sleep no longer blocks a record or caps a progression step — it only exempts the day from counting toward a stall. EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
@@ -5211,6 +5289,7 @@ __test.windowFor = windowFor;
 __test.repsLostOnJump = repsLostOnJump;
 __test.coarseLifts = coarseLifts;
 __test.calorieFloor = calorieFloor;
+__test.dietExit = dietExit;
 __test.KCAL_PER_LB_MIX = KCAL_PER_LB_MIX;
 __test.KCAL_PER_LB_FAT = KCAL_PER_LB_FAT;
 __test.DEBT_LAST_H = DEBT_LAST_H;
@@ -6743,11 +6822,13 @@ function QueueTab({ s, slp }) {
               reclaim: "The standard slipped, so the exact rep line has to be re-earned before the increment unlocks. Records here can fall and be won back — that's what makes the ledger honest.",
               ladder: "A rep ladder on the money set: top out the rung and the next gate opens. Load moves on this lift stay coach-flag.",
               phase: "Fires from the live body-fat estimate, not the calendar. Applying it swaps every daily target at once — one tap, whole new phase.",
+              exit: "The plan for ending the cut, in the athlete's own words: straight to maintenance, hold, then decide. One step to his MEASURED maintenance — not a ramp, because reverse dieting as a protocol has no controlled trial behind it, only practitioner convention — then a hold long enough that the numbers mean something before anything else is chosen. What IS replicated is the value of time spent at maintenance (MATADOR, Byrne 2018, and the diet-break literature), and none of it requires arriving slowly. The old version of this card aimed at an authored 2,450 and committed him to a surplus and a build phase before the hold had produced a single number to decide on; stepping up to a 'maintenance' that is not actually maintenance is the most common way a diet exit fails, because it is just a smaller cut with a better name.",
               info: "Parked with a named trigger, so the condition decides instead of memory. Parked isn't forgotten; it's staged.",
             })[u.kind] || "A gate with a named condition — it resolves itself the moment the condition is met, and the queue refills as you log."}
             forYou={(() => {
               const ex = u.exId ? exById(s, u.exId) : null;
               const nd = ex ? nextOfType(ex.day) : null;
+              if (u.kind === "exit") { const dx = dietExit(s); return dx.gated ? [dx.why] : dx.plan.concat([dx.unknown]); }
               if (u.kind === "own" && ex && nd) return [
                 `Your next try is ${fmtShort(nd)} at ${ex.w}.`,
                 /* This used to say the day "couldn't count" because of sleep, and that "sleep
