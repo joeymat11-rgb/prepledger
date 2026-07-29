@@ -2530,7 +2530,12 @@ ok(pt27F(leanEdge).g === pt27.g, "a state that differs only in noise does not sw
 /* protein is a FLOOR: over it is not a miss */
 ok(ph27(160, 160) && ph27(160, 200) && ph27(160, 300), "at or above the floor is a hit, however far above — there is no upper threshold in the literature");
 ok(!ph27(160, 120), "well under the floor is a miss");
-ok(ph27(160, 152), "a 10 g tolerance survives, because nobody weighs food to the gram");
+/* The +/-10 tolerance is GONE. It made sense either side of a bullseye; on a
+   floor it just moves the floor and creates a third number — the app was saying
+   "under 158 is not defended" and "anywhere 160-190 counts" while actually
+   passing 150. One number is worth more than a forgiving one. */
+ok(!ph27(160, 152), "no tolerance is subtracted from a floor — 152 against a 160 floor is short, and says so");
+ok(ph27(160, 160), "the floor itself passes");
 ok(!ph27(160, null) && !ph27(160, undefined), "an unlogged day is not silently counted as a hit");
 /* the regression this guards: his real intake must not be reclassified */
 const realPro = [170, 170, 180, 186, 173, 180, 160, 175, 175, 185];
@@ -2714,12 +2719,30 @@ const backFromWake = ((hmMin(an37V7.wake) + 1440) - an37V7.target * 60 - an37V7.
 ok(Math.abs(hmMin(l37V7.t) - backFromWake) <= 1, "and they agree arithmetically — " + l37V7.t + " is " + an37V7.target + " h plus drift back from " + an37V7.wake);
 ok(l37V7.t !== "22:35", "specifically NOT the 22:35 the authored anchor produced for a man who goes to bed at 1:45am");
 
-/* ---- the hold clock has to be startable ---- */
+/* ---- the hold clock has to be startable, and something must start it ---- */
 const heldSV7 = mkReads(28, 0.2, 170);
 heldSV7.feed = [{ d: isoL(Date.now() - 21 * 864e5), t: "DIET EXIT — MAINTENANCE HELD", how: "x" }].concat(heldSV7.feed || []);
 const dxH = de37(heldSV7);
 ok(dxH.started != null && dxH.wksHeld >= 2.9, "the exit hold clock can actually start and count: " + dxH.wksHeld + " weeks");
 ok(dxH.readReady === true, "so the two-week milestone is reachable rather than permanently false");
+/* and the thing that starts it must exist — a plan whose milestones can never
+   arrive is a plan the app is only pretending to run */
+const exProp = mkReads(28, 0.2, 170);
+exProp.proposals = [{ rid: "pivot", id: "px1", d: isoL(Date.now()), title: "WORTH ASKING: IS THE CUT DONE?", why: "test", apply: { kind: "exit" }, resolved: false }];
+const exApplied = __test.applyProposal(exProp, "px1");
+ok((exApplied.targets || {}).exitStart != null, "applying the exit proposal writes the start date — nothing wrote it before, so both milestones were unreachable");
+ok(exApplied.feed.some((f) => f.t === "DIET EXIT — MAINTENANCE HELD"), "and files what actually changed, with the number to eat at");
+ok(de37(exApplied).started != null && de37(exApplied).wksHeld === 0, "the clock reads zero weeks on day one rather than null");
+ok(__test.proposalDial({ apply: { kind: "exit" } }) === null, "the exit proposal carries no dial — there is no number to nudge, it is a decision");
+
+/* ---- the Morning Minute must never write an authored time into the record.
+   minuteNeeds pushes the night step whenever yesterday is unlogged, so it is
+   the PRIMARY night-entry surface — its defaults land in s.sleep.nights, which
+   is the exact array sleepAnchor reads. Authored defaults there would poison
+   the measured clock every other surface now depends on. ---- */
+const anMV = sa37(twoSV7);
+ok(anMV.measured && anMV.bed === "01:40", "the anchor the night-entry defaults must use: " + anMV.bed + " / " + anMV.wake);
+ok(anMV.bed !== "22:45" && anMV.wake !== "06:45", "which is emphatically not the 22:45 / 06:45 the Morning Minute used to seed into his sleep record");
 
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

@@ -1201,7 +1201,12 @@ function proteinTarget(s) {
    ate 175–186 g — the app inventing a compliance problem out of arithmetic.
    So the test is: at or above the floor, with a small tolerance for the fact
    that nobody weighs food to the gram. */
-const PROTEIN_TOL_G = 10;
+/* The tolerance is ZERO on a floor. It was carried over from the symmetric
+   band, where +/-10 was a food-scale allowance either side of a bullseye — but
+   subtracting it from a floor just moves the floor and creates a third number.
+   The app was saying "under 158 is not defended" and "anywhere 160-190 counts"
+   while actually passing anything at or above 150. One number now. */
+const PROTEIN_TOL_G = 0;
 function proteinHit(target, g) { return g != null && g >= target - PROTEIN_TOL_G; }
 
 /* ---------- STEP_NOTE — why the step target is now his own number ----------
@@ -2392,7 +2397,7 @@ function weekReview(s) {
   if (proN + sess.length + nights.length === 0) verdict = "A quiet week on the log — the return is the whole skill, and the door is open.";
   else if (sealedNow) verdict = "Sealed week: adherence carried it while the scale sat quarantined — Monday's read inherits a clean house.";
   else if (cur.measured && cur.fat >= s.rate.band[0] && cur.fat <= s.rate.band[1] && wins.length) verdict = "Textbook week: strength moved while the trend held the corridor.";
-  else if (proN && proHit / proN >= 0.7 && sess.length >= 3) verdict = "The boring, winning kind of week — the kind the crossover is made of.";
+  else if (proN && proHit / proN >= 0.7 && sess.length >= 3) verdict = "The boring, winning kind of week — the kind that compounds.";
   else verdict = "Mixed week, honestly logged — the ledger's favorite kind to coach from.";
   return { wk: weekDay().wk, window: `${fmtShort(winStart)} – ${fmtShort(endISO)}`, lines, verdict };
 }
@@ -2803,7 +2808,7 @@ function labAnalytics2(s) {
     return { id: "strvelocity", t: "STRENGTH VELOCITY", status: best.length ? "LIVE" : "ARMED", prog: { n: nMax, need: 4, label: "logged sessions per lift (loads now ride every set automatically)" },
       tag: "Getting stronger while shrinking — the recomp thesis, as a slope.",
       deep: "Volume-load (weight × total reps) per lift, plotted across your sessions, expressed as %/week. Positive slopes in a deficit are the strongest recomp evidence that exists outside a DEXA. Loads attach to every set automatically as of today — the instrument builds itself while you train.",
-      forYou: best.length ? `Fastest climber: ${(exById(s, best[0].id) || {}).n} at +${best[0].pctWk}%/wk while cutting${best[1] ? ` · then ${(exById(s, best[1].id) || {}).n} +${best[1].pctWk}%/wk` : ""}. Say this sentence out loud at the Aug 28 crossover.` : "Every session you log from today feeds the slopes. First verdicts at 4 sessions per lift (~2 weeks).",
+      forYou: best.length ? `Fastest climber: ${(exById(s, best[0].id) || {}).n} at +${best[0].pctWk}%/wk while cutting${best[1] ? ` · then ${(exById(s, best[1].id) || {}).n} +${best[1].pctWk}%/wk` : ""}. Say this sentence out loud the next time a week feels pointless.` : "Every session you log from today feeds the slopes. First verdicts at 4 sessions per lift (~2 weeks).",
       lines: [] };
   });
 
@@ -2988,7 +2993,7 @@ function labAnalytics2(s) {
   /* 15 · the what-if console */
   add(() => ({ id: "whatif", t: "THE WHAT-IF CONSOLE", status: "MODEL", prog: null,
     tag: "Touch the levers — steps, calories, refeed, sleep — watch the dates move.",
-    deep: "A live counterfactual engine: sliders re-run the model with hypothetical settings and show what moves — the Aug 28 projection, the pivot ETA, the weekly rate, and whether CLEAN stays reachable. Coefficients are your measured ones where they exist (rate, noise, per-step cost prior of 0.35 kcal/step) and disclosed priors where they don't — and as STEP EFFICACY and REFEED ROI go live, their measured verdicts replace the priors automatically. It answers 'what if I just…' with arithmetic instead of vibes. Changes here change NOTHING real — it is a sandbox, badged MODEL, and actual target changes stay coach-flag.",
+    deep: "A live counterfactual engine: sliders re-run the model with hypothetical settings and show what moves — the weekly rate, and when the current pace would reach roughly 11%. There is no date tile any more, because there is no date. Coefficients are your measured ones: your own rate, your own per-step cost, and the same kcal-per-pound the rest of the engine uses. Sleep is on the panel but deliberately does NOT move the pound-per-week figure — it changes what those pounds are made of, which this model cannot draw. It answers 'what if I just…' with arithmetic instead of vibes. Changes here change NOTHING real — it is a sandbox, badged MODEL, and actual target changes stay coach-flag.",
     forYou: "Open the card — the sliders are inside. Try sleep at 6.5 first and watch what it says about your own-attempts; that one isn't hypothetical this week.",
     lines: [] }));
 
@@ -3025,7 +3030,7 @@ function labAnalytics2(s) {
   /* 19 · THE NEGOTIATOR */
   add(() => ({ id: "negotiator", t: "THE NEGOTIATOR", status: "MODEL", prog: null,
     tag: "Name the goal — it solves backward for the cheapest path, priced by YOUR habits.",
-    deep: "The what-if console runs forward from levers; this runs backward from a goal. You set the target and date; it computes the required weekly pace, checks it against the muscle-safe zone, and proposes the cheapest lever set — where 'cheapest' is priced by your own record: it prefers steps (your most consistent lever) before calorie cuts, respects a 1,700-calorie floor, and warns where your history says risk lives. It proposes; you and your coach decide.",
+    deep: "The what-if console runs forward from levers; this runs backward from a goal. You set a target body fat and how long you are willing to give it — an offset from today, never a deadline, because you have not set one and building urgency around a date nobody picked is how a cut turns into a rushed one. It computes the pace that would require, checks it against your own rate band, and proposes the cheapest lever set — 'cheapest' priced by your record: steps before calorie cuts, because steps cost you nothing you are trying to keep. It respects your DERIVED calorie floor, not an authored number. It proposes; you and your coach decide.",
     forYou: "Open the card — the goal controls are inside. Try the current plan's own goal first and see how much slack you actually have.",
     lines: [] }));
 
@@ -3080,7 +3085,7 @@ function labAnalytics2(s) {
     const wins2 = s.feed.filter((f) => /OWNED|DEBUT|EARNED|RECLAIM|ZERO-COMP/.test(f.t)).length;
     return { id: "seasonone", t: "SEASON ONE — THE BOOK OF THE CUT", status: "ARMED", prog: { n: wkNow, need: 12, label: "weeks of story (compiles in full at the diet-exit)" },
       tag: "When the cut ends, the app writes the book — chapters, turning points, receipts.",
-      deep: "Every feed entry, weekly review, letter, and debrief is a page already written. At the diet-exit the app compiles them into chapters — The Sheet Era, The Handoff, The Wedding Fortnight, The Crossover — with the numbers as plot. A document you keep; proof the whole thing happened the way you remember it.",
+      deep: "Every feed entry, weekly review, letter, and debrief is a page already written. At the diet-exit the app compiles them into chapters — The Sheet Era, The Handoff, The Wedding Fortnight — with the numbers as plot. A document you keep; proof the whole thing happened the way you remember it.",
       forYou: `${wkNow} weeks of story so far · ${s.feed.length} entries · ${wins2} wins · ${letters} weekly reviews on file. The manuscript is accumulating on its own — nothing to do but live the chapters.`,
       lines: [] };
   });
@@ -3508,11 +3513,11 @@ function dayProtocol(s, slp) {
 
   /* 5 · repair last night, tonight */
   if (lastNight) {
-    if (lastNight.h < (s.sleep.cleanH || 7.5)) steps.push({ a: `Lights out ~${(() => { let m = lo.mins - 20; if (m < 0) m += 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; })()} — 20 early`, why: `last night ran ${lastNight.h} h — one modestly early night repays most of it; wake stays ~${(s.sleep.anchor || {}).wake || "06:45"} (aim near it — the morning log takes whatever really happened). If you must nap: ≤25 min, before 3 pm`, w: 55 + Math.min(25, Math.round(((s.sleep.cleanH || 7.5) - lastNight.h) * 12)) });
+    if (lastNight.h < (s.sleep.cleanH || 7.5)) steps.push({ a: `Lights out ~${fmt12((() => { let m = lo.mins - 20; if (m < 0) m += 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; })())} — 20 early`, why: `last night ran ${lastNight.h} h — one modestly early night repays most of it; up at your usual ~${fmt12(lo.wakeRef || "07:30")} (aim near it — the morning log takes whatever really happened). If you must nap: ≤25 min, before 3 pm`, w: 55 + Math.min(25, Math.round(((s.sleep.cleanH || 7.5) - lastNight.h) * 12)) });
     else if (lastNight.sol != null && lastNight.sol >= 30) steps.push({ a: `Wind-down 30 min before ${fmt12(lo.t)}`, why: `drift-off ran ${lastNight.sol} min last night — screens off, lights low; the drift is usually paying for the evening's light`, w: 50 });
     else if ((lastNight.awakeMin || 0) >= 30) steps.push({ a: "Tonight: cooler room, no fluids after ~8:30", why: `you were awake ${lastNight.awakeMin} min mid-night — the two cheapest fixes first`, w: 48 });
     else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — up ~${fmt12(lo.wakeRef || "07:30")} · ${lo.target} h asleep + ~${lo.sol} min drift-off${(() => { const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length; return melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off` : ""; })()}`, w: 30 });
-  } else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — wake ~${fmt12((s.sleep.anchor || {}).wake || "06:45")} · ${lo.target} h asleep + ~${lo.sol} min drift-off`, w: 30 });
+  } else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — up ~${fmt12(lo.wakeRef || "07:30")} · ${lo.target} h asleep + ~${lo.sol} min drift-off`, w: 30 });
   { const tc3 = todayCaff(s); if (tc3 && tc3.mg > 0) { const at3 = caffAt(tc3.mg, tc3.atH, lo.mins / 60); if (at3 > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at3} mg still aboard at lights-out${tc3.logged ? "" : " (typical dose — log today's real one on NOW)"} — above ~50 mg deep sleep measurably thins`, w: 28 }); } }
 
   /* 6 · floor */
@@ -3897,7 +3902,7 @@ function runAdaptive(state, todayISO) {
     propose("pivot", "WORTH ASKING: IS THE CUT DONE?",
       `Your body fat reads ${bf.pct}% and the honest range is ${bf.lo}–${bf.hi}% — the bottom of that range is into the zone where this question belongs on the table. The number cannot decide it; the range is ${(bf.hi - bf.lo).toFixed(1)} points wide, which is wider than the decision. Book the look with your coach.` +
       (dx.gated ? "" : ` If the answer is yes: one step from ${dx.from ?? "your current band"} to ${dx.maintenance} — your own measured maintenance, from ${dx.days} logged days — then hold ${dx.holdMin}–${dx.holdFull} weeks before deciding anything else. No ramp, no surplus on a schedule.`),
-      { kind: "note" });
+      { kind: "exit" });
   }
 
   /* ---------- PROGRAM_NOTE — the app has to make its own suggestions ----------
@@ -4081,6 +4086,20 @@ function applyProposal(state, pid, nudge = 0) {
     s.targets = s.targets || {};
     s.targets.refeedOff = isoOf(todayStart());
     s.feed.unshift({ d: isoOf(todayStart()), t: "WEEKLY REFEED RETIRED", how: `Wednesdays stop being refeed days from today. Past ones stay on the record as refeeds, because they were. Your band is the same every day now — which is also about ${Math.round((2395 - 1893) / 7)} kcal/day less than you were averaging, since a 2,400 Wednesday against a 1,900 week was quietly raising the average nobody was showing you.` });
+  } else if (p.apply.kind === "exit") {
+    /* ---------- The hold clock starts here ----------
+       dietExit promises two milestones — two weeks before the scale means
+       anything, four before the re-measured maintenance is trustworthy — and
+       nothing wrote the date they count from, so both were permanently
+       unreachable. A plan with milestones that cannot arrive is a plan the app
+       is only pretending to run. This is a dated decision like any other. */
+    s.targets = s.targets || {};
+    s.targets.exitStart = isoOf(todayStart());
+    const dxA = dietExit(s);
+    s.feed.unshift({ d: isoOf(todayStart()), t: "DIET EXIT — MAINTENANCE HELD",
+      how: dxA.gated
+        ? "The cut is over. Maintenance is not measured yet, so the number to eat at is the one you and your coach set — the hold still starts today."
+        : `The cut is over. From today you eat at ${dxA.maintenance} — your own measured maintenance from ${dxA.days} logged days, in one step, not a ramp. Hold it ${dxA.holdMin} weeks before the scale means anything (the first pounds back are glycogen and water), and ${dxA.holdFull} before the re-measured number is worth trusting. Nothing about a surplus is decided; that is what the hold is for.` });
   } else if (p.apply.kind === "phase" && p.apply.to) {
     s.phase = p.apply.to;
     const q = s.queue.find((x) => x.id === "q_ease2"); if (q) { q.done = true; q.state = "FIRED"; }
@@ -4935,9 +4954,12 @@ function MinuteView({ s, setS, save, onClose }) {
   const qOpen = qm9 && !briefAnswered(s, qm9[1]);
   const [steps] = useState(() => [...minuteNeeds(s), "brief"]);
   const [idx9, setIdx9] = useState(0);
-  const [bed9, setBed9] = useState("22:45");
-  const [wake9, setWake9] = useState((s.sleep.anchor || {}).wake || "06:45");
-  const [sol9, setSol9] = useState(15);
+  /* His own clock, same source as the NOW logger — never an authored time,
+     because whatever sits here gets WRITTEN to the sleep record on tap. */
+  const anM = sleepAnchor(s);
+  const [bed9, setBed9] = useState(anM.bed || (s.sleep.anchor || {}).bed || "23:30");
+  const [wake9, setWake9] = useState(anM.wake || (s.sleep.anchor || {}).wake || "07:30");
+  const [sol9, setSol9] = useState(anM.measured && anM.sol != null ? anM.sol : 15);
   const [tags9, setTags9] = useState([]);
   const [bpm9, setBpm9] = useState(() => { const pr = (s.pulse || []); return pr.length ? pr[pr.length - 1].bpm : 55; });
   const [tf9, setTf9] = useState(() => { const tr = (s.temp || []); return tr.length ? tr[tr.length - 1].f : 97.6; });
@@ -5717,8 +5739,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
      and the step box to a flat 16500 — two authored numbers sitting next to a
      measured one, which made the card look like it knew three things when it
      knew one. Both now read the same engine the labels read. */
-  const stpT0 = stepTarget(s);
-  const [cal, setCal] = useState(dl.cal ?? calorieTarget(s).mid);
+  const stpT0 = stepTarget(s), ctT0 = calorieTarget(s);
+  /* A gated calorieTarget has no mid, and an undefined useState flips the
+     input uncontrolled->controlled on the first keystroke and writes NaN. */
+  const [cal, setCal] = useState(dl.cal ?? (ctT0.gated ? "" : ctT0.mid));
   const [pro, setPro] = useState(dl.pro ?? proteinTarget(s).g);
   const [stp, setStp] = useState(dl.steps ?? (stpT0.gated ? "" : Math.round((stpT0.lo + stpT0.hi) / 2)));
   const cleanIn = daysUntil(SEAL_UNTIL);
@@ -5734,7 +5758,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
   const [sod9, setSod9] = useState(() => (s.dailyLogs[tISO] || {}).sodium || null);
   const [alc9, setAlc9] = useState(() => (s.dailyLogs[tISO] || {}).alc ?? 0);
-  useEffect(() => { const d0 = s.dailyLogs[tISO] || {}; const st1 = stepTarget(s); setCal(d0.cal ?? calorieTarget(s).mid); setPro(d0.pro ?? proteinTarget(s).g); setStp(d0.steps ?? (st1.gated ? "" : Math.round((st1.lo + st1.hi) / 2))); setSod9(d0.sodium ?? null); setAlc9(d0.alc ?? 0); }, [tISO]);
+  useEffect(() => { const d0 = s.dailyLogs[tISO] || {}; const st1 = stepTarget(s); const ct1 = calorieTarget(s); setCal(d0.cal ?? (ct1.gated ? "" : ct1.mid)); setPro(d0.pro ?? proteinTarget(s).g); setStp(d0.steps ?? (st1.gated ? "" : Math.round((st1.lo + st1.hi) / 2))); setSod9(d0.sodium ?? null); setAlc9(d0.alc ?? 0); }, [tISO]);
   const saveDaily = () => {
     const ns = { ...s };
     const c = cal === "" ? null : Number(cal), p = pro === "" ? null : Number(pro), st = stp === "" ? null : Number(stp);
@@ -6818,7 +6842,7 @@ function LogTab({ s, setS, save, slp }) {
                   <div style={{ fontFamily: mono, fontSize: 11, color: T.steel, marginTop: 2 }}>{l.how}</div>
                 </div>
               )) : (
-                <div style={{ fontFamily: body, fontSize: 13, color: T.steel }}>Nothing flipped state — reps banked, standards held, tomorrow's targets regenerated. Normal days build the crossover.</div>
+                <div style={{ fontFamily: body, fontSize: 13, color: T.steel }}>Nothing flipped state — reps banked, standards held, tomorrow's targets regenerated. Normal days are what actually compound.</div>
               )}
             </div>
             <div style={{ marginTop: 18, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
@@ -6982,7 +7006,11 @@ function BodyTab({ s, setS, save }) {
   const sealed = blackoutOn(s);
   const [dexaIn, setDexaIn] = useState("");
   const wd = weekDay();
-  const xPct = Math.round(((todayStart() - mk(START)) / (mk(CROSSOVER) - mk(START))) * 100);
+  /* The crossover progress bar is gone from here too — see COUNTDOWN_NOTE.
+     A bar filling toward a date he never set is an urgency mechanic whether or
+     not the date is printed next to it. What replaces it is progress against
+     the only thing that is real: how far the trend has actually moved. */
+  const xPct = (() => { const f0 = (s.weekly || [])[0]; const start0 = f0 ? f0.trend : s.trend; const bfE = bfEst(s); const tgt0 = bfE.lean / 0.89; const span = Math.max(0.1, start0 - tgt0); return Math.max(0, Math.min(100, Math.round(((start0 - s.trend) / span) * 100))); })();
   const bf = bfEst(s);
   const cur = currentRate(s);
   const eta12 = etaWeeks(s, 12), eta11 = etaWeeks(s, 11);
@@ -8173,7 +8201,7 @@ export default function PrepLedger() {
         const lastA = +(localStorage.getItem("prep-ledger-autosync") || 0);
         if (Date.now() - lastA < 12 * 3600 * 1000) return;
         localStorage.setItem("prep-ledger-autosync", String(Date.now()));
-        const raw = localStorage.getItem(LS_KEY);
+        const raw = localStorage.getItem(KEY);
         if (raw) ghSync(JSON.parse(raw)).catch(() => {});
       } catch (e) {}
     };

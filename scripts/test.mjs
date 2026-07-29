@@ -23,7 +23,7 @@ import { ROOT, at, tmp, isMain, head, pass, fail, note, node, bold, red, green, 
 // real count stops guarding anything, which is exactly what happened: it sat at
 // 380 while the suite ran 591, so a change that silently dropped a third of the
 // assertions would still have shipped green.
-const MIN_ASSERTIONS = 810;
+const MIN_ASSERTIONS = 815;
 
 async function engineSuite() {
   const out = tmp("engine-test.cjs");
