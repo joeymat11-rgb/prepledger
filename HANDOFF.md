@@ -616,6 +616,60 @@ Read 0.12 first; this is the operational addendum to it.
   quickly as possible**. Every feature answers to it. The dominant defect of this
   codebase - found three separate times - is research that was written down and
   then not enforced in code. Assume it is still happening somewhere.
+
+### 0.23.7 Ground truth, verified on the live system 2026-07-29
+
+Everything here was measured, not remembered. Re-measure before trusting it if
+much time has passed.
+
+**The v34 migration has never run against his real data.** `ledger/state.json` on
+`main` is **`v: 33`**. This branch ships `SCHEMA_V = 34`. So `patchV34` meets his
+actual history the *first time he opens the merged app* - not in a test. Read 0.6
+before you merge, and understand `if (q.done) return;` before you touch it: that
+one line is the only thing that stopped the migration overwriting a completed
+queue receipt (`q_hack3`, which reads "Debuted 7,8,7" - the result of a real set).
+Rollback reference exists at `ledger/snapshots/` (`state-2026-07-24.json`,
+`state-2026-07-27.json`).
+
+**Section 3 lists a dependency that is not on this machine.** Verified present:
+`node v24.18.0`, `npm 11.16.0`, `npx 11.16.0`, `git 2.55.0.windows.3`. **`python`
+is NOT installed** - it resolves to the Microsoft Store stub and will fail in a
+confusing way. Section 3 says "all source surgery is done with Python string/line
+operations." Do not follow that here. Use node, or the editor tools, for source
+edits. Related trap from 0.10: never pipe regex-bearing code through a shell
+heredoc - two patterns silently lost their backslashes that way (`\s` became `s`)
+and matched nothing. Write the script to a file, then run the file.
+
+**Joe's working copy is stale but clean.** `C:\Users\joeym\Documents\prepledger-dev`
+sits on `audit/research-corpus` at `44a03be` - three commits behind this branch -
+with zero uncommitted and zero stashes; its local `main` is 5 behind origin. If a
+*human* is going to work there it needs a pull. Automation still must never touch
+it (see 0.23.4).
+
+**The scheduled tasks, by ID.** Both are enabled.
+
+| task | id | cron (UTC) | next run |
+|---|---|---|---|
+| PrepLedger overnight analyst | `trig_01FbCubEFiuj1Q3AZPSzhZxu` | `0 8 * * *` | 2026-07-30 08:07Z |
+| PrepLedger monthly inspection | `trig_014mCQ2yVTQ61Fd3gUs6oquP` | `0 9 1 * *` | 2026-08-01 09:05Z |
+
+Two further tasks exist on the same account - `trig_017cJ4ob5X1w31SHeHwJQhvJ` and
+`trig_01L15fVXn3bGdTrYVHRz6tBz` - and belong to a **different** app ("Most Days").
+They are not prepledger. Do not edit them.
+
+**The first analyst run after the key rotation is the canary.** Joe intended to
+rotate the evening of 2026-07-29; the 08:07Z run on 07-30 is the first thing that
+will use the new key. If it writes "skipped for lack of credentials" into
+`ledger/notes.md`, the save did not take - check that the variable is set and that
+he restarted the app afterwards.
+
+**The analyst's own governing documents live in `ledger/`,** not in this file:
+`analyst-constitution.md`, `analyst-nightly-recipe.md`, `analyst-wiring-guide.md`,
+`caselaw.md`, `orders-addendum.md`, `training/scorecard.md`. The agents are fenced
+to amending `orders-addendum.md` and nothing else. To change how the analyst
+*thinks*, change the scheduled task's prompt - editing these files alone will not
+do it, because the base orders live in the task, not the repo.
+
 ---
 
 ## 1 · WHAT THIS IS
@@ -655,21 +709,28 @@ environment is: clone, `npm i -g esbuild` (or npx), go.
 
 - `node` + `npx` (esbuild is invoked via npx)
 - `git` with push rights to this repo
-- `python3` (all source surgery is done with Python string/line operations)
+- ~~`python3` (all source surgery is done with Python string/line operations)~~
+  **STALE - see 0.23.7.** Python is NOT installed on Joe's machine; it resolves to
+  the Microsoft Store stub. Do source edits with node or the editor tools.
 - A GitHub PAT with contents:write
 
 **SECURITY:** the token must live in an environment variable (`GH_TOKEN`) or a
 secret store. It must NEVER be committed to this file or any file in the repo.
-This repo is public. Rotate the token whenever the development environment
-changes hands.
+~~This repo is public.~~ **WRONG - see 0.23.1.** The repo is **private**; verified
+2026-07-29 by an anonymous clone being refused. Rotate the token whenever the
+development environment changes hands.
 
 ---
 
 ## 4 · THE SHIP RITUAL
 
 ```
-bash tools/ship.sh "<release note>"
+npm run ship -- "<release note>"      <- use this one
+bash tools/ship.sh "<release note>"   <- older path, still present
 ```
+
+Both exist in the tree. `npm run ship` (which runs `scripts/ship.mjs`) is the one
+`CLAUDE.md` documents and the one that works without a bash shell. Prefer it.
 
 Runs: suite -> smoke -> esbuild -> copy artifacts -> commit -> pull --rebase ->
 push -> write beacon.
