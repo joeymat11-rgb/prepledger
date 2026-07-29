@@ -2168,29 +2168,30 @@ ok(ctx17.indexOf("CANONICAL NUMBERS") > -1, "the analyst is handed the engine's 
 ok(ctx17.indexOf("do NOT re-derive") > -1, "and told not to recompute them — a number that changes between screens is worse than one slightly wrong");
 ["RATE", "MEASURED TDEE", "TARGET INTAKE", "PROTEIN TARGET"].forEach((k) => ok(ctx17.indexOf(k) > -1, `canonical block carries ${k}`));
 
-/* An open proposal must carry today's numbers, not the day-it-was-raised ones.
-   The old propose() bailed out whenever one was already armed, so the card's
-   title and receipt froze — and after an engine change they could freeze on a
-   quantity the engine no longer even computes. */
+/* An open proposal must be RE-PROCESSED every run, not frozen on the day it was
+   raised. The old propose() bailed out whenever one was already armed, so the
+   card's title and receipt froze — and after an engine change they could freeze
+   on a quantity the engine no longer even computes. The calorie-drift card that
+   used to anchor this test was RETIRED when the engine took sole ownership of the
+   calorie band — a proposal must never restate an engine-owned number — so the
+   standing volume-band card now exercises the same refresh / resolve path. */
 const dayA18 = isoL(Date.now() - 864e5), dayB18 = isoL(Date.now());
 const st18 = raR(mkReads(28, 0.2, 170), dayA18);
-const card18a = st18.proposals.find((p) => p.rid.indexOf("calband_") === 0 && !p.resolved);
-ok(!!card18a, "the calorie-drift card is raised on the day the drift appears");
-const raisedOn18 = card18a.d, id18 = card18a.id, why18 = card18a.why;
-/* the ledger moves on — he eats 400 more a day — while the card stays open */
-const st18m = clone(st18);
-Object.keys(st18m.dailyLogs).forEach((k) => { if (st18m.dailyLogs[k] && st18m.dailyLogs[k].cal != null) st18m.dailyLogs[k].cal += 400; });
-const st18b = raR(st18m, dayB18);
-const open18 = st18b.proposals.filter((p) => p.rid.indexOf("calband_") === 0 && !p.resolved);
-ok(open18.length === 1, "a day later there is still exactly one open drift card — refreshed, not duplicated");
-ok(open18[0].why !== why18, "and its receipt has moved with the data instead of freezing on the day it was raised");
+ok(!st18.proposals.some((p) => p.rid.indexOf("calband_") === 0), "the calorie-band drift card is retired — the engine owns the band, so no proposal restates it");
+const card18a = st18.proposals.find((p) => p.rid === "volband" && !p.resolved);
+ok(!!card18a, "a standing engine proposal is raised and open on the day it applies");
+const raisedOn18 = card18a.d, id18 = card18a.id;
+/* a day passes and the run fires again while the card is still open */
+const st18b = raR(clone(st18), dayB18);
+const open18 = st18b.proposals.filter((p) => p.rid === "volband" && !p.resolved);
+ok(open18.length === 1, "a day later there is still exactly one open card — refreshed, not duplicated");
 ok(open18[0].d === raisedOn18 && open18[0].id === id18, "while the raised-on date and id hold, so the age of the flag stays honest");
-ok(open18[0].refreshed === dayB18, "the refresh is stamped, so a card quoting stale arithmetic is diagnosable rather than invisible");
+ok(open18[0].refreshed === dayB18, "the refresh is stamped, so the card is re-processed each run instead of freezing on the day it was raised");
 /* one he has already acted on is never resurrected or rewritten */
 const acted18 = __test.applyProposal(st18b, id18, 0);
 ok(acted18.proposals.find((p) => p.id === id18).resolved === true, "applying resolves it");
 const after18 = raR(acted18, dayB18);
-ok(!after18.proposals.some((p) => p.rid === card18a.rid && !p.resolved), "and it does not come back to life on the next run");
+ok(!after18.proposals.some((p) => p.rid === "volband" && !p.resolved), "and it does not come back to life on the next run");
 
 /* ================= v3.99.19 — noise, not sleep ================= */
 const { typicalError: teN, beatsNoise: bnN, cleanAtDate: caN, stepTarget: stN, proteinTarget: ptN, SEED: TN19 } = __test;

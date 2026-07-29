@@ -48,7 +48,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.8";
+const APP_V = "4.0.9";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -4110,12 +4110,18 @@ function runAdaptive(state, todayISO) {
      every other change is: as a proposal, with the receipt, for his tap. They
      re-arm weekly while the gap is open and go quiet when it closes. */
 
-  /* The prescribed calorie band vs the one his own maintenance implies. */
+  /* BAND_OWNERSHIP — the calorie band is engine-owned. calorieTarget() computes it
+     live (the "Today's Protocol" card on NOW) from measured maintenance and the
+     target rate over a matched window, and RE-DERIVES it every day — including the
+     step taper a hand adjustment would chase. So no proposal may restate or
+     re-derive the band: a second band figure in the inbox is exactly the
+     agent-vs-engine conflict Joe flagged ("the proposals should never confuse me").
+     A band-adjacent concern surfaces as an observation that cites the live band,
+     never a competing number and never an approvable band change. (Retired here:
+     "CALORIE BAND HAS DRIFTED FROM YOUR DATA", which offered to move the band by
+     ct.drift — a redundant restatement of what the protocol card already shows.)
+     ct stays: the refeed proposal below quotes the live band. */
   const ct = calorieTarget(s);
-  if (!sealed && !ct.gated && Math.abs(ct.drift) >= 150)
-    propose("calband_" + monday, "CALORIE BAND HAS DRIFTED FROM YOUR DATA",
-      `Your phase band says ${ct.phaseLo}–${ct.phaseHi}. Your own measured maintenance and your own target rate say ${ct.lo}–${ct.hi} — a gap of about ${Math.abs(ct.drift)} kcal/day. ${ct.why} The band was authored before there was data to check it against; there is now. Nothing here changes automatically, and the phase band stays exactly as written until you say otherwise.`,
-      { kind: "cal", delta: ct.drift });
 
   /* ---------- REFEED_NOTE — the standing recommendation the app owed him ----------
      The programme runs a weekly Wednesday refeed at 2,450-2,500. The evidence
@@ -4320,7 +4326,7 @@ function applySuggestion(state, sug) {
   let how = sug.title;
   if (a.kind === "protein" && a.to != null) { s.targets.proteinG = a.to; how = `protein target set to ${a.to} g/day`; }
   else if (a.kind === "sleep" && a.to != null) { s.targets.sleepH = a.to; how = `sleep target set to ${a.to} h`; }
-  else if (a.kind === "cal" && a.delta != null) { s.targets.calDelta = (s.targets.calDelta || 0) + a.delta; how = `calorie band nudged ${a.delta > 0 ? "+" : ""}${a.delta} kcal`; }
+  else if (a.kind === "cal") { how = "logged only — the engine owns the calorie band, so no analyst suggestion moves it"; }
   else if (a.kind === "dietbreak") { s.targets.dietBreak = d; how = "diet break armed — hold at maintenance this week"; }
   else if (a.kind === "progression") { s.targets.progression = a.to || true; how = "training progression noted — coach territory"; }
   s.suggestionLog.push({ sid: sug.sid, decided: "approved", d, title: sug.title, apply: a, predict: sug.predict || "" });
@@ -8754,7 +8760,7 @@ export default function PrepLedger() {
       </div>
 
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50, background: T.plate, borderTop: `1px solid ${T.line}` }}>
-        <div onClick={() => { try { const w = document.getElementById("pl-scroll"); const kids = [...(w ? w.children : [])].map((el) => ({ t: el.tagName + (el.id ? "#" + el.id : ""), h: Math.round(el.getBoundingClientRect().height) })).filter((k) => k.h > 40).sort((a, b) => b.h - a.h).slice(0, 6); alert("glass " + window.innerHeight + " | page " + Math.round(document.documentElement.scrollHeight) + " | wrap " + (w ? Math.round(w.getBoundingClientRect().height) : "?") + "\n" + kids.map((k) => k.t + " " + k.h).join("\n")); } catch (e) { alert("probe error"); } }} style={{ position: "absolute", top: 2, right: 8, fontFamily: mono, fontSize: 7, color: T.dim, opacity: 0.7, padding: 4 }}>v{APP_V}</div>
+        <div style={{ position: "absolute", top: 2, right: 8, fontFamily: mono, fontSize: 7, color: T.dim, opacity: 0.7, padding: 4 }}>v{APP_V}</div>
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
             <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: (tab === t2 || (t2 === "MORE" && inMore)) ? `2px solid ${T.chalk}` : "2px solid transparent", fontFamily: mono, fontSize: 9.5, letterSpacing: "0.09em", color: (tab === t2 || (t2 === "MORE" && inMore)) ? T.chalk : T.dim }}>
