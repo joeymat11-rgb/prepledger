@@ -1,0 +1,12 @@
+[
+ {
+  "at": "2026-07-29T23:03:26.100Z",
+  "n": 2,
+  "v": "4.0.11",
+  "kind": "window.onerror",
+  "msg": "undefined is not an object (evaluating 'B.dailyLogs[U].sodium=R')",
+  "stack": "onClick@https://fitnessledger2.netlify.app/app.js:83:69553\ncy@https://fitnessledger2.netlify.app/app.js:8:127457\n@https://fitnessledger2.netlify.app/app.js:8:132466\ncg@https://fitnessledger2.netlify.app/app.js:8:15139\nnc@https://fitnessledger2.netlify.app/app.js:8:128692\nVu@https://fitnessledger2.netlify.app/app.js:9:28583\nFb@https://fitnessledger2.netlify.app/app.js:9:28397",
+  "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+  "page": "/"
+ }
+]
