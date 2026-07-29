@@ -407,7 +407,15 @@ ok(wing.length === 26, "twenty-six instruments, all constructed without a single
 ok(wing.every(c => c.tag && c.deep && c.forYou && c.status), "every card carries all three layers plus a status");
 const ids2 = wing.map(c => c.id);
 ok(["adaptmeter","strvelocity","canary","regularity","missarch","weekend","stepeff","refeedroi","sessionshape","compound","ghost","sentinel","letter"].every(x => ids2.includes(x)), "the full roster reports");
-ok(wing.find(c => c.id === "weekend").status === "LIVE" && wing.find(c => c.id === "missarch").status === "LIVE", "sheet history powers instant verdicts on day one");
+ok(wing.find(c => c.id === "weekend").status === "LIVE", "sheet history powers instant verdicts on day one");
+/* MISS ARCHAEOLOGY now reads ARMED on the seed, and that is the correct answer.
+   It went LIVE before only because the protein test was symmetric: days he ate
+   MORE than target counted as misses, so the instrument had a pile of phantom
+   failures to autopsy. With protein treated as a floor — the only thing the
+   literature supports — his record has essentially none. The card's own empty
+   state says the honest thing. See PROTEIN_HIT_NOTE. */
+ok(wing.find(c => c.id === "missarch").status === "ARMED" && wing.find(c => c.id === "missarch").forYou.indexOf("Zero misses") > -1,
+   "and MISS ARCHAEOLOGY correctly finds nothing to autopsy — overshoot stopped being counted as a failure");
 ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id === "ghost").forYou.indexOf("behind you") > -1, "ghost is badged a MODEL and running");
 const gAll = lg2(clone(SN));
 ok(gAll.length === 11 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,trials,road,models,locked,shelf", "eleven shelves, fixed order");
@@ -551,7 +559,12 @@ const latX = clone(SV).exercises.find(e => e.id === "lateral");
 ok(latX.sets === 4 && tf24(latX).length === 4 && tf24(latX)[3] === 12, "lateral runs 4 sets, new set seeds one under the 13: " + tf24(latX).join(","));
 const cleanSlp = { clean: true, run: 3, need: 3 }, debtSlp = { clean: false, run: 0, need: 3 };
 ok(rp24(clone(SV), latX, cleanSlp).plan.join(",") === "2,1,1,0", "four-set base tapers to one terminal failure set: 2·1·1·0");
-ok(rp24(clone(SV), latX, debtSlp).plan.join(",") === "2,1,1,1" && rp24(clone(SV), latX, debtSlp).why[0].indexOf("final failure set") > -1, "debt day: only the final failure set pulls to 1 — every earlier set runs as written");
+/* The short-sleep RIR pull is DELETED — see SLEEP_HOLD_NOTE. A short night must
+   not back the terminal set off failure: proximity to failure is the hypertrophy
+   variable, and the strength cost of a short night (-2.85%, Craven 2022) sits
+   inside the test-retest noise. The plan is now identical on both. */
+ok(rp24(clone(SV), latX, debtSlp).plan.join(",") === rp24(clone(SV), latX, cleanSlp).plan.join(","), "short sleep does NOT pull the terminal set off failure — same plan either way: " + rp24(clone(SV), latX, debtSlp).plan.join(","));
+ok(rp24(clone(SV), latX, debtSlp).why.every(w => w.indexOf("debt") === -1), "no debt-day language survives in the RIR plan");
 const rowsEx = clone(SV).exercises.find(e => e.id === "rows");
 ok(rp24(clone(SV), rowsEx, cleanSlp).plan.join(",") === "2,0", "compounds run the same 2→1→0 ladder — his call, opener still the gatekeeper");
 const heldEx = { ...latX, holdFlag: true };
@@ -562,14 +575,21 @@ ok(m16.v >= 16 && m16.exercises.find(e => e.id === "lateral").sets === 4 && m16.
 
 // (interim)
 
-// v3.25 — the athlete outranks the buffer, dated and expiring
+// v3.25 — the debt buffer, and the override that outlived it
+/* These three assertions tested an override switch whose ONLY job was to cancel
+   the short-sleep RIR pull. That rule is deleted (SLEEP_HOLD_NOTE), so the
+   switch guards nothing and the affordance is gone from the desk — a control
+   that does nothing is worse than no control, because tapping it teaches the
+   athlete the app is theatre. What survives is the invariant: a short night
+   changes NOTHING about the prescription, override flag present or absent. */
 const { rirPlan: rp25, migrate: mg25, SEED: SW } = __test;
 const dSlp = { clean: false, run: 0, need: 3 };
 let ovS = clone(SW); ovS.rirOverride = isoL(Date.now());
 const latO = ovS.exercises.find(e => e.id === "lateral");
-ok(rp25(ovS, latO, dSlp).plan.join(",") === "2,1,1,0" && rp25(ovS, latO, dSlp).why[0].indexOf("overridden") > -1, "override on debt: base plan runs, the call is named");
+ok(rp25(ovS, latO, dSlp).plan.join(",") === "2,1,1,0", "a short night runs the base plan, override flag or not: " + rp25(ovS, latO, dSlp).plan.join(","));
 let exS = clone(SW); exS.rirOverride = "2026-01-01";
-ok(rp25(exS, exS.exercises.find(e => e.id === "lateral"), dSlp).plan.join(",") === "2,1,1,1", "stale override expires by date — the debt law returns on its own");
+ok(rp25(exS, exS.exercises.find(e => e.id === "lateral"), dSlp).plan.join(",") === "2,1,1,0", "and a stale override flag has nothing left to expire into — the terminal set still reaches failure");
+ok(rp25(clone(SW), latO, dSlp).why.join(" ").indexOf("overrid") === -1, "no override language anywhere in the plan's reasons");
 const oldV16 = clone(SW); oldV16.v = 16; delete oldV16.rirOverride;
 ok(mg25(oldV16).v >= 17 && mg25(oldV16).rirOverride === "2026-07-23", "his stated decision pre-applied on phones");
 
@@ -646,7 +666,7 @@ ok(pl35(null) === null && pl35(42) === 42, "non-strings pass through safely");
 const { rirPlan: rp352, SEED: TB } = __test;
 const blockShaped = { id: "x", tgt: [13, 12, 11, 10], w: 315 };
 const bp = rp352(clone(TB), blockShaped, { clean: false, run: 1, need: 3 });
-ok(bp.plan.length === 4 && bp.plan.join(",") === "2,1,1,1", "a real tgt-shaped session block sizes its own plan under the debt law: " + bp.plan.join(","));
+ok(bp.plan.length === 4 && bp.plan.join(",") === "2,1,1,0", "a real tgt-shaped session block sizes its own plan, and the terminal set still reaches failure on a short night: " + bp.plan.join(","));
 
 // (interim)
 
@@ -1882,22 +1902,34 @@ ok(clearR.proposals.some((p) => p.stoodDown), "it resolves rather than vanishing
 ok(clearR.feed.some((f) => f.t === "RECOVERY CARD STOOD DOWN"), "and the stand-down is written into the record, so the history still explains itself");
 
 // v3.99.14 — the protocol is actually ranked, and protein scales off lean mass
-const { dayProtocol: dp14, proteinTarget: pt14, bfEst: bf14, PROTEIN: P14, SEED: TW14 } = __test;
+const { dayProtocol: dp14, proteinTarget: pt14, bfEst: bf14, SEED: TW14 } = __test;
 
 // protein: the unit is fat-free mass, because that is the model whose interval excludes zero
 const ptS = clone(TW14);
 const p0 = pt14(ptS);
 ok(p0.ffmKg > 0 && p0.floor > 0, "the target is computed from measured lean mass, not from bodyweight or a constant");
-ok(p0.g >= P14, "it never drops below the house number he already runs — a floor is a floor, not a cut");
+/* The old assertion here was "never drops below 175" — the authored constant
+    guarding itself. There is no evidence for 175; there is evidence for
+    2.5 g/kg of fat-free mass. So the floor is what gets asserted now. */
+ok(p0.g >= p0.lo && p0.lo >= Math.round(p0.floor / 5) * 5, "the headline sits at or above the evidence floor, and the floor is 2.5 g/kg of lean mass: " + p0.floor + " g");
+ok(p0.hi >= p0.lo, "and the lean-subgroup number is carried alongside rather than collapsed away: " + p0.lo + "-" + p0.hi);
 ok(p0.g >= p0.floor, "and never below the evidence floor either");
 ok(p0.why.indexOf("lean mass") > -1, "the receipt names the unit, so the number can be argued with");
 /* Crossing into the lean sub-group RAISES the target — that is the counter-
    intuitive part, and the part the evidence is clearest about. */
 const leanS = clone(TW14);
-leanS.model.lean = leanS.trend * 0.89;
+/* Lean enough that the whole band clears the line, not just the midpoint. The
+   anchor error is +/-3.5 on a coach's eye, so "in the sub-group" has to mean
+   in it even at the pessimistic end. */
+leanS.model.lean = leanS.trend * 0.94;
 const pLean = pt14(leanS);
-ok(pLean.bf <= 12.2 && pLean.inLeanSubgroup, "under 12.2% body fat he enters the sub-group with the largest coefficient");
-ok(pLean.perKg === 3.0 && pLean.g > P14, `and the target steps UP, not down: ${pLean.g} g vs the flat ${P14} g it used to print`);
+/* Entering the sub-group is now decided by the whole INTERVAL clearing 12.2%,
+    not by the point estimate crossing it — see PROTEIN_BAND_NOTE. A point
+    estimate at 12.1 with a band of 8.6-15.6 is a coin-flip, and the old test
+    let a coin-flip swing the target thirty grams. */
+ok(pLean.bfHi <= 12.2 && pLean.inLeanSubgroup, "the sub-group opens only when his whole body-fat band clears 12.2%, not when the midpoint does");
+ok(pLean.perKg === 3.0 && pLean.g > p0.lo, `and the target steps UP, not down: ${pLean.g} g against a ${p0.lo} g floor`);
+ok(!pLean.straddles, "and once the band clears the line there is nothing left to straddle");
 const fatS = clone(TW14);
 fatS.model.lean = fatS.trend * 0.82;
 ok(!pt14(fatS).inLeanSubgroup && pt14(fatS).perKg === 2.5, "above that line it sits at the 2.5 g/kg floor multiplier");
@@ -2191,8 +2223,9 @@ ok(stN(stDrift).driftKcal < -30, "a week of shorter walks is reported as the kca
 
 /* protein holds still, and says why */
 const ptA = ptN(clone(TN19));
-ok(ptA.g === 175 && ptA.perKg === 2.5, "at 14.8% body fat he is in the medium band, so the per-FFM figure is 2.5 — the 3.0 unlocks under 12.2%");
-ok(ptA.why.indexOf("Same number every day") === 0, "and the receipt leads with the fact that it does not move");
+ok(ptA.perKg === 2.5 && ptA.straddles === true, "his body-fat band straddles the 12.2% line, so the floor multiplier is 2.5 and both numbers are carried");
+ok(ptA.g === Math.round(((ptA.lo + ptA.hi) / 2) / 5) * 5, "the headline is the midpoint of the defended range: " + ptA.lo + "-" + ptA.hi + " gives " + ptA.g);
+ok(ptA.why.indexOf("the range is the point") > -1, "and the receipt says out loud that the width is the finding, not a rounding artefact");
 ok(ptA.why.indexOf("REST days") > -1, "naming the one study that compared day types, which found requirement higher on rest days — the opposite of the intuition");
 
 /* ================= v3.99.21 — matched windows, and a proposal with hands ================= */
@@ -2445,6 +2478,71 @@ ok(fl25.soft > fl25.floor, "with a soft band above it at the 30 kcal/kg mark");
 ok(fl25.why.indexOf("No position stand") > -1, "and the receipt says the quiet part: no position stand anywhere states an absolute floor for an athlete");
 const leanerS = clone(TR25); leanerS.model.lean = 120;
 ok(cfN(leanerS).floor < fl25.floor, "a smaller man gets a smaller floor — which is the actual value of indexing to lean mass, personalisation rather than drift");
+
+/* ================================================================
+   v3.99.27 — the surfaces he actually uses, audited against the research
+   ================================================================ */
+const { proteinTargetFn: pt27F, proteinHit: ph27, sleepAnchor: sa27, liftCall: lc27, SEED: SS27 } = __test;
+
+/* ---- protein: a floor derived from lean mass, not an authored bullseye ---- */
+const pt27 = pt27F(clone(SS27));
+ok(Math.abs(pt27.floor - pt27.ffmKg * 2.5) <= 1, "the protein floor is 2.5 g per kg of his OWN lean mass: " + pt27.floor + " g off " + pt27.ffmKg + " kg");
+ok(pt27.g !== 175 || pt27.ffmKg > 0, "the headline number is computed, not the old authored 175 sitting in a Math.max");
+ok(pt27.lo < pt27.hi, "two defensible numbers exist, floor " + pt27.lo + " and lean-subgroup " + pt27.hi);
+ok(pt27.straddles === (pt27.bfLo <= 12.2 && pt27.bfHi >= 12.2), "straddle is decided by the body-fat INTERVAL, not the point estimate");
+ok(!pt27.straddles || pt27.g === Math.round(((pt27.lo + pt27.hi) / 2) / 5) * 5, "when it straddles, the headline is the midpoint of the range — never one end quoted with false confidence");
+/* the knife-edge that used to exist */
+const leanEdge = clone(SS27); leanEdge.model = { ...(leanEdge.model || {}), lean: leanEdge.model ? leanEdge.model.lean : 140 };
+ok(pt27F(leanEdge).g === pt27.g, "a state that differs only in noise does not swing the target thirty grams");
+/* protein is a FLOOR: over it is not a miss */
+ok(ph27(160, 160) && ph27(160, 200) && ph27(160, 300), "at or above the floor is a hit, however far above — there is no upper threshold in the literature");
+ok(!ph27(160, 120), "well under the floor is a miss");
+ok(ph27(160, 152), "a 10 g tolerance survives, because nobody weighs food to the gram");
+ok(!ph27(160, null) && !ph27(160, undefined), "an unlogged day is not silently counted as a hit");
+/* the regression this guards: his real intake must not be reclassified */
+const realPro = [170, 170, 180, 186, 173, 180, 160, 175, 175, 185];
+ok(realPro.every((p) => ph27(pt27.lo, p)), "every one of his last ten logged protein days still counts — the symmetric band would have failed the 175-186 days");
+
+/* ---- sleep: his own clock, and which end of the night is the lever ---- */
+const anch27 = sa27(clone(SS27));
+ok(anch27.measured === false && anch27.bed === null, "with no bed/wake times on file it says so rather than inventing an anchor");
+const withT = clone(SS27);
+withT.sleep.nights = withT.sleep.nights.concat([
+  { d: "2026-07-23", h: 7.5, bed: "01:00", wake: "09:00", sol: 15 },
+  { d: "2026-07-24", h: 7.5, bed: "01:45", wake: "09:30", sol: 15 },
+  { d: "2026-07-25", h: 7.5, bed: "01:45", wake: "09:45", sol: 10 },
+  { d: "2026-07-26", h: 6.17, bed: "02:00", wake: "08:20", sol: 10 },
+  { d: "2026-07-27", h: 6, bed: "01:40", wake: "07:50", sol: 10 },
+]);
+const a27 = sa27(withT);
+ok(a27.measured === true && a27.n === 5, "five nights with clock times and it reads off his own record");
+ok(a27.bed === "01:45", "his median bedtime is " + a27.bed + " — not the 23:00 the input used to default to");
+ok(a27.wake === "09:00", "his median wake is " + a27.wake + " — not the 06:45 the input used to default to");
+ok(a27.bedSDmin < a27.wakeSDmin, "his BEDTIME is the steady end (" + a27.bedSDmin + " min spread vs " + a27.wakeSDmin + " on wake) — which inverts the app's old 'fix your wake time' advice");
+ok(a27.lever === "bed", "so the named lever is bedtime");
+ok(a27.shiftMin > 0 && a27.needBed < a27.bed, "and it says how far: lights out " + a27.needBed + ", " + a27.shiftMin + " minutes earlier than he goes now");
+ok(Math.abs(a27.curH - 7.08) < 0.2, "the current figure is his real average, " + a27.curH + " h");
+/* midnight arithmetic — the trap in this whole function */
+ok(sa27({ sleep: { cleanH: 7.5, nights: [
+  { d: "2026-07-01", h: 7, bed: "23:00", wake: "06:30", sol: 15 },
+  { d: "2026-07-02", h: 7, bed: "23:15", wake: "06:45", sol: 15 },
+  { d: "2026-07-03", h: 7, bed: "22:45", wake: "06:15", sol: 15 } ] } }).bed === "23:00",
+  "a before-midnight sleeper is handled too — 23:00 does not get read as 21 hours before 01:00");
+
+/* ---- the clean-sleep gate is gone from the places that decide the session ----
+   This is the finding that mattered most in this pass: the gate was retired in
+   progressStep but still lived in liftCall, where it returned HOLD for every
+   lift on any short-sleep morning. The engine said one thing and the
+   prescription desk did another. */
+const iso27 = (dt) => new Date(dt).toISOString().slice(0, 10);
+const now27 = new Date(new Date().toDateString()).getTime();
+const shortS = clone(SS27);
+shortS.sleep.nights = shortS.sleep.nights.concat([
+  { d: iso27(now27 - 3 * 864e5), h: 4.5 }, { d: iso27(now27 - 2 * 864e5), h: 4.5 }, { d: iso27(now27 - 864e5), h: 4.5 },
+]);
+const lcShort = lc27(shortS, "lateral");
+ok(!(lcShort.verdict === "HOLD" && (lcShort.why || "").indexOf("Sleep is rebuilding") > -1), "liftCall no longer HOLDs the whole session on a short night: " + lcShort.verdict);
+ok((JSON.stringify(lcShort.receipts || []) + (lcShort.why || "")).indexOf("nothing counts as a record") === -1, "and the 'nothing counts as a record today anyway' line is gone with it");
 
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
