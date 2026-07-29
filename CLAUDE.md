@@ -1,8 +1,29 @@
 # Prep Ledger — project rules
 
 Single-file React PWA. Personal N=1 training/nutrition ledger for one athlete.
-Live at <https://fitnessledger2.netlify.app>. Full context: read `HANDOFF.md`
-before your first substantial change.
+Live at <https://fitnessledger2.netlify.app>.
+
+## READ THESE FIRST, IN THIS ORDER
+
+Do not make a substantial change before you have read all three. The dominant
+defect of this codebase - found three separate times - is research that was
+written down and then never enforced in code. These three files are the
+enforcement. Reading them is not optional context; it is the job.
+
+1. **`GOALS.md`** - the athlete's own charter, in his words. The objective is
+   *the best body-composition change for Joe, as quickly as possible*. Every
+   feature answers to it. It also carries hard guardrails: never print or expose
+   a credential, never delete athlete data, keep the `/ledger` lockdown intact,
+   do not break the app, and do not push straight to `main` - main deploys to
+   his phone.
+2. **`research-brief.md`** - the evidence corpus every engine claim rests on. It
+   has a NEGATIVE FINDINGS section and a RECURRING FAILURE MODES section. Check
+   a change against it *before* you write the change, not after.
+3. **`HANDOFF.md`** - how the code actually works. Start at **0.23** (operations,
+   access and security - how to authenticate, and why `main` moves on its own)
+   and **0.14** (corrections - several earlier sections are stale and say so).
+
+`BLUEPRINT.md` is the design reference for the UI surface.
 
 ---
 
