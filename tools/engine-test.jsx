@@ -483,10 +483,25 @@ ok(dk1(dkF2).fresh.some(f => f.t.indexOf("MELATONIN") > -1), "a flip lands on th
 // v3.16 — falling asleep is now real
 const { medianSOL: mso, lightsOutT: lot, migrate: mg16, SEED: SQ } = __test;
 ok(mso(clone(SQ)) === 15, "honest 15-min default until five nights are measured");
-ok(lot(clone(SQ)).t === "22:30" && lot(clone(SQ)).target === 8, "default math: 8 h asleep + 15 m drift = tonight's 22:30, unchanged");
+/* lightsOutT used to run off s.sleep.anchor.asleepTarget — a SECOND sleep
+   target (8 h) sitting beside s.sleep.cleanH (7.5), with nothing reconciling
+   them. Two targets for one quantity is the same failure as two kcal-per-pound
+   constants. It now uses the one the rest of the app holds him to. */
+ok(lot(clone(SQ)).target === clone(SQ).sleep.cleanH, "lights-out is derived from the SAME sleep target every other surface uses: " + lot(clone(SQ)).target + " h");
+ok(lot(clone(SQ)).t === "23:00", "so with no clock times on file the fallback math is 7.5 h asleep + 15 m drift back from the anchor: " + lot(clone(SQ)).t);
+ok(lot(clone(SQ)).measured === false && lot(clone(SQ)).wakeRef === "06:45", "and it flags that the wake reference is the authored fallback, not his measured clock");
+/* once his own clock exists it must win — this is the two-bedtimes bug */
+const timed16 = clone(SQ);
+timed16.sleep.nights = timed16.sleep.nights.concat([
+  { d: "2026-08-11", h: 7.5, bed: "01:30", wake: "09:00", sol: 15 },
+  { d: "2026-08-12", h: 7.5, bed: "01:45", wake: "09:00", sol: 15 },
+  { d: "2026-08-13", h: 7.5, bed: "01:40", wake: "09:00", sol: 15 },
+]);
+ok(lot(timed16).measured === true && lot(timed16).wakeRef === "09:00", "with three timed nights it switches to his measured wake: " + lot(timed16).wakeRef);
+ok(lot(timed16).t !== lot(clone(SQ)).t, "which moves lights-out off the authored bearing — the app printed two bedtimes 2h45m apart before this: " + lot(clone(SQ)).t + " vs " + lot(timed16).t);
 let sq = clone(SQ);
 for (let k = 0; k < 6; k++) sq.sleep.nights.push({ d: "2026-08-0" + (k + 1), h: 7.5, sol: 30 });
-ok(mso(sq) === 30 && lot(sq).t === "22:15", "measured 30-min drift-off pulls lights-out 15 min earlier automatically");
+ok(mso(sq) === 30 && lot(sq).t === "22:45", "measured 30-min drift-off pulls lights-out 15 min earlier automatically: " + lot(sq).t);
 const oldV13 = clone(SQ); oldV13.v = 13; delete oldV13.sleep.anchor.asleepTarget;
 ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 phones patch to v14 with the asleep target");
 
@@ -2640,6 +2655,71 @@ ok(dx36(bare36).gated === true && dx36(bare36).maintenance === undefined, "witho
 const ctx36 = ac36(exit36);
 ok(ctx36.indexOf("THE DIET EXIT") > -1 && ctx36.indexOf("Do NOT propose a reverse-diet ramp") > -1, "the analyst is handed the same plan, so asking it does not produce a generic reverse-diet script");
 ok(ctx36.indexOf("Do NOT assume a surplus") > -1, "and is told not to assume the build he has not chosen");
+
+/* ================================================================
+   v3.99.27b — the defects the verification pass caught before shipping
+   ================================================================ */
+const hmMin = (x) => { const [a,b] = x.split(":").map(Number); return a*60+b; };
+const { migrate: mg37, lightsOutT: lo37, sleepAnchor: sa37, dietExit: de37, SEED: SD37 } = __test;
+
+/* ---- THE DATA LOSS. A done queue item's gate is a RECEIPT, not a gate.
+   His live q_hack3 reads "Debuted 7,8,7" — the result of the set. The first
+   version of patchV34 overwrote it unconditionally with future-tense text
+   about a set he had already done, and the queue renders that string on the
+   win card. Nothing may touch a finished item. ---- */
+const doneSV7 = clone(SD37); doneSV7.v = 33;
+const hqV7 = (doneSV7.queue || []).find((q) => q.id === "q_hack3");
+if (hqV7) { hqV7.done = true; hqV7.state = "ESTABLISH"; hqV7.gate = "Debuted 7,8,7"; }
+const doneM = mg37(doneSV7);
+const hq2V7 = (doneM.queue || []).find((q) => q.id === "q_hack3");
+ok(!hq2V7 || hq2V7.gate === "Debuted 7,8,7", "a COMPLETED queue item's receipt survives the migration untouched: " + (hq2V7 ? hq2V7.gate : "n/a"));
+ok(!hq2V7 || hq2V7.done === true, "and stays done");
+/* an OPEN item with the same sleep language must still be cleaned */
+const openSV7 = clone(SD37); openSV7.v = 33;
+const oq37 = (openSV7.queue || []).find((q) => q.id === "q_hack3");
+if (oq37) { oq37.done = false; oq37.gate = "Gate passed · deferred 2× for sleep"; oq37.rule = "LOCKED — runs unless a true <4.5 h night"; }
+const openM = mg37(openSV7);
+const oq38 = (openM.queue || []).find((q) => q.id === "q_hack3");
+ok(!oq38 || oq38.gate.indexOf("sleep") === -1, "while an OPEN item with sleep language is still cleaned: " + (oq38 ? oq38.gate : "n/a"));
+ok(!oq38 || oq38.rule.indexOf("4.5") === -1, "including the hardcoded 4.5 h release valve — the regexes that were supposed to do this had lost their backslashes and matched nothing");
+
+/* ---- THE DIET EXIT HAS TO REACH HIS PHONE. The seed changed q_pivot to
+   kind:"exit"; without a migration his saved copy keeps kind:"phase" and keeps
+   printing the authored 2,450 / lean-surplus / MRV-build line. ---- */
+const pvSV7 = clone(SD37); pvSV7.v = 33;
+const pqV7 = (pvSV7.queue || []).find((q) => q.id === "q_pivot");
+if (pqV7) { pqV7.kind = "phase"; pqV7.t = "PIVOT → REVERSE"; pqV7.gate = "~10.5–11% · weeks 13–16"; pqV7.rule = "Fast reverse (~1–2 wk to ~2,450) → lean surplus 2,700–2,950 · MRV build"; }
+const pvM = mg37(pvSV7);
+const pq2V7 = (pvM.queue || []).find((q) => q.id === "q_pivot");
+ok(!pq2V7 || pq2V7.kind === "exit", "the diet-exit queue item migrates, so the new plan actually renders: kind=" + (pq2V7 ? pq2V7.kind : "n/a"));
+ok(!pq2V7 || pq2V7.rule.indexOf("2,450") === -1, "and the authored 2,450 reverse target leaves his saved state");
+ok((pvM.feed || []).some((f) => f.t === "THE EXIT PLAN IS NOW YOURS"), "with the change explained in his feed rather than swapped silently");
+ok(mg37(clone(pvM)).feed.filter((f) => f.t === "THE EXIT PLAN IS NOW YOURS").length === 1, "and not re-filed on every subsequent migration");
+
+/* ---- THE TWO BEDTIMES. lightsOutT counted back from the authored 06:45 while
+   the sleep card counted from his measured clock, so NOW said "lights out
+   10:35 PM, wake 6:45 AM" and SLEEP said "lights out 1:20 AM" on the same day.
+   Whichever he believed, the other was lying. ---- */
+const twoSV7 = clone(SD37);
+twoSV7.sleep.nights = twoSV7.sleep.nights.concat([
+  { d: "2026-08-21", h: 7.1, bed: "01:30", wake: "08:50", sol: 10 },
+  { d: "2026-08-22", h: 7.1, bed: "01:45", wake: "09:00", sol: 10 },
+  { d: "2026-08-23", h: 7.1, bed: "01:40", wake: "09:10", sol: 10 },
+]);
+const an37V7 = sa37(twoSV7), l37V7 = lo37(twoSV7);
+ok(an37V7.measured && l37V7.measured, "both the sleep card and the daily protocol now read the same measured clock");
+ok(l37V7.wakeRef === an37V7.wake, "off the same wake reference: " + l37V7.wakeRef);
+/* the two figures must be reconcilable — lights-out is the target back from wake */
+const backFromWake = ((hmMin(an37V7.wake) + 1440) - an37V7.target * 60 - an37V7.sol) % 1440;
+ok(Math.abs(hmMin(l37V7.t) - backFromWake) <= 1, "and they agree arithmetically — " + l37V7.t + " is " + an37V7.target + " h plus drift back from " + an37V7.wake);
+ok(l37V7.t !== "22:35", "specifically NOT the 22:35 the authored anchor produced for a man who goes to bed at 1:45am");
+
+/* ---- the hold clock has to be startable ---- */
+const heldSV7 = mkReads(28, 0.2, 170);
+heldSV7.feed = [{ d: isoL(Date.now() - 21 * 864e5), t: "DIET EXIT — MAINTENANCE HELD", how: "x" }].concat(heldSV7.feed || []);
+const dxH = de37(heldSV7);
+ok(dxH.started != null && dxH.wksHeld >= 2.9, "the exit hold clock can actually start and count: " + dxH.wksHeld + " weeks");
+ok(dxH.readReady === true, "so the two-week milestone is reachable rather than permanently false");
 
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
