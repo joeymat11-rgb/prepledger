@@ -12,12 +12,20 @@ import { HISTORY } from "./history.js";
 /* ---------- tokens ---------- */
 const T = {
   ink: "#101418", plate: "#181E24", plate2: "#1E252D", line: "#2A323B",
-  chalk: "#E8E4DA", steel: "#8A93A0", dim: "#5C6672",
-  jade: "#4CC38A", brass: "#E5B454", orange: "#FF8C42", redline: "#E5484D",
+  chalk: "#E8E4DA", steel: "#8A93A0", dim: "#838D9A",
+  jade: "#4CC38A", brass: "#E5B454", orange: "#FF8C42", redline: "#EA5E62",
 };
 const disp = "'Barlow Condensed', system-ui, sans-serif";
 const mono = "'IBM Plex Mono', ui-monospace, monospace";
 const body = "'Barlow', system-ui, sans-serif";
+
+/* ---------- type scale — six roles, one source ----------
+   The old file carried ~15 ad-hoc font sizes. These are the roles everything
+   should map onto. The floor for anything a user must READ is `label` (11px):
+   below that trips iOS legibility and, on this athlete's ADHD, glance-ability.
+   `micro` (10) is reserved for genuinely decorative/forensic text only. To make
+   something bigger, move it to the right role here — do not invent a new number. */
+const TS = { display: 26, title: 16, body: 12.5, label: 11, micro: 10 };
 
 /* ---------- date utils ---------- */
 const DAY = 86400000;
@@ -33,7 +41,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.1";
+const APP_V = "4.0.2";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -5664,7 +5672,7 @@ __test.terminalRir = terminalRir;
 
 /* ---------- atoms ---------- */
 const Eyebrow = ({ children, c = T.dim }) => (
-  <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.18em", color: c, textTransform: "uppercase" }}>{children}</div>
+  <div style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.18em", color: c, textTransform: "uppercase" }}>{children}</div>
 );
 const stampColor = (st) => {
   if (["OWNED", "RECLAIMED", "ESTABLISH", "ESTABLISHED", "BASELINE", "RUNG DONE", "BOOKED", "FIRED", "ANCHORED"].includes(st)) return T.jade;
@@ -5679,27 +5687,27 @@ const stampColor = (st) => {
 };
 const STAMP_LABEL = { GATED: "LOCKED", DEBUT: "FIRST RUN", OWNED: "YOURS", "OWN-IT": "MAKE IT YOURS", RECLAIM: "WIN IT BACK", PARKED: "ON HOLD", REVERT: "ROLLED BACK" };
 const Stamp = ({ st }) => (
-  <span style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.14em", color: stampColor(st), border: `1px solid ${stampColor(st)}`, borderRadius: 3, padding: "2px 6px", whiteSpace: "nowrap" }}>{STAMP_LABEL[st] || st}</span>
+  <span style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.14em", color: stampColor(st), border: `1px solid ${stampColor(st)}`, borderRadius: 3, padding: "2px 6px", whiteSpace: "nowrap" }}>{STAMP_LABEL[st] || st}</span>
 );
 const Card = ({ children, style = {}, accent, ...rest }) => (
   <div {...rest} style={{ background: T.plate, border: `1px solid ${T.line}`, borderLeft: accent ? `3px solid ${accent}` : `1px solid ${T.line}`, borderRadius: 8, padding: 14, ...style }}>{children}</div>
 );
 const Cond = ({ how, when }) => (
   <div style={{ marginTop: 12, padding: "10px 12px", background: T.plate2, borderRadius: 8, border: `1px solid ${T.line}` }}>
-    <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: "0.16em", color: T.dim }}>HOW</div>
+    <div style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.16em", color: T.dim }}>HOW</div>
     <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 3, lineHeight: 1.45 }}>{how}</div>
-    <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: "0.16em", color: T.dim, marginTop: 9 }}>COUNTS WHEN</div>
+    <div style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.16em", color: T.dim, marginTop: 9 }}>COUNTS WHEN</div>
     <div style={{ fontFamily: body, fontSize: 12, color: T.steel, marginTop: 3, lineHeight: 1.45 }}>{when}</div>
   </div>
 );
 const SecRule = ({ children }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "22px 2px 8px" }}>
-    <span style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: "0.18em", color: T.dim, whiteSpace: "nowrap" }}>{children}</span>
+    <span style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.18em", color: T.dim, whiteSpace: "nowrap" }}>{children}</span>
     <span style={{ flex: 1, height: 1, background: T.line }} />
   </div>
 );
 const Chip = ({ children, c = T.steel }) => (
-  <span style={{ fontFamily: mono, fontSize: 10.5, color: c, border: `1px solid ${T.line}`, borderRadius: 999, padding: "4px 9px", whiteSpace: "nowrap" }}>{children}</span>
+  <span style={{ fontFamily: mono, fontSize: TS.label, color: c, border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 11px", whiteSpace: "nowrap" }}>{children}</span>
 );
 const Btn = ({ onClick, children, tone = "ghost", full, small, disabled }) => {
   const tones = {
@@ -5708,16 +5716,16 @@ const Btn = ({ onClick, children, tone = "ghost", full, small, disabled }) => {
     orange: { background: T.orange, color: T.ink, border: `1px solid ${T.orange}` },
   };
   return (
-    <button onClick={disabled ? undefined : onClick} style={{ ...tones[tone], opacity: disabled ? 0.4 : 1, fontFamily: mono, fontSize: small ? 11 : 12.5, letterSpacing: "0.06em", borderRadius: 6, padding: small ? "6px 10px" : "10px 14px", width: full ? "100%" : "auto", fontWeight: 600, cursor: disabled ? "default" : "pointer" }}>
+    <button onClick={disabled ? undefined : onClick} style={{ ...tones[tone], opacity: disabled ? 0.4 : 1, fontFamily: mono, fontSize: small ? 11 : 12.5, letterSpacing: "0.06em", borderRadius: 6, padding: small ? "9px 13px" : "11px 15px", width: full ? "100%" : "auto", fontWeight: 600, cursor: disabled ? "default" : "pointer" }}>
       {children}
     </button>
   );
 };
 const Stepper = ({ v, set, step = 1, min = 0 }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-    <button onClick={() => set(Math.max(min, +(v - step).toFixed(1)))} style={{ width: 30, height: 30, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>−</button>
+    <button onClick={() => set(Math.max(min, +(v - step).toFixed(1)))} style={{ width: 40, height: 40, borderRadius: 6, fontSize: 18, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>−</button>
     <div style={{ fontFamily: mono, fontSize: 15, color: T.chalk, minWidth: 38, textAlign: "center" }}>{v}</div>
-    <button onClick={() => set(+(v + step).toFixed(1))} style={{ width: 30, height: 30, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
+    <button onClick={() => set(+(v + step).toFixed(1))} style={{ width: 40, height: 40, borderRadius: 6, fontSize: 18, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
   </div>
 );
 const Num = ({ children, size = 30, c = T.chalk }) => (
@@ -5739,8 +5747,8 @@ function Section({ title, meta, c = T.chalk, children }) {
     <Card style={{ padding: 12 }} accent={open ? c : undefined}>
       <div onClick={() => setOpen(!open)} style={{ cursor: "pointer" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-          <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 16, color: T.chalk, textTransform: "uppercase" }}>{title}</div>
-          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, textAlign: "right", minWidth: 0, flex: "1 1 auto", overflowWrap: "anywhere" }}>{meta} {open ? "▾" : "▸"}</div>
+          <div style={{ fontFamily: disp, fontWeight: 700, fontSize: TS.title, color: T.chalk, textTransform: "uppercase" }}>{title}</div>
+          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.dim, textAlign: "right", minWidth: 0, flex: "1 1 auto", overflowWrap: "anywhere" }}>{meta} {open ? "▾" : "▸"}</div>
         </div>
       </div>
       {open && <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 12 }}>{children}</div>}
@@ -5752,7 +5760,7 @@ function More({ deep, forYou, c = T.jade }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ marginTop: 8 }}>
-      <button onClick={() => setOpen(!open)} style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: "0.1em", color: open ? T.chalk : T.dim, background: "none", border: "none", padding: 0 }}>{open ? "▾ CLOSE" : "▸ MORE"}</button>
+      <button onClick={() => setOpen(!open)} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.1em", color: open ? T.chalk : T.dim, background: "none", border: "none", padding: 0 }}>{open ? "▾ CLOSE" : "▸ MORE"}</button>
       {open && (
         <div style={{ marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
           <Eyebrow>WHAT IT IS</Eyebrow>
@@ -7048,7 +7056,7 @@ function LogTab({ s, setS, save, slp }) {
           <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
             {(() => { const rp2 = rirPlan(s, ex, slp); return getReps(ex).map((r, i) => (
               <div key={i}>
-                <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginBottom: 3 }}>SET {i + 1} · <span style={{ color: rp2.plan[i] === 0 ? T.brass : rp2.plan[i] === 1 ? T.chalk : T.jade, fontWeight: 700 }}>RIR {rp2.plan[i] ?? "—"}</span></div>
+                <div style={{ fontFamily: mono, fontSize: TS.label, color: T.dim, marginBottom: 3 }}>SET {i + 1} · <span style={{ color: rp2.plan[i] === 0 ? T.jade : T.steel, fontWeight: 700 }}>RIR {rp2.plan[i] ?? "—"}</span>{rp2.plan[i] === 0 ? <span style={{ color: T.jade }}> · TO FAILURE</span> : null}</div>
                 <Stepper v={r} set={(v) => setRep(ex, i, v)} />
               </div>
             )); })()}
