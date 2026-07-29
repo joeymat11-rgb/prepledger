@@ -347,7 +347,30 @@ function liftCall(s, exId, opts = {}) {
      deloadLoad. Never a number he cannot set on the machine. */
   if (stall >= 3) { const newW = ex2 && typeof ex2.w === "number" ? deloadLoad(ex2) : null; return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest sessions without beating your total. Time to lighten a notch and rebuild — that is how walls fall.`, receipts: R2 }; }
   if (alarm && alarm.level === "AMBER") return { verdict: "HOLD", vel, n: clean.length, why: "Body alarm is AMBER. Normal session, but no all-out sets and no record attempts today.", receipts: R2.concat(["Body alarm: AMBER — off day, not a failure."]) };
-  if (!slp2.clean) return { verdict: "HOLD", vel, n: clean.length, why: `Sleep is rebuilding (${slp2.run}/${slp2.need} good nights). Repeat last time — nothing counts as a record today anyway.`, receipts: R2 };
+  /* ---------- SLEEP_HOLD_NOTE — the verdict that should never have been here ----------
+     This used to return HOLD on any short-sleep morning: "repeat last time,
+     nothing counts as a record today anyway." It was the last place the retired
+     clean-sleep gate still decided what he lifted, and it decided it for every
+     lift on the day at once.
+
+     The evidence does not support holding a session on a short night. Craven
+     2022's meta-analysis puts sleep restriction at -2.85% on strength — inside
+     the test-retest coefficient of variation for these lifts, i.e. smaller than
+     the day-to-day noise the app already models at +/-0.8 reps per set. Knowles
+     2022 ran nine consecutive nights at 5 h and volume load fell under 1%. Gong
+     2024 finds start-of-night restriction indistinguishable from zero (d=-0.25,
+     95% CI -0.53 to +0.04). Holding a whole session for an effect that small
+     costs real training to avoid a rounding error.
+
+     Sleep still matters more than almost anything here — it is just a NUTRITION
+     lever, not a session one. Nedeltcheva 2010: 5.5 h vs 8.5 h at a matched
+     deficit shifted 60% more of the loss onto fat-free mass. That belongs on the
+     body-composition read and the daily protocol, and it is where it now lives.
+
+     So a short night becomes a RECEIPT — say it, then let him lift. The one
+     thing it still buys him is the stall exemption: a bad night's session cannot
+     be read as evidence the load is too heavy. */
+  if (!slp2.clean) R2.push(`Short night on the books${(slp2.last || {}).h ? ` (${slp2.last.h} h)` : ""} — the reps still count and a record still banks. What it buys you is that today cannot be read as a stall.`);
   {
     const md2 = (a2) => { const b2 = a2.slice().sort((x2, y2) => x2 - y2); return b2.length ? b2[Math.floor(b2.length / 2)] : 0; };
     const mT = todayMeds(s); if (mT && !mT.taken) R2.push("No meds today — effort reads truer; energy may sit lower than usual.");
@@ -1091,15 +1114,59 @@ const LEAN_SUBGROUP_BF = 12.2;
 function proteinTarget(s) {
   const bf = bfEst(s);
   const ffmKg = bf.lean / 2.2046;
-  const inLeanSubgroup = bf.pct <= LEAN_SUBGROUP_BF;
+  /* ---------- PROTEIN_BAND_NOTE — a knife-edge threshold on a number with
+     three and a half points of error ----------
+     inLeanSubgroup used to be a hard test of the POINT estimate against 12.2%.
+     His body-fat read is 15% with an honest interval of 11.4–18.7 — the
+     threshold sits INSIDE his own confidence band. So a single decimal of drift
+     in a coach's-eye anchor would swing the target thirty grams, and the app
+     would state either number with the same flat confidence. That is a hard
+     seal on a noisy reading, which is precisely what the charter forbids.
+
+     Soft design instead: when the band straddles the line, carry BOTH numbers
+     as a range rather than picking one and hiding the coin-flip. The floor is
+     the evidence-backed line either way — the deficit meta-regression's trend
+     crosses zero net lean-mass change at 2.5 g/kg FFM. The top of the range is
+     the lean-subgroup coefficient, which applies if he is at the low end of his
+     own interval. Anywhere in between is defensible; below the floor is not. */
+  const straddles = bf.lo <= LEAN_SUBGROUP_BF && bf.hi >= LEAN_SUBGROUP_BF;
+  const inLeanSubgroup = bf.hi <= LEAN_SUBGROUP_BF;
   const perKg = inLeanSubgroup ? PROTEIN_LEAN_G_PER_KG : PROTEIN_FLOOR_G_PER_KG;
   const evidence = Math.round((ffmKg * perKg) / 5) * 5;
   const floor = Math.round(ffmKg * PROTEIN_FLOOR_G_PER_KG);
-  const g = Math.max(PROTEIN, evidence);
+  const hi = Math.round((ffmKg * PROTEIN_LEAN_G_PER_KG) / 5) * 5;
+  /* ---------- PROTEIN_CONST_NOTE — the authored 175 finally leaves ----------
+     This read Math.max(PROTEIN, evidence), where PROTEIN was a hardcoded 175.
+     That is the exact failure the rest of this file spent the session removing:
+     a derived number wearing a constant as a floor, so the constant kept
+     winning whenever the evidence sat below it and nothing ever recalculated.
+     It also meant the card DISPLAYED the derived figure while the fix-window
+     logic JUDGED against 175 — the app showing one number and testing another.
+
+     There is no evidence for 175 specifically. The deficit meta-regression's
+     trend line crosses zero net lean-mass change at 2.5 g/kg FFM, and the lean
+     subgroup coefficient roughly doubles under ~12.2% body fat. Both of those
+     are per-kg-of-HIS-lean-mass numbers, and both are already computed above.
+     The target is now whichever of those two the evidence points at, rounded to
+     something a person can actually hit. If his lean mass moves, so does it. */
+  const lo = Math.max(Math.round(floor / 5) * 5, evidence);
+  /* When the band straddles, the headline number is the middle of the defended
+     range, not either end. Quoting the top would tell him to eat thirty grams
+     more on the strength of a coin-flip; quoting the bottom would quietly drop
+     his target on the same coin-flip. The midpoint is the standard estimator
+     when you know the interval and not the point — and the range is printed
+     next to it, so the width is visible rather than implied. */
+  const g = straddles ? Math.round(((lo + hi) / 2) / 5) * 5 : lo;
   return {
-    g, floor, perKg, inLeanSubgroup, ffmKg: +ffmKg.toFixed(1), bf: bf.pct,
+    g, lo, hi: Math.max(lo, hi), floor, perKg, inLeanSubgroup, straddles,
+    ffmKg: +ffmKg.toFixed(1), bf: bf.pct, bfLo: bf.lo, bfHi: bf.hi,
     why: inLeanSubgroup
       ? `${perKg} g per kg of your ${(+ffmKg.toFixed(1))} kg lean mass — under ${LEAN_SUBGROUP_BF}% body fat the measured return per gram is at its largest (the per-FFM coefficient roughly doubles), so the target steps up rather than down`
+      : straddles
+      /* The honest version of "we do not know which side of the line you are
+         on." Say the range and say why it is a range, rather than quoting one
+         end with false confidence. */
+      ? `${lo}–${Math.max(lo, hi)} g, and the range is the point. ${lo} g is ${PROTEIN_FLOOR_G_PER_KG} g per kg of your ${(+ffmKg.toFixed(1))} kg lean mass — the line where the deficit meta-regression's trend crosses zero net lean-mass change. ${Math.max(lo, hi)} g is the lean-subgroup number, which applies below ${LEAN_SUBGROUP_BF}% body fat. Your body-fat read is ${bf.pct}% with an honest spread of ${bf.lo}–${bf.hi}%, so the threshold sits inside your own error bars and nobody can say which side you are on. Anywhere in the range is defended; under ${floor} g is not. It does not rise on training days — the one study that compared day types found requirement higher on REST days`
       /* Say plainly that this is ONE number, held every day, and why it does not
          move: the only direct training-day-vs-rest-day comparison (Moore 2024,
          indicator amino acid oxidation) found requirement HIGHER on the rest day,
@@ -1107,6 +1174,22 @@ function proteinTarget(s) {
       : `Same number every day — ${g} g, which is ${(+(g / ffmKg).toFixed(2))} g per kg of your ${(+ffmKg.toFixed(1))} kg lean mass. The deficit meta-regression's trend line crosses zero net lean-mass change at ${PROTEIN_FLOOR_G_PER_KG} g/kg (${floor} g for you), so you sit clear of it. It does not rise on training days: the one study that compared day types found requirement higher on REST days, not lower`,
   };
 }
+/* ---------- PROTEIN_HIT_NOTE — protein is a floor, not a bullseye ----------
+   Every caller used to ask Math.abs(logged - 175) <= 10, which counts eating
+   MORE protein than the target as a miss. Nothing in the literature supports
+   that. The meta-regression identifies a lower threshold below which lean-mass
+   loss rises; there is no upper threshold anywhere near this range, and the
+   only real cost of overshoot is that protein calories displace carbohydrate
+   inside a fixed budget — a note, not a failure.
+
+   The symmetric band was invisible while the target sat at 175, because that is
+   roughly where he eats. The moment the target became derived it would have
+   retroactively reclassified 25 of his 44 logged days from hit to miss, days he
+   ate 175–186 g — the app inventing a compliance problem out of arithmetic.
+   So the test is: at or above the floor, with a small tolerance for the fact
+   that nobody weighs food to the gram. */
+const PROTEIN_TOL_G = 10;
+function proteinHit(target, g) { return g != null && g >= target - PROTEIN_TOL_G; }
 
 /* ---------- STEP_NOTE — why the step target is now his own number ----------
    16-17k was authored, not derived, and nothing recalculated it. Two problems
@@ -1795,7 +1878,8 @@ function labAnalytics(s) {
     lines: [] });
 
   /* 11 · miss-antecedent map */
-  const misses = Object.entries(s.dailyLogs).filter(([d, v]) => d > "2026-07-21" && v.pro != null && Math.abs(v.pro - PROTEIN) > 10);
+  const proTgtA = proteinTarget(s).lo;
+  const misses = Object.entries(s.dailyLogs).filter(([d, v]) => d > "2026-07-21" && v.pro != null && !proteinHit(proTgtA, v.pro));
   out.push({ id: "miss", t: "MISS-ANTECEDENT MAP", status: misses.length >= 4 ? "LIVE" : "ARMED", prog: { n: misses.length, need: 4, label: "protein misses (may this stay armed forever)" },
     tag: "Turns protein recovery into protein prevention.",
     deep: "Every miss gets its context attached — event-adjacent? travel? short sleep the night before? Repeated antecedents become trap-day warnings issued in advance, converting your excellent 24-hour-fix record into not-needing-the-fix.",
@@ -2155,9 +2239,13 @@ function rirPlan(s, ex, slp) {
   const n = ex.sets || (ex.tgt ? ex.tgt.length : ex.target ? ex.target.length : ex.last ? ex.last.length : 3);
   let plan = Array.from({ length: n }, (_, i) => (i === n - 1 ? 0 : i === 0 ? 2 : 1));
   const why = [];
-  const overridden = s.rirOverride === isoOf(todayStart());
-  if (!slp.clean && !overridden) { plan = plan.map((r, i) => (i === plan.length - 1 && r === 0 ? 1 : r)); why.push("debt day — the final failure set pulls to 1; every other set runs exactly as written"); }
-  if (!slp.clean && overridden) why.push("debt buffer overridden — athlete call, today only");
+  /* The short-sleep RIR pull is deleted — see SLEEP_HOLD_NOTE in liftCall.
+     Proximity to failure is THE hypertrophy variable in the dose-response
+     literature; backing the terminal set off to 1 RIR on a short night traded
+     the one thing that reliably drives growth for a -2.85% strength effect that
+     sits inside the test-retest noise. It also fired on roughly one morning in
+     three, which made "the set that reaches failure" a set that often did not.
+     Effort is defended; the night is a receipt, not a governor. */
   if (ex.holdFlag) { plan = plan.map((r) => Math.max(r, 2)); why.push("governor hold — stay two clean reps back"); }
   const opens = Object.values(s.sessionLog).flatMap((sl) => (sl.entries || []).filter((e) => e.id === ex.id && e.rir != null).map((e) => e.rir)).sort((a, b) => a - b);
   if (opens.length >= 3 && opens[Math.floor(opens.length / 2)] <= 0) { plan = plan.map((r, i) => (i === 0 ? r + 1 : r)); why.push("your openers run hot on this lift — bank one early"); }
@@ -2172,7 +2260,8 @@ function weekReview(s) {
   const inWin = (d) => d >= winStart && d <= endISO;
   const dls = Object.entries(s.dailyLogs).filter(([d]) => inWin(d));
   const proN = dls.filter(([, v]) => v.pro != null).length;
-  const proHit = dls.filter(([, v]) => v.pro != null && Math.abs(v.pro - PROTEIN) <= 10).length;
+  const proTgtW = proteinTarget(s).lo;
+  const proHit = dls.filter(([, v]) => proteinHit(proTgtW, v.pro)).length;
   const sess = Object.keys(s.sessionLog).filter(inWin);
   const wins = s.feed.filter((f) => inWin(f.d) && /OWNED|DEBUT|EARNED|RECLAIM|ZERO-COMP|RESET COMPLETE/.test(f.t));
   const nights = s.sleep.nights.filter((n) => inWin(n.d));
@@ -2383,7 +2472,7 @@ function liveRollups(s) {
     const endD = isoOf(endRaw > todayStart() ? todayStart() : endRaw);
     return { wk, live: true, rows, days: rows.map((r) => r.d), range: `${fmtShort(startD)} – ${fmtShort(endD)}`,
       avgW: ws.length ? +avg(ws).toFixed(1) : null, avgCal: cals.length ? Math.round(avg(cals)) : null,
-      avgPro: pros.length ? Math.round(avg(pros)) : null, proHit: pros.filter((x) => Math.abs(x - PROTEIN) <= 10).length, proN: pros.length,
+      avgPro: pros.length ? Math.round(avg(pros)) : null, proHit: pros.filter((x) => proteinHit(proteinTarget(s).lo, x)).length, proN: pros.length,
       avgSteps: st.length ? +(avg(st) / 1000).toFixed(1) : null, avgSlp: sl.length ? +avg(sl).toFixed(1) : null, flags: 0 };
   });
 }
@@ -2445,6 +2534,64 @@ function atSleepTarget(s, iso) {
   return { run, at: run >= s.sleep.needed };
 }
 
+/* ---------- SLEEP_LEVER_NOTE — which end of the night is actually the lever ----------
+   The app told him "fixed wake time is the strongest single move" and defaulted
+   his inputs to bed 23:00 / wake 06:45. He has never logged either. On the six
+   nights with times on file his bed sits at 01:38 with a 20-minute spread and
+   his wake at 08:53 with a 43-minute spread — so bedtime is already the STABLE
+   end and wake is the variable one. Both of his short nights were a late bed
+   plus an early rise.
+
+   That inverts the advice. Telling a man whose wake time is the noisy variable
+   to fix his wake time is asking him to control the end of the night he
+   controls least, and it leaves the hour of slack sitting untouched at the
+   other end. Sleep opportunity is bounded by lights-out; you cannot make up at
+   the back what you did not start at the front.
+
+   So this returns HIS measured anchors and does the arithmetic out loud: at his
+   own median wake, what bedtime clears the target, and how far that is from
+   where he actually goes to bed. No authored times anywhere. */
+const SLEEP_ANCHOR_MIN_N = 3;
+function hmToMin(t) { if (!t || t.indexOf(":") < 0) return null; const [a, b] = t.split(":").map(Number); if (!isFinite(a) || !isFinite(b)) return null; return a * 60 + b; }
+function minToHM(m) { const x = ((Math.round(m) % 1440) + 1440) % 1440; return String(Math.floor(x / 60)).padStart(2, "0") + ":" + String(x % 60).padStart(2, "0"); }
+function medOf(a) { const b = a.slice().sort((x, y) => x - y); return b.length ? (b.length % 2 ? b[(b.length - 1) / 2] : (b[b.length / 2 - 1] + b[b.length / 2]) / 2) : null; }
+function sdOf(a) { if (a.length < 2) return null; const m = a.reduce((p, c) => p + c, 0) / a.length; return Math.sqrt(a.reduce((p, c) => p + (c - m) * (c - m), 0) / a.length); }
+function sleepAnchor(s) {
+  const nights = (((s || {}).sleep || {}).nights || []).filter((n) => n.bed && n.wake).slice(-14);
+  const target = ((s || {}).sleep || {}).cleanH || 7.5;
+  if (nights.length < SLEEP_ANCHOR_MIN_N) {
+    return { n: nights.length, measured: false, target, bed: null, wake: null,
+      why: `${SLEEP_ANCHOR_MIN_N - nights.length} more night${SLEEP_ANCHOR_MIN_N - nights.length === 1 ? "" : "s"} with bed and wake times and this reads off your own clock instead of a guess.` };
+  }
+  /* bedtimes after midnight sort as small numbers; shift them past 24 h so a
+     01:40 bed is LATER than a 23:00 bed rather than 21 hours earlier. */
+  const beds = nights.map((n) => { const m = hmToMin(n.bed); return m == null ? null : (m < 12 * 60 ? m + 1440 : m); }).filter((v) => v != null);
+  const wakes = nights.map((n) => hmToMin(n.wake)).filter((v) => v != null);
+  if (beds.length < SLEEP_ANCHOR_MIN_N || wakes.length < SLEEP_ANCHOR_MIN_N) return { n: nights.length, measured: false, target, bed: null, wake: null, why: "not enough clock times on file yet." };
+  const bedMed = medOf(beds), wakeMed = medOf(wakes);
+  const bedSD = sdOf(beds), wakeSD = sdOf(wakes);
+  /* the honest average latency: what he actually reports falling asleep in */
+  const sols = nights.map((n) => (typeof n.sol === "number" ? n.sol : null)).filter((v) => v != null);
+  const sol = sols.length ? medOf(sols) : 15;
+  /* the bedtime that clears target at HIS OWN median wake */
+  const needBedMin = (wakeMed + 1440) - target * 60 - sol;
+  const shiftMin = Math.round(bedMed - needBedMin);
+  const cur = +(((wakeMed + 1440) - bedMed - sol) / 60).toFixed(2);
+  return {
+    n: nights.length, measured: true, target, sol: Math.round(sol),
+    bed: minToHM(bedMed), wake: minToHM(wakeMed),
+    bedSDmin: bedSD == null ? null : Math.round(bedSD), wakeSDmin: wakeSD == null ? null : Math.round(wakeSD),
+    needBed: minToHM(needBedMin), shiftMin, curH: cur,
+    /* which end is the lever: the one he already holds steady is the one he can
+       move on purpose. Steadier end wins; ties go to bed, because sleep
+       opportunity is bounded at the front. */
+    lever: bedSD != null && wakeSD != null && wakeSD < bedSD - 5 ? "wake" : "bed",
+    why: shiftMin <= 0
+      ? `Your own clock already clears it: bed ${minToHM(bedMed)}, up ${minToHM(wakeMed)} is ${cur} h.`
+      : `You go to bed ${minToHM(bedMed)} and get up ${minToHM(wakeMed)} — ${cur} h. To clear ${target} h without getting up later, lights out ${minToHM(needBedMin)}: ${shiftMin} minutes earlier.`,
+  };
+}
+
 /* the debt ledger: seeded receipts + live-computed charges as sessions accrue */
 function debtLedger(s) {
   const seeded = s.sleep.debts.map((t) => ({ txt: t, live: false }));
@@ -2471,13 +2618,14 @@ function debtLedger(s) {
 /* THE SHELF — established literature, imported as priors, computed at his numbers. The LAB tests; the shelf informs. */
 function shelfItems(s) {
   const kg = +(s.trend / 2.205).toFixed(1);
-  const perFeed = Math.round(PROTEIN / 4);
+  const proTgtS = proteinTarget(s).g;
+  const perFeed = Math.round(proTgtS / 4);
   const out = [];
   out.push({ id: "spread", t: "PROTEIN SPREAD", status: "ON FILE",
-    tag: `${PROTEIN} works harder split into 4.`,
+    tag: `${proTgtS} works harder split into 4.`,
     lines: [`~${perFeed} g × 4 feeds · every 3–4 h · wake / pre-lift / post-lift / pre-bed`],
     deep: "Areta et al. 2013 (J Physiol): 20 g every 3 h beat both 40 g every 6 h and 10 g every 1.5 h for 24-hour muscle protein synthesis at equal totals. Mamerow et al. 2014: even distribution across meals out-synthesized the typical dinner-skewed pattern. In a deficit, distribution is muscle protection — the same grams, better spent.",
-    forYou: `No new logging — this is a shape, not a chore. Your noon lift makes the anchors natural: feed ~1 h pre-lift, feed after, and keep the last feed near bed (slow protein there works with the overnight fast). Four ~${perFeed} g landings and the day's ${PROTEIN} places itself.` });
+    forYou: `No new logging — this is a shape, not a chore. Your noon lift makes the anchors natural: feed ~1 h pre-lift, feed after, and keep the last feed near bed (slow protein there works with the overnight fast). Four ~${perFeed} g landings and the day's ${proTgtS} places itself.` });
   out.push({ id: "caffdose", t: "CAFFEINE — THE STUDY RANGE, AT YOUR WEIGHT", status: "ON FILE",
     tag: "Dose by bodyweight, not by habit.",
     lines: [`3–6 mg/kg (Grgic 2019 meta) ≈ ${Math.round(3 * kg)}–${Math.round(6 * kg)} mg at ${kg} kg · ~45–60 min pre-lift`],
@@ -2569,7 +2717,8 @@ function labAnalytics2(s) {
 
   /* 5 · miss archaeology */
   add(() => {
-    const misses = allDaily.filter((x) => x.pro != null && Math.abs(x.pro - PROTEIN) > 10);
+    const proTgtM = proteinTarget(s).lo;
+    const misses = allDaily.filter((x) => x.pro != null && !proteinHit(proTgtM, x.pro));
     if (!misses.length) return { id: "missarch", t: "MISS ARCHAEOLOGY", status: "ARMED", prog: { n: 0, need: 3, label: "protein misses on file" }, tag: "Every miss gets an autopsy — patterns, not blame.", deep: "Each protein miss is examined for what preceded it: prior-night sleep, day of week, event proximity. Willpower problems usually turn out to be scheduling problems wearing a disguise.", forYou: "Zero misses on file to autopsy. Honestly? Elite. This card hopes to stay bored.", lines: [] };
     const dow = {};
     let shortSleep = 0, slept = 0;
@@ -2577,7 +2726,7 @@ function labAnalytics2(s) {
     const topDay = Object.entries(dow).sort((a, b) => b[1] - a[1])[0];
     return { id: "missarch", t: "MISS ARCHAEOLOGY", status: "LIVE", prog: null,
       tag: "Every miss autopsied — patterns, not blame.",
-      deep: `Each protein miss (outside ${proteinTarget(s).g}±10) is examined for precursors: prior-night sleep, day of week, event adjacency. The point is mechanical: if misses cluster after short nights or on one weekday, the fix is scheduling — a prepped meal on that day, a protein-forward default after bad nights — not more discipline.`,
+      deep: `Each protein shortfall (under ${proTgtM} g, the evidence floor) is examined for precursors: prior-night sleep, day of week, event adjacency. Overshoot is not counted — there is no upper threshold in the literature and this card used to treat a 186 g day as a failure. The point is mechanical: if shortfalls cluster after short nights or on one weekday, the fix is scheduling — a prepped meal on that day, a protein-forward default after bad nights — not more discipline.`,
       forYou: `${misses.length} misses across the whole record. ${topDay ? topDay[0] + " owns " + topDay[1] + " of them" : ""}${slept ? ` · ${Math.round(100 * shortSleep / slept)}% followed a sub-7 night` : ""}. ${shortSleep / Math.max(1, slept) > 0.5 ? "Sleep is upstream of your protein too — the anchor defends both." : "No strong sleep link — day-structure is the lever."}`,
       lines: [] };
   });
@@ -2588,7 +2737,8 @@ function labAnalytics2(s) {
     const we = allDaily.filter((x) => [0, 6].includes(mk(x.d).getDay()));
     if (wk.length < 5 || we.length < 3) return { id: "weekend", t: "THE WEEKEND SPLIT", status: "ARMED", prog: { n: we.length, need: 3, label: "weekend days logged" }, tag: "Weekday-you vs weekend-you.", deep: "Two athletes share your body. This card audits them separately.", forYou: "Filling from your record.", lines: [] };
     const avg = (a, k) => Math.round(a.reduce((x, y) => x + (y[k] || 0), 0) / a.length);
-    const hit = (a) => Math.round(100 * a.filter((x) => Math.abs(x.pro - PROTEIN) <= 10).length / a.length);
+    const proTgtWe = proteinTarget(s).lo;
+    const hit = (a) => Math.round(100 * a.filter((x) => proteinHit(proTgtWe, x.pro)).length / a.length);
     return { id: "weekend", t: "THE WEEKEND SPLIT", status: "LIVE", prog: null,
       tag: "Weekday-you vs weekend-you — two athletes, one audit.",
       deep: "Every metric split by weekday vs weekend across your entire record. Most preps are lost between Friday night and Sunday dinner; knowing YOUR split turns a vague fear into a number — and events (weddings, holidays) get judged inside their own protocol, not as failures.",
@@ -2688,7 +2838,8 @@ function labAnalytics2(s) {
     const june = allDaily.filter((x) => x.d < "2026-07-01");
     if (june.length < 10 || july.length < 10) return null;
     const avg2 = (a, k) => Math.round(a.reduce((x, y) => x + (y[k] || 0), 0) / a.length);
-    const hit2 = (a) => Math.round(100 * a.filter((x) => x.pro != null && Math.abs(x.pro - PROTEIN) <= 10).length / a.length);
+    const proTgtJ = proteinTarget(s).lo;
+    const hit2 = (a) => Math.round(100 * a.filter((x) => proteinHit(proTgtJ, x.pro)).length / a.length);
     const wins = s.feed.filter((f) => f.d >= "2026-07-01" && /OWNED|DEBUT|EARNED|RECLAIM/.test(f.t)).length;
     return { id: "letter", t: "THE MONTHLY LETTER", status: "LIVE", prog: null,
       tag: "State of the prep, auto-written on the 1st. Latest: July (running).",
@@ -3220,7 +3371,7 @@ function dayProtocol(s, slp) {
   const pt = proteinTarget(s);
   /* Weight rises when he is near or under the evidence floor, and when he has
      crossed into the sub-group where the coefficient is largest. */
-  const pW = 62 + (pt.inLeanSubgroup ? 12 : 0) + (pt.g > PROTEIN ? 10 : 0);
+  const pW = 62 + (pt.inLeanSubgroup ? 12 : 0) + (pt.g > Math.round(pt.floor / 5) * 5 ? 10 : 0);
   if (s.fixWindow) steps.push({ a: `Protein ${pt.g} — non-negotiable today`, why: "closes the open fix window; the miss becomes a save · " + pt.why, w: pW + 15 });
   else steps.push({ a: `Protein ${pt.g}`, why: `~${Math.round(pt.g / 4)} g × 4 feeds · wake / pre-lift / post-lift / pre-bed. ${pt.why}.`, w: pW });
   if (T4.drift != null && T4.drift <= -0.4) steps.push({ a: "Eat the top of the range (1,800)", why: `your furnace runs ${T4.drift}°F under baseline — the band's ceiling exists for exactly this; still a full deficit`, w: 70 });
@@ -5005,7 +5156,9 @@ __test.VOL_BANDS = VOL_BANDS;
 __test.proposalDial = proposalDial;
 __test.EA_SPARING = EA_SPARING;
 __test.EA_LOW = EA_LOW;
-__test.PROTEIN = PROTEIN;
+__test.proteinHit = proteinHit;
+__test.sleepAnchor = sleepAnchor;
+__test.proteinTargetFn = proteinTarget;
 __test.loadRungs = loadRungs;
 __test.nextLoad = nextLoad;
 __test.prevLoad = prevLoad;
@@ -5287,8 +5440,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [amendY, setAmendY] = useState(false);
   useEffect(() => { if (!amendY) return; const t0 = setTimeout(() => { const el = document.getElementById("pl-amend"); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); }, 60); return () => clearTimeout(t0); }, [amendY]);
   const tISO = isoOf(todayStart());
-  const [bedT, setBedT] = useState("23:00");
-  const [wakeT, setWakeT] = useState((s.sleep.anchor || {}).wake || "06:45");
+  /* His own clock, not an authored one. The defaults used to be bed 23:00 /
+     wake 06:45 — times he has never logged once — so every morning started with
+     two pickers about two and a half hours wrong. Friction on the one input the
+     body-composition read leans on hardest. See SLEEP_LEVER_NOTE. */
+  const anch = sleepAnchor(s);
+  const [bedT, setBedT] = useState(anch.bed || (s.sleep.anchor || {}).bed || "23:30");
+  const [wakeT, setWakeT] = useState(anch.wake || (s.sleep.anchor || {}).wake || "07:30");
   const [slTags, setSlTags] = useState([]);
   const [awakeMin, setAwakeMin] = useState(30);
   const [solMin, setSolMin] = useState(15);
@@ -5304,32 +5462,34 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const sess = nextISO ? genSession(s, nextISO, slp) : null;
   const heroToday = nextISO === tISO;
   const dl = s.dailyLogs[tISO] || {};
-  const [cal, setCal] = useState(dl.cal ?? calorieTarget(s).mid ?? 1760);
+  /* Every default here is derived. The calorie box used to fall back to 1760
+     and the step box to a flat 16500 — two authored numbers sitting next to a
+     measured one, which made the card look like it knew three things when it
+     knew one. Both now read the same engine the labels read. */
+  const stpT0 = stepTarget(s);
+  const [cal, setCal] = useState(dl.cal ?? calorieTarget(s).mid);
   const [pro, setPro] = useState(dl.pro ?? proteinTarget(s).g);
-  const [stp, setStp] = useState(dl.steps ?? 16500);
+  const [stp, setStp] = useState(dl.steps ?? (stpT0.gated ? "" : Math.round((stpT0.lo + stpT0.hi) / 2)));
   const cleanIn = daysUntil(SEAL_UNTIL);
-  const xoverIn = daysUntil(CROSSOVER);
-  const xPct = Math.round(((todayStart() - mk(START)) / (mk(CROSSOVER) - mk(START))) * 100);
   const ev = s.events.find((e) => !e.estimated && daysUntil(e.d) >= 0);
   const ph = PHASES[s.phase];
-  /* The band he is actually shown. Measured maintenance beats an authored
-     constant whenever it exists — see CALORIE_TARGET. Refeed days keep their
-     own number, because that one is a deliberate protocol choice rather than a
-     derived target. */
+  /* The band he is actually shown, derived from measured maintenance — see
+     CALORIE_TARGET. The refeed branch is gone: it hardcoded a 2,450–2,500
+     Wednesday, which against a fixed weekly total is simply a deeper Monday. */
   const ctT = calorieTarget(s);
-  const calT = isRefeed ? [2450, 2500] : (!ctT.gated ? [ctT.lo, ctT.hi] : ph.band);
+  const calT = !ctT.gated ? [ctT.lo, ctT.hi] : ph.band;
   const bf = bfEst(s);
   const nextUnlocks = s.queue.filter((x) => !x.done && x.kind !== "info" && x.kind !== "phase").slice(0, 2);
 
   const [sod9, setSod9] = useState(() => (s.dailyLogs[tISO] || {}).sodium || null);
   const [alc9, setAlc9] = useState(() => (s.dailyLogs[tISO] || {}).alc ?? 0);
-  useEffect(() => { const d0 = s.dailyLogs[tISO] || {}; setCal(d0.cal ?? (calorieTarget(s).mid ?? 1760)); setPro(d0.pro ?? proteinTarget(s).g); setStp(d0.steps ?? 16500); setSod9(d0.sodium ?? null); setAlc9(d0.alc ?? 0); }, [tISO]);
+  useEffect(() => { const d0 = s.dailyLogs[tISO] || {}; const st1 = stepTarget(s); setCal(d0.cal ?? calorieTarget(s).mid); setPro(d0.pro ?? proteinTarget(s).g); setStp(d0.steps ?? (st1.gated ? "" : Math.round((st1.lo + st1.hi) / 2))); setSod9(d0.sodium ?? null); setAlc9(d0.alc ?? 0); }, [tISO]);
   const saveDaily = () => {
     const ns = { ...s };
     const c = cal === "" ? null : Number(cal), p = pro === "" ? null : Number(pro), st = stp === "" ? null : Number(stp);
     ns.dailyLogs = { ...ns.dailyLogs, [tISO]: { cal: c, pro: p, steps: st, sodium: sod9, alc: +alc9 || 0 } };
     if (p != null) {
-      const hit = Math.abs(p - PROTEIN) <= 10;
+      const hit = proteinHit(proteinTarget(s).lo, p);
       if (!hit && !ns.fixWindow) ns.fixWindow = { opened: tISO };
       if (hit && ns.fixWindow && ns.fixWindow.opened !== tISO) {
         ns.fixWindow = null;
@@ -5344,7 +5504,14 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <div>
           <H size={21}>Prep Ledger</H>
-          <Eyebrow>WK {wd.wk} · D{wd.day} · {s.phase} · BF {bf.pct}%</Eyebrow>
+          {/* The band, not just the point. bfEst has carried lo/hi since the
+              drip was zeroed, but the interval only ever showed on BODY — a tab
+              he says he very rarely opens. A naked "BF 12%" on the page he
+              opens every day reads as a measurement; it is a model output with
+              a couple of points of width on it, and hiding that width is
+              exactly the "misleading read of the athlete's state" GOALS.md
+              calls a regression. */}
+          <Eyebrow>WK {wd.wk} · D{wd.day} · {s.phase} · BF {bf.pct}% <span style={{ color: T.dim }}>({bf.lo}–{bf.hi})</span></Eyebrow>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           
@@ -5416,6 +5583,24 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                       <span style={{ color: T.jade }}>= {sleepSpanH(bedT, wakeT, solMin + (slTags.includes("woke") ? awakeMin : 0))} h asleep</span>
                     </div>
                   </div>
+                  {/* The lever, named, with the arithmetic showing. This is the
+                      single highest-value line on the page: Nedeltcheva 2010 put
+                      5.5 h vs 8.5 h at a matched deficit at 60% MORE of the loss
+                      coming off fat-free mass. Not a session effect — a
+                      fat-versus-muscle effect, which is the entire point of the
+                      app. See SLEEP_LEVER_NOTE for why it names bedtime. */}
+                  {anch.measured && anch.shiftMin > 0 && (
+                    <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, marginTop: 8, lineHeight: 1.5, paddingLeft: 8, borderLeft: `2px solid ${T.jade}` }}>
+                      <span style={{ fontFamily: mono, fontSize: 9.5, color: T.jade, letterSpacing: "0.06em" }}>THE LEVER — LIGHTS OUT {fmt12(anch.needBed)}</span>
+                      <div style={{ marginTop: 3 }}>
+                        Your last {anch.n} nights: bed {fmt12(anch.bed)}, up {fmt12(anch.wake)} — {anch.curH} h.
+                        {anch.bedSDmin != null && anch.wakeSDmin != null && anch.bedSDmin <= anch.wakeSDmin
+                          ? ` Your bedtime is the steady end (${anch.bedSDmin} min of spread against ${anch.wakeSDmin} on your wake), so it is the end you can actually move.`
+                          : ""}
+                          {" "}Going down {anch.shiftMin} minutes earlier clears {anch.target} h without getting up any later — and short sleep in a deficit sends about 60% more of what you lose off your muscle instead of your fat.
+                      </div>
+                    </div>
+                  )}
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
                     {[["mela", "melatonin"], ["woke", "woke mid-night"], ["screen", "late screens"]].map(([k2, lbl]) => {
                       const on = slTags.includes(k2);
@@ -5436,9 +5621,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                       const ns = JSON.parse(JSON.stringify(s));
                       ns.sleep.nights.push({ d: od, h: sleepSpanH(bedT, wakeT, solMin + (slTags.includes("woke") ? awakeMin : 0)), bed: bedT, wake: wakeT, tags: slTags.slice(), awakeMin: slTags.includes("woke") ? awakeMin : 0, sol: solMin });
                       ns.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
-                      let run = 0;
-                      for (let i = ns.sleep.nights.length - 1; i >= 0; i--) { if (ns.sleep.nights[i].h >= ns.sleep.cleanH) run++; else break; }
-                      if (run === ns.sleep.needed) ns.feed.unshift({ d: tISO, t: "SLEEP RESET COMPLETE", how: `${run} consecutive clean nights — PRs can be OWNED again · #1 lever for the back half, and for the ADHD` });
+                      /* The old message here said "PRs can be OWNED again" —
+                         the retired gate, congratulating him for unlocking
+                         something that was never locked. What a run at target
+                         actually buys is on the body-composition side, so that
+                         is what it now says. */
+                      const t9 = atSleepTarget(ns, null);
+                      if (t9.run === ns.sleep.needed) ns.feed.unshift({ d: tISO, t: "SLEEP AT TARGET", how: `${t9.run} nights running at ${ns.sleep.cleanH} h or better. This is the lever that decides how much of what you lose comes off fat instead of muscle — at a matched deficit, short sleep sends about 60% more of it off lean mass.` });
                       setS(ns); save(ns); setSlTags([]);
                     }}>Log {fmtShort(owed[0]).split(" ")[1]} night</Btn>
                   </div>
@@ -5639,7 +5828,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: mono, fontSize: 10, color: T.brass, marginTop: 8 }}>today is {ev.t} — days like this usually get the estimates chip (top right of this card)</div>
         )}
         {((s.dayCtx || {})[tISO] || {}).est && (
-          <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 8, lineHeight: 1.55 }}>The method: anchor protein first — four palm-sized servings still lands near 175. Then calories as the midpoint of your honest bracket: "definitely over 2,300, definitely under 2,700" writes 2,500. Units the same way — "somewhere 10–14" writes 12. One entry after the event, never the optimistic edge. A labeled estimate protects the trend; false precision poisons it.</div>
+          <div style={{ fontFamily: body, fontSize: 11, color: T.steel, marginTop: 8, lineHeight: 1.55 }}>The method: anchor protein first — four palm-sized servings still lands near {proteinTarget(s).g}. Then calories as the midpoint of your honest bracket: "definitely over 2,300, definitely under 2,700" writes 2,500. Units the same way — "somewhere 10–14" writes 12. One entry after the event, never the optimistic edge. A labeled estimate protects the trend; false precision poisons it.</div>
         )}
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           {[
@@ -5650,7 +5839,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                derived calorie number, which made the card look like it knew
                three things when it knew one. */
             { l: `CAL ${calT[0]}–${calT[1]}${!isRefeed && !ctT.gated ? " · from your measured maintenance" : ""}`, v: cal, set: setCal },
-            { l: `PRO ${proteinTarget(s).g} · ${proteinTarget(s).perKg} g per kg lean`, v: pro, set: setPro },
+            { l: (() => { const p9 = proteinTarget(s); return p9.straddles ? `PRO ${p9.g} · anywhere ${p9.lo}–${p9.hi} counts` : `PRO ${p9.g} · ${p9.perKg} g per kg lean`; })(), v: pro, set: setPro },
             { l: (() => { const st9 = stepTarget(s); return st9.gated ? `STEPS ${ph.steps}` : `STEPS ${(st9.lo / 1000).toFixed(1)}–${(st9.hi / 1000).toFixed(1)}k · what your maintenance was measured at`; })(), v: stp, set: setStp },
           ].map((f, i) => (
             <div key={i} style={{ flex: 1 }}>
@@ -5681,8 +5870,14 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <div style={{ marginTop: 10 }}><Btn tone="jade" full onClick={() => { const h9 = new Date().getHours(); if (h9 < 4) { const y8 = isoOf(new Date(todayStart().getTime() - DAY)); if (window.confirm("It's after midnight — should these numbers file as YESTERDAY (" + fmtShort(y8) + ")?\n\nOK = yesterday, the day they belong to\nCancel = today")) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: cal === "" ? null : +cal, pro: pro === "" ? null : +pro, steps: stp === "" ? null : +stp, sodium: sod9, alc: +alc9 || 0 }; ns.feed.unshift({ d: y8, t: "FILED TO YESTERDAY — " + fmtShort(y8) + " logged after midnight", how: "the midnight intercept asked; the athlete chose the day it belonged to" }); setS(ns); save(ns); setDayEdit(false); return; } } saveDaily(); setDayEdit(false); }}>Log today</Btn></div>
         {dl && <div style={{ textAlign: "center", marginTop: 6 }}><span onClick={() => { if (window.confirm("Clear today's saved numbers? Use this if last night's log landed on the wrong day. Tonight's real numbers will close the day fresh.")) { const ns = JSON.parse(JSON.stringify(s)); delete ns.dailyLogs[tISO]; ns.feed.unshift({ d: tISO, t: "TODAY'S LOG CLEARED — filed in error after midnight", how: "the day reopens; tonight closes it honestly" }); setS(ns); save(ns); setCal(""); setPro(""); setStp(""); setSod9(null); setAlc9(0); } }} style={{ fontFamily: mono, fontSize: 9, color: T.dim, cursor: "pointer" }}>logged by mistake? clear today ✗</span></div>}
 
-        <More deep="175 is THE number — proximity, not a floor to beat; chronic overshoot is drift too. Calories live in a band, not a point. A protein miss opens a 24-hour fix window, and closing it EXTENDS the standard instead of resetting it — recovery speed is the metric, never an unbroken chain."
-          forYou={s.fixWindow ? "The fix window is OPEN — hitting 175 today closes it and the record extends." : "Standard intact. Log once, done — the app rewards the logging, never the checking."} />
+        <More deep="Protein is a FLOOR, not a bullseye. This card used to say the opposite — that the number was proximity and chronic overshoot was drift too — and the code behind it counted any day more than 10 g either side as a miss. Nothing supports the upper half of that: the deficit meta-regression finds a lower threshold where lean-mass loss starts rising and no upper one anywhere near this range. Eating over it costs you carbohydrate inside a fixed calorie budget, which is worth knowing and is not a failure. Calories live in a band, not a point. A shortfall opens a 24-hour fix window, and closing it EXTENDS the standard instead of resetting it — recovery speed is the metric, never an unbroken chain."
+          forYou={(() => { const p9 = proteinTarget(s); return s.fixWindow
+            ? `The fix window is OPEN — clearing ${p9.lo} g today closes it and the record extends.`
+            : p9.straddles
+              ? [`Your floor is ${p9.lo} g and the lean-subgroup number is ${p9.hi} g. Body fat reads ${p9.bf}% with a real spread of ${p9.bfLo}–${p9.bfHi}%, and the ${LEAN_SUBGROUP_BF}% line that separates those two targets sits inside it — so the honest answer is the range, and ${p9.g} is its middle.`,
+                 `Both numbers come off your ${p9.ffmKg} kg of lean mass. Neither was authored. If your lean mass moves, they move.`,
+                 "Log once, done — the app rewards the logging, never the checking."]
+              : "Standard intact. Log once, done — the app rewards the logging, never the checking."; })()} />
       </Card>
 
 )}
@@ -5831,31 +6026,20 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <div style={{ fontFamily: mono, fontSize: 10, color: T.orange, letterSpacing: "0.08em" }}>{heroToday ? "TODAY" : daysUntil(nextISO) === 1 ? "TOMORROW" : "NEXT"} · {fmtShort(nextISO)} · {sess.name.toUpperCase()}</div>
               <div style={{ fontFamily: mono, fontSize: 11.5, color: T.chalk, marginTop: 4 }}>{sess.ex.length} lifts · {sess.structural.toLowerCase()} · full plan in TRAIN</div>
             </div>
-            <span style={{ fontFamily: mono, fontSize: 9.5, color: slp.clean ? T.jade : T.brass, flexShrink: 0, textAlign: "right" }}>{slp.clean ? "records live" : "records pend"}</span>
+            {/* Was "records live / records pend" — the retired clean-sleep gate,
+                printed on the surface he opens most. Records were never gated on
+                sleep once liftCall stopped holding; see SLEEP_HOLD_NOTE. What
+                belongs here is the thing that actually decides the session. */}
+            <span style={{ fontFamily: mono, fontSize: 9.5, color: T.steel, flexShrink: 0, textAlign: "right" }}>every set counts</span>
           </div>
         </Card>
       )}
-
-      {isRefeed && (
-        <Card accent={T.jade}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <Eyebrow c={T.jade}>TODAY · ON-PLAN GREEN DAY</Eyebrow>
-              <H size={22}>Rest + Refeed</H>
-            </div>
-            <Num size={22} c={T.jade}>{REFEED.cal}</Num>
-          </div>
-          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 6 }}>{REFEED.note}. Protein still {PROTEIN}.</div>
-          <More deep="The weekly elevated-carb day refills muscle glycogen (fullness plus next-day performance), gives adherence and hormones a breather, and is prescribed — an on-plan green day that the streak logic treats as compliance, because it is."
-            forYou={(() => { const b = refeedBumps(s); return b.length ? [
-                `Your last ${b.length} refeeds moved the next morning's scale by ${Math.min(...b) > 0 ? "+" : ""}${Math.min(...b)} to +${Math.max(...b)} lb.`,
-                "That's stored carbs and water — not fat. In your record it drains back off within a couple of days.",
-                "Tomorrow you lift on this fuel: the heavy sets should feel noticeably better.",
-              ] : "Tomorrow's session runs on this fuel — the next-morning scale bump is stored carbs and water, not fat, and you lift heavier ON it."; })()} />
-        </Card>
-
-
-      )}
+      {/* The refeed card is gone with the refeed. It claimed the weekly
+          high-carb day bought glycogen, next-day performance and a hormonal
+          breather; the only matched-energy RCT in trained people was overturned
+          on reanalysis, and no isocaloric carbohydrate study has ever improved
+          strength or hypertrophy. Past refeeds stay on the record because they
+          happened. Nothing on this page prescribes another one. */}
 
 
 
@@ -5908,18 +6092,43 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           ))}
         </div>
       </Card>
+{/* ---------- COUNTDOWN_NOTE — the deadline that does not exist ----------
+    This was a CROSSOVER card: an Aug 28 date, a days-remaining counter, a
+    percentage-complete bar, and a "~158.5 at ~12%" marquee target. GOALS.md is
+    explicit — no competition or show date is set, and countdowns or urgency
+    mechanics that assume one must not be built. A progress bar filling toward a
+    date he never picked manufactures a deadline, and a deadline is the standard
+    way a cut turns into a rushed one: the deficit gets pushed to make the date,
+    and deficit MAGNITUDE is the variable most tightly linked to lean-mass loss
+    in trained people. The urgency mechanic and the goal are in direct conflict.
+
+    What survives is the part that is real: where the current measured rate
+    lands him, with the honest interval around it, and no clock. */}
 <Card>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <Eyebrow c={T.chalk}>CROSSOVER · {fmtShort(CROSSOVER).toUpperCase()}</Eyebrow>
-          <span style={{ fontFamily: mono, fontSize: 11, color: T.steel }}>{xoverIn}d · {xPct}%</span>
+          <Eyebrow c={T.chalk}>WHERE THIS PACE LANDS YOU</Eyebrow>
+          <span style={{ fontFamily: mono, fontSize: 11, color: T.steel }}>no date set</span>
         </div>
-        <div style={{ margin: "8px 0 6px" }}><Bar pct={xPct} c={T.chalk} /></div>
-        <div style={{ fontFamily: body, fontSize: 12, color: T.steel }}>~158.5 at ~12% — last cut's best with 4–5 lb more muscle. The marquee.</div>
-        <More c={T.chalk} deep="Aug 28 is the weight where last cut looked its best — except arriving with ~4–5 lb more muscle, lifts climbing instead of stalled, and zero panic adjustments on the books. Same scale number, different physique: the entire thesis compressed into one checkpoint."
-          forYou={(() => { const cr = currentRate(s); const proj = +(s.trend - cr.scale * (daysUntil(CROSSOVER) / 7)).toFixed(1); return [
-            `${daysUntil(CROSSOVER)} days out.`,
-            `At your current pace you'd arrive around ${proj} lb against the ~158.5 line — ${proj <= 159.5 ? "right on script." : "close, and the planned calorie step-down would bend the slope further by design."}`,
-            "The cone on the LAB tab shows the honest range, not just the middle guess.",
+        {(() => {
+          const cr = currentRate(s); const bfN = bfEst(s);
+          const wks = 4;
+          const proj = +(s.trend - cr.scale * wks).toFixed(1);
+          return (
+            <>
+              <div style={{ fontFamily: body, fontSize: 12, color: T.steel, marginTop: 6, lineHeight: 1.5 }}>
+                {cr.measured
+                  ? `At the ${cr.scale} lb/wk you are actually moving, four more weeks puts you near ${proj} lb. There is no date on this — you stop when the body-fat read and the mirror say stop, not when a calendar does.`
+                  : `Two clean weekly snapshots and this reads off your measured rate instead of an estimate.`}
+              </div>
+              <div style={{ fontFamily: mono, fontSize: 10, color: T.dim, marginTop: 7 }}>body fat {bfN.pct}% · honest range {bfN.lo}–{bfN.hi}%</div>
+            </>
+          );
+        })()}
+        <More c={T.chalk} deep="There is no show, no weigh-in and no date. That is a feature: the single best predictor of losing lean mass in a deficit is the size of the deficit, and the thing that makes people run a deficit too big is a date they are trying to make. Without one, the only reasons to go faster are impatience and boredom — and both of those cost muscle. The rate band, the calorie floor and the protein target are the guard rails; the finish line is a body-composition read, not a day on the calendar."
+          forYou={(() => { const cr = currentRate(s); const bfN = bfEst(s); return [
+            cr.measured ? `Measured pace ${cr.scale} lb/wk on the scale, about ${cr.fat} lb/wk of that fat-equivalent.` : "Pace still settling — two clean weekly snapshots and it goes fully measured.",
+            `Body fat reads ${bfN.pct}%, and the honest interval is ${bfN.lo}–${bfN.hi}% — that width is real, not decoration, and it narrows as the trend lengthens.`,
+            "The cone on the LAB tab shows the same thing across time.",
           ]; })()} />
       </Card>
       </Section>
@@ -6248,10 +6457,15 @@ function LogTab({ s, setS, save, slp }) {
               </div>
             )); })()}
           </div>
-          {(() => { const rp = rirPlan(s, ex, slp); const ov = s.rirOverride === tISO; return rp.why.length ? (
+          {/* The tap-to-override control is gone with the rule it overrode. Its
+              only job was cancelling the short-sleep RIR pull; with that rule
+              deleted the switch guarded nothing, and a control that does nothing
+              is worse than no control — tapping it teaches him the app is
+              theatre. The plan's reasons still print, they just are not
+              clickable any more. */}
+          {(() => { const rp = rirPlan(s, ex, slp); return rp.why.length ? (
             <div style={{ fontFamily: mono, fontSize: 9, color: T.steel, marginTop: 9 }}><Term k="rirplan" c={T.steel}>RIR plan</Term>
-              <span onClick={() => { if (slp.clean) return; const ns = JSON.parse(JSON.stringify(s)); ns.rirOverride = ov ? null : tISO; if (!ov) ns.feed.unshift({ d: tISO, t: "RIR DEBT BUFFER — OVERRIDDEN", how: "athlete call, this session only · banking rules unchanged: today still logs provisional" }); setS(ns); save(ns); }}
-                style={{ color: ov ? T.dim : T.brass, cursor: "pointer" }}> — {rp.why[0]}{!slp.clean ? " · tap to " + (ov ? "restore" : "override") : ""}</span>
+              <span style={{ color: T.brass }}> — {rp.why[0]}</span>
             </div>
           ) : null; })()}
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8 }}>
