@@ -1,37 +1,37 @@
 {
-  "gen": "2026-07-28T09:05:11.680Z",
+  "gen": "2026-07-29T09:06:32.825Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-07-28_sleep",
-      "title": "Fix lights-out: pick a time, take 7.5 h",
+      "sid": "sug_2026-07-29_ext_opener",
+      "title": "Extension: open harder — one rep in the tank, not two",
       "apply": {
-        "kind": "sleep",
-        "to": 7.5
+        "kind": "progression",
+        "to": "Extension 150: take set 1 to ~1 RIR until 9,9 lands"
       },
       "rationale": {
-        "science": "At the same deficit, short sleep (5.5 vs 8.5 h) cut fat loss ~55% and raised lean-mass loss ~60% (Nedeltcheva 2010).",
-        "data": "Last 7 nights average 7.1 h against your own 7.5 h bar (14-night average 6.9). Lights-out walked 01:00 to 01:45 to 01:45 to 02:00, and 7/26 came in at 6.2 h.",
-        "relationship": "The one lift that lost reps Monday - press 245, third set 7 to 5 - came the morning after that 6.2 h night, while rows, laterals and forearms all held or climbed. And it is not caffeine: your shortest night followed your lowest-caffeine day (200 mg). Bedtime is the lever."
+        "science": "Growth comes from sets taken to roughly 1-3 reps in reserve, and on a cut you defend load rather than chase volume (Schoenfeld 2017; Grgic 2021; Robinson 2024).",
+        "data": "Two sessions back at 150 since the 155 crater, both logged at 2 RIR, both totalling 15 reps: 6,9 on 7/24 and 8,7 on 7/28. The 9,9 that reopens 155 has not landed.",
+        "relationship": "Identical totals in a different shape means the limit is the opener, not your strength - a harder first set converts the same 15 reps into the 9,9 that reopens 155."
       },
-      "predict": "Back at 7.5 h, the press third set returns to 7 and the loss keeps coming off fat rather than lean.",
-      "confidence": "high",
+      "predict": "Next lower day the opener lands 9 and the pair reaches 9,9, reopening 155 within two sessions.",
+      "confidence": "medium",
       "gate": "approve",
       "rank": 1
     },
     {
-      "sid": "sug_2026-07-28_hold",
-      "title": "Hold the Calves 320 debut until a clean week",
+      "sid": "sug_2026-07-29_band_hold",
+      "title": "Leave the calorie band alone - that drift is your step taper",
       "apply": {
         "kind": "note"
       },
       "rationale": {
-        "science": "On a cut, defend load rather than add volume - under-recovery blunts the stimulus that preserves muscle (Schoenfeld 2017; Robinson 2024).",
-        "data": "Recovery read 45/100 on 7/27 - sleep reset 0/3, five-night average under 7 h, rep dips across the last two sessions - with Calves 320 sitting in the queue as the next structural change.",
-        "relationship": "This is your own rule (CL-3): recovery gates structural additions, even earned ones. Adding a debut load on a 45/100 week turns into missed reps, not muscle - and the press is already pending at 245."
+        "science": "Metabolic adaptation on a moderate cut is real but modest, around 50-100 kcal/day, and fades once weight stabilises - don't over-blame a plateau on metabolism (Nunes 2021).",
+        "data": "Steps ran 19.0k / 21.7k / 18.7k across the June blocks and 15.1k / 15.7k / 16.5k the last three weeks. Your own model already carries two maintenance numbers: 2,590 at hard-block steps, 2,470 at Ease-1 steps.",
+        "relationship": "The +186 kcal verdict fits one maintenance line across both step regimes at once, so it reads high - that is the planned Ease-1 taper showing up as fake adaptation. Your rate is 1.2 lb/wk and inside the band; nothing needs adding."
       },
-      "predict": "The 320 debut lands on a clean week and sticks first time; nothing you own gets contested on recovery grounds.",
-      "confidence": "medium",
+      "predict": "Holding the band keeps the rate inside 1.0-1.4 lb/wk, and the maintenance fit settles near 2,470 once a clean post-seal fortnight replaces the frozen reads.",
+      "confidence": "high",
       "gate": "approve",
       "rank": 2
     }
