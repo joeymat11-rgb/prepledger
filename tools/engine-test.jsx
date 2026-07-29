@@ -2814,5 +2814,52 @@ ok(!pg39 || pg39.done === true, "the triceps question closes on his phone, not j
 ok(!pg39 || pg39.rule.indexOf("build phase") === -1, "and stops waiting on a build phase that has no date and that he has not chosen");
 ok((pegM.feed || []).some((f) => f.t === "TRICEP QUESTION CLOSED"), "with the reasoning filed, including why the peg was never the overhead question");
 
+/* ================================================================
+   v4.0.0 — the redesign, and the evidence each choice rests on
+   ================================================================ */
+const { nowFocus: nf40, SEED: S40 } = __test;
+
+/* ---- NOW knows why he opened it. The page used to show 28 cards at 7am and
+   the same 28 at 9pm. The ACT of logging stays exactly as manual as it was —
+   burden is not simply bad, and the trial that removed the act got worse habit
+   formation and half the weight loss. What changes is the distance to it. ---- */
+const fresh40 = clone(S40);
+fresh40.reads = (fresh40.reads || []).filter((r) => r.d !== isoL(Date.now()));
+delete fresh40.dailyLogs[isoL(Date.now())];
+const am40 = nf40(fresh40, 7);
+ok(am40.phase === "MORNING", "7am reads as morning");
+ok(am40.owed.length > 0 && !am40.clear, "with something owed, so the page has a job to point at");
+ok(am40.lead.t.length > 0 && am40.lead.sub.length > 20, "the lead is one action plus why it matters, not a list");
+ok(am40.owed.some((o) => o.k === "weight"), "an unlogged scale is owed in the morning");
+/* the evening job is a different job */
+const pm40 = nf40(fresh40, 20);
+ok(pm40.phase === "EVENING", "8pm reads as evening");
+ok(pm40.owed.some((o) => o.k === "day"), "and the day's numbers become owed — they are not owed at 7am");
+ok(!am40.owed.some((o) => o.k === "day"), "specifically: closing the day is NOT nagged in the morning, when he cannot yet know the numbers");
+/* midday is neither */
+ok(nf40(fresh40, 14).phase === "MIDDAY", "the middle of the day is its own phase");
+/* nothing owed must read as nothing owed, not as an empty scold */
+const done40 = clone(S40);
+done40.reads = [...(done40.reads || []), { d: isoL(Date.now()), w: 164.5, sealed: false }];
+/* owedNights deliberately asks for at most TWO nights at a time so a long gap
+   never lands as a wall of work — so filling it reveals the next one. Loop. */
+for (let g = 0; g < 6; g++) {
+  const owe = __test.owedNights(done40, 20);
+  if (!owe.length) break;
+  owe.forEach((d) => { done40.sleep.nights.push({ d, h: 7.5, bed: "01:30", wake: "09:00", sol: 10 }); });
+}
+done40.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
+ok(__test.owedNights(done40, 20).length === 0, "the ask caps at two nights at a time, so a long gap never lands as a wall of work");
+done40.dailyLogs[isoL(Date.now())] = { cal: 1900, pro: 180, steps: 16000 };
+done40.dailyLogs[isoL(Date.now() - 864e5)] = { cal: 1900, pro: 180, steps: 16000 };
+const clear40 = nf40(done40, 20);
+ok(clear40.clear === true && clear40.owed.length === 0, "with everything filed it says nothing is owed");
+ok(clear40.lead.t.indexOf("closed") > -1 || clear40.lead.t.indexOf("Nothing") > -1, "in plain words rather than an empty state: " + clear40.lead.t);
+/* a missed yesterday is surfaced, because a gap in the record is the one thing
+   that cannot be recovered later */
+const late40 = clone(done40);
+delete late40.dailyLogs[isoL(Date.now() - 864e5)];
+ok(nf40(late40, 9).owed.some((o) => o.k === "yesterday"), "an unclosed yesterday is raised the next morning, when it can still be filed honestly");
+
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

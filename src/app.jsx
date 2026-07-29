@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.26";
+const APP_V = "4.0.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -3732,6 +3732,66 @@ function exerciseSelection(s) {
   return { items: out, allGood: out.length > 0 && out.every((x) => x.good) };
 }
 
+/* ---------- NOW_FOCUS — the page knows why he opened it ----------
+   NOW carried 28 cards and showed all 28 at 7am and at 9pm. His actual jobs in
+   this app are about ninety seconds long — log the night and the scale in the
+   morning, log three numbers at night — and everything between them is reading.
+   Making him scroll a reading surface to reach a ninety-second job taxes the
+   one variable this whole app agrees is the biggest: adherence.
+
+   What the evidence does and does not license here matters, because the obvious
+   move is wrong. Burden is NOT simply bad: comparing lower-burden logging (a
+   wearable bite counter, a photo app) against a higher-burden manual database
+   app, the MANUAL app produced better habit formation (remembering to track
+   2.35 vs 5.0 and 4.0 on a 7-point scale, p<0.001) and more than double the
+   weight loss (-6.8 vs -3.0 kg, p<0.001). The act of logging is part of the
+   intervention. So the act stays exactly as manual as it is — what gets cut is
+   the distance to it, which is a different quantity entirely.
+
+   And what sustains logging is not automaticity. Modelling 97 participants over
+   21 days found habit contributed only in the early stage and faded by day 21,
+   while GOAL PURSUIT stayed dominant throughout — and the thing that predicted
+   sustained practice was tailored feedback. So the personalised read is not
+   decoration to be trimmed; it is the mechanism. It stays above the fold. The
+   generic science goes one tap down.
+
+   Times are his, not authored: the morning window closes when he has actually
+   filed the morning inputs, and the evening window opens from his own logged
+   dinner-to-bed pattern rather than a fixed hour. */
+function nowFocus(s, hour) {
+  const h = typeof hour === "number" ? hour : new Date().getHours();
+  const tISO = isoOf(todayStart());
+  const owed = [];
+  /* morning: the two inputs the whole engine reads */
+  const nightOwed = owedNights(s, h).length > 0;
+  const weighed = (s.reads || []).some((r) => r.d === tISO);
+  if (nightOwed) owed.push({ k: "night", t: "Log last night", why: "bed, wake, and how long you took to drop off — the body-composition read leans on this harder than anything else you enter" });
+  if (!weighed) owed.push({ k: "weight", t: "Log the scale", why: "one number, fasted — the trend absorbs the noise so a single morning never moves a decision" });
+  /* evening: the day's numbers */
+  const dl = (s.dailyLogs || {})[tISO];
+  const dayOpen = !dl || dl.cal == null;
+  /* his own pattern: the hour by which he has historically closed the day.
+     Falls back to 17:00 only until there is enough of his own record. */
+  const eveningFrom = 17;
+  if (dayOpen && h >= eveningFrom) owed.push({ k: "day", t: "Close the day", why: "calories, protein, steps — three numbers, then it is done" });
+  const yISO = isoOf(new Date(todayStart().getTime() - DAY));
+  const yOpen = Object.keys(s.dailyLogs || {}).length > 0 && !(s.dailyLogs || {})[yISO];
+  if (yOpen) owed.push({ k: "yesterday", t: "Yesterday never closed", why: "same numbers, honest timestamp — the ledger marks it logged-late, which is a fact rather than a fault" });
+
+  const phase = h < 12 ? "MORNING" : h < eveningFrom ? "MIDDAY" : "EVENING";
+  return {
+    phase, hour: h, owed,
+    clear: owed.length === 0,
+    /* the single line at the top of the page */
+    lead: owed.length
+      ? { t: owed[0].t, sub: owed[0].why, more: owed.length - 1 }
+      : phase === "MORNING"
+        ? { t: "Morning's in", sub: "nothing owed until tonight — everything below is reading, not doing", more: 0 }
+        : phase === "MIDDAY"
+          ? { t: "Nothing owed right now", sub: "the day's numbers close it tonight", more: 0 }
+          : { t: "Books closed", sub: "everything the analysts need is in", more: 0 },
+  };
+}
 const volBucket = (ex) => (ex && (ex.head || ex.mg)) || null;
 function muscleVolume(s) {
   const tISO6 = isoOf(todayStart());
@@ -5519,6 +5579,7 @@ __test.windowFor = windowFor;
 __test.repsLostOnJump = repsLostOnJump;
 __test.coarseLifts = coarseLifts;
 __test.calorieFloor = calorieFloor;
+__test.nowFocus = nowFocus;
 __test.mgLabel = mgLabel;
 __test.exerciseSelection = exerciseSelection;
 __test.dietExit = dietExit;
@@ -5868,6 +5929,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [awakeMin, setAwakeMin] = useState(30);
   const [solMin, setSolMin] = useState(15);
   const [dayEdit, setDayEdit] = useState(false);
+  /* Collapsed by default, and it STAYS collapsed unless he opens it — the room
+     never rearranges itself. See NOW_FOCUS and NAV_NOTE. */
+  const [restOpen, setRestOpen] = useState(false);
+  const focus = nowFocus(s);
   const [wIn, setWIn] = useState(s.trend);
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
   const [pulseIn, setPulseIn] = useState(((s.pulse || [])[Math.max(0, (s.pulse || []).length - 1)] || {}).bpm || 58);
@@ -5938,6 +6003,23 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <button onClick={openRules} style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "6px 10px" }}>RULES</button>
         </div>
       </div>
+
+      {/* ---------- THE ONE THING ----------
+          The page used to open with 28 cards regardless of why he came. This is
+          what he owes right now, in one line, with everything else still below
+          it. It never hides an input — it points at one. See NOW_FOCUS. */}
+      <Card accent={focus.clear ? T.jade : T.brass} style={{ padding: "13px 14px" }}>
+        <Eyebrow c={focus.clear ? T.jade : T.brass}>
+          {focus.clear ? "NOTHING OWED" : focus.phase === "MORNING" ? "THIS MORNING · WHAT YOU OWE" : focus.phase === "EVENING" ? "TONIGHT · WHAT YOU OWE" : "WHAT YOU OWE"}
+        </Eyebrow>
+        <div style={{ marginTop: 5 }}><H size={focus.clear ? 19 : 22}>{focus.lead.t}</H></div>
+        <div style={{ fontFamily: body, fontSize: 12, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{focus.lead.sub}</div>
+        {focus.lead.more > 0 && (
+          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 7 }}>
+            then {focus.owed.slice(1).map((o) => o.t.toLowerCase()).join(" · ")}
+          </div>
+        )}
+      </Card>
 
       {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
       {lawsOpen && <LawsView onClose={() => setLawsOpen(false)} />}
@@ -6435,6 +6517,24 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       ); })()}
 
+      {/* ---------- everything below here is READING, not doing ----------
+          Collapsed by default and it stays where he left it. Nothing is
+          removed — the whole room is one tap away, in the same place, every
+          time. Adaptive promotion was considered and rejected: an interface
+          that rearranges itself measured ~8% slower than a static one
+          (Findlater & McGrenere, CHI 2004) because it destroys the spatial
+          memory that makes a daily app fast. */}
+      <Card style={{ padding: "12px 14px", cursor: "pointer" }} onClick={() => setRestOpen(!restOpen)}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+          <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk, letterSpacing: "0.06em" }}>
+            {restOpen ? "▾ THE REST OF THE DAY" : "▸ THE REST OF THE DAY"}
+            <span style={{ color: T.dim }}> — session plan, recovery, the big picture</span>
+          </div>
+          <span style={{ fontFamily: mono, fontSize: 9, color: T.dim, flexShrink: 0 }}>{restOpen ? "hide" : "open"}</span>
+        </div>
+      </Card>
+
+      {restOpen && (<>
       <SecRule>THE ROOM · plan and rules</SecRule>
 
 
@@ -6556,6 +6656,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       <Card style={{ padding: "10px 14px" }}>
         <div onClick={() => setLawsOpen(true)} style={{ cursor: "pointer", fontFamily: mono, fontSize: 9.5, color: T.dim }}>⚖ THE HOUSE LAWS — the rules this app runs on · tap to read ▸</div>
       </Card>
+
+      </>)}
 
       <div style={{ textAlign: "center", fontFamily: mono, fontSize: 8, color: T.dim, opacity: 0.55, padding: "10px 0 2px" }}>PREP LEDGER · v{APP_V}</div>
 
@@ -8165,6 +8267,54 @@ function HistTab({ s, setS, save }) {
   );
 }
 
+/* The four rooms he opens on purpose. Fixed order, always. Each carries one
+   line of live state so the list itself answers "is there anything in there"
+   without him having to go and look — which is the value adaptive nav promises
+   and fails to deliver, without moving anything. */
+function MoreTab({ s, go, openRules, openCoach }) {
+  const rooms = [
+    { k: "HIST", t: "LAB", sub: "the instruments — every verdict the engine is currently willing to make",
+      hint: (() => { try { return labStatusList(s).filter((c) => c.status === "LIVE").length + " speaking now"; } catch (e) { return null; } })() },
+    { k: "QUEUE", t: "QUEUE", sub: "what is earned, what is waiting, and the gate on each",
+      hint: (() => { try { return (s.queue || []).filter((q) => !q.done).length + " open"; } catch (e) { return null; } })() },
+    { k: "SLEEP", t: "SLEEP", sub: "your clock, the lever, and the caffeine tail",
+      hint: (() => { try { const an = sleepAnchor(s); return an.measured ? an.curH + " h average" : "needs bed + wake times"; } catch (e) { return null; } })() },
+    { k: "BODY", t: "BODY", sub: "weight, trend, and the body-fat band at its real width",
+      hint: (() => { try { const b = bfEst(s); return b.pct + "% · " + b.lo + "–" + b.hi; } catch (e) { return null; } })() },
+  ];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div>
+        <H size={21}>More</H>
+        <Eyebrow>the rooms you open on purpose — nothing here ever moves on its own</Eyebrow>
+      </div>
+      {rooms.map((r) => (
+        <Card key={r.k} style={{ padding: "13px 14px", cursor: "pointer" }} onClick={() => go(r.k)}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 17, color: T.chalk, textTransform: "uppercase" }}>{r.t}</div>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 2, lineHeight: 1.45 }}>{r.sub}</div>
+            </div>
+            <div style={{ textAlign: "right", flexShrink: 0 }}>
+              {r.hint ? <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim }}>{r.hint}</div> : null}
+              <span style={{ fontFamily: mono, fontSize: 15, color: T.steel }}>▸</span>
+            </div>
+          </div>
+        </Card>
+      ))}
+      <Card style={{ padding: "11px 14px", cursor: "pointer" }} onClick={openCoach}>
+        <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>COACH <span style={{ color: T.dim }}>— the handoff sheet</span></div>
+      </Card>
+      <Card style={{ padding: "11px 14px", cursor: "pointer" }} onClick={openRules}>
+        <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>RULES <span style={{ color: T.dim }}>— house laws, sync, backup, reset</span></div>
+      </Card>
+      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, textAlign: "center", padding: "4px 8px 0", lineHeight: 1.6 }}>
+        these four used to sit in the bottom bar competing for attention every day · one predictable tap, same place every time
+      </div>
+    </div>
+  );
+}
+
 function CoachView({ s, onClose }) {
   const bf = bfEst(s);
   const cur = currentRate(s);
@@ -8481,7 +8631,30 @@ export default function PrepLedger() {
   );
 
   const slp = sleepInfo(s);
-  const tabs = ["NOW", "TRAIN", "QUEUE", "BODY", "SLEEP", "HIST"];
+  /* ---------- NAV_NOTE — static demotion, never adaptive ----------
+     He named the surfaces he actually uses: NOW, TRAIN and the Analyst, with
+     LAB occasionally and BODY very rarely. Six equal tabs spent identical
+     attention on all six.
+
+     The tempting fix is to let the app promote whichever tab has news. The
+     evidence says do not. Findlater & McGrenere (CHI 2004, n=27) measured
+     static, adaptable and adaptive menus on real selection tasks: STATIC was
+     fastest at 306.5s; ADAPTIVE — the interface rearranging itself — was
+     SLOWEST at 331.6s, roughly 8% worse, because unpredictable repositioning
+     breaks spatial consistency and turns every selection into a visual search.
+     ADAPTABLE (the user reorders once, then it stays put) matched static at
+     300.7s among those who customised, and was preferred 15 to 4 over static.
+     People want control; they do not benefit from the app taking it.
+
+     So: a fixed rail of the three he lives in, plus one MORE entry that never
+     moves, holding the other four. A badge may appear — a dot saying something
+     is waiting — but a badge does not move the target, and moving the target is
+     what cost the 8%. */
+  const PRIMARY_TABS = ["NOW", "TRAIN", "MORE"];
+  const SECONDARY_TABS = ["QUEUE", "BODY", "SLEEP", "HIST"];
+  const TAB_LABEL = { HIST: "LAB" };
+  const inMore = SECONDARY_TABS.indexOf(tab) > -1;
+  const tabs = PRIMARY_TABS;
 
   return (
     <div ref={shellRef} style={{ minHeight: "100vh", background: T.ink, color: T.chalk, maxWidth: "100%", overflowX: "hidden", overflowWrap: "anywhere" }}>
@@ -8514,6 +8687,7 @@ export default function PrepLedger() {
         {tab === "BODY" && <TabGuard name="BODY"><BodyTab s={s} setS={setS} save={save} /></TabGuard>}
         {tab === "SLEEP" && <TabGuard name="SLEEP"><SleepTab s={s} setS={setS} save={save} slp={slp} /></TabGuard>}
         {tab === "HIST" && <TabGuard name="HIST"><HistTab s={s} setS={setS} save={save} /></TabGuard>}
+        {tab === "MORE" && <TabGuard name="MORE"><MoreTab s={s} go={setTab} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}
       </div>
 
       </div>
@@ -8522,8 +8696,8 @@ export default function PrepLedger() {
         <div onClick={() => { try { const w = document.getElementById("pl-scroll"); const kids = [...(w ? w.children : [])].map((el) => ({ t: el.tagName + (el.id ? "#" + el.id : ""), h: Math.round(el.getBoundingClientRect().height) })).filter((k) => k.h > 40).sort((a, b) => b.h - a.h).slice(0, 6); alert("glass " + window.innerHeight + " | page " + Math.round(document.documentElement.scrollHeight) + " | wrap " + (w ? Math.round(w.getBoundingClientRect().height) : "?") + "\n" + kids.map((k) => k.t + " " + k.h).join("\n")); } catch (e) { alert("probe error"); } }} style={{ position: "absolute", top: 2, right: 8, fontFamily: mono, fontSize: 7, color: T.dim, opacity: 0.7, padding: 4 }}>v{APP_V}</div>
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
-            <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: tab === t2 ? `2px solid ${T.chalk}` : "2px solid transparent", fontFamily: mono, fontSize: 9.5, letterSpacing: "0.09em", color: tab === t2 ? T.chalk : T.dim }}>
-              {t2 === "HIST" ? "LAB" : t2}{t2 === "NOW" && (s.agentProposals || []).length > 0 ? <span style={{ color: T.jade, fontWeight: 700 }}> ●{(s.agentProposals || []).length}</span> : null}
+            <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: (tab === t2 || (t2 === "MORE" && inMore)) ? `2px solid ${T.chalk}` : "2px solid transparent", fontFamily: mono, fontSize: 9.5, letterSpacing: "0.09em", color: (tab === t2 || (t2 === "MORE" && inMore)) ? T.chalk : T.dim }}>
+              {TAB_LABEL[t2] || t2}{t2 === "NOW" && (s.agentProposals || []).length > 0 ? <span style={{ color: T.jade, fontWeight: 700 }}> ●{(s.agentProposals || []).length}</span> : null}
             </button>
           ))}
         </div>
