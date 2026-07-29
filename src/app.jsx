@@ -48,7 +48,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.5";
+const APP_V = "4.0.6";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -6790,15 +6790,15 @@ function LogTab({ s, setS, save, slp }) {
       )}
       <div style={{ display: "flex", gap: 8, overflowX: "auto", touchAction: "pan-x", paddingBottom: 2 }}>
         {dateSel && !options.includes(dateSel) && (
-          <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>
+          <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: TS.label, letterSpacing: "0.05em", padding: "10px 8px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>
             ✓ {fmtShort(dateSel)} · RECEIPT
           </button>
         )}
         {logged && !options.includes(dateSel) && (
-          <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>✓ {fmtShort(dateSel)} · RECEIPT</button>
+          <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: TS.label, letterSpacing: "0.05em", padding: "10px 8px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>✓ {fmtShort(dateSel)} · RECEIPT</button>
         )}
         {options.map((d) => (
-          <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setRirEnd({}); setPace(null); setNote(""); setNig([]); setSkipped({}); }} style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.05em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : s.sessionLog[d] ? T.jade : T.steel }}>
+          <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setRirEnd({}); setPace(null); setNote(""); setNig([]); setSkipped({}); }} style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: TS.label, letterSpacing: "0.05em", padding: "10px 8px", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : s.sessionLog[d] ? T.jade : T.steel }}>
             {s.sessionLog[d] ? "✓ " : ""}
             {fmtShort(d)} · {dayType(d) === "U" ? "UPPER" : "LOWER"}
           </button>
@@ -7081,7 +7081,7 @@ function LogTab({ s, setS, save, slp }) {
               {ex.prev.debt && <span style={{ color: T.brass }}> · <Term k="debt" c={T.brass}>short night</Term></span>}
             </div>
           )}
-          {ex.note && <div style={{ fontFamily: mono, fontSize: 10, color: ex.isDebutNow || (ex.note || "").startsWith("OWN") ? T.orange : T.dim, marginTop: 3, letterSpacing: "0.04em" }}>{ex.note}</div>}
+          {ex.note && <div style={{ fontFamily: mono, fontSize: TS.label, color: ex.isDebutNow || (ex.note || "").startsWith("OWN") ? T.orange : T.dim, marginTop: 3, letterSpacing: "0.04em" }}>{ex.note}</div>}
           {ex.setup && (
             <div style={{ marginTop: 7 }}>
               <button onClick={() => setShowSetup({ ...showSetup, [ex.id]: !showSetup[ex.id] })}
@@ -7089,10 +7089,10 @@ function LogTab({ s, setS, save, slp }) {
                 {showSetup[ex.id] ? "▾ SETUP + CUES" : "▸ SETUP + CUES"}
               </button>
               {showSetup[ex.id] && ex.setup.split("\n").map((l, i) => (
-                <div key={i} style={{ fontFamily: mono, fontSize: 10, color: i === 0 ? T.chalk : T.steel, marginTop: i === 0 ? 6 : 4, lineHeight: 1.55 }}>{l}</div>
+                <div key={i} style={{ fontFamily: mono, fontSize: TS.label, color: i === 0 ? T.chalk : T.steel, marginTop: i === 0 ? 6 : 4, lineHeight: 1.55 }}>{l}</div>
               ))}
               {showSetup[ex.id] && ex.live && (
-                <div style={{ fontFamily: mono, fontSize: 10, color: ex.isDebutNow ? T.orange : T.jade, marginTop: 5, lineHeight: 1.55 }}>NOW ▸ {ex.live}</div>
+                <div style={{ fontFamily: mono, fontSize: TS.label, color: ex.isDebutNow ? T.orange : T.jade, marginTop: 5, lineHeight: 1.55 }}>NOW ▸ {ex.live}</div>
               )}
             </div>
           )}
