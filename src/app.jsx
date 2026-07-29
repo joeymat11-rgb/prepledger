@@ -27,6 +27,13 @@ const body = "'Barlow', system-ui, sans-serif";
    something bigger, move it to the right role here — do not invent a new number. */
 const TS = { display: 26, title: 16, body: 12.5, label: 11, micro: 10 };
 
+/* ---------- spacing — 4px baseline, 8px rhythm ----------
+   One constrained scale for every gap and pad. Whitespace encodes relationship:
+   tight within a group, generous between groups (Gestalt proximity; Refactoring
+   UI). Snap paddings/gaps to these so the whole surface shares one vertical
+   rhythm instead of ~a dozen ad-hoc pixel values. */
+const SP = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 };
+
 /* ---------- date utils ---------- */
 const DAY = 86400000;
 const mk = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
@@ -41,7 +48,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.2";
+const APP_V = "4.0.3";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -5690,7 +5697,7 @@ const Stamp = ({ st }) => (
   <span style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.14em", color: stampColor(st), border: `1px solid ${stampColor(st)}`, borderRadius: 3, padding: "2px 6px", whiteSpace: "nowrap" }}>{STAMP_LABEL[st] || st}</span>
 );
 const Card = ({ children, style = {}, accent, ...rest }) => (
-  <div {...rest} style={{ background: T.plate, border: `1px solid ${T.line}`, borderLeft: accent ? `3px solid ${accent}` : `1px solid ${T.line}`, borderRadius: 8, padding: 14, ...style }}>{children}</div>
+  <div {...rest} style={{ background: T.plate, border: `1px solid ${T.line}`, borderLeft: accent ? `3px solid ${accent}` : `1px solid ${T.line}`, borderRadius: 8, padding: SP.lg, ...style }}>{children}</div>
 );
 const Cond = ({ how, when }) => (
   <div style={{ marginTop: 12, padding: "10px 12px", background: T.plate2, borderRadius: 8, border: `1px solid ${T.line}` }}>
@@ -5701,8 +5708,8 @@ const Cond = ({ how, when }) => (
   </div>
 );
 const SecRule = ({ children }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "22px 2px 8px" }}>
-    <span style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.18em", color: T.dim, whiteSpace: "nowrap" }}>{children}</span>
+  <div style={{ display: "flex", alignItems: "center", gap: SP.md, margin: `${SP.xl}px 2px ${SP.sm}px` }}>
+    <span style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, letterSpacing: "0.2em", color: T.steel, whiteSpace: "nowrap" }}>{children}</span>
     <span style={{ flex: 1, height: 1, background: T.line }} />
   </div>
 );
@@ -6002,7 +6009,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <div>
-          <H size={21}>Prep Ledger</H>
+          <H size={24}>Prep Ledger</H>
           {/* The band, not just the point. bfEst has carried lo/hi since the
               drip was zeroed, but the interval only ever showed on BODY — a tab
               he says he very rarely opens. A naked "BF 12%" on the page he
@@ -6010,12 +6017,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               a couple of points of width on it, and hiding that width is
               exactly the "misleading read of the athlete's state" GOALS.md
               calls a regression. */}
-          <Eyebrow>WK {wd.wk} · D{wd.day} · {s.phase} · BF {bf.pct}% <span style={{ color: T.dim }}>({bf.lo}–{bf.hi})</span></Eyebrow>
+          <div style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, marginTop: SP.sm, textTransform: "uppercase" }}>WK {wd.wk} · D{wd.day} · {s.phase} · BF {bf.pct}%<span style={{ color: T.dim }}> ({bf.lo}–{bf.hi})</span></div>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           
-          <button onClick={openCoach} style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "6px 10px" }}>COACH</button>
-          <button onClick={openRules} style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "6px 10px" }}>RULES</button>
+          <button onClick={openCoach} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "7px 11px" }}>COACH</button>
+          <button onClick={openRules} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "7px 11px" }}>RULES</button>
         </div>
       </div>
 
@@ -6023,14 +6030,14 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           The page used to open with 28 cards regardless of why he came. This is
           what he owes right now, in one line, with everything else still below
           it. It never hides an input — it points at one. See NOW_FOCUS. */}
-      <Card accent={focus.clear ? T.jade : T.brass} style={{ padding: "13px 14px" }}>
+      <Card accent={focus.clear ? T.jade : T.brass} style={{ padding: SP.lg }}>
         <Eyebrow c={focus.clear ? T.jade : T.brass}>
           {focus.clear ? "NOTHING OWED" : focus.phase === "MORNING" ? "THIS MORNING · WHAT YOU OWE" : focus.phase === "EVENING" ? "TONIGHT · WHAT YOU OWE" : "WHAT YOU OWE"}
         </Eyebrow>
-        <div style={{ marginTop: 5 }}><H size={focus.clear ? 19 : 22}>{focus.lead.t}</H></div>
-        <div style={{ fontFamily: body, fontSize: 12, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{focus.lead.sub}</div>
+        <div style={{ marginTop: SP.sm }}><H size={focus.clear ? 20 : 24}>{focus.lead.t}</H></div>
+        <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: 1.5 }}>{focus.lead.sub}</div>
         {focus.lead.more > 0 && (
-          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 7 }}>
+          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.dim, marginTop: SP.sm, letterSpacing: "0.04em" }}>
             then {focus.owed.slice(1).map((o) => o.t.toLowerCase()).join(" · ")}
           </div>
         )}
