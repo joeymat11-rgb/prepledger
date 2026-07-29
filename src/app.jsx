@@ -68,16 +68,16 @@ const EXERCISES = [
   { id: "pulldown", mg: "back", lastMeta: { d: "2026-07-20", w: 160, reps: [8, 8], debt: true }, n: "Pulldown", day: "U", w: 160, inc: 5, sets: 2, hi: 10, last: [8, 8],
     setup: "SET · silver bar · thumbs in the same spot every session\nSame grip = comparable reps · chest up, elbows down-and-in · strapless" },
   { id: "sulek", mg: "forearms", lastMeta: { d: "2026-07-20", w: 87.5, reps: [12, 8], debt: true }, n: "Sulek curl (forearm)", day: "U", w: 87.5, inc: 2.5, sets: 2, hi: 15, last: [12, 8],
-    setup: "SET · cable, highest rung · straight bar\nSam Sulek's signature — strict curl biasing the forearm flexors · elbows quiet, slow negative" },
+    setup: "SET · cable, highest rung · straight bar\nSam Sulek's signature — strict curl biasing the forearm flexors · elbows quiet, control the weight rather than drop it" },
   { id: "tricep", mg: "triceps", lastMeta: { d: "2026-07-20", w: 55, reps: [12, 11, 10], debt: true }, n: "Tricep", day: "U", w: 55, inc: 5, sets: 3, hi: 13, last: [12, 11, 10],
     setup: "SET · seat 4 · back pad all the way forward · middle peg through the cut\nElbows pinned · bottom-peg stretch waits for the build phase" },
   { id: "pronated", mg: "forearms", lastMeta: { d: "2026-07-20", w: 40, reps: [12, 11], debt: true }, n: "Pronated EZ curl", day: "U", w: 40, inc: 5, sets: 2, hi: 13, last: [12, 11],
-    setup: "SET · EZ bar, pronated grip\nElbows pinned to sides, zero swing · wrists locked — don't let them bend back under load · 2–3 s negative, that's where this one grows · your 11,6 session was the hot-opener demo" },
+    setup: "SET · EZ bar, pronated grip\nElbows pinned to sides, zero swing · wrists locked — don't let them bend back under load · your 11,6 session was the hot-opener demo" },
   /* LOWER — order per the 7/17 & 7/21 notes, identical both days */
   { id: "calves", mg: "calves", lastMeta: { d: "2026-07-21", w: 315, reps: [12, 10, 9, 8], debt: true }, n: "Calves", day: "L", w: 315, inc: 5, sets: 4, hi: 13, last: [12, 10, 9, 8], reclaim: [13, 12, 11, 10],
     setup: "SET · shoulder height 4\n5 s pause in the stretched position · back up to neutral · no bounce out of the hole — the pause IS the rep · drive through the big toe" },
   { id: "abs", mg: "abs", lastMeta: { d: "2026-07-21", w: 95, reps: [14, 13, 13], debt: true }, n: "Abs", day: "L", w: 100, inc: 5, sets: 3, hi: 14, last: null, first: [12, 12, 12], debutNote: "DEBUT — new baseline, log honest",
-    setup: "SET · back pad A · seat 6\nSame tempo every session — the load only moves on clean, even reps" },
+    setup: "SET · back pad A · seat 6\nThe load only moves on clean, even reps — consistency of execution, not of speed" },
   { id: "hanging", mg: "abs", lastMeta: { d: "2026-07-21", w: "BW", reps: [6, 5], debt: true }, n: "Hanging raise", day: "L", w: "BW", inc: null, sets: 2, hi: 8, last: [6, 5],
     setup: "SET · bodyweight\nSlouch down/out to engage the core at rep 1 · constant tension, spine stays rounded · no swing between reps" },
   { id: "hack", mg: "quads", lastMeta: { d: "2026-07-21", w: "hold", reps: [13, 12], debt: true }, n: "Hack squat", day: "L", w: "hold", inc: 10, sets: 2, hi: 12, last: null, pendingThird: true,
@@ -214,7 +214,12 @@ function weekRollups() {
       avgW: ws.length ? +avg(ws).toFixed(1) : null,
       avgCal: cals.length ? Math.round(avg(cals)) : null,
       avgPro: pros.length ? Math.round(avg(pros)) : null,
-      proHit: pros.filter((p) => Math.abs(p - 175) <= 10).length, proN: pros.length,
+      /* Historic weeks were graded against an authored 175 +/- 10 while live
+         weeks used the derived floor, so one screen summed two standards. These
+         rollups are built at module load with no state to derive from, so they
+         carry the raw values and the hit count is computed by rollupHits() at
+         the call sites, where the derived floor exists. */
+      pros, proN: pros.length,
       avgSteps: stepsA.length ? +(avg(stepsA) / 1000).toFixed(1) : null,
       avgSlp: slps.length ? +avg(slps).toFixed(1) : null,
       flags: rows.filter((r) => r.flag && r.flag !== "track").length,
@@ -222,6 +227,8 @@ function weekRollups() {
   });
 }
 const ROLLUPS = weekRollups();
+/* One standard for every week on screen, historic or live. */
+function rollupHits(w, floor) { return (w.pros ? w.pros.filter((p) => proteinHit(floor, p)).length : (w.proHit || 0)); }
 
 /* ============================================================
    ENGINE — pure functions
@@ -308,7 +315,7 @@ function liftCall(s, exId, opts = {}) {
   for (let i = honest.length - 1; i >= 1; i--) { if (honest[i].tot <= honest[i - 1].tot && (honest[i].rir == null || honest[i].rir <= 2)) stall++; else break; }
   if (stall) R2.push(`${stall} session${stall > 1 ? "s" : ""} in a row without beating your total — honestly fought; party, estimate, rushed and short-sleep days not counted.`);
   if (rushedN) R2.push(`${rushedN} of your last ${clean.length} on this lift ${rushedN === 1 ? "was" : "were"} logged rushed — short rest costs you reps on the back sets, so ${rushedN === 1 ? "it does" : "they do"} not count toward a stall.`);
-  if (debtN) R2.push(`${debtN} of your last ${clean.length} ran on short sleep — worth about 3% on a heavy set and closer to 10% on a long one, so ${debtN === 1 ? "it does" : "they do"} not count toward a stall either. ${debtN === 1 ? "It still counts" : "They still count"} for reps, records and every trend on this page.`);
+  if (debtN) R2.push(`${debtN} of your last ${clean.length} ran on short sleep — worth about 2.85% on strength — inside the test-retest error, so it is context for reading the day, not a reason to change it, so ${debtN === 1 ? "it does" : "they do"} not count toward a stall either. ${debtN === 1 ? "It still counts" : "They still count"} for reps, records and every trend on this page.`);
   const slp2 = sleepInfo(s);
   const lastN = s.sleep.nights[s.sleep.nights.length - 1];
   if (lastN) R2.push(`Last night: ${lastN.h} hours` + (lastN.sol != null ? `, took about ${lastN.sol} min to fall asleep.` : "."));
@@ -1559,7 +1566,14 @@ function dietExit(s) {
   const td = observedTDEE(s);
   const ct = calorieTarget(s);
   const bf = bfEst(s);
-  const started = (s.targets || {}).exitStart || null;
+  /* The hold clock only means something if something can start it. Nothing
+     wrote exitStart, so readReady/decideReady were permanently false and the
+     plan promised two milestones that could never arrive. It now reads the
+     feed — the same place every other dated decision in this app lives — so
+     applying the exit proposal starts the clock without a new storage field. */
+  const started = (s.targets || {}).exitStart
+    || (((s.feed || []).filter((f) => f.t === "DIET EXIT — MAINTENANCE HELD").pop() || {}).d)
+    || null;
   if (!td) {
     return { gated: true, started, why: "Your maintenance is not measured yet, and the whole point of this plan is that the number you step up to is YOURS. Two clean weekly snapshots and it prints." };
   }
@@ -2131,8 +2145,8 @@ function labAnalytics(s) {
     lines: ["engine ships with the September program push"] });
   out.push({ id: "debutmodel", t: "DEBUT-READINESS MODEL", status: "LOCKED", prog: null,
     tag: "Learns the exact conditions under which your debuts land.",
-    deep: "Sleep, refeed distance, recovery score at each debut vs its outcome — a trained gate replacing the hand-tuned sleep-only one, once ~15 build-phase debuts exist to learn from.",
-    forYou: "The current sleep-clean gate is the hand-tuned version and it has not been wrong yet.",
+    deep: "Recovery signals and prior-session context at each debut versus its outcome, once ~15 build-phase debuts exist to learn from. There is no sleep gate to replace any more — that rule was retired for having no evidence behind it — so what this would learn is whether ANY pre-session signal predicts how a debut lands, which is currently an open question rather than an assumed yes.",
+    forYou: "Nothing gates a debut today. It runs when it wins the day's structural slot, and the first outing carries no rep expectations — which is the honest default until something is shown to predict better.",
     lines: ["needs ~15 build-phase debuts"] });
 
   const rank = { LIVE: 0, ARMED: 1, LOCKED: 2 };
@@ -2416,17 +2430,32 @@ function medianSOL(s) {
   if (sols.length < 5) return 15;
   return sols[Math.floor(sols.length / 2)];
 }
-/* lights-out derived from ASLEEP target + measured drift-off time */
+/* ---------- LIGHTS_OUT_NOTE — the second bedtime the app was printing ----------
+   This derived lights-out by counting backwards from s.sleep.anchor.wake, which
+   is the authored 06:45 the sleep audit removed everywhere else. The result was
+   two bedtimes in one app: the sleep card said "THE LEVER — lights out 1:20 AM"
+   from his measured clock, while NOW's daily protocol said "lights out ~10:35 PM,
+   wake ~6:45 AM" from the constant. Two hours forty-five minutes apart, same day,
+   same screen session. Whichever he believed, the other one was lying to him.
+
+   It also poisoned the caffeine tail: evaluating residual mg at 22:35 instead of
+   his real ~01:45 overstated what is still aboard at lights-out by roughly half.
+
+   The wake reference is now his measured median, and the target is his own
+   cleanH rather than a separate asleepTarget that nothing else reads. The
+   authored anchor survives only as a fallback for a state with no timed nights,
+   which is the one case where there is genuinely nothing better to use. */
 function lightsOutT(s) {
   const ov = ((s.dayCtx || {})[isoOf(todayStart())] || {}).lightsOut;
-  if (ov) { const [oh, om] = ov.split(":").map(Number); return { t: ov, mins: oh * 60 + om, target: (s.sleep.anchor || {}).asleepTarget || 8, sol: medianSOL(s), override: true }; }
-  const a = s.sleep.anchor || { wake: "06:45" };
-  const target = a.asleepTarget || 8;
-  const sol = medianSOL(s);
-  const wm = a.wake.split(":").map(Number);
+  const an = sleepAnchor(s);
+  const target = an.measured ? an.target : (((s.sleep || {}).anchor || {}).asleepTarget || ((s.sleep || {}).cleanH) || 8);
+  const sol = an.measured && an.sol != null ? an.sol : medianSOL(s);
+  if (ov) { const [oh, om] = ov.split(":").map(Number); return { t: ov, mins: oh * 60 + om, target, sol, override: true, wakeRef: an.measured ? an.wake : ((s.sleep || {}).anchor || {}).wake }; }
+  const wakeRef = an.measured ? an.wake : (((s.sleep || {}).anchor || {}).wake || "07:30");
+  const wm = wakeRef.split(":").map(Number);
   let lo = wm[0] * 60 + wm[1] - Math.round(target * 60) - sol;
-  if (lo < 0) lo += 1440;
-  return { t: `${String(Math.floor(lo / 60)).padStart(2, "0")}:${String(lo % 60).padStart(2, "0")}`, mins: lo, sol, target };
+  lo = ((lo % 1440) + 1440) % 1440;
+  return { t: `${String(Math.floor(lo / 60)).padStart(2, "0")}:${String(lo % 60).padStart(2, "0")}`, mins: lo, sol, target, wakeRef, measured: an.measured };
 }
 
 /* THE SLEEP LAB — experiments running on the master variable */
@@ -2513,7 +2542,9 @@ function theOneThing(s, slp, hour = new Date().getHours(), graceDays = Infinity)
   if (!dLogged && hour >= 17) return { t: "Close the day", sub: "cal · protein · steps — pre-filled to targets, adjust and tap" };
   if (!dLogged) return { t: "Day open — nothing owed yet", sub: "numbers close it tonight · everything else is optional reading" };
   const lo2 = lightsOutT(s);
-  return { t: "Everything's banked ✓", sub: (slp.clean ? "protect the streak" : "tonight rebuilds the reset") + ` — lights out ${lo2.t}, wake ${(s.sleep.anchor || {}).wake || "06:45"}` };
+  /* wake reference comes off lightsOutT, which now reads his measured median
+     rather than the authored 06:45 — see LIGHTS_OUT_NOTE. */
+  return { t: "Everything's banked ✓", sub: (slp.clean ? "protect the streak" : "tonight rebuilds the reset") + ` — lights out ${fmt12(lo2.t)}, up ${fmt12(lo2.wakeRef || "07:30")}` };
 }
 
 /* the week, in one paragraph — auto-written from state */
@@ -2889,20 +2920,26 @@ function labAnalytics2(s) {
     return { id: "compound", t: "THE COMPOUNDING CURVE", status: "LIVE", prog: null,
       tag: "Your best fortnight vs your average — the cost of chaos, in pounds.",
       deep: "Every rolling 14-day window in your record, ranked. The best window is what YOU produce when everything clicks — sleep, protein, steps aligned. The average includes life. The gap between them is the honest price of chaos, and shrinking it beats chasing any new protocol.",
-      forYou: `Best fortnight: −${best.toFixed(1)} lb. Average: −${avgD} lb. Gap ≈ ${(best - avgD).toFixed(1)} lb of pure execution — you don't need a better plan anywhere in this app; you need more weeks that look like your best ones. The Aug 15 checkpoint is ~${Math.ceil((s.trend - 161) / Math.max(0.4, avgD / 2))} average-weeks away, fewer at best-pace.`,
+      forYou: `Best fortnight: −${best.toFixed(1)} lb. Average: −${avgD} lb. Gap ≈ ${(best - avgD).toFixed(1)} lb of pure execution — you don't need a better plan anywhere in this app; you need more weeks that look like your best ones. No checkpoint, no date — the only thing worth chasing here is more weeks that look like your best one.`,
       lines: [] };
   });
 
   /* 11 · ghost joey */
   add(() => {
     const days = Math.max(1, Math.round((todayStart() - mk("2026-07-21")) / DAY));
-    const stepPen = (4000 * 0.35 * days) / 3500;
+    /* Priced at his measured per-step cost and the same kcal/lb the rest of the
+       engine uses, not 0.35 and 3,500. The old copy also sold two retired
+       claims as facts about the model: that a short night voids a record, and
+       that refeeds prevent an adherence problem his record does not show. */
+    const stG = stepTarget(s);
+    const perStepG = stG.gated ? 0.35 : stG.kcalPer1k / 1000;
+    const stepPen = (4000 * perStepG * days) / KCAL_PER_LB_MIX;
     const sleepPen = 0.15 * (days / 7);
     const ghost = +(s.trend + stepPen + sleepPen).toFixed(1);
     return { id: "ghost", t: "GHOST JOEY", status: "MODEL", prog: null,
-      tag: "The you who walks 12k, sleeps 6, skips refeeds — simulated, clearly badged.",
-      deep: "A counterfactual twin built from YOUR measured coefficients, not textbook ones: 4k fewer daily steps at your per-step cost, the muscle-retention haircut your own debt-day sessions demonstrate, refeeds skipped (with the adherence risk your record shows refeeds prevent). It is a MODEL — the badge says so — and it exists for one purpose: on the days discipline feels pointless, the gap is the receipt that it isn't.",
-      forYou: `Ghost's trend today: ~${ghost} (${(ghost - s.trend).toFixed(1)} lb behind you) and falling further behind by ~${((4000 * 0.35 * 7) / 3500 + 0.15).toFixed(1)} lb/week. Ghost also lifts on 6 hours — his press attempt today wouldn't have counted. You are the control group's nightmare.`,
+      tag: "The you who walks 4k fewer steps and sleeps six — simulated, clearly badged.",
+      deep: "A counterfactual twin built from YOUR measured coefficients, not textbook ones: 4,000 fewer daily steps priced at your own per-step cost, and a short-sleep penalty on the side where short sleep actually costs — body composition, not the session. It is a MODEL, the badge says so, and it exists for one purpose: on the days discipline feels pointless, the gap is the receipt that it isn't.",
+      forYou: `Ghost's trend today: ~${ghost} (${(ghost - s.trend).toFixed(1)} lb behind you) and falling further behind by ~${((4000 * perStepG * 7) / KCAL_PER_LB_MIX + 0.15).toFixed(1)} lb/week. Ghost also sleeps six — his sessions look about the same as yours, and that is exactly the trap: the cost lands on what his weight loss is made of, not on his reps. You are the control group's nightmare.`,
       lines: [] };
   });
 
@@ -3244,7 +3281,7 @@ function bodyAlarm(s, slp) {
   }
   lines.push(pulseTrig ? "Hydrate +24 oz across the morning — an elevated resting pulse frequently rides mild dehydration, and it's the cheapest test of the alarm." : "Hydrate +24 oz across the morning — the cheapest first test of an off-pattern day.");
   lines.push(`Protein stays ${proteinTarget(s).g} and calories stay on plan — recovery is protein-hungry, and eating extra fixes nothing here.`);
-  lines.push(`Tonight: lights out ${early} (30 early, wake stays ${(s.sleep.anchor || {}).wake || "06:45"})${s.sleep.caffMg ? " · skip any afternoon caffeine entirely today" : ""}.`);
+  lines.push(`Tonight: lights out ${early} (30 early, up at your usual ${fmt12(lightsOutT(s).wakeRef || "07:30")})${s.sleep.caffMg ? " · skip any afternoon caffeine entirely today" : ""}.`);
   lines.push(pulseTrig && pr5.base != null
     ? `Exit test — tomorrow 6:45: pulse within 3 of your ${pr5.base} baseline → every limit above lifts automatically. Still +7? ${red ? "Full rest day, and a third day is a doctor conversation, not a training one." : "Tomorrow escalates to a rest-day recommendation."}`
     : "Exit test — this clears the moment today's logs land back inside your own bands; a second off-pattern day in a row means treat it as real, not noise.");
@@ -3474,7 +3511,7 @@ function dayProtocol(s, slp) {
     if (lastNight.h < (s.sleep.cleanH || 7.5)) steps.push({ a: `Lights out ~${(() => { let m = lo.mins - 20; if (m < 0) m += 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; })()} — 20 early`, why: `last night ran ${lastNight.h} h — one modestly early night repays most of it; wake stays ~${(s.sleep.anchor || {}).wake || "06:45"} (aim near it — the morning log takes whatever really happened). If you must nap: ≤25 min, before 3 pm`, w: 55 + Math.min(25, Math.round(((s.sleep.cleanH || 7.5) - lastNight.h) * 12)) });
     else if (lastNight.sol != null && lastNight.sol >= 30) steps.push({ a: `Wind-down 30 min before ${fmt12(lo.t)}`, why: `drift-off ran ${lastNight.sol} min last night — screens off, lights low; the drift is usually paying for the evening's light`, w: 50 });
     else if ((lastNight.awakeMin || 0) >= 30) steps.push({ a: "Tonight: cooler room, no fluids after ~8:30", why: `you were awake ${lastNight.awakeMin} min mid-night — the two cheapest fixes first`, w: 48 });
-    else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — wake ~${fmt12((s.sleep.anchor || {}).wake || "06:45")} · ${lo.target} h asleep + ~${lo.sol} min drift-off${(() => { const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length; return melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off` : ""; })()}`, w: 30 });
+    else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — up ~${fmt12(lo.wakeRef || "07:30")} · ${lo.target} h asleep + ~${lo.sol} min drift-off${(() => { const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length; return melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off` : ""; })()}`, w: 30 });
   } else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — wake ~${fmt12((s.sleep.anchor || {}).wake || "06:45")} · ${lo.target} h asleep + ~${lo.sol} min drift-off`, w: 30 });
   { const tc3 = todayCaff(s); if (tc3 && tc3.mg > 0) { const at3 = caffAt(tc3.mg, tc3.atH, lo.mins / 60); if (at3 > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at3} mg still aboard at lights-out${tc3.logged ? "" : " (typical dose — log today's real one on NOW)"} — above ~50 mg deep sleep measurably thins`, w: 28 }); } }
 
@@ -4237,35 +4274,60 @@ function patchV33(s) {
    done-state; only the sentence explaining the gate is rewritten to the rule
    the engine actually runs. */
 function patchV34(s) {
-  const fixes = [
-    ["q_press_own", { gate: "Repeat 8,8,7 — the repeat is the confirmation", rule: "Do NOT load until owned" }],
-    ["q_hack3", { gate: "Gate passed — it runs on its next lower day", rule: "Runs when it wins the day's structural slot" }],
-  ];
   let touched = 0;
-  fixes.forEach(([id, patch]) => {
-    const q = (s.queue || []).find((x) => x.id === id);
-    if (!q) return;
-    Object.keys(patch).forEach((k) => { if (q[k] !== patch[k]) { q[k] = patch[k]; touched++; } });
-  });
-  /* Queue gates seeded with sleep language, wherever they sit. Matched on the
-     phrase rather than the id, so a gate added later cannot slip through. */
+  /* ---------- The rule that makes this migration safe ----------
+     A DONE queue item's gate field is not a gate any more — it is a RECEIPT.
+     q_hack3 on his live state reads "Debuted 7,8,7", the actual result of the
+     set, and the queue renders exactly that string on the win card. The first
+     version of this function overwrote it unconditionally with future-tense
+     text about a set he had already done, which is data loss on a hard
+     guardrail. Nothing here touches a finished item, ever. */
+  const rewrite = (str) => str
+    .replace(/ on a clean day/gi, "")
+    .replace(/ on a clean-sleep day/gi, "")
+    .replace(/ on debt/gi, "")
+    .replace(/\s*·\s*deferred \d+\s*[×x] for sleep/gi, "")
+    .replace(/LOCKED\s*—\s*runs unless a true\s*<?\s*[\d.]+\s*h night/gi, "Runs when it wins the day's structural slot")
+    .replace(/Gate passed\s*—\s*runs unless a true\s*<?\s*[\d.]+\s*h night/gi, "Gate passed — runs when it wins the day's structural slot")
+    .replace(/\s{2,}/g, " ")
+    .trim();
   (s.queue || []).forEach((q) => {
+    if (q.done) return;                       /* finished items are receipts */
     ["gate", "rule"].forEach((k) => {
       if (typeof q[k] !== "string") return;
-      const was = q[k];
-      q[k] = q[k]
-        .replace(/ on a clean day/gi, "")
-        .replace(/ on a clean-sleep day/gi, "")
-        .replace(/ on debt/gi, "")
-        .replace(/s*·s*deferred d+× for sleep/gi, "")
-        .replace(/LOCKED — runs unless a true <?[d.]+ ?h night/gi, "Runs when it wins the day's structural slot");
-      if (q[k] !== was) touched++;
+      const was = q[k], now = rewrite(was);
+      if (now !== was) { q[k] = now; touched++; }
     });
   });
+  /* The press OWN gate is the one whose remaining text needs a real sentence
+     rather than a deletion — "Repeat 8,8,7 (last: 8,7,6)" with the sleep clause
+     stripped reads like the app forgot why it was asking. Only if still open. */
+  const pw = (s.queue || []).find((x) => x.id === "q_press_own");
+  if (pw && !pw.done && /8,8,7/.test(pw.gate || "")) {
+    const want = "Repeat 8,8,7 — the repeat is the confirmation";
+    if (pw.gate !== want) { pw.gate = want; touched++; }
+  }
+  /* ---------- The diet exit reaches his phone ----------
+     The seed changed q_pivot to kind:"exit" with the maintenance-first plan.
+     Without this his saved copy keeps kind:"phase" and keeps printing the
+     authored "Fast reverse (~1-2 wk to ~2,450) → lean surplus 2,700-2,950 ·
+     MRV build" — the exact text the DIET_EXIT note says was deleted, rendering
+     through a branch that describes a different card entirely. */
+  const pv = (s.queue || []).find((x) => x.id === "q_pivot");
+  if (pv && !pv.done && pv.kind !== "exit") {
+    pv.kind = "exit";
+    pv.t = "THE DIET EXIT";
+    pv.gate = "When you and your coach call it — no date";
+    pv.rule = "One step to your MEASURED maintenance, hold, then decide";
+    touched++;
+    (s.feed || []).unshift({ d: isoOf(todayStart()), t: "THE EXIT PLAN IS NOW YOURS",
+      how: "It used to read 'fast reverse to ~2,450, then a lean surplus and an MRV build'. You said straight to maintenance, hold, then decide — so that is what it says now, and the number is your own measured maintenance rather than an authored 2,450, which sits about a hundred calories under it. Stepping up to a maintenance that is not your maintenance is just a smaller cut with a better name. No ramp: reverse dieting as a protocol has no controlled trial behind it. No surplus assumed: the hold exists so that decision has data under it." });
+  }
   (s.exercises || []).forEach((e) => {
     if (e.ownNote && /clean day|sleep-clean|on debt/i.test(e.ownNote)) {
-      e.ownNote = e.ownNote.replace(/ on a clean day/i, "").replace(/ — no load until owned/, " — no load until owned");
-      touched++;
+      const was = e.ownNote;
+      e.ownNote = rewrite(was);
+      if (e.ownNote !== was) touched++;
     }
   });
   /* The rirOverride flag has nothing left to override. Kept on the record
@@ -4410,17 +4472,17 @@ function migrate(old) {
 }
 
 const GLOSSARY = {
-  fixwindow: ["Fix window", "Yesterday's protein landed outside the band, so a 24-hour repair window opened. Hit 175±10 today and the record EXTENDS — the app measures recovery speed, never an unbroken chain. Unfixed, it just closes; nothing compounds."],
+  fixwindow: ["Fix window", "Yesterday's protein landed SHORT of the floor, so a 24-hour repair window opened. Clear the floor today and the record EXTENDS — the app measures recovery speed, never an unbroken chain. Unfixed, it just closes; nothing compounds. Only a shortfall opens it: protein is a floor, and eating over it was never a miss, whatever this entry used to say."],
   rir: ["RIR — reps in reserve", "How many clean reps were left when you racked it. 1 is 'honest' — one more good rep existed. 0 is a grind. Rate two sets: the FIRST, which says whether the load is still honest (0 twice running holds the weight), and the LAST, which the taper programs to failure — 0 there is the target, not a warning. Middle sets are prescribed, so they go unrated on purpose. When unsure at noon on the stim stack, call it 0."],
   ea: ["Energy availability", "What is left to run your body on after training is paid for: calories in, minus what training and deliberate walking cost, divided by your lean mass. The threshold that matters for a lean man is 25 kcal per kg of lean mass per day — above it, a deficit mostly takes fat; below about 20, more than 40% of what you lose comes off lean mass, and testosterone, thyroid and resting metabolism go with it. It shows a RANGE, not a number, and that is deliberate: the convention counts purposeful exercise, and 16,000 deliberate steps sit exactly on the line between training and just moving. Nobody has settled that, so the app shows both ways of counting instead of picking one and sounding certain. The session and step costs are population estimates, not measurements of you — which is why this instrument only ever claims which side of the line you are on."],
   rest: ["Rest between sets", "90 s on isolation, 150 s on compounds, and 30 s more before the final set. The number comes from where the evidence stops moving: pooled across nine studies, longer rest beats short rest by a small margin that runs through volume load — you keep more reps on the back sets — but no further benefit is measurable past about 90 s. So 90 is the floor worth holding and anything beyond it on isolation work is session time you are spending for nothing. Compounds sit at 150 s because that is inside the 2–3 min band tested directly in trained lifters. The extra 30 s before the last set is a judgement call, not a finding: that set is the one prescribed to failure, and it is the one the progression engine reads to size your next jump — so it is the set worth protecting."],
   pace: ["RUSHED (pace)", "That session ran on short rest — under about a minute between sets. It matters for one reason: less rest means fewer reps on the back sets, so the volume load drops. The reps still count and still move your trend. What a rushed day can't do is count toward a stall — three stalls lighten the bar 5%, and running out of time is not evidence that the weight is too heavy. The research here is modest and honest about itself: pooled across nine studies the rest effect is small and mostly runs through volume load, with nothing measurable past ~90 s. So the app records it as context, not as a verdict on the session."],
   debt: ["Short night", "That session followed a night under 6.5 h, or a three-night run averaging under 7. Down numbers on a short night read as context rather than regression, so the day is exempt from counting toward a stall. It does NOT make a record provisional — the strength cost of a short night is about 2.85%, smaller than the set-to-set noise the app already models, and no record here was ever gated on sleep once the desk stopped holding lifts."],
-  clean: ["CLEAN (sleep)", "Three consecutive nights of ≥7.5 h. One good night repays acute debt, but consolidation lags ~2–3 nights — so owns and earns only count when CLEAN."],
+  clean: ["AT TARGET (sleep)", "A run of consecutive nights at your sleep target. It is NOT a gate — owns and earns count whenever you hit them, on any amount of sleep, because the strength cost of a short night is about 2.85% and that is smaller than your own set-to-set spread. What a run at target buys sits on the body-composition side: at a matched deficit, short sleep sends roughly 60% more of what you lose off lean mass instead of fat."],
   seal: ["Sealed scale", "Around events, reads are quarantined: logged but excluded from the trend, and every rate rule is muted. The seal exists so event water can never trigger a false alarm."],
   trend: ["Trend", "The damped average the whole app runs on: each clean read moves it 30% of the way, spikes clamp at ±1.5 lb, sealed reads don't touch it. Mornings are static; the trend is the instrument."],
   own: ["OWNED", "The standard repeated. One hit is a visit; a repeat is an address — and the repeat IS the confirmation, which is the entire statistical content of the rule. Sleep used to be a third condition stacked on top of it and is gone. Only owned standards let the load move."],
-  earned: ["EARNED", "Reps hit the top of the window on a clean day — the increment is bought and queues itself for a debut. Grinds at RIR 0 never earn."],
+  earned: ["EARNED", "Reps hit the top of the window — the increment is bought and queues itself for a debut. Grinds at RIR 0 never earn."],
   debut: ["DEBUT", "An earned load's first outing. It runs when it wins its day's single structural slot, with zero rep expectations — log what it gives."],
   gated: ["GATED", "Visible but locked behind a named condition. The condition decides, not memory or mood."],
   reclaim: ["RECLAIM", "A standard that slipped. The exact rep line must be re-earned before anything moves — records here can fall and be won back."],
@@ -4431,7 +4493,7 @@ const GLOSSARY = {
   rirplan: ["Suggested RIR — where it comes from", "The literature (Refalo 2023–24 meta-analyses; Helms-style RIR prescription) says 0–5 reps-in-reserve all build muscle, with a slight edge nearer failure — so everything tapers to a single terminal failure set — 2→1→0, and four-set movements run 2·1·1·0; only the last set of an exercise is ever programmed to failure. Your machine-based setup makes that true failure safe, and the opener stays the honest gatekeeper (earns judge the opener, so the final 0 can never corrupt the signal). Then YOUR data adjusts it: a governor hold floors everything at 2, and lifts where your logged openers run hot get one extra in the bank up front. It recomputes every session. What it no longer does is back the terminal set off failure after a short night — that rule is retired, because proximity to failure is the variable growth actually tracks and the strength cost of a short night is about 2.85%, inside the set-to-set noise this app already models."],
   driftoff: ["Estimating drift-off", "Morning-after guessing is the clinical standard (it's how sleep diaries work). Anchor on the last thing you remember — final position change, a thought, a sound — and count minutes from lights-out to that, rounded to 5. Truly no idea? Leave the 15: the math uses a rolling median and within-you comparisons, so honest-rough beats fake-precise. A wearable's latency number can go in the same box anytime."],
   nightdate: ["How nights are dated", "A night belongs to the evening it began: Tuesday night = Tue evening → Wed morning, filed under Tuesday. You log it the morning after. Before 5 a.m. the app still means the night you already finished — never the one you haven't slept yet. Missed a morning? The row stays, dated, for up to 3 days."],
-  noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
+  noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
 export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
@@ -4675,7 +4737,11 @@ function agentToolExec(s, name, input, staged) {
          the same kcal-per-pound the rest of the engine uses. */
       const stW = stepTarget(s), ctW = calorieTarget(s);
       const stepRef = stW.gated ? null : stW.avg;
-      const calRef = ctW.gated ? null : ctW.mid;
+      /* Anchor to what he ACTUALLY eats, not to what he is told to eat. Using
+         the prescription meant modelling his current intake returned a rate
+         0.23 lb/wk off the rate his ledger already measured at that intake. */
+      const tdW = observedTDEE(s);
+      const calRef = tdW ? tdW.avg : (ctW.gated ? null : ctW.mid);
       const perStepKcal = stW.gated ? 0.35 : stW.kcalPer1k / 1000;
       const dSteps = input.steps != null && stepRef != null ? ((input.steps - stepRef) * perStepKcal * 7) / KCAL_PER_LB_MIX : 0;
       const dCal = input.cal != null && calRef != null ? ((calRef - input.cal) * 7) / KCAL_PER_LB_MIX : 0;
@@ -4852,7 +4918,7 @@ const CONSTITUTION = [
   ["Smallest honest increment", "Weight moves by the machine's real smallest step; new sets and loads expect to keep almost every rep."],
   ["One terminal failure set", "Each exercise ends in exactly one all-out set, and the RIR you give that set is what sizes the next session's jump. It is the single most valuable number you enter."],
   ["The tilt", "Volume is presumed useful until your own bar speed says otherwise. Adds come easier than trims."],
-  ["Records need repeating, not good sleep", "A new best waits for one confirmation — because your own set-to-set spread is about ±0.8 reps, so a +1 record cannot be told apart from a good day. A jump clearly outside that spread banks immediately. This used to depend on a three-night sleep streak; that condition had no evidence behind it and, at 7.5 h against your 7 h median, it never once opened."],
+  ["Records need repeating, not good sleep", "A new best waits for one confirmation — because your own measured set-to-set spread is small, so a +1 record cannot be told apart from a good day. A jump clearly outside that spread banks immediately. This used to depend on a three-night sleep streak; that condition had no evidence behind it and, at 7.5 h against your 7 h median, it never once opened."],
   ["Short sleep protects, it does not punish", "A short night is logged and it counts — for reps, for records, for every trend. What the flag buys you is that the day cannot be read as a stall, so you are never deloaded for a bad night. Sleep still matters most where it is actually measured: in a deficit, short sleep shifts what you lose toward lean mass."],
   ["Every target is derived, none authored", "Calories come from your measured maintenance, protein from your measured lean mass, steps from the window that measured that maintenance. A number the app cannot derive from your record is a number it should not be showing you as if it could."],
   ["Cite or say you cannot", "Every rule here names the evidence it rests on, and says plainly when there is none. Three of this app's rules were retired for having nothing behind them; that is the mechanism working, not failing."],
@@ -6240,7 +6306,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       ); })()}
 
-      <Section title="The Big Picture" meta={(() => { const rec = recoveryIndex(s); return `${rec.flags.length}/${rec.watched} signals up · crossover ${daysUntil(CROSSOVER)}d`; })()}>
+      {/* the crossover countdown is gone from here too — see COUNTDOWN_NOTE below */}
+      <Section title="The Big Picture" meta={(() => { const rec = recoveryIndex(s); const cr9 = currentRate(s); return `${rec.flags.length}/${rec.watched} signals up${cr9.measured ? ` · ${cr9.scale} lb/wk` : ""}`; })()}>
       {(() => {
         const rec = recoveryIndex(s);
         const c = rec.band === "GREEN" ? T.jade : rec.band === "WATCH" ? T.brass : T.brass;
@@ -7261,21 +7328,35 @@ function SleepTab({ s, setS, save, slp }) {
   );
 }
 
+/* ---------- WHATIF_NOTE — the sandbox was modelling a different athlete ----------
+   Every reference point in here was authored and none of them survived the
+   audit: 16,500 steps, 1,760 kcal, a 2,450 refeed, 3,500 kcal/lb twice, and an
+   Aug 28 projection tile on a block with no date. It also told him that under
+   7.5 h "no record or weight increase can become official" — the retired gate,
+   stated more forcefully here than anywhere else in the app.
+
+   Rebuilt on the same numbers the rest of the engine uses: his measured step
+   average, his measured intake, and KCAL_PER_LB_MIX. The refeed lever is gone
+   with the refeed. The date tile is gone with the date. The sleep line now says
+   what sleep actually costs, and says plainly that this model cannot show it. */
 function WhatIfConsole({ s }) {
   const cur = currentRate(s);
-  const [wSteps, setWSteps] = useState(16500);
-  const [wCal, setWCal] = useState(1760);
-  const [wSlp, setWSlp] = useState(7.5);
-  const [wRef, setWRef] = useState(2450);
+  const stW = stepTarget(s), tdW = observedTDEE(s), ctW = calorieTarget(s);
+  const stepRef = stW.gated ? 16000 : stW.avg;
+  const calRef = tdW ? tdW.avg : (ctW.gated ? 1900 : ctW.mid);
+  const perStep = stW.gated ? 0.35 : stW.kcalPer1k / 1000;
+  const [wSteps, setWSteps] = useState(Math.round(stepRef / 500) * 500);
+  const [wCal, setWCal] = useState(Math.round(calRef / 25) * 25);
+  const [wSlp, setWSlp] = useState(s.sleep.cleanH || 7.5);
   const baseRate = cur.measured ? cur.scale : 1.2;
-  const rate = Math.max(0.1, +(baseRate - ((wCal - 1760) * 7) / 3500 + ((wSteps - 16500) * 0.35 * 7) / 3500).toFixed(2));
+  const rate = Math.max(0.1, +(baseRate - ((wCal - calRef) * 7) / KCAL_PER_LB_MIX + ((wSteps - stepRef) * perStep * 7) / KCAL_PER_LB_MIX).toFixed(2));
   const bf = bfEst(s);
   const target11 = +(bf.lean / 0.89).toFixed(1);
   const wksToPivot = (s.trend - target11) / rate;
   const pivotD = isoOf(new Date(todayStart().getTime() + Math.max(0, Math.round(wksToPivot * 7)) * DAY));
-  const aug28 = +(s.trend - rate * (Math.max(0, daysUntil(CROSSOVER)) / 7)).toFixed(1);
   const basePivot = isoOf(new Date(todayStart().getTime() + Math.max(0, Math.round(((s.trend - target11) / Math.max(0.1, baseRate)) * 7)) * DAY));
   const shift = Math.round((mk(pivotD) - mk(basePivot)) / DAY);
+  const rb = (s.rate && s.rate.band) || [1.0, 1.4];
   const row = (lbl, v, set, step, min, max) => (
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
       <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, width: 74 }}>{lbl}</div>
@@ -7286,19 +7367,22 @@ function WhatIfConsole({ s }) {
     <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
       <Eyebrow c={T.chalk}>THE LEVERS — SANDBOX ONLY, NOTHING REAL MOVES</Eyebrow>
       {row("STEPS /day", wSteps, setWSteps, 500, 12000, 19000)}
-      {row("CAL /day", wCal, setWCal, 25, 1600, 2000)}
-      {row("SLEEP avg h", wSlp, setWSlp, 0.25, 6, 9)}
-      {row("REFEED cal", wRef, setWRef, 100, 2100, 2700)}
+      {row("CAL /day", wCal, setWCal, 25, 1500, 2800)}
+      {row("SLEEP avg h", wSlp, setWSlp, 0.25, 5, 9.5)}
       <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
-        <div><Num size={20} c={T.jade}>{rate}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>LB/WK</div></div>
-        <div><Num size={20}>{aug28}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>AUG 28 PROJ</div></div>
-        <div><Num size={20} c={shift > 3 ? T.brass : T.chalk}>{fmtShort(pivotD)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>SWITCH TO BUILDING {shift !== 0 ? `(${shift > 0 ? "+" : ""}${shift}d)` : ""}</div></div>
+        <div><Num size={20} c={rate > rb[1] ? T.brass : T.jade}>{rate}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>LB/WK</div></div>
+        <div><Num size={20} c={shift > 3 ? T.brass : T.chalk}>{fmtShort(pivotD)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>~11% AT THIS PACE {shift !== 0 ? `(${shift > 0 ? "+" : ""}${shift}d)` : ""}</div></div>
       </div>
-      <div style={{ fontFamily: body, fontSize: 11.5, color: wSlp < 7.5 ? T.brass : T.steel, marginTop: 10, lineHeight: 1.5 }}>
-        {wSlp < 7.5 ? `At ${wSlp} h average, the 3-night good-sleep streak never completes — so no record or weight increase can become official, on any of your ~4 sessions a week. The scale barely notices sleep; the record books absolutely do.` : wSlp >= 8.5 ? "That's ceiling territory — the sleep-dose experiment in this lab measures whether the extra hour buys you reps." : "Good-sleep streaks stay alive at this average — records and weight increases can become official."}
-        {" "}Refeed at {wRef}: almost zero effect on the week's weight (~{Math.abs(Math.round(((wRef - 2450) / 7 / 3500) * 70) / 100)} lb/wk); what it actually buys is next-day lifting output{wRef < 2350 ? " — a lighter refeed would be a real experiment worth asking your coach about" : ""}.
+      <div style={{ fontFamily: body, fontSize: 11.5, color: wSlp < (s.sleep.cleanH || 7.5) ? T.brass : T.steel, marginTop: 10, lineHeight: 1.5 }}>
+        {/* The old copy here said that under 7.5 h "no record or weight increase
+            can become official" — the retired gate, stated harder than anywhere
+            else in the app. What sleep actually changes is invisible to this
+            model, and saying so is more useful than a wrong warning. */}
+        {wSlp < (s.sleep.cleanH || 7.5)
+          ? `At ${wSlp} h your sessions are barely affected — the measured cost is about 2.85% on strength, inside the test-retest error, and nothing here gates a record on it. What this slider CANNOT show you is the part that matters: at a matched deficit, short sleep sends roughly 60% more of what you lose off lean mass. The pound-per-week number above would look identical and the physique underneath it would not.`
+          : `At ${wSlp} h the deficit is taking mostly what you want it to take. That is the whole reason this number is on the page — it does not move the lb/wk figure above, it changes what those pounds are made of.`}
       </div>
-      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 8 }}>losing 1.0–1.4 lb/week = the muscle-safe zone · 1.9+ = losing too fast · as the lab measures your real numbers, they replace the textbook guesses here automatically</div>
+      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 8 }}>modelled against YOUR numbers: {Math.round(stepRef).toLocaleString()} steps and {Math.round(calRef).toLocaleString()} kcal as logged, {perStep.toFixed(2)} kcal/step at your bodyweight, {KCAL_PER_LB_MIX.toLocaleString()} kcal/lb · your band is {rb[0]}–{rb[1]} lb/wk, redline {(s.rate || {}).redline || 1.9} · sandbox only, nothing real moves</div>
     </div>
   );
 }
@@ -7548,18 +7632,31 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   );
 }
 
+/* ---------- NEGOTIATOR_NOTE — a deadline nobody set, priced with dead constants ----------
+   This card solved backwards from a hardcoded 2026-09-05, which is a date that
+   exists nowhere in his plan, and priced the answer with 3,500 kcal/lb, a 1,700
+   calorie floor and a 1,760 base — three numbers the engine had already
+   replaced. GOALS.md forbids building urgency mechanics around a date he never
+   picked, so the date stepper is now an offset from TODAY: "how long am I
+   willing to give this", not "here is your deadline". */
 function NegotiatorConsole({ s }) {
   const [tBF, setTBF] = useState(11);
-  const [dOff, setDOff] = useState(0);
+  const [wkOff, setWkOff] = useState(8);
   const bf = bfEst(s);
   const cur = currentRate(s);
+  const fl = calorieFloor(s);
+  const ct = calorieTarget(s);
+  const stN = stepTarget(s);
+  const perStepN = stN.gated ? 0.35 : stN.kcalPer1k / 1000;
+  const calBase = ct.gated ? (observedTDEE(s) ? observedTDEE(s).avg : 1900) : ct.mid;
+  const rbN = (s.rate && s.rate.band) || [1.0, 1.4];
   const baseRate = cur.measured ? cur.scale : 1.2;
-  const goalDate = isoOf(new Date(mk("2026-09-05").getTime() + dOff * DAY));
+  const goalDate = isoOf(new Date(todayStart().getTime() + Math.round(wkOff * 7) * DAY));
   const targetW = +(bf.lean / (1 - tBF / 100)).toFixed(1);
-  const wks = Math.max(0.5, (mk(goalDate) - todayStart().getTime()) / (7 * DAY));
+  const wks = Math.max(0.5, wkOff);
   const need = +((s.trend - targetW) / wks).toFixed(2);
   const gap = +(need - baseRate).toFixed(2);
-  const extraSteps = gap > 0 ? Math.round((gap * 3500) / 7 / 0.35 / 100) * 100 : 0;
+  const extraSteps = gap > 0 ? Math.round((gap * KCAL_PER_LB_MIX) / 7 / perStepN / 100) * 100 : 0;
   const wkD = Object.entries(s.dailyLogs).filter(([d]) => [0, 6].includes(mk(d).getDay()) && s.dailyLogs[d].cal);
   const wdD = Object.entries(s.dailyLogs).filter(([d]) => ![0, 6].includes(mk(d).getDay()) && s.dailyLogs[d].cal);
   const weekendGap = wkD.length >= 2 && wdD.length >= 4 ? Math.round(wkD.reduce((a, [, v]) => a + v.cal, 0) / wkD.length - wdD.reduce((a, [, v]) => a + v.cal, 0) / wdD.length) : null;
@@ -7574,23 +7671,23 @@ function NegotiatorConsole({ s }) {
     <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
       <Eyebrow c={T.chalk}>THE GOAL — IT SOLVES BACKWARD</Eyebrow>
       {row("TARGET BF %", tBF, setTBF, 0.5, 9, 14)}
-      {row("DATE ±days", dOff, setDOff, 3, -21, 30, fmtShort(goalDate))}
+      {row("GIVE IT (wks)", wkOff, setWkOff, 1, 2, 26, "~" + fmtShort(goalDate) + " — an offset from today, not a deadline")}
       <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
-        <div><Num size={20} c={need > 1.55 ? T.brass : T.jade}>{need}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>LB/WK NEEDED</div></div>
+        <div><Num size={20} c={need > rbN[1] ? T.brass : T.jade}>{need}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>LB/WK NEEDED</div></div>
         <div><Num size={20}>{baseRate}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>YOUR PACE NOW</div></div>
         <div><Num size={20}>{targetW}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>GOAL WEIGHT</div></div>
       </div>
-      <div style={{ fontFamily: body, fontSize: 11.5, color: need > 1.55 ? T.brass : T.chalk, marginTop: 10, lineHeight: 1.55 }}>
-        {need > 1.55
-          ? `Verdict: this goal needs ${need} lb/wk — past the muscle-safe zone (1.0–1.4). The honest fixes: move the date ${Math.ceil(((s.trend - targetW) / 1.35 - wks) * 7)} days later, or raise the target to ~${Math.max(9, +((1 - bf.lean / (s.trend - 1.35 * wks)) * 100).toFixed(1))}%. Losing muscle to hit a date is a trade this app won't price.`
+      <div style={{ fontFamily: body, fontSize: 11.5, color: need > rbN[1] ? T.brass : T.chalk, marginTop: 10, lineHeight: 1.55 }}>
+        {need > rbN[1]
+          ? `Verdict: that would need ${need} lb/wk — past your ${rbN[0]}–${rbN[1]} band. The honest fixes: give it ${Math.ceil((s.trend - targetW) / rbN[1] - wks)} more weeks, or raise the target to ~${Math.max(9, +((1 - bf.lean / (s.trend - rbN[1] * wks)) * 100).toFixed(1))}%. Losing muscle to hit a date is a trade this app will not price — and you have not set a date, which is the single best thing about your situation.`
           : gap <= 0.05
           ? `Verdict: your current pace already covers it — arrive ~${fmtShort(isoOf(new Date(todayStart().getTime() + Math.round(((s.trend - targetW) / Math.max(0.1, baseRate)) * 7) * DAY)))} with ${Math.abs(Math.round((baseRate - need) * wks * 10) / 10)} lb of slack. Cheapest plan: change nothing.`
           : extraSteps <= 2500
-          ? `Verdict: reachable without touching food. +${extraSteps.toLocaleString()} steps/day covers the whole gap — steps first because they're your most consistent lever, and the 1,700-calorie floor stays untouched.`
-          : `Verdict: steps alone won't cover it. Plan: +2,000 steps/day AND −${Math.round(((gap - (2000 * 0.35 * 7) / 3500) * 3500) / 7 / 25) * 25} cal/day${1760 - Math.round(((gap - (2000 * 0.35 * 7) / 3500) * 3500) / 7 / 25) * 25 < 1700 ? " — but that breaks the 1,700 floor, so the date has to give instead" : " (floor respected)"}. Take it to your coach as a proposal, not a decision.`}
+          ? `Verdict: reachable without touching food. +${extraSteps.toLocaleString()} steps/day covers the whole gap — steps first because they cost you nothing you are trying to keep, and your ${fl.floor} calorie floor stays untouched.`
+          : (() => { const cut = Math.round(((gap - (2000 * perStepN * 7) / KCAL_PER_LB_MIX) * KCAL_PER_LB_MIX) / 7 / 25) * 25; const lands = calBase - cut; return `Verdict: steps alone will not cover it. Plan: +2,000 steps/day AND −${cut} cal/day, landing at ${lands}${lands < fl.floor ? ` — which is under your ${fl.floor} floor, so the timeline has to give instead` : ` (floor is ${fl.floor}, respected)`}. Take it to your coach as a proposal, not a decision.`; })()}
         {weekendGap != null && weekendGap > 120 ? ` One more thing your record says: weekends run ~+${weekendGap} cal over weekdays — schedule any tightening Mon–Fri, where your adherence actually lives.` : ""}
       </div>
-      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 8 }}>sandbox — proposes only · steps priced at your 0.35 kcal/step · floor 1,700 · muscle-safe 1.0–1.4 lb/wk</div>
+      <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 8 }}>sandbox — proposes only · steps priced at your measured {perStepN.toFixed(2)} kcal/step · floor {fl.floor}, derived from energy availability at your lean mass · your band {rbN[0]}–{rbN[1]} lb/wk · no date is set anywhere in this app</div>
     </div>
   );
 }
@@ -7607,7 +7704,10 @@ function HistTab({ s, setS, save }) {
   const first = ROLLUPS[ROLLUPS.length - 1];
   const latest = (liveWks.find((w) => w.avgW != null || w.avgCal != null)) || ROLLUPS[0];
   const wDelta = first && latest && first.avgW && latest.avgW ? +(first.avgW - latest.avgW).toFixed(1) : null;
-  const proHitTot = ROLLUPS.reduce((a, w) => a + w.proHit, 0) + liveWks.reduce((a, w) => a + w.proHit, 0);
+  /* One protein standard across the whole history — the sheet era and the live
+     weeks are now graded by the same derived floor. */
+  const proFloorH = proteinTarget(s).lo;
+  const proHitTot = ROLLUPS.reduce((a, w) => a + rollupHits(w, proFloorH), 0) + liveWks.reduce((a, w) => a + rollupHits(w, proFloorH), 0);
   const proNTot = ROLLUPS.reduce((a, w) => a + w.proN, 0) + liveWks.reduce((a, w) => a + w.proN, 0);
   const liveDayCount = liveWks.reduce((a, w) => a + w.rows.length, 0);
   const stat = (v, l) => (
@@ -7758,7 +7858,7 @@ function HistTab({ s, setS, save }) {
               <div style={{ display: "flex", gap: 14, marginTop: 8, fontFamily: mono, fontSize: 10.5, color: T.steel, flexWrap: "wrap" }}>
                 <span style={{ color: T.chalk }}>{w.avgW != null ? `${w.avgW} avg` : "sealed / no reads"}</span>
                 <span>{w.avgCal != null ? `${w.avgCal} cal` : "—"}</span>
-                <span style={{ color: w.proN && w.proHit / w.proN >= 0.6 ? T.jade : T.steel }}>pro {w.proHit}/{w.proN}</span>
+                <span style={{ color: w.proN && rollupHits(w, proFloorH) / w.proN >= 0.6 ? T.jade : T.steel }}>pro {rollupHits(w, proFloorH)}/{w.proN}</span>
                 <span>{w.avgSteps != null ? `${w.avgSteps}k` : "—"}</span>
                 <span>{w.avgSlp != null ? `${w.avgSlp}h` : "—"}</span>
               </div>
@@ -7797,7 +7897,7 @@ function HistTab({ s, setS, save }) {
               <div style={{ display: "flex", gap: 14, marginTop: 8, fontFamily: mono, fontSize: 10.5, color: T.steel, flexWrap: "wrap" }}>
                 <span style={{ color: T.chalk }}>{w.avgW != null ? `${w.avgW} avg` : "no reads"}</span>
                 <span>{w.avgCal != null ? `${w.avgCal} cal` : "—"}</span>
-                <span style={{ color: w.proN && w.proHit / w.proN >= 0.6 ? T.jade : T.steel }}>pro {w.proHit}/{w.proN}</span>
+                <span style={{ color: w.proN && rollupHits(w, proFloorH) / w.proN >= 0.6 ? T.jade : T.steel }}>pro {rollupHits(w, proFloorH)}/{w.proN}</span>
                 <span>{w.avgSteps != null ? `${w.avgSteps}k` : "—"}</span>
                 <span>{w.avgSlp != null ? `${w.avgSlp}h` : "—"}</span>
                 {w.flags > 0 && <span style={{ color: T.brass }}>{w.flags} flags</span>}
@@ -7907,7 +8007,7 @@ function rulebook(s) {
     ["SIGNALS", "Last-set RIR is the one that sizes the next jump; the opener only feeds the hold governor. Joint flags three times in three weeks surface on NOW as a pattern rather than a day. Waist is still an unlogged input — until entries exist, it changes nothing and the app will not pretend otherwise."],
     ["SCALE", "Fasted · post-void · pre-food. Once a day. Sealed windows excluded. Trend is the hero — a single reading carries several pounds of water and means nothing on its own."],
     ["EVENTS", "Estimate once, after, never at the table. Compensation does not exist in this app."],
-    ["PROTEIN", `${pt.g} g, every day, derived from your ${pt.ffmKg} kg of lean mass at ${pt.perKg} g/kg — not a constant. It does not rise on training days: the only study that compared day types found requirement HIGHER on rest days. A miss fixed inside 24 h extends the standard.`],
+    ["PROTEIN", `${pt.straddles ? `${pt.lo}–${pt.hi} g — ${pt.g} is the middle of that range, and the range is the honest answer: ${pt.lo} is ${PROTEIN_FLOOR_G_PER_KG} g per kg of your ${pt.ffmKg} kg of lean mass, ${pt.hi} is the lean-subgroup number, and your body-fat interval (${pt.bfLo}–${pt.bfHi}%) straddles the ${LEAN_SUBGROUP_BF}% line that separates them` : `${pt.g} g, every day, derived from your ${pt.ffmKg} kg of lean mass at ${pt.perKg} g/kg`} — not a constant. Protein is a FLOOR: over it is not a miss. It does not rise on training days: the only study that compared day types found requirement HIGHER on rest days. A miss fixed inside 24 h extends the standard.`],
     ["SLEEP", `A night under ${DEBT_LAST_H} h, or a three-night mean under ${DEBT_MEAN3_H}, flags the session. What that flag buys you is protection — the day cannot count toward a stall, so you are never deloaded for a bad night. It does NOT block a record or shrink the step; that rule was retired because acute sleep loss costs about 2.85% on strength, which is inside the test-retest noise, and no trial has ever tested damping progression on low-readiness days. Your ${s.sleep.cleanH} h target is a separate question and still stands — in a deficit, short sleep shifts what you lose toward lean mass.`],
     ["FOOD", `${ct.gated ? "Calories fall back to the phase band until there are enough clean days to measure your own maintenance." : `${ct.lo}–${ct.hi}, from your measured maintenance minus the deficit your own rate band asks for.`} The floor is ${fl.floor} — ${EA_SPARING} kcal per kg of lean mass plus what training costs, not a round number. No position stand anywhere states an absolute calorie floor for an athlete; every one of them indexes to lean mass.`],
     ["AUTHORITY", "Machine swaps, ladder graduations, the pivot call — coach territory. The app proposes; humans authorize."],
