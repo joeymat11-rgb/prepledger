@@ -103,7 +103,7 @@ jobs:
         run: |
           node -e "
             const fs=require('fs');
-            const m=fs.readFileSync('sw.js','utf8').match(/prep-ledger-(v[0-9.]+)/);
+            const m=fs.readFileSync('sw.js','utf8').match(/measured-(v[0-9.]+)/);
             fs.writeFileSync('ledger/deploy.json', JSON.stringify({
               sha: process.env.GITHUB_SHA,
               version: m ? m[1] : 'unknown',

@@ -42,7 +42,7 @@ async function get(path, opts = {}) {
 // ------------------------------------------------------------ 1. the app --
 async function appLoads(want) {
   const root = await get("/");
-  record(root.status === 200 && root.body.includes("Prep Ledger"),
+  record(root.status === 200 && root.body.includes("Measured"),
     "app loads", root.status === 200 ? `${PROD} serves the shell` : `HTTP ${root.status} ${root.err || ""}`);
 
   const app = await get("/app.js");
