@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.24";
+const APP_V = "3.99.25";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -567,6 +567,76 @@ function parseRungs(text) {
    per Bergamasco 2024 there is no reason to hold the load hostage past it. The
    real guards stay exactly where they were: clean sleep, and an opener that is
    not a grind. */
+/* ---------- WINDOW_NOTE — the ceiling is arbitrary; the WIDTH is not ----------
+   His ceilings were authored per lift: press 9, rows 10, hack 12, calves 13,
+   abs 14, lateral 15. I went looking for the physiology that justified varying
+   them and there is none. Hypertrophy is indifferent to rep range from roughly
+   5 to 30 reps once sets end at a matched distance from failure — Schoenfeld
+   2017 (21 studies, all sets to failure) puts high vs low load at ES 0.53 vs
+   0.42, p=0.10; Lopez 2021 (28 studies, 747 participants) finds no difference
+   across <=8RM, 9-15RM and >15RM, p=0.113-0.469. Fibre type does not rescue the
+   idea either: Schoenfeld 2020 found soleus and gastrocnemius grew the same
+   regardless of load, which kills the "calves need high reps" rationale
+   specifically. And no trial has ever compared rep ranges BY exercise class.
+
+   So the ceilings are not defended as physiology any more. What IS real is
+   mechanical, and the app was ignoring it: when the load goes up, reps fall, and
+   the window has to be wide enough to catch him. Otherwise he tops out, the
+   weight jumps, he lands below the bottom of the window, and the scheme has no
+   rule to get him back.
+
+   How far reps fall is answerable. Nuzzo et al. 2024 (Sports Medicine; 952
+   reps-to-failure tests, 7,289 individuals, 269 studies, 60% resistance-trained)
+   is the best available load-repetition model. Differentiating Epley against
+   their anchors gives a mean absolute error of 0.31 reps; Brzycki underestimates
+   the cost by about 40% and is not used here:
+
+     reps lost ~ (top_of_window + 30) x step / (load + step)
+
+   Roughly 0.4 reps per 1% of load, in the 6-15 rep range.
+
+   Against his own equipment that produces a clean split. Ten lifts sit at 5% or
+   under and lose about a rep — a 10-12 window is fine. Two do not: the rear-delt
+   fly is 2.5 lb on 20 (12.5%) and the pronated EZ curl is 5 lb on 40 (12.5%),
+   and both cost about 4.7 reps. A window narrower than that is a trap, and it is
+   the same trap in both cases — small-muscle exercises with fixed plates.
+
+   The ACSM's 2009 progression stand asks for 2-10% increments, LOWER on
+   small-muscle exercises and HIGHER on large ones. His hardware delivers the
+   exact inverse: 12.5% on the rear delt, 1.6% on calves. That is not a
+   programming error, it is what fixed plates do, and the fix is either a wider
+   window or 1.25 lb add-ons.
+
+   Stated plainly because it matters: there is NO published guidance on rep-
+   window width in a double-progression scheme. Not in the ACSM stand, not
+   anywhere. This derivation is mine, built on their load-rep data. */
+function repsLostOnJump(ex) {
+  const w = typeof ex.w === "number" ? ex.w : null;
+  if (!w || !ex.hi) return null;
+  const rungs = loadRungs(ex);
+  const nxt = rungs ? rungs.find((x) => x > w) : (ex.inc ? w + ex.inc : null);
+  if (nxt == null) return null;
+  const step = nxt - w;
+  if (!(step > 0)) return null;
+  return { step: +step.toFixed(2), pct: +((step / w) * 100).toFixed(1), lost: +((ex.hi + 30) * (step / (w + step))).toFixed(1) };
+}
+/** The bottom of the rep window: wide enough to catch him after a load jump. */
+function windowFor(ex) {
+  const r = repsLostOnJump(ex);
+  if (!r || !ex.hi) return { lo: Math.max(1, (ex.hi || 8) - 2), hi: ex.hi, derived: false };
+  const width = Math.ceil(r.lost) + 1;
+  return {
+    lo: Math.max(1, ex.hi - width), hi: ex.hi, width, derived: true,
+    step: r.step, pct: r.pct, lost: r.lost, tight: r.pct > 10,
+    why: `${r.step} lb on ${ex.w} is a ${r.pct}% jump, which costs about ${r.lost} reps — so the window runs ${Math.max(1, ex.hi - width)}-${ex.hi} to catch you on the far side of it.${r.pct > 10 ? ` That is a big jump for a small-muscle lift: the ACSM asks for 2-10% and wants the SMALLER end on exercises like this one. A 1.25 lb add-on would halve it and let the window tighten.` : ""}`,
+  };
+}
+/** Lifts where the plate is too coarse for the muscle — the micro-loading case. */
+function coarseLifts(s) {
+  return (s.exercises || []).map((e) => ({ e, w: windowFor(e) })).filter((x) => x.w.derived && x.w.tight)
+    .map((x) => ({ id: x.e.id, n: x.e.n, w: x.e.w, step: x.w.step, pct: x.w.pct, lost: x.w.lost, hi: x.e.hi, lo: x.w.lo }));
+}
+
 function atTopOfWindow(reps, ex) {
   const r = (reps || []).slice(0, ex.sets);
   if (r.length < ex.sets) return false;
@@ -1290,6 +1360,50 @@ function observedTDEE(s) {
   };
 }
 
+/* ---------- FLOOR_NOTE — 1,700 was invented ----------
+   I checked all four documents that could plausibly authorise it. The
+   ACSM/AND/DC 2016 Joint Position Stand, the IOC 2023 REDs consensus, the ISSN
+   position stand on diets and body composition, and Helms 2014 on natural
+   bodybuilding contest prep. Not one contains an absolute calorie floor for an
+   athlete. Every one expresses the constraint per kilogram of fat-free mass.
+
+   The 1,200/1,500 figures everyone half-remembers are not a micronutrient
+   finding either. They come from the 2013 AHA/ACC/TOS obesity guideline, where
+   the graded recommendation is the DEFICIT and the calorie numbers are the
+   arithmetic consequence of applying it to a typical sedentary adult. They carry
+   no independent evidence grade and were never derived from nutrient modelling.
+   I searched specifically for a study establishing an intake below which a
+   well-built diet cannot meet micronutrient needs, for men or anyone, and it
+   does not exist. So this floor is about energy availability, and micronutrients
+   are treated as a composition problem rather than an energy one.
+
+   floor = EA_SPARING x FFM + net training cost — inverting the IOC's own
+   formula. For him that is 25 x 63.5 + ~170 = ~1,760, which is ABOVE the
+   hardcoded 1,700 he has been running under.
+
+   Two honest corrections to my own framing while here. First, this is NOT the
+   same magnitude of error as the rate band's units: fat-free mass is the thing a
+   well-run cut defends, so it barely drifts — losing a kilogram of it moves the
+   floor about 25 kcal. The real value of indexing to FFM is personalisation, not
+   drift. Second, and more useful: for this athlete the floor should almost never
+   be the binding constraint. At 1,700 he would be running 1.04% of bodyweight a
+   week, past the ACSM/AND/DC 1%/week line, so the RATE cap should bite first. A
+   floor that fires routinely is not protecting him — it is telling you the rate
+   target is wrong. The engine now says so out loud when that happens. */
+function calorieFloor(s) {
+  const bf = bfEst(s);
+  const ffmKg = bf.lean / 2.2046;
+  const ea = energyAvailability(s);
+  const eee = ea && !ea.gated ? ea.trainKcal : Math.round((EA_KCAL_PER_SESSION * 4) / 7);
+  const raw = EA_SPARING * ffmKg + eee;
+  const floor = Math.round(raw / 50) * 50;
+  const soft = Math.round(((EA_SPARING + 5) * ffmKg + eee) / 50) * 50;
+  return {
+    floor, soft, ffmKg: +ffmKg.toFixed(1), eee: Math.round(eee),
+    why: `${floor} is ${EA_SPARING} kcal per kg of your ${(+ffmKg.toFixed(1))} kg lean mass plus the ~${Math.round(eee)} a day your training costs — the IOC's own energy-availability formula, run backwards. No position stand anywhere states an absolute calorie floor for an athlete; all four I checked express it per kg of lean mass, which is why this one moves with you instead of sitting at a round number. Treat the 25 as a convention rather than a measurement: it comes from three single-subject case reports, and the IOC declines to set a threshold at all.`,
+  };
+}
+
 /* ---------- CALORIE_TARGET — the number the app should have been giving him ----------
    The phase band is a constant authored months ago: EASE 1 says 1,725–1,800.
    His measured TDEE and his own target rate band imply something else entirely,
@@ -1304,7 +1418,8 @@ function observedTDEE(s) {
 function calorieTarget(s) {
   const td = observedTDEE(s);
   const band = (s.rate && s.rate.band) || [1.0, 1.4];
-  const floor = 1700;
+  const fl = calorieFloor(s);
+  const floor = fl.floor;
   if (!td) {
     const ph = PHASES[s.phase];
     return { gated: true, from: "phase", lo: ph ? ph.band[0] : null, hi: ph ? ph.band[1] : null,
@@ -1335,6 +1450,14 @@ function calorieTarget(s) {
       : `Your last ${wkRows.length} logged days average ${wkAvg}, which is ${Math.abs(wkOff)} kcal/day ${wkOff > 0 ? "above" : "below"} the middle of this band — about ${(Math.abs(wkOff) * 7 / 3500).toFixed(2)} lb/wk ${wkOff > 0 ? "slower" : "faster"} than the band is aiming for. Not a scolding, just the arithmetic: a daily target and a weekly result are different numbers and only one of them moves you.`,
     tdee: td.tdee, tdeeLo: td.lo, tdeeHi: td.hi, days: td.days, avg: td.avg,
     band, phaseLo, phaseHi, drift, floorHit: lo === floor,
+    floor, floorSoft: fl.soft, floorWhy: fl.why,
+    /* If the floor is what's binding, the rate target is asking for more than
+       energy availability allows — and the honest reading is that the rate is
+       misconfigured, not that he should eat at the floor. */
+    floorBinds: lo === floor && td.tdee - kcalFor(band[1]) < floor,
+    floorBindsWhy: lo === floor && td.tdee - kcalFor(band[1]) < floor
+      ? `Your band's fast end asks for ${td.tdee - kcalFor(band[1])}, which is under the ${floor} energy-availability floor, so the floor is what you are actually eating to. That is worth noticing rather than accepting: a floor that binds is telling you the rate target is set faster than your lean mass can fund, not that ${floor} is the right number. The fix is a slower band, not a lower plate.`
+      : null,
     why: `Your measured maintenance is ${td.tdee}${td.lo && td.hi ? ` (${td.lo}–${td.hi} once the rate's own error is carried through)` : ""}, from ${td.days} logged days and a ${td.method === "regression" ? `least-squares rate across ${td.rateN} daily reads` : "snapshot rate"}${td.matched && td.from ? `, both measured over the same stretch — ${fmtShort(td.from)} to ${fmtShort(td.to)}. That matters because the two halves of that stretch are not the same: ${td.split ? `you averaged ${td.split.calA} kcal on ${td.split.stepA != null ? td.split.stepA.toLocaleString() + " steps" : "more walking"} in the first half and ${td.split.calB} on ${td.split.stepB != null ? td.split.stepB.toLocaleString() : "fewer"} in the second` : "you ate less and walked more earlier on"}. Averaging only the recent food against a rate the earlier weeks helped produce would read maintenance high` : ""}. Your band asks for ${band[0]}–${band[1]} lb/wk, which is ${kcalFor(band[0])}–${kcalFor(band[1])} kcal/day under it. That lands at ${lo}–${hi}.`,
   };
 }
@@ -3512,6 +3635,13 @@ function runAdaptive(state, todayISO) {
       { kind: "note" });
   }
 
+  /* Plates too coarse for the muscle — a hardware finding, not a programming one. */
+  const coarse = coarseLifts(s);
+  if (!sealed && coarse.length)
+    propose("microload", "TWO LIFTS HAVE PLATES TOO COARSE FOR THEM",
+      `${coarse.map((c) => `${c.n} steps ${c.step} lb on ${c.w} — a ${c.pct}% jump`).join(", and ")}. Reps fall about 0.4 for every 1% of load (Nuzzo 2024, 952 reps-to-failure tests across 269 studies), so ${coarse.length > 1 ? "each of those costs" : "that costs"} roughly ${coarse[0].lost} reps. Top out at ${coarse[0].hi}, take the jump, and you land near ${Math.max(1, coarse[0].hi - Math.round(coarse[0].lost))} — outside a tight window, with no rule to climb back. The ACSM's progression stand asks for 2-10% increments and specifically wants the SMALLER end on small-muscle exercises; fixed plates give you the exact inverse, 12.5% on a rear-delt fly against 1.6% on calves. Two fixes and the cheap one is hardware: 1.25 lb magnetic add-ons halve the jump and let the window stay tight. Otherwise the window has to widen to ${coarse[0].lo}-${coarse[0].hi}, which the app has already done. Worth knowing this is a derivation, not a citation — nobody has published guidance on rep-window width in a double-progression scheme.`,
+      { kind: "note" });
+
   /* The rate band's UNIT, which quietly tightens the screw as he leans out. */
   const bwNow = s.trend;
   const bandPct = [((s.rate.band[0] / bwNow) * 100), ((s.rate.band[1] / bwNow) * 100)];
@@ -4737,6 +4867,14 @@ const blackoutOn = (s) => daysUntil(s.blackout.until) > 0;
 const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d); if ((t === "U" || t === "L") && !s.sessionLog[d]) return d; } return null; };
 __test.nextTrainingISO = nextTrainingISO;
 __test.typicalError = typicalError;
+__test.rulebook = rulebook;
+__test.windowFor = windowFor;
+__test.repsLostOnJump = repsLostOnJump;
+__test.coarseLifts = coarseLifts;
+__test.calorieFloor = calorieFloor;
+__test.DEBT_LAST_H = DEBT_LAST_H;
+__test.DEBT_MEAN3_H = DEBT_MEAN3_H;
+__test.EA_SPARING = EA_SPARING;
 __test.etaRange = etaRange;
 __test.bfEst = bfEst;
 __test.stepTarget = stepTarget;
@@ -7221,23 +7359,47 @@ function CoachView({ s, onClose }) {
   );
 }
 
-function Rules({ onClose, onReset, onExport, onImport, sync, onSync }) {
-  const [tok, setTok] = useState("");
-  const [hasTok, setHasTok] = useState(() => { try { return !!localStorage.getItem(TOKEN_KEY); } catch (e) { return false; } });
-  const rules = [
+/* ---------- RULEBOOK_NOTE — the page that describes the app, describing an app that changed ----------
+   This was twelve hardcoded sentences that nothing checked. Four of them had
+   drifted into describing behaviour the engine no longer performs: OWNERSHIP
+   and SLEEP both still promised the clean-day gate that came out in v3.99.19,
+   PROTEIN still named 175 as a constant after it became derived, and RATE quoted
+   thresholds in absolute pounds that are now known to tighten as he leans out.
+
+   That is the same defect as a proposal whose apply() does nothing — text making
+   a claim the code does not keep — and it is worse here, because this is the
+   page that tells him what the app IS.
+
+   So the rules now READ FROM the engine rather than restating it, and a test
+   binds every derived figure back to the function that produces it. A rule
+   cannot silently disagree with its implementation any more: if the threshold
+   moves, either the sentence moves with it or the suite goes red. */
+function rulebook(s) {
+  const pt = proteinTarget(s), fl = calorieFloor(s), ct = calorieTarget(s);
+  const te = typicalError(s, null), bw = s.trend || 1;
+  const pct = (lb) => ((lb / bw) * 100).toFixed(2);
+  const acsmLb = +(0.01 * bw).toFixed(1);
+  return [
     ["ADAPTIVE", "Session targets, earned loads, and the queue update themselves from what you log. Calorie & phase changes arm themselves from trend data but take one tap — nothing macro moves invisibly."],
-    ["RATE", "IF <0.8/wk two weeks → restore steps first, THEN trim. IF ≥1.9 → redline, add back, coach flag. The app watches; you tap."],
+    ["RATE", `IF under ${s.rate.floor}/wk two weeks → restore steps first, THEN trim — steps because adding them does not deepen the food deficit, and deficit size is the variable the trained-population evidence links to lean-mass loss. IF at or over ${s.rate.redline} → redline, add back, coach flag. Both numbers are pounds, which is a problem: at ${bw} lb they are ${pct(s.rate.floor)}% and ${pct(s.rate.redline)}% of bodyweight, and the redline sits above the ${acsmLb} lb that ${(1).toFixed(0)}%/wk works out to for you. There is an open proposal to restate the band in %BW.`],
     ["STRUCTURE", "One structural change per session — auto-picked from the queue. Rep progression unlimited."],
-    ["OWNERSHIP", "A PR is not owned until it repeats on a clean day. Loads are earned at the top of the rep window on a clean day, then queued. Peak-stim PRs log provisional."],
-    ["OPENERS", "Honest 1-RIR openers — hot openers crater tails. The app flags them."],
-    ["SIGNALS", "Opener RIR, weekly waist, joint flags: ~45 sec that feed real rules. RIR-0 twice = load held. A grind at RIR 0 never earns. 3 joint flags in 3 weeks surfaces on NOW. Waist beats the scale."],
-    ["SCALE", "Fasted · post-void · pre-food. Once a day. Sealed windows excluded. Trend is the hero."],
+    ["OWNERSHIP", `A new best waits for ONE repeat before it becomes the standard, and a session that clears the old line by two standard errors banks on the spot. The bar is your own measured spread — ±${te.reps} reps per set, from ${te.n} paired sets at identical load. Sleep is not part of this: measurement error does not care how you slept, and it applies to every record rather than a sleep-selected minority.`],
+    ["OPENERS", "The taper asks for a 2-RIR opener and one terminal set to failure. Two openers ground out at RIR 0 and the load holds until an honest one lands — a grind is not an earn."],
+    ["SIGNALS", "Last-set RIR is the one that sizes the next jump; the opener only feeds the hold governor. Joint flags three times in three weeks surface on NOW as a pattern rather than a day. Waist is still an unlogged input — until entries exist, it changes nothing and the app will not pretend otherwise."],
+    ["SCALE", "Fasted · post-void · pre-food. Once a day. Sealed windows excluded. Trend is the hero — a single reading carries several pounds of water and means nothing on its own."],
     ["EVENTS", "Estimate once, after, never at the table. Compensation does not exist in this app."],
-    ["PROTEIN", "175 is THE number. A miss fixed inside 24 h extends the standard."],
-    ["SLEEP", "3 consecutive 7.5–8 h nights = clean. Debuts defer only on a true <4.5 h night. Earns and owns require clean."],
+    ["PROTEIN", `${pt.g} g, every day, derived from your ${pt.ffmKg} kg of lean mass at ${pt.perKg} g/kg — not a constant. It does not rise on training days: the only study that compared day types found requirement HIGHER on rest days. A miss fixed inside 24 h extends the standard.`],
+    ["SLEEP", `A night under ${DEBT_LAST_H} h, or a three-night mean under ${DEBT_MEAN3_H}, flags the session. What that flag buys you is protection — the day cannot count toward a stall, so you are never deloaded for a bad night. It does NOT block a record or shrink the step; that rule was retired because acute sleep loss costs about 2.85% on strength, which is inside the test-retest noise, and no trial has ever tested damping progression on low-readiness days. Your ${s.sleep.cleanH} h target is a separate question and still stands — in a deficit, short sleep shifts what you lose toward lean mass.`],
+    ["FOOD", `${ct.gated ? "Calories fall back to the phase band until there are enough clean days to measure your own maintenance." : `${ct.lo}–${ct.hi}, from your measured maintenance minus the deficit your own rate band asks for.`} The floor is ${fl.floor} — ${EA_SPARING} kcal per kg of lean mass plus what training costs, not a round number. No position stand anywhere states an absolute calorie floor for an athlete; every one of them indexes to lean mass.`],
     ["AUTHORITY", "Machine swaps, ladder graduations, the pivot call — coach territory. The app proposes; humans authorize."],
     ["ATTENTION", "From wk 10: mirror & measurements outrank the scale. The app rewards logged behavior, never checking."],
+    ["EVIDENCE", "Every rule above names what it rests on, and says so when it rests on nothing. Rules retired for having no evidence behind them: the clean-sleep gate on records, the weekly refeed's benefits, and defending load rather than effort on a cut. That is the mechanism working."],
   ];
+}
+function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
+  const [tok, setTok] = useState("");
+  const [hasTok, setHasTok] = useState(() => { try { return !!localStorage.getItem(TOKEN_KEY); } catch (e) { return false; } });
+  const rules = rulebook(s);
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(8,10,13,0.94)", zIndex: 70, overflowY: "auto" }} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480, margin: "0 auto", padding: "calc(26px + env(safe-area-inset-top)) 18px 40px" }}>
@@ -7516,7 +7678,7 @@ export default function PrepLedger() {
       </div>
 
       {kitPerson && KIT_SPECS[kitPerson] && <KitApp spec={{ ...KIT_SPECS[kitPerson], id: kitPerson }} onExit={() => { localStorage.removeItem(KIT_KEY); setKitPerson(null); }} />}
-      {rules && <Rules onClose={() => setRules(false)} onReset={reset} onExport={doExport} onImport={doImport} sync={s.sync} onSync={async () => { const res = await ghSync(s); const ns = { ...s, sync: { last: isoOf(todayStart()), status: res.ok ? "synced" : res.msg } }; setS(ns); save(ns); }} />}
+      {rules && <Rules s={s} onClose={() => setRules(false)} onReset={reset} onExport={doExport} onImport={doImport} sync={s.sync} onSync={async () => { const res = await ghSync(s); const ns = { ...s, sync: { last: isoOf(todayStart()), status: res.ok ? "synced" : res.msg } }; setS(ns); save(ns); }} />}
       {coach && <CoachView s={s} onClose={() => setCoach(false)} />}
       {gloss && GLOSSARY[gloss] && (
         <div onClick={() => setGloss(null)} style={{ position: "fixed", inset: 0, zIndex: 66, background: "rgba(8,10,12,0.55)" }}>

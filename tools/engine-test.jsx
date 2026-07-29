@@ -2338,5 +2338,68 @@ ok(pctAt148 > pctLo, "the same pound figure is a LARGER share of a smaller man �
 ok(rateCard.why.indexOf("Garthe") > -1, "and it cites the trial where the faster arm lost lean mass while the slower one gained it");
 ok(rateCard.why.indexOf("% of bodyweight") > -1, "proposing the unit that does not drift");
 
+/* ================= v3.99.25 — the Rulebook cannot lie about the engine ================= */
+const { rulebook: rbN, windowFor: wfN, repsLostOnJump: rlN, coarseLifts: clN, calorieFloor: cfN,
+        proteinTarget: ptR, typicalError: teR, calorieTarget: ctR2, DEBT_LAST_H: DLH, DEBT_MEAN3_H: DM3,
+        EA_SPARING: EAS2, SEED: TR25 } = __test;
+
+/* THE DRIFT THIS PREVENTS. The Rulebook was twelve hardcoded sentences nothing
+   checked, and four had rotted: OWNERSHIP and SLEEP still promised the
+   clean-day gate removed in v3.99.19, PROTEIN still called 175 a constant after
+   it became derived, RATE quoted pounds. Text making a claim the code does not
+   keep — the same defect as a proposal whose apply() does nothing, on the page
+   that tells him what the app IS. Every derived figure is now bound to the
+   function that produces it: move a threshold without moving the sentence and
+   this block goes red. */
+const rbS = clone(TR25);
+const rb = rbN(rbS);
+const say = (k) => (rb.find((r) => r[0] === k) || [null, ""])[1];
+ok(rb.length >= 12 && rb.every((r) => r[0] && r[1] && r[1].length > 40), "every rule has a name and a sentence: " + rb.length);
+
+/* the four that had rotted */
+ok(say("OWNERSHIP").indexOf("clean day") === -1, "OWNERSHIP no longer promises a clean-day gate the engine stopped applying six versions ago");
+ok(say("OWNERSHIP").indexOf(String(teR(rbS, null).reps)) > -1, "and it quotes his OWN measured spread, read from typicalError rather than restated: ±" + teR(rbS, null).reps);
+ok(say("SLEEP").indexOf(String(DLH)) > -1 && say("SLEEP").indexOf(String(DM3)) > -1, "SLEEP quotes the live debt thresholds, both of them");
+ok(say("SLEEP").indexOf("does NOT block a record") > -1, "and states the thing that actually changed, rather than leaving him to notice");
+ok(say("SLEEP").indexOf(String(rbS.sleep.cleanH)) > -1, "while keeping the target as a separate, still-standing question");
+ok(say("PROTEIN").indexOf(String(ptR(rbS).g)) > -1 && say("PROTEIN").indexOf(String(ptR(rbS).perKg)) > -1, "PROTEIN reads from proteinTarget — number and per-kg figure both");
+ok(say("PROTEIN").indexOf("not a constant") > -1, "and says out loud that it is derived, since it used to claim the opposite");
+ok(say("RATE").indexOf(String(rbS.rate.floor)) > -1 && say("RATE").indexOf(String(rbS.rate.redline)) > -1, "RATE reads its thresholds from state rather than hardcoding them");
+ok(say("RATE").indexOf("% of bodyweight") > -1, "and converts them to the unit that does not drift, because in pounds they tighten as he leans");
+ok(say("FOOD").indexOf(String(cfN(rbS).floor)) > -1, "FOOD carries the derived floor, not 1,700");
+
+/* a rule naming an input he does not collect is decoration */
+ok(rbS.waist.length === 0 && say("SIGNALS").indexOf("unlogged") > -1,
+   "SIGNALS admits waist is unlogged instead of claiming it beats the scale — it named an input with zero entries");
+
+/* the numbers move when the state moves — proof it reads rather than restates */
+const lighter = clone(TR25); lighter.trend = 148; lighter.model.lean = 132;
+ok(rbN(lighter).find((r) => r[0] === "RATE")[1] !== say("RATE"), "a lighter athlete gets different RATE percentages from the same pounds");
+ok(rbN(lighter).find((r) => r[0] === "PROTEIN")[1] !== say("PROTEIN"), "and a different protein number, because lean mass moved");
+
+/* ---- rep windows: the ceiling is arbitrary, the WIDTH is mechanical ---- */
+ok(rlN({ w: 20, inc: 2.5, hi: 12 }).pct === 12.5, "a 2.5 lb plate on a 20 lb rear-delt fly is a 12.5% jump");
+ok(rlN({ w: 20, inc: 2.5, hi: 12 }).lost > 4.5, "which costs about " + rlN({ w: 20, inc: 2.5, hi: 12 }).lost + " reps — Nuzzo 2024, ~0.4 reps per 1% of load");
+ok(rlN({ w: 320, inc: 5, hi: 13 }).lost < 1, "while 5 lb on 320 lb calves costs under a rep: " + rlN({ w: 320, inc: 5, hi: 13 }).lost);
+ok(wfN({ w: 20, inc: 2.5, hi: 12 }).lo <= 6, "so the rear-delt window has to run down to " + wfN({ w: 20, inc: 2.5, hi: 12 }).lo + " to catch him after the jump");
+ok(wfN({ w: 320, inc: 5, hi: 13 }).lo >= 11, "and the calf window can stay tight at " + wfN({ w: 320, inc: 5, hi: 13 }).lo + "-13");
+ok(wfN({ w: 20, inc: 2.5, hi: 12 }).tight === true && wfN({ w: 320, inc: 5, hi: 13 }).tight === false, "only the lift outside the ACSM 2-10% band is flagged");
+ok(wfN({ w: "BW", hi: 8 }).derived === false, "a bodyweight lift has no increment to reason about, and says so rather than inventing one");
+/* a ladder beats the flat increment when one exists */
+ok(rlN({ w: 315, steps: [300, 315, 320, 335], inc: 5, hi: 13 }).step === 5, "on a ladder the real next rung is the step, not the nominal increment");
+
+const coarse25 = clN(clone(TR25));
+ok(coarse25.length === 2 && coarse25.every((c) => c.pct > 10), "exactly two of his lifts have plates too coarse for them: " + coarse25.map((c) => c.n + " " + c.pct + "%").join(", "));
+ok(coarse25.some((c) => c.id === "rearDelt") && coarse25.some((c) => c.id === "pronated"), "the rear-delt fly and the pronated curl — both small-muscle lifts on fixed plates, which is the ACSM recommendation exactly inverted");
+
+/* ---- the calorie floor, derived ---- */
+const fl25 = cfN(clone(TR25));
+ok(fl25.floor > 1700, "the derived floor comes out ABOVE the 1,700 he was running under: " + fl25.floor);
+ok(Math.abs(fl25.floor - (EAS2 * fl25.ffmKg + fl25.eee)) <= 50, "it is energy availability run backwards — " + EAS2 + " kcal per kg of lean plus training cost, rounded to 50");
+ok(fl25.soft > fl25.floor, "with a soft band above it at the 30 kcal/kg mark");
+ok(fl25.why.indexOf("No position stand") > -1, "and the receipt says the quiet part: no position stand anywhere states an absolute floor for an athlete");
+const leanerS = clone(TR25); leanerS.model.lean = 120;
+ok(cfN(leanerS).floor < fl25.floor, "a smaller man gets a smaller floor — which is the actual value of indexing to lean mass, personalisation rather than drift");
+
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
