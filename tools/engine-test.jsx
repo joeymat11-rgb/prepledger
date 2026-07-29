@@ -2614,5 +2614,32 @@ ok(wi35.indexOf("nothing becomes official") === -1 && wi35.indexOf("streak never
 ok(wi35.indexOf("lean mass") > -1, "and warns about the thing short sleep actually costs");
 ok(ate35(cs35, "run_whatif", { refeed: 2400 }, []).indexOf("retired") > -1, "modelling a refeed says plainly that refeeds are retired rather than returning a number as if it were a live lever");
 
+/* ---- the diet exit: his plan, his number, no ramp, no assumed surplus ----
+   The old queue item read "Fast reverse (~1-2 wk to ~2,450) -> lean surplus
+   2,700-2,950 · MRV build". Asked directly, he said: straight to maintenance,
+   hold, then decide. It committed him to a surplus before the hold had produced
+   a single number, and 2,450 was authored — stepping up to a "maintenance" that
+   is not maintenance is just a smaller cut with a better name. */
+const { dietExit: dx36, askContext: ac36, SEED: SE36 } = __test;
+const exit36 = mkReads(28, 0.2, 170);
+const dxA = dx36(exit36);
+ok(!dxA.gated, "with a measured maintenance the exit plan prints");
+ok(dxA.maintenance === __test.observedTDEE(exit36).tdee, "the number he steps up to is his MEASURED maintenance, not an authored one: " + dxA.maintenance);
+ok(dxA.maintenance !== 2450, "specifically not the 2,450 the old queue item promised");
+ok(dxA.plan.length === 3 && dxA.plan[0].indexOf("ONE step, not a ramp") > -1, "step one is a single step, because reverse dieting as a protocol has no controlled trial behind it");
+ok(dxA.plan[1].indexOf("glycogen") > -1, "step two says why the hold exists — the first pounds back are glycogen and water, and misreading them restarts a deficit he does not need");
+ok(dxA.plan[2].indexOf("no rule that says the next phase has to be a build") > -1, "and step three refuses to assume a surplus, because he has not decided one");
+ok(dxA.why.indexOf("no controlled trial") > -1 && dxA.why.indexOf("MATADOR") > -1, "the receipt separates what is convention from what is replicated");
+ok(dxA.unknown.indexOf("no study can tell you") > -1 && dxA.unknown.indexOf(String(dxA.bfLo)) > -1,
+   "and it says plainly that nothing answers WHEN to stop — the body-fat interval is wider than the decision");
+ok(dxA.holdMin < dxA.holdFull && dxA.holdMin >= 2, "the hold has a floor and a full length, both stated");
+/* gated state must not invent a maintenance figure */
+const bare36 = clone(SE36); bare36.reads = []; bare36.weekly = []; bare36.dailyLogs = {};
+ok(dx36(bare36).gated === true && dx36(bare36).maintenance === undefined, "without a measured maintenance it declines to name a number rather than guessing one");
+/* the analyst must give the same answer the app shows */
+const ctx36 = ac36(exit36);
+ok(ctx36.indexOf("THE DIET EXIT") > -1 && ctx36.indexOf("Do NOT propose a reverse-diet ramp") > -1, "the analyst is handed the same plan, so asking it does not produce a generic reverse-diet script");
+ok(ctx36.indexOf("Do NOT assume a surplus") > -1, "and is told not to assume the build he has not chosen");
+
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
