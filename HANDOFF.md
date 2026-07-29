@@ -1,4 +1,167 @@
-# PREP LEDGER — HANDOFF BRIEF
+# PREP LEDGER — HANDOFF
+
+> **§0 below is the branch handoff for `audit/research-corpus` (v4.0.0), written
+> 2026-07-29. §1 onward is the older general onboarding brief — still broadly
+> useful, but see "stale in the old brief" at the end of §0 before trusting its
+> numbers.**
+
+---
+
+# §0 · BRANCH HANDOFF — `audit/research-corpus` → v4.0.0
+
+**Status: 10 commits, pushed, NOT merged, NOT deployed. Nothing has reached the
+athlete's phone.** Suite green at 856 assertions. Working tree clean, no stashes.
+
+## 0.1 · What the research corpus is, and what it is for
+
+`research-brief.md` (repo root, ~450 lines) is the evidence base this app's
+design decisions are supposed to rest on. `GOALS.md` — the athlete's own charter,
+also on this branch — instructs every session to **read it before researching
+anything new** and to *extend* rather than restart it.
+
+It is organised as: progression & records · volume & set counting · **exercise
+selection** · nutrition · training mechanics · the diet exit · morning
+monitoring · **NEGATIVE FINDINGS** · **RECURRING FAILURE MODES IN THIS
+CODEBASE** · what is still open.
+
+Two sections matter more than the rest:
+
+- **NEGATIVE FINDINGS** lists nine rules retired for having no evidence behind
+  them (clean-sleep gate, weekly refeeds, "defend load on a cut", lengthened
+  partials as a system, rep tempo, slow eccentrics, periodisation, planned
+  deloads, machines-inferior-to-free-weights). **Do not reintroduce these.** Each
+  one was in the app, shipped, and being acted on.
+- **RECURRING FAILURE MODES** is the meta-lesson and the reason the file exists.
+
+## 0.2 · The one thing to understand before touching anything
+
+**The dominant defect in this codebase is not wrong research. It is research
+that was written down and then not enforced in code.** This happened three
+separate times *in the session that produced this branch*:
+
+1. The clean-sleep gate was retired in `progressStep`, then found alive in
+   **eleven** other places — two of which (`liftCall`, `rirPlan`) still decided
+   what the athlete lifted.
+2. `patchV33` split the deltoids into heads, retracted a card built on the pooled
+   bucket, and told the athlete so in his feed — while `muscleVolume()` kept
+   counting by pooled muscle, so the TRAIN screen went on printing
+   `delts 17 OVER` in red for three more commits.
+3. `research-brief.md` already contained *"Retention is cheap; growth is
+   expensive"* with both citations, while `volumeImbalance()` was preparing to
+   propose **+7 weekly sets** to a man in a deficit.
+
+**When you merge: grep for the claim, not just the function.** A rule that
+survives only in copy is still a rule, because he reads the copy.
+
+## 0.3 · What is done
+
+| area | state |
+|---|---|
+| clean-sleep gate | removed from engine **and** all copy; `patchV34` migrates saved state |
+| authored constants | 9 removed — protein 175, steps 16.5k, cal floor 1700, 3500 kcal/lb (was used **three different ways** in one app), 16500/1760/2450 in the two consoles |
+| protein | derived from lean mass; now a **floor**, not a symmetric band; carries a range (160–190) because his BF interval straddles the 12.2% subgroup line |
+| body fat | band surfaced everywhere the point estimate appears |
+| countdowns | Aug 28 / `CROSSOVER` mechanics removed (4 sites) — GOALS.md forbids them, no date is set |
+| diet exit | rebuilt to his stated plan: one step to **measured** maintenance, hold, then decide. No ramp, no assumed surplus |
+| volume | **phase-aware** — growth band does not apply during a deficit |
+| exercise selection | audited; `exerciseSelection()`; his is already optimal |
+| Analyst | law sheet + canonical block rebuilt; no authored constants reach the prompt |
+| nav | static demotion to NOW / TRAIN / MORE |
+| NOW | time-aware via `nowFocus()`; reading collapsed behind one tap |
+| tests | 856 assertions, `MIN_ASSERTIONS = 850`; render-smoke walks demoted rooms via MORE |
+
+## 0.4 · What is NOT done
+
+- **No visual/polish pass.** Everything was correctness and structure. Typography,
+  spacing, touch targets, colour consistency — untouched.
+- **Research topics brainstormed but not run.** In priority order for this
+  athlete: (1) how to actually shift a bedtime — light exposure, chronotype;
+  (2) caffeine ~350 mg **interacting with his stimulant medication**, against a
+  01:40 bedtime that is his single largest body-composition lever;
+  (3) NEAT compensation in a deficit — erodes the measured maintenance the whole
+  calorie band hangs off; (4) getting a real body-fat anchor (currently
+  "coach's eye, ±3.5" — the widest uncertainty in the app, and the sole reason
+  protein is a range rather than a number). Then: satiety/fibre, creatine,
+  alcohol, waist+photos (he has **zero** of each logged), implementation
+  intentions.
+- **Hamstrings at 4 sets/week** is a real gap, deliberately **filed not proposed**
+  until the deficit ends. See §0.5.
+- `GOALS.md` line ~109 still says the surplus is added on top of the diet-exit
+  figure. He has since said *straight to maintenance, hold, then decide* — the
+  code reflects that, the charter has not been updated.
+
+## 0.5 · Decisions that are not obvious from the files
+
+- **Volume is phase-aware on purpose.** Pelland 2025's 6–12 band is a *growth*
+  dose-response measured in people eating enough to build. Roth 2023 (n=38, 6 wk,
+  30 kcal/kg deficit, 2.8 g/kg protein — nearly this athlete's exact situation)
+  found ~20 weekly sets and ~12 preserved lean mass **identically** (−0.51 vs
+  −0.92 kg, ns; no muscle-thickness difference). Bickel 2011 held young adults'
+  thigh lean mass for 32 weeks on **one-ninth** of the volume that built it.
+  `volumeImbalance()` returns `cutting` / `actionable`; the proposal fires only
+  once `targets.exitStart` is set. **Do not "fix" this by making it always fire.**
+- **Sleep is a body-composition lever, not a session lever.** Craven 2022 puts
+  acute sleep loss at −2.85% on strength, inside test-retest CV. Nedeltcheva 2010
+  puts 5.5 h vs 8.5 h at ~60% more of the loss coming off fat-free mass at a
+  matched deficit. The app must never gate a rep on sleep again.
+- **Bedtime, not wake time, is the named lever.** His measured clock: bed 01:45
+  (±20 min), wake 09:00 (±43 min). Bedtime is the *steadier* end, so it is the one
+  he can move. The app previously advised "fixed wake time is the strongest
+  single move" — aimed at the end he controls least.
+- **Triceps: closed, do not reopen.** Overhead beats pushdown for the long head
+  (d = 0.54–0.61), but his Prime 3-peg changes the **resistance profile**, not the
+  **shoulder angle** — the old `q_peg` item confused the two variables. Shown the
+  case, he chose to keep the Prime. `patchV34` closes it.
+- **Nav is static by design, never adaptive.** Findlater & McGrenere (CHI 2004,
+  n=27): static 306.5 s, adaptive **331.6 s** (~8% slower — repositioning destroys
+  spatial memory), adaptable 300.7 s once customised and preferred 15:4. **Do not
+  make the tab bar promote whichever tab has news.**
+- **The logging ACT is deliberately still manual.** Lower-burden methods
+  (wearable, photo) produced *worse* habit formation and less than half the weight
+  loss (−3.0 vs −6.8 kg, p<0.001) than a higher-burden manual app. What was cut is
+  the *distance* to the act, not the act.
+- **`proteinHit` tolerance is 0, deliberately.** A ±10 g band belongs around a
+  bullseye; subtracting it from a *floor* just moves the floor and creates a third
+  number. The app was simultaneously saying "under 158 is not defended", "anywhere
+  160–190 counts", and actually passing 150.
+
+## 0.6 · Migration safety — read before merging
+
+`SCHEMA_V = 34`. `patchV34` rewrites queue copy, migrates `q_pivot` to the new
+exit plan, and closes `q_peg`. Two invariants, both test-covered:
+
+1. **It never touches a `done` queue item.** A finished item's `gate` field is a
+   *receipt*, not a gate — `q_hack3` on his live state reads `"Debuted 7,8,7"`.
+   An earlier draft of this migration would have overwritten it. That is data
+   loss on a GOALS.md hard guardrail.
+2. **It is idempotent** — re-running files no duplicate feed entries.
+
+Verified against the real `ledger/state.json`: 46 reads / 42 nights / 47 dailyLogs
+/ 4 sessions / 13 queue items all intact, every done-item receipt preserved.
+
+## 0.7 · Environment warning — this bit us
+
+The nightly analyst pipeline ran at **05:05 on 2026-07-29**, did
+`pull --rebase --autostash origin main`, rebased this branch cleanly, then
+**left the repo checked out on `main`** and committed there at 05:14. Subsequent
+edits landed on `main` by accident and had to be recovered.
+
+Nothing was lost, but that was luck: `--autostash` means uncommitted work would
+have gone into a stash nobody would think to look for. **The pipeline and any
+interactive agent are editing the same working copy with no coordination.**
+Consider making it refuse to run when a feature branch is checked out, or having
+it restore the previous branch. Not changed here — it is the owner's automation.
+
+## 0.8 · Stale in the old brief below
+
+§2 says `src/app.jsx` is ~5,000 lines (now ~8,900) and the suite is 359
+assertions (now 856). It references `prep-ledger-pwa/` and GitHub Pages; the app
+now deploys via GitHub Actions → Netlify, and `app.js` is committed at repo root
+because Netlify serves the repo as-is. §3's environment notes still hold, except
+that source surgery is done with Node rather than Python (there is no `python3`
+on the current dev machine).
+
+---
 
 Read this first. It is the onboarding document for any agent or environment
 picking up development of this app.
