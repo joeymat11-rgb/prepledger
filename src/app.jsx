@@ -48,7 +48,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.4";
+const APP_V = "4.0.5";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -4338,6 +4338,46 @@ function dismissSuggestion(state, sug) {
   return s;
 }
 
+/* agent proposals (s.agentProposals) — approve applies the kind's change + logs, then
+   clears it from the inbox; dismiss clears it (volume records a two-week cooldown).
+   Extracted verbatim from the old inline NOW block so the one-door inbox can reuse it. */
+function applyAgentProposal(state, ap, tISO) {
+  const s = JSON.parse(JSON.stringify(state));
+  if (ap.kind === "volume" && ap.exId && ap.dir) {
+    const ex7 = s.exercises.find((x) => x.id === ap.exId);
+    if (ex7) { ex7.sets = Math.max(1, (ex7.sets || 1) + ap.dir); s.feed.unshift({ d: tISO, t: `VOLUME ${ap.dir > 0 ? "+1" : "−1"} — ${ap.mg.toUpperCase()} via ${ex7.n} (now ${ex7.sets} sets)`, how: "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited" }); }
+  } else if (ap.kind === "reset" && ap.exId && ap.newW) {
+    const ex3 = s.exercises.find((x) => x.id === ap.exId);
+    if (ex3) { const oldW = ex3.w; ex3.w = ap.newW; ex3.last = null; s.feed.unshift({ d: tISO, t: "RESET APPLIED — " + ex3.n + " " + oldW + " → " + ap.newW, how: "3-session stall, evidence-based back-off, your consent — rebuild starts next session" }); }
+  } else if (ap.kind === "trial") {
+    const rec = ap.custom ? { custom: ap.custom, started: tISO } : { tplId: ap.tplId, started: tISO };
+    s.trials = [...(s.trials || []), rec];
+    s.feed.unshift({ d: tISO, t: "TRIAL STARTED — " + (ap.custom ? ap.custom.t : TRIAL_TPL[ap.tplId].t), how: ap.custom ? "designed by your analyst for a pattern in YOUR data, consented by you" : "proposed by your analyst, consented by you" });
+  }
+  s.agentProposals = (s.agentProposals || []).filter((x) => x.id !== ap.id);
+  return s;
+}
+function dismissAgentProposal(state, ap, tISO) {
+  const s = JSON.parse(JSON.stringify(state));
+  if (ap.kind === "volume" && ap.mg) s.feed.unshift({ d: tISO, t: `VOLUME PASSED — ${ap.mg.toUpperCase()}`, how: "athlete dismissed — the ledger waits two weeks before raising this muscle again" });
+  s.agentProposals = (s.agentProposals || []).filter((x) => x.id !== ap.id);
+  return s;
+}
+
+/* dismiss an engine proposal (s.proposals). Law 10: the athlete overrides — even the
+   engine's own autoregulation is a proposal he can decline, not a verdict. Marks it
+   resolved so it leaves the door; the record keeps the decline; the engine re-arms it
+   if the pattern that raised it still holds. */
+function dismissProposal(state, pid) {
+  const s = JSON.parse(JSON.stringify(state));
+  const p = s.proposals.find((x) => x.id === pid);
+  if (!p || p.resolved) return s;
+  p.resolved = true; p.dismissed = true;
+  s.adjustments.push({ rid: p.rid, d: isoOf(todayStart()), title: p.title, dismissed: true });
+  s.feed.unshift({ d: isoOf(todayStart()), t: "ADJUSTMENT DECLINED", how: `${p.title} — you passed; nothing changed. The engine re-arms it if the pattern that raised it holds.` });
+  return s;
+}
+
 /* undo a same-day scale read — restores trend and clears this week's snapshot if orphaned */
 function undoRead(state, iso) {
   const s = JSON.parse(JSON.stringify(state));
@@ -5852,78 +5892,113 @@ function RateGauge({ rate, cur }) {
 
 /* ============================================================ TABS */
 
-function Proposals({ s, setS, save }) {
+/* ---------- THE ONE DOOR — FOR YOUR APPROVAL ----------
+   Law 3: "many sources, one door — every machine-initiated change routes through
+   the proposals inbox." Law 10: "the athlete overrides." The engine (s.proposals),
+   the analyst (ledger/suggestions.json, graded on its scorecard) and the agents
+   (s.agentProposals) used to render three cards in three styles with three
+   interactions — the exact consistency violation Nielsen #4 warns about, three
+   patterns to learn where one would do. They are ONE inbox now: one card, one
+   place, ordered by leverage, Approve + Dismiss on every item (Law 10 makes even
+   the engine's own autoregulation declinable). Only the SOURCE tag and the
+   under-the-hood dispatch differ — each keeps its real behaviour: the engine its
+   bounded nudge dial, the analyst its grade, the agents their consent copy. */
+function ApprovalInbox({ s, setS, save, tISO }) {
   const [nudge, setNudge] = useState({});
-  const open = s.proposals.filter((p) => !p.resolved);
-  if (!open.length) return null;
-  return (
-    <>
-      {open.map((p) => (
-        <Card key={p.id} accent={T.brass}>
-          <Eyebrow c={T.brass}>ADJUSTMENT ARMED · {fmtShort(p.d)}</Eyebrow>
-          <H size={19}>{p.title}</H>
-          <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 5 }}>{p.why}</div>
-          {(() => {
-            const dial = proposalDial(p);
-            if (!dial) return (
-              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                <Btn small tone="jade" onClick={() => { const ns = applyProposal(s, p.id); setS(ns); save(ns); }}>Apply — log it</Btn>
-              </div>
-            );
-            const n = nudge[p.id] || 0;
-            const shown = dial.base + n;
-            return (
-              <div style={{ marginTop: 10 }}>
-                <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.08em" }}>TAKE IT AS PROPOSED, OR MOVE IT — YOUR CALL EITHER WAY</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 7, flexWrap: "wrap" }}>
-                  <button onClick={() => setNudge({ ...nudge, [p.id]: Math.max(-dial.max, n - dial.step) })}
-                    style={{ width: 34, height: 30, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>−</button>
-                  <div style={{ fontFamily: mono, fontSize: 14, color: n ? T.jade : T.chalk, minWidth: 74, textAlign: "center" }}>
-                    {shown > 0 ? "+" : ""}{shown} {dial.unit}{Math.abs(shown) === 1 ? "" : "s"}
-                  </div>
-                  <button onClick={() => setNudge({ ...nudge, [p.id]: Math.min(dial.max, n + dial.step) })}
-                    style={{ width: 34, height: 30, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
-                  <Btn small tone="jade" onClick={() => { const ns = applyProposal(s, p.id, n); setS(ns); save(ns); setNudge({ ...nudge, [p.id]: 0 }); }}>
-                    {n ? "Apply my version — log it" : "Apply — log it"}
-                  </Btn>
-                </div>
-                <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 6, lineHeight: 1.5 }}>
-                  the dial is small on purpose — bounded adjustments stay closer to the number the data supports than a blank field does, and either way the record logs what you actually did
-                </div>
-              </div>
-            );
-          })()}
-        </Card>
-      ))}
-    </>
-  );
-}
-
-function AnalystSuggestions({ s, setS, save }) {
   const raw = useRepoDoc("ledger/suggestions.json");
-  const data = (() => { try { return raw ? JSON.parse(raw) : null; } catch (e) { return null; } })();
-  if (!data || !Array.isArray(data.suggestions)) return null;
-  const done = new Set((s.suggestionLog || []).map((x) => x.sid));
-  const open = data.suggestions.filter((x) => x && x.sid && !done.has(x.sid));
-  if (!open.length) return null;
-  const cc = { high: T.jade, medium: T.brass, low: T.steel };
-  const line = { fontFamily: body, fontSize: 12, color: T.steel, lineHeight: 1.5, marginTop: 3 };
+  const sugData = (() => { try { return raw ? JSON.parse(raw) : null; } catch (e) { return null; } })();
+  const doneSug = new Set((s.suggestionLog || []).map((x) => x.sid));
+  const items = [];
+
+  (s.proposals || []).filter((p) => !p.resolved).forEach((p) => {
+    const k = (p.apply || {}).kind;
+    const pri = (k === "phase" || k === "exit") ? 0 : (k === "cal" || k === "rate" || k === "refeed") ? 1 : 4;
+    items.push({
+      key: "eng_" + p.id, from: "ENGINE", type: "ADJUSTMENT ARMED", meta: fmtShort(p.d), accent: T.brass, pri,
+      title: p.title, why: p.why, dial: proposalDial(p),
+      approve: (n) => { const ns = applyProposal(s, p.id, n || 0); setS(ns); save(ns); },
+      approveLabel: (n) => (n ? "Apply my version — log it" : "Apply — log it"),
+      dismiss: () => { const ns = dismissProposal(s, p.id); setS(ns); save(ns); },
+    });
+  });
+
+  (s.agentProposals || []).forEach((ap) => {
+    const consent = ap.kind === "volume" ? (ap.dir > 0 ? "Approve: one set is added to that lift starting next session." : "Approve: one set comes off that lift starting next session.")
+      : ap.kind === "reset" ? `Approve: the weight drops to ${ap.newW} and rep targets re-seed for the lighter load.`
+      : ap.kind === "trial" ? "Approve: the experiment rides your daily protocol in blocks and files its own verdict when done."
+      : "";
+    const canApprove = (ap.kind === "volume" && ap.exId && ap.dir) || (ap.kind === "reset" && ap.exId && ap.newW) || (ap.kind === "trial" && (ap.custom || (ap.tplId && TRIAL_TPL[ap.tplId] && !(s.trials || []).some((t) => t.tplId === ap.tplId))));
+    const label = ap.kind === "volume" ? (ap.dir > 0 ? "Add the set — approve" : "Trim the set — approve") : ap.kind === "reset" ? "Apply reset — approve" : "Start trial — approve";
+    items.push({
+      key: "agt_" + ap.id, from: "AGENT", type: "PROPOSAL", accent: T.jade, pri: ap.kind === "reset" ? 2 : ap.kind === "volume" ? 3 : 5,
+      title: ap.title, why: plainify(ap.body), consent,
+      approve: canApprove ? () => { const ns = applyAgentProposal(s, ap, tISO); setS(ns); save(ns); } : null,
+      approveLabel: () => label,
+      dismiss: () => { const ns = dismissAgentProposal(s, ap, tISO); setS(ns); save(ns); },
+    });
+  });
+
+  if (sugData && Array.isArray(sugData.suggestions)) {
+    sugData.suggestions.filter((x) => x && x.sid && !doneSug.has(x.sid)).forEach((p) => {
+      const conf = String(p.confidence || "").toLowerCase();
+      items.push({
+        key: "ana_" + p.sid, from: "ANALYST", type: "SUGGESTION" + (p.confidence ? " · " + conf.toUpperCase() : ""), accent: T.jade,
+        pri: 3 + (conf === "high" ? 0 : conf === "medium" ? 0.3 : 0.6),
+        title: p.title, rationale: p.rationale, predict: p.predict, conf,
+        approve: () => { const ns = applySuggestion(s, p); setS(ns); save(ns); },
+        approveLabel: () => "Approve — apply it",
+        dismiss: () => { const ns = dismissSuggestion(s, p); setS(ns); save(ns); },
+      });
+    });
+  }
+
+  items.sort((a, b) => a.pri - b.pri);
+  const rline = { fontFamily: body, fontSize: TS.body, color: T.steel, lineHeight: 1.5, marginTop: SP.xs };
+
   return (
     <>
-      {open.map((p) => (
-        <Card key={p.sid} accent={T.jade}>
-          <Eyebrow c={T.jade}>ANALYST · SUGGESTION{p.confidence ? " · " + String(p.confidence).toUpperCase() + " CONFIDENCE" : ""}</Eyebrow>
-          <H size={19}>{p.title}</H>
-          {p.rationale && p.rationale.science && <div style={line}><b style={{ color: T.chalk }}>Science:</b> {p.rationale.science}</div>}
-          {p.rationale && p.rationale.data && <div style={line}><b style={{ color: T.chalk }}>Your data:</b> {p.rationale.data}</div>}
-          {p.rationale && p.rationale.relationship && <div style={line}><b style={{ color: T.chalk }}>Why it matters:</b> {p.rationale.relationship}</div>}
-          {p.predict && <div style={{ fontFamily: mono, fontSize: 10.5, color: cc[p.confidence] || T.steel, marginTop: 7 }}>→ expected: {p.predict}</div>}
-          <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-            <Btn small tone="jade" onClick={() => { const ns = applySuggestion(s, p); setS(ns); save(ns); }}>Approve — apply it</Btn>
-            <Btn small tone="ghost" onClick={() => { const ns = dismissSuggestion(s, p); setS(ns); save(ns); }}>Dismiss</Btn>
-          </div>
+      <SecRule>FOR YOUR APPROVAL · your tap decides</SecRule>
+      {items.length === 0 && (
+        <Card style={{ padding: SP.md }}>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.dim, lineHeight: 1.5 }}>Nothing waiting. Every change the machine wants — from the engine, your analyst, or an agent — arrives here first, in plain words, for one tap.</div>
         </Card>
-      ))}
+      )}
+      {items.map((it) => {
+        const n = nudge[it.key] || 0;
+        return (
+          <Card key={it.key} accent={it.accent}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: SP.sm }}>
+              <Eyebrow c={it.accent}>{it.type}</Eyebrow>
+              <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.dim, letterSpacing: "0.16em", whiteSpace: "nowrap" }}>{it.from}{it.meta ? " · " + it.meta : ""}</span>
+            </div>
+            <div style={{ marginTop: SP.xs }}><H size={19}>{it.title}</H></div>
+            {it.why && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: 1.5 }}>{it.why}</div>}
+            {it.rationale && (
+              <>
+                {it.rationale.science && <div style={rline}><b style={{ color: T.chalk }}>Science:</b> {it.rationale.science}</div>}
+                {it.rationale.data && <div style={rline}><b style={{ color: T.chalk }}>Your data:</b> {it.rationale.data}</div>}
+                {it.rationale.relationship && <div style={rline}><b style={{ color: T.chalk }}>Why it matters:</b> {it.rationale.relationship}</div>}
+              </>
+            )}
+            {it.predict && <div style={{ fontFamily: mono, fontSize: TS.label, color: it.conf === "high" ? T.jade : it.conf === "low" ? T.steel : T.brass, marginTop: SP.sm }}>→ expected: {it.predict}</div>}
+            {it.consent && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.dim, marginTop: SP.sm, lineHeight: 1.5 }}>{it.consent} Dismiss: nothing changes.</div>}
+            {it.dial && (
+              <div style={{ marginTop: SP.sm }}>
+                <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.dim, letterSpacing: "0.08em" }}>TAKE IT AS PROPOSED, OR MOVE IT — YOUR CALL EITHER WAY</div>
+                <div style={{ display: "flex", alignItems: "center", gap: SP.sm, marginTop: 7, flexWrap: "wrap" }}>
+                  <button onClick={() => setNudge({ ...nudge, [it.key]: Math.max(-it.dial.max, n - it.dial.step) })} style={{ width: 40, height: 40, borderRadius: 6, fontSize: 18, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>−</button>
+                  <div style={{ fontFamily: mono, fontSize: 14, color: n ? T.jade : T.chalk, minWidth: 74, textAlign: "center" }}>{it.dial.base + n > 0 ? "+" : ""}{it.dial.base + n} {it.dial.unit}{Math.abs(it.dial.base + n) === 1 ? "" : "s"}</div>
+                  <button onClick={() => setNudge({ ...nudge, [it.key]: Math.min(it.dial.max, n + it.dial.step) })} style={{ width: 40, height: 40, borderRadius: 6, fontSize: 18, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
+                </div>
+              </div>
+            )}
+            <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
+              {it.approve && <Btn small tone="jade" onClick={() => { it.approve(n); if (it.dial) setNudge({ ...nudge, [it.key]: 0 }); }}>{it.approveLabel(n)}</Btn>}
+              <Btn small onClick={it.dismiss}>Dismiss</Btn>
+            </div>
+          </Card>
+        );
+      })}
     </>
   );
 }
@@ -6187,45 +6262,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </div>
       </Card>
 
-      <SecRule>FOR YOUR APPROVAL · your tap decides</SecRule>
-      <AnalystSuggestions s={s} setS={setS} save={save} />
-
-      <Proposals s={s} setS={setS} save={save} />
-
-      {(s.agentProposals || []).length === 0 && (
-        <Card style={{ padding: "9px 14px" }}>
-          <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim }}>📥 PROPOSALS — none waiting · every change the machine wants arrives here first, in plain words, for your tap</div>
-        </Card>
-      )}
-      {(s.agentProposals || []).length > 0 && (
-        <Card accent={T.jade} style={{ border: `1px solid ${T.jade}` }}>
-          <Eyebrow c={T.jade}>📥 PROPOSALS — {(s.agentProposals || []).length} WAITING · YOUR TAP DECIDES</Eyebrow>
-          {(s.agentProposals || []).map((ap) => (
-            <div key={ap.id} style={{ marginTop: 9, paddingTop: 9, borderTop: `1px solid ${T.line}` }}>
-              <div style={{ fontFamily: mono, fontSize: 10.5, color: T.chalk }}>{ap.title}</div>
-              <div style={{ fontFamily: body, fontSize: 11.5, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{plainify(ap.body)}</div>
-              <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 5 }}>{
-                ap.kind === "volume" ? (ap.dir > 0 ? "If you consent: one set is added to that lift starting next session. Dismiss: nothing changes." : "If you consent: one set comes off that lift starting next session. Dismiss: nothing changes.")
-                : ap.kind === "reset" ? `If you consent: the weight drops to ${ap.newW} and rep targets re-seed for the lighter load. Dismiss: nothing changes.`
-                : ap.kind === "trial" ? "If you start it: the experiment rides your daily protocol in blocks and files its own verdict when done. Dismiss: nothing runs."
-                : "Nothing changes unless you act — dismiss files it away."
-              }</div>
-              <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
-                {ap.kind === "volume" && ap.exId && ap.dir && (
-                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex7 = ns.exercises.find((x) => x.id === ap.exId); if (ex7) { ex7.sets = Math.max(1, (ex7.sets || 1) + ap.dir); ns.feed.unshift({ d: tISO, t: `VOLUME ${ap.dir > 0 ? "+1" : "−1"} — ${ap.mg.toUpperCase()} via ${ex7.n} (now ${ex7.sets} sets)`, how: "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited" }); } ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>{ap.dir > 0 ? "Add the set — I consent" : "Trim the set — I consent"}</Btn>
-                )}
-                {ap.kind === "reset" && ap.exId && ap.newW && (
-                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex3 = ns.exercises.find((x) => x.id === ap.exId); if (ex3) { const oldW = ex3.w; ex3.w = ap.newW; ex3.last = null; ns.feed.unshift({ d: tISO, t: "RESET APPLIED — " + ex3.n + " " + oldW + " → " + ap.newW, how: "3-session stall, evidence-based back-off, your consent — rebuild starts next session" }); } ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Apply reset — I consent</Btn>
-                )}
-                {ap.kind === "trial" && (ap.custom || (ap.tplId && TRIAL_TPL[ap.tplId] && !(s.trials || []).some((t) => t.tplId === ap.tplId))) && (
-                  <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const rec = ap.custom ? { custom: ap.custom, started: tISO } : { tplId: ap.tplId, started: tISO }; ns.trials = [...(ns.trials || []), rec]; ns.feed.unshift({ d: tISO, t: "TRIAL STARTED — " + (ap.custom ? ap.custom.t : TRIAL_TPL[ap.tplId].t), how: ap.custom ? "designed by your analyst for a pattern in YOUR data, consented by you" : "proposed by your analyst, consented by you" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Start trial — I consent</Btn>
-                )}
-                <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); if (ap.kind === "volume" && ap.mg) ns.feed.unshift({ d: tISO, t: `VOLUME PASSED — ${ap.mg.toUpperCase()}`, how: "athlete dismissed — the ledger waits two weeks before raising this muscle again" }); ns.agentProposals = ns.agentProposals.filter((x) => x.id !== ap.id); setS(ns); save(ns); }}>Dismiss</Btn>
-              </div>
-            </div>
-          ))}
-        </Card>
-      )}
+      <ApprovalInbox s={s} setS={setS} save={save} tISO={tISO} />
 
 
 
