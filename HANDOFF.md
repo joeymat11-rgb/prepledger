@@ -482,6 +482,130 @@ picking up development of this app.
 
 ---
 
+## 0.23 - OPERATIONS, ACCESS AND SECURITY (written last; supersedes 3 where they disagree)
+
+Everything in this section post-dates the rest of this file. Where it contradicts
+an earlier section, this one is current. It was written on 2026-07-29, verified
+against the live system, immediately before the originating session was closed.
+
+### 0.23.1 Repo access - how to authenticate
+
+**The repo is PRIVATE.** Section 3 says "This repo is public." That is WRONG.
+Verified 2026-07-29: an anonymous clone with credential helpers disabled is
+refused. His `ledger/state.json` - which carries his body data - is therefore not
+world-readable. Do not act on section 3's claim.
+
+**NEVER** put a token in a prompt, in a command you echo, in a commit, or in any
+file. If you ever see a literal token anywhere, stop and tell Joe it needs
+rotating.
+
+Get credentials in this order, and do not proceed without one:
+
+1. `$GH_TOKEN` from the environment, if set.
+2. Otherwise via Joe's PC on the device bridge. `GH_TOKEN` is a **user-level
+   Windows environment variable** on his machine, and
+   `C:\Users\joeym\Documents\prepledger-nightly-askpass.cmd` is an askpass shim
+   that feeds it to git. Set `GIT_ASKPASS` to that shim, then clone and push over
+   plain HTTPS **with no credential in the URL**.
+3. If neither is available, do NOT improvise and do NOT skip silently. Say so.
+
+Use plain git over HTTPS. Sandboxes here have blocked `api.github.com`, so do not
+route work through the GitHub REST API.
+
+### 0.23.2 The token incident, and the rotation that is still pending
+
+On 2026-07-29 a **live GitHub PAT was found sitting in plaintext inside both
+scheduled-task prompts** - the overnight analyst and the monthly inspection. It
+had been pasted there as a convenience. Both prompts were rewritten to remove it
+and to forbid the practice; verified zero tokens remain in either.
+
+The exposure was bounded - the prompts live in Joe's own account, not in this
+repo, and the repo is private. Nothing is known to have leaked. But the key is
+still the compromised one.
+
+**Rotation is PENDING as of this commit.** Joe intends to do it himself the same
+evening. An agent must never handle the value: creating, pasting or storing a
+credential is his hands only. A helper exists for him on his Desktop -
+`SAVE GITHUB KEY`, which runs `C:\Users\joeym\Documents\prepledger-save-key.ps1`.
+It opens GitHub to the right page, accepts the paste with masked input, writes the
+user-level variable, and reports back only the character length - never the value.
+**Do not delete either file.** If Joe says the pipeline broke after that evening,
+the first thing to check is whether the new key was saved and whether the app was
+restarted afterwards (Windows only hands a new variable to newly started
+processes).
+
+Verified working end to end at 44a03be, before rotation: key present (93 chars),
+shim present, clone succeeded with no credential in the URL, write access
+confirmed by dry run, branch visible on origin.
+
+### 0.23.3 Two jobs push to main on their own - this is not a defect
+
+Section 8 describes these agents but predates their current orders. Both are
+scheduled tasks in Joe's Claude account, not cron on any machine here.
+
+- **Overnight analyst** - `0 8 * * *` UTC. Writes `ledger/` ONLY. Commits end
+  `[skip ci]`. Pushes to the default branch.
+- **Monthly inspection** - `0 9 1 * *` UTC. Six filings. Writes `ledger/` ONLY.
+
+Consequences you must plan around:
+
+- `origin/main` gains `ledger auto-sync` commits without anybody asking. When this
+  branch was cut, main was at `bcc601c`; by handoff it had moved to `af948db`,
+  ledger-only. **Rebase onto main. Never force-push over it.**
+- Neither job may touch app code. If app code ever arrives in one of their
+  commits, that is a breach - tell Joe.
+- Both are fenced: they may amend `ledger/orders-addendum.md` and nothing else.
+  Their base orders, the house laws and their write-scope are immutable to them.
+  If you want to change their behaviour, change the scheduled task, not the repo.
+
+### 0.23.4 Joe's working copy is not yours
+
+`C:\Users\joeym\Documents\prepledger-dev` is **Joe's own checkout**. Never cd into
+it, never read from it, never write to it, never run any git command inside it.
+
+This has already caused one real incident. On 2026-07-29 the nightly job ran
+`pull --rebase --autostash` inside that directory, rebased a feature branch it did
+not own, and left the repo checked out on `main` mid-session. Recovery cost real
+time. `--autostash` would have hidden uncommitted work where nobody would look for
+it.
+
+Always clone fresh into a directory you created this run. If a clone already
+exists at your path, delete it and re-clone rather than reusing it. From
+automation, push ONLY the default branch - feature branches are not yours.
+
+### 0.23.5 Exact state at handoff
+
+- `audit/research-corpus` at **44a03be**, 13 commits ahead of main. Pushed.
+- `origin/main` at **af948db** - moved after the branch was cut, ledger auto-sync
+  only, no app code.
+- Zero uncommitted, zero stashes.
+- `v4.0.0`, `SCHEMA_V = 34`, `MIN_ASSERTIONS = 850`, **856 assertions green**.
+- **Not merged, deliberately.** Joe asked that merging be done by the receiving
+  agent rather than by the session that wrote it. Read 0.6 (migration safety)
+  before you merge - `patchV34` nearly deleted a completed queue receipt, and the
+  invariant that saved it (`if (q.done) return;`) is not obvious from the code.
+
+### 0.23.6 How to work with Joe himself
+
+Read 0.12 first; this is the operational addendum to it.
+
+- **He has no coding experience.** This is the single most repeated correction of
+  the whole session. Never hand him a command, a terminal, or a PowerShell line.
+  Hand him a link to click or a file to double-click. If the only path you can
+  think of is a command, that means the tooling is not finished yet - go build the
+  clickable thing first.
+- **"Eli12"** is his shorthand for *explain it like I am 12*. He asked for it
+  repeatedly. When he says it, the previous answer was too technical, not too
+  short. Rewrite it plainer; do not just trim it.
+- He is often on his phone, away from the PC the bridge points at. Check which
+  before proposing anything that requires his desktop.
+- He pushes back hard and correctly when work drifts from the objective. The
+  objective, from `GOALS.md`, is the **best body-composition change for Joe, as
+  quickly as possible**. Every feature answers to it. The dominant defect of this
+  codebase - found three separate times - is research that was written down and
+  then not enforced in code. Assume it is still happening somewhere.
+---
+
 ## 1 · WHAT THIS IS
 
 A single-file React PWA — a personal training/nutrition ledger for one athlete
