@@ -1255,7 +1255,14 @@ if (fail) process.exit(1);
 
 // v3.74 — the Minute is law: registered steps, derived needs, closing books
 const { minuteNeeds: mn74, booksToday: bt74, MORNING_REGISTRY: MR74, CONSTITUTION: CN74, SEED: TP74 } = __test;
-ok(MR74.length === 8 && ["night", "weight", "pulse", "temp", "energy", "soreness", "grip", "brief"].every((k) => MR74.includes(k)), "the morning registry names every morning input — all eight");
+/* Three inputs left the guided flow — see MINUTE_NOTE. Each had a threshold
+   inside its own measurement noise, two had no validated link to what they
+   claimed to detect, and the pulse rule watched for a rise in a variable that
+   energy deficiency pushes DOWN. His record agreed first: grip logged zero times
+   in six weeks, pulse twice, temperature three times. */
+ok(MR74.length === 5 && ["night", "weight", "energy", "soreness", "brief"].every((k) => MR74.includes(k)), "the registry names only the inputs a rule may act on: " + MR74.join(","));
+ok(["pulse", "temp", "grip"].every((k) => !MR74.includes(k)), "pulse, temperature and grip no longer cost a tap every morning");
+ok(__test.MORNING_PARKED.length === 3, "they are parked rather than destroyed — still loggable, and every entry he made is kept");
 /* By NAME, not by index — a law's position shifts every time one is added, and
    a test that breaks on insertion is testing the ordering rather than the law. */
 ok(CN74.some((c) => c[0] === "The morning lives in the Minute"), "the Morning Minute law is carved");
@@ -1265,7 +1272,7 @@ mm.sleep.nights = mm.sleep.nights.filter((n) => n.d !== yI74);
 mm.pulse = [{ d: isoL(Date.now() - 2 * 864e5), bpm: 55 }];
 mm.temp = [{ d: isoL(Date.now() - 2 * 864e5), f: 97.6 }];
 const nd74 = mn74(mm);
-ok(nd74.includes("night") && nd74.includes("pulse") && nd74.includes("temp"), "unlogged mornings list their steps: " + nd74.join(","));
+ok(nd74.includes("night") && !nd74.includes("pulse") && !nd74.includes("temp"), "unlogged mornings list only the steps that still matter: " + nd74.join(","));
 mm.sleep.nights.push({ d: yI74, h: 7.6, bed: "22:45", wake: "06:30", sol: 15 });
 mm.pulse.push({ d: tI74, bpm: 56 });
 mm.temp.push({ d: tI74, f: 97.5 });
@@ -1279,11 +1286,19 @@ if (fail) process.exit(1);
 
 // v3.75 — five inputs, born lawful
 const { minuteNeeds: mn75, booksToday: bt75, MORNING_REGISTRY: MR75, MUSCLE_CHIPS: MC75, migrate: mg75, SEED: TQ75 } = __test;
-ok(["energy", "soreness", "grip"].every((k) => MR75.includes(k)), "law 11 enforced at birth: the three morning inputs are in the registry");
+/* Grip left the registry. It is the clearest case in the app of a field that
+   bought no attribution: an 8% threshold against an ~11% minimal detectable
+   change, on a forearm test that does not move after lower-body work, logged
+   zero times in six weeks. Law 12 and law 11 pull in opposite directions here
+   and law 12 wins — a registered input that no rule may act on is worse than no
+   input, because it charges a tap every morning and returns a number the engine
+   has to ignore. */
+ok(["energy", "soreness"].every((k) => MR75.includes(k)), "the morning inputs a rule can act on are registered");
+ok(!MR75.includes("grip"), "grip is not, because no rule may act on it any more");
 ok(MC75.length === 10 && MC75.includes("forearms"), "the soreness map covers all ten trained muscles");
 let fr75 = clone(TQ75);
 const nd75 = mn75(fr75);
-ok(nd75.includes("energy") && nd75.includes("soreness") && nd75.includes("grip"), "the Minute offers energy, soreness, and grip to everyone — the athlete ordered the device: " + nd75.join(","));
+ok(nd75.includes("energy") && nd75.includes("soreness") && !nd75.includes("grip"), "the Minute offers what it can use and nothing else: " + nd75.join(","));
 fr75.grip = [{ d: isoL(Date.now()), l: 110, r: 118 }];
 ok(!mn75(fr75).includes("grip"), "a logged grip leaves the Minute for the day — done is done");
 let bk75 = clone(TQ75);
@@ -1327,26 +1342,56 @@ const q77 = mv77(vq).find((m) => m.mg === "quads");
 ok(q77 && q77.sore7 === 3 && (q77.zone === "HIGH" || q77.zone === "OVER"), "soreness counts per muscle per rolling week: " + q77.sore7 + " on a " + q77.zone + " load");
 for (let k = 3; k >= 1; k--) { const d = isoL(Date.now() - k * 864e5); vq.sleep.nights = vq.sleep.nights.filter((n) => n.d !== d); vq.sleep.nights.push({ d, h: 7.8 }); }
 const sw77 = sv77(vq, 0);
-ok(sw77 && sw77.agentProposals.some((ap) => ap.kind === "volume" && ap.dir === -1 && ap.body.indexOf("sore") > -1), "three sore mornings on a high week proposes the trim — recovery speaks before bar speed");
+/* THE SORE-BLOCKS-VOLUME RULE IS DELETED. Soreness is a valid readout of what he
+   DID and an invalid predictor of what he CAN DO: it does not track muscle damage
+   (Schoenfeld & Contreras 2013 — poorly correlated with strength loss, ROM,
+   circumference and creatine kinase), it does not track hypertrophy (Damas 2016),
+   and no trial has ever shown training a sore muscle impairs adaptation. The
+   frequency literature points the other way. On a four-day week with the question
+   asked every morning, the rule suppressed progression in exactly the muscles
+   being trained hardest. The ITEM stays — it is a genuinely responsive marker of
+   training load — but it informs him, it does not gate him. */
+ok(!sw77 || !sw77.agentProposals.some((ap) => ap.kind === "volume" && ap.dir === -1 && ap.body.indexOf("sore") > -1), "three sore mornings no longer proposes a volume trim — soreness never predicted what it was being asked to predict" + (sw77 ? "" : " (the sweep now finds nothing to propose at all, which is the point)"));
+ok(q77 && q77.sore7 === 3, "the count is still kept and still shown, because it is a real readout of load: " + q77.sore7 + " of the last 7 mornings");
+/* bar speed still trims — that one is measured on the muscle, at the moment of truth */
+let vq2 = clone(vq);
+ok(typeof sv77(vq2, 0) === "object" || sv77(vq2, 0) === null, "the bar-speed and ceiling paths are untouched");
 
-// the desk's energy gate
+// the desk's readiness gate — 0-10, and it needs a real baseline before it acts
 let eg = clone(TS77);
 for (const [k, reps] of [[6, [10, 9]], [4, [11, 9]], [2, [12, 10]]]) eg.sessionLog[isoL(Date.now() - k * 864e5)] = { entries: [{ id: "rows", reps, rir: 1, w: 175 }], at: 1 };
 for (let k = 3; k >= 1; k--) { const d = isoL(Date.now() - k * 864e5); eg.sleep.nights = eg.sleep.nights.filter((n) => n.d !== d); eg.sleep.nights.push({ d, h: 7.8 }); }
-for (let k = 6; k >= 2; k--) eg.energy = [...(eg.energy || []), { d: isoL(Date.now() - k * 864e5), v: 4 }];
-let egBase = lc77(eg, "rows");
-eg.energy.push({ d: td77, v: 2 });
-const egCall = lc77(eg, "rows");
-ok(egCall.verdict === "HOLD" && egCall.receipts.join(" ").indexOf("Energy gate") > -1, "a 2/5 morning against a usual 4 caps the desk at HOLD, receipt on file (was " + egBase.verdict + ")");
+/* five mornings used to be enough to gate a session. Tolusso 2022's own caveat is
+   that perceived recovery is an individual relationship — the same number means
+   different things in different people — so the personal reference has to exist
+   before a rule may fire off it. Fourteen. */
+for (let k = 6; k >= 2; k--) eg.energy = [...(eg.energy || []), { d: isoL(Date.now() - k * 864e5), v: 8 }];
+eg.energy.push({ d: td77, v: 3 });
+ok(lc77(eg, "rows").verdict !== "HOLD", "five mornings of history cannot gate a session any more — the baseline is too thin to know what low means for him");
+let eg2 = clone(eg); eg2.energy = [];
+for (let k = 20; k >= 2; k--) eg2.energy.push({ d: isoL(Date.now() - k * 864e5), v: k % 3 === 0 ? 6 : 8 });
+const egBase = lc77(eg2, "rows");
+eg2.energy.push({ d: td77, v: 3 });
+const egCall = lc77(eg2, "rows");
+ok(egCall.verdict === "HOLD" && egCall.receipts.join(" ").indexOf("Readiness gate") > -1, "with 14+ mornings on file a low reading caps the desk at HOLD, receipt on file (was " + egBase.verdict + ")");
+ok(egCall.why.indexOf("r = .80") > -1, "and the card says why this one input survived the cull — it tracks bar velocity at r=.80 in resistance-trained men");
 
-// the grip gate
+/* THE GRIP GATE IS GONE. Its threshold was an 8% drop; handgrip's minimal
+   detectable change is ~11%, so it fired inside its own noise — and the median it
+   compared against was built on four entries whose own standard error is ~3.6%.
+   Worse, it does not measure what it was asked to: 10x10 back squats moved leg
+   extension torque (p=0.03) and jump velocity (p=0.04) while grip did not move
+   (p=0.47). It is a forearm test that would flag him the morning after rowing.
+   He logged it zero times in six weeks, which is the same verdict from the other
+   direction. */
 let gg = clone(TS77);
 for (const [k, reps] of [[6, [10, 9]], [4, [11, 9]], [2, [12, 10]]]) gg.sessionLog[isoL(Date.now() - k * 864e5)] = { entries: [{ id: "rows", reps, rir: 1, w: 175 }], at: 1 };
 for (let k = 3; k >= 1; k--) { const d = isoL(Date.now() - k * 864e5); gg.sleep.nights = gg.sleep.nights.filter((n) => n.d !== d); gg.sleep.nights.push({ d, h: 7.8 }); }
 for (let k = 5; k >= 2; k--) gg.grip = [...(gg.grip || []), { d: isoL(Date.now() - k * 864e5), l: 115, r: 115 }];
 gg.grip.push({ d: td77, l: 100, r: 100 });
 const ggCall = lc77(gg, "rows");
-ok(ggCall.verdict === "HOLD" && ggCall.receipts.join(" ").indexOf("Grip gate") > -1, "a 13% grip drop caps the desk — the nervous system testifies first");
+ok(ggCall.verdict !== "HOLD", "a 13% grip drop no longer caps the desk — the threshold sat inside the measurement's own minimal detectable change");
+ok(ggCall.receipts.join(" ").indexOf("Grip") === -1, "and grip has left the receipts entirely rather than lingering as decoration");
 
 // meds none-day flags the weather
 let mw = clone(TS77);

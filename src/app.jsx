@@ -33,7 +33,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "3.99.25";
+const APP_V = "3.99.26";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -259,6 +259,17 @@ const CALL_PLAIN = {
   "REBUILD": { chip: "CLIMB BACK", mean: "You just lightened this lift. Climb the reps back up — the old numbers usually fall within three sessions." },
   "STAND-DOWN": { chip: "REST TODAY", mean: "The body alarm is on. Today buys nothing worth its cost — walk, eat, sleep, come back." },
 };
+/* Fourteen mornings before the readiness gate may act, not five: Tolusso 2022's
+   own caveat is that the perceived-recovery relationship is individual, so the
+   personal reference has to be real before a rule is allowed to fire off it. The
+   trigger is the lower quartile of his own history rather than a fixed number,
+   for the same reason. */
+const READY_BASELINE_N = 14, READY_SCALE_MAX = 10;
+function readyLowFor(hist) {
+  const a = (hist || []).slice().sort((x, y) => x - y);
+  if (a.length < READY_BASELINE_N) return -1;
+  return a[Math.floor(a.length * 0.25)];
+}
 /* THE DESK CHARTER: maximize muscle retained per unit of recovery while the
    deficit does the cutting; strike for records only in green windows. Precision
    = named inputs with receipts, each gated on its own n — never a composite score. */
@@ -341,18 +352,37 @@ function liftCall(s, exId, opts = {}) {
     const md2 = (a2) => { const b2 = a2.slice().sort((x2, y2) => x2 - y2); return b2.length ? b2[Math.floor(b2.length / 2)] : 0; };
     const mT = todayMeds(s); if (mT && !mT.taken) R2.push("No meds today — effort reads truer; energy may sit lower than usual.");
     const eT = (s.energy || []).find((x) => x.d === tISO3); const eH = (s.energy || []).filter((x) => x.d < tISO3).slice(-14).map((x) => x.v);
-    const gT = (s.grip || []).find((x) => x.d === tISO3); const gH = (s.grip || []).filter((x) => x.d < tISO3).slice(-7).map((x) => (x.l || 0) + (x.r || 0)).filter((v) => v > 0);
-    if (eT) R2.push(`Morning energy ${eT.v}/5${eH.length >= 5 ? ` — your usual is ${md2(eH)}` : ""}.`);
-    const gS = gT ? (gT.l || 0) + (gT.r || 0) : 0;
-    if (gS > 0) R2.push(`Grip ${gS} lb today${gH.length >= 4 ? ` — ${md2(gH)} lb is your recent median` : ""}.`);
-    if (gT && gT.l > 0 && gT.r > 0) { const gA = Math.abs(gT.l - gT.r) / Math.max(gT.l, gT.r); if (gA >= 0.12) R2.push(`Grip asymmetry ${Math.round(gA * 100)}% — ${gT.l < gT.r ? "left" : "right"} side lagging today; worth an eye if it holds.`); }
-    const eLow = eT && eH.length >= 5 && eT.v <= 2 && eT.v <= md2(eH) - 1;
-    const gLow = gS > 0 && gH.length >= 4 && gS <= md2(gH) * 0.92;
-    if (eLow || gLow) return { verdict: "HOLD", vel, n: clean.length,
-      why: eLow && gLow ? "Engine and grip both read low this morning — repeat last time; records wait for a day your body co-signs."
-        : eLow ? `Morning energy ${eT.v}/5 against your usual ${md2(eH)} — low-fuel day. Repeat last time; the reps will be there when the fuel is.`
-        : `Grip ${gS} lb against your ${md2(gH)} lb median — the nervous system is running warm. Repeat today, don't chase.`,
-      receipts: R2.concat([eLow ? `Energy gate: ${eT.v}/5 vs usual ${md2(eH)} (${eH.length} mornings on file).` : null, gLow ? `Grip gate: ${gS} vs ${md2(gH)} lb median (${gH.length} entries on file).` : null].filter(Boolean)) };
+    if (eT) R2.push(`Readiness ${eT.v}/10${eH.length >= READY_BASELINE_N ? ` — your usual is ${md2(eH)}` : ` — ${READY_BASELINE_N - eH.length} more mornings before this can gate anything`}.`);
+    /* ---------- READINESS_NOTE — the gate that survived, and the one that did not ----------
+       The grip gate is gone. Its threshold was 8% below his recent median;
+       handgrip's minimal detectable change is about 11% (MDC ~5.5 kg on a ~50 kg
+       grip), so the rule fired inside its own noise. Worse, the reference median
+       was built on four entries, whose own standard error is ~3.6% — a noisy
+       number compared against a noisy anchor. And grip does not measure what it
+       was being asked to measure: in the one direct test, 10x10 back squats moved
+       leg-extension torque (p=0.03) and jump velocity (p=0.04) while grip did not
+       budge (p=0.47). It is a forearm test. It would have flagged him the morning
+       after rowing and deadlifting — precisely the wrong signal. He logged it zero
+       times, which is its own verdict.
+
+       The subjective gate stays, because it is the one input here with a real
+       base. Tolusso et al. 2022, in eleven resistance-trained men doing 8x10 back
+       squats with retesting at 24/48/72 h: Perceived Recovery Status correlated
+       r = .84 with countermovement jump and r = .80 with mean bar velocity. Saw,
+       Main & Gastin's 56-study review found subjective measures track training
+       load with better sensitivity and consistency than objective ones.
+
+       Two fixes to it, both from that literature. The scale moves 1-5 to 0-10,
+       because on a five-point scale a single step is a 25% jump across the whole
+       range and there is no room between "fine" and "flagged". And the baseline
+       goes from five mornings to fourteen, because Tolusso's own caveat is that
+       the relationship is individual — the same number means different things in
+       different people, so the personal reference has to be real before the rule
+       may act on it. */
+    const eLow = eT && eH.length >= READY_BASELINE_N && eT.v <= readyLowFor(eH);
+    if (eLow) return { verdict: "HOLD", vel, n: clean.length,
+      why: `Readiness ${eT.v}/10 against your usual ${md2(eH)} — repeat last time rather than chasing. This is the one morning reading that predicts the session: in resistance-trained men it tracks bar velocity at r = .80.`,
+      receipts: R2.concat([`Readiness gate: ${eT.v}/10 vs a ${md2(eH)} median across ${eH.length} mornings.`]) };
   }
   if (estToday) return { verdict: "PUSH", vel, n: clean.length, why: "Estimate day — train normally; the numbers just count a little lighter, like you asked.", receipts: R2.concat(["You declared today an estimate day — numbers count, just lighter."]) };
   /* The old line here promised "refeed fuel aboard" as if that were an
@@ -3460,7 +3490,18 @@ function sweepVolume(s, dow7 = new Date().getDay()) {
     if (recent) return;
     let dir = 0, why = "";
     if (m.zone === "UNDER" && m.p7 < VOL_BANDS.floor) { dir = +1; why = `${m.mg} has run under the retention floor (${m.n7} sets this week, ${m.p7} last week — floor is ${VOL_BANDS.floor}). One more weekly set is cheap insurance for keeping this muscle through the cut.`; }
-    else if ((m.zone === "OVER" && m.p7 > VOL_BANDS.ceil) || (m.zone === "HIGH" && m.slipping >= 2 && slp7.clean) || (m.zone === "HIGH" && m.sore7 >= 3 && (s.soreness || []).length >= 7)) { dir = -1; why = m.zone === "OVER" ? `${m.mg} has run past the deficit ceiling two weeks straight (${m.n7} now, ${m.p7} last — caution starts at ${VOL_BANDS.ceil}). This house tilts toward stimulus, but two confirmed weeks over the line is the data speaking.` : (m.slipping >= 2 && slp7.clean) ? `${m.mg} sits high (${m.n7} sets) and ${m.slipping} of its lifts are slipping on clean sleep — that is your own bar speed saying this specific volume is costing more than it buys.` : `${m.mg} sits high (${m.n7} sets) and reported sore ${m.sore7} of the last 7 mornings — recovery is the constraint speaking before the bar speed does.`; }
+    else if ((m.zone === "OVER" && m.p7 > VOL_BANDS.ceil) || (m.zone === "HIGH" && m.slipping >= 2 && slp7.clean) || false /* SORENESS_NOTE: the sore-blocks-volume rule is deleted. Soreness is a
+       valid readout of what he DID and an invalid predictor of what he CAN DO.
+       It does not track muscle damage (Schoenfeld & Contreras 2013: poorly
+       correlated with strength loss, ROM, circumference and creatine kinase; MRI
+       oedema peaks long after soreness does), it does not track hypertrophy
+       (Damas 2016: myofibrillar protein synthesis only tracks growth once damage
+       subsides), and no trial has ever shown that training a sore muscle impairs
+       adaptation. The frequency literature points the other way — higher
+       frequency means training muscles more often while still sore, and it
+       slightly HELPS. On a four-day week with the question asked every morning,
+       a sore-blocks-progression rule systematically suppresses exactly the
+       muscles being trained hardest. It was an anti-progression engine. */) { dir = -1; why = m.zone === "OVER" ? `${m.mg} has run past the deficit ceiling two weeks straight (${m.n7} now, ${m.p7} last — caution starts at ${VOL_BANDS.ceil}). This house tilts toward stimulus, but two confirmed weeks over the line is the data speaking.` : (m.slipping >= 2 && slp7.clean) ? `${m.mg} sits high (${m.n7} sets) and ${m.slipping} of its lifts are slipping on clean sleep — that is your own bar speed saying this specific volume is costing more than it buys.` : `${m.mg} sits high (${m.n7} sets) and reported sore ${m.sore7} of the last 7 mornings — recovery is the constraint speaking before the bar speed does.`; }
     else if (m.zone === "IN-BAND" && m.n7 <= (VOL_BANDS.lo + VOL_BANDS.hi) / 2 && m.gaining >= 1 && m.slipping === 0 && slp7.clean && m.sore7 <= 1) { dir = +1; why = `${m.mg} is mid-band (${m.n7} sets), every lift is holding or gaining, and sleep is clean — the signals say there is headroom. One added set is the smallest honest experiment.`; }
     if (!dir) return;
     const pool = m.vels.length ? m.vels : m.lifts.map((x) => ({ id: x.id, n: x.n, v: 0 }));
@@ -3634,6 +3675,32 @@ function runAdaptive(state, todayISO) {
       `Counting what the programme allocates — two upper days and two lower, each lift's own set count, half-credit for what compounds lend, and deltoid heads counted separately because they are separately trained — your week runs: ${vi.pv.map(line).join(" · ")}. ${cap(vi.taker.mg.replace("delts_", "delt "))} sits at ${vi.taker.sets}, which Pelland 2025 (67 studies, 2,058 participants) identifies as the minimum effective dose: enough to HOLD the muscle, not enough to grow it. Bickel 2011 is the reassurance there — in young adults roughly three sets a week held quadriceps size across thirty-two weeks of otherwise no training, so nothing is being lost. The point is that nothing is being gained either. To move it into growth territory the honest number is ${vi.need} more sets a week, not two or three: their model's smallest detectable effect for hypertrophy is ${vi.sdes}%, and ${vi.need} sets is worth ${vi.gain}% where three would be worth under half of that — a recommendation the literature cannot tell apart from zero. ${vi.donor ? `${cap(vi.donor.mg.replace("delts_", "delt "))} at ${vi.donor.sets} is the only bucket with sets to spare, and it would still sit in the working band after giving them up.` : "There is no obvious donor, so this is an addition rather than a reallocation — which costs recovery you are short of in a deficit, and is a coach conversation."} This is arithmetic from your programme rather than a reading of your log, so it does not need more weeks to become true.`,
       { kind: "note" });
   }
+
+  /* ---------- SELECTION_NOTE — the one training change worth the ink ----------
+     The whole lengthened-partials story collapsed under testing: a 297-person
+     multi-site trial found lengthened partials and full ROM practically
+     equivalent, and a trained-subject RCT returned Bayes factors of 0.16-0.30 —
+     moderate evidence FOR the null. The pattern nobody advertises is that every
+     large pro-lengthened effect is in UNTRAINED subjects and every trained-subject
+     study is null. And there are ZERO range-of-motion studies in pecs, delts or
+     lats, which is five of his thirteen lifts.
+
+     What survives is not about how he reps. It is about which machine he sits in,
+     and the effects are five to fifteen times larger than anything in the ROM
+     literature — because a biarticular muscle's length is set by the OTHER joint:
+
+       standing vs seated calf raise  d = 0.88-1.58   gastrocnemius +9-12% vs +0.6-1.7%
+       overhead vs pushdown triceps   d = 0.54-0.61   long head +28.5% vs +19.6%
+       seated vs lying ham curl       direction confirmed, magnitude not retrieved
+
+     The app cannot tell which variant he uses — "Calves", "Ham curl", "Tricep" are
+     just names. So it asks rather than assuming, because a d=1.5 finding applied
+     to the wrong machine is worth nothing and guessing would be the same error as
+     every authored constant this audit has removed. */
+  if (!sealed && (s.exercises || []).some((e) => ["calves", "ham", "tricep"].includes(e.id)))
+    propose("selection", "THREE MACHINES MIGHT BE THE WRONG ONES — WORTH CHECKING",
+      `This is the largest training effect in anything I have read for you, and it is not about reps or range of motion — it is about which machine, because a muscle that crosses two joints has its length set by the joint you are NOT training. Three questions. Is your calf raise done with the knee STRAIGHT (standing, or on a leg press) or BENT (seated)? Straight-knee produced +9-12% gastrocnemius growth against +0.6-1.7% for seated in a within-person MRI study — d = 0.88 to 1.58, the biggest single effect in this whole literature. Seated calf work essentially trains soleus only. Is your triceps work an overhead extension or a pushdown? Overhead grew the long head +28.5% vs +19.6% and the whole triceps +19.9% vs +13.9%, achieved with LIGHTER loads, because shoulder flexion puts the long head on stretch. And is your ham curl seated or lying? Seated flexes the hip and lengthens the hamstrings; the direction is established though I could not retrieve the exact percentages. Caveats worth having: these are small studies, mostly untrained subjects, and the calf one is n=14 — but they are within-person MRI designs and the mechanism is not in dispute. Set against that, the fashionable stuff is dead: lengthened partials came back practically equivalent to full range in a 297-person trial, tempo does not matter and if anything favours going faster, and slow eccentrics cost a great deal of perceived effort for a hypertrophy effect of −0.06. If any of the three answers is the short-muscle version, switching machines is free and worth more than every rep-mechanics tweak combined.`,
+      { kind: "note" });
 
   /* Plates too coarse for the muscle — a hardware finding, not a programming one. */
   const coarse = coarseLifts(s);
@@ -4261,7 +4328,7 @@ function askContext(s, docs) {
   const suggSec = docs.suggestions ? `\n\n=== YOUR CURRENT APPROVE/DISMISS SUGGESTIONS (the NOW cards) ===\n${clip(docs.suggestions, 1800)}` : "";
   const briefSec = docs.brief ? `\n\n=== YOUR LATEST READ (brief.md — your own nightly words, the voice to match) ===\n${clip(docs.brief, 1800)}` : "";
   const caselawSec = docs.caselaw ? `\n\n=== CASE-LAW / MEMORY (what has held true before) ===\n${clip(docs.caselaw, 1800)}` : "";
-  return `You are Joe's Analyst — the same analyst that writes his nightly read. When Joe asks something here, he is asking you: answer in the same voice, from the same knowledge. Your one goal: the best body-composition change — fat down, lean held or built — as fast as he can sustain. Read everything through two lenses only: established sports-science research, and Joe's own data. HOW YOU TALK: plain conversational prose, exactly like your nightly read — the way you'd say it out loud to a sharp friend who lifts. Use no markdown at all — no # headers, no **bold**, no bullet lists or numbered scaffolding, no tables. No jargon, no (measured)/(speculation) tags, no "provisional". Lead with the answer and the one thing that matters, use his real numbers, keep it tight; if the data is thin, just say so in plain words. TWO LAWS: look at everything relevant and how the variables move each other; and weigh science and his own data together — where they agree, say it plainly, where they disagree, name the tension. Never go dark on a noisy number: a single scale reading is noise around a slow trend, so attribute spikes to their cause (water from sodium, carbs, a big meal, a short night) instead of hiding them. THE SCIENCE FLOOR (your prior): lean-safe loss is about 0.5–1.0%/wk (~1.0–1.4 lb/wk for him; 1.9+ is too fast) and deficit MAGNITUDE is the variable most tightly linked to lean-mass loss in trained people; protein ~2.3–3.1 g/kg fat-free mass, fixed daily, not varied by training vs rest day; sleep is a first-order fat-vs-LEAN lever in a deficit (Nedeltcheva 2010: 5.5 h vs 8.5 h shifted 60% more of the loss onto fat-free mass) but only a small SESSION lever (Craven 2022: −2.85% on strength, inside the test-retest CV) — do not tell him a short night ruins a session or invalidates a record, because the app no longer treats it that way and the evidence never did; train to roughly 6–12 hard sets per muscle per week at 0–2 reps in reserve, where the dose-response return per set is highest; "defend load on a cut" is folklore — the only trial that manipulated load under energy restriction (Carlson 2022, n=115 trained, 80% vs 60% 1RM both to failure) found no difference in fat or lean mass, so defend EFFORT and keep the deficit under ~500 kcal/day instead; sodium, carbs and creatine move water, not fat; caffeine helps training but taken late steals sleep; DIET BREAKS (a full week at maintenance) have replicated adherence benefits and no metabolic ones in trained people; weekly REFEED DAYS have neither — the only matched-energy RCT was overturned on reanalysis and no isocaloric carbohydrate study has ever improved strength or hypertrophy, so never claim a refeed buys fat loss, lean retention, metabolism or next-day performance; adherence is the biggest lever; metabolic adaptation is real but small. A single set of reps carries about ±0.8 reps of noise for him, so treat a one-rep change as weather, not signal. Answer only from the knowledge below plus that science. Never invent data, and when the evidence is absent say so — "nobody has tested this" is a better answer than a confident mechanism.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}${analysisSec}${suggSec}${briefSec}${caselawSec}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== MEDS (last 7 logged) ===\n${(s.medsLog || []).slice(-7).map((m8) => `${m8.d}: ${m8.taken ? "taken @ " + m8.at : "none"}`).join("\\n") || "none logged"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
+  return `You are Joe's Analyst — the same analyst that writes his nightly read. When Joe asks something here, he is asking you: answer in the same voice, from the same knowledge. Your one goal: the best body-composition change — fat down, lean held or built — as fast as he can sustain. Read everything through two lenses only: established sports-science research, and Joe's own data. HOW YOU TALK: plain conversational prose, exactly like your nightly read — the way you'd say it out loud to a sharp friend who lifts. Use no markdown at all — no # headers, no **bold**, no bullet lists or numbered scaffolding, no tables. No jargon, no (measured)/(speculation) tags, no "provisional". Lead with the answer and the one thing that matters, use his real numbers, keep it tight; if the data is thin, just say so in plain words. TWO LAWS: look at everything relevant and how the variables move each other; and weigh science and his own data together — where they agree, say it plainly, where they disagree, name the tension. Never go dark on a noisy number: a single scale reading is noise around a slow trend, so attribute spikes to their cause (water from sodium, carbs, a big meal, a short night) instead of hiding them. THE SCIENCE FLOOR (your prior): lean-safe loss is about 0.5–1.0%/wk (~1.0–1.4 lb/wk for him; 1.9+ is too fast) and deficit MAGNITUDE is the variable most tightly linked to lean-mass loss in trained people; protein ~2.3–3.1 g/kg fat-free mass, fixed daily, not varied by training vs rest day; sleep is a first-order fat-vs-LEAN lever in a deficit (Nedeltcheva 2010: 5.5 h vs 8.5 h shifted 60% more of the loss onto fat-free mass) but only a small SESSION lever (Craven 2022: −2.85% on strength, inside the test-retest CV) — do not tell him a short night ruins a session or invalidates a record, because the app no longer treats it that way and the evidence never did; train to roughly 6–12 hard sets per muscle per week at 0–2 reps in reserve, where the dose-response return per set is highest. Things that DO NOT matter and must never be presented as if they do: rep tempo (meta-analytic SMD 0.09, and it favours going faster, not slower), slow or accentuated eccentrics (hypertrophy SMD −0.06 while perceived effort rises SMD +1.72 — a pure fatigue tax), periodisation model (d = −0.02 for linear vs undulating), machines vs free weights (SMD −0.055, p=0.751 — his machine-heavy programme costs him nothing), planned deloads (zero positive RCTs; the only trained-subject trial found a 3.6 kg squat 1RM decrement and reduced motivation), and lengthened partials (a 297-person multi-site trial found them practically equivalent to full range; trained-subject Bayes factors of 0.16–0.30 are moderate evidence FOR the null, and there are no range-of-motion studies at all in pecs, delts or lats). What DOES matter and is 5–15× larger: exercise selection for biarticular muscles, where the joint you are not training sets the muscle's length — standing vs seated calf raise d = 0.88–1.58, overhead vs pushdown triceps d = 0.54–0.61, seated vs lying ham curl. "Defend load on a cut" is folklore — the only trial that manipulated load under energy restriction (Carlson 2022, n=115 trained, 80% vs 60% 1RM both to failure) found no difference in fat or lean mass, so defend EFFORT and keep the deficit under ~500 kcal/day instead; sodium, carbs and creatine move water, not fat; caffeine helps training but taken late steals sleep; DIET BREAKS (a full week at maintenance) have replicated adherence benefits and no metabolic ones in trained people; weekly REFEED DAYS have neither — the only matched-energy RCT was overturned on reanalysis and no isocaloric carbohydrate study has ever improved strength or hypertrophy, so never claim a refeed buys fat loss, lean retention, metabolism or next-day performance; adherence is the biggest lever; metabolic adaptation is real but small. A single set of reps carries about ±0.8 reps of noise for him, so treat a one-rep change as weather, not signal. Answer only from the knowledge below plus that science. Never invent data, and when the evidence is absent say so — "nobody has tested this" is a better answer than a confident mechanism.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}${analysisSec}${suggSec}${briefSec}${caselawSec}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== MEDS (last 7 logged) ===\n${(s.medsLog || []).slice(-7).map((m8) => `${m8.d}: ${m8.taken ? "taken @ " + m8.at : "none"}`).join("\\n") || "none logged"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
 }
 const AGENT_TOOLS = [
   { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads|feed. Feed = the app event log; amendments there override older raw rows. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
@@ -4629,19 +4696,35 @@ function filingsFor(dow, dom) {
   if (dom >= 1 && dom <= 3) out9.push("THE RED CELL files this week — the case against your prep waits in LAB");
   return out9;
 }
-const MORNING_REGISTRY = ["pulse", "energy", "soreness", "night", "temp", "weight", "grip", "brief"];
+/* ---------- MINUTE_NOTE — four taps removed, and he had already removed them ----------
+   Pulse, temperature and grip are out of the guided flow. Each failed the same
+   way: the app's threshold sat inside the measurement's own noise. A 5-second
+   manual pulse count quantises at 6-12 bpm against a 5 bpm rule; oral morning
+   temperature has a within-person SD of 0.58 F against a 0.4 F rule, so it fired
+   on roughly a quarter of all mornings; handgrip's minimal detectable change is
+   ~11% against an 8% rule. Two of the three additionally had no validated link to
+   what they claimed to detect, and the pulse rule was watching for a RISE in a
+   variable that energy deficiency pushes down.
+
+   His own record said the same thing first: grip logged zero times, pulse twice,
+   temperature three times, then abandoned. Law 12 says a field that buys no
+   attribution is deleted, because friction is what kills tracking systems by week
+   nine. This is week nine arriving early.
+
+   The data is kept and the inputs remain loggable — nothing is destroyed. They
+   simply stop costing him a tap every morning to produce a number no rule may
+   act on. */
+const MORNING_REGISTRY = ["energy", "soreness", "night", "weight", "brief"];
+const MORNING_PARKED = ["pulse", "temp", "grip"];
 const MUSCLE_CHIPS = ["quads", "hams", "calves", "chest", "back", "delts", "biceps", "triceps", "forearms", "abs"];
 function minuteNeeds(s) {
   const t9 = isoOf(todayStart());
   const y9 = isoOf(new Date(todayStart().getTime() - DAY));
   const out9 = [];
-  if ((s.pulse || []).some((x) => x.d < t9) && !(s.pulse || []).some((x) => x.d === t9)) out9.push("pulse");
   if (!(s.energy || []).some((x) => x.d === t9)) out9.push("energy");
   if (!(s.soreness || []).some((x) => x.d === t9)) out9.push("soreness");
   if (!s.sleep.nights.some((n) => n.d === y9)) out9.push("night");
-  if ((s.temp || []).some((x) => x.d < t9) && !(s.temp || []).some((x) => x.d === t9)) out9.push("temp");
   if (!s.reads.some((r) => r.d === t9)) out9.push("weight");
-  if (!(s.grip || []).some((x) => x.d === t9)) out9.push("grip");
   return out9;
 }
 function booksToday(s) {
@@ -4867,6 +4950,7 @@ const blackoutOn = (s) => daysUntil(s.blackout.until) > 0;
 const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d); if ((t === "U" || t === "L") && !s.sessionLog[d]) return d; } return null; };
 __test.nextTrainingISO = nextTrainingISO;
 __test.typicalError = typicalError;
+__test.MORNING_PARKED = MORNING_PARKED;
 __test.rulebook = rulebook;
 __test.windowFor = windowFor;
 __test.repsLostOnJump = repsLostOnJump;
