@@ -23,7 +23,19 @@ enforcement. Reading them is not optional context; it is the job.
    access and security - how to authenticate, and why `main` moves on its own)
    and **0.14** (corrections - several earlier sections are stale and say so).
 
-`BLUEPRINT.md` is the design reference for the UI surface.
+`BLUEPRINT.md` is the design reference for the UI surface - **read it with
+suspicion.** It is a portable *chassis* spec for cloning this app to other
+clients, and it is STALE for this one: it describes a six-tab rail (the nav was
+demoted to NOW / TRAIN / MORE), the retired `tools/ship.sh` gate, and a law list
+that does not match this app's constitution. Do not treat it as the current UI
+reference without checking it against HANDOFF 0.3 and 0.15.
+
+> **THIS FILE HAS CARRIED STALE CONTENT.** Four reviewers, one pass, and any
+> section calling the athlete "her" or "she" was imported from a sibling app -
+> this athlete is Joe, a man. Where this file and `HANDOFF.md` disagree,
+> **HANDOFF.md wins**; it is newer. The specific corrections live in HANDOFF
+> 0.14 (corrections), 0.22 (stale numbers), 0.23 (access and security) and
+> **0.24 (what is still NOT solved - read this before you merge or ship)**.
 
 ---
 
@@ -31,11 +43,18 @@ enforcement. Reading them is not optional context; it is the job.
 
 Everything below assumes you have nothing but this repo and a GitHub token.
 
+**The repo is PRIVATE, so a bare clone fails.** Authenticate first, per HANDOFF
+**0.23.1** - `GH_TOKEN` from the environment, or the askpass shim on Joe's PC,
+and never a credential in the URL.
+
 ```bash
-git clone https://github.com/joeymat11-rgb/prepledger.git
+git clone https://github.com/joeymat11-rgb/prepledger.git   # authenticate first
 cd prepledger
-node scripts/bootstrap.mjs      # or: bash setup.sh
+node scripts/bootstrap.mjs
 ```
+
+`setup.sh` does the same job, but the dev machine is Windows with no guaranteed
+bash - `node scripts/bootstrap.mjs` is the reliable path.
 
 `bootstrap` installs the pinned dependencies and runs the whole gate. When it
 says **"Green from a bare clone"**, the checkout is proven — you can change
@@ -53,12 +72,15 @@ things.
 
 ### The gate — `scripts/check.mjs`
 
-Seven things must be true before anything reaches her phone. Each one exists
+Seven things must be true before anything reaches his phone. Each one exists
 because it has already gone wrong once, or would go wrong silently.
 
-1. **Suite green** — 359 engine assertions, every tab rendered in three states,
+1. **Suite green** — 856 engine assertions, every tab rendered in three states,
    the committed `app.js` boots in a DOM, and the error beacon is proved unable
-   to throw.
+   to throw. The gate enforces a floor, `MIN_ASSERTIONS = 850`, so a suite that
+   silently stopped running fails loudly - a 359-assertion suite would fail by
+   construction. If you legitimately remove assertions, lower the floor
+   deliberately.
 2. **`app.js` is not stale.** `app.js` is a *committed build artifact*: Netlify
    serves this repo as-is with no build step, so an un-rebuilt commit silently
    deploys yesterday's app while every test passes. The gate rebuilds `src/` and
@@ -116,15 +138,15 @@ green suite. Commits touching only `ledger/**` skip the pipeline, so the app's
 own data syncs do not trigger deploys.
 
 **`ledger/` is no longer uploaded to Netlify at all.** The 404 rules remain as a
-second layer, but her health data now never reaches the CDN in the first place,
+second layer, but his health data now never reaches the CDN in the first place,
 so a bad redirect cannot expose it. `src/`, `tools/` and `scripts/` are excluded
 too. If you add a new *site* asset, it deploys automatically — the zip is a
 denylist, not an allowlist.
 
 ### The error beacon — `src/beacon.js`
 
-Every test here runs in jsdom. Her phone runs iOS Safari. Without this, an
-iOS-only crash is invisible: she just quietly stops opening the app.
+Every test here runs in jsdom. His phone runs iOS Safari. Without this, an
+iOS-only crash is invisible: he just quietly stops opening the app.
 
 Unhandled errors, unhandled rejections, and anything React's error boundaries
 catch (including `TabGuard`) are buffered in `localStorage` and filed to
@@ -189,12 +211,16 @@ Paths derive from `ROOT` in `scripts/lib.mjs`; servers bind to port 0.
 - **The token lives in `GH_TOKEN`, never in a file.** The repo is private, but
   it is also *deployed* — treat everything in it as one bad redirect away from
   public, which is exactly why `ledger/` is now excluded from the upload.
-- **Never delete ledger data.** `ledger/state.json` holds her real history —
-  45 weigh-ins as of this writing. Preserve every read.
+- **Never delete ledger data.** `ledger/state.json` holds his real history.
+  **Do not write the count down here.** It grows, and a stale baseline makes the
+  data-loss check pass silently. Read the live counts before and after
+  (`reads`, `sleep.nights`, `dailyLogs`, `sessionLog`, `queue`) and assert every
+  one is `>=` its own "before" — HANDOFF 0.17 has the recipe. Preserve every
+  read.
 
 ## Editing this codebase
 
-`src/app.jsx` is ~5,800 lines and is edited with string/line surgery.
+`src/app.jsx` is ~8,900 lines and is edited with string/line surgery.
 
 - Anchors are unreliable at first occurrence — a stamp pattern once matched
   three elements and produced three rogue stamps. **Grep-count after every
@@ -206,7 +232,7 @@ Paths derive from `ROOT` in `scripts/lib.mjs`; servers bind to port 0.
 - Adding a law or an instrument requires amending the census assertions, or the
   suite fails by design.
 - The beacon deliberately lives in `src/beacon.js` and wires in through
-  `src/main.jsx`, so error reporting stays outside that 5,800-line blast radius.
+  `src/main.jsx`, so error reporting stays outside that 8,900-line blast radius.
 
 ### Progression and the debrief
 
@@ -215,9 +241,18 @@ evidence and the numbers that forced it. Three invariants:
 
 - **The step is sized by the terminal RIR, capped at 3.** RIR is least accurate
   far from failure, so a claimed 5 buys the same step as a claimed 3.
-- **A flagged day never sets the anchor.** Short sleep or a rushed session
-  cannot become the line the next target is built from, and cannot serve as the
-  historical benchmark either. An honest decline on a clean, unhurried day can.
+- **The sleep flag sits on the DOWNSIDE ONLY.** This entry used to read *"a
+  flagged day never sets the anchor"* - short sleep could not become the line
+  the next target was built from, nor serve as the historical benchmark. **That
+  is the retired upside gate. Do not restore it.** A short-sleep session cannot
+  count toward a STALL, the same protection a rushed session gets, but it banks
+  records normally and it can set the anchor. The live `CONSTITUTION` reads
+  *"Records need repeating, not good sleep"* / *"Short sleep protects, it does
+  not punish."* The gate was retired in `progressStep` and then found still
+  alive in **eleven** other places - two of which still decided what he lifted.
+  Grep for the claim, not just the function: a rule surviving only in copy is
+  still a rule, because he reads the copy. An honest decline on a clean,
+  unhurried day still sets the line.
 - **`atTopOfWindow` allows a natural one-rep-per-set fade.** Demanding a flat
   maxed window was what produced the 10-week calves gate.
 
@@ -268,7 +303,12 @@ cannot tell a real reading from a manufactured one.
 ## Workflow
 
 Recon before editing. One batch. Grep-verify each change. Parse-check. Run the
-suite. Ship. Confirm the beacon shows the new version.
+suite. Ship **from a branch**. Confirm the beacon shows the new version.
+
+**Never push to `main` without Joe's explicit go-ahead.** `npm run ship` pushes
+whatever branch you are standing on, and `main` deploys straight to his phone.
+Check where you are before you ship - a rebase has left this repo checked out on
+`main` before now.
 
 When something is broken, find the mechanism before shipping a fix. Ship an
 instrument, not a theory.
@@ -323,10 +363,15 @@ concurrent-training meta-analysis has ever included a walking arm.
 **Never claim a refeed does anything.** The only matched-energy RCT in trained
 people (Campbell 2020) had its FFM result overturned by Peos 2020's reanalysis;
 the resistance-trained RMR subgroup across 12 trials is 11 kcal/day, CI −67 to
-+46. The refeed stays on the calendar because it is his programme, and the app
-proposes rather than reprograms — but every line about it states what it does not
-buy. Diet breaks (a full week at maintenance) are the intervention with real
++46. Diet breaks (a full week at maintenance) are the intervention with real
 adherence evidence; keep the two distinct.
+
+*(This paragraph used to end "the refeed stays on the calendar because it is his
+programme, and the app proposes rather than reprograms." **That describes the
+pre-retirement state.** The fixed weekly refeed has since been retired, and the
+retirement is DATED - see "the refeed retirement is DATED" below. Do not "repair"
+the code back to always-refeed Wednesdays.)* Every line about a refeed still has
+to state what it does not buy.
 
 **`dailyLogs` key order is insertion order, not date order.** Sort before any
 `.slice()`. This silently flipped the sign of the step-drift figure; a test caught
@@ -336,14 +381,16 @@ object.
 ## Matched windows, and proposals with hands (v3.99.21)
 
 **Maintenance is a sum whose halves must share a calendar.** `observedTDEE` is
-`mean intake + (weight lost × 3500 / days)`. Both terms have to come from the
-same period. They did not — the rate ran a 28-read regression across 35 days
-while the intake average ran a fixed 21-day window, and his early fortnight was
-genuinely different (1,953 kcal on 20,471 steps vs 2,072 on 16,526). That read
-maintenance 50 kcal high. `currentRate` now returns `from`/`to` and
-`observedTDEE` averages intake over exactly that span, reporting `matched` so a
-snapshot-rate fallback is visible rather than assumed. If you ever add another
-window, ask what it is being paired against.
+`mean intake + (weight lost × KCAL_PER_LB_MIX / days)`. The 3500 literal was
+removed - it was one authored constant doing three different jobs, and energy
+density here is ~3,800 kcal/lb, not 3,500 (see below). Both terms have to come
+from the same period. They did not — the rate ran a 28-read regression across
+35 days while the intake average ran a fixed 21-day window, and his early
+fortnight was genuinely different (1,953 kcal on 20,471 steps vs 2,072 on
+16,526). That read maintenance 50 kcal high. `currentRate` now returns
+`from`/`to` and `observedTDEE` averages intake over exactly that span, reporting
+`matched` so a snapshot-rate fallback is visible rather than assumed. If you
+ever add another window, ask what it is being paired against.
 
 **A proposal must do what its own text says it does.** `refeed_review` shipped
 with `{ kind: "note" }` while its body read "the proposal is to retire the fixed
@@ -370,8 +417,13 @@ unit he thinks in.
 of the session log and `sweepVolume` waits 14 days of it. That is right for
 recovery and bar-speed questions. It is wrong for weekly sets per muscle, which
 is *designed* here — a fixed split times a set count written into each lift.
-Hamstrings get one exercise at two sets, twice a week: four sets, under the
-retention floor, and no further logging discovers otherwise. `programmeVolume`
+Hamstrings get one exercise at two sets, twice a week: four sets, and no further
+logging discovers otherwise. **Four sets is INSIDE the maintenance range, not
+under a retention floor.** The corpus puts maintenance at ~2-5 weekly sets with a
+minimum effective dose of 4 fractional sets, so this is a *growth* gap, not a
+retention failure - and during a deficit it is deliberately filed, never
+proposed. Reading it as a retention emergency is what had `volumeImbalance`
+preparing to propose **+7 weekly sets** to a man in a deficit. `programmeVolume`
 reads the programme and fires immediately; `muscleVolume` still reads the log.
 Before gating a finding behind more data, ask whether the data could change it.
 
@@ -381,7 +433,10 @@ band is 0.68–0.95 %bw/wk. So it tightens as he leans out, which is backwards �
 the leaner you get, the more of any deficit comes off lean tissue, and Garthe
 2011's 0.7 %/wk arm gained 1.7% lean while the 1.0 %/wk arm lost 2.0%. Any
 threshold expressed as an absolute against a shrinking denominator has this bug.
-Check the calorie floor (1,700) the same way when he gets lighter.
+Check the calorie floor the same way when he gets lighter - and read it from
+`calorieFloor(s)`, which derives it from energy availability at his lean mass
+(currently 1750). **Never hardcode 1700.** That literal was one of the nine
+authored constants this branch removed; the tell is always a round number.
 
 **Reserved words.** See the RESERVED list in the test file. Words this app has
 already spent on a tracked quantity cannot be reused colloquially — `leaner`

@@ -9,8 +9,10 @@
 
 # §0 · BRANCH HANDOFF — `audit/research-corpus` → v4.0.0
 
-**Status: 10 commits, pushed, NOT merged, NOT deployed. Nothing has reached the
-athlete's phone.** Suite green at 856 assertions. Working tree clean, no stashes.
+**Status: pushed, NOT merged, NOT deployed. Nothing has reached the
+athlete's phone.** The branch tip moves, so no commit count is written here - run
+`git log --oneline origin/main..HEAD` for the current count. Suite green at 856
+assertions. Working tree clean, no stashes.
 
 ## 0.1 · What the research corpus is, and what it is for
 
@@ -76,8 +78,12 @@ survives only in copy is still a rule, because he reads the copy.
   spacing, touch targets, colour consistency — untouched.
 - **Research topics brainstormed but not run.** In priority order for this
   athlete: (1) how to actually shift a bedtime — light exposure, chronotype;
-  (2) caffeine ~350 mg **interacting with his stimulant medication**, against a
-  01:40 bedtime that is his single largest body-composition lever;
+  (2) caffeine **interacting with his stimulant medication**, against the bedtime
+  that is his single largest body-composition lever — take the dose from his
+  logged caffeine data and the bedtime from `sleepAnchor(s)`, not from any figure
+  restated in prose. **The corpus disagrees with itself on the dose:** this file
+  has said ~350 mg, `research-brief.md` says 400 mg. Re-read it from the data
+  before any research is run on it;
   (3) NEAT compensation in a deficit — erodes the measured maintenance the whole
   calorie band hangs off; (4) getting a real body-fat anchor (currently
   "coach's eye, ±3.5" — the widest uncertainty in the app, and the sole reason
@@ -220,9 +226,13 @@ fastest — not by how interesting they are to build:
    *how to actually move a bedtime* was never researched — light exposure,
    chronotype, whether he is a genuine late type. Sleep is his largest
    body-composition lever and only half the job is done.
-4. **Caffeine (~350 mg) interacting with his prescribed stimulant**, against a
-   01:40 bedtime. Both are logged, neither has been researched, and they plausibly
-   *cause* the thing identified as his biggest lever.
+4. **Caffeine interacting with his prescribed stimulant**, against his measured
+   bedtime. Read the dose from his logged caffeine data and the bedtime from
+   `sleepAnchor(s)` — do not restate a figure here. **The corpus disagrees with
+   itself on the dose** (~350 mg in this file vs 400 mg in `research-brief.md`),
+   so it must be re-read from the data before this is researched. Both are logged,
+   neither has been researched, and they plausibly *cause* the thing identified as
+   his biggest lever.
 5. **NEAT compensation.** In a deficit, non-exercise movement falls involuntarily.
    It is the main reason measured maintenance drifts down over a cut — and his
    entire calorie band is derived from that maintenance figure.
@@ -260,13 +270,16 @@ the subtitle *"Short sleep protects, it does not punish."* If you read §5 and
 "fix" the code to match it, you will reintroduce the single largest defect this
 branch removed. The code is right; §5 is stale.
 
-**§5, LAW 11** says the Minute has 8 steps. `MORNING_REGISTRY` is now 5
+**§7 SAYS THE MINUTE HAS 8 STEPS — and §7 is where that claim lives.** Earlier
+drafts of this correction pointed at §5, LAW 11; that pointer was wrong. Law 11
+makes no claim about step count, it only requires that any morning-class input
+registers or the build fails. Check §7, not §5. `MORNING_REGISTRY` is now 5
 (`energy, soreness, night, weight, brief`) with `MORNING_PARKED = [pulse, temp,
 grip]`. Pulse, temp and grip were removed because each fired inside its own
 measurement noise — grip's threshold was 8% against a minimal detectable change
 of ~11%, on a 4-entry baseline, and it does not measure what it was asked to
 (10×10 squats moved leg-extension torque p=0.03 and jump velocity p=0.04 while
-grip did not budge, p=0.47). He logged it zero times.
+grip did not budge, p=0.47 — **n=6**). He logged it zero times.
 
 **§4, THE SHIP RITUAL IS OBSOLETE.** `tools/ship.sh` is superseded. Use:
 
@@ -292,7 +305,7 @@ which silently ate `\s`/`\d` from two regexes in this session and left them
 matching nothing.
 
 **§7, CURRENT STATE.** Now v4.0.0 · schema v34 · **856 assertions**. `src/app.jsx`
-is ~8,700 lines, not 5,000.
+is ~8,900 lines, not 5,000.
 
 **§9, PENDING DOCKET** is largely superseded — see §0.4 and §0.11 above.
 
@@ -300,8 +313,12 @@ is ~8,700 lines, not 5,000.
 
 ## 0.15 · ARCHITECTURE MAP — where things live in one 8,900-line file
 
-The file runs in this order. Function declarations hoist, so ordering is for
-humans, not the parser.
+**The line ranges below are APPROXIMATE and NOT AUTHORITATIVE.** They overlap,
+they run out of sequence (sleep 2400–2600 is listed before lab instruments
+1800–3100; those ranges cross), and every edit shifts them. **Locate code by
+grepping the function names in the table, never by line number.** The table is a
+map of what lives near what. Function declarations hoist, so the rough order is
+for humans, not the parser.
 
 | region | approx | contents |
 |---|---|---|
@@ -377,7 +394,11 @@ const B = {reads: raw.reads.length, nights: raw.sleep.nights.length,
            days: Object.keys(raw.dailyLogs).length,
            sess: Object.keys(raw.sessionLog).length, queue: (raw.queue||[]).length};
 // ...migrate...
-// every count must be >= its "before". Current truth: 46 / 42 / 47 / 4 / 13.
+// Capture B from the CURRENT ledger/state.json at the START of this run, migrate,
+// then re-count and assert every count is >= its own "before" from THIS run.
+// Compare before/after within one run only - never against a number written in
+// this document. The nightly analyst appends daily, so any literal recorded here
+// rots upward and would let a migration that silently deletes rows still "pass".
 ```
 
 ## 0.18 · THE TEST SYSTEM — and its one sharp edge
@@ -433,14 +454,14 @@ So the next hand can check rather than trust. All are load-bearing.
 | start-of-night restriction ≈ zero, d=−0.25 (−0.53 to +0.04) | Gong 2024 |
 | protein scales to FFM, not bodyweight; zero-crossing ~2.5 g/kg FFM | Refalo/Trexler/Helms 2025, 29 studies, n=729 |
 | protein requirement **higher on rest days** | Moore 2024 (IAAO) |
-| rep tempo SMD 0.09 (favours faster) | tempo meta-analysis |
-| eccentrics −0.06 growth, +1.72 perceived effort | eccentric meta-analysis |
-| periodisation d = −0.02 | linear vs undulating |
-| machines vs free weights −0.055, p=0.751 | — |
-| lengthened partials ≈ full ROM; BF 0.16–0.30 favour null | 297-person multi-site trial |
-| **exercise selection: standing vs seated calf raise d = 0.88–1.58; overhead vs pushdown triceps d = 0.54–0.61** | biarticular length literature |
+| rep tempo SMD 0.09 (favours faster) | Enes 2025, Bayesian, 14 studies (CrI −0.04 to 0.22) |
+| eccentrics −0.06 growth, +1.72 perceived effort | Zhang 2026, 49 studies, n=773 |
+| periodisation d = −0.02 | Grgic 2017, 13 studies, linear vs undulating |
+| machines vs free weights −0.055, p=0.751 | Haugen 2023, 13 RCTs, n=1,016 |
+| lengthened partials ≈ full ROM; BF 0.16–0.30 favour null | Gschneidner 2025, n=297, 15 sites; the BF 0.16–0.30 is Wolf 2025, n=30 trained |
+| **exercise selection: standing vs seated calf raise d = 0.88–1.58; overhead vs pushdown triceps d = 0.54–0.61** | calf raise: Maeo 2023 / Kinoshita, n=14 within-person MRI — **untrained population**, carry that flag as `research-brief.md` does; triceps: Maeo 2023, n=21 within-subject |
 | load 80% vs 60% under restriction: no fat/lean difference | Carlson 2022, n=115 |
-| diet breaks help adherence, not metabolism; **refeeds do neither** | MATADOR / Byrne 2018 + reanalysis |
+| diet breaks help adherence, not metabolism; **refeeds do neither** | diet breaks: Peos 2021 (ICECAP), n=61 resistance-trained. Refeeds: Campbell 2020, overturned by Peos 2020 reanalysis; Poon 2025, 12 RCTs, n=881. **NOT MATADOR / Byrne 2018** — that is intermittent energy restriction in men with obesity, the wrong literature and the wrong population |
 | ~0.7%/wk arm gained lean, 1.0%/wk lost it, matched total loss | Garthe 2011 |
 | 4,282 kcal/lb adipose (not 3,500) | Hall 2008 |
 | energy-availability threshold 25 kcal/kg FFM is **extrapolated**, IOC declines to set one | IOC 2023 / Fagerberg 2018 / Espinar 2026 |
@@ -448,6 +469,27 @@ So the next hand can check rather than trust. All are load-bearing.
 | lower-burden logging → worse habit formation, half the weight loss | dietary self-monitoring burden study |
 | goal pursuit dominates adherence; habit fades by day 21; tailored feedback sustains | JMIR 2025, n=97 |
 | personalised > generic messaging, +13.6% adherence | REINFORCE trial, n=60 |
+
+**VOLUME BANDS — NOT RECONCILED, DO NOT HARDCODE.** Three different weekly-set
+figures live in this corpus and nothing distinguishes them: **5–10** (first row
+above, Pelland 2025's highest-marginal-return-per-set tier), **6–12** (called
+"Pelland 2025's 6–12 band" in §0.5 and used as the shipped growth gate), and
+**~9–18** (`research-brief.md`'s practical synthesis for growth, against ~2–5 for
+maintenance). The brief records Pelland's own tiers as 5–10 / 11–18 / above, which
+is not 6–12. **The corpus does not reconcile these three, so this document will
+not invent a reconciliation.** Treat the band as unsettled: read it from the
+engine, and do not hardcode one — an authored volume band (8–14) has already been
+retired once as exactly this kind of constant.
+
+**UNTRACED — four rows above cite nothing in `research-brief.md`.** The corpus's
+own rule is that a claim in the app must trace to a line in the brief. These four
+do not: the **dietary self-monitoring burden study**, **JMIR 2025, n=97**, the
+**REINFORCE trial, n=60**, and **Findlater & McGrenere, CHI 2004, n=27**. The rows
+are kept, not deleted — but they are present in this index and absent from the
+brief, so a future session must either enter them properly into
+`research-brief.md` with population flags, or downgrade any rule that rests on
+them. Until then they are unverified and this section cannot be checked, only
+trusted, on those four lines.
 
 ## 0.21 · DO NOT
 
@@ -534,6 +576,24 @@ the first thing to check is whether the new key was saved and whether the app wa
 restarted afterwards (Windows only hands a new variable to newly started
 processes).
 
+> **WARNING - ROTATION IS A TWO-PLACE OPERATION. THE PHONE HOLDS ITS OWN COPY OF
+> THE TOKEN.** Verified in source: `src/app.jsx` line ~4719 defines
+> `const TOKEN_KEY = "prep-ledger-ghtoken";` and the app reads that token out of
+> `localStorage` in at least eight places - to sync state into
+> `ledger/state.json` and to push error beacons. The RULES tab carries
+> **Save token** / **Remove token** controls and validates a `github_pat_` prefix.
+>
+> So revoking the old PAT silently breaks the **PHONE's** sync and its error
+> beacon, not just the PC pipeline. The failure is quiet: the app shows
+> *"key rejected - check RULES"* only on an attempted sync, and a chip appears
+> only after 36 hours without one.
+>
+> Rotate in **BOTH** places: (1) the Windows user environment variable on the PC,
+> and (2) the app on his phone - RULES -> paste -> **Save token** -> **Sync now**.
+> Until both are done the athlete's data stops reaching the analyst. That is data
+> not arriving and nobody being told - the failure mode `GOALS.md` names as the
+> one that matters.
+
 Verified working end to end at 44a03be, before rotation: key present (93 chars),
 shim present, clone succeeded with no credential in the URL, write access
 confirmed by dry run, branch visible on origin.
@@ -560,8 +620,11 @@ Consequences you must plan around:
 
 ### 0.23.4 Joe's working copy is not yours
 
-`C:\Users\joeym\Documents\prepledger-dev` is **Joe's own checkout**. Never cd into
-it, never read from it, never write to it, never run any git command inside it.
+`C:\Users\joeym\Documents\prepledger-dev` is **Joe's own checkout**. **Never MUTATE
+it:** no checkout, pull, rebase, reset, stash, commit or push, no writes of any
+kind, and never do your work in it. A read-only status check by a human-directed
+session is permitted - that is how the state reported in 0.23.7 was obtained.
+Automation must not touch it at all, read or write.
 
 This has already caused one real incident. On 2026-07-29 the nightly job ran
 `pull --rebase --autostash` inside that directory, rebased a feature branch it did
@@ -575,7 +638,11 @@ automation, push ONLY the default branch - feature branches are not yours.
 
 ### 0.23.5 Exact state at handoff
 
-- `audit/research-corpus` at **44a03be**, 13 commits ahead of main. Pushed.
+- `audit/research-corpus`, pushed. **The branch tip MOVES.** It has already
+  advanced past `44a03be` (at least as far as `89e825c`, and again with this
+  edit), so no tip hash and no commit count is recorded here - both rot within a
+  day. Read the current values: `git rev-parse --short HEAD` and
+  `git log --oneline origin/main..HEAD`.
 - `origin/main` at **af948db** - moved after the branch was cut, ledger auto-sync
   only, no app code.
 - Zero uncommitted, zero stashes.
@@ -583,7 +650,10 @@ automation, push ONLY the default branch - feature branches are not yours.
 - Full gate re-verified from a **bare clone** on 2026-07-29: suite green, `app.js`
   matches a fresh build of `src/`, `APP_V 4.0.0` matches the service-worker cache
   name, health data unreadable from the public site, no token-shaped string
-  anywhere in the tree. *"All checks passed. Safe to ship."*
+  anywhere in the tree. *"All checks passed. Safe to ship."* **That verdict was
+  verified at the commit it was run on, and holds only there.** Commits have
+  landed since. Whoever merges MUST re-run the gate on the tip they are actually
+  merging - a pass recorded in this document is not a pass on your commit.
 - **One real defect was caught by that check and fixed here.** The committed
   `app.js` had been built one commit *before* the version bump, so the shipped
   bundle still reported `3.99.26` while `src/` said `4.0.0`. Everything else in
@@ -611,11 +681,22 @@ Read 0.12 first; this is the operational addendum to it.
   short. Rewrite it plainer; do not just trim it.
 - He is often on his phone, away from the PC the bridge points at. Check which
   before proposing anything that requires his desktop.
-- He pushes back hard and correctly when work drifts from the objective. The
-  objective, from `GOALS.md`, is the **best body-composition change for Joe, as
-  quickly as possible**. Every feature answers to it. The dominant defect of this
-  codebase - found three separate times - is research that was written down and
-  then not enforced in code. Assume it is still happening somewhere.
+- He pushes back hard and correctly when work drifts from the objective. **Joe has
+  stated that objective directly and repeatedly in conversation with the builder:
+  the best body-composition change for him, as quickly as possible.** It is real,
+  but it is HIS STATED INTENT - it is **not** a line in `GOALS.md`, so do not
+  attribute it there. `GOALS.md`'s own written success criteria are three honesty
+  clauses: represent the athlete's true state accurately without flattering it or
+  hiding uncertainty; tell him what it means and what to do next in plain
+  language; never lose data, never break, never fail silently. It also states
+  plainly that no show date is set and warns against countdowns and urgency
+  mechanics. **Where a change trades honesty for speed, GOALS.md as written
+  wins.** `GOALS.md` should be updated by Joe to carry the speed objective
+  explicitly - as it stands the charter and his stated goal are out of step, and
+  citing the charter for a sentence it does not contain is the exact sin this
+  document warns about. The dominant defect of this codebase - found three
+  separate times - is research that was written down and then not enforced in
+  code. Assume it is still happening somewhere.
 
 ### 0.23.7 Ground truth, verified on the live system 2026-07-29
 
@@ -640,11 +721,13 @@ edits. Related trap from 0.10: never pipe regex-bearing code through a shell
 heredoc - two patterns silently lost their backslashes that way (`\s` became `s`)
 and matched nothing. Write the script to a file, then run the file.
 
-**Joe's working copy is stale but clean.** `C:\Users\joeym\Documents\prepledger-dev`
-sits on `audit/research-corpus` at `44a03be` - three commits behind this branch -
-with zero uncommitted and zero stashes; its local `main` is 5 behind origin. If a
-*human* is going to work there it needs a pull. Automation still must never touch
-it (see 0.23.4).
+**Joe's working copy is stale.** `C:\Users\joeym\Documents\prepledger-dev` sits on
+`audit/research-corpus`, behind this branch, and its local `main` is behind
+origin. No hash and no commit count is recorded - both rot within a day.
+**Assume it is stale.** If a *human* is going to work there, he pulls first.
+Automation must never touch it (see 0.23.4); the state above was read by a
+read-only status check run by a human-directed session, which is the only
+permitted contact.
 
 **The scheduled tasks, by ID.** Both are enabled.
 
@@ -657,11 +740,21 @@ Two further tasks exist on the same account - `trig_017cJ4ob5X1w31SHeHwJQhvJ` an
 `trig_01L15fVXn3bGdTrYVHRz6tBz` - and belong to a **different** app ("Most Days").
 They are not prepledger. Do not edit them.
 
-**The first analyst run after the key rotation is the canary.** Joe intended to
-rotate the evening of 2026-07-29; the 08:07Z run on 07-30 is the first thing that
-will use the new key. If it writes "skipped for lack of credentials" into
-`ledger/notes.md`, the save did not take - check that the variable is set and that
-he restarted the app afterwards.
+**The first analyst run after the key rotation is a WEAK canary - know what it
+cannot see.** Joe intended to rotate the evening of 2026-07-29; the 08:07Z run on
+07-30 is the first thing that will use the new key. If it writes "skipped for lack
+of credentials" into `ledger/notes.md`, the save did not take - check that the
+variable is set and that he restarted the app afterwards.
+
+**But a clean run does NOT prove the rotation happened.** If Joe never rotated at
+all, the OLD key still works and the run succeeds, with output identical to a
+successful rotation. This canary only catches "rotated AND saved badly"; it is
+blind to "never rotated". A clean run proves only that SOME working key is
+present, not that it is the new one. Positive confirmation must come from Joe -
+that he generated a new key and deleted the old one - or from the key's recorded
+character length changing. The previously recorded length was **93 characters**,
+and a fine-grained GitHub token is typically that length, so length alone is weak
+evidence: an unchanged 93 proves nothing either way.
 
 **The analyst's own governing documents live in `ledger/`,** not in this file:
 `analyst-constitution.md`, `analyst-nightly-recipe.md`, `analyst-wiring-guide.md`,
@@ -669,6 +762,109 @@ he restarted the app afterwards.
 to amending `orders-addendum.md` and nothing else. To change how the analyst
 *thinks*, change the scheduled task's prompt - editing these files alone will not
 do it, because the base orders live in the task, not the repo.
+
+---
+
+## 0.24 - WHAT IS STILL NOT SOLVED
+
+On 2026-07-29 four independent reviewers audited this corpus, each blind to the
+others. Most of what they found has been fixed and is already reflected above.
+These are the items that could NOT be fixed by editing documentation, because the
+thing itself does not exist. Do not read this section as "noted, therefore
+handled." Each one is live.
+
+### A. Rollback - half solved
+
+**Fixed:** `migrate()` used to fall through every branch when it met a state
+NEWER than the running code, and return a fresh `SEED`. That wiped every read,
+night, dailyLog, session and queue item - and then synced the wipe up over
+`ledger/state.json`. Proven with a failing test (his 4 reads came back as SEED's
+39; the `q_hack3` receipt "Debuted 7,8,7" came back as starter text), then fixed
+with a guard that hands a newer state back untouched. 10 assertions now cover it;
+suite is 866. This was a direct breach of the GOALS.md guardrail "Never delete
+athlete data," sitting inside the recovery path itself.
+
+**Still missing:** there is no way to put a good state back ONTO his phone. State
+lives in `localStorage`; sync runs app -> repo only. The snapshots in
+`ledger/snapshots/` are a rollback *reference*, not a rollback *procedure*. If his
+device state is ever corrupted, nobody knows how to restore it. Build an import
+path before it is needed, not after.
+
+**Also:** un-shipping is not `git revert`. The service-worker cache name is
+derived from `APP_V`, so moving code backward requires bumping `APP_V` FORWARD.
+Revert the code and installed phones keep serving the old bundle indefinitely.
+
+### B. Merging - no procedure exists, and it collides with a hard guardrail
+
+`GOALS.md` says do not push straight to `main`. Section 0.21 says not without the
+owner's word. Section 0.23.5 assigns the merge to whoever receives this branch.
+Nothing anywhere says HOW: pull request or local fast-forward, gate before or
+after the merge commit, whether `npm run ship` then produces a second commit on
+main. Decide it deliberately and write down what you chose.
+
+And "Joe asked that merging be done by the receiving agent" is a prior session's
+report of his intent, recorded before a credential rotation and before an unknown
+amount of elapsed time. By this document's own standard - "the owner's word" -
+that is not it. **Get his explicit go in the moment.** It is a one-line
+non-technical question and he answers those decisively.
+
+### C. Nothing watches the athlete's phone
+
+Three beacons exist and none of them looks at the device. `ledger/deploy.json`
+says the CDN published. `prod-check` says the server serves the right version.
+`beacon.js` fires only on a crash. Between the CDN and his phone sit a service
+worker, an "UPDATE READY" banner, and his thumb - on a platform where, per
+BLUEPRINT, closing a PWA is not closing it.
+
+Verified in source: **the synced state does not carry `APP_V`.** The constant
+appears only in the crash-report string and the footer. So the documented way to
+learn whether a release reached him is to wait for a crash or to ask him - which
+is precisely the failure `GOALS.md` names as the one that matters.
+
+**This is the cheapest high-value fix in the whole corpus: write `APP_V` into the
+synced state.** The analyst could then report which version his phone is actually
+running, every night, for free. Do it early.
+
+### D. `NODE_ENV=production` is set in his Windows environment
+
+Consequence: a bare `npm ci` installs runtime dependencies only, and `npm test`
+then dies with "Cannot find package 'esbuild'". Work around it with
+`npm ci --include=dev`, or clear the variable for the command.
+
+**Check whether the nightly pipeline inherits it.** If it does, the suite is not
+actually running there and the gate is decorative. Nobody has checked.
+
+### E. Part of the running system is not in this repo
+
+The two scheduled tasks' base orders live in the task prompt, not in git. They are
+not version-controlled, not testable, not covered by the gate - and they push to
+`main` on a cron nobody here set. Section 0.7 records this already causing one
+real incident. Treat the tasks as production infrastructure that happens to live
+somewhere else.
+
+### F. The preview lane is undocumented
+
+CI produces a Netlify draft deploy for any non-main branch. No document says where
+that URL surfaces - Actions log, Netlify dashboard, or a PR comment. That URL is
+the ideal artifact for this athlete (section 0.23.6: hand him a link, never a
+command), so find out where it appears and write it down.
+
+Caveat worth knowing before you rely on it: a draft URL is a different origin, so
+it gets its own empty `localStorage`. He would see a fresh install, not his own
+history - which means a preview can validate rendering but can NOT exercise the
+migration against his real data.
+
+### G. Known-stale, deliberately not fixed here
+
+- **`BLUEPRINT.md`** is a portable chassis spec for cloning this app to other
+  clients. It is stale for THIS app: six-tab rail, the retired `tools/ship.sh`
+  gate, and a law list that matches neither its own count nor this app's
+  constitution. `CLAUDE.md` now warns about it. Nobody has corrected it, and
+  seeding a second client from it as-is would skip three gate checks.
+- **`GOALS.md`** still says the post-diet surplus is added on top of the diet-exit
+  figure. He has since said straight to measured maintenance, hold, then decide -
+  and the code does that. The charter is his own document; only he should change
+  it. Ask him.
 
 ---
 
@@ -736,7 +932,12 @@ Runs: suite -> smoke -> esbuild -> copy artifacts -> commit -> pull --rebase ->
 push -> write beacon.
 
 If ship.sh times out (rc=124) the build usually succeeded but the push did not.
-Recover manually:
+
+**THE MANUAL RECOVERY BLOCK BELOW IS OBSOLETE — DO NOT RUN IT. See §0.14.** There
+is no `prep-ledger-pwa/` directory. `cp prep-ledger-pwa/{app.js,sw.js} <repo>/`
+copies nothing, silently, and the `git add -A && git commit` two lines later then
+ships a stale `app.js` — which is invisible in a source diff. Use `node scripts/ship.mjs`
+and `node scripts/prod-check.mjs` instead. Kept only as a record of the old shape:
 
 ```
 cp prep-ledger-pwa/{app.js,sw.js} <repo>/
@@ -785,7 +986,10 @@ constitution length is asserted, so adding a law requires amending the census.
   the tab-bar stamp; a background+borderTop pattern matched three elements and
   produced three rogue stamps. Verify with grep counts after every batch.
 - `applyRead` is PURE — it clones and returns. Tests must capture the return.
-- Python heredocs: never `\'` inside single-quoted strings.
+- ~~Python heredocs: never `\'` inside single-quoted strings.~~ **SUPERSEDED — see
+  0.23.7.** Python is not installed on this machine, and heredocs are separately
+  banned: they silently ate the backslashes from two regexes. Write the script to
+  a file and run the file.
 - Check for symbol collisions before adding a component (`Section` already
   existed; the second declaration broke the build).
 - JSX inserted between ternary branches breaks the parse. Check the surrounding
