@@ -18,22 +18,6 @@
       "confidence": "medium",
       "gate": "approve",
       "rank": 1
-    },
-    {
-      "sid": "sug_2026-07-29_band_hold",
-      "title": "Leave the calorie band alone - that drift is your step taper",
-      "apply": {
-        "kind": "note"
-      },
-      "rationale": {
-        "science": "Metabolic adaptation on a moderate cut is real but modest, around 50-100 kcal/day, and fades once weight stabilises - don't over-blame a plateau on metabolism (Nunes 2021).",
-        "data": "Steps ran 19.0k / 21.7k / 18.7k across the June blocks and 15.1k / 15.7k / 16.5k the last three weeks. Your own model already carries two maintenance numbers: 2,590 at hard-block steps, 2,470 at Ease-1 steps.",
-        "relationship": "The +186 kcal verdict fits one maintenance line across both step regimes at once, so it reads high - that is the planned Ease-1 taper showing up as fake adaptation. Your rate is 1.2 lb/wk and inside the band; nothing needs adding."
-      },
-      "predict": "Holding the band keeps the rate inside 1.0-1.4 lb/wk, and the maintenance fit settles near 2,470 once a clean post-seal fortnight replaces the frozen reads.",
-      "confidence": "high",
-      "gate": "approve",
-      "rank": 2
     }
   ]
 }
