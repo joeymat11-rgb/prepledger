@@ -288,7 +288,7 @@ dbt.sessionLog = {
   "2026-07-30": { entries: [{ id: "press", reps: [8, 7, 5], rir: null }], at: 2 },
 };
 const charged = dl(dbt);
-ok(charged.some(x => x.live && x.txt.indexOf("Press") === 0 && x.txt.indexOf("-3 reps on debt") > -1), "a debt session gets charged against its clean twin: " + (charged.find(x => x.live) || {}).txt);
+ok(charged.some(x => x.live && x.txt.indexOf("Press") === 0 && x.txt.indexOf("-3 reps after a short night") > -1), "a short-sleep session is still measured against its normal twin — that comparison survived; only the language that called it debt did not: " + (charged.find(x => x.live) || {}).txt);
 dbt.sessionLog["2026-07-30"].entries[0].reps = [8, 8, 7];
 ok(!dl(dbt).some(x => x.live), "matching the clean twin = no charge; only losses get written");
 
@@ -1008,7 +1008,15 @@ ok(ctx58.indexOf("SLEEP RIGHT NOW") > -1, "the live sleep state ships with the c
 ok(ctx58.indexOf("no longer blocks a record") > -1, "and the analyst is told plainly that a short night does not invalidate one");
 ok(ctx58.indexOf("STEP TARGET") > -1 && ctx58.indexOf("SET-TO-SET REP SPREAD") > -1, "the canonical block now carries the derived step target and his own measured rep noise");
 ok(ctx58.indexOf("never claim a refeed buys") > -1, "and forbids the refeed claims the evidence does not support");
-ok(ctx58.indexOf("debt days +1") === -1 && ctx58.indexOf("only that final set pulls to 1") > -1, "the law sheet teaches the current debt rule");
+/* The field dictionary handed to the analyst used to end with "RECORDS: pending
+   = awaiting the 3-night >=7.5h clean streak" and "on debt only that final set
+   pulls to 1" — the retired gate, stated as authoritative, inside the SAME
+   prompt that told the analyst a short night invalidates nothing. One prompt,
+   two contradictory laws. */
+ok(ctx58.indexOf("debt days +1") === -1, "no stale debt arithmetic in the law sheet");
+ok(ctx58.indexOf("only that final set pulls to 1") === -1 && ctx58.indexOf("awaiting the 3-night") === -1,
+   "and the retired clean-sleep gate is gone from the analyst's field dictionary too — it used to contradict the science floor in the same prompt");
+ok(ctx58.indexOf("including after a short night") > -1, "the law it teaches now is the one the engine actually runs");
 
 // (interim)
 
@@ -2543,6 +2551,33 @@ shortS.sleep.nights = shortS.sleep.nights.concat([
 const lcShort = lc27(shortS, "lateral");
 ok(!(lcShort.verdict === "HOLD" && (lcShort.why || "").indexOf("Sleep is rebuilding") > -1), "liftCall no longer HOLDs the whole session on a short night: " + lcShort.verdict);
 ok((JSON.stringify(lcShort.receipts || []) + (lcShort.why || "")).indexOf("nothing counts as a record") === -1, "and the 'nothing counts as a record today anyway' line is gone with it");
+
+/* ---- v34: the gate leaves his SAVED STATE, not just the source ----
+   Queue gates and exercise notes are data. They were seeded once and live on his
+   phone, so without a migration he would keep reading "Repeat 8,8,7 on a clean
+   day" and "deferred 2x for sleep" after the engine stopped believing either.
+   A rule that survives only in copy is still a rule, because he reads the copy. */
+const { migrate: mg34, SEED: SM34 } = __test;
+const old34 = clone(SM34);
+old34.v = 33;
+const qq1 = (old34.queue || []).find((q) => q.id === "q_press_own");
+const qq2 = (old34.queue || []).find((q) => q.id === "q_hack3");
+if (qq1) qq1.gate = "Repeat 8,8,7 on a clean day (last: 8,7,6 on debt)";
+if (qq2) { qq2.gate = "Gate passed · deferred 2× for sleep"; qq2.rule = "LOCKED — runs unless a true <4.5 h night"; }
+const nQ = old34.queue ? old34.queue.length : 0;
+const doneBefore = (old34.queue || []).filter((q) => q.done).length;
+const m34 = mg34(old34);
+ok(m34.v >= 34, "the migration runs: v" + m34.v);
+const gq1 = (m34.queue || []).find((q) => q.id === "q_press_own");
+const gq2 = (m34.queue || []).find((q) => q.id === "q_hack3");
+ok(!gq1 || gq1.gate.indexOf("clean day") === -1, "the OWN gate stops telling him to wait for a clean day: " + (gq1 ? gq1.gate : "n/a"));
+ok(!gq2 || (gq2.gate.indexOf("sleep") === -1 && gq2.rule.indexOf("4.5 h") === -1), "and the hack debut stops being locked behind a sleep threshold");
+ok(JSON.stringify(m34.queue || []).indexOf("on debt") === -1, "no queue text anywhere still says a session was voided by sleep");
+/* the guardrail that matters more than any of it: nothing was destroyed */
+ok((m34.queue || []).length === nQ, "every queue item survives the migration — ids, history and all");
+ok((m34.queue || []).filter((q) => q.done).length === doneBefore, "and nothing silently resolves or un-resolves");
+ok((m34.feed || []).some((f) => f.t === "THE CLEAN-SLEEP GATE IS GONE"), "the change explains itself in his feed rather than happening silently");
+ok(mg34(clone(m34)).feed.filter((f) => f.t === "THE CLEAN-SLEEP GATE IS GONE").length === 1, "and re-running the migration does not file it twice");
 
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

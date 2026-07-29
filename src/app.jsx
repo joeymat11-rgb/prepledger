@@ -39,7 +39,7 @@ const APP_V = "3.99.26";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 33;
+const SCHEMA_V = 34;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -63,7 +63,7 @@ const EXERCISES = [
     setup: "SET · seat 4 · chest pad 7 · retrace profile 1\nChest stays glued to pad · pinch the blades at the back · strapless is the standard" },
   { id: "curl", mg: "biceps", lastMeta: { d: "2026-07-20", w: "55·55·50", reps: [12, 8, 10], debt: true }, n: "Curls", day: "U", w: "55·55·50", inc: 5, sets: 3, hi: 12, last: [12, 8, 10], ladder: { set: 1, top: 12 },
     setup: "SET · resistance profile 5 · seat 3\nSet 2 is the money set · no shoulder creep when it grinds" },
-  { id: "press", mg: "chest", lastMeta: { d: "2026-07-20", w: 245, reps: [8, 7, 6], debt: true }, n: "Press", day: "U", w: 245, inc: 5, sets: 3, hi: 9, last: [8, 7, 6], std: [8, 8, 7], own: true, ownNote: "repeat 8,8,7 on a clean day — no load until owned",
+  { id: "press", mg: "chest", lastMeta: { d: "2026-07-20", w: 245, reps: [8, 7, 6], debt: true }, n: "Press", day: "U", w: 245, inc: 5, sets: 3, hi: 9, last: [8, 7, 6], std: [8, 8, 7], own: true, ownNote: "repeat 8,8,7 — no load until owned",
     setup: "SET · cam 5 · lowest seat\nShoulders back & down into the pad · no bottom bounce — this lift was won on the honest opener" },
   { id: "pulldown", mg: "back", lastMeta: { d: "2026-07-20", w: 160, reps: [8, 8], debt: true }, n: "Pulldown", day: "U", w: 160, inc: 5, sets: 2, hi: 10, last: [8, 8],
     setup: "SET · silver bar · thumbs in the same spot every session\nSame grip = comparable reps · chest up, elbows down-and-in · strapless" },
@@ -119,10 +119,10 @@ const SEED = {
   exercises: EXERCISES,
   queue: [
     { id: "q_rows180", kind: "debut", exId: "rows", newW: 180, t: "ROWS 180 DEBUT", state: "DEBUT", gate: "Earned via 175×10,10 — strapless", rule: "The structural change for the next upper day", done: false },
-    { id: "q_press_own", kind: "own", exId: "press", t: "PRESS · OWN 245", state: "OWN-IT", gate: "Repeat 8,8,7 on a clean day (last: 8,7,6 on debt)", rule: "Do NOT load until owned", done: false },
-    { id: "q_hack3", kind: "debut", exId: "hack", t: "HACK 3RD SET DEBUT", state: "DEBUT", gate: "Gate passed · deferred 2× for sleep", rule: "LOCKED — runs unless a true <4.5 h night", done: false },
+    { id: "q_press_own", kind: "own", exId: "press", t: "PRESS · OWN 245", state: "OWN-IT", gate: "Repeat 8,8,7 — the repeat is the confirmation", rule: "Do NOT load until owned", done: false },
+    { id: "q_hack3", kind: "debut", exId: "hack", t: "HACK 3RD SET DEBUT", state: "DEBUT", gate: "Gate passed — it runs on its next lower day", rule: "Runs when it wins the day's structural slot", done: false },
     { id: "q_abs", kind: "debut", exId: "abs", coApproved: true, t: "ABS 100 DEBUT", state: "DEBUT", gate: "Earned 7/21 via 95×14,13,13", rule: "Doc-approved to ride alongside the hack debut", done: false },
-    { id: "q_calves", kind: "reclaim", exId: "calves", t: "CALF INCREMENT OFF 315", state: "RECLAIM", gate: "Needs 13,12,11,10 back (last: 12,10,9,8 on debt)", rule: "Hold 315 — increment stays locked", done: false },
+    { id: "q_calves", kind: "reclaim", exId: "calves", t: "CALF INCREMENT OFF 315", state: "RECLAIM", gate: "Needs 13,12,11,10 back (last: 12,10,9,8)", rule: "Hold 315 — increment stays locked", done: false },
     { id: "q_ext", kind: "own", exId: "extension", t: "EXTENSION · OWN 150×9,9", state: "REVERT", gate: "Self-bump to 155 cratered (9,6) — back to 150", rule: "155 reopens after 9,9 lands", done: false },
     { id: "q_curl", kind: "ladder", exId: "curl", t: "CURL 55 LADDER", state: "LADDER", gate: "Set 2: 8 → 9–10 → 12", done: false },
     { id: "q_primeRD", kind: "info", t: "PRIME REAR-DELT SWITCH", state: "PARKED", gate: "Cable + conscious retraction is working", rule: "Fires only if rounding returns at fatigue — coach territory", done: false },
@@ -271,8 +271,14 @@ function readyLowFor(hist) {
   return a[Math.floor(a.length * 0.25)];
 }
 /* THE DESK CHARTER: maximize muscle retained per unit of recovery while the
-   deficit does the cutting; strike for records only in green windows. Precision
-   = named inputs with receipts, each gated on its own n — never a composite score. */
+   deficit does the cutting. Precision = named inputs with receipts, each gated
+   on its own n — never a composite score.
+
+   "Strike for records only in green windows" used to be the third clause. It is
+   deleted: it was the clean-sleep gate stated as principle, and GOALS.md is
+   explicit that design authority comes from research and his data, never from
+   the app's own constitution. A record is a rep line that clears his measured
+   noise (see beatsNoise) and repeats. The window it lands in is not evidence. */
 function liftCall(s, exId, opts = {}) {
   const tISO3 = isoOf(todayStart());
   const R2 = [];
@@ -2607,7 +2613,7 @@ function debtLedger(s) {
         const pe = (s.sessionLog[pd].entries || []).find((x) => x.id === e.id && x.reps && x.reps.length === e.reps.length);
         if (!pe) continue;
         const delta = e.reps.reduce((a, b) => a + b, 0) - pe.reps.reduce((a, b) => a + b, 0);
-        if (delta < 0) { const ex = exById(s, e.id); out.push({ txt: `${ex ? ex.n : e.id} ${fmtShort(d)}: ${e.reps.join(",")} vs clean ${pe.reps.join(",")} — ${delta} reps on debt`, live: true }); }
+        if (delta < 0) { const ex = exById(s, e.id); out.push({ txt: `${ex ? ex.n : e.id} ${fmtShort(d)}: ${e.reps.join(",")} vs clean ${pe.reps.join(",")} — ${delta} reps after a short night`, live: true }); }
         break;
       }
     });
@@ -4124,6 +4130,58 @@ function patchV33(s) {
   });
   s.v = 33; return s;
 }
+/* ---------- v34 — the retired clean-sleep gate leaves his saved state ----------
+   The gate came out of progressStep earlier, out of liftCall and rirPlan today,
+   and out of every string in the source. But queue gates and exercise notes are
+   DATA: they were seeded once and live in his saved state, so his phone would
+   keep showing "Repeat 8,8,7 on a clean day" and "deferred 2x for sleep" long
+   after the code stopped believing it. A rule that survives only in copy is
+   still a rule, because he reads the copy.
+
+   Nothing is deleted. The queue items keep their ids, their history and their
+   done-state; only the sentence explaining the gate is rewritten to the rule
+   the engine actually runs. */
+function patchV34(s) {
+  const fixes = [
+    ["q_press_own", { gate: "Repeat 8,8,7 — the repeat is the confirmation", rule: "Do NOT load until owned" }],
+    ["q_hack3", { gate: "Gate passed — it runs on its next lower day", rule: "Runs when it wins the day's structural slot" }],
+  ];
+  let touched = 0;
+  fixes.forEach(([id, patch]) => {
+    const q = (s.queue || []).find((x) => x.id === id);
+    if (!q) return;
+    Object.keys(patch).forEach((k) => { if (q[k] !== patch[k]) { q[k] = patch[k]; touched++; } });
+  });
+  /* Queue gates seeded with sleep language, wherever they sit. Matched on the
+     phrase rather than the id, so a gate added later cannot slip through. */
+  (s.queue || []).forEach((q) => {
+    ["gate", "rule"].forEach((k) => {
+      if (typeof q[k] !== "string") return;
+      const was = q[k];
+      q[k] = q[k]
+        .replace(/ on a clean day/gi, "")
+        .replace(/ on a clean-sleep day/gi, "")
+        .replace(/ on debt/gi, "")
+        .replace(/s*·s*deferred d+× for sleep/gi, "")
+        .replace(/LOCKED — runs unless a true <?[d.]+ ?h night/gi, "Runs when it wins the day's structural slot");
+      if (q[k] !== was) touched++;
+    });
+  });
+  (s.exercises || []).forEach((e) => {
+    if (e.ownNote && /clean day|sleep-clean|on debt/i.test(e.ownNote)) {
+      e.ownNote = e.ownNote.replace(/ on a clean day/i, "").replace(/ — no load until owned/, " — no load until owned");
+      touched++;
+    }
+  });
+  /* The rirOverride flag has nothing left to override. Kept on the record
+     rather than deleted — it is a decision he made, and this app does not
+     rewrite history. It is simply no longer read by anything. */
+  if (touched) {
+    (s.feed || []).unshift({ d: isoOf(todayStart()), t: "THE CLEAN-SLEEP GATE IS GONE",
+      how: "It was retired in the engine earlier but survived in three places that decided what you lift: the prescription desk held every lift on a short night, the set plan pulled your last set off failure, and the queue still told you sleep decided before your muscles did. None of that had evidence behind it — a short night costs about 2.85% on strength, which is smaller than your own set-to-set spread. Sleep still matters enormously, just for a different thing: at a matched deficit it decides how much of what you lose comes off muscle instead of fat. It is now on your sleep card as that, and nothing anywhere gates a rep on it." });
+  }
+  s.v = 34; return s;
+}
 function patchV30(s) {
   s.medsLog = s.medsLog || [];
   s.v = 30; return s;
@@ -4224,7 +4282,7 @@ function patchV11(s) {
 /* Applied in order, oldest first. To add a schema version: write patchVn, append
    it here, and bump SCHEMA_V — nothing else. The old nested-call chain was 31
    parentheses deep and a missing one only showed up at build time. */
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33];
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34];
 function migrate(old) {
   if (old && old.v === SCHEMA_V) return old;
   if (old && old.v >= 3 && old.v < SCHEMA_V) return PATCHES.reduce((s, p) => p(s), JSON.parse(JSON.stringify(old)));
@@ -4262,11 +4320,11 @@ const GLOSSARY = {
   ea: ["Energy availability", "What is left to run your body on after training is paid for: calories in, minus what training and deliberate walking cost, divided by your lean mass. The threshold that matters for a lean man is 25 kcal per kg of lean mass per day — above it, a deficit mostly takes fat; below about 20, more than 40% of what you lose comes off lean mass, and testosterone, thyroid and resting metabolism go with it. It shows a RANGE, not a number, and that is deliberate: the convention counts purposeful exercise, and 16,000 deliberate steps sit exactly on the line between training and just moving. Nobody has settled that, so the app shows both ways of counting instead of picking one and sounding certain. The session and step costs are population estimates, not measurements of you — which is why this instrument only ever claims which side of the line you are on."],
   rest: ["Rest between sets", "90 s on isolation, 150 s on compounds, and 30 s more before the final set. The number comes from where the evidence stops moving: pooled across nine studies, longer rest beats short rest by a small margin that runs through volume load — you keep more reps on the back sets — but no further benefit is measurable past about 90 s. So 90 is the floor worth holding and anything beyond it on isolation work is session time you are spending for nothing. Compounds sit at 150 s because that is inside the 2–3 min band tested directly in trained lifters. The extra 30 s before the last set is a judgement call, not a finding: that set is the one prescribed to failure, and it is the one the progression engine reads to size your next jump — so it is the set worth protecting."],
   pace: ["RUSHED (pace)", "That session ran on short rest — under about a minute between sets. It matters for one reason: less rest means fewer reps on the back sets, so the volume load drops. The reps still count and still move your trend. What a rushed day can't do is count toward a stall — three stalls lighten the bar 5%, and running out of time is not evidence that the weight is too heavy. The research here is modest and honest about itself: pooled across nine studies the rest effect is small and mostly runs through volume load, with nothing measurable past ~90 s. So the app records it as context, not as a verdict on the session."],
-  debt: ["On debt", "That session happened before three consecutive ≥7.5 h nights. Down numbers on debt read as context, not regression — and PRs hit on debt log as provisional, because they don't reliably repeat."],
+  debt: ["Short night", "That session followed a night under 6.5 h, or a three-night run averaging under 7. Down numbers on a short night read as context rather than regression, so the day is exempt from counting toward a stall. It does NOT make a record provisional — the strength cost of a short night is about 2.85%, smaller than the set-to-set noise the app already models, and no record here was ever gated on sleep once the desk stopped holding lifts."],
   clean: ["CLEAN (sleep)", "Three consecutive nights of ≥7.5 h. One good night repays acute debt, but consolidation lags ~2–3 nights — so owns and earns only count when CLEAN."],
   seal: ["Sealed scale", "Around events, reads are quarantined: logged but excluded from the trend, and every rate rule is muted. The seal exists so event water can never trigger a false alarm."],
   trend: ["Trend", "The damped average the whole app runs on: each clean read moves it 30% of the way, spikes clamp at ±1.5 lb, sealed reads don't touch it. Mornings are static; the trend is the instrument."],
-  own: ["OWNED", "The standard repeated on a clean day. One hit is a visit; a repeat is an address. Only owned standards let the load move."],
+  own: ["OWNED", "The standard repeated. One hit is a visit; a repeat is an address — and the repeat IS the confirmation, which is the entire statistical content of the rule. Sleep used to be a third condition stacked on top of it and is gone. Only owned standards let the load move."],
   earned: ["EARNED", "Reps hit the top of the window on a clean day — the increment is bought and queues itself for a debut. Grinds at RIR 0 never earn."],
   debut: ["DEBUT", "An earned load's first outing. It runs when it wins its day's single structural slot, with zero rep expectations — log what it gives."],
   gated: ["GATED", "Visible but locked behind a named condition. The condition decides, not memory or mood."],
@@ -4275,7 +4333,7 @@ const GLOSSARY = {
   structural: ["Structural change", "A load jump, new set, or machine change. One per session, auto-picked from the queue — so every response stays attributable. Rep progression is unlimited."],
   whoosh: ["Whoosh", "Event water leaving days after the event — a spike that drains to a NEW low. Yours clears in 1–3 days; the LAB predicts the window in advance."],
   noonwindow: ["Why noon lifts read easy", "You lift at your stimulant peak, and stimulants mask effort — a set that feels like 2 in the tank is often 1 or 0. That's why the app asks you to read effort conservatively at noon, and why the honest-opener rule matters most here: the governor can only protect you from numbers you report truthfully."],
-  rirplan: ["Suggested RIR — where it comes from", "The literature (Refalo 2023–24 meta-analyses; Helms-style RIR prescription) says 0–5 reps-in-reserve all build muscle, with a slight edge nearer failure — so everything tapers to a single terminal failure set — 2→1→0, and four-set movements run 2·1·1·0; only the last set of an exercise is ever programmed to failure. Your machine-based setup makes that true failure safe, and the opener stays the honest gatekeeper (earns judge the opener, so the final 0 can never corrupt the signal). Then YOUR data adjusts it: on debt days only the final set — the one programmed to failure — pulls back to 1, and every other set runs exactly as written; a governor hold floors everything at 2; and lifts where your logged openers run hot get one extra in the bank up front. It recomputes every session."],
+  rirplan: ["Suggested RIR — where it comes from", "The literature (Refalo 2023–24 meta-analyses; Helms-style RIR prescription) says 0–5 reps-in-reserve all build muscle, with a slight edge nearer failure — so everything tapers to a single terminal failure set — 2→1→0, and four-set movements run 2·1·1·0; only the last set of an exercise is ever programmed to failure. Your machine-based setup makes that true failure safe, and the opener stays the honest gatekeeper (earns judge the opener, so the final 0 can never corrupt the signal). Then YOUR data adjusts it: a governor hold floors everything at 2, and lifts where your logged openers run hot get one extra in the bank up front. It recomputes every session. What it no longer does is back the terminal set off failure after a short night — that rule is retired, because proximity to failure is the variable growth actually tracks and the strength cost of a short night is about 2.85%, inside the set-to-set noise this app already models."],
   driftoff: ["Estimating drift-off", "Morning-after guessing is the clinical standard (it's how sleep diaries work). Anchor on the last thing you remember — final position change, a thought, a sound — and count minutes from lights-out to that, rounded to 5. Truly no idea? Leave the 15: the math uses a rolling median and within-you comparisons, so honest-rough beats fake-precise. A wearable's latency number can go in the same box anytime."],
   nightdate: ["How nights are dated", "A night belongs to the evening it began: Tuesday night = Tue evening → Wed morning, filed under Tuesday. You log it the morning after. Before 5 a.m. the app still means the night you already finished — never the one you haven't slept yet. Missed a morning? The row stays, dated, for up to 3 days."],
   noise: ["Noise floor", "Your scale's measured day-to-day static: ±0.8 lb. Any single-morning move inside it is not information, and the app stamps it so."],
@@ -4285,7 +4343,7 @@ export const __test = { targetsFor, genSession, completeSession, runAdaptive, bf
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
-const LEDGER_DICT = "FIELD DICTIONARY (authoritative — never guess a meaning): NIGHTS: h = hours asleep · bed/wake = clock times as logged (they vary; that is expected) · sol = drift-off, minutes to fall asleep · tags: woke = woke mid-night, caff = late caffeine. DAYS: cal/pro/steps as logged · dayCtx est = athlete-declared estimate day (rough numbers, lower evidentiary weight) · ⌁flags = day weather (event window / seal water / post-refeed / estimate). SESSIONS: entries = performed lifts only, w = load, reps per set, rir = reps in reserve on the opener · skipped = lifts deliberately not done (structured truth, zero phantom reps) · note = athlete prose, read it · niggles = flagged aches · dips = incidental dip count. READS: raw morning scale, sealed = quarantined event water, judge only via damped trend. PULSE bpm / TEMP °F = 60s wrist count and oral reading at wake. MEDSLOG: prescription taken/none with clock time — pure adherence bookkeeping; the system's biggest confound (appetite, pulse, effort, drift-off all move with it) now has a clock. ENERGY: morning 1–5 (1 fumes · 5 caged animal). SORENESS: muscles tapped sore at wake (empty list = nothing sore, logged). GRIP: best squeeze per hand in lb, same posture daily — a CNS-readiness number. DAILY sodium low/med/high and alcohol units ride the day numbers — units are a COUNT ONLY, a covariate for sleep/pulse/scale attribution; their calories live inside the athlete's logged cal and are never added by the app; on estimate days the unit count is a bracket midpoint like everything else. CAFFLOG: actual daily caffeine — mg and clock time as logged (mg 0 = a deliberate none-day); tail math runs on these, never an assumed noon. FEED: the app's event log — amendments and corrections here OVERRIDE older raw rows. RECORDS: pending = awaiting the 3-night ≥7.5h clean streak. LAWS: single terminal failure set per exercise; on debt only that final set pulls to 1.";
+const LEDGER_DICT = "FIELD DICTIONARY (authoritative — never guess a meaning): NIGHTS: h = hours asleep · bed/wake = clock times as logged (they vary; that is expected) · sol = drift-off, minutes to fall asleep · tags: woke = woke mid-night, caff = late caffeine. DAYS: cal/pro/steps as logged · dayCtx est = athlete-declared estimate day (rough numbers, lower evidentiary weight) · ⌁flags = day weather (event window / seal water / post-refeed / estimate). SESSIONS: entries = performed lifts only, w = load, reps per set, rir = reps in reserve on the opener · skipped = lifts deliberately not done (structured truth, zero phantom reps) · note = athlete prose, read it · niggles = flagged aches · dips = incidental dip count. READS: raw morning scale, sealed = quarantined event water, judge only via damped trend. PULSE bpm / TEMP °F = 60s wrist count and oral reading at wake. MEDSLOG: prescription taken/none with clock time — pure adherence bookkeeping; the system's biggest confound (appetite, pulse, effort, drift-off all move with it) now has a clock. ENERGY: morning 1–5 (1 fumes · 5 caged animal). SORENESS: muscles tapped sore at wake (empty list = nothing sore, logged). GRIP: best squeeze per hand in lb, same posture daily — a CNS-readiness number. DAILY sodium low/med/high and alcohol units ride the day numbers — units are a COUNT ONLY, a covariate for sleep/pulse/scale attribution; their calories live inside the athlete's logged cal and are never added by the app; on estimate days the unit count is a bracket midpoint like everything else. CAFFLOG: actual daily caffeine — mg and clock time as logged (mg 0 = a deliberate none-day); tail math runs on these, never an assumed noon. FEED: the app's event log — amendments and corrections here OVERRIDE older raw rows. RECORDS: a rep line becomes his when it clears his own measured set-to-set spread and then repeats — sleep is NOT a condition on it and never mention pending-on-sleep, that rule is retired. LAWS: a single terminal failure set per exercise, every session, including after a short night.";
 
 async function ghSync(state) {
   let tok = null;
@@ -6177,7 +6235,6 @@ function LogTab({ s, setS, save, slp }) {
   }, [reps, rir, rirEnd, skipped, note, nig, pace, draftKey]);
   const [recap, setRecap] = useState(null);
   const [boosted, setBoosted] = useState(false);
-  const trueShort = slp.last && slp.last.h < 4.5;
   const hackPending = s.queue.some((q) => q.id === "q_hack3" && !q.done);
 
   const options = [];
@@ -6188,7 +6245,7 @@ function LogTab({ s, setS, save, slp }) {
   }
 
   if (!sess && !logged) return (
-    <Card><Eyebrow>{dayType(tISO, s) === "REFEED" ? "REST + REFEED TODAY" : "REST DAY"}</Eyebrow>
+    <Card><Eyebrow>REST DAY</Eyebrow>
       <div style={{ fontFamily: body, color: T.steel, fontSize: 13, marginTop: 6 }}>Next session {nextISO ? fmtShort(nextISO) : "—"} — your numbers will be waiting, built from last time.</div></Card>
   );
 
@@ -6309,17 +6366,24 @@ function LogTab({ s, setS, save, slp }) {
           forYou={(() => { const cand = s.queue.filter((q) => !q.done && q.kind === "debut" && q.exId && exById(s, q.exId) && exById(s, q.exId).day === dayType(dateSel)); return cand.length > 1 ? `Waiting behind today's slot: ${cand.slice(1).map((q) => q.t).join(" · ")} — each gets its own session.` : cand.length === 1 ? "The queue empties after this one — new earns will refill it as you log." : "Nothing structural queued for this day type — pure rep-progression day, which is where most muscle actually gets built."; })()} />
       </Card>
 
+      {/* The hack-debut card used to be a sleep gate with a hardcoded 4.5 h
+          release valve and a "deferral #3" counter — a lock, a countdown and an
+          escape hatch built around a rule that no longer exists. A third set is
+          a set. It runs on its next lower day like any other structural change. */}
       {dayType(dateSel) === "L" && hackPending && (
-        <Card accent={trueShort ? T.brass : T.jade}>
-          <Eyebrow c={trueShort ? T.brass : T.jade}>HACK DEBUT GATE</Eyebrow>
+        <Card accent={T.jade}>
+          <Eyebrow c={T.jade}>HACK — THIRD SET DEBUTS TODAY</Eyebrow>
           <div style={{ fontFamily: body, fontSize: 12.5, color: T.steel, marginTop: 4 }}>
-            {trueShort ? `Last night read ${slp.last.h} h — a true <4.5 h night. The lock releases: deferral #3 is legitimate.` : `Locked in. Last night ${slp.last ? slp.last.h : "—"} h — it runs regardless.`}
+            It takes today's one structural slot. Log whatever the third set gives you — that number becomes the baseline the next one is measured against, so there is nothing to hit and nothing to protect.
           </div>
         </Card>
       )}
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <Chip c={slp.clean ? T.jade : T.brass}>{slp.clean ? "SLEEP CLEAN — records set today count for real" : <>SHORT SLEEP {slp.run}/{slp.need} — records count as <Term k="provisional" c={T.brass}>pending</Term></>}</Chip>
+        {/* Was "records count as pending" on a short night — the retired gate, at the
+        top of the page he opens to train. What replaces it says the true thing:
+        a short night is context for reading the session, never a verdict on it. */}
+        <Chip c={slp.clean ? T.jade : T.brass}>{slp.clean ? "NORMAL NIGHT — nothing to caveat" : <>SHORT NIGHT{slp.last && slp.last.h ? " · " + slp.last.h + " h" : ""} — reps still count, records still bank; today just cannot be read as a stall</>}</Chip>
         <Chip><Term k="noonwindow" c={T.steel}>STIM CHECK</Term>{(() => { const me1 = todayMeds(s); if (me1 && me1.taken) return <> — meds @ {fmt12(me1.at)} · effort feels easier mid-peak than it is</>; if (me1 && !me1.taken) return <> — none today · effort reads truer, energy may run lower</>; return <> — meds peak midday · if lifting then, effort feels easier than it is · log it on NOW</>; })()}</Chip>
       </div>
 
@@ -6415,7 +6479,7 @@ function LogTab({ s, setS, save, slp }) {
               <div style={{ fontFamily: mono, fontSize: 9.5, color: T.jade, letterSpacing: "0.05em" }}>{(CALL_PLAIN[lc2.verdict] || { mean: "" }).mean}</div>
               <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, lineHeight: 1.55, marginTop: 6 }}>{lc2.why}</div>
               {(lc2.receipts || []).map((r3, i3) => <div key={i3} style={{ fontFamily: mono, fontSize: 9.5, color: T.steel, marginTop: 5, lineHeight: 1.5 }}>· {r3}</div>)}
-              <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 7 }}>THE CHARTER: retain muscle per unit of recovery; the deficit does the cutting; records only in green windows.</div>
+              <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 7 }}>THE CHARTER: retain muscle per unit of recovery; the deficit does the cutting; a record is a rep line that clears your own noise and repeats.</div>
             </div>
           ); })()}
           {ex.prev && (
@@ -6431,7 +6495,7 @@ function LogTab({ s, setS, save, slp }) {
                   </span>
                 );
               })()}
-              {ex.prev.debt && <span style={{ color: T.brass }}> · <Term k="debt" c={T.brass}>on debt</Term></span>}
+              {ex.prev.debt && <span style={{ color: T.brass }}> · <Term k="debt" c={T.brass}>short night</Term></span>}
             </div>
           )}
           {ex.note && <div style={{ fontFamily: mono, fontSize: 10, color: ex.isDebutNow || (ex.note || "").startsWith("OWN") ? T.orange : T.dim, marginTop: 3, letterSpacing: "0.04em" }}>{ex.note}</div>}
@@ -6625,9 +6689,9 @@ function QueueTab({ s, slp }) {
           )}
           <More c={T.brass}
             deep={({
-              debut: "EARNED → DEBUT: this load was bought with reps at the top of the window on a sleep-clean day. It runs when it wins its day's single structural slot — one change per session keeps the response readable.",
-              unlock: "EARNED → DEBUT: bought at the top of the window on a clean day; it runs when it wins the day's single structural slot.",
-              own: "One hit isn't ownership — the standard has to repeat on a sleep-clean day before anything loads. A debt-day hit logs as provisional: real, but not spendable.",
+              debut: "EARNED → DEBUT: this load was bought with reps at the top of the window. It runs when it wins its day's single structural slot — one change per session keeps the response readable.",
+              unlock: "EARNED → DEBUT: bought at the top of the window; it runs when it wins the day's single structural slot.",
+              own: "One hit isn't ownership — the standard has to repeat before anything loads, because a repeat is the second independent observation and that is the whole statistical content of the rule. Sleep is not part of it: a hit on a short night is a hit.",
               reclaim: "The standard slipped, so the exact rep line has to be re-earned before the increment unlocks. Records here can fall and be won back — that's what makes the ledger honest.",
               ladder: "A rep ladder on the money set: top out the rung and the next gate opens. Load moves on this lift stay coach-flag.",
               phase: "Fires from the live body-fat estimate, not the calendar. Applying it swaps every daily target at once — one tap, whole new phase.",
@@ -6638,8 +6702,11 @@ function QueueTab({ s, slp }) {
               const nd = ex ? nextOfType(ex.day) : null;
               if (u.kind === "own" && ex && nd) return [
                 `Your next try is ${fmtShort(nd)} at ${ex.w}.`,
-                `Last time you got ${ex.last ? ex.last.join(", ") : "—"}${ex.lastMeta && ex.lastMeta.debt ? " on short sleep — so that day couldn't count" : ""}.`,
-                `To make the weight officially yours: repeat the line on a clean-sleep day. Sleep is at ${slp.run}/${slp.need}` + (slp.clean ? " \u2713 \u2014 a hit today counts for real." : " \u2014 so sleep decides before your muscles do."),
+                /* This used to say the day "couldn't count" because of sleep, and that "sleep
+                   decides before your muscles do" — the retired gate telling him his own reps
+                   were void. They were never void. */
+                `Last time you got ${ex.last ? ex.last.join(", ") : "—"}${ex.lastMeta && ex.lastMeta.debt ? " after a short night — which counted; it just cannot be read as a stall" : ""}.`,
+                `To make the weight officially yours: hit that line again. One hit is a good day, a repeat is an address — and nothing else gates it.`,
               ];
               if ((u.kind === "debut" || u.kind === "unlock") && ex && nd) { const mn = pickStructural(s, nd, slp).main; return mn && mn.id === u.id ? [
                 `This is the one change running on ${fmtShort(nd)} — the slot is yours.`,
@@ -6917,27 +6984,52 @@ function SleepTab({ s, setS, save, slp }) {
   const maxH = 9;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <Card accent={slp.clean ? T.jade : T.brass}>
+      {/* ---------- SLEEP_CARD_NOTE — the same lever, pointed at the right thing ----------
+          This card used to headline CLEAN / RESET n-of-3 and explain that "owns
+          and earns require CLEAN because PRs bought on debt don't repeat." That
+          was the retired gate wearing a physiology costume, and the closing
+          advice — "fixed wake time is the strongest single move" — was aimed at
+          the end of HIS night that varies most and that he controls least.
+
+          Sleep did not get demoted. It got promoted to the thing it actually
+          governs. Nedeltcheva 2010 is the single largest effect anywhere in this
+          app: 5.5 h vs 8.5 h at a MATCHED deficit sent 60% more of the loss onto
+          fat-free mass. Same food, same training, worse physique. That belongs
+          at the top of the card. What does not belong is a streak counter
+          deciding whether a rep counts. */}
+      {(() => { const an = sleepAnchor(s); const t7 = atSleepTarget(s, null); const at = t7.at; return (
+      <Card accent={at ? T.jade : T.brass}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <Eyebrow>THE MASTER VARIABLE</Eyebrow>
-            <H size={24} c={slp.clean ? T.jade : T.brass}>{slp.clean ? <Term k="clean" c={T.jade}>CLEAN</Term> : <span>RESET {slp.run} / {slp.need}</span>}</H>
+            <Eyebrow>WHERE YOUR LOSS COMES FROM</Eyebrow>
+            <H size={24} c={at ? T.jade : T.brass}>{an.measured ? `${an.curH} h` : at ? "AT TARGET" : `${t7.run} / ${s.sleep.needed}`}</H>
           </div>
-          <div style={{ textAlign: "right", fontFamily: mono, fontSize: 10.5, color: T.steel }}>target 7.5–8 h<br />clean night = ≥7.5</div>
+          <div style={{ textAlign: "right", fontFamily: mono, fontSize: 10.5, color: T.steel }}>target {s.sleep.cleanH} h<br />{an.measured ? `bed ${fmt12(an.bed)} · up ${fmt12(an.wake)}` : "log bed and wake times"}</div>
         </div>
-        <div style={{ fontFamily: body, fontSize: 12, color: T.steel, marginTop: 8 }}>
-          {slp.clean ? "Own-it attempts count. Earns bank. Reward circuitry back online." : `${slp.need - slp.run} more clean night${slp.need - slp.run === 1 ? "" : "s"} → clean. Debt downregulates dopamine receptors — it costs focus, drive, and honest RIR, not just recovery.`}
+        <div style={{ fontFamily: body, fontSize: 12.5, color: T.chalk, marginTop: 8, lineHeight: 1.55 }}>
+          This is not about whether today's session counts — it always counts. It is about what the pounds you lose are made of. At a matched deficit, short sleep sent about 60% more of the loss onto lean mass in the one trial that measured it directly. You cannot out-eat or out-protein that.
         </div>
-        <More c={slp.clean ? T.jade : T.brass}
-          deep="Three consecutive ≥7.5 h nights = CLEAN, because one good night repays acute debt but consolidation and hormone normalization lag ~2–3 nights behind. Debt also downregulates dopamine D2/D3 receptor availability — the same circuitry ADHD already taxes — which is why it costs drive, focus, and honest RIR before it ever costs recovery. Owns and earns require CLEAN because PRs bought on debt don't repeat, and the ledger only banks what repeats."
-          forYou={slp.clean ? "CLEAN — everything counts today. This is simultaneously your best muscle-retention lever and your sharpest ADHD lever; protect the streak like a PR." : `${slp.need - slp.run} clean night${slp.need - slp.run === 1 ? "" : "s"} from CLEAN. Tonight ≥7.5 ${slp.run + 1 >= slp.need ? "flips it — tomorrow's attempts count for keeps." : "keeps the reset alive."} Fixed wake time is the strongest single move.`} />
+        {an.measured && an.shiftMin > 0 && (
+          <div style={{ fontFamily: mono, fontSize: 11, color: T.jade, marginTop: 9, paddingLeft: 8, borderLeft: `2px solid ${T.jade}` }}>
+            THE LEVER — lights out {fmt12(an.needBed)}, {an.shiftMin} min earlier than you go now
+          </div>
+        )}
+        <More c={at ? T.jade : T.brass}
+          deep="Two different questions used to share one switch, which is why the old card read as a gate. The first is whether last night was short enough to measurably depress a session — and the performance literature says almost never at his numbers: Craven 2022 puts sleep restriction at −2.85% on strength, inside the test-retest error, and Knowles 2022 ran nine straight nights at 5 h for under 1% of volume load. The second is whether chronic short sleep changes what a deficit takes off you, and there the effect is enormous: Nedeltcheva 2010, 5.5 h vs 8.5 h, 60% more of the loss shifted onto fat-free mass. The app now answers them separately. Nothing here blocks a record; everything here is about body composition. Sleep also taxes the same dopamine circuitry ADHD already taxes, which is why a short week costs drive and focus before it costs anything physical — real, and a reason to protect the night, not a reason to void a rep."
+          forYou={(() => { const out = []; if (an.measured) { out.push(an.why); if (an.bedSDmin != null && an.wakeSDmin != null) out.push(an.bedSDmin <= an.wakeSDmin ? `Your bedtime is the steadier end — ${an.bedSDmin} minutes of spread against ${an.wakeSDmin} on your wake time. That makes bed the lever: it is the end of the night you already control.` : `Your wake time is the steadier end (${an.wakeSDmin} min against ${an.bedSDmin} on your bedtime), so an earlier lights-out is the whole move.`); } else { out.push(an.why); } out.push(at ? "You are at target. Protect it — this is the cheapest lean mass you will ever keep." : "Nothing about this stops you lifting or banking today. It changes what the scale is made of a month from now."); return out; })()} />
       </Card>
+      ); })()}
 
-      <Section title="Wake, Bedtime & Caffeine" meta={(() => { const tc9 = todayCaff(s); return `wake ${(s.sleep.anchor || {}).wake || "06:45"} · caffeine today: ${tc9 && tc9.logged ? (tc9.mg > 0 ? tc9.mg + " mg @ " + fmt12(tc9.at) : "none ✓") : "not logged"}`; })()} c={T.jade}>
+      <Section title="Bedtime, Wake & Caffeine" meta={(() => { const tc9 = todayCaff(s); const an9 = sleepAnchor(s); return `${an9.measured ? `bed ${fmt12(an9.bed)} · up ${fmt12(an9.wake)}` : "clock times not logged yet"} · caffeine today: ${tc9 && tc9.logged ? (tc9.mg > 0 ? tc9.mg + " mg @ " + fmt12(tc9.at) : "none ✓") : "not logged"}`; })()} c={T.jade}>
         <Card accent={T.jade}>
-        <Eyebrow c={T.jade}>WAKE TIME — SAME EVERY DAY, SINCE {fmtShort("2026-07-23")}</Eyebrow>
+        {/* Bedtime leads, because bedtime is the end he holds steady and the end
+            that bounds the whole night. The old heading claimed a fixed wake
+            time "since 7/23" that the logged record does not show — his wake
+            spans 07:50 to 09:45. See SLEEP_LEVER_NOTE. */}
+        <Eyebrow c={T.jade}>YOUR CLOCK — AS LOGGED, NOT AS PLANNED</Eyebrow>
         {(() => {
-          const a = s.sleep.anchor || { wake: "06:45", asleepTarget: 8 };
+          const an = sleepAnchor(s);
+          const a = { wake: an.wake || (s.sleep.anchor || {}).wake || "07:30", asleepTarget: (s.sleep.anchor || {}).asleepTarget || 8 };
           const lo = lightsOutT(s);
           const hr = new Date().getHours() + new Date().getMinutes() / 60;
           const loH = lo.mins / 60;
@@ -6946,12 +7038,12 @@ function SleepTab({ s, setS, save, slp }) {
           return (
             <>
               <div style={{ display: "flex", gap: 18, marginTop: 8 }}>
-                <div><Num size={22}>{fmt12(a.wake)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>WAKE · 7 DAYS/WK</div></div>
                 <div><Num size={22} c={T.jade}>{fmt12(lo.t)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>{lo.override ? "TONIGHT — SET BY YOU ON NOW" : `LIGHTS OUT = ${lo.target} H ASLEEP + ~${lo.sol} M DRIFT${measured ? " (YOURS, MEASURED)" : " (DEFAULT)"}`}</div></div>
+                <div><Num size={22}>{fmt12(a.wake)}</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>{an.measured ? `WAKE · YOUR MEDIAN, ±${an.wakeSDmin} MIN` : "WAKE · TARGET"}</div></div>
                 {until != null && hr >= 17 && <div><Num size={22} c={T.brass}>{Math.floor(until)}h {Math.round((until % 1) * 60)}m</Num><div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>UNTIL LIGHTS OUT</div></div>}
               </div>
-              <More deep="Wake-time consistency is the strongest circadian lever, and lights-out is now derived from what actually matters: the ASLEEP target plus your real drift-off time. Every morning's 'asleep in' entry feeds a rolling median; once 5 nights are measured, the default 15 minutes is replaced by YOUR number and lights-out auto-shifts to protect actual sleep, not bed-shaped time. Slow drift-off nights literally move tomorrow's bedtime earlier."
-                forYou={measured ? `Your measured drift-off: ~${lo.sol} min — lights-out ${lo.t} buys a true ${lo.target} h asleep. The number keeps itself honest nightly.` : `Default 15 min drift assumed until 5 nights are measured — ${5 - s.sleep.nights.filter((n) => n.sol != null).length} to go, then ${lo.t} becomes personally calibrated.`} />
+              <More deep="Lights-out is derived from what actually matters: the asleep target plus your real drift-off time. Every morning's 'asleep in' entry feeds a rolling median; once five nights are measured the default fifteen minutes is replaced by YOUR number and lights-out shifts to protect actual sleep rather than bed-shaped time. This card used to lead with wake-time consistency as 'the strongest circadian lever' — true in general, and the wrong instruction for this athlete, because his wake time is the end of the night that already varies most and that he controls least. Sleep opportunity is bounded at the front: you cannot recover at the back of the night what you never started at the front."
+                forYou={(() => { const out = []; if (an.measured) { out.push(`As logged: bed ${fmt12(an.bed)} (±${an.bedSDmin} min), up ${fmt12(an.wake)} (±${an.wakeSDmin} min) — ${an.curH} h.`); if (an.shiftMin > 0) out.push(`Lights out ${fmt12(an.needBed)} clears ${an.target} h at the wake time you already keep. That is ${an.shiftMin} minutes, and it is the whole intervention.`); } out.push(measured ? `Your measured drift-off is ~${lo.sol} min, so ${fmt12(lo.t)} buys a true ${lo.target} h asleep. The number keeps itself honest nightly.` : `Default 15 min drift assumed until five nights are measured — ${5 - s.sleep.nights.filter((n) => n.sol != null).length} to go, then ${fmt12(lo.t)} becomes personally calibrated.`); return out; })()} />
             </>
           );
         })()}
@@ -7011,7 +7103,7 @@ function SleepTab({ s, setS, save, slp }) {
         {!debtLedger(s).some((d) => d.live) && (
           <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 6 }}>live audit armed — any in-app session on a debt day gets charged here automatically</div>
         )}
-        <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 8 }}>Down sessions on debt read as context, not regression.</div>
+        <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 8 }}>Down sessions after a short night read as context, not regression — the day is exempt from counting toward a stall, and that is the only thing it changes.</div>
         <More c={T.brass}
           deep="Debt costs output before it costs recovery — motor drive and honest RIR fade first, and it shows up as missing tail reps. The audit method: every in-app session logged on a non-clean day is compared to your nearest prior CLEAN session of the same lift at the same set count, and only losses get written. One honest caveat: if the load changed between the two sessions, an entry can muddy — the recap context usually settles it. Attribution, not blame: the grey lines are the sheet-era receipts; white lines are charges the app computed itself."
           forYou={slp.clean ? "CLEAN — the meter is off. Today's sessions get filed as clean baselines that future debt days will be audited against." : `${slp.need - slp.run} night${slp.need - slp.run === 1 ? "" : "s"} from CLEAN — until then, sessions are audited against their clean twins. Tonight ≥7.5 h ${slp.run + 1 >= slp.need ? "stops the meter entirely." : "keeps the reset alive."}`} />
@@ -7023,7 +7115,7 @@ function SleepTab({ s, setS, save, slp }) {
         <Eyebrow>PROTOCOL</Eyebrow>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8, fontFamily: mono, fontSize: 10.5, color: T.steel }}>
           <div>· Caffeine cutoff early afternoon · 100 mg &gt; 200 mg on sleep nights</div>
-          <div>· Noon lifts = peak stim → RIR conservative, PRs provisional until repeated</div>
+          <div>· Noon lifts land on the stimulant peak — effort feels easier than it is, so rate the last set honestly</div>
           <div>· Dose timing = prescriber territory — this ledger tracks, it does not advise</div>
         </div>
       </Card>
