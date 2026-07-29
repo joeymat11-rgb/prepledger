@@ -1544,7 +1544,21 @@ function calorieTarget(s) {
     return { gated: true, from: "phase", lo: ph ? ph.band[0] : null, hi: ph ? ph.band[1] : null,
       why: "Not enough clean days to measure your own maintenance yet, so this is the phase band as authored." };
   }
-  const kcalFor = (lbWk) => Math.round((lbWk * 3500) / 7);
+  /* ---------- KCAL_PER_LB_NOTE — one conversion, not three ----------
+     This used 3,500 kcal/lb while observedTDEE used KCAL_PER_LB_MIX (3,800) and
+     the thermodynamic sanity check used KCAL_PER_LB_FAT (4,282). Three places
+     converting pounds to calories, three different constants, all derived from
+     the same ledger — which is the "number that changes between screens" failure
+     the canonical block was built to stop, sitting inside the engine itself.
+
+     3,500 is the Wishnofsky figure: 1958, pure adipose assumed, and wrong on its
+     own terms — Hall 2008 puts adipose at 4,282 kcal/lb. What comes off the
+     scale in a deficit is not pure adipose either, which is why the mixed figure
+     exists and why observedTDEE already uses it. The target now uses the same
+     one, so the calorie band and the maintenance it is subtracted from speak the
+     same units. It moves the band down by roughly 40-60 kcal/day, which is the
+     size of the error that was there. */
+  const kcalFor = (lbWk) => Math.round((lbWk * KCAL_PER_LB_MIX) / 7);
   const hi = Math.max(floor, td.tdee - kcalFor(band[0]));
   const lo = Math.max(floor, td.tdee - kcalFor(band[1]));
   const ph = PHASES[s.phase];
@@ -1564,9 +1578,14 @@ function calorieTarget(s) {
   return {
     gated: false, from: "measured", lo, hi, mid: Math.round((lo + hi) / 2),
     wkAvg, wkN: wkRows.length, wkOff,
+    /* "Inside the band" now means inside the BAND, not within an authored 60
+       kcal of its midpoint — the band has width and that width is the whole
+       point of expressing the target as one. And the lb/wk conversion uses the
+       same kcal-per-pound the rest of the engine does; it was quoting 3,500 in
+       the sentence he reads while the number above it was built on 3,800. */
     wkWhy: wkAvg == null ? null
-      : Math.abs(wkOff) <= 60 ? `Your last ${wkRows.length} logged days average ${wkAvg} — inside the band. The target and the result agree, which is the only state worth being in.`
-      : `Your last ${wkRows.length} logged days average ${wkAvg}, which is ${Math.abs(wkOff)} kcal/day ${wkOff > 0 ? "above" : "below"} the middle of this band — about ${(Math.abs(wkOff) * 7 / 3500).toFixed(2)} lb/wk ${wkOff > 0 ? "slower" : "faster"} than the band is aiming for. Not a scolding, just the arithmetic: a daily target and a weekly result are different numbers and only one of them moves you.`,
+      : (wkAvg >= lo && wkAvg <= hi) ? `Your last ${wkRows.length} logged days average ${wkAvg} — inside the ${lo}–${hi} band. The target and the result agree, which is the only state worth being in.`
+      : `Your last ${wkRows.length} logged days average ${wkAvg}, which is ${Math.abs(wkAvg > hi ? wkAvg - hi : lo - wkAvg)} kcal/day ${wkAvg > hi ? "above the top" : "below the bottom"} of the ${lo}–${hi} band — about ${(Math.abs(wkAvg > hi ? wkAvg - hi : lo - wkAvg) * 7 / KCAL_PER_LB_MIX).toFixed(2)} lb/wk ${wkAvg > hi ? "slower" : "faster"} than the band is aiming for. Not a scolding, just the arithmetic: a daily target and a weekly result are different questions.`,
     tdee: td.tdee, tdeeLo: td.lo, tdeeHi: td.hi, days: td.days, avg: td.avg,
     band, phaseLo, phaseHi, drift, floorHit: lo === floor,
     floor, floorSoft: fl.soft, floorWhy: fl.why,
@@ -4512,7 +4531,7 @@ function askContext(s, docs) {
     .map(([d, v]) => { const w2 = dayWeather(s, d); return `${d}: cal ${v.cal ?? "—"} · pro ${v.pro ?? "—"} · steps ${v.steps ?? "—"}${w2.flags.length ? "  ⌁[" + w2.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n");
   const sess2 = Object.keys(s.sessionLog).sort().slice(-6).map((d) => { const sl2 = s.sessionLog[d]; const parts = [(sl2.entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ") || "no lifts"]; if ((sl2.skipped || []).length) parts.push("SKIPPED: " + sl2.skipped.map((k) => k.id).join(", ")); if (sl2.note) parts.push(`note: "${sl2.note.slice(0, 120)}"`); return `${d}: ` + parts.join(" · "); }).join("\n");
   const nights2 = s.sleep.nights.slice(-14).map((n) => `${n.d}: ${n.h}h · bed ${n.bed || "—"} → wake ${n.wake || "—"} · drift-off ${n.sol ?? "?"}m${(n.tags || []).length ? " · " + n.tags.join("/") : ""}`).join("\n");
-  const laws = "DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor 1.0–1.4 lb/wk (1.9+ = too fast); calorie floor 1,700; calories, protein and steps are all DERIVED from his record, never quoted as constants — take them from the CANONICAL NUMBERS block and nowhere else; a new best becomes official on ONE repeat, because his own measured set-to-set spread is about ±0.8 reps and a +1 record sits inside it — a jump two standard errors clear of the old line banks on the first sighting instead; short sleep does NOT block a record and does NOT cap the step (that rule was retired — Craven 2022 puts acute sleep loss at −2.85% on strength, inside the 1.8–3.3% test-retest CV, and no trial has ever tested damping progression on low-readiness days), what it does is exempt the day from counting toward a stall; RIR on the LAST set is what sizes the next jump and is the most valuable number he enters; one structural change per session; effort tapers to a single terminal failure set per exercise (RIR 2→1→…→0) — proximity to failure is the training variable with the dose-response, not load or rep range, which are interchangeable from about 5 to 30 reps; the scale seal quarantines event water; the weekly refeed is on the calendar but has no evidence behind it — never claim it aids fat loss, muscle retention, metabolism or next-day performance; every change is a proposal — the athlete consents, the coach holds structural authority. NEVER assert a mechanism this app cannot cite; saying 'there is no good evidence either way' is always available and always preferred to a confident guess.";
+  const laws = `DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor ${(s.rate && s.rate.band ? s.rate.band : [1.0, 1.4]).join('–')} lb/wk (${(s.rate || {}).redline || 1.9}+ = too fast); calorie floor ${calorieFloor(s).floor} (DERIVED from energy availability at his lean mass — not the old authored 1,700); calories, protein and steps are all DERIVED from his record, never quoted as constants — take them from the CANONICAL NUMBERS block and nowhere else; a new best becomes official on ONE repeat, because his own measured set-to-set spread is about ±${typicalError(s, null).reps} reps (${typicalError(s, null).src}) and a +1 record sits inside it — a jump two standard errors clear of the old line banks on the first sighting instead; short sleep does NOT block a record and does NOT cap the step (that rule was retired — Craven 2022 puts acute sleep loss at −2.85% on strength, inside the 1.8–3.3% test-retest CV, and no trial has ever tested damping progression on low-readiness days), what it does is exempt the day from counting toward a stall; RIR on the LAST set is what sizes the next jump and is the most valuable number he enters; one structural change per session; effort tapers to a single terminal failure set per exercise (RIR 2→1→…→0) — proximity to failure is the training variable with the dose-response, not load or rep range, which are interchangeable from about 5 to 30 reps; the scale seal quarantines event water; the weekly refeed is RETIRED — he took it off the calendar himself after the evidence was laid out, so do not propose one and never claim a refeed aids fat loss, muscle retention, metabolism or next-day performance; past Wednesdays on the record were refeeds and stay described as such, because they were; every change is a proposal — the athlete consents, the coach holds structural authority. NEVER assert a mechanism this app cannot cite; saying 'there is no good evidence either way' is always available and always preferred to a confident guess.`;
   const evs = (s.events || []).map((e) => `${e.d}: ${e.t}${e.estimated ? " (est-declared)" : ""}`).join(" · ") || "none";
   const trls = (s.trials || []).map((t3) => { const tp = trialTpl(t3); return tp ? `${tp.t} (started ${t3.started})` : ""; }).filter(Boolean).join(" · ") || "none";
   const gate2 = sleepInfo(s);
@@ -4522,13 +4541,21 @@ function askContext(s, docs) {
      source, stated method, stated uncertainty — and an instruction not to
      recompute it, because a second opinion here is not insight, it is drift. */
   const rC = currentRate(s), tdC = observedTDEE(s), ctC = calorieTarget(s), eaC = energyAvailability(s);
+  const bfC = bfEst(s);
   const canon = " CANONICAL NUMBERS (use these verbatim; do NOT re-derive them from the raw logs — the engine already did, with a stated method): "
+    + `BODY FAT ${bfC.pct}% with an honest interval of ${bfC.lo}-${bfC.hi}% (anchored by ${bfC.src}, +/-${bfC.anchorErr} points, ${bfC.wks} weeks ago). That width is real and does not shrink by being ignored — quote the interval whenever the answer turns on which side of a threshold he sits. `
     + `RATE ${rC.scale} lb/wk by ${rC.method}${rC.ci ? ` (95% CI ${rC.lo}–${rC.hi}, n=${rC.n} daily reads)` : ""}. `
     + (tdC ? `MEASURED TDEE ${tdC.tdee} kcal${tdC.lo && tdC.hi ? ` (${tdC.lo}–${tdC.hi} carrying the rate's error)` : ""} from ${tdC.days} logged days at ${tdC.avg} kcal/day average intake. ` : "MEASURED TDEE: not enough clean days yet. ")
     + (ctC.gated ? "" : `TARGET INTAKE ${ctC.lo}–${ctC.hi} kcal/day, derived from that maintenance and his ${ctC.band[0]}–${ctC.band[1]} lb/wk band. `)
     + (eaC.gated ? "" : `ENERGY AVAILABILITY ${eaC.ea} kcal/kg lean (${eaC.band}) counting structured training only — that is the IOC's convention and the only figure comparable to the ${EA_SPARING} threshold. Counting his deliberate walking as training instead gives ${eaC.eaAll}, which is a real reading of everything he burns in a day but has no published threshold behind it: quote ${eaC.ea} against the line and mention ${eaC.eaAll} only as the other convention. The ${EA_SPARING} itself is EXTRAPOLATED from semi-starvation work and bodybuilder case reports — the IOC's 2023 male range is roughly 9–25 and no controlled study has tested a lean resistance-trained male at 23 vs 30. Say so if you cite it. `)
-    + `PROTEIN TARGET ${proteinTarget(s).g} g (${proteinTarget(s).perKg} g/kg of ${proteinTarget(s).ffmKg} kg lean), floor ${proteinTarget(s).floor} g. Do NOT vary it by day type: the only direct training-vs-rest-day comparison (Moore 2024, indicator amino acid oxidation) found requirement HIGHER on rest days, and no study has ever tested raising protein on a short-sleep or low-recovery day. `
+    + (() => { const p9 = proteinTarget(s); return p9.straddles
+        ? `PROTEIN TARGET ${p9.g} g, and the honest statement is a RANGE of ${p9.lo}-${p9.hi} g. ${p9.lo} is 2.5 g/kg of his ${p9.ffmKg} kg lean mass — the line where the deficit meta-regression's trend crosses zero net lean-mass change. ${p9.hi} is the lean-subgroup coefficient, which applies under ${LEAN_SUBGROUP_BF}% body fat. His body-fat read is ${p9.bf}% with an interval of ${p9.bfLo}-${p9.bfHi}%, so that threshold sits INSIDE his own error bars and neither end can be stated with confidence — give the range if he asks. Anything at or above ${p9.floor} g is defended: protein is a FLOOR, not a bullseye, so never call a high-protein day a miss. `
+        : `PROTEIN TARGET ${p9.g} g (${p9.perKg} g/kg of ${p9.ffmKg} kg lean), floor ${p9.floor} g. Protein is a FLOOR, not a bullseye — never call a day above it a miss. `; })()
+    + `Do NOT vary it by day type: the only direct training-vs-rest-day comparison (Moore 2024, indicator amino acid oxidation) found requirement HIGHER on rest days, and no study has ever tested raising protein on a short-sleep or low-recovery day. `
     + (() => { const stC = stepTarget(s); return stC.gated ? "" : `STEP TARGET ${stC.lo.toLocaleString()}–${stC.hi.toLocaleString()}/day — this is not a health guideline, it is the step count his measured maintenance was measured at (${stC.avg.toLocaleString()} across ${stC.days} days). Every 1,000 steps is about ${stC.kcalPer1k} kcal at his bodyweight, so drifting off it silently invalidates the calorie band. `; })()
+    + (() => { const an = sleepAnchor(s); if (!an.measured) return `SLEEP CLOCK: not enough nights with bed and wake times yet — ${an.why} `;
+        const shift = an.shiftMin > 0 ? `To clear his ${an.target} h target at the wake time he already keeps, lights out ${an.needBed} — ${an.shiftMin} minutes earlier.` : "He already clears his target.";
+        return `HIS SLEEP CLOCK (measured, do NOT re-derive): bed ${an.bed} +/-${an.bedSDmin} min, up ${an.wake} +/-${an.wakeSDmin} min, ${an.curH} h asleep across ${an.n} nights. ${shift} His BEDTIME is the steadier end of the night and his WAKE is the variable one, so name bedtime as the lever — never 'fix your wake time', which asks him to control the end he controls least. Sleep is a BODY-COMPOSITION lever here, not a session one: at a matched deficit short sleep shifts roughly 60% more of the loss onto lean mass (Nedeltcheva 2010), while the session cost sits inside the noise. `; })()
     + `HIS MEASURED SET-TO-SET REP SPREAD ${typicalError(s, null).reps} reps (n=${typicalError(s, null).n} paired sets at identical load) — use this when judging whether a rep change is real. A +1 rep session is inside it. `
     + "If you disagree with any of these, say WHY and by how much rather than quietly substituting your own — a number that changes between screens is worse than one that is slightly wrong.";
   const dict = LEDGER_DICT + canon + " SLEEP RIGHT NOW (do not re-derive): last night " + ((gate2.last || {}).h ?? "—") + " h; " + gate2.run + " consecutive night(s) at his " + s.sleep.cleanH + " h target; the session is flagged " + (gate2.clean ? "NORMAL" : "SHORT SLEEP") + ". Short sleep no longer blocks a record or caps a progression step — it only exempts the day from counting toward a stall. EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
@@ -4563,10 +4590,29 @@ function agentToolExec(s, name, input, staged) {
     if (name === "run_whatif") {
       const cur = currentRate(s);
       const base = cur.measured ? cur.scale : 1.2;
-      const dSteps = input.steps != null ? ((input.steps - 16500) * 0.35 * 7) / 3500 : 0;
-      const dCal = input.cal != null ? ((1760 - input.cal) * 7) / 3500 : 0;
+      /* Every reference point here was authored: 16,500 steps, 1,760 kcal and
+         3,500 kcal/lb, none of which the engine still uses. The tool the analyst
+         reaches for to model a lever was modelling a different athlete. It now
+         starts from his measured step average, his measured calorie target and
+         the same kcal-per-pound the rest of the engine uses. */
+      const stW = stepTarget(s), ctW = calorieTarget(s);
+      const stepRef = stW.gated ? null : stW.avg;
+      const calRef = ctW.gated ? null : ctW.mid;
+      const perStepKcal = stW.gated ? 0.35 : stW.kcalPer1k / 1000;
+      const dSteps = input.steps != null && stepRef != null ? ((input.steps - stepRef) * perStepKcal * 7) / KCAL_PER_LB_MIX : 0;
+      const dCal = input.cal != null && calRef != null ? ((calRef - input.cal) * 7) / KCAL_PER_LB_MIX : 0;
       const rate = +(base + dSteps + dCal).toFixed(2);
-      return `modeled rate: ${rate} lb/wk (base ${base}${input.sleep != null && input.sleep < 7.5 ? " · WARNING: at that sleep the good-sleep streak never completes — nothing becomes official" : ""}${rate > 1.55 ? " · WARNING: past the muscle-safe zone" : ""})`;
+      const rb = (s.rate && s.rate.band) || [1.0, 1.4];
+      const notes = [];
+      if (input.steps != null && stepRef == null) notes.push("step effect not modelled — not enough logged step days to know his baseline");
+      if (input.cal != null && calRef == null) notes.push("calorie effect not modelled — maintenance is not measured yet");
+      /* The sleep warning used to say the streak never completes and nothing
+         becomes official. That gate is retired. What a short night actually
+         costs is on the body-composition side, so that is what it warns about. */
+      if (input.sleep != null && input.sleep < s.sleep.cleanH) notes.push(`at ${input.sleep} h the session is unaffected, but at a matched deficit short sleep sends about 60% more of the loss onto lean mass — this model shows scale pounds and cannot show what they are made of`);
+      if (rate > rb[1]) notes.push(`past his ${rb[1]} lb/wk band top — deficit magnitude is the variable most tightly linked to lean-mass loss`);
+      if (input.refeed != null) notes.push("refeeds are retired — a higher day against a fixed weekly total is just a deeper day somewhere else");
+      return `modeled rate: ${rate} lb/wk (base ${base}${notes.length ? " · " + notes.join(" · ") : ""})`;
     }
     if (name === "stage_proposal") {
       let custom = null;
@@ -5165,6 +5211,8 @@ __test.windowFor = windowFor;
 __test.repsLostOnJump = repsLostOnJump;
 __test.coarseLifts = coarseLifts;
 __test.calorieFloor = calorieFloor;
+__test.KCAL_PER_LB_MIX = KCAL_PER_LB_MIX;
+__test.KCAL_PER_LB_FAT = KCAL_PER_LB_FAT;
 __test.DEBT_LAST_H = DEBT_LAST_H;
 __test.DEBT_MEAN3_H = DEBT_MEAN3_H;
 __test.EA_SPARING = EA_SPARING;

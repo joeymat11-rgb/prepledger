@@ -2123,8 +2123,15 @@ ok(otR(fast17).method === "regression", "it says which method produced it");
 // the calorie target
 const ct1 = ctR(mkReads(28, 0.2, 170));
 ok(!ct1.gated && ct1.lo < ct1.hi, "the target is a band, because the maintenance it derives from is one");
-ok(ct1.hi === ct1.tdee - Math.round((ct1.band[0] * 3500) / 7), "the top of the band is maintenance minus the slow end of his rate band");
-ok(ct1.lo === Math.max(1700, ct1.tdee - Math.round((ct1.band[1] * 3500) / 7)), "the bottom is maintenance minus the fast17 end, floored at the calorie floor");
+/* 3,500 kcal/lb is the 1958 Wishnofsky figure, and the engine used it HERE while
+   using KCAL_PER_LB_MIX in observedTDEE and KCAL_PER_LB_FAT in the thermodynamic
+   check — three conversions of the same quantity inside one app. The band now
+   speaks the same units as the maintenance it is subtracted from. */
+const KPM = __test.KCAL_PER_LB_MIX;
+ok(KPM === 3800, "one conversion constant, named: " + KPM + " kcal per pound of mixed tissue");
+ok(ct1.hi === Math.max(__test.calorieFloor(mkReads(28, 0.2, 170)).floor, ct1.tdee - Math.round((ct1.band[0] * KPM) / 7)), "the top of the band is maintenance minus the slow end of his rate band, converted the same way everything else is");
+ok(ct1.lo === Math.max(__test.calorieFloor(mkReads(28, 0.2, 170)).floor, ct1.tdee - Math.round((ct1.band[1] * KPM) / 7)), "the bottom is maintenance minus the fast end, floored at the DERIVED calorie floor rather than an authored 1,700");
+ok(ct1.lo >= __test.calorieFloor(mkReads(28, 0.2, 170)).floor, "and the floor genuinely binds, so no target can be printed under it");
 ok(ct1.why.indexOf("measured maintenance") > -1 && ct1.why.indexOf("daily reads") > -1, "and it shows its working: " + ct1.why.slice(0, 80));
 const gated17 = clone(TR17); gated17.dailyLogs = {}; gated17.reads = [];
 ok(ctR(gated17).gated === true && ctR(gated17).from === "phase", "without enough data it falls back to the authored phase band and says so");
@@ -2277,12 +2284,15 @@ ok(tdSnap && tdSnap.matched === false, "with a snapshot rate there are no endpoi
 const ctWin = ctW(winS);
 ok(ctWin.wkAvg === 2100 && ctWin.wkN === 7, "the card now carries what he actually averaged over the rolling week: " + ctWin.wkAvg);
 ok(ctWin.wkOff === ctWin.wkAvg - ctWin.mid, "against the middle of the band, signed");
-ok(Math.abs(ctWin.wkOff) <= 60 && ctWin.wkWhy.indexOf("inside the band") > -1, "and says plainly when target and result agree: " + ctWin.wkOff);
+/* "inside the band" now tests the BAND, not an authored 60 kcal either side of
+   its midpoint. The band has width; that width is the reason it is a band. */
+ok(ctWin.wkAvg >= ctWin.lo && ctWin.wkAvg <= ctWin.hi && ctWin.wkWhy.indexOf("inside the") > -1, "and says plainly when target and result agree — judged against the band itself: " + ctWin.wkAvg + " in " + ctWin.lo + "-" + ctWin.hi);
 /* a week clearly outside the band converts the gap into the rate it costs —
    kcal/day means nothing on its own, lb/wk is the unit he actually thinks in */
 const over21 = mkWin(1700, 2600, 30);
 const ctOver = ctW(over21);
-ok(Math.abs(ctOver.wkOff) > 60 && ctOver.wkWhy.indexOf("lb/wk") > -1, "and when it does not, the gap is priced in lb/wk: " + ctOver.wkWhy.slice(0, 90));
+ok((ctOver.wkAvg > ctOver.hi || ctOver.wkAvg < ctOver.lo) && ctOver.wkWhy.indexOf("lb/wk") > -1, "and when it does not, the gap is priced in lb/wk: " + ctOver.wkWhy.slice(0, 90));
+ok(ctOver.wkWhy.indexOf("3,500") === -1 && ctOver.wkWhy.indexOf("3500") === -1, "and the sentence he reads uses the same kcal-per-pound as the number above it — it used to quote 3,500 while the band was built on 3,800");
 ok(ctOver.wkWhy.indexOf("above") > -1, "with the direction named rather than left as an absolute value");
 
 /* THE REFEED, RETIRED FOR REAL. */
@@ -2578,6 +2588,31 @@ ok((m34.queue || []).length === nQ, "every queue item survives the migration —
 ok((m34.queue || []).filter((q) => q.done).length === doneBefore, "and nothing silently resolves or un-resolves");
 ok((m34.feed || []).some((f) => f.t === "THE CLEAN-SLEEP GATE IS GONE"), "the change explains itself in his feed rather than happening silently");
 ok(mg34(clone(m34)).feed.filter((f) => f.t === "THE CLEAN-SLEEP GATE IS GONE").length === 1, "and re-running the migration does not file it twice");
+
+/* ---- the Analyst's context: nothing authored, nothing contradictory ----
+   The prompt is the Analyst's whole world. Every authored constant left in it
+   is a number the Analyst will quote back to him with total confidence, and
+   every retired rule left in it contradicts the science floor in the same
+   breath. Both were true of this prompt an hour ago. */
+const { askContext: ac35, agentToolExec: ate35, migrate: mgc35, SEED: SC35 } = __test;
+const cs35 = mgc35(clone(SC35));
+const ctx35 = ac35(cs35);
+ok(ctx35.indexOf("calorie floor 1,700") === -1 && ctx35.indexOf("calorie floor 1700") === -1, "the law sheet stops handing the analyst an authored 1,700 calorie floor");
+ok(ctx35.indexOf("calorie floor " + __test.calorieFloor(cs35).floor) > -1, "and hands it the derived one instead: " + __test.calorieFloor(cs35).floor);
+ok(ctx35.indexOf("weekly refeed is RETIRED") > -1 && ctx35.indexOf("the weekly refeed is on the calendar") === -1, "the refeed is described as retired rather than as a live part of the programme");
+ok(ctx35.indexOf("PROTEIN TARGET") > -1 && ctx35.indexOf("FLOOR, not a bullseye") > -1, "protein reaches the analyst as a floor, so it cannot call a high-protein day a miss");
+ok(ctx35.indexOf("HIS SLEEP CLOCK") > -1 || ctx35.indexOf("SLEEP CLOCK: not enough") > -1, "his measured bed and wake times reach the analyst, or it is told they do not exist yet");
+ok(ctx35.indexOf("BODY FAT") > -1 && ctx35.indexOf("honest interval") > -1, "and the body-fat interval travels with the point estimate, so the analyst cannot quote a threshold call it has no right to");
+/* the laws string was a plain double-quoted literal with ${} inside it, so every
+   derived figure printed as source code rather than a number */
+ok(ctx35.indexOf("${") === -1, "no un-interpolated template placeholders leak into the prompt as literal text");
+
+/* run_whatif modelled a different athlete: 16,500 steps, 1,760 kcal, 3,500
+   kcal/lb — three reference points the engine had already stopped using. */
+const wi35 = ate35(cs35, "run_whatif", { sleep: 5 }, []);
+ok(wi35.indexOf("nothing becomes official") === -1 && wi35.indexOf("streak never completes") === -1, "the what-if tool stops warning that short sleep voids a record");
+ok(wi35.indexOf("lean mass") > -1, "and warns about the thing short sleep actually costs");
+ok(ate35(cs35, "run_whatif", { refeed: 2400 }, []).indexOf("retired") > -1, "modelling a refeed says plainly that refeeds are retired rather than returning a number as if it were a live lever");
 
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
