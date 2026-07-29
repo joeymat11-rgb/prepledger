@@ -48,7 +48,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.9";
+const APP_V = "4.0.10";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -6825,56 +6825,56 @@ function LogTab({ s, setS, save, slp }) {
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: 11, alignItems: "center" }}>
                     <span style={{ color: T.chalk }}>{ex ? ex.n : e.id}</span>
                     <span style={{ color: T.steel, display: "flex", gap: 8, alignItems: "center" }}>{e.w != null ? e.w + " × " : ""}{(e.reps || []).join(",")}{e.rir != null ? " · RIR " + e.rir : ""}
-                      <span onClick={() => { if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
+                      <span onClick={() => { if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: 11, color: T.dim, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
                     </span>
                   </div>
                 ); })}
                 {(done.skipped || []).map((k, i) => { const ex = exById(s, k.id); return (
                   <div key={"sk" + i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: 11 }}>
                     <span style={{ color: T.dim, textDecoration: "line-through" }}>{ex ? ex.n : k.id}</span>
-                    <span style={{ color: T.brass, fontSize: 9.5 }}>skipped — on record</span>
+                    <span style={{ color: T.brass, fontSize: 11 }}>skipped — on record</span>
                   </div>
                 ); })}
               </div>
               {done.pace && (
-                <div style={{ fontFamily: mono, fontSize: 9.5, color: done.pace === PACE.rushed ? T.brass : T.jade, marginTop: 8 }}>
+                <div style={{ fontFamily: mono, fontSize: 11, color: done.pace === PACE.rushed ? T.brass : T.jade, marginTop: 8 }}>
                   {done.pace === PACE.rushed ? <>◆ <Term k="pace" c={T.brass}>RUSHED</Term> — logged; reps count, stalls don't</> : "◆ FULL REST — a clean read on this volume"}
                 </div>
               )}
               {done.note && <div style={{ fontFamily: body, fontSize: 11.5, color: T.dim, marginTop: 8 }}>{done.note}</div>}
               {wins.length > 0 && (
                 <div style={{ marginTop: 9, borderTop: `1px solid ${T.line}`, paddingTop: 8 }}>
-                  {wins.map((w2, i) => <div key={i} style={{ fontFamily: mono, fontSize: 9.5, color: T.jade, marginTop: i ? 3 : 0 }}>◆ {w2.t.toLowerCase()}</div>)}
+                  {wins.map((w2, i) => <div key={i} style={{ fontFamily: mono, fontSize: 11, color: T.jade, marginTop: i ? 3 : 0 }}>◆ {w2.t.toLowerCase()}</div>)}
                 </div>
               )}
-              <div onClick={() => setDbOpen(!dbOpen)} style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 8, letterSpacing: "0.1em", cursor: "pointer" }}>{dbOpen ? "▾ CLOSE DEBRIEF" : "▸ FULL DEBRIEF — PER-LIFT DEPTH"}</div>
+              <div onClick={() => setDbOpen(!dbOpen)} style={{ fontFamily: mono, fontSize: 11, color: T.dim, marginTop: 8, letterSpacing: "0.1em", cursor: "pointer" }}>{dbOpen ? "▾ CLOSE DEBRIEF" : "▸ FULL DEBRIEF — PER-LIFT DEPTH"}</div>
               {dbOpen && (() => { const db = sessionDebrief(s, dateSel); return db && (
                 <div style={{ marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
                   {db.summary.map((l, i) => <div key={i} style={{ fontFamily: body, fontSize: 12, color: T.chalk, marginTop: i ? 4 : 0, lineHeight: 1.5 }}>{l}</div>)}
                   {db.lifts.map((L, i) => (
                     <div key={i} style={{ marginTop: 10 }}>
                       <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 13.5, textTransform: "uppercase", color: T.chalk }}>{L.n}</div>
-                      {L.lines.map((l, j) => <div key={j} style={{ fontFamily: mono, fontSize: 10, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{l}</div>)}
+                      {L.lines.map((l, j) => <div key={j} style={{ fontFamily: mono, fontSize: 11, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{l}</div>)}
                     </div>
                   ))}
-                  <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 10 }}>recomputed live — old sessions get smarter as the engine does</div>
+                  <div style={{ fontFamily: mono, fontSize: 11, color: T.dim, marginTop: 10 }}>recomputed live — old sessions get smarter as the engine does</div>
                 </div>
               ); })()}
             </Card>
             {preview && (
               <Card>
                 <Eyebrow>NEXT {dayType(dateSel) === "U" ? "UPPER" : "LOWER"} · {fmtShort(nd)} — TARGETS ALREADY SET</Eyebrow>
-                {(() => { const t5 = dayType(nd); for (let k5 = 1; k5 < 10; k5++) { const dd = isoOf(new Date(mk(nd).getTime() - k5 * DAY)); if (dd <= isoOf(todayStart())) break; if (dayType(dd) === t5 && !s.sessionLog[dd]) return <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 3 }}>provisional — these re-key the moment {fmtShort(dd)} is logged</div>; } return null; })()}
+                {(() => { const t5 = dayType(nd); for (let k5 = 1; k5 < 10; k5++) { const dd = isoOf(new Date(mk(nd).getTime() - k5 * DAY)); if (dd <= isoOf(todayStart())) break; if (dayType(dd) === t5 && !s.sessionLog[dd]) return <div style={{ fontFamily: mono, fontSize: 11, color: T.dim, marginTop: 3 }}>provisional — these re-key the moment {fmtShort(dd)} is logged</div>; } return null; })()}
                 <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 5 }}>
                   {(preview.ex || []).map((b, i) => (
-                    <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: 10.5 }}>
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: 11 }}>
                       <span style={{ color: T.steel }}>{b.n}</span>
                       <span style={{ color: T.dim }}>{b.w} · tgt {(b.tgt || []).join(",")}</span>
                     </div>
                   ))}
                 </div>
-                {preview.structural && <div style={{ fontFamily: mono, fontSize: 9.5, color: T.orange, marginTop: 8 }}>structural: {preview.structural}</div>}
-                <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>these numbers belong to {fmtShort(nd)} — today's receipt above is closed</div>
+                {preview.structural && <div style={{ fontFamily: mono, fontSize: 11, color: T.orange, marginTop: 8 }}>structural: {preview.structural}</div>}
+                <div style={{ fontFamily: mono, fontSize: 11, color: T.dim, marginTop: 8 }}>these numbers belong to {fmtShort(nd)} — today's receipt above is closed</div>
               </Card>
             )}
           </>
@@ -6887,9 +6887,9 @@ function LogTab({ s, setS, save, slp }) {
             <Eyebrow c={T.orange}>TODAY'S ONE <Term k="structural" c={T.orange}>CHANGE</Term> — PICKED FOR YOU</Eyebrow>
             <H size={22}>{sess.structural}</H>
           </div>
-          <button onClick={() => setReorder(!reorder)} style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.1em", color: reorder ? T.chalk : T.steel, background: reorder ? T.plate2 : "none", border: `1px solid ${reorder ? T.chalk : T.line}`, borderRadius: 6, padding: "6px 9px", whiteSpace: "nowrap" }}>{reorder ? "DONE" : "REORDER"}</button>
+          <button onClick={() => setReorder(!reorder)} style={{ fontFamily: mono, fontSize: 11, letterSpacing: "0.1em", color: reorder ? T.chalk : T.steel, background: reorder ? T.plate2 : "none", border: `1px solid ${reorder ? T.chalk : T.line}`, borderRadius: 6, padding: "6px 9px", whiteSpace: "nowrap" }}>{reorder ? "DONE" : "REORDER"}</button>
         </div>
-        <div style={{ fontFamily: mono, fontSize: 10.5, color: T.dim, marginTop: 4 }}>Everything else just chases reps — no limit on that. New weight increases you earn wait in line for their own day.</div>
+        <div style={{ fontFamily: mono, fontSize: 11, color: T.dim, marginTop: 4 }}>Everything else just chases reps — no limit on that. New weight increases you earn wait in line for their own day.</div>
         <More c={T.orange} deep="One structural change per session keeps the signal clean — when something moves, you know exactly what caused the response. Rep progression stays unlimited because it's the noise-free kind of change. The scheduler auto-picks from the queue in order; doc-approved riders are the only exception."
           forYou={(() => { const cand = s.queue.filter((q) => !q.done && q.kind === "debut" && q.exId && exById(s, q.exId) && exById(s, q.exId).day === dayType(dateSel)); return cand.length > 1 ? `Waiting behind today's slot: ${cand.slice(1).map((q) => q.t).join(" · ")} — each gets its own session.` : cand.length === 1 ? "The queue empties after this one — new earns will refill it as you log." : "Nothing structural queued for this day type — pure rep-progression day, which is where most muscle actually gets built."; })()} />
       </Card>
@@ -6916,7 +6916,7 @@ function LogTab({ s, setS, save, slp }) {
       </div>
 
       {(() => { const mv2 = muscleVolume(s); if (!mv2.length) return null; const fS = Object.keys(s.sessionLog).sort()[0]; const matureV = !!fS && (mk(isoOf(todayStart())) - mk(fS)) / DAY >= 14; return (
-        <div style={{ fontFamily: mono, fontSize: 9.5, color: T.steel, padding: "8px 2px", lineHeight: 1.7 }}>
+        <div style={{ fontFamily: mono, fontSize: 11, color: T.steel, padding: "8px 2px", lineHeight: 1.7 }}>
           {matureV ? "THIS WEEK'S SETS · holding, not growing — see below · " : "SETS THIS WEEK — counting only, no verdicts until the ledger has 14 days of your logs · "}{(() => { const cut9 = !((s.targets || {}).exitStart); return mv2.map((m) => {
             /* In a deficit, red on a muscle below the GROWTH band is the app
                telling him to add work the direct evidence says buys nothing —
@@ -6938,7 +6938,7 @@ function LogTab({ s, setS, save, slp }) {
           this session removed put together — and the app had never mentioned
           it. See EXERCISE_SELECTION. */}
       {(() => { const sel = exerciseSelection(s); if (!sel.items.length) return null; return (
-        <Card accent={sel.allGood ? T.jade : T.brass} style={{ padding: 12 }}>
+        <Card accent={sel.allGood ? T.jade : T.brass} style={{ padding: 16 }}>
           <Eyebrow c={sel.allGood ? T.jade : T.brass}>{sel.allGood ? "EXERCISE SELECTION — ALREADY RIGHT, AND IT IS THE BIGGEST ONE" : "EXERCISE SELECTION — ONE TO LOOK AT"}</Eyebrow>
           <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, marginTop: 6, lineHeight: 1.55 }}>
             For a muscle that crosses two joints, the joint you are NOT training sets its length — and length under load is where the growth difference actually lives. These effects run {"d ="} 0.5 to 1.6. Rep tempo is 0.09. Eccentric speed is −0.06. Periodisation is −0.02. This is the lever; those were rounding.
@@ -6946,7 +6946,7 @@ function LogTab({ s, setS, save, slp }) {
           <div style={{ marginTop: 9, display: "flex", flexDirection: "column", gap: 7 }}>
             {sel.items.map((it) => (
               <div key={it.id} style={{ borderLeft: `2px solid ${it.good ? T.jade : T.brass}`, paddingLeft: 8 }}>
-                <div style={{ fontFamily: mono, fontSize: 10, color: it.good ? T.jade : T.brass }}>{it.good ? "✓" : "▸"} {it.n.toUpperCase()} · {it.lever} · d {it.d}</div>
+                <div style={{ fontFamily: mono, fontSize: 11, color: it.good ? T.jade : T.brass }}>{it.good ? "✓" : "▸"} {it.n.toUpperCase()} · {it.lever} · d {it.d}</div>
                 <div style={{ fontFamily: body, fontSize: 11, color: T.steel, lineHeight: 1.5, marginTop: 2 }}>{it.why}</div>
               </div>
             ))}
@@ -6965,9 +6965,9 @@ function LogTab({ s, setS, save, slp }) {
           Colouring a muscle red against a GROWTH band, in a deficit, tells a man
           to add work the one direct trial says buys him nothing. */}
       {(() => { const vi9 = volumeImbalance(s); if (!vi9) return null; return (
-        <Card style={{ padding: 12 }} accent={vi9.cutting ? undefined : T.brass}>
+        <Card style={{ padding: 16 }} accent={vi9.cutting ? undefined : T.brass}>
           <Eyebrow c={vi9.cutting ? T.steel : T.brass}>{vi9.cutting ? "YOUR SET ALLOCATION — AND WHY IT IS FINE RIGHT NOW" : "YOUR SET ALLOCATION — WORTH ACTING ON NOW"}</Eyebrow>
-          <div style={{ fontFamily: mono, fontSize: 10, color: T.steel, marginTop: 6, lineHeight: 1.7 }}>
+          <div style={{ fontFamily: mono, fontSize: 11, color: T.steel, marginTop: 6, lineHeight: 1.7 }}>
             {vi9.pv.map((m) => <span key={m.mg} style={{ marginRight: 9, color: m.indirectOnly ? T.dim : T.steel }}>{mgLabel(m.mg)} {m.sets}{m.indirectOnly ? "*" : ""}</span>)}
           </div>
           <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, marginTop: 8, lineHeight: 1.55 }}>{vi9.why}</div>
@@ -6982,15 +6982,15 @@ function LogTab({ s, setS, save, slp }) {
       ); })()}
 
       {sess.ex.map((ex) => (
-        <Card key={ex.id} style={{ padding: 12, opacity: skipped[ex.id] ? 0.45 : 1 }} accent={ex.isDebutNow && !skipped[ex.id] ? T.orange : undefined}>
+        <Card key={ex.id} style={{ padding: 16, opacity: skipped[ex.id] ? 0.45 : 1 }} accent={ex.isDebutNow && !skipped[ex.id] ? T.orange : undefined}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
             <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 17, textTransform: "uppercase", color: T.chalk, textDecoration: skipped[ex.id] ? "line-through" : "none" }}>{ex.n}</div>
 
             {!reorder && (() => { const lc = liftCall(s, ex.id); const vc = lc.verdict === "RESET" || lc.verdict === "STAND-DOWN" ? T.redline : lc.verdict === "HOLD" ? T.brass : lc.verdict === "PUSH+" ? T.jade : lc.verdict === "REBUILD" ? T.orange : T.jade; return (
-              <span onClick={(ev2) => { ev2.stopPropagation(); setCallOpen(callOpen === ex.id ? null : ex.id); }} style={{ fontFamily: mono, fontSize: 8.5, color: vc, border: `1px solid ${vc}`, borderRadius: 999, padding: "3px 8px", flexShrink: 0, cursor: "pointer" }}>{(CALL_PLAIN[lc.verdict] || { chip: lc.verdict }).chip}{lc.vel != null ? (lc.vel > 0.2 ? " ▲" : lc.vel < -0.2 ? " ▼" : " ▶") : ""} ▾</span>
+              <span onClick={(ev2) => { ev2.stopPropagation(); setCallOpen(callOpen === ex.id ? null : ex.id); }} style={{ fontFamily: mono, fontSize: 11, color: vc, border: `1px solid ${vc}`, borderRadius: 999, padding: "3px 8px", flexShrink: 0, cursor: "pointer" }}>{(CALL_PLAIN[lc.verdict] || { chip: lc.verdict }).chip}{lc.vel != null ? (lc.vel > 0.2 ? " ▲" : lc.vel < -0.2 ? " ▼" : " ▶") : ""} ▾</span>
             ); })()}
             {!reorder && (
-              <button onClick={() => setSkipped({ ...skipped, [ex.id]: !skipped[ex.id] })} style={{ fontFamily: mono, fontSize: 9, color: skipped[ex.id] ? T.brass : T.dim, background: "none", border: `1px solid ${skipped[ex.id] ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", flexShrink: 0 }}>{skipped[ex.id] ? "skipped — undo" : "skip"}</button>
+              <button onClick={() => setSkipped({ ...skipped, [ex.id]: !skipped[ex.id] })} style={{ fontFamily: mono, fontSize: 11, color: skipped[ex.id] ? T.brass : T.dim, background: "none", border: `1px solid ${skipped[ex.id] ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", flexShrink: 0 }}>{skipped[ex.id] ? "skipped — undo" : "skip"}</button>
             )}
             {reorder ? (
               <div style={{ display: "flex", gap: 6 }}>
@@ -7002,7 +7002,7 @@ function LogTab({ s, setS, save, slp }) {
                     if (i < 0 || j < 0 || j >= arr.length) return;
                     [arr[i], arr[j]] = [arr[j], arr[i]];
                     setS(ns); save(ns);
-                  }} style={{ width: 34, height: 28, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, fontFamily: mono, fontSize: 12 }}>{g}</button>
+                  }} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, fontFamily: mono, fontSize: 12 }}>{g}</button>
                 ))}
               </div>
             ) : (
@@ -7011,27 +7011,27 @@ function LogTab({ s, setS, save, slp }) {
                   <span style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                     {loadRungs(ex) ? (
                       <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <button onClick={() => setWVal(prevLoad(ex, wVal) ?? wVal)} style={{ width: 30, height: 30, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>−</button>
+                        <button onClick={() => setWVal(prevLoad(ex, wVal) ?? wVal)} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>−</button>
                         <div style={{ fontFamily: mono, fontSize: 15, color: T.chalk, minWidth: 44, textAlign: "center" }}>{wVal}</div>
-                        <button onClick={() => setWVal(nextLoad(ex, wVal) ?? wVal)} style={{ width: 30, height: 30, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
-                        <span style={{ fontFamily: mono, fontSize: 8.5, color: T.jade }}>rung {loadRungs(ex).indexOf(snapLoad(ex, wVal)) + 1}/{loadRungs(ex).length}</span>
+                        <button onClick={() => setWVal(nextLoad(ex, wVal) ?? wVal)} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
+                        <span style={{ fontFamily: mono, fontSize: 11, color: T.jade }}>rung {loadRungs(ex).indexOf(snapLoad(ex, wVal)) + 1}/{loadRungs(ex).length}</span>
                       </span>
                     ) : (
                       <Stepper v={wVal} set={setWVal} step={ex.inc || 5} min={5} />
                     )}
-                    <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>jump:</span>
+                    <span style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>jump:</span>
                     {[2.5, 5, 10].map((jz) => (
                       <span key={jz} onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex5 = ns.exercises.find((x) => x.id === ex.id); ex5.inc = jz; delete ex5.steps; ns.feed.unshift({ d: isoOf(todayStart()), t: `JUMP SIZE — ${ex5.n.toUpperCase()} steps by ${jz}`, how: "athlete set the machine's smallest honest increment — even ladder" }); setS(ns); save(ns); }}
-                        style={{ fontFamily: mono, fontSize: 9, color: !loadRungs(ex) && (ex.inc || 5) === jz ? T.jade : T.dim, border: `1px solid ${!loadRungs(ex) && (ex.inc || 5) === jz ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>{jz}</span>
+                        style={{ fontFamily: mono, fontSize: 11, color: !loadRungs(ex) && (ex.inc || 5) === jz ? T.jade : T.dim, border: `1px solid ${!loadRungs(ex) && (ex.inc || 5) === jz ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>{jz}</span>
                     ))}
                     <span onClick={() => setRungEdit(rungEdit === ex.id ? null : ex.id)}
-                      style={{ fontFamily: mono, fontSize: 9, color: loadRungs(ex) ? T.jade : T.dim, border: `1px solid ${loadRungs(ex) ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>
+                      style={{ fontFamily: mono, fontSize: 11, color: loadRungs(ex) ? T.jade : T.dim, border: `1px solid ${loadRungs(ex) ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>
                       {loadRungs(ex) ? `uneven · ${loadRungs(ex).length} rungs ✎` : "uneven ✎"}
                     </span>
                     <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id); const oldW = ex4.w; ex4.w = loadRungs(ex4) ? snapLoad(ex4, wVal) : wVal; if (oldW !== ex4.w) ex4.last = null; ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${ex4.w}`, how: "athlete entry on the card — targets re-seeded for the new load" }); setS(ns); save(ns); setWEdit(null); setRungEdit(null); }}>Save</Btn>
                     {rungEdit === ex.id && (
                       <div style={{ width: "100%", marginTop: 6, padding: "9px 10px", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8 }}>
-                        <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.08em", lineHeight: 1.6 }}>
+                        <div style={{ fontFamily: mono, fontSize: 11, color: T.dim, letterSpacing: "0.08em", lineHeight: 1.6 }}>
                           EVERY WEIGHT THIS MACHINE CAN ACTUALLY MAKE — commas or spaces.<br />
                           For a stack with hang-on attachments, list the real rungs: 80, 82.5, 85, 90, 92.5, 95, 100…
                         </div>
@@ -7047,8 +7047,8 @@ function LogTab({ s, setS, save, slp }) {
                             else { ex6.steps = parsed; ex6.w = snapLoad(ex6, typeof ex6.w === "number" ? ex6.w : parsed[0]); setWVal(ex6.w); ns.feed.unshift({ d: isoOf(todayStart()), t: `LADDER SET — ${ex6.n.toUpperCase()} ${parsed.length} rungs`, how: `${parsed[0]} to ${parsed[parsed.length - 1]} — every earn, reset and forecast now lands on a weight this machine makes` }); }
                             setS(ns); save(ns); setRungEdit(null);
                           }}>Save ladder</Btn>
-                          <button onClick={() => setRungEdit(null)} style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "7px 12px" }}>cancel</button>
-                          <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, alignSelf: "center" }}>empty = back to even jumps</span>
+                          <button onClick={() => setRungEdit(null)} style={{ fontFamily: mono, fontSize: 11, color: T.dim, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "7px 12px" }}>cancel</button>
+                          <span style={{ fontFamily: mono, fontSize: 11, color: T.dim, alignSelf: "center" }}>empty = back to even jumps</span>
                         </div>
                       </div>
                     )}
@@ -7057,7 +7057,7 @@ function LogTab({ s, setS, save, slp }) {
                   <span onClick={() => { setWEdit(ex.id); setWVal(typeof ex.w === "number" ? ex.w : 180); }} style={{ cursor: "pointer", color: typeof ex.w === "number" ? T.steel : T.brass }}>{typeof ex.w === "number" ? ex.w : "set weight"} ✎</span>
                 )}
                 <span>· tgt {ex.tgt.join(",")}</span>
-                <span style={{ fontFamily: mono, fontSize: 9, color: T.dim, width: "100%" }}>
+                <span style={{ fontFamily: mono, fontSize: 11, color: T.dim, width: "100%" }}>
                   <Term k="rest" c={T.dim}>REST</Term> · {restLine(ex.id, ex.tgt.length)}
                 </span>
               </div>
@@ -7065,14 +7065,14 @@ function LogTab({ s, setS, save, slp }) {
           </div>
           {callOpen === ex.id && (() => { const lc2 = liftCall(s, ex.id); return (
             <div style={{ marginTop: 8, padding: "9px 11px", background: T.plate2, borderRadius: 8, border: `1px solid ${T.line}` }}>
-              <div style={{ fontFamily: mono, fontSize: 9.5, color: T.jade, letterSpacing: "0.05em" }}>{(CALL_PLAIN[lc2.verdict] || { mean: "" }).mean}</div>
+              <div style={{ fontFamily: mono, fontSize: 11, color: T.jade, letterSpacing: "0.05em" }}>{(CALL_PLAIN[lc2.verdict] || { mean: "" }).mean}</div>
               <div style={{ fontFamily: body, fontSize: 11.5, color: T.chalk, lineHeight: 1.55, marginTop: 6 }}>{lc2.why}</div>
-              {(lc2.receipts || []).map((r3, i3) => <div key={i3} style={{ fontFamily: mono, fontSize: 9.5, color: T.steel, marginTop: 5, lineHeight: 1.5 }}>· {r3}</div>)}
-              <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 7 }}>THE CHARTER: retain muscle per unit of recovery; the deficit does the cutting; a record is a rep line that clears your own noise and repeats.</div>
+              {(lc2.receipts || []).map((r3, i3) => <div key={i3} style={{ fontFamily: mono, fontSize: 11, color: T.steel, marginTop: 5, lineHeight: 1.5 }}>· {r3}</div>)}
+              <div style={{ fontFamily: mono, fontSize: 11, color: T.dim, marginTop: 7 }}>THE CHARTER: retain muscle per unit of recovery; the deficit does the cutting; a record is a rep line that clears your own noise and repeats.</div>
             </div>
           ); })()}
           {ex.prev && (
-            <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 3 }}>
+            <div style={{ fontFamily: mono, fontSize: 11, color: T.dim, marginTop: 3 }}>
               PREV ▸ {fmtShort(ex.prev.d)} · {ex.prev.w} × {ex.prev.reps.join(",")}
               {(() => {
                 const rs = rirSetsOf(ex.prev);
@@ -7091,7 +7091,7 @@ function LogTab({ s, setS, save, slp }) {
           {ex.setup && (
             <div style={{ marginTop: 7 }}>
               <button onClick={() => setShowSetup({ ...showSetup, [ex.id]: !showSetup[ex.id] })}
-                style={{ fontFamily: mono, fontSize: 9, letterSpacing: "0.12em", color: showSetup[ex.id] ? T.chalk : T.dim, background: "none", border: "none", padding: 0 }}>
+                style={{ fontFamily: mono, fontSize: 11, letterSpacing: "0.12em", color: showSetup[ex.id] ? T.chalk : T.dim, background: "none", border: "none", padding: 0 }}>
                 {showSetup[ex.id] ? "▾ SETUP + CUES" : "▸ SETUP + CUES"}
               </button>
               {showSetup[ex.id] && ex.setup.split("\n").map((l, i) => (
@@ -7117,65 +7117,65 @@ function LogTab({ s, setS, save, slp }) {
               theatre. The plan's reasons still print, they just are not
               clickable any more. */}
           {(() => { const rp = rirPlan(s, ex, slp); return rp.why.length ? (
-            <div style={{ fontFamily: mono, fontSize: 9, color: T.steel, marginTop: 9 }}><Term k="rirplan" c={T.steel}>RIR plan</Term>
+            <div style={{ fontFamily: mono, fontSize: 11, color: T.steel, marginTop: 9 }}><Term k="rirplan" c={T.steel}>RIR plan</Term>
               <span style={{ color: T.brass }}> — {rp.why[0]}</span>
             </div>
           ) : null; })()}
-          <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
             {/* LAST SET first, deliberately. This is the field the progression
                 engine reads; the opener only feeds the hot-opener governor. The
                 two sat the other way round with both marked "optional", and the
                 record shows exactly what that produced — 28 openers rated, zero
                 terminal sets, and every jump defaulting to a token single rep. */}
-            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.jade, letterSpacing: "0.1em" }}>LAST SET <Term k="rir" c={T.jade}>RIR</Term></span>
+            <span style={{ fontFamily: mono, fontSize: 11, color: T.jade, letterSpacing: "0.1em" }}>LAST SET <Term k="rir" c={T.jade}>RIR</Term></span>
             {[0, 1, 2, 3].map((v) => {
               const on = rirEnd[ex.id] === v;
               const c = v === 0 ? T.jade : T.brass;
               return (
                 <button key={v} onClick={() => setRirEnd({ ...rirEnd, [ex.id]: on ? null : v })}
-                  style={{ width: 34, height: 26, borderRadius: 6, border: `1px solid ${on ? c : T.line}`, background: on ? T.plate2 : "transparent", color: on ? c : T.steel, fontFamily: mono, fontSize: 11 }}>
+                  style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${on ? c : T.line}`, background: on ? T.plate2 : "transparent", color: on ? c : T.steel, fontFamily: mono, fontSize: 11 }}>
                   {v === 3 ? "3+" : v}
                 </button>
               );
             })}
-            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.jade }}>this one sizes the jump · 0 = it was the failure set</span>
+            <span style={{ fontFamily: mono, fontSize: 11, color: T.jade }}>this one sizes the jump · 0 = it was the failure set</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 6 }}>
-            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, letterSpacing: "0.1em" }}>FIRST SET <Term k="rir" c={T.dim}>RIR</Term></span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: mono, fontSize: 11, color: T.dim, letterSpacing: "0.1em" }}>FIRST SET <Term k="rir" c={T.dim}>RIR</Term></span>
             {[0, 1, 2, 3].map((v) => {
               const on = rir[ex.id] === v;
               const c = v === 0 ? T.brass : T.jade;
               return (
                 <button key={v} onClick={() => setRir({ ...rir, [ex.id]: on ? null : v })}
-                  style={{ width: 34, height: 26, borderRadius: 6, border: `1px solid ${on ? c : T.line}`, background: on ? T.plate2 : "transparent", color: on ? c : T.steel, fontFamily: mono, fontSize: 11 }}>
+                  style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${on ? c : T.line}`, background: on ? T.plate2 : "transparent", color: on ? c : T.steel, fontFamily: mono, fontSize: 11 }}>
                   {v === 3 ? "3+" : v}
                 </button>
               );
             })}
-            <span style={{ fontFamily: mono, fontSize: 8.5, color: T.dim }}>optional · 1 = honest</span>
+            <span style={{ fontFamily: mono, fontSize: 11, color: T.dim }}>optional · 1 = honest</span>
           </div>
         </Card>
       ))}
 
-      <Card style={{ padding: 12 }}>
+      <Card style={{ padding: 16 }}>
         <Eyebrow>PACE · HOW LONG BETWEEN SETS</Eyebrow>
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           {[["normal", "FULL REST", T.jade], ["rushed", "RUSHED", T.brass]].map(([v, label, c]) => {
             const on = pace === v;
             return (
               <button key={v} onClick={() => setPace(on ? null : v)}
-                style={{ flex: 1, fontFamily: mono, fontSize: 10.5, letterSpacing: "0.06em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${on ? c : T.line}`, background: on ? T.plate2 : "transparent", color: on ? c : T.steel }}>
+                style={{ flex: 1, fontFamily: mono, fontSize: 11, letterSpacing: "0.06em", padding: "9px 6px", borderRadius: 7, border: `1px solid ${on ? c : T.line}`, background: on ? T.plate2 : "transparent", color: on ? c : T.steel }}>
                 {label}
               </button>
             );
           })}
         </div>
-        <div style={{ fontFamily: mono, fontSize: 8.5, color: T.dim, marginTop: 6, lineHeight: 1.5 }}>
+        <div style={{ fontFamily: mono, fontSize: 11, color: T.dim, marginTop: 6, lineHeight: 1.5 }}>
           RUSHED = under about a minute between sets. Reps still count — but a compressed day can't count toward a stall, so it never lightens your bar by mistake.
         </div>
       </Card>
 
-      <Card style={{ padding: 12 }}>
+      <Card style={{ padding: 16 }}>
         <Eyebrow>SESSION NOTES · OPTIONAL — THE "SET-4 ANOMALY" BOX</Eyebrow>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="anything the numbers missed — your night analyst reads this; the engines only read the numbers…"
           style={{ width: "100%", boxSizing: "border-box", marginTop: 8, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 13, padding: 10, outline: "none", resize: "vertical" }} />
@@ -7186,13 +7186,13 @@ function LogTab({ s, setS, save, slp }) {
               const on = nig.includes(j);
               return (
                 <button key={j} onClick={() => setNig(on ? nig.filter((x) => x !== j) : [...nig, j])}
-                  style={{ fontFamily: mono, fontSize: 10.5, padding: "6px 10px", borderRadius: 999, border: `1px solid ${on ? T.brass : T.line}`, background: on ? T.plate2 : "transparent", color: on ? T.brass : T.steel }}>
+                  style={{ fontFamily: mono, fontSize: 11, padding: "6px 10px", borderRadius: 999, border: `1px solid ${on ? T.brass : T.line}`, background: on ? T.plate2 : "transparent", color: on ? T.brass : T.steel }}>
                   {j}
                 </button>
               );
             })}
           </div>
-          <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>3 flags on one joint in 3 weeks → it surfaces on NOW. Nothing auto-changes.</div>
+          <div style={{ fontFamily: mono, fontSize: 11, color: T.dim, marginTop: 8 }}>3 flags on one joint in 3 weeks → it surfaces on NOW. Nothing auto-changes.</div>
         </div>
       </Card>
 
@@ -7234,7 +7234,7 @@ function LogTab({ s, setS, save, slp }) {
         <Section title="The Session Archive" meta={`${Object.keys(s.sessionLog).length} logged · tap any for its receipt + debrief`}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             {Object.keys(s.sessionLog).sort().reverse().map((d) => { const sl = s.sessionLog[d]; const tr = (sl.entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0); return (
-              <div key={d} onClick={() => { setDateSel(d); setDbOpen(true); try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e2) { window.scrollTo(0, 0); } }} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "10px 0", borderBottom: `1px solid ${T.line}`, cursor: "pointer", fontFamily: mono, fontSize: 10.5 }}>
+              <div key={d} onClick={() => { setDateSel(d); setDbOpen(true); try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e2) { window.scrollTo(0, 0); } }} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "10px 0", borderBottom: `1px solid ${T.line}`, cursor: "pointer", fontFamily: mono, fontSize: 11 }}>
                 <span style={{ color: T.chalk }}>{fmtShort(d)} · {dayType(d) === "U" ? "UPPER" : "LOWER"}</span>
                 <span style={{ color: T.steel }}>{(sl.entries || []).length} lifts · {tr} reps{cleanAtDate(s, d) ? "" : " · debt"} <span style={{ color: T.dim }}>▸</span></span>
               </div>
