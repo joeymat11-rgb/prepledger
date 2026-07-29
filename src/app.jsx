@@ -4659,6 +4659,13 @@ function patchV11(s) {
 const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34];
 function migrate(old) {
   if (old && old.v === SCHEMA_V) return old;
+  /* A state NEWER than this build — he upgraded, then the app was rolled back.
+     Hand it back untouched: no patch here understands schema n+1, and the only
+     other exit below is a fresh SEED, which would wipe every read, night,
+     dailyLog, session and queue item and then sync the wipe up. Some instruments
+     may read oddly on fields this code does not know; re-upgrading restores full
+     function. A visible misbehaviour is recoverable — a wipe is not. */
+  if (old && old.v > SCHEMA_V) return old;
   if (old && old.v >= 3 && old.v < SCHEMA_V) return PATCHES.reduce((s, p) => p(s), JSON.parse(JSON.stringify(old)));
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;

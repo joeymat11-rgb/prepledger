@@ -2863,3 +2863,63 @@ ok(nf40(late40, 9).owed.some((o) => o.k === "yesterday"), "an unclosed yesterday
 
 console.log(`\nFINAL80: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ================================================================
+   v4.0.1 — a state NEWER than the running code must survive
+   ================================================================
+   The rollback case. His phone migrates to schema n+1, then the app is reverted
+   to a build that only knows schema n. `migrate` had four branches and none of
+   them matched `old.v > SCHEMA_V`, so the state fell through to `return s` — a
+   fresh copy of SEED — and every read, night, dailyLog, session and queue item
+   was replaced with starter data, persisted over localStorage, and synced up
+   over ledger/state.json. GOALS.md: never delete athlete data. Old code holding
+   a newer file knows less than the file does; knowing less is not a licence to
+   overwrite it. */
+const { migrate: mg41, SEED: SU41, SCHEMA_V: SV41 } = __test;
+
+/* one build ahead of this one, whatever this one is — never a literal 34 */
+const fwd41 = clone(SU41);
+fwd41.v = SV41 + 1;
+fwd41.trend = 163.1;
+fwd41.boosts = 7;
+fwd41.reads = [
+  { d: "2026-07-26", w: 162.9, note: "wedding morning", sealed: true },
+  { d: "2026-07-27", w: 164.6, note: "event water", sealed: true },
+  { d: "2026-07-28", w: 163.1, note: "whoosh cleared", sealed: false },
+  { d: "2026-07-29", w: 162.4, note: "new trend low", sealed: false },
+];
+fwd41.sleep = Object.assign({}, fwd41.sleep, { nights: [
+  { d: "2026-07-26", h: 6, bed: "01:40", wake: "07:40" },
+  { d: "2026-07-27", h: 7.75, bed: "23:15", wake: "07:00" },
+  { d: "2026-07-28", h: 8.25, bed: "22:45", wake: "07:00" },
+] });
+fwd41.dailyLogs = {
+  "2026-07-27": { cal: 2410, pro: 171, steps: 14200 },
+  "2026-07-28": { cal: 1880, pro: 186, steps: 16400 },
+  "2026-07-29": { cal: 1905, pro: 192, steps: 15900 },
+};
+fwd41.sessionLog = { "2026-07-28": { entries: [
+  { id: "press", reps: [8, 8, 7], rir: 1, rirEnd: 0, w: 245 },
+  { id: "rows", reps: [10, 10], rir: 2, w: 180 },
+], at: 1 } };
+fwd41.queue = [{ id: "q_hack3", kind: "debut", exId: "hack", t: "HACK 3RD SET DEBUT", state: "DONE", gate: "Debuted 7,8,7", rule: "Runs when it wins the day's structural slot", done: true }];
+const snap41 = clone(fwd41);
+const out41 = mg41(fwd41);
+
+ok(!!out41, "a state one version ahead of the code still migrates to something");
+ok(out41.reads.length === snap41.reads.length, "his reads survive the rollback — " + out41.reads.length + " back, " + snap41.reads.length + " expected");
+ok(eq(out41.reads, snap41.reads), "and they are HIS reads, not the seed's starter set");
+ok(out41.sleep.nights.length === snap41.sleep.nights.length && eq(out41.sleep.nights, snap41.sleep.nights), "every logged night survives, hours and clock times intact");
+ok(eq(Object.keys(out41.dailyLogs || {}).sort(), Object.keys(snap41.dailyLogs).sort()) && eq(out41.dailyLogs, snap41.dailyLogs), "every dailyLog survives — a gap in the record is the one thing he cannot refile later");
+ok(!!(out41.sessionLog || {})["2026-07-28"] && eq(out41.sessionLog["2026-07-28"], snap41.sessionLog["2026-07-28"]), "the session he logged survives, reps and RIR intact");
+const q41 = (out41.queue || []).find((q) => q.id === "q_hack3");
+ok(!!q41 && q41.done === true && q41.gate === "Debuted 7,8,7", "and the finished queue item keeps its receipt: " + (q41 ? q41.gate : "DESTROYED"));
+ok(out41.trend === snap41.trend && out41.boosts === snap41.boosts, "the trend and the boost count come back measured, not reseeded");
+ok(JSON.stringify(out41) !== JSON.stringify(clone(SU41)), "specifically: a newer state is NOT silently replaced by a fresh copy of SEED");
+/* the whole guard, stated once: hand it back untouched. Old code may read a
+   field it does not understand oddly, and re-upgrading restores full function.
+   A visible misbehaviour is recoverable; a wipe is not. */
+ok(eq(out41, snap41), "a state newer than the code is handed back UNTOUCHED, down to the version stamp: v" + out41.v);
+
+console.log(`\nFINAL81: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
