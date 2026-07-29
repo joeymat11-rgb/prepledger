@@ -48,7 +48,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.11";
+const APP_V = "4.0.12";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -6091,6 +6091,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: SP.md }}>
         <div style={{ minWidth: 0 }}>
           <H size={24}>Measured</H>
+          <div style={{ fontFamily: body, fontSize: TS.label, color: T.steel, marginTop: 3 }}>Measured. Not guessed.</div>
           {/* The band, not just the point. bfEst has carried lo/hi since the
               drip was zeroed, but the interval only ever showed on BODY — a tab
               he says he very rarely opens. A naked "BF 12%" on the page he
@@ -8537,7 +8538,7 @@ function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
               </div>
             </div>
           )}
-          <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>Stays on this device · never included in exports or sync payloads · scoped to prepledger only. Every Sunday the ledger commits itself — backup and coach review in one move.</div>
+          <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>Stays on this device · never included in exports or sync payloads · scoped to Measured only. Every Sunday the ledger commits itself — backup and coach review in one move.</div>
         </div>
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 12 }}>
           The ledger lives on this device only. Export after big weeks — the backup file is the insurance policy. · Measured v{APP_V}

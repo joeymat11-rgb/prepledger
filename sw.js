@@ -1,5 +1,5 @@
-/* Prep Ledger service worker — bump CACHE on every redeploy */
-const CACHE = "measured-v4.0.11";
+/* Measured service worker — bump CACHE on every redeploy */
+const CACHE = "measured-v4.0.12";
 const ASSETS = [
   "./",
   "./index.html",
@@ -10,6 +10,8 @@ const ASSETS = [
   "./icon-512.png",
   "./icon-512-maskable.png",
   "./apple-touch-icon.png",
+  "./icon-mono-512.png",
+  "./favicon-32.png",
 ];
 
 self.addEventListener("install", (e) => {
