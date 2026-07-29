@@ -1,7 +1,7 @@
 {
-  "name": "Prep Ledger",
-  "short_name": "Prep Ledger",
-  "description": "Contest-prep rules engine — earned states, honest data.",
+  "name": "Measured",
+  "short_name": "Measured",
+  "description": "Body-composition instrument — earned states, honest data.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

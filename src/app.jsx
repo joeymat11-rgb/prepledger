@@ -48,7 +48,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.10";
+const APP_V = "4.0.11";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -3366,7 +3366,7 @@ function dossierData(s) {
 }
 function dossierText(s) {
   const d = dossierData(s);
-  const L = [`PREP LEDGER — COACH DOSSIER · ${d.header.d} · wk ${d.header.wk}`,
+  const L = [`MEASURED — COACH DOSSIER · ${d.header.d} · wk ${d.header.wk}`,
     `Trend ${d.header.trend} lb · body fat ~${d.header.bf}% · pace ${d.header.pace} lb/wk${d.header.sealed ? ` · scale sealed until ${d.header.sealed}` : ""}`,
     `Machine trust: ${d.trust}`, "", `TOP LINE: ${d.topline}`, ""];
   d.sections.forEach((sec) => { L.push(sec.h); sec.items.forEach((it) => L.push(`  • ${it.t}: ${it.line}`)); L.push(""); });
@@ -4815,7 +4815,7 @@ class TabGuard extends React.Component {
   static getDerivedStateFromError(err) { return { err }; }
   render() {
     if (!this.state.err) return this.props.children;
-    const report = `Prep Ledger ${APP_V} · tab ${this.props.name} · ${new Date().toISOString()}\n${this.state.err.message}\n${(this.state.err.stack || "").slice(0, 600)}`;
+    const report = `Measured ${APP_V} · tab ${this.props.name} · ${new Date().toISOString()}\n${this.state.err.message}\n${(this.state.err.stack || "").slice(0, 600)}`;
     return (
       <Card accent={T.brass}>
         <Eyebrow c={T.brass}>THIS TAB HIT AN ERROR</Eyebrow>
@@ -6090,7 +6090,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: SP.md }}>
         <div style={{ minWidth: 0 }}>
-          <H size={24}>Prep Ledger</H>
+          <H size={24}>Measured</H>
           {/* The band, not just the point. bfEst has carried lo/hi since the
               drip was zeroed, but the interval only ever showed on BODY — a tab
               he says he very rarely opens. A naked "BF 12%" on the page he
@@ -6723,7 +6723,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       </>)}
 
-      <div style={{ textAlign: "center", fontFamily: mono, fontSize: 8, color: T.dim, opacity: 0.55, padding: "10px 0 2px" }}>PREP LEDGER · v{APP_V}</div>
+      <div style={{ textAlign: "center", fontFamily: mono, fontSize: 8, color: T.dim, opacity: 0.55, padding: "10px 0 2px" }}>MEASURED · v{APP_V}</div>
 
     </div>
   );
@@ -8540,7 +8540,7 @@ function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
           <div style={{ fontFamily: mono, fontSize: 9, color: T.dim, marginTop: 8 }}>Stays on this device · never included in exports or sync payloads · scoped to prepledger only. Every Sunday the ledger commits itself — backup and coach review in one move.</div>
         </div>
         <div style={{ fontFamily: mono, fontSize: 9.5, color: T.dim, marginTop: 12 }}>
-          The ledger lives on this device only. Export after big weeks — the backup file is the insurance policy. · Prep Ledger v{APP_V}
+          The ledger lives on this device only. Export after big weeks — the backup file is the insurance policy. · Measured v{APP_V}
         </div>
       </div>
     </div>
@@ -8670,7 +8670,7 @@ export default function PrepLedger() {
     const blob = new Blob([JSON.stringify(s, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `prep-ledger-backup-${isoOf(todayStart())}.json`;
+    a.href = url; a.download = `measured-backup-${isoOf(todayStart())}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   };
@@ -8683,7 +8683,7 @@ export default function PrepLedger() {
         const data = migrate(JSON.parse(rd.result));
         if (!data || !Array.isArray(data.queue)) throw new Error("bad");
         setS(data); save(data); setRules(false);
-      } catch (e) { alert("That file isn't a Prep Ledger backup — nothing was changed."); }
+      } catch (e) { alert("That file isn't a Measured backup — nothing was changed."); }
     };
     rd.readAsText(file);
   };

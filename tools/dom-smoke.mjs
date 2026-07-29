@@ -42,7 +42,7 @@ const check = (ok, good, bad) => {
 
 console.log(`  root html bytes: ${html.length}`);
 check(html.length > 2000, "app mounted and rendered", `root is nearly empty (${html.length} bytes)`);
-check(html.includes("Prep Ledger"), "header renders", "header missing");
+check(html.includes("Measured"), "header renders", "header missing");
 /* The rail is now NOW / TRAIN / MORE — see NAV_NOTE. QUEUE and SLEEP moved
    behind MORE by design: static demotion, because an interface that rearranges
    itself measured ~8% slower than one that does not (Findlater & McGrenere,

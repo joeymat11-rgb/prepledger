@@ -50,7 +50,7 @@ async function appLoads(want) {
     "bundle served", `HTTP ${app.status}, ${(app.body.length / 1024).toFixed(0)} KB`);
 
   const sw = await get("/sw.js");
-  const m = sw.body.match(/prep-ledger-v([0-9.]+)/);
+  const m = sw.body.match(/measured-v([0-9.]+)/);
   const live = m ? m[1] : null;
   record(live === want,
     "live version matches this repo",

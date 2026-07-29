@@ -75,7 +75,7 @@ async function ship() {
   if (!app) { fail("could not read APP_V from src/app.jsx"); return 1; }
   if (app !== sw) {
     const text = fs.readFileSync(at("sw.js"), "utf8")
-      .replace(/CACHE\s*=\s*"prep-ledger-v[0-9.]+"/, `CACHE = "prep-ledger-v${app}"`);
+      .replace(/CACHE\s*=\s*"measured-v[0-9.]+"/, `CACHE = "measured-v${app}"`);
     fs.writeFileSync(at("sw.js"), text);
     pass(`sw.js cache bumped ${sw} -> ${app} (phones will pick up the new bundle)`);
   } else {
