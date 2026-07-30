@@ -88,6 +88,21 @@ const v2old = { v: 2, reads: [{ d: "2026-07-22", w: 163.0, sealed: true }], dail
 const m3 = mg(v2old);
 ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro === 176 && m3.sleep.nights.some(n => n.d === "2026-07-21") && m3.boosts === 5, "v2 phone state merges over the history without losing a thing");
 
+// durability guard — the write-path tripwire that refuses to clobber the ledger (v2 slice 0)
+{
+  const dlg = __test.dataLossGuard;
+  const base = clone(SEED);
+  ok(dlg(null, base).safe === true, "durability: first write (no prior stored state) is always allowed");
+  ok(dlg(base, base).safe === true, "durability: rewriting the same state is allowed");
+  const grown = clone(base); grown.reads = base.reads.concat([{ d: "2026-08-01", w: 163.0, sealed: false }]);
+  ok(dlg(base, grown).safe === true, "durability: a growing record is allowed");
+  const empty = clone(base); empty.reads = []; empty.feed = []; empty.sleep = { nights: [] };
+  ok(dlg(base, empty).safe === false, "durability: an empty-clobber over real data is blocked");
+  const lostOne = clone(base); lostOne.reads = base.reads.slice(0, -1);
+  ok(dlg(base, lostOne).safe === false, "durability: dropping even one historical read is blocked");
+  ok(dlg(base, null).safe === false, "durability: writing a non-object over real data is blocked");
+}
+
 // v2.2 — signals
 const { completeSession: cs2, genSession: gs2, SEED: S4, migrate: mg2 } = __test;
 ok(S4.v >= 4 && Array.isArray(S4.waist) && S4.exercises.every(e => Array.isArray(e.rirHist)), "seed carries v4 signal fields");

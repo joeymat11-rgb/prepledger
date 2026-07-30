@@ -6359,6 +6359,41 @@ function loadState() {
   return s;
 }
 
+/* ---------- durability guard (audit risk c: last-writer-wins is a data-loss risk) --
+   The one local write path is save() -> setItem(KEY). A stale or corrupt build
+   writing over the real ledger is the documented failure this closes: before an
+   automatic write we compare the incoming state to what is already stored and
+   REFUSE to shrink the append-only record (reads, sleep nights, daily/session
+   logs, waist, photos, feed). Preservation beats convenience — on a trip the good
+   state stays on disk and a reload recovers it. Pure and testable; no key is
+   renamed, no datum is rewritten. Deliberate restores (import) and the explicit
+   reset pass { force:true } to bypass. This is the charter-safe slice of the
+   audit's durability finding; the full local-first/CRDT rearchitecture is out of
+   scope here because it would change the storage schema. */
+function recordCounts(st) {
+  if (!st || typeof st !== "object") return null;
+  const arr = (x) => (Array.isArray(x) ? x.length : 0);
+  const keys = (x) => (x && typeof x === "object" ? Object.keys(x).length : 0);
+  return {
+    reads: arr(st.reads),
+    nights: arr(st.sleep && st.sleep.nights),
+    dailyLogs: keys(st.dailyLogs),
+    sessionLog: keys(st.sessionLog),
+    waist: arr(st.waist),
+    photos: arr(st.photos),
+    feed: arr(st.feed),
+  };
+}
+function dataLossGuard(prev, next) {
+  const a = recordCounts(prev);
+  if (!a) return { safe: true, lost: [] };            // nothing to protect yet
+  const b = recordCounts(next);
+  if (!b) return { safe: false, lost: ["state"] };    // never write a non-object over data
+  const lost = [];
+  for (const k of Object.keys(a)) if (b[k] < a[k]) lost.push(`${k} ${a[k]}→${b[k]}`);
+  return { safe: lost.length === 0, lost };
+}
+
 /* ---------- derived ---------- */
 /* `clean` is the PERFORMANCE question — see DEBT_NOTE — and now answers it with
    the threshold the performance literature uses. `run`/`at` stay as the TARGET
@@ -6434,6 +6469,7 @@ __test.etaRange = etaRange;
 __test.bfEst = bfEst;
 __test.stepTarget = stepTarget;
 __test.signalState = signalState;
+__test.dataLossGuard = dataLossGuard;
 __test.beatsNoise = beatsNoise;
 __test.cleanAtDate = cleanAtDate;
 __test.progressStep = progressStep;
@@ -10245,9 +10281,23 @@ export default function PrepLedger() {
     });
   }, [s === null]);
 
-  const save = useCallback((ns) => {
-    try { localStorage.setItem(KEY, JSON.stringify(ns)); }
-    catch (e) { setOffline(true); }
+  const save = useCallback((ns, opts) => {
+    try {
+      if (!(opts && opts.force)) {
+        let prev = null;
+        try { const raw = localStorage.getItem(KEY); prev = raw ? JSON.parse(raw) : null; } catch (e) { prev = null; }
+        const guard = dataLossGuard(prev, ns);
+        if (!guard.safe) {
+          /* Refuse to clobber the good ledger with a shrinking/corrupt write — the
+             documented last-writer-wins loss. In-memory state still shows the latest;
+             the durable copy stays intact so a reload recovers it. reset()/import()
+             are deliberate and pass { force:true }. */
+          try { console.warn("[measured] durability guard blocked a shrinking write:", guard.lost.join(", ")); } catch (e) {}
+          return;
+        }
+      }
+      localStorage.setItem(KEY, JSON.stringify(ns));
+    } catch (e) { setOffline(true); }
   }, []);
 
   const reset = () => {
@@ -10272,7 +10322,7 @@ export default function PrepLedger() {
       try {
         const data = migrate(JSON.parse(rd.result));
         if (!data || !Array.isArray(data.queue)) throw new Error("bad");
-        setS(data); save(data); setRules(false);
+        setS(data); save(data, { force: true }); setRules(false);
       } catch (e) { alert("That file isn't a Measured backup — nothing was changed."); }
     };
     rd.readAsText(file);
