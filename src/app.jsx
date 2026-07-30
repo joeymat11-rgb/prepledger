@@ -104,7 +104,23 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
     + "[data-reduce-motion='1'] *,[data-reduce-motion='1'] *::before,[data-reduce-motion='1'] *::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:100ms !important;transition-property:opacity !important}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.17";
+/* The Reduce-motion preference is a UI setting, not athlete data, so it lives in
+   its own key rather than inside prep-ledger-v1 — nothing here touches the state
+   schema or needs a migration. Applied before first paint so a person who asked
+   for stillness never sees one frame of movement first. */
+const RM_KEY = "prep-ledger-reducemotion";
+const reduceMotionOn = () => { try { return localStorage.getItem(RM_KEY) === "1"; } catch (e) { return false; } };
+const setReduceMotion = (on) => {
+  try { localStorage.setItem(RM_KEY, on ? "1" : "0"); } catch (e) {}
+  if (typeof document !== "undefined") {
+    if (on) document.documentElement.setAttribute("data-reduce-motion", "1");
+    else document.documentElement.removeAttribute("data-reduce-motion");
+  }
+};
+if (typeof document !== "undefined" && reduceMotionOn()) {
+  document.documentElement.setAttribute("data-reduce-motion", "1");
+}
+const APP_V = "4.0.18";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -8674,34 +8690,92 @@ function MoreTab({ s, go, openRules, openCoach }) {
     { k: "BODY", t: "BODY", sub: "weight, trend, and the body-fat band at its real width",
       hint: (() => { try { const b = bfEst(s); return b.pct + "% · " + b.lo + "–" + b.hi; } catch (e) { return null; } })() },
   ];
+  /* MORE is a settings screen, so it is built like one (§4): grouped lists,
+     UPPERCASE section headers, 44px rows, hairlines between rows instead of a
+     card around each one. Every row used to be its own floating Card — nine
+     separate plates stacked down the screen, which reads as nine unrelated
+     things rather than three groups of related ones. */
+  const [rm, setRm] = useState(reduceMotionOn);
+  const rowStyle = {
+    display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.md,
+    minHeight: 44, padding: `${SP.sm}px 0`, cursor: "pointer",
+  };
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: SP.md }}>
       <div>
         <H size={21}>More</H>
         <Eyebrow>the rooms you open on purpose — nothing here ever moves on its own</Eyebrow>
       </div>
-      {rooms.map((r) => (
-        <Card key={r.k} style={{ padding: "13px 14px", cursor: "pointer" }} onClick={() => go(r.k)}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 17, color: T.chalk, textTransform: "uppercase" }}>{r.t}</div>
-              <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 2, lineHeight: 1.45 }}>{r.sub}</div>
+
+      <SecRule>ROOMS</SecRule>
+      <Card style={{ padding: `${SP.xs}px ${SP.lg}px` }}>
+        {rooms.map((r, i) => (
+          <div key={r.k} onClick={() => go(r.k)} role="button" tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(r.k); } }}
+            style={{ ...rowStyle, borderTop: i === 0 ? "none" : `1px solid ${T.hairline}`, alignItems: "flex-start" }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 17, color: T.chalk, textTransform: "uppercase", lineHeight: `${LH.title}px` }}>{r.t}</div>
+              <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.hair, lineHeight: `${LH.body}px` }}>{r.sub}</div>
             </div>
-            <div style={{ textAlign: "right", flexShrink: 0 }}>
-              {r.hint ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>{r.hint}</div> : null}
-              <span style={{ fontFamily: mono, fontSize: 15, color: T.steel }}>▸</span>
+            <div style={{ textAlign: "right", flexShrink: 0, display: "flex", alignItems: "center", gap: SP.sm }}>
+              {r.hint ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>{r.hint}</span> : null}
+              <span style={{ fontFamily: mono, fontSize: TS.title, color: T.steel, lineHeight: 1 }}>▸</span>
             </div>
           </div>
-        </Card>
-      ))}
-      <Card style={{ padding: "11px 14px", cursor: "pointer" }} onClick={openCoach}>
-        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.chalk }}>COACH <span style={{ color: T.steel }}>— the handoff sheet</span></div>
+        ))}
       </Card>
-      <Card style={{ padding: "11px 14px", cursor: "pointer" }} onClick={openRules}>
-        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.chalk }}>RULES <span style={{ color: T.steel }}>— house laws, sync, backup, reset</span></div>
+
+      <SecRule>THE RECORD</SecRule>
+      <Card style={{ padding: `${SP.xs}px ${SP.lg}px` }}>
+        <div onClick={openCoach} role="button" tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCoach(); } }}
+          style={{ ...rowStyle, borderTop: "none" }}>
+          <span style={{ fontFamily: mono, fontSize: TS.label, color: T.chalk, letterSpacing: "0.04em" }}>COACH
+            <span style={{ color: T.steel }}> — the handoff sheet</span></span>
+          <span style={{ fontFamily: mono, fontSize: TS.title, color: T.steel, lineHeight: 1 }}>▸</span>
+        </div>
+        <div onClick={openRules} role="button" tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openRules(); } }}
+          style={{ ...rowStyle, borderTop: `1px solid ${T.hairline}` }}>
+          <span style={{ fontFamily: mono, fontSize: TS.label, color: T.chalk, letterSpacing: "0.04em" }}>RULES
+            <span style={{ color: T.steel }}> — house laws, sync, backup, reset</span></span>
+          <span style={{ fontFamily: mono, fontSize: TS.title, color: T.steel, lineHeight: 1 }}>▸</span>
+        </div>
       </Card>
-      <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, textAlign: "center", padding: "4px 8px 0", lineHeight: 1.6 }}>
-        these four used to sit in the bottom bar competing for attention every day · one predictable tap, same place every time
+
+      <SecRule>DISPLAY</SecRule>
+      <Card style={{ padding: `${SP.xs}px ${SP.lg}px` }}>
+        {/* A real toggle, not a label. The stylesheet already honours the OS-level
+            prefers-reduced-motion; this is for the athlete who wants stillness
+            regardless of what the phone is set to. */}
+        <div onClick={() => { const nx = !rm; setRm(nx); setReduceMotion(nx); }} role="switch" aria-checked={rm} tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); const nx = !rm; setRm(nx); setReduceMotion(nx); } }}
+          style={{ ...rowStyle, borderTop: "none" }}>
+          <span style={{ minWidth: 0, flex: 1 }}>
+            <span style={{ fontFamily: mono, fontSize: TS.label, color: T.chalk, letterSpacing: "0.04em" }}>REDUCE MOTION</span>
+            <span style={{ display: "block", fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.hair, lineHeight: `${LH.body}px` }}>
+              Cuts every transition to a still fade. Your phone's own setting is already obeyed — this forces it on either way.
+            </span>
+          </span>
+          <span style={{
+            flexShrink: 0, width: 46, height: 28, borderRadius: 999, position: "relative",
+            background: rm ? T.jade : T.plate2, border: `1px solid ${rm ? T.jade : T.line}`,
+            transition: TR("background-color", MOT.micro),
+          }}>
+            <span style={{
+              position: "absolute", top: 3, left: rm ? 21 : 3, width: 20, height: 20, borderRadius: 999,
+              background: rm ? T.ink : T.steel, transition: TR("left", MOT.micro),
+            }} />
+          </span>
+        </div>
+      </Card>
+
+      {/* The instrument's serial plate (§4): what you are running, what schema the
+          record is on, and where the numbers come from. TS.micro steel, bottom. */}
+      <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, textAlign: "center", padding: `${SP.lg}px ${SP.sm}px 0`, lineHeight: `${LH.micro}px`, letterSpacing: "0.04em" }}>
+        MEASURED · v{APP_V} · SCHEMA v{SCHEMA_V}
+        <br />every figure on every screen is computed from your own logs — no defaults, no population averages
+        <br />record starts {fmtShort(START)} · {(s.reads || []).length} weigh-ins · {((s.sleep || {}).nights || []).length} nights · {Object.keys(s.sessionLog || {}).length} sessions
       </div>
     </div>
   );
