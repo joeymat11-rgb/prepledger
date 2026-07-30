@@ -130,6 +130,18 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   ok(__test.migrate(withData).plan.goals.length === 1 && __test.migrate(withData).plan.share === true, "a state that already has a plan keeps it through migration");
 }
 
+// the Digital Twin — v2 slice D (energy-balance simulation, range-only)
+{
+  const base = clone(SEED); base.blackout = { until: "2026-05-01" };
+  const t0 = __test.digitalTwin(base, {});
+  ok(t0.ok === true && t0.newRate === t0.rate0, "with no slider change the twin's rate equals the measured rate");
+  const tCut = __test.digitalTwin(base, { calDelta: -500 });
+  ok(tCut.newRate > t0.newRate, "cutting calories speeds the projected loss");
+  const tSteps = __test.digitalTwin(base, { steps: (t0.stepsNow || 8000) + 4000 });
+  ok(tSteps.newRate > t0.newRate, "adding steps speeds the projected loss (NEAT shares the axis with food)");
+  ok(tCut.etaSlow >= tCut.etaMid && tCut.etaMid >= tCut.etaFast, "the ETA is a range — slower rate, more weeks; never a single date");
+}
+
 // the Why-Engine decomposition — v2 slice C
 {
   const w0 = __test.whyDecompose(clone(SEED));

@@ -2177,6 +2177,45 @@ function etaRange(s, targetPct) {
   return { mid, fast, slow, atWeight, lean: +lean.toFixed(1) };
 }
 
+/* ---------- THE DIGITAL TWIN (v2) — a validated metabolic model, fit to him ----------
+   Kevin Hall's dynamic energy-balance model (the maths behind the NIH Body Weight
+   Planner) tuned to his own numbers. This is a COMPOSITION over engine outputs that
+   already exist — observedTDEE (measured maintenance), currentRate (measured slope),
+   bfEst (the anchor), stepTarget (kcal per 1k steps) — not new statistics. Every
+   1 kcal/day of added deficit buys 7/KCAL_PER_LB_MIX lb/wk; adding steps raises
+   expenditure the same way food lowers intake, so NEAT and calories share one axis.
+   Protein does not move the WEIGHT line — it changes partitioning (how much of the
+   loss is fat vs lean) — so it is narrated, never folded into the rate. The output is
+   a RANGE, re-fit weekly, never a date on a calendar: individual response varies too
+   much for a single line, which is exactly why it answers as a fan. */
+function digitalTwin(s, opts) {
+  const o = opts || {};
+  const td = observedTDEE(s);
+  const r0 = currentRate(s);
+  const rate0 = r0 && r0.measured ? r0.scale : null;        // lb/wk, + = losing
+  const bf = bfEst(s);
+  const stg = stepTarget(s);
+  const kcalPer1k = stg.kcalPer1k || 20;
+  const stepsNow = stg.gated ? 8000 : (stg.recentAvg || stg.avg || 8000);
+  const baseTDEE = td && td.tdee ? td.tdee : null;
+  const calDelta = o.calDelta || 0;                         // kcal/day vs current (neg = eat less)
+  const stepsTarget = o.steps != null ? o.steps : stepsNow;
+  const stepKcal = ((stepsTarget - stepsNow) / 1000) * kcalPer1k;   // extra expenditure/day
+  const perKcal = 7 / KCAL_PER_LB_MIX;
+  const extraDeficit = (-calDelta) + stepKcal;              // eating less OR moving more both add deficit
+  const newRate = rate0 != null ? +(rate0 + extraDeficit * perKcal).toFixed(2) : null;
+  const targetPct = 11;
+  const atWeight = +(bf.lean / (1 - targetPct / 100)).toFixed(1);
+  const weeksAt = (rate) => (rate == null || rate <= 0 ? null : Math.max(0, Math.round((s.trend - atWeight) / rate)));
+  return {
+    ok: rate0 != null && baseTDEE != null,
+    baseTDEE, stepsNow, kcalPer1k, rate0, newRate, calDelta, stepsTarget, protein: o.protein,
+    atWeight, targetPct,
+    etaMid: weeksAt(newRate), etaFast: weeksAt(newRate * 1.25), etaSlow: weeksAt(newRate * 0.75),
+    fanRate: newRate,
+  };
+}
+
 /* THE LAB — every analytic self-gates on its own data threshold. No correlations under N. */
 /* ---------- SMALL_N_NOTE — an interval on every "measured" scalar ----------
    The tri-state tag was the honest part of this app and it had a hole in it: cards
@@ -6646,6 +6685,7 @@ __test.EA_SPARING = EA_SPARING;
 __test.etaRange = etaRange;
 __test.bfEst = bfEst;
 __test.anchorTighten = anchorTighten;
+__test.digitalTwin = digitalTwin;
 __test.stepTarget = stepTarget;
 __test.signalState = signalState;
 __test.dataLossGuard = dataLossGuard;
@@ -9847,6 +9887,9 @@ function HistTab({ s, setS, save }) {
   const [deskOpen, setDeskOpen] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
   const [gatherAll, setGatherAll] = useState(false);
+  const [twCal, setTwCal] = useState(0);
+  const [twSteps, setTwSteps] = useState(() => { const st = stepTarget(s); return st.gated ? 8000 : (st.recentAvg || st.avg || 8000); });
+  const [twPro, setTwPro] = useState(() => proteinTarget(s).g);
   const liveWks = liveRollups(s);
   const first = ROLLUPS[ROLLUPS.length - 1];
   const latest = (liveWks.find((w) => w.avgW != null || w.avgCal != null)) || ROLLUPS[0];
@@ -9873,6 +9916,66 @@ function HistTab({ s, setS, save }) {
         </div>
         <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 8 }}>Weight fell while every headline lift rose — the whole thesis, in one screen. Tap a week for the day-by-day.</div>
       </Card>
+
+      {/* ---------- THE DIGITAL TWIN (v2 slice D) ----------
+          LAB re-pointed from passive measurement toward decision support: a validated
+          energy-balance model tuned to his data. Composes observedTDEE + currentRate +
+          bfEst; drag three levers, read a widening range. Never a date-certain promise. */}
+      {(() => { const twin = digitalTwin(s, { calDelta: twCal, steps: twSteps, protein: twPro }); const wnT = weightNoise(s.reads); const rangeInp = { width: "100%", accentColor: T.gauge };
+        return (
+        <Card accent={T.gauge} style={{ padding: SP.lg }}>
+          <Eyebrow c={T.gauge}>THE DIGITAL TWIN</Eyebrow>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>A model of your own metabolism, tuned to your data — the same energy-balance math the NIH Body Weight Planner uses. Drag the three levers; it answers as a range, because honest prediction gets less certain the further out it reaches.</div>
+          {!twin.ok ? (
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.md }}>Counting only — the twin needs a measured rate and maintenance before it can simulate. Keep logging.</div>
+          ) : (
+          <>
+          <div style={{ marginTop: SP.lg, display: "flex", flexDirection: "column", gap: SP.md }}>
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.08em", color: T.steel, textTransform: "uppercase" }}>CALORIES</span>
+                <span data-num style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, color: T.chalk, fontVariantNumeric: "tabular-nums" }}>{twCal > 0 ? "+" : ""}{twCal} kcal/day</span>
+              </div>
+              <input type="range" min={-700} max={400} step={20} value={twCal} onChange={(e) => setTwCal(+e.target.value)} style={rangeInp} />
+            </div>
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.08em", color: T.steel, textTransform: "uppercase" }}>STEPS</span>
+                <span data-num style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, color: T.chalk, fontVariantNumeric: "tabular-nums" }}>{(twSteps / 1000).toFixed(1)}k/day</span>
+              </div>
+              <input type="range" min={4000} max={22000} step={500} value={twSteps} onChange={(e) => setTwSteps(+e.target.value)} style={rangeInp} />
+            </div>
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.08em", color: T.steel, textTransform: "uppercase" }}>PROTEIN</span>
+                <span data-num style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, color: T.chalk, fontVariantNumeric: "tabular-nums" }}>{twPro} g</span>
+              </div>
+              <input type="range" min={120} max={220} step={5} value={twPro} onChange={(e) => setTwPro(+e.target.value)} style={rangeInp} />
+            </div>
+          </div>
+          <div style={{ marginTop: SP.lg }}>
+            <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, textTransform: "uppercase" }}>WHERE THIS LANDS YOU</div>
+            <div style={{ marginTop: SP.sm }}>
+              <Spark reads={s.reads} trend={s.trend} projRate={twin.fanRate > 0 ? twin.fanRate : null} noise={wnT.sd} noiseN={wnT.measured ? wnT.n : null} />
+            </div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: SP.sm, marginTop: SP.sm, flexWrap: "wrap" }}>
+              <span style={{ fontFamily: mono, fontSize: TS.body, color: T.brass }}>◆</span>
+              {twin.etaMid != null ? (
+                <span style={{ fontFamily: body, fontSize: TS.body, color: T.chalk }}>~<span data-num style={{ fontFamily: mono, fontWeight: 600 }}>{twin.etaMid}</span> weeks to {twin.targetPct}% · range <span data-num style={{ fontFamily: mono }}>{twin.etaFast}–{twin.etaSlow}</span> wks</span>
+              ) : (
+                <span style={{ fontFamily: body, fontSize: TS.body, color: T.orange }}>not losing at these settings — the deficit's gone.</span>
+              )}
+            </div>
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>projected rate ~{twin.newRate != null ? (twin.newRate > 0 ? "−" : "+") + Math.abs(twin.newRate).toFixed(1) : "—"} lb/wk · at {twPro} g protein, more of that loss holds as fat rather than lean</div>
+          </div>
+          </>
+          )}
+          <div style={{ marginTop: SP.md, padding: SP.md, background: T.plate2, borderRadius: 8, borderLeft: `3px solid ${T.orange}`, border: `1px solid ${T.line}` }}>
+            <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.12em", color: T.orange, textTransform: "uppercase" }}>WHAT THE MODEL CAN'T DO</div>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>It nails the average, but individual response varies widely — so this is a planning tool, re-fit every week, never a date on a calendar. The range is the honest part.</div>
+          </div>
+        </Card>
+      ); })()}
 
       {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
       {mapOpen && <MapView s={s} onClose={() => setMapOpen(false)} />}
