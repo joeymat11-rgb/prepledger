@@ -1381,6 +1381,31 @@ function bfEst(s, trend = s.trend, atISO = isoOf(todayStart())) {
   };
 }
 
+/* ---------- THE BODY-FAT ANCHOR — how the guess becomes measured (v2) ----------
+   bf% is the one figure everything leans on (it is why protein is a range and why
+   the pivot-to-11% cannot fire), and today it is a coach's-eye guess whose band is
+   two independent errors that do not shrink with time: the anchor's own accuracy
+   (±3.5 eye / ±1.0 DEXA) and the unmeasured lean trajectory since. anchorTighten()
+   makes the path to a tighter number legible — today's LIVE band, what a weekly
+   waist tape buys (it measures the trajectory a tape can see, leaving the anchor's
+   own error), and what a DEXA re-anchor buys (it replaces the eye with a scan,
+   ±1.0). Pure; every width derives from the real ANCHOR_ERR constants, never
+   authored to look good. Green = good, brass ◆ = measured — no new token. */
+function anchorTighten(s) {
+  const bf = bfEst(s);
+  const eye = ANCHOR_ERR_EYE, dexa = ANCHOR_ERR_DEXA;
+  const half = +(((bf.hi - bf.lo) / 2)).toFixed(1);
+  // A waist tape measures the lean trajectory (the drift half), leaving the
+  // anchor's own accuracy; it cannot turn an eye anchor into a scan.
+  const waistHalf = +Math.min(half, eye).toFixed(1);
+  const steps = [
+    { key: "today", label: "TODAY", note: s.model.src === "DEXA" ? `DEXA · ±${dexa}` : `coach's eye · ±${eye}`, half, state: "quiet" },
+    { key: "waist", label: "+ WEEKLY WAIST TREND", note: "trajectory measured", half: waistHalf, state: "measurable" },
+    { key: "dexa", label: "+ DEXA RE-ANCHOR", note: "measured ◆", half: dexa, state: "measured" },
+  ];
+  return { pct: bf.pct, lo: bf.lo, hi: bf.hi, wks: bf.wks, src: s.model.src, eye, dexa, steps };
+}
+
 /* ---------- PROTEIN_NOTE — why the number is no longer a constant ----------
    175 g was hard-coded. The current best evidence scales protein to FAT-FREE
    MASS, not bodyweight, and says so with numbers: Refalo, Trexler & Helms
@@ -6561,6 +6586,7 @@ __test.DEBT_MEAN3_H = DEBT_MEAN3_H;
 __test.EA_SPARING = EA_SPARING;
 __test.etaRange = etaRange;
 __test.bfEst = bfEst;
+__test.anchorTighten = anchorTighten;
 __test.stepTarget = stepTarget;
 __test.signalState = signalState;
 __test.dataLossGuard = dataLossGuard;
@@ -6845,6 +6871,18 @@ const Bar = ({ pct, c = T.jade, h = 5 }) => (
     <div style={{ width: `${Math.min(100, Math.max(0, pct))}%`, height: "100%", background: c, borderRadius: 99 }} />
   </div>
 );
+/* A confidence interval drawn as a band on a fixed axis. The anchor's honest
+   width (BODY) and the Why-Engine's decomposition share this one grammar, so a
+   band always means the same thing across the app. */
+const BandBar = ({ lo, hi, min, max, c = T.gauge, h = 8 }) => {
+  const clamp = (v) => Math.max(0, Math.min(100, ((v - min) / (max - min)) * 100));
+  const L = clamp(lo), R = clamp(hi);
+  return (
+    <div style={{ position: "relative", height: h, background: T.plate2, borderRadius: 99 }}>
+      <div style={{ position: "absolute", left: `${L}%`, width: `${Math.max(2, R - L)}%`, top: 0, bottom: 0, background: c, borderRadius: 99, opacity: 0.9 }} />
+    </div>
+  );
+};
 
 function trendSeries(reads) {
   let t = null;
@@ -8800,6 +8838,47 @@ function BodyTab({ s, setS, save }) {
           </div>
         </div>
       </Card>
+
+      {/* ---------- THE BODY-FAT ANCHOR (v2 — the guess, and how it becomes measured) ----------
+          The one figure everything leans on, with its provenance ADJACENT to the
+          number (a guess reads orange, a scan reads brass ◆) and its honest band
+          drawn, then the three-step path that tightens it. anchorTighten owns the
+          widths; nothing here invents a number. Points at the waist/re-anchor inputs
+          below rather than duplicating them (non-redundancy). */}
+      {(() => { const at = anchorTighten(s); const AX_LO = 8, AX_HI = 22;
+        const stC = { quiet: T.steel, measurable: T.gauge, measured: T.brass };
+        return (
+        <Card accent={T.brass} style={{ padding: SP.lg }}>
+          <Eyebrow c={T.brass}>THE BODY-FAT ANCHOR</Eyebrow>
+          <div style={{ display: "flex", alignItems: "baseline", gap: SP.sm, marginTop: SP.sm, flexWrap: "wrap" }}>
+            <span data-num style={{ fontFamily: mono, fontSize: TS.title, fontWeight: 600, color: T.chalk, fontVariantNumeric: "tabular-nums" }}>{at.pct}%</span>
+            <span style={{ fontFamily: mono, fontSize: TS.micro, color: at.src === "DEXA" ? T.brass : T.orange, letterSpacing: "0.06em" }}>
+              {at.src === "DEXA" ? `(measured · ±${at.dexa})` : `(coach's eye · ±${at.eye})`}
+            </span>
+          </div>
+          <div style={{ marginTop: SP.sm }}>
+            <BandBar lo={at.lo} hi={at.hi} min={AX_LO} max={AX_HI} c={T.steel} />
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>today's band {at.lo}–{at.hi}% · {(at.hi - at.lo).toFixed(1)} points wide</div>
+          </div>
+          <div style={{ marginTop: SP.lg }}>
+            <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, textTransform: "uppercase" }}>HOW THE NUMBER TIGHTENS</div>
+            <div style={{ marginTop: SP.sm, display: "flex", flexDirection: "column", gap: SP.md }}>
+              {at.steps.map((st) => (
+                <div key={st.key}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: SP.sm }}>
+                    <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, letterSpacing: "0.08em", color: stC[st.state] || T.steel, textTransform: "uppercase" }}>{st.label}</span>
+                    <span data-num style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>±{st.half} · {st.note}</span>
+                  </div>
+                  <div style={{ marginTop: SP.xs }}><BandBar lo={at.pct - st.half} hi={at.pct + st.half} min={AX_LO} max={AX_HI} c={stC[st.state] || T.steel} /></div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, marginTop: SP.md, lineHeight: `${LH.micro}px` }}>
+            A weekly waist tape measures the drift the anchor can't; a DEXA re-anchor replaces the guess with a scan. Log a waist reading below, or book a re-anchor, and the band narrows for real.
+          </div>
+        </Card>
+      ); })()}
 
       <Section title="Weight" meta={`${s.trend}${sealed ? " · sealed → " + fmtShort(SEAL_UNTIL) : " · live"}`}>
         <Card>

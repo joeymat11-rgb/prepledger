@@ -119,6 +119,15 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   ok(__test.theOneFix(dn).rung !== "calories" && __test.theOneFix(dn).rung !== "break", "a healthy loss rate never reaches the calorie-cut rung — food comes down last");
 }
 
+// the body-comp anchor tightening path — the v2 anchor selector (slice B)
+{
+  const at = __test.anchorTighten(clone(SEED));
+  ok(Array.isArray(at.steps) && at.steps.length === 3, "anchorTighten returns a three-step tightening path");
+  ok(at.steps[0].half >= at.steps[1].half && at.steps[1].half >= at.steps[2].half, "the anchor band only ever tightens, never widens");
+  ok(at.steps[2].half === 1 && at.steps[2].state === "measured", "a DEXA re-anchor lands the band at ±1.0 and reads measured");
+  ok(at.steps[0].state === "quiet" && at.steps[0].half === +((at.hi - at.lo) / 2).toFixed(1), "today's step is the live bfEst band, shown as a guess");
+}
+
 // v2.2 — signals
 const { completeSession: cs2, genSession: gs2, SEED: S4, migrate: mg2 } = __test;
 ok(S4.v >= 4 && Array.isArray(S4.waist) && S4.exercises.every(e => Array.isArray(e.rirHist)), "seed carries v4 signal fields");
