@@ -130,6 +130,19 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   ok(__test.migrate(withData).plan.goals.length === 1 && __test.migrate(withData).plan.share === true, "a state that already has a plan keeps it through migration");
 }
 
+// the Why-Engine decomposition — v2 slice C
+{
+  const w0 = __test.whyDecompose(clone(SEED));
+  ok(typeof w0.show === "boolean", "whyDecompose always returns a show flag (exception-only surface)");
+  const wUp = clone(SEED); wUp.trend = 163.0; wUp.reads = wUp.reads.concat([{ d: "2026-07-31", w: 165.6, sealed: false }]);
+  const w1 = __test.whyDecompose(wUp);
+  ok(w1.show === true, "a big above-trend morning surfaces the decomposition");
+  ok(w1.parts.length === 3, "the decomposition has three parts (refeed water, sodium water, real)");
+  const sum = w1.parts.reduce((a, p) => a + p.pct, 0);
+  ok(sum >= 98 && sum <= 102, "the shares sum to ~100%");
+  ok(w1.parts.find((p) => p.key === "real").tone === "brass", "the real slice is brass (measured), never green");
+}
+
 // the body-comp anchor tightening path — the v2 anchor selector (slice B)
 {
   const at = __test.anchorTighten(clone(SEED));

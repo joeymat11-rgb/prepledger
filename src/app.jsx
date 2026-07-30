@@ -4656,6 +4656,52 @@ function theOneFix(s, levers) {
     body: "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
     whyNot: null };
 }
+
+/* ---------- THE WHY-ENGINE — how much of a scary scale move is real (v2) ----------
+   Day-to-day weight is mostly water: glycogen holds ~3 g water per gram, sodium and
+   gut contents move the number by a pound or two, and a refeed refills glycogen on
+   purpose. This is a COMPOSITION + NARRATION layer over pieces the app already owns
+   — the weightNoise floor, the measured rate, and the refeed calendar — not new
+   statistics. It surfaces only when there is something transient to explain, leads
+   with the DECISION ("nothing to do"), attributes to physiology and never behaviour,
+   and is gated by signalState so it can never become "it's always water". Shares are
+   an estimate with a margin; the REAL slice tracks the MEASURED trend, so a genuine
+   stall still earns its name. Brass ◆ = the real (measured) slice — green is never
+   used for a data state here. */
+function whyDecompose(s) {
+  const sig = signalState(s);
+  const clean = (s.reads || []).filter((r) => r && !r.sealed && r.w != null);
+  if (clean.length < 5) return { show: false, sig };
+  const last = clean[clean.length - 1];
+  const wn = weightNoise(clean);
+  const trend = s.trend != null ? s.trend : last.w;
+  const gap = +(last.w - trend).toFixed(1);
+  const refeedRecent = [1, 2, 3].some((d) => dayType(isoOf(new Date(todayStart().getTime() - d * DAY)), s) === "REFEED");
+  const floor = s.rate && s.rate.floor != null ? s.rate.floor : 0.8;
+  const rate = currentRate(s);
+  const realStall = rate.measured && rate.scale < floor && sig.state !== "reversed";
+  const show = gap >= Math.max(0.4, wn.sd) || refeedRecent || realStall;
+  if (!show) return { show: false, sig };
+  // The REAL share tracks the measured trend: on-pace -> mostly water; a measured
+  // stall -> a real slice earns its place. Water leans on a recent refeed (glycogen)
+  // vs the baseline sodium+gut swing. Estimates, carried with a margin.
+  let real = realStall ? 0.35 : sig.state === "reversed" ? 0.45 : 0.15;
+  let refeed = refeedRecent ? 0.40 : 0.10;
+  let sodium = Math.max(0.1, 1 - real - refeed);
+  const norm = real + refeed + sodium;
+  const pc = (x) => Math.round((x / norm) * 100);
+  const parts = [
+    { key: "refeed", label: "water · refeed glycogen", pct: pc(refeed), tone: "gauge" },
+    { key: "sodium", label: "water · sodium + gut", pct: pc(sodium), tone: "steel" },
+    { key: "real", label: "real · smaller deficit", pct: pc(real), tone: "brass" },
+  ];
+  const realPct = pc(real);
+  return {
+    show: true, sig, gap, refeedRecent, realStall, rate: rate.scale, sd: wn.sd,
+    parts, realPct, waterPct: 100 - realPct,
+    question: gap > 0.4 ? "Why is the scale up this morning?" : realStall ? "Why has the loss slowed?" : "How much of this is real?",
+  };
+}
 const volBucket = (ex) => (ex && (ex.head || ex.mg)) || null;
 function muscleVolume(s) {
   const tISO6 = isoOf(todayStart());
@@ -6605,6 +6651,7 @@ __test.signalState = signalState;
 __test.dataLossGuard = dataLossGuard;
 __test.fiveLevers = fiveLevers;
 __test.theOneFix = theOneFix;
+__test.whyDecompose = whyDecompose;
 __test.beatsNoise = beatsNoise;
 __test.cleanAtDate = cleanAtDate;
 __test.progressStep = progressStep;
@@ -6896,6 +6943,13 @@ const BandBar = ({ lo, hi, min, max, c = T.gauge, h = 8 }) => {
     </div>
   );
 };
+/* A proportional stacked bar — the Why-Engine's water-vs-real decomposition. Same
+   family as BandBar so a split always reads the same way across the app. */
+const StackBar = ({ segments, h = 10 }) => (
+  <div style={{ display: "flex", height: h, borderRadius: 99, overflow: "hidden", background: T.plate2 }}>
+    {segments.map((sg, i) => <div key={i} style={{ width: `${sg.pct}%`, background: sg.c, height: "100%" }} aria-label={sg.label} />)}
+  </div>
+);
 
 function trendSeries(reads) {
   let t = null;
@@ -7360,6 +7414,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const oneFix = theOneFix(s, levers);
   const plan = s.plan || { goals: [], ifthen: [], share: false };
   const savePlan = (next) => { const ns = { ...s, plan: { goals: [], ifthen: [], share: false, ...plan, ...next } }; setS(ns); save(ns); };
+  const why = whyDecompose(s);
   const [whyOpen, setWhyOpen] = useState(false);
   const [newGoal, setNewGoal] = useState("");
   const [ifCue, setIfCue] = useState("");
@@ -7453,6 +7508,40 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           {rc.rawLine ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm }}>{rc.rawLine}</div> : null}
         </Card>
       ); })()}
+
+      {/* ---------- THE WHY-ENGINE (v2 slice C — the defuser) ----------
+          Exception-only: appears when the scale does something transient (a spike or a
+          measured stall), breaks it into water vs real with the physiology, and leads
+          with the decision. Gated by signalState; brass ◆ marks the real slice. */}
+      {why.show && (
+        <Card accent={T.gauge} style={{ padding: SP.lg }}>
+          <Eyebrow c={T.gauge}>{why.question}</Eyebrow>
+          <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, textTransform: "uppercase", marginTop: SP.sm }}>THIS WEEK, DECOMPOSED</div>
+          <div style={{ marginTop: SP.sm }}>
+            <StackBar segments={why.parts.map((p) => ({ pct: p.pct, c: p.tone === "gauge" ? T.gauge : p.tone === "brass" ? T.brass : T.steel, label: p.label }))} />
+            <div style={{ marginTop: SP.sm, display: "flex", flexDirection: "column", gap: SP.xs }}>
+              {why.parts.map((p) => (
+                <div key={p.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: SP.sm }}>
+                  <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, letterSpacing: "0.06em", color: p.tone === "brass" ? T.brass : p.tone === "gauge" ? T.gauge : T.steel, textTransform: "uppercase" }}>{p.key === "real" ? "◆ " : ""}{p.label}</span>
+                  <span data-num style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>~{p.pct}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, lineHeight: `${LH.body}px` }}>
+            About {why.waterPct}% of this is water — glycogen and sodium move the scale a pound or two and clear on their own. The real signal is the trend, and it's {why.rate > 0 ? `still dropping ~${Math.abs(why.rate).toFixed(1)} lb/wk` : "the number to watch"}.
+          </div>
+          <div style={{ marginTop: SP.md, padding: SP.md, background: T.plate2, borderRadius: 8, border: `1px solid ${T.line}` }}>
+            <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.12em", color: T.jade, textTransform: "uppercase" }}>WHAT TO DO</div>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>
+              {why.realStall ? `Nothing this morning — most of it clears in a day or two. If the real ~${why.realPct}% is still there next week, that's when a small deficit trim earns its place. Not before.` : "Nothing this morning — the water clears in a day or two. The trend hasn't changed; a normal swing isn't a stall."}
+            </div>
+          </div>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>
+            Shares are an estimate from your logs and physiology, carried with a margin — the best decomposition, not a fact. On an n of one, water and real can't be split to the decimal.
+          </div>
+        </Card>
+      )}
 
       {/* ---------- THE FIVE TODAY (v2 adherence — did you do the five?) ----------
           The levers that actually move body composition, each with the redundant
