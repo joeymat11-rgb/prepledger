@@ -54,6 +54,64 @@ const T = {
      mark, the (measured) tag, and earned moments — nothing that is merely tappable. */
   gauge: "#3FB4D8",
 };
+/* ---------- THEME: system | light | dark ----------
+   A daily instrument spans a pre-dawn weigh-in and noon conditioning in sunlight,
+   and for normal vision light mode reads better outdoors — so dark-only was a
+   guess about context, not a measurement of it.
+   Light is COMPUTED, never the dark hexes on a pale ground: the same hue that
+   reads 7:1 on near-black reads about 2:1 on paper, so every accent is darkened
+   until it clears AA body again. Hue identity is preserved within 1–7°, so the
+   instrument still looks like itself. Page is warm off-white rather than #FFF to
+   cut glare and keep the instrument feel, and elevation inverts — in dark, cards
+   are lighter than the page; on paper, cards are the white and the page recedes.
+
+   Verified on the card surface (AA body needs 4.5:1):
+     chalk 16.6 · steel 6.0 · jade 5.3 · brass 5.3 · orange 5.4 · redline 6.8 · gauge 6.0
+   `dim` stays sub-threshold in both themes by design — it is decoration only. */
+const PALETTE = {
+  dark: {
+    ink: "#101418", plate: "#181E24", plate2: "#1F262E", line: "#2A323B",
+    chalk: "#E8E4DA", steel: "#8A94A0", dim: "#5A636E",
+    jade: "#4CC38A", brass: "#E5B454", orange: "#F5793A", redline: "#E8556B", gauge: "#3FB4D8",
+    hairline: "rgba(90,99,110,0.4)",
+  },
+  light: {
+    ink: "#F4F2ED", plate: "#FFFFFF", plate2: "#F0EDE6", line: "#DBD6CC",
+    chalk: "#1A1F25", steel: "#5C646E", dim: "#A8AEB6",
+    jade: "#14663F", brass: "#8A6520", orange: "#B4471A", redline: "#B3123C", gauge: "#0E6C87",
+    hairline: "rgba(168,174,182,0.55)",
+  },
+};
+const THEME_KEY = "prep-ledger-theme"; /* NEW key — nothing existing is renamed */
+const readThemeChoice = () => { try { return localStorage.getItem(THEME_KEY) || "system"; } catch (e) { return "system"; } };
+const systemPrefersLight = () => {
+  try { return typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches; }
+  catch (e) { return false; }
+};
+const resolveTheme = (choice) => (choice === "light" || choice === "dark") ? choice : (systemPrefersLight() ? "light" : "dark");
+/* Mutating T in place rather than threading a palette through ~1,100 inline styles.
+   Every style reads T at render time, so a root re-render after this picks up the
+   new values — and SEM/REDLINE_TEXT are rebuilt because they captured the old hexes. */
+function applyTheme(choice) {
+  const mode = resolveTheme(choice);
+  Object.assign(T, PALETTE[mode]);
+  T.focus = T.gauge;
+  SEM.good.c = T.jade; SEM.caution.c = T.orange; SEM.limit.c = T.redline;
+  SEM.measured.c = T.brass; SEM.quiet.c = T.steel;
+  REDLINE_TEXT.color = T.redline;
+  if (typeof document !== "undefined") {
+    const root = document.documentElement;
+    root.setAttribute("data-theme", mode);
+    /* The injected stylesheet is written once, so anything themeable in it reads a
+       custom property instead of a baked hex. */
+    root.style.setProperty("--m-focus", T.gauge);
+    root.style.background = T.ink;
+    if (document.body) { document.body.style.background = T.ink; document.body.style.color = T.chalk; }
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", T.ink);
+  }
+  return mode;
+}
 T.hairline = "rgba(90,99,110,0.4)"; /* dim @40% — the separator, per §3.3 */
 /* The focus ring moves to gauge with everything else interactive. The brief asked
    for brass here, but a focus ring is the definition of an interactive affordance,
@@ -162,7 +220,8 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
   const st0 = document.createElement("style"); st0.id = "pl-gx";
   st0.textContent = "*{box-sizing:border-box;-webkit-tap-highlight-color:transparent} html,body,#root{max-width:100%;overflow-x:hidden} body{-webkit-text-size-adjust:100%} input,select,textarea{font-size:16px !important;max-width:100%} button{max-width:100%}"
     /* Visible focus everywhere a keyboard can land: 2px brass, 2px offset (§2). */
-    + `:focus-visible{outline:2px solid ${T.focus};outline-offset:2px;border-radius:6px}`
+    /* var() so a theme switch repaints it — the stylesheet is written only once. */
+    + `:focus-visible{outline:2px solid var(--m-focus, ${T.focus});outline-offset:2px;border-radius:6px}`
     /* Every number in this app is tabular so digits never reflow between states —
        a weight going 181.4 → 179.8 must not shift the glyphs around it. */
     + "[data-num],.num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}"
@@ -190,7 +249,11 @@ const setReduceMotion = (on) => {
 if (typeof document !== "undefined" && reduceMotionOn()) {
   document.documentElement.setAttribute("data-reduce-motion", "1");
 }
-const APP_V = "4.1.1";
+/* Paint the saved theme before the first render, so nobody sees a dark flash on
+   the way to light (or the reverse). Runs here rather than beside applyTheme's
+   definition because it depends on SEM and REDLINE_TEXT already existing. */
+if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
+const APP_V = "4.1.2";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -8867,6 +8930,7 @@ function MoreTab({ s, go, openRules, openCoach }) {
      separate plates stacked down the screen, which reads as nine unrelated
      things rather than three groups of related ones. */
   const [rm, setRm] = useState(reduceMotionOn);
+  const [theme, setTheme] = useState(readThemeChoice);
   const rowStyle = {
     display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.md,
     minHeight: 44, padding: `${SP.sm}px 0`, cursor: "pointer",
@@ -8916,6 +8980,32 @@ function MoreTab({ s, go, openRules, openCoach }) {
 
       <SecRule>DISPLAY</SecRule>
       <Card style={{ padding: `${SP.xs}px ${SP.lg}px` }}>
+        {/* THEME. Three states, explicit and reversible, with the resolved mode named
+            so "System" is never ambiguous about what it currently resolved to. */}
+        <div style={{ padding: `${SP.md}px 0` }}>
+          <span style={{ fontFamily: mono, fontSize: TS.label, color: T.chalk, letterSpacing: "0.04em" }}>THEME</span>
+          <span style={{ display: "block", fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.hair, lineHeight: `${LH.body}px` }}>
+            Light reads better outdoors; dark suits a pre-dawn weigh-in. System follows your phone — currently {resolveTheme(theme)}.
+          </span>
+          <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
+            {["system", "light", "dark"].map((opt) => {
+              const on = theme === opt;
+              return (
+                <button key={opt} onClick={() => { try { localStorage.setItem(THEME_KEY, opt); } catch (e) {} setTheme(opt); if (window.__applyTheme) window.__applyTheme(opt); }}
+                  aria-pressed={on}
+                  style={{
+                    minHeight: 44, padding: `${SP.sm}px ${SP.lg}px`, borderRadius: 8, cursor: "pointer",
+                    fontFamily: mono, fontSize: TS.micro, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase",
+                    background: on ? T.gauge : "transparent", color: on ? T.ink : T.chalk,
+                    border: `1px solid ${on ? T.gauge : T.line}`, transition: TR("background-color", MOT.micro),
+                  }}>
+                  {on ? "✓ " : ""}{opt}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ borderTop: `1px solid ${T.hairline}` }} />
         {/* A real toggle, not a label. The stylesheet already honours the OS-level
             prefers-reduced-motion; this is for the athlete who wants stillness
             regardless of what the phone is set to. */}
@@ -9244,6 +9334,28 @@ export default function PrepLedger() {
   const [gloss, setGloss] = useState(null);
   const [, setWake] = useState(0);
   useEffect(() => { window.__setGloss = setGloss; return () => { window.__setGloss = null; }; }, []);
+  /* Theme lives on the root because switching it mutates T, and only a re-render
+     from up here repaints every inline style that reads it. Same hook pattern the
+     glossary already uses. Also follows the OS while the choice is "system", so
+     sunrise flips the instrument without anyone touching a setting. */
+  const [themeTick, setThemeTick] = useState(0);
+  useEffect(() => {
+    window.__applyTheme = (choice) => { applyTheme(choice); setThemeTick((t) => t + 1); };
+    let mq = null, onChange = null;
+    try {
+      mq = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)");
+      onChange = () => { if (readThemeChoice() === "system") { applyTheme("system"); setThemeTick((t) => t + 1); } };
+      if (mq && mq.addEventListener) mq.addEventListener("change", onChange);
+      else if (mq && mq.addListener) mq.addListener(onChange);
+    } catch (e) {}
+    return () => {
+      window.__applyTheme = null;
+      try {
+        if (mq && onChange && mq.removeEventListener) mq.removeEventListener("change", onChange);
+        else if (mq && onChange && mq.removeListener) mq.removeListener(onChange);
+      } catch (e) {}
+    };
+  }, []);
   const shellRef = useRef(null);
   const [vh9, setVh9] = useState(0);
   const [, beat9] = useState(0);
