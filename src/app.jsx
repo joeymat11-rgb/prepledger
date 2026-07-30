@@ -146,7 +146,7 @@ const REDLINE_TEXT = { color: T.redline, fontWeight: 700 };
 const SemTag = ({ state, text, size = null, bold = false }) => {
   const st = sem(state);
   return (
-    <span style={{ display: "inline-flex", alignItems: "baseline", gap: SP.xs, color: st.c, fontFamily: mono, fontSize: size || TS.micro, fontWeight: bold || state === "limit" ? 700 : 500, letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+    <span style={{ display: "inline-flex", alignItems: "baseline", gap: SP.xs, color: st.c, fontFamily: lbl, fontSize: size || TS.micro, fontWeight: bold || state === "limit" ? 700 : 500, letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
       <span aria-hidden="true">{st.glyph}</span>
       <span>{text != null ? text : st.word}</span>
     </span>
@@ -155,6 +155,41 @@ const SemTag = ({ state, text, size = null, bold = false }) => {
 const disp = "'Barlow Condensed', system-ui, sans-serif";
 const mono = "'IBM Plex Mono', ui-monospace, monospace";
 const body = "'Barlow', system-ui, sans-serif";
+/* ---------- WHICH FACE DOES WHAT — the ambiguity, resolved ----------
+   The brief said "Barlow Condensed = hero metrics" AND "Plex Mono = ALL numbers",
+   which overlap on the single most important glyphs in the app. Pinned down:
+
+     HERO READOUT  -> disp (Barlow Condensed 600). One number per screen, large.
+     EVERY OTHER
+     NUMBER        -> mono (Plex Mono). Stat rows, tables, chart values, steppers.
+     (measured)/
+     (speculation) -> mono. The epistemic tags are part of the numeric record.
+     LABELS, UNITS,
+     AXES, BUTTONS -> lbl (Barlow) with tabular figures on.
+
+   Why labels left monospace: the wins we actually wanted from Plex Mono are column
+   alignment and digit disambiguation, and font-variant-numeric: tabular-nums buys
+   both in a proportional face. Full monospace fixes EVERY glyph width, which costs
+   horizontal room on a phone and reads as prose-in-mono fatigue; its legibility
+   edge is a narrow acuity gain, not a reading-speed win (Mansfield/Legge/Bane 1996).
+   So mono keeps the jobs where alignment is the point, and hands back the rest.
+
+   TYPE_POLISH_NOTE — the audit asks for Barlow Semi Condensed on small labels,
+   because condensed faces read about 11% slower at a glance (Sawyer 2017 via NN/g)
+   and that penalty lands hardest exactly where labels are smallest. Agreed in
+   principle, not shipped: fonts here are self-hosted and base64-embedded in
+   fonts.css, so adding a family means adding real font binaries — which cannot be
+   invented from this side. `lbl` is a single alias, so when the woff2 files exist
+   this becomes a one-line change. Until then Barlow (not Condensed) carries the
+   labels, which already avoids the condensed penalty.
+   Also unresolved by choice: the three families are static @font-face, not variable
+   builds. Swapping to variable would cut bytes and give real weight interpolation,
+   and again it needs the binaries. */
+const lbl = body;
+/* Tabular figures for any proportional face carrying digits, so a label like
+   "n=9" and "n=12" still stack. Slashed zero requested too: harmless if the
+   embedded subset lacks the feature, and correct if it has it. */
+const NUMERIC = { fontVariantNumeric: "tabular-nums", fontFeatureSettings: "'tnum' 1, 'zero' 1" };
 
 /* ---------- type scale — six roles, one source ----------
    The old file carried 27 ad-hoc font sizes; 217 of its 429 declarations sat
@@ -224,7 +259,10 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
     + `:focus-visible{outline:2px solid var(--m-focus, ${T.focus});outline-offset:2px;border-radius:6px}`
     /* Every number in this app is tabular so digits never reflow between states —
        a weight going 181.4 → 179.8 must not shift the glyphs around it. */
-    + "[data-num],.num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1}"
+    /* 'zero' asks the face for the slashed/dotted zero so 0 and O cannot be
+       confused in a weight or a load. If the embedded subset dropped the feature
+       this is simply inert — it cannot make anything worse. */
+    + "[data-num],.num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1,'zero' 1}"
     /* The OS-level request wins over every token above. Anything still moving is
        cut to a 100ms opacity fade; nothing travels, nothing animates twice. */
     + "@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:100ms !important;transition-property:opacity !important;scroll-behavior:auto !important}}"
@@ -253,7 +291,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "4.1.2";
+const APP_V = "4.1.3";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -5929,8 +5967,11 @@ __test.openerRir = openerRir;
 __test.terminalRir = terminalRir;
 
 /* ---------- atoms ---------- */
+/* Section eyebrows are LABELS, so they leave monospace: Barlow 600 with tabular
+   figures keeps any count inside them aligned while giving back the horizontal
+   room mono was spending on every glyph. */
 const Eyebrow = ({ children, c = T.steel }) => (
-  <div style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.18em", color: c, textTransform: "uppercase" }}>{children}</div>
+  <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.14em", color: c, textTransform: "uppercase", ...NUMERIC }}>{children}</div>
 );
 /* The shape half of the status encoding. stampColor() alone put meaning on hue,
    which fails WCAG 1.4.1 wherever the colour is the only difference — the LAB list
@@ -5959,7 +6000,7 @@ const STAMP_LABEL = { GATED: "LOCKED", DEBUT: "FIRST RUN", OWNED: "YOURS", "OWN-
    — but the glyph makes the state readable at a glance without decoding either the
    hue or the label, which is the point of the triple. */
 const Stamp = ({ st }) => (
-  <span style={{ display: "inline-flex", alignItems: "baseline", gap: SP.xs, fontFamily: mono, fontSize: TS.label, letterSpacing: "0.14em", color: stampColor(st), border: `1px solid ${stampColor(st)}`, borderRadius: 3, padding: "2px 6px", whiteSpace: "nowrap" }}>
+  <span style={{ display: "inline-flex", alignItems: "baseline", gap: SP.xs, fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.12em", color: stampColor(st), border: `1px solid ${stampColor(st)}`, borderRadius: 3, padding: "2px 6px", whiteSpace: "nowrap" }}>
     <span aria-hidden="true">{stampGlyph(st)}</span>{STAMP_LABEL[st] || st}
   </span>
 );
@@ -5968,20 +6009,20 @@ const Card = ({ children, style = {}, accent, ...rest }) => (
 );
 const Cond = ({ how, when }) => (
   <div style={{ marginTop: 12, padding: "10px 12px", background: T.plate2, borderRadius: 8, border: `1px solid ${T.line}` }}>
-    <div style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.16em", color: T.steel }}>HOW</div>
+    <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel }}>HOW</div>
     <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 3, lineHeight: 1.45 }}>{how}</div>
-    <div style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.16em", color: T.steel, marginTop: 9 }}>COUNTS WHEN</div>
+    <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, marginTop: 9 }}>COUNTS WHEN</div>
     <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 3, lineHeight: 1.45 }}>{when}</div>
   </div>
 );
 const SecRule = ({ children }) => (
   <div style={{ display: "flex", alignItems: "center", gap: SP.md, margin: `${SP.xl}px 2px ${SP.sm}px` }}>
-    <span style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, letterSpacing: "0.2em", color: T.steel, whiteSpace: "nowrap" }}>{children}</span>
+    <span style={{ fontFamily: lbl, fontSize: TS.label, fontWeight: 600, letterSpacing: "0.16em", color: T.steel, whiteSpace: "nowrap", ...NUMERIC }}>{children}</span>
     <span style={{ flex: 1, height: 1, background: T.line }} />
   </div>
 );
 const Chip = ({ children, c = T.steel }) => (
-  <span style={{ fontFamily: mono, fontSize: TS.label, color: c, border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 11px", whiteSpace: "nowrap" }}>{children}</span>
+  <span style={{ fontFamily: lbl, fontWeight: 500, fontSize: TS.label, color: c, border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 11px", whiteSpace: "nowrap", ...NUMERIC }}>{children}</span>
 );
 const Btn = ({ onClick, children, tone = "ghost", full, small, disabled }) => {
   const tones = {
@@ -5995,7 +6036,7 @@ const Btn = ({ onClick, children, tone = "ghost", full, small, disabled }) => {
        proposals, which are the most consequential taps in the app. `small` now
        means tighter horizontal padding and a quieter size, never a smaller target.
        The press state uses the state token: 80ms, settle, no bounce. */
-    <button onClick={disabled ? undefined : onClick} style={{ ...tones[tone], opacity: disabled ? 0.4 : 1, fontFamily: mono, fontSize: small ? TS.micro : TS.label, letterSpacing: "0.06em", borderRadius: 8, padding: small ? `${SP.sm}px ${SP.md}px` : `${SP.md}px ${SP.lg}px`, minHeight: 44, display: "inline-flex", alignItems: "center", justifyContent: "center", width: full ? "100%" : "auto", fontWeight: 600, cursor: disabled ? "default" : "pointer", transition: TR("opacity", MOT.state) }}>
+    <button onClick={disabled ? undefined : onClick} style={{ ...tones[tone], opacity: disabled ? 0.4 : 1, fontFamily: lbl, fontWeight: 600, fontSize: small ? TS.micro : TS.label, letterSpacing: "0.06em", borderRadius: 8, padding: small ? `${SP.sm}px ${SP.md}px` : `${SP.md}px ${SP.lg}px`, minHeight: 44, display: "inline-flex", alignItems: "center", justifyContent: "center", width: full ? "100%" : "auto", fontWeight: 600, cursor: disabled ? "default" : "pointer", transition: TR("opacity", MOT.state) }}>
       {children}
     </button>
   );
@@ -6033,7 +6074,7 @@ const Hero = ({ value, unit, n = null, speculation = false, c = T.chalk, sub = n
   <div>
     <div style={{ display: "flex", alignItems: "baseline", gap: SP.sm, flexWrap: "wrap" }}>
       <span data-num style={{ fontFamily: disp, fontWeight: 600, fontSize: TS.metric, lineHeight: `${LH.metric}px`, letterSpacing: "-0.25px", color: c, fontVariantNumeric: "tabular-nums" }}>{value}</span>
-      {unit ? <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, letterSpacing: "0.04em", textTransform: "uppercase" }}>{unit}</span> : null}
+      {unit ? <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.steel, letterSpacing: "0.04em", textTransform: "uppercase" }}>{unit}</span> : null}
     </div>
     <div style={{ fontFamily: mono, fontSize: TS.micro, lineHeight: `${LH.micro}px`, letterSpacing: "0.06em", marginTop: SP.hair, color: speculation ? T.orange : T.brass }}>
       {speculation ? "(speculation)" : `(measured, n=${n == null ? 0 : n})`}
@@ -6047,7 +6088,7 @@ const Hero = ({ value, unit, n = null, speculation = false, c = T.chalk, sub = n
    are right-aligned so digits stack into a column you can actually compare down. */
 const DataRow = ({ label, value, tag = null, glyph = null, c = T.chalk, first = false }) => (
   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.md, minHeight: 44, borderTop: first ? "none" : `1px solid ${T.hairline}` }}>
-    <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, letterSpacing: "0.04em", textTransform: "uppercase" }}>{label}</span>
+    <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.steel, letterSpacing: "0.04em", textTransform: "uppercase", ...NUMERIC }}>{label}</span>
     <span style={{ display: "flex", alignItems: "baseline", gap: SP.sm, minWidth: 0 }}>
       {glyph ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: c }}>{glyph}</span> : null}
       <span data-num style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, color: c, fontVariantNumeric: "tabular-nums", textAlign: "right" }}>{value}</span>
@@ -9536,7 +9577,7 @@ export default function PrepLedger() {
         <div style={{ position: "absolute", top: 2, right: 8, fontFamily: mono, fontSize: TS.micro, color: T.steel, opacity: 0.7, padding: 4 }}>v{APP_V}</div>
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
-            <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: (tab === t2 || (t2 === "MORE" && inMore)) ? `2px solid ${T.gauge}` : "2px solid transparent", fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.09em", transition: TR("color", MOT.micro), color: (tab === t2 || (t2 === "MORE" && inMore)) ? T.gauge : T.steel }}>
+            <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: (tab === t2 || (t2 === "MORE" && inMore)) ? `2px solid ${T.gauge}` : "2px solid transparent", fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, letterSpacing: "0.09em", transition: TR("color", MOT.micro), color: (tab === t2 || (t2 === "MORE" && inMore)) ? T.gauge : T.steel }}>
               {TAB_LABEL[t2] || t2}{t2 === "NOW" && (s.agentProposals || []).length > 0 ? <span style={{ color: T.jade, fontWeight: 700 }}> ●{(s.agentProposals || []).length}</span> : null}
             </button>
           ))}
