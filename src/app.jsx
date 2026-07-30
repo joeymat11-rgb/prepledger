@@ -17,13 +17,71 @@ import { HISTORY } from "./history.js";
    it must never carry a glyph. These two used to be #8A93A0 and #838D9A — five
    hex digits apart, indistinguishable on glass, and `dim` was doing 189 text
    jobs it could not do accessibly. Splitting them is the point. */
+/* ACCENTS: hue is never the only carrier — see SEM below.
+   Recomputed WCAG against the real shipped hexes (the audit graded proposed values
+   this app never shipped, so its "redline fails AA" finding did not apply here).
+   Contrast on plate #181E24, and luminance/hue separation between accents:
+
+              on-ink  on-plate            vs-brass        vs-orange
+     jade     8.35    7.58  hue 151       1.16:1 111°     1.23:1 131°
+     brass    9.68    8.79  hue  40         —               —
+     orange   6.76    6.14  hue  20       1.43:1  20°       —
+     redline  5.23    4.75  hue 351       1.85:1  49°     1.29:1  29°
+
+   Two changes, both measured. orange #FF8C42 -> #F5793A pulls the caution colour
+   toward red-orange, away from the brand: brass/orange goes 1.21 -> 1.43:1 and
+   17° -> 20°. That pair matters most because brass and orange occupy the SAME slot
+   — the (measured) vs (speculation) tag — so confusing them inverts the epistemic
+   claim. redline #EA5E62 -> #E8556B moves the error colour to crimson, which buys
+   hue room from orange (25° -> 29°) and lifts brass/redline past the audit's 1.8
+   bar to 1.85:1, while still clearing AA body text on plate at 4.75.
+
+   What the arithmetic also proves: four accents that all clear 4.5:1 on a dark
+   ground are squeezed into a narrow luminance band, so SIX pairs cannot all reach
+   1.8:1 — it is over-constrained, not under-tuned. Chasing it with hex values just
+   trades one collision for another. That is why the real fix is redundant
+   encoding, and why SEM exists. */
 const T = {
   ink: "#101418", plate: "#181E24", plate2: "#1F262E", line: "#2A323B",
   chalk: "#E8E4DA", steel: "#8A94A0", dim: "#5A636E",
-  jade: "#4CC38A", brass: "#E5B454", orange: "#FF8C42", redline: "#EA5E62",
+  jade: "#4CC38A", brass: "#E5B454", orange: "#F5793A", redline: "#E8556B",
 };
 T.hairline = "rgba(90,99,110,0.4)"; /* dim @40% — the separator, per §3.3 */
 T.focus = T.brass;                  /* 2px brass ring, 2px offset */
+
+/* ---------- SEM — semantic states, encoded three ways ----------
+   WCAG 1.4.1 (Level A): colour must never be the sole carrier of meaning. Roughly
+   8% of men have red-green colour vision deficiency, and jade/redline is the
+   classic confusion pair carrying OPPOSITE meanings in this app. On top of that,
+   this thing gets read in gym light with sweat on the screen.
+   So every semantic state ships a triple: a colour, a GLYPH that differs in shape,
+   and a WORD. Any one of the three survives alone. Call sem() rather than reaching
+   for T.jade / T.orange / T.redline directly when the colour means something.
+   Glyphs are chosen to differ in silhouette, not just fill: ✓ ▲ ! ◆ · */
+const SEM = {
+  good:    { c: T.jade,    glyph: "✓", word: "on target" },
+  caution: { c: T.orange,  glyph: "▲", word: "adjust" },
+  limit:   { c: T.redline, glyph: "!", word: "at limit" },
+  measured:{ c: T.brass,   glyph: "◆", word: "measured" },
+  quiet:   { c: T.steel,   glyph: "·", word: "" },
+};
+const sem = (k) => SEM[k] || SEM.quiet;
+/* redline is the lowest-contrast accent by construction (4.75:1 on plate), so it
+   carries a size rule as well: as text it is TS.title or larger, or bold, or it
+   appears only as an icon paired with a word. Never small, thin and red. */
+const REDLINE_TEXT = { color: T.redline, fontWeight: 700 };
+/* A state stamp: glyph + word + colour, in that order of survivability. `only`
+   trims it to the glyph when space is genuinely tight — the word then has to be
+   adjacent in the surrounding copy. */
+const SemTag = ({ state, text, size = null, bold = false }) => {
+  const st = sem(state);
+  return (
+    <span style={{ display: "inline-flex", alignItems: "baseline", gap: SP.xs, color: st.c, fontFamily: mono, fontSize: size || TS.micro, fontWeight: bold || state === "limit" ? 700 : 500, letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+      <span aria-hidden="true">{st.glyph}</span>
+      <span>{text != null ? text : st.word}</span>
+    </span>
+  );
+};
 const disp = "'Barlow Condensed', system-ui, sans-serif";
 const mono = "'IBM Plex Mono', ui-monospace, monospace";
 const body = "'Barlow', system-ui, sans-serif";
@@ -120,7 +178,7 @@ const setReduceMotion = (on) => {
 if (typeof document !== "undefined" && reduceMotionOn()) {
   document.documentElement.setAttribute("data-reduce-motion", "1");
 }
-const APP_V = "4.0.23";
+const APP_V = "4.1.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -5799,6 +5857,17 @@ __test.terminalRir = terminalRir;
 const Eyebrow = ({ children, c = T.steel }) => (
   <div style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.18em", color: c, textTransform: "uppercase" }}>{children}</div>
 );
+/* The shape half of the status encoding. stampColor() alone put meaning on hue,
+   which fails WCAG 1.4.1 wherever the colour is the only difference — the LAB list
+   drew a bare 7px coloured dot per instrument. Shapes differ in silhouette so they
+   survive greyscale, colour blindness, and a phone in sunlight. */
+const stampGlyph = (st) => {
+  if (["OWNED", "RECLAIMED", "ESTABLISH", "ESTABLISHED", "BASELINE", "RUNG DONE", "BOOKED", "FIRED", "ANCHORED", "LIVE", "TRACKING"].includes(st)) return "✓";
+  if (["DEBUT"].includes(st)) return "▲";
+  if (st === "MODEL") return "◇";
+  if (["LOCKED", "ON FILE", "PARKED", "UNBOOKED", "COACH'S EYE", "ARMS @ ~13%", "COACH FLAG"].includes(st)) return "·";
+  return "◆";
+};
 const stampColor = (st) => {
   if (["OWNED", "RECLAIMED", "ESTABLISH", "ESTABLISHED", "BASELINE", "RUNG DONE", "BOOKED", "FIRED", "ANCHORED"].includes(st)) return T.jade;
   if (["DEBUT"].includes(st)) return T.orange;
@@ -5811,8 +5880,13 @@ const stampColor = (st) => {
   return T.brass;
 };
 const STAMP_LABEL = { GATED: "LOCKED", DEBUT: "FIRST RUN", OWNED: "YOURS", "OWN-IT": "MAKE IT YOURS", RECLAIM: "WIN IT BACK", PARKED: "ON HOLD", REVERT: "ROLLED BACK" };
+/* The queue badge already carried its state as a WORD, so it was never colour-only
+   — but the glyph makes the state readable at a glance without decoding either the
+   hue or the label, which is the point of the triple. */
 const Stamp = ({ st }) => (
-  <span style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.14em", color: stampColor(st), border: `1px solid ${stampColor(st)}`, borderRadius: 3, padding: "2px 6px", whiteSpace: "nowrap" }}>{STAMP_LABEL[st] || st}</span>
+  <span style={{ display: "inline-flex", alignItems: "baseline", gap: SP.xs, fontFamily: mono, fontSize: TS.label, letterSpacing: "0.14em", color: stampColor(st), border: `1px solid ${stampColor(st)}`, borderRadius: 3, padding: "2px 6px", whiteSpace: "nowrap" }}>
+    <span aria-hidden="true">{stampGlyph(st)}</span>{STAMP_LABEL[st] || st}
+  </span>
 );
 const Card = ({ children, style = {}, accent, ...rest }) => (
   <div {...rest} style={{ background: T.plate, border: `1px solid ${T.line}`, borderLeft: accent ? `3px solid ${accent}` : `1px solid ${T.line}`, borderRadius: 8, padding: SP.lg, ...style }}>{children}</div>
@@ -6079,7 +6153,13 @@ function RateGauge({ rate, cur }) {
         <div style={{ position: "absolute", left: px(cur.scale), top: 1, width: 2, bottom: 1, background: T.steel }} />
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7, fontFamily: mono, fontSize: TS.micro, color: T.steel }}>
-        <span style={{ color: T.brass }}>floor {rate.floor}</span><span style={{ color: T.jade }}>band {rate.band.join("–")}</span><span style={{ color: T.redline }}>redline {rate.redline}</span>
+        {/* The three markers on the track above differ only by colour and position.
+            Position is a legitimate second channel, but the legend now carries the
+            glyph too so the track can be decoded without seeing hue at all. And
+            redline text is bold here, per the redline size rule. */}
+        <SemTag state="caution" text={`floor ${rate.floor}`} />
+        <SemTag state="good" text={`band ${rate.band.join("–")}`} />
+        <SemTag state="limit" text={`redline ${rate.redline}`} />
       </div>
       <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 6 }}>
         scale ~{cur.scale}/wk · <span style={{ color: T.chalk }}>fat ~{cur.fat}/wk</span>{cur.measured ? " — measured from your trend" : " — prior until 2 clean weeks exist"}
@@ -8032,7 +8112,10 @@ function SleepTab({ s, setS, save, slp }) {
                   const h = n && n.h != null ? n.h : null;
                   return (
                     <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: SP.xs, minWidth: 0 }}>
-                      <div data-num style={{ fontFamily: mono, fontSize: TS.micro, color: h == null ? T.dim : T.steel, fontVariantNumeric: "tabular-nums" }}>{h == null ? "" : h}</div>
+                      {/* The bar's colour says short/ok/good; the printed hours already
+                          repeat it, and an under-5h night now gets the limit glyph so
+                          the worst nights are findable without reading hue. */}
+                      <div data-num style={{ fontFamily: mono, fontSize: TS.micro, color: h == null ? T.dim : h < 5 ? T.redline : T.steel, fontWeight: h != null && h < 5 ? 700 : 500, fontVariantNumeric: "tabular-nums" }}>{h == null ? "" : h < 5 ? "!" + h : h}</div>
                       {h == null ? (
                         /* the gap: an outline where a measurement isn't */
                         <div style={{ width: "100%", height: 68, border: `1px dashed ${T.dim}`, borderRadius: 3, opacity: 0.5 }} />
@@ -8049,7 +8132,7 @@ function SleepTab({ s, setS, save, slp }) {
                 })}
               </div>
               <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>
-                <span style={{ color: T.jade }}>■ at or over {s.sleep.cleanH} h</span> · <span style={{ color: T.steel }}>■ short</span> · <span style={{ color: T.brass }}>■ under 5 h</span> · <span style={{ color: T.steel }}>⌐ dashed = not measured</span>
+                <SemTag state="good" text={`at or over ${s.sleep.cleanH} h`} /> · <span style={{ color: T.steel }}>· short</span> · <SemTag state="limit" text="under 5 h" /> · <span style={{ color: T.steel }}>⌐ dashed = not measured</span>
                 <br />(measured, n={logged} of {DAYS} nights)
               </div>
             </>
@@ -8582,7 +8665,9 @@ function HistTab({ s, setS, save }) {
                 <div key={a.id} onClick={() => setLabOpen(a.id)} role="button" tabIndex={0}
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLabOpen(a.id); } }}
                   style={{ display: "flex", alignItems: "center", gap: SP.md, minHeight: 44, padding: `${SP.sm}px 0`, borderTop: `1px solid ${T.hairline}`, cursor: "pointer" }}>
-                  <span style={{ width: 7, height: 7, borderRadius: 99, background: stampColor(a.status), flexShrink: 0 }} />
+                  {/* was a bare 7px coloured dot — hue was the only difference between
+                      "speaking" and "locked". Shape carries it now too. */}
+                  <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.label, lineHeight: 1, color: stampColor(a.status), flexShrink: 0, width: 12, textAlign: "center" }}>{stampGlyph(a.status)}</span>
                   <span style={{ minWidth: 0, flex: 1 }}>
                     <span style={{ display: "block", fontFamily: disp, fontWeight: 600, fontSize: 14, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk, lineHeight: 1.2 }}>{a.t.split(" — ")[0]}</span>
                     <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, lineHeight: `${LH.micro}px`, marginTop: SP.hair, letterSpacing: "0.04em", color: a.status === "LIVE" || a.status === "TRACKING" ? T.brass : T.orange }}>
