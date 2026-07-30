@@ -120,7 +120,7 @@ const setReduceMotion = (on) => {
 if (typeof document !== "undefined" && reduceMotionOn()) {
   document.documentElement.setAttribute("data-reduce-motion", "1");
 }
-const APP_V = "4.0.18";
+const APP_V = "4.0.19";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -8538,10 +8538,27 @@ function HistTab({ s, setS, save }) {
               const row = (a) => labOpen === a.id ? (
                 <div key={a.id} style={{ margin: "8px 0" }}>{renderCard(a)}</div>
               ) : (
-                <div key={a.id} onClick={() => setLabOpen(a.id)} style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 0", borderBottom: `1px solid ${T.line}`, cursor: "pointer" }}>
+                /* The densest rows in the app, and still on spec: 44px, hairline
+                   between rows rather than a box each, and every row states its own
+                   provenance. An instrument that is still gathering says how far off
+                   it is — n=3 of 8 needed — because "locked" with no number attached
+                   is a teaser, and the brief rules teasers out: an earned state must
+                   show what earns it. */
+                <div key={a.id} onClick={() => setLabOpen(a.id)} role="button" tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLabOpen(a.id); } }}
+                  style={{ display: "flex", alignItems: "center", gap: SP.md, minHeight: 44, padding: `${SP.sm}px 0`, borderTop: `1px solid ${T.hairline}`, cursor: "pointer" }}>
                   <span style={{ width: 7, height: 7, borderRadius: 99, background: stampColor(a.status), flexShrink: 0 }} />
-                  <span style={{ fontFamily: disp, fontWeight: 600, fontSize: 14, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk, flex: 1, lineHeight: 1.2 }}>{a.t.split(" — ")[0]}</span>
-                  <span style={{ fontFamily: mono, fontSize: TS.micro, color: freshMap[a.t] ? T.jade : a.status === "LIVE" || a.status === "TRACKING" ? T.jade : a.status === "ARMED" ? T.brass : T.steel, whiteSpace: "nowrap" }}>
+                  <span style={{ minWidth: 0, flex: 1 }}>
+                    <span style={{ display: "block", fontFamily: disp, fontWeight: 600, fontSize: 14, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk, lineHeight: 1.2 }}>{a.t.split(" — ")[0]}</span>
+                    <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, lineHeight: `${LH.micro}px`, marginTop: SP.hair, letterSpacing: "0.04em", color: a.status === "LIVE" || a.status === "TRACKING" ? T.brass : T.orange }}>
+                      {a.status === "LIVE" || a.status === "TRACKING"
+                        ? `(measured${a.prog && a.prog.n != null ? `, n=${a.prog.n}` : ""})`
+                        : a.prog && a.prog.need != null
+                          ? `(not yet earned — n=${a.prog.n} of ${a.prog.need} needed)`
+                          : "(speculation)"}
+                    </span>
+                  </span>
+                  <span style={{ fontFamily: mono, fontSize: TS.micro, whiteSpace: "nowrap", color: freshMap[a.t] ? T.jade : a.status === "LIVE" || a.status === "TRACKING" ? T.jade : a.status === "ARMED" ? T.brass : T.steel }}>
                     {freshMap[a.t] ? `new · ${fmtShort(freshMap[a.t])}` : a.status === "ARMED" && a.prog ? `${a.prog.n}/${a.prog.need}` : a.status.toLowerCase()} <span style={{ color: T.steel }}>▸</span>
                   </span>
                 </div>
@@ -8559,23 +8576,45 @@ function HistTab({ s, setS, save }) {
                       </div>
                     ); })()}
                   {(() => { const pr3 = trialProposals(s); const run3 = (s.trials || []).filter((t) => !t.declined && !trialVerdict(s, t).done).length; return (
-                    <div onClick={() => setDeskOpen(!deskOpen)} style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: run3 ? T.brass : T.chalk, marginTop: 6, cursor: "pointer" }}>
+                    <div onClick={() => setDeskOpen(!deskOpen)} role="button" tabIndex={0} aria-expanded={deskOpen}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setDeskOpen(!deskOpen); } }}
+                      style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: run3 ? T.brass : T.chalk, cursor: "pointer" }}>
                       ⚗ TRIALS DESK · {run3 ? `${run3} running` : "none running"} · {pr3.length} proposed {deskOpen ? "▾" : "▸"}
                     </div>
                   ); })()}
                   {deskOpen && <TrialsDesk s={s} setS={setS} save={save} />}
-                  <div onClick={() => setAskOpen(true)} style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.jade, marginTop: 5, cursor: "pointer" }}>🜁 ASK THE LEDGER — any question, answered from your data ▸</div>
+                  <div onClick={() => setAskOpen(true)} role="button" tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setAskOpen(true); } }}
+                    style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.jade, cursor: "pointer" }}>🜁 ASK THE LEDGER — any question, answered from your data ▸</div>
                   <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>Tap any line for the full story, in plain words. Fresh verdicts carry their date.</div>
                   {secs.map((sec) => {
                     const openSec = secOpen[sec.k] !== undefined ? secOpen[sec.k] : false;
                     const cards = sec.k === "gathering" && !gatherAll ? sec.cards.slice(0, 5) : sec.cards;
                     return (
                       <div key={sec.k}>
-                        <div onClick={() => setSecOpen({ ...secOpen, [sec.k]: !openSec })} style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.12em", color: T.steel, marginTop: 12, cursor: "pointer" }}>{sec.title} {openSec ? "" : "▸"}</div>
-                        {openSec && sec.sub && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 2 }}>{sec.sub}</div>}
-                        {openSec && cards.map(row)}
+                        {/* Section header per §3.5: TS.label UPPER steel with its count
+                            in brass, 24 above and 12 below, and a 44px hit area since
+                            the whole thing is the disclosure control. */}
+                        <div onClick={() => setSecOpen({ ...secOpen, [sec.k]: !openSec })} role="button" tabIndex={0}
+                          aria-expanded={openSec}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, [sec.k]: !openSec }); } }}
+                          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.sm, minHeight: 44, marginTop: SP.xl, cursor: "pointer" }}>
+                          <span style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, letterSpacing: "0.16em", color: T.steel, textTransform: "uppercase" }}>
+                            {sec.title} <span style={{ color: T.brass }}>{sec.cards.length}</span>
+                          </span>
+                          <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>{openSec ? "▾" : "▸"}</span>
+                        </div>
+                        {openSec && sec.sub && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginBottom: SP.md, lineHeight: `${LH.body}px` }}>{sec.sub}</div>}
+                        {openSec && (cards.length ? cards.map(row) : (
+                          /* Empty explains the gate rather than showing a blank shelf. */
+                          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, padding: `${SP.sm}px 0`, lineHeight: `${LH.micro}px` }}>
+                            (measured, n=0) — nothing in this group yet. Instruments appear here once the ledger holds enough logged days to earn them.
+                          </div>
+                        ))}
                         {openSec && sec.k === "gathering" && sec.cards.length > 5 && (
-                          <div onClick={() => setGatherAll(!gatherAll)} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, padding: "9px 0", cursor: "pointer" }}>{gatherAll ? "▴ show the closest five only" : `▸ ${sec.cards.length - 5} more gathering — further from speaking`}</div>
+                          <div onClick={() => setGatherAll(!gatherAll)} role="button" tabIndex={0}
+                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setGatherAll(!gatherAll); } }}
+                            style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>{gatherAll ? "▴ show the closest five only" : `▸ ${sec.cards.length - 5} more gathering — further from speaking`}</div>
                         )}
                       </div>
                     );
