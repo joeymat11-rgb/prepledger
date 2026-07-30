@@ -120,7 +120,7 @@ const setReduceMotion = (on) => {
 if (typeof document !== "undefined" && reduceMotionOn()) {
   document.documentElement.setAttribute("data-reduce-motion", "1");
 }
-const APP_V = "4.0.19";
+const APP_V = "4.0.20";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -5841,7 +5841,12 @@ const Btn = ({ onClick, children, tone = "ghost", full, small, disabled }) => {
     orange: { background: T.orange, color: T.ink, border: `1px solid ${T.orange}` },
   };
   return (
-    <button onClick={disabled ? undefined : onClick} style={{ ...tones[tone], opacity: disabled ? 0.4 : 1, fontFamily: mono, fontSize: small ? TS.micro : TS.label, letterSpacing: "0.06em", borderRadius: 6, padding: small ? "9px 13px" : "11px 15px", width: full ? "100%" : "auto", fontWeight: 600, cursor: disabled ? "default" : "pointer" }}>
+    /* 44px minimum, including `small`. Small used to compute to about 31px tall —
+       under Apple's floor on the buttons that approve and dismiss the engine's
+       proposals, which are the most consequential taps in the app. `small` now
+       means tighter horizontal padding and a quieter size, never a smaller target.
+       The press state uses the state token: 80ms, settle, no bounce. */
+    <button onClick={disabled ? undefined : onClick} style={{ ...tones[tone], opacity: disabled ? 0.4 : 1, fontFamily: mono, fontSize: small ? TS.micro : TS.label, letterSpacing: "0.06em", borderRadius: 8, padding: small ? `${SP.sm}px ${SP.md}px` : `${SP.md}px ${SP.lg}px`, minHeight: 44, display: "inline-flex", alignItems: "center", justifyContent: "center", width: full ? "100%" : "auto", fontWeight: 600, cursor: disabled ? "default" : "pointer", transition: TR("opacity", MOT.state) }}>
       {children}
     </button>
   );
@@ -6107,7 +6112,7 @@ function ApprovalInbox({ s, setS, save, tISO }) {
     const k = (p.apply || {}).kind;
     const pri = (k === "phase" || k === "exit") ? 0 : (k === "cal" || k === "rate" || k === "refeed") ? 1 : 4;
     items.push({
-      key: "eng_" + p.id, from: "ENGINE", type: "ADJUSTMENT ARMED", meta: fmtShort(p.d), accent: T.brass, pri,
+      key: "eng_" + p.id, from: "ENGINE", type: "ADJUSTMENT ARMED", meta: fmtShort(p.d), accent: T.brass, pri, basis: "measured",
       title: p.title, why: p.why, dial: proposalDial(p),
       approve: (n) => { const ns = applyProposal(s, p.id, n || 0); setS(ns); save(ns); },
       approveLabel: (n) => (n ? "Apply my version — log it" : "Apply — log it"),
@@ -6124,6 +6129,9 @@ function ApprovalInbox({ s, setS, save, tISO }) {
     const label = ap.kind === "volume" ? (ap.dir > 0 ? "Add the set — approve" : "Trim the set — approve") : ap.kind === "reset" ? "Apply reset — approve" : "Start trial — approve";
     items.push({
       key: "agt_" + ap.id, from: "AGENT", type: "PROPOSAL", accent: T.jade, pri: ap.kind === "reset" ? 2 : ap.kind === "volume" ? 3 : 5,
+      /* Volume and reset proposals are read off the session log. A trial is a
+         hypothesis by definition — it has not measured anything yet. */
+      basis: ap.kind === "trial" ? "speculation" : "measured",
       title: ap.title, why: plainify(ap.body), consent,
       approve: canApprove ? () => { const ns = applyAgentProposal(s, ap, tISO); setS(ns); save(ns); } : null,
       approveLabel: () => label,
@@ -6137,6 +6145,10 @@ function ApprovalInbox({ s, setS, save, tISO }) {
       items.push({
         key: "ana_" + p.sid, from: "ANALYST", type: "SUGGESTION" + (p.confidence ? " · " + conf.toUpperCase() : ""), accent: T.jade,
         pri: 3 + (conf === "high" ? 0 : conf === "medium" ? 0.3 : 0.6),
+        /* The analyst interprets; the engine measures. Only a high-confidence read
+           earns the measured tag — anything softer is labelled as the inference it
+           is, which is the engine-versus-coach line the app is built on. */
+        basis: conf === "high" ? "measured" : "speculation",
         title: p.title, rationale: p.rationale, predict: p.predict, conf,
         approve: () => { const ns = applySuggestion(s, p); setS(ns); save(ns); },
         approveLabel: () => "Approve — apply it",
@@ -6152,8 +6164,14 @@ function ApprovalInbox({ s, setS, save, tISO }) {
     <>
       <SecRule>FOR YOUR APPROVAL · your tap decides</SecRule>
       {items.length === 0 && (
-        <Card style={{ padding: SP.md }}>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: 1.5 }}>Nothing waiting. Every change the machine wants — from the engine, your analyst, or an agent — arrives here first, in plain words, for one tap.</div>
+        /* "Inbox clear" is EARNED CALM, not an error and not a shrug (§4). Jade,
+           because an empty inbox means the engine has nothing it wants from him —
+           that is the good state, and it should read like one. */
+        <Card style={{ padding: SP.lg }} accent={T.jade}>
+          <div style={{ fontFamily: body, fontWeight: 600, fontSize: TS.title, lineHeight: `${LH.title}px`, color: T.jade }}>Inbox clear.</div>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>
+            Nothing is waiting on you. Every change the machine wants — from the engine, your analyst, or an agent — arrives here first, in plain words, for one tap. Nothing has ever changed itself.
+          </div>
         </Card>
       )}
       {items.map((it) => {
@@ -6164,8 +6182,23 @@ function ApprovalInbox({ s, setS, save, tISO }) {
               <Eyebrow c={it.accent}>{it.type}</Eyebrow>
               <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.16em", whiteSpace: "nowrap" }}>{it.from}{it.meta ? " · " + it.meta : ""}</span>
             </div>
-            <div style={{ marginTop: SP.xs }}><H size={19}>{it.title}</H></div>
-            {it.why && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: 1.5 }}>{it.why}</div>}
+            {/* Row spec §3.5: title in TS.title (Barlow 600), the rationale one line
+                of steel beneath it, the signed delta in mono, and the basis stated.
+                The title was Barlow Condensed at 19px — a display face doing a card
+                title's job, which made every proposal shout at the same volume. */}
+            <div style={{ fontFamily: body, fontWeight: 600, fontSize: TS.title, lineHeight: `${LH.title}px`, color: T.chalk, marginTop: SP.xs }}>{it.title}</div>
+            {it.dial && (
+              /* The signed delta, stated plainly and before any dial. What is being
+                 changed, by how much, in what direction. */
+              <div data-num style={{ fontFamily: mono, fontSize: TS.title, fontWeight: 600, color: T.brass, marginTop: SP.xs, fontVariantNumeric: "tabular-nums" }}>
+                {it.dial.base + n > 0 ? "+" : ""}{it.dial.base + n} {it.dial.unit}{Math.abs(it.dial.base + n) === 1 ? "" : "s"}
+                {n ? <span style={{ fontSize: TS.micro, color: T.jade, letterSpacing: "0.06em" }}>  · your version</span> : null}
+              </div>
+            )}
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: it.basis === "speculation" ? T.orange : T.brass, letterSpacing: "0.06em", marginTop: SP.hair }}>
+              {it.basis === "speculation" ? "(speculation)" : "(measured — computed from your own logs)"}
+            </div>
+            {it.why && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.body}px` }}>{it.why}</div>}
             {it.rationale && (
               <>
                 {it.rationale.science && <div style={rline}><b style={{ color: T.chalk }}>Science:</b> {it.rationale.science}</div>}
@@ -6178,10 +6211,11 @@ function ApprovalInbox({ s, setS, save, tISO }) {
             {it.dial && (
               <div style={{ marginTop: SP.sm }}>
                 <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.08em" }}>TAKE IT AS PROPOSED, OR MOVE IT — YOUR CALL EITHER WAY</div>
+                {/* Same 44/8 rule as every other stepper — these were 40px. */}
                 <div style={{ display: "flex", alignItems: "center", gap: SP.sm, marginTop: 7, flexWrap: "wrap" }}>
-                  <button onClick={() => setNudge({ ...nudge, [it.key]: Math.max(-it.dial.max, n - it.dial.step) })} style={{ width: 40, height: 40, borderRadius: 6, fontSize: 18, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>−</button>
-                  <div style={{ fontFamily: mono, fontSize: 14, color: n ? T.jade : T.chalk, minWidth: 74, textAlign: "center" }}>{it.dial.base + n > 0 ? "+" : ""}{it.dial.base + n} {it.dial.unit}{Math.abs(it.dial.base + n) === 1 ? "" : "s"}</div>
-                  <button onClick={() => setNudge({ ...nudge, [it.key]: Math.min(it.dial.max, n + it.dial.step) })} style={{ width: 40, height: 40, borderRadius: 6, fontSize: 18, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
+                  <button aria-label="less" onClick={() => setNudge({ ...nudge, [it.key]: Math.max(-it.dial.max, n - it.dial.step) })} style={stepBtn}>−</button>
+                  <div data-num style={{ fontFamily: mono, fontSize: 14, fontWeight: 600, color: n ? T.jade : T.chalk, minWidth: 78, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{it.dial.base + n > 0 ? "+" : ""}{it.dial.base + n} {it.dial.unit}{Math.abs(it.dial.base + n) === 1 ? "" : "s"}</div>
+                  <button aria-label="more" onClick={() => setNudge({ ...nudge, [it.key]: Math.min(it.dial.max, n + it.dial.step) })} style={stepBtn}>+</button>
                 </div>
               </div>
             )}
