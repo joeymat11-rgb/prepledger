@@ -9466,7 +9466,7 @@ function HistTab({ s, setS, save }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <Eyebrow c={T.jade}>🗺 THE MAP</Eyebrow>
-            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 3 }}>All 50 instruments, traced to the logging that feeds them.</div>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 3 }}>All 50 instruments, traced to the logging that feeds them. Run this many on one person and a few will look interesting by chance — so each one waits for its own n before it speaks.</div>
           </div>
           <span style={{ fontFamily: mono, fontSize: 14, color: T.jade }}>▸</span>
         </div>
