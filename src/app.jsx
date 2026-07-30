@@ -7419,7 +7419,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         );
       })()}
 
-      <SecRule>THE READ · what the machine says</SecRule>
+      <Group title="The read" sub="your analyst's take · what's waiting on your tap" defaultOpen={true}>
       <BriefCard s={s} setS={setS} save={save} />
       <Card accent={T.jade} style={{ padding: "11px 14px", cursor: "pointer" }} onClick={() => setAskOpen(true)}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
@@ -7439,6 +7439,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
 
 
+
+      </Group>
 
       <Group title="Today's plan" sub="what to do today" defaultOpen={new Date().getHours() < 17}>
       {(() => { const pr = dayProtocol(s, slp); return (
