@@ -6870,6 +6870,9 @@ const Btn = ({ onClick, children, tone = "ghost", full, small, disabled }) => {
     ghost: { background: "transparent", color: T.chalk, border: `1px solid ${T.line}` },
     jade: { background: T.jade, color: T.ink, border: `1px solid ${T.jade}` },
     orange: { background: T.orange, color: T.ink, border: `1px solid ${T.orange}` },
+    /* gauge = interactive/primary, brass = brand/earned — same palette, no new token */
+    gauge: { background: T.gauge, color: T.ink, border: `1px solid ${T.gauge}` },
+    brass: { background: T.brass, color: T.ink, border: `1px solid ${T.brass}` },
   };
   return (
     /* 44px minimum, including `small`. Small used to compute to about 31px tall —
@@ -7021,6 +7024,32 @@ const StackBar = ({ segments, h = 10 }) => (
     {segments.map((sg, i) => <div key={i} style={{ width: `${sg.pct}%`, background: sg.c, height: "100%" }} aria-label={sg.label} />)}
   </div>
 );
+/* Haptics — informational only (a confirm tap), never congratulatory, and it
+   rides the existing reduce-motion switch rather than a new key, so "still" means
+   still everywhere. iOS Safari does not implement the Vibration API, so this is a
+   no-op on his phone today and works on Android — a native shim would be needed to
+   buzz on iOS; harmless either way. */
+const hap = (pattern = 10) => { try { if (!reduceMotionOn() && typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(pattern); } catch (e) {} };
+/* Sheet — a bottom sheet for short tasks (quick-log, edit-a-value). Progressive
+   disclosure that keeps the screen behind visible, a visible Close, a grabber, and
+   the same rounded-top grammar as the glossary sheet so a sheet always reads the
+   same way (§7 additive #2). Backdrop tap and Close both dismiss; never traps. */
+function Sheet({ open, onClose, title, accent = T.gauge, children }) {
+  if (!open) return null;
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 70, background: "rgba(8,10,12,0.55)" }}>
+      <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true"
+        style={{ position: "fixed", left: 0, right: 0, bottom: 0, maxWidth: 520, margin: "0 auto", background: T.plate, borderTop: `1px solid ${T.line}`, borderRadius: "14px 14px 0 0", padding: `${SP.md}px ${SP.lg}px calc(${SP.xl}px + env(safe-area-inset-bottom))` }}>
+        <div style={{ width: 36, height: 4, borderRadius: 99, background: T.line, margin: `0 auto ${SP.md}px` }} />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: SP.md }}>
+          <Eyebrow c={accent}>{title}</Eyebrow>
+          <button onClick={onClose} aria-label="Close" style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "6px 10px", cursor: "pointer", minHeight: 44 }}>Close</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 function trendSeries(reads) {
   let t = null;
@@ -7490,6 +7519,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [newGoal, setNewGoal] = useState("");
   const [ifCue, setIfCue] = useState("");
   const [ifAct, setIfAct] = useState("");
+  const [qlOpen, setQlOpen] = useState(false);
   const [wIn, setWIn] = useState(s.trend);
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
   const [pulseIn, setPulseIn] = useState(((s.pulse || [])[Math.max(0, (s.pulse || []).length - 1)] || {}).bpm || 58);
@@ -7542,6 +7572,32 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* ---------- QUICK-LOG (v2 slice G — one-tap, low-friction) ----------
+          A single floating tap opens a bottom sheet to log weight or waist from
+          anywhere on NOW — it offloads only the transcription, never the deliberate
+          act of stepping on the scale (the reflective value stays). Haptic confirm,
+          visible close, never traps. Highest-value additive per the spec. */}
+      <button onClick={() => { hap(8); setQlOpen(true); }} aria-label="Quick log"
+        style={{ position: "fixed", right: 16, bottom: "calc(96px + env(safe-area-inset-bottom))", zIndex: 60, width: 52, height: 52, borderRadius: "50%", background: T.gauge, color: T.ink, border: "none", boxShadow: "0 4px 16px rgba(0,0,0,0.4)", fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", cursor: "pointer" }}>+</button>
+      <Sheet open={qlOpen} onClose={() => setQlOpen(false)} title="QUICK LOG">
+        <div style={{ display: "flex", flexDirection: "column", gap: SP.lg }}>
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: SP.sm }}>
+              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.steel, letterSpacing: "0.06em", textTransform: "uppercase" }}>WEIGHT · fasted</span>
+              <Stepper v={wIn} set={setWIn} step={0.1} min={100} />
+            </div>
+            <Btn full tone="jade" onClick={() => { const ns2 = runAdaptive(applyRead(s, tISO, wIn), tISO); setS(ns2); save(ns2); hap(12); setQlOpen(false); }}>Log {wIn} lb</Btn>
+          </div>
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: SP.sm }}>
+              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.steel, letterSpacing: "0.06em", textTransform: "uppercase" }}>WAIST · weekly</span>
+              <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
+            </div>
+            <Btn full tone="gauge" onClick={() => { const ns2 = { ...s, waist: [...(s.waist || []), { d: tISO, v: +waistIn }] }; setS(ns2); save(ns2); hap(12); setQlOpen(false); }}>Log {waistIn}&quot; waist</Btn>
+          </div>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.micro}px` }}>Only the transcription moves here — stepping on the scale is still the deliberate act. One tap from anywhere on this screen.</div>
+        </div>
+      </Sheet>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: SP.md }}>
         <div style={{ minWidth: 0 }}>
           <H size={24}>Measured</H>
@@ -9968,6 +10024,15 @@ function HistTab({ s, setS, save }) {
   );
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* ---------- LAB decision-support framing (v2 slice F) ----------
+          Re-points the LAB from a browsing surface to a decision one. The Twin and the
+          record lead; the ~50 instruments below carry an explicit multiple-comparisons
+          disclosure up top, so a chance finding is never mistaken for a signal. Nothing
+          is deleted — presentation only — but the honest frame is no longer buried. */}
+      <Card style={{ padding: SP.md }} accent={T.gauge}>
+        <Eyebrow c={T.gauge}>THE LAB · READ TO DECIDE</Eyebrow>
+        <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>The twin and the record answer this week's calls. The ~50 instruments further down each wait for their own n — and with that many on one person's data, a few will look interesting by chance. Read them to decide, not to browse.</div>
+      </Card>
       <Card accent={T.jade}>
         <Eyebrow>THE RECORD · {HISTORY.length + liveDayCount} DAYS · 6/10 → LIVE</Eyebrow>
         <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 8, lineHeight: 1.6 }}>{weekDigest(s)}</div>
@@ -10752,6 +10817,7 @@ export default function PrepLedger() {
     };
   }, []);
   const shellRef = useRef(null);
+  const swipe = useRef({ x: 0, y: 0 });
   const [vh9, setVh9] = useState(0);
   const [, beat9] = useState(0);
   const sRef9 = useRef(null);
@@ -10919,7 +10985,23 @@ export default function PrepLedger() {
         button { cursor: pointer; }
         ::-webkit-scrollbar { display: none; }
       `}</style>
-      <div id="pl-scroll" style={{ minWidth: 0, overflowX: "hidden" }}>
+      {/* ---------- TAB-SWIPE (v2 slice G) ----------
+          Horizontal swipe between the three primary tabs, with the tab bar as the
+          primary labelled path (gestures are the least discoverable control, so they
+          are always duplicated by a visible tap — NN/g). Guarded hard: disabled inside
+          secondary views and on any interactive control, and it needs a clear, mostly
+          horizontal throw, so it never fights the Twin sliders, steppers or scroll. */}
+      <div id="pl-scroll" style={{ minWidth: 0, overflowX: "hidden" }}
+        onTouchStart={(e) => { const t = e.touches[0]; swipe.current = { x: t.clientX, y: t.clientY }; }}
+        onTouchEnd={(e) => {
+          if (rules || coach || kitPerson || gloss || inMore) return;
+          if (e.target && e.target.closest && e.target.closest("input,button,textarea,select,a,[role=switch]")) return;
+          const t = e.changedTouches[0]; const dx = t.clientX - swipe.current.x, dy = t.clientY - swipe.current.y;
+          if (Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+          const order = PRIMARY_TABS; const i = order.indexOf(tab); if (i < 0) return;
+          if (dx < 0 && i < order.length - 1) { setTab(order[i + 1]); hap(6); }
+          else if (dx > 0 && i > 0) { setTab(order[i - 1]); hap(6); }
+        }}>
 
       {offline && (
         <div style={{ background: T.plate2, borderBottom: `1px solid ${T.line}`, padding: "calc(8px + env(safe-area-inset-top)) 14px 8px", fontFamily: mono, fontSize: TS.micro, color: T.brass, textAlign: "center" }}>
