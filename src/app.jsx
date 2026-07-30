@@ -120,7 +120,7 @@ const setReduceMotion = (on) => {
 if (typeof document !== "undefined" && reduceMotionOn()) {
   document.documentElement.setAttribute("data-reduce-motion", "1");
 }
-const APP_V = "4.0.22";
+const APP_V = "4.0.23";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -7401,18 +7401,6 @@ function LogTab({ s, setS, save, slp }) {
         </div>
       )}
 
-      /* ---------- The reading goes BELOW the work ----------
-         These two write-ups — exercise selection, and what the set counts mean
-         in a deficit — used to sit ABOVE the lifts. They are the best analysis
-         in the app and they were in the worst possible place: two long essays
-         between him and the session he opened the tab to do, every single time,
-         including mid-set in a gym. Nothing about either changes session to
-         session, so re-reading them was pure cost.
-
-         Progressive disclosure means the screen answers its own question first
-         (§2): TRAIN's question is 'what am I lifting right now', and the lifts
-         answer it. The analysis is exploratory-tier — it belongs with the recap,
-         after the work, where reading is what you are actually there to do. */
       {/* ---------- The thing he is getting right, said out loud ----------
           An app that only ever speaks to correct you teaches you nothing about
           what to protect. His exercise selection is on the right side of the
