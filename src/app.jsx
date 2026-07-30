@@ -2216,6 +2216,36 @@ function digitalTwin(s, opts) {
   };
 }
 
+/* ---------- AUTO-PILOT (v2) — the thermostat, made real ----------
+   The audit wanted a thermostat, not just a thermometer: hold the goal line instead
+   of only reading it. observedTDEE is already a state estimate of true expenditure
+   WITH a confidence interval — a Kalman-style estimate in all but name — and
+   currentRate is the measured slope. Auto-Pilot compares the measured slope to the
+   goal line (the conservative end of his rate band) and, when the metabolism has shed
+   the 90-180 kcal/day of adaptation the deficit literature predicts, proposes a
+   correction: drop the target OR add steps (NEAT kept level with food, per the ladder).
+   It NEVER changes anything itself — every move is a proposal for one tap, exactly like
+   the app's existing inbox. Hysteresis: it only fires past a full adaptation's worth of
+   drift, off the measured rate, never a single noisy week. */
+function autoPilot(s) {
+  const r = currentRate(s);
+  const td = observedTDEE(s);
+  const band = (s.rate && s.rate.band) || [1.0, 1.4];
+  const goalRate = +band[0].toFixed(2);            // hold the conservative end of the band
+  if (!r.measured || !td || !td.tdee) return { ok: false, goalRate };
+  const measRate = r.scale;
+  const gap = +(goalRate - measRate).toFixed(2);   // + = drifting slower than the line
+  const corrKcal = Math.round((Math.abs(gap) * KCAL_PER_LB_MIX) / 7);
+  const stg = stepTarget(s);
+  const kcalPer1k = stg.kcalPer1k || 20;
+  const stepsAdd = Math.max(500, Math.round((corrKcal / kcalPer1k) * 1000 / 500) * 500);
+  const proposed = gap > 0 && corrKcal >= 90;      // a full adaptation's worth of drift (hysteresis)
+  return {
+    ok: true, goalRate, measRate: +measRate.toFixed(2), tdee: Math.round(td.tdee), n: r.n || 0,
+    gap, corrKcal, stepsAdd, onLine: !proposed, proposed,
+  };
+}
+
 /* THE LAB — every analytic self-gates on its own data threshold. No correlations under N. */
 /* ---------- SMALL_N_NOTE — an interval on every "measured" scalar ----------
    The tri-state tag was the honest part of this app and it had a hole in it: cards
@@ -6686,6 +6716,7 @@ __test.etaRange = etaRange;
 __test.bfEst = bfEst;
 __test.anchorTighten = anchorTighten;
 __test.digitalTwin = digitalTwin;
+__test.autoPilot = autoPilot;
 __test.stepTarget = stepTarget;
 __test.signalState = signalState;
 __test.dataLossGuard = dataLossGuard;
@@ -7640,6 +7671,38 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </div>
         )}
       </Card>
+
+      {/* ---------- AUTO-PILOT (v2 slice E — the thermostat) ----------
+          Holds the goal line. observedTDEE is the state estimate; currentRate the
+          measured slope. When the metabolism sheds a full adaptation's worth of
+          deficit, it PROPOSES a correction (cut OR steps) for one tap — never mutates.
+          Every option, and "Not now", files through the plan; nothing changes itself. */}
+      {(() => { const ap = autoPilot(s); if (!ap.ok) return null; const apProp = ap.proposed && plan.apDismiss !== tISO; const wnA = weightNoise(s.reads);
+        return (
+        <Card accent={apProp ? T.brass : T.gauge} style={{ padding: SP.lg }}>
+          <Eyebrow c={apProp ? T.brass : T.gauge}>{apProp ? "AUTO-PILOT · FOR YOU TO OK" : "AUTO-PILOT · HOLDING YOUR LINE"}</Eyebrow>
+          <div style={{ fontFamily: body, fontWeight: 600, fontSize: TS.title, lineHeight: `${LH.title}px`, color: T.chalk, marginTop: SP.sm }}>
+            {apProp ? `Your expenditure slipped ~${ap.corrKcal} kcal — metabolic adaptation, right on schedule.` : `You're on your ${ap.goalRate.toFixed(1)} lb/wk line. Auto-Pilot is holding it — nothing to change this week.`}
+          </div>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>measured TDEE {ap.tdee} kcal · n={ap.n}</div>
+          <div style={{ marginTop: SP.sm }}>
+            <Spark reads={s.reads} trend={s.trend} projRate={ap.goalRate} noise={wnA.sd} noiseN={wnA.measured ? wnA.n : null} />
+          </div>
+          {apProp ? (
+            <>
+              <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, lineHeight: `${LH.body}px` }}>To hold the line, drop the target ~{ap.corrKcal} kcal, or add ~{(ap.stepsAdd / 1000).toFixed(1)}k steps. Auto-Pilot never changes anything itself — every move waits for your tap.</div>
+              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.06em", marginTop: SP.sm }}>◆ from your own numbers</div>
+              <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
+                <Btn small tone="jade" onClick={() => savePlan({ apDismiss: tISO })}>Hold the lower target</Btn>
+                <Btn small tone="jade" onClick={() => savePlan({ goals: [...plan.goals, { id: "g" + Date.now(), text: `Add ~${(ap.stepsAdd / 1000).toFixed(1)}k steps on non-lifting days` }], apDismiss: tISO })}>Add the steps instead</Btn>
+                <Btn small onClick={() => savePlan({ apDismiss: tISO })}>Not now</Btn>
+              </div>
+            </>
+          ) : (
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>Reads your trend and intake, infers true expenditure, and nudges the target to hold the slope — catching the 90–180 kcal/day a dieting metabolism sheds.</div>
+          )}
+        </Card>
+      ); })()}
 
       {/* ---------- THIS WEEK · YOUR PLAN (v2 adherence A2) ----------
           Self-authored process goals and if-then implementation intentions (d≈0.65,

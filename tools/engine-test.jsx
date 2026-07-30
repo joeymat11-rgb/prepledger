@@ -130,6 +130,15 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   ok(__test.migrate(withData).plan.goals.length === 1 && __test.migrate(withData).plan.share === true, "a state that already has a plan keeps it through migration");
 }
 
+// Auto-Pilot — v2 slice E (closed-loop controller; proposes, never mutates)
+{
+  const base = clone(SEED); base.blackout = { until: "2026-05-01" };
+  const ap = __test.autoPilot(base);
+  ok(ap.ok === true && ap.goalRate > 0, "autoPilot reports a goal line off a measured rate");
+  ok(ap.proposed === (ap.gap > 0 && ap.corrKcal >= 90), "a correction fires only past a full adaptation's drift (hysteresis)");
+  ok(ap.stepsAdd >= 500, "the correction always offers a real steps alternative to a calorie cut");
+}
+
 // the Digital Twin — v2 slice D (energy-balance simulation, range-only)
 {
   const base = clone(SEED); base.blackout = { until: "2026-05-01" };
