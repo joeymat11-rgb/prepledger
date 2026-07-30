@@ -120,7 +120,7 @@ const setReduceMotion = (on) => {
 if (typeof document !== "undefined" && reduceMotionOn()) {
   document.documentElement.setAttribute("data-reduce-motion", "1");
 }
-const APP_V = "4.0.21";
+const APP_V = "4.0.22";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -7153,55 +7153,6 @@ function LogTab({ s, setS, save, slp }) {
           }); })()}
         </div>
       ); })()}
-      {/* ---------- The thing he is getting right, said out loud ----------
-          An app that only ever speaks to correct you teaches you nothing about
-          what to protect. His exercise selection is on the right side of the
-          largest effect in the training literature — larger than everything
-          this session removed put together — and the app had never mentioned
-          it. See EXERCISE_SELECTION. */}
-      {(() => { const sel = exerciseSelection(s); if (!sel.items.length) return null; return (
-        <Card accent={sel.allGood ? T.jade : T.brass} style={{ padding: 16 }}>
-          <Eyebrow c={sel.allGood ? T.jade : T.brass}>{sel.allGood ? "EXERCISE SELECTION — ALREADY RIGHT, AND IT IS THE BIGGEST ONE" : "EXERCISE SELECTION — ONE TO LOOK AT"}</Eyebrow>
-          <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 6, lineHeight: 1.55 }}>
-            For a muscle that crosses two joints, the joint you are NOT training sets its length — and length under load is where the growth difference actually lives. These effects run {"d ="} 0.5 to 1.6. Rep tempo is 0.09. Eccentric speed is −0.06. Periodisation is −0.02. This is the lever; those were rounding.
-          </div>
-          <div style={{ marginTop: 9, display: "flex", flexDirection: "column", gap: 7 }}>
-            {sel.items.map((it) => (
-              <div key={it.id} style={{ borderLeft: `2px solid ${it.good ? T.jade : T.brass}`, paddingLeft: 8 }}>
-                <div style={{ fontFamily: mono, fontSize: TS.label, color: it.good ? T.jade : T.brass }}>{it.good ? "✓" : "▸"} {it.n.toUpperCase()} · {it.lever} · d {it.d}</div>
-                <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, lineHeight: 1.5, marginTop: 2 }}>{it.why}</div>
-              </div>
-            ))}
-          </div>
-          <More c={sel.allGood ? T.jade : T.brass}
-            deep="Standing versus seated calf raise is d = 0.88 to 1.58 — the largest exercise-selection effect measured anywhere in hypertrophy research, and it comes from one thing: the gastrocnemius crosses the knee, so bending the knee slackens it and a seated raise trains mostly soleus instead. Overhead versus pushdown triceps is d = 0.54 to 0.61 for the same structural reason at the shoulder. Seated versus lying ham curl runs the same way at the hip. Set against those, the variables this app used to fuss over are noise: rep tempo SMD 0.09 (and favouring FASTER, not slower), accentuated eccentrics −0.06 on growth while perceived effort rises +1.72, periodisation model d = −0.02, machines versus free weights −0.055 at p = 0.751. Every one of those has been removed from this app. This is what replaced them."
-            forYou={sel.allGood
-              ? ["Every biarticular lift in your programme is already in the lengthened position — the calf raise standing with a pause in the stretch, the ham curl seated with the hips pinned, the leg extension reclined.",
-                 "Nobody set that up by accident and nothing in this app told you to do it. It is the most valuable thing in your training and the app had never once mentioned it.",
-                 "What it means practically: there is no training-side upgrade left worth chasing here. The remaining levers are volume where a muscle is short, and everything on the nutrition side."]
-              : sel.items.filter((x) => !x.good).map((x) => x.n + ": " + x.why)} />
-        </Card>
-      ); })()}
-
-      {/* What the set counts mean while he is cutting — see CUTTING_VOLUME_NOTE.
-          Colouring a muscle red against a GROWTH band, in a deficit, tells a man
-          to add work the one direct trial says buys him nothing. */}
-      {(() => { const vi9 = volumeImbalance(s); if (!vi9) return null; return (
-        <Card style={{ padding: 16 }} accent={vi9.cutting ? undefined : T.brass}>
-          <Eyebrow c={vi9.cutting ? T.steel : T.brass}>{vi9.cutting ? "YOUR SET ALLOCATION — AND WHY IT IS FINE RIGHT NOW" : "YOUR SET ALLOCATION — WORTH ACTING ON NOW"}</Eyebrow>
-          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 6, lineHeight: 1.7 }}>
-            {vi9.pv.map((m) => <span key={m.mg} style={{ marginRight: 9, color: m.indirectOnly ? T.steel : T.steel }}>{mgLabel(m.mg)} {m.sets}{m.indirectOnly ? "*" : ""}</span>)}
-          </div>
-          <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 8, lineHeight: 1.55 }}>{vi9.why}</div>
-          <More c={vi9.cutting ? T.steel : T.brass}
-            deep="Two different questions wear the same units. How many sets per muscle per week to GROW is Pelland 2025's dose-response — 67 studies, 2,058 participants — and return per set peaks between five and ten weekly sets, measured in people eating enough to build. How many to KEEP what you have in a deficit is a different question with its own direct evidence, and the answer is: fewer than you would guess, and not sensitive to volume. Roth 2023 ran trained men six weeks at a 30 kcal/kg deficit with protein at 2.8 g/kg fat-free mass and compared roughly twenty weekly sets against twelve — lean mass fell 0.51 kg and 0.92 kg, not a significant difference, with no difference in muscle thickness either. Bickel 2011 is starker: after sixteen weeks of building, young adults held their thigh lean mass for thirty-two weeks on ONE-NINTH of the volume that built it, one session a week, and got stronger doing it. Adding sets in a deficit costs recovery you have less of and session time you have to find, in exchange for an effect the direct evidence cannot detect. The allocation still matters — it is the first thing to fix when you start building — which is why it is on this card instead of thrown away."
-            forYou={(() => { const out = []; const th = vi9.taker; if (th) out.push(vi9.cutting
-              ? cap(mgLabel(th.mg)) + " at " + th.sets + " sets a week is the lowest allocation in your programme, and while you are cutting that is adequate — you are asking it to hold, and holding is cheap."
-              : cap(mgLabel(th.mg)) + " at " + th.sets + " sets is the first thing to raise now that you are building.");
-              out.push("Your deltoids read correctly here for the first time — they were being counted as one 17-set muscle instead of three heads at 5 to 8 each, which is why the app used to flag them red.");
-              out.push("* = credited from compound work only, with no direct lift of its own. The lever there is the press, not another isolation movement."); return out; })()} />
-        </Card>
-      ); })()}
 
       {sess.ex.map((ex) => (
         <Card key={ex.id} style={{ padding: 16, opacity: skipped[ex.id] ? 0.45 : 1 }} accent={ex.isDebutNow && !skipped[ex.id] ? T.orange : undefined}>
@@ -7449,6 +7400,68 @@ function LogTab({ s, setS, save, slp }) {
           </div>
         </div>
       )}
+
+      /* ---------- The reading goes BELOW the work ----------
+         These two write-ups — exercise selection, and what the set counts mean
+         in a deficit — used to sit ABOVE the lifts. They are the best analysis
+         in the app and they were in the worst possible place: two long essays
+         between him and the session he opened the tab to do, every single time,
+         including mid-set in a gym. Nothing about either changes session to
+         session, so re-reading them was pure cost.
+
+         Progressive disclosure means the screen answers its own question first
+         (§2): TRAIN's question is 'what am I lifting right now', and the lifts
+         answer it. The analysis is exploratory-tier — it belongs with the recap,
+         after the work, where reading is what you are actually there to do. */
+      {/* ---------- The thing he is getting right, said out loud ----------
+          An app that only ever speaks to correct you teaches you nothing about
+          what to protect. His exercise selection is on the right side of the
+          largest effect in the training literature — larger than everything
+          this session removed put together — and the app had never mentioned
+          it. See EXERCISE_SELECTION. */}
+      {(() => { const sel = exerciseSelection(s); if (!sel.items.length) return null; return (
+        <Card accent={sel.allGood ? T.jade : T.brass} style={{ padding: 16 }}>
+          <Eyebrow c={sel.allGood ? T.jade : T.brass}>{sel.allGood ? "EXERCISE SELECTION — ALREADY RIGHT, AND IT IS THE BIGGEST ONE" : "EXERCISE SELECTION — ONE TO LOOK AT"}</Eyebrow>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 6, lineHeight: 1.55 }}>
+            For a muscle that crosses two joints, the joint you are NOT training sets its length — and length under load is where the growth difference actually lives. These effects run {"d ="} 0.5 to 1.6. Rep tempo is 0.09. Eccentric speed is −0.06. Periodisation is −0.02. This is the lever; those were rounding.
+          </div>
+          <div style={{ marginTop: 9, display: "flex", flexDirection: "column", gap: 7 }}>
+            {sel.items.map((it) => (
+              <div key={it.id} style={{ borderLeft: `2px solid ${it.good ? T.jade : T.brass}`, paddingLeft: 8 }}>
+                <div style={{ fontFamily: mono, fontSize: TS.label, color: it.good ? T.jade : T.brass }}>{it.good ? "✓" : "▸"} {it.n.toUpperCase()} · {it.lever} · d {it.d}</div>
+                <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, lineHeight: 1.5, marginTop: 2 }}>{it.why}</div>
+              </div>
+            ))}
+          </div>
+          <More c={sel.allGood ? T.jade : T.brass}
+            deep="Standing versus seated calf raise is d = 0.88 to 1.58 — the largest exercise-selection effect measured anywhere in hypertrophy research, and it comes from one thing: the gastrocnemius crosses the knee, so bending the knee slackens it and a seated raise trains mostly soleus instead. Overhead versus pushdown triceps is d = 0.54 to 0.61 for the same structural reason at the shoulder. Seated versus lying ham curl runs the same way at the hip. Set against those, the variables this app used to fuss over are noise: rep tempo SMD 0.09 (and favouring FASTER, not slower), accentuated eccentrics −0.06 on growth while perceived effort rises +1.72, periodisation model d = −0.02, machines versus free weights −0.055 at p = 0.751. Every one of those has been removed from this app. This is what replaced them."
+            forYou={sel.allGood
+              ? ["Every biarticular lift in your programme is already in the lengthened position — the calf raise standing with a pause in the stretch, the ham curl seated with the hips pinned, the leg extension reclined.",
+                 "Nobody set that up by accident and nothing in this app told you to do it. It is the most valuable thing in your training and the app had never once mentioned it.",
+                 "What it means practically: there is no training-side upgrade left worth chasing here. The remaining levers are volume where a muscle is short, and everything on the nutrition side."]
+              : sel.items.filter((x) => !x.good).map((x) => x.n + ": " + x.why)} />
+        </Card>
+      ); })()}
+
+      {/* What the set counts mean while he is cutting — see CUTTING_VOLUME_NOTE.
+          Colouring a muscle red against a GROWTH band, in a deficit, tells a man
+          to add work the one direct trial says buys him nothing. */}
+      {(() => { const vi9 = volumeImbalance(s); if (!vi9) return null; return (
+        <Card style={{ padding: 16 }} accent={vi9.cutting ? undefined : T.brass}>
+          <Eyebrow c={vi9.cutting ? T.steel : T.brass}>{vi9.cutting ? "YOUR SET ALLOCATION — AND WHY IT IS FINE RIGHT NOW" : "YOUR SET ALLOCATION — WORTH ACTING ON NOW"}</Eyebrow>
+          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 6, lineHeight: 1.7 }}>
+            {vi9.pv.map((m) => <span key={m.mg} style={{ marginRight: 9, color: m.indirectOnly ? T.steel : T.steel }}>{mgLabel(m.mg)} {m.sets}{m.indirectOnly ? "*" : ""}</span>)}
+          </div>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 8, lineHeight: 1.55 }}>{vi9.why}</div>
+          <More c={vi9.cutting ? T.steel : T.brass}
+            deep="Two different questions wear the same units. How many sets per muscle per week to GROW is Pelland 2025's dose-response — 67 studies, 2,058 participants — and return per set peaks between five and ten weekly sets, measured in people eating enough to build. How many to KEEP what you have in a deficit is a different question with its own direct evidence, and the answer is: fewer than you would guess, and not sensitive to volume. Roth 2023 ran trained men six weeks at a 30 kcal/kg deficit with protein at 2.8 g/kg fat-free mass and compared roughly twenty weekly sets against twelve — lean mass fell 0.51 kg and 0.92 kg, not a significant difference, with no difference in muscle thickness either. Bickel 2011 is starker: after sixteen weeks of building, young adults held their thigh lean mass for thirty-two weeks on ONE-NINTH of the volume that built it, one session a week, and got stronger doing it. Adding sets in a deficit costs recovery you have less of and session time you have to find, in exchange for an effect the direct evidence cannot detect. The allocation still matters — it is the first thing to fix when you start building — which is why it is on this card instead of thrown away."
+            forYou={(() => { const out = []; const th = vi9.taker; if (th) out.push(vi9.cutting
+              ? cap(mgLabel(th.mg)) + " at " + th.sets + " sets a week is the lowest allocation in your programme, and while you are cutting that is adequate — you are asking it to hold, and holding is cheap."
+              : cap(mgLabel(th.mg)) + " at " + th.sets + " sets is the first thing to raise now that you are building.");
+              out.push("Your deltoids read correctly here for the first time — they were being counted as one 17-set muscle instead of three heads at 5 to 8 each, which is why the app used to flag them red.");
+              out.push("* = credited from compound work only, with no direct lift of its own. The lever there is the press, not another isolation movement."); return out; })()} />
+        </Card>
+      ); })()}
 </>)}
 
 
