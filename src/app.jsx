@@ -45,9 +45,21 @@ const T = {
   ink: "#101418", plate: "#181E24", plate2: "#1F262E", line: "#2A323B",
   chalk: "#E8E4DA", steel: "#8A94A0", dim: "#5A636E",
   jade: "#4CC38A", brass: "#E5B454", orange: "#F5793A", redline: "#E8556B",
+  /* gauge — INTERACTIVE / PRIMARY. Cool on purpose: it puts the whole warm family
+     (brass brand, orange caution, redline limit) on one side of the wheel and the
+     controls on the other, so "this responds to touch" never has to be inferred
+     from a hue that also means something. 6.99:1 on plate, hue 194, and 43° from
+     jade so confirm-green and control-cyan stay distinct.
+     This exists so brass can stop doing three jobs. brass is now the brand and the
+     mark, the (measured) tag, and earned moments — nothing that is merely tappable. */
+  gauge: "#3FB4D8",
 };
 T.hairline = "rgba(90,99,110,0.4)"; /* dim @40% — the separator, per §3.3 */
-T.focus = T.brass;                  /* 2px brass ring, 2px offset */
+/* The focus ring moves to gauge with everything else interactive. The brief asked
+   for brass here, but a focus ring is the definition of an interactive affordance,
+   and brass now means brand/earned — using it for focus would re-blur the line this
+   token was introduced to draw. */
+T.focus = T.gauge;
 
 /* ---------- SEM — semantic states, encoded three ways ----------
    WCAG 1.4.1 (Level A): colour must never be the sole carrier of meaning. Roughly
@@ -178,7 +190,7 @@ const setReduceMotion = (on) => {
 if (typeof document !== "undefined" && reduceMotionOn()) {
   document.documentElement.setAttribute("data-reduce-motion", "1");
 }
-const APP_V = "4.1.0";
+const APP_V = "4.1.1";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -8705,7 +8717,7 @@ function HistTab({ s, setS, save }) {
                   {deskOpen && <TrialsDesk s={s} setS={setS} save={save} />}
                   <div onClick={() => setAskOpen(true)} role="button" tabIndex={0}
                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setAskOpen(true); } }}
-                    style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.jade, cursor: "pointer" }}>🜁 ASK THE LEDGER — any question, answered from your data ▸</div>
+                    style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.gauge, cursor: "pointer" }}>🜁 ASK THE LEDGER — any question, answered from your data ▸</div>
                   <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>Tap any line for the full story, in plain words. Fresh verdicts carry their date.</div>
                   {secs.map((sec) => {
                     const openSec = secOpen[sec.k] !== undefined ? secOpen[sec.k] : false;
@@ -8722,7 +8734,7 @@ function HistTab({ s, setS, save }) {
                           <span style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, letterSpacing: "0.16em", color: T.steel, textTransform: "uppercase" }}>
                             {sec.title} <span style={{ color: T.brass }}>{sec.cards.length}</span>
                           </span>
-                          <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>{openSec ? "▾" : "▸"}</span>
+                          <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.label, color: T.gauge }}>{openSec ? "▾" : "▸"}</span>
                         </div>
                         {openSec && sec.sub && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginBottom: SP.md, lineHeight: `${LH.body}px` }}>{sec.sub}</div>}
                         {openSec && (cards.length ? cards.map(row) : (
@@ -8878,7 +8890,7 @@ function MoreTab({ s, go, openRules, openCoach }) {
             </div>
             <div style={{ textAlign: "right", flexShrink: 0, display: "flex", alignItems: "center", gap: SP.sm }}>
               {r.hint ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>{r.hint}</span> : null}
-              <span style={{ fontFamily: mono, fontSize: TS.title, color: T.steel, lineHeight: 1 }}>▸</span>
+              <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.title, color: T.gauge, lineHeight: 1 }}>▸</span>
             </div>
           </div>
         ))}
@@ -8891,14 +8903,14 @@ function MoreTab({ s, go, openRules, openCoach }) {
           style={{ ...rowStyle, borderTop: "none" }}>
           <span style={{ fontFamily: mono, fontSize: TS.label, color: T.chalk, letterSpacing: "0.04em" }}>COACH
             <span style={{ color: T.steel }}> — the handoff sheet</span></span>
-          <span style={{ fontFamily: mono, fontSize: TS.title, color: T.steel, lineHeight: 1 }}>▸</span>
+          <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.title, color: T.gauge, lineHeight: 1 }}>▸</span>
         </div>
         <div onClick={openRules} role="button" tabIndex={0}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openRules(); } }}
           style={{ ...rowStyle, borderTop: `1px solid ${T.hairline}` }}>
           <span style={{ fontFamily: mono, fontSize: TS.label, color: T.chalk, letterSpacing: "0.04em" }}>RULES
             <span style={{ color: T.steel }}> — house laws, sync, backup, reset</span></span>
-          <span style={{ fontFamily: mono, fontSize: TS.title, color: T.steel, lineHeight: 1 }}>▸</span>
+          <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.title, color: T.gauge, lineHeight: 1 }}>▸</span>
         </div>
       </Card>
 
@@ -9412,7 +9424,7 @@ export default function PrepLedger() {
         <div style={{ position: "absolute", top: 2, right: 8, fontFamily: mono, fontSize: TS.micro, color: T.steel, opacity: 0.7, padding: 4 }}>v{APP_V}</div>
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
-            <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: (tab === t2 || (t2 === "MORE" && inMore)) ? `2px solid ${T.chalk}` : "2px solid transparent", fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.09em", color: (tab === t2 || (t2 === "MORE" && inMore)) ? T.chalk : T.steel }}>
+            <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: (tab === t2 || (t2 === "MORE" && inMore)) ? `2px solid ${T.gauge}` : "2px solid transparent", fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.09em", transition: TR("color", MOT.micro), color: (tab === t2 || (t2 === "MORE" && inMore)) ? T.gauge : T.steel }}>
               {TAB_LABEL[t2] || t2}{t2 === "NOW" && (s.agentProposals || []).length > 0 ? <span style={{ color: T.jade, fontWeight: 700 }}> ●{(s.agentProposals || []).length}</span> : null}
             </button>
           ))}
