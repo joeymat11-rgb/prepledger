@@ -506,6 +506,32 @@ ok(ci1([1.0]).n === 1 && ci1([1.0]).sd === null && ci1([1.0]).provisional === tr
   ok(many.enough === true && many.txt.indexOf("measured") > -1, "past the floor it earns the word measured: " + many.txt);
 }
 ok(MINN === 6, "the small-n floor is six observations, per single-case guidance");
+
+// LAB P0-2 — multiple comparisons: the hunters publish their own false-alarm rate
+const { coFlagRate: cfr, bhFDR: bh, twoTail: tt, chanceWords: cw } = __test;
+ok(Math.abs(tt(1.8) - 0.0719) < 0.002, "two-tailed |z|>1.8 is about 7.2% per dimension: " + tt(1.8).toFixed(4));
+ok(Math.abs(tt(1.96) - 0.05) < 0.002, "and the normal tail is calibrated at the familiar 1.96 -> 0.05");
+{
+  /* The sentinel: 2-of-3 dimensions over a 10-day window. The audit put this at
+     "roughly one chance co-flag per 10 days"; computed from the real thresholds it is
+     materially lower, and the card prints what is computed rather than what was
+     asserted. Either way it is not negligible, which is the point of disclosing it. */
+  const r = cfr([tt(1.8), tt(1.8), tt(2.0)], 2, 10);
+  ok(r.perDay > 0.005 && r.perDay < 0.03, "2-of-3 co-flag chance is ~1% per day: " + r.perDay.toFixed(4));
+  ok(r.expected > 0.05 && r.expected < 0.35, "so ~0.1-0.3 chance co-flags per 10-day window, not one: " + r.expected);
+  ok(r.oncePerDays > 30, "i.e. about one false alarm every " + r.oncePerDays + " days");
+  ok(cfr([tt(1.8), tt(1.8), tt(2.0)], 3, 10).perDay < r.perDay, "demanding all three is stricter than two of three");
+}
+{
+  /* Benjamini-Hochberg: nothing survives when everything is noise, and a genuine
+     standout survives alongside its own multiplicity correction. */
+  const noise = bh([0.4, 0.55, 0.7, 0.9, 0.95], 0.1);
+  ok(noise.nKept === 0, "BH keeps nothing when every p-value is noise");
+  const one = bh([0.001, 0.4, 0.55, 0.7, 0.9], 0.1);
+  ok(one.nKept === 1 && one.keep.has(0), "BH keeps the one real standout out of five");
+  ok(bh([0.02, 0.03, 0.04], 0.1).nKept >= 1, "and several consistent smalls survive together");
+}
+ok(cw(30, 3) > 0 && cw(9, 30) === 0, "the chance-word estimate scales with corpus size and is zero below threshold");
 ok(tc1(1) > tc1(10) && tc1(10) > tc1(60), "t multiplier shrinks as df grows — small n pays for itself");
 
 // (interim)

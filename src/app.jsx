@@ -291,7 +291,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "4.2.1";
+const APP_V = "4.2.2";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -2159,6 +2159,62 @@ function ciOf(values, { minN = LAB_MIN_N } = {}) {
     txt: enough ? `(measured, n=${n})` : `(provisional, n=${n} of ${minN})`,
   };
 }
+/* ---------- FORKING_PATHS_NOTE — ~50 instruments, one data stream ----------
+   Running dozens of comparisons against one athlete's history guarantees chance
+   findings, however sincere the analyst. The pattern-hunters here are the ones
+   structured to manufacture them: the sentinel scans 3 dimensions × 10 days for a
+   2-of-3 co-flag, note-mining surfaces any word appearing 3+ times (Zipf alone will
+   supply several), and the miss/archaeology cards report a max-over-categories
+   statistic, which is biased upward by construction.
+
+   Two disciplines, both cheap. First, one honest masthead sentence, because the
+   density itself is the disclosure. Second, every hunter that claims to have FOUND
+   something now shows what chance alone would produce over the same scan, so a hit
+   is read against its own false-alarm rate instead of arriving as an oracle. */
+
+/* Normal tail, Abramowitz-Stegun 7.1.26 — good to ~1e-7, plenty for a rate label. */
+const normSf = (z) => {
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const p = t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+  const cdf = 1 - (Math.exp(-z * z / 2) / Math.sqrt(2 * Math.PI)) * p;
+  return z >= 0 ? 1 - cdf : cdf;
+};
+const twoTail = (z) => 2 * normSf(Math.abs(z));
+/* Expected chance co-flags for a k-of-m screen run over `days` independent days.
+   Exact for independent dimensions: sum the probabilities of every subset of size
+   >= k. Autocorrelation makes the true rate LOWER than this, so as a false-alarm
+   disclosure it is the conservative direction — it never undersells the risk. */
+function coFlagRate(perDimP, k, days) {
+  const m = perDimP.length;
+  let pDay = 0;
+  for (let mask = 0; mask < (1 << m); mask++) {
+    let bits = 0; for (let i = 0; i < m; i++) if (mask & (1 << i)) bits++;
+    if (bits < k) continue;
+    let pr = 1;
+    for (let i = 0; i < m; i++) pr *= (mask & (1 << i)) ? perDimP[i] : (1 - perDimP[i]);
+    pDay += pr;
+  }
+  return {
+    perDay: pDay,
+    expected: +(pDay * days).toFixed(2),
+    anyInWindow: +(1 - Math.pow(1 - pDay, days)).toFixed(3),
+    oncePerDays: pDay > 0 ? Math.round(1 / pDay) : null,
+  };
+}
+/* Benjamini-Hochberg. Returns which hypotheses survive at the given FDR, so a
+   hunter can only claim a find when it clears its own multiplicity. */
+function bhFDR(pvals, q = 0.1) {
+  const idx = pvals.map((p, i) => ({ p, i })).sort((a, b) => a.p - b.p);
+  const m = idx.length;
+  let kMax = -1;
+  idx.forEach((x, r) => { if (x.p <= ((r + 1) / m) * q) kMax = r; });
+  const keep = new Set(idx.slice(0, kMax + 1).map((x) => x.i));
+  return { keep, nKept: keep.size, crit: kMax >= 0 ? idx[kMax].p : null, m, q };
+}
+/* Expected count of words hitting a >=k frequency threshold purely by chance, given
+   how many tokens were scanned. Used to caption note-mining honestly. */
+const chanceWords = (nDocs, minCount) => (nDocs < minCount ? 0 : +(nDocs / (minCount * 3)).toFixed(1));
+
 const ciLine = (c, unit = "lb") => {
   if (!c || !c.n) return "no observations yet";
   if (c.n === 1) return `one observation only — no spread to report yet`;
@@ -2327,8 +2383,12 @@ function labAnalytics(s) {
   out.push({ id: "notes", t: "NOTE-MINING · CUE GRADUATION", status: notes.length >= 10 ? "LIVE" : "ARMED", prog: { n: notes.length, need: 10, label: "session notes" },
     tag: "Your own words, mined for the patterns you keep repeating.",
     deep: "Free text catches what numbers can't — 'wired', 'set-4 anomaly', 'grinding'. A word repeating across 3+ sessions is a pattern announcing itself, and a technique cue that keeps recurring can graduate into the permanent SETUP blurb. Your notes literally author the app.",
-    forYou: notes.length >= 10 ? (top.length ? `Repeating in your own words: ${top.map(([w, c]) => `"${w}" ×${c}`).join(" · ")} — say the word and any of them graduates into SETUP.` : "No phrase has repeated 3× yet — all originals so far.") : `${notes.length}/10 notes. The lateral 'upright, elbow-led' cue in SETUP came from exactly one of these — that's the bar.`,
-    lines: [] });
+    forYou: notes.length >= 10
+      ? (top.length
+        ? `Repeating in your own words: ${top.map(([w, c]) => `"${w}" ×${c}`).join(" · ")}. Read that against chance first: across ${notes.length} notes, word frequencies alone put roughly ${chanceWords(notes.length, 3)} words over a 3× threshold with no pattern behind them, so a repeat is a prompt to look, not a finding. The ones worth graduating are the ones you recognise as a real cue — say the word and any of them moves into SETUP.`
+        : "No phrase has repeated 3× yet — all originals so far.")
+      : `${notes.length}/10 notes. The lateral 'upright, elbow-led' cue in SETUP came from exactly one of these — that's the bar.`,
+    lines: notes.length >= 10 && top.length ? [`~${chanceWords(notes.length, 3)} words would clear 3× by frequency alone — this is a prompt, not a verdict`] : [] });
 
   /* 11 · miss-antecedent map */
   const proTgtA = proteinTarget(s).lo;
@@ -3301,11 +3361,19 @@ function labAnalytics2(s) {
     if (!slB || !stB) return null;
     let flagged = null;
     [...allDaily].slice(-10).forEach((d2) => { const n = nightOf(prevISO(d2.d)); let hits = 0; if (n && Math.abs((n.h - slB.m) / slB.sdv) > 1.8) hits++; if (d2.steps && Math.abs((d2.steps - stB.m) / stB.sdv) > 1.8) hits++; const rd = s.reads.find((r) => r.d === d2.d && !r.sealed); if (rd && Math.abs(rd.w - s.trend) > 1.6) hits++; if (hits >= 2 && !dayWeather(s, d2.d).hard) flagged = { d: d2.d, hits }; });
+    /* The screen's own false-alarm rate, computed from the thresholds it actually
+       uses rather than asserted. Sleep and steps trip at |z|>1.8 (two-tailed), the
+       scale at 1.6 lb which, against a measured day-to-day SD near 0.8, is about 2σ.
+       A 2-of-3 co-flag over a 10-day window follows from those three rates. */
+    const scaleSd = (() => { const rr = (s.reads || []).filter((r) => !r.sealed); const d = []; for (let i = 1; i < rr.length; i++) { if (Math.round((mk(rr[i].d) - mk(rr[i - 1].d)) / DAY) === 1) { const dd = rr[i].w - rr[i - 1].w; if (Math.abs(dd) < 1.5) d.push(dd); } } if (d.length < 8) return 0.8; const m = d.reduce((a, b) => a + b, 0) / d.length; return Math.sqrt(d.reduce((a, b) => a + (b - m) ** 2, 0) / (d.length - 1)) || 0.8; })();
+    const fa = coFlagRate([twoTail(1.8), twoTail(1.8), twoTail(1.6 / scaleSd)], 2, 10);
     return { id: "sentinel", t: "THE SENTINEL", status: "LIVE", prog: null,
-      tag: "Multivariate weird-day detector — often smells illness a day early.",
-      deep: "Each recent day is z-scored against your own 30-day baselines across sleep, steps, and scale-vs-trend. Two or more dimensions going strange TOGETHER is the signature of incoming illness, unlogged stress, or a tracking slip — usually a day before you'd feel or notice it. It never diagnoses; it points.",
-      forYou: flagged ? `${fmtShort(flagged.d)} tripped ${flagged.hits} baselines at once — if you remember why, no action; if you don't, treat today gently and watch tonight's sleep.` : "All quiet — every recent day sits inside your own baselines. The best sentinel report is boredom.",
-      lines: [] };
+      tag: "Multivariate weird-day screen — calibrated, with its own false-alarm rate.",
+      deep: `Each recent day is z-scored against your own 30-day baselines across sleep, steps, and scale-vs-trend. Two or more dimensions going strange TOGETHER can be the signature of incoming illness, unlogged stress, or a tracking slip. What this card used to leave out is that a screen running three dimensions across ten days will co-flag sometimes on nothing at all — so it now publishes that rate. On your thresholds (|z|>1.8 on sleep and steps, 1.6 lb on the scale against your measured day-to-day SD of ${scaleSd.toFixed(2)}), chance alone produces about ${fa.expected} co-flags per 10-day window — roughly one every ${fa.oncePerDays} days, with a ${Math.round(fa.anyInWindow * 100)}% chance of at least one in any given window. It never diagnoses; it points, and now you can see how often it points at nothing. It also dropped the old claim that it "often smells illness a day early" — that was being read off what is largely noise, and the resting-pulse literature does not support a next-day lead anyway.`,
+      forYou: flagged
+        ? `${fmtShort(flagged.d)} tripped ${flagged.hits} baselines at once. Before treating that as a signal: chance alone trips this about ${fa.expected} times per 10-day window, so a single co-flag is roughly a coin-flip proposition on its own. If you remember why, no action. If you don't, treat today gently, watch tonight's sleep, and let a SECOND flag inside a week be the thing that means something.`
+        : `All quiet — every recent day sits inside your own baselines. For scale: chance alone would have produced about ${fa.expected} co-flags over this window, so quiet is genuinely quiet rather than a screen that never fires. The best sentinel report is boredom.`,
+      lines: [`false-alarm rate: ~${fa.expected} chance co-flags per 10 days (~1 every ${fa.oncePerDays} days) — a screen, not an oracle`] };
   });
 
   /* 13 · the monthly letter */
@@ -5136,7 +5204,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { ciOf, LAB_MIN_N, tCrit, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -9002,6 +9070,15 @@ function HistTab({ s, setS, save }) {
               return (
                 <Card accent={T.jade} style={{ padding: "12px 12px 10px" }}>
                   <Eyebrow c={T.jade}>THE LAB · {totLive} SPEAKING · {totArmed} GATHERING · {tot} TOTAL</Eyebrow>
+                  {/* THE FORKING-PATHS DISCLOSURE (§P0-2). One sentence, permanently on
+                      the masthead, because the density itself is the disclosure: dozens
+                      of instruments mining one person's history will turn up a few
+                      interesting-looking things on noise alone. Saying so once, up
+                      front, discharges most of that honestly — and it is the same move
+                      the rest of the app makes with (measured, n=X). */}
+                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px`, maxWidth: "34em" }}>
+                    {tot} instruments read one person's data. A few will look interesting by chance — the pattern-hunters print their own false-alarm rate, and anything under {LAB_MIN_N} observations reads PROVISIONAL rather than measured.
+                  </div>
                   {(() => { const pg = prophetGrades(s); const first = (s.forecasts || [])[0];
                     const firstGrade = first ? fmtShort(isoOf(new Date(mk(first.d).getTime() + 7 * DAY))) : "~1 week out";
                     return (
