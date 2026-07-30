@@ -9954,7 +9954,7 @@ function rulebook(s) {
   const acsmLb = +(0.01 * bw).toFixed(1);
   return [
     ["ADAPTIVE", "Session targets, earned loads, and the queue update themselves from what you log. Calorie & phase changes arm themselves from trend data but take one tap — nothing macro moves invisibly."],
-    ["RATE", `IF under ${s.rate.floor}/wk two weeks → restore steps first, THEN trim — steps because adding them does not deepen the food deficit, and deficit size is the variable the trained-population evidence links to lean-mass loss. IF at or over ${s.rate.redline} → redline, add back, coach flag. Both numbers are pounds, which is a problem: at ${bw} lb they are ${pct(s.rate.floor)}% and ${pct(s.rate.redline)}% of bodyweight, and the redline sits above the ${acsmLb} lb that ${(1).toFixed(0)}%/wk works out to for you. There is an open proposal to restate the band in %BW.`],
+    ["RATE", `IF under ${s.rate.floor}/wk two weeks → restore steps first, THEN trim — steps because adding them does not deepen the food deficit, and deficit size is the variable the trained-population evidence links to lean-mass loss. IF at or over ${s.rate.redline} → redline, add back, analyst flag. Both numbers are pounds, which is a problem: at ${bw} lb they are ${pct(s.rate.floor)}% and ${pct(s.rate.redline)}% of bodyweight, and the redline sits above the ${acsmLb} lb that ${(1).toFixed(0)}%/wk works out to for you. There is an open proposal to restate the band in %BW.`],
     ["STRUCTURE", "One structural change per session — auto-picked from the queue. Rep progression unlimited."],
     ["OWNERSHIP", `A new best waits for ONE repeat before it becomes the standard, and a session that clears the old line by two standard errors banks on the spot. The bar is your own measured spread — ±${te.reps} reps per set, from ${te.n} paired sets at identical load. Sleep is not part of this: measurement error does not care how you slept, and it applies to every record rather than a sleep-selected minority.`],
     ["OPENERS", "The taper asks for a 2-RIR opener and one terminal set to failure. Two openers ground out at RIR 0 and the load holds until an honest one lands — a grind is not an earn."],
@@ -9964,7 +9964,7 @@ function rulebook(s) {
     ["PROTEIN", `${pt.straddles ? `${pt.lo}–${pt.hi} g — ${pt.g} is the middle of that range, and the range is the honest answer: ${pt.lo} is ${PROTEIN_FLOOR_G_PER_KG} g per kg of your ${pt.ffmKg} kg of lean mass, ${pt.hi} is the lean-subgroup number, and your body-fat interval (${pt.bfLo}–${pt.bfHi}%) straddles the ${LEAN_SUBGROUP_BF}% line that separates them` : `${pt.g} g, every day, derived from your ${pt.ffmKg} kg of lean mass at ${pt.perKg} g/kg`} — not a constant. Protein is a FLOOR: over it is not a miss. It does not rise on training days: the only study that compared day types found requirement HIGHER on rest days. A miss fixed inside 24 h extends the standard.`],
     ["SLEEP", `A night under ${DEBT_LAST_H} h, or a three-night mean under ${DEBT_MEAN3_H}, flags the session. What that flag buys you is protection — the day cannot count toward a stall, so you are never deloaded for a bad night. It does NOT block a record or shrink the step; that rule was retired because acute sleep loss costs about 2.85% on strength, which is inside the test-retest noise, and no trial has ever tested damping progression on low-readiness days. Your ${s.sleep.cleanH} h target is a separate question and still stands — in a deficit, short sleep shifts what you lose toward lean mass.`],
     ["FOOD", `${ct.gated ? "Calories fall back to the phase band until there are enough clean days to measure your own maintenance." : `${ct.lo}–${ct.hi}, from your measured maintenance minus the deficit your own rate band asks for.`} The floor is ${fl.floor} — ${EA_SPARING} kcal per kg of lean mass plus what training costs, not a round number. No position stand anywhere states an absolute calorie floor for an athlete; every one of them indexes to lean mass.`],
-    ["AUTHORITY", "Machine swaps, ladder graduations, the pivot call — coach territory. The app proposes; humans authorize."],
+    ["AUTHORITY", "Machine swaps, ladder graduations, the pivot call — the analyst's call. The app proposes; humans authorize."],
     ["ATTENTION", "From wk 10: mirror & measurements outrank the scale. The app rewards logged behavior, never checking."],
     ["EVIDENCE", "Every rule above names what it rests on, and says so when it rests on nothing. Rules retired for having no evidence behind them: the clean-sleep gate on records, the weekly refeed's benefits, and defending load rather than effort on a cut. That is the mechanism working."],
   ];
@@ -9987,7 +9987,7 @@ const INVARIANTS = [
   ["NO COUNTDOWNS", "Nothing in this app counts down to anything. Elapsed time is shown; time remaining is a pressure device, and pressure is not a measurement."],
   ["NO URGENCY MECHANICS", "No streaks to protect, no bars filling toward a date you did not set, no penalty for opening the app late."],
   ["EARNED STATES ONLY", "An insight appears when the data warrants it and says how much data it needs when it does not. Nothing is teased behind a lock."],
-  ["THE ENGINE IS NOT THE COACH", "The engine owns the numbers. The coach owns the read. Anything interpretive is labelled, and interpretation never edits data."],
+  ["THE ENGINE IS NOT THE ANALYST", "The engine owns the numbers. The analyst owns the read. Anything interpretive is labelled, and interpretation never edits data."],
   ["NOTHING MOVES ITSELF", "Every machine-initiated change arrives in QUEUE and waits for one tap. Dismiss always means nothing happens."],
   ["THE ATHLETE OVERRIDES", "Any proposal can be taken as offered, moved, or refused — including the engine's own autoregulation."],
 ];
@@ -10004,7 +10004,7 @@ function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
         {/* PHILOSOPHY PRE-STATED (§4) — the screen should teach the values before it
             lists the rules, so the rules read as consequences rather than settings. */}
         <div style={{ marginTop: SP.md, maxWidth: "34em", fontFamily: body, fontSize: TS.body, color: T.steel, lineHeight: `${LH.body}px` }}>
-          Solid means measured. Dashed means speculation. The engine owns the numbers, the coach owns the read, and nothing changes without your tap. Every rule below says what it rests on — and says so plainly when what it rests on is a decision rather than a measurement.
+          Solid means measured. Dashed means speculation. The engine owns the numbers, the analyst owns the read, and nothing changes without your tap. Every rule below says what it rests on — and says so plainly when what it rests on is a decision rather than a measurement.
         </div>
 
         {/* Each rule is a card now, with its basis stated (§4). They were flat
