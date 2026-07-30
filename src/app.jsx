@@ -7420,7 +7420,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       {/* ---------- THE ONE THING (v2 adherence — the single evidence-ordered fix) ----------
           Never a reflexive calorie cut: the ladder is verify-logging -> steps/NEAT
           -> protect sleep -> only then trim -> diet break. Autonomy-supportive voice,
-          attributed to the plan, never the person. A quiet chip opens the rationale. */}
+          attributed to the plan, never the person. A quiet chip opens the rationale.
+          Hidden when the top rung is "log" — WHAT YOU OWE below already owns that action,
+          so the two cards never say the same thing (non-redundancy, spec §6). */}
+      {oneFix.rung !== "logging" && (
       <Card accent={oneFix.state === "good" ? T.jade : T.orange} style={{ padding: SP.lg }}>
         <Eyebrow c={oneFix.state === "good" ? T.jade : T.orange}>THE ONE THING</Eyebrow>
         <div style={{ marginTop: SP.sm }}><H size={20}>{oneFix.title}</H></div>
@@ -7434,6 +7437,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </div>
         ) : null}
       </Card>
+      )}
 
       {/* ---------- WHAT YOU OWE ----------
           The page used to open with 28 cards regardless of why he came. This is
