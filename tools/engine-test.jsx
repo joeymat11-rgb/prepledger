@@ -231,9 +231,15 @@ const { labAnalytics: la, anchorDexa: ad, applyRead: ar2, SEED: SC } = __test;
 const scSealed = clone(SC); scSealed.blackout = { until: "2099-01-01", reason: "fixture seal — this suite tests the behaviour, not the calendar" };
 const lab = la(scSealed);
 const get = (id) => lab.find(x => x.id === id);
-ok(get("whoosh").status === "LIVE" && get("whoosh").prog.n >= 2, "whoosh signature LIVE off " + get("whoosh").prog.n + " historical episodes");
+/* Whoosh and the refeed line both sit at n=4 on his real history, which is exactly
+   the audit's finding: they were saying "measured" off four observations. They are
+   PROVISIONAL until LAB_MIN_N=6 now, and they must carry a real interval, not a
+   min–max of what has been seen. */
+ok(get("whoosh").status === "PROVISIONAL" && get("whoosh").prog.n >= 2, "whoosh is PROVISIONAL at " + get("whoosh").prog.n + " episodes, not LIVE");
+ok(get("whoosh").lines.some((l) => l.indexOf("95% CI") > -1), "whoosh publishes a confidence interval on clearance, not just a range of observations");
 ok(get("whoosh").forYou.indexOf("WEDDING #2") > -1, "whoosh model already aimed at Saturday's wedding");
-ok(get("refeed").status === "LIVE" && get("refeed").prog.n === 4 && get("refeed").lines[0].indexOf("+4.6") === -1, "refeed line cleaned: real refeeds only, n=4, birthday spike evicted");
+ok(get("refeed").status === "PROVISIONAL" && get("refeed").prog.n === 4 && get("refeed").lines[0].indexOf("+4.6") === -1, "refeed line cleaned: real refeeds only, n=4, birthday spike evicted — and PROVISIONAL, not measured");
+ok(get("refeed").lines.some((l) => l.indexOf("95% CI") > -1 && l.indexOf("SD") > -1), "refeed publishes mean, CI and SD — the spread that made it not-a-number");
 ok(get("noise").status === "LIVE" && /±0\.[3-9]/.test(get("noise").lines[0]), "personal noise floor computed: " + get("noise").lines[0].slice(0, 24));
 ok(get("cone").status === "LIVE" && get("cone").lines[0].indexOf("80%") === 0, "pivot cone runs Monte Carlo on his measured rates");
 ok(get("tuefri").status === "ARMED" && get("tuefri").prog.n === 0, "Tue/Fri experiment armed at 0/4 pairs");
@@ -478,6 +484,30 @@ const missP = +(pr2.forYou.match(/±([0-9.]+)/) || [])[1];
 ok(missP < 5, "the grade comes off the scale, not the smoothed trend — miss ±" + missP + " lb, not hundreds");
 ok(wing3.find(c => c.id === "whatif").status === "MODEL", "the console is badged a MODEL");
 
+// LAB P0-1 — an interval on every "measured" scalar
+const { ciOf: ci1, LAB_MIN_N: MINN, tCrit: tc1 } = __test;
+ok(ci1([]).n === 0 && ci1([]).mean === null, "no observations: no mean, no invented precision");
+ok(ci1([1.0]).n === 1 && ci1([1.0]).sd === null && ci1([1.0]).provisional === true, "one observation has a mean and no spread — and says so");
+{
+  /* The audit's worked example: four refeed mornings that averaged about half a pound
+     with an SD near 1.4. The interval has to be wide enough to cross zero, because
+     that is the honest finding — this is noise with a mean, not a number. */
+  const c = ci1([-0.4, -0.2, 0.7, 2.8]);
+  ok(c.n === 4 && Math.abs(c.mean - 0.72) < 0.02, "mean of the worked example: " + c.mean);
+  ok(c.sd > 1.3 && c.sd < 1.6, "SD near 1.4 as the audit computed: " + c.sd);
+  ok(c.straddlesZero === true, "and its 95% interval crosses zero — not distinguishable from no effect");
+  ok(c.provisional === true && c.txt.indexOf("provisional") > -1 && c.txt.indexOf("measured") === -1, "n=4 is provisional, and the tag never says 'measured': " + c.txt);
+}
+{
+  /* More data must NARROW the interval while the observed range does the opposite —
+     which is exactly why a min-max was never an interval. */
+  const few = ci1([1, 2, 3]), many = ci1([1, 2, 3, 1, 2, 3, 1, 2, 3, 2]);
+  ok(many.half < few.half, "the interval narrows with n (" + few.half + " -> " + many.half + ")");
+  ok(many.enough === true && many.txt.indexOf("measured") > -1, "past the floor it earns the word measured: " + many.txt);
+}
+ok(MINN === 6, "the small-n floor is six observations, per single-case guidance");
+ok(tc1(1) > tc1(10) && tc1(10) > tc1(60), "t multiplier shrinks as df grows — small n pays for itself");
+
 // (interim)
 
 // v3.15 — the lab organizes itself
@@ -487,8 +517,10 @@ ok(dock.fresh.length === 0 && dock.next.length >= 1 && dock.next.length <= 3, "d
 ok(dock.next.every(n => n.n < n.need) && dock.next[0].pct >= (dock.next[1] ? dock.next[1].pct : 0), "next-to-speak sorted by closeness to threshold");
 ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "sentinel line reads");
 const ranked = sl1(clone(SP));
-const rk = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
+/* PROVISIONAL ranks 0.5 — after anything settled, before anything still gathering. */
+const rk = { LIVE: 0, TRACKING: 0, PROVISIONAL: 0.5, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
 ok(ranked.length === 55 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 55 cards, monotone rank order");
+ok(ranked.some((c) => c.status === "PROVISIONAL"), "the lens has a PROVISIONAL tier — small-n cards no longer sit among the settled ones");
 // a flip lands on the docket's fresh row
 const swD = __test.sweepLab(clone(SP));
 let dkF = JSON.parse(JSON.stringify(swD));
@@ -538,7 +570,9 @@ ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i -
 // v3.18 — the lab on one card
 ok(typeof __test.labSections === "function" && typeof __test.labGroups === "function", "engine keeps the taxonomy even though the UI stopped wearing it");
 const secs18 = __test.labSections(clone(__test.SEED));
-ok(secs18[0].k === "speaking" && secs18[1].k === "gathering", "speaking leads, gathering follows — the page's whole grammar");
+/* PROVISIONAL sits between them now: settled verdicts first, then the cards that have
+   a number without the observations to stand behind it, then what is still gathering. */
+ok(secs18[0].k === "speaking" && secs18[1].k === "provisional" && secs18[2].k === "gathering", "speaking leads, provisional next, gathering follows — the page's whole grammar");
 
 // (interim)
 

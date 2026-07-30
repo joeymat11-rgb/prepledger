@@ -291,7 +291,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "4.2.0";
+const APP_V = "4.2.1";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -2107,10 +2107,69 @@ function etaRange(s, targetPct) {
 }
 
 /* THE LAB — every analytic self-gates on its own data threshold. No correlations under N. */
+/* ---------- SMALL_N_NOTE — an interval on every "measured" scalar ----------
+   The tri-state tag was the honest part of this app and it had a hole in it: cards
+   printed "(measured, n=X)" beside a point estimate or a min–max range of raw
+   observations, with no INFERENTIAL interval — precisely where the interval is
+   widest and most informative. The refeed line was the worst case: four next-morning
+   deltas of −0.4, −0.2, +0.7, +2.8 average about +0.5 lb with an SD near 1.4. That is
+   not a number, it is noise with a mean, and presenting it as "your personal
+   morning-after-refeed number" is the one overclaim the rest of this app would never
+   make.
+
+   ciOf() returns the mean with a 95% t-interval. At n=2–4 the interval comes back
+   embarrassingly wide — that IS the finding, and it belongs on the card.
+
+   A min–max of observations is not an interval either: it describes the sample and
+   says nothing about the estimate, and it gets WIDER with more data while a real
+   interval gets narrower. Both are shown now, labelled differently.
+
+   LAB_MIN_N is 6 because single-case methodology wants a median of about six
+   observations before a within-person finding counts. Below that a card may hold a
+   number but wears PROVISIONAL, never "measured". */
+const T95 = { 1: 12.71, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228, 12: 2.179, 15: 2.131, 20: 2.086, 25: 2.060, 30: 2.042 };
+const tCrit = (df) => {
+  if (df <= 0) return null;
+  if (T95[df]) return T95[df];
+  const keys = Object.keys(T95).map(Number).filter((k) => k <= df);
+  return df >= 40 ? 1.96 : T95[Math.max(...keys)] || 1.96;
+};
+const LAB_MIN_N = 6;
+function ciOf(values, { minN = LAB_MIN_N } = {}) {
+  const v = (values || []).filter((x) => typeof x === "number" && isFinite(x));
+  const n = v.length;
+  if (!n) return { n: 0, mean: null, sd: null, lo: null, hi: null, half: null, provisional: false, enough: false, txt: "(measured, n=0)" };
+  const mean = v.reduce((a, b) => a + b, 0) / n;
+  if (n === 1) {
+    return { n, mean: +mean.toFixed(2), sd: null, lo: null, hi: null, half: null, provisional: true, enough: false,
+      obsLo: +Math.min(...v).toFixed(1), obsHi: +Math.max(...v).toFixed(1),
+      txt: `(provisional, n=1 — one observation has no spread)` };
+  }
+  const sd = Math.sqrt(v.reduce((a, b) => a + (b - mean) * (b - mean), 0) / (n - 1));
+  const half = tCrit(n - 1) * (sd / Math.sqrt(n));
+  const enough = n >= minN;
+  return {
+    n, mean: +mean.toFixed(2), sd: +sd.toFixed(2), half: +half.toFixed(2),
+    lo: +(mean - half).toFixed(2), hi: +(mean + half).toFixed(2),
+    obsLo: +Math.min(...v).toFixed(1), obsHi: +Math.max(...v).toFixed(1),
+    provisional: !enough, enough,
+    /* The interval straddling zero is the single most useful thing a small-n card can
+       say, so it gets said in words rather than left to be inferred from two numbers. */
+    straddlesZero: (mean - half) <= 0 && (mean + half) >= 0,
+    txt: enough ? `(measured, n=${n})` : `(provisional, n=${n} of ${minN})`,
+  };
+}
+const ciLine = (c, unit = "lb") => {
+  if (!c || !c.n) return "no observations yet";
+  if (c.n === 1) return `one observation only — no spread to report yet`;
+  const sign = (x) => (x > 0 ? `+${x}` : `${x}`);
+  return `mean ${sign(c.mean)} ${unit} · 95% CI ${sign(c.lo)} to ${sign(c.hi)} · SD ${c.sd} · observed ${sign(c.obsLo)} to ${sign(c.obsHi)} (n=${c.n})`;
+};
 function labAnalytics(s) {
   const out = [];
   const sealed = daysUntil(s.blackout.until) > 0;
   const reads = s.reads.filter((r) => !r.sealed);
+  const CI = ciOf; /* local alias — every "measured" scalar in here goes through it */
   const readByD = {}; reads.forEach((r) => { readByD[r.d] = r.w; });
   const nextDay = (d) => isoOf(new Date(mk(d).getTime() + DAY));
   const bfNow = bfEst(s);
@@ -2126,28 +2185,37 @@ function labAnalytics(s) {
     }
   }
   const ev = s.events.find((e) => !e.estimated && daysUntil(e.d) <= 3);
-  const ds0 = eps.map((e) => e.days).sort((a, b) => a - b);
-  const hiC = ds0.length >= 3 ? ds0[ds0.length - 2] : ds0[ds0.length - 1];
-  out.push({ id: "whoosh", t: "WHOOSH SIGNATURE", status: eps.length >= 2 ? "LIVE" : "ARMED", prog: { n: eps.length, need: 2, label: "spike→drain episodes" },
-    tag: "How fast event water leaves YOUR body — measured, per event.",
-    deep: "Big meals spike the scale with sodium, glycogen, and gut content — not fat (a 4.6 lb fat gain would need ~16,000 surplus calories, not one dinner). This model measured how long each of your spikes took to clear, so future spikes arrive pre-labeled with an exit date instead of a panic.",
+  /* The old min–max/trimmed-max pair is gone: a range of observations is not an
+     interval, and quoting one as if it were was the whole defect here. */
+  const clearCI = CI(eps.map((e) => e.days));
+  const jumpCI = CI(eps.map((e) => e.jump));
+  out.push({ id: "whoosh", t: "WHOOSH SIGNATURE", status: clearCI.enough ? "LIVE" : eps.length >= 2 ? "PROVISIONAL" : "ARMED", prog: { n: eps.length, need: LAB_MIN_N, label: "spike→drain episodes" },
+    tag: clearCI.enough ? "How fast event water leaves YOUR body, with its interval." : "How fast event water leaves you — provisional, few episodes.",
+    deep: "Big meals spike the scale with sodium, glycogen, and gut content — not fat (a 4.6 lb fat gain would need ~16,000 surplus calories, not one dinner). This card measures how long each of your spikes took to clear. It used to speak at two episodes and quote a min–max of what it had seen; that range describes the sample, not the estimate, and it gets WIDER with more data while a real interval gets narrower. Both are shown now, labelled apart, and the card stays PROVISIONAL until six episodes exist.",
     forYou: eps.length >= 2
-      ? (ev ? `${ev.t} ${fmtShort(ev.d)}: expect a next-morning spike somewhere in your +${Math.min(...eps.map(e => e.jump))} to +${Math.max(...eps.map(e => e.jump))} range, clearing in ${ds0[0]}–${hiC} days. Every reading in that window is pre-dismissed. the first clean read after may still carry residue — the damped trend already knows.`
-        : "No event in range — nothing to brace for. The model sits ready for the next one life schedules.")
-      : "Needs one more spike→clear cycle to speak.",
+      ? (ev ? `${ev.t} ${fmtShort(ev.d)}: expect a next-morning spike near ${jumpCI.mean > 0 ? "+" + jumpCI.mean : jumpCI.mean} lb (95% CI ${jumpCI.lo} to ${jumpCI.hi}), clearing in about ${clearCI.mean} days (95% CI ${Math.max(0, clearCI.lo)} to ${clearCI.hi}). Readings inside that window are pre-dismissed; the first clean read after may still carry residue, and the damped trend already knows.${clearCI.provisional ? ` PROVISIONAL — ${LAB_MIN_N - eps.length} more episode${LAB_MIN_N - eps.length === 1 ? "" : "s"} before these are numbers rather than impressions.` : ""}`
+        : `No event in range — nothing to brace for. On file: clearance about ${clearCI.mean} days (95% CI ${Math.max(0, clearCI.lo)} to ${clearCI.hi}, n=${eps.length}).${clearCI.provisional ? " Provisional until six episodes." : ""}`)
+      : "Needs one more spike→clear cycle to open.",
     lines: eps.length >= 2 ? [
-      `${eps.length} episodes in you · spikes +${Math.min(...eps.map(e => e.jump))} to +${Math.max(...eps.map(e => e.jump))} · clearance ${ds0[0]}–${hiC} days (one chained-event stretch ran ${ds0[ds0.length - 1]}d)`,
+      `${eps.length} episode${eps.length === 1 ? "" : "s"} on file · observed spikes +${jumpCI.obsLo} to +${jumpCI.obsHi} · observed clearance ${clearCI.obsLo}–${clearCI.obsHi} days`,
+      `clearance estimate: ${ciLine(clearCI, "days")}`,
     ] : [] });
 
   /* 2 · refeed bump line */
   const refDs = HISTORY.filter((h) => h.cal != null && h.cal >= 2100 && /\bREFEED\b/.test(h.note || "") && !/REFEED SKIPPED/i.test(h.note || "")).map((h) => h.d);
   const bumps = refDs.map((d) => (readByD[d] != null && readByD[nextDay(d)] != null ? +(readByD[nextDay(d)] - readByD[d]).toFixed(1) : null)).filter((x) => x != null);
   const nxtWed = (() => { let d = todayStart(); for (let i = 1; i <= 7; i++) { const t2 = new Date(d.getTime() + i * DAY); if (t2.getDay() === 3) return isoOf(t2); } return null; })();
-  out.push({ id: "refeed", t: "REFEED BUMP LINE", status: bumps.length >= 2 ? "LIVE" : "ARMED", prog: { n: bumps.length, need: 2, label: "measured refeed mornings" },
-    tag: "Your personal morning-after-refeed number.",
-    deep: "Refeed carbs bind water into muscle glycogen (~3 g of water per gram of carbohydrate stored). The next-morning bump is that storage — it is literally the fullness you are dieting FOR, wearing a scary costume on the scale.",
-    forYou: bumps.length >= 2 ? `Next refeed ${nxtWed ? fmtShort(nxtWed) : "Wednesday"}: the morning after can land anywhere in your measured spread. A Thursday +1 is chapter and verse — you lift heavier ON the bump, not despite it.` : "Two measured refeed mornings unlock it.",
-    lines: bumps.length >= 2 ? [`your next-morning delta: ${bumps.slice().sort((a, b) => a - b).map((x) => x > 0 ? `+${x}` : `${x}`).join(" · ")} (n=${bumps.length})`] : [] });
+  const bumpCI = CI(bumps);
+  out.push({ id: "refeed", t: "REFEED BUMP LINE", status: bumpCI.enough ? "LIVE" : bumps.length >= 2 ? "PROVISIONAL" : "ARMED", prog: { n: bumps.length, need: LAB_MIN_N, label: "measured refeed mornings" },
+    tag: bumpCI.enough ? "Your morning-after-refeed number, with its interval." : "Your morning-after-refeed mornings — not yet a number.",
+    deep: "Refeed carbs bind water into muscle glycogen (~3 g of water per gram of carbohydrate stored). The next-morning bump is that storage — it is literally the fullness you are dieting FOR, wearing a scary costume on the scale. This card used to print your deltas as a list and call the result 'your personal number' at n=2. It was not one: a handful of mornings averaging about half a pound with a spread near a pound and a half is noise with a mean, and the interval below says so out loud. It stays PROVISIONAL until six mornings exist, because that is roughly where a within-person estimate starts being an estimate.",
+    forYou: bumps.length >= 2
+      ? `${ciLine(bumpCI)}.${bumpCI.straddlesZero ? " The interval crosses zero — on your data so far the refeed's morning-after effect is not distinguishable from no effect at all." : ""}${bumpCI.provisional ? ` PROVISIONAL — ${LAB_MIN_N - bumps.length} more refeed morning${LAB_MIN_N - bumps.length === 1 ? "" : "s"} before this is a number.` : ""} Either way the mechanism holds: you lift heavier ON the bump, not despite it.`
+      : "Two measured refeed mornings open the card; six make it a number.",
+    lines: bumps.length >= 2 ? [
+      `observations: ${bumps.slice().sort((a, b) => a - b).map((x) => x > 0 ? `+${x}` : `${x}`).join(" · ")}`,
+      ciLine(bumpCI),
+    ] : [] });
 
   /* 3 · personal noise floor */
   const deltas = [];
@@ -5068,7 +5136,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { ciOf, LAB_MIN_N, tCrit, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
