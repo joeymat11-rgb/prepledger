@@ -1,16 +1,16 @@
 {
-  "gen": "2026-07-29T09:06:32.825Z",
-  "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-dev\\ledger\\state.json",
+  "gen": "2026-07-30T12:45:04.156Z",
+  "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 164.68,
-    "lastRaw": 164.2,
+    "soft": 164.85,
+    "lastRaw": 161.8,
     "appTrend": 164.3,
     "noiseFloor": 1.52,
-    "gap": 0.48
+    "gap": 3.05
   },
   "rate": {
-    "perWeekLb": 1.2,
-    "perWeekPct": 0.73,
+    "perWeekLb": 1.26,
+    "perWeekPct": 0.76,
     "bandLb": 0.89,
     "personalBand": [
       1,
@@ -19,19 +19,19 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2579,
+    "tdee": 2610,
     "tdeeWinDays": 20,
-    "meanCal": 2086,
+    "meanCal": 2072,
     "waterSensitivityLb": null,
     "waterSensDays": 2,
     "meanSleepH": 6.9,
-    "sleepDebt7H": 2.8,
+    "sleepDebt7H": 1.8,
     "ffmKg": 63.4,
     "proteinTargetG": 146
   },
   "regime": {
-    "regime": "steady loss",
-    "why": "trend descending at 1.2 lb/wk within your target band"
+    "regime": "whoosh pending",
+    "why": "raw weight is 3.1 lb below trend after a water event - the trend should catch down as clean reads confirm"
   },
   "weeks": [
     {
@@ -71,38 +71,16 @@
     },
     {
       "wk": "2026-07-27",
-      "meanCal": 1870,
-      "meanPro": 180,
+      "meanCal": 1760,
+      "meanPro": 175,
       "proHitPct": 100,
       "meanSteps": 16500
     }
   ],
-  "priorDecisions": [
-    {
-      "sid": "sug_2026-07-28_sleep",
-      "decided": "approved",
-      "d": "2026-07-28",
-      "title": "Fix lights-out: pick a time, take 7.5 h",
-      "apply": {
-        "kind": "sleep",
-        "to": 7.5
-      },
-      "predict": "Back at 7.5 h, the press third set returns to 7 and the loss keeps coming off fat rather than lean."
-    },
-    {
-      "sid": "sug_2026-07-28_hold",
-      "decided": "approved",
-      "d": "2026-07-28",
-      "title": "Hold the Calves 320 debut until a clean week",
-      "apply": {
-        "kind": "note"
-      },
-      "predict": "The 320 debut lands on a clean week and sticks first time; nothing you own gets contested on recovery grounds."
-    }
-  ],
+  "priorDecisions": [],
   "suggestions": [
     {
-      "sid": "sug_2026-07-28_sleep",
+      "sid": "sug_2026-07-27_sleep",
       "title": "Protect sleep: aim 7.5 h, cap afternoon caffeine",
       "apply": {
         "kind": "sleep",
@@ -110,7 +88,7 @@
       },
       "rationale": {
         "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss 55% and raised lean-mass loss 60% (Nedeltcheva 2010).",
-        "data": "Last 13 nights average 6.9 h (7-night debt 2.8 h); 5 recent days had >=300 mg or afternoon caffeine.",
+        "data": "Last 13 nights average 6.9 h (7-night debt 1.8 h); 3 recent days had >=300 mg or afternoon caffeine.",
         "relationship": "Short sleep + late caffeine track with your low recovery score and rep dips - the lever that protects lean while you cut."
       },
       "predict": "Higher share of loss as fat; lean protected; better session quality.",
