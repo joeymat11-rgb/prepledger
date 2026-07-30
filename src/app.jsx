@@ -104,7 +104,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
     + "[data-reduce-motion='1'] *,[data-reduce-motion='1'] *::before,[data-reduce-motion='1'] *::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:100ms !important;transition-property:opacity !important}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.15";
+const APP_V = "4.0.16";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -5853,6 +5853,53 @@ const Num = ({ children, size = 30, c = T.chalk }) => (
 const H = ({ children, size = 26, c = T.chalk }) => (
   <div style={{ fontFamily: disp, fontWeight: 700, fontSize: size, lineHeight: 1.02, color: c, textTransform: "uppercase", letterSpacing: "0.01em" }}>{children}</div>
 );
+
+/* THE HERO — one per screen (§3.4). The metric in TS.metric, its unit in TS.label
+   steel, and the provenance tag ADJACENT to the number rather than in a footnote:
+   brass (measured, n=X) when readings produced it, orange (speculation) when the
+   engine inferred it. A number printed without its provenance is a claim, not a
+   measurement, and this app's whole argument is the difference. */
+const Hero = ({ value, unit, n = null, speculation = false, c = T.chalk, sub = null }) => (
+  <div>
+    <div style={{ display: "flex", alignItems: "baseline", gap: SP.sm, flexWrap: "wrap" }}>
+      <span data-num style={{ fontFamily: disp, fontWeight: 600, fontSize: TS.metric, lineHeight: `${LH.metric}px`, letterSpacing: "-0.25px", color: c, fontVariantNumeric: "tabular-nums" }}>{value}</span>
+      {unit ? <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, letterSpacing: "0.04em", textTransform: "uppercase" }}>{unit}</span> : null}
+    </div>
+    <div style={{ fontFamily: mono, fontSize: TS.micro, lineHeight: `${LH.micro}px`, letterSpacing: "0.06em", marginTop: SP.hair, color: speculation ? T.orange : T.brass }}>
+      {speculation ? "(speculation)" : `(measured, n=${n == null ? 0 : n})`}
+    </div>
+    {sub ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>{sub}</div> : null}
+  </div>
+);
+
+/* DATA ROW (§3.5) — label left in steel, value right in chalk tabular mono, one
+   fixed 44px row, rows separated by a hairline instead of each being boxed. Values
+   are right-aligned so digits stack into a column you can actually compare down. */
+const DataRow = ({ label, value, tag = null, glyph = null, c = T.chalk, first = false }) => (
+  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.md, minHeight: 44, borderTop: first ? "none" : `1px solid ${T.hairline}` }}>
+    <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, letterSpacing: "0.04em", textTransform: "uppercase" }}>{label}</span>
+    <span style={{ display: "flex", alignItems: "baseline", gap: SP.sm, minWidth: 0 }}>
+      {glyph ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: c }}>{glyph}</span> : null}
+      <span data-num style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, color: c, fontVariantNumeric: "tabular-nums", textAlign: "right" }}>{value}</span>
+      {tag ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, whiteSpace: "nowrap" }}>{tag}</span> : null}
+    </span>
+  </div>
+);
+
+/* A signed change over the trend, with the n that produced it. The sign is always
+   printed, because "1.4" with no direction is not a measurement of change. A
+   window holding fewer than two trend points returns null rather than 0 — those
+   are different facts, and 0 would be a lie about a window with no data. */
+function trendDelta(reads, days) {
+  const ts = trendSeries(reads || []);
+  const cutoff = todayStart().getTime() - days * DAY;
+  const nClean = (reads || []).filter((r) => !r.sealed && mk(r.d).getTime() >= cutoff).length;
+  if (!ts.length) return { delta: null, n: 0 };
+  const win = ts.filter((p) => mk(p.d).getTime() >= cutoff);
+  if (win.length < 2) return { delta: null, n: nClean };
+  return { delta: +(win[win.length - 1].t - win[0].t).toFixed(1), n: nClean };
+}
+const fmtDelta = (d) => (d == null ? "—" : (d > 0 ? "+" : d < 0 ? "−" : "±") + Math.abs(d).toFixed(1));
 function Term({ k, children, c }) {
   return (
     <span onClick={(e) => { e.stopPropagation(); if (window.__setGloss) window.__setGloss(k); }}
@@ -5912,29 +5959,87 @@ function trendSeries(reads) {
     return { d: r.d, t };
   });
 }
-function Spark({ reads, trend }) {
-  const W = 300, Hh = 96, pad = 8;
+function Spark({ reads, trend, projRate = null, noise = 0.8 }) {
+  /* The chart carries the app's whole grammar: SOLID IS MEASURED, DASHED IS
+     PROJECTED — the same distinction the icon's fifth tick makes. What used to be
+     here drew one jagged daily line and let it read as truth. It now draws the
+     trend as a BAND (the measured ±noise envelope, because a damped average is a
+     range and pretending otherwise is false precision), the daily mornings as
+     small recessive dots, and any forward projection as a dashed reach that is
+     visibly not a measurement. The latest point is labelled directly rather than
+     sent to a legend for decoding. */
+  const W = 300, Hh = 104, pad = 8, gut = 42; // gut = right gutter for the direct label
   const all = reads.slice(-45);
-  if (!all.length) return null;
-  const ts = trendSeries(reads).slice(-45);
-  const t0 = mk(all[0].d).getTime(), t1 = Math.max(mk(all[all.length - 1].d).getTime(), todayStart().getTime());
-  const ws = all.map((r) => r.w).concat(ts.map((p) => p.t)).concat([trend]);
-  const lo = Math.min(...ws) - 0.8, hi = Math.max(...ws) + 0.8;
-  const x = (d) => pad + ((mk(d).getTime() - t0) / Math.max(1, t1 - t0)) * (W - 2 * pad);
+  const ts = all.length ? trendSeries(reads).slice(-45) : [];
+
+  // EMPTY IS INSTRUCTIONAL, NEVER BLANK: axes stay, and it says n=0 out loud.
+  if (!all.length || !ts.length) {
+    return (
+      <div>
+        <svg width="100%" viewBox={`0 0 ${W} ${Hh}`} style={{ display: "block" }} role="img" aria-label="No weigh-ins yet">
+          <line x1={pad} y1={Hh - pad} x2={W - pad} y2={Hh - pad} stroke={T.dim} strokeWidth="1" />
+          <line x1={pad} y1={pad} x2={pad} y2={Hh - pad} stroke={T.dim} strokeWidth="1" />
+        </svg>
+        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, letterSpacing: "0.06em" }}>
+          (measured, n=0) — no clean reads yet. The trend draws itself once mornings land.
+        </div>
+      </div>
+    );
+  }
+
+  const lastT = ts[ts.length - 1];
+  const projDays = projRate ? 21 : 0;
+  const t0 = mk(all[0].d).getTime();
+  const tLast = Math.max(mk(all[all.length - 1].d).getTime(), mk(lastT.d).getTime(), todayStart().getTime());
+  const tEnd = tLast + projDays * DAY;
+  const projW = lastT.t - (projRate || 0) * (projDays / 7);
+
+  const ws = all.map((r) => r.w).concat(ts.map((p) => p.t)).concat([trend, projW]);
+  const lo = Math.min(...ws) - noise, hi = Math.max(...ws) + noise;
+  const x = (ms) => pad + ((ms - t0) / Math.max(1, tEnd - t0)) * (W - pad - gut);
+  const xd = (d) => x(mk(d).getTime());
   const y = (w) => pad + (1 - (w - lo) / (hi - lo)) * (Hh - 2 * pad);
-  const tPath = ts.map((pnt, i) => `${i ? "L" : "M"}${x(pnt.d).toFixed(1)},${y(pnt.t).toFixed(1)}`).join(" ");
-  const yEnd = y(ts[ts.length - 1].t);
+
+  const tPath = ts.map((p, i) => `${i ? "L" : "M"}${xd(p.d).toFixed(1)},${y(p.t).toFixed(1)}`).join(" ");
+  // The band: upper edge out, lower edge back. This is the measured envelope.
+  const bandPath =
+    ts.map((p, i) => `${i ? "L" : "M"}${xd(p.d).toFixed(1)},${y(p.t + noise).toFixed(1)}`).join(" ") +
+    " " + ts.slice().reverse().map((p) => `L${xd(p.d).toFixed(1)},${y(p.t - noise).toFixed(1)}`).join(" ") + " Z";
+  const xEnd = xd(lastT.d), yEnd = y(lastT.t);
+
   return (
     <div>
-      <svg width="100%" viewBox={`0 0 ${W} ${Hh}`} style={{ display: "block" }}>
-        {all.map((r, i) => (
-          <circle key={i} cx={x(r.d)} cy={y(r.w)} r={r.sealed ? 1.9 : 1.5} fill={r.sealed ? "none" : T.steel} stroke={r.sealed ? T.dim : "none"} strokeWidth="1" opacity={r.sealed ? 0.75 : 0.5} />
+      <svg width="100%" viewBox={`0 0 ${W} ${Hh}`} style={{ display: "block" }}
+        role="img" aria-label={`Weight trend ${trend} pounds over the last ${all.length} reads`}>
+        {/* 1px gridlines, dim — decoration, and the only job dim has */}
+        {[0, 0.5, 1].map((f) => (
+          <line key={f} x1={pad} y1={pad + f * (Hh - 2 * pad)} x2={W - gut} y2={pad + f * (Hh - 2 * pad)}
+            stroke={T.dim} strokeWidth="1" opacity="0.45" />
         ))}
-        <path d={tPath} fill="none" stroke={T.jade} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx={x(ts[ts.length - 1].d)} cy={yEnd} r="2.8" fill={T.jade} />
+        <path d={bandPath} fill="rgba(76,195,138,0.13)" stroke="none" />
+        {all.map((r, i) => (
+          <circle key={i} cx={xd(r.d)} cy={y(r.w)} r={r.sealed ? 1.9 : 1.5}
+            fill={r.sealed ? "none" : T.steel} stroke={r.sealed ? T.dim : "none"} strokeWidth="1"
+            opacity={r.sealed ? 0.75 : 0.5} />
+        ))}
+        {/* measured: solid */}
+        <path d={tPath} fill="none" stroke={T.jade} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {/* projected: dashed, and it stops being jade so it cannot be mistaken for a reading */}
+        {projRate ? (
+          <path d={`M${xEnd.toFixed(1)},${yEnd.toFixed(1)} L${x(tEnd).toFixed(1)},${y(projW).toFixed(1)}`}
+            fill="none" stroke={T.brass} strokeWidth="2" strokeDasharray="5 4" strokeLinecap="round" opacity="0.85" />
+        ) : null}
+        <circle cx={xEnd} cy={yEnd} r="3" fill={T.jade} />
+        {/* direct label — the number sits on the point, not in a legend */}
+        <text x={Math.min(xEnd + 7, W - gut + 4)} y={Math.max(pad + 8, Math.min(yEnd + 3.5, Hh - pad))}
+          fill={T.chalk} fontFamily={mono} fontSize="11" fontWeight="600" style={{ fontVariantNumeric: "tabular-nums" }}>
+          {trend}
+        </text>
       </svg>
-      <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 5 }}>
-        <span style={{ color: T.jade }}>— trend {trend}</span> · grey = mornings · hollow = sealed · last {all.length} reads
+      <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>
+        <span style={{ color: T.jade }}>solid = measured trend</span>
+        {projRate ? <> · <span style={{ color: T.brass }}>dashed = projected</span></> : null}
+        <br />band = ±{noise} noise floor · dots = mornings · hollow = sealed · (measured, n={all.length})
       </div>
     </div>
   );
@@ -7451,6 +7556,10 @@ function BodyTab({ s, setS, save }) {
   const xPct = (() => { const f0 = (s.weekly || [])[0]; const start0 = f0 ? f0.trend : s.trend; const bfE = bfEst(s); const tgt0 = bfE.lean / 0.89; const span = Math.max(0.1, start0 - tgt0); return Math.max(0, Math.min(100, Math.round(((start0 - s.trend) / span) * 100))); })();
   const bf = bfEst(s);
   const cur = currentRate(s);
+  /* n for the hero's provenance tag: clean reads only. Sealed mornings are on the
+     record but they never moved the trend, so counting them would inflate the
+     evidence behind the number. */
+  const nClean = (s.reads || []).filter((r) => !r.sealed).length;
   const eta12 = etaWeeks(s, 12), eta11 = etaWeeks(s, 11);
   const canThesis = wd.wk > s.lastThesisWk;
   const mirrorEra = wd.wk >= 10;
@@ -7472,30 +7581,65 @@ function BodyTab({ s, setS, save }) {
         </Card>
       )}
 
-      <Card accent={T.jade} style={{ padding: 12 }}>
-        <Eyebrow c={T.jade}>VITALS — THE FOUR NUMBERS THAT MATTER</Eyebrow>
-        <div style={{ display: "flex", gap: 16, marginTop: 8, flexWrap: "wrap" }}>
-          <div><Num size={20}>{s.trend}</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>TREND{sealed ? " · SEALED" : ""}</div></div>
-          <div><Num size={20}>{bf.pct}%</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>EST BF {s.model.err}</div></div>
-          <div><Num size={20}>{cur.fat}</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>FAT/WK{cur.measured ? " · MEASURED" : ""}</div></div>
-          <div><Num size={20}>{s.waist.length ? s.waist[s.waist.length - 1].v + '"' : "—"}</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>WAIST</div></div>
+      {/* ABOVE THE FOLD, ZERO TAPS (§4). This screen answers exactly one question —
+          "where is my weight actually going?" — so the trend is THE hero, its
+          provenance sits directly under it, and the signed deltas answer the
+          direction over three windows. The old card printed four equal 20px
+          numbers, which made the screen's own answer compete with three others.
+          Those three are still here, demoted, below the answer. */}
+      <Card accent={T.jade} style={{ padding: SP.lg }}>
+        <Eyebrow c={T.jade}><Term k="trend" c={T.jade}>TREND</Term> — WHERE THE WEIGHT IS ACTUALLY GOING</Eyebrow>
+        <div style={{ marginTop: SP.sm }}>
+          <Hero value={s.trend} unit="lb" n={nClean} c={T.jade}
+            sub={sealed ? `scale sealed · first clean read ${fmtShort(SEAL_UNTIL)}` : "damped average — one dinner cannot move it"} />
         </div>
-        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 8 }}>four rooms below — tap any to enter</div>
+        <div style={{ marginTop: SP.md }}>
+          {[[7, "7-day"], [30, "30-day"], [90, "90-day"]].map(([days, lbl], i) => {
+            const dl = trendDelta(s.reads, days);
+            /* Down is the intent here, so down is jade and up is orange — attention,
+               not failure. A window with under two trend points prints an em dash and
+               its real n, never a zero it cannot support. */
+            return (
+              <DataRow key={days} first={i === 0} label={lbl}
+                value={dl.delta == null ? "—" : `${fmtDelta(dl.delta)} lb`}
+                glyph={dl.delta == null ? null : dl.delta < 0 ? "▼" : dl.delta > 0 ? "▲" : "■"}
+                c={dl.delta == null ? T.steel : dl.delta < 0 ? T.jade : dl.delta > 0 ? T.orange : T.chalk}
+                tag={`(measured, n=${dl.n})`} />
+            );
+          })}
+        </div>
+        <div style={{ display: "flex", gap: SP.xl, marginTop: SP.lg, flexWrap: "wrap", paddingTop: SP.md, borderTop: `1px solid ${T.hairline}` }}>
+          <div>
+            <div data-num style={{ fontFamily: mono, fontSize: TS.title, fontWeight: 600, color: T.chalk, fontVariantNumeric: "tabular-nums" }}>{bf.pct}%</div>
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.06em" }}>EST BF {s.model.err}</div>
+          </div>
+          <div>
+            <div data-num style={{ fontFamily: mono, fontSize: TS.title, fontWeight: 600, color: T.chalk, fontVariantNumeric: "tabular-nums" }}>{cur.fat}</div>
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: cur.measured ? T.brass : T.orange, letterSpacing: "0.06em" }}>FAT/WK {cur.measured ? "(measured)" : "(speculation)"}</div>
+          </div>
+          <div>
+            <div data-num style={{ fontFamily: mono, fontSize: TS.title, fontWeight: 600, color: T.chalk, fontVariantNumeric: "tabular-nums" }}>{s.waist.length ? s.waist[s.waist.length - 1].v + '"' : "—"}</div>
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.06em" }}>WAIST (measured, n={s.waist.length})</div>
+          </div>
+        </div>
       </Card>
 
       <Section title="Weight" meta={`${s.trend}${sealed ? " · sealed → " + fmtShort(SEAL_UNTIL) : " · live"}`}>
         <Card>
-        <Eyebrow><Term k="trend" c={T.steel}>TREND</Term> — THE HERO NUMBER</Eyebrow>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 4 }}>
-          <Num size={40} c={T.jade}>{s.trend}</Num>
-          <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>daily weigh-ins draw small & grey on purpose — the green line is the one to believe</span>
+        {/* The hero lives at the top of the screen now, so this card stops repeating
+            it and does the job only a chart can: show the shape. Solid trend inside
+            its measured band, dashed reach for the projection, latest point labelled
+            where it sits. The projection is fed the measured rate only when one
+            exists — a dashed line off a guess would be speculation drawn twice. */}
+        <Eyebrow><Term k="trend" c={T.steel}>TREND</Term> — THE SHAPE, LAST 45 READS</Eyebrow>
+        <div style={{ marginTop: SP.sm }}>
+          <Spark reads={s.reads} trend={s.trend} projRate={cur.measured ? cur.fat : null} />
         </div>
-        <div style={{ marginTop: 8 }}><Spark reads={s.reads} trend={s.trend} /></div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 8 }}>
+        <div style={{ marginTop: SP.md }}>
           {s.reads.slice(-4).reverse().map((r, i) => (
-            <div key={i} style={{ display: "flex", justifyContent: "space-between", fontFamily: mono, fontSize: TS.micro, color: r.sealed ? T.steel : T.steel }}>
-              <span>{fmtShort(r.d)} · {r.w}</span><span>{r.note}</span>
-            </div>
+            <DataRow key={i} first={i === 0} label={fmtShort(r.d)} value={r.w}
+              c={r.sealed ? T.steel : T.chalk}
+              tag={r.sealed ? "(sealed — did not move the trend)" : r.note || "(measured)"} />
           ))}
         </div>
         <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 10 }}>weigh-in lives on NOW · mornings, once a day</div>
@@ -7586,12 +7730,22 @@ function BodyTab({ s, setS, save }) {
           const due = !lastW || Math.round((mk(tISO) - mk(lastW.d)) / DAY) >= 7;
           return (
             <>
-              {s.waist.length > 0 && (
-                <div style={{ display: "flex", gap: 14, marginTop: 8, fontFamily: mono, fontSize: TS.micro, color: T.steel, flexWrap: "wrap" }}>
-                  {s.waist.slice(-4).map((x, i) => (<span key={i}>{fmtShort(x.d)} · <span style={{ color: T.chalk }}>{x.v}"</span></span>))}
+              {s.waist.length > 0 ? (
+                <div style={{ marginTop: SP.sm }}>
+                  {s.waist.slice(-4).reverse().map((x, i) => (
+                    <DataRow key={i} first={i === 0} label={fmtShort(x.d)} value={`${x.v}"`} />
+                  ))}
                   {s.waist.length >= 2 && (
-                    <span style={{ color: T.jade }}>Δ −{(s.waist[0].v - lastW.v).toFixed(1)}" total</span>
+                    <DataRow label="total change" value={`${fmtDelta(lastW.v - s.waist[0].v)}"`}
+                      glyph={lastW.v < s.waist[0].v ? "▼" : lastW.v > s.waist[0].v ? "▲" : "■"}
+                      c={lastW.v < s.waist[0].v ? T.jade : lastW.v > s.waist[0].v ? T.orange : T.chalk}
+                      tag={`(measured, n=${s.waist.length})`} />
                   )}
+                </div>
+              ) : (
+                /* Empty is instructional and honest — no invented starting figure. */
+                <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>
+                  (measured, n=0) — no tape readings yet. The engine needs one before it can read anything here.
                 </div>
               )}
               <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 10 }}>{due ? "due now — the card is waiting on NOW" : `logged — next due ${fmtShort(isoOf(new Date(mk(lastW.d).getTime() + 7 * DAY)))} · logs on NOW`}</div>
@@ -7608,8 +7762,25 @@ function BodyTab({ s, setS, save }) {
           return (
             <>
               <Eyebrow c={wk >= 10 ? T.brass : T.steel}>{wk >= 10 ? "PHOTOS · MIRROR ERA — OUTRANKS THE SCALE" : "PHOTOS · WEEKLY — HABIT NOW, ERA STARTS WK 10"}</Eyebrow>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
-                {["same light", "same spot", "fasted AM", "front / side / back", "relaxed + flexed"].map((c2, i) => (<Chip key={i}>{c2}</Chip>))}
+              {/* A restrained 3-up in plate frames (§4). These are FRAMES, not
+                  thumbnails — the app has never stored a photo and is not about to
+                  start; the images live in the camera roll and this tracks only
+                  whether the week's set exists. Drawing fake thumbnails here would
+                  be exactly the demo-data dishonesty the brief rules out. */}
+              <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md }}>
+                {["FRONT", "SIDE", "BACK"].map((ang) => (
+                  <div key={ang} style={{
+                    flex: 1, aspectRatio: "3 / 4", background: T.plate2, borderRadius: 10,
+                    border: `1px solid ${due ? T.hairline : T.line}`,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: SP.xs,
+                  }}>
+                    <span style={{ fontFamily: mono, fontSize: TS.title, color: due ? T.steel : T.jade, lineHeight: 1 }}>{due ? "○" : "✓"}</span>
+                    <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.08em" }}>{ang}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: SP.md }}>
+                {["same light", "same spot", "fasted AM", "relaxed + flexed"].map((c2, i) => (<Chip key={i}>{c2}</Chip>))}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10, fontFamily: mono, fontSize: TS.micro, color: T.steel }}>
                 <span>{due ? "due — the mark button is on NOW" : `done — next ${fmtShort(isoOf(new Date(mk(lastP.d).getTime() + 7 * DAY)))}`}</span>
