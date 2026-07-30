@@ -6426,6 +6426,7 @@ __test.EA_SPARING = EA_SPARING;
 __test.etaRange = etaRange;
 __test.bfEst = bfEst;
 __test.stepTarget = stepTarget;
+__test.signalState = signalState;
 __test.beatsNoise = beatsNoise;
 __test.cleanAtDate = cleanAtDate;
 __test.progressStep = progressStep;
@@ -6731,6 +6732,63 @@ function weightNoise(reads) {
   /* Clamped: under 0.3 would draw a hairline that implies scale precision nobody
      has, over 2.5 would swallow the chart. Both ends are honesty guards. */
   return { sd: +Math.max(0.3, Math.min(2.5, sd)).toFixed(2), n: res.length, measured: true };
+}
+/* ---------- SIGNAL_STATE ----------
+   One epistemic verdict for the NOW headline and the graduation mark: is the
+   body-composition change real yet, or still inside the noise? It composes the
+   engine's OWN outputs — the autocorrelation-corrected weekly-rate CI from
+   currentRate() and his personal noise floor from weightNoise() — and adds
+   three false-alarm guards so a lucky week cannot read as a trend: the 95% CI
+   must exclude zero, the weekly move must clear a full day of his noise, and the
+   smoothed trend must have run the same direction for at least six points
+   (Nelson rule 3), with a cold-start gate below n=14. Pure: reads state,
+   returns a verdict, mutates nothing. The PROSE that wraps this lives in the UI;
+   only the NUMBERS live here (the engine owns the numbers, the analyst owns the
+   read). Hysteresis (holding 'measured' until |tau|<1.5) is intentionally left
+   to a later state-carrying pass; this selector is stateless. */
+function signalTicks(tau) {
+  if (!isFinite(tau)) return 0;
+  if (tau >= 3.3) return 5;
+  if (tau >= 2.6) return 4;
+  if (tau >= 1.9) return 3;
+  if (tau >= 1.3) return 2;
+  if (tau >= 1.0) return 1;
+  return 0;
+}
+function signalState(s) {
+  const r = currentRate(s);
+  const clean = ((s && s.reads) || []).filter((x) => x && !x.sealed && x.w != null);
+  const wn = weightNoise(clean);
+  const sd = wn.sd;
+  const n = r.n || 0;
+  // persistence: consecutive same-direction steps at the end of the smoothed trend
+  const ts = trendSeries(clean).map((p) => p.t);
+  const dir = Math.sign(r.scale) || 1; // +1 = losing (trend descending)
+  let run = ts.length >= 2 ? 1 : 0;
+  for (let i = ts.length - 1; i >= 1; i--) {
+    const step = ts[i - 1] - ts[i]; // > 0 when descending (losing)
+    if (step !== 0 && Math.sign(step) === dir) run++;
+    else break;
+  }
+  const hasCI = r.ci != null && r.ci > 0;
+  const ciExcludesZero = hasCI && Math.sign(r.lo) === Math.sign(r.hi) && r.lo !== 0;
+  const clearsNoise = Math.abs(r.scale) >= sd;
+  const persists = run >= 6;
+  const enough = n >= 14;
+  const tau = hasCI ? Math.abs(r.scale) / (r.ci / 1.96) : 0;
+  let state;
+  if (!r.measured || r.method === "prior") state = "calibrating";
+  else if (ciExcludesZero && r.scale < 0) state = "reversed";
+  else if (ciExcludesZero && clearsNoise && persists && enough) state = "measured";
+  else if (ciExcludesZero) state = "measurable";
+  else state = "inside-noise";
+  const WORD = { calibrating: "CALIBRATING", "inside-noise": "INSIDE NOISE", measurable: "MEASURABLE", measured: "MEASURED", reversed: "REVERSED" };
+  return {
+    state, word: WORD[state],
+    scale: r.scale, lo: r.lo, hi: r.hi, ci: r.ci, n, sd, run,
+    tau: +tau.toFixed(2), ticks: signalTicks(tau), finalDashed: state !== "measured",
+    ciExcludesZero, clearsNoise, persists, enough, method: r.method,
+  };
 }
 function Spark({ reads, trend, projRate = null, noise = 0.8, noiseN = null }) {
   /* The chart carries the app's whole grammar: SOLID IS MEASURED, DASHED IS

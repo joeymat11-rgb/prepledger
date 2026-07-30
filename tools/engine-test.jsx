@@ -61,6 +61,26 @@ const { HISTORY, ROLLUPS, currentRate: cr, migrate: mg, runAdaptive: ra, SEED: S
 ok(HISTORY.length === 42 && S3.reads.length === 39, "42-day record woven in, 39 real reads seeded");
 ok(S3.v === SEED.v && Math.abs(S3.trend - 164.7) < 0.2, "trend seeded from trailing-7-day of real reads (~164.7)");
 ok(cr(clone(S3)).measured === true && S3.weekly.length >= 5, "rate gauge now MEASURED off six weeks of snapshots");
+
+// signalState — the NOW verdict selector (redesign v5). Structural + boundary cases.
+{
+  const isoD = (i) => new Date(Date.UTC(2026, 5, 1) + i * 86400000).toISOString().slice(0, 10);
+  const sig = __test.signalState(clone(SEED));
+  ok(["calibrating", "inside-noise", "measurable", "measured", "reversed"].includes(sig.state), "signalState returns a known state on the seed");
+  ok(Number.isInteger(sig.ticks) && sig.ticks >= 0 && sig.ticks <= 5, "signalState ticks are an integer 0..5");
+  ok(sig.finalDashed === (sig.state !== "measured"), "the fifth graduation tick is dashed until the state is measured");
+  ok(sig.n === __test.currentRate(clone(SEED)).n, "signalState reports the same n as the rate it reads");
+  const cold = clone(SEED); cold.reads = [{ d: "2026-07-01", w: 164 }]; cold.weekly = [];
+  ok(__test.signalState(cold).state === "calibrating", "cold start (few reads, prior rate) reads calibrating, never measured");
+  const dn = clone(SEED); dn.blackout = { until: "2026-05-01" };
+  dn.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoD(i), w: +(172 - i * 0.25 + (i % 2 ? 0.08 : -0.08)).toFixed(2) }));
+  const sdn = __test.signalState(dn);
+  ok(sdn.state === "measured", "a long, clean, strong downtrend reads measured");
+  ok(sdn.ticks === 5 && sdn.finalDashed === false, "and it fills all five graduation ticks (fifth solid)");
+  const flat = clone(SEED); flat.blackout = { until: "2026-05-01" };
+  flat.reads = Array.from({ length: 20 }, (_, i) => ({ d: isoD(i), w: +(164 + (i % 2 ? 0.6 : -0.6)).toFixed(2) }));
+  ok(__test.signalState(flat).state !== "measured", "a flat, noisy record does not read measured");
+}
 ok(ROLLUPS.length === 6 && ROLLUPS[0].wk === 6 && ROLLUPS[5].wk === 1, "six weekly rollups, newest first");
 const sealedRun = ra(clone(S3), "2026-07-22");
 ok(!sealedRun.proposals.some(p => p.rid.indexOf("redline") === 0), "sealed window mutes the false redline his sheet flagged");
