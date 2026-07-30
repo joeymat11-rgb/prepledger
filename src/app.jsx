@@ -291,7 +291,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "4.2.4";
+const APP_V = "4.2.5";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -2275,13 +2275,26 @@ function labAnalytics(s) {
   const nextDay = (d) => isoOf(new Date(mk(d).getTime() + DAY));
   const bfNow = bfEst(s);
 
-  /* 1 · whoosh signature */
+  /* 1 · whoosh signature
+     ---------------------------------------------------------------------------
+     WHOOSH_CALIBRATION_NOTE. A "spike" was a fixed 2.0 lb jump and "cleared" was a
+     fixed return to within 0.4 lb — two magic constants in an app that MEASURES this
+     athlete's day-to-day variability three cards away. On a quiet scale 2 lb is a
+     genuine event; on a noisy one it is a Tuesday. Thresholds now scale off his own
+     noise floor: a spike is a jump larger than 3 sigma, cleared is a return to within
+     1 sigma of the pre-spike weight. Self-calibrating, which also raises the effective
+     gate — fewer things qualify as episodes, which is the honest direction — and it
+     ties the scale instruments to one another instead of leaving each with its own
+     private constants. */
+  const wnW = weightNoise(s.reads);
+  const spikeMin = +(3 * wnW.sd).toFixed(2);
+  const clearWithin = +(1 * wnW.sd).toFixed(2);
   const eps = [];
   for (let i = 1; i < reads.length; i++) {
-    if (reads[i].w - reads[i - 1].w >= 2) {
+    if (reads[i].w - reads[i - 1].w >= spikeMin) {
       const pre = reads[i - 1].w;
       for (let j = i + 1; j < reads.length; j++) {
-        if (reads[j].w <= pre + 0.4) { eps.push({ jump: +(reads[i].w - reads[i - 1].w).toFixed(1), days: Math.round((mk(reads[j].d) - mk(reads[i].d)) / DAY) }); break; }
+        if (reads[j].w <= pre + clearWithin) { eps.push({ jump: +(reads[i].w - reads[i - 1].w).toFixed(1), days: Math.round((mk(reads[j].d) - mk(reads[i].d)) / DAY) }); break; }
       }
     }
   }
@@ -2292,7 +2305,7 @@ function labAnalytics(s) {
   const jumpCI = CI(eps.map((e) => e.jump));
   out.push({ id: "whoosh", t: "WHOOSH SIGNATURE", status: clearCI.enough ? "LIVE" : eps.length >= 2 ? "PROVISIONAL" : "ARMED", prog: { n: eps.length, need: LAB_MIN_N, label: "spike→drain episodes" },
     tag: clearCI.enough ? "How fast event water leaves YOUR body, with its interval." : "How fast event water leaves you — provisional, few episodes.",
-    deep: "Big meals spike the scale with sodium, glycogen, and gut content — not fat (a 4.6 lb fat gain would need ~16,000 surplus calories, not one dinner). This card measures how long each of your spikes took to clear. It used to speak at two episodes and quote a min–max of what it had seen; that range describes the sample, not the estimate, and it gets WIDER with more data while a real interval gets narrower. Both are shown now, labelled apart, and the card stays PROVISIONAL until six episodes exist.",
+    deep: `Big meals spike the scale with sodium, glycogen and gut content — not fat (a 4.6 lb fat gain would need ~16,000 surplus calories, not one dinner). This card measures how long each of your spikes took to clear. Two things changed. It used to speak at two episodes and quote a min–max of what it had seen; that range describes the sample, not the estimate, and it gets WIDER with more data while a real interval gets narrower, so both are shown now and labelled apart. And it used to define a spike as a flat 2.0 lb and "cleared" as a flat 0.4 lb — magic constants, in an app that measures your own day-to-day variability three cards away. On a quiet scale 2 lb is an event; on a noisy one it is a Tuesday. A spike is now a jump past 3 sigma of your measured noise (${spikeMin} lb for you right now) and cleared is a return to within 1 sigma (${clearWithin} lb). It recalibrates itself as your data does.`,
     forYou: eps.length >= 2
       ? (ev ? `${ev.t} ${fmtShort(ev.d)}: expect a next-morning spike near ${jumpCI.mean > 0 ? "+" + jumpCI.mean : jumpCI.mean} lb (95% CI ${jumpCI.lo} to ${jumpCI.hi}), clearing in about ${clearCI.mean} days (95% CI ${Math.max(0, clearCI.lo)} to ${clearCI.hi}). Readings inside that window are pre-dismissed; the first clean read after may still carry residue, and the damped trend already knows.${clearCI.provisional ? ` PROVISIONAL — ${LAB_MIN_N - eps.length} more episode${LAB_MIN_N - eps.length === 1 ? "" : "s"} before these are numbers rather than impressions.` : ""}`
         : `No event in range — nothing to brace for. On file: clearance about ${clearCI.mean} days (95% CI ${Math.max(0, clearCI.lo)} to ${clearCI.hi}, n=${eps.length}).${clearCI.provisional ? " Provisional until six episodes." : ""}`)
@@ -2613,12 +2626,29 @@ function labAnalytics(s) {
        of his own weekly rates, and with fewer than two of those there is no
        spread to widen. A line without a band is the fake-precise forecast this
        card exists to refuse, so the gate stays on snapshots. */
+    /* ---------- FORECAST_BAND_NOTE — the band grew at the wrong rate ----------
+       The half-width was sigma*k: linear in weeks. For a SUM of k weekly rates the
+       process-noise term grows as sigma*sqrt(k), not sigma*k, so the old band was far
+       too wide eight weeks out — and wide for an unprincipled reason, which reads as
+       caution while not actually being caution.
+
+       But sqrt(k) alone is too narrow, because mu is estimated from only n weekly rates
+       and that error compounds linearly when projected forward. The honest variance of a
+       k-week cumulative loss is k*sigma^2 from process noise PLUS k^2*sigma^2/n from
+       uncertainty in the mean, giving sigma*sqrt(k + k^2/n) — the same uncertainty model
+       the cone now uses, so the two instruments finally agree about how far out they can
+       see instead of being wrong in opposite directions.
+
+       The old sigma*k is exactly what this collapses to at n=1: the formula was correct
+       for a mean estimated from a single observation, which was never the situation. */
     if (rateF.measured && s.trend && sdF != null) {
+      const nW = Math.max(1, rsF.length);
+      const tF = tCrit(Math.max(1, nW - 1)) || 1.96;
       for (let k = 1; k <= 8; k++) {
         const wF = +(s.trend - rateF.scale * k).toFixed(1);
         const dF = isoOf(new Date(mk(t0F).getTime() + k * 7 * DAY));
         const bF = bfEst(s, wF, dF);
-        rowsF.push("wk +" + k + " \u00b7 " + fmtShort(dF) + " \u00b7 " + wF.toFixed(1) + " lb" + (sdF ? " \u00b1" + (sdF * k).toFixed(1) : "") + " \u00b7 " + bF.pct.toFixed(1) + "% bf \u00b7 lean " + bF.lean.toFixed(1));
+        rowsF.push("wk +" + k + " \u00b7 " + fmtShort(dF) + " \u00b7 " + wF.toFixed(1) + " lb" + (sdF ? " \u00b1" + (tF * sdF * Math.sqrt(k + (k * k) / nW)).toFixed(1) : "") + " \u00b7 " + bF.pct.toFixed(1) + "% bf \u00b7 lean " + bF.lean.toFixed(1));
       }
     }
     const ptsF = (id) => Object.keys(s.sessionLog || {}).map((d) => {

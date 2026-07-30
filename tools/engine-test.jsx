@@ -590,6 +590,29 @@ ok(cw(30, 3) > 0 && cw(9, 30) === 0, "the chance-word estimate scales with corpu
 }
 ok(tc1(1) > tc1(10) && tc1(10) > tc1(60), "t multiplier shrinks as df grows — small n pays for itself");
 
+// LAB P1a — whoosh self-calibrates, and the forecast band grows at the right rate
+{
+  const { labAnalytics: laA, labAnalytics2: laA2, weightNoise: wnA, SEED: SA } = __test;
+  const wA = laA(clone(SA)).find(c => c.id === "whoosh");
+  const sdA = wnA(clone(SA).reads).sd;
+  /* Thresholds must be derived from his own noise, not hardcoded 2.0/0.4. */
+  ok(wA.deep.indexOf((3 * sdA).toFixed(2)) > -1, "whoosh states its spike threshold as 3 sigma of his measured noise: " + (3 * sdA).toFixed(2));
+  ok(wA.deep.indexOf((1 * sdA).toFixed(2)) > -1, "and 'cleared' as within 1 sigma: " + (1 * sdA).toFixed(2));
+  ok(wA.deep.indexOf("magic constants") > -1, "and says why the old flat constants were wrong");
+
+  /* Forecast band: sigma*sqrt(k + k^2/n), so it grows sublinearly in k rather than
+     linearly. The old sigma*k made the week-8 band far too wide. */
+  const fc = laA2(clone(SA)).find(c => c.id === "forecast");
+  if (fc && fc.lines && fc.lines.length >= 8) {
+    const halfAt = (k) => { const row = fc.lines.find(l => l.indexOf("wk +" + k + " ") === 0); return row ? +(row.match(/±([0-9.]+)/) || [])[1] : null; };
+    const h1 = halfAt(1), h8 = halfAt(8);
+    if (h1 != null && h8 != null) {
+      ok(h8 > h1, "the band still widens with distance (" + h1 + " -> " + h8 + ")");
+      ok(h8 < h1 * 8, "but sublinearly — not the old sigma*k, which would put week 8 at " + (h1 * 8).toFixed(1));
+    }
+  }
+}
+
 // (interim)
 
 // v3.15 — the lab organizes itself
