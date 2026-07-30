@@ -6211,15 +6211,22 @@ function useRepoDoc(path) {
 function briefAnswered(s, q) { return (s.feed || []).some((f) => f.t === "ANALYST ANSWER" && (f.how || "").indexOf(q.slice(0, 120) + " →") === 0); }
 function BriefCard({ s, setS: setS2, save: save2 }) {
   const raw = useRepoDoc("ledger/brief.md");
-  const [openB, setOpenB] = useState(() => new Date().getHours() < 12);
+  const [openB, setOpenB] = useState(false); /* daily auto-open retired — NOW's live read carries the one-sentence take; the full read is one tap, never auto-interrupting */
   const [ans, setAns] = useState("");
   const [answered, setAnswered] = useState(false);
-  const brief = (() => {
+  /* NEVER GO DARK (the empty-brief fix): show the latest read even when it is a
+     day or two old, stamped honestly, instead of hiding it and looking blank. An
+     empty/whitespace body (a failed nightly write) is treated as truly absent so
+     the live books line shows instead. Article III of the analyst's own charter. */
+  const parsed = (() => {
     if (!raw) return null;
     const m = raw.match(/^<!-- (\d{4}-\d{2}-\d{2}) -->/);
-    if (m && (isoOf(todayStart()) === m[1] || isoOf(new Date(todayStart().getTime() - DAY)) === m[1])) return raw.replace(/^<!--.*-->\n?/, "");
-    return null;
+    const body = raw.replace(/^<!--.*-->\n?/, "").trim();
+    if (!body) return null;
+    const today = isoOf(todayStart()), yday = isoOf(new Date(todayStart().getTime() - DAY));
+    return { body, d: m ? m[1] : null, fresh: !!(m && (m[1] === today || m[1] === yday)) };
   })();
+  const brief = parsed ? parsed.body : null;
   if (!brief) { const lb0 = liveBooks(s); return (
     <Card style={{ padding: "10px 14px" }}>
       <div style={{ fontFamily: mono, fontSize: TS.micro, color: lb0.complete ? T.jade : T.brass, lineHeight: 1.6 }}>
@@ -6234,7 +6241,7 @@ function BriefCard({ s, setS: setS2, save: save2 }) {
     <Card accent={T.jade}>
       <div onClick={() => setOpenB(!openB)} style={{ cursor: "pointer" }}>
         <Eyebrow c={T.jade}>THE ANALYST'S READ {openB ? "▾" : "▸"}</Eyebrow>
-        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 3 }}>your nightly read, in plain English — the live line below always outranks it</div>
+        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 3 }}>your nightly read, in plain English — the live line below always outranks it</div>{parsed && !parsed.fresh ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: 4 }}>⏱ last read{parsed.d ? " · " + fmtShort(parsed.d) : ""} — a fresh one lands after tonight's sync</div> : null}
       </div>
       {(() => { const lb = liveBooks(s); return (
         <div style={{ fontFamily: mono, fontSize: TS.micro, color: lb.complete ? T.jade : T.brass, marginTop: 7, lineHeight: 1.6 }}>
