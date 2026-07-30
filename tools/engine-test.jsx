@@ -590,6 +590,81 @@ ok(cw(30, 3) > 0 && cw(9, 30) === 0, "the chance-word estimate scales with corpu
 }
 ok(tc1(1) > tc1(10) && tc1(10) > tc1(60), "t multiplier shrinks as df grows — small n pays for itself");
 
+// LAB recency — no card may present a past event as upcoming
+{
+  const { labAnalytics: laR, nextEvent: neR, lastEvent: leR, SEED: SR } = __test;
+  const isoR = (off) => { const d = new Date(Date.now() + off * 864e5); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+
+  /* The exact shape of the reported bug: an event five days in the past. daysUntil() is
+     negative for it, and the old filter `daysUntil(e.d) <= 3` matched precisely because
+     it was negative. */
+  const past = clone(SR);
+  past.events = [{ d: isoR(-5), t: "WEDDING #2", estimated: false }];
+  ok(neR(past, 3) === null, "a five-day-old event is NOT selected as upcoming");
+  ok(leR(past, 7) && leR(past, 7).t === "WEDDING #2", "it is available to lastEvent for past-tense copy");
+  const wPast = laR(past).find(c => c.id === "whoosh");
+  ok(wPast.forYou.indexOf("expect a next-morning spike") === -1, "and whoosh never says 'expect' about it");
+  ok(/was\s+\w+\s+\d+\/\d+/.test(wPast.forYou) || wPast.forYou.indexOf("No event upcoming") > -1, "it speaks in the past tense or omits the line: " + wPast.forYou.slice(0, 70));
+
+  /* Nearest-first, not first-in-array: an unsorted list must still yield the soonest. */
+  const many = clone(SR);
+  many.events = [{ d: isoR(9), t: "LATER", estimated: false }, { d: isoR(2), t: "SOONER", estimated: false }, { d: isoR(-3), t: "GONE", estimated: false }];
+  ok(neR(many).t === "SOONER", "nextEvent returns the nearest upcoming, not the first in the array");
+  ok(neR(many, 3).t === "SOONER" && neR(many, 1) === null, "and the horizon cap is respected");
+
+  /* An upcoming event inside the horizon SHOULD get the forward-looking line. */
+  const soon = clone(SR);
+  soon.events = [{ d: isoR(2), t: "WEDDING #3", estimated: false }];
+  const wSoon = laR(soon).find(c => c.id === "whoosh");
+  ok(wSoon.forYou.indexOf("WEDDING #3") > -1 && wSoon.forYou.indexOf("expect") > -1, "a genuinely upcoming event still gets its bracing line");
+  ok(wSoon.forYou.indexOf("in 2d") > -1, "and the line states how far off it is, so it cannot read as 'now' later");
+
+  /* Estimated (athlete-declared rough) events are not real calendar events. */
+  const est = clone(SR);
+  est.events = [{ d: isoR(2), t: "MAYBE", estimated: true }];
+  ok(neR(est) === null, "declared-estimate events are not treated as scheduled events");
+  ok(neR({ events: [] }) === null && neR({}) === null, "no events, and a stateless call, both return null rather than throwing");
+
+  /* The property that actually matters, tested directly rather than by sniffing for
+     hardcoded-looking strings: any date a card offers in a FORWARD-LOOKING sentence must
+     not already be in the past. A computed date and an authored one look identical in the
+     output — "8/4" either way — so the only honest check is whether the date has passed.
+     Sentences in the past tense are excluded, since historical receipts are legitimate. */
+  const cards = laR(clone(SR));
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const staleForward = [];
+  cards.forEach((c) => {
+    String(c.forYou || "").split(/(?<=[.!])\s+/).forEach((sentence) => {
+      if (!/\b(?:expect|prints|completes|booking|Cleanest|due|next|unlock)/i.test(sentence)) return;
+      /* Historical receipts are legitimate and often sit inside a sentence that opens
+         with an instruction — "assume next-day risk: your 4.5 h night of 7/16 landed
+         hardest on the 7/17 lower" is honest and must not be flagged. Any past-tense
+         marker excludes the sentence; what remains is genuine forward-looking copy. */
+      if (/\b(?:was|were|ago|already|so far|since|landed|broke|tripped|owns|owned|cost|showed|came|ran|held|logged|recorded|fell)\b/i.test(sentence)) return;
+      const m = sentence.match(/\b(\d{1,2})\/(\d{1,2})\b/g) || [];
+      m.forEach((md) => {
+        const [mo, da] = md.split("/").map(Number);
+        const d = new Date(now.getFullYear(), mo - 1, da);
+        /* a date more than 6 months back is a year-boundary artefact, not staleness */
+        const ageDays = Math.round((now - d) / 864e5);
+        if (ageDays > 0 && ageDays < 180) staleForward.push(`${c.id}: "${md}" in "${sentence.trim().slice(0, 60)}"`);
+      });
+    });
+  });
+  ok(staleForward.length === 0, "no forward-looking LAB readout offers a date that has already passed" + (staleForward.length ? " — " + staleForward.join(" | ") : ""));
+
+  /* A pair of dates offered together must be in chronological order. Taking "next Tuesday"
+     and "next Friday" independently produced "Tue 8/4 + Fri 7/31" on a Thursday — a Friday
+     before its own Tuesday. Caught by rendering the card and reading it, not by the types. */
+  const tfR = cards.find(c => c.id === "tuefri");
+  if (tfR && /completes\s+\w+\s+(\d{1,2})\/(\d{1,2})\s*\+\s*\w+\s+(\d{1,2})\/(\d{1,2})/.test(String(tfR.forYou))) {
+    const [, m1, d1, m2, d2] = String(tfR.forYou).match(/completes\s+\w+\s+(\d{1,2})\/(\d{1,2})\s*\+\s*\w+\s+(\d{1,2})\/(\d{1,2})/);
+    const first = new Date(now.getFullYear(), +m1 - 1, +d1), second = new Date(now.getFullYear(), +m2 - 1, +d2);
+    ok(second > first, `the Tue/Fri pair is offered in chronological order (${m1}/${d1} then ${m2}/${d2})`);
+    ok(Math.round((second - first) / 864e5) === 3, "and both fall in the same week — Tuesday plus three days");
+  }
+}
+
 // LAB P1c — Tue/Fri is labelled confounded and tested; trials desk becomes inferential
 {
   const { labAnalytics: laC, trialVerdict: tvC, trialTpl: ttC, SEED: SCx } = __test;

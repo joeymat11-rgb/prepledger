@@ -291,7 +291,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "4.2.8";
+const APP_V = "4.2.9";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -2298,7 +2298,12 @@ function labAnalytics(s) {
       }
     }
   }
-  const ev = s.events.find((e) => !e.estimated && daysUntil(e.d) <= 3);
+  /* Upcoming only, nearest first, within a 3-day bracing horizon. Was
+     `daysUntil(e.d) <= 3`, which matched every past event too — see
+     EVENT_RECENCY_NOTE. `recentEv` carries the just-passed case so the card can speak in
+     the past tense instead of pretending the event is still ahead. */
+  const ev = nextEvent(s, 3);
+  const recentEv = ev ? null : lastEvent(s, 4);
   /* The old min–max/trimmed-max pair is gone: a range of observations is not an
      interval, and quoting one as if it were was the whole defect here. */
   const clearCI = CI(eps.map((e) => e.days));
@@ -2307,8 +2312,11 @@ function labAnalytics(s) {
     tag: clearCI.enough ? "How fast event water leaves YOUR body, with its interval." : "How fast event water leaves you — provisional, few episodes.",
     deep: `Big meals spike the scale with sodium, glycogen and gut content — not fat (a 4.6 lb fat gain would need ~16,000 surplus calories, not one dinner). This card measures how long each of your spikes took to clear. Two things changed. It used to speak at two episodes and quote a min–max of what it had seen; that range describes the sample, not the estimate, and it gets WIDER with more data while a real interval gets narrower, so both are shown now and labelled apart. And it used to define a spike as a flat 2.0 lb and "cleared" as a flat 0.4 lb — magic constants, in an app that measures your own day-to-day variability three cards away. On a quiet scale 2 lb is an event; on a noisy one it is a Tuesday. A spike is now a jump past 3 sigma of your measured noise (${spikeMin} lb for you right now) and cleared is a return to within 1 sigma (${clearWithin} lb). It recalibrates itself as your data does.`,
     forYou: eps.length >= 2
-      ? (ev ? `${ev.t} ${fmtShort(ev.d)}: expect a next-morning spike near ${jumpCI.mean > 0 ? "+" + jumpCI.mean : jumpCI.mean} lb (95% CI ${jumpCI.lo} to ${jumpCI.hi}), clearing in about ${clearCI.mean} days (95% CI ${Math.max(0, clearCI.lo)} to ${clearCI.hi}). Readings inside that window are pre-dismissed; the first clean read after may still carry residue, and the damped trend already knows.${clearCI.provisional ? ` PROVISIONAL — ${LAB_MIN_N - eps.length} more episode${LAB_MIN_N - eps.length === 1 ? "" : "s"} before these are numbers rather than impressions.` : ""}`
-        : `No event in range — nothing to brace for. On file: clearance about ${clearCI.mean} days (95% CI ${Math.max(0, clearCI.lo)} to ${clearCI.hi}, n=${eps.length}).${clearCI.provisional ? " Provisional until six episodes." : ""}`)
+      ? (ev
+        ? `${ev.t} ${fmtShort(ev.d)}${daysUntil(ev.d) === 0 ? " (today)" : ` (in ${daysUntil(ev.d)}d)`}: expect a next-morning spike near ${jumpCI.mean > 0 ? "+" + jumpCI.mean : jumpCI.mean} lb (95% CI ${jumpCI.lo} to ${jumpCI.hi}), clearing in about ${clearCI.mean} days (95% CI ${Math.max(0, clearCI.lo)} to ${clearCI.hi}). Readings inside that window are pre-dismissed; the first clean read after may still carry residue, and the damped trend already knows.${clearCI.provisional ? ` PROVISIONAL — ${LAB_MIN_N - eps.length} more episode${LAB_MIN_N - eps.length === 1 ? "" : "s"} before these are numbers rather than impressions.` : ""}`
+        : recentEv
+          ? `${recentEv.t} was ${fmtShort(recentEv.d)}, ${Math.abs(daysUntil(recentEv.d))} day${Math.abs(daysUntil(recentEv.d)) === 1 ? "" : "s"} ago — so any spike from it should be clearing by now, on a typical ${clearCI.mean}-day drain (95% CI ${Math.max(0, clearCI.lo)} to ${clearCI.hi}). Nothing to brace for; the trend has already absorbed it.`
+          : `No event upcoming — nothing to brace for. On file: clearance about ${clearCI.mean} days (95% CI ${Math.max(0, clearCI.lo)} to ${clearCI.hi}, n=${eps.length}).${clearCI.provisional ? " Provisional until six episodes." : ""}`)
       : "Needs one more spike→clear cycle to open.",
     lines: eps.length >= 2 ? [
       `${eps.length} episode${eps.length === 1 ? "" : "s"} on file · observed spikes +${jumpCI.obsLo} to +${jumpCI.obsHi} · observed clearance ${clearCI.obsLo}–${clearCI.obsHi} days`,
@@ -2442,7 +2450,15 @@ function labAnalytics(s) {
     deep: "Friday lower sits 2 days after the Wednesday refeed; Tuesday lower sits 6 days out — same lifts, same you, different glycogen distance, repeating weekly. That is a genuinely useful accident, and this card used to oversell it as \"the cleanest causal test a training week could construct\". It is not a controlled test, because the Friday-minus-Tuesday difference also carries day-of-week, accumulated weekly fatigue, exercise-order drift and the load-progression time trend — total reps climb across a block as loads climb, so any later-in-week session inherits part of that rise. Expressing each week's difference as a percentage of that week's own volume removes the block-level drift; the rest cannot be removed by arithmetic, so they are named rather than absorbed. It also used to call any gap of 5+ reps \"a real gap\" with no variance behind it, which is a threshold masquerading as a test. It now reports the paired difference with its interval, and if that interval crosses zero it says so. The honest upgrade is to graduate this into the trials desk as a randomized block; until then it is a hint worth having, not a finding.",
     forYou: tfDiffs.length >= 2
       ? `Friday runs ${tfCI.mean > 0 ? "+" : ""}${tfCI.mean}% of weekly volume vs Tuesday (95% CI ${tfCI.lo} to ${tfCI.hi}, n=${tfDiffs.length} pairs; in raw reps ${tfRawCI.mean > 0 ? "+" : ""}${tfRawCI.mean}). ${tfCI.straddlesZero ? "That interval crosses zero, so on your data so far there is no detectable refeed-distance effect — which is itself worth knowing, and consistent with the protocol line that refeeds are not a metabolic intervention." : "That interval clears zero, which is consistent with a refeed-distance effect — but the contrast is confounded with day-of-week and weekly fatigue, so treat it as grounds for a coach conversation, not as a measured effect size."}${tfCI.provisional ? ` PROVISIONAL at ${tfDiffs.length} of ${LAB_MIN_N} pairs.` : ""}`
-      : "First pair completes Tue 7/28 + Fri 7/31. It will report the difference with its interval, and stay labelled as the confounded contrast it is.",
+      /* A PAIR needs its Tuesday and Friday in the SAME week. Taking the next Tuesday and
+         the next Friday independently gives "Tue 8/4 + Fri 7/31" on a Thursday — a Friday
+         that precedes its own Tuesday, which reads like the app cannot use a calendar. So
+         anchor on the next Tuesday and take that week's Friday, three days later. */
+      : (() => {
+        const tue = nextDow(2);
+        const fri = isoOf(new Date(mk(tue).getTime() + 3 * DAY));
+        return `First pair completes ${fmtShort(tue)} + ${fmtShort(fri)}. It will report the difference with its interval, and stay labelled as the confounded contrast it is.`;
+      })(),
     lines: tfDiffs.length >= 2 ? [
       `detrended paired difference: ${ciLine(tfCI, "% of weekly volume")}`,
       `confounded with: day-of-week · weekly fatigue · exercise-order drift — not removable by arithmetic`,
@@ -2599,7 +2615,16 @@ function labAnalytics(s) {
   out.push({ id: "dexarecon", t: "DEXA RECONCILIATION", status: s.dexaRecon ? "LIVE" : "ARMED", prog: { n: s.dexaRecon ? 1 : 0, need: 1, label: "DEXA anchor" },
     tag: "Scores the eye against the machine — once.",
     deep: "The instant DEXA lands, the model's estimate at that moment is frozen next to the measured number. The delta tells us whose eye to trust, and every downstream estimate and ETA re-anchors to measured ground.",
-    forYou: s.dexaRecon ? `The eye read ${s.dexaRecon.eye}% when DEXA said ${s.dexaRecon.dexa}% (Δ ${s.dexaRecon.delta > 0 ? "+" : ""}${s.dexaRecon.delta}). Everything since runs on measured ground.` : `Expected outcome: DEXA reads HIGHER than the eye (~16 vs ~${bfNow.pct}) — that's method offset, not bad news; lean mass is the number to watch (predicted 138–142). Cleanest booking: Tue 7/28+, fully clear of the wedding.`,
+    forYou: s.dexaRecon ? `The eye read ${s.dexaRecon.eye}% when DEXA said ${s.dexaRecon.dexa}% (Δ ${s.dexaRecon.delta > 0 ? "+" : ""}${s.dexaRecon.delta}). Everything since runs on measured ground.` : `Expected outcome: DEXA reads HIGHER than the eye (~16 vs ~${bfNow.pct}) — that's method offset, not bad news; lean mass is the number to watch (predicted 138–142). ${(() => {
+        /* Was hardcoded "Tue 7/28+, fully clear of the wedding" — a booking date that
+           went stale the moment it passed, and a wedding that is now history. Computed
+           against today and the next real event instead. */
+        const up = nextEvent(s);
+        const clearFrom = up ? isoOf(new Date(mk(up.d).getTime() + 3 * DAY)) : isoOf(new Date(todayStart().getTime() + DAY));
+        return up
+          ? `Cleanest booking: ${fmtShort(clearFrom)} or later — that puts it 3 days clear of ${up.t} (${fmtShort(up.d)}), so event water cannot ride into the scan.`
+          : `Cleanest booking: any morning from ${fmtShort(clearFrom)} — nothing on the calendar to clear, so the only requirement is fasted and 2+ days off a refeed.`;
+      })()}`,
     lines: [] });
 
   /* 12/13 · locked build-phase slots */
@@ -3579,8 +3604,8 @@ function labAnalytics2(s) {
     const wins = s.feed.filter((f) => f.d >= "2026-07-01" && /OWNED|DEBUT|EARNED|RECLAIM/.test(f.t)).length;
     return { id: "letter", t: "THE MONTHLY LETTER", status: "LIVE", prog: null,
       tag: "State of the prep, auto-written on the 1st. Latest: July (running).",
-      deep: "On the first of each month, the ledger writes itself a letter: every metric vs the prior month, changepoints named, wins counted. It becomes the prep's chapter structure — and in September, the reverse gets judged against these letters instead of vibes. August 1 prints the first complete one.",
-      forYou: `July so far vs June: calories ${avg2(july, "cal")} vs ${avg2(june, "cal")} · protein hits ${hit2(july)}% vs ${hit2(june)}% · steps ${(avg2(july, "steps") / 1000).toFixed(1)}k vs ${(avg2(june, "steps") / 1000).toFixed(1)}k · ${wins} gates flipped in July. Trajectory: tightening while the scale seal holds — exactly what a mid-prep month should read like. Full letter prints Aug 1.`,
+      deep: `On the first of each month, the ledger writes itself a letter: every metric vs the prior month, changepoints named, wins counted. It becomes the prep's chapter structure — and in September, the reverse gets judged against these letters instead of vibes. The next one prints ${fmtShort(nextMonthFirst())}.`,
+      forYou: `July so far vs June: calories ${avg2(july, "cal")} vs ${avg2(june, "cal")} · protein hits ${hit2(july)}% vs ${hit2(june)}% · steps ${(avg2(july, "steps") / 1000).toFixed(1)}k vs ${(avg2(june, "steps") / 1000).toFixed(1)}k · ${wins} gates flipped in July. Trajectory: tightening while the scale seal holds — exactly what a mid-prep month should read like. Full letter prints ${fmtShort(nextMonthFirst())}.`,
       lines: [] };
   });
 
@@ -5485,7 +5510,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -6342,6 +6367,44 @@ function weekDay() {
   return { wk: Math.floor(diff / 7) + 1, day: diff + 1 };
 }
 const blackoutOn = (s) => daysUntil(s.blackout.until) > 0;
+/* ---------- EVENT_RECENCY_NOTE — a sign error that aged into a lie ----------
+   The whoosh card selected its event with `daysUntil(e.d) <= 3`. daysUntil() returns a
+   NEGATIVE number for a date already past, so -5 <= 3 is true and the filter matched
+   events arbitrarily far back — then .find() took the FIRST one in the array rather than
+   the nearest. The result: on 7/30 the card's "FOR YOU · RIGHT NOW" panel was still
+   saying "WEDDING #2 Sat 7/25: expect a next-morning spike…" about a wedding five days
+   gone. The arithmetic was right, the tense was a fabrication, and it got worse every
+   day the app sat unopened.
+
+   nextEvent() is the fix, and it exists as a shared helper precisely so no card has to
+   get this right on its own again: real events only, TODAY OR LATER, sorted so the
+   soonest wins, optionally capped to a horizon. It returns null when nothing qualifies,
+   and callers are expected to OMIT the forward-looking line on null rather than fall
+   back to whatever happens to be in the array — a stale line is worse than no line.
+   lastEvent() is its mirror for genuinely retrospective copy. */
+function nextEvent(s, withinDays = null) {
+  const up = (s.events || [])
+    .filter((e) => e && e.d && !e.estimated && daysUntil(e.d) >= 0)
+    .sort((a, b) => (a.d < b.d ? -1 : 1));
+  if (!up.length) return null;
+  const ev = up[0];
+  if (withinDays != null && daysUntil(ev.d) > withinDays) return null;
+  return ev;
+}
+function lastEvent(s, graceDays = 7) {
+  const past = (s.events || [])
+    .filter((e) => e && e.d && !e.estimated && daysUntil(e.d) < 0 && daysUntil(e.d) >= -graceDays)
+    .sort((a, b) => (a.d < b.d ? 1 : -1));
+  return past.length ? past[0] : null;
+}
+/* The next occurrence of a given weekday (0=Sun), strictly in the future, so authored
+   "First pair completes Tue 7/28" copy can be computed instead of going stale. */
+const nextDow = (dow, from = todayStart()) => {
+  for (let i = 1; i <= 7; i++) { const d = new Date(from.getTime() + i * DAY); if (d.getDay() === dow) return isoOf(d); }
+  return null;
+};
+/* First of the next month — for the monthly letter, which was promising "Aug 1" forever. */
+const nextMonthFirst = (from = todayStart()) => isoOf(new Date(from.getFullYear(), from.getMonth() + 1, 1));
 const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d); if ((t === "U" || t === "L") && !s.sessionLog[d]) return d; } return null; };
 __test.nextTrainingISO = nextTrainingISO;
 __test.typicalError = typicalError;
