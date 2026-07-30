@@ -6830,6 +6830,26 @@ function signalReadCopy(s, sig) {
   }
   return { rate, showRate, wordColor, sentence, rawLine, word: sig.word };
 }
+/* Group — a fixed-position collapsible section for NOW's FOCUSED tier. Order never
+   changes (static beats adaptive — Findlater & McGrenere); only open/closed responds
+   to time-of-day once, and a manual toggle then wins for the session. Removes nothing:
+   the content is one tap away, in the same place, every time. */
+function Group({ title, sub, defaultOpen = false, count, children }) {
+  const [gOpen, setGOpen] = useState(defaultOpen);
+  return (
+    <div style={{ borderTop: `1px solid ${T.line}`, paddingTop: SP.sm }}>
+      <div onClick={() => setGOpen(!gOpen)} role="button" tabIndex={0} aria-expanded={gOpen}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setGOpen(!gOpen); } }}
+        style={{ display: "flex", alignItems: "center", gap: SP.sm, minHeight: 44, cursor: "pointer" }}>
+        <span style={{ fontFamily: mono, fontSize: TS.title, color: gOpen ? T.brass : T.steel, width: 12, flexShrink: 0 }}>{gOpen ? "▾" : "▸"}</span>
+        <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.14em", color: T.chalk, textTransform: "uppercase", whiteSpace: "nowrap" }}>{title}</span>
+        {sub ? <span style={{ fontFamily: body, fontSize: TS.body, color: T.steel, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sub}</span> : null}
+        {count ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.gauge, marginLeft: "auto", flexShrink: 0 }}>· {count}</span> : null}
+      </div>
+      {gOpen ? <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: SP.sm }}>{children}</div> : null}
+    </div>
+  );
+}
 function Spark({ reads, trend, projRate = null, noise = 0.8, noiseN = null }) {
   /* The chart carries the app's whole grammar: SOLID IS MEASURED, DASHED IS
      PROJECTED — the same distinction the icon's fifth tick makes. What used to be
@@ -7413,7 +7433,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
 
 
-      <SecRule>TODAY'S PLAN · what to do today</SecRule>
+      <Group title="Today's plan" sub="what to do today" defaultOpen={new Date().getHours() < 17}>
       {(() => { const pr = dayProtocol(s, slp); return (
         <Card accent={T.jade}>
           <Eyebrow c={T.jade}>TODAY'S PROTOCOL — RANKED, FROM YOUR DATA</Eyebrow>
@@ -7497,7 +7517,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         );
       })()}
 
-      <SecRule>TODAY'S LOGS · what you file</SecRule>
+      </Group>
+      <Group title="Today's logs" sub="what you file" defaultOpen={new Date().getHours() >= 17 || (dl && dl.cal == null)}>
       {dl.cal != null && !dayEdit ? (
         <Card style={{ padding: 12 }} accent={T.jade}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
@@ -7713,6 +7734,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           {fl.map((f9, i9) => <div key={i9} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: 1.7 }}>🗎 {f9}</div>)}
         </Card>
       ); })()}
+
+      </Group>
 
       {/* ---------- everything below here is READING, not doing ----------
           Collapsed by default and it stays where he left it. Nothing is
