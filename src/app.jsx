@@ -291,7 +291,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "4.2.3";
+const APP_V = "4.2.4";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -2482,30 +2482,70 @@ function labAnalytics(s) {
   const rts = [];
   for (let i = 1; i < w2.length; i++) rts.push((w2[i - 1].trend - w2[i].trend) / Math.max(0.5, weeksBetween(w2[i - 1].wk, w2[i].wk)));
   if (rts.length >= 4) {
-    const mu = rts.reduce((a, b) => a + b, 0) / rts.length;
-    const sg = Math.sqrt(rts.reduce((a, b) => a + (b - mu) * (b - mu), 0) / rts.length);
+    const nR = rts.length;
+    const mu = rts.reduce((a, b) => a + b, 0) / nR;
+    /* ---------- CONE_NOTE — process noise is not the only uncertainty ----------
+       Two defects. First, σ divided by n, which is the biased estimator; the forecast
+       card already used n−1, so the two instruments disagreed on the same quantity.
+       Now n−1 in both.
+
+       Second and larger: every run drew its weekly rate from Normal(μ, σ) as though μ
+       and σ were KNOWN. They are estimated from four weekly rates. Simulating process
+       noise while treating the parameters as exact makes the cone too narrow at
+       precisely the n where it is least trustworthy — a fan chart that understates the
+       fan. Each run now draws its own parameters first: μ* from the sampling
+       distribution of the mean (widened by the t/z ratio at this df, so small n pays
+       for itself), σ* from the χ² sampling distribution of a variance. Then it
+       simulates weeks with those. That is parameter uncertainty and process noise
+       compounded, which is what an honest cone is.
+
+       The process-only cone is still computed, so the card can say how much of the
+       spread was previously being hidden rather than assert that it was. */
+    const sg = Math.sqrt(rts.reduce((a, b) => a + (b - mu) * (b - mu), 0) / Math.max(1, nR - 1));
     let seed = 42; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
     const gauss = () => Math.sqrt(-2 * Math.log(Math.max(1e-9, rnd()))) * Math.cos(2 * Math.PI * rnd());
-    const hits = [];
-    for (let k = 0; k < 400; k++) {
-      let tr = s.trend, ln = bfNow.lean, wk3 = 0;
-      for (; wk3 < 30; wk3++) {
-        if (((tr - ln) / tr) * 100 <= 11.2) break;
-        tr -= Math.max(0.2, mu + sg * gauss()); ln += s.model.drip;
+    const SIMS = 800;
+    const df = Math.max(1, nR - 1);
+    const tz = (tCrit(df) || 1.96) / 1.96;
+    const runCone = (withParamUncertainty) => {
+      const hits = [];
+      for (let k = 0; k < SIMS; k++) {
+        let muK = mu, sgK = sg;
+        if (withParamUncertainty) {
+          muK = mu + tz * (sg / Math.sqrt(nR)) * gauss();
+          let chi = 0;
+          for (let j = 0; j < df; j++) { const g = gauss(); chi += g * g; }
+          /* σ*² = σ²·df/χ²_df, capped so a freak tiny χ² cannot blow the cone open */
+          sgK = sg * Math.min(3, Math.sqrt(df / Math.max(1e-6, chi)));
+        }
+        let tr = s.trend, ln = bfNow.lean, wk3 = 0;
+        for (; wk3 < 30; wk3++) {
+          if (((tr - ln) / tr) * 100 <= 11.2) break;
+          tr -= Math.max(0.2, muK + sgK * gauss()); ln += s.model.drip;
+        }
+        hits.push(wk3);
       }
-      hits.push(wk3);
-    }
-    hits.sort((a, b) => a - b);
-    const dISO = (wq) => isoOf(new Date(todayStart().getTime() + hits[Math.floor(hits.length * wq)] * 7 * DAY));
+      hits.sort((a, b) => a - b);
+      return hits;
+    };
+    const hits = runCone(true);
+    const hitsProcessOnly = runCone(false);
+    const qOf = (arr, q) => arr[Math.min(arr.length - 1, Math.floor(arr.length * q))];
+    const dISO = (wq) => isoOf(new Date(todayStart().getTime() + qOf(hits, wq) * 7 * DAY));
     const p50 = dISO(0.5);
+    const spread80 = qOf(hits, 0.9) - qOf(hits, 0.1);
+    const spread80Old = qOf(hitsProcessOnly, 0.9) - qOf(hitsProcessOnly, 0.1);
     const inWindow = p50 >= "2026-09-02" && p50 <= "2026-09-29";
     out.push({ id: "cone", t: "PIVOT PROBABILITY CONE", status: "LIVE", prog: null,
-      tag: "400 simulated versions of your prep, racing to the pivot.",
-      deep: `Instead of one fake-precise date, it runs your prep 400 times. Each simulated week draws a loss rate from YOUR measured mean and spread (μ ${mu.toFixed(2)}, σ ${sg.toFixed(2)}), adds the muscle drip, and records when that run crosses ~11%. The gap between the fast and slow runs IS the honest uncertainty — a cone, not a promise.`,
-      forYou: `Median run lands ${fmtShort(p50)} — ${inWindow ? "your own data independently CONFIRMS the coach's-eye 'mid/late September' call. Two different instruments, same answer." : "your data currently runs " + (p50 < "2026-09-02" ? "ahead of" : "behind") + " the doc's September window — worth a coach conversation, not a lever pull."} The cone narrows with every clean Monday read, shifts honestly when Ease 2 slows the scale by design, and re-anchors entirely the day DEXA lands.`,
-      lines: [`80% of runs hit the pivot band between ${fmtShort(dISO(0.1))} and ${fmtShort(dISO(0.9))} · median ${fmtShort(p50)} · from your ${rts.length} weekly rates`] });
+      tag: `${SIMS} simulated versions of your prep, racing to the pivot.`,
+      deep: `Instead of one fake-precise date, it runs your prep ${SIMS} times and records when each run crosses ~11%. Each run now draws its OWN parameters before it starts — the mean weekly loss from the sampling distribution of a mean estimated on ${nR} weekly rates, and the spread from the χ² distribution of a variance estimated on the same ${nR} — and only then simulates the weeks. That matters because the old version drew weekly rates from μ ${mu.toFixed(2)}, σ ${sg.toFixed(2)} as though those two numbers were known facts rather than estimates off four weeks, which made the cone narrower than the evidence supports at exactly the sample size where it is least trustworthy. Simulating process noise while pretending the parameters are exact is a fan chart that understates the fan. σ also moved from the biased ÷n to ÷(n−1), which is what the forecast card already used — the two instruments no longer disagree about the same quantity.`,
+      forYou: `Median run lands ${fmtShort(p50)}. ${inWindow ? "That is consistent with the coach's-eye 'mid/late September' call — but consistent is the right word, not confirmed: this cone and that call both run off the same weekly rates, so agreement between them is expected rather than independent corroboration." : "Your data currently runs " + (p50 < "2026-09-02" ? "ahead of" : "behind") + " the doc's September window — worth a coach conversation, not a lever pull."} The cone narrows with every clean Monday read, shifts honestly when Ease 2 slows the scale by design, and re-anchors entirely the day DEXA lands.`,
+      lines: [
+        `80% of runs hit the pivot band between ${fmtShort(dISO(0.1))} and ${fmtShort(dISO(0.9))} · median ${fmtShort(p50)} · from your ${nR} weekly rates`,
+        `that 80% span is ${spread80} weeks wide; counting only process noise it would read ${spread80Old} — the difference is the parameter uncertainty the old cone hid`,
+      ] });
   } else {
-    out.push({ id: "cone", t: "PIVOT PROBABILITY CONE", status: "ARMED", prog: { n: rts.length, need: 4, label: "weekly rates" }, tag: "400 simulated preps racing to the pivot.", deep: "Monte Carlo over your measured weekly rates.", forYou: "Four weekly rates unlock it.", lines: [] });
+    out.push({ id: "cone", t: "PIVOT PROBABILITY CONE", status: "ARMED", prog: { n: rts.length, need: 4, label: "weekly rates" }, tag: "800 simulated preps racing to the pivot.", deep: "Monte Carlo over your measured weekly rates, with the uncertainty in those rates propagated rather than assumed away.", forYou: "Four weekly rates unlock it.", lines: [] });
   }
 
   /* 15 · DEXA reconciliation */

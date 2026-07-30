@@ -246,6 +246,17 @@ ok(get("refeed").lines.some((l) => l.indexOf("95% CI") > -1 && l.indexOf("SD") >
    estimator. */
 ok(get("noise").status === "LIVE" && /±[0-9]\.[0-9] lb — one reading vs the damped trend/.test(get("noise").lines[0]), "personal noise floor computed against the trend: " + get("noise").lines[0].slice(0, 48));
 ok(get("cone").status === "LIVE" && get("cone").lines[0].indexOf("80%") === 0, "pivot cone runs Monte Carlo on his measured rates");
+/* The cone must propagate parameter uncertainty, not just process noise — at n=4 weekly
+   rates that is most of the honest spread. It reports both so the difference is visible. */
+{
+  const cone = get("cone");
+  ok(cone.lines.length === 2 && cone.lines[1].indexOf("parameter uncertainty") > -1, "the cone states how much spread the process-only version hid");
+  const withP = +(cone.lines[1].match(/span is (\d+) weeks/) || [])[1];
+  const procOnly = +(cone.lines[1].match(/would read (\d+)/) || [])[1];
+  ok(withP >= procOnly, "propagating mu/sigma uncertainty can only widen the cone (" + withP + " vs " + procOnly + " weeks)");
+  ok(cone.forYou.indexOf("independent") === -1 || cone.forYou.indexOf("not independent") > -1 || cone.forYou.indexOf("rather than independent") > -1, "and it no longer claims independent confirmation of the coach's call");
+  ok(cone.deep.indexOf("n−1") > -1 || cone.deep.indexOf("n-1") > -1, "sigma uses n-1, matching the forecast card");
+}
 ok(get("tuefri").status === "ARMED" && get("tuefri").prog.n === 0, "Tue/Fri experiment armed at 0/4 pairs");
 ok(get("fingerprint").status === "ARMED" && get("rirtruth").status === "ARMED" && get("mrv").status === "LOCKED", "gates hold: no correlations under N");
 // the seal under test is the fixture's own, never the calendar's
@@ -264,7 +275,11 @@ const sdOpen = clone(SD); sdOpen.blackout = { until: "2099-01-01", reason: "fixt
 const lab3 = la3(sdOpen);
 ok(lab3.every(a => a.tag && a.tag.length > 10 && a.deep && a.deep.length > 40 && a.forYou && a.forYou.length > 20), "every card carries tag + deep + for-you layers");
 const cone3 = lab3.find(a => a.id === "cone");
-ok(cone3.forYou.indexOf("CONFIRMS") > -1 || cone3.forYou.indexOf("window") > -1, "cone's for-you speaks to the September call: " + cone3.forYou.slice(0, 60));
+/* It used to say the cone "independently CONFIRMS" the coach's call. It does not: the
+   cone and that call both run off the same weekly rates, so agreement is expected
+   rather than corroboration. The card says "consistent with" now, and says why. */
+ok(cone3.forYou.indexOf("consistent with") > -1 || cone3.forYou.indexOf("window") > -1, "cone's for-you speaks to the September call without claiming independence: " + cone3.forYou.slice(0, 60));
+ok(cone3.forYou.indexOf("CONFIRMS") === -1, "and the word CONFIRMS is gone — shared inputs cannot confirm each other");
 ok(lab3.find(a => a.id === "whoosh").forYou.indexOf("WEDDING") > -1, "whoosh for-you is aimed at Saturday");
 ok(lab3.find(a => a.id === "masked").forYou.indexOf("broke DOWNWARD") > -1, "masked-loss for-you carries the six-week receipt");
 
