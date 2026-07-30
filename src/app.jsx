@@ -6790,6 +6790,46 @@ function signalState(s) {
     ciExcludesZero, clearsNoise, persists, enough, method: r.method,
   };
 }
+/* GraduationMark — the brand's ruler edge made live: five ticks that fill as the
+   signal firms up, the fifth staying DASHED until the change is statistically real
+   (finalDashed). The logo language IS the epistemic state. Pure/presentational. */
+function GraduationMark({ ticks = 0, finalDashed = true, h = 26 }) {
+  const bars = [9, 13, 17, 21, h];
+  return (
+    <svg width="34" height={h} viewBox={`0 0 34 ${h}`} role="img" aria-label={`signal ${ticks} of 5 ticks`} style={{ display: "block", flexShrink: 0 }}>
+      {bars.map((bh, i) => {
+        const x = i * 6.5 + 1, y = h - bh, filled = i < ticks, isLast = i === 4;
+        if (isLast && finalDashed) return <rect key={i} x={x} y={y} width="4.5" height={bh} rx="1" fill="none" stroke={T.brass} strokeWidth="1.3" strokeDasharray="2.4 2" />;
+        return <rect key={i} x={x} y={y} width="4.5" height={bh} rx="1" fill={filled ? (isLast ? T.brass : T.gauge) : T.line} />;
+      })}
+    </svg>
+  );
+}
+/* signalReadCopy — the analyst's one-sentence read, wrapping signalState's verdict
+   in plain language. The engine owns every number; this only chooses the words. */
+function signalReadCopy(s, sig) {
+  const losing = sig.scale > 0;
+  const rate = sig.scale != null ? `${losing ? "−" : "+"}${Math.abs(sig.scale).toFixed(1)} lb/wk` : "";
+  const showRate = sig.state === "measured" || sig.state === "measurable" || sig.state === "reversed";
+  const wordColor = sig.state === "measured" ? T.brass : sig.state === "measurable" ? T.gauge : sig.state === "reversed" ? T.orange : T.steel;
+  let sentence;
+  switch (sig.state) {
+    case "measured": sentence = losing ? "The cut is working — this week's drop is real now, not noise." : "The gain is real now — the trend has left the noise behind."; break;
+    case "measurable": sentence = "The trend is leaning, but not certain yet — a few more clean mornings and it's called."; break;
+    case "reversed": sentence = "The trend has turned the wrong way — worth a look before it settles in."; break;
+    case "calibrating": sentence = "Still learning your baseline — keep logging and the read sharpens."; break;
+    default: sentence = "This week is still inside your noise — no real change to read yet.";
+  }
+  const clean = (s.reads || []).filter((r) => r && !r.sealed && r.w != null);
+  const last = clean.length ? clean[clean.length - 1] : null;
+  let rawLine = "";
+  if (last) {
+    const gap = last.w - (s.trend != null ? s.trend : last.w);
+    const rel = Math.abs(gap) < 0.35 ? "on your trend" : gap > 0 ? "above trend" : "below trend";
+    rawLine = `${last.w.toFixed(1)} lb this morning · ${rel}`;
+  }
+  return { rate, showRate, wordColor, sentence, rawLine, word: sig.word };
+}
 function Spark({ reads, trend, projRate = null, noise = 0.8, noiseN = null }) {
   /* The chart carries the app's whole grammar: SOLID IS MEASURED, DASHED IS
      PROJECTED — the same distinction the icon's fifth tick makes. What used to be
@@ -7105,6 +7145,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
      never rearranges itself. See NOW_FOCUS and NAV_NOTE. */
   const [restOpen, setRestOpen] = useState(false);
   const focus = nowFocus(s);
+  const sig = signalState(s);
   const [wIn, setWIn] = useState(s.trend);
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
   const [pulseIn, setPulseIn] = useState(((s.pulse || [])[Math.max(0, (s.pulse || []).length - 1)] || {}).bpm || 58);
@@ -7175,6 +7216,25 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <button onClick={openRules} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "7px 11px", whiteSpace: "nowrap" }}>RULES</button>
         </div>
       </div>
+
+      {/* ---------- THE READ (live) ----------
+          The always-on, on-device answer to "is my body actually changing yet?".
+          Computed from signalState every render, so it can NEVER be blank — the
+          structural fix for the empty overnight brief. The narrative lives on the
+          ANALYST tab; this card is its one-line summary, and it points there. */}
+      {(() => { const rc = signalReadCopy(s, sig); return (
+        <Card style={{ padding: SP.lg }}>
+          <Eyebrow c={T.gauge}>THE READ · UPDATED LIVE</Eyebrow>
+          <div style={{ fontFamily: body, fontWeight: 600, fontSize: TS.title, lineHeight: 1.35, color: T.chalk, marginTop: SP.sm }}>
+            {rc.sentence}{rc.showRate && rc.rate ? <span style={{ fontFamily: mono, color: rc.wordColor, whiteSpace: "nowrap" }}> {rc.rate}</span> : null}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: SP.md, marginTop: SP.md }}>
+            <GraduationMark ticks={sig.ticks} finalDashed={sig.finalDashed} />
+            <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 15, letterSpacing: "0.03em", color: rc.wordColor }}>{rc.word}{sig.state === "measured" ? " ◆" : ""}</span>
+          </div>
+          {rc.rawLine ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm }}>{rc.rawLine}</div> : null}
+        </Card>
+      ); })()}
 
       {/* ---------- THE ONE THING ----------
           The page used to open with 28 cards regardless of why he came. This is
