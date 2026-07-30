@@ -4536,6 +4536,100 @@ function nowFocus(s, hour) {
           : { t: "Books closed", sub: "everything the analysts need is in", more: 0 },
   };
 }
+
+/* ---------- THE FIVE + THE ONE THING (v2 adherence layer) ----------
+   The audit's inversion made real: Measured is a superb thermometer, but the goal
+   wants a thermostat — help him DO the handful of things that move body
+   composition, and read the instrument only when a decision needs it. fiveLevers()
+   is the single owner of the five daily levers (deficit, protein, training, sleep,
+   steps), each carrying a SemTag state so the read survives grayscale and sweat.
+   theOneFix() is the evidence-ordered ladder — verify logging, then steps/NEAT,
+   then sleep, and only THEN a calorie trim, then a diet break — so the app never
+   reflexively cuts calories. Both pure selectors; the words are autonomy-supportive
+   and attributed to the plan, never the person (Kluger & DeNisi 1996). No streaks,
+   no badges, no urgency: silence ("hold the line") is a valid state. */
+function fiveLevers(s) {
+  const tISO = isoOf(todayStart());
+  const sealed = !!(s.blackout && daysUntil(s.blackout.until) > 0);
+  // DEFICIT — is the measured trend losing inside his own target band?
+  const cr = currentRate(s);
+  const band = (s.rate && s.rate.band) || [1.0, 1.4];
+  const floor = s.rate && s.rate.floor != null ? s.rate.floor : 0.8;
+  const redline = s.rate && s.rate.redline != null ? s.rate.redline : 1.9;
+  let deficit;
+  if (sealed) deficit = { label: "DEFICIT", state: "quiet", detail: "scale sealed" };
+  else if (!cr.measured) deficit = { label: "DEFICIT", state: "quiet", detail: "counting only" };
+  else {
+    const r = cr.scale;
+    const st = r > redline ? "limit" : (r >= band[0] && r <= band[1]) ? "good" : "caution";
+    deficit = { label: "DEFICIT", state: st, detail: `${r > 0 ? "−" : "+"}${Math.abs(r).toFixed(1)} lb/wk` };
+  }
+  // PROTEIN — hits at or above the floor over the last seven logged days
+  const pt = proteinTarget(s);
+  const proRows = Object.entries(s.dailyLogs || {}).filter(([, v]) => v && v.pro != null)
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(-7).map(([, v]) => v.pro);
+  const proHitN = proRows.filter((p) => proteinHit(pt.lo, p)).length;
+  const protein = !proRows.length
+    ? { label: "PROTEIN", state: "quiet", detail: "counting only" }
+    : { label: "PROTEIN", state: proHitN >= proRows.length - 1 ? "good" : "caution", detail: `${proHitN}/${proRows.length}` };
+  // TRAINING — sessions banked in the last seven days against the four-day split
+  const wk7 = Object.keys(s.sessionLog || {}).filter((d) => { const g = (mk(tISO) - mk(d)) / DAY; return g >= 0 && g < 7; }).length;
+  const training = wk7 >= 4
+    ? { label: "TRAINING", state: "good", detail: `${wk7} of 4` }
+    : wk7 === 0
+      ? { label: "TRAINING", state: "quiet", detail: "none logged yet" }
+      : { label: "TRAINING", state: "caution", detail: `${wk7} of 4` };
+  // SLEEP — is he on his clean-night target run?
+  const sl = atSleepTarget(s, null);
+  const sleep = { label: "SLEEP", state: sl.at ? "good" : "caution", detail: `${sl.run}/${s.sleep.needed} clean` };
+  // STEPS — today's steps against his own measured floor
+  const stg = stepTarget(s);
+  const todaySteps = (s.dailyLogs[tISO] || {}).steps;
+  const steps = stg.gated
+    ? { label: "STEPS", state: "quiet", detail: "counting only" }
+    : todaySteps == null
+      ? { label: "STEPS", state: "quiet", detail: `target ${Math.round(stg.lo / 1000)}–${Math.round(stg.hi / 1000)}k` }
+      : { label: "STEPS", state: todaySteps >= stg.lo ? "good" : "caution", detail: `${(todaySteps / 1000).toFixed(1)}k/${Math.round(stg.lo / 1000)}k` };
+  return { deficit, protein, training, sleep, steps, list: [deficit, protein, training, sleep, steps] };
+}
+function theOneFix(s, levers) {
+  const L = levers || fiveLevers(s);
+  const owed = nowFocus(s).owed || [];
+  const sealed = !!(s.blackout && daysUntil(s.blackout.until) > 0);
+  const floor = s.rate && s.rate.floor != null ? s.rate.floor : 0.8;
+  // Rung 1 — verify logging: a clean ledger is the cheapest lever there is
+  if (owed.length) return { rung: "logging", lever: "LOGGING", state: "caution",
+    title: "Close the books first",
+    body: `Log ${owed[0].t.toLowerCase()} — the read leans on your own numbers harder than any calorie cut, and an honest ledger is the cheapest lever there is. Nothing to change until the day is closed.`,
+    whyNot: null };
+  // Rung 2 — steps / NEAT before touching food
+  if (L.steps.state === "caution") return { rung: "steps", lever: "STEPS", state: "caution",
+    title: "Add a walk today",
+    body: "Steps are the lever here, not your calories — more NEAT widens the deficit without spending recovery or lean mass. No calorie cut needed; that rung comes later, and only if the trend stalls.",
+    whyNot: "A deeper cut buys the same energy a walk gives for free, and spends recovery and lean mass to do it. Steps sit above calories on the ladder for exactly that reason — food comes down only once the cheaper levers are used up." };
+  // Rung 3 — protect sleep before touching food
+  if (L.sleep.state === "caution") return { rung: "sleep", lever: "SLEEP", state: "caution",
+    title: "Protect tonight's sleep",
+    body: "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the deficit.",
+    whyNot: "On short sleep a deeper cut spends muscle; a full night keeps the loss coming off fat. Sleep is the lever tonight, not food." };
+  // Rungs 4/5 — only once logging, steps and sleep are covered AND the trend has stalled
+  const cr = currentRate(s);
+  const stalled = !sealed && cr.measured && cr.scale < floor;
+  const longCut = weekDay().wk >= 10;
+  if (stalled && longCut) return { rung: "break", lever: "DEFICIT", state: "caution",
+    title: "A diet break has earned its place",
+    body: "You've held the deficit for weeks and the trend has flattened. A full week at maintenance is the intervention with real adherence evidence here — not a deeper cut. A planned pause, not a lapse.",
+    whyNot: null };
+  if (stalled) return { rung: "calories", lever: "DEFICIT", state: "caution",
+    title: "Now a small calorie trim earns its place",
+    body: "Logging, steps and sleep are all covered and the trend has flattened — this is the rung where a modest cut is finally the honest move. Keep it small; the deficit stays under ~500 kcal/day.",
+    whyNot: null };
+  // Everything covered, trend doing its job — the good, quiet state
+  return { rung: "hold", lever: null, state: "good",
+    title: "Nothing to fix — hold the line",
+    body: "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
+    whyNot: null };
+}
 const volBucket = (ex) => (ex && (ex.head || ex.mg)) || null;
 function muscleVolume(s) {
   const tISO6 = isoOf(todayStart());
@@ -6470,6 +6564,8 @@ __test.bfEst = bfEst;
 __test.stepTarget = stepTarget;
 __test.signalState = signalState;
 __test.dataLossGuard = dataLossGuard;
+__test.fiveLevers = fiveLevers;
+__test.theOneFix = theOneFix;
 __test.beatsNoise = beatsNoise;
 __test.cleanAtDate = cleanAtDate;
 __test.progressStep = progressStep;
@@ -7209,6 +7305,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [restOpen, setRestOpen] = useState(false);
   const focus = nowFocus(s);
   const sig = signalState(s);
+  const levers = fiveLevers(s);
+  const oneFix = theOneFix(s, levers);
+  const [whyOpen, setWhyOpen] = useState(false);
   const [wIn, setWIn] = useState(s.trend);
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
   const [pulseIn, setPulseIn] = useState(((s.pulse || [])[Math.max(0, (s.pulse || []).length - 1)] || {}).bpm || 58);
@@ -7299,7 +7398,44 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       ); })()}
 
-      {/* ---------- THE ONE THING ----------
+      {/* ---------- THE FIVE TODAY (v2 adherence — did you do the five?) ----------
+          The levers that actually move body composition, each with the redundant
+          SemTag triple so the state survives grayscale, sweat and colour-blindness
+          (WCAG 1.4.1). One selector (fiveLevers) owns these; nothing here recomputes. */}
+      <Card style={{ padding: SP.lg }}>
+        <Eyebrow c={T.gauge}>THE FIVE TODAY</Eyebrow>
+        <div style={{ marginTop: SP.sm }}>
+          {levers.list.map((lv, i) => (
+            <div key={lv.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.md, minHeight: 44, borderTop: i ? `1px solid ${T.hairline}` : "none" }}>
+              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.steel, letterSpacing: "0.04em", textTransform: "uppercase", ...NUMERIC }}>{lv.label}</span>
+              <span style={{ display: "flex", alignItems: "baseline", gap: SP.sm, minWidth: 0 }}>
+                <SemTag state={lv.state} />
+                {lv.detail ? <span data-num style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{lv.state === "quiet" ? lv.detail : "· " + lv.detail}</span> : null}
+              </span>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* ---------- THE ONE THING (v2 adherence — the single evidence-ordered fix) ----------
+          Never a reflexive calorie cut: the ladder is verify-logging -> steps/NEAT
+          -> protect sleep -> only then trim -> diet break. Autonomy-supportive voice,
+          attributed to the plan, never the person. A quiet chip opens the rationale. */}
+      <Card accent={oneFix.state === "good" ? T.jade : T.orange} style={{ padding: SP.lg }}>
+        <Eyebrow c={oneFix.state === "good" ? T.jade : T.orange}>THE ONE THING</Eyebrow>
+        <div style={{ marginTop: SP.sm }}><H size={20}>{oneFix.title}</H></div>
+        <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>{oneFix.body}</div>
+        {oneFix.whyNot ? (
+          <div style={{ marginTop: SP.md }}>
+            <button onClick={() => setWhyOpen(!whyOpen)} style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 11px", cursor: "pointer", whiteSpace: "nowrap" }}>
+              why not cut calories? {whyOpen ? "▾" : "▸"}
+            </button>
+            {whyOpen ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.body}px` }}>{oneFix.whyNot}</div> : null}
+          </div>
+        ) : null}
+      </Card>
+
+      {/* ---------- WHAT YOU OWE ----------
           The page used to open with 28 cards regardless of why he came. This is
           what he owes right now, in one line, with everything else still below
           it. It never hides an input — it points at one. See NOW_FOCUS. */}

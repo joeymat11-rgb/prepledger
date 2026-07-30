@@ -103,6 +103,22 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   ok(dlg(base, null).safe === false, "durability: writing a non-object over real data is blocked");
 }
 
+// the five levers + the one thing — the v2 adherence selectors (slice A)
+{
+  const lv = __test.fiveLevers(clone(SEED));
+  const keys = ["deficit", "protein", "training", "sleep", "steps"];
+  ok(keys.every((k) => lv[k] && ["good", "caution", "limit", "quiet"].includes(lv[k].state)), "five levers each carry a valid SEM state (good/caution/limit/quiet)");
+  ok(Array.isArray(lv.list) && lv.list.length === 5, "the five levers list has exactly five entries");
+  ok(lv.deficit.label === "DEFICIT" && lv.steps.label === "STEPS", "levers are labelled by the thing they measure");
+  const fix = __test.theOneFix(clone(SEED), lv);
+  ok(["logging", "steps", "sleep", "calories", "break", "hold"].includes(fix.rung), "the one thing returns an evidence-ordered rung");
+  ok(typeof fix.title === "string" && fix.title.length > 0 && typeof fix.body === "string", "the one thing carries a plain-language title and body");
+  const dnISO = (i) => new Date(Date.UTC(2026, 5, 1) + i * 86400000).toISOString().slice(0, 10);
+  const dn = clone(SEED); dn.blackout = { until: "2026-05-01" };
+  dn.reads = Array.from({ length: 24 }, (_, i) => ({ d: dnISO(i), w: +(172 - i * 0.25).toFixed(2), sealed: false }));
+  ok(__test.theOneFix(dn).rung !== "calories" && __test.theOneFix(dn).rung !== "break", "a healthy loss rate never reaches the calorie-cut rung — food comes down last");
+}
+
 // v2.2 — signals
 const { completeSession: cs2, genSession: gs2, SEED: S4, migrate: mg2 } = __test;
 ok(S4.v >= 4 && Array.isArray(S4.waist) && S4.exercises.every(e => Array.isArray(e.rirHist)), "seed carries v4 signal fields");
