@@ -291,7 +291,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "4.1.6";
+const APP_V = "4.2.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -3258,12 +3258,14 @@ function labAnalytics2(s) {
 
   /* 14 · the prophet's scorecard */
   add(() => {
-    const { graded, mae, bias } = prophetGrades(s);
+    const { graded, mae, bias, maeTrend, TRUST_N, provisional } = prophetGrades(s);
     const fc = s.forecasts || [];
-    return { id: "prophet", t: "THE PROPHET'S SCORECARD", status: graded.length >= 2 ? "LIVE" : "ARMED", prog: { n: graded.length, need: 2, label: "graded 7-day forecasts (journaling began today, first grades in ~1 wk)" },
-      tag: "The lab grades its own predictions — trust, with error bars.",
-      deep: "Every day the lab quietly journals a 7-day trend forecast; a week later, reality grades it. Mean absolute error = how far to trust any forecast in this app; bias = whether the machine runs optimistic or pessimistic about you. The cone's long-range September calls are journaled too, gradable at the pivot. An instrument that publishes its own error bars is the only kind worth believing — most coaching advice never submits to this test.",
-      forYou: graded.length >= 2 ? `${graded.length} forecasts graded: typical miss ±${mae} lb, bias ${bias > 0 ? "+" + bias + " (runs optimistic — mentally pad ETAs)" : bias < 0 ? bias + " (runs pessimistic — you keep beating the machine)" : "0.00 (dead calibrated)"}. Read every ETA in this lab through that lens.` : `Journal opened today — entry #${fc.length} on file. The machine has put its predictions in writing; in a week, reality starts marking the homework.`,
+    return { id: "prophet", t: "THE PROPHET'S SCORECARD", status: graded.length >= TRUST_N ? "LIVE" : graded.length >= 2 ? "PROVISIONAL" : "ARMED", prog: { n: graded.length, need: TRUST_N, label: "graded 7-day forecasts, each against the real morning reading" },
+      tag: "The lab grades its own predictions against the scale — trust, with error bars.",
+      deep: "Every day the lab journals a 7-day forecast; a week later the MORNING READING grades it. That word matters: this used to grade the forecast against the app's own smoothed trend line, which is the line the forecast steers — so it was measuring how well the model predicts itself. A smooth autocorrelated series is nearly trivial to predict a week out, so the error came back flatteringly small and the masthead then invited you to read every ETA through it. It now grades against the raw number on the scale, which the model has no say over, with a ±1 day tolerance so a skipped morning is not counted as a miss. Mean absolute error is 7-day WEIGHT-tracking error and nothing more — it is not the error bar on a body-fat ETA, which depends on the lean model too. Bias says whether the machine runs optimistic or pessimistic about you. An instrument that publishes its own error bars is the only kind worth believing, and publishing one earned on the wrong quantity is worse than publishing none.",
+      forYou: graded.length >= 2
+        ? `${graded.length} forecast${graded.length === 1 ? "" : "s"} graded against the real reading: typical miss ±${mae} lb, bias ${bias > 0 ? "+" + bias + " (runs optimistic — mentally pad ETAs)" : bias < 0 ? bias + " (runs pessimistic — you keep beating the machine)" : "0.00 (dead calibrated)"}.${provisional ? ` PROVISIONAL — ${TRUST_N} grades is where a within-person number starts being a number; ${TRUST_N - graded.length} to go.` : ""} This is 7-day weight error only — the body-fat ETAs carry the lean model's uncertainty on top of it.${maeTrend != null ? ` (For reference, its miss against its own smoothed line is ±${maeTrend} — smaller, and not a trust number.)` : ""}`
+        : `Journal opened — entry #${fc.length} on file. The machine has put its predictions in writing; in a week, the scale starts marking the homework.`,
       lines: [] };
   });
 
@@ -3863,19 +3865,53 @@ function plainify(t) {
   return out;
 }
 
-/* shared grading math — the masthead and the scorecard read one truth */
+/* shared grading math — the masthead and the scorecard read one truth
+   ---------------------------------------------------------------------------
+   PROPHET_CIRCULARITY_NOTE. This used to grade each 7-day forecast against the
+   TREND seven days later — and `trend` is the EWMA this same model steers
+   (trend += 0.3·clamp(read − trend)). So it measured how well the model predicts
+   its own smoothed line, not how well it predicts his body. A smooth,
+   heavily autocorrelated series is close to trivially predictable a week out, so
+   the error came back flatteringly small — and the masthead then invited him to
+   "read every date below through this", applying a trust number earned on one
+   quantity to ETAs about a different one.
+
+   It now grades against the RAW MORNING READING seven days later: the actual
+   number on the scale, which the model does not get to influence. A missed
+   morning is allowed ±1 day rather than voiding the grade, because skipping a
+   weigh-in is not a prediction failure — the offset is recorded on each grade.
+
+   `maeTrend` is kept separately and labelled for what it is: how well the model
+   tracks its own smoothing. Useful for debugging the filter, never a trust
+   number, and never the headline. */
 function prophetGrades(s) {
   const fc = s.forecasts || [];
-  const graded = [];
+  const byRead = Object.create(null);
+  (s.reads || []).forEach((r) => { if (!r.sealed && r.w != null) byRead[r.d] = r.w; });
+  const nearestRead = (iso) => {
+    for (const off of [0, 1, -1]) {
+      const d = isoOf(new Date(mk(iso).getTime() + off * DAY));
+      if (byRead[d] != null) return { w: byRead[d], off };
+    }
+    return null;
+  };
+  const graded = [], trendErrs = [];
   fc.forEach((f) => {
-    if (f.sealed) return;
+    if (f.sealed || f.pred7 == null) return;
     const targetD = isoOf(new Date(mk(f.d).getTime() + 7 * DAY));
+    const hit = nearestRead(targetD);
+    if (hit) graded.push({ err: +(hit.w - f.pred7).toFixed(1), d: targetD, off: hit.off, against: "read" });
     const g = fc.find((x) => x.d === targetD);
-    if (g) graded.push({ err: +(g.trend - f.pred7).toFixed(1) });
+    if (g && g.trend != null) trendErrs.push(+(g.trend - f.pred7).toFixed(1));
   });
-  const mae = graded.length ? +(graded.reduce((a, x) => a + Math.abs(x.err), 0) / graded.length).toFixed(2) : null;
-  const bias = graded.length ? +(graded.reduce((a, x) => a + x.err, 0) / graded.length).toFixed(2) : null;
-  return { graded, mae, bias, n: graded.length };
+  const mean = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+  const mae = graded.length ? +mean(graded.map((x) => Math.abs(x.err))).toFixed(2) : null;
+  const bias = graded.length ? +mean(graded.map((x) => x.err)).toFixed(2) : null;
+  const maeTrend = trendErrs.length ? +mean(trendErrs.map(Math.abs)).toFixed(2) : null;
+  /* Single-case guidance wants a median of ~6 observations before a within-person
+     verdict, so a trust number is PROVISIONAL until then rather than LIVE at 2. */
+  const TRUST_N = 6;
+  return { graded, mae, bias, n: graded.length, maeTrend, nTrend: trendErrs.length, TRUST_N, provisional: graded.length > 0 && graded.length < TRUST_N };
 }
 
 /* THE DOCKET — the lab's self-writing front page */
@@ -3897,16 +3933,24 @@ function labDocket(s) {
   const quiet = sen ? sen.forYou.indexOf("quiet") > -1 : true;
   return { fresh, next: withEta, sentinel: { quiet, txt: sen ? (quiet ? "all quiet — every recent day inside your own baselines" : sen.forYou.split(".")[0]) : "arming" } };
 }
-const STATUS_RANK = { LIVE: 0, TRACKING: 0, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
+/* PROVISIONAL sits between speaking and gathering: it HAS a number, and the number
+   is not yet load-bearing. Ranked after LIVE so it never outranks a settled
+   instrument, and given its own section so SPEAKING NOW stops being padded with
+   n=2 cards wearing the same jade dot as n=30 cards. */
+const STATUS_RANK = { LIVE: 0, TRACKING: 0, PROVISIONAL: 0.5, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
 function labSections(s) {
   const flat = labGroups(s).flatMap((g) => g.cards);
   const speaking = flat.filter((c) => c.status === "LIVE" || c.status === "TRACKING");
+  const provisional = flat.filter((c) => c.status === "PROVISIONAL").sort((a, b) => ((b.prog ? b.prog.n / b.prog.need : 0) - (a.prog ? a.prog.n / a.prog.need : 0)));
   const gathering = flat.filter((c) => c.status === "ARMED").sort((a, b) => ((b.prog ? b.prog.n / b.prog.need : 0) - (a.prog ? a.prog.n / a.prog.need : 0)));
   const models = flat.filter((c) => c.status === "MODEL");
   const shelf2 = flat.filter((c) => c.status === "ON FILE");
   const later = flat.filter((c) => c.status === "LOCKED");
   return [
     { k: "speaking", title: `SPEAKING NOW (${speaking.length})`, sub: null, cards: speaking },
+    { k: "provisional", title: `PROVISIONAL — A READING, NOT YET A VERDICT (${provisional.length})`,
+      sub: "These have a number and not enough observations to stand behind it. Single-case work wants about six before a within-person finding counts; each card says how far off it is.",
+      cards: provisional },
     { k: "gathering", title: `GATHERING — YOUR LOGGING FUNDS THESE (${gathering.length})`, sub: null, cards: gathering },
     { k: "models", title: `SANDBOX MODELS (${models.length})`, sub: "simulations, badged — touch, nothing real moves", cards: models },
     { k: "shelf2", title: `ON THE SHELF (${shelf2.length})`, sub: "settled science at your numbers — nothing to do here", cards: shelf2 },
@@ -5981,6 +6025,7 @@ const stampGlyph = (st) => {
   if (["OWNED", "RECLAIMED", "ESTABLISH", "ESTABLISHED", "BASELINE", "RUNG DONE", "BOOKED", "FIRED", "ANCHORED", "LIVE", "TRACKING"].includes(st)) return "✓";
   if (["DEBUT"].includes(st)) return "▲";
   if (st === "MODEL") return "◇";
+  if (st === "PROVISIONAL") return "~";   /* a number with a wobble in it */
   if (["LOCKED", "ON FILE", "PARKED", "UNBOOKED", "COACH'S EYE", "ARMS @ ~13%", "COACH FLAG"].includes(st)) return "·";
   return "◆";
 };
@@ -5992,6 +6037,8 @@ const stampColor = (st) => {
   if (st === "ON FILE") return T.steel;
   if (st === "TRACKING") return T.jade;
   if (st === "MODEL") return T.chalk;
+  /* orange, not jade: PROVISIONAL is "attention, read the n", not "confirmed". */
+  if (st === "PROVISIONAL") return T.orange;
   if (["PARKED", "UNBOOKED", "COACH'S EYE", "ARMS @ ~13%", "COACH FLAG"].includes(st)) return T.steel;
   return T.brass;
 };
@@ -8870,9 +8917,13 @@ function HistTab({ s, setS, save }) {
                     <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, lineHeight: `${LH.micro}px`, marginTop: SP.hair, letterSpacing: "0.04em", color: a.status === "LIVE" || a.status === "TRACKING" ? T.brass : T.orange }}>
                       {a.status === "LIVE" || a.status === "TRACKING"
                         ? `(measured${a.prog && a.prog.n != null ? `, n=${a.prog.n}` : ""})`
-                        : a.prog && a.prog.need != null
-                          ? `(not yet earned — n=${a.prog.n} of ${a.prog.need} needed)`
-                          : "(speculation)"}
+                        /* PROVISIONAL must never borrow the word "measured" — it has a
+                           number, and the n underneath it is not yet enough to stand on. */
+                        : a.status === "PROVISIONAL"
+                          ? `(provisional, n=${a.prog && a.prog.n != null ? a.prog.n : "?"}${a.prog && a.prog.need ? ` of ${a.prog.need}` : ""} — not yet a verdict)`
+                          : a.prog && a.prog.need != null
+                            ? `(not yet earned — n=${a.prog.n} of ${a.prog.need} needed)`
+                            : "(speculation)"}
                     </span>
                   </span>
                   <span style={{ fontFamily: mono, fontSize: TS.micro, whiteSpace: "nowrap", color: freshMap[a.t] ? T.jade : a.status === "LIVE" || a.status === "TRACKING" ? T.jade : a.status === "ARMED" ? T.brass : T.steel }}>
@@ -8887,9 +8938,14 @@ function HistTab({ s, setS, save }) {
                     const firstGrade = first ? fmtShort(isoOf(new Date(mk(first.d).getTime() + 7 * DAY))) : "~1 week out";
                     return (
                       <div onClick={() => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); }} style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: pg.n >= 2 ? T.jade : T.brass, marginTop: 6, cursor: "pointer", lineHeight: 1.5 }}>
+                        {/* Scoped deliberately. This number is 7-day WEIGHT-tracking error
+                            graded against the real morning reading. It is not the error bar
+                            on a body-fat ETA — those carry the lean model's uncertainty too —
+                            so the old "read every date below through this" was lending a
+                            number earned on one quantity to claims about another. */}
                         {pg.n >= 2
-                          ? `MACHINE TRUST · typical miss ±${pg.mae} lb · bias ${pg.bias > 0 ? "+" + pg.bias + " (runs optimistic)" : pg.bias < 0 ? pg.bias + " (runs pessimistic — you beat it)" : "0.00 (dead-on)"} — read every date below through this ▸`
-                          : `MACHINE TRUST · the lab is grading its own predictions against reality — first marks ${firstGrade} ▸`}
+                          ? `MACHINE TRUST · 7-day weight miss ±${pg.mae} lb vs the real reading · bias ${pg.bias > 0 ? "+" + pg.bias + " (runs optimistic)" : pg.bias < 0 ? pg.bias + " (runs pessimistic — you beat it)" : "0.00 (dead-on)"}${pg.provisional ? ` · PROVISIONAL, n=${pg.n} of ${pg.TRUST_N}` : ""} — weight only; BF dates carry more ▸`
+                          : `MACHINE TRUST · the lab is grading its forecasts against the real morning reading — first marks ${firstGrade} ▸`}
                       </div>
                     ); })()}
                   {(() => { const pr3 = trialProposals(s); const run3 = (s.trials || []).filter((t) => !t.declined && !trialVerdict(s, t).done).length; return (

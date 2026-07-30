@@ -458,9 +458,24 @@ const pr = wing3.find(c => c.id === "prophet");
 ok(pr && pr.status === "ARMED" && pr.deep.indexOf("error bars") > -1, "prophet armed, philosophy attached");
 let fcS = clone(SO);
 const isoP = (off) => { const d = new Date(Date.now() + off * 864e5); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
-fcS.forecasts = [{ d: isoP(-14), trend: 165.0, rate: 1.2, pred7: 163.8, sealed: false }, { d: isoP(-7), trend: 163.6, rate: 1.2, pred7: 162.4, sealed: false }, { d: isoP(-8), trend: 163.8, rate: 1.2, pred7: 162.6, sealed: false }, { d: isoP(-1), trend: 162.5, rate: 1.2, pred7: 161.3, sealed: false }];
+/* Grading now happens against the RAW morning read seven days later, not against the
+   model's own smoothed trend — see PROPHET_CIRCULARITY_NOTE. So the fixture has to
+   supply reads on the target dates, and the trend values are deliberately WRONG here
+   to prove the grade does not come from them. */
+fcS.forecasts = [{ d: isoP(-14), trend: 999, rate: 1.2, pred7: 163.8, sealed: false }, { d: isoP(-8), trend: 999, rate: 1.2, pred7: 162.6, sealed: false }, { d: isoP(-1), trend: 999, rate: 1.2, pred7: 161.3, sealed: false }];
+fcS.reads = (fcS.reads || []).concat([
+  { d: isoP(-7), w: 164.0, sealed: false, note: "" },
+  { d: isoP(-1), w: 162.8, sealed: false, note: "" },
+]);
 const pr2 = laW(fcS).find(c => c.id === "prophet");
-ok(pr2.status === "LIVE" && pr2.forYou.indexOf("±") > -1, "graded forecasts flip the scorecard live with a trust radius: " + pr2.forYou.slice(0, 60));
+ok(pr2.status === "PROVISIONAL" && pr2.forYou.indexOf("±") > -1, "two grades read PROVISIONAL, not LIVE — a trust number needs ~6: " + pr2.status);
+ok(pr2.forYou.indexOf("not yet a verdict") > -1 || pr2.forYou.indexOf("PROVISIONAL") > -1, "and the card says so in words, with how far it has to go");
+/* The anti-circularity guard, stated numerically rather than by sniffing for digits.
+   trend is 999 on every journalled forecast here while the seeded reads sit ~0.2 lb
+   from pred7. Graded against the reads the miss is a fraction of a pound; graded
+   against the trend it would be in the hundreds. */
+const missP = +(pr2.forYou.match(/±([0-9.]+)/) || [])[1];
+ok(missP < 5, "the grade comes off the scale, not the smoothed trend — miss ±" + missP + " lb, not hundreds");
 ok(wing3.find(c => c.id === "whatif").status === "MODEL", "the console is badged a MODEL");
 
 // (interim)
@@ -665,9 +680,22 @@ const { prophetGrades: pg34, SEED: TA } = __test;
 ok(pg34(clone(TA)).n === 0 && pg34(clone(TA)).mae === null, "fresh ledger: zero grades, no invented precision");
 let pgS = clone(TA);
 const isoQ = (off) => { const d = new Date(Date.now() + off * 864e5); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
-pgS.forecasts = [{ d: isoQ(-14), trend: 165.0, rate: 1.2, pred7: 163.8, sealed: false }, { d: isoQ(-7), trend: 163.6, rate: 1.2, pred7: 162.4, sealed: false }, { d: isoQ(-8), trend: 163.9, rate: 1.2, pred7: 162.7, sealed: false }, { d: isoQ(-1), trend: 162.5, rate: 1.2, pred7: 161.3, sealed: false }];
+pgS.forecasts = [{ d: isoQ(-14), trend: 165.0, rate: 1.2, pred7: 163.8, sealed: false }, { d: isoQ(-8), trend: 163.9, rate: 1.2, pred7: 162.7, sealed: false }];
+/* A grade needs a real reading on the target date — that is the whole point of the
+   de-circularised scorecard. Seed one for each forecast's target week. */
+pgS.reads = (pgS.reads || []).concat([
+  { d: isoQ(-7), w: 164.3, sealed: false, note: "" },
+  { d: isoQ(-1), w: 162.9, sealed: false, note: "" },
+]);
 const g34 = pg34(pgS);
-ok(g34.n >= 2 && typeof g34.mae === "number" && typeof g34.bias === "number", "masthead and card share one grading truth: n=" + g34.n + " mae=" + g34.mae);
+ok(g34.n === 2 && typeof g34.mae === "number" && typeof g34.bias === "number", "masthead and card share one grading truth, graded against reads: n=" + g34.n + " mae=" + g34.mae);
+ok(g34.provisional === true && g34.TRUST_N === 6, "two grades stay PROVISIONAL — six is where a within-person number starts");
+/* A forecast whose target week has no weigh-in is simply not graded. A skipped
+   morning is not a prediction failure, and inventing a grade would be worse. */
+const pgNone = clone(TA);
+pgNone.reads = [];
+pgNone.forecasts = [{ d: isoQ(-8), trend: 163.9, rate: 1.2, pred7: 162.7, sealed: false }];
+ok(pg34(pgNone).n === 0 && pg34(pgNone).mae === null, "no reading that week means no grade, not a fabricated one");
 
 // (interim)
 
