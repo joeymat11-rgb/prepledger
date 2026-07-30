@@ -291,7 +291,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "4.1.3";
+const APP_V = "4.1.4";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -6170,15 +6170,34 @@ function trendSeries(reads) {
     return { d: r.d, t };
   });
 }
-function Spark({ reads, trend, projRate = null, noise = 0.8 }) {
+/* HIS volatility, not a constant. The band was ±0.8 for everybody — a figure lifted
+   from the rep-noise model and reused on the scale, which made the envelope a
+   decoration rather than a measurement. This is the actual spread of his clean
+   morning reads around the trend those reads produced: residual SD, n reported,
+   and it says so when there is not yet enough to compute one. */
+function weightNoise(reads) {
+  const rs = (reads || []).filter((r) => !r.sealed && r.w != null);
+  if (rs.length < 5) return { sd: 0.8, n: rs.length, measured: false };
+  const byDate = Object.create(null);
+  trendSeries(reads).forEach((p) => { byDate[p.d] = p.t; });
+  const res = rs.map((r) => r.w - (byDate[r.d] != null ? byDate[r.d] : r.w)).filter((x) => isFinite(x));
+  if (res.length < 5) return { sd: 0.8, n: res.length, measured: false };
+  const mean = res.reduce((a, b) => a + b, 0) / res.length;
+  const sd = Math.sqrt(res.reduce((a, b) => a + (b - mean) * (b - mean), 0) / (res.length - 1));
+  /* Clamped: under 0.3 would draw a hairline that implies scale precision nobody
+     has, over 2.5 would swallow the chart. Both ends are honesty guards. */
+  return { sd: +Math.max(0.3, Math.min(2.5, sd)).toFixed(2), n: res.length, measured: true };
+}
+function Spark({ reads, trend, projRate = null, noise = 0.8, noiseN = null }) {
   /* The chart carries the app's whole grammar: SOLID IS MEASURED, DASHED IS
      PROJECTED — the same distinction the icon's fifth tick makes. What used to be
      here drew one jagged daily line and let it read as truth. It now draws the
      trend as a BAND (the measured ±noise envelope, because a damped average is a
      range and pretending otherwise is false precision), the daily mornings as
-     small recessive dots, and any forward projection as a dashed reach that is
-     visibly not a measurement. The latest point is labelled directly rather than
-     sent to a legend for decoding. */
+     small recessive dots, and any forward projection as a fan that widens with
+     distance — visibly not a measurement, and visibly less certain the further out
+     it reaches. The latest point is labelled directly rather than sent to a legend
+     for decoding. */
   const W = 300, Hh = 104, pad = 8, gut = 42; // gut = right gutter for the direct label
   const all = reads.slice(-45);
   const ts = all.length ? trendSeries(reads).slice(-45) : [];
@@ -6235,11 +6254,42 @@ function Spark({ reads, trend, projRate = null, noise = 0.8 }) {
         ))}
         {/* measured: solid */}
         <path d={tPath} fill="none" stroke={T.jade} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        {/* projected: dashed, and it stops being jade so it cannot be mistaken for a reading */}
-        {projRate ? (
-          <path d={`M${xEnd.toFixed(1)},${yEnd.toFixed(1)} L${x(tEnd).toFixed(1)},${y(projW).toFixed(1)}`}
-            fill="none" stroke={T.brass} strokeWidth="2" strokeDasharray="5 4" strokeLinecap="round" opacity="0.85" />
-        ) : null}
+        {/* PROJECTED: a widening, fading fan — not a constant-width dash.
+            A dash of fixed width says "constant confidence", and confidence is not
+            constant: uncertainty grows with distance, which is exactly why central
+            banks draw fan charts. The half-width follows sd·√weeks, the random-walk
+            form, so it is derived from HIS volatility rather than drawn to look
+            uncertain. The fill fades out toward the horizon so the far end never
+            reads as a claim, and the centre line stays dotted and thin — present
+            enough to show direction, too faint to mistake for a measurement. */}
+        {projRate ? (() => {
+          const segs = 8, upper = [], lower = [];
+          for (let i = 0; i <= segs; i++) {
+            const f = i / segs;                       // 0..1 across the horizon
+            const wks = (projDays / 7) * f;
+            const w = lastT.t - projRate * wks;        // central path
+            const half = noise * Math.sqrt(Math.max(f, 0.0001) * (projDays / 7));
+            const xx = x(tLast + f * projDays * DAY);
+            upper.push(`${xx.toFixed(1)},${y(w + half).toFixed(1)}`);
+            lower.push(`${xx.toFixed(1)},${y(w - half).toFixed(1)}`);
+          }
+          const mid = upper.map((_, i) => {
+            const f = i / segs, wks = (projDays / 7) * f;
+            return `${i ? "L" : "M"}${x(tLast + f * projDays * DAY).toFixed(1)},${y(lastT.t - projRate * wks).toFixed(1)}`;
+          }).join(" ");
+          return (
+            <g>
+              <defs>
+                <linearGradient id="m-fan" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stopColor={T.brass} stopOpacity="0.30" />
+                  <stop offset="100%" stopColor={T.brass} stopOpacity="0.03" />
+                </linearGradient>
+              </defs>
+              <path d={`M${upper.join(" L")} L${lower.slice().reverse().join(" L")} Z`} fill="url(#m-fan)" stroke="none" />
+              <path d={mid} fill="none" stroke={T.brass} strokeWidth="1.25" strokeDasharray="2 3" strokeLinecap="round" opacity="0.7" />
+            </g>
+          );
+        })() : null}
         <circle cx={xEnd} cy={yEnd} r="3" fill={T.jade} />
         {/* direct label — the number sits on the point, not in a legend */}
         <text x={Math.min(xEnd + 7, W - gut + 4)} y={Math.max(pad + 8, Math.min(yEnd + 3.5, Hh - pad))}
@@ -6248,9 +6298,9 @@ function Spark({ reads, trend, projRate = null, noise = 0.8 }) {
         </text>
       </svg>
       <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>
-        <span style={{ color: T.jade }}>solid = measured trend</span>
-        {projRate ? <> · <span style={{ color: T.brass }}>dashed = projected</span></> : null}
-        <br />band = ±{noise} noise floor · dots = mornings · hollow = sealed · (measured, n={all.length})
+        <span style={{ color: T.jade }}>■ solid = measured trend</span>
+        {projRate ? <> · <span style={{ color: T.brass }}>◤ fan = (speculation), widening with distance</span></> : null}
+        <br />band = ±{noise} — your own spread{noiseN ? `, from n=${noiseN} clean reads` : " (default until 5 clean reads exist)"} · dots = mornings · hollow = sealed
       </div>
     </div>
   );
@@ -7875,12 +7925,16 @@ function BodyTab({ s, setS, save }) {
         <Card>
         {/* The hero lives at the top of the screen now, so this card stops repeating
             it and does the job only a chart can: show the shape. Solid trend inside
-            its measured band, dashed reach for the projection, latest point labelled
-            where it sits. The projection is fed the measured rate only when one
-            exists — a dashed line off a guess would be speculation drawn twice. */}
+            the band computed from HIS spread, then a widening fan for the projection,
+            latest point labelled where it sits. The projection is fed the measured
+            rate only when one exists — a fan drawn off a guess would be speculation
+            twice over. */}
         <Eyebrow><Term k="trend" c={T.steel}>TREND</Term> — THE SHAPE, LAST 45 READS</Eyebrow>
         <div style={{ marginTop: SP.sm }}>
-          <Spark reads={s.reads} trend={s.trend} projRate={cur.measured ? cur.fat : null} />
+          {(() => { const wn = weightNoise(s.reads); return (
+            <Spark reads={s.reads} trend={s.trend} projRate={cur.measured ? cur.fat : null}
+              noise={wn.sd} noiseN={wn.measured ? wn.n : null} />
+          ); })()}
         </div>
         <div style={{ marginTop: SP.md }}>
           {s.reads.slice(-4).reverse().map((r, i) => (
