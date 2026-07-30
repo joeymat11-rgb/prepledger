@@ -297,7 +297,7 @@ const APP_V = "5.0.0";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 34;
+const SCHEMA_V = 35;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -452,6 +452,7 @@ const SEED = {
   SEED.sync = { last: null, status: "" };
   SEED.exOrder = { U: SEED.exercises.filter((e) => e.day === "U").map((e) => e.id), L: SEED.exercises.filter((e) => e.day === "L").map((e) => e.id) };
   SEED.waist = [];
+  SEED.plan = { goals: [], ifthen: [], share: false };
   SEED.exercises.forEach((e) => { e.rirHist = []; });
   /* seeded PREV blocks predate per-set RIR, so their arrays are all-null —
      exactly what patchV31 produces for the same data. A fresh install and a
@@ -5565,7 +5566,19 @@ function patchV11(s) {
 /* Applied in order, oldest first. To add a schema version: write patchVn, append
    it here, and bump SCHEMA_V — nothing else. The old nested-call chain was 31
    parentheses deep and a missing one only showed up at build time. */
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34];
+function patchV35(s) {
+  /* v2 adherence PLAN — self-authored process goals and if-then implementation
+     intentions, plus the opt-in one-human share. Additive only, and safe to run on
+     a state that already has it (the v1/v2 path replays the whole chain over a fresh
+     seed). No existing field is read or rewritten, so no history can move. */
+  s.plan = s.plan || { goals: [], ifthen: [], share: false };
+  if (!Array.isArray(s.plan.goals)) s.plan.goals = [];
+  if (!Array.isArray(s.plan.ifthen)) s.plan.ifthen = [];
+  if (typeof s.plan.share !== "boolean") s.plan.share = false;
+  s.v = 35;
+  return s;
+}
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35];
 function migrate(old) {
   if (old && old.v === SCHEMA_V) return old;
   /* A state NEWER than this build — he upgraded, then the app was rolled back.
@@ -7345,7 +7358,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const sig = signalState(s);
   const levers = fiveLevers(s);
   const oneFix = theOneFix(s, levers);
+  const plan = s.plan || { goals: [], ifthen: [], share: false };
+  const savePlan = (next) => { const ns = { ...s, plan: { goals: [], ifthen: [], share: false, ...plan, ...next } }; setS(ns); save(ns); };
   const [whyOpen, setWhyOpen] = useState(false);
+  const [newGoal, setNewGoal] = useState("");
+  const [ifCue, setIfCue] = useState("");
+  const [ifAct, setIfAct] = useState("");
   const [wIn, setWIn] = useState(s.trend);
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
   const [pulseIn, setPulseIn] = useState(((s.pulse || [])[Math.max(0, (s.pulse || []).length - 1)] || {}).bpm || 58);
@@ -7493,6 +7511,56 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </div>
         )}
       </Card>
+
+      {/* ---------- THIS WEEK · YOUR PLAN (v2 adherence A2) ----------
+          Self-authored process goals and if-then implementation intentions (d≈0.65,
+          the largest cheap effect in behaviour science — Gollwitzer & Sheeran 2006),
+          a forward weekly commit read off the same five levers (no second source of
+          truth), and an opt-in one-human share. Everything here is set by him and
+          attributed to the plan, never scored or nagged; dismiss is "Not now". A
+          collapsed Group by default, so it never crowds the morning. */}
+      <Group title="THIS WEEK" sub="your plan — goals, if-then, commit" count={(plan.goals.length + plan.ifthen.length) || null}>
+        <div>
+          <Eyebrow c={T.jade}>YOUR PROCESS GOALS</Eyebrow>
+          {plan.goals.length === 0 && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>None set. A process goal is something you do, not a number on the scale — "four training sessions", "protein on target six days". They make the work task-focused instead of self-evaluative.</div>}
+          {plan.goals.map((g) => (
+            <div key={g.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.sm, minHeight: 40 }}>
+              <span style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: `${LH.body}px` }}>· {g.text}</span>
+              <button onClick={() => savePlan({ goals: plan.goals.filter((x) => x.id !== g.id) })} aria-label="remove goal" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, background: "none", border: "none", padding: SP.xs, cursor: "pointer", flexShrink: 0 }}>✕</button>
+            </div>
+          ))}
+          <div style={{ display: "flex", gap: SP.sm, marginTop: SP.sm }}>
+            <input value={newGoal} onChange={(e) => setNewGoal(e.target.value)} placeholder="a process goal" style={{ flex: 1, minWidth: 0, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
+            <Btn small tone="jade" onClick={() => { const t = newGoal.trim(); if (!t) return; savePlan({ goals: [...plan.goals, { id: "g" + Date.now(), text: t }] }); setNewGoal(""); }}>Add</Btn>
+          </div>
+        </div>
+        <div>
+          <Eyebrow c={T.gauge}>IF–THEN PLANS</Eyebrow>
+          {plan.ifthen.length === 0 && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Write the cue then the action for the one behaviour you keep missing. It's free, it's yours, and it's one of the largest effects in the field.</div>}
+          {plan.ifthen.map((p) => (
+            <div key={p.id} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: SP.sm, marginTop: SP.xs }}>
+              <span style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: `${LH.body}px`, minWidth: 0 }}><span style={{ color: T.gauge, fontWeight: 600 }}>IF</span> {p.cue}, <span style={{ color: T.gauge, fontWeight: 600 }}>THEN</span> {p.action}</span>
+              <button onClick={() => savePlan({ ifthen: plan.ifthen.filter((x) => x.id !== p.id) })} aria-label="remove plan" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, background: "none", border: "none", padding: SP.xs, cursor: "pointer", flexShrink: 0 }}>✕</button>
+            </div>
+          ))}
+          <div style={{ display: "flex", flexDirection: "column", gap: SP.sm, marginTop: SP.sm }}>
+            <input value={ifCue} onChange={(e) => setIfCue(e.target.value)} placeholder="IF — e.g. it's Tuesday and I've not trained by 6pm" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
+            <input value={ifAct} onChange={(e) => setIfAct(e.target.value)} placeholder="THEN — e.g. I train at 6:15" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
+            <div><Btn small tone="jade" onClick={() => { const c = ifCue.trim(), a = ifAct.trim(); if (!c || !a) return; savePlan({ ifthen: [...plan.ifthen, { id: "p" + Date.now(), cue: c, action: a }] }); setIfCue(""); setIfAct(""); }}>Add plan</Btn></div>
+          </div>
+        </div>
+        <div>
+          <Eyebrow c={T.brass}>COMMIT TO THIS WEEK</Eyebrow>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>One option, offered not ordered: hold the deficit and put the levers on the board. This week so far — {`training ${levers.training.detail} · protein ${levers.protein.detail} · steps ${levers.steps.detail} · sleep ${levers.sleep.detail}`}.</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.md, marginTop: SP.md, minHeight: 44 }}>
+            <span style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, minWidth: 0 }}>Share this week's summary with one person</span>
+            <button role="switch" aria-checked={plan.share} onClick={() => savePlan({ share: !plan.share })} style={{ width: 44, height: 26, borderRadius: 999, border: `1px solid ${T.line}`, background: plan.share ? T.jade : T.plate2, position: "relative", cursor: "pointer", flexShrink: 0, transition: TR("background-color", MOT.micro) }}>
+              <span style={{ position: "absolute", top: 2, left: plan.share ? 20 : 2, width: 20, height: 20, borderRadius: "50%", background: plan.share ? T.ink : T.steel, transition: TR("left", MOT.micro) }} />
+            </button>
+          </div>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>Off by default. The highest-evidence accountability isn't the app nagging you — it's one human. Nothing leaves this device until you turn it on.</div>
+        </div>
+      </Group>
 
       {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
       {lawsOpen && <LawsView onClose={() => setLawsOpen(false)} />}

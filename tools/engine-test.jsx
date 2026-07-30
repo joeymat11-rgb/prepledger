@@ -119,6 +119,17 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   ok(__test.theOneFix(dn).rung !== "calories" && __test.theOneFix(dn).rung !== "break", "a healthy loss rate never reaches the calorie-cut rung — food comes down last");
 }
 
+// the PLAN state — the v2 adherence A2 schema patch (self-authored plan)
+{
+  const oldP = clone(SEED); delete oldP.plan; oldP.v = 34;
+  const migP = __test.migrate(oldP);
+  ok(migP.plan && Array.isArray(migP.plan.goals) && Array.isArray(migP.plan.ifthen) && migP.plan.share === false, "migrating a pre-plan state adds an empty, opt-out plan");
+  ok(migP.reads.length === SEED.reads.length, "the plan migration preserves every historical read");
+  ok(SEED.plan && Array.isArray(SEED.plan.goals) && SEED.plan.share === false, "the seed is authored with an empty plan, share off by default");
+  const withData = clone(SEED); withData.plan = { goals: [{ id: "g1", text: "4 sessions" }], ifthen: [], share: true }; withData.v = 34;
+  ok(__test.migrate(withData).plan.goals.length === 1 && __test.migrate(withData).plan.share === true, "a state that already has a plan keeps it through migration");
+}
+
 // the body-comp anchor tightening path — the v2 anchor selector (slice B)
 {
   const at = __test.anchorTighten(clone(SEED));
