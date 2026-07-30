@@ -1042,7 +1042,7 @@ const doss = dt40(clone(TE));
 const dd40 = __test.dossierData(clone(TE));
 ok(dd40.sections.length >= 3 && dd40.sections.every(x => x.items.every(it => it.line.length <= 170)), "structured dossier: sections present, every line first-sentence tight");
 ok(typeof dd40.topline === "string" && dd40.topline.length > 20, "top line reads as an executive summary");
-ok(doss.indexOf("COACH DOSSIER") > 0 && doss.indexOf("Machine trust") > -1 && doss.indexOf("THIS WEEK:") > -1 && doss.indexOf("TOP LINE:") > -1, "dossier compiles header, trust, top line, and the week");
+ok(doss.indexOf("ANALYST DOSSIER") > 0 && doss.indexOf("Machine trust") > -1 && doss.indexOf("THIS WEEK:") > -1 && doss.indexOf("TOP LINE:") > -1, "dossier compiles header, trust, top line, and the week");
 ok(doss.indexOf("provisional") === -1 && doss.indexOf("CLEAN") === -1, "dossier speaks only plain English");
 
 // (interim)
@@ -1140,7 +1140,7 @@ ok(rf46("lateral") === 90 && rf46("curl") === 90, "isolations rest 90s — raise
 // v3.47 — the instrument factory's context bundle
 const { askContext: ac47, SEED: TJ } = __test;
 const ctx = ac47(clone(TJ));
-ok(ctx.indexOf("HOUSE LAWS") > -1 && ctx.indexOf("COACH DOSSIER") > -1 && ctx.indexOf("LAST 14 DAYS") > -1, "context carries laws, instrument verdicts, and raw rollups");
+ok(ctx.indexOf("HOUSE LAWS") > -1 && ctx.indexOf("ANALYST DOSSIER") > -1 && ctx.indexOf("LAST 14 DAYS") > -1, "context carries laws, instrument verdicts, and raw rollups");
 ok(ctx.indexOf("(measured)") > -1 && ctx.indexOf("Never invent data") > -1, "honesty rules travel with every question");
 ok(ctx.length < 20000, "context stays bounded: " + ctx.length + " chars");
 
@@ -1519,7 +1519,7 @@ if (fail) process.exit(1);
 
 // v3.70 — the two constitutional laws, swept and enforced
 const { filingsFor: ff70, CONSTITUTION: CN70, bodyAlarm: ba70, SEED: TM70 } = __test;
-ok(ff70(1, 15).some((x) => x.indexOf("COACH DAY") === 0), "Mondays point NOW at the dossier");
+ok(ff70(1, 15).some((x) => x.indexOf("ANALYST DAY") === 0), "Mondays point NOW at the dossier");
 ok(ff70(3, 2).some((x) => x.indexOf("THE RED CELL") === 0) && ff70(3, 15).length === 0, "the prosecution gets its pointer only in filing week");
 ok(CN70.length === 15 && CN70.every((c) => c[0] && c[1] && c[1].length > 30), "fifteen laws, each with a name and a plain sentence");
 ok(CN70.some((c) => c[0] === "Attention lives on NOW") && CN70.some((c) => c[0] === "Simple surface, real depth"), "the athlete's two new laws are carved first");

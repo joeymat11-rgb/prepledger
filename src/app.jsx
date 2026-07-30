@@ -3010,7 +3010,7 @@ function weekReview(s) {
   else if (sealedNow) verdict = "Sealed week: adherence carried it while the scale sat quarantined — Monday's read inherits a clean house.";
   else if (cur.measured && cur.fat >= s.rate.band[0] && cur.fat <= s.rate.band[1] && wins.length) verdict = "Textbook week: strength moved while the trend held the corridor.";
   else if (proN && proHit / proN >= 0.7 && sess.length >= 3) verdict = "The boring, winning kind of week — the kind that compounds.";
-  else verdict = "Mixed week, honestly logged — the ledger's favorite kind to coach from.";
+  else verdict = "Mixed week, honestly logged — the honest kind the analyst works from.";
   return { wk: weekDay().wk, window: `${fmtShort(winStart)} – ${fmtShort(endISO)}`, lines, verdict };
 }
 
@@ -3738,7 +3738,7 @@ function labAnalytics2(s) {
 
   /* 24 · THE HANDOFF DOSSIER */
   add(() => ({ id: "dossier", t: "THE HANDOFF DOSSIER", status: "LIVE", prog: null,
-    tag: "One tap: every live verdict, compiled plain, for your coach.",
+    tag: "One tap: every live verdict, compiled plain, for your analyst.",
     deep: "Generated fresh on request — never stale, never stored. It compiles the machine-trust line, every speaking instrument's current verdict in plain words, running trials, this week's review, and anything athlete-called awaiting sign-off. Its whole job: your coach gets the lab's depth in two minutes of reading, whenever he asks.",
     forYou: "Open the card and tap GENERATE — then copy it straight into a text to him.",
     lines: [] }));
@@ -3999,7 +3999,7 @@ function dossierData(s) {
 }
 function dossierText(s) {
   const d = dossierData(s);
-  const L = [`MEASURED — COACH DOSSIER · ${d.header.d} · wk ${d.header.wk}`,
+  const L = [`MEASURED — ANALYST DOSSIER · ${d.header.d} · wk ${d.header.wk}`,
     `Trend ${d.header.trend} lb · body fat ~${d.header.bf}% · pace ${d.header.pace} lb/wk${d.header.sealed ? ` · scale sealed until ${d.header.sealed}` : ""}`,
     `Machine trust: ${d.trust}`, "", `TOP LINE: ${d.topline}`, ""];
   d.sections.forEach((sec) => { L.push(sec.h); sec.items.forEach((it) => L.push(`  • ${it.t}: ${it.line}`)); L.push(""); });
@@ -5553,7 +5553,7 @@ class TabGuard extends React.Component {
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           <Btn small tone="jade" onClick={() => this.setState({ err: null })}>Try again</Btn>
           <Btn small onClick={() => { try { navigator.clipboard.writeText(report); } catch (e) {} }}>Copy report</Btn>
-          <Btn small onClick={() => { try { localStorage.setItem("prep-ledger-crash", report); alert("Saved. Open LAB → Ask the Ledger and ask: diagnose my last crash"); } catch (e) {} }}>Ask the Ledger</Btn>
+          <Btn small onClick={() => { try { localStorage.setItem("prep-ledger-crash", report); alert("Saved. Open LAB → Ask the Analyst and ask: diagnose my last crash"); } catch (e) {} }}>Ask the Analyst</Btn>
         </div>
       </Card>
     );
@@ -5675,7 +5675,7 @@ function KitApp({ spec, onExit }) {
   );
 }
 
-/* ASK THE LEDGER — bespoke instruments on demand, standing on the 49 built ones */
+/* ASK THE ANALYST — bespoke instruments on demand, standing on the 49 built ones */
 const ANTH_KEY = "prep-ledger-anthkey";
 function askContext(s, docs) {
   docs = docs || {};
@@ -5792,7 +5792,7 @@ function agentToolExec(s, name, input, staged) {
 }
 async function agentLoop(s, question, history, onStatus, docs) {
   const key = localStorage.getItem(ANTH_KEY);
-  if (!key) return { ok: false, msg: "no API key saved — RULES → ASK THE LEDGER" };
+  if (!key) return { ok: false, msg: "no API key saved — RULES → ASK THE ANALYST" };
   const staged = [];
   const msgs = [...history, { role: "user", content: question }];
   const sys = askContext(s, docs) + "\n\nYou also have TOOLS. Investigate before answering: pull the exact ranges you need, contrast periods, use run_whatif for counterfactuals. If you find something actionable, stage_proposal it (kind trial|note|coach) — you can change NOTHING directly; every proposal waits for the athlete's tap. You may DESIGN custom trials when no canned template fits: 2 arms, 3-7 day blocks, 3-6 cycles, metric strictly from [session_reps, sleep_h, trend_delta]. In the body, state the pattern that motivated it (with n), the expected effect size, and roughly why the block count could detect it through his noise — if it can't, say the honest thing: more blocks or don't run it. Then answer in plain conversational prose — no markdown, no headers, no bullet scaffolding, no badges — exactly the way your nightly read sounds.";
@@ -5819,7 +5819,7 @@ async function agentLoop(s, question, history, onStatus, docs) {
 
 async function askLedger(s, question, history) {
   const key = localStorage.getItem(ANTH_KEY);
-  if (!key) return { ok: false, msg: "no API key saved — RULES → ASK THE LEDGER" };
+  if (!key) return { ok: false, msg: "no API key saved — RULES → ASK THE ANALYST" };
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -5917,7 +5917,7 @@ function ApiKeyBlock() {
   const [saved, setSaved] = useState(false);
   return (
     <div style={{ marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid ${T.line}` }}>
-      <Eyebrow c={T.jade}>ASK THE LEDGER · API KEY (SEPARATE FROM THE GITHUB TOKEN)</Eyebrow>
+      <Eyebrow c={T.jade}>ASK THE ANALYST · API KEY (SEPARATE FROM THE GITHUB TOKEN)</Eyebrow>
       <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 5, lineHeight: 1.5 }}>Two locks, two keys: the GitHub token files your data; this Anthropic key answers questions about it. Both live only on this phone — neither syncs, neither replaces the other. Get one at console.anthropic.com → API Keys.</div>
       <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
         <input value={v} onChange={(e) => { setV(e.target.value); setSaved(false); }} placeholder="sk-ant-…" style={{ flex: 1, fontFamily: mono, fontSize: TS.micro, padding: "9px 10px", borderRadius: 8, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, outline: "none" }} />
@@ -6112,7 +6112,7 @@ function LawsView({ onClose }) {
 }
 function filingsFor(dow, dom) {
   const out9 = [];
-  if (dow === 1) out9.push("COACH DAY — the dossier and your night shift's draft are ready behind the COACH button");
+  if (dow === 1) out9.push("ANALYST DAY — the dossier and your night shift's draft are ready behind the ANALYST button");
   if (dom >= 1 && dom <= 3) out9.push("THE RED CELL files this week — the case against your prep waits in LAB");
   return out9;
 }
@@ -6523,7 +6523,7 @@ const stampColor = (st) => {
   if (["PARKED", "UNBOOKED", "COACH'S EYE", "ARMS @ ~13%", "COACH FLAG"].includes(st)) return T.steel;
   return T.brass;
 };
-const STAMP_LABEL = { GATED: "LOCKED", DEBUT: "FIRST RUN", OWNED: "YOURS", "OWN-IT": "MAKE IT YOURS", RECLAIM: "WIN IT BACK", PARKED: "ON HOLD", REVERT: "ROLLED BACK" };
+const STAMP_LABEL = { GATED: "LOCKED", DEBUT: "FIRST RUN", OWNED: "YOURS", "OWN-IT": "MAKE IT YOURS", RECLAIM: "WIN IT BACK", PARKED: "ON HOLD", REVERT: "ROLLED BACK", "COACH'S EYE": "ANALYST'S EYE", "COACH FLAG": "ANALYST FLAG" };
 /* The queue badge already carried its state as a WORD, so it was never colour-only
    — but the glyph makes the state readable at a glance without decoding either the
    hue or the label, which is the point of the triple. */
@@ -7212,7 +7212,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, marginTop: SP.sm, textTransform: "uppercase" }}>WK {wd.wk} · D{wd.day} · {s.phase} · BF {bf.pct}%<span style={{ color: T.steel }}> ({bf.lo}–{bf.hi})</span></div>
         </div>
         <div style={{ display: "flex", gap: SP.sm, flexShrink: 0 }}>
-          <button onClick={openCoach} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "7px 11px", whiteSpace: "nowrap" }}>COACH</button>
+          <button onClick={openCoach} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "7px 11px", whiteSpace: "nowrap" }}>ANALYST</button>
           <button onClick={openRules} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "7px 11px", whiteSpace: "nowrap" }}>RULES</button>
         </div>
       </div>
@@ -9101,7 +9101,7 @@ function TrialsDesk({ s, setS, save }) {
         <div key={i} style={{ marginBottom: 12 }}>
           <div style={{ fontFamily: mono, fontSize: TS.micro, color: v.done ? T.jade : T.brass }}>{v.done ? "◆ FINISHED" : "▸ RUNNING"} · {tpl.t}</div>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 3, lineHeight: 1.5 }}>
-            {v.done ? `${tpl.arms[0]}: ${v.a ?? "—"} vs ${tpl.arms[1]}: ${v.b ?? "—"} (${tpl.metric}, ${v.nA + v.nB} blocks)${v.diff != null ? ` · difference ${v.diff > 0 ? "+" : ""}${v.diff}` : ""}${v.pRand != null ? ` · randomization test p=${v.pRand}${v.pFloor != null && v.pRand <= v.pFloor + 1e-9 ? " (the lowest p this many blocks can produce)" : ""}` : ""}. ${v.pRand != null && v.pFloor != null && v.pRand > 0.2 ? `Not separable from chance at this block count — with ${v.nA + v.nB} blocks p could not have gone below ${v.pFloor}, so read this as "too few blocks to say", not as "no effect". ` : ""}${v.needsWashout ? `Carryover risk on this one: water, glycogen or a drug tail bleeds across the block boundary, so a ${v.washoutDays}-day washout between blocks is wanted before the next run. ` : ""}Direction, not gospel — worth one line in the coach dossier.` : arm ? `Block ${arm.block}/${arm.of} · this block's arm: ${tpl.arms[arm.armIdx]} — it's already on TODAY'S PROTOCOL.` : `Scheduled — begins ${fmtShort(t.started)}.`}
+            {v.done ? `${tpl.arms[0]}: ${v.a ?? "—"} vs ${tpl.arms[1]}: ${v.b ?? "—"} (${tpl.metric}, ${v.nA + v.nB} blocks)${v.diff != null ? ` · difference ${v.diff > 0 ? "+" : ""}${v.diff}` : ""}${v.pRand != null ? ` · randomization test p=${v.pRand}${v.pFloor != null && v.pRand <= v.pFloor + 1e-9 ? " (the lowest p this many blocks can produce)" : ""}` : ""}. ${v.pRand != null && v.pFloor != null && v.pRand > 0.2 ? `Not separable from chance at this block count — with ${v.nA + v.nB} blocks p could not have gone below ${v.pFloor}, so read this as "too few blocks to say", not as "no effect". ` : ""}${v.needsWashout ? `Carryover risk on this one: water, glycogen or a drug tail bleeds across the block boundary, so a ${v.washoutDays}-day washout between blocks is wanted before the next run. ` : ""}Direction, not gospel — worth one line in the analyst dossier.` : arm ? `Block ${arm.block}/${arm.of} · this block's arm: ${tpl.arms[arm.armIdx]} — it's already on TODAY'S PROTOCOL.` : `Scheduled — begins ${fmtShort(t.started)}.`}
           </div>
         </div>
       ); })}
@@ -9565,7 +9565,7 @@ function HistTab({ s, setS, save }) {
                   {deskOpen && <TrialsDesk s={s} setS={setS} save={save} />}
                   <div onClick={() => setAskOpen(true)} role="button" tabIndex={0}
                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setAskOpen(true); } }}
-                    style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.gauge, cursor: "pointer" }}>🜁 ASK THE LEDGER — any question, answered from your data ▸</div>
+                    style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.gauge, cursor: "pointer" }}>🜁 ASK THE ANALYST — any question, answered from your data ▸</div>
                   <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>Tap any line for the full story, in plain words. Fresh verdicts carry their date.</div>
                   {secs.map((sec) => {
                     const openSec = secOpen[sec.k] !== undefined ? secOpen[sec.k] : false;
@@ -9750,7 +9750,7 @@ function MoreTab({ s, go, openRules, openCoach }) {
         <div onClick={openCoach} role="button" tabIndex={0}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCoach(); } }}
           style={{ ...rowStyle, borderTop: "none" }}>
-          <span style={{ fontFamily: mono, fontSize: TS.label, color: T.chalk, letterSpacing: "0.04em" }}>COACH
+          <span style={{ fontFamily: mono, fontSize: TS.label, color: T.chalk, letterSpacing: "0.04em" }}>ANALYST
             <span style={{ color: T.steel }}> — the handoff sheet</span></span>
           <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.title, color: T.gauge, lineHeight: 1 }}>▸</span>
         </div>
@@ -9857,7 +9857,7 @@ function CoachView({ s, onClose }) {
   return (
     <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 70, overflowY: "auto" }} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480, margin: "0 auto", padding: "calc(26px + env(safe-area-inset-top)) 18px 60px" }}>
-        <H size={26}>Coach One-Pager</H>
+        <H size={26}>The Analyst</H>
           <div style={{ marginTop: 10 }}><DossierBlock s={s} /><NightDraft /></div>
         <Eyebrow>{fmtShort(isoOf(todayStart()))} · WK {weekDay().wk} · {s.phase} · GENERATED LIVE</Eyebrow>
 
