@@ -291,7 +291,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "4.1.4";
+const APP_V = "4.1.5";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -6024,6 +6024,23 @@ const SecRule = ({ children }) => (
 const Chip = ({ children, c = T.steel }) => (
   <span style={{ fontFamily: lbl, fontWeight: 500, fontSize: TS.label, color: c, border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 11px", whiteSpace: "nowrap", ...NUMERIC }}>{children}</span>
 );
+/* CAVEAT — a sentence, not a pill.
+   Chip is whiteSpace: nowrap on purpose: it is for short tokens like "fasted AM"
+   or "same light", where wrapping mid-pill would look broken. Two sentence-length
+   notes on TRAIN were being poured into it anyway — the short-night line and the
+   STIM CHECK line — so they ran straight off the right edge of the card and got
+   clipped. On the screen he opens in a gym, mid-sentence.
+   Anything longer than a couple of words belongs here instead: it takes a full row,
+   wraps at spaces, and never breaks mid-word. */
+const Caveat = ({ children, c = T.steel }) => (
+  <div style={{
+    flex: "1 1 100%",
+    fontFamily: lbl, fontWeight: 500, fontSize: TS.label, lineHeight: `${LH.label}px`, color: c,
+    border: `1px solid ${T.line}`, borderRadius: 8, padding: `${SP.sm}px ${SP.md}px`,
+    whiteSpace: "normal", overflowWrap: "break-word", wordBreak: "normal",
+    ...NUMERIC,
+  }}>{children}</div>
+);
 const Btn = ({ onClick, children, tone = "ghost", full, small, disabled }) => {
   const tones = {
     ghost: { background: "transparent", color: T.chalk, border: `1px solid ${T.line}` },
@@ -6606,9 +6623,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {s.sessionLog[tISO] && <Chip c={T.jade}>Session ✓ — receipt in TRAIN</Chip>}
         {cleanIn > 0 && <Chip c={T.chalk}>Scale sealed · clean read {fmtShort(SEAL_UNTIL)} · {cleanIn}d</Chip>}
-        {(() => { try { const se9 = JSON.parse(localStorage.getItem("plSyncErr") || "null"); if (se9) return <Chip c={T.redline}>⚠ SYNC FAILING · HTTP {se9.status} since {se9.at.slice(11, 16)} — RULES → Sync now</Chip>; } catch (e) {} return null; })()}
+        {/* Sentence-length and it names a recovery step, so it must not be clipped —
+            a truncated error is worse than no error. Bold too, per the redline size
+            rule: redline is the lowest-contrast accent and never runs thin. */}
+        {(() => { try { const se9 = JSON.parse(localStorage.getItem("plSyncErr") || "null"); if (se9) return <Caveat c={T.redline}><span style={{ fontWeight: 700 }}>! SYNC FAILING</span> · HTTP {se9.status} since {se9.at.slice(11, 16)} — RULES → Sync now</Caveat>; } catch (e) {} return null; })()}
         {ev && <Chip c={T.chalk}>{ev.t} · {fmtShort(ev.d)}</Chip>}
-        {(() => { try { const ls2 = +(localStorage.getItem("pl-lastsync") || 0); if (localStorage.getItem(TOKEN_KEY) && ls2 && Date.now() - ls2 > 36 * 36e5) return <Chip c={T.brass}>books haven't reached your analyst since {new Date(ls2).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })} — tap sync in RULES</Chip>; } catch (e) {} return null; })()}
+        {(() => { try { const ls2 = +(localStorage.getItem("pl-lastsync") || 0); if (localStorage.getItem(TOKEN_KEY) && ls2 && Date.now() - ls2 > 36 * 36e5) return <Caveat c={T.brass}>books haven't reached your analyst since {new Date(ls2).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })} — tap sync in RULES</Caveat>; } catch (e) {} return null; })()}
       </div>
       {(() => { const al9 = bodyAlarm(s, slp); if (!al9 || (al9.level !== "RED" && al9.level !== "AMBER")) return null; return (
         <Card accent={al9.level === "RED" ? T.redline : T.brass}>
@@ -7379,8 +7399,8 @@ function LogTab({ s, setS, save, slp }) {
         {/* Was "records count as pending" on a short night — the retired gate, at the
         top of the page he opens to train. What replaces it says the true thing:
         a short night is context for reading the session, never a verdict on it. */}
-        <Chip c={slp.clean ? T.jade : T.brass}>{slp.clean ? "NORMAL NIGHT — nothing to caveat" : <>SHORT NIGHT{slp.last && slp.last.h ? " · " + slp.last.h + " h" : ""} — reps still count, records still bank; today just cannot be read as a stall</>}</Chip>
-        <Chip><Term k="noonwindow" c={T.steel}>STIM CHECK</Term>{(() => { const me1 = todayMeds(s); if (me1 && me1.taken) return <> — meds @ {fmt12(me1.at)} · effort feels easier mid-peak than it is</>; if (me1 && !me1.taken) return <> — none today · effort reads truer, energy may run lower</>; return <> — meds peak midday · if lifting then, effort feels easier than it is · log it on NOW</>; })()}</Chip>
+        <Caveat c={slp.clean ? T.jade : T.brass}>{slp.clean ? "NORMAL NIGHT — nothing to caveat" : <>SHORT NIGHT{slp.last && slp.last.h ? " · " + slp.last.h + " h" : ""} — reps still count, records still bank; today just cannot be read as a stall</>}</Caveat>
+        <Caveat><Term k="noonwindow" c={T.steel}>STIM CHECK</Term>{(() => { const me1 = todayMeds(s); if (me1 && me1.taken) return <> — meds @ {fmt12(me1.at)} · effort feels easier mid-peak than it is</>; if (me1 && !me1.taken) return <> — none today · effort reads truer, energy may run lower</>; return <> — meds peak midday · if lifting then, effort feels easier than it is · log it on NOW</>; })()}</Caveat>
       </div>
 
       {(() => { const mv2 = muscleVolume(s); if (!mv2.length) return null; const fS = Object.keys(s.sessionLog).sort()[0]; const matureV = !!fS && (mk(isoOf(todayStart())) - mk(fS)) / DAY >= 14; return (
