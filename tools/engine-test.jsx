@@ -1,3 +1,6 @@
+// Freezes the clock. MUST stay above the app import — see tools/_fixed-now.mjs
+// for why a suite that derives dates from the real clock cannot be trusted.
+import "./_fixed-now.mjs";
 import { __test } from "../src/app.jsx";
 const { targetsFor, genSession, completeSession, runAdaptive, bfEst, migrate, SEED } = __test;
 let pass = 0, fail = 0;
