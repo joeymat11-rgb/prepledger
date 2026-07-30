@@ -889,7 +889,11 @@ pS.pulse.push({ d: isoL(Date.now()), bpm: 66 });
 const wingP = laP(pS);
 const pb = wingP.find(c => c.id === "pulsebase"), pw = wingP.find(c => c.id === "pulsewarn"), cs = wingP.find(c => c.id === "cutstress");
 ok(pb.status === "LIVE" && /Baseline: 5\d bpm/.test(pb.forYou), "baseline computes from the median: " + pb.forYou.slice(0, 30));
-ok(pw.status === "LIVE" && pw.forYou.indexOf("Treat today gently") > -1, "a +7 spike trips the early warning without panic");
+/* Still fires at +7, but the copy no longer promises a day's lead over symptoms — RHR
+   is a multi-day trend signal, and HRV is the faster one. See RHR_LEAD_TIME_NOTE. */
+ok(pw.status === "LIVE" && pw.forYou.indexOf("gentle day") > -1, "a +7 spike still raises the flag without panic");
+ok(pw.forYou.indexOf("two or three days in a row") > -1, "and asks for a multi-day run before it means anything");
+ok(pw.tag.indexOf("beats the sore throat") === -1 && pw.deep.indexOf("VARIABILITY") > -1, "the next-day lead-time claim is gone and HRV is named as the better input");
 ok(cs.status === "LIVE" && cs.forYou.indexOf("bpm") > -1, "cut-stress drift reads in bpm");
 ok(wingP.find(c => c.id === "negotiator").status === "MODEL" && wingP.find(c => c.id === "miner").status === "ARMED", "negotiator badged MODEL, miner gathering pairs");
 

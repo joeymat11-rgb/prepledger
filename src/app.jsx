@@ -291,7 +291,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "4.2.5";
+const APP_V = "4.2.6";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -3584,9 +3584,23 @@ function labAnalytics2(s) {
     const latest = pReads[pReads.length - 1];
     const spike = pBase && latest ? latest.bpm - pBase : null;
     return { id: "pulsewarn", t: "ILLNESS EARLY-WARNING", status: pBase ? "LIVE" : "ARMED", prog: { n: pReads.length, need: 7, label: "readings to build the baseline" },
-      tag: "A pulse spike usually beats the sore throat by a day.",
-      deep: "A single-morning jump of ~7+ bpm over baseline — without a hard session or bad night to explain it — precedes noticeable illness with startling reliability. The play is never to panic: it's to go easy for 24 hours, hydrate, sleep early, and often skip the sickness entirely because you saw it coming.",
-      forYou: spike != null ? (spike >= 7 ? `${latest.bpm} today vs ${pBase} baseline — +${spike}. No hard session or short night to blame it on? Treat today gently and protect tonight's sleep; check again tomorrow.` : `${latest.bpm} today vs ${pBase} baseline — inside normal. The best report this card gives is boredom.`) : "Builds with the baseline — seven readings.",
+      tag: "A rising multi-day resting pulse is worth attention.",
+      /* ---------- RHR_LEAD_TIME_NOTE ----------
+         This card said a pulse spike "usually beats the sore throat by a day". The
+         monitoring literature runs the other way: HRV is the faster and more sensitive
+         early signal, while resting heart rate often rises only AT or after symptom
+         onset and is better read as a multi-day trend than a next-morning alarm. The
+         mechanism is not wrong, the LEAD TIME was overclaimed — and a card that
+         promises a day's warning teaches him to trust a single morning's number, which
+         is exactly what the noise-floor work says not to do. Softened to a trend
+         signal, with the honest note that HRV would be the better input if a wearable
+         ever supplies one. */
+      deep: "A resting pulse climbing over your own baseline — without a hard session or short night to explain it — is worth noticing, and the practical response is cheap: go easy for a day, hydrate, sleep early. What this card used to claim is that the spike beats the symptoms by about a day. The monitoring evidence does not support that: heart-rate VARIABILITY is the faster and more sensitive early signal, while resting heart rate often rises only as symptoms arrive and is more informative as a multi-day trend than as a single-morning alarm. So read a run of elevated mornings, not one. If a wearable ever gives you HRV, that is the better input for this specific question and this card should hand the job over.",
+      forYou: spike != null
+        ? (spike >= 7
+          ? `${latest.bpm} today vs ${pBase} baseline — +${spike}. Worth a gentle day if there is no hard session or short night to explain it, but one morning is one morning: what would actually mean something is this staying elevated for two or three days in a row. Check again tomorrow before concluding anything.`
+          : `${latest.bpm} today vs ${pBase} baseline — inside normal. The best report this card gives is boredom.`)
+        : "Builds with the baseline — seven readings.",
       lines: [] };
   });
 
@@ -3663,20 +3677,41 @@ function labAnalytics2(s) {
   /* 25 · YOUR FURNACE */
   add(() => {
     const T2 = tempRead(s);
-    return { id: "furnacebase", t: "YOUR FURNACE", status: T2.base != null ? "LIVE" : "ARMED", prog: { n: T2.n, need: 7, label: "morning temperatures (15 seconds, on NOW)" },
-      tag: "Morning temperature — the deficit's most honest gauge.",
-      deep: "Your body literally turns the thermostat down as a diet deepens — morning temperature is the most direct read on metabolic adaptation that exists outside a lab. Seven readings set your early baseline; from there, a sustained drop of ~0.4°F+ means the furnace is banking energy, which is normal, expected, and exactly what the refeeds and the eventual diet-exit are for.",
-      forYou: T2.base != null ? `Early baseline ${T2.base}°F · recent ${T2.last5}°F (${T2.drift > 0 ? "+" : ""}${T2.drift}). ${T2.drift <= -0.4 ? "The furnace is cooling — adaptation is visible in you now, not just in theory. The band's top end exists for weeks like this." : "Holding warm — the deficit is being absorbed without the thermostat flinching."}` : `${T2.n}/7 readings. The thermometer takes 15 seconds, right after the pulse — same card on NOW.`,
-      lines: [] };
+    /* ---------- THERMOMETER_NOTE — mechanism is not validation ----------
+       The physiology is real: roughly 1 °C of core temperature tracks 10-13% of RMR,
+       and basal temperature has been floated as a metabolic-rate biomarker. What does
+       NOT exist is any validation of MORNING ORAL temperature as a field proxy for
+       cut depth in a training athlete. And the arithmetic is unkind: a consumer
+       thermometer carries roughly 0.1-0.2 °C of measurement noise, which is about
+       0.2-0.4 °F — the same size as the 0.4 °F drift this card was calling a finding.
+       A single morning cannot clear its own instrument error.
+       So it stays MODEL rather than LIVE, it shows the measurement-noise band next to
+       the drift, and it requires a multi-day averaged drift to clear that band before
+       it says anything. The mechanism keeps its place; the certainty goes. */
+    const THERM_NOISE_F = 0.3;
+    const driftClears = T2.drift != null && Math.abs(T2.drift) > THERM_NOISE_F;
+    return { id: "furnacebase", t: "YOUR FURNACE", status: T2.base != null ? "MODEL" : "ARMED", prog: { n: T2.n, need: 7, label: "morning temperatures (15 seconds, on NOW)" },
+      tag: "Morning temperature — a plausible gauge, not a validated one.",
+      deep: `Your body does turn the thermostat down as a diet deepens: about 1 °C of core temperature tracks 10-13% of resting metabolic rate, and basal temperature has been proposed as a metabolic-rate biomarker. Two honest caveats the card used to skip. There is no validation of morning ORAL temperature as a field proxy for cut depth in a training athlete — the mechanism is real, the measurement is not established. And a consumer thermometer carries roughly ±${THERM_NOISE_F}°F of measurement noise, which is the same size as the ~0.4°F drift this card was treating as a finding, so a single morning cannot clear its own instrument error. It is badged MODEL for that reason, it needs a multi-day averaged drift larger than the noise band before it will say anything, and it should be read as a hypothesis you are collecting evidence on rather than a gauge you steer by.`,
+      forYou: T2.base != null
+        ? `Early baseline ${T2.base}°F · recent ${T2.last5}°F (${T2.drift > 0 ? "+" : ""}${T2.drift}), against ±${THERM_NOISE_F}°F of thermometer noise. ${driftClears ? (T2.drift <= -0.4 ? "That drift is larger than the instrument error, so it is worth noticing — cooling is normal, expected, and part of what the refeeds and the diet-exit are for. Still one signal among several, not a verdict." : "That drift clears the noise band but points warm — the deficit is being absorbed without the thermostat flinching.") : "That is inside the thermometer's own error, so it is not yet a reading — it is the instrument talking. More mornings, then a multi-day average."}`
+        : `${T2.n}/7 readings. The thermometer takes 15 seconds, right after the pulse — same card on NOW.`,
+      lines: T2.base != null ? [`drift ${T2.drift > 0 ? "+" : ""}${T2.drift}°F vs measurement noise ±${THERM_NOISE_F}°F — ${driftClears ? "clears the band" : "inside the band, not yet information"}`] : [] };
   });
 
   /* 26 · THE EXIT THERMOMETER */
   add(() => {
     const T2 = tempRead(s);
     return { id: "exittherm", t: "THE EXIT THERMOMETER", status: "ARMED", prog: { n: T2.n, need: 7, label: "building your cut-depth baseline now — fires at the diet-exit" },
-      tag: "September's reverse ends when your body re-warms — not when the calendar says.",
-      deep: "This is the instrument nothing on the market has: a physiological finish line for the post-cut reverse. Every temperature you log now maps how cool the cut runs; when the diet-exit begins, calories climb until your mornings warm back to baseline — that re-warming IS metabolic recovery, measured. The reverse stops being a calendar guess and becomes a thermostat reading.",
-      forYou: `Learning your cut-depth signature (${T2.n} readings${T2.drift != null ? `, currently ${T2.drift > 0 ? "+" : ""}${T2.drift}°F vs early baseline` : ""}). At the diet-exit this card flips LIVE and calls the finish line itself.`,
+      tag: "A hypothesis for ending the reverse on physiology rather than the calendar.",
+      /* This card carried the most confident sentence in the whole LAB — "the instrument
+         nothing on the market has", "a physiological finish line" — sitting on the
+         thinnest evidence in it. The idea is genuinely good and worth collecting data
+         for. It is not a finish line until something validates it, and the drift it
+         would read is the same size as the thermometer's own error. Downgraded to what
+         it is: an open question with data accruing. */
+      deep: "The idea: every temperature you log now maps how cool the cut runs, and when the diet-exit begins, calories climb until your mornings warm back toward baseline — so re-warming could mark metabolic recovery and end the reverse on physiology instead of a calendar guess. That would be genuinely useful and almost nothing does it. Stated honestly, though, it is a hypothesis and not an instrument yet. Morning oral temperature has never been validated as a field proxy for cut depth, the drift it would need to detect is the same size as a consumer thermometer's measurement error (~±0.3°F), and n-of-1 re-warming has no published threshold to compare against. So this card collects data and will offer a read with its uncertainty attached — it will not be calling a finish line, and the earlier copy that promised one was overclaiming.",
+      forYou: `Collecting your cut-depth signature (${T2.n} readings${T2.drift != null ? `, currently ${T2.drift > 0 ? "+" : ""}${T2.drift}°F vs early baseline, against ±0.3°F of thermometer noise` : ""}). At the diet-exit it will show the re-warming trend with its error band as one input to the decision — the call stays yours and your coach's.`,
       lines: [] };
   });
   return out;
