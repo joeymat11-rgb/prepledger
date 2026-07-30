@@ -291,7 +291,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "4.1.5";
+const APP_V = "4.1.6";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -6142,7 +6142,7 @@ function Section({ title, meta, c = T.chalk, children }) {
       <div onClick={() => setOpen(!open)} style={{ cursor: "pointer" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
           <div style={{ fontFamily: disp, fontWeight: 700, fontSize: TS.title, color: T.chalk, textTransform: "uppercase" }}>{title}</div>
-          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, textAlign: "right", minWidth: 0, flex: "1 1 auto", overflowWrap: "anywhere" }}>{meta} {open ? "▾" : "▸"}</div>
+          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, textAlign: "right", minWidth: 0, flex: "1 1 auto", overflowWrap: "break-word", wordBreak: "normal" }}>{meta} {open ? "▾" : "▸"}</div>
         </div>
       </div>
       {open && <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 12 }}>{children}</div>}
@@ -7422,8 +7422,15 @@ function LogTab({ s, setS, save, slp }) {
 
       {sess.ex.map((ex) => (
         <Card key={ex.id} style={{ padding: 16, opacity: skipped[ex.id] ? 0.45 : 1 }} accent={ex.isDebutNow && !skipped[ex.id] ? T.orange : undefined}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-            <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 17, textTransform: "uppercase", color: T.chalk, textDecoration: skipped[ex.id] ? "line-through" : "none" }}>{ex.n}</div>
+          {/* The header row lets the controls WRAP to a second line rather than
+              crushing the exercise name. Before, the title had no flex sizing and
+              three flexShrink:0 siblings, so it absorbed every pixel of shortfall —
+              and with the shell's old overflowWrap it kept shrinking until it broke
+              mid-word. The title claims its space first now; the CHASE chip and skip
+              button move down if the name is long. Verified against
+              "LATERAL RAISE MACHINE". */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: SP.sm, flexWrap: "wrap", rowGap: SP.sm }}>
+            <div style={{ flex: "1 1 auto", fontFamily: disp, fontWeight: 600, fontSize: 17, lineHeight: `${LH.title}px`, textTransform: "uppercase", color: T.chalk, textDecoration: skipped[ex.id] ? "line-through" : "none", wordBreak: "normal", overflowWrap: "break-word", hyphens: "none" }}>{ex.n}</div>
 
             {!reorder && (() => { const lc = liftCall(s, ex.id); const vc = lc.verdict === "RESET" || lc.verdict === "STAND-DOWN" ? T.redline : lc.verdict === "HOLD" ? T.brass : lc.verdict === "PUSH+" ? T.jade : lc.verdict === "REBUILD" ? T.orange : T.jade; return (
               <span onClick={(ev2) => { ev2.stopPropagation(); setCallOpen(callOpen === ex.id ? null : ex.id); }} style={{ fontFamily: mono, fontSize: TS.label, color: vc, border: `1px solid ${vc}`, borderRadius: 999, padding: "3px 8px", flexShrink: 0, cursor: "pointer" }}>{(CALL_PLAIN[lc.verdict] || { chip: lc.verdict }).chip}{lc.vel != null ? (lc.vel > 0.2 ? " ▲" : lc.vel < -0.2 ? " ▼" : " ▶") : ""} ▾</span>
@@ -9609,10 +9616,19 @@ export default function PrepLedger() {
   const tabs = PRIMARY_TABS;
 
   return (
-    <div ref={shellRef} style={{ minHeight: "100vh", background: T.ink, color: T.chalk, maxWidth: "100%", overflowX: "hidden", overflowWrap: "anywhere" }}>
+    /* THE MID-WORD BREAK, AT ITS SOURCE.
+       This shell carried overflowWrap: "anywhere", which is why "LATERAL MACHINE"
+       rendered as LATE / RAL / MACH / INE. The critical property of `anywhere` is
+       that it also collapses an element's MIN-CONTENT width to a single character —
+       so any flex item is free to be squeezed to nothing, and the browser will
+       happily break a word to make that fit. `break-word` breaks the same
+       unbreakable strings when it truly has to, but does NOT shrink min-content,
+       so a flex item now refuses to go narrower than its longest word and wraps at
+       the space instead. One property, and every title in the app stops shattering. */
+    <div ref={shellRef} style={{ minHeight: "100vh", background: T.ink, color: T.chalk, maxWidth: "100%", overflowX: "hidden", overflowWrap: "break-word", wordBreak: "normal" }}>
       <style>{`
         * { -webkit-tap-highlight-color: transparent; }
-        input:focus, button:focus-visible { outline: 2px solid ${T.brass}; outline-offset: 1px; }
+        input:focus, button:focus-visible { outline: 2px solid var(--m-focus, ${T.gauge}); outline-offset: 2px; }
         button { cursor: pointer; }
         ::-webkit-scrollbar { display: none; }
       `}</style>
