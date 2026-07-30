@@ -120,7 +120,7 @@ const setReduceMotion = (on) => {
 if (typeof document !== "undefined" && reduceMotionOn()) {
   document.documentElement.setAttribute("data-reduce-motion", "1");
 }
-const APP_V = "4.0.20";
+const APP_V = "4.0.21";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -8867,10 +8867,18 @@ function CoachView({ s, onClose }) {
   const cutoff = isoOf(new Date(todayStart().getTime() - 14 * DAY));
   let ng = [];
   Object.entries(s.sessionLog).forEach(([d, sl]) => { if (d >= cutoff) ng = ng.concat(sl.niggles || []); });
+  /* Prose is capped at 34em — the 45–75 character measure (§2). Past that the eye
+     loses the line return, and this is the one screen someone reads rather than
+     scans. Body copy is TS.body Barlow; it was an off-scale 14px. */
   const Sec = ({ t, items, c = T.chalk }) => items.length ? (
-    <div style={{ marginTop: 14 }}>
+    <div style={{ marginTop: SP.xl }}>
       <Eyebrow c={T.brass}>{t}</Eyebrow>
-      {items.map((x, i) => (<div key={i} style={{ fontFamily: body, fontSize: 14, color: c, marginTop: 4 }}>· {x}</div>))}
+      {items.map((x, i) => (
+        <div key={i} style={{ display: "flex", gap: SP.sm, marginTop: SP.xs, maxWidth: "34em" }}>
+          <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.body}px`, flexShrink: 0 }}>·</span>
+          <span style={{ fontFamily: body, fontSize: TS.body, color: c, lineHeight: `${LH.body}px` }}>{x}</span>
+        </div>
+      ))}
     </div>
   ) : null;
   return (
@@ -8879,15 +8887,34 @@ function CoachView({ s, onClose }) {
         <H size={26}>Coach One-Pager</H>
           <div style={{ marginTop: 10 }}><DossierBlock s={s} /><NightDraft /></div>
         <Eyebrow>{fmtShort(isoOf(todayStart()))} · WK {weekDay().wk} · {s.phase} · GENERATED LIVE</Eyebrow>
-        <div style={{ display: "flex", gap: 18, marginTop: 16, flexWrap: "wrap" }}>
-          <div><Num size={24} c={T.jade}>{s.trend}</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>TREND</div></div>
-          <div><Num size={24}>{bf.pct}%</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>EST BF {s.model.err}</div></div>
-          <div><Num size={24}>{cur.fat}</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>FAT/WK{cur.measured ? " · MEASURED" : ""}</div></div>
-          <div><Num size={24} c={rec.band === "GREEN" ? T.jade : T.brass}>{rec.flags.length}/{rec.watched}</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>RECOVERY FLAGS</div></div>
-          <div><Num size={24}>{s.zeroComp.count}</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>ZERO-COMP</div></div>
+
+        {/* AUTHORSHIP, STATED (§4). This sheet gets handed to another professional,
+            so it has to be unambiguous about who is claiming what: the engine owns
+            the figures, any read of them is interpretation, and nothing on this page
+            has changed a single setting. Every recommendation goes to QUEUE for one
+            tap. Without this line a reader cannot tell measurement from opinion. */}
+        <div style={{ marginTop: SP.md, padding: SP.md, borderLeft: `2px solid ${T.brass}`, background: T.plate, borderRadius: 8, maxWidth: "34em" }}>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.08em" }}>WHO IS SAYING WHAT</div>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>
+            The figures below are the engine's, computed from logged data only. Any reading of them is interpretation and is marked as such. Nothing on this page has changed a setting — every recommendation routes to QUEUE and waits for his tap.
+          </div>
         </div>
-        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 10 }}>
-          Sleep: {slp.clean ? "CLEAN" : `reset ${slp.run}/${slp.need}`} · scale {daysUntil(s.blackout.until) > 0 ? `sealed → ${fmtShort(SEAL_UNTIL)}` : "live"}
+
+        {/* One hero, then the supporting figures — this was five 24px numbers with
+            no provenance, so a reader could not tell a measured rate from a model. */}
+        <div style={{ marginTop: SP.lg }}>
+          <Hero value={s.trend} unit="lb" n={(s.reads || []).filter((r) => !r.sealed).length} c={T.jade}
+            sub={`trend · sleep ${slp.clean ? "CLEAN" : `reset ${slp.run}/${slp.need}`} · scale ${daysUntil(s.blackout.until) > 0 ? `sealed → ${fmtShort(SEAL_UNTIL)}` : "live"}`} />
+        </div>
+        <div style={{ marginTop: SP.md }}>
+          <DataRow first label={`est bf ${s.model.err}`} value={`${bf.pct}%`}
+            tag={s.model.src === "DEXA" ? "(measured — DEXA anchored)" : "(speculation — model)"}
+            c={T.chalk} />
+          <DataRow label="fat / wk" value={cur.fat}
+            tag={cur.measured ? "(measured)" : "(speculation — prior rate)"} c={T.chalk} />
+          <DataRow label="recovery flags" value={`${rec.flags.length}/${rec.watched}`}
+            c={rec.band === "GREEN" ? T.jade : T.brass} tag="(measured)" />
+          <DataRow label="zero-comp" value={s.zeroComp.count} c={T.chalk} tag="(measured)" />
         </div>
         <Sec t="NEEDS YOUR CALL" items={[...flagged, ...unsure.map((n) => `Confirm (?) cues — ${n}`)]} />
         <Sec t="IN THE QUEUE (STRUCTURAL)" items={upcoming} />
@@ -8937,6 +8964,28 @@ function rulebook(s) {
     ["EVIDENCE", "Every rule above names what it rests on, and says so when it rests on nothing. Rules retired for having no evidence behind them: the clean-sleep gate on records, the weekly refeed's benefits, and defending load rather than effort on a cut. That is the mechanism working."],
   ];
 }
+/* What each rule RESTS ON, which is a different question from what it says. Three
+   honest categories, not two: some rules are computed from his own numbers, some
+   are house decisions that no measurement can settle, and calling a decision
+   "measured" would be the exact dishonesty this app exists to avoid. The rulebook()
+   tuples are asserted by the suite, so this sits alongside them rather than
+   changing their shape. */
+const RULE_BASIS = {
+  RATE: "measured", OWNERSHIP: "measured", PROTEIN: "measured", FOOD: "measured", SLEEP: "measured",
+  ADAPTIVE: "house", STRUCTURE: "house", OPENERS: "house", SIGNALS: "house", SCALE: "house",
+  EVENTS: "house", AUTHORITY: "house", ATTENTION: "house", EVIDENCE: "house",
+};
+/* The invariants — surfaced read-only because they are not settings. They are the
+   promises the app makes about its own behaviour, and a screen that teaches the
+   values has to state them where they cannot be quietly dropped later. */
+const INVARIANTS = [
+  ["NO COUNTDOWNS", "Nothing in this app counts down to anything. Elapsed time is shown; time remaining is a pressure device, and pressure is not a measurement."],
+  ["NO URGENCY MECHANICS", "No streaks to protect, no bars filling toward a date you did not set, no penalty for opening the app late."],
+  ["EARNED STATES ONLY", "An insight appears when the data warrants it and says how much data it needs when it does not. Nothing is teased behind a lock."],
+  ["THE ENGINE IS NOT THE COACH", "The engine owns the numbers. The coach owns the read. Anything interpretive is labelled, and interpretation never edits data."],
+  ["NOTHING MOVES ITSELF", "Every machine-initiated change arrives in QUEUE and waits for one tap. Dismiss always means nothing happens."],
+  ["THE ATHLETE OVERRIDES", "Any proposal can be taken as offered, moved, or refused — including the engine's own autoregulation."],
+];
 function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
   const [tok, setTok] = useState("");
   const [hasTok, setHasTok] = useState(() => { try { return !!localStorage.getItem(TOKEN_KEY); } catch (e) { return false; } });
@@ -8946,19 +8995,58 @@ function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
       <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480, margin: "0 auto", padding: "calc(26px + env(safe-area-inset-top)) 18px 40px" }}>
         <H size={26}>The Rulebook</H>
         <Eyebrow>IF-THEN, SURFACED · YOU WROTE THESE — v2 RUNS THEM</Eyebrow>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 18 }}>
-          {rules.map(([k, v], i) => (
-            <div key={i} style={{ borderLeft: `2px solid ${T.line}`, paddingLeft: 12 }}>
-              <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.16em", color: T.brass }}>{k}</div>
-              <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 3, lineHeight: 1.5 }}>{v}</div>
-            </div>
-          ))}
+
+        {/* PHILOSOPHY PRE-STATED (§4) — the screen should teach the values before it
+            lists the rules, so the rules read as consequences rather than settings. */}
+        <div style={{ marginTop: SP.md, maxWidth: "34em", fontFamily: body, fontSize: TS.body, color: T.steel, lineHeight: `${LH.body}px` }}>
+          Solid means measured. Dashed means speculation. The engine owns the numbers, the coach owns the read, and nothing changes without your tap. Every rule below says what it rests on — and says so plainly when what it rests on is a decision rather than a measurement.
+        </div>
+
+        {/* Each rule is a card now, with its basis stated (§4). They were flat
+            borderLeft blocks in a stack, which gave a house decision and a figure
+            computed from his own lean mass exactly the same standing. */}
+        <div style={{ display: "flex", flexDirection: "column", gap: SP.md, marginTop: SP.lg }}>
+          {rules.map(([k, v], i) => {
+            const basis = RULE_BASIS[k] || "house";
+            return (
+              <Card key={i} style={{ padding: SP.lg }} accent={basis === "measured" ? T.brass : undefined}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: SP.sm, flexWrap: "wrap" }}>
+                  <span style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, letterSpacing: "0.16em", color: T.brass }}>{k}</span>
+                  <span style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.06em", whiteSpace: "nowrap", color: basis === "measured" ? T.brass : T.steel }}>
+                    {basis === "measured" ? "(measured — from your numbers)" : "(house rule — a decision)"}
+                  </span>
+                </div>
+                <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs, lineHeight: `${LH.body}px`, maxWidth: "34em" }}>{v}</div>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* The invariants, read-only. Not settings — promises. */}
+        <div style={{ marginTop: SP.xxl }}>
+          <SecRule>INVARIANTS · NOT SETTINGS</SecRule>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, maxWidth: "34em", lineHeight: `${LH.body}px`, marginBottom: SP.md }}>
+            These cannot be switched off, because they are what the app is rather than how it is configured. They are listed here so that dropping one would be a visible break.
+          </div>
+          <Card style={{ padding: `${SP.xs}px ${SP.lg}px` }}>
+            {INVARIANTS.map(([k, v], i) => (
+              <div key={k} style={{ padding: `${SP.md}px 0`, borderTop: i === 0 ? "none" : `1px solid ${T.hairline}` }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: SP.sm }}>
+                  <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.jade, flexShrink: 0 }}>✓</span>
+                  <span style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, letterSpacing: "0.08em", color: T.chalk }}>{k}</span>
+                </div>
+                <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.hair, paddingLeft: 18, lineHeight: `${LH.body}px`, maxWidth: "34em" }}>{v}</div>
+              </div>
+            ))}
+          </Card>
         </div>
         <div style={{ marginTop: 28, display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Btn small onClick={onClose}>Close</Btn>
           <Btn small onClick={onExport}>Export backup (JSON)</Btn>
           <label style={{ display: "inline-block" }}>
-            <span style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.06em", fontWeight: 600, borderRadius: 6, padding: "6px 10px", border: `1px solid ${T.line}`, color: T.chalk, display: "inline-block", cursor: "pointer" }}>Import backup</span>
+            {/* Was 6px of padding around 12px text — roughly 28px tall, on the
+                control that REPLACES the entire record. Matches Btn now. */}
+            <span style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.06em", fontWeight: 600, borderRadius: 8, padding: `${SP.sm}px ${SP.md}px`, minHeight: 44, border: `1px solid ${T.line}`, color: T.chalk, display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>Import backup</span>
             <input type="file" accept="application/json,.json" style={{ display: "none" }} onChange={(e) => onImport(e.target.files && e.target.files[0])} />
           </label>
           <Btn small onClick={onReset}>Reset to seeded state (7/22)</Btn>
