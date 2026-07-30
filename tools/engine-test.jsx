@@ -590,6 +590,33 @@ ok(cw(30, 3) > 0 && cw(9, 30) === 0, "the chance-word estimate scales with corpu
 }
 ok(tc1(1) > tc1(10) && tc1(10) > tc1(60), "t multiplier shrinks as df grows — small n pays for itself");
 
+// LAB P1c — Tue/Fri is labelled confounded and tested; trials desk becomes inferential
+{
+  const { labAnalytics: laC, trialVerdict: tvC, trialTpl: ttC, SEED: SCx } = __test;
+  const tf = laC(clone(SCx)).find(c => c.id === "tuefri");
+  ok(tf.t.indexOf("CONTRAST") > -1 && tf.tag.indexOf("not a controlled experiment") > -1, "Tue/Fri is named a contrast, not an experiment");
+  ok(tf.deep.indexOf("load-progression") > -1 && tf.deep.indexOf("day-of-week") > -1, "and it names the confounds it cannot remove");
+  ok(tf.status !== "LIVE", "it never reads LIVE — an observational contrast is not a measurement: " + tf.status);
+
+  /* An exact randomization test over the block values, with an honest floor on what p
+     can be at this block count. */
+  const trial = { tplId: "refeedsize", started: isoL(Date.now() - 40 * 864e5) };
+  const vC = tvC(clone(SCx), trial);
+  if (vC && vC.nA >= 2 && vC.nB >= 2) {
+    ok(vC.pRand != null && vC.pRand > 0 && vC.pRand <= 1, "the trial verdict carries a randomization-test p: " + vC.pRand);
+    ok(vC.pFloor != null && vC.pRand >= vC.pFloor - 1e-9, "and p can never beat the floor its block count allows: floor " + vC.pFloor);
+    ok(vC.nSplits >= 6, "the test enumerates every split exhaustively rather than sampling: " + vC.nSplits + " splits");
+    ok(vC.diff != null, "the arm difference is reported, not just two means");
+  }
+  /* Carryover is per-mechanism: refeed water/glycogen and a caffeine tail bleed across a
+     block boundary, a lights-out shift does not. The ids must match the real templates —
+     an unmatched id would silently read as "no carryover risk", which is the wrong
+     default, and this pair of assertions is what caught exactly that typo. */
+  ok(tvC(clone(SCx), { tplId: "refeedsize", started: isoL(Date.now()) }).needsWashout === true, "refeed trials are flagged for carryover washout");
+  ok(tvC(clone(SCx), { tplId: "caffcut", started: isoL(Date.now()) }).needsWashout === true, "so is the caffeine trial — it has a pharmacological tail");
+  ok(tvC(clone(SCx), { tplId: "lightsshift", started: isoL(Date.now()) }).needsWashout === false, "the lights-out shift is not — carryover is per-mechanism, not blanket");
+}
+
 // LAB P1a — whoosh self-calibrates, and the forecast band grows at the right rate
 {
   const { labAnalytics: laA, labAnalytics2: laA2, weightNoise: wnA, SEED: SA } = __test;

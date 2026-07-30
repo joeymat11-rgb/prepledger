@@ -291,7 +291,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "4.2.6";
+const APP_V = "4.2.7";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -2402,17 +2402,51 @@ function labAnalytics(s) {
   const wkKey = (d) => { const dt = mk(d); const off = (dt.getDay() + 6) % 7; return isoOf(new Date(dt - off * DAY)); };
   const weeks = {};
   Object.keys(s.sessionLog).forEach((d) => { const dow = mk(d).getDay(); if (dayType(d) === "L") { (weeks[wkKey(d)] = weeks[wkKey(d)] || {})[dow === 2 ? "tue" : dow === 5 ? "fri" : "x"] = d; } });
+  /* ---------- TUEFRI_CONFOUND_NOTE ----------
+     Fri-minus-Tue total reps was being read as a causal test of refeed distance, and
+     called "a real gap" whenever |gap| >= 5 reps with no variance and no test behind it.
+     Three problems, in order of size.
+
+     It is CONFOUNDED. The contrast bundles refeed distance together with day-of-week,
+     accumulated weekly fatigue, exercise-order drift, and — worst — the load-progression
+     time trend: total reps rise across a block as loads and targets rise, so ANY later-
+     in-week session inherits part of that climb. Detrending each pair against its own
+     week's mean removes the block-level drift, which is the confound this card can
+     actually do something about. The rest cannot be removed by arithmetic and are now
+     named on the card instead of being quietly absorbed into the effect.
+
+     It had no TEST. A five-rep threshold on a difference whose spread was never computed
+     is a coin flip with a rule attached. It reports the paired difference with its 95%
+     interval now, and says explicitly when that interval crosses zero.
+
+     And it was labelled LIVE, i.e. measured. It is an observational contrast, so it reads
+     PROVISIONAL until there are enough pairs, and the copy says "consistent with" rather
+     than "evidence for". The honest upgrade path is to graduate it into the trials desk
+     as a randomized block; until someone does that, it is a hint. */
   const pairs = Object.values(weeks).filter((w) => w.tue && w.fri);
-  let tfAvg = 0;
-  if (pairs.length >= 4) {
-    const sums = pairs.map((pr) => { const sum = (d) => (s.sessionLog[d].entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0); return sum(pr.fri) - sum(pr.tue); });
-    tfAvg = Math.round(sums.reduce((a, b) => a + b, 0) / sums.length);
-  }
-  out.push({ id: "tuefri", t: "TUE/FRI EXPERIMENT — REFEED DISTANCE", status: pairs.length >= 4 ? "LIVE" : "ARMED", prog: { n: pairs.length, need: 4, label: "paired weeks" },
-    tag: "Your split accidentally built a controlled experiment.",
-    deep: "Friday lower sits 2 days after the Wednesday refeed; Tuesday lower sits 6 days out. Same lifts, same you, different glycogen distance, repeating weekly — the cleanest causal test of refeed timing a training week could construct, and yours did it by accident.",
-    forYou: pairs.length >= 4 ? `Friday runs ${tfAvg >= 0 ? "+" : ""}${tfAvg} total reps vs Tuesday on average — ${Math.abs(tfAvg) >= 5 ? "a real gap: evidence for repositioning or doubling refeeds at Ease 2, a coach conversation with data instead of vibes." : "no meaningful gap yet; refeed placement is fine as is."}` : "First pair completes Tue 7/28 + Fri 7/31. If a consistent gap shows by mid-August, that's ammunition for the Ease-2 refeed conversation — data, not vibes.",
-    lines: [] });
+  const sumReps = (d) => ((s.sessionLog[d] || {}).entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0);
+  /* Detrended paired difference: (fri − weekMean) − (tue − weekMean) reduces to
+     fri − tue for a two-session week, so the drift removal that actually matters is
+     across pairs — express each difference relative to that week's own total so a block
+     where both days climbed does not read as a Friday advantage. */
+  const tfDiffs = pairs.map((pr) => {
+    const f = sumReps(pr.fri), t = sumReps(pr.tue);
+    const wkMean = (f + t) / 2;
+    return wkMean > 0 ? +(((f - t) / wkMean) * 100).toFixed(2) : null;
+  }).filter((x) => x != null);
+  const tfRaw = pairs.map((pr) => sumReps(pr.fri) - sumReps(pr.tue));
+  const tfCI = CI(tfDiffs);
+  const tfRawCI = CI(tfRaw);
+  out.push({ id: "tuefri", t: "TUE/FRI CONTRAST — REFEED DISTANCE", status: tfCI.enough ? "PROVISIONAL" : "ARMED", prog: { n: pairs.length, need: LAB_MIN_N, label: "paired weeks" },
+    tag: "An accidental contrast, not a controlled experiment.",
+    deep: "Friday lower sits 2 days after the Wednesday refeed; Tuesday lower sits 6 days out — same lifts, same you, different glycogen distance, repeating weekly. That is a genuinely useful accident, and this card used to oversell it as \"the cleanest causal test a training week could construct\". It is not a controlled test, because the Friday-minus-Tuesday difference also carries day-of-week, accumulated weekly fatigue, exercise-order drift and the load-progression time trend — total reps climb across a block as loads climb, so any later-in-week session inherits part of that rise. Expressing each week's difference as a percentage of that week's own volume removes the block-level drift; the rest cannot be removed by arithmetic, so they are named rather than absorbed. It also used to call any gap of 5+ reps \"a real gap\" with no variance behind it, which is a threshold masquerading as a test. It now reports the paired difference with its interval, and if that interval crosses zero it says so. The honest upgrade is to graduate this into the trials desk as a randomized block; until then it is a hint worth having, not a finding.",
+    forYou: tfDiffs.length >= 2
+      ? `Friday runs ${tfCI.mean > 0 ? "+" : ""}${tfCI.mean}% of weekly volume vs Tuesday (95% CI ${tfCI.lo} to ${tfCI.hi}, n=${tfDiffs.length} pairs; in raw reps ${tfRawCI.mean > 0 ? "+" : ""}${tfRawCI.mean}). ${tfCI.straddlesZero ? "That interval crosses zero, so on your data so far there is no detectable refeed-distance effect — which is itself worth knowing, and consistent with the protocol line that refeeds are not a metabolic intervention." : "That interval clears zero, which is consistent with a refeed-distance effect — but the contrast is confounded with day-of-week and weekly fatigue, so treat it as grounds for a coach conversation, not as a measured effect size."}${tfCI.provisional ? ` PROVISIONAL at ${tfDiffs.length} of ${LAB_MIN_N} pairs.` : ""}`
+      : "First pair completes Tue 7/28 + Fri 7/31. It will report the difference with its interval, and stay labelled as the confounded contrast it is.",
+    lines: tfDiffs.length >= 2 ? [
+      `detrended paired difference: ${ciLine(tfCI, "% of weekly volume")}`,
+      `confounded with: day-of-week · weekly fatigue · exercise-order drift — not removable by arithmetic`,
+    ] : [] });
 
   /* 7 · rep-drop fingerprints */
   const sesN = Object.keys(s.sessionLog).length;
@@ -3998,7 +4032,61 @@ function trialVerdict(s, trial) {
     }
   } catch (e) {}
   const mean = (a2) => (a2.length ? +(a2.reduce((x, y) => x + y, 0) / a2.length).toFixed(1) : null);
-  return { done, endISO, a: mean(perArm[0]), b: mean(perArm[1]), nA: perArm[0].length, nB: perArm[1].length };
+  /* ---------- TRIAL_INFERENCE_NOTE ----------
+     The ABAB alternating design is legitimate, and its alternation genuinely controls for
+     slow time trends. What came back was per-arm MEANS AND COUNTS — no spread, no
+     interval, no test — so a verdict was "arm A 42, arm B 39" and the reader supplied
+     the significance themselves. Two blocks per arm can produce that gap on nothing.
+
+     Added: the arm difference with a 95% interval, and an exact randomization test.
+     With this few blocks the randomization test is the right instrument — it enumerates
+     every possible assignment of the observed block values to two arms and asks how often
+     chance alone beats the observed gap. No distributional assumption, and at 4-6 blocks
+     it can be computed exhaustively rather than sampled. The p-value floor is honest
+     about itself: with 2 blocks per arm there are only 6 distinct splits, so p can never
+     go below ~0.17 and the card says as much instead of implying precision it cannot have.
+
+     Carryover is flagged rather than silently ignored: the refeed-size trial's water and
+     glycogen bleed into the adjacent block, and the caffeine trial has a pharmacological
+     tail, so both want a washout. The washout requirement is surfaced on the verdict and
+     the desk can act on it; it is not something arithmetic can fix after the fact. */
+  const aVals = perArm[0], bVals = perArm[1];
+  const diff = (aVals.length && bVals.length) ? +(mean(aVals) - mean(bVals)).toFixed(2) : null;
+  let pRand = null, nSplits = null;
+  if (aVals.length >= 2 && bVals.length >= 2) {
+    const all = aVals.concat(bVals), k = aVals.length, N = all.length;
+    const idx = [...Array(N).keys()];
+    const combos = [];
+    const pick = (start, acc) => { if (acc.length === k) { combos.push(acc.slice()); return; } for (let i = start; i < N; i++) { acc.push(idx[i]); pick(i + 1, acc); acc.pop(); } };
+    pick(0, []);
+    const obs = Math.abs(diff);
+    let atLeast = 0;
+    combos.forEach((c) => {
+      const setC = new Set(c);
+      const g1 = all.filter((_, i) => setC.has(i)), g2 = all.filter((_, i) => !setC.has(i));
+      const d = Math.abs((g1.reduce((x, y) => x + y, 0) / g1.length) - (g2.reduce((x, y) => x + y, 0) / g2.length));
+      if (d >= obs - 1e-9) atLeast++;
+    });
+    nSplits = combos.length;
+    pRand = +(atLeast / combos.length).toFixed(3);
+  }
+  const diffCI = (aVals.length >= 2 && bVals.length >= 2) ? ciOf(aVals.map((v, i) => v - (bVals[i] != null ? bVals[i] : mean(bVals)))) : null;
+  /* Template ids are refeedsize / caffcut / lightsshift — matched exactly, because a
+     near-miss here silently means "no carryover risk" on the two trials that have it. */
+  /* Coerced with !! deliberately: `trial.custom && ...` yields undefined rather than
+     false when there is no custom trial, and a flag that is sometimes undefined and
+     sometimes boolean is the kind of thing that reads fine in an `if` and then fails an
+     identity check somewhere else. It is a boolean or it is nothing. */
+  const needsWashout = !!(trial.tplId === "refeedsize" || trial.tplId === "caffcut" || (trial.custom && /refeed|caff/i.test(trial.custom.metric || "")));
+  return {
+    done, endISO, a: mean(aVals), b: mean(bVals), nA: aVals.length, nB: bVals.length,
+    diff, diffCI, pRand, nSplits,
+    /* the floor on what p CAN be at this many blocks — quoted so a large p is not read
+       as "no effect" when it is really "too few blocks to say" */
+    pFloor: nSplits ? +(1 / nSplits).toFixed(3) : null,
+    needsWashout, washoutDays: needsWashout ? 2 : 0,
+    inferential: pRand != null,
+  };
 }
 function activeTrial(s) {
   const tI = isoOf(todayStart());
@@ -8822,7 +8910,7 @@ function TrialsDesk({ s, setS, save }) {
         <div key={i} style={{ marginBottom: 12 }}>
           <div style={{ fontFamily: mono, fontSize: TS.micro, color: v.done ? T.jade : T.brass }}>{v.done ? "◆ FINISHED" : "▸ RUNNING"} · {tpl.t}</div>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 3, lineHeight: 1.5 }}>
-            {v.done ? `${tpl.arms[0]}: ${v.a ?? "—"} vs ${tpl.arms[1]}: ${v.b ?? "—"} (${tpl.metric}, ${v.nA + v.nB} blocks). Direction, not gospel — worth one line in the coach dossier.` : arm ? `Block ${arm.block}/${arm.of} · this block's arm: ${tpl.arms[arm.armIdx]} — it's already on TODAY'S PROTOCOL.` : `Scheduled — begins ${fmtShort(t.started)}.`}
+            {v.done ? `${tpl.arms[0]}: ${v.a ?? "—"} vs ${tpl.arms[1]}: ${v.b ?? "—"} (${tpl.metric}, ${v.nA + v.nB} blocks)${v.diff != null ? ` · difference ${v.diff > 0 ? "+" : ""}${v.diff}` : ""}${v.pRand != null ? ` · randomization test p=${v.pRand}${v.pFloor != null && v.pRand <= v.pFloor + 1e-9 ? " (the lowest p this many blocks can produce)" : ""}` : ""}. ${v.pRand != null && v.pFloor != null && v.pRand > 0.2 ? `Not separable from chance at this block count — with ${v.nA + v.nB} blocks p could not have gone below ${v.pFloor}, so read this as "too few blocks to say", not as "no effect". ` : ""}${v.needsWashout ? `Carryover risk on this one: water, glycogen or a drug tail bleeds across the block boundary, so a ${v.washoutDays}-day washout between blocks is wanted before the next run. ` : ""}Direction, not gospel — worth one line in the coach dossier.` : arm ? `Block ${arm.block}/${arm.of} · this block's arm: ${tpl.arms[arm.armIdx]} — it's already on TODAY'S PROTOCOL.` : `Scheduled — begins ${fmtShort(t.started)}.`}
           </div>
         </div>
       ); })}
