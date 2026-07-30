@@ -104,7 +104,7 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
     + "[data-reduce-motion='1'] *,[data-reduce-motion='1'] *::before,[data-reduce-motion='1'] *::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:100ms !important;transition-property:opacity !important}";
   document.head.appendChild(st0);
 }
-const APP_V = "4.0.16";
+const APP_V = "4.0.17";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -7813,7 +7813,8 @@ function SleepTab({ s, setS, save, slp }) {
   const [cMg, setCMg] = useState(200);
   const [cAt, setCAt] = useState(() => { const d9 = new Date(); return String(d9.getHours()).padStart(2, "0") + ":" + String(Math.floor(d9.getMinutes() / 15) * 15).padStart(2, "0"); });
   const [caffIn, setCaffIn] = useState(200);
-  const nights = s.sleep.nights.slice(-8);
+  /* No slice(-8) here any more — the night log builds its own calendar window so
+     that unlogged nights can render as gaps rather than being collapsed away. */
   const maxH = 9;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -7832,13 +7833,38 @@ function SleepTab({ s, setS, save, slp }) {
           deciding whether a rep counts. */}
       {(() => { const an = sleepAnchor(s); const t7 = atSleepTarget(s, null); const at = t7.at; return (
       <Card accent={at ? T.jade : T.brass}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <Eyebrow>WHERE YOUR LOSS COMES FROM</Eyebrow>
-            <H size={24} c={at ? T.jade : T.brass}>{an.measured ? `${an.curH} h` : at ? "AT TARGET" : `${t7.run} / ${s.sleep.needed}`}</H>
-          </div>
-          <div style={{ textAlign: "right", fontFamily: mono, fontSize: TS.micro, color: T.steel }}>target {s.sleep.cleanH} h<br />{an.measured ? `bed ${fmt12(an.bed)} · up ${fmt12(an.wake)}` : "log bed and wake times"}</div>
-        </div>
+        {/* TIER 1 — the one number, then its parts, then the raw nights below
+            (Oura's glance → focused → exploratory). The hero used to be an H at
+            24px sharing a flex row with right-aligned small print, so the screen's
+            headline and its footnote carried nearly equal weight. */}
+        <Eyebrow>WHERE YOUR LOSS COMES FROM</Eyebrow>
+        {(() => {
+          const nN = (s.sleep.nights || []).filter((n) => n.h != null).length;
+          const vsT = an.measured ? +(an.curH - s.sleep.cleanH).toFixed(1) : null;
+          return (
+            <>
+              <div style={{ marginTop: SP.sm }}>
+                <Hero value={an.measured ? an.curH : "—"} unit={an.measured ? "h / night" : null}
+                  n={nN} c={at ? T.jade : T.brass}
+                  sub={an.measured ? `bed ${fmt12(an.bed)} · up ${fmt12(an.wake)}` : "log bed and wake times and this reads itself"} />
+              </div>
+              {/* TIER 2 — the components behind the number, not a second hero */}
+              <div style={{ marginTop: SP.md }}>
+                <DataRow first label={`vs target ${s.sleep.cleanH} h`}
+                  value={vsT == null ? "—" : `${fmtDelta(vsT)} h`}
+                  glyph={vsT == null ? null : vsT >= 0 ? "▲" : "▼"}
+                  c={vsT == null ? T.steel : vsT >= 0 ? T.jade : T.orange}
+                  tag={`(measured, n=${nN})`} />
+                <DataRow label="bed spread"
+                  value={an.measured && an.bedSDmin != null ? `±${an.bedSDmin} min` : "—"}
+                  c={T.chalk} tag={an.measured && an.bedSDmin != null && an.wakeSDmin != null && an.bedSDmin <= an.wakeSDmin ? "(steadier end — your lever)" : null} />
+                <DataRow label="wake spread"
+                  value={an.measured && an.wakeSDmin != null ? `±${an.wakeSDmin} min` : "—"}
+                  c={T.chalk} tag={an.measured && an.bedSDmin != null && an.wakeSDmin != null && an.wakeSDmin < an.bedSDmin ? "(steadier end)" : null} />
+              </div>
+            </>
+          );
+        })()}
         <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 8, lineHeight: 1.55 }}>
           This is not about whether today's session counts — it always counts. It is about what the pounds you lose are made of. At a matched deficit, short sleep sent about 60% more of the loss onto lean mass in the one trial that measured it directly. You cannot out-eat or out-protein that.
         </div>
@@ -7915,26 +7941,90 @@ function SleepTab({ s, setS, save, slp }) {
 
       <Section title="Night Log" meta={`${s.sleep.nights.length} nights on file`}>
         <Card>
-        <Eyebrow>LAST 8 NIGHTS</Eyebrow>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 92, marginTop: 12 }}>
-          {nights.map((n, i) => (
-            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>{n.h}</div>
-              <div style={{ width: "100%", height: `${(n.h / maxH) * 68}px`, background: n.h >= s.sleep.cleanH ? T.jade : n.h < 5 ? T.brass : T.steel, borderRadius: 3, opacity: n.h >= s.sleep.cleanH ? 1 : 0.8 }} />
-              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>{mk(n.d).getMonth() + 1}/{mk(n.d).getDate()}</div>
-            </div>
-          ))}
-        </div>
+        {/* TIER 3 — the raw nights. MISSING NIGHTS ARE GAPS, NOT ZEROS (§4).
+            This used to take the last 8 RECORDS and stand them shoulder to
+            shoulder, which silently redrew a fortnight full of holes as eight
+            consecutive nights. An unlogged night is not a short night — it is the
+            absence of a measurement, and the two must never look alike. The window
+            is now a real calendar run, and nights with no entry draw as an empty
+            dashed slot carrying no number at all. */}
+        {(() => {
+          const DAYS = 14;
+          const byDate = Object.create(null);
+          (s.sleep.nights || []).forEach((n) => { if (n && n.d) byDate[n.d] = n; });
+          const slots = [];
+          for (let k = DAYS - 1; k >= 0; k--) {
+            const d = isoOf(new Date(todayStart().getTime() - k * DAY));
+            slots.push({ d, n: byDate[d] || null });
+          }
+          const logged = slots.filter((x) => x.n && x.n.h != null).length;
+
+          // FIRST RUN — say what a read needs instead of drawing an empty frame.
+          if (!logged) {
+            return (
+              <>
+                <Eyebrow>LAST {DAYS} NIGHTS</Eyebrow>
+                <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.body}px` }}>
+                  No nights logged yet. The engine needs bed and wake times before it can read anything here — five nights establishes your drift-off, and the anchor firms up from there.
+                </div>
+                <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: SP.sm, letterSpacing: "0.06em" }}>(measured, n=0)</div>
+              </>
+            );
+          }
+
+          return (
+            <>
+              <Eyebrow>LAST {DAYS} NIGHTS <span style={{ color: T.brass }}>· {logged} LOGGED, {DAYS - logged} NOT MEASURED</span></Eyebrow>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 96, marginTop: SP.md }}>
+                {slots.map((sl, i) => {
+                  const n = sl.n;
+                  const h = n && n.h != null ? n.h : null;
+                  return (
+                    <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: SP.xs, minWidth: 0 }}>
+                      <div data-num style={{ fontFamily: mono, fontSize: TS.micro, color: h == null ? T.dim : T.steel, fontVariantNumeric: "tabular-nums" }}>{h == null ? "" : h}</div>
+                      {h == null ? (
+                        /* the gap: an outline where a measurement isn't */
+                        <div style={{ width: "100%", height: 68, border: `1px dashed ${T.dim}`, borderRadius: 3, opacity: 0.5 }} />
+                      ) : (
+                        <div style={{
+                          width: "100%", height: `${Math.max(2, (h / maxH) * 68)}px`, borderRadius: 3,
+                          background: h >= s.sleep.cleanH ? T.jade : h < 5 ? T.brass : T.steel,
+                          opacity: h >= s.sleep.cleanH ? 1 : 0.8,
+                        }} />
+                      )}
+                      <div style={{ fontFamily: mono, fontSize: TS.micro, color: h == null ? T.dim : T.steel }}>{mk(sl.d).getDate()}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>
+                <span style={{ color: T.jade }}>■ at or over {s.sleep.cleanH} h</span> · <span style={{ color: T.steel }}>■ short</span> · <span style={{ color: T.brass }}>■ under 5 h</span> · <span style={{ color: T.steel }}>⌐ dashed = not measured</span>
+                <br />(measured, n={logged} of {DAYS} nights)
+              </div>
+            </>
+          );
+        })()}
       </Card>
         <Card>
         <Eyebrow c={T.brass}>WHAT THE DEBT COST — ATTRIBUTED, NOT BLAMED</Eyebrow>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
-          {debtLedger(s).map((d, i) => (
-            <div key={i} style={{ fontFamily: mono, fontSize: TS.label, color: d.live ? T.chalk : T.steel }}>· {d.txt}</div>
-          ))}
+        {/* Live charges the app computed itself are tagged as measured; the grey
+            lines are sheet-era receipts. Provenance per line, not per card. */}
+        <div style={{ display: "flex", flexDirection: "column", gap: SP.sm, marginTop: SP.sm }}>
+          {debtLedger(s).length ? debtLedger(s).map((d, i) => (
+            <div key={i} style={{ display: "flex", gap: SP.sm, alignItems: "flex-start" }}>
+              <span style={{ fontFamily: mono, fontSize: TS.micro, color: d.live ? T.brass : T.dim, flexShrink: 0, lineHeight: `${LH.label}px` }}>{d.live ? "◆" : "·"}</span>
+              <span style={{ fontFamily: mono, fontSize: TS.label, color: d.live ? T.chalk : T.steel, lineHeight: `${LH.label}px` }}>
+                {d.txt} <span style={{ color: T.steel }}>{d.live ? "(measured)" : "(on file)"}</span>
+              </span>
+            </div>
+          )) : (
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.micro}px` }}>
+              (measured, n=0) — nothing charged. No session has yet landed on a debt day.
+            </div>
+          )}
         </div>
         {!debtLedger(s).some((d) => d.live) && (
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 6 }}>live audit armed — any in-app session on a debt day gets charged here automatically</div>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm }}>live audit armed — any in-app session on a debt day gets charged here automatically</div>
         )}
         <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 8 }}>Down sessions after a short night read as context, not regression — the day is exempt from counting toward a stall, and that is the only thing it changes.</div>
         <More c={T.brass}
