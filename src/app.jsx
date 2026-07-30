@@ -291,7 +291,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "4.2.2";
+const APP_V = "4.2.3";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -1576,13 +1576,58 @@ function currentRate(s) {
     if (sxx > 0) {
       const slope = sxy / sxx;
       let sse = 0;
-      for (let i = 0; i < n; i++) { const fit = my + slope * (xs[i] - mx); sse += (ys[i] - fit) ** 2; }
-      const se = n > 2 && sxx > 0 ? Math.sqrt(sse / (n - 2) / sxx) : 0;
+      const resid = [];
+      for (let i = 0; i < n; i++) { const fit = my + slope * (xs[i] - mx); const e = ys[i] - fit; resid.push(e); sse += e * e; }
+      const seOls = n > 2 && sxx > 0 ? Math.sqrt(sse / (n - 2) / sxx) : 0;
+      /* ---------- AUTOCORRELATION_NOTE ----------
+         Daily scale readings are strongly autocorrelated: water, glycogen and gut
+         content persist across days, so today's residual carries yesterday's. OLS
+         standard errors assume independent residuals, and under positive
+         autocorrelation that assumption makes the printed interval TOO NARROW —
+         overconfident in exactly the number the whole calorie prescription hangs
+         off, which then propagates into observedTDEE, the forecast and the
+         adaptation meter. One overconfident number, three dependent claims.
+
+         Newey-West HAC with a Bartlett kernel fixes the variance without touching
+         the slope: the point estimate is unchanged, only its honesty about spread
+         moves. Bandwidth from the standard plug-in rule L = 4(n/100)^(2/9), which
+         is 3 lags at n=28 — long enough to capture a multi-day water swing, short
+         enough not to eat the sample.
+
+         Both intervals are kept. `ci` is the HAC one, because that is the one worth
+         believing; `ciOls` stays so the difference is visible rather than asserted,
+         and rho1 is reported because it is the reason the correction is needed. */
+      const L = Math.max(1, Math.floor(4 * Math.pow(n / 100, 2 / 9)));
+      const u = resid.map((e, i) => e * (xs[i] - mx));
+      let hac = u.reduce((a, b) => a + b * b, 0);
+      for (let k = 1; k <= Math.min(L, n - 1); k++) {
+        const wk = 1 - k / (L + 1);
+        let cross = 0;
+        for (let i = k; i < n; i++) cross += u[i] * u[i - k];
+        hac += 2 * wk * cross;
+      }
+      /* A Bartlett-weighted sum can go negative in tiny samples; fall back to OLS
+         rather than print an imaginary interval. */
+      const seHac = hac > 0 ? Math.sqrt((hac / (sxx * sxx)) * (n / Math.max(1, n - 2))) : seOls;
+      const se = Math.max(seHac, seOls);
+      /* lag-1 residual autocorrelation — the diagnostic that justifies all of this */
+      const rho1 = (() => {
+        if (n < 4) return null;
+        const m0 = resid.reduce((a, b) => a + b, 0) / n;
+        let num = 0, den = 0;
+        for (let i = 1; i < n; i++) num += (resid[i] - m0) * (resid[i - 1] - m0);
+        for (let i = 0; i < n; i++) den += (resid[i] - m0) ** 2;
+        return den > 0 ? +(num / den).toFixed(2) : null;
+      })();
       const scale = +(-slope * 7).toFixed(2);
       const ci = +(1.96 * se * 7).toFixed(2);
       return {
         scale, fat: +(scale + s.model.drip).toFixed(2), measured: true, rates,
         method: "regression", n, ci, lo: +(scale - ci).toFixed(2), hi: +(scale + ci).toFixed(2),
+        /* the residual SD around the fitted trend, in lb — this is the RIGHT quantity
+           for banding a single morning against the trend (see the noise floor card) */
+        sigma: n > 2 ? +Math.sqrt(sse / (n - 2)).toFixed(2) : null,
+        ciOls: +(1.96 * seOls * 7).toFixed(2), hacL: L, rho1, hacInflation: seOls > 0 ? +(se / seOls).toFixed(2) : null,
         /* the endpoints, not just the printable span — observedTDEE has to
            average intake over exactly this period or the arithmetic is wrong */
         from: reads[0].d, to: reads[n - 1].d,
@@ -2278,12 +2323,45 @@ function labAnalytics(s) {
   for (let i = 1; i < reads.length; i++) {
     if (Math.round((mk(reads[i].d) - mk(reads[i - 1].d)) / DAY) === 1) { const dd = reads[i].w - reads[i - 1].w; if (Math.abs(dd) < 1.5) deltas.push(dd); }
   }
-  const sdN = deltas.length >= 8 ? Math.sqrt(deltas.reduce((a, b) => a + b * b, 0) / deltas.length) : null;
-  out.push({ id: "noise", t: "YOUR NOISE FLOOR", status: sdN ? "LIVE" : "ARMED", prog: { n: deltas.length, need: 8, label: "clean day-pairs" },
+  /* ---------- NOISE_FLOOR_NOTE — the band was the wrong variance ----------
+     This used to be the RMS of CONSECUTIVE-DAY DIFFERENCES, then applied as the band
+     for a SINGLE READING against the trend. Those are different quantities, and the
+     card was using one to do the other's job.
+
+     The audit predicted the old band ran up to ~41% too WIDE, on the independence
+     relation that a day-to-day difference carries √2 times the spread of one reading
+     against its trend. Measured on his actual data it comes out the other way, and the
+     reason is the same autocorrelation this whole section is about: consecutive days
+     are so alike that their differences are SMALL (±0.8), while multi-day water swings
+     wander a long way from any smooth line (±1.4 against a 28-day least-squares fit).
+     Under strong positive autocorrelation the √2 relation inverts. Worth stating
+     plainly rather than quietly shipping a number that contradicts the brief.
+
+     Which line to difference against matters, so the band uses the one he actually
+     judges against: the damped EWMA trend drawn on the chart and printed on NOW.
+     Residual SD about a 28-day straight line would also fold in curvature — a genuine
+     change in rate — and curvature is not noise. weightNoise() already computes
+     exactly this for the chart band, so the card and the chart now agree by
+     construction instead of by coincidence.
+
+     The day-to-day figure stays as a labelled second line. It is a real quantity,
+     just not this one. */
+  const rateN = currentRate(s);
+  const wn = weightNoise(s.reads);
+  const sigmaTrend = wn && wn.measured ? wn.sd : null;
+  const sdDelta = deltas.length >= 8 ? Math.sqrt(deltas.reduce((a, b) => a + b * b, 0) / deltas.length) : null;
+  const sdN = sigmaTrend != null ? sigmaTrend : sdDelta;
+  const nBand = sigmaTrend != null ? wn.n : deltas.length;
+  out.push({ id: "noise", t: "YOUR NOISE FLOOR", status: sdN ? "LIVE" : "ARMED", prog: { n: nBand, need: 8, label: sigmaTrend != null ? "reads in the fitted window" : "clean day-pairs" },
     tag: "The size of a meaningless scale move, in you specifically.",
-    deep: "Even at perfect protocol — fasted, post-void — daily weight wobbles from water, sodium, gut content, and timing. Below your measured band a change is statistically indistinguishable from nothing. This converts 'don't react to one day' from advice into a calibrated instrument.",
-    forYou: sdN ? `Judge any morning against the trend (${s.trend}), never against a single prior read — a move within ±${sdN.toFixed(1)} of expectation is zero information. The scale card now stamps those automatically. Two consecutive lows = signal beginning.` : "Eight clean consecutive-day pairs calibrate it.",
-    lines: sdN ? [`±${sdN.toFixed(1)} lb day-to-day (n=${deltas.length})`] : [] });
+    deep: `Even at perfect protocol — fasted, post-void — daily weight wobbles from water, sodium, gut content and timing. Below your measured band a change is indistinguishable from nothing, which converts "don't react to one day" from advice into a calibrated instrument. The estimator changed. This used to be the RMS of consecutive-day DIFFERENCES, then used as the band for a single reading against the trend — one quantity doing another's job. It is now the spread of your readings around the damped trend itself, which is the line you actually judge against and the line the chart draws. Two details worth knowing: the difference between two days is not the same size as one reading's distance from the trend, and on your data the day-to-day figure is the SMALLER of the two (±${sdDelta != null ? sdDelta.toFixed(1) : "0.8"} against ±${sdN.toFixed(1)}) — because consecutive mornings are so alike that their differences understate how far a multi-day water swing can carry you from the line. Textbook independence predicts the opposite; your autocorrelation inverts it. And the band is measured about the trend rather than about zero, so a real downward slope is no longer folded into "noise".`,
+    forYou: sdN
+      ? `Judge any morning against the trend (${s.trend}), never against a single prior read — a move within ±${sdN.toFixed(1)} lb of the trend is zero information. The scale card stamps those automatically. Two consecutive lows is where signal starts.${sdDelta != null && sigmaTrend != null ? ` Your consecutive-day spread is ±${sdDelta.toFixed(1)}, which is a different and smaller quantity; using it as this band was making the app slightly too quick to call a move real.` : ""}`
+      : "Eight clean consecutive-day pairs calibrate it.",
+    lines: sdN ? [
+      `±${sdN.toFixed(1)} lb — one reading vs the damped trend (n=${nBand})${rateN && rateN.rho1 != null ? ` · lag-1 residual autocorrelation ${rateN.rho1}` : ""}`,
+      sdDelta != null && sigmaTrend != null ? `±${sdDelta.toFixed(1)} lb — consecutive-day difference, a different quantity and not the band` : null,
+    ].filter(Boolean) : [] });
 
   /* 4 · masked-loss monitor */
   const last5 = reads.slice(-5);
@@ -5204,7 +5282,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";

@@ -240,7 +240,11 @@ ok(get("whoosh").lines.some((l) => l.indexOf("95% CI") > -1), "whoosh publishes 
 ok(get("whoosh").forYou.indexOf("WEDDING #2") > -1, "whoosh model already aimed at Saturday's wedding");
 ok(get("refeed").status === "PROVISIONAL" && get("refeed").prog.n === 4 && get("refeed").lines[0].indexOf("+4.6") === -1, "refeed line cleaned: real refeeds only, n=4, birthday spike evicted — and PROVISIONAL, not measured");
 ok(get("refeed").lines.some((l) => l.indexOf("95% CI") > -1 && l.indexOf("SD") > -1), "refeed publishes mean, CI and SD — the spread that made it not-a-number");
-ok(get("noise").status === "LIVE" && /±0\.[3-9]/.test(get("noise").lines[0]), "personal noise floor computed: " + get("noise").lines[0].slice(0, 24));
+/* The band is now one reading against the damped trend, not the consecutive-day RMS,
+   so it reads larger on autocorrelated data — see NOISE_FLOOR_NOTE. The assertion
+   checks the clamped range rather than pinning a digit that belongs to the old
+   estimator. */
+ok(get("noise").status === "LIVE" && /±[0-9]\.[0-9] lb — one reading vs the damped trend/.test(get("noise").lines[0]), "personal noise floor computed against the trend: " + get("noise").lines[0].slice(0, 48));
 ok(get("cone").status === "LIVE" && get("cone").lines[0].indexOf("80%") === 0, "pivot cone runs Monte Carlo on his measured rates");
 ok(get("tuefri").status === "ARMED" && get("tuefri").prog.n === 0, "Tue/Fri experiment armed at 0/4 pairs");
 ok(get("fingerprint").status === "ARMED" && get("rirtruth").status === "ARMED" && get("mrv").status === "LOCKED", "gates hold: no correlations under N");
@@ -532,6 +536,43 @@ ok(Math.abs(tt(1.96) - 0.05) < 0.002, "and the normal tail is calibrated at the 
   ok(bh([0.02, 0.03, 0.04], 0.1).nKept >= 1, "and several consistent smalls survive together");
 }
 ok(cw(30, 3) > 0 && cw(9, 30) === 0, "the chance-word estimate scales with corpus size and is zero below threshold");
+
+// LAB P0-3 — autocorrelation: the rate CI was too narrow, the noise band the wrong variance
+{
+  const { currentRate: cr3, labAnalytics: la3, SEED: S3 } = __test;
+  const r3 = cr3(clone(S3));
+  ok(r3.method === "regression" && r3.n >= 10, "rate is a regression over the daily reads: n=" + r3.n);
+  ok(typeof r3.ciOls === "number" && typeof r3.ci === "number", "both intervals are reported — OLS and autocorrelation-robust");
+  /* The whole point: HAC can never be narrower than the OLS interval it replaces. */
+  ok(r3.ci >= r3.ciOls, "the HAC interval is never narrower than OLS: ±" + r3.ci + " vs ±" + r3.ciOls);
+  ok(r3.hacL >= 1 && r3.hacL <= 6, "Bartlett bandwidth from the plug-in rule: L=" + r3.hacL);
+  ok(r3.rho1 !== null && r3.rho1 > -1 && r3.rho1 < 1, "lag-1 residual autocorrelation reported: rho1=" + r3.rho1);
+  ok(r3.hacInflation >= 1, "inflation factor over OLS is at least 1: x" + r3.hacInflation);
+  /* The point estimate must NOT move — only its stated uncertainty. */
+  ok(Math.abs(r3.scale - +(-((() => { const rd = clone(S3).reads.filter(r => !r.sealed && r.w != null).slice(-28); const t0 = new Date(rd[0].d).getTime(); const xs = rd.map(r => (new Date(r.d).getTime() - t0) / 864e5), ys = rd.map(r => r.w); const n = xs.length; const mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n; let sxy = 0, sxx = 0; for (let i = 0; i < n; i++) { sxy += (xs[i] - mx) * (ys[i] - my); sxx += (xs[i] - mx) ** 2; } return sxy / sxx; })()) * 7).toFixed(2)) < 0.02, "the slope itself is untouched — only the interval widened");
+  ok(typeof r3.sigma === "number" && r3.sigma > 0, "residual SD around the fitted trend is exposed for the noise band: " + r3.sigma);
+
+  /* The noise floor now bands a single read against the trend with sigma, not with the
+     day-to-day difference RMS — which is about sqrt(2) larger for the same data. */
+  const nz3 = la3(clone(S3)).find(c => c.id === "noise");
+  ok(nz3.lines[0].indexOf("damped trend") > -1, "the noise card bands one reading against the damped trend: " + nz3.lines[0]);
+  ok(nz3.lines.length === 2 && nz3.lines[1].indexOf("not the band") > -1, "and keeps the consecutive-day figure, labelled as a different quantity");
+  const band = +(nz3.lines[0].match(/±([0-9.]+)/) || [])[1];
+  const dayToDay = +(nz3.lines[1].match(/±([0-9.]+)/) || [])[1];
+  /* The audit predicted the old band was ~41% too WIDE, from the independence relation
+     that a day-to-day difference is √2 larger than a read-vs-trend deviation. On his
+     real data it is the reverse — consecutive mornings are so alike that differences
+     UNDERSTATE how far a multi-day swing carries him off the line. Autocorrelation
+     inverts the relation, so the assertion records the measured direction rather than
+     the predicted one. */
+  ok(band > dayToDay, "on autocorrelated data the read-vs-trend band is WIDER than the day-to-day figure (" + band + " vs " + dayToDay + ") — the independence relation inverts");
+  /* The card and the chart must agree BY CONSTRUCTION, not by coincidence — both read
+     the same weightNoise() estimate, so they can never drift apart. */
+  /* 0.05 tolerance because the card prints to one decimal; the point is that it is the
+     SAME estimate, not a second one computed a different way. */
+  ok(Math.abs(band - __test.weightNoise(clone(S3).reads).sd) < 0.05, "the card's band IS the chart's band — one estimator, two surfaces (" + band + " vs " + __test.weightNoise(clone(S3).reads).sd + ")");
+  ok(band > 0.3 && band < 2.5, "and it sits inside the honesty clamps: " + band);
+}
 ok(tc1(1) > tc1(10) && tc1(10) > tc1(60), "t multiplier shrinks as df grows — small n pays for itself");
 
 // (interim)
