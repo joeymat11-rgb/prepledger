@@ -10409,34 +10409,67 @@ function HistTab({ s, setS, save }) {
               Direction-aware; the split carries the ±3.5 anchor margin, no false precision. */}
           {twin.bc && (() => {
             const bc = twin.bc; const cut = bc.dir === "cut";
-            const ax = Math.max(bc.band.redlinePct * 1.6, bc.pctRate * 1.15, 1.2);
+            const apMode = (s.plan && s.plan.apMode) || "recomp";
+            const greenTop = BC.CUT_OPT_PCT, amberTop = bc.band.redlinePct;   // 0.70 / 1.0 — the GAR zone edges (v6.2 F2)
+            const ax = Math.max(amberTop * 1.6, bc.pctRate * 1.15, 1.2);
             const X = (p) => Math.min(100, Math.max(0, (p / ax) * 100));
             const fatFrac = 1 - bc.leanFrac;
             const segs = cut
               ? [{ pct: fatFrac * 100, c: T.jade, label: "fat" }, { pct: bc.leanFrac * 100, c: T.orange, label: "lean" }]
               : [{ pct: bc.leanFrac * 100, c: T.jade, label: "lean" }, { pct: fatFrac * 100, c: T.orange, label: "fat" }];
-            const zoneWord = bc.zone === "corridor" ? "IN THE CORRIDOR" : bc.zone === "redline" ? "PAST THE REDLINE" : "BELOW THE CORRIDOR";
-            const zoneC = bc.zone === "corridor" ? T.jade : bc.zone === "redline" ? T.redline : T.orange;
-            const zoneMsg = bc.zone === "corridor"
-              ? "the fastest body-comp change your body banks without cost — ride here."
-              : bc.zone === "redline"
-                ? (cut ? "this pace starts spending muscle (Garthe 2011: −2% lean at 1%/wk). Ease back." : "the extra is turning to fat now — ease the surplus.")
-                : (cut ? "you're leaving fat loss on the table — you can safely go a little faster." : "too slow to make the gain count — a touch more.");
+            // GAR zone the needle sits in (cut): green ≤0.70 gaining lean · amber ≤1.0 preserve-only · red >1.0 spending
+            const gar = !cut ? null : (bc.pctRate > amberTop ? "red" : bc.pctRate > greenTop ? "amber" : "green");
+            const zoneWord = cut
+              ? (gar === "green" ? "STILL GAINING LEAN" : gar === "amber" ? "PRESERVE-ONLY" : "SPENDING MUSCLE")
+              : (bc.zone === "corridor" ? "IN THE CORRIDOR" : bc.zone === "redline" ? "PAST THE REDLINE" : "BELOW THE CORRIDOR");
+            const zoneC = cut
+              ? (gar === "green" ? T.jade : gar === "amber" ? T.orange : T.redline)
+              : (bc.zone === "corridor" ? T.jade : bc.zone === "redline" ? T.redline : T.orange);
+            const zoneMsg = cut
+              ? (gar === "green" ? "recomp territory — building muscle while you lean out (Garthe 2011: +1.7% lean at 0.7%/wk)."
+                : gar === "amber" ? "muscle held flat, not built — the max-fat-loss lane, just under the redline."
+                : "past the 1%BW/wk redline — this pace spends muscle (Garthe 2011: −2% lean). Ease back.")
+              : (bc.zone === "corridor" ? "the fastest body-comp change your body banks without cost — ride here."
+                : bc.zone === "redline" ? "the extra is turning to fat now — ease the surplus."
+                : "too slow to make the gain count — a touch more.");
             const dirWord = cut ? "off" : "on";
             return (
               <div style={{ marginTop: SP.lg, paddingTop: SP.md, borderTop: `1px solid ${T.hairline}` }}>
-                <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, textTransform: "uppercase" }}>BODY COMPOSITION · THE REDLINE</div>
-                <div style={{ marginTop: SP.md, position: "relative", height: 12, background: T.plate2, borderRadius: 99 }}>
-                  <div style={{ position: "absolute", left: `${X(bc.band.corrPct[0])}%`, width: `${Math.max(2, X(bc.band.corrPct[1]) - X(bc.band.corrPct[0]))}%`, top: 0, bottom: 0, background: "rgba(76,195,138,0.35)", borderRadius: 4 }} />
-                  <div style={{ position: "absolute", left: `${X(bc.band.redlinePct)}%`, right: 0, top: 0, bottom: 0, background: "rgba(232,85,107,0.16)", borderRadius: "0 99px 99px 0" }} />
-                  <div style={{ position: "absolute", left: `${X(bc.band.redlinePct)}%`, top: -3, bottom: -3, width: 2, background: T.redline }} />
-                  <div style={{ position: "absolute", left: `calc(${X(bc.pctRate)}% - 2px)`, top: -4, bottom: -4, width: 4, background: T.chalk, borderRadius: 2 }} />
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: SP.xs, fontFamily: mono, fontSize: TS.micro, ...NUMERIC }}>
-                  <span style={{ color: T.jade }}>corridor {bc.band.corrPct[0]}–{bc.band.corrPct[1]}</span>
-                  <span style={{ color: T.redline }}>redline {bc.band.redlinePct}</span>
-                  <span style={{ color: T.chalk }}>you {bc.pctRate} %BW/wk</span>
-                </div>
+                <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, textTransform: "uppercase" }}>BODY COMPOSITION · THE GAUGE</div>
+                {cut ? (
+                  <>
+                    {/* GREEN gaining-lean (≤CUT_OPT_PCT) · AMBER preserve-only (→redline) · RED spending (>redline).
+                        Fills are hexA() theme tokens (audit 4c). The selected Auto-Pilot mode lights its own zone. */}
+                    <div style={{ marginTop: SP.md, position: "relative", height: 14, background: T.plate2, borderRadius: 99, overflow: "hidden" }}>
+                      <div style={{ position: "absolute", left: 0, width: `${X(greenTop)}%`, top: 0, bottom: 0, background: hexA(T.jade, apMode === "recomp" ? 0.42 : 0.20) }} />
+                      <div style={{ position: "absolute", left: `${X(greenTop)}%`, width: `${Math.max(0, X(amberTop) - X(greenTop))}%`, top: 0, bottom: 0, background: hexA(T.orange, apMode === "fatloss" ? 0.42 : 0.18) }} />
+                      <div style={{ position: "absolute", left: `${X(amberTop)}%`, right: 0, top: 0, bottom: 0, background: hexA(T.redline, 0.20) }} />
+                      <div style={{ position: "absolute", left: `${X(greenTop)}%`, top: 0, bottom: 0, width: 1, background: hexA(T.chalk, 0.22) }} />
+                      <div style={{ position: "absolute", left: `${X(amberTop)}%`, top: -3, bottom: -3, width: 2, background: T.redline }} />
+                      <div style={{ position: "absolute", left: `calc(${X(bc.pctRate)}% - 2px)`, top: -4, bottom: -4, width: 4, background: T.chalk, borderRadius: 2 }} />
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: SP.xs, fontFamily: mono, fontSize: TS.micro, ...NUMERIC }}>
+                      <span style={{ color: T.jade, fontWeight: apMode === "recomp" ? 700 : 400 }}>gaining lean ≤{greenTop}</span>
+                      <span style={{ color: T.orange, fontWeight: apMode === "fatloss" ? 700 : 400 }}>preserve {greenTop}–{amberTop}</span>
+                      <span style={{ color: T.redline }}>spend &gt;{amberTop}</span>
+                    </div>
+                    <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.chalk, marginTop: SP.hair, ...NUMERIC }}>you {bc.pctRate} %BW/wk · steering to {apMode === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP"}</div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ marginTop: SP.md, position: "relative", height: 12, background: T.plate2, borderRadius: 99 }}>
+                      <div style={{ position: "absolute", left: `${X(bc.band.corrPct[0])}%`, width: `${Math.max(2, X(bc.band.corrPct[1]) - X(bc.band.corrPct[0]))}%`, top: 0, bottom: 0, background: hexA(T.jade, 0.35), borderRadius: 4 }} />
+                      <div style={{ position: "absolute", left: `${X(bc.band.redlinePct)}%`, right: 0, top: 0, bottom: 0, background: hexA(T.redline, 0.16), borderRadius: "0 99px 99px 0" }} />
+                      <div style={{ position: "absolute", left: `${X(bc.band.redlinePct)}%`, top: -3, bottom: -3, width: 2, background: T.redline }} />
+                      <div style={{ position: "absolute", left: `calc(${X(bc.pctRate)}% - 2px)`, top: -4, bottom: -4, width: 4, background: T.chalk, borderRadius: 2 }} />
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: SP.xs, fontFamily: mono, fontSize: TS.micro, ...NUMERIC }}>
+                      <span style={{ color: T.jade }}>corridor {bc.band.corrPct[0]}–{bc.band.corrPct[1]}</span>
+                      <span style={{ color: T.redline }}>redline {bc.band.redlinePct}</span>
+                      <span style={{ color: T.chalk }}>you {bc.pctRate} %BW/wk</span>
+                    </div>
+                  </>
+                )}
                 <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.sm, lineHeight: `${LH.body}px` }}>
                   <span style={{ fontFamily: lbl, fontWeight: 700, color: zoneC, letterSpacing: "0.04em" }}>{zoneWord}</span> — {zoneMsg}
                 </div>
