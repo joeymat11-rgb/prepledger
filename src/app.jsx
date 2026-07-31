@@ -4769,11 +4769,11 @@ function fiveLevers(s) {
     : { label: "PROTEIN", state: proHitN >= proRows.length - 1 ? "good" : "caution", detail: `${proHitN}/${proRows.length}` };
   // TRAINING — sessions banked in the last seven days against the four-day split
   const wk7 = Object.keys(s.sessionLog || {}).filter((d) => { const g = (mk(tISO) - mk(d)) / DAY; return g >= 0 && g < 7; }).length;
+  // Progress, not a fault: a logged session reads neutral (a rolling count that sits at 1-3
+  // most of the week is not something to "adjust" — Part 1a fix). ✓ only at the weekly target.
   const training = wk7 >= 4
-    ? { label: "TRAINING", state: "good", detail: `${wk7} of 4` }
-    : wk7 === 0
-      ? { label: "TRAINING", state: "quiet", detail: "none logged yet" }
-      : { label: "TRAINING", state: "caution", detail: `${wk7} of 4` };
+    ? { label: "TRAINING", state: "good", detail: `${wk7} of 4 · complete` }
+    : { label: "TRAINING", state: "quiet", detail: wk7 === 0 ? "none logged yet" : `${wk7} of 4 this week` };
   // SLEEP — is he on his clean-night target run?
   const sl = atSleepTarget(s, null);
   const sleep = { label: "SLEEP", state: sl.at ? "good" : "caution", detail: `${sl.run}/${s.sleep.needed} clean` };
@@ -7699,6 +7699,21 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             </div>
             <Btn full tone="gauge" onClick={() => { const ns2 = { ...s, waist: [...(s.waist || []), { d: tISO, v: +waistIn }] }; setS(ns2); save(ns2); hap(12); setQlOpen(false); }}>Log {waistIn}&quot; waist</Btn>
           </div>
+          {/* CLOSE THE DAY — the core daily numbers, one tap, into the SAME dailyLogs store the
+              full log screen reads (saveDaily; preserves sodium/alc, keeps the protein fix-window
+              logic). Non-redundant: this is the fast path, the log screen is the full one. */}
+          <div style={{ borderTop: `1px solid ${T.hairline}`, paddingTop: SP.md }}>
+            <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.steel, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: SP.sm }}>CLOSE THE DAY · today's numbers</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: SP.sm }}>
+              {[["CALORIES", cal, setCal, 10], ["PROTEIN g", pro, setPro, 5], ["STEPS", stp, setStp, 500]].map(([label, val, setter, step]) => (
+                <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm }}>
+                  <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, color: T.steel, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}</span>
+                  <Stepper v={val === "" || val == null ? 0 : val} set={(x) => setter(x)} step={step} min={0} />
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: SP.md }}><Btn full tone="jade" onClick={() => { saveDaily(); hap(12); setQlOpen(false); }}>Save today's numbers</Btn></div>
+          </div>
           <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.micro}px` }}>Only the transcription moves here — stepping on the scale is still the deliberate act. One tap from anywhere on this screen.</div>
         </div>
       </Sheet>
@@ -7837,29 +7852,46 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           measured slope. When the metabolism sheds a full adaptation's worth of
           deficit, it PROPOSES a correction (cut OR steps) for one tap — never mutates.
           Every option, and "Not now", files through the plan; nothing changes itself. */}
-      {(() => { const ap = autoPilot(s); if (!ap.ok) return null; const apProp = ap.proposed && plan.apDismiss !== tISO; const wnA = weightNoise(s.reads);
+      {(() => { const ap = autoPilot(s); if (!ap.ok) return null;
+        const apProp = ap.proposed && plan.apDismiss !== tISO;
+        const apPro = ap.proteinOff && plan.apProDismiss !== tISO;
+        const wnA = weightNoise(s.reads); const cut = ap.dir === "cut"; const easing = ap.action === "ease";
+        const corrTxt = `${ap.band.corrPct[0]}–${ap.band.corrPct[1]}%BW/wk`;
+        const headline = ap.action === "ease"
+          ? (cut ? `You're running ~${ap.pctRate}%BW/wk — past your ${ap.band.redlinePct}% redline. Ease off to protect muscle.` : `You're gaining ~${ap.pctRate}%BW/wk — past the ${ap.band.redlinePct}% edge. Ease the surplus before it turns to fat.`)
+          : ap.action === "tighten"
+            ? (cut ? `You're at ~${ap.pctRate}%BW/wk — under your corridor. You can safely go faster and bank more fat.` : `You're at ~${ap.pctRate}%BW/wk — under the growth corridor. A touch more to make the gain count.`)
+            : `You're inside your body-comp corridor (${corrTxt}). Auto-Pilot is holding it — the fastest change your body banks without cost.`;
+        const kcalVerb = cut ? (easing ? "add back" : "trim") : (easing ? "trim the surplus" : "add");
+        const proposalBody = `To ride the corridor, ${kcalVerb} ~${ap.corrKcal} kcal${cut ? `, or ${easing ? "trim" : "add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps` : ""}. Auto-Pilot never changes anything itself — every move waits for your tap.`;
         return (
-        <Card accent={apProp ? T.brass : T.gauge} style={{ padding: SP.lg }}>
-          <Eyebrow c={apProp ? T.brass : T.gauge}>{apProp ? "AUTO-PILOT · FOR YOU TO OK" : "AUTO-PILOT · HOLDING YOUR LINE"}</Eyebrow>
-          <div style={{ fontFamily: body, fontWeight: 600, fontSize: TS.title, lineHeight: `${LH.title}px`, color: T.chalk, marginTop: SP.sm }}>
-            {apProp ? `Your expenditure slipped ~${ap.corrKcal} kcal — metabolic adaptation, right on schedule.` : `You're on your ${ap.goalRate.toFixed(1)} lb/wk line. Auto-Pilot is holding it — nothing to change this week.`}
-          </div>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>measured TDEE {ap.tdee} kcal · n={ap.n}</div>
+        <Card accent={apProp ? T.brass : (apPro ? T.orange : T.gauge)} style={{ padding: SP.lg }}>
+          <Eyebrow c={apProp ? T.brass : (apPro ? T.orange : T.gauge)}>{apProp || apPro ? "AUTO-PILOT · FOR YOU TO OK" : "AUTO-PILOT · HOLDING YOUR LINE"}</Eyebrow>
+          <div style={{ fontFamily: body, fontWeight: 600, fontSize: TS.title, lineHeight: `${LH.title}px`, color: T.chalk, marginTop: SP.sm }}>{headline}</div>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>measured TDEE {ap.tdee} kcal · n={ap.n} · corridor {corrTxt}</div>
           <div style={{ marginTop: SP.sm }}>
-            <Spark reads={s.reads} trend={s.trend} projRate={ap.goalRate} noise={wnA.sd} noiseN={wnA.measured ? wnA.n : null} />
+            <Spark reads={s.reads} trend={s.trend} projRate={ap.band.corrLb ? +(((ap.band.corrLb[0] + ap.band.corrLb[1]) / 2)).toFixed(2) : ap.goalRate} noise={wnA.sd} noiseN={wnA.measured ? wnA.n : null} />
           </div>
-          {apProp ? (
+          {apProp && (
             <>
-              <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, lineHeight: `${LH.body}px` }}>To hold the line, drop the target ~{ap.corrKcal} kcal, or add ~{(ap.stepsAdd / 1000).toFixed(1)}k steps. Auto-Pilot never changes anything itself — every move waits for your tap.</div>
+              <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, lineHeight: `${LH.body}px` }}>{proposalBody}</div>
               <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.06em", marginTop: SP.sm }}>◆ from your own numbers</div>
               <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
-                <Btn small tone="jade" onClick={() => savePlan({ apDismiss: tISO })}>Hold the lower target</Btn>
-                <Btn small tone="jade" onClick={() => savePlan({ goals: [...plan.goals, { id: "g" + Date.now(), text: `Add ~${(ap.stepsAdd / 1000).toFixed(1)}k steps on non-lifting days` }], apDismiss: tISO })}>Add the steps instead</Btn>
+                <Btn small tone="jade" onClick={() => savePlan({ apDismiss: tISO })}>{easing ? "Ease the target" : "Tighten the target"}</Btn>
+                {cut && <Btn small tone="jade" onClick={() => savePlan({ goals: [...plan.goals, { id: "g" + Date.now(), text: `${easing ? "Trim" : "Add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps on non-lifting days (auto-pilot)` }], apDismiss: tISO })}>{easing ? "Trim the steps" : "Add the steps"}</Btn>}
                 <Btn small onClick={() => savePlan({ apDismiss: tISO })}>Not now</Btn>
               </div>
             </>
-          ) : (
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>Reads your trend and intake, infers true expenditure, and nudges the target to hold the slope — catching the 90–180 kcal/day a dieting metabolism sheds.</div>
+          )}
+          {!apProp && ap.action === "hold" && (
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>Reads your trend, prices the drift in kcal, and holds you in the corridor — between the floor (leaving progress) and the {ap.band.redlinePct}%BW/wk redline (spending muscle).</div>
+          )}
+          {apPro && (
+            <div style={{ marginTop: SP.md, padding: SP.md, background: T.plate2, borderRadius: 8, borderLeft: `3px solid ${T.orange}`, border: `1px solid ${T.line}` }}>
+              <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.1em", color: T.orange, textTransform: "uppercase" }}>PROTEIN · THE PARTITION LEVER</div>
+              <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Your last day logged {ap.lastPro}g — under the {ap.proteinFloorG}g lean-retention floor. Protein is what keeps the loss coming off fat, not muscle; bring it to ~{ap.proteinTargetG}g.</div>
+              <div style={{ marginTop: SP.sm }}><Btn small onClick={() => savePlan({ apProDismiss: tISO })}>Not now</Btn></div>
+            </div>
           )}
         </Card>
       ); })()}
@@ -10153,7 +10185,7 @@ function HistTab({ s, setS, save }) {
           LAB re-pointed from passive measurement toward decision support: a validated
           energy-balance model tuned to his data. Composes observedTDEE + currentRate +
           bfEst; drag three levers, read a widening range. Never a date-certain promise. */}
-      {(() => { const twin = digitalTwin(s, { calDelta: twCal, steps: twSteps, protein: twPro }); const wnT = weightNoise(s.reads); const rangeInp = { width: "100%", accentColor: T.gauge };
+      {(() => { const twin = twinBodyComp(s, { calDelta: twCal, steps: twSteps, protein: twPro }); const wnT = weightNoise(s.reads); const rangeInp = { width: "100%", accentColor: T.gauge };
         return (
         <Card accent={T.gauge} style={{ padding: SP.lg }}>
           <Eyebrow c={T.gauge}>THE DIGITAL TWIN</Eyebrow>
@@ -10198,8 +10230,57 @@ function HistTab({ s, setS, save }) {
                 <span style={{ fontFamily: body, fontSize: TS.body, color: T.orange }}>not losing at these settings — the deficit's gone.</span>
               )}
             </div>
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>projected rate ~{twin.newRate != null ? (twin.newRate > 0 ? "−" : "+") + Math.abs(twin.newRate).toFixed(1) : "—"} lb/wk · at {twPro} g protein, more of that loss holds as fat rather than lean</div>
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>projected scale rate ~{twin.newRate != null ? (twin.newRate > 0 ? "−" : "+") + Math.abs(twin.newRate).toFixed(1) : "—"} lb/wk · protein sets how much of it stays muscle</div>
           </div>
+          {/* ---------- BODY COMPOSITION · THE REDLINE (v6.1 — the centerpiece) ----------
+              The app's whole mandate, made a tachometer: the projected rate placed on the
+              body-comp corridor (bodyCompBand — the SAME band Auto-Pilot steers to), and the
+              ONE projected rate decomposed into fat vs lean (twinBodyComp, never recomputed).
+              Direction-aware; the split carries the ±3.5 anchor margin, no false precision. */}
+          {twin.bc && (() => {
+            const bc = twin.bc; const cut = bc.dir === "cut";
+            const ax = Math.max(bc.band.redlinePct * 1.6, bc.pctRate * 1.15, 1.2);
+            const X = (p) => Math.min(100, Math.max(0, (p / ax) * 100));
+            const fatFrac = 1 - bc.leanFrac;
+            const segs = cut
+              ? [{ pct: fatFrac * 100, c: T.jade, label: "fat" }, { pct: bc.leanFrac * 100, c: T.orange, label: "lean" }]
+              : [{ pct: bc.leanFrac * 100, c: T.jade, label: "lean" }, { pct: fatFrac * 100, c: T.orange, label: "fat" }];
+            const zoneWord = bc.zone === "corridor" ? "IN THE CORRIDOR" : bc.zone === "redline" ? "PAST THE REDLINE" : "BELOW THE CORRIDOR";
+            const zoneC = bc.zone === "corridor" ? T.jade : bc.zone === "redline" ? T.redline : T.orange;
+            const zoneMsg = bc.zone === "corridor"
+              ? "the fastest body-comp change your body banks without cost — ride here."
+              : bc.zone === "redline"
+                ? (cut ? "this pace starts spending muscle (Garthe 2011: −2% lean at 1%/wk). Ease back." : "the extra is turning to fat now — ease the surplus.")
+                : (cut ? "you're leaving fat loss on the table — you can safely go a little faster." : "too slow to make the gain count — a touch more.");
+            const dirWord = cut ? "off" : "on";
+            return (
+              <div style={{ marginTop: SP.lg, paddingTop: SP.md, borderTop: `1px solid ${T.hairline}` }}>
+                <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, textTransform: "uppercase" }}>BODY COMPOSITION · THE REDLINE</div>
+                <div style={{ marginTop: SP.md, position: "relative", height: 12, background: T.plate2, borderRadius: 99 }}>
+                  <div style={{ position: "absolute", left: `${X(bc.band.corrPct[0])}%`, width: `${Math.max(2, X(bc.band.corrPct[1]) - X(bc.band.corrPct[0]))}%`, top: 0, bottom: 0, background: "rgba(76,195,138,0.35)", borderRadius: 4 }} />
+                  <div style={{ position: "absolute", left: `${X(bc.band.redlinePct)}%`, right: 0, top: 0, bottom: 0, background: "rgba(232,85,107,0.16)", borderRadius: "0 99px 99px 0" }} />
+                  <div style={{ position: "absolute", left: `${X(bc.band.redlinePct)}%`, top: -3, bottom: -3, width: 2, background: T.redline }} />
+                  <div style={{ position: "absolute", left: `calc(${X(bc.pctRate)}% - 2px)`, top: -4, bottom: -4, width: 4, background: T.chalk, borderRadius: 2 }} />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: SP.xs, fontFamily: mono, fontSize: TS.micro, ...NUMERIC }}>
+                  <span style={{ color: T.jade }}>corridor {bc.band.corrPct[0]}–{bc.band.corrPct[1]}</span>
+                  <span style={{ color: T.redline }}>redline {bc.band.redlinePct}</span>
+                  <span style={{ color: T.chalk }}>you {bc.pctRate} %BW/wk</span>
+                </div>
+                <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.sm, lineHeight: `${LH.body}px` }}>
+                  <span style={{ fontFamily: lbl, fontWeight: 700, color: zoneC, letterSpacing: "0.04em" }}>{zoneWord}</span> — {zoneMsg}
+                </div>
+                <div style={{ marginTop: SP.md }}>
+                  <StackBar segments={segs} />
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: SP.xs, fontFamily: mono, fontSize: TS.micro, ...NUMERIC }}>
+                    <span style={{ color: cut ? T.jade : T.orange }}>FAT {dirWord} ~{Math.abs(bc.fat).toFixed(1)} lb/wk</span>
+                    <span style={{ color: cut ? T.orange : T.jade }}>LEAN {dirWord} ~{Math.abs(bc.lean).toFixed(1)} lb/wk · {cut ? "the cost" : "the gain"}</span>
+                  </div>
+                </div>
+                <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>The fat/lean split is a projection from your logs and the ±3.5-point anchor — not a scan — and it widens the leaner you get (leanness is a headwind).</div>
+              </div>
+            );
+          })()}
           </>
           )}
           <div style={{ marginTop: SP.md, padding: SP.md, background: T.plate2, borderRadius: 8, borderLeft: `3px solid ${T.orange}`, border: `1px solid ${T.line}` }}>
