@@ -5900,15 +5900,39 @@ async function ghSync(state) {
   if (!tok) return { ok: false, msg: "no token saved" };
   const url = "https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/state.json";
   const hdr = { Authorization: "Bearer " + tok, Accept: "application/vnd.github+json" };
-  let sha = null;
-  try { const g = await fetch(url + "?t=" + Date.now(), { cache: "no-store", headers: hdr }); if (g.ok) sha = (await g.json()).sha; } catch (e) {}
-  const body = { message: "ledger auto-sync " + isoOf(todayStart()) + " [skip ci]", content: btoa(unescape(encodeURIComponent(JSON.stringify({ ...state, _dictionary: LEDGER_DICT })))), ...(sha ? { sha } : {}) };
+  // v6.1 durability (see mergeState): the old path PUT the whole local state over the remote —
+  // last writer wins, no merge. That is what clobbered the 7/27–7/28 sessions. Now we fetch the
+  // remote CONTENT, UNION-merge, and REFUSE TO SHRINK it; on a 409/422 we RE-MERGE with whatever
+  // landed instead of re-forcing our copy. If the remote can't be read we DEFER rather than
+  // blind-overwrite. Concurrent multi-device writes converge to the superset (self-healing).
+  const fetchRemote = async () => {
+    try {
+      const g = await fetch(url + "?t=" + Date.now(), { cache: "no-store", headers: hdr });
+      if (!g.ok) return { sha: null, state: g.status === 404 ? null : undefined };   // 404 = no remote yet (fine); undefined = unknown -> don't clobber
+      const j = await g.json();
+      let rs; try { rs = JSON.parse(decodeURIComponent(escape(atob(String(j.content || "").replace(/\s/g, ""))))); } catch (e) { rs = undefined; }
+      return { sha: j.sha || null, state: rs };
+    } catch (e) { return { sha: null, state: undefined }; }
+  };
+  const buildBody = (rState, rSha) => {
+    const merged = rState && typeof rState === "object" ? mergeState(state, rState) : state;
+    if (rState && typeof rState === "object" && !dataLossGuard(rState, merged).safe) return null;   // never write a state smaller than the remote
+    return { message: "ledger auto-sync " + isoOf(todayStart()) + " [skip ci]", content: btoa(unescape(encodeURIComponent(JSON.stringify({ ...merged, _dictionary: LEDGER_DICT })))), ...(rSha ? { sha: rSha } : {}) };
+  };
+  const r0 = await fetchRemote();
+  if (r0.state === undefined) { try { localStorage.setItem("plSyncErr", JSON.stringify({ at: new Date().toISOString(), status: 0, msg: "remote unreadable — sync deferred (no clobber)" })); } catch (e) {} return { ok: false, msg: "remote unreadable — sync deferred to avoid clobber" }; }
+  let body = buildBody(r0.state, r0.sha);
+  if (!body) return { ok: false, msg: "refused: merge would shrink the remote" };
   try {
     let put = await fetch(url, { method: "PUT", headers: { ...hdr, "Content-Type": "application/json" }, body: JSON.stringify(body) });
     const tr9 = [put.status];
     for (let rt = 0; !put.ok && (put.status === 409 || put.status === 422) && rt < 4; rt++) {
       await new Promise((r9) => setTimeout(r9, 500 + rt * 300));
-      try { const g2 = await fetch(url + "?t=" + Date.now(), { cache: "no-store", headers: hdr }); if (g2.ok) body.sha = (await g2.json()).sha; } catch (e) {}
+      const rr = await fetchRemote();
+      if (rr.state === undefined) break;
+      const b2 = buildBody(rr.state, rr.sha);
+      if (!b2) { tr9.push("refuse-shrink"); break; }
+      body = b2;
       put = await fetch(url, { method: "PUT", headers: { ...hdr, "Content-Type": "application/json" }, body: JSON.stringify(body) });
       tr9.push(put.status);
     }
@@ -6772,6 +6796,49 @@ function dataLossGuard(prev, next) {
   return { safe: lost.length === 0, lost };
 }
 
+/* ---------- mergeState (v6.1) — union-merge for the sync path ----------
+   The clobber that lost the 7/27–7/28 sessions was ghSync overwriting the WHOLE remote with
+   the local state — last writer wins, no merge. mergeState unions every append-only collection
+   so a smaller client can never shrink the remote: the result is a SUPERSET of both sides.
+   Scalars take the local value (the writing client's current view); derived fields (trend /
+   model / rate) recompute from the unioned history on next load. Pure and testable. Guarantee:
+   for every append-only collection, |merged| >= |remote| and >= |local|. Once every client runs
+   this, write order stops mattering — both sides converge to the union (self-healing). */
+function _mergeScore(v) { try { if (v && Array.isArray(v.entries)) return v.entries.length * 1e6 + JSON.stringify(v).length; return JSON.stringify(v == null ? "" : v).length; } catch (e) { return 0; } }
+function _richer(x, y) { return _mergeScore(y) >= _mergeScore(x) ? y : x; }   // ties -> local (y)
+function _unionBy(remoteArr, localArr, keyOf) {
+  const m = new Map();
+  const add = (x) => { try { const k = keyOf(x); if (k == null) return; if (!m.has(k)) m.set(k, x); else m.set(k, _richer(m.get(k), x)); } catch (e) {} };
+  (Array.isArray(remoteArr) ? remoteArr : []).forEach(add);
+  (Array.isArray(localArr) ? localArr : []).forEach(add);
+  return [...m.values()];
+}
+function _unionObj(remoteObj, localObj) {
+  const out = { ...(remoteObj && typeof remoteObj === "object" ? remoteObj : {}) };
+  const l = localObj && typeof localObj === "object" ? localObj : {};
+  for (const k of Object.keys(l)) out[k] = (k in out) ? _richer(out[k], l[k]) : l[k];
+  return out;
+}
+const MERGE_ARR = {
+  reads: (r) => r && r.d, feed: (f) => f && (f.d + "|" + f.t), waist: (w) => w && w.d,
+  photos: (p) => p && (p.d || p.id || JSON.stringify(p)),
+  caffLog: (c) => c && (c.d + "|" + (c.at || "")), medsLog: (mm) => mm && (mm.d + "|" + (mm.at || "")),
+  temp: (t) => t && t.d, pulse: (p) => p && p.d, soreness: (x) => x && x.d, energy: (x) => x && x.d, grip: (x) => x && x.d,
+  events: (e) => e && (e.id || e.d + "|" + e.t), trials: (t) => t && (t.id || t.d),
+  agentProposals: (a) => a && a.id, weekly: (w) => w && w.wk, forecasts: (f) => f && (f.d || JSON.stringify(f)),
+};
+const MERGE_OBJ = ["dailyLogs", "sessionLog", "dayCtx", "labSeen"];
+function mergeState(local, remote) {
+  if (!remote || typeof remote !== "object") return local;   // no remote / junk remote -> keep local
+  if (!local || typeof local !== "object") return remote;    // never write junk over a real remote
+  const out = { ...remote, ...local };                       // scalars: local wins; remote-only keys kept
+  for (const k of Object.keys(MERGE_ARR)) out[k] = _unionBy(remote[k], local[k], MERGE_ARR[k]);
+  for (const k of MERGE_OBJ) out[k] = _unionObj(remote[k], local[k]);
+  const rn = (remote.sleep && remote.sleep.nights) || [], ln = (local.sleep && local.sleep.nights) || [];
+  out.sleep = { ...(remote.sleep || {}), ...(local.sleep || {}), nights: _unionBy(rn, ln, (n) => n && n.d) };
+  return out;
+}
+
 /* ---------- derived ---------- */
 /* `clean` is the PERFORMANCE question — see DEBT_NOTE — and now answers it with
    the threshold the performance literature uses. `run`/`at` stay as the TARGET
@@ -6855,6 +6922,7 @@ __test.autoPilot = autoPilot;
 __test.stepTarget = stepTarget;
 __test.signalState = signalState;
 __test.dataLossGuard = dataLossGuard;
+__test.mergeState = mergeState;
 __test.fiveLevers = fiveLevers;
 __test.theOneFix = theOneFix;
 __test.whyDecompose = whyDecompose;
