@@ -109,13 +109,14 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   const A = clone(SEED);
   A.sessionLog = { "2026-07-23": { entries: [1, 2, 3] }, "2026-07-24": { entries: [1] }, "2026-07-27": { entries: [1, 2] }, "2026-07-28": { entries: [1] } };
   A.reads = SEED.reads.concat([{ d: "2026-08-02", w: 163, sealed: false }]);
-  A.feed = (SEED.feed || []).concat([{ d: "2026-08-02", t: "NEW WIN", how: "x" }]);
+  A.feed = (SEED.feed || []).concat([{ d: "2026-08-02", t: "NEW WIN", how: "x" }, { d: "2026-08-02", t: "NEW WIN", how: "x" }]);   // a legitimate identical repeat
   const B = clone(SEED);
   B.sessionLog = { "2026-07-23": { entries: [1, 2, 3] }, "2026-07-24": { entries: [1] } };   // the clobbered subset
   const m = ms(A, B);
   ok(Object.keys(m.sessionLog).length === 4, "mergeState: the four sessions survive — a smaller client can't shrink the superset");
   ok(Object.keys(ms(B, A).sessionLog).length === 4, "mergeState: union is order-independent (B∪A also keeps all four)");
   ok(m.reads.length >= A.reads.length && m.feed.length >= A.feed.length, "mergeState: reads and feed are unioned, never dropped");
+  ok(m.feed.filter((f) => f.d === "2026-08-02" && f.t === "NEW WIN").length === 2, "mergeState: an identical feed repeat is preserved (max-multiset), not silently collapsed");
   ok(dlg(A, m).safe === true && dlg(B, m).safe === true, "mergeState: the merge never shrinks either input (refuse-to-shrink holds)");
   ok(ms(A, null) === A && ms(null, B) === B, "mergeState: a missing side never clobbers the other");
 }

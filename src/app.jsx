@@ -6819,20 +6819,30 @@ function _unionObj(remoteObj, localObj) {
   for (const k of Object.keys(l)) out[k] = (k in out) ? _richer(out[k], l[k]) : l[k];
   return out;
 }
-const MERGE_ARR = {
-  reads: (r) => r && r.d, feed: (f) => f && (f.d + "|" + f.t), waist: (w) => w && w.d,
-  photos: (p) => p && (p.d || p.id || JSON.stringify(p)),
+function _unionMulti(remoteArr, localArr, keyOf) {
+  // max-multiset union for KEYLESS logs (feed) where identical entries can legitimately repeat and
+  // there is no id: keep, per identity, the side with MORE occurrences — so within-side repeats
+  // survive and only the cross-side overlap collapses. Never shrinks either side.
+  const group = (arr) => { const m = new Map(); (Array.isArray(arr) ? arr : []).forEach((x) => { let k; try { k = keyOf(x); } catch (e) { k = null; } if (k == null) return; const b = m.get(k); if (b) b.push(x); else m.set(k, [x]); }); return m; };
+  const R = group(remoteArr), L = group(localArr), out = [];
+  for (const k of new Set([...R.keys(), ...L.keys()])) { const l = L.get(k) || [], r = R.get(k) || []; (l.length >= r.length ? l : r).forEach((x) => out.push(x)); }
+  return out;
+}
+const MERGE_ARR = {   // one logical entry per key (date / id) — the richer copy wins on a collision
+  reads: (r) => r && r.d, waist: (w) => w && w.d, photos: (p) => p && (p.d || p.id || JSON.stringify(p)),
   caffLog: (c) => c && (c.d + "|" + (c.at || "")), medsLog: (mm) => mm && (mm.d + "|" + (mm.at || "")),
   temp: (t) => t && t.d, pulse: (p) => p && p.d, soreness: (x) => x && x.d, energy: (x) => x && x.d, grip: (x) => x && x.d,
   events: (e) => e && (e.id || e.d + "|" + e.t), trials: (t) => t && (t.id || t.d),
-  agentProposals: (a) => a && a.id, weekly: (w) => w && w.wk, forecasts: (f) => f && (f.d || JSON.stringify(f)),
+  agentProposals: (a) => a && a.id, weekly: (w) => w && w.wk,
 };
+const MERGE_MULTI = { feed: (f) => JSON.stringify(f), forecasts: (f) => JSON.stringify(f) };   // keyless — identical entries may legitimately repeat, so preserve multiplicity
 const MERGE_OBJ = ["dailyLogs", "sessionLog", "dayCtx", "labSeen"];
 function mergeState(local, remote) {
   if (!remote || typeof remote !== "object") return local;   // no remote / junk remote -> keep local
   if (!local || typeof local !== "object") return remote;    // never write junk over a real remote
   const out = { ...remote, ...local };                       // scalars: local wins; remote-only keys kept
   for (const k of Object.keys(MERGE_ARR)) out[k] = _unionBy(remote[k], local[k], MERGE_ARR[k]);
+  for (const k of Object.keys(MERGE_MULTI)) out[k] = _unionMulti(remote[k], local[k], MERGE_MULTI[k]);
   for (const k of MERGE_OBJ) out[k] = _unionObj(remote[k], local[k]);
   const rn = (remote.sleep && remote.sleep.nights) || [], ln = (local.sleep && local.sleep.nights) || [];
   out.sleep = { ...(remote.sleep || {}), ...(local.sleep || {}), nights: _unionBy(rn, ln, (n) => n && n.d) };
