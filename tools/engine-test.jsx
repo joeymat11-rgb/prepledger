@@ -181,6 +181,18 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   ok(BC.BULK_LEAN_CEIL_PCT >= BC.BULK_CORR_PCT[0] && BC.BULK_LEAN_CEIL_PCT <= BC.BULK_CORR_PCT[1], "the lean-gain ceiling (0.15) now sits inside the recalibrated bulk corridor");
 }
 
+// v6.2 audit fixes — Garthe 2011 figures corrected, and a same-day weight update is REAL (was a no-op)
+{
+  const BC = __test.BC;
+  ok(BC.CUT_GARTHE_SLOW_LBM === 2.1 && BC.CUT_GARTHE_FAST_LBM === -0.2 && BC.CUT_GARTHE_FAST_RATE === 1.4, "gauge cites the verified Garthe 2011 LBM figures (+2.1% slow / −0.2% fast at 1.4%/wk), not the earlier +1.7%/−2.0% (the flagged 10× error)");
+  const day = "2026-08-15";
+  const st = __test.applyRead(clone(SEED), day, 170);
+  const noop = __test.applyRead(st, day, 168).reads.find((r) => r.d === day).w;
+  const updated = __test.applyRead(__test.undoRead(st, day), day, 168).reads.find((r) => r.d === day).w;
+  ok(st.reads.find((r) => r.d === day).w === 170 && noop === 170, "applyRead alone can't overwrite a same-day read (the guard) — why the raw quick-log Update was a silent no-op");
+  ok(updated === 168, "undo-then-apply performs a REAL same-day weight update — the v6.2 quick-log fix");
+}
+
 // Twin body-composition + redline — v6.1 (fat/lean partition + corridor, one number decomposed)
 {
   const base = clone(SEED); base.blackout = { until: "2026-05-01" };

@@ -2203,10 +2203,16 @@ function etaRange(s, targetPct) {
    correction a one-line change. Nothing here is invented — each carries its source. Rates are
    %BODYWEIGHT/week. */
 const BC = {
-  // CUT · rate. ACSM 2009 ≤1%/wk cap; Garthe 2011: the 0.7%/wk arm GAINED 1.7% lean, the
-  // 1.0%/wk arm LOST 2.0%, on identical total weight lost.
-  CUT_REDLINE_PCT: 1.0,          // Garthe 2011 / ACSM 2009
-  CUT_OPT_PCT: 0.70,             // Garthe 2011 lean-preserving optimum
+  // CUT · rate. Garthe & Raastad 2011 (IJSNEM 21(2):97) randomised two weight-loss rates in elite
+  // athletes on a strength programme: the SLOW 0.7%/wk arm GAINED lean body mass (+2.1% ±0.4,
+  // p<.001) while the FAST 1.4%/wk arm was lean-NEUTRAL (−0.2% ±0.7), between-group p<.01 — on
+  // matched total weight lost. So 0.7%/wk is the lean-preserving optimum, and 1.0%/wk is a
+  // conservative redline set BELOW the study's 1.4%/wk fast arm. The gauge copy reads the exact
+  // figures from the named constants below (v6.2 audit — corrected the earlier +1.7%/−2.0%).
+  CUT_REDLINE_PCT: 1.0,          // Garthe 2011 — conservative cap below the 1.4%/wk fast arm
+  CUT_OPT_PCT: 0.70,             // Garthe 2011 lean-preserving optimum (the +2.1% LBM arm)
+  CUT_GARTHE_SLOW_RATE: 0.7, CUT_GARTHE_FAST_RATE: 1.4,     // the two study arms (%BW/wk)
+  CUT_GARTHE_SLOW_LBM: 2.1, CUT_GARTHE_FAST_LBM: -0.2,      // LBM change per arm (%, Garthe 2011)
   // CUT · partition. KCAL_PER_LB_MIX (3800) ≈ 87% fat / 13% lean for a lean high-protein
   // trained male (Hall 2008: fat 4282, lean 816 kcal/lb). Lean fraction rises with rate:
   // deficit magnitude is the lean-mass variable (Murphy & Koehler 2022); leanness is a
@@ -3236,10 +3242,10 @@ function weekReview(s) {
   const holds = s.exercises.filter((e) => e.holdFlag).length;
   const cur = currentRate(s);
   const sealedNow = blackoutOn(s);
-  const props = (s.proposals || []).filter((p) => !p.applied && !p.dismissed);
+  const props = (s.proposals || []).filter((p) => !p.resolved);
   const appliedAdj = s.feed.filter((f) => inWin(f.d) && /(PROPOSAL|EASE|RATE RULE|4TH SET|UNI|OVERRIDDEN)/.test(f.t)).length;
   const adjLine = props.length
-    ? `adjustments armed on NOW: ${props.slice(0, 2).map((p) => p.t || p.id).join(" · ")} — one tap applies`
+    ? `adjustments armed on NOW: ${props.slice(0, 2).map((p) => p.title || p.t || p.id).join(" · ")} — one tap applies`
     : appliedAdj
     ? `adjustments this week: ${appliedAdj} — all filed in the story, all reversible`
     : sealedNow
@@ -5191,9 +5197,9 @@ function runAdaptive(state, todayISO) {
      band's UPPER edge did nothing — he could run above his own band for weeks
      and hear nothing until the redline, which sits far above it. His band top
      is 1.4 lb/wk; the redline is 1.9. That gap is 0.3%/wk of bodyweight, and it
-     is exactly the gap Garthe 2011 measured: the 0.7%/wk arm gained 1.7% lean
-     mass while the 1.0%/wk arm lost 2.0%, on identical total weight lost. A
-     stated band that never speaks is decoration. */
+     is exactly the gap Garthe 2011 measured: the 0.7%/wk arm gained +2.1% lean
+     body mass while the 1.4%/wk arm was lean-neutral (−0.2%), on matched total
+     weight lost. A stated band that never speaks is decoration. */
   const above = r.measured ? r.rates.slice(-2).filter((x) => x > s.rate.band[1] && x < s.rate.redline) : [];
   if (!sealed && above.length === 2)
     propose("bandtop_" + monday, "RUNNING ABOVE YOUR BAND", `Two weeks at ${above.map((x) => x.toFixed(1)).join(" and ")} lb/wk, against a band that tops out at ${s.rate.band[1]}. Not a redline — the redline is ${s.rate.redline} and nothing is on fire. But this is the range where the evidence starts charging you: matched for total weight lost, the slower arm of the closest trial kept more muscle AND lost more fat than the faster one. The cheapest fix is not food — it is steps, because they cost you nothing you are trying to keep.`, { kind: "cal", delta: 75 });
@@ -6968,6 +6974,7 @@ __test.LEDGER_DICT = LEDGER_DICT;
 __test.briefAnswered = briefAnswered;
 __test.liftCall = liftCall;
 __test.applyRead = applyRead;
+__test.undoRead = undoRead;
 __test.dayWeather = dayWeather;
 __test.CALL_PLAIN = CALL_PLAIN;
 __test.sweepStalls = sweepStalls;
@@ -7753,7 +7760,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [ifCue, setIfCue] = useState("");
   const [ifAct, setIfAct] = useState("");
   const [qlOpen, setQlOpen] = useState(false);
-  const [wIn, setWIn] = useState(s.trend);
+  const [wIn, setWIn] = useState(() => { const rt0 = (s.reads || []).find((r) => r.d === isoOf(todayStart())); return rt0 ? rt0.w : s.trend; });
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
   const [pulseIn, setPulseIn] = useState(((s.pulse || [])[Math.max(0, (s.pulse || []).length - 1)] || {}).bpm || 58);
   const [tempIn, setTempIn] = useState(((s.temp || [])[Math.max(0, (s.temp || []).length - 1)] || {}).f || 97.6);
@@ -7835,7 +7842,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                 <Stepper v={wIn} set={setWIn} step={0.1} min={100} />
               </div>
               {readToday && <div style={doneCss}>logged {readToday.w} lb today ✓ — re-logging updates it</div>}
-              <Btn full tone="jade" onClick={() => { const ns2 = runAdaptive(applyRead(s, tISO, wIn), tISO); setS(ns2); save(ns2); hap(12); setQlOpen(false); }}>{readToday ? `Update to ${wIn} lb` : `Log ${wIn} lb`}</Btn>
+              <Btn full tone="jade" onClick={() => { const base = readToday ? undoRead(s, tISO) : s; const ns2 = runAdaptive(applyRead(base, tISO, wIn), tISO); setS(ns2); save(ns2); hap(12); setQlOpen(false); }}>{readToday ? `Update to ${wIn} lb` : `Log ${wIn} lb`}</Btn>
             </div>
             <div>
               {/* SLEEP · last night — STATUS ONLY, morning-specific; entry stays in the SLEEP tab (non-redundant) */}
@@ -10452,9 +10459,9 @@ function HistTab({ s, setS, save }) {
               ? (gar === "green" ? T.jade : gar === "amber" ? T.orange : T.redline)
               : (bc.zone === "corridor" ? T.jade : bc.zone === "redline" ? T.redline : T.orange);
             const zoneMsg = cut
-              ? (gar === "green" ? "recomp territory — building muscle while you lean out (Garthe 2011: +1.7% lean at 0.7%/wk)."
-                : gar === "amber" ? "muscle held flat, not built — the max-fat-loss lane, just under the redline."
-                : "past the 1%BW/wk redline — this pace spends muscle (Garthe 2011: −2% lean). Ease back.")
+              ? (gar === "green" ? `recomp territory — building muscle while you lean out (Garthe 2011: +${BC.CUT_GARTHE_SLOW_LBM}% lean at ${BC.CUT_GARTHE_SLOW_RATE}%/wk).`
+                : gar === "amber" ? "muscle held, not built — the max-fat-loss lane, just under the redline."
+                : `past the redline — you forfeit the slow arm's +${BC.CUT_GARTHE_SLOW_LBM}% lean; Garthe's ${BC.CUT_GARTHE_FAST_RATE}%/wk arm held flat (${BC.CUT_GARTHE_FAST_LBM}%), and the loss comes off muscle beyond it. Ease back.`)
               : (bc.zone === "corridor" ? "the fastest body-comp change your body banks without cost — ride here."
                 : bc.zone === "redline" ? "the extra is turning to fat now — ease the surplus."
                 : "too slow to make the gain count — a touch more.");
