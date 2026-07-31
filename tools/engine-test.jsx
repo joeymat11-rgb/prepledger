@@ -163,6 +163,24 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   ok(apF.ok && apF.pctRate > apF.band.redlinePct && apF.action === "ease", "a cut past the 1%BW/wk redline proposes EASING to protect muscle, not tightening");
 }
 
+// Auto-Pilot MODE toggle — v6.2 (one corridor engine; the mode only selects which slice it steers to)
+{
+  const base = clone(SEED); base.blackout = { until: "2026-05-01" };
+  const recomp = __test.autoPilot(base, "recomp");
+  const fatloss = __test.autoPilot(base, "fatloss");
+  ok(__test.autoPilot(base).mode === "recomp", "autoPilot defaults to MAX BODY COMPOSITION (recomp)");
+  ok(Math.abs(recomp.targetPct - __test.BC.CUT_OPT_PCT) < 0.02, "recomp steers to the lean-preserving optimum CUT_OPT_PCT (~0.70 %BW/wk)");
+  ok(fatloss.targetPct > recomp.targetPct && fatloss.targetPct <= fatloss.band.redlinePct, "MAX FAT LOSS targets a faster slice — the corridor top, still under the redline");
+  ok(recomp.band.corrLb[1] === fatloss.band.corrLb[1] && recomp.band.redlinePct === fatloss.band.redlinePct, "both modes read the SAME corridor — only the target slice differs (non-redundant)");
+}
+
+// v6.2 audit 4b — bulk corridor recalibrated to the advanced lean-bulk band
+{
+  const BC = __test.BC;
+  ok(BC.BULK_CORR_PCT[0] === 0.125 && BC.BULK_CORR_PCT[1] === 0.25 && BC.BULK_REDLINE_PCT === 0.25, "bulk corridor is the advanced band 0.125–0.25 %BW/wk, redline 0.25 (Aragon & Schoenfeld / Lyle)");
+  ok(BC.BULK_LEAN_CEIL_PCT >= BC.BULK_CORR_PCT[0] && BC.BULK_LEAN_CEIL_PCT <= BC.BULK_CORR_PCT[1], "the lean-gain ceiling (0.15) now sits inside the recalibrated bulk corridor");
+}
+
 // Twin body-composition + redline — v6.1 (fat/lean partition + corridor, one number decomposed)
 {
   const base = clone(SEED); base.blackout = { until: "2026-05-01" };

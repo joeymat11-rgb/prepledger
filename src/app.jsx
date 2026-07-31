@@ -54,6 +54,15 @@ const T = {
      mark, the (measured) tag, and earned moments — nothing that is merely tappable. */
   gauge: "#3FB4D8",
 };
+/* hexA(token, a) — a translucent wash of a THEME token, computed at render so it follows the
+   active palette (light/dark). Replaces the hardcoded rgba() fills the v6.1 tachometer shipped
+   with: those were dark-mode hexes that never lightened on paper (v6.2 audit 4c). */
+function hexA(hex, a) {
+  const h = String(hex).replace("#", "");
+  const n = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const r = parseInt(n.slice(0, 2), 16), g = parseInt(n.slice(2, 4), 16), b = parseInt(n.slice(4, 6), 16);
+  return `rgba(${isNaN(r) ? 0 : r},${isNaN(g) ? 0 : g},${isNaN(b) ? 0 : b},${a})`;
+}
 /* ---------- THEME: system | light | dark ----------
    A daily instrument spans a pre-dawn weigh-in and noon conditioning in sunlight,
    and for normal vision light mode reads better outdoors — so dark-only was a
@@ -2210,10 +2219,12 @@ const BC = {
   // projection honestly. The app still never projects lean GAIN in a deficit (drip stays 0) — the
   // best honest case shown is lean HELD, i.e. recomposition = fat off, muscle retained.
   CUT_RT_RETENTION: 0.70,       // Longland 2016 / Helms 2014 / Murphy & Koehler 2022
-  // BULK · rate. Iraki 2019 lean-bulk surplus → ~0.25–0.5 %BW/wk weight gain; past it the
-  // surplus spills to fat (Slater 2019: no controlled surplus-size trial exists — this is a
-  // conservative practitioner band, labelled as such in the UI).
-  BULK_CORR_PCT: [0.25, 0.50], BULK_REDLINE_PCT: 0.50,   // Iraki 2019 / Slater 2019
+  // BULK · rate. An ADVANCED multi-year-trained lifter's lean-bulk surplus is ~0.125–0.25 %BW/wk
+  // weight gain (Aragon & Schoenfeld 2020 / Lyle McDonald muscular-potential model). Iraki 2019's
+  // 0.25–0.5 %BW/wk is the novice/intermediate band; above ~0.25%/wk an advanced lifter's surplus
+  // spills to fat (Slater 2019: no controlled surplus-size trial exists — practitioner band,
+  // labelled as such in the UI). Brackets BULK_LEAN_CEIL_PCT (0.15). [v6.2 audit 4b recalibration]
+  BULK_CORR_PCT: [0.125, 0.25], BULK_REDLINE_PCT: 0.25,   // Aragon & Schoenfeld 2020 / Lyle McDonald / Slater 2019
   // BULK · lean-gain ceiling by training age (Aragon & Schoenfeld 2020 / Lyle McDonald model of
   // muscular potential): intermediate ~0.25 %BW/wk, advanced ~0.125. Multi-year trained → the
   // advanced-leaning midpoint. Used as the lean cap on a bulk.
@@ -2341,7 +2352,7 @@ function twinBodyComp(s, opts) {
    drift, off the measured rate, never a single noisy week. v6.1: it steers to the
    BODY-COMPOSITION corridor (bodyCompBand — the SAME one the Twin shows), direction-aware,
    and flags protein when it is under the lean-retention floor that keeps the loss off muscle. */
-function autoPilot(s) {
+function autoPilot(s, mode) {
   const r = currentRate(s);
   const td = observedTDEE(s);
   if (!r.measured || !td || !td.tdee) return { ok: false, goalRate: ((s.rate && s.rate.band) || [1.0])[0] };
@@ -2350,13 +2361,22 @@ function autoPilot(s) {
   const band = bodyCompBand(s, dir);
   const bw = s.trend;
   const pctRate = +(Math.abs(measRate) / bw * 100).toFixed(2);
-  // Steer to the corridor. Past the redline -> EASE toward the corridor top (muscle at risk on a
-  // cut / fat spillover on a bulk); below the corridor -> TIGHTEN (leaving body-comp on the
-  // table). Corrections priced in kcal via the app's own energy density.
-  let action = "hold", target = null;
-  if (pctRate > band.redlinePct) { action = "ease"; target = band.corrLb[1]; }
-  else if (Math.abs(measRate) < band.corrLb[0]) { action = "tighten"; target = band.corrLb[0]; }
-  const corrKcal = target != null ? Math.round((Math.abs(Math.abs(measRate) - target) * KCAL_PER_LB_MIX) / 7) : 0;
+  // MODE (v6.2) — which slice of the corridor Auto-Pilot steers to. CUT: MAX BODY COMPOSITION
+  // (recomp) targets the lean-preserving optimum CUT_OPT_PCT (Garthe 2011 ~0.70 %BW/wk — best pure
+  // body-comp change); MAX FAT LOSS targets the corridor top, just under the redline (fastest fat
+  // off, muscle held flat). BULK: no fat-loss analog — both ride the disciplined lean-gain ceiling
+  // (corridor top, never past the redline). ONE corridor engine (bodyCompBand); the mode only
+  // selects the target slice — no second computation.
+  const apMode = mode === "fatloss" ? "fatloss" : "recomp";
+  const targetLb = dir === "cut"
+    ? (apMode === "fatloss" ? band.corrLb[1] : +((BC.CUT_OPT_PCT / 100) * bw).toFixed(2))
+    : band.corrLb[1];
+  const targetPct = +((targetLb / bw) * 100).toFixed(2);
+  const gapLb = Math.abs(measRate) - targetLb;    // + = running hotter than the mode target
+  let action = "hold";
+  if (gapLb > 0.05) action = "ease";              // faster than target -> ease toward it
+  else if (gapLb < -0.05) action = "tighten";     // slower than target -> tighten toward it
+  const corrKcal = Math.round((Math.abs(gapLb) * KCAL_PER_LB_MIX) / 7);
   const stg = stepTarget(s);
   const kcalPer1k = stg.kcalPer1k || 20;
   const stepsAdd = Math.max(500, Math.round((corrKcal / kcalPer1k) * 1000 / 500) * 500);
@@ -2371,7 +2391,7 @@ function autoPilot(s) {
   const lastPro = proRows.length ? proRows[proRows.length - 1][1].pro : null;
   const proteinOff = lastPro != null && lastPro < proFloorG;
   return {
-    ok: true, dir, goalRate: band.corrLb[0], measRate: +measRate.toFixed(2), tdee: Math.round(td.tdee), n: r.n || 0,
+    ok: true, dir, mode: apMode, goalRate: targetLb, targetLb, targetPct, measRate: +measRate.toFixed(2), tdee: Math.round(td.tdee), n: r.n || 0,
     band, pctRate, action, corrKcal, stepsAdd, proposed, onLine: !proposed,
     proteinOff, proteinTargetG: pt.g, proteinFloorG: proFloorG, lastPro,
   };
