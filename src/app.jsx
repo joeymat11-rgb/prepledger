@@ -2272,8 +2272,14 @@ function partitionRates(rate, s, dir) {
     const lean = +(rate * leanFrac).toFixed(2);
     return { fat: +(rate - lean).toFixed(2), lean, leanFrac: +leanFrac.toFixed(3), rt: +rt.toFixed(2) };
   }
-  const leanFrac = Math.max(BC.BULK_LEAN_MIN, Math.min(BC.BULK_LEAN_MAX, BC.BULK_LEAN_BASE - Math.max(0, pct - BC.BULK_REDLINE_PCT) * BC.BULK_LEAN_SLOPE));
-  const lean = +(rate * leanFrac).toFixed(2);
+  // bulk: lean fraction of the GAIN, then HARD-capped by the MPS lean-gain ceiling — muscle
+  // cannot be built faster than the ceiling no matter the surplus; the rest spills to fat.
+  const gain = Math.abs(rate);
+  let leanFrac = Math.max(BC.BULK_LEAN_MIN, Math.min(BC.BULK_LEAN_MAX, BC.BULK_LEAN_BASE - Math.max(0, pct - BC.BULK_REDLINE_PCT) * BC.BULK_LEAN_SLOPE));
+  const ceilLb = (BC.BULK_LEAN_CEIL_PCT / 100) * bw;
+  const leanMag = Math.min(gain * leanFrac, ceilLb);
+  if (gain > 0) leanFrac = leanMag / gain;
+  const lean = +(rate < 0 ? -leanMag : leanMag).toFixed(2);
   return { fat: +(rate - lean).toFixed(2), lean, leanFrac: +leanFrac.toFixed(3), rt: 1 };
 }
 
@@ -2358,13 +2364,16 @@ function autoPilot(s) {
   // protein as a body-comp lever — the partition depends on it. Flag if the last logged day is
   // under the derived lean-retention floor (proteinTarget.lo = 2.5 g/kg FFM; Refalo/Helms/Longland).
   const pt = proteinTarget(s);
+  // Cut floor = FFM-based lean-retention (proteinTarget.lo, 2.5 g/kg FFM). Bulk floor = MPS
+  // saturation, 1.6 g/kg BW (Morton 2018) — direction-aware, both from BC / the derived target.
+  const proFloorG = dir === "bulk" ? Math.round(BC.BULK_PROTEIN_G_PER_KG_BW * (s.trend / 2.2046)) : pt.lo;
   const proRows = Object.entries(s.dailyLogs || {}).filter(([, v]) => v && v.pro != null).sort((a, b) => (a[0] < b[0] ? -1 : 1));
   const lastPro = proRows.length ? proRows[proRows.length - 1][1].pro : null;
-  const proteinOff = lastPro != null && lastPro < pt.lo;
+  const proteinOff = lastPro != null && lastPro < proFloorG;
   return {
     ok: true, dir, goalRate: band.corrLb[0], measRate: +measRate.toFixed(2), tdee: Math.round(td.tdee), n: r.n || 0,
     band, pctRate, action, corrKcal, stepsAdd, proposed, onLine: !proposed,
-    proteinOff, proteinTargetG: pt.g, proteinFloorG: pt.lo, lastPro,
+    proteinOff, proteinTargetG: pt.g, proteinFloorG: proFloorG, lastPro,
   };
 }
 
