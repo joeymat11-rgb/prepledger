@@ -1,39 +1,39 @@
 {
-  "gen": "2026-07-30T12:45:04.156Z",
+  "gen": "2026-07-31T09:05:49.385Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-07-30_sync_republish",
+      "sid": "sug_2026-07-31_legcards",
       "rank": 1,
-      "title": "Republish your ledger — an old iPhone build is overwriting it",
+      "title": "Fix your leg-day cards before you train — they're showing July 21",
       "apply": {
         "kind": "note"
       },
       "rationale": {
-        "science": "Not a physiology call, a measurement one. Adherence is the meta-lever, and adherence can only be judged from a complete log — when the record is wrong, every read downstream of it is wrong too (Alhassan 2008).",
-        "data": "Your file was whole at 4:21 PM Wednesday: 47 weigh-ins, Monday's upper day and Tuesday's lower day both in, 4 approved cards. At 11:42 PM a save replaced it with a copy that stops at Monday's weigh-in and Friday's training — 2 weigh-ins, 2 sessions, 2 nights, 23 feed rows and all 4 of your approved decisions gone. The same overwrite hit twice on Wednesday afternoon and healed both times.",
-        "relationship": "The culprit logs itself: an iPhone on app v4.0.11 (you're published at v4.2.9) crashed at 7:03 PM Wednesday writing sodium onto a day its stale copy doesn't contain, then saved that copy over yours 39 minutes later. Force-refresh that phone to v4.2.9 before you log anything else on it, and open the app on your current device so it republishes the whole file. Nothing is lost — every good version is still in the repo's history."
+        "science": "On a cut the lever that protects lean is defending load, not chasing volume (Schoenfeld 2017; Grgic 2021) — and when progress looks stuck, measurement and adherence are the first thing to check, not metabolism (Alhassan 2008). A lift card showing the wrong load is a measurement failure, and it costs you the same as a missed session.",
+        "data": "All nine upper-day lifts updated through Thursday 7/30. All six lower-day lifts still read 7/21 and are flagged debt. Calves says 315 with 'reclaim 13,12,11,10' — you re-earned that on 7/24 and debuted 320 on 7/28. Hack says 'hold' with the third set pending — you loaded 160 on 7/24 and owned 9,9,9 on 7/28. Abs says no baseline — you debuted 100 on 7/24 (9,10,12) and repeated it on 7/28 (10,12,10). Your session records for both lower days survived intact; only the cards went backwards.",
+        "relationship": "The debt flag from 7/21 is the expensive part: while all six sit on a fix-window day, every set you log today banks as provisional and nothing counts as owned. Your next session is a lower day, so this bites within 24 hours — and it's also why the calves 320 question and the extension card can't be graded until it's fixed."
       },
-      "predict": "Tuesday and Wednesday's weigh-ins, both sessions, both nights and your four approved cards reappear; the trend returns to 163.9; and the lateral increment you earned Monday shows up again.",
+      "predict": "Set calves to 320, hack to 160 and abs to 100 on the cards before your first set and today's leg day banks as owned. Leave them and you'll repeat 315 and a hack you outgrew nine days ago, and none of it will count.",
       "confidence": "high",
       "gate": "approve"
     },
     {
-      "sid": "sug_2026-07-30_lateral_85",
+      "sid": "sug_2026-07-31_press250",
       "rank": 2,
-      "title": "Lateral machine 80 → 85 — the opener has topped its window",
+      "title": "Press 250: get the coach flag — you owned 245 on Thursday",
       "apply": {
         "kind": "progression",
-        "to": "Lateral machine 80 → 85 (4 sets, open at ~2 RIR)"
+        "to": "Press 250 — raise with your coach for the structural flag, then debut"
       },
       "rationale": {
-        "science": "Double progression: once the opener reaches the top of its rep window with reps still in reserve, load is the limiter rather than volume — and on a cut you defend and advance load instead of chasing sets (Schoenfeld 2017). ACSM's progression stand asks for 2–10% increments.",
-        "data": "Your 80 lb opener has climbed three sessions running — 14,13,13 (7/20), 14,14,13,12 (7/23), 15,14,13,12 (Mon 7/27) — and 15 is the ceiling of your window, hit at 2 reps in reserve. No other lift in the programme has its opener at the ceiling.",
-        "relationship": "5 lb on 80 is 6.25%, inside ACSM's range and the smallest step your plates allow. At the 0.4-reps-per-1%-of-load slope your own app cites (Nuzzo 2024) that costs about 2.5 reps, landing the opener near 12–13 — exactly where a new load should start, so nothing has to be rebuilt."
+        "science": "On a deficit, defend and where earned advance load rather than chase volume — load is the signal that holds lean tissue while calories are low (Schoenfeld 2017; Robinson 2024; Grgic 2021).",
+        "data": "245 x 8,8,7 landed clean on 7/30 and the app banked it: 'PRESS 245 OWNED — 8,8,7 repeated.' The four attempts before it all failed the ownership test — 8,7,6 on 7/20, 8,8,7 on 7/23 but on debt, 8,8,5 on 7/27. 250 is already queued and its only remaining gate is a coach flag.",
+        "relationship": "Nothing physical is blocking this — the increment is earned and the queue is holding it for a human sign-off, which is where a structural load change belongs. The clean week is what unlocked it, and the clean week came from the bedtime you fixed on Tuesday."
       },
-      "predict": "85 opens at 12–13 with 2 in reserve, and the four-set shape rebuilds toward 15 within two or three sessions.",
+      "predict": "5 lb on 245 is 2%, which by your app's own reps-per-load slope costs about eight-tenths of a rep — expect 250 to open at 7 and land near 7,7,6, then climb back to 8,8,7 over two or three clean sessions.",
       "confidence": "high",
-      "gate": "approve"
+      "gate": "coach"
     }
   ]
 }

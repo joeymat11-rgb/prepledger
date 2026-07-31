@@ -1,15 +1,15 @@
 {
-  "gen": "2026-07-30T12:45:04.156Z",
+  "gen": "2026-07-31T09:05:49.385Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 164.85,
-    "lastRaw": 161.8,
-    "appTrend": 164.3,
+    "soft": 164.14,
+    "lastRaw": 161,
+    "appTrend": 163.9,
     "noiseFloor": 1.52,
-    "gap": 3.05
+    "gap": 3.14
   },
   "rate": {
-    "perWeekLb": 1.26,
+    "perWeekLb": 1.24,
     "perWeekPct": 0.76,
     "bandLb": 0.89,
     "personalBand": [
@@ -19,13 +19,13 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2610,
+    "tdee": 2592,
     "tdeeWinDays": 20,
-    "meanCal": 2072,
+    "meanCal": 2092,
     "waterSensitivityLb": null,
     "waterSensDays": 2,
-    "meanSleepH": 6.9,
-    "sleepDebt7H": 1.8,
+    "meanSleepH": 7.3,
+    "sleepDebt7H": 1,
     "ffmKg": 63.4,
     "proteinTargetG": 146
   },
@@ -71,16 +71,69 @@
     },
     {
       "wk": "2026-07-27",
-      "meanCal": 1760,
-      "meanPro": 175,
+      "meanCal": 2078,
+      "meanPro": 179,
       "proHitPct": 100,
-      "meanSteps": 16500
+      "meanSteps": 17200
     }
   ],
-  "priorDecisions": [],
+  "priorDecisions": [
+    {
+      "sid": "sug_2026-07-28_sleep",
+      "decided": "approved",
+      "d": "2026-07-28",
+      "title": "Fix lights-out: pick a time, take 7.5 h",
+      "apply": {
+        "kind": "sleep",
+        "to": 7.5
+      },
+      "predict": "Back at 7.5 h, the press third set returns to 7 and the loss keeps coming off fat rather than lean."
+    },
+    {
+      "sid": "sug_2026-07-28_hold",
+      "decided": "approved",
+      "d": "2026-07-28",
+      "title": "Hold the Calves 320 debut until a clean week",
+      "apply": {
+        "kind": "note"
+      },
+      "predict": "The 320 debut lands on a clean week and sticks first time; nothing you own gets contested on recovery grounds."
+    },
+    {
+      "sid": "sug_2026-07-29_band_hold",
+      "decided": "approved",
+      "d": "2026-07-29",
+      "title": "Leave the calorie band alone - that drift is your step taper",
+      "apply": {
+        "kind": "note"
+      },
+      "predict": "Holding the band keeps the rate inside 1.0-1.4 lb/wk, and the maintenance fit settles near 2,470 once a clean post-seal fortnight replaces the frozen reads."
+    },
+    {
+      "sid": "sug_2026-07-29_ext_opener",
+      "decided": "approved",
+      "d": "2026-07-29",
+      "title": "Extension: open harder — one rep in the tank, not two",
+      "apply": {
+        "kind": "progression",
+        "to": "Extension 150: take set 1 to ~1 RIR until 9,9 lands"
+      },
+      "predict": "Next lower day the opener lands 9 and the pair reaches 9,9, reopening 155 within two sessions."
+    },
+    {
+      "sid": "sug_2026-07-30_sync_republish",
+      "decided": "approved",
+      "d": "2026-07-31",
+      "title": "Republish your ledger — an old iPhone build is overwriting it",
+      "apply": {
+        "kind": "note"
+      },
+      "predict": "Tuesday and Wednesday's weigh-ins, both sessions, both nights and your four approved cards reappear; the trend returns to 163.9; and the lateral increment you earned Monday shows up again."
+    }
+  ],
   "suggestions": [
     {
-      "sid": "sug_2026-07-27_sleep",
+      "sid": "sug_2026-07-30_sleep",
       "title": "Protect sleep: aim 7.5 h, cap afternoon caffeine",
       "apply": {
         "kind": "sleep",
@@ -88,7 +141,7 @@
       },
       "rationale": {
         "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss 55% and raised lean-mass loss 60% (Nedeltcheva 2010).",
-        "data": "Last 13 nights average 6.9 h (7-night debt 1.8 h); 3 recent days had >=300 mg or afternoon caffeine.",
+        "data": "Last 13 nights average 7.3 h (7-night debt 1 h); 5 recent days had >=300 mg or afternoon caffeine.",
         "relationship": "Short sleep + late caffeine track with your low recovery score and rep dips - the lever that protects lean while you cut."
       },
       "predict": "Higher share of loss as fat; lean protected; better session quality.",
