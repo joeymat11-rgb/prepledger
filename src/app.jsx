@@ -7813,38 +7813,64 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       <button onClick={() => { hap(8); setQlOpen(true); }} aria-label="Quick log"
         style={{ position: "fixed", right: 16, bottom: "calc(96px + env(safe-area-inset-bottom))", zIndex: 60, width: 52, height: 52, borderRadius: "50%", background: T.gauge, color: T.ink, border: "none", boxShadow: "0 4px 16px rgba(0,0,0,0.4)", fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", cursor: "pointer" }}>+</button>
       <Sheet open={qlOpen} onClose={() => setQlOpen(false)} title="QUICK LOG">
-        <div style={{ display: "flex", flexDirection: "column", gap: SP.lg }}>
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: SP.sm }}>
-              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.steel, letterSpacing: "0.06em", textTransform: "uppercase" }}>WEIGHT · fasted</span>
-              <Stepper v={wIn} set={setWIn} step={0.1} min={100} />
+        {(() => {
+          // v6.2 F3 — every field names WHICH day it logs, and shows an already-logged read
+          // (recognition-over-recall, NN/g heuristic #6) rather than prompting as if empty. Sleep is
+          // a STATUS only: it's a morning metric and lives in the SLEEP tab — surfaced here, not
+          // re-entered (research: keep the daily flow one-tap, no second sleep-logging surface).
+          const readToday = (s.reads || []).find((r) => r.d === tISO);
+          const d0 = s.dailyLogs[tISO] || {};
+          const waistWeek = (s.waist || []).slice().reverse().find((w) => { const g = (mk(tISO) - mk(w.d)) / DAY; return g >= 0 && g < 7; });
+          const nights = (s.sleep && s.sleep.nights) || [];
+          const lastNight = nights[nights.length - 1];
+          const lastNightFresh = lastNight && ((mk(tISO) - mk(lastNight.d)) / DAY) <= 1;
+          const lblCss = { fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.steel, letterSpacing: "0.06em", textTransform: "uppercase" };
+          const doneCss = { fontFamily: mono, fontSize: TS.micro, color: T.jade, marginBottom: SP.xs, ...NUMERIC };
+          const anyDaily = d0.cal != null || d0.pro != null || d0.steps != null;
+          return (
+          <div style={{ display: "flex", flexDirection: "column", gap: SP.lg }}>
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: SP.sm }}>
+                <span style={lblCss}>WEIGHT · this morning</span>
+                <Stepper v={wIn} set={setWIn} step={0.1} min={100} />
+              </div>
+              {readToday && <div style={doneCss}>logged {readToday.w} lb today ✓ — re-logging updates it</div>}
+              <Btn full tone="jade" onClick={() => { const ns2 = runAdaptive(applyRead(s, tISO, wIn), tISO); setS(ns2); save(ns2); hap(12); setQlOpen(false); }}>{readToday ? `Update to ${wIn} lb` : `Log ${wIn} lb`}</Btn>
             </div>
-            <Btn full tone="jade" onClick={() => { const ns2 = runAdaptive(applyRead(s, tISO, wIn), tISO); setS(ns2); save(ns2); hap(12); setQlOpen(false); }}>Log {wIn} lb</Btn>
-          </div>
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: SP.sm }}>
-              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.steel, letterSpacing: "0.06em", textTransform: "uppercase" }}>WAIST · weekly</span>
-              <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
+            <div>
+              {/* SLEEP · last night — STATUS ONLY, morning-specific; entry stays in the SLEEP tab (non-redundant) */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <span style={lblCss}>SLEEP · last night</span>
+                <span style={{ fontFamily: mono, fontSize: TS.micro, color: lastNightFresh ? T.jade : T.steel, ...NUMERIC }}>{lastNightFresh ? `${lastNight.h}h logged ✓` : "not logged — in the SLEEP tab"}</span>
+              </div>
             </div>
-            <Btn full tone="gauge" onClick={() => { const ns2 = { ...s, waist: [...(s.waist || []), { d: tISO, v: +waistIn }] }; setS(ns2); save(ns2); hap(12); setQlOpen(false); }}>Log {waistIn}&quot; waist</Btn>
-          </div>
-          {/* CLOSE THE DAY — the core daily numbers, one tap, into the SAME dailyLogs store the
-              full log screen reads (saveDaily; preserves sodium/alc, keeps the protein fix-window
-              logic). Non-redundant: this is the fast path, the log screen is the full one. */}
-          <div style={{ borderTop: `1px solid ${T.hairline}`, paddingTop: SP.md }}>
-            <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.steel, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: SP.sm }}>CLOSE THE DAY · today's numbers</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: SP.sm }}>
-              {[["CALORIES", cal, setCal, 10], ["PROTEIN g", pro, setPro, 5], ["STEPS", stp, setStp, 500]].map(([label, val, setter, step]) => (
-                <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm }}>
-                  <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, color: T.steel, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}</span>
-                  <Stepper v={val === "" || val == null ? 0 : val} set={(x) => setter(x)} step={step} min={0} />
-                </div>
-              ))}
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: SP.sm }}>
+                <span style={lblCss}>WAIST · this week</span>
+                <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
+              </div>
+              {waistWeek && <div style={doneCss}>logged {waistWeek.v}&quot; this week ✓ — adds another reading</div>}
+              <Btn full tone="gauge" onClick={() => { const ns2 = { ...s, waist: [...(s.waist || []), { d: tISO, v: +waistIn }] }; setS(ns2); save(ns2); hap(12); setQlOpen(false); }}>Log {waistIn}&quot; waist</Btn>
             </div>
-            <div style={{ marginTop: SP.md }}><Btn full tone="jade" onClick={() => { saveDaily(); hap(12); setQlOpen(false); }}>Save today's numbers</Btn></div>
+            {/* CLOSE THE DAY — the core daily numbers, one tap, into the SAME dailyLogs store the
+                full log screen reads (saveDaily; preserves sodium/alc, keeps the protein fix-window
+                logic). Non-redundant: this is the fast path, the log screen is the full one. */}
+            <div style={{ borderTop: `1px solid ${T.hairline}`, paddingTop: SP.md }}>
+              <div style={{ ...lblCss, marginBottom: SP.sm }}>CLOSE THE DAY · today's numbers</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: SP.sm }}>
+                {[["CALORIES", cal, setCal, 10, d0.cal], ["PROTEIN g", pro, setPro, 5, d0.pro], ["STEPS", stp, setStp, 500, d0.steps]].map(([label, val, setter, step, logged]) => (
+                  <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm }}>
+                    <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, color: T.steel, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}{logged != null && <span style={{ fontFamily: mono, color: T.jade, fontWeight: 400, textTransform: "none", letterSpacing: 0 }}> · {logged} ✓</span>}</span>
+                    <Stepper v={val === "" || val == null ? 0 : val} set={(x) => setter(x)} step={step} min={0} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: SP.md }}><Btn full tone="jade" onClick={() => { saveDaily(); hap(12); setQlOpen(false); }}>{anyDaily ? "Update today's numbers" : "Save today's numbers"}</Btn></div>
+            </div>
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.micro}px` }}>Only the transcription moves here — stepping on the scale is still the deliberate act. One tap from anywhere on this screen.</div>
           </div>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.micro}px` }}>Only the transcription moves here — stepping on the scale is still the deliberate act. One tap from anywhere on this screen.</div>
-        </div>
+          );
+        })()}
       </Sheet>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: SP.md }}>
         <div style={{ minWidth: 0 }}>
