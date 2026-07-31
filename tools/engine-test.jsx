@@ -130,13 +130,31 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   ok(__test.migrate(withData).plan.goals.length === 1 && __test.migrate(withData).plan.share === true, "a state that already has a plan keeps it through migration");
 }
 
-// Auto-Pilot — v2 slice E (closed-loop controller; proposes, never mutates)
+// Auto-Pilot — v6.1: steers to the body-comp corridor (direction-aware), proposes never mutates
 {
   const base = clone(SEED); base.blackout = { until: "2026-05-01" };
   const ap = __test.autoPilot(base);
-  ok(ap.ok === true && ap.goalRate > 0, "autoPilot reports a goal line off a measured rate");
-  ok(ap.proposed === (ap.gap > 0 && ap.corrKcal >= 90), "a correction fires only past a full adaptation's drift (hysteresis)");
-  ok(ap.stepsAdd >= 500, "the correction always offers a real steps alternative to a calorie cut");
+  ok(ap.ok === true && ap.goalRate > 0 && ap.band && ap.band.redlinePct === __test.BC.CUT_REDLINE_PCT, "autoPilot steers to the body-comp corridor with the cited cut redline");
+  ok(["hold", "ease", "tighten"].includes(ap.action), "autoPilot returns a direction-aware steering action");
+  ok(ap.proposed === (ap.action !== "hold" && ap.corrKcal >= 90), "a correction fires only past a full adaptation's drift (hysteresis)");
+  ok(ap.stepsAdd >= 500, "the correction always offers a real steps alternative to food");
+  const fISO = (i) => new Date(Date.UTC(2026, 5, 1) + i * 86400000).toISOString().slice(0, 10);
+  const fast = clone(SEED); fast.blackout = { until: "2026-05-01" };
+  fast.reads = Array.from({ length: 24 }, (_, i) => ({ d: fISO(i), w: +(178 - i * 0.6).toFixed(2), sealed: false }));
+  const apF = __test.autoPilot(fast);
+  ok(apF.ok && apF.pctRate > apF.band.redlinePct && apF.action === "ease", "a cut past the 1%BW/wk redline proposes EASING to protect muscle, not tightening");
+}
+
+// Twin body-composition + redline — v6.1 (fat/lean partition + corridor, one number decomposed)
+{
+  const base = clone(SEED); base.blackout = { until: "2026-05-01" };
+  const tb = __test.twinBodyComp(base, {});
+  ok(tb.bc && tb.bc.band.redlinePct === __test.BC.CUT_REDLINE_PCT && tb.bc.dir === "cut", "twin body-comp reads a cut with the cited redline");
+  ok(Math.abs((tb.bc.fat + tb.bc.lean) - tb.newRate) < 0.05, "fat + lean partition sums to the ONE projected scale rate — decomposed, never recomputed");
+  ok(tb.bc.lean >= 0 && tb.bc.fat >= tb.bc.lean, "on a cut most of the loss is fat, a smaller slice lean (Hall MIX ~87/13)");
+  const fastTb = __test.twinBodyComp(base, { calDelta: -1400 });
+  ok(fastTb.bc.leanFrac > tb.bc.leanFrac, "pushing the rate up raises the lean fraction — the redline mechanism (Forbes / Murphy & Koehler)");
+  ok(fastTb.bc.zone === "redline", "a big deficit pushes the projection into the redline zone");
 }
 
 // the Digital Twin — v2 slice D (energy-balance simulation, range-only)

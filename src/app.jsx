@@ -2188,6 +2188,73 @@ function etaRange(s, targetPct) {
    loss is fat vs lean) — so it is narrated, never folded into the rate. The output is
    a RANGE, re-fit weekly, never a date on a calendar: individual response varies too
    much for a single line, which is exactly why it answers as a fan. */
+
+/* ---------- BODY-COMP PHYSIOLOGY CONSTANTS (v6.1) — every number in one place, cited ----------
+   Joe runs an independent literature audit; keeping the physiology in NAMED CONSTANTS makes a
+   correction a one-line change. Nothing here is invented — each carries its source. Rates are
+   %BODYWEIGHT/week. */
+const BC = {
+  // CUT · rate. ACSM 2009 ≤1%/wk cap; Garthe 2011: the 0.7%/wk arm GAINED 1.7% lean, the
+  // 1.0%/wk arm LOST 2.0%, on identical total weight lost.
+  CUT_REDLINE_PCT: 1.0,          // Garthe 2011 / ACSM 2009
+  CUT_OPT_PCT: 0.70,             // Garthe 2011 lean-preserving optimum
+  // CUT · partition. KCAL_PER_LB_MIX (3800) ≈ 87% fat / 13% lean for a lean high-protein
+  // trained male (Hall 2008: fat 4282, lean 816 kcal/lb). Lean fraction rises with rate:
+  // deficit magnitude is the lean-mass variable (Murphy & Koehler 2022); leanness is a
+  // headwind (Forbes via Hall 2007, up to ~49% FFM at low fat mass).
+  CUT_LEAN_BASE: 0.13, CUT_LEAN_SLOPE: 0.35, CUT_LEAN_MIN: 0.06, CUT_LEAN_MAX: 0.50,
+  // BULK · rate. Iraki 2019 lean-bulk surplus → ~0.25–0.5 %BW/wk weight gain; past it the
+  // surplus spills to fat (Slater 2019: no controlled surplus-size trial exists — this is a
+  // conservative practitioner band, labelled as such in the UI).
+  BULK_CORR_PCT: [0.25, 0.50], BULK_REDLINE_PCT: 0.50,   // Iraki 2019 / Slater 2019
+  // BULK · lean-gain ceiling by training age (Aragon & Schoenfeld 2020 / Lyle McDonald model of
+  // muscular potential): intermediate ~0.25 %BW/wk, advanced ~0.125. Multi-year trained → the
+  // advanced-leaning midpoint. Used as the lean cap on a bulk.
+  BULK_LEAN_CEIL_PCT: 0.15,     // Aragon & Schoenfeld 2020 / Lyle McDonald
+  BULK_LEAN_BASE: 0.55, BULK_LEAN_SLOPE: 0.60, BULK_LEAN_MIN: 0.15, BULK_LEAN_MAX: 0.60,
+  // PROTEIN · the partition lever. CUT lean-retention floor is FFM-based and already derived in
+  // proteinTarget (2.5 g/kg FFM: Refalo 2025 zero-crossing for net FFM change; Helms 2014;
+  // Longland 2016, where 2.4 g/kg recomposed in a deficit). BULK MPS saturates at ~1.6 g/kg BW
+  // (Morton 2018 meta-analysis) — no added hypertrophy above it.
+  BULK_PROTEIN_G_PER_KG_BW: 1.6,   // Morton 2018
+};
+
+/* ---------- BODY-COMPOSITION CORRIDOR (v6.1) — the redline, engine-owned ----------
+   The mandate is the fastest body-composition change WITHOUT cost, so the rate that matters is
+   %BODYWEIGHT/week (an absolute lb band tightens as he leans — backwards; research-brief). ONE
+   function owns the corridor; the Twin DISPLAYS it and Auto-Pilot STEERS to it — never a second
+   number. CUT corridor = the app's own rate band (already lean-preserving); BULK corridor +
+   redlines from BC. Direction-aware; every edge derives from bodyweight and the rate model. */
+function bodyCompBand(s, dir) {
+  const bw = (s && s.trend) || 165;
+  const pctToLb = (p) => +((p / 100) * bw).toFixed(2);
+  if (dir === "bulk") {
+    return { dir: "bulk", bw, corrPct: BC.BULK_CORR_PCT.slice(), redlinePct: BC.BULK_REDLINE_PCT, floorPct: BC.BULK_CORR_PCT[0],
+      corrLb: [pctToLb(BC.BULK_CORR_PCT[0]), pctToLb(BC.BULK_CORR_PCT[1])], redlineLb: pctToLb(BC.BULK_REDLINE_PCT), floorLb: pctToLb(BC.BULK_CORR_PCT[0]) };
+  }
+  const band = (s.rate && s.rate.band) || [1.0, 1.4];
+  const floorLb = (s.rate && s.rate.floor != null) ? s.rate.floor : 0.8;
+  const lbToPct = (lb) => +((lb / bw) * 100).toFixed(2);
+  return { dir: "cut", bw, corrPct: [lbToPct(band[0]), lbToPct(band[1])], redlinePct: BC.CUT_REDLINE_PCT, floorPct: lbToPct(floorLb),
+    corrLb: [band[0], band[1]], redlineLb: pctToLb(BC.CUT_REDLINE_PCT), floorLb };
+}
+
+/* Fat vs lean split of a projected weekly change — read from BC, sign follows `rate` (+ =
+   losing). Consistent with the app's own energy density; estimated, and the caller carries the
+   ±3.5-point anchor margin (a projection, not a measurement). */
+function partitionRates(rate, s, dir) {
+  const bw = (s && s.trend) || 165;
+  const pct = Math.abs(rate) / bw * 100;
+  if (dir === "cut") {
+    const leanFrac = Math.max(BC.CUT_LEAN_MIN, Math.min(BC.CUT_LEAN_MAX, BC.CUT_LEAN_BASE + (pct - BC.CUT_OPT_PCT) * BC.CUT_LEAN_SLOPE));
+    const lean = +(rate * leanFrac).toFixed(2);
+    return { fat: +(rate - lean).toFixed(2), lean, leanFrac: +leanFrac.toFixed(2) };
+  }
+  const leanFrac = Math.max(BC.BULK_LEAN_MIN, Math.min(BC.BULK_LEAN_MAX, BC.BULK_LEAN_BASE - Math.max(0, pct - BC.BULK_REDLINE_PCT) * BC.BULK_LEAN_SLOPE));
+  const lean = +(rate * leanFrac).toFixed(2);
+  return { fat: +(rate - lean).toFixed(2), lean, leanFrac: +leanFrac.toFixed(2) };
+}
+
 function digitalTwin(s, opts) {
   const o = opts || {};
   const td = observedTDEE(s);
@@ -2216,6 +2283,23 @@ function digitalTwin(s, opts) {
   };
 }
 
+/* ---------- TWIN · BODY COMPOSITION (v6.1) — the picture ----------
+   Decomposes the Twin's ONE projected rate into fat-mass and lean-mass change and places it on
+   the body-comp corridor (bodyCompBand). No competing number — it reads digitalTwin.newRate and
+   splits it with partitionRates. Direction-aware; the UI carries the ±3.5 anchor margin. */
+function twinBodyComp(s, opts) {
+  const tw = digitalTwin(s, opts);
+  if (!tw.ok || tw.newRate == null) return { ...tw, bc: null };
+  const bw = s.trend;
+  const rate = tw.newRate;                       // + = losing
+  const dir = rate >= 0 ? "cut" : "bulk";
+  const band = bodyCompBand(s, dir);
+  const pctRate = +(Math.abs(rate) / bw * 100).toFixed(2);
+  const part = partitionRates(rate, s, dir);
+  const zone = pctRate > band.redlinePct ? "redline" : pctRate >= band.corrPct[0] ? "corridor" : "below";
+  return { ...tw, bc: { dir, pctRate, band, fat: part.fat, lean: part.lean, leanFrac: part.leanFrac, zone } };
+}
+
 /* ---------- AUTO-PILOT (v2) — the thermostat, made real ----------
    The audit wanted a thermostat, not just a thermometer: hold the goal line instead
    of only reading it. observedTDEE is already a state estimate of true expenditure
@@ -2226,23 +2310,39 @@ function digitalTwin(s, opts) {
    correction: drop the target OR add steps (NEAT kept level with food, per the ladder).
    It NEVER changes anything itself — every move is a proposal for one tap, exactly like
    the app's existing inbox. Hysteresis: it only fires past a full adaptation's worth of
-   drift, off the measured rate, never a single noisy week. */
+   drift, off the measured rate, never a single noisy week. v6.1: it steers to the
+   BODY-COMPOSITION corridor (bodyCompBand — the SAME one the Twin shows), direction-aware,
+   and flags protein when it is under the lean-retention floor that keeps the loss off muscle. */
 function autoPilot(s) {
   const r = currentRate(s);
   const td = observedTDEE(s);
-  const band = (s.rate && s.rate.band) || [1.0, 1.4];
-  const goalRate = +band[0].toFixed(2);            // hold the conservative end of the band
-  if (!r.measured || !td || !td.tdee) return { ok: false, goalRate };
-  const measRate = r.scale;
-  const gap = +(goalRate - measRate).toFixed(2);   // + = drifting slower than the line
-  const corrKcal = Math.round((Math.abs(gap) * KCAL_PER_LB_MIX) / 7);
+  if (!r.measured || !td || !td.tdee) return { ok: false, goalRate: ((s.rate && s.rate.band) || [1.0])[0] };
+  const measRate = r.scale;                        // + = losing (cut), − = gaining (bulk)
+  const dir = measRate >= 0 ? "cut" : "bulk";
+  const band = bodyCompBand(s, dir);
+  const bw = s.trend;
+  const pctRate = +(Math.abs(measRate) / bw * 100).toFixed(2);
+  // Steer to the corridor. Past the redline -> EASE toward the corridor top (muscle at risk on a
+  // cut / fat spillover on a bulk); below the corridor -> TIGHTEN (leaving body-comp on the
+  // table). Corrections priced in kcal via the app's own energy density.
+  let action = "hold", target = null;
+  if (pctRate > band.redlinePct) { action = "ease"; target = band.corrLb[1]; }
+  else if (Math.abs(measRate) < band.corrLb[0]) { action = "tighten"; target = band.corrLb[0]; }
+  const corrKcal = target != null ? Math.round((Math.abs(Math.abs(measRate) - target) * KCAL_PER_LB_MIX) / 7) : 0;
   const stg = stepTarget(s);
   const kcalPer1k = stg.kcalPer1k || 20;
   const stepsAdd = Math.max(500, Math.round((corrKcal / kcalPer1k) * 1000 / 500) * 500);
-  const proposed = gap > 0 && corrKcal >= 90;      // a full adaptation's worth of drift (hysteresis)
+  const proposed = action !== "hold" && corrKcal >= 90;   // hysteresis: a full adaptation's worth
+  // protein as a body-comp lever — the partition depends on it. Flag if the last logged day is
+  // under the derived lean-retention floor (proteinTarget.lo = 2.5 g/kg FFM; Refalo/Helms/Longland).
+  const pt = proteinTarget(s);
+  const proRows = Object.entries(s.dailyLogs || {}).filter(([, v]) => v && v.pro != null).sort((a, b) => (a[0] < b[0] ? -1 : 1));
+  const lastPro = proRows.length ? proRows[proRows.length - 1][1].pro : null;
+  const proteinOff = lastPro != null && lastPro < pt.lo;
   return {
-    ok: true, goalRate, measRate: +measRate.toFixed(2), tdee: Math.round(td.tdee), n: r.n || 0,
-    gap, corrKcal, stepsAdd, onLine: !proposed, proposed,
+    ok: true, dir, goalRate: band.corrLb[0], measRate: +measRate.toFixed(2), tdee: Math.round(td.tdee), n: r.n || 0,
+    band, pctRate, action, corrKcal, stepsAdd, proposed, onLine: !proposed,
+    proteinOff, proteinTargetG: pt.g, proteinFloorG: pt.lo, lastPro,
   };
 }
 
@@ -6716,6 +6816,10 @@ __test.etaRange = etaRange;
 __test.bfEst = bfEst;
 __test.anchorTighten = anchorTighten;
 __test.digitalTwin = digitalTwin;
+__test.twinBodyComp = twinBodyComp;
+__test.bodyCompBand = bodyCompBand;
+__test.partitionRates = partitionRates;
+__test.BC = BC;
 __test.autoPilot = autoPilot;
 __test.stepTarget = stepTarget;
 __test.signalState = signalState;
