@@ -2203,6 +2203,13 @@ const BC = {
   // deficit magnitude is the lean-mass variable (Murphy & Koehler 2022); leanness is a
   // headwind (Forbes via Hall 2007, up to ~49% FFM at low fat mass).
   CUT_LEAN_BASE: 0.13, CUT_LEAN_SLOPE: 0.35, CUT_LEAN_MIN: 0.06, CUT_LEAN_MAX: 0.50,
+  // CUT · resistance-training retention. Progressive RT + adequate protein preserve most of the
+  // lean a deficit would otherwise take (Longland 2016: 2.4 g/kg + RT recomposed in a deficit;
+  // Helms 2014; Murphy & Koehler 2022: training and protein ARE the lean-mass levers). Applied to
+  // the lean fraction and GATED on actual training adherence, so a missed block degrades the
+  // projection honestly. The app still never projects lean GAIN in a deficit (drip stays 0) — the
+  // best honest case shown is lean HELD, i.e. recomposition = fat off, muscle retained.
+  CUT_RT_RETENTION: 0.70,       // Longland 2016 / Helms 2014 / Murphy & Koehler 2022
   // BULK · rate. Iraki 2019 lean-bulk surplus → ~0.25–0.5 %BW/wk weight gain; past it the
   // surplus spills to fat (Slater 2019: no controlled surplus-size trial exists — this is a
   // conservative practitioner band, labelled as such in the UI).
@@ -2242,17 +2249,32 @@ function bodyCompBand(s, dir) {
 /* Fat vs lean split of a projected weekly change — read from BC, sign follows `rate` (+ =
    losing). Consistent with the app's own energy density; estimated, and the caller carries the
    ±3.5-point anchor margin (a projection, not a measurement). */
+/* Training adherence 0..1 — the gate on lean retention. Progressive RT is ASSUMED PRESENT by
+   default (validated for this athlete); it degrades only on EVIDENCE of missed training. With a
+   session history, adherence = last-14-day count against the 8 a 4-day split implies. Shares its
+   source (sessionLog) with the NOW TRAINING row, so the two never disagree. */
+function rtAdherence(s) {
+  const tISO = isoOf(todayStart());
+  const keys = Object.keys((s && s.sessionLog) || {});
+  if (!keys.length) return 1;                              // no history yet -> assume RT present
+  const sess14 = keys.filter((d) => { const g = (mk(tISO) - mk(d)) / DAY; return g >= 0 && g < 14; }).length;
+  return Math.max(0, Math.min(1, sess14 / 8));
+}
 function partitionRates(rate, s, dir) {
   const bw = (s && s.trend) || 165;
   const pct = Math.abs(rate) / bw * 100;
   if (dir === "cut") {
-    const leanFrac = Math.max(BC.CUT_LEAN_MIN, Math.min(BC.CUT_LEAN_MAX, BC.CUT_LEAN_BASE + (pct - BC.CUT_OPT_PCT) * BC.CUT_LEAN_SLOPE));
+    const rt = rtAdherence(s);
+    let leanFrac = Math.max(BC.CUT_LEAN_MIN, Math.min(BC.CUT_LEAN_MAX, BC.CUT_LEAN_BASE + (pct - BC.CUT_OPT_PCT) * BC.CUT_LEAN_SLOPE));
+    // RT + protein retain most of the otherwise-lost lean; full retention holds lean flat, never
+    // positive. A missed block (rt -> 0) lets the baseline lean loss back through.
+    leanFrac = Math.max(0, leanFrac * (1 - BC.CUT_RT_RETENTION * rt));
     const lean = +(rate * leanFrac).toFixed(2);
-    return { fat: +(rate - lean).toFixed(2), lean, leanFrac: +leanFrac.toFixed(2) };
+    return { fat: +(rate - lean).toFixed(2), lean, leanFrac: +leanFrac.toFixed(3), rt: +rt.toFixed(2) };
   }
   const leanFrac = Math.max(BC.BULK_LEAN_MIN, Math.min(BC.BULK_LEAN_MAX, BC.BULK_LEAN_BASE - Math.max(0, pct - BC.BULK_REDLINE_PCT) * BC.BULK_LEAN_SLOPE));
   const lean = +(rate * leanFrac).toFixed(2);
-  return { fat: +(rate - lean).toFixed(2), lean, leanFrac: +leanFrac.toFixed(2) };
+  return { fat: +(rate - lean).toFixed(2), lean, leanFrac: +leanFrac.toFixed(3), rt: 1 };
 }
 
 function digitalTwin(s, opts) {
@@ -2297,7 +2319,7 @@ function twinBodyComp(s, opts) {
   const pctRate = +(Math.abs(rate) / bw * 100).toFixed(2);
   const part = partitionRates(rate, s, dir);
   const zone = pctRate > band.redlinePct ? "redline" : pctRate >= band.corrPct[0] ? "corridor" : "below";
-  return { ...tw, bc: { dir, pctRate, band, fat: part.fat, lean: part.lean, leanFrac: part.leanFrac, zone } };
+  return { ...tw, bc: { dir, pctRate, band, fat: part.fat, lean: part.lean, leanFrac: part.leanFrac, rt: part.rt, zone } };
 }
 
 /* ---------- AUTO-PILOT (v2) — the thermostat, made real ----------
@@ -10274,10 +10296,10 @@ function HistTab({ s, setS, save }) {
                   <StackBar segments={segs} />
                   <div style={{ display: "flex", justifyContent: "space-between", marginTop: SP.xs, fontFamily: mono, fontSize: TS.micro, ...NUMERIC }}>
                     <span style={{ color: cut ? T.jade : T.orange }}>FAT {dirWord} ~{Math.abs(bc.fat).toFixed(1)} lb/wk</span>
-                    <span style={{ color: cut ? T.orange : T.jade }}>LEAN {dirWord} ~{Math.abs(bc.lean).toFixed(1)} lb/wk · {cut ? "the cost" : "the gain"}</span>
+                    <span style={{ color: cut ? (bc.rt >= 0.75 ? T.jade : T.orange) : T.jade }}>LEAN {cut && bc.rt >= 0.75 ? "held ~" : `${dirWord} ~`}{Math.abs(bc.lean).toFixed(1)} lb/wk · {cut ? (bc.rt >= 0.75 ? "lifting protects it" : "the cost") : "the gain"}</span>
                   </div>
                 </div>
-                <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>The fat/lean split is a projection from your logs and the ±3.5-point anchor — not a scan — and it widens the leaner you get (leanness is a headwind).</div>
+                <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>{cut && bc.rt >= 0.75 ? "Assumes you're lifting through the cut — recomp: protein + progressive training keep the loss off muscle, so a missed week shows here. " : (cut && bc.rt < 0.75 ? "Training looks light lately, so more of the loss projects as lean — log your sessions and this tightens. " : "")}The fat/lean split is a projection from your logs and the ±3.5-point anchor — not a scan — and widens the leaner you get.</div>
               </div>
             );
           })()}

@@ -155,6 +155,12 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   const fastTb = __test.twinBodyComp(base, { calDelta: -1400 });
   ok(fastTb.bc.leanFrac > tb.bc.leanFrac, "pushing the rate up raises the lean fraction — the redline mechanism (Forbes / Murphy & Koehler)");
   ok(fastTb.bc.zone === "redline", "a big deficit pushes the projection into the redline zone");
+  // RT retention gate (v6.1): RT assumed present holds lean; a missed block degrades it
+  ok(tb.bc.rt === 1, "with progressive RT assumed present (no logged gaps), retention is full");
+  const missed = clone(base); missed.sessionLog = { "2026-04-01": { entries: [] } };  // last session >14d ago -> adherence 0
+  const missedTb = __test.twinBodyComp(missed, { calDelta: -300 });
+  const heldTb = __test.twinBodyComp(base, { calDelta: -300 });
+  ok(missedTb.bc.rt === 0 && missedTb.bc.leanFrac > heldTb.bc.leanFrac, "a missed training block degrades the lean projection — retention is gated on actual training");
 }
 
 // the Digital Twin — v2 slice D (energy-balance simulation, range-only)
