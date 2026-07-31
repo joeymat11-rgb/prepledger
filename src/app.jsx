@@ -6854,6 +6854,42 @@ function _unionMulti(remoteArr, localArr, keyOf) {
   for (const k of new Set([...R.keys(), ...L.keys()])) { const l = L.get(k) || [], r = R.get(k) || []; (l.length >= r.length ? l : r).forEach((x) => out.push(x)); }
   return out;
 }
+/* ---------- mergeState v6.2 — reconcile STORED per-lift progression state ----------
+   exercises[] and queue are NOT append-only: completeSession() rewrites a lift's lastMeta and
+   flips a queue item's done/state in place. Unioning them like the append-only collections is not
+   enough — on an id collision we must keep the RIGHT copy, and "richer/longer" is wrong (a stale
+   entry is the same shape as a fresh one). This was the blind spot behind the lift clobber:
+   exercises/queue fell through {...remote,...local}, so the writing client won wholesale and a
+   phone that had not trained legs since 7/21 rolled the correct 7/28 lower lifts back on sync.
+   Fix: reconcile per id. For a lift, the entry whose lastMeta is NEWEST wins (ISO dates sort
+   lexically; a dated entry beats an undated one). For a queue item, the more-advanced state wins —
+   done is terminal and irreversible, so a done item can never be reopened by a stale not-done copy.
+   Ties fall to local (the writing client's view); an id on only one side is always kept (union, so
+   |merged| >= both). This generalises refuse-to-shrink from record COUNTS to progression STATE:
+   once every client runs it the lifts self-heal per id, from either write order. */
+function _isoOr(x) { return (typeof x === "string" && x) ? x : ""; }
+function _exDate(e) { return e && e.lastMeta ? _isoOr(e.lastMeta.d) : ""; }   // a lift's newest real session
+function _queueRank(q) { return q && q.done ? 1 : 0; }                        // done is terminal — it wins
+function _unionKeyed(remoteArr, localArr, keyOf, scoreOf) {
+  // keyed union for non-append-only state: on a collision the higher score wins, ties -> local.
+  // score is any value comparable with > / === (an ISO date string OR a numeric rank). Ids on only
+  // one side are kept, so this can never shrink a lift roster or drop a queued structural change.
+  const m = new Map();
+  const consider = (x, local) => {
+    let k; try { k = keyOf(x); } catch (e) { return; }
+    if (k == null) return;
+    if (!m.has(k)) { m.set(k, x); return; }
+    let sx, sc; try { sx = scoreOf(x); sc = scoreOf(m.get(k)); } catch (e) { return; }
+    if (sx > sc || (sx === sc && local)) m.set(k, x);
+  };
+  (Array.isArray(remoteArr) ? remoteArr : []).forEach((x) => consider(x, false));
+  (Array.isArray(localArr) ? localArr : []).forEach((x) => consider(x, true));
+  return [...m.values()];
+}
+const MERGE_KEYED = {   // STORED, non-append-only per-lift state — reconcile per id (newest / most-advanced wins)
+  exercises: { keyOf: (e) => e && e.id, scoreOf: _exDate },
+  queue:     { keyOf: (q) => q && q.id, scoreOf: _queueRank },
+};
 const MERGE_ARR = {   // one logical entry per key (date / id) — the richer copy wins on a collision
   reads: (r) => r && r.d, waist: (w) => w && w.d, photos: (p) => p && (p.d || p.id || JSON.stringify(p)),
   caffLog: (c) => c && (c.d + "|" + (c.at || "")), medsLog: (mm) => mm && (mm.d + "|" + (mm.at || "")),
@@ -6870,6 +6906,7 @@ function mergeState(local, remote) {
   for (const k of Object.keys(MERGE_ARR)) out[k] = _unionBy(remote[k], local[k], MERGE_ARR[k]);
   for (const k of Object.keys(MERGE_MULTI)) out[k] = _unionMulti(remote[k], local[k], MERGE_MULTI[k]);
   for (const k of MERGE_OBJ) out[k] = _unionObj(remote[k], local[k]);
+  for (const k of Object.keys(MERGE_KEYED)) out[k] = _unionKeyed(remote[k], local[k], MERGE_KEYED[k].keyOf, MERGE_KEYED[k].scoreOf);   // exercises/queue: reconcile per lift, never wholesale
   const rn = (remote.sleep && remote.sleep.nights) || [], ln = (local.sleep && local.sleep.nights) || [];
   out.sleep = { ...(remote.sleep || {}), ...(local.sleep || {}), nights: _unionBy(rn, ln, (n) => n && n.d) };
   return out;

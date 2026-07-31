@@ -121,6 +121,52 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   ok(ms(A, null) === A && ms(null, B) === B, "mergeState: a missing side never clobbers the other");
 }
 
+// mergeState v6.2 — STORED per-lift progression state (exercises + queue) is reconciled per id,
+// not taken wholesale from the writing client. This is the fix for the clobber that rolled the
+// correct 7/28 lower lifts back to a phone's stale 7/21 copy on sync (exercises/queue used to fall
+// through {...remote,...local}). Property under test: a stale side must never REVERT a newer per-lift
+// lastMeta and must never LOSE one — and it holds from EITHER write order (stale-as-local, stale-as-remote).
+{
+  const ms = __test.mergeState, dlg = __test.dataLossGuard;
+
+  // freshLow: LOWER is current (calves reclaimed 7/28 -> 320) while UPPER stays old (seed 7/20)
+  const freshLow = clone(SEED);
+  const cL = freshLow.exercises.find((e) => e.id === "calves");
+  cL.w = 320; cL.reclaim = null; cL.lastMeta = { d: "2026-07-28", w: 320, reps: [13, 12, 11, 10], debt: false };
+  const qcL = freshLow.queue.find((q) => q.id === "q_calves"); qcL.done = true; qcL.state = "RECLAIMED";
+  freshLow.queue.push({ id: "q_calves_inc", kind: "debut", exId: "calves", newW: 325, t: "CALVES 325 DEBUT", state: "DEBUT", done: false });
+
+  // freshUp: UPPER is current (press owned 7/30) while LOWER stays stale (seed calves 7/21, q_calves not done)
+  const freshUp = clone(SEED);
+  const pU = freshUp.exercises.find((e) => e.id === "press");
+  pU.own = false; pU.std = null; pU.lastMeta = { d: "2026-07-30", w: 245, reps: [8, 8, 7], debt: false };
+
+  const dOf = (st, id) => st.exercises.find((e) => e.id === id).lastMeta.d;
+  const wOf = (st, id) => st.exercises.find((e) => e.id === id).w;
+  const qDone = (st, id) => { const q = st.queue.find((x) => x.id === id); return !!(q && q.done); };
+  const hasQ = (st, id) => st.queue.some((x) => x.id === id);
+
+  // ORDER A — the stale-lower phone writes last (local = freshUp, remote = freshLow)
+  const A = ms(freshUp, freshLow);
+  ok(dOf(A, "calves") === "2026-07-28", "merge A: a stale-7/21 lower side does NOT revert the newer 7/28 calves (newest lastMeta wins)");
+  ok(wOf(A, "calves") === 320, "merge A: the reconciled calves load is the 7/28 value (320), never the phone's stale 315");
+  ok(dOf(A, "press") === "2026-07-30", "merge A: the newer 7/30 upper press is NOT lost to the other side's stale copy");
+  ok(qDone(A, "q_calves") === true, "merge A: q_calves stays RECLAIMED — a done queue item can't be reopened by a not-done copy");
+  ok(hasQ(A, "q_calves_inc"), "merge A: the follow-on q_calves_inc (present on one side only) survives the union");
+
+  // ORDER B — the reverse write order must converge to the SAME reconciled lifts
+  const B = ms(freshLow, freshUp);
+  ok(dOf(B, "calves") === "2026-07-28", "merge B: reversed order still keeps the newer 7/28 calves (not lost when it is the local side)");
+  ok(dOf(B, "press") === "2026-07-30", "merge B: reversed order still keeps the newer 7/30 press (not reverted when it is the remote side)");
+  ok(qDone(B, "q_calves") === true && hasQ(B, "q_calves_inc"), "merge B: done q_calves and its follow-on survive regardless of write order");
+
+  // order-independence + roster never shrinks + refuse-to-shrink still holds across the reconcile
+  ok(dOf(A, "calves") === dOf(B, "calves") && dOf(A, "press") === dOf(B, "press"), "merge is order-independent for reconciled per-lift state (A and B agree)");
+  ok(A.exercises.length === SEED.exercises.length && B.exercises.length === SEED.exercises.length, "no lift is dropped — the exercise roster is preserved on both orders");
+  ok(A.queue.length >= freshLow.queue.length && A.queue.length >= freshUp.queue.length, "the merged queue is a superset of both sides — union never shrinks it");
+  ok(dlg(freshLow, A).safe === true && dlg(freshUp, A).safe === true, "the reconciled merge still passes the durability guard from both inputs");
+}
+
 // the five levers + the one thing — the v2 adherence selectors (slice A)
 {
   const lv = __test.fiveLevers(clone(SEED));
