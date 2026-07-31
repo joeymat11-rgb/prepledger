@@ -7981,23 +7981,50 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           measured slope. When the metabolism sheds a full adaptation's worth of
           deficit, it PROPOSES a correction (cut OR steps) for one tap — never mutates.
           Every option, and "Not now", files through the plan; nothing changes itself. */}
-      {(() => { const ap = autoPilot(s); if (!ap.ok) return null;
+      {(() => { const apMode = (plan && plan.apMode) || "recomp"; const ap = autoPilot(s, apMode); if (!ap.ok) return null;
         const apProp = ap.proposed && plan.apDismiss !== tISO;
         const apPro = ap.proteinOff && plan.apProDismiss !== tISO;
         const wnA = weightNoise(s.reads); const cut = ap.dir === "cut"; const easing = ap.action === "ease";
         const corrTxt = `${ap.band.corrPct[0]}–${ap.band.corrPct[1]}%BW/wk`;
+        const modeLabel = apMode === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP";
+        const recompPct = BC.CUT_OPT_PCT, fatlossPct = ap.band.corrPct[1];   // the two mode targets — same corridor, two slices
         const headline = ap.action === "ease"
-          ? (cut ? `You're running ~${ap.pctRate}%BW/wk — past your ${ap.band.redlinePct}% redline. Ease off to protect muscle.` : `You're gaining ~${ap.pctRate}%BW/wk — past the ${ap.band.redlinePct}% edge. Ease the surplus before it turns to fat.`)
+          ? (cut ? `You're running ~${ap.pctRate}%BW/wk — hotter than your ${modeLabel} target (~${ap.targetPct}%). Ease back to hold the plan.` : `You're gaining ~${ap.pctRate}%BW/wk — past the ${ap.band.redlinePct}% edge. Ease the surplus before it turns to fat.`)
           : ap.action === "tighten"
-            ? (cut ? `You're at ~${ap.pctRate}%BW/wk — under your corridor. You can safely go faster and bank more fat.` : `You're at ~${ap.pctRate}%BW/wk — under the growth corridor. A touch more to make the gain count.`)
-            : `You're inside your body-comp corridor (${corrTxt}). Auto-Pilot is holding it — the fastest change your body banks without cost.`;
+            ? (cut ? `You're at ~${ap.pctRate}%BW/wk — under your ${modeLabel} target (~${ap.targetPct}%). You can safely pick it up.` : `You're at ~${ap.pctRate}%BW/wk — under the growth corridor. A touch more to make the gain count.`)
+            : (cut ? `You're on your ${modeLabel} line (~${ap.targetPct}%BW/wk). Auto-Pilot is holding it — ${apMode === "fatloss" ? "the fastest fat loss without crossing the redline." : "the best body-comp change your body banks."}` : `You're inside your growth corridor (${corrTxt}). Auto-Pilot is holding the disciplined lean-gain line.`);
         const kcalVerb = cut ? (easing ? "add back" : "trim") : (easing ? "trim the surplus" : "add");
-        const proposalBody = `To ride the corridor, ${kcalVerb} ~${ap.corrKcal} kcal${cut ? `, or ${easing ? "trim" : "add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps` : ""}. Auto-Pilot never changes anything itself — every move waits for your tap.`;
+        const proposalBody = `To ride your ${modeLabel} line, ${kcalVerb} ~${ap.corrKcal} kcal${cut ? `, or ${easing ? "trim" : "add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps` : ""}. Staging sends it to your approval inbox — Auto-Pilot never changes anything itself.`;
         return (
         <Card accent={apProp ? T.brass : (apPro ? T.orange : T.gauge)} style={{ padding: SP.lg }}>
           <Eyebrow c={apProp ? T.brass : (apPro ? T.orange : T.gauge)}>{apProp || apPro ? "AUTO-PILOT · FOR YOU TO OK" : "AUTO-PILOT · HOLDING YOUR LINE"}</Eyebrow>
           <div style={{ fontFamily: body, fontWeight: 600, fontSize: TS.title, lineHeight: `${LH.title}px`, color: T.chalk, marginTop: SP.sm }}>{headline}</div>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>measured TDEE {ap.tdee} kcal · n={ap.n} · corridor {corrTxt}</div>
+          {cut ? (
+            <div style={{ marginTop: SP.md }}>
+              {/* MODE (v6.2 F1) — the toggle SELECTS which corridor slice Auto-Pilot steers to. One
+                  engine (autoPilot/bodyCompBand) computes the corridor; this only picks the target. */}
+              <div style={{ display: "flex", gap: SP.xs }}>
+                {[["recomp", "MAX BODY COMP", recompPct, T.jade], ["fatloss", "MAX FAT LOSS", fatlossPct, T.orange]].map(([m, label, pct, c]) => {
+                  const on = apMode === m;
+                  return (
+                    <button key={m} onClick={() => { hap(8); savePlan({ apMode: m }); }} aria-pressed={on}
+                      style={{ flex: 1, textAlign: "left", background: on ? hexA(c, 0.13) : "transparent", border: `1px solid ${on ? c : T.line}`, borderRadius: 8, padding: `${SP.sm}px ${SP.md}px`, cursor: "pointer" }}>
+                      <div style={{ fontFamily: lbl, fontWeight: 700, fontSize: TS.micro, letterSpacing: "0.07em", color: on ? c : T.steel }}>{label}</div>
+                      <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 2, ...NUMERIC }}>~{pct}%BW/wk</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>
+                {apMode === "fatloss"
+                  ? "Fastest fat off, muscle held flat — you ride just under the redline; the honest trade is you're not building here."
+                  : "Lean out while you build muscle — the best pure body-comp change; the trade is a slower scale for recomposition."}
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>Bulk: Auto-Pilot rides the disciplined lean-gain ceiling (~{ap.targetPct}%BW/wk) — surplus past it spills to fat.</div>
+          )}
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm }}>measured TDEE {ap.tdee} kcal · n={ap.n} · corridor {corrTxt}</div>
           <div style={{ marginTop: SP.sm }}>
             <Spark reads={s.reads} trend={s.trend} projRate={ap.band.corrLb ? +(((ap.band.corrLb[0] + ap.band.corrLb[1]) / 2)).toFixed(2) : ap.goalRate} noise={wnA.sd} noiseN={wnA.measured ? wnA.n : null} />
           </div>
@@ -8006,7 +8033,21 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, lineHeight: `${LH.body}px` }}>{proposalBody}</div>
               <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.06em", marginTop: SP.sm }}>◆ from your own numbers</div>
               <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
-                <Btn small tone="jade" onClick={() => savePlan({ apDismiss: tISO })}>{easing ? "Ease the target" : "Tighten the target"}</Btn>
+                <Btn small tone="jade" onClick={() => {
+                  // v6.2 audit 4a — stage a REAL engine proposal into the approval inbox (s.proposals),
+                  // instead of the old no-op dismiss. One-door inbox owns approve/apply; this only stages.
+                  const rid = `ap_${ap.action}_${tISO}`;
+                  const ns = JSON.parse(JSON.stringify(s));
+                  ns.proposals = ns.proposals || [];
+                  if (!ns.proposals.some((p) => p.rid === rid && !p.resolved)) {
+                    ns.proposals.push({ rid, id: `${rid}_${tISO}`, d: tISO,
+                      title: easing ? "AUTO-PILOT · EASE THE TARGET" : "AUTO-PILOT · TIGHTEN THE TARGET",
+                      why: `Measured ~${ap.pctRate}%BW/wk vs your ${modeLabel} target ~${ap.targetPct}%. ${cut ? (easing ? "Add back" : "Trim") : (easing ? "Trim" : "Add")} ~${ap.corrKcal} kcal to ride the ${modeLabel} line — steps are the cheaper lever if they aren't already maxed.`,
+                      apply: { kind: "cal", delta: ap.corrKcal }, resolved: false });
+                  }
+                  ns.plan = { ...(ns.plan || {}), apDismiss: tISO };
+                  setS(ns); save(ns); hap(12);
+                }}>{easing ? "Ease the target →" : "Tighten the target →"}</Btn>
                 {cut && <Btn small tone="jade" onClick={() => savePlan({ goals: [...plan.goals, { id: "g" + Date.now(), text: `${easing ? "Trim" : "Add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps on non-lifting days (auto-pilot)` }], apDismiss: tISO })}>{easing ? "Trim the steps" : "Add the steps"}</Btn>}
                 <Btn small onClick={() => savePlan({ apDismiss: tISO })}>Not now</Btn>
               </div>
