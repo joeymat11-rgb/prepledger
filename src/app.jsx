@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "6.3.2";
+const APP_V = "7.0.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -7612,6 +7612,106 @@ __test.applyDisc = applyDisc;
 __test.readDisc = readDisc;
 __test.oweTarget = oweTarget;
 
+/* ---------- COCKPIT · STATUS FACE (v7.0.0, Slice 1) ----------
+   Auto-Pilot's face: ONE always-visible status word from a CLOSED vocabulary, fused
+   from verdicts the engine ALREADY owns — signalState (is the change real?), autoPilot
+   (what is the thermostat doing? — incl. the v6.3.2 staleness + confidence gates, via
+   heldForStale / heldForNoise) and readRecency (is the last read fresh?). It COMPUTES NO
+   NEW NUMBER and stages nothing: a pure READOUT. Exactly one word is active, and a
+   one-line CAUSE (engine-owned copy) travels with every state, so the face never changes
+   silently. Charter: calm, glyph + WORD (never colour as the sole signal), no urgency,
+   no streaks — a state read, not an alarm. Device-local surfacing only; touches no `s`.
+
+   `deps` is an optional injection point for the engine suite (defaults to the real
+   selectors) so the full {signalState × action × proposed × stale × noise × blackout}
+   matrix is unit-testable without hand-rolling five real ledgers — production always
+   runs the real reads.
+
+   Precedence (first match wins) — reconciles the master-spec table with the slice brief,
+   resolving heldForStale as a HOLD (not a CALIBRATE) and treating a never-yet-measured
+   rate as CALIBRATING ahead of any stale/hold read:
+     NEEDS YOU   — a human decision is owed: signal REVERSED, or a coach-gated inbox item.
+     CALIBRATING — no real rate yet: signalState "calibrating" OR autoPilot not-ok (n too low).
+     HOLDING     — paused by you (blackout) · frozen rate (readRecency stale) · inside-noise
+                   / confidence-gated (heldForNoise): Auto-Pilot honestly abstains.
+     ADJUSTING   — a routine Auto-Pilot proposal is staged in the inbox (one tap to approve).
+     ON COURSE   — measured/measurable hold, nothing to decide.
+   Routine owed INPUTS (log the scale, close the day) are NOT a status alarm — they ride
+   the marching order below, under whatever the true status is. */
+const STATUS_WORDS = ["ON COURSE", "ADJUSTING", "NEEDS YOU", "CALIBRATING", "HOLDING"];
+function statusFace(s, deps) {
+  const sig = (deps && deps.sig) || signalState(s);
+  const ap = (deps && deps.ap) || autoPilot(s, apModeOf(s));
+  const rec = (deps && deps.rec) || readRecency(s);
+  const paused = !!(s && s.blackout && s.blackout.until && daysUntil(s.blackout.until) > 0);
+  const coachOwed = (((s && s.proposals) || [])).some((p) => p && !p.resolved && p.gate === "coach");
+  const reversed = sig.state === "reversed";
+  const proposed = !!(ap && ap.ok && ap.proposed);
+  const heldForNoise = !!(ap && ap.ok && ap.heldForNoise);
+  const noiseHold = heldForNoise || sig.state === "inside-noise";
+  const read = () => { try { return signalReadCopy(s, sig).sentence; } catch (e) { return ""; } };
+
+  let word, glyph, tone, cause;
+  if (reversed || coachOwed) {
+    word = "NEEDS YOU"; glyph = "▲"; tone = T.orange;               // ▲
+    cause = reversed ? read() : "A coach-flag call is waiting for your sign-off — nothing moves on its own.";
+  } else if (sig.state === "calibrating" || !(ap && ap.ok)) {
+    word = "CALIBRATING"; glyph = "◇"; tone = T.steel;              // ◇
+    cause = read() || "Still learning your baseline — keep logging and the read sharpens.";
+  } else if (paused) {
+    word = "HOLDING"; glyph = "‖"; tone = T.steel;                  // ‖
+    cause = "Scale sealed — paused by you; Auto-Pilot waits until it reopens.";
+  } else if (proposed) {
+    word = "ADJUSTING"; glyph = "±"; tone = T.gauge;                // ±
+    cause = `${ap.action === "ease" ? "Easing back" : "Tightening"} ≈ ${ap.corrKcal} kcal toward your ${ap.mode === "fatloss" ? "max-fat-loss" : "body-comp"} target — one tap to approve.`;
+  } else if (rec.stale || noiseHold) {
+    word = "HOLDING"; glyph = "‖"; tone = T.steel;                  // ‖
+    cause = rec.stale ? cap(rec.flag) : "This week is still inside your noise — holding for a clear read rather than steering off a blip.";
+  } else {
+    word = "ON COURSE"; glyph = "◆"; tone = T.brass;                // ◆
+    cause = read() || "On the mode target — nothing to change today.";
+  }
+  return { word, glyph, tone, cause };
+}
+
+/* ---------- COCKPIT · MARCHING ORDER (v7.0.0, Slice 1) ----------
+   ONE if-then for today (Gollwitzer & Sheeran 2006 implementation intention): the single
+   highest-priority owed/next action, deep-linked EXACTLY like the WHAT-YOU-OWE button
+   (oweTarget → openGroup + scrollToId). Reads nowFocus (what's owed) and, when nothing is
+   owed, theOneFix (the one lever) + the DERIVED targets (calorieTarget / proteinTarget —
+   never an authored constant). Pure DATA — the render performs the deep-link — so it stays
+   testable and writes nothing to `s`. Per Slice-1 data-safety a user-attached trigger is
+   NOT persisted here (s.plan.ifthen is synced + not merge-hardened until Slice 3), so the
+   standing if-then is derived and device-local only. `deps.focus` is an optional injection
+   for the suite (defaults to real nowFocus). */
+function marchingOrder(s, deps) {
+  const focus = (deps && deps.focus) || nowFocus(s);
+  const ct = calorieTarget(s), pt = proteinTarget(s);
+  const targetLine = ct && !ct.gated
+    ? `Today: ${ct.lo}–${ct.hi} kcal · ${pt.g} g protein`
+    : `Today: ${pt.g} g protein · calories still calibrating`;
+  const o0 = focus && focus.owed && focus.owed[0];
+  if (o0) {
+    const cueBy = { weight: "When you wake", night: "Before coffee", day: "Before bed tonight", yesterday: "Right now" };
+    return {
+      owed: true, kind: o0.k,
+      ifText: cueBy[o0.k] || "Next", thenText: (o0.t || "").toLowerCase(),
+      why: o0.why || "", targetLine, link: oweTarget(o0.k),
+      more: ((focus.owed || []).slice(1)).map((o) => (o.t || "").toLowerCase()),
+    };
+  }
+  const fix = theOneFix(s);
+  return {
+    owed: false, kind: "day",
+    ifText: "If it's a meal", thenText: "protein first",
+    why: (fix && fix.title) || "Hold the line — the five are covered and the trend is doing its job.",
+    targetLine, link: oweTarget("day"), more: [],
+  };
+}
+__test.statusFace = statusFace;
+__test.marchingOrder = marchingOrder;
+__test.STATUS_WORDS = STATUS_WORDS;
+
 /* Group — a fixed-position collapsible section for NOW's FOCUSED tier. Order never
    changes (static beats adaptive — Findlater & McGrenere); only open/closed responds
    to time-of-day once, then a manual toggle wins and is REMEMBERED across reloads
@@ -8125,6 +8225,41 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <button onClick={openRules} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "7px 11px", whiteSpace: "nowrap" }}>RULES</button>
         </div>
       </div>
+
+      {/* ---------- COCKPIT · STATUS FACE (v7.0.0 · Slice 1) ----------
+          Auto-Pilot's face and the fold's HERO: one always-visible status word
+          (glyph + WORD, never colour alone) + the CAUSE that put it there (no silent
+          change) + ONE if-then marching order, deep-linked exactly like the WHAT-YOU-OWE
+          button below. Reads statusFace / marchingOrder — pure selectors over the existing
+          engine; computes no number, writes nothing to `s`. Every detail (THE READ,
+          Auto-Pilot, the FOCUSED groups) stays one tap down, beneath it. */}
+      {(() => {
+        const cp = statusFace(s);
+        const mo = marchingOrder(s);
+        return (
+          <Card style={{ padding: SP.lg }}>
+            <Eyebrow c={T.steel}>COCKPIT · AUTO-PILOT</Eyebrow>
+            <div style={{ display: "flex", alignItems: "center", gap: SP.md, marginTop: SP.sm }}>
+              <span aria-hidden="true" style={{ fontFamily: mono, fontSize: 26, lineHeight: 1, color: cp.tone, flexShrink: 0, width: 22, textAlign: "center" }}>{cp.glyph}</span>
+              <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 26, letterSpacing: "0.045em", color: cp.tone }}>{cp.word}</span>
+            </div>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.45, marginTop: SP.sm }}>{cp.cause}</div>
+            {/* ONE marching order — if-then, deep-linked like the owe button */}
+            <div style={{ borderTop: `1px solid ${T.line}`, marginTop: SP.md, paddingTop: SP.md }}>
+              <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>{mo.targetLine}</div>
+              <button onClick={() => { hap(8); if (mo.link) { openGroup(mo.link.key); scrollToId(mo.link.id); } }}
+                aria-label={`${mo.ifText} — ${mo.thenText}`}
+                style={{ display: "flex", alignItems: "baseline", gap: SP.sm, width: "100%", textAlign: "left", background: "none", border: "none", padding: `${SP.sm}px 0 0`, cursor: "pointer", minHeight: 44 }}>
+                <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.08em", color: T.brass, textTransform: "uppercase", flexShrink: 0 }}>{mo.ifText}</span>
+                <span style={{ fontFamily: body, fontSize: TS.title, color: T.chalk }}>&rarr; {mo.thenText}</span>
+              </button>
+              {mo.more && mo.more.length ? (
+                <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, letterSpacing: "0.04em" }}>then {mo.more.join(" · ")}</div>
+              ) : null}
+            </div>
+          </Card>
+        );
+      })()}
 
       {/* ---------- THE READ (live) ----------
           The always-on, on-device answer to "is my body actually changing yet?".

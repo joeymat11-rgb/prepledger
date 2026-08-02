@@ -3596,5 +3596,87 @@ ok(aD63(null, "k", true).disc.k === true, "applyDisc tolerates a missing/null UI
 ok(UIK63 === "prep-ledger-ui", "collapse prefs live under the device-local prep-ledger-ui key");
 ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they never sync to GitHub or land in the public state.json");
 
+/* ===== v7.0.0 Slice 1 — COCKPIT / STATUS FACE (statusFace + marchingOrder) =====
+   The face FUSES verdicts the engine already owns into ONE closed-vocabulary word; it
+   computes no number and stages nothing. Tested two ways: (1) the decision matrix via
+   injected deps (deterministic — no hand-rolled ledgers), (2) end-to-end on the real
+   SEED so the production read-path is exercised. */
+{
+  const SF = __test.statusFace, MO = __test.marchingOrder, oT = __test.oweTarget, WORDS = __test.STATUS_WORDS;
+  const sf = (sig, ap, rec, extra) => SF({ blackout: (extra && extra.blackout) || null, proposals: (extra && extra.proposals) || [] }, { sig, ap, rec });
+  const OK = { ok: true, action: "hold", proposed: false, heldForStale: false, heldForNoise: false, corrKcal: 0, mode: "recomp" };
+  const fresh = { stale: false, flag: null }, stale4 = { stale: true, flag: "reading is 4 days old · weigh in to refresh" };
+
+  ok(WORDS.length === 5 && WORDS.join("|") === "ON COURSE|ADJUSTING|NEEDS YOU|CALIBRATING|HOLDING", "statusFace vocabulary is the five fixed words and nothing else");
+
+  // ON COURSE — measured/measurable hold, fresh, nothing staged
+  ok(sf({ state: "measured" }, OK, fresh).word === "ON COURSE", "ON COURSE = a measured on-target hold");
+  ok(sf({ state: "measurable" }, OK, fresh).word === "ON COURSE", "ON COURSE also fires on a measurable hold");
+
+  // ADJUSTING — a routine Auto-Pilot proposal is staged
+  ok(sf({ state: "measured" }, { ...OK, action: "tighten", proposed: true, corrKcal: 103 }, fresh).word === "ADJUSTING", "ADJUSTING = a live Auto-Pilot proposal in the inbox");
+  ok(sf({ state: "measured" }, { ...OK, action: "ease", proposed: true, corrKcal: 120 }, fresh).word === "ADJUSTING", "ADJUSTING covers an ease as well as a tighten");
+
+  // NEEDS YOU — a human decision is owed
+  ok(sf({ state: "reversed" }, OK, fresh).word === "NEEDS YOU", "NEEDS YOU = the signal has reversed (trend turned the wrong way)");
+  ok(sf({ state: "measured" }, OK, fresh, { proposals: [{ gate: "coach", resolved: false }] }).word === "NEEDS YOU", "NEEDS YOU = a coach-gated item is waiting for sign-off");
+  ok(sf({ state: "reversed" }, { ...OK, proposed: true }, fresh).word === "NEEDS YOU", "NEEDS YOU outranks ADJUSTING — an escalation is never buried under a routine proposal");
+
+  // CALIBRATING — no real rate yet (n too low / never measured)
+  ok(sf({ state: "calibrating" }, OK, fresh).word === "CALIBRATING", "CALIBRATING = signalState is still calibrating");
+  ok(sf({ state: "measurable" }, { ok: false }, fresh).word === "CALIBRATING", "CALIBRATING = autoPilot not-ok (not enough data to steer)");
+  ok(sf({ state: "calibrating" }, { ok: false }, stale4).word === "CALIBRATING", "a never-measured rate reads CALIBRATING even when old reads are stale — there is no frozen rate to 'hold'");
+
+  // HOLDING — paused, stale, or noise-gated: Auto-Pilot honestly abstains
+  ok(sf({ state: "measured" }, { ...OK, heldForStale: true }, stale4).word === "HOLDING", "HOLDING = a frozen (stale) rate — the Slice-0 staleness tell is visible on the face");
+  ok(sf({ state: "measurable" }, { ...OK, heldForNoise: true }, fresh).word === "HOLDING", "HOLDING = a confidence-gated (noise) hold — the sodium-spike case abstains, never ADJUSTING");
+  ok(sf({ state: "inside-noise" }, OK, fresh).word === "HOLDING", "HOLDING = the week is inside the noise, nothing resolvable to steer");
+  ok(sf({ state: "measured" }, OK, fresh, { blackout: { until: "2999-01-01" } }).word === "HOLDING", "HOLDING = a user pause (sealed scale) — paused by choice");
+  ok(sf({ state: "measured" }, { ...OK, proposed: true }, fresh, { blackout: { until: "2999-01-01" } }).word === "HOLDING", "a user pause outranks a staged proposal — the athlete's hold wins");
+
+  // totality + closed vocabulary over the full matrix (always exactly one in-vocab word)
+  let combos = 0, inVocab = 0;
+  ["calibrating", "measurable", "measured", "reversed", "inside-noise"].forEach((state) =>
+    ["hold", "ease", "tighten"].forEach((action) =>
+      [true, false].forEach((proposed) =>
+        [true, false].forEach((heldForNoise) =>
+          [true, false].forEach((st) =>
+            [true, false].forEach((paused) =>
+              [true, false].forEach((okFlag) => {
+                combos++;
+                const w = sf({ state }, { ok: okFlag, action, proposed, heldForStale: st, heldForNoise, corrKcal: 100, mode: "recomp" },
+                  { stale: st, flag: st ? "reading is 4 days old · weigh in to refresh" : null },
+                  { blackout: paused ? { until: "2999-01-01" } : null }).word;
+                if (typeof w === "string" && WORDS.indexOf(w) >= 0) inVocab++;
+              })))))));
+  ok(combos === 480 && inVocab === combos, `statusFace returns exactly one of the five words across the full matrix (${combos} combinations, all in-vocabulary)`);
+
+  // reads, never recomputes: pure function of the injected verdicts, exposing NO number
+  ok(sf({ state: "measured" }, { ...OK, proposed: false }, fresh).word !== sf({ state: "measured" }, { ...OK, action: "tighten", proposed: true, corrKcal: 90 }, fresh).word, "flipping only autoPilot.proposed flips the word — the face READS the thermostat, it does not recompute a rate");
+  const shape = SF(clone(SEED));
+  ok(eq(Object.keys(shape).sort(), ["cause", "glyph", "tone", "word"]), "statusFace returns presentation only {word, glyph, tone, cause} — no competing number is introduced");
+  ok(typeof shape.word === "string" && WORDS.indexOf(shape.word) >= 0 && shape.scale === undefined && shape.rate === undefined && shape.ci === undefined, "statusFace on the real SEED yields one in-vocabulary word and carries no rate/ci/scale of its own");
+
+  // end-to-end read-path: dragging the reads back trips the REAL readRecency the face reads
+  const staleSeed = clone(SEED);
+  staleSeed.reads = (staleSeed.reads || []).map((r) => ({ ...r, d: "2026-06-01" }));
+  ok(__test.readRecency(staleSeed).stale === true, "end-to-end: readRecency on the real SEED with its reads dragged back flags STALE — the input the face reads for its HOLDING tell");
+
+  // ===== marching order — one if-then, deep-linked exactly like the owe button =====
+  const owed = MO(clone(SEED), { focus: { owed: [{ k: "weight", t: "Log the scale", why: "one number, fasted" }, { k: "day", t: "Close the day" }] } });
+  ok(owed.owed === true && owed.kind === "weight" && owed.thenText === "log the scale", "marching order takes the single highest-priority owed action");
+  ok(eq(owed.link, oT("weight")), "marching order deep-links through the SAME oweTarget map as the WHAT-YOU-OWE button (no divergent link)");
+  ok(eq(owed.more, ["close the day"]), "the marching order names what comes after, without stealing focus from the one action");
+
+  const clear = MO(clone(SEED), { focus: { owed: [], clear: true } });
+  ok(clear.owed === false && clear.ifText === "If it's a meal" && clear.thenText === "protein first", "nothing owed → the standing if-then implementation-intention (protein first)");
+  ok(eq(clear.link, oT("day")), "the standing marching order still deep-links (to tonight's numbers) like the owe button");
+  ok(clear.targetLine.indexOf(String(__test.proteinTarget(clone(SEED)).g)) >= 0, "marching order's target line is DERIVED — it quotes proteinTarget's g, never a hard-coded number");
+
+  const preSeed = JSON.stringify(SEED);
+  MO(SEED);
+  ok(JSON.stringify(SEED) === preSeed, "marchingOrder is pure — it writes nothing back to the synced state");
+}
+
 console.log(`\nFINAL81: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
