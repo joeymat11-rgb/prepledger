@@ -1,37 +1,46 @@
 {
-  "gen": "2026-08-01T09:06:24.006Z",
+  "gen": "2026-08-02T09:06:43.888Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-01_hamlog",
+      "sid": "sug_2026-08-02_scale",
       "rank": 1,
-      "title": "Strike Friday's ham curl set — your own note says you skipped it",
-      "apply": {
-        "kind": "note"
-      },
+      "title": "Weigh in tomorrow morning — the trend has been frozen since Friday",
+      "apply": { "kind": "note" },
       "rationale": {
-        "science": "When progress or a lift looks off, check measurement and adherence before anything else (Alhassan 2008) — and on a cut, load is the signal that protects lean tissue, so a load built on a set that never happened is worse than no progression at all (Schoenfeld 2017; Grgic 2021).",
-        "data": "Friday's session note reads 'Ham curl skipped this sesh for time. Abnormal.' The log for the same session shows 120 x 12,12. Every other lift on Friday carries an effort score — calves 2, extension 0, hack 0, abs 0, hanging 0 — and the ham curl is the only one with none at all, on a lift you scored at 2 in the tank on both 7/24 and 7/28. This is the second time: on 7/23 your note said you skipped the pronated curl for time while the log showed 40 x 12,12, and you ruled the note right.",
-        "relationship": "The app has already acted on the phantom set — it wrote 'HAM CURL: 12,12 tops the window, 1 rep up on last time. Repeat it and the load queues itself.' So a single real session from here queues you a load increase off a baseline you never actually set, which is precisely the unearned bump that cratered your extension to 9,6 back on 7/21."
+        "science": "Body-comp decisions here run off a 14-day robust rate, not a reading — one read is noise around a slow trend, and missing mornings widen the error bar rather than pause it. When a rate looks off, check the logging before blaming the metabolism (Alhassan 2008).",
+        "data": "Your last read is Friday's 165.0. Saturday and today are blank, and the daily forecast has printed the same trend — 163.9 — on 7/31, 8/1 and 8/2. Behind that gap sit the two biggest food days in your file: 3,200 on Thursday and 4,000 on Friday, both high sodium, Friday with 14 on the alcohol line.",
+        "relationship": "Everything downstream is built on the trend — the 1.2 lb/wk rate, the 20-day maintenance fit, and the intake band the app derives from them. With no read since Friday all three are computed from inputs that predate both big days, and that is what the auto-pilot tightened against today. Two mornings on the scale re-decides all of it on real data."
       },
-      "predict": "Strike it and ham curl stays at 120 until you genuinely put up 12,12 twice — the right answer. Leave it and your next leg day queues 125 off one real session plus one phantom one, and 125 opens light and gets reverted.",
+      "predict": "Tomorrow's read comes in high — mid-to-high 160s is an estimate, not a promise — then gives back roughly a pound a morning for three or four mornings, the same shape as 7/12 through 7/15, settling back near the 164 the trend already holds. The test: reads gains 8/3 and 8/4, and the forecast trend moves off 163.9.",
+      "confidence": "high",
+      "gate": "approve"
+    },
+    {
+      "sid": "sug_2026-08-01_hamlog",
+      "rank": 2,
+      "title": "Strike Friday's ham curl — your note says you skipped it",
+      "apply": { "kind": "note" },
+      "rationale": {
+        "science": "Log integrity sits upstream of progression: a load bump taken off reps that were not performed is exactly what cratered your extension at 155 on 7/21 and cost ten days to walk back. Increments should be earned on real sets (ACSM progression stand; your own CL-2).",
+        "data": "Friday's session note reads: Ham curl skipped this sesh for time. Abnormal. The same session logs ham 120 for 12,12 — and that entry is the only lift of the six with no effort score at all, while calves, abs, hanging, hack and extension all carry one and your own ham entries on 7/24 and 7/28 both carry 2.",
+        "relationship": "The app has already counted that set as one run at the top of the window and written that repeating it queues the load. One real ham session from here queues 125 off a baseline that is half fiction. This is the same collision as 7/23's pronated curl, where you ruled the note right and the set was struck."
+      },
+      "predict": "The ham entry comes off Friday's session or lands in that day's skipped list, the top-of-window counter goes back to zero, and ham holds at 120 until you put up 12,12 on a session you actually ran.",
       "confidence": "high",
       "gate": "approve"
     },
     {
       "sid": "sug_2026-08-01_ext155",
-      "rank": 2,
-      "title": "Extension 155 is open and earned — run it, and 9,8 is a win",
-      "apply": {
-        "kind": "progression",
-        "to": "Leg extension 155 — debut next lower day; open at ~1 RIR, target 9,8"
-      },
+      "rank": 3,
+      "title": "Extension 155: debut it, and treat 9,8 as a win",
+      "apply": { "kind": "progression", "to": "Extension 155 — debut on the next lower day; 8,8 or better counts as a clean debut" },
       "rationale": {
-        "science": "On a deficit you defend load and advance it where it is actually earned rather than chasing volume — load is what holds lean tissue while calories are low (Schoenfeld 2017; Robinson 2024; Grgic 2021), and one to three reps in reserve is enough stimulus without buying recovery cost you can't pay.",
-        "data": "150 has gone 6,9 (7/24) then 8,7 (7/28) then 10,9 on Friday, and the app re-owned it: 'EXTENSION 150 RE-OWNED — 9,9 — the 155 gate reopens, earned.' The last time you were at 155 was 7/21, where you had self-bumped there without owning 9,9 first; it cratered to 9,6 and reverted.",
-        "relationship": "155 is 3.3% more load than 150, and on your app's own reps-per-load slope that is worth about 1.3 reps — so from 10,9 the honest landing zone is 9,8, not another 10,9. The difference from July is that this time the gate opened because you earned it rather than because you reached for it. Watch set two: that is where 155 fell over last time (9 then 6), and the opener was never the problem."
+        "science": "Reps fall about 0.4 for every 1% of load added (Nuzzo 2024, 952 reps-to-failure tests across 269 studies). 155 is a 3.3% step on 150, so roughly 1.3 reps off the pair — that is a normal debut, not a regression.",
+        "data": "150 has gone 6,9 then 8,7 then 10,9, and the app wrote EXTENSION 150 RE-OWNED — the 155 gate reopens, earned. It is queued as a debut. The only prior data point at 155 is the 9,6 crater on 7/21, which you self-bumped into without owning 9,9 first.",
+        "relationship": "Last time the load was not the problem — the unearned entry was, and the crater triggered a revert that cost ten days. This time it is earned, so the live risk is misreading a normal debut as a second crater. Naming the threshold before you lift is what prevents that."
       },
-      "predict": "Debut lands 9,8 or better. Anything at or above 8,8 is a clean debut and 155 holds. If it comes in under that, read it as an opener taken too cautiously rather than the load being too heavy — that is the exact fix that just moved 150 from 8,7 to 10,9.",
+      "predict": "155 opens near 9 and lands around 9,8. Anything at or above 8,8 is a clean debut and 155 stays. Set two is where it fell over in July — 9 then 6 — so that is the number to watch.",
       "confidence": "medium",
       "gate": "approve"
     }
