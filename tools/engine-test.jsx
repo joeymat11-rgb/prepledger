@@ -2989,14 +2989,24 @@ ok(vCard2.why.indexOf("hams 4") > -1 && vCard2.why.indexOf("delt side") > -1, "w
 ok(vCard2.title.indexOf("MINIMUM EFFECTIVE DOSE") > -1, "and the headline says what 4 sets actually means: " + vCard2.title);
 ok(volS.proposals.filter((p) => !p.resolved && p.rid.indexOf("volband") === 0).length === 1, "the band-width proposal is a different question and still stands on its own");
 
-/* THE RATE BAND'S UNIT. Written in pounds, it tightens as he lightens. */
+/* THE RATE BAND'S UNIT — RETIRED v6.3.1. The card told him to restate the band as
+   "% of bodyweight"; cutRateBand() now derives the corridor as %BW per mode and
+   scales it to lb by bodyweight, so the unit defect no longer exists. It was the
+   last user-facing reader of the fixed s.rate.band seed and it miscited Garthe. */
 const rateCard = volS.proposals.find((p) => p.rid === "rateunit" && !p.resolved);
-ok(!!rateCard, "the unit problem is raised");
-const bw23 = volS.trend;
-const pctLo = (volS.rate.band[0] / bw23) * 100, pctAt148 = (volS.rate.band[0] / 148) * 100;
-ok(pctAt148 > pctLo, "the same pound figure is a LARGER share of a smaller man — which is the whole defect: " + pctLo.toFixed(2) + "% now, " + pctAt148.toFixed(2) + "% at 148");
-ok(rateCard.why.indexOf("Garthe") > -1, "and it cites the trial where the faster arm lost lean mass while the slower one gained it");
-ok(rateCard.why.indexOf("% of bodyweight") > -1, "proposing the unit that does not drift");
+ok(!rateCard, "the rate-unit card no longer fires — the band is engine-owned as %BW per mode, so the wrong-unit premise is moot");
+/* a copy already armed on a phone stands down on the next pass rather than orphaning a
+   claim the engine has stopped making — same contract as the recovery card */
+const armedRU = clone(volS);
+armedRU.proposals = (armedRU.proposals || []).filter((p) => p.rid !== "rateunit").concat([
+  { rid: "rateunit", id: "rateunit_legacy", d: isoL(Date.now()), title: "YOUR RATE BAND IS IN THE WRONG UNIT", why: "old Garthe 2011 miscite", apply: { kind: "note" }, resolved: false },
+]);
+const stoodRU = raW(armedRU, isoL(Date.now()));
+ok(!stoodRU.proposals.find((p) => p.rid === "rateunit" && !p.resolved), "an already-armed rate-unit card is gone from the screen after one pass");
+ok(!!stoodRU.proposals.find((p) => p.rid === "rateunit" && p.resolved && p.stoodDown), "it stands down (resolved + stoodDown), not deleted — the record keeps it, the screen does not");
+/* and the figure it used to get wrong is pinned to the verified constants, everywhere it appears */
+ok(__test.BC.CUT_GARTHE_SLOW_LBM === 2.1 && __test.BC.CUT_GARTHE_SLOW_RATE === 0.7, "Garthe slow arm is the verified truth: +2.1% LBM at 0.7%/wk");
+ok(__test.BC.CUT_GARTHE_FAST_LBM === -0.2 && __test.BC.CUT_GARTHE_FAST_RATE === 1.4, "Garthe fast arm is lean-neutral (-0.2%) at 1.4%/wk — there is no 1.0%/wk arm");
 
 /* ================= v3.99.25 — the Rulebook cannot lie about the engine ================= */
 const { rulebook: rbN, windowFor: wfN, repsLostOnJump: rlN, coarseLifts: clN, calorieFloor: cfN,

@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "6.3.0";
+const APP_V = "6.3.1";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -5365,13 +5365,22 @@ function runAdaptive(state, todayISO) {
       `${coarse.map((c) => `${c.n} steps ${c.step} lb on ${c.w} — a ${c.pct}% jump`).join(", and ")}. Reps fall about 0.4 for every 1% of load (Nuzzo 2024, 952 reps-to-failure tests across 269 studies), so ${coarse.length > 1 ? "each of those costs" : "that costs"} roughly ${coarse[0].lost} reps. Top out at ${coarse[0].hi}, take the jump, and you land near ${Math.max(1, coarse[0].hi - Math.round(coarse[0].lost))} — outside a tight window, with no rule to climb back. The ACSM's progression stand asks for 2-10% increments and specifically wants the SMALLER end on small-muscle exercises; fixed plates give you the exact inverse, 12.5% on a rear-delt fly against 1.6% on calves. Two fixes and the cheap one is hardware: 1.25 lb magnetic add-ons halve the jump and let the window stay tight. Otherwise the window has to widen to ${coarse[0].lo}-${coarse[0].hi}, which the app has already done. Worth knowing this is a derivation, not a citation — nobody has published guidance on rep-window width in a double-progression scheme.`,
       { kind: "note" });
 
-  /* The rate band's UNIT, which quietly tightens the screw as he leans out. */
-  const bwNow = s.trend;
-  const bandPct = [((s.rate.band[0] / bwNow) * 100), ((s.rate.band[1] / bwNow) * 100)];
-  if (!sealed && r.measured && bwNow > 0)
-    propose("rateunit", "YOUR RATE BAND IS IN THE WRONG UNIT",
-      `Your band is written as ${s.rate.band[0]}-${s.rate.band[1]} lb/wk — an absolute weight. At today's ${bwNow} lb that is ${bandPct[0].toFixed(2)}-${bandPct[1].toFixed(2)}% of bodyweight per week. At 148 lb the same band would be ${((s.rate.band[0] / 148) * 100).toFixed(2)}-${((s.rate.band[1] / 148) * 100).toFixed(2)}%. So the band gets steadily more aggressive as you get lighter, which is backwards twice over: the leaner you are the more of any deficit comes off lean tissue, and the closest trial we have (Garthe 2011) had the 0.7%/wk arm gain 1.7% lean mass while the 1.0%/wk arm lost 2.0% — on identical total weight lost. A band anchored in pounds tightens the screw exactly where it should loosen it. The proposal is to restate it as ${bandPct[0].toFixed(2)}-${bandPct[1].toFixed(2)}% of bodyweight and let the pound figures follow your weight down. Nothing about today changes — you are running ${((r.scale / bwNow) * 100).toFixed(2)}%/wk, which is ${r.scale / bwNow * 100 < bandPct[0] ? "just under the slow end already" : "inside it"}.`,
-      { kind: "note" });
+  /* THE RATE BAND'S UNIT — RETIRED v6.3.1. This card proposed restating the band
+     from absolute lb to "% of bodyweight." That fix already shipped: cutRateBand()
+     derives the corridor as %BW per Auto-Pilot mode and scales it to lb by his
+     bodyweight (v6.2.1), so the band no longer tightens as he leans and the
+     "wrong unit" premise is moot. It was also the last user-facing reader of the
+     fixed s.rate.band seed, and it miscited Garthe — a phantom 1.0%/wk arm "losing
+     2.0%" (the truth, cited correctly everywhere else from BC.CUT_GARTHE_*: the
+     0.7%/wk arm gained +2.1% LBM, the 1.4%/wk arm was lean-neutral at -0.2%).
+     Retired outright rather than rewritten, because the engine already owns the
+     band — one owner, cutRateBand. Anything already armed on his phone stands down
+     rather than lingering on a claim the engine has stopped making: same contract
+     as the recovery card below — the record keeps it, the screen does not. */
+  s.proposals.filter((p) => p.rid === "rateunit" && !p.resolved).forEach((p) => {
+    p.resolved = true; p.stoodDown = true;
+    s.feed.unshift({ d: todayISO, t: "RATE-UNIT CARD RETIRED", how: "the band is now derived as % of bodyweight per mode by the engine, so the wrong-unit premise no longer holds — and its Garthe figure was wrong" });
+  });
 
   /* The volume band vs the dose-response evidence, in a deficit. */
   const volDrift = VOL_BANDS.lo !== 6 || VOL_BANDS.hi !== 12;
@@ -9855,11 +9864,19 @@ function BodyTab({ s, setS, save }) {
 
       <Section title="Pace & Timeline" meta={`${cur.fat}/wk · wk ${wd.wk}`}>
         <Card>
-        <Eyebrow>RATE OF LOSS · PHASE-AWARE</Eyebrow>
-        <div style={{ marginTop: 10 }}><RateGauge rate={s.rate} cur={cur} /></div>
-        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 8 }}>Rules run themselves: floor and redline arm one-tap adjustments on the NOW screen when trend data trips them.</div>
-        <More deep="The green band (1.0–1.4/wk) is the muscle-safe corridor for this phase. Floor rule: two weeks under 0.8 → restore steps FIRST, then trim calories. Redline: ≥1.9 → add ~100 back and coach-flag, because speed there is muscle risk, not a win. Sealed windows mute both rules so event noise can never fire them."
-          forYou={sealed ? `Rules muted while sealed (clean read ${fmtShort(SEAL_UNTIL)}) — your sheet's 7/21 REDLINE gap-artifact is exactly what this muting exists to prevent.` : cur.measured ? `Measured ~${cur.fat}/wk fat-equivalent right now — ${cur.fat >= 1.0 && cur.fat <= 1.4 ? "inside the corridor; nothing to do." : cur.fat < 1.0 ? "under the corridor; the floor rule is the nearest tripwire." : "hot; the redline is the nearest tripwire."}` : "Two clean weekly snapshots and this goes fully measured."} />
+        <Eyebrow>RATE OF LOSS · MODE-AWARE</Eyebrow>
+        {(() => {
+          const rb = cutRateBand(s);   // v6.3.1 — the gauge reads the engine's mode-driven %BW corridor, not the retired fixed s.rate.band seed
+          const lo = rb.band[0], hi = rb.band[1];
+          const modeLabel = apModeOf(s) === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP";
+          const inBand = cur.fat >= lo && cur.fat <= hi;
+          return (<>
+            <div style={{ marginTop: 10 }}><RateGauge rate={rb} cur={cur} /></div>
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 8 }}>Rules run themselves: floor and redline arm one-tap adjustments on the NOW screen when trend data trips them.</div>
+            <More deep={`The green band is your ${modeLabel} corridor — ${lo}–${hi} lb/wk, derived from ${rb.pct[0].toFixed(2)}–${rb.pct[1].toFixed(2)} %BW at today's weight, so it tracks you down as you lean instead of tightening. Floor rule: two weeks under ${rb.floor} → restore steps FIRST, then trim calories. Redline: ≥${rb.redline} → add ~100 back and coach-flag, because speed there is muscle risk, not a win. Sealed windows mute both rules so event noise can never fire them.`}
+              forYou={sealed ? `Rules muted while sealed (clean read ${fmtShort(SEAL_UNTIL)}) — your sheet's 7/21 REDLINE gap-artifact is exactly what this muting exists to prevent.` : cur.measured ? `Measured ~${cur.fat}/wk fat-equivalent right now — ${inBand ? "inside the corridor; nothing to do." : cur.fat < lo ? "under the corridor; the floor rule is the nearest tripwire." : "hot; the redline is the nearest tripwire."}` : "Two clean weekly snapshots and this goes fully measured."} />
+          </>);
+        })()}
       </Card>
         <Card>
         <Eyebrow>ROAD · LIVE ETAS OFF YOUR ACTUAL RATE</Eyebrow>
