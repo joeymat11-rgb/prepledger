@@ -272,6 +272,10 @@ if (typeof document !== "undefined" && !document.getElementById("pl-gx")) {
        confused in a weight or a load. If the embedded subset dropped the feature
        this is simply inert — it cannot make anything worse. */
     + "[data-num],.num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1,'zero' 1}"
+    /* §5e — the one reveal keyframe for collapsible groups. The reduced-motion media
+       query below caps its duration to ~0, so it rides the same still switch as
+       everything else — no separate key needed. */
+    + "@keyframes plReveal{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}"
     /* The OS-level request wins over every token above. Anything still moving is
        cut to a 100ms opacity fade; nothing travels, nothing animates twice. */
     + "@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:100ms !important;transition-property:opacity !important;scroll-behavior:auto !important}}"
@@ -300,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "6.2.1";
+const APP_V = "6.3.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -7274,8 +7278,8 @@ function Term({ k, children, c }) {
   );
 }
 
-function Section({ title, meta, c = T.chalk, children }) {
-  const [open, setOpen] = useState(false);
+function Section({ title, meta, c = T.chalk, persistKey, children }) {
+  const [open, setOpen] = useDisclosure(persistKey, () => false);
   return (
     <Card style={{ padding: 12 }} accent={open ? c : undefined}>
       <div onClick={() => setOpen(!open)} style={{ cursor: "pointer" }}>
@@ -7486,14 +7490,89 @@ function signalReadCopy(s, sig) {
   }
   return { rate, showRate, wordColor, sentence, rawLine, word: sig.word };
 }
+/* ---------- device-local UI state (NOW reorg, v6.3) ----------
+   Collapse/disclosure state is a UI PREFERENCE, not athlete data — so, exactly
+   like RM_KEY above, it lives in its OWN localStorage key and NEVER inside
+   prep-ledger-v1. That keeps every toggle out of the GitHub sync and out of the
+   publicly-readable ledger/state.json (the dev-setup privacy caveat), and off the
+   state schema (no migration). computeDefault() runs ONLY on first visit (or after
+   a value is cleared) and may be time-based; the moment Joe toggles, that boolean
+   is written and wins on every future mount — so a remembered choice beats the
+   time-of-day default, the page stops re-collapsing on reload, and it never
+   silently flips at 5pm. This is the "remembered" ask, and the accordion-
+   persistence best practice (NN/g). */
+const UI_KEY = "prep-ledger-ui";
+/* Pure disclosure logic (unit-tested via __test). applyDisc merges ONE key into the
+   device-local {v, disc} object and touches nothing else — so a UI pref can never
+   leak into prep-ledger-v1 or the publicly-readable ledger/state.json. readDisc
+   returns a STORED value when present (the remembered override) and only otherwise
+   falls back to computeDefault (the first-visit, possibly time-based, default). */
+function applyDisc(ui, key, val) { const u = ui && typeof ui === "object" ? ui : {}; return { ...u, v: 1, disc: { ...(u.disc || {}), [key]: !!val } }; }
+function readDisc(ui, key, computeDefault) {
+  if (ui && ui.disc && key in ui.disc) return !!ui.disc[key];
+  return typeof computeDefault === "function" ? !!computeDefault() : !!computeDefault;
+}
+function readUIState() { try { return JSON.parse(localStorage.getItem(UI_KEY) || "{}") || {}; } catch (e) { return {}; } }
+function writeDisclosure(key, val) {
+  try { localStorage.setItem(UI_KEY, JSON.stringify(applyDisc(readUIState(), key, val))); } catch (e) {}
+}
+/* Drop-in for useState(bool): same [open, setOpen] shape (setOpen takes a value or
+   an updater), but when a key is given it also persists to UI_KEY. No key → pure
+   session state, unchanged behaviour. */
+function useDisclosure(key, computeDefault) {
+  const [open, setOpenRaw] = useState(() => {
+    try { if (key) return readDisc(readUIState(), key, computeDefault); } catch (e) {}
+    return typeof computeDefault === "function" ? !!computeDefault() : !!computeDefault;
+  });
+  const setOpen = (next) => setOpenRaw((prev) => {
+    const v = typeof next === "function" ? next(prev) : next;
+    if (key) writeDisclosure(key, v);
+    return v;
+  });
+  return [open, setOpen];
+}
+/* A tiny registry so a Tier-1 "what you owe" action can force-open the exact
+   collapsed group it deep-links to before scrolling to it. Registered by each
+   persisted Group; a no-op when that group isn't mounted or on the server. */
+function registerGroup(key, setter) {
+  if (typeof window === "undefined" || !key) return () => {};
+  const reg = (window.__plGroups = window.__plGroups || {});
+  reg[key] = setter;
+  return () => { if (reg[key] === setter) delete reg[key]; };
+}
+function openGroup(key) { try { if (typeof window !== "undefined" && window.__plGroups && window.__plGroups[key]) window.__plGroups[key](true); } catch (e) {} }
+function scrollToId(id, delay = 80) {
+  if (typeof document === "undefined") return;
+  setTimeout(() => { try { const el = document.getElementById(id); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: reduceMotionOn() ? "auto" : "smooth", block: "center" }); } catch (e) {} }, delay);
+}
+/* oweTarget — the WHAT YOU OWE deep-link map (unit-tested via __test): which
+   collapsed group to force-open and which element to scroll to, keyed by the owed
+   item's kind (from nowFocus). Morning inputs (night/weight) → CAPTURE; the day's
+   numbers → TODAY'S LOGS; an unclosed yesterday → the reopen card in TODAY'S PLAN. */
+function oweTarget(k) {
+  return k === "day" ? { key: "now.logs", id: "pl-closeday" }
+    : k === "yesterday" ? { key: "now.plan", id: "pl-amend" }
+    : { key: "now.capture", id: "pl-capture" };
+}
+/* NOW reorg v6.3 — the two novel PURE pieces, exposed for the engine suite here
+   (below their definitions, so UI_KEY is past its TDZ): the disclosure override
+   rule (readDisc/applyDisc) and the deep-link map (oweTarget). UI_KEY is exported
+   so a test can assert it is NOT the synced state key. */
+__test.UI_KEY = UI_KEY;
+__test.applyDisc = applyDisc;
+__test.readDisc = readDisc;
+__test.oweTarget = oweTarget;
+
 /* Group — a fixed-position collapsible section for NOW's FOCUSED tier. Order never
    changes (static beats adaptive — Findlater & McGrenere); only open/closed responds
-   to time-of-day once, and a manual toggle then wins for the session. Removes nothing:
-   the content is one tap away, in the same place, every time. */
-function Group({ title, sub, defaultOpen = false, count, children }) {
-  const [gOpen, setGOpen] = useState(defaultOpen);
+   to time-of-day once, then a manual toggle wins and is REMEMBERED across reloads
+   (persistKey → UI_KEY). Removes nothing: the content is one tap away, in the same
+   place, every time. */
+function Group({ title, sub, defaultOpen = false, count, persistKey, id, children }) {
+  const [gOpen, setGOpen] = useDisclosure(persistKey, () => defaultOpen);
+  useEffect(() => registerGroup(persistKey, setGOpen), [persistKey]);
   return (
-    <div style={{ borderTop: `1px solid ${T.line}`, paddingTop: SP.sm }}>
+    <div id={id} style={{ borderTop: `1px solid ${T.line}`, paddingTop: SP.sm }}>
       <div onClick={() => setGOpen(!gOpen)} role="button" tabIndex={0} aria-expanded={gOpen}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setGOpen(!gOpen); } }}
         style={{ display: "flex", alignItems: "center", gap: SP.sm, minHeight: 44, cursor: "pointer" }}>
@@ -7502,7 +7581,7 @@ function Group({ title, sub, defaultOpen = false, count, children }) {
         {sub ? <span style={{ fontFamily: body, fontSize: TS.body, color: T.steel, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sub}</span> : null}
         {count ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.gauge, marginLeft: "auto", flexShrink: 0 }}>· {count}</span> : null}
       </div>
-      {gOpen ? <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: SP.sm }}>{children}</div> : null}
+      {gOpen ? <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: SP.sm, animation: `plReveal ${MOT.standard}ms ${EASE.settle} both` }}>{children}</div> : null}
     </div>
   );
 }
@@ -7724,20 +7803,16 @@ function ApprovalInbox({ s, setS, save, tISO }) {
   items.sort((a, b) => a.pri - b.pri);
   const rline = { fontFamily: body, fontSize: TS.body, color: T.steel, lineHeight: 1.5, marginTop: SP.xs };
 
+  /* §5b/§5d — the inbox is now its OWN quiet, default-collapsed group with a count.
+     When it's empty it renders NOTHING: an empty inbox is the good state and no
+     longer needs a resident "Inbox clear" card taking a slot on the fold. It
+     auto-opens on first visit ONLY when a MATERIAL item exists (a phase/exit change
+     or an engine cal/rate proposal, pri ≤ 1); softer suggestions wait quietly behind
+     the count. The count is a plain T.gauge numeral, never a red dot or a streak. */
+  if (items.length === 0) return null;
+  const material = items.some((it) => it.pri <= 1);
   return (
-    <>
-      <SecRule>FOR YOUR APPROVAL · your tap decides</SecRule>
-      {items.length === 0 && (
-        /* "Inbox clear" is EARNED CALM, not an error and not a shrug (§4). Jade,
-           because an empty inbox means the engine has nothing it wants from him —
-           that is the good state, and it should read like one. */
-        <Card style={{ padding: SP.lg }} accent={T.jade}>
-          <div style={{ fontFamily: body, fontWeight: 600, fontSize: TS.title, lineHeight: `${LH.title}px`, color: T.jade }}>Inbox clear.</div>
-          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>
-            Nothing is waiting on you. Every change the machine wants — from the engine, your analyst, or an agent — arrives here first, in plain words, for one tap. Nothing has ever changed itself.
-          </div>
-        </Card>
-      )}
+    <Group title="FOR YOU TO OK" sub="changes waiting on your tap" persistKey="now.inbox" count={items.length} defaultOpen={material}>
       {items.map((it) => {
         const n = nudge[it.key] || 0;
         return (
@@ -7790,7 +7865,36 @@ function ApprovalInbox({ s, setS, save, tISO }) {
           </Card>
         );
       })}
-    </>
+    </Group>
+  );
+}
+
+/* One protocol step: the TITLE always shows; the "why" paragraph and any detail
+   lines fold behind a per-step ▸ why expander (§5d #1 — the single biggest scroll
+   cut on NOW; the calorie/protein narration was the worst offender and is pure
+   on-demand). Nothing removed — the depth is one tap away, per step. Session-scoped:
+   this is read-once reasoning, not a layout preference, so it doesn't touch UI_KEY. */
+function ProtoStep({ n, st }) {
+  const [open, setOpen] = useState(false);
+  const hasWhy = !!(st.why || (st.detail && st.detail.length));
+  return (
+    <div style={{ display: "flex", gap: 8 }}>
+      <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, flexShrink: 0 }}>{n}.</span>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+          <div style={{ fontFamily: mono, fontSize: TS.label, color: st.detail ? T.brass : T.chalk }}>{plainify(st.a)}</div>
+          {hasWhy ? <button onClick={() => setOpen(!open)} aria-expanded={open} style={{ fontFamily: mono, fontSize: TS.micro, color: open ? T.chalk : T.steel, background: "none", border: "none", padding: "0 0 0 6px", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}>{open ? "hide ▾" : "why ▸"}</button> : null}
+        </div>
+        {open && hasWhy ? (
+          <div style={{ marginTop: 4 }}>
+            {st.why ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, lineHeight: 1.45 }}>{plainify(st.why)}</div> : null}
+            {(st.detail || []).map((dl, k) => (
+              <div key={k} style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.5, marginTop: 4, paddingLeft: 8, borderLeft: `2px solid ${T.line}` }}>{plainify(dl)}</div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -7817,9 +7921,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [awakeMin, setAwakeMin] = useState(30);
   const [solMin, setSolMin] = useState(15);
   const [dayEdit, setDayEdit] = useState(false);
-  /* Collapsed by default, and it STAYS collapsed unless he opens it — the room
-     never rearranges itself. See NOW_FOCUS and NAV_NOTE. */
-  const [restOpen, setRestOpen] = useState(false);
+  /* Collapsed by default, and it STAYS where he leaves it — persisted across
+     reloads (now.rest), so the room never rearranges itself. See NOW_FOCUS. */
+  const [restOpen, setRestOpen] = useDisclosure("now.rest", () => false);
   const focus = nowFocus(s);
   const sig = signalState(s);
   const levers = fiveLevers(s);
@@ -7828,6 +7932,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const savePlan = (next) => { const ns = { ...s, plan: { goals: [], ifthen: [], share: false, ...plan, ...next } }; setS(ns); save(ns); };
   const why = whyDecompose(s);
   const [whyOpen, setWhyOpen] = useState(false);
+  /* Auto-Pilot collapses to one line when it's merely holding the line; a proposal
+     forces it open. Remembered per device (now.autopilot). §5b/§5d. */
+  const [apOpen, setApOpen] = useDisclosure("now.autopilot", () => false);
+  /* WHY-ENGINE is exception-only and read-once, so its collapse is session-scoped
+     (not persisted): a one-line tease on the fold, opened on tap. §5a/§5d #7. */
+  const [whyEngOpen, setWhyEngOpen] = useState(false);
   const [newGoal, setNewGoal] = useState("");
   const [ifCue, setIfCue] = useState("");
   const [ifAct, setIfAct] = useState("");
@@ -7954,15 +8064,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: SP.md }}>
         <div style={{ minWidth: 0 }}>
           <H size={24}>Measured</H>
-          <div style={{ fontFamily: body, fontSize: TS.label, color: T.steel, marginTop: 3 }}>Measured. Not guessed.</div>
-          {/* The band, not just the point. bfEst has carried lo/hi since the
-              drip was zeroed, but the interval only ever showed on BODY — a tab
-              he says he very rarely opens. A naked "BF 12%" on the page he
-              opens every day reads as a measurement; it is a model output with
-              a couple of points of width on it, and hiding that width is
-              exactly the "misleading read of the athlete's state" GOALS.md
-              calls a regression. */}
-          <div style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, marginTop: SP.sm, textTransform: "uppercase" }}>WK {wd.wk} · D{wd.day} · {s.phase} · BF {bf.pct}%<span style={{ color: T.steel }}> ({bf.lo}–{bf.hi})</span></div>
+          {/* v6.3 §5e — the tagline "Measured. Not guessed." is demoted to the
+              footer (it's brand, not "now"), and the raw BF (lo–hi) moves into THE
+              READ's bottom line where it carries its epistemic word. A body-comp
+              number never shows naked on the fold — the same honesty rule GOALS.md
+              protects, kept while the masthead gets out of the way of the read. */}
+          <div style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, marginTop: SP.xs, textTransform: "uppercase" }}>WK {wd.wk} · D{wd.day} · {s.phase}</div>
         </div>
         <div style={{ display: "flex", gap: SP.sm, flexShrink: 0 }}>
           <button onClick={openCoach} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "7px 11px", whiteSpace: "nowrap" }}>ANALYST</button>
@@ -7985,17 +8092,61 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             <GraduationMark ticks={sig.ticks} finalDashed={sig.finalDashed} />
             <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 15, letterSpacing: "0.03em", color: rc.wordColor }}>{rc.word}{sig.state === "measured" ? " ◆" : ""}</span>
           </div>
-          {rc.rawLine ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm }}>{rc.rawLine}</div> : null}
+          {/* v6.3 §5a — raw morning weight AND the BF interval now live here, on the
+              hero, each beside the epistemic word above them; a body-comp number
+              never shows naked (masthead demoted this to here). */}
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm }}>
+            {rc.rawLine ? rc.rawLine + " · " : ""}BF {bf.pct}% <span style={{ opacity: 0.8 }}>({bf.lo}–{bf.hi})</span>
+          </div>
         </Card>
       ); })()}
+
+      {/* ---------- WHAT YOU OWE — the one action, in the thumb zone (§5a) ----------
+          Promoted directly under THE READ and turned into a full-width action, so the
+          fold is now one honest sentence + the one thing owed. Tapping it force-opens
+          and scrolls to the exact input owed (CAPTURE in the morning, CLOSE THE DAY at
+          night, or the reopen-yesterday card) — it never hides an input, it jumps to
+          one (§5d win #5). Nothing owed → a calm line, no button. Charter: no urgency,
+          no countdown, no streak — just the next honest action, low and full-width. */}
+      {(() => {
+        const o0 = focus.owed[0];
+        if (focus.clear || !o0) return (
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, lineHeight: 1.5, padding: `${SP.xs}px ${SP.sm}px` }}>
+            <span style={{ color: T.jade, fontWeight: 600 }}>✓ {focus.lead.t}.</span> {focus.lead.sub}
+          </div>
+        );
+        const target = oweTarget(o0.k);
+        return (
+          <div>
+            <Btn full tone="jade" onClick={() => { hap(8); openGroup(target.key); scrollToId(target.id); }}>{focus.lead.t} →</Btn>
+            {focus.lead.more > 0 ? (
+              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, letterSpacing: "0.04em", textAlign: "center" }}>then {focus.owed.slice(1).map((o) => o.t.toLowerCase()).join(" · ")}</div>
+            ) : null}
+          </div>
+        );
+      })()}
 
       {/* ---------- THE WHY-ENGINE (v2 slice C — the defuser) ----------
           Exception-only: appears when the scale does something transient (a spike or a
           measured stall), breaks it into water vs real with the physiology, and leads
           with the decision. Gated by signalState; brass ◆ marks the real slice. */}
-      {why.show && (
+      {/* §5a/§5d#7 — WHY-ENGINE is exception-only; when it fires it now collapses to a
+          one-line tease (water vs real ▸) instead of a resident ~390px card, so a
+          spike/stall day doesn't blow the fold. One tap opens the full decomposition. */}
+      {why.show && !whyEngOpen && (
+        <div onClick={() => setWhyEngOpen(true)} role="button" tabIndex={0} aria-expanded={false}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setWhyEngOpen(true); } }}
+          style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm, padding: `${SP.sm}px ${SP.md}px`, border: `1px solid ${T.line}`, borderLeft: `3px solid ${T.gauge}`, borderRadius: 8, background: T.plate }}>
+          <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.1em", color: T.gauge, textTransform: "uppercase" }}>{why.question}</span>
+          <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, whiteSpace: "nowrap" }}>water vs real ▸</span>
+        </div>
+      )}
+      {why.show && whyEngOpen && (
         <Card accent={T.gauge} style={{ padding: SP.lg }}>
-          <Eyebrow c={T.gauge}>{why.question}</Eyebrow>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm }}>
+            <Eyebrow c={T.gauge}>{why.question}</Eyebrow>
+            <button onClick={() => setWhyEngOpen(false)} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: "none", cursor: "pointer", whiteSpace: "nowrap" }}>▾ hide</button>
+          </div>
           <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, textTransform: "uppercase", marginTop: SP.sm }}>THIS WEEK, DECOMPOSED</div>
           <div style={{ marginTop: SP.sm }}>
             <StackBar segments={why.parts.map((p) => ({ pct: p.pct, c: p.tone === "gauge" ? T.gauge : p.tone === "brass" ? T.brass : T.steel, label: p.label }))} />
@@ -8023,6 +8174,11 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       )}
 
+      {/* ---------- TODAY (§5c) — the five, the one thing, and Auto-Pilot, all moved
+          OFF the resident stack into one collapsed, remembered group (now.today). The
+          single biggest fold win after the protocol: ~660px of always-on cards become
+          one line. Fixed order, nothing removed — everything is one tap away. */}
+      <Group title="TODAY" sub="the five · the one thing · auto-pilot" persistKey="now.today" defaultOpen={false} id="pl-today">
       {/* ---------- THE FIVE TODAY (v2 adherence — did you do the five?) ----------
           The levers that actually move body composition, each with the redundant
           SemTag triple so the state survives grayscale, sweat and colour-blindness
@@ -8064,22 +8220,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       </Card>
       )}
 
-      {/* ---------- WHAT YOU OWE ----------
-          The page used to open with 28 cards regardless of why he came. This is
-          what he owes right now, in one line, with everything else still below
-          it. It never hides an input — it points at one. See NOW_FOCUS. */}
-      <Card accent={focus.clear ? T.jade : T.brass} style={{ padding: SP.lg }}>
-        <Eyebrow c={focus.clear ? T.jade : T.brass}>
-          {focus.clear ? "NOTHING OWED" : focus.phase === "MORNING" ? "THIS MORNING · WHAT YOU OWE" : focus.phase === "EVENING" ? "TONIGHT · WHAT YOU OWE" : "WHAT YOU OWE"}
-        </Eyebrow>
-        <div style={{ marginTop: SP.sm }}><H size={focus.clear ? 20 : 24}>{focus.lead.t}</H></div>
-        <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: 1.5 }}>{focus.lead.sub}</div>
-        {focus.lead.more > 0 && (
-          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: SP.sm, letterSpacing: "0.04em" }}>
-            then {focus.owed.slice(1).map((o) => o.t.toLowerCase()).join(" · ")}
-          </div>
-        )}
-      </Card>
+      {/* WHAT YOU OWE was here (card #6, below the five and the one-thing). It is now
+          the full-width action button on the fold, directly under THE READ (§5a) —
+          no longer a resident card in the middle of the stack. */}
 
       {/* ---------- AUTO-PILOT (v2 slice E — the thermostat) ----------
           Holds the goal line. observedTDEE is the state estimate; currentRate the
@@ -8100,9 +8243,23 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             : (cut ? `You're on your ${modeLabel} line (~${ap.targetPct}%BW/wk). Auto-Pilot is holding it — ${apMode === "fatloss" ? "the fastest fat loss without crossing the redline." : "the best body-comp change your body banks."}` : `You're inside your growth corridor (${corrTxt}). Auto-Pilot is holding the disciplined lean-gain line.`);
         const kcalVerb = cut ? (easing ? "add back" : "trim") : (easing ? "trim the surplus" : "add");
         const proposalBody = `To ride your ${modeLabel} line, ${kcalVerb} ~${ap.corrKcal} kcal${cut ? `, or ${easing ? "trim" : "add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps` : ""}. Staging sends it to your approval inbox — Auto-Pilot never changes anything itself.`;
+        const holding = ap.action === "hold" && !apProp && !apPro;
+        /* §5d #2 — when Auto-Pilot is merely holding the line, it collapses to ONE
+           line (was the tallest resident card, ~330px). A proposal forces it open. */
+        if (holding && !apOpen) return (
+          <Card accent={T.gauge} style={{ padding: `${SP.sm}px ${SP.md}px`, cursor: "pointer" }} onClick={() => { hap(6); setApOpen(true); }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm }}>
+              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.12em", color: T.gauge, textTransform: "uppercase", whiteSpace: "nowrap" }}>AUTO-PILOT · HOLDING YOUR LINE ✓</span>
+              <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, whiteSpace: "nowrap" }}>~{ap.pctRate}%BW/wk · open ▸</span>
+            </div>
+          </Card>
+        );
         return (
         <Card accent={apProp ? T.brass : (apPro ? T.orange : T.gauge)} style={{ padding: SP.lg }}>
-          <Eyebrow c={apProp ? T.brass : (apPro ? T.orange : T.gauge)}>{apProp || apPro ? "AUTO-PILOT · FOR YOU TO OK" : "AUTO-PILOT · HOLDING YOUR LINE"}</Eyebrow>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm }}>
+            <Eyebrow c={apProp ? T.brass : (apPro ? T.orange : T.gauge)}>{apProp || apPro ? "AUTO-PILOT · FOR YOU TO OK" : "AUTO-PILOT · HOLDING YOUR LINE"}</Eyebrow>
+            {holding ? <button onClick={() => setApOpen(false)} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: "none", cursor: "pointer", whiteSpace: "nowrap" }}>▾ hide</button> : null}
+          </div>
           <div style={{ fontFamily: body, fontWeight: 600, fontSize: TS.title, lineHeight: `${LH.title}px`, color: T.chalk, marginTop: SP.sm }}>{headline}</div>
           {cut ? (
             <div style={{ marginTop: SP.md }}>
@@ -8171,6 +8328,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       ); })()}
 
+      </Group>
+      {/* end TODAY group */}
+
       {/* ---------- THIS WEEK · YOUR PLAN (v2 adherence A2) ----------
           Self-authored process goals and if-then implementation intentions (d≈0.65,
           the largest cheap effect in behaviour science — Gollwitzer & Sheeran 2006),
@@ -8178,7 +8338,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           truth), and an opt-in one-human share. Everything here is set by him and
           attributed to the plan, never scored or nagged; dismiss is "Not now". A
           collapsed Group by default, so it never crowds the morning. */}
-      <Group title="THIS WEEK" sub="your plan — goals, if-then, commit" count={(plan.goals.length + plan.ifthen.length) || null}>
+      <Group title="THIS WEEK" sub="your plan — goals, if-then, commit" persistKey="now.week" count={(plan.goals.length + plan.ifthen.length) || null}>
         <div>
           <Eyebrow c={T.jade}>YOUR PROCESS GOALS</Eyebrow>
           {plan.goals.length === 0 && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>None set. A process goal is something you do, not a number on the scale — "four training sessions", "protein on target six days". They make the work task-focused instead of self-evaluative.</div>}
@@ -8249,6 +8409,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{al9.level === "RED" ? "The pattern held a second day. Today buys nothing worth its cost — walk, eat, sleep, and come back tomorrow ahead. Every lift's desk already says REST TODAY." : "Normal session, one rule changed: no all-out sets and no record attempts. Every zero becomes a one — the desk chips already carry it."}</div>
         </Card>
       ); })()}
+      {/* CAPTURE (§5c) — the morning inputs (sleep, weight, the morning minute) become
+          one remembered group, id'd so the WHAT YOU OWE button can deep-link + open it.
+          Default-open in the morning; then it stays exactly where he leaves it. */}
+      <Group title="CAPTURE" sub="sleep · weight · the morning minute" persistKey="now.capture" id="pl-capture" defaultOpen={new Date().getHours() < 12}>
       {(() => {
         const owed = owedNights(s);
         const lastNight = isoOf(new Date((new Date().getHours() < 5 ? todayStart().getTime() - DAY : todayStart().getTime()) - DAY));
@@ -8258,7 +8422,6 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         const logW = () => { const ns2 = runAdaptive(applyRead(s, tISO, wIn), tISO); setS(ns2); save(ns2); };
         return (
           <>
-      <SecRule>THIS MORNING</SecRule>
       {(() => { const bk9 = booksToday(s); if (bk9.complete) return (
         <Card style={{ padding: "9px 14px" }}><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.jade }}>📕 {fmtShort(isoOf(todayStart()))} closed — everything the analysts need is in.</div></Card>
       ); const mn9 = minuteNeeds(s); if (new Date().getHours() < 14 && !mn9.length) return (<Card style={{ padding: "9px 14px" }}><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.jade }}>✓ the morning minute · complete</div></Card>); if (new Date().getHours() < 12 && mn9.length) return (
@@ -8359,8 +8522,19 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </>
         );
       })()}
+      </Group>
+      {/* end CAPTURE group */}
 
-      <Group title="The read" sub="your analyst's take · what's waiting on your tap" defaultOpen={true}>
+      {/* FOR YOU TO OK — the one-door approval inbox, promoted to its OWN group (§5c),
+          a sibling ABOVE YOUR ANALYST. It self-renders as a quiet, default-collapsed
+          group with a count, and renders nothing at all when empty. */}
+      <ApprovalInbox s={s} setS={setS} save={save} tISO={tISO} />
+
+      {/* YOUR ANALYST (§5c rename, Joe-approved) — was the lower "The read" group;
+          renamed to end the collision with the top THE READ card (two different
+          things, two names now). The nightly brief + Ask; the inbox has left to its
+          own group above. Remembered collapse, quiet by default. */}
+      <Group title="YOUR ANALYST" sub="your analyst's brief · ask" persistKey="now.analyst" defaultOpen={false}>
       <BriefCard s={s} setS={setS} save={save} />
       <Card accent={T.jade} style={{ padding: "11px 14px", cursor: "pointer" }} onClick={() => setAskOpen(true)}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
@@ -8368,8 +8542,6 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <span style={{ fontFamily: mono, fontSize: 14, color: T.jade, flexShrink: 0 }}>▸</span>
         </div>
       </Card>
-
-      <ApprovalInbox s={s} setS={setS} save={save} tISO={tISO} />
 
 
 
@@ -8383,25 +8555,17 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       </Group>
 
-      <Group title="Today's plan" sub="what to do today" defaultOpen={new Date().getHours() < 17}>
+      <Group title="Today's plan" sub="what to do today" persistKey="now.plan" id="pl-plan" defaultOpen={new Date().getHours() < 17}>
       {(() => { const pr = dayProtocol(s, slp); return (
         <Card accent={T.jade}>
           <Eyebrow c={T.jade}>TODAY'S PROTOCOL — RANKED, FROM YOUR DATA</Eyebrow>
           <div style={{ marginTop: 6 }}><H size={22}>{pr.lead.t}</H></div>
           <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 4 }}>{plainify(pr.lead.sub)}</div>
+          {/* §5d #1 — lead + step TITLES stay resident; each step's why paragraph and
+              detail[] block fold behind a per-step ▸ why expander (ProtoStep). The
+              ~350–520px narration becomes ~120px; the depth is one tap away, per step. */}
           <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9, display: "flex", flexDirection: "column", gap: 7 }}>
-            {pr.steps.map((st2, i) => (
-              <div key={i} style={{ display: "flex", gap: 8 }}>
-                <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, flexShrink: 0 }}>{i + 2}.</span>
-                <div>
-                  <div style={{ fontFamily: mono, fontSize: TS.label, color: st2.detail ? T.brass : T.chalk }}>{plainify(st2.a)}</div>
-                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, lineHeight: 1.45 }}>{plainify(st2.why)}</div>
-                  {(st2.detail || []).map((dl, k) => (
-                    <div key={k} style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.5, marginTop: 4, paddingLeft: 8, borderLeft: `2px solid ${T.line}` }}>{plainify(dl)}</div>
-                  ))}
-                </div>
-              </div>
-            ))}
+            {pr.steps.map((st2, i) => <ProtoStep key={i} n={i + 2} st={st2} />)}
           </div>
           <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 9, lineHeight: 1.5 }}>
             ranked by how much each moves body composition and how far you sit from it — deficit and protein outrank sleep, sleep outranks caffeine and steps
@@ -8468,7 +8632,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       })()}
 
       </Group>
-      <Group title="Today's logs" sub="what you file" defaultOpen={new Date().getHours() >= 17 || (dl && dl.cal == null)}>
+      <Group title="Today's logs" sub="what you file" persistKey="now.logs" id="pl-closeday" defaultOpen={new Date().getHours() >= 17 || (dl && dl.cal == null)}>
       {dl.cal != null && !dayEdit ? (
         <Card style={{ padding: 12 }} accent={T.jade}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
@@ -8745,7 +8909,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       ); })()}
 
       {/* the crossover countdown is gone from here too — see COUNTDOWN_NOTE below */}
-      <Section title="The Big Picture" meta={(() => { const rec = recoveryIndex(s); const cr9 = currentRate(s); return `${rec.flags.length}/${rec.watched} signals up${cr9.measured ? ` · ${cr9.scale} lb/wk` : ""}`; })()}>
+      <Section title="The Big Picture" persistKey="now.bigpicture" meta={(() => { const rec = recoveryIndex(s); const cr9 = currentRate(s); return `${rec.flags.length}/${rec.watched} signals up${cr9.measured ? ` · ${cr9.scale} lb/wk` : ""}`; })()}>
       {(() => {
         const rec = recoveryIndex(s);
         const c = rec.band === "GREEN" ? T.jade : rec.band === "WATCH" ? T.brass : T.brass;
@@ -8829,7 +8993,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       </>)}
 
-      <div style={{ textAlign: "center", fontFamily: mono, fontSize: TS.micro, color: T.steel, opacity: 0.55, padding: "10px 0 2px" }}>MEASURED · v{APP_V}</div>
+      {/* §5e — the tagline lands here (demoted off the fold masthead): brand, at rest,
+          at the bottom, beside the version. */}
+      <div style={{ textAlign: "center", fontFamily: mono, fontSize: TS.micro, color: T.steel, opacity: 0.55, padding: "10px 0 2px" }}>Measured. Not guessed. · v{APP_V}</div>
 
     </div>
   );

@@ -3440,5 +3440,39 @@ ok(JSON.stringify(out41) !== JSON.stringify(clone(SU41)), "specifically: a newer
    A visible misbehaviour is recoverable; a wipe is not. */
 ok(eq(out41, snap41), "a state newer than the code is handed back UNTOUCHED, down to the version stamp: v" + out41.v);
 
+/* ================================================================
+   NOW reorg v6.3 — the fold action, the remembered collapse, isolation
+   ================================================================
+   Guards the three novel PURE pieces of the reorg: the WHAT YOU OWE deep-link
+   map, the disclosure override rule (a remembered toggle beats the time-of-day
+   default, in BOTH directions), and that UI prefs live in their OWN device-local
+   key — never the synced, publicly-readable state.json. The render itself is
+   exercised by render-smoke and dom-smoke; these lock the logic those depend on. */
+const { oweTarget: oT63, applyDisc: aD63, readDisc: rD63, UI_KEY: UIK63 } = __test;
+
+// WHAT YOU OWE deep-links to the right collapsed group + element, per owed kind
+ok(oT63("night").key === "now.capture" && oT63("night").id === "pl-capture", "owe: a missing night points the fold action at CAPTURE (pl-capture)");
+ok(oT63("weight").key === "now.capture" && oT63("weight").id === "pl-capture", "owe: an un-logged scale points at CAPTURE (pl-capture)");
+ok(oT63("day").key === "now.logs" && oT63("day").id === "pl-closeday", "owe: the day's numbers point at TODAY'S LOGS (pl-closeday)");
+ok(oT63("yesterday").key === "now.plan" && oT63("yesterday").id === "pl-amend", "owe: an unclosed yesterday points at the reopen card (pl-amend)");
+
+// a remembered override BEATS the time-of-day default, both directions
+ok(rD63({ disc: { "now.today": true } }, "now.today", () => false) === true, "remembered OPEN beats a collapsed time-default");
+ok(rD63({ disc: { "now.plan": false } }, "now.plan", () => true) === false, "remembered CLOSED beats an open time-default — this is what kills the silent 5pm flip");
+ok(rD63({}, "now.plan", () => true) === true && rD63({ disc: {} }, "now.logs", () => false) === false, "with nothing stored, the first-visit computeDefault still decides");
+ok(rD63({ disc: { k: false } }, "k") === false, "a stored value is honoured even when no default is supplied");
+
+// applyDisc writes ONLY into {v, disc}, immutably — a UI pref can never leak into state
+const _u0 = { disc: { a: true } };
+const _u1 = aD63(_u0, "b", false);
+ok(_u1.disc.a === true && _u1.disc.b === false && _u1.v === 1, "applyDisc merges the new key, keeps the old, stamps v:1");
+ok(eq(Object.keys(_u1).sort(), ["disc", "v"]), "applyDisc's object is exactly {v, disc} — no field that would ride into state.json");
+ok(!("b" in _u0.disc), "applyDisc does not mutate its input — the previous UI object is untouched");
+ok(aD63(null, "k", true).disc.k === true, "applyDisc tolerates a missing/null UI object");
+
+// the isolation invariant: UI prefs are NOT the synced state key
+ok(UIK63 === "prep-ledger-ui", "collapse prefs live under the device-local prep-ledger-ui key");
+ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they never sync to GitHub or land in the public state.json");
+
 console.log(`\nFINAL81: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
