@@ -202,11 +202,50 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   ok(["hold", "ease", "tighten"].includes(ap.action), "autoPilot returns a direction-aware steering action");
   ok(ap.proposed === (ap.action !== "hold" && ap.corrKcal >= 90), "a correction fires only past a full adaptation's drift (hysteresis)");
   ok(ap.stepsAdd >= 500, "the correction always offers a real steps alternative to food");
-  const fISO = (i) => new Date(Date.UTC(2026, 5, 1) + i * 86400000).toISOString().slice(0, 10);
+  const isoAgo = (back) => { const d = new Date(Date.now() - back * 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
   const fast = clone(SEED); fast.blackout = { until: "2026-05-01" };
-  fast.reads = Array.from({ length: 24 }, (_, i) => ({ d: fISO(i), w: +(178 - i * 0.6).toFixed(2), sealed: false }));
+  // reads END TODAY so this exercises a FRESH fast cut — v6.3.2 holds a STALE rate
+  // regardless of speed, so the ease here must ride current data (that guard is covered below).
+  fast.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoAgo(23 - i), w: +(178 - i * 0.6).toFixed(2), sealed: false }));
   const apF = __test.autoPilot(fast);
   ok(apF.ok && apF.pctRate > apF.band.redlinePct && apF.action === "ease", "a cut past the 1%BW/wk redline proposes EASING to protect muscle, not tightening");
+  ok(apF.stale === false, "…and that ease rides a FRESH read (reads end today) — not a stale hold");
+}
+
+// Auto-Pilot STALENESS SAFEGUARD — v6.3.2 (a FROZEN rate is not an AGED one: currentRate
+// spans the last 28 READS, so days of no weigh-in never widen it. Auto-Pilot must not steer
+// off a stale number — it HOLDS and asks for a fresh weigh-in, especially in MAX FAT LOSS.)
+{
+  const isoAgo = (back) => { const d = new Date(Date.now() - back * 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  // one hot MAX-FAT-LOSS cut, built two ways — reads ending TODAY vs ending 4 DAYS AGO.
+  // identical numbers and slope; only recency differs.
+  const hot = (endBack) => { const x = clone(SEED); x.blackout = { until: "2026-05-01" }; x.plan = { ...(x.plan || {}), apMode: "fatloss" }; x.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoAgo(23 - i + endBack), w: +(178 - i * 0.6).toFixed(2), sealed: false })); return x; };
+  const fresh = hot(0), stale = hot(4);
+
+  // the recency helper — the ONE honest signal every surface reads
+  ok(__test.readRecency(fresh).stale === false && __test.readRecency(fresh).days <= 1, "readRecency: reads ending today are FRESH (0–1 days), never flagged");
+  ok(__test.readRecency(stale).stale === true && __test.readRecency(stale).days === 4, "readRecency: a last weigh-in 4 days ago is STALE — days since the latest read, not a 28-read count");
+  ok(/4 days old/.test(__test.readRecency(stale).flag || "") && /weigh in to refresh/.test(__test.readRecency(stale).flag || ""), "readRecency surfaces an honest, non-alarmist flag — 'reading is N days old · weigh in to refresh'");
+  ok(__test.readRecency(fresh).threshold === 3, "the stale threshold is STALE_DAYS = 3, tuned for a daily-weigh-in trend");
+  ok(__test.readRecency({ reads: [] }).stale === false && __test.readRecency({}).stale === false, "no reads is cold-start, not stale — the guard never fires on an empty ledger");
+
+  const apFresh = __test.autoPilot(fresh, "fatloss");
+  const apStale = __test.autoPilot(stale, "fatloss");
+
+  // FRESH behaves exactly as before — a hot cut still steers
+  ok(apFresh.ok && apFresh.stale === false && apFresh.action === "ease", "FRESH: a hot MAX FAT LOSS cut still proposes a real steer (Auto-Pilot unchanged when the read is current)");
+
+  // STALE holds the very move it would otherwise have made
+  ok(apStale.ok && apStale.stale === true && apStale.staleDays === 4, "STALE: Auto-Pilot carries the frozen-rate state (N days since the last read)");
+  ok(apStale.action === "hold" && apStale.proposed === false, "STALE: Auto-Pilot HOLDS and proposes nothing — no aggressive move off a rate the scale hasn't refreshed");
+  ok(apStale.heldForStale === true, "STALE: the hold is CAUSED by staleness — the same inputs steer when fresh, so this is the safeguard biting, not a coincidental on-line hold");
+  ok(apStale.onLine === true && apStale.lastReadISO === __test.readRecency(stale).lastISO, "STALE: propose-only preserved — the current line is left untouched, and the card gets the last-read date to say why");
+
+  // the caught failure specifically: a SLOW MAX FAT LOSS cut that TIGHTENS when fresh is HELD when stale
+  const slow = (endBack) => { const x = clone(SEED); x.blackout = { until: "2026-05-01" }; x.plan = { ...(x.plan || {}), apMode: "fatloss" }; x.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoAgo(23 - i + endBack), w: +(176 - i * 0.06).toFixed(2), sealed: false })); return x; };
+  const slowFresh = __test.autoPilot(slow(0), "fatloss"), slowStale = __test.autoPilot(slow(4), "fatloss");
+  ok(slowFresh.action === "tighten", "FRESH control: a slow MAX FAT LOSS cut tightens toward the corridor top — the exact move the 8/2 audit saw");
+  ok(slowStale.action === "hold" && slowStale.heldForStale === true, "STALE: that same MAX FAT LOSS tighten is HELD when the rate is 4 days frozen — the caught failure, now guarded");
 }
 
 // Auto-Pilot MODE toggle — v6.2 (one corridor engine; the mode only selects which slice it steers to)

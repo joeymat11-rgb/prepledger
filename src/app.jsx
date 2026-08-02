@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "6.3.1";
+const APP_V = "6.3.2";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -1682,6 +1682,23 @@ function currentRate(s) {
   return { scale: 1.0, fat: 1.25, measured: false, rates, method: "prior", n: 0, ci: null };
 }
 
+/* ---------- READ RECENCY / STALENESS (v6.3.2) ----------
+   currentRate() averages the last 28 READS, not the last 28 DAYS — so a rate is
+   FROZEN, not aged. Days of no weigh-in never widen it, and a stale number reads as
+   current: the 8/2 audit caught MAX FAT LOSS running a ~136 kcal tighter target off a
+   Friday rate, right behind two big food days. readRecency is the ONE honest recency
+   signal every surface (the rate card, the Twin, Auto-Pilot) reads — days since his
+   last weigh-in. It asks for a fresh morning; it never nags (no urgency, no streaks). */
+const STALE_DAYS = 3;   // daily-weigh-in trend: 0–1 day is normal, 2 a single skip; 3+ is a real gap a frozen rate can't reflect.
+function readRecency(s) {
+  const rs = ((s && s.reads) || []).filter((r) => r && r.d && r.w != null);
+  if (!rs.length) return { lastISO: null, days: null, stale: false, threshold: STALE_DAYS, flag: null };
+  const lastISO = rs.reduce((mx, r) => (r.d > mx ? r.d : mx), rs[0].d);
+  const days = Math.max(0, Math.round((todayStart().getTime() - mk(lastISO).getTime()) / DAY));
+  const stale = days >= STALE_DAYS;
+  return { lastISO, days, stale, threshold: STALE_DAYS, flag: stale ? `reading is ${days} day${days === 1 ? "" : "s"} old · weigh in to refresh` : null };
+}
+
 const cap = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
 /* recovery signals — named, individually gated, each with a receipt and a fix */
 function recoveryIndex(s) {
@@ -2418,11 +2435,20 @@ function autoPilot(s, mode) {
   let action = "hold";
   if (gapLb > 0.05) action = "ease";              // faster than target -> ease toward it
   else if (gapLb < -0.05) action = "tighten";     // slower than target -> tighten toward it
+  /* STALENESS SAFEGUARD (v6.3.2) — the rate is FROZEN, not aged (currentRate spans the
+     last 28 READS, so no weigh-in never widens it). When his last weigh-in is STALE_DAYS+
+     old, Auto-Pilot will not steer off a number the scale hasn't refreshed: it HOLDS and
+     asks for a fresh morning instead of proposing a move — especially the MAX FAT LOSS
+     tighten the 8/2 audit caught. Propose-only is untouched; this only makes it abstain
+     when the data can't back a move. */
+  const rec = readRecency(s);
+  const intendedAction = action;
+  if (rec.stale) action = "hold";
   const corrKcal = Math.round((Math.abs(gapLb) * KCAL_PER_LB_MIX) / 7);
   const stg = stepTarget(s);
   const kcalPer1k = stg.kcalPer1k || 20;
   const stepsAdd = Math.max(500, Math.round((corrKcal / kcalPer1k) * 1000 / 500) * 500);
-  const proposed = action !== "hold" && corrKcal >= 90;   // hysteresis: a full adaptation's worth
+  const proposed = action !== "hold" && corrKcal >= 90;   // hysteresis: a full adaptation's worth — a stale rate has already forced hold, so nothing fires off a frozen number
   // protein as a body-comp lever — the partition depends on it. Flag if the last logged day is
   // under the derived lean-retention floor (proteinTarget.lo = 2.5 g/kg FFM; Refalo/Helms/Longland).
   const pt = proteinTarget(s);
@@ -2436,6 +2462,7 @@ function autoPilot(s, mode) {
     ok: true, dir, mode: apMode, goalRate: targetLb, targetLb, targetPct, measRate: +measRate.toFixed(2), tdee: Math.round(td.tdee), n: r.n || 0,
     band, pctRate, action, corrKcal, stepsAdd, proposed, onLine: !proposed,
     proteinOff, proteinTargetG: pt.g, proteinFloorG: proFloorG, lastPro,
+    stale: rec.stale, staleDays: rec.days, lastReadISO: rec.lastISO, heldForStale: rec.stale && intendedAction !== "hold",
   };
 }
 
@@ -5960,7 +5987,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -8245,7 +8272,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         const corrTxt = `${ap.band.corrPct[0]}–${ap.band.corrPct[1]}%BW/wk`;
         const modeLabel = apMode === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP";
         const recompPct = cutRateBand(s, "recomp").pct[1], fatlossPct = cutRateBand(s, "fatloss").pct[1];   // v6.2.1 — each toggle shows its OWN mode target (0.70 / 1.00), engine-sourced not selection-dependent
-        const headline = ap.action === "ease"
+        // STALENESS SAFEGUARD (v6.3.2) — a frozen rate is flagged, not trusted as current. When his
+        // last weigh-in is stale, Auto-Pilot holds and asks for a fresh morning instead of steering.
+        const stale = ap.stale;
+        const staleTell = stale ? `last weigh-in was ${ap.staleDays} days ago — weigh in to refresh before I adjust` : null;
+        const headline = stale
+          ? `Your last weigh-in was ${ap.staleDays} days ago, so this rate is frozen — I'm holding your line until a fresh morning refreshes it.`
+          : ap.action === "ease"
           ? (cut ? `You're running ~${ap.pctRate}%BW/wk — hotter than your ${modeLabel} target (~${ap.targetPct}%). Ease back to hold the plan.` : `You're gaining ~${ap.pctRate}%BW/wk — past the ${ap.band.redlinePct}% edge. Ease the surplus before it turns to fat.`)
           : ap.action === "tighten"
             ? (cut ? `You're at ~${ap.pctRate}%BW/wk — under your ${modeLabel} target (~${ap.targetPct}%). You can safely pick it up.` : `You're at ~${ap.pctRate}%BW/wk — under the growth corridor. A touch more to make the gain count.`)
@@ -8256,20 +8289,21 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         /* §5d #2 — when Auto-Pilot is merely holding the line, it collapses to ONE
            line (was the tallest resident card, ~330px). A proposal forces it open. */
         if (holding && !apOpen) return (
-          <Card accent={T.gauge} style={{ padding: `${SP.sm}px ${SP.md}px`, cursor: "pointer" }} onClick={() => { hap(6); setApOpen(true); }}>
+          <Card accent={stale ? T.brass : T.gauge} style={{ padding: `${SP.sm}px ${SP.md}px`, cursor: "pointer" }} onClick={() => { hap(6); setApOpen(true); }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm }}>
-              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.12em", color: T.gauge, textTransform: "uppercase", whiteSpace: "nowrap" }}>AUTO-PILOT · HOLDING YOUR LINE ✓</span>
-              <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, whiteSpace: "nowrap" }}>~{ap.pctRate}%BW/wk · open ▸</span>
+              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.12em", color: stale ? T.brass : T.gauge, textTransform: "uppercase", whiteSpace: "nowrap" }}>{stale ? "AUTO-PILOT · WEIGH IN TO REFRESH" : "AUTO-PILOT · HOLDING YOUR LINE ✓"}</span>
+              <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, whiteSpace: "nowrap" }}>{stale ? `${ap.staleDays}d since last read · open ▸` : `~${ap.pctRate}%BW/wk · open ▸`}</span>
             </div>
           </Card>
         );
         return (
-        <Card accent={apProp ? T.brass : (apPro ? T.orange : T.gauge)} style={{ padding: SP.lg }}>
+        <Card accent={apProp ? T.brass : (apPro ? T.orange : (stale ? T.brass : T.gauge))} style={{ padding: SP.lg }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm }}>
-            <Eyebrow c={apProp ? T.brass : (apPro ? T.orange : T.gauge)}>{apProp || apPro ? "AUTO-PILOT · FOR YOU TO OK" : "AUTO-PILOT · HOLDING YOUR LINE"}</Eyebrow>
+            <Eyebrow c={apProp ? T.brass : (apPro ? T.orange : (stale ? T.brass : T.gauge))}>{apProp || apPro ? "AUTO-PILOT · FOR YOU TO OK" : (stale ? "AUTO-PILOT · WEIGH IN TO REFRESH" : "AUTO-PILOT · HOLDING YOUR LINE")}</Eyebrow>
             {holding ? <button onClick={() => setApOpen(false)} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: "none", cursor: "pointer", whiteSpace: "nowrap" }}>▾ hide</button> : null}
           </div>
           <div style={{ fontFamily: body, fontWeight: 600, fontSize: TS.title, lineHeight: `${LH.title}px`, color: T.chalk, marginTop: SP.sm }}>{headline}</div>
+          {stale && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>⏱ {staleTell}</div>}
           {cut ? (
             <div style={{ marginTop: SP.md }}>
               {/* MODE (v6.2 F1) — the toggle SELECTS which corridor slice Auto-Pilot steers to. One
@@ -9870,8 +9904,10 @@ function BodyTab({ s, setS, save }) {
           const lo = rb.band[0], hi = rb.band[1];
           const modeLabel = apModeOf(s) === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP";
           const inBand = cur.fat >= lo && cur.fat <= hi;
+          const rec = readRecency(s);   // v6.3.2 — flag a frozen rate rather than let it read as current
           return (<>
             <div style={{ marginTop: 10 }}><RateGauge rate={rb} cur={cur} /></div>
+            {!sealed && rec.stale && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: 8, lineHeight: `${LH.micro}px` }}>⏱ {rec.flag}</div>}
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 8 }}>Rules run themselves: floor and redline arm one-tap adjustments on the NOW screen when trend data trips them.</div>
             <More deep={`The green band is your ${modeLabel} corridor — ${lo}–${hi} lb/wk, derived from ${rb.pct[0].toFixed(2)}–${rb.pct[1].toFixed(2)} %BW at today's weight, so it tracks you down as you lean instead of tightening. Floor rule: two weeks under ${rb.floor} → restore steps FIRST, then trim calories. Redline: ≥${rb.redline} → add ~100 back and coach-flag, because speed there is muscle risk, not a win. Sealed windows mute both rules so event noise can never fire them.`}
               forYou={sealed ? `Rules muted while sealed (clean read ${fmtShort(SEAL_UNTIL)}) — your sheet's 7/21 REDLINE gap-artifact is exactly what this muting exists to prevent.` : cur.measured ? `Measured ~${cur.fat}/wk fat-equivalent right now — ${inBand ? "inside the corridor; nothing to do." : cur.fat < lo ? "under the corridor; the floor rule is the nearest tripwire." : "hot; the redline is the nearest tripwire."}` : "Two clean weekly snapshots and this goes fully measured."} />
@@ -10643,11 +10679,12 @@ function HistTab({ s, setS, save }) {
           LAB re-pointed from passive measurement toward decision support: a validated
           energy-balance model tuned to his data. Composes observedTDEE + currentRate +
           bfEst; drag three levers, read a widening range. Never a date-certain promise. */}
-      {(() => { const twin = twinBodyComp(s, { calDelta: twCal, steps: twSteps, protein: twPro }); const wnT = weightNoise(s.reads); const rangeInp = { width: "100%", accentColor: T.gauge };
+      {(() => { const twin = twinBodyComp(s, { calDelta: twCal, steps: twSteps, protein: twPro }); const wnT = weightNoise(s.reads); const rangeInp = { width: "100%", accentColor: T.gauge }; const rec = readRecency(s);
         return (
         <Card accent={T.gauge} style={{ padding: SP.lg }}>
           <Eyebrow c={T.gauge}>THE DIGITAL TWIN</Eyebrow>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>A model of your own metabolism, tuned to your data — the same energy-balance math the NIH Body Weight Planner uses. Drag the three levers; it answers as a range, because honest prediction gets less certain the further out it reaches.</div>
+          {rec.stale && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>⏱ {rec.flag} — the projection rides your last measured rate, which hasn't moved since.</div>}
           {!twin.ok ? (
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.md }}>Counting only — the twin needs a measured rate and maintenance before it can simulate. Keep logging.</div>
           ) : (
