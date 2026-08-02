@@ -2444,6 +2444,18 @@ function autoPilot(s, mode) {
   const rec = readRecency(s);
   const intendedAction = action;
   if (rec.stale) action = "hold";
+  /* CONFIDENCE GATE (v6.3.2, Slice 0) - a proposal must clear NOISE, not just the +/-90 kcal
+     dead-band. `proposed` fired off the POINT estimate, so one big morning (a +3 lb water/sodium
+     spike) drops the 28-read rate ~0.2 lb/wk and can tip a false "tighten" past the band while the
+     trend never moved (8/2 sodium check: measRate 1.15->0.96, recomp HOLD->tighten ~103 kcal). Only
+     steer when the drift is STATISTICALLY RESOLVABLE: the rate's own 95% CI (r.lo..r.hi - the same
+     interval signalState reads for ciExcludesZero) must EXCLUDE the mode target. A spike widens that
+     CI and pulls the target back inside it, so the false move abstains to a hold; a real, tight-CI
+     drift still clears it. Propose-only and engine-owned, exactly like the staleness hold above. */
+  const targetRate = dir === "cut" ? targetLb : -targetLb;
+  const hasRateCI = r.ci != null && r.lo != null && r.hi != null;   // regression path only; a coarse "snapshots" rate has NO CI
+  const driftSig = hasRateCI && (targetRate < Math.min(r.lo, r.hi) || targetRate > Math.max(r.lo, r.hi));
+  if (!driftSig) action = "hold";   // within noise, OR no CI to resolve it (snapshots/cold) -> abstain, never steer
   const corrKcal = Math.round((Math.abs(gapLb) * KCAL_PER_LB_MIX) / 7);
   const stg = stepTarget(s);
   const kcalPer1k = stg.kcalPer1k || 20;
@@ -2463,6 +2475,7 @@ function autoPilot(s, mode) {
     band, pctRate, action, corrKcal, stepsAdd, proposed, onLine: !proposed,
     proteinOff, proteinTargetG: pt.g, proteinFloorG: proFloorG, lastPro,
     stale: rec.stale, staleDays: rec.days, lastReadISO: rec.lastISO, heldForStale: rec.stale && intendedAction !== "hold",
+    driftSig, heldForNoise: !driftSig && !rec.stale && intendedAction !== "hold" && corrKcal >= 90,
   };
 }
 

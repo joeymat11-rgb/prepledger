@@ -248,6 +248,79 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   ok(slowStale.action === "hold" && slowStale.heldForStale === true, "STALE: that same MAX FAT LOSS tighten is HELD when the rate is 4 days frozen — the caught failure, now guarded");
 }
 
+// Auto-Pilot CONFIDENCE GATE - v6.3.2 (Slice 0). A proposal must clear NOISE, not just the +/-90 kcal
+// dead-band. `proposed` fired off the POINT-estimate rate, so one big morning (a +3 lb water/sodium
+// spike) drops the 28-read rate ~0.2 lb/wk and could tip a false "tighten" over the band while the
+// trend never moved. The gate now needs the rate's own 95% CI to EXCLUDE the mode target (the same
+// interval signalState reads for ciExcludesZero); a spike widens that CI back over the target, so the
+// move abstains to a hold. Propose-only and engine-owned, exactly like the staleness safeguard above.
+{
+  const isoAgo = (back) => { const d = new Date(Date.now() - back * 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  // a CLEAN recomp cut sitting ON the dead-band edge - measRate == the ~0.70 %BW/wk optimum - ending TODAY.
+  const cleanEdge = (endBack) => { const x = clone(SEED); x.blackout = { until: "2026-05-01" }; x.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoAgo(24 - 1 - i + endBack), w: +(168 - i * 0.164).toFixed(2), sealed: false })); return x; };
+  // a CLEAN, persistent, genuinely-slow cut - a REAL drift well below target, tight CI, ending TODAY.
+  const realDrift = (endBack) => { const x = clone(SEED); x.blackout = { until: "2026-05-01" }; x.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoAgo(24 - 1 - i + endBack), w: +(176 - i * 0.06).toFixed(2), sealed: false })); return x; };
+
+  // baseline: the clean edge is ON the line - a genuine HOLD, nothing to gate either way.
+  const apEdge = __test.autoPilot(cleanEdge(0), "recomp");
+  ok(apEdge.action === "hold" && apEdge.proposed === false, "confidence gate control: a rate sitting on the dead-band line holds - no move to propose or suppress");
+
+  // (a) NOISE-ONLY SPIKE - one +3 lb morning on the last (FRESH) read tips the point estimate
+  //     hold->tighten past the +/-90 kcal band, but the outlier widens the rate CI back over the
+  //     target, so the drift is NOT statistically resolvable and NOTHING is proposed.
+  const spiked = cleanEdge(0);
+  spiked.reads[spiked.reads.length - 1].w = +(spiked.reads[spiked.reads.length - 1].w + 3).toFixed(2);
+  const apSpike = __test.autoPilot(spiked, "recomp");
+  ok(apSpike.corrKcal >= 90 && apSpike.stale === false, "(a) setup: a +3 lb morning DOES clear the +/-90 kcal dead-band on a FRESH read - the old point-estimate gate would have fired a tighten");
+  ok(apSpike.driftSig === false && apSpike.proposed === false && apSpike.action === "hold", "(a) a noise-only spike on the dead-band edge does NOT propose - the rate CI still brackets the target, so the false tighten is gated");
+  ok(apSpike.heldForNoise === true && apSpike.heldForStale === false, "(a) the hold is CAUSED by noise, not staleness - heldForNoise is the receipt, and the read is fresh");
+
+  // (b) REAL SIGNIFICANT DRIFT - a clean, persistent cut well below target with a tight CI: the drift
+  //     IS resolvable (CI excludes the target), so Auto-Pilot still proposes the steer.
+  const apDrift = __test.autoPilot(realDrift(0), "recomp");
+  ok(apDrift.driftSig === true && apDrift.action === "tighten" && apDrift.proposed === true, "(b) a real, significant drift (tight CI excludes target) STILL proposes - the gate blocks noise, not signal");
+
+  // (c) STALE - the SAME real drift with its last weigh-in 4 days old: the staleness safeguard holds it.
+  const apStaleDrift = __test.autoPilot(realDrift(4), "recomp");
+  ok(apStaleDrift.stale === true && apStaleDrift.staleDays === 4 && apStaleDrift.action === "hold" && apStaleDrift.proposed === false, "(c) stale (last read 4 days) -> HOLD, no steer off a frozen rate - the staleness guard stays intact under the confidence gate");
+  ok(/4 days old/.test(__test.readRecency(realDrift(4)).flag || "") && /weigh in to refresh/.test(__test.readRecency(realDrift(4)).flag || ""), "(c) ...and the stale read is flagged for a fresh weigh-in");
+
+  // (d) FRESH - the same drift on a current read behaves normally: not stale, real steer proposes.
+  ok(apDrift.stale === false && apDrift.heldForNoise === false && apDrift.proposed === true, "(d) fresh -> normal: a current, significant drift steers as before - neither safeguard fires");
+
+  // (e) OPPOSITE-SIGN / WRONG-WAY - GAINING while in a cut/recomp mode. dir flips to bulk and the
+  //     TARGET flips WITH it (targetLb becomes the bulk ceiling, not the cut goal), so the CI test
+  //     stays self-consistent: a clearly-resolvable wrong-way drift still PROPOSES. Guards the sign path.
+  const gaining = clone(SEED); gaining.blackout = { until: "2026-05-01" };
+  gaining.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoAgo(23 - i), w: +(164 + i * 0.15).toFixed(2), sealed: false }));
+  const apGain = __test.autoPilot(gaining, "recomp");
+  ok(apGain.dir === "bulk" && apGain.targetLb < 1.0 && apGain.driftSig === true && apGain.proposed === true, "(e) opposite-sign: gaining flips dir->bulk and the target flips with it; a resolvable wrong-way drift still proposes - no sign bug from the measRate-derived direction");
+
+  // (f) NOISY but RESOLVABLE - a slow cut with REAL residual noise (ci>0), target OUTSIDE the CI.
+  //     Proves the gate proposes on resolvable NOISY data, not only on noiseless (ci==0) fixtures.
+  const noisy = clone(SEED); noisy.blackout = { until: "2026-05-01" };
+  noisy.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoAgo(23 - i), w: +(170 - i * 0.06 + (i % 2 ? 0.5 : -0.5)).toFixed(2), sealed: false }));
+  const crNoisy = __test.currentRate(noisy), apNoisy = __test.autoPilot(noisy, "recomp");
+  ok(crNoisy.ci > 0 && apNoisy.driftSig === true && apNoisy.action === "tighten" && apNoisy.proposed === true, "(f) a NOISY but resolvable drift (ci>0, target outside the CI) still proposes - the gate blocks unresolvable noise, not real signal");
+
+  // (g) NO CI - a coarse "snapshots" rate (too few daily reads) carries no CI, so a drift cannot be
+  //     resolved: even a big gap (a would-be ease, corrKcal>=90) ABSTAINS rather than steer off it.
+  const snap = clone(SEED); snap.blackout = { until: "2026-05-01" };
+  snap.reads = Array.from({ length: 6 }, (_, i) => ({ d: isoAgo(6 - 1 - i), w: +(170 - i * 0.1).toFixed(2), sealed: false }));
+  snap.weekly = [{ wk: "2026-07-06", trend: 170.0 }, { wk: "2026-07-13", trend: 167.8 }, { wk: "2026-07-20", trend: 165.6 }];
+  const crSnap = __test.currentRate(snap), apSnap = __test.autoPilot(snap, "recomp");
+  ok(crSnap.method === "snapshots" && crSnap.ci == null && apSnap.corrKcal >= 90 && apSnap.driftSig === false && apSnap.proposed === false && apSnap.heldForNoise === true, "(g) no CI (a snapshots rate) cannot resolve a drift - a big would-be steer abstains to a hold, never reverting to the point estimate");
+
+  // (h) MODERATE WRONG-WAY (the pinned boundary) - CONFIDENTLY gaining (rate CI excludes zero) but the
+  //     overshoot past the bulk ceiling is NOT resolvable at 95% (target sits INSIDE the rate CI). The
+  //     gate correctly HOLDS: "rate != 0" (signalState) and "rate != target" (this gate) are different
+  //     questions, and a proposal turns on the latter. Receipted as heldForNoise, not a false ease.
+  const wrongMod = clone(SEED); wrongMod.blackout = { until: "2026-05-01" };
+  wrongMod.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoAgo(23 - i), w: +(164 + i * 0.128 + (i % 2 ? 1.5 : -1.5)).toFixed(2), sealed: false }));
+  const crMod = __test.currentRate(wrongMod), sigMod = __test.signalState(wrongMod), apMod = __test.autoPilot(wrongMod, "recomp");
+  ok(apMod.dir === "bulk" && crMod.ci > 0 && sigMod.ciExcludesZero === true && apMod.corrKcal >= 90 && apMod.driftSig === false && apMod.action === "hold" && apMod.proposed === false && apMod.heldForNoise === true, "(h) a confidently-gaining wrong-way mover whose overshoot is within the rate CI HOLDS - 'rate != 0' and 'rate != target' are different questions; the gate turns on the drift from target, and receipts the hold as noise rather than firing a false steer");
+}
+
 // Auto-Pilot MODE toggle — v6.2 (one corridor engine; the mode only selects which slice it steers to)
 {
   const base = clone(SEED); base.blackout = { until: "2026-05-01" };
