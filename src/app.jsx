@@ -300,7 +300,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "6.2.0";
+const APP_V = "6.2.1";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -1976,7 +1976,7 @@ function dietExit(s) {
    why the output is a band, and why it never overrides the calorie floor. */
 function calorieTarget(s) {
   const td = observedTDEE(s);
-  const band = (s.rate && s.rate.band) || [1.0, 1.4];
+  const band = cutRateBand(s).band;   // v6.2.1 — the Auto-Pilot mode now drives the calorie band (was fixed s.rate.band)
   const fl = calorieFloor(s);
   const floor = fl.floor;
   if (!td) {
@@ -2213,6 +2213,11 @@ const BC = {
   CUT_OPT_PCT: 0.70,             // Garthe 2011 lean-preserving optimum (the +2.1% LBM arm)
   CUT_GARTHE_SLOW_RATE: 0.7, CUT_GARTHE_FAST_RATE: 1.4,     // the two study arms (%BW/wk)
   CUT_GARTHE_SLOW_LBM: 2.1, CUT_GARTHE_FAST_LBM: -0.2,      // LBM change per arm (%, Garthe 2011)
+  // MODE SLICES (v6.2.1) — Auto-Pilot's two cut modes are two slices of THIS one corridor, each
+  // edge a cited constant above. s.plan.apMode picks the slice EVERY downstream number steers to
+  // (calorie band, gauge, protocol, proposals) via cutRateBand() — not just the Auto-Pilot gauge.
+  CUT_RECOMP_PCT: [0.60, 0.70],   // MAX BODY COMP  — at/below the lean-preserving optimum (CUT_OPT_PCT 0.70)
+  CUT_FATLOSS_PCT: [0.85, 1.00],  // MAX FAT LOSS   — old corridor ceiling up to the conservative redline (CUT_REDLINE_PCT 1.00)
   // CUT · partition. KCAL_PER_LB_MIX (3800) ≈ 87% fat / 13% lean for a lean high-protein
   // trained male (Hall 2008: fat 4282, lean 816 kcal/lb). Lean fraction rises with rate:
   // deficit magnitude is the lean-mass variable (Murphy & Koehler 2022); leanness is a
@@ -2243,21 +2248,48 @@ const BC = {
   BULK_PROTEIN_G_PER_KG_BW: 1.6,   // Morton 2018
 };
 
+/* ---------- CUT RATE BAND (v6.2.1) — the mode selects the target slice, ONE owner ----------
+   THE FIX. v6.2 added the Auto-Pilot toggle but only autoPilot() read it, so flipping the mode
+   re-lit the gauge while the calorie band, steps and protocol kept reading a FIXED corridor — the
+   mode changed nothing he ate. This is now the single owner of the cut target band, and EVERYTHING
+   that prices the cut reads it: calorieTarget (the calorie band + "your band asks for" line),
+   bodyCompBand (the Twin + gauge corridor), fiveLevers' DEFICIT lever, the analyst house-law, the
+   sandbox/negotiator cards, and Auto-Pilot's own steering target. ONE evidence-based corridor
+   (Garthe 2011), two slices:
+     • recomp  → BC.CUT_RECOMP_PCT  [0.60,0.70] %BW/wk — at/below the lean-preserving optimum (more food)
+     • fatloss → BC.CUT_FATLOSS_PCT [0.85,1.00] %BW/wk — the ceiling slice, up to the conservative redline
+   Honest + safe: the mode moves the TARGET inside the evidence range, it does NOT narrow the band's
+   width (uncertainty preserved, not faked to a point) and it does NOT touch the energy-availability
+   floor (calorieFloor), which still clamps the aggressive slice. Returns lb/wk, bodyweight-scaled —
+   an absolute lb band tightens as he leans, which is backwards. `mode` optional: a caller can price
+   a specific mode (Auto-Pilot passes the toggle); otherwise it reads s.plan.apMode. */
+function apModeOf(s) { return (s && s.plan && s.plan.apMode === "fatloss") ? "fatloss" : "recomp"; }
+function cutRateBand(s, mode) {
+  const bw = (s && s.trend) || 165;
+  const m = (mode || apModeOf(s)) === "fatloss" ? "fatloss" : "recomp";
+  const pct = m === "fatloss" ? BC.CUT_FATLOSS_PCT : BC.CUT_RECOMP_PCT;
+  const floor = (s && s.rate && s.rate.floor != null) ? s.rate.floor : 0.8;
+  const redline = (s && s.rate && s.rate.redline != null) ? s.rate.redline : 1.9;
+  const pctToLb = (p) => +((p / 100) * bw).toFixed(2);
+  return { mode: m, pct: pct.slice(), band: [pctToLb(pct[0]), pctToLb(pct[1])], floor, redline };
+}
+
 /* ---------- BODY-COMPOSITION CORRIDOR (v6.1) — the redline, engine-owned ----------
    The mandate is the fastest body-composition change WITHOUT cost, so the rate that matters is
    %BODYWEIGHT/week (an absolute lb band tightens as he leans — backwards; research-brief). ONE
    function owns the corridor; the Twin DISPLAYS it and Auto-Pilot STEERS to it — never a second
-   number. CUT corridor = the app's own rate band (already lean-preserving); BULK corridor +
+   number. CUT corridor = cutRateBand (the mode's slice, lean-preserving); BULK corridor +
    redlines from BC. Direction-aware; every edge derives from bodyweight and the rate model. */
-function bodyCompBand(s, dir) {
+function bodyCompBand(s, dir, mode) {
   const bw = (s && s.trend) || 165;
   const pctToLb = (p) => +((p / 100) * bw).toFixed(2);
   if (dir === "bulk") {
     return { dir: "bulk", bw, corrPct: BC.BULK_CORR_PCT.slice(), redlinePct: BC.BULK_REDLINE_PCT, floorPct: BC.BULK_CORR_PCT[0],
       corrLb: [pctToLb(BC.BULK_CORR_PCT[0]), pctToLb(BC.BULK_CORR_PCT[1])], redlineLb: pctToLb(BC.BULK_REDLINE_PCT), floorLb: pctToLb(BC.BULK_CORR_PCT[0]) };
   }
-  const band = (s.rate && s.rate.band) || [1.0, 1.4];
-  const floorLb = (s.rate && s.rate.floor != null) ? s.rate.floor : 0.8;
+  const rb = cutRateBand(s, mode);   // v6.2.1 — mode-aware corridor; the Twin gauge + Auto-Pilot read this
+  const band = rb.band;
+  const floorLb = rb.floor;
   const lbToPct = (lb) => +((lb / bw) * 100).toFixed(2);
   return { dir: "cut", bw, corrPct: [lbToPct(band[0]), lbToPct(band[1])], redlinePct: BC.CUT_REDLINE_PCT, floorPct: lbToPct(floorLb),
     corrLb: [band[0], band[1]], redlineLb: pctToLb(BC.CUT_REDLINE_PCT), floorLb };
@@ -2361,10 +2393,10 @@ function twinBodyComp(s, opts) {
 function autoPilot(s, mode) {
   const r = currentRate(s);
   const td = observedTDEE(s);
-  if (!r.measured || !td || !td.tdee) return { ok: false, goalRate: ((s.rate && s.rate.band) || [1.0])[0] };
+  if (!r.measured || !td || !td.tdee) return { ok: false, goalRate: cutRateBand(s, mode).band[0] };
   const measRate = r.scale;                        // + = losing (cut), − = gaining (bulk)
   const dir = measRate >= 0 ? "cut" : "bulk";
-  const band = bodyCompBand(s, dir);
+  const band = bodyCompBand(s, dir, mode);   // v6.2.1 — honor the toggle's mode, not just stored state
   const bw = s.trend;
   const pctRate = +(Math.abs(measRate) / bw * 100).toFixed(2);
   // MODE (v6.2) — which slice of the corridor Auto-Pilot steers to. CUT: MAX BODY COMPOSITION
@@ -3254,13 +3286,13 @@ function weekReview(s) {
   const lines = [
     `protein ${proHit}/${proN} on target${fixes ? ` · ${fixes} fix window${fixes > 1 ? "s" : ""} closed same-day` : ""}`,
     `${sess.length} session${sess.length === 1 ? "" : "s"} logged · ${wins.length} win${wins.length === 1 ? "" : "s"} filed${holds ? ` · ${holds} lift on hold` : ""}`,
-    `sleep ${cleanN}/${nights.length} clean${sealedNow ? " · scale sealed — verdict Monday" : cur.measured ? ` · rate ~${cur.fat}/wk vs band ${s.rate.band.join("–")}` : ""}`,
+    `sleep ${cleanN}/${nights.length} clean${sealedNow ? " · scale sealed — verdict Monday" : cur.measured ? ` · rate ~${cur.fat}/wk vs band ${cutRateBand(s).band.join("–")}` : ""}`,
     adjLine,
   ];
   let verdict;
   if (proN + sess.length + nights.length === 0) verdict = "A quiet week on the log — the return is the whole skill, and the door is open.";
   else if (sealedNow) verdict = "Sealed week: adherence carried it while the scale sat quarantined — Monday's read inherits a clean house.";
-  else if (cur.measured && cur.fat >= s.rate.band[0] && cur.fat <= s.rate.band[1] && wins.length) verdict = "Textbook week: strength moved while the trend held the corridor.";
+  else if (cur.measured && (() => { const b = cutRateBand(s).band; return cur.fat >= b[0] && cur.fat <= b[1]; })() && wins.length) verdict = "Textbook week: strength moved while the trend held the corridor.";
   else if (proN && proHit / proN >= 0.7 && sess.length >= 3) verdict = "The boring, winning kind of week — the kind that compounds.";
   else verdict = "Mixed week, honestly logged — the honest kind the analyst works from.";
   return { wk: weekDay().wk, window: `${fmtShort(winStart)} – ${fmtShort(endISO)}`, lines, verdict };
@@ -4805,7 +4837,7 @@ function fiveLevers(s) {
   const sealed = !!(s.blackout && daysUntil(s.blackout.until) > 0);
   // DEFICIT — is the measured trend losing inside his own target band?
   const cr = currentRate(s);
-  const band = (s.rate && s.rate.band) || [1.0, 1.4];
+  const band = cutRateBand(s).band;   // v6.2.1 — the DEFICIT lever now reads the selected mode's slice
   const floor = s.rate && s.rate.floor != null ? s.rate.floor : 0.8;
   const redline = s.rate && s.rate.redline != null ? s.rate.redline : 1.9;
   let deficit;
@@ -5200,9 +5232,10 @@ function runAdaptive(state, todayISO) {
      is exactly the gap Garthe 2011 measured: the 0.7%/wk arm gained +2.1% lean
      body mass while the 1.4%/wk arm was lean-neutral (−0.2%), on matched total
      weight lost. A stated band that never speaks is decoration. */
-  const above = r.measured ? r.rates.slice(-2).filter((x) => x > s.rate.band[1] && x < s.rate.redline) : [];
+  const apBand = cutRateBand(s).band;   // v6.2.1 — "above your band" means above the SELECTED mode's slice
+  const above = r.measured ? r.rates.slice(-2).filter((x) => x > apBand[1] && x < s.rate.redline) : [];
   if (!sealed && above.length === 2)
-    propose("bandtop_" + monday, "RUNNING ABOVE YOUR BAND", `Two weeks at ${above.map((x) => x.toFixed(1)).join(" and ")} lb/wk, against a band that tops out at ${s.rate.band[1]}. Not a redline — the redline is ${s.rate.redline} and nothing is on fire. But this is the range where the evidence starts charging you: matched for total weight lost, the slower arm of the closest trial kept more muscle AND lost more fat than the faster one. The cheapest fix is not food — it is steps, because they cost you nothing you are trying to keep.`, { kind: "cal", delta: 75 });
+    propose("bandtop_" + monday, "RUNNING ABOVE YOUR BAND", `Two weeks at ${above.map((x) => x.toFixed(1)).join(" and ")} lb/wk, against a band that tops out at ${apBand[1]}. Not a redline — the redline is ${s.rate.redline} and nothing is on fire. But this is the range where the evidence starts charging you: matched for total weight lost, the slower arm of the closest trial kept more muscle AND lost more fat than the faster one. The cheapest fix is not food — it is steps, because they cost you nothing you are trying to keep.`, { kind: "cal", delta: 75 });
   if (!sealed && r.measured && r.rates[r.rates.length - 1] >= s.rate.redline)
     propose("redline_" + monday, "REDLINE RATE", `${r.rates[r.rates.length - 1].toFixed(1)}/wk ≥ ${s.rate.redline}. Your rule: add ~100 back and flag your coach — this is not a win, it's muscle risk.`, { kind: "cal", delta: 100 });
 
@@ -6111,7 +6144,7 @@ function askContext(s, docs) {
     .map(([d, v]) => { const w2 = dayWeather(s, d); return `${d}: cal ${v.cal ?? "—"} · pro ${v.pro ?? "—"} · steps ${v.steps ?? "—"}${w2.flags.length ? "  ⌁[" + w2.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n");
   const sess2 = Object.keys(s.sessionLog).sort().slice(-6).map((d) => { const sl2 = s.sessionLog[d]; const parts = [(sl2.entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ") || "no lifts"]; if ((sl2.skipped || []).length) parts.push("SKIPPED: " + sl2.skipped.map((k) => k.id).join(", ")); if (sl2.note) parts.push(`note: "${sl2.note.slice(0, 120)}"`); return `${d}: ` + parts.join(" · "); }).join("\n");
   const nights2 = s.sleep.nights.slice(-14).map((n) => `${n.d}: ${n.h}h · bed ${n.bed || "—"} → wake ${n.wake || "—"} · drift-off ${n.sol ?? "?"}m${(n.tags || []).length ? " · " + n.tags.join("/") : ""}`).join("\n");
-  const laws = `DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor ${(s.rate && s.rate.band ? s.rate.band : [1.0, 1.4]).join('–')} lb/wk (${(s.rate || {}).redline || 1.9}+ = too fast); calorie floor ${calorieFloor(s).floor} (DERIVED from energy availability at his lean mass — not the old authored 1,700); calories, protein and steps are all DERIVED from his record, never quoted as constants — take them from the CANONICAL NUMBERS block and nowhere else; a new best becomes official on ONE repeat, because his own measured set-to-set spread is about ±${typicalError(s, null).reps} reps (${typicalError(s, null).src}) and a +1 record sits inside it — a jump two standard errors clear of the old line banks on the first sighting instead; short sleep does NOT block a record and does NOT cap the step (that rule was retired — Craven 2022 puts acute sleep loss at −2.85% on strength, inside the 1.8–3.3% test-retest CV, and no trial has ever tested damping progression on low-readiness days), what it does is exempt the day from counting toward a stall; RIR on the LAST set is what sizes the next jump and is the most valuable number he enters; one structural change per session; effort tapers to a single terminal failure set per exercise (RIR 2→1→…→0) — proximity to failure is the training variable with the dose-response, not load or rep range, which are interchangeable from about 5 to 30 reps; the scale seal quarantines event water; the weekly refeed is RETIRED — he took it off the calendar himself after the evidence was laid out, so do not propose one and never claim a refeed aids fat loss, muscle retention, metabolism or next-day performance; past Wednesdays on the record were refeeds and stay described as such, because they were; every change is a proposal — the athlete consents, the coach holds structural authority. NEVER assert a mechanism this app cannot cite; saying 'there is no good evidence either way' is always available and always preferred to a confident guess.`;
+  const laws = `DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor ${cutRateBand(s).band.join('–')} lb/wk in ${apModeOf(s) === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP"} mode (${(s.rate || {}).redline || 1.9}+ = too fast); calorie floor ${calorieFloor(s).floor} (DERIVED from energy availability at his lean mass — not the old authored 1,700); calories, protein and steps are all DERIVED from his record, never quoted as constants — take them from the CANONICAL NUMBERS block and nowhere else; a new best becomes official on ONE repeat, because his own measured set-to-set spread is about ±${typicalError(s, null).reps} reps (${typicalError(s, null).src}) and a +1 record sits inside it — a jump two standard errors clear of the old line banks on the first sighting instead; short sleep does NOT block a record and does NOT cap the step (that rule was retired — Craven 2022 puts acute sleep loss at −2.85% on strength, inside the 1.8–3.3% test-retest CV, and no trial has ever tested damping progression on low-readiness days), what it does is exempt the day from counting toward a stall; RIR on the LAST set is what sizes the next jump and is the most valuable number he enters; one structural change per session; effort tapers to a single terminal failure set per exercise (RIR 2→1→…→0) — proximity to failure is the training variable with the dose-response, not load or rep range, which are interchangeable from about 5 to 30 reps; the scale seal quarantines event water; the weekly refeed is RETIRED — he took it off the calendar himself after the evidence was laid out, so do not propose one and never claim a refeed aids fat loss, muscle retention, metabolism or next-day performance; past Wednesdays on the record were refeeds and stay described as such, because they were; every change is a proposal — the athlete consents, the coach holds structural authority. NEVER assert a mechanism this app cannot cite; saying 'there is no good evidence either way' is always available and always preferred to a confident guess.`;
   const evs = (s.events || []).map((e) => `${e.d}: ${e.t}${e.estimated ? " (est-declared)" : ""}`).join(" · ") || "none";
   const trls = (s.trials || []).map((t3) => { const tp = trialTpl(t3); return tp ? `${tp.t} (started ${t3.started})` : ""; }).filter(Boolean).join(" · ") || "none";
   const gate2 = sleepInfo(s);
@@ -6192,7 +6225,7 @@ function agentToolExec(s, name, input, staged) {
       const dSteps = input.steps != null && stepRef != null ? ((input.steps - stepRef) * perStepKcal * 7) / KCAL_PER_LB_MIX : 0;
       const dCal = input.cal != null && calRef != null ? ((calRef - input.cal) * 7) / KCAL_PER_LB_MIX : 0;
       const rate = +(base + dSteps + dCal).toFixed(2);
-      const rb = (s.rate && s.rate.band) || [1.0, 1.4];
+      const rb = cutRateBand(s).band;   // v6.2.1 — the what-if warns against the selected mode's band
       const notes = [];
       if (input.steps != null && stepRef == null) notes.push("step effect not modelled — not enough logged step days to know his baseline");
       if (input.cal != null && calRef == null) notes.push("calorie effect not modelled — maintenance is not measured yet");
@@ -6992,6 +7025,8 @@ __test.bodyCompBand = bodyCompBand;
 __test.partitionRates = partitionRates;
 __test.BC = BC;
 __test.autoPilot = autoPilot;
+__test.cutRateBand = cutRateBand;
+__test.apModeOf = apModeOf;
 __test.stepTarget = stepTarget;
 __test.signalState = signalState;
 __test.dataLossGuard = dataLossGuard;
@@ -8057,7 +8092,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         const wnA = weightNoise(s.reads); const cut = ap.dir === "cut"; const easing = ap.action === "ease";
         const corrTxt = `${ap.band.corrPct[0]}–${ap.band.corrPct[1]}%BW/wk`;
         const modeLabel = apMode === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP";
-        const recompPct = BC.CUT_OPT_PCT, fatlossPct = ap.band.corrPct[1];   // the two mode targets — same corridor, two slices
+        const recompPct = cutRateBand(s, "recomp").pct[1], fatlossPct = cutRateBand(s, "fatloss").pct[1];   // v6.2.1 — each toggle shows its OWN mode target (0.70 / 1.00), engine-sourced not selection-dependent
         const headline = ap.action === "ease"
           ? (cut ? `You're running ~${ap.pctRate}%BW/wk — hotter than your ${modeLabel} target (~${ap.targetPct}%). Ease back to hold the plan.` : `You're gaining ~${ap.pctRate}%BW/wk — past the ${ap.band.redlinePct}% edge. Ease the surplus before it turns to fat.`)
           : ap.action === "tighten"
@@ -10038,7 +10073,7 @@ function WhatIfConsole({ s }) {
   const pivotD = isoOf(new Date(todayStart().getTime() + Math.max(0, Math.round(wksToPivot * 7)) * DAY));
   const basePivot = isoOf(new Date(todayStart().getTime() + Math.max(0, Math.round(((s.trend - target11) / Math.max(0.1, baseRate)) * 7)) * DAY));
   const shift = Math.round((mk(pivotD) - mk(basePivot)) / DAY);
-  const rb = (s.rate && s.rate.band) || [1.0, 1.4];
+  const rb = cutRateBand(s).band;   // v6.2.1 — sandbox shows the selected mode's band
   const row = (lbl, v, set, step, min, max) => (
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
       <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, width: 74 }}>{lbl}</div>
@@ -10331,7 +10366,7 @@ function NegotiatorConsole({ s }) {
   const stN = stepTarget(s);
   const perStepN = stN.gated ? 0.35 : stN.kcalPer1k / 1000;
   const calBase = ct.gated ? (observedTDEE(s) ? observedTDEE(s).avg : 1900) : ct.mid;
-  const rbN = (s.rate && s.rate.band) || [1.0, 1.4];
+  const rbN = cutRateBand(s).band;   // v6.2.1 — the goal negotiator solves against the selected mode's band
   const baseRate = cur.measured ? cur.scale : 1.2;
   const goalDate = isoOf(new Date(todayStart().getTime() + Math.round(wkOff * 7) * DAY));
   const targetW = +(bf.lean / (1 - tBF / 100)).toFixed(1);

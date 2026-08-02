@@ -217,7 +217,24 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   ok(__test.autoPilot(base).mode === "recomp", "autoPilot defaults to MAX BODY COMPOSITION (recomp)");
   ok(Math.abs(recomp.targetPct - __test.BC.CUT_OPT_PCT) < 0.02, "recomp steers to the lean-preserving optimum CUT_OPT_PCT (~0.70 %BW/wk)");
   ok(fatloss.targetPct > recomp.targetPct && fatloss.targetPct <= fatloss.band.redlinePct, "MAX FAT LOSS targets a faster slice — the corridor top, still under the redline");
-  ok(recomp.band.corrLb[1] === fatloss.band.corrLb[1] && recomp.band.redlinePct === fatloss.band.redlinePct, "both modes read the SAME corridor — only the target slice differs (non-redundant)");
+  ok(recomp.band.redlinePct === fatloss.band.redlinePct && recomp.band.redlinePct === __test.BC.CUT_REDLINE_PCT, "both modes share ONE engine and ONE redline (the physiological ceiling) — not a second number");
+  ok(fatloss.band.corrLb[1] > recomp.band.corrLb[1], "v6.2.1: the mode now moves the BAND itself — MAX FAT LOSS steers a faster slice than MAX BODY COMP (was mode-independent; only the gauge used to move)");
+}
+
+// Auto-Pilot MODE drives the BASELINE targets — v6.2.1 (the calorie band/steps/protocol, not just the gauge)
+{
+  const mkS = (m) => { const x = clone(SEED); x.blackout = { until: "2026-05-01" }; x.plan = { ...(x.plan || {}), apMode: m }; return x; };
+  const R = mkS("recomp"), F = mkS("fatloss");
+  const rbR = __test.cutRateBand(R), rbF = __test.cutRateBand(F);
+  ok(rbF.band[0] > rbR.band[0] && rbF.band[1] > rbR.band[1], "cutRateBand: fat-loss is the faster slice of the ONE corridor (both edges hotter than recomp)");
+  ok(rbR.pct[1] === __test.BC.CUT_OPT_PCT && rbF.pct[1] === __test.BC.CUT_REDLINE_PCT, "recomp tops at the lean-preserving optimum (0.70), fat-loss at the conservative redline (1.00) — both cited constants");
+  const ctR = __test.calorieTarget(R), ctF = __test.calorieTarget(F);
+  ok(!ctR.gated && !ctF.gated, "the calorie band prints in both modes");
+  ok(ctF.hi < ctR.hi && ctF.mid < ctR.mid, "MAX FAT LOSS drives a LOWER calorie band than MAX BODY COMP — the mode moves what the app tells him to EAT (v6.2.1; was identical either way)");
+  ok(ctR.hi > ctR.lo, "the calorie band keeps a WIDTH — the mode moves the target, it does not fake precision");
+  ok(ctF.lo >= ctF.floor && ctR.lo >= ctR.floor, "the energy-availability floor still clamps BOTH modes — safety preserved, Auto-Pilot stays propose-only");
+  const bcR = __test.bodyCompBand(R, "cut"), bcF = __test.bodyCompBand(F, "cut");
+  ok(bcF.corrPct[1] > bcR.corrPct[1] && bcR.redlinePct === bcF.redlinePct, "the Twin/gauge corridor re-steers with the mode while the redline (the ceiling) holds");
 }
 
 // v6.2 audit 4b — bulk corridor recalibrated to the advanced lean-bulk band
@@ -2570,7 +2587,9 @@ const mkRate = (r1, r2) => {
   st.trend = 170 - r1 - r2;
   return st;
 };
-const inBand = raB(mkRate(1.2, 1.3), "2026-07-27").proposals.filter((p) => !p.resolved && p.rid.indexOf("bandtop_") === 0);
+// v6.2.1 — the band top is now the SELECTED mode's slice (default recomp ≈ 1.01–1.17 lb/wk at this bw),
+// so "inside" is a rate that sits inside recomp; 1.2–1.3 lb/wk is legitimately ABOVE the recomp optimum now.
+const inBand = raB(mkRate(1.1, 1.1), "2026-07-27").proposals.filter((p) => !p.resolved && p.rid.indexOf("bandtop_") === 0);
 ok(inBand.length === 0, "inside the band nothing fires — the band top is a threshold, not a nag");
 const overBand = raB(mkRate(1.55, 1.6), "2026-07-27").proposals.filter((p) => !p.resolved && p.rid.indexOf("bandtop_") === 0);
 ok(overBand.length === 1, "two weeks above the band top finally says something — before this, the stated band had no teeth at all and he could run over it until the redline");
