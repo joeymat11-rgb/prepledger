@@ -9672,14 +9672,27 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         );
       })()}
 
-      {/* ---------- THE READ (live) ----------
-          The always-on, on-device answer to "is my body actually changing yet?".
-          Computed from signalState every render, so it can NEVER be blank — the
-          structural fix for the empty overnight brief. The narrative lives on the
-          ANALYST tab; this card is its one-line summary, and it points there. */}
-      {(() => { const rc = signalReadCopy(s, sig); return (
+      {/* ---------- TRAJECTORY (v7.5 NOW re-layout) — the read + where the pace lands, ONCE ----------
+          These were two cards answering one question at opposite ends of the page: THE READ
+          ("is my body actually changing yet?") on the fold, and WHERE THIS PACE LANDS YOU
+          ("at that rate, where does it put me?") at the very bottom of THE ROOM — each
+          printing its own body-fat band, so the same number appeared twice. Merged here at
+          Tier 1: one card, one BF print, one telling.
+
+          The cockpit's FORESIGHT block is deliberately NOT repeated here. That surface owns
+          the FORWARD read — the ETA fan, the redline crossing, and the plan-conditional line
+          from conditionalForesight(). This card owns the MEASURED PRESENT: the signal word,
+          the rate, and where four more weeks of that rate lands. No ETA, no cone, no second
+          number. COUNTDOWN_NOTE still governs — there is no date, and none gets manufactured.
+          Computed from signalState/currentRate every render, so it can never be blank. */}
+      {(() => { const rc = signalReadCopy(s, sig); const cr = currentRate(s);
+        const proj = +(s.trend - cr.scale * 4).toFixed(1);
+        return (
         <Card style={{ padding: SP.lg }}>
-          <Eyebrow c={T.gauge}>THE READ · UPDATED LIVE</Eyebrow>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: SP.sm }}>
+            <Eyebrow c={T.gauge}>TRAJECTORY · UPDATED LIVE</Eyebrow>
+            <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, whiteSpace: "nowrap" }}>no date set</span>
+          </div>
           <div style={{ fontFamily: body, fontWeight: 600, fontSize: TS.title, lineHeight: 1.35, color: T.chalk, marginTop: SP.sm }}>
             {rc.sentence}{rc.showRate && rc.rate ? <span style={{ fontFamily: mono, color: rc.wordColor, whiteSpace: "nowrap" }}> {rc.rate}</span> : null}
           </div>
@@ -9687,12 +9700,25 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             <GraduationMark ticks={sig.ticks} finalDashed={sig.finalDashed} />
             <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 15, letterSpacing: "0.03em", color: rc.wordColor }}>{rc.word}{sig.state === "measured" ? " ◆" : ""}</span>
           </div>
-          {/* v6.3 §5a — raw morning weight AND the BF interval now live here, on the
-              hero, each beside the epistemic word above them; a body-comp number
-              never shows naked (masthead demoted this to here). */}
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm }}>
-            {rc.rawLine ? rc.rawLine + " · " : ""}BF {bf.pct}% <span style={{ opacity: 0.8 }}>({bf.lo}–{bf.hi})</span>
+          {/* The surviving half of the retired crossover card: where four more weeks of the
+              MEASURED rate lands him. No clock, no target date, no progress bar. */}
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, paddingTop: SP.md, borderTop: `1px solid ${T.line}`, lineHeight: 1.5 }}>
+            {cr.measured
+              ? `At the ${cr.scale} lb/wk you are actually moving, four more weeks puts you near ${proj} lb. There is no date on this — you stop when the body-fat read and the mirror say stop, not when a calendar does.`
+              : `Two clean weekly snapshots and this reads off your measured rate instead of an estimate.`}
           </div>
+          {/* v6.3 §5a — raw morning weight and the BF interval, each beside the epistemic word
+              above them; a body-comp number never shows naked. ONE print now: this line used to
+              be duplicated by the bottom card's own 'body fat X% · honest range' line. */}
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm }}>
+            {rc.rawLine ? rc.rawLine + " · " : ""}BF {bf.pct}% <span style={{ opacity: 0.8 }}>(honest range {bf.lo}–{bf.hi}%)</span>
+          </div>
+        <More c={T.chalk} deep="There is no show, no weigh-in and no date. That is a feature: the single best predictor of losing lean mass in a deficit is the size of the deficit, and the thing that makes people run a deficit too big is a date they are trying to make. Without one, the only reasons to go faster are impatience and boredom — and both of those cost muscle. The rate band, the calorie floor and the protein target are the guard rails; the finish line is a body-composition read, not a day on the calendar."
+          forYou={(() => { const cr = currentRate(s); const bfN = bfEst(s); return [
+            cr.measured ? `Measured pace ${cr.scale} lb/wk on the scale, about ${cr.fat} lb/wk of that fat-equivalent.` : "Pace still settling — two clean weekly snapshots and it goes fully measured.",
+            `Body fat reads ${bfN.pct}%, and the honest interval is ${bfN.lo}–${bfN.hi}% — that width is real, not decoration, and it narrows as the trend lengthens.`,
+            "The cone on the LAB tab shows the same thing across time.",
+          ]; })()} />
         </Card>
       ); })()}
 
@@ -10564,34 +10590,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
     in trained people. The urgency mechanic and the goal are in direct conflict.
 
     What survives is the part that is real: where the current measured rate
-    lands him, with the honest interval around it, and no clock. */}
-<Card>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <Eyebrow c={T.chalk}>WHERE THIS PACE LANDS YOU</Eyebrow>
-          <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>no date set</span>
-        </div>
-        {(() => {
-          const cr = currentRate(s); const bfN = bfEst(s);
-          const wks = 4;
-          const proj = +(s.trend - cr.scale * wks).toFixed(1);
-          return (
-            <>
-              <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.5 }}>
-                {cr.measured
-                  ? `At the ${cr.scale} lb/wk you are actually moving, four more weeks puts you near ${proj} lb. There is no date on this — you stop when the body-fat read and the mirror say stop, not when a calendar does.`
-                  : `Two clean weekly snapshots and this reads off your measured rate instead of an estimate.`}
-              </div>
-              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 7 }}>body fat {bfN.pct}% · honest range {bfN.lo}–{bfN.hi}%</div>
-            </>
-          );
-        })()}
-        <More c={T.chalk} deep="There is no show, no weigh-in and no date. That is a feature: the single best predictor of losing lean mass in a deficit is the size of the deficit, and the thing that makes people run a deficit too big is a date they are trying to make. Without one, the only reasons to go faster are impatience and boredom — and both of those cost muscle. The rate band, the calorie floor and the protein target are the guard rails; the finish line is a body-composition read, not a day on the calendar."
-          forYou={(() => { const cr = currentRate(s); const bfN = bfEst(s); return [
-            cr.measured ? `Measured pace ${cr.scale} lb/wk on the scale, about ${cr.fat} lb/wk of that fat-equivalent.` : "Pace still settling — two clean weekly snapshots and it goes fully measured.",
-            `Body fat reads ${bfN.pct}%, and the honest interval is ${bfN.lo}–${bfN.hi}% — that width is real, not decoration, and it narrows as the trend lengthens.`,
-            "The cone on the LAB tab shows the same thing across time.",
-          ]; })()} />
-      </Card>
+    lands him, with the honest interval around it, and no clock. As of the v7.5
+    re-layout that surviving half lives in the merged TRAJECTORY card at Tier 1,
+    not in a second card at the bottom of THE ROOM. */}
       </Section>
 
       <Card style={{ padding: "10px 14px" }}>
