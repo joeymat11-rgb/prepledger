@@ -3941,11 +3941,102 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   undoState.adjustments = (undoState.adjustments || []).concat([{ rid: "ap_tighten_x", d: "2026-08-01", title: "AUTO-PILOT · TIGHTEN", nudge: 0, auto: true }]);
   ok(LU(undoState) != null && LU(undoState).rid === "ap_tighten_x", "undo: lastUndoable finds the applied Auto-Pilot move (the always-visible undo has a target)");
   const undone = UA(undoState, "ap_tighten_x");
-  ok(!undone.adjustments.some((a) => a.rid === "ap_tighten_x"), "undo: the applied adjustment is removed on undo (one-tap reversible)");
+  ok(undone.adjustments.some((a) => a.rid === "ap_tighten_x" && a.undone === true) && undone.adjustments.length === undoState.adjustments.length, "undo (v7.2.0 audit): the applied adjustment is KEPT and marked undone (durable) — NOT spliced — so the once/day auto-apply guard keeps its memory and can't re-fire/duplicate");
+  ok(LU(undone) === null, "undo: after undoing, lastUndoable no longer offers that move (it skips undone rows) — the always-visible affordance clears");
   ok(undone.proposals.some((p) => p.rid === "ap_tighten_x" && !p.resolved), "undo: the move RE-OPENS into the inbox — the decision returns to you (Law 10), it doesn't vanish");
   ok(undone.feed[0] && undone.feed[0].t === "MOVE UNDONE", "undo: an honest 'MOVE UNDONE' note is filed");
   const declineState = clone(SEED); declineState.adjustments = [{ rid: "ap_x", d: "2026-08-01", title: "x", dismissed: true }];
   ok(LU(declineState) === null, "undo: a DECLINED move is not offered as undo — nothing changed to reverse");
+}
+
+// ============================================================================================
+// v7.2.0 · SLICE 3 AUDIT FIXES — undo durability · adjustments/proposals merge · floor-on-face · ids
+// ============================================================================================
+
+// --- FIX 1 — an undone AUTO-APPLY does NOT re-fire on remount, and is never duplicated ---
+// The once/day guard reads s.adjustments for an apauto_ record dated today. undoAdjustment used to
+// SPLICE that record, so the guard lost its memory and the routine auto-move re-fired (and could
+// duplicate the apauto_ proposal) on the next mount. It now KEEPS the row (marks undone) — and an
+// undone apauto_ STILL counts as handled.
+{
+  const UA = __test.undoAdjustment, AH = __test.apAutoHandledFor;
+  const tISO = "2026-08-03", rid = "apauto_tighten_" + tISO;
+  const s0 = clone(SEED);
+  s0.proposals = [{ rid, id: rid + "_" + tISO, d: tISO, title: "AUTO-PILOT · TIGHTENED THE TARGET", apply: { kind: "cal", delta: 100 }, resolved: true, auto: true }];
+  s0.adjustments = [{ rid, id: "adj_seed_1", d: tISO, title: "AUTO-PILOT · TIGHTENED THE TARGET", nudge: 0, auto: true, level: "runit" }];
+  ok(AH(s0, tISO) === true, "FIX 1 once/day guard: an apauto_ record dated today reads as ALREADY HANDLED — the auto-apply won't fire a second time");
+  const uu = UA(s0, rid);
+  ok(uu.adjustments.length === 1 && uu.adjustments[0].undone === true, "FIX 1: undo KEEPS the apauto_ row (marked undone) — length unchanged, neither dropped nor duplicated");
+  ok(AH(uu, tISO) === true, "FIX 1: AFTER undo the day STILL reads as handled — the undone auto-apply does NOT re-fire on the next mount (the splice bug is closed)");
+  ok(uu.adjustments.filter((a) => a.rid && a.rid.indexOf("apauto_") === 0 && a.d === tISO).length === 1, "FIX 1: exactly ONE apauto_ record for the day survives undo — no duplication");
+  ok(uu.proposals.some((p) => p.rid === rid && !p.resolved), "FIX 1: undo re-opens the auto-move into the inbox (the decision returns to you) while the durable guard row stays put");
+}
+
+// --- FIX 2 — s.adjustments (+ s.proposals) union-merge: same clobber class as exercises/queue/plan ---
+// The decision log is LOAD-BEARING (track record + undo + once/day guard + multi-device Run-it append)
+// and used to ride {...remote,...local} (wholesale local-wins). Property (mirroring the exercises/queue
+// tests): a stale client must NOT REVERT (un-undo) a newer adjustment AND must NOT LOSE one — BOTH write
+// orders, order-independent, dataLossGuard catches a silent shrink.
+{
+  const ms = __test.mergeState, dlg = __test.dataLossGuard;
+  // A1 shared (later UNDONE on the fresh side); the fresh side also has a NEW Run-it auto-apply A2 the
+  // stale side never saw; the stale side still shows A1 as NOT undone.
+  const fresh = clone(SEED);
+  fresh.adjustments = [{ rid: "ap_x", id: "a1", d: "2026-08-01", title: "TIGHTEN", auto: true, undone: true },
+                       { rid: "apauto_ease_2026-08-03", id: "a2", d: "2026-08-03", title: "AUTO-PILOT · EASED", auto: true }];
+  const stale = clone(SEED);
+  stale.adjustments = [{ rid: "ap_x", id: "a1", d: "2026-08-01", title: "TIGHTEN", auto: true }];   // stale: A1 not undone, never saw A2
+
+  // ORDER A — stale writes last (local = stale, remote = fresh)
+  const A = ms(stale, fresh);
+  const a1A = A.adjustments.find((a) => a.id === "a1");
+  ok(a1A && a1A.undone === true, "FIX 2 adjustments A: a stale client does NOT REVERT the undone flag — the terminal (undone) record wins (MUST-NOT-REVERT)");
+  ok(A.adjustments.some((a) => a.id === "a2"), "FIX 2 adjustments A: the fresh Run-it auto-apply the stale device never saw SURVIVES (MUST-NOT-LOSE)");
+  ok(A.adjustments.length >= fresh.adjustments.length && A.adjustments.length >= stale.adjustments.length, "FIX 2 adjustments A: |merged| >= both sides — the keyed union never shrinks the decision log");
+
+  // ORDER B — fresh writes last (local = fresh, remote = stale)
+  const B = ms(fresh, stale);
+  const a1B = B.adjustments.find((a) => a.id === "a1");
+  ok(a1B && a1B.undone === true && B.adjustments.some((a) => a.id === "a2"), "FIX 2 adjustments B: reversed order agrees — undone stays undone AND A2 is kept (order-independent)");
+  ok(dlg(fresh, A).safe === true && dlg(stale, A).safe === true, "FIX 2 adjustments: the merge passes the durability guard from BOTH inputs");
+
+  // dataLossGuard now PROTECTS the decision log directly (adjustments is counted)
+  const dropped = clone(fresh); dropped.adjustments = fresh.adjustments.slice(0, 1);
+  ok(dlg(fresh, dropped).safe === false, "FIX 2 adjustments: dropping an Auto-Pilot decision record is BLOCKED by the durability guard — a shrink can't be silent");
+
+  // proposals — a stale-device sync must not LOSE an armed inbox item (never-drop union)
+  const pf = clone(SEED), psl = clone(SEED);
+  pf.proposals = [{ rid: "r_keep", id: "pk", d: "2026-08-03", title: "ARMED", apply: { kind: "cal", delta: 80 }, resolved: false }];
+  psl.proposals = [];
+  ok(ms(psl, pf).proposals.some((p) => p.id === "pk") && ms(pf, psl).proposals.some((p) => p.id === "pk"), "FIX 2 proposals: an armed inbox item on one device SURVIVES a stale-device sync from EITHER order — no wholesale clobber (never-lose)");
+}
+
+// --- FIX 3 — a protein-FLOOR / REDLINE safety escalation reaches the hero WORD even with NO staged move
+// and even while otherwise HOLDING (a safety condition belongs on the face, not only a card). It stays
+// the calm established NEEDS-YOU (▲) and keeps the Slice-1 four-key contract. ---
+{
+  const SF = __test.statusFace;
+  const st0 = { blackout: null, proposals: [] };
+  const escNoMove = { escalate: true, escReason: { text: "protein is under the 180g lean-retention floor — a floor call, never automated" }, autoApply: false, mustAsk: false };
+  const holdAp = { ok: true, proposed: false, action: "hold", corrKcal: 0, mode: "recomp" };
+  const floorFace = SF(st0, { sig: { state: "measured" }, ap: holdAp, rec: { stale: false, flag: null }, pol: escNoMove, level: "runit", fc: { fires: false } });
+  ok(floorFace.word === "NEEDS YOU", "FIX 3: a floor/redline safety escalation with NO staged move (proposed:false) reaches the hero as NEEDS YOU — on the face, not only a card");
+  ok(floorFace.glyph === "▲" && Object.keys(floorFace).sort().join(",") === "cause,glyph,tone,word", "FIX 3: it is the calm established NEEDS-YOU (▲) and STILL exactly {word,glyph,tone,cause} — the Slice-1 4-key contract holds");
+  ok(floorFace.cause.indexOf("floor") >= 0, "FIX 3: the cause honestly names the safety reason (the protein floor) — no silent change on the face");
+  const floorWhileStale = SF(st0, { sig: { state: "measured" }, ap: holdAp, rec: { stale: true, flag: "reading is 4 days old · weigh in to refresh" }, pol: escNoMove, level: "runit", fc: { fires: false } });
+  ok(floorWhileStale.word === "NEEDS YOU", "FIX 3: the escalation reaches the hero EVEN WHILE HOLDING — a stale-rate hold no longer buries a floor/redline call");
+  const noEscPol = { escalate: false, escReason: null, autoApply: false, mustAsk: false };
+  ok(SF(st0, { sig: { state: "measured" }, ap: holdAp, rec: { stale: false, flag: null }, pol: noEscPol, level: "runit", fc: { fires: false } }).word === "ON COURSE", "FIX 3: with no escalation the face is exactly ON COURSE — the new branch is INERT unless a real safety ask fires (the Slice-1 480-combo totality is preserved)");
+}
+
+// --- FIX 4 — user-created goal/if-then ids carry a sequence+random tail, so two minted in the same
+// millisecond (even across devices) don't collide (the keyed plan-union keys on id). ---
+{
+  const FI = __test._freshId;
+  const ids = new Set(); let allPrefixed = true;
+  for (let i = 0; i < 500; i++) { const g = FI("g"); if (g.indexOf("g") !== 0) allPrefixed = false; ids.add(g); }
+  ok(ids.size === 500 && allPrefixed, "FIX 4: 500 ids minted back-to-back (same ms) are ALL distinct and prefixed — the in-session sequence guarantees uniqueness deterministically (no 1-ms Date.now() collision)");
+  ok(FI("g") !== FI("g") && FI("p").indexOf("p") === 0, "FIX 4: consecutive ids differ and the prefix is preserved (goals 'g', if-then 'p')");
 }
 
 console.log(`\nFINAL81: ${pass} passed, ${fail} failed`);

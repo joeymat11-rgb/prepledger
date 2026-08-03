@@ -315,6 +315,15 @@ const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
 
+/* _freshId (v7.2.0 audit) — a collision-resistant id for a record CREATED on a device and then SYNCED
+   (a user goal / if-then, an Auto-Pilot adjustment). It is a base36 timestamp + a monotonic in-session
+   sequence (guarantees uniqueness within a session, DETERMINISTICALLY — no 1-ms Date.now() collision on
+   one device) + a short random tail (guards the 1-ms tie across two devices). Assigned ONCE at creation
+   and it travels with the record, so the keyed-union merge collapses the same record across devices while
+   keeping distinct records distinct. (Content-hashed backfill — _hashId — is for LEGACY id-less entries.) */
+let _freshSeq = 0;
+function _freshId(prefix) { return (prefix || "") + Date.now().toString(36) + (_freshSeq++).toString(36) + Math.random().toString(36).slice(2, 6); }
+
 /* ---------- phase definitions ---------- */
 const PHASES = {
   "EASE 1": { cal: 1750, band: [1725, 1800], steps: "16–17k", note: "" },
@@ -5811,7 +5820,7 @@ function applyProposal(state, pid, nudge = 0) {
   const adj = dial ? Math.max(-dial.max, Math.min(dial.max, Math.round(nudge / dial.step) * dial.step)) : 0;
   p.resolved = true;
   p.nudge = adj;
-  s.adjustments.push({ rid: p.rid, d: isoOf(todayStart()), title: p.title, nudge: adj });
+  s.adjustments.push({ rid: p.rid, id: _freshId("adj_"), d: isoOf(todayStart()), title: p.title, nudge: adj });
   if (p.apply.kind === "refeed") {
     /* Dated, so history keeps reading as history — see REFEED_RETIREMENT. */
     s.targets = s.targets || {};
@@ -5857,7 +5866,7 @@ function applySuggestion(state, sug) {
   else if (a.kind === "dietbreak") { s.targets.dietBreak = d; how = "diet break armed — hold at maintenance this week"; }
   else if (a.kind === "progression") { s.targets.progression = a.to || true; how = "training progression noted — coach territory"; }
   s.suggestionLog.push({ sid: sug.sid, decided: "approved", d, title: sug.title, apply: a, predict: sug.predict || "" });
-  s.adjustments.push({ rid: sug.sid, d, title: sug.title });
+  s.adjustments.push({ rid: sug.sid, id: _freshId("adj_"), d, title: sug.title });
   s.feed.unshift({ d, t: "ANALYST SUGGESTION APPLIED", how: `${sug.title} — ${how}` });
   return s;
 }
@@ -5906,7 +5915,7 @@ function dismissProposal(state, pid) {
   const p = s.proposals.find((x) => x.id === pid);
   if (!p || p.resolved) return s;
   p.resolved = true; p.dismissed = true;
-  s.adjustments.push({ rid: p.rid, d: isoOf(todayStart()), title: p.title, dismissed: true });
+  s.adjustments.push({ rid: p.rid, id: _freshId("adj_"), d: isoOf(todayStart()), title: p.title, dismissed: true });
   s.feed.unshift({ d: isoOf(todayStart()), t: "ADJUSTMENT DECLINED", how: `${p.title} — you passed; nothing changed. The engine re-arms it if the pattern that raised it holds.` });
   return s;
 }
@@ -5914,9 +5923,10 @@ function dismissProposal(state, pid) {
 /* ---------- ALWAYS-VISIBLE UNDO (v7.2.0 · Slice 3) ----------
    Dietvorst 2018: modifiability is the strongest trust-builder — a move you can always take back is
    one you'll let the coach make. Every applied Auto-Pilot move — whether you tap-approved it or it
-   was auto-handled at a higher autonomy level — stays one-tap reversible. undoAdjustment removes the
-   logged adjustment, RE-OPENS the matching proposal back into the inbox (so the decision returns to
-   you rather than vanishing — Law 10), and files an honest note. It never touches a protected number
+   was auto-handled at a higher autonomy level — stays one-tap reversible. undoAdjustment MARKS the
+   logged adjustment undone (KEEPING the durable row — v7.2.0 audit: splicing it lost the once/day
+   auto-apply guard's memory and the auto-move re-fired), RE-OPENS the matching proposal back into the
+   inbox (so the decision returns to you rather than vanishing — Law 10), and files an honest note. It never touches a protected number
    (there was none to touch — the engine owns the band); it reverses the acknowledgment. lastUndoable
    is the pure selector the always-visible affordance reads. Structural pivots (phase / exit) are NOT
    quiet-undoable here — those are coach-gated decisions, reversed deliberately, not with one tap. */
@@ -5941,10 +5951,17 @@ function undoAdjustment(state, rid) {
   const a = adj[i];
   const p = (s.proposals || []).find((x) => x && x.rid === a.rid && x.resolved);
   if (p) { p.resolved = false; p.dismissed = false; p.nudge = 0; p.auto = false; }   // hand the decision back to the inbox
-  s.adjustments.splice(i, 1);
+  a.undone = true;   // v7.2.0 audit — KEEP the row (durable), don't splice it. Splicing an apauto_ record erased the once/day auto-apply guard's memory (apAutoHandledFor), so the auto-move RE-FIRED on the next mount and could duplicate the apauto_ proposal. Marking undone reconciles with lastUndoable (which already skips undone rows) and keeps the guard true for the day.
   s.feed = s.feed || [];
   s.feed.unshift({ d: isoOf(todayStart()), t: "MOVE UNDONE", how: `${a.title} — reversed; ${p ? "it's back in your inbox to decide." : "nothing was locked in."} Undo is always one tap.` });
   return s;
+}
+/* apAutoHandledFor (v7.2.0 audit) — the once/day auto-apply guard as a PURE, testable predicate: has a
+   routine Auto-Pilot move already been auto-recorded for THIS day? An UNDONE apauto_ record STILL counts
+   as handled — undoing a routine auto-move must not let it re-fire (and re-duplicate the proposal) on the
+   next mount. This is exactly why undoAdjustment keeps the row (marks undone) instead of splicing it. */
+function apAutoHandledFor(s, tISO) {
+  return ((s && s.adjustments) || []).some((a) => a && a.rid && String(a.rid).indexOf("apauto_") === 0 && a.d === tISO);
 }
 
 /* undo a same-day scale read — restores trend and clears this week's snapshot if orphaned */
@@ -7280,6 +7297,7 @@ function recordCounts(st) {
     waist: arr(st.waist),
     photos: arr(st.photos),
     feed: arr(st.feed),
+    adjustments: arr(st.adjustments),   // v7.2.0 audit — the Auto-Pilot decision log is load-bearing (track record + undo + once/day guard) and only grows; guard it like the other append-only records so a shrink can't be silent
   };
 }
 function dataLossGuard(prev, next) {
@@ -7340,6 +7358,7 @@ function _unionMulti(remoteArr, localArr, keyOf) {
 function _isoOr(x) { return (typeof x === "string" && x) ? x : ""; }
 function _exDate(e) { return e && e.lastMeta ? _isoOr(e.lastMeta.d) : ""; }   // a lift's newest real session
 function _queueRank(q) { return q && q.done ? 1 : 0; }                        // done is terminal — it wins
+function _adjRank(a) { return (a && (a.undone || a.dismissed)) ? 1 : 0; }     // v7.2.0 audit — an UNDONE/declined adjustment is TERMINAL: a stale not-undone copy can never resurrect it (mirrors _queueRank)
 function _unionKeyed(remoteArr, localArr, keyOf, scoreOf) {
   // keyed union for non-append-only state: on a collision the higher score wins, ties -> local.
   // score is any value comparable with > / === (an ISO date string OR a numeric rank). Ids on only
@@ -7397,6 +7416,16 @@ function _unionPlan(remote, local) {
 const MERGE_KEYED = {   // STORED, non-append-only per-lift state — reconcile per id (newest / most-advanced wins)
   exercises: { keyOf: (e) => e && e.id, scoreOf: _exDate },
   queue:     { keyOf: (q) => q && q.id, scoreOf: _queueRank },
+  // v7.2.0 audit — s.adjustments/s.proposals were in NO MERGE_* map: they rode {...remote,...local}
+  // (wholesale local-wins), the SAME clobber class as the v6.2 exercises/queue bug. Slice 3 makes the
+  // decision log LOAD-BEARING (track record + undo + once/day guard + multi-device Run-it append), so:
+  //   adjustments — keyed union by stable id (legacy fallback rid|d), TERMINAL (undone/dismissed) wins;
+  //                 an id on only one side survives, so a stale device can neither LOSE nor REVERT one.
+  //   proposals   — never-drop union (id, else rid): an armed inbox item on one device is never clobbered
+  //                 by a stale-device sync; collision -> local (scoreOf 0 -> ties fall to local), i.e. the
+  //                 prior local-wins semantics unchanged, only never-lose added (no undo/re-open regression).
+  adjustments: { keyOf: (a) => a && (a.id || (a.rid + "|" + a.d)), scoreOf: _adjRank },
+  proposals:   { keyOf: (p) => p && (p.id || p.rid || JSON.stringify(p)), scoreOf: () => 0 },
 };
 const MERGE_ARR = {   // one logical entry per key (date / id) — the richer copy wins on a collision
   reads: (r) => r && r.d, waist: (w) => w && w.d, photos: (p) => p && (p.d || p.id || JSON.stringify(p)),
@@ -8079,9 +8108,10 @@ function statusFace(s, deps) {
   const heldForNoise = !!(ap && ap.ok && ap.heldForNoise);
   const noiseHold = heldForNoise || sig.state === "inside-noise";
   const read = () => { try { return signalReadCopy(s, sig).sentence; } catch (e) { return ""; } };
-  // v7.2.0 Slice 3 — the autonomy level + the safety supervisor shape the ADJUSTING state HONESTLY:
-  // a routine move being auto-handled reads as "handling · one tap to undo"; a staged move carrying a
-  // HARD escalation (magnitude / floor / redline / conflict) is forced to NEEDS YOU regardless of level.
+  // v7.2.0 Slice 3 — the autonomy level + the safety supervisor shape the face HONESTLY: a routine move
+  // being auto-handled reads as "handling · one tap to undo" (ADJUSTING); a HARD escalation (magnitude /
+  // floor / redline / conflict) is forced to NEEDS YOU regardless of level — and, per the v7.2.0 audit,
+  // even with NO staged move and even while otherwise holding (a safety condition belongs on the face).
   const pol = (deps && deps.pol) || autoPilotPolicy(s, { ap });
   const level = (deps && deps.level) || autonomyOf(s);
 
@@ -8089,17 +8119,20 @@ function statusFace(s, deps) {
   if (reversed || coachOwed) {
     word = "NEEDS YOU"; glyph = "▲"; tone = T.orange;               // ▲
     cause = reversed ? read() : "A coach-flag call is waiting for your sign-off — nothing moves on its own.";
+  } else if (pol.escalate) {
+    // SAFETY SUPERVISOR (v7.2.0 audit) — a HARD safety ask (protein FLOOR, muscle-loss REDLINE, or an
+    // over-corridor magnitude) is a human-owed call, so it reaches the hero WORD even with NO staged
+    // move (proposed:false) and even while Auto-Pilot is otherwise HOLDING — a safety-relevant condition
+    // belongs on the face, not only on a card. Calm + honest: the established NEEDS-YOU ▲, never a new
+    // alarm. (reversed/coach already caught above; past here escReason is a floor/redline/magnitude ask.)
+    word = "NEEDS YOU"; glyph = "▲"; tone = T.orange;               // ▲
+    cause = `One call needs you — ${pol.escReason ? pol.escReason.text : "a safety check outside the routine corridor"}.`;
   } else if (sig.state === "calibrating" || !(ap && ap.ok)) {
     word = "CALIBRATING"; glyph = "◇"; tone = T.steel;              // ◇
     cause = read() || "Still learning your baseline — keep logging and the read sharpens.";
   } else if (paused) {
     word = "HOLDING"; glyph = "‖"; tone = T.steel;                  // ‖
     cause = "Scale sealed — paused by you; Auto-Pilot waits until it reopens.";
-  } else if (proposed && pol.escalate) {
-    // SAFETY SUPERVISOR — a staged move that's too big / near a floor / conflicting ALWAYS asks the
-    // human, even at Run-it. Never auto-applied, never silent.
-    word = "NEEDS YOU"; glyph = "▲"; tone = T.orange;               // ▲
-    cause = `One call needs you — ${pol.escReason ? pol.escReason.text : "a change outside the routine corridor"}.`;
   } else if (proposed) {
     word = "ADJUSTING"; glyph = "±"; tone = T.gauge;                // ±
     cause = pol.autoApply
@@ -8173,6 +8206,7 @@ __test.autonomyOf = autonomyOf; __test.escalation = escalation; __test.autoPilot
 __test.whyThisNumber = whyThisNumber; __test.confidenceField = confidenceField; __test.trackRecord = trackRecord;
 __test.AUTONOMY_LEVELS = AUTONOMY_LEVELS; __test.AUTONOMY_META = AUTONOMY_META; __test._unionPlan = _unionPlan;
 __test.lastUndoable = lastUndoable; __test.undoAdjustment = undoAdjustment;
+__test.apAutoHandledFor = apAutoHandledFor; __test._freshId = _freshId;   // v7.2.0 audit — once/day guard predicate + collision-resistant id
 
 /* Group — a fixed-position collapsible section for NOW's FOCUSED tier. Order never
    changes (static beats adaptive — Findlater & McGrenere); only open/closed responds
@@ -8391,14 +8425,14 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
      owns the band (nothing you eat is mutated), and it's one tap to undo. */
   useEffect(() => {
     if (!pol.autoApply || !ap.ok) return;
-    if ((s.adjustments || []).some((a) => a && a.rid && String(a.rid).indexOf("apauto_") === 0 && a.d === tISO)) return;   // once/day
+    if (apAutoHandledFor(s, tISO)) return;   // once/day — an UNDONE apauto_ still counts as handled, so undoing never re-fires (or duplicates) it on remount
     const rid = "apauto_" + ap.action + "_" + tISO;
     const title = ap.action === "ease" ? "AUTO-PILOT · EASED THE TARGET" : "AUTO-PILOT · TIGHTENED THE TARGET";
     const modeLabel = ap.mode === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP";
     const ns = JSON.parse(JSON.stringify(s));
     ns.proposals = ns.proposals || []; ns.adjustments = ns.adjustments || []; ns.feed = ns.feed || [];
     ns.proposals.push({ rid, id: rid + "_" + tISO, d: tISO, title, why: `Routine in-corridor move: ~${ap.pctRate}%BW/wk vs your ${modeLabel} target ~${ap.targetPct}% (~${ap.corrKcal} kcal). Handled at ${meta.short}.`, apply: { kind: "cal", delta: ap.corrKcal }, resolved: true, auto: true });
-    ns.adjustments.push({ rid, d: tISO, title, nudge: 0, auto: true, level });
+    ns.adjustments.push({ rid, id: _freshId("adj_"), d: tISO, title, nudge: 0, auto: true, level });   // v7.2.0 audit — stable id so the keyed-union merge collapses this record across devices (never dropped/duped)
     ns.feed.unshift({ d: tISO, t: "AUTO-PILOT HANDLED IT", how: `${title} — ${meta.tag}. Nothing you eat is locked by this; it's the routine steer, and it's one tap to undo.` });
     setS(ns); save(ns);
   }, [pol.autoApply, tISO, ap.ok]);
@@ -9135,7 +9169,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                   ns.plan = { ...(ns.plan || {}), apDismiss: tISO };
                   setS(ns); save(ns); hap(12);
                 }}>{easing ? "Ease the target →" : "Tighten the target →"}</Btn>
-                {cut && <Btn small tone="jade" onClick={() => savePlan({ goals: [...plan.goals, { id: "g" + Date.now(), text: `${easing ? "Trim" : "Add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps on non-lifting days (auto-pilot)` }], apDismiss: tISO })}>{easing ? "Trim the steps" : "Add the steps"}</Btn>}
+                {cut && <Btn small tone="jade" onClick={() => savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: `${easing ? "Trim" : "Add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps on non-lifting days (auto-pilot)` }], apDismiss: tISO })}>{easing ? "Trim the steps" : "Add the steps"}</Btn>}
                 <Btn small onClick={() => savePlan({ apDismiss: tISO })}>Not now</Btn>
               </div>
             </>
@@ -9178,7 +9212,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           ))}
           <div style={{ display: "flex", gap: SP.sm, marginTop: SP.sm }}>
             <input value={newGoal} onChange={(e) => setNewGoal(e.target.value)} placeholder="a process goal" style={{ flex: 1, minWidth: 0, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
-            <Btn small tone="jade" onClick={() => { const t = newGoal.trim(); if (!t) return; savePlan({ goals: [...plan.goals, { id: "g" + Date.now(), text: t }] }); setNewGoal(""); }}>Add</Btn>
+            <Btn small tone="jade" onClick={() => { const t = newGoal.trim(); if (!t) return; savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: t }] }); setNewGoal(""); }}>Add</Btn>
           </div>
         </div>
         <div>
@@ -9193,7 +9227,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ display: "flex", flexDirection: "column", gap: SP.sm, marginTop: SP.sm }}>
             <input value={ifCue} onChange={(e) => setIfCue(e.target.value)} placeholder="IF — e.g. it's Tuesday and I've not trained by 6pm" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
             <input value={ifAct} onChange={(e) => setIfAct(e.target.value)} placeholder="THEN — e.g. I train at 6:15" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
-            <div><Btn small tone="jade" onClick={() => { const c = ifCue.trim(), a = ifAct.trim(); if (!c || !a) return; savePlan({ ifthen: [...plan.ifthen, { id: "p" + Date.now(), cue: c, action: a }] }); setIfCue(""); setIfAct(""); }}>Add plan</Btn></div>
+            <div><Btn small tone="jade" onClick={() => { const c = ifCue.trim(), a = ifAct.trim(); if (!c || !a) return; savePlan({ ifthen: [...plan.ifthen, { id: _freshId("p"), cue: c, action: a }] }); setIfCue(""); setIfAct(""); }}>Add plan</Btn></div>
           </div>
         </div>
         <div>
