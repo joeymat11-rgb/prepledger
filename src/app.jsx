@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.0.0";
+const APP_V = "7.1.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -2372,12 +2372,23 @@ function digitalTwin(s, opts) {
   const targetPct = 11;
   const atWeight = +(bf.lean / (1 - targetPct / 100)).toFixed(1);
   const weeksAt = (rate) => (rate == null || rate <= 0 ? null : Math.max(0, Math.round((s.trend - atWeight) / rate)));
+  /* HONEST FAN (v7.1.0 · Slice 2) — the ETA range is no longer a fixed ±25% on the rate (a
+     made-up interval). It derives from the rate's OWN measured uncertainty: the HAC-corrected
+     95% CI already computed in currentRate (r0.ci, lb/wk). etaFast/etaSlow are the arrival weeks
+     at the fast/slow ends of that CI, so a noisy rate fans WIDE and a firm one fans TIGHT — the
+     fan reflects real confidence, never a constant. The slow end is floored just above zero so
+     "the ETA is a range" stays finite; the genuinely-unbounded case (a rate CI that reaches
+     no-loss) is surfaced honestly by forecast()'s greyed cone + the crossing's self-suppression,
+     not faked into a number here. Falls back to the old ±25% only when there is no measured CI. */
+  const rateCI = (rate0 != null && r0 && r0.ci != null && r0.ci > 0) ? r0.ci : (newRate != null ? Math.abs(newRate) * 0.25 : 0);
+  const rateHi = newRate != null ? newRate + rateCI : null;                   // fast plausible loss
+  const rateLo = newRate != null ? Math.max(0.05, newRate - rateCI) : null;   // slow plausible loss (floored > 0)
   return {
     ok: rate0 != null && baseTDEE != null,
     baseTDEE, stepsNow, kcalPer1k, rate0, newRate, calDelta, stepsTarget, protein: o.protein,
     atWeight, targetPct,
-    etaMid: weeksAt(newRate), etaFast: weeksAt(newRate * 1.25), etaSlow: weeksAt(newRate * 0.75),
-    fanRate: newRate,
+    etaMid: weeksAt(newRate), etaFast: weeksAt(rateHi), etaSlow: weeksAt(rateLo),
+    fanRate: newRate, seRate: rateCI > 0 ? +(rateCI / 1.96).toFixed(3) : null, rateCI: +rateCI.toFixed(2),
   };
 }
 
@@ -2397,6 +2408,150 @@ function twinBodyComp(s, opts) {
   const zone = pctRate > band.redlinePct ? "redline" : pctRate >= band.corrPct[0] ? "corridor" : "below";
   return { ...tw, bc: { dir, pctRate, band, fat: part.fat, lean: part.lean, leanFrac: part.leanFrac, rt: part.rt, zone } };
 }
+
+/* ---------- ANTICIPATORY FORECASTING (v7.1.0 · Slice 2) — the honest cone + the self-silencing redline alert ----------
+   Anticipation is the payload for the cockpit face: surface the forward projection and, when
+   the trend is genuinely approaching the muscle-loss rate, say so BEFORE it happens — but with
+   error bars that WIDEN with the horizon and an alert that STAYS SILENT when the trend is
+   statistically ambiguous. Nothing here recomputes a rate: it READS the one projection
+   (digitalTwin.newRate) and the one measured slope + its HAC CI (currentRate) and the one
+   redline (cutRateBand). No second statistic, no second band, no new competing number. */
+const FORE = {
+  // Prediction-interval multipliers (Topic 5): 80/90/95% = 1.28/1.64/1.96 σ.
+  PI80: 1.28, PI90: 1.64, PI95: 1.96,
+  // Horizon-widening exponents. A LEVEL/EWMA forecast's σ grows ∝ √h (the random-walk form);
+  // a SLOPE/TREND forecast's σ grows ∝ h^1.5 — the moment you extrapolate a RATE rather than a
+  // LEVEL, uncertainty fans SUPER-LINEARLY. This is the whole honesty of the cone.
+  LEVEL_EXP: 0.5, SLOPE_EXP: 1.5,
+  H_MAX: 26,     // weeks — the cone's display horizon (~6 months)
+  H_INFO: 20,    // weeks — the informative horizon for a crossing alert; past this a straight line
+                 // over-predicts loss (a Hall dynamic model bends toward a plateau) so we do not quote it
+  P_FIRE: 0.20,  // fire the redline alert at a LOW probability — muscle loss is costly, so the bar is
+                 // low — but always PHRASE it honestly (a probability + a range, never a certainty)
+};
+
+/* Standard-normal CDF (Abramowitz & Stegun 26.2.17; |error| < 7.5e-8). Used only to phrase the
+   crossing PROBABILITY honestly — it invents no number the engine owns. Φ(0)=0.5, Φ(1.96)≈0.975. */
+function normCdf(z) {
+  const t = 1 / (1 + 0.2316419 * Math.abs(z));
+  const d = 0.3989422804014327 * Math.exp(-z * z / 2);
+  const p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+  return z >= 0 ? 1 - p : p;
+}
+
+/* The forecast fan's half-width at horizon h (weeks). Two terms, both derived from HIS OWN
+   volatility, never drawn to look uncertain: the LEVEL term sigmaLevel·√h (read-noise, the gentle
+   random-walk widening) and the SLOPE term seRate·h^1.5 (the measured-rate uncertainty, fanning
+   super-linearly). Multiplied by the PI multiplier z. Strictly increasing in h — so the cone can
+   only ever WIDEN with distance (σ_{h+1} > σ_h), which the gate asserts. */
+function coneHalfWidth(sigmaLevel, seRate, h, z) {
+  const hh = Math.max(0, h);
+  const lvl = (sigmaLevel || 0) * Math.pow(hh, FORE.LEVEL_EXP);
+  const slp = (seRate || 0) * Math.pow(hh, FORE.SLOPE_EXP);
+  return (z || 1) * (lvl + slp);   // RAW (unrounded) so the ∝√h / ∝h^1.5 laws hold exactly; the display rounds
+}
+
+/* REDLINE CROSSING — the anticipatory, self-suppressing muscle-loss alert. As bodyweight falls, a
+   CONSTANT lb/wk loss becomes a RISING %BW/wk, so a rate that is safe today can breach the %BW/wk
+   redline later. Crossing time, in weeks:  t*(m) = W0/m − 100/redlinePct  (the week his constant
+   m lb/wk equals redlinePct %BW/wk). It reads ONE slope (currentRate) and ONE redline
+   (cutRateBand.redline) — never a second band. Delta-method / CI-endpoint interval on t* gives an
+   ASYMMETRIC week RANGE (never a single day). Self-suppression = the false-alarm cascade of
+   Topic 5: significance gate (signal must be measurable/measured) → losing gate → horizon gate
+   (point crossing inside H_INFO) → RESOLVABILITY gate (the SLOW end of the slope CI must ALSO cross
+   within H_MAX; if the CI includes a rate slow enough to stay safe, t*→∞ and the alert self-silences).
+   A wide slope CI leaves the slow end unbounded, so an ambiguous trend stays silent; the probability
+   is then reported honestly (floored at P_FIRE — muscle loss is costly — capped at 0.95 — never a
+   certainty). `opts` injects rate/band/sig/bw for the suite. Pure; mutates nothing. */
+function redlineCrossing(s, opts) {
+  const o = opts || {};
+  const r = o.rate || currentRate(s);
+  const rb = o.band || cutRateBand(s);
+  const sig = o.sig || signalState(s);
+  const bw = o.bw || (s && s.trend) || 165;
+  const off = (reason) => ({ fires: false, reason, tStar: null, range: null, prob: 0, redlinePct: null });
+  if (!r || !r.measured || r.ci == null || r.ci <= 0) return off("no-signal");
+  if (!(sig.state === "measured" || sig.state === "measurable")) return off("ambiguous-signal");
+  const m = r.scale;                                   // lb/wk, + = losing
+  if (!(m > 0)) return off("not-losing");
+  const seRate = r.ci / FORE.PI95;                     // lb/wk — HAC 95% half-width back to 1σ
+  const redlinePct = +((rb.redline / bw) * 100).toFixed(3);   // cutRateBand's redline (lb/wk) → %BW/wk
+  if (!(redlinePct > 0)) return off("no-redline");
+  const K = 100 / redlinePct;
+  const tStarOf = (rate) => (rate > 0 ? bw / rate - K : Infinity);
+  const tStar = tStarOf(m);                                     // point crossing
+  if (!(tStar > 0)) return off("already-past");
+  if (tStar > FORE.H_INFO) return off("beyond-horizon");        // point crossing too far to quote honestly (a straight line over-predicts past here)
+  /* RESOLVABILITY / self-suppression (t*→∞): the SLOW end of the slope CI must ALSO cross within the
+     display horizon. If the slope CI includes a rate slow enough to stay safe past H_MAX — i.e. the
+     CI includes the safe rate — the crossing is ambiguous (its slow-end t*→∞) and the alert
+     self-silences. mLo is the 95% lower slope bound (r.lo). Reads ONE slope CI + ONE redline. */
+  const mLo = r.lo != null ? r.lo : +(m - r.ci).toFixed(2);
+  const tLate = tStarOf(mLo);
+  if (!(tLate > 0) || tLate > FORE.H_MAX) return off("ci-includes-safe");
+  const mCrit = bw / (FORE.H_INFO + K);                         // the rate that just crosses at H_INFO
+  // Honest probability of crossing within H_INFO — floored at P_FIRE (we warn even at a LOW
+  // probability, because muscle loss is costly) and capped at 0.95 (a fan chart never claims certainty).
+  const prob = +Math.min(0.95, Math.max(FORE.P_FIRE, normCdf((m - mCrit) / seRate))).toFixed(2);
+  const clamp = (t) => Math.max(0, Math.min(FORE.H_MAX, t));
+  const early = clamp(tStarOf(m + FORE.PI80 * seRate));         // faster plausible loss → sooner
+  const late = clamp(tStarOf(m - FORE.PI80 * seRate));          // slower plausible loss → later
+  const wksEarly = Math.round(early), wksLate = Math.round(late);
+  return {
+    fires: true, reason: "resolvable", tStar: +tStar.toFixed(1),
+    range: [+early.toFixed(1), +late.toFixed(1)], wksEarly, wksLate, prob, redlinePct,
+    dateEarly: isoOf(new Date(todayStart().getTime() + early * 7 * DAY)),
+    dateLate: isoOf(new Date(todayStart().getTime() + late * 7 * DAY)),
+    cause: `Approaching the lean-loss rate — on this trend you'd reach it in about ${wksEarly}–${wksLate} wks (~${Math.round(prob * 100)}% within ${FORE.H_INFO} wks). Easing the deficit back now keeps the loss off muscle.`,
+  };
+}
+
+/* FORECAST — the cockpit's anticipatory read. Composes the ONE projected rate (digitalTwin.newRate)
+   with the ONE slope CI + read-noise (currentRate.ci / .sigma) and the signal verdict (signalState)
+   into a horizon-widening cone plus the self-suppressing crossing. Confidence-gated: a calibrating /
+   inside-noise signal WIDENS (PI95) and GREYS the cone — it never draws a confident line off a
+   trend that is not real yet. Pure and GUARDED (a thin or malformed state returns a safe empty
+   forecast, never a throw), so the anticipatory surface is self-silencing when the data can't back
+   it. Reads existing owners only — introduces no new rate or slope. `opts.deps` injects for tests. */
+function forecast(s, opts) {
+  const o = opts || {}, d = o.deps || {};
+  try {
+    const r = d.rate || currentRate(s);
+    const sig = d.sig || signalState(s);
+    const rb = d.band || cutRateBand(s);
+    const tw = d.tw || digitalTwin(s, o.twin || {});
+    const bw = (s && s.trend) || 165;
+    const confident = sig.state === "measured" || sig.state === "measurable";
+    const z = confident ? FORE.PI90 : FORE.PI95;                  // low confidence → a WIDER band
+    const seRate = r && r.ci != null && r.ci > 0 ? +(r.ci / FORE.PI95).toFixed(3) : null;
+    const sigma = r && r.sigma != null ? r.sigma : (d.sigma != null ? d.sigma : null);
+    const rate = tw && tw.ok ? tw.newRate : (r && r.measured ? r.scale : null);   // the ONE rate
+    const cone = [];
+    if (rate != null && seRate != null && sigma != null) {
+      for (let h = 0; h <= FORE.H_MAX; h++) {
+        const mid = +(bw - rate * h).toFixed(2);
+        const hw = coneHalfWidth(sigma, seRate, h, z);
+        cone.push({ wk: h, mid, lo: +(mid - hw).toFixed(2), hi: +(mid + hw).toFixed(2), hw: +hw.toFixed(3) });
+      }
+    }
+    const crossing = redlineCrossing(s, { rate: r, band: rb, sig, bw });
+    return {
+      ok: rate != null && cone.length > 1, rate, seRate, sigma, z,
+      pi: z === FORE.PI95 ? 95 : z === FORE.PI90 ? 90 : 80, confident, greyed: !confident,
+      cone, crossing,
+      atWeight: tw && tw.atWeight != null ? tw.atWeight : null,
+      targetPct: tw && tw.targetPct != null ? tw.targetPct : null,
+      etaMid: tw ? tw.etaMid : null, etaFast: tw ? tw.etaFast : null, etaSlow: tw ? tw.etaSlow : null,
+    };
+  } catch (e) {
+    return { ok: false, rate: null, seRate: null, sigma: null, confident: false, greyed: true, cone: [], crossing: { fires: false, reason: "no-data", range: null, prob: 0 } };
+  }
+}
+
+/* safeCrossing — the guarded crossing the cockpit face reads. Never throws (a minimal or malformed
+   state returns "no fire"), so the anticipatory nudge in statusFace / marchingOrder is self-silencing
+   whenever the forecast can't be computed. */
+function safeCrossing(s) { try { const f = forecast(s); return f && f.crossing ? f.crossing : { fires: false }; } catch (e) { return { fires: false }; } }
 
 /* ---------- AUTO-PILOT (v2) — the thermostat, made real ----------
    The audit wanted a thermostat, not just a thermometer: hold the goal line instead
@@ -7074,6 +7229,12 @@ __test.bfEst = bfEst;
 __test.anchorTighten = anchorTighten;
 __test.digitalTwin = digitalTwin;
 __test.twinBodyComp = twinBodyComp;
+__test.forecast = forecast;
+__test.redlineCrossing = redlineCrossing;
+__test.coneHalfWidth = coneHalfWidth;
+__test.normCdf = normCdf;
+__test.FORE = FORE;
+__test.currentRate = currentRate;
 __test.bodyCompBand = bodyCompBand;
 __test.partitionRates = partitionRates;
 __test.BC = BC;
@@ -7651,7 +7812,7 @@ function statusFace(s, deps) {
   const noiseHold = heldForNoise || sig.state === "inside-noise";
   const read = () => { try { return signalReadCopy(s, sig).sentence; } catch (e) { return ""; } };
 
-  let word, glyph, tone, cause;
+  let word, glyph, tone, cause, fc = null;
   if (reversed || coachOwed) {
     word = "NEEDS YOU"; glyph = "▲"; tone = T.orange;               // ▲
     cause = reversed ? read() : "A coach-flag call is waiting for your sign-off — nothing moves on its own.";
@@ -7667,6 +7828,14 @@ function statusFace(s, deps) {
   } else if (rec.stale || noiseHold) {
     word = "HOLDING"; glyph = "‖"; tone = T.steel;                  // ‖
     cause = rec.stale ? cap(rec.flag) : "This week is still inside your noise — holding for a clear read rather than steering off a blip.";
+  } else if ((fc = (deps && deps.fc) || safeCrossing(s)) && fc.fires) {
+    // ANTICIPATORY (v7.1.0 · Slice 2) — the foresight nudge. Only when the redline crossing is
+    // statistically RESOLVABLE (it self-suppresses otherwise) and only below every higher-priority
+    // honest state, an approaching lean-loss rate reads as a CALM ADJUSTING cue ("easing back"),
+    // never a NEEDS-YOU alarm and never colour-as-alarm — foresight informs the face, it doesn't
+    // raise urgency. Self-silencing: an ambiguous trend leaves the face exactly ON COURSE.
+    word = "ADJUSTING"; glyph = "±"; tone = T.gauge;                // ±
+    cause = fc.cause;
   } else {
     word = "ON COURSE"; glyph = "◆"; tone = T.brass;                // ◆
     cause = read() || "On the mode target — nothing to change today.";
@@ -7701,11 +7870,19 @@ function marchingOrder(s, deps) {
     };
   }
   const fix = theOneFix(s);
+  // ANTICIPATORY (v7.1.0 · Slice 2) — when the redline crossing is RESOLVABLE and nothing is owed,
+  // the foresight informs the one-thing's WHY (protein-first IS the lean-protective move, so the
+  // action is unchanged — only the reason gains the horizon). Self-silencing: an ambiguous or
+  // absent crossing leaves the standing if-then exactly as it was.
+  const fc = (deps && deps.fc) || safeCrossing(s);
+  const why = fc && fc.fires
+    ? `Approaching the lean-loss rate (~${fc.wksEarly}–${fc.wksLate} wks) — protein first protects lean while Auto-Pilot eases the deficit back.`
+    : ((fix && fix.title) || "Hold the line — the five are covered and the trend is doing its job.");
   return {
     owed: false, kind: "day",
     ifText: "If it's a meal", thenText: "protein first",
-    why: (fix && fix.title) || "Hold the line — the five are covered and the trend is doing its job.",
-    targetLine, link: oweTarget("day"), more: [],
+    why, targetLine, link: oweTarget("day"), more: [],
+    foresight: fc && fc.fires ? { wksEarly: fc.wksEarly, wksLate: fc.wksLate, prob: fc.prob } : null,
   };
 }
 __test.statusFace = statusFace;
@@ -7734,7 +7911,7 @@ function Group({ title, sub, defaultOpen = false, count, persistKey, id, childre
     </div>
   );
 }
-function Spark({ reads, trend, projRate = null, noise = 0.8, noiseN = null }) {
+function Spark({ reads, trend, projRate = null, noise = 0.8, noiseN = null, projSlopeSE = null }) {
   /* The chart carries the app's whole grammar: SOLID IS MEASURED, DASHED IS
      PROJECTED — the same distinction the icon's fifth tick makes. What used to be
      here drew one jagged daily line and let it read as truth. It now draws the
@@ -7814,7 +7991,13 @@ function Spark({ reads, trend, projRate = null, noise = 0.8, noiseN = null }) {
             const f = i / segs;                       // 0..1 across the horizon
             const wks = (projDays / 7) * f;
             const w = lastT.t - projRate * wks;        // central path
-            const half = noise * Math.sqrt(Math.max(f, 0.0001) * (projDays / 7));
+            // v7.1.0 · Slice 2 — when a measured slope SE is known the fan follows the SLOPE-forecast
+            // form: a √h LEVEL term (read-noise) PLUS a super-linear h^1.5 SLOPE term (rate uncertainty),
+            // because extrapolating a RATE fans faster than extrapolating a LEVEL. Falls back to the
+            // legacy √h random-walk fan when no slope SE is supplied.
+            const half = projSlopeSE != null
+              ? noise * Math.sqrt(Math.max(wks, 1e-4)) + projSlopeSE * Math.pow(Math.max(wks, 1e-4), FORE.SLOPE_EXP)
+              : noise * Math.sqrt(Math.max(f, 0.0001) * (projDays / 7));
             const xx = x(tLast + f * projDays * DAY);
             upper.push(`${xx.toFixed(1)},${y(w + half).toFixed(1)}`);
             lower.push(`${xx.toFixed(1)},${y(w - half).toFixed(1)}`);
@@ -8236,6 +8419,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       {(() => {
         const cp = statusFace(s);
         const mo = marchingOrder(s);
+        const fx = forecast(s);   // v7.1.0 · Slice 2 — the anticipatory read (cone + self-suppressing crossing)
         return (
           <Card style={{ padding: SP.lg }}>
             <Eyebrow c={T.steel}>COCKPIT · AUTO-PILOT</Eyebrow>
@@ -8257,6 +8441,39 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                 <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, letterSpacing: "0.04em" }}>then {mo.more.join(" · ")}</div>
               ) : null}
             </div>
+            {/* ---------- ANTICIPATORY FORESIGHT (v7.1.0 · Slice 2) ----------
+                The forward cone, surfaced on the face. Three honest states, all CALM (typographic
+                weight + a neutral glyph, never colour-as-alarm): a RESOLVABLE redline crossing reads
+                as an approaching-rate range + probability ("a range, not a date"); a confident trend
+                shows the CI-honest ETA fan (etaFast–etaSlow, which now widen with real uncertainty,
+                not a fixed ±%); a calibrating / inside-noise trend GREYS out and draws no line. */}
+            {(() => {
+              const fc = fx.crossing;
+              if (fc && fc.fires) return (
+                <div style={{ borderTop: `1px solid ${T.line}`, marginTop: SP.md, paddingTop: SP.md }}>
+                  <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>
+                    <span aria-hidden="true" style={{ color: T.gauge }}>±</span> FORESIGHT · APPROACHING LEAN-LOSS RATE
+                  </div>
+                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.45, marginTop: SP.xs }}>{fc.cause}</div>
+                  <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>~{fc.wksEarly}–{fc.wksLate} wks · ≈{Math.round(fc.prob * 100)}% within {FORE.H_INFO} wks · a range, not a date</div>
+                </div>
+              );
+              if (fx.ok && fx.confident && fx.etaMid != null) return (
+                <div style={{ borderTop: `1px solid ${T.line}`, marginTop: SP.md, paddingTop: SP.md }}>
+                  <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>FORESIGHT · PROJECTION</div>
+                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs }}>
+                    ~<span data-num style={{ fontFamily: mono }}>{fx.etaMid}</span> wks to {fx.targetPct}% BF{fx.etaFast != null && fx.etaSlow != null ? <> · range <span data-num style={{ fontFamily: mono }}>{fx.etaFast}–{fx.etaSlow}</span> wks</> : null}
+                  </div>
+                  <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>the fan widens with distance — a projection, not a promise</div>
+                </div>
+              );
+              return (
+                <div style={{ borderTop: `1px solid ${T.line}`, marginTop: SP.md, paddingTop: SP.md }}>
+                  <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>FORESIGHT · CALIBRATING</div>
+                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs }}>A few more clean mornings and the projection sharpens — no confident line yet.</div>
+                </div>
+              );
+            })()}
           </Card>
         );
       })()}
@@ -8479,7 +8696,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           )}
           <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm }}>measured TDEE {ap.tdee} kcal · n={ap.n} · corridor {corrTxt}</div>
           <div style={{ marginTop: SP.sm }}>
-            <Spark reads={s.reads} trend={s.trend} projRate={ap.band.corrLb ? +(((ap.band.corrLb[0] + ap.band.corrLb[1]) / 2)).toFixed(2) : ap.goalRate} noise={wnA.sd} noiseN={wnA.measured ? wnA.n : null} />
+            <Spark reads={s.reads} trend={s.trend} projRate={ap.band.corrLb ? +(((ap.band.corrLb[0] + ap.band.corrLb[1]) / 2)).toFixed(2) : ap.goalRate} noise={wnA.sd} noiseN={wnA.measured ? wnA.n : null} projSlopeSE={sig && sig.ci != null && sig.ci > 0 ? +(sig.ci / FORE.PI95).toFixed(3) : null} />
           </div>
           {apProp && (
             <>
@@ -10863,7 +11080,7 @@ function HistTab({ s, setS, save }) {
           <div style={{ marginTop: SP.lg }}>
             <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.14em", color: T.steel, textTransform: "uppercase" }}>WHERE THIS LANDS YOU</div>
             <div style={{ marginTop: SP.sm }}>
-              <Spark reads={s.reads} trend={s.trend} projRate={twin.fanRate > 0 ? twin.fanRate : null} noise={wnT.sd} noiseN={wnT.measured ? wnT.n : null} />
+              <Spark reads={s.reads} trend={s.trend} projRate={twin.fanRate > 0 ? twin.fanRate : null} noise={wnT.sd} noiseN={wnT.measured ? wnT.n : null} projSlopeSE={twin.seRate != null ? twin.seRate : null} />
             </div>
             <div style={{ display: "flex", alignItems: "baseline", gap: SP.sm, marginTop: SP.sm, flexWrap: "wrap" }}>
               <span style={{ fontFamily: mono, fontSize: TS.body, color: T.brass }}>◆</span>

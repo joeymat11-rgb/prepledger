@@ -3678,5 +3678,108 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(JSON.stringify(SEED) === preSeed, "marchingOrder is pure — it writes nothing back to the synced state");
 }
 
+/* ===== v7.1.0 Slice 2 — ANTICIPATORY FORECASTING (forecast + redlineCrossing + honest cone) =====
+   The honest fan (level ∝ √h, slope ∝ h^1.5), the confidence gate, and the SELF-SUPPRESSING redline
+   crossing. Engine-owned: reads the ONE projection (digitalTwin) + the ONE slope CI (currentRate) +
+   the ONE redline (cutRateBand) — no second slope, no second band, no new competing number. */
+{
+  const FORE = __test.FORE, cw = __test.coneHalfWidth, rc = __test.redlineCrossing, FC = __test.forecast, Phi = __test.normCdf, dt = __test.digitalTwin;
+
+  // -- normal CDF + PI multipliers (used only to PHRASE the crossing probability honestly) --
+  ok(Math.abs(Phi(0) - 0.5) < 1e-6, "normCdf(0) = 0.5");
+  ok(Math.abs(Phi(1.96) - 0.975) < 3e-3 && Math.abs(Phi(-1.96) - 0.025) < 3e-3, "normCdf matches the 95% tails (Φ(1.96)≈0.975)");
+  ok(FORE.PI80 === 1.28 && FORE.PI90 === 1.64 && FORE.PI95 === 1.96, "the PI multipliers are the 80/90/95% z-values (1.28/1.64/1.96)");
+
+  // -- coneHalfWidth: strictly widening, slope fan ∝ h^1.5, level fan ∝ √h --
+  let monoW = true; for (let h = 0; h < 26; h++) if (!(cw(0.8, 0.1, h + 1, FORE.PI95) > cw(0.8, 0.1, h, FORE.PI95))) monoW = false;
+  ok(monoW, "the cone widens MONOTONICALLY with horizon — σ_{h+1} > σ_h at every step (a fan, never a fixed dash)");
+  const slp = (h) => cw(0, 0.2, h, 1);   // pure slope term (sigmaLevel = 0)
+  ok(Math.abs(slp(8) / slp(4) - Math.pow(2, 1.5)) < 1e-9 && Math.abs(slp(20) / slp(10) - Math.pow(2, 1.5)) < 1e-9, "the SLOPE fan grows ∝ h^1.5 — extrapolating a RATE fans SUPER-LINEARLY (doubling h ×2^1.5≈2.83)");
+  const lvl = (h) => cw(0.9, 0, h, 1);   // pure level term (seRate = 0)
+  ok(Math.abs(lvl(8) / lvl(4) - Math.SQRT2) < 1e-9, "the LEVEL fan grows ∝ √h — the gentle random-walk widening (doubling h ×√2≈1.41)");
+  ok(cw(0.9, 0.2, 25, 1) > cw(0.9, 0, 25, 1) && cw(0, 0.2, 20, 1) > cw(0.9, 0, 20, 1), "far out the slope (h^1.5) term dominates the level (√h) term — the cone is honest about RATE uncertainty");
+
+  // -- the honest ETA fan REPLACES the fixed ±25% in digitalTwin (derives from the rate's own CI) --
+  const baseF = clone(SEED);
+  const tw = dt(baseF, { calDelta: -400 });
+  ok(tw.etaSlow >= tw.etaMid && tw.etaMid >= tw.etaFast, "the ETA is still a RANGE — slower plausible rate, more weeks; faster, fewer");
+  ok(tw.seRate != null && tw.rateCI != null && tw.rateCI > 0, "digitalTwin now exposes the rate's own SE/CI — the fan reflects measured uncertainty, not a constant");
+  const wA = (r) => (r == null || r <= 0 ? null : Math.max(0, Math.round((baseF.trend - tw.atWeight) / r)));
+  ok(tw.etaFast === wA(tw.newRate + tw.rateCI) && tw.etaSlow === wA(Math.max(0.05, tw.newRate - tw.rateCI)), "etaFast/etaSlow are the CI ENDPOINTS of the rate (newRate ± CI) — the fixed ±25% fan is gone");
+  const curSeed = __test.currentRate(clone(SEED));
+  if (curSeed && curSeed.ci != null && curSeed.ci > 0) ok(dt(clone(SEED), {}).rateCI === curSeed.ci, "the fan's width IS currentRate's HAC 95% CI — one owner for the uncertainty, read not recomputed");
+  else ok(true, "no measured CI on SEED — the fan falls back to the labelled ±25% prior (still a range)");
+
+  // -- redlineCrossing FIRES on a resolvable approaching slope (measured, near redline, tight CI) --
+  const near = rc(null, { rate: { measured: true, scale: 1.85, ci: 0.15, lo: 1.70, hi: 2.00 }, band: { redline: 1.9 }, sig: { state: "measured" }, bw: 160 });
+  ok(near.fires === true && near.reason === "resolvable", "FIRES: a measured slope near the redline with a tight CI → the crossing is statistically resolvable");
+  ok(Array.isArray(near.range) && near.range.length === 2 && near.range[0] < near.range[1], "the crossing is an ASYMMETRIC week RANGE, never a single day");
+  ok(near.prob > 0 && near.prob <= 0.95, "the crossing carries an HONEST probability — never 0% and never a certain 100%");
+  ok(near.tStar > 0 && near.tStar <= FORE.H_INFO, "the point crossing sits inside the informative horizon");
+  ok(typeof near.cause === "string" && !/on\s+\w+\s+\d/.test(near.cause) && near.cause.indexOf("wks") >= 0, "the alert copy is a week range (no single calendar day), calm and non-alarmist");
+
+  // -- redlineCrossing SELF-SUPPRESSES when the trend is ambiguous (each guard, one case) --
+  const supCal = rc(null, { rate: { measured: true, scale: 1.85, ci: 0.15, lo: 1.70, hi: 2.0 }, band: { redline: 1.9 }, sig: { state: "calibrating" }, bw: 160 });
+  ok(supCal.fires === false && supCal.reason === "ambiguous-signal", "SUPPRESSES: a calibrating signal → no crossing (the significance gate — not real yet)");
+  const supNoise = rc(null, { rate: { measured: true, scale: 1.85, ci: 0.15, lo: 1.70, hi: 2.0 }, band: { redline: 1.9 }, sig: { state: "inside-noise" }, bw: 160 });
+  ok(supNoise.fires === false && supNoise.reason === "ambiguous-signal", "SUPPRESSES: an inside-noise signal → self-silences");
+  const supWide = rc(null, { rate: { measured: true, scale: 1.75, ci: 0.50, lo: 1.25, hi: 2.25 }, band: { redline: 1.9 }, sig: { state: "measured" }, bw: 160 });
+  ok(supWide.fires === false && supWide.reason === "ci-includes-safe", "SUPPRESSES: a WIDE slope CI whose slow end stays safe → t*→∞, ambiguous → silent (the key self-suppression)");
+  const supFar = rc(null, { rate: { measured: true, scale: 1.0, ci: 0.15, lo: 0.85, hi: 1.15 }, band: { redline: 1.9 }, sig: { state: "measured" }, bw: 160 });
+  ok(supFar.fires === false, "SUPPRESSES: a safe mid-corridor rate → the crossing is beyond the informative horizon");
+  const supGain = rc(null, { rate: { measured: true, scale: -0.5, ci: 0.15, lo: -0.65, hi: -0.35 }, band: { redline: 1.9 }, sig: { state: "measured" }, bw: 160 });
+  ok(supGain.fires === false && supGain.reason === "not-losing", "SUPPRESSES: not losing → there is no muscle-loss crossing to warn about");
+
+  // -- the crossing reads the ONE measured slope monotonically (no second slope) --
+  const hotter = rc(null, { rate: { measured: true, scale: 1.88, ci: 0.15, lo: 1.73, hi: 2.03 }, band: { redline: 1.9 }, sig: { state: "measured" }, bw: 160 });
+  ok(hotter.fires === true && hotter.tStar < near.tStar, "a hotter measured slope crosses SOONER — t* reads the ONE rate, no parallel slope");
+  const tighter = rc(null, { rate: { measured: true, scale: 1.85, ci: 0.08, lo: 1.77, hi: 1.93 }, band: { redline: 1.9 }, sig: { state: "measured" }, bw: 160 });
+  ok((tighter.range[1] - tighter.range[0]) < (near.range[1] - near.range[0]), "a TIGHTER CI narrows the crossing range — the fan reflects real confidence, honestly (wider CI → wider range, not suppression-by-hiding)");
+
+  // -- forecast(): composes the cone + crossing, confidence-gated, engine-owned, guarded --
+  const fSeed = FC(clone(SEED));
+  ok(typeof fSeed.ok === "boolean" && Array.isArray(fSeed.cone) && fSeed.crossing != null, "forecast returns a cone + a crossing over the real SEED");
+  const dtSeed = dt(clone(SEED));
+  ok(fSeed.rate === dtSeed.newRate, "forecast READS digitalTwin.newRate — the ONE projection, it computes no second rate");
+  ok(fSeed.crossing && typeof fSeed.crossing.fires === "boolean", "forecast's crossing on the real SEED resolves to a fires boolean (self-suppresses on the real read-path)");
+  const injRate = { measured: true, scale: 1.2, ci: 0.4, sigma: 0.8, lo: 0.8, hi: 1.6 };
+  const fCal = FC(clone(SEED), { deps: { sig: { state: "calibrating" }, rate: injRate, band: { redline: 1.9, band: [1.0, 1.16] }, tw: dtSeed } });
+  ok(fCal.greyed === true && fCal.confident === false && fCal.pi === 95, "CONFIDENCE GATE: a calibrating signal GREYS + WIDENS the cone (PI95, no confident line)");
+  const fMeas = FC(clone(SEED), { deps: { sig: { state: "measured" }, rate: { measured: true, scale: 1.2, ci: 0.3, sigma: 0.8, lo: 0.9, hi: 1.5 }, band: { redline: 1.9, band: [1.0, 1.16] }, tw: dtSeed } });
+  ok(fMeas.confident === true && fMeas.greyed === false && fMeas.pi === 90, "a measured/measurable signal draws a confident cone (PI90)");
+  ok(fMeas.cone.length > 2 && fMeas.cone[fMeas.cone.length - 1].hw > fMeas.cone[1].hw, "forecast.cone's half-width GROWS across its own horizon points — a widening fan");
+  let threwF = false; try { FC({}); FC(null); FC(undefined); } catch (e) { threwF = true; }
+  ok(threwF === false, "forecast is GUARDED — a thin/empty/null state returns a safe empty forecast, never a throw (self-silencing)");
+  const preF = JSON.stringify(SEED); FC(SEED); ok(JSON.stringify(SEED) === preF, "forecast is PURE — it writes nothing back to the synced state");
+
+  // -- the anticipatory read wires into the cockpit face (statusFace) as a CALM cue, self-silencing --
+  const SF = __test.statusFace;
+  const OKap = { ok: true, action: "hold", proposed: false, heldForStale: false, heldForNoise: false, corrKcal: 0, mode: "recomp" };
+  const onCourseState = { blackout: null, proposals: [] };
+  const noFire = { fires: false }, doesFire = { fires: true, cause: "Approaching the lean-loss rate — on this trend you'd reach it in about 3–14 wks (~80% within 20 wks). Easing the deficit back now keeps the loss off muscle." };
+  ok(SF(onCourseState, { sig: { state: "measured" }, ap: OKap, rec: { stale: false, flag: null }, fc: noFire }).word === "ON COURSE", "no resolvable crossing → the face stays ON COURSE (self-silencing when unsure)");
+  const adj = SF(onCourseState, { sig: { state: "measured" }, ap: OKap, rec: { stale: false, flag: null }, fc: doesFire });
+  ok(adj.word === "ADJUSTING" && adj.glyph === "±" && adj.tone !== undefined, "a RESOLVABLE approaching-redline nudges the face to a CALM ADJUSTING cue (± glyph), never a NEEDS-YOU alarm");
+  ok(adj.cause === doesFire.cause, "the ADJUSTING cause is the honest anticipatory read (a range + probability), carried onto the face — no silent change");
+  ok(SF({ blackout: { until: "2999-01-01" }, proposals: [] }, { sig: { state: "measured" }, ap: OKap, rec: { stale: false, flag: null }, fc: doesFire }).word === "HOLDING", "a user PAUSE outranks the foresight nudge — foresight informs, it never overrides a higher-priority honest state");
+  ok(SF(onCourseState, { sig: { state: "reversed" }, ap: OKap, rec: { stale: false, flag: null }, fc: doesFire }).word === "NEEDS YOU", "a REVERSED signal still outranks the foresight nudge — an escalation is never buried by anticipation");
+
+  // -- and into the one-thing (marchingOrder): informs the WHY, keeps the lean-protective action --
+  const MO = __test.marchingOrder;
+  const moFire = MO(clone(SEED), { focus: { owed: [], clear: true }, fc: doesFire });
+  ok(moFire.thenText === "protein first" && moFire.ifText === "If it's a meal", "the standing if-then's ACTION is unchanged — protein-first IS the lean-protective move");
+  ok(moFire.why.indexOf("lean-loss rate") >= 0 && moFire.foresight != null, "a resolvable crossing informs the marching order's WHY (the horizon), without stealing the action");
+  const moCalm = MO(clone(SEED), { focus: { owed: [], clear: true }, fc: noFire });
+  ok(moCalm.foresight == null && moCalm.thenText === "protein first", "no crossing → the standing if-then is exactly as before (self-silencing)");
+
+  // -- persisted forecasts stay merge-safe (Slice 3 grades them) — s.forecasts is in MERGE_MULTI --
+  const msF = __test.mergeState;
+  const FA = clone(SEED), FB = clone(SEED);
+  FA.forecasts = (FA.forecasts || []).concat([{ d: "2026-08-01", trend: 164.2, rate: 1.2, pred7: 163.0, sealed: false }]);
+  FB.forecasts = (FB.forecasts || []).concat([{ d: "2026-08-02", trend: 164.0, rate: 1.2, pred7: 162.8, sealed: false }]);
+  const mF = msF(FA, FB);
+  ok((mF.forecasts || []).length >= (FA.forecasts.length) && (mF.forecasts || []).some((f) => f.d === "2026-08-01") && (mF.forecasts || []).some((f) => f.d === "2026-08-02"), "persisted forecasts land in s.forecasts via MERGE_MULTI — a stale-device sync UNIONS forecast history, never clobbers it (no schema change; Slice 3 grades them)");
+}
+
 console.log(`\nFINAL81: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
