@@ -1,5 +1,5 @@
 {
-  "gen": "2026-08-02T09:06:43.888Z",
+  "gen": "2026-08-03T09:08:49.845Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
     "soft": 164.24,
@@ -71,10 +71,10 @@
     },
     {
       "wk": "2026-07-27",
-      "meanCal": 2584,
+      "meanCal": 2653,
       "meanPro": 186,
       "proHitPct": 100,
-      "meanSteps": 16200
+      "meanSteps": 15500
     }
   ],
   "priorDecisions": [
@@ -140,6 +140,27 @@
         "to": "Press 250 — raise with your coach for the structural flag, then debut"
       },
       "predict": "5 lb on 245 is 2%, which by your app's own reps-per-load slope costs about eight-tenths of a rep — expect 250 to open at 7 and land near 7,7,6, then climb back to 8,8,7 over two or three clean sessions."
+    },
+    {
+      "sid": "sug_2026-08-01_hamlog",
+      "decided": "approved",
+      "d": "2026-08-02",
+      "title": "Strike Friday's ham curl — your note says you skipped it",
+      "apply": {
+        "kind": "note"
+      },
+      "predict": "The ham entry comes off Friday's session or lands in that day's skipped list, the top-of-window counter goes back to zero, and ham holds at 120 until you put up 12,12 on a session you actually ran."
+    },
+    {
+      "sid": "sug_2026-08-01_ext155",
+      "decided": "approved",
+      "d": "2026-08-02",
+      "title": "Extension 155: debut it, and treat 9,8 as a win",
+      "apply": {
+        "kind": "progression",
+        "to": "Extension 155 — debut on the next lower day; 8,8 or better counts as a clean debut"
+      },
+      "predict": "155 opens near 9 and lands around 9,8. Anything at or above 8,8 is a clean debut and 155 stays. Set two is where it fell over in July — 9 then 6 — so that is the number to watch."
     }
   ],
   "suggestions": [
