@@ -304,13 +304,13 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.1.0";
+const APP_V = "7.2.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 35;
+const SCHEMA_V = 36;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -465,7 +465,7 @@ const SEED = {
   SEED.sync = { last: null, status: "" };
   SEED.exOrder = { U: SEED.exercises.filter((e) => e.day === "U").map((e) => e.id), L: SEED.exercises.filter((e) => e.day === "L").map((e) => e.id) };
   SEED.waist = [];
-  SEED.plan = { goals: [], ifthen: [], share: false };
+  SEED.plan = { goals: [], ifthen: [], share: false, autonomy: "propose" };
   SEED.exercises.forEach((e) => { e.rirHist = []; });
   /* seeded PREV blocks predate per-set RIR, so their arrays are all-null —
      exactly what patchV31 produces for the same data. A fresh install and a
@@ -2632,6 +2632,171 @@ function autoPilot(s, mode) {
     stale: rec.stale, staleDays: rec.days, lastReadISO: rec.lastISO, heldForStale: rec.stale && intendedAction !== "hold",
     driftSig, heldForNoise: !driftSig && !rec.stale && intendedAction !== "hold" && corrKcal >= 90,
   };
+}
+
+/* ============================================================================================
+   TRUST ENGINE (v7.2.0 · Slice 3) — graduated autonomy, the safety supervisor that ALWAYS asks,
+   the honest predicted-vs-actual track record, why-this-number (SAT L1/L2/L3) and the first-class
+   confidence field. All PURE selectors that READ the existing engine (autoPilot / signalState /
+   forecast / readRecency / the persisted s.forecasts + s.adjustments). None introduces a competing
+   number — autonomy is a POLICY field, not a quantity. This is the layer that makes it safe to let
+   Auto-Pilot hold the controls: it shows its misses (Dietvorst 2015 — hiding errors backfires),
+   explains every call WITH its uncertainty (Chen 2017 SAT model), and keeps one-tap undo (Dietvorst
+   2018 — modifiability is the strongest trust-builder) + human escalation at EVERY level. */
+
+// The three named autonomy levels (PRODUCT §2) — most-supervised first; the athlete owns the dial.
+const AUTONOMY_LEVELS = ["propose", "autonotice", "runit"];
+const AUTONOMY_META = {
+  propose:    { rank: 0, label: "PROPOSE & APPROVE", short: "Propose & approve", tag: "you approve every move",
+                blurb: "I propose every adjustment; nothing moves until you tap approve." },
+  autonotice: { rank: 1, label: "AUTO, WITH NOTICE", short: "Auto, with notice", tag: "I handle routine, you're told",
+                blurb: "I handle routine in-corridor adjustments and tell you — one tap to undo. Anything bigger, ambiguous, or near a floor still asks you first." },
+  runit:      { rank: 2, label: "RUN IT", short: "Run it", tag: "routine on autopilot; only real calls reach you",
+                blurb: "I run the routine moves and only surface the calls that genuinely need you. Every move stays one-tap reversible." },
+};
+function autonomyOf(s) {
+  const a = s && s.plan && s.plan.autonomy;
+  return AUTONOMY_LEVELS.indexOf(a) >= 0 ? a : "propose";   // absent / unknown -> most supervised (never auto-promote)
+}
+
+/* AUTO_MAG_KCAL — a routine in-corridor nudge is small by construction (the engine's own >=90-kcal
+   dead-band up to a normal correction); a swing at/above this is a BIG change and always routes to a
+   human, whatever the autonomy level. */
+const AUTO_MAG_KCAL = 200;
+const TRACK_ROWS = 12;
+const GRADE_LAG = 7;   // s.forecasts stores a 7-day-ahead trend prediction (pred7) — a call comes due 7 days on.
+
+/* escalation — the independent SAFETY SUPERVISOR + coach-gate that force a human REGARDLESS of the
+   autonomy level. Two kinds: "ask" = a staged move too big / near a floor / conflicting MUST get a
+   human decision (-> NEEDS YOU, never auto-applied); "abstain" = the data can't back any move yet
+   (stale / inside-noise / calibrating), which the honest-abstention layer already turns into
+   HOLDING/CALIBRATING. Reads the SAME signals autoPilot / signalState / readRecency already compute
+   — no second statistic. Robust to a minimal state (every external read is guarded). */
+function escalation(s, ap) {
+  ap = ap || autoPilot(s, apModeOf(s));
+  let sig; try { sig = signalState(s); } catch (e) { sig = { state: "calibrating", n: 0 }; }
+  let rec; try { rec = readRecency(s); } catch (e) { rec = { stale: false }; }
+  const coachOwed = (((s && s.proposals) || [])).some((p) => p && !p.resolved && p.gate === "coach");
+  const ask = [], abstain = [];
+  if (coachOwed) ask.push({ code: "coach", kind: "ask", text: "a coach-flagged call is waiting for your sign-off" });
+  if (sig.state === "reversed") ask.push({ code: "reversed", kind: "ask", text: "the trend has reversed — that needs your eyes, not an auto-move" });
+  if (ap && ap.ok && ap.proteinOff) ask.push({ code: "floor-protein", kind: "ask", text: `protein is under the ${ap.proteinFloorG}g lean-retention floor — a floor call, never automated` });
+  if (ap && ap.ok && ap.band && ap.pctRate != null && ap.band.redlinePct != null && ap.pctRate >= ap.band.redlinePct)
+    ask.push({ code: "redline", kind: "ask", text: `you're at or past the ${ap.band.redlinePct}%BW/wk muscle-loss redline — too aggressive to auto-apply` });
+  if (ap && ap.ok && ap.proposed && ap.corrKcal >= AUTO_MAG_KCAL)
+    ask.push({ code: "magnitude", kind: "ask", text: `a big move (~${ap.corrKcal} kcal, over the ${AUTO_MAG_KCAL}-kcal routine limit) — your call` });
+  if ((ap && ap.heldForStale) || rec.stale) abstain.push({ code: "stale", kind: "abstain", text: "the rate is frozen — weigh in first" });
+  if (ap && ap.heldForNoise) abstain.push({ code: "noise", kind: "abstain", text: "this week is inside your noise — not resolvable yet" });
+  if (sig.state === "calibrating") abstain.push({ code: "calibrating", kind: "abstain", text: "still calibrating your baseline" });
+  return { ask, abstain, escalate: ask.length > 0, first: ask[0] || null, reasons: ask.concat(abstain) };
+}
+
+/* autoPilotPolicy — the ONE place that decides, from the autonomy level + the safety supervisor,
+   whether a routine Auto-Pilot move may auto-apply or must wait for a human tap. Invariants held at
+   EVERY level: (1) the engine still owns the numbers — auto-apply records the routine STEER (an
+   acknowledgment), it never mutates a protected band; (2) a move auto-applies ONLY when routine —
+   in-corridor, statistically RESOLVABLE (driftSig), not stale/noisy, ZERO "ask" escalation; (3)
+   propose (L1) NEVER auto-applies — one-tap approval is the floor; (4) undo is always available.
+   Pure; deps injectable for the suite. */
+function autoPilotPolicy(s, deps) {
+  const ap = (deps && deps.ap) || autoPilot(s, apModeOf(s));
+  const level = (deps && deps.level) || autonomyOf(s);
+  const esc = (deps && deps.esc) || escalation(s, ap);
+  const rank = (AUTONOMY_META[level] || AUTONOMY_META.propose).rank;
+  const hasMove = !!(ap && ap.ok && ap.proposed);
+  const routine = hasMove && !!ap.driftSig && !ap.heldForStale && !ap.heldForNoise && !esc.escalate;   // the safe-to-automate class
+  const autoApply = routine && rank >= 1;                          // L2 / L3 only; L1 always asks
+  return {
+    level, rank, hasMove, routine, autoApply,
+    mustAsk: hasMove && !autoApply,                                // a staged move a human still owns
+    escalate: esc.escalate, escReason: esc.first, ask: esc.ask, abstain: esc.abstain,
+  };
+}
+
+/* confidenceField — the first-class confidence read, calibrated to signalState (tied to the
+   CALIBRATING face-state). One derived word + a plain detail; reads the rate's own CI, never a new
+   statistic. Uncertainty is a field the trust surfaces carry, not an afterthought. */
+function confidenceField(s, deps) {
+  let sig = deps && deps.sig; if (!sig) { try { sig = signalState(s); } catch (e) { sig = { state: "calibrating", n: 0, ticks: 0 }; } }
+  const map = {
+    measured:       { word: "MEASURED",     detail: `your trend is real — the rate's 95% CI excludes zero (n=${sig.n || 0})` },
+    measurable:     { word: "MEASURABLE",   detail: "a real direction, still tightening — treat the number as a range" },
+    calibrating:    { word: "CALIBRATING",  detail: "baseline still forming — no confident rate yet" },
+    "inside-noise": { word: "INSIDE NOISE", detail: "this week sits inside your scale noise — holding for a clear read" },
+    reversed:       { word: "REVERSED",     detail: "the trend is going the other way — this needs your eyes" },
+  };
+  const m = map[sig.state] || map.calibrating;
+  return { state: sig.state, word: m.word, detail: m.detail, ticks: sig.ticks != null ? sig.ticks : 0 };
+}
+
+/* whyThisNumber — the "why this number" panel for the current Auto-Pilot call, in the SAT model
+   (Chen 2017): L1 INTENT (what it steers to), L2 RATIONALE (why — cites HIS numbers + the research),
+   L3 PROJECTION + CONFIDENCE (the projected effect and how sure). Every value is READ from the engine
+   (autoPilot / proteinTarget / forecast / signalState) — no new number, and uncertainty travels WITH
+   the explanation (never a bare point). */
+function whyThisNumber(s, deps) {
+  const ap = (deps && deps.ap) || autoPilot(s, apModeOf(s));
+  const conf = confidenceField(s, deps);
+  const modeLabel = ap && ap.mode === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP";
+  if (!ap || !ap.ok) return {
+    ok: false,
+    l1: { label: "INTENT", text: "Calibrating — not enough clean data to steer yet." },
+    l2: { label: "RATIONALE", text: "Auto-Pilot holds until your trend is measurable; it won't act on a number it can't stand behind." },
+    l3: { label: "PROJECTION", text: "No confident projection yet — keep logging and it sharpens." },
+    confidence: conf,
+  };
+  const act = ap.action === "ease" ? "ease back" : ap.action === "tighten" ? "pick up the pace" : "hold";
+  const intent = ap.action === "hold"
+    ? `Hold your ${modeLabel} line — ~${ap.targetPct}%BW/wk.`
+    : `${cap(act)} toward your ${modeLabel} line — from ~${ap.pctRate}%BW/wk to ~${ap.targetPct}%BW/wk (≈${ap.corrKcal} kcal).`;
+  let pt = null; try { pt = proteinTarget(s); } catch (e) {}
+  const rationale = `Measured from your own trend: ~${ap.pctRate}%BW/wk over n=${ap.n} mornings, observed TDEE ~${ap.tdee} kcal. The corridor is engine-owned (Garthe 2011 ≈0.7%/wk for the best body-comp change; the redline guards muscle)${pt ? `, and protein holds at ${pt.g} g (${pt.lo}–${pt.hi}) — 2.5 g/kg FFM, the lean-retention floor (Refalo/Helms)` : ""}.`;
+  let fx = null; try { fx = forecast(s); } catch (e) {}
+  const projection = fx && fx.ok && fx.confident && fx.etaMid != null
+    ? `On this line, ~${fx.etaMid} wks to ${fx.targetPct}% BF (range ${fx.etaFast}–${fx.etaSlow} wks — the fan widens with distance, not a promise).`
+    : "No confident ETA yet — the projection stays greyed until a few more clean mornings.";
+  return {
+    ok: true,
+    l1: { label: "INTENT", text: intent },
+    l2: { label: "RATIONALE", text: rationale },
+    l3: { label: "PROJECTION", text: projection },
+    confidence: conf,
+  };
+}
+
+/* trackRecord — the HONEST predicted-vs-actual ledger of Auto-Pilot's past calls, MISSES INCLUDED
+   (Dietvorst 2015: hiding errors is what triggers algorithm aversion when they later surface). It
+   joins the persisted 7-day predictions (s.forecasts.pred7, written at each read) to what the damped
+   trend ACTUALLY did 7 days later (reads' stored trend point, pt), grades each within the athlete's
+   OWN measured noise (never a flattering tolerance), and states a rolling calibration line. It also
+   lists the resolved Auto-Pilot DECISIONS (applied / declined / auto-handled). Pure; reads only. */
+function trackRecord(s, deps) {
+  const reads = (s && Array.isArray(s.reads)) ? s.reads.filter((r) => r && r.d) : [];
+  const fc = (s && Array.isArray(s.forecasts)) ? s.forecasts.filter((f) => f && f.d && !f.sealed && typeof f.pred7 === "number") : [];
+  let sd = 0.3; try { const wn = weightNoise(reads); if (wn && wn.sd) sd = wn.sd; } catch (e) {}
+  const tol = +Math.max(0.3, sd).toFixed(2);   // honest tolerance = the athlete's own 1-sigma noise, floored
+  const sorted = reads.slice().sort((a, b) => (a.d < b.d ? -1 : 1));
+  const actualTrendAt = (iso) => { for (const r of sorted) if (r.d >= iso && r.pt != null) return r.pt; return null; };
+  const rows = [];
+  for (const f of fc) {
+    const dueISO = isoOf(new Date(mk(f.d).getTime() + GRADE_LAG * DAY));
+    const actual = actualTrendAt(dueISO);
+    if (actual == null) { rows.push({ d: f.d, pred: +(+f.pred7).toFixed(1), actual: null, err: null, graded: false, hit: null, miss: false }); continue; }
+    const err = +(actual - f.pred7).toFixed(2);
+    const hit = Math.abs(err) <= tol;
+    rows.push({ d: f.d, pred: +(+f.pred7).toFixed(1), actual: +actual.toFixed(1), err, graded: true, hit, miss: !hit });
+  }
+  const graded = rows.filter((r) => r.graded);
+  const hits = graded.filter((r) => r.hit).length;
+  const misses = graded.filter((r) => r.miss).length;
+  const mae = graded.length ? +(graded.reduce((a, r) => a + Math.abs(r.err), 0) / graded.length).toFixed(2) : null;
+  let cleanStreak = 0; for (let i = graded.length - 1; i >= 0; i--) { if (graded[i].hit) cleanStreak++; else break; }
+  const decisions = ((s && s.adjustments) || []).filter((a) => a && a.rid && (String(a.rid).indexOf("ap_") === 0 || String(a.rid).indexOf("apauto_") === 0))
+    .slice(-8).map((a) => ({ d: a.d, title: a.title, applied: !a.dismissed, auto: !!a.auto }));
+  const calibration = graded.length
+    ? `Over ${graded.length} graded 7-day call${graded.length > 1 ? "s" : ""}, the trend landed within your ±${tol} lb noise ${hits} time${hits !== 1 ? "s" : ""} and missed ${misses} — mean miss ±${mae} lb. Misses are shown, not hidden.`
+    : "No 7-day calls have come due yet — the record fills as each prediction ages into an outcome.";
+  return { rows: rows.slice(-TRACK_ROWS), graded: graded.length, hits, misses, mae, tol, calibration, hasMiss: misses > 0, cleanStreak, decisions };
 }
 
 /* THE LAB — every analytic self-gates on its own data threshold. No correlations under N. */
@@ -5746,6 +5911,42 @@ function dismissProposal(state, pid) {
   return s;
 }
 
+/* ---------- ALWAYS-VISIBLE UNDO (v7.2.0 · Slice 3) ----------
+   Dietvorst 2018: modifiability is the strongest trust-builder — a move you can always take back is
+   one you'll let the coach make. Every applied Auto-Pilot move — whether you tap-approved it or it
+   was auto-handled at a higher autonomy level — stays one-tap reversible. undoAdjustment removes the
+   logged adjustment, RE-OPENS the matching proposal back into the inbox (so the decision returns to
+   you rather than vanishing — Law 10), and files an honest note. It never touches a protected number
+   (there was none to touch — the engine owns the band); it reverses the acknowledgment. lastUndoable
+   is the pure selector the always-visible affordance reads. Structural pivots (phase / exit) are NOT
+   quiet-undoable here — those are coach-gated decisions, reversed deliberately, not with one tap. */
+function lastUndoable(s) {
+  const adj = (s && Array.isArray(s.adjustments)) ? s.adjustments : [];
+  const props = (s && Array.isArray(s.proposals)) ? s.proposals : [];
+  const structural = (rid) => props.some((p) => p && p.rid === rid && p.apply && (p.apply.kind === "phase" || p.apply.kind === "exit"));
+  for (let i = adj.length - 1; i >= 0; i--) {
+    const a = adj[i];
+    if (!a || a.undone || a.dismissed) continue;      // only APPLIED moves are undoable (a decline changed nothing)
+    if (structural(a.rid)) continue;
+    return { rid: a.rid, d: a.d, title: a.title, auto: !!a.auto };
+  }
+  return null;
+}
+function undoAdjustment(state, rid) {
+  const s = JSON.parse(JSON.stringify(state));
+  const adj = s.adjustments || [];
+  let i = -1;
+  for (let k = adj.length - 1; k >= 0; k--) { const a = adj[k]; if (!a || a.undone || a.dismissed) continue; if (rid && a.rid !== rid) continue; i = k; break; }
+  if (i < 0) return s;
+  const a = adj[i];
+  const p = (s.proposals || []).find((x) => x && x.rid === a.rid && x.resolved);
+  if (p) { p.resolved = false; p.dismissed = false; p.nudge = 0; p.auto = false; }   // hand the decision back to the inbox
+  s.adjustments.splice(i, 1);
+  s.feed = s.feed || [];
+  s.feed.unshift({ d: isoOf(todayStart()), t: "MOVE UNDONE", how: `${a.title} — reversed; ${p ? "it's back in your inbox to decide." : "nothing was locked in."} Undo is always one tap.` });
+  return s;
+}
+
 /* undo a same-day scale read — restores trend and clears this week's snapshot if orphaned */
 function undoRead(state, iso) {
   const s = JSON.parse(JSON.stringify(state));
@@ -6091,7 +6292,24 @@ function patchV35(s) {
   s.v = 35;
   return s;
 }
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35];
+function patchV36(s) {
+  /* v7.2.0 Slice 3 — the graduated-autonomy dial lands in s.plan (the FIRST synced-state touch),
+     so this is where s.plan gains its default policy field and its entries gain stable keys for the
+     new keyed-union merge. ADDITIVE + idempotent: default the autonomy scalar to the most-supervised
+     level, and backfill an id on any legacy goal / if-then entry that predates ids (so the union has
+     a key on every entry). No existing field is read for meaning or rewritten — no history can move,
+     and replaying the whole chain over a fresh seed is a no-op (SEED already carries autonomy:"propose"). */
+  s.plan = s.plan || { goals: [], ifthen: [], share: false, autonomy: "propose" };
+  if (!Array.isArray(s.plan.goals)) s.plan.goals = [];
+  if (!Array.isArray(s.plan.ifthen)) s.plan.ifthen = [];
+  if (typeof s.plan.share !== "boolean") s.plan.share = false;
+  if (AUTONOMY_LEVELS.indexOf(s.plan.autonomy) < 0) s.plan.autonomy = "propose";   // default: most supervised (never auto-promote)
+  s.plan.goals.forEach((g, i) => { if (g && g.id == null) g.id = "g_v36_" + i; });
+  s.plan.ifthen.forEach((p, i) => { if (p && p.id == null) p.id = "p_v36_" + i; });
+  s.v = 36;
+  return s;
+}
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36];
 function migrate(old) {
   if (old && old.v === SCHEMA_V) return old;
   /* A state NEWER than this build — he upgraded, then the app was rolled back.
@@ -7127,6 +7345,44 @@ function _unionKeyed(remoteArr, localArr, keyOf, scoreOf) {
   (Array.isArray(localArr) ? localArr : []).forEach((x) => consider(x, true));
   return [...m.values()];
 }
+/* ---------- mergeState v7.2.0 (Slice 3) — reconcile the synced PLAN object ----------
+   s.plan carries self-authored goals + if-then intentions AND two behaviour-governing POLICY
+   SCALARS: apMode (which corridor slice Auto-Pilot steers to) and, new in v7.2.0, autonomy (how
+   much Auto-Pilot may handle on its own). Until now s.plan was in NONE of the MERGE_* maps, so it
+   fell through {...remote,...local} in mergeState — LOCAL WINS WHOLESALE, the exact clobber class
+   as the v6.2 exercises/queue bug: a stale phone could roll back a goal the other device added, or
+   revert a deliberate mode/autonomy change. Fix, mirroring the v6.2 per-lift reconcile:
+     · goals[] / ifthen[] -> KEYED UNION by stable id (an id on either side survives; ties -> local),
+       so neither device can DROP the other's entry: |merged.goals| >= max(remote, local).
+     · apMode / autonomy   -> NEWEST DELIBERATE CHANGE WINS. These are policy, not progression, so
+       "most-advanced/richer" is the wrong rule and so is bare last-writer-wins. Each deliberate
+       change stamps plan.setAt[field] with an ISO timestamp (savePlan) and bumps plan.rev; on merge
+       the side with the NEWER stamp wins. Ties AND both-unstamped fall to LOCAL (the writing client).
+       A stamped change always outranks an unstamped default, so a migration default can never clobber
+       a real choice — and a stale client can neither REVERT a newer setting nor LOSE one, in EITHER
+       write order (the adversarial property the gate asserts).
+   Everything else on plan (share, per-day dismiss guards) rides the {...R,...L} base unchanged. */
+const PLAN_POLICY_SCALARS = ["apMode", "autonomy"];
+function _unionPlan(remote, local) {
+  const R = remote && typeof remote === "object" ? remote : {};
+  const L = local && typeof local === "object" ? local : {};
+  const out = { ...R, ...L };                                   // keep every plan field; policy scalars reconciled below
+  // goals / ifthen — keyed union by id: never drop an entry from either side (ties -> local)
+  out.goals  = _unionKeyed(R.goals,  L.goals,  (g) => g && g.id, () => 0);
+  out.ifthen = _unionKeyed(R.ifthen, L.ifthen, (p) => p && p.id, () => 0);
+  // policy scalars — newest DELIBERATE change wins (per-field ISO stamp); tie / both-unstamped -> local
+  const rSet = (R.setAt && typeof R.setAt === "object") ? R.setAt : {};
+  const lSet = (L.setAt && typeof L.setAt === "object") ? L.setAt : {};
+  const outSet = { ...rSet, ...lSet };
+  for (const f of PLAN_POLICY_SCALARS) {
+    const rs = rSet[f] || "", ls = lSet[f] || "";
+    if (rs > ls) { if (f in R) out[f] = R[f]; outSet[f] = rs; }        // remote's change is strictly newer -> take it (MUST-NOT-REVERT)
+    else { if (f in L) out[f] = L[f]; else if (f in R) out[f] = R[f]; outSet[f] = ls || rs; }   // ties / absent -> local (MUST-NOT-LOSE)
+  }
+  if (Object.keys(outSet).length) out.setAt = outSet;
+  out.rev = Math.max((+R.rev || 0), (+L.rev || 0));             // monotonic revision, carried for visibility
+  return out;
+}
 const MERGE_KEYED = {   // STORED, non-append-only per-lift state — reconcile per id (newest / most-advanced wins)
   exercises: { keyOf: (e) => e && e.id, scoreOf: _exDate },
   queue:     { keyOf: (q) => q && q.id, scoreOf: _queueRank },
@@ -7150,6 +7406,7 @@ function mergeState(local, remote) {
   for (const k of Object.keys(MERGE_KEYED)) out[k] = _unionKeyed(remote[k], local[k], MERGE_KEYED[k].keyOf, MERGE_KEYED[k].scoreOf);   // exercises/queue: reconcile per lift, never wholesale
   const rn = (remote.sleep && remote.sleep.nights) || [], ln = (local.sleep && local.sleep.nights) || [];
   out.sleep = { ...(remote.sleep || {}), ...(local.sleep || {}), nights: _unionBy(rn, ln, (n) => n && n.d) };
+  out.plan = _unionPlan(remote.plan, local.plan);   // v7.2.0 Slice 3 — goals/ifthen keyed-union + policy scalars newest-deliberate-wins (was wholesale local-wins)
   return out;
 }
 
@@ -7811,6 +8068,11 @@ function statusFace(s, deps) {
   const heldForNoise = !!(ap && ap.ok && ap.heldForNoise);
   const noiseHold = heldForNoise || sig.state === "inside-noise";
   const read = () => { try { return signalReadCopy(s, sig).sentence; } catch (e) { return ""; } };
+  // v7.2.0 Slice 3 — the autonomy level + the safety supervisor shape the ADJUSTING state HONESTLY:
+  // a routine move being auto-handled reads as "handling · one tap to undo"; a staged move carrying a
+  // HARD escalation (magnitude / floor / redline / conflict) is forced to NEEDS YOU regardless of level.
+  const pol = (deps && deps.pol) || autoPilotPolicy(s, { ap });
+  const level = (deps && deps.level) || autonomyOf(s);
 
   let word, glyph, tone, cause, fc = null;
   if (reversed || coachOwed) {
@@ -7822,9 +8084,16 @@ function statusFace(s, deps) {
   } else if (paused) {
     word = "HOLDING"; glyph = "‖"; tone = T.steel;                  // ‖
     cause = "Scale sealed — paused by you; Auto-Pilot waits until it reopens.";
+  } else if (proposed && pol.escalate) {
+    // SAFETY SUPERVISOR — a staged move that's too big / near a floor / conflicting ALWAYS asks the
+    // human, even at Run-it. Never auto-applied, never silent.
+    word = "NEEDS YOU"; glyph = "▲"; tone = T.orange;               // ▲
+    cause = `One call needs you — ${pol.escReason ? pol.escReason.text : "a change outside the routine corridor"}.`;
   } else if (proposed) {
     word = "ADJUSTING"; glyph = "±"; tone = T.gauge;                // ±
-    cause = `${ap.action === "ease" ? "Easing back" : "Tightening"} ≈ ${ap.corrKcal} kcal toward your ${ap.mode === "fatloss" ? "max-fat-loss" : "body-comp"} target — one tap to approve.`;
+    cause = pol.autoApply
+      ? `${ap.action === "ease" ? "Easing back" : "Tightening"} ≈ ${ap.corrKcal} kcal — a routine move Auto-Pilot is handling at ${AUTONOMY_META[level].short}; one tap to undo.`
+      : `${ap.action === "ease" ? "Easing back" : "Tightening"} ≈ ${ap.corrKcal} kcal toward your ${ap.mode === "fatloss" ? "max-fat-loss" : "body-comp"} target — one tap to approve.`;
   } else if (rec.stale || noiseHold) {
     word = "HOLDING"; glyph = "‖"; tone = T.steel;                  // ‖
     cause = rec.stale ? cap(rec.flag) : "This week is still inside your noise — holding for a clear read rather than steering off a blip.";
@@ -7888,6 +8157,11 @@ function marchingOrder(s, deps) {
 __test.statusFace = statusFace;
 __test.marchingOrder = marchingOrder;
 __test.STATUS_WORDS = STATUS_WORDS;
+/* v7.2.0 Slice 3 — TRUST engine selectors (registered here, after the __test declaration) */
+__test.autonomyOf = autonomyOf; __test.escalation = escalation; __test.autoPilotPolicy = autoPilotPolicy;
+__test.whyThisNumber = whyThisNumber; __test.confidenceField = confidenceField; __test.trackRecord = trackRecord;
+__test.AUTONOMY_LEVELS = AUTONOMY_LEVELS; __test.AUTONOMY_META = AUTONOMY_META; __test._unionPlan = _unionPlan;
+__test.lastUndoable = lastUndoable; __test.undoAdjustment = undoAdjustment;
 
 /* Group — a fixed-position collapsible section for NOW's FOCUSED tier. Order never
    changes (static beats adaptive — Findlater & McGrenere); only open/closed responds
@@ -8076,6 +8350,127 @@ function RateGauge({ rate, cur }) {
    the engine's own autoregulation declinable). Only the SOURCE tag and the
    under-the-hood dispatch differ — each keeps its real behaviour: the engine its
    bounded nudge dial, the analyst its grade, the agents their consent copy. */
+/* ---------- AUTO-PILOT · TRUST (v7.2.0 · Slice 3) ----------
+   The trust spine, one tap down from the cockpit face: the graduated-autonomy DIAL (3 named levels,
+   you own it, default most-supervised, an INVITE — never a forced promotion — once a clean track
+   record exists), the "WHY THIS NUMBER" panel (SAT L1/L2/L3 + confidence), the honest predicted-vs-
+   actual TRACK RECORD (misses included), and the ALWAYS-VISIBLE UNDO. It also runs the auto-apply
+   effect for L2/L3: a ROUTINE in-corridor move is recorded (with a plain notice + undo) without a
+   tap — but never a protected number, and never when the safety supervisor says ask. */
+function AutoPilotTrust({ s, setS, save, tISO }) {
+  const level = autonomyOf(s);
+  const meta = AUTONOMY_META[level] || AUTONOMY_META.propose;
+  const ap = autoPilot(s, apModeOf(s));
+  const pol = autoPilotPolicy(s, { ap });
+  const tr = trackRecord(s);
+  const why = whyThisNumber(s, { ap });
+  const undoable = lastUndoable(s);
+  const [whyOpen, setWhyOpen] = useState(false);
+  const [trOpen, setTrOpen] = useState(false);
+  const setAutonomy = (lvl) => {
+    if (lvl === level) return;
+    const p = s.plan || {};
+    const setAt = { ...(p.setAt || {}), autonomy: new Date().toISOString() };   // stamp the deliberate change for the hardened merge
+    const ns = { ...s, plan: { goals: [], ifthen: [], share: false, autonomy: "propose", ...p, autonomy: lvl, setAt, rev: (p.rev || 0) + 1 } };
+    hap(8); setS(ns); save(ns);
+  };
+  /* AUTO-APPLY (L2 / L3) — record the routine steer ONCE per day, with a notice + undo. Guarded by
+     autoPilotPolicy (routine, in-corridor, resolvable, no escalation) so the safety supervisor still
+     vetoes anything near a floor/redline/ambiguous. It appends an acknowledgment; the engine still
+     owns the band (nothing you eat is mutated), and it's one tap to undo. */
+  useEffect(() => {
+    if (!pol.autoApply || !ap.ok) return;
+    if ((s.adjustments || []).some((a) => a && a.rid && String(a.rid).indexOf("apauto_") === 0 && a.d === tISO)) return;   // once/day
+    const rid = "apauto_" + ap.action + "_" + tISO;
+    const title = ap.action === "ease" ? "AUTO-PILOT · EASED THE TARGET" : "AUTO-PILOT · TIGHTENED THE TARGET";
+    const modeLabel = ap.mode === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP";
+    const ns = JSON.parse(JSON.stringify(s));
+    ns.proposals = ns.proposals || []; ns.adjustments = ns.adjustments || []; ns.feed = ns.feed || [];
+    ns.proposals.push({ rid, id: rid + "_" + tISO, d: tISO, title, why: `Routine in-corridor move: ~${ap.pctRate}%BW/wk vs your ${modeLabel} target ~${ap.targetPct}% (~${ap.corrKcal} kcal). Handled at ${meta.short}.`, apply: { kind: "cal", delta: ap.corrKcal }, resolved: true, auto: true });
+    ns.adjustments.push({ rid, d: tISO, title, nudge: 0, auto: true, level });
+    ns.feed.unshift({ d: tISO, t: "AUTO-PILOT HANDLED IT", how: `${title} — ${meta.tag}. Nothing you eat is locked by this; it's the routine steer, and it's one tap to undo.` });
+    setS(ns); save(ns);
+  }, [pol.autoApply, tISO, ap.ok]);
+
+  return (
+    <Card style={{ padding: SP.lg }}>
+      <Eyebrow c={T.gauge}>AUTO-PILOT · AUTONOMY &amp; TRACK RECORD</Eyebrow>
+
+      {/* THE DIAL — 3 named levels, user-owned, default most-supervised */}
+      <div style={{ display: "flex", gap: SP.xs, marginTop: SP.sm }}>
+        {AUTONOMY_LEVELS.map((lvl) => {
+          const m = AUTONOMY_META[lvl]; const on = lvl === level;
+          return (
+            <button key={lvl} onClick={() => setAutonomy(lvl)} aria-pressed={on}
+              style={{ flex: 1, textAlign: "left", background: on ? hexA(T.gauge, 0.13) : "transparent", border: `1px solid ${on ? T.gauge : T.line}`, borderRadius: 8, padding: `${SP.sm}px ${SP.md}px`, cursor: "pointer", minHeight: 44 }}>
+              <div style={{ fontFamily: lbl, fontWeight: 700, fontSize: TS.micro, letterSpacing: "0.05em", color: on ? T.gauge : T.steel }}>{m.label}</div>
+              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 2 }}>{m.tag}</div>
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>{meta.blurb}</div>
+
+      {/* INVITE (never force) a step up once a clean track record exists — easy reversal, no dark-pattern */}
+      {level === "propose" && tr.cleanStreak >= 3 && (
+        <div style={{ marginTop: SP.sm, padding: SP.md, border: `1px solid ${T.line}`, borderLeft: `3px solid ${T.brass}`, borderRadius: 8, background: T.plate }}>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: `${LH.body}px` }}>You've matched my last {tr.cleanStreak} calls within your own noise — want me to handle routine adjustments and just tell you? You can switch back anytime.</div>
+          <div style={{ marginTop: SP.sm }}><Btn small tone="jade" onClick={() => setAutonomy("autonotice")}>Let Auto-Pilot handle routine →</Btn></div>
+        </div>
+      )}
+
+      {/* ESCALATION — a call that ALWAYS needs the human, at any level (safety supervisor + coach-gate) */}
+      {pol.escalate && pol.escReason && (
+        <div style={{ fontFamily: body, fontSize: TS.micro, color: T.orange, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>▲ One call needs you — {pol.escReason.text}. Auto-Pilot won't auto-handle this.</div>
+      )}
+
+      {/* ALWAYS-VISIBLE UNDO — every applied move one tap reversible (Dietvorst 2018) */}
+      {undoable && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm, marginTop: SP.sm, padding: `${SP.sm}px ${SP.md}px`, border: `1px solid ${T.line}`, borderRadius: 8, background: T.plate }}>
+          <span style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.micro}px` }}>{undoable.auto ? "Auto-Pilot handled a routine move" : "Last move applied"}: {String(undoable.title || "").replace(/^AUTO-PILOT · /i, "").toLowerCase()}</span>
+          <button onClick={() => { hap(10); const ns = undoAdjustment(s, undoable.rid); setS(ns); save(ns); }} aria-label="undo last move"
+            style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.gauge, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "5px 12px", cursor: "pointer", whiteSpace: "nowrap", minHeight: 36 }}>↩ Undo</button>
+        </div>
+      )}
+
+      {/* WHY THIS NUMBER (SAT L1/L2/L3 + confidence) — one tap down */}
+      <div style={{ marginTop: SP.md, borderTop: `1px solid ${T.line}`, paddingTop: SP.md }}>
+        <button onClick={() => setWhyOpen(!whyOpen)} aria-expanded={whyOpen}
+          style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px", cursor: "pointer" }}>why this number {whyOpen ? "▾" : "▸"}</button>
+        {whyOpen && (
+          <div style={{ marginTop: SP.sm }}>
+            {[why.l1, why.l2, why.l3].map((lv, i) => (
+              <div key={i} style={{ marginTop: i ? SP.sm : 0 }}>
+                <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, letterSpacing: "0.1em", color: T.steel, textTransform: "uppercase" }}>{lv.label}</div>
+                <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: `${LH.body}px` }}>{lv.text}</div>
+              </div>
+            ))}
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm }}>CONFIDENCE · {why.confidence.word} — {why.confidence.detail}</div>
+          </div>
+        )}
+      </div>
+
+      {/* TRACK RECORD — honest predicted-vs-actual, MISSES included (Dietvorst 2015) */}
+      <div style={{ marginTop: SP.md }}>
+        <button onClick={() => setTrOpen(!trOpen)} aria-expanded={trOpen}
+          style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px", cursor: "pointer" }}>track record {trOpen ? "▾" : "▸"}{tr.graded ? ` · ${tr.hits}/${tr.graded} within noise` : ""}</button>
+        {trOpen && (
+          <div style={{ marginTop: SP.sm }}>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: `${LH.body}px` }}>{tr.calibration}</div>
+            {tr.rows.filter((r) => r.graded).slice(-6).reverse().map((r, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: SP.sm, fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>
+                <span>{fmtShort(r.d)} · predicted {r.pred} → actual {r.actual}</span>
+                <span style={{ color: r.miss ? T.brass : T.jade, whiteSpace: "nowrap" }}>{r.miss ? `miss ±${Math.abs(r.err)}` : "within noise ✓"}</span>
+              </div>
+            ))}
+            {tr.graded === 0 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>No 7-day calls have come due yet — the record fills as predictions age into outcomes.</div>}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 function ApprovalInbox({ s, setS, save, tISO }) {
   const [nudge, setNudge] = useState({});
   const raw = useRepoDoc("ledger/suggestions.json");
@@ -8261,7 +8656,16 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const levers = fiveLevers(s);
   const oneFix = theOneFix(s, levers);
   const plan = s.plan || { goals: [], ifthen: [], share: false };
-  const savePlan = (next) => { const ns = { ...s, plan: { goals: [], ifthen: [], share: false, ...plan, ...next } }; setS(ns); save(ns); };
+  const savePlan = (next) => {
+    // v7.2.0 Slice 3 — STAMP a deliberate policy change (apMode / autonomy) so the hardened s.plan
+    // merge reconciles "newest deliberate change wins" (never last-writer, never a stale revert).
+    const stamped = { ...next };
+    const setAt = { ...(plan.setAt || {}) }; let bumped = false;
+    ["apMode", "autonomy"].forEach((f) => { if (f in next && next[f] !== plan[f]) { setAt[f] = new Date().toISOString(); bumped = true; } });
+    if (bumped) { stamped.setAt = setAt; stamped.rev = (plan.rev || 0) + 1; }
+    const ns = { ...s, plan: { goals: [], ifthen: [], share: false, autonomy: "propose", ...plan, ...stamped } };
+    setS(ns); save(ns);
+  };
   const why = whyDecompose(s);
   const [whyOpen, setWhyOpen] = useState(false);
   /* Auto-Pilot collapses to one line when it's merely holding the line; a proposal
@@ -8440,6 +8844,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               {mo.more && mo.more.length ? (
                 <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, letterSpacing: "0.04em" }}>then {mo.more.join(" · ")}</div>
               ) : null}
+              {/* AUTONOMY on the face (v7.2.0 · Slice 3) — the FMA "how much delegated" tell, always visible */}
+              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, letterSpacing: "0.06em" }}>AUTONOMY · {AUTONOMY_META[autonomyOf(s)].label} — {AUTONOMY_META[autonomyOf(s)].tag}</div>
             </div>
             {/* ---------- ANTICIPATORY FORESIGHT (v7.1.0 · Slice 2) ----------
                 The forward cone, surfaced on the face. Three honest states, all CALM (typographic
@@ -8735,6 +9141,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           )}
         </Card>
       ); })()}
+
+      {/* AUTO-PILOT · TRUST (v7.2.0 · Slice 3) — dial + why-this-number + track record + always-visible undo */}
+      <AutoPilotTrust s={s} setS={setS} save={save} tISO={tISO} />
 
       </Group>
       {/* end TODAY group */}

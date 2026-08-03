@@ -3781,5 +3781,163 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok((mF.forecasts || []).length >= (FA.forecasts.length) && (mF.forecasts || []).some((f) => f.d === "2026-08-01") && (mF.forecasts || []).some((f) => f.d === "2026-08-02"), "persisted forecasts land in s.forecasts via MERGE_MULTI — a stale-device sync UNIONS forecast history, never clobbers it (no schema change; Slice 3 grades them)");
 }
 
+// ============================================================================================
+// v7.2.0 · SLICE 3 — TRUST: s.plan MERGE HARDENING + graduated autonomy + track record + why + undo
+// ============================================================================================
+
+// --- s.plan HARDENING (the mandatory data-safety core) — adversarial, BOTH write orders ---
+// s.plan used to fall through {...remote,...local} (wholesale local-wins) — the exact v6.2
+// exercises/queue clobber class. Property under test, mirroring that fix: a stale client must
+// never REVERT a newer plan setting and never LOSE one — goals/ifthen keyed-union (never drop),
+// apMode/autonomy newest-DELIBERATE-change-wins (stamped) — and it holds from EITHER order.
+{
+  const ms = __test.mergeState, dlg = __test.dataLossGuard, up = __test._unionPlan;
+  const T_OLD = "2026-08-01T09:00:00.000Z", T_NEW = "2026-08-03T09:00:00.000Z";
+  const fresh = clone(SEED);
+  fresh.plan = { goals: [{ id: "g1", text: "shared" }, { id: "g2", text: "fresh-only" }], ifthen: [], share: false,
+                 apMode: "fatloss", autonomy: "runit", setAt: { autonomy: T_NEW, apMode: T_NEW }, rev: 2 };
+  const stale = clone(SEED);
+  stale.plan = { goals: [{ id: "g1", text: "shared" }, { id: "g3", text: "stale-only" }], ifthen: [], share: false,
+                 apMode: "recomp", autonomy: "propose", setAt: { autonomy: T_OLD, apMode: T_OLD }, rev: 1 };
+
+  // ORDER A — the STALE client writes last (local = stale, remote = fresh)
+  const A = ms(stale, fresh);
+  ok(A.plan.autonomy === "runit", "s.plan A: a stale client does NOT revert the newer autonomy=runit (newest deliberate change wins — MUST-NOT-REVERT)");
+  ok(A.plan.apMode === "fatloss", "s.plan A: the newer apMode=fatloss is not rolled back by the stale recomp");
+  ok(A.plan.goals.some((g) => g.id === "g1") && A.plan.goals.some((g) => g.id === "g2") && A.plan.goals.some((g) => g.id === "g3"), "s.plan A: goals keyed-union — BOTH devices' goals survive, none dropped");
+  ok(!(A.plan.autonomy === stale.plan.autonomy && A.plan.goals.length === stale.plan.goals.length), "s.plan A: plan is NO LONGER taken wholesale from the local (stale) client — the v6.2-class clobber is closed");
+
+  // ORDER B — the FRESH client writes last (local = fresh, remote = stale)
+  const B = ms(fresh, stale);
+  ok(B.plan.autonomy === "runit", "s.plan B: reversed order still keeps autonomy=runit (not LOST when it is the local side — MUST-NOT-LOSE)");
+  ok(B.plan.apMode === "fatloss", "s.plan B: reversed order keeps the newer apMode=fatloss (not reverted when it is remote)");
+  ok(B.plan.goals.length === A.plan.goals.length && A.plan.autonomy === B.plan.autonomy && A.plan.apMode === B.plan.apMode, "s.plan: the reconcile is ORDER-INDEPENDENT (A and B agree on goals + policy)");
+  ok(A.plan.goals.length >= fresh.plan.goals.length && A.plan.goals.length >= stale.plan.goals.length, "s.plan: |merged.goals| >= both sides — the keyed union never shrinks");
+  ok(dlg(fresh, A).safe === true && dlg(stale, A).safe === true, "s.plan: the merged state still passes the durability guard from BOTH inputs");
+
+  // unstamped migration DEFAULT can never clobber a real stamped choice; exact stamp TIE -> local
+  const nowRunit = clone(SEED); nowRunit.plan = { goals: [], ifthen: [], share: false, autonomy: "runit", setAt: { autonomy: T_NEW }, rev: 1 };
+  const defProp = clone(SEED); defProp.plan = { goals: [], ifthen: [], share: false, autonomy: "propose" };   // unstamped, as migrate leaves it
+  ok(ms(defProp, nowRunit).plan.autonomy === "runit", "s.plan: an unstamped DEFAULT can't clobber a stamped runit (remote newer) — the migration default never wins over a real choice");
+  ok(ms(nowRunit, defProp).plan.autonomy === "runit", "s.plan: reversed — the stamped runit survives against an unstamped default (local newer)");
+  const tieA = clone(SEED), tieB = clone(SEED);
+  tieA.plan = { goals: [], ifthen: [], share: false, autonomy: "runit", setAt: { autonomy: T_NEW } };
+  tieB.plan = { goals: [], ifthen: [], share: false, autonomy: "autonotice", setAt: { autonomy: T_NEW } };
+  ok(ms(tieB, tieA).plan.autonomy === "autonotice", "s.plan: an exact stamp TIE falls to LOCAL (the writing client), deterministic — never a coin-flip");
+  ok(typeof up === "function" && up({ goals: [{ id: "x" }] }, { goals: [{ id: "y" }] }).goals.length === 2, "s.plan: _unionPlan is the registered reconciler and unions goals by id");
+}
+
+// --- migration patchV36 — additive + migratable + rollback-safe ---
+{
+  const mig = __test.migrate, SC = __test.SCHEMA_V;
+  ok(SC === 36, "schema: SCHEMA_V is 36 (patchV36 appended)");
+  const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
+  const migd = mig(oldV35);
+  ok(migd.v === 36 && migd.plan.autonomy === "propose", "patchV36: a v35 state migrates to v36 and defaults autonomy to the most-supervised 'propose'");
+  ok(migd.reads.length === oldV35.reads.length && Object.keys(migd.dailyLogs).length === Object.keys(oldV35.dailyLogs).length, "patchV36: ADDITIVE — no read or dailyLog is added or lost (count-preserving)");
+  ok(SEED.plan.autonomy === "propose", "patchV36: SEED already carries autonomy='propose' so a fresh install === a migrated one");
+  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 36, "patchV36: idempotent on a current SEED (no double-patch drift)");
+  const future = clone(SEED); future.v = 37;
+  ok(mig(future).v === 37, "migrate: a NEWER (v37) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
+  const legacy = clone(SEED); legacy.v = 35; legacy.plan = { goals: [{ text: "no-id" }], ifthen: [{ cue: "x", action: "y" }], share: false };
+  const lm = mig(legacy);
+  ok(lm.plan.goals[0].id != null && lm.plan.ifthen[0].id != null, "patchV36: legacy goal/if-then entries get a stable id backfilled (so the keyed union keys every entry)");
+}
+
+// --- graduated autonomy dial (3 named levels) + the policy that NEVER auto-applies at L1 ---
+{
+  const aOf = __test.autonomyOf, POL = __test.autoPilotPolicy, LV = __test.AUTONOMY_LEVELS, META = __test.AUTONOMY_META;
+  ok(LV.length === 3 && LV[0] === "propose" && LV[1] === "autonotice" && LV[2] === "runit", "autonomy: exactly THREE named levels, most-supervised first (Propose&Approve → Auto-with-notice → Run-it)");
+  ok(META.propose.rank === 0 && META.runit.rank === 2, "autonomy: the levels are ranked (propose most-supervised, runit least)");
+  ok(aOf({}) === "propose" && aOf({ plan: {} }) === "propose" && aOf({ plan: { autonomy: "bogus" } }) === "propose", "autonomy: default + unknown value → 'propose' (never auto-promote)");
+  ok(aOf({ plan: { autonomy: "runit" } }) === "runit", "autonomy: a set level reads back");
+
+  const routineAp = { ok: true, proposed: true, driftSig: true, heldForStale: false, heldForNoise: false, action: "tighten", corrKcal: 110, mode: "recomp", band: { redlinePct: 1.9 }, pctRate: 0.6, proteinOff: false };
+  const noEsc = { escalate: false, ask: [], abstain: [], first: null };
+  ok(POL(SEED, { ap: routineAp, level: "propose", esc: noEsc }).autoApply === false, "L1 Propose: a routine move NEVER auto-applies — one-tap approval is the floor");
+  ok(POL(SEED, { ap: routineAp, level: "propose", esc: noEsc }).mustAsk === true, "L1 Propose: the routine move is staged for the human (mustAsk)");
+  ok(POL(SEED, { ap: routineAp, level: "autonotice", esc: noEsc }).autoApply === true, "L2 Auto-with-notice: a routine, in-corridor, resolvable move auto-applies");
+  ok(POL(SEED, { ap: routineAp, level: "runit", esc: noEsc }).autoApply === true, "L3 Run-it: a routine move auto-applies (tell-me-only-when-needed)");
+}
+
+// --- escalation ALWAYS asks + the safety supervisor VETOES auto-apply even at Run-it ---
+{
+  const ESC = __test.escalation, POL = __test.autoPilotPolicy;
+  const routineAp = { ok: true, proposed: true, driftSig: true, heldForStale: false, heldForNoise: false, action: "tighten", corrKcal: 110, mode: "recomp", band: { redlinePct: 1.9 }, pctRate: 0.6, proteinOff: false };
+  const noEsc = { escalate: false, ask: [], abstain: [], first: null };
+  const bigAp = { ok: true, proposed: true, driftSig: true, corrKcal: 260, action: "tighten", band: { redlinePct: 1.9 }, pctRate: 0.6, proteinOff: false };
+  ok(ESC({ proposals: [] }, bigAp).ask.some((r) => r.code === "magnitude"), "escalation: a BIG move (≥200 kcal) raises a 'magnitude' ask — always the human");
+  const proAp = { ok: true, proposed: false, driftSig: true, corrKcal: 0, action: "hold", band: { redlinePct: 1.9 }, pctRate: 0.6, proteinOff: true, proteinFloorG: 180 };
+  ok(ESC({ proposals: [] }, proAp).ask.some((r) => r.code === "floor-protein"), "escalation: protein under the lean-retention FLOOR raises a 'floor-protein' ask (never automated)");
+  const redAp = { ok: true, proposed: true, driftSig: true, corrKcal: 100, action: "ease", band: { redlinePct: 1.9 }, pctRate: 2.0, proteinOff: false };
+  ok(ESC({ proposals: [] }, redAp).ask.some((r) => r.code === "redline"), "escalation: at/over the muscle-loss REDLINE raises a 'redline' ask — too aggressive to auto-apply");
+  ok(ESC({ proposals: [{ resolved: false, gate: "coach" }] }, { ok: true, proposed: false }).ask.some((r) => r.code === "coach"), "escalation: a COACH-gated inbox item raises a 'coach' ask (Art. IX — human even at Run-it)");
+
+  const hardEsc = { escalate: true, ask: [{ code: "magnitude", kind: "ask", text: "big" }], abstain: [], first: { code: "magnitude", text: "big" } };
+  ok(POL(SEED, { ap: bigAp, level: "runit", esc: hardEsc }).autoApply === false, "SAFETY: an 'ask' escalation VETOES auto-apply even at Run-it — ESCALATION OVERRIDES THE LEVEL");
+  ok(POL(SEED, { ap: bigAp, level: "runit", esc: hardEsc }).mustAsk === true, "SAFETY: the vetoed move is handed to the human (mustAsk), never silent");
+  const staleAp = { ...routineAp, heldForStale: true };
+  ok(POL(SEED, { ap: staleAp, level: "runit", esc: noEsc }).autoApply === false, "SAFETY: a stale/frozen-rate hold never auto-applies at Run-it (honest abstention still gates)");
+  const noiseAp = { ...routineAp, heldForNoise: true, driftSig: false };
+  ok(POL(SEED, { ap: noiseAp, level: "runit", esc: noEsc }).autoApply === false, "SAFETY: an inside-noise hold never auto-applies at Run-it (confidence gate still gates)");
+}
+
+// --- statusFace HONESTLY reflects the level: escalation → NEEDS YOU, auto-apply names UNDO ---
+{
+  const SF = __test.statusFace;
+  const st0 = { blackout: null, proposals: [] };
+  const escPol = { escalate: true, escReason: { text: "a big move (~260 kcal) — your call" }, autoApply: false, mustAsk: true };
+  const needs = SF(st0, { sig: { state: "measured" }, ap: { ok: true, proposed: true, action: "tighten", corrKcal: 260, mode: "recomp" }, rec: { stale: false }, pol: escPol, level: "runit", fc: { fires: false } });
+  ok(needs.word === "NEEDS YOU", "statusFace: a staged move with a HARD escalation reads NEEDS YOU even at Run-it (the safety supervisor on the face)");
+  ok(Object.keys(needs).sort().join(",") === "cause,glyph,tone,word", "statusFace: still returns EXACTLY {word,glyph,tone,cause} — no key added, the Slice-1 contract holds");
+  const autoPol = { escalate: false, autoApply: true, mustAsk: false };
+  const autoFace = SF(st0, { sig: { state: "measured" }, ap: { ok: true, proposed: true, action: "ease", corrKcal: 110, mode: "recomp" }, rec: { stale: false }, pol: autoPol, level: "runit", fc: { fires: false } });
+  ok(autoFace.word === "ADJUSTING" && autoFace.cause.indexOf("undo") >= 0, "statusFace: an auto-handled routine move reads ADJUSTING and its cause NAMES the one-tap undo (honest about what happened)");
+}
+
+// --- why-this-number (SAT L1/L2/L3) + first-class confidence field ---
+{
+  const WTN = __test.whyThisNumber, CF = __test.confidenceField;
+  const wtn = WTN(clone(SEED));
+  ok(wtn.l1 && wtn.l2 && wtn.l3 && wtn.confidence, "whyThisNumber: the SAT model returns all three levels (intent / rationale / projection) + a confidence field");
+  ok(wtn.l1.label === "INTENT" && wtn.l2.label === "RATIONALE" && wtn.l3.label === "PROJECTION", "whyThisNumber: L1=intent, L2=rationale, L3=projection+confidence (Chen 2017 SAT)");
+  ok(!wtn.ok || /n=\d|TDEE|%BW/.test(wtn.l2.text), "whyThisNumber: when it can steer, the rationale cites HIS OWN numbers (n / TDEE / rate) — grounded, not generic");
+  const cf = CF({}, { sig: { state: "measured", n: 20, ticks: 5 } });
+  ok(cf.word === "MEASURED" && cf.detail.indexOf("CI") >= 0, "confidenceField: a measured signal → MEASURED + the CI-excludes-zero detail (uncertainty travels WITH the number)");
+  ok(CF({}, { sig: { state: "calibrating" } }).word === "CALIBRATING", "confidenceField: calibrating → CALIBRATING (tied to the CALIBRATING face-state)");
+}
+
+// --- track record SHOWS a miss honestly (Dietvorst) + grades a hit within his own noise ---
+{
+  const TR = __test.trackRecord;
+  const trMiss = clone(SEED);
+  trMiss.forecasts = [{ d: "2026-07-25", trend: 164.5, rate: 1.2, pred7: 160.0, sealed: false }];   // predicted 160.0 by 8/01
+  trMiss.reads = trMiss.reads.concat([{ d: "2026-08-01", w: 165.0, sealed: false, pt: 165.0 }]);      // actual trend 165.0 — a 5 lb MISS
+  const trm = TR(trMiss);
+  ok(trm.graded >= 1, "trackRecord: a due 7-day prediction is graded against the REALIZED trend");
+  ok(trm.misses >= 1 && trm.hasMiss === true, "trackRecord: it SHOWS a miss (Dietvorst 2015 — hiding errors backfires), not only hits");
+  ok(trm.rows.some((r) => r.miss === true && r.pred != null && r.actual != null), "trackRecord: the missed row carries BOTH predicted AND actual — the error is visible, not hidden");
+  ok(typeof trm.calibration === "string" && trm.calibration.indexOf("missed") >= 0, "trackRecord: the rolling calibration statement states the misses honestly");
+  const trHit = clone(SEED);
+  trHit.forecasts = [{ d: "2026-07-25", trend: 164.5, rate: 1.2, pred7: 164.3, sealed: false }];
+  trHit.reads = trHit.reads.concat([{ d: "2026-08-01", w: 164.3, sealed: false, pt: 164.3 }]);          // within the noise floor — a HIT
+  ok(TR(trHit).hits >= 1, "trackRecord: a prediction that lands within his OWN noise grades as a HIT (calibrated, not flattering)");
+}
+
+// --- always-visible undo: one-tap reversible + the decision RETURNS to the inbox ---
+{
+  const UA = __test.undoAdjustment, LU = __test.lastUndoable;
+  const undoState = clone(SEED);
+  undoState.proposals = [{ rid: "ap_tighten_x", id: "ap_tighten_x_1", d: "2026-08-01", title: "AUTO-PILOT · TIGHTEN", why: "x", apply: { kind: "cal", delta: 100 }, resolved: true, auto: true }];
+  undoState.adjustments = (undoState.adjustments || []).concat([{ rid: "ap_tighten_x", d: "2026-08-01", title: "AUTO-PILOT · TIGHTEN", nudge: 0, auto: true }]);
+  ok(LU(undoState) != null && LU(undoState).rid === "ap_tighten_x", "undo: lastUndoable finds the applied Auto-Pilot move (the always-visible undo has a target)");
+  const undone = UA(undoState, "ap_tighten_x");
+  ok(!undone.adjustments.some((a) => a.rid === "ap_tighten_x"), "undo: the applied adjustment is removed on undo (one-tap reversible)");
+  ok(undone.proposals.some((p) => p.rid === "ap_tighten_x" && !p.resolved), "undo: the move RE-OPENS into the inbox — the decision returns to you (Law 10), it doesn't vanish");
+  ok(undone.feed[0] && undone.feed[0].t === "MOVE UNDONE", "undo: an honest 'MOVE UNDONE' note is filed");
+  const declineState = clone(SEED); declineState.adjustments = [{ rid: "ap_x", d: "2026-08-01", title: "x", dismissed: true }];
+  ok(LU(declineState) === null, "undo: a DECLINED move is not offered as undo — nothing changed to reverse");
+}
+
 console.log(`\nFINAL81: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
