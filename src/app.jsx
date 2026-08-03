@@ -2761,6 +2761,13 @@ function conditionalForesight(s) {
   } catch (e) { return null; }
 }
 
+/* v7.4.1 — honest ETA copy. weeksAt() (digitalTwin) clamps to 0 when the trend is already AT or
+   PAST the target weight, so etaMid / etaWks can legitimately be 0. Rendered raw that reads "~0 wks"
+   — "basically instant", the exact OPPOSITE of "you are already there". So a 0 is relabeled
+   "target reached" in BOTH the measured projection line and the plan-conditional line. Pure predicate;
+   0 only, never a positive eta or a null (which mean "on the way" / "no line"). */
+function etaReached(wks) { return wks === 0; }
+
 /* ---------- AUTO-PILOT (v2) — the thermostat, made real ----------
    The audit wanted a thermostat, not just a thermometer: hold the goal line instead
    of only reading it. observedTDEE is already a state estimate of true expenditure
@@ -8107,6 +8114,7 @@ __test.digitalTwin = digitalTwin;
 __test.twinBodyComp = twinBodyComp;
 __test.forecast = forecast;
 __test.conditionalForesight = conditionalForesight;
+__test.etaReached = etaReached;
 __test.redlineCrossing = redlineCrossing;
 __test.coneHalfWidth = coneHalfWidth;
 __test.normCdf = normCdf;
@@ -9607,13 +9615,31 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                   </div>
                   <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.45, marginTop: SP.xs }}>{fc.cause}</div>
                   <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>~{fc.wksEarly}–{fc.wksLate} wks · ≈{Math.round(fc.prob * 100)}% within {FORE.H_INFO} wks · a range, not a date</div>
+                  {(() => {
+                    /* v7.4.1 — the SUBORDINATE, plan-CONDITIONAL line, ALSO surfaced while the redline warning
+                       is firing. This branch returns BEFORE the PROJECTION branch, so without this the applied
+                       ease's ETA was computed by conditionalForesight() but never rendered. Same selector, same
+                       ONE engine-owned number (digitalTwin.etaMid), same honest label as the projection
+                       placement below. Null when no steer is live ⇒ the crossing warning renders unchanged. */
+                    const cf = conditionalForesight(s);
+                    if (!cf) return null;
+                    return (
+                      <div style={{ marginTop: SP.sm, paddingTop: SP.sm, borderTop: `1px dashed ${T.line}` }}>
+                        <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>if you hold this new target</div>
+                        <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs }}>
+                          {etaReached(cf.etaWks) ? <>target reached {cf.label}</> : <>~<span data-num style={{ fontFamily: mono }}>{cf.etaWks}</span> wks {cf.label}</>}
+                        </div>
+                        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>plan-conditional — not your measured trend yet; it converges as weigh-ins land</div>
+                      </div>
+                    );
+                  })()}
                 </div>
               );
               if (fx.ok && fx.confident && fx.etaMid != null) return (
                 <div style={{ borderTop: `1px solid ${T.line}`, marginTop: SP.md, paddingTop: SP.md }}>
                   <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>FORESIGHT · PROJECTION</div>
                   <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs }}>
-                    ~<span data-num style={{ fontFamily: mono }}>{fx.etaMid}</span> wks to {fx.targetPct}% BF{fx.etaFast != null && fx.etaSlow != null ? <> · range <span data-num style={{ fontFamily: mono }}>{fx.etaFast}–{fx.etaSlow}</span> wks</> : null}
+                    {etaReached(fx.etaMid) ? <>target reached — {fx.targetPct}% BF</> : <>~<span data-num style={{ fontFamily: mono }}>{fx.etaMid}</span> wks to {fx.targetPct}% BF{fx.etaFast != null && fx.etaSlow != null ? <> · range <span data-num style={{ fontFamily: mono }}>{fx.etaFast}–{fx.etaSlow}</span> wks</> : null}</>}
                   </div>
                   <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>the fan widens with distance — a projection, not a promise</div>
                   {(() => {
@@ -9627,7 +9653,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                       <div style={{ marginTop: SP.sm, paddingTop: SP.sm, borderTop: `1px dashed ${T.line}` }}>
                         <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>if you hold this new target</div>
                         <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs }}>
-                          ~<span data-num style={{ fontFamily: mono }}>{cf.etaWks}</span> wks {cf.label}
+                          {etaReached(cf.etaWks) ? <>target reached {cf.label}</> : <>~<span data-num style={{ fontFamily: mono }}>{cf.etaWks}</span> wks {cf.label}</>}
                         </div>
                         <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>plan-conditional — not your measured trend yet; it converges as weigh-ins land</div>
                       </div>

@@ -4259,6 +4259,25 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(CFore(nextDay) === null, "CONDITIONAL FORESIGHT — once the steer reconciles at the next weigh-in it returns null again — the conditional line self-retires with the offset");
   const dt0 = DTwin(clone(M), {});
   ok(DTwin(clone(M), { stepsDelta: 2000 }).newRate === DTwin(clone(M), { steps: (dt0.stepsNow || 8000) + 2000 }).newRate, "digitalTwin.stepsDelta (v7.4.1) — a relative step delta lands on the SAME newRate as the equivalent absolute steps target (additive, engine-consistent, no competing number)");
+
+  // ---- (5) CONDITIONAL FORESIGHT ALSO RENDERS UNDER A FIRING REDLINE CROSSING (v7.4.1 display fix) ----
+  // The FORESIGHT panel is a 3-way branch: CROSSING (returns first) → PROJECTION → CALIBRATING. When the
+  // redline-crossing warning fires AND a steer is live, conditionalForesight() returned a valid line but the
+  // CROSSING branch's early return swallowed it — so an applied EASE during an approaching-redline warning
+  // showed no plan-conditional read. It is now rendered inside the crossing container too (same selector,
+  // same ONE engine-owned number). Fixture: a steep, real (noisy ⇒ ci>0) downtrend near the lean-loss redline
+  // that FIRES the crossing, plus a live EASE steer — the exact "ease during an approaching-redline" state.
+  const XJIT = [0.2,-0.3,0.1,0.4,-0.2,-0.1,0.3,-0.4,0.2,0.0,-0.3,0.1,0.3,-0.2,0.4,-0.1,-0.3,0.2,0.1,-0.4,0.3,-0.2,0.0,0.2];
+  const xBase = clone(M);
+  xBase.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoAgo(23 - i), w: +(184 - i * 0.25 + XJIT[i]).toFixed(2), sealed: false }));
+  xBase.proposals = [{ id: "p_ease", rid: "ap_ease_" + today, d: today, title: "AUTO-PILOT · EASE THE TARGET", why: "approaching the lean-loss rate", apply: { kind: "cal", delta: 200, dir: "ease", calDelta: 200, stepsDelta: -1500 }, resolved: false }];
+  const xCross = __test.applyProposal(xBase, "p_ease", 0, "cal");
+  const xFx = __test.forecast(xCross);
+  ok(xFx.crossing.fires === true && aAdj(xCross).active === true && __test.currentRate(xCross).measured === true, "CROSSING + STEER — a steep real downtrend near the redline FIRES the crossing while an EASE steer is live (the exact state the crossing branch handles; the branch returns before PROJECTION, so this is the state that previously swallowed the line)");
+  const xCf = CFore(xCross);
+  ok(xCf && xCf.conditional === true && xCf.etaWks === DTwin(xCross, { calDelta: aAdj(xCross).calDelta }).etaMid, "CROSSING branch renders the plan-conditional line — conditionalForesight() is present under a firing crossing and carries the SAME ONE engine-owned eta (digitalTwin) as the projection branch; the applied ease is no longer swallowed by the early return");
+  ok(__test.etaReached(0) === true, "TARGET-REACHED relabel — etaMid/etaWks === 0 means already AT/PAST target ⇒ the line reads 'target reached', never a misleading '~0 wks' (relabel applies to BOTH the measured and the plan-conditional line)");
+  ok(__test.etaReached(3) === false && __test.etaReached(null) === false, "…and a real positive eta (or an absent one) is NOT relabeled — only an exact 0 reads 'target reached'");
   ok(DTwin(clone(M), {}).newRate === DTwin(clone(M), { stepsDelta: 0 }).newRate, "digitalTwin.stepsDelta — defaults to 0: an unset delta changes nothing (backward-compatible with every existing caller)");
 
   // ---- (5) PHASE PROPOSAL blockDeeper (audit follow-up) — an apply:{kind:note} proposal must NOT wear an
