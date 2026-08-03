@@ -11443,8 +11443,9 @@ function SleepTab({ s, setS, save, slp }) {
    stated more forcefully here than anywhere else in the app.
 
    Rebuilt on the same numbers the rest of the engine uses: his measured step
-   average, his measured intake, and KCAL_PER_LB_MIX. The refeed lever is gone
-   with the refeed. The date tile is gone with the date. The sleep line now says
+   average, his measured intake, and the same kcal-per-pound every other pricing
+   site uses — energyDensity(s).perLb, the labeled prior 3,800 until a DEXA.
+   The refeed lever is gone with the refeed. The date tile is gone with the date. The sleep line now says
    what sleep actually costs, and says plainly that this model cannot show it. */
 function WhatIfConsole({ s }) {
   const cur = currentRate(s);
@@ -11456,7 +11457,8 @@ function WhatIfConsole({ s }) {
   const [wCal, setWCal] = useState(Math.round(calRef / 25) * 25);
   const [wSlp, setWSlp] = useState(s.sleep.cleanH || 7.5);
   const baseRate = cur.measured ? cur.scale : 1.2;
-  const rate = Math.max(0.1, +(baseRate - ((wCal - calRef) * 7) / KCAL_PER_LB_MIX + ((wSteps - stepRef) * perStep * 7) / KCAL_PER_LB_MIX).toFixed(2));
+  const edWhatIf = energyDensity(s).perLb;   // v7.3.0 Slice 4 — the LEVERS sandbox prices rate↔kcal off the ONE energy-density owner (== 3800 until a DEXA), same as every other pricing site
+  const rate = Math.max(0.1, +(baseRate - ((wCal - calRef) * 7) / edWhatIf + ((wSteps - stepRef) * perStep * 7) / edWhatIf).toFixed(2));
   const bf = bfEst(s);
   const target11 = +(bf.lean / 0.89).toFixed(1);
   const wksToPivot = (s.trend - target11) / rate;
@@ -11489,7 +11491,7 @@ function WhatIfConsole({ s }) {
           ? `At ${wSlp} h your sessions are barely affected — the measured cost is about 2.85% on strength, inside the test-retest error, and nothing here gates a record on it. What this slider CANNOT show you is the part that matters: at a matched deficit, short sleep sends roughly 60% more of what you lose off lean mass. The pound-per-week number above would look identical and the physique underneath it would not.`
           : `At ${wSlp} h the deficit is taking mostly what you want it to take. That is the whole reason this number is on the page — it does not move the lb/wk figure above, it changes what those pounds are made of.`}
       </div>
-      <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 8 }}>modelled against YOUR numbers: {Math.round(stepRef).toLocaleString()} steps and {Math.round(calRef).toLocaleString()} kcal as logged, {perStep.toFixed(2)} kcal/step at your bodyweight, {KCAL_PER_LB_MIX.toLocaleString()} kcal/lb · your band is {rb[0]}–{rb[1]} lb/wk, redline {(s.rate || {}).redline || 1.9} · sandbox only, nothing real moves</div>
+      <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 8 }}>modelled against YOUR numbers: {Math.round(stepRef).toLocaleString()} steps and {Math.round(calRef).toLocaleString()} kcal as logged, {perStep.toFixed(2)} kcal/step at your bodyweight, {edWhatIf.toLocaleString()} kcal/lb · your band is {rb[0]}–{rb[1]} lb/wk, redline {(s.rate || {}).redline || 1.9} · sandbox only, nothing real moves</div>
     </div>
   );
 }

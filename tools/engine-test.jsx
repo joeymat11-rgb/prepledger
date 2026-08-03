@@ -1,6 +1,7 @@
 // Freezes the clock. MUST stay above the app import — see tools/_fixed-now.mjs
 // for why a suite that derives dates from the real clock cannot be trusted.
 import "./_fixed-now.mjs";
+import { readFileSync } from "node:fs";
 import { __test } from "../src/app.jsx";
 const { targetsFor, genSession, completeSession, runAdaptive, bfEst, migrate, SEED } = __test;
 let pass = 0, fail = 0;
@@ -4068,6 +4069,16 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(ED(d25).perLb > ED(d15).perLb && ED(d15).perLb !== ED(d25).perLb, "energy density is FAT-MASS-DEPENDENT: the deficit/lb DIFFERS at 15% vs 25% BF — leaner prices lower (Forbes/Hall), not a fixed 3,500/3,800");
   ok(ED(d15).perLb === 3800, "energy density: at his ~15% reference the personalised point still lands on the prior 3800 (anchored calibration, not a jump)");
   ok(OT(d25).perLb === ED(d25).perLb && CT(d25).lo != null, "engine-owns-numbers: after a DEXA the SAME sharpened energyDensity flows into observedTDEE + the calorie band — one computation");
+
+  // WhatIfConsole (THE LEVERS sandbox, LAB) missed the Slice-4 migration: it priced off the fixed
+  // KCAL_PER_LB_MIX (3,800) — inert pre-DEXA, but the moment a DEXA lands it would show a stale 3,800
+  // while the N-OF-1 card + Twin (same room) show the personalised value. It uses hooks, so it can't be
+  // called like a selector — assert on its source that it prices via the ONE energyDensity owner and
+  // leaves NO fixed constant in the sandbox (same "engine-owns-numbers / no competing kcal/lb" contract).
+  const APP_SRC = readFileSync("src/app.jsx", "utf8");
+  const wifSrc = APP_SRC.slice(APP_SRC.indexOf("function WhatIfConsole"), APP_SRC.indexOf("function TrialsDesk"));
+  ok(/const\s+edWhatIf\s*=\s*energyDensity\(s\)\.perLb/.test(wifSrc), "engine-owns-numbers: WhatIfConsole (THE LEVERS) prices off the ONE energyDensity owner — edWhatIf = energyDensity(s).perLb, like every other pricing site");
+  ok(!/KCAL_PER_LB_MIX/.test(wifSrc), "engine-owns-numbers: NO fixed KCAL_PER_LB_MIX left in the WhatIfConsole sandbox — rate calc + displayed kcal/lb both read the owner (no two conflicting numbers vs the N-OF-1 card + Twin after a DEXA)");
 
   // -------- PARTITION / p-RATIO — a RANGE, Forbes/BF-governed, narrows only with repeated anchors --------
   const pS = PP(clone(SEED));
