@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.4.0";
+const APP_V = "7.4.1";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -2396,7 +2396,7 @@ function digitalTwin(s, opts) {
   const stepsNow = stg.gated ? 8000 : (stg.recentAvg || stg.avg || 8000);
   const baseTDEE = td && td.tdee ? td.tdee : null;
   const calDelta = o.calDelta || 0;                         // kcal/day vs current (neg = eat less)
-  const stepsTarget = o.steps != null ? o.steps : stepsNow;
+  const stepsTarget = o.steps != null ? o.steps : (stepsNow + (o.stepsDelta || 0));   // v7.4.1 — stepsDelta models a STEP steer relative to current NEAT (additive; default 0 = unchanged), so conditionalForesight can route a live step adjustment through the ONE twin rate
   const stepKcal = ((stepsTarget - stepsNow) / 1000) * kcalPer1k;   // extra expenditure/day
   const perKcal = 7 / energyDensity(s).perLb;              // v7.3.0 Slice 4 — the ONE energy-density owner (== the prior 3800 until a DEXA anchors fat mass)
   const extraDeficit = (-calDelta) + stepKcal;              // eating less OR moving more both add deficit
@@ -2728,6 +2728,38 @@ function forecast(s, opts) {
    state returns "no fire"), so the anticipatory nudge in statusFace / marchingOrder is self-silencing
    whenever the forecast can't be computed. */
 function safeCrossing(s) { try { const f = forecast(s); return f && f.crossing ? f.crossing : { fires: false }; } catch (e) { return { fires: false }; } }
+
+/* CONDITIONAL FORESIGHT (v7.4.1) — the ONE subordinate, plan-CONDITIONAL projection line.
+   forecast(s) is deliberately a MEASURED baseline: it reads currentRate / digitalTwin(no-opts) and does
+   NOT read calorieTarget / stepTarget / activeAdjustment, so it does not — and must not — jump the instant
+   a target is applied. That is the honest "a projection, not a promise": the projection moves only as new
+   weigh-ins move the measured rate. But once a steer is LIVE the athlete asks a fair SECOND question —
+   "if I actually hold this new target, when do I arrive?" — and this answers exactly that, and only that,
+   through the EXISTING engine: it runs digitalTwin with the live adjustment's OWN delta (a calorie offset,
+   or a step offset via the new stepsDelta opt) and hands back its etaMid. It introduces NO new rate, band
+   or probability — one number, and it is digitalTwin's. Gated on a MEASURED rate (no measured rate ⇒ no
+   conditional line), guarded (returns null, never throws), and computed LIVE off `s` every call — it never
+   reads the cached s.forecasts snapshot. Returns null when no steer is live, so the line COLLAPSES onto the
+   measured projection, and converges on it as new weigh-ins pull currentRate toward the steered rate.
+   Pure; mutates nothing. */
+function conditionalForesight(s) {
+  try {
+    const aa = activeAdjustment(s);
+    if (!aa || !aa.active) return null;                        // only while a steer is actually live
+    const r = currentRate(s);
+    if (!r || !r.measured) return null;                        // gated on enough n — no measured rate, no conditional line
+    const twinOpts = aa.via === "steps" ? { stepsDelta: aa.stepDelta || 0 } : { calDelta: aa.calDelta || 0 };
+    const tw = digitalTwin(s, twinOpts);                       // the EXISTING engine — the ONE conditional rate and its eta
+    if (!tw || !tw.ok || tw.etaMid == null) return null;
+    return {
+      conditional: true, measured: false,                      // labeled hypothetical — never the measured trend
+      via: aa.via, etaWks: tw.etaMid, atWeight: tw.atWeight, targetPct: tw.targetPct,
+      newRate: tw.newRate, title: aa.title || null,
+      label: aa.via === "steps" ? "at the new step target" : "at the new calorie target",
+      why: "Plan-conditional: what your trend becomes IF you hold this new target — not your measured rate yet. It converges on the projection above as new weigh-ins land.",
+    };
+  } catch (e) { return null; }
+}
 
 /* ---------- AUTO-PILOT (v2) — the thermostat, made real ----------
    The audit wanted a thermostat, not just a thermometer: hold the goal line instead
@@ -3159,8 +3191,8 @@ function phaseProposal(s, deps) {
   //    maintenance (reuses the existing 'exit' machinery). Only once decideReady is meaningful; here it is
   //    offered as calm foresight, gated to the coach's call (no date, no auto-move).
   if (arc.key === "cut" && sup.kind === "blockDeeper") {
-    return { rid: "phase_hold_" + today, title: "EASE THE RATE — YOU'RE AT A FLOOR", gate: null,
-      why: `${sup.first ? sup.first.text : "a hard floor is binding"}. This eases the deficit rather than pressing it; the engine still owns the band, and it's one tap to undo.`,
+    return { rid: "phase_hold_" + today, title: "AT A FLOOR — REVIEW THE RATE WITH YOUR COACH", gate: null,
+      why: `${sup.first ? sup.first.text : "a hard floor is binding"}. This is a flag to REVIEW the rate with your coach — nothing changes automatically, no target moves on its own, and the engine still owns the band.`,
       apply: { kind: "note" } };
   }
   return null;
@@ -8074,6 +8106,7 @@ __test.anchorTighten = anchorTighten;
 __test.digitalTwin = digitalTwin;
 __test.twinBodyComp = twinBodyComp;
 __test.forecast = forecast;
+__test.conditionalForesight = conditionalForesight;
 __test.redlineCrossing = redlineCrossing;
 __test.coneHalfWidth = coneHalfWidth;
 __test.normCdf = normCdf;
@@ -9583,6 +9616,23 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                     ~<span data-num style={{ fontFamily: mono }}>{fx.etaMid}</span> wks to {fx.targetPct}% BF{fx.etaFast != null && fx.etaSlow != null ? <> · range <span data-num style={{ fontFamily: mono }}>{fx.etaFast}–{fx.etaSlow}</span> wks</> : null}
                   </div>
                   <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>the fan widens with distance — a projection, not a promise</div>
+                  {(() => {
+                    /* v7.4.1 — the SUBORDINATE, plan-CONDITIONAL line. Appears ONLY while a steer is live,
+                       is clearly labeled hypothetical, carries ONE engine-owned number (digitalTwin.etaMid),
+                       recomputes LIVE off s each render, and collapses onto the measured line above when
+                       there is no steer. See conditionalForesight(). */
+                    const cf = conditionalForesight(s);
+                    if (!cf) return null;
+                    return (
+                      <div style={{ marginTop: SP.sm, paddingTop: SP.sm, borderTop: `1px dashed ${T.line}` }}>
+                        <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>if you hold this new target</div>
+                        <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs }}>
+                          ~<span data-num style={{ fontFamily: mono }}>{cf.etaWks}</span> wks {cf.label}
+                        </div>
+                        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>plan-conditional — not your measured trend yet; it converges as weigh-ins land</div>
+                      </div>
+                    );
+                  })()}
                 </div>
               );
               return (

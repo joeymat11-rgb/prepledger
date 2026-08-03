@@ -4239,6 +4239,32 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   const mgd = MS(devX, devY), mgd2 = MS(devY, devX);
   ok(mgd.adjustments.some((a) => a.id === "adj_x") && mgd.adjustments.some((a) => a.id === "adj_y"), "MERGE HARDENING INTACT — an approved-effect adjustment from EITHER device survives the keyed union (never dropped)");
   ok(mgd.adjustments.find((a) => a.id === "adj_x").calDelta === -288 && mgd2.adjustments.find((a) => a.id === "adj_x").calDelta === -288, "…and the effect payload (calDelta) survives intact, order-independent — the new via/calDelta fields ride the s.adjustments hardening");
+
+  // ---- (4) CONDITIONAL FORESIGHT (v7.4.1) — the plan-conditional projection line. forecast(s) stays a
+  //         MEASURED baseline; this is the SUBORDINATE "if you hold this new target" read: labeled
+  //         hypothetical, routed through the ONE twin rate, computed LIVE off s, gated on a measured rate,
+  //         and self-retiring with the offset. This is the fix for "foresight doesn't update from autopilot"
+  //         done HONESTLY — a second, clearly-conditional line, never a silent mutation of the measured one.
+  const CFore = __test.conditionalForesight, DTwin = __test.digitalTwin, aAdj = __test.activeAdjustment;
+  ok(CFore(clone(SEED)) === null, "CONDITIONAL FORESIGHT — with NO live steer it returns null → the line COLLAPSES onto the measured projection (no second number when nothing is applied)");
+  const cfCal = CFore(after);
+  ok(cfCal && cfCal.conditional === true && cfCal.measured === false, "CONDITIONAL FORESIGHT — a live cal steer yields a line LABELED conditional (measured:false) — it can never be read as the measured trend");
+  ok(cfCal && cfCal.etaWks === DTwin(after, { calDelta: aAdj(after).calDelta }).etaMid, "CONDITIONAL FORESIGHT — its ONE number IS digitalTwin(…calDelta).etaMid — routed through the existing engine, no competing rate/band/normCdf");
+  const cfSteps = CFore(afterSteps);
+  ok(cfSteps && cfSteps.via === "steps" && cfSteps.etaWks === DTwin(afterSteps, { stepsDelta: aAdj(afterSteps).stepDelta }).etaMid, "CONDITIONAL FORESIGHT — a STEP steer routes through digitalTwin(stepsDelta) (the NEAT lever), still ONE engine-owned eta");
+  const afterPoison = clone(after); afterPoison.forecasts = [{ d: today, trend: 999, rate: 9.9, pred7: 9.9, sealed: false }];
+  ok(eq(CFore(afterPoison), CFore(after)), "CONDITIONAL FORESIGHT — recomputes LIVE off s: poisoning the cached s.forecasts snapshot does NOT move it (it never reads s.forecasts)");
+  const coldSteer = clone(after); coldSteer.reads = []; coldSteer.weekly = [];
+  ok(aAdj(coldSteer).active === true && __test.currentRate(coldSteer).measured === false && CFore(coldSteer) === null, "CONDITIONAL FORESIGHT — GATED on a measured rate: a live steer with too little data to measure the rate shows NO conditional line (no baseline, no promise)");
+  ok(CFore(nextDay) === null, "CONDITIONAL FORESIGHT — once the steer reconciles at the next weigh-in it returns null again — the conditional line self-retires with the offset");
+  const dt0 = DTwin(clone(M), {});
+  ok(DTwin(clone(M), { stepsDelta: 2000 }).newRate === DTwin(clone(M), { steps: (dt0.stepsNow || 8000) + 2000 }).newRate, "digitalTwin.stepsDelta (v7.4.1) — a relative step delta lands on the SAME newRate as the equivalent absolute steps target (additive, engine-consistent, no competing number)");
+  ok(DTwin(clone(M), {}).newRate === DTwin(clone(M), { stepsDelta: 0 }).newRate, "digitalTwin.stepsDelta — defaults to 0: an unset delta changes nothing (backward-compatible with every existing caller)");
+
+  // ---- (5) PHASE PROPOSAL blockDeeper (audit follow-up) — an apply:{kind:note} proposal must NOT wear an
+  //         action title. Reframed to the note convention so no future wiring can surface a misleading no-op.
+  const holdProp = __test.phaseProposal(clone(SEED), { sup: { kind: "blockDeeper", first: { text: "a binding floor" } }, arc: { key: "cut" }, brk: { status: "none", honest: {}, maintenance: null }, today });
+  ok(holdProp && holdProp.apply.kind === "note" && /review/i.test(holdProp.title + " " + holdProp.why) && /nothing changes automatically|no target moves|nothing moves/i.test(holdProp.why) && !/one tap to undo/i.test(holdProp.why), "PHASE PROPOSAL (blockDeeper) — an apply:{kind:note} steer now reads as a REVIEW note (nothing changes automatically, no false 'undo') — the action-titled no-op is gone by construction");
 }
 
 // ============================================================================================
