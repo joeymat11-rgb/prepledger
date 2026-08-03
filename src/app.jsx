@@ -8642,11 +8642,12 @@ function scrollToId(id, delay = 80) {
 }
 /* oweTarget — the WHAT YOU OWE deep-link map (unit-tested via __test): which
    collapsed group to force-open and which element to scroll to, keyed by the owed
-   item's kind (from nowFocus). Morning inputs (night/weight) → CAPTURE; the day's
-   numbers → TODAY'S LOGS; an unclosed yesterday → the reopen card in TODAY'S PLAN. */
+   item's kind (from nowFocus). v7.5: the seven groups became three doors, so all
+   three owed kinds now open the ONE CAPTURE door and scroll to their own element
+   id — pl-capture (sleep/scale), pl-closeday (the day's numbers), pl-amend. */
 function oweTarget(k) {
-  return k === "day" ? { key: "now.logs", id: "pl-closeday" }
-    : k === "yesterday" ? { key: "now.plan", id: "pl-amend" }
+  return k === "day" ? { key: "now.capture", id: "pl-closeday" }
+    : k === "yesterday" ? { key: "now.capture", id: "pl-amend" }
     : { key: "now.capture", id: "pl-capture" };
 }
 /* NOW reorg v6.3 — the two novel PURE pieces, exposed for the engine suite here
@@ -8800,7 +8801,7 @@ function statusTarget(s, deps) {
   let esc; try { esc = (deps && deps.esc) || escalation(s); } catch (e) { esc = { escalate: false }; }
   const focus = (deps && deps.focus) || (function () { try { return nowFocus(s); } catch (e) { return { owed: [] }; } })();
   if (props.length || agents.length) return { key: "now.inbox", id: "pl-inbox", label: "open what's waiting on your tap" };
-  if (esc && esc.escalate) return { key: "now.today", id: "pl-today", label: "open the call that needs you" };
+  if (esc && esc.escalate) return { key: "now.read", id: "pl-today", label: "open the call that needs you" };
   const o0 = focus && focus.owed && focus.owed[0];
   if (o0) { const t = oweTarget(o0.k); return { key: t.key, id: t.id, label: "go to what's owed" }; }
   return null;
@@ -9388,7 +9389,6 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [dayEdit, setDayEdit] = useState(false);
   /* Collapsed by default, and it STAYS where he leaves it — persisted across
      reloads (now.rest), so the room never rearranges itself. See NOW_FOCUS. */
-  const [restOpen, setRestOpen] = useDisclosure("now.rest", () => false);
   const focus = nowFocus(s);
   const sig = signalState(s);
   const levers = fiveLevers(s);
@@ -9819,200 +9819,6 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           OFF the resident stack into one collapsed, remembered group (now.today). The
           single biggest fold win after the protocol: ~660px of always-on cards become
           one line. Fixed order, nothing removed — everything is one tap away. */}
-      <Group title="TODAY" sub="the one thing · auto-pilot" persistKey="now.today" defaultOpen={false} id="pl-today">
-      {/* ---------- THE ONE THING (v2 adherence — the single evidence-ordered fix) ----------
-          Never a reflexive calorie cut: the ladder is verify-logging -> steps/NEAT
-          -> protect sleep -> only then trim -> diet break. Autonomy-supportive voice,
-          attributed to the plan, never the person. A quiet chip opens the rationale.
-          Hidden when the top rung is "log" — WHAT YOU OWE below already owns that action,
-          so the two cards never say the same thing (non-redundancy, spec §6). */}
-      {oneFix.rung !== "logging" && (
-      <Card accent={oneFix.state === "good" ? T.jade : T.orange} style={{ padding: SP.lg }}>
-        <Eyebrow c={oneFix.state === "good" ? T.jade : T.orange}>THE ONE THING</Eyebrow>
-        <div style={{ marginTop: SP.sm }}><H size={20}>{oneFix.title}</H></div>
-        <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>{oneFix.body}</div>
-        {oneFix.whyNot ? (
-          <div style={{ marginTop: SP.md }}>
-            <button onClick={() => setWhyOpen(!whyOpen)} style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 11px", cursor: "pointer", whiteSpace: "nowrap" }}>
-              why not cut calories? {whyOpen ? "▾" : "▸"}
-            </button>
-            {whyOpen ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.body}px` }}>{oneFix.whyNot}</div> : null}
-          </div>
-        ) : null}
-      </Card>
-      )}
-
-      {/* WHAT YOU OWE was here (card #6, below the five and the one-thing). It is now
-          the full-width action button on the fold, directly under THE READ (§5a) —
-          no longer a resident card in the middle of the stack. */}
-
-      {/* ---------- AUTO-PILOT (v2 slice E — the thermostat) ----------
-          Holds the goal line. observedTDEE is the state estimate; currentRate the
-          measured slope. When the metabolism sheds a full adaptation's worth of
-          deficit, it PROPOSES a correction (cut OR steps) for one tap — never mutates.
-          Every option, and "Not now", files through the plan; nothing changes itself. */}
-      {(() => { const apMode = (plan && plan.apMode) || "recomp"; const ap = autoPilot(s, apMode); if (!ap.ok) return null;
-        const apProp = ap.proposed && plan.apDismiss !== tISO;
-        const apPro = ap.proteinOff && plan.apProDismiss !== tISO;
-        const wnA = weightNoise(s.reads); const cut = ap.dir === "cut"; const easing = ap.action === "ease";
-        const corrTxt = `${ap.band.corrPct[0]}–${ap.band.corrPct[1]}%BW/wk`;
-        const modeLabel = apMode === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP";
-        const recompPct = cutRateBand(s, "recomp").pct[1], fatlossPct = cutRateBand(s, "fatloss").pct[1];   // v6.2.1 — each toggle shows its OWN mode target (0.70 / 1.00), engine-sourced not selection-dependent
-        // STALENESS SAFEGUARD (v6.3.2) — a frozen rate is flagged, not trusted as current. When his
-        // last weigh-in is stale, Auto-Pilot holds and asks for a fresh morning instead of steering.
-        const stale = ap.stale;
-        const staleTell = stale ? `last weigh-in was ${ap.staleDays} days ago — weigh in to refresh before I adjust` : null;
-        const headline = stale
-          ? `Your last weigh-in was ${ap.staleDays} days ago, so this rate is frozen — I'm holding your line until a fresh morning refreshes it.`
-          : ap.action === "ease"
-          ? (cut ? `You're running ~${ap.pctRate}%BW/wk — hotter than your ${modeLabel} target (~${ap.targetPct}%). Ease back to hold the plan.` : `You're gaining ~${ap.pctRate}%BW/wk — past the ${ap.band.redlinePct}% edge. Ease the surplus before it turns to fat.`)
-          : ap.action === "tighten"
-            ? (cut ? `You're at ~${ap.pctRate}%BW/wk — under your ${modeLabel} target (~${ap.targetPct}%). You can safely pick it up.` : `You're at ~${ap.pctRate}%BW/wk — under the growth corridor. A touch more to make the gain count.`)
-            : (cut ? `You're on your ${modeLabel} line (~${ap.targetPct}%BW/wk). Auto-Pilot is holding it — ${apMode === "fatloss" ? "the fastest fat loss without crossing the redline." : "the best body-comp change your body banks."}` : `You're inside your growth corridor (${corrTxt}). Auto-Pilot is holding the disciplined lean-gain line.`);
-        const kcalVerb = cut ? (easing ? "add back" : "trim") : (easing ? "trim the surplus" : "add");
-        const proposalBody = `To ride your ${modeLabel} line, ${kcalVerb} ~${ap.corrKcal} kcal${cut ? `, or ${easing ? "trim" : "add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps` : ""}. Staging sends it to your approval inbox — Auto-Pilot never changes anything itself.`;
-        const holding = ap.action === "hold" && !apProp && !apPro;
-        /* §5d #2 — when Auto-Pilot is merely holding the line, it collapses to ONE
-           line (was the tallest resident card, ~330px). A proposal forces it open. */
-        if (holding && !apOpen) return (
-          <Card accent={stale ? T.brass : T.gauge} style={{ padding: `${SP.sm}px ${SP.md}px`, cursor: "pointer" }} onClick={() => { hap(6); setApOpen(true); }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm }}>
-              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.12em", color: stale ? T.brass : T.gauge, textTransform: "uppercase", whiteSpace: "nowrap" }}>{stale ? "AUTO-PILOT · WEIGH IN TO REFRESH" : "AUTO-PILOT · HOLDING YOUR LINE ✓"}</span>
-              <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, whiteSpace: "nowrap" }}>{stale ? `${ap.staleDays}d since last read · open ▸` : `~${ap.pctRate}%BW/wk · open ▸`}</span>
-            </div>
-          </Card>
-        );
-        return (
-        <Card accent={apProp ? T.brass : (apPro ? T.orange : (stale ? T.brass : T.gauge))} style={{ padding: SP.lg }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm }}>
-            <Eyebrow c={apProp ? T.brass : (apPro ? T.orange : (stale ? T.brass : T.gauge))}>{apProp || apPro ? "AUTO-PILOT · FOR YOU TO OK" : (stale ? "AUTO-PILOT · WEIGH IN TO REFRESH" : "AUTO-PILOT · HOLDING YOUR LINE")}</Eyebrow>
-            {holding ? <button onClick={() => setApOpen(false)} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: "none", cursor: "pointer", whiteSpace: "nowrap" }}>▾ hide</button> : null}
-          </div>
-          <div style={{ fontFamily: body, fontWeight: 600, fontSize: TS.title, lineHeight: `${LH.title}px`, color: T.chalk, marginTop: SP.sm }}>{headline}</div>
-          {stale && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>⏱ {staleTell}</div>}
-          {cut ? (
-            <div style={{ marginTop: SP.md }}>
-              {/* MODE (v6.2 F1) — the toggle SELECTS which corridor slice Auto-Pilot steers to. One
-                  engine (autoPilot/bodyCompBand) computes the corridor; this only picks the target. */}
-              <div style={{ display: "flex", gap: SP.xs }}>
-                {[["recomp", "MAX BODY COMP", recompPct, T.jade], ["fatloss", "MAX FAT LOSS", fatlossPct, T.orange]].map(([m, label, pct, c]) => {
-                  const on = apMode === m;
-                  return (
-                    <button key={m} onClick={() => { hap(8); savePlan({ apMode: m }); }} aria-pressed={on}
-                      style={{ flex: 1, textAlign: "left", background: on ? hexA(c, 0.13) : "transparent", border: `1px solid ${on ? c : T.line}`, borderRadius: 8, padding: `${SP.sm}px ${SP.md}px`, cursor: "pointer" }}>
-                      <div style={{ fontFamily: lbl, fontWeight: 700, fontSize: TS.micro, letterSpacing: "0.07em", color: on ? c : T.steel }}>{label}</div>
-                      <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 2, ...NUMERIC }}>~{pct}%BW/wk</div>
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>
-                {apMode === "fatloss"
-                  ? "Fastest fat off, muscle held flat — you ride just under the redline; the honest trade is you're not building here."
-                  : "Lean out while you build muscle — the best pure body-comp change; the trade is a slower scale for recomposition."}
-              </div>
-            </div>
-          ) : (
-            <div style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>Bulk: Auto-Pilot rides the disciplined lean-gain ceiling (~{ap.targetPct}%BW/wk) — surplus past it spills to fat.</div>
-          )}
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm }}>measured TDEE {ap.tdee} kcal · n={ap.n} · corridor {corrTxt}</div>
-          <div style={{ marginTop: SP.sm }}>
-            <Spark reads={s.reads} trend={s.trend} projRate={ap.band.corrLb ? +(((ap.band.corrLb[0] + ap.band.corrLb[1]) / 2)).toFixed(2) : ap.goalRate} noise={wnA.sd} noiseN={wnA.measured ? wnA.n : null} projSlopeSE={sig && sig.ci != null && sig.ci > 0 ? +(sig.ci / FORE.PI95).toFixed(3) : null} />
-          </div>
-          {apProp && (
-            <>
-              <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, lineHeight: `${LH.body}px` }}>{proposalBody}</div>
-              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.06em", marginTop: SP.sm }}>◆ from your own numbers</div>
-              <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
-                <Btn small tone="jade" onClick={() => {
-                  // v6.2 audit 4a — stage a REAL engine proposal into the approval inbox (s.proposals),
-                  // instead of the old no-op dismiss. One-door inbox owns approve/apply; this only stages.
-                  const rid = `ap_${ap.action}_${tISO}`;
-                  const ns = JSON.parse(JSON.stringify(s));
-                  ns.proposals = ns.proposals || [];
-                  if (!ns.proposals.some((p) => p.rid === rid && !p.resolved)) {
-                    ns.proposals.push({ rid, id: `${rid}_${tISO}`, d: tISO,
-                      title: easing ? "AUTO-PILOT · EASE THE TARGET" : "AUTO-PILOT · TIGHTEN THE TARGET",
-                      why: `Measured ~${ap.pctRate}%BW/wk vs your ${modeLabel} target ~${ap.targetPct}%. ${cut ? (easing ? "Add back" : "Trim") : (easing ? "Trim" : "Add")} ~${ap.corrKcal} kcal to ride the ${modeLabel} line — steps are the cheaper lever if they aren't already maxed.`,
-                      apply: { kind: "cal", delta: ap.corrKcal, dir: ap.action, calDelta: easing ? Math.abs(ap.corrKcal) : -Math.abs(ap.corrKcal), stepsDelta: cut ? (easing ? -Math.abs(ap.stepsAdd) : Math.abs(ap.stepsAdd)) : 0 }, resolved: false });
-                  }
-                  ns.plan = { ...(ns.plan || {}), apDismiss: tISO };
-                  setS(ns); save(ns); hap(12);
-                }}>{easing ? "Ease the target →" : "Tighten the target →"}</Btn>
-                {cut && <Btn small tone="jade" onClick={() => savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: `${easing ? "Trim" : "Add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps on non-lifting days (auto-pilot)` }], apDismiss: tISO })}>{easing ? "Trim the steps" : "Add the steps"}</Btn>}
-                <Btn small onClick={() => savePlan({ apDismiss: tISO })}>Not now</Btn>
-              </div>
-            </>
-          )}
-          {!apProp && ap.action === "hold" && (
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>Reads your trend, prices the drift in kcal, and holds you in the corridor — between the floor (leaving progress) and the {ap.band.redlinePct}%BW/wk redline (spending muscle).</div>
-          )}
-          {apPro && (
-            <div style={{ marginTop: SP.md, padding: SP.md, background: T.plate2, borderRadius: 8, borderLeft: `3px solid ${T.orange}`, border: `1px solid ${T.line}` }}>
-              <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.1em", color: T.orange, textTransform: "uppercase" }}>PROTEIN · THE PARTITION LEVER</div>
-              <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Your last day logged {ap.lastPro}g — under the {ap.proteinFloorG}g lean-retention floor. Protein is what keeps the loss coming off fat, not muscle; bring it to ~{ap.proteinTargetG}g.</div>
-              <div style={{ marginTop: SP.sm }}><Btn small onClick={() => savePlan({ apProDismiss: tISO })}>Not now</Btn></div>
-            </div>
-          )}
-        </Card>
-      ); })()}
-
-      {/* AUTO-PILOT · TRUST (v7.2.0 · Slice 3) — dial + why-this-number + track record + always-visible undo */}
-      <AutoPilotTrust s={s} setS={setS} save={save} tISO={tISO} />
-      <PhaseArcCard s={s} setS={setS} save={save} tISO={tISO} />
-
-      </Group>
-      {/* end TODAY group */}
-
-      {/* ---------- THIS WEEK · YOUR PLAN (v2 adherence A2) ----------
-          Self-authored process goals and if-then implementation intentions (d≈0.65,
-          the largest cheap effect in behaviour science — Gollwitzer & Sheeran 2006),
-          a forward weekly commit read off the same five levers (no second source of
-          truth), and an opt-in one-human share. Everything here is set by him and
-          attributed to the plan, never scored or nagged; dismiss is "Not now". A
-          collapsed Group by default, so it never crowds the morning. */}
-      <Group title="THIS WEEK" sub="your plan — goals, if-then, commit" persistKey="now.week" count={(plan.goals.length + plan.ifthen.length) || null}>
-        <div>
-          <Eyebrow c={T.jade}>YOUR PROCESS GOALS</Eyebrow>
-          {plan.goals.length === 0 && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>None set. A process goal is something you do, not a number on the scale — "four training sessions", "protein on target six days". They make the work task-focused instead of self-evaluative.</div>}
-          {plan.goals.map((g) => (
-            <div key={g.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.sm, minHeight: 40 }}>
-              <span style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: `${LH.body}px` }}>· {g.text}</span>
-              <button onClick={() => savePlan({ goals: plan.goals.filter((x) => x.id !== g.id) })} aria-label="remove goal" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, background: "none", border: "none", padding: SP.xs, cursor: "pointer", flexShrink: 0 }}>✕</button>
-            </div>
-          ))}
-          <div style={{ display: "flex", gap: SP.sm, marginTop: SP.sm }}>
-            <input value={newGoal} onChange={(e) => setNewGoal(e.target.value)} placeholder="a process goal" style={{ flex: 1, minWidth: 0, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
-            <Btn small tone="jade" onClick={() => { const t = newGoal.trim(); if (!t) return; savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: t }] }); setNewGoal(""); }}>Add</Btn>
-          </div>
-        </div>
-        <div>
-          <Eyebrow c={T.gauge}>IF–THEN PLANS</Eyebrow>
-          {plan.ifthen.length === 0 && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Write the cue then the action for the one behaviour you keep missing. It's free, it's yours, and it's one of the largest effects in the field.</div>}
-          {plan.ifthen.map((p) => (
-            <div key={p.id} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: SP.sm, marginTop: SP.xs }}>
-              <span style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: `${LH.body}px`, minWidth: 0 }}><span style={{ color: T.gauge, fontWeight: 600 }}>IF</span> {p.cue}, <span style={{ color: T.gauge, fontWeight: 600 }}>THEN</span> {p.action}</span>
-              <button onClick={() => savePlan({ ifthen: plan.ifthen.filter((x) => x.id !== p.id) })} aria-label="remove plan" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, background: "none", border: "none", padding: SP.xs, cursor: "pointer", flexShrink: 0 }}>✕</button>
-            </div>
-          ))}
-          <div style={{ display: "flex", flexDirection: "column", gap: SP.sm, marginTop: SP.sm }}>
-            <input value={ifCue} onChange={(e) => setIfCue(e.target.value)} placeholder="IF — e.g. it's Tuesday and I've not trained by 6pm" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
-            <input value={ifAct} onChange={(e) => setIfAct(e.target.value)} placeholder="THEN — e.g. I train at 6:15" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
-            <div><Btn small tone="jade" onClick={() => { const c = ifCue.trim(), a = ifAct.trim(); if (!c || !a) return; savePlan({ ifthen: [...plan.ifthen, { id: _freshId("p"), cue: c, action: a }] }); setIfCue(""); setIfAct(""); }}>Add plan</Btn></div>
-          </div>
-        </div>
-        <div>
-          <Eyebrow c={T.brass}>COMMIT TO THIS WEEK</Eyebrow>
-          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>One option, offered not ordered: hold the deficit and put the levers on the board. This week so far — {`training ${levers.training.detail} · protein ${levers.protein.detail} · steps ${levers.steps.detail} · sleep ${levers.sleep.detail}`}.</div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.md, marginTop: SP.md, minHeight: 44 }}>
-            <span style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, minWidth: 0 }}>Share this week's summary with one person</span>
-            <button role="switch" aria-checked={plan.share} onClick={() => savePlan({ share: !plan.share })} style={{ width: 44, height: 26, borderRadius: 999, border: `1px solid ${T.line}`, background: plan.share ? T.jade : T.plate2, position: "relative", cursor: "pointer", flexShrink: 0, transition: TR("background-color", MOT.micro) }}>
-              <span style={{ position: "absolute", top: 2, left: plan.share ? 20 : 2, width: 20, height: 20, borderRadius: "50%", background: plan.share ? T.ink : T.steel, transition: TR("left", MOT.micro) }} />
-            </button>
-          </div>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>Off by default. The highest-evidence accountability isn't the app nagging you — it's one human. Nothing leaves this device until you turn it on.</div>
-        </div>
-      </Group>
 
       {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
       {lawsOpen && <LawsView onClose={() => setLawsOpen(false)} />}
@@ -10042,10 +9848,28 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{al9.level === "RED" ? "The pattern held a second day. Today buys nothing worth its cost — walk, eat, sleep, and come back tomorrow ahead. Every lift's desk already says REST TODAY." : "Normal session, one rule changed: no all-out sets and no record attempts. Every zero becomes a one — the desk chips already carry it."}</div>
         </Card>
       ); })()}
-      {/* CAPTURE (§5c) — the morning inputs (sleep, weight, the morning minute) become
-          one remembered group, id'd so the WHAT YOU OWE button can deep-link + open it.
-          Default-open in the morning; then it stays exactly where he leaves it. */}
-      <Group title="CAPTURE" sub="sleep · weight · the morning minute" persistKey="now.capture" id="pl-capture" defaultOpen={new Date().getHours() < 12}>
+
+      {/* FOR YOU TO OK — the one-door approval inbox. Its own surface, ABOVE the three doors:
+          it renders nothing at all when empty, and when it is not empty it is the thing that
+          needs him. Self-renders as a quiet group with a count. */}
+      <ApprovalInbox s={s} setS={setS} save={save} tISO={tISO} />
+
+      {/* ---------- THE THREE DOORS (v7.5 NOW re-layout) ----------
+          NOW carried SEVEN collapsible groups (TODAY · THIS WEEK · CAPTURE · FOR YOU TO OK ·
+          YOUR ANALYST · Today's plan · Today's logs) plus a REST-OF-THE-DAY disclosure and a
+          nested Section — nine surfaces to scan before finding anything. They collapse here
+          into three fixed, labelled doors: CAPTURE (everything you log), THE READ (what the
+          machine is telling you), THE ROOM (session, recovery, the week, the laws).
+
+          Every card moved UNCHANGED — same writes, same gates, same element ids, same internal
+          state. Order is still fixed and the doors still remember where you left them
+          (Findlater & McGrenere: a self-rearranging interface measured ~8% slower). The
+          approval inbox stays its OWN surface ABOVE the doors: it renders nothing when empty,
+          so it costs no clutter, and burying 'changes waiting on your tap' one level deeper
+          would fight the rule that an approval must always be able to serve its function. */}
+
+      <Group title="CAPTURE" sub="everything you log — morning, evening, weekly" persistKey="now.capture" id="pl-capture" defaultOpen={new Date().getHours() < 12 || new Date().getHours() >= 17 || dl.cal == null}>
+      {/* morning: the minute, sleep and the scale */}
       {(() => {
         const owed = owedNights(s);
         const lastNight = isoOf(new Date((new Date().getHours() < 5 ? todayStart().getTime() - DAY : todayStart().getTime()) - DAY));
@@ -10155,117 +9979,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </>
         );
       })()}
-      </Group>
-      {/* end CAPTURE group */}
-
-      {/* FOR YOU TO OK — the one-door approval inbox, promoted to its OWN group (§5c),
-          a sibling ABOVE YOUR ANALYST. It self-renders as a quiet, default-collapsed
-          group with a count, and renders nothing at all when empty. */}
-      <ApprovalInbox s={s} setS={setS} save={save} tISO={tISO} />
-
-      {/* YOUR ANALYST (§5c rename, Joe-approved) — was the lower "The read" group;
-          renamed to end the collision with the top THE READ card (two different
-          things, two names now). The nightly brief + Ask; the inbox has left to its
-          own group above. Remembered collapse, quiet by default. */}
-      <Group title="YOUR ANALYST" sub="your analyst's brief · ask" persistKey="now.analyst" defaultOpen={false}>
-      <BriefCard s={s} setS={setS} save={save} />
-      <Card accent={T.jade} style={{ padding: "11px 14px", cursor: "pointer" }} onClick={() => setAskOpen(true)}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.chalk }}>🜁 ASK THE ANALYST <span style={{ color: T.steel }}>— anything about your data, same voice as the read</span></div>
-          <span style={{ fontFamily: mono, fontSize: 14, color: T.jade, flexShrink: 0 }}>▸</span>
-        </div>
-      </Card>
-
-
-
-
-
-
-
-
-
-
-
-      </Group>
-
-      <Group title="Today's plan" sub="what to do today" persistKey="now.plan" id="pl-plan" defaultOpen={new Date().getHours() < 17}>
-      {(() => { const pr = dayProtocol(s, slp); return (
-        <Card accent={T.jade}>
-          <Eyebrow c={T.jade}>TODAY'S PROTOCOL — RANKED, FROM YOUR DATA</Eyebrow>
-          <div style={{ marginTop: 6 }}><H size={22}>{pr.lead.t}</H></div>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 4 }}>{plainify(pr.lead.sub)}</div>
-          {/* §5d #1 — lead + step TITLES stay resident; each step's why paragraph and
-              detail[] block fold behind a per-step ▸ why expander (ProtoStep). The
-              ~350–520px narration becomes ~120px; the depth is one tap away, per step. */}
-          <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9, display: "flex", flexDirection: "column", gap: 7 }}>
-            {pr.steps.map((st2, i) => <ProtoStep key={i} n={i + 2} st={st2} />)}
-          </div>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 9, lineHeight: 1.5 }}>
-            ranked by how much each moves body composition and how far you sit from it — deficit and protein outrank sleep, sleep outranks caffeine and steps
-            {pr.held > 0 ? ` · ${pr.held} more held back, not dropped — open the day's full read for the rest` : ""}
-          </div>
-        </Card>
-      ); })()}
-
-      {ev && (
-        <Card accent={T.chalk}>
-          <Eyebrow>EVENT MODE · {fmtShort(ev.d)}</Eyebrow>
-          <H size={19}>{ev.t}</H>
-          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>{ev.protocol}. Events filed without a make-up day: <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> straight — an event never buys a punishment here: tomorrow runs exactly as planned.</div>
-          {daysUntil(ev.d) <= 0 && (
-            <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-              {daysUntil(ev.d) < 0 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>waiting on you to close it — the ledger doesn't guess</div>}
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginBottom: 8 }}>after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button</div>
-              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>File the event ✓ — your estimate goes in tonight's numbers</Btn>
-            </div>
-          )}
-        </Card>
-      )}
-
-
-
-      {(() => {
-        const y8 = isoOf(new Date(todayStart().getTime() - DAY));
-        if ((s.dailyLogs[y8] && !amendY) || Object.keys(s.dailyLogs).length === 0) return null;
-        const isAmend = !!s.dailyLogs[y8];
-        return (
-          <Card id="pl-amend" accent={T.brass}>
-            <Eyebrow c={T.brass}>{isAmend ? `AMEND ${fmtShort(y8).toUpperCase()} — HONEST CORRECTIONS WELCOME` : `YESTERDAY'S BOOKS STILL OPEN — CLOSE ${fmtShort(y8).toUpperCase()} IN 30 SECONDS`}</Eyebrow>
-            <div style={{ marginTop: 6 }}>
-              <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if ((ns.dayCtx[y8] || {}).est) delete ns.dayCtx[y8]; else ns.dayCtx[y8] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
-                style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.05em", color: ((s.dayCtx || {})[y8] || {}).est ? T.brass : T.steel, border: `1px solid ${((s.dayCtx || {})[y8] || {}).est ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>
-                {((s.dayCtx || {})[y8] || {}).est ? "⌁ ESTIMATE DAY ✓" : "was it an estimate day?"}
-              </span>
-            </div>
-            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>{isAmend ? "Late bites count on the day they belong to. Corrected numbers replace the old ones; the amendment itself goes on the record — that is accuracy, not failure." : "Midnight passed but the day didn't file itself. Same numbers, honest timestamp — the ledger marks it logged-late, which is a fact, not a fault."}</div>
-            <div style={{ display: "flex", gap: 8, marginTop: 9 }}>
-              {[["CAL", yCal, setYCal], ["PRO", yPro, setYPro], ["STEPS", yStp, setYStp]].map(([l8, v8, f8]) => (
-                <div key={l8} style={{ flex: 1 }}>
-                  <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em", marginBottom: 4 }}>{l8}</div>
-                  <input inputMode="decimal" value={v8} onChange={(e8) => f8(e8.target.value)} style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8, color: T.chalk, fontFamily: mono, fontSize: 15, padding: "9px 8px", outline: "none" }} />
-                </div>
-              ))}
-            </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}>
-              <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>SODIUM</span>
-              {["low", "med", "high"].map((sv) => (
-                <span key={sv} onClick={() => setYSod(sv)} style={{ fontFamily: mono, fontSize: TS.micro, color: ySod === sv ? T.jade : T.steel, border: `1px solid ${ySod === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px", cursor: "pointer" }}>{sv}</span>
-              ))}
-              <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginLeft: 8 }}>ALCOHOL</span>
-              {[2, 4, 6, 8, 10, 12].map((u0) => (
-                <span key={u0} onClick={() => setYAlc(u0)} style={{ fontFamily: mono, fontSize: TS.micro, color: +yAlc === u0 ? T.jade : T.steel, border: `1px solid ${+yAlc === u0 ? T.jade : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>{u0}</span>
-              ))}
-              <Stepper v={+yAlc} set={setYAlc} step={1} min={0} />
-            </div>
-            <div style={{ marginTop: 10 }}>
-              <Btn full tone="jade" onClick={() => { if (yCal === "" && yPro === "" && yStp === "") return; const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: yCal === "" ? null : +yCal, pro: yPro === "" ? null : +yPro, steps: yStp === "" ? null : +yStp, sodium: ySod, alc: +yAlc || 0 }; ns.feed.unshift(isAmend ? { d: y8, t: `DAY AMENDED — ${fmtShort(y8)}: ${(s.dailyLogs[y8] || {}).cal ?? "—"}→${yCal || "—"} cal · ${(s.dailyLogs[y8] || {}).pro ?? "—"}→${yPro || "—"} g`, how: "athlete corrected the record after close — late bites logged where they belong" } : { d: y8, t: `BOOKS CLOSED LATE — ${fmtShort(y8)} logged after midnight`, how: "the repair door on NOW — same numbers, honest timestamp" }); setAmendY(false); setS(ns); save(ns); }}>{isAmend ? `Refile ${fmtShort(y8)} — corrected` : `Close ${fmtShort(y8)} — file it`}</Btn>
-            </div>
-          </Card>
-        );
-      })()}
-
-      </Group>
-      <Group title="Today's logs" sub="what you file" persistKey="now.logs" id="pl-closeday" defaultOpen={new Date().getHours() >= 17 || (dl && dl.cal == null)}>
+      {/* evening: the day's numbers, and the small logs that ride with them */}
+      <div id="pl-closeday">
       {dl.cal != null && !dayEdit ? (
         <Card style={{ padding: 12 }} accent={T.jade}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
@@ -10482,27 +10197,292 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         </Card>
       ); })()}
 
+      </div>
+      {/* the repair door — reopen or amend yesterday (deep-link target pl-amend) */}
+      {(() => {
+        const y8 = isoOf(new Date(todayStart().getTime() - DAY));
+        if ((s.dailyLogs[y8] && !amendY) || Object.keys(s.dailyLogs).length === 0) return null;
+        const isAmend = !!s.dailyLogs[y8];
+        return (
+          <Card id="pl-amend" accent={T.brass}>
+            <Eyebrow c={T.brass}>{isAmend ? `AMEND ${fmtShort(y8).toUpperCase()} — HONEST CORRECTIONS WELCOME` : `YESTERDAY'S BOOKS STILL OPEN — CLOSE ${fmtShort(y8).toUpperCase()} IN 30 SECONDS`}</Eyebrow>
+            <div style={{ marginTop: 6 }}>
+              <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if ((ns.dayCtx[y8] || {}).est) delete ns.dayCtx[y8]; else ns.dayCtx[y8] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
+                style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.05em", color: ((s.dayCtx || {})[y8] || {}).est ? T.brass : T.steel, border: `1px solid ${((s.dayCtx || {})[y8] || {}).est ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>
+                {((s.dayCtx || {})[y8] || {}).est ? "⌁ ESTIMATE DAY ✓" : "was it an estimate day?"}
+              </span>
+            </div>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>{isAmend ? "Late bites count on the day they belong to. Corrected numbers replace the old ones; the amendment itself goes on the record — that is accuracy, not failure." : "Midnight passed but the day didn't file itself. Same numbers, honest timestamp — the ledger marks it logged-late, which is a fact, not a fault."}</div>
+            <div style={{ display: "flex", gap: 8, marginTop: 9 }}>
+              {[["CAL", yCal, setYCal], ["PRO", yPro, setYPro], ["STEPS", yStp, setYStp]].map(([l8, v8, f8]) => (
+                <div key={l8} style={{ flex: 1 }}>
+                  <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em", marginBottom: 4 }}>{l8}</div>
+                  <input inputMode="decimal" value={v8} onChange={(e8) => f8(e8.target.value)} style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8, color: T.chalk, fontFamily: mono, fontSize: 15, padding: "9px 8px", outline: "none" }} />
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>SODIUM</span>
+              {["low", "med", "high"].map((sv) => (
+                <span key={sv} onClick={() => setYSod(sv)} style={{ fontFamily: mono, fontSize: TS.micro, color: ySod === sv ? T.jade : T.steel, border: `1px solid ${ySod === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px", cursor: "pointer" }}>{sv}</span>
+              ))}
+              <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginLeft: 8 }}>ALCOHOL</span>
+              {[2, 4, 6, 8, 10, 12].map((u0) => (
+                <span key={u0} onClick={() => setYAlc(u0)} style={{ fontFamily: mono, fontSize: TS.micro, color: +yAlc === u0 ? T.jade : T.steel, border: `1px solid ${+yAlc === u0 ? T.jade : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>{u0}</span>
+              ))}
+              <Stepper v={+yAlc} set={setYAlc} step={1} min={0} />
+            </div>
+            <div style={{ marginTop: 10 }}>
+              <Btn full tone="jade" onClick={() => { if (yCal === "" && yPro === "" && yStp === "") return; const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: yCal === "" ? null : +yCal, pro: yPro === "" ? null : +yPro, steps: yStp === "" ? null : +yStp, sodium: ySod, alc: +yAlc || 0 }; ns.feed.unshift(isAmend ? { d: y8, t: `DAY AMENDED — ${fmtShort(y8)}: ${(s.dailyLogs[y8] || {}).cal ?? "—"}→${yCal || "—"} cal · ${(s.dailyLogs[y8] || {}).pro ?? "—"}→${yPro || "—"} g`, how: "athlete corrected the record after close — late bites logged where they belong" } : { d: y8, t: `BOOKS CLOSED LATE — ${fmtShort(y8)} logged after midnight`, how: "the repair door on NOW — same numbers, honest timestamp" }); setAmendY(false); setS(ns); save(ns); }}>{isAmend ? `Refile ${fmtShort(y8)} — corrected` : `Close ${fmtShort(y8)} — file it`}</Btn>
+            </div>
+          </Card>
+        );
+      })()}
+
       </Group>
 
-      {/* ---------- everything below here is READING, not doing ----------
-          Collapsed by default and it stays where he left it. Nothing is
-          removed — the whole room is one tap away, in the same place, every
-          time. Adaptive promotion was considered and rejected: an interface
-          that rearranges itself measured ~8% slower than a static one
-          (Findlater & McGrenere, CHI 2004) because it destroys the spatial
-          memory that makes a daily app fast. */}
-      <Card style={{ padding: "12px 14px", cursor: "pointer" }} onClick={() => setRestOpen(!restOpen)}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.chalk, letterSpacing: "0.06em" }}>
-            {restOpen ? "▾ THE REST OF THE DAY" : "▸ THE REST OF THE DAY"}
-            <span style={{ color: T.steel }}> — session plan, recovery, the big picture</span>
+      <Group title="THE READ" sub="auto-pilot detail · your analyst · today's protocol" persistKey="now.read" id="pl-read" defaultOpen={false}>
+      {/* Auto-Pilot's detail, behind the cockpit that summarises it. Keeps id pl-today so the
+          status word's escalation deep-link still scrolls to the call that needs him. */}
+      <div id="pl-today">
+      {/* ---------- THE ONE THING (v2 adherence — the single evidence-ordered fix) ----------
+          Never a reflexive calorie cut: the ladder is verify-logging -> steps/NEAT
+          -> protect sleep -> only then trim -> diet break. Autonomy-supportive voice,
+          attributed to the plan, never the person. A quiet chip opens the rationale.
+          Hidden when the top rung is "log" — WHAT YOU OWE below already owns that action,
+          so the two cards never say the same thing (non-redundancy, spec §6). */}
+      {oneFix.rung !== "logging" && (
+      <Card accent={oneFix.state === "good" ? T.jade : T.orange} style={{ padding: SP.lg }}>
+        <Eyebrow c={oneFix.state === "good" ? T.jade : T.orange}>THE ONE THING</Eyebrow>
+        <div style={{ marginTop: SP.sm }}><H size={20}>{oneFix.title}</H></div>
+        <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>{oneFix.body}</div>
+        {oneFix.whyNot ? (
+          <div style={{ marginTop: SP.md }}>
+            <button onClick={() => setWhyOpen(!whyOpen)} style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 11px", cursor: "pointer", whiteSpace: "nowrap" }}>
+              why not cut calories? {whyOpen ? "▾" : "▸"}
+            </button>
+            {whyOpen ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.body}px` }}>{oneFix.whyNot}</div> : null}
           </div>
-          <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, flexShrink: 0 }}>{restOpen ? "hide" : "open"}</span>
+        ) : null}
+      </Card>
+      )}
+
+      {/* WHAT YOU OWE was here (card #6, below the five and the one-thing). It is now
+          the full-width action button on the fold, directly under THE READ (§5a) —
+          no longer a resident card in the middle of the stack. */}
+
+      {/* ---------- AUTO-PILOT (v2 slice E — the thermostat) ----------
+          Holds the goal line. observedTDEE is the state estimate; currentRate the
+          measured slope. When the metabolism sheds a full adaptation's worth of
+          deficit, it PROPOSES a correction (cut OR steps) for one tap — never mutates.
+          Every option, and "Not now", files through the plan; nothing changes itself. */}
+      {(() => { const apMode = (plan && plan.apMode) || "recomp"; const ap = autoPilot(s, apMode); if (!ap.ok) return null;
+        const apProp = ap.proposed && plan.apDismiss !== tISO;
+        const apPro = ap.proteinOff && plan.apProDismiss !== tISO;
+        const wnA = weightNoise(s.reads); const cut = ap.dir === "cut"; const easing = ap.action === "ease";
+        const corrTxt = `${ap.band.corrPct[0]}–${ap.band.corrPct[1]}%BW/wk`;
+        const modeLabel = apMode === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP";
+        const recompPct = cutRateBand(s, "recomp").pct[1], fatlossPct = cutRateBand(s, "fatloss").pct[1];   // v6.2.1 — each toggle shows its OWN mode target (0.70 / 1.00), engine-sourced not selection-dependent
+        // STALENESS SAFEGUARD (v6.3.2) — a frozen rate is flagged, not trusted as current. When his
+        // last weigh-in is stale, Auto-Pilot holds and asks for a fresh morning instead of steering.
+        const stale = ap.stale;
+        const staleTell = stale ? `last weigh-in was ${ap.staleDays} days ago — weigh in to refresh before I adjust` : null;
+        const headline = stale
+          ? `Your last weigh-in was ${ap.staleDays} days ago, so this rate is frozen — I'm holding your line until a fresh morning refreshes it.`
+          : ap.action === "ease"
+          ? (cut ? `You're running ~${ap.pctRate}%BW/wk — hotter than your ${modeLabel} target (~${ap.targetPct}%). Ease back to hold the plan.` : `You're gaining ~${ap.pctRate}%BW/wk — past the ${ap.band.redlinePct}% edge. Ease the surplus before it turns to fat.`)
+          : ap.action === "tighten"
+            ? (cut ? `You're at ~${ap.pctRate}%BW/wk — under your ${modeLabel} target (~${ap.targetPct}%). You can safely pick it up.` : `You're at ~${ap.pctRate}%BW/wk — under the growth corridor. A touch more to make the gain count.`)
+            : (cut ? `You're on your ${modeLabel} line (~${ap.targetPct}%BW/wk). Auto-Pilot is holding it — ${apMode === "fatloss" ? "the fastest fat loss without crossing the redline." : "the best body-comp change your body banks."}` : `You're inside your growth corridor (${corrTxt}). Auto-Pilot is holding the disciplined lean-gain line.`);
+        const kcalVerb = cut ? (easing ? "add back" : "trim") : (easing ? "trim the surplus" : "add");
+        const proposalBody = `To ride your ${modeLabel} line, ${kcalVerb} ~${ap.corrKcal} kcal${cut ? `, or ${easing ? "trim" : "add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps` : ""}. Staging sends it to your approval inbox — Auto-Pilot never changes anything itself.`;
+        const holding = ap.action === "hold" && !apProp && !apPro;
+        /* §5d #2 — when Auto-Pilot is merely holding the line, it collapses to ONE
+           line (was the tallest resident card, ~330px). A proposal forces it open. */
+        if (holding && !apOpen) return (
+          <Card accent={stale ? T.brass : T.gauge} style={{ padding: `${SP.sm}px ${SP.md}px`, cursor: "pointer" }} onClick={() => { hap(6); setApOpen(true); }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm }}>
+              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.12em", color: stale ? T.brass : T.gauge, textTransform: "uppercase", whiteSpace: "nowrap" }}>{stale ? "AUTO-PILOT · WEIGH IN TO REFRESH" : "AUTO-PILOT · HOLDING YOUR LINE ✓"}</span>
+              <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, whiteSpace: "nowrap" }}>{stale ? `${ap.staleDays}d since last read · open ▸` : `~${ap.pctRate}%BW/wk · open ▸`}</span>
+            </div>
+          </Card>
+        );
+        return (
+        <Card accent={apProp ? T.brass : (apPro ? T.orange : (stale ? T.brass : T.gauge))} style={{ padding: SP.lg }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm }}>
+            <Eyebrow c={apProp ? T.brass : (apPro ? T.orange : (stale ? T.brass : T.gauge))}>{apProp || apPro ? "AUTO-PILOT · FOR YOU TO OK" : (stale ? "AUTO-PILOT · WEIGH IN TO REFRESH" : "AUTO-PILOT · HOLDING YOUR LINE")}</Eyebrow>
+            {holding ? <button onClick={() => setApOpen(false)} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: "none", cursor: "pointer", whiteSpace: "nowrap" }}>▾ hide</button> : null}
+          </div>
+          <div style={{ fontFamily: body, fontWeight: 600, fontSize: TS.title, lineHeight: `${LH.title}px`, color: T.chalk, marginTop: SP.sm }}>{headline}</div>
+          {stale && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>⏱ {staleTell}</div>}
+          {cut ? (
+            <div style={{ marginTop: SP.md }}>
+              {/* MODE (v6.2 F1) — the toggle SELECTS which corridor slice Auto-Pilot steers to. One
+                  engine (autoPilot/bodyCompBand) computes the corridor; this only picks the target. */}
+              <div style={{ display: "flex", gap: SP.xs }}>
+                {[["recomp", "MAX BODY COMP", recompPct, T.jade], ["fatloss", "MAX FAT LOSS", fatlossPct, T.orange]].map(([m, label, pct, c]) => {
+                  const on = apMode === m;
+                  return (
+                    <button key={m} onClick={() => { hap(8); savePlan({ apMode: m }); }} aria-pressed={on}
+                      style={{ flex: 1, textAlign: "left", background: on ? hexA(c, 0.13) : "transparent", border: `1px solid ${on ? c : T.line}`, borderRadius: 8, padding: `${SP.sm}px ${SP.md}px`, cursor: "pointer" }}>
+                      <div style={{ fontFamily: lbl, fontWeight: 700, fontSize: TS.micro, letterSpacing: "0.07em", color: on ? c : T.steel }}>{label}</div>
+                      <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 2, ...NUMERIC }}>~{pct}%BW/wk</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>
+                {apMode === "fatloss"
+                  ? "Fastest fat off, muscle held flat — you ride just under the redline; the honest trade is you're not building here."
+                  : "Lean out while you build muscle — the best pure body-comp change; the trade is a slower scale for recomposition."}
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>Bulk: Auto-Pilot rides the disciplined lean-gain ceiling (~{ap.targetPct}%BW/wk) — surplus past it spills to fat.</div>
+          )}
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm }}>measured TDEE {ap.tdee} kcal · n={ap.n} · corridor {corrTxt}</div>
+          <div style={{ marginTop: SP.sm }}>
+            <Spark reads={s.reads} trend={s.trend} projRate={ap.band.corrLb ? +(((ap.band.corrLb[0] + ap.band.corrLb[1]) / 2)).toFixed(2) : ap.goalRate} noise={wnA.sd} noiseN={wnA.measured ? wnA.n : null} projSlopeSE={sig && sig.ci != null && sig.ci > 0 ? +(sig.ci / FORE.PI95).toFixed(3) : null} />
+          </div>
+          {apProp && (
+            <>
+              <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, lineHeight: `${LH.body}px` }}>{proposalBody}</div>
+              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.06em", marginTop: SP.sm }}>◆ from your own numbers</div>
+              <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
+                <Btn small tone="jade" onClick={() => {
+                  // v6.2 audit 4a — stage a REAL engine proposal into the approval inbox (s.proposals),
+                  // instead of the old no-op dismiss. One-door inbox owns approve/apply; this only stages.
+                  const rid = `ap_${ap.action}_${tISO}`;
+                  const ns = JSON.parse(JSON.stringify(s));
+                  ns.proposals = ns.proposals || [];
+                  if (!ns.proposals.some((p) => p.rid === rid && !p.resolved)) {
+                    ns.proposals.push({ rid, id: `${rid}_${tISO}`, d: tISO,
+                      title: easing ? "AUTO-PILOT · EASE THE TARGET" : "AUTO-PILOT · TIGHTEN THE TARGET",
+                      why: `Measured ~${ap.pctRate}%BW/wk vs your ${modeLabel} target ~${ap.targetPct}%. ${cut ? (easing ? "Add back" : "Trim") : (easing ? "Trim" : "Add")} ~${ap.corrKcal} kcal to ride the ${modeLabel} line — steps are the cheaper lever if they aren't already maxed.`,
+                      apply: { kind: "cal", delta: ap.corrKcal, dir: ap.action, calDelta: easing ? Math.abs(ap.corrKcal) : -Math.abs(ap.corrKcal), stepsDelta: cut ? (easing ? -Math.abs(ap.stepsAdd) : Math.abs(ap.stepsAdd)) : 0 }, resolved: false });
+                  }
+                  ns.plan = { ...(ns.plan || {}), apDismiss: tISO };
+                  setS(ns); save(ns); hap(12);
+                }}>{easing ? "Ease the target →" : "Tighten the target →"}</Btn>
+                {cut && <Btn small tone="jade" onClick={() => savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: `${easing ? "Trim" : "Add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps on non-lifting days (auto-pilot)` }], apDismiss: tISO })}>{easing ? "Trim the steps" : "Add the steps"}</Btn>}
+                <Btn small onClick={() => savePlan({ apDismiss: tISO })}>Not now</Btn>
+              </div>
+            </>
+          )}
+          {!apProp && ap.action === "hold" && (
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>Reads your trend, prices the drift in kcal, and holds you in the corridor — between the floor (leaving progress) and the {ap.band.redlinePct}%BW/wk redline (spending muscle).</div>
+          )}
+          {apPro && (
+            <div style={{ marginTop: SP.md, padding: SP.md, background: T.plate2, borderRadius: 8, borderLeft: `3px solid ${T.orange}`, border: `1px solid ${T.line}` }}>
+              <div style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.1em", color: T.orange, textTransform: "uppercase" }}>PROTEIN · THE PARTITION LEVER</div>
+              <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Your last day logged {ap.lastPro}g — under the {ap.proteinFloorG}g lean-retention floor. Protein is what keeps the loss coming off fat, not muscle; bring it to ~{ap.proteinTargetG}g.</div>
+              <div style={{ marginTop: SP.sm }}><Btn small onClick={() => savePlan({ apProDismiss: tISO })}>Not now</Btn></div>
+            </div>
+          )}
+        </Card>
+      ); })()}
+
+      {/* AUTO-PILOT · TRUST (v7.2.0 · Slice 3) — dial + why-this-number + track record + always-visible undo */}
+      <AutoPilotTrust s={s} setS={setS} save={save} tISO={tISO} />
+      <PhaseArcCard s={s} setS={setS} save={save} tISO={tISO} />
+
+      </div>
+      <BriefCard s={s} setS={setS} save={save} />
+      <Card accent={T.jade} style={{ padding: "11px 14px", cursor: "pointer" }} onClick={() => setAskOpen(true)}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.chalk }}>🜁 ASK THE ANALYST <span style={{ color: T.steel }}>— anything about your data, same voice as the read</span></div>
+          <span style={{ fontFamily: mono, fontSize: 14, color: T.jade, flexShrink: 0 }}>▸</span>
         </div>
       </Card>
 
-      {restOpen && (<>
-      <SecRule>THE ROOM · plan and rules</SecRule>
+
+
+
+
+
+
+
+
+
+
+      {(() => { const pr = dayProtocol(s, slp); return (
+        <Card accent={T.jade}>
+          <Eyebrow c={T.jade}>TODAY'S PROTOCOL — RANKED, FROM YOUR DATA</Eyebrow>
+          <div style={{ marginTop: 6 }}><H size={22}>{pr.lead.t}</H></div>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 4 }}>{plainify(pr.lead.sub)}</div>
+          {/* §5d #1 — lead + step TITLES stay resident; each step's why paragraph and
+              detail[] block fold behind a per-step ▸ why expander (ProtoStep). The
+              ~350–520px narration becomes ~120px; the depth is one tap away, per step. */}
+          <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 9, display: "flex", flexDirection: "column", gap: 7 }}>
+            {pr.steps.map((st2, i) => <ProtoStep key={i} n={i + 2} st={st2} />)}
+          </div>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 9, lineHeight: 1.5 }}>
+            ranked by how much each moves body composition and how far you sit from it — deficit and protein outrank sleep, sleep outranks caffeine and steps
+            {pr.held > 0 ? ` · ${pr.held} more held back, not dropped — open the day's full read for the rest` : ""}
+          </div>
+        </Card>
+      ); })()}
+
+      {ev && (
+        <Card accent={T.chalk}>
+          <Eyebrow>EVENT MODE · {fmtShort(ev.d)}</Eyebrow>
+          <H size={19}>{ev.t}</H>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>{ev.protocol}. Events filed without a make-up day: <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> straight — an event never buys a punishment here: tomorrow runs exactly as planned.</div>
+          {daysUntil(ev.d) <= 0 && (
+            <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+              {daysUntil(ev.d) < 0 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>waiting on you to close it — the ledger doesn't guess</div>}
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginBottom: 8 }}>after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button</div>
+              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>File the event ✓ — your estimate goes in tonight's numbers</Btn>
+            </div>
+          )}
+        </Card>
+      )}
+
+
+
+      </Group>
+
+      <Group title="THE ROOM" sub="this week · session · recovery · the laws" persistKey="now.room" id="pl-room" defaultOpen={false}>
+        <div>
+          <Eyebrow c={T.jade}>YOUR PROCESS GOALS</Eyebrow>
+          {plan.goals.length === 0 && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>None set. A process goal is something you do, not a number on the scale — "four training sessions", "protein on target six days". They make the work task-focused instead of self-evaluative.</div>}
+          {plan.goals.map((g) => (
+            <div key={g.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.sm, minHeight: 40 }}>
+              <span style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: `${LH.body}px` }}>· {g.text}</span>
+              <button onClick={() => savePlan({ goals: plan.goals.filter((x) => x.id !== g.id) })} aria-label="remove goal" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, background: "none", border: "none", padding: SP.xs, cursor: "pointer", flexShrink: 0 }}>✕</button>
+            </div>
+          ))}
+          <div style={{ display: "flex", gap: SP.sm, marginTop: SP.sm }}>
+            <input value={newGoal} onChange={(e) => setNewGoal(e.target.value)} placeholder="a process goal" style={{ flex: 1, minWidth: 0, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
+            <Btn small tone="jade" onClick={() => { const t = newGoal.trim(); if (!t) return; savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: t }] }); setNewGoal(""); }}>Add</Btn>
+          </div>
+        </div>
+        <div>
+          <Eyebrow c={T.gauge}>IF–THEN PLANS</Eyebrow>
+          {plan.ifthen.length === 0 && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Write the cue then the action for the one behaviour you keep missing. It's free, it's yours, and it's one of the largest effects in the field.</div>}
+          {plan.ifthen.map((p) => (
+            <div key={p.id} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: SP.sm, marginTop: SP.xs }}>
+              <span style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: `${LH.body}px`, minWidth: 0 }}><span style={{ color: T.gauge, fontWeight: 600 }}>IF</span> {p.cue}, <span style={{ color: T.gauge, fontWeight: 600 }}>THEN</span> {p.action}</span>
+              <button onClick={() => savePlan({ ifthen: plan.ifthen.filter((x) => x.id !== p.id) })} aria-label="remove plan" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, background: "none", border: "none", padding: SP.xs, cursor: "pointer", flexShrink: 0 }}>✕</button>
+            </div>
+          ))}
+          <div style={{ display: "flex", flexDirection: "column", gap: SP.sm, marginTop: SP.sm }}>
+            <input value={ifCue} onChange={(e) => setIfCue(e.target.value)} placeholder="IF — e.g. it's Tuesday and I've not trained by 6pm" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
+            <input value={ifAct} onChange={(e) => setIfAct(e.target.value)} placeholder="THEN — e.g. I train at 6:15" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
+            <div><Btn small tone="jade" onClick={() => { const c = ifCue.trim(), a = ifAct.trim(); if (!c || !a) return; savePlan({ ifthen: [...plan.ifthen, { id: _freshId("p"), cue: c, action: a }] }); setIfCue(""); setIfAct(""); }}>Add plan</Btn></div>
+          </div>
+        </div>
+        <div>
+          <Eyebrow c={T.brass}>COMMIT TO THIS WEEK</Eyebrow>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>One option, offered not ordered: hold the deficit and put the levers on the board. This week so far — {`training ${levers.training.detail} · protein ${levers.protein.detail} · steps ${levers.steps.detail} · sleep ${levers.sleep.detail}`}.</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.md, marginTop: SP.md, minHeight: 44 }}>
+            <span style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, minWidth: 0 }}>Share this week's summary with one person</span>
+            <button role="switch" aria-checked={plan.share} onClick={() => savePlan({ share: !plan.share })} style={{ width: 44, height: 26, borderRadius: 999, border: `1px solid ${T.line}`, background: plan.share ? T.jade : T.plate2, position: "relative", cursor: "pointer", flexShrink: 0, transition: TR("background-color", MOT.micro) }}>
+              <span style={{ position: "absolute", top: 2, left: plan.share ? 20 : 2, width: 20, height: 20, borderRadius: "50%", background: plan.share ? T.ink : T.steel, transition: TR("left", MOT.micro) }} />
+            </button>
+          </div>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>Off by default. The highest-evidence accountability isn't the app nagging you — it's one human. Nothing leaves this device until you turn it on.</div>
+        </div>
 
 
       {sess && (
@@ -10542,7 +10522,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       ); })()}
 
       {/* the crossover countdown is gone from here too — see COUNTDOWN_NOTE below */}
-      <Section title="The Big Picture" persistKey="now.bigpicture" meta={(() => { const rec = recoveryIndex(s); const cr9 = currentRate(s); return `${rec.flags.length}/${rec.watched} signals up${cr9.measured ? ` · ${cr9.scale} lb/wk` : ""}`; })()}>
+      {/* v7.5 — RECOVERY and CLOSEST UNLOCKS were behind a nested <Section> inside the
+          rest-of-day disclosure, i.e. two taps down. THE ROOM is a flat door now, so they
+          sit directly in it. The Section meta line is dropped with it: it printed the rate
+          a fourth time, and RECOVERY already carries its own "N of M signals up" header. */}
       {(() => {
         const rec = recoveryIndex(s);
         const c = rec.band === "GREEN" ? T.jade : rec.band === "WATCH" ? T.brass : T.brass;
@@ -10593,13 +10576,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
     lands him, with the honest interval around it, and no clock. As of the v7.5
     re-layout that surviving half lives in the merged TRAJECTORY card at Tier 1,
     not in a second card at the bottom of THE ROOM. */}
-      </Section>
 
       <Card style={{ padding: "10px 14px" }}>
         <div onClick={() => setLawsOpen(true)} style={{ cursor: "pointer", fontFamily: mono, fontSize: TS.micro, color: T.steel }}>⚖ THE HOUSE LAWS — the rules this app runs on · tap to read ▸</div>
       </Card>
 
-      </>)}
+      </Group>
 
       {/* §5e — the tagline lands here (demoted off the fold masthead): brand, at rest,
           at the bottom, beside the version. */}
