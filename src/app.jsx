@@ -6292,20 +6292,31 @@ function patchV35(s) {
   s.v = 35;
   return s;
 }
+/* _hashId — a deterministic CONTENT hash (djb2) for backfilling stable keys on legacy plan entries.
+   Index-based ids would collide across devices (each mints g_v36_0, g_v36_1 … for DIFFERENT entries),
+   and the keyed union would then drop one side's divergent legacy goal — the exact never-drop violation
+   the audit caught. Content-derived ids instead COLLAPSE identical legacy entries (correct) and keep
+   distinct ones distinct (never dropped), independent of array order or device. */
+function _hashId(prefix, str) {
+  let h = 5381; const s = String(str == null ? "" : str);
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return prefix + (h >>> 0).toString(36);
+}
 function patchV36(s) {
   /* v7.2.0 Slice 3 — the graduated-autonomy dial lands in s.plan (the FIRST synced-state touch),
      so this is where s.plan gains its default policy field and its entries gain stable keys for the
      new keyed-union merge. ADDITIVE + idempotent: default the autonomy scalar to the most-supervised
-     level, and backfill an id on any legacy goal / if-then entry that predates ids (so the union has
-     a key on every entry). No existing field is read for meaning or rewritten — no history can move,
-     and replaying the whole chain over a fresh seed is a no-op (SEED already carries autonomy:"propose"). */
+     level, and backfill a CONTENT-derived id on any legacy goal / if-then entry that predates ids (so
+     the union has a globally-stable key on every entry — never an index that collides across devices).
+     No existing field is read for meaning or rewritten — no history can move, and replaying the whole
+     chain over a fresh seed is a no-op (SEED already carries autonomy:"propose"). */
   s.plan = s.plan || { goals: [], ifthen: [], share: false, autonomy: "propose" };
   if (!Array.isArray(s.plan.goals)) s.plan.goals = [];
   if (!Array.isArray(s.plan.ifthen)) s.plan.ifthen = [];
   if (typeof s.plan.share !== "boolean") s.plan.share = false;
   if (AUTONOMY_LEVELS.indexOf(s.plan.autonomy) < 0) s.plan.autonomy = "propose";   // default: most supervised (never auto-promote)
-  s.plan.goals.forEach((g, i) => { if (g && g.id == null) g.id = "g_v36_" + i; });
-  s.plan.ifthen.forEach((p, i) => { if (p && p.id == null) p.id = "p_v36_" + i; });
+  s.plan.goals.forEach((g) => { if (g && g.id == null) g.id = _hashId("g_v36_", g.text); });
+  s.plan.ifthen.forEach((p) => { if (p && p.id == null) p.id = _hashId("p_v36_", (p.cue || "") + "|" + (p.action || "") + "|" + (p.text || "")); });
   s.v = 36;
   return s;
 }
@@ -8092,7 +8103,7 @@ function statusFace(s, deps) {
   } else if (proposed) {
     word = "ADJUSTING"; glyph = "±"; tone = T.gauge;                // ±
     cause = pol.autoApply
-      ? `${ap.action === "ease" ? "Easing back" : "Tightening"} ≈ ${ap.corrKcal} kcal — a routine move Auto-Pilot is handling at ${AUTONOMY_META[level].short}; one tap to undo.`
+      ? `${ap.action === "ease" ? "Easing back" : "Tightening"} ≈ ${ap.corrKcal} kcal — a routine move Auto-Pilot is handling at ${(AUTONOMY_META[level] || AUTONOMY_META.propose).short}; one tap to undo.`
       : `${ap.action === "ease" ? "Easing back" : "Tightening"} ≈ ${ap.corrKcal} kcal toward your ${ap.mode === "fatloss" ? "max-fat-loss" : "body-comp"} target — one tap to approve.`;
   } else if (rec.stale || noiseHold) {
     word = "HOLDING"; glyph = "‖"; tone = T.steel;                  // ‖

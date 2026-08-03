@@ -3829,7 +3829,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
-  const mig = __test.migrate, SC = __test.SCHEMA_V;
+  const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
   ok(SC === 36, "schema: SCHEMA_V is 36 (patchV36 appended)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
@@ -3842,6 +3842,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   const legacy = clone(SEED); legacy.v = 35; legacy.plan = { goals: [{ text: "no-id" }], ifthen: [{ cue: "x", action: "y" }], share: false };
   const lm = mig(legacy);
   ok(lm.plan.goals[0].id != null && lm.plan.ifthen[0].id != null, "patchV36: legacy goal/if-then entries get a stable id backfilled (so the keyed union keys every entry)");
+  // Finding 1 (audit) — the backfill id must be CONTENT-derived, not index-based: two devices with
+  // DIFFERENT legacy entries must not collide, and BOTH must survive the first cross-device sync.
+  const devA = clone(SEED); devA.v = 35; devA.plan = { goals: [{ text: "walk 8k" }], ifthen: [], share: false };
+  const devB = clone(SEED); devB.v = 35; devB.plan = { goals: [{ text: "sleep by 11" }], ifthen: [], share: false };
+  const mA = mig(devA), mB = mig(devB);
+  ok(mA.plan.goals[0].id !== mB.plan.goals[0].id, "patchV36: two devices' DIFFERENT legacy goals get DISTINCT ids (content-hashed, not index) — no cross-device collision");
+  ok(mig(clone(devA)).plan.goals[0].id === mA.plan.goals[0].id, "patchV36: the backfill id is CONTENT-stable (same text → same id on every migration)");
+  const mergedLegacy = ms(mA, mB);
+  ok(mergedLegacy.plan.goals.some((g) => g.text === "walk 8k") && mergedLegacy.plan.goals.some((g) => g.text === "sleep by 11"), "patchV36 + merge: BOTH devices' divergent legacy goals survive the first cross-device sync — the never-drop guarantee holds for backfilled entries (Finding 1 closed)");
 }
 
 // --- graduated autonomy dial (3 named levels) + the policy that NEVER auto-applies at L1 ---
