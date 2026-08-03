@@ -9721,6 +9721,26 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         );
       })()}
 
+      {/* ---------- THE FIVE TODAY — TIER 1, RESIDENT (v7.5 NOW re-layout) ----------
+          Daily adherence was one tap down inside the collapsed TODAY group, which put the
+          five levers that actually move body composition behind a disclosure on the screen
+          he opens every morning. Promoted back to the resident stack, directly under the one
+          owed action. Same selector (fiveLevers), same markup — only its position moved. */}
+      <Card style={{ padding: SP.lg }}>
+        <Eyebrow c={T.gauge}>THE FIVE TODAY</Eyebrow>
+        <div style={{ marginTop: SP.sm }}>
+          {levers.list.map((lv, i) => (
+            <div key={lv.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.md, minHeight: 44, borderTop: i ? `1px solid ${T.hairline}` : "none" }}>
+              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.steel, letterSpacing: "0.04em", textTransform: "uppercase", ...NUMERIC }}>{lv.label}</span>
+              <span style={{ display: "flex", alignItems: "baseline", gap: SP.sm, minWidth: 0 }}>
+                <SemTag state={lv.state} />
+                {lv.detail ? <span data-num style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{lv.state === "quiet" ? lv.detail : "· " + lv.detail}</span> : null}
+              </span>
+            </div>
+          ))}
+        </div>
+      </Card>
+
       {/* ---------- THE WHY-ENGINE (v2 slice C — the defuser) ----------
           Exception-only: appears when the scale does something transient (a spike or a
           measured stall), breaks it into water vs real with the physiology, and leads
@@ -9773,26 +9793,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           OFF the resident stack into one collapsed, remembered group (now.today). The
           single biggest fold win after the protocol: ~660px of always-on cards become
           one line. Fixed order, nothing removed — everything is one tap away. */}
-      <Group title="TODAY" sub="the five · the one thing · auto-pilot" persistKey="now.today" defaultOpen={false} id="pl-today">
-      {/* ---------- THE FIVE TODAY (v2 adherence — did you do the five?) ----------
-          The levers that actually move body composition, each with the redundant
-          SemTag triple so the state survives grayscale, sweat and colour-blindness
-          (WCAG 1.4.1). One selector (fiveLevers) owns these; nothing here recomputes. */}
-      <Card style={{ padding: SP.lg }}>
-        <Eyebrow c={T.gauge}>THE FIVE TODAY</Eyebrow>
-        <div style={{ marginTop: SP.sm }}>
-          {levers.list.map((lv, i) => (
-            <div key={lv.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.md, minHeight: 44, borderTop: i ? `1px solid ${T.hairline}` : "none" }}>
-              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.steel, letterSpacing: "0.04em", textTransform: "uppercase", ...NUMERIC }}>{lv.label}</span>
-              <span style={{ display: "flex", alignItems: "baseline", gap: SP.sm, minWidth: 0 }}>
-                <SemTag state={lv.state} />
-                {lv.detail ? <span data-num style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{lv.state === "quiet" ? lv.detail : "· " + lv.detail}</span> : null}
-              </span>
-            </div>
-          ))}
-        </div>
-      </Card>
-
+      <Group title="TODAY" sub="the one thing · auto-pilot" persistKey="now.today" defaultOpen={false} id="pl-today">
       {/* ---------- THE ONE THING (v2 adherence — the single evidence-ordered fix) ----------
           Never a reflexive calorie cut: the ladder is verify-logging -> steps/NEAT
           -> protect sleep -> only then trim -> diet break. Autonomy-supportive voice,
