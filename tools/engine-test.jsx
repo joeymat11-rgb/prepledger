@@ -3830,15 +3830,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 36, "schema: SCHEMA_V is 36 (patchV36 appended)");
+  ok(SC === 37, "schema: SCHEMA_V is 37 (patchV37 appended for the n-of-1 learning store; Slice 3 consumed patchV36/36)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
-  ok(migd.v === 36 && migd.plan.autonomy === "propose", "patchV36: a v35 state migrates to v36 and defaults autonomy to the most-supervised 'propose'");
+  ok(migd.v === 37 && migd.plan.autonomy === "propose", "patchV36→37: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
   ok(migd.reads.length === oldV35.reads.length && Object.keys(migd.dailyLogs).length === Object.keys(oldV35.dailyLogs).length, "patchV36: ADDITIVE — no read or dailyLog is added or lost (count-preserving)");
   ok(SEED.plan.autonomy === "propose", "patchV36: SEED already carries autonomy='propose' so a fresh install === a migrated one");
-  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 36, "patchV36: idempotent on a current SEED (no double-patch drift)");
-  const future = clone(SEED); future.v = 37;
-  ok(mig(future).v === 37, "migrate: a NEWER (v37) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
+  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 37, "patchV36/37: idempotent on a current SEED (no double-patch drift)");
+  const future = clone(SEED); future.v = 38;
+  ok(mig(future).v === 38, "migrate: a NEWER (v38) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
   const legacy = clone(SEED); legacy.v = 35; legacy.plan = { goals: [{ text: "no-id" }], ifthen: [{ cue: "x", action: "y" }], share: false };
   const lm = mig(legacy);
   ok(lm.plan.goals[0].id != null && lm.plan.ifthen[0].id != null, "patchV36: legacy goal/if-then entries get a stable id backfilled (so the keyed union keys every entry)");
@@ -4037,6 +4037,112 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   for (let i = 0; i < 500; i++) { const g = FI("g"); if (g.indexOf("g") !== 0) allPrefixed = false; ids.add(g); }
   ok(ids.size === 500 && allPrefixed, "FIX 4: 500 ids minted back-to-back (same ms) are ALL distinct and prefixed — the in-session sequence guarantees uniqueness deterministically (no 1-ms Date.now() collision)");
   ok(FI("g") !== FI("g") && FI("p").indexOf("p") === 0, "FIX 4: consecutive ids differ and the prefix is preserved (goals 'g', if-then 'p')");
+}
+
+// ============================================================================================
+// v7.3.0 · SLICE 4 — n-of-1 LEARNING: energy density · p-ratio range · TDEE drift · adaptation ·
+// the learned-store SCHEMA (patchV37) + adversarial MERGE hardening
+// ============================================================================================
+{
+  const ED = __test.energyDensity, PP = __test.partitionPrior, TL = __test.tdeeLearned,
+        AS = __test.adaptationSignal, OT = __test.observedTDEE, CT = __test.calorieTarget,
+        PT = __test.proteinTarget, AD = __test.anchorDexa, MIG = __test.migrate,
+        MS = __test.mergeState, DLG = __test.dataLossGuard, UL = __test._unionLearned;
+  const isoS4 = (ms) => { const d = new Date(ms); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  // a rich MEASURED state (28 daily reads + logs), optionally DEXA-anchored at a given BF
+  const richState = (dexaBf) => {
+    const st = clone(SEED); st.blackout.until = "2026-01-01"; st.reads = []; st.dailyLogs = {};
+    for (let i = 27; i >= 0; i--) { const d = isoS4(Date.now() - i * 864e5); st.reads.push({ d, w: +(170 - (27 - i) * 0.2).toFixed(1), sealed: false }); st.dailyLogs[d] = { cal: 2000, pro: 175, steps: 12000 }; }
+    st.trend = st.reads[st.reads.length - 1].w;
+    return dexaBf != null ? AD(st, dexaBf) : st;
+  };
+
+  // -------- ENERGY DENSITY — fat-mass-dependent, ONE owner, prior-until-DEXA (no faked precision) --------
+  ok(__test.KCAL_PER_LB_MIX === 3800, "energy density: KCAL_PER_LB_MIX stays the named prior (3800) the owner falls back to");
+  const rcEye = richState(null);
+  ok(ED(rcEye).identified === false && ED(rcEye).perLb === 3800, "energy density: off a coach's-eye anchor the POINT is EXACTLY the prior 3800 — nothing downstream shifts, no faked precision");
+  ok(ED(rcEye).lo < ED(rcEye).perLb && ED(rcEye).perLb < ED(rcEye).hi, "energy density: even at the prior it carries an HONEST band (uncertainty made visible, not hidden)");
+  ok(OT(rcEye).perLb === ED(rcEye).perLb, "engine-owns-numbers: observedTDEE READS the ONE energyDensity owner — no competing kcal/lb constant");
+  const d15 = richState(15), d25 = richState(25);
+  ok(ED(d15).identified === true && ED(d25).identified === true, "energy density: a DEXA anchor IDENTIFIES fat mass, so the point may personalise off the prior");
+  ok(ED(d25).perLb > ED(d15).perLb && ED(d15).perLb !== ED(d25).perLb, "energy density is FAT-MASS-DEPENDENT: the deficit/lb DIFFERS at 15% vs 25% BF — leaner prices lower (Forbes/Hall), not a fixed 3,500/3,800");
+  ok(ED(d15).perLb === 3800, "energy density: at his ~15% reference the personalised point still lands on the prior 3800 (anchored calibration, not a jump)");
+  ok(OT(d25).perLb === ED(d25).perLb && CT(d25).lo != null, "engine-owns-numbers: after a DEXA the SAME sharpened energyDensity flows into observedTDEE + the calorie band — one computation");
+
+  // -------- PARTITION / p-RATIO — a RANGE, Forbes/BF-governed, narrows only with repeated anchors --------
+  const pS = PP(clone(SEED));
+  ok(pS.range === true && pS.fatFrac.lo < pS.fatFrac.hi, "p-ratio: surfaced as a RANGE, never a point (fatFrac.lo < fatFrac.hi)");
+  ok(pS.identified === false && /range/i.test(pS.label) && /forbes/i.test(pS.label), "p-ratio: labels itself a RANGE governed by Forbes/BF, and is NOT identified off a coach's eye");
+  const oneA = clone(SEED); oneA.learned = { tdee: [], anchors: [{ id: "d1", d: "2026-07-01", src: "DEXA", bf: 15 }] };
+  const twoA = clone(SEED); twoA.learned = { tdee: [], anchors: [{ id: "d1", d: "2026-07-01", src: "DEXA", bf: 15 }, { id: "d2", d: "2026-08-01", src: "DEXA", bf: 14.5 }] };
+  const width = (p) => +(p.fatFrac.hi - p.fatFrac.lo).toFixed(3);
+  ok(width(pS) > width(PP(oneA)) && width(PP(oneA)) > width(PP(twoA)), "p-ratio: the range NARROWS only as REAL DEXA anchors accumulate (0 wide → 1 → 2 narrower) — needs multiple before it tightens");
+  ok(width(PP(twoA)) > 0 && PP(twoA).fatFrac.lo < PP(twoA).fatFrac.hi, "p-ratio: even with anchors it stays a RANGE — never collapses to a single point");
+  ok(PP(d25).fatFrac.mid > PP(d15).fatFrac.mid, "p-ratio: governed by BF level — a leaner measured state carries a LOWER fat fraction of loss (Forbes headwind)");
+
+  // -------- TDEE — a drifting latent state (EWMA self-learning), honest label + band, graceful --------
+  const tlThin = TL({}, { series: [], today: { tdee: 2600, lo: 2400, hi: 2800 } });
+  ok(tlThin.converged === false && tlThin.source === "today", "TDEE: degrades GRACEFULLY — a thin series falls back to today's fit, flagged not-yet-converged");
+  ok(TL({}, { series: [], today: null }).value === null, "TDEE: with no history AND no measurable fit it honestly returns null, never a fabricated number");
+  const tlSeries = []; for (let i = 0; i < 14; i++) tlSeries.push({ d: `2026-07-${String(i + 1).padStart(2, "0")}`, tdee: 2600 - i * 5, w: 165 - i * 0.1 });
+  const tl = TL({}, { series: tlSeries, today: null });
+  ok(tl.converged === true && tl.n === 14, "TDEE: converges once ~2–4 wk of fits are in (n ≥ 10)");
+  ok(tl.value < tlSeries[0].tdee && tl.value > tlSeries[tlSeries.length - 1].tdee, "TDEE: a SMOOTHED latent state (EWMA α≈0.1) — it TRACKS the drift but LAGS the last point, so it can't overfit one noisy morning");
+  ok(tl.lo < tl.value && tl.value < tl.hi, "TDEE: the learned estimate carries an honest ± band (never a bare integer)");
+  ok(/logging bias/i.test(tl.label) && /not a physiological/i.test(tl.label), "TDEE: labeled TDEE-MINUS-LOGGING-BIAS, explicitly NOT physiology");
+  ok(tl.alpha === 0.10 && tl.accHi === 215, "TDEE: the EWMA constant + realistic-accuracy floor (~130–215 kcal/day, Sanghvi 2015) are the cited honest bounds");
+
+  // -------- ADAPTATION — observed below MASS-predicted, gated on SIGNIFICANCE + PERSISTENCE --------
+  const adaptSeries = [
+    { d: "2026-07-01", tdee: 2600, w: 170.0, lo: 2520, hi: 2680 },
+    { d: "2026-07-08", tdee: 2560, w: 168.5, lo: 2480, hi: 2640 },
+    { d: "2026-07-15", tdee: 2470, w: 167.0, lo: 2400, hi: 2540 },
+    { d: "2026-07-22", tdee: 2430, w: 166.0, lo: 2360, hi: 2500 },
+    { d: "2026-07-29", tdee: 2400, w: 165.0, lo: 2330, hi: 2470 },
+  ];
+  const adaptFire = AS({}, { series: adaptSeries, sig: { state: "measured" } });
+  ok(adaptFire.detected === true && adaptFire.kcal < 0, "adaptation: a PERSISTENT + SIGNIFICANT drift below the mass-predicted line FIRES (observed maintenance running under what mass loss alone predicts)");
+  ok(/not a physiological/i.test(adaptFire.label), "adaptation: labeled a directional signal, NOT a physiological measurement (calibration, not a target)");
+  ok(AS({}, { series: adaptSeries.slice(0, 3), sig: { state: "measured" } }).reason === "too-thin", "adaptation: degrades gracefully — too little history returns 'too-thin', never a guess");
+  ok(AS({}, { series: adaptSeries, sig: { state: "calibrating" } }).detected === false && AS({}, { series: adaptSeries, sig: { state: "calibrating" } }).reason === "signal-not-real", "adaptation: SIGNIFICANCE gate — it never fires while the underlying rate signal is still calibrating");
+  const oneDip = adaptSeries.slice(0, 4).concat([{ d: "2026-07-29", tdee: 2620, w: 165.0, lo: 2550, hi: 2690 }]);
+  ok(AS({}, { series: oneDip, sig: { state: "measured" } }).detected === false && AS({}, { series: oneDip, sig: { state: "measured" } }).reason === "not-persistent", "adaptation: PERSISTENCE gate — a single low reading among a rebound does NOT fire (never one reading)");
+  const wideBand = adaptSeries.slice(0, 4).concat([{ d: "2026-07-29", tdee: 2500, w: 165.0, lo: 2380, hi: 2700 }]);
+  ok(AS({}, { series: wideBand, sig: { state: "measured" } }).detected === false && AS({}, { series: wideBand, sig: { state: "measured" } }).reason === "not-significant", "adaptation: SIGNIFICANCE gate — a below-expected drift whose band still straddles zero does NOT fire");
+
+  // -------- DEXA → protein RANGE collapse (the top unfinished work), + anchor recorded --------
+  ok(PT(clone(SEED)).straddles === true, "protein: on the coach's-eye anchor the BF band straddles the 12.2% line → protein is a RANGE (160–190 g)");
+  const anchored = AD(clone(SEED), 15);
+  ok(PT(anchored).straddles === false, "protein: a DEXA anchor (±1) collapses the BF band clear of 12.2% → straddles FALSE → a single number (the DEXA that sharpens the whole model)");
+  ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
+
+  // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
+  ok(__test.SCHEMA_V === 37, "schema: SCHEMA_V is 37 (patchV37 appended for the learning store)");
+  ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
+  const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
+  const m37 = MIG(oldV36);
+  ok(m37.v === 37 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to v37 and seeds the learned store EMPTY (additive)");
+  ok(m37.reads.length === oldV36.reads.length && Object.keys(m37.dailyLogs).length === Object.keys(oldV36.dailyLogs).length, "patchV37: ADDITIVE — no read or dailyLog added or lost (count-preserving)");
+  ok(MIG(clone(SEED)).v === 37, "patchV37: idempotent on a current SEED (no double-patch drift)");
+  const fut38 = clone(SEED); fut38.v = 38; fut38.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
+  ok(MIG(fut38).v === 38 && MIG(fut38).learned.tdee.length === 1, "patchV37: a NEWER (v38) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
+
+  // -------- MERGE HARDENING — s.learned adversarial: must-not-LOSE + must-not-REVERT, BOTH orders --------
+  ok(typeof UL === "function", "s.learned: _unionLearned is the registered reconciler (mirrors _unionPlan)");
+  const devA = clone(SEED); devA.learned = { tdee: [{ d: "2026-08-01", tdee: 2600, w: 165 }, { d: "2026-08-02", tdee: 2590, w: 164.8 }], anchors: [{ id: "dexa_a", d: "2026-08-01", src: "DEXA", bf: 15 }] };
+  const devB = clone(SEED); devB.learned = { tdee: [{ d: "2026-08-01", tdee: 2600, w: 165 }, { d: "2026-08-03", tdee: 2580, w: 164.6 }], anchors: [{ id: "dexa_b", d: "2026-08-03", src: "DEXA", bf: 14 }] };
+  const A = MS(devA, devB), B = MS(devB, devA);
+  ok(A.learned.tdee.some((x) => x.d === "2026-08-02") && A.learned.tdee.some((x) => x.d === "2026-08-03"), "s.learned A: BOTH devices' TDEE snapshots survive — the keyed union never drops one (MUST-NOT-LOSE)");
+  ok(A.learned.anchors.some((a) => a.id === "dexa_a") && A.learned.anchors.some((a) => a.id === "dexa_b"), "s.learned A: BOTH devices' DEXA anchors survive — never dropped");
+  ok(B.learned.tdee.length === A.learned.tdee.length && B.learned.anchors.length === A.learned.anchors.length, "s.learned: the reconcile is ORDER-INDEPENDENT (A and B agree)");
+  ok(A.learned.tdee.length >= devA.learned.tdee.length && A.learned.tdee.length >= devB.learned.tdee.length && A.learned.anchors.length >= Math.max(devA.learned.anchors.length, devB.learned.anchors.length), "s.learned: |merged| >= both sides — the keyed union never shrinks");
+  ok(DLG(devA, A).safe === true && DLG(devB, A).safe === true, "s.learned: the merged state passes the durability guard from BOTH inputs");
+  const stale = clone(SEED); stale.learned = { tdee: [{ d: "2026-08-01", tdee: 2600, w: 165 }], anchors: [] };
+  const withNew = clone(SEED); withNew.learned = { tdee: [{ d: "2026-08-01", tdee: 2600, w: 165 }, { d: "2026-08-05", tdee: 2560, w: 164 }], anchors: [{ id: "dexa_new", d: "2026-08-05", src: "DEXA", bf: 14 }] };
+  ok(MS(stale, withNew).learned.anchors.some((a) => a.id === "dexa_new") && MS(withNew, stale).learned.anchors.some((a) => a.id === "dexa_new"), "s.learned: a stale device NEVER reverts/drops a newer DEXA anchor — from EITHER write order (MUST-NOT-REVERT)");
+  ok(MS(stale, withNew).learned.tdee.some((x) => x.d === "2026-08-05") && MS(stale, withNew).learned.tdee.length > stale.learned.tdee.length, "s.learned: NOT wholesale local-wins — a stale client UNIONS in the remote-only learned entries (the v6.2 clobber class is closed)");
+  const shrunk = clone(withNew); shrunk.learned = { tdee: [], anchors: [] };
+  ok(DLG(withNew, shrunk).safe === false, "s.learned: dropping learned history is BLOCKED by the durability guard — a shrink can't be silent");
 }
 
 console.log(`\nFINAL81: ${pass} passed, ${fail} failed`);

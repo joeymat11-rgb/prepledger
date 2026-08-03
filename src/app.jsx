@@ -304,13 +304,13 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.2.0";
+const APP_V = "7.3.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 36;
+const SCHEMA_V = 37;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -465,6 +465,7 @@ const SEED = {
   SEED.pulse = [];
   SEED.sleep.anchor = { wake: "06:45", inBed: 8.25, asleepTarget: 8 };
   SEED.forecasts = [];
+  SEED.learned = { tdee: [], anchors: [] };   // v7.3.0 Slice 4 — the n-of-1 learning store (seeded empty; migrated state matches byte-for-byte)
   SEED.labSeen = {};
   SEED.sleep.anchor = { wake: "06:45", inBed: 8.25 };
   SEED.sleep.caffMg = null;
@@ -1384,7 +1385,13 @@ function completeSession(state, iso, entries, slp, extras = {}) {
 const DRIP_DEFAULT = 0.0;
 const DRIP_LO = -0.35, DRIP_HI = 0.10;
 const KCAL_PER_LB_FAT = 4282;   /* Hall 2008: 39.5 MJ/kg */
-const KCAL_PER_LB_MIX = 3800;   /* ~87% fat for a lean, high-protein, training male */
+const KCAL_PER_LB_LEAN = 816;   /* Hall 2008 — fat-free mass energy density (kcal/lb) */
+const KCAL_PER_LB_MIX = 3800;   /* the PRIOR mixed density (~86% fat) for a lean high-protein training male; now the
+                                   fallback point energyDensity() returns until a DEXA identifies fat mass (v7.3.0 Slice 4) */
+/* PRIOR_FAT_FRAC — the fat fraction of loss that reproduces the prior KCAL_PER_LB_MIX exactly
+   (so energyDensity's point is byte-identical to the old constant off a coach's-eye anchor). Derived
+   from the two densities, not authored: (3800−816)/(4282−816) ≈ 0.861. */
+const PRIOR_FAT_FRAC = (KCAL_PER_LB_MIX - KCAL_PER_LB_LEAN) / (KCAL_PER_LB_FAT - KCAL_PER_LB_LEAN);
 const ANCHOR_ERR_EYE = 3.5, ANCHOR_ERR_DEXA = 1.0;
 function dripOf(s) { const d = s && s.model ? s.model.drip : null; return d == null ? DRIP_DEFAULT : d; }
 function bfEst(s, trend = s.trend, atISO = isoOf(todayStart())) {
@@ -1859,7 +1866,8 @@ function observedTDEE(s) {
   const RAW = r.scale;
   const CEIL = 3.0;
   const fatWk = Math.min(CEIL, RAW);
-  const kcal = (f) => Math.round(avg + (f * KCAL_PER_LB_MIX) / 7);
+  const ed = energyDensity(s);   // v7.3.0 Slice 4 — the ONE fat-mass-dependent kcal/lb owner (== the prior 3800 until a DEXA identifies fat mass)
+  const kcal = (f) => Math.round(avg + (f * ed.perLb) / 7);
   const tdee = kcal(fatWk);
   /* A thermodynamic floor check. If the implied deficit per pound exceeds the
      energy density of pure lipid, the model is claiming something impossible and
@@ -1874,7 +1882,7 @@ function observedTDEE(s) {
     tdee, days: cals.length, avg: Math.round(avg),
     lo, hi, clamped: RAW > CEIL, method: r.method, rateN: r.n,
     rate: r.scale, rateCi: r.ci, from, to, matched, split,
-    perLb: KCAL_PER_LB_MIX, impliedPerLb, impossible,
+    perLb: ed.perLb, perLbLo: ed.lo, perLbHi: ed.hi, edIdentified: ed.identified, impliedPerLb, impossible,
   };
 }
 
@@ -2028,7 +2036,8 @@ function calorieTarget(s) {
      one, so the calorie band and the maintenance it is subtracted from speak the
      same units. It moves the band down by roughly 40-60 kcal/day, which is the
      size of the error that was there. */
-  const kcalFor = (lbWk) => Math.round((lbWk * KCAL_PER_LB_MIX) / 7);
+  const ed = energyDensity(s);   // v7.3.0 Slice 4 — the ONE energy-density owner (== the prior 3800 until a DEXA identifies fat mass; then fat-mass-dependent)
+  const kcalFor = (lbWk) => Math.round((lbWk * ed.perLb) / 7);
   const hi = Math.max(floor, td.tdee - kcalFor(band[0]));
   const lo = Math.max(floor, td.tdee - kcalFor(band[1]));
   const ph = PHASES[s.phase];
@@ -2055,7 +2064,7 @@ function calorieTarget(s) {
        the sentence he reads while the number above it was built on 3,800. */
     wkWhy: wkAvg == null ? null
       : (wkAvg >= lo && wkAvg <= hi) ? `Your last ${wkRows.length} logged days average ${wkAvg} — inside the ${lo}–${hi} band. The target and the result agree, which is the only state worth being in.`
-      : `Your last ${wkRows.length} logged days average ${wkAvg}, which is ${Math.abs(wkAvg > hi ? wkAvg - hi : lo - wkAvg)} kcal/day ${wkAvg > hi ? "above the top" : "below the bottom"} of the ${lo}–${hi} band — about ${(Math.abs(wkAvg > hi ? wkAvg - hi : lo - wkAvg) * 7 / KCAL_PER_LB_MIX).toFixed(2)} lb/wk ${wkAvg > hi ? "slower" : "faster"} than the band is aiming for. Not a scolding, just the arithmetic: a daily target and a weekly result are different questions.`,
+      : `Your last ${wkRows.length} logged days average ${wkAvg}, which is ${Math.abs(wkAvg > hi ? wkAvg - hi : lo - wkAvg)} kcal/day ${wkAvg > hi ? "above the top" : "below the bottom"} of the ${lo}–${hi} band — about ${(Math.abs(wkAvg > hi ? wkAvg - hi : lo - wkAvg) * 7 / ed.perLb).toFixed(2)} lb/wk ${wkAvg > hi ? "slower" : "faster"} than the band is aiming for. Not a scolding, just the arithmetic: a daily target and a weekly result are different questions.`,
     tdee: td.tdee, tdeeLo: td.lo, tdeeHi: td.hi, days: td.days, avg: td.avg,
     band, phaseLo, phaseHi, drift, floorHit: lo === floor,
     floor, floorSoft: fl.soft, floorWhy: fl.why,
@@ -2375,7 +2384,7 @@ function digitalTwin(s, opts) {
   const calDelta = o.calDelta || 0;                         // kcal/day vs current (neg = eat less)
   const stepsTarget = o.steps != null ? o.steps : stepsNow;
   const stepKcal = ((stepsTarget - stepsNow) / 1000) * kcalPer1k;   // extra expenditure/day
-  const perKcal = 7 / KCAL_PER_LB_MIX;
+  const perKcal = 7 / energyDensity(s).perLb;              // v7.3.0 Slice 4 — the ONE energy-density owner (== the prior 3800 until a DEXA anchors fat mass)
   const extraDeficit = (-calDelta) + stepKcal;              // eating less OR moving more both add deficit
   const newRate = rate0 != null ? +(rate0 + extraDeficit * perKcal).toFixed(2) : null;
   const targetPct = 11;
@@ -2416,6 +2425,150 @@ function twinBodyComp(s, opts) {
   const part = partitionRates(rate, s, dir);
   const zone = pctRate > band.redlinePct ? "redline" : pctRate >= band.corrPct[0] ? "corridor" : "below";
   return { ...tw, bc: { dir, pctRate, band, fat: part.fat, lean: part.lean, leanFrac: part.leanFrac, rt: part.rt, zone } };
+}
+
+/* ============================================================================================
+   N-OF-1 LEARNING ENGINE (v7.3.0 · Slice 4) — HIS OWN parameters, learned from HIS OWN data and
+   persisted as ENGINE-OWNED inputs the corridor / Twin / Auto-Pilot READ. Research sets the prior;
+   his data moves it. Everything learned carries HONEST uncertainty, is labeled for what it can't
+   know (never physiological truth), and DEGRADES GRACEFULLY with sparse data (it ties into the same
+   staleness / confidence gates). Four owners, ONE computation each — no competing numbers:
+     · partitionPrior   — the fat-vs-lean p-ratio as a RANGE (Forbes / BF-governed; narrows only with anchors)
+     · energyDensity    — kcal per lb of loss, fat-mass-dependent (was the fixed KCAL_PER_LB_MIX)
+     · tdeeLearned      — TDEE as a drifting latent state (EWMA self-learning; TDEE-minus-logging-bias)
+     · adaptationSignal — observed maintenance drifting BELOW mass-predicted, gated on significance+persistence
+   ============================================================================================ */
+
+// ---- partition / p-ratio (Topic 2): a RANGE, weakly identifiable; needs repeated DEXA anchors ----
+const PARTITION_FORBES_SLOPE = 0.010;   // Forbes: fat fraction of loss rises with fat mass — per BF-point tilt (capped ±0.20)
+const PARTITION_REF_BF = 15;            // his anchored reference (~15% BF ⇒ the prior 3800)
+const PARTITION_ANCHORS_TO_NARROW = 2;  // require MULTIPLE real DEXA anchors before the range narrows
+const PARTITION_LABEL = "partition (fat vs lean of each lb lost) — a RANGE, not a point: only weakly identifiable from the scale, it needs repeated DEXA anchors over months to narrow (Forbes). Governed by your body-fat level.";
+
+function partitionPrior(s) {
+  /* His personal p-ratio (fat fraction of each lb lost) as a RANGE — never a point. Governed by BF
+     level (Forbes: leaner ⇒ a larger fraction of loss is lean), only WEAKLY identifiable from the
+     scale, so the range narrows only as real DEXA anchors accumulate over months. Shares the physiology
+     with partitionRates (the Twin's rate-decomposition) — this is the STANDING personal prior, that is
+     the split of a specific projected rate: related, not a competing fit. Off a coach's-eye anchor the
+     POINT stays the labeled prior (no faked precision); a DEXA lets it personalise. */
+  let bf; try { bf = bfEst(s); } catch (e) { bf = null; }
+  const anchors = (s && s.learned && Array.isArray(s.learned.anchors)) ? s.learned.anchors : [];
+  const dexaN = anchors.filter((a) => a && a.src === "DEXA").length + ((s && s.model && s.model.src === "DEXA") ? 1 : 0);
+  const identified = dexaN >= 1;   // a real fat-mass measurement before the point moves off the prior
+  const bwKg = ((s && s.trend) ? s.trend : 165) / 2.2046;
+  const fmKg = bf ? Math.max(0, (bf.pct / 100) * bwKg) : null;
+  const tiltOf = (bfPct) => Math.max(-0.20, Math.min(0.20, (bfPct - PARTITION_REF_BF) * PARTITION_FORBES_SLOPE));
+  const mid = Math.max(0.55, Math.min(0.97, PRIOR_FAT_FRAC + ((identified && bf) ? tiltOf(bf.pct) : 0)));
+  // the RANGE half-width: from the BF band mapped through the same tilt, floored by identifiability
+  const fromBand = (bf && identified) ? Math.abs(tiltOf(bf.hi) - tiltOf(bf.lo)) / 2 : 0;
+  const idFloor = dexaN >= PARTITION_ANCHORS_TO_NARROW ? 0.03 : (dexaN === 1 ? 0.05 : 0.08);   // never a point; narrows with anchors
+  const half = Math.max(fromBand, idFloor);
+  const lo = Math.max(0.50, mid - half), hi = Math.min(0.98, mid + half);
+  return {
+    range: true, fatFrac: { lo: +lo.toFixed(3), mid: +mid.toFixed(3), hi: +hi.toFixed(3) },
+    leanFrac: { lo: +(1 - hi).toFixed(3), mid: +(1 - mid).toFixed(3), hi: +(1 - lo).toFixed(3) },
+    fmKg: fmKg != null ? +fmKg.toFixed(1) : null, dexaN, identified, label: PARTITION_LABEL,
+    why: identified
+      ? `Anchored to your measured body fat${bf ? " (" + bf.pct + "%)" : ""}. The range still carries the residual uncertainty — one scan sharpens the point, several narrow the band.`
+      : `A prior from your body-fat level, held WIDE because the split is not identifiable from the scale alone. It narrows only as real DEXA anchors accumulate — ${dexaN} on file.`,
+  };
+}
+
+function energyDensity(s) {
+  /* ONE owner of kcal-per-lb-of-loss (was the fixed KCAL_PER_LB_MIX 3800). Fat-mass-dependent through
+     the partition prior: perLb = fatFrac·fat-density + leanFrac·lean-density. HONEST degradation — off a
+     coach's-eye BF the split is not identifiable, so the POINT stays the labeled prior (3800 EXACTLY, so
+     nothing downstream shifts) with a WIDE band; a DEXA pins fat mass and lets it personalise (leaner ⇒
+     lower kcal/lb ⇒ an asymmetric, smaller deficit per lb — Forbes/Hall). observedTDEE, the calorie band,
+     the Twin and Auto-Pilot all READ this — no competing constant. */
+  const p = partitionPrior(s);
+  const dens = (ff) => ff * KCAL_PER_LB_FAT + (1 - ff) * KCAL_PER_LB_LEAN;
+  const perLb = p.identified ? Math.round(dens(p.fatFrac.mid)) : KCAL_PER_LB_MIX;   // prior EXACTLY until a DEXA identifies fat mass
+  const e1 = Math.round(dens(p.fatFrac.lo)), e2 = Math.round(dens(p.fatFrac.hi));
+  return {
+    perLb, lo: Math.min(e1, e2), hi: Math.max(e1, e2), prior: KCAL_PER_LB_MIX,
+    identified: p.identified, fatFrac: p.fatFrac.mid, dexaN: p.dexaN,
+    label: p.identified
+      ? `~${perLb} kcal per lb lost, from your measured partition (${Math.round(p.fatFrac.mid * 100)}% fat). Leaner tissue prices lower, so the deficit per pound is fat-mass-dependent — not a fixed 3,500.`
+      : `${KCAL_PER_LB_MIX} kcal per lb — the labeled prior (~${Math.round(PRIOR_FAT_FRAC * 100)}% fat). Held at the prior until a DEXA measures your fat mass; the ${Math.min(e1, e2)}–${Math.max(e1, e2)} band is that uncertainty made visible.`,
+  };
+}
+
+// ---- TDEE (Topic 1): a slowly-drifting latent state, EWMA self-learning ----
+const TDEE_EMA_ALPHA = 0.10;              // per-update forgetting (~10-day constant); converges ~2–4 wk
+const TDEE_CONVERGE_MIN = 10;             // snapshots before "converged"
+const TDEE_ACC_LO = 130, TDEE_ACC_HI = 215;   // realistic individual accuracy band, kcal/day (Sanghvi 2015)
+const TDEE_LABEL = "observed maintenance — TDEE MINUS logging bias, not a physiological measurement";
+
+function tdeeLearned(s, deps) {
+  /* TDEE as a slowly-DRIFTING LATENT STATE, self-learning from HIS OWN data. observedTDEE(s) is today's
+     matched-window fit; this smooths the PERSISTED SERIES of those fits with an exponential-forgetting
+     update (EWMA α≈0.1/day ~ 10-day constant) so the estimate TRACKS his true maintenance responsively
+     WITHOUT overfitting one noisy window. Converges ~2–4 wk. HONEST: it is TDEE-minus-logging-bias (not
+     physiology), carries a band (~130–215 kcal/day realistic accuracy, Sanghvi 2015, widened when the
+     fits disagree), and DEGRADES GRACEFULLY — a thin series just reports today's fit / still-calibrating. */
+  const series = (deps && deps.series) || ((s && s.learned && Array.isArray(s.learned.tdee)) ? s.learned.tdee : []);
+  const rows = series.filter((x) => x && typeof x.tdee === "number").slice(-60);
+  const today = (deps && ("today" in deps)) ? deps.today : (() => { try { return observedTDEE(s); } catch (e) { return null; } })();
+  if (!rows.length) {
+    if (today && today.tdee) return { value: today.tdee, lo: today.lo, hi: today.hi, n: 0, converged: false, source: "today", accLo: TDEE_ACC_LO, accHi: TDEE_ACC_HI, alpha: TDEE_EMA_ALPHA, label: TDEE_LABEL, why: "Not enough history to smooth yet — this is today's matched-window fit, still calibrating (~2–4 wk to converge)." };
+    return { value: null, lo: null, hi: null, n: 0, converged: false, source: "none", accLo: TDEE_ACC_LO, accHi: TDEE_ACC_HI, alpha: TDEE_EMA_ALPHA, label: TDEE_LABEL, why: "Maintenance is not measurable yet — keep logging and it converges in ~2–4 weeks." };
+  }
+  let ema = rows[0].tdee;
+  for (let i = 1; i < rows.length; i++) ema = TDEE_EMA_ALPHA * rows[i].tdee + (1 - TDEE_EMA_ALPHA) * ema;
+  if (today && today.tdee && rows[rows.length - 1].tdee !== today.tdee) ema = TDEE_EMA_ALPHA * today.tdee + (1 - TDEE_EMA_ALPHA) * ema;   // fold today in — stays responsive between writes
+  const recent = rows.slice(-TDEE_CONVERGE_MIN).map((x) => x.tdee);
+  const mean = recent.reduce((a, b) => a + b, 0) / recent.length;
+  const sd = recent.length >= 3 ? Math.sqrt(recent.reduce((a, b) => a + (b - mean) * (b - mean), 0) / (recent.length - 1)) : 0;
+  const n = rows.length, converged = n >= TDEE_CONVERGE_MIN;
+  const acc = Math.round(Math.max(converged ? TDEE_ACC_HI : TDEE_ACC_HI + 120, sd));   // honest floor, widened before convergence / when fits disagree
+  const value = Math.round(ema);
+  return {
+    value, lo: value - acc, hi: value + acc, n, converged, source: "ema", acc, sd: +sd.toFixed(0),
+    accLo: TDEE_ACC_LO, accHi: TDEE_ACC_HI, alpha: TDEE_EMA_ALPHA, label: TDEE_LABEL,
+    why: `A ${Math.round(1 / TDEE_EMA_ALPHA)}-day exponential average of ${n} of your own maintenance fits — it tracks the drift without chasing one noisy morning. ${converged ? "Converged" : "Still converging (~2–4 wk)"}. This is your intake-and-scale maintenance MINUS logging bias, carried with a ±${acc} kcal band — not a physiological TDEE.`,
+  };
+}
+
+// ---- adaptation (Topic 3): observed maintenance below MASS-predicted, gated on significance+persistence ----
+const MAINT_KCAL_PER_LB = 12;   // mass-driven maintenance coefficient (an ESTIMATE/convention, labeled — preferred over naïve RMR-per-kg but not physiology)
+const ADAPT_PERSIST_MIN = 3;    // consecutive below-expected updates before it can fire (never one reading)
+const ADAPT_LABEL = "metabolic adaptation (observed maintenance below mass-predicted) — a GATED directional signal, not a physiological measurement";
+
+function adaptationSignal(s, deps) {
+  /* METABOLIC ADAPTATION = observed maintenance drifting BELOW the twin's MASS-predicted maintenance by
+     more than noise. As he loses weight, expected maintenance falls from mass alone; adaptation is the
+     EXTRA drop (adaptive thermogenesis). GATED on SIGNIFICANCE (the residual band clears zero AND the
+     underlying rate signal is real) + PERSISTENCE (below-expected across ≥3 updates, never one reading)
+     — the same discipline as the staleness/confidence gates, because short windows confound adaptation
+     with logging drift. Directional CALIBRATION (~−85 kcal/day after moderate loss in trained athletes),
+     never a target. FEEDS FORWARD — informs the forecast cone + the Slice-5 phase arc. The mass
+     expectation is a labeled ESTIMATE (a maintenance coefficient), preferred over naïve RMR-per-kg but
+     not claimed as physiology. */
+  const series = (deps && deps.series) || ((s && s.learned && Array.isArray(s.learned.tdee)) ? s.learned.tdee : []);
+  const rows = series.filter((x) => x && typeof x.tdee === "number" && typeof x.w === "number").slice(-60);
+  let sig; try { sig = (deps && deps.sig) || signalState(s); } catch (e) { sig = { state: "calibrating" }; }
+  const off = (reason) => ({ detected: false, reason, kcal: null, lo: null, hi: null, n: rows.length, persistent: false, significant: false, perLbCoef: MAINT_KCAL_PER_LB, label: ADAPT_LABEL, why: "No confident adaptation signal yet — gated on significance + persistence so a single low week can't fire it." });
+  if (rows.length < ADAPT_PERSIST_MIN + 1) return off("too-thin");                                   // graceful: not enough history
+  if (!(sig.state === "measured" || sig.state === "measurable")) return off("signal-not-real");       // significance gate on the rate itself
+  const base = rows[0];
+  const predAt = (w) => base.tdee + MAINT_KCAL_PER_LB * (w - base.w);                                  // mass-driven expectation (falls as mass falls)
+  const resid = rows.map((x) => ({ d: x.d, r: x.tdee - predAt(x.w), lo: (x.lo != null ? x.lo : x.tdee) - predAt(x.w), hi: (x.hi != null ? x.hi : x.tdee) - predAt(x.w) }));
+  const tail = resid.slice(-ADAPT_PERSIST_MIN);
+  const persistent = tail.every((z) => z.r < 0);                                                        // persistently BELOW mass-expected
+  const last = resid[resid.length - 1];
+  const significant = last.hi < 0;                                                                      // the whole residual band clears zero
+  const detected = persistent && significant;
+  const kcal = Math.round(tail.reduce((a, z) => a + z.r, 0) / tail.length);
+  return {
+    detected, reason: detected ? "adaptation" : (persistent ? "not-significant" : "not-persistent"),
+    kcal, lo: Math.round(last.lo), hi: Math.round(last.hi), n: rows.length,
+    persistent, significant, perLbCoef: MAINT_KCAL_PER_LB, label: ADAPT_LABEL,
+    why: detected
+      ? `Your measured maintenance has run ~${Math.abs(kcal)} kcal/day BELOW what mass loss alone predicts, across the last ${ADAPT_PERSIST_MIN}+ updates with the band clear of zero — a persistent, significant signal, not one reading. Calibration for the plan (it informs the phase arc + the forecast), not a target; the mass expectation is an estimate, so this is a direction, not a decimal.`
+      : `No confident adaptation signal: ${persistent ? "the drop isn't yet clear of the noise band" : "it hasn't persisted across enough updates"}. Gated on significance + persistence so a single low week can't fire it.`,
+  };
 }
 
 /* ---------- ANTICIPATORY FORECASTING (v7.1.0 · Slice 2) — the honest cone + the self-silencing redline alert ----------
@@ -2620,7 +2773,7 @@ function autoPilot(s, mode) {
   const hasRateCI = r.ci != null && r.lo != null && r.hi != null;   // regression path only; a coarse "snapshots" rate has NO CI
   const driftSig = hasRateCI && (targetRate < Math.min(r.lo, r.hi) || targetRate > Math.max(r.lo, r.hi));
   if (!driftSig) action = "hold";   // within noise, OR no CI to resolve it (snapshots/cold) -> abstain, never steer
-  const corrKcal = Math.round((Math.abs(gapLb) * KCAL_PER_LB_MIX) / 7);
+  const corrKcal = Math.round((Math.abs(gapLb) * energyDensity(s).perLb) / 7);   // v7.3.0 Slice 4 — the ONE energy-density owner (== the prior 3800 until a DEXA anchors fat mass)
   const stg = stepTarget(s);
   const kcalPer1k = stg.kcalPer1k || 20;
   const stepsAdd = Math.max(500, Math.round((corrKcal / kcalPer1k) * 1000 / 500) * 500);
@@ -4217,13 +4370,13 @@ function labAnalytics2(s) {
        that refeeds prevent an adherence problem his record does not show. */
     const stG = stepTarget(s);
     const perStepG = stG.gated ? 0.35 : stG.kcalPer1k / 1000;
-    const stepPen = (4000 * perStepG * days) / KCAL_PER_LB_MIX;
+    const stepPen = (4000 * perStepG * days) / energyDensity(s).perLb;   // v7.3.0 Slice 4 — one energy-density owner (== 3800 until a DEXA)
     const sleepPen = 0.15 * (days / 7);
     const ghost = +(s.trend + stepPen + sleepPen).toFixed(1);
     return { id: "ghost", t: "GHOST JOEY", status: "MODEL", prog: null,
       tag: "The you who walks 4k fewer steps and sleeps six — simulated, clearly badged.",
       deep: "A counterfactual twin built from YOUR measured coefficients, not textbook ones: 4,000 fewer daily steps priced at your own per-step cost, and a short-sleep penalty on the side where short sleep actually costs — body composition, not the session. It is a MODEL, the badge says so, and it exists for one purpose: on the days discipline feels pointless, the gap is the receipt that it isn't.",
-      forYou: `Ghost's trend today: ~${ghost} (${(ghost - s.trend).toFixed(1)} lb behind you) and falling further behind by ~${((4000 * perStepG * 7) / KCAL_PER_LB_MIX + 0.15).toFixed(1)} lb/week. Ghost also sleeps six — his sessions look about the same as yours, and that is exactly the trap: the cost lands on what his weight loss is made of, not on his reps. You are the control group's nightmare.`,
+      forYou: `Ghost's trend today: ~${ghost} (${(ghost - s.trend).toFixed(1)} lb behind you) and falling further behind by ~${((4000 * perStepG * 7) / energyDensity(s).perLb + 0.15).toFixed(1)} lb/week. Ghost also sleeps six — his sessions look about the same as yours, and that is exactly the trap: the cost lands on what his weight loss is made of, not on his reps. You are the control group's nightmare.`,
       lines: [] };
   });
 
@@ -5544,14 +5697,27 @@ function sweepLab(s, dow = new Date().getDay()) {
   const flips = flat.filter((c) => (c.status === "LIVE" || c.status === "TRACKING") && seen[c.id] !== c.status);
   const tISO2 = isoOf(todayStart());
   const needJournal = !(s.forecasts || []).some((f) => f.d === tISO2);
+  /* v7.3.0 Slice 4 — persist a TDEE snapshot per day (same idempotent cadence as the forecast journal)
+     so tdeeLearned can smooth the DRIFT series and adaptationSignal can read observed-vs-mass-predicted
+     over time. Only when maintenance is measurable; skipped GRACEFULLY otherwise. */
+  const needTdee = (() => { try { const t = observedTDEE(s); return !!(t && t.tdee) && !(s.learned && Array.isArray(s.learned.tdee) && s.learned.tdee.some((x) => x.d === tISO2)); } catch (e) { return false; } })();
   const wkAgo2 = isoOf(new Date(todayStart().getTime() - 6 * DAY));
   const needReview = (dow === 0 || dow === 1) && !(s.feed || []).some((f) => f.d >= wkAgo2 && f.t && f.t.indexOf("WEEK IN REVIEW") === 0);
-  if (!flips.length && !first && !needJournal && !needReview) return st0 || null;
+  if (!flips.length && !first && !needJournal && !needTdee && !needReview) return st0 || null;
   const ns = JSON.parse(JSON.stringify(s));
   if (needJournal) {
     const cur2 = currentRate(ns);
     const r2 = cur2.measured ? cur2.scale : 1.2;
     ns.forecasts = [...(ns.forecasts || []), { d: tISO2, trend: ns.trend, rate: r2, pred7: +(ns.trend - r2).toFixed(1), sealed: blackoutOn(ns) }].slice(-60);
+  }
+  if (needTdee) {
+    const td2 = observedTDEE(ns);
+    if (td2 && td2.tdee) {
+      ns.learned = (ns.learned && typeof ns.learned === "object") ? ns.learned : { tdee: [], anchors: [] };
+      if (!Array.isArray(ns.learned.tdee)) ns.learned.tdee = [];
+      if (!Array.isArray(ns.learned.anchors)) ns.learned.anchors = [];
+      if (!ns.learned.tdee.some((x) => x.d === tISO2)) ns.learned.tdee = [...ns.learned.tdee, { d: tISO2, tdee: td2.tdee, lo: td2.lo != null ? td2.lo : null, hi: td2.hi != null ? td2.hi : null, avg: td2.avg, w: ns.trend, n: td2.days, matched: !!td2.matched }].slice(-180);
+    }
   }
   if (needReview) {
     const wr = weekReview(ns);
@@ -5984,6 +6150,13 @@ function anchorDexa(state, pct) {
   const eyeNow = bfEst(s).pct;
   s.dexaRecon = { d: isoOf(todayStart()), eye: eyeNow, dexa: pct, delta: +(pct - eyeNow).toFixed(1) };
   s.model = { lean: +(s.trend * (1 - pct / 100)).toFixed(1), anchorISO: isoOf(todayStart()), drip: s.model.drip, src: "DEXA", err: "±1" };
+  /* v7.3.0 Slice 4 — record the DEXA in the learned-anchor history (append-only, synced) so partitionPrior
+     narrows the p-ratio range and energyDensity personalises kcal/lb as REAL anchors accumulate over months.
+     bfEst already collapses the protein RANGE off the tighter DEXA band; this makes the anchor COUNTABLE. */
+  s.learned = (s.learned && typeof s.learned === "object") ? s.learned : { tdee: [], anchors: [] };
+  if (!Array.isArray(s.learned.anchors)) s.learned.anchors = [];
+  if (!Array.isArray(s.learned.tdee)) s.learned.tdee = [];
+  s.learned.anchors.push({ id: _freshId("dexa_"), d: isoOf(todayStart()), src: "DEXA", bf: pct, lean: s.model.lean, trend: s.trend });
   const q = s.queue.find((x) => x.id === "q_dexa"); if (q) { q.done = true; q.state = "ANCHORED"; }
   s.feed.unshift({ d: isoOf(todayStart()), t: "DEXA ANCHORED", how: `${pct}% at trend ${s.trend} → lean ${s.model.lean}. Every estimate and ETA now runs off measured ground truth.` });
   return s;
@@ -6337,7 +6510,20 @@ function patchV36(s) {
   s.v = 36;
   return s;
 }
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36];
+function patchV37(s) {
+  /* v7.3.0 Slice 4 — the n-of-1 LEARNING store lands as a synced, engine-owned collection (the first
+     real schema patch of this arc; Slice 3 already consumed patchV36/SCHEMA 36, so this is patchV37/37).
+     ADDITIVE + idempotent: seed the learned sub-collections empty (never rewrite history), so a fresh SEED
+     === a migrated state and replaying the whole chain over a fresh seed is a no-op. No existing field is
+     read for meaning or rewritten — no history can move. Registered in MERGE_* (_unionLearned) so a stale
+     device can't clobber the learned series; rollback-safety (v>SCHEMA_V untouched) preserved by migrate. */
+  s.learned = (s.learned && typeof s.learned === "object") ? s.learned : {};
+  if (!Array.isArray(s.learned.tdee)) s.learned.tdee = [];
+  if (!Array.isArray(s.learned.anchors)) s.learned.anchors = [];
+  s.v = 37;
+  return s;
+}
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37];
 function migrate(old) {
   if (old && old.v === SCHEMA_V) return old;
   /* A state NEWER than this build — he upgraded, then the app was rolled back.
@@ -6676,8 +6862,9 @@ function agentToolExec(s, name, input, staged) {
       const tdW = observedTDEE(s);
       const calRef = tdW ? tdW.avg : (ctW.gated ? null : ctW.mid);
       const perStepKcal = stW.gated ? 0.35 : stW.kcalPer1k / 1000;
-      const dSteps = input.steps != null && stepRef != null ? ((input.steps - stepRef) * perStepKcal * 7) / KCAL_PER_LB_MIX : 0;
-      const dCal = input.cal != null && calRef != null ? ((calRef - input.cal) * 7) / KCAL_PER_LB_MIX : 0;
+      const edWhatIf = energyDensity(s).perLb;   // v7.3.0 Slice 4 — the what-if prices rate↔kcal off the ONE energy-density owner (== 3800 until a DEXA)
+      const dSteps = input.steps != null && stepRef != null ? ((input.steps - stepRef) * perStepKcal * 7) / edWhatIf : 0;
+      const dCal = input.cal != null && calRef != null ? ((calRef - input.cal) * 7) / edWhatIf : 0;
       const rate = +(base + dSteps + dCal).toFixed(2);
       const rb = cutRateBand(s).band;   // v6.2.1 — the what-if warns against the selected mode's band
       const notes = [];
@@ -7298,6 +7485,8 @@ function recordCounts(st) {
     photos: arr(st.photos),
     feed: arr(st.feed),
     adjustments: arr(st.adjustments),   // v7.2.0 audit — the Auto-Pilot decision log is load-bearing (track record + undo + once/day guard) and only grows; guard it like the other append-only records so a shrink can't be silent
+    learnedTdee: arr(st.learned && st.learned.tdee),      // v7.3.0 Slice 4 — the learned TDEE drift series only grows; a stale device must not shrink it
+    learnedAnchors: arr(st.learned && st.learned.anchors), // v7.3.0 Slice 4 — DEXA anchor history only grows; guard it too
   };
 }
 function dataLossGuard(prev, next) {
@@ -7413,6 +7602,21 @@ function _unionPlan(remote, local) {
   out.rev = Math.max((+R.rev || 0), (+L.rev || 0));             // monotonic revision, carried for visibility
   return out;
 }
+/* ---------- mergeState v7.3.0 (Slice 4) — reconcile the synced LEARNED store ----------
+   s.learned carries the n-of-1 learning history: a TDEE drift series (by date) and the BF/DEXA anchor
+   log (by id). Both are APPEND-ONLY and load-bearing (tdeeLearned smooths the series; partitionPrior +
+   energyDensity narrow off the anchors; adaptationSignal reads observed-vs-mass-predicted over time), so
+   — exactly like s.plan — s.learned must NOT ride {...remote,...local} wholesale (the same v6.2 clobber
+   class). Each sub-collection is a keyed union that NEVER drops an entry from either side: |merged| >= both
+   from EITHER write order, so a stale device can neither LOSE nor REVERT learned history. */
+function _unionLearned(remote, local) {
+  const R = remote && typeof remote === "object" ? remote : {};
+  const L = local && typeof local === "object" ? local : {};
+  const out = { ...R, ...L };
+  out.tdee    = _unionKeyed(R.tdee,    L.tdee,    (x) => x && x.d,  () => 0);   // by date — never drop; exact-key tie -> local
+  out.anchors = _unionKeyed(R.anchors, L.anchors, (a) => a && a.id, () => 0);   // by id — never drop; tie -> local (ids are _freshId-unique, so no real collision)
+  return out;
+}
 const MERGE_KEYED = {   // STORED, non-append-only per-lift state — reconcile per id (newest / most-advanced wins)
   exercises: { keyOf: (e) => e && e.id, scoreOf: _exDate },
   queue:     { keyOf: (q) => q && q.id, scoreOf: _queueRank },
@@ -7447,6 +7651,7 @@ function mergeState(local, remote) {
   const rn = (remote.sleep && remote.sleep.nights) || [], ln = (local.sleep && local.sleep.nights) || [];
   out.sleep = { ...(remote.sleep || {}), ...(local.sleep || {}), nights: _unionBy(rn, ln, (n) => n && n.d) };
   out.plan = _unionPlan(remote.plan, local.plan);   // v7.2.0 Slice 3 — goals/ifthen keyed-union + policy scalars newest-deliberate-wins (was wholesale local-wins)
+  out.learned = _unionLearned(remote.learned, local.learned);   // v7.3.0 Slice 4 — learned TDEE series + anchor log keyed-union (never clobbered by a stale sync)
   return out;
 }
 
@@ -7518,6 +7723,16 @@ __test.exerciseSelection = exerciseSelection;
 __test.dietExit = dietExit;
 __test.KCAL_PER_LB_MIX = KCAL_PER_LB_MIX;
 __test.KCAL_PER_LB_FAT = KCAL_PER_LB_FAT;
+__test.KCAL_PER_LB_LEAN = KCAL_PER_LB_LEAN;
+__test.PRIOR_FAT_FRAC = PRIOR_FAT_FRAC;
+__test.energyDensity = energyDensity;
+__test.partitionPrior = partitionPrior;
+__test.tdeeLearned = tdeeLearned;
+__test.adaptationSignal = adaptationSignal;
+__test._unionLearned = _unionLearned;
+__test.recordCounts = recordCounts;
+__test.proteinTarget = proteinTarget;
+__test.sweepLab = sweepLab;
 __test.DEBT_LAST_H = DEBT_LAST_H;
 __test.DEBT_MEAN3_H = DEBT_MEAN3_H;
 __test.EA_SPARING = EA_SPARING;
@@ -11493,6 +11708,42 @@ function HistTab({ s, setS, save }) {
         </div>
         <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 8 }}>Weight fell while every headline lift rose — the whole thesis, in one screen. Tap a week for the day-by-day.</div>
       </Card>
+
+      {/* ---------- N-OF-1 LEARNING (v7.3.0 · Slice 4) ----------
+          What the app has learned about HIM from HIS own data — persisted, engine-owned, honest.
+          tdeeLearned / partitionPrior / energyDensity / adaptationSignal are the OWNERS the Twin below
+          + Auto-Pilot read; this card only DISCLOSES them, each WITH its band and a name for what it
+          can't yet know. Fully guarded — renders calm "calibrating" copy in thin/early states. */}
+      {(() => {
+        const tl = tdeeLearned(s); const pp = partitionPrior(s); const ed = energyDensity(s); const ad = adaptationSignal(s);
+        const row = (label, value, detail, accent) => (
+          <div style={{ marginTop: SP.md, paddingTop: SP.sm, borderTop: `1px solid ${T.hairline}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: SP.sm, flexWrap: "wrap" }}>
+              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.1em", color: T.steel, textTransform: "uppercase" }}>{label}</span>
+              <span data-num style={{ fontFamily: mono, fontSize: TS.body, fontWeight: 600, color: accent || T.chalk, ...NUMERIC }}>{value}</span>
+            </div>
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.hair, lineHeight: `${LH.micro}px` }}>{detail}</div>
+          </div>
+        );
+        const tdeeBand = tl.acc != null ? tl.acc : (tl.hi != null && tl.lo != null ? Math.round((tl.hi - tl.lo) / 2) : null);
+        const tdeeVal = tl.value != null ? (tdeeBand != null ? `${tl.value} ± ${tdeeBand} kcal` : `${tl.value} kcal`) : "calibrating";
+        const tdeeDetail = tl.value != null
+          ? `${tl.converged ? "converged" : "still converging (~2–4 wk)"} · ${tl.n} fit${tl.n === 1 ? "" : "s"} · TDEE minus logging bias, not physiology`
+          : "keep logging — your maintenance converges in ~2–4 weeks";
+        const pFatLo = Math.round(pp.fatFrac.lo * 100), pFatHi = Math.round(pp.fatFrac.hi * 100);
+        const edVal = ed.identified ? `~${ed.perLb} kcal/lb` : `${ed.perLb} kcal/lb · prior`;
+        const adVal = ad.detected ? `~${Math.abs(ad.kcal)} kcal/day under` : "not detected";
+        return (
+          <Card accent={T.brass} style={{ padding: SP.lg }}>
+            <Eyebrow c={T.brass}>N-OF-1 · WHAT THE APP HAS LEARNED</Eyebrow>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Your own parameters, learned from your own data and feeding the Twin below. Research set the starting point; your data moves it. Every number ships with its band and names what it can't yet know — nothing here is a physiological measurement.</div>
+            {row("MAINTENANCE · TDEE", tdeeVal, tdeeDetail, tl.converged ? T.gauge : T.steel)}
+            {row("PARTITION · p-RATIO", `${pFatLo}–${pFatHi}% fat`, pp.identified ? "anchored to a measured body fat — the band narrows as more DEXA anchors land" : "a RANGE, not a point — barely identifiable from the scale; needs repeated DEXA anchors to narrow (Forbes)", T.chalk)}
+            {row("ENERGY DENSITY", edVal, ed.identified ? `${ed.lo}–${ed.hi} band · fat-mass-dependent — leaner prices lower, not a fixed 3,500` : `${ed.lo}–${ed.hi} band · held at the prior until a DEXA measures your fat mass`, T.chalk)}
+            {row("METABOLIC ADAPTATION", adVal, ad.detected ? "observed maintenance below what mass loss alone predicts — persistent + significant; calibration for the plan, not a target" : "gated on significance + persistence — a single low week can't fire it", ad.detected ? T.brass : T.steel)}
+          </Card>
+        );
+      })()}
 
       {/* ---------- THE DIGITAL TWIN (v2 slice D) ----------
           LAB re-pointed from passive measurement toward decision support: a validated
