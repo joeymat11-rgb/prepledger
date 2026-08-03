@@ -304,13 +304,13 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.3.1";
+const APP_V = "7.4.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 37;
+const SCHEMA_V = 38;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -475,7 +475,7 @@ const SEED = {
   SEED.sync = { last: null, status: "" };
   SEED.exOrder = { U: SEED.exercises.filter((e) => e.day === "U").map((e) => e.id), L: SEED.exercises.filter((e) => e.day === "L").map((e) => e.id) };
   SEED.waist = [];
-  SEED.plan = { goals: [], ifthen: [], share: false, autonomy: "propose" };
+  SEED.plan = { goals: [], ifthen: [], share: false, autonomy: "propose", phaseLog: [] };
   SEED.exercises.forEach((e) => { e.rirHist = []; });
   /* seeded PREV blocks predate per-set RIR, so their arrays are all-null —
      exactly what patchV31 produces for the same data. A fresh install and a
@@ -2978,6 +2978,192 @@ function trackRecord(s, deps) {
     ? `Over ${graded.length} graded 7-day call${graded.length > 1 ? "s" : ""}, the trend landed within your ±${tol} lb noise ${hits} time${hits !== 1 ? "s" : ""} and missed ${misses} — mean miss ±${mae} lb. Misses are shown, not hidden.`
     : "No 7-day calls have come due yet — the record fills as each prediction ages into an outcome.";
   return { rows: rows.slice(-TRACK_ROWS), graded: graded.length, hits, misses, mae, tol, calibration, hasMiss: misses > 0, cleanStreak, decisions };
+}
+
+/* ============================================================================================
+   PHASE ARC (v7.4.0 · Slice 5) — the whole arc, not just today's number. A phase model layered
+   over the existing engine: the current cut, a planned diet break, and the transitions out
+   (cut -> maintenance -> lean-gain). PURE selectors that COMPOSE the number-owners
+   (dietExit / calorieTarget / observedTDEE / currentRate / bodyCompBand / energyAvailability /
+   proteinTarget) — none emits a competing number, exactly like the trust engine. The phase layer
+   PROPOSES and FRAMES; the engine keeps the wheel (Constitution Article VIII). Every steer routes
+   through the SAME approval loop (s.proposals -> applyProposal -> s.adjustments / the hardened
+   s.plan), so approvals still serve their function and stay undoable. Robust to a minimal state —
+   every external read is guarded, so autoPilot/statusFace synthetic-state tests are unaffected. */
+const PHASE_META = {
+  cut:         { key: "cut",         label: "CUT",              toneKey: "gauge" },
+  break:       { key: "break",       label: "DIET BREAK",       toneKey: "steel" },
+  maintenance: { key: "maintenance", label: "MAINTENANCE HOLD", toneKey: "brass" },
+  leangain:    { key: "leangain",    label: "LEAN GAIN",        toneKey: "jade"  },
+};
+const PHASE_ORDER = ["cut", "break", "maintenance", "leangain"];
+const BREAK_LEN_DAYS = 7;        // a diet break is a full WEEK at maintenance — the ICECAP / MATADOR protocol, not a day
+const BREAK_RECENT_DAYS = 10;    // a just-ended break still carries the honest "that was glycogen, not fat" scale note
+const daysBetween = (a, b) => Math.round((mk(b) - mk(a)) / DAY);
+const _phaseSafe = (fn, dflt) => { try { const v = fn(); return v == null ? dflt : v; } catch (e) { return dflt; } };
+
+/* The honest diet-break story, in one place. The research is explicit and the app's own voice already
+   says it (dietExit.why, the refeed cards): for a lean, trained male a diet break is an ADHERENCE tool,
+   NOT a metabolic trick. It must never read as "boost your metabolism". */
+function dietBreakHonest() {
+  return {
+    what: "A planned week eating at maintenance — a recovery and adherence pause, then the cut picks back up.",
+    metabolic: "It is not a metabolic trick. In lean, trained people a diet break does not rescue metabolic rate: ICECAP (Peos 2021, n=61 resistance-trained) found hunger and diet-satisfaction improved while fat mass, fat-free mass, resting metabolism, leptin, testosterone and T3 were all unchanged. MATADOR's benefit in this population is adherence — and a water/glycogen swing on the scale — not a faster metabolism.",
+    scale: "Expect the scale to jump a few pounds within days. That is glycogen and the water bound to it (~3 g of water per gram of carbohydrate stored), transient — not fat regained — and it comes back off when the deficit resumes. Reading it as fat is how people talk themselves out of a break they benefited from.",
+    buys: "What it buys is a break from hunger and dietary restraint, which is the effect the evidence actually replicates. It is not a fat-loss accelerator, and the app will never sell it as one.",
+  };
+}
+/* dietBreakState — proposed / active / recent / none, plus the ENGINE-OWNED maintenance number to eat at
+   during the break (dietExit -> observedTDEE; never authored here) and the honest framing. Reads the
+   hardened s.plan.brk decision. Pure. */
+function dietBreakState(s, deps) {
+  s = s || {};
+  const today = (deps && deps.today) || isoOf(todayStart());
+  const plan = (s.plan && typeof s.plan === "object") ? s.plan : {};
+  const brk = (plan.brk && typeof plan.brk === "object") ? plan.brk : null;
+  const honest = dietBreakHonest();
+  const dx = _phaseSafe(() => dietExit(s), null);
+  const maintenance = dx && !dx.gated ? dx.maintenance : null;
+  const maintDays = dx && !dx.gated ? dx.days : null;
+  const base = { maintenance, maintDays, honest, why: honest.what };
+  if (!brk || !brk.start || !brk.end) return { status: "none", start: null, end: null, daysLeft: 0, daysSince: 0, startsIn: 0, ...base };
+  if (today < brk.start)  return { status: "proposed", start: brk.start, end: brk.end, startsIn: daysBetween(today, brk.start), daysLeft: daysBetween(brk.start, brk.end), daysSince: 0, ...base };
+  if (today <= brk.end)   return { status: "active",   start: brk.start, end: brk.end, startsIn: 0, daysLeft: Math.max(0, daysBetween(today, brk.end)), daysSince: daysBetween(brk.start, today), ...base };
+  const daysSince = daysBetween(brk.end, today);
+  if (daysSince <= BREAK_RECENT_DAYS) return { status: "recent", start: brk.start, end: brk.end, startsIn: 0, daysLeft: 0, daysSince, ...base };
+  return { status: "none", start: null, end: null, daysLeft: 0, daysSince: 0, startsIn: 0, ...base };
+}
+
+/* phaseArc — which phase, how long it has run, and what comes next. Effective phase precedence:
+   an ACTIVE diet break (a maintenance pause) -> committed lean-gain -> maintenance hold (diet exit
+   started, or committed) -> cut (the default; this is a cut engine). All numbers borrowed from the
+   owners; the arc only sequences and frames them. */
+function phaseArc(s, deps) {
+  s = s || {};
+  const today = (deps && deps.today) || isoOf(todayStart());
+  const brkS = (deps && deps.brk) || dietBreakState(s, deps);
+  const dx = _phaseSafe(() => dietExit(s), null);
+  const committed = (s.plan && typeof s.plan === "object" && typeof s.plan.phase === "string") ? s.plan.phase : null;
+  const exitStarted = (dx && dx.started) || null;
+
+  let key;
+  if (brkS.status === "active") key = "break";
+  else if (committed === "leangain") key = "leangain";
+  else if (committed === "maintenance" || exitStarted) key = "maintenance";
+  else key = "cut";
+
+  const startOf = { cut: START, break: brkS.start, maintenance: exitStarted, leangain: _phaseSince(s, "leangain") };
+  const since = startOf[key] || START;
+  const weeks = +(((mk(today) - mk(since)) / DAY) / 7).toFixed(1);
+  const meta = PHASE_META[key] || PHASE_META.cut;
+
+  // NEXT — honest foresight, one line, never a countdown (no show date exists — GOALS.md).
+  let next;
+  if (key === "cut") {
+    if (brkS.status === "proposed") next = { key: "break", label: PHASE_META.break.label, when: `starts ${fmtShort(brkS.start)}`, note: "a planned week at maintenance — adherence and recovery, not a metabolic reset" };
+    else next = { key: "maintenance", label: PHASE_META.maintenance.label, when: "when you and your coach call it — no date", note: "one step to your measured maintenance, hold, then decide — no automatic surplus" };
+  } else if (key === "break") {
+    next = { key: "cut", label: PHASE_META.cut.label, when: `resumes ${fmtShort(brkS.end)}`, note: "the deficit picks back up; the scale settles as the glycogen water comes back off" };
+  } else if (key === "maintenance") {
+    const ready = dx && dx.decideReady;
+    next = { key: "leangain", label: "DECIDE", when: ready ? "your hold has the days behind it — decide with the numbers" : (dx && dx.readReady ? "a couple more weeks before the re-measured number is worth trusting" : "hold first — the scale means nothing for two weeks"), note: "a surplus is one option; staying here is another — there is no rule that the next phase is a build" };
+  } else {
+    next = { key: "leangain", label: "HOLD THE BUILD", when: "no fixed length — advanced lean-gain has no longitudinal data", note: "rate is expert-recommendation, not measurement (Iraki 2019); the app never quotes 1–2 lb of muscle a month for you" };
+  }
+
+  const sup = (deps && deps.sup) || phaseSupervisor(s, deps);
+  const line = key === "break"
+    ? `Diet break — day ${brkS.daysSince} of ${BREAK_LEN_DAYS}, ${brkS.daysLeft} to go. Eating at maintenance; the cut resumes ${fmtShort(brkS.end)}.`
+    : key === "maintenance"
+    ? `Maintenance hold — week ${weeks}. ${next.when}.`
+    : key === "leangain"
+    ? `Lean gain — week ${weeks}. Disciplined surplus, honest ceiling.`
+    : `Cut — week ${weeks}. Next: ${next.label.toLowerCase()} (${next.when}).`;
+
+  return { key, label: meta.label, toneKey: meta.toneKey, since, weeks, current: { key, label: meta.label, since, weeks }, next, line, brk: brkS, sup, order: PHASE_ORDER };
+}
+/* _phaseSince — the ISO a committed phase was entered, read from the hardened s.plan.phaseLog (newest
+   matching transition), else null. */
+function _phaseSince(s, key) {
+  const log = (s && s.plan && Array.isArray(s.plan.phaseLog)) ? s.plan.phaseLog : [];
+  for (let i = log.length - 1; i >= 0; i--) { const e = log[i]; if (e && e.to === key && e.at) return String(e.at).slice(0, 10); }
+  return null;
+}
+
+/* phaseSupervisor — the safety supervisor extended to PHASE authority (v7.4.0). It REUSES the existing
+   per-adjustment supervisor (escalation) and the SAME engine-owned hard floors — it does NOT fork a
+   second competing set. The floors: the muscle-loss REDLINE (bodyCompBand.redlinePct, via escalation's
+   'redline' ask), the protein lean-retention FLOOR (proteinTarget.lo = 2.5 g/kg FFM, via escalation's
+   'floor-protein' ask), ENERGY AVAILABILITY under the sparing line (energyAvailability's EA_SPARING/
+   EA_LOW — the app's evidence-defended male thresholds, NOT a new number), and a calorie floor that
+   BINDS (calorieTarget.floorBinds — the rate is set faster than lean mass can fund). Any of these can
+   VETO pressing the cut further and RECOMMEND the protective move — a break, or a transition to
+   maintenance — engine-owned, PROPOSE-ONLY, honest about why. */
+function phaseSupervisor(s, deps) {
+  s = s || {};
+  const ap = (deps && deps.ap) || _phaseSafe(() => autoPilot(s, apModeOf(s)), { ok: false });
+  const esc = (deps && deps.esc) || _phaseSafe(() => escalation(s, ap), { ask: [], abstain: [], escalate: false });
+  const ea = (deps && deps.ea) || _phaseSafe(() => energyAvailability(s), { gated: true });
+  const ct = (deps && deps.ct) || _phaseSafe(() => calorieTarget(s), { gated: true });
+  // The supervisor's authority is over pressing the CUT deeper. Outside a cut (an active break, a
+  // committed maintenance hold or lean gain) there is no deficit to press, so the cut-floor vetoes
+  // do not apply — the supervisor stays quiet rather than nagging about a rate he is not running.
+  const _spTISO = isoOf(todayStart());
+  const _brk = s && s.plan && s.plan.brk;
+  const _brkActive = !!(_brk && _brk.start && _brk.end && _spTISO >= _brk.start && _spTISO <= _brk.end);
+  const _committed = (s && s.plan && typeof s.plan.phase === "string") ? s.plan.phase : null;
+  const _exitStarted = !!(s && s.targets && s.targets.exitStart);
+  const inCut = (deps && deps.inCut != null) ? deps.inCut : (!_brkActive && _committed !== "leangain" && _committed !== "maintenance" && !_exitStarted);
+  const reasons = [];
+  if (inCut) {
+    // REUSE the per-adjustment supervisor's phase-relevant hard asks (redline / protein floor) verbatim.
+    (esc.ask || []).forEach((a) => { if (a && (a.code === "redline" || a.code === "floor-protein")) reasons.push({ code: a.code, floor: true, text: a.text }); });
+    // ENERGY AVAILABILITY under the engine's sparing line — the canonical "pause before pressing further" signal.
+    if (ea && !ea.gated && ea.ea != null && ea.ea < EA_SPARING)
+      reasons.push({ code: "ea", floor: true, text: `energy availability is ${ea.ea} kcal/kg lean, ${ea.ea < EA_LOW ? "under the " + EA_LOW + " line where over 40% of loss comes off muscle" : "under the " + EA_SPARING + " sparing line"} — a week at maintenance is the honest move before pressing the deficit further` });
+    // The rate band's fast end is UNFUNDABLE (the floor binds) — the rate is misconfigured, not "eat at the floor".
+    if (ct && !ct.gated && ct.floorBinds) reasons.push({ code: "floor", floor: true, text: "the band's fast end is under your energy-availability floor — the rate is set faster than your lean mass can fund, so ease it before going deeper" });
+  }
+  const veto = reasons.some((r) => r.floor);
+  let kind = null;
+  if (reasons.some((r) => r.code === "ea")) kind = "forceBreak";          // EA low -> a maintenance week
+  else if (veto) kind = "blockDeeper";                                    // redline / protein / floor -> don't deepen; ease / transition
+  return {
+    veto, kind, reasons, first: reasons[0] || null,
+    escalate: !!esc.escalate, escReason: esc.first || null,
+    why: veto
+      ? "A hard floor blocks pressing the cut further. The engine proposes the protective move — it never applies it on its own, and the number stays the engine's."
+      : "Every hard floor is clear — the phase plan can proceed.",
+  };
+}
+
+/* phaseProposal — the ONE propose-only phase steer that is due, gated by the supervisor. Returns a
+   proposal shape (rid / title / why / gate / apply) the athlete taps into the inbox (never auto-armed —
+   Constitution: nothing mutates itself), or null when the arc is calm. Routes through applyProposal like
+   every other machine-initiated change. */
+function phaseProposal(s, deps) {
+  s = s || {};
+  const today = (deps && deps.today) || isoOf(todayStart());
+  const brkS = (deps && deps.brk) || dietBreakState(s, deps);
+  const sup = (deps && deps.sup) || phaseSupervisor(s, deps);
+  const arc = (deps && deps.arc) || phaseArc(s, { ...(deps || {}), brk: brkS, sup });
+  const h = brkS.honest;
+  // 1) SUPERVISOR forces a break (EA under the sparing line) and none is armed/active -> propose one.
+  if (sup.kind === "forceBreak" && (brkS.status === "none" || brkS.status === "recent")) {
+    const start = today, end = isoOf(new Date(mk(today).getTime() + (BREAK_LEN_DAYS - 1) * DAY));
+    return { rid: "phase_break_" + today, title: "DIET BREAK — A WEEK AT MAINTENANCE", gate: null,
+      why: `${sup.first ? sup.first.text : "adherence and recovery"}. ${h.metabolic} ${h.scale}`,
+      apply: { kind: "break", start, end, maintenance: brkS.maintenance } };
+  }
+  // 2) The cut has run to the diet exit and the athlete has committed nothing — offer the transition to
+  //    maintenance (reuses the existing 'exit' machinery). Only once decideReady is meaningful; here it is
+  //    offered as calm foresight, gated to the coach's call (no date, no auto-move).
+  if (arc.key === "cut" && sup.kind === "blockDeeper") {
+    return { rid: "phase_hold_" + today, title: "EASE THE RATE — YOU'RE AT A FLOOR", gate: null,
+      why: `${sup.first ? sup.first.text : "a hard floor is binding"}. This eases the deficit rather than pressing it; the engine still owns the band, and it's one tap to undo.`,
+      apply: { kind: "note" } };
+  }
+  return null;
 }
 
 /* THE LAB — every analytic self-gates on its own data threshold. No correlations under N. */
@@ -6050,6 +6236,23 @@ function apSteerHandled(s, tISO) {
   return ((s && s.adjustments) || []).some((a) => a && !a.undone && a.d === tISO && a.rid &&
     (String(a.rid).indexOf("ap_") === 0 || String(a.rid).indexOf("apauto_") === 0));
 }
+/* _stampPlan (v7.4.0 Slice 5) — write a phase DECISION into the hardened s.plan: set the policy field(s),
+   STAMP setAt[field] with an ISO time (the newest-deliberate-wins merge reads this — a stale device can
+   neither REVERT nor LOSE it), bump rev, and append an id'd entry to the append-only phaseLog (keyed-union
+   merged, never dropped). Mirrors savePlan's stamping. Mutates + returns s. */
+function _stampPlan(s, fields, logEntry) {
+  const p = (s.plan && typeof s.plan === "object") ? s.plan : {};
+  const now = new Date().toISOString();
+  const out = { goals: [], ifthen: [], share: false, autonomy: "propose", phaseLog: [], ...p };
+  const setAt = { ...(p.setAt || {}) };
+  for (const k of Object.keys(fields || {})) { out[k] = fields[k]; setAt[k] = now; }
+  out.setAt = setAt;
+  out.rev = (+p.rev || 0) + 1;
+  out.phaseLog = Array.isArray(out.phaseLog) ? out.phaseLog.slice() : [];
+  if (logEntry) out.phaseLog.push({ id: _freshId("ph_"), at: now, ...logEntry });
+  s.plan = out;
+  return s;
+}
 function applyProposal(state, pid, nudge = 0, via = "cal") {
   const s = JSON.parse(JSON.stringify(state));
   const p = s.proposals.find((x) => x.id === pid);
@@ -6093,6 +6296,7 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
        is only pretending to run. This is a dated decision like any other. */
     s.targets = s.targets || {};
     s.targets.exitStart = isoOf(todayStart());
+    _stampPlan(s, { phase: "maintenance" }, { kind: "transition", from: "cut", to: "maintenance" });   // v7.4.0 Slice 5 — hardened so a stale device cannot revert the maintenance decision
     const dxA = dietExit(s);
     s.feed.unshift({ d: isoOf(todayStart()), t: "DIET EXIT — MAINTENANCE HELD",
       how: dxA.gated
@@ -6102,6 +6306,25 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
     s.phase = p.apply.to;
     const q = s.queue.find((x) => x.id === "q_ease2"); if (q) { q.done = true; q.state = "FIRED"; }
     s.feed.unshift({ d: isoOf(todayStart()), t: `${p.apply.to} FIRED`, how: `est. BF crossed the line — targets now ${PHASES[p.apply.to].band.join("–")} · steps: ${PHASES[p.apply.to].steps}. Mirror outranks scale from here.` });
+  } else if (p.apply.kind === "break" && p.apply.start && p.apply.end) {
+    /* v7.4.0 Slice 5 — a DATED week at maintenance, recorded as a hardened, merge-safe decision in s.plan
+       (newest-deliberate-wins) + an append-only phaseLog entry. The number to eat at is the ENGINE's
+       measured maintenance (dietExit/observedTDEE), never authored here. Reversible: the row carries the
+       prior break so one Undo restores it. Honest: adherence + recovery, and a TRANSIENT glycogen/water
+       scale bump — never a metabolic reset. */
+    row.planUndo = { field: "brk", prev: (s.plan && s.plan.brk) || null };
+    _stampPlan(s, { brk: { start: p.apply.start, end: p.apply.end, planned: isoOf(todayStart()) } }, { kind: "break", from: "cut", to: "break", start: p.apply.start, end: p.apply.end });
+    const dbA = dietBreakState(s);
+    s.feed.unshift({ d: isoOf(todayStart()), t: "DIET BREAK — A WEEK AT MAINTENANCE",
+      how: `${dbA.maintenance ? `Eat at ${dbA.maintenance} — your measured maintenance — through ${fmtShort(p.apply.end)}.` : `Eat at maintenance through ${fmtShort(p.apply.end)}.`} ${dbA.honest.scale} A break from hunger, not a metabolic reset — and one tap to undo.` });
+  } else if (p.apply.kind === "phasePlan" && p.apply.to) {
+    /* v7.4.0 Slice 5 — a committed macro-phase transition (e.g. maintenance -> lean gain), hardened in
+       s.plan (newest-deliberate-wins) + phaseLog, reversible via the row's prior value. The engine still
+       owns every number the new phase prices; this only records WHICH phase is in effect. */
+    row.planUndo = { field: "phase", prev: (s.plan && s.plan.phase) || null };
+    const toMeta = PHASE_META[p.apply.to] || { label: String(p.apply.to).toUpperCase() };
+    _stampPlan(s, { phase: p.apply.to }, { kind: "transition", from: (s.plan && s.plan.phase) || "cut", to: p.apply.to });
+    s.feed.unshift({ d: isoOf(todayStart()), t: `PHASE — ${toMeta.label}`, how: `${p.why || "Phase committed."} The engine still owns every number this phase prices; one tap to undo.` });
   } else {
     const tail = adj ? ` · you took it ${adj > 0 ? "+" : ""}${adj}${dial ? " " + dial.unit : ""} off the proposed number — recorded as applied, your version` : "";
     s.feed.unshift({ d: isoOf(todayStart()), t: "ADJUSTMENT LOGGED", how: `${p.title} — ${p.why}${tail}` });
@@ -6209,7 +6432,9 @@ function undoAdjustment(state, rid) {
   const a = adj[i];
   const p = (s.proposals || []).find((x) => x && x.rid === a.rid && x.resolved);
   if (p) { p.resolved = false; p.dismissed = false; p.nudge = 0; p.auto = false; }   // hand the decision back to the inbox
-  a.undone = true;   // v7.2.0 audit — KEEP the row (durable), don't splice it. Splicing an apauto_ record erased the once/day auto-apply guard's memory (apAutoHandledFor), so the auto-move RE-FIRED on the next mount and could duplicate the apauto_ proposal. Marking undone reconciles with lastUndoable (which already skips undone rows) and keeps the guard true for the day.
+  a.undone = true;
+  if (a.planUndo && a.planUndo.field) _stampPlan(s, { [a.planUndo.field]: a.planUndo.prev }, { kind: "undo", field: a.planUndo.field });   // v7.4.0 Slice 5 — a phase/break decision reverses through the SAME one-tap undo (restores the prior value, hardened)
+  // v7.2.0 audit — KEEP the row (durable), don't splice it. Splicing an apauto_ record erased the once/day auto-apply guard's memory (apAutoHandledFor), so the auto-move RE-FIRED on the next mount and could duplicate the apauto_ proposal. Marking undone reconciles with lastUndoable (which already skips undone rows) and keeps the guard true for the day.
   s.feed = s.feed || [];
   s.feed.unshift({ d: isoOf(todayStart()), t: "MOVE UNDONE", how: `${a.title} — reversed; ${p ? "it's back in your inbox to decide." : "nothing was locked in."} Undo is always one tap.` });
   return s;
@@ -6615,7 +6840,21 @@ function patchV37(s) {
   s.v = 37;
   return s;
 }
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37];
+function patchV38(s) {
+  /* v7.4.0 Slice 5 — the PHASE ARC lands its decisions in the already-hardened s.plan (a planned diet
+     break + phase transitions). ADDITIVE + idempotent: default the append-only phase-transition LOG to
+     empty so the keyed-union merge has a list to reconcile; the current-phase and current-break POLICY
+     SCALARS (s.plan.phase / s.plan.brk) are left ABSENT by default — absent phase reads as the derived
+     cut, absent brk reads as no break — so a fresh SEED === a migrated state and replaying the whole chain
+     over a fresh seed is a no-op. No existing field is read for meaning or rewritten; no history can move.
+     Registered in _unionPlan (phase/brk newest-deliberate-wins, phaseLog keyed-union) so a stale device can
+     neither REVERT nor LOSE a phase decision; rollback-safety (v>SCHEMA_V untouched) is preserved by migrate. */
+  s.plan = (s.plan && typeof s.plan === "object") ? s.plan : { goals: [], ifthen: [], share: false, autonomy: "propose" };
+  if (!Array.isArray(s.plan.phaseLog)) s.plan.phaseLog = [];
+  s.v = 38;
+  return s;
+}
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38];
 function migrate(old) {
   if (old && old.v === SCHEMA_V) return old;
   /* A state NEWER than this build — he upgraded, then the app was rolled back.
@@ -7673,7 +7912,7 @@ function _unionKeyed(remoteArr, localArr, keyOf, scoreOf) {
        a real choice — and a stale client can neither REVERT a newer setting nor LOSE one, in EITHER
        write order (the adversarial property the gate asserts).
    Everything else on plan (share, per-day dismiss guards) rides the {...R,...L} base unchanged. */
-const PLAN_POLICY_SCALARS = ["apMode", "autonomy"];
+const PLAN_POLICY_SCALARS = ["apMode", "autonomy", "phase", "brk"];   // v7.4.0 Slice 5 — the committed macro-phase + the current diet-break decision are policy, newest-deliberate-wins
 function _unionPlan(remote, local) {
   const R = remote && typeof remote === "object" ? remote : {};
   const L = local && typeof local === "object" ? local : {};
@@ -7681,6 +7920,7 @@ function _unionPlan(remote, local) {
   // goals / ifthen — keyed union by id: never drop an entry from either side (ties -> local)
   out.goals  = _unionKeyed(R.goals,  L.goals,  (g) => g && g.id, () => 0);
   out.ifthen = _unionKeyed(R.ifthen, L.ifthen, (p) => p && p.id, () => 0);
+  out.phaseLog = _unionKeyed(R.phaseLog, L.phaseLog, (e) => e && e.id, () => 0);   // v7.4.0 Slice 5 — append-only phase-transition log; never drop an entry from either side
   // policy scalars — newest DELIBERATE change wins (per-field ISO stamp); tie / both-unstamped -> local
   const rSet = (R.setAt && typeof R.setAt === "object") ? R.setAt : {};
   const lSet = (L.setAt && typeof L.setAt === "object") ? L.setAt : {};
@@ -8536,6 +8776,9 @@ __test.whyThisNumber = whyThisNumber; __test.confidenceField = confidenceField; 
 __test.AUTONOMY_LEVELS = AUTONOMY_LEVELS; __test.AUTONOMY_META = AUTONOMY_META; __test._unionPlan = _unionPlan;
 __test.lastUndoable = lastUndoable; __test.undoAdjustment = undoAdjustment;
 __test.apAutoHandledFor = apAutoHandledFor; __test._freshId = _freshId;   // v7.2.0 audit — once/day guard predicate + collision-resistant id
+/* v7.4.0 Slice 5 — PHASE ARC selectors under test (phase model, honest diet break, supervisor phase-veto, propose-only steer) */
+__test.phaseArc = phaseArc; __test.dietBreakState = dietBreakState; __test.dietBreakHonest = dietBreakHonest;
+__test.phaseSupervisor = phaseSupervisor; __test.phaseProposal = phaseProposal; __test._stampPlan = _stampPlan; __test.PHASE_META = PHASE_META; __test.BREAK_LEN_DAYS = BREAK_LEN_DAYS;
 
 /* Group — a fixed-position collapsible section for NOW's FOCUSED tier. Order never
    changes (static beats adaptive — Findlater & McGrenere); only open/closed responds
@@ -8856,13 +9099,15 @@ function ApprovalInbox({ s, setS, save, tISO }) {
 
   (s.proposals || []).filter((p) => !p.resolved).forEach((p) => {
     const k = (p.apply || {}).kind;
-    const pri = (k === "phase" || k === "exit") ? 0 : (k === "cal" || k === "rate" || k === "refeed") ? 1 : 4;
+    const pri = (k === "phase" || k === "exit" || k === "phasePlan" || k === "break") ? 0 : (k === "cal" || k === "rate" || k === "refeed") ? 1 : 4;
     items.push({
       key: "eng_" + p.id, from: "ENGINE", type: "ADJUSTMENT ARMED", meta: fmtShort(p.d), accent: T.brass, pri, basis: "measured",
       title: p.title, why: p.why, dial: proposalDial(p),
       approve: (n) => { const ns = applyProposal(s, p.id, n || 0, "cal"); setS(ns); save(ns); },
       approveLabel: (n) => (k === "cal"
         ? (((p.apply || {}).calDelta < 0) ? (n ? "Tighten — my version" : "Tighten the band — apply") : (n ? "Ease — my version" : "Ease the band — apply"))
+        : k === "break" ? "Start the break — a week at maintenance"
+        : k === "phasePlan" ? "Commit — start the phase"
         : (n ? "Apply my version" : "Apply — log it")),
       // v7.3.1 — the "OR add steps" choice, made AT approval: same steer, the walking lever instead of the plate.
       altApprove: (k === "cal" && (p.apply || {}).stepsDelta) ? (n) => { const ns = applyProposal(s, p.id, n || 0, "steps"); setS(ns); save(ns); } : null,
@@ -9007,6 +9252,76 @@ function ProtoStep({ n, st }) {
   );
 }
 
+/* ---------- COCKPIT · THE PHASE ARC (v7.4.0 · Slice 5) ----------
+   Calm foresight, one tap down from the cockpit: which phase he is in, how long it has run, and what
+   comes next — the whole arc, not just today's number. PURE reads (phaseArc / dietBreakState /
+   phaseSupervisor / phaseProposal) over the engine; every number stays the engine's. A diet break is
+   framed HONESTLY (adherence + recovery, a TRANSIENT glycogen/water scale bump — never a metabolic
+   reset). The safety supervisor's phase veto surfaces here, calmly. Any actual steer is PROPOSE-ONLY:
+   it files a tap-to-approve proposal into the same one-door inbox, never mutating on its own. */
+function PhaseArcCard({ s, setS, save, tISO }) {
+  const [open, setOpen] = useState(false);
+  const arc = phaseArc(s);
+  const sup = arc.sup || phaseSupervisor(s);
+  const db = arc.brk || dietBreakState(s);
+  const prop = phaseProposal(s);
+  const toneMap = { gauge: T.gauge, steel: T.steel, brass: T.brass, jade: T.jade };
+  const tone = toneMap[arc.toneKey] || T.steel;
+  const armProposal = (pr) => {
+    if (!pr) return;
+    const ns = JSON.parse(JSON.stringify(s));
+    ns.proposals = ns.proposals || [];
+    if (!ns.proposals.some((p) => p.rid === pr.rid && !p.resolved)) ns.proposals.push({ ...pr, id: pr.rid + "_" + tISO, d: tISO, resolved: false });
+    setS(ns); save(ns); hap(12);
+  };
+  const planBreak = () => {
+    const start = tISO, end = isoOf(new Date(mk(tISO).getTime() + (BREAK_LEN_DAYS - 1) * DAY));
+    armProposal({ rid: "phase_break_" + tISO, title: "DIET BREAK — A WEEK AT MAINTENANCE", why: `${db.honest.metabolic} ${db.honest.scale}`, apply: { kind: "break", start, end, maintenance: db.maintenance } });
+  };
+  const endBreak = () => {
+    const ns = JSON.parse(JSON.stringify(s));
+    _stampPlan(ns, { brk: null }, { kind: "break-end", from: "break", to: "cut" });
+    ns.feed = ns.feed || [];
+    ns.feed.unshift({ d: tISO, t: "DIET BREAK ENDED", how: "Back to the cut. The scale settles over the next few days as the glycogen water comes back off — that was never fat." });
+    setS(ns); save(ns); hap(10);
+  };
+  const armed = (s.proposals || []).some((p) => !p.resolved && p.apply && (p.apply.kind === "break" || p.apply.kind === "phasePlan"));
+  return (
+    <Card style={{ padding: SP.lg }}>
+      <Eyebrow c={tone}>PHASE ARC · {arc.label}</Eyebrow>
+      <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.45, marginTop: SP.sm }}>{arc.line}</div>
+      {sup.veto && (
+        <div style={{ fontFamily: body, fontSize: TS.micro, color: T.orange, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>&#9650; {sup.first ? sup.first.text : sup.why}</div>
+      )}
+      <div style={{ marginTop: SP.md, borderTop: `1px solid ${T.line}`, paddingTop: SP.md }}>
+        <button onClick={() => setOpen(!open)} aria-expanded={open}
+          style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: tone, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px", cursor: "pointer" }}>the arc {open ? "▾" : "▸"}</button>
+        {open && (
+          <div style={{ marginTop: SP.sm }}>
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.06em" }}>NOW &middot; {arc.label} &mdash; week {arc.weeks}</div>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Next: {arc.next.label} &mdash; {arc.next.when}. {arc.next.note}.</div>
+            <div style={{ marginTop: SP.md, padding: SP.md, border: `1px solid ${T.line}`, borderLeft: `3px solid ${T.steel}`, borderRadius: 8, background: T.plate }}>
+              <div style={{ fontFamily: lbl, fontWeight: 700, fontSize: TS.micro, letterSpacing: "0.08em", color: T.steel }}>ABOUT A DIET BREAK</div>
+              <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>{db.honest.what}</div>
+              <div style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>{db.honest.metabolic}</div>
+              <div style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>{db.honest.scale}</div>
+              {db.maintenance ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: SP.sm }}>Maintenance to eat at: {db.maintenance} kcal &mdash; your measured number, not an authored one.</div> : null}
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
+        {db.status === "active"
+          ? <Btn small onClick={endBreak}>End the break &mdash; back to the cut</Btn>
+          : armed
+          ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>a phase change is waiting in your inbox &darr;</div>
+          : (prop && prop.apply && prop.apply.kind === "break")
+          ? <Btn small tone="jade" onClick={() => armProposal(prop)}>{sup.kind === "forceBreak" ? "Plan the diet break →" : "Plan a diet break →"}</Btn>
+          : <Btn small onClick={planBreak}>Plan a diet break →</Btn>}
+      </div>
+    </Card>
+  );
+}
 function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [askOpen, setAskOpen] = useState(false);
   const [lawsOpen, setLawsOpen] = useState(false);
@@ -9541,6 +9856,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       {/* AUTO-PILOT · TRUST (v7.2.0 · Slice 3) — dial + why-this-number + track record + always-visible undo */}
       <AutoPilotTrust s={s} setS={setS} save={save} tISO={tISO} />
+      <PhaseArcCard s={s} setS={setS} save={save} tISO={tISO} />
 
       </Group>
       {/* end TODAY group */}

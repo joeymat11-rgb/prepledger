@@ -3831,15 +3831,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 37, "schema: SCHEMA_V is 37 (patchV37 appended for the n-of-1 learning store; Slice 3 consumed patchV36/36)");
+  ok(SC === 38, "schema: SCHEMA_V is 38 (patchV38 appended for the phase arc; Slice 4 consumed patchV37)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
-  ok(migd.v === 37 && migd.plan.autonomy === "propose", "patchV36→37: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
+  ok(migd.v === 38 && migd.plan.autonomy === "propose", "patchV36→38: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
   ok(migd.reads.length === oldV35.reads.length && Object.keys(migd.dailyLogs).length === Object.keys(oldV35.dailyLogs).length, "patchV36: ADDITIVE — no read or dailyLog is added or lost (count-preserving)");
   ok(SEED.plan.autonomy === "propose", "patchV36: SEED already carries autonomy='propose' so a fresh install === a migrated one");
-  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 37, "patchV36/37: idempotent on a current SEED (no double-patch drift)");
-  const future = clone(SEED); future.v = 38;
-  ok(mig(future).v === 38, "migrate: a NEWER (v38) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
+  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 38, "patchV36..38: idempotent on a current SEED (no double-patch drift)");
+  const future = clone(SEED); future.v = 39;
+  ok(mig(future).v === 39, "migrate: a NEWER (v39) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
   const legacy = clone(SEED); legacy.v = 35; legacy.plan = { goals: [{ text: "no-id" }], ifthen: [{ cue: "x", action: "y" }], share: false };
   const lm = mig(legacy);
   ok(lm.plan.goals[0].id != null && lm.plan.ifthen[0].id != null, "patchV36: legacy goal/if-then entries get a stable id backfilled (so the keyed union keys every entry)");
@@ -4128,15 +4128,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 37, "schema: SCHEMA_V is 37 (patchV37 appended for the learning store)");
+  ok(__test.SCHEMA_V === 38, "schema: SCHEMA_V is 38 (patchV38 appended for the phase arc)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
-  ok(m37.v === 37 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to v37 and seeds the learned store EMPTY (additive)");
+  ok(m37.v === 38 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
   ok(m37.reads.length === oldV36.reads.length && Object.keys(m37.dailyLogs).length === Object.keys(oldV36.dailyLogs).length, "patchV37: ADDITIVE — no read or dailyLog added or lost (count-preserving)");
-  ok(MIG(clone(SEED)).v === 37, "patchV37: idempotent on a current SEED (no double-patch drift)");
-  const fut38 = clone(SEED); fut38.v = 38; fut38.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
-  ok(MIG(fut38).v === 38 && MIG(fut38).learned.tdee.length === 1, "patchV37: a NEWER (v38) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
+  ok(MIG(clone(SEED)).v === 38, "patchV37/38: idempotent on a current SEED (no double-patch drift)");
+  const fut39 = clone(SEED); fut39.v = 39; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
+  ok(MIG(fut39).v === 39 && MIG(fut39).learned.tdee.length === 1, "patchV38: a NEWER (v39) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
 
   // -------- MERGE HARDENING — s.learned adversarial: must-not-LOSE + must-not-REVERT, BOTH orders --------
   ok(typeof UL === "function", "s.learned: _unionLearned is the registered reconciler (mirrors _unionPlan)");
@@ -4239,6 +4239,128 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   const mgd = MS(devX, devY), mgd2 = MS(devY, devX);
   ok(mgd.adjustments.some((a) => a.id === "adj_x") && mgd.adjustments.some((a) => a.id === "adj_y"), "MERGE HARDENING INTACT — an approved-effect adjustment from EITHER device survives the keyed union (never dropped)");
   ok(mgd.adjustments.find((a) => a.id === "adj_x").calDelta === -288 && mgd2.adjustments.find((a) => a.id === "adj_x").calDelta === -288, "…and the effect payload (calDelta) survives intact, order-independent — the new via/calDelta fields ride the s.adjustments hardening");
+}
+
+// ============================================================================================
+// v7.4.0 · SLICE 5 — THE PHASE ARC (diet breaks + phase transitions + the safety supervisor as a
+// phase-level authority). Engine-owned, honest, charter-safe. See PHASE ARC block in src/app.jsx.
+// ============================================================================================
+{
+  const { phaseArc, dietBreakState, dietBreakHonest, phaseSupervisor, phaseProposal, applyProposal,
+    undoAdjustment, mergeState, dataLossGuard, calorieTarget, escalation, autoPilot, statusFace,
+    dietExit, SCHEMA_V, migrate, STATUS_WORDS, BREAK_LEN_DAYS } = __test;
+  const isoAgo = (back) => { const d = new Date(Date.now() - back * 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  const today = isoAgo(0);            // frozen: 2026-07-29
+  const inDays = (n) => isoAgo(-n);   // n days in the future
+
+  // ---- A · PHASE MODEL + TRANSITIONS -------------------------------------------------------
+  const arcCut = phaseArc(clone(SEED));
+  ok(arcCut.key === "cut" && arcCut.label === "CUT", "PHASE — a fresh state reads as a CUT (the default; this is a cut engine)");
+  ok(arcCut.weeks > 0 && arcCut.since === "2026-06-10" && typeof arcCut.line === "string" && arcCut.line.length > 10, "PHASE — the cut knows how long it has run (since START) and prints one calm line");
+  ok(arcCut.next && arcCut.next.key === "maintenance" && /no date/.test(arcCut.next.when), "PHASE — next from a cut is the maintenance transition, honestly with NO date (no show date exists)");
+  ok(Array.isArray(arcCut.order) && arcCut.order.length === 4, "PHASE — the arc names all four phases (cut/break/maintenance/lean-gain)");
+
+  const leanS = clone(SEED); leanS.plan = { ...leanS.plan, phase: "leangain" };
+  ok(phaseArc(leanS).key === "leangain", "PHASE — a committed lean-gain reads as LEAN GAIN");
+  ok(/expert-recommendation|no longitudinal/.test(phaseArc(leanS).next.note || ""), "PHASE — lean-gain foresight is honest: advanced rate is expert-recommendation, not measurement");
+
+  const maintS = clone(SEED); maintS.targets = { ...(maintS.targets || {}), exitStart: isoAgo(21) };
+  ok(phaseArc(maintS).key === "maintenance", "PHASE — a started diet exit reads as MAINTENANCE HOLD");
+
+  const brkActive = clone(SEED); brkActive.plan = { ...brkActive.plan, brk: { start: isoAgo(2), end: inDays(4), planned: isoAgo(2) } };
+  ok(phaseArc(brkActive).key === "break", "PHASE — an active diet break reads as DIET BREAK (a maintenance pause), overriding the cut");
+  ok(dietBreakState(brkActive).status === "active" && dietBreakState(brkActive).daysLeft >= 0, "PHASE — dietBreakState reports the active break with days left");
+  const brkProposed = clone(SEED); brkProposed.plan = { ...brkProposed.plan, brk: { start: inDays(3), end: inDays(3 + BREAK_LEN_DAYS - 1), planned: today } };
+  ok(dietBreakState(brkProposed).status === "proposed" && dietBreakState(brkProposed).startsIn === 3, "PHASE — a future-dated break reads as PROPOSED with a start countdown");
+
+  // ---- B · DIET-BREAK HONESTY (adherence tool, NOT a metabolic trick; transient scale) -----
+  const H = dietBreakHonest();
+  const allBreakText = [H.what, H.metabolic, H.scale, H.buys].join("  ");
+  // AFFIRMATIVE metabolic-boost claims only — the app is ALLOWED to DENY them ("not a metabolic trick/reset"), which is the honest voice; only a positive claim is forbidden.
+  const FORBIDDEN = /(boost(s|ing|ed)?\s+(your\s+)?metabolism|speeds?\s+up\s+(your\s+)?metabolism|resets?\s+(your\s+)?metabolism|revs?\s+up\s+(your\s+)?metabolism|kick[-\s]?starts?\s+(your\s+)?metabolism|metabolic\s+advantage|raises?\s+(your\s+)?metabolism)/i;
+  ok(!FORBIDDEN.test(allBreakText), "DIET BREAK HONESTY — the framing makes NO metabolic-boost / metabolic-reset claim (ICECAP null)");
+  ok(/not a metabolic trick|does not rescue metabolic rate|unchanged/i.test(H.metabolic), "DIET BREAK HONESTY — it says plainly a break does NOT rescue metabolic rate (ICECAP/Peos 2021)");
+  ok(/glycogen/i.test(H.scale) && /water/i.test(H.scale) && /(transient|not fat|comes back off)/i.test(H.scale), "DIET BREAK HONESTY — the scale jump is framed as TRANSIENT glycogen/water, not fat regained");
+  ok(/adherence|hunger|restraint/i.test(H.what + H.buys) && /not a fat-loss accelerator/i.test(H.buys), "DIET BREAK HONESTY — what it buys is adherence/recovery, explicitly NOT a fat-loss accelerator");
+
+  // supervisor-forced break proposal carries the SAME honesty and no boost claim
+  const supForce = phaseSupervisor({}, { ap: { ok: false }, esc: { ask: [], escalate: false }, ea: { gated: false, ea: 22 }, ct: { gated: true } });
+  const brkProp = phaseProposal(clone(SEED), { sup: supForce, brk: { status: "none", honest: H, maintenance: null }, today });
+  ok(brkProp && brkProp.apply && brkProp.apply.kind === "break", "DIET BREAK — a supervisor-forced break is a propose-only 'break' proposal (routes through the inbox)");
+  ok(!FORBIDDEN.test(brkProp.why) && /glycogen|water|not a metabolic/i.test(brkProp.why), "DIET BREAK — the proposal's own copy is honest (transient scale, no metabolic-boost claim)");
+
+  // applying a break writes the honest feed
+  const preBrk = clone(SEED); preBrk.proposals = [{ id: "pb1", rid: "phase_break_x", d: today, title: "DIET BREAK — A WEEK AT MAINTENANCE", why: brkProp.why, apply: { kind: "break", start: today, end: inDays(BREAK_LEN_DAYS - 1) }, resolved: false }];
+  const postBrk = applyProposal(preBrk, "pb1");
+  ok(!FORBIDDEN.test(postBrk.feed[0].how) && /not a metabolic reset/i.test(postBrk.feed[0].how), "DIET BREAK — the applied feed line stays honest: 'a break from hunger, not a metabolic reset'");
+
+  // ---- C · SAFETY SUPERVISOR AS PHASE AUTHORITY (each hard floor can VETO; reuse, don't fork) --
+  const clearD = { ap: { ok: false }, esc: { ask: [], escalate: false }, ea: { gated: false, ea: 30 }, ct: { gated: false, floorBinds: false } };
+  ok(phaseSupervisor({}, clearD).veto === false && phaseSupervisor({}, clearD).kind === null, "SUPERVISOR — every hard floor clear ⇒ no veto, the phase plan proceeds");
+  ok(phaseSupervisor({}, { ...clearD, esc: { ask: [{ code: "redline", text: "past the muscle-loss redline" }], escalate: true } }).veto === true, "SUPERVISOR VETO — the muscle-loss REDLINE (reused from escalation) vetoes pressing the cut deeper");
+  ok(phaseSupervisor({}, { ...clearD, esc: { ask: [{ code: "floor-protein", text: "under the protein floor" }], escalate: true } }).reasons.some((r) => r.code === "floor-protein"), "SUPERVISOR VETO — the protein lean-retention FLOOR (reused from escalation) vetoes");
+  ok(phaseSupervisor({}, { ...clearD, ea: { gated: false, ea: 22 } }).kind === "forceBreak", "SUPERVISOR VETO — energy availability under the sparing line FORCES a break (a maintenance week)");
+  ok(phaseSupervisor({}, { ...clearD, ct: { gated: false, floorBinds: true } }).kind === "blockDeeper", "SUPERVISOR VETO — a binding calorie floor blocks a deeper cut (the rate is misconfigured, not 'eat at the floor')");
+  ok(phaseSupervisor({ plan: { phase: "leangain" } }, { ...clearD, ct: { gated: false, floorBinds: true } }).veto === false, "SUPERVISOR — the cut-floor veto is PHASE-AWARE: it stays quiet outside a cut (lean gain has no deficit to press)");
+  ok(phaseSupervisor({ targets: { exitStart: "2026-07-01" } }, { ...clearD, esc: { ask: [{ code: "redline", text: "x" }], escalate: true } }).veto === false, "SUPERVISOR — a started maintenance hold suppresses the redline veto too (no cut to deepen)");
+
+  // REUSE (not a forked set of floors): the REAL escalation drives the redline veto
+  const apRed = { ok: true, proposed: true, corrKcal: 120, action: "tighten", mode: "recomp", pctRate: 1.1, targetPct: 0.7, band: { redlinePct: 1.0 }, driftSig: true, heldForStale: false, heldForNoise: false, proteinOff: false };
+  const supRed = phaseSupervisor({}, { ap: apRed, ea: { gated: true }, ct: { gated: true } });
+  ok(supRed.veto && supRed.reasons.some((r) => r.code === "redline"), "SUPERVISOR REUSE — the REAL escalation's redline ask flows straight into the phase veto (one supervisor, not two)");
+  // the EA floor is the engine's EA_SPARING (25), NOT a forked 30 — this is the judgment call, pinned by a test
+  ok(phaseSupervisor({}, { ...clearD, ea: { gated: false, ea: 26 } }).veto === false, "SUPERVISOR — the EA floor is the engine's own EA_SPARING (25), not a forked 30: EA 26 does NOT veto");
+  ok(phaseSupervisor({}, { ...clearD, ea: { gated: false, ea: 18 } }).first.text.indexOf("20") > -1, "SUPERVISOR — EA under 20 names the engine's EA_LOW line (over 40% of loss off muscle)");
+
+  // ---- D · ENGINE-OWNS-NUMBERS (Article VIII): the phase layer PROPOSES/FRAMES, never a rival number --
+  ok(!("lo" in arcCut) && !("hi" in arcCut) && !("kcal" in arcCut) && !("calDelta" in arcCut), "ENGINE-OWNS-NUMBERS — phaseArc emits NO calorie/rate band of its own (it sequences and frames only)");
+  const dbNum = dietBreakState(maintS);
+  ok(dbNum.maintenance === (dietExit(maintS).gated ? null : dietExit(maintS).maintenance), "ENGINE-OWNS-NUMBERS — the break's maintenance number is the ENGINE's (dietExit/observedTDEE), never authored in the phase layer");
+  // the steer routes through the SAME approval loop → a decision row + the hardened s.plan, undoable
+  ok(postBrk.plan.brk && postBrk.plan.brk.start === today && postBrk.plan.phaseLog.length === (preBrk.plan.phaseLog || []).length + 1, "ENGINE-OWNS-NUMBERS — approving a break writes the DATED decision to the hardened s.plan (+ phaseLog), via applyProposal");
+  ok(postBrk.adjustments.some((a) => a.planUndo && a.planUndo.field === "brk"), "APPROVAL LOOP — the break is recorded on the s.adjustments decision log with a one-tap reversal");
+  const undoneBrk = undoAdjustment(postBrk, postBrk.adjustments[postBrk.adjustments.length - 1].rid);
+  ok((undoneBrk.plan.brk || null) === null, "APPROVAL LOOP — one-tap UNDO reverses the break through the same undo path (restores the prior state)");
+  // a committed macro-phase transition routes the same way
+  const preLG = clone(SEED); preLG.proposals = [{ id: "lg1", rid: "phase_lg", d: today, title: "PHASE — LEAN GAIN", why: "committed", apply: { kind: "phasePlan", to: "leangain" }, resolved: false }];
+  const postLG = applyProposal(preLG, "lg1");
+  ok(postLG.plan.phase === "leangain" && postLG.plan.phaseLog.some((e) => e.to === "leangain") && postLG.plan.setAt.phase, "APPROVAL LOOP — a phase transition (→ lean gain) writes the hardened, STAMPED s.plan decision + phaseLog");
+  // calorieTarget is untouched by the phase layer when no break is active (no competing band injected)
+  ok(JSON.stringify(calorieTarget(clone(SEED))) === JSON.stringify(calorieTarget(clone(SEED))), "ENGINE-OWNS-NUMBERS — calorieTarget is unchanged by the phase layer on a normal cut (no phase number injected)");
+
+  // ---- E · patchV38 — additive + rollback-safe; fresh SEED === migrated --------------------
+  ok(SCHEMA_V === 38, "patchV38 — SCHEMA_V is 38 (the phase arc's schema)");
+  ok(Array.isArray(SEED.plan.phaseLog) && SEED.plan.phaseLog.length === 0 && !("phase" in SEED.plan) && !("brk" in SEED.plan), "patchV38 — SEED authors an EMPTY phaseLog and NO phase/brk override: a fresh install === a migrated state");
+  const oldV37 = clone(SEED); oldV37.v = 37; delete oldV37.plan.phaseLog;
+  const m38 = migrate(oldV37);
+  ok(m38.v === 38 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
+  ok(m38.reads.length === oldV37.reads.length && Object.keys(m38.dailyLogs).length === Object.keys(oldV37.dailyLogs).length, "patchV38 — ADDITIVE: no read or dailyLog added or lost (count-preserving)");
+  ok(migrate(clone(SEED)).v === 38 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
+  const fut39 = clone(SEED); fut39.v = 39; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };
+  ok(migrate(fut39).v === 39 && migrate(fut39).plan.phase === "leangain", "patchV38 — a NEWER (v39) state is handed back UNTOUCHED: rollback-safe, no phase decision wiped");
+
+  // ---- F · s.plan KEYED-UNION — a stale device must NOT REVERT nor LOSE a phase decision, BOTH orders --
+  const devNew = clone(SEED); devNew.plan = { ...devNew.plan, phase: "leangain", setAt: { phase: "2026-07-29T10:00:00Z" }, rev: 5, phaseLog: [{ id: "ph_new", at: "2026-07-29T10:00:00Z", to: "leangain" }] };
+  const devOld = clone(SEED); devOld.plan = { ...devOld.plan, setAt: {}, rev: 2, phaseLog: [{ id: "ph_old", at: "2026-07-20T00:00:00Z", to: "cut" }] };
+  const mgN = mergeState(devOld, devNew), mgN2 = mergeState(devNew, devOld);
+  ok(mgN.plan.phase === "leangain" && mgN2.plan.phase === "leangain", "MERGE — MUST-NOT-REVERT: a stale device cannot revert a newer phase decision, in EITHER merge order");
+  ok([mgN, mgN2].every((m) => m.plan.phaseLog.some((e) => e.id === "ph_new") && m.plan.phaseLog.some((e) => e.id === "ph_old")), "MERGE — MUST-NOT-LOSE: every phase-log entry from either device survives the keyed union, both orders");
+  ok([mgN, mgN2].every((m) => m.plan.phaseLog.length >= 2), "MERGE — the phase log never SHRINKS below the union of both devices");
+  // a diet-break decision on one device survives; a NEWER 'break ended' is not re-opened by a stale device
+  const devBrk = clone(SEED); devBrk.plan = { ...devBrk.plan, brk: { start: "2026-07-29", end: "2026-08-04" }, setAt: { brk: "2026-07-29T10:00:00Z" }, rev: 3 };
+  const devNoBrk = clone(SEED); devNoBrk.plan = { ...devNoBrk.plan, setAt: {}, rev: 1 };
+  ok(!!mergeState(devNoBrk, devBrk).plan.brk && !!mergeState(devBrk, devNoBrk).plan.brk, "MERGE — MUST-NOT-LOSE: a diet-break decision on one device survives the merge, both orders");
+  const devEnded = clone(SEED); devEnded.plan = { ...devEnded.plan, brk: null, setAt: { brk: "2026-07-30T00:00:00Z" }, rev: 4 };
+  const devStillOn = clone(SEED); devStillOn.plan = { ...devStillOn.plan, brk: { start: "2026-07-20", end: "2026-07-26" }, setAt: { brk: "2026-07-20T00:00:00Z" }, rev: 2 };
+  ok(mergeState(devStillOn, devEnded).plan.brk === null && mergeState(devEnded, devStillOn).plan.brk === null, "MERGE — MUST-NOT-REVERT: a stale device holding an old break cannot re-open one the newer device ended, both orders");
+  // the whole-state data-loss guard still passes across a phase-decision merge (no history lost)
+  ok(dataLossGuard(mgN, devOld).ok !== false && dataLossGuard(mgN, devNew).ok !== false, "MERGE — the data-loss guard passes across a phase-decision merge (no read/night/log/queue shrinks)");
+
+  // ---- G · statusFace 4-key contract intact across phase states (the Slice-1 totality holds) --
+  const keysOK = (o) => o && Object.keys(o).sort().join(",") === "cause,glyph,tone,word" && STATUS_WORDS.indexOf(o.word) > -1;
+  ok(keysOK(statusFace(clone(SEED))), "COCKPIT — statusFace still returns exactly {word,glyph,tone,cause} with a valid word (contract intact)");
+  ok(keysOK(statusFace(brkActive)), "COCKPIT — an active diet break does not corrupt the status face: still a valid 4-key contract");
+  ok(keysOK(statusFace(maintS)) && keysOK(statusFace(leanS)), "COCKPIT — maintenance and lean-gain states both keep the 4-key status-face contract");
 }
 
 console.log(`\nFINAL81: ${pass} passed, ${fail} failed`);
