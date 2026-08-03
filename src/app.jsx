@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.3.0";
+const APP_V = "7.3.1";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -1587,8 +1587,13 @@ function stepTarget(s) {
   const recentAvg = recent.length >= 5 ? recent.reduce((a, b) => a + b, 0) / recent.length : null;
   const drift = recentAvg != null ? Math.round(recentAvg - avg) : 0;
   const driftKcal = Math.round((drift / 1000) * kcalPer1k);
+  /* v7.3.1 — an APPROVED "add steps" steer raises the effective step target by the same tracked,
+     reversible offset (activeAdjustment), reconciling at the next weigh-in. Zero when none active. */
+  const aaStep = activeAdjustment(s);
+  const stepAdj = aaStep.via === "steps" ? (aaStep.stepDelta || 0) : 0;
+  const midE = Math.max(0, mid + stepAdj), loE = Math.max(0, lo + stepAdj), hiE = Math.max(0, hi + stepAdj);
   return {
-    gated: false, lo, hi, mid, days: rows.length, kcalPer1k, avg: Math.round(avg),
+    gated: false, lo: loE, hi: hiE, mid: midE, baseMid: mid, adjSteps: stepAdj, days: rows.length, kcalPer1k, avg: Math.round(avg),
     recentAvg: recentAvg == null ? null : Math.round(recentAvg), drift, driftKcal,
     why: `Your measured maintenance was measured across ${rows.length} days averaging ${Math.round(avg).toLocaleString()} steps — so the calorie band is only right while the walking that produced it continues. Every 1,000 steps is worth about ${kcalPer1k} kcal at your bodyweight.${Math.abs(driftKcal) >= 40 ? ` Your last week runs ${drift > 0 ? "+" : ""}${drift.toLocaleString()} against that, which is about ${driftKcal > 0 ? "+" : ""}${driftKcal} kcal/day of maintenance the target has not caught up with yet.` : ""}`,
   };
@@ -2038,8 +2043,16 @@ function calorieTarget(s) {
      size of the error that was there. */
   const ed = energyDensity(s);   // v7.3.0 Slice 4 — the ONE energy-density owner (== the prior 3800 until a DEXA identifies fat mass; then fat-mass-dependent)
   const kcalFor = (lbWk) => Math.round((lbWk * ed.perLb) / 7);
-  const hi = Math.max(floor, td.tdee - kcalFor(band[0]));
-  const lo = Math.max(floor, td.tdee - kcalFor(band[1]));
+  const baseHi = Math.max(floor, td.tdee - kcalFor(band[0]));
+  const baseLo = Math.max(floor, td.tdee - kcalFor(band[1]));
+  /* v7.3.1 — an APPROVED Auto-Pilot steer is a tracked, reversible offset ADDED to the engine-owned
+     base band (never mutating it): a tighten lowers it, an ease raises it, floored the same way, and it
+     reconciles away at the next weigh-in (activeAdjustment). Zero offset when none is active, so every
+     pre-existing band assertion is byte-identical. */
+  const aaCal = activeAdjustment(s);
+  const adjK = aaCal.via === "cal" ? (aaCal.calDelta || 0) : 0;
+  const hi = Math.max(floor, baseHi + adjK);
+  const lo = Math.max(floor, baseLo + adjK);
   const ph = PHASES[s.phase];
   const phaseLo = ph ? ph.band[0] : null, phaseHi = ph ? ph.band[1] : null;
   const drift = phaseHi != null ? Math.round((lo + hi) / 2 - (phaseLo + phaseHi) / 2) : 0;
@@ -2056,6 +2069,7 @@ function calorieTarget(s) {
   const wkOff = wkAvg == null ? null : wkAvg - Math.round((lo + hi) / 2);
   return {
     gated: false, from: "measured", lo, hi, mid: Math.round((lo + hi) / 2),
+    baseLo, baseHi, adj: { delta: adjK, active: adjK !== 0, from: aaCal.from, rid: aaCal.rid, why: aaCal.why, clipped: (baseLo + adjK) < floor || (baseHi + adjK) < floor },
     wkAvg, wkN: wkRows.length, wkOff,
     /* "Inside the band" now means inside the BAND, not within an authored 60
        kcal of its midpoint — the band has width and that width is the whole
@@ -2777,7 +2791,12 @@ function autoPilot(s, mode) {
   const stg = stepTarget(s);
   const kcalPer1k = stg.kcalPer1k || 20;
   const stepsAdd = Math.max(500, Math.round((corrKcal / kcalPer1k) * 1000 / 500) * 500);
-  const proposed = action !== "hold" && corrKcal >= 90;   // hysteresis: a full adaptation's worth — a stale rate has already forced hold, so nothing fires off a frozen number
+  let proposed = action !== "hold" && corrKcal >= 90;   // hysteresis: a full adaptation's worth — a stale rate has already forced hold, so nothing fires off a frozen number
+  /* v7.3.1 — the loop CLEARS: once THIS steer is handled (approved → a live offset, or dismissed
+     today), stop re-raising it so the cockpit doesn't sit on a stale NEEDS YOU / ADJUSTING. The next
+     weigh-in expires the offset (activeAdjustment) and autoPilot re-evaluates off fresh data. */
+  const steerHandled = apSteerHandled(s, isoOf(todayStart()));
+  if (steerHandled) proposed = false;
   // protein as a body-comp lever — the partition depends on it. Flag if the last logged day is
   // under the derived lean-retention floor (proteinTarget.lo = 2.5 g/kg FFM; Refalo/Helms/Longland).
   const pt = proteinTarget(s);
@@ -2789,7 +2808,7 @@ function autoPilot(s, mode) {
   const proteinOff = lastPro != null && lastPro < proFloorG;
   return {
     ok: true, dir, mode: apMode, goalRate: targetLb, targetLb, targetPct, measRate: +measRate.toFixed(2), tdee: Math.round(td.tdee), n: r.n || 0,
-    band, pctRate, action, corrKcal, stepsAdd, proposed, onLine: !proposed,
+    band, pctRate, action, corrKcal, stepsAdd, proposed, onLine: !proposed, handledForToday: steerHandled,
     proteinOff, proteinTargetG: pt.g, proteinFloorG: proFloorG, lastPro,
     stale: rec.stale, staleDays: rec.days, lastReadISO: rec.lastISO, heldForStale: rec.stale && intendedAction !== "hold",
     driftSig, heldForNoise: !driftSig && !rec.stale && intendedAction !== "hold" && corrKcal >= 90,
@@ -5978,15 +5997,88 @@ function proposalDial(p) {
   if (p.apply.kind === "sets") return { unit: "set", step: 1, max: 1, base: p.apply.delta || 0 };
   return null;
 }
-function applyProposal(state, pid, nudge = 0) {
+/* ============================================================================================
+   ACTIVE ADJUSTMENT (v7.3.1 · approval-loop) — an APPROVED Auto-Pilot steer must TAKE EFFECT.
+   The engine still OWNS the base band (cutRateBand/mode/rate → calorieTarget) and the base step
+   target (stepTarget). An approved (or auto-applied) steer is NOT a competing number: it is a
+   TRACKED, REVERSIBLE offset the target rendering ADDS on top of the engine's base, recorded on the
+   same s.adjustments row the track-record + undo already own. Honest three ways:
+     • transparent — calorieTarget/stepTarget expose base vs effective, so the shift is shown, never hidden;
+     • reversible  — undoAdjustment marks the row undone and activeAdjustment skips undone rows, so one
+                     tap restores the engine band (no protected number was ever mutated);
+     • self-retiring — it RECONCILES at the next measurement: once a scale read lands AFTER the day it
+                     was applied, the engine re-measures off fresh data and the manual bridge expires,
+                     so it can never double-count or drift into a permanent second number.
+   proposalEffect derives the SIGNED effect (tighten LOWERS calories / RAISES steps; ease RAISES
+   calories / LOWERS steps) from the explicit apply.calDelta/apply.stepsDelta set at arm time — no
+   heuristics — with a labelled fallback for a legacy magnitude-only cal proposal. */
+function proposalEffect(p, nudge = 0) {
+  const a = (p && p.apply) || {};
+  if (a.kind !== "cal") return { via: null, calDelta: 0, stepsDelta: 0, nudge: 0 };
+  const dial = proposalDial(p);
+  const adj = dial ? Math.max(-dial.max, Math.min(dial.max, Math.round(nudge / dial.step) * dial.step)) : 0;
+  const baseSigned = a.calDelta != null ? a.calDelta
+    : (a.dir === "ease" ? Math.abs(a.delta || 0) : -Math.abs(a.delta || 0));   // labelled fallback: dir + magnitude
+  const sgn = baseSigned < 0 ? -1 : 1;
+  const calDelta = baseSigned + sgn * adj;   // the constrained dial moves the magnitude in the base direction (Dietvorst 2018)
+  const stepsDelta = a.stepsDelta != null ? a.stepsDelta : 0;   // present only when the walking lever was armed
+  return { via: "cal", calDelta, stepsDelta, nudge: adj };
+}
+/* activeAdjustment — the ONE currently-in-effect steer (most recent non-undone, non-dismissed,
+   non-expired steering row). Not summed: the controller issues one correction at a time and a newer
+   one supersedes the older, so there is never a compounding second number. */
+function activeAdjustment(s) {
+  const adj = (s && Array.isArray(s.adjustments)) ? s.adjustments : [];
+  const reads = (s && Array.isArray(s.reads)) ? s.reads : [];
+  for (let i = adj.length - 1; i >= 0; i--) {
+    const a = adj[i];
+    if (!a || a.undone || a.dismissed || !a.via) continue;   // only a live, applied steer carries an effect
+    const from = a.from || a.d;
+    const superseded = reads.some((r) => r && !r.sealed && r.d && from && r.d > from);   // next weigh-in reconciles it
+    if (superseded) continue;
+    return { active: true, via: a.via, calDelta: a.via === "cal" ? (a.calDelta || 0) : 0,
+      stepDelta: a.via === "steps" ? (a.stepDelta || 0) : 0, rid: a.rid, title: a.title, from,
+      why: "Holds until your next weigh-in, then the engine re-measures and takes the wheel." };
+  }
+  return { active: false, via: null, calDelta: 0, stepDelta: 0, rid: null, from: null, why: "" };
+}
+/* apSteerHandled — has THIS day's Auto-Pilot steer been resolved (approved → an active offset, or
+   dismissed today)? Gates autoPilot.proposed so the cockpit doesn't sit on a stale NEEDS YOU /
+   ADJUSTING after the athlete acts. An UNDONE row does NOT count (undo re-arms the decision). */
+function apSteerHandled(s, tISO) {
+  if (activeAdjustment(s).active) return true;
+  return ((s && s.adjustments) || []).some((a) => a && !a.undone && a.d === tISO && a.rid &&
+    (String(a.rid).indexOf("ap_") === 0 || String(a.rid).indexOf("apauto_") === 0));
+}
+function applyProposal(state, pid, nudge = 0, via = "cal") {
   const s = JSON.parse(JSON.stringify(state));
   const p = s.proposals.find((x) => x.id === pid);
   if (!p || p.resolved) return s;
   const dial = proposalDial(p);
   const adj = dial ? Math.max(-dial.max, Math.min(dial.max, Math.round(nudge / dial.step) * dial.step)) : 0;
+  const today = isoOf(todayStart());
   p.resolved = true;
   p.nudge = adj;
-  s.adjustments.push({ rid: p.rid, id: _freshId("adj_"), d: isoOf(todayStart()), title: p.title, nudge: adj });
+  const row = { rid: p.rid, id: _freshId("adj_"), d: today, title: p.title, nudge: adj };
+  if ((p.apply || {}).kind === "cal") {
+    /* v7.3.1 — APPROVAL TAKES EFFECT. Record the engine's own steer as a tracked, reversible offset
+       (calorie band OR step target — the athlete's pick), which calorieTarget/stepTarget add on top of
+       the engine-owned base and which reconciles at the next weigh-in. The base band is never mutated. */
+    const eff = proposalEffect(p, adj);
+    const canStep = via === "steps" && eff.stepsDelta;
+    if (canStep) { row.via = "steps"; row.stepDelta = eff.stepsDelta; row.from = today; }
+    else { row.via = "cal"; row.calDelta = eff.calDelta; row.from = today; }
+    s.adjustments.push(row);
+    if (canStep) {
+      const st = stepTarget(s); const tgt = st && !st.gated ? st.mid : null;
+      s.feed.unshift({ d: today, t: "STEP TARGET RAISED", how: `${p.title} — ${eff.stepsDelta > 0 ? "+" : ""}${eff.stepsDelta.toLocaleString()} steps/day${tgt != null ? ` → ~${tgt.toLocaleString()} target` : ""}. Holds until your next weigh-in, then the engine re-measures. One tap to undo.` });
+    } else {
+      const ct = calorieTarget(s);
+      s.feed.unshift({ d: today, t: eff.calDelta < 0 ? "TARGET TIGHTENED" : "TARGET EASED", how: `${p.title} — band ${eff.calDelta < 0 ? "down" : "up"} ${Math.abs(eff.calDelta)} kcal${ct && !ct.gated ? ` → ${ct.lo}–${ct.hi}` : ""}${adj ? ` (your version, ${adj > 0 ? "+" : ""}${adj})` : ""}. Holds until your next weigh-in, then the engine re-measures. One tap to undo.` });
+    }
+    return s;
+  }
+  s.adjustments.push(row);
   if (p.apply.kind === "refeed") {
     /* Dated, so history keeps reading as history — see REFEED_RETIREMENT. */
     s.targets = s.targets || {};
@@ -8413,8 +8505,30 @@ function marchingOrder(s, deps) {
     foresight: fc && fc.fires ? { wksEarly: fc.wksEarly, wksLate: fc.wksLate, prob: fc.prob } : null,
   };
 }
+/* ---------- COCKPIT · STATUS TARGET (v7.3.1 · approval-loop) ----------
+   The hero's deep-link: tapping the status WORD jumps to whatever needs the athlete, exactly like the
+   marching-order / WHAT-YOU-OWE buttons (openGroup + scrollToId). Pure DATA — no new number, writes
+   nothing to `s`; the render performs the jump. Precedence: an item waiting for an OK in the inbox
+   (engine/agent proposal or coach gate) → the inbox; a safety ask with nothing staged yet (magnitude /
+   floor / redline) → the Auto-Pilot card in TODAY where it is staged/handled; a routine owed input →
+   the same owe deep-link the marching order uses; else null (ON COURSE — nothing to tap). Once handled
+   the inbox empties + the ask clears, so this recomputes to the next thing or to null → the hero refreshes. */
+function statusTarget(s, deps) {
+  const props = (((s && s.proposals) || [])).filter((p) => p && !p.resolved);
+  const agents = ((s && s.agentProposals) || []);
+  let esc; try { esc = (deps && deps.esc) || escalation(s); } catch (e) { esc = { escalate: false }; }
+  const focus = (deps && deps.focus) || (function () { try { return nowFocus(s); } catch (e) { return { owed: [] }; } })();
+  if (props.length || agents.length) return { key: "now.inbox", id: "pl-inbox", label: "open what's waiting on your tap" };
+  if (esc && esc.escalate) return { key: "now.today", id: "pl-today", label: "open the call that needs you" };
+  const o0 = focus && focus.owed && focus.owed[0];
+  if (o0) { const t = oweTarget(o0.k); return { key: t.key, id: t.id, label: "go to what's owed" }; }
+  return null;
+}
 __test.statusFace = statusFace;
 __test.marchingOrder = marchingOrder;
+__test.statusTarget = statusTarget;
+__test.activeAdjustment = activeAdjustment; __test.apSteerHandled = apSteerHandled; __test.proposalEffect = proposalEffect;
+__test.applyProposal = applyProposal; __test.dismissProposal = dismissProposal;   // v7.3.1 — approval-loop selectors under test
 __test.STATUS_WORDS = STATUS_WORDS;
 /* v7.2.0 Slice 3 — TRUST engine selectors (registered here, after the __test declaration) */
 __test.autonomyOf = autonomyOf; __test.escalation = escalation; __test.autoPilotPolicy = autoPilotPolicy;
@@ -8646,9 +8760,11 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
     const modeLabel = ap.mode === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP";
     const ns = JSON.parse(JSON.stringify(s));
     ns.proposals = ns.proposals || []; ns.adjustments = ns.adjustments || []; ns.feed = ns.feed || [];
-    ns.proposals.push({ rid, id: rid + "_" + tISO, d: tISO, title, why: `Routine in-corridor move: ~${ap.pctRate}%BW/wk vs your ${modeLabel} target ~${ap.targetPct}% (~${ap.corrKcal} kcal). Handled at ${meta.short}.`, apply: { kind: "cal", delta: ap.corrKcal }, resolved: true, auto: true });
-    ns.adjustments.push({ rid, id: _freshId("adj_"), d: tISO, title, nudge: 0, auto: true, level });   // v7.2.0 audit — stable id so the keyed-union merge collapses this record across devices (never dropped/duped)
-    ns.feed.unshift({ d: tISO, t: "AUTO-PILOT HANDLED IT", how: `${title} — ${meta.tag}. Nothing you eat is locked by this; it's the routine steer, and it's one tap to undo.` });
+    const effAuto = { calDelta: ap.action === "ease" ? Math.abs(ap.corrKcal) : -Math.abs(ap.corrKcal), stepsDelta: ap.dir === "cut" ? (ap.action === "ease" ? -Math.abs(ap.stepsAdd) : Math.abs(ap.stepsAdd)) : 0 };
+    ns.proposals.push({ rid, id: rid + "_" + tISO, d: tISO, title, why: `Routine in-corridor move: ~${ap.pctRate}%BW/wk vs your ${modeLabel} target ~${ap.targetPct}% (~${ap.corrKcal} kcal). Handled at ${meta.short}.`, apply: { kind: "cal", delta: ap.corrKcal, dir: ap.action, calDelta: effAuto.calDelta, stepsDelta: effAuto.stepsDelta }, resolved: true, auto: true });
+    ns.adjustments.push({ rid, id: _freshId("adj_"), d: tISO, title, nudge: 0, auto: true, level, via: "cal", calDelta: effAuto.calDelta, from: tISO });   // v7.3.1 — the routine steer TAKES EFFECT (tracked, reversible, reconciles next weigh-in); v7.2.0 audit — stable id so the keyed-union merge collapses this record across devices
+    const ctAuto = calorieTarget(ns);
+    ns.feed.unshift({ d: tISO, t: "AUTO-PILOT HANDLED IT", how: `${title} — ${meta.tag}. Band ${effAuto.calDelta < 0 ? "down" : "up"} ${Math.abs(effAuto.calDelta)} kcal${ctAuto && !ctAuto.gated ? ` → ${ctAuto.lo}–${ctAuto.hi}` : ""}; it holds until your next weigh-in and it's one tap to undo.` });
     setS(ns); save(ns);
   }, [pol.autoApply, tISO, ap.ok]);
 
@@ -8744,8 +8860,13 @@ function ApprovalInbox({ s, setS, save, tISO }) {
     items.push({
       key: "eng_" + p.id, from: "ENGINE", type: "ADJUSTMENT ARMED", meta: fmtShort(p.d), accent: T.brass, pri, basis: "measured",
       title: p.title, why: p.why, dial: proposalDial(p),
-      approve: (n) => { const ns = applyProposal(s, p.id, n || 0); setS(ns); save(ns); },
-      approveLabel: (n) => (n ? "Apply my version — log it" : "Apply — log it"),
+      approve: (n) => { const ns = applyProposal(s, p.id, n || 0, "cal"); setS(ns); save(ns); },
+      approveLabel: (n) => (k === "cal"
+        ? (((p.apply || {}).calDelta < 0) ? (n ? "Tighten — my version" : "Tighten the band — apply") : (n ? "Ease — my version" : "Ease the band — apply"))
+        : (n ? "Apply my version" : "Apply — log it")),
+      // v7.3.1 — the "OR add steps" choice, made AT approval: same steer, the walking lever instead of the plate.
+      altApprove: (k === "cal" && (p.apply || {}).stepsDelta) ? (n) => { const ns = applyProposal(s, p.id, n || 0, "steps"); setS(ns); save(ns); } : null,
+      altLabel: (k === "cal" && (p.apply || {}).stepsDelta) ? `${(p.apply.stepsDelta > 0 ? "Add" : "Trim")} steps instead (${p.apply.stepsDelta > 0 ? "+" : ""}${(p.apply.stepsDelta || 0).toLocaleString()})` : null,
       dismiss: () => { const ns = dismissProposal(s, p.id); setS(ns); save(ns); },
     });
   });
@@ -8799,7 +8920,7 @@ function ApprovalInbox({ s, setS, save, tISO }) {
   if (items.length === 0) return null;
   const material = items.some((it) => it.pri <= 1);
   return (
-    <Group title="FOR YOU TO OK" sub="changes waiting on your tap" persistKey="now.inbox" count={items.length} defaultOpen={material}>
+    <Group title="FOR YOU TO OK" sub="changes waiting on your tap" persistKey="now.inbox" id="pl-inbox" count={items.length} defaultOpen={material}>
       {items.map((it) => {
         const n = nudge[it.key] || 0;
         return (
@@ -8847,6 +8968,7 @@ function ApprovalInbox({ s, setS, save, tISO }) {
             )}
             <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
               {it.approve && <Btn small tone="jade" onClick={() => { it.approve(n); if (it.dial) setNudge({ ...nudge, [it.key]: 0 }); }}>{it.approveLabel(n)}</Btn>}
+              {it.altApprove && <Btn small onClick={() => { it.altApprove(n); if (it.dial) setNudge({ ...nudge, [it.key]: 0 }); }}>{it.altLabel}</Btn>}
               <Btn small onClick={it.dismiss}>Dismiss</Btn>
             </div>
           </Card>
@@ -9087,10 +9209,25 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         return (
           <Card style={{ padding: SP.lg }}>
             <Eyebrow c={T.steel}>COCKPIT · AUTO-PILOT</Eyebrow>
-            <div style={{ display: "flex", alignItems: "center", gap: SP.md, marginTop: SP.sm }}>
-              <span aria-hidden="true" style={{ fontFamily: mono, fontSize: 26, lineHeight: 1, color: cp.tone, flexShrink: 0, width: 22, textAlign: "center" }}>{cp.glyph}</span>
-              <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 26, letterSpacing: "0.045em", color: cp.tone }}>{cp.word}</span>
-            </div>
+            {(() => {
+              // v7.3.1 — the status WORD is tappable when something needs him: it deep-links to the
+              // pending item (inbox / owed thing) exactly like the marching order, and refreshes after
+              // it's handled. ON COURSE (nothing to tap) stays a plain readout — no dead button.
+              const stt = statusTarget(s);
+              const face = (
+                <div style={{ display: "flex", alignItems: "center", gap: SP.md, marginTop: SP.sm }}>
+                  <span aria-hidden="true" style={{ fontFamily: mono, fontSize: 26, lineHeight: 1, color: cp.tone, flexShrink: 0, width: 22, textAlign: "center" }}>{cp.glyph}</span>
+                  <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 26, letterSpacing: "0.045em", color: cp.tone }}>{cp.word}</span>
+                  {stt ? <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginLeft: "auto", whiteSpace: "nowrap", alignSelf: "center" }}>tap →</span> : null}
+                </div>
+              );
+              return stt ? (
+                <button onClick={() => { hap(8); openGroup(stt.key); scrollToId(stt.id); }} aria-label={`${cp.word} — ${stt.label}`}
+                  style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+                  {face}
+                </button>
+              ) : face;
+            })()}
             <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.45, marginTop: SP.sm }}>{cp.cause}</div>
             {/* ONE marching order — if-then, deep-linked like the owe button */}
             <div style={{ borderTop: `1px solid ${T.line}`, marginTop: SP.md, paddingTop: SP.md }}>
@@ -9379,7 +9516,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                     ns.proposals.push({ rid, id: `${rid}_${tISO}`, d: tISO,
                       title: easing ? "AUTO-PILOT · EASE THE TARGET" : "AUTO-PILOT · TIGHTEN THE TARGET",
                       why: `Measured ~${ap.pctRate}%BW/wk vs your ${modeLabel} target ~${ap.targetPct}%. ${cut ? (easing ? "Add back" : "Trim") : (easing ? "Trim" : "Add")} ~${ap.corrKcal} kcal to ride the ${modeLabel} line — steps are the cheaper lever if they aren't already maxed.`,
-                      apply: { kind: "cal", delta: ap.corrKcal }, resolved: false });
+                      apply: { kind: "cal", delta: ap.corrKcal, dir: ap.action, calDelta: easing ? Math.abs(ap.corrKcal) : -Math.abs(ap.corrKcal), stepsDelta: cut ? (easing ? -Math.abs(ap.stepsAdd) : Math.abs(ap.stepsAdd)) : 0 }, resolved: false });
                   }
                   ns.plan = { ...(ns.plan || {}), apDismiss: tISO };
                   setS(ns); save(ns); hap(12);

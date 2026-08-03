@@ -1,5 +1,5 @@
 /* Measured service worker — bump CACHE on every redeploy */
-const CACHE = "measured-v7.3.0";
+const CACHE = "measured-v7.3.1";
 const ASSETS = [
   "./",
   "./index.html",

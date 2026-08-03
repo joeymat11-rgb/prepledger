@@ -4145,5 +4145,90 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(DLG(withNew, shrunk).safe === false, "s.learned: dropping learned history is BLOCKED by the durability guard — a shrink can't be silent");
 }
 
+// ============================================================================================
+// v7.3.1 — AUTO-PILOT APPROVAL LOOP. Joe: "All approvals once approved must serve their function."
+// An approved steer now (1) TAKES EFFECT on the EFFECTIVE target as a tracked/reversible offset,
+// (2) CLEARS the loop after handling, and (3) the cockpit status word deep-links to the pending item —
+// all engine-consistent (the base band stays engine-owned), honest, and undoable.
+{
+  const isoAgo = (back) => { const d = new Date(Date.now() - back * 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  const today = isoAgo(0);
+  const M = clone(SEED); M.blackout = { until: "2026-05-01" };
+  M.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoAgo(23 - i), w: +(176 - i * 0.06).toFixed(2), sealed: false }));
+  M.dailyLogs = {}; for (let i = 0; i < 24; i++) M.dailyLogs[isoAgo(23 - i)] = { cal: 2400, pro: 210, steps: 9000 };   // intake high enough that the measured band clears the energy-availability floor with headroom to tighten
+  M.proposals = []; M.adjustments = [];
+  const cBefore = __test.calorieTarget(M);
+  ok(!cBefore.gated, "v7.3.1 setup — a measured calorie band prints (a real state to move)");
+  const dK = Math.min(288, Math.max(1, cBefore.lo - cBefore.floor - 20));   // Joe's ~288 tighten, kept clear of the energy floor so the move is VISIBLE (not clipped by the safety floor)
+
+  // ---- proposalEffect: the SIGN is engine-consistent (tighten LOWERS cals / RAISES steps; ease the reverse) ----
+  const pT = { apply: { kind: "cal", delta: 288, dir: "tighten", calDelta: -288, stepsDelta: 1500 } };
+  const pE = { apply: { kind: "cal", delta: 288, dir: "ease", calDelta: 288, stepsDelta: -1500 } };
+  ok(__test.proposalEffect(pT).calDelta === -288 && __test.proposalEffect(pT).stepsDelta === 1500, "proposalEffect — a TIGHTEN lowers calories (−) and raises steps (+)");
+  ok(__test.proposalEffect(pE).calDelta === 288 && __test.proposalEffect(pE).stepsDelta === -1500, "proposalEffect — an EASE raises calories (+) and trims steps (−)");
+  ok(__test.proposalEffect(pT, 25).calDelta === -313, "proposalEffect — the bounded ±dial moves the magnitude in the base direction (−288 → −313 at +25; Dietvorst 2018)");
+
+  // ---- (1) APPROVING A ~288 CAL TIGHTEN SHIFTS TODAY'S BAND DOWN — the approval takes visible effect (was log-only) ----
+  const staged = clone(M);
+  staged.proposals = [{ id: "p_ap", rid: "ap_tighten_" + today, d: today, title: "AUTO-PILOT · TIGHTEN THE TARGET", why: "test", apply: { kind: "cal", delta: dK, dir: "tighten", calDelta: -dK, stepsDelta: 1500 }, resolved: false }];
+  const after = __test.applyProposal(staged, "p_ap", 0, "cal");
+  const cAfter = __test.calorieTarget(after);
+  ok(cAfter.adj.delta === -dK && cAfter.adj.active === true, "APPROVAL TAKES EFFECT — a tracked −" + dK + " kcal offset is now active on the band (Joe's approval finally does something)");
+  ok(cAfter.baseLo === cBefore.lo && cAfter.baseHi === cBefore.hi, "ENGINE-OWNS-NUMBERS — the base band is untouched; the delta is added ON TOP, never a mutated protected number");
+  ok(cAfter.lo === cBefore.lo - dK && cAfter.hi === cBefore.hi - dK, "the EFFECTIVE band = base − offset — a clean, unclipped, engine-consistent tighten (the safety floor still clamps a bigger one)");
+  ok(cAfter.mid < cBefore.mid, "TODAY's band moves DOWN — the cockpit visibly reflects the approved tighten");
+  ok(after.proposals[0].resolved === true, "approving resolves the proposal → it leaves the inbox");
+  ok(__test.activeAdjustment(after).via === "cal" && __test.activeAdjustment(after).calDelta === -dK, "the approved steer is the ONE active adjustment (cal) — not a compounding second number");
+
+  // ---- (1') THE 'OR ADD STEPS' CHOICE — same steer, the walking lever instead of the plate, chosen AT approval ----
+  const afterSteps = __test.applyProposal(clone(staged), "p_ap", 0, "steps");
+  ok(__test.activeAdjustment(afterSteps).via === "steps" && __test.activeAdjustment(afterSteps).stepDelta === 1500, "CHOICE AT APPROVAL — 'add steps' records a STEP offset (+1500), not a calorie one");
+  ok(__test.calorieTarget(afterSteps).adj.delta === 0, "…and choosing steps leaves the calorie band alone — the athlete's pick is honoured");
+  const stB = __test.stepTarget(M);
+  ok(stB.gated || (__test.stepTarget(afterSteps).mid === stB.mid + 1500 && __test.stepTarget(afterSteps).adjSteps === 1500), "'add steps' raises the EFFECTIVE step target by the tracked offset (raises steps, not the plate)");
+
+  // ---- (2) THE LOOP CLEARS — a handled steer stops re-raising; the magnitude NEEDS-YOU ask drops ----
+  ok(__test.autoPilot(staged).proposed === true, "LOOP setup — the staged steer is a live proposal");
+  ok(__test.autoPilot(after).proposed === false && __test.autoPilot(after).handledForToday === true, "LOOP CLEARS — after approving, autoPilot stops re-raising the same steer (no stale ADJUSTING/NEEDS YOU)");
+  const apBig = { ok: true, proposed: true, corrKcal: 288, action: "tighten", mode: "recomp", pctRate: 0.5, targetPct: 0.7, band: { redlinePct: 1.0 }, driftSig: true, heldForStale: false, heldForNoise: false, proteinOff: false };
+  const escBig = __test.escalation({}, apBig);
+  ok(escBig.escalate && escBig.ask.some((a) => a.code === "magnitude"), "SAFETY PRESERVED — a ~288 kcal move is over the 200-kcal routine limit → the supervisor ASKS (NEEDS YOU); big moves still need approval");
+  const apHandled = { ...apBig, proposed: false, handledForToday: true };
+  ok(!__test.escalation({}, apHandled).ask.some((a) => a.code === "magnitude"), "…and once handled (proposed:false) that magnitude ask CLEARS — NEEDS YOU doesn't persist");
+  const polBig = __test.autoPilotPolicy({}, { ap: apBig, level: "propose", esc: escBig });
+  const polOk = __test.autoPilotPolicy({}, { ap: apHandled, level: "propose", esc: __test.escalation({}, apHandled) });
+  ok(__test.statusFace({}, { sig: { state: "measured", n: 20 }, ap: apBig, rec: { stale: false }, pol: polBig, level: "propose" }).word === "NEEDS YOU", "the cockpit face reads NEEDS YOU for the ~288 kcal call");
+  ok(__test.statusFace({}, { sig: { state: "measured", n: 20 }, ap: apHandled, rec: { stale: false }, pol: polOk, level: "propose" }).word !== "NEEDS YOU", "after handling, statusFace recomputes off the handled steer — NEEDS YOU clears (cockpit refreshes)");
+
+  // ---- (3) NEEDS YOU IS TAPPABLE → deep-links to the pending item, then recomputes once handled ----
+  ok(__test.statusTarget(staged) && __test.statusTarget(staged).key === "now.inbox" && __test.statusTarget(staged).id === "pl-inbox", "TAPPABLE — with a proposal waiting, the status word deep-links to the approval inbox (pl-inbox), like the marching order");
+  ok(__test.statusTarget(after) == null || __test.statusTarget(after).key !== "now.inbox", "after approving, the inbox is empty → the hero deep-link recomputes (no dead link to a cleared inbox)");
+
+  // ---- REVERSIBLE — undo removes the offset and hands the decision back (Law 10) ----
+  const und = __test.undoAdjustment(after, "ap_tighten_" + today);
+  ok(__test.calorieTarget(und).adj.active === false && __test.calorieTarget(und).adj.delta === 0, "UNDO REVERTS — one tap removes the offset; the band returns to the engine base");
+  ok(__test.calorieTarget(und).lo === cBefore.lo && __test.calorieTarget(und).hi === cBefore.hi, "…the reverted band equals the original engine-owned band exactly (nothing was ever mutated)");
+  ok(und.proposals[0].resolved === false, "UNDO re-opens the decision back into the inbox (Law 10)");
+
+  // ---- RECONCILES — the offset self-retires at the next weigh-in (not a permanent competing number) ----
+  const nextDay = clone(after); nextDay.reads = [...nextDay.reads, { d: isoAgo(-1), w: 174.4, sealed: false }];   // a weigh-in AFTER the applied day
+  ok(__test.activeAdjustment(nextDay).active === false && __test.calorieTarget(nextDay).adj.delta === 0, "RECONCILES — the next weigh-in expires the offset; the engine re-measures and takes the wheel (no double-count)");
+
+  // ---- AUTONOMY / SAFETY GATING STILL HOLDS (a big move never auto-applies; L1 never auto-applies; routine does at L2/L3) ----
+  ok(__test.autoPilotPolicy({}, { ap: apBig, level: "runit", esc: escBig }).autoApply === false, "SAFETY — even at Run-it a ~288 (>200) move does NOT auto-apply; the supervisor vetoes and it asks");
+  const apRoutine = { ok: true, proposed: true, corrKcal: 120, action: "tighten", mode: "recomp", pctRate: 0.6, targetPct: 0.7, band: { redlinePct: 1.0 }, driftSig: true, heldForStale: false, heldForNoise: false, proteinOff: false };
+  const escRoutine = __test.escalation({}, apRoutine);
+  ok(__test.autoPilotPolicy({}, { ap: apRoutine, level: "propose", esc: escRoutine }).autoApply === false, "AUTONOMY — at Propose (L1) even a routine move never auto-applies; one-tap approval is the floor");
+  ok(__test.autoPilotPolicy({}, { ap: apRoutine, level: "autonotice", esc: escRoutine }).autoApply === true, "…a routine <200 in-corridor move DOES auto-apply at Auto-with-notice — and (v7.3.1) that auto-apply now moves the band too, tracked + undoable");
+
+  // ---- MERGE HARDENING INTACT — the approved-effect adjustment survives the keyed union, both orders ----
+  const MS = __test.mergeState, DLG = __test.dataLossGuard;
+  const devX = clone(SEED); devX.adjustments = [{ rid: "ap_tighten_x", id: "adj_x", d: today, via: "cal", calDelta: -288, from: today, title: "t" }];
+  const devY = clone(SEED); devY.adjustments = [{ rid: "ap_steps_y", id: "adj_y", d: today, via: "steps", stepDelta: 1500, from: today, title: "u" }];
+  const mgd = MS(devX, devY), mgd2 = MS(devY, devX);
+  ok(mgd.adjustments.some((a) => a.id === "adj_x") && mgd.adjustments.some((a) => a.id === "adj_y"), "MERGE HARDENING INTACT — an approved-effect adjustment from EITHER device survives the keyed union (never dropped)");
+  ok(mgd.adjustments.find((a) => a.id === "adj_x").calDelta === -288 && mgd2.adjustments.find((a) => a.id === "adj_x").calDelta === -288, "…and the effect payload (calDelta) survives intact, order-independent — the new via/calDelta fields ride the s.adjustments hardening");
+}
+
 console.log(`\nFINAL81: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
