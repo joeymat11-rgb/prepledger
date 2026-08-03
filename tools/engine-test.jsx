@@ -3576,8 +3576,9 @@ const { oweTarget: oT63, applyDisc: aD63, readDisc: rD63, UI_KEY: UIK63 } = __te
 // WHAT YOU OWE deep-links to the right collapsed group + element, per owed kind
 ok(oT63("night").key === "now.capture" && oT63("night").id === "pl-capture", "owe: a missing night points the fold action at CAPTURE (pl-capture)");
 ok(oT63("weight").key === "now.capture" && oT63("weight").id === "pl-capture", "owe: an un-logged scale points at CAPTURE (pl-capture)");
-ok(oT63("day").key === "now.logs" && oT63("day").id === "pl-closeday", "owe: the day's numbers point at TODAY'S LOGS (pl-closeday)");
-ok(oT63("yesterday").key === "now.plan" && oT63("yesterday").id === "pl-amend", "owe: an unclosed yesterday points at the reopen card (pl-amend)");
+ok(oT63("day").key === "now.capture" && oT63("day").id === "pl-closeday", "owe: the day's numbers point INTO the CAPTURE door, at the close-the-day card (pl-closeday)");
+ok(oT63("yesterday").key === "now.capture" && oT63("yesterday").id === "pl-amend", "owe: an unclosed yesterday points INTO the CAPTURE door, at the reopen card (pl-amend)");
+ok(["night", "weight", "day", "yesterday"].every((k) => oT63(k).key === "now.capture"), "owe: after the three-door re-layout every owed kind opens the SAME capture door — no link to a retired group key");
 
 // a remembered override BEATS the time-of-day default, both directions
 ok(rD63({ disc: { "now.today": true } }, "now.today", () => false) === true, "remembered OPEN beats a collapsed time-default");
