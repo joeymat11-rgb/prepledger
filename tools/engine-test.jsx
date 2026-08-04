@@ -3736,6 +3736,148 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
     ok(JSON.stringify(__test.mergeState(l1, r1).exOrder.L) === JSON.stringify(["x", "y"]), "EXORDER — an untouched day key is unaffected");
   }
 
+  // ---------------------------------------------------------------- CORRECTION MERGE --
+  // Step 2 of the merge-correction plan: reproduce the ACTUAL revert. This fixture is the
+  // real 2026-07-31 record — the phantom ham entry vs the corrected copy that removes it —
+  // and it must fail on the CURRENT rule for the RIGHT reason: a STAMPED correction losing
+  // to an UNSTAMPED copy, not merely "counts differ".
+  {
+    const day = "2026-07-31";
+    const phantomRec = {
+      entries: [
+        { id: "calves", reps: [11, 9, 7, 7], rir: 2, rirSets: [2, null, null, 0], w: 320 },
+        { id: "ham", reps: [12, 12], rir: null, rirSets: [null, null], w: 120 },
+      ],
+      skipped: [], at: 1754000000000, note: "", niggles: [], dips: 0, pace: "normal",
+    };
+    const correctedRec = {
+      entries: [phantomRec.entries[0]],
+      skipped: [{ id: "ham" }],
+      at: phantomRec.at, note: "", niggles: [], dips: 0, pace: "normal",
+      corr: { at: "2026-08-04T21:00:00.000Z", rev: 1 },
+    };
+    const stateWith = (rec) => { const st = clone(SEED); st.sessionLog = { [day]: rec }; return st; };
+    const A9 = stateWith(correctedRec), B9 = stateWith(phantomRec);
+    const hamGone = (out) => !((out.sessionLog[day].entries || []).some((e) => e.id === "ham"));
+    const winner = (out) => (out.sessionLog[day].corr ? "the STAMPED correction" : "the UNSTAMPED phantom copy");
+
+    const fwd = __test.mergeState(A9, B9), rev = __test.mergeState(B9, A9);
+    ok(hamGone(fwd), "CORRECTION MERGE — a STAMPED correction beats an unstamped copy that still holds the phantom. Winner was " + winner(fwd) + " (entries=" + (fwd.sessionLog[day].entries || []).length + ")");
+    ok(hamGone(rev), "CORRECTION MERGE — …and in the other write order. Winner was " + winner(rev) + " (entries=" + (rev.sessionLog[day].entries || []).length + ")");
+
+    /* ---- the eleven cases. Every one runs BOTH write orders and asserts the same winner:
+           a rule that is order-dependent is not a rule. ---- */
+    const D = "2026-07-31";
+    const rec = (o) => ({ entries: [], skipped: [], at: 1754000000000, note: "", niggles: [], dips: 0, pace: "normal", ...o });
+    const E1 = { id: "calves", reps: [11, 9], rir: 2, rirSets: [2, 0], w: 320 };
+    const E2 = { id: "ham", reps: [12, 12], rir: null, rirSets: [null, null], w: 120 };
+    const stW = (r) => { const st = clone(SEED); st.sessionLog = { [D]: r }; return st; };
+    /* both orders, one answer, or the test itself fails */
+    const settle = (a, b, label) => {
+      const f = __test.mergeState(stW(a), stW(b)).sessionLog[D];
+      const r = __test.mergeState(stW(b), stW(a)).sessionLog[D];
+      ok(JSON.stringify(f) === JSON.stringify(r), label + " — resolves identically in BOTH write orders");
+      return f;
+    };
+    const ids = (r) => (r.entries || []).map((e) => e.id).sort().join(",");
+
+    // 1 — correction vs unmarked stale copy: the case that is broken today
+    const c1 = settle(rec({ entries: [E1], skipped: [{ id: "ham" }], corr: { at: "2026-08-04T21:00:00.000Z", rev: 1 } }), rec({ entries: [E1, E2] }), "CASE 1");
+    ok(ids(c1) === "calves", "CASE 1 — a stamped correction beats an unstamped copy still holding the phantom");
+
+    // 2 — unmarked shrink vs unmarked copy: today's behaviour must NOT change
+    const c2 = settle(rec({ entries: [E1] }), rec({ entries: [E1, E2] }), "CASE 2");
+    ok(ids(c2) === "calves,ham", "CASE 2 — an UNMARKED shrink still loses, exactly as before: refuse-to-shrink is untouched for ordinary syncs");
+
+    // 3 — a correction racing a NEWER session on the other device
+    const c3 = settle(rec({ entries: [E1], skipped: [{ id: "ham" }], corr: { at: "2026-08-04T21:00:00.000Z", rev: 1 } }),
+                      rec({ entries: [E1, E2], at: Date.parse("2026-08-04T22:00:00.000Z") }), "CASE 3");
+    ok(ids(c3) === "calves,ham", "CASE 3 — a STALE correction does NOT revert work logged after it: the newer session wins. Without this the rule would eat a session, which is worse than the bug");
+
+    // 4 — same shape, but the other side is OLDER than the correction
+    const c4 = settle(rec({ entries: [E1], skipped: [{ id: "ham" }], corr: { at: "2026-08-04T21:00:00.000Z", rev: 1 } }),
+                      rec({ entries: [E1, E2], at: Date.parse("2026-08-04T20:00:00.000Z") }), "CASE 4");
+    ok(ids(c4) === "calves", "CASE 4 — …but a correction newer than the other side's session still wins");
+
+    // 5 — two corrections to the same session from two devices
+    const c5 = settle(rec({ entries: [E1], corr: { at: "2026-08-04T21:00:00.000Z", rev: 1 } }),
+                      rec({ entries: [E1, E2], corr: { at: "2026-08-04T23:00:00.000Z", rev: 1 } }), "CASE 5");
+    ok(ids(c5) === "calves,ham", "CASE 5 — the LATER corr.at wins; the loser's correction is discarded, which is the stated wholesale-replacement limitation, asserted rather than hidden");
+    const c5b = settle(rec({ entries: [E1], corr: { at: "2026-08-04T21:00:00.000Z", rev: 2 } }),
+                       rec({ entries: [E1, E2], corr: { at: "2026-08-04T21:00:00.000Z", rev: 1 } }), "CASE 5b");
+    ok(ids(c5b) === "calves", "CASE 5b — equal corr.at falls to higher rev, so the tiebreak is defined rather than incidental");
+
+    // 6 — a correction, then a device that never saw it, syncing TWICE
+    {
+      const corrected = rec({ entries: [E1], skipped: [{ id: "ham" }], corr: { at: "2026-08-04T21:00:00.000Z", rev: 1 } });
+      const naive = rec({ entries: [E1, E2] });
+      const r1 = __test.mergeState(stW(corrected), stW(naive)).sessionLog[D];
+      const r2 = __test.mergeState(stW(r1), stW(naive)).sessionLog[D];
+      ok(ids(r1) === "calves" && ids(r2) === "calves", "CASE 6 — the correction survives a naive device syncing TWICE, not just the first round");
+    }
+
+    // 7 — a correction that would EMPTY a session. DECIDED: refused at the control, so the
+    //     merge should never see one. If it ever does, it must not win by default.
+    const c7 = settle(rec({ entries: [], skipped: [{ id: "calves" }, { id: "ham" }], corr: { at: "2026-08-04T21:00:00.000Z", rev: 1 } }),
+                      rec({ entries: [E1, E2] }), "CASE 7");
+    ok(ids(c7) === "", "CASE 7 — an emptying correction is refused AT THE CONTROL and never written; if one reaches the merge it is treated as any other stamped correction, and this asserts the behaviour explicitly rather than leaving it undefined");
+
+    // 8 — dates are independent
+    {
+      const a = clone(SEED), b = clone(SEED);
+      a.sessionLog = { [D]: rec({ entries: [E1], skipped: [{ id: "ham" }], corr: { at: "2026-08-04T21:00:00.000Z", rev: 1 } }), "2026-08-03": rec({ entries: [E1] }) };
+      b.sessionLog = { [D]: rec({ entries: [E1, E2] }), "2026-08-03": rec({ entries: [E1, E2] }) };
+      const m = __test.mergeState(a, b).sessionLog;
+      ok(ids(m[D]) === "calves" && ids(m["2026-08-03"]) === "calves,ham", "CASE 8 — a correction on one date does not touch another: no cross-talk");
+    }
+
+    // 9 — malformed stamps are unstamped
+    for (const bad of [{ rev: 1 }, { at: null, rev: 1 }, { at: 12345 }, { at: "not-a-date" }]) {
+      ok(__test._corrOf({ corr: bad }) === null, "CASE 9 — a malformed corr (" + JSON.stringify(bad) + ") is treated as UNSTAMPED and falls to the ordinary rule");
+    }
+    const c9 = settle(rec({ entries: [E1], corr: { at: "not-a-date" } }), rec({ entries: [E1, E2] }), "CASE 9");
+    ok(ids(c9) === "calves,ham", "CASE 9 — …so a shrink carrying a malformed stamp still loses");
+
+    // 10 — three-way convergence, every merge order
+    {
+      const A0 = rec({ entries: [E1], skipped: [{ id: "ham" }], corr: { at: "2026-08-04T21:00:00.000Z", rev: 1 } });
+      const B0 = rec({ entries: [E1, E2] }), C0 = rec({ entries: [E1, E2] });
+      const perms = [[A0, B0, C0], [A0, C0, B0], [B0, A0, C0], [B0, C0, A0], [C0, A0, B0], [C0, B0, A0]];
+      const outs = perms.map((p) => ids(__test.mergeState(stW(__test.mergeState(stW(p[0]), stW(p[1])).sessionLog[D]), stW(p[2])).sessionLog[D]));
+      ok(outs.every((o) => o === outs[0]) && outs[0] === "calves", "CASE 10 — three devices converge on the SAME record from all six merge orders");
+    }
+
+    // 11 — a stamped correction arriving at a device holding an UNSYNCED local edit
+    {
+      const incoming = rec({ entries: [E1], skipped: [{ id: "ham" }], corr: { at: "2026-08-04T21:00:00.000Z", rev: 1 } });
+      const localUnsynced = rec({ entries: [E1, E2], at: Date.parse("2026-08-04T22:30:00.000Z") });
+      const c11 = settle(incoming, localUnsynced, "CASE 11");
+      ok(ids(c11) === "calves,ham", "CASE 11 — an unsynced local edit NEWER than the correction is kept: resolved on timestamps, never on \"local is local\". This is the shape most likely to hit Joe, since the phone is often the only place a change exists");
+      const olderLocal = rec({ entries: [E1, E2], at: Date.parse("2026-08-04T19:00:00.000Z") });
+      ok(ids(settle(incoming, olderLocal, "CASE 11b")) === "calves", "CASE 11b — …and an OLDER unsynced local edit yields to the correction, for the same reason");
+
+    // the stamper itself — both controls go through it, so it cannot drift
+    {
+      const SC = __test._stampCorr;
+      const r0 = { entries: [E1] }; SC(r0);
+      ok(r0.corr && typeof r0.corr.at === "string" && r0.corr.rev === 1, "STAMP — a first correction stamps at + rev 1");
+      SC(r0);
+      ok(r0.corr.rev === 2, "STAMP — a second correction on the same session increments rev, so two corrections from one device stay ordered");
+      ok(__test._corrOf(r0) !== null, "STAMP — what the stamper writes is what the reconciler accepts");
+    }
+    }
+
+    // the standing data-safety floor still holds
+    {
+      const a = clone(SEED), b = clone(SEED);
+      a.sessionLog = { [D]: rec({ entries: [E1], skipped: [{ id: "ham" }], corr: { at: "2026-08-04T21:00:00.000Z", rev: 1 } }) };
+      b.sessionLog = { [D]: rec({ entries: [E1, E2] }) };
+      const m = __test.mergeState(a, b);
+      ok((m.reads || []).length >= (a.reads || []).length && ((m.sleep || {}).nights || []).length >= ((a.sleep || {}).nights || []).length && Object.keys(m.dailyLogs || {}).length >= Object.keys(a.dailyLogs || {}).length, "CORRECTION MERGE — everything OUTSIDE sessionLog is untouched: reads, nights and dailyLogs never shrink");
+      ok(ids(m.sessionLog[D]) === "calves", "…and the correction removes exactly the entry it names, and nothing else");
+    }
+  }
+
 
   // REST_WALLCLOCK — the iOS failure was a throttled counter, so the test simulates the gap
   ok(RC(1000, 1000 + 10 * 1000) === true, "REST — 10s of rest is a cut rest");

@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.10.0";
+const APP_V = "7.11.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -8078,6 +8078,69 @@ function dataLossGuard(prev, next) {
    this, write order stops mattering — both sides converge to the union (self-healing). */
 function _mergeScore(v) { try { if (v && Array.isArray(v.entries)) return v.entries.length * 1e6 + JSON.stringify(v).length; return JSON.stringify(v == null ? "" : v).length; } catch (e) { return 0; } }
 function _richer(x, y) { return _mergeScore(y) >= _mergeScore(x) ? y : x; }   // ties -> local (y)
+/* CORRECTION_MERGE — how a deliberate correction survives a sync.
+
+   _mergeScore is entries.length * 1e6 + json length, so a record with MORE entries always
+   wins. That is refuse-to-shrink and it is correct for ordinary syncs. But a correction
+   REMOVES an entry, so it scores a full million lower and loses to any device still
+   holding the uncorrected copy. Measured on the real 2026-07-31 record: phone 548,
+   corrected 491. Two repairs were made and both were silently reverted by the phone.
+
+   Joe: "never lose data" had quietly become "never admit a mistake". The record could not
+   be corrected downward at all, which is a data-integrity hole in an app whose entire
+   claim is that the record is honest.
+
+   A correction therefore carries an EXPLICIT stamp, written only by the two correction
+   controls. Nothing is inferred from a count going down: an unmarked shrink still loses,
+   exactly as before. The rules, in order:
+
+     1. neither stamped                 -> _richer, unchanged. Refuse-to-shrink holds.
+     2. one stamped, other NOT newer    -> the stamped side wins. The broken case.
+     3. one stamped, other IS newer     -> the OTHER side wins. A stale correction must
+        never revert work logged after it — that would eat a session, which is worse than
+        the bug being fixed.
+     4. both stamped                    -> later corr.at; equal at -> higher rev; equal
+        both -> _richer; tie -> local. Stated in full because an undefined tiebreak in a
+        merge rule is how this class of bug returns.
+
+   KNOWN LIMITATION, deliberately not fixed: a session is replaced WHOLESALE per date, so
+   if two devices correct the same session the loser's correction is discarded rather than
+   combined. Fixing that means entry-level reconciliation inside a session — a much larger
+   change to the merge shape, and it earns nothing for one athlete on one phone. If you
+   came here to improve this, that is the trade you would be making.
+
+   Additive: `corr` absent means unstamped, so no SCHEMA_V bump (the `pace` precedent). */
+/* _stampCorr — mark a session record as DELIBERATELY corrected. Both correction controls
+   go through this so they cannot drift apart, and nothing else may call it: the stamp is
+   the difference between a correction and a shrink, and inferring it would defeat the
+   whole rule. rev increments so two corrections from one device stay ordered. */
+function _stampCorr(rec) {
+  const prev = rec && rec.corr && typeof rec.corr === "object" ? rec.corr : null;
+  rec.corr = { at: new Date().toISOString(), rev: (prev && isFinite(+prev.rev) ? +prev.rev : 0) + 1 };
+  return rec;
+}
+
+function _corrOf(v) {
+  const c = v && v.corr;
+  if (!c || typeof c !== "object") return null;
+  const at = typeof c.at === "string" && c.at ? c.at : null;
+  if (!at || !isFinite(Date.parse(at))) return null;        // malformed -> unstamped, falls to rule 1
+  const rev = isFinite(+c.rev) ? +c.rev : 0;
+  return { at, rev };
+}
+function _sessionAtMs(v) { const n = v && +v.at; return isFinite(n) ? n : 0; }
+function _richerSession(x, y) {
+  const cx = _corrOf(x), cy = _corrOf(y);
+  if (!cx && !cy) return _richer(x, y);                                        // 1
+  if (cx && cy) {                                                              // 4
+    if (cx.at !== cy.at) return cx.at > cy.at ? x : y;
+    if (cx.rev !== cy.rev) return cx.rev > cy.rev ? x : y;
+    return _richer(x, y);
+  }
+  const stamped = cx ? x : y, plain = cx ? y : x, c = cx || cy;
+  return _sessionAtMs(plain) > Date.parse(c.at) ? plain : stamped;             // 3 : 2
+}
+
 function _unionBy(remoteArr, localArr, keyOf) {
   const m = new Map();
   const add = (x) => { try { const k = keyOf(x); if (k == null) return; if (!m.has(k)) m.set(k, x); else m.set(k, _richer(m.get(k), x)); } catch (e) {} };
@@ -8085,10 +8148,11 @@ function _unionBy(remoteArr, localArr, keyOf) {
   (Array.isArray(localArr) ? localArr : []).forEach(add);
   return [...m.values()];
 }
-function _unionObj(remoteObj, localObj) {
+function _unionObj(remoteObj, localObj, pick) {
   const out = { ...(remoteObj && typeof remoteObj === "object" ? remoteObj : {}) };
   const l = localObj && typeof localObj === "object" ? localObj : {};
-  for (const k of Object.keys(l)) out[k] = (k in out) ? _richer(out[k], l[k]) : l[k];
+  const p = pick || _richer;
+  for (const k of Object.keys(l)) out[k] = (k in out) ? p(out[k], l[k]) : l[k];
   return out;
 }
 function _unionMulti(remoteArr, localArr, keyOf) {
@@ -8261,7 +8325,7 @@ function mergeState(local, remote) {
   const out = { ...remote, ...local };                       // scalars: local wins; remote-only keys kept
   for (const k of Object.keys(MERGE_ARR)) out[k] = _unionBy(remote[k], local[k], MERGE_ARR[k]);
   for (const k of Object.keys(MERGE_MULTI)) out[k] = _unionMulti(remote[k], local[k], MERGE_MULTI[k]);
-  for (const k of MERGE_OBJ) out[k] = _unionObj(remote[k], local[k]);
+  for (const k of MERGE_OBJ) out[k] = _unionObj(remote[k], local[k], k === "sessionLog" ? _richerSession : _richer);   // CORRECTION_MERGE — only sessionLog knows about deliberate corrections
   for (const k of Object.keys(MERGE_KEYED)) out[k] = _unionKeyed(remote[k], local[k], MERGE_KEYED[k].keyOf, MERGE_KEYED[k].scoreOf);   // exercises/queue: reconcile per lift, never wholesale
   const rn = (remote.sleep && remote.sleep.nights) || [], ln = (local.sleep && local.sleep.nights) || [];
   out.sleep = { ...(remote.sleep || {}), ...(local.sleep || {}), nights: _unionBy(rn, ln, (n) => n && n.d) };
@@ -8967,6 +9031,7 @@ __test.UI_KEY = UI_KEY;
 __test.applyDisc = applyDisc;
 __test.readDisc = readDisc;
 __test.oweTarget = oweTarget;
+__test._richerSession = _richerSession; __test._corrOf = _corrOf; __test._stampCorr = _stampCorr;   // CORRECTION_MERGE
 __test.deriveLastMeta = deriveLastMeta;   // the denormalised cache progressStep actually reads
 __test.proposeLadder = proposeLadder; __test.sweepLadders = sweepLadders; __test.LADDER_MIN_N = LADDER_MIN_N;   // §3.3 — infer the rungs, propose them, never apply
 __test.paceShown = paceShown;   // H2 — one gate for the card body and the More panel
@@ -11106,7 +11171,7 @@ function LogTab({ s, setS, save, slp }) {
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: TS.label, alignItems: "center" }}>
                     <span style={{ color: T.chalk }}>{ex ? ex.n : e.id}</span>
                     <span style={{ color: T.steel, display: "flex", gap: 8, alignItems: "center" }}>{e.w != null ? e.w + " × " : ""}{(e.reps || []).join(",")}{e.rir != null ? " · RIR " + e.rir : ""}
-                      <span onClick={() => { if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); const exL = (ns.exercises || []).find((z) => z.id === e.id); if (exL) { const dm = deriveLastMeta(ns, e.id); if (dm) exL.lastMeta = dm; }   /* the cache progressStep reads must follow the log — the earlier ledger repairs did not do this and the phantom kept driving targets */ ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
+                      <span onClick={() => { if (((done.entries || []).length) <= 1) { window.alert((ex ? ex.n : e.id) + " is the only lift left on this session.\n\nRemoving it would leave the day empty, and an empty session cannot be told apart from a sync artefact later. Voiding a whole day is a separate, deliberate act — this control will not do it.\n\nNothing has been changed."); return; }   /* DECIDED: refuse, and refuse VISIBLY — a rule that silently declines is the same failure class as one that silently reverts */ if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); _stampCorr(rec);   /* CORRECTION_MERGE — without this the removal is an unmarked shrink and the phone reverts it */ const exL = (ns.exercises || []).find((z) => z.id === e.id); if (exL) { const dm = deriveLastMeta(ns, e.id); if (dm) exL.lastMeta = dm; }   /* the cache progressStep reads must follow the log — the earlier ledger repairs did not do this and the phantom kept driving targets */ ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
                     </span>
                   </div>
                 ); })}
@@ -11132,7 +11197,7 @@ function LogTab({ s, setS, save, slp }) {
                           rec.skipped = (rec.skipped || []).filter((z) => z.id !== k.id);
                           const exN = (ns.exercises || []).find((z) => z.id === k.id) || {};
                           const en = { id: k.id, reps, rir: null, rirSets: buildRirSets({ reps, rir: null, rirEnd: null }, reps.length), w: typeof exN.w === "number" ? exN.w : null };
-                          rec.entries = [...(rec.entries || []), en];
+                          rec.entries = [...(rec.entries || []), en]; _stampCorr(rec);   /* CORRECTION_MERGE — un-skipping already wins on score, but the stamp makes it deliberate to a third device and orders it against any competing correction */
                           const dm = deriveLastMeta(ns, k.id); if (dm && exN) exN.lastMeta = dm;
                           ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + ex.n + " UN-SKIPPED on " + fmtShort(dateSel), how: `logged ${reps.join(",")} — it was on the record as skipped and it should not have been. Reps entered by hand, not inferred; RIR is left unrecorded because it was never captured.` });
                           setS(ns); save(ns);
