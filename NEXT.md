@@ -12,6 +12,33 @@ into a chat window any more — work arrives here, in the repo, versioned.
 2. Joe says "go".
 3. You read this file, work the item under **NOW**, and ship it.
 
+## What "go" means
+
+When Joe says **"go"** — or "go" with nothing else — that is the whole instruction. It
+means:
+
+1. Read this file. Work the item under **NOW**, start to finish, without asking.
+2. Follow that item's own sequencing and acceptance criteria. They are in the item. Do
+   not wait for them to be repeated in chat.
+3. Gate and render smoke green before every commit. Never commit red.
+4. Ship it as far as the item says to ship it — usually: push the branch, produce a
+   preview Joe can open on his phone, report what to tap. **Never merge to `main`.**
+5. If something in the item is ambiguous, build the smallest honest version and write the
+   question into the item under `#### Open question for Joe`. Do not stop and ask.
+
+**Joe should never have to paste context into the terminal.** If an instruction matters,
+it belongs in this file. Anything pasted into chat is a bug in how the work was handed
+over, not something to rely on. If you find yourself needing information that is not in
+this file to do the NOW item, say so explicitly in your reply so the file gets fixed —
+do not proceed on chat-only context.
+
+Other single words with standing meanings:
+- **"go"** — work NOW to completion, as above.
+- **"work the queue overnight"** — see *Overnight mode* below.
+- **"audit"** — the research side is reviewing; do not start new work until it reports.
+
+---
+
 ## Session protocol
 
 1. Read this file first. Then the `CLAUDE.md` reading order: `GOALS.md` →
@@ -377,7 +404,9 @@ honest-labelling app cannot claim a thing it has not done. One or the other. Not
 
 #### 5 · Sequencing
 
-**BUILD STATUS 2026-08-04** — branch `feat/train-gym-redesign`, one commit per move, strict
+**BUILD STATUS — SHIPPED v7.7.0, 2026-08-04** (merge `5fe2b9f`, beacon published 13:46:23Z).
+Branch `feat/train-gym-redesign`, one commit per move, strict gate + render smoke green at
+every commit. **Four of seven moves shipped; two remain and stay in this item.**
 gate + render smoke green at every commit:
 
 - ✅ memoise — `2b0…` genSession + liftCall once per state, not per keystroke
@@ -777,6 +806,20 @@ branch somewhere safe first**, as its own separate job, and only after v7.5 has 
 and settled. Do not fold this into a feature build.
 
 ## SHIPPED
+
+- **v7.7.0 — TRAIN/Gym Mode, first four moves** (2026-08-04). Merge `5fe2b9f`; branch
+  `feat/train-gym-redesign` (`c0aecd3` → `4b8d870`). Beacon published v7.7.0 at 13:46:23Z;
+  deployed `app.js` + `sw.js` verified byte-identical to `main`. Gate green, 1419 assertions.
+  - memoise: `genSession` + `liftCall` once per state, not once per keystroke.
+  - delete/dedupe: two dead RECEIPT chips, TRAIN’s third copy of the queue, PACE given one
+    owner (Gym Mode measures it; the manual control is labelled a fallback).
+  - Gym Mode completeness: the live cue, the DEBUT/OWN-IT/RECLAIM note, setup behind a
+    disclosure, the previous session, the next rung (honest when there is none), undo last
+    set, +30s / restart rest, all-done as a list, the WHAT MOVED recap that was being
+    discarded, and note + niggles no longer hardcoded.
+  - RIR timing: last-set RIR asked AT the set (~0.46 vs ~1.2 reps of error); the opener
+    prompt leaves the default flow, field retained and editable on TRAIN.
+  - **Not in this release:** the TRAIN roster + three doors, and ladder inference.
 
 - **v7.6.0 — Gym Mode data integrity, the event miss, exOrder, polish** (2026-08-04).
   Merge `7113f76`; integration branch `release/v7.6.0` (`f3b5afc` → `690317b`, 20 commits).
