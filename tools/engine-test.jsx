@@ -3578,7 +3578,10 @@ ok(oT63("night").key === "now.capture2" && oT63("night").id === "pl-capture", "o
 ok(oT63("weight").key === "now.capture2" && oT63("weight").id === "pl-capture", "owe: an un-logged scale points at CAPTURE (pl-capture)");
 ok(oT63("day").key === "now.capture2" && oT63("day").id === "pl-closeday", "owe: the day's numbers point INTO the CAPTURE door, at the close-the-day card (pl-closeday)");
 ok(oT63("yesterday").key === "now.capture2" && oT63("yesterday").id === "pl-amend", "owe: an unclosed yesterday points INTO the CAPTURE door, at the reopen card (pl-amend)");
-ok(["night", "weight", "day", "yesterday"].every((k) => oT63(k).key === "now.capture2"), "owe: after the three-door re-layout every owed kind opens the SAME capture door — no link to a retired group key");
+ok(["night", "weight", "day", "yesterday"].every((k) => Object.values(__test.NOW_DOORS).includes(oT63(k).key)), "owe: every owed kind names a key that is IN the live door set — a retired group key cannot survive in a deep link");
+ok(Object.values(__test.NOW_DOORS).includes(__test.statusTarget({ proposals: [], agentProposals: [] }, { esc: { escalate: true }, focus: { owed: [] } }).key), "statusTarget: the ESCALATION branch names a live door too — the one repoint whose key and id came from different groups, and which had no assertion at all");
+ok(__test.statusTarget({ proposals: [], agentProposals: [] }, { esc: { escalate: true }, focus: { owed: [] } }).id === "pl-autopilot", "statusTarget: escalation scrolls to the Auto-Pilot detail block by its own id, not a retired group id");
+ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DOORS).length, "the door keys are distinct — two doors sharing a persistKey would make one uncloseable");
 
 // v7.5 — paceProjection: the NOW projection is ENGINE-owned, abstains with the read, and
 // carries the interval the RATE carries (audit fixes 2 / 5 / 7).
