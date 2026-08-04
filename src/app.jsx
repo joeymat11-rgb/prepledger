@@ -9980,7 +9980,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         );
       })()}
       {/* evening: the day's numbers, and the small logs that ride with them */}
-      <div id="pl-closeday">
+      {/* The wrapper exists only to carry the deep-link id, so it must re-declare the
+          column gap Group gives its DIRECT children — otherwise these cards collapse into
+          one flex item and render flush, with doubled touching borders. */}
+      <div id="pl-closeday" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {dl.cal != null && !dayEdit ? (
         <Card style={{ padding: 12 }} accent={T.jade}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
@@ -10244,7 +10247,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       <Group title="THE READ" sub="auto-pilot detail · your analyst · today's protocol" persistKey="now.read" id="pl-read" defaultOpen={false}>
       {/* Auto-Pilot's detail, behind the cockpit that summarises it. Keeps id pl-today so the
           status word's escalation deep-link still scrolls to the call that needs him. */}
-      <div id="pl-today">
+      <div id="pl-today" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {/* ---------- THE ONE THING (v2 adherence — the single evidence-ordered fix) ----------
           Never a reflexive calorie cut: the ladder is verify-logging -> steps/NEAT
           -> protect sleep -> only then trim -> diet break. Autonomy-supportive voice,
