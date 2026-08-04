@@ -12452,6 +12452,28 @@ function restLine(exId, nSets) {
   return `${base}s between sets · ${base + REST_TERMINAL_BUMP}s before the last one`;
 }
 
+/* TOUCH_NOTE — why a skip is decided by POSITIVE ACTION and not by the reps.
+
+   Three attempts at this bug class, so the rule is stated once, here, and lives in one
+   function:
+
+     touched AND skip-flagged    impossible. He did something only he could do on that
+                                 lift, so the flag is a mis-tap. Evidence wins; drop it.
+     untouched AND skip-flagged  a real skip. Record it.
+     untouched AND no skip       not performed. Record it as skipped — the v7.6.0
+                                 guarantee that nothing banks at target reps.
+
+   A lift is TOUCHED when he banks a set, enters an RIR, or moves the rep count off its
+   default. Each is an action only he can take. It is recorded at the moment it happens and
+   never reconstructed afterwards: getR falls back to e2.tgt, so every lift always "has
+   reps", and inferring touch by comparing reps to tgt would read a lift he hit exactly on
+   target — the common case — as untouched.
+
+   This closes both failure modes at once. The phantom REP (v7.6.0): a lift he never
+   performed banked at full target reps. The phantom SKIP (v7.9.x): a lift he performed,
+   with reps and an RIR on file, recorded as "skipped — on record" because a small unpadded
+   control next to the back button caught a stray tap mid-set. */
+
 /* gymEntries — the PURE split of a session's lifts into what was performed and what was
    skipped. Lifted out of GymMode.finish so the one invariant that matters here is
    assertable by the gate rather than trapped in a React component:
@@ -12558,9 +12580,25 @@ function gymEntries(sessEx, st) {
   const reps = o.reps || {}, rir = o.rir || {}, rirEnd = o.rirEnd || {}, gskip = o.gskip || {};
   const list = sessEx || [];
   const getR = (e2) => reps[e2.id] ?? e2.tgt.slice();
+
+  /* TOUCHED — see TOUCH_NOTE. `touched` is POSITIVE ACTION, recorded as it happens; it is
+     never inferred from the reps, because getR falls back to the TARGET, so "has reps" is
+     true of every lift in the session and comparing reps to tgt would read hitting the
+     target exactly — the common case — as untouched.
+
+     An older draft carries no `touched` map at all. In that case we genuinely do not know,
+     so the rule falls back to gskip alone rather than guessing: unknown is not evidence. */
+  const touched = o.touched && typeof o.touched === "object" ? o.touched : null;
+  const skipOf = (e2) => {
+    const flagged = !!gskip[e2.id];
+    if (!touched) return flagged;                       // pre-touched draft: gskip decides, as before
+    if (touched[e2.id]) return false;                   // TOUCHED + flagged -> impossible; evidence wins
+    return true;                                        // untouched: a real skip, flagged or not
+  };
+
   return {
-    entries: list.filter((e2) => !gskip[e2.id]).map((e2) => ({ id: e2.id, n: e2.n, w: e2.w, tgt: e2.tgt, reps: getR(e2), isDebutNow: e2.isDebutNow, rir: rir[e2.id] ?? null, rirEnd: rirEnd[e2.id] ?? null })),
-    skipped: list.filter((e2) => gskip[e2.id]).map((e2) => ({ id: e2.id })),
+    entries: list.filter((e2) => !skipOf(e2)).map((e2) => ({ id: e2.id, n: e2.n, w: e2.w, tgt: e2.tgt, reps: getR(e2), isDebutNow: e2.isDebutNow, rir: rir[e2.id] ?? null, rirEnd: rirEnd[e2.id] ?? null })),
+    skipped: list.filter((e2) => skipOf(e2)).map((e2) => ({ id: e2.id })),
   };
 }
 
@@ -12587,6 +12625,10 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [rir, setRir] = useState({});
   const [rirEnd, setRirEnd] = useState({});
   const [gskip, setGskip] = useState({});
+  /* TOUCH_NOTE — positive action per lift, recorded as it happens. Never reconstructed:
+     getR falls back to the target, so reps can never distinguish performed from untouched. */
+  const [touched, setTouched] = useState({});
+  const touch = (id) => { if (id) setTouched((t) => (t[id] ? t : { ...t, [id]: true })); };
   /* Pace is MEASURED here, not asked — the timer already knows. Every rest gets
      counted, and a rest cut short by more than half its prescription counts as
      compressed. See PACE_NOTE for why the threshold is coarse: the evidence
@@ -12594,10 +12636,10 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [rests, setRests] = useState({ n: 0, cut: 0 });
   const gymKey = "prep-ledger-gymdraft-" + dateSel;
   useEffect(() => {
-    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen); } } catch (e) {}
+    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.touched) setTouched(d.touched);   /* absent on a pre-TOUCH draft -> gymEntries falls back to gskip alone */ setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen); } } catch (e) {}
   }, []);
   useEffect(() => {
-    try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, rirEnd, gskip, rests, idx, setN, restStart, restLen })); } catch (e) {}
+    try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, rirEnd, gskip, touched, rests, idx, setN, restStart, restLen })); } catch (e) {}
   }, [reps, rir, rirEnd, gskip, rests, idx, setN, gymKey]);
   const ex = sess.ex[idx];
   const rp2 = rirPlan(s, ex, slp);
@@ -12628,6 +12670,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
     return () => clearInterval(iv);
   }, [phase, restStart, restLen]);
   const doneSet = () => {
+    touch(ex.id);   // TOUCH — a banked set is an action only he can take
     const nSets = getR(ex).length;
     if (setN + 1 < nSets) { const len = restFor(ex.id, setN + 1, nSets); setSetN(setN + 1); setRestLen(len); setRestStart(Date.now()); setT(len); setPhase("rest"); setRests((r) => ({ ...r, n: r.n + 1 })); }
     else setPhase(phaseAfterSet(setN, nSets));   // RIR_TIMING — the last set asks immediately
@@ -12653,8 +12696,9 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
      One selector, both callers. completeSession's feed line — "zero phantom reps, nothing
      counted" — is only true because of this. */
   const skipLift = () => { setGskip((g) => ({ ...g, [ex.id]: true })); nextLift(); };
+  const doneSkip = (() => { const m = {}; for (const r of gymEntries(sess.ex, { reps, rir, rirEnd, gskip, touched }).skipped) m[r.id] = true; return m; })();
   const finish = () => {
-    const split = gymEntries(sess.ex, { reps, rir, rirEnd, gskip });   // SKIP_ONE_PATH — entries and skipped partition the session
+    const split = gymEntries(sess.ex, { reps, rir, rirEnd, gskip, touched });   // SKIP_ONE_PATH — entries and skipped partition the session
     try { localStorage.removeItem(gymKey); localStorage.removeItem("prep-ledger-draft-" + dateSel); } catch (e) {}   // both drafts, or the other one resurrects a logged session
     /* n-gated like every other read in here: under three rests there is no
        session-level statement to make, so it stays unknown rather than guessed. */
@@ -12691,7 +12735,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em" }}>REPS IN RESERVE · 0 = it was the failure set</div>
           <div style={{ display: "flex", gap: 8 }}>
             {[0, 1, 2, 3].map((v) => (
-              <button key={v} onClick={() => { setRirEnd({ ...rirEnd, [ex.id]: v }); setPhase("lift-done"); }}
+              <button key={v} onClick={() => { touch(ex.id); setRirEnd({ ...rirEnd, [ex.id]: v }); setPhase("lift-done"); }}
                 style={{ flex: 1, fontFamily: mono, fontSize: 20, padding: "16px 0", borderRadius: 10, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>{v === 3 ? "3+" : v}</button>
             ))}
           </div>
@@ -12717,12 +12761,14 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
         </div>
       ) : phase === "all-done" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
+          {/* Derived from the SAME selector finish() uses, so what he reads here and what
+              gets written cannot disagree. It read gskip directly before. */}
           <H size={26}>Session complete</H>
           {/* joined with \n inside a div, so it rendered as one run-on line */}
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {sess.ex.map((e2) => (
-              <div key={e2.id} style={{ fontFamily: mono, fontSize: TS.label, color: gskip[e2.id] ? T.steel : T.chalk, textDecoration: gskip[e2.id] ? "line-through" : "none" }}>
-                {e2.n}: {gskip[e2.id] ? "skipped — on record" : `${getR(e2).join(",")} @ ${e2.w}`}
+              <div key={e2.id} style={{ fontFamily: mono, fontSize: TS.label, color: doneSkip[e2.id] ? T.steel : T.chalk, textDecoration: doneSkip[e2.id] ? "line-through" : "none" }}>
+                {e2.n}: {doneSkip[e2.id] ? "skipped — on record" : `${getR(e2).join(",")} @ ${e2.w}`}
               </div>
             ))}
           </div>
@@ -12763,9 +12809,9 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <div style={{ marginTop: 10 }}>
             <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>SET {setN + 1} OF {getR(ex).length} · <span style={{ color: rp2.plan[setN] === 0 ? T.brass : rp2.plan[setN] === 1 ? T.chalk : T.jade, fontWeight: 700 }}>RIR {rp2.plan[setN] ?? "—"}</span></div>
             <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 8 }}>
-              <button onClick={() => { const r2 = getR(ex).slice(); r2[setN] = Math.max(0, r2[setN] - 1); setReps({ ...reps, [ex.id]: r2 }); }} style={{ ...big, fontSize: 40, width: 64, height: 64, borderRadius: 12, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>−</button>
+              <button onClick={() => { touch(ex.id); const r2 = getR(ex).slice(); r2[setN] = Math.max(0, r2[setN] - 1); setReps({ ...reps, [ex.id]: r2 }); }} style={{ ...big, fontSize: 40, width: 64, height: 64, borderRadius: 12, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>−</button>
               <div style={{ ...big, fontSize: 72, color: T.chalk, minWidth: 96, textAlign: "center" }}>{getR(ex)[setN]}</div>
-              <button onClick={() => { const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ ...big, fontSize: 40, width: 64, height: 64, borderRadius: 12, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>+</button>
+              <button onClick={() => { touch(ex.id); const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ ...big, fontSize: 40, width: 64, height: 64, borderRadius: 12, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>+</button>
             </div>
           </div>
           <Btn full tone="jade" onClick={doneSet}>SET DONE {setN + 1 < getR(ex).length ? "→ REST " + restFor(ex.id, setN + 1, getR(ex).length) + "s" : "→"}</Btn>
@@ -12775,9 +12821,13 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             <button onClick={undoSet} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "8px", width: "100%" }}>\u25c2 undo last set</button>
           ) : null}
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontFamily: mono, fontSize: TS.micro, color: "transparent" }}>.</span>
-            {idx > 0 ? <span onClick={goBackLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>◂ back a lift</span> : <span style={{ fontFamily: mono, fontSize: TS.micro, color: "transparent" }}>.</span>}
-            <span onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>skip lift ▸</span>
+            {/* The stray transparent spacer that used to live here made this row THREE
+                children under space-between, which pushed ◂ back a lift and skip lift ▸ next
+                to each other: two small unpadded spans, adjacent, on the screen he is using
+                mid-set with one hand. A stray tap there sets gskip. Two children now, with
+                the destructive one kept at the far edge. */}
+            {idx > 0 ? <span onClick={goBackLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer", padding: "10px 12px", margin: "-10px -12px" }}>◂ back a lift</span> : <span style={{ fontFamily: mono, fontSize: TS.micro, color: "transparent" }}>.</span>}
+            <span onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer", padding: "10px 12px", margin: "-10px -12px" }}>skip lift ▸</span>
           </div>
         </div>
       )}

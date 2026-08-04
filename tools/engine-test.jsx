@@ -3604,6 +3604,41 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
   ok(GE(sessEx, { gskip: { press: true, row: true, pronated: true, ham: true } }).entries.length === 0, "GYM — skipping every lift emits no entries at all");
   ok(GE(null, null).entries.length === 0 && GE(undefined, undefined).skipped.length === 0, "GYM — gymEntries is total: no session, no entries, no throw");
 
+  // TOUCHED — the three-state rule. Third attempt at this bug class, so all three states are
+  // pinned, plus the exact session that bit him. See TOUCH_NOTE.
+  {
+    const six = ["calves", "abs", "hanging", "hack", "extension", "ham"].map((id) => lift(id));
+    const allTouched = { calves: 1, abs: 1, hanging: 1, hack: 1, extension: 1, ham: 1 };
+
+    // 1. TOUCHED + skip-flagged -> impossible. Evidence wins.
+    const misTap = GE(six, { touched: allTouched, gskip: { extension: true, ham: true }, reps: { ham: [10, 10] }, rirEnd: { ham: 1 } });
+    ok(misTap.skipped.length === 0, "TOUCHED — a lift he acted on is NEVER skipped, even with the skip flag set: this is the session that bit him, where extension and ham were logged \"skipped — on record\" after he performed both");
+    ok(misTap.entries.some((e2) => e2.id === "ham" && JSON.stringify(e2.reps) === JSON.stringify([10, 10]) && e2.rirEnd === 1), "…and the reps and RIR he actually entered survive into the entry");
+
+    // 2. untouched + skip-flagged -> a real skip
+    const realSkip = GE(six, { touched: { calves: 1, abs: 1, hanging: 1, hack: 1, extension: 1 }, gskip: { ham: true } });
+    ok(realSkip.skipped.length === 1 && realSkip.skipped[0].id === "ham", "TOUCHED — a lift he did NOT act on and DID flag is a real skip, and is recorded");
+
+    // 3. untouched + no skip -> not performed. The v7.6.0 guarantee.
+    const bailed = GE(six, { touched: { calves: 1, abs: 1 }, gskip: {} });
+    ok(bailed.skipped.length === 4 && !bailed.entries.some((e2) => e2.id === "ham"), "TOUCHED — a lift he never acted on and never flagged is NOT performed: it is recorded as skipped, never banked at target reps (the v7.6.0 guarantee)");
+    ok(bailed.entries.length === 2, "…and only the two he actually worked land as entries");
+
+    // the headline case, stated as he stated it
+    const reachedEnd = GE(six, { touched: allTouched, gskip: { ham: true } });
+    ok(reachedEnd.skipped.length === 0, "TOUCHED — reaching the last lift with EVERY lift touched produces ZERO skips, even if a skip control was tapped");
+
+    // reps alone must never imply touch: getR falls back to tgt, so every lift always has reps
+    const repsOnly = GE(six, { touched: {}, gskip: {} });
+    ok(repsOnly.skipped.length === 6, "TOUCHED — presence of reps proves nothing: getR falls back to the TARGET, so an untouched session is six skips, not six entries at target");
+    const onTarget = GE(six, { touched: { hack: 1 }, gskip: {} });
+    ok(onTarget.entries.length === 1 && onTarget.entries[0].id === "hack", "TOUCHED — a lift hit EXACTLY on target is still touched: touch is recorded as it happens, never inferred by comparing reps to tgt");
+
+    // a pre-TOUCH draft has no map at all — unknown is not evidence
+    ok(GE(six, { gskip: { ham: true } }).skipped.length === 1, "TOUCHED — a draft written before this existed carries no touch map, so the rule falls back to gskip alone rather than guessing every lift was skipped");
+    ok(GE(six, { gskip: {} }).skipped.length === 0, "…and such a draft with no flags yields no skips, exactly as it did before");
+  }
+
   // RIR_TIMING (§3.1.7-9) — the last set is asked for AT the set, not at lift-done.
   {
     const PAS = __test.phaseAfterSet;
