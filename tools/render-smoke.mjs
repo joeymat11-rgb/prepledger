@@ -142,10 +142,40 @@ for (const [name, mut] of states) {
     failed++;
   } else {
     // the inbox door only mounts when it has something to show, so it is exempt here
-    const mustMount = Object.entries(declared).filter(([k]) => k !== "inbox").map(([, v]) => v);
+    // H3 — the inbox door used to be exempted here, and it is the target of statusTarget's
+    // HIGHEST-precedence branch: drift that one persistKey and both suites stayed green
+    // while "open what's waiting on your tap" went silently dead. It only mounts when it
+    // has something to show, so the seeded-proposal state below is where it is checked.
+    const hasInbox = (w.document.body.textContent || "").includes("FOR YOU TO OK");
+    const mustMount = Object.entries(declared).filter(([k]) => k !== "inbox" || hasInbox).map(([, v]) => v);
     const missing = mustMount.filter((k) => !(k in live));
     if (missing.length) {
       console.error(`RENDER-SMOKE: declared door key(s) never registered by a Group: ${missing.join(", ")} — a deep link to one of these would no-op`);
+      failed++;
+    }
+  }
+}
+
+/* H3 — and again with the approval inbox actually mounted, so its door key is covered by
+   the same live check as the other three.
+   H4 — this validates the DECLARED set against the LIVE registry. The complementary half
+   (that oweTarget/statusTarget only ever name members of that declared set) is pinned by
+   literal in the engine suite; composed, the two give selector-outputs ⊆ live registry,
+   which is the loop the item asked to close. Neither half alone is sufficient. */
+{
+  const w = await mount((st) => {
+    st.proposals = [{ rid: 'ap_smoke', id: 'ap_smoke_1', d: todayISO, title: 'AUTO-PILOT · EASE THE TARGET', why: 'smoke', apply: { kind: 'cal', delta: 100, dir: 'ease', calDelta: 100, stepsDelta: 0 }, resolved: false }];
+  });
+  await new Promise((r) => setTimeout(r, 250));
+  const declared = w.__plDoors || {};
+  const live = w.__plGroups || {};
+  if (!(w.document.body.textContent || '').includes('FOR YOU TO OK')) {
+    console.error('RENDER-SMOKE: seeded a proposal but the approval inbox did not mount — the inbox door key cannot be checked');
+    failed++;
+  } else {
+    const missing = Object.values(declared).filter((k) => !(k in live));
+    if (missing.length) {
+      console.error(`RENDER-SMOKE: with the inbox mounted, declared door key(s) still unregistered: ${missing.join(', ')}`);
       failed++;
     }
   }

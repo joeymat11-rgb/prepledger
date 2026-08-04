@@ -3688,7 +3688,29 @@ ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DO
   const today = EF({ events: [ev(0, "Lunch")] });
   ok(today.ev && today.closable === true && today.overdue === false, "an event TODAY is closable but not yet overdue");
 
-  ok(EF({ events: [ev(-GRACE - 1, "Ancient")] }).ev === null, "past the grace window an unfiled event stops being surfaced — the card does not nag forever");
+  // r3 blocker A — a miss must NOT expire. The grace window used to bound existence, which
+  // only moved the cliff from midnight to midnight+7d; past it closeEvent was unmakeable
+  // again and nothing recorded the lapse. It now bounds TONE only.
+  ok(EF({ events: [ev(-GRACE - 1, "Ancient")] }).closable === true, "BLOCKER A — an unfiled event past the grace window is STILL closable: a miss does not expire");
+  ok(EF({ events: [ev(-GRACE - 1, "Ancient")] }).stale === true, "…and is marked stale, so the copy can change without the event disappearing");
+  ok(EF({ events: [ev(-1, "Yesterday")] }).stale === false, "a fresh miss is not stale — the grace window still decides tone");
+  ok(EF({ events: [ev(-400, "Last year")] }).ev !== null, "even a very old unfiled event keeps its surface — the alternative is the ledger silently eating it");
+  ok(EF({ events: [ev(-400, "Filed", true)] }).ev === null, "…but a FILED event still drops out, however old");
+  // the live case this was found on
+  ok(EF({ events: [{ id: "wed2", d: "2026-07-25", t: "WEDDING #2", estimated: false }] }).closable === true, "BLOCKER A — the shipped state’s own WEDDING #2 (2026-07-25, unfiled) is reachable again; before this it returned null and the miss was invisible");
+
+  // r3 blocker D — the instruction and the button must name the SAME event. openEv was a raw
+  // find() over array order while the card showed the most overdue, so with two unfiled
+  // events the app said "Close out A" and its only button filed B.
+  {
+    const two = { events: [ev(-1, "Yesterday dinner"), ev(-4, "Older wedding")], dailyLogs: {}, sessionLog: {}, sleep: { nights: [] }, fixWindow: null };
+    const card = EF(two);
+    ok(card.ev.t === "Older wedding", "the card shows the most overdue of two unfiled events");
+    const st2 = clone(SEED); st2.events = two.events;
+    const one2 = __test.theOneThing(st2, { clean: true, run: 3, need: 3, last: { h: 8 } }, 9, 30);
+    const named = String(one2.t).startsWith("Close out") ? String(one2.t).replace("Close out ", "") : null;
+    ok(named === null || named === EF(st2).ev.t, "BLOCKER D — when the one thing says \"Close out X\", X is the SAME event the card’s button files; both now route through eventFocus");
+  }
   ok(EF({ events: [ev(-1, "Filed", true)] }).ev === null, "a FILED event drops out on its own, because closeEvent sets estimated = true");
 
   // residency window: a far-off event must not park an actionless card on the fold (minor G1)
@@ -3740,7 +3762,7 @@ ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DO
   // by up to the width of the band itself.
   ok(ppReg.mid === +(reg.trend - ppReg.rateShown * WKS).toFixed(1), "the projection reconciles with the printed rate — trend minus the SHOWN rate times the horizon is exactly what the card says");
   ok(ppReg.banded === true && ppReg.lo < ppReg.mid && ppReg.mid < ppReg.hi, "a regression rate carries a CI, so the projection brackets its own midpoint");
-  ok(ppReg.lo === +(reg.trend - crReg.hi * WKS).toFixed(1), "a FASTER loss lands a LOWER weight — the light end of the projection comes off the rate's hi, not its lo");
+  ok(ppReg.lo === +(reg.trend - crReg.hi * WKS).toFixed(1), "a FASTER loss lands a LOWER weight — the light end comes off the rate's hi. The endpoint uses the RAW CI bound: it is never printed as a rate, so rounding it bought no reconciliation and could collapse the band onto the midpoint below ci 0.05");
 
   const snp = clone(SEED); snp.blackout = { until: "2026-05-01" };
   snp.reads = Array.from({ length: 6 }, (_, i) => ({ d: ago(6 - 1 - i), w: +(170 - i * 0.1).toFixed(2), sealed: false }));
@@ -3750,6 +3772,16 @@ ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DO
 
   // The blocker itself: the two predicates DIVERGE, which is why the card must gate on the read's.
   ok(CR(snp).measured === true && SRC(snp, SS(snp)).showRate === false, "BLOCKER 2 — the gates diverge: currentRate.measured is TRUE on a snapshots rate while the read abstains, which is exactly how one card came to quote a rate its own headline said was unreadable");
+  // H2 — the card body and the More panel inside the SAME Card must share one gate. They
+  // did not, and the defect recurred in a sibling of the element it was first fixed in.
+  {
+    const PS = __test.paceShown;
+    ok(PS({ showRate: true }, { ok: true }) === true, "paceShown: a measured read with a live projection prints");
+    ok(PS({ showRate: false }, { ok: true }) === false, "paceShown: the READ abstaining suppresses the pace figure — this is the state where the panel used to print \"Measured pace\" under \"no real change to read yet\"");
+    ok(PS({ showRate: true }, { ok: false }) === false, "paceShown: no projection, no figure");
+    ok(PS(null, null) === false && PS(undefined, { ok: true }) === false, "paceShown is total and fails closed");
+    ok(PS(SRC(snp, SS(snp)), PP(snp)) === false, "paceShown says NO on the real two-snapshot fixture — the exact state where currentRate.measured is true but the read abstains");
+  }
 }
 
 
