@@ -8828,10 +8828,14 @@ function scrollToId(id, delay = 80) {
    restated literals: the previous check compared each key to the same string the assertion
    above it already compared, so it could not fail unless that one had. */
 const NOW_DOORS = { capture: "now.capture2", briefing: "now.briefing", room: "now.room", inbox: "now.inbox" };
+/* TRAIN's doors, same contract: the Groups render from these, the roster's deep links may
+   only name one of them, and the render smoke asserts declared ⊆ the live registry that
+   registerGroup populates. A parallel constant asserted against itself proves nothing. */
+const TRAIN_DOORS = { setup: "train.setup", read: "train.read", record: "train.record" };
 /* Published next to window.__plGroups (which registerGroup populates) so the render smoke
    can assert the DECLARED doors against the LIVE registry. Asserting NOW_DOORS against
    itself is a tautology; asserting it against what actually mounted is the invariant. */
-try { if (typeof window !== "undefined") window.__plDoors = NOW_DOORS; } catch (e) {}
+try { if (typeof window !== "undefined") window.__plDoors = { ...NOW_DOORS, ...TRAIN_DOORS }; } catch (e) {}
 function oweTarget(k) {
   return k === "day" ? { key: NOW_DOORS.capture, id: "pl-closeday" }
       : k === "yesterday" ? { key: NOW_DOORS.capture, id: "pl-amend" }
@@ -8847,7 +8851,7 @@ __test.readDisc = readDisc;
 __test.oweTarget = oweTarget;
 __test.paceShown = paceShown;   // H2 — one gate for the card body and the More panel
 __test.eventFocus = eventFocus; __test.EVENT_LEAD_D = EVENT_LEAD_D; __test.EVENT_GRACE_D = EVENT_GRACE_D;   // v7.5 r2 blocker C
-__test.NOW_DOORS = NOW_DOORS;   // v7.5 — the live door keys, asserted against by the deep-link tests
+__test.NOW_DOORS = NOW_DOORS; __test.TRAIN_DOORS = TRAIN_DOORS;   // v7.5 — the live door keys, asserted against by the deep-link tests
 
 /* ---------- COCKPIT · STATUS FACE (v7.0.0, Slice 1) ----------
    Auto-Pilot's face: ONE always-visible status word from a CLOSED vocabulary, fused
@@ -11029,7 +11033,7 @@ function LogTab({ s, setS, save, slp }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
           <div>
             <Eyebrow c={T.orange}>TODAY'S ONE <Term k="structural" c={T.orange}>CHANGE</Term> — PICKED FOR YOU</Eyebrow>
-            <H size={22}>{sess.structural}</H>
+            <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 17, letterSpacing: "0.02em", color: T.chalk }}>{sess.structural}</div>{/* was H size 22 — the largest type on the page, competing with the gym button for Tier 0 */}
           </div>
           <button onClick={() => setReorder(!reorder)} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.1em", color: reorder ? T.chalk : T.steel, background: reorder ? T.plate2 : "none", border: `1px solid ${reorder ? T.chalk : T.line}`, borderRadius: 6, padding: "6px 9px", whiteSpace: "nowrap" }}>{reorder ? "DONE" : "REORDER"}</button>
         </div>
@@ -11076,8 +11080,42 @@ function LogTab({ s, setS, save, slp }) {
         </div>
       ); })()}
 
+      {/* TIER 1 — the roster. One row per lift: name, load, target, verdict. Tapping a row
+          opens that lift's card in the SETUP door and scrolls to it, through the same
+          openGroup + scrollToId pair NOW uses. The page used to render every one of these
+          cards fully expanded, which is a reading page rendered where a person is standing
+          at a rack. */}
+      {sess.ex.length ? (
+        <Card style={{ padding: SP.md }}>
+          <Eyebrow>TODAY&rsquo;S LIFTS</Eyebrow>
+          <div style={{ display: "flex", flexDirection: "column", marginTop: SP.sm }}>
+            {sess.ex.map((ex, i2) => {
+              const lc = callFor(ex.id) || {};
+              const vc = lc.verdict === "RESET" || lc.verdict === "STAND-DOWN" ? T.redline : lc.verdict === "HOLD" ? T.brass : lc.verdict === "PUSH+" ? T.jade : lc.verdict === "REBUILD" ? T.orange : T.jade;
+              const arrow = lc.vel > 0 ? "\u25b2" : lc.vel < 0 ? "\u25bc" : "\u25b6";
+              return (
+                <button key={ex.id} onClick={() => { hap(6); openGroup(TRAIN_DOORS.setup); scrollToId("tr-" + ex.id); }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.sm, width: "100%", textAlign: "left", background: "none", border: "none", borderTop: i2 ? `1px solid ${T.hairline}` : "none", padding: `${SP.sm}px 0`, minHeight: 44, cursor: "pointer", opacity: skipped[ex.id] ? 0.45 : 1 }}>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.chalk, textTransform: "uppercase", letterSpacing: "0.04em" }}>{ex.n}</span>
+                    <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 2 }}>{ex.w} \u00b7 target {ex.tgt.join(",")}</span>
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center", gap: SP.xs, flexShrink: 0 }}>
+                    {lc.verdict ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: vc, whiteSpace: "nowrap" }}>{arrow} {lc.verdict}</span> : null}
+                    <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>&rsaquo;</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+      ) : null}
+
+      {/* TIER 2 · SETUP — the per-lift detail, moved here verbatim. Every control, editor and
+          write path is the same object it was; only its container changed. */}
+      <Group title="SETUP" sub="per-lift detail — weight, jumps, order, the verdict" persistKey={TRAIN_DOORS.setup} id="pl-train-setup" defaultOpen={false}>
       {sess.ex.map((ex) => (
-        <Card key={ex.id} style={{ padding: 16, opacity: skipped[ex.id] ? 0.45 : 1 }} accent={ex.isDebutNow && !skipped[ex.id] ? T.orange : undefined}>
+        <Card key={ex.id} id={"tr-" + ex.id} style={{ padding: 16, opacity: skipped[ex.id] ? 0.45 : 1 }} accent={ex.isDebutNow && !skipped[ex.id] ? T.orange : undefined}>
           {/* The header row lets the controls WRAP to a second line rather than
               crushing the exercise name. Before, the title had no flex sizing and
               three flexShrink:0 siblings, so it absorbed every pixel of shortfall —
@@ -11260,6 +11298,7 @@ function LogTab({ s, setS, save, slp }) {
           </div>
         </Card>
       ))}
+      </Group>
 
       <Card style={{ padding: 16 }}>
       {/* PACE had two owners: Gym Mode measures it from real rest timestamps, TRAIN asked
@@ -11335,6 +11374,9 @@ function LogTab({ s, setS, save, slp }) {
         </div>
       )}
 
+      {/* TIER 2 · THE READ — the two essay cards. Correct content, wrong place: a reading
+          surface rendered on the page a person opens standing at a rack. */}
+      <Group title="THE READ" sub="exercise selection · set allocation" persistKey={TRAIN_DOORS.read} id="pl-train-read" defaultOpen={false}>
       {/* ---------- The thing he is getting right, said out loud ----------
           An app that only ever speaks to correct you teaches you nothing about
           what to protect. His exercise selection is on the right side of the
@@ -11384,9 +11426,12 @@ function LogTab({ s, setS, save, slp }) {
               out.push("* = credited from compound work only, with no direct lift of its own. The lever there is the press, not another isolation movement."); return out; })()} />
         </Card>
       ); })()}
+      </Group>
 </>)}
 
 
+      {/* TIER 2 · THE RECORD — the archive and its receipts, one tap down. */}
+      <Group title="THE RECORD" sub="past sessions, receipts and debriefs" persistKey={TRAIN_DOORS.record} id="pl-train-record" defaultOpen={false}>
       {Object.keys(s.sessionLog).length > 0 && (
         <Section title="The Session Archive" meta={`${Object.keys(s.sessionLog).length} logged · tap any for its receipt + debrief`}>
           <div style={{ display: "flex", flexDirection: "column" }}>
@@ -11399,6 +11444,7 @@ function LogTab({ s, setS, save, slp }) {
           </div>
         </Section>
       )}
+      </Group>
 
     </div>
   );

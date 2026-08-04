@@ -3673,6 +3673,11 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
 }
 
 ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DOORS).length, "the door keys are distinct — two doors sharing a persistKey would make one uncloseable");
+  // TRAIN gained doors; same contract as NOW. The live-registry half is in the render smoke,
+  // per tab, because a Group registers only while its tab is mounted.
+  ok(__test.TRAIN_DOORS.setup === "train.setup" && __test.TRAIN_DOORS.read === "train.read" && __test.TRAIN_DOORS.record === "train.record", "TRAIN door keys are the literals the roster deep-links to");
+  ok(new Set(Object.values(__test.TRAIN_DOORS)).size === 3, "TRAIN door keys are distinct");
+  ok(Object.values(__test.TRAIN_DOORS).every((k) => !Object.values(__test.NOW_DOORS).includes(k)), "no TRAIN door key collides with a NOW door key — they share one window.__plGroups registry, so a collision would make one door drive the other");
 {
   const bare = { proposals: [], agentProposals: [] };
   const esc = __test.statusTarget(bare, { esc: { escalate: true }, focus: { owed: [] } });

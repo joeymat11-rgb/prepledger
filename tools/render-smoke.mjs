@@ -62,6 +62,19 @@ async function findClickable(window, label, pred) {
   return el;
 }
 
+/* declared ⊆ registered, for ONE tab's worth of doors. `prefix` selects which door keys
+   this tab is responsible for; a Group registers only while its tab is mounted, so the
+   whole declared set can never be satisfied from a single screen. */
+function checkDoors(window, prefix, whereLabel) {
+  const declared = window.__plDoors || null;
+  if (!declared) return [`window.__plDoors is missing — the door invariant cannot run (${whereLabel})`];
+  const live = window.__plGroups || {};
+  const mine = Object.values(declared).filter((k) => String(k).startsWith(prefix));
+  if (!mine.length) return [`no declared door keys match ${prefix} — the invariant is checking nothing (${whereLabel})`];
+  const missing = mine.filter((k) => !(k in live));
+  return missing.length ? [`declared door key(s) never registered by a Group on ${whereLabel}: ${missing.join(", ")} — a deep link to one of these would no-op`] : [];
+}
+
 async function tabText(window, label) {
   /* Rooms behind MORE need two taps, exactly as he would make them. If MORE
      itself is missing, that is a real failure and must not be swallowed. */
@@ -125,59 +138,42 @@ for (const [name, mut] of states) {
   w.close();
 }
 
-/* DOOR-KEY INVARIANT (v7.5 r2 blocker B) — every door key the app DECLARES must actually
-   be registered by a mounted Group. The deep-link maps (oweTarget, statusTarget) name
-   NOW_DOORS keys and openGroup looks them up in the registry registerGroup populates; if a
-   <Group>'s persistKey drifts from NOW_DOORS, openGroup silently no-ops, the door's
-   children never mount, scrollToId finds nothing, and tapping NEEDS YOU does nothing at
-   all. Asserting NOW_DOORS against itself cannot catch that. This asserts it against what
-   actually mounted. */
+/* DOOR-KEY INVARIANT — every door key the app DECLARES must be registered by a mounted
+   Group. The deep-link maps name NOW_DOORS / TRAIN_DOORS keys and openGroup looks them up
+   in the registry registerGroup populates; if a persistKey drifts, openGroup silently
+   no-ops, the door's children never mount, scrollToId finds nothing and the tap dies.
+   Asserting the constant against itself cannot catch that; this asserts it against what
+   actually mounted, per tab. */
 {
   const w = await mount();
-  await new Promise((r) => setTimeout(r, 250));   // let the Groups mount and register
-  const declared = w.__plDoors || null;
-  const live = w.__plGroups || {};
-  if (!declared) {
-    console.error("RENDER-SMOKE: window.__plDoors is missing — the door invariant cannot run");
-    failed++;
-  } else {
-    // the inbox door only mounts when it has something to show, so it is exempt here
-    // H3 — the inbox door used to be exempted here, and it is the target of statusTarget's
-    // HIGHEST-precedence branch: drift that one persistKey and both suites stayed green
-    // while "open what's waiting on your tap" went silently dead. It only mounts when it
-    // has something to show, so the seeded-proposal state below is where it is checked.
-    const hasInbox = (w.document.body.textContent || "").includes("FOR YOU TO OK");
-    const mustMount = Object.entries(declared).filter(([k]) => k !== "inbox" || hasInbox).map(([, v]) => v);
-    const missing = mustMount.filter((k) => !(k in live));
-    if (missing.length) {
-      console.error(`RENDER-SMOKE: declared door key(s) never registered by a Group: ${missing.join(", ")} — a deep link to one of these would no-op`);
-      failed++;
+  await new Promise((r) => setTimeout(r, 250));
+  for (const m of checkDoors(w, "now.", "NOW")) { console.error("RENDER-SMOKE: " + m); failed++; }
+  // TRAIN's Groups register only while TRAIN is mounted
+  try {
+    const t = await findClickable(w, "TRAIN", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("TRAIN"));
+    if (!t) { console.error("RENDER-SMOKE: TRAIN tab button missing — its doors cannot be checked"); failed++; }
+    else {
+      t.click();
+      await new Promise((r) => setTimeout(r, 300));
+      for (const m of checkDoors(w, "train.", "TRAIN")) { console.error("RENDER-SMOKE: " + m); failed++; }
     }
+  } catch (e) {
+    console.error("RENDER-SMOKE: TRAIN door check threw — " + e.message); failed++;
   }
 }
 
-/* H3 — and again with the approval inbox actually mounted, so its door key is covered by
-   the same live check as the other three.
-   H4 — this validates the DECLARED set against the LIVE registry. The complementary half
-   (that oweTarget/statusTarget only ever name members of that declared set) is pinned by
-   literal in the engine suite; composed, the two give selector-outputs ⊆ live registry,
-   which is the loop the item asked to close. Neither half alone is sufficient. */
+/* and again with the approval inbox mounted, so its door key — statusTarget's
+   highest-precedence branch — is covered by the same live check. */
 {
   const w = await mount((st) => {
     st.proposals = [{ rid: 'ap_smoke', id: 'ap_smoke_1', d: todayISO, title: 'AUTO-PILOT · EASE THE TARGET', why: 'smoke', apply: { kind: 'cal', delta: 100, dir: 'ease', calDelta: 100, stepsDelta: 0 }, resolved: false }];
   });
   await new Promise((r) => setTimeout(r, 250));
-  const declared = w.__plDoors || {};
-  const live = w.__plGroups || {};
   if (!(w.document.body.textContent || '').includes('FOR YOU TO OK')) {
-    console.error('RENDER-SMOKE: seeded a proposal but the approval inbox did not mount — the inbox door key cannot be checked');
+    console.error('RENDER-SMOKE: seeded a proposal but the approval inbox did not mount — its door key cannot be checked');
     failed++;
   } else {
-    const missing = Object.values(declared).filter((k) => !(k in live));
-    if (missing.length) {
-      console.error(`RENDER-SMOKE: with the inbox mounted, declared door key(s) still unregistered: ${missing.join(', ')}`);
-      failed++;
-    }
+    for (const m of checkDoors(w, "now.", "NOW with the inbox mounted")) { console.error("RENDER-SMOKE: " + m); failed++; }
   }
 }
 
