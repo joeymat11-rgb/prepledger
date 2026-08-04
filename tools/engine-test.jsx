@@ -3673,6 +3673,37 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
 }
 
 ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DOORS).length, "the door keys are distinct — two doors sharing a persistKey would make one uncloseable");
+  // TRAIN gained doors; same contract as NOW. The live-registry half is in the render smoke,
+  // per tab, because a Group registers only while its tab is mounted.
+  ok(__test.TRAIN_DOORS.setup === "train.setup" && __test.TRAIN_DOORS.read === "train.read" && __test.TRAIN_DOORS.record === "train.record", "TRAIN door keys are the literals the roster deep-links to");
+  ok(new Set(Object.values(__test.TRAIN_DOORS)).size === 3, "TRAIN door keys are distinct");
+  ok(Object.values(__test.TRAIN_DOORS).every((k) => !Object.values(__test.NOW_DOORS).includes(k)), "no TRAIN door key collides with a NOW door key — they share one window.__plGroups registry, so a collision would make one door drive the other");
+
+  // §3.3 — proposeLadder infers the rungs a machine can ACTUALLY make from the loads he has
+  // actually used, and PROPOSES them. It never writes; approval rides the existing inbox.
+  {
+    const PL = __test.proposeLadder, MIN = __test.LADDER_MIN_N;
+    const mkS = (w, logged, extra) => {
+      const st = clone(SEED);
+      st.exercises = [{ id: "m", n: "Machine", w, inc: 5, ...(extra || {}) }];
+      st.sessionLog = {};
+      (logged || []).forEach((x, i2) => { st.sessionLog["2026-07-" + String(10 + i2).padStart(2, "0")] = { entries: [{ id: "m", w: x, reps: [10] }] }; });
+      return st;
+    };
+    ok(PL(mkS(50, [50, 55]), "m") === null, "too few distinct loads proposes nothing — two sessions at one weight say nothing about a stack");
+    ok(PL(mkS(50, [50, 55, 60, 65]), "m") === null, "an EVEN ladder proposes nothing: that is exactly what the code already assumes, so the proposal would change nothing");
+    const un = PL(mkS(50, [50, 57.5, 65, 80]), "m");
+    ok(un && un.uneven === true && un.rungs.length >= MIN, "an UNEVEN set of real loads is proposed as a ladder");
+    ok(JSON.stringify(un.rungs) === JSON.stringify([50, 57.5, 65, 80]), "the rungs are exactly the loads he used — nothing is invented between observations");
+    ok(PL(mkS(50, [50, 57.5, 65, 80], { steps: [50, 57.5, 65, 80] }), "m") === null, "a lift that already has a ladder is left alone");
+    ok(PL(mkS("BW", [1, 2, 3, 4]), "m") === null, "a non-numeric weight is skipped entirely — that is a representation question, not a ladder one");
+    ok(PL({ exercises: [] }, "m") === null && PL({}, "nope") === null, "proposeLadder is total");
+    // it must PROPOSE, never write
+    const before = mkS(50, [50, 57.5, 65, 80]);
+    const snap = JSON.stringify(before);
+    PL(before, "m");
+    ok(JSON.stringify(before) === snap, "proposeLadder mutates NOTHING — it returns a suggestion and the inbox owns whether it lands");
+  }
 {
   const bare = { proposals: [], agentProposals: [] };
   const esc = __test.statusTarget(bare, { esc: { escalate: true }, focus: { owed: [] } });
