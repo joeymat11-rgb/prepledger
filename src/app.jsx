@@ -10773,7 +10773,11 @@ function LogTab({ s, setS, save, slp }) {
   useEffect(() => {
     try {
       const d = JSON.parse(localStorage.getItem(draftKey) || "null");
-      setReps(d && d.reps ? d.reps : {}); setRir(d && d.rir ? d.rir : {}); setRirEnd(d && d.rirEnd ? d.rirEnd : {}); setSkipped(d && d.skipped ? d.skipped : {}); setNote(d && d.note ? d.note : ""); setNig(d && d.nig ? d.nig : []); setPace(d && d.pace ? d.pace : null);
+      /* One draft, one truth — see mergeSessionDrafts. The gym draft wins for anything it
+         touched, and any lift Gym Mode never reached defaults to skipped, not to target. */
+      const gd = JSON.parse(localStorage.getItem("prep-ledger-gymdraft-" + dateSel) || "null");
+      const m = mergeSessionDrafts(sess && sess.ex, d, gd);
+      setReps(m.reps); setRir(m.rir); setRirEnd(m.rirEnd); setSkipped(m.skipped); setNote(d && d.note ? d.note : ""); setNig(d && d.nig ? d.nig : []); setPace(d && d.pace ? d.pace : null);
     } catch (e) {}
   }, [dateSel]);
   useEffect(() => {
@@ -12177,6 +12181,39 @@ function restLine(exId, nSets) {
 
    entries and skipped PARTITION the session: every lift lands in exactly one, which is
    what makes 'nothing counted' checkable rather than merely claimed. */
+/* mergeSessionDrafts — TRAIN and Gym Mode keep separate drafts for the same session, and
+   the gap between them is a second phantom-rep path: leave Gym Mode at lift 4, tap
+   Complete session on TRAIN, and TRAIN's untouched steppers log every remaining lift at
+   its TARGET. The guard at the log screen prevents double-logging, not wrong-logging.
+
+   This makes the gym draft authoritative for anything it touched, and — the part that
+   closes the hole — defaults every lift Gym Mode never REACHED to skipped rather than to
+   target. Not reaching a lift is evidence it was not performed; target reps are not.
+   Joe can still un-skip any of them on TRAIN and type real numbers, so the default is
+   recoverable in the direction that costs nothing and unrecoverable in neither.
+
+   Pure, so the invariant 'the two drafts cannot disagree' is assertable. */
+function mergeSessionDrafts(sessEx, trainDraft, gymDraft) {
+  const list = sessEx || [];
+  const t = trainDraft || {}, g = gymDraft || null;
+  const out = {
+    reps: { ...(t.reps || {}) }, rir: { ...(t.rir || {}) },
+    rirEnd: { ...(t.rirEnd || {}) }, skipped: { ...(t.skipped || {}) },
+  };
+  if (!g) return out;
+  const gReps = g.reps || {}, gRir = g.rir || {}, gRirEnd = g.rirEnd || {}, gSkip = g.gskip || {};
+  const reached = typeof g.idx === "number" ? g.idx : -1;
+  list.forEach((ex, i) => {
+    if (gReps[ex.id] != null) out.reps[ex.id] = gReps[ex.id];
+    if (gRir[ex.id] != null) out.rir[ex.id] = gRir[ex.id];
+    if (gRirEnd[ex.id] != null) out.rirEnd[ex.id] = gRirEnd[ex.id];
+    if (gSkip[ex.id]) out.skipped[ex.id] = true;
+    // never reached in the gym, and nothing typed on TRAIN -> not performed
+    if (i > reached && gReps[ex.id] == null && (t.reps || {})[ex.id] == null) out.skipped[ex.id] = true;
+  });
+  return out;
+}
+
 function gymEntries(sessEx, st) {
   const o = st || {};
   const reps = o.reps || {}, rir = o.rir || {}, rirEnd = o.rirEnd || {}, gskip = o.gskip || {};
@@ -12195,7 +12232,7 @@ function gymEntries(sessEx, st) {
    session rushed — which pulls it out of the progression evidence via liftCall. */
 const REST_CUT_S = 60;
 function restCut(startMs, nowMs) { return Math.floor(((nowMs || 0) - (startMs || 0)) / 1000) < REST_CUT_S; }
-__test.gymEntries = gymEntries; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
+__test.gymEntries = gymEntries; __test.mergeSessionDrafts = mergeSessionDrafts; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
 
 function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [idx, setIdx] = useState(0);
@@ -12271,7 +12308,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const skipLift = () => { setGskip((g) => ({ ...g, [ex.id]: true })); nextLift(); };
   const finish = () => {
     const split = gymEntries(sess.ex, { reps, rir, rirEnd, gskip });   // SKIP_ONE_PATH — entries and skipped partition the session
-    try { localStorage.removeItem(gymKey); } catch (e) {}
+    try { localStorage.removeItem(gymKey); localStorage.removeItem("prep-ledger-draft-" + dateSel); } catch (e) {}   // both drafts, or the other one resurrects a logged session
     /* n-gated like every other read in here: under three rests there is no
        session-level statement to make, so it stays unknown rather than guessed. */
     const pace = rests.n >= 3 ? (rests.cut / rests.n >= 0.5 ? PACE.rushed : PACE.normal) : null;

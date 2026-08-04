@@ -3609,6 +3609,21 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
   ok(RC(1000, 1000 + CUT * 1000) === false, "REST — exactly the threshold is not a cut");
   ok(RC(1000, 1000 + 150 * 1000) === false, "REST — a full 150s rest is NOT cut when measured from the wall clock, no matter how few times a throttled interval managed to fire (this is the iOS-in-pocket case that was flagging honest sessions as rushed)");
   ok(RC(0, 0) === true, "REST — a zero-length rest is cut, and restCut never throws on missing timestamps");
+
+  // THE TWO DRAFTS CANNOT DISAGREE — leaving Gym Mode partway used to let TRAIN log every
+  // remaining lift at TARGET, a second phantom-rep path with a different cause.
+  const MSD = __test.mergeSessionDrafts;
+  const gymAt4 = { reps: { press: [8, 8], row: [12, 11] }, rir: { press: 2 }, gskip: {}, idx: 1 };
+  const m = MSD(sessEx, null, gymAt4);
+  ok(JSON.stringify(m.reps.press) === JSON.stringify([8, 8]) && m.rir.press === 2, "DRAFTS — what Gym Mode recorded is authoritative on TRAIN");
+  ok(m.skipped.pronated === true && m.skipped.ham === true, "DRAFTS — lifts Gym Mode never REACHED default to skipped, not to their target reps: this is the second phantom path");
+  ok(!m.skipped.press && !m.skipped.row, "DRAFTS — lifts he actually performed are not marked skipped");
+  ok(MSD(sessEx, null, { ...gymAt4, gskip: { row: true } }).skipped.row === true, "DRAFTS — an explicit gym skip carries across to TRAIN");
+  const typed = MSD(sessEx, { reps: { ham: [10, 10] } }, gymAt4);
+  ok(!typed.skipped.ham && JSON.stringify(typed.reps.ham) === JSON.stringify([10, 10]), "DRAFTS — a lift he typed on TRAIN himself is kept and NOT force-skipped, so the default stays recoverable");
+  ok(JSON.stringify(MSD(sessEx, { reps: { press: [9, 9] } }, null).reps.press) === JSON.stringify([9, 9]), "DRAFTS — with no gym draft, TRAIN behaves exactly as before");
+  ok(Object.keys(MSD(null, null, null).skipped).length === 0, "DRAFTS — mergeSessionDrafts is total: no session, no drafts, no throw");
+
 }
 
 ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DOORS).length, "the door keys are distinct — two doors sharing a persistKey would make one uncloseable");
