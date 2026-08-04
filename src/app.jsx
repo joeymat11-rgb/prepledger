@@ -8646,9 +8646,9 @@ function scrollToId(id, delay = 80) {
    three owed kinds now open the ONE CAPTURE door and scroll to their own element
    id — pl-capture (sleep/scale), pl-closeday (the day's numbers), pl-amend. */
 function oweTarget(k) {
-  return k === "day" ? { key: "now.capture", id: "pl-closeday" }
-    : k === "yesterday" ? { key: "now.capture", id: "pl-amend" }
-    : { key: "now.capture", id: "pl-capture" };
+  return k === "day" ? { key: "now.capture2", id: "pl-closeday" }
+    : k === "yesterday" ? { key: "now.capture2", id: "pl-amend" }
+    : { key: "now.capture2", id: "pl-capture" };
 }
 /* NOW reorg v6.3 — the two novel PURE pieces, exposed for the engine suite here
    (below their definitions, so UI_KEY is past its TDZ): the disclosure override
@@ -9897,7 +9897,14 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           so it costs no clutter, and burying 'changes waiting on your tap' one level deeper
           would fight the rule that an approval must always be able to serve its function. */}
 
-      <Group title="CAPTURE" sub="everything you log — morning, evening, weekly" persistKey="now.capture" id="pl-capture" defaultOpen={new Date().getHours() < 12 || new Date().getHours() >= 17 || dl.cal == null}>
+      {/* v7.5 audit blocker 3 — the key is now.capture2, NOT now.capture. readDisc returns the
+          STORED boolean whenever the key exists and ignores computeDefault, so reusing the old
+          key while the door grew from three morning cards to the whole logging surface would
+          have let a stale "shut" from the old CAPTURE suppress the new time-aware default: at
+          20:00 with the day unclosed, the door holding sleep, the scale, close-the-day, amend
+          and the weekly items would stay closed. A new key is a clean first-visit default. The
+          orphaned now.capture boolean is device-local UI state and harmless. */}
+      <Group title="CAPTURE" sub="everything you log — morning, evening, weekly" persistKey="now.capture2" id="pl-capture" defaultOpen={new Date().getHours() < 12 || new Date().getHours() >= 17 || dl.cal == null}>
       {/* morning: the minute, sleep and the scale */}
       {(() => {
         const owed = owedNights(s);
