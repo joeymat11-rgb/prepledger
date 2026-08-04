@@ -9523,6 +9523,35 @@ function PhaseArcCard({ s, setS, save, tISO }) {
     </Card>
   );
 }
+/* ConditionalForesightLine — the SUBORDINATE, plan-conditional line under the cockpit's
+   foresight read. It renders in two places (the redline-CROSSING branch and the ordinary
+   PROJECTION branch) and was written out twice, identical in code and differing only in
+   the comment above it.
+
+   That duplication was not a style problem here. This file is edited by string surgery and
+   the house rule is that anchors are unreliable at first occurrence — a stamp pattern once
+   matched three elements and produced three rogue stamps. Any anchor into this block
+   matched TWICE, and that is exactly how the v7.5 build shipped a fix applied to the branch
+   that was read and not to the one that was not: the crossing branch returns BEFORE the
+   projection branch, so the miss was invisible until an audit executed that path.
+
+   Behaviour is unchanged: gated on a live steer via conditionalForesight(s), carries the
+   ONE engine-owned number (digitalTwin.etaMid), recomputes live off s, and returns null —
+   collapsing onto the measured line above — when no steer is staged. */
+function ConditionalForesightLine({ s }) {
+  const cf = conditionalForesight(s);
+  if (!cf) return null;
+  return (
+    <div style={{ marginTop: SP.sm, paddingTop: SP.sm, borderTop: `1px dashed ${T.line}` }}>
+      <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>if you hold this new target</div>
+      <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs }}>
+        {etaReached(cf.etaWks) ? <>target reached {cf.label}</> : <>~<span data-num style={{ fontFamily: mono }}>{cf.etaWks}</span> wks {cf.label}</>}
+      </div>
+      <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>plan-conditional — not your measured trend yet; it converges as weigh-ins land</div>
+    </div>
+  );
+}
+
 function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [askOpen, setAskOpen] = useState(false);
   const [lawsOpen, setLawsOpen] = useState(false);
@@ -9778,24 +9807,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                   </div>
                   <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.45, marginTop: SP.xs }}>{fc.cause}</div>
                   <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>~{fc.wksEarly}–{fc.wksLate} wks · ≈{Math.round(fc.prob * 100)}% within {FORE.H_INFO} wks · a range, not a date</div>
-                  {(() => {
-                    /* v7.4.1 — the SUBORDINATE, plan-CONDITIONAL line, ALSO surfaced while the redline warning
-                       is firing. This branch returns BEFORE the PROJECTION branch, so without this the applied
-                       ease's ETA was computed by conditionalForesight() but never rendered. Same selector, same
-                       ONE engine-owned number (digitalTwin.etaMid), same honest label as the projection
-                       placement below. Null when no steer is live ⇒ the crossing warning renders unchanged. */
-                    const cf = conditionalForesight(s);
-                    if (!cf) return null;
-                    return (
-                      <div style={{ marginTop: SP.sm, paddingTop: SP.sm, borderTop: `1px dashed ${T.line}` }}>
-                        <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>if you hold this new target</div>
-                        <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs }}>
-                          {etaReached(cf.etaWks) ? <>target reached {cf.label}</> : <>~<span data-num style={{ fontFamily: mono }}>{cf.etaWks}</span> wks {cf.label}</>}
-                        </div>
-                        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>plan-conditional — not your measured trend yet; it converges as weigh-ins land</div>
-                      </div>
-                    );
-                  })()}
+                  <ConditionalForesightLine s={s} />
                 </div>
               );
               if (fx.ok && fx.confident && fx.etaMid != null) return (
@@ -9805,23 +9817,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                     {etaReached(fx.etaMid) ? <>target reached — {fx.targetPct}% BF</> : <>~<span data-num style={{ fontFamily: mono }}>{fx.etaMid}</span> wks to {fx.targetPct}% BF{fx.etaFast != null && fx.etaSlow != null ? <> · range <span data-num style={{ fontFamily: mono }}>{fx.etaFast}–{fx.etaSlow}</span> wks</> : null}</>}
                   </div>
                   <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>the fan widens with distance — a projection, not a promise</div>
-                  {(() => {
-                    /* v7.4.1 — the SUBORDINATE, plan-CONDITIONAL line. Appears ONLY while a steer is live,
-                       is clearly labeled hypothetical, carries ONE engine-owned number (digitalTwin.etaMid),
-                       recomputes LIVE off s each render, and collapses onto the measured line above when
-                       there is no steer. See conditionalForesight(). */
-                    const cf = conditionalForesight(s);
-                    if (!cf) return null;
-                    return (
-                      <div style={{ marginTop: SP.sm, paddingTop: SP.sm, borderTop: `1px dashed ${T.line}` }}>
-                        <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>if you hold this new target</div>
-                        <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs }}>
-                          {etaReached(cf.etaWks) ? <>target reached {cf.label}</> : <>~<span data-num style={{ fontFamily: mono }}>{cf.etaWks}</span> wks {cf.label}</>}
-                        </div>
-                        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>plan-conditional — not your measured trend yet; it converges as weigh-ins land</div>
-                      </div>
-                    );
-                  })()}
+                  <ConditionalForesightLine s={s} />
                 </div>
               );
               return (
