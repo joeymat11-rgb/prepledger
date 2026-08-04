@@ -10943,14 +10943,10 @@ function LogTab({ s, setS, save, slp }) {
         <Btn full tone="jade" onClick={() => setGym(true)}>▶ GYM MODE — one lift at a time, timers on</Btn>
       )}
       <div style={{ display: "flex", gap: 8, overflowX: "auto", touchAction: "pan-x", paddingBottom: 2 }}>
-        {dateSel && !options.includes(dateSel) && (
-          <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: TS.label, letterSpacing: "0.05em", padding: "10px 8px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>
-            ✓ {fmtShort(dateSel)} · RECEIPT
-          </button>
-        )}
-        {logged && !options.includes(dateSel) && (
-          <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: TS.label, letterSpacing: "0.05em", padding: "10px 8px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>✓ {fmtShort(dateSel)} · RECEIPT</button>
-        )}
+        {/* Two RECEIPT chips lived here, both styled as buttons and neither carrying a
+            handler — tapping them did nothing at all. The real receipt is the logged-session
+            card below. Removed rather than wired: a control that looks tappable and is not is
+            worse than no control. */}
         {options.map((d) => (
           <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setRirEnd({}); setPace(null); setNote(""); setNig([]); setSkipped({}); }} style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: TS.label, letterSpacing: "0.05em", padding: "10px 8px", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : s.sessionLog[d] ? T.jade : T.steel }}>
             {s.sessionLog[d] ? "✓ " : ""}
@@ -11039,7 +11035,7 @@ function LogTab({ s, setS, save, slp }) {
         </div>
         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 4 }}>Everything else just chases reps — no limit on that. New weight increases you earn wait in line for their own day.</div>
         <More c={T.orange} deep="One structural change per session keeps the signal clean — when something moves, you know exactly what caused the response. Rep progression stays unlimited because it's the noise-free kind of change. The scheduler auto-picks from the queue in order; doc-approved riders are the only exception."
-          forYou={(() => { const cand = s.queue.filter((q) => !q.done && q.kind === "debut" && q.exId && exById(s, q.exId) && exById(s, q.exId).day === dayType(dateSel)); return cand.length > 1 ? `Waiting behind today's slot: ${cand.slice(1).map((q) => q.t).join(" · ")} — each gets its own session.` : cand.length === 1 ? "The queue empties after this one — new earns will refill it as you log." : "Nothing structural queued for this day type — pure rep-progression day, which is where most muscle actually gets built."; })()} />
+          forYou="Structural changes queue themselves as you earn them. The full queue lives on QUEUE — it is not restated here." />
       </Card>
 
       {/* The hack-debut card used to be a sleep gate with a hardcoded 4.5 h
@@ -11266,7 +11262,10 @@ function LogTab({ s, setS, save, slp }) {
       ))}
 
       <Card style={{ padding: 16 }}>
-        <Eyebrow>PACE · HOW LONG BETWEEN SETS</Eyebrow>
+      {/* PACE had two owners: Gym Mode measures it from real rest timestamps, TRAIN asked
+          him to declare it from memory afterwards. The measurement wins. This control stays
+          for the hand-logged path only and is labelled as the fallback it is. */}
+        <Eyebrow>PACE · ONLY IF YOU DID NOT USE GYM MODE</Eyebrow>
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           {[["normal", "FULL REST", T.jade], ["rushed", "RUSHED", T.brass]].map(([v, label, c]) => {
             const on = pace === v;
@@ -11279,7 +11278,7 @@ function LogTab({ s, setS, save, slp }) {
           })}
         </div>
         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 6, lineHeight: 1.5 }}>
-          RUSHED = under about a minute between sets. Reps still count — but a compressed day can't count toward a stall, so it never lightens your bar by mistake.
+          Gym Mode measures this from your actual rests and needs three of them before it will say anything — if you used it, leave this alone and its measurement stands. This is the fallback for a session logged by hand. RUSHED = under about a minute between sets. Reps still count, but a compressed day cannot count toward a stall, so it never lightens your bar by mistake.
         </div>
       </Card>
 
