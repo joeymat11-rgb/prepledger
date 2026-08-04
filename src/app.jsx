@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.5.0";
+const APP_V = "7.6.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -1713,7 +1713,22 @@ function currentRate(s) {
    currentRate exposes lo/hi only on the regression path, and the two-snapshot fallback
    has ci: null, so `banded` says honestly whether an interval exists. A faster loss
    lands a LOWER weight, so the light end of the projection comes off the rate's hi. */
+/* The card prints rates at this precision and paceProjection projects off the same
+   figure. It is load-bearing: raise it and the hand-check the copy invites stops
+   reconciling, which is the defect fix F closed. */
+const RATE_DP = 1;
 const PACE_PROJ_WKS = 4;
+/* paceShown — may a forward/measured pace figure be printed at all? The card body and
+   the More panel inside the SAME Card must answer this identically. They did not: the
+   panel was carried through the v7.5 merge byte-identical and kept gating on
+   currentRate().measured, which is true in states where the read abstains — so
+   "Measured pace 1.35 lb/wk" sat one tap under "no real change to read yet".
+
+   That defect has now recurred once, in a sibling of the element it was first fixed in,
+   which is the signal that the gate belongs in one place rather than being written twice
+   correctly. Both callers compose this. */
+function paceShown(rc, pp) { return !!(rc && rc.showRate && pp && pp.ok); }
+
 function paceProjection(s, wks = PACE_PROJ_WKS) {
   if (s == null || s.trend == null) return { ok: false, measured: false, wks, banded: false };   // G2 — BEFORE currentRate, which dereferences s immediately
   const cr = currentRate(s);
@@ -1723,13 +1738,13 @@ function paceProjection(s, wks = PACE_PROJ_WKS) {
      of the band itself (trend 164.2, scale 1.34 shown as −1.3: 164.2 − 1.3×4 = 159.0, not
      the 158.8 the card printed). Project off the SHOWN figure, so what he can check by
      hand is what the card says. */
-  const shown = +cr.scale.toFixed(1);
+  const shown = +cr.scale.toFixed(RATE_DP);
   const mid = +(s.trend - shown * wks).toFixed(1);
   const banded = cr.ci != null && cr.lo != null && cr.hi != null;
   return {
-    ok: true, measured: true, wks, mid, banded, rate: cr.scale, rateShown: shown, fat: cr.fat, ci: cr.ci,
-    lo: banded ? +(s.trend - +cr.hi.toFixed(1) * wks).toFixed(1) : null,
-    hi: banded ? +(s.trend - +cr.lo.toFixed(1) * wks).toFixed(1) : null,
+    ok: true, measured: true, wks, mid, banded, rateShown: shown, fat: cr.fat, ci: cr.ci,   // I2 — no raw `rate`: rateShown is the one the card prints
+    lo: banded ? +(s.trend - cr.hi * wks).toFixed(1) : null,   // G — raw CI bound: this endpoint is never printed AS a rate
+    hi: banded ? +(s.trend - cr.lo * wks).toFixed(1) : null,
   };
 }
 
@@ -2519,7 +2534,7 @@ function partitionPrior(s) {
   };
 }
 
-function energyDensity(s) {
+function energyDensityUncached(s) {
   /* ONE owner of kcal-per-lb-of-loss (was the fixed KCAL_PER_LB_MIX 3800). Fat-mass-dependent through
      the partition prior: perLb = fatFrac·fat-density + leanFrac·lean-density. HONEST degradation — off a
      coach's-eye BF the split is not identifiable, so the POINT stays the labeled prior (3800 EXACTLY, so
@@ -2538,6 +2553,7 @@ function energyDensity(s) {
       : `${KCAL_PER_LB_MIX} kcal per lb — the labeled prior (~${Math.round(PRIOR_FAT_FRAC * 100)}% fat). Held at the prior until a DEXA measures your fat mass; the ${Math.min(e1, e2)}–${Math.max(e1, e2)} band is that uncertainty made visible.`,
   };
 }
+const energyDensity = memoOnState(energyDensityUncached);   // pure in s; four call sites per render
 
 // ---- TDEE (Topic 1): a slowly-drifting latent state, EWMA self-learning ----
 const TDEE_EMA_ALPHA = 0.10;              // per-update forgetting (~10-day constant); converges ~2–4 wk
@@ -2719,7 +2735,33 @@ function redlineCrossing(s, opts) {
    trend that is not real yet. Pure and GUARDED (a thin or malformed state returns a safe empty
    forecast, never a throw), so the anticipatory surface is self-silencing when the data can't back
    it. Reads existing owners only — introduces no new rate or slope. `opts.deps` injects for tests. */
-function forecast(s, opts) {
+/* memoOnState — cache a PURE selector's result against the IDENTITY of the state object.
+   Every mutation in this app clones and returns a fresh `s` (applyRead is the canonical
+   example), so a new state invalidates the entry for free, and a WeakMap lets superseded
+   states be collected. Strictly for selectors that are a function of `s` alone: a caller
+   that passes options must bypass it, which is why forecast only takes the cached path
+   when opts is undefined.
+
+   Worth doing because one NOW render calls forecast(s) four times — the cockpit card,
+   statusFace and marchingOrder (both via safeCrossing), and phaseArc — and each call runs
+   the regression, the twin and the cone from scratch.
+
+   THE TRAP: the key is object identity, so mutating `s` IN PLACE and calling again hands
+   you the previous answer. Nothing in the app does that — every write path clones — but a
+   test fixture that pushes onto s.reads between two calls would silently read stale. Clone
+   first, as the app does. */
+function memoOnState(fn) {
+  const cache = new WeakMap();
+  return (s) => {
+    if (s == null || typeof s !== "object") return fn(s);
+    if (cache.has(s)) return cache.get(s);
+    const v = fn(s);
+    cache.set(s, v);
+    return v;
+  };
+}
+
+function forecastUncached(s, opts) {
   const o = opts || {}, d = o.deps || {};
   try {
     const r = d.rate || currentRate(s);
@@ -2753,6 +2795,10 @@ function forecast(s, opts) {
     return { ok: false, rate: null, seRate: null, sigma: null, confident: false, greyed: true, cone: [], crossing: { fires: false, reason: "no-data", range: null, prob: 0 } };
   }
 }
+const _forecastCached = memoOnState((s) => forecastUncached(s));
+/* One render asks for this four times; it is pure, so they can share one answer. Any
+   caller that passes opts bypasses the cache and recomputes, as it must. */
+function forecast(s, opts) { return opts === undefined ? _forecastCached(s) : forecastUncached(s, opts); }
 
 /* safeCrossing — the guarded crossing the cockpit face reads. Never throws (a minimal or malformed
    state returns "no fire"), so the anticipatory nudge in statusFace / marchingOrder is self-silencing
@@ -4236,7 +4282,12 @@ function theOneThing(s, slp, hour = new Date().getHours(), graceDays = Infinity)
     return { t: `Log ${fmtShort(owed[0])}'s night`, sub: flips ? "one tap — ≥7.5 flips you CLEAN and today's attempts count for keeps" : "one tap — the whole engine keys off it" };
   }
   if (s.fixWindow && !dLogged) return { t: "Fix window is open", sub: `hit ${proteinTarget(s).g} today and yesterday's miss becomes a save — bouncing back is the skill being scored` };
-  const openEv = s.events.find((e) => !e.estimated && daysUntil(e.d) < 0 && daysUntil(e.d) >= -graceDays);
+  /* r3 blocker D — routed through the ONE selector the card uses. This used to be a raw
+     find() over array order while EVENT MODE showed the most overdue, so with two unfiled
+     events the app said "Close out A" and its only button filed B. graceDays still bounds
+     how far back this INSTRUCTION reaches; the card itself no longer expires. */
+  const efOne = eventFocus(s);
+  const openEv = efOne.closable && efOne.overdue && efOne.days >= -graceDays ? efOne.ev : null;
   if (openEv) return { t: "Close out " + openEv.t, sub: "zero-comp or honest — one tap, the ledger doesn't guess" };
   if (trainToday && sessDone && !dLogged && hour < 17) return { t: "Session banked ✓ — day open", sub: "numbers close it tonight · everything else is reading" };
   if (trainToday && !sessDone && hour >= 10) { const g = genSession(s, tISO, slp); return { t: "Today: " + (g.structural || g.name), sub: "log it in TRAIN when the iron's down" }; }
@@ -6171,7 +6222,7 @@ function runAdaptive(state, todayISO) {
   const coarse = coarseLifts(s);
   if (!sealed && coarse.length)
     propose("microload", "TWO LIFTS HAVE PLATES TOO COARSE FOR THEM",
-      `${coarse.map((c) => `${c.n} steps ${c.step} lb on ${c.w} — a ${c.pct}% jump`).join(", and ")}. Reps fall about 0.4 for every 1% of load (Nuzzo 2024, 952 reps-to-failure tests across 269 studies), so ${coarse.length > 1 ? "each of those costs" : "that costs"} roughly ${coarse[0].lost} reps. Top out at ${coarse[0].hi}, take the jump, and you land near ${Math.max(1, coarse[0].hi - Math.round(coarse[0].lost))} — outside a tight window, with no rule to climb back. The ACSM's progression stand asks for 2-10% increments and specifically wants the SMALLER end on small-muscle exercises; fixed plates give you the exact inverse, 12.5% on a rear-delt fly against 1.6% on calves. Two fixes and the cheap one is hardware: 1.25 lb magnetic add-ons halve the jump and let the window stay tight. Otherwise the window has to widen to ${coarse[0].lo}-${coarse[0].hi}, which the app has already done. Worth knowing this is a derivation, not a citation — nobody has published guidance on rep-window width in a double-progression scheme.`,
+      `${coarse.map((c) => `${c.n} steps ${c.step} lb on ${c.w} — a ${c.pct}% jump`).join(", and ")}. Reps fall about 0.4 for every 1% of load (Nuzzo 2024, 952 reps-to-failure tests across 269 studies), so ${coarse.length > 1 ? "each of those costs" : "that costs"} roughly ${coarse[0].lost} reps. Top out at ${coarse[0].hi}, take the jump, and you land near ${Math.max(1, coarse[0].hi - Math.round(coarse[0].lost))} — outside a tight window, with no rule to climb back. The ACSM's progression stand asks for 2-10% increments and specifically wants the SMALLER end on small-muscle exercises; fixed plates give you the exact inverse, 12.5% on a rear-delt fly against 1.6% on calves. Two fixes and the cheap one is hardware: 1.25 lb magnetic add-ons halve the jump and let the window stay tight. Otherwise the window has to widen to ${coarse[0].lo}-${coarse[0].hi} — which this app has NOT done: that widened window is computed here to make the argument, but progression still climbs the authored one, so nothing about your targets changes until you decide it should. Worth knowing this is a derivation, not a citation — nobody has published guidance on rep-window width in a double-progression scheme.`,
       { kind: "note" });
 
   /* THE RATE BAND'S UNIT — RETIRED v6.3.1. This card proposed restating the band
@@ -7982,6 +8033,51 @@ function _unionKeyed(remoteArr, localArr, keyOf, scoreOf) {
        write order (the adversarial property the gate asserts).
    Everything else on plan (share, per-day dismiss guards) rides the {...R,...L} base unchanged. */
 const PLAN_POLICY_SCALARS = ["apMode", "autonomy", "phase", "brk"];   // v7.4.0 Slice 5 — the committed macro-phase + the current diet-break decision are policy, newest-deliberate-wins
+/* _unionExOrder — reconcile the per-day lift ORDER. An ordering cannot be keyed-unioned:
+   the order IS the data, so there is no per-entry winner to pick. It also cannot ride the
+   wholesale {...remote, ...local}, which is what it did — local wins entirely, so a sync
+   from a device that had not seen the reorder silently reverted it. Same clobber class the
+   code already documents for exercises/queue.
+
+   Two rules, in order:
+     MUST-NOT-REVERT — a deliberate reorder carries an ISO stamp (setAt, per day key,
+       written by the reorder control exactly as savePlan stamps its policy scalars). The
+       strictly newer stamp wins. One side stamped and the other not means only one side
+       made a deliberate choice, so that side wins regardless of which is local.
+     MUST-NOT-LOSE — whichever order wins, any lift id present on the other side and
+       missing from it is appended rather than dropped. A lift can never fall out of the
+       running order because two devices disagreed about position.
+
+   No schema bump: a historical exOrder has no knowable setAt, and the only honest value
+   for one is absent. That is the `pace` precedent in CLAUDE.md — bump when old data can be
+   RESTATED into the new shape, skip when the only honest answer is "we don't know".
+   Absent reads as unstamped at every call site here. */
+function _unionExOrder(remote, local) {
+  const R = remote && typeof remote === "object" ? remote : null;
+  const L2 = local && typeof local === "object" ? local : null;
+  if (!R) return L2 || R;
+  if (!L2) return R;
+  const rSet = (R.setAt && typeof R.setAt === "object") ? R.setAt : {};
+  const lSet = (L2.setAt && typeof L2.setAt === "object") ? L2.setAt : {};
+  const days = Array.from(new Set([...Object.keys(R), ...Object.keys(L2)])).filter((k) => k !== "setAt");
+  const out = {}, outSet = { ...rSet, ...lSet };
+  for (const d of days) {
+    const ra = Array.isArray(R[d]) ? R[d] : null, la = Array.isArray(L2[d]) ? L2[d] : null;
+    if (!ra && !la) continue;
+    if (!ra) { out[d] = la.slice(); continue; }
+    if (!la) { out[d] = ra.slice(); continue; }
+    const rs = rSet[d] || "", ls = lSet[d] || "";
+    const winner = rs > ls ? ra : ls > rs ? la : la;   // newer deliberate change; tie/unstamped -> local
+    const loser = winner === ra ? la : ra;
+    const merged = winner.slice();
+    for (const id of loser) if (!merged.includes(id)) merged.push(id);   // MUST-NOT-LOSE
+    out[d] = merged;
+    outSet[d] = rs > ls ? rs : (ls || rs);
+  }
+  if (Object.keys(outSet).length) out.setAt = outSet;
+  return out;
+}
+
 function _unionPlan(remote, local) {
   const R = remote && typeof remote === "object" ? remote : {};
   const L = local && typeof local === "object" ? local : {};
@@ -8053,6 +8149,7 @@ function mergeState(local, remote) {
   out.sleep = { ...(remote.sleep || {}), ...(local.sleep || {}), nights: _unionBy(rn, ln, (n) => n && n.d) };
   out.plan = _unionPlan(remote.plan, local.plan);   // v7.2.0 Slice 3 — goals/ifthen keyed-union + policy scalars newest-deliberate-wins (was wholesale local-wins)
   out.learned = _unionLearned(remote.learned, local.learned);   // v7.3.0 Slice 4 — learned TDEE series + anchor log keyed-union (never clobbered by a stale sync)
+  out.exOrder = _unionExOrder(remote.exOrder, local.exOrder);   // QUEUED #2 E — was riding the wholesale local-wins spread; an ordering needs newest-deliberate-wins + never-lose-a-lift
   return out;
 }
 
@@ -8119,19 +8216,29 @@ function nextEvent(s, withinDays = null) {
    fold for weeks. Residency now starts EVENT_LEAD_D days out, and an unfiled event stays
    CLOSABLE for EVENT_GRACE_D days after, matching lastEvent's own grace. Filed events drop
    out on their own: closeEvent sets estimated = true. Closable always outranks upcoming,
-   and the MOST OVERDUE closable wins, because that is the one about to be lost. */
+   and the MOST OVERDUE closable wins, because that is the one about to be lost.
+
+   v7.5 round 3 — the grace window used to bound EXISTENCE, which merely moved the cliff
+   from midnight to midnight+7d. Past it an unfiled event had no surface anywhere:
+   eventFocus null, lastEvent null, openEv null, and nowFocus has no event owed kind — so
+   closeEvent became unmakeable again, zeroComp never incremented, and no feed row recorded
+   the lapse. That was live: the shipped state carries WEDDING #2 dated 2026-07-25,
+   estimated:false, ten days unfiled and invisible. A miss must not expire, so a CLOSABLE
+   event now has no expiry at all; EVENT_GRACE_D only decides TONE, via `stale`. Nothing
+   silently disappears, so nothing needs a countdown warning telling him it is about to.
+   */
 const EVENT_LEAD_D = 1;
 const EVENT_GRACE_D = 7;
 function eventFocus(s) {
-  const none = { ev: null, days: null, closable: false, overdue: false };
+  const none = { ev: null, days: null, closable: false, overdue: false, stale: false };
   const rows = (((s && s.events) || []))
     .filter((e) => e && e.d && !e.estimated)
     .map((e) => ({ e, days: daysUntil(e.d) }))
     .sort((a, b) => a.days - b.days);
-  const closable = rows.filter((x) => x.days <= 0 && x.days >= -EVENT_GRACE_D);
-  if (closable.length) return { ev: closable[0].e, days: closable[0].days, closable: true, overdue: closable[0].days < 0 };
+  const closable = rows.filter((x) => x.days <= 0);   // r3 blocker A — NO expiry: a miss must not expire
+  if (closable.length) { const p = closable[0]; return { ev: p.e, days: p.days, closable: true, overdue: p.days < 0, stale: p.days < -EVENT_GRACE_D }; }
   const soon = rows.filter((x) => x.days > 0 && x.days <= EVENT_LEAD_D);
-  if (soon.length) return { ev: soon[0].e, days: soon[0].days, closable: false, overdue: false };
+  if (soon.length) return { ev: soon[0].e, days: soon[0].days, closable: false, overdue: false, stale: false };
   return none;
 }
 function lastEvent(s, graceDays = 7) {
@@ -8634,7 +8741,7 @@ function GraduationMark({ ticks = 0, finalDashed = true, h = 26 }) {
    in plain language. The engine owns every number; this only chooses the words. */
 function signalReadCopy(s, sig) {
   const losing = sig.scale > 0;
-  const rate = sig.scale != null ? `${losing ? "−" : "+"}${Math.abs(sig.scale).toFixed(1)} lb/wk` : "";
+  const rate = sig.scale != null ? `${losing ? "−" : "+"}${Math.abs(sig.scale).toFixed(RATE_DP)} lb/wk` : "";
   const showRate = sig.state === "measured" || sig.state === "measurable" || sig.state === "reversed";
   const wordColor = sig.state === "measured" ? T.brass : sig.state === "measurable" ? T.gauge : sig.state === "reversed" ? T.orange : T.steel;
   let sentence;
@@ -8738,6 +8845,7 @@ __test.UI_KEY = UI_KEY;
 __test.applyDisc = applyDisc;
 __test.readDisc = readDisc;
 __test.oweTarget = oweTarget;
+__test.paceShown = paceShown;   // H2 — one gate for the card body and the More panel
 __test.eventFocus = eventFocus; __test.EVENT_LEAD_D = EVENT_LEAD_D; __test.EVENT_GRACE_D = EVENT_GRACE_D;   // v7.5 r2 blocker C
 __test.NOW_DOORS = NOW_DOORS;   // v7.5 — the live door keys, asserted against by the deep-link tests
 
@@ -8897,7 +9005,7 @@ __test.STATUS_WORDS = STATUS_WORDS;
 /* v7.2.0 Slice 3 — TRUST engine selectors (registered here, after the __test declaration) */
 __test.autonomyOf = autonomyOf; __test.escalation = escalation; __test.autoPilotPolicy = autoPilotPolicy;
 __test.whyThisNumber = whyThisNumber; __test.confidenceField = confidenceField; __test.trackRecord = trackRecord;
-__test.AUTONOMY_LEVELS = AUTONOMY_LEVELS; __test.AUTONOMY_META = AUTONOMY_META; __test._unionPlan = _unionPlan;
+__test.AUTONOMY_LEVELS = AUTONOMY_LEVELS; __test.AUTONOMY_META = AUTONOMY_META; __test._unionPlan = _unionPlan; __test._unionExOrder = _unionExOrder;
 __test.lastUndoable = lastUndoable; __test.undoAdjustment = undoAdjustment;
 __test.apAutoHandledFor = apAutoHandledFor; __test._freshId = _freshId;   // v7.2.0 audit — once/day guard predicate + collision-resistant id
 /* v7.4.0 Slice 5 — PHASE ARC selectors under test (phase model, honest diet break, supervisor phase-veto, propose-only steer) */
@@ -9446,6 +9554,35 @@ function PhaseArcCard({ s, setS, save, tISO }) {
     </Card>
   );
 }
+/* ConditionalForesightLine — the SUBORDINATE, plan-conditional line under the cockpit's
+   foresight read. It renders in two places (the redline-CROSSING branch and the ordinary
+   PROJECTION branch) and was written out twice, identical in code and differing only in
+   the comment above it.
+
+   That duplication was not a style problem here. This file is edited by string surgery and
+   the house rule is that anchors are unreliable at first occurrence — a stamp pattern once
+   matched three elements and produced three rogue stamps. Any anchor into this block
+   matched TWICE, and that is exactly how the v7.5 build shipped a fix applied to the branch
+   that was read and not to the one that was not: the crossing branch returns BEFORE the
+   projection branch, so the miss was invisible until an audit executed that path.
+
+   Behaviour is unchanged: gated on a live steer via conditionalForesight(s), carries the
+   ONE engine-owned number (digitalTwin.etaMid), recomputes live off s, and returns null —
+   collapsing onto the measured line above — when no steer is staged. */
+function ConditionalForesightLine({ s }) {
+  const cf = conditionalForesight(s);
+  if (!cf) return null;
+  return (
+    <div style={{ marginTop: SP.sm, paddingTop: SP.sm, borderTop: `1px dashed ${T.line}` }}>
+      <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>if you hold this new target</div>
+      <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs }}>
+        {etaReached(cf.etaWks) ? <>target reached {cf.label}</> : <>~<span data-num style={{ fontFamily: mono }}>{cf.etaWks}</span> wks {cf.label}</>}
+      </div>
+      <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>plan-conditional — not your measured trend yet; it converges as weigh-ins land</div>
+    </div>
+  );
+}
+
 function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [askOpen, setAskOpen] = useState(false);
   const [lawsOpen, setLawsOpen] = useState(false);
@@ -9701,50 +9838,17 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                   </div>
                   <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.45, marginTop: SP.xs }}>{fc.cause}</div>
                   <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>~{fc.wksEarly}–{fc.wksLate} wks · ≈{Math.round(fc.prob * 100)}% within {FORE.H_INFO} wks · a range, not a date</div>
-                  {(() => {
-                    /* v7.4.1 — the SUBORDINATE, plan-CONDITIONAL line, ALSO surfaced while the redline warning
-                       is firing. This branch returns BEFORE the PROJECTION branch, so without this the applied
-                       ease's ETA was computed by conditionalForesight() but never rendered. Same selector, same
-                       ONE engine-owned number (digitalTwin.etaMid), same honest label as the projection
-                       placement below. Null when no steer is live ⇒ the crossing warning renders unchanged. */
-                    const cf = conditionalForesight(s);
-                    if (!cf) return null;
-                    return (
-                      <div style={{ marginTop: SP.sm, paddingTop: SP.sm, borderTop: `1px dashed ${T.line}` }}>
-                        <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>if you hold this new target</div>
-                        <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs }}>
-                          {etaReached(cf.etaWks) ? <>target reached {cf.label}</> : <>~<span data-num style={{ fontFamily: mono }}>{cf.etaWks}</span> wks {cf.label}</>}
-                        </div>
-                        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>plan-conditional — not your measured trend yet; it converges as weigh-ins land</div>
-                      </div>
-                    );
-                  })()}
+                  <ConditionalForesightLine s={s} />
                 </div>
               );
               if (fx.ok && fx.confident && fx.etaMid != null) return (
                 <div style={{ borderTop: `1px solid ${T.line}`, marginTop: SP.md, paddingTop: SP.md }}>
                   <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>FORESIGHT · PROJECTION</div>
                   <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs }}>
-                    {etaReached(fx.etaMid) ? <>target reached — {fx.targetPct}% BF</> : <>~<span data-num style={{ fontFamily: mono }}>{fx.etaMid}</span> wks to {fx.targetPct}% BF{fx.etaFast != null && fx.etaSlow != null ? <> · range <span data-num style={{ fontFamily: mono }}>{fx.etaFast}–{fx.etaSlow}</span> wks</> : null}</>}
+                    {etaReached(fx.etaMid) ? <>target reached — {fx.targetPct}% BF</> : <>~<span data-num style={{ fontFamily: mono }}>{fx.etaMid}</span> wks to {fx.targetPct}% BF{fx.etaFast != null && fx.etaSlow != null ? <> · range <span data-num style={{ fontFamily: mono }}>{fx.etaFast < 1 ? "<1" : fx.etaFast}–{fx.etaSlow}</span> wks</> : null}</>}
                   </div>
                   <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>the fan widens with distance — a projection, not a promise</div>
-                  {(() => {
-                    /* v7.4.1 — the SUBORDINATE, plan-CONDITIONAL line. Appears ONLY while a steer is live,
-                       is clearly labeled hypothetical, carries ONE engine-owned number (digitalTwin.etaMid),
-                       recomputes LIVE off s each render, and collapses onto the measured line above when
-                       there is no steer. See conditionalForesight(). */
-                    const cf = conditionalForesight(s);
-                    if (!cf) return null;
-                    return (
-                      <div style={{ marginTop: SP.sm, paddingTop: SP.sm, borderTop: `1px dashed ${T.line}` }}>
-                        <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>if you hold this new target</div>
-                        <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs }}>
-                          {etaReached(cf.etaWks) ? <>target reached {cf.label}</> : <>~<span data-num style={{ fontFamily: mono }}>{cf.etaWks}</span> wks {cf.label}</>}
-                        </div>
-                        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>plan-conditional — not your measured trend yet; it converges as weigh-ins land</div>
-                      </div>
-                    );
-                  })()}
+                  <ConditionalForesightLine s={s} />
                 </div>
               );
               return (
@@ -9803,13 +9907,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               (the body used to re-render the same engine field raw and 2dp, so a reversed
               week read +1.2 above and -1.23 below). */}
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, paddingTop: SP.md, borderTop: `1px solid ${T.line}`, lineHeight: 1.5 }}>
-            {rc.showRate && pp.ok
+            {paceShown(rc, pp)
               ? <>At <span data-num style={{ fontFamily: mono, color: T.chalk }}>{rc.rate}</span>, {pp.wks} more weeks puts you near <span data-num style={{ fontFamily: mono, color: T.chalk }}>{pp.mid}</span> lb — anywhere from <span data-num style={{ fontFamily: mono }}>{pp.lo}</span> to <span data-num style={{ fontFamily: mono }}>{pp.hi}</span> lb once the interval on that rate is carried through. There is no date on this — you stop when the body-fat read and the mirror say stop, not when a calendar does.</>
               : sig.state === "calibrating"
-                ? <>No projection yet — two clean weekly snapshots and this reads off your measured rate instead of an estimate.</>
+                ? <>No projection yet — the forward read needs a rate measured off your daily weigh-ins, which takes ten clean mornings inside a four-week window. Weekly snapshots alone can move the trend line, but they carry no interval, so nothing forward can be said from them.</>
                 : <>No projection yet — this week is still inside your own noise, so a forward number would claim more than the trend supports. It appears when the rate clears.</>}
           </div>
-          {rc.showRate && pp.ok ? (
+          {paceShown(rc, pp) ? (
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>
               {/* G3 — no un-banded variant here: this block only renders when rc.showRate is
                   true, which implies the regression path, which implies a CI. pp.banded is
@@ -9834,10 +9938,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           forYou={(() => { const bfN = bfEst(s);
             const fatTxt = pp.ok ? `${pp.fat > 0 ? "−" : "+"}${Math.abs(pp.fat).toFixed(1)} lb/wk` : "";
             return [
-            rc.showRate && pp.ok
-              ? `Measured pace ${rc.rate} on the scale, about ${fatTxt} of that fat-equivalent.`
+            paceShown(rc, pp)
+              ? `${rc.word} — pace ${rc.rate} on the scale, about ${fatTxt} of that fat-equivalent.`   // F — the panel cannot claim a stronger status than the card it lives in
               : sig.state === "calibrating"
-                ? "Pace still settling — two clean weekly snapshots and it goes fully measured."
+                ? "Pace still settling — the measured rate comes off ten clean daily weigh-ins inside a four-week window; weekly snapshots move the trend but carry no interval."
                 : "Pace is inside your own noise this week, so there is no measured figure to give yet — the read above says the same thing.",
             `Body fat reads ${bfN.pct}%, and the honest interval is ${bfN.lo}–${bfN.hi}% — that width is real, not decoration, and it narrows as the trend lengthens.`,
             "The cone on the LAB tab shows the same thing across time.",
@@ -9986,11 +10090,15 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           call site — became unmakeable. Nothing was deleted, but a write Joe owed could no
           longer be made.
 
-          Fixed by residency rather than the audit's preferred new owed kind: it is the
-          smaller honest change, touching no tested selector; it makes the card visible
-          instead of one tap behind a link; and it costs nothing on an ordinary day, because
-          the card renders nothing unless an unfiled event is on file. Same reasoning the
-          audit already ACCEPTED for the approval inbox. */}
+          Fixed in three passes: residency (round 1) made the card reachable, eventFocus
+          (round 2) gave it one sorted selector with a bounded lead window, and round 3
+          removed the expiry entirely — a CLOSABLE event has no cutoff, and EVENT_GRACE_D
+          now only decides tone via `stale`. See eventFocus / EVENT_LEAD_D / EVENT_GRACE_D
+          for the current rules; this card renders whatever that selector returns.
+
+
+
+          The approval inbox is a sibling surface for the same reason. */}
       {ev && (
         <Card accent={T.chalk}>
           <Eyebrow>EVENT MODE · {fmtShort(ev.d)}</Eyebrow>
@@ -9998,9 +10106,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>{ev.protocol}. Events filed without a make-up day: <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> straight — an event never buys a punishment here: tomorrow runs exactly as planned.</div>
           {evF.closable && (
             <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-              {evF.overdue && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>waiting on you to close it — the ledger doesn't guess</div>}
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginBottom: 8 }}>after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button</div>
-              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>File the event ✓ — your estimate goes in tonight's numbers</Btn>
+              {evF.overdue && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>{evF.stale ? `unfiled for ${Math.abs(evF.days)} days — this stays here until you close it, because a miss you never see is a miss the ledger silently ate` : "waiting on you to close it — the ledger doesn't guess"}</div>}
+            {/* r3 blocker C — this copy was written for D and D+1 and used to render
+                 unconditionally inside evF.closable. On D+4 it told him to put a four-day-old
+                 dinner into TONIGHT's log — mis-dated intake landing in the ledger the whole
+                 trend is computed from. Same class as EVENT_RECENCY_NOTE. */}
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginBottom: 8 }}>{evF.days >= -1 ? "after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button" : `one tap files it against ${fmtShort(ev.d)}, the day it happened — not tonight. Tomorrow runs the normal plan either way.`}</div>
+              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>{evF.days >= -1 ? "File the event ✓ — your estimate goes in tonight's numbers" : `File it against ${fmtShort(ev.d)} ✓ — where it belongs`}</Btn>
             </div>
           )}
         </Card>
@@ -10773,7 +10885,11 @@ function LogTab({ s, setS, save, slp }) {
   useEffect(() => {
     try {
       const d = JSON.parse(localStorage.getItem(draftKey) || "null");
-      setReps(d && d.reps ? d.reps : {}); setRir(d && d.rir ? d.rir : {}); setRirEnd(d && d.rirEnd ? d.rirEnd : {}); setSkipped(d && d.skipped ? d.skipped : {}); setNote(d && d.note ? d.note : ""); setNig(d && d.nig ? d.nig : []); setPace(d && d.pace ? d.pace : null);
+      /* One draft, one truth — see mergeSessionDrafts. The gym draft wins for anything it
+         touched, and any lift Gym Mode never reached defaults to skipped, not to target. */
+      const gd = JSON.parse(localStorage.getItem("prep-ledger-gymdraft-" + dateSel) || "null");
+      const m = mergeSessionDrafts(sess && sess.ex, d, gd);
+      setReps(m.reps); setRir(m.rir); setRirEnd(m.rirEnd); setSkipped(m.skipped); setNote(d && d.note ? d.note : ""); setNig(d && d.nig ? d.nig : []); setPace(d && d.pace ? d.pace : null);
     } catch (e) {}
   }, [dateSel]);
   useEffect(() => {
@@ -10977,6 +11093,8 @@ function LogTab({ s, setS, save, slp }) {
                     const i = arr.indexOf(ex.id), j = i + dir;
                     if (i < 0 || j < 0 || j >= arr.length) return;
                     [arr[i], arr[j]] = [arr[j], arr[i]];
+                    /* stamp the deliberate reorder so a stale device cannot revert it — see _unionExOrder */
+                    ns.exOrder.setAt = { ...(ns.exOrder.setAt || {}), [dayType(dateSel)]: new Date().toISOString() };
                     setS(ns); save(ns);
                   }} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, fontFamily: mono, fontSize: TS.label }}>{g}</button>
                 ))}
@@ -12177,6 +12295,39 @@ function restLine(exId, nSets) {
 
    entries and skipped PARTITION the session: every lift lands in exactly one, which is
    what makes 'nothing counted' checkable rather than merely claimed. */
+/* mergeSessionDrafts — TRAIN and Gym Mode keep separate drafts for the same session, and
+   the gap between them is a second phantom-rep path: leave Gym Mode at lift 4, tap
+   Complete session on TRAIN, and TRAIN's untouched steppers log every remaining lift at
+   its TARGET. The guard at the log screen prevents double-logging, not wrong-logging.
+
+   This makes the gym draft authoritative for anything it touched, and — the part that
+   closes the hole — defaults every lift Gym Mode never REACHED to skipped rather than to
+   target. Not reaching a lift is evidence it was not performed; target reps are not.
+   Joe can still un-skip any of them on TRAIN and type real numbers, so the default is
+   recoverable in the direction that costs nothing and unrecoverable in neither.
+
+   Pure, so the invariant 'the two drafts cannot disagree' is assertable. */
+function mergeSessionDrafts(sessEx, trainDraft, gymDraft) {
+  const list = sessEx || [];
+  const t = trainDraft || {}, g = gymDraft || null;
+  const out = {
+    reps: { ...(t.reps || {}) }, rir: { ...(t.rir || {}) },
+    rirEnd: { ...(t.rirEnd || {}) }, skipped: { ...(t.skipped || {}) },
+  };
+  if (!g) return out;
+  const gReps = g.reps || {}, gRir = g.rir || {}, gRirEnd = g.rirEnd || {}, gSkip = g.gskip || {};
+  const reached = typeof g.idx === "number" ? g.idx : -1;
+  list.forEach((ex, i) => {
+    if (gReps[ex.id] != null) out.reps[ex.id] = gReps[ex.id];
+    if (gRir[ex.id] != null) out.rir[ex.id] = gRir[ex.id];
+    if (gRirEnd[ex.id] != null) out.rirEnd[ex.id] = gRirEnd[ex.id];
+    if (gSkip[ex.id]) out.skipped[ex.id] = true;
+    // never reached in the gym, and nothing typed on TRAIN -> not performed
+    if (i > reached && gReps[ex.id] == null && (t.reps || {})[ex.id] == null) out.skipped[ex.id] = true;
+  });
+  return out;
+}
+
 function gymEntries(sessEx, st) {
   const o = st || {};
   const reps = o.reps || {}, rir = o.rir || {}, rirEnd = o.rirEnd || {}, gskip = o.gskip || {};
@@ -12195,7 +12346,7 @@ function gymEntries(sessEx, st) {
    session rushed — which pulls it out of the progression evidence via liftCall. */
 const REST_CUT_S = 60;
 function restCut(startMs, nowMs) { return Math.floor(((nowMs || 0) - (startMs || 0)) / 1000) < REST_CUT_S; }
-__test.gymEntries = gymEntries; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
+__test.gymEntries = gymEntries; __test.mergeSessionDrafts = mergeSessionDrafts; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
 
 function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [idx, setIdx] = useState(0);
@@ -12271,7 +12422,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const skipLift = () => { setGskip((g) => ({ ...g, [ex.id]: true })); nextLift(); };
   const finish = () => {
     const split = gymEntries(sess.ex, { reps, rir, rirEnd, gskip });   // SKIP_ONE_PATH — entries and skipped partition the session
-    try { localStorage.removeItem(gymKey); } catch (e) {}
+    try { localStorage.removeItem(gymKey); localStorage.removeItem("prep-ledger-draft-" + dateSel); } catch (e) {}   // both drafts, or the other one resurrects a logged session
     /* n-gated like every other read in here: under three rests there is no
        session-level statement to make, so it stays unknown rather than guessed. */
     const pace = rests.n >= 3 ? (rests.cut / rests.n >= 0.5 ? PACE.rushed : PACE.normal) : null;

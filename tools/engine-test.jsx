@@ -3604,11 +3604,63 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
   ok(GE(sessEx, { gskip: { press: true, row: true, pronated: true, ham: true } }).entries.length === 0, "GYM — skipping every lift emits no entries at all");
   ok(GE(null, null).entries.length === 0 && GE(undefined, undefined).skipped.length === 0, "GYM — gymEntries is total: no session, no entries, no throw");
 
+  // QUEUED #2 E — exOrder had NO merge hardening and rode the wholesale local-wins spread.
+  // An ordering cannot be keyed-unioned, so the rules are newest-deliberate-wins plus
+  // never-lose-a-lift. Both write orders are asserted, as the data-safety guardrail requires.
+  {
+    const UX = __test._unionExOrder;
+    const NEW = "2026-08-04T10:00:00.000Z", OLD = "2026-08-01T10:00:00.000Z";
+
+    // the reported failure: reorder on the phone, then sync from a device that never saw it
+    const phone = { U: ["b", "a", "c"], setAt: { U: NEW } };
+    const stale = { U: ["a", "b", "c"] };
+    ok(JSON.stringify(UX(phone, stale).U) === JSON.stringify(["b", "a", "c"]), "EXORDER — a stamped reorder beats an unstamped stale order even when the stale one is LOCAL: only one side made a deliberate choice");
+    ok(JSON.stringify(UX(stale, phone).U) === JSON.stringify(["b", "a", "c"]), "EXORDER — and the same result with the write order reversed");
+
+    // newest deliberate change wins, both directions
+    const A9 = { U: ["a", "b", "c"], setAt: { U: OLD } }, B9 = { U: ["c", "b", "a"], setAt: { U: NEW } };
+    ok(JSON.stringify(UX(A9, B9).U) === JSON.stringify(["c", "b", "a"]) && JSON.stringify(UX(B9, A9).U) === JSON.stringify(["c", "b", "a"]), "EXORDER — the newer stamp wins regardless of which side is remote");
+
+    // MUST-NOT-LOSE: a lift on only one side is appended, never dropped, both directions
+    const few = { U: ["a", "b"], setAt: { U: NEW } }, many = { U: ["a", "b", "c", "d"], setAt: { U: OLD } };
+    ok(["a", "b", "c", "d"].every((x) => UX(few, many).U.includes(x)), "EXORDER — a lift missing from the winning order is appended, not lost");
+    ok(["a", "b", "c", "d"].every((x) => UX(many, few).U.includes(x)), "EXORDER — …in both write orders");
+    ok(UX(few, many).U.length === 4 && new Set(UX(few, many).U).size === 4, "EXORDER — and no lift is duplicated in the process");
+
+    // unstamped on both sides keeps the prior local-wins semantics
+    ok(JSON.stringify(UX({ U: ["a", "b"] }, { U: ["b", "a"] }).U) === JSON.stringify(["b", "a"]), "EXORDER — with neither side stamped, local still wins: no behaviour change for states that predate the stamp");
+    ok(UX(null, { U: ["a"] }).U.length === 1 && UX({ U: ["a"] }, null).U.length === 1, "EXORDER — total: a missing side is not a crash");
+
+    // and through the real mergeState, both orders, with a second day key untouched
+    const mkO = (o) => { const st = clone(SEED); st.exOrder = o; return st; };
+    const l1 = mkO({ U: ["b", "a"], L: ["x", "y"], setAt: { U: NEW } });
+    const r1 = mkO({ U: ["a", "b"], L: ["x", "y"] });
+    ok(JSON.stringify(__test.mergeState(l1, r1).exOrder.U) === JSON.stringify(["b", "a"]), "EXORDER — mergeState honours the stamp");
+    ok(JSON.stringify(__test.mergeState(r1, l1).exOrder.U) === JSON.stringify(["b", "a"]), "EXORDER — mergeState honours it in the other write order too");
+    ok(JSON.stringify(__test.mergeState(l1, r1).exOrder.L) === JSON.stringify(["x", "y"]), "EXORDER — an untouched day key is unaffected");
+  }
+
+
   // REST_WALLCLOCK — the iOS failure was a throttled counter, so the test simulates the gap
   ok(RC(1000, 1000 + 10 * 1000) === true, "REST — 10s of rest is a cut rest");
   ok(RC(1000, 1000 + CUT * 1000) === false, "REST — exactly the threshold is not a cut");
   ok(RC(1000, 1000 + 150 * 1000) === false, "REST — a full 150s rest is NOT cut when measured from the wall clock, no matter how few times a throttled interval managed to fire (this is the iOS-in-pocket case that was flagging honest sessions as rushed)");
   ok(RC(0, 0) === true, "REST — a zero-length rest is cut, and restCut never throws on missing timestamps");
+
+  // THE TWO DRAFTS CANNOT DISAGREE — leaving Gym Mode partway used to let TRAIN log every
+  // remaining lift at TARGET, a second phantom-rep path with a different cause.
+  const MSD = __test.mergeSessionDrafts;
+  const gymAt4 = { reps: { press: [8, 8], row: [12, 11] }, rir: { press: 2 }, gskip: {}, idx: 1 };
+  const m = MSD(sessEx, null, gymAt4);
+  ok(JSON.stringify(m.reps.press) === JSON.stringify([8, 8]) && m.rir.press === 2, "DRAFTS — what Gym Mode recorded is authoritative on TRAIN");
+  ok(m.skipped.pronated === true && m.skipped.ham === true, "DRAFTS — lifts Gym Mode never REACHED default to skipped, not to their target reps: this is the second phantom path");
+  ok(!m.skipped.press && !m.skipped.row, "DRAFTS — lifts he actually performed are not marked skipped");
+  ok(MSD(sessEx, null, { ...gymAt4, gskip: { row: true } }).skipped.row === true, "DRAFTS — an explicit gym skip carries across to TRAIN");
+  const typed = MSD(sessEx, { reps: { ham: [10, 10] } }, gymAt4);
+  ok(!typed.skipped.ham && JSON.stringify(typed.reps.ham) === JSON.stringify([10, 10]), "DRAFTS — a lift he typed on TRAIN himself is kept and NOT force-skipped, so the default stays recoverable");
+  ok(JSON.stringify(MSD(sessEx, { reps: { press: [9, 9] } }, null).reps.press) === JSON.stringify([9, 9]), "DRAFTS — with no gym draft, TRAIN behaves exactly as before");
+  ok(Object.keys(MSD(null, null, null).skipped).length === 0, "DRAFTS — mergeSessionDrafts is total: no session, no drafts, no throw");
+
 }
 
 ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DOORS).length, "the door keys are distinct — two doors sharing a persistKey would make one uncloseable");
@@ -3636,7 +3688,29 @@ ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DO
   const today = EF({ events: [ev(0, "Lunch")] });
   ok(today.ev && today.closable === true && today.overdue === false, "an event TODAY is closable but not yet overdue");
 
-  ok(EF({ events: [ev(-GRACE - 1, "Ancient")] }).ev === null, "past the grace window an unfiled event stops being surfaced — the card does not nag forever");
+  // r3 blocker A — a miss must NOT expire. The grace window used to bound existence, which
+  // only moved the cliff from midnight to midnight+7d; past it closeEvent was unmakeable
+  // again and nothing recorded the lapse. It now bounds TONE only.
+  ok(EF({ events: [ev(-GRACE - 1, "Ancient")] }).closable === true, "BLOCKER A — an unfiled event past the grace window is STILL closable: a miss does not expire");
+  ok(EF({ events: [ev(-GRACE - 1, "Ancient")] }).stale === true, "…and is marked stale, so the copy can change without the event disappearing");
+  ok(EF({ events: [ev(-1, "Yesterday")] }).stale === false, "a fresh miss is not stale — the grace window still decides tone");
+  ok(EF({ events: [ev(-400, "Last year")] }).ev !== null, "even a very old unfiled event keeps its surface — the alternative is the ledger silently eating it");
+  ok(EF({ events: [ev(-400, "Filed", true)] }).ev === null, "…but a FILED event still drops out, however old");
+  // the live case this was found on
+  ok(EF({ events: [{ id: "wed2", d: "2026-07-25", t: "WEDDING #2", estimated: false }] }).closable === true, "BLOCKER A — the shipped state’s own WEDDING #2 (2026-07-25, unfiled) is reachable again; before this it returned null and the miss was invisible");
+
+  // r3 blocker D — the instruction and the button must name the SAME event. openEv was a raw
+  // find() over array order while the card showed the most overdue, so with two unfiled
+  // events the app said "Close out A" and its only button filed B.
+  {
+    const two = { events: [ev(-1, "Yesterday dinner"), ev(-4, "Older wedding")], dailyLogs: {}, sessionLog: {}, sleep: { nights: [] }, fixWindow: null };
+    const card = EF(two);
+    ok(card.ev.t === "Older wedding", "the card shows the most overdue of two unfiled events");
+    const st2 = clone(SEED); st2.events = two.events;
+    const one2 = __test.theOneThing(st2, { clean: true, run: 3, need: 3, last: { h: 8 } }, 9, 30);
+    const named = String(one2.t).startsWith("Close out") ? String(one2.t).replace("Close out ", "") : null;
+    ok(named === null || named === EF(st2).ev.t, "BLOCKER D — when the one thing says \"Close out X\", X is the SAME event the card’s button files; both now route through eventFocus");
+  }
   ok(EF({ events: [ev(-1, "Filed", true)] }).ev === null, "a FILED event drops out on its own, because closeEvent sets estimated = true");
 
   // residency window: a far-off event must not park an actionless card on the fold (minor G1)
@@ -3688,7 +3762,7 @@ ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DO
   // by up to the width of the band itself.
   ok(ppReg.mid === +(reg.trend - ppReg.rateShown * WKS).toFixed(1), "the projection reconciles with the printed rate — trend minus the SHOWN rate times the horizon is exactly what the card says");
   ok(ppReg.banded === true && ppReg.lo < ppReg.mid && ppReg.mid < ppReg.hi, "a regression rate carries a CI, so the projection brackets its own midpoint");
-  ok(ppReg.lo === +(reg.trend - crReg.hi * WKS).toFixed(1), "a FASTER loss lands a LOWER weight — the light end of the projection comes off the rate's hi, not its lo");
+  ok(ppReg.lo === +(reg.trend - crReg.hi * WKS).toFixed(1), "a FASTER loss lands a LOWER weight — the light end comes off the rate's hi. The endpoint uses the RAW CI bound: it is never printed as a rate, so rounding it bought no reconciliation and could collapse the band onto the midpoint below ci 0.05");
 
   const snp = clone(SEED); snp.blackout = { until: "2026-05-01" };
   snp.reads = Array.from({ length: 6 }, (_, i) => ({ d: ago(6 - 1 - i), w: +(170 - i * 0.1).toFixed(2), sealed: false }));
@@ -3698,6 +3772,16 @@ ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DO
 
   // The blocker itself: the two predicates DIVERGE, which is why the card must gate on the read's.
   ok(CR(snp).measured === true && SRC(snp, SS(snp)).showRate === false, "BLOCKER 2 — the gates diverge: currentRate.measured is TRUE on a snapshots rate while the read abstains, which is exactly how one card came to quote a rate its own headline said was unreadable");
+  // H2 — the card body and the More panel inside the SAME Card must share one gate. They
+  // did not, and the defect recurred in a sibling of the element it was first fixed in.
+  {
+    const PS = __test.paceShown;
+    ok(PS({ showRate: true }, { ok: true }) === true, "paceShown: a measured read with a live projection prints");
+    ok(PS({ showRate: false }, { ok: true }) === false, "paceShown: the READ abstaining suppresses the pace figure — this is the state where the panel used to print \"Measured pace\" under \"no real change to read yet\"");
+    ok(PS({ showRate: true }, { ok: false }) === false, "paceShown: no projection, no figure");
+    ok(PS(null, null) === false && PS(undefined, { ok: true }) === false, "paceShown is total and fails closed");
+    ok(PS(SRC(snp, SS(snp)), PP(snp)) === false, "paceShown says NO on the real two-snapshot fixture — the exact state where currentRate.measured is true but the read abstains");
+  }
 }
 
 
@@ -3866,6 +3950,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(typeof fSeed.ok === "boolean" && Array.isArray(fSeed.cone) && fSeed.crossing != null, "forecast returns a cone + a crossing over the real SEED");
   const dtSeed = dt(clone(SEED));
   ok(fSeed.rate === dtSeed.newRate, "forecast READS digitalTwin.newRate — the ONE projection, it computes no second rate");
+  // v7.5 polish — forecast and energyDensity are memoised on state IDENTITY. Pin the
+  // contract: same object, same answer; a fresh clone recomputes.
+  {
+    const s1 = clone(SEED);
+    ok(__test.forecast(s1) === __test.forecast(s1), "forecast is memoised per state object — one render asks four times and gets one computation");
+    ok(__test.forecast(clone(SEED)) !== __test.forecast(s1), "a CLONE recomputes — the cache keys on identity, and every write path in this app clones");
+    ok(__test.energyDensity(s1) === __test.energyDensity(s1), "energyDensity is memoised the same way");
+    ok(JSON.stringify(__test.forecast(clone(SEED))) === JSON.stringify(__test.forecast(s1)), "…and the memoised answer is VALUE-identical to a fresh one: this is a cache, not a behaviour change");
+  }
   ok(fSeed.crossing && typeof fSeed.crossing.fires === "boolean", "forecast's crossing on the real SEED resolves to a fires boolean (self-suppresses on the real read-path)");
   const injRate = { measured: true, scale: 1.2, ci: 0.4, sigma: 0.8, lo: 0.8, hi: 1.6 };
   const fCal = FC(clone(SEED), { deps: { sig: { state: "calibrating" }, rate: injRate, band: { redline: 1.9, band: [1.0, 1.16] }, tw: dtSeed } });
