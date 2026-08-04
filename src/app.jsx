@@ -7982,6 +7982,51 @@ function _unionKeyed(remoteArr, localArr, keyOf, scoreOf) {
        write order (the adversarial property the gate asserts).
    Everything else on plan (share, per-day dismiss guards) rides the {...R,...L} base unchanged. */
 const PLAN_POLICY_SCALARS = ["apMode", "autonomy", "phase", "brk"];   // v7.4.0 Slice 5 — the committed macro-phase + the current diet-break decision are policy, newest-deliberate-wins
+/* _unionExOrder — reconcile the per-day lift ORDER. An ordering cannot be keyed-unioned:
+   the order IS the data, so there is no per-entry winner to pick. It also cannot ride the
+   wholesale {...remote, ...local}, which is what it did — local wins entirely, so a sync
+   from a device that had not seen the reorder silently reverted it. Same clobber class the
+   code already documents for exercises/queue.
+
+   Two rules, in order:
+     MUST-NOT-REVERT — a deliberate reorder carries an ISO stamp (setAt, per day key,
+       written by the reorder control exactly as savePlan stamps its policy scalars). The
+       strictly newer stamp wins. One side stamped and the other not means only one side
+       made a deliberate choice, so that side wins regardless of which is local.
+     MUST-NOT-LOSE — whichever order wins, any lift id present on the other side and
+       missing from it is appended rather than dropped. A lift can never fall out of the
+       running order because two devices disagreed about position.
+
+   No schema bump: a historical exOrder has no knowable setAt, and the only honest value
+   for one is absent. That is the `pace` precedent in CLAUDE.md — bump when old data can be
+   RESTATED into the new shape, skip when the only honest answer is "we don't know".
+   Absent reads as unstamped at every call site here. */
+function _unionExOrder(remote, local) {
+  const R = remote && typeof remote === "object" ? remote : null;
+  const L2 = local && typeof local === "object" ? local : null;
+  if (!R) return L2 || R;
+  if (!L2) return R;
+  const rSet = (R.setAt && typeof R.setAt === "object") ? R.setAt : {};
+  const lSet = (L2.setAt && typeof L2.setAt === "object") ? L2.setAt : {};
+  const days = Array.from(new Set([...Object.keys(R), ...Object.keys(L2)])).filter((k) => k !== "setAt");
+  const out = {}, outSet = { ...rSet, ...lSet };
+  for (const d of days) {
+    const ra = Array.isArray(R[d]) ? R[d] : null, la = Array.isArray(L2[d]) ? L2[d] : null;
+    if (!ra && !la) continue;
+    if (!ra) { out[d] = la.slice(); continue; }
+    if (!la) { out[d] = ra.slice(); continue; }
+    const rs = rSet[d] || "", ls = lSet[d] || "";
+    const winner = rs > ls ? ra : ls > rs ? la : la;   // newer deliberate change; tie/unstamped -> local
+    const loser = winner === ra ? la : ra;
+    const merged = winner.slice();
+    for (const id of loser) if (!merged.includes(id)) merged.push(id);   // MUST-NOT-LOSE
+    out[d] = merged;
+    outSet[d] = rs > ls ? rs : (ls || rs);
+  }
+  if (Object.keys(outSet).length) out.setAt = outSet;
+  return out;
+}
+
 function _unionPlan(remote, local) {
   const R = remote && typeof remote === "object" ? remote : {};
   const L = local && typeof local === "object" ? local : {};
@@ -8053,6 +8098,7 @@ function mergeState(local, remote) {
   out.sleep = { ...(remote.sleep || {}), ...(local.sleep || {}), nights: _unionBy(rn, ln, (n) => n && n.d) };
   out.plan = _unionPlan(remote.plan, local.plan);   // v7.2.0 Slice 3 — goals/ifthen keyed-union + policy scalars newest-deliberate-wins (was wholesale local-wins)
   out.learned = _unionLearned(remote.learned, local.learned);   // v7.3.0 Slice 4 — learned TDEE series + anchor log keyed-union (never clobbered by a stale sync)
+  out.exOrder = _unionExOrder(remote.exOrder, local.exOrder);   // QUEUED #2 E — was riding the wholesale local-wins spread; an ordering needs newest-deliberate-wins + never-lose-a-lift
   return out;
 }
 
@@ -8897,7 +8943,7 @@ __test.STATUS_WORDS = STATUS_WORDS;
 /* v7.2.0 Slice 3 — TRUST engine selectors (registered here, after the __test declaration) */
 __test.autonomyOf = autonomyOf; __test.escalation = escalation; __test.autoPilotPolicy = autoPilotPolicy;
 __test.whyThisNumber = whyThisNumber; __test.confidenceField = confidenceField; __test.trackRecord = trackRecord;
-__test.AUTONOMY_LEVELS = AUTONOMY_LEVELS; __test.AUTONOMY_META = AUTONOMY_META; __test._unionPlan = _unionPlan;
+__test.AUTONOMY_LEVELS = AUTONOMY_LEVELS; __test.AUTONOMY_META = AUTONOMY_META; __test._unionPlan = _unionPlan; __test._unionExOrder = _unionExOrder;
 __test.lastUndoable = lastUndoable; __test.undoAdjustment = undoAdjustment;
 __test.apAutoHandledFor = apAutoHandledFor; __test._freshId = _freshId;   // v7.2.0 audit — once/day guard predicate + collision-resistant id
 /* v7.4.0 Slice 5 — PHASE ARC selectors under test (phase model, honest diet break, supervisor phase-veto, propose-only steer) */
@@ -10981,6 +11027,8 @@ function LogTab({ s, setS, save, slp }) {
                     const i = arr.indexOf(ex.id), j = i + dir;
                     if (i < 0 || j < 0 || j >= arr.length) return;
                     [arr[i], arr[j]] = [arr[j], arr[i]];
+                    /* stamp the deliberate reorder so a stale device cannot revert it — see _unionExOrder */
+                    ns.exOrder.setAt = { ...(ns.exOrder.setAt || {}), [dayType(dateSel)]: new Date().toISOString() };
                     setS(ns); save(ns);
                   }} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, fontFamily: mono, fontSize: TS.label }}>{g}</button>
                 ))}

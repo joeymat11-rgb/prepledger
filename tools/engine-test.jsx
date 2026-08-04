@@ -3604,6 +3604,43 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
   ok(GE(sessEx, { gskip: { press: true, row: true, pronated: true, ham: true } }).entries.length === 0, "GYM — skipping every lift emits no entries at all");
   ok(GE(null, null).entries.length === 0 && GE(undefined, undefined).skipped.length === 0, "GYM — gymEntries is total: no session, no entries, no throw");
 
+  // QUEUED #2 E — exOrder had NO merge hardening and rode the wholesale local-wins spread.
+  // An ordering cannot be keyed-unioned, so the rules are newest-deliberate-wins plus
+  // never-lose-a-lift. Both write orders are asserted, as the data-safety guardrail requires.
+  {
+    const UX = __test._unionExOrder;
+    const NEW = "2026-08-04T10:00:00.000Z", OLD = "2026-08-01T10:00:00.000Z";
+
+    // the reported failure: reorder on the phone, then sync from a device that never saw it
+    const phone = { U: ["b", "a", "c"], setAt: { U: NEW } };
+    const stale = { U: ["a", "b", "c"] };
+    ok(JSON.stringify(UX(phone, stale).U) === JSON.stringify(["b", "a", "c"]), "EXORDER — a stamped reorder beats an unstamped stale order even when the stale one is LOCAL: only one side made a deliberate choice");
+    ok(JSON.stringify(UX(stale, phone).U) === JSON.stringify(["b", "a", "c"]), "EXORDER — and the same result with the write order reversed");
+
+    // newest deliberate change wins, both directions
+    const A9 = { U: ["a", "b", "c"], setAt: { U: OLD } }, B9 = { U: ["c", "b", "a"], setAt: { U: NEW } };
+    ok(JSON.stringify(UX(A9, B9).U) === JSON.stringify(["c", "b", "a"]) && JSON.stringify(UX(B9, A9).U) === JSON.stringify(["c", "b", "a"]), "EXORDER — the newer stamp wins regardless of which side is remote");
+
+    // MUST-NOT-LOSE: a lift on only one side is appended, never dropped, both directions
+    const few = { U: ["a", "b"], setAt: { U: NEW } }, many = { U: ["a", "b", "c", "d"], setAt: { U: OLD } };
+    ok(["a", "b", "c", "d"].every((x) => UX(few, many).U.includes(x)), "EXORDER — a lift missing from the winning order is appended, not lost");
+    ok(["a", "b", "c", "d"].every((x) => UX(many, few).U.includes(x)), "EXORDER — …in both write orders");
+    ok(UX(few, many).U.length === 4 && new Set(UX(few, many).U).size === 4, "EXORDER — and no lift is duplicated in the process");
+
+    // unstamped on both sides keeps the prior local-wins semantics
+    ok(JSON.stringify(UX({ U: ["a", "b"] }, { U: ["b", "a"] }).U) === JSON.stringify(["b", "a"]), "EXORDER — with neither side stamped, local still wins: no behaviour change for states that predate the stamp");
+    ok(UX(null, { U: ["a"] }).U.length === 1 && UX({ U: ["a"] }, null).U.length === 1, "EXORDER — total: a missing side is not a crash");
+
+    // and through the real mergeState, both orders, with a second day key untouched
+    const mkO = (o) => { const st = clone(SEED); st.exOrder = o; return st; };
+    const l1 = mkO({ U: ["b", "a"], L: ["x", "y"], setAt: { U: NEW } });
+    const r1 = mkO({ U: ["a", "b"], L: ["x", "y"] });
+    ok(JSON.stringify(__test.mergeState(l1, r1).exOrder.U) === JSON.stringify(["b", "a"]), "EXORDER — mergeState honours the stamp");
+    ok(JSON.stringify(__test.mergeState(r1, l1).exOrder.U) === JSON.stringify(["b", "a"]), "EXORDER — mergeState honours it in the other write order too");
+    ok(JSON.stringify(__test.mergeState(l1, r1).exOrder.L) === JSON.stringify(["x", "y"]), "EXORDER — an untouched day key is unaffected");
+  }
+
+
   // REST_WALLCLOCK — the iOS failure was a throttled counter, so the test simulates the gap
   ok(RC(1000, 1000 + 10 * 1000) === true, "REST — 10s of rest is a cut rest");
   ok(RC(1000, 1000 + CUT * 1000) === false, "REST — exactly the threshold is not a cut");
