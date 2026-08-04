@@ -61,175 +61,175 @@ headless — walk the render-smoke states and eyeball on the phone before shippi
 
 ## NOW
 
-### Fix the v7.5 audit findings, then ship
+### v7.5 round 2 — three fixes did not close, plus four new findings
 
-Branch `feat/v7.5-now-relayout` (`9c92153` → `8a5fb0c`, strict gate green at 1344).
-The three moves are right and the build quality is high — but an **independent
-fresh-context audit** (five reviewers with no build bias, run outside the build
-session; the constitution's requirement is satisfied) found four blockers and five
-should-fixes. **Do not merge until the blockers are cleared.**
+Branch `feat/v7.5-now-relayout`, now at `53ca945`. The round-1 fixes (`5863a2a` →
+`53ca945`) were **re-audited by the same independent fresh-context process** — three
+verifiers, no build bias, each asked to prove a fix rather than accept it. Four fixes
+are clean. Three did not actually close, and the round-1 work introduced four new
+problems. **Still do not merge.**
 
-Two things the audit cleared that were open questions: `sw.js` cache name
-(`measured-v7.5.0`) and `APP_V` (`7.5.0`) are consistent, and `app.js` is genuinely
-rebuilt — the upgrade path is sound. And no new stored field, collection, migration,
-merge-logic change or `ledger/` write entered the branch: the presentation-layer-only
-claim holds. Every write path (`saveDaily`, `fixWindow`, sodium/alcohol, caffeine,
-meds, pulse/temp, waist, photos, `dayCtx`, amend-yesterday, sleep/weight, the
-proposal stager) is a verified pure move.
+**Verified CLEAN — do not revisit:**
 
-#### BLOCKERS
+- **Blocker 3 (`now.capture` → `now.capture2`)** — genuinely new key, every reference
+  routed through the new `NOW_DOORS` constant, zero stragglers, orphaned boolean never
+  read. Textbook.
+- **Blocker 4 (wrapper spacing)** — both wrappers carry
+  `display:flex; flexDirection:column; gap:12`, matching `Group`'s own container
+  exactly. A sweep of every other bare `<div>` in `NowTab` found no second instance.
+- **Should-fix 5 (naked projection)** — the band now comes from `currentRate`'s own
+  `lo`/`hi`, correctly inverted (faster loss → lower weight), with `banded` honest
+  about the two-snapshot fallback. No synthesised ±%. Well done.
+- **Should-fix 7 (`proj` arithmetic)** — `paceProjection(s, wks = PACE_PROJ_WKS)` is a
+  real engine selector: pure, gated on `cr.measured`, in the `__test` export, five
+  assertions that were re-run numerically and pass. Exactly right.
+- **Should-fix 9 (naming)** — the door is `THE BRIEFING`, the read is `TRAJECTORY`, no
+  live string/key/id named `THE READ` survives. See minor item 4 for one stale comment.
 
-**1. EVENT MODE's `closeEvent` is a one-shot write that is now unreachable by
-default.** The card moved from `now.plan` (`defaultOpen={hours < 17}`) into `THE READ`
-(`defaultOpen={false}`, a brand-new key so no stored preference can rescue it), and
-**nothing deep-links to it** — `nowFocus` has no `"event"` owed kind, so WHAT YOU OWE,
-`marchingOrder` and `statusTarget` all miss it. Its render gate is
-`!e.estimated && daysUntil(e.d) >= 0`, so it exists for exactly one day; at midnight
-`ev` goes null and the card is gone forever. `closeEvent` (app.jsx:4072) has exactly
-one call site (app.jsx:10435).
-*Failure:* an event is on file for today. Joe opens NOW at 9am, sees nothing about it,
-never opens THE READ. The event is never filed, `zeroComp.count` never increments, and
-the `ZERO-COMP EVENT` feed entry is never written. Nothing is deleted — a write simply
-becomes unmakeable.
-*Fix:* either give `nowFocus` an `event` owed kind so the fold points at it (preferred
-— it is genuinely something Joe owes today), or keep EVENT MODE resident above the
-doors like the approval inbox. It is exception-only and renders nothing on ordinary
-days, so residency costs no clutter.
+#### BLOCKERS — round 2
 
-**2. The merged TRAJECTORY card routes around the forecast's abstention gate and can
-contradict itself.** The headline, epistemic word and rate come from
-`signalReadCopy`, which deliberately withholds the rate unless
-`sig.state` is `measured` / `measurable` / `reversed`. The merged-in projection gates
-on `cr.measured` instead — and `currentRate().measured` is true in every state except
-`calibrating`, including the 2-snapshot fallback (`ci: null`) and any regression whose
-CI straddles zero.
-*Failure:* in the `inside-noise` state the card renders *"This week is still inside
-your noise — no real change to read yet."* · **INSIDE NOISE**, and four lines below,
-in the same card: *"At the 1.35 lb/wk you are actually moving, four more weeks puts
-you near 158.8 lb."* Both halves existed before, but they were ~600px and two closed
-disclosures apart; the merge turned a cross-page inconsistency into a self-contradicting
-card at Tier 1.
-*Fix:* gate the projection on the **same** predicate the headline uses (`rc.showRate`),
-not on `cr.measured`. When the read abstains, the projection abstains with it.
+**A. The `More` panel still carries the defect blocker 2 was about.** The abstention fix
+covered the card's prose but the `More`/`forYou` panel inside the *same* `Card`
+(`app.jsx` ~9767) is byte-identical to before and still gates on `cr.measured`.
+*Failure:* in `inside-noise` the card reads *"This week is still inside your noise — no
+real change to read yet"* over *"No projection yet — the read above has not cleared the
+noise"*, and one tap below: *"**Measured** pace 1.35 lb/wk on the scale, about
+1.60 lb/wk of that fat-equivalent."* The suppressed number is still there, one tap
+away, labelled "measured". **Should-fix 6 survives in the same place:** while gaining,
+the headline reads **+1.2 lb/wk** and the panel reads **-1.23 lb/wk** — and *"about
+-0.98 lb/wk of that fat-equivalent"*, a negative fat-loss rate presented as a
+measurement.
+*Fix:* route the `forYou` panel through the same `rc.showRate` / `rc.rate` the card
+body now uses. The in-code comment *"The rate prints ONCE, in one format"* is not yet
+true — make it true, then the comment is earned.
 
-**3. `now.capture` was reused while its scope grew from three cards to the whole
-logging surface — with no key migration.** `readDisc` (app.jsx:8606) returns the
-*stored* boolean whenever the key exists and ignores `computeDefault`. Before, the
-evening block had its own key (`now.logs`, `defaultOpen={h >= 17 || dl.cal == null}`).
-*Failure:* any existing user who ever tapped the old CAPTURE shut carries
-`disc["now.capture"] === false`. On the first launch after upgrading, at 20:00 with
-the day unclosed, the new time-aware default is discarded and the door holding sleep,
-the scale, close-the-day, amend and the weekly items stays shut. The release note's
-"new persistKeys have no stored preference, so first visit uses fresh defaults" is
-true for `now.read` / `now.room` and **false for the reused `now.capture`.**
-*Fix:* rename the key (e.g. `now.capture2`), or clear the stale `now.capture` boolean
-once on upgrade. Partially mitigated today — `oweTarget` force-opens the door — but a
-user with nothing owed still can't see their own logging surface.
+**B. The replacement deep-link assertion is a stronger tautology than the one it
+replaced.** `engine-test.jsx` ~3581 now asserts
+`["night","weight","day","yesterday"].every(k => Object.values(__test.NOW_DOORS).includes(oT63(k).key))`.
+Every `oweTarget` branch returns `NOW_DOORS.capture`, so this reduces to
+`Object.values(NOW_DOORS).includes(NOW_DOORS.capture)` — **true for any object with a
+`capture` property, under any edit.** The old version at least pinned a string literal.
+`NOW_DOORS` is a parallel literal, not the live set: the live set is `window.__plGroups`,
+populated by `registerGroup(persistKey, setGOpen)`, which the suite never reads.
+*Failure (verified by running it):* change a `<Group>`'s `persistKey` to `now.machine`
+and leave `NOW_DOORS` alone — `statusTarget` deep-links to a key no Group registers,
+`openGroup` no-ops, the door's children never mount, `scrollToId` finds nothing, and
+**tapping NEEDS YOU does nothing.** Suite stays green. That is precisely the bug class
+the assertion claims to make impossible.
+*Fix:* derive the invariant from `window.__plGroups` (or whatever `registerGroup`
+actually populates) so a persistKey that drifts from `NOW_DOORS` turns the suite red.
+And assert `statusTarget`'s escalation **key** with a literal — it currently has a real
+assertion on the id and a tautology on the key, and the key is the half that was
+reported missing. Its `owed` and `null` branches are still uncovered
+(the existing `== null || key !== "now.inbox"` disjunction pins neither).
 
-**4. The `pl-closeday` and `pl-today` wrapper divs destroy card spacing.** `Group`
-supplies the only vertical spacing its children get — its open container is
-`display:flex; flexDirection:column; gap:12` (app.jsx:8843) — and `Card` carries no
-margin. The re-layout wrapped previously-direct children in bare, unstyled
-`<div id="pl-closeday">` (9983) and `<div id="pl-today">` (10247), so each becomes a
-single flex item and its contents fall back to block layout with **zero** gap.
-*Failure:* open CAPTURE in the evening with caffeine, meds and weekly-due all showing —
-eight bordered cards render flush against each other with doubled touching borders,
-while every other card on the tab keeps its 12px gap. Reads as broken rendering. Same
-for the four cards in `pl-today`.
-*Fix:* put the same flex/gap style on both wrappers, or move the id onto the first
-`<Card>` and drop the wrapper.
+**C. EVENT MODE is visible now, but the miss is still erasable.** Residency fixed
+reachability — the card is top-level, correctly spaced, and `nowFocus` was rightly left
+alone. But the gate is unchanged: `ev = s.events.find(e => !e.estimated && daysUntil(e.d) >= 0)`.
+The moment the date passes, `ev` is null, the card vanishes, and `closeEvent`'s only
+call site is gone. The commit message states this blocker is resolved; it is not.
+Two consequences:
+- The card's own `daysUntil(ev.d) < 0` branch (*"waiting on you to close it — the
+  ledger doesn't guess"*) is **provably dead** — it needs `< 0` inside a subtree that
+  only renders when `>= 0`.
+- `dayProtocol` → `theOneThing`'s `openEv` branch requires `daysUntil(e.d) < 0` and
+  tells the user *"Close out <event> — zero-comp or honest — one tap"*. The two gates
+  are **disjoint**: the day after an event, the app instructs a one-tap action whose
+  only button does not exist anywhere.
+*Failure:* an event is filed for the 4th. Joe doesn't open NOW that day. On the 5th the
+card is gone, `zeroComp.count` never increments, no feed entry is written, and nothing
+tells him it went unfiled. **A miss is silently erased** — the charter's "show misses"
+is the rule this breaks, not just a usability point.
+*Fix:* widen the gate so an unfiled past event stays closable (that is what
+`theOneThing` already assumes), and **sort by date** — `s.events.find(...)` picks by
+array order while the engine's own `nextEvent` sorts, so with two events on file the
+card can show the September one while today's closable event is unreachable. Residency
+made that ordering bug load-bearing: it is now the sole path to `closeEvent`.
 
-#### SHOULD FIX IN THE SAME PASS
+#### SHOULD FIX — round 2
 
-**5. The projected weight prints naked.** `${proj} lb` carries no interval and no *"a
-projection, not a promise"*, inside a card whose eyebrow says `UPDATED LIVE` and which
-also carries the brass ◆ measured mark. Per the app's own provenance rule that is a
-claim, not a measurement — and it sits directly beneath a COCKPIT that, in its
-`CALIBRATING` branch, says *"no confident line yet"*. `currentRate` exposes `lo`/`hi`;
-use them.
+**D. Kill the `count` badge on THE ROOM. My call in round 1 was wrong.** I asked for it
+restored; in this form it should not be. `Group` renders `count` identically to the
+approval inbox's badge (mono, `T.gauge`, right-aligned `· N`), where it means *things
+waiting on your tap*. On THE ROOM it means *goals you already set*.
+*Failure:* one staged proposal, 3 process goals, 2 if-thens → `FOR YOU TO OK · 1` above
+`THE ROOM · 5`, read as five outstanding items. It also mislabels its own container —
+THE ROOM holds "this week · session · recovery · the laws" and the count covers only
+two of those. Either drop it or give it a distinct, non-pending treatment. (It also
+rode into a naming/test commit with no comment and no test.)
 
-**6. The same number prints twice in one card with opposite signs.** `rc.rate` and
-`cr.scale` are the same engine field rendered two ways: the headline as
-`−1.3 lb/wk` (absolute, 1dp, loss convention), the body as `At the 1.27 lb/wk` (raw,
-2dp, engine sign). In the `reversed` state the headline reads **+1.2** and the body
-**-1.23**. Pick one form and use it in both places — "proposals should never confuse
-me" applies to readouts too.
+**E. The abstain copy states a reason that did not happen.** The gate is `rc.showRate`,
+false for **both** `inside-noise` and `calibrating`. In `calibrating` there is no rate
+and no noise test at all, yet the card says *"the read above has not cleared the
+noise"* two lines under a headline reading *"Still learning your baseline."* The old
+copy named the actual unlock — *"Two clean weekly snapshots and this reads off your
+measured rate instead of an estimate"* — and that instruction is now gone for both
+states. Split the abstain copy by state and put the unlock condition back.
 
-**7. `proj` is UI-side arithmetic on raw state.**
-`+(s.trend - cr.scale * 4).toFixed(1)`, with a hardcoded 4-week horizon and no engine
-selector behind it — the one number on NOW the engine does not own. It is copied
-verbatim, so the branch's presentation-only claim is textually true, but the merge
-promoted it from a double-collapsed footer to the second thing on the screen. At Tier 1
-it needs a `forecast`- or `digitalTwin`-backed selector.
+**F. The printed rate and the printed projection don't reconcile.** `rc.rate` rounds to
+1dp; `pp.mid` is computed from the 2dp `cr.scale`. With `trend 164.2, scale 1.34` the
+card says *"At −1.3 lb/wk, 4 more weeks puts you near 158.8 lb"* — but 164.2 − 1.3×4 =
+159.0. The gap can equal or exceed the printed band. The sentence invites exactly that
+multiplication. Either round the projection off the same displayed figure, or widen the
+band's copy so the arithmetic isn't implied.
 
-**8. The new deep-link assertion is vacuous, and the riskiest repoint is untested.**
-`engine-test.jsx:3581` asserts
-`["night","weight","day","yesterday"].every(k => oT63(k).key === "now.capture")` — a
-restatement of the four assertions immediately above it, deriving nothing from the set
-of live persistKeys. It cannot fail unless one of those already failed. Meanwhile
-`statusTarget`'s `now.today` → `now.read` repoint (app.jsx:8804) — the only pair whose
-key and id come from different groups — has **no** assertion; the suite only covers the
-`now.inbox` branch (4216–4217). Write the invariant against the live key set, and add a
-`statusTarget` escalation assertion.
-
-**9. The `THE READ` naming collision is back, inverted.** v6.3 §5c explicitly renamed
-the lower group to "YOUR ANALYST" *to end the collision with the top THE READ card* —
-the comment documenting that fix is still in the source. v7.5 renamed the read to
-TRAJECTORY and gave the name "THE READ" to a door holding Auto-Pilot detail, the
-analyst and today's protocol. The label now points at everything except the read.
-Rename the door.
+**G. Minor, batch them:**
+1. EVENT MODE is now resident for the *entire run-up* to an event, not just the event
+   day — an actionless card on the fold for weeks. Gate residency to the day (or a
+   short window), not to `daysUntil >= 0`.
+2. `paceProjection`'s null guard is dead code: `const cr = currentRate(s)` runs before
+   the `s == null` clause, and `currentRate` dereferences `s.weekly` immediately. Move
+   the guard first.
+3. `pp.banded === false` is unreachable from the UI — `showRate` implies the regression
+   path implies a CI — so the "no interval yet" micro-line and the un-banded prose
+   variant can never render. Either remove them or make the engine assertion honest
+   about covering a UI-unreachable path.
+4. Stale comment (`app.jsx` ~9940) still enumerates the doors as *"CAPTURE … THE READ …
+   THE ROOM"* and contradicts itself in the next sentence.
+5. Test fixtures at ~3619 still exercise retired door names (`now.today`, `now.plan`,
+   `now.logs`). `readDisc` is key-agnostic so the assertions are valid, but they read
+   as live door names to the next person who greps.
+6. The `now.read` → `now.briefing` rename discarded every user's remembered open/closed
+   state for that door and orphaned a key, for a rename that only needed a `title`
+   change. Not worth reverting now — noted so it isn't repeated.
 
 #### ACCEPTED — decided, do not relitigate
 
-- **The approval inbox stays a sibling above the doors.** The builder deviated from
-  "seven → three" here and the deviation is right: it renders nothing when empty, so it
-  costs no clutter, and burying "changes waiting on your tap" fights *"all approvals,
-  once approved, must serve their function."* Keep it.
-- **TODAY'S PROTOCOL one tap down** is the declutter working, not a defect. Accepted as
-  a real behaviour change.
-- **`pl-amend` hidden 12:00–16:59** when today's calories are already filed. The deep
-  link still fires and WHAT YOU OWE still lists `yesterday`, so this is degraded
-  discoverability, not a dead tap. Accepted; revisit if a yesterday actually goes
-  unclosed.
-- **THIS WEEK's `count` badge** was dropped in the regroup. Minor; restore it on THE
-  ROOM if it's cheap, otherwise leave it.
+- Approval inbox stays a sibling above the doors.
+- TODAY'S PROTOCOL one tap down is the declutter working.
+- `pl-amend` hidden 12:00–16:59 with today's calories filed — deep link still fires.
 
 #### BEFORE MERGE
 
-- ~~Blockers 1–4 cleared, each as its own commit~~ **DONE** — `5863a2a` (4, spacing),
-  `c0c58a5` (1, EVENT MODE), `19d3553` (3, key migration), `b10cb49` (2, abstention).
-  The three original moves stay independently revertable.
-- ~~Strict gate green, with the two new/repaired assertions from fix 8~~ **DONE** —
-  `c2ba7d5`. Strict gate GREEN, suite **1344 → 1354**.
-- **Eyes on iOS Safari.** ← **THE ONLY THING LEFT.** Nobody has looked at this on a
-  phone; it is a 768-line re-layout of the screen Joe opens every morning. Fix 4 in
-  particular is a visual defect that only a real render will confirm as fixed.
-- ~~Re-run the jsdom door check~~ **DONE** — `.tmp/doorcheck.mjs` green, plus a second
-  harness `.tmp/exceptioncheck.mjs` that drives the exception surfaces the door check
-  could not reach (EVENT MODE residency and `closeEvent` reachability, the non-empty
-  inbox and its position above the doors, the stale-`now.capture` migration, and the
-  abstain/band behaviour of the fixed TRAJECTORY card).
+- ~~Blockers A, B, C closed; D–F closed; G batched~~ **DONE** — `4845c8b` (C, the erasable
+  miss), `913fe3e` (A + E/F/G2), `34f7948` (B + D + G3/G4/G5).
+- ~~Strict gate green — and verify the suite actually goes RED when a `<Group>`'s
+  persistKey is deliberately broken~~ **DONE, and it does.** Setting THE ROOM's
+  `persistKey` to `now.machine` while leaving `NOW_DOORS` alone makes the render smoke
+  report exactly `now.room` and exit 1; restoring returns it to green. Suite **1354 →
+  1370**, plus the render-smoke invariant, which is where it belongs — the engine suite
+  cannot see what `registerGroup` registered, so any check living there is comparing a
+  literal to itself.
+- ~~Re-run the jsdom door check~~ **DONE** — both harnesses green, and
+  `.tmp/exceptioncheck.mjs` gained the blocker-C states (an unfiled event still on the
+  fold the day after, its button still present, and the previously-dead "waiting on you
+  to close it" branch now rendering).
+- **Eyes on iOS Safari.** ← still the only thing left. Branch pushed; preview URL is in
+  the `preview` job's step summary.
 
-**All five should-fixes are also done**, in the same pass: 5/6/7 rode with blocker 2
-(`b10cb49` — `paceProjection` selector behind a named `PACE_PROJ_WKS`, the interval
-carried through from the rate, one rate format), 8/9 in `c2ba7d5` (`NOW_DOORS` as the
-single source of truth for door keys, membership asserted against the live set, the
-untested `statusTarget` escalation repoint now covered, and the middle door renamed
-**THE BRIEFING** so "THE READ" stops naming the one thing it does not contain).
-THIS WEEK's `count` badge is restored on THE ROOM.
+**Three notes back to the research side:**
 
-**Two notes back to the research side:**
-
-- Blocker 1 was fixed by **residency**, not the audit's preferred new `nowFocus` owed
-  kind. Residency touches no tested selector, makes the card visible rather than one tap
-  behind a link, and costs nothing on an ordinary day because it renders nothing without
-  an unfiled event — the same reasoning the audit already ACCEPTED for the inbox. Say so
-  if the owed kind is still wanted.
-- Blocker 3's fix leaves an orphaned `now.capture` boolean in `prep-ledger-ui` on any
-  device that had one. It is device-local, unread, and harmless; noting it rather than
-  writing a cleanup that would be more code than the value it removes.
-
----
+1. **Round 1's blocker-1 commit message was wrong** and the round-2 audit was right to
+   call it: residency fixed *reachability* only, and the gate that erased the miss was
+   untouched. `eventFocus(s)` now covers the whole grace window `theOneThing` can
+   instruct over, so "Close out X — one tap" always has its button.
+2. **G1 changed observable behaviour**: the EVENT MODE *card* now appears one day out
+   rather than for the whole run-up. The *chip* keeps the wider horizon via the existing
+   sorted `nextEvent`, so weeks-ahead awareness is not lost — the card and the chip read
+   different selectors because they answer different questions.
+3. **G6 is accepted as noted, not reverted.** The `now.read` → `now.briefing` rename did
+   discard that door's remembered state, for what only needed a `title` change. It is a
+   brand-new key either way, so nothing older was lost; recorded so it is not repeated.
 
 ## QUEUED
 
@@ -241,14 +241,119 @@ string-surgery editing workflow **any anchor into that block matches twice**, wh
 exactly the hazard that produced two defects in the v7.5 build. Extract it to one
 component. Independent of any redesign; do it as its own commit.
 
-### 2. DEXA body-fat anchor — the top unfinished input
+### 2. DEXA body-fat anchor — spec'd, and narrower than we assumed
 
-The single highest-value missing measurement. A real DEXA collapses several live
-ranges into numbers (e.g. protein 160–190 g → one figure) and sharpens the whole
-body-comp model. Until it lands, every BF-derived readout must keep showing its
-interval and stay honestly pre-DEXA. **Do not build the collapse until a real scan
-exists** — one anchor is a measurement, not a calibration curve; partitioning still
-needs repeated scans.
+**Read this before building it: the queue stub was wrong.** It claimed a DEXA
+"collapses several ranges (e.g. protein 160–190 g → one number)." It does not, and
+building that would put a false precision on the face of the app. What a DEXA actually
+buys is smaller, and the honest version is still worth having.
+
+#### What the evidence says
+
+**A DEXA's noise floor is large.** In 32 resistance-trained males, DXA's least
+significant change (95% CI) was **1,943 g for fat mass** and **1,894 g for fat-free
+mass** on consecutive days — ~4.3 lb and ~4.2 lb. Same-day repositioning only gets you
+to **1,448 g / 1,450 g** (~3.2 lb). Precision error was RMS-SD 702 g / 684 g
+consecutive-day vs 523 g / 524 g same-day; DXA was the best of the four methods tested,
+so this is the good case, not the bad one. [1]
+
+**DXA lean mass moves for reasons that are not muscle.** In 18 trained males, glycogen
+loading alone raised total DXA lean mass **3.0% ± 0.7%** with minimal change in muscle
+protein; glycogen depletion dropped leg lean mass **1.4% ± 1.6%**; total body water
+moved 2.3%. The authors' own conclusion: changes in muscle metabolites and water alter
+DXA lean-mass estimates during periods when real protein change is unlikely. [2]
+On ~63 kg FFM that is 1.3–1.9 kg of pure artefact — the same size as the entire LSC.
+
+**Protocol is load-bearing.** Non-standardized scans roughly **doubled** the SD of
+change scores for total and fat-free soft tissue (2–3% vs 1–2%) against a
+fasted-and-rested best-practice protocol. Fat mass was much less affected. [3]
+
+**The protein range is a dose range, not an FFM uncertainty.** 2.3–3.1 g/kg FFM scales
+up with leanness and with deficit depth. [4] At ~63 kg FFM that multiplier alone spans
+~145–195 g. So the 160–190 g spread is the *multiplier*, not uncertainty about FFM —
+a DEXA changes what the multiplier is applied to, and cannot narrow the range itself.
+Narrowing it further is a **policy** decision (where in 2.3–3.1 Joe sits, given how
+lean he is and how deep the deficit is), and policy decisions belong to the engine and
+the supervisor, not to a scan.
+
+#### What one DEXA legitimately does
+
+- **Anchors `bfEst`.** Replaces an inferred body-fat estimate with a measured one at a
+  point in time, with its own error, which tightens the interval — it does not remove it.
+- **Makes FFM a measurement instead of an estimate**, so the protein prescription is
+  applied to a real denominator. The 2.3–3.1 g/kg range stays a range and should still
+  print as one.
+- **Nothing else.** It cannot measure partitioning, cannot validate the twin's
+  fat-vs-lean split, and cannot confirm a lean-mass change.
+
+#### What it takes to measure partitioning — the gate
+
+Partitioning needs **two** scans whose fat-mass difference exceeds the LSC. At Joe's
+measured ~0.7 lb/wk, of which the engine reads ~86% as fat (~0.6 lb/wk of fat), the
+consecutive-day LSC of ~4.3 lb is not cleared for roughly **seven weeks or more** — and
+that is the interval *before* it is even detectable, not before it is well estimated.
+
+**The app must therefore never display a partitioning number from fewer than two scans,
+or from two scans whose fat-mass delta is inside the LSC.** Below that gate the honest
+readout is "not enough separation between scans to read a real change yet" — the same
+abstention pattern `signalState` and `forecast` already use. This is the whole reason
+`bfEst` prints a range today; the anchor tightens the range, it does not license a point.
+
+#### What to build
+
+1. **A `dexa` entry.** Date, body-fat %, fat mass, lean/fat-free mass, machine/site,
+   and the protocol flags below. This is the first queued item that adds **synced
+   state** — so per the standing data-safety guardrail it ships with keyed-union /
+   refuse-to-shrink merge hardening **and** an additive schema migration, in the same
+   change. Scans are append-only: a keyed union on scan id, and a merge that can never
+   shrink the list.
+2. **A protocol checklist on entry**, because it determines whether scan 2 can be
+   compared to scan 1 at all: same machine and site, morning, fasted, rested, no
+   training the previous day, consistent hydration, voided. Store the flags with the
+   scan. Two scans that do not share a protocol get compared with the wider,
+   non-standardized error — or not compared at all. Say which in the readout.
+3. **An anchor selector** that shifts `bfEst` toward the measured value at that date and
+   tightens its interval, decaying back toward the model's own uncertainty as the scan
+   ages. Engine-owned; the UI formats it. No new second body-fat number anywhere.
+4. **An LSC gate constant** in the engine (fat mass and FFM, same-day and
+   consecutive-day variants), with the partitioning readout gated on it and its own
+   assertions.
+5. **Honest labelling.** A DEXA-anchored figure is `◆ measured` at its scan date and
+   reverts to inferred as it ages. Any lean-mass delta between scans carries the
+   water/glycogen caveat explicitly — the app must not let a 2% glycogen swing read as
+   muscle.
+
+#### Acceptance criteria
+
+- No new body-fat, rate or protein number invented anywhere — the anchor composes
+  `bfEst`; the protein range keeps its existing 2.3–3.1 g/kg FFM span.
+- Merge hardening + additive migration land in the same commit as the field, with
+  assertions that a scan list can never shrink across a merge and that a stale device
+  cannot drop a scan.
+- Assertions that: one scan yields no partitioning readout; two scans inside the LSC
+  yield no partitioning readout and say why; two scans outside it yield one, labelled
+  with its interval.
+- The protein prescription still prints as a range after a DEXA lands. If it prints a
+  single number, that is the defect this spec exists to prevent.
+- Nothing in the UI computes; `ledger/` untouched; iOS Safari walked before ship.
+
+#### Open question for Joe
+
+The protocol checklist only pays off if the *second* scan matches the first. Worth
+deciding up front which machine/site he'll use repeatedly, since switching providers
+resets the comparison and makes scan 1 an anchor only, never a baseline.
+
+**Sources**
+[1] Same-day vs consecutive-day DXA precision error in resistance-trained athletes —
+https://pubmed.ncbi.nlm.nih.gov/30454952/ and
+https://journals.humankinetics.com/view/journals/ijsnem/31/1/article-p55.xml
+[2] Manipulation of muscle creatine and glycogen changes DXA estimates of body
+composition — https://pubmed.ncbi.nlm.nih.gov/28410328/
+[3] Importance of a standardized DXA protocol for assessing physique change in athletes
+— https://pubmed.ncbi.nlm.nih.gov/24458265/
+[4] Helms et al., protein for lean resistance-trained athletes in a deficit (2.3–3.1
+g/kg FFM, scaling with leanness and deficit depth) —
+https://www.researchgate.net/publication/257350851_A_Systematic_Review_of_Dietary_Protein_During_Caloric_Restriction_in_Resistance_Trained_Lean_Athletes_A_Case_for_Higher_Intakes
 
 ### 3. Waist + progress photos — unlogged inputs
 
