@@ -3,6 +3,14 @@
 Single-file React PWA. Personal N=1 training/nutrition ledger for one athlete.
 Live at <https://fitnessledger2.netlify.app>.
 
+## START HERE — `NEXT.md`
+
+**Read `NEXT.md` at the start of every session, before anything else.** It is the
+work queue: what to build next, the decisions already locked, the standing
+guardrails, and the acceptance criteria. Work the item under **NOW**. Do not start
+a QUEUED item without Joe's say-so. If `NEXT.md` is untracked or uncommitted when
+you start, commit it first — it is project state, not scratch.
+
 ## READ THESE FIRST, IN THIS ORDER
 
 Do not make a substantial change before you have read all three. The dominant
