@@ -196,13 +196,38 @@ Rename the door.
 
 #### BEFORE MERGE
 
-- Blockers 1–4 cleared, each as its own commit so the three original moves stay
-  independently revertable.
-- Strict gate green, with the two new/repaired assertions from fix 8.
-- **Eyes on iOS Safari.** Nobody has looked at this on a phone; it is a 768-line
-  re-layout of the screen Joe opens every morning. Fix 4 in particular is a visual
-  defect that only a real render will confirm as fixed.
-- Re-run the jsdom door check (`.tmp/doorcheck.mjs`).
+- ~~Blockers 1–4 cleared, each as its own commit~~ **DONE** — `5863a2a` (4, spacing),
+  `c0c58a5` (1, EVENT MODE), `19d3553` (3, key migration), `b10cb49` (2, abstention).
+  The three original moves stay independently revertable.
+- ~~Strict gate green, with the two new/repaired assertions from fix 8~~ **DONE** —
+  `c2ba7d5`. Strict gate GREEN, suite **1344 → 1354**.
+- **Eyes on iOS Safari.** ← **THE ONLY THING LEFT.** Nobody has looked at this on a
+  phone; it is a 768-line re-layout of the screen Joe opens every morning. Fix 4 in
+  particular is a visual defect that only a real render will confirm as fixed.
+- ~~Re-run the jsdom door check~~ **DONE** — `.tmp/doorcheck.mjs` green, plus a second
+  harness `.tmp/exceptioncheck.mjs` that drives the exception surfaces the door check
+  could not reach (EVENT MODE residency and `closeEvent` reachability, the non-empty
+  inbox and its position above the doors, the stale-`now.capture` migration, and the
+  abstain/band behaviour of the fixed TRAJECTORY card).
+
+**All five should-fixes are also done**, in the same pass: 5/6/7 rode with blocker 2
+(`b10cb49` — `paceProjection` selector behind a named `PACE_PROJ_WKS`, the interval
+carried through from the rate, one rate format), 8/9 in `c2ba7d5` (`NOW_DOORS` as the
+single source of truth for door keys, membership asserted against the live set, the
+untested `statusTarget` escalation repoint now covered, and the middle door renamed
+**THE BRIEFING** so "THE READ" stops naming the one thing it does not contain).
+THIS WEEK's `count` badge is restored on THE ROOM.
+
+**Two notes back to the research side:**
+
+- Blocker 1 was fixed by **residency**, not the audit's preferred new `nowFocus` owed
+  kind. Residency touches no tested selector, makes the card visible rather than one tap
+  behind a link, and costs nothing on an ordinary day because it renders nothing without
+  an unfiled event — the same reasoning the audit already ACCEPTED for the inbox. Say so
+  if the owed kind is still wanted.
+- Blocker 3's fix leaves an orphaned `now.capture` boolean in `prep-ledger-ui` on any
+  device that had one. It is device-local, unread, and harmless; noting it rather than
+  writing a cleanup that would be more code than the value it removes.
 
 ---
 
