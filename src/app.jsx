@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { HISTORY } from "./history.js";
 
 /* ============================================================
@@ -10863,7 +10863,21 @@ function LogTab({ s, setS, save, slp }) {
   const tISO = isoOf(todayStart());
   const nextISO = nextTrainingISO(s);
   const [dateSel, setDateSel] = useState(dayType(tISO) === "U" || dayType(tISO) === "L" ? tISO : nextISO);
-  const sess = dateSel && !s.sessionLog[dateSel] ? genSession(s, dateSel, slp) : null;
+  /* §5 move 1 — was rebuilt on EVERY render, including every keystroke in the notes
+     textarea and every stepper tap. slp is sleepInfo(s), so s is the only real input. */
+  const sess = useMemo(() => (dateSel && !s.sessionLog[dateSel] ? genSession(s, dateSel, slp) : null), [s, dateSel, slp]);
+  /* §5 move 1 — liftCall traverses sessionLog x exercises and was called once per
+     exercise per render, so a fifteen-lift page paid fifteen traversals for every
+     keystroke in the notes textarea and every stepper tap. Computed once per state here.
+     Deliberately NOT a module-level cache: liftCall is called elsewhere on states that
+     are mutated in place between calls, and a stale verdict there is a load decision made
+     from superseded data. Render scope is the honest scope. */
+  const calls = useMemo(() => {
+    const m = {};
+    for (const ex of s.exercises || []) { try { m[ex.id] = liftCall(s, ex.id); } catch (e) { m[ex.id] = null; } }
+    return m;
+  }, [s]);
+  const callFor = (exId) => (exId in calls ? calls[exId] : liftCall(s, exId));
   const logged = dateSel && s.sessionLog[dateSel];
   const [reps, setReps] = useState({});
   const [rir, setRir] = useState({});
@@ -11078,7 +11092,7 @@ function LogTab({ s, setS, save, slp }) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: SP.sm, flexWrap: "wrap", rowGap: SP.sm }}>
             <div style={{ flex: "1 1 auto", fontFamily: disp, fontWeight: 600, fontSize: 17, lineHeight: `${LH.title}px`, textTransform: "uppercase", color: T.chalk, textDecoration: skipped[ex.id] ? "line-through" : "none", wordBreak: "normal", overflowWrap: "break-word", hyphens: "none" }}>{ex.n}</div>
 
-            {!reorder && (() => { const lc = liftCall(s, ex.id); const vc = lc.verdict === "RESET" || lc.verdict === "STAND-DOWN" ? T.redline : lc.verdict === "HOLD" ? T.brass : lc.verdict === "PUSH+" ? T.jade : lc.verdict === "REBUILD" ? T.orange : T.jade; return (
+            {!reorder && (() => { const lc = callFor(ex.id); const vc = lc.verdict === "RESET" || lc.verdict === "STAND-DOWN" ? T.redline : lc.verdict === "HOLD" ? T.brass : lc.verdict === "PUSH+" ? T.jade : lc.verdict === "REBUILD" ? T.orange : T.jade; return (
               <span onClick={(ev2) => { ev2.stopPropagation(); setCallOpen(callOpen === ex.id ? null : ex.id); }} style={{ fontFamily: mono, fontSize: TS.label, color: vc, border: `1px solid ${vc}`, borderRadius: 999, padding: "3px 8px", flexShrink: 0, cursor: "pointer" }}>{(CALL_PLAIN[lc.verdict] || { chip: lc.verdict }).chip}{lc.vel != null ? (lc.vel > 0.2 ? " ▲" : lc.vel < -0.2 ? " ▼" : " ▶") : ""} ▾</span>
             ); })()}
             {!reorder && (
@@ -11157,7 +11171,7 @@ function LogTab({ s, setS, save, slp }) {
               </div>
             )}
           </div>
-          {callOpen === ex.id && (() => { const lc2 = liftCall(s, ex.id); return (
+          {callOpen === ex.id && (() => { const lc2 = callFor(ex.id); return (
             <div style={{ marginTop: 8, padding: "9px 11px", background: T.plate2, borderRadius: 8, border: `1px solid ${T.line}` }}>
               <div style={{ fontFamily: mono, fontSize: TS.label, color: T.jade, letterSpacing: "0.05em" }}>{(CALL_PLAIN[lc2.verdict] || { mean: "" }).mean}</div>
               <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.55, marginTop: 6 }}>{lc2.why}</div>
