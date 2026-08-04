@@ -3608,7 +3608,29 @@ ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DO
   const today = EF({ events: [ev(0, "Lunch")] });
   ok(today.ev && today.closable === true && today.overdue === false, "an event TODAY is closable but not yet overdue");
 
-  ok(EF({ events: [ev(-GRACE - 1, "Ancient")] }).ev === null, "past the grace window an unfiled event stops being surfaced — the card does not nag forever");
+  // r3 blocker A — a miss must NOT expire. The grace window used to bound existence, which
+  // only moved the cliff from midnight to midnight+7d; past it closeEvent was unmakeable
+  // again and nothing recorded the lapse. It now bounds TONE only.
+  ok(EF({ events: [ev(-GRACE - 1, "Ancient")] }).closable === true, "BLOCKER A — an unfiled event past the grace window is STILL closable: a miss does not expire");
+  ok(EF({ events: [ev(-GRACE - 1, "Ancient")] }).stale === true, "…and is marked stale, so the copy can change without the event disappearing");
+  ok(EF({ events: [ev(-1, "Yesterday")] }).stale === false, "a fresh miss is not stale — the grace window still decides tone");
+  ok(EF({ events: [ev(-400, "Last year")] }).ev !== null, "even a very old unfiled event keeps its surface — the alternative is the ledger silently eating it");
+  ok(EF({ events: [ev(-400, "Filed", true)] }).ev === null, "…but a FILED event still drops out, however old");
+  // the live case this was found on
+  ok(EF({ events: [{ id: "wed2", d: "2026-07-25", t: "WEDDING #2", estimated: false }] }).closable === true, "BLOCKER A — the shipped state’s own WEDDING #2 (2026-07-25, unfiled) is reachable again; before this it returned null and the miss was invisible");
+
+  // r3 blocker D — the instruction and the button must name the SAME event. openEv was a raw
+  // find() over array order while the card showed the most overdue, so with two unfiled
+  // events the app said "Close out A" and its only button filed B.
+  {
+    const two = { events: [ev(-1, "Yesterday dinner"), ev(-4, "Older wedding")], dailyLogs: {}, sessionLog: {}, sleep: { nights: [] }, fixWindow: null };
+    const card = EF(two);
+    ok(card.ev.t === "Older wedding", "the card shows the most overdue of two unfiled events");
+    const st2 = clone(SEED); st2.events = two.events;
+    const one2 = __test.theOneThing(st2, { clean: true, run: 3, need: 3, last: { h: 8 } }, 9, 30);
+    const named = String(one2.t).startsWith("Close out") ? String(one2.t).replace("Close out ", "") : null;
+    ok(named === null || named === EF(st2).ev.t, "BLOCKER D — when the one thing says \"Close out X\", X is the SAME event the card’s button files; both now route through eventFocus");
+  }
   ok(EF({ events: [ev(-1, "Filed", true)] }).ev === null, "a FILED event drops out on its own, because closeEvent sets estimated = true");
 
   // residency window: a far-off event must not park an actionless card on the fold (minor G1)

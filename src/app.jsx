@@ -4236,7 +4236,12 @@ function theOneThing(s, slp, hour = new Date().getHours(), graceDays = Infinity)
     return { t: `Log ${fmtShort(owed[0])}'s night`, sub: flips ? "one tap — ≥7.5 flips you CLEAN and today's attempts count for keeps" : "one tap — the whole engine keys off it" };
   }
   if (s.fixWindow && !dLogged) return { t: "Fix window is open", sub: `hit ${proteinTarget(s).g} today and yesterday's miss becomes a save — bouncing back is the skill being scored` };
-  const openEv = s.events.find((e) => !e.estimated && daysUntil(e.d) < 0 && daysUntil(e.d) >= -graceDays);
+  /* r3 blocker D — routed through the ONE selector the card uses. This used to be a raw
+     find() over array order while EVENT MODE showed the most overdue, so with two unfiled
+     events the app said "Close out A" and its only button filed B. graceDays still bounds
+     how far back this INSTRUCTION reaches; the card itself no longer expires. */
+  const efOne = eventFocus(s);
+  const openEv = efOne.closable && efOne.overdue && efOne.days >= -graceDays ? efOne.ev : null;
   if (openEv) return { t: "Close out " + openEv.t, sub: "zero-comp or honest — one tap, the ledger doesn't guess" };
   if (trainToday && sessDone && !dLogged && hour < 17) return { t: "Session banked ✓ — day open", sub: "numbers close it tonight · everything else is reading" };
   if (trainToday && !sessDone && hour >= 10) { const g = genSession(s, tISO, slp); return { t: "Today: " + (g.structural || g.name), sub: "log it in TRAIN when the iron's down" }; }
@@ -8119,19 +8124,29 @@ function nextEvent(s, withinDays = null) {
    fold for weeks. Residency now starts EVENT_LEAD_D days out, and an unfiled event stays
    CLOSABLE for EVENT_GRACE_D days after, matching lastEvent's own grace. Filed events drop
    out on their own: closeEvent sets estimated = true. Closable always outranks upcoming,
-   and the MOST OVERDUE closable wins, because that is the one about to be lost. */
+   and the MOST OVERDUE closable wins, because that is the one about to be lost.
+
+   v7.5 round 3 — the grace window used to bound EXISTENCE, which merely moved the cliff
+   from midnight to midnight+7d. Past it an unfiled event had no surface anywhere:
+   eventFocus null, lastEvent null, openEv null, and nowFocus has no event owed kind — so
+   closeEvent became unmakeable again, zeroComp never incremented, and no feed row recorded
+   the lapse. That was live: the shipped state carries WEDDING #2 dated 2026-07-25,
+   estimated:false, ten days unfiled and invisible. A miss must not expire, so a CLOSABLE
+   event now has no expiry at all; EVENT_GRACE_D only decides TONE, via `stale`. Nothing
+   silently disappears, so nothing needs a countdown warning telling him it is about to.
+   */
 const EVENT_LEAD_D = 1;
 const EVENT_GRACE_D = 7;
 function eventFocus(s) {
-  const none = { ev: null, days: null, closable: false, overdue: false };
+  const none = { ev: null, days: null, closable: false, overdue: false, stale: false };
   const rows = (((s && s.events) || []))
     .filter((e) => e && e.d && !e.estimated)
     .map((e) => ({ e, days: daysUntil(e.d) }))
     .sort((a, b) => a.days - b.days);
-  const closable = rows.filter((x) => x.days <= 0 && x.days >= -EVENT_GRACE_D);
-  if (closable.length) return { ev: closable[0].e, days: closable[0].days, closable: true, overdue: closable[0].days < 0 };
+  const closable = rows.filter((x) => x.days <= 0);   // r3 blocker A — NO expiry: a miss must not expire
+  if (closable.length) { const p = closable[0]; return { ev: p.e, days: p.days, closable: true, overdue: p.days < 0, stale: p.days < -EVENT_GRACE_D }; }
   const soon = rows.filter((x) => x.days > 0 && x.days <= EVENT_LEAD_D);
-  if (soon.length) return { ev: soon[0].e, days: soon[0].days, closable: false, overdue: false };
+  if (soon.length) return { ev: soon[0].e, days: soon[0].days, closable: false, overdue: false, stale: false };
   return none;
 }
 function lastEvent(s, graceDays = 7) {
@@ -9998,9 +10013,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>{ev.protocol}. Events filed without a make-up day: <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> straight — an event never buys a punishment here: tomorrow runs exactly as planned.</div>
           {evF.closable && (
             <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-              {evF.overdue && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>waiting on you to close it — the ledger doesn't guess</div>}
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginBottom: 8 }}>after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button</div>
-              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>File the event ✓ — your estimate goes in tonight's numbers</Btn>
+              {evF.overdue && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>{evF.stale ? `unfiled for ${Math.abs(evF.days)} days — this stays here until you close it, because a miss you never see is a miss the ledger silently ate` : "waiting on you to close it — the ledger doesn't guess"}</div>}
+            {/* r3 blocker C — this copy was written for D and D+1 and used to render
+                 unconditionally inside evF.closable. On D+4 it told him to put a four-day-old
+                 dinner into TONIGHT's log — mis-dated intake landing in the ledger the whole
+                 trend is computed from. Same class as EVENT_RECENCY_NOTE. */}
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginBottom: 8 }}>{evF.days >= -1 ? "after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button" : `one tap files it against ${fmtShort(ev.d)}, the day it happened — not tonight. Tomorrow runs the normal plan either way.`}</div>
+              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>{evF.days >= -1 ? "File the event ✓ — your estimate goes in tonight's numbers" : `File it against ${fmtShort(ev.d)} ✓ — where it belongs`}</Btn>
             </div>
           )}
         </Card>
