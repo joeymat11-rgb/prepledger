@@ -833,6 +833,27 @@ and settled. Do not fold this into a feature build.
 
 ## SHIPPED
 
+- **v7.10.0 — un-skip on the phone, and lastMeta follows the log** (2026-08-04). Merge
+  `6689a5e`; branch `fix/touched-invariant`. Beacon published 20:29:27Z; deployed assets
+  byte-identical to `main`. Gate + render smoke green, 1475 assertions.
+  - **TOUCHED** decides a skip, not the presence of reps. `getR` falls back to the TARGET so
+    every lift always “has reps”; the predicate is positive action — a banked set, an RIR,
+    or a rep moved off default — recorded as it happens, never reconstructed.
+  - The lift screen’s bottom row had THREE children under space-between, putting
+    “◂ back a lift” and “skip lift ▸” adjacent as small unpadded spans. Fixed, both with
+    a 10×12 hit area.
+  - **`↩` un-skip** on the logged receipt — the missing half of `✕`. Prompts empty and says
+    why; does not restore RIR, because RIR was never captured.
+  - **`deriveLastMeta`** rebuilds the cache `progressStep` reads from the most recent real
+    performance. Both `✕` and `↩` call it. The earlier ledger repairs did not, so the
+    phantom kept driving targets after the repair “succeeded”.
+
+  **Known-open, recorded here so it is not rediscovered:** `mergeState` scores a session as
+  `entries.length * 1e6 + json length` and keeps the higher side, so any correction that
+  REMOVES an entry loses to a device still holding it. Un-skipping adds an entry and wins;
+  the `✕` direction does not. `pronated@2026-07-23` and `ham@2026-07-31` are phantom
+  entries on main right now for this reason — both earlier repairs were reverted by sync.
+
 - **v7.9.0 — the phantom SKIP, the way back, the ladder verdict** (2026-08-04). Merge
   `bf04901`; branch `fix/phantom-skip` (`6debec4` → `e6a8804`). Beacon published v7.9.0 at
   16:41:09Z; deployed `app.js` + `sw.js` byte-identical to `main`. Gate + render smoke green,
