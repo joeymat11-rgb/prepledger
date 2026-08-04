@@ -9854,6 +9854,35 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           needs him. Self-renders as a quiet group with a count. */}
       <ApprovalInbox s={s} setS={setS} save={save} tISO={tISO} />
 
+      {/* EVENT MODE — the second EXCEPTION surface, resident beside the approval inbox.
+          v7.5 audit blocker 1: the re-layout moved this into THE READ (defaultOpen false, a
+          brand-new key, so no stored preference could rescue it) and NOTHING deep-links to
+          it — nowFocus has no "event" owed kind, so WHAT YOU OWE, marchingOrder and
+          statusTarget all miss it. Its own gate is !e.estimated && daysUntil(e.d) >= 0, so it
+          exists for exactly one day; at midnight ev goes null and closeEvent — which has one
+          call site — became unmakeable. Nothing was deleted, but a write Joe owed could no
+          longer be made.
+
+          Fixed by residency rather than the audit's preferred new owed kind: it is the
+          smaller honest change, touching no tested selector; it makes the card visible
+          instead of one tap behind a link; and it costs nothing on an ordinary day, because
+          the card renders nothing unless an unfiled event is on file. Same reasoning the
+          audit already ACCEPTED for the approval inbox. */}
+      {ev && (
+        <Card accent={T.chalk}>
+          <Eyebrow>EVENT MODE · {fmtShort(ev.d)}</Eyebrow>
+          <H size={19}>{ev.t}</H>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>{ev.protocol}. Events filed without a make-up day: <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> straight — an event never buys a punishment here: tomorrow runs exactly as planned.</div>
+          {daysUntil(ev.d) <= 0 && (
+            <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+              {daysUntil(ev.d) < 0 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>waiting on you to close it — the ledger doesn't guess</div>}
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginBottom: 8 }}>after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button</div>
+              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>File the event ✓ — your estimate goes in tonight's numbers</Btn>
+            </div>
+          )}
+        </Card>
+      )}
+
       {/* ---------- THE THREE DOORS (v7.5 NOW re-layout) ----------
           NOW carried SEVEN collapsible groups (TODAY · THIS WEEK · CAPTURE · FOR YOU TO OK ·
           YOUR ANALYST · Today's plan · Today's logs) plus a REST-OF-THE-DAY disclosure and a
@@ -10425,21 +10454,6 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           </div>
         </Card>
       ); })()}
-
-      {ev && (
-        <Card accent={T.chalk}>
-          <Eyebrow>EVENT MODE · {fmtShort(ev.d)}</Eyebrow>
-          <H size={19}>{ev.t}</H>
-          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>{ev.protocol}. Events filed without a make-up day: <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> straight — an event never buys a punishment here: tomorrow runs exactly as planned.</div>
-          {daysUntil(ev.d) <= 0 && (
-            <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-              {daysUntil(ev.d) < 0 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>waiting on you to close it — the ledger doesn't guess</div>}
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginBottom: 8 }}>after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button</div>
-              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>File the event ✓ — your estimate goes in tonight's numbers</Btn>
-            </div>
-          )}
-        </Card>
-      )}
 
 
 
