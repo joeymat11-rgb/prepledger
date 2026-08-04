@@ -135,168 +135,30 @@ headless — walk the render-smoke states and eyeball on the phone before shippi
 
 ---
 
-## NOW  `[plan — read before any code]`
+## NOW — the two historical repairs, BLOCKED on the phone updating
 
-### The ledger cannot record a correction
+v7.11.0 shipped the correction merge (`a4852d5`, beacon 23:58:32Z). The rule is live.
 
-**Joe's framing, and it is the right one:** *"Never lose data" has quietly become "never
-admit a mistake."* Every repair either of us makes to a phantom entry loses the merge and is
-reverted by the phone, silently. The app's whole claim is that the record is honest, and at
-the moment the record cannot be corrected downward at all. That is a data-integrity hole,
-not an inconvenience.
+**Do not repair `pronated@2026-07-23` or `ham@2026-07-31` yet, and the reason is not caution
+— it is the merge topology.** The merge runs ON THE PHONE: the app pulls the remote record
+and reconciles it locally before writing back. A phone still running v7.10.0 uses the OLD
+rule, which has never heard of `corr` — so a stamped correction made in the repo would be
+reverted by it, exactly as the two previous repairs were.
 
-**Own branch, own release, nothing else riding along.**
+**Order that works:**
 
----
+1. Force-quit and reopen the installed app twice, until NOW reads **v7.11.0**.
+2. Then make the two corrections on the phone with `✕`, which stamps them. The corrected copy
+   wins on merit and the repo follows.
 
-#### 1 · The mechanism, exactly as it stands
+Doing them in the repo would also work once the phone is on v7.11.0, but the phone owns the
+record and the control is right there — there is no reason to route a correction through a
+machine that does not own it.
 
-`mergeState` reconciles `sessionLog` through `MERGE_OBJ` → `_unionObj`, which picks **one
-whole side per date key** via `_richer`:
+**Still unverified:** the ham un-skip on 2026-08-04. The ledger last synced 18:55, and
+v7.10.0 — which introduced `↩` — did not deploy until 20:29, so no sync since has carried it.
+Needs RULES → Sync now. Friday's before/after for ham curl waits on that.
 
-```js
-_mergeScore(v) = Array.isArray(v.entries) ? v.entries.length * 1e6 + json.length : json.length
-_richer(x, y)  = _mergeScore(y) >= _mergeScore(x) ? y : x     // ties -> local
-```
-
-`entries.length * 1e6` dominates. A correction **removes** an entry, so it scores a full
-million lower and loses to any device still holding the uncorrected copy. Measured on the
-real data: phone **548**, repaired **491**.
-
-This is refuse-to-shrink working as designed. It is also why `pronated@2026-07-23` and
-`ham@2026-07-31` are phantom entries on `main` right now, after two repairs that both
-"succeeded" and were both reverted.
-
-Note the asymmetry that already exists: **un-skipping ADDS an entry and therefore wins.**
-Only the corrective direction is blocked. That is what makes this fixable without touching
-the never-lose guarantee for ordinary syncs.
-
----
-
-#### 2 · The change
-
-**A deliberate correction carries an explicit stamp. Nothing is inferred from a count going
-down.** A shrink with no stamp must still lose, exactly as today — that is the property the
-whole file exists to protect, and it does not move.
-
-Add to a session record, written **only** by the two correction controls (`✕` and `↩`):
-
-```
-corr: { at: <ISO>, rev: <n> }
-```
-
-`at` is when the correction was made. `rev` increments per correction on that session, so two
-corrections from one device are ordered. No device id: it adds a synced identifier and buys
-nothing the timestamps do not already give.
-
-**The reconcile rule for one `sessionLog[date]`, in order:**
-
-1. **Neither side stamped** → today's behaviour, unchanged. `_richer` decides, refuse-to-shrink
-   holds.
-2. **One side stamped, and the unstamped side's `at` is NOT newer than `corr.at`** → the
-   stamped side wins regardless of score. This is the case that is broken today.
-3. **One side stamped, but the unstamped side's session `at` IS newer than `corr.at`** →
-   the unstamped side wins. It represents work logged *after* the correction was made, and a
-   stale correction must never revert newer real work. **This is the case that would silently
-   eat a session if the rule were just "stamped wins".**
-4. **Both stamped** → **later `corr.at` wins. When `at` is exactly equal, higher `rev` wins.
-   When both are equal, fall back to `_richer`, and if that ties, local.** Stated in full
-   because an undefined tiebreak in a merge rule is how this class of bug returns: every pair
-   of stamped records must have exactly one winner, reachable from either write order, with
-   no path that depends on which side happened to be called `x`.
-
-`corr` itself merges as `max` on the pair `(at, rev)` so the winning record carries the
-latest correction metadata and a third device converges on the same answer.
-
-**Everything outside `sessionLog` is untouched.** No change to `MERGE_ARR`, `MERGE_KEYED`,
-`MERGE_MULTI`, `_unionPlan`, `_unionLearned`, `_unionExOrder`, or to `_mergeScore` itself —
-the new rule wraps the sessionLog path only.
-
----
-
-#### 3 · Emptying a session — DECIDED: REFUSE
-
-Joe: *"an empty session is indistinguishable from a sync artefact, and it is the one shape
-nobody can tell apart later. If I ever genuinely need to void a whole session, I would rather
-do it deliberately as its own thing than have it fall out of a correction rule."*
-
-**The last entry cannot be removed.** `✕` on the final entry does not write.
-
-**And the refusal is VISIBLE, not silent.** The control says why on screen — removing this
-would leave the session empty, and voiding a whole day is a separate deliberate act — and
-the record is left untouched. A rule that silently declines is the same failure class as a
-rule that silently reverts.
-
----
-
-#### 4 · The test plan
-
-Both-orders is the floor, not the bar. Every case runs `mergeState(A, B)` **and**
-`mergeState(B, A)` and asserts the same winner — a rule that is order-dependent is not a
-rule.
-
-**Reproduce the bug first.** Before any behaviour changes, a fixture that fails on today's
-code: the real `2026-07-31` record, phone copy with the phantom vs corrected copy without,
-merged both ways, asserting the corrected side wins. **It must go red on `main` and green after — and red for the RIGHT REASON.** The red output
-is inspected and shown to Joe before the rule lands: it must show a *stamped correction losing
-to an unstamped copy*, not merely \"counts differ\". A fixture that goes red for an adjacent
-reason would let the real bug through untouched. An invariant that has never been seen to fail is not yet an invariant — same
-standard as the door-key check.
-
-| # | Scenario | Expected |
-|---|---|---|
-| 1 | Correction vs unmarked stale copy | correction wins, both orders |
-| 2 | Unmarked shrink vs unmarked copy | **copy wins** — today's behaviour, unchanged |
-| 3 | **Correction racing a new session on the other device** — B logs more sets at a session `at` newer than `corr.at` | B wins; the correction does not revert newer work |
-| 4 | Same, but B's `at` is OLDER than `corr.at` | correction wins |
-| 5 | **Two corrections to the same entry from two devices** | newest `corr.at` wins; equal `at` → higher `rev`; converges identically from a third device |
-| 6 | **A correction, then a device that never saw it** syncs twice | correction survives both rounds — not just the first |
-| 7 | **A correction that would empty a session** | per §3's decision; assert the chosen behaviour explicitly, and that it is not silent |
-| 8 | Correction on one date, ordinary sync on another | dates are independent; no cross-talk |
-| 9 | Malformed `corr` (missing `at`, non-string, null) | treated as unstamped; falls to rule 1 |
-| 10 | Three-way convergence: A corrects, B unaware, C unaware — any merge order | all orders reach the same final record |
-| 11 | **A stamped correction arrives at a device holding an UNSYNCED local edit to the same session** — the local side has never been written anywhere | resolved by rules 3/4 on timestamps, never by \"local is local\"; asserted both orders. The shape most likely to hit Joe in practice, since the phone is often the only place a change exists |
-
-Plus the standing data-safety assertions: `reads`, `sleep.nights`, `dailyLogs`, `sessionLog`,
-`queue` counts never shrink across a merge **except** by the stamped correction itself, and
-the correction removes exactly the entries it names and nothing else.
-
----
-
-#### 5 · Sequencing and the safety rail
-
-1. **Full ledger backup** — timestamped copy of `ledger/state.json` committed before any
-   code, not just before the write.
-2. **The failing fixture** (§4 "reproduce the bug first"), red on `main`.
-3. The rule, behind the stamp. Gate green, all ten cases, both orders.
-4. **Show Joe the gate output on the fixture before anything touches real data.**
-4b. **Run the new rule against a COPY of the real ledger and show Joe the diff** — not a
-   fixture, the actual record, in a scratch copy with nothing at stake. He sees what would
-   change on his own data before the live file is touched.
-5. Only then the two historical repairs — `pronated@2026-07-23`, `ham@2026-07-31` — each
-   with its own feed line, counts asserted, and a re-derived `lastMeta`.
-6. Schema: `corr` is additive and absent-means-unstamped, so **no `SCHEMA_V` bump** — the
-   `pace` precedent in CLAUDE.md. If that turns out to be wrong, stop and flag rather than
-   inventing a migration.
-
-**Until this ships, `pronated@2026-07-23` and `ham@2026-07-31` stay exactly as they are.**
-Two wrong entries Joe knows about are safer than a merge rule he has not read.
-
----
-
-#### 6 · What I am NOT proposing
-
-- No change to `_mergeScore`. The scoring is right for its job; the sessionLog path just
-  needs to know when a human overrode it.
-- No entry-level reconciliation inside a session. It would let two devices' corrections both
-  survive, but it is a much larger change to the merge shape. **Known limitation of this
-  design: with wholesale replacement, if two devices correct the same session, the loser's
-  correction is discarded rather than combined.** Case 5 asserts the behaviour rather than
-  hiding it. **Joe: state it, do not fix it — entry-level reconciliation earns nothing for one
-  athlete on one phone.** The limitation goes in the CODE COMMENT as well as here, where
-  someone would go to "improve" it.
-- No device id in the stamp.
-- No auto-correction of any kind. Both stamps are written by a control Joe taps.
 
 ## QUEUED
 
@@ -982,6 +844,20 @@ branch somewhere safe first**, as its own separate job, and only after v7.5 has 
 and settled. Do not fold this into a feature build.
 
 ## SHIPPED
+
+- **v7.11.0 — the correction merge** (2026-08-04). Merge `a4852d5`; branch
+  `feat/merge-correction`. Beacon published 23:58:32Z; deployed assets byte-identical.
+  Gate + render smoke green, 1509 assertions. Own branch, own release, nothing riding along.
+  - A deliberate correction carries an explicit `corr: { at, rev }` stamp, written only by
+    `✕` and `↩` through one `_stampCorr`. An UNMARKED shrink still loses, exactly as before.
+  - Four ordered rules on `sessionLog` only, including the one that matters most: a STALE
+    correction never reverts work logged after it.
+  - `✕` refuses to remove the last entry, and says why on screen.
+  - Known limitation, stated in the code comment: wholesale per-date replacement means two
+    devices correcting the same session discards the loser's correction.
+  - The fixture went RED on the old rule first, for the right reason — "Winner was the
+    UNSTAMPED phantom copy" — and a dry run on a scratch copy of the real ledger showed both
+    repairs landing in both write orders with nothing outside `sessionLog` shrinking.
 
 - **v7.10.0 — un-skip on the phone, and lastMeta follows the log** (2026-08-04). Merge
   `6689a5e`; branch `fix/touched-invariant`. Beacon published 20:29:27Z; deployed assets
