@@ -3579,6 +3579,47 @@ ok(oT63("weight").key === "now.capture2" && oT63("weight").id === "pl-capture", 
 ok(oT63("day").key === "now.capture2" && oT63("day").id === "pl-closeday", "owe: the day's numbers point INTO the CAPTURE door, at the close-the-day card (pl-closeday)");
 ok(oT63("yesterday").key === "now.capture2" && oT63("yesterday").id === "pl-amend", "owe: an unclosed yesterday points INTO the CAPTURE door, at the reopen card (pl-amend)");
 ok(["night", "weight", "day", "yesterday"].every((k) => Object.values(__test.NOW_DOORS).includes(oT63(k).key)), "owe: every owed kind names a key that is IN the live door set — a retired group key cannot survive in a deep link");
+
+// v7.5 round-2 blocker C — an unfiled event must stay CLOSABLE after its date, or the miss
+// is silently erased (no zeroComp, no feed entry, no tell). Also: sorted, not array order.
+{
+  const EF = __test.eventFocus, GRACE = __test.EVENT_GRACE_D, LEAD = __test.EVENT_LEAD_D;
+  const day = (n) => { const d = new Date(Date.now() + n * 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  const ev = (n, t, estimated) => ({ id: "e" + n, d: day(n), t, protocol: "p", estimated: !!estimated });
+
+  ok(EF({ events: [] }).ev === null && EF({}).ev === null, "eventFocus: no events is not an error — it surfaces nothing");
+
+  const yday = EF({ events: [ev(-1, "Dinner")] });
+  ok(yday.ev && yday.closable === true && yday.overdue === true, "BLOCKER C — an event that passed YESTERDAY is still closable and reads as overdue; the old gate dropped it at midnight and erased the miss");
+
+  const today = EF({ events: [ev(0, "Lunch")] });
+  ok(today.ev && today.closable === true && today.overdue === false, "an event TODAY is closable but not yet overdue");
+
+  ok(EF({ events: [ev(-GRACE - 1, "Ancient")] }).ev === null, "past the grace window an unfiled event stops being surfaced — the card does not nag forever");
+  ok(EF({ events: [ev(-1, "Filed", true)] }).ev === null, "a FILED event drops out on its own, because closeEvent sets estimated = true");
+
+  // residency window: a far-off event must not park an actionless card on the fold (minor G1)
+  ok(EF({ events: [ev(LEAD + 3, "Wedding")] }).ev === null, "an event beyond the lead window does NOT make the card resident — no actionless card on the fold for weeks");
+  ok(EF({ events: [ev(LEAD, "Soon")] }).ev !== null && EF({ events: [ev(LEAD, "Soon")] }).closable === false, "inside the lead window it appears, but is not yet closable");
+
+  // ORDERING — the old find() picked by array order, so a later event could mask a closable one
+  const two = EF({ events: [ev(LEAD, "September thing"), ev(-1, "Yesterday's dinner")] });
+  ok(two.ev && two.ev.t === "Yesterday's dinner", "BLOCKER C — closable outranks upcoming regardless of array order; the old find() could show a later event while today's closable one was unreachable");
+  const twoOverdue = EF({ events: [ev(-1, "Recent"), ev(-4, "Older")] });
+  ok(twoOverdue.ev.t === "Older", "among closable events the MOST OVERDUE wins — it is the one about to fall out of grace");
+
+  // The two gates must OVERLAP. theOneThing's openEv branch fires on daysUntil < 0 and
+  // instructs "Close out X — one tap"; the card's gate used to be daysUntil >= 0, so the
+  // two were DISJOINT and the instruction pointed at a button that existed nowhere. The
+  // card must therefore be closable across the whole window the instruction can fire in.
+  // (theOneThing sits behind a priority ladder — an unlogged night outranks it — so this
+  // asserts the GATES line up, not that the ladder happens to reach the branch.)
+  ok(Array.from({ length: GRACE }, (_, n) => n + 1).every((n) => EF({ events: [ev(-n, "x")] }).closable === true),
+    "BLOCKER C — the card is closable across the ENTIRE grace window theOneThing can instruct over, so \"Close out X — one tap\" always has the button that satisfies it");
+  ok(EF({ events: [ev(-1, "x")] }).overdue === true,
+    "and an overdue event reads as overdue, which is what makes the card's \"waiting on you to close it\" branch reachable at all — it was provably dead code before");
+}
+
 ok(Object.values(__test.NOW_DOORS).includes(__test.statusTarget({ proposals: [], agentProposals: [] }, { esc: { escalate: true }, focus: { owed: [] } }).key), "statusTarget: the ESCALATION branch names a live door too — the one repoint whose key and id came from different groups, and which had no assertion at all");
 ok(__test.statusTarget({ proposals: [], agentProposals: [] }, { esc: { escalate: true }, focus: { owed: [] } }).id === "pl-autopilot", "statusTarget: escalation scrolls to the Auto-Pilot detail block by its own id, not a retired group id");
 ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DOORS).length, "the door keys are distinct — two doors sharing a persistKey would make one uncloseable");
