@@ -10938,7 +10938,7 @@ function LogTab({ s, setS, save, slp }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {gym && sess && <GymMode s={s} setS={setS} save={save} slp={slp} sess={sess} dateSel={dateSel} onClose={() => setGym(false)} />}
+      {gym && sess && <GymMode s={s} setS={setS} save={save} slp={slp} sess={sess} dateSel={dateSel} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} />}
       {sess && !s.sessionLog[dateSel] && (
         <Btn full tone="jade" onClick={() => setGym(true)}>▶ GYM MODE — one lift at a time, timers on</Btn>
       )}
@@ -12368,6 +12368,9 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [t, setT] = useState(0);
   const [restStart, setRestStart] = useState(0);   // REST_WALLCLOCK — ms epoch, not a tick count
   const [restLen, setRestLen] = useState(0);       // seconds this rest is meant to last
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [gNote, setGNote] = useState("");
+  const [gNig, setGNig] = useState([]);
   const [reps, setReps] = useState({});
   const [rir, setRir] = useState({});
   const [rirEnd, setRirEnd] = useState({});
@@ -12417,6 +12420,8 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
     if (setN + 1 < nSets) { const len = restFor(ex.id, setN + 1, nSets); setSetN(setN + 1); setRestLen(len); setRestStart(Date.now()); setT(len); setPhase("rest"); setRests((r) => ({ ...r, n: r.n + 1 })); }
     else setPhase("lift-done");
   };
+  /* Undo the last banked set: step back one and restore the value it held. */
+  const undoSet = () => { if (setN <= 0) return; setSetN(setN - 1); setPhase("lift"); setRests((r) => ({ ...r, n: Math.max(0, r.n - 1) })); };
   const nextLift = () => { if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } else setPhase("all-done"); };
   /* SKIP_ONE_PATH — a control labelled "skip" must put the lift on the record as skipped
      BEFORE advancing. The lift-screen link used to call nextLift directly, which advances
@@ -12439,8 +12444,8 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
     /* n-gated like every other read in here: under three rests there is no
        session-level statement to make, so it stays unknown rather than guessed. */
     const pace = rests.n >= 3 ? (rests.cut / rests.n >= 0.5 ? PACE.rushed : PACE.normal) : null;
-    const { s: ns } = completeSession(s, dateSel, split.entries, slp, { note: "gym mode", niggles: [], skipped: split.skipped, pace });
-    setS(ns); save(ns); onClose();
+    const { s: ns, lines } = completeSession(s, dateSel, split.entries, slp, { note: gNote.trim(), niggles: gNig, skipped: split.skipped, pace });
+    setS(ns); save(ns); onClose(lines);   // the WHAT MOVED recap was thrown away on the path Joe actually uses
   };
   const big = { fontFamily: mono, fontWeight: 800, letterSpacing: "-0.02em" };
   return (
@@ -12458,6 +12463,9 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           {/* A rest counts as CUT when the actual rest lands under 60 s — the
               threshold the meta-analysis actually resolves, not a fraction of
               the prescription. See REST_NOTE and PACE_NOTE. */}
+          {/* A set banked late, or one that needs longer, previously had only Skip rest. */}
+          <Btn small onClick={() => { setRestLen((x) => x + 30); }}>+30s</Btn>
+          <Btn small onClick={() => { setRestStart(Date.now()); }}>restart rest</Btn>
           <Btn small onClick={() => { if (restCut(restStart, Date.now())) setRests((r) => ({ ...r, cut: r.cut + 1 })); setT(0); setPhase("lift"); }}>Skip rest</Btn>
         </div>
       ) : phase === "lift-done" ? (
@@ -12480,14 +12488,48 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
       ) : phase === "all-done" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
           <H size={26}>Session complete</H>
-          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, lineHeight: 1.7 }}>{sess.ex.map((e2) => `${e2.n}: ${getR(e2).join(",")} @ ${e2.w}`).join("\n")}</div>
+          {/* joined with \n inside a div, so it rendered as one run-on line */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {sess.ex.map((e2) => (
+              <div key={e2.id} style={{ fontFamily: mono, fontSize: TS.label, color: gskip[e2.id] ? T.steel : T.chalk, textDecoration: gskip[e2.id] ? "line-through" : "none" }}>
+                {e2.n}: {gskip[e2.id] ? "skipped — on record" : `${getR(e2).join(",")} @ ${e2.w}`}
+              </div>
+            ))}
+          </div>
+          {/* the note field was hardcoded to "gym mode", overwriting the real note and then
+              printing it in the receipt and the debrief; niggles was hardcoded [], which made
+              the joint check unreachable from the mode Joe uses. Both are his to fill now. */}
+          <input value={gNote} onChange={(e3) => setGNote(e3.target.value)} placeholder="anything worth remembering about this session" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8, color: T.chalk, fontFamily: body, fontSize: 16, padding: "10px 12px" }} />
           <Btn full tone="jade" onClick={finish}>LOG IT — receipt + debrief</Btn>
         </div>
       ) : (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 10 }}>
           <H size={30}>{ex.n}</H>
           <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>{ex.w} · target {ex.tgt.join(",")}{ex.isDebutNow ? " · FIRST RUN — log what it gives" : ""}</div>
-          {ex.cue && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel }}>{ex.cue}</div>}
+          {/* ex.cue never existed — genSession returns setup / live / note / prev, so the cue
+              line, the setup cues and the DEBUT/OWN-IT/RECLAIM note were all unreachable in
+              the one mode Joe actually uses. They render here now, composed, not recomputed. */}
+          {ex.live ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.45 }}>NOW &rsaquo; {ex.live}</div> : null}
+          {ex.note ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.04em" }}>{ex.note}</div> : null}
+          {ex.setup ? (
+            <div>
+              <button onClick={() => setSetupOpen(!setupOpen)} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "5px 10px" }}>{setupOpen ? "\u25be setup" : "\u25b8 setup"}</button>
+              {setupOpen ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.45 }}>{ex.setup}</div> : null}
+            </div>
+          ) : null}
+          {ex.prev ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>last · {fmtShort(ex.prev.d)} · {ex.prev.w} \u00d7 {(ex.prev.reps || []).join(",")}{ex.prev.rir != null ? ` \u00b7 RIR ${ex.prev.rir}` : ""}</div> : null}
+          {(() => {
+            /* The next rung, on the lift screen. nextLoad exists on every card and rendered
+               nowhere. It returns null at the top of a stack — that is real, so it is said
+               rather than hidden. Composes the existing selector; no new number. */
+            const exFull = exById(s, ex.id); if (!exFull) return null;
+            const up = nextLoad(exFull);
+            return (
+              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>
+                {up == null ? "next rung \u00b7 none on file — the top of this stack is real" : `next rung \u00b7 ${up}`}
+              </div>
+            );
+          })()}
           <div style={{ marginTop: 10 }}>
             <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>SET {setN + 1} OF {getR(ex).length} · <span style={{ color: rp2.plan[setN] === 0 ? T.brass : rp2.plan[setN] === 1 ? T.chalk : T.jade, fontWeight: 700 }}>RIR {rp2.plan[setN] ?? "—"}</span></div>
             <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 8 }}>
@@ -12497,6 +12539,11 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             </div>
           </div>
           <Btn full tone="jade" onClick={doneSet}>SET DONE {setN + 1 < getR(ex).length ? "→ REST " + restFor(ex.id, setN + 1, getR(ex).length) + "s" : "→"}</Btn>
+          {/* One mis-tap on SET DONE had no recovery path at all — the only way back was to
+              leave the mode. Steps setN back and restores what that set held. */}
+          {setN > 0 ? (
+            <button onClick={undoSet} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "8px", width: "100%" }}>\u25c2 undo last set</button>
+          ) : null}
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span style={{ fontFamily: mono, fontSize: TS.micro, color: "transparent" }}>.</span>
             <span onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>skip lift ▸</span>
