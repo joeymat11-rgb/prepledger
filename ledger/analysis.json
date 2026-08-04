@@ -1,17 +1,17 @@
 {
-  "gen": "2026-08-03T09:08:49.845Z",
+  "gen": "2026-08-04T12:46:57.448Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 164.24,
-    "lastRaw": 165,
-    "appTrend": 163.9,
+    "soft": 163.83,
+    "lastRaw": 162.4,
+    "appTrend": 163.5,
     "noiseFloor": 1.52,
-    "gap": -0.76
+    "gap": 1.43
   },
   "rate": {
-    "perWeekLb": 1.2,
-    "perWeekPct": 0.73,
-    "bandLb": 0.89,
+    "perWeekLb": 1.06,
+    "perWeekPct": 0.65,
+    "bandLb": 0.79,
     "personalBand": [
       1,
       1.4
@@ -19,28 +19,21 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2672,
+    "tdee": 2756,
     "tdeeWinDays": 20,
-    "meanCal": 2241,
+    "meanCal": 2233,
     "waterSensitivityLb": 0.96,
     "waterSensDays": 3,
-    "meanSleepH": 7.2,
-    "sleepDebt7H": 1.8,
+    "meanSleepH": 6.8,
+    "sleepDebt7H": 2.8,
     "ffmKg": 63.4,
     "proteinTargetG": 146
   },
   "regime": {
     "regime": "steady loss",
-    "why": "trend descending at 1.2 lb/wk within your target band"
+    "why": "trend descending at 1.06 lb/wk within your target band"
   },
   "weeks": [
-    {
-      "wk": "2026-06-22",
-      "meanCal": 1821,
-      "meanPro": 184,
-      "proHitPct": 100,
-      "meanSteps": 19014
-    },
     {
       "wk": "2026-06-29",
       "meanCal": 2078,
@@ -71,10 +64,17 @@
     },
     {
       "wk": "2026-07-27",
-      "meanCal": 2653,
-      "meanPro": 186,
+      "meanCal": 2546,
+      "meanPro": 182,
       "proHitPct": 100,
-      "meanSteps": 15500
+      "meanSteps": 15643
+    },
+    {
+      "wk": "2026-08-03",
+      "meanCal": 1950,
+      "meanPro": 180,
+      "proHitPct": 100,
+      "meanSteps": 12000
     }
   ],
   "priorDecisions": [
@@ -161,11 +161,21 @@
         "to": "Extension 155 — debut on the next lower day; 8,8 or better counts as a clean debut"
       },
       "predict": "155 opens near 9 and lands around 9,8. Anything at or above 8,8 is a clean debut and 155 stays. Set two is where it fell over in July — 9 then 6 — so that is the number to watch."
+    },
+    {
+      "sid": "sug_2026-08-02_scale",
+      "decided": "approved",
+      "d": "2026-08-03",
+      "title": "Weigh in this morning — three mornings dark, and every gauge is flying on Friday's data",
+      "apply": {
+        "kind": "note"
+      },
+      "predict": "The first read back comes in high — mid-to-high 160s is an estimate, not a promise — then gives back roughly a pound a morning for three or four mornings, the same shape as 7/12 through 7/15, settling near the mid-164s the trend already holds. The test: reads gains 8/3 and 8/4, and the forecast trend moves off 163.9."
     }
   ],
   "suggestions": [
     {
-      "sid": "sug_2026-07-31_sleep",
+      "sid": "sug_2026-08-04_sleep",
       "title": "Protect sleep: aim 7.5 h, cap afternoon caffeine",
       "apply": {
         "kind": "sleep",
@@ -173,13 +183,29 @@
       },
       "rationale": {
         "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss 55% and raised lean-mass loss 60% (Nedeltcheva 2010).",
-        "data": "Last 13 nights average 7.2 h (7-night debt 1.8 h); 4 recent days had >=300 mg or afternoon caffeine.",
+        "data": "Last 13 nights average 6.8 h (7-night debt 2.8 h); 0 recent days had >=300 mg or afternoon caffeine.",
         "relationship": "Short sleep + late caffeine track with your low recovery score and rep dips - the lever that protects lean while you cut."
       },
       "predict": "Higher share of loss as fat; lean protected; better session quality.",
       "confidence": "high",
       "gate": "approve",
       "rank": 1
+    },
+    {
+      "sid": "sug_2026-08-04_hold",
+      "title": "Hold structural training changes this week",
+      "apply": {
+        "kind": "note"
+      },
+      "rationale": {
+        "science": "Under-recovery blunts the training stimulus that preserves muscle on a cut (Schoenfeld 2017).",
+        "data": "Recovery signals are low (short sleep, rep dips) with a progression queued.",
+        "relationship": "Pushing loads while under-recovered converts to missed reps, not muscle."
+      },
+      "predict": "Keeps intensity honest; resume progression when recovery returns.",
+      "confidence": "medium",
+      "gate": "approve",
+      "rank": 2
     }
   ]
 }

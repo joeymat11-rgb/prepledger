@@ -1,20 +1,39 @@
 {
-  "gen": "2026-08-03T09:08:49.845Z",
+  "gen": "2026-08-04T12:46:57.448Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-02_scale",
-      "rank": 1,
-      "title": "Weigh in this morning — three mornings dark, and every gauge is flying on Friday's data",
-      "apply": { "kind": "note" },
-      "rationale": {
-        "science": "Body-comp decisions here run off a 14-day robust rate, not a reading — one read is noise around a slow trend, and missing mornings widen the error bar rather than pause it. When a rate looks off, check the logging before blaming the metabolism (Alhassan 2008).",
-        "data": "Last read: Friday's 165.0. Saturday, Sunday and this morning are blank, the forecast has printed 163.9 three days running, sleep stops Wednesday night, and Sunday has no food logged at all. Behind the gap sit three estimate days — 3,200 / 4,000 / 3,000, all high sodium, Friday with 14 on the alcohol line. The rate tonight is 1.2 ± 0.89 lb/wk — the error bar is wider than your whole 1.0–1.4 band.",
-        "relationship": "Everything downstream runs off the trend — the rate, the 20-day maintenance fit (now reading 2,672 on party-day arithmetic), the band, and the auto-pilot that tightened 136 calories on Saturday. You shipped the staleness safeguard and the confidence gate last night; those guards can flag a frozen rate, but only the scale unfreezes it. One ritual — scale, last night's sleep, Sunday's two numbers — and two mornings re-decide all of it on real data."
+      "sid": "sug_2026-08-04_sleep",
+      "title": "Lights out by 00:30 tonight — Sunday's 01:40 bed cost you 1.3 hours",
+      "apply": {
+        "kind": "sleep",
+        "to": 7.5
       },
-      "predict": "The first read back comes in high — mid-to-high 160s is an estimate, not a promise — then gives back roughly a pound a morning for three or four mornings, the same shape as 7/12 through 7/15, settling near the mid-164s the trend already holds. The test: reads gains 8/3 and 8/4, and the forecast trend moves off 163.9.",
+      "rationale": {
+        "science": "At a matched deficit, short sleep (5.5 vs 8.5 h) cut fat loss by about 55% and raised lean-mass loss by about 60% — sleep decides how much of what you lose comes off muscle rather than fat (Nedeltcheva 2010; Wang 2018).",
+        "data": "Last four nights 5.0 / 7.0 / 7.0 / 6.17 h against 7.42 / 7.50 / 7.83 the week before — a 2.8 h debt over seven nights against the 7.5 h target you set on 7/28 and held for a week.",
+        "relationship": "Your wake time barely moves (07:35–08:00), so bedtime is the whole variable: 00:20 buys 7.0 h, Sunday's 01:40 bought 6.17. Nothing on this card is about caffeine — your caffeine log stops 7/28 and I won't build on a blank."
+      },
+      "predict": "Bed by 00:30 tonight puts you back at 7–7.5 h. Expect the 7-night debt under 2 h by Thursday, and your next leg day — which carries the 155 debut and the 0-RIR bill — to run without a short night sitting in the middle of it.",
       "confidence": "high",
-      "gate": "approve"
+      "gate": "approve",
+      "rank": 1
+    },
+    {
+      "sid": "sug_2026-08-01_hamlog",
+      "title": "Strike Friday's ham curl before you train legs — your note says you skipped it",
+      "apply": {
+        "kind": "note"
+      },
+      "rationale": {
+        "science": "Progression only protects you if the baseline is real — double progression is measured against reps actually performed (Schoenfeld 2017). An unearned bump is exactly what cratered extension 155 on 7/21 and forced the revert.",
+        "data": "Friday's session note reads \"Ham curl skipped this sesh for time. Abnormal\" while the log shows ham 120 × 12,12 — the only lift that day carrying no effort score at all (rir null), against rir 2 on your real ham entries on 7/24 and 7/28. exercises.ham now reads topAt 120, topRun 1.",
+        "relationship": "Your app has already written \"repeat it and the load queues itself,\" and your next session is a leg day — so one real ham session queues 125 off a set you say you never did."
+      },
+      "predict": "Strike the entry (or move it into Friday's skipped list) before you train and topRun resets to 0; ham holds at 120 until you put up 12,12 on a session you actually ran.",
+      "confidence": "high",
+      "gate": "approve",
+      "rank": 2
     }
   ]
 }
