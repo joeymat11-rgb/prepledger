@@ -2519,7 +2519,7 @@ function partitionPrior(s) {
   };
 }
 
-function energyDensity(s) {
+function energyDensityUncached(s) {
   /* ONE owner of kcal-per-lb-of-loss (was the fixed KCAL_PER_LB_MIX 3800). Fat-mass-dependent through
      the partition prior: perLb = fatFrac·fat-density + leanFrac·lean-density. HONEST degradation — off a
      coach's-eye BF the split is not identifiable, so the POINT stays the labeled prior (3800 EXACTLY, so
@@ -2538,6 +2538,7 @@ function energyDensity(s) {
       : `${KCAL_PER_LB_MIX} kcal per lb — the labeled prior (~${Math.round(PRIOR_FAT_FRAC * 100)}% fat). Held at the prior until a DEXA measures your fat mass; the ${Math.min(e1, e2)}–${Math.max(e1, e2)} band is that uncertainty made visible.`,
   };
 }
+const energyDensity = memoOnState(energyDensityUncached);   // pure in s; four call sites per render
 
 // ---- TDEE (Topic 1): a slowly-drifting latent state, EWMA self-learning ----
 const TDEE_EMA_ALPHA = 0.10;              // per-update forgetting (~10-day constant); converges ~2–4 wk
@@ -2719,7 +2720,33 @@ function redlineCrossing(s, opts) {
    trend that is not real yet. Pure and GUARDED (a thin or malformed state returns a safe empty
    forecast, never a throw), so the anticipatory surface is self-silencing when the data can't back
    it. Reads existing owners only — introduces no new rate or slope. `opts.deps` injects for tests. */
-function forecast(s, opts) {
+/* memoOnState — cache a PURE selector's result against the IDENTITY of the state object.
+   Every mutation in this app clones and returns a fresh `s` (applyRead is the canonical
+   example), so a new state invalidates the entry for free, and a WeakMap lets superseded
+   states be collected. Strictly for selectors that are a function of `s` alone: a caller
+   that passes options must bypass it, which is why forecast only takes the cached path
+   when opts is undefined.
+
+   Worth doing because one NOW render calls forecast(s) four times — the cockpit card,
+   statusFace and marchingOrder (both via safeCrossing), and phaseArc — and each call runs
+   the regression, the twin and the cone from scratch.
+
+   THE TRAP: the key is object identity, so mutating `s` IN PLACE and calling again hands
+   you the previous answer. Nothing in the app does that — every write path clones — but a
+   test fixture that pushes onto s.reads between two calls would silently read stale. Clone
+   first, as the app does. */
+function memoOnState(fn) {
+  const cache = new WeakMap();
+  return (s) => {
+    if (s == null || typeof s !== "object") return fn(s);
+    if (cache.has(s)) return cache.get(s);
+    const v = fn(s);
+    cache.set(s, v);
+    return v;
+  };
+}
+
+function forecastUncached(s, opts) {
   const o = opts || {}, d = o.deps || {};
   try {
     const r = d.rate || currentRate(s);
@@ -2753,6 +2780,10 @@ function forecast(s, opts) {
     return { ok: false, rate: null, seRate: null, sigma: null, confident: false, greyed: true, cone: [], crossing: { fires: false, reason: "no-data", range: null, prob: 0 } };
   }
 }
+const _forecastCached = memoOnState((s) => forecastUncached(s));
+/* One render asks for this four times; it is pure, so they can share one answer. Any
+   caller that passes opts bypasses the cache and recomputes, as it must. */
+function forecast(s, opts) { return opts === undefined ? _forecastCached(s) : forecastUncached(s, opts); }
 
 /* safeCrossing — the guarded crossing the cockpit face reads. Never throws (a minimal or malformed
    state returns "no fire"), so the anticipatory nudge in statusFace / marchingOrder is self-silencing
@@ -9725,7 +9756,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                 <div style={{ borderTop: `1px solid ${T.line}`, marginTop: SP.md, paddingTop: SP.md }}>
                   <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.10em", color: T.steel, textTransform: "uppercase" }}>FORESIGHT · PROJECTION</div>
                   <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: SP.xs }}>
-                    {etaReached(fx.etaMid) ? <>target reached — {fx.targetPct}% BF</> : <>~<span data-num style={{ fontFamily: mono }}>{fx.etaMid}</span> wks to {fx.targetPct}% BF{fx.etaFast != null && fx.etaSlow != null ? <> · range <span data-num style={{ fontFamily: mono }}>{fx.etaFast}–{fx.etaSlow}</span> wks</> : null}</>}
+                    {etaReached(fx.etaMid) ? <>target reached — {fx.targetPct}% BF</> : <>~<span data-num style={{ fontFamily: mono }}>{fx.etaMid}</span> wks to {fx.targetPct}% BF{fx.etaFast != null && fx.etaSlow != null ? <> · range <span data-num style={{ fontFamily: mono }}>{fx.etaFast < 1 ? "<1" : fx.etaFast}–{fx.etaSlow}</span> wks</> : null}</>}
                   </div>
                   <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>the fan widens with distance — a projection, not a promise</div>
                   {(() => {

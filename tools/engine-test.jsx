@@ -3838,6 +3838,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(typeof fSeed.ok === "boolean" && Array.isArray(fSeed.cone) && fSeed.crossing != null, "forecast returns a cone + a crossing over the real SEED");
   const dtSeed = dt(clone(SEED));
   ok(fSeed.rate === dtSeed.newRate, "forecast READS digitalTwin.newRate — the ONE projection, it computes no second rate");
+  // v7.5 polish — forecast and energyDensity are memoised on state IDENTITY. Pin the
+  // contract: same object, same answer; a fresh clone recomputes.
+  {
+    const s1 = clone(SEED);
+    ok(__test.forecast(s1) === __test.forecast(s1), "forecast is memoised per state object — one render asks four times and gets one computation");
+    ok(__test.forecast(clone(SEED)) !== __test.forecast(s1), "a CLONE recomputes — the cache keys on identity, and every write path in this app clones");
+    ok(__test.energyDensity(s1) === __test.energyDensity(s1), "energyDensity is memoised the same way");
+    ok(JSON.stringify(__test.forecast(clone(SEED))) === JSON.stringify(__test.forecast(s1)), "…and the memoised answer is VALUE-identical to a fresh one: this is a cache, not a behaviour change");
+  }
   ok(fSeed.crossing && typeof fSeed.crossing.fires === "boolean", "forecast's crossing on the real SEED resolves to a fires boolean (self-suppresses on the real read-path)");
   const injRate = { measured: true, scale: 1.2, ci: 0.4, sigma: 0.8, lo: 0.8, hi: 1.6 };
   const fCal = FC(clone(SEED), { deps: { sig: { state: "calibrating" }, rate: injRate, band: { redline: 1.9, band: [1.0, 1.16] }, tw: dtSeed } });
