@@ -10995,8 +10995,18 @@ function LogTab({ s, setS, save, slp }) {
 
   const [gym, setGym] = useState(false);
   const complete = () => {
-    const entries = sess.ex.filter((ex) => !skipped[ex.id]).map((ex) => ({ id: ex.id, n: ex.n, w: ex.w, tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null, rirEnd: rirEnd[ex.id] ?? null }));
-    const skippedList = sess.ex.filter((ex) => skipped[ex.id]).map((ex) => ({ id: ex.id }));
+    /* PHANTOM_SKIP — the skip inference lives HERE, at finish, not in the display path. A
+       lift Gym Mode never reached and nothing typed on TRAIN is a genuine miss once the
+       session is being closed; the same lift mid-session is not. Re-derived from the drafts
+       rather than read off `skipped`, because `skipped` is now deliberately clean while a
+       draft is live. Preserves the v7.6.0 guarantee: no lift is banked at target reps. */
+    let fin = skipped;
+    try {
+      const gd = JSON.parse(localStorage.getItem("prep-ledger-gymdraft-" + dateSel) || "null");
+      if (gd) fin = mergeSessionDrafts(sess && sess.ex, { reps, rir, rirEnd, skipped }, gd, { final: true }).skipped;
+    } catch (e) {}
+    const entries = sess.ex.filter((ex) => !fin[ex.id]).map((ex) => ({ id: ex.id, n: ex.n, w: ex.w, tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null, rirEnd: rirEnd[ex.id] ?? null }));
+    const skippedList = sess.ex.filter((ex) => fin[ex.id]).map((ex) => ({ id: ex.id }));
     const { s: ns, lines } = completeSession(s, dateSel, entries, slp, { note: note.trim(), niggles: nig, skipped: skippedList, pace });
     setS(ns); save(ns); setRecap(lines); setBoosted(false); setReps({}); setRir({}); setRirEnd({}); setNote(""); setNig([]); setSkipped({}); setPace(null); try { localStorage.removeItem(draftKey); } catch (e) {}
   };
@@ -12427,7 +12437,8 @@ function restLine(exId, nSets) {
    recoverable in the direction that costs nothing and unrecoverable in neither.
 
    Pure, so the invariant 'the two drafts cannot disagree' is assertable. */
-function mergeSessionDrafts(sessEx, trainDraft, gymDraft) {
+function mergeSessionDrafts(sessEx, trainDraft, gymDraft, opts) {
+  const final = !!(opts && opts.final);   // infer skips ONLY at completion — see below
   const list = sessEx || [];
   const t = trainDraft || {}, g = gymDraft || null;
   const out = {
@@ -12443,7 +12454,25 @@ function mergeSessionDrafts(sessEx, trainDraft, gymDraft) {
     if (gRirEnd[ex.id] != null) out.rirEnd[ex.id] = gRirEnd[ex.id];
     if (gSkip[ex.id]) out.skipped[ex.id] = true;
     // never reached in the gym, and nothing typed on TRAIN -> not performed
-    if (i > reached && gReps[ex.id] == null && (t.reps || {})[ex.id] == null) out.skipped[ex.id] = true;
+    /* PHANTOM_SKIP — this used to run unconditionally, and g.idx is the lift Gym Mode is
+       CURRENTLY ON. So every lift after the one he was standing at was marked skipped while
+       the session was still in progress: open Gym Mode, do three lifts, glance at TRAIN, and
+       lifts 4-9 read skipped. Joe hit this in the gym on v7.7.0.
+
+       The reasoning was right for the problem it solved — not reaching a lift is evidence it
+       was not performed, and target reps are not — but it conflated two states:
+         not performed      — a real miss, belongs in skipped[], must be shown honestly;
+         not performed YET  — an open session, belongs in neither.
+
+       It was not cosmetic. skipped feeds skippedList at Complete session, so finishing from
+       TRAIN mid-session wrote those lifts into sessionLog[date].skipped as misses he never
+       made — the phantom-rep bug's mirror image, corroding "show misses" from the other
+       side by showing misses that never occurred.
+
+       The inference now belongs to the FINISH path only, where "the session ended and this
+       lift has no reps" genuinely does mean not performed. While a draft is live, an
+       unreached lift is simply untouched. */
+    if (final && i > reached && gReps[ex.id] == null && (t.reps || {})[ex.id] == null) out.skipped[ex.id] = true;
   });
   return out;
 }

@@ -3662,13 +3662,30 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
   const gymAt4 = { reps: { press: [8, 8], row: [12, 11] }, rir: { press: 2 }, gskip: {}, idx: 1 };
   const m = MSD(sessEx, null, gymAt4);
   ok(JSON.stringify(m.reps.press) === JSON.stringify([8, 8]) && m.rir.press === 2, "DRAFTS — what Gym Mode recorded is authoritative on TRAIN");
-  ok(m.skipped.pronated === true && m.skipped.ham === true, "DRAFTS — lifts Gym Mode never REACHED default to skipped, not to their target reps: this is the second phantom path");
+  ok(MSD(sessEx, null, gymAt4, { final: true }).skipped.pronated === true && MSD(sessEx, null, gymAt4, { final: true }).skipped.ham === true, "DRAFTS — at FINISH, lifts Gym Mode never reached default to skipped rather than to their target reps: the second phantom-rep path, and the inference now belongs to the finish path only (see PHANTOM_SKIP)");
+  ok(!MSD(sessEx, null, gymAt4).skipped.pronated && !MSD(sessEx, null, gymAt4).skipped.ham, "…and while the draft is LIVE the same lifts are untouched — \"not performed YET\" is not a miss");
   ok(!m.skipped.press && !m.skipped.row, "DRAFTS — lifts he actually performed are not marked skipped");
   ok(MSD(sessEx, null, { ...gymAt4, gskip: { row: true } }).skipped.row === true, "DRAFTS — an explicit gym skip carries across to TRAIN");
   const typed = MSD(sessEx, { reps: { ham: [10, 10] } }, gymAt4);
   ok(!typed.skipped.ham && JSON.stringify(typed.reps.ham) === JSON.stringify([10, 10]), "DRAFTS — a lift he typed on TRAIN himself is kept and NOT force-skipped, so the default stays recoverable");
   ok(JSON.stringify(MSD(sessEx, { reps: { press: [9, 9] } }, null).reps.press) === JSON.stringify([9, 9]), "DRAFTS — with no gym draft, TRAIN behaves exactly as before");
   ok(Object.keys(MSD(null, null, null).skipped).length === 0, "DRAFTS — mergeSessionDrafts is total: no session, no drafts, no throw");
+
+  // PHANTOM_SKIP — v7.6.0 killed phantom reps and introduced phantom skips. g.idx is the lift
+  // Gym Mode is CURRENTLY ON, so an unconditional inference marked every later lift skipped
+  // while the session was still open. Joe hit this in the gym on v7.7.0.
+  {
+    const nine = ["press", "row", "pronated", "ham", "calves", "abs", "hack", "ext", "curl"].map((id) => lift(id));
+    const live = { reps: { press: [8, 8], row: [12, 11] }, gskip: {}, idx: 2 };
+    const openM = MSD(nine, null, live);
+    ok(Object.values(openM.skipped).filter(Boolean).length === 0, "PHANTOM SKIP — a LIVE gym draft at lift 3 of 9 marks ZERO lifts skipped; before this it marked six, and TRAIN showed them as misses mid-session");
+    const finalM = MSD(nine, null, live, { final: true });
+    ok(Object.values(finalM.skipped).filter(Boolean).length === 6, "…and at FINISH the same draft marks the six unreached lifts skipped — the v7.6.0 guarantee that nothing banks at target reps is preserved");
+    ok(!finalM.skipped.press && !finalM.skipped.row, "the lifts he actually performed are never marked skipped, in either mode");
+    ok(MSD(nine, { reps: { hack: [10] } }, live, { final: true }).skipped.hack !== true, "a lift he typed on TRAIN himself survives the finish inference");
+    ok(MSD(nine, null, { ...live, gskip: { ham: true } }).skipped.ham === true, "an EXPLICIT skip still shows immediately, live draft or not — a real miss is never hidden");
+    ok(JSON.stringify(MSD(nine, null, live).reps) === JSON.stringify(MSD(nine, null, live, { final: true }).reps), "DRAFTS — the two drafts still cannot disagree: the mode changes only the skip inference, never the reps");
+  }
 
 }
 
