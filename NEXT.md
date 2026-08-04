@@ -149,6 +149,40 @@ editing hazard is anchors that match more than once.
 
 ---
 
+#### STATE — read this before you start
+
+**§3.3 (ladder inference) is ALREADY BUILT.** It was written and gated outside this
+session and sits on the local branch **`feat/train-ladder-inference`** (`d34bcd0`,
+branched off `main`, four files: `src/app.jsx`, `tools/engine-test.jsx`, `app.js`,
+`sw.js`). APP_V and the sw cache are already bumped to **7.8.0**. Strict gate and render
+smoke were green: **1431 assertions**, up from 1419.
+
+**Do not rebuild §3.3. Your first two actions are:**
+
+1. **Push `feat/train-ladder-inference` to origin.** It exists in exactly one place right
+   now — the local clone — and nothing else has a copy. Push it before you touch anything
+   else.
+2. **Branch the roster work off it**, so §3.2 and §3.3 ship together as one release rather
+   than racing each other over the same file.
+
+What landed in §3.3, so you can verify rather than assume: `proposeLadder(s, exId)` and
+`sweepLadders(s)` (both pure, both in the `__test` export); a `ladder` branch in
+`applyProposal` plus its exact reversal in `undoAdjustment`; the jump-size chips no longer
+destroying a ladder without confirming; `set weight` no longer proposing 180 lb for a lift
+with no numeric load; and the rung editor rebuilt as a picker with a *fill from my log*
+control. Twelve assertions cover both abstention gates, provenance of every rung, that
+filing is not applying, that approving never raises the load, and that undo is exact.
+
+**§3.2 (the TRAIN roster + three doors) is NOT built. That is your work.** Everything it
+needs is in §3.2 below.
+
+**Housekeeping note, not corruption:** `.git/_stale-locks/` contains git lock files and
+temp objects moved aside during that work — the bridge that wrote the branch cannot delete
+files, only move them. The tree and the commit are sound. Clear that directory when
+convenient.
+
+---
+
 #### 0 · The laws this answers to
 
 - **Tier 0** — one answer, largest, first, the half-second read. **Tier 1** — glanceable,
@@ -404,30 +438,16 @@ honest-labelling app cannot claim a thing it has not done. One or the other. Not
 
 #### 5 · Sequencing
 
-**BUILD STATUS — SHIPPED v7.7.0, 2026-08-04** (merge `5fe2b9f`, beacon published 13:46:23Z).
-Branch `feat/train-gym-redesign`, one commit per move, strict gate + render smoke green at
-every commit. **Four of seven moves shipped; two remain and stay in this item.**
-gate + render smoke green at every commit:
+**BUILD STATUS — all seven §5 moves built.** v7.7.0 shipped the first four (merge `5fe2b9f`).
+The remaining three are on `feat/train-roster` awaiting the phone walk:
 
-- ✅ memoise — `2b0…` genSession + liftCall once per state, not per keystroke
-- ✅ delete/dedupe — dead RECEIPT chips, TRAIN’s third queue copy, PACE single-owner
-- ✅ Gym Mode completeness — cues, note, setup, prev, next rung, undo set, rest controls,
-  all-done list, the recap that was being discarded, note + niggles no longer hardcoded
-- ✅ RIR timing — last set asked AT the set; opener out of the default flow
-- ⬜ TRAIN roster + three doors — NOT STARTED
-- ⬜ ladder inference (`proposeLadder`) — NOT STARTED
-- ✅ §3.4 — satisfied by the FALLBACK, which shipped in v7.6.0: the LAB proposal no longer
-  claims the window “has already” been widened. Wiring `windowFor` into progression remains
+- ✅ memoise · ✅ delete/dedupe · ✅ Gym Mode completeness · ✅ RIR timing  — LIVE in v7.7.0
+- ✅ TRAIN roster + three doors (SETUP / THE READ / THE RECORD) — built, not merged
+- ✅ ladder inference (`proposeLadder` + an inbox `ladder` branch that actually applies)
+  — built, not merged
+- ✅ §3.4 — satisfied by the FALLBACK, live since v7.6.0: the LAB proposal no longer claims
+  the window “has already” been widened. Wiring `windowFor` into progression remains
   available and is still the riskiest change in the spec.
-
-One commit per numbered move, gate green each time, so any single move is revertable.
-Suggested order — cheapest and safest first, riskiest last:
-memoise → delete/dedupe → Gym Mode completeness (cues, prev, next-weight, undo, rest
-controls, in-mode weight) → RIR timing → TRAIN roster + three doors → ladder inference →
-`windowFor` (or the honesty correction).
-
-Then: push the branch, produce a **preview Joe can open on his phone**, and report what to
-tap. **Do not merge to `main`.**
 
 #### 6 · Open questions — write these up, do not guess
 
@@ -485,7 +505,152 @@ https://link.springer.com/article/10.1186/s40798-021-00404-9
 
 ## QUEUED
 
-### 1. In-progress session survivability — LEASE, not a merge  `[needs Joe]`
+### 1. Personal RIR calibration — measure Joe's own bias, as a range `[needs Joe]`
+
+**Joe's proposal, and it is the right shape:** stop using a population constant for RIR
+bias; measure his own, treat it as a range the way `bfEst` is a range, and once there is
+enough data let it inform the prescription. This supersedes *Open question 1* in the TRAIN
+spec, which recommended "leave it and cite the bias". Measuring beats citing — **but only
+with a measurement design the current log cannot provide.**
+
+#### The measurement problem — read this first, it decides the whole design
+
+**His existing training log cannot yield this number, and no amount of it will.** To know
+his bias you need two things: what he *said* (RIR 2) and what was *true* (how many he
+actually had left). In normal training he stops at his estimate — so the log contains the
+estimate and never the truth. The truth only exists on a set taken *past* where he would
+have stopped.
+
+Next-session performance cannot substitute. If he calls 2 RIR at 160×11 and next session
+does 160×13, that is equally consistent with "he misjudged by two reps" and "he got two
+reps stronger". **Misjudgement and adaptation are confounded**, and adaptation is the
+thing the whole programme exists to cause. Any estimate built from ordinary sessions would
+be measuring its own training effect.
+
+So the data has to be created deliberately.
+
+#### The design that does work — paired calibration sets
+
+The literature's own protocol, and it is simple enough to run in his session: on the last
+set of a chosen lift, he calls his RIR **at the point he would normally stop**, and then
+keeps going to actual momentary failure. The difference between the two is that day's
+bias, measured directly, with nothing confounded. [1]
+
+Constraints that are not optional:
+
+- **Safe, single-joint lifts only** — tricep, curl, lateral, extension, ham. Never the
+  hack squat, press, or anything where the failure rep is a safety event. This is also
+  where RIR estimates are most accurate to begin with. [2]
+- **The last set only**, and not every session — a failure set carries real fatigue cost,
+  and the point is to measure his perception, not to redesign his programme around
+  measuring it.
+- **It must be proposed and accepted, never auto-scheduled.** A calibration set changes
+  what he does in the gym; that goes through the approval inbox like everything else.
+
+#### What the evidence says about the number being measured
+
+The population bias is real but its magnitude is wildly uncertain: paired
+self-determined-stop versus true-failure trials produced **0.8 reps** in one experiment and
+**2.8** in another, meta-estimating **2.0 reps with a 95% CI of 0.0 to 4.0**. [1] A
+confidence interval running from zero to four is precisely why a population constant
+should not be applied to one person — it is an argument *for* Joe's idea, not against it.
+
+But the same study is the reason this must be gated hard: **within-subject reliability of
+the bias was ICC 0.5 (95% CI 0.03–0.8) in one experiment and 0.96 (0.92–0.98) in the
+other.** [1] Those describe two different worlds. At 0.96 the bias is a stable personal
+trait worth modelling; at 0.5 it is barely a trait at all and a personal estimate would be
+mostly noise wearing a number's clothes.
+
+**Therefore the app must not assume the bias is stable — it must test whether it is, from
+his own points, and say so honestly.** If his calibration points scatter widely, the
+correct output is an abstention: *"your RIR judgement isn't consistent enough to correct
+for yet"* — the same self-suppression `signalState` already performs when a trend is inside
+its own noise. That abstention is a feature, not a failure of the feature.
+
+Two further constraints from the same literature: accuracy appears to improve with practice
+and familiarisation, so the estimate must be a **rolling, ageing** one rather than a fixed
+constant learned once and applied forever; and participants remained inaccurate even when
+deliberately trying to stop as close to failure as possible — so this cannot be fixed by
+"just concentrate harder". [1]
+
+#### How many sets before it means anything
+
+If the within-subject spread of his bias is on the order of 1–1.5 reps, pinning the mean to
+±0.5 reps needs roughly **(1.5 / 0.5)² ≈ 9 calibration sets.** At one a week that is
+**two to three months** before the range is tight enough to act on. The app should say that
+out loud from the first calibration set, and show the interval narrowing — the DEXA lesson:
+the anchor tightens a range, it does not license a point.
+
+#### How it should be APPLIED — and the trap to avoid
+
+This is where Joe's proposal needs one correction.
+
+**The wrong application: inflate the rep targets.** If the engine decides he had 3 in
+reserve when he said 2, and feeds the corrected number into `progressStep`, his next target
+climbs by +3 instead of +2. That does nothing for hypertrophy, because **the evidence links
+growth to actual proximity to failure during the set, not to how fast the target climbs.**
+[3] Worse, it has a concrete failure mode: he still stops at his *perceived* 2 RIR, so he
+misses the inflated target; `liftCall` counts non-improving sessions; three of those fire a
+`RESET`; and he gets deloaded because the engine's model of him was wrong. The app would
+punish him for its own correction.
+
+**The right application: close the gap he did not know was there.** Two honest uses:
+
+1. **Tell him.** *"When you call it 2, you have been landing nearer 3 — your working sets
+   are finishing about a rep further from failure than the plan intends."* That is
+   information he can act on directly, and acting on it is the thing the hypertrophy
+   evidence actually supports.
+2. **Adjust the prescription, not the record.** If the plan wants him at 1 RIR and he
+   reliably overshoots by one, `rirPlan` can prescribe 0 knowing he will land at 1. The
+   number he reports is never rewritten — his log stays his log — only the instruction
+   changes. Engine-owned, honestly labelled, and reversible.
+
+**Never silently rewrite a logged RIR.** The stored value is what he said; a corrected
+value is the engine's inference about him and must be visibly labelled as such wherever it
+appears, with its interval and its n.
+
+#### What to build
+
+1. **`rirCalibration(s)`** — pure selector over a new `s.rirCal` collection returning
+   `{n, bias, lo, hi, stable, why}` or `null`. `stable` is false when the spread of his
+   points is too wide to act on, and a false `stable` suppresses every downstream use.
+   In the `__test` export with assertions covering: null below n, abstention on wide
+   scatter, a correct interval on tight scatter, and that the interval narrows as n grows.
+2. **A calibration proposal** — `sweepRirCal(s)` files "take the last set of <safe lift> to
+   real failure next session, and call your RIR before you do" into the approval inbox.
+   Never auto-applied. Never on a compound.
+3. **Gym Mode capture** — on a calibration set, ask for the estimate at the normal stopping
+   point, then record actual reps to failure. Two numbers, one set, seconds apart.
+4. **`s.rirCal` is new synced state** — keyed-union, refuse-to-shrink, additive migration,
+   in the same change. Same rule as everything else.
+5. **Application, gated:** only when `stable` and `n` are sufficient, and only as (1) an
+   honest readout and (2) a `rirPlan` prescription shift. **`progressStep` keeps reading
+   the RIR he actually reported.**
+
+#### Open questions for Joe
+
+- **Is he willing to take one set a week to true failure on an isolation lift?** The whole
+  design rests on it. If not, this item closes and the honest answer stays "we cite the
+  population bias and do not correct for it" — which is a perfectly defensible place to
+  land, and better than a number built on a measurement that cannot be made.
+- **Which lift.** Tricep, curl, lateral, extension or ham. Ideally the same one every time,
+  so the estimate is not also absorbing between-exercise differences.
+
+**Sources**
+[1] *"Just One More Rep!" — Ability to Predict Proximity to Task Failure in Resistance
+Trained Persons*, Frontiers in Psychology (2020). Paired self-determined-RM vs momentary
+failure design; 0.8 and 2.8 reps across two experiments, meta-estimate 2.0 (95% CI 0.0–4.0);
+ICC(3,1) 0.5 (0.03–0.8) and 0.96 (0.92–0.98) —
+https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2020.565416/full
+[2] RIR-estimation accuracy synthesis — error falls from ~4.8 reps at 33% of a set to ~1.2
+at 90%, and 1.2 → 0.46 from 5 RIR to 1 RIR; better on single-joint movements and in sets of
+≤12 reps — https://www.strongerbyscience.com/reps-in-reserve/
+[3] Refalo et al., proximity-to-failure meta-regressions: RIR relates meaningfully to
+hypertrophy, negligibly to strength —
+https://link.springer.com/article/10.1007/s40279-024-02069-2
+
+
+### 2. In-progress session survivability — LEASE, not a merge  `[needs Joe]`
 
 **Downgraded 2026-08-04.** The spec line "phone dies at lift 6 and the session is gone" was
 wrong: localStorage survives a dead battery, an app restart and a reboot, so the draft is
@@ -498,7 +663,7 @@ It may be replaced only by a draft from the *same* device, or by a completed ses
 stale device NEVER overwrites a live one — there is exactly one phone in the gym.** Nothing
 here merges; it is claimed or released.
 
-### 2. Event protocol readability (round-3 I4) — option (c)  `[needs Joe]`
+### 3. Event protocol readability (round-3 I4) — option (c)  `[needs Joe]`
 
 Move the event reference material into a door (THE BRIEFING); keep the fold card gated to
 the actionable window. This does **not** re-open round-2 G1 — the fold card stays windowed,
@@ -508,7 +673,7 @@ only the reference material moves. Decided; recorded so nobody relitigates it.
 layout has now been walked once, but the event-detail placement inside it has not — do not
 build it blind.
 
-### 3. The three non-numeric lifts (Q2·F)  `[needs Joe]`
+### 4. The three non-numeric lifts (Q2·F)  `[needs Joe]`
 
 `hack` (`"hold"`), `hanging` (`"BW"`) and `curl` (`"55·55·50"`) store `w: null`, so
 `progressAnchor` never anchors them and `typicalError` skips them — three of fifteen lifts
@@ -517,158 +682,6 @@ sit outside the progression engine. Representation options: a per-set load array
 `"hold"` actually is for the hack squat, which Joe does not think is a load at all.
 
 **Data-model change — needs merge hardening and a migration, so it is not overnight work.**
-
-
-### 4. TRAIN + Gym Mode redesign `[needs Joe]` — he should see the shape before it is built
-
-**The diagnosis in one line: TRAIN is a planning page that happens to contain a gym
-button; it should be a gym page that happens to contain planning.**
-
-`▶ GYM MODE` is already the first element and Gym Mode's core loop is the best
-interaction in the app — three taps from cold open to set 1, reps pre-filled with the
-engine's proposal so *confirming costs zero taps and only a miss costs one*. That
-polarity is correct and must survive verbatim. But below that button sit ~17 sections
-including two full essay cards (`EXERCISE SELECTION`, `YOUR SET ALLOCATION`), a second
-copy of the queue already shown on NOW, and a `PACE` control that asks him to declare
-something Gym Mode already measures. That is a reading page, rendered where a person is
-standing at a rack with a phone in one hand.
-
-#### What the evidence supports (and what it doesn't)
-
-**Proximity to failure matters for the outcome Joe actually wants, and only that one.**
-The 2024 meta-regressions found estimated RIR had a **negligible** relationship with
-strength gain — the confidence intervals on the marginal slopes contained null — but a
-**meaningful negative** relationship with hypertrophy, with CIs excluding null: sets
-taken closer to failure grew more muscle. Optimal proximity differs between the two
-outcomes. The authors are explicit that model fit was modest and the work exploratory. [1]
-*Implication:* since the north star is visual body-composition change, RIR is a
-first-class signal here — but the app must not present it as driving *strength*
-progression, and must not overstate the certainty.
-
-**Self-reported RIR carries a known, sizeable, directional error.** Lifters
-systematically **underpredict** — mean underestimation ~0.95 reps across the literature,
-individual studies 0.65–1.2. Training experience barely helps. Crucially, accuracy is a
-strong function of *when* you ask: error falls from **4.8 reps at 33% of a set to 1.2
-reps at 90%**, and from 1.2 reps at 5 RIR to **0.46 at 1 RIR**. Accuracy is better in
-sets of ≤12 reps. [2]
-*Implication, and it is the central design consequence:* **the app currently asks for
-both RIRs at `lift-done` — after every set of the lift is finished, from memory.** That
-is the least accurate possible moment. It also gives the opener equal visual weight to
-the last set, when the engine's own comment (`:770`) already says the opener is weak and
-every opener on file reads 1–2. The research says the opener is not just weak, it is
-measured at the point where error is largest.
-
-**Autoregulation is not a magic win, and the app should not claim it is.** The 2021
-systematic review found autoregulated and standardized load prescription produced
-**similar** strength gains (MD 2.07 kg, 95% CI −0.32 to 4.46, p = 0.09; SMD 0.21).
-Subjective/RPE-based autoregulation trended slightly better (SMD 0.30, p = 0.06);
-velocity-based was near-null (SMD 0.10). Volume autoregulation showed a genuine
-**strength–hypertrophy trade-off**: lower velocity-loss thresholds favoured strength
-(SMD 0.23), higher thresholds (>20–25%) favoured hypertrophy (SMD 0.34). All studies
-carried some risk of bias. [3]
-*Implication:* the honest framing for any autoregulation copy is *"comparable to a fixed
-plan, possibly slightly better when it's driven by your own perceived effort"* — never
-"superior". And the hypertrophy-favouring direction is *more* accumulated fatigue per
-set, which agrees with [1].
-
-#### The redesign
-
-**Tier 0 — the set in front of you.** Unchanged in spirit: lift name, load, set n of N,
-the big rep number, `SET DONE → REST 150s`. Nothing else competes.
-
-**Tier 1 — three things that are currently missing or buried:**
-
-1. **The next weight, on the lift screen.** `nextLoad(ex)` exists on every card and is
-   rendered nowhere. `sessionDebrief` already composes the single most useful sentence
-   in the training engine — *"N more reps above that and {upW} queues itself — about {n}
-   more sessions"* (`:3989`) — and it lives two taps down, inside FULL DEBRIEF, on the
-   *receipt*, only after the session is logged. Surface it while he is under the bar. No
-   new number; compose the existing selector.
-2. **The cues.** `ex.setup` / `ex.live` / the DEBUT-OWN-IT-RECLAIM note all exist in
-   `sess.ex` and none reach Gym Mode. `NOW ▸ {ex.live}` belongs on the lift screen.
-3. **Last-set RIR, captured at the last set.** See below.
-
-**Tier 2 — one tap down, and far fewer doors.** The two essay cards, the selection audit,
-the set-allocation card, the archive, the debrief: all correct content, all wrong place.
-They belong behind labelled doors that don't rearrange, in the same shape NOW now uses.
-
-**The RIR change — the evidence-driven part:**
-
-- Ask for **last-set RIR immediately after the last set**, on the rest screen or as the
-  set is banked — not at `lift-done` from memory. That moves the estimate from the
-  worst-accuracy moment to the best (0.46 vs 1.2 reps of error). [2]
-- **Demote the opener.** Make it optional and visually subordinate, or drop it. It is the
-  measurement taken where error is largest, the engine already treats it as weak, and it
-  costs a tap on every lift, every session.
-- **Model the ~1-rep underprediction explicitly, and label it.** The bias is directional
-  and well documented, so the engine can carry it — but the app's own rule is that a
-  number without provenance is a claim. If a corrected RIR is used, say so.
-- Do **not** widen the RIR scale. `0/1/2/3+` is right: accuracy collapses above ~3 RIR,
-  so finer buckets up there would be false precision.
-
-**The ladder problem — the biggest unrealised win on this page.** `loadRungs`,
-`nextLoad`, `prevLoad`, `snapLoad` and `deloadLoad` are complete, correct, and
-*completely unpopulated*: **no exercise ships with a `steps` array; all fifteen run on
-even increments.** `deloadLoad` (`:915`) even refuses to invent a weight and picks the
-nearest strictly-lighter rung specifically to avoid an 11% cliff on a coarse stack — an
-excellent piece of engineering with nothing to work on. The only way to populate a
-ladder is a free-text `<textarea>` reached in five taps, typed from memory at the
-machine, which a mis-tap on an adjacent chip then silently deletes.
-*Build:* infer candidate ladders from the logged weight history per exercise, propose
-them through the existing approval inbox (never self-apply), and make the editor a
-picker rather than a paragraph. This is the change that makes the rest of the load
-machinery real — and it is what Joe already asked for when he said machines have uneven
-jumps and he wants the actual available weights per exercise.
-
-**Deduplicate.** Two different weekly set-counts appear on one page with the same units
-and different answers — `muscleVolume` counts *logged* sets over 7 days, `programmeVolume`
-counts *designed* sets per week, with no cross-reference. The queue renders in three
-places (NOW's CLOSEST UNLOCKS, the QUEUE tab, TRAIN's `More` panel). `PACE` is asked on
-TRAIN and measured in Gym Mode. Pick one owner for each.
-
-**Performance.** `genSession` rebuilds the whole session and `liftCall` traverses
-`sessionLog × exercises` on every render — including every keystroke in the notes
-textarea and every stepper tap, three independent traversals per render. Memoise before
-adding anything.
-
-#### Preserve — do not "improve" these
-
-Reps defaulting to the engine's proposal. The auto-advancing, vibrating rest timer (no
-tap between sets). Pace measured rather than asked, and **n-gated** — under three rests
-it stays `null` instead of guessing. Rest prescribed per exercise *and* per set position,
-with the button naming the number before it starts it. Structured skipping — struck-through
-rows, "skipped — on record". One structural change per session. The verdict chip as a
-door (`CHASE ▾`) into `why` + receipts. `RESET` never self-applying — it files an
-`agentProposal` and waits. And the deliberate absence of streaks and countdowns, which
-the source shows was removed on purpose in at least three places.
-
-#### Acceptance criteria
-
-- No new numbers: the next-weight line composes `nextLoad` / `sessionDebrief`; the
-  ladder proposals compose `loadRungs` / `snapLoad`; RIR correction, if built, is an
-  engine selector in the `__test` export with assertions, not UI arithmetic.
-- Ladder inference **proposes** and never self-applies — it flows through the approval
-  inbox like every other engine suggestion.
-- Any new synced state ships with keyed-union / never-shrink merge hardening and an
-  additive migration in the same commit (`exOrder` included — see item 1E).
-- Tap-count regression test: cold open → set 1 recorded stays at **three taps**, and a
-  set matching the proposal still costs zero extra taps.
-- Every RIR/proximity claim in copy traces to [1]/[2] and states its uncertainty; no copy
-  claims autoregulation is superior to a fixed plan.
-- Gate + render smoke green; walked on iOS Safari, in a gym, before merge.
-
-**Sources**
-[1] Refalo et al., *Exploring the Dose–Response Relationship Between Estimated Resistance
-Training Proximity to Failure, Strength Gain, and Muscle Hypertrophy: A Series of
-Meta-Regressions*, Sports Medicine (2024) —
-https://link.springer.com/article/10.1007/s40279-024-02069-2
-[2] Synthesis of RIR-estimation accuracy (Halperin et al. and successors; mean
-underprediction ~0.95 reps; error 4.8 → 1.2 reps across a set; 1.2 → 0.46 reps from 5 RIR
-to 1 RIR) — https://www.strongerbyscience.com/reps-in-reserve/ and
-https://www.ovid.com/jnls/nsca-jscr/fulltext/10.1519/jsc.0000000000002995
-[3] *The Effect of Load and Volume Autoregulation on Muscular Strength and Hypertrophy: A
-Systematic Review and Meta-Analysis*, Sports Medicine – Open (2021) —
-https://link.springer.com/article/10.1186/s40798-021-00404-9
 
 
 ### 5. DEXA body-fat anchor `[needs Joe]` — no scan exists yet, and it adds synced state
