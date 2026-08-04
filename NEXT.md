@@ -135,7 +135,29 @@ headless — walk the render-smoke states and eyeball on the phone before shippi
 
 ---
 
-## NOW  `[build it]`
+## NOW — built, awaiting the phone walk
+
+### v7.9.0 — the phantom SKIP, the way back, and the ladder verdict
+
+Branch `fix/phantom-skip` (`6debec4` → HEAD). All three items in the previous NOW are built,
+one commit each, strict gate + render smoke green at every one. **Not merged.**
+
+- **The phantom SKIP** — `mergeSessionDrafts` gains an explicit `{ final }` mode. A live
+  draft at lift 3 of 9 now marks ZERO skipped; it marked six. The inference runs only in the
+  finish path, and TRAIN’s `complete()` re-derives it there. **This one is live on the phone
+  and writes false misses into `sessionLog[date].skipped`, so it is the reason to ship.**
+- **No way back** — `backLift(idx, gskip, sessEx)` steps back a lift and clears the skip on
+  the one it returns to. A skip is as reversible as a set.
+- **Ladder verdict** — kept this implementation, ported both things: the evenness test is
+  now “whole multiple of `inc`” (the equality test made 85/95/105 unreachable on a 5 lb
+  stack), and `sweepLadders` from `d34bcd0` files proposals into the inbox — the missing
+  middle step between inferring and installing. `feat/train-ladder-inference` deleted.
+
+Suite 1430 → 1454.
+
+## QUEUED
+
+### 0. TRAIN spec — remainder (all seven §5 moves shipped in v7.8.0)
 
 ### TRAIN + Gym Mode — the comprehensive redesign
 
@@ -502,8 +524,6 @@ https://www.ovid.com/jnls/nsca-jscr/fulltext/10.1519/jsc.0000000000002995
 Systematic Review and Meta-Analysis*, Sports Medicine – Open (2021) —
 https://link.springer.com/article/10.1186/s40798-021-00404-9
 
-
-## QUEUED
 
 ### 1. Personal RIR calibration — measure Joe's own bias, as a range `[needs Joe]`
 

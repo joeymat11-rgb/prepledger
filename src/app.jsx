@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.8.0";
+const APP_V = "7.9.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -920,9 +920,49 @@ function proposeLadder(s, exId) {
   if (rungs.length < LADDER_MIN_N) return null;
   const gaps = rungs.slice(1).map((x, i2) => +(x - rungs[i2]).toFixed(2));
   const inc = +(ex.inc || 0);
-  const even = inc > 0 && gaps.every((g) => Math.abs(g - inc) < 0.01);
-  if (even) return null;                                                    // proposing the status quo
+  /* EVENNESS — this used to test whether every gap EQUALS inc, and that is wrong in a way
+     that makes real weights unreachable. Given 80, 90, 100, 110 on a stack whose authored
+     step is 5, equality sees uneven gaps and proposes [80,90,100,110] as the ladder — which
+     tells nextLoad that 85, 95 and 105 do not exist. His next jump doubles from 5 lb to 10,
+     and deloadLoad loses half its options on the way down.
+
+     The old comment defending it — “a gap the machine can make but he has never selected
+     stays absent, which is the honest state” — is the part that was wrong. A ladder is a
+     claim about what the MACHINE CAN PRODUCE, not about what he has chosen. When every
+     observed gap is a clean multiple of the authored step, the step is direct evidence the
+     intermediate weights exist, and discarding it asserts something false.
+
+     So: uneven means some gap is NOT a whole multiple of inc. A sparsely-sampled even stack
+     proposes nothing, which is the correct silence. */
+  const uneven = inc > 0 && gaps.some((g) => Math.abs(g / inc - Math.round(g / inc)) > 1e-6);
+  if (!uneven) return null;                                                  // an even stack: proposing it changes nothing
   return { exId, n: ex.n, rungs, gaps, n_obs: rungs.length, inc, uneven: true };
+}
+/* sweepLadders — file inferred ladders into the approval inbox. proposeLadder infers,
+   this files, applyProposal installs; nothing here applies anything. One open proposal per
+   lift, and a resolved or dismissed one is never re-filed — a proposal that returns after
+   he has answered it is a nag, and the charter has no nags. */
+function sweepLadders(s) {
+  try {
+    let touched = false;
+    for (const ex of ((s && s.exercises) || [])) {
+      if (!ex || !ex.id) continue;
+      const pl = proposeLadder(s, ex.id);
+      if (!pl) continue;
+      const rid = `ladder_${ex.id}`;
+      s.proposals = s.proposals || [];
+      if (s.proposals.some((x) => x && x.rid === rid)) continue;   // open, resolved or dismissed — never re-file
+      s.proposals.push({
+        rid, id: _freshId("ladder_"), d: isoOf(todayStart()),
+        title: `${String(ex.n).toUpperCase()} — ${pl.rungs.length} REAL RUNGS`,
+        why: `Every weight here is one you have already lifted on ${ex.n}: ${pl.rungs.join(", ")}. The gaps are ${pl.gaps.join(", ")} lb, which the authored ${pl.inc} lb step does not divide — so the engine has been proposing loads this machine may not make. Approving this makes every earn, reset and forecast land on a weight that exists. Nothing about your current load changes except snapping it to the nearest real rung at or below it.`,
+        apply: { kind: "ladder", exId: ex.id, rungs: pl.rungs },
+        resolved: false,
+      });
+      touched = true;
+    }
+    return touched ? s : null;
+  } catch (e) { return null; }
 }
 
 function loadRungs(ex) {
@@ -6060,6 +6100,7 @@ function sweepStalls(s) {
 
 function sweepLab(s, dow = new Date().getDay()) {
   let st0 = sweepStalls(s); if (st0) s = st0;
+  const ld0 = sweepLadders(s); if (ld0) s = ld0;   // inferred ladders arrive as PROPOSALS, never as applied changes
   const sv0 = sweepVolume(s); if (sv0) { s = sv0; st0 = sv0; }
   const flat = labGroups(s).flatMap((g) => g.cards);
   const seen = s.labSeen || {};
@@ -8906,7 +8947,7 @@ __test.UI_KEY = UI_KEY;
 __test.applyDisc = applyDisc;
 __test.readDisc = readDisc;
 __test.oweTarget = oweTarget;
-__test.proposeLadder = proposeLadder; __test.LADDER_MIN_N = LADDER_MIN_N;   // §3.3 — infer the rungs, propose them, never apply
+__test.proposeLadder = proposeLadder; __test.sweepLadders = sweepLadders; __test.LADDER_MIN_N = LADDER_MIN_N;   // §3.3 — infer the rungs, propose them, never apply
 __test.paceShown = paceShown;   // H2 — one gate for the card body and the More panel
 __test.eventFocus = eventFocus; __test.EVENT_LEAD_D = EVENT_LEAD_D; __test.EVENT_GRACE_D = EVENT_GRACE_D;   // v7.5 r2 blocker C
 __test.NOW_DOORS = NOW_DOORS; __test.TRAIN_DOORS = TRAIN_DOORS;   // v7.5 — the live door keys, asserted against by the deep-link tests
@@ -10995,8 +11036,18 @@ function LogTab({ s, setS, save, slp }) {
 
   const [gym, setGym] = useState(false);
   const complete = () => {
-    const entries = sess.ex.filter((ex) => !skipped[ex.id]).map((ex) => ({ id: ex.id, n: ex.n, w: ex.w, tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null, rirEnd: rirEnd[ex.id] ?? null }));
-    const skippedList = sess.ex.filter((ex) => skipped[ex.id]).map((ex) => ({ id: ex.id }));
+    /* PHANTOM_SKIP — the skip inference lives HERE, at finish, not in the display path. A
+       lift Gym Mode never reached and nothing typed on TRAIN is a genuine miss once the
+       session is being closed; the same lift mid-session is not. Re-derived from the drafts
+       rather than read off `skipped`, because `skipped` is now deliberately clean while a
+       draft is live. Preserves the v7.6.0 guarantee: no lift is banked at target reps. */
+    let fin = skipped;
+    try {
+      const gd = JSON.parse(localStorage.getItem("prep-ledger-gymdraft-" + dateSel) || "null");
+      if (gd) fin = mergeSessionDrafts(sess && sess.ex, { reps, rir, rirEnd, skipped }, gd, { final: true }).skipped;
+    } catch (e) {}
+    const entries = sess.ex.filter((ex) => !fin[ex.id]).map((ex) => ({ id: ex.id, n: ex.n, w: ex.w, tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null, rirEnd: rirEnd[ex.id] ?? null }));
+    const skippedList = sess.ex.filter((ex) => fin[ex.id]).map((ex) => ({ id: ex.id }));
     const { s: ns, lines } = completeSession(s, dateSel, entries, slp, { note: note.trim(), niggles: nig, skipped: skippedList, pace });
     setS(ns); save(ns); setRecap(lines); setBoosted(false); setReps({}); setRir({}); setRirEnd({}); setNote(""); setNig([]); setSkipped({}); setPace(null); try { localStorage.removeItem(draftKey); } catch (e) {}
   };
@@ -12427,7 +12478,8 @@ function restLine(exId, nSets) {
    recoverable in the direction that costs nothing and unrecoverable in neither.
 
    Pure, so the invariant 'the two drafts cannot disagree' is assertable. */
-function mergeSessionDrafts(sessEx, trainDraft, gymDraft) {
+function mergeSessionDrafts(sessEx, trainDraft, gymDraft, opts) {
+  const final = !!(opts && opts.final);   // infer skips ONLY at completion — see below
   const list = sessEx || [];
   const t = trainDraft || {}, g = gymDraft || null;
   const out = {
@@ -12443,7 +12495,25 @@ function mergeSessionDrafts(sessEx, trainDraft, gymDraft) {
     if (gRirEnd[ex.id] != null) out.rirEnd[ex.id] = gRirEnd[ex.id];
     if (gSkip[ex.id]) out.skipped[ex.id] = true;
     // never reached in the gym, and nothing typed on TRAIN -> not performed
-    if (i > reached && gReps[ex.id] == null && (t.reps || {})[ex.id] == null) out.skipped[ex.id] = true;
+    /* PHANTOM_SKIP — this used to run unconditionally, and g.idx is the lift Gym Mode is
+       CURRENTLY ON. So every lift after the one he was standing at was marked skipped while
+       the session was still in progress: open Gym Mode, do three lifts, glance at TRAIN, and
+       lifts 4-9 read skipped. Joe hit this in the gym on v7.7.0.
+
+       The reasoning was right for the problem it solved — not reaching a lift is evidence it
+       was not performed, and target reps are not — but it conflated two states:
+         not performed      — a real miss, belongs in skipped[], must be shown honestly;
+         not performed YET  — an open session, belongs in neither.
+
+       It was not cosmetic. skipped feeds skippedList at Complete session, so finishing from
+       TRAIN mid-session wrote those lifts into sessionLog[date].skipped as misses he never
+       made — the phantom-rep bug's mirror image, corroding "show misses" from the other
+       side by showing misses that never occurred.
+
+       The inference now belongs to the FINISH path only, where "the session ended and this
+       lift has no reps" genuinely does mean not performed. While a draft is live, an
+       unreached lift is simply untouched. */
+    if (final && i > reached && gReps[ex.id] == null && (t.reps || {})[ex.id] == null) out.skipped[ex.id] = true;
   });
   return out;
 }
@@ -12465,6 +12535,24 @@ function mergeSessionDrafts(sessEx, trainDraft, gymDraft) {
    finer buckets up there would be false precision. [2] */
 function phaseAfterSet(setN, nSets) { return setN + 1 < nSets ? "rest" : "rir-end"; }
 
+/* backLift — step a Gym Mode session back one lift and CLEAR the skip on the lift it
+   returns to. Skipping was one-way: nextLift only moves forward, skipLift sets gskip and
+   calls it, and v7.7.0’s undo-last-set is a different thing entirely. Tap skip by accident
+   and the only recovery was to leave Gym Mode and un-skip on TRAIN — which is exactly the
+   leaving-mid-session path that produced the phantom skip. A skip must be as reversible as
+   a set; nothing in this app is one-way.
+
+   Pure so both halves are assertable: the index it lands on, and that the skip is gone. */
+function backLift(idx, gskip, sessEx) {
+  const list = sessEx || [];
+  if (!(idx > 0)) return { idx: idx > 0 ? idx : 0, gskip: gskip || {}, moved: false };
+  const to = idx - 1;
+  const next = { ...(gskip || {}) };
+  const ex = list[to];
+  if (ex && ex.id) delete next[ex.id];
+  return { idx: to, gskip: next, moved: true };
+}
+
 function gymEntries(sessEx, st) {
   const o = st || {};
   const reps = o.reps || {}, rir = o.rir || {}, rirEnd = o.rirEnd || {}, gskip = o.gskip || {};
@@ -12483,7 +12571,7 @@ function gymEntries(sessEx, st) {
    session rushed — which pulls it out of the progression evidence via liftCall. */
 const REST_CUT_S = 60;
 function restCut(startMs, nowMs) { return Math.floor(((nowMs || 0) - (startMs || 0)) / 1000) < REST_CUT_S; }
-__test.gymEntries = gymEntries; __test.phaseAfterSet = phaseAfterSet; __test.mergeSessionDrafts = mergeSessionDrafts; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
+__test.gymEntries = gymEntries; __test.backLift = backLift; __test.phaseAfterSet = phaseAfterSet; __test.mergeSessionDrafts = mergeSessionDrafts; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
 
 function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [idx, setIdx] = useState(0);
@@ -12546,6 +12634,9 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   };
   /* Undo the last banked set: step back one and restore the value it held. */
   const undoSet = () => { if (setN <= 0) return; setSetN(setN - 1); setPhase("lift"); setRests((r) => ({ ...r, n: Math.max(0, r.n - 1) })); };
+  /* Back a lift, and un-skip the one we land on — see backLift. Rest is stopped so the timer
+     is never left running against a lift he is no longer on. */
+  const goBackLift = () => { const b = backLift(idx, gskip, sess.ex); if (!b.moved) return; setGskip(b.gskip); setIdx(b.idx); setSetN(0); setT(0); setPhase("lift"); };
   const nextLift = () => { if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } else setPhase("all-done"); };
   /* SKIP_ONE_PATH — a control labelled "skip" must put the lift on the record as skipped
      BEFORE advancing. The lift-screen link used to call nextLift directly, which advances
@@ -12685,6 +12776,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           ) : null}
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span style={{ fontFamily: mono, fontSize: TS.micro, color: "transparent" }}>.</span>
+            {idx > 0 ? <span onClick={goBackLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>◂ back a lift</span> : <span style={{ fontFamily: mono, fontSize: TS.micro, color: "transparent" }}>.</span>}
             <span onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>skip lift ▸</span>
           </div>
         </div>

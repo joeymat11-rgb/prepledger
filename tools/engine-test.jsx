@@ -3662,13 +3662,54 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
   const gymAt4 = { reps: { press: [8, 8], row: [12, 11] }, rir: { press: 2 }, gskip: {}, idx: 1 };
   const m = MSD(sessEx, null, gymAt4);
   ok(JSON.stringify(m.reps.press) === JSON.stringify([8, 8]) && m.rir.press === 2, "DRAFTS — what Gym Mode recorded is authoritative on TRAIN");
-  ok(m.skipped.pronated === true && m.skipped.ham === true, "DRAFTS — lifts Gym Mode never REACHED default to skipped, not to their target reps: this is the second phantom path");
+  ok(MSD(sessEx, null, gymAt4, { final: true }).skipped.pronated === true && MSD(sessEx, null, gymAt4, { final: true }).skipped.ham === true, "DRAFTS — at FINISH, lifts Gym Mode never reached default to skipped rather than to their target reps: the second phantom-rep path, and the inference now belongs to the finish path only (see PHANTOM_SKIP)");
+  ok(!MSD(sessEx, null, gymAt4).skipped.pronated && !MSD(sessEx, null, gymAt4).skipped.ham, "…and while the draft is LIVE the same lifts are untouched — \"not performed YET\" is not a miss");
   ok(!m.skipped.press && !m.skipped.row, "DRAFTS — lifts he actually performed are not marked skipped");
   ok(MSD(sessEx, null, { ...gymAt4, gskip: { row: true } }).skipped.row === true, "DRAFTS — an explicit gym skip carries across to TRAIN");
   const typed = MSD(sessEx, { reps: { ham: [10, 10] } }, gymAt4);
   ok(!typed.skipped.ham && JSON.stringify(typed.reps.ham) === JSON.stringify([10, 10]), "DRAFTS — a lift he typed on TRAIN himself is kept and NOT force-skipped, so the default stays recoverable");
   ok(JSON.stringify(MSD(sessEx, { reps: { press: [9, 9] } }, null).reps.press) === JSON.stringify([9, 9]), "DRAFTS — with no gym draft, TRAIN behaves exactly as before");
   ok(Object.keys(MSD(null, null, null).skipped).length === 0, "DRAFTS — mergeSessionDrafts is total: no session, no drafts, no throw");
+
+  // PHANTOM_SKIP — v7.6.0 killed phantom reps and introduced phantom skips. g.idx is the lift
+  // Gym Mode is CURRENTLY ON, so an unconditional inference marked every later lift skipped
+  // while the session was still open. Joe hit this in the gym on v7.7.0.
+  {
+    const nine = ["press", "row", "pronated", "ham", "calves", "abs", "hack", "ext", "curl"].map((id) => lift(id));
+    const live = { reps: { press: [8, 8], row: [12, 11] }, gskip: {}, idx: 2 };
+    const openM = MSD(nine, null, live);
+
+  // NO WAY BACK — skipping was one-way. nextLift only moves forward, skipLift sets gskip and
+  // calls it, and undo-last-set is a different thing. The only recovery was to leave Gym Mode
+  // and un-skip on TRAIN, which is the leaving-mid-session path that caused the phantom skip.
+  {
+    const BL = __test.backLift;
+    const ex9 = [lift("press"), lift("row"), lift("pronated"), lift("ham")];
+
+    // skip lift 3, then go back to it
+    const skipped3 = { pronated: true };
+    const b = BL(3, skipped3, ex9);
+    ok(b.moved === true && b.idx === 2, "back a lift steps the index down one");
+    ok(b.gskip.pronated !== true, "…and CLEARS the skip on the lift it returns to — a skip is as reversible as a set");
+
+    // the round trip is assertable through gymEntries: lift 3 is neither skipped nor missing
+    const after = GE(ex9, { reps: { press: [8, 8], row: [12, 12] }, gskip: b.gskip });
+    ok(!after.skipped.some((x) => x.id === "pronated"), "after going back, lift 3 is no longer in skipped[]");
+    ok(after.entries.some((x) => x.id === "pronated"), "…and it is available to be performed again rather than lost");
+
+    ok(BL(0, {}, ex9).moved === false && BL(0, {}, ex9).idx === 0, "going back past lift 1 is a no-op, not a crash");
+    ok(BL(-1, {}, ex9).idx === 0, "a negative index clamps rather than throwing");
+    ok(BL(2, { press: true }, ex9).gskip.press === true, "going back does NOT clear a skip on some other lift — only the one it lands on");
+    ok(BL(1, null, null).moved === true, "backLift is total: no gskip, no session, no throw");
+  }
+    ok(Object.values(openM.skipped).filter(Boolean).length === 0, "PHANTOM SKIP — a LIVE gym draft at lift 3 of 9 marks ZERO lifts skipped; before this it marked six, and TRAIN showed them as misses mid-session");
+    const finalM = MSD(nine, null, live, { final: true });
+    ok(Object.values(finalM.skipped).filter(Boolean).length === 6, "…and at FINISH the same draft marks the six unreached lifts skipped — the v7.6.0 guarantee that nothing banks at target reps is preserved");
+    ok(!finalM.skipped.press && !finalM.skipped.row, "the lifts he actually performed are never marked skipped, in either mode");
+    ok(MSD(nine, { reps: { hack: [10] } }, live, { final: true }).skipped.hack !== true, "a lift he typed on TRAIN himself survives the finish inference");
+    ok(MSD(nine, null, { ...live, gskip: { ham: true } }).skipped.ham === true, "an EXPLICIT skip still shows immediately, live draft or not — a real miss is never hidden");
+    ok(JSON.stringify(MSD(nine, null, live).reps) === JSON.stringify(MSD(nine, null, live, { final: true }).reps), "DRAFTS — the two drafts still cannot disagree: the mode changes only the skip inference, never the reps");
+  }
 
 }
 
@@ -3703,6 +3744,32 @@ ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DO
     const snap = JSON.stringify(before);
     PL(before, "m");
     ok(JSON.stringify(before) === snap, "proposeLadder mutates NOTHING — it returns a suggestion and the inbox owns whether it lands");
+
+    // EVENNESS (ported defect fix) — the gate used to be "every gap EQUALS inc", which makes
+    // real weights unreachable: 80/90/100/110 on a 5 lb stack proposed a ladder that tells
+    // nextLoad 85, 95 and 105 do not exist, doubling his next jump and halving deloadLoad's
+    // options. A ladder is a claim about what the MACHINE CAN PRODUCE, not what he has picked.
+    ok(PL(mkS(80, [80, 90, 100, 110]), "m") === null, "LADDER — a sparsely sampled EVEN stack proposes nothing: every gap is a whole multiple of the 5 lb step, so the intermediate weights demonstrably exist and asserting otherwise would make them unreachable");
+    ok(PL(mkS(80, [80, 90, 100, 107.5]), "m") !== null, "…but a gap of 7.5 on a 5 lb step is NOT a whole multiple, and that IS real evidence of an uneven stack (10/10/15 would not be — every one of those is a multiple, so it abstains)");
+    const un2 = PL(mkS(100, [100, 107.5, 115, 130]), "m");
+    ok(un2 && un2.rungs.every((r) => [100, 107.5, 115, 130].indexOf(r) > -1), "LADDER — every rung proposed is a load he has ACTUALLY lifted");
+
+    // file -> approve -> install, and filing is not applying
+    const SW = __test.sweepLadders;
+    const base = mkS(100, [100, 107.5, 115, 130]);
+    const swept = SW(clone(base));
+    const prop = swept && (swept.proposals || []).find((p) => p.apply && p.apply.kind === "ladder");
+    ok(!!prop && prop.resolved === false, "LADDER — the sweep files an UNRESOLVED proposal into the inbox");
+    ok(!__test.loadRungs(swept.exercises[0]), "LADDER — filing does NOT apply: the lift still has no ladder until he approves it");
+    ok(SW(clone(swept)) === null, "LADDER — a lift with a proposal already on file is never re-filed; a proposal that returns after he has answered is a nag");
+
+    const beforeW = swept.exercises[0].w;
+    const applied = __test.applyProposal(clone(swept), prop.id);
+    const exA = applied.exercises[0];
+    ok(!!__test.loadRungs(exA) && __test.loadRungs(exA).length === 4, "LADDER — approving installs the ladder");
+    ok(exA.w <= beforeW, "LADDER — approving never RAISES the load; it only snaps to a real rung");
+    ok(exA.w === __test.snapLoad(exA, beforeW), "LADDER — and the snapped load is exactly the nearest real rung at or below where he was");
+
   }
 {
   const bare = { proposals: [], agentProposals: [] };
