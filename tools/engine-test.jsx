@@ -3604,6 +3604,15 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
   ok(GE(sessEx, { gskip: { press: true, row: true, pronated: true, ham: true } }).entries.length === 0, "GYM — skipping every lift emits no entries at all");
   ok(GE(null, null).entries.length === 0 && GE(undefined, undefined).skipped.length === 0, "GYM — gymEntries is total: no session, no entries, no throw");
 
+  // RIR_TIMING (§3.1.7-9) — the last set is asked for AT the set, not at lift-done.
+  {
+    const PAS = __test.phaseAfterSet;
+    ok(PAS(0, 3) === "rest" && PAS(1, 3) === "rest", "a non-final set still goes to REST — the timer flow is unchanged");
+    ok(PAS(2, 3) === "rir-end", "the FINAL set routes to the RIR screen, not to lift-done: the estimate is taken seconds after the set instead of recalled after the whole lift (~0.46 vs ~1.2 reps of error)");
+    ok(PAS(0, 1) === "rir-end", "a single-set lift asks immediately too");
+    ok(PAS(5, 3) === "rir-end", "and an over-run set index still lands on the RIR screen rather than falling through");
+  }
+
   // QUEUED #2 E — exOrder had NO merge hardening and rode the wholesale local-wins spread.
   // An ordering cannot be keyed-unioned, so the rules are newest-deliberate-wins plus
   // never-lose-a-lift. Both write orders are asserted, as the data-safety guardrail requires.

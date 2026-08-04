@@ -12341,6 +12341,23 @@ function mergeSessionDrafts(sessEx, trainDraft, gymDraft) {
   return out;
 }
 
+/* RIR_TIMING — which phase follows a banked set.
+
+   Self-reported RIR carries a large, directional error that is dominated by WHEN you ask:
+   it falls from ~4.8 reps at 33% of a set to ~1.2 at 90%, and from 1.2 reps at 5 RIR to
+   0.46 at 1 RIR [2]. The app used to collect both RIRs at lift-done — after every set of
+   the lift was finished, from memory — which is the worst available moment, and it gave
+   the opener equal visual weight to the last set.
+
+   The last set is now asked for at the moment it is banked. The opener prompt leaves the
+   default flow entirely: the engine's own comment says the opener is a weak signal, every
+   opener in the log reads 1-2 so it carries almost no variance, and it is measured where
+   error is largest. The field stays and remains editable from the lift detail on TRAIN.
+
+   The 0/1/2/3+ scale is deliberately NOT widened — accuracy collapses above ~3 RIR, so
+   finer buckets up there would be false precision. [2] */
+function phaseAfterSet(setN, nSets) { return setN + 1 < nSets ? "rest" : "rir-end"; }
+
 function gymEntries(sessEx, st) {
   const o = st || {};
   const reps = o.reps || {}, rir = o.rir || {}, rirEnd = o.rirEnd || {}, gskip = o.gskip || {};
@@ -12359,7 +12376,7 @@ function gymEntries(sessEx, st) {
    session rushed — which pulls it out of the progression evidence via liftCall. */
 const REST_CUT_S = 60;
 function restCut(startMs, nowMs) { return Math.floor(((nowMs || 0) - (startMs || 0)) / 1000) < REST_CUT_S; }
-__test.gymEntries = gymEntries; __test.mergeSessionDrafts = mergeSessionDrafts; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
+__test.gymEntries = gymEntries; __test.phaseAfterSet = phaseAfterSet; __test.mergeSessionDrafts = mergeSessionDrafts; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
 
 function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [idx, setIdx] = useState(0);
@@ -12418,7 +12435,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const doneSet = () => {
     const nSets = getR(ex).length;
     if (setN + 1 < nSets) { const len = restFor(ex.id, setN + 1, nSets); setSetN(setN + 1); setRestLen(len); setRestStart(Date.now()); setT(len); setPhase("rest"); setRests((r) => ({ ...r, n: r.n + 1 })); }
-    else setPhase("lift-done");
+    else setPhase(phaseAfterSet(setN, nSets));   // RIR_TIMING — the last set asks immediately
   };
   /* Undo the last banked set: step back one and restore the value it held. */
   const undoSet = () => { if (setN <= 0) return; setSetN(setN - 1); setPhase("lift"); setRests((r) => ({ ...r, n: Math.max(0, r.n - 1) })); };
@@ -12468,18 +12485,33 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <Btn small onClick={() => { setRestStart(Date.now()); }}>restart rest</Btn>
           <Btn small onClick={() => { if (restCut(restStart, Date.now())) setRests((r) => ({ ...r, cut: r.cut + 1 })); setT(0); setPhase("lift"); }}>Skip rest</Btn>
         </div>
+      ) : phase === "rir-end" ? (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
+          <H size={26}>Last set — how many left?</H>
+          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>{ex.n} · {getR(ex)[getR(ex).length - 1]} reps at {ex.w}</div>
+          {/* RIR_TIMING — asked HERE, seconds after the set, not at lift-done from memory. */}
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em" }}>REPS IN RESERVE · 0 = it was the failure set</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[0, 1, 2, 3].map((v) => (
+              <button key={v} onClick={() => { setRirEnd({ ...rirEnd, [ex.id]: v }); setPhase("lift-done"); }}
+                style={{ flex: 1, fontFamily: mono, fontSize: 20, padding: "16px 0", borderRadius: 10, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>{v === 3 ? "3+" : v}</button>
+            ))}
+          </div>
+          <button onClick={() => setPhase("lift-done")} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "9px", width: "100%" }}>skip — leave it unrecorded</button>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: 1.5 }}>Asked now rather than at the end of the lift: a reserve estimate is about two and a half times more accurate taken at the set than recalled after it.</div>
+        </div>
       ) : phase === "lift-done" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
           <H size={26}>{ex.n} — done</H>
           <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>logged: {getR(ex).join(" · ")} at {ex.w}</div>
           <div>
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em" }}>FIRST SET RIR · optional · 1 = honest</div>
-            <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-              {[0, 1, 2, 3].map((v) => <button key={v} onClick={() => setRir({ ...rir, [ex.id]: rir[ex.id] === v ? null : v })} style={{ fontFamily: mono, fontSize: 16, padding: "10px 16px", borderRadius: 8, border: `1px solid ${rir[ex.id] === v ? (v === 0 ? T.brass : T.jade) : T.line}`, background: T.plate2, color: rir[ex.id] === v ? (v === 0 ? T.brass : T.jade) : T.steel }}>{v === 3 ? "3+" : v}</button>)}
-            </div>
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em", marginTop: 12 }}>LAST SET RIR · optional · 0 = it was the failure set</div>
-            <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-              {[0, 1, 2, 3].map((v) => <button key={v} onClick={() => setRirEnd({ ...rirEnd, [ex.id]: rirEnd[ex.id] === v ? null : v })} style={{ fontFamily: mono, fontSize: 16, padding: "10px 16px", borderRadius: 8, border: `1px solid ${rirEnd[ex.id] === v ? (v === 0 ? T.jade : T.brass) : T.line}`, background: T.plate2, color: rirEnd[ex.id] === v ? (v === 0 ? T.jade : T.brass) : T.steel }}>{v === 3 ? "3+" : v}</button>)}
+            {/* The opener prompt has left the default flow — see RIR_TIMING. The field still
+                exists and is editable from the lift detail on TRAIN; it is simply no longer
+                asked for on every lift of every session, which is ~15 taps a week spent on
+                the measurement with the largest error and the least variance. */}
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em" }}>LAST SET RIR</div>
+            <div style={{ fontFamily: mono, fontSize: TS.label, color: rirEnd[ex.id] == null ? T.steel : T.jade, marginTop: 6 }}>
+              {rirEnd[ex.id] == null ? "not recorded" : `${rirEnd[ex.id] === 3 ? "3+" : rirEnd[ex.id]} — taken at the set`}
             </div>
           </div>
           <Btn full tone="jade" onClick={nextLift}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</Btn>
