@@ -8669,10 +8669,16 @@ function scrollToId(id, delay = 80) {
    item's kind (from nowFocus). v7.5: the seven groups became three doors, so all
    three owed kinds now open the ONE CAPTURE door and scroll to their own element
    id — pl-capture (sleep/scale), pl-closeday (the day's numbers), pl-amend. */
+/* NOW_DOORS — the live door keys, in one place. The Groups render from these and the two
+   deep-link maps (oweTarget, statusTarget) may only ever name one of them, so a retired key
+   cannot survive in a link. The suite asserts the maps against THIS set rather than against
+   restated literals: the previous check compared each key to the same string the assertion
+   above it already compared, so it could not fail unless that one had. */
+const NOW_DOORS = { capture: "now.capture2", briefing: "now.briefing", room: "now.room", inbox: "now.inbox" };
 function oweTarget(k) {
-  return k === "day" ? { key: "now.capture2", id: "pl-closeday" }
-    : k === "yesterday" ? { key: "now.capture2", id: "pl-amend" }
-    : { key: "now.capture2", id: "pl-capture" };
+  return k === "day" ? { key: NOW_DOORS.capture, id: "pl-closeday" }
+      : k === "yesterday" ? { key: NOW_DOORS.capture, id: "pl-amend" }
+      : { key: NOW_DOORS.capture, id: "pl-capture" };
 }
 /* NOW reorg v6.3 — the two novel PURE pieces, exposed for the engine suite here
    (below their definitions, so UI_KEY is past its TDZ): the disclosure override
@@ -8682,6 +8688,7 @@ __test.UI_KEY = UI_KEY;
 __test.applyDisc = applyDisc;
 __test.readDisc = readDisc;
 __test.oweTarget = oweTarget;
+__test.NOW_DOORS = NOW_DOORS;   // v7.5 — the live door keys, asserted against by the deep-link tests
 
 /* ---------- COCKPIT · STATUS FACE (v7.0.0, Slice 1) ----------
    Auto-Pilot's face: ONE always-visible status word from a CLOSED vocabulary, fused
@@ -8824,8 +8831,8 @@ function statusTarget(s, deps) {
   const agents = ((s && s.agentProposals) || []);
   let esc; try { esc = (deps && deps.esc) || escalation(s); } catch (e) { esc = { escalate: false }; }
   const focus = (deps && deps.focus) || (function () { try { return nowFocus(s); } catch (e) { return { owed: [] }; } })();
-  if (props.length || agents.length) return { key: "now.inbox", id: "pl-inbox", label: "open what's waiting on your tap" };
-  if (esc && esc.escalate) return { key: "now.read", id: "pl-today", label: "open the call that needs you" };
+  if (props.length || agents.length) return { key: NOW_DOORS.inbox, id: "pl-inbox", label: "open what's waiting on your tap" };
+  if (esc && esc.escalate) return { key: NOW_DOORS.briefing, id: "pl-autopilot", label: "open the call that needs you" };
   const o0 = focus && focus.owed && focus.owed[0];
   if (o0) { const t = oweTarget(o0.k); return { key: t.key, id: t.id, label: "go to what's owed" }; }
   return null;
@@ -9231,7 +9238,7 @@ function ApprovalInbox({ s, setS, save, tISO }) {
   if (items.length === 0) return null;
   const material = items.some((it) => it.pri <= 1);
   return (
-    <Group title="FOR YOU TO OK" sub="changes waiting on your tap" persistKey="now.inbox" id="pl-inbox" count={items.length} defaultOpen={material}>
+    <Group title="FOR YOU TO OK" sub="changes waiting on your tap" persistKey={NOW_DOORS.inbox} id="pl-inbox" count={items.length} defaultOpen={material}>
       {items.map((it) => {
         const n = nudge[it.key] || 0;
         return (
@@ -9931,7 +9938,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           YOUR ANALYST · Today's plan · Today's logs) plus a REST-OF-THE-DAY disclosure and a
           nested Section — nine surfaces to scan before finding anything. They collapse here
           into three fixed, labelled doors: CAPTURE (everything you log), THE READ (what the
-          machine is telling you), THE ROOM (session, recovery, the week, the laws).
+          machine is telling you), THE ROOM (session, recovery, the week, the laws). The middle door
+          is THE BRIEFING, not "THE READ": v6.3 renamed the lower group to YOUR ANALYST precisely
+          to free that name from the read card, and v7.5 briefly re-collided it onto a door that
+          holds everything except the read.
 
           Every card moved UNCHANGED — same writes, same gates, same element ids, same internal
           state. Order is still fixed and the doors still remember where you left them
@@ -9947,7 +9957,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           20:00 with the day unclosed, the door holding sleep, the scale, close-the-day, amend
           and the weekly items would stay closed. A new key is a clean first-visit default. The
           orphaned now.capture boolean is device-local UI state and harmless. */}
-      <Group title="CAPTURE" sub="everything you log — morning, evening, weekly" persistKey="now.capture2" id="pl-capture" defaultOpen={new Date().getHours() < 12 || new Date().getHours() >= 17 || dl.cal == null}>
+      <Group title="CAPTURE" sub="everything you log — morning, evening, weekly" persistKey={NOW_DOORS.capture} id="pl-capture" defaultOpen={new Date().getHours() < 12 || new Date().getHours() >= 17 || dl.cal == null}>
       {/* morning: the minute, sleep and the scale */}
       {(() => {
         const owed = owedNights(s);
@@ -10323,10 +10333,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       </Group>
 
-      <Group title="THE READ" sub="auto-pilot detail · your analyst · today's protocol" persistKey="now.read" id="pl-read" defaultOpen={false}>
-      {/* Auto-Pilot's detail, behind the cockpit that summarises it. Keeps id pl-today so the
+      <Group title="THE BRIEFING" sub="auto-pilot detail · your analyst · today's protocol" persistKey={NOW_DOORS.briefing} id="pl-briefing" defaultOpen={false}>
+      {/* Auto-Pilot's detail, behind the cockpit that summarises it. Keeps id pl-autopilot so the
           status word's escalation deep-link still scrolls to the call that needs him. */}
-      <div id="pl-today" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div id="pl-autopilot" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {/* ---------- THE ONE THING (v2 adherence — the single evidence-ordered fix) ----------
           Never a reflexive calorie cut: the ladder is verify-logging -> steps/NEAT
           -> protect sleep -> only then trim -> diet break. Autonomy-supportive voice,
@@ -10509,7 +10519,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       </Group>
 
-      <Group title="THE ROOM" sub="this week · session · recovery · the laws" persistKey="now.room" id="pl-room" defaultOpen={false}>
+      <Group title="THE ROOM" sub="this week · session · recovery · the laws" persistKey={NOW_DOORS.room} id="pl-room" defaultOpen={false}>
         <div>
           <Eyebrow c={T.jade}>YOUR PROCESS GOALS</Eyebrow>
           {plan.goals.length === 0 && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>None set. A process goal is something you do, not a number on the scale — "four training sessions", "protein on target six days". They make the work task-focused instead of self-evaluative.</div>}
