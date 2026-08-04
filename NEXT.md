@@ -820,6 +820,20 @@ and settled. Do not fold this into a feature build.
 
 ## SHIPPED
 
+- **v7.8.0 — TRAIN roster, three doors, and the ladder** (2026-08-04). Merge `6a6406c`;
+  branch `feat/train-roster` (`afa8545` → `d20784a`). Beacon published v7.8.0 at 16:00:07Z;
+  deployed `app.js` + `sw.js` byte-identical to `main`. Gate + render smoke green, 1430
+  assertions. **This completes all seven §5 moves of the TRAIN + Gym Mode spec.**
+  - TRAIN is a roster: one row per lift with `liftCall`’s verdict, tapping opens that lift
+    in the SETUP door. Three doors — SETUP / THE READ / THE RECORD. The per-exercise cards
+    were MOVED verbatim, not rewritten, so every write path survives.
+  - `proposeLadder` infers rungs from the loads actually logged and PROPOSES them; an
+    `applyProposal` ladder branch makes an approved ladder land. Invents nothing between
+    observations; skips non-numeric weights (Q2·F, `[needs Joe]`).
+  - The `jump:` chips no longer silently delete a hand-entered ladder, and `set weight ✎`
+    no longer proposes 180 lb on a non-numeric lift.
+  - The door invariant is now TAB-AWARE and proven to fail on a drifted TRAIN key.
+
 - **v7.7.0 — TRAIN/Gym Mode, first four moves** (2026-08-04). Merge `5fe2b9f`; branch
   `feat/train-gym-redesign` (`c0aecd3` → `4b8d870`). Beacon published v7.7.0 at 13:46:23Z;
   deployed `app.js` + `sw.js` verified byte-identical to `main`. Gate green, 1419 assertions.
