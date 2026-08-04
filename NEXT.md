@@ -377,6 +377,20 @@ honest-labelling app cannot claim a thing it has not done. One or the other. Not
 
 #### 5 · Sequencing
 
+**BUILD STATUS 2026-08-04** — branch `feat/train-gym-redesign`, one commit per move, strict
+gate + render smoke green at every commit:
+
+- ✅ memoise — `2b0…` genSession + liftCall once per state, not per keystroke
+- ✅ delete/dedupe — dead RECEIPT chips, TRAIN’s third queue copy, PACE single-owner
+- ✅ Gym Mode completeness — cues, note, setup, prev, next rung, undo set, rest controls,
+  all-done list, the recap that was being discarded, note + niggles no longer hardcoded
+- ✅ RIR timing — last set asked AT the set; opener out of the default flow
+- ⬜ TRAIN roster + three doors — NOT STARTED
+- ⬜ ladder inference (`proposeLadder`) — NOT STARTED
+- ✅ §3.4 — satisfied by the FALLBACK, which shipped in v7.6.0: the LAB proposal no longer
+  claims the window “has already” been widened. Wiring `windowFor` into progression remains
+  available and is still the riskiest change in the spec.
+
 One commit per numbered move, gate green each time, so any single move is revertable.
 Suggested order — cheapest and safest first, riskiest last:
 memoise → delete/dedupe → Gym Mode completeness (cues, prev, next-weight, undo, rest
@@ -398,6 +412,34 @@ tap. **Do not merge to `main`.**
 2. **The lift roster's opened-state memory.** NOW's rule is "collapsed stays collapsed".
    Should a roster row Joe opened stay open next session, or reset daily? Both are
    defensible; the rooms-don't-rearrange citation argues for persistence.
+
+
+#### Open question for Joe — §6.1, RIR bias correction  `[needs Joe]`
+
+**Written up, not built.** Population data puts self-reported RIR ~1 rep conservative
+(mean ~0.95, studies 0.65–1.2) [2]. Joe's personal bias is **unmeasured**.
+
+- **Leave it, cite the bias.** Honest, costs nothing, leaves a known systematic error in the
+  input to `progressStep`.
+- **Surface it as a note.** He sees the bias exists and can discount it himself. No number
+  changes; the app claims nothing about him it cannot support.
+- **Measure his own bias over time** from RIR-vs-actual-next-session data and treat it as an
+  n-of-1 **range**, never a point estimate — the same shape `partitionPrior` already uses.
+
+**Recommend the third eventually, the first now.** Applying the population figure invisibly
+would be the app inventing a number about Joe from data that is not about Joe — the exact
+thing engine-owns-numbers exists to prevent, and it would silently move what he lifts.
+
+#### Open question for Joe — §6.2, roster row memory  `[needs Joe]`
+
+Should a lift row he opened stay open next session, or reset daily? NOW's rule is
+"collapsed stays collapsed", and the Findlater & McGrenere citation already in the source
+(a self-rearranging interface measured ~8% slower) argues for persistence. But a roster row
+is a *transient* interest — the lift he was checking today is not necessarily tomorrow's —
+so daily reset is also defensible in a way a door is not.
+
+Both are one line. Not guessed.
+
 
 **Sources**
 [1] Refalo et al., *Exploring the Dose–Response Relationship Between Estimated Resistance
