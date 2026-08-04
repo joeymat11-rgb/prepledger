@@ -12494,6 +12494,24 @@ function mergeSessionDrafts(sessEx, trainDraft, gymDraft, opts) {
    finer buckets up there would be false precision. [2] */
 function phaseAfterSet(setN, nSets) { return setN + 1 < nSets ? "rest" : "rir-end"; }
 
+/* backLift — step a Gym Mode session back one lift and CLEAR the skip on the lift it
+   returns to. Skipping was one-way: nextLift only moves forward, skipLift sets gskip and
+   calls it, and v7.7.0’s undo-last-set is a different thing entirely. Tap skip by accident
+   and the only recovery was to leave Gym Mode and un-skip on TRAIN — which is exactly the
+   leaving-mid-session path that produced the phantom skip. A skip must be as reversible as
+   a set; nothing in this app is one-way.
+
+   Pure so both halves are assertable: the index it lands on, and that the skip is gone. */
+function backLift(idx, gskip, sessEx) {
+  const list = sessEx || [];
+  if (!(idx > 0)) return { idx: idx > 0 ? idx : 0, gskip: gskip || {}, moved: false };
+  const to = idx - 1;
+  const next = { ...(gskip || {}) };
+  const ex = list[to];
+  if (ex && ex.id) delete next[ex.id];
+  return { idx: to, gskip: next, moved: true };
+}
+
 function gymEntries(sessEx, st) {
   const o = st || {};
   const reps = o.reps || {}, rir = o.rir || {}, rirEnd = o.rirEnd || {}, gskip = o.gskip || {};
@@ -12512,7 +12530,7 @@ function gymEntries(sessEx, st) {
    session rushed — which pulls it out of the progression evidence via liftCall. */
 const REST_CUT_S = 60;
 function restCut(startMs, nowMs) { return Math.floor(((nowMs || 0) - (startMs || 0)) / 1000) < REST_CUT_S; }
-__test.gymEntries = gymEntries; __test.phaseAfterSet = phaseAfterSet; __test.mergeSessionDrafts = mergeSessionDrafts; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
+__test.gymEntries = gymEntries; __test.backLift = backLift; __test.phaseAfterSet = phaseAfterSet; __test.mergeSessionDrafts = mergeSessionDrafts; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
 
 function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [idx, setIdx] = useState(0);
@@ -12575,6 +12593,9 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   };
   /* Undo the last banked set: step back one and restore the value it held. */
   const undoSet = () => { if (setN <= 0) return; setSetN(setN - 1); setPhase("lift"); setRests((r) => ({ ...r, n: Math.max(0, r.n - 1) })); };
+  /* Back a lift, and un-skip the one we land on — see backLift. Rest is stopped so the timer
+     is never left running against a lift he is no longer on. */
+  const goBackLift = () => { const b = backLift(idx, gskip, sess.ex); if (!b.moved) return; setGskip(b.gskip); setIdx(b.idx); setSetN(0); setT(0); setPhase("lift"); };
   const nextLift = () => { if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } else setPhase("all-done"); };
   /* SKIP_ONE_PATH — a control labelled "skip" must put the lift on the record as skipped
      BEFORE advancing. The lift-screen link used to call nextLift directly, which advances
@@ -12714,6 +12735,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           ) : null}
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span style={{ fontFamily: mono, fontSize: TS.micro, color: "transparent" }}>.</span>
+            {idx > 0 ? <span onClick={goBackLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>◂ back a lift</span> : <span style={{ fontFamily: mono, fontSize: TS.micro, color: "transparent" }}>.</span>}
             <span onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>skip lift ▸</span>
           </div>
         </div>

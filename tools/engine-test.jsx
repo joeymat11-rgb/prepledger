@@ -3678,6 +3678,30 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
     const nine = ["press", "row", "pronated", "ham", "calves", "abs", "hack", "ext", "curl"].map((id) => lift(id));
     const live = { reps: { press: [8, 8], row: [12, 11] }, gskip: {}, idx: 2 };
     const openM = MSD(nine, null, live);
+
+  // NO WAY BACK — skipping was one-way. nextLift only moves forward, skipLift sets gskip and
+  // calls it, and undo-last-set is a different thing. The only recovery was to leave Gym Mode
+  // and un-skip on TRAIN, which is the leaving-mid-session path that caused the phantom skip.
+  {
+    const BL = __test.backLift;
+    const ex9 = [lift("press"), lift("row"), lift("pronated"), lift("ham")];
+
+    // skip lift 3, then go back to it
+    const skipped3 = { pronated: true };
+    const b = BL(3, skipped3, ex9);
+    ok(b.moved === true && b.idx === 2, "back a lift steps the index down one");
+    ok(b.gskip.pronated !== true, "…and CLEARS the skip on the lift it returns to — a skip is as reversible as a set");
+
+    // the round trip is assertable through gymEntries: lift 3 is neither skipped nor missing
+    const after = GE(ex9, { reps: { press: [8, 8], row: [12, 12] }, gskip: b.gskip });
+    ok(!after.skipped.some((x) => x.id === "pronated"), "after going back, lift 3 is no longer in skipped[]");
+    ok(after.entries.some((x) => x.id === "pronated"), "…and it is available to be performed again rather than lost");
+
+    ok(BL(0, {}, ex9).moved === false && BL(0, {}, ex9).idx === 0, "going back past lift 1 is a no-op, not a crash");
+    ok(BL(-1, {}, ex9).idx === 0, "a negative index clamps rather than throwing");
+    ok(BL(2, { press: true }, ex9).gskip.press === true, "going back does NOT clear a skip on some other lift — only the one it lands on");
+    ok(BL(1, null, null).moved === true, "backLift is total: no gskip, no session, no throw");
+  }
     ok(Object.values(openM.skipped).filter(Boolean).length === 0, "PHANTOM SKIP — a LIVE gym draft at lift 3 of 9 marks ZERO lifts skipped; before this it marked six, and TRAIN showed them as misses mid-session");
     const finalM = MSD(nine, null, live, { final: true });
     ok(Object.values(finalM.skipped).filter(Boolean).length === 6, "…and at FINISH the same draft marks the six unreached lifts skipped — the v7.6.0 guarantee that nothing banks at target reps is preserved");
