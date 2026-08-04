@@ -8088,6 +8088,45 @@ function nextEvent(s, withinDays = null) {
   if (withinDays != null && daysUntil(ev.d) > withinDays) return null;
   return ev;
 }
+
+/* EVENT_LEAD_D / EVENT_GRACE_D / eventFocus — which event NOW should surface, and whether
+   it is CLOSABLE. v7.5 round-2 blocker C.
+
+   NowTab picked its event with `s.events.find(e => !e.estimated && daysUntil(e.d) >= 0)`,
+   which had three faults:
+
+   - It stopped matching the moment the date passed, so the ONE call site of closeEvent
+     disappeared at midnight. An unfiled event was then silently ERASED: zeroComp never
+     incremented, no feed entry was written, and nothing told him it had gone unfiled.
+     The rule that breaks is the charter's "show misses", not merely discoverability.
+   - It made the card's own `daysUntil < 0` branch ("waiting on you to close it") dead
+     code — that test sat inside a subtree that only rendered when `>= 0` — and it left
+     theOneThing's openEv branch, which fires on `daysUntil < 0` and instructs "Close out
+     X — one tap", pointing at a button that existed nowhere.
+   - `find` picks by ARRAY ORDER while the engine's own nextEvent sorts by date, so with
+     two events on file the card could show September's while today's closable one stayed
+     unreachable. Residency made that ordering bug load-bearing: this is the sole path to
+     closeEvent.
+
+   It also ran from `daysUntil >= 0` — the entire run-up — so an actionless card sat on the
+   fold for weeks. Residency now starts EVENT_LEAD_D days out, and an unfiled event stays
+   CLOSABLE for EVENT_GRACE_D days after, matching lastEvent's own grace. Filed events drop
+   out on their own: closeEvent sets estimated = true. Closable always outranks upcoming,
+   and the MOST OVERDUE closable wins, because that is the one about to be lost. */
+const EVENT_LEAD_D = 1;
+const EVENT_GRACE_D = 7;
+function eventFocus(s) {
+  const none = { ev: null, days: null, closable: false, overdue: false };
+  const rows = (((s && s.events) || []))
+    .filter((e) => e && e.d && !e.estimated)
+    .map((e) => ({ e, days: daysUntil(e.d) }))
+    .sort((a, b) => a.days - b.days);
+  const closable = rows.filter((x) => x.days <= 0 && x.days >= -EVENT_GRACE_D);
+  if (closable.length) return { ev: closable[0].e, days: closable[0].days, closable: true, overdue: closable[0].days < 0 };
+  const soon = rows.filter((x) => x.days > 0 && x.days <= EVENT_LEAD_D);
+  if (soon.length) return { ev: soon[0].e, days: soon[0].days, closable: false, overdue: false };
+  return none;
+}
 function lastEvent(s, graceDays = 7) {
   const past = (s.events || [])
     .filter((e) => e && e.d && !e.estimated && daysUntil(e.d) < 0 && daysUntil(e.d) >= -graceDays)
@@ -8688,6 +8727,7 @@ __test.UI_KEY = UI_KEY;
 __test.applyDisc = applyDisc;
 __test.readDisc = readDisc;
 __test.oweTarget = oweTarget;
+__test.eventFocus = eventFocus; __test.EVENT_LEAD_D = EVENT_LEAD_D; __test.EVENT_GRACE_D = EVENT_GRACE_D;   // v7.5 r2 blocker C
 __test.NOW_DOORS = NOW_DOORS;   // v7.5 — the live door keys, asserted against by the deep-link tests
 
 /* ---------- COCKPIT · STATUS FACE (v7.0.0, Slice 1) ----------
@@ -9469,7 +9509,11 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [pro, setPro] = useState(dl.pro ?? proteinTarget(s).g);
   const [stp, setStp] = useState(dl.steps ?? (stpT0.gated ? "" : Math.round((stpT0.lo + stpT0.hi) / 2)));
   const cleanIn = daysUntil(SEAL_UNTIL);
-  const ev = s.events.find((e) => !e.estimated && daysUntil(e.d) >= 0);
+  /* The CARD's event (windowed + closable, blocker C) and the CHIP's event (the wider
+     run-up) are different questions, so they read different selectors — both sorted. */
+  const evF = eventFocus(s);
+  const ev = evF.ev;
+  const evUp = nextEvent(s);
   const ph = PHASES[s.phase];
   /* The band he is actually shown, derived from measured maintenance — see
      CALORIE_TARGET. The refeed branch is gone: it hardcoded a 2,450–2,500
@@ -9889,7 +9933,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             a truncated error is worse than no error. Bold too, per the redline size
             rule: redline is the lowest-contrast accent and never runs thin. */}
         {(() => { try { const se9 = JSON.parse(localStorage.getItem("plSyncErr") || "null"); if (se9) return <Caveat c={T.redline}><span style={{ fontWeight: 700 }}>! SYNC FAILING</span> · HTTP {se9.status} since {se9.at.slice(11, 16)} — RULES → Sync now</Caveat>; } catch (e) {} return null; })()}
-        {ev && <Chip c={T.chalk}>{ev.t} · {fmtShort(ev.d)}</Chip>}
+        {evUp && <Chip c={T.chalk}>{evUp.t} · {fmtShort(evUp.d)}</Chip>}
         {(() => { try { const ls2 = +(localStorage.getItem("pl-lastsync") || 0); if (localStorage.getItem(TOKEN_KEY) && ls2 && Date.now() - ls2 > 36 * 36e5) return <Caveat c={T.brass}>books haven't reached your analyst since {new Date(ls2).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })} — tap sync in RULES</Caveat>; } catch (e) {} return null; })()}
       </div>
       {(() => { const al9 = bodyAlarm(s, slp); if (!al9 || (al9.level !== "RED" && al9.level !== "AMBER")) return null; return (
@@ -9923,9 +9967,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <Eyebrow>EVENT MODE · {fmtShort(ev.d)}</Eyebrow>
           <H size={19}>{ev.t}</H>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>{ev.protocol}. Events filed without a make-up day: <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> straight — an event never buys a punishment here: tomorrow runs exactly as planned.</div>
-          {daysUntil(ev.d) <= 0 && (
+          {evF.closable && (
             <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-              {daysUntil(ev.d) < 0 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>waiting on you to close it — the ledger doesn't guess</div>}
+              {evF.overdue && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>waiting on you to close it — the ledger doesn't guess</div>}
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginBottom: 8 }}>after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button</div>
               <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>File the event ✓ — your estimate goes in tonight's numbers</Btn>
             </div>
@@ -10097,8 +10141,8 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             </span>
           ); })()}
         </div>
-        {ev && ev.d === tISO && !((s.dayCtx || {})[tISO] || {}).est && (
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: 8 }}>today is {ev.t} — days like this usually get the estimates chip (top right of this card)</div>
+        {evUp && evUp.d === tISO && !((s.dayCtx || {})[tISO] || {}).est && (
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: 8 }}>today is {evUp.t} — days like this usually get the estimates chip (top right of this card)</div>
         )}
         {((s.dayCtx || {})[tISO] || {}).est && (
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 8, lineHeight: 1.55 }}>The method: anchor protein first — four palm-sized servings still lands near {proteinTarget(s).g}. Then calories as the midpoint of your honest bracket: "definitely over 2,300, definitely under 2,700" writes 2,500. Units the same way — "somewhere 10–14" writes 12. One entry after the event, never the optimistic edge. A labeled estimate protects the trend; false precision poisons it.</div>
