@@ -125,6 +125,32 @@ for (const [name, mut] of states) {
   w.close();
 }
 
+/* DOOR-KEY INVARIANT (v7.5 r2 blocker B) — every door key the app DECLARES must actually
+   be registered by a mounted Group. The deep-link maps (oweTarget, statusTarget) name
+   NOW_DOORS keys and openGroup looks them up in the registry registerGroup populates; if a
+   <Group>'s persistKey drifts from NOW_DOORS, openGroup silently no-ops, the door's
+   children never mount, scrollToId finds nothing, and tapping NEEDS YOU does nothing at
+   all. Asserting NOW_DOORS against itself cannot catch that. This asserts it against what
+   actually mounted. */
+{
+  const w = await mount();
+  await new Promise((r) => setTimeout(r, 250));   // let the Groups mount and register
+  const declared = w.__plDoors || null;
+  const live = w.__plGroups || {};
+  if (!declared) {
+    console.error("RENDER-SMOKE: window.__plDoors is missing — the door invariant cannot run");
+    failed++;
+  } else {
+    // the inbox door only mounts when it has something to show, so it is exempt here
+    const mustMount = Object.entries(declared).filter(([k]) => k !== "inbox").map(([, v]) => v);
+    const missing = mustMount.filter((k) => !(k in live));
+    if (missing.length) {
+      console.error(`RENDER-SMOKE: declared door key(s) never registered by a Group: ${missing.join(", ")} — a deep link to one of these would no-op`);
+      failed++;
+    }
+  }
+}
+
 if (failed) {
   console.error(`RENDER-SMOKE: ${failed} failures`);
   process.exit(1);

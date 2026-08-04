@@ -3578,7 +3578,20 @@ ok(oT63("night").key === "now.capture2" && oT63("night").id === "pl-capture", "o
 ok(oT63("weight").key === "now.capture2" && oT63("weight").id === "pl-capture", "owe: an un-logged scale points at CAPTURE (pl-capture)");
 ok(oT63("day").key === "now.capture2" && oT63("day").id === "pl-closeday", "owe: the day's numbers point INTO the CAPTURE door, at the close-the-day card (pl-closeday)");
 ok(oT63("yesterday").key === "now.capture2" && oT63("yesterday").id === "pl-amend", "owe: an unclosed yesterday points INTO the CAPTURE door, at the reopen card (pl-amend)");
-ok(["night", "weight", "day", "yesterday"].every((k) => Object.values(__test.NOW_DOORS).includes(oT63(k).key)), "owe: every owed kind names a key that is IN the live door set — a retired group key cannot survive in a deep link");
+// v7.5 r2 blocker B — the previous check here compared each oweTarget key to the same value
+// the assertions above already pinned, so it could not fail. The LIVE-set invariant now lives
+// in the render smoke (which mounts NOW and can see what registerGroup actually registered).
+// What belongs here is the literal each map promises, and the branches that had no coverage.
+ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === "now.briefing" && __test.NOW_DOORS.room === "now.room" && __test.NOW_DOORS.inbox === "now.inbox", "the door keys are the literals the deep-link maps promise — a silent rename turns the render smoke red, and this red");
+ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DOORS).length, "the door keys are distinct — two doors sharing a persistKey would make one uncloseable");
+{
+  const bare = { proposals: [], agentProposals: [] };
+  const esc = __test.statusTarget(bare, { esc: { escalate: true }, focus: { owed: [] } });
+  ok(esc.key === "now.briefing" && esc.id === "pl-autopilot", "statusTarget ESCALATION names its door by literal — the half that was reported missing, and the one repoint whose key and id came from different groups");
+  const owed = __test.statusTarget(bare, { esc: { escalate: false }, focus: { owed: [{ k: "weight" }] } });
+  ok(owed.key === oT63("weight").key && owed.id === oT63("weight").id, "statusTarget OWED branch routes through the SAME oweTarget map as the fold button — previously uncovered");
+  ok(__test.statusTarget(bare, { esc: { escalate: false }, focus: { owed: [] } }) === null, "statusTarget NULL branch: nothing staged, nothing escalated, nothing owed — the hero is a plain readout, not a dead button");
+}
 
 // v7.5 round-2 blocker C — an unfiled event must stay CLOSABLE after its date, or the miss
 // is silently erased (no zeroComp, no feed entry, no tell). Also: sorted, not array order.
@@ -3661,9 +3674,11 @@ ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DO
 
 
 // a remembered override BEATS the time-of-day default, both directions
-ok(rD63({ disc: { "now.today": true } }, "now.today", () => false) === true, "remembered OPEN beats a collapsed time-default");
-ok(rD63({ disc: { "now.plan": false } }, "now.plan", () => true) === false, "remembered CLOSED beats an open time-default — this is what kills the silent 5pm flip");
-ok(rD63({}, "now.plan", () => true) === true && rD63({ disc: {} }, "now.logs", () => false) === false, "with nothing stored, the first-visit computeDefault still decides");
+// G5 — readDisc is key-agnostic, so these use neutral probe keys rather than door names:
+// real door names here read as live wiring to the next person who greps for them.
+ok(rD63({ disc: { "ui.probe.a": true } }, "ui.probe.a", () => false) === true, "remembered OPEN beats a collapsed time-default");
+ok(rD63({ disc: { "ui.probe.b": false } }, "ui.probe.b", () => true) === false, "remembered CLOSED beats an open time-default — this is what kills the silent 5pm flip");
+ok(rD63({}, "ui.probe.b", () => true) === true && rD63({ disc: {} }, "ui.probe.c", () => false) === false, "with nothing stored, the first-visit computeDefault still decides");
 ok(rD63({ disc: { k: false } }, "k") === false, "a stored value is honoured even when no default is supplied");
 
 // applyDisc writes ONLY into {v, disc}, immutably — a UI pref can never leak into state

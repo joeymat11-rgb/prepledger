@@ -8721,6 +8721,10 @@ function scrollToId(id, delay = 80) {
    restated literals: the previous check compared each key to the same string the assertion
    above it already compared, so it could not fail unless that one had. */
 const NOW_DOORS = { capture: "now.capture2", briefing: "now.briefing", room: "now.room", inbox: "now.inbox" };
+/* Published next to window.__plGroups (which registerGroup populates) so the render smoke
+   can assert the DECLARED doors against the LIVE registry. Asserting NOW_DOORS against
+   itself is a tautology; asserting it against what actually mounted is the invariant. */
+try { if (typeof window !== "undefined") window.__plDoors = NOW_DOORS; } catch (e) {}
 function oweTarget(k) {
   return k === "day" ? { key: NOW_DOORS.capture, id: "pl-closeday" }
       : k === "yesterday" ? { key: NOW_DOORS.capture, id: "pl-amend" }
@@ -9800,14 +9804,17 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               week read +1.2 above and -1.23 below). */}
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, paddingTop: SP.md, borderTop: `1px solid ${T.line}`, lineHeight: 1.5 }}>
             {rc.showRate && pp.ok
-              ? <>At <span data-num style={{ fontFamily: mono, color: T.chalk }}>{rc.rate}</span>, {pp.wks} more weeks puts you near <span data-num style={{ fontFamily: mono, color: T.chalk }}>{pp.mid}</span> lb{pp.banded ? <> — anywhere from <span data-num style={{ fontFamily: mono }}>{pp.lo}</span> to <span data-num style={{ fontFamily: mono }}>{pp.hi}</span> lb once the interval on that rate is carried through</> : null}. There is no date on this — you stop when the body-fat read and the mirror say stop, not when a calendar does.</>
+              ? <>At <span data-num style={{ fontFamily: mono, color: T.chalk }}>{rc.rate}</span>, {pp.wks} more weeks puts you near <span data-num style={{ fontFamily: mono, color: T.chalk }}>{pp.mid}</span> lb — anywhere from <span data-num style={{ fontFamily: mono }}>{pp.lo}</span> to <span data-num style={{ fontFamily: mono }}>{pp.hi}</span> lb once the interval on that rate is carried through. There is no date on this — you stop when the body-fat read and the mirror say stop, not when a calendar does.</>
               : sig.state === "calibrating"
                 ? <>No projection yet — two clean weekly snapshots and this reads off your measured rate instead of an estimate.</>
                 : <>No projection yet — this week is still inside your own noise, so a forward number would claim more than the trend supports. It appears when the rate clears.</>}
           </div>
           {rc.showRate && pp.ok ? (
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>
-              a projection, not a promise{pp.banded ? "" : " · no interval yet — the rate is still on the two-snapshot fallback"}
+              {/* G3 — no un-banded variant here: this block only renders when rc.showRate is
+                  true, which implies the regression path, which implies a CI. pp.banded is
+                  false only on the two-snapshot fallback, where the card abstains entirely. */}
+              a projection, not a promise
             </div>
           ) : null}
           {/* v6.3 §5a — raw morning weight and the BF interval, each beside the epistemic word
@@ -10003,7 +10010,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           NOW carried SEVEN collapsible groups (TODAY · THIS WEEK · CAPTURE · FOR YOU TO OK ·
           YOUR ANALYST · Today's plan · Today's logs) plus a REST-OF-THE-DAY disclosure and a
           nested Section — nine surfaces to scan before finding anything. They collapse here
-          into three fixed, labelled doors: CAPTURE (everything you log), THE READ (what the
+          into three fixed, labelled doors: CAPTURE (everything you log), THE BRIEFING (what the
           machine is telling you), THE ROOM (session, recovery, the week, the laws). The middle door
           is THE BRIEFING, not "THE READ": v6.3 renamed the lower group to YOUR ANALYST precisely
           to free that name from the read card, and v7.5 briefly re-collided it onto a door that
@@ -10585,7 +10592,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       </Group>
 
-      <Group title="THE ROOM" sub="this week · session · recovery · the laws" count={(plan.goals.length + plan.ifthen.length) || null} persistKey={NOW_DOORS.room} id="pl-room" defaultOpen={false}>
+      {/* No count badge here, deliberately. Group renders `count` identically to the approval
+          inbox's (mono, T.gauge, right-aligned · N), where it means THINGS WAITING ON YOUR TAP.
+          On THE ROOM the same badge would mean "goals you already set": one staged proposal and
+          five plan entries would read FOR YOU TO OK · 1 above THE ROOM · 5, i.e. five outstanding
+          items. It also mislabels its own container — THE ROOM holds this week, the session,
+          recovery and the laws, and the count covered two of those. */}
+      <Group title="THE ROOM" sub="this week · session · recovery · the laws" persistKey={NOW_DOORS.room} id="pl-room" defaultOpen={false}>
         <div>
           <Eyebrow c={T.jade}>YOUR PROCESS GOALS</Eyebrow>
           {plan.goals.length === 0 && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>None set. A process goal is something you do, not a number on the scale — "four training sessions", "protein on target six days". They make the work task-focused instead of self-evaluative.</div>}
