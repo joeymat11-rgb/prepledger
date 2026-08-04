@@ -137,6 +137,141 @@ headless — walk the render-smoke states and eyeball on the phone before shippi
 
 ## NOW  `[build it]`
 
+### The phantom SKIP — live on Joe's phone, reported from the gym
+
+v7.6.0 killed phantom *reps*. It introduced phantom *skips*. Joe hit it today on v7.7.0:
+TRAIN showed lifts as skipped that he had not skipped.
+
+#### The defect
+
+`mergeSessionDrafts` (`src/app.jsx`, the `i > reached` line):
+
+```js
+const reached = typeof g.idx === "number" ? g.idx : -1;
+...
+// never reached in the gym, and nothing typed on TRAIN -> not performed
+if (i > reached && gReps[ex.id] == null && (t.reps || {})[ex.id] == null) out.skipped[ex.id] = true;
+```
+
+`g.idx` is the lift Gym Mode is **currently on**. So every lift *after* the one he is
+standing at is marked skipped — while the session is still in progress. Open Gym Mode, do
+three lifts, glance at TRAIN, and lifts 4-9 read **skipped**.
+
+The reasoning in the comment is right for the problem it was solving — *"not reaching a
+lift is evidence it was not performed; target reps are not"* — but it conflates two states
+that are not the same thing:
+
+- **not performed** — a real miss, belongs in `skipped[]`, must be shown honestly;
+- **not performed *yet*** — an open session, belongs in neither.
+
+It is not only cosmetic. `skipped` feeds `skippedList` at `Complete session`, so finishing
+from TRAIN mid-session writes those lifts into `s.sessionLog[date].skipped` as misses he
+never made. That is the phantom-rep bug's mirror image: the log gains a lapse that did not
+happen, and "show misses" becomes "show misses that never occurred", which corrodes the
+same credibility from the other side.
+
+#### The fix
+
+**Infer a skip at FINISH, never while a draft is live.** The default belongs in the finish
+path (`gymEntries`), where "the session ended and this lift has no reps" genuinely does
+mean not performed. `mergeSessionDrafts` must not manufacture skips for display.
+
+Give it an explicit mode rather than a silent behaviour change — e.g.
+`mergeSessionDrafts(sessEx, trainDraft, gymDraft, { final })`, where `final` is true only
+at completion. While the session is open, an unreached lift is simply untouched.
+
+**Acceptance criteria**
+- Assertion: with a live gym draft at `idx = 2` of 9, `mergeSessionDrafts` marks **zero**
+  lifts skipped. Today it marks six.
+- Assertion: at finish, a lift with no reps and no explicit skip still lands in `skipped[]`
+  — the v7.6.0 phantom-rep guarantee is preserved, and there is a test proving both
+  invariants hold at once.
+- Assertion: the two drafts still cannot disagree.
+- A lift that is genuinely mid-session renders as neither done nor skipped on TRAIN.
+
+---
+
+### Gym Mode has no way back — confirmed, nothing exists
+
+Joe tapped `skip this lift` by accident and could not undo it.
+
+`nextLift` only moves forward (`setIdx(idx + 1)`); `skipLift` sets `gskip[ex.id]` and calls
+it. v7.7.0 added *undo the last banked set*, which is a different thing — there is no
+control anywhere in Gym Mode to go back a **lift** or to clear a skip. The only recovery is
+to exit Gym Mode entirely and un-skip on TRAIN, which is exactly the "leaving mid-session"
+path that causes the bug above.
+
+**Build:** a back affordance on the lift screen that steps `idx` down one, restores that
+lift's `setN` and reps, and **clears `gskip` for the lift it returns to**. A skip must be
+as reversible as a set. Same principle as the approval inbox: nothing is one-way.
+
+**Acceptance criteria**
+- Skip lift 3, go back, and lift 3 is neither skipped nor missing reps — assertable through
+  `gymEntries` on the resulting draft.
+- Going back past lift 1 is a no-op, not a crash.
+- The rest timer is not left running against the wrong lift.
+
+---
+
+### Ladder verdict — keep Claude Code's, port two things into it
+
+Two independent implementations exist: `d34bcd0` (mine) and `feat/train-roster`
+(Claude Code's, integrated with the roster and pushed). **Keep Claude Code's.** It is the
+one on a pushed branch, it is integrated, and it is better documented — including an
+explicit `typeof ex.w !== "number"` guard that defers the three non-numeric lifts to Q2·F
+rather than handling them incidentally, and a named `LADDER_MIN_N = 4` that is more
+conservative than my 3.
+
+**But port these two, and the first is a real defect.**
+
+**1. The evenness test is wrong, and it can make real weights unreachable.**
+Claude Code's gate is *"every gap exactly equals `inc`"*:
+
+```js
+const even = inc > 0 && gaps.every((g) => Math.abs(g - inc) < 0.01);
+```
+
+Mine is *"every gap is a whole multiple of `inc`"*. Run against a lift where he has used
+80, 90, 100, 110 on a stack whose authored step is 5 lb:
+
+```
+Claude Code: [80, 90, 100, 110]   -> 85, 95 and 105 become UNREACHABLE
+mine:        — nothing proposed
+```
+
+The machine makes 85. Installing that ladder tells `nextLoad` it does not exist, so his
+next jump doubles from 5 lb to 10 lb, and `deloadLoad` loses half its options on the way
+down. The comment defending it — *"a gap the machine can make but he has never selected
+stays absent, which is the honest state"* — is the part that is wrong: a ladder is a claim
+about **what the machine can produce**, not about what he has chosen. When every observed
+gap is a clean multiple of the authored step, the step is direct evidence the intermediate
+weights exist, and discarding it asserts something false.
+
+Replace the equality test with the multiple test:
+
+```js
+const uneven = gaps.some((g) => Math.abs(g / inc - Math.round(g / inc)) > 1e-6);
+if (!uneven) return null;
+```
+
+**2. The assertions.** `d34bcd0` carries twelve, covering both abstention gates, that every
+proposed rung is a load he actually lifted, that filing a proposal is not applying it, that
+approving never *raises* the load, and that undo restores ladder and load exactly. Port
+them, plus one new one for the defect above: **an even stack that he has sampled sparsely
+proposes nothing.**
+
+Then delete `feat/train-ladder-inference`. One implementation, not two.
+
+**Note for calibration:** on Joe's real log today, *neither* version proposes anything for
+any lift — he has seven sessions and most lifts show one or two distinct loads. This
+feature will stay silent for months. That is correct behaviour, and worth saying in the UI
+so its silence does not read as breakage.
+
+
+## QUEUED
+
+### 0. TRAIN spec — remainder (all seven §5 moves shipped in v7.8.0)
+
 ### TRAIN + Gym Mode — the comprehensive redesign
 
 **This spec is complete. The design calls have been made. Build it — do not open with
@@ -502,8 +637,6 @@ https://www.ovid.com/jnls/nsca-jscr/fulltext/10.1519/jsc.0000000000002995
 Systematic Review and Meta-Analysis*, Sports Medicine – Open (2021) —
 https://link.springer.com/article/10.1186/s40798-021-00404-9
 
-
-## QUEUED
 
 ### 1. Personal RIR calibration — measure Joe's own bias, as a range `[needs Joe]`
 
