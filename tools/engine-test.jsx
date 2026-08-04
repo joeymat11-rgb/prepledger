@@ -3583,6 +3583,34 @@ ok(oT63("yesterday").key === "now.capture2" && oT63("yesterday").id === "pl-amen
 // in the render smoke (which mounts NOW and can see what registerGroup actually registered).
 // What belongs here is the literal each map promises, and the branches that had no coverage.
 ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === "now.briefing" && __test.NOW_DOORS.room === "now.room" && __test.NOW_DOORS.inbox === "now.inbox", "the door keys are the literals the deep-link maps promise — a silent rename turns the render smoke red, and this red");
+
+// GYM MODE INTEGRITY — the invariant that was violated in shipped code: no finish() path
+// may emit an entry for a lift the athlete did not perform. See SKIP_ONE_PATH.
+{
+  const GE = __test.gymEntries, RC = __test.restCut, CUT = __test.REST_CUT_S;
+  const lift = (id, tgt) => ({ id, n: id.toUpperCase(), w: 100, tgt: tgt || [12, 12], isDebutNow: false });
+  const sessEx = [lift("press"), lift("row"), lift("pronated"), lift("ham")];
+
+  // the exact fixture from the item: take the lift-screen skip on lift 3, then finish
+  const out = GE(sessEx, { reps: { press: [10, 9], row: [12, 11], ham: [12, 10] }, rir: { press: 2 }, gskip: { pronated: true } });
+  ok(out.skipped.some((x) => x.id === "pronated"), "GYM — a skipped lift appears in skipped[]");
+  ok(!out.entries.some((x) => x.id === "pronated"), "GYM — and a skipped lift emits NO entry: this is the phantom-rep defect, which banked the lift at its TARGET reps");
+  ok(out.entries.length === 3 && out.skipped.length === 1, "GYM — entries and skipped PARTITION the session; no lift is lost and none is counted twice");
+  ok(out.entries.every((e2) => sessEx.some((x) => x.id === e2.id)) && out.entries.length + out.skipped.length === sessEx.length, "GYM — every lift lands in exactly one bucket, so \"nothing counted\" is checkable rather than merely claimed");
+
+  // an un-skipped lift with no logged reps still falls through to target — that is the
+  // pre-existing behaviour for a lift he DID perform and simply confirmed
+  ok(JSON.stringify(GE(sessEx, {}).entries.find((e2) => e2.id === "row").reps) === JSON.stringify([12, 12]), "GYM — an unskipped lift with nothing typed confirms its target, which is the zero-tap path Gym Mode is built around");
+  ok(GE(sessEx, { gskip: { press: true, row: true, pronated: true, ham: true } }).entries.length === 0, "GYM — skipping every lift emits no entries at all");
+  ok(GE(null, null).entries.length === 0 && GE(undefined, undefined).skipped.length === 0, "GYM — gymEntries is total: no session, no entries, no throw");
+
+  // REST_WALLCLOCK — the iOS failure was a throttled counter, so the test simulates the gap
+  ok(RC(1000, 1000 + 10 * 1000) === true, "REST — 10s of rest is a cut rest");
+  ok(RC(1000, 1000 + CUT * 1000) === false, "REST — exactly the threshold is not a cut");
+  ok(RC(1000, 1000 + 150 * 1000) === false, "REST — a full 150s rest is NOT cut when measured from the wall clock, no matter how few times a throttled interval managed to fire (this is the iOS-in-pocket case that was flagging honest sessions as rushed)");
+  ok(RC(0, 0) === true, "REST — a zero-length rest is cut, and restCut never throws on missing timestamps");
+}
+
 ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DOORS).length, "the door keys are distinct — two doors sharing a persistKey would make one uncloseable");
 {
   const bare = { proposals: [], agentProposals: [] };
