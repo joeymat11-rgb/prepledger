@@ -1715,14 +1715,21 @@ function currentRate(s) {
    lands a LOWER weight, so the light end of the projection comes off the rate's hi. */
 const PACE_PROJ_WKS = 4;
 function paceProjection(s, wks = PACE_PROJ_WKS) {
+  if (s == null || s.trend == null) return { ok: false, measured: false, wks, banded: false };   // G2 — BEFORE currentRate, which dereferences s immediately
   const cr = currentRate(s);
-  if (!cr || !cr.measured || s == null || s.trend == null) return { ok: false, measured: false, wks, banded: false };
-  const mid = +(s.trend - cr.scale * wks).toFixed(1);
+  if (!cr || !cr.measured) return { ok: false, measured: false, wks, banded: false };
+  /* F — the card prints the rate at 1dp and the sentence invites the reader to multiply
+     it out. Projecting off the raw 2dp rate made that arithmetic fail by up to the width
+     of the band itself (trend 164.2, scale 1.34 shown as −1.3: 164.2 − 1.3×4 = 159.0, not
+     the 158.8 the card printed). Project off the SHOWN figure, so what he can check by
+     hand is what the card says. */
+  const shown = +cr.scale.toFixed(1);
+  const mid = +(s.trend - shown * wks).toFixed(1);
   const banded = cr.ci != null && cr.lo != null && cr.hi != null;
   return {
-    ok: true, measured: true, wks, mid, banded, rate: cr.scale, ci: cr.ci,
-    lo: banded ? +(s.trend - cr.hi * wks).toFixed(1) : null,
-    hi: banded ? +(s.trend - cr.lo * wks).toFixed(1) : null,
+    ok: true, measured: true, wks, mid, banded, rate: cr.scale, rateShown: shown, fat: cr.fat, ci: cr.ci,
+    lo: banded ? +(s.trend - +cr.hi.toFixed(1) * wks).toFixed(1) : null,
+    hi: banded ? +(s.trend - +cr.lo.toFixed(1) * wks).toFixed(1) : null,
   };
 }
 
@@ -9794,7 +9801,9 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, paddingTop: SP.md, borderTop: `1px solid ${T.line}`, lineHeight: 1.5 }}>
             {rc.showRate && pp.ok
               ? <>At <span data-num style={{ fontFamily: mono, color: T.chalk }}>{rc.rate}</span>, {pp.wks} more weeks puts you near <span data-num style={{ fontFamily: mono, color: T.chalk }}>{pp.mid}</span> lb{pp.banded ? <> — anywhere from <span data-num style={{ fontFamily: mono }}>{pp.lo}</span> to <span data-num style={{ fontFamily: mono }}>{pp.hi}</span> lb once the interval on that rate is carried through</> : null}. There is no date on this — you stop when the body-fat read and the mirror say stop, not when a calendar does.</>
-              : <>No projection yet — the read above has not cleared the noise, so a forward number here would claim more than the trend supports. It appears when the rate does.</>}
+              : sig.state === "calibrating"
+                ? <>No projection yet — two clean weekly snapshots and this reads off your measured rate instead of an estimate.</>
+                : <>No projection yet — this week is still inside your own noise, so a forward number would claim more than the trend supports. It appears when the rate clears.</>}
           </div>
           {rc.showRate && pp.ok ? (
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>
@@ -9807,9 +9816,22 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm }}>
             {rc.rawLine ? rc.rawLine + " · " : ""}BF {bf.pct}% <span style={{ opacity: 0.8 }}>(honest range {bf.lo}–{bf.hi}%)</span>
           </div>
+          {/* A — this panel sits inside the SAME Card and was carried over byte-identical, so
+              it kept every defect the card body had just been fixed for: it gated on
+              cr.measured, so "Measured pace 1.35 lb/wk" sat one tap under "no real change to
+              read yet"; and it re-rendered the rate raw and 2dp against the headline's signed
+              1dp, so while gaining the headline read +1.2 and this read -1.23, plus "about
+              -0.98 lb/wk of that fat-equivalent" — a negative fat-loss rate presented as a
+              measurement. It runs off the same rc.showRate / rc.rate / pp as the body now. */}
         <More c={T.chalk} deep="There is no show, no weigh-in and no date. That is a feature: the single best predictor of losing lean mass in a deficit is the size of the deficit, and the thing that makes people run a deficit too big is a date they are trying to make. Without one, the only reasons to go faster are impatience and boredom — and both of those cost muscle. The rate band, the calorie floor and the protein target are the guard rails; the finish line is a body-composition read, not a day on the calendar."
-          forYou={(() => { const cr = currentRate(s); const bfN = bfEst(s); return [
-            cr.measured ? `Measured pace ${cr.scale} lb/wk on the scale, about ${cr.fat} lb/wk of that fat-equivalent.` : "Pace still settling — two clean weekly snapshots and it goes fully measured.",
+          forYou={(() => { const bfN = bfEst(s);
+            const fatTxt = pp.ok ? `${pp.fat > 0 ? "−" : "+"}${Math.abs(pp.fat).toFixed(1)} lb/wk` : "";
+            return [
+            rc.showRate && pp.ok
+              ? `Measured pace ${rc.rate} on the scale, about ${fatTxt} of that fat-equivalent.`
+              : sig.state === "calibrating"
+                ? "Pace still settling — two clean weekly snapshots and it goes fully measured."
+                : "Pace is inside your own noise this week, so there is no measured figure to give yet — the read above says the same thing.",
             `Body fat reads ${bfN.pct}%, and the honest interval is ${bfN.lo}–${bfN.hi}% — that width is real, not decoration, and it narrows as the trend lengthens.`,
             "The cone on the LAB tab shows the same thing across time.",
           ]; })()} />

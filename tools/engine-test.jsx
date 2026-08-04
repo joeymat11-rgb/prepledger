@@ -3641,7 +3641,11 @@ ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DO
   const reg = clone(SEED); reg.blackout = { until: "2026-05-01" };
   reg.reads = Array.from({ length: 24 }, (_, i) => ({ d: ago(23 - i), w: +(170 - i * 0.06 + (i % 2 ? 0.5 : -0.5)).toFixed(2), sealed: false }));
   const crReg = CR(reg), ppReg = PP(reg);
-  ok(ppReg.ok === true && ppReg.mid === +(reg.trend - crReg.scale * WKS).toFixed(1), "paceProjection composes currentRate + trend — it invents no rate of its own");
+  ok(ppReg.ok === true && ppReg.rateShown === +crReg.scale.toFixed(1), "paceProjection composes currentRate + trend — it invents no rate of its own, and reports the figure the card prints");
+  // F — the card prints the rate at 1dp and the sentence invites multiplying it out, so the
+  // projection must be computed from THAT figure. Off the raw 2dp rate the hand-check failed
+  // by up to the width of the band itself.
+  ok(ppReg.mid === +(reg.trend - ppReg.rateShown * WKS).toFixed(1), "the projection reconciles with the printed rate — trend minus the SHOWN rate times the horizon is exactly what the card says");
   ok(ppReg.banded === true && ppReg.lo < ppReg.mid && ppReg.mid < ppReg.hi, "a regression rate carries a CI, so the projection brackets its own midpoint");
   ok(ppReg.lo === +(reg.trend - crReg.hi * WKS).toFixed(1), "a FASTER loss lands a LOWER weight — the light end of the projection comes off the rate's hi, not its lo");
 
