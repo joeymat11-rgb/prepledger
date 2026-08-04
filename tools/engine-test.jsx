@@ -3744,6 +3744,32 @@ ok(new Set(Object.values(__test.NOW_DOORS)).size === Object.values(__test.NOW_DO
     const snap = JSON.stringify(before);
     PL(before, "m");
     ok(JSON.stringify(before) === snap, "proposeLadder mutates NOTHING — it returns a suggestion and the inbox owns whether it lands");
+
+    // EVENNESS (ported defect fix) — the gate used to be "every gap EQUALS inc", which makes
+    // real weights unreachable: 80/90/100/110 on a 5 lb stack proposed a ladder that tells
+    // nextLoad 85, 95 and 105 do not exist, doubling his next jump and halving deloadLoad's
+    // options. A ladder is a claim about what the MACHINE CAN PRODUCE, not what he has picked.
+    ok(PL(mkS(80, [80, 90, 100, 110]), "m") === null, "LADDER — a sparsely sampled EVEN stack proposes nothing: every gap is a whole multiple of the 5 lb step, so the intermediate weights demonstrably exist and asserting otherwise would make them unreachable");
+    ok(PL(mkS(80, [80, 90, 100, 107.5]), "m") !== null, "…but a gap of 7.5 on a 5 lb step is NOT a whole multiple, and that IS real evidence of an uneven stack (10/10/15 would not be — every one of those is a multiple, so it abstains)");
+    const un2 = PL(mkS(100, [100, 107.5, 115, 130]), "m");
+    ok(un2 && un2.rungs.every((r) => [100, 107.5, 115, 130].indexOf(r) > -1), "LADDER — every rung proposed is a load he has ACTUALLY lifted");
+
+    // file -> approve -> install, and filing is not applying
+    const SW = __test.sweepLadders;
+    const base = mkS(100, [100, 107.5, 115, 130]);
+    const swept = SW(clone(base));
+    const prop = swept && (swept.proposals || []).find((p) => p.apply && p.apply.kind === "ladder");
+    ok(!!prop && prop.resolved === false, "LADDER — the sweep files an UNRESOLVED proposal into the inbox");
+    ok(!__test.loadRungs(swept.exercises[0]), "LADDER — filing does NOT apply: the lift still has no ladder until he approves it");
+    ok(SW(clone(swept)) === null, "LADDER — a lift with a proposal already on file is never re-filed; a proposal that returns after he has answered is a nag");
+
+    const beforeW = swept.exercises[0].w;
+    const applied = __test.applyProposal(clone(swept), prop.id);
+    const exA = applied.exercises[0];
+    ok(!!__test.loadRungs(exA) && __test.loadRungs(exA).length === 4, "LADDER — approving installs the ladder");
+    ok(exA.w <= beforeW, "LADDER — approving never RAISES the load; it only snaps to a real rung");
+    ok(exA.w === __test.snapLoad(exA, beforeW), "LADDER — and the snapped load is exactly the nearest real rung at or below where he was");
+
   }
 {
   const bare = { proposals: [], agentProposals: [] };
