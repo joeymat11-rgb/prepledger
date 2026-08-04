@@ -890,3 +890,66 @@ Both live-facing branches carry acceptance criteria I cannot satisfy headlessly:
 `fix/gym-phantom-reps` wants Gym Mode walked — tap the lift-screen skip, finish, read the
 receipt — and `fix/v7.5-r3-event-miss` sits on the NOW screen you have not yet looked at on
 iOS. Everything above is jsdom.
+
+---
+
+## JOE'S ANSWERS — 2026-08-04
+
+**1. In-progress session survivability — DOWNGRADED. `[needs Joe]`, do not build.**
+Joe: *"My spec line 'phone dies at lift 6 and the session is gone' was wrong and it was
+mine."* localStorage survives a dead battery, an app restart and a reboot — the draft is
+lost only if the device is wiped or replaced. The real exposure is far narrower than the
+item claimed and **does not justify `SCHEMA_V` 39.**
+
+The mid-session merge rule was the real question, and it now has an answer, so the item is
+not open-ended if it is ever built: **an open gym draft is a LEASE, not a mergeable
+collection.** Stamp it with a device id and a started-at. It may be replaced only by a draft
+from the *same* device, or by a completed session. **A stale device NEVER overwrites a live
+one — there is exactly one phone in the gym.** Nothing here merges; it is claimed or it is
+released.
+
+**2. Round-3 minor I4 — (c), queued behind the iOS walk.**
+Move the event reference material into a door (THE BRIEFING); keep the fold card gated to
+the actionable window. Joe: *"(c) is right, and it does not re-open G1: the fold card stays
+gated to the actionable window, only the reference material moves."* Recorded so nobody
+relitigates it. **Not built yet** — THE BRIEFING is a v7.5 construct and v7.5 has not been
+walked on a phone, so it is not built blind.
+
+**3. DEXA scan consistency — leave as-is.** Joe's own question, blocking nothing, no code
+depends on it.
+
+**4. Q2·F — the three non-numeric lifts. Formal open question below.** `[needs Joe]`
+
+---
+
+### Open question for Joe — Q2·F, the three lifts outside the progression engine  `[needs Joe]`
+
+`completeSession` writes `w: typeof ex2.w === "number" ? ex2.w : null`, so three of fifteen
+lifts store `w: null`:
+
+| lift | stored `w` | what it means |
+|---|---|---|
+| `hack` | `"hold"` | not a load at all — Joe's read is that this is a *duration* or a position |
+| `hanging` | `"BW"` | bodyweight, possibly plus added load |
+| `curl` | `"55·55·50"` | three different per-set loads in one display string |
+
+`progressAnchor` compares `String(en.w) !== String(ex.w)` → `"null" !== "hold"`, so these
+lifts **never get the max-of-three anchor**, and `typicalError` skips them, so they neither
+contribute to nor benefit from the measured noise band. They are outside the progression
+engine entirely.
+
+**The representation decision is yours.** At minimum:
+
+- **A per-set load array** — `curl "55·55·50"` → `[55, 55, 50]`. Handles the drop-set case
+  exactly and makes the anchor comparison real. Needs a display formatter so the card still
+  reads `55·55·50`.
+- **A bodyweight flag with optional added load** — `hanging "BW"` → `{ bw: true, add: 0 }`.
+  Bodyweight is a load that *moves with the athlete*, so progression on it is a different
+  question from progression on a plate.
+- **Whatever `"hold"` actually is for the hack squat** — Joe: *"I don't think it's a load at
+  all."* If it is a hold duration, it does not belong in `w` in any form and the lift may
+  need its own progression rule, or none.
+
+**This is a data-model change: it needs merge hardening and a migration, so it is not
+overnight work.** It also changes what the app can say about three lifts it currently says
+nothing about, which is a bigger claim than a refactor.
