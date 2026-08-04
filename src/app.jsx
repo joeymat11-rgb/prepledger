@@ -880,6 +880,51 @@ function targetsFor(ex, s) {
    nothing needed a migration. Every load decision — earning up, resetting down,
    forecasting forward — goes through these three helpers, so a machine gets
    described once and the whole engine respects it. */
+/* LADDER_MIN_N / proposeLadder — infer the weights a machine can ACTUALLY make, from the
+   weights he has actually used on it.
+
+   The load machinery is complete: snapLoad lands on a real rung, deloadLoad refuses to
+   invent a weight and picks the nearest strictly-lighter real one specifically to avoid an
+   11% cliff on a coarse stack. None of it does anything, because populating a ladder means
+   typing every weight into a free-text box from memory, standing at the machine.
+
+   This reads the distinct loads already in the session log for one lift and proposes them
+   as a ladder. It PROPOSES: it returns a suggestion and never writes, so it rides the
+   existing approval inbox like every other engine suggestion — no new collection, no
+   schema bump. It returns null unless there is real evidence:
+     - at least LADDER_MIN_N distinct logged loads, so two sessions at one weight say
+       nothing about the stack;
+     - the gaps must not all equal the authored inc, because an even ladder is what the
+       code already assumes and proposing it changes nothing;
+     - a lift whose weights are non-numeric (a hold, bodyweight, a per-set string) is
+       skipped entirely — that is a representation problem, not a ladder problem, and it is
+       an open question tagged [needs Joe].
+
+   It infers nothing between observations: the rungs are exactly the loads he used. A gap
+   the machine can make but he has never selected stays absent, which is the honest state —
+   the alternative is inventing weights onto a stack the app has never seen. */
+const LADDER_MIN_N = 4;
+function proposeLadder(s, exId) {
+  const ex = s && s.exercises ? s.exercises.find((e) => e && e.id === exId) : null;
+  if (!ex) return null;
+  if (Array.isArray(ex.steps) && ex.steps.length >= 2) return null;        // already has a ladder
+  if (typeof ex.w !== "number") return null;                                // see [needs Joe] Q2·F
+  const seen = [];
+  for (const d of Object.keys((s && s.sessionLog) || {})) {
+    for (const en of (s.sessionLog[d].entries || [])) {
+      if (en && en.id === exId && typeof en.w === "number" && isFinite(en.w) && en.w > 0 && !seen.includes(en.w)) seen.push(en.w);
+    }
+  }
+  if (typeof ex.w === "number" && !seen.includes(ex.w)) seen.push(ex.w);
+  const rungs = seen.sort((a, b) => a - b);
+  if (rungs.length < LADDER_MIN_N) return null;
+  const gaps = rungs.slice(1).map((x, i2) => +(x - rungs[i2]).toFixed(2));
+  const inc = +(ex.inc || 0);
+  const even = inc > 0 && gaps.every((g) => Math.abs(g - inc) < 0.01);
+  if (even) return null;                                                    // proposing the status quo
+  return { exId, n: ex.n, rungs, gaps, n_obs: rungs.length, inc, uneven: true };
+}
+
 function loadRungs(ex) {
   const r = Array.isArray(ex && ex.steps) ? ex.steps.map(Number).filter((x) => isFinite(x) && x > 0) : [];
   if (r.length < 2) return null;
@@ -6402,6 +6447,18 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
     return s;
   }
   s.adjustments.push(row);
+  /* A ladder approved in the inbox must change the thing its card promised — a proposal
+     that takes a tap and files a note is worse than no proposal. */
+  if (p.apply.kind === "ladder" && Array.isArray(p.apply.rungs) && p.apply.rungs.length >= 2 && p.apply.exId) {
+    const ex7 = (s.exercises || []).find((e) => e && e.id === p.apply.exId);
+    if (ex7) {
+      ex7.steps = p.apply.rungs.slice().sort((a, b) => a - b);
+      if (typeof ex7.w === "number") ex7.w = snapLoad(ex7, ex7.w);
+      s.feed.unshift({ d: isoOf(todayStart()), t: `LADDER SET — ${String(ex7.n).toUpperCase()} ${ex7.steps.length} rungs`, how: `${ex7.steps[0]} to ${ex7.steps[ex7.steps.length - 1]}, read off the weights you have actually used — every earn, reset and forecast now lands on a weight this machine makes` });
+    }
+    p.resolved = true; p.at = new Date().toISOString();
+    return s;
+  }
   if (p.apply.kind === "refeed") {
     /* Dated, so history keeps reading as history — see REFEED_RETIREMENT. */
     s.targets = s.targets || {};
@@ -8849,6 +8906,7 @@ __test.UI_KEY = UI_KEY;
 __test.applyDisc = applyDisc;
 __test.readDisc = readDisc;
 __test.oweTarget = oweTarget;
+__test.proposeLadder = proposeLadder; __test.LADDER_MIN_N = LADDER_MIN_N;   // §3.3 — infer the rungs, propose them, never apply
 __test.paceShown = paceShown;   // H2 — one gate for the card body and the More panel
 __test.eventFocus = eventFocus; __test.EVENT_LEAD_D = EVENT_LEAD_D; __test.EVENT_GRACE_D = EVENT_GRACE_D;   // v7.5 r2 blocker C
 __test.NOW_DOORS = NOW_DOORS; __test.TRAIN_DOORS = TRAIN_DOORS;   // v7.5 — the live door keys, asserted against by the deep-link tests
@@ -10893,7 +10951,10 @@ function LogTab({ s, setS, save, slp }) {
   const [skipped, setSkipped] = useState({});
   const [callOpen, setCallOpen] = useState(null);
   const [wEdit, setWEdit] = useState(null);
-  const [wVal, setWVal] = useState(180);
+  /* 180 was an authored default that had nothing to do with the lift being edited — tap
+     it on the hanging raise ("BW") and it proposed 180 lb. There is no honest default for a
+     non-numeric weight, so the editor opens on the lift's own load when it has one. */
+  const [wVal, setWVal] = useState(0);
   const [rungEdit, setRungEdit] = useState(null);
   /* terminal-set RIR — the set the taper programs to failure. Separate from the
      opener, which answers a different question (is the load still honest). */
@@ -11163,7 +11224,7 @@ function LogTab({ s, setS, save, slp }) {
                     )}
                     <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>jump:</span>
                     {[2.5, 5, 10].map((jz) => (
-                      <span key={jz} onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex5 = ns.exercises.find((x) => x.id === ex.id); ex5.inc = jz; delete ex5.steps; ns.feed.unshift({ d: isoOf(todayStart()), t: `JUMP SIZE — ${ex5.n.toUpperCase()} steps by ${jz}`, how: "athlete set the machine's smallest honest increment — even ladder" }); setS(ns); save(ns); }}
+                      <span key={jz} onClick={() => { const had = Array.isArray(ex.steps) && ex.steps.length >= 2; if (had && !window.confirm(`${ex.n} has a ${ex.steps.length}-rung ladder on file. Setting an even ${jz} lb jump deletes it. Keep the ladder?\n\nOK = delete the ladder\nCancel = keep it`)) return; const ns = JSON.parse(JSON.stringify(s)); const ex5 = ns.exercises.find((x) => x.id === ex.id); ex5.inc = jz; if (had) delete ex5.steps; ns.feed.unshift({ d: isoOf(todayStart()), t: `JUMP SIZE — ${ex5.n.toUpperCase()} steps by ${jz}`, how: "athlete set the machine's smallest honest increment — even ladder" }); setS(ns); save(ns); }}
                         style={{ fontFamily: mono, fontSize: TS.label, color: !loadRungs(ex) && (ex.inc || 5) === jz ? T.jade : T.steel, border: `1px solid ${!loadRungs(ex) && (ex.inc || 5) === jz ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>{jz}</span>
                     ))}
                     <span onClick={() => setRungEdit(rungEdit === ex.id ? null : ex.id)}
@@ -11196,7 +11257,7 @@ function LogTab({ s, setS, save, slp }) {
                     )}
                   </span>
                 ) : (
-                  <span onClick={() => { setWEdit(ex.id); setWVal(typeof ex.w === "number" ? ex.w : 180); }} style={{ cursor: "pointer", color: typeof ex.w === "number" ? T.steel : T.brass }}>{typeof ex.w === "number" ? ex.w : "set weight"} ✎</span>
+                  <span onClick={() => { setWEdit(ex.id); /* was 180 — an authored default with nothing to do with the lift being edited: tapping it on the hanging raise ("BW") proposed 180 lb. There is no honest default for a non-numeric weight, so it opens at nothing rather than at a number the app made up. See [needs Joe] Q2·F. */ setWVal(typeof ex.w === "number" ? ex.w : 0); }} style={{ cursor: "pointer", color: typeof ex.w === "number" ? T.steel : T.brass }}>{typeof ex.w === "number" ? ex.w : "set weight"} ✎</span>
                 )}
                 <span>· tgt {ex.tgt.join(",")}</span>
                 <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, width: "100%" }}>
