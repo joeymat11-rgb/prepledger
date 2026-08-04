@@ -3580,6 +3580,38 @@ ok(oT63("day").key === "now.capture2" && oT63("day").id === "pl-closeday", "owe:
 ok(oT63("yesterday").key === "now.capture2" && oT63("yesterday").id === "pl-amend", "owe: an unclosed yesterday points INTO the CAPTURE door, at the reopen card (pl-amend)");
 ok(["night", "weight", "day", "yesterday"].every((k) => oT63(k).key === "now.capture2"), "owe: after the three-door re-layout every owed kind opens the SAME capture door — no link to a retired group key");
 
+// v7.5 — paceProjection: the NOW projection is ENGINE-owned, abstains with the read, and
+// carries the interval the RATE carries (audit fixes 2 / 5 / 7).
+{
+  const PP = __test.paceProjection, WKS = __test.PACE_PROJ_WKS;
+  const SRC = __test.signalReadCopy, SS = __test.signalState, CR = __test.currentRate;
+  const ago = (b) => { const d = new Date(Date.now() - b * 86400000); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+
+  ok(WKS === 4 && typeof PP === "function", "paceProjection is exported with a NAMED horizon — the 4-week literal no longer sits inline in the UI");
+
+  // both sources cleared: no daily reads for the regression path AND no weekly snapshots
+  // for the fallback, so currentRate drops to the prior and the projection must abstain
+  const cold = clone(SEED); cold.reads = []; cold.weekly = [];
+  ok(CR(cold).measured === false && PP(cold).ok === false && PP(cold).measured === false, "paceProjection ABSTAINS with no measured rate — it never projects off the prior");
+
+  const reg = clone(SEED); reg.blackout = { until: "2026-05-01" };
+  reg.reads = Array.from({ length: 24 }, (_, i) => ({ d: ago(23 - i), w: +(170 - i * 0.06 + (i % 2 ? 0.5 : -0.5)).toFixed(2), sealed: false }));
+  const crReg = CR(reg), ppReg = PP(reg);
+  ok(ppReg.ok === true && ppReg.mid === +(reg.trend - crReg.scale * WKS).toFixed(1), "paceProjection composes currentRate + trend — it invents no rate of its own");
+  ok(ppReg.banded === true && ppReg.lo < ppReg.mid && ppReg.mid < ppReg.hi, "a regression rate carries a CI, so the projection brackets its own midpoint");
+  ok(ppReg.lo === +(reg.trend - crReg.hi * WKS).toFixed(1), "a FASTER loss lands a LOWER weight — the light end of the projection comes off the rate's hi, not its lo");
+
+  const snp = clone(SEED); snp.blackout = { until: "2026-05-01" };
+  snp.reads = Array.from({ length: 6 }, (_, i) => ({ d: ago(6 - 1 - i), w: +(170 - i * 0.1).toFixed(2), sealed: false }));
+  snp.weekly = [{ wk: "2026-07-06", trend: 170.0 }, { wk: "2026-07-13", trend: 167.8 }, { wk: "2026-07-20", trend: 165.6 }];
+  const ppSnp = PP(snp);
+  ok(CR(snp).ci == null && ppSnp.banded === false && ppSnp.lo === null && ppSnp.hi === null, "a two-snapshot rate carries no CI, so the projection reports banded:false rather than inventing an interval");
+
+  // The blocker itself: the two predicates DIVERGE, which is why the card must gate on the read's.
+  ok(CR(snp).measured === true && SRC(snp, SS(snp)).showRate === false, "BLOCKER 2 — the gates diverge: currentRate.measured is TRUE on a snapshots rate while the read abstains, which is exactly how one card came to quote a rate its own headline said was unreadable");
+}
+
+
 // a remembered override BEATS the time-of-day default, both directions
 ok(rD63({ disc: { "now.today": true } }, "now.today", () => false) === true, "remembered OPEN beats a collapsed time-default");
 ok(rD63({ disc: { "now.plan": false } }, "now.plan", () => true) === false, "remembered CLOSED beats an open time-default — this is what kills the silent 5pm flip");

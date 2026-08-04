@@ -1703,6 +1703,29 @@ function currentRate(s) {
   return { scale: 1.0, fat: 1.25, measured: false, rates, method: "prior", n: 0, ci: null };
 }
 
+/* PACE_PROJ_WKS / paceProjection — where N more weeks of the MEASURED rate lands the
+   scale. This was UI-side arithmetic inlined in the NOW card (`s.trend - cr.scale * 4`,
+   horizon hardcoded): the one number on that screen the engine did not own. The merge
+   promoted it from a double-collapsed footer to the second thing on the page, so it
+   moves here, composes currentRate + s.trend, and invents nothing.
+
+   It carries the interval the RATE already carries, rather than printing a bare figure:
+   currentRate exposes lo/hi only on the regression path, and the two-snapshot fallback
+   has ci: null, so `banded` says honestly whether an interval exists. A faster loss
+   lands a LOWER weight, so the light end of the projection comes off the rate's hi. */
+const PACE_PROJ_WKS = 4;
+function paceProjection(s, wks = PACE_PROJ_WKS) {
+  const cr = currentRate(s);
+  if (!cr || !cr.measured || s == null || s.trend == null) return { ok: false, measured: false, wks, banded: false };
+  const mid = +(s.trend - cr.scale * wks).toFixed(1);
+  const banded = cr.ci != null && cr.lo != null && cr.hi != null;
+  return {
+    ok: true, measured: true, wks, mid, banded, rate: cr.scale, ci: cr.ci,
+    lo: banded ? +(s.trend - cr.hi * wks).toFixed(1) : null,
+    hi: banded ? +(s.trend - cr.lo * wks).toFixed(1) : null,
+  };
+}
+
 /* ---------- READ RECENCY / STALENESS (v6.3.2) ----------
    currentRate() averages the last 28 READS, not the last 28 DAYS — so a rate is
    FROZEN, not aged. Days of no weigh-in never widen it, and a stale number reads as
@@ -6957,7 +6980,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -8128,6 +8151,7 @@ __test.cutRateBand = cutRateBand;
 __test.apModeOf = apModeOf;
 __test.stepTarget = stepTarget;
 __test.signalState = signalState;
+__test.signalReadCopy = signalReadCopy;   // v7.5 — so the suite can prove showRate and currentRate.measured diverge
 __test.dataLossGuard = dataLossGuard;
 __test.mergeState = mergeState;
 __test.fiveLevers = fiveLevers;
@@ -9685,8 +9709,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           the rate, and where four more weeks of that rate lands. No ETA, no cone, no second
           number. COUNTDOWN_NOTE still governs — there is no date, and none gets manufactured.
           Computed from signalState/currentRate every render, so it can never be blank. */}
-      {(() => { const rc = signalReadCopy(s, sig); const cr = currentRate(s);
-        const proj = +(s.trend - cr.scale * 4).toFixed(1);
+      {(() => { const rc = signalReadCopy(s, sig); const pp = paceProjection(s);
         return (
         <Card style={{ padding: SP.lg }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: SP.sm }}>
@@ -9700,13 +9723,33 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             <GraduationMark ticks={sig.ticks} finalDashed={sig.finalDashed} />
             <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 15, letterSpacing: "0.03em", color: rc.wordColor }}>{rc.word}{sig.state === "measured" ? " ◆" : ""}</span>
           </div>
-          {/* The surviving half of the retired crossover card: where four more weeks of the
-              MEASURED rate lands him. No clock, no target date, no progress bar. */}
+          {/* The surviving half of the retired crossover card: where PACE_PROJ_WKS more weeks
+              of the MEASURED rate lands him. No clock, no target date, no progress bar.
+
+              v7.5 audit blocker 2 — this used to gate on cr.measured while the headline above
+              it gated on rc.showRate, and those disagree: currentRate().measured is true in
+              every state except calibrating, INCLUDING the two-snapshot fallback and any
+              regression whose CI straddles zero. So the card could say "still inside your
+              noise — no real change to read yet" and then, four lines down, quote a rate and
+              project four weeks of it. Both halves existed before the merge, ~600px and two
+              closed disclosures apart; merging them turned a cross-page inconsistency into a
+              self-contradicting card at Tier 1. It now abstains with the read, on the SAME
+              predicate — an abstention gate is a feature, and routing around one is a defect
+              even when the number is right.
+
+              The rate prints ONCE, in one format: rc.rate, the same string the headline uses
+              (the body used to re-render the same engine field raw and 2dp, so a reversed
+              week read +1.2 above and -1.23 below). */}
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, paddingTop: SP.md, borderTop: `1px solid ${T.line}`, lineHeight: 1.5 }}>
-            {cr.measured
-              ? `At the ${cr.scale} lb/wk you are actually moving, four more weeks puts you near ${proj} lb. There is no date on this — you stop when the body-fat read and the mirror say stop, not when a calendar does.`
-              : `Two clean weekly snapshots and this reads off your measured rate instead of an estimate.`}
+            {rc.showRate && pp.ok
+              ? <>At <span data-num style={{ fontFamily: mono, color: T.chalk }}>{rc.rate}</span>, {pp.wks} more weeks puts you near <span data-num style={{ fontFamily: mono, color: T.chalk }}>{pp.mid}</span> lb{pp.banded ? <> — anywhere from <span data-num style={{ fontFamily: mono }}>{pp.lo}</span> to <span data-num style={{ fontFamily: mono }}>{pp.hi}</span> lb once the interval on that rate is carried through</> : null}. There is no date on this — you stop when the body-fat read and the mirror say stop, not when a calendar does.</>
+              : <>No projection yet — the read above has not cleared the noise, so a forward number here would claim more than the trend supports. It appears when the rate does.</>}
           </div>
+          {rc.showRate && pp.ok ? (
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>
+              a projection, not a promise{pp.banded ? "" : " · no interval yet — the rate is still on the two-snapshot fallback"}
+            </div>
+          ) : null}
           {/* v6.3 §5a — raw morning weight and the BF interval, each beside the epistemic word
               above them; a body-comp number never shows naked. ONE print now: this line used to
               be duplicated by the bottom card's own 'body fat X% · honest range' line. */}
