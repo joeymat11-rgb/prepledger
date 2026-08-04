@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { HISTORY } from "./history.js";
 
 /* ============================================================
@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.6.0";
+const APP_V = "7.7.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -10863,7 +10863,21 @@ function LogTab({ s, setS, save, slp }) {
   const tISO = isoOf(todayStart());
   const nextISO = nextTrainingISO(s);
   const [dateSel, setDateSel] = useState(dayType(tISO) === "U" || dayType(tISO) === "L" ? tISO : nextISO);
-  const sess = dateSel && !s.sessionLog[dateSel] ? genSession(s, dateSel, slp) : null;
+  /* §5 move 1 — was rebuilt on EVERY render, including every keystroke in the notes
+     textarea and every stepper tap. slp is sleepInfo(s), so s is the only real input. */
+  const sess = useMemo(() => (dateSel && !s.sessionLog[dateSel] ? genSession(s, dateSel, slp) : null), [s, dateSel, slp]);
+  /* §5 move 1 — liftCall traverses sessionLog x exercises and was called once per
+     exercise per render, so a fifteen-lift page paid fifteen traversals for every
+     keystroke in the notes textarea and every stepper tap. Computed once per state here.
+     Deliberately NOT a module-level cache: liftCall is called elsewhere on states that
+     are mutated in place between calls, and a stale verdict there is a load decision made
+     from superseded data. Render scope is the honest scope. */
+  const calls = useMemo(() => {
+    const m = {};
+    for (const ex of s.exercises || []) { try { m[ex.id] = liftCall(s, ex.id); } catch (e) { m[ex.id] = null; } }
+    return m;
+  }, [s]);
+  const callFor = (exId) => (exId in calls ? calls[exId] : liftCall(s, exId));
   const logged = dateSel && s.sessionLog[dateSel];
   const [reps, setReps] = useState({});
   const [rir, setRir] = useState({});
@@ -10924,19 +10938,15 @@ function LogTab({ s, setS, save, slp }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {gym && sess && <GymMode s={s} setS={setS} save={save} slp={slp} sess={sess} dateSel={dateSel} onClose={() => setGym(false)} />}
+      {gym && sess && <GymMode s={s} setS={setS} save={save} slp={slp} sess={sess} dateSel={dateSel} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} />}
       {sess && !s.sessionLog[dateSel] && (
         <Btn full tone="jade" onClick={() => setGym(true)}>▶ GYM MODE — one lift at a time, timers on</Btn>
       )}
       <div style={{ display: "flex", gap: 8, overflowX: "auto", touchAction: "pan-x", paddingBottom: 2 }}>
-        {dateSel && !options.includes(dateSel) && (
-          <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: TS.label, letterSpacing: "0.05em", padding: "10px 8px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>
-            ✓ {fmtShort(dateSel)} · RECEIPT
-          </button>
-        )}
-        {logged && !options.includes(dateSel) && (
-          <button style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: TS.label, letterSpacing: "0.05em", padding: "10px 8px", borderRadius: 7, border: `1px solid ${T.jade}`, background: T.plate2, color: T.jade }}>✓ {fmtShort(dateSel)} · RECEIPT</button>
-        )}
+        {/* Two RECEIPT chips lived here, both styled as buttons and neither carrying a
+            handler — tapping them did nothing at all. The real receipt is the logged-session
+            card below. Removed rather than wired: a control that looks tappable and is not is
+            worse than no control. */}
         {options.map((d) => (
           <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setRirEnd({}); setPace(null); setNote(""); setNig([]); setSkipped({}); }} style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: TS.label, letterSpacing: "0.05em", padding: "10px 8px", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : s.sessionLog[d] ? T.jade : T.steel }}>
             {s.sessionLog[d] ? "✓ " : ""}
@@ -11025,7 +11035,7 @@ function LogTab({ s, setS, save, slp }) {
         </div>
         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 4 }}>Everything else just chases reps — no limit on that. New weight increases you earn wait in line for their own day.</div>
         <More c={T.orange} deep="One structural change per session keeps the signal clean — when something moves, you know exactly what caused the response. Rep progression stays unlimited because it's the noise-free kind of change. The scheduler auto-picks from the queue in order; doc-approved riders are the only exception."
-          forYou={(() => { const cand = s.queue.filter((q) => !q.done && q.kind === "debut" && q.exId && exById(s, q.exId) && exById(s, q.exId).day === dayType(dateSel)); return cand.length > 1 ? `Waiting behind today's slot: ${cand.slice(1).map((q) => q.t).join(" · ")} — each gets its own session.` : cand.length === 1 ? "The queue empties after this one — new earns will refill it as you log." : "Nothing structural queued for this day type — pure rep-progression day, which is where most muscle actually gets built."; })()} />
+          forYou="Structural changes queue themselves as you earn them. The full queue lives on QUEUE — it is not restated here." />
       </Card>
 
       {/* The hack-debut card used to be a sleep gate with a hardcoded 4.5 h
@@ -11078,7 +11088,7 @@ function LogTab({ s, setS, save, slp }) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: SP.sm, flexWrap: "wrap", rowGap: SP.sm }}>
             <div style={{ flex: "1 1 auto", fontFamily: disp, fontWeight: 600, fontSize: 17, lineHeight: `${LH.title}px`, textTransform: "uppercase", color: T.chalk, textDecoration: skipped[ex.id] ? "line-through" : "none", wordBreak: "normal", overflowWrap: "break-word", hyphens: "none" }}>{ex.n}</div>
 
-            {!reorder && (() => { const lc = liftCall(s, ex.id); const vc = lc.verdict === "RESET" || lc.verdict === "STAND-DOWN" ? T.redline : lc.verdict === "HOLD" ? T.brass : lc.verdict === "PUSH+" ? T.jade : lc.verdict === "REBUILD" ? T.orange : T.jade; return (
+            {!reorder && (() => { const lc = callFor(ex.id); const vc = lc.verdict === "RESET" || lc.verdict === "STAND-DOWN" ? T.redline : lc.verdict === "HOLD" ? T.brass : lc.verdict === "PUSH+" ? T.jade : lc.verdict === "REBUILD" ? T.orange : T.jade; return (
               <span onClick={(ev2) => { ev2.stopPropagation(); setCallOpen(callOpen === ex.id ? null : ex.id); }} style={{ fontFamily: mono, fontSize: TS.label, color: vc, border: `1px solid ${vc}`, borderRadius: 999, padding: "3px 8px", flexShrink: 0, cursor: "pointer" }}>{(CALL_PLAIN[lc.verdict] || { chip: lc.verdict }).chip}{lc.vel != null ? (lc.vel > 0.2 ? " ▲" : lc.vel < -0.2 ? " ▼" : " ▶") : ""} ▾</span>
             ); })()}
             {!reorder && (
@@ -11157,7 +11167,7 @@ function LogTab({ s, setS, save, slp }) {
               </div>
             )}
           </div>
-          {callOpen === ex.id && (() => { const lc2 = liftCall(s, ex.id); return (
+          {callOpen === ex.id && (() => { const lc2 = callFor(ex.id); return (
             <div style={{ marginTop: 8, padding: "9px 11px", background: T.plate2, borderRadius: 8, border: `1px solid ${T.line}` }}>
               <div style={{ fontFamily: mono, fontSize: TS.label, color: T.jade, letterSpacing: "0.05em" }}>{(CALL_PLAIN[lc2.verdict] || { mean: "" }).mean}</div>
               <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.55, marginTop: 6 }}>{lc2.why}</div>
@@ -11252,7 +11262,10 @@ function LogTab({ s, setS, save, slp }) {
       ))}
 
       <Card style={{ padding: 16 }}>
-        <Eyebrow>PACE · HOW LONG BETWEEN SETS</Eyebrow>
+      {/* PACE had two owners: Gym Mode measures it from real rest timestamps, TRAIN asked
+          him to declare it from memory afterwards. The measurement wins. This control stays
+          for the hand-logged path only and is labelled as the fallback it is. */}
+        <Eyebrow>PACE · ONLY IF YOU DID NOT USE GYM MODE</Eyebrow>
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           {[["normal", "FULL REST", T.jade], ["rushed", "RUSHED", T.brass]].map(([v, label, c]) => {
             const on = pace === v;
@@ -11265,7 +11278,7 @@ function LogTab({ s, setS, save, slp }) {
           })}
         </div>
         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 6, lineHeight: 1.5 }}>
-          RUSHED = under about a minute between sets. Reps still count — but a compressed day can't count toward a stall, so it never lightens your bar by mistake.
+          Gym Mode measures this from your actual rests and needs three of them before it will say anything — if you used it, leave this alone and its measurement stands. This is the fallback for a session logged by hand. RUSHED = under about a minute between sets. Reps still count, but a compressed day cannot count toward a stall, so it never lightens your bar by mistake.
         </div>
       </Card>
 
@@ -12328,6 +12341,23 @@ function mergeSessionDrafts(sessEx, trainDraft, gymDraft) {
   return out;
 }
 
+/* RIR_TIMING — which phase follows a banked set.
+
+   Self-reported RIR carries a large, directional error that is dominated by WHEN you ask:
+   it falls from ~4.8 reps at 33% of a set to ~1.2 at 90%, and from 1.2 reps at 5 RIR to
+   0.46 at 1 RIR [2]. The app used to collect both RIRs at lift-done — after every set of
+   the lift was finished, from memory — which is the worst available moment, and it gave
+   the opener equal visual weight to the last set.
+
+   The last set is now asked for at the moment it is banked. The opener prompt leaves the
+   default flow entirely: the engine's own comment says the opener is a weak signal, every
+   opener in the log reads 1-2 so it carries almost no variance, and it is measured where
+   error is largest. The field stays and remains editable from the lift detail on TRAIN.
+
+   The 0/1/2/3+ scale is deliberately NOT widened — accuracy collapses above ~3 RIR, so
+   finer buckets up there would be false precision. [2] */
+function phaseAfterSet(setN, nSets) { return setN + 1 < nSets ? "rest" : "rir-end"; }
+
 function gymEntries(sessEx, st) {
   const o = st || {};
   const reps = o.reps || {}, rir = o.rir || {}, rirEnd = o.rirEnd || {}, gskip = o.gskip || {};
@@ -12346,7 +12376,7 @@ function gymEntries(sessEx, st) {
    session rushed — which pulls it out of the progression evidence via liftCall. */
 const REST_CUT_S = 60;
 function restCut(startMs, nowMs) { return Math.floor(((nowMs || 0) - (startMs || 0)) / 1000) < REST_CUT_S; }
-__test.gymEntries = gymEntries; __test.mergeSessionDrafts = mergeSessionDrafts; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
+__test.gymEntries = gymEntries; __test.phaseAfterSet = phaseAfterSet; __test.mergeSessionDrafts = mergeSessionDrafts; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
 
 function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [idx, setIdx] = useState(0);
@@ -12355,6 +12385,9 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [t, setT] = useState(0);
   const [restStart, setRestStart] = useState(0);   // REST_WALLCLOCK — ms epoch, not a tick count
   const [restLen, setRestLen] = useState(0);       // seconds this rest is meant to last
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [gNote, setGNote] = useState("");
+  const [gNig, setGNig] = useState([]);
   const [reps, setReps] = useState({});
   const [rir, setRir] = useState({});
   const [rirEnd, setRirEnd] = useState({});
@@ -12402,8 +12435,10 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const doneSet = () => {
     const nSets = getR(ex).length;
     if (setN + 1 < nSets) { const len = restFor(ex.id, setN + 1, nSets); setSetN(setN + 1); setRestLen(len); setRestStart(Date.now()); setT(len); setPhase("rest"); setRests((r) => ({ ...r, n: r.n + 1 })); }
-    else setPhase("lift-done");
+    else setPhase(phaseAfterSet(setN, nSets));   // RIR_TIMING — the last set asks immediately
   };
+  /* Undo the last banked set: step back one and restore the value it held. */
+  const undoSet = () => { if (setN <= 0) return; setSetN(setN - 1); setPhase("lift"); setRests((r) => ({ ...r, n: Math.max(0, r.n - 1) })); };
   const nextLift = () => { if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } else setPhase("all-done"); };
   /* SKIP_ONE_PATH — a control labelled "skip" must put the lift on the record as skipped
      BEFORE advancing. The lift-screen link used to call nextLift directly, which advances
@@ -12426,8 +12461,8 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
     /* n-gated like every other read in here: under three rests there is no
        session-level statement to make, so it stays unknown rather than guessed. */
     const pace = rests.n >= 3 ? (rests.cut / rests.n >= 0.5 ? PACE.rushed : PACE.normal) : null;
-    const { s: ns } = completeSession(s, dateSel, split.entries, slp, { note: "gym mode", niggles: [], skipped: split.skipped, pace });
-    setS(ns); save(ns); onClose();
+    const { s: ns, lines } = completeSession(s, dateSel, split.entries, slp, { note: gNote.trim(), niggles: gNig, skipped: split.skipped, pace });
+    setS(ns); save(ns); onClose(lines);   // the WHAT MOVED recap was thrown away on the path Joe actually uses
   };
   const big = { fontFamily: mono, fontWeight: 800, letterSpacing: "-0.02em" };
   return (
@@ -12445,20 +12480,38 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           {/* A rest counts as CUT when the actual rest lands under 60 s — the
               threshold the meta-analysis actually resolves, not a fraction of
               the prescription. See REST_NOTE and PACE_NOTE. */}
+          {/* A set banked late, or one that needs longer, previously had only Skip rest. */}
+          <Btn small onClick={() => { setRestLen((x) => x + 30); }}>+30s</Btn>
+          <Btn small onClick={() => { setRestStart(Date.now()); }}>restart rest</Btn>
           <Btn small onClick={() => { if (restCut(restStart, Date.now())) setRests((r) => ({ ...r, cut: r.cut + 1 })); setT(0); setPhase("lift"); }}>Skip rest</Btn>
+        </div>
+      ) : phase === "rir-end" ? (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
+          <H size={26}>Last set — how many left?</H>
+          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>{ex.n} · {getR(ex)[getR(ex).length - 1]} reps at {ex.w}</div>
+          {/* RIR_TIMING — asked HERE, seconds after the set, not at lift-done from memory. */}
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em" }}>REPS IN RESERVE · 0 = it was the failure set</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[0, 1, 2, 3].map((v) => (
+              <button key={v} onClick={() => { setRirEnd({ ...rirEnd, [ex.id]: v }); setPhase("lift-done"); }}
+                style={{ flex: 1, fontFamily: mono, fontSize: 20, padding: "16px 0", borderRadius: 10, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>{v === 3 ? "3+" : v}</button>
+            ))}
+          </div>
+          <button onClick={() => setPhase("lift-done")} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "9px", width: "100%" }}>skip — leave it unrecorded</button>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: 1.5 }}>Asked now rather than at the end of the lift: a reserve estimate is about two and a half times more accurate taken at the set than recalled after it.</div>
         </div>
       ) : phase === "lift-done" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
           <H size={26}>{ex.n} — done</H>
           <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>logged: {getR(ex).join(" · ")} at {ex.w}</div>
           <div>
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em" }}>FIRST SET RIR · optional · 1 = honest</div>
-            <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-              {[0, 1, 2, 3].map((v) => <button key={v} onClick={() => setRir({ ...rir, [ex.id]: rir[ex.id] === v ? null : v })} style={{ fontFamily: mono, fontSize: 16, padding: "10px 16px", borderRadius: 8, border: `1px solid ${rir[ex.id] === v ? (v === 0 ? T.brass : T.jade) : T.line}`, background: T.plate2, color: rir[ex.id] === v ? (v === 0 ? T.brass : T.jade) : T.steel }}>{v === 3 ? "3+" : v}</button>)}
-            </div>
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em", marginTop: 12 }}>LAST SET RIR · optional · 0 = it was the failure set</div>
-            <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-              {[0, 1, 2, 3].map((v) => <button key={v} onClick={() => setRirEnd({ ...rirEnd, [ex.id]: rirEnd[ex.id] === v ? null : v })} style={{ fontFamily: mono, fontSize: 16, padding: "10px 16px", borderRadius: 8, border: `1px solid ${rirEnd[ex.id] === v ? (v === 0 ? T.jade : T.brass) : T.line}`, background: T.plate2, color: rirEnd[ex.id] === v ? (v === 0 ? T.jade : T.brass) : T.steel }}>{v === 3 ? "3+" : v}</button>)}
+            {/* The opener prompt has left the default flow — see RIR_TIMING. The field still
+                exists and is editable from the lift detail on TRAIN; it is simply no longer
+                asked for on every lift of every session, which is ~15 taps a week spent on
+                the measurement with the largest error and the least variance. */}
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em" }}>LAST SET RIR</div>
+            <div style={{ fontFamily: mono, fontSize: TS.label, color: rirEnd[ex.id] == null ? T.steel : T.jade, marginTop: 6 }}>
+              {rirEnd[ex.id] == null ? "not recorded" : `${rirEnd[ex.id] === 3 ? "3+" : rirEnd[ex.id]} — taken at the set`}
             </div>
           </div>
           <Btn full tone="jade" onClick={nextLift}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</Btn>
@@ -12467,14 +12520,48 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
       ) : phase === "all-done" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
           <H size={26}>Session complete</H>
-          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, lineHeight: 1.7 }}>{sess.ex.map((e2) => `${e2.n}: ${getR(e2).join(",")} @ ${e2.w}`).join("\n")}</div>
+          {/* joined with \n inside a div, so it rendered as one run-on line */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {sess.ex.map((e2) => (
+              <div key={e2.id} style={{ fontFamily: mono, fontSize: TS.label, color: gskip[e2.id] ? T.steel : T.chalk, textDecoration: gskip[e2.id] ? "line-through" : "none" }}>
+                {e2.n}: {gskip[e2.id] ? "skipped — on record" : `${getR(e2).join(",")} @ ${e2.w}`}
+              </div>
+            ))}
+          </div>
+          {/* the note field was hardcoded to "gym mode", overwriting the real note and then
+              printing it in the receipt and the debrief; niggles was hardcoded [], which made
+              the joint check unreachable from the mode Joe uses. Both are his to fill now. */}
+          <input value={gNote} onChange={(e3) => setGNote(e3.target.value)} placeholder="anything worth remembering about this session" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8, color: T.chalk, fontFamily: body, fontSize: 16, padding: "10px 12px" }} />
           <Btn full tone="jade" onClick={finish}>LOG IT — receipt + debrief</Btn>
         </div>
       ) : (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 10 }}>
           <H size={30}>{ex.n}</H>
           <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>{ex.w} · target {ex.tgt.join(",")}{ex.isDebutNow ? " · FIRST RUN — log what it gives" : ""}</div>
-          {ex.cue && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel }}>{ex.cue}</div>}
+          {/* ex.cue never existed — genSession returns setup / live / note / prev, so the cue
+              line, the setup cues and the DEBUT/OWN-IT/RECLAIM note were all unreachable in
+              the one mode Joe actually uses. They render here now, composed, not recomputed. */}
+          {ex.live ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.45 }}>NOW &rsaquo; {ex.live}</div> : null}
+          {ex.note ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.04em" }}>{ex.note}</div> : null}
+          {ex.setup ? (
+            <div>
+              <button onClick={() => setSetupOpen(!setupOpen)} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "5px 10px" }}>{setupOpen ? "\u25be setup" : "\u25b8 setup"}</button>
+              {setupOpen ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.45 }}>{ex.setup}</div> : null}
+            </div>
+          ) : null}
+          {ex.prev ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>last · {fmtShort(ex.prev.d)} · {ex.prev.w} \u00d7 {(ex.prev.reps || []).join(",")}{ex.prev.rir != null ? ` \u00b7 RIR ${ex.prev.rir}` : ""}</div> : null}
+          {(() => {
+            /* The next rung, on the lift screen. nextLoad exists on every card and rendered
+               nowhere. It returns null at the top of a stack — that is real, so it is said
+               rather than hidden. Composes the existing selector; no new number. */
+            const exFull = exById(s, ex.id); if (!exFull) return null;
+            const up = nextLoad(exFull);
+            return (
+              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>
+                {up == null ? "next rung \u00b7 none on file — the top of this stack is real" : `next rung \u00b7 ${up}`}
+              </div>
+            );
+          })()}
           <div style={{ marginTop: 10 }}>
             <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>SET {setN + 1} OF {getR(ex).length} · <span style={{ color: rp2.plan[setN] === 0 ? T.brass : rp2.plan[setN] === 1 ? T.chalk : T.jade, fontWeight: 700 }}>RIR {rp2.plan[setN] ?? "—"}</span></div>
             <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 8 }}>
@@ -12484,6 +12571,11 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             </div>
           </div>
           <Btn full tone="jade" onClick={doneSet}>SET DONE {setN + 1 < getR(ex).length ? "→ REST " + restFor(ex.id, setN + 1, getR(ex).length) + "s" : "→"}</Btn>
+          {/* One mis-tap on SET DONE had no recovery path at all — the only way back was to
+              leave the mode. Steps setN back and restores what that set held. */}
+          {setN > 0 ? (
+            <button onClick={undoSet} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "8px", width: "100%" }}>\u25c2 undo last set</button>
+          ) : null}
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span style={{ fontFamily: mono, fontSize: TS.micro, color: "transparent" }}>.</span>
             <span onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>skip lift ▸</span>

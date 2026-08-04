@@ -108,27 +108,351 @@ headless — walk the render-smoke states and eyeball on the phone before shippi
 
 ---
 
-## NOW  `[needs Joe]` — design pass first, do not build
+## NOW  `[build it]`
 
-### TRAIN + Gym Mode redesign
+### TRAIN + Gym Mode — the comprehensive redesign
 
-**Its first step is a design pass Joe reacts to, exactly like the NOW page.** Nothing gets
-built until he has picked a direction. The full diagnosis, the evidence and the proposed
-tiers are in QUEUED item 3 below — that content is the input to the design pass, not a
-build spec.
+**This spec is complete. The design calls have been made. Build it — do not open with
+another proposal pass.** The research and the element-by-element inventory are both done
+and are reproduced below so nothing has to be rediscovered. Where a decision was genuinely
+Joe's, it is listed under *Open questions* at the end and must be written up, not guessed.
 
-The one-line diagnosis stands: *TRAIN is a planning page that happens to contain a gym
-button; it should be a gym page that happens to contain planning.* Gym Mode's core loop is
-the best interaction in the app and must survive verbatim — three taps from cold open to
-set 1, reps pre-filled so confirming costs zero taps and only a miss costs one.
+Line numbers are against `v7.6.0`. Verify each anchor before editing — this file's
+editing hazard is anchors that match more than once.
 
-**Do not start building.** Produce directions for Joe to react to.
+---
 
-Two things that are already true and should inform the pass rather than be re-derived:
-the phantom-rep, wall-clock-rest and one-draft fixes shipped in v7.6.0, so the integrity
-problems are off the table; and the RIR-timing change (ask for last-set RIR at the last
-set, not at `lift-done` from memory) has the strongest evidence behind it of anything in
-the item — 0.46 vs 1.2 reps of error — so it is the part most worth designing around.
+#### 0 · The laws this answers to
+
+- **Tier 0** — one answer, largest, first, the half-second read. **Tier 1** — glanceable,
+  no tap. **Tier 2** — one tap down, behind a small number of fixed labelled doors that
+  never rearrange and that remember their state.
+- **Engine-owns-numbers.** The engine owns every computed number; the UI formats and
+  never computes. No new rate, target, band, window or probability.
+- **Charter.** No streaks, urgency, countdowns, gamification. Honest labelling.
+  **Show misses.** "Proposals should never confuse me."
+- **Nothing mutates itself.** Every engine suggestion flows through the approval inbox.
+- **iOS Safari is the target.** The suite is headless; the phone is the truth.
+- **Never push or merge to `main`.** Branch, gate, preview, wait for Joe.
+
+---
+
+#### 1 · The diagnosis, in one line
+
+**TRAIN is a planning page that happens to contain a gym button. It should be a gym page
+that happens to contain planning.**
+
+`▶ GYM MODE` is already first, and Gym Mode's core loop is the best interaction in the
+app — three taps from cold open to set 1, reps pre-filled with the engine's proposal so
+**confirming costs zero taps and only a miss costs one**. That polarity is correct and
+must survive verbatim. But below that button sit ~17 sections including two full essay
+cards, a third copy of the queue, and a `PACE` control that asks Joe to declare something
+Gym Mode already measures — rendered on the screen a person reads standing at a rack.
+
+Gym Mode itself is incomplete in ways that force him *out* of it mid-session, and it
+captures its most important measurement at the least accurate possible moment.
+
+---
+
+#### 2 · What the evidence licenses — and forbids
+
+**Proximity to failure matters for hypertrophy, and only for hypertrophy.** The 2024
+meta-regressions found estimated RIR had a **negligible** relationship with strength gain
+(marginal-slope CIs contained null) but a **meaningful negative** relationship with
+hypertrophy (CIs excluded null) — closer to failure, more growth. Optimal proximity
+differs between the two outcomes. The authors state model fit was modest and the work
+exploratory. [1]
+→ Joe's north star is visual body-composition change, so RIR is a first-class signal
+here. **But no copy may imply RIR drives strength progression, and none may overstate the
+certainty.**
+
+**Self-reported RIR carries a large, directional, timing-dependent error.** Lifters
+systematically **underpredict** — mean ~0.95 reps, studies spanning 0.65–1.2. Training
+experience barely helps. Accuracy is dominated by *when* you ask: error falls from
+**4.8 reps at 33% of a set to 1.2 reps at 90%**, and from 1.2 reps at 5 RIR to **0.46 at
+1 RIR**. Better in sets of ≤12 reps. [2]
+→ **This is the central design consequence.** The app currently asks for both RIRs at the
+`lift-done` screen — after every set of the lift is finished, from memory. That is the
+worst available moment, and it gives the opener equal visual weight to the last set.
+
+**Autoregulation is not a win to be claimed.** Autoregulated and standardized load
+prescription produced **similar** strength gains (MD 2.07 kg, 95% CI −0.32 to 4.46,
+p = 0.09; SMD 0.21). Subjective/RPE-based trended slightly better (SMD 0.30, p = 0.06);
+velocity-based near-null (SMD 0.10). Volume autoregulation showed a real
+**strength–hypertrophy trade-off**: lower velocity-loss thresholds favoured strength
+(SMD 0.23), higher (>20–25%) favoured hypertrophy (SMD 0.34). All studies carried some
+risk of bias. [3]
+→ Honest framing is *"comparable to a fixed plan, possibly slightly better when driven by
+your own perceived effort."* **Never "superior".**
+
+**What the evidence does NOT license:** silently correcting Joe's RIR for the ~1-rep
+population bias. That bias is population-level; his personal bias is unmeasured. Applying
+it invisibly would be the app inventing a number. See *Open questions*.
+
+---
+
+#### 3 · The build
+
+##### 3.1 — Gym Mode: complete it, so leaving is never necessary
+
+**Preserve verbatim:** reps defaulting to `getR(ex)`/`ex.tgt`; the auto-advancing,
+vibrating rest timer; `restFor`'s per-exercise, per-set-position prescription with the
+button naming the number before it starts it (`SET DONE → REST 150s`); measured,
+**n-gated** pace (under three rests it stays `null` rather than guessing); the 3-tap cold
+path.
+
+**Fix — the lift screen (`phase === "lift"`, ~12252):**
+1. **`ex.cue` is dead** (~12256). `genSession` returns `setup` / `live` / `note`, never
+   `cue`, so setup cues, the live cue and the DEBUT/OWN-IT/RECLAIM note are unreachable in
+   the mode Joe actually uses. Render `ex.live` as the cue line; put `ex.setup` behind a
+   small disclosure; render `ex.note` when present.
+2. **Add the previous-session line.** `ex.prev` (`e.lastMeta`) already carries
+   `date · w × reps · RIR`. It renders on TRAIN and not here.
+3. **Add the next-weight line — Tier 1, and this is the highest-value addition on the
+   page.** `nextLoad(ex)` exists on every card and renders nowhere.
+   `sessionDebrief` (~3989) already composes *"N more reps above that and {upW} queues
+   itself — about {n} more sessions"* — the single most useful sentence in the training
+   engine — and it lives two taps down inside FULL DEBRIEF, on the **receipt**, only after
+   the session is logged. Surface it while he is under the bar. **Compose the existing
+   selectors; invent nothing.** Respect `nextLoad`'s `null` at the top of a stack — "the
+   top of the stack is real" — and say so honestly rather than hiding the line.
+4. **Weight adjustment in-mode.** Changing a weight currently costs `exit ✕` → scroll →
+   `✎` → step → `Save` → re-enter (6+ taps), and `Save` sets `ex.last = null`, discarding
+   the rep history the next target is built from. Put a compact rung stepper on the lift
+   screen. **Do not null `ex.last` for an in-session adjustment** — that is a different
+   event from a deliberate reconfiguration.
+5. **Undo the last set.** One mis-tap on `SET DONE` currently has no recovery path at all.
+   Add a back affordance that decrements `setN` and restores the previous rep value.
+6. **Rest controls:** `+30s` and `start rest now` (for a set banked late). Keep
+   `Skip rest`.
+
+**Fix — RIR capture (the research-driven change):**
+7. **Move last-set RIR to the moment the last set is banked** — on the rest screen that
+   follows the final set, or as a one-tap interstitial before `lift-done`. That moves the
+   estimate from ~1.2 reps of error to ~0.46. [2]
+8. **Remove the first-set RIR prompt from the default flow.** Keep the field and let it be
+   entered from the lift detail on TRAIN if he ever wants it. Rationale, all three
+   converging: the engine's own comment (~770) says the opener is a weak signal; every
+   opener in his log reads 1–2, so it carries almost no variance; and it is measured at
+   the point where error is largest [2]. This removes ~15 taps a week.
+9. **Do not widen the RIR scale.** `0 / 1 / 2 / 3+` is correct — accuracy collapses above
+   ~3 RIR, so finer buckets there would be false precision. [2]
+
+**Fix — the end of a session:**
+10. **Stop discarding the recap.** `finish()` (~12208) throws away `lines` from
+    `completeSession`, so the WHAT MOVED sheet never fires from the path Joe uses. Show it.
+11. **Stop hardcoding `note: "gym mode"` and `niggles: []`.** The note overwrites the
+    session note field and then prints in the receipt and the debrief; the empty niggles
+    array makes the joint check unreachable from Gym Mode entirely. Offer both at
+    `all-done`, pre-filled empty.
+12. **`all-done`'s summary list** joins with `\n` inside a `<div>`, so it renders as one
+    run-on line. Make it a list.
+
+##### 3.2 — TRAIN: a roster, not a wall
+
+**Tier 0** — unchanged in spirit, three states:
+- no session and none logged → the rest-day line (`nextTrainingISO`), already correct;
+- session available → `▶ GYM MODE`, full width, first, largest;
+- session logged → the receipt.
+
+**Tier 1** — in this order:
+1. **Today's one change** (`sess.structural`). Keep it; **demote its type size.** It is
+   currently the largest type on the page (`<H size={22}>`), which makes it a false
+   Tier 0 competing with the gym button. It is a label, not the hero.
+2. **The lift roster.** Replace the stack of N fully-expanded per-exercise cards with a
+   compact row per lift: name · load · target · verdict chip (`liftCall`'s
+   `CHASE / REPEAT / LIGHTEN / CLIMB BACK / REST TODAY` with its `▲▼▶` velocity). Tapping
+   a row opens that lift's detail in the SETUP door and scrolls to it — reuse the
+   `openGroup` + `scrollToId` pattern and the `NOW_DOORS`-style live-registry invariant
+   from the NOW work, including the render-smoke `declared ⊆ registered` check.
+3. **Exception caveats only** — short-night, stim check, body alarm. Not resident prose.
+
+**Tier 2 — exactly three doors**, fixed, labelled, time-aware `defaultOpen`, persisted
+collapse state, never self-rearranging:
+- **SETUP** — per-lift detail: weight/rung editor, jump size, reorder, skip, setup+cues,
+  prev, the verdict explainer with its `why` + receipts + charter.
+- **THE READ** — exercise selection audit, set allocation, muscle volume, session debrief,
+  ask.
+- **THE RECORD** — the archive, past receipts, week in review.
+
+**Deduplicate — three real conflicts:**
+- **Two different weekly set-counts on one page.** `muscleVolume` counts *logged* sets over
+  7 days; `programmeVolume` (via `volumeImbalance`) counts *designed* sets per week. Same
+  units, same muscle names, different answers, no cross-reference. Pick one owner, label
+  what it counts, and have the other reference it rather than restate it.
+- **The queue renders three times** — NOW's CLOSEST UNLOCKS, the QUEUE tab, and TRAIN's
+  `<More forYou>`. TRAIN's copy goes.
+- **`PACE` has two owners.** TRAIN asks Joe to declare RUSHED/FULL REST after the fact
+  (~11136); Gym Mode measures it. Gym Mode wins. Keep the manual control only on the
+  manual-logging path, and label it as a fallback.
+
+**Delete:** the two dead RECEIPT chips (~10816, ~10821) — both styled as buttons, neither
+has a handler.
+
+**Performance — do this before adding anything.** `genSession` rebuilds the entire session
+and `liftCall` traverses `sessionLog × exercises` on **every render**, including every
+keystroke in the notes textarea and every stepper tap — three independent traversals per
+render. Memoise first.
+
+##### 3.3 — The ladder: make the load machinery real
+
+This is the largest unrealised win in the app, and it is what Joe asked for when he said
+machines have uneven jumps and he wants the actual available weights per exercise.
+
+`loadRungs`, `nextLoad`, `prevLoad`, `snapLoad` and `deloadLoad` are complete and correct
+— `deloadLoad` (~915) even refuses to invent a weight, picking the nearest strictly-lighter
+*real* rung specifically to avoid an 11% cliff on a coarse stack. **And not one exercise
+has a `steps` array. All fifteen run on even increments.** Excellent machinery with
+nothing to work on.
+
+The only way to populate a ladder today is a free-text `<textarea>` (~11014, *"EVERY
+WEIGHT THIS MACHINE CAN ACTUALLY MAKE"*), reached in five taps, typed from memory at the
+machine — and the adjacent `jump: 2.5/5/10` chips **delete `ex.steps`** as a side effect
+(~11000), with no confirm.
+
+**Build:**
+1. **`proposeLadder(s, exId)`** — a pure engine selector that infers candidate rungs from
+   the distinct logged weights for that exercise plus its authored `inc`, and returns
+   `null` when there is not enough evidence. In the `__test` export, with assertions.
+2. **Propose, never apply.** Ladder suggestions flow through the existing approval inbox
+   like every other engine suggestion. Uses `s.proposals` — **no new collection, no schema
+   bump.** If you find you need one, stop and flag it rather than inventing a migration.
+3. **Replace the textarea with a picker** — add/remove rungs as discrete controls.
+4. **The `jump:` chips must stop silently destroying a hand-entered ladder.** Confirm, or
+   don't clear `steps` at all.
+5. **Fix `set weight ✎` defaulting `wVal` to 180** for non-numeric weights (~11033) — tap
+   it on the hanging raise (`"BW"`) and it proposes 180 lb.
+
+##### 3.4 — `windowFor`: wire it in, or stop claiming it
+
+`windowFor` (~991) derives the honest rep-window bottom from `repsLostOnJump` (~980) —
+the relationship `reps lost ≈ (hi + 30) × step / (load + step)`. Its `lo` is consumed
+**only** by `coarseLifts` (~1003), which is consumed **only** by a LAB proposal.
+`atTopOfWindow` (~1010) and `targetsFor` (~869) both still use the raw authored `ex.hi`
+and a fixed `hi − i` staircase.
+
+Consequence: the rear-delt fly (2.5 lb on 20 = 12.5%, ≈4.7 reps lost) and the pronated EZ
+curl (5 lb on 40 = 12.5%) top out, jump, land below any window the progression code knows
+about, and have **no rule to climb back**.
+
+**This is the riskiest change in the spec — it alters progression behaviour. Its own
+commit, its own gate run, assertions covering rear-delt and pronated specifically.** If it
+cannot be made safe in this pass, then **correct the LAB proposal's sentence instead** —
+it currently tells Joe the window *"has already"* been widened, which is false, and an
+honest-labelling app cannot claim a thing it has not done. One or the other. Not neither.
+
+##### 3.5 — Explicitly out of scope
+
+- **Q2·F, the three non-numeric lifts** (`hack "hold"`, `hanging "BW"`, `curl "55·55·50"`
+  storing `w: null` and dropping out of `progressAnchor` and `typicalError`). Data-model
+  change plus a representation decision. It is already an open question tagged
+  `[needs Joe]`. **Do not build it here.**
+- Any RIR bias correction. See *Open questions*.
+- Anything requiring a schema bump.
+
+---
+
+#### 4 · Acceptance criteria
+
+- **No new numbers.** The next-weight line composes `nextLoad` / `sessionDebrief`; ladder
+  proposals compose `loadRungs` / `snapLoad`; every displayed figure traces to an existing
+  selector. Assert no new rate, band or window entered the UI.
+- **No schema bump, no new synced collection, no migration.** If the work seems to need
+  one, stop and write it up.
+- **Tap-count regression assertions:** cold open → set 1 recorded stays at **three taps**;
+  a set matching the proposal still costs **zero** extra taps; removing the opener-RIR
+  prompt reduces per-lift taps by exactly one.
+- **RIR timing assertion:** last-set RIR is captured at the last set, not at `lift-done`.
+- **Every write path preserved** — `saveDaily`, `fixWindow`, sodium/alcohol, caffeine,
+  meds, pulse/temp, waist, photos, `dayCtx`, amend-yesterday, sleep/weight, `closeEvent`,
+  the proposal stager. Before/after census; anything removed and not re-added is a defect.
+- **No phantom-rep path can reappear.** Assert no `finish()` or `complete()` path emits an
+  entry for a lift not performed — including from the new undo and in-mode weight edit.
+- **Deep links:** every roster row's `{key, id}` resolves to a door that exists and an
+  element that mounts, proven against the **live** registry in render smoke, not against a
+  parallel constant.
+- **Copy:** every RIR/proximity claim traces to [1]/[2] and states its uncertainty. No copy
+  claims autoregulation is superior to a fixed plan. No streaks, countdowns or urgency.
+- Strict gate **and** render smoke green before every commit. Never commit red.
+
+#### 5 · Sequencing
+
+**BUILD STATUS 2026-08-04** — branch `feat/train-gym-redesign`, one commit per move, strict
+gate + render smoke green at every commit:
+
+- ✅ memoise — `2b0…` genSession + liftCall once per state, not per keystroke
+- ✅ delete/dedupe — dead RECEIPT chips, TRAIN’s third queue copy, PACE single-owner
+- ✅ Gym Mode completeness — cues, note, setup, prev, next rung, undo set, rest controls,
+  all-done list, the recap that was being discarded, note + niggles no longer hardcoded
+- ✅ RIR timing — last set asked AT the set; opener out of the default flow
+- ⬜ TRAIN roster + three doors — NOT STARTED
+- ⬜ ladder inference (`proposeLadder`) — NOT STARTED
+- ✅ §3.4 — satisfied by the FALLBACK, which shipped in v7.6.0: the LAB proposal no longer
+  claims the window “has already” been widened. Wiring `windowFor` into progression remains
+  available and is still the riskiest change in the spec.
+
+One commit per numbered move, gate green each time, so any single move is revertable.
+Suggested order — cheapest and safest first, riskiest last:
+memoise → delete/dedupe → Gym Mode completeness (cues, prev, next-weight, undo, rest
+controls, in-mode weight) → RIR timing → TRAIN roster + three doors → ladder inference →
+`windowFor` (or the honesty correction).
+
+Then: push the branch, produce a **preview Joe can open on his phone**, and report what to
+tap. **Do not merge to `main`.**
+
+#### 6 · Open questions — write these up, do not guess
+
+1. **RIR bias correction.** Population data says self-reported RIR runs ~1 rep
+   conservative [2]. Joe's personal bias is unmeasured. Applying a hidden correction would
+   be the app inventing a number; ignoring it entirely leaves a known systematic error in
+   the input to `progressStep`. Options: leave it and cite the bias in the research brief;
+   surface it as an honest note; or measure his personal bias over time from
+   RIR-vs-actual-next-session data and treat it as an n-of-1 range. **Recommend the third
+   eventually, the first now.** Write it up; do not build it.
+2. **The lift roster's opened-state memory.** NOW's rule is "collapsed stays collapsed".
+   Should a roster row Joe opened stay open next session, or reset daily? Both are
+   defensible; the rooms-don't-rearrange citation argues for persistence.
+
+
+#### Open question for Joe — §6.1, RIR bias correction  `[needs Joe]`
+
+**Written up, not built.** Population data puts self-reported RIR ~1 rep conservative
+(mean ~0.95, studies 0.65–1.2) [2]. Joe's personal bias is **unmeasured**.
+
+- **Leave it, cite the bias.** Honest, costs nothing, leaves a known systematic error in the
+  input to `progressStep`.
+- **Surface it as a note.** He sees the bias exists and can discount it himself. No number
+  changes; the app claims nothing about him it cannot support.
+- **Measure his own bias over time** from RIR-vs-actual-next-session data and treat it as an
+  n-of-1 **range**, never a point estimate — the same shape `partitionPrior` already uses.
+
+**Recommend the third eventually, the first now.** Applying the population figure invisibly
+would be the app inventing a number about Joe from data that is not about Joe — the exact
+thing engine-owns-numbers exists to prevent, and it would silently move what he lifts.
+
+#### Open question for Joe — §6.2, roster row memory  `[needs Joe]`
+
+Should a lift row he opened stay open next session, or reset daily? NOW's rule is
+"collapsed stays collapsed", and the Findlater & McGrenere citation already in the source
+(a self-rearranging interface measured ~8% slower) argues for persistence. But a roster row
+is a *transient* interest — the lift he was checking today is not necessarily tomorrow's —
+so daily reset is also defensible in a way a door is not.
+
+Both are one line. Not guessed.
+
+
+**Sources**
+[1] Refalo et al., *Exploring the Dose–Response Relationship Between Estimated Resistance
+Training Proximity to Failure, Strength Gain, and Muscle Hypertrophy: A Series of
+Meta-Regressions*, Sports Medicine (2024) —
+https://link.springer.com/article/10.1007/s40279-024-02069-2
+[2] RIR-estimation accuracy synthesis (Halperin et al. and successors) —
+https://www.strongerbyscience.com/reps-in-reserve/ ·
+https://www.ovid.com/jnls/nsca-jscr/fulltext/10.1519/jsc.0000000000002995
+[3] *The Effect of Load and Volume Autoregulation on Muscular Strength and Hypertrophy: A
+Systematic Review and Meta-Analysis*, Sports Medicine – Open (2021) —
+https://link.springer.com/article/10.1186/s40798-021-00404-9
+
 
 ## QUEUED
 
