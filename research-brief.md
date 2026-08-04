@@ -365,6 +365,44 @@ it makes a non-zero cost against a zero benefit an easy call for the deleted fie
 
 ---
 
+## REPS IN RESERVE — what the evidence supports, and what it does not
+
+Added 2026-08-04. Relevant to `progressStep`, `rirPlan`, and any future proposal to adjust
+a reported RIR.
+
+**Direction.** Lifters systematically **underestimate** reps remaining — they stop earlier
+than they think. Mean underprediction ~0.95 reps across the literature, individual studies
+0.65–1.2. Believing two remain typically means three remain.
+https://www.strongerbyscience.com/reps-in-reserve/
+
+**Timing dominates accuracy.** Error falls from roughly 4.8 reps when estimating a third of
+the way through a set to about 1.2 reps at 90% through, and from 1.2 reps at 5 RIR to 0.46
+at 1 RIR. Accuracy is better in sets of ≤12 reps and on single-joint movements. This is the
+evidence behind capturing last-set RIR at the set rather than at lift-done, and behind
+dropping the opener prompt.
+https://www.ovid.com/jnls/nsca-jscr/fulltext/10.1519/jsc.0000000000002995
+
+**Training status does not clearly help.** Experienced vs novice on back squat: −1.19 vs
+−1.25 reps at a 3-RIR target, no significant difference (p > 0.05). n = 8 per group — treat
+as "the claim that experience improves accuracy is unsupported", not as proven equivalence.
+https://pmc.ncbi.nlm.nih.gov/articles/PMC13215226/
+
+**Reliability of the bias as a personal trait is unsettled.** Paired self-determined-stop
+vs true-failure trials reported ICC 0.5 (95% CI 0.03–0.8) in one experiment and 0.96
+(0.92–0.98) in another, and a pooled gap of 2.0 reps with a 95% CI of 0.0–4.0. Whether a
+personal bias is even stable enough to model is an open empirical question.
+https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2020.565416/full
+
+**What this licenses.** Asking for the last set's RIR at the moment it is banked; treating
+the opener as a weak signal; keeping the 0/1/2/3+ scale rather than widening it.
+
+**What it does NOT license.** Silently correcting a logged RIR by a population constant.
+The bias is real, but its spread (SD 1.3–2.4 reps) and its uncertain per-person stability
+mean applying it to one athlete would be the app inventing a fact about him. Declined by
+Joe, Aug 2026.
+
+---
+
 ## NEGATIVE FINDINGS
 
 **The most valuable section. Nine rules were retired for having nothing behind them. Do not

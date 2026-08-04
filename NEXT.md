@@ -518,150 +518,36 @@ Systematic Review and Meta-Analysis*, Sports Medicine – Open (2021) —
 https://link.springer.com/article/10.1186/s40798-021-00404-9
 
 
-### 1. Personal RIR calibration — measure Joe's own bias, as a range `[needs Joe]`
+### 1. RIR calibration — CONSIDERED AND DECLINED (2026-08-04)
 
-**Joe's proposal, and it is the right shape:** stop using a population constant for RIR
-bias; measure his own, treat it as a range the way `bfEst` is a range, and once there is
-enough data let it inform the prescription. This supersedes *Open question 1* in the TRAIN
-spec, which recommended "leave it and cite the bias". Measuring beats citing — **but only
-with a measurement design the current log cannot provide.**
+Joe considered having the app measure his own RIR bias from paired calibration sets (call
+the RIR at the normal stopping point, then continue to true failure) and **declined it**.
+The design rested on one set a week to genuine failure on an isolation lift for two to
+three months.
 
-#### The measurement problem — read this first, it decides the whole design
+**Do not re-raise this, and do not build any RIR bias correction.** Standing position: the
+app records the RIR he reports and uses it as reported.
 
-**His existing training log cannot yield this number, and no amount of it will.** To know
-his bias you need two things: what he *said* (RIR 2) and what was *true* (how many he
-actually had left). In normal training he stops at his estimate — so the log contains the
-estimate and never the truth. The truth only exists on a set taken *past* where he would
-have stopped.
+**One correction to the reason on record.** The decision was made partly on the grounds
+that he is experienced and specific with his lifting. That is a fine reason to decline the
+*cost*, but it is not a reason to believe his estimates are more accurate — the evidence
+says training status does not measurably improve RIR accuracy. In a direct comparison on
+back squat, experienced lifters erred by −1.19 reps and novices by −1.25 at a 3-RIR target,
+with **no significant difference between groups** (p > 0.05; n = 8 per group, so a weak
+null rather than a demonstration of equivalence).
+https://pmc.ncbi.nlm.nih.gov/articles/PMC13215226/
 
-Next-session performance cannot substitute. If he calls 2 RIR at 160×11 and next session
-does 160×13, that is equally consistent with "he misjudged by two reps" and "he got two
-reps stronger". **Misjudgement and adaptation are confounded**, and adaptation is the
-thing the whole programme exists to cause. Any estimate built from ordinary sessions would
-be measuring its own training effect.
+The real reason not to correct for it is the **spread**, which applies to everyone: a bias
+of about 1 rep with a standard deviation of 1.3–2.4 reps. A population constant that wide
+cannot be applied to one person without inventing a fact about him.
 
-So the data has to be created deliberately.
+Note the direction, because it is counter-intuitive and easy to get backwards: lifters
+**underestimate** what they have left. When he calls it 2 RIR he most likely had 3 — he
+stops *early*, not late. So any future argument for correction would be an argument for the
+engine stepping load up FASTER, not for holding him back.
 
-#### The design that does work — paired calibration sets
-
-The literature's own protocol, and it is simple enough to run in his session: on the last
-set of a chosen lift, he calls his RIR **at the point he would normally stop**, and then
-keeps going to actual momentary failure. The difference between the two is that day's
-bias, measured directly, with nothing confounded. [1]
-
-Constraints that are not optional:
-
-- **Safe, single-joint lifts only** — tricep, curl, lateral, extension, ham. Never the
-  hack squat, press, or anything where the failure rep is a safety event. This is also
-  where RIR estimates are most accurate to begin with. [2]
-- **The last set only**, and not every session — a failure set carries real fatigue cost,
-  and the point is to measure his perception, not to redesign his programme around
-  measuring it.
-- **It must be proposed and accepted, never auto-scheduled.** A calibration set changes
-  what he does in the gym; that goes through the approval inbox like everything else.
-
-#### What the evidence says about the number being measured
-
-The population bias is real but its magnitude is wildly uncertain: paired
-self-determined-stop versus true-failure trials produced **0.8 reps** in one experiment and
-**2.8** in another, meta-estimating **2.0 reps with a 95% CI of 0.0 to 4.0**. [1] A
-confidence interval running from zero to four is precisely why a population constant
-should not be applied to one person — it is an argument *for* Joe's idea, not against it.
-
-But the same study is the reason this must be gated hard: **within-subject reliability of
-the bias was ICC 0.5 (95% CI 0.03–0.8) in one experiment and 0.96 (0.92–0.98) in the
-other.** [1] Those describe two different worlds. At 0.96 the bias is a stable personal
-trait worth modelling; at 0.5 it is barely a trait at all and a personal estimate would be
-mostly noise wearing a number's clothes.
-
-**Therefore the app must not assume the bias is stable — it must test whether it is, from
-his own points, and say so honestly.** If his calibration points scatter widely, the
-correct output is an abstention: *"your RIR judgement isn't consistent enough to correct
-for yet"* — the same self-suppression `signalState` already performs when a trend is inside
-its own noise. That abstention is a feature, not a failure of the feature.
-
-Two further constraints from the same literature: accuracy appears to improve with practice
-and familiarisation, so the estimate must be a **rolling, ageing** one rather than a fixed
-constant learned once and applied forever; and participants remained inaccurate even when
-deliberately trying to stop as close to failure as possible — so this cannot be fixed by
-"just concentrate harder". [1]
-
-#### How many sets before it means anything
-
-If the within-subject spread of his bias is on the order of 1–1.5 reps, pinning the mean to
-±0.5 reps needs roughly **(1.5 / 0.5)² ≈ 9 calibration sets.** At one a week that is
-**two to three months** before the range is tight enough to act on. The app should say that
-out loud from the first calibration set, and show the interval narrowing — the DEXA lesson:
-the anchor tightens a range, it does not license a point.
-
-#### How it should be APPLIED — and the trap to avoid
-
-This is where Joe's proposal needs one correction.
-
-**The wrong application: inflate the rep targets.** If the engine decides he had 3 in
-reserve when he said 2, and feeds the corrected number into `progressStep`, his next target
-climbs by +3 instead of +2. That does nothing for hypertrophy, because **the evidence links
-growth to actual proximity to failure during the set, not to how fast the target climbs.**
-[3] Worse, it has a concrete failure mode: he still stops at his *perceived* 2 RIR, so he
-misses the inflated target; `liftCall` counts non-improving sessions; three of those fire a
-`RESET`; and he gets deloaded because the engine's model of him was wrong. The app would
-punish him for its own correction.
-
-**The right application: close the gap he did not know was there.** Two honest uses:
-
-1. **Tell him.** *"When you call it 2, you have been landing nearer 3 — your working sets
-   are finishing about a rep further from failure than the plan intends."* That is
-   information he can act on directly, and acting on it is the thing the hypertrophy
-   evidence actually supports.
-2. **Adjust the prescription, not the record.** If the plan wants him at 1 RIR and he
-   reliably overshoots by one, `rirPlan` can prescribe 0 knowing he will land at 1. The
-   number he reports is never rewritten — his log stays his log — only the instruction
-   changes. Engine-owned, honestly labelled, and reversible.
-
-**Never silently rewrite a logged RIR.** The stored value is what he said; a corrected
-value is the engine's inference about him and must be visibly labelled as such wherever it
-appears, with its interval and its n.
-
-#### What to build
-
-1. **`rirCalibration(s)`** — pure selector over a new `s.rirCal` collection returning
-   `{n, bias, lo, hi, stable, why}` or `null`. `stable` is false when the spread of his
-   points is too wide to act on, and a false `stable` suppresses every downstream use.
-   In the `__test` export with assertions covering: null below n, abstention on wide
-   scatter, a correct interval on tight scatter, and that the interval narrows as n grows.
-2. **A calibration proposal** — `sweepRirCal(s)` files "take the last set of <safe lift> to
-   real failure next session, and call your RIR before you do" into the approval inbox.
-   Never auto-applied. Never on a compound.
-3. **Gym Mode capture** — on a calibration set, ask for the estimate at the normal stopping
-   point, then record actual reps to failure. Two numbers, one set, seconds apart.
-4. **`s.rirCal` is new synced state** — keyed-union, refuse-to-shrink, additive migration,
-   in the same change. Same rule as everything else.
-5. **Application, gated:** only when `stable` and `n` are sufficient, and only as (1) an
-   honest readout and (2) a `rirPlan` prescription shift. **`progressStep` keeps reading
-   the RIR he actually reported.**
-
-#### Open questions for Joe
-
-- **Is he willing to take one set a week to true failure on an isolation lift?** The whole
-  design rests on it. If not, this item closes and the honest answer stays "we cite the
-  population bias and do not correct for it" — which is a perfectly defensible place to
-  land, and better than a number built on a measurement that cannot be made.
-- **Which lift.** Tricep, curl, lateral, extension or ham. Ideally the same one every time,
-  so the estimate is not also absorbing between-exercise differences.
-
-**Sources**
-[1] *"Just One More Rep!" — Ability to Predict Proximity to Task Failure in Resistance
-Trained Persons*, Frontiers in Psychology (2020). Paired self-determined-RM vs momentary
-failure design; 0.8 and 2.8 reps across two experiments, meta-estimate 2.0 (95% CI 0.0–4.0);
-ICC(3,1) 0.5 (0.03–0.8) and 0.96 (0.92–0.98) —
-https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2020.565416/full
-[2] RIR-estimation accuracy synthesis — error falls from ~4.8 reps at 33% of a set to ~1.2
-at 90%, and 1.2 → 0.46 from 5 RIR to 1 RIR; better on single-joint movements and in sets of
-≤12 reps — https://www.strongerbyscience.com/reps-in-reserve/
-[3] Refalo et al., proximity-to-failure meta-regressions: RIR relates meaningfully to
-hypertrophy, negligibly to strength —
-https://link.springer.com/article/10.1007/s40279-024-02069-2
-
+The RIR work that shipped is unaffected: last-set capture moved to the moment of the set
+(v7.7.0), and the opener prompt left the default flow.
 
 ### 2. In-progress session survivability — LEASE, not a merge  `[needs Joe]`
 
