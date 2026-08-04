@@ -1713,7 +1713,22 @@ function currentRate(s) {
    currentRate exposes lo/hi only on the regression path, and the two-snapshot fallback
    has ci: null, so `banded` says honestly whether an interval exists. A faster loss
    lands a LOWER weight, so the light end of the projection comes off the rate's hi. */
+/* The card prints rates at this precision and paceProjection projects off the same
+   figure. It is load-bearing: raise it and the hand-check the copy invites stops
+   reconciling, which is the defect fix F closed. */
+const RATE_DP = 1;
 const PACE_PROJ_WKS = 4;
+/* paceShown — may a forward/measured pace figure be printed at all? The card body and
+   the More panel inside the SAME Card must answer this identically. They did not: the
+   panel was carried through the v7.5 merge byte-identical and kept gating on
+   currentRate().measured, which is true in states where the read abstains — so
+   "Measured pace 1.35 lb/wk" sat one tap under "no real change to read yet".
+
+   That defect has now recurred once, in a sibling of the element it was first fixed in,
+   which is the signal that the gate belongs in one place rather than being written twice
+   correctly. Both callers compose this. */
+function paceShown(rc, pp) { return !!(rc && rc.showRate && pp && pp.ok); }
+
 function paceProjection(s, wks = PACE_PROJ_WKS) {
   if (s == null || s.trend == null) return { ok: false, measured: false, wks, banded: false };   // G2 — BEFORE currentRate, which dereferences s immediately
   const cr = currentRate(s);
@@ -1723,13 +1738,13 @@ function paceProjection(s, wks = PACE_PROJ_WKS) {
      of the band itself (trend 164.2, scale 1.34 shown as −1.3: 164.2 − 1.3×4 = 159.0, not
      the 158.8 the card printed). Project off the SHOWN figure, so what he can check by
      hand is what the card says. */
-  const shown = +cr.scale.toFixed(1);
+  const shown = +cr.scale.toFixed(RATE_DP);
   const mid = +(s.trend - shown * wks).toFixed(1);
   const banded = cr.ci != null && cr.lo != null && cr.hi != null;
   return {
-    ok: true, measured: true, wks, mid, banded, rate: cr.scale, rateShown: shown, fat: cr.fat, ci: cr.ci,
-    lo: banded ? +(s.trend - +cr.hi.toFixed(1) * wks).toFixed(1) : null,
-    hi: banded ? +(s.trend - +cr.lo.toFixed(1) * wks).toFixed(1) : null,
+    ok: true, measured: true, wks, mid, banded, rateShown: shown, fat: cr.fat, ci: cr.ci,   // I2 — no raw `rate`: rateShown is the one the card prints
+    lo: banded ? +(s.trend - cr.hi * wks).toFixed(1) : null,   // G — raw CI bound: this endpoint is never printed AS a rate
+    hi: banded ? +(s.trend - cr.lo * wks).toFixed(1) : null,
   };
 }
 
@@ -8649,7 +8664,7 @@ function GraduationMark({ ticks = 0, finalDashed = true, h = 26 }) {
    in plain language. The engine owns every number; this only chooses the words. */
 function signalReadCopy(s, sig) {
   const losing = sig.scale > 0;
-  const rate = sig.scale != null ? `${losing ? "−" : "+"}${Math.abs(sig.scale).toFixed(1)} lb/wk` : "";
+  const rate = sig.scale != null ? `${losing ? "−" : "+"}${Math.abs(sig.scale).toFixed(RATE_DP)} lb/wk` : "";
   const showRate = sig.state === "measured" || sig.state === "measurable" || sig.state === "reversed";
   const wordColor = sig.state === "measured" ? T.brass : sig.state === "measurable" ? T.gauge : sig.state === "reversed" ? T.orange : T.steel;
   let sentence;
@@ -8753,6 +8768,7 @@ __test.UI_KEY = UI_KEY;
 __test.applyDisc = applyDisc;
 __test.readDisc = readDisc;
 __test.oweTarget = oweTarget;
+__test.paceShown = paceShown;   // H2 — one gate for the card body and the More panel
 __test.eventFocus = eventFocus; __test.EVENT_LEAD_D = EVENT_LEAD_D; __test.EVENT_GRACE_D = EVENT_GRACE_D;   // v7.5 r2 blocker C
 __test.NOW_DOORS = NOW_DOORS;   // v7.5 — the live door keys, asserted against by the deep-link tests
 
@@ -9818,13 +9834,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               (the body used to re-render the same engine field raw and 2dp, so a reversed
               week read +1.2 above and -1.23 below). */}
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, paddingTop: SP.md, borderTop: `1px solid ${T.line}`, lineHeight: 1.5 }}>
-            {rc.showRate && pp.ok
+            {paceShown(rc, pp)
               ? <>At <span data-num style={{ fontFamily: mono, color: T.chalk }}>{rc.rate}</span>, {pp.wks} more weeks puts you near <span data-num style={{ fontFamily: mono, color: T.chalk }}>{pp.mid}</span> lb — anywhere from <span data-num style={{ fontFamily: mono }}>{pp.lo}</span> to <span data-num style={{ fontFamily: mono }}>{pp.hi}</span> lb once the interval on that rate is carried through. There is no date on this — you stop when the body-fat read and the mirror say stop, not when a calendar does.</>
               : sig.state === "calibrating"
-                ? <>No projection yet — two clean weekly snapshots and this reads off your measured rate instead of an estimate.</>
+                ? <>No projection yet — the forward read needs a rate measured off your daily weigh-ins, which takes ten clean mornings inside a four-week window. Weekly snapshots alone can move the trend line, but they carry no interval, so nothing forward can be said from them.</>
                 : <>No projection yet — this week is still inside your own noise, so a forward number would claim more than the trend supports. It appears when the rate clears.</>}
           </div>
-          {rc.showRate && pp.ok ? (
+          {paceShown(rc, pp) ? (
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>
               {/* G3 — no un-banded variant here: this block only renders when rc.showRate is
                   true, which implies the regression path, which implies a CI. pp.banded is
@@ -9849,10 +9865,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           forYou={(() => { const bfN = bfEst(s);
             const fatTxt = pp.ok ? `${pp.fat > 0 ? "−" : "+"}${Math.abs(pp.fat).toFixed(1)} lb/wk` : "";
             return [
-            rc.showRate && pp.ok
-              ? `Measured pace ${rc.rate} on the scale, about ${fatTxt} of that fat-equivalent.`
+            paceShown(rc, pp)
+              ? `${rc.word} — pace ${rc.rate} on the scale, about ${fatTxt} of that fat-equivalent.`   // F — the panel cannot claim a stronger status than the card it lives in
               : sig.state === "calibrating"
-                ? "Pace still settling — two clean weekly snapshots and it goes fully measured."
+                ? "Pace still settling — the measured rate comes off ten clean daily weigh-ins inside a four-week window; weekly snapshots move the trend but carry no interval."
                 : "Pace is inside your own noise this week, so there is no measured figure to give yet — the read above says the same thing.",
             `Body fat reads ${bfN.pct}%, and the honest interval is ${bfN.lo}–${bfN.hi}% — that width is real, not decoration, and it narrows as the trend lengthens.`,
             "The cone on the LAB tab shows the same thing across time.",
@@ -10001,11 +10017,15 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           call site — became unmakeable. Nothing was deleted, but a write Joe owed could no
           longer be made.
 
-          Fixed by residency rather than the audit's preferred new owed kind: it is the
-          smaller honest change, touching no tested selector; it makes the card visible
-          instead of one tap behind a link; and it costs nothing on an ordinary day, because
-          the card renders nothing unless an unfiled event is on file. Same reasoning the
-          audit already ACCEPTED for the approval inbox. */}
+          Fixed in three passes: residency (round 1) made the card reachable, eventFocus
+          (round 2) gave it one sorted selector with a bounded lead window, and round 3
+          removed the expiry entirely — a CLOSABLE event has no cutoff, and EVENT_GRACE_D
+          now only decides tone via `stale`. See eventFocus / EVENT_LEAD_D / EVENT_GRACE_D
+          for the current rules; this card renders whatever that selector returns.
+
+
+
+          The approval inbox is a sibling surface for the same reason. */}
       {ev && (
         <Card accent={T.chalk}>
           <Eyebrow>EVENT MODE · {fmtShort(ev.d)}</Eyebrow>
