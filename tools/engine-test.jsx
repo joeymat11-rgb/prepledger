@@ -3604,6 +3604,58 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
   ok(GE(sessEx, { gskip: { press: true, row: true, pronated: true, ham: true } }).entries.length === 0, "GYM — skipping every lift emits no entries at all");
   ok(GE(null, null).entries.length === 0 && GE(undefined, undefined).skipped.length === 0, "GYM — gymEntries is total: no session, no entries, no throw");
 
+  // deriveLastMeta — the denormalised cache progressStep actually reads. The two ledger
+  // repairs removed phantom entries from sessionLog and left lastMeta pointing at them, so
+  // the phantom kept driving targets after the repair "succeeded". Any control that moves a
+  // lift between entries[] and skipped[] must re-derive this.
+  {
+    const DLM = __test.deriveLastMeta;
+    const mkLog = () => ({
+      exercises: [{ id: "ham", n: "Ham curl", w: 120, lastMeta: { d: "2026-07-31", w: 120, reps: [12, 12], rir: null, rirSets: [null, null], debt: true } }],
+      sleep: { nights: [] },
+      sessionLog: {
+        "2026-07-28": { entries: [{ id: "ham", reps: [12, 11], rir: 2, rirSets: [2, null], w: 120 }], skipped: [] },
+        "2026-07-31": { entries: [{ id: "ham", reps: [12, 12], rir: null, rirSets: [null, null], w: 120 }], skipped: [] },
+      },
+    });
+
+    const before = DLM(mkLog(), "ham");
+    ok(before && before.d === "2026-07-31" && JSON.stringify(before.reps) === JSON.stringify([12, 12]), "deriveLastMeta finds the most recent session the lift was PERFORMED in");
+
+    // the repair: move the phantom out of entries, as the ✕ / ledger repair does
+    const repaired = mkLog();
+    repaired.sessionLog["2026-07-31"].entries = [];
+    repaired.sessionLog["2026-07-31"].skipped = [{ id: "ham" }];
+    const after = DLM(repaired, "ham");
+    ok(after && after.d === "2026-07-28" && JSON.stringify(after.reps) === JSON.stringify([12, 11]), "…and after the phantom is removed it falls back to the previous REAL session, instead of leaving the phantom driving progression");
+    ok(after.rirSets[0] === 2, "the recovered lastMeta carries that session's rirSets, so progressStep still sees the RIR it actually had");
+
+    // insertion order is not date order — the log is a plain object
+    const jumbled = mkLog();
+    jumbled.sessionLog = { "2026-07-31": jumbled.sessionLog["2026-07-31"], "2026-07-28": jumbled.sessionLog["2026-07-28"] };
+    ok(DLM(jumbled, "ham").d === "2026-07-31", "deriveLastMeta sorts by DATE, not by key insertion order — the trap CLAUDE.md documents for dailyLogs");
+
+    // a lift with no performed session at all
+    const none = mkLog();
+    none.sessionLog = { "2026-07-31": { entries: [], skipped: [{ id: "ham" }] } };
+    ok(DLM(none, "ham") === null, "a lift with no surviving performance yields null rather than a fabricated cache");
+    ok(DLM({}, "ham") === null && DLM(null, "ham") === null, "deriveLastMeta is total");
+
+    // an entry with no reps is not a performance
+    const empty = mkLog();
+    empty.sessionLog = { "2026-08-01": { entries: [{ id: "ham", reps: [], w: 120 }], skipped: [] } };
+    ok(DLM(empty, "ham") === null, "an entry carrying no reps is not a performance and cannot become the cache");
+
+    // ROUND TRIP: skip then un-skip returns the record to where it started
+    const rec0 = { entries: [{ id: "ham", reps: [10, 10], rir: null, rirSets: [null, 1], w: 120 }], skipped: [] };
+    const rec1 = { entries: [], skipped: [{ id: "ham" }] };                                   // after ✕
+    const rec2 = { entries: [{ id: "ham", reps: [10, 10], rir: null, rirSets: __test.buildRirSets({ reps: [10, 10], rir: null, rirEnd: null }, 2), w: 120 }], skipped: [] };   // after ↩
+    ok(rec1.entries.length === 0 && rec1.skipped.length === 1, "ROUND TRIP — ✕ moves the entry into skipped");
+    ok(rec2.entries.length === 1 && rec2.skipped.length === 0 && JSON.stringify(rec2.entries[0].reps) === JSON.stringify([10, 10]), "ROUND TRIP — ↩ moves it back with the reps he re-enters by hand");
+    ok(rec2.entries[0].rirSets.every((x) => x === null), "ROUND TRIP — but the RIR does NOT come back: it was never captured, and inventing it is exactly the class of bug this whole area keeps producing");
+    ok(rec0.entries[0].rirSets[1] === 1 && rec2.entries[0].rirSets[1] === null, "…so the round trip is honest about what it lost rather than restoring a value it does not have");
+  }
+
   // TOUCHED — the three-state rule. Third attempt at this bug class, so all three states are
   // pinned, plus the exact session that bit him. See TOUCH_NOTE.
   {

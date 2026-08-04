@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.9.0";
+const APP_V = "7.10.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -1165,6 +1165,26 @@ function buildRirSets(en, n) {
   return arr;
 }
 /** Per-set RIR for a logged entry, back-filling the opener from legacy `rir`. */
+/* deriveLastMeta — the most recent session in which this lift was actually PERFORMED,
+   in lastMeta shape, or null if there is none. Reads only what the log stores; invents
+   nothing. `debt` is carried from the existing cache when the date is unchanged and
+   recomputed from the sleep record otherwise, because it is a property of the night, not
+   of the lift. See the note above rirSetsOf's neighbours. */
+function deriveLastMeta(s, exId) {
+  const log = (s && s.sessionLog) || {};
+  const days = Object.keys(log).sort();                       // insertion order is not date order
+  for (let i = days.length - 1; i >= 0; i--) {
+    const d = days[i], rec = log[d] || {};
+    const en = (rec.entries || []).find((e) => e && e.id === exId);
+    if (!en || !Array.isArray(en.reps) || !en.reps.length) continue;
+    const prev = ((s.exercises || []).find((e) => e && e.id === exId) || {}).lastMeta || {};
+    let debt = prev.d === d ? !!prev.debt : false;
+    if (prev.d !== d) { try { debt = !cleanAtDate(s, d).clean; } catch (e) { debt = false; } }
+    return { d, w: en.w, reps: en.reps.slice(), rir: en.rir ?? null, rirSets: rirSetsOf(en), debt };
+  }
+  return null;
+}
+
 function rirSetsOf(en) {
   if (!en) return [];
   const len = (en.reps || []).length;
@@ -8947,6 +8967,7 @@ __test.UI_KEY = UI_KEY;
 __test.applyDisc = applyDisc;
 __test.readDisc = readDisc;
 __test.oweTarget = oweTarget;
+__test.deriveLastMeta = deriveLastMeta;   // the denormalised cache progressStep actually reads
 __test.proposeLadder = proposeLadder; __test.sweepLadders = sweepLadders; __test.LADDER_MIN_N = LADDER_MIN_N;   // §3.3 — infer the rungs, propose them, never apply
 __test.paceShown = paceShown;   // H2 — one gate for the card body and the More panel
 __test.eventFocus = eventFocus; __test.EVENT_LEAD_D = EVENT_LEAD_D; __test.EVENT_GRACE_D = EVENT_GRACE_D;   // v7.5 r2 blocker C
@@ -11085,14 +11106,39 @@ function LogTab({ s, setS, save, slp }) {
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: TS.label, alignItems: "center" }}>
                     <span style={{ color: T.chalk }}>{ex ? ex.n : e.id}</span>
                     <span style={{ color: T.steel, display: "flex", gap: 8, alignItems: "center" }}>{e.w != null ? e.w + " × " : ""}{(e.reps || []).join(",")}{e.rir != null ? " · RIR " + e.rir : ""}
-                      <span onClick={() => { if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
+                      <span onClick={() => { if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); const exL = (ns.exercises || []).find((z) => z.id === e.id); if (exL) { const dm = deriveLastMeta(ns, e.id); if (dm) exL.lastMeta = dm; }   /* the cache progressStep reads must follow the log — the earlier ledger repairs did not do this and the phantom kept driving targets */ ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
                     </span>
                   </div>
                 ); })}
+                {/* The ✕ above moves an entry INTO skipped. Until now nothing moved it back,
+                    so a mis-tapped skip was permanent and a correction had to be made by hand
+                    in the ledger — where refuse-to-shrink reverts it, because a correction that
+                    removes an entry always scores lower than the copy that still has it.
+                    Un-skipping ADDS an entry, so the corrected copy wins the merge on merit. */}
                 {(done.skipped || []).map((k, i) => { const ex = exById(s, k.id); return (
-                  <div key={"sk" + i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: TS.label }}>
+                  <div key={"sk" + i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, fontFamily: mono, fontSize: TS.label }}>
                     <span style={{ color: T.steel, textDecoration: "line-through" }}>{ex ? ex.n : k.id}</span>
-                    <span style={{ color: T.brass, fontSize: TS.micro }}>skipped — on record</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      <span style={{ color: T.brass, fontSize: TS.micro }}>skipped — on record</span>
+                      {ex ? (
+                        <span onClick={() => {
+                          const tgt = Array.isArray(ex.last) && ex.last.length ? ex.last : (ex.std || [ex.hi || 10]);
+                          const raw = window.prompt(`${ex.n} — what did you actually do? Reps per set, comma separated.\n\nNothing is filled in for you: the reps are gone, and guessing them is how a phantom set gets written.`, "");
+                          if (raw == null) return;
+                          const reps = String(raw).split(/[^0-9.]+/).filter((x) => x !== "").map(Number).filter((x) => isFinite(x) && x >= 0);
+                          if (!reps.length) { window.alert("No reps entered — nothing changed."); return; }
+                          const ns = JSON.parse(JSON.stringify(s));
+                          const rec = ns.sessionLog[dateSel];
+                          rec.skipped = (rec.skipped || []).filter((z) => z.id !== k.id);
+                          const exN = (ns.exercises || []).find((z) => z.id === k.id) || {};
+                          const en = { id: k.id, reps, rir: null, rirSets: buildRirSets({ reps, rir: null, rirEnd: null }, reps.length), w: typeof exN.w === "number" ? exN.w : null };
+                          rec.entries = [...(rec.entries || []), en];
+                          const dm = deriveLastMeta(ns, k.id); if (dm && exN) exN.lastMeta = dm;
+                          ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + ex.n + " UN-SKIPPED on " + fmtShort(dateSel), how: `logged ${reps.join(",")} — it was on the record as skipped and it should not have been. Reps entered by hand, not inferred; RIR is left unrecorded because it was never captured.` });
+                          setS(ns); save(ns);
+                        }} style={{ fontFamily: mono, fontSize: TS.label, color: T.jade, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 8px", cursor: "pointer" }}>↩</span>
+                      ) : null}
+                    </span>
                   </div>
                 ); })}
               </div>
