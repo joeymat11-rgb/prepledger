@@ -10773,7 +10773,11 @@ function LogTab({ s, setS, save, slp }) {
   useEffect(() => {
     try {
       const d = JSON.parse(localStorage.getItem(draftKey) || "null");
-      setReps(d && d.reps ? d.reps : {}); setRir(d && d.rir ? d.rir : {}); setRirEnd(d && d.rirEnd ? d.rirEnd : {}); setSkipped(d && d.skipped ? d.skipped : {}); setNote(d && d.note ? d.note : ""); setNig(d && d.nig ? d.nig : []); setPace(d && d.pace ? d.pace : null);
+      /* One draft, one truth — see mergeSessionDrafts. The gym draft wins for anything it
+         touched, and any lift Gym Mode never reached defaults to skipped, not to target. */
+      const gd = JSON.parse(localStorage.getItem("prep-ledger-gymdraft-" + dateSel) || "null");
+      const m = mergeSessionDrafts(sess && sess.ex, d, gd);
+      setReps(m.reps); setRir(m.rir); setRirEnd(m.rirEnd); setSkipped(m.skipped); setNote(d && d.note ? d.note : ""); setNig(d && d.nig ? d.nig : []); setPace(d && d.pace ? d.pace : null);
     } catch (e) {}
   }, [dateSel]);
   useEffect(() => {
@@ -12163,11 +12167,80 @@ function restLine(exId, nSets) {
   return `${base}s between sets · ${base + REST_TERMINAL_BUMP}s before the last one`;
 }
 
+/* gymEntries — the PURE split of a session's lifts into what was performed and what was
+   skipped. Lifted out of GymMode.finish so the one invariant that matters here is
+   assertable by the gate rather than trapped in a React component:
+
+     no finish() path may emit an entry for a lift the athlete did not perform.
+
+   That invariant was violated in shipped code. The lift-screen skip advanced the index
+   without recording the skip, so this filter kept the lift and getR fell through to its
+   TARGET array — banking a full set at target reps for a lift that never happened. The
+   phantom entries are element-wise maxima, so progressAnchor and typicalError were both
+   computed partly off sets that do not exist. See SKIP_ONE_PATH.
+
+   entries and skipped PARTITION the session: every lift lands in exactly one, which is
+   what makes 'nothing counted' checkable rather than merely claimed. */
+/* mergeSessionDrafts — TRAIN and Gym Mode keep separate drafts for the same session, and
+   the gap between them is a second phantom-rep path: leave Gym Mode at lift 4, tap
+   Complete session on TRAIN, and TRAIN's untouched steppers log every remaining lift at
+   its TARGET. The guard at the log screen prevents double-logging, not wrong-logging.
+
+   This makes the gym draft authoritative for anything it touched, and — the part that
+   closes the hole — defaults every lift Gym Mode never REACHED to skipped rather than to
+   target. Not reaching a lift is evidence it was not performed; target reps are not.
+   Joe can still un-skip any of them on TRAIN and type real numbers, so the default is
+   recoverable in the direction that costs nothing and unrecoverable in neither.
+
+   Pure, so the invariant 'the two drafts cannot disagree' is assertable. */
+function mergeSessionDrafts(sessEx, trainDraft, gymDraft) {
+  const list = sessEx || [];
+  const t = trainDraft || {}, g = gymDraft || null;
+  const out = {
+    reps: { ...(t.reps || {}) }, rir: { ...(t.rir || {}) },
+    rirEnd: { ...(t.rirEnd || {}) }, skipped: { ...(t.skipped || {}) },
+  };
+  if (!g) return out;
+  const gReps = g.reps || {}, gRir = g.rir || {}, gRirEnd = g.rirEnd || {}, gSkip = g.gskip || {};
+  const reached = typeof g.idx === "number" ? g.idx : -1;
+  list.forEach((ex, i) => {
+    if (gReps[ex.id] != null) out.reps[ex.id] = gReps[ex.id];
+    if (gRir[ex.id] != null) out.rir[ex.id] = gRir[ex.id];
+    if (gRirEnd[ex.id] != null) out.rirEnd[ex.id] = gRirEnd[ex.id];
+    if (gSkip[ex.id]) out.skipped[ex.id] = true;
+    // never reached in the gym, and nothing typed on TRAIN -> not performed
+    if (i > reached && gReps[ex.id] == null && (t.reps || {})[ex.id] == null) out.skipped[ex.id] = true;
+  });
+  return out;
+}
+
+function gymEntries(sessEx, st) {
+  const o = st || {};
+  const reps = o.reps || {}, rir = o.rir || {}, rirEnd = o.rirEnd || {}, gskip = o.gskip || {};
+  const list = sessEx || [];
+  const getR = (e2) => reps[e2.id] ?? e2.tgt.slice();
+  return {
+    entries: list.filter((e2) => !gskip[e2.id]).map((e2) => ({ id: e2.id, n: e2.n, w: e2.w, tgt: e2.tgt, reps: getR(e2), isDebutNow: e2.isDebutNow, rir: rir[e2.id] ?? null, rirEnd: rirEnd[e2.id] ?? null })),
+    skipped: list.filter((e2) => gskip[e2.id]).map((e2) => ({ id: e2.id })),
+  };
+}
+
+/* REST_CUT_S / restCut — was this rest cut short? Measured from a start TIMESTAMP so it
+   cannot be fooled by a throttled timer. The old test was `full - t < 60` where t came
+   off a setInterval countdown; iOS suspends that interval for a backgrounded tab, so a
+   rest taken in full read as one cut short, and rests.cut/rests.n then flagged the
+   session rushed — which pulls it out of the progression evidence via liftCall. */
+const REST_CUT_S = 60;
+function restCut(startMs, nowMs) { return Math.floor(((nowMs || 0) - (startMs || 0)) / 1000) < REST_CUT_S; }
+__test.gymEntries = gymEntries; __test.mergeSessionDrafts = mergeSessionDrafts; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
+
 function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [idx, setIdx] = useState(0);
   const [setN, setSetN] = useState(0);
   const [phase, setPhase] = useState("lift");
   const [t, setT] = useState(0);
+  const [restStart, setRestStart] = useState(0);   // REST_WALLCLOCK — ms epoch, not a tick count
+  const [restLen, setRestLen] = useState(0);       // seconds this rest is meant to last
   const [reps, setReps] = useState({});
   const [rir, setRir] = useState({});
   const [rirEnd, setRirEnd] = useState({});
@@ -12179,33 +12252,67 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [rests, setRests] = useState({ n: 0, cut: 0 });
   const gymKey = "prep-ledger-gymdraft-" + dateSel;
   useEffect(() => {
-    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); } } catch (e) {}
+    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen); } } catch (e) {}
   }, []);
   useEffect(() => {
-    try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, rirEnd, gskip, rests, idx, setN })); } catch (e) {}
+    try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, rirEnd, gskip, rests, idx, setN, restStart, restLen })); } catch (e) {}
   }, [reps, rir, rirEnd, gskip, rests, idx, setN, gymKey]);
   const ex = sess.ex[idx];
   const rp2 = rirPlan(s, ex, slp);
   const getR = (e2) => reps[e2.id] ?? e2.tgt.slice();
   const al2 = bodyAlarm(s, slp);
+  /* REST_WALLCLOCK — rest is measured from a start TIMESTAMP, and the interval only
+     repaints. It used to be a pure setInterval countdown, decrementing t by one per tick.
+     iOS throttles and then suspends timers for a backgrounded tab, which is exactly what a
+     phone does when it goes in a pocket between sets — so the tick fired far fewer times
+     than seconds actually elapsed and t stayed HIGH. Displayed rest then ran behind real
+     rest, and because the "cut" test is elapsed = full − t, a rest he took in full read as
+     one he cut short. rests.cut / rests.n drives the session PACE flag, and PACE feeds the
+     rushed-session exclusions in liftCall — so a throttled timer quietly turned honest
+     sessions into rushed ones and pulled them out of the progression evidence.
+
+     Date.now() cannot be throttled. The interval exists only to re-render. */
   useEffect(() => {
     if (phase !== "rest") return;
-    const iv = setInterval(() => setT((x) => { if (x <= 1) { clearInterval(iv); setPhase("lift"); try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} return 0; } return x - 1; }), 1000);
+    const tick = () => {
+      const left = Math.max(0, restLen - Math.floor((Date.now() - restStart) / 1000));
+      setT(left);
+      return left;
+    };
+    tick();
+    const iv = setInterval(() => {
+      if (tick() <= 0) { clearInterval(iv); setPhase("lift"); try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} }
+    }, 500);
     return () => clearInterval(iv);
-  }, [phase]);
+  }, [phase, restStart, restLen]);
   const doneSet = () => {
     const nSets = getR(ex).length;
-    if (setN + 1 < nSets) { setSetN(setN + 1); setT(restFor(ex.id, setN + 1, nSets)); setPhase("rest"); setRests((r) => ({ ...r, n: r.n + 1 })); }
+    if (setN + 1 < nSets) { const len = restFor(ex.id, setN + 1, nSets); setSetN(setN + 1); setRestLen(len); setRestStart(Date.now()); setT(len); setPhase("rest"); setRests((r) => ({ ...r, n: r.n + 1 })); }
     else setPhase("lift-done");
   };
   const nextLift = () => { if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } else setPhase("all-done"); };
+  /* SKIP_ONE_PATH — a control labelled "skip" must put the lift on the record as skipped
+     BEFORE advancing. The lift-screen link used to call nextLift directly, which advances
+     idx without touching gskip, so finish() then included the lift with getR(e2) — its full
+     TARGET array — and banked a set the athlete never performed. The lift-done control did
+     it correctly, so there were two skip paths and only one of them was right.
+
+     That is not theoretical: it fired at least twice on the real ledger (pronated 2026-07-23,
+     ham 2026-07-31), both times contradicting Joe's own session note, both times the only
+     lift in the session with rir null — the signature of a lift that never passed through
+     the RIR screen. Those phantom sets are element-wise maxima, so progressAnchor and
+     typicalError were both computed partly off sets that do not exist.
+
+     One selector, both callers. completeSession's feed line — "zero phantom reps, nothing
+     counted" — is only true because of this. */
+  const skipLift = () => { setGskip((g) => ({ ...g, [ex.id]: true })); nextLift(); };
   const finish = () => {
-    const entries = sess.ex.filter((e2) => !gskip[e2.id]).map((e2) => ({ id: e2.id, n: e2.n, w: e2.w, tgt: e2.tgt, reps: getR(e2), isDebutNow: e2.isDebutNow, rir: rir[e2.id] ?? null, rirEnd: rirEnd[e2.id] ?? null }));
-    try { localStorage.removeItem(gymKey); } catch (e) {}
+    const split = gymEntries(sess.ex, { reps, rir, rirEnd, gskip });   // SKIP_ONE_PATH — entries and skipped partition the session
+    try { localStorage.removeItem(gymKey); localStorage.removeItem("prep-ledger-draft-" + dateSel); } catch (e) {}   // both drafts, or the other one resurrects a logged session
     /* n-gated like every other read in here: under three rests there is no
        session-level statement to make, so it stays unknown rather than guessed. */
     const pace = rests.n >= 3 ? (rests.cut / rests.n >= 0.5 ? PACE.rushed : PACE.normal) : null;
-    const { s: ns } = completeSession(s, dateSel, entries, slp, { note: "gym mode", niggles: [], skipped: sess.ex.filter((e2) => gskip[e2.id]).map((e2) => ({ id: e2.id })), pace });
+    const { s: ns } = completeSession(s, dateSel, split.entries, slp, { note: "gym mode", niggles: [], skipped: split.skipped, pace });
     setS(ns); save(ns); onClose();
   };
   const big = { fontFamily: mono, fontWeight: 800, letterSpacing: "-0.02em" };
@@ -12224,7 +12331,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           {/* A rest counts as CUT when the actual rest lands under 60 s — the
               threshold the meta-analysis actually resolves, not a fraction of
               the prescription. See REST_NOTE and PACE_NOTE. */}
-          <Btn small onClick={() => { const full = restFor(ex.id, setN, getR(ex).length); if (full - t < 60) setRests((r) => ({ ...r, cut: r.cut + 1 })); setT(0); setPhase("lift"); }}>Skip rest</Btn>
+          <Btn small onClick={() => { if (restCut(restStart, Date.now())) setRests((r) => ({ ...r, cut: r.cut + 1 })); setT(0); setPhase("lift"); }}>Skip rest</Btn>
         </div>
       ) : phase === "lift-done" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
@@ -12241,7 +12348,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             </div>
           </div>
           <Btn full tone="jade" onClick={nextLift}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</Btn>
-          <button onClick={() => { setGskip({ ...gskip, [ex.id]: true }); if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } }} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "9px", width: "100%", marginTop: 8 }}>skip this lift — goes on the record, no phantom reps</button>
+          <button onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "9px", width: "100%", marginTop: 8 }}>skip this lift — goes on the record, no phantom reps</button>
         </div>
       ) : phase === "all-done" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
@@ -12265,7 +12372,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <Btn full tone="jade" onClick={doneSet}>SET DONE {setN + 1 < getR(ex).length ? "→ REST " + restFor(ex.id, setN + 1, getR(ex).length) + "s" : "→"}</Btn>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span style={{ fontFamily: mono, fontSize: TS.micro, color: "transparent" }}>.</span>
-            <span onClick={nextLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>skip lift ▸</span>
+            <span onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>skip lift ▸</span>
           </div>
         </div>
       )}
