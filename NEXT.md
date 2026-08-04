@@ -135,25 +135,18 @@ headless — walk the render-smoke states and eyeball on the phone before shippi
 
 ---
 
-## NOW — built, awaiting the phone walk
+## NOW — nothing buildable without a decision from Joe
 
-### v7.9.0 — the phantom SKIP, the way back, and the ladder verdict
+v7.9.0 cleared the last `[build it]` item. **Every remaining QUEUED item is `[needs Joe]`**,
+so per the hard rails none is started to fill time.
 
-Branch `fix/phantom-skip` (`6debec4` → HEAD). All three items in the previous NOW are built,
-one commit each, strict gate + render smoke green at every one. **Not merged.**
+Optional and still open: wiring `windowFor` into progression — the riskiest change in the
+codebase, and the honest-labelling fallback has been live since v7.6.0, so it buys accuracy
+rather than honesty.
 
-- **The phantom SKIP** — `mergeSessionDrafts` gains an explicit `{ final }` mode. A live
-  draft at lift 3 of 9 now marks ZERO skipped; it marked six. The inference runs only in the
-  finish path, and TRAIN’s `complete()` re-derives it there. **This one is live on the phone
-  and writes false misses into `sessionLog[date].skipped`, so it is the reason to ship.**
-- **No way back** — `backLift(idx, gskip, sessEx)` steps back a lift and clears the skip on
-  the one it returns to. A skip is as reversible as a set.
-- **Ladder verdict** — kept this implementation, ported both things: the evenness test is
-  now “whole multiple of `inc`” (the equality test made 85/95/105 unreachable on a 5 lb
-  stack), and `sweepLadders` from `d34bcd0` files proposals into the inbox — the missing
-  middle step between inferring and installing. `feat/train-ladder-inference` deleted.
-
-Suite 1430 → 1454.
+**Local-only artefact:** `archive/ladder-d34bcd0` tags the deleted duplicate ladder
+implementation. It was never pushed, so deleting the branch left the commit unreferenced;
+the tag is a safety net. `git tag -d archive/ladder-d34bcd0` to drop it for good.
 
 ## QUEUED
 
@@ -839,6 +832,18 @@ branch somewhere safe first**, as its own separate job, and only after v7.5 has 
 and settled. Do not fold this into a feature build.
 
 ## SHIPPED
+
+- **v7.9.0 — the phantom SKIP, the way back, the ladder verdict** (2026-08-04). Merge
+  `bf04901`; branch `fix/phantom-skip` (`6debec4` → `e6a8804`). Beacon published v7.9.0 at
+  16:41:09Z; deployed `app.js` + `sw.js` byte-identical to `main`. Gate + render smoke green,
+  1454 assertions.
+  - `mergeSessionDrafts` takes an explicit `{ final }` mode. A live draft at lift 3 of 9 marks
+    ZERO skipped — it marked six — and TRAIN’s `complete()` re-derives the inference at
+    finish. This was writing misses into `sessionLog[date].skipped` that never happened.
+  - `backLift` steps back a lift and clears the skip on the one it returns to.
+  - Ladder evenness is now “whole multiple of `inc`” (equality made 85/95/105 unreachable on
+    a 5 lb stack), and `sweepLadders` files proposals into the inbox — the missing middle
+    step between inferring and installing.
 
 - **v7.8.0 — TRAIN roster, three doors, and the ladder** (2026-08-04). Merge `6a6406c`;
   branch `feat/train-roster` (`afa8545` → `d20784a`). Beacon published v7.8.0 at 16:00:07Z;
