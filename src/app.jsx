@@ -10519,7 +10519,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       </Group>
 
-      <Group title="THE ROOM" sub="this week · session · recovery · the laws" persistKey={NOW_DOORS.room} id="pl-room" defaultOpen={false}>
+      <Group title="THE ROOM" sub="this week · session · recovery · the laws" count={(plan.goals.length + plan.ifthen.length) || null} persistKey={NOW_DOORS.room} id="pl-room" defaultOpen={false}>
         <div>
           <Eyebrow c={T.jade}>YOUR PROCESS GOALS</Eyebrow>
           {plan.goals.length === 0 && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>None set. A process goal is something you do, not a number on the scale — "four training sessions", "protein on target six days". They make the work task-focused instead of self-evaluative.</div>}
