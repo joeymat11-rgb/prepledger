@@ -108,362 +108,65 @@ headless — walk the render-smoke states and eyeball on the phone before shippi
 
 ---
 
-## NOW  `[overnight-safe]`
+## NOW  `[needs Joe]` — design pass first, do not build
 
-### Gym Mode phantom reps — live on Joe's phone, and it has already corrupted the log
+### TRAIN + Gym Mode redesign
 
-**This is promoted above the v7.5 NOW re-layout.** The v7.5 branch is parked awaiting an
-iOS look (QUEUED #1); this bug is deployed, it is still firing, and it is poisoning the
-input to load progression. It does not touch `NowTab` and `v7.5` does not touch
-`GymMode` (verified: zero references in `main...feat/v7.5-now-relayout`), so **branch this
-off `main` and ship it independently.** Do not wait for v7.5.
+**Its first step is a design pass Joe reacts to, exactly like the NOW page.** Nothing gets
+built until he has picked a direction. The full diagnosis, the evidence and the proposed
+tiers are in QUEUED item 3 below — that content is the input to the design pass, not a
+build spec.
 
-#### The defect
+The one-line diagnosis stands: *TRAIN is a planning page that happens to contain a gym
+button; it should be a gym page that happens to contain planning.* Gym Mode's core loop is
+the best interaction in the app and must survive verbatim — three taps from cold open to
+set 1, reps pre-filled so confirming costs zero taps and only a miss costs one.
 
-`GymMode`'s lift-screen `skip lift ▸` control calls `nextLift`, which advances `idx`
-**without setting `gskip`**. `finish()` then includes that lift with `getR(e2)` — its full
-target rep array. A control labelled *skip* writes a set the athlete never performed.
-The sibling control on the `lift-done` screen sets `gskip` correctly; only the lift-screen
-link is wrong. Present in `main` (`src/app.jsx:12128`), so it is on the phone right now.
+**Do not start building.** Produce directions for Joe to react to.
 
-`completeSession` writes *"zero phantom reps, nothing counted"* into the feed while this
-happens.
-
-#### It has already fired — at least twice, corroborated by Joe's own notes
-
-From `ledger/state.json`:
-
-| date | Joe's session note | what was logged | RIR |
-|---|---|---|---|
-| 2026-07-23 | *"Had to skip pronated today due to time constraints. Not typical."* | `pronated 40 × [12,12]` | **null** |
-| 2026-07-31 | *"Ham curl skipped this sesh for time. Abnormal"* | `ham 120 × [12,12]` | **null** |
-
-Both sessions record `skipped: []` — nothing on the record, exactly the opposite of what
-the athlete wrote in the note. In both, the phantom entry is the **only** lift in the
-session with `rir: null`; every lift he actually performed carries one. That is the
-signature — the RIR screen is what a real lift passes through, and `nextLift` bypasses it.
-
-#### Why it matters more than it looks
-
-`progressAnchor` takes the **element-wise max of the last three sessions at the same
-load**. The phantom entries are Joe's *best* recorded performances:
-
-```
-ham   2026-07-24  [12,10] rir 2
-      2026-07-28  [12,11] rir 2
-      2026-07-31  [12,12] rir null   <- never happened, and it is the max
-pronated 07-23 [12,12] rir null      <- never happened
-         07-27 [12,12] rir 1
-         07-30 [12,12] rir 0
-```
-
-So the anchor for both lifts is built partly on sets that do not exist. Worse for
-`pronated`: three consecutive sessions at `[12,12]`, one of them phantom — that is
-`topRun` territory, the two-for-two confirmation that queues a debut at the next weight.
-A load increase may already have been proposed off a set that was never performed.
-`typicalError` — the measured noise band the whole `beatsNoise` gate rests on — is
-computed from the same entries.
-
-#### Build
-
-1. **Fix the control.** `skip lift ▸` must set `gskip[ex.id]` before advancing, exactly
-   as the `lift-done` skip does. One selector, one behaviour, no second path.
-2. **Repair the two entries.** Move `pronated@2026-07-23` and `ham@2026-07-31` out of
-   `entries` and into `skipped[]`. The receipt already renders that honestly — struck
-   through, *"skipped — on record"*. `progressAnchor` and `typicalError` are derived, not
-   stored, so they self-correct the moment the entries move. **Repair only these two.**
-   Do not bulk-delete on the `rir === null` signature alone — `rirEnd` is null across the
-   whole log and a genuine lift could plausibly lack a first-set RIR. These two are
-   confirmed by Joe's own written notes; anything else needs his say-so first.
-3. **Write a feed line for each repair** naming what was removed and why. A silent
-   correction to the training record is the same failure as a silent phantom.
-4. **Assert it can't recur:** no `finish()` path may emit an entry for a lift not
-   performed. Fixture: enter Gym Mode, take the lift-screen skip on lift 3, finish —
-   assert lift 3 appears in `skipped` and **not** in `entries`.
-5. **Sweep for the same class.** Any other control that advances session state without
-   recording what happened to the lift it left.
-
-#### Then, in the same branch (they are one commit's worth of the same file)
-
-- **Rest timer on wall-clock.** The `setInterval` tick is throttled and suspended by iOS
-  whenever the phone is pocketed between sets, so displayed rest ≠ elapsed rest — and
-  `rests.cut` is derived from it, so the *measured* pace flag inherits the drift and then
-  feeds `PACE` and the rushed-session exclusions in `liftCall`. Store a start timestamp;
-  the interval should only repaint.
-- **One draft, not two.** `prep-ledger-gymdraft-<date>` and `prep-ledger-draft-<date>`
-  never talk. Exit Gym Mode at lift 4, tap `Complete session` on TRAIN, and it logs
-  **targets for every lift** — a second phantom-rep path with a different cause.
-- **Make an in-progress session survivable.** Both drafts are localStorage-only, never
-  synced, absent from `recordCounts`. Phone dies at lift 6 and the session is gone.
-
-**Everything else on TRAIN — the redesign, the ladders, the RIR timing change — stays in
-QUEUED #2.** This item is a data-integrity fix and should ship as one, small and
-reviewable, without a redesign riding along.
-
-#### Open question for Joe
-
-**"Make an in-progress session survivable" was not built — it needs your call.** The item
-offers two options and they have very different risk profiles, so picking one unattended
-would have been a guess:
-
-- **(a) Fold the gym draft into synced state.** This is a new synced collection, so per the
-  standing guardrail it needs keyed-union / refuse-to-shrink merge hardening *and* an
-  additive migration (`patchV39`, `SCHEMA_V` 38 → 39) in the same change. It also raises a
-  question the item doesn't answer: if a live session is open on the phone and a stale
-  device syncs, which one wins? A wrong answer here clobbers a workout while he is standing
-  in it — the exact class the merge hardening exists to prevent, but now with a moving
-  target.
-- **(b) Make it exportable.** No schema change, no merge surface, no synced state. Loses the
-  automatic recovery — he has to have exported before the phone died, which is exactly when
-  people don't.
-
-The other three parts of this section shipped (skip path, wall-clock rest, one draft).
-This one is the only piece that adds synced state, and it is the piece this codebase has
-historically got wrong twice.
-
-#### Acceptance criteria
-
-- The lift-screen skip and the lift-done skip route through one code path.
-- The two named entries are moved, each with a feed line; no other entry is touched.
-- New assertions: skip-then-finish omits the lift; the two drafts cannot disagree; rest
-  elapsed is computed from wall-clock across a simulated background gap.
-- Strict gate green, render smoke green.
-- Walked in Gym Mode on the actual phone — tap the lift-screen skip, finish, read the
-  receipt — before it goes near `main`.
-
+Two things that are already true and should inform the pass rather than be re-derived:
+the phantom-rep, wall-clock-rest and one-draft fixes shipped in v7.6.0, so the integrity
+problems are off the table; and the RIR-timing change (ask for last-set RIR at the last
+set, not at `lift-done` from memory) has the strongest evidence behind it of anything in
+the item — 0.46 vs 1.2 reps of error — so it is the part most worth designing around.
 
 ## QUEUED
 
-### 1. v7.5 NOW re-layout — code fixes `[overnight-safe]`, merge `[needs Joe]`
+### 1. In-progress session survivability — LEASE, not a merge  `[needs Joe]`
 
-The branch `feat/v7.5-now-relayout` is built and audited three times. It cannot
-merge until Joe walks it on the phone, and its remaining blockers are below.
-Resume this the moment the Gym Mode fix ships.
+**Downgraded 2026-08-04.** The spec line "phone dies at lift 6 and the session is gone" was
+wrong: localStorage survives a dead battery, an app restart and a reboot, so the draft is
+lost only if the device is wiped or replaced. That exposure **does not justify `SCHEMA_V`
+39**, and nothing is being built for it now.
 
-### v7.5 round 3 — one charter violation is live in the shipped seed
+The answer is recorded so the item is not open-ended if it is ever picked up: **an open gym
+draft is a LEASE, not a mergeable collection.** Stamp it with a device id and a started-at.
+It may be replaced only by a draft from the *same* device, or by a completed session. **A
+stale device NEVER overwrites a live one — there is exactly one phone in the gym.** Nothing
+here merges; it is claimed or released.
 
-Branch `feat/v7.5-now-relayout` at `bad4459`. Round 2 was re-audited by the same
-independent process (three fresh-context verifiers, no build bias, each asked to *prove*
-a fix rather than accept it — two of them ran executable experiments against the real
-module rather than reading). **Two of three blockers closed cleanly. One did not, and
-its failure is not hypothetical — it is happening in the shipped data right now.**
+### 2. Event protocol readability (round-3 I4) — option (c)  `[needs Joe]`
 
-**Verified CLEAN — do not revisit:**
+Move the event reference material into a door (THE BRIEFING); keep the fold card gated to
+the actionable window. This does **not** re-open round-2 G1 — the fold card stays windowed,
+only the reference material moves. Decided; recorded so nobody relitigates it.
 
-- **Blocker A (the `More` panel).** The gate is now the same expression in both places
-  and the panel no longer calls `currentRate` at all. Verified across every
-  `signalState`: body and panel cannot disagree in any state. The `reversed` walkthrough
-  is correct — headline, body and panel all print `+1.2 lb/wk` with the same sign
-  convention. The rate appears exactly three times in the card, all `rc.rate`.
-- **Blocker B (the deep-link invariant) — this one is finally real.** `window.__plDoors`
-  is published from `NOW_DOORS` and `tools/render-smoke.mjs` asserts
-  `declared ⊆ registered` against the **live** `__plGroups` registry. A verifier mutated
-  a `<Group>`'s `persistKey` and the smoke exits 1 with a named key. The engine suite
-  catches the complementary mode (a straggler consumer naming a retired key). Neither
-  alone is sufficient; together they cover it. `statusTarget` now asserts the **key** on
-  all four branches, including the split-source escalation branch.
-- **Blocker C parts (a) and (c).** The dead `daysUntil < 0` branch is reachable.
-  `eventFocus` sorts by date instead of array order. Residency is bounded — no more
-  actionless card for the whole run-up to a future event.
-- **The THE ROOM count badge is gone entirely.** The `· N` slot now means one thing
-  again. Right call.
-- **Structurally clean:** no data-model change, no migration or merge touched, every
-  write path hash-identical, no prop dropped, no exception card lost its gate, no new
-  esbuild warnings.
+**Queued behind the iOS walk of THE BRIEFING itself.** It is a v7.5 construct and the door
+layout has now been walked once, but the event-detail placement inside it has not — do not
+build it blind.
 
-#### BLOCKERS — round 3
+### 3. The three non-numeric lifts (Q2·F)  `[needs Joe]`
 
-**A. The event miss is still erasable — the cliff moved from midnight to midnight+7d,
-it was not removed. And it has already fired.** `eventFocus` gives an 8-day window
-(D−1 … D+7). Past `EVENT_GRACE_D` an unfiled event has **no surface anywhere**:
-`eventFocus` → null, `lastEvent(s,7)` → null, `openEv` → null, `nowFocus` still has no
-`event` owed kind, `dayWeather` only flags −1…+2d. `closeEvent` becomes unmakeable
-again, `zeroComp.count` never increments, and no feed row records the lapse.
-*This is live:* the shipped seed carries `WEDDING #2`, dated 2026-07-25, `estimated:false`
-— ten days old. A verifier executed it: `eventFocus(SEED).ev === null`,
-`zeroComp.count === 5`. **The charter's "show misses" is the rule being broken**, and it
-is being broken on real data, not in a hypothetical.
-*Fix:* a miss must not expire. Give `nowFocus` an `event` owed kind, or keep a
-permanent, honestly-labelled "unfiled event" surface. A grace window is fine for the
-*normal* path; it must not be the only path.
+`hack` (`"hold"`), `hanging` (`"BW"`) and `curl` (`"55·55·50"`) store `w: null`, so
+`progressAnchor` never anchors them and `typicalError` skips them — three of fifteen lifts
+sit outside the progression engine. Representation options: a per-set load array
+(`"55·55·50"` → `[55,55,50]`); a bodyweight flag with optional added load; and whatever
+`"hold"` actually is for the hack squat, which Joe does not think is a load at all.
 
-**B. The window is not honest.** Nothing added says the File button expires. The copy on
-D+7 is identical to the copy on D+1. A user who has seen the same card for a week opens
-the app on D+8 and both the event and the button are gone, with no explanation. Either
-say how long it stays, or (per blocker A) don't let it go away.
-
-**C. The day-of copy is wrong on the extended window.** `after tonight: one tap files the
-day — tomorrow runs the normal plan` and `File the event ✓ — your estimate goes in
-tonight's numbers` render unconditionally inside `evF.closable`. They were written for
-D and D+1. On D+4 the app instructs the athlete to put a four-day-old dinner's estimate
-into **tonight's** log — mis-dated intake landing in the ledger the whole trend is
-computed from. Same class as the tense bug the file already documents in
-`EVENT_RECENCY_NOTE`.
-
-**D. With two unfiled events, the instruction and the button point at different events.**
-`theOneThing`'s `openEv` still uses `s.events.find(...)` (array order, first match at
-exactly D+1); the card shows the *most overdue*. Executed: with events at −4d and −1d,
-the one thing says *"Close out Yesterday dinner"* while EVENT MODE shows *"Older
-wedding"* and its button files Older wedding. Tapping what the app told him to do files
-the wrong event. Route `openEv` through `eventFocus` so there is one selector.
-
-#### SHOULD FIX — round 3
-
-**E. The restored unlock line is factually false.** *"two clean weekly snapshots and this
-reads off your measured rate instead of an estimate"* — leaving `calibrating` needs
-`rates.length >= 2`, i.e. **three** weekly rows; and even then the snapshots branch
-returns `ci: null`, so `ciExcludesZero` is false, `showRate` is false, and the card
-**still abstains** with a different reason. The suite asserts this itself
-(`CR(snp).measured === true && showRate === false`). A new user follows the instruction
-for three weeks and is told something else. The line was true under the old
-`cr.measured` gate; restoring it verbatim under the `showRate` gate re-broke it. Name
-the condition that actually unlocks the projection.
-
-**F. "Measured pace" overstates the state in two of the three states it renders in.** The
-panel gate is `showRate`, true for `measurable` and `reversed` too — but the card
-reserves `MEASURED ◆` for `state === "measured"`. So the panel says *"Measured pace…"*
-under a **MEASURABLE** or **REVERSED** word. The panel claims a stronger status than the
-card it lives inside.
-
-**G. The band rounding buys nothing and can collapse the band.** `lo`/`hi` are now
-computed from `+cr.hi.toFixed(1)` / `+cr.lo.toFixed(1)` — but those rate bounds are never
-displayed, so rounding them gains no reconciliation and costs up to 0.2 lb per endpoint
-versus the CI the copy promises is "carried through". When `ci < 0.05` the band
-collapses onto the midpoint (verified: *"near 159 lb — anywhere from 158.6 to 159 lb"*),
-which would violate the suite's own strict `lo < mid < hi` assertion. Round only what is
-printed.
-
-**H. Test debt from this round:**
-1. `engine-test.jsx:3663` still asserts the **pre-fix** `lo` formula (raw `cr.hi`); the
-   code now rounds it. It passes by coincidence on this fixture (`hi = 0.59` rounds to
-   the same result). At `hi = 0.64` the two differ by 0.2 and the assertion fails for a
-   reason unrelated to the property it names.
-2. **Blocker A has zero test coverage.** This exact defect has now recurred once already,
-   in a sibling element of the same card. Pin the `More` panel to the body's gate.
-3. The approval-inbox door is **exempted** from the live `declared ⊆ registered` check
-   (`k !== "inbox"`), and it is the target of `statusTarget`'s highest-precedence branch.
-   Drift that one `persistKey` and both suites stay green while the "open what's waiting
-   on your tap" tap goes silently dead. The smoke already has a state-seeding mechanism —
-   seed one unresolved proposal and check it with the others.
-4. The smoke asserts `declared ⊆ live`, i.e. it validates the **constant**, not the
-   selector *outputs*. Feed `oweTarget(k).key` and `statusTarget(...).key` through the
-   same check to close the loop.
-
-**I. Minor, batch them:**
-1. The 1-decimal display precision is now load-bearing but exists as three unshared
-   `.toFixed(1)` literals with no shared constant and no test tying the engine's
-   `rateShown` to the string the card prints. Changing the card to 2dp silently un-fixes F.
-2. `pp.rate` (raw 2dp) and `pp.banded` have zero UI consumers. `rate` sitting next to
-   `rateShown` is exactly the field the next person reaches for — delete it.
-3. Stale comment at ~9982-9986 still describes the old event gate in the present tense
-   and says "Fixed by residency", with no mention of `eventFocus` / `EVENT_LEAD_D` /
-   `EVENT_GRACE_D`. In a codebase where the comment is the spec, that misleads.
-4. `ev.protocol` is now unreachable until D−1 (`EVENT_LEAD_D = 1`) and is rendered in
-   exactly one place, so the athlete cannot read the protocol he is meant to follow until
-   the evening before.
-
-#### Open question for Joe — round-3 minor I4
-
-**I4 was not built: it contradicts G1, and only you can settle which wins.** Round-2 G1
-asked that EVENT MODE stop being resident for the whole run-up to an event — "an actionless
-card on the fold for weeks" — so residency was gated to `EVENT_LEAD_D = 1`. Round-3 I4 then
-observes that `ev.protocol` renders in exactly one place, that card, so you cannot read the
-protocol you are meant to follow until the evening before. Both are right.
-
-- **(a) Leave it.** The chip still names the event weeks ahead. Costs nothing, fixes nothing.
-- **(b) Show the card earlier without its action.** Directly re-opens G1.
-- **(c) Move the event detail into a door** (THE BRIEFING) so the protocol is one tap away at
-  any distance, and keep the fold card for the actionable window only. Most work, and it is a
-  layout decision on a screen you have not yet walked on the phone.
-
-Everything else in round 3 is closed: blockers A–D in `37cdcf9`, should-fixes E–I in `32d9bc9`.
-
-#### BEFORE MERGE
-
-- Blockers A–D closed; E–H closed; I batched.
-- Strict gate green, **and** `render-smoke` green — and confirm the smoke is actually
-  wired into `npm run check` in CI, because the deep-link guarantee now rests on it.
-- **Eyes on iOS Safari.** Still not done. Nothing merges to `main` without it.
+**Data-model change — needs merge hardening and a migration, so it is not overnight work.**
 
 
-
-### 2. Gym Mode — the rest of the integrity sweep `[overnight-safe]`
-
-**Promote this above the redesign. These are live defects that corrupt the ledger the
-whole engine computes from, and one of them violates the charter's loudest rule.**
-
-Found by an independent read of `LogTab` (`src/app.jsx` ~10750) and `GymMode` (~12166).
-Line numbers are against `v7.5.0`.
-
-**A. `skip lift ▸` banks a session Joe never performed.** On the lift screen (`:12268`)
-the skip link calls `nextLift` (`:12201`), which advances `idx` **without touching
-`gskip`**. `finish()` (`:12203`) then includes that lift with `getR(e2)` — its full
-target array. So tapping a control labelled *skip* logs the lift at target reps.
-The sibling control on the `lift-done` screen (`:12244`) does it correctly.
-*This is the exact opposite of the app's own printed claim* — `completeSession` (`:1328`)
-writes *"zero phantom reps, nothing counted"* into the feed. The phantom reps then feed
-`progressAnchor`, `typicalError`, `atTopOfWindow` and every load decision downstream.
-**Fix first, before anything else on this page.**
-
-**B. The two drafts never talk, and the gap is another phantom-rep path.** Gym Mode
-persists to `prep-ledger-gymdraft-<date>` (`:12185`); TRAIN persists to
-`prep-ledger-draft-<date>` (`:10780`). Exit Gym Mode at lift 4 and TRAIN still shows
-untouched target steppers; tap `Complete session` and it logs **targets for all lifts**,
-including the ones never performed. The guard at `:10832` prevents double-logging, not
-wrong-logging. One draft, one source of truth.
-
-**C. The rest timer drifts on exactly the platform it runs on.** `:12191–12195` is a
-`setInterval` tick. iOS throttles and suspends timers when the app is backgrounded —
-which is precisely what a phone does between sets. Displayed rest ≠ elapsed rest, and
-because `rests.cut` (`:12227`) is derived from `t`, the *measured* pace flag inherits the
-drift and then feeds `PACE` and the rushed-session exclusions in `liftCall`. Store a
-start timestamp and compute elapsed from `Date.now()`; the interval should only repaint.
-
-**D. An in-progress session is unrecoverable.** Both drafts are localStorage-only, never
-synced, absent from `recordCounts` (`:7875`). Phone dies at lift 6 and the session is
-gone. At minimum, fold the gym draft into the synced state behind the existing
-never-shrink merge, or make it exportable.
-
-**E. `exOrder` has no merge hardening.** It appears in no `MERGE_*` map, so it falls
-through the wholesale `{...remote, ...local}` at `:8047`. Reorder lifts on the phone,
-then sync from a stale device, and the order silently reverts — the same clobber class
-the code documents at `:7934`. Add it to the keyed reconcile.
-
-**F. Three of fifteen lifts are outside the progression engine.** `completeSession`
-(`:1326`) writes `w: typeof ex2.w === "number" ? ex2.w : null`, so `hack` (`"hold"`),
-`hanging` (`"BW"`) and `curl` (`"55·55·50"`) store `w: null`. `progressAnchor` (`:846`)
-compares `String(en.w) !== String(ex.w)` → `"null" !== "hold"` → those lifts **never get
-the max-of-three anchor**, and `typicalError` (`:1159`) skips them, so they never
-contribute to or benefit from the measured noise band. The app needs a per-set load
-array where it currently stores a display label.
-
-**G. Batch:** `ex.cue` is dead in Gym Mode (`:12256`) — `setup`, `live` and the
-DEBUT/OWN-IT/RECLAIM note all exist in `sess.ex` and none render, so the cues live only
-on the page he doesn't use in the gym. Gym Mode discards `lines` from `completeSession`
-(`:12208`), so the WHAT MOVED recap never fires from the path he actually uses. It also
-hardcodes `note: "gym mode"` (overwriting the note field, which then prints in the
-receipt and debrief) and `niggles: []` (making the joint check unreachable). `set weight ✎`
-defaults `wVal` to **180** for any non-numeric weight (`:11033`) — tap it on the hanging
-raise and it proposes 180 lb. The `jump: 2.5/5/10` chips **delete `ex.steps`** as a side
-effect (`:11000`), one mis-tap from `uneven ✎`, no confirm. Two dead RECEIPT chips
-(`:10816`, `:10821`) are styled as buttons with no handler.
-
-**H. The app claims a thing it has not done.** The LAB proposal at `:6172` says the rep
-window *"has to widen to {lo}-{hi}, **which the app has already done**"*. It has not:
-`windowFor` (`:991`) and `repsLostOnJump` (`:980`) are computed, consumed only by
-`coarseLifts` → that one proposal, and **never by progression** — `atTopOfWindow`
-(`:1010`) and `targetsFor` (`:869`) still use the raw authored `ex.hi` and a fixed
-`hi − i` staircase. Either wire it in or correct the sentence. An honest-labelling app
-cannot tell him something is done that isn't.
-
-**Acceptance criteria:** an assertion that no `finish()` path can emit an entry for a
-lift the athlete did not perform; an assertion that the two drafts cannot disagree; a
-wall-clock rest test; `exOrder` in the merge suite with a stale-device fixture; the three
-non-numeric lifts appearing in `progressAnchor` and `typicalError` fixtures.
-
----
-
-### 3. TRAIN + Gym Mode redesign `[needs Joe]` — he should see the shape before it is built
+### 4. TRAIN + Gym Mode redesign `[needs Joe]` — he should see the shape before it is built
 
 **The diagnosis in one line: TRAIN is a planning page that happens to contain a gym
 button; it should be a gym page that happens to contain planning.**
@@ -615,14 +318,6 @@ Systematic Review and Meta-Analysis*, Sports Medicine – Open (2021) —
 https://link.springer.com/article/10.1186/s40798-021-00404-9
 
 
-### 4. Extract the duplicated `conditionalForesight` JSX `[overnight-safe]`
-
-The plan-conditional block is written twice — once in the crossing branch and once in
-the projection branch (app.jsx ~9626 and ~9652), byte-identical. Under this codebase's
-string-surgery editing workflow **any anchor into that block matches twice**, which is
-exactly the hazard that produced two defects in the v7.5 build. Extract it to one
-component. Independent of any redesign; do it as its own commit.
-
 ### 5. DEXA body-fat anchor `[needs Joe]` — no scan exists yet, and it adds synced state
 
 **Read this before building it: the queue stub was wrong.** It claimed a DEXA
@@ -757,14 +452,24 @@ unpushed at `e01075c`. Consolidate to one clone + worktrees — but **push or ta
 branch somewhere safe first**, as its own separate job, and only after v7.5 has shipped
 and settled. Do not fold this into a feature build.
 
-### 9. Polish sweep `[overnight-safe]`
-
-Forecast recompute, ETA floor, memoization. Mostly mechanical. Flag anything that turns
-out to need a product decision rather than a fix.
-
----
-
 ## SHIPPED
+
+- **v7.6.0 — Gym Mode data integrity, the event miss, exOrder, polish** (2026-08-04).
+  Merge `7113f76`; integration branch `release/v7.6.0` (`f3b5afc` → `690317b`, 20 commits).
+  Beacon published v7.6.0 at 2026-08-04T12:51:56Z; deployed `app.js` and `sw.js` verified
+  byte-identical to `main`. Strict gate green, 1415 engine assertions.
+  - Gym Mode `skip lift ▸` banked a set never performed; one skip path now, and the two
+    entries it had already written (`pronated@2026-07-23`, `ham@2026-07-31`) moved to
+    `skipped[]` with a backup and a feed line each.
+  - Rest measured from a wall-clock timestamp — the throttled `setInterval` was making full
+    rests read as cut and flagging honest sessions rushed.
+  - One draft: leaving Gym Mode partway no longer lets TRAIN log every remaining lift at
+    target.
+  - A miss no longer expires — `WEDDING #2` (2026-07-25) had fallen past the grace window
+    and had no surface anywhere.
+  - `exOrder` merge hardening (newest-deliberate-wins + never-lose-a-lift, no schema bump).
+  - `conditionalForesight` collapsed to one component; `forecast`/`energyDensity` memoised;
+    the LAB proposal stopped claiming a change the app had not made.
 
 - **v7.4.1 — honest plan-conditional foresight** (`762d81e`, `bf42d11`).
   `conditionalForesight(s)` + the `target reached` relabel, rendered in both the
@@ -778,6 +483,11 @@ to SHIPPED when it's on Joe's phone.*
 ---
 
 ## OVERNIGHT LOG — 2026-08-04
+
+**CLOSED — all of it shipped in v7.6.0 on 2026-08-04** (merge `7113f76`, beacon published
+12:51:56Z). Joe walked it on the phone before the merge. Kept below as the record of what
+was found and why; the three decisions it raised are answered under JOE'S ANSWERS and now
+live in QUEUED as items 1-3.
 
 Unattended. **Rails held:** nothing pushed or merged to `main`, nothing deployed, no
 `[needs Joe]` item touched, `feat/v6.2-autopilot-modes` untouched at `e01075c`, no clone
