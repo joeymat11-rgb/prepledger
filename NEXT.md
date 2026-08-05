@@ -464,6 +464,39 @@ renders visibly differently from `false`.
 R2's job and it is done. This is about reach, and reach is where this codebase has failed
 twice now (`phasePlan`, and R2 itself).
 
+### R2c. Step severity — the exit speed was set by a quantity that means something else
+
+**The walk is seven weeks.** `deficit0` 532, `step` 87, `REGIME_HOLD_D` 7 ⇒ 8 evaluations,
+**49 days and ~28 training sessions** of a deficit already diagnosed as costing him, before
+it reaches maintenance.
+
+**The step is `cur.hi − cur.lo` — the width of the rate band. That is a statement about how
+tightly the rate is targeted, not about how fast to exit a costing state.** "Derived, so no
+constant is authored" is technically true and practically misleading: the exit speed WAS set,
+by a quantity that means something else.
+
+It is **scale-invariant**, so the seven weeks is structural rather than incidental:
+
+    deficit0 / step = p_lo / (p_hi − p_lo) = 0.60 / 0.10 = 6   in recomp mode, at any bodyweight
+
+**And strength is a late signal.** Murphy & Koehler: strength survives a deficit (ES −0.31,
+p = 0.28) while lean-mass gain does not (ES −0.57, p = 0.02). **By the time the lifts fall,
+lean has probably been going for a while.** Seven more weeks is expensive against an objective
+where lean is the scarce term and he has ~34 lb of headroom to the natural ceiling.
+
+**Change.** Scale the step to the DEPTH of the decline, which `progressionTrend.pct` already
+carries. A −3 %/session collapse should reach maintenance in ~2 weeks; a −0.3 %/session drift
+can take the full walk. Still derived — but derived from the thing that actually motivates
+the exit.
+
+**Assertion.** A steeper `progressionTrend.pct` reaches `dir === "maintenance"` in **strictly
+fewer** evaluations.
+
+**Already fixed, do not re-file:** `_costingWeeks` capped at a fixed 12, so if a band ever
+narrowed such that `12 × step < deficit0` the walk would strand short of maintenance —
+absorbing again, at a different point. The cap now derives from the steps the walk actually
+needs, and an assertion drives a near-degenerate band to termination.
+
 ### R3. The deficit rate: his record, with the band as prior
 
 **Keep ~0.7 %BW/wk in `free`. Re-derive the justification.** The number is not "the recomp

@@ -4052,6 +4052,18 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
       ok(last && last.dir === "maintenance" && held <= 30, "R2 costing — a sustained decline EVENTUALLY produces a non-deficit target (reached maintenance at evaluation " + held + "). The old build could never leave the deficit, so the machine could not walk to accretionBound no matter how long the decline lasted");
       ok(Math.abs(last.lo - td2) <= 1, "R2 costing — the terminal target is measured maintenance itself, floored at zero deficit rather than overshooting into a surplus the regime has not earned");
 
+      /* A FIXED CAP RE-CREATES THE ABSORBING STATE AT A DIFFERENT POINT. If a band ever
+         narrows so that cap x step < deficit0, the walk strands short of maintenance and
+         costing is terminal again. The cap now derives from the walk, so this holds for
+         ANY band width, not just today's. */
+      {
+        const narrow = clone(SEED);
+        narrow.rate = { ...(narrow.rate || {}), band: [0.99, 1.0] };   // a near-degenerate band
+        let h2 = 1, out = null;
+        for (; h2 <= 400; h2++) { out = EBT(narrow, { regime: { key: "costing" }, heldWeeks: h2 }); if (out.dir !== "deficit") break; }
+        ok(out && out.dir === "maintenance", "R2 costing — the walk terminates for a NEAR-DEGENERATE band too. A fixed step cap would strand it short of maintenance and make costing absorbing again at a different point");
+      }
+
       /* FIX 3 — protein was LOWERED in a surplus. Math.min(175, 118) = 118, a 57 g/day
          drop, while the comment claimed the cut figure stayed the ceiling. Morton 2018's
          1.6 g/kg BW is where MPS benefit SATURATES — a floor, not a cap. */

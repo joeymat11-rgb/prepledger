@@ -2565,10 +2565,16 @@ function energyBalanceTarget(s, opts) {
        rather than stepping by a number nobody measured. */
     const td2 = observedTDEE(s);
     const asOf2 = (opts && opts.asOf) || isoOf(todayStart());
-    const held = (opts && opts.heldWeeks != null) ? opts.heldWeeks : _costingWeeks(s, asOf2);
-    if (!td2 || !isFinite(td2.tdee)) return { ...cur, ...base, dir: "deficit", provisional: true, lo: cur.hi, hi: cur.hi, mid: cur.hi, shrunk: true, heldWeeks: held, why: "lifts are falling but there is no usable maintenance to step the deficit against — holding at the shallow end of your band" };
+    if (!td2 || !isFinite(td2.tdee)) { const h0 = (opts && opts.heldWeeks != null) ? opts.heldWeeks : 1; return { ...cur, ...base, dir: "deficit", provisional: true, lo: cur.hi, hi: cur.hi, mid: cur.hi, shrunk: true, heldWeeks: h0, why: "lifts are falling but there is no usable maintenance to step the deficit against — holding at the shallow end of your band" }; }
     const deficit0 = Math.max(0, td2.tdee - cur.hi);
     const step = cur.hi - cur.lo;
+    /* THE CAP MUST DERIVE FROM THE WALK, NOT BE A FIXED 12. A hard cap re-creates
+       the absorbing state at a different point: if the band ever narrows so that
+       cap x step < deficit0, the walk strands short of maintenance and costing is
+       terminal again. Derive the number of steps the walk actually needs and the
+       failure mode cannot exist for any band. */
+    const needed = step > 0 ? Math.ceil(deficit0 / step) + 1 : 1;
+    const held = (opts && opts.heldWeeks != null) ? opts.heldWeeks : _costingWeeks(s, asOf2, needed);
     const deficit = step > 0 ? Math.max(0, deficit0 - (held - 1) * step) : 0;
     const tgt = Math.round(td2.tdee - deficit);
     if (deficit <= 0) return { ...cur, ...base, dir: "maintenance", provisional: false, lo: tgt, hi: tgt, mid: tgt, shrunk: true, heldWeeks: held, steppedTo: 0,
