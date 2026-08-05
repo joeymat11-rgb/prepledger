@@ -3894,6 +3894,92 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
       ok(RR({ reps: [10], rirSets: [2] }) === "RIR 2", "RIR RECEIPT — one set means the opener IS the last set; an arrow would invent a distinction the session does not have");
       ok(RR({ reps: [12, 12], rir: 1 }) === "RIR 1→?", "RIR RECEIPT — a legacy entry with only en.rir reads through rirSetsOf: the old field has always meant the opener");
       ok(RR({ reps: [] }) === null && RR(null) === null && RR({}) === null, "RIR RECEIPT is total");
+
+    /* ---------- R1 — the regime detector ---------- */
+    {
+      const SS = __test.sessionScore, LT = __test.liftTrend, PT = __test.progressionTrend, RG = __test.regime;
+
+      // sessionScore: the three shapes that must return null, and why it matters
+      ok(SS({ w: 180, reps: [9, 9] }) === 3240, "R1 sessionScore — volume load is w x total reps");
+      ok(SS({ w: "BW", reps: [10] }) === null, "R1 sessionScore — a bodyweight lift has no load term and returns null rather than a fabricated one");
+      ok(SS({ w: "55·55·50", reps: [7] }) === null, "R1 sessionScore — a multi-weight string is not a number; parsing it would invent a load the athlete never recorded");
+      ok(SS({ w: null, reps: [7] }) === null && SS({ w: 100, reps: [] }) === null && SS(null) === null, "R1 sessionScore is total");
+
+      /* fixture builder — the minimum a state needs for these selectors.
+         No events, no dayCtx, no blackout => dayWeather().hard is false.
+         Sleep nights at 8h => cleanAtDate is true, so nothing is soft-flagged. */
+      const LIFTS = ["a", "b", "c", "d", "e"];
+      /* Sessions must sit ADJACENT to asOf, or the 7-day hysteresis lookback drops
+         nothing and the sleep nights never overlap the training days. Both of those
+         were fixture bugs that read as implementation failures first time round. */
+      const ISO = (t) => new Date(t).toISOString().slice(0, 10);
+      const END = Date.parse("2026-08-04T00:00:00Z");
+      const mkState = (sessions, readSlope, nightH) => {
+        const st = { sessionLog: {}, reads: [], sleep: { nights: [], cleanH: 7.5 }, dailyLogs: {}, exercises: LIFTS.map((id) => ({ id, n: id, w: 100 })), weekly: [], model: { drip: 0 } };
+        const nS = sessions.length;
+        sessions.forEach((sess, k) => {
+          const d = ISO(END - (nS - 1 - k) * 2 * 86400000);
+          st.sessionLog[d] = { entries: LIFTS.map((id) => ({ id, w: sess.w, reps: sess.reps.slice() })), skipped: [], pace: "normal", at: 1 };
+        });
+        for (let k = 0; k < 40; k++) {
+          const d = ISO(END - (39 - k) * 86400000);
+          st.reads.push({ d, w: +(170 - readSlope * k).toFixed(2) });
+          st.sleep.nights.push({ d, h: nightH == null ? 8 : nightH });
+        }
+        return st;
+      };
+      const rising = [{ w: 100, reps: [8, 8] }, { w: 100, reps: [9, 9] }, { w: 100, reps: [10, 10] }, { w: 100, reps: [11, 11] }, { w: 100, reps: [12, 12] }];
+      const falling = [{ w: 100, reps: [12, 12] }, { w: 100, reps: [11, 11] }, { w: 100, reps: [10, 10] }, { w: 100, reps: [9, 9] }, { w: 100, reps: [8, 8] }];
+
+      // the three regimes are each REACHABLE — without this, the detector is decorative
+      const free = RG(mkState(rising, 0.15), { asOf: "2026-08-05" });
+      ok(free.key === "free", "R1 regime — lifts rising while weight falls is FREE: both terms of the objective improving at once, which is the global maximum");
+      const costing = RG(mkState(falling, 0.15), { asOf: "2026-08-05" });
+      ok(costing.key === "costing", "R1 regime — lifts falling while weight still falls is COSTING: it has stopped being free and become a trade");
+      const bound = RG(mkState(falling, 0), { asOf: "2026-08-05" });
+      ok(bound.key === "accretionBound", "R1 regime — not rising with the rate indistinguishable from zero is ACCRETION-BOUND, which is the ONLY way a surplus is ever reached. leangain is unreachable without this state");
+
+      // abstention is a first-class answer
+      const thin = RG(mkState(rising.slice(0, 2), 0.15), { asOf: "2026-08-05" });
+      ok(thin.key === "unknown", "R1 regime — under 4 usable lift-trends it abstains rather than guessing; an autonomous coach that guesses is worse than one that abstains");
+      ok(PT({}).state === "unknown" && PT(null).state === "unknown" && RG(null).key === "unknown", "R1 regime is total");
+
+      // NO AUTHORED RATE THRESHOLD — the boundary is currentRate's own interval
+      ok(!/[^a-zA-Z]0\.[0-9]+\s*\)?\s*;?\s*\/\*\s*lb\/wk/.test(String(__test._regimeRaw)) && /r\.lo > 0/.test(String(__test._regimeRaw)) && /r\.lo <= 0 && r\.hi >= 0/.test(String(__test._regimeRaw)),
+        "R1 regime — 'losing' and '~zero' are currentRate's own 95% interval, not a hand-picked lb/wk cutoff. A round number here is the exact tell this project removed nine constants for");
+
+      // the documented liftCall defect, as a test rather than a comment
+      {
+        const st = mkState([{ w: 100, reps: [13, 12] }, { w: 100, reps: [13, 12] }, { w: 100, reps: [13, 12] }, { w: 110, reps: [12, 11] }], 0.15);
+        const lc = __test.liftCall(st, "a");
+        const lt = LT(st, "a");
+        ok(lc.vel < 0, "R1 — liftCall.vel goes NEGATIVE when a lift adds load and gives back reps: it sums reps with no load term");
+        ok(lt && lt.pct > 0, "R1 — liftTrend reads the SAME sessions as positive, because volume load carries the load. This is why the regime detector could not be built on liftCall.vel");
+      }
+
+      // hysteresis: one anomalous session cannot flip a KNOWN state
+      {
+        const base = rising.concat([{ w: 100, reps: [12, 12] }, { w: 100, reps: [12, 12] }, { w: 100, reps: [12, 12] }]);
+        const st = mkState(base.concat([{ w: 100, reps: [2, 2] }]), 0.15);
+        const r = RG(st, { asOf: "2026-08-05" });
+        ok(r.key !== "costing" || r.pending === "costing", "R1 regime — one anomalous session cannot change the reported key; a new state must hold across two evaluations 7 days apart. A hunting target is worse than a wrong constant one");
+      }
+
+      // downside-only: a short-sleep session may not CREATE a decline
+      {
+        const st = mkState(falling, 0.15, 4);   // every night 4h => every session carries debt
+        const pt = PT(st);
+        ok(pt.state !== "falling", "R1 progressionTrend — short sleep PROTECTS: a decline that only exists because every session was short-sleep is downgraded, never reported as a stall. It still banks a rise, because short sleep does not punish");
+      }
+
+      // regime may never read a body-fat estimate — R4's guardrail, enforced at R1
+      ok(!/bfEst/.test(String(__test.regime)) && !/bfEst/.test(String(__test._regimeRaw)) && !/bfEst/.test(String(__test.progressionTrend)) && !/bfEst/.test(String(__test.liftTrend)),
+        "R1 regime — no selector in the chain references bfEst. The instrument cannot resolve the range of interest, so no decision may fire on it");
+
+      // no new stored field
+      ok(!/\bs\.regime\s*=/.test(String(__test.regime)) && !/\bs\.plan\s*=/.test(String(__test.regime)), "R1 regime is a PURE selector — it stores nothing, so hysteresis is derived from the log rather than from a field that could drift");
+    }
+
     }
     }
     }

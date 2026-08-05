@@ -242,6 +242,71 @@ is lost. **And that dissociation was measured in adults averaging 51–60 years 
 is the **fast loop**; monthly skinfolds are the slow calibration loop (R5). Eight logged sessions is
 thin — `"unknown"` will fire first, and that is the feature working.
 
+#### BUILT 2026-08-05 — and three of its acceptance criteria were wrong. Measured, not argued.
+
+The four selectors are in `src/app.jsx` and exported to the suite: `sessionScore`, `liftTrend`,
+`progressionTrend`, `regime` (+ `_regimeRaw`, `_stateAsOf`). 1537 assertions, strict gate green.
+All three regimes are proved reachable by fixture, so `leangain` is no longer dead by
+construction. `regime` stores nothing — hysteresis is derived by re-evaluating a truncated view
+of the state, so the "no new stored field" criterion holds.
+
+**1. `nExcludedNonNumeric` is 2, not 3.** The criterion named `hanging`, `curl` and `pronated`.
+`pronated` is `w = 40` in the roster **and in all three of its logged entries** — it was never
+non-numeric. Measured: `nExcludedNonNumeric === 2`, `excludedIds === ["curl", "hanging"]`.
+
+**2. The exclusion policy as written STARVES the instrument to zero.** The item said to exclude
+`dayWeather().hard` *and* reuse liftCall's rushed/short-sleep exclusions. On his real ledger:
+
+    2026-07-23  hard=false  debt=true      2026-07-30  hard=true   debt=true
+    2026-07-24  hard=false  debt=false     2026-07-31  hard=true   debt=false
+    2026-07-27  hard=true   debt=true      2026-08-03  hard=false  debt=true
+    2026-07-28  hard=false  debt=true      2026-08-04  hard=false  debt=true
+
+**Six of eight sessions carry debt and three carry hard. Only 2026-07-24 is clean on both.**
+
+    usable points per lift:   no exclusions  4     hard-only  2-3     as-specified  0-1
+    lifts reaching n>=4:                    10                  0                     0
+
+That is not protection, it is blindness — and the constitution says short sleep **protects, it
+does not punish**. So `liftTrend` excludes `hard` only (a genuine data-quality flag: declared
+estimate days and event days), and rushed/short-sleep are handled **downside-only** in
+`progressionTrend`: they are kept in the trend, but a `falling` verdict is re-pooled on the
+unflagged sessions alone and downgraded if it does not survive. A short-sleep session can never
+*create* a decline, and it never blocks a rise. That is the rule applied literally instead of by
+deletion.
+
+**3. The real ledger reads `unknown` today, not `free` — and the item contradicts itself here.**
+The criterion says `regime(s).key === "free"`; the item's own *What it does not buy* says
+*"Eight logged sessions is thin — `unknown` will fire first, and that is the feature working."*
+**The caveat is right and the criterion is wrong.** Even with `hard`-only exclusion no lift
+reaches n=4: upper lifts have 4 sessions of which 2 are hard, lower lifts 4 of which 1 is hard.
+`regime` abstains, names the reason, and suppresses every downstream consumer.
+
+*It is close.* Upper lifts need 2 more unflagged sessions, lower lifts 1 — roughly **one normal
+training week**, or sooner as the event window around the wedding ages out of the 6-session
+horizon. **Nothing should be tuned to force a verdict early.** Lowering `TREND_MIN_N` to 3 gives
+df=1 and t=12.706, so the interval would be so wide the state would read `unknown` anyway —
+self-defeating. Dropping the `hard` exclusion would admit declared-estimate days into the one
+instrument the whole objective function rests on.
+
+#### Open question for Joe — the criterion, not the code
+
+`regime(s).key === "free"` cannot be asserted against the live ledger without weakening the
+instrument. **Confirm the caveat wins and the criterion is struck**, or say which of the two
+weakenings you prefer. Nothing was tuned to make it pass.
+
+#### Two defects found while building, both fixed here
+
+- **`deriveLastMeta` called `cleanAtDate(s, d).clean`. `cleanAtDate` returns a BOOLEAN.**
+  Shipped by me in v7.10.0, so `!undefined` forced `debt = true` on **every** re-derive after a
+  `✕` or `↩` correction. Every other call site (593, 1939, 1942, 4090, 4603, 4608, 8401, 11721)
+  treats it as a boolean. Conservative in direction — `debt` only ever protects from a STALL —
+  but it silently suppressed a legitimate stall signal on any corrected lift.
+- **A perfectly straight trend line gave `se = 0`, which took INFINITE weight in the pooling and
+  turned the pooled mean into `NaN`.** The floor I wrote was `1e-6`, and `.toFixed(3)` on the
+  return value rounded it back to exactly `0` — the guard was real and the rounding erased it.
+  Floored above the rounding, and guarded again at the point of use.
+
 #### Verified against the source before this item was written
 
 `liftCall` tot/vel (593/597) · `calorieTarget` band (2197) and `baseHi` (2221) · `bf.pct <= 13.2`
@@ -257,6 +322,12 @@ anywhere — `leangain` is confirmed unreachable.** Line numbers current as of t
 **This queue is `RESEARCH-DESIGN.md` Part 3 (R2 → R9) followed by Part 4 (the bugs), in the
 order that document specifies.** Acceptance criteria are copied from it, not paraphrased.
 Read `RESEARCH-DESIGN.md` before starting any of them — the *why* is not restated here.
+
+**Every ledger-derived count in `RESEARCH-DESIGN.md` is a SNAPSHOT taken 2026-08-05, not live
+state. Verify against the live ledger before acting on one.** This has already bitten once: §R9
+reports 13 open proposals and the live ledger had 3 — Joe had drained the queue after writing it.
+The same applies to read counts, session counts, step and intake trends, and every rate quoted in
+Part 2. The *findings* hold; the *numbers* need re-reading.
 
 **Part 5 of that document is a do-NOT-build list.** Nothing below may reintroduce: a body-fat
 corridor rule, a personal RIR calibration, deload scheduling or autoregulated deloads, autonomous
@@ -337,11 +408,26 @@ verbally** (van der Bles 2020).
 `bfEst` unreachable from `energyBalanceTarget`, `regime`, or any `propose(` call. No UI path
 renders `bf.pct` without its interval.
 
-### R5. The anchor becomes a skinfold sum in millimetres
+### R5. Add a skinfold fat-change TRACKER. The DXA anchor is unchanged.
 
-**Σ7 skinfolds in mm — never converted to a percentage.** Conversion adds a modelling error that
-destroys the precision advantage and reintroduces the point estimate R4 just removed. The sum needs
-**no accuracy at all** — only consistency — because the objective is defined on change.
+**Joe narrowed this item on 2026-08-05, and the reasoning is the point:** skinfolds measure
+subcutaneous fat only. **They never observe lean mass, so they cannot narrow the fat-vs-lean
+partition.** The original R5 proposed replacing the anchor; that overreached. The standing
+guardrail — *"personal fat-vs-lean partitioning is a range that needs repeated DEXA"* — **is right
+and is NOT amended.** `partitionPrior` still requires real DEXA anchors and
+**`PARTITION_ANCHORS_TO_NARROW = 2` stays exactly as it is.**
+
+Two instruments, two jobs. Do not let either drift into the other's role.
+
+| instrument | job | cadence | resolution |
+|---|---|---|---|
+| **Skinfold Σmm** | **fat-change tracker** — direction and magnitude of fat change *between* anchors | monthly, one tester | ~0.6 BF-point detectable change |
+| **DXA** | **partitioning anchor** — role unchanged; the only thing that observes lean mass | per QUEUED item 5 | 1.3–2.2 BF points, *if standardised* |
+
+**Skinfolds are stored and displayed in millimetres and never converted to a percentage.**
+Conversion adds a modelling error that destroys the precision advantage and reintroduces the point
+estimate R4 removed. The sum needs **no accuracy at all** — only consistency — because the
+objective is defined on change.
 
 New synced collection `s.skinfolds = [{ d, sites, sumMm, tester, note }]`.
 
@@ -349,22 +435,16 @@ New synced collection `s.skinfolds = [{ d, sites, sumMm, tester, note }]`.
 migration. New synced state does not ship without all three.
 
 **Assertions.** 4 entries merging with 6 yields 6, never 4. Migration adds `s.skinfolds = []` and
-nothing else. No code path converts `sumMm` to a percentage.
+nothing else. **No code path converts `sumMm` to a percentage.** **`skinfolds` is unreachable from
+`partitionPrior`** — the tracker may not feed the partition. `PARTITION_ANCHORS_TO_NARROW`
+unchanged at 2.
 
-**What it does not buy.** Skinfolds measure subcutaneous fat, not total fat, and absolute accuracy
-is poor. Precision is **entirely conditional on the same tester** — record `tester` and **break the
+**What it does not buy — and this is now the whole boundary of the item.** Skinfolds measure
+subcutaneous fat, not total fat, and absolute accuracy is poor. **They say nothing about lean
+mass.** Precision is **entirely conditional on the same tester** — record `tester` and **break the
 trend line when it changes.** **Disqualify bioimpedance explicitly**: BIS consecutive-day LSC
-3,607 g ≈ 4.9 BF points. If a BIA input ever exists, it must refuse to plot as change.
-
-#### Open question for Joe — R5 vs the standing guardrail, and vs QUEUED item 5
-
-The standing guardrail says *"personal fat-vs-lean partitioning is a **range** that needs repeated
-DEXA, not a point estimate."* R5 moves the anchor to monthly skinfolds with **one** standardised
-DXA. These are compatible in spirit — both refuse a point estimate — but the guardrail names DEXA
-specifically, and **the guardrails win** per `RESEARCH-DESIGN.md`'s own preamble. R5 also
-supersedes the carried-over QUEUED item 5 (*DEXA body-fat anchor*), which is `[needs Joe]` and was
-never actioned. **Joe decides:** amend the guardrail to name "repeated measurement on one
-instrument" rather than DEXA, or hold R5 until he says so. Not resolved here.
+3,607 g ≈ 4.9 BF points, wider than the whole range of interest. If a BIA input ever exists, it
+must refuse to plot as change.
 
 ### R6. Condition maintenance on activity; stop `adaptationSignal` firing on a step drop
 
@@ -511,9 +591,12 @@ From `RESEARCH-DESIGN.md` Part 6. None of them needs a feature:
 does not know they exist, and they hold decisions only Joe can make. They sit below the new queue,
 not in it. Two are directly affected:
 
-- **Item 1 (personal RIR calibration)** — `RESEARCH-DESIGN.md` **Part 5 says do not build it.**
-  Treat it as closed unless Joe overrides.
-- **Item 5 (DEXA body-fat anchor)** — superseded by R5; see the open question there.
+- **Item 1 (personal RIR calibration) — CLOSED.** `RESEARCH-DESIGN.md` Part 5 says do not build
+  it; Joe confirmed closed on 2026-08-05. Do not reopen without him.
+- **Item 5 (DEXA anchor) — NOT superseded, and now REQUIRED by R5.** Joe reinstated it on
+  2026-08-05 as **"DEXA anchor — standardisation protocol required."** R5's tracker measures fat
+  change; only DXA observes lean mass, so the anchor is what makes `partitionPrior` possible at
+  all. See the item for the protocol and the flag it must record.
 
 
 ### 0. TRAIN spec — remainder (all seven §5 moves shipped in v7.8.0)
@@ -1063,7 +1146,27 @@ sit outside the progression engine. Representation options: a per-set load array
 **Data-model change — needs merge hardening and a migration, so it is not overnight work.**
 
 
-### 5. DEXA body-fat anchor `[needs Joe]` — no scan exists yet, and it adds synced state
+### 5. DEXA anchor — standardisation protocol required `[needs Joe]`
+
+> **Reinstated and sharpened by Joe, 2026-08-05.** This item is NOT superseded by R5. Skinfolds
+> track fat change; **only DXA observes lean mass**, so this is the only thing that can anchor
+> `partitionPrior`, and `PARTITION_ANCHORS_TO_NARROW = 2` still requires two real anchors.
+>
+> **Hard standardisation requirement: fasted, no training that morning, no carb or creatine load.**
+> The app turns a scan into a *fixed lean-mass anchor*, so a scan-day error is not noise — it is a
+> **permanent offset on every later reading**. An unstandardised scan is worth up to **5.5 points
+> of permanent anchor bias**, which is more than the entire range of interest. For scale: a 500 g
+> meal plus 1 L of water moved FFM by 1,211 g (+1.64 pts); glycogen and creatine loading moved LBM
+> by 3.0% (+2.58 pts).
+>
+> **The scan-entry path must record whether the protocol was followed** — a required field, not an
+> optional note. **That flag is worth more than the scan's stated precision**, because a
+> `protocol: false` scan cannot be trusted as an anchor at all, no matter what the machine's LSC
+> says. A scan without the flag is not an anchor.
+>
+> Everything below is the original item, kept for its state and open questions.
+
+**Original item —** no scan exists yet, and it adds synced state
 
 **Read this before building it: the queue stub was wrong.** It claimed a DEXA
 "collapses several ranges (e.g. protein 160–190 g → one number)." It does not, and
