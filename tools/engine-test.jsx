@@ -4024,11 +4024,44 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
 
       // protein
       const pC = __test.proteinTargetForRegime(st, "free"), pB = __test.proteinTargetForRegime(st, "accretionBound");
-      ok(pB.g <= pC.g, "R2 proteinTarget — a surplus NEVER raises the protein target. The deficit figure answers a question about sparing lean mass under restriction and stays the ceiling");
+      ok(pB.g >= pB.floorG, "R2 proteinTarget — a surplus never drops protein BELOW Morton 2018 1.6 g/kg BW, which is a SATURATION FLOOR and not a cap. The first build read it as a cap and cut protein by 57 g/day on entering a surplus");
       ok(/Morton/i.test(pB.basis), "R2 proteinTarget — the surplus figure is Morton 2018's 1.6 g/kg bodyweight, which had been sitting unread in BULK_PROTEIN_G_PER_KG_BW");
 
       ok(EBT(st, { regime: { key: "nonsense" } }).dir === "deficit", "R2 energyBalanceTarget is total — an unrecognised regime falls to the deficit path rather than throwing");
     }
+
+    /* ---------- R2 defects found in audit of main@66cd7a7 ---------- */
+    {
+      const EBT = __test.energyBalanceTarget;
+      const st2 = clone(SEED);
+      const td2 = __test.observedTDEE(st2).tdee;
+
+      /* FIX 2 — costing was ABSORBING. It collapsed to one fixed point and stayed
+         there; at that target the rate interval stays above zero, so the detector
+         reads costing forever and accretionBound — the ONLY door to a surplus — is
+         permanently shut. */
+      const c1 = EBT(st2, { regime: { key: "costing" }, heldWeeks: 1 });
+      const c2 = EBT(st2, { regime: { key: "costing" }, heldWeeks: 2 });
+      const c3 = EBT(st2, { regime: { key: "costing" }, heldWeeks: 3 });
+      ok(c2.lo > c1.lo && c3.lo > c2.lo, "R2 costing — each sustained evaluation steps the deficit DOWN toward maintenance. A fixed point is an absorbing state and shuts the only door to a surplus");
+      ok(c1.steppedTo > c2.steppedTo && c2.steppedTo > c3.steppedTo, "R2 costing — the remaining deficit shrinks monotonically, by one width of his own band, so no new constant is authored");
+
+      // and it TERMINATES — this is the assertion the round-trip test could not make
+      let held = 1, last = null;
+      for (; held <= 30; held++) { last = EBT(st2, { regime: { key: "costing" }, heldWeeks: held }); if (last.dir !== "deficit") break; }
+      ok(last && last.dir === "maintenance" && held <= 30, "R2 costing — a sustained decline EVENTUALLY produces a non-deficit target (reached maintenance at evaluation " + held + "). The old build could never leave the deficit, so the machine could not walk to accretionBound no matter how long the decline lasted");
+      ok(Math.abs(last.lo - td2) <= 1, "R2 costing — the terminal target is measured maintenance itself, floored at zero deficit rather than overshooting into a surplus the regime has not earned");
+
+      /* FIX 3 — protein was LOWERED in a surplus. Math.min(175, 118) = 118, a 57 g/day
+         drop, while the comment claimed the cut figure stayed the ceiling. Morton 2018's
+         1.6 g/kg BW is where MPS benefit SATURATES — a floor, not a cap. */
+      const pFree = __test.proteinTargetForRegime(st2, "free");
+      const pBulk = __test.proteinTargetForRegime(st2, "accretionBound");
+      ok(pBulk.g >= pBulk.floorG, "R2 protein — a surplus never drops protein BELOW Morton's saturation floor. The old code used Math.min, so the floor always bound and entering a surplus cut protein by 57 g/day");
+      ok(pBulk.g >= pFree.g, "R2 protein — and it never drops below the cut figure either: protein displaces energy that would otherwise arrive as fat, so under this objective the HIGHER of the two is correct");
+      ok(/floor/i.test(pBulk.basis) && !/ceiling/i.test(pBulk.basis), "R2 protein — the copy now says floor rather than ceiling, because the previous comment and the code disagreed and the code won");
+    }
+
 
 
     }

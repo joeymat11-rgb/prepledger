@@ -2495,8 +2495,36 @@ function proteinTargetForRegime(s, regimeKey) {
   const bwLb = (s && s.trend) || (s && s.reads && s.reads.length ? s.reads[s.reads.length - 1].w : null);
   if (!bwLb) return { ...base, regime: regimeKey, basis: "deficit figure held — no bodyweight to price the surplus figure from" };
   const bulkG = Math.round(BC.BULK_PROTEIN_G_PER_KG_BW * (bwLb / 2.2046));
-  return { ...base, g: Math.min(base.g != null ? base.g : bulkG, bulkG), bulkG, regime: regimeKey,
-    basis: "surplus — Morton 2018 1.6 g/kg bodyweight; the cut figure stays the ceiling and this never raises it" };
+  /* Math.MAX, and the reasoning is not "more is safer".
+     Morton 2018s 1.6 g/kg BW is where the MPS benefit SATURATES. It is a floor
+     below which you are leaving hypertrophy on the table — it is not a cap, and
+     treating it as one is what the previous Math.min did: min(175, 118) = 118,
+     a 57 g/day DROP on entering a surplus, while the comment claimed the cut
+     figure stayed the ceiling. The comment and the code disagreed and the code won.
+
+     Under THIS objective a higher intake is actively better in a surplus: protein
+     displaces energy that would otherwise arrive as fat or carbohydrate, so it
+     lowers the fat fraction of gained tissue at no hypertrophy cost. Maximising
+     [FFM(T)-FFM(0)] - [FM(T)-FM(0)] therefore wants the HIGHER of the two figures,
+     not the lower. */
+  return { ...base, g: Math.max(base.g != null ? base.g : bulkG, bulkG), bulkG, floorG: bulkG, regime: regimeKey,
+    basis: "surplus — Morton 2018 1.6 g/kg bodyweight is a saturation FLOOR, not a cap. Protein never drops below it, and the cut figure is kept when it is higher because protein displaces energy that would otherwise land as fat" };
+}
+
+/* _costingWeeks — how many consecutive 7-day evaluations have read "costing".
+   Derived, not stored, the same way the hysteresis is. Only called from the
+   costing branch, because each step recomputes progressionTrend and currentRate
+   over a truncated state and there is no reason to pay that anywhere else. */
+function _costingWeeks(s, asOf, cap) {
+  const lim = cap || 12;
+  let held = 1;
+  for (let k = 1; k <= lim; k++) {
+    let r = null;
+    try { r = _regimeRaw(_stateAsOf(s, isoOf(new Date(mk(asOf).getTime() - k * REGIME_HOLD_D * DAY)))); } catch (e) { break; }
+    if (!r || r.key !== "costing") break;
+    held++;
+  }
+  return held;
 }
 
 function energyBalanceTarget(s, opts) {
@@ -2522,9 +2550,31 @@ function energyBalanceTarget(s, opts) {
   }
 
   if (key === "costing") {
-    /* the shallow end of HIS OWN band — derived, not authored */
-    return { ...cur, ...base, dir: "deficit", provisional: false, lo: cur.hi, hi: cur.hi, mid: cur.hi, shrunk: true,
-      why: `Lifts are falling while the scale still is, so the deficit has stopped being free and become a trade. Collapsed to the shallow end of your own band (${cur.hi}) rather than to a number nobody measured — the lean cost per kcal of deficit is not identifiable from the literature.` };
+    /* COSTING MUST NOT BE ABSORBING. The first build collapsed to a single fixed
+       point (the shallow end of his own band) and stayed there forever. At that
+       target the scale rate stays clearly above zero, so _regimeRaw reads costing
+       again on every later evaluation and the state has no exit but progression
+       recovering or Joe intervening by hand. accretionBound requires the rate
+       interval to SPAN ZERO, and a fixed deficit never gets there — so the only
+       door to a surplus was permanently shut by the branch that is supposed to be
+       walking toward it.
+
+       So each sustained costing evaluation steps the deficit DOWN toward zero and
+       floors there. The step is one width of his own band — derived, so no new
+       constant is authored — and a degenerate band goes straight to maintenance
+       rather than stepping by a number nobody measured. */
+    const td2 = observedTDEE(s);
+    const asOf2 = (opts && opts.asOf) || isoOf(todayStart());
+    const held = (opts && opts.heldWeeks != null) ? opts.heldWeeks : _costingWeeks(s, asOf2);
+    if (!td2 || !isFinite(td2.tdee)) return { ...cur, ...base, dir: "deficit", provisional: true, lo: cur.hi, hi: cur.hi, mid: cur.hi, shrunk: true, heldWeeks: held, why: "lifts are falling but there is no usable maintenance to step the deficit against — holding at the shallow end of your band" };
+    const deficit0 = Math.max(0, td2.tdee - cur.hi);
+    const step = cur.hi - cur.lo;
+    const deficit = step > 0 ? Math.max(0, deficit0 - (held - 1) * step) : 0;
+    const tgt = Math.round(td2.tdee - deficit);
+    if (deficit <= 0) return { ...cur, ...base, dir: "maintenance", provisional: false, lo: tgt, hi: tgt, mid: tgt, shrunk: true, heldWeeks: held, steppedTo: 0,
+      why: `Lifts have been falling for ${held} evaluation${held === 1 ? "" : "s"} and the deficit has been stepped all the way out. You are at measured maintenance (${tgt}). If progression still does not return from here, the fat term is exhausted and the next honest state is a surplus — which is what accretion-bound means.` };
+    return { ...cur, ...base, dir: "deficit", provisional: false, lo: tgt, hi: tgt, mid: tgt, shrunk: true, heldWeeks: held, steppedTo: deficit,
+      why: `Lifts are falling while the scale still is, so the deficit has stopped being free and become a trade. Stepped down to ${tgt} — ${deficit} kcal under maintenance, one band-width less than last time. It keeps stepping toward maintenance for as long as this lasts, rather than parking at a number nobody measured.` };
   }
 
   if (key === "unknown") {
