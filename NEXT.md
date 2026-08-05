@@ -135,29 +135,46 @@ headless — walk the render-smoke states and eyeball on the phone before shippi
 
 ---
 
-## NOW — the two historical repairs, BLOCKED on the phone updating
+## NOW — v7.11.1, the THIRD denormalised cache
 
-v7.11.0 shipped the correction merge (`a4852d5`, beacon 23:58:32Z). The rule is live.
+Joe made both corrections on the phone (`pronated@2026-07-23`, `ham@2026-07-31`) on
+2026-08-04. As of this writing they have not yet reached the repo — sync lag, not a revert:
+the 08-04 ham un-skip IS present on `origin/main`, which is the proof the new merge rule holds.
 
-**Do not repair `pronated@2026-07-23` or `ham@2026-07-31` yet, and the reason is not caution
-— it is the merge topology.** The merge runs ON THE PHONE: the app pulls the remote record
-and reconciles it locally before writing back. A phone still running v7.10.0 uses the OLD
-rule, which has never heard of `corr` — so a stamped correction made in the repo would be
-reverted by it, exactly as the two previous repairs were.
+**What v7.11.1 fixes.** `deriveLastMeta` (v7.10.0) keeps `ex.lastMeta` in step with a corrected
+log. It does not touch `ex.last` — the SECOND denormalised cache `completeSession` writes, and
+the one `targetsFor` gates on. So the two drifted, and did: after the 08-04 un-skip,
+`ham.lastMeta` read the real `2026-08-04 [10,10]` while `ham.last` still held the removed
+`[12,12]`.
 
-**Order that works:**
+`reconcileLiftCaches(s)` runs on every load, after the patch chain, and brings `ex.last` back
+in line with `ex.lastMeta.reps` when they disagree. Deliberately narrow, so it cannot fire
+when it should not:
 
-1. Force-quit and reopen the installed app twice, until NOW reads **v7.11.0**.
-2. Then make the two corrections on the phone with `✕`, which stamps them. The corrected copy
-   wins on merit and the repo follows.
+- only when `ex.last` is NON-NULL — the weight editor nulls it on purpose to re-seed targets
+  for a new load, and that null must survive;
+- only when `lastMeta.reps` is a real, non-empty array;
+- only on disagreement.
 
-Doing them in the repo would also work once the phone is on v7.11.0, but the phone owns the
-record and the control is right there — there is no reason to route a correction through a
-machine that does not own it.
+It cannot invent a value: both caches are written from the same session by the same line, so
+it copies one onto the other. NOT a schema patch — a derived cache being brought back in line
+with the log it derives from. Five assertions, including the exact ham case and the
+deliberate-null case.
 
-**Still unverified:** the ham un-skip on 2026-08-04. The ledger last synced 18:55, and
-v7.10.0 — which introduced `↩` — did not deploy until 20:29, so no sync since has carried it.
-Needs RULES → Sync now. Friday's before/after for ham curl waits on that.
+**Both correction handlers also re-derive `ex.last` alongside `lastMeta`**, so the drift cannot
+recur from here; the reconcile exists for the state that is already stale.
+
+#### What it changes for Friday: nothing, and that is worth stating
+
+    ham curl              ex.last     lastMeta    anchor      tgt
+    live now (stale)      [12,12]     [10,10]     [12,12]     [12,12]
+    + reconcile           [10,10]     [10,10]     [12,12]     [12,12]
+    + the two corrections [10,10]     [10,10]     [12,11]     [12,12]
+
+The target does not move. `progressAnchor` takes the element-wise max across recent sessions
+at that load, so removing the 07-31 phantom drops the anchor from `[12,12]` to `[12,11]` and
+the step still lands on `[12,12]`. **Right by coincidence beforehand, right on the evidence
+now** — that is the whole value of the change, and it is the honest way to report it.
 
 
 ## QUEUED

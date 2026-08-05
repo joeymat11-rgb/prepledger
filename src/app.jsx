@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.11.0";
+const APP_V = "7.11.1";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -7093,8 +7093,38 @@ function patchV38(s) {
   return s;
 }
 const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38];
+/* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
+   completeSession and must therefore always agree. Disagreement means one of them was
+   repaired and the other was not.
+
+   That happened: `deriveLastMeta` was added to keep `lastMeta` in step with a corrected
+   log, and `ex.last` — the SECOND denormalised cache, the one `targetsFor` gates on — was
+   missed. After correcting the 2026-07-31 phantom, `ham.lastMeta` read the real
+   2026-08-04 [10,10] while `ham.last` still held the removed [12,12].
+
+   Deliberately narrow, because the alternative is a heal that fires when it should not:
+     - only when `ex.last` is NON-NULL. The weight editor sets it to null on purpose to
+       re-seed targets for a new load, and that null must survive.
+     - only when `lastMeta.reps` is a real, non-empty array.
+     - only on disagreement. Agreement is left alone.
+   It cannot invent a value: it copies one cache onto the other, and both are written from
+   the same session by the same line. NOT a schema patch — a derived cache being brought
+   back in line with the log it was derived from. */
+function reconcileLiftCaches(s) {
+  let healed = 0;
+  for (const ex of ((s && s.exercises) || [])) {
+    if (!ex || !ex.last || !Array.isArray(ex.last)) continue;
+    const lm = ex.lastMeta;
+    if (!lm || !Array.isArray(lm.reps) || !lm.reps.length) continue;
+    if (JSON.stringify(ex.last) === JSON.stringify(lm.reps)) continue;
+    ex.last = lm.reps.slice();
+    healed++;
+  }
+  return healed;
+}
+
 function migrate(old) {
-  if (old && old.v === SCHEMA_V) return old;
+  if (old && old.v === SCHEMA_V) { reconcileLiftCaches(old); return old; }   // a corrected log must not leave a stale derived cache behind
   /* A state NEWER than this build — he upgraded, then the app was rolled back.
      Hand it back untouched: no patch here understands schema n+1, and the only
      other exit below is a fresh SEED, which would wipe every read, night,
@@ -7102,7 +7132,7 @@ function migrate(old) {
      may read oddly on fields this code does not know; re-upgrading restores full
      function. A visible misbehaviour is recoverable — a wipe is not. */
   if (old && old.v > SCHEMA_V) return old;
-  if (old && old.v >= 3 && old.v < SCHEMA_V) return PATCHES.reduce((s, p) => p(s), JSON.parse(JSON.stringify(old)));
+  if (old && old.v >= 3 && old.v < SCHEMA_V) { const st = PATCHES.reduce((s, p) => p(s), JSON.parse(JSON.stringify(old))); reconcileLiftCaches(st); return st; }
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -9031,6 +9061,7 @@ __test.UI_KEY = UI_KEY;
 __test.applyDisc = applyDisc;
 __test.readDisc = readDisc;
 __test.oweTarget = oweTarget;
+__test.reconcileLiftCaches = reconcileLiftCaches;
 __test._richerSession = _richerSession; __test._corrOf = _corrOf; __test._stampCorr = _stampCorr;   // CORRECTION_MERGE
 __test.deriveLastMeta = deriveLastMeta;   // the denormalised cache progressStep actually reads
 __test.proposeLadder = proposeLadder; __test.sweepLadders = sweepLadders; __test.LADDER_MIN_N = LADDER_MIN_N;   // §3.3 — infer the rungs, propose them, never apply
@@ -11171,7 +11202,7 @@ function LogTab({ s, setS, save, slp }) {
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: TS.label, alignItems: "center" }}>
                     <span style={{ color: T.chalk }}>{ex ? ex.n : e.id}</span>
                     <span style={{ color: T.steel, display: "flex", gap: 8, alignItems: "center" }}>{e.w != null ? e.w + " × " : ""}{(e.reps || []).join(",")}{e.rir != null ? " · RIR " + e.rir : ""}
-                      <span onClick={() => { if (((done.entries || []).length) <= 1) { window.alert((ex ? ex.n : e.id) + " is the only lift left on this session.\n\nRemoving it would leave the day empty, and an empty session cannot be told apart from a sync artefact later. Voiding a whole day is a separate, deliberate act — this control will not do it.\n\nNothing has been changed."); return; }   /* DECIDED: refuse, and refuse VISIBLY — a rule that silently declines is the same failure class as one that silently reverts */ if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); _stampCorr(rec);   /* CORRECTION_MERGE — without this the removal is an unmarked shrink and the phone reverts it */ const exL = (ns.exercises || []).find((z) => z.id === e.id); if (exL) { const dm = deriveLastMeta(ns, e.id); if (dm) exL.lastMeta = dm; }   /* the cache progressStep reads must follow the log — the earlier ledger repairs did not do this and the phantom kept driving targets */ ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
+                      <span onClick={() => { if (((done.entries || []).length) <= 1) { window.alert((ex ? ex.n : e.id) + " is the only lift left on this session.\n\nRemoving it would leave the day empty, and an empty session cannot be told apart from a sync artefact later. Voiding a whole day is a separate, deliberate act — this control will not do it.\n\nNothing has been changed."); return; }   /* DECIDED: refuse, and refuse VISIBLY — a rule that silently declines is the same failure class as one that silently reverts */ if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); _stampCorr(rec);   /* CORRECTION_MERGE — without this the removal is an unmarked shrink and the phone reverts it */ const exL = (ns.exercises || []).find((z) => z.id === e.id); if (exL) { const dm = deriveLastMeta(ns, e.id); if (dm) { exL.lastMeta = dm; exL.last = dm.reps.slice(); } else { exL.lastMeta = { d: null, w: exL.w, reps: [], rir: null, rirSets: [], debt: false }; exL.last = null; }   /* ex.last is the SECOND denormalised cache completeSession writes, and targetsFor gates on it. Re-derived with lastMeta or they drift apart — which is how a removed entry kept driving a target. */ }   /* the cache progressStep reads must follow the log — the earlier ledger repairs did not do this and the phantom kept driving targets */ ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
                     </span>
                   </div>
                 ); })}
@@ -11198,7 +11229,7 @@ function LogTab({ s, setS, save, slp }) {
                           const exN = (ns.exercises || []).find((z) => z.id === k.id) || {};
                           const en = { id: k.id, reps, rir: null, rirSets: buildRirSets({ reps, rir: null, rirEnd: null }, reps.length), w: typeof exN.w === "number" ? exN.w : null };
                           rec.entries = [...(rec.entries || []), en]; _stampCorr(rec);   /* CORRECTION_MERGE — un-skipping already wins on score, but the stamp makes it deliberate to a third device and orders it against any competing correction */
-                          const dm = deriveLastMeta(ns, k.id); if (dm && exN) exN.lastMeta = dm;
+                          const dm = deriveLastMeta(ns, k.id); if (exN) { if (dm) { exN.lastMeta = dm; exN.last = dm.reps.slice(); } else { exN.last = null; } }   /* ex.last too — see the ✕ handler */
                           ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + ex.n + " UN-SKIPPED on " + fmtShort(dateSel), how: `logged ${reps.join(",")} — it was on the record as skipped and it should not have been. Reps entered by hand, not inferred; RIR is left unrecorded because it was never captured.` });
                           setS(ns); save(ns);
                         }} style={{ fontFamily: mono, fontSize: TS.label, color: T.jade, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 8px", cursor: "pointer" }}>↩</span>
