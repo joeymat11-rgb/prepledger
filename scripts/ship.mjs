@@ -6,8 +6,13 @@
 // commits, so the artifact in the commit is the artifact the source produces.
 //
 // Order matters and is deliberate:
-//   sync sw version -> rebuild -> full gate -> commit -> pull --rebase ->
-//   push -> wait for the deploy beacon to confirm it is actually live.
+//   fetch + MERGE origin/main -> sync sw version -> rebuild -> full gate ->
+//   commit -> push -> wait for the deploy beacon to confirm it is actually live.
+//
+// The remote is integrated FIRST, before the gate, and never after it. There was
+// a `pull --rebase` between the gate and the push; it meant the gate proved a
+// different tree than the one that got pushed, and a conflict left the repo
+// mid-rebase with a half-applied release. Both fired on 2026-08-04. See step 0.
 //
 // The token is read from GH_TOKEN (or, on Windows, from the user environment)
 // and handed to git through a credential helper. It never appears on a command
@@ -66,6 +71,50 @@ async function ship() {
   }
   const git = gitRunner(token);
 
+  // 0. Integrate the remote BEFORE the gate runs, never after.
+  //
+  //    This used to be a `git pull --rebase` sitting between the gate and the
+  //    push (step 5). That ordering had two independent faults, and both fired:
+  //
+  //    a) THE GATE PROVED THE WRONG TREE. The gate ran against the local tree,
+  //       and the rebase then replayed that commit on top of whatever main had
+  //       gained. If another session had touched `src/`, the pushed `app.js`
+  //       was stale against the pushed `src/` -- and "app.js is not stale" is
+  //       the gate's central promise, because Netlify serves this repo as-is.
+  //       CI catches it on main, but only after a red deploy.
+  //
+  //    b) A STOPPED REBASE IS A HALF-APPLIED RELEASE. `ledger/state.json` moves
+  //       every time the phone syncs, so a conflict here is the common case,
+  //       not the rare one. A rebase that stops leaves the repo mid-rebase with
+  //       part of the work applied. On 2026-08-04 that put a PARTIAL v7.6.0 on
+  //       main with APP_V still reading 7.5.0, and it deployed.
+  //
+  //    Fetch and MERGE first, then gate, then push. A merge is atomic: it either
+  //    completes or aborts back to a clean tree -- there is no half state to
+  //    push by accident. And because it happens before the gate, whatever the
+  //    gate proves is exactly what leaves the machine.
+  head("Sync");
+  const fetched = await git(["fetch", "-q", "origin", "main"]);
+  if (fetched.code !== 0) {
+    fail("could not reach origin — nothing was built or pushed");
+    console.error(dim(scrub(fetched.out, token)));
+    return 1;
+  }
+  const behindN = Number(((await git(["rev-list", "--count", "HEAD..FETCH_HEAD"])).out || "0").trim()) || 0;
+  if (behindN > 0) {
+    const merged = await git(["merge", "--no-edit", "-q", "FETCH_HEAD"]);
+    if (merged.code !== 0) {
+      await git(["merge", "--abort"]);
+      fail(`origin/main has ${behindN} commit(s) that do not merge cleanly`);
+      console.error(dim(scrub(merged.out, token)));
+      console.error(`\n  The merge was aborted, so your tree is clean and nothing was built or\n  pushed. Resolve by hand, then run ship again.\n`);
+      return 1;
+    }
+    pass(`merged ${behindN} commit(s) from origin/main — the gate will see the tree that gets pushed`);
+  } else {
+    pass("already up to date with origin/main");
+  }
+
   // 1. Keep the service worker's cache name in step with APP_V. If these drift,
   //    every installed phone keeps serving the old bundle and the ship is a
   //    no-op that looks like a success.
@@ -117,16 +166,14 @@ async function ship() {
 
   // 5. Push.
   head("Push");
-  const rebase = await git(["pull", "--rebase", "-q", "origin", "main"]);
-  if (rebase.code !== 0) {
-    fail("pull --rebase failed — resolve by hand, nothing was pushed");
-    console.error(dim(scrub(rebase.out, token)));
-    return 1;
-  }
+  // The remote was integrated at step 0, before the gate. Do NOT reintroduce a
+  // pull here: anything fetched after the gate is, by definition, ungated.
+  // A rejected push is the wall holding, not a problem to route around.
   const push = await git(["push", "-q", "origin", "HEAD:main"]);
   if (push.code !== 0) {
-    fail("push failed");
+    fail("push rejected — main moved while the gate was running");
     console.error(dim(scrub(push.out, token)));
+    console.error(`\n  ${bold("Do not rebase and retry.")} Just run ship again: step 0 will merge the new\n  commits and re-gate, so what gets pushed is what was proved.\n`);
     return 1;
   }
   const sha = (await git(["rev-parse", "HEAD"])).out.trim();

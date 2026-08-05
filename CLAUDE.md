@@ -109,9 +109,17 @@ because it has already gone wrong once, or would go wrong silently.
 5. **No secrets committed.** The tree is scanned for anything token-shaped.
 6. **The deploy manifest is clean.** The exact set of files sent to the CDN is
    asserted to contain everything the app needs and nothing private.
-7. **The pipeline is still wired.** A YAML error in a workflow does not fail
-   loudly — GitHub just stops running it, and everything after ships ungated.
-   So the gate checks that `deploy` still needs `test` and is still main-only.
+7. **The pipeline is still wired, and `ship` never rebases.** A YAML error in a
+   workflow does not fail loudly — GitHub just stops running it, and everything
+   after ships ungated. So the gate checks that `deploy` still needs `test` and
+   is still main-only. It also reads `scripts/ship.mjs` and fails if `--rebase`
+   reappears, or if the remote merge is gone. `ship` used to `pull --rebase`
+   *between the gate and the push*, which is two bugs at once: the gate proved a
+   tree that was not the tree pushed, and a conflict left the repo mid-rebase on
+   a **detached HEAD with the local commit on zero branches** — while the next
+   line was `push origin HEAD:main`. That is how a partial v7.6.0 reached main on
+   2026-08-04 with `APP_V` still reading 7.5.0, and it deployed. The remote is
+   now merged at step 0, *before* the gate, so what is proved is what is pushed.
 
 ### Shipping
 
