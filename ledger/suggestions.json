@@ -1,39 +1,55 @@
 {
-  "gen": "2026-08-04T12:46:57.448Z",
+  "gen": "2026-08-05T09:06:50.709Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-04_sleep",
-      "title": "Lights out by 00:30 tonight — Sunday's 01:40 bed cost you 1.3 hours",
+      "sid": "sug_2026-08-05_extlog",
+      "title": "Put Tuesday's leg extension back — with the load on it",
       "apply": {
-        "kind": "sleep",
-        "to": 7.5
+        "kind": "note"
       },
       "rationale": {
-        "science": "At a matched deficit, short sleep (5.5 vs 8.5 h) cut fat loss by about 55% and raised lean-mass loss by about 60% — sleep decides how much of what you lose comes off muscle rather than fat (Nedeltcheva 2010; Wang 2018).",
-        "data": "Last four nights 5.0 / 7.0 / 7.0 / 6.17 h against 7.42 / 7.50 / 7.83 the week before — a 2.8 h debt over seven nights against the 7.5 h target you set on 7/28 and held for a week.",
-        "relationship": "Your wake time barely moves (07:35–08:00), so bedtime is the whole variable: 00:20 buys 7.0 h, Sunday's 01:40 bought 6.17. Nothing on this card is about caffeine — your caffeine log stops 7/28 and I won't build on a blank."
+        "science": "A double-progression gate can only rule on what it can see, and your app's own two-for-two rule exists because a single top-of-window sighting sits inside the 0.9-1.4 rep prediction error of one set (Mitter 2022; Ratamess 2009). A set the engine cannot read cannot earn anything.",
+        "data": "Your feed for 8/4 reads 'RECORD AMENDED - Leg extension UN-SKIPPED on Tue 8/4 - logged 8,8'. But sessionLog['2026-08-04'] has five entries and extension is not among them - it sits in that day's skipped list; exercises.extension.lastMeta still reads 2026-07-31, 150 x 10,9; ex.last still reads [10,9]; and q_ext155 still sits at DEBUT, not done.",
+        "relationship": "mergeState scores a session by entry count, so an un-skip that ADDS an entry wins and a re-skip that REMOVES one can win right back - which is exactly the failure mode you wrote into NEXT.md last night. The 8,8 survived in the feed, which nothing reads, and died in the log, which everything reads."
       },
-      "predict": "Bed by 00:30 tonight puts you back at 7–7.5 h. Expect the 7-night debt under 2 h by Thursday, and your next leg day — which carries the 155 debut and the 0-RIR bill — to run without a short night sitting in the middle of it.",
+      "predict": "Re-enter it with the weight and one of two things settles tonight. At 155, 8,8 meets the clean-debut threshold this loop named on 8/1, q_ext155 closes and the gate CL-2 shut on 7/21 is earned. At 150, it is three reps off your 10,9 and the gate stays shut. Either way exercises.extension.lastMeta moves off 2026-07-31 and your next lower day stops prescribing from a nine-day-old card.",
       "confidence": "high",
       "gate": "approve",
       "rank": 1
     },
     {
-      "sid": "sug_2026-08-01_hamlog",
-      "title": "Strike Friday's ham curl before you train legs — your note says you skipped it",
+      "sid": "sug_2026-08-05_rows_open",
+      "title": "Open rows at 2 RIR next upper day — it is frozen until you do",
+      "apply": {
+        "kind": "progression",
+        "to": "Rows 180: log the opener at 2 RIR next upper day to release the governor hold"
+      },
+      "rationale": {
+        "science": "On a deficit you defend load rather than chase failure - work taken to failure costs recovery it does not repay (Robinson 2024; Grgic 2021), and RIR autoregulation is the one readiness method with outcome evidence behind it (Helms 2018; Larsen 2021).",
+        "data": "exercises.rows.rirHist reads [0,0] - your opener went to 0 RIR on 7/30 and again on 8/3 - and holdFlag is true. Your own recovery card names it: '1 lift held by the governor: Rows (strapless).' While that flag stands, progressStep returns a step of zero and the load queue is blocked even at the top of the window.",
+        "relationship": "Two hot openers in a row set the flag; a single opener logged at 1 RIR or better clears it the moment it lands, and the app writes 'HOLD RELEASED - loads can earn.' This is the one place your 0-RIR week actually cost you something, and it cost progression rather than reps."
+      },
+      "predict": "Open rows at 2 RIR next upper day - roughly 180 x 8 rather than 9 - and the hold releases in that session, putting 185 back in reach off 10,10. Leave the opener hot and 180 cannot climb however good the reps look, which is a slower and much less obvious way to lose the lift.",
+      "confidence": "high",
+      "gate": "approve",
+      "rank": 2
+    },
+    {
+      "sid": "sug_2026-08-05_hamcounter",
+      "title": "Ham's top-of-window counter is a fourth cache — it is one sighting ahead of the log",
       "apply": {
         "kind": "note"
       },
       "rationale": {
-        "science": "Progression only protects you if the baseline is real — double progression is measured against reps actually performed (Schoenfeld 2017). An unearned bump is exactly what cratered extension 155 on 7/21 and forced the revert.",
-        "data": "Friday's session note reads \"Ham curl skipped this sesh for time. Abnormal\" while the log shows ham 120 × 12,12 — the only lift that day carrying no effort score at all (rir null), against rir 2 on your real ham entries on 7/24 and 7/28. exercises.ham now reads topAt 120, topRun 1.",
-        "relationship": "Your app has already written \"repeat it and the load queues itself,\" and your next session is a leg day — so one real ham session queues 125 off a set you say you never did."
+        "science": "Your app requires two sightings at the top of the window before a load queues, on the ACSM progression precedent (Ratamess 2009), because one sighting cannot be told apart from a good day inside your own set-to-set spread (Mitter 2022). A counter carrying a sighting the log no longer supports defeats that safeguard rather than applying it.",
+        "data": "exercises.ham reads topAt 120 / topRun 1, but the most recent ham session at 120 is Tuesday's 10,10 - well below the 12,11 the window needs - and your own code resets topRun to 0 on exactly that case. Last night's reconcileLiftCaches healed lastMeta and ex.last; it does not touch topAt or topRun.",
+        "relationship": "The un-skip path rebuilds the two caches you fixed and never runs the progression step, so the counters it feeds are left behind. Next honest 12,11 therefore computes a run of two and queues 125 off one real session - the unearned-bump shape that cratered your extension at 155 in July."
       },
-      "predict": "Strike the entry (or move it into Friday's skipped list) before you train and topRun resets to 0; ham holds at 120 until you put up 12,12 on a session you actually ran.",
-      "confidence": "high",
+      "predict": "Clear topRun (or let a filed non-top ham session clear it) and 125 waits for two real sightings, the way the rule intends. Leave it and the very next good ham day queues a 4% jump on a lift that just did 10,10 after a week off.",
+      "confidence": "medium",
       "gate": "approve",
-      "rank": 2
+      "rank": 3
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "gen": "2026-08-04T12:46:57.448Z",
+  "gen": "2026-08-05T09:06:50.709Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
     "soft": 163.83,
@@ -19,9 +19,9 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2756,
+    "tdee": 2741,
     "tdeeWinDays": 20,
-    "meanCal": 2233,
+    "meanCal": 2218,
     "waterSensitivityLb": 0.96,
     "waterSensDays": 3,
     "meanSleepH": 6.8,
@@ -72,7 +72,7 @@
     {
       "wk": "2026-08-03",
       "meanCal": 1950,
-      "meanPro": 180,
+      "meanPro": 183,
       "proHitPct": 100,
       "meanSteps": 12000
     }
@@ -171,6 +171,17 @@
         "kind": "note"
       },
       "predict": "The first read back comes in high — mid-to-high 160s is an estimate, not a promise — then gives back roughly a pound a morning for three or four mornings, the same shape as 7/12 through 7/15, settling near the mid-164s the trend already holds. The test: reads gains 8/3 and 8/4, and the forecast trend moves off 163.9."
+    },
+    {
+      "sid": "sug_2026-08-04_sleep",
+      "decided": "approved",
+      "d": "2026-08-04",
+      "title": "Lights out by 00:30 tonight — Sunday's 01:40 bed cost you 1.3 hours",
+      "apply": {
+        "kind": "sleep",
+        "to": 7.5
+      },
+      "predict": "Bed by 00:30 tonight puts you back at 7–7.5 h. Expect the 7-night debt under 2 h by Thursday, and your next leg day — which carries the 155 debut and the 0-RIR bill — to run without a short night sitting in the middle of it."
     }
   ],
   "suggestions": [
@@ -183,7 +194,7 @@
       },
       "rationale": {
         "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss 55% and raised lean-mass loss 60% (Nedeltcheva 2010).",
-        "data": "Last 13 nights average 6.8 h (7-night debt 2.8 h); 0 recent days had >=300 mg or afternoon caffeine.",
+        "data": "Last 13 nights average 6.8 h (7-night debt 2.8 h); 1 recent days had >=300 mg or afternoon caffeine.",
         "relationship": "Short sleep + late caffeine track with your low recovery score and rep dips - the lever that protects lean while you cut."
       },
       "predict": "Higher share of loss as fat; lean protected; better session quality.",
