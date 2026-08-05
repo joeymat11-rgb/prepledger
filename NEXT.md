@@ -349,7 +349,21 @@ from noise, and acting anyway manufactures churn.
 
 ### R2. The calorie target must be able to return a surplus
 
-#### BUILT 2026-08-05 — shipped with R1's re-pool defect fixed first
+#### PARTIAL — the function exists, nothing calls it. Audited on main@66cd7a7.
+
+**`energyBalanceTarget` has ZERO callers, and that is the `leangain` bug again one item
+later.** Three mentions in the file: the R2_NOTE comment, the definition, the `__test`
+export. Its own note claims it is *"the single owner… the only function allowed to decide
+the sign of energy balance."* **It owns nothing — `calorieTarget` still does.**
+
+`phasePlan` was dead because it had an apply handler and UI references and no constructor.
+This is dead because it has a definition and a test export and no caller. **Same shape, and
+it was nearly filed as shipped, which is how a queue forgets.** The function was the easy
+half; the migration is the risky half and it is the half that changes anything.
+
+**R2 stays OPEN until R2b lands.**
+
+#### BUILT 2026-08-05 — the branching, and two defects found in audit
 
 `energyBalanceTarget(s)` is the single owner and branches on `regime(s).key`.
 `energyDensity(s, dir)` takes a direction; `proteinTargetForRegime(s, key)` takes the regime.
@@ -422,6 +436,33 @@ monotone, non-hunting target path.
 
 **What it does not buy.** The surplus *magnitude* has almost no adequately-powered trained-lifter
 evidence. `BULK_REDLINE_PCT = 0.25` is a defensible cap, not a measured optimum. Label it.
+
+### R2b. Migrate calorieTarget's consumers to energyBalanceTarget
+
+**This is the half of R2 that changes anything.** `energyBalanceTarget` branches correctly
+and is proved to by 20 assertions — and no code path reaches it, so today it is decorative.
+
+**Do not wire a caller until the R2 audit fixes are on main.** They landed together in
+`fix/r2-defects`; verify both are present before starting, because the migration is what
+makes a wrong branch live.
+
+- Enumerate every consumer of `calorieTarget` — UI and engine — and list them in this item
+  before editing. Grep-count, do not estimate.
+- Migrate them one at a time, each with its own assertion.
+- `calorieTarget` becomes the deficit-path implementation detail that
+  `energyBalanceTarget` calls, never a public entry point. Assert it has no callers outside
+  `energyBalanceTarget` when done.
+- **The `provisional` flag has to reach the surface.** A provisional target that renders
+  identically to a decided one is the same defect class as a proposal whose `apply.kind` is
+  `note`: it takes the user's attention and returns nothing.
+
+**Assertions.** No engine or UI path calls `calorieTarget` directly. A state whose regime is
+`accretionBound` renders a surplus everywhere a target is shown. `provisional === true`
+renders visibly differently from `false`.
+
+**What it does not buy.** Migrating the callers does not validate the branch logic — that is
+R2's job and it is done. This is about reach, and reach is where this codebase has failed
+twice now (`phasePlan`, and R2 itself).
 
 ### R3. The deficit rate: his record, with the band as prior
 
