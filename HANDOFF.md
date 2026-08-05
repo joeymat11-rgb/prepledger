@@ -532,10 +532,27 @@ against the live system, immediately before the originating session was closed.
 
 ### 0.23.1 Repo access - how to authenticate
 
-**The repo is PRIVATE.** Section 3 says "This repo is public." That is WRONG.
-Verified 2026-07-29: an anonymous clone with credential helpers disabled is
-refused. His `ledger/state.json` - which carries his body data - is therefore not
-world-readable. Do not act on section 3's claim.
+**The repo is PUBLIC again as of 2026-08-05.** This entry has now been true in
+both directions, so read the dates, not the adjective:
+
+- section 3 said "public" — correct originally, then wrong
+- 2026-07-29: verified PRIVATE. An anonymous clone was refused
+- **2026-08-05: made PUBLIC by Joe.** Verified unauthenticated:
+  `private: false, visibility: public`
+
+Why: a GitHub Actions billing block (spending limit at $0 once the included
+minutes ran out) stopped every job from starting, mid-release, with v7.12.0
+merged to `main` but undeployable. Public repos get free unlimited Actions. Joe
+was shown exactly what becomes world-readable — sleep times, training dates,
+injuries, body-fat estimates, daily food logs, tied to his GitHub identity — and
+chose it. It is a decision, not a mistake.
+
+`ledger/state.json` **is** world-readable now. Do not write anything into it you
+would not publish, and never assume privacy as a control anywhere in this repo.
+
+Before it went public, every blob in the entire history was scanned for
+token-shaped strings and sensitive file paths: **both clean**, so no credential
+was exposed by the switch.
 
 **NEVER** put a token in a prompt, in a command you echo, in a commit, or in any
 file. If you ever see a literal token anywhere, stop and tell Joe it needs
@@ -562,8 +579,13 @@ had been pasted there as a convenience. Both prompts were rewritten to remove it
 and to forbid the practice; verified zero tokens remain in either.
 
 The exposure was bounded - the prompts live in Joe's own account, not in this
-repo, and the repo is private. Nothing is known to have leaked. But the key is
-still the compromised one.
+repo, and the repo was private at the time. Nothing is known to have leaked. But
+the key is still the compromised one.
+
+**Dated note (2026-08-05):** the repo is now PUBLIC. That does not widen this
+particular exposure - the key was never in the repo, and the full history was
+scanned clean before the switch. It does mean the "bounded because private"
+reasoning is retired for anything from here on.
 
 **Rotation is PENDING as of this commit.** Joe intends to do it himself the same
 evening. An agent must never handle the value: creating, pasting or storing a
