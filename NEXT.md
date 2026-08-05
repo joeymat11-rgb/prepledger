@@ -349,6 +349,57 @@ from noise, and acting anyway manufactures churn.
 
 ### R2. The calorie target must be able to return a surplus
 
+#### BUILT 2026-08-05 — shipped with R1's re-pool defect fixed first
+
+`energyBalanceTarget(s)` is the single owner and branches on `regime(s).key`.
+`energyDensity(s, dir)` takes a direction; `proteinTargetForRegime(s, key)` takes the regime.
+1555 assertions, strict gate green.
+
+    regime            dir       band          provisional
+    free              deficit   1750–1836     false
+    unknown           deficit   1750–1836     TRUE
+    costing           deficit   1836–1836     false     (shallow end of his own band)
+    accretionBound    surplus   2443–2513     false     (maintenance 2373)
+
+**The UNKNOWN branch is the one that runs today**, and Joe specified it: it holds the
+prescription his own eight-week record validated and labels itself provisional. Abstention
+must not mean stopping what is working. Asserted as identical to the free band, with copy
+that says the engine is holding rather than deciding.
+
+**Costing invents no number.** The lean cost per kcal of deficit is not identifiable from the
+literature, so costing collapses the band to its own shallow end rather than to an authored
+figure. Derived from constants already in the file.
+
+**Gain density is 2,376 kcal/lb against 3,800 for loss** — `GAIN_FAT_FRAC = 0.45`, which is
+exactly the split that reproduces RESEARCH-DESIGN §R2's figure. Labelled a PRIOR, not a
+measurement: nothing in the literature pins the gain partition for a trained lifter, and
+Helms 2023 ran 17 completers across three groups against its own required 31 per group.
+
+**Protein never rises in a surplus.** The deficit figure (2.5–3.0 g/kg FFM) answers a question
+about sparing lean mass under restriction and stays the ceiling; the surplus figure is
+Morton 2018's 1.6 g/kg BW, which had been sitting unread in `BC.BULK_PROTEIN_G_PER_KG_BW`.
+
+#### R1 correction shipped in the same change — the mirror defect
+
+The re-pool added in R1 downgraded a `falling` verdict whenever the unflagged subset was
+too small to test it. **He has ONE session clean on both flags (2026-07-24), so `falling`
+could never survive and `costing` was structurally unreachable for as long as his sleep
+stays short** — the app going blind to the exact state it exists to detect, under precisely
+the conditions where detecting it matters most.
+
+**Absence of clean sessions is not evidence of no decline.** The re-pool may now only
+downgrade when it has the power to: below `TREND_MIN_N` unflagged trends the verdict stands
+and is marked `confidence: "low"` with the reason. Three assertions cover it, including the
+one Joe specified — a genuine decline with zero clean sessions still returns `falling`.
+
+#### Note on constants
+
+`TREND_MIN_N` is **4**, at the definition and both use sites — it never drifted from the
+spec. **Any future change to a spec'd constant gets called out explicitly** rather than left
+in a diff.
+
+
+
 `calorieTarget` (2197–2221, **verified**) has no phase branch: `const band = cutRateBand(s).band`
 then `baseHi = Math.max(floor, td.tdee - kcalFor(band[0]))` — it **always subtracts**. A committed
 `leangain` phase is still prescribed a deficit. Five more paths cannot represent a surplus:

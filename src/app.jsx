@@ -1887,7 +1887,7 @@ function liftTrend(s, exId) {
   const sePct = Math.max((seB / my) * 100, 0.001);
   const t = _tCrit(n - 2);
   const nSoft = use.filter((p) => p.soft).length;
-  return { id: exId, n, nSoft, pct: +pct.toFixed(3), se: +sePct.toFixed(3), lo: +(pct - t * sePct).toFixed(3), hi: +(pct + t * sePct).toFixed(3), from: use[0].d, to: use[n - 1].d, pts: use };
+  return { id: exId, n, nSoft, pct: +pct.toFixed(3), se: +sePct.toFixed(3), lo: +(pct - t * sePct).toFixed(3), hi: +(pct + t * sePct).toFixed(3) /* se is rounded to 3dp HERE — that is why the floor above is 0.001 and not 1e-6. A tighter floor is silently rounded back to exactly 0 by this line, and a zero se takes infinite weight in the pooling. The guard was real; the formatter erased it. */, from: use[0].d, to: use[n - 1].d, pts: use };
 }
 
 /* progressionTrend — inverse-variance pooled mean across lifts that have a usable
@@ -1926,18 +1926,30 @@ function progressionTrend(s) {
      unprotected points only; if falling does not survive, it is not a decline he
      has to answer for. It can still bank a rise — short sleep protects, it does
      not punish, and it never blocks the upside. */
-  let protectedBy = null;
+  let protectedBy = null, confidence = "normal";
   if (state === "falling") {
     const clean2 = trends.filter((t) => t.nSoft === 0);
-    if (clean2.length < TREND_MIN_N) { state = "unknown"; protectedBy = "too few unrushed, unflagged sessions to call a decline"; }
+    if (clean2.length < TREND_MIN_N) {
+      /* THE MIRROR OF THE BUG THIS RE-POOL FIXES. He has ONE session clean on both
+         flags (2026-07-24). A trend cannot be pooled from one point, so if the
+         re-pool were allowed to erase the verdict here, "falling" could never
+         survive and COSTING would be structurally unreachable for as long as his
+         sleep stays short — the app going blind to the exact state it exists to
+         detect, under precisely the conditions where detecting it matters most.
+         ABSENCE OF CLEAN SESSIONS IS NOT EVIDENCE OF NO DECLINE. The re-pool may
+         only downgrade when it has the power to. With too few unflagged sessions
+         to test, the verdict STANDS and is marked low-confidence instead. */
+      confidence = "low";
+      protectedBy = "kept at low confidence — only " + clean2.length + " unflagged lift-trend(s), too few to test the decline. Absence of clean sessions is not evidence of no decline";
+    }
     else {
       let sw2 = 0, swx2 = 0;
       for (const t of clean2) { const w = 1 / Math.max(t.se * t.se, 1e-9); sw2 += w; swx2 += w * t.pct; }
       const p2 = swx2 / sw2, se2 = Math.sqrt(1 / sw2);
-      if (!(p2 + 1.96 * se2 < 0)) { state = "flat"; protectedBy = "the decline does not survive dropping rushed and short-sleep sessions"; }
+      if (!(p2 + 1.96 * se2 < 0)) { state = "flat"; protectedBy = "the decline does not survive dropping rushed and short-sleep sessions — tested against " + clean2.length + " unflagged trends, so this downgrade is earned rather than assumed"; }
     }
   }
-  return { ...base, state, protectedBy, nSoft: trends.reduce((a, t) => a + t.nSoft, 0), pct: +pct.toFixed(3), se: +se.toFixed(3), lo: +lo.toFixed(3), hi: +hi.toFixed(3),
+  return { ...base, state, protectedBy, confidence, nSoft: trends.reduce((a, t) => a + t.nSoft, 0), pct: +pct.toFixed(3), se: +se.toFixed(3), lo: +lo.toFixed(3), hi: +hi.toFixed(3),
     why: state === "unknown" ? "pooled interval " + lo.toFixed(1) + " to " + hi.toFixed(1) + " %/session is too wide to call" : "pooled " + pct.toFixed(2) + " %/session across " + trends.length + " lifts" };
 }
 
@@ -2432,6 +2444,98 @@ function dietExit(s) {
    carry the TDEE's uncertainty into the answer instead of hiding it. 3,500 kcal
    per pound is the conventional figure and is itself an approximation — which is
    why the output is a band, and why it never overrides the calorie floor. */
+/* ==================== R2_NOTE — energyBalanceTarget ====================
+
+   calorieTarget has no phase branch. It reads cutRateBand and ALWAYS subtracts,
+   so a committed leangain phase was still prescribed a deficit and the surplus
+   half of the objective was unreachable in code. This is the single owner: it
+   branches on regime(s).key and is the only function allowed to decide the sign
+   of energy balance.
+
+   THE UNKNOWN BRANCH IS THE ONE THAT RUNS TODAY. regime abstains until the log
+   earns a verdict, so "unknown" is the live state and therefore the first path
+   that executes. It HOLDS the current prescription — the ~0.7 %BW/wk deficit his
+   own eight-week record validated with progression intact — and labels itself
+   provisional. Abstention must never mean "stop doing the thing that is working."
+   The engine is not deciding yet; it is holding, and it says so.
+
+   COSTING DOES NOT INVENT A NUMBER. "Shrink the deficit" needs a magnitude and
+   the literature cannot supply one — the lean-cost-per-kcal slope is not
+   identifiable (Garthe 2011 reports percentage intake cuts with no kcal
+   denominator, and a model fitted to it mispredicts its own arms by 0.9-1.4
+   lb/wk with the wrong sign on the winning arm). So costing collapses the band
+   to the SHALLOW END OF HIS OWN BAND rather than to an authored figure. That is
+   derived from constants already in the file.
+
+   THE SURPLUS IS CAPPED, NOT OPTIMISED. BULK_REDLINE_PCT (0.25 %BW/wk) is a
+   defensible cap, NOT a measured optimum. Helms 2023 is the only trial and it
+   ran 17 completers across 3 groups against its own Bayesian requirement of 31
+   per group — 18% of the required n, and it says so. Four of its six
+   muscle-thickness Bayes factors are anecdotal. "A surplus never helps" is not
+   supported either; what IS supported is that a large surplus reliably adds fat
+   (skinfold BF10 3.0, BM-to-skinfold BF10 14.3). Label it. ==================== */
+
+/* Energy density of tissue GAINED is not the density of tissue LOST. 3,800
+   kcal/lb prices a loss that is ~86% fat; a gain partitions far more lean, so
+   using the loss figure makes every surplus conversion ~60% too expensive.
+   GAIN_FAT_FRAC 0.45 reproduces the 2,376 kcal/lb in RESEARCH-DESIGN R2:
+     0.45 x 4282 + 0.55 x 816 = 2376
+   It is a PRIOR, not a measurement, and nothing in the literature pins it for a
+   trained lifter — the band is deliberately wide for that reason. */
+const GAIN_FAT_FRAC = 0.45, GAIN_FAT_FRAC_LO = 0.30, GAIN_FAT_FRAC_HI = 0.60;
+
+/* proteinTargetForRegime — the deficit meta-regression's 2.5-3.0 g/kg FFM answers
+   a question about SPARING lean mass under restriction. In a surplus the question
+   is different and the cited figure is Morton 2018's 1.6 g/kg BW, which has sat
+   unread in BULK_PROTEIN_G_PER_KG_BW since it was added. Never raises the target
+   in a surplus — the cut number is the higher one and it stays the ceiling. */
+function proteinTargetForRegime(s, regimeKey) {
+  const base = proteinTarget(s);
+  if (regimeKey !== "accretionBound") return { ...base, regime: regimeKey || "unknown", basis: "deficit — sparing lean mass under restriction" };
+  const bwLb = (s && s.trend) || (s && s.reads && s.reads.length ? s.reads[s.reads.length - 1].w : null);
+  if (!bwLb) return { ...base, regime: regimeKey, basis: "deficit figure held — no bodyweight to price the surplus figure from" };
+  const bulkG = Math.round(BC.BULK_PROTEIN_G_PER_KG_BW * (bwLb / 2.2046));
+  return { ...base, g: Math.min(base.g != null ? base.g : bulkG, bulkG), bulkG, regime: regimeKey,
+    basis: "surplus — Morton 2018 1.6 g/kg bodyweight; the cut figure stays the ceiling and this never raises it" };
+}
+
+function energyBalanceTarget(s, opts) {
+  const reg = (opts && opts.regime) || regime(s);
+  const key = reg && reg.key ? reg.key : "unknown";
+  const cur = calorieTarget(s);
+  const ed = energyDensity(s, "gain");
+  const base = { regime: key, regimeWhy: reg && reg.why, regimeConfirmed: !!(reg && reg.confirmed) };
+
+  if (cur.gated) return { ...cur, ...base, dir: "deficit", provisional: true, why: "the calorie band is gated upstream — the regime cannot override a gate" };
+
+  if (key === "accretionBound") {
+    const bw = (s && s.trend) || null;
+    const td = observedTDEE(s);
+    if (!bw || !td || !isFinite(td.tdee)) return { ...cur, ...base, dir: "deficit", provisional: true, why: "accretion-bound, but no usable bodyweight or maintenance to price a surplus from — holding" };
+    const kcalFor = (pct) => Math.round((((pct / 100) * bw) * ed.perLb) / 7);
+    const lo = td.tdee + kcalFor(BC.BULK_CORR_PCT[0]);
+    const hi = td.tdee + kcalFor(BC.BULK_REDLINE_PCT);
+    return { ...cur, ...base, dir: "surplus", provisional: false, lo, hi, mid: Math.round((lo + hi) / 2),
+      capPct: BC.BULK_REDLINE_PCT, perLb: ed.perLb,
+      why: `Lifts are not rising and the scale rate is indistinguishable from zero — the fat term is exhausted, so the only remaining way to move body composition is to build. ${lo}–${hi} is a surplus capped at ${BC.BULK_REDLINE_PCT} %bw/wk.`,
+      doesNotBuy: "The cap is defensible, not optimal. The only trial in trained lifters ran at 18% of its own required sample size; what is well supported is that a bigger surplus reliably adds fat, not that it builds faster." };
+  }
+
+  if (key === "costing") {
+    /* the shallow end of HIS OWN band — derived, not authored */
+    return { ...cur, ...base, dir: "deficit", provisional: false, lo: cur.hi, hi: cur.hi, mid: cur.hi, shrunk: true,
+      why: `Lifts are falling while the scale still is, so the deficit has stopped being free and become a trade. Collapsed to the shallow end of your own band (${cur.hi}) rather than to a number nobody measured — the lean cost per kcal of deficit is not identifiable from the literature.` };
+  }
+
+  if (key === "unknown") {
+    return { ...cur, ...base, dir: "deficit", provisional: true,
+      why: `Not enough clean training data to read a regime yet, so this HOLDS the prescription your own record validated — ${cur.lo}–${cur.hi}. The engine is not deciding here; it is holding. Abstaining is not a reason to stop doing the thing that is working.` };
+  }
+
+  return { ...cur, ...base, dir: "deficit", provisional: false,
+    why: `Lifts are holding or rising while fat falls — both halves of the objective are improving at once, which is the best state available. Hold ${cur.lo}–${cur.hi}.` };
+}
+
 function calorieTarget(s) {
   const td = observedTDEE(s);
   const band = cutRateBand(s).band;   // v6.2.1 — the Auto-Pilot mode now drives the calorie band (was fixed s.rate.band)
@@ -2923,7 +3027,18 @@ function energyDensityUncached(s) {
       : `${KCAL_PER_LB_MIX} kcal per lb — the labeled prior (~${Math.round(PRIOR_FAT_FRAC * 100)}% fat). Held at the prior until a DEXA measures your fat mass; the ${Math.min(e1, e2)}–${Math.max(e1, e2)} band is that uncertainty made visible.`,
   };
 }
-const energyDensity = memoOnState(energyDensityUncached);   // pure in s; four call sites per render
+const _energyDensityLoss = memoOnState(energyDensityUncached);
+/* energyDensity(s, dir) — "loss" (default) or "gain". Tissue GAINED partitions far
+   more lean than tissue lost, so pricing a surplus at the loss figure makes every
+   conversion ~60% too expensive. See GAIN_FAT_FRAC. */
+function energyDensity(s, dir) {
+  const base = _energyDensityLoss(s);
+  if (dir !== "gain") return base;
+  const dens = (f) => f * KCAL_PER_LB_FAT + (1 - f) * KCAL_PER_LB_LEAN;
+  const g1 = Math.round(dens(GAIN_FAT_FRAC_LO)), g2 = Math.round(dens(GAIN_FAT_FRAC_HI));
+  return { ...base, dir: "gain", perLb: Math.round(dens(GAIN_FAT_FRAC)), lo: Math.min(g1, g2), hi: Math.max(g1, g2), fatFrac: GAIN_FAT_FRAC, identified: false,
+    label: Math.round(dens(GAIN_FAT_FRAC)) + " kcal per lb GAINED — a labelled prior (~" + Math.round(GAIN_FAT_FRAC * 100) + "% fat), not a measurement. Tissue gained is not tissue lost: pricing a surplus at the loss figure would overstate its cost by about 60%." };
+}   // pure in s; four call sites per render
 
 // ---- TDEE (Topic 1): a slowly-drifting latent state, EWMA self-learning ----
 const TDEE_EMA_ALPHA = 0.10;              // per-update forgetting (~10-day constant); converges ~2–4 wk
@@ -8854,6 +8969,9 @@ __test.sessionScore = sessionScore;
 __test.liftTrend = liftTrend;
 __test.progressionTrend = progressionTrend;
 __test.regime = regime;
+__test.energyBalanceTarget = energyBalanceTarget;
+__test.proteinTargetForRegime = proteinTargetForRegime;
+__test.GAIN_FAT_FRAC = GAIN_FAT_FRAC;
 __test._regimeRaw = _regimeRaw;
 __test._stateAsOf = _stateAsOf;
 __test.REGIME_HOLD_D = REGIME_HOLD_D;
