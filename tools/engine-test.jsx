@@ -3880,6 +3880,21 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
       const noMeta = { exercises: [{ id: "ham", last: [12, 12], lastMeta: { d: null, reps: [] } }] };
       ok(RC(noMeta) === 0 && JSON.stringify(noMeta.exercises[0].last) === JSON.stringify([12, 12]), "RECONCILE — an empty lastMeta is not evidence and does not clobber ex.last");
       ok(RC({}) === 0 && RC(null) === 0, "RECONCILE is total");
+
+    // The receipt printed en.rir -- the OPENER -- under a bare "RIR" label, while
+    // progressStep is sized by the TERMINAL rating. So it showed the number that does not
+    // drive progression and hid the one that does, and on an opener-only day it read as a
+    // flat contradiction of the debrief line "No last-set ratings anywhere today".
+    {
+      const RR = __test.rirReceipt;
+      ok(RR({ reps: [15, 14, 13, 12], rirSets: [2, null, null, 0] }) === "RIR 2→" + "0", "RIR RECEIPT — both ends rated shows BOTH: the terminal rating is what sizes the step and it was never on screen (2026-07-30 lateral, the real shape)");
+      ok(RR({ reps: [12, 11], rirSets: [1, null] }) === "RIR 1→?", "RIR RECEIPT — opener only renders the last set as ?, which is what makes the \"no last-set ratings\" debrief line legible instead of contradictory");
+      ok(RR({ reps: [12, 11], rirSets: [null, 0] }) === "RIR ?→0", "RIR RECEIPT — a terminal rating with no opener still shows, and shows WHICH end is missing");
+      ok(RR({ reps: [8, 8, 5], rirSets: [null, null, null] }) === null, "RIR RECEIPT — an unrated lift prints nothing rather than a bare ?, so a genuinely unrated day stays visibly unrated");
+      ok(RR({ reps: [10], rirSets: [2] }) === "RIR 2", "RIR RECEIPT — one set means the opener IS the last set; an arrow would invent a distinction the session does not have");
+      ok(RR({ reps: [12, 12], rir: 1 }) === "RIR 1→?", "RIR RECEIPT — a legacy entry with only en.rir reads through rirSetsOf: the old field has always meant the opener");
+      ok(RR({ reps: [] }) === null && RR(null) === null && RR({}) === null, "RIR RECEIPT is total");
+    }
     }
     }
     }

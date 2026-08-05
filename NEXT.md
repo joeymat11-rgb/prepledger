@@ -135,47 +135,40 @@ headless — walk the render-smoke states and eyeball on the phone before shippi
 
 ---
 
-## NOW — v7.11.1, the THIRD denormalised cache
+## NOW — v7.12.0, the receipt shows the rating that actually sizes the step
 
-Joe made both corrections on the phone (`pronated@2026-07-23`, `ham@2026-07-31`) on
-2026-08-04. As of this writing they have not yet reached the repo — sync lag, not a revert:
-the 08-04 ham un-skip IS present on `origin/main`, which is the proof the new merge rule holds.
+**v7.11.1 closed the correction thread.** Both historical repairs are in and stamped
+(`2026-07-23` at 00:10:07Z, `2026-07-31` at 00:09:52Z), they survived the round trip, and
+`reconcileLiftCaches` fired on the phone: `ham.last` healed `[12,12]` → `[10,10]` and stayed
+healed through the sync. All three denormalised caches now agree with the log.
 
-**What v7.11.1 fixes.** `deriveLastMeta` (v7.10.0) keeps `ex.lastMeta` in step with a corrected
-log. It does not touch `ex.last` — the SECOND denormalised cache `completeSession` writes, and
-the one `targetsFor` gates on. So the two drifted, and did: after the 08-04 un-skip,
-`ham.lastMeta` read the real `2026-08-04 [10,10]` while `ham.last` still held the removed
-`[12,12]`.
+### The defect
 
-`reconcileLiftCaches(s)` runs on every load, after the patch chain, and brings `ex.last` back
-in line with `ex.lastMeta.reps` when they disagree. Deliberately narrow, so it cannot fire
-when it should not:
+The logged-session receipt printed `en.rir` under a bare `RIR` label. `en.rir` is the
+OPENER's rating; `progressStep` is sized by the TERMINAL one. So the receipt showed the
+number that does not drive progression and hid the number that does — on all 21 entries in
+the log that carry both ends.
 
-- only when `ex.last` is NON-NULL — the weight editor nulls it on purpose to re-seed targets
-  for a new load, and that null must survive;
-- only when `lastMeta.reps` is a real, non-empty array;
-- only on disagreement.
+On an opener-only day it was worse than useless: `Sulek curl 87.5 × 12,11 · RIR 1` sat four
+lines above a debrief reading *"No last-set ratings anywhere today"*. Both true; nothing on
+screen let a reader tell. **A rule surviving only in copy is still a rule, because he reads
+the copy** — and here the copy was arguing with itself.
 
-It cannot invent a value: both caches are written from the same session by the same line, so
-it copies one onto the other. NOT a schema patch — a derived cache being brought back in line
-with the log it derives from. Five assertions, including the exact ham case and the
-deliberate-null case.
+### The fix
 
-**Both correction handlers also re-derive `ex.last` alongside `lastMeta`**, so the drift cannot
-recur from here; the reconcile exists for the state that is already stale.
+`rirReceipt(en)` prints both ends, with `?` for a set that was never rated. That `?` is what
+makes the debrief line legible instead of contradictory. A single-set lift prints one number
+— there the opener IS the last set, and an arrow would invent a distinction the session does
+not have. Engine-owns-numbers: it returns the finished string, the UI only places it.
 
-#### What it changes for Friday: nothing, and that is worth stating
+    2026-07-30 lateral   RIR 2    ->  RIR 2→0
+    2026-07-30 rows      RIR 0    ->  RIR 0→1
+    2026-07-27 sulek     RIR 1    ->  RIR 1→?
+    2026-07-27 press     (none)   ->  (none)
 
-    ham curl              ex.last     lastMeta    anchor      tgt
-    live now (stale)      [12,12]     [10,10]     [12,12]     [12,12]
-    + reconcile           [10,10]     [10,10]     [12,12]     [12,12]
-    + the two corrections [10,10]     [10,10]     [12,11]     [12,12]
-
-The target does not move. `progressAnchor` takes the element-wise max across recent sessions
-at that load, so removing the 07-31 phantom drops the anchor from `[12,12]` to `[12,11]` and
-the step still lands on `[12,12]`. **Right by coincidence beforehand, right on the evidence
-now** — that is the whole value of the change, and it is the honest way to report it.
-
+55 entries change what they display. **4 gained a line they never had** — an entry rated at
+the last set but not the opener showed nothing at all before. Nothing stopped showing.
+Seven assertions; 1521 total.
 
 ## QUEUED
 
