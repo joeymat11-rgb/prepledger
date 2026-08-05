@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.11.1";
+const APP_V = "7.12.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -1192,6 +1192,31 @@ function rirSetsOf(en) {
   while (arr.length < len) arr.push(null);
   if (len && arr[0] == null && en.rir != null) arr[0] = en.rir;
   return arr;
+}
+/* rirReceipt — what the logged-session receipt prints for a lift's RIR.
+
+   The receipt used to print `en.rir` under a bare "RIR" label. `en.rir` is the
+   OPENER's rating, and `progressStep` is sized by the TERMINAL one — so the receipt
+   showed the number that does NOT drive progression and hid the number that does.
+   21 entries in the log carry both ends; every one of them displayed the opener.
+
+   Worse, on a day rated at the opener only it read as a flat contradiction: the
+   receipt said "RIR 1" directly above a debrief line saying "No last-set ratings
+   anywhere today". Both were true and no reader could tell.
+
+   So print both ends, and print "?" for a set that was never rated — the "?" IS the
+   explanation of that debrief line. One set means the opener is also the last set, so
+   an arrow there would invent a distinction the session does not have. Tight around
+   the arrow because this sits at the end of an already-wrapping row on a phone.
+
+   Engine-owns-numbers: this returns the finished string and the UI only places it. */
+function rirReceipt(en) {
+  const arr = rirSetsOf(en);
+  if (!arr.length) return null;
+  const open = arr[0], last = arr[arr.length - 1];
+  if (arr.length === 1) return open == null ? null : "RIR " + open;
+  if (open == null && last == null) return null;
+  return "RIR " + (open == null ? "?" : open) + "→" + (last == null ? "?" : last);
 }
 /* ---------- PACE_NOTE — why a session carries a rest tag ----------
    Rest between sets is NOT an independent driver worth its own instrument. The
@@ -8584,6 +8609,7 @@ __test.restLine = restLine;
 __test.REST_BASE = REST_BASE;
 __test.buildRirSets = buildRirSets;
 __test.rirSetsOf = rirSetsOf;
+__test.rirReceipt = rirReceipt;
 __test.openerRir = openerRir;
 __test.terminalRir = terminalRir;
 
@@ -11198,10 +11224,10 @@ function LogTab({ s, setS, save, slp }) {
             <Card accent={T.jade}>
               <Eyebrow c={T.jade}>SESSION LOGGED · {fmtShort(dateSel)}</Eyebrow>
               <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 7 }}>
-                {done.entries.map((e, i) => { const ex = exById(s, e.id); return (
+                {done.entries.map((e, i) => { const ex = exById(s, e.id); const rirTxt = rirReceipt(e); return (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: TS.label, alignItems: "center" }}>
                     <span style={{ color: T.chalk }}>{ex ? ex.n : e.id}</span>
-                    <span style={{ color: T.steel, display: "flex", gap: 8, alignItems: "center" }}>{e.w != null ? e.w + " × " : ""}{(e.reps || []).join(",")}{e.rir != null ? " · RIR " + e.rir : ""}
+                    <span style={{ color: T.steel, display: "flex", gap: 8, alignItems: "center" }}>{e.w != null ? e.w + " × " : ""}{(e.reps || []).join(",")}{rirTxt ? " · " + rirTxt : ""}
                       <span onClick={() => { if (((done.entries || []).length) <= 1) { window.alert((ex ? ex.n : e.id) + " is the only lift left on this session.\n\nRemoving it would leave the day empty, and an empty session cannot be told apart from a sync artefact later. Voiding a whole day is a separate, deliberate act — this control will not do it.\n\nNothing has been changed."); return; }   /* DECIDED: refuse, and refuse VISIBLY — a rule that silently declines is the same failure class as one that silently reverts */ if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); _stampCorr(rec);   /* CORRECTION_MERGE — without this the removal is an unmarked shrink and the phone reverts it */ const exL = (ns.exercises || []).find((z) => z.id === e.id); if (exL) { const dm = deriveLastMeta(ns, e.id); if (dm) { exL.lastMeta = dm; exL.last = dm.reps.slice(); } else { exL.lastMeta = { d: null, w: exL.w, reps: [], rir: null, rirSets: [], debt: false }; exL.last = null; }   /* ex.last is the SECOND denormalised cache completeSession writes, and targetsFor gates on it. Re-derived with lastMeta or they drift apart — which is how a removed entry kept driving a target. */ }   /* the cache progressStep reads must follow the log — the earlier ledger repairs did not do this and the phantom kept driving targets */ ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
                     </span>
                   </div>
