@@ -289,11 +289,20 @@ df=1 and t=12.706, so the interval would be so wide the state would read `unknow
 self-defeating. Dropping the `hard` exclusion would admit declared-estimate days into the one
 instrument the whole objective function rests on.
 
-#### Open question for Joe — the criterion, not the code
+#### DECIDED by Joe, 2026-08-05 — the criterion is STRUCK
 
-`regime(s).key === "free"` cannot be asserted against the live ledger without weakening the
-instrument. **Confirm the caveat wins and the criterion is struck**, or say which of the two
-weakenings you prefer. Nothing was tuned to make it pass.
+Asked whether to leave the detector abstaining or loosen the rules so it would read `free`
+today, **Joe chose to leave it abstaining.** The criterion `regime(s).key === "free"` is struck
+from R1; the item's own caveat stands in its place.
+
+**Do not reinstate it, and do not tune around it.** Loosening the input to reach a verdict would
+mean counting sessions the app itself flagged as unreliable, inside the one instrument the whole
+objective function rests on. That is the failure mode R1 exists to prevent — Nait-Yahia's finding
+is that volume can manufacture the very strength signal this detector reads, and admitting
+flagged sessions is the same defect by a different route. The replacement criterion is:
+
+- **Real ledger ⇒ `regime(s).key === "unknown"`, with a stated reason, and every downstream
+  consumer suppressed.** It reads a verdict when the data earns one, not before.
 
 #### Two defects found while building, both fixed here
 
