@@ -3864,6 +3864,23 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
       SC(r0);
       ok(r0.corr.rev === 2, "STAMP — a second correction on the same session increments rev, so two corrections from one device stay ordered");
       ok(__test._corrOf(r0) !== null, "STAMP — what the stamper writes is what the reconciler accepts");
+
+    // ex.last is the SECOND denormalised cache, and targetsFor gates on it. It and
+    // lastMeta.reps are written together by completeSession, so disagreement means one was
+    // repaired and the other was not — which is exactly what happened to ham after 07-31.
+    {
+      const RC = __test.reconcileLiftCaches;
+      const mk = (last, reps) => ({ exercises: [{ id: "ham", w: 120, last, lastMeta: { d: "2026-08-04", w: 120, reps, rir: null, rirSets: [], debt: false } }] });
+      const stale = mk([12, 12], [10, 10]);
+      ok(RC(stale) === 1 && JSON.stringify(stale.exercises[0].last) === JSON.stringify([10, 10]), "RECONCILE — a stale ex.last is brought back in line with lastMeta: the exact ham case after the 07-31 correction");
+      const agree = mk([10, 10], [10, 10]);
+      ok(RC(agree) === 0, "RECONCILE — agreement is left alone");
+      const reseeded = mk(null, [10, 10]);
+      ok(RC(reseeded) === 0 && reseeded.exercises[0].last === null, "RECONCILE — a DELIBERATE null survives: the weight editor nulls ex.last to re-seed targets for a new load, and healing it would undo that");
+      const noMeta = { exercises: [{ id: "ham", last: [12, 12], lastMeta: { d: null, reps: [] } }] };
+      ok(RC(noMeta) === 0 && JSON.stringify(noMeta.exercises[0].last) === JSON.stringify([12, 12]), "RECONCILE — an empty lastMeta is not evidence and does not clobber ex.last");
+      ok(RC({}) === 0 && RC(null) === 0, "RECONCILE is total");
+    }
     }
     }
 
