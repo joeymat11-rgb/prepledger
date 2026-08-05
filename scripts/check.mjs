@@ -158,8 +158,26 @@ function pipeline() {
     catch (e) { problems.push("prod-check.yml is not valid YAML — " + (e && e.message)); }
   }
 
+  // ship.mjs must never rebase. A `pull --rebase` between the gate and the push
+  // is two bugs at once: the gate proves a tree that is not the tree pushed, and
+  // a conflict leaves the repo mid-rebase on a DETACHED HEAD with the local
+  // commit on zero branches — while the next line is `push origin HEAD:main`.
+  // Measured, not assumed: that is exactly how a partial v7.6.0 reached main on
+  // 2026-08-04 with APP_V still reading 7.5.0, and it deployed.
+  //
+  // The remote is integrated by a MERGE at step 0, before the gate. This asserts
+  // the rebase has not crept back, because the fix is one plausible-looking edit
+  // away from being undone and the failure is silent until it ships.
+  const shipSrc = (() => { try { return fs.readFileSync(at("scripts", "ship.mjs"), "utf8"); } catch (e) { return null; } })();
+  if (shipSrc === null) problems.push("scripts/ship.mjs is missing — the release path is gone");
+  else {
+    const code = shipSrc.split("\n").filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join("\n");
+    if (/--rebase/.test(code)) problems.push("scripts/ship.mjs rebases again — a conflict would leave a half-applied release on a detached HEAD, and the next line pushes to main");
+    if (!/["']merge["']/.test(code)) problems.push("scripts/ship.mjs no longer merges the remote — the gate would be proving a different tree than the one pushed");
+  }
+
   if (problems.length) return { ok: false, detail: problems.join("; ") };
-  return { ok: true, detail: "CI parses, deploy needs test, production is main-only" };
+  return { ok: true, detail: "CI parses, deploy needs test, production is main-only, ship merges and never rebases" };
 }
 
 // -------------------------------------------------------------------- main --
