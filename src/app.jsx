@@ -1179,7 +1179,7 @@ function deriveLastMeta(s, exId) {
     if (!en || !Array.isArray(en.reps) || !en.reps.length) continue;
     const prev = ((s.exercises || []).find((e) => e && e.id === exId) || {}).lastMeta || {};
     let debt = prev.d === d ? !!prev.debt : false;
-    if (prev.d !== d) { try { debt = !cleanAtDate(s, d).clean; } catch (e) { debt = false; } }
+    if (prev.d !== d) { try { debt = !cleanAtDate(s, d); } catch (e) { debt = false; } }   /* cleanAtDate returns a BOOLEAN. Shipped as .clean in v7.10.0, so !undefined forced debt TRUE on every re-derive after a correction. Every other call site treats it as a boolean. */
     return { d, w: en.w, reps: en.reps.slice(), rir: en.rir ?? null, rirSets: rirSetsOf(en), debt };
   }
   return null;
@@ -1751,6 +1751,246 @@ function stepTarget(s) {
    visible instead of quietly resolved in the estimator's favour. Below ten
    unsealed reads it falls back to snapshots, and below two of those to a
    labelled prior. */
+/* ==================== R1_NOTE — the regime detector ====================
+
+   ONE objective, unchanged by diet phase: maximise positive body-composition
+   change per unit time. Cutting and massing are two MEANS to it, not two goals.
+
+   The obvious formalisation is wrong. Maximising dLean/dt - dFat/dt at every
+   instant is STRUCTURALLY INCAPABLE of ever choosing a surplus: above
+   maintenance the marginal lean return is small and the marginal fat return is
+   roughly 1:1, so the derivative is negative for every surplus and a
+   single-period objective outputs "deficit, always," forever. Massing only pays
+   through a multi-period argument. So the objective is over a horizon, and the
+   state variable that selects the means is NOT body fat:
+
+     free            lifts progressing AND fat falling   -> hold the deficit
+     costing         lifts falling, fat still falling    -> shrink the deficit
+     accretionBound  rate ~ 0, still not progressing     -> surplus
+
+   "free" is the global maximum — no reallocation of calories beats collecting
+   both terms at once, and no rule that fires on a body-fat number can find it.
+   The app never picks a phase. It reports the regime; the target follows.
+
+   WHY NOT liftCall.vel. liftCall computes velocity from tot — total reps, with
+   NO load term. Calves went 315x13,12,11,10 -> 320x10,8,7,7 and vel reports
+   -14 reps/session for a lift that just added 5 lb. That would read "costing"
+   for a lift that is progressing. liftCall is left exactly as it is — it
+   correctly answers "beat your total at this load" — and this is built alongside.
+
+   NO AUTHORED THRESHOLD ON THE RATE. "|rate| ~ 0" is not a hand-picked number of
+   lb/wk; it is currentRate's own 95% interval spanning zero, and "losing" is
+   that interval sitting entirely above zero. A round-number cutoff here is the
+   exact tell this project removed nine constants for.
+
+   VOLUME MUST STAY CONSTANT FOR THIS INSTRUMENT TO BE VALID. Nait-Yahia 2026
+   found higher volume under severe restriction improves STRENGTH without
+   improving FFM. This detector reads strength progression as its accretion
+   proxy, so raising volume in response to a stall would MANUFACTURE THE SIGNAL
+   IT MEASURES — strength rises, the detector reads "free", and lean mass is lost
+   silently underneath it. See NEXT.md R8: any volume change must invalidate
+   progressionTrend for a stated washout.
+
+   WHAT IT DOES NOT BUY. Strength is necessary but not sufficient. Murphy &
+   Koehler 2022 found lean ES -0.57 (p=0.02) against strength ES -0.31 (p=0.28) —
+   progression can hold while lean mass falls. And that dissociation was measured
+   in adults averaging 51-60 years old; he is 24. Medium confidence, deliberately
+   labelled. This is the FAST loop. The slow calibration loop is a DXA anchor
+   (NEXT.md item 5) — and only DXA observes lean mass at all. ==================== */
+
+/* sessionScore — volume load for one logged entry, or null.
+   Returns null when the weight is not a number: hanging is "BW" and curl is
+   "55.55.50". Excluding them is honest; hiding that they were excluded is not,
+   so progressionTrend reports the count.
+   STATED LIMIT: volume load treats 100x20 and 200x10 as equivalent, which they
+   are not as a stimulus. Defensible for a WITHIN-lift trend only. Never compare
+   across lifts, and nothing here does. */
+function sessionScore(entry) {
+  if (!entry) return null;
+  const w = Number(entry.w);
+  if (entry.w == null || entry.w === "" || !isFinite(w) || w <= 0) return null;
+  const reps = Array.isArray(entry.reps) ? entry.reps : null;
+  if (!reps || !reps.length) return null;
+  let tot = 0;
+  for (const r of reps) { const n = Number(r); if (!isFinite(n)) return null; tot += n; }
+  if (!(tot > 0)) return null;
+  return w * tot;
+}
+
+/* two-sided t at 95%, small df. Using z=1.96 at n=4 would understate the interval
+   by ~40% and let a 4-point trend claim significance it has not earned. */
+const T_CRIT_95 = { 1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228 };
+function _tCrit(df) { return T_CRIT_95[df] || (df > 10 ? 1.96 + 2.7 / df : 12.706); }
+
+const TREND_WINDOW = 6;      /* sessions — matches liftCall's own recency horizon */
+const TREND_MIN_N = 4;       /* below this, liftTrend abstains rather than guesses */
+const FLAT_HALFWIDTH = 1.5;  /* %/session — an interval wider than this spanning 0 is "unknown", not "flat" */
+
+/* liftTrend — OLS of sessionScore over a lift's recent USABLE sessions, expressed
+   as % of its own mean per session, with a 95% interval.
+
+   Exclusions are liftCall's, deliberately: a rushed session and a short-sleep
+   session do not count toward a STALL, so they must not count toward a DECLINE
+   either. That is the downside-only sleep rule (SLEEP_NOTE, PACE_NOTE) applied
+   consistently — do not re-litigate it here. */
+function liftTrend(s, exId) {
+  const log = (s && s.sessionLog) || {};
+  const days = Object.keys(log).sort();
+  const pts = [];
+  for (const d of days) {
+    const rec = log[d] || {};
+    const en = (rec.entries || []).find((e) => e && e.id === exId);
+    if (!en) continue;
+    const sc = sessionScore(en);
+    if (sc == null) continue;
+    let hard = false, rushed = false, debt = false;
+    try { hard = !!dayWeather(s, d).hard; } catch (e) { hard = false; }
+    try { rushed = !!paceRushed(rec); } catch (e) { rushed = false; }
+    try { debt = !cleanAtDate(s, d); } catch (e) { debt = false; }
+    /* EXCLUDE hard only. hard is a DATA-QUALITY flag (declared estimate day, event
+       day) — the number itself is not trustworthy. rushed and short-sleep days are
+       different: the number is real, the day was just harder.
+
+       Dropping them outright STARVES THE INSTRUMENT. Measured on his ledger
+       2026-08-05: 6 of 8 sessions carry debt and 3 carry hard, so the full
+       exclusion set leaves at most 1 usable point per lift and progressionTrend
+       can never read anything. That is not protection, it is blindness — and the
+       constitution says short sleep PROTECTS, it does not punish.
+
+       So they are KEPT here and handled downside-only in progressionTrend: a
+       short-sleep or rushed session can never be what makes the verdict falling. */
+    if (hard) continue;
+    pts.push({ d, y: sc, soft: rushed || debt });
+  }
+  const use = pts.slice(-TREND_WINDOW);
+  const n = use.length;
+  if (n < TREND_MIN_N) return null;
+  const ys = use.map((p) => p.y);
+  const my = ys.reduce((a, b) => a + b, 0) / n;
+  if (!(my > 0)) return null;
+  const mx = (n - 1) / 2;
+  let sxx = 0, sxy = 0;
+  for (let i = 0; i < n; i++) { sxx += (i - mx) * (i - mx); sxy += (i - mx) * (ys[i] - my); }
+  if (!(sxx > 0)) return null;
+  const b = sxy / sxx;
+  let sse = 0;
+  for (let i = 0; i < n; i++) { const yh = my + b * (i - mx); sse += (ys[i] - yh) * (ys[i] - yh); }
+  const seB = Math.sqrt(Math.max(sse / (n - 2), 0) / sxx);
+  const pct = (b / my) * 100;
+  /* a perfect fit gives se 0, which would take infinite weight in the pooling
+     below. Floor it — n=4 never earns unbounded confidence. */
+  /* A perfectly straight 4-point line gives sse 0 and therefore se 0. That is not
+     certainty, it is a small sample — and an se of 0 takes INFINITE weight in the
+     pooling below, which turns the pooled mean into NaN. Floor it above the 3dp
+     rounding the return value applies, or the floor is rounded away and the bug
+     comes back silently. */
+  const sePct = Math.max((seB / my) * 100, 0.001);
+  const t = _tCrit(n - 2);
+  const nSoft = use.filter((p) => p.soft).length;
+  return { id: exId, n, nSoft, pct: +pct.toFixed(3), se: +sePct.toFixed(3), lo: +(pct - t * sePct).toFixed(3), hi: +(pct + t * sePct).toFixed(3), from: use[0].d, to: use[n - 1].d, pts: use };
+}
+
+/* progressionTrend — inverse-variance pooled mean across lifts that have a usable
+   trend. "unknown" is a FIRST-CLASS answer and suppresses every downstream use,
+   the same self-suppression signalState already performs. An autonomous coach
+   that guesses is worse than one that abstains. */
+function progressionTrend(s) {
+  const log = (s && s.sessionLog) || {};
+  const days = Object.keys(log).sort();
+  const seen = [];
+  for (const d of days) for (const e of (log[d].entries || [])) if (e && e.id && seen.indexOf(e.id) < 0) seen.push(e.id);
+  let nExcludedNonNumeric = 0;
+  const excludedIds = [];
+  const trends = [];
+  for (const id of seen) {
+    let any = false, scored = false;
+    for (const d of days) {
+      const en = (log[d].entries || []).find((e) => e && e.id === id);
+      if (!en) continue;
+      any = true;
+      if (sessionScore(en) != null) { scored = true; break; }
+    }
+    if (any && !scored) { nExcludedNonNumeric++; excludedIds.push(id); continue; }
+    const t = liftTrend(s, id);
+    if (t) trends.push(t);
+  }
+  const base = { nLifts: trends.length, nExcludedNonNumeric, excludedIds, lifts: trends };
+  if (trends.length < TREND_MIN_N) return { ...base, state: "unknown", pct: null, lo: null, hi: null, why: "only " + trends.length + " lift(s) carry a usable trend — " + TREND_MIN_N + " needed before this reads anything" };
+  let sw = 0, swx = 0;
+  for (const t of trends) { const w = 1 / Math.max(t.se * t.se, 1e-9); sw += w; swx += w * t.pct; }   /* guarded a second time: a zero se here would poison every downstream number with NaN */
+  const pct = swx / sw, se = Math.sqrt(1 / sw);
+  const lo = pct - 1.96 * se, hi = pct + 1.96 * se;
+  let state = lo > 0 ? "rising" : hi < 0 ? "falling" : (hi - lo) / 2 < FLAT_HALFWIDTH ? "flat" : "unknown";
+  /* DOWNSIDE-ONLY protection, the constitution applied literally: a rushed or
+     short-sleep session cannot be what CREATES a falling verdict. Re-pool on the
+     unprotected points only; if falling does not survive, it is not a decline he
+     has to answer for. It can still bank a rise — short sleep protects, it does
+     not punish, and it never blocks the upside. */
+  let protectedBy = null;
+  if (state === "falling") {
+    const clean2 = trends.filter((t) => t.nSoft === 0);
+    if (clean2.length < TREND_MIN_N) { state = "unknown"; protectedBy = "too few unrushed, unflagged sessions to call a decline"; }
+    else {
+      let sw2 = 0, swx2 = 0;
+      for (const t of clean2) { const w = 1 / Math.max(t.se * t.se, 1e-9); sw2 += w; swx2 += w * t.pct; }
+      const p2 = swx2 / sw2, se2 = Math.sqrt(1 / sw2);
+      if (!(p2 + 1.96 * se2 < 0)) { state = "flat"; protectedBy = "the decline does not survive dropping rushed and short-sleep sessions"; }
+    }
+  }
+  return { ...base, state, protectedBy, nSoft: trends.reduce((a, t) => a + t.nSoft, 0), pct: +pct.toFixed(3), se: +se.toFixed(3), lo: +lo.toFixed(3), hi: +hi.toFixed(3),
+    why: state === "unknown" ? "pooled interval " + lo.toFixed(1) + " to " + hi.toFixed(1) + " %/session is too wide to call" : "pooled " + pct.toFixed(2) + " %/session across " + trends.length + " lifts" };
+}
+
+/* _stateAsOf — a shallow view of the state truncated to a date, so the regime can
+   be evaluated at an earlier point WITHOUT storing anything. Hysteresis has to be
+   derivable, because R1 ships no new stored field.
+   KNOWN LIMIT: s.weekly is not truncated (its key is a week label, not an ISO
+   date). currentRate prefers the 28-read regression whenever 10+ reads exist,
+   which is the path that runs here, so the fallback is not reached in practice. */
+function _stateAsOf(s, iso) {
+  const out = { ...(s || {}) };
+  out.reads = ((s && s.reads) || []).filter((r) => r && r.d && r.d <= iso);
+  out.sessionLog = {};
+  for (const d of Object.keys((s && s.sessionLog) || {})) if (d <= iso) out.sessionLog[d] = s.sessionLog[d];
+  out.dailyLogs = {};
+  for (const d of Object.keys((s && s.dailyLogs) || {})) if (d <= iso) out.dailyLogs[d] = s.dailyLogs[d];
+  out.sleep = { ...((s && s.sleep) || {}), nights: (((s && s.sleep) || {}).nights || []).filter((n) => n && n.d && n.d <= iso) };
+  return out;
+}
+
+function _regimeRaw(s) {
+  const prog = progressionTrend(s);
+  if (prog.state === "unknown") return { key: "unknown", prog, rate: null, why: prog.why };
+  let r = null;
+  try { r = currentRate(s); } catch (e) { r = null; }
+  if (!r || !isFinite(r.scale) || !isFinite(r.lo) || !isFinite(r.hi)) return { key: "unknown", prog, rate: r, why: "no usable scale rate" };
+  /* DERIVED, not authored: "losing" is the rate's own 95% interval sitting above
+     zero; "~zero" is that interval spanning zero. No lb/wk constant appears. */
+  const losing = r.lo > 0, zero = r.lo <= 0 && r.hi >= 0;
+  if (prog.state !== "falling" && losing) return { key: "free", prog, rate: r, why: "lifts " + prog.state + " and fat still falling — both terms improving at once" };
+  if (prog.state === "falling" && losing) return { key: "costing", prog, rate: r, why: "lifts falling while fat falls — this is now a trade, not a free lunch" };
+  if (prog.state !== "rising" && zero) return { key: "accretionBound", prog, rate: r, why: "rate is indistinguishable from zero and lifts are not rising — the fat term is exhausted" };
+  return { key: "unknown", prog, rate: r, why: "rate and progression do not describe a named regime" };
+}
+
+const REGIME_HOLD_D = 7;   /* two evaluations at least a week apart before a KNOWN state may flip */
+
+/* regime — the hysteresed answer. A regime may not flip on one session: the new
+   state must hold across two evaluations at least REGIME_HOLD_D apart. A hunting
+   target is worse than a wrong constant one.
+   An earlier "unknown" does NOT veto — it is missing history, not a contradiction,
+   so first establishment is allowed and reported with confirmed:false. */
+function regime(s, opts) {
+  const asOf = (opts && opts.asOf) || isoOf(todayStart());
+  const now = _regimeRaw(s);
+  if (now.key === "unknown") return { key: "unknown", confirmed: false, pending: null, pendingSince: null, prog: now.prog, rate: now.rate, why: now.why };
+  let prev = { key: "unknown" };
+  try { prev = _regimeRaw(_stateAsOf(s, isoOf(new Date(mk(asOf).getTime() - REGIME_HOLD_D * DAY)))); } catch (e) { prev = { key: "unknown" }; }
+  if (prev.key === now.key) return { key: now.key, confirmed: true, pending: null, pendingSince: null, prog: now.prog, rate: now.rate, why: now.why };
+  if (prev.key === "unknown") return { key: now.key, confirmed: false, pending: null, pendingSince: null, basis: "first-establishment", prog: now.prog, rate: now.rate, why: now.why + " — not yet confirmed by a second reading a week back" };
+  return { key: prev.key, confirmed: true, pending: now.key, pendingSince: asOf, prog: now.prog, rate: now.rate, why: "holding " + prev.key + " — " + now.key + " has been read once and needs a second reading " + REGIME_HOLD_D + " days apart before it counts" };
+}
+
 function currentRate(s) {
   const w = s.weekly || [];
   const rates = [];
@@ -8610,6 +8850,13 @@ __test.REST_BASE = REST_BASE;
 __test.buildRirSets = buildRirSets;
 __test.rirSetsOf = rirSetsOf;
 __test.rirReceipt = rirReceipt;
+__test.sessionScore = sessionScore;
+__test.liftTrend = liftTrend;
+__test.progressionTrend = progressionTrend;
+__test.regime = regime;
+__test._regimeRaw = _regimeRaw;
+__test._stateAsOf = _stateAsOf;
+__test.REGIME_HOLD_D = REGIME_HOLD_D;
 __test.openerRir = openerRir;
 __test.terminalRir = terminalRir;
 

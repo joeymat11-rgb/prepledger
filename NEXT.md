@@ -129,48 +129,484 @@ change. Device-local UI state (`prep-ledger-ui`) is never conflated with the syn
 store (`prep-ledger-v1`) — but note that *reusing* a device-local key while changing
 its meaning is its own migration problem. See NOW · fix 3.
 
+**Body-fat percentage is display-only. No proposal, gate or target may read `bfEst`
+— see `RESEARCH-DESIGN.md` §R4.** The instrument cannot resolve the range of interest at
+any cadence Joe will sustain: consecutive-day LSC is 1.3–2.2 BF points for DXA and 4.9 for
+BIA, and scan-day state alone is worth up to 5.5 points of PERMANENT anchor bias. Render the
+band, never the midpoint (Broad 2007); express uncertainty numerically, never verbally
+(van der Bles 2020).
+
 **Ops.** Never print or expose a credential. Never delete athlete data. Keep the
 `/ledger` lockdown intact. iOS Safari is the real target and the test suite only runs
 headless — walk the render-smoke states and eyeball on the phone before shipping.
 
 ---
 
-## NOW — v7.12.0, the receipt shows the rating that actually sizes the step
+## NOW — R1 · one regime detector replaces both phase machines
 
-**v7.11.1 closed the correction thread.** Both historical repairs are in and stamped
-(`2026-07-23` at 00:10:07Z, `2026-07-31` at 00:09:52Z), they survived the round trip, and
-`reconcileLiftCaches` fired on the phone: `ham.last` healed `[12,12]` → `[10,10]` and stayed
-healed through the sync. All three denormalised caches now agree with the log.
+**Source: `RESEARCH-DESIGN.md` §R1.** That file is the *why*; this item is the *what*. It is
+self-contained and buildable without any other item.
 
-### The defect
+**The objective it serves.** One objective, unchanged by diet phase: maximise positive
+body-composition change, as fast as possible. Cutting and massing are two means to one goal.
+An instantaneous scalar `dLean/dt − dFat/dt` is **structurally incapable of ever choosing
+massing**, so the objective is over a horizon and the state variable that selects the means
+is **not body fat** — it is whether both terms are still improving at once.
 
-The logged-session receipt printed `en.rir` under a bare `RIR` label. `en.rir` is the
-OPENER's rating; `progressStep` is sized by the TERMINAL one. So the receipt showed the
-number that does not drive progression and hid the number that does — on all 21 entries in
-the log that carry both ends.
+| regime | observable | both improving? | means |
+|---|---|---|---|
+| `free` | lifts progressing **and** fat falling | yes, simultaneously | hold the deficit |
+| `costing` | lifts stalled/declining, fat still falling | no — now a trade | shrink the deficit until progression resumes |
+| `accretionBound` | zero deficit, still not progressing | fat term exhausted | surplus |
 
-On an opener-only day it was worse than useless: `Sulek curl 87.5 × 12,11 · RIR 1` sat four
-lines above a debrief reading *"No last-set ratings anywhere today"*. Both true; nothing on
-screen let a reader tell. **A rule surviving only in copy is still a rule, because he reads
-the copy** — and here the copy was arguing with itself.
+`free` is the global maximum, and **he is in it, not marginally** — eight weeks, 170 → 163 lb,
+rows +35 lb (+24%), leg extension +30 lb (+25%). At 24 with FFMI 20.0 he has ~34 lb of headroom
+to the 98th-percentile natural ceiling, so the accretion ceiling is not binding and `free` is
+*more* valuable, not less. The app never picks a phase; it reports the regime and the target
+follows.
 
-### The fix
+### Fix this first — `liftCall.vel` cannot be the input
 
-`rirReceipt(en)` prints both ends, with `?` for a set that was never rated. That `?` is what
-makes the debrief line legible instead of contradictory. A single-set lift prints one number
-— there the opener IS the last set, and an arrow would invent a distinction the session does
-not have. Engine-owns-numbers: it returns the finished string, the UI only places it.
+**Verified against `src/app.jsx` on this branch** (doc said 590; actual 593/597):
 
-    2026-07-30 lateral   RIR 2    ->  RIR 2→0
-    2026-07-30 rows      RIR 0    ->  RIR 0→1
-    2026-07-27 sulek     RIR 1    ->  RIR 1→?
-    2026-07-27 press     (none)   ->  (none)
+```js
+593:  tot: (e.reps || []).reduce((a, b) => a + b, 0)     // total reps, NO load term
+597:  const vel = ... ((clean[last].tot - clean[0].tot) / (clean.length - 1))
+```
 
-55 entries change what they display. **4 gained a line they never had** — an entry rated at
-the last set but not the opener showed nothing at all before. Nothing stopped showing.
-Seven assertions; 1521 total.
+Calves went `315 × 13,12,11,10` → `320 × 10,8,7,7`. **`vel` reports −14 reps/session for a lift
+that just added 5 lb.** That would put him in `costing` for progressing.
+
+**Leave `liftCall` alone** — it correctly answers "beat your total at this load." Build alongside.
+
+### The four new selectors
+
+**1. `sessionScore(entry)`** — volume load `Number(entry.w) × Σ(entry.reps)`; `null` when `w` is
+non-numeric. That excludes `hanging` (`BW`), `curl` (`55·55·50`) and `pronated` — **three of
+fifteen lifts.** Report the count; do not hide it.
+
+*State in the code:* volume load treats `100×20` and `200×10` as equivalent, which they are not
+as a stimulus. Defensible for a **within-lift** trend only. Never compare across lifts.
+
+**2. `liftTrend(s, exId)`** — OLS of `sessionScore` over the last 6 sessions that are not
+`dayWeather(s,d).hard`, as % of mean per session, with a 95% interval. Reuse `liftCall`'s existing
+exclusions — rushed and short-sleep days do not count toward a stall and must not count toward a
+decline (`PACE_NOTE`, `SLEEP_NOTE` — **do not re-litigate**). Returns `null` below n = 4.
+
+**3. `progressionTrend(s)`** — inverse-variance weighted mean across lifts with a usable trend.
+
+```
+"rising"   when lo > 0
+"falling"  when hi < 0
+"flat"     when the interval spans 0 and is narrower than ±1.5 %/session
+"unknown"  otherwise, or nLifts < 4
+```
+
+`"unknown"` is a first-class answer and **suppresses every downstream use** — the same
+self-suppression `signalState` already performs. An autonomous coach that guesses is worse than
+one that abstains.
+
+**4. `regime(s)`**
+
+```
+prog.state === "unknown"                     -> "unknown"          // abstain
+prog.state !== "falling" && rate.scale > 0   -> "free"
+prog.state === "falling" && rate.scale > 0   -> "costing"
+prog.state !== "rising"  && |rate.scale| ~ 0 -> "accretionBound"
+```
+
+**Hysteresis is required.** A regime may not flip on one session — require the new state to hold
+for **two consecutive evaluations at least 7 days apart**, carrying `since` and `pendingSince`.
+A hunting target is worse than a wrong constant one.
+
+**`regime` must not read `bfEst`.** Assert by grepping the function body.
+
+### Acceptance criteria
+
+- Real ledger @ 2026-08-05 ⇒ `regime(s).key === "free"`
+- `progressionTrend(s).nExcludedNonNumeric === 3`
+- A fixture where a lift adds load and loses reps at constant volume load: assert
+  `liftCall(...).vel < 0` **and** `liftTrend(...).pct ≈ 0` — the defect documented in a test
+- 3 consecutive weeks of declining pooled score + falling trend ⇒ `"costing"`
+- Flat pooled score at zero rate ⇒ `"accretionBound"`, and `s.plan.phase = "leangain"` reachable
+- < 4 usable lifts ⇒ `"unknown"`, no downstream consumer acts
+- One anomalous session cannot change `regime(s).key`
+- `regime` never calls `bfEst`
+- **Any volume change invalidates `progressionTrend` for a stated washout** — see R8, §2.3
+- Strict gate + render smoke green. No new stored field; `regime` is a pure selector.
+
+**What it does not buy.** Strength is a necessary but not sufficient proxy — Murphy & Koehler's
+dissociation (lean ES −0.57 p=0.02, strength ES −0.31 p=0.28) says progression can hold while lean
+is lost. **And that dissociation was measured in adults averaging 51–60 years old** — transfer to a
+24-year-old trained male is plausible but unproven, so label it medium confidence in the code. This
+is the **fast loop**; monthly skinfolds are the slow calibration loop (R5). Eight logged sessions is
+thin — `"unknown"` will fire first, and that is the feature working.
+
+#### BUILT 2026-08-05 — and three of its acceptance criteria were wrong. Measured, not argued.
+
+The four selectors are in `src/app.jsx` and exported to the suite: `sessionScore`, `liftTrend`,
+`progressionTrend`, `regime` (+ `_regimeRaw`, `_stateAsOf`). 1537 assertions, strict gate green.
+All three regimes are proved reachable by fixture, so `leangain` is no longer dead by
+construction. `regime` stores nothing — hysteresis is derived by re-evaluating a truncated view
+of the state, so the "no new stored field" criterion holds.
+
+**1. `nExcludedNonNumeric` is 2, not 3.** The criterion named `hanging`, `curl` and `pronated`.
+`pronated` is `w = 40` in the roster **and in all three of its logged entries** — it was never
+non-numeric. Measured: `nExcludedNonNumeric === 2`, `excludedIds === ["curl", "hanging"]`.
+
+**2. The exclusion policy as written STARVES the instrument to zero.** The item said to exclude
+`dayWeather().hard` *and* reuse liftCall's rushed/short-sleep exclusions. On his real ledger:
+
+    2026-07-23  hard=false  debt=true      2026-07-30  hard=true   debt=true
+    2026-07-24  hard=false  debt=false     2026-07-31  hard=true   debt=false
+    2026-07-27  hard=true   debt=true      2026-08-03  hard=false  debt=true
+    2026-07-28  hard=false  debt=true      2026-08-04  hard=false  debt=true
+
+**Six of eight sessions carry debt and three carry hard. Only 2026-07-24 is clean on both.**
+
+    usable points per lift:   no exclusions  4     hard-only  2-3     as-specified  0-1
+    lifts reaching n>=4:                    10                  0                     0
+
+That is not protection, it is blindness — and the constitution says short sleep **protects, it
+does not punish**. So `liftTrend` excludes `hard` only (a genuine data-quality flag: declared
+estimate days and event days), and rushed/short-sleep are handled **downside-only** in
+`progressionTrend`: they are kept in the trend, but a `falling` verdict is re-pooled on the
+unflagged sessions alone and downgraded if it does not survive. A short-sleep session can never
+*create* a decline, and it never blocks a rise. That is the rule applied literally instead of by
+deletion.
+
+**3. The real ledger reads `unknown` today, not `free` — and the item contradicts itself here.**
+The criterion says `regime(s).key === "free"`; the item's own *What it does not buy* says
+*"Eight logged sessions is thin — `unknown` will fire first, and that is the feature working."*
+**The caveat is right and the criterion is wrong.** Even with `hard`-only exclusion no lift
+reaches n=4: upper lifts have 4 sessions of which 2 are hard, lower lifts 4 of which 1 is hard.
+`regime` abstains, names the reason, and suppresses every downstream consumer.
+
+*It is close.* Upper lifts need 2 more unflagged sessions, lower lifts 1 — roughly **one normal
+training week**, or sooner as the event window around the wedding ages out of the 6-session
+horizon. **Nothing should be tuned to force a verdict early.** Lowering `TREND_MIN_N` to 3 gives
+df=1 and t=12.706, so the interval would be so wide the state would read `unknown` anyway —
+self-defeating. Dropping the `hard` exclusion would admit declared-estimate days into the one
+instrument the whole objective function rests on.
+
+#### DECIDED by Joe, 2026-08-05 — the criterion is STRUCK
+
+Asked whether to leave the detector abstaining or loosen the rules so it would read `free`
+today, **Joe chose to leave it abstaining.** The criterion `regime(s).key === "free"` is struck
+from R1; the item's own caveat stands in its place.
+
+**Do not reinstate it, and do not tune around it.** Loosening the input to reach a verdict would
+mean counting sessions the app itself flagged as unreliable, inside the one instrument the whole
+objective function rests on. That is the failure mode R1 exists to prevent — Nait-Yahia's finding
+is that volume can manufacture the very strength signal this detector reads, and admitting
+flagged sessions is the same defect by a different route. The replacement criterion is:
+
+- **Real ledger ⇒ `regime(s).key === "unknown"`, with a stated reason, and every downstream
+  consumer suppressed.** It reads a verdict when the data earns one, not before.
+
+#### Two defects found while building, both fixed here
+
+- **`deriveLastMeta` called `cleanAtDate(s, d).clean`. `cleanAtDate` returns a BOOLEAN.**
+  Shipped by me in v7.10.0, so `!undefined` forced `debt = true` on **every** re-derive after a
+  `✕` or `↩` correction. Every other call site (593, 1939, 1942, 4090, 4603, 4608, 8401, 11721)
+  treats it as a boolean. Conservative in direction — `debt` only ever protects from a STALL —
+  but it silently suppressed a legitimate stall signal on any corrected lift.
+- **A perfectly straight trend line gave `se = 0`, which took INFINITE weight in the pooling and
+  turned the pooled mean into `NaN`.** The floor I wrote was `1e-6`, and `.toFixed(3)` on the
+  return value rounded it back to exactly `0` — the guard was real and the rounding erased it.
+  Floored above the rounding, and guarded again at the point of use.
+
+#### Verified against the source before this item was written
+
+`liftCall` tot/vel (593/597) · `calorieTarget` band (2197) and `baseHi` (2221) · `bf.pct <= 13.2`
+(6238) · `bf.lo <= 11.2` (6247) · `floor`/`redline` read raw in lb at 2499–2500 while the band is
+converted by `pctToLb` · `predAt` mass-only (2746) · `weightNoise(reads)` (8893) ·
+`BULK_REDLINE_PCT = 0.25` (2466) · `BULK_PROTEIN_G_PER_KG_BW = 1.6` (2476).
+**`phasePlan` has an apply handler (6583) and UI references (9580/9588/9766) but NO constructor
+anywhere — `leangain` is confirmed unreachable.** Line numbers current as of this branch.
+
 
 ## QUEUED
+
+**This queue is `RESEARCH-DESIGN.md` Part 3 (R2 → R9) followed by Part 4 (the bugs), in the
+order that document specifies.** Acceptance criteria are copied from it, not paraphrased.
+Read `RESEARCH-DESIGN.md` before starting any of them — the *why* is not restated here.
+
+**Every ledger-derived count in `RESEARCH-DESIGN.md` is a SNAPSHOT taken 2026-08-05, not live
+state. Verify against the live ledger before acting on one.** This has already bitten once: §R9
+reports 13 open proposals and the live ledger had 3 — Joe had drained the queue after writing it.
+The same applies to read counts, session counts, step and intake trends, and every rate quoted in
+Part 2. The *findings* hold; the *numbers* need re-reading.
+
+**Part 5 of that document is a do-NOT-build list.** Nothing below may reintroduce: a body-fat
+corridor rule, a personal RIR calibration, deload scheduling or autoregulated deloads, autonomous
+manipulation of rest/tempo/periodisation/exercise rotation/set order, or any weekly autoregulation
+loop justified on hypertrophy grounds. **Smallest detectable hypertrophy effect is 2.05% and a
+marginal set is worth 0.24%** — over four weeks the app cannot distinguish its own volume decisions
+from noise, and acting anyway manufactures churn.
+
+---
+
+### R2. The calorie target must be able to return a surplus
+
+`calorieTarget` (2197–2221, **verified**) has no phase branch: `const band = cutRateBand(s).band`
+then `baseHi = Math.max(floor, td.tdee - kcalFor(band[0]))` — it **always subtracts**. A committed
+`leangain` phase is still prescribed a deficit. Five more paths cannot represent a surplus:
+
+| path | line | failure in a surplus |
+|---|---|---|
+| `proteinTarget` | 1589 | serves the *deficit* meta-regression's 2.5–3.0 g/kg FFM; `BULK_PROTEIN_G_PER_KG_BW = 1.6` (2476) sits unread |
+| `dripOf` → `bfEst` | 1526/1530 | lean held flat ⇒ **100% of gained weight reports as fat** |
+| `energyDensity` | 2667 | 3,800 kcal/lb is tissue *lost*; tissue gained ≈ 2,376 ⇒ every conversion **~60% too expensive** |
+| `partitionPrior` | 2637 | **no direction argument**; centres on `PRIOR_FAT_FRAC 0.861` regardless |
+| `VOL_BANDS` | 5678 | self-declared "deficit-calibrated" (3896) |
+
+**Change.** `energyBalanceTarget(s)` becomes the single owner, branching on `regime(s).key`.
+`accretionBound` ⇒ surplus capped at `BC.BULK_REDLINE_PCT` (0.25 %BW/wk — already present and
+cited at 2466). `energyDensity` takes a direction. `proteinTarget` takes the regime.
+
+**Assertions.** `regime === "accretionBound"` ⇒ target > `observedTDEE(s).tdee`. `energyDensity(s,
+"gain").perLb` materially below `"loss"`. Round-trip free→costing→accretionBound→free produces a
+monotone, non-hunting target path.
+
+**What it does not buy.** The surplus *magnitude* has almost no adequately-powered trained-lifter
+evidence. `BULK_REDLINE_PCT = 0.25` is a defensible cap, not a measured optimum. Label it.
+
+### R3. The deficit rate: his record, with the band as prior
+
+**Keep ~0.7 %BW/wk in `free`. Re-derive the justification.** The number is not "the recomp
+constant" — it is *the rate at which his own progression stayed positive for eight weeks*, with
+Ruiz-Castellano's 0.5–1.0 %BW/wk band (tilt low as he leans) and Garthe's 0.7% arm as priors. The
+band moves only on a regime change — **never on a body-fat threshold, never on a date.**
+
+Two live bugs in the same change:
+
+- **`floor` and `redline` are still absolute pounds.** `cutRateBand` converts the band with
+  `pctToLb` (2501) but reads `floor` (0.8 lb) and `redline` (1.9 lb) raw off `SEED.rate` (375) at
+  2499–2500 — **verified on this branch.** They therefore represent a *larger* fraction of
+  bodyweight as he leans out — **the redline gets more permissive exactly when lean tissue is most
+  at risk**, the reverse of the file's own citation at 2452.
+- **Two live redlines.** `bodyCompBand` returns `redlinePct: 1.0 %BW` (= 1.63 lb); `cutRateBand`
+  returns `redline: 1.9 lb` (= 1.157 %BW). `escalation` uses the first; `redlineCrossing` and the
+  gauge use the second. The comment at 2508–2510 claims *"ONE function owns the corridor … never a
+  second number."* **There are two.**
+
+**Assertions.** `%BW` value of `.floor` and `.redline` invariant across two states differing only
+in bodyweight. `bodyCompBand(s).redlinePct === cutRateBand(s).redline / bw * 100`.
+
+**What it does not buy.** 0.7 %BW/wk is proven *survivable with progression intact* for him — a
+weaker and more honest claim than *optimal*.
+
+### R4. No decision may fire on a body-fat estimate
+
+Two hardcoded thresholds in `runAdaptive` are the **only** producers of a phase or exit proposal,
+both **verified at the stated lines on this branch**:
+
+```
+6238   if (!sealed && s.phase === "EASE 1" && bf.pct <= 13.2 && s.trend < 163)
+6247   if (!sealed && bf.lo <= 11.2 && pivQ && !pivQ.done)
+```
+
+`bf.lo <= 11.2` is the app's entire cut-ending decision. **Uncited.**
+
+**Change.** No proposal, gate or target may read `bfEst`. Delete both thresholds with the `s.phase`
+machine they serve. **Render no midpoint** (Broad 2007). Express uncertainty **numerically, never
+verbally** (van der Bles 2020).
+
+**Assertions.** No `runAdaptive` proposal condition references `bf.pct` / `bf.lo` / `bf.hi`.
+`bfEst` unreachable from `energyBalanceTarget`, `regime`, or any `propose(` call. No UI path
+renders `bf.pct` without its interval.
+
+### R5. Add a skinfold fat-change TRACKER. The DXA anchor is unchanged.
+
+**Joe narrowed this item on 2026-08-05, and the reasoning is the point:** skinfolds measure
+subcutaneous fat only. **They never observe lean mass, so they cannot narrow the fat-vs-lean
+partition.** The original R5 proposed replacing the anchor; that overreached. The standing
+guardrail — *"personal fat-vs-lean partitioning is a range that needs repeated DEXA"* — **is right
+and is NOT amended.** `partitionPrior` still requires real DEXA anchors and
+**`PARTITION_ANCHORS_TO_NARROW = 2` stays exactly as it is.**
+
+Two instruments, two jobs. Do not let either drift into the other's role.
+
+| instrument | job | cadence | resolution |
+|---|---|---|---|
+| **Skinfold Σmm** | **fat-change tracker** — direction and magnitude of fat change *between* anchors | monthly, one tester | ~0.6 BF-point detectable change |
+| **DXA** | **partitioning anchor** — role unchanged; the only thing that observes lean mass | per QUEUED item 5 | 1.3–2.2 BF points, *if standardised* |
+
+**Skinfolds are stored and displayed in millimetres and never converted to a percentage.**
+Conversion adds a modelling error that destroys the precision advantage and reintroduces the point
+estimate R4 removed. The sum needs **no accuracy at all** — only consistency — because the
+objective is defined on change.
+
+New synced collection `s.skinfolds = [{ d, sites, sumMm, tester, note }]`.
+
+**Data-safety, required in the same change:** keyed-union merge, refuse-to-shrink, additive
+migration. New synced state does not ship without all three.
+
+**Assertions.** 4 entries merging with 6 yields 6, never 4. Migration adds `s.skinfolds = []` and
+nothing else. **No code path converts `sumMm` to a percentage.** **`skinfolds` is unreachable from
+`partitionPrior`** — the tracker may not feed the partition. `PARTITION_ANCHORS_TO_NARROW`
+unchanged at 2.
+
+**What it does not buy — and this is now the whole boundary of the item.** Skinfolds measure
+subcutaneous fat, not total fat, and absolute accuracy is poor. **They say nothing about lean
+mass.** Precision is **entirely conditional on the same tester** — record `tester` and **break the
+trend line when it changes.** **Disqualify bioimpedance explicitly**: BIS consecutive-day LSC
+3,607 g ≈ 4.9 BF points, wider than the whole range of interest. If a BIA input ever exists, it
+must refuse to plot as change.
+
+### R6. Condition maintenance on activity; stop `adaptationSignal` firing on a step drop
+
+`adaptationSignal` predicts expected maintenance from **body mass only** — `predAt` at 2746,
+**verified**, and the comment even calls it "mass-driven":
+
+```js
+const predAt = (w) => base.tdee + MAINT_KCAL_PER_LB * (w - base.w);   // no step term
+```
+
+Observed maintenance falls because he walks less; mass-predicted maintenance barely moves. **The app
+will report metabolic adaptation for a man who stopped walking** — a false diagnosis pointing away
+from a real, fixable behaviour. His steps trend **−649/week across 54 days**; a 5,100-step drop is
+worth ~162 kcal/day.
+
+1. Report maintenance **with its conditioning variable visible** — `maintenance @ 17,200 avg steps
+   (last 35 d)`, plus a second line at the current step level. The scalar becomes a lever.
+2. `adaptationSignal` subtracts the deterministic step term (`β · Δsteps`) **before** looking for
+   residual adaptation, and **abstains** when step variance across the window exceeds a threshold.
+3. **Steps are a diet variable, not a training variable.** Any proposal that changes steps must
+   recompute energy balance in the same breath. Walking does not interfere with hypertrophy
+   (Schumann 2022, SMD −0.01, p = 0.919); the risk of restoring steps is that it silently
+   **deepens the deficit**.
+
+**Assertions.** Real ledger ⇒ `adaptationSignal(s).detected === false`, reason names activity
+drift. Constant steps + genuine divergence ⇒ still fires. Any `kind: "steps"` proposal carries a
+non-null `deltaKcal`.
+
+### R7. `currentRate` must not silently average across a behaviour change
+
+Report the long window as primary, **plus an explicit divergence flag** when the behaviour-implied
+rate and the measured rate disagree by more than their combined error. **Do not switch estimators
+mid-cut** — a discontinuity in the control input is itself a failure mode. Long-term fix is a
+change-point or exponentially-weighted estimator.
+
+`currentRate` was independently recomputed by hand and **is correct** (1.166 lb/wk, ciOls ±0.356).
+Ten readings cannot establish a rate change: testing 0.42 against 1.17 gives **p ≈ 0.15**, and the
+window contains a documented refeed and a wedding.
+
+**Assertions.** Real ledger ⇒ divergence flag raised. Constant-behaviour fixture ⇒ not raised.
+Primary displayed rate does not change estimator between consecutive days on the same data.
+
+**What it does not buy.** A divergence flag is a prompt to look. It must not drive a calorie change
+on its own.
+
+### R8. Training: delete, do not build
+
+| variable | rule | basis |
+|---|---|---|
+| weekly sets/muscle | **10–16 fractional, unchanged by energy state** | Roth 2022 (n=38) null; Nait-Yahia 2026 (n=16, 40% CR) null on FFM |
+| set counting | **fractional: direct 1.0, indirect 0.5** | Pelland 2025's own best-fitting quantification |
+| terminal RIR | **0–2, never modulated by energy state** | **Zero studies have ever manipulated RIR under restriction** |
+| frequency | **4×/wk fixed** | Pelland 2025 β crosses zero |
+| load / reps | **6–15, chosen for joint comfort and rep-count stability** | Schoenfeld 2017 ES 0.03 |
+| machines vs free | **leave alone** | Haugen 2023 SMD −0.055 |
+| deloads | **none scheduled, none autoregulated** | Coleman 2024 — strength-negative |
+
+**Delete** the `"deficit-calibrated"` comment on `VOL_BANDS` (3896) and any deficit-conditional
+volume logic.
+
+**The reason for holding volume constant is stronger than "volume doesn't matter."** Nait-Yahia
+found higher volume **improves strength without improving FFM** under severe restriction. Since R1's
+regime detector reads strength as its accretion proxy, **raising volume would manufacture the signal
+it measures** — strength rises, the detector reads `free`, lean is lost silently. Volume must be
+constant for the instrument to be valid, and **any volume change must invalidate
+`progressionTrend` for a stated washout.** That is a hard requirement, not a preference.
+
+**Change gate.** No more than ±2 sets per muscle per 4 weeks, only on a ≥4-week trend. A 2-set
+change is worth ~0.48% predicted growth against a **2.05%** smallest detectable effect.
+
+**What it does not buy.** Both deficit-volume trials are small (n=38, n=16) and short (7 and 4
+weeks) and neither used a lean population at a shallow deficit — exactly his situation. **"No
+evidence to change it" is the honest basis, not "evidence that it doesn't matter."**
+
+### R9. The approval inbox must drain
+
+Every recommendation above ends in "file a proposal," and the queue has no expiry, no dedup and no
+supersede.
+
+**Change.** Stable `kind` key; filing over an open `kind` **supersedes** rather than appends;
+`kind`-specific expiry, stated; sort by consequence, not recency.
+
+**Assertions.** `runAdaptive` twice on the same state ⇒ one open proposal per kind. Superseded
+proposals recorded in `feed`, not dropped. Real ledger post-migration ⇒ ≤1 per kind.
+
+#### Correction to the source document — verified against the live ledger
+
+`RESEARCH-DESIGN.md` §R9 reports *"13 open · oldest 9 days · four duplicated kinds"* and names
+`recovery ×2`, `refeed_review ×2`, `rateunit ×2`, `ap_tighten ×2`, `pivot ×1`. **The live ledger
+on `origin/main` has 16 proposals total, 13 RESOLVED and 3 open** (2 × `note`, 1 × `exit`) — Joe
+has drained the queue since that document was written. The named kinds also do not appear as
+`apply.kind`; almost every proposal is `kind: "note"`.
+
+**The structural finding still stands, and the `note` count sharpens it.** Six `note` proposals were
+filed on 2026-07-28 alone and four more on 07-29 — that is the duplication R9 describes. And a
+proposal whose `apply.kind` is `note` **files a note and changes nothing**, which is the exact
+defect `CLAUDE.md` records for `refeed_review`: *"a card that takes a tap and files a note is worse
+than no card."* Verify `applyProposal` has a real branch per kind as part of this item.
+
+---
+
+### Part 4 — bugs, independent of the redesign
+
+1. **`floor` / `redline` still absolute lb** — folded into R3. Verified at 2499–2500.
+2. **Two live redlines** — 1.0 %BW vs 1.157 %BW, both displayed. Folded into R3.
+3. **Two ETAs to 11%** — `etaRange(s,11).mid = 6` wk vs `digitalTwin(s).etaMid = 5`. Different
+   methods, both rendered. **Violates engine-owns-numbers.**
+4. **`typicalError`'s comment is stale by 3×** — line 1270 says *"0.75 reps per set across 33 paired
+   sets"*; actual is **0.82 across 92** (verified). Its method also pairs consecutive sessions at
+   identical load, so each difference contains real adaptation, not only measurement noise. Error
+   direction is conservative, so **not dangerous — but the label is not what it computes.**
+5. **`leangain` unreachable** — folded into R1. `phasePlan` has an apply handler (6583) and UI
+   references (9580/9588/9766) but **no constructor anywhere** (verified).
+6. **`weightNoise` takes `reads`, not `s`** (8893, verified) — the only export with a different
+   signature. An audit calling the surface uniformly gets a false "broken" reading.
+7. **35 migration patches unexported**, and `patchV34` **changes a physiological constant** (forces
+   `s.model.drip = 0`). Migrations that alter physiology need the same test surface as the
+   functions that consume them.
+8. **Inline engine arithmetic in React components** — `NegotiatorConsole` (13013) and
+   `WhatIfConsole` (12439) recompute rates, goal weights, calorie cuts and pivot dates outside every
+   exported owner, using `KCAL_PER_LB_MIX` directly rather than `energyDensity`.
+   `NegotiatorConsole` also holds the file's only explicit body-fat corridor — stepper bounds
+   `9, 14` at 13044. **Under R4 that control goes.**
+
+---
+
+### Not on the queue — do these without code
+
+From `RESEARCH-DESIGN.md` Part 6. None of them needs a feature:
+
+1. **Steps are on a −649/week trend and intake rose 883 kcal/day.** Both leading indicators have
+   turned. A behaviour finding, not a model finding.
+2. **One DXA at Stony Brook — fasted, no training that morning, no carb load.** A non-standardised
+   scan is worth up to **5.5 points of permanent bias**, more than the entire range of interest.
+3. **Find one skinfold tester and keep them.** 0.6-point resolution beats everything else available
+   at any price. **Same tester is the whole ballgame** — a consistent novice beats a rotating expert.
+
+---
+
+### Carried over — Joe's open questions, not superseded by RESEARCH-DESIGN.md
+
+`RESEARCH-DESIGN.md` instructed that the QUEUED list be *replaced* by R2 → R9 plus the Part 4 bugs.
+**These items are kept rather than deleted**, because that document was written outside the repo and
+does not know they exist, and they hold decisions only Joe can make. They sit below the new queue,
+not in it. Two are directly affected:
+
+- **Item 1 (personal RIR calibration) — CLOSED.** `RESEARCH-DESIGN.md` Part 5 says do not build
+  it; Joe confirmed closed on 2026-08-05. Do not reopen without him.
+- **Item 5 (DEXA anchor) — NOT superseded, and now REQUIRED by R5.** Joe reinstated it on
+  2026-08-05 as **"DEXA anchor — standardisation protocol required."** R5's tracker measures fat
+  change; only DXA observes lean mass, so the anchor is what makes `partitionPrior` possible at
+  all. See the item for the protocol and the flag it must record.
+
 
 ### 0. TRAIN spec — remainder (all seven §5 moves shipped in v7.8.0)
 
@@ -719,7 +1155,27 @@ sit outside the progression engine. Representation options: a per-set load array
 **Data-model change — needs merge hardening and a migration, so it is not overnight work.**
 
 
-### 5. DEXA body-fat anchor `[needs Joe]` — no scan exists yet, and it adds synced state
+### 5. DEXA anchor — standardisation protocol required `[needs Joe]`
+
+> **Reinstated and sharpened by Joe, 2026-08-05.** This item is NOT superseded by R5. Skinfolds
+> track fat change; **only DXA observes lean mass**, so this is the only thing that can anchor
+> `partitionPrior`, and `PARTITION_ANCHORS_TO_NARROW = 2` still requires two real anchors.
+>
+> **Hard standardisation requirement: fasted, no training that morning, no carb or creatine load.**
+> The app turns a scan into a *fixed lean-mass anchor*, so a scan-day error is not noise — it is a
+> **permanent offset on every later reading**. An unstandardised scan is worth up to **5.5 points
+> of permanent anchor bias**, which is more than the entire range of interest. For scale: a 500 g
+> meal plus 1 L of water moved FFM by 1,211 g (+1.64 pts); glycogen and creatine loading moved LBM
+> by 3.0% (+2.58 pts).
+>
+> **The scan-entry path must record whether the protocol was followed** — a required field, not an
+> optional note. **That flag is worth more than the scan's stated precision**, because a
+> `protocol: false` scan cannot be trusted as an anchor at all, no matter what the machine's LSC
+> says. A scan without the flag is not an anchor.
+>
+> Everything below is the original item, kept for its state and open questions.
+
+**Original item —** no scan exists yet, and it adds synced state
 
 **Read this before building it: the queue stub was wrong.** It claimed a DEXA
 "collapses several ranges (e.g. protein 160–190 g → one number)." It does not, and
@@ -854,6 +1310,32 @@ branch somewhere safe first**, as its own separate job, and only after v7.5 has 
 and settled. Do not fold this into a feature build.
 
 ## SHIPPED
+
+- **v7.12.0 — the receipt shows the rating that actually sizes the step** (2026-08-05). Merge
+  `7d1682d`, deployed via `90b92cb`; beacon 15:11:35Z, assets byte-identical. 1521 assertions.
+  - The receipt printed `en.rir` — the OPENER — under a bare `RIR` label, while `progressStep`
+    is sized by the TERMINAL rating. It showed the number that does not drive progression and
+    hid the one that does, on all 21 entries carrying both ends.
+  - `rirReceipt(en)` prints both (`RIR 2→0`), with `?` for an unrated set. 55 entries changed
+    what they display; 4 gained a line they never had. None stopped showing.
+  - Also on `main`, no app bytes: `ship.mjs` no longer runs `pull --rebase` between the gate
+    and the push. It merges the remote at step 0, BEFORE the gate, so what is proved is what is
+    pushed. A stopped rebase left the repo mid-rebase on a DETACHED HEAD with the local commit
+    on zero branches — measured in a scratch clone — with `push origin HEAD:main` as the next
+    line. That is how a partial v7.6.0 reached main on 2026-08-04 with APP_V reading 7.5.0.
+    Gate check 7 now fails if `--rebase` reappears; proved to fail, then restored.
+  - **The repo went PUBLIC on 2026-08-05.** Joe's decision, for free Actions minutes after a
+    $0 spending limit blocked every job mid-release. History was scanned clean of credentials
+    first. `GOALS.md` / `CLAUDE.md` / `HANDOFF.md` corrected; the `/ledger` lockdown is kept
+    but its PURPOSE is restated — it no longer buys secrecy.
+
+- **v7.11.1 — `ex.last` is the third denormalised cache** (2026-08-05). Merge `a3709c7`;
+  beacon 00:24:53Z. `deriveLastMeta` kept `ex.lastMeta` in step with a corrected log and left
+  `ex.last` — the cache `targetsFor` gates on — pointing at the removed entry. After the 08-04
+  ham un-skip, `lastMeta` read the real `[10,10]` while `last` held the removed `[12,12]`.
+  `reconcileLiftCaches` runs on load and reconciles them; both correction handlers now write
+  both. Narrow on purpose — a deliberate `ex.last = null` from the weight editor survives.
+  Verified live: both historical repairs stamped and synced, `ham.last` healed on the phone.
 
 - **v7.11.0 — the correction merge** (2026-08-04). Merge `a4852d5`; branch
   `feat/merge-correction`. Beacon published 23:58:32Z; deployed assets byte-identical.
