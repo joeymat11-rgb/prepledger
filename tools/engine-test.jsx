@@ -3967,9 +3967,16 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
 
       // downside-only: a short-sleep session may not CREATE a decline
       {
+        /* THE MIRROR DEFECT, caught in review. He has ONE session clean on both flags,
+           so a re-pool allowed to ERASE the verdict makes costing structurally unreachable
+           for as long as his sleep stays short — the app going blind to the state it
+           exists to detect, exactly when detecting it matters most. */
         const st = mkState(falling, 0.15, 4);   // every night 4h => every session carries debt
         const pt = PT(st);
-        ok(pt.state !== "falling", "R1 progressionTrend — short sleep PROTECTS: a decline that only exists because every session was short-sleep is downgraded, never reported as a stall. It still banks a rise, because short sleep does not punish");
+        ok(pt.state === "falling", "R1 progressionTrend — a genuine decline with ZERO unflagged sessions is KEPT, not erased. Absence of clean sessions is not evidence of no decline");
+        ok(pt.confidence === "low" && /not evidence of no decline/i.test(pt.protectedBy || ""), "R1 progressionTrend — and it is marked low-confidence with the reason, rather than silently downgraded");
+        const cleanRun = PT(mkState(falling, 0.15, 8));
+        ok(cleanRun.state === "falling" && cleanRun.confidence === "normal", "R1 progressionTrend — the same decline on well-slept sessions reports falling at NORMAL confidence, so the protection does not fire spuriously");
       }
 
       // regime may never read a body-fat estimate — R4's guardrail, enforced at R1
@@ -3979,6 +3986,50 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
       // no new stored field
       ok(!/\bs\.regime\s*=/.test(String(__test.regime)) && !/\bs\.plan\s*=/.test(String(__test.regime)), "R1 regime is a PURE selector — it stores nothing, so hysteresis is derived from the log rather than from a field that could drift");
     }
+
+    /* ---------- R2 — energyBalanceTarget ---------- */
+    {
+      const EBT = __test.energyBalanceTarget, ED = __test.energyDensity;
+      const st = clone(SEED);
+      const td = __test.observedTDEE(st).tdee;
+      const R = (k) => EBT(st, { regime: { key: k, why: "fixture" } });
+
+      // tissue gained is not tissue lost
+      const loss = ED(st).perLb, gain = ED(st, "gain").perLb;
+      ok(gain < loss * 0.75, "R2 energyDensity — a pound GAINED prices materially below a pound lost (" + gain + " vs " + loss + "). Pricing a surplus at the loss figure overstates its cost by ~60%, which is why every surplus path was unreachable in practice as well as in code");
+      ok(ED(st, "gain").identified === false && /prior/i.test(ED(st, "gain").label), "R2 energyDensity — the gain figure is a LABELLED PRIOR, not a measurement; nothing in the literature pins the gain partition for a trained lifter");
+      ok(ED(st).perLb === loss && ED(st, undefined).perLb === loss, "R2 energyDensity — the direction defaults to loss, so every existing caller is unchanged");
+
+      // the surplus exists at all — this is the whole point of R2
+      const ab = R("accretionBound");
+      ok(ab.dir === "surplus" && ab.lo > td, "R2 — accretionBound returns a SURPLUS above measured maintenance (" + ab.lo + " > " + td + "). calorieTarget always subtracted, so a committed lean-gain phase was still prescribed a deficit");
+      ok(ab.hi <= td + Math.round(((__test.BC.BULK_REDLINE_PCT / 100) * st.trend * gain) / 7) + 1, "R2 — the surplus is capped at BULK_REDLINE_PCT, and the cap is priced with the GAIN density rather than the loss one");
+      ok(/not optimal|defensible/i.test(ab.doesNotBuy || ""), "R2 — the surplus states what it does not buy: the only trained-lifter trial ran at 18% of its own required sample size");
+
+      // the branch that actually runs today
+      const free = R("free"), unk = R("unknown");
+      ok(unk.lo === free.lo && unk.hi === free.hi, "R2 — regime UNKNOWN holds the free-regime prescription exactly. Abstaining must not mean stopping the thing that is working");
+      ok(unk.provisional === true && free.provisional === false, "R2 — and it says so: unknown is flagged provisional, free is not");
+      ok(/holding|not deciding/i.test(unk.why), "R2 — the unknown copy says the engine is HOLDING, not deciding. A provisional target that reads like a decision is the same defect as a proposal that files a note");
+
+      // costing shrinks without inventing a magnitude
+      const cost = R("costing");
+      ok(cost.lo === free.hi && cost.hi === free.hi, "R2 — costing collapses to the SHALLOW END OF HIS OWN BAND, not to an authored number. The lean cost per kcal of deficit is not identifiable from the literature, so the engine must not pretend to know it");
+      ok(cost.dir === "deficit" && cost.shrunk === true, "R2 — costing is still a deficit, marked as shrunk");
+
+      // round-trip: no hunting
+      const path = ["free", "costing", "accretionBound", "free"].map((k) => R(k));
+      ok(path[0].lo === path[3].lo && path[0].hi === path[3].hi, "R2 — free -> costing -> accretionBound -> free returns to the SAME band. The target is a pure function of the regime, so it cannot hunt");
+      ok(path[1].hi <= path[2].lo, "R2 — the path is monotone in energy balance: the costing target never sits above the surplus target");
+
+      // protein
+      const pC = __test.proteinTargetForRegime(st, "free"), pB = __test.proteinTargetForRegime(st, "accretionBound");
+      ok(pB.g <= pC.g, "R2 proteinTarget — a surplus NEVER raises the protein target. The deficit figure answers a question about sparing lean mass under restriction and stays the ceiling");
+      ok(/Morton/i.test(pB.basis), "R2 proteinTarget — the surplus figure is Morton 2018's 1.6 g/kg bodyweight, which had been sitting unread in BULK_PROTEIN_G_PER_KG_BW");
+
+      ok(EBT(st, { regime: { key: "nonsense" } }).dir === "deficit", "R2 energyBalanceTarget is total — an unrecognised regime falls to the deficit path rather than throwing");
+    }
+
 
     }
     }
