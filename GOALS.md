@@ -7,7 +7,8 @@ Read this file first. It defines what the app is for and how decisions about it 
 ## What this is
 
 A single-file React PWA for training and body-composition tracking. Live at
-fitnessledger2.netlify.app. Repo: `joeymat11-rgb/prepledger` (private).
+fitnessledger2.netlify.app. Repo: `joeymat11-rgb/prepledger` (**public** since
+2026-08-05 — Joe's decision, for free Actions minutes; see HANDOFF 0.23.1).
 Self-described as a contest-prep rules engine built on earned states and honest data.
 
 It is used by **one athlete**, coached by the owner. It is not a general-purpose
@@ -84,7 +85,10 @@ These are non-negotiable, in every session, whether or not anyone is watching:
 
 - **Never print, log, echo, or expose `GH_TOKEN`** or any credential.
 - **Never delete athlete data.** Migrations must preserve history.
-- **Keep the `/ledger` lockdown intact.**
+- **Keep the `/ledger` lockdown intact.** Its *purpose* changed on 2026-08-05:
+  the repo is public, so this no longer keeps his data secret — it keeps the CDN
+  from serving a stale second copy of his history, and keeps the deploy small.
+  Still enforced by the gate; do not remove it because the secrecy reason lapsed.
 - **Don't break the app.** A broken deploy is worse than an unshipped feature.
 - **Don't push straight to `main`.** Pushing to main triggers GitHub Actions → Netlify,
   which is a live deploy to the athlete's phone. Work on a branch.

@@ -51,9 +51,17 @@ reference without checking it against HANDOFF 0.3 and 0.15.
 
 Everything below assumes you have nothing but this repo and a GitHub token.
 
-**The repo is PRIVATE, so a bare clone fails.** Authenticate first, per HANDOFF
-**0.23.1** - `GH_TOKEN` from the environment, or the askpass shim on Joe's PC,
-and never a credential in the URL.
+**The repo is PUBLIC as of 2026-08-05, so a bare clone works.** It was private
+until then; anything in this file or `HANDOFF.md` that still says otherwise is
+stale, and HANDOFF **0.23.1** carries the dated note.
+
+Joe made it public deliberately, to get free GitHub Actions minutes after a
+billing block stopped every deploy mid-release. He was shown what becomes
+world-readable - sleep times, training dates, injuries, body-fat estimates, daily
+food logs - and accepted it. **Do not treat this as an accident to be reverted.**
+
+You still need `GH_TOKEN` to *push*, per HANDOFF **0.23.1** - from the
+environment, or the askpass shim on Joe's PC, and never a credential in the URL.
 
 ```bash
 git clone https://github.com/joeymat11-rgb/prepledger.git   # authenticate first
@@ -216,9 +224,12 @@ Paths derive from `ROOT` in `scripts/lib.mjs`; servers bind to port 0.
   athlete to tap. The engines rule, the agents narrate, the athlete overrides.
 - **Instruments gate on n.** Cold-start data must say "counting only", never
   produce a verdict.
-- **The token lives in `GH_TOKEN`, never in a file.** The repo is private, but
-  it is also *deployed* — treat everything in it as one bad redirect away from
-  public, which is exactly why `ledger/` is now excluded from the upload.
+- **The token lives in `GH_TOKEN`, never in a file.** This rule got *stronger*
+  when the repo went public on 2026-08-05, not weaker: a committed credential is
+  now readable by anyone the moment it lands, with no window to catch it. The
+  old reasoning — "one bad redirect away from public" — is obsolete because the
+  repo simply *is* public. `ledger/` stays excluded from the upload anyway: it
+  keeps the deploy small and stops the CDN serving a stale copy of his history.
 - **Never delete ledger data.** `ledger/state.json` holds his real history.
   **Do not write the count down here.** It grows, and a stale baseline makes the
   data-loss check pass silently. Read the live counts before and after
