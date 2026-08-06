@@ -239,6 +239,41 @@ Record the real-data branch in the item, every time. As of 2026-08-06:
 **Both gates read zero today** — the difference is what it takes to leave zero. The old one
 needed three unbroken clean weeks; the new one needs three clean sessions on one lift.
 
+**WHEN AN ITEM'S CORRECTNESS DEPENDS ON REAL DATA, THE FIXTURE IS A DATED SNAPSHOT OF REAL
+DATA AND THE CRITERION STATES THE OUTCOME, NOT THE MECHANISM.**
+
+A criterion phrased as a **mechanism** is satisfied by any comparator that plausibly fits the
+words — *"compare the behaviour-implied rate to the measured rate"* was satisfied by **both**
+of R7's builds, one of which silently answered a narrower question. A criterion phrased as an
+**outcome on real data** is not: *"on his ledger the flag is RAISED"* fails instantly against
+the narrowed build, 0.28 against 0.38.
+
+**A synthetic fixture encodes the author's model of the problem — which is the same model that
+produced the bug.** Both R7 comparators passed their synthetic fixtures because both were
+written to. A frozen real snapshot encodes the world, and does not care what the author
+believed.
+
+`tools/snapshots/2026-08-06-ledger.json` is the first. **Snapshots accumulate; never edit one
+to make a test pass — take a new one, dated.**
+
+**PROVED, not assumed:** re-narrowing the comparator and running it against the snapshot gives
+`flagged = false`, so the assertion fails. Guard-must-fire, applied to the practice itself.
+
+**KNOWN BLIND SPOT.** A comparator can still be narrowed in a way that happens to produce the
+right outcome on the snapshot, and this catches placement errors (like the `p2 >= 0` boundary)
+not at all. It converts *"no mechanical check exists"* into *"one exists with known limits"* —
+which is the difference between the eleven instances found by reading and the four found by
+tools. It would have caught **two of the last five** immediately: the narrowed comparator, and
+the unreachable `clean2` gate, where *"how many lifts clear the downgrade gate"* had the answer
+*"none, ever."*
+
+**WHAT CAUGHT THE NARROWING WAS INCENTIVE, NOT PROCESS.** The research side proposed R13, the
+gate closed it, and they therefore had reason to check whether the gate was measuring the right
+thing. **That is not virtue and it does not generalise** — a gate closing an item nobody cared
+about would likely have been accepted. Worth recording because it says the audit is strongest
+where it disagrees and weakest where it is indifferent, which is the opposite of where anyone
+would design it to be. The snapshot rule exists to cover the indifferent case.
+
 **A REPORTING CHANGE THAT MOVES THE TARGET IS A FAILED REPORTING CHANGE.** If an item is
 scoped as diagnostics, pin the numbers it must not move and assert them byte-identical before
 and after, on the real ledger. R6 was one line of reasoning away from cutting his intake ~90
