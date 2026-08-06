@@ -9338,6 +9338,16 @@ function mergeState(local, remote) {
   const out = { ...remote, ...local };                       // scalars: local wins; remote-only keys kept
   for (const k of Object.keys(MERGE_ARR)) out[k] = _unionBy(remote[k], local[k], MERGE_ARR[k]);
   for (const k of Object.keys(MERGE_MULTI)) out[k] = _unionMulti(remote[k], local[k], MERGE_MULTI[k]);
+  /* THE FEED MERGE BURIED NOVEL ENTRIES AT THE TAIL (pre-existing, v6.2 era; surfaced in
+     production by the withdrawal receipt). _unionMulti iterates remote keys first, so every
+     identity the remote knew rendered in remote order and LOCAL-ONLY entries appended at the
+     tail: the 2026-08-06 CARD WITHDRAWN receipt sat at index 189 of 191, under July lines,
+     and the feed head was 08-04. Every unshift assumes newest-first; one sync against a
+     stale remote destroyed it — the withdrawal convention held in STATE and failed in
+     DISPLAY, which is where he reads. Stable sort by d descending, scoped to feed: every
+     feed line carries d, JS sort is stable so within-day emitted order survives, and the
+     order-dependent consumer is the renderer. forecasts joins by date and does not care. */
+  if (Array.isArray(out.feed)) out.feed = out.feed.map((x, i) => [x, i]).sort((a, b) => String((b[0] || {}).d || "").localeCompare(String((a[0] || {}).d || "")) || a[1] - b[1]).map((p) => p[0]);
   for (const k of MERGE_OBJ) out[k] = _unionObj(remote[k], local[k], k === "sessionLog" ? _richerSession : _richer);   // CORRECTION_MERGE — only sessionLog knows about deliberate corrections
   for (const k of Object.keys(MERGE_KEYED)) out[k] = _unionKeyed(remote[k], local[k], MERGE_KEYED[k].keyOf, MERGE_KEYED[k].scoreOf);   // exercises/queue: reconcile per lift, never wholesale
   const rn = (remote.sleep && remote.sleep.nights) || [], ln = (local.sleep && local.sleep.nights) || [];

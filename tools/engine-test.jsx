@@ -60,6 +60,26 @@ const ok = (cond, name) => { cond ? pass++ : fail++; console.log((cond ? "PASS" 
   ok(rb.floor === 0.82 && rb.redline === 1.63, "SNAPSHOT — floor 0.82 and redline 1.63 lb/wk, %BW-derived. These were an authored 0.8 and 1.9 in pounds, and the redline got MORE permissive as he leaned out");
   ok(rb.redlinePct === __test.bodyCompBand(SNAP).redlinePct, "SNAPSHOT — one redline, published once. The foresight layer used to run 1.157 against the alarm's 1.0");
 
+  /* FEED ORDER SURVIVES A MERGE. Pre-existing v6.2-era defect surfaced in production:
+     _unionMulti iterated remote keys first, so local-only entries appended at the TAIL —
+     the 2026-08-06 withdrawal receipt sat at index 189 of 191, under July lines, and he
+     plausibly never saw it. The withdrawal convention held in state and failed in display,
+     which is where he reads. Driven on the frozen real snapshot, both write orders. */
+  {
+    const A2 = JSON.parse(JSON.stringify(SNAP));
+    const B2 = JSON.parse(JSON.stringify(SNAP));
+    /* give one side a NOVEL newest entry the other has never seen — the burial case */
+    B2.feed = [{ d: "2026-08-06", t: "NOVEL LOCAL RECEIPT", how: "x" }, ...B2.feed];
+    for (const [x, y] of [[A2, B2], [B2, A2]]) {
+      const m2 = __test.mergeState(JSON.parse(JSON.stringify(x)), JSON.parse(JSON.stringify(y)));
+      const idx = m2.feed.findIndex((f) => f.t === "NOVEL LOCAL RECEIPT");
+      ok(idx >= 0 && idx <= 3, "SNAPSHOT — a novel newest feed entry surfaces at the TOP after a merge (index " + idx + "), in both write orders. Under the old union it landed at the tail, below weeks-old lines");
+      const ds = m2.feed.map((f) => String(f.d || ""));
+      ok(ds.every((d, i) => i === 0 || ds[i - 1].localeCompare(d) >= 0), "SNAPSHOT — the merged feed is monotone newest-first: every unshift in the app assumes it, and one sync against a stale remote used to destroy it");
+      ok(m2.feed.length === x.feed.length || m2.feed.length === y.feed.length, "SNAPSHOT — and nothing was dropped to achieve it: the sort reorders, the union still never shrinks");
+    }
+  }
+
   /* R9 — the orphaned pivot card. Its producer was deleted by R4 but its apply branch is
      LIVE: tapping it steps calories to maintenance on the authority of a body-fat threshold
      the app no longer trusts. The change that deletes a producer must withdraw its cards. */
