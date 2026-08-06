@@ -4254,8 +4254,22 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
       ok(CRB(s3).redlinePct === BCB(s3).redlinePct, "R3 — now ONE number: cutRateBand and bodyCompBand publish the identical redlinePct, so the gap cannot exist");
 
       // (2) identity, not two computed numbers that happen to match
-      const rcOut = RC3(s3);
-      ok(rcOut.redlinePct === null || rcOut.redlinePct === BCB(s3).redlinePct, "R3 — redlineCrossing READS the published redlinePct rather than deriving one. Asserted by identity: two derivations that agree today would drift the moment either side changed");
+      /* THIS ASSERTION USED TO PASS ON ITS OWN ESCAPE HATCH. It read
+           ok(rcOut.redlinePct === null || rcOut.redlinePct === BCB(s3).redlinePct, ...)
+         and on SEED redlineCrossing returns fires=false, reason="beyond-horizon", so
+         redlinePct is null and the identity was never evaluated. The `=== null ||` disjunct
+         was doing the same job pctClean did: making the assertion unfailable.
+
+         Same defect class, same author, one item apart. It is driven on a state where the
+         crossing actually FIRES now, and there is no null branch to hide behind. */
+      const isoR = (i) => new Date(Date.UTC(2026, 6, 1) + i * 86400000).toISOString().slice(0, 10);
+      const rcFire = clone(SEED);
+      rcFire.blackout = { until: "2026-01-01", reason: "expired" };
+      rcFire.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoR(i), w: +(184 - i * 0.25 + [0.2,-0.3,0.1,0.4,-0.2,-0.1,0.3,-0.4,0.2,0,-0.3,0.1,0.3,-0.2,0.4,-0.1,-0.3,0.2,0.1,-0.4,0.3,-0.2,0,0.2][i]).toFixed(2), sealed: false }));
+      rcFire.trend = rcFire.reads[rcFire.reads.length - 1].w;
+      const rcOut = RC3(rcFire);
+      ok(rcOut.fires === true, "R3 — the crossing fixture actually FIRES, so the identity below is evaluated rather than skipped. The previous version ran on a state where redlineCrossing returned null and the assertion passed without comparing anything");
+      ok(rcOut.redlinePct === BCB(rcFire).redlinePct, "R3 — redlineCrossing READS the published redlinePct rather than deriving one. Asserted by identity, with no null escape hatch: two derivations that agree today would drift the moment either side changed");
       ok(!/rb\.redline \/ bw/.test(String(RC3)), "R3 — and the second derivation is gone from the source, not merely agreeing by coincidence");
 
       // (3) the unit that does not drift

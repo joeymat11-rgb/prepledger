@@ -152,6 +152,20 @@ The shape is always the same: **the safeguard is present and nothing can reach i
 that asserts the guard is *there* does not catch any of these. A test that drives the path
 and asserts the outcome *changed* catches all five.
 
+**THE TRAJECTORY IS THE FINDING, and it says where to put the effort.**
+
+    1-7      pre-existing
+    8        found by the research side, in R1/R2c
+    9,10,11  INTRODUCED BY THE REPAIRS
+    12       introduced by a repair, found by a tool built to find 11
+
+**Fixing the pattern is now its main source.** The mechanism is specific enough to act on:
+the repair lands in the SAME commit as the fix, so attention is on *"did the fix work"* and
+not *"what did the fix add"* — and the assertions for the repair are written by the same
+author, in the same sitting, from the same model that produced the bug. **The repair is the
+least-reviewed code in the change, written by whoever is most convinced they now understand
+the problem.**
+
 **SECOND COMPANION RULE — the guard-must-fire assertion is owed by any branch the change
 ADDS, not only by the branch it fixes.** A diff that introduces a state transition with no
 assertion driving it should not pass review, mine or the research side's.
@@ -970,6 +984,42 @@ pounds for as long as it did. Guard-must-fire, applied to prose.
 **What it does not buy.** This makes the prose self-consistent and appropriately hedged. It
 does not make it correct — a sentence generated from the engine still says whatever the
 engine says.
+
+### R11. Vacuity — assertions that cannot fail
+
+**Absence of an assertion is easy to grep for. VACUITY is not, and it is the one that
+survives review:** the test is present, it is named, it passes, and it asserts nothing.
+Three instances are on the record, all found by hand, all within four days:
+
+| assertion | why it could not fail |
+|---|---|
+| `ok(hair.state !== "flat" \|\| hair.pctClean == null, …)` | `pctClean` is not a field, so the disjunct was always true |
+| `ok(rcOut.redlinePct === null \|\| rcOut.redlinePct === BCB(s3).redlinePct, …)` | on `SEED` the crossing does not fire, so `redlinePct` is null and the identity was never evaluated |
+| `ok(!sealedRun.proposals.some(redline), "sealed window mutes …")` | the fixture's absolute date sat outside the frozen anchor, so the seal was never engaged |
+
+**`tools/vacuity-scan.mjs` finds the first kind mechanically.** Line-preserving comment
+strip, then every `ok()` line scanned for an escape-hatch disjunct. 7 hits over 1,598
+assertions on this branch, all reviewed, none currently vacuous.
+
+**It is NOT in the gate, deliberately.** Precision is poor by design — it cannot tell a
+legitimate *"either absent, or correct when present"* from a hatch, and a gate that fails on
+correct code is worse than no gate. **Recall is the point:** it would have caught both of the
+first two mechanically, on the commit that introduced them.
+
+**Two things it cannot do**, stated so a clean run is not mistaken for proof: it cannot see
+fields that only exist in states nothing constructs, and it says nothing about assertions
+that reference real fields and still assert nothing — the second kind in the table.
+
+**Both failure modes the tool itself had are recorded in its header**, because they are the
+same disease: a raw-text scan flagged `pctClean` inside the comment *documenting* the
+`pctClean` bug, and removing comment lines outright shifted every line number after them so
+it reported a defect at a line that did not contain it. **A tool carrying the defect class it
+exists to find is worse than no tool.**
+
+**Standing rule this establishes.** For every assertion a change ADDS: verify each referenced
+field exists on the object under test, and that the assertion CAN fail. Never leave
+`|| something-that-might-not-exist` in an `ok()` — an escape hatch in an assertion is
+indistinguishable from a passing test.
 
 ### Part 4 — bugs, independent of the redesign
 
