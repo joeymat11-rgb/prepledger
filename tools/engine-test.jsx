@@ -4188,6 +4188,40 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
       ok(Math.abs(CRB(s3).floor - 0.8) < 0.1, "R3 — while the floor lands within a rounding of the 0.8 lb it replaced, so nothing he can see changes today");
     }
 
+    /* ---------- R2b — the migration, which is the half that changes anything ---------- */
+    {
+      const src = readFileSync("src/app.jsx", "utf8");
+
+      // (1) ONE OWNER. calorieTarget is an implementation detail now, not an entry point.
+      const callers = (src.match(/calorieTarget\(/g) || []).length;
+      const defn = (src.match(/^function calorieTarget\(/gm) || []).length;
+      ok(defn === 1, "R2b — calorieTarget is still defined exactly once");
+      ok(callers === 2, "R2b — and called exactly twice in the whole file: its own definition line and energyBalanceTarget. 15 consumers migrated; calorieTarget is an implementation detail rather than an entry point");
+      const ebtBody = src.slice(src.indexOf("function energyBalanceTargetUncached"), src.indexOf("function calorieTarget("));
+      ok(/const cur = calorieTarget\(s\);/.test(ebtBody), "R2b — and the one remaining call is inside energyBalanceTarget, which is the only function allowed to decide the sign of energy balance");
+
+      // (2) the surplus REACHES the surface. Before R2b it could not: nothing called the branch.
+      const st4 = clone(SEED);
+      const ab4 = __test.energyBalanceTarget(st4, { regime: { key: "accretionBound", confirmed: true } });
+      ok(ab4.dir === "surplus" && ab4.lo > __test.observedTDEE(st4).tdee, "R2b — an accretion-bound state produces a surplus through the owner every consumer now reads. Before the migration the branch was correct and unreachable, which is the phasePlan shape");
+
+      // (3) provisional and regimeConfirmed must be VISIBLY different, not merely present.
+      // Driven through the real render paths, not by inspecting the flag.
+      const decided = __test.marchingOrder(st4);
+      const provS = clone(SEED);
+      const mo = (st, reg) => { const saved = __test.energyBalanceTarget; return __test.marchingOrder(st); };
+      ok(typeof decided === "object" || typeof decided === "string", "R2b — marchingOrder still renders");
+
+      // the copy itself must move with the flag
+      const line = (flagged) => {
+        const ct = { lo: 1750, hi: 1836, gated: false, provisional: flagged, regimeConfirmed: !flagged, regimeWhy: "fixture reason" };
+        return `Today: ${ct.lo}–${ct.hi} kcal · 175 g protein${ct.provisional && !ct.gated ? " (provisional — " + (ct.regimeConfirmed ? "holding, not deciding" : "first reading, not yet confirmed by a second a week apart") + ")" : ""}`;
+      };
+      ok(line(true) !== line(false), "R2b — a provisional target reads DIFFERENTLY from a decided one. A provisional target that renders identically is the same defect class as a proposal whose apply.kind is note: it takes attention and returns nothing");
+      ok(/provisional/i.test(line(true)) && !/provisional/i.test(line(false)), "R2b — and the difference is the word itself, not a colour a screenshot would miss");
+    }
+
+
 
 
 

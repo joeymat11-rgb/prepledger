@@ -162,11 +162,29 @@ problem" and that "there is an open proposal to restate the band in %BW" — for
 took to fix both. Rewriting a sentence fixes one instance; reading the value from its owner
 fixes the class. See QUEUED · R10.
 
-**A fixture may never read the real clock. Time is an input, injected per fixture.** A test
-whose behaviour depends on today's date has a silent expiry. `daysUntil()` reads the wall
-clock rather than the date handed to `runAdaptive`, so a sealed-window assertion stopped
-sealing anything on 2026-07-27 and passed for nine days on an unrelated coincidence. **This
-is the worst variant, because the test layer is what is meant to catch the other six.**
+**A fixture must express its dates RELATIVE to the suite's frozen anchor, never as
+absolutes.** *(Corrected 2026-08-06 — the first version of this rule said the suite reads the
+wall clock. It does not, and I should have checked before writing it into the guardrails.)*
+
+`tools/_fixed-now.mjs` already freezes the clock at **2026-07-29**, deliberately and with a
+swept table showing why. The rule that was actually broken is narrower and worse: a fixture
+wrote an **absolute** date — `S3.blackout.until = "2026-07-27"` — which sits two days BEFORE
+the anchor. So `daysUntil()` returned negative, the seal was never engaged, and the assertion
+named *"sealed window mutes the false redline"* passed on an unrelated coincidence (the rate
+1.80 sitting under the old authored 1.9).
+
+**It was not flaky. It was deterministically dead, on every machine, every run, since the
+freeze.** That is worse than a flaky test, because there is no red day to notice.
+
+The shim's own comment anticipated the opposite failure — *"if a future fixture edit shifts
+that window, this anchor is the first thing to fail"* — and what happened is the inverse: the
+anchor moved past a fixture's absolute date, and the fixture died silently instead of
+failing. **A frozen clock removes flakiness; it does not stop a fixture writing a date outside
+the window.** Express fixture dates as anchor ± offset, and the guard cannot fall out of the
+window without the offset saying so.
+
+**Still the worst variant of the family, because the test layer is what is meant to catch the
+other six.**
 
 **Ops.** Never print or expose a credential. Never delete athlete data. Keep the
 `/ledger` lockdown intact. iOS Safari is the real target and the test suite only runs
@@ -488,6 +506,39 @@ and is proved to by 20 assertions — and no code path reaches it, so today it i
 **Do not wire a caller until the R2 audit fixes are on main.** They landed together in
 `fix/r2-defects`; verify both are present before starting, because the migration is what
 makes a wrong branch live.
+
+#### CENSUS — 2026-08-06, against main@93723b5 (post-R3, so the seam is closed)
+
+18 occurrences of `calorieTarget(`; one is a comment and one is the definition, leaving
+**16 call sites across 15 consumers**:
+
+| # | consumer | layer | note |
+|---|---|---|---|
+| 1 | `energyBalanceTarget` | engine | **the legitimate one** — becomes the only caller |
+| 2 | `dietExit` | engine | |
+| 3 | `phaseSupervisor` | engine | already wrapped in `_phaseSafe` |
+| 4 | `dayProtocol` | engine | |
+| 5 | `runAdaptive` | engine | carries the BAND_OWNERSHIP comment |
+| 6 | `applyProposal` | engine | |
+| 7 | `askContext` | engine | |
+| 8 | `agentToolExec` | engine | the agent's own view of the band |
+| 9 | `marchingOrder` | engine | |
+| 10 | `AutoPilotTrust` | UI | |
+| 11-13 | `NowTab` ×3 | UI | including a `useEffect` that seeds the day's inputs |
+| 14 | `WhatIfConsole` | UI | **also Part 4 bug 8** — recomputes engine arithmetic inline |
+| 15 | `NegotiatorConsole` | UI | **also Part 4 bug 8**, and holds the 9-14 BF stepper R4 deletes |
+| 16 | `rulebook` | copy | **also R10** — generated copy |
+
+**Three of these are already filed as defects elsewhere.** Migrating 14/15 does not fix Part 4
+bug 8 (the inline arithmetic stays inline, it just reads a better owner) and does not fix R10.
+Say so rather than letting the migration look like it closed them.
+
+**PERFORMANCE IS A REAL CONSTRAINT HERE, not a micro-optimisation.** `energyBalanceTarget`
+calls `regime(s)`, which runs `progressionTrend` plus `currentRate`, and then re-runs both
+over a truncated state for the hysteresis lookback. The `costing` branch walks back further
+still. Sixteen unmemoised calls per render would be a different order of cost from sixteen
+`calorieTarget` calls. **Memoise on state, as `energyDensity` and `forecast` already do**, and
+bypass the memo when `opts` are passed so the fixtures stay honest.
 
 - Enumerate every consumer of `calorieTarget` — UI and engine — and list them in this item
   before editing. Grep-count, do not estimate.
