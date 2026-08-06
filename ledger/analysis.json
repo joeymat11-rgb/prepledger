@@ -1,12 +1,12 @@
 {
-  "gen": "2026-08-05T09:06:50.709Z",
+  "gen": "2026-08-06T09:05:15.371Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 163.83,
-    "lastRaw": 162.4,
-    "appTrend": 163.5,
+    "soft": 163.45,
+    "lastRaw": 162.2,
+    "appTrend": 163.1,
     "noiseFloor": 1.52,
-    "gap": 1.43
+    "gap": 1.25
   },
   "rate": {
     "perWeekLb": 1.06,
@@ -19,13 +19,13 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2741,
-    "tdeeWinDays": 20,
-    "meanCal": 2218,
+    "tdee": 2852,
+    "tdeeWinDays": 16,
+    "meanCal": 2242,
     "waterSensitivityLb": 0.96,
     "waterSensDays": 3,
     "meanSleepH": 6.8,
-    "sleepDebt7H": 2.8,
+    "sleepDebt7H": 3.8,
     "ffmKg": 63.4,
     "proteinTargetG": 146
   },
@@ -78,37 +78,6 @@
     }
   ],
   "priorDecisions": [
-    {
-      "sid": "sug_2026-07-28_sleep",
-      "decided": "approved",
-      "d": "2026-07-28",
-      "title": "Fix lights-out: pick a time, take 7.5 h",
-      "apply": {
-        "kind": "sleep",
-        "to": 7.5
-      },
-      "predict": "Back at 7.5 h, the press third set returns to 7 and the loss keeps coming off fat rather than lean."
-    },
-    {
-      "sid": "sug_2026-07-28_hold",
-      "decided": "approved",
-      "d": "2026-07-28",
-      "title": "Hold the Calves 320 debut until a clean week",
-      "apply": {
-        "kind": "note"
-      },
-      "predict": "The 320 debut lands on a clean week and sticks first time; nothing you own gets contested on recovery grounds."
-    },
-    {
-      "sid": "sug_2026-07-29_band_hold",
-      "decided": "approved",
-      "d": "2026-07-29",
-      "title": "Leave the calorie band alone - that drift is your step taper",
-      "apply": {
-        "kind": "note"
-      },
-      "predict": "Holding the band keeps the rate inside 1.0-1.4 lb/wk, and the maintenance fit settles near 2,470 once a clean post-seal fortnight replaces the frozen reads."
-    },
     {
       "sid": "sug_2026-07-29_ext_opener",
       "decided": "approved",
@@ -182,11 +151,42 @@
         "to": 7.5
       },
       "predict": "Bed by 00:30 tonight puts you back at 7–7.5 h. Expect the 7-night debt under 2 h by Thursday, and your next leg day — which carries the 155 debut and the 0-RIR bill — to run without a short night sitting in the middle of it."
+    },
+    {
+      "sid": "sug_2026-08-05_rows_open",
+      "decided": "approved",
+      "d": "2026-08-05",
+      "title": "Open rows at 2 RIR next upper day — it is frozen until you do",
+      "apply": {
+        "kind": "progression",
+        "to": "Rows 180: log the opener at 2 RIR next upper day to release the governor hold"
+      },
+      "predict": "Open rows at 2 RIR next upper day - roughly 180 x 8 rather than 9 - and the hold releases in that session, putting 185 back in reach off 10,10. Leave the opener hot and 180 cannot climb however good the reps look, which is a slower and much less obvious way to lose the lift."
+    },
+    {
+      "sid": "sug_2026-08-05_hamcounter",
+      "decided": "approved",
+      "d": "2026-08-05",
+      "title": "Ham's top-of-window counter is a fourth cache — it is one sighting ahead of the log",
+      "apply": {
+        "kind": "note"
+      },
+      "predict": "Clear topRun (or let a filed non-top ham session clear it) and 125 waits for two real sightings, the way the rule intends. Leave it and the very next good ham day queues a 4% jump on a lift that just did 10,10 after a week off."
+    },
+    {
+      "sid": "sug_2026-08-05_extlog",
+      "decided": "approved",
+      "d": "2026-08-05",
+      "title": "Put Tuesday's leg extension back — with the load on it",
+      "apply": {
+        "kind": "note"
+      },
+      "predict": "Re-enter it with the weight and one of two things settles tonight. At 155, 8,8 meets the clean-debut threshold this loop named on 8/1, q_ext155 closes and the gate CL-2 shut on 7/21 is earned. At 150, it is three reps off your 10,9 and the gate stays shut. Either way exercises.extension.lastMeta moves off 2026-07-31 and your next lower day stops prescribing from a nine-day-old card."
     }
   ],
   "suggestions": [
     {
-      "sid": "sug_2026-08-04_sleep",
+      "sid": "sug_2026-08-05_sleep",
       "title": "Protect sleep: aim 7.5 h, cap afternoon caffeine",
       "apply": {
         "kind": "sleep",
@@ -194,29 +194,13 @@
       },
       "rationale": {
         "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss 55% and raised lean-mass loss 60% (Nedeltcheva 2010).",
-        "data": "Last 13 nights average 6.8 h (7-night debt 2.8 h); 1 recent days had >=300 mg or afternoon caffeine.",
+        "data": "Last 13 nights average 6.8 h (7-night debt 3.8 h); 1 recent days had >=300 mg or afternoon caffeine.",
         "relationship": "Short sleep + late caffeine track with your low recovery score and rep dips - the lever that protects lean while you cut."
       },
       "predict": "Higher share of loss as fat; lean protected; better session quality.",
       "confidence": "high",
       "gate": "approve",
       "rank": 1
-    },
-    {
-      "sid": "sug_2026-08-04_hold",
-      "title": "Hold structural training changes this week",
-      "apply": {
-        "kind": "note"
-      },
-      "rationale": {
-        "science": "Under-recovery blunts the training stimulus that preserves muscle on a cut (Schoenfeld 2017).",
-        "data": "Recovery signals are low (short sleep, rep dips) with a progression queued.",
-        "relationship": "Pushing loads while under-recovered converts to missed reps, not muscle."
-      },
-      "predict": "Keeps intensity honest; resume progression when recovery returns.",
-      "confidence": "medium",
-      "gate": "approve",
-      "rank": 2
     }
   ]
 }
