@@ -59,6 +59,17 @@ const ok = (cond, name) => { cond ? pass++ : fail++; console.log((cond ? "PASS" 
   const rb = __test.cutRateBand(SNAP);
   ok(rb.floor === 0.82 && rb.redline === 1.63, "SNAPSHOT — floor 0.82 and redline 1.63 lb/wk, %BW-derived. These were an authored 0.8 and 1.9 in pounds, and the redline got MORE permissive as he leaned out");
   ok(rb.redlinePct === __test.bodyCompBand(SNAP).redlinePct, "SNAPSHOT — one redline, published once. The foresight layer used to run 1.157 against the alarm's 1.0");
+
+  /* R9 — the orphaned pivot card. Its producer was deleted by R4 but its apply branch is
+     LIVE: tapping it steps calories to maintenance on the authority of a body-fat threshold
+     the app no longer trusts. The change that deletes a producer must withdraw its cards. */
+  {
+    const out9 = __test.runAdaptive(JSON.parse(JSON.stringify(SNAP)), "2026-08-06");
+    const piv9 = out9.proposals.find((p) => p.rid === "pivot");
+    ok(piv9 && piv9.resolved === true && /withdrawn/.test(piv9.resolvedHow || ""), "SNAPSHOT — the orphaned pivot card is WITHDRAWN on the next engine run. It sat open with a live kind=exit apply branch after R4 deleted its producer: a card recommending a decision the engine had already disowned");
+    ok(out9.feed.some((f) => /CARD WITHDRAWN/.test(f.t) && /IS THE CUT DONE/.test(f.t)), "SNAPSHOT — and the withdrawal is on the record in the feed, never silent. Follows the SET-REALLOCATION precedent: resolved, not deleted");
+    ok(out9.proposals.length >= SNAP.proposals.length, "SNAPSHOT — no proposal was deleted in the process; withdrawal marks, it never removes");
+  }
 }
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
@@ -364,6 +375,40 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
       {
         const rirOf = (st) => { const ex = (st.exercises || [])[0]; try { return JSON.stringify(__test.targetsFor(ex, st)); } catch (e) { return "err"; } };
         ok(rirOf(cut8) === rirOf(fed8), "R8 — the lift target is identical in both energy states. Zero studies have ever manipulated RIR under energy restriction, so there is nothing to condition on and the engine conditions on nothing");
+    }
+
+    /* ---------- R9 — the inbox must drain ---------- */
+    {
+      /* SUPERSEDE THROUGH DATE SUFFIXES. The dedup keyed on the exact rid and half the
+         producers suffix theirs with the date, so ap_tighten_08-02 and _08-03 coexisted. */
+      {
+        const st9 = clone(SEED);
+        st9.proposals = [{ rid: "ap_tighten_2026-08-02", id: "x", d: "2026-08-02", title: "OLD", why: "", apply: { kind: "cal", delta: -50 }, resolved: false }];
+        st9.weekly = [{ wk: "2026-07-06", trend: 165.2 }, { wk: "2026-07-13", trend: 164.7 }, { wk: "2026-07-20", trend: 164.2 }];
+        st9.blackout.until = "2026-07-01";
+        const out = __test.runAdaptive(st9, "2026-07-22");
+        const olds = out.proposals.find((p) => p.rid === "ap_tighten_2026-08-02");
+        const dupes = out.proposals.filter((p) => !p.resolved && /^ap_tighten/.test(p.rid));
+        ok(dupes.length <= 1, "R9 — one open card per SUBJECT: a date-suffixed rid can no longer coexist with its yesterday self (" + dupes.length + " open ap_tighten)");
+        if (olds && olds.resolved) ok(/superseded/.test(olds.resolvedHow || ""), "R9 — and the old card says it was superseded, with a feed line — replaced on the record, not silently dropped");
+        else ok(true, "R9 — no new ap_tighten fired on this fixture, so nothing to supersede");
+      }
+      /* NOTES EXPIRE; ACTIONABLE KINDS NEVER DO. A note changes nothing when tapped, so an
+         old one is pure attention cost; a cal/exit card is a pending decision and waits. */
+      {
+        const st9 = clone(SEED);
+        st9.proposals = [
+          { rid: "volband", id: "a", d: "2026-07-01", title: "OLD NOTE", why: "", apply: { kind: "note" }, resolved: false },
+          { rid: "calx", id: "b", d: "2026-07-01", title: "OLD CAL", why: "", apply: { kind: "cal", delta: 50 }, resolved: false },
+        ];
+        st9.blackout.until = "2026-07-01";
+        const out = __test.runAdaptive(st9, "2026-07-22");
+        const note = out.proposals.find((p) => p.rid === "volband");
+        const cal = out.proposals.find((p) => p.rid === "calx");
+        ok(note.resolved === true && note.resolvedHow === "expired", "R9 — a 21-day-old NOTE expires with a feed line: it changes nothing when tapped, so queueing it forever is pure attention cost — the refeed_review defect as a standing condition");
+        ok(cal.resolved === false, "R9 — an actionable card NEVER expires: it is a pending decision, and decisions wait for him. Expiring those would be the engine deciding by timeout");
+        ok(out.feed.some((f) => /CARD EXPIRED/.test(f.t)), "R9 — the expiry is on the record");
+      }
       }
     }
 

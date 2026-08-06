@@ -7092,12 +7092,43 @@ function runAdaptive(state, todayISO) {
      own rule against composite scores. Refresh the text and the dial on
      anything he has not acted on; leave the raised-on date alone so the age of
      the flag stays honest, and never resurrect one he already applied. */
+  /* R9 — ONE OPEN CARD PER SUBJECT. The dedup keyed on the EXACT rid, and half the
+     producers suffix their rid with the date (ap_tighten_2026-08-02), so the same subject
+     filed fresh every day and the dedup never saw it. Filing over an open subject now
+     SUPERSEDES: the old card is resolved with a feed line, never silently replaced. */
+  const subjectOf = (rid) => String(rid || "").replace(/_\d{4}-\d{2}-\d{2}$/, "");
   const propose = (rid, title, why, apply) => {
     if (applied(rid)) return;
-    const open = s.proposals.find((p) => p.rid === rid && !p.resolved);
-    if (open) { open.title = title; open.why = why; open.apply = apply; open.refreshed = todayISO; return; }
+    const open = s.proposals.find((p) => p && !p.resolved && subjectOf(p.rid) === subjectOf(rid));
+    if (open && open.rid === rid) { open.title = title; open.why = why; open.apply = apply; open.refreshed = todayISO; return; }
+    if (open) {
+      open.resolved = true; open.resolvedHow = "superseded by " + rid;
+      s.feed.unshift({ d: todayISO, t: "CARD SUPERSEDED — " + subjectOf(rid).toUpperCase(), how: "a newer card on the same subject replaced it; nothing was silently dropped" });
+    }
     s.proposals.push({ rid, id: `${rid}_${todayISO}`, d: todayISO, title, why, apply, resolved: false });
   };
+  /* R9 — WITHDRAW ORPHANS. R4 deleted both body-fat producers (ease2 -> kind "phase",
+     pivot -> kind "exit") but their INSTANCES persist in state with LIVE apply branches:
+     tapping the open pivot today would step calories to maintenance on the authority of
+     the bf.lo threshold R4 judged unable to make that claim. A proposal whose producer
+     was deleted must be withdrawn by the change that deleted it — otherwise it is a card
+     recommending a decision the engine has already disowned. Follows the withdrawal
+     precedent (SET-REALLOCATION CARD WITHDRAWN): resolved with a feed line, never deleted. */
+  for (const p of s.proposals) {
+    if (p && !p.resolved && p.apply && (p.apply.kind === "exit" || p.apply.kind === "phase")) {
+      p.resolved = true; p.resolvedHow = "withdrawn — producer removed by R4";
+      s.feed.unshift({ d: todayISO, t: "CARD WITHDRAWN — " + String(p.title || p.rid).slice(0, 40), how: "It was produced by a body-fat threshold the app no longer trusts (R4): the estimate's interval is wider than the decision. The question it asked now belongs to the regime detector, which reads lifts and scale rate instead. Nothing was deleted; this card is on the record as withdrawn." });
+    }
+  }
+  /* R9 — NOTES EXPIRE. A note card changes nothing when tapped, so an old one is pure
+     attention cost. 14 days, then resolved as expired, on the record. Actionable kinds
+     never expire — they represent decisions, and decisions wait for him. */
+  for (const p of s.proposals) {
+    if (p && !p.resolved && p.apply && p.apply.kind === "note" && p.d && (mk(todayISO) - mk(p.d)) / DAY > 14) {
+      p.resolved = true; p.resolvedHow = "expired";
+      s.feed.unshift({ d: todayISO, t: "CARD EXPIRED — " + String(p.title || p.rid).slice(0, 40), how: "a two-week-old note is stale information, not a pending decision — it expires rather than queueing forever" });
+    }
+  }
 
   const sealed = daysUntil(s.blackout.until) > 0;
   const r = currentRate(s);
@@ -9424,6 +9455,7 @@ __test.bfEst = bfEst;
 __test.migrate = migrate;
 __test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
 __test.targetsFor = targetsFor;
+__test.runAdaptive = runAdaptive;
 __test.stepKcal = stepKcal;
 __test.skinfoldCheck = skinfoldCheck;
 __test.skinfoldSeries = skinfoldSeries;

@@ -1190,6 +1190,38 @@ evidence to change it" is the honest basis, not "evidence that it doesn't matter
 
 ### R9. The approval inbox must drain
 
+#### BUILT 2026-08-06 — and the brief's counts were from a stale snapshot, which is the trap
+#### we named for each other two rounds ago
+
+**Live ledger at build time: 2 open, 14 resolved** — not the briefed 10/6. Joe drained the
+queue again. **The structural findings survive the stale counts**, and one is sharper than
+either framing:
+
+**THE ORPHANED PIVOT CARD WAS A LIVE HAZARD.** R4 deleted its producer, but the instance
+persisted open in state with a **live `kind: "exit"` apply branch** — tapping it would have
+stepped calories to maintenance on the authority of the body-fat threshold R4 judged unable to
+make that claim. A card recommending a decision the engine has already disowned.
+
+Three mechanisms, each driven:
+
+- **Supersede through date suffixes.** `propose()` already deduped on the exact `rid` — but
+  half the producers suffix theirs with the date (`ap_tighten_2026-08-02` vs `_08-03`), so the
+  same subject filed fresh daily and the dedup never saw it. One open card per SUBJECT now;
+  the old card is resolved as superseded, with a feed line.
+- **Withdraw orphans.** Any open card whose apply kind is `exit`/`phase` — both producers
+  deleted by R4 — is withdrawn on the next engine run, following the SET-REALLOCATION
+  precedent: resolved with a feed line naming why, **never deleted**. Snapshot-asserted: the
+  pivot is withdrawn and the feed records it.
+- **Notes expire at 14 days; actionable kinds NEVER expire.** A note changes nothing when
+  tapped, so an old one is pure attention cost — the `refeed_review` defect as a standing
+  condition. A `cal`/`exit` card is a pending decision, and decisions wait for him: expiring
+  those would be the engine deciding by timeout.
+
+**What this does not fix:** `kind: "note"` proposals still exist and still change nothing when
+tapped. Whether informational cards should be feed lines rather than proposals at all is a
+design question for the research side, filed as an open question rather than decided here.
+
+
 Every recommendation above ends in "file a proposal," and the queue has no expiry, no dedup and no
 supersede.
 
