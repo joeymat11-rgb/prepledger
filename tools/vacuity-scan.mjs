@@ -53,10 +53,22 @@ const stripped = raw
    a green run stops meaning anything. Every hit needs the same human question as the
    hatches: what would make this line go red? */
 const HATCH = [
-  /ok(s*trues*,/,
+  new RegExp("\\bok\\(\\s*true\\s*,"),
   /\|\|\s*[!(]?\s*[A-Za-z_$][\w$.]*\s*(==|===)\s*(null|undefined)/,
   /(==|===)\s*(null|undefined)\s*\|\|/,
 ];
+
+/* CANARY — the scanner itself just shipped broken (a shell-mangled regex threw on load) and
+   nothing noticed, because the scanner is not in the gate. So it now proves its own patterns
+   fire before scanning anything: a scanner that cannot detect its own known-bad sample is a
+   dead guard shaped like a tool. */
+const CANARY = [
+  "ok(true, \"canary\");",
+  "ok(x === null || x.field == null, \"canary\");",
+];
+for (const c of CANARY) {
+  if (!HATCH.some((re) => re.test(c))) { console.error("CANARY FAILED — the scanner does not flag: " + c); process.exit(1); }
+}
 
 const lines = stripped.split("\n");
 const rawLines = raw.split("\n");
