@@ -239,6 +239,23 @@ Record the real-data branch in the item, every time. As of 2026-08-06:
 **Both gates read zero today** — the difference is what it takes to leave zero. The old one
 needed three unbroken clean weeks; the new one needs three clean sessions on one lift.
 
+**WHEN A SUITE FAILS FAST, ORDER ASSERTIONS BY HOW MUCH THEIR FAILURE TELLS YOU, NOT BY WHERE
+THEY WERE WRITTEN.** An assertion whose failure means *"this does not do what was asked"*
+outranks one whose failure means *"this does not match how I imagined it."*
+
+**This inverted the whole point of the snapshot rule and it was live for exactly one commit.**
+The suite exits at the first failing checkpoint and the snapshot block sat near the end, so it
+ran only when everything synthetic had already passed. Follow that through: **the builder is
+always told "you violated your own model" and never "the world disagrees with you", because
+the second message only arrives once the first has nothing to say.** Demonstrated on the
+narrowed comparator — six synthetic failures, and the assertion written to catch it never ran.
+
+Fixed by running the snapshot block FIRST, immediately after `ok()` is defined. Not because it
+is more likely to fail — it is less likely — but because its failures carry information the
+synthetic ones cannot. **Fail-fast is a time optimisation and must not double as a
+truth-ordering.** Verified: with the comparator re-narrowed, the three SNAPSHOT failures are
+now the first three lines of output.
+
 **WHEN AN ITEM'S CORRECTNESS DEPENDS ON REAL DATA, THE FIXTURE IS A DATED SNAPSHOT OF REAL
 DATA AND THE CRITERION STATES THE OUTCOME, NOT THE MECHANISM.**
 
@@ -267,7 +284,11 @@ tools. It would have caught **two of the last five** immediately: the narrowed c
 the unreachable `clean2` gate, where *"how many lifts clear the downgrade gate"* had the answer
 *"none, ever."*
 
-**WHAT CAUGHT THE NARROWING WAS INCENTIVE, NOT PROCESS.** The research side proposed R13, the
+**WHAT CAUGHT THE NARROWING WAS INCENTIVE, NOT PROCESS — SYMMETRICALLY, AND NEITHER HALF IS A
+CHARACTER FACT.** The research side checked the gate because they had a stake in the item it
+closed. The build side did not check it because **the result was comfortable** — flag
+consistent, item closed, nothing outstanding. **A clean result is the least-examined result on
+both sides.** The research side proposed R13, the
 gate closed it, and they therefore had reason to check whether the gate was measuring the right
 thing. **That is not virtue and it does not generalise** — a gate closing an item nobody cared
 about would likely have been accepted. Worth recording because it says the audit is strongest

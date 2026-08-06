@@ -6,6 +6,61 @@ import { __test } from "../src/app.jsx";
 const { targetsFor, genSession, completeSession, runAdaptive, bfEst, migrate, SEED } = __test;
 let pass = 0, fail = 0;
 const ok = (cond, name) => { cond ? pass++ : fail++; console.log((cond ? "PASS" : "FAIL") + " — " + name); };
+
+/* ==================== FROZEN REAL-LEDGER SNAPSHOTS ====================
+   A SYNTHETIC fixture encodes the author's model of the problem — which is the same model
+   that produced the bug. Both versions of R7's comparator passed their synthetic fixtures,
+   because both were written to. A FROZEN REAL SNAPSHOT encodes the world instead, and does
+   not care what the author believed.
+
+   THE RULE: when an item's correctness depends on real data, the fixture is a DATED SNAPSHOT
+   of real data and the criterion states the OUTCOME, not the mechanism.
+
+   A criterion phrased as a MECHANISM is satisfied by any comparator that plausibly fits the
+   words — "compare the behaviour-implied rate to the measured rate" was satisfied by both of
+   R7's builds. A criterion phrased as an OUTCOME ON REAL DATA is not: "on his ledger the flag
+   is RAISED" fails instantly against the narrowed build, because 0.28 < 0.38.
+
+   KNOWN BLIND SPOT, stated so a green run is not mistaken for proof: a comparator can still be
+   narrowed in a way that happens to produce the right outcome on the snapshot. This converts
+   "no mechanical check exists" into "one exists with known limits", which is the difference
+   between the eleven instances found by reading and the three found by tools.
+
+   Snapshots ACCUMULATE. Each is a regression test against a real world-state that once
+   existed. Never edit one to make a test pass — take a new one, dated. ==================== */
+{
+  const SNAP = JSON.parse(readFileSync("tools/snapshots/2026-08-06-ledger.json", "utf8"));
+
+  /* R7 — THE ONE THAT WOULD HAVE CAUGHT THE NARROWED COMPARATOR.
+     Under the narrowed build this reads flagged=false (gap 0.28 vs combined 0.38). */
+  const rd = __test.rateDivergence(SNAP);
+  ok(rd.flagged === true, "SNAPSHOT 2026-08-06 — the divergence flag is RAISED on his real ledger. The narrowed comparator I built read false here, and no synthetic fixture caught it because both comparators pass fixtures written for them");
+  ok(rd.gap > rd.combined, "SNAPSHOT — and it is raised because the gap (" + rd.gap + ") exceeds the combined error (" + rd.combined + "), not because a threshold happened to sit somewhere convenient");
+  ok(Math.abs((rd.intakeEffect + rd.stepEffect) - rd.gap) < 0.02 && rd.intakeEffect > rd.stepEffect, "SNAPSHOT — the attributed parts sum to the gap on REAL data, and intake is the larger term: 0.75 intake against 0.17 steps");
+
+  /* R1 — WHICH BRANCH REAL DATA TAKES. Recorded as an assertion rather than a note, which is
+     the step that was missing. The unreachable clean2 gate would have failed this instantly:
+     "how many lifts clear the downgrade gate" has the answer "none, ever". */
+  const pt = __test.progressionTrend(SNAP);
+  ok(pt.state === "unknown" && pt.nLifts === 0, "SNAPSHOT — progressionTrend ABSTAINS on his real ledger: 0 lifts carry a usable trend against a floor of 4. That is the instrument working, and it is the branch his data actually takes today");
+  ok(pt.nExcludedNonNumeric === 2 && pt.excludedIds.indexOf("curl") > -1 && pt.excludedIds.indexOf("hanging") > -1, "SNAPSHOT — exactly two lifts are excluded for a non-numeric weight, and they are curl and hanging. The spec said three and named pronated, which is numeric in all three of its logged entries");
+  {
+    let cleanCapable = 0;
+    for (const t2 of pt.lifts) if (__test.liftTrend(SNAP, t2.id, { cleanOnly: true, minN: 3 })) cleanCapable++;
+    ok(cleanCapable === 0, "SNAPSHOT — no lift yet clears the DOWNGRADE gate (3 clean sessions). Recorded as a fact rather than a note: if a change ever makes this branch unreachable-but-alive again, this number stops matching and the assertion says so");
+  }
+
+  /* R2/R2b — the target his phone is actually showing */
+  const eb = __test.energyBalanceTarget(SNAP, { asOf: "2026-08-06" });
+  ok(eb.dir === "deficit" && eb.lo === 2176 && eb.hi === 2263, "SNAPSHOT — the live band is 2176-2263. Any change claiming to be display-only must leave these two numbers alone");
+  ok(eb.provisional === true && eb.regimeConfirmed === false, "SNAPSHOT — and it is flagged provisional, because the regime is unconfirmed. A ~530 kcal decision presented as decided is a stronger claim than the evidence supports");
+
+  /* R3 — the redline he sees on the gauge */
+  const rb = __test.cutRateBand(SNAP);
+  ok(rb.floor === 0.82 && rb.redline === 1.63, "SNAPSHOT — floor 0.82 and redline 1.63 lb/wk, %BW-derived. These were an authored 0.8 and 1.9 in pounds, and the redline got MORE permissive as he leaned out");
+  ok(rb.redlinePct === __test.bodyCompBand(SNAP).redlinePct, "SNAPSHOT — one redline, published once. The foresight layer used to run 1.157 against the alarm's 1.0");
+}
+
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
 // 1. progression: climb the earliest lagging set
@@ -281,59 +336,7 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
       ok(RD({}).flagged === false && typeof RD({}).reason === "string", "R7 — it abstains with a named reason on an empty state rather than throwing");
     }
 
-/* ==================== FROZEN REAL-LEDGER SNAPSHOTS ====================
-   A SYNTHETIC fixture encodes the author's model of the problem — which is the same model
-   that produced the bug. Both versions of R7's comparator passed their synthetic fixtures,
-   because both were written to. A FROZEN REAL SNAPSHOT encodes the world instead, and does
-   not care what the author believed.
 
-   THE RULE: when an item's correctness depends on real data, the fixture is a DATED SNAPSHOT
-   of real data and the criterion states the OUTCOME, not the mechanism.
-
-   A criterion phrased as a MECHANISM is satisfied by any comparator that plausibly fits the
-   words — "compare the behaviour-implied rate to the measured rate" was satisfied by both of
-   R7's builds. A criterion phrased as an OUTCOME ON REAL DATA is not: "on his ledger the flag
-   is RAISED" fails instantly against the narrowed build, because 0.28 < 0.38.
-
-   KNOWN BLIND SPOT, stated so a green run is not mistaken for proof: a comparator can still be
-   narrowed in a way that happens to produce the right outcome on the snapshot. This converts
-   "no mechanical check exists" into "one exists with known limits", which is the difference
-   between the eleven instances found by reading and the three found by tools.
-
-   Snapshots ACCUMULATE. Each is a regression test against a real world-state that once
-   existed. Never edit one to make a test pass — take a new one, dated. ==================== */
-{
-  const SNAP = JSON.parse(readFileSync("tools/snapshots/2026-08-06-ledger.json", "utf8"));
-
-  /* R7 — THE ONE THAT WOULD HAVE CAUGHT THE NARROWED COMPARATOR.
-     Under the narrowed build this reads flagged=false (gap 0.28 vs combined 0.38). */
-  const rd = __test.rateDivergence(SNAP);
-  ok(rd.flagged === true, "SNAPSHOT 2026-08-06 — the divergence flag is RAISED on his real ledger. The narrowed comparator I built read false here, and no synthetic fixture caught it because both comparators pass fixtures written for them");
-  ok(rd.gap > rd.combined, "SNAPSHOT — and it is raised because the gap (" + rd.gap + ") exceeds the combined error (" + rd.combined + "), not because a threshold happened to sit somewhere convenient");
-  ok(Math.abs((rd.intakeEffect + rd.stepEffect) - rd.gap) < 0.02 && rd.intakeEffect > rd.stepEffect, "SNAPSHOT — the attributed parts sum to the gap on REAL data, and intake is the larger term: 0.75 intake against 0.17 steps");
-
-  /* R1 — WHICH BRANCH REAL DATA TAKES. Recorded as an assertion rather than a note, which is
-     the step that was missing. The unreachable clean2 gate would have failed this instantly:
-     "how many lifts clear the downgrade gate" has the answer "none, ever". */
-  const pt = __test.progressionTrend(SNAP);
-  ok(pt.state === "unknown" && pt.nLifts === 0, "SNAPSHOT — progressionTrend ABSTAINS on his real ledger: 0 lifts carry a usable trend against a floor of 4. That is the instrument working, and it is the branch his data actually takes today");
-  ok(pt.nExcludedNonNumeric === 2 && pt.excludedIds.indexOf("curl") > -1 && pt.excludedIds.indexOf("hanging") > -1, "SNAPSHOT — exactly two lifts are excluded for a non-numeric weight, and they are curl and hanging. The spec said three and named pronated, which is numeric in all three of its logged entries");
-  {
-    let cleanCapable = 0;
-    for (const t2 of pt.lifts) if (__test.liftTrend(SNAP, t2.id, { cleanOnly: true, minN: 3 })) cleanCapable++;
-    ok(cleanCapable === 0, "SNAPSHOT — no lift yet clears the DOWNGRADE gate (3 clean sessions). Recorded as a fact rather than a note: if a change ever makes this branch unreachable-but-alive again, this number stops matching and the assertion says so");
-  }
-
-  /* R2/R2b — the target his phone is actually showing */
-  const eb = __test.energyBalanceTarget(SNAP, { asOf: "2026-08-06" });
-  ok(eb.dir === "deficit" && eb.lo === 2176 && eb.hi === 2263, "SNAPSHOT — the live band is 2176-2263. Any change claiming to be display-only must leave these two numbers alone");
-  ok(eb.provisional === true && eb.regimeConfirmed === false, "SNAPSHOT — and it is flagged provisional, because the regime is unconfirmed. A ~530 kcal decision presented as decided is a stronger claim than the evidence supports");
-
-  /* R3 — the redline he sees on the gauge */
-  const rb = __test.cutRateBand(SNAP);
-  ok(rb.floor === 0.82 && rb.redline === 1.63, "SNAPSHOT — floor 0.82 and redline 1.63 lb/wk, %BW-derived. These were an authored 0.8 and 1.9 in pounds, and the redline got MORE permissive as he leaned out");
-  ok(rb.redlinePct === __test.bodyCompBand(SNAP).redlinePct, "SNAPSHOT — one redline, published once. The foresight layer used to run 1.157 against the alarm's 1.0");
-}
 
 
 
