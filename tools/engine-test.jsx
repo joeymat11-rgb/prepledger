@@ -4004,6 +4004,65 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
         ok(pt.confidence === "low" && /not evidence of no decline/i.test(pt.protectedBy || ""), "R1 progressionTrend — and it is marked low-confidence with the reason, rather than silently downgraded");
         const cleanRun = PT(mkState(falling, 0.15, 8));
         ok(cleanRun.state === "falling" && cleanRun.confidence === "normal", "R1 progressionTrend — the same decline on well-slept sessions reports falling at NORMAL confidence, so the protection does not fire spuriously");
+
+      /* THE DOWNGRADE HAD NO ASSERTION ANYWHERE IN THE SUITE, on the commit that celebrated
+         the guard-must-fire rule. The !clean2.length branch was driven and the normal branch
+         was driven; the only branch that CHANGES THE VERDICT was not. All four outcomes are
+         driven here, and only one of them downgrades. */
+      {
+        const LC = ["a", "b", "c", "d", "e"];
+        const isoC = (t) => new Date(t).toISOString().slice(0, 10);
+        const endC = Date.parse("2026-08-04T00:00:00Z");
+        /* nights before goodFrom are 4h, from goodFrom on are 8h — cleanAtDate needs the
+           last night >= 6.5 AND the 3-night mean >= 7.0, so a block of good nights makes the
+           later sessions clean and leaves the earlier ones flagged. */
+        const mk4 = (totals, goodFrom) => {
+          const st = { sessionLog: {}, reads: [], sleep: { nights: [], cleanH: 7.5 }, dailyLogs: {}, exercises: LC.map((id) => ({ id, n: id, w: 100 })), weekly: [], model: { drip: 0 } };
+          totals.forEach((tot, k) => {
+            const d = isoC(endC - (totals.length - 1 - k) * 2 * 86400000);
+            st.sessionLog[d] = { entries: LC.map((id) => ({ id, w: 100, reps: [tot] })), skipped: [], pace: "normal", at: 1 };
+          });
+          for (let k = 0; k < 40; k++) {
+            const d = isoC(endC - (39 - k) * 86400000);
+            st.reads.push({ d, w: +(170 - 0.15 * k).toFixed(2) });
+            st.sleep.nights.push({ d, h: k >= goodFrom ? 8 : 4 });
+          }
+          return st;
+        };
+        const GOOD = 32;   // last 8 nights good => the last 4 sessions are clean
+
+        // (a) NO clean sessions at all -> falling STANDS, low, untestable
+        const none = PT(mk4([20, 16, 12, 8, 4], 999));
+        ok(none.state === "falling" && none.confidence === "low", "R1 downgrade — with NO clean sessions the decline STANDS at low confidence. Absence of clean sessions is not evidence of no decline");
+        ok(/cannot be tested/i.test(none.protectedBy || ""), "R1 downgrade — and it says the decline could not be tested, rather than implying it was tested and survived");
+
+        // (b) clean sessions point DOWN and confirm -> falling, normal
+        const down = PT(mk4([20, 16, 12, 8, 4], GOOD));
+        ok(down.state === "falling", "R1 downgrade — clean sessions that also decline leave the verdict standing");
+
+        // (c) clean sessions point UP WITH POWER -> the ONLY downgrade
+        const up = PT(mk4([40, 8, 4, 8, 12], GOOD));
+        ok(up.state === "flat", "R1 downgrade — clean sessions pointing UP with power is the ONLY outcome that changes the verdict. This branch had no assertion at all until now, and it is the one that decides whether the deficit keeps being stepped out");
+        ok(/point UP with power/i.test(up.protectedBy || ""), "R1 downgrade — and it names the power, not just the direction: at df=1 a bare point estimate crossing zero is a coin flip on the weakest sample in the system");
+
+        /* (d) THE COIN FLIP IS GONE. Clean sessions that lean up but cannot resolve must NOT
+           downgrade. Overall falling (-6/session), clean subset (the 3 dates that actually clear cleanAtDate: 12,15,13) leans UP but cannot resolve,
+           so p2 >= 0 while p2 - se2 <= 0.
+
+           MY FIRST VERSION OF THIS ASSERTION WAS VACUOUS. It read
+             ok(hair.state !== "flat" || hair.pctClean == null, ...)
+           and pctClean is not a field on the result, so the right-hand side was always true
+           and the assertion could never fail. A DEAD ASSERTION, written in the very commit
+           that adds assertions for a dead branch. It is asserted positively now: the state
+           and the confidence, both named, neither one an escape hatch. */
+        const hair = PT(mk4([40, 8, 12, 15, 13], GOOD));
+        ok(hair.state === "falling", "R1 downgrade — clean sessions that lean up but cannot RESOLVE do not downgrade. p2 = +0.01 vs -0.01 used to be the difference between flat and falling, decided by noise on a df=1 sample");
+        ok(hair.confidence === "low" && /cannot resolve/i.test(hair.protectedBy || ""), "R1 downgrade — and that outcome has its own name: UNTESTABLE is not the same as contradicted, and the copy says so");
+
+        // the se floor is an INVARIANT now, not an epsilon guard nobody can reach
+        for (const t of down.lifts) ok(t.se >= __test.TREND_SE_FLOOR, "R1 — every lift trend's se is at or above TREND_SE_FLOOR, which is why the pooling needs no epsilon guard. The two 1e-9 guards it replaced could never fire — a dead guard three lines from the fix for a dead guard");
+      }
+
       }
 
       // regime may never read a body-fat estimate — R4's guardrail, enforced at R1

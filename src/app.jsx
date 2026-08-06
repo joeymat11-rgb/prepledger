@@ -1831,6 +1831,7 @@ const TREND_WINDOW = 6;      /* sessions — matches liftCall's own recency hori
    moved all three. */
 const TREND_MIN_SESSIONS = 4;        /* sessions for ONE lift before liftTrend will estimate a slope (df=2) */
 const TREND_MIN_LIFTS = 4;           /* lifts carrying a usable trend before progressionTrend will read a verdict */
+const TREND_SE_FLOOR = 0.001;        /* ONE owner for the standard-error floor. It exists because .toFixed(3) rounds anything smaller to exactly 0, and severity DIVIDES by se. Applied in liftTrend and again to the pooled se, which is rounded separately. */
 const TREND_CLEAN_MIN_SESSIONS = 3;  /* clean sessions for a lift to contribute to the DOWNGRADE test (df=1, deliberately weak: t=12.706 keeps it honest) */
 const FLAT_HALFWIDTH = 1.5;  /* %/session — an interval wider than this spanning 0 is "unknown", not "flat" */
 
@@ -1895,7 +1896,7 @@ function liftTrend(s, exId, opts) {
      pooling below, which turns the pooled mean into NaN. Floor it above the 3dp
      rounding the return value applies, or the floor is rounded away and the bug
      comes back silently. */
-  const sePct = Math.max((seB / my) * 100, 0.001);
+  const sePct = Math.max((seB / my) * 100, TREND_SE_FLOOR);
   const t = _tCrit(n - 2);
   const nSoft = use.filter((p) => p.soft).length;
   return { id: exId, n, nSoft, pct: +pct.toFixed(3), se: +sePct.toFixed(3), lo: +(pct - t * sePct).toFixed(3), hi: +(pct + t * sePct).toFixed(3) /* se is rounded to 3dp HERE — that is why the floor above is 0.001 and not 1e-6. A tighter floor is silently rounded back to exactly 0 by this line, and a zero se takes infinite weight in the pooling. The guard was real; the formatter erased it. */, from: use[0].d, to: use[n - 1].d, pts: use };
@@ -1928,7 +1929,7 @@ function progressionTrend(s) {
   const base = { nLifts: trends.length, nExcludedNonNumeric, excludedIds, lifts: trends };
   if (trends.length < TREND_MIN_LIFTS) return { ...base, state: "unknown", pct: null, lo: null, hi: null, why: "only " + trends.length + " lift(s) carry a usable trend — " + TREND_MIN_LIFTS + " needed before this reads anything" };
   let sw = 0, swx = 0;
-  for (const t of trends) { const w = 1 / Math.max(t.se * t.se, 1e-9); sw += w; swx += w * t.pct; }   /* guarded a second time: a zero se here would poison every downstream number with NaN */
+  for (const t of trends) { const w = 1 / (t.se * t.se); sw += w; swx += w * t.pct; }   /* no epsilon guard: TREND_SE_FLOOR makes se >= 0.001 by construction, so an epsilon here could never fire and would be one more guard that cannot. The invariant is asserted instead. */
   const pct = swx / sw, se = Math.sqrt(1 / sw);
   const lo = pct - 1.96 * se, hi = pct + 1.96 * se;
   let state = lo > 0 ? "rising" : hi < 0 ? "falling" : (hi - lo) / 2 < FLAT_HALFWIDTH ? "flat" : "unknown";
@@ -1971,17 +1972,34 @@ function progressionTrend(s) {
     }
     else {
       let sw2 = 0, swx2 = 0;
-      for (const t of clean2) { const w = 1 / Math.max(t.se * t.se, 1e-9); sw2 += w; swx2 += w * t.pct; }
+      for (const t of clean2) { const w = 1 / (t.se * t.se); sw2 += w; swx2 += w * t.pct; }   /* same: TREND_SE_FLOOR owns it */
       const p2 = swx2 / sw2, se2 = Math.sqrt(1 / sw2);
-      /* DOWNGRADE ONLY ON POSITIVE CONTRADICTION. "Does not confirm" is not "contradicts":
-         a thin clean sample fails to confirm almost anything, so downgrading on that is the
-         erasure this whole branch exists to prevent, wearing a better disguise. The clean
-         data has to actually point the other way. */
-      if (p2 >= 0) { state = "flat"; protectedBy = "the decline does not survive dropping rushed and short-sleep sessions — the clean sessions point the other way (" + p2.toFixed(2) + " %/session across " + cleanPts + " clean points), so this downgrade is earned rather than assumed"; }
-      else if (!(p2 + 1.96 * se2 < 0)) { confidence = "medium"; protectedBy = "clean sessions agree on the direction (" + p2.toFixed(2) + " %/session across " + cleanPts + " clean points) but cannot clear zero on their own"; }
+      /* FOUR OUTCOMES, AND ONLY ONE OF THEM DOWNGRADES.
+         The previous version downgraded whenever p2 >= 0 — a BARE POINT ESTIMATE on a
+         df=1 sample this file's own comment calls "deliberately weak". At p2 = +0.01 the
+         state became flat; at −0.01 it stayed falling. That difference is noise, and it
+         decided whether the calorie target kept stepping the deficit out. A coin flip on
+         the weakest sample in the system was defending the deficit.
+
+         NOTE THIS IS NOT THE pct-OVER-hi CALL FROM R2c, though it looks identical. There
+         the interval had already gated ENTRY, so reusing it double-counted the same noise.
+         Here the clean re-pool is a FRESH sample that nothing has gated, so a bare point
+         estimate is doing inference it has not earned. The two cases look alike and are
+         opposite.
+
+         The asymmetry is the usual one: downgrading wrongly continues a deficit that is
+         costing lean, which takes months to rebuild. Keeping falling wrongly means a
+         shallower deficit for a few weeks, which is recoverable. THE DOWNGRADE IS THE
+         EXPENSIVE ERROR, so it must need MORE evidence than the cheap one — and it needed
+         less. Demanding the clean interval exclude zero at t=12.706 would be unreachable,
+         which is the defect one layer up, so the bar is one standard error (~68%): a real
+         condition, reachable at df=1, and not a coin flip. */
+      if (p2 - se2 > 0) { state = "flat"; protectedBy = "downgraded — the clean sessions point UP with power (" + p2.toFixed(2) + " ± " + se2.toFixed(2) + " %/session across " + cleanPts + " clean points, clearing zero by more than one standard error). This is the only outcome that changes the verdict"; }
+      else if (p2 >= 0) { confidence = "low"; protectedBy = "kept — the clean sessions lean up (" + p2.toFixed(2) + " %/session across " + cleanPts + " clean points) but cannot resolve either direction at this sample size. UNTESTABLE is not the same as contradicted"; }
+      else if (!(p2 + 1.96 * se2 < 0)) { confidence = "medium"; protectedBy = "clean sessions agree on the direction (" + p2.toFixed(2) + " %/session across " + cleanPts + " clean points) but cannot confirm it on their own"; }
     }
   }
-  return { ...base, state, protectedBy, confidence, nSoft: trends.reduce((a, t) => a + t.nSoft, 0), pct: +pct.toFixed(3), se: Math.max(+se.toFixed(3), 0.001), lo: +lo.toFixed(3), hi: +hi.toFixed(3),   /* THIRD TIME toFixed HAS EATEN A GUARD. liftTrend floors its se above the rounding for exactly this reason; the POOLED se is rounded separately here and a tight pool rounds to 0.000. R2c divides by this se to size the step, so a zero read as "no information" and a perfect decline came out MILD. Floor it above the rounding, at the point of rounding. */
+  return { ...base, state, protectedBy, confidence, nSoft: trends.reduce((a, t) => a + t.nSoft, 0), pct: +pct.toFixed(3), se: Math.max(+se.toFixed(3), TREND_SE_FLOOR), lo: +lo.toFixed(3), hi: +hi.toFixed(3),   /* THIRD TIME toFixed HAS EATEN A GUARD. liftTrend floors its se above the rounding for exactly this reason; the POOLED se is rounded separately here and a tight pool rounds to 0.000. R2c divides by this se to size the step, so a zero read as "no information" and a perfect decline came out MILD. Floor it above the rounding, at the point of rounding. */
     why: state === "unknown" ? "pooled interval " + lo.toFixed(1) + " to " + hi.toFixed(1) + " %/session is too wide to call" : "pooled " + pct.toFixed(2) + " %/session across " + trends.length + " lifts" };
 }
 
@@ -9186,6 +9204,7 @@ __test.energyBalanceTargetUncached = energyBalanceTargetUncached;
 __test.proteinTargetForRegime = proteinTargetForRegime;
 __test.GAIN_FAT_FRAC = GAIN_FAT_FRAC;
 __test.costingStep = costingStep;
+__test.TREND_SE_FLOOR = TREND_SE_FLOOR;
 __test.COSTING_SEVERE_SE = COSTING_SEVERE_SE;
 __test._regimeRaw = _regimeRaw;
 __test._stateAsOf = _stateAsOf;

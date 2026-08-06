@@ -152,6 +152,24 @@ The shape is always the same: **the safeguard is present and nothing can reach i
 that asserts the guard is *there* does not catch any of these. A test that drives the path
 and asserts the outcome *changed* catches all five.
 
+**SECOND COMPANION RULE — the guard-must-fire assertion is owed by any branch the change
+ADDS, not only by the branch it fixes.** A diff that introduces a state transition with no
+assertion driving it should not pass review, mine or the research side's.
+
+**This rule failed on the commit that celebrated it.** The four-outcome downgrade was written
+with the guard rule quoted in its own commit message, and the only branch that changes the
+verdict — `state = "flat"` — had **zero assertions anywhere in the suite.** The
+`!clean2.length` branch was driven and the plain falling branch was driven; the one that
+decides whether the calorie target keeps stepping the deficit out was not. **That is the most
+likely way this rule decays: it gets applied to the code under repair and not to the repair.**
+
+**And the first assertion I wrote for it was VACUOUS**, which is the same failure one level
+up. It read `ok(hair.state !== "flat" || hair.pctClean == null, ...)` — and `pctClean` is not
+a field on the result, so the right-hand side was always true and the assertion could never
+fail. **A dead assertion, in the commit that adds assertions for a dead branch.** Assert
+positively, name the state and the confidence, and never leave an `|| something-that-might-
+not-exist` escape hatch in an `ok()`.
+
 **COMPANION RULE — drive the guard against the REAL LEDGER, not only a fixture, and record
 which branch real data actually takes.** The eighth instance is a variant the fixture rule
 cannot catch on its own:
