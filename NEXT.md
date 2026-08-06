@@ -136,6 +136,38 @@ BIA, and scan-day state alone is worth up to 5.5 points of PERMANENT anchor bias
 band, never the midpoint (Broad 2007); express uncertainty numerically, never verbally
 (van der Bles 2020).
 
+**Every guard ships with an assertion that it can actually FIRE.** Not that it exists — that
+a fixture drives the guarded path and the guard changes the outcome. **A guard that has never
+been observed to fire is indistinguishable from one that cannot.** Five occurrences of this
+one shape are already on the record, and every one of them was invisible until someone went
+looking:
+
+    phasePlan        apply handler and UI references, no constructor
+    costing          the exit existed and was unreachable
+    the step cap     the exit existed and stranded short of it
+    the 1e-6 floor   the guard existed and .toFixed rounded it away
+    grep on the gate the gate ran and its exit code was discarded
+
+The shape is always the same: **the safeguard is present and nothing can reach it.** A test
+that asserts the guard is *there* does not catch any of these. A test that drives the path
+and asserts the outcome *changed* catches all five.
+
+**Copy that quotes an engine number, or describes engine behaviour, must be GENERATED from
+the engine — never written alongside it.** This is engine-owns-numbers applied to prose.
+**Copy that describes the engine is a second implementation of the engine**, and it drifts
+exactly like any other duplicated number. It is the nastiest variant of the unreachable-guard
+family because **nothing goes red**: gate green, suite green, and he reads a false sentence
+about his own numbers. The rulebook told him the rate thresholds were "in pounds, which is a
+problem" and that "there is an open proposal to restate the band in %BW" — for as long as it
+took to fix both. Rewriting a sentence fixes one instance; reading the value from its owner
+fixes the class. See QUEUED · R10.
+
+**A fixture may never read the real clock. Time is an input, injected per fixture.** A test
+whose behaviour depends on today's date has a silent expiry. `daysUntil()` reads the wall
+clock rather than the date handed to `runAdaptive`, so a sealed-window assertion stopped
+sealing anything on 2026-07-27 and passed for nine days on an unrelated coincidence. **This
+is the worst variant, because the test layer is what is meant to catch the other six.**
+
 **Ops.** Never print or expose a credential. Never delete athlete data. Keep the
 `/ledger` lockdown intact. iOS Safari is the real target and the test suite only runs
 headless — walk the render-smoke states and eyeball on the phone before shipping.
@@ -439,6 +471,17 @@ evidence. `BULK_REDLINE_PCT = 0.25` is a defensible cap, not a measured optimum.
 
 ### R2b. Migrate calorieTarget's consumers to energyBalanceTarget
 
+> **THIS IS NEXT, ahead of R4, and it is not close.** R2b is the only remaining item that
+> **can invalidate the others.** Everything since R1 sits behind an interface that has never
+> been exercised against real state. If wiring `energyBalanceTarget` shows the contract is
+> wrong — `provisional` does not render usefully, the `unknown` hold still reads as a
+> decision, the costing walk feels wrong in practice — then R2c, the protein fix and parts of
+> R1 all need revisiting. **Build the thing that can invalidate the others before stacking
+> more on top of it. R4 stacks; R2b tests the foundation.**
+>
+> **Do not run the consumer census until R3 is merged.** R3 moved 14 call sites; the
+> enumeration must not be done across that seam.
+
 **This is the half of R2 that changes anything.** `energyBalanceTarget` branches correctly
 and is proved to by 20 assertions — and no code path reaches it, so today it is decorative.
 
@@ -455,6 +498,12 @@ makes a wrong branch live.
 - **The `provisional` flag has to reach the surface.** A provisional target that renders
   identically to a decided one is the same defect class as a proposal whose `apply.kind` is
   `note`: it takes the user's attention and returns nothing.
+- **And so does `regimeConfirmed` — naming one flag is not enough.** An unconfirmed regime
+  driving a real target change needs its own words on the surface, not a shared "provisional"
+  badge. His next likely transition is exactly this: a steep decline read while the week-ago
+  view is still `unknown` moves him ~530 kcal/day in ONE evaluation, correctly, on a single
+  reading. `regime().why` already writes the sentence — *"first reading, not yet confirmed by
+  a second a week apart"* — and it must be shown, not swallowed.
 
 **Assertions.** No engine or UI path calls `calorieTarget` directly. A state whose regime is
 `accretionBound` renders a surplus everywhere a target is shown. `provisional === true`
@@ -464,7 +513,89 @@ renders visibly differently from `false`.
 R2's job and it is done. This is about reach, and reach is where this codebase has failed
 twice now (`phasePlan`, and R2 itself).
 
+### R2c. Step severity — the exit speed was set by a quantity that means something else
+
+**The walk is seven weeks.** `deficit0` 532, `step` 87, `REGIME_HOLD_D` 7 ⇒ 8 evaluations,
+**49 days and ~28 training sessions** of a deficit already diagnosed as costing him, before
+it reaches maintenance.
+
+**The step is `cur.hi − cur.lo` — the width of the rate band. That is a statement about how
+tightly the rate is targeted, not about how fast to exit a costing state.** "Derived, so no
+constant is authored" is technically true and practically misleading: the exit speed WAS set,
+by a quantity that means something else.
+
+It is **scale-invariant**, so the seven weeks is structural rather than incidental:
+
+    deficit0 / step = p_lo / (p_hi − p_lo) = 0.60 / 0.10 = 6   in recomp mode, at any bodyweight
+
+**And strength is a late signal.** Murphy & Koehler: strength survives a deficit (ES −0.31,
+p = 0.28) while lean-mass gain does not (ES −0.57, p = 0.02). **By the time the lifts fall,
+lean has probably been going for a while.** Seven more weeks is expensive against an objective
+where lean is the scarce term and he has ~34 lb of headroom to the natural ceiling.
+
+**Change.** Scale the step to the DEPTH of the decline, which `progressionTrend.pct` already
+carries. A −3 %/session collapse should reach maintenance in ~2 weeks; a −0.3 %/session drift
+can take the full walk. Still derived — but derived from the thing that actually motivates
+the exit.
+
+**Assertion.** A steeper `progressionTrend.pct` reaches `dir === "maintenance"` in **strictly
+fewer** evaluations.
+
+**CORRECTION to this entry, 2026-08-05.** An earlier version of it read as though the cap
+fix shipped in v7.13.1. **It did not.** `main` at v7.13.1 carries `const lim = cap || 12`
+(2519) and `_costingWeeks(s, asOf2)` with no third argument (2568); the derivation exists
+only on the branch. No live harm — the cap is 12 and the walk needs 8 — but **the log being
+wrong is worse than the cap being wrong, because the log is what the next round trusts.**
+Fixed on branch, not yet on main: `_costingWeeks` capped at a fixed 12, so if a band ever
+narrowed such that `12 × step < deficit0` the walk would strand short of maintenance —
+absorbing again, at a different point. The cap now derives from the steps the walk actually
+needs, and an assertion drives a near-degenerate band to termination.
+
 ### R3. The deficit rate: his record, with the band as prior
+
+#### BUILT 2026-08-05 — one owner, and the two redlines were INVERTED, not merely inconsistent
+
+    bodyweight            164.7 lb
+    floor    0.80 lb  ->  0.82 lb   (0.5 %BW, Ruiz-Castellano 2021)
+    redline  1.90 lb  ->  1.65 lb   (1.0 %BW, Garthe 2011)
+    zone / escalation threshold   1.0 %BW
+    redlineCrossing threshold     1.0 %BW    <- was 1.157
+    his measured rate             0.72 lb/wk (0.44 %BW)
+
+**`redlineCrossing` — the ANTICIPATORY layer — ran a threshold 16% more permissive than
+`escalation`, the alarm it exists to predict.** Between 1.0 and 1.157 %BW/wk the escalation
+fired while the forecast still read clear. A foresight layer that triggers after the thing it
+forecasts is worse than no foresight layer. The comment claiming *"never a second band"* sat
+twenty lines above the code that made one.
+
+`SEED.rate.redline = 1.9` was authored and uncited — **deleted, not converted.** The floor
+converts to a cited constant at zero visible cost: 0.5 %BW at 163 lb is 0.82 lb against the
+authored 0.8. Nothing he can see moves today; it starts behaving correctly as he leans out.
+
+**The consumer map was larger than the spec named.** `s.rate.floor`/`s.rate.redline` were
+also read raw by `fiveLevers`, `theOneFix`, `whyDecompose`, four `runAdaptive` proposals and
+the rulebook. **14 call sites migrated; zero raw readers remain.**
+
+**Two dead guards found while building, and both are new instances of the standing pattern:**
+
+- **A test that had stopped testing what it names.** `ok(!sealedRun.proposals.some(redline))`
+  claimed the sealed window mutes a false redline. `daysUntil()` reads the REAL wall clock,
+  not the date passed to `runAdaptive`, so `S3.blackout.until = "2026-07-27"` stopped sealing
+  anything on 2026-07-27. From then until R3 it passed only because the last weekly rate
+  (1.80) sat under the old authored 1.9 — nothing to do with the seal. **Both branches are
+  now driven:** the seal is forward-dated so it must be observed to mute, and an expired-seal
+  fixture must be observed to fire.
+- **The rulebook told him the numbers were pounds and that a fix was pending.** Both sentences
+  went false the moment the conversion landed, and he reads that copy. Rewritten, with an
+  assertion that neither sentence can come back.
+
+#### Before shipping — R3 is the FIRST item in this sequence that changes what Joe sees
+
+R1 and R2 were dormant (`energyBalanceTarget` still has no callers — see R2b).
+`cutRateBand.band` derives from `BC.CUT_RECOMP_PCT` via `pctToLb`, not from floor/redline, so
+**`calorieTarget` is unaffected** — but the RateGauge, `redlineCrossing`, `escalation` and
+`sweepStalls` all move. **Walk the gauge and the foresight line on the phone before merging.**
+
 
 **Keep ~0.7 %BW/wk in `free`. Re-derive the justification.** The number is not "the recomp
 constant" — it is *the rate at which his own progression stayed positive for eight weeks*, with
@@ -490,6 +621,33 @@ in bodyweight. `bodyCompBand(s).redlinePct === cutRateBand(s).redline / bw * 100
 weaker and more honest claim than *optimal*.
 
 ### R4. No decision may fire on a body-fat estimate
+
+#### TRAP — read this before starting. R4 and R2b are each correct alone and WRONG COMPOSED.
+
+`calorieTarget`'s gated path reads the phase table directly:
+
+    const ph = PHASES[s.phase];
+    return { gated: true, from: "phase", lo: ph ? ph.band[0] : null, hi: ph ? ph.band[1] : null,
+      why: "Not enough clean days to measure your own maintenance yet, so this is the phase band as authored." };
+
+R4 as specified deletes `s.phase` along with its two body-fat triggers. **Do that naively and
+`PHASES[s.phase]` is `undefined`, the gated path returns `lo: null, hi: null`, and the
+fallback that exists precisely for thin data returns nothing.**
+
+Now compose it with R2b. `energyBalanceTarget`'s FIRST branch is:
+
+    if (cur.gated) return { ...cur, ...base, dir: "deficit", provisional: true, why: "the calorie band is gated upstream — the regime cannot override a gate" };
+
+**After R2b that gated path is load-bearing on the single owner of the calorie decision.**
+R4 would null it out through a branch R2b has just promoted. Neither item's acceptance
+criteria mention the other.
+
+**R4 must REPLACE the gated fallback before deleting `s.phase`, not after.** The replacement
+has to answer the same question the phase band was answering — what to eat when there are not
+yet enough clean days to measure maintenance — without reading a body-fat estimate.
+
+**Assertion.** A thin-data state (too few logged days for `observedTDEE`) returns a usable
+`lo`/`hi` from `energyBalanceTarget`, never `null`, with `s.phase` absent.
 
 Two hardcoded thresholds in `runAdaptive` are the **only** producers of a phase or exit proposal,
 both **verified at the stated lines on this branch**:
@@ -646,6 +804,71 @@ defect `CLAUDE.md` records for `refeed_review`: *"a card that takes a tap and fi
 than no card."* Verify `applyProposal` has a real branch per kind as part of this item.
 
 ---
+
+### R10. Generate engine copy from the engine — sweep the hardcoded prose
+
+**The rule is in the standing guardrails.** This is the backlog it created. Every line below
+states a number or a behaviour that the engine owns, in prose written beside it rather than
+read from it. **None of these can go red**, which is the whole problem.
+
+Found by sweep, 2026-08-05, and this list is a starting point rather than a census:
+
+| where | what it hardcodes | why it will drift |
+|---|---|---|
+| `GLOSSARY.ea` | *"the threshold that matters for a lean man is 25 kcal per kg"* and *"below about 20"* | These are `EA_SPARING` and `EA_LOW`. If either constant moves, the glossary lies. |
+| `VOL_BANDS` deep copy | *"The bands are deficit-calibrated"* | A **behaviour claim**, and R8 says to delete it outright — Roth 2022 and Nait-Yahia 2026 are both null on FFM. It reads the band NUMBERS correctly and then mis-describes them. |
+| refeed proposal | *"prescribed at 2,450-2,500"* | An authored pair beside a band that is derived two clauses later in the same sentence. |
+| creatine card | *"The 1–2 lb water bump"* | Authored, next to a noise floor the app measures for him three cards away. |
+| `bfEst` why-copy | *"±1 point"* / *"±3–4 points"* | These are `ANCHOR_ERR_DEXA` and `ANCHOR_ERR_EYE`. |
+| `dietExit` copy | *"the deficit stays under ~500 kcal/day"* | Cited (Murphy & Koehler) but authored in prose; if the engine ever enforces it, two numbers. |
+
+**The worked example is `VOL_BANDS`, and it is the reason the rule is not just "read the
+number from its owner."** That copy already reads the band numbers correctly — so the numbers
+cannot drift — and then attaches a **behaviour claim** ("the bands are deficit-calibrated")
+that R8 says to delete outright, because Roth 2022 and Nait-Yahia 2026 are both null on FFM.
+Generating the numbers was not enough. The sentence around them was still a second
+implementation.
+
+**Method — three branches, not one.**
+
+1. **The copy quotes a number the engine owns.** Replace the literal with a template reading
+   the owning constant or selector, exactly as `VOL_BANDS`' own numbers and
+   `spikeMin`/`clearWithin` already do. The file has the pattern; it is applied unevenly.
+2. **The copy makes a CLAIM ABOUT BEHAVIOUR.** Either delete it (the `deficit-calibrated`
+   case) or derive the claim from the same predicate the code branches on. A sentence that
+   describes a branch must be generated by that branch.
+3. **The copy quotes a number whose SOURCE IS WEAK.** The generated sentence must carry the
+   hedge the research assigned it. **Reading the number from a constant fixes drift and
+   preserves a claim that should not be stated to him that confidently — a correctly
+   generated number stated with unearned confidence is still the engine lying, just more
+   precisely.** Two live instances:
+
+   - **`dietExit`'s "under ~500 kcal/day"** is Murphy & Koehler 2022, which
+     `RESEARCH-DESIGN.md` Part 2.1 marks **LOW-MEDIUM** confidence for this athlete: the
+     pooled population averages **51-60 years old** (analysis A 60 ± 11, analysis B 51 ± 16)
+     and he is **24**. The generated sentence must say so.
+   - **`bfEst`'s "±3-4 points"** hardcodes `ANCHOR_ERR_EYE` and **understates the instrument
+     the app is actually rendering beside it.** The live interval is **10.7-18.3 — 7.6 points,
+     asymmetric −3.6/+4.0** — because the drip band integrates away from the anchor. Copy
+     that says ±3.5 describes a narrower instrument than the number next to it. Generate the
+     rendered interval, not the anchor constant.
+
+**Check what is about to be DELETED before writing a generator for it.** The refeed
+proposal's authored `2,450-2,500` is on the list above, but there are open `refeed_review`
+proposals titled *"THE WEEKLY REFEED HAS NO EVIDENCE BEHIND IT"*, and R8 is a
+delete-not-build item. **Generating well-sourced prose for a feature about to be removed is
+the cheapest kind of wasted work and the easiest to avoid.** Resolve the refeed's fate first;
+if it goes, that row goes with it.
+
+**Assertions — and a snapshot test is NOT acceptable anywhere in this item.** For every
+instance: **mutate the source constant in the fixture and assert the rendered string moved.**
+A copy assertion that only checks the current wording is the same dead guard in a new
+costume — it is exactly the shape that let the rulebook tell him his thresholds were in
+pounds for as long as it did. Guard-must-fire, applied to prose.
+
+**What it does not buy.** This makes the prose self-consistent and appropriately hedged. It
+does not make it correct — a sentence generated from the engine still says whatever the
+engine says.
 
 ### Part 4 — bugs, independent of the redesign
 
