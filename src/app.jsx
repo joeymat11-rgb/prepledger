@@ -2578,6 +2578,23 @@ function energyBalanceTarget(s, opts) {
   const cur = calorieTarget(s);
   const ed = energyDensity(s, "gain");
   const base = { regime: key, regimeWhy: reg && reg.why, regimeConfirmed: !!(reg && reg.confirmed) };
+  /* PROVISIONAL IS NOT A PROPERTY OF THE BRANCH, IT IS A PROPERTY OF THE EVIDENCE.
+     Every non-error return used to hardcode provisional:false while base carried
+     regimeConfirmed from regime().confirmed — so on the first-establishment path
+     the same object contradicted itself.
+
+     That path is his next likely transition, and it is the one that moves the most
+     money: he is in unknown now; the trend fills in and reads a steep decline;
+     _regimeRaw(asOf-7) is still unknown, so regime() returns costing with
+     confirmed:false and _costingWeeks returns 1. With severity maximal, immediate
+     fires and a SINGLE UNCONFIRMED READING takes him from a ~530 kcal/day deficit
+     to measured maintenance in one evaluation.
+
+     The action is right and must not be slowed — waiting a week on a steep decline
+     costs lean that takes months to rebuild. THE LABEL was wrong: a ~530 kcal move
+     made on an unconfirmed regime is a STRONGER claim than a provisional hold, and
+     it was announcing itself as a weaker one. */
+  const unconfirmed = !base.regimeConfirmed;
 
   if (cur.gated) return { ...cur, ...base, dir: "deficit", provisional: true, why: "the calorie band is gated upstream — the regime cannot override a gate" };
 
@@ -2588,7 +2605,7 @@ function energyBalanceTarget(s, opts) {
     const kcalFor = (pct) => Math.round((((pct / 100) * bw) * ed.perLb) / 7);
     const lo = td.tdee + kcalFor(BC.BULK_CORR_PCT[0]);
     const hi = td.tdee + kcalFor(BC.BULK_REDLINE_PCT);
-    return { ...cur, ...base, dir: "surplus", provisional: false, lo, hi, mid: Math.round((lo + hi) / 2),
+    return { ...cur, ...base, dir: "surplus", provisional: unconfirmed, lo, hi, mid: Math.round((lo + hi) / 2),
       capPct: BC.BULK_REDLINE_PCT, perLb: ed.perLb,
       why: `Lifts are not rising and the scale rate is indistinguishable from zero — the fat term is exhausted, so the only remaining way to move body composition is to build. ${lo}–${hi} is a surplus capped at ${BC.BULK_REDLINE_PCT} %bw/wk.`,
       doesNotBuy: "The cap is defensible, not optimal. The only trial in trained lifters ran at 18% of its own required sample size; what is well supported is that a bigger surplus reliably adds fat, not that it builds faster." };
@@ -2637,9 +2654,9 @@ function energyBalanceTarget(s, opts) {
     const stepsTaken = (held - 1) + (immediate ? 1 : 0);
     const deficit = step > 0 ? Math.max(0, deficit0 - stepsTaken * step) : 0;
     const tgt = Math.round(td2.tdee - deficit);
-    if (deficit <= 0) return { ...cur, ...base, dir: "maintenance", provisional: false, lo: tgt, hi: tgt, mid: tgt, shrunk: true, heldWeeks: held, steppedTo: 0,
+    if (deficit <= 0) return { ...cur, ...base, dir: "maintenance", provisional: unconfirmed, lo: tgt, hi: tgt, mid: tgt, shrunk: true, heldWeeks: held, steppedTo: 0,
       why: (conf === "low" ? "Your lifts are down and I cannot separate it from the short sleep — stepping the deficit out anyway, because waiting costs more here than being wrong does. " : "") + `Lifts have been falling for ${held} evaluation${held === 1 ? "" : "s"} and the deficit has been stepped all the way out. You are at measured maintenance (${tgt}). If progression still does not return from here, the fat term is exhausted and the next honest state is a surplus — which is what accretion-bound means.` };
-    return { ...cur, ...base, dir: "deficit", provisional: false, lo: tgt, hi: tgt, mid: tgt, shrunk: true, heldWeeks: held, steppedTo: deficit,
+    return { ...cur, ...base, dir: "deficit", provisional: unconfirmed, lo: tgt, hi: tgt, mid: tgt, shrunk: true, heldWeeks: held, steppedTo: deficit,
       why: (conf === "low" ? "Your lifts are down and I cannot separate it from the short sleep — stepping out anyway, because waiting costs more here than being wrong does. " : "") + `Lifts are falling while the scale still is, so the deficit has stopped being free and become a trade. Stepped down to ${tgt} — ${deficit} kcal under maintenance, one band-width less than last time. It keeps stepping toward maintenance for as long as this lasts, rather than parking at a number nobody measured.` };
   }
 
@@ -2648,7 +2665,7 @@ function energyBalanceTarget(s, opts) {
       why: `Not enough clean training data to read a regime yet, so this HOLDS the prescription your own record validated — ${cur.lo}–${cur.hi}. The engine is not deciding here; it is holding. Abstaining is not a reason to stop doing the thing that is working.` };
   }
 
-  return { ...cur, ...base, dir: "deficit", provisional: false,
+  return { ...cur, ...base, dir: "deficit", provisional: unconfirmed,
     why: `Lifts are holding or rising while fat falls — both halves of the objective are improving at once, which is the best state available. Hold ${cur.lo}–${cur.hi}.` };
 }
 

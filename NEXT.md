@@ -471,6 +471,12 @@ makes a wrong branch live.
 - **The `provisional` flag has to reach the surface.** A provisional target that renders
   identically to a decided one is the same defect class as a proposal whose `apply.kind` is
   `note`: it takes the user's attention and returns nothing.
+- **And so does `regimeConfirmed` — naming one flag is not enough.** An unconfirmed regime
+  driving a real target change needs its own words on the surface, not a shared "provisional"
+  badge. His next likely transition is exactly this: a steep decline read while the week-ago
+  view is still `unknown` moves him ~530 kcal/day in ONE evaluation, correctly, on a single
+  reading. `regime().why` already writes the sentence — *"first reading, not yet confirmed by
+  a second a week apart"* — and it must be shown, not swallowed.
 
 **Assertions.** No engine or UI path calls `calorieTarget` directly. A state whose regime is
 `accretionBound` renders a surplus everywhere a target is shown. `provisional === true`

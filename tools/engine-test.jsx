@@ -3992,7 +3992,9 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
       const EBT = __test.energyBalanceTarget, ED = __test.energyDensity;
       const st = clone(SEED);
       const td = __test.observedTDEE(st).tdee;
-      const R = (k) => EBT(st, { regime: { key: k, why: "fixture" } });
+      /* confirmed:true explicitly — provisional now tracks the EVIDENCE, so a fixture
+         that omits it is asserting the unconfirmed path whether it means to or not. */
+      const R = (k) => EBT(st, { regime: { key: k, why: "fixture", confirmed: true } });
 
       // tissue gained is not tissue lost
       const loss = ED(st).perLb, gain = ED(st, "gain").perLb;
@@ -4081,6 +4083,32 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
         const normConf = EBT(st2, { regime: { key: "costing", prog: { pct: -3, confidence: "normal" } }, heldWeeks: 1 });
         ok(lowConf.lo === normConf.lo, "R2c — low confidence does NOT slow the step. A wide interval on a decline is not evidence the decline is small — the same shape as absence of clean sessions not being evidence of no decline");
         ok(/cannot separate it from the short sleep/i.test(lowConf.why) && !/cannot separate/i.test(normConf.why), "R2c — it changes the COPY instead, naming the confound out loud rather than silently waiting it out");
+
+      /* provisional is a property of the EVIDENCE, not of the branch. Every non-error
+         return hardcoded provisional:false while base carried regimeConfirmed from
+         regime().confirmed, so on the first-establishment path the same object
+         contradicted itself. Driven through the REAL detector, not by injecting
+         {confirmed:false} — a guard has to be observed to fire, not merely to exist. */
+      {
+        const LF = ["a", "b", "c", "d", "e"];
+        const ISO2 = (t) => new Date(t).toISOString().slice(0, 10);
+        const E2 = Date.parse("2026-08-04T00:00:00Z");
+        const fall = [{ w: 100, reps: [12, 12] }, { w: 100, reps: [11, 11] }, { w: 100, reps: [10, 10] }, { w: 100, reps: [9, 9] }, { w: 100, reps: [8, 8] }];
+        const fe = clone(SEED);
+        fe.exercises = [...(fe.exercises || []), ...LF.map((id) => ({ id, n: id, w: 100 }))];
+        fe.sessionLog = {};
+        fall.forEach((sess, k) => { const d = ISO2(E2 - (fall.length - 1 - k) * 2 * 86400000);
+          fe.sessionLog[d] = { entries: LF.map((id) => ({ id, w: sess.w, reps: sess.reps.slice() })), skipped: [], pace: "normal", at: 1 }; });
+        const rg = __test.regime(fe, { asOf: "2026-08-05" });
+        ok(rg.key === "costing" && rg.confirmed === false, "R2 — the first-establishment path is REACHABLE: a decline appearing while the week-ago view is still unknown yields costing, unconfirmed. This is his next likely transition, not a hypothetical");
+        const eb = EBT(fe, { asOf: "2026-08-05" });
+        ok(eb.regimeConfirmed === false && eb.provisional === true, "R2 — regimeConfirmed false forces provisional TRUE. A ~530 kcal/day move made on a single unconfirmed reading is a STRONGER claim than a provisional hold, and it was announcing itself as a weaker one");
+        ok(eb.dir === "maintenance" && eb.heldWeeks === 1, "R2 — and the ACTION is not slowed by the label: a steep decline still exits on detection, because waiting a week costs lean that takes months to rebuild");
+        for (const k of ["free", "costing", "accretionBound", "unknown"]) {
+          const r2 = EBT(fe, { regime: { key: k, confirmed: false, prog: { pct: -3 } } });
+          ok(r2.provisional === true, "R2 — provisional tracks the evidence in EVERY branch, not just the error paths: " + k);
+        }
+      }
       }
       }
 
