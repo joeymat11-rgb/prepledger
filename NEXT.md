@@ -2205,6 +2205,19 @@ unpushed at `e01075c`. Consolidate to one clone + worktrees — but **push or ta
 branch somewhere safe first**, as its own separate job, and only after v7.5 has shipped
 and settled. Do not fold this into a feature build.
 
+## DEPLOY INCIDENT LOG — 2026-08-06, run 299
+
+The v7.16.1 merge (`bcc1dbf`) was gated green locally and its branch tip passed CI as run
+298 — but run 299's suite job was CANCELLED by the runner (no newer push existed to
+supersede it), so production never ran and the site stayed on v7.16.0. Two retrigger
+lessons, recorded because both cost a wait:
+
+- **The PAT cannot re-run workflows** (403 — no Actions write). Joe adding that scope would
+  turn this class of incident into one API call.
+- **An empty commit does not fire the pipeline.** GitHub skips push events with no changed
+  files, so `--allow-empty` is not a retrigger. A real file change is required — this note
+  is that change.
+
 ## SHIPPED
 
 - **v7.12.0 — the receipt shows the rating that actually sizes the step** (2026-08-05). Merge
