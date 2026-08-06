@@ -1217,6 +1217,37 @@ Three mechanisms, each driven:
   condition. A `cal`/`exit` card is a pending decision, and decisions wait for him: expiring
   those would be the engine deciding by timeout.
 
+#### AUDIT ROUND (2026-08-06): one defect confirmed and fixed, one audit claim corrected
+
+**The dismissed-rearm contradiction was real and is fixed.** `dismissProposal` files
+`{rid, dismissed: true}` and promises *"the engine re-arms it if the pattern holds"* — but
+`applied()` counted ANY adjustments row, so one decline silenced a rid forever. The audit's
+two-timestamp failing case verified: microload (dismissed row) froze at 2026-08-04 while
+pivot (no row) refreshed to 2026-08-06, same producer loop. **A decline that can never return
+is a verdict, just a quiet one.** `applied()` now excludes `dismissed` and `undone` rows;
+driven both ways — a dismissed rid re-arms, a genuinely applied one still does not.
+
+**Withdraw is asserted not to execute the apply** (audit 4b): withdrawing the orphaned exit
+card leaves `plan.phase` untouched and stamps no `exitStart`.
+
+**Audit correction: all 30 branches ARE on origin** — `ls-remote` shows every `feat/r*` head.
+What is true is that nothing is MERGED, so deployed v7.15.0 still has the armed exit card and
+the live bf-threshold producer. The distinction matters because the remedy is one merge, not
+seven pushes.
+
+### R14. Informational cards leave the inbox `[decided by research side, not yet built]`
+
+**The invariant: a card may exist in the inbox only if its tap enacts a state change.**
+Everything else is a feed line. Four harms, all live on deployed main: a tapped note falls
+through to the else branch and writes "ADJUSTMENT LOGGED" for an adjustment that never
+happened; the tap pushes `{rid}` into `s.adjustments`, permanently killing bare-rid channels
+(pre-fix); his inbox today is two cards where one tap ends the cut and the other does nothing
+— identical gesture, opposite stakes; and the ladder branch already states the rule.
+Migration: note producers become feed lines; the open microload card goes through the
+withdraw mechanism; admission assert that no proposal may be created with
+`apply.kind === "note"`; **and the note-expiry code from R9 is then DELETED — expiry for a
+kind that cannot exist would be instance 17 of the safeguard nothing can reach.**
+
 **What this does not fix:** `kind: "note"` proposals still exist and still change nothing when
 tapped. Whether informational cards should be feed lines rather than proposals at all is a
 design question for the research side, filed as an open question rather than decided here.

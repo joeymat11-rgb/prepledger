@@ -408,6 +408,32 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         ok(note.resolved === true && note.resolvedHow === "expired", "R9 — a 21-day-old NOTE expires with a feed line: it changes nothing when tapped, so queueing it forever is pure attention cost — the refeed_review defect as a standing condition");
         ok(cal.resolved === false, "R9 — an actionable card NEVER expires: it is a pending decision, and decisions wait for him. Expiring those would be the engine deciding by timeout");
         ok(out.feed.some((f) => /CARD EXPIRED/.test(f.t)), "R9 — the expiry is on the record");
+      /* THE DISMISSED-REARM CONTRADICTION, driven. dismissProposal promises re-arming;
+         applied() counted any adjustments row, so a decline silenced the rid forever. */
+      {
+        const st9 = clone(SEED);
+        st9.adjustments = [...(st9.adjustments || []), { rid: "microload", id: "adjx", d: "2026-08-01", dismissed: true }];
+        st9.blackout.until = "2026-07-01";
+        const out = __test.runAdaptive(st9, "2026-07-22");
+        const re = out.proposals.find((p) => p.rid === "microload" && !p.resolved);
+        ok(!!re, "R9 — a DISMISSED rid re-arms when its condition persists, which is what the dismiss copy has promised all along. applied() counted any adjustments row, so one decline was a permanent silence — a verdict wearing a decline's clothes");
+        const st9b = clone(SEED);
+        st9b.adjustments = [...(st9b.adjustments || []), { rid: "microload", id: "adjy", d: "2026-08-01" }];
+        st9b.blackout.until = "2026-07-01";
+        const out2 = __test.runAdaptive(st9b, "2026-07-22");
+        ok(!out2.proposals.find((p) => p.rid === "microload" && !p.resolved), "R9 — while a genuinely APPLIED rid does not refile: the exclusion is dismissed/undone rows only, not the gate itself");
+      }
+      /* WITHDRAW MUST NOT EXECUTE THE APPLY (audit item 4b). A withdraw routed through the
+         tap path would end the cut while cleaning up. */
+      {
+        const st9 = clone(SEED);
+        st9.proposals = [{ rid: "pivot", id: "pv", d: "2026-07-01", title: "IS THE CUT DONE?", why: "", apply: { kind: "exit" }, resolved: false }];
+        st9.blackout.until = "2026-07-01";
+        const phaseBefore = JSON.stringify((st9.plan || {}).phase);
+        const out = __test.runAdaptive(st9, "2026-07-22");
+        const piv = out.proposals.find((p) => p.rid === "pivot");
+        ok(piv.resolved === true && JSON.stringify((out.plan || {}).phase) === phaseBefore && !(out.targets || {}).exitStart, "R9 — withdrawing the orphaned exit card does NOT execute its apply: plan.phase is untouched and no exitStart is stamped. A withdraw routed through the tap path would end the cut while tidying up");
+      }
       }
       }
     }

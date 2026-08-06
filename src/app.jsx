@@ -7082,7 +7082,15 @@ function runAdaptive(state, todayISO) {
   if (!s.weekly.some((w) => w.wk === monday) && s.reads.some((r) => !r.sealed && weeksBetween(monday, r.d) >= 0 && weeksBetween(monday, r.d) < 1))
     s.weekly.push({ wk: monday, trend: s.trend });
 
-  const applied = (rid) => s.adjustments.some((a) => a.rid === rid);
+  /* R9 — DISMISSED IS NOT APPLIED. dismissProposal files {rid, dismissed:true} and its
+     feed copy promises "the engine re-arms it if the pattern that raised it holds" — but
+     this gate counted ANY adjustments row, so one decline silenced a rid forever and the
+     promise was false. Law 10 says a proposal he can decline, not a verdict; a decline
+     that can never return IS a verdict, just a quiet one. undone rows have the same shape:
+     undoAdjustment re-opens the card, and a surviving row would freeze its refresh.
+     Measured on the live ledger: microload has a dismissed row and its refresh froze at
+     2026-08-04; pivot has none and refreshed to 2026-08-06. Same producer loop, same days. */
+  const applied = (rid) => s.adjustments.some((a) => a.rid === rid && !a.dismissed && !a.undone);
   /* An open proposal is a live recommendation, not a postcard from the day it
      was raised. The old propose() skipped entirely when one was already armed,
      so its title and receipt froze at whatever the engine said the first time —
