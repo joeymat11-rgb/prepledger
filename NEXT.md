@@ -152,6 +152,22 @@ The shape is always the same: **the safeguard is present and nothing can reach i
 that asserts the guard is *there* does not catch any of these. A test that drives the path
 and asserts the outcome *changed* catches all five.
 
+**Copy that quotes an engine number, or describes engine behaviour, must be GENERATED from
+the engine — never written alongside it.** This is engine-owns-numbers applied to prose.
+**Copy that describes the engine is a second implementation of the engine**, and it drifts
+exactly like any other duplicated number. It is the nastiest variant of the unreachable-guard
+family because **nothing goes red**: gate green, suite green, and he reads a false sentence
+about his own numbers. The rulebook told him the rate thresholds were "in pounds, which is a
+problem" and that "there is an open proposal to restate the band in %BW" — for as long as it
+took to fix both. Rewriting a sentence fixes one instance; reading the value from its owner
+fixes the class. See QUEUED · R10.
+
+**A fixture may never read the real clock. Time is an input, injected per fixture.** A test
+whose behaviour depends on today's date has a silent expiry. `daysUntil()` reads the wall
+clock rather than the date handed to `runAdaptive`, so a sealed-window assertion stopped
+sealing anything on 2026-07-27 and passed for nine days on an unrelated coincidence. **This
+is the worst variant, because the test layer is what is meant to catch the other six.**
+
 **Ops.** Never print or expose a credential. Never delete athlete data. Keep the
 `/ledger` lockdown intact. iOS Safari is the real target and the test suite only runs
 headless — walk the render-smoke states and eyeball on the phone before shipping.
@@ -455,6 +471,17 @@ evidence. `BULK_REDLINE_PCT = 0.25` is a defensible cap, not a measured optimum.
 
 ### R2b. Migrate calorieTarget's consumers to energyBalanceTarget
 
+> **THIS IS NEXT, ahead of R4, and it is not close.** R2b is the only remaining item that
+> **can invalidate the others.** Everything since R1 sits behind an interface that has never
+> been exercised against real state. If wiring `energyBalanceTarget` shows the contract is
+> wrong — `provisional` does not render usefully, the `unknown` hold still reads as a
+> decision, the costing walk feels wrong in practice — then R2c, the protein fix and parts of
+> R1 all need revisiting. **Build the thing that can invalidate the others before stacking
+> more on top of it. R4 stacks; R2b tests the foundation.**
+>
+> **Do not run the consumer census until R3 is merged.** R3 moved 14 call sites; the
+> enumeration must not be done across that seam.
+
 **This is the half of R2 that changes anything.** `energyBalanceTarget` branches correctly
 and is proved to by 20 assertions — and no code path reaches it, so today it is decorative.
 
@@ -594,6 +621,33 @@ in bodyweight. `bodyCompBand(s).redlinePct === cutRateBand(s).redline / bw * 100
 weaker and more honest claim than *optimal*.
 
 ### R4. No decision may fire on a body-fat estimate
+
+#### TRAP — read this before starting. R4 and R2b are each correct alone and WRONG COMPOSED.
+
+`calorieTarget`'s gated path reads the phase table directly:
+
+    const ph = PHASES[s.phase];
+    return { gated: true, from: "phase", lo: ph ? ph.band[0] : null, hi: ph ? ph.band[1] : null,
+      why: "Not enough clean days to measure your own maintenance yet, so this is the phase band as authored." };
+
+R4 as specified deletes `s.phase` along with its two body-fat triggers. **Do that naively and
+`PHASES[s.phase]` is `undefined`, the gated path returns `lo: null, hi: null`, and the
+fallback that exists precisely for thin data returns nothing.**
+
+Now compose it with R2b. `energyBalanceTarget`'s FIRST branch is:
+
+    if (cur.gated) return { ...cur, ...base, dir: "deficit", provisional: true, why: "the calorie band is gated upstream — the regime cannot override a gate" };
+
+**After R2b that gated path is load-bearing on the single owner of the calorie decision.**
+R4 would null it out through a branch R2b has just promoted. Neither item's acceptance
+criteria mention the other.
+
+**R4 must REPLACE the gated fallback before deleting `s.phase`, not after.** The replacement
+has to answer the same question the phase band was answering — what to eat when there are not
+yet enough clean days to measure maintenance — without reading a body-fat estimate.
+
+**Assertion.** A thin-data state (too few logged days for `observedTDEE`) returns a usable
+`lo`/`hi` from `energyBalanceTarget`, never `null`, with `s.phase` absent.
 
 Two hardcoded thresholds in `runAdaptive` are the **only** producers of a phase or exit proposal,
 both **verified at the stated lines on this branch**:
@@ -750,6 +804,36 @@ defect `CLAUDE.md` records for `refeed_review`: *"a card that takes a tap and fi
 than no card."* Verify `applyProposal` has a real branch per kind as part of this item.
 
 ---
+
+### R10. Generate engine copy from the engine — sweep the hardcoded prose
+
+**The rule is in the standing guardrails.** This is the backlog it created. Every line below
+states a number or a behaviour that the engine owns, in prose written beside it rather than
+read from it. **None of these can go red**, which is the whole problem.
+
+Found by sweep, 2026-08-05, and this list is a starting point rather than a census:
+
+| where | what it hardcodes | why it will drift |
+|---|---|---|
+| `GLOSSARY.ea` | *"the threshold that matters for a lean man is 25 kcal per kg"* and *"below about 20"* | These are `EA_SPARING` and `EA_LOW`. If either constant moves, the glossary lies. |
+| `VOL_BANDS` deep copy | *"The bands are deficit-calibrated"* | A **behaviour claim**, and R8 says to delete it outright — Roth 2022 and Nait-Yahia 2026 are both null on FFM. It reads the band NUMBERS correctly and then mis-describes them. |
+| refeed proposal | *"prescribed at 2,450-2,500"* | An authored pair beside a band that is derived two clauses later in the same sentence. |
+| creatine card | *"The 1–2 lb water bump"* | Authored, next to a noise floor the app measures for him three cards away. |
+| `bfEst` why-copy | *"±1 point"* / *"±3–4 points"* | These are `ANCHOR_ERR_DEXA` and `ANCHOR_ERR_EYE`. |
+| `dietExit` copy | *"the deficit stays under ~500 kcal/day"* | Cited (Murphy & Koehler) but authored in prose; if the engine ever enforces it, two numbers. |
+
+**Method.** For each: replace the literal with a template reading the owning constant or
+selector, exactly as the `VOL_BANDS` numbers and `spikeMin`/`clearWithin` already do — the
+file has the pattern, it is just applied unevenly. Where the sentence makes a **claim about
+behaviour** rather than quoting a number, either delete it (the `deficit-calibrated` case) or
+derive the claim from the same predicate the code branches on.
+
+**Assertions.** For each converted line, change the constant in a fixture and assert the
+rendered copy changes with it. **A copy assertion that only checks the current wording is the
+same dead guard in a new costume** — it must be observed to move.
+
+**What it does not buy.** This does not make the prose correct, only self-consistent. A
+sentence generated from the engine still says whatever the engine says.
 
 ### Part 4 — bugs, independent of the redesign
 
