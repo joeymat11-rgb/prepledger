@@ -2663,7 +2663,12 @@ function energyBalanceTargetUncached(s, opts) {
      it was announcing itself as a weaker one. */
   const unconfirmed = !base.regimeConfirmed;
 
-  if (cur.gated) return { ...cur, ...base, dir: "deficit", provisional: true, why: "the calorie band is gated upstream — the regime cannot override a gate" };
+  /* CARRY THE UNDERLYING REASON THROUGH. This used to replace calorieTarget's why with
+     "the calorie band is gated upstream", which tells him a mechanism and not a reason —
+     and drops the one sentence that says what the gate is waiting for. The regime genuinely
+     cannot override a gate, so that fact is appended rather than substituted. */
+  if (cur.gated) return { ...cur, ...base, dir: "deficit", provisional: true,
+    why: (cur.why || "the calorie band is gated upstream") + " The regime cannot override a gate, so it is not deciding here either." };
 
   if (key === "accretionBound") {
     const bw = (s && s.trend) || null;
@@ -2751,9 +2756,29 @@ function calorieTarget(s) {
   const fl = calorieFloor(s);
   const floor = fl.floor;
   if (!td) {
-    const ph = PHASES[s.phase];
-    return { gated: true, from: "phase", lo: ph ? ph.band[0] : null, hi: ph ? ph.band[1] : null,
-      why: "Not enough clean days to measure your own maintenance yet, so this is the phase band as authored." };
+    /* R4 — THE THIN-DATA FALLBACK, REPLACED BEFORE s.phase WAS DELETED, NOT AFTER.
+
+       This read PHASES[s.phase] and returned the authored band. R4 deletes s.phase with
+       the two body-fat triggers it serves, so done naively this returns lo:null hi:null —
+       the fallback that exists PRECISELY for thin data returning nothing. And R2b made it
+       load-bearing: energyBalanceTarget's first branch is `if (cur.gated)`, so the single
+       owner of the calorie decision now routes through here.
+
+       Same question, answered without a phase table and without a body-fat estimate: what
+       to eat before there are enough clean days to measure his own maintenance. Measured
+       bodyweight times a LABELLED convention, minus his own %BW-derived band. Every input
+       is measured or cited; nothing here is authored except the convention, which says so. */
+    const bwG = (s && s.trend) || null;
+    if (!bwG) return { gated: true, from: "none", lo: null, hi: null,
+      why: "No bodyweight on file yet, so there is nothing to price a target from. Log a weigh-in and this fills in immediately." };
+    const estG = Math.round(MAINT_KCAL_PER_LB * bwG);
+    const kcalForG = (lbWk) => Math.round((lbWk * energyDensity(s).perLb) / 7);
+    const hiG = Math.max(floor, estG - kcalForG(band[0]));
+    const loG = Math.max(floor, estG - kcalForG(band[1]));
+    return { gated: true, from: "mass-estimate", lo: loG, hi: hiG, mid: Math.round((loG + hiG) / 2),
+      tdee: estG, floor, band,
+      /* R10 abstention rule: say what it is waiting for, not just that it is waiting. */
+      why: `Not enough clean days to measure your own maintenance yet, so this prices ${estG} from your measured ${bwG} lb at ${MAINT_KCAL_PER_LB} kcal/lb — a labelled convention, not a measurement of you — and takes your own ${band[0]}–${band[1]} lb/wk band off it. It is an ESTIMATE standing in for a measurement, and it stops being one as soon as there are enough logged days; nothing here reads a body-fat number.` };
   }
   /* ---------- KCAL_PER_LB_NOTE — one conversion, not three ----------
      This used 3,500 kcal/lb while observedTDEE used KCAL_PER_LB_MIX (3,800) and
@@ -6819,23 +6844,33 @@ function runAdaptive(state, todayISO) {
   if (!sealed && r.measured && r.rates[r.rates.length - 1] >= cutRateBand(s).redline)
     propose("redline_" + monday, "REDLINE RATE", `${r.rates[r.rates.length - 1].toFixed(1)}/wk ≥ ${cutRateBand(s).redline}. Your rule: add ~100 back and flag your coach — this is not a win, it's muscle risk.`, { kind: "cal", delta: 100 });
 
-  const bf = bfEst(s);
-  if (!sealed && s.phase === "EASE 1" && bf.pct <= 13.2 && s.trend < 163)
-    propose("ease2", "EASE 2 — CONDITIONS MET", `Est. BF ${bf.pct}% has crossed the ~13% line. Applying moves you to ${PHASES["EASE 2"].band.join("–")} cal with the step taper — scale will slow by design while fat loss holds.`, { kind: "phase", to: "EASE 2" });
+  const bf = bfEst(s);   /* R4 — no longer read by ANY proposal condition in runAdaptive. Kept for the copy that reports the interval, never for a threshold. */
+  /* R4 — DELETED: the EASE 2 trigger fired on bf.pct <= 13.2. A point estimate from an
+     instrument whose live interval is 10.7–18.3 (7.6 points wide, asymmetric −3.6/+4.0)
+     cannot resolve a 13.2 threshold, and this proposal moved his whole calorie band on it.
+     The phase machine it served is gone with it; the thin-data band now derives from measured
+     bodyweight (see calorieTarget's gated branch). */
   /* The exit prompt fires on the INTERVAL, not the point estimate. His anchor
      carries +/-3.5 points, so "BF crossed 11.2" is a claim the instrument
      cannot make — and prompting a man to end his cut on a number that could be
      three points out either way is exactly the false precision the charter
      forbids. It now fires when the estimate is low enough that the question is
      worth ASKING, and says out loud that the number cannot answer it. */
-  const pivQ = s.queue.find((q) => q.id === "q_pivot");
-  if (!sealed && bf.lo <= 11.2 && pivQ && !pivQ.done) {
-    const dx = dietExit(s);
-    propose("pivot", "WORTH ASKING: IS THE CUT DONE?",
-      `Your body fat reads ${bf.pct}% and the honest range is ${bf.lo}–${bf.hi}% — the bottom of that range is into the zone where this question belongs on the table. The number cannot decide it; the range is ${(bf.hi - bf.lo).toFixed(1)} points wide, which is wider than the decision. Book the look with your coach.` +
-      (dx.gated ? "" : ` If the answer is yes: one step from ${dx.from ?? "your current band"} to ${dx.maintenance} — your own measured maintenance, from ${dx.days} logged days — then hold ${dx.holdMin}–${dx.holdFull} weeks before deciding anything else. No ramp, no surplus on a schedule.`),
-      { kind: "exit" });
-  }
+  /* R4 — DELETED: the pivot prompt fired on bf.lo <= 11.2.
+
+     Its comment defended firing on the INTERVAL rather than the point, which was the
+     honest version of a threshold — but it is still a threshold on an instrument whose
+     live interval is 7.6 points wide, and applying it stepped calories to maintenance.
+     bf.lo is 10.7 today, so it has been firing since 2026-07-29 and sitting open.
+
+     THE QUESTION IT ASKED NOW HAS A BETTER OWNER. "Is the cut done?" is exactly what
+     regime() answers with accretionBound — from his lifts and his scale rate, both
+     measured daily, rather than from a body-fat estimate anchored twice a year. R1
+     replaced the instrument; this removes the old one rather than leaving two.
+
+     s.phase and the PHASES table are NOT deleted from state — never delete athlete data,
+     and the field is inert now that its only writer is gone. The three remaining readers
+     already guard with `ph ? ... : null`. */
 
   /* ---------- PROGRAM_NOTE — the app has to make its own suggestions ----------
      The point of this ledger is to optimise the programme. A recommendation

@@ -730,6 +730,57 @@ weaker and more honest claim than *optimal*.
 
 ### R4. No decision may fire on a body-fat estimate
 
+#### BUILT 2026-08-06 — and one of R4's own assertions is unsatisfiable as written
+
+Both body-fat decisions are deleted. **No live proposal condition in `runAdaptive` compares a
+body-fat figure against anything**, asserted against the source with comments stripped
+line-preservingly — the comments recording the deletion necessarily contain the strings being
+banned, which is the trap the vacuity scan hit one file over.
+
+| deleted | fired on | why it had to go |
+|---|---|---|
+| EASE 2 trigger | `bf.pct <= 13.2` | a point estimate from an instrument with a 7.6-point live interval, moving his whole calorie band |
+| pivot prompt | `bf.lo <= 11.2` | fired on the INTERVAL, which was the honest version of a threshold — but still a threshold, and `bf.lo` is 10.7, so it had been firing since 2026-07-29 |
+
+**The pivot's question now has a better owner.** *"Is the cut done?"* is what
+`regime().accretionBound` answers, from lifts and scale rate measured daily rather than a
+body-fat estimate anchored twice a year. R1 replaced the instrument; R4 removes the old one
+rather than leaving two.
+
+**`s.phase` is NOT deleted from state** — never delete athlete data, and the field is inert
+now that its only writer is gone. The three remaining `PHASES[s.phase]` readers already guard
+with `ph ? … : null`.
+
+#### OPEN QUESTION FOR JOE — R4's assertion "bfEst unreachable from energyBalanceTarget" cannot hold
+
+**`calorieFloor` reads `bfEst`** — `bf.lean` feeds the IOC energy-availability formula run
+backwards — and `calorieTarget` calls `calorieFloor`, which `energyBalanceTarget` calls. So
+the assertion is unsatisfiable without deleting the derivation.
+
+**And it should not be deleted.** The alternative is a hardcoded floor, which `CLAUDE.md`
+forbids by name: *"Never hardcode 1700."* The floor moving with his lean mass is the good
+version.
+
+**The distinction R4 actually needs**, proposed rather than assumed:
+
+> No proposal, phase change, or **threshold crossing** may fire on `bfEst`. A **derived
+> quantity** may use `bf.lean` provided it does not threshold on it, carries the interval,
+> and degrades to a stated fallback when the anchor is stale.
+
+That kills both deleted triggers and keeps the floor. **Not resolved here** — it narrows a
+rule the research side wrote, so it is theirs to confirm.
+
+**A follow-up it implies:** `calorieFloor` uses `bf.lean` as a POINT estimate and returns a
+single number, from an anchor carrying ±3.5 points. Under R4's own *"render no midpoint"* it
+should carry a band. Filed rather than built, because it changes a number he sees.
+
+#### One more defect, found by an assertion rather than by reading
+
+`energyBalanceTarget`'s gated branch **replaced** `calorieTarget`'s `why` with *"the calorie
+band is gated upstream"* — a mechanism, not a reason, and it dropped the one sentence saying
+what the gate is waiting for. That is the R10 abstention defect in the branch that runs when
+data is thinnest. The underlying reason is carried through now and the gate fact appended.
+
 #### TRAP — read this before starting. R4 and R2b are each correct alone and WRONG COMPOSED.
 
 `calorieTarget`'s gated path reads the phase table directly:

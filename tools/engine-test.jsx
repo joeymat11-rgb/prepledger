@@ -49,7 +49,38 @@ m = runAdaptive(m, "2026-07-22");
 ok(m.proposals.some(p => p.title.indexOf("RATE FLOOR") === 0), "floor rule arms after two slow weeks");
 let e2 = clone(SEED); e2.trend = 160; e2.blackout.until = "2026-07-01";
 e2 = runAdaptive(e2, "2026-07-22");
-ok(e2.proposals.some(p => p.rid === "ease2"), "Ease 2 arms itself when est BF crosses the line");
+/* R4 — the inverse of what this used to assert. The EASE 2 trigger fired on
+   bf.pct <= 13.2 and moved his whole calorie band on a point estimate from an instrument
+   whose live interval is 7.6 points wide. It is deleted, and this drives the state that
+   USED to arm it to prove it cannot arm any more. */
+ok(!e2.proposals.some(p => p.rid === "ease2"), "R4 — the state that used to arm EASE 2 no longer arms it. A 13.2 threshold on an instrument with a 7.6-point interval is a claim it cannot make");
+ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is gone too. It fired on bf.lo <= 11.2, which has been true since 2026-07-29; the question it asked now belongs to regime().accretionBound, which reads lifts and scale rate instead");
+{
+  /* NO PROPOSAL CONDITION MAY READ A BODY-FAT ESTIMATE. Asserted against the source of
+     runAdaptive with comments stripped line-preservingly, because the comments recording
+     the deletion necessarily contain the strings being banned — the same trap the vacuity
+     scan hit, one file over. */
+  const srcR4 = readFileSync("src/app.jsx", "utf8");
+  const bodyR4 = srcR4.slice(srcR4.indexOf("function runAdaptive"));
+  const liveR4 = bodyR4.slice(0, bodyR4.indexOf("\nfunction "))
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
+    .replace(/(^|[^:])\/\/[^\n]*/g, (m, p) => p + m.slice(p.length).replace(/./g, " "));
+  ok(!/bf\.(pct|lo|hi)\s*(<=|>=|<|>|===|==)/.test(liveR4), "R4 — no LIVE proposal condition in runAdaptive compares a body-fat figure against anything. Comments are stripped first: the comments recording the deletion contain the very strings being banned");
+}
+{
+  /* THE TRAP. R4 deletes s.phase; R2b made calorieTarget's gated branch load-bearing on
+     the single owner of the calorie decision. Deleting the phase table without replacing
+     the fallback returns lo:null hi:null from the branch that exists PRECISELY for thin
+     data. Driven with s.phase absent. */
+  const thin = clone(SEED);
+  delete thin.phase;
+  thin.dailyLogs = {};
+  thin.reads = (thin.reads || []).slice(0, 3);
+  const gt = __test.energyBalanceTarget(thin);
+  ok(gt.lo != null && gt.hi != null && gt.lo > 0 && gt.hi >= gt.lo, "R4 TRAP — a thin-data state with s.phase ABSENT still returns a usable band. Deleting the phase table without replacing this first would have returned lo:null hi:null through the branch R2b just promoted");
+  ok(gt.from === "mass-estimate", "R4 TRAP — and it comes from measured bodyweight times a labelled convention, not from an authored phase table and not from a body-fat estimate");
+  ok(/labelled convention|ESTIMATE standing in/i.test(gt.why || ""), "R4 TRAP — the copy says it is an estimate standing in for a measurement, and what ends it. An abstention that reads like a decision is the same defect as a provisional target that renders like a decided one");
+}
 ok(bfEst(clone(SEED)).pct > 14 && bfEst(clone(SEED)).pct < 16, "BF model sane at current trend");
 
 // 7. migration preserves v1 progress
@@ -2801,7 +2832,14 @@ ok(ct1.lo === Math.max(__test.calorieFloor(mkReads(28, 0.2, 170)).floor, ct1.tde
 ok(ct1.lo >= __test.calorieFloor(mkReads(28, 0.2, 170)).floor, "and the floor genuinely binds, so no target can be printed under it");
 ok(ct1.why.indexOf("measured maintenance") > -1 && ct1.why.indexOf("daily reads") > -1, "and it shows its working: " + ct1.why.slice(0, 80));
 const gated17 = clone(TR17); gated17.dailyLogs = {}; gated17.reads = [];
-ok(ctR(gated17).gated === true && ctR(gated17).from === "phase", "without enough data it falls back to the authored phase band and says so");
+/* R4 — the fallback no longer reads an authored phase band. It derives from measured
+   bodyweight and a labelled convention, so "from" changed with it. With reads emptied there
+   is no trend either, which is the honest no-bodyweight case. */
+{
+  const g4 = ctR(gated17);
+  ok(g4.gated === true && (g4.from === "mass-estimate" || g4.from === "none"), "R4 — without enough data the fallback derives from measured bodyweight, not from an authored phase band. It was PHASES[s.phase]; deleting s.phase without replacing this first would have returned lo:null hi:null");
+  ok(g4.from !== "phase", "R4 — and the phase table is no longer a source of targets anywhere");
+}
 const prot = dpR(mkReads(28, 0.2, 170), { clean: true, run: 3, need: 3, last: { h: 8 } });
 const calStep = prot.steps.find((x) => x.a.indexOf("Calories") === 0);
 ok(!!calStep && calStep.w > 80, "the daily calorie number reaches the protocol and ranks near the top — deficit magnitude is the dominant term");
