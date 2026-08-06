@@ -1823,7 +1823,15 @@ const T_CRIT_95 = { 1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447,
 function _tCrit(df) { return T_CRIT_95[df] || (df > 10 ? 1.96 + 2.7 / df : 12.706); }
 
 const TREND_WINDOW = 6;      /* sessions — matches liftCall's own recency horizon */
-const TREND_MIN_N = 4;       /* below this, liftTrend abstains rather than guesses */
+/* THREE QUANTITIES, THREE NAMES. TREND_MIN_N was one constant read in three places as
+   three different things in three different units: sessions-for-one-lift (1867),
+   lifts-in-the-pool (1918) and spotless-lift-trends (1932), with a comment describing only
+   the first. Same disease as the two redlines — a number carried in one unit and read in
+   another — except here one number silently meant three things, so tuning any of them
+   moved all three. */
+const TREND_MIN_SESSIONS = 4;        /* sessions for ONE lift before liftTrend will estimate a slope (df=2) */
+const TREND_MIN_LIFTS = 4;           /* lifts carrying a usable trend before progressionTrend will read a verdict */
+const TREND_CLEAN_MIN_SESSIONS = 3;  /* clean sessions for a lift to contribute to the DOWNGRADE test (df=1, deliberately weak: t=12.706 keeps it honest) */
 const FLAT_HALFWIDTH = 1.5;  /* %/session — an interval wider than this spanning 0 is "unknown", not "flat" */
 
 /* liftTrend — OLS of sessionScore over a lift's recent USABLE sessions, expressed
@@ -1833,7 +1841,9 @@ const FLAT_HALFWIDTH = 1.5;  /* %/session — an interval wider than this spanni
    session do not count toward a STALL, so they must not count toward a DECLINE
    either. That is the downside-only sleep rule (SLEEP_NOTE, PACE_NOTE) applied
    consistently — do not re-litigate it here. */
-function liftTrend(s, exId) {
+function liftTrend(s, exId, opts) {
+  const cleanOnly = !!(opts && opts.cleanOnly);
+  const minN = (opts && opts.minN) || TREND_MIN_SESSIONS;
   const log = (s && s.sessionLog) || {};
   const days = Object.keys(log).sort();
   const pts = [];
@@ -1860,11 +1870,12 @@ function liftTrend(s, exId) {
        So they are KEPT here and handled downside-only in progressionTrend: a
        short-sleep or rushed session can never be what makes the verdict falling. */
     if (hard) continue;
+    if (cleanOnly && (rushed || debt)) continue;   /* the DOWNGRADE test re-estimates on clean SESSIONS, which is what the comment always promised */
     pts.push({ d, y: sc, soft: rushed || debt });
   }
   const use = pts.slice(-TREND_WINDOW);
   const n = use.length;
-  if (n < TREND_MIN_N) return null;
+  if (n < minN) return null;
   const ys = use.map((p) => p.y);
   const my = ys.reduce((a, b) => a + b, 0) / n;
   if (!(my > 0)) return null;
@@ -1915,7 +1926,7 @@ function progressionTrend(s) {
     if (t) trends.push(t);
   }
   const base = { nLifts: trends.length, nExcludedNonNumeric, excludedIds, lifts: trends };
-  if (trends.length < TREND_MIN_N) return { ...base, state: "unknown", pct: null, lo: null, hi: null, why: "only " + trends.length + " lift(s) carry a usable trend — " + TREND_MIN_N + " needed before this reads anything" };
+  if (trends.length < TREND_MIN_LIFTS) return { ...base, state: "unknown", pct: null, lo: null, hi: null, why: "only " + trends.length + " lift(s) carry a usable trend — " + TREND_MIN_LIFTS + " needed before this reads anything" };
   let sw = 0, swx = 0;
   for (const t of trends) { const w = 1 / Math.max(t.se * t.se, 1e-9); sw += w; swx += w * t.pct; }   /* guarded a second time: a zero se here would poison every downstream number with NaN */
   const pct = swx / sw, se = Math.sqrt(1 / sw);
@@ -1928,8 +1939,24 @@ function progressionTrend(s) {
      not punish, and it never blocks the upside. */
   let protectedBy = null, confidence = "normal";
   if (state === "falling") {
-    const clean2 = trends.filter((t) => t.nSoft === 0);
-    if (clean2.length < TREND_MIN_N) {
+    /* RE-POOL ON CLEAN POINTS, NOT ON SPOTLESS LIFTS. The previous version filtered to
+       lifts whose ENTIRE window carried no flagged session — so on his ledger, where
+       cleanAtDate is false on 6 of 8 sessions, a lift needed six consecutive clean-sleep
+       sessions to qualify and the gate needed four such lifts. That is roughly three
+       unbroken weeks of clean sleep on a 6.23 h five-night average, so the earned-downgrade
+       branch was UNREACHABLE IN PRODUCTION while passing in every fixture.
+
+       A NEW VARIANT OF THE STANDING PATTERN: a guard that fires in the fixture and cannot
+       fire in production. The assertions were correct and passed; the branch was still dead
+       where it mattered. Guards must be driven against the real ledger, not only a fixture.
+
+       Each lift is now re-estimated on its own unflagged SESSIONS at a lower minimum, and
+       those are pooled — a lift with two clean sessions out of six contributes a weak clean
+       estimate instead of nothing. */
+    const clean2 = [];
+    for (const t of trends) { const ct = liftTrend(s, t.id, { cleanOnly: true, minN: TREND_CLEAN_MIN_SESSIONS }); if (ct) clean2.push(ct); }
+    const cleanPts = clean2.reduce((a, t) => a + t.n, 0);
+    if (!clean2.length) {
       /* THE MIRROR OF THE BUG THIS RE-POOL FIXES. He has ONE session clean on both
          flags (2026-07-24). A trend cannot be pooled from one point, so if the
          re-pool were allowed to erase the verdict here, "falling" could never
@@ -1940,16 +1967,21 @@ function progressionTrend(s) {
          only downgrade when it has the power to. With too few unflagged sessions
          to test, the verdict STANDS and is marked low-confidence instead. */
       confidence = "low";
-      protectedBy = "kept at low confidence — only " + clean2.length + " unflagged lift-trend(s), too few to test the decline. Absence of clean sessions is not evidence of no decline";
+      protectedBy = "kept at low confidence — no lift has " + TREND_CLEAN_MIN_SESSIONS + " unflagged sessions, so the decline cannot be tested. Absence of clean sessions is not evidence of no decline";
     }
     else {
       let sw2 = 0, swx2 = 0;
       for (const t of clean2) { const w = 1 / Math.max(t.se * t.se, 1e-9); sw2 += w; swx2 += w * t.pct; }
       const p2 = swx2 / sw2, se2 = Math.sqrt(1 / sw2);
-      if (!(p2 + 1.96 * se2 < 0)) { state = "flat"; protectedBy = "the decline does not survive dropping rushed and short-sleep sessions — tested against " + clean2.length + " unflagged trends, so this downgrade is earned rather than assumed"; }
+      /* DOWNGRADE ONLY ON POSITIVE CONTRADICTION. "Does not confirm" is not "contradicts":
+         a thin clean sample fails to confirm almost anything, so downgrading on that is the
+         erasure this whole branch exists to prevent, wearing a better disguise. The clean
+         data has to actually point the other way. */
+      if (p2 >= 0) { state = "flat"; protectedBy = "the decline does not survive dropping rushed and short-sleep sessions — the clean sessions point the other way (" + p2.toFixed(2) + " %/session across " + cleanPts + " clean points), so this downgrade is earned rather than assumed"; }
+      else if (!(p2 + 1.96 * se2 < 0)) { confidence = "medium"; protectedBy = "clean sessions agree on the direction (" + p2.toFixed(2) + " %/session across " + cleanPts + " clean points) but cannot clear zero on their own"; }
     }
   }
-  return { ...base, state, protectedBy, confidence, nSoft: trends.reduce((a, t) => a + t.nSoft, 0), pct: +pct.toFixed(3), se: +se.toFixed(3), lo: +lo.toFixed(3), hi: +hi.toFixed(3),
+  return { ...base, state, protectedBy, confidence, nSoft: trends.reduce((a, t) => a + t.nSoft, 0), pct: +pct.toFixed(3), se: Math.max(+se.toFixed(3), 0.001), lo: +lo.toFixed(3), hi: +hi.toFixed(3),   /* THIRD TIME toFixed HAS EATEN A GUARD. liftTrend floors its se above the rounding for exactly this reason; the POOLED se is rounded separately here and a tight pool rounds to 0.000. R2c divides by this se to size the step, so a zero read as "no information" and a perfect decline came out MILD. Floor it above the rounding, at the point of rounding. */
     why: state === "unknown" ? "pooled interval " + lo.toFixed(1) + " to " + hi.toFixed(1) + " %/session is too wide to call" : "pooled " + pct.toFixed(2) + " %/session across " + trends.length + " lifts" };
 }
 
@@ -2545,12 +2577,29 @@ function proteinTargetForRegime(s, regimeKey) {
    THE CLAMP IS DERIVED, and it is a bound rather than a tuning constant: the step
    can never exceed deficit0, because the fastest meaningful exit IS the exit, and
    it must not overshoot into a surplus the regime has not earned. */
-const COSTING_MILD_PCT = 0.3, COSTING_SEVERE_PCT = 3.0;
+/* SEVERITY IS DIMENSIONLESS NOW, and the mild anchor is DELETED rather than tuned.
 
-function costingStep(deficit0, bandWidth, pct) {
-  const mag = Math.abs(isFinite(pct) ? pct : 0);
-  const span = COSTING_SEVERE_PCT - COSTING_MILD_PCT;
-  const sev = span > 0 ? Math.max(0, Math.min(1, (mag - COSTING_MILD_PCT) / span)) : 0;
+   COSTING_MILD_PCT 0.3 and COSTING_SEVERE_PCT 3.0 were dimensioned in %/session of volume
+   load, which is why they felt arbitrary: volume load has no natural scale, so 0.3 means
+   nothing without knowing his loads, and both would silently change meaning if his
+   exercise selection changed.
+
+   MILD needs no anchor at all. "falling" is DEFINED as hi < 0, so a decline that has only
+   just cleared that threshold has hi ~ 0 — that IS the mild end, derived from the state
+   definition rather than authored. Severity is zero at hi = 0 by construction.
+
+   SEVERE is a multiple of the trend's OWN standard error past that threshold. Maximal when
+   the decline clears zero by a further full 95% half-width — reusing the multiplier the
+   pooled interval already uses for lo/hi rather than introducing a number. Scale-free, and
+   it survives any change to his loads or exercise selection. */
+const COSTING_SEVERE_SE = 1.96;   /* the pooled interval's own 95% multiplier, not a new constant */
+
+function costingStep(deficit0, bandWidth, prog) {
+  /* how many standard errors the UPPER bound sits below zero. hi < 0 is the definition of
+     falling, so this is zero at the threshold and grows with the strength of the decline. */
+  const hi = prog && isFinite(prog.hi) ? prog.hi : 0;
+  const se = prog && isFinite(prog.se) && prog.se > 0 ? prog.se : null;
+  const sev = (hi < 0 && se) ? Math.max(0, Math.min(1, Math.abs(hi) / (COSTING_SEVERE_SE * se))) : 0;
   const base = bandWidth > 0 ? bandWidth : deficit0;
   const step = base + sev * Math.max(0, deficit0 - base);
   return Math.max(1, Math.min(step, deficit0));   /* clamped at deficit0 — one step straight to measured maintenance, never past it */
@@ -2630,8 +2679,8 @@ function energyBalanceTargetUncached(s, opts) {
     if (!td2 || !isFinite(td2.tdee)) { const h0 = (opts && opts.heldWeeks != null) ? opts.heldWeeks : 1; return { ...cur, ...base, dir: "deficit", provisional: true, lo: cur.hi, hi: cur.hi, mid: cur.hi, shrunk: true, heldWeeks: h0, why: "lifts are falling but there is no usable maintenance to step the deficit against — holding at the shallow end of your band" }; }
     const deficit0 = Math.max(0, td2.tdee - cur.hi);
     const bandWidth = cur.hi - cur.lo;
-    const pct = (opts && opts.pct != null) ? opts.pct : ((reg && reg.prog && isFinite(reg.prog.pct)) ? reg.prog.pct : 0);
-    const step = costingStep(deficit0, bandWidth, pct);
+    const prog = (opts && opts.prog) || (reg && reg.prog) || null;
+    const step = costingStep(deficit0, bandWidth, prog);
     const conf = (reg && reg.prog && reg.prog.confidence) || "normal";
     /* THE CAP MUST DERIVE FROM THE WALK, NOT BE A FIXED 12. A hard cap re-creates
        the absorbing state at a different point: if the band ever narrows so that
@@ -9137,6 +9186,7 @@ __test.energyBalanceTargetUncached = energyBalanceTargetUncached;
 __test.proteinTargetForRegime = proteinTargetForRegime;
 __test.GAIN_FAT_FRAC = GAIN_FAT_FRAC;
 __test.costingStep = costingStep;
+__test.COSTING_SEVERE_SE = COSTING_SEVERE_SE;
 __test._regimeRaw = _regimeRaw;
 __test._stateAsOf = _stateAsOf;
 __test.REGIME_HOLD_D = REGIME_HOLD_D;

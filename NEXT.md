@@ -152,6 +152,31 @@ The shape is always the same: **the safeguard is present and nothing can reach i
 that asserts the guard is *there* does not catch any of these. A test that drives the path
 and asserts the outcome *changed* catches all five.
 
+**COMPANION RULE — drive the guard against the REAL LEDGER, not only a fixture, and record
+which branch real data actually takes.** The eighth instance is a variant the fixture rule
+cannot catch on its own:
+
+> **A guard that fires in the fixture and cannot fire in production.**
+
+The `falling` downgrade re-pooled on lifts whose ENTIRE window carried no flagged session.
+On his ledger `cleanAtDate` is false on 6 of 8 sessions, so a lift needed six consecutive
+clean-sleep sessions to qualify and the gate needed four such lifts — roughly three unbroken
+weeks of clean sleep on a 6.23 h five-night average. **The assertions were correct and
+passed; the branch was dead where it mattered.** Every falling verdict he could ever get
+would have taken the low-confidence path.
+
+Record the real-data branch in the item, every time. As of 2026-08-06:
+
+    progressionTrend.state   unknown   (0 lifts with a usable trend, needs 4)
+    nExcludedNonNumeric      2         curl, hanging
+    lifts with >=3 clean sessions      0    <- the NEW downgrade gate
+    lifts under the OLD gate           0    <- spotless 6-session window x 4 lifts
+    regime                   unknown, unconfirmed
+    energyBalanceTarget      deficit 2176-2263, provisional TRUE
+
+**Both gates read zero today** — the difference is what it takes to leave zero. The old one
+needed three unbroken clean weeks; the new one needs three clean sessions on one lift.
+
 **Copy that quotes an engine number, or describes engine behaviour, must be GENERATED from
 the engine — never written alongside it.** This is engine-owns-numbers applied to prose.
 **Copy that describes the engine is a second implementation of the engine**, and it drifts
@@ -898,6 +923,13 @@ implementation.
      `RESEARCH-DESIGN.md` Part 2.1 marks **LOW-MEDIUM** confidence for this athlete: the
      pooled population averages **51-60 years old** (analysis A 60 ± 11, analysis B 51 ± 16)
      and he is **24**. The generated sentence must say so.
+   - **Copy that is CONFIDENT ABOUT AN ABSTENTION** — the version that will hide, because it
+     reads well. `energyBalanceTarget`'s unknown branch currently says the engine "is
+     holding". **Any sentence that says the engine is holding without saying it also cannot
+     yet decide is the same unearned confidence in the opposite direction.** Abstention copy
+     must state what it is waiting for and roughly when. His is derivable from the counts the
+     selector already returns: *"one more training week without an event day"* — 11 lifts sit
+     at 4 scored sessions and lose 2-3 to hard days, so the gap is small and nameable.
    - **`bfEst`'s "±3-4 points"** hardcodes `ANCHOR_ERR_EYE` and **understates the instrument
      the app is actually rendering beside it.** The live interval is **10.7-18.3 — 7.6 points,
      asymmetric −3.6/+4.0** — because the drip band integrates away from the anchor. Copy

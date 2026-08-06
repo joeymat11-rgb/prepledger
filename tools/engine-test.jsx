@@ -4098,16 +4098,40 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
          fast is fully recoverable in a few weeks, exiting too slow spends lean mass that
          takes months to rebuild. Conservative-on-the-measurement is aggressive-on-the-risk. */
       {
-        const toMaint = (pct) => { for (let h = 1; h <= 400; h++) { const r = EBT(st2, { regime: { key: "costing" }, heldWeeks: h, pct }); if (r.dir !== "deficit") return h; } return 999; };
-        const mild = toMaint(-0.3), mid = toMaint(-1.5), steep = toMaint(-3);
+        /* R2c v2 — severity is |hi| / (1.96 x se), so fixtures speak in STANDARD ERRORS.
+           hi < 0 IS the falling threshold, so severity is zero there by construction and the
+           mild anchor no longer exists to be tuned. */
+        const toMaint = (hi, se) => { for (let h = 1; h <= 400; h++) { const r = EBT(st2, { regime: { key: "costing" }, heldWeeks: h, prog: { hi, se } }); if (r.dir !== "deficit") return h; } return 999; };
+        const mild = toMaint(-0.05, 1), mid = toMaint(-1.0, 1), steep = toMaint(-1.96, 1);
         ok(steep < mid && mid < mild, "R2c — a steeper decline reaches maintenance in STRICTLY fewer evaluations (" + steep + " < " + mid + " < " + mild + "). The old build took the same seven weeks for a collapse as for a drift");
         ok(steep === 1, "R2c — an extreme decline exits in exactly ONE evaluation: the fastest meaningful exit is the exit itself");
-        const ex = EBT(st2, { regime: { key: "costing" }, heldWeeks: 1, pct: -50 });
+
+        /* THIRD OCCURRENCE OF toFixed EATING A GUARD, so it gets its own assertion rather
+           than another comment. A perfectly linear decline pools to se 0.000447, which
+           .toFixed(3) rounds to 0 -- and severity divides by se, so the steepest possible
+           decline read as MILD and took the eight-week walk. */
+        {
+          /* self-contained: PT and mkState live in the R1 block, not this one */
+          const LFp = ["a", "b", "c", "d", "e"];
+          const isoP = (t) => new Date(t).toISOString().slice(0, 10);
+          const endP = Date.parse("2026-08-04T00:00:00Z");
+          const fallP = [{ w: 100, reps: [12, 12] }, { w: 100, reps: [11, 11] }, { w: 100, reps: [10, 10] }, { w: 100, reps: [9, 9] }, { w: 100, reps: [8, 8] }];
+          const pf = clone(SEED);
+          pf.exercises = [...(pf.exercises || []), ...LFp.map((id) => ({ id, n: id, w: 100 }))];
+          pf.sessionLog = {};
+          fallP.forEach((sess, k) => { const d = isoP(endP - (fallP.length - 1 - k) * 2 * 86400000);
+            pf.sessionLog[d] = { entries: LFp.map((id) => ({ id, w: sess.w, reps: sess.reps.slice() })), skipped: [], pace: "normal", at: 1 }; });
+          const perfect = __test.progressionTrend(pf);
+          ok(perfect.se > 0, "R2c — the POOLED se can never round to zero. A tight pool rounds to 0.000 at 3dp and severity DIVIDES by it, so the steepest possible decline scored mild. liftTrend already floored its own se for this reason; the pooled one is rounded separately, which is why the fix had to be made twice");
+          ok(Math.abs(perfect.hi) / (1.96 * perfect.se) >= 1, "R2c — and that perfect decline now scores MAXIMAL severity, which is what it should have scored all along");
+        }
+        const ex = EBT(st2, { regime: { key: "costing" }, heldWeeks: 1, prog: { hi: -100, se: 1 } });
         ok(ex.dir === "maintenance" && ex.dir !== "surplus", "R2c — and the step is CLAMPED at deficit0, so no decline however steep can overshoot into a surplus the regime has not earned. That clamp is a bound, not a tuning constant");
-        ok(mild >= 6, "R2c — a mild drift still takes the long walk, so the severity scaling did not simply make everything fast");
+        ok(mild >= 6, "R2c — a decline barely past the falling threshold still takes the long walk: severity is ZERO at hi = 0 by construction, so the mild end needs no anchor and there is none to tune");
+        ok(!/const COSTING_MILD_PCT|const COSTING_SEVERE_PCT/.test(readFileSync("src/app.jsx", "utf8")), "R2c — and both dimensioned anchors are GONE. %/session of volume load has no natural scale, so they would have changed meaning silently if his exercise selection did");
         // confidence changes the COPY, never the step
-        const lowConf = EBT(st2, { regime: { key: "costing", prog: { pct: -3, confidence: "low" } }, heldWeeks: 1 });
-        const normConf = EBT(st2, { regime: { key: "costing", prog: { pct: -3, confidence: "normal" } }, heldWeeks: 1 });
+        const lowConf = EBT(st2, { regime: { key: "costing", prog: { hi: -1.96, se: 1, confidence: "low" } }, heldWeeks: 1 });
+        const normConf = EBT(st2, { regime: { key: "costing", prog: { hi: -1.96, se: 1, confidence: "normal" } }, heldWeeks: 1 });
         ok(lowConf.lo === normConf.lo, "R2c — low confidence does NOT slow the step. A wide interval on a decline is not evidence the decline is small — the same shape as absence of clean sessions not being evidence of no decline");
         ok(/cannot separate it from the short sleep/i.test(lowConf.why) && !/cannot separate/i.test(normConf.why), "R2c — it changes the COPY instead, naming the confound out loud rather than silently waiting it out");
 
