@@ -60,6 +60,26 @@ const ok = (cond, name) => { cond ? pass++ : fail++; console.log((cond ? "PASS" 
   ok(rb.floor === 0.82 && rb.redline === 1.63, "SNAPSHOT — floor 0.82 and redline 1.63 lb/wk, %BW-derived. These were an authored 0.8 and 1.9 in pounds, and the redline got MORE permissive as he leaned out");
   ok(rb.redlinePct === __test.bodyCompBand(SNAP).redlinePct, "SNAPSHOT — one redline, published once. The foresight layer used to run 1.157 against the alarm's 1.0");
 
+  /* FEED ORDER SURVIVES A MERGE. Pre-existing v6.2-era defect surfaced in production:
+     _unionMulti iterated remote keys first, so local-only entries appended at the TAIL —
+     the 2026-08-06 withdrawal receipt sat at index 189 of 191, under July lines, and he
+     plausibly never saw it. The withdrawal convention held in state and failed in display,
+     which is where he reads. Driven on the frozen real snapshot, both write orders. */
+  {
+    const A2 = JSON.parse(JSON.stringify(SNAP));
+    const B2 = JSON.parse(JSON.stringify(SNAP));
+    /* give one side a NOVEL newest entry the other has never seen — the burial case */
+    B2.feed = [{ d: "2026-08-06", t: "NOVEL LOCAL RECEIPT", how: "x" }, ...B2.feed];
+    for (const [x, y] of [[A2, B2], [B2, A2]]) {
+      const m2 = __test.mergeState(JSON.parse(JSON.stringify(x)), JSON.parse(JSON.stringify(y)));
+      const idx = m2.feed.findIndex((f) => f.t === "NOVEL LOCAL RECEIPT");
+      ok(idx >= 0 && idx <= 3, "SNAPSHOT — a novel newest feed entry surfaces at the TOP after a merge (index " + idx + "), in both write orders. Under the old union it landed at the tail, below weeks-old lines");
+      const ds = m2.feed.map((f) => String(f.d || ""));
+      ok(ds.every((d, i) => i === 0 || ds[i - 1].localeCompare(d) >= 0), "SNAPSHOT — the merged feed is monotone newest-first: every unshift in the app assumes it, and one sync against a stale remote used to destroy it");
+      ok(m2.feed.length === x.feed.length || m2.feed.length === y.feed.length, "SNAPSHOT — and nothing was dropped to achieve it: the sort reorders, the union still never shrinks");
+    }
+  }
+
   /* R9 — the orphaned pivot card. Its producer was deleted by R4 but its apply branch is
      LIVE: tapping it steps calories to maintenance on the authority of a body-fat threshold
      the app no longer trusts. The change that deletes a producer must withdraw its cards. */
@@ -412,6 +432,30 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         ok(note.resolved === true && note.resolvedHow === "expired", "R9 — a 21-day-old NOTE expires with a feed line: it changes nothing when tapped, so queueing it forever is pure attention cost — the refeed_review defect as a standing condition");
         ok(cal.resolved === false, "R9 — an actionable card NEVER expires: it is a pending decision, and decisions wait for him. Expiring those would be the engine deciding by timeout");
         ok(out.feed.some((f) => /CARD EXPIRED/.test(f.t)), "R9 — the expiry is on the record");
+      }
+      /* ---------- R10a — the two live overclaims ---------- */
+      {
+        const DC = __test.DEFICIT_CEILING;
+        ok(DC.kcal === 500 && /51-60 years old/.test(DC.hedge) && /not a measured one for you/.test(DC.hedge), "R10a — the ~500 kcal/day ceiling carries its own hedge: Murphy & Koehler's pooled population averaged 51-60 and he is 24. A correctly generated number stated with unearned confidence is still the engine lying, just more precisely");
+        ok(DC.line().indexOf(DC.claim) === 0 && DC.line().indexOf(DC.hedge) > 0, "R10a — and line() welds claim to hedge, so no call site can quote one without the other");
+        const src10 = readFileSync("src/app.jsx", "utf8")
+          .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
+          .replace(/(^|[^:])\/\/[^\n]*/g, (m, p) => p + m.slice(p.length).replace(/./g, " "));
+        /* the OWNER's own claim: field legitimately contains the words — the assertion
+           excepts the definition and bans quotes everywhere else. My first version forgot
+           the owner and failed on the single source of truth it had just created. */
+        const flatLines = src10.split("\n").filter((l) => l.includes("under ~500 kcal/day"));
+        const welded = (src10.match(/DEFICIT_CEILING\.line\(\)/g) || []).length;
+        ok(flatLines.length === 1 && /claim:/.test(flatLines[0]) && welded >= 2, "R10a — the ceiling's words appear on exactly ONE live line, the owner's own claim: field, and both former sites read the welded line (" + welded + "). No call site can quote the number without its hedge");
+        /* the bfEst copy renders the live interval, not the anchor constant */
+        const bf10 = __test.bfEst(clone(SEED));
+        const w10 = String(bf10.why || "");
+        ok(w10.indexOf(String(bf10.lo)) > -1 && w10.indexOf(String(bf10.hi)) > -1, "R10a — the anchor copy quotes the RENDERED interval (" + bf10.lo + "-" + bf10.hi + "), generated from the same lo/hi the band draws. The old copy said ±3-4 points beside a number that was " + (bf10.hi - bf10.lo).toFixed(1) + " points wide");
+        ok(!/±3–4 points, and that error never washes out/.test(w10), "R10a — and the flat ±3-4 sentence is gone from the rendered copy: it described a narrower instrument than the one producing the number beside it");
+        /* dismiss copy and mechanism agree, both directions driven elsewhere; here the COPY */
+        const dsrc = readFileSync("src/app.jsx", "utf8");
+        const dm = dsrc.match(/ADJUSTMENT DECLINED[^\n]{0,220}/);
+        ok(dm && /re-arm/i.test(dm[0]), "R10a — the decline copy still promises re-arming, and since the applied() fix that promise is TRUE: copy and mechanism agree, asserted from the copy side to close the loop the audit opened");
       }
       /* THE DISMISSED-REARM CONTRADICTION, driven. dismissProposal promises re-arming;
          applied() counted any adjustments row, so a decline silenced the rid forever. */
@@ -1247,7 +1291,7 @@ ok(rideDay != null, "a scheduled session day exists within a week of the frozen 
   const numeric = ents.filter(e => { const ex3 = ws.exercises.find(x => x.id === e.id); return ex3 && typeof ex3.w === "number"; });
   const stringW = ents.filter(e => { const ex3 = ws.exercises.find(x => x.id === e.id); return ex3 && typeof ex3.w !== "number"; });
 ok(numeric.length > 0 && numeric.every(e => e.w != null && e.w > 0), "weight rides every NUMERICALLY-weighted set automatically, asserted unconditionally on a day the calendar actually schedules (" + numeric.length + " sets) — the dead assertion had never executed and was three API generations stale");
-ok(stringW.every(e => e.w == null), "while string-weighted lifts (curl 55·55·50) log w:null BY DESIGN — verified against the live ledger, and it is exactly why sessionScore excludes them from the trend");
+ok(stringW.length > 0 && stringW.every(e => e.w == null), "while string-weighted lifts (curl 55·55·50) log w:null BY DESIGN — length > 0 pins that this side is DRIVEN: a split change dropping curl from the scheduled day would otherwise silently un-drive it, the self-disabling-arm pattern by one term");
 }
 
 // (interim)
