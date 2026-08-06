@@ -81,6 +81,82 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
   ok(gt.from === "mass-estimate", "R4 TRAP — and it comes from measured bodyweight times a labelled convention, not from an authored phase table and not from a body-fat estimate");
   ok(/labelled convention|ESTIMATE standing in/i.test(gt.why || ""), "R4 TRAP — the copy says it is an estimate standing in for a measurement, and what ends it. An abstention that reads like a decision is the same defect as a provisional target that renders like a decided one");
 }
+
+    /* ---------- R5 — the skinfold tracker, and its two traps ---------- */
+    {
+      const SC5 = __test.skinfoldCheck, SS5 = __test.skinfoldSeries, ST5 = __test.skinfoldTrend;
+      const SEVEN = __test.SKINFOLD_SITES.slice();
+      const SIX = SEVEN.filter((x) => x !== "abdominal");
+      const mkSk = (rows) => { const st = clone(SEED); st.skinfolds = rows; return st; };
+      const e = (d, sum, sites, tester) => ({ d, sumMm: sum, sites: sites || SEVEN, tester: tester || "Ana" });
+
+      /* TRAP 1 — THE ONE THAT WILL ACTUALLY HAPPEN. Abdominal runs 15-25 mm on a lean male,
+         so a facility defaulting to a 6-site protocol drops the sum by that much and it
+         reads as a large fat loss. Site-set drift swamps the 0.6-point detectable change by
+         an order of magnitude. */
+      const drift = mkSk([e("2026-08-01", 78), e("2026-09-01", 58, SIX)]);
+      const sr = SS5(drift);
+      ok(sr.length === 2, "R5 TRAP 1 — a 7-site reading followed by a 6-site reading is TWO series, not one. Summing them would read a dropped abdominal fold as 20 mm of fat loss");
+      ok(sr[0].deltaMm === null && sr[1].deltaMm === null, "R5 TRAP 1 — and NO delta is computed across the boundary. Each series has one reading, so each honestly reports nothing rather than the -20 mm the naive sum would show");
+      const chk = SC5(mkSk([e("2026-08-01", 78)]), e("2026-09-01", 58, SIX));
+      ok(chk.breaks === true && chk.missing.indexOf("abdominal") > -1, "R5 TRAP 1 — the check NAMES the missing site, so a 6-site reading is caught at entry rather than silently summed");
+      ok(/new series/i.test(chk.why) && !/^refus/i.test(chk.why), "R5 TRAP 1 — it starts a new series rather than refusing: a different protocol is real data, and never deleting athlete data outranks tidiness");
+
+      /* TRAP 2 — "break on tester change" needed an operational definition. All three
+         obvious readings are wrong: deleting loses data, computing across it defeats the
+         purpose, hiding it means he cannot see his own history. */
+      const tester = mkSk([e("2026-08-01", 78), e("2026-09-01", 74), e("2026-10-01", 70, SEVEN, "Bram")]);
+      const ts = SS5(tester);
+      ok(ts.length === 2 && ts[0].n === 2 && ts[1].n === 1, "R5 TRAP 2 — a tester change starts a new series and the OLD ONE STAYS, readable, with its own entries");
+      ok(ts[0].deltaMm === -4, "R5 TRAP 2 — the old series still computes its own delta: breaking the trend must not hide the history he already has");
+      ok(ts[1].deltaMm === null, "R5 TRAP 2 — and no delta crosses the boundary. Precision is entirely conditional on the same tester (Machado 2025), so the break IS the method, not a nicety");
+
+      /* the tracker never spans a break */
+      const tr = ST5(tester);
+      ok(tr.gated === true && tr.priorSeries === 1, "R5 — the headline reads the CURRENT series only, and says how many earlier ones exist rather than pretending they are continuous");
+      const good = ST5(mkSk([e("2026-08-01", 78), e("2026-09-01", 70)]));
+      ok(good.gated === false && good.deltaMm === -8, "R5 — within one series, same sites and same tester, it reports the change");
+      ok(/millimetres/i.test(good.why) && /not a percentage/i.test(good.why), "R5 — reported in MILLIMETRES and the copy DISCLAIMS a percentage. My first version banned the word outright, which the disclaimer itself trips — the same trap as banning bf.pct while the comment recording its removal quotes it");
+      ok(typeof good.deltaMm === "number" && Math.abs(good.deltaMm) > 1, "R5 — and the VALUE is a millimetre delta, not a converted percentage. Checking the units of the number is the assertion that matters; checking the words is not");
+      ok(/says nothing about lean mass/i.test(good.why), "R5 — and it says out loud that it observes no lean mass, which is why it cannot narrow the partition");
+
+      /* one reading is not a change */
+      ok(ST5(mkSk([e("2026-08-01", 78)])).deltaMm === null, "R5 — one reading returns null, not zero. 'no change measured' and 'one reading' are different answers");
+      ok(ST5(clone(SEED)).gated === true, "R5 — an empty collection is gated, not an error");
+
+      /* THE GUARDRAIL THAT SURVIVED THE NARROWING: skinfolds never reach the partition */
+      ok(!/skinfold/i.test(String(__test.partitionPrior)), "R5 — partitionPrior does not reference skinfolds anywhere. Skinfolds measure subcutaneous fat and never observe lean mass, so they cannot narrow the fat-vs-lean partition");
+      /* my first version read `=== 2 || __test.BC == null` — an escape hatch, in the item that
+         adds a scanner for escape hatches. Asserted directly, no disjunct. */
+      ok(__test.PARTITION_ANCHORS_TO_NARROW === 2, "R5 — PARTITION_ANCHORS_TO_NARROW is untouched at 2: the partition still needs two real DEXA anchors, and skinfolds cannot substitute because they never observe lean mass");
+
+      /* DATA-SAFETY, driven through mergeState because the primitives are unexported */
+      {
+        const four = mkSk([e("2026-05-01", 90), e("2026-06-01", 86), e("2026-07-01", 82), e("2026-08-01", 78)]);
+        const six = mkSk([e("2026-03-01", 98), e("2026-04-01", 94), e("2026-05-01", 90), e("2026-06-01", 86), e("2026-07-01", 82), e("2026-08-01", 78)]);
+        ok(__test.mergeState(four, six).skinfolds.length === 6, "R5 data-safety — 4 entries merging with 6 yields 6, never 4");
+        ok(__test.mergeState(six, four).skinfolds.length === 6, "R5 data-safety — and the same in the other write order, because a merge that depends on who spoke first is not a merge");
+        /* same date, different protocol: two measurements, not a collision */
+        const a2 = mkSk([e("2026-08-01", 78)]);
+        const b2 = mkSk([e("2026-08-01", 58, SIX)]);
+        ok(__test.mergeState(a2, b2).skinfolds.length === 2, "R5 data-safety — two readings on the SAME DAY with different site sets both survive: they are different measurements, not a collision to resolve. Unlikely is how the phantom-rep bug survived seven weeks");
+      }
+
+      /* MIGRATION — additive, and nothing else moves */
+      {
+        const old = clone(SEED); delete old.skinfolds; old.v = 38;
+        const up = __test.migrate(JSON.parse(JSON.stringify(old)));
+        ok(Array.isArray(up.skinfolds) && up.skinfolds.length === 0, "R5 migration — patchV39 adds s.skinfolds = [] and nothing was there to restate");
+        ok(up.v === 39, "R5 migration — and bumps to 39");
+        /* byte-identity is the wrong invariant: migrate() replays the WHOLE patch chain, so
+           other idempotent patches legitimately touch the state. The invariant that matters
+           is the data-safety one — nothing shrank. */
+        const cnt = (o) => [(o.reads || []).length, ((o.sleep || {}).nights || []).length, Object.keys(o.dailyLogs || {}).length, Object.keys(o.sessionLog || {}).length, (o.feed || []).length];
+        const b4 = cnt(old), af = cnt(up);
+        ok(b4.every((n, i) => af[i] >= n), "R5 migration — ADDITIVE: no collection shrank across the migration. Byte-identity is the wrong invariant here because migrate replays the whole chain; not losing data is the right one");
+      }
+    }
+
 ok(bfEst(clone(SEED)).pct > 14 && bfEst(clone(SEED)).pct < 16, "BF model sane at current trend");
 
 // 7. migration preserves v1 progress
@@ -4882,13 +4958,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 38, "schema: SCHEMA_V is 38 (patchV38 appended for the phase arc; Slice 4 consumed patchV37)");
+  ok(SC === 39, "schema: SCHEMA_V is 39 (patchV39 appended for the R5 skinfold tracker)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
-  ok(migd.v === 38 && migd.plan.autonomy === "propose", "patchV36→38: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
+  ok(migd.v === 39 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
   ok(migd.reads.length === oldV35.reads.length && Object.keys(migd.dailyLogs).length === Object.keys(oldV35.dailyLogs).length, "patchV36: ADDITIVE — no read or dailyLog is added or lost (count-preserving)");
   ok(SEED.plan.autonomy === "propose", "patchV36: SEED already carries autonomy='propose' so a fresh install === a migrated one");
-  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 38, "patchV36..38: idempotent on a current SEED (no double-patch drift)");
+  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 39, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
   const future = clone(SEED); future.v = 39;
   ok(mig(future).v === 39, "migrate: a NEWER (v39) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
   const legacy = clone(SEED); legacy.v = 35; legacy.plan = { goals: [{ text: "no-id" }], ifthen: [{ cue: "x", action: "y" }], share: false };
@@ -5179,13 +5255,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 38, "schema: SCHEMA_V is 38 (patchV38 appended for the phase arc)");
+  ok(__test.SCHEMA_V === 39, "schema: SCHEMA_V is 39 (patchV39 appended for the R5 skinfold tracker)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
-  ok(m37.v === 38 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
+  ok(m37.v === 39 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
   ok(m37.reads.length === oldV36.reads.length && Object.keys(m37.dailyLogs).length === Object.keys(oldV36.dailyLogs).length, "patchV37: ADDITIVE — no read or dailyLog added or lost (count-preserving)");
-  ok(MIG(clone(SEED)).v === 38, "patchV37/38: idempotent on a current SEED (no double-patch drift)");
+  ok(MIG(clone(SEED)).v === 39, "patchV37/38/39: idempotent on a current SEED (no double-patch drift)");
   const fut39 = clone(SEED); fut39.v = 39; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
   ok(MIG(fut39).v === 39 && MIG(fut39).learned.tdee.length === 1, "patchV38: a NEWER (v39) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
 
@@ -5430,13 +5506,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(JSON.stringify(calorieTarget(clone(SEED))) === JSON.stringify(calorieTarget(clone(SEED))), "ENGINE-OWNS-NUMBERS — calorieTarget is unchanged by the phase layer on a normal cut (no phase number injected)");
 
   // ---- E · patchV38 — additive + rollback-safe; fresh SEED === migrated --------------------
-  ok(SCHEMA_V === 38, "patchV38 — SCHEMA_V is 38 (the phase arc's schema)");
+  ok(SCHEMA_V === 39, "patchV39 — SCHEMA_V is 39 (the R5 skinfold tracker)");
   ok(Array.isArray(SEED.plan.phaseLog) && SEED.plan.phaseLog.length === 0 && !("phase" in SEED.plan) && !("brk" in SEED.plan), "patchV38 — SEED authors an EMPTY phaseLog and NO phase/brk override: a fresh install === a migrated state");
   const oldV37 = clone(SEED); oldV37.v = 37; delete oldV37.plan.phaseLog;
   const m38 = migrate(oldV37);
-  ok(m38.v === 38 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
+  ok(m38.v === 39 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
   ok(m38.reads.length === oldV37.reads.length && Object.keys(m38.dailyLogs).length === Object.keys(oldV37.dailyLogs).length, "patchV38 — ADDITIVE: no read or dailyLog added or lost (count-preserving)");
-  ok(migrate(clone(SEED)).v === 38 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
+  ok(migrate(clone(SEED)).v === 39 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
   const fut39 = clone(SEED); fut39.v = 39; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };
   ok(migrate(fut39).v === 39 && migrate(fut39).plan.phase === "leangain", "patchV38 — a NEWER (v39) state is handed back UNTOUCHED: rollback-safe, no phase decision wiped");
 

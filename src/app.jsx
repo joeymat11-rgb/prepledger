@@ -310,7 +310,7 @@ const APP_V = "7.15.0";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 38;
+const SCHEMA_V = 39;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -372,7 +372,8 @@ const EXERCISES = [
 const SEED = {
   v: 2,
   phase: "EASE 1",
-  rate: { band: [1.0, 1.4] },   /* R3 - redline 1.9 and floor 0.8 removed: authored, uncited, and in POUNDS. cutRateBand derives both from BC.CUT_REDLINE_PCT / BC.CUT_FLOOR_PCT in %BW. Nothing reads these fields any more; a live state that still carries them is inert. */
+  rate: { band: [1.0, 1.4] },
+  skinfolds: [],   /* R5 — authored already-current; a fresh install does not run the patch chain */   /* R3 - redline 1.9 and floor 0.8 removed: authored, uncited, and in POUNDS. cutRateBand derives both from BC.CUT_REDLINE_PCT / BC.CUT_FLOOR_PCT in %BW. Nothing reads these fields any more; a live state that still carries them is inert. */
   maintenance: [{ label: "Hard-block steps", cal: 2590, note: "validated" }, { label: "Ease-1 steps", cal: 2470 }],
   trend: 164.2,
   model: { lean: 139.7, anchorISO: "2026-07-21", drip: 0, src: "coach's eye", err: "±1.5–3" },
@@ -1524,6 +1525,102 @@ const KCAL_PER_LB_MIX = 3800;   /* the PRIOR mixed density (~86% fat) for a lean
 const PRIOR_FAT_FRAC = (KCAL_PER_LB_MIX - KCAL_PER_LB_LEAN) / (KCAL_PER_LB_FAT - KCAL_PER_LB_LEAN);
 const ANCHOR_ERR_EYE = 3.5, ANCHOR_ERR_DEXA = 1.0;
 function dripOf(s) { const d = s && s.model ? s.model.drip : null; return d == null ? DRIP_DEFAULT : d; }
+/* ==================== R5_NOTE — the skinfold TRACKER ====================
+
+   TWO INSTRUMENTS, TWO JOBS, and they must not drift into each other.
+
+   Skinfolds measure SUBCUTANEOUS fat. They never observe lean mass, so they cannot
+   narrow the fat-vs-lean partition — partitionPrior still requires real DEXA anchors
+   and PARTITION_ANCHORS_TO_NARROW stays at 2. This is a fat-CHANGE tracker between
+   anchors, nothing more. An assertion holds skinfolds unreachable from partitionPrior.
+
+   STORED AND SHOWN IN MILLIMETRES, NEVER CONVERTED TO A PERCENTAGE. Conversion adds a
+   modelling error that destroys the precision advantage and reintroduces the point
+   estimate R4 removed. The sum needs no accuracy at all — only consistency — because
+   the objective is defined on CHANGE.
+
+   TRAP 1 — THE SUM IS ONLY MEANINGFUL IF THE SITE SET IS IDENTICAL.
+   Sigma-mm is comparable across time only when the same sites are measured every time.
+   Drop one site — abdominal runs 15-25 mm on a lean male — and the sum falls by that
+   much, WHICH WOULD READ AS A LARGE FAT LOSS. The 0.6-point detectable change (Farley
+   2021, 442 g consecutive-day) assumes a fixed protocol; site-set drift swamps it by an
+   order of magnitude. And it is a LIKELY error, not an exotic one: plenty of facilities
+   default to a 3- or 4-site protocol, and a tester who does not know the series exists
+   will hand him a different sum without comment.
+
+   TRAP 2 — "BREAK THE TREND ON TESTER CHANGE" NEEDS AN OPERATIONAL DEFINITION.
+   All three obvious readings are wrong: deleting the old series loses data; computing
+   across it is the thing the break exists to prevent; hiding it means he cannot see his
+   own history. Correct: the old series stays VISIBLE AND READABLE, the new one starts
+   fresh, and NO DELTA IS COMPUTED ACROSS THE BOUNDARY.
+
+   Both traps are the same failure — a discontinuity in the INSTRUMENT read as a change
+   in the ATHLETE — so they get the same treatment. The tester break is not a nicety: a
+   consistent novice beats a rotating expert for tracking change (Machado 2025, novice
+   TEM >7.5% at two sites vs expert <5% everywhere), and that precision is entirely
+   conditional on it being the same person. The break IS the method. ==================== */
+
+const SKINFOLD_SITES = ["chest", "abdominal", "thigh", "triceps", "subscapular", "suprailiac", "midaxillary"];
+
+/* series identity = the site set AND the tester. Either changing starts a new series. */
+function _sitesKey(sites) {
+  const a = Array.isArray(sites) ? sites.filter((x) => typeof x === "string" && x).map((x) => x.toLowerCase().trim()) : [];
+  return a.slice().sort().join("|");
+}
+function _skinSeriesKey(e) { return _sitesKey(e && e.sites) + "@@" + String((e && e.tester) || "").toLowerCase().trim(); }
+
+/* skinfoldCheck — would this entry continue the current series, or start a new one?
+   Never silently sums a different protocol into the old series. Names what changed, so
+   an accidental 6-site reading is caught at the point of entry rather than read as fat loss. */
+function skinfoldCheck(s, entry) {
+  const all = ((s && s.skinfolds) || []).slice().sort((a, b) => String(a.d).localeCompare(String(b.d)));
+  const prev = all.length ? all[all.length - 1] : null;
+  if (!entry || !Array.isArray(entry.sites) || !entry.sites.length) return { ok: false, breaks: false, why: "an entry needs the list of sites that were measured — the sum means nothing without it" };
+  if (!prev) return { ok: true, breaks: false, first: true, why: "first entry — this starts the series" };
+  const wasSites = _sitesKey(prev.sites), nowSites = _sitesKey(entry.sites);
+  const missing = (prev.sites || []).filter((x) => !(entry.sites || []).some((y) => String(y).toLowerCase().trim() === String(x).toLowerCase().trim()));
+  const extra = (entry.sites || []).filter((x) => !(prev.sites || []).some((y) => String(y).toLowerCase().trim() === String(x).toLowerCase().trim()));
+  const testerChanged = String(prev.tester || "").toLowerCase().trim() !== String(entry.tester || "").toLowerCase().trim();
+  if (wasSites === nowSites && !testerChanged) return { ok: true, breaks: false, why: "same sites, same tester — this continues the series" };
+  const bits = [];
+  if (missing.length) bits.push("missing " + missing.join(", "));
+  if (extra.length) bits.push("added " + extra.join(", "));
+  if (testerChanged) bits.push("different tester (" + (prev.tester || "unknown") + " -> " + (entry.tester || "unknown") + ")");
+  return { ok: true, breaks: true, missing, extra, testerChanged,
+    why: "This starts a NEW series — " + bits.join("; ") + ". The old one stays on file and stays readable; no change is computed across the boundary, because a difference in the instrument is not a change in you." };
+}
+
+/* skinfoldSeries — entries grouped into series, with deltas ONLY inside a series. */
+function skinfoldSeries(s) {
+  const all = ((s && s.skinfolds) || []).filter((e) => e && e.d && isFinite(+e.sumMm)).slice().sort((a, b) => String(a.d).localeCompare(String(b.d)));
+  const out = [];
+  for (const e of all) {
+    const k = _skinSeriesKey(e);
+    const cur = out.length ? out[out.length - 1] : null;
+    if (!cur || cur.key !== k) out.push({ key: k, sites: (e.sites || []).slice(), tester: e.tester || null, entries: [e] });
+    else cur.entries.push(e);
+  }
+  return out.map((sr) => {
+    const n = sr.entries.length;
+    const first = sr.entries[0], last = sr.entries[n - 1];
+    const deltaMm = n >= 2 ? +(last.sumMm - first.sumMm).toFixed(1) : null;
+    const days = n >= 2 ? Math.round((mk(last.d) - mk(first.d)) / DAY) : null;
+    return { ...sr, n, from: first.d, to: last.d, firstMm: +first.sumMm, lastMm: +last.sumMm, deltaMm, days,
+      /* null, never 0 — "no change measured" and "one reading" are different answers */
+      why: n < 2 ? "one reading on this series — a tracker needs two before it can say anything about change"
+        : `${deltaMm > 0 ? "+" : ""}${deltaMm} mm across ${days} days, same sites and same tester throughout. Millimetres, not a percentage: this tracks the DIRECTION and SIZE of fat change between anchors, and says nothing about lean mass.` };
+  });
+}
+
+/* the tracker's headline: the CURRENT series only. Never spans a break. */
+function skinfoldTrend(s) {
+  const sr = skinfoldSeries(s);
+  if (!sr.length) return { gated: true, n: 0, deltaMm: null, why: "no skinfold readings on file yet" };
+  const cur = sr[sr.length - 1];
+  return { gated: cur.n < 2, n: cur.n, deltaMm: cur.deltaMm, days: cur.days, from: cur.from, to: cur.to,
+    sites: cur.sites, tester: cur.tester, priorSeries: sr.length - 1, why: cur.why };
+}
+
 function bfEst(s, trend = s.trend, atISO = isoOf(todayStart())) {
   const wks = Math.max(0, weeksBetween(s.model.anchorISO, atISO));
   const drip = dripOf(s);
@@ -7723,6 +7820,9 @@ function patchV37(s) {
   s.v = 37;
   return s;
 }
+/* R5 — additive only. Nothing in the old record can be restated as a skinfold reading, so
+   this creates the collection and touches nothing else (the `pace` precedent). */
+function patchV39(s) { s.skinfolds = s.skinfolds || []; s.v = 39; return s; }
 function patchV38(s) {
   /* v7.4.0 Slice 5 — the PHASE ARC lands its decisions in the already-hardened s.plan (a planned diet
      break + phase transitions). ADDITIVE + idempotent: default the append-only phase-transition LOG to
@@ -7737,7 +7837,7 @@ function patchV38(s) {
   s.v = 38;
   return s;
 }
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38];
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -8988,6 +9088,9 @@ const MERGE_KEYED = {   // STORED, non-append-only per-lift state — reconcile 
 const MERGE_ARR = {   // one logical entry per key (date / id) — the richer copy wins on a collision
   reads: (r) => r && r.d, waist: (w) => w && w.d, photos: (p) => p && (p.d || p.id || JSON.stringify(p)),
   caffLog: (c) => c && (c.d + "|" + (c.at || "")), medsLog: (mm) => mm && (mm.d + "|" + (mm.at || "")),
+  /* R5 — keyed on DATE + SERIES IDENTITY, not date alone. Two readings on one day with
+     different site sets are different measurements, not a collision to resolve. */
+  skinfolds: (x) => x && (x.d + "|" + _skinSeriesKey(x)),
   temp: (t) => t && t.d, pulse: (p) => p && p.d, soreness: (x) => x && x.d, energy: (x) => x && x.d, grip: (x) => x && x.d,
   events: (e) => e && (e.id || e.d + "|" + e.t), trials: (t) => t && (t.id || t.d),
   agentProposals: (a) => a && a.id, weekly: (w) => w && w.wk,
@@ -9142,6 +9245,12 @@ __test.DEBT_MEAN3_H = DEBT_MEAN3_H;
 __test.EA_SPARING = EA_SPARING;
 __test.etaRange = etaRange;
 __test.bfEst = bfEst;
+__test.migrate = migrate;
+__test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
+__test.skinfoldCheck = skinfoldCheck;
+__test.skinfoldSeries = skinfoldSeries;
+__test.skinfoldTrend = skinfoldTrend;
+__test.SKINFOLD_SITES = SKINFOLD_SITES;
 __test.anchorTighten = anchorTighten;
 __test.digitalTwin = digitalTwin;
 __test.twinBodyComp = twinBodyComp;
