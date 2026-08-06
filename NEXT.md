@@ -136,6 +136,22 @@ BIA, and scan-day state alone is worth up to 5.5 points of PERMANENT anchor bias
 band, never the midpoint (Broad 2007); express uncertainty numerically, never verbally
 (van der Bles 2020).
 
+**Every guard ships with an assertion that it can actually FIRE.** Not that it exists — that
+a fixture drives the guarded path and the guard changes the outcome. **A guard that has never
+been observed to fire is indistinguishable from one that cannot.** Five occurrences of this
+one shape are already on the record, and every one of them was invisible until someone went
+looking:
+
+    phasePlan        apply handler and UI references, no constructor
+    costing          the exit existed and was unreachable
+    the step cap     the exit existed and stranded short of it
+    the 1e-6 floor   the guard existed and .toFixed rounded it away
+    grep on the gate the gate ran and its exit code was discarded
+
+The shape is always the same: **the safeguard is present and nothing can reach it.** A test
+that asserts the guard is *there* does not catch any of these. A test that drives the path
+and asserts the outcome *changed* catches all five.
+
 **Ops.** Never print or expose a credential. Never delete athlete data. Keep the
 `/ledger` lockdown intact. iOS Safari is the real target and the test suite only runs
 headless — walk the render-smoke states and eyeball on the phone before shipping.
@@ -492,7 +508,12 @@ the exit.
 **Assertion.** A steeper `progressionTrend.pct` reaches `dir === "maintenance"` in **strictly
 fewer** evaluations.
 
-**Already fixed, do not re-file:** `_costingWeeks` capped at a fixed 12, so if a band ever
+**CORRECTION to this entry, 2026-08-05.** An earlier version of it read as though the cap
+fix shipped in v7.13.1. **It did not.** `main` at v7.13.1 carries `const lim = cap || 12`
+(2519) and `_costingWeeks(s, asOf2)` with no third argument (2568); the derivation exists
+only on the branch. No live harm — the cap is 12 and the walk needs 8 — but **the log being
+wrong is worse than the cap being wrong, because the log is what the next round trusts.**
+Fixed on branch, not yet on main: `_costingWeeks` capped at a fixed 12, so if a band ever
 narrowed such that `12 × step < deficit0` the walk would strand short of maintenance —
 absorbing again, at a different point. The cap now derives from the steps the walk actually
 needs, and an assertion drives a near-degenerate band to termination.

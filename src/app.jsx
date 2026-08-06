@@ -2511,6 +2511,51 @@ function proteinTargetForRegime(s, regimeKey) {
     basis: "surplus — Morton 2018 1.6 g/kg bodyweight is a saturation FLOOR, not a cap. Protein never drops below it, and the cut figure is kept when it is higher because protein displaces energy that would otherwise land as fat" };
 }
 
+/* COSTING STEP SEVERITY (R2c). The first build stepped by the width of the rate
+   band, which is a statement about how tightly the rate is TARGETED, not about how
+   fast to exit a state already diagnosed as costing him. "Derived, so no constant
+   is authored" was technically true and practically misleading: the exit speed was
+   set, by a quantity that means something else. It was also scale-invariant —
+   deficit0/step = p_lo/(p_hi - p_lo) = 6 at any bodyweight — so the seven-week walk
+   was structural, not incidental.
+
+   SCALED ON pct, NOT ON THE INTERVAL BOUND. Three reasons:
+
+   1. The interval already gated ENTRY. costing requires state === "falling", which
+      requires hi < 0 — the whole 95% interval below zero. Using hi again to set the
+      magnitude double-counts the same uncertainty: once to decide the decline is
+      real, again to decide it is small. Those are different questions and the first
+      is already answered by the time this runs.
+   2. The costs are asymmetric and they point the other way from the statistic.
+      Exit too fast: he eats more for a few weeks at a shallower deficit,
+      progression recovers, the regime returns to free — fully recoverable, and the
+      loop self-corrects. Exit too slow: lean mass leaves during a deficit already
+      diagnosed as costing it, and at his accretion rate that takes MONTHS to
+      rebuild. Conservative-on-the-measurement is aggressive-on-the-risk.
+   3. confidence changes the COPY, not the step. A wide interval on a decline is not
+      evidence the decline is small — the same shape as "absence of clean sessions
+      is not evidence of no decline". Name the confound; do not let it slow the
+      response.
+
+   THE ANCHORS ARE A DESIGN JUDGEMENT, NOT A MEASUREMENT, and are labelled as such.
+   Nothing in the literature maps a per-session volume-load slope onto an exit
+   speed. They reproduce the two worked cases the spec states: a -0.3 %/session
+   drift takes the full walk, a -3 %/session collapse exits in one step.
+
+   THE CLAMP IS DERIVED, and it is a bound rather than a tuning constant: the step
+   can never exceed deficit0, because the fastest meaningful exit IS the exit, and
+   it must not overshoot into a surplus the regime has not earned. */
+const COSTING_MILD_PCT = 0.3, COSTING_SEVERE_PCT = 3.0;
+
+function costingStep(deficit0, bandWidth, pct) {
+  const mag = Math.abs(isFinite(pct) ? pct : 0);
+  const span = COSTING_SEVERE_PCT - COSTING_MILD_PCT;
+  const sev = span > 0 ? Math.max(0, Math.min(1, (mag - COSTING_MILD_PCT) / span)) : 0;
+  const base = bandWidth > 0 ? bandWidth : deficit0;
+  const step = base + sev * Math.max(0, deficit0 - base);
+  return Math.max(1, Math.min(step, deficit0));   /* clamped at deficit0 — one step straight to measured maintenance, never past it */
+}
+
 /* _costingWeeks — how many consecutive 7-day evaluations have read "costing".
    Derived, not stored, the same way the hysteresis is. Only called from the
    costing branch, because each step recomputes progressionTrend and currentRate
@@ -2567,7 +2612,10 @@ function energyBalanceTarget(s, opts) {
     const asOf2 = (opts && opts.asOf) || isoOf(todayStart());
     if (!td2 || !isFinite(td2.tdee)) { const h0 = (opts && opts.heldWeeks != null) ? opts.heldWeeks : 1; return { ...cur, ...base, dir: "deficit", provisional: true, lo: cur.hi, hi: cur.hi, mid: cur.hi, shrunk: true, heldWeeks: h0, why: "lifts are falling but there is no usable maintenance to step the deficit against — holding at the shallow end of your band" }; }
     const deficit0 = Math.max(0, td2.tdee - cur.hi);
-    const step = cur.hi - cur.lo;
+    const bandWidth = cur.hi - cur.lo;
+    const pct = (opts && opts.pct != null) ? opts.pct : ((reg && reg.prog && isFinite(reg.prog.pct)) ? reg.prog.pct : 0);
+    const step = costingStep(deficit0, bandWidth, pct);
+    const conf = (reg && reg.prog && reg.prog.confidence) || "normal";
     /* THE CAP MUST DERIVE FROM THE WALK, NOT BE A FIXED 12. A hard cap re-creates
        the absorbing state at a different point: if the band ever narrows so that
        cap x step < deficit0, the walk strands short of maintenance and costing is
@@ -2575,12 +2623,24 @@ function energyBalanceTarget(s, opts) {
        failure mode cannot exist for any band. */
     const needed = step > 0 ? Math.ceil(deficit0 / step) + 1 : 1;
     const held = (opts && opts.heldWeeks != null) ? opts.heldWeeks : _costingWeeks(s, asOf2, needed);
-    const deficit = step > 0 ? Math.max(0, deficit0 - (held - 1) * step) : 0;
+    /* held === 1 is the evaluation at which costing is FIRST read, and it lands on
+       cur.hi — the shallow end of his own band — rather than overshooting deeper
+       than the free regime. That is right for a drift.
+
+       It is wrong for a collapse. When severity is maximal the step is clamped to
+       deficit0, and holding an intermediate week before exiting costs exactly what
+       the asymmetry argument says not to spend: lean mass, during a deficit already
+       diagnosed as costing it, recoverable only over months. So a maximal decline
+       exits ON detection. The trigger is the clamp itself (step >= deficit0), not a
+       second threshold. */
+    const immediate = step >= deficit0;
+    const stepsTaken = (held - 1) + (immediate ? 1 : 0);
+    const deficit = step > 0 ? Math.max(0, deficit0 - stepsTaken * step) : 0;
     const tgt = Math.round(td2.tdee - deficit);
     if (deficit <= 0) return { ...cur, ...base, dir: "maintenance", provisional: false, lo: tgt, hi: tgt, mid: tgt, shrunk: true, heldWeeks: held, steppedTo: 0,
-      why: `Lifts have been falling for ${held} evaluation${held === 1 ? "" : "s"} and the deficit has been stepped all the way out. You are at measured maintenance (${tgt}). If progression still does not return from here, the fat term is exhausted and the next honest state is a surplus — which is what accretion-bound means.` };
+      why: (conf === "low" ? "Your lifts are down and I cannot separate it from the short sleep — stepping the deficit out anyway, because waiting costs more here than being wrong does. " : "") + `Lifts have been falling for ${held} evaluation${held === 1 ? "" : "s"} and the deficit has been stepped all the way out. You are at measured maintenance (${tgt}). If progression still does not return from here, the fat term is exhausted and the next honest state is a surplus — which is what accretion-bound means.` };
     return { ...cur, ...base, dir: "deficit", provisional: false, lo: tgt, hi: tgt, mid: tgt, shrunk: true, heldWeeks: held, steppedTo: deficit,
-      why: `Lifts are falling while the scale still is, so the deficit has stopped being free and become a trade. Stepped down to ${tgt} — ${deficit} kcal under maintenance, one band-width less than last time. It keeps stepping toward maintenance for as long as this lasts, rather than parking at a number nobody measured.` };
+      why: (conf === "low" ? "Your lifts are down and I cannot separate it from the short sleep — stepping out anyway, because waiting costs more here than being wrong does. " : "") + `Lifts are falling while the scale still is, so the deficit has stopped being free and become a trade. Stepped down to ${tgt} — ${deficit} kcal under maintenance, one band-width less than last time. It keeps stepping toward maintenance for as long as this lasts, rather than parking at a number nobody measured.` };
   }
 
   if (key === "unknown") {
@@ -9028,6 +9088,7 @@ __test.regime = regime;
 __test.energyBalanceTarget = energyBalanceTarget;
 __test.proteinTargetForRegime = proteinTargetForRegime;
 __test.GAIN_FAT_FRAC = GAIN_FAT_FRAC;
+__test.costingStep = costingStep;
 __test._regimeRaw = _regimeRaw;
 __test._stateAsOf = _stateAsOf;
 __test.REGIME_HOLD_D = REGIME_HOLD_D;

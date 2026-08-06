@@ -4062,6 +4062,26 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
         let h2 = 1, out = null;
         for (; h2 <= 400; h2++) { out = EBT(narrow, { regime: { key: "costing" }, heldWeeks: h2 }); if (out.dir !== "deficit") break; }
         ok(out && out.dir === "maintenance", "R2 costing — the walk terminates for a NEAR-DEGENERATE band too. A fixed step cap would strand it short of maintenance and make costing absorbing again at a different point");
+
+      /* R2c — SEVERITY. Scaled on pct, not on the interval bound. The interval already
+         gated ENTRY (falling requires hi < 0), so using it again to set the magnitude
+         double-counts the same uncertainty. And the costs are asymmetric: exiting too
+         fast is fully recoverable in a few weeks, exiting too slow spends lean mass that
+         takes months to rebuild. Conservative-on-the-measurement is aggressive-on-the-risk. */
+      {
+        const toMaint = (pct) => { for (let h = 1; h <= 400; h++) { const r = EBT(st2, { regime: { key: "costing" }, heldWeeks: h, pct }); if (r.dir !== "deficit") return h; } return 999; };
+        const mild = toMaint(-0.3), mid = toMaint(-1.5), steep = toMaint(-3);
+        ok(steep < mid && mid < mild, "R2c — a steeper decline reaches maintenance in STRICTLY fewer evaluations (" + steep + " < " + mid + " < " + mild + "). The old build took the same seven weeks for a collapse as for a drift");
+        ok(steep === 1, "R2c — an extreme decline exits in exactly ONE evaluation: the fastest meaningful exit is the exit itself");
+        const ex = EBT(st2, { regime: { key: "costing" }, heldWeeks: 1, pct: -50 });
+        ok(ex.dir === "maintenance" && ex.dir !== "surplus", "R2c — and the step is CLAMPED at deficit0, so no decline however steep can overshoot into a surplus the regime has not earned. That clamp is a bound, not a tuning constant");
+        ok(mild >= 6, "R2c — a mild drift still takes the long walk, so the severity scaling did not simply make everything fast");
+        // confidence changes the COPY, never the step
+        const lowConf = EBT(st2, { regime: { key: "costing", prog: { pct: -3, confidence: "low" } }, heldWeeks: 1 });
+        const normConf = EBT(st2, { regime: { key: "costing", prog: { pct: -3, confidence: "normal" } }, heldWeeks: 1 });
+        ok(lowConf.lo === normConf.lo, "R2c — low confidence does NOT slow the step. A wide interval on a decline is not evidence the decline is small — the same shape as absence of clean sessions not being evidence of no decline");
+        ok(/cannot separate it from the short sleep/i.test(lowConf.why) && !/cannot separate/i.test(normConf.why), "R2c — it changes the COPY instead, naming the confound out loud rather than silently waiting it out");
+      }
       }
 
       /* FIX 3 — protein was LOWERED in a surplus. Math.min(175, 118) = 118, a 57 g/day
