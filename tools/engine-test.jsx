@@ -157,6 +157,75 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
       }
     }
 
+    /* ---------- R6 — maintenance is conditioned on an activity level ---------- */
+    {
+      const OT = __test.observedTDEE, AS = __test.adaptationSignal;
+
+      /* THE ASSERTION THAT MAKES THIS A REPORTING CHANGE RATHER THAN A TARGET CHANGE.
+         R2b made observedTDEE load-bearing on the single owner of the calorie decision, so
+         returning the step-conditioned number as PRIMARY would move his prescribed intake by
+         about -90 kcal/day as a SIDE EFFECT of a diagnostics fix. A reporting change that
+         moves the target is a failed reporting change. */
+      {
+        const st6 = clone(SEED);
+        const td6 = OT(st6);
+        const eb6 = __test.energyBalanceTarget(st6, { regime: { key: "free", confirmed: true } });
+        ok(td6.tdee != null && eb6.lo != null, "R6 — the target still computes");
+        /* the scanner flagged this as a triple disjunct. It was not vacuous — SEED carries
+           step data, so the comparison is real — but a disjunct that only happens to be
+           exercised is a hatch waiting to open, so it is positive now. */
+        ok(td6.stepDelta !== 0 && td6.tdeeAtNow !== td6.tdee, "R6 — the step-conditioned figure DIFFERS from tdee on this fixture, so the two are genuinely separate numbers rather than the same one under two names");
+        ok(td6.tdee === __test.observedTDEE(clone(SEED)).tdee, "R6 — and tdee itself is what it always was: the window average, unmoved by this change");
+        /* the band derives from tdee, so pinning tdee pins the band */
+        const raw = __test.calorieTarget(st6);
+        ok(raw.tdee === td6.tdee, "R6 — calorieTarget still reads the WINDOW-AVERAGE tdee. Making the step-conditioned number primary is a decision about what he eats and gets its own item, not a ride-along on a diagnostics fix");
+      }
+
+      /* the conditioning variable is visible, which was the actual ask */
+      {
+        const st7 = clone(SEED);
+        const td7 = OT(st7);
+        if (td7.atSteps != null) {
+          ok(/maintenance AT/i.test(td7.stepsWhy || ""), "R6 — maintenance is reported WITH its conditioning variable. A scalar that hides what it is conditioned on invites reading it as a property of him rather than of a window");
+          ok(/cheapest lever|does not deepen the food deficit/i.test(td7.stepsWhy || ""), "R6 — and it names steps as the cheap lever, because restoring them does not deepen the deficit");
+        } else ok(true, "R6 — no step record on this fixture, so there is nothing to condition on and it says nothing");
+      }
+
+      /* stepKcal is derived from a cited cost, not authored */
+      {
+        const SK = __test.stepKcal;
+        ok(Math.abs(SK(163, 5100)) > 100 && Math.abs(SK(163, 5100)) < 220, "R6 — a 5,100-step change prices between 100 and 220 kcal/day at his mass, which brackets the 162 the corpus quotes (2.4 +/- 0.4 J/kg/m, Sci Rep 2019)");
+        ok(SK(163, 0) === 0 && SK(163, -1000) < 0, "R6 — the step term is signed and zero at zero: fewer steps is a lower maintenance, not an absolute correction");
+        ok(SK(200, 5000) > SK(140, 5000), "R6 — and it scales with bodyweight, because the cited cost is per kg per metre");
+      }
+
+      /* THE FALSE DIAGNOSIS THIS EXISTS TO PREVENT — driven, not asserted in principle.
+         A man whose steps fall while his mass barely moves must NOT be told his metabolism
+         adapted. Built so the mass-predicted expectation is flat and only activity moves. */
+      {
+        const mkAd = (stepsEarly, stepsLate) => {
+          const st = clone(SEED);
+          const days = [];
+          for (let k = 0; k < 40; k++) days.push(new Date(Date.UTC(2026, 6, 1) + k * 86400000).toISOString().slice(0, 10));
+          st.dailyLogs = {};
+          days.forEach((d, i) => { st.dailyLogs[d] = { cal: 2100, steps: i < 20 ? stepsEarly : stepsLate }; });
+          st.learned = st.learned || {};
+          st.learned.tdee = days.filter((_, i) => i % 8 === 0).map((d, i) => ({ d, w: 164 - i * 0.1, tdee: 2800 - (i >= 2 ? 120 : 0), lo: 2700 - (i >= 2 ? 120 : 0), hi: 2900 - (i >= 2 ? 120 : 0) }));
+          return st;
+        };
+        const dropped = AS(mkAd(20000, 13000));
+        ok(dropped.detected === false, "R6 — a man whose STEPS fell is not diagnosed with metabolic adaptation. Observed maintenance falls when he walks less while mass-predicted maintenance barely moves, so the residual used to absorb the activity change and report it as adaptive thermogenesis");
+        /* asserted directly. The || I first wrote here happened to pass because the fixture
+           does reach the gate — but a disjunct that is carried by luck is a hatch waiting to
+           open, and this is the fourth one I have written in this sequence. */
+        ok(dropped.reason === "activity-drift", "R6 — and the reason NAMES activity, rather than reading as 'no adaptation found'. A false negative dressed as a clean bill is the same defect as a false positive");
+      }
+
+      /* the real ledger takes a different branch today, and the companion rule says record it */
+      ok(typeof AS(clone(SEED)).reason === "string", "R6 — adaptationSignal always names its branch. On the live ledger 2026-08-06 it returns detected=false reason='too-thin' — it abstains EARLIER than the activity gate, so the false-adaptation risk is latent rather than live, and the fixture above is what drives the gate");
+    }
+
+
 ok(bfEst(clone(SEED)).pct > 14 && bfEst(clone(SEED)).pct < 16, "BF model sane at current trend");
 
 // 7. migration preserves v1 progress

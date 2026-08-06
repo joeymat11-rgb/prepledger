@@ -896,6 +896,57 @@ must refuse to plot as change.
 
 ### R6. Condition maintenance on activity; stop `adaptationSignal` firing on a step drop
 
+#### BUILT 2026-08-06 — DISPLAY-ONLY, and that was a fork rather than an omission
+
+    observedTDEE.tdee        2795   window average over 35 days
+    window-average steps    17,171   (halves 19,794 / 14,694)
+    last-7 steps            14,357
+    step-conditioned tdee    2705   delta -90 kcal/day
+
+    target BEFORE            2176-2263
+    target AFTER             2176-2263   <- byte-identical, and asserted
+
+**The natural reading of "condition maintenance on activity" is to return the step-conditioned
+number as the PRIMARY. R2b made `observedTDEE` load-bearing on the single owner of the calorie
+decision, so that reading moves his prescribed intake ~90 kcal/day AS A SIDE EFFECT OF A
+REPORTING CHANGE, with nobody having decided it should.** Same composition shape as R4's
+`PHASES[s.phase]`, one item later, and again neither item's criteria mentioned the other.
+
+So `tdee` is untouched and the conditioning is reported beside it. **An assertion pins
+`calorieTarget.tdee === observedTDEE.tdee`** — a reporting change that moves the target is a
+failed reporting change.
+
+**The step-conditioned primary is probably more correct** — the window average is conditioned
+on an activity level he no longer has. But it is a decision about what he eats, so it gets its
+own item with its own before/after, and **R12 lands first** if it is taken: R12's trigger fires
+on intent, not on whether the floor happens to bind. 267 kcal of margin is not a reason to skip
+a safety item; it is the reason skipping it feels safe.
+
+#### `adaptationSignal` — the step term is subtracted, and it abstains on activity drift
+
+It predicted expected maintenance from **body mass only**, so observed maintenance falling
+because he walks less showed up as adaptive thermogenesis. **The app would have diagnosed
+metabolic adaptation for a man who stopped walking**, pointing him away from a real and fixable
+behaviour.
+
+Attribution beats estimation here: the walking cost is measured (2.4 ± 0.4 J/kg/m, Sci Rep
+2019) and the step count is logged, so there is nothing to fit. It also **abstains** when the
+step swing exceeds the residual being measured, and the reason names activity rather than
+reading as "no adaptation found".
+
+**REAL-DATA BRANCH, per the companion rule:** on the live ledger it returns
+`detected: false, reason: "too-thin"` — it abstains EARLIER than the activity gate, so the
+false-adaptation risk is **latent, not live**. The gate is driven by a fixture instead, and
+that fixture is verified to reach `activity-drift` rather than passing on an earlier branch.
+
+#### Two more escape hatches, both mine, both caught by the scanner
+
+`reason === "activity-drift" || stepAdj !== 0` and a triple disjunct on `tdeeAtNow`. **Neither
+was vacuous** — both fixtures reach the real branch — but a disjunct carried by luck is a hatch
+waiting to open. Both are positive assertions now. **The scanner earned its place on the item
+after the one it was written for**, which is the argument for running it pre-commit.
+
+
 `adaptationSignal` predicts expected maintenance from **body mass only** — `predAt` at 2746,
 **verified**, and the comment even calls it "mass-driven":
 

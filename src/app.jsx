@@ -2378,6 +2378,36 @@ function applyRead(state, iso, w) {
 }
 
 /* observed maintenance — your own intake and measured rate are the only honest calculator */
+/* ==================== R6_NOTE — maintenance is conditioned on an activity level ====
+
+   observedTDEE is a window AVERAGE, at the window's AVERAGE ACTIVITY. That is the right
+   estimand and it is not what the scalar looks like. His window splits 19,794 steps in the
+   first half against 14,694 in the second, and his last seven days average 14,357 — so the
+   number is conditioned on an activity level he no longer has.
+
+   R6 IS DISPLAY-ONLY, AND THAT IS A DELIBERATE FORK, not an omission. The natural reading
+   of "condition maintenance on activity" is to return the step-conditioned number as the
+   PRIMARY. R2b made observedTDEE load-bearing on the single owner of the calorie decision,
+   so that reading would move his prescribed intake by about -92 kcal/day AS A SIDE EFFECT
+   OF A REPORTING CHANGE, with nobody having decided it should. Same composition shape as
+   R4's PHASES[s.phase], one item later.
+
+   So: tdee is UNCHANGED and the conditioning is reported alongside it. An assertion pins
+   energyBalanceTarget's band byte-identical across this change on his real ledger — a
+   reporting change that moves the target is a failed reporting change. Making the
+   step-conditioned number primary is a decision about what he eats, and it gets its own
+   item with its own before/after rather than a ride-along on a diagnostics fix. ======== */
+const WALK_J_PER_KG_M = 2.4, WALK_J_LO = 2.0, WALK_J_HI = 2.8;   // net walking cost, Sci Rep 2019 meta-analysis (2.4 +/- 0.4 J/kg/m)
+const STEP_LEN_M = 0.75;   // CONVENTION, labelled: 0.415 x his height (1.778 m) gives 0.738, so within 2% of it
+
+/* kcal/day for a given step count at a given bodyweight. Derived from the cited cost; the
+   only authored input is step length, which is stated and cross-checked against height. */
+function stepKcal(bwLb, steps, jPerKgM) {
+  const kg = (Number(bwLb) || 0) / 2.2046;
+  const j = (jPerKgM || WALK_J_PER_KG_M) * kg * STEP_LEN_M * (Number(steps) || 0);
+  return j / 4184;
+}
+
 function observedTDEE(s) {
   if (daysUntil(s.blackout.until) > 0) return null;
   const r = currentRate(s);
@@ -2457,8 +2487,20 @@ function observedTDEE(s) {
      "measured TDEE" with no band invites a precision nobody has. */
   const lo = r.ci != null ? kcal(Math.min(CEIL, Math.max(0, r.lo))) : null;
   const hi = r.ci != null ? kcal(Math.min(CEIL, r.hi)) : null;
+  /* R6 — the conditioning variable, reported. tdee itself is untouched. */
+  const _logs6 = (s && s.dailyLogs) || {};
+  const _d6 = Object.keys(_logs6).sort();
+  const _stepsIn = (arr) => { const v = arr.map((d) => (_logs6[d] || {}).steps).filter((n) => n != null && isFinite(+n)).map(Number); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null; };
+  const atSteps = _stepsIn(_d6.slice(-Math.max(1, cals.length)));
+  const stepsNow = _stepsIn(_d6.slice(-7));
+  const bw6 = (s && s.trend) || null;
+  const stepDelta = (atSteps != null && stepsNow != null && bw6) ? Math.round(stepKcal(bw6, stepsNow - atSteps)) : null;
+  const tdeeAtNow = stepDelta != null ? tdee + stepDelta : null;
   return {
     tdee, days: cals.length, avg: Math.round(avg),
+    atSteps, stepsNow, stepDelta, tdeeAtNow,
+    stepsWhy: (atSteps == null || stepsNow == null) ? null
+      : `${tdee} is your maintenance AT ${atSteps.toLocaleString()} average steps — the activity level of the ${cals.length} days it was measured over. You are averaging ${stepsNow.toLocaleString()} over the last seven, which prices at about ${tdeeAtNow} instead. The scalar is not wrong; it is conditioned, and the condition moved. Steps are the cheapest lever here because adding them does not deepen the food deficit.`,
     lo, hi, clamped: RAW > CEIL, method: r.method, rateN: r.n,
     rate: r.scale, rateCi: r.ci, from, to, matched, split,
     perLb: ed.perLb, perLbLo: ed.lo, perLbHi: ed.hi, edIdentified: ed.identified, impliedPerLb, impossible,
@@ -3446,17 +3488,49 @@ function adaptationSignal(s, deps) {
   if (rows.length < ADAPT_PERSIST_MIN + 1) return off("too-thin");                                   // graceful: not enough history
   if (!(sig.state === "measured" || sig.state === "measurable")) return off("signal-not-real");       // significance gate on the rate itself
   const base = rows[0];
+  /* R6 — SUBTRACT THE DETERMINISTIC STEP TERM BEFORE LOOKING FOR RESIDUAL ADAPTATION.
+
+     This predicted expected maintenance from BODY MASS ONLY. Observed maintenance falls
+     when he walks less; mass-predicted maintenance barely moves. So the residual absorbed
+     an activity change and reported it as adaptive thermogenesis — THE APP WOULD DIAGNOSE
+     METABOLIC ADAPTATION FOR A MAN WHO STOPPED WALKING, pointing him away from a real and
+     fixable behaviour. His steps are down 19,794 -> 14,694 across the window.
+
+     Attributing the step term deterministically beats estimating a coefficient from 35
+     noisy days: the walking cost is measured (Sci Rep 2019, 2.4 J/kg/m) and the step count
+     is logged, so there is nothing to fit.
+
+     AND IT ABSTAINS WHEN STEPS ARE TOO VARIABLE to attribute cleanly — a residual dominated
+     by activity swings is not evidence about metabolism either way. Abstention is a first-
+     class answer here, the same as everywhere else in this engine. */
+  const _lg6 = (s && s.dailyLogs) || {};
+  const _stepAt = (iso) => { const v = (_lg6[iso] || {}).steps; return v != null && isFinite(+v) ? Number(v) : null; };
+  const _baseSteps = _stepAt(base.d);
+  const stepTermAt = (x) => {
+    const sN = _stepAt(x.d);
+    if (sN == null || _baseSteps == null || !x.w) return 0;
+    return stepKcal(x.w, sN - _baseSteps);
+  };
+  /* variance gate: if the step record swings more than the effect being measured, abstain */
+  const _sVals = rows.map((x) => _stepAt(x.d)).filter((n) => n != null);
+  const _sMean = _sVals.length ? _sVals.reduce((a, b) => a + b, 0) / _sVals.length : null;
+  const _sSd = _sVals.length > 1 && _sMean ? Math.sqrt(_sVals.reduce((a, b) => a + (b - _sMean) * (b - _sMean), 0) / (_sVals.length - 1)) : null;
+  const stepSwingKcal = (_sSd != null && base.w) ? Math.abs(stepKcal(base.w, _sSd)) : null;
   const predAt = (w) => base.tdee + MAINT_KCAL_PER_LB * (w - base.w);                                  // mass-driven expectation (falls as mass falls)
-  const resid = rows.map((x) => ({ d: x.d, r: x.tdee - predAt(x.w), lo: (x.lo != null ? x.lo : x.tdee) - predAt(x.w), hi: (x.hi != null ? x.hi : x.tdee) - predAt(x.w) }));
+  const resid = rows.map((x) => ({ d: x.d, stepAdj: Math.round(stepTermAt(x)), r: x.tdee - predAt(x.w) - stepTermAt(x), lo: (x.lo != null ? x.lo : x.tdee) - predAt(x.w) - stepTermAt(x), hi: (x.hi != null ? x.hi : x.tdee) - predAt(x.w) - stepTermAt(x) }));
   const tail = resid.slice(-ADAPT_PERSIST_MIN);
   const persistent = tail.every((z) => z.r < 0);                                                        // persistently BELOW mass-expected
   const last = resid[resid.length - 1];
+  /* R6 abstention — a residual smaller than the activity swing that produced it is not
+     evidence about metabolism. Named in the reason so it does not read as "no adaptation". */
+  if (stepSwingKcal != null && Math.abs(last.r) < stepSwingKcal) return off("activity-drift");
   const significant = last.hi < 0;                                                                      // the whole residual band clears zero
   const detected = persistent && significant;
   const kcal = Math.round(tail.reduce((a, z) => a + z.r, 0) / tail.length);
   return {
     detected, reason: detected ? "adaptation" : (persistent ? "not-significant" : "not-persistent"),
     kcal, lo: Math.round(last.lo), hi: Math.round(last.hi), n: rows.length,
+    stepAdj: Math.round(stepTermAt(rows[rows.length - 1])), stepSwingKcal: stepSwingKcal == null ? null : Math.round(stepSwingKcal),
     persistent, significant, perLbCoef: MAINT_KCAL_PER_LB, label: ADAPT_LABEL,
     why: detected
       ? `Your measured maintenance has run ~${Math.abs(kcal)} kcal/day BELOW what mass loss alone predicts, across the last ${ADAPT_PERSIST_MIN}+ updates with the band clear of zero — a persistent, significant signal, not one reading. Calibration for the plan (it informs the phase arc + the forecast), not a target; the mass expectation is an estimate, so this is a direction, not a decimal.`
@@ -9247,6 +9321,7 @@ __test.etaRange = etaRange;
 __test.bfEst = bfEst;
 __test.migrate = migrate;
 __test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
+__test.stepKcal = stepKcal;
 __test.skinfoldCheck = skinfoldCheck;
 __test.skinfoldSeries = skinfoldSeries;
 __test.skinfoldTrend = skinfoldTrend;
