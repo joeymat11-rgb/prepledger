@@ -310,7 +310,7 @@ const APP_V = "7.15.0";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 38;
+const SCHEMA_V = 39;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -372,7 +372,8 @@ const EXERCISES = [
 const SEED = {
   v: 2,
   phase: "EASE 1",
-  rate: { band: [1.0, 1.4] },   /* R3 - redline 1.9 and floor 0.8 removed: authored, uncited, and in POUNDS. cutRateBand derives both from BC.CUT_REDLINE_PCT / BC.CUT_FLOOR_PCT in %BW. Nothing reads these fields any more; a live state that still carries them is inert. */
+  rate: { band: [1.0, 1.4] },
+  skinfolds: [],   /* R5 — authored already-current; a fresh install does not run the patch chain */   /* R3 - redline 1.9 and floor 0.8 removed: authored, uncited, and in POUNDS. cutRateBand derives both from BC.CUT_REDLINE_PCT / BC.CUT_FLOOR_PCT in %BW. Nothing reads these fields any more; a live state that still carries them is inert. */
   maintenance: [{ label: "Hard-block steps", cal: 2590, note: "validated" }, { label: "Ease-1 steps", cal: 2470 }],
   trend: 164.2,
   model: { lean: 139.7, anchorISO: "2026-07-21", drip: 0, src: "coach's eye", err: "±1.5–3" },
@@ -1524,6 +1525,102 @@ const KCAL_PER_LB_MIX = 3800;   /* the PRIOR mixed density (~86% fat) for a lean
 const PRIOR_FAT_FRAC = (KCAL_PER_LB_MIX - KCAL_PER_LB_LEAN) / (KCAL_PER_LB_FAT - KCAL_PER_LB_LEAN);
 const ANCHOR_ERR_EYE = 3.5, ANCHOR_ERR_DEXA = 1.0;
 function dripOf(s) { const d = s && s.model ? s.model.drip : null; return d == null ? DRIP_DEFAULT : d; }
+/* ==================== R5_NOTE — the skinfold TRACKER ====================
+
+   TWO INSTRUMENTS, TWO JOBS, and they must not drift into each other.
+
+   Skinfolds measure SUBCUTANEOUS fat. They never observe lean mass, so they cannot
+   narrow the fat-vs-lean partition — partitionPrior still requires real DEXA anchors
+   and PARTITION_ANCHORS_TO_NARROW stays at 2. This is a fat-CHANGE tracker between
+   anchors, nothing more. An assertion holds skinfolds unreachable from partitionPrior.
+
+   STORED AND SHOWN IN MILLIMETRES, NEVER CONVERTED TO A PERCENTAGE. Conversion adds a
+   modelling error that destroys the precision advantage and reintroduces the point
+   estimate R4 removed. The sum needs no accuracy at all — only consistency — because
+   the objective is defined on CHANGE.
+
+   TRAP 1 — THE SUM IS ONLY MEANINGFUL IF THE SITE SET IS IDENTICAL.
+   Sigma-mm is comparable across time only when the same sites are measured every time.
+   Drop one site — abdominal runs 15-25 mm on a lean male — and the sum falls by that
+   much, WHICH WOULD READ AS A LARGE FAT LOSS. The 0.6-point detectable change (Farley
+   2021, 442 g consecutive-day) assumes a fixed protocol; site-set drift swamps it by an
+   order of magnitude. And it is a LIKELY error, not an exotic one: plenty of facilities
+   default to a 3- or 4-site protocol, and a tester who does not know the series exists
+   will hand him a different sum without comment.
+
+   TRAP 2 — "BREAK THE TREND ON TESTER CHANGE" NEEDS AN OPERATIONAL DEFINITION.
+   All three obvious readings are wrong: deleting the old series loses data; computing
+   across it is the thing the break exists to prevent; hiding it means he cannot see his
+   own history. Correct: the old series stays VISIBLE AND READABLE, the new one starts
+   fresh, and NO DELTA IS COMPUTED ACROSS THE BOUNDARY.
+
+   Both traps are the same failure — a discontinuity in the INSTRUMENT read as a change
+   in the ATHLETE — so they get the same treatment. The tester break is not a nicety: a
+   consistent novice beats a rotating expert for tracking change (Machado 2025, novice
+   TEM >7.5% at two sites vs expert <5% everywhere), and that precision is entirely
+   conditional on it being the same person. The break IS the method. ==================== */
+
+const SKINFOLD_SITES = ["chest", "abdominal", "thigh", "triceps", "subscapular", "suprailiac", "midaxillary"];
+
+/* series identity = the site set AND the tester. Either changing starts a new series. */
+function _sitesKey(sites) {
+  const a = Array.isArray(sites) ? sites.filter((x) => typeof x === "string" && x).map((x) => x.toLowerCase().trim()) : [];
+  return a.slice().sort().join("|");
+}
+function _skinSeriesKey(e) { return _sitesKey(e && e.sites) + "@@" + String((e && e.tester) || "").toLowerCase().trim(); }
+
+/* skinfoldCheck — would this entry continue the current series, or start a new one?
+   Never silently sums a different protocol into the old series. Names what changed, so
+   an accidental 6-site reading is caught at the point of entry rather than read as fat loss. */
+function skinfoldCheck(s, entry) {
+  const all = ((s && s.skinfolds) || []).slice().sort((a, b) => String(a.d).localeCompare(String(b.d)));
+  const prev = all.length ? all[all.length - 1] : null;
+  if (!entry || !Array.isArray(entry.sites) || !entry.sites.length) return { ok: false, breaks: false, why: "an entry needs the list of sites that were measured — the sum means nothing without it" };
+  if (!prev) return { ok: true, breaks: false, first: true, why: "first entry — this starts the series" };
+  const wasSites = _sitesKey(prev.sites), nowSites = _sitesKey(entry.sites);
+  const missing = (prev.sites || []).filter((x) => !(entry.sites || []).some((y) => String(y).toLowerCase().trim() === String(x).toLowerCase().trim()));
+  const extra = (entry.sites || []).filter((x) => !(prev.sites || []).some((y) => String(y).toLowerCase().trim() === String(x).toLowerCase().trim()));
+  const testerChanged = String(prev.tester || "").toLowerCase().trim() !== String(entry.tester || "").toLowerCase().trim();
+  if (wasSites === nowSites && !testerChanged) return { ok: true, breaks: false, why: "same sites, same tester — this continues the series" };
+  const bits = [];
+  if (missing.length) bits.push("missing " + missing.join(", "));
+  if (extra.length) bits.push("added " + extra.join(", "));
+  if (testerChanged) bits.push("different tester (" + (prev.tester || "unknown") + " -> " + (entry.tester || "unknown") + ")");
+  return { ok: true, breaks: true, missing, extra, testerChanged,
+    why: "This starts a NEW series — " + bits.join("; ") + ". The old one stays on file and stays readable; no change is computed across the boundary, because a difference in the instrument is not a change in you." };
+}
+
+/* skinfoldSeries — entries grouped into series, with deltas ONLY inside a series. */
+function skinfoldSeries(s) {
+  const all = ((s && s.skinfolds) || []).filter((e) => e && e.d && isFinite(+e.sumMm)).slice().sort((a, b) => String(a.d).localeCompare(String(b.d)));
+  const out = [];
+  for (const e of all) {
+    const k = _skinSeriesKey(e);
+    const cur = out.length ? out[out.length - 1] : null;
+    if (!cur || cur.key !== k) out.push({ key: k, sites: (e.sites || []).slice(), tester: e.tester || null, entries: [e] });
+    else cur.entries.push(e);
+  }
+  return out.map((sr) => {
+    const n = sr.entries.length;
+    const first = sr.entries[0], last = sr.entries[n - 1];
+    const deltaMm = n >= 2 ? +(last.sumMm - first.sumMm).toFixed(1) : null;
+    const days = n >= 2 ? Math.round((mk(last.d) - mk(first.d)) / DAY) : null;
+    return { ...sr, n, from: first.d, to: last.d, firstMm: +first.sumMm, lastMm: +last.sumMm, deltaMm, days,
+      /* null, never 0 — "no change measured" and "one reading" are different answers */
+      why: n < 2 ? "one reading on this series — a tracker needs two before it can say anything about change"
+        : `${deltaMm > 0 ? "+" : ""}${deltaMm} mm across ${days} days, same sites and same tester throughout. Millimetres, not a percentage: this tracks the DIRECTION and SIZE of fat change between anchors, and says nothing about lean mass.` };
+  });
+}
+
+/* the tracker's headline: the CURRENT series only. Never spans a break. */
+function skinfoldTrend(s) {
+  const sr = skinfoldSeries(s);
+  if (!sr.length) return { gated: true, n: 0, deltaMm: null, why: "no skinfold readings on file yet" };
+  const cur = sr[sr.length - 1];
+  return { gated: cur.n < 2, n: cur.n, deltaMm: cur.deltaMm, days: cur.days, from: cur.from, to: cur.to,
+    sites: cur.sites, tester: cur.tester, priorSeries: sr.length - 1, why: cur.why };
+}
+
 function bfEst(s, trend = s.trend, atISO = isoOf(todayStart())) {
   const wks = Math.max(0, weeksBetween(s.model.anchorISO, atISO));
   const drip = dripOf(s);
@@ -1823,7 +1920,16 @@ const T_CRIT_95 = { 1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447,
 function _tCrit(df) { return T_CRIT_95[df] || (df > 10 ? 1.96 + 2.7 / df : 12.706); }
 
 const TREND_WINDOW = 6;      /* sessions — matches liftCall's own recency horizon */
-const TREND_MIN_N = 4;       /* below this, liftTrend abstains rather than guesses */
+/* THREE QUANTITIES, THREE NAMES. TREND_MIN_N was one constant read in three places as
+   three different things in three different units: sessions-for-one-lift (1867),
+   lifts-in-the-pool (1918) and spotless-lift-trends (1932), with a comment describing only
+   the first. Same disease as the two redlines — a number carried in one unit and read in
+   another — except here one number silently meant three things, so tuning any of them
+   moved all three. */
+const TREND_MIN_SESSIONS = 4;        /* sessions for ONE lift before liftTrend will estimate a slope (df=2) */
+const TREND_MIN_LIFTS = 4;           /* lifts carrying a usable trend before progressionTrend will read a verdict */
+const TREND_SE_FLOOR = 0.001;        /* ONE owner for the standard-error floor. It exists because .toFixed(3) rounds anything smaller to exactly 0, and severity DIVIDES by se. Applied in liftTrend and again to the pooled se, which is rounded separately. */
+const TREND_CLEAN_MIN_SESSIONS = 3;  /* clean sessions for a lift to contribute to the DOWNGRADE test (df=1, deliberately weak: t=12.706 keeps it honest) */
 const FLAT_HALFWIDTH = 1.5;  /* %/session — an interval wider than this spanning 0 is "unknown", not "flat" */
 
 /* liftTrend — OLS of sessionScore over a lift's recent USABLE sessions, expressed
@@ -1833,7 +1939,9 @@ const FLAT_HALFWIDTH = 1.5;  /* %/session — an interval wider than this spanni
    session do not count toward a STALL, so they must not count toward a DECLINE
    either. That is the downside-only sleep rule (SLEEP_NOTE, PACE_NOTE) applied
    consistently — do not re-litigate it here. */
-function liftTrend(s, exId) {
+function liftTrend(s, exId, opts) {
+  const cleanOnly = !!(opts && opts.cleanOnly);
+  const minN = (opts && opts.minN) || TREND_MIN_SESSIONS;
   const log = (s && s.sessionLog) || {};
   const days = Object.keys(log).sort();
   const pts = [];
@@ -1860,11 +1968,12 @@ function liftTrend(s, exId) {
        So they are KEPT here and handled downside-only in progressionTrend: a
        short-sleep or rushed session can never be what makes the verdict falling. */
     if (hard) continue;
+    if (cleanOnly && (rushed || debt)) continue;   /* the DOWNGRADE test re-estimates on clean SESSIONS, which is what the comment always promised */
     pts.push({ d, y: sc, soft: rushed || debt });
   }
   const use = pts.slice(-TREND_WINDOW);
   const n = use.length;
-  if (n < TREND_MIN_N) return null;
+  if (n < minN) return null;
   const ys = use.map((p) => p.y);
   const my = ys.reduce((a, b) => a + b, 0) / n;
   if (!(my > 0)) return null;
@@ -1884,7 +1993,7 @@ function liftTrend(s, exId) {
      pooling below, which turns the pooled mean into NaN. Floor it above the 3dp
      rounding the return value applies, or the floor is rounded away and the bug
      comes back silently. */
-  const sePct = Math.max((seB / my) * 100, 0.001);
+  const sePct = Math.max((seB / my) * 100, TREND_SE_FLOOR);
   const t = _tCrit(n - 2);
   const nSoft = use.filter((p) => p.soft).length;
   return { id: exId, n, nSoft, pct: +pct.toFixed(3), se: +sePct.toFixed(3), lo: +(pct - t * sePct).toFixed(3), hi: +(pct + t * sePct).toFixed(3) /* se is rounded to 3dp HERE — that is why the floor above is 0.001 and not 1e-6. A tighter floor is silently rounded back to exactly 0 by this line, and a zero se takes infinite weight in the pooling. The guard was real; the formatter erased it. */, from: use[0].d, to: use[n - 1].d, pts: use };
@@ -1915,9 +2024,9 @@ function progressionTrend(s) {
     if (t) trends.push(t);
   }
   const base = { nLifts: trends.length, nExcludedNonNumeric, excludedIds, lifts: trends };
-  if (trends.length < TREND_MIN_N) return { ...base, state: "unknown", pct: null, lo: null, hi: null, why: "only " + trends.length + " lift(s) carry a usable trend — " + TREND_MIN_N + " needed before this reads anything" };
+  if (trends.length < TREND_MIN_LIFTS) return { ...base, state: "unknown", pct: null, lo: null, hi: null, why: "only " + trends.length + " lift(s) carry a usable trend — " + TREND_MIN_LIFTS + " needed before this reads anything" };
   let sw = 0, swx = 0;
-  for (const t of trends) { const w = 1 / Math.max(t.se * t.se, 1e-9); sw += w; swx += w * t.pct; }   /* guarded a second time: a zero se here would poison every downstream number with NaN */
+  for (const t of trends) { const w = 1 / (t.se * t.se); sw += w; swx += w * t.pct; }   /* no epsilon guard: TREND_SE_FLOOR makes se >= 0.001 by construction, so an epsilon here could never fire and would be one more guard that cannot. The invariant is asserted instead. */
   const pct = swx / sw, se = Math.sqrt(1 / sw);
   const lo = pct - 1.96 * se, hi = pct + 1.96 * se;
   let state = lo > 0 ? "rising" : hi < 0 ? "falling" : (hi - lo) / 2 < FLAT_HALFWIDTH ? "flat" : "unknown";
@@ -1928,8 +2037,24 @@ function progressionTrend(s) {
      not punish, and it never blocks the upside. */
   let protectedBy = null, confidence = "normal";
   if (state === "falling") {
-    const clean2 = trends.filter((t) => t.nSoft === 0);
-    if (clean2.length < TREND_MIN_N) {
+    /* RE-POOL ON CLEAN POINTS, NOT ON SPOTLESS LIFTS. The previous version filtered to
+       lifts whose ENTIRE window carried no flagged session — so on his ledger, where
+       cleanAtDate is false on 6 of 8 sessions, a lift needed six consecutive clean-sleep
+       sessions to qualify and the gate needed four such lifts. That is roughly three
+       unbroken weeks of clean sleep on a 6.23 h five-night average, so the earned-downgrade
+       branch was UNREACHABLE IN PRODUCTION while passing in every fixture.
+
+       A NEW VARIANT OF THE STANDING PATTERN: a guard that fires in the fixture and cannot
+       fire in production. The assertions were correct and passed; the branch was still dead
+       where it mattered. Guards must be driven against the real ledger, not only a fixture.
+
+       Each lift is now re-estimated on its own unflagged SESSIONS at a lower minimum, and
+       those are pooled — a lift with two clean sessions out of six contributes a weak clean
+       estimate instead of nothing. */
+    const clean2 = [];
+    for (const t of trends) { const ct = liftTrend(s, t.id, { cleanOnly: true, minN: TREND_CLEAN_MIN_SESSIONS }); if (ct) clean2.push(ct); }
+    const cleanPts = clean2.reduce((a, t) => a + t.n, 0);
+    if (!clean2.length) {
       /* THE MIRROR OF THE BUG THIS RE-POOL FIXES. He has ONE session clean on both
          flags (2026-07-24). A trend cannot be pooled from one point, so if the
          re-pool were allowed to erase the verdict here, "falling" could never
@@ -1940,16 +2065,38 @@ function progressionTrend(s) {
          only downgrade when it has the power to. With too few unflagged sessions
          to test, the verdict STANDS and is marked low-confidence instead. */
       confidence = "low";
-      protectedBy = "kept at low confidence — only " + clean2.length + " unflagged lift-trend(s), too few to test the decline. Absence of clean sessions is not evidence of no decline";
+      protectedBy = "kept at low confidence — no lift has " + TREND_CLEAN_MIN_SESSIONS + " unflagged sessions, so the decline cannot be tested. Absence of clean sessions is not evidence of no decline";
     }
     else {
       let sw2 = 0, swx2 = 0;
-      for (const t of clean2) { const w = 1 / Math.max(t.se * t.se, 1e-9); sw2 += w; swx2 += w * t.pct; }
+      for (const t of clean2) { const w = 1 / (t.se * t.se); sw2 += w; swx2 += w * t.pct; }   /* same: TREND_SE_FLOOR owns it */
       const p2 = swx2 / sw2, se2 = Math.sqrt(1 / sw2);
-      if (!(p2 + 1.96 * se2 < 0)) { state = "flat"; protectedBy = "the decline does not survive dropping rushed and short-sleep sessions — tested against " + clean2.length + " unflagged trends, so this downgrade is earned rather than assumed"; }
+      /* FOUR OUTCOMES, AND ONLY ONE OF THEM DOWNGRADES.
+         The previous version downgraded whenever p2 >= 0 — a BARE POINT ESTIMATE on a
+         df=1 sample this file's own comment calls "deliberately weak". At p2 = +0.01 the
+         state became flat; at −0.01 it stayed falling. That difference is noise, and it
+         decided whether the calorie target kept stepping the deficit out. A coin flip on
+         the weakest sample in the system was defending the deficit.
+
+         NOTE THIS IS NOT THE pct-OVER-hi CALL FROM R2c, though it looks identical. There
+         the interval had already gated ENTRY, so reusing it double-counted the same noise.
+         Here the clean re-pool is a FRESH sample that nothing has gated, so a bare point
+         estimate is doing inference it has not earned. The two cases look alike and are
+         opposite.
+
+         The asymmetry is the usual one: downgrading wrongly continues a deficit that is
+         costing lean, which takes months to rebuild. Keeping falling wrongly means a
+         shallower deficit for a few weeks, which is recoverable. THE DOWNGRADE IS THE
+         EXPENSIVE ERROR, so it must need MORE evidence than the cheap one — and it needed
+         less. Demanding the clean interval exclude zero at t=12.706 would be unreachable,
+         which is the defect one layer up, so the bar is one standard error (~68%): a real
+         condition, reachable at df=1, and not a coin flip. */
+      if (p2 - se2 > 0) { state = "flat"; protectedBy = "downgraded — the clean sessions point UP with power (" + p2.toFixed(2) + " ± " + se2.toFixed(2) + " %/session across " + cleanPts + " clean points, clearing zero by more than one standard error). This is the only outcome that changes the verdict"; }
+      else if (p2 >= 0) { confidence = "low"; protectedBy = "kept — the clean sessions lean up (" + p2.toFixed(2) + " %/session across " + cleanPts + " clean points) but cannot resolve either direction at this sample size. UNTESTABLE is not the same as contradicted"; }
+      else if (!(p2 + 1.96 * se2 < 0)) { confidence = "medium"; protectedBy = "clean sessions agree on the direction (" + p2.toFixed(2) + " %/session across " + cleanPts + " clean points) but cannot confirm it on their own"; }
     }
   }
-  return { ...base, state, protectedBy, confidence, nSoft: trends.reduce((a, t) => a + t.nSoft, 0), pct: +pct.toFixed(3), se: +se.toFixed(3), lo: +lo.toFixed(3), hi: +hi.toFixed(3),
+  return { ...base, state, protectedBy, confidence, nSoft: trends.reduce((a, t) => a + t.nSoft, 0), pct: +pct.toFixed(3), se: Math.max(+se.toFixed(3), TREND_SE_FLOOR), lo: +lo.toFixed(3), hi: +hi.toFixed(3),   /* THIRD TIME toFixed HAS EATEN A GUARD. liftTrend floors its se above the rounding for exactly this reason; the POOLED se is rounded separately here and a tight pool rounds to 0.000. R2c divides by this se to size the step, so a zero read as "no information" and a perfect decline came out MILD. Floor it above the rounding, at the point of rounding. */
     why: state === "unknown" ? "pooled interval " + lo.toFixed(1) + " to " + hi.toFixed(1) + " %/session is too wide to call" : "pooled " + pct.toFixed(2) + " %/session across " + trends.length + " lifts" };
 }
 
@@ -2231,6 +2378,36 @@ function applyRead(state, iso, w) {
 }
 
 /* observed maintenance — your own intake and measured rate are the only honest calculator */
+/* ==================== R6_NOTE — maintenance is conditioned on an activity level ====
+
+   observedTDEE is a window AVERAGE, at the window's AVERAGE ACTIVITY. That is the right
+   estimand and it is not what the scalar looks like. His window splits 19,794 steps in the
+   first half against 14,694 in the second, and his last seven days average 14,357 — so the
+   number is conditioned on an activity level he no longer has.
+
+   R6 IS DISPLAY-ONLY, AND THAT IS A DELIBERATE FORK, not an omission. The natural reading
+   of "condition maintenance on activity" is to return the step-conditioned number as the
+   PRIMARY. R2b made observedTDEE load-bearing on the single owner of the calorie decision,
+   so that reading would move his prescribed intake by about -92 kcal/day AS A SIDE EFFECT
+   OF A REPORTING CHANGE, with nobody having decided it should. Same composition shape as
+   R4's PHASES[s.phase], one item later.
+
+   So: tdee is UNCHANGED and the conditioning is reported alongside it. An assertion pins
+   energyBalanceTarget's band byte-identical across this change on his real ledger — a
+   reporting change that moves the target is a failed reporting change. Making the
+   step-conditioned number primary is a decision about what he eats, and it gets its own
+   item with its own before/after rather than a ride-along on a diagnostics fix. ======== */
+const WALK_J_PER_KG_M = 2.4, WALK_J_LO = 2.0, WALK_J_HI = 2.8;   // net walking cost, Sci Rep 2019 meta-analysis (2.4 +/- 0.4 J/kg/m)
+const STEP_LEN_M = 0.75;   // CONVENTION, labelled: 0.415 x his height (1.778 m) gives 0.738, so within 2% of it
+
+/* kcal/day for a given step count at a given bodyweight. Derived from the cited cost; the
+   only authored input is step length, which is stated and cross-checked against height. */
+function stepKcal(bwLb, steps, jPerKgM) {
+  const kg = (Number(bwLb) || 0) / 2.2046;
+  const j = (jPerKgM || WALK_J_PER_KG_M) * kg * STEP_LEN_M * (Number(steps) || 0);
+  return j / 4184;
+}
+
 function observedTDEE(s) {
   if (daysUntil(s.blackout.until) > 0) return null;
   const r = currentRate(s);
@@ -2310,8 +2487,20 @@ function observedTDEE(s) {
      "measured TDEE" with no band invites a precision nobody has. */
   const lo = r.ci != null ? kcal(Math.min(CEIL, Math.max(0, r.lo))) : null;
   const hi = r.ci != null ? kcal(Math.min(CEIL, r.hi)) : null;
+  /* R6 — the conditioning variable, reported. tdee itself is untouched. */
+  const _logs6 = (s && s.dailyLogs) || {};
+  const _d6 = Object.keys(_logs6).sort();
+  const _stepsIn = (arr) => { const v = arr.map((d) => (_logs6[d] || {}).steps).filter((n) => n != null && isFinite(+n)).map(Number); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null; };
+  const atSteps = _stepsIn(_d6.slice(-Math.max(1, cals.length)));
+  const stepsNow = _stepsIn(_d6.slice(-7));
+  const bw6 = (s && s.trend) || null;
+  const stepDelta = (atSteps != null && stepsNow != null && bw6) ? Math.round(stepKcal(bw6, stepsNow - atSteps)) : null;
+  const tdeeAtNow = stepDelta != null ? tdee + stepDelta : null;
   return {
     tdee, days: cals.length, avg: Math.round(avg),
+    atSteps, stepsNow, stepDelta, tdeeAtNow,
+    stepsWhy: (atSteps == null || stepsNow == null) ? null
+      : `${tdee} is your maintenance AT ${atSteps.toLocaleString()} average steps — the activity level of the ${cals.length} days it was measured over. You are averaging ${stepsNow.toLocaleString()} over the last seven, which prices at about ${tdeeAtNow} instead. The scalar is not wrong; it is conditioned, and the condition moved. Steps are the cheapest lever here because adding them does not deepen the food deficit.`,
     lo, hi, clamped: RAW > CEIL, method: r.method, rateN: r.n,
     rate: r.scale, rateCi: r.ci, from, to, matched, split,
     perLb: ed.perLb, perLbLo: ed.lo, perLbHi: ed.hi, edIdentified: ed.identified, impliedPerLb, impossible,
@@ -2545,12 +2734,29 @@ function proteinTargetForRegime(s, regimeKey) {
    THE CLAMP IS DERIVED, and it is a bound rather than a tuning constant: the step
    can never exceed deficit0, because the fastest meaningful exit IS the exit, and
    it must not overshoot into a surplus the regime has not earned. */
-const COSTING_MILD_PCT = 0.3, COSTING_SEVERE_PCT = 3.0;
+/* SEVERITY IS DIMENSIONLESS NOW, and the mild anchor is DELETED rather than tuned.
 
-function costingStep(deficit0, bandWidth, pct) {
-  const mag = Math.abs(isFinite(pct) ? pct : 0);
-  const span = COSTING_SEVERE_PCT - COSTING_MILD_PCT;
-  const sev = span > 0 ? Math.max(0, Math.min(1, (mag - COSTING_MILD_PCT) / span)) : 0;
+   COSTING_MILD_PCT 0.3 and COSTING_SEVERE_PCT 3.0 were dimensioned in %/session of volume
+   load, which is why they felt arbitrary: volume load has no natural scale, so 0.3 means
+   nothing without knowing his loads, and both would silently change meaning if his
+   exercise selection changed.
+
+   MILD needs no anchor at all. "falling" is DEFINED as hi < 0, so a decline that has only
+   just cleared that threshold has hi ~ 0 — that IS the mild end, derived from the state
+   definition rather than authored. Severity is zero at hi = 0 by construction.
+
+   SEVERE is a multiple of the trend's OWN standard error past that threshold. Maximal when
+   the decline clears zero by a further full 95% half-width — reusing the multiplier the
+   pooled interval already uses for lo/hi rather than introducing a number. Scale-free, and
+   it survives any change to his loads or exercise selection. */
+const COSTING_SEVERE_SE = 1.96;   /* the pooled interval's own 95% multiplier, not a new constant */
+
+function costingStep(deficit0, bandWidth, prog) {
+  /* how many standard errors the UPPER bound sits below zero. hi < 0 is the definition of
+     falling, so this is zero at the threshold and grows with the strength of the decline. */
+  const hi = prog && isFinite(prog.hi) ? prog.hi : 0;
+  const se = prog && isFinite(prog.se) && prog.se > 0 ? prog.se : null;
+  const sev = (hi < 0 && se) ? Math.max(0, Math.min(1, Math.abs(hi) / (COSTING_SEVERE_SE * se))) : 0;
   const base = bandWidth > 0 ? bandWidth : deficit0;
   const step = base + sev * Math.max(0, deficit0 - base);
   return Math.max(1, Math.min(step, deficit0));   /* clamped at deficit0 — one step straight to measured maintenance, never past it */
@@ -2596,7 +2802,12 @@ function energyBalanceTargetUncached(s, opts) {
      it was announcing itself as a weaker one. */
   const unconfirmed = !base.regimeConfirmed;
 
-  if (cur.gated) return { ...cur, ...base, dir: "deficit", provisional: true, why: "the calorie band is gated upstream — the regime cannot override a gate" };
+  /* CARRY THE UNDERLYING REASON THROUGH. This used to replace calorieTarget's why with
+     "the calorie band is gated upstream", which tells him a mechanism and not a reason —
+     and drops the one sentence that says what the gate is waiting for. The regime genuinely
+     cannot override a gate, so that fact is appended rather than substituted. */
+  if (cur.gated) return { ...cur, ...base, dir: "deficit", provisional: true,
+    why: (cur.why || "the calorie band is gated upstream") + " The regime cannot override a gate, so it is not deciding here either." };
 
   if (key === "accretionBound") {
     const bw = (s && s.trend) || null;
@@ -2630,8 +2841,8 @@ function energyBalanceTargetUncached(s, opts) {
     if (!td2 || !isFinite(td2.tdee)) { const h0 = (opts && opts.heldWeeks != null) ? opts.heldWeeks : 1; return { ...cur, ...base, dir: "deficit", provisional: true, lo: cur.hi, hi: cur.hi, mid: cur.hi, shrunk: true, heldWeeks: h0, why: "lifts are falling but there is no usable maintenance to step the deficit against — holding at the shallow end of your band" }; }
     const deficit0 = Math.max(0, td2.tdee - cur.hi);
     const bandWidth = cur.hi - cur.lo;
-    const pct = (opts && opts.pct != null) ? opts.pct : ((reg && reg.prog && isFinite(reg.prog.pct)) ? reg.prog.pct : 0);
-    const step = costingStep(deficit0, bandWidth, pct);
+    const prog = (opts && opts.prog) || (reg && reg.prog) || null;
+    const step = costingStep(deficit0, bandWidth, prog);
     const conf = (reg && reg.prog && reg.prog.confidence) || "normal";
     /* THE CAP MUST DERIVE FROM THE WALK, NOT BE A FIXED 12. A hard cap re-creates
        the absorbing state at a different point: if the band ever narrows so that
@@ -2684,9 +2895,29 @@ function calorieTarget(s) {
   const fl = calorieFloor(s);
   const floor = fl.floor;
   if (!td) {
-    const ph = PHASES[s.phase];
-    return { gated: true, from: "phase", lo: ph ? ph.band[0] : null, hi: ph ? ph.band[1] : null,
-      why: "Not enough clean days to measure your own maintenance yet, so this is the phase band as authored." };
+    /* R4 — THE THIN-DATA FALLBACK, REPLACED BEFORE s.phase WAS DELETED, NOT AFTER.
+
+       This read PHASES[s.phase] and returned the authored band. R4 deletes s.phase with
+       the two body-fat triggers it serves, so done naively this returns lo:null hi:null —
+       the fallback that exists PRECISELY for thin data returning nothing. And R2b made it
+       load-bearing: energyBalanceTarget's first branch is `if (cur.gated)`, so the single
+       owner of the calorie decision now routes through here.
+
+       Same question, answered without a phase table and without a body-fat estimate: what
+       to eat before there are enough clean days to measure his own maintenance. Measured
+       bodyweight times a LABELLED convention, minus his own %BW-derived band. Every input
+       is measured or cited; nothing here is authored except the convention, which says so. */
+    const bwG = (s && s.trend) || null;
+    if (!bwG) return { gated: true, from: "none", lo: null, hi: null,
+      why: "No bodyweight on file yet, so there is nothing to price a target from. Log a weigh-in and this fills in immediately." };
+    const estG = Math.round(MAINT_KCAL_PER_LB * bwG);
+    const kcalForG = (lbWk) => Math.round((lbWk * energyDensity(s).perLb) / 7);
+    const hiG = Math.max(floor, estG - kcalForG(band[0]));
+    const loG = Math.max(floor, estG - kcalForG(band[1]));
+    return { gated: true, from: "mass-estimate", lo: loG, hi: hiG, mid: Math.round((loG + hiG) / 2),
+      tdee: estG, floor, band,
+      /* R10 abstention rule: say what it is waiting for, not just that it is waiting. */
+      why: `Not enough clean days to measure your own maintenance yet, so this prices ${estG} from your measured ${bwG} lb at ${MAINT_KCAL_PER_LB} kcal/lb — a labelled convention, not a measurement of you — and takes your own ${band[0]}–${band[1]} lb/wk band off it. It is an ESTIMATE standing in for a measurement, and it stops being one as soon as there are enough logged days; nothing here reads a body-fat number.` };
   }
   /* ---------- KCAL_PER_LB_NOTE — one conversion, not three ----------
      This used 3,500 kcal/lb while observedTDEE used KCAL_PER_LB_MIX (3,800) and
@@ -3257,17 +3488,49 @@ function adaptationSignal(s, deps) {
   if (rows.length < ADAPT_PERSIST_MIN + 1) return off("too-thin");                                   // graceful: not enough history
   if (!(sig.state === "measured" || sig.state === "measurable")) return off("signal-not-real");       // significance gate on the rate itself
   const base = rows[0];
+  /* R6 — SUBTRACT THE DETERMINISTIC STEP TERM BEFORE LOOKING FOR RESIDUAL ADAPTATION.
+
+     This predicted expected maintenance from BODY MASS ONLY. Observed maintenance falls
+     when he walks less; mass-predicted maintenance barely moves. So the residual absorbed
+     an activity change and reported it as adaptive thermogenesis — THE APP WOULD DIAGNOSE
+     METABOLIC ADAPTATION FOR A MAN WHO STOPPED WALKING, pointing him away from a real and
+     fixable behaviour. His steps are down 19,794 -> 14,694 across the window.
+
+     Attributing the step term deterministically beats estimating a coefficient from 35
+     noisy days: the walking cost is measured (Sci Rep 2019, 2.4 J/kg/m) and the step count
+     is logged, so there is nothing to fit.
+
+     AND IT ABSTAINS WHEN STEPS ARE TOO VARIABLE to attribute cleanly — a residual dominated
+     by activity swings is not evidence about metabolism either way. Abstention is a first-
+     class answer here, the same as everywhere else in this engine. */
+  const _lg6 = (s && s.dailyLogs) || {};
+  const _stepAt = (iso) => { const v = (_lg6[iso] || {}).steps; return v != null && isFinite(+v) ? Number(v) : null; };
+  const _baseSteps = _stepAt(base.d);
+  const stepTermAt = (x) => {
+    const sN = _stepAt(x.d);
+    if (sN == null || _baseSteps == null || !x.w) return 0;
+    return stepKcal(x.w, sN - _baseSteps);
+  };
+  /* variance gate: if the step record swings more than the effect being measured, abstain */
+  const _sVals = rows.map((x) => _stepAt(x.d)).filter((n) => n != null);
+  const _sMean = _sVals.length ? _sVals.reduce((a, b) => a + b, 0) / _sVals.length : null;
+  const _sSd = _sVals.length > 1 && _sMean ? Math.sqrt(_sVals.reduce((a, b) => a + (b - _sMean) * (b - _sMean), 0) / (_sVals.length - 1)) : null;
+  const stepSwingKcal = (_sSd != null && base.w) ? Math.abs(stepKcal(base.w, _sSd)) : null;
   const predAt = (w) => base.tdee + MAINT_KCAL_PER_LB * (w - base.w);                                  // mass-driven expectation (falls as mass falls)
-  const resid = rows.map((x) => ({ d: x.d, r: x.tdee - predAt(x.w), lo: (x.lo != null ? x.lo : x.tdee) - predAt(x.w), hi: (x.hi != null ? x.hi : x.tdee) - predAt(x.w) }));
+  const resid = rows.map((x) => ({ d: x.d, stepAdj: Math.round(stepTermAt(x)), r: x.tdee - predAt(x.w) - stepTermAt(x), lo: (x.lo != null ? x.lo : x.tdee) - predAt(x.w) - stepTermAt(x), hi: (x.hi != null ? x.hi : x.tdee) - predAt(x.w) - stepTermAt(x) }));
   const tail = resid.slice(-ADAPT_PERSIST_MIN);
   const persistent = tail.every((z) => z.r < 0);                                                        // persistently BELOW mass-expected
   const last = resid[resid.length - 1];
+  /* R6 abstention — a residual smaller than the activity swing that produced it is not
+     evidence about metabolism. Named in the reason so it does not read as "no adaptation". */
+  if (stepSwingKcal != null && Math.abs(last.r) < stepSwingKcal) return off("activity-drift");
   const significant = last.hi < 0;                                                                      // the whole residual band clears zero
   const detected = persistent && significant;
   const kcal = Math.round(tail.reduce((a, z) => a + z.r, 0) / tail.length);
   return {
     detected, reason: detected ? "adaptation" : (persistent ? "not-significant" : "not-persistent"),
     kcal, lo: Math.round(last.lo), hi: Math.round(last.hi), n: rows.length,
+    stepAdj: Math.round(stepTermAt(rows[rows.length - 1])), stepSwingKcal: stepSwingKcal == null ? null : Math.round(stepSwingKcal),
     persistent, significant, perLbCoef: MAINT_KCAL_PER_LB, label: ADAPT_LABEL,
     why: detected
       ? `Your measured maintenance has run ~${Math.abs(kcal)} kcal/day BELOW what mass loss alone predicts, across the last ${ADAPT_PERSIST_MIN}+ updates with the band clear of zero — a persistent, significant signal, not one reading. Calibration for the plan (it informs the phase arc + the forecast), not a target; the mass expectation is an estimate, so this is a direction, not a decimal.`
@@ -3329,6 +3592,108 @@ function coneHalfWidth(sigmaLevel, seRate, h, z) {
    A wide slope CI leaves the slow end unbounded, so an ambiguous trend stays silent; the probability
    is then reported honestly (floored at P_FIRE — muscle loss is costly — capped at 0.95 — never a
    certainty). `opts` injects rate/band/sig/bw for the suite. Pure; mutates nothing. */
+/* ==================== R7_NOTE — the divergence flag ====================
+
+   currentRate averages a 28-read regression across a window his BEHAVIOUR changed inside.
+   Steps fell 19,794 -> 14,694 across it and intake rose. The regression is not wrong — it
+   is the honest answer to "what has the scale done" — but it silently averages across a
+   behaviour change, and the two halves are answers to different questions.
+
+   THE FIX IS NOT TO SWITCH ESTIMATORS. A discontinuity in the control input is its own
+   failure mode: the displayed rate would jump on a day no reading changed, and every
+   downstream number with it. So the long window stays PRIMARY and a flag is raised when
+   the behaviour-implied rate and the measured rate disagree by more than their combined
+   error.
+
+   A FLAG IS A PROMPT TO LOOK. It must not drive a calorie change on its own — that is the
+   whole point of separating observation from intervention, and it is why this item ships
+   before the one that changes what he eats.
+
+   THE IMPLIED RATE CARRIES ITS OWN UNCERTAINTY, and most of it is not metabolic: the step
+   term rests on a walking cost of 2.4 +/- 0.4 J/kg/m and an authored stride length. So the
+   comparison is band-to-band, never point-to-point — comparing two point estimates would
+   manufacture divergences out of the coefficient's own error bar. ==================== */
+function rateDivergence(s, opts) {
+  const off = (reason) => ({ flagged: false, reason, measured: null, implied: null, gap: null, combined: null, why: null, intakeWhy: null });
+  /* total: an empty or partial state must abstain with a named reason, not throw. currentRate
+     and observedTDEE both reach into s.blackout and s.reads and will throw on {}. */
+  let r = null, td = null, ed = null;
+  try { r = (opts && opts.rate) || currentRate(s); td = (opts && opts.td) || observedTDEE(s); ed = energyDensity(s); }
+  catch (e) { return off("state-incomplete"); }
+  if (!ed || !isFinite(ed.perLb)) return off("no-energy-density");
+  if (!r || !r.measured || !isFinite(r.scale) || !isFinite(r.ci)) return off("no-measured-rate");
+  if (!td || !isFinite(td.tdee) || td.tdeeAtNow == null) return off("no-activity-conditioning");
+
+  /* what he is actually eating NOW, not the window average the tdee was solved over */
+  const logs = (s && s.dailyLogs) || {};
+  const days = Object.keys(logs).sort().slice(-7);
+  const cals = days.map((d) => (logs[d] || {}).cal).filter((c) => c != null && isFinite(+c)).map(Number);
+  const eatenOverride = (opts && isFinite(opts.eaten)) ? Number(opts.eaten) : null;
+  if (eatenOverride == null && cals.length < 4) return off("intake-too-thin");
+  const eaten = eatenOverride != null ? eatenOverride : cals.reduce((a, b) => a + b, 0) / cals.length;
+
+  /* DETECTION AND ATTRIBUTION ARE DIFFERENT JOBS, and my first rebuild collapsed them.
+
+     The flag's purpose is to warn when THE DISPLAYED RATE NO LONGER DESCRIBES HIS CURRENT
+     BEHAVIOUR. That is live right now: the gauge shows 1.17 lb/wk and his last seven days
+     imply 0.25. He can read the gauge, conclude he is on track, and be behaving like
+     someone losing a quarter-pound a week.
+
+     I narrowed the comparator to "what the PRESCRIBED intake at current steps implies",
+     which asks a different and narrower question — would the step change alone make the
+     target under-deliver — and answers no. That is a counterfactual he is not living.
+
+     Worse, the narrowed gap was a CATEGORY ERROR. 0.28 decomposes into 0.11 (target 2,220
+     vs the 2,160 window intake the regression describes) plus 0.17 (14,357 vs 17,171
+     steps). Both are DETERMINISTIC differences between specified scenarios; neither carries
+     sampling error. Testing their sum against the regression's +/-0.38 compares a scenario
+     delta to a sampling interval.
+
+     So: FIRE on measured vs BEHAVIOUR-implied, which is the honest test of whether the
+     displayed number still describes him and does not care which component causes the gap.
+     Then ATTRIBUTE the gap and point each part at its owner — intake at calorieTarget's
+     wkOff, which already reports it, and steps at R6's conditioning line. Attribution names
+     the owner; it does not require the flag to ignore anything. One flag, no duplicated
+     ownership, fires on the condition that is actually live. */
+  const toRate = (kcalDeficit) => (kcalDeficit * 7) / ed.perLb;
+  const implied = toRate(td.tdeeAtNow - eaten);
+
+  /* attribution: both terms are differences from the WINDOW scenario the regression
+     describes, so they sum to the gap by construction rather than by coincidence. */
+  const intakeEffect = +toRate(eaten - td.avg).toFixed(2);
+  const stepEffect = +toRate(td.tdee - td.tdeeAtNow).toFixed(2);
+  let tgt = null;
+  try { tgt = (opts && opts.target) || energyBalanceTarget(s); } catch (e) { tgt = null; }
+  const prescribed = (tgt && !tgt.gated && isFinite(tgt.mid)) ? tgt.mid : null;
+
+  /* the implied rate's own band: the walking-cost range is the dominant term, and it is a
+     coefficient uncertainty rather than anything about him */
+  const bw = (s && s.trend) || null;
+  const stepSpan = (bw && td.atSteps != null && td.stepsNow != null)
+    ? Math.abs(stepKcal(bw, td.stepsNow - td.atSteps, WALK_J_HI) - stepKcal(bw, td.stepsNow - td.atSteps, WALK_J_LO)) / 2
+    : 0;
+  const impliedCi = Math.abs(toRate(stepSpan));
+  const gap = Math.abs(r.scale - implied);
+  const combined = Math.sqrt(r.ci * r.ci + impliedCi * impliedCi);
+  const flagged = gap > combined;
+  return {
+    flagged, reason: flagged ? "divergent" : "consistent",
+    measured: +r.scale.toFixed(2), measuredCi: +r.ci.toFixed(2),
+    implied: +implied.toFixed(2), impliedCi: +impliedCi.toFixed(2),
+    eaten: Math.round(eaten), prescribed, intakeEffect, stepEffect,
+    atSteps: td.atSteps, stepsNow: td.stepsNow,
+    gap: +gap.toFixed(2), combined: +combined.toFixed(2),
+    why: flagged
+      ? `Your gauge shows ${r.scale.toFixed(2)} lb/wk. What you have actually been eating and walking over the last week implies ${implied.toFixed(2)} — they disagree by ${gap.toFixed(2)}, more than their combined error. The displayed rate is a 28-day regression and your behaviour changed inside it, so it no longer describes what you are doing now. It changes nothing on its own.`
+      : `Your gauge shows ${r.scale.toFixed(2)} lb/wk and your recent eating and walking imply ${implied.toFixed(2)}. They agree inside their combined error (${combined.toFixed(2)}), so the long window is not hiding a behaviour change.`,    /* ATTRIBUTION, with owners named. Neither line re-decides anything. */
+    attribution: !flagged ? null : [
+      { part: "intake", lbWk: intakeEffect, owner: "the weekly line on the calorie card (wkAvg / wkOff)" },
+      { part: "steps", lbWk: stepEffect, owner: "the maintenance conditioning line (R6)" },
+    ],
+    attributionWhy: !flagged ? null
+      : `Of that ${gap.toFixed(2)}: about ${Math.abs(intakeEffect).toFixed(2)} is intake (${Math.round(eaten)} against the ${td.avg} the rate was measured over) and about ${Math.abs(stepEffect).toFixed(2)} is steps (${(td.stepsNow || 0).toLocaleString()} against ${(td.atSteps || 0).toLocaleString()}). The intake part is ${Math.abs(intakeEffect) > Math.abs(stepEffect) ? "the larger one and" : ""} already reported on the calorie card — this flag is not a second opinion on it, it just says the gauge has stopped describing you.`,  };
+}
+
 function redlineCrossing(s, opts) {
   const o = opts || {};
   const r = o.rate || currentRate(s);
@@ -6717,7 +7082,15 @@ function runAdaptive(state, todayISO) {
   if (!s.weekly.some((w) => w.wk === monday) && s.reads.some((r) => !r.sealed && weeksBetween(monday, r.d) >= 0 && weeksBetween(monday, r.d) < 1))
     s.weekly.push({ wk: monday, trend: s.trend });
 
-  const applied = (rid) => s.adjustments.some((a) => a.rid === rid);
+  /* R9 — DISMISSED IS NOT APPLIED. dismissProposal files {rid, dismissed:true} and its
+     feed copy promises "the engine re-arms it if the pattern that raised it holds" — but
+     this gate counted ANY adjustments row, so one decline silenced a rid forever and the
+     promise was false. Law 10 says a proposal he can decline, not a verdict; a decline
+     that can never return IS a verdict, just a quiet one. undone rows have the same shape:
+     undoAdjustment re-opens the card, and a surviving row would freeze its refresh.
+     Measured on the live ledger: microload has a dismissed row and its refresh froze at
+     2026-08-04; pivot has none and refreshed to 2026-08-06. Same producer loop, same days. */
+  const applied = (rid) => s.adjustments.some((a) => a.rid === rid && !a.dismissed && !a.undone);
   /* An open proposal is a live recommendation, not a postcard from the day it
      was raised. The old propose() skipped entirely when one was already armed,
      so its title and receipt froze at whatever the engine said the first time —
@@ -6727,12 +7100,49 @@ function runAdaptive(state, todayISO) {
      own rule against composite scores. Refresh the text and the dial on
      anything he has not acted on; leave the raised-on date alone so the age of
      the flag stays honest, and never resurrect one he already applied. */
+  /* R9 — ONE OPEN CARD PER SUBJECT. The dedup keyed on the EXACT rid, and half the
+     producers suffix their rid with the date (ap_tighten_2026-08-02), so the same subject
+     filed fresh every day and the dedup never saw it. Filing over an open subject now
+     SUPERSEDES: the old card is resolved with a feed line, never silently replaced. */
+  const subjectOf = (rid) => String(rid || "").replace(/_\d{4}-\d{2}-\d{2}$/, "");
   const propose = (rid, title, why, apply) => {
     if (applied(rid)) return;
-    const open = s.proposals.find((p) => p.rid === rid && !p.resolved);
-    if (open) { open.title = title; open.why = why; open.apply = apply; open.refreshed = todayISO; return; }
+    const open = s.proposals.find((p) => p && !p.resolved && subjectOf(p.rid) === subjectOf(rid));
+    if (open && open.rid === rid) { open.title = title; open.why = why; open.apply = apply; open.refreshed = todayISO; return; }
+    if (open) {
+      open.resolved = true; open.resolvedHow = "superseded by " + rid;
+      s.feed.unshift({ d: todayISO, t: "CARD SUPERSEDED — " + subjectOf(rid).toUpperCase(), how: "a newer card on the same subject replaced it; nothing was silently dropped" });
+    }
     s.proposals.push({ rid, id: `${rid}_${todayISO}`, d: todayISO, title, why, apply, resolved: false });
   };
+  /* R9 — WITHDRAW ORPHANS. R4 deleted both body-fat producers (ease2 -> kind "phase",
+     pivot -> kind "exit") but their INSTANCES persist in state with LIVE apply branches:
+     tapping the open pivot today would step calories to maintenance on the authority of
+     the bf.lo threshold R4 judged unable to make that claim. A proposal whose producer
+     was deleted must be withdrawn by the change that deleted it — otherwise it is a card
+     recommending a decision the engine has already disowned. Follows the withdrawal
+     precedent (SET-REALLOCATION CARD WITHDRAWN): resolved with a feed line, never deleted. */
+  /* AUDIT 4 — predicate on the ORPHANED SUBJECTS BY NAME, not on the kind. A kind-ban
+     justified as "producer was deleted" is coextensive with the truth today and wrong the
+     day the regime detector files a deliberate exit proposal — which is its natural end
+     state. That card would be stillborn on its first sweep with a feed line falsely
+     blaming R4. The withdrawal names exactly what R4 orphaned and nothing else, ever. */
+  const R4_ORPHANS = { pivot: 1, ease2: 1 };
+  for (const p of s.proposals) {
+    if (p && !p.resolved && R4_ORPHANS[subjectOf(p.rid)]) {
+      p.resolved = true; p.resolvedHow = "withdrawn — producer removed by R4";
+      s.feed.unshift({ d: todayISO, t: "CARD WITHDRAWN — " + String(p.title || p.rid).slice(0, 40), how: "It was produced by a body-fat threshold the app no longer trusts (R4): the estimate's interval is wider than the decision. The question it asked now belongs to the regime detector, which reads lifts and scale rate instead. Nothing was deleted; this card is on the record as withdrawn." });
+    }
+  }
+  /* R9 — NOTES EXPIRE. A note card changes nothing when tapped, so an old one is pure
+     attention cost. 14 days, then resolved as expired, on the record. Actionable kinds
+     never expire — they represent decisions, and decisions wait for him. */
+  for (const p of s.proposals) {
+    if (p && !p.resolved && p.apply && p.apply.kind === "note" && p.d && (mk(todayISO) - mk(p.d)) / DAY > 14) {
+      p.resolved = true; p.resolvedHow = "expired";
+      s.feed.unshift({ d: todayISO, t: "CARD EXPIRED — " + String(p.title || p.rid).slice(0, 40), how: "a two-week-old note is stale information, not a pending decision — it expires rather than queueing forever" });
+    }
+  }
 
   const sealed = daysUntil(s.blackout.until) > 0;
   const r = currentRate(s);
@@ -6752,23 +7162,33 @@ function runAdaptive(state, todayISO) {
   if (!sealed && r.measured && r.rates[r.rates.length - 1] >= cutRateBand(s).redline)
     propose("redline_" + monday, "REDLINE RATE", `${r.rates[r.rates.length - 1].toFixed(1)}/wk ≥ ${cutRateBand(s).redline}. Your rule: add ~100 back and flag your coach — this is not a win, it's muscle risk.`, { kind: "cal", delta: 100 });
 
-  const bf = bfEst(s);
-  if (!sealed && s.phase === "EASE 1" && bf.pct <= 13.2 && s.trend < 163)
-    propose("ease2", "EASE 2 — CONDITIONS MET", `Est. BF ${bf.pct}% has crossed the ~13% line. Applying moves you to ${PHASES["EASE 2"].band.join("–")} cal with the step taper — scale will slow by design while fat loss holds.`, { kind: "phase", to: "EASE 2" });
+  const bf = bfEst(s);   /* R4 — no longer read by ANY proposal condition in runAdaptive. Kept for the copy that reports the interval, never for a threshold. */
+  /* R4 — DELETED: the EASE 2 trigger fired on bf.pct <= 13.2. A point estimate from an
+     instrument whose live interval is 10.7–18.3 (7.6 points wide, asymmetric −3.6/+4.0)
+     cannot resolve a 13.2 threshold, and this proposal moved his whole calorie band on it.
+     The phase machine it served is gone with it; the thin-data band now derives from measured
+     bodyweight (see calorieTarget's gated branch). */
   /* The exit prompt fires on the INTERVAL, not the point estimate. His anchor
      carries +/-3.5 points, so "BF crossed 11.2" is a claim the instrument
      cannot make — and prompting a man to end his cut on a number that could be
      three points out either way is exactly the false precision the charter
      forbids. It now fires when the estimate is low enough that the question is
      worth ASKING, and says out loud that the number cannot answer it. */
-  const pivQ = s.queue.find((q) => q.id === "q_pivot");
-  if (!sealed && bf.lo <= 11.2 && pivQ && !pivQ.done) {
-    const dx = dietExit(s);
-    propose("pivot", "WORTH ASKING: IS THE CUT DONE?",
-      `Your body fat reads ${bf.pct}% and the honest range is ${bf.lo}–${bf.hi}% — the bottom of that range is into the zone where this question belongs on the table. The number cannot decide it; the range is ${(bf.hi - bf.lo).toFixed(1)} points wide, which is wider than the decision. Book the look with your coach.` +
-      (dx.gated ? "" : ` If the answer is yes: one step from ${dx.from ?? "your current band"} to ${dx.maintenance} — your own measured maintenance, from ${dx.days} logged days — then hold ${dx.holdMin}–${dx.holdFull} weeks before deciding anything else. No ramp, no surplus on a schedule.`),
-      { kind: "exit" });
-  }
+  /* R4 — DELETED: the pivot prompt fired on bf.lo <= 11.2.
+
+     Its comment defended firing on the INTERVAL rather than the point, which was the
+     honest version of a threshold — but it is still a threshold on an instrument whose
+     live interval is 7.6 points wide, and applying it stepped calories to maintenance.
+     bf.lo is 10.7 today, so it has been firing since 2026-07-29 and sitting open.
+
+     THE QUESTION IT ASKED NOW HAS A BETTER OWNER. "Is the cut done?" is exactly what
+     regime() answers with accretionBound — from his lifts and his scale rate, both
+     measured daily, rather than from a body-fat estimate anchored twice a year. R1
+     replaced the instrument; this removes the old one rather than leaving two.
+
+     s.phase and the PHASES table are NOT deleted from state — never delete athlete data,
+     and the field is inert now that its only writer is gone. The three remaining readers
+     already guard with `ph ? ... : null`. */
 
   /* ---------- PROGRAM_NOTE — the app has to make its own suggestions ----------
      The point of this ledger is to optimise the programme. A recommendation
@@ -7621,6 +8041,9 @@ function patchV37(s) {
   s.v = 37;
   return s;
 }
+/* R5 — additive only. Nothing in the old record can be restated as a skinfold reading, so
+   this creates the collection and touches nothing else (the `pace` precedent). */
+function patchV39(s) { s.skinfolds = s.skinfolds || []; s.v = 39; return s; }
 function patchV38(s) {
   /* v7.4.0 Slice 5 — the PHASE ARC lands its decisions in the already-hardened s.plan (a planned diet
      break + phase transitions). ADDITIVE + idempotent: default the append-only phase-transition LOG to
@@ -7635,7 +8058,7 @@ function patchV38(s) {
   s.v = 38;
   return s;
 }
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38];
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -8886,6 +9309,9 @@ const MERGE_KEYED = {   // STORED, non-append-only per-lift state — reconcile 
 const MERGE_ARR = {   // one logical entry per key (date / id) — the richer copy wins on a collision
   reads: (r) => r && r.d, waist: (w) => w && w.d, photos: (p) => p && (p.d || p.id || JSON.stringify(p)),
   caffLog: (c) => c && (c.d + "|" + (c.at || "")), medsLog: (mm) => mm && (mm.d + "|" + (mm.at || "")),
+  /* R5 — keyed on DATE + SERIES IDENTITY, not date alone. Two readings on one day with
+     different site sets are different measurements, not a collision to resolve. */
+  skinfolds: (x) => x && (x.d + "|" + _skinSeriesKey(x)),
   temp: (t) => t && t.d, pulse: (p) => p && p.d, soreness: (x) => x && x.d, energy: (x) => x && x.d, grip: (x) => x && x.d,
   events: (e) => e && (e.id || e.d + "|" + e.t), trials: (t) => t && (t.id || t.d),
   agentProposals: (a) => a && a.id, weekly: (w) => w && w.wk,
@@ -9040,6 +9466,15 @@ __test.DEBT_MEAN3_H = DEBT_MEAN3_H;
 __test.EA_SPARING = EA_SPARING;
 __test.etaRange = etaRange;
 __test.bfEst = bfEst;
+__test.migrate = migrate;
+__test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
+__test.targetsFor = targetsFor;
+__test.runAdaptive = runAdaptive;
+__test.stepKcal = stepKcal;
+__test.skinfoldCheck = skinfoldCheck;
+__test.skinfoldSeries = skinfoldSeries;
+__test.skinfoldTrend = skinfoldTrend;
+__test.SKINFOLD_SITES = SKINFOLD_SITES;
 __test.anchorTighten = anchorTighten;
 __test.digitalTwin = digitalTwin;
 __test.twinBodyComp = twinBodyComp;
@@ -9047,6 +9482,7 @@ __test.forecast = forecast;
 __test.conditionalForesight = conditionalForesight;
 __test.etaReached = etaReached;
 __test.redlineCrossing = redlineCrossing;
+__test.rateDivergence = rateDivergence;
 __test.coneHalfWidth = coneHalfWidth;
 __test.normCdf = normCdf;
 __test.FORE = FORE;
@@ -9137,6 +9573,8 @@ __test.energyBalanceTargetUncached = energyBalanceTargetUncached;
 __test.proteinTargetForRegime = proteinTargetForRegime;
 __test.GAIN_FAT_FRAC = GAIN_FAT_FRAC;
 __test.costingStep = costingStep;
+__test.TREND_SE_FLOOR = TREND_SE_FLOOR;
+__test.COSTING_SEVERE_SE = COSTING_SEVERE_SE;
 __test._regimeRaw = _regimeRaw;
 __test._stateAsOf = _stateAsOf;
 __test.REGIME_HOLD_D = REGIME_HOLD_D;

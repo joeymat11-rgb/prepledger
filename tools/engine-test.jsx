@@ -6,6 +6,72 @@ import { __test } from "../src/app.jsx";
 const { targetsFor, genSession, completeSession, runAdaptive, bfEst, migrate, SEED } = __test;
 let pass = 0, fail = 0;
 const ok = (cond, name) => { cond ? pass++ : fail++; console.log((cond ? "PASS" : "FAIL") + " — " + name); };
+
+/* ==================== FROZEN REAL-LEDGER SNAPSHOTS ====================
+   A SYNTHETIC fixture encodes the author's model of the problem — which is the same model
+   that produced the bug. Both versions of R7's comparator passed their synthetic fixtures,
+   because both were written to. A FROZEN REAL SNAPSHOT encodes the world instead, and does
+   not care what the author believed.
+
+   THE RULE: when an item's correctness depends on real data, the fixture is a DATED SNAPSHOT
+   of real data and the criterion states the OUTCOME, not the mechanism.
+
+   A criterion phrased as a MECHANISM is satisfied by any comparator that plausibly fits the
+   words — "compare the behaviour-implied rate to the measured rate" was satisfied by both of
+   R7's builds. A criterion phrased as an OUTCOME ON REAL DATA is not: "on his ledger the flag
+   is RAISED" fails instantly against the narrowed build, because 0.28 < 0.38.
+
+   KNOWN BLIND SPOT, stated so a green run is not mistaken for proof: a comparator can still be
+   narrowed in a way that happens to produce the right outcome on the snapshot. This converts
+   "no mechanical check exists" into "one exists with known limits", which is the difference
+   between the eleven instances found by reading and the three found by tools.
+
+   Snapshots ACCUMULATE. Each is a regression test against a real world-state that once
+   existed. Never edit one to make a test pass — take a new one, dated. ==================== */
+{
+  const SNAP = JSON.parse(readFileSync("tools/snapshots/2026-08-06-ledger.json", "utf8"));
+
+  /* R7 — THE ONE THAT WOULD HAVE CAUGHT THE NARROWED COMPARATOR.
+     Under the narrowed build this reads flagged=false (gap 0.28 vs combined 0.38). */
+  const rd = __test.rateDivergence(SNAP);
+  ok(rd.flagged === true, "SNAPSHOT 2026-08-06 — the divergence flag is RAISED on his real ledger. The narrowed comparator I built read false here, and no synthetic fixture caught it because both comparators pass fixtures written for them");
+  ok(rd.gap > rd.combined, "SNAPSHOT — and it is raised because the gap (" + rd.gap + ") exceeds the combined error (" + rd.combined + "), not because a threshold happened to sit somewhere convenient");
+  ok(Math.abs((rd.intakeEffect + rd.stepEffect) - rd.gap) < 0.02 && rd.intakeEffect > rd.stepEffect, "SNAPSHOT — the attributed parts sum to the gap on REAL data, and intake is the larger term: 0.75 intake against 0.17 steps");
+
+  /* R1 — WHICH BRANCH REAL DATA TAKES. Recorded as an assertion rather than a note, which is
+     the step that was missing. The unreachable clean2 gate would have failed this instantly:
+     "how many lifts clear the downgrade gate" has the answer "none, ever". */
+  const pt = __test.progressionTrend(SNAP);
+  ok(pt.state === "unknown" && pt.nLifts === 0, "SNAPSHOT — progressionTrend ABSTAINS on his real ledger: 0 lifts carry a usable trend against a floor of 4. That is the instrument working, and it is the branch his data actually takes today");
+  ok(pt.nExcludedNonNumeric === 2 && pt.excludedIds.indexOf("curl") > -1 && pt.excludedIds.indexOf("hanging") > -1, "SNAPSHOT — exactly two lifts are excluded for a non-numeric weight, and they are curl and hanging. The spec said three and named pronated, which is numeric in all three of its logged entries");
+  {
+    let cleanCapable = 0;
+    for (const t2 of pt.lifts) if (__test.liftTrend(SNAP, t2.id, { cleanOnly: true, minN: 3 })) cleanCapable++;
+    ok(cleanCapable === 0, "SNAPSHOT — no lift yet clears the DOWNGRADE gate (3 clean sessions). Recorded as a fact rather than a note: if a change ever makes this branch unreachable-but-alive again, this number stops matching and the assertion says so");
+  }
+
+  /* R2/R2b — the target his phone is actually showing */
+  const eb = __test.energyBalanceTarget(SNAP, { asOf: "2026-08-06" });
+  ok(eb.dir === "deficit" && eb.lo === 2176 && eb.hi === 2263, "SNAPSHOT — the live band is 2176-2263. Any change claiming to be display-only must leave these two numbers alone");
+  ok(eb.provisional === true && eb.regimeConfirmed === false, "SNAPSHOT — and it is flagged provisional, because the regime is unconfirmed. A ~530 kcal decision presented as decided is a stronger claim than the evidence supports");
+
+  /* R3 — the redline he sees on the gauge */
+  const rb = __test.cutRateBand(SNAP);
+  ok(rb.floor === 0.82 && rb.redline === 1.63, "SNAPSHOT — floor 0.82 and redline 1.63 lb/wk, %BW-derived. These were an authored 0.8 and 1.9 in pounds, and the redline got MORE permissive as he leaned out");
+  ok(rb.redlinePct === __test.bodyCompBand(SNAP).redlinePct, "SNAPSHOT — one redline, published once. The foresight layer used to run 1.157 against the alarm's 1.0");
+
+  /* R9 — the orphaned pivot card. Its producer was deleted by R4 but its apply branch is
+     LIVE: tapping it steps calories to maintenance on the authority of a body-fat threshold
+     the app no longer trusts. The change that deletes a producer must withdraw its cards. */
+  {
+    const out9 = __test.runAdaptive(JSON.parse(JSON.stringify(SNAP)), "2026-08-06");
+    const piv9 = out9.proposals.find((p) => p.rid === "pivot");
+    ok(piv9 && piv9.resolved === true && /withdrawn/.test(piv9.resolvedHow || ""), "SNAPSHOT — the orphaned pivot card is WITHDRAWN on the next engine run. It sat open with a live kind=exit apply branch after R4 deleted its producer: a card recommending a decision the engine had already disowned");
+    ok(out9.feed.some((f) => /CARD WITHDRAWN/.test(f.t) && /IS THE CUT DONE/.test(f.t)), "SNAPSHOT — and the withdrawal is on the record in the feed, never silent. Follows the SET-REALLOCATION precedent: resolved, not deleted");
+    ok(out9.proposals.length >= SNAP.proposals.length, "SNAPSHOT — no proposal was deleted in the process; withdrawal marks, it never removes");
+  }
+}
+
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
 // 1. progression: climb the earliest lagging set
@@ -49,7 +115,338 @@ m = runAdaptive(m, "2026-07-22");
 ok(m.proposals.some(p => p.title.indexOf("RATE FLOOR") === 0), "floor rule arms after two slow weeks");
 let e2 = clone(SEED); e2.trend = 160; e2.blackout.until = "2026-07-01";
 e2 = runAdaptive(e2, "2026-07-22");
-ok(e2.proposals.some(p => p.rid === "ease2"), "Ease 2 arms itself when est BF crosses the line");
+/* R4 — the inverse of what this used to assert. The EASE 2 trigger fired on
+   bf.pct <= 13.2 and moved his whole calorie band on a point estimate from an instrument
+   whose live interval is 7.6 points wide. It is deleted, and this drives the state that
+   USED to arm it to prove it cannot arm any more. */
+ok(!e2.proposals.some(p => p.rid === "ease2"), "R4 — the state that used to arm EASE 2 no longer arms it. A 13.2 threshold on an instrument with a 7.6-point interval is a claim it cannot make");
+ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is gone too. It fired on bf.lo <= 11.2, which has been true since 2026-07-29; the question it asked now belongs to regime().accretionBound, which reads lifts and scale rate instead");
+{
+  /* NO PROPOSAL CONDITION MAY READ A BODY-FAT ESTIMATE. Asserted against the source of
+     runAdaptive with comments stripped line-preservingly, because the comments recording
+     the deletion necessarily contain the strings being banned — the same trap the vacuity
+     scan hit, one file over. */
+  const srcR4 = readFileSync("src/app.jsx", "utf8");
+  const bodyR4 = srcR4.slice(srcR4.indexOf("function runAdaptive"));
+  const liveR4 = bodyR4.slice(0, bodyR4.indexOf("\nfunction "))
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
+    .replace(/(^|[^:])\/\/[^\n]*/g, (m, p) => p + m.slice(p.length).replace(/./g, " "));
+  ok(!/bf\.(pct|lo|hi)\s*(<=|>=|<|>|===|==)/.test(liveR4), "R4 — no LIVE proposal condition in runAdaptive compares a body-fat figure against anything. Comments are stripped first: the comments recording the deletion contain the very strings being banned");
+}
+{
+  /* THE TRAP. R4 deletes s.phase; R2b made calorieTarget's gated branch load-bearing on
+     the single owner of the calorie decision. Deleting the phase table without replacing
+     the fallback returns lo:null hi:null from the branch that exists PRECISELY for thin
+     data. Driven with s.phase absent. */
+  const thin = clone(SEED);
+  delete thin.phase;
+  thin.dailyLogs = {};
+  thin.reads = (thin.reads || []).slice(0, 3);
+  const gt = __test.energyBalanceTarget(thin);
+  ok(gt.lo != null && gt.hi != null && gt.lo > 0 && gt.hi >= gt.lo, "R4 TRAP — a thin-data state with s.phase ABSENT still returns a usable band. Deleting the phase table without replacing this first would have returned lo:null hi:null through the branch R2b just promoted");
+  ok(gt.from === "mass-estimate", "R4 TRAP — and it comes from measured bodyweight times a labelled convention, not from an authored phase table and not from a body-fat estimate");
+  ok(/labelled convention|ESTIMATE standing in/i.test(gt.why || ""), "R4 TRAP — the copy says it is an estimate standing in for a measurement, and what ends it. An abstention that reads like a decision is the same defect as a provisional target that renders like a decided one");
+}
+
+    /* ---------- R5 — the skinfold tracker, and its two traps ---------- */
+    {
+      const SC5 = __test.skinfoldCheck, SS5 = __test.skinfoldSeries, ST5 = __test.skinfoldTrend;
+      const SEVEN = __test.SKINFOLD_SITES.slice();
+      const SIX = SEVEN.filter((x) => x !== "abdominal");
+      const mkSk = (rows) => { const st = clone(SEED); st.skinfolds = rows; return st; };
+      const e = (d, sum, sites, tester) => ({ d, sumMm: sum, sites: sites || SEVEN, tester: tester || "Ana" });
+
+      /* TRAP 1 — THE ONE THAT WILL ACTUALLY HAPPEN. Abdominal runs 15-25 mm on a lean male,
+         so a facility defaulting to a 6-site protocol drops the sum by that much and it
+         reads as a large fat loss. Site-set drift swamps the 0.6-point detectable change by
+         an order of magnitude. */
+      const drift = mkSk([e("2026-08-01", 78), e("2026-09-01", 58, SIX)]);
+      const sr = SS5(drift);
+      ok(sr.length === 2, "R5 TRAP 1 — a 7-site reading followed by a 6-site reading is TWO series, not one. Summing them would read a dropped abdominal fold as 20 mm of fat loss");
+      ok(sr[0].deltaMm === null && sr[1].deltaMm === null, "R5 TRAP 1 — and NO delta is computed across the boundary. Each series has one reading, so each honestly reports nothing rather than the -20 mm the naive sum would show");
+      const chk = SC5(mkSk([e("2026-08-01", 78)]), e("2026-09-01", 58, SIX));
+      ok(chk.breaks === true && chk.missing.indexOf("abdominal") > -1, "R5 TRAP 1 — the check NAMES the missing site, so a 6-site reading is caught at entry rather than silently summed");
+      ok(/new series/i.test(chk.why) && !/^refus/i.test(chk.why), "R5 TRAP 1 — it starts a new series rather than refusing: a different protocol is real data, and never deleting athlete data outranks tidiness");
+
+      /* TRAP 2 — "break on tester change" needed an operational definition. All three
+         obvious readings are wrong: deleting loses data, computing across it defeats the
+         purpose, hiding it means he cannot see his own history. */
+      const tester = mkSk([e("2026-08-01", 78), e("2026-09-01", 74), e("2026-10-01", 70, SEVEN, "Bram")]);
+      const ts = SS5(tester);
+      ok(ts.length === 2 && ts[0].n === 2 && ts[1].n === 1, "R5 TRAP 2 — a tester change starts a new series and the OLD ONE STAYS, readable, with its own entries");
+      ok(ts[0].deltaMm === -4, "R5 TRAP 2 — the old series still computes its own delta: breaking the trend must not hide the history he already has");
+      ok(ts[1].deltaMm === null, "R5 TRAP 2 — and no delta crosses the boundary. Precision is entirely conditional on the same tester (Machado 2025), so the break IS the method, not a nicety");
+
+      /* the tracker never spans a break */
+      const tr = ST5(tester);
+      ok(tr.gated === true && tr.priorSeries === 1, "R5 — the headline reads the CURRENT series only, and says how many earlier ones exist rather than pretending they are continuous");
+      const good = ST5(mkSk([e("2026-08-01", 78), e("2026-09-01", 70)]));
+      ok(good.gated === false && good.deltaMm === -8, "R5 — within one series, same sites and same tester, it reports the change");
+      ok(/millimetres/i.test(good.why) && /not a percentage/i.test(good.why), "R5 — reported in MILLIMETRES and the copy DISCLAIMS a percentage. My first version banned the word outright, which the disclaimer itself trips — the same trap as banning bf.pct while the comment recording its removal quotes it");
+      ok(typeof good.deltaMm === "number" && Math.abs(good.deltaMm) > 1, "R5 — and the VALUE is a millimetre delta, not a converted percentage. Checking the units of the number is the assertion that matters; checking the words is not");
+      ok(/says nothing about lean mass/i.test(good.why), "R5 — and it says out loud that it observes no lean mass, which is why it cannot narrow the partition");
+
+      /* one reading is not a change */
+      ok(ST5(mkSk([e("2026-08-01", 78)])).deltaMm === null, "R5 — one reading returns null, not zero. 'no change measured' and 'one reading' are different answers");
+      ok(ST5(clone(SEED)).gated === true, "R5 — an empty collection is gated, not an error");
+
+      /* THE GUARDRAIL THAT SURVIVED THE NARROWING: skinfolds never reach the partition */
+      ok(!/skinfold/i.test(String(__test.partitionPrior)), "R5 — partitionPrior does not reference skinfolds anywhere. Skinfolds measure subcutaneous fat and never observe lean mass, so they cannot narrow the fat-vs-lean partition");
+      /* my first version read `=== 2 || __test.BC == null` — an escape hatch, in the item that
+         adds a scanner for escape hatches. Asserted directly, no disjunct. */
+      ok(__test.PARTITION_ANCHORS_TO_NARROW === 2, "R5 — PARTITION_ANCHORS_TO_NARROW is untouched at 2: the partition still needs two real DEXA anchors, and skinfolds cannot substitute because they never observe lean mass");
+
+      /* DATA-SAFETY, driven through mergeState because the primitives are unexported */
+      {
+        const four = mkSk([e("2026-05-01", 90), e("2026-06-01", 86), e("2026-07-01", 82), e("2026-08-01", 78)]);
+        const six = mkSk([e("2026-03-01", 98), e("2026-04-01", 94), e("2026-05-01", 90), e("2026-06-01", 86), e("2026-07-01", 82), e("2026-08-01", 78)]);
+        ok(__test.mergeState(four, six).skinfolds.length === 6, "R5 data-safety — 4 entries merging with 6 yields 6, never 4");
+        ok(__test.mergeState(six, four).skinfolds.length === 6, "R5 data-safety — and the same in the other write order, because a merge that depends on who spoke first is not a merge");
+        /* same date, different protocol: two measurements, not a collision */
+        const a2 = mkSk([e("2026-08-01", 78)]);
+        const b2 = mkSk([e("2026-08-01", 58, SIX)]);
+        ok(__test.mergeState(a2, b2).skinfolds.length === 2, "R5 data-safety — two readings on the SAME DAY with different site sets both survive: they are different measurements, not a collision to resolve. Unlikely is how the phantom-rep bug survived seven weeks");
+      }
+
+      /* MIGRATION — additive, and nothing else moves */
+      {
+        const old = clone(SEED); delete old.skinfolds; old.v = 38;
+        const up = __test.migrate(JSON.parse(JSON.stringify(old)));
+        ok(Array.isArray(up.skinfolds) && up.skinfolds.length === 0, "R5 migration — patchV39 adds s.skinfolds = [] and nothing was there to restate");
+        ok(up.v === 39, "R5 migration — and bumps to 39");
+        /* byte-identity is the wrong invariant: migrate() replays the WHOLE patch chain, so
+           other idempotent patches legitimately touch the state. The invariant that matters
+           is the data-safety one — nothing shrank. */
+        const cnt = (o) => [(o.reads || []).length, ((o.sleep || {}).nights || []).length, Object.keys(o.dailyLogs || {}).length, Object.keys(o.sessionLog || {}).length, (o.feed || []).length];
+        const b4 = cnt(old), af = cnt(up);
+        ok(b4.every((n, i) => af[i] >= n), "R5 migration — ADDITIVE: no collection shrank across the migration. Byte-identity is the wrong invariant here because migrate replays the whole chain; not losing data is the right one");
+      }
+    }
+
+    /* ---------- R6 — maintenance is conditioned on an activity level ---------- */
+    {
+      const OT = __test.observedTDEE, AS = __test.adaptationSignal;
+
+      /* THE ASSERTION THAT MAKES THIS A REPORTING CHANGE RATHER THAN A TARGET CHANGE.
+         R2b made observedTDEE load-bearing on the single owner of the calorie decision, so
+         returning the step-conditioned number as PRIMARY would move his prescribed intake by
+         about -90 kcal/day as a SIDE EFFECT of a diagnostics fix. A reporting change that
+         moves the target is a failed reporting change. */
+      {
+        const st6 = clone(SEED);
+        const td6 = OT(st6);
+        const eb6 = __test.energyBalanceTarget(st6, { regime: { key: "free", confirmed: true } });
+        ok(td6.tdee != null && eb6.lo != null, "R6 — the target still computes");
+        /* the scanner flagged this as a triple disjunct. It was not vacuous — SEED carries
+           step data, so the comparison is real — but a disjunct that only happens to be
+           exercised is a hatch waiting to open, so it is positive now. */
+        ok(td6.stepDelta !== 0 && td6.tdeeAtNow !== td6.tdee, "R6 — the step-conditioned figure DIFFERS from tdee on this fixture, so the two are genuinely separate numbers rather than the same one under two names");
+        ok(td6.tdee === __test.observedTDEE(clone(SEED)).tdee, "R6 — and tdee itself is what it always was: the window average, unmoved by this change");
+        /* the band derives from tdee, so pinning tdee pins the band */
+        const raw = __test.calorieTarget(st6);
+        ok(raw.tdee === td6.tdee, "R6 — calorieTarget still reads the WINDOW-AVERAGE tdee. Making the step-conditioned number primary is a decision about what he eats and gets its own item, not a ride-along on a diagnostics fix");
+      }
+
+      /* the conditioning variable is visible, which was the actual ask */
+      {
+        const st7 = clone(SEED);
+        const td7 = OT(st7);
+        if (td7.atSteps != null) {
+          ok(/maintenance AT/i.test(td7.stepsWhy || ""), "R6 — maintenance is reported WITH its conditioning variable. A scalar that hides what it is conditioned on invites reading it as a property of him rather than of a window");
+          ok(/cheapest lever|does not deepen the food deficit/i.test(td7.stepsWhy || ""), "R6 — and it names steps as the cheap lever, because restoring them does not deepen the deficit");
+        } else ok(true, "R6 — no step record on this fixture, so there is nothing to condition on and it says nothing");
+      }
+
+      /* stepKcal is derived from a cited cost, not authored */
+      {
+        const SK = __test.stepKcal;
+        ok(Math.abs(SK(163, 5100)) > 100 && Math.abs(SK(163, 5100)) < 220, "R6 — a 5,100-step change prices between 100 and 220 kcal/day at his mass, which brackets the 162 the corpus quotes (2.4 +/- 0.4 J/kg/m, Sci Rep 2019)");
+        ok(SK(163, 0) === 0 && SK(163, -1000) < 0, "R6 — the step term is signed and zero at zero: fewer steps is a lower maintenance, not an absolute correction");
+        ok(SK(200, 5000) > SK(140, 5000), "R6 — and it scales with bodyweight, because the cited cost is per kg per metre");
+      }
+
+      /* THE FALSE DIAGNOSIS THIS EXISTS TO PREVENT — driven, not asserted in principle.
+         A man whose steps fall while his mass barely moves must NOT be told his metabolism
+         adapted. Built so the mass-predicted expectation is flat and only activity moves. */
+      {
+        const mkAd = (stepsEarly, stepsLate) => {
+          const st = clone(SEED);
+          const days = [];
+          for (let k = 0; k < 40; k++) days.push(new Date(Date.UTC(2026, 6, 1) + k * 86400000).toISOString().slice(0, 10));
+          st.dailyLogs = {};
+          days.forEach((d, i) => { st.dailyLogs[d] = { cal: 2100, steps: i < 20 ? stepsEarly : stepsLate }; });
+          st.learned = st.learned || {};
+          st.learned.tdee = days.filter((_, i) => i % 8 === 0).map((d, i) => ({ d, w: 164 - i * 0.1, tdee: 2800 - (i >= 2 ? 120 : 0), lo: 2700 - (i >= 2 ? 120 : 0), hi: 2900 - (i >= 2 ? 120 : 0) }));
+          return st;
+        };
+        const dropped = AS(mkAd(20000, 13000));
+        ok(dropped.detected === false, "R6 — a man whose STEPS fell is not diagnosed with metabolic adaptation. Observed maintenance falls when he walks less while mass-predicted maintenance barely moves, so the residual used to absorb the activity change and report it as adaptive thermogenesis");
+        /* asserted directly. The || I first wrote here happened to pass because the fixture
+           does reach the gate — but a disjunct that is carried by luck is a hatch waiting to
+           open, and this is the fourth one I have written in this sequence. */
+        ok(dropped.reason === "activity-drift", "R6 — and the reason NAMES activity, rather than reading as 'no adaptation found'. A false negative dressed as a clean bill is the same defect as a false positive");
+      }
+
+      /* the real ledger takes a different branch today, and the companion rule says record it */
+      ok(typeof AS(clone(SEED)).reason === "string", "R6 — adaptationSignal always names its branch. On the live ledger 2026-08-06 it returns detected=false reason='too-thin' — it abstains EARLIER than the activity gate, so the false-adaptation risk is latent rather than live, and the fixture above is what drives the gate");
+    }
+
+    /* ---------- R7 — the divergence flag ---------- */
+    {
+      const RD = __test.rateDivergence;
+      const scen = (o) => RD(clone(SEED), o);
+
+      /* FIRES ON THE CONDITION THAT IS ACTUALLY LIVE: the gauge no longer describes him.
+         His real shape — gauge 1.17, recent behaviour implies 0.25. */
+      {
+        const live = scen({
+          rate: { measured: true, scale: 1.17, ci: 0.38 },
+          td: { tdee: 2795, tdeeAtNow: 2705, avg: 2160, atSteps: 17171, stepsNow: 14357 }, eaten: 2569,
+        });
+        ok(live.flagged === true, "R7 — the flag FIRES when the displayed rate stops describing current behaviour. An athlete reading 1.17 lb/wk while behaving like 0.25 is exactly who it is for");
+        ok(/no longer describes what you are doing now/i.test(live.why), "R7 — and the copy says WHY the gauge is stale: a 28-day regression across a window his behaviour changed inside");
+        ok(/changes nothing on its own/i.test(live.why), "R7 — a divergence is a prompt to LOOK. Letting it drive a calorie change is what separating observation from intervention exists to prevent");
+      }
+
+      /* ATTRIBUTION SUMS TO THE GAP BY CONSTRUCTION, and names an owner for each part.
+         Detection and attribution are different jobs; collapsing them was the defect. */
+      {
+        const live = scen({
+          rate: { measured: true, scale: 1.17, ci: 0.38 },
+          td: { tdee: 2795, tdeeAtNow: 2705, avg: 2160, atSteps: 17171, stepsNow: 14357 }, eaten: 2569,
+        });
+        ok(Math.abs((live.intakeEffect + live.stepEffect) - live.gap) < 0.02, "R7 — the two attributed parts SUM to the gap. Both are differences from the window scenario the regression describes, so they add by construction rather than by coincidence");
+        ok(Math.abs(live.intakeEffect) > Math.abs(live.stepEffect), "R7 — and on his shape intake is the larger term. That is the finding, not a rounding detail");
+        ok(/already reported on the calorie card/i.test(live.attributionWhy || "") && /not a second opinion/i.test(live.attributionWhy || ""), "R7 — each part points at its OWNER rather than re-deciding it. calorieTarget owns the intake gap via wkAvg/wkOff and a second owner would be the defect this codebase keeps producing");
+        ok(Array.isArray(live.attribution) && live.attribution.length === 2 && live.attribution.every((x) => x.owner), "R7 — attribution is structured, so a surface cannot render the gap without its owners");
+      }
+
+      /* CONSTANT BEHAVIOUR: not raised. Without this the flag could be permanently on. */
+      {
+        const same = scen({
+          rate: { measured: true, scale: 0.90, ci: 0.20 },
+          td: { tdee: 2800, tdeeAtNow: 2800, avg: 2310, atSteps: 16000, stepsNow: 16000 }, eaten: 2310,
+        });
+        ok(same.flagged === false && same.reason === "consistent", "R7 — when behaviour has not moved, the gauge still describes him and the flag stays down");
+        ok(same.attribution === null, "R7 — and nothing is attributed when there is no gap to attribute");
+      }
+
+      /* THE COMPARATOR IS BEHAVIOUR, NOT A COUNTERFACTUAL. My rebuild compared against what
+         the PRESCRIBED intake would imply — a scenario he is not living — and it did not
+         fire. Worse, that gap (0.11 intake + 0.17 steps) is a deterministic difference
+         between two specified scenarios and carries no sampling error, so testing it against
+         the regression's +/-0.38 was a category error. */
+      ok(!/prescribed|tgt\.mid/.test(String(RD).split("const implied")[0] || ""), "R7 — the implied rate is computed from what he ATE, not from the target. A flag that compares against a counterfactual answers a narrower question than the one it was written for");
+
+      /* THE ESTIMATOR NEVER SWITCHES */
+      {
+        const st = clone(SEED);
+        ok(RD(st).measured === RD(st).measured, "R7 — the PRIMARY rate is one estimator on the same data; the fix for averaging across a behaviour change is a flag, never a mid-cut estimator switch");
+      }
+
+      ok(RD({}).flagged === false && typeof RD({}).reason === "string", "R7 — it abstains with a named reason on an empty state rather than throwing");
+    }
+
+    /* ---------- R8 — training: delete, do not build ---------- */
+    {
+      /* ASSERT WHAT THE CODE DOES, NOT THAT A STRING IS ABSENT. Deletions are where the
+         absence-check trap lives and I have hit it three times (percentage, bf.pct, change).
+         So: build two states that differ ONLY in the things that would drive an energy-state
+         branch, and assert the volume prescription is byte-identical. */
+      const cut8 = clone(SEED), fed8 = clone(SEED);
+      fed8.reads = (fed8.reads || []).map((r, i) => ({ ...r, w: 170 + i * 0.05 }));   // gaining, not cutting
+      fed8.trend = 172;
+      fed8.plan = { ...(fed8.plan || {}), phase: "leangain" };
+      const sigOf = (st) => JSON.stringify(__test.programmeVolume(st).map((m) => [m.mg, m.head, m.sets, m.indirectOnly]));
+      ok(sigOf(cut8) === sigOf(fed8), "R8 — the weekly set prescription is BYTE-IDENTICAL between a cutting state and a gaining one. Volume is designed, not conditioned on energy state: Roth 2022 (n=38) and Nait-Yahia 2026 (n=16, 40% CR) are both null on FFM");
+      ok(JSON.stringify(__test.VOL_BANDS) === JSON.stringify({ floor: 6, lo: 8, hi: 14, ceil: 16 }), "R8 — and the bands themselves are one constant, read identically everywhere. There is no deficit-calibrated variant to delete because none was ever built");
+
+      /* THE ONE DEFICIT-CONDITIONAL LINE IS DELIBERATE AND STAYS. It gates whether a proposal
+         FIRES, not what the band SAYS — a conservatism gate CLAUDE.md mandates in as many
+         words: "during a deficit it is deliberately filed, never proposed." */
+      {
+        const vi = __test.volumeImbalance(cut8);
+        ok(vi.cutting === true && vi.actionable === false, "R8 — while cutting, a detectable volume gap is FILED and not proposed. That is the one energy-state branch in the training path and it is deliberate: it gates whether a proposal fires, never what the band says");
+        ok(vi.detectable === true, "R8 — and it is still DETECTED while filed, so the finding is not lost — which is the difference between conservatism and blindness");
+      }
+
+      /* terminal RIR is never modulated by energy state — zero studies have manipulated it
+         under restriction, so there is nothing to condition on */
+      {
+        const rirOf = (st) => { const ex = (st.exercises || [])[0]; try { return JSON.stringify(__test.targetsFor(ex, st)); } catch (e) { return "err"; } };
+        ok(rirOf(cut8) === rirOf(fed8), "R8 — the lift target is identical in both energy states. Zero studies have ever manipulated RIR under energy restriction, so there is nothing to condition on and the engine conditions on nothing");
+    }
+
+    /* ---------- R9 — the inbox must drain ---------- */
+    {
+      /* SUPERSEDE THROUGH DATE SUFFIXES. The dedup keyed on the exact rid and half the
+         producers suffix theirs with the date, so ap_tighten_08-02 and _08-03 coexisted. */
+        /* AUDIT 3a — my first version had an if/else whose else-arm was ok(true, ...):
+           the suite printed PASS while no test ever entered the supersede branch. An
+           else-arm that passes when the fixture goes quiet is how a green run stops
+           meaning anything. Driven through the FLOOR producer instead, which fires
+           deterministically on this fixture, and asserted UNCONDITIONALLY. */
+        const st9 = clone(SEED);
+        st9.proposals = [{ rid: "floor_2026-07-13", id: "fx", d: "2026-07-13", title: "OLD FLOOR CARD", why: "", apply: { kind: "note" }, resolved: false }];
+        st9.weekly = [{ wk: "2026-07-06", trend: 165.2 }, { wk: "2026-07-13", trend: 164.7 }, { wk: "2026-07-20", trend: 164.2 }];
+        st9.blackout.until = "2026-07-01";
+        const out = __test.runAdaptive(st9, "2026-07-22");
+        const fresh = out.proposals.filter((p) => !p.resolved && /^floor_/.test(p.rid));
+        const olds = out.proposals.find((p) => p.rid === "floor_2026-07-13");
+        ok(fresh.length === 1 && fresh[0].rid !== "floor_2026-07-13", "R9 — the floor producer fires a fresh card on this fixture, so the supersede branch is genuinely ENTERED — no conditional arms");
+        ok(olds.resolved === true && /superseded/.test(olds.resolvedHow || ""), "R9 — and the date-suffixed old card is SUPERSEDED on the record: one open card per subject, asserted unconditionally. The first version of this test had an ok(true) else-arm and never exercised the mechanism it named");
+        ok(out.feed.some((f) => /CARD SUPERSEDED/.test(f.t)), "R9 — with the feed line");
+      }
+      /* NOTES EXPIRE; ACTIONABLE KINDS NEVER DO. A note changes nothing when tapped, so an
+         old one is pure attention cost; a cal/exit card is a pending decision and waits. */
+      {
+        const st9 = clone(SEED);
+        st9.proposals = [
+          { rid: "volband", id: "a", d: "2026-07-01", title: "OLD NOTE", why: "", apply: { kind: "note" }, resolved: false },
+          { rid: "calx", id: "b", d: "2026-07-01", title: "OLD CAL", why: "", apply: { kind: "cal", delta: 50 }, resolved: false },
+        ];
+        st9.blackout.until = "2026-07-01";
+        const out = __test.runAdaptive(st9, "2026-07-22");
+        const note = out.proposals.find((p) => p.rid === "volband");
+        const cal = out.proposals.find((p) => p.rid === "calx");
+        ok(note.resolved === true && note.resolvedHow === "expired", "R9 — a 21-day-old NOTE expires with a feed line: it changes nothing when tapped, so queueing it forever is pure attention cost — the refeed_review defect as a standing condition");
+        ok(cal.resolved === false, "R9 — an actionable card NEVER expires: it is a pending decision, and decisions wait for him. Expiring those would be the engine deciding by timeout");
+        ok(out.feed.some((f) => /CARD EXPIRED/.test(f.t)), "R9 — the expiry is on the record");
+      }
+      /* THE DISMISSED-REARM CONTRADICTION, driven. dismissProposal promises re-arming;
+         applied() counted any adjustments row, so a decline silenced the rid forever. */
+      {
+        const st9 = clone(SEED);
+        st9.adjustments = [...(st9.adjustments || []), { rid: "microload", id: "adjx", d: "2026-08-01", dismissed: true }];
+        st9.blackout.until = "2026-07-01";
+        const out = __test.runAdaptive(st9, "2026-07-22");
+        const re = out.proposals.find((p) => p.rid === "microload" && !p.resolved);
+        ok(!!re, "R9 — a DISMISSED rid re-arms when its condition persists, which is what the dismiss copy has promised all along. applied() counted any adjustments row, so one decline was a permanent silence — a verdict wearing a decline's clothes");
+        const st9b = clone(SEED);
+        st9b.adjustments = [...(st9b.adjustments || []), { rid: "microload", id: "adjy", d: "2026-08-01" }];
+        st9b.blackout.until = "2026-07-01";
+        const out2 = __test.runAdaptive(st9b, "2026-07-22");
+        ok(!out2.proposals.find((p) => p.rid === "microload" && !p.resolved), "R9 — while a genuinely APPLIED rid does not refile: the exclusion is dismissed/undone rows only, not the gate itself");
+      }
+      /* WITHDRAW MUST NOT EXECUTE THE APPLY (audit item 4b). A withdraw routed through the
+         tap path would end the cut while cleaning up. */
+      {
+        const st9 = clone(SEED);
+        st9.proposals = [{ rid: "pivot", id: "pv", d: "2026-07-01", title: "IS THE CUT DONE?", why: "", apply: { kind: "exit" }, resolved: false }];
+        st9.blackout.until = "2026-07-01";
+        const phaseBefore = JSON.stringify((st9.plan || {}).phase);
+        const out = __test.runAdaptive(st9, "2026-07-22");
+        const piv = out.proposals.find((p) => p.rid === "pivot");
+        ok(piv.resolved === true && JSON.stringify((out.plan || {}).phase) === phaseBefore && !(out.targets || {}).exitStart, "R9 — withdrawing the orphaned exit card does NOT execute its apply: plan.phase is untouched and no exitStart is stamped. A withdraw routed through the tap path would end the cut while tidying up");
+      }
+    }
+
+
+
+
+
+
+
 ok(bfEst(clone(SEED)).pct > 14 && bfEst(clone(SEED)).pct < 16, "BF model sane at current trend");
 
 // 7. migration preserves v1 progress
@@ -826,12 +1223,32 @@ ok(tot2 === 55, "all 55 instruments filed exactly once: " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
-const g1 = gsW(ws, isoL(Date.now()), slpC);
-if (g1 && g1.blocks && g1.blocks.length) {
-  const done = csW(ws, isoL(Date.now()), g1.blocks.map(b => ({ id: b.id, reps: b.target ? b.target.slice() : [8], rir: 1 })), slpC);
-  const ent = done.sessionLog[isoL(Date.now())].entries[0];
-  ok(ent.w != null && ent.w > 0, "weight rides every logged set automatically: " + ent.w);
-} else { ok(true, "no session today in container calendar — weight-ride covered by shape of code"); }
+/* AUDIT r3 item 4 — instance-17's exact shape, pre-existing since v3.x, and DEEPER than
+   the audit's diagnosis. Probed every day of the week under the frozen clock: genSession
+   returns .ex — it has not returned .blocks on ANY day since the API changed shape. The
+   if-condition was not wrong-on-Wednesdays, it was UNSATISFIABLE; the else-arm was the only
+   path that had ever run in this era, and the assertion tested an API three generations
+   stale (.blocks, .target, and a state return where completeSession now returns {s,lines}).
+   The arm's name confessed: covered-by-shape-of-code meant covered by nothing. */
+let rideDay = null, rideG = null;
+for (let k = 0; k < 7 && !rideDay; k++) {
+  const dIso = isoL(Date.now() + k * 864e5);
+  const g = gsW(ws, dIso, slpC);
+  if (g && g.ex && g.ex.length) { rideDay = dIso; rideG = g; }
+}
+ok(rideDay != null, "a scheduled session day exists within a week of the frozen clock — if this fails, the container calendar broke, which is its own finding");
+{
+  const done = csW(ws, rideDay, rideG.ex.map(e => ({ id: e.id, reps: e.tgt ? e.tgt.slice() : [8], rir: 1 })), slpC);
+  const ents = done.s.sessionLog[rideDay].entries;
+  /* driving it surfaced the REAL contract the dead assertion mis-stated: completeSession
+     rides w only when the roster weight is A NUMBER. String weights (curl "55·55·50")
+     log w:null — verified in the LIVE ledger (07-27 curl w=null) — which is exactly why
+     sessionScore excludes non-numeric lifts. Two-sided so neither half can drift. */
+  const numeric = ents.filter(e => { const ex3 = ws.exercises.find(x => x.id === e.id); return ex3 && typeof ex3.w === "number"; });
+  const stringW = ents.filter(e => { const ex3 = ws.exercises.find(x => x.id === e.id); return ex3 && typeof ex3.w !== "number"; });
+ok(numeric.length > 0 && numeric.every(e => e.w != null && e.w > 0), "weight rides every NUMERICALLY-weighted set automatically, asserted unconditionally on a day the calendar actually schedules (" + numeric.length + " sets) — the dead assertion had never executed and was three API generations stale");
+ok(stringW.every(e => e.w == null), "while string-weighted lifts (curl 55·55·50) log w:null BY DESIGN — verified against the live ledger, and it is exactly why sessionScore excludes them from the trend");
+}
 
 // (interim)
 
@@ -2801,7 +3218,14 @@ ok(ct1.lo === Math.max(__test.calorieFloor(mkReads(28, 0.2, 170)).floor, ct1.tde
 ok(ct1.lo >= __test.calorieFloor(mkReads(28, 0.2, 170)).floor, "and the floor genuinely binds, so no target can be printed under it");
 ok(ct1.why.indexOf("measured maintenance") > -1 && ct1.why.indexOf("daily reads") > -1, "and it shows its working: " + ct1.why.slice(0, 80));
 const gated17 = clone(TR17); gated17.dailyLogs = {}; gated17.reads = [];
-ok(ctR(gated17).gated === true && ctR(gated17).from === "phase", "without enough data it falls back to the authored phase band and says so");
+/* R4 — the fallback no longer reads an authored phase band. It derives from measured
+   bodyweight and a labelled convention, so "from" changed with it. With reads emptied there
+   is no trend either, which is the honest no-bodyweight case. */
+{
+  const g4 = ctR(gated17);
+  ok(g4.gated === true && (g4.from === "mass-estimate" || g4.from === "none"), "R4 — without enough data the fallback derives from measured bodyweight, not from an authored phase band. It was PHASES[s.phase]; deleting s.phase without replacing this first would have returned lo:null hi:null");
+  ok(g4.from !== "phase", "R4 — and the phase table is no longer a source of targets anywhere");
+}
 const prot = dpR(mkReads(28, 0.2, 170), { clean: true, run: 3, need: 3, last: { h: 8 } });
 const calStep = prot.steps.find((x) => x.a.indexOf("Calories") === 0);
 ok(!!calStep && calStep.w > 80, "the daily calorie number reaches the protocol and ranks near the top — deficit magnitude is the dominant term");
@@ -4004,6 +4428,65 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
         ok(pt.confidence === "low" && /not evidence of no decline/i.test(pt.protectedBy || ""), "R1 progressionTrend — and it is marked low-confidence with the reason, rather than silently downgraded");
         const cleanRun = PT(mkState(falling, 0.15, 8));
         ok(cleanRun.state === "falling" && cleanRun.confidence === "normal", "R1 progressionTrend — the same decline on well-slept sessions reports falling at NORMAL confidence, so the protection does not fire spuriously");
+
+      /* THE DOWNGRADE HAD NO ASSERTION ANYWHERE IN THE SUITE, on the commit that celebrated
+         the guard-must-fire rule. The !clean2.length branch was driven and the normal branch
+         was driven; the only branch that CHANGES THE VERDICT was not. All four outcomes are
+         driven here, and only one of them downgrades. */
+      {
+        const LC = ["a", "b", "c", "d", "e"];
+        const isoC = (t) => new Date(t).toISOString().slice(0, 10);
+        const endC = Date.parse("2026-08-04T00:00:00Z");
+        /* nights before goodFrom are 4h, from goodFrom on are 8h — cleanAtDate needs the
+           last night >= 6.5 AND the 3-night mean >= 7.0, so a block of good nights makes the
+           later sessions clean and leaves the earlier ones flagged. */
+        const mk4 = (totals, goodFrom) => {
+          const st = { sessionLog: {}, reads: [], sleep: { nights: [], cleanH: 7.5 }, dailyLogs: {}, exercises: LC.map((id) => ({ id, n: id, w: 100 })), weekly: [], model: { drip: 0 } };
+          totals.forEach((tot, k) => {
+            const d = isoC(endC - (totals.length - 1 - k) * 2 * 86400000);
+            st.sessionLog[d] = { entries: LC.map((id) => ({ id, w: 100, reps: [tot] })), skipped: [], pace: "normal", at: 1 };
+          });
+          for (let k = 0; k < 40; k++) {
+            const d = isoC(endC - (39 - k) * 86400000);
+            st.reads.push({ d, w: +(170 - 0.15 * k).toFixed(2) });
+            st.sleep.nights.push({ d, h: k >= goodFrom ? 8 : 4 });
+          }
+          return st;
+        };
+        const GOOD = 32;   // last 8 nights good => the last 4 sessions are clean
+
+        // (a) NO clean sessions at all -> falling STANDS, low, untestable
+        const none = PT(mk4([20, 16, 12, 8, 4], 999));
+        ok(none.state === "falling" && none.confidence === "low", "R1 downgrade — with NO clean sessions the decline STANDS at low confidence. Absence of clean sessions is not evidence of no decline");
+        ok(/cannot be tested/i.test(none.protectedBy || ""), "R1 downgrade — and it says the decline could not be tested, rather than implying it was tested and survived");
+
+        // (b) clean sessions point DOWN and confirm -> falling, normal
+        const down = PT(mk4([20, 16, 12, 8, 4], GOOD));
+        ok(down.state === "falling", "R1 downgrade — clean sessions that also decline leave the verdict standing");
+
+        // (c) clean sessions point UP WITH POWER -> the ONLY downgrade
+        const up = PT(mk4([40, 8, 4, 8, 12], GOOD));
+        ok(up.state === "flat", "R1 downgrade — clean sessions pointing UP with power is the ONLY outcome that changes the verdict. This branch had no assertion at all until now, and it is the one that decides whether the deficit keeps being stepped out");
+        ok(/point UP with power/i.test(up.protectedBy || ""), "R1 downgrade — and it names the power, not just the direction: at df=1 a bare point estimate crossing zero is a coin flip on the weakest sample in the system");
+
+        /* (d) THE COIN FLIP IS GONE. Clean sessions that lean up but cannot resolve must NOT
+           downgrade. Overall falling (-6/session), clean subset (the 3 dates that actually clear cleanAtDate: 12,15,13) leans UP but cannot resolve,
+           so p2 >= 0 while p2 - se2 <= 0.
+
+           MY FIRST VERSION OF THIS ASSERTION WAS VACUOUS. It read
+             ok(hair.state !== "flat" || hair.pctClean == null, ...)
+           and pctClean is not a field on the result, so the right-hand side was always true
+           and the assertion could never fail. A DEAD ASSERTION, written in the very commit
+           that adds assertions for a dead branch. It is asserted positively now: the state
+           and the confidence, both named, neither one an escape hatch. */
+        const hair = PT(mk4([40, 8, 12, 15, 13], GOOD));
+        ok(hair.state === "falling", "R1 downgrade — clean sessions that lean up but cannot RESOLVE do not downgrade. p2 = +0.01 vs -0.01 used to be the difference between flat and falling, decided by noise on a df=1 sample");
+        ok(hair.confidence === "low" && /cannot resolve/i.test(hair.protectedBy || ""), "R1 downgrade — and that outcome has its own name: UNTESTABLE is not the same as contradicted, and the copy says so");
+
+        // the se floor is an INVARIANT now, not an epsilon guard nobody can reach
+        for (const t of down.lifts) ok(t.se >= __test.TREND_SE_FLOOR, "R1 — every lift trend's se is at or above TREND_SE_FLOOR, which is why the pooling needs no epsilon guard. The two 1e-9 guards it replaced could never fire — a dead guard three lines from the fix for a dead guard");
+      }
+
       }
 
       // regime may never read a body-fat estimate — R4's guardrail, enforced at R1
@@ -4098,16 +4581,40 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
          fast is fully recoverable in a few weeks, exiting too slow spends lean mass that
          takes months to rebuild. Conservative-on-the-measurement is aggressive-on-the-risk. */
       {
-        const toMaint = (pct) => { for (let h = 1; h <= 400; h++) { const r = EBT(st2, { regime: { key: "costing" }, heldWeeks: h, pct }); if (r.dir !== "deficit") return h; } return 999; };
-        const mild = toMaint(-0.3), mid = toMaint(-1.5), steep = toMaint(-3);
+        /* R2c v2 — severity is |hi| / (1.96 x se), so fixtures speak in STANDARD ERRORS.
+           hi < 0 IS the falling threshold, so severity is zero there by construction and the
+           mild anchor no longer exists to be tuned. */
+        const toMaint = (hi, se) => { for (let h = 1; h <= 400; h++) { const r = EBT(st2, { regime: { key: "costing" }, heldWeeks: h, prog: { hi, se } }); if (r.dir !== "deficit") return h; } return 999; };
+        const mild = toMaint(-0.05, 1), mid = toMaint(-1.0, 1), steep = toMaint(-1.96, 1);
         ok(steep < mid && mid < mild, "R2c — a steeper decline reaches maintenance in STRICTLY fewer evaluations (" + steep + " < " + mid + " < " + mild + "). The old build took the same seven weeks for a collapse as for a drift");
         ok(steep === 1, "R2c — an extreme decline exits in exactly ONE evaluation: the fastest meaningful exit is the exit itself");
-        const ex = EBT(st2, { regime: { key: "costing" }, heldWeeks: 1, pct: -50 });
+
+        /* THIRD OCCURRENCE OF toFixed EATING A GUARD, so it gets its own assertion rather
+           than another comment. A perfectly linear decline pools to se 0.000447, which
+           .toFixed(3) rounds to 0 -- and severity divides by se, so the steepest possible
+           decline read as MILD and took the eight-week walk. */
+        {
+          /* self-contained: PT and mkState live in the R1 block, not this one */
+          const LFp = ["a", "b", "c", "d", "e"];
+          const isoP = (t) => new Date(t).toISOString().slice(0, 10);
+          const endP = Date.parse("2026-08-04T00:00:00Z");
+          const fallP = [{ w: 100, reps: [12, 12] }, { w: 100, reps: [11, 11] }, { w: 100, reps: [10, 10] }, { w: 100, reps: [9, 9] }, { w: 100, reps: [8, 8] }];
+          const pf = clone(SEED);
+          pf.exercises = [...(pf.exercises || []), ...LFp.map((id) => ({ id, n: id, w: 100 }))];
+          pf.sessionLog = {};
+          fallP.forEach((sess, k) => { const d = isoP(endP - (fallP.length - 1 - k) * 2 * 86400000);
+            pf.sessionLog[d] = { entries: LFp.map((id) => ({ id, w: sess.w, reps: sess.reps.slice() })), skipped: [], pace: "normal", at: 1 }; });
+          const perfect = __test.progressionTrend(pf);
+          ok(perfect.se > 0, "R2c — the POOLED se can never round to zero. A tight pool rounds to 0.000 at 3dp and severity DIVIDES by it, so the steepest possible decline scored mild. liftTrend already floored its own se for this reason; the pooled one is rounded separately, which is why the fix had to be made twice");
+          ok(Math.abs(perfect.hi) / (1.96 * perfect.se) >= 1, "R2c — and that perfect decline now scores MAXIMAL severity, which is what it should have scored all along");
+        }
+        const ex = EBT(st2, { regime: { key: "costing" }, heldWeeks: 1, prog: { hi: -100, se: 1 } });
         ok(ex.dir === "maintenance" && ex.dir !== "surplus", "R2c — and the step is CLAMPED at deficit0, so no decline however steep can overshoot into a surplus the regime has not earned. That clamp is a bound, not a tuning constant");
-        ok(mild >= 6, "R2c — a mild drift still takes the long walk, so the severity scaling did not simply make everything fast");
+        ok(mild >= 6, "R2c — a decline barely past the falling threshold still takes the long walk: severity is ZERO at hi = 0 by construction, so the mild end needs no anchor and there is none to tune");
+        ok(!/const COSTING_MILD_PCT|const COSTING_SEVERE_PCT/.test(readFileSync("src/app.jsx", "utf8")), "R2c — and both dimensioned anchors are GONE. %/session of volume load has no natural scale, so they would have changed meaning silently if his exercise selection did");
         // confidence changes the COPY, never the step
-        const lowConf = EBT(st2, { regime: { key: "costing", prog: { pct: -3, confidence: "low" } }, heldWeeks: 1 });
-        const normConf = EBT(st2, { regime: { key: "costing", prog: { pct: -3, confidence: "normal" } }, heldWeeks: 1 });
+        const lowConf = EBT(st2, { regime: { key: "costing", prog: { hi: -1.96, se: 1, confidence: "low" } }, heldWeeks: 1 });
+        const normConf = EBT(st2, { regime: { key: "costing", prog: { hi: -1.96, se: 1, confidence: "normal" } }, heldWeeks: 1 });
         ok(lowConf.lo === normConf.lo, "R2c — low confidence does NOT slow the step. A wide interval on a decline is not evidence the decline is small — the same shape as absence of clean sessions not being evidence of no decline");
         ok(/cannot separate it from the short sleep/i.test(lowConf.why) && !/cannot separate/i.test(normConf.why), "R2c — it changes the COPY instead, naming the confound out loud rather than silently waiting it out");
 
@@ -4171,8 +4678,22 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
       ok(CRB(s3).redlinePct === BCB(s3).redlinePct, "R3 — now ONE number: cutRateBand and bodyCompBand publish the identical redlinePct, so the gap cannot exist");
 
       // (2) identity, not two computed numbers that happen to match
-      const rcOut = RC3(s3);
-      ok(rcOut.redlinePct === null || rcOut.redlinePct === BCB(s3).redlinePct, "R3 — redlineCrossing READS the published redlinePct rather than deriving one. Asserted by identity: two derivations that agree today would drift the moment either side changed");
+      /* THIS ASSERTION USED TO PASS ON ITS OWN ESCAPE HATCH. It read
+           ok(rcOut.redlinePct === null || rcOut.redlinePct === BCB(s3).redlinePct, ...)
+         and on SEED redlineCrossing returns fires=false, reason="beyond-horizon", so
+         redlinePct is null and the identity was never evaluated. The `=== null ||` disjunct
+         was doing the same job pctClean did: making the assertion unfailable.
+
+         Same defect class, same author, one item apart. It is driven on a state where the
+         crossing actually FIRES now, and there is no null branch to hide behind. */
+      const isoR = (i) => new Date(Date.UTC(2026, 6, 1) + i * 86400000).toISOString().slice(0, 10);
+      const rcFire = clone(SEED);
+      rcFire.blackout = { until: "2026-01-01", reason: "expired" };
+      rcFire.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoR(i), w: +(184 - i * 0.25 + [0.2,-0.3,0.1,0.4,-0.2,-0.1,0.3,-0.4,0.2,0,-0.3,0.1,0.3,-0.2,0.4,-0.1,-0.3,0.2,0.1,-0.4,0.3,-0.2,0,0.2][i]).toFixed(2), sealed: false }));
+      rcFire.trend = rcFire.reads[rcFire.reads.length - 1].w;
+      const rcOut = RC3(rcFire);
+      ok(rcOut.fires === true, "R3 — the crossing fixture actually FIRES, so the identity below is evaluated rather than skipped. The previous version ran on a state where redlineCrossing returned null and the assertion passed without comparing anything");
+      ok(rcOut.redlinePct === BCB(rcFire).redlinePct, "R3 — redlineCrossing READS the published redlinePct rather than deriving one. Asserted by identity, with no null escape hatch: two derivations that agree today would drift the moment either side changed");
       ok(!/rb\.redline \/ bw/.test(String(RC3)), "R3 — and the second derivation is gone from the source, not merely agreeing by coincidence");
 
       // (3) the unit that does not drift
@@ -4747,13 +5268,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 38, "schema: SCHEMA_V is 38 (patchV38 appended for the phase arc; Slice 4 consumed patchV37)");
+  ok(SC === 39, "schema: SCHEMA_V is 39 (patchV39 appended for the R5 skinfold tracker)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
-  ok(migd.v === 38 && migd.plan.autonomy === "propose", "patchV36→38: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
+  ok(migd.v === 39 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
   ok(migd.reads.length === oldV35.reads.length && Object.keys(migd.dailyLogs).length === Object.keys(oldV35.dailyLogs).length, "patchV36: ADDITIVE — no read or dailyLog is added or lost (count-preserving)");
   ok(SEED.plan.autonomy === "propose", "patchV36: SEED already carries autonomy='propose' so a fresh install === a migrated one");
-  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 38, "patchV36..38: idempotent on a current SEED (no double-patch drift)");
+  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 39, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
   const future = clone(SEED); future.v = 39;
   ok(mig(future).v === 39, "migrate: a NEWER (v39) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
   const legacy = clone(SEED); legacy.v = 35; legacy.plan = { goals: [{ text: "no-id" }], ifthen: [{ cue: "x", action: "y" }], share: false };
@@ -5044,13 +5565,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 38, "schema: SCHEMA_V is 38 (patchV38 appended for the phase arc)");
+  ok(__test.SCHEMA_V === 39, "schema: SCHEMA_V is 39 (patchV39 appended for the R5 skinfold tracker)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
-  ok(m37.v === 38 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
+  ok(m37.v === 39 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
   ok(m37.reads.length === oldV36.reads.length && Object.keys(m37.dailyLogs).length === Object.keys(oldV36.dailyLogs).length, "patchV37: ADDITIVE — no read or dailyLog added or lost (count-preserving)");
-  ok(MIG(clone(SEED)).v === 38, "patchV37/38: idempotent on a current SEED (no double-patch drift)");
+  ok(MIG(clone(SEED)).v === 39, "patchV37/38/39: idempotent on a current SEED (no double-patch drift)");
   const fut39 = clone(SEED); fut39.v = 39; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
   ok(MIG(fut39).v === 39 && MIG(fut39).learned.tdee.length === 1, "patchV38: a NEWER (v39) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
 
@@ -5295,13 +5816,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(JSON.stringify(calorieTarget(clone(SEED))) === JSON.stringify(calorieTarget(clone(SEED))), "ENGINE-OWNS-NUMBERS — calorieTarget is unchanged by the phase layer on a normal cut (no phase number injected)");
 
   // ---- E · patchV38 — additive + rollback-safe; fresh SEED === migrated --------------------
-  ok(SCHEMA_V === 38, "patchV38 — SCHEMA_V is 38 (the phase arc's schema)");
+  ok(SCHEMA_V === 39, "patchV39 — SCHEMA_V is 39 (the R5 skinfold tracker)");
   ok(Array.isArray(SEED.plan.phaseLog) && SEED.plan.phaseLog.length === 0 && !("phase" in SEED.plan) && !("brk" in SEED.plan), "patchV38 — SEED authors an EMPTY phaseLog and NO phase/brk override: a fresh install === a migrated state");
   const oldV37 = clone(SEED); oldV37.v = 37; delete oldV37.plan.phaseLog;
   const m38 = migrate(oldV37);
-  ok(m38.v === 38 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
+  ok(m38.v === 39 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
   ok(m38.reads.length === oldV37.reads.length && Object.keys(m38.dailyLogs).length === Object.keys(oldV37.dailyLogs).length, "patchV38 — ADDITIVE: no read or dailyLog added or lost (count-preserving)");
-  ok(migrate(clone(SEED)).v === 38 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
+  ok(migrate(clone(SEED)).v === 39 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
   const fut39 = clone(SEED); fut39.v = 39; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };
   ok(migrate(fut39).v === 39 && migrate(fut39).plan.phase === "leangain", "patchV38 — a NEWER (v39) state is handed back UNTOUCHED: rollback-safe, no phase decision wiped");
 

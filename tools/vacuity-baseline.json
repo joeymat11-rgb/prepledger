@@ -1,0 +1,11 @@
+[
+ "} else ok(true, \"R6 — no step record on this fixture, so there is nothing to condition on and it say",
+ "ok(F === null || (F.head.indexOf(\"off-pattern\") > -1 && F.basis.indexOf(\"No pulse data involved\") > ",
+ "ok((lr53(wSB)[0] || { days: [] }).days !== undefined || lr53(wSB).length === 0, \"live rollups expose",
+ "ok(ss60(swept) === null || !ss60(swept), \"one stall, one proposal — never nags twice\");",
+ "ok(stepsW == null || proteinW > stepsW, \"protein outranks steps — one has an interval excluding zero",
+ "ok(sessW == null || sessW >= proteinW, \"on a training day the session outranks food — it is the enti",
+ "ok(named === null || named === EF(st2).ev.t, \"BLOCKER D — when the one thing says \\\"Close out X\\\", X",
+ "else ok(true, \"no measured CI on SEED — the fan falls back to the labelled ±25% prior (still a range",
+ "ok(__test.statusTarget(after) == null || __test.statusTarget(after).key !== \"now.inbox\", \"after appr"
+]

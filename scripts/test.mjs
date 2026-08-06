@@ -42,6 +42,12 @@ async function engineSuite() {
     return { ok: false, detail: "test bundle would not build — " + (e && e.message) };
   }
 
+  /* Layer 4 — the vacuity gate (audit r3 item 5). The scanner shipped broken once and
+     nothing noticed, because it ran only when a human remembered and blocked nothing when
+     it ran. It gates now, against a content-keyed baseline that can only shrink. */
+  const vg = await node([at("tools", "vacuity-scan.mjs"), at("tools", "engine-test.jsx"), "--gate"]);
+  if (vg.code !== 0) return { ok: false, detail: "vacuity gate — " + vg.out.split("\n").filter(Boolean).slice(-3).join(" | ") };
+
   const r = await node([out]);
 
   // The suite prints a running tally per section and a grand total at the end.

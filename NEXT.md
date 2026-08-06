@@ -129,8 +129,29 @@ change. Device-local UI state (`prep-ledger-ui`) is never conflated with the syn
 store (`prep-ledger-v1`) — but note that *reusing* a device-local key while changing
 its meaning is its own migration problem. See NOW · fix 3.
 
-**Body-fat percentage is display-only. No proposal, gate or target may read `bfEst`
-— see `RESEARCH-DESIGN.md` §R4.** The instrument cannot resolve the range of interest at
+**No proposal, phase change, or THRESHOLD CROSSING may fire on `bfEst`. A DERIVED QUANTITY
+may use `bf.lean` provided it does not threshold on it, carries the interval, and degrades to
+a stated fallback when the anchor is stale.** *(Narrowed 2026-08-06. The original read "no
+proposal, gate or target may read `bfEst`", which was unsatisfiable: `calorieFloor` derives
+the floor from `bf.lean` via the IOC energy-availability formula, and `calorieTarget` calls
+it. Satisfying it would have meant a hardcoded floor, which `CLAUDE.md` forbids by name.)*
+
+**The distinction is DISCONTINUITY, not contamination.** `bfEst` is fine as an INPUT and
+unusable as a BOUNDARY:
+
+- **Thresholding** turns a ±3.5-point uncertainty into a binary flip. `bf.lo = 10.7` against a
+  cut point of 11.2 is a coin toss that changed the athlete's phase.
+- **Deriving** carries the uncertainty through *as* uncertainty. A continuous formula in
+  `bf.lean` propagates error proportionally; nothing is amplified by a cliff.
+
+Same reasoning as the `p2 >= 0` coin flip in the trend downgrade — **a decision boundary
+placed where the data has no power to resolve it.**
+
+**NAMED, DATED EXCEPTION: `calorieFloor` does not currently satisfy the third condition.** It
+uses `bf.lean` as a point estimate and returns a single number. Recorded here rather than
+laundered by the rule that exempts it — **a rule that does not hold against current code is
+the unreachable-guard pattern in rule form.** The exemption's conditions are the acceptance
+criteria of QUEUED · R12, and this exception expires when R12 lands. The instrument cannot resolve the range of interest at
 any cadence Joe will sustain: consecutive-day LSC is 1.3–2.2 BF points for DXA and 4.9 for
 BIA, and scan-day state alone is worth up to 5.5 points of PERMANENT anchor bias. Render the
 band, never the midpoint (Broad 2007); express uncertainty numerically, never verbally
@@ -151,6 +172,135 @@ looking:
 The shape is always the same: **the safeguard is present and nothing can reach it.** A test
 that asserts the guard is *there* does not catch any of these. A test that drives the path
 and asserts the outcome *changed* catches all five.
+
+**THE RULE HAS PAID FOR ITSELF ONCE, and it is worth recording as the payoff rather than a
+footnote.** Twelve instances were found by reading. **The thirteenth was found by a test going
+red**: a copy assertion written for R4's trap failed, and the failure was the finding —
+`energyBalanceTarget`'s gated branch was REPLACING `calorieTarget`'s reason with a mechanism,
+dropping the sentence that says what the gate is waiting for. **That is the R10 abstention
+defect, in the branch that runs when data is thinnest, which is the branch running on his
+phone right now.** First time a NEW assertion caught a NEW defect rather than documenting one
+already found.
+
+**THE TRAJECTORY IS THE FINDING, and it says where to put the effort.**
+
+    1-7      pre-existing
+    8        found by the research side, in R1/R2c
+    9,10,11  INTRODUCED BY THE REPAIRS
+    12       introduced by a repair, found by a tool built to find 11
+
+**Fixing the pattern is now its main source.** The mechanism is specific enough to act on:
+the repair lands in the SAME commit as the fix, so attention is on *"did the fix work"* and
+not *"what did the fix add"* — and the assertions for the repair are written by the same
+author, in the same sitting, from the same model that produced the bug. **The repair is the
+least-reviewed code in the change, written by whoever is most convinced they now understand
+the problem.**
+
+**SECOND COMPANION RULE — the guard-must-fire assertion is owed by any branch the change
+ADDS, not only by the branch it fixes.** A diff that introduces a state transition with no
+assertion driving it should not pass review, mine or the research side's.
+
+**This rule failed on the commit that celebrated it.** The four-outcome downgrade was written
+with the guard rule quoted in its own commit message, and the only branch that changes the
+verdict — `state = "flat"` — had **zero assertions anywhere in the suite.** The
+`!clean2.length` branch was driven and the plain falling branch was driven; the one that
+decides whether the calorie target keeps stepping the deficit out was not. **That is the most
+likely way this rule decays: it gets applied to the code under repair and not to the repair.**
+
+**And the first assertion I wrote for it was VACUOUS**, which is the same failure one level
+up. It read `ok(hair.state !== "flat" || hair.pctClean == null, ...)` — and `pctClean` is not
+a field on the result, so the right-hand side was always true and the assertion could never
+fail. **A dead assertion, in the commit that adds assertions for a dead branch.** Assert
+positively, name the state and the confidence, and never leave an `|| something-that-might-
+not-exist` escape hatch in an `ok()`.
+
+**COMPANION RULE — drive the guard against the REAL LEDGER, not only a fixture, and record
+which branch real data actually takes.** The eighth instance is a variant the fixture rule
+cannot catch on its own:
+
+> **A guard that fires in the fixture and cannot fire in production.**
+
+The `falling` downgrade re-pooled on lifts whose ENTIRE window carried no flagged session.
+On his ledger `cleanAtDate` is false on 6 of 8 sessions, so a lift needed six consecutive
+clean-sleep sessions to qualify and the gate needed four such lifts — roughly three unbroken
+weeks of clean sleep on a 6.23 h five-night average. **The assertions were correct and
+passed; the branch was dead where it mattered.** Every falling verdict he could ever get
+would have taken the low-confidence path.
+
+Record the real-data branch in the item, every time. As of 2026-08-06:
+
+    progressionTrend.state   unknown   (0 lifts with a usable trend, needs 4)
+    nExcludedNonNumeric      2         curl, hanging
+    lifts with >=3 clean sessions      0    <- the NEW downgrade gate
+    lifts under the OLD gate           0    <- spotless 6-session window x 4 lifts
+    regime                   unknown, unconfirmed
+    energyBalanceTarget      deficit 2176-2263, provisional TRUE
+
+**Both gates read zero today** — the difference is what it takes to leave zero. The old one
+needed three unbroken clean weeks; the new one needs three clean sessions on one lift.
+
+**WHEN A SUITE FAILS FAST, ORDER ASSERTIONS BY HOW MUCH THEIR FAILURE TELLS YOU, NOT BY WHERE
+THEY WERE WRITTEN.** An assertion whose failure means *"this does not do what was asked"*
+outranks one whose failure means *"this does not match how I imagined it."*
+
+**This inverted the whole point of the snapshot rule and it was live for exactly one commit.**
+The suite exits at the first failing checkpoint and the snapshot block sat near the end, so it
+ran only when everything synthetic had already passed. Follow that through: **the builder is
+always told "you violated your own model" and never "the world disagrees with you", because
+the second message only arrives once the first has nothing to say.** Demonstrated on the
+narrowed comparator — six synthetic failures, and the assertion written to catch it never ran.
+
+Fixed by running the snapshot block FIRST, immediately after `ok()` is defined. Not because it
+is more likely to fail — it is less likely — but because its failures carry information the
+synthetic ones cannot. **Fail-fast is a time optimisation and must not double as a
+truth-ordering.** Verified: with the comparator re-narrowed, the three SNAPSHOT failures are
+now the first three lines of output.
+
+**WHEN AN ITEM'S CORRECTNESS DEPENDS ON REAL DATA, THE FIXTURE IS A DATED SNAPSHOT OF REAL
+DATA AND THE CRITERION STATES THE OUTCOME, NOT THE MECHANISM.**
+
+A criterion phrased as a **mechanism** is satisfied by any comparator that plausibly fits the
+words — *"compare the behaviour-implied rate to the measured rate"* was satisfied by **both**
+of R7's builds, one of which silently answered a narrower question. A criterion phrased as an
+**outcome on real data** is not: *"on his ledger the flag is RAISED"* fails instantly against
+the narrowed build, 0.28 against 0.38.
+
+**A synthetic fixture encodes the author's model of the problem — which is the same model that
+produced the bug.** Both R7 comparators passed their synthetic fixtures because both were
+written to. A frozen real snapshot encodes the world, and does not care what the author
+believed.
+
+`tools/snapshots/2026-08-06-ledger.json` is the first. **Snapshots accumulate; never edit one
+to make a test pass — take a new one, dated.**
+
+**PROVED, not assumed:** re-narrowing the comparator and running it against the snapshot gives
+`flagged = false`, so the assertion fails. Guard-must-fire, applied to the practice itself.
+
+**KNOWN BLIND SPOT.** A comparator can still be narrowed in a way that happens to produce the
+right outcome on the snapshot, and this catches placement errors (like the `p2 >= 0` boundary)
+not at all. It converts *"no mechanical check exists"* into *"one exists with known limits"* —
+which is the difference between the eleven instances found by reading and the four found by
+tools. It would have caught **two of the last five** immediately: the narrowed comparator, and
+the unreachable `clean2` gate, where *"how many lifts clear the downgrade gate"* had the answer
+*"none, ever."*
+
+**WHAT CAUGHT THE NARROWING WAS INCENTIVE, NOT PROCESS — SYMMETRICALLY, AND NEITHER HALF IS A
+CHARACTER FACT.** The research side checked the gate because they had a stake in the item it
+closed. The build side did not check it because **the result was comfortable** — flag
+consistent, item closed, nothing outstanding. **A clean result is the least-examined result on
+both sides.** The research side proposed R13, the
+gate closed it, and they therefore had reason to check whether the gate was measuring the right
+thing. **That is not virtue and it does not generalise** — a gate closing an item nobody cared
+about would likely have been accepted. Worth recording because it says the audit is strongest
+where it disagrees and weakest where it is indifferent, which is the opposite of where anyone
+would design it to be. The snapshot rule exists to cover the indifferent case.
+
+**A REPORTING CHANGE THAT MOVES THE TARGET IS A FAILED REPORTING CHANGE.** If an item is
+scoped as diagnostics, pin the numbers it must not move and assert them byte-identical before
+and after, on the real ledger. R6 was one line of reasoning away from cutting his intake ~90
+kcal/day as a side effect of making a scalar more legible — and R2b is what made that possible,
+by putting a single owner in front of the calorie decision. **The more centralised the engine
+gets, the further a "display" change can reach.**
 
 **Copy that quotes an engine number, or describes engine behaviour, must be GENERATED from
 the engine — never written alongside it.** This is engine-owns-numbers applied to prose.
@@ -673,6 +823,57 @@ weaker and more honest claim than *optimal*.
 
 ### R4. No decision may fire on a body-fat estimate
 
+#### BUILT 2026-08-06 — and one of R4's own assertions is unsatisfiable as written
+
+Both body-fat decisions are deleted. **No live proposal condition in `runAdaptive` compares a
+body-fat figure against anything**, asserted against the source with comments stripped
+line-preservingly — the comments recording the deletion necessarily contain the strings being
+banned, which is the trap the vacuity scan hit one file over.
+
+| deleted | fired on | why it had to go |
+|---|---|---|
+| EASE 2 trigger | `bf.pct <= 13.2` | a point estimate from an instrument with a 7.6-point live interval, moving his whole calorie band |
+| pivot prompt | `bf.lo <= 11.2` | fired on the INTERVAL, which was the honest version of a threshold — but still a threshold, and `bf.lo` is 10.7, so it had been firing since 2026-07-29 |
+
+**The pivot's question now has a better owner.** *"Is the cut done?"* is what
+`regime().accretionBound` answers, from lifts and scale rate measured daily rather than a
+body-fat estimate anchored twice a year. R1 replaced the instrument; R4 removes the old one
+rather than leaving two.
+
+**`s.phase` is NOT deleted from state** — never delete athlete data, and the field is inert
+now that its only writer is gone. The three remaining `PHASES[s.phase]` readers already guard
+with `ph ? … : null`.
+
+#### OPEN QUESTION FOR JOE — R4's assertion "bfEst unreachable from energyBalanceTarget" cannot hold
+
+**`calorieFloor` reads `bfEst`** — `bf.lean` feeds the IOC energy-availability formula run
+backwards — and `calorieTarget` calls `calorieFloor`, which `energyBalanceTarget` calls. So
+the assertion is unsatisfiable without deleting the derivation.
+
+**And it should not be deleted.** The alternative is a hardcoded floor, which `CLAUDE.md`
+forbids by name: *"Never hardcode 1700."* The floor moving with his lean mass is the good
+version.
+
+**The distinction R4 actually needs**, proposed rather than assumed:
+
+> No proposal, phase change, or **threshold crossing** may fire on `bfEst`. A **derived
+> quantity** may use `bf.lean` provided it does not threshold on it, carries the interval,
+> and degrades to a stated fallback when the anchor is stale.
+
+That kills both deleted triggers and keeps the floor. **Not resolved here** — it narrows a
+rule the research side wrote, so it is theirs to confirm.
+
+**A follow-up it implies:** `calorieFloor` uses `bf.lean` as a POINT estimate and returns a
+single number, from an anchor carrying ±3.5 points. Under R4's own *"render no midpoint"* it
+should carry a band. Filed rather than built, because it changes a number he sees.
+
+#### One more defect, found by an assertion rather than by reading
+
+`energyBalanceTarget`'s gated branch **replaced** `calorieTarget`'s `why` with *"the calorie
+band is gated upstream"* — a mechanism, not a reason, and it dropped the one sentence saying
+what the gate is waiting for. That is the R10 abstention defect in the branch that runs when
+data is thinnest. The underlying reason is carried through now and the gate fact appended.
+
 #### TRAP — read this before starting. R4 and R2b are each correct alone and WRONG COMPOSED.
 
 `calorieTarget`'s gated path reads the phase table directly:
@@ -758,6 +959,57 @@ must refuse to plot as change.
 
 ### R6. Condition maintenance on activity; stop `adaptationSignal` firing on a step drop
 
+#### BUILT 2026-08-06 — DISPLAY-ONLY, and that was a fork rather than an omission
+
+    observedTDEE.tdee        2795   window average over 35 days
+    window-average steps    17,171   (halves 19,794 / 14,694)
+    last-7 steps            14,357
+    step-conditioned tdee    2705   delta -90 kcal/day
+
+    target BEFORE            2176-2263
+    target AFTER             2176-2263   <- byte-identical, and asserted
+
+**The natural reading of "condition maintenance on activity" is to return the step-conditioned
+number as the PRIMARY. R2b made `observedTDEE` load-bearing on the single owner of the calorie
+decision, so that reading moves his prescribed intake ~90 kcal/day AS A SIDE EFFECT OF A
+REPORTING CHANGE, with nobody having decided it should.** Same composition shape as R4's
+`PHASES[s.phase]`, one item later, and again neither item's criteria mentioned the other.
+
+So `tdee` is untouched and the conditioning is reported beside it. **An assertion pins
+`calorieTarget.tdee === observedTDEE.tdee`** — a reporting change that moves the target is a
+failed reporting change.
+
+**The step-conditioned primary is probably more correct** — the window average is conditioned
+on an activity level he no longer has. But it is a decision about what he eats, so it gets its
+own item with its own before/after, and **R12 lands first** if it is taken: R12's trigger fires
+on intent, not on whether the floor happens to bind. 267 kcal of margin is not a reason to skip
+a safety item; it is the reason skipping it feels safe.
+
+#### `adaptationSignal` — the step term is subtracted, and it abstains on activity drift
+
+It predicted expected maintenance from **body mass only**, so observed maintenance falling
+because he walks less showed up as adaptive thermogenesis. **The app would have diagnosed
+metabolic adaptation for a man who stopped walking**, pointing him away from a real and fixable
+behaviour.
+
+Attribution beats estimation here: the walking cost is measured (2.4 ± 0.4 J/kg/m, Sci Rep
+2019) and the step count is logged, so there is nothing to fit. It also **abstains** when the
+step swing exceeds the residual being measured, and the reason names activity rather than
+reading as "no adaptation found".
+
+**REAL-DATA BRANCH, per the companion rule:** on the live ledger it returns
+`detected: false, reason: "too-thin"` — it abstains EARLIER than the activity gate, so the
+false-adaptation risk is **latent, not live**. The gate is driven by a fixture instead, and
+that fixture is verified to reach `activity-drift` rather than passing on an earlier branch.
+
+#### Two more escape hatches, both mine, both caught by the scanner
+
+`reason === "activity-drift" || stepAdj !== 0` and a triple disjunct on `tdeeAtNow`. **Neither
+was vacuous** — both fixtures reach the real branch — but a disjunct carried by luck is a hatch
+waiting to open. Both are positive assertions now. **The scanner earned its place on the item
+after the one it was written for**, which is the argument for running it pre-commit.
+
+
 `adaptationSignal` predicts expected maintenance from **body mass only** — `predAt` at 2746,
 **verified**, and the comment even calls it "mass-driven":
 
@@ -785,6 +1037,77 @@ non-null `deltaKcal`.
 
 ### R7. `currentRate` must not silently average across a behaviour change
 
+#### BUILT 2026-08-06 — corrected after review. DETECTION and ATTRIBUTION are different jobs.
+
+**I narrowed the comparator between spec and build and it silenced the flag.** The item says
+*warn when the displayed rate no longer describes his current behaviour*. My rebuild compared
+against what the **prescribed** intake at current steps would imply — a counterfactual he is
+not living — which asks the narrower question *"would the step change alone make the target
+under-deliver"* and answers no.
+
+**And the narrowed gap was a CATEGORY ERROR.** 0.28 decomposes into 0.11 (target 2,220 vs the
+2,160 window intake the regression describes) plus 0.17 (14,357 vs 17,171 steps). Both are
+**deterministic differences between specified scenarios**; neither carries sampling error.
+Testing their sum against the regression's ±0.38 compares a scenario delta to a sampling
+interval.
+
+**Corrected:** fire on measured vs **behaviour**-implied, then attribute.
+
+    measured (28-read regression)   1.17 lb/wk  +/- 0.38
+    behaviour-implied               0.25 lb/wk  +/- 0.03
+    gap 0.92 vs combined 0.38       FLAG RAISED
+
+    attribution, sums to the gap by construction:
+      intake  0.75 lb/wk   eating 2,569 against the 2,160 the rate was measured over
+      steps   0.17 lb/wk   14,357 against 17,171
+
+**The ownership concern was real and attribution answers it without exclusion.**
+`calorieTarget` owns the intake gap (`wkAvg`/`wkOff`) and a second owner would be a defect —
+so each part names its owner and re-decides nothing. One flag, no duplicated ownership, firing
+on the condition that is actually live: **he can read 1.17 on the gauge while behaving like
+0.25.**
+
+#### NEW PRACTICE — when a gate returns NOT-FIRED and closes an item
+
+Record **what would have fired it**, and check the comparator was not narrowed between spec
+and build. Here the spec said *behaviour-implied vs measured* and the build said
+*target-implied vs measured*; **the change was only visible by reading both.** The first
+version of a gate is written by whoever wants the answer — the same shape as the repair being
+the least-reviewed code in the change.
+
+### R13. The step-conditioned maintenance PRIMARY  `[HELD — evidence gate not met]`
+
+**WHAT.** `observedTDEE` returns maintenance at his CURRENT activity level rather than the
+window average, and `energyBalanceTarget` divides from that.
+
+**WHY.** The window-average number is conditioned on 17,171 steps and he now walks 14,357.
+Every calorie decision divides from a maintenance he no longer has.
+
+**COST.** −90 kcal/day today, ~−175 in four weeks at the current step trend of −649/wk.
+**THIS IS A CHANGE TO WHAT HE EATS, NOT A FIX.** Before/after in the build report, and a phone
+walk before merge.
+
+**TRIGGER — R12 LANDS FIRST.** R12's trigger fires on intent ("before anything that can deepen
+the deficit"), and this deepens it. The 267 kcal of margin to the protective floor is not a
+reason to skip it: **the margin shrinks with the same step trend that motivates this item.**
+
+**EVIDENCE GATE — MET, AND THE ITEM STAYS HELD FOR A BETTER REASON.** On the corrected
+comparator the flag DOES fire (0.92 against 0.38). So the premise is no longer unproven — it
+is **measured, and it is the small term.**
+
+    intake   0.75 lb/wk   ~4x the step effect, already owned and already reported
+    steps    0.17 lb/wk   what this item would address
+
+**A ~90 kcal/day change to what he eats is not the highest-value move when 349 kcal/day of the
+same gap is adherence with an owner that already reports it.** Held on value, not on evidence.
+That is a stronger reason than the one it replaces, and it does not expire when the data
+thickens.
+
+**OPEN — do not pick now.** Whether "current activity" means the last 7 days, a smoothed level,
+or something that degrades when steps are themselves noisy. R7's output will say which has
+signal. The item is currently a guess about a coefficient; R7 turns it into a measurement.
+
+
 Report the long window as primary, **plus an explicit divergence flag** when the behaviour-implied
 rate and the measured rate disagree by more than their combined error. **Do not switch estimators
 mid-cut** — a discontinuity in the control input is itself a failure mode. Long-term fix is a
@@ -801,6 +1124,42 @@ Primary displayed rate does not change estimator between consecutive days on the
 on its own.
 
 ### R8. Training: delete, do not build
+
+#### BUILT 2026-08-06 — and there was almost nothing to delete, which is the finding
+
+**`VOL_BANDS` is one plain constant read identically everywhere, and `programmeVolume` reads
+the SPLIT, not the energy state.** There is no deficit-calibrated variant to remove because
+none was ever built. The claim lived entirely in copy — which is R10's worked example, so the
+two items do not overlap.
+
+**Asserted as BEHAVIOUR, not as string absence.** Deletions are where the absence-check trap
+lives and I have walked into it three times (`percentage`, `bf.pct`, `change`). So the test
+builds two states differing only in what would drive an energy-state branch — one cutting, one
+gaining at `plan.phase = "leangain"` — and asserts the set prescription is **byte-identical**.
+Same for the lift target, because zero studies have manipulated RIR under restriction and so
+there is nothing to condition on.
+
+#### THE ONE DEFICIT-CONDITIONAL LINE IS DELIBERATE AND STAYS
+
+    volumeImbalance:  actionable = detectable && !cutting
+
+**R8 says "delete any deficit-conditional volume logic." Applied literally that deletes this,
+and it should not be** — `CLAUDE.md` mandates it in as many words: *"during a deficit it is
+deliberately filed, never proposed."*
+
+The distinction is the one R4 needed:
+
+- **Conditioning the BAND on energy state** — wrong, and never built.
+- **Conditioning whether a PROPOSAL FIRES** — a conservatism gate, deliberate and documented.
+
+Measured on the snapshot: `cutting true, detectable true, actionable false`. **The gap is
+still DETECTED while filed**, which is the difference between conservatism and blindness, and
+that is asserted too.
+
+**Second time an R-item's deletion instruction has collided with a documented design.** Both
+times the resolution had the same shape: **separate what a number MEANS from what a number is
+allowed to DO.** Named here rather than rediscovered a third time.
+
 
 | variable | rule | basis |
 |---|---|---|
@@ -830,6 +1189,92 @@ weeks) and neither used a lean population at a shallow deficit — exactly his s
 evidence to change it" is the honest basis, not "evidence that it doesn't matter."**
 
 ### R9. The approval inbox must drain
+
+#### BUILT 2026-08-06 — and the brief's counts were from a stale snapshot, which is the trap
+#### we named for each other two rounds ago
+
+**Live ledger at build time: 2 open, 14 resolved** — not the briefed 10/6. Joe drained the
+queue again. **The structural findings survive the stale counts**, and one is sharper than
+either framing:
+
+**THE ORPHANED PIVOT CARD WAS A LIVE HAZARD.** R4 deleted its producer, but the instance
+persisted open in state with a **live `kind: "exit"` apply branch** — tapping it would have
+stepped calories to maintenance on the authority of the body-fat threshold R4 judged unable to
+make that claim. A card recommending a decision the engine has already disowned.
+
+Three mechanisms, each driven:
+
+- **Supersede through date suffixes.** `propose()` already deduped on the exact `rid` — but
+  half the producers suffix theirs with the date (`ap_tighten_2026-08-02` vs `_08-03`), so the
+  same subject filed fresh daily and the dedup never saw it. One open card per SUBJECT now;
+  the old card is resolved as superseded, with a feed line.
+- **Withdraw orphans.** Any open card whose apply kind is `exit`/`phase` — both producers
+  deleted by R4 — is withdrawn on the next engine run, following the SET-REALLOCATION
+  precedent: resolved with a feed line naming why, **never deleted**. Snapshot-asserted: the
+  pivot is withdrawn and the feed records it.
+- **Notes expire at 14 days; actionable kinds NEVER expire.** A note changes nothing when
+  tapped, so an old one is pure attention cost — the `refeed_review` defect as a standing
+  condition. A `cal`/`exit` card is a pending decision, and decisions wait for him: expiring
+  those would be the engine deciding by timeout.
+
+#### AUDIT ROUND (2026-08-06): one defect confirmed and fixed, one audit claim corrected
+
+**The dismissed-rearm contradiction was real and is fixed.** `dismissProposal` files
+`{rid, dismissed: true}` and promises *"the engine re-arms it if the pattern holds"* — but
+`applied()` counted ANY adjustments row, so one decline silenced a rid forever. The audit's
+two-timestamp failing case verified: microload (dismissed row) froze at 2026-08-04 while
+pivot (no row) refreshed to 2026-08-06, same producer loop. **A decline that can never return
+is a verdict, just a quiet one.** `applied()` now excludes `dismissed` and `undone` rows;
+driven both ways — a dismissed rid re-arms, a genuinely applied one still does not.
+
+**Withdraw is asserted not to execute the apply** (audit 4b): withdrawing the orphaned exit
+card leaves `plan.phase` untouched and stamps no `exitStart`.
+
+**Audit correction: all 30 branches ARE on origin** — `ls-remote` shows every `feat/r*` head.
+What is true is that nothing is MERGED, so deployed v7.15.0 still has the armed exit card and
+the live bf-threshold producer. The distinction matters because the remedy is one merge, not
+seven pushes.
+
+#### SECOND AUDIT ROUND (2026-08-06) — three findings, two fixed, one deferred BY DESIGN
+
+- **Instance 17, in my own supersede test.** The if/else had an `ok(true)` else-arm, and the
+  else-arm is the arm that ran — on my SEED and on the auditor's. The suite was green with
+  the mechanism never exercised. Now driven through the FLOOR producer, which fires
+  deterministically on the fixture, and asserted unconditionally. The scanner flags the
+  literal `ok(true` from here on.
+- **The withdraw was a KIND-ban wearing a migration's clothes.** Predicate was
+  `kind === "exit" || "phase"` forever, justified as "producer deleted" — coextensive today,
+  wrong the day the regime detector files its own deliberate exit proposal, which is its
+  natural end state. Predicates on the orphaned SUBJECTS by name now (`pivot`, `ease2`).
+- **Expiry cannot drain a live-condition note** — verified by the auditor by execution: an
+  aged microload expires and its producer re-raises a fresh card in the SAME sweep. Net drain
+  zero, plus a false feed line every 14 days. **Deferred on purpose: it dies with R14**, and
+  it is now the sharpest argument for R14's priority.
+
+**MERGE-DAY EXPECTATION, for Joe:** with dismissed no longer meaning applied, the first sweep
+re-arms volband (declined twice) and recovery (declined once) — **the open inbox lands at 3
+note cards, two of which he explicitly declined.** That is the dismiss copy's literal promise
+kept; that it feels like whack-a-mole is R14's problem to solve, not a cooldown's.
+
+### R14. Informational cards leave the inbox `[decided by research side, not yet built]`
+
+**The invariant: a card may exist in the inbox only if its tap enacts a state change.**
+Everything else is a feed line. Four harms, all live on deployed main: a tapped note falls
+through to the else branch and writes "ADJUSTMENT LOGGED" for an adjustment that never
+happened; the tap pushes `{rid}` into `s.adjustments`, permanently killing bare-rid channels
+(pre-fix); his inbox today is two cards where one tap ends the cut and the other does nothing
+— identical gesture, opposite stakes; and the ladder branch already states the rule.
+Migration: note producers become feed lines; the open microload card goes through the
+withdraw mechanism; **design input from audit round 2: state, PER KIND, what a decline BUYS** — a week's quiet,
+a changed-condition trigger, or a fresh decision daily — so copy and mechanism agree from
+birth this time; admission assert that no proposal may be created with
+`apply.kind === "note"`; **and the note-expiry code from R9 is then DELETED — expiry for a
+kind that cannot exist would be instance 17 of the safeguard nothing can reach.**
+
+**What this does not fix:** `kind: "note"` proposals still exist and still change nothing when
+tapped. Whether informational cards should be feed lines rather than proposals at all is a
+design question for the research side, filed as an open question rather than decided here.
+
 
 Every recommendation above ends in "file a proposal," and the queue has no expiry, no dedup and no
 supersede.
@@ -898,6 +1343,13 @@ implementation.
      `RESEARCH-DESIGN.md` Part 2.1 marks **LOW-MEDIUM** confidence for this athlete: the
      pooled population averages **51-60 years old** (analysis A 60 ± 11, analysis B 51 ± 16)
      and he is **24**. The generated sentence must say so.
+   - **Copy that is CONFIDENT ABOUT AN ABSTENTION** — the version that will hide, because it
+     reads well. `energyBalanceTarget`'s unknown branch currently says the engine "is
+     holding". **Any sentence that says the engine is holding without saying it also cannot
+     yet decide is the same unearned confidence in the opposite direction.** Abstention copy
+     must state what it is waiting for and roughly when. His is derivable from the counts the
+     selector already returns: *"one more training week without an event day"* — 11 lifts sit
+     at 4 scored sessions and lose 2-3 to hard days, so the gap is small and nameable.
    - **`bfEst`'s "±3-4 points"** hardcodes `ANCHOR_ERR_EYE` and **understates the instrument
      the app is actually rendering beside it.** The live interval is **10.7-18.3 — 7.6 points,
      asymmetric −3.6/+4.0** — because the drip band integrates away from the anchor. Copy
@@ -920,6 +1372,84 @@ pounds for as long as it did. Guard-must-fire, applied to prose.
 **What it does not buy.** This makes the prose self-consistent and appropriately hedged. It
 does not make it correct — a sentence generated from the engine still says whatever the
 engine says.
+
+### R12. `calorieFloor` must sit at the PROTECTIVE end, not the midpoint
+
+**NOT a band. I had this wrong and the correction matters.** R4's render-no-midpoint rule is
+about DISPLAYING a body-fat estimate, where a centreline gets read as truth. **A floor is not
+an estimate, it is a PRESCRIPTION**, and the two want opposite treatments — rendering a band
+on a safety floor invites eating at the bottom of it, which is exactly what the floor exists
+to prevent.
+
+A floor under uncertainty sits at the **protective end**. Same asymmetry as everywhere else
+here: eating below the true floor risks the low-EA harms the corpus tracks; a floor set
+slightly high costs a little fat-loss rate and is recoverable.
+
+**Measured on his live state** (25 kcal/kg FFM + 166 implied training cost):
+
+    leanest   bf 10.7   lean 66.1 kg   floor 1818   <- the protective end
+    midpoint  bf 14.3   lean 63.4 kg   floor 1751   <- what it uses today
+    fattest   bf 18.3   lean 60.4 kg   floor 1677
+
+    spread 141 kcal · protective end is +67 over the midpoint
+
+**Change.** Take the leanest end of the interval, show ONE number, and say in the copy that it
+is the protective end of a range rather than a measurement. Cheaper than a band, correct under
+the asymmetry, and it does not teach him to aim at a lower bound.
+
+**Acceptance criteria** — these are the three conditions of the narrowed `bfEst` rule, so
+this item is what retires that exception:
+
+- `calorieFloor` does not threshold on `bf.lean`
+- it carries the interval (derives from `bf.lo`, the protective end, and states the range)
+- it degrades to a stated fallback when the anchor is stale
+- assertion: two states differing only in `bfEst` width produce floors differing in the
+  protective direction, and the copy names it as protective rather than measured
+
+#### TRIGGER, not priority — and the urgency really is low
+
+**It does not bind today.** His band is 2176–2263 and every end of the floor interval sits
+426–586 kcal below the band bottom. Nothing currently queued can deepen his deficit either:
+R2c's costing walk only shrinks it, and `accretionBound` adds a surplus.
+
+**It must land BEFORE any item that could deepen the deficit** — that is exactly when a floor
+derived from the midpoint would be wrong in the expensive direction. That is the trigger.
+
+### R11. Vacuity — assertions that cannot fail
+
+**Absence of an assertion is easy to grep for. VACUITY is not, and it is the one that
+survives review:** the test is present, it is named, it passes, and it asserts nothing.
+Three instances are on the record, all found by hand, all within four days:
+
+| assertion | why it could not fail |
+|---|---|
+| `ok(hair.state !== "flat" \|\| hair.pctClean == null, …)` | `pctClean` is not a field, so the disjunct was always true |
+| `ok(rcOut.redlinePct === null \|\| rcOut.redlinePct === BCB(s3).redlinePct, …)` | on `SEED` the crossing does not fire, so `redlinePct` is null and the identity was never evaluated |
+| `ok(!sealedRun.proposals.some(redline), "sealed window mutes …")` | the fixture's absolute date sat outside the frozen anchor, so the seal was never engaged |
+
+**`tools/vacuity-scan.mjs` finds the first kind mechanically.** Line-preserving comment
+strip, then every `ok()` line scanned for an escape-hatch disjunct. 7 hits over 1,598
+assertions on this branch, all reviewed, none currently vacuous.
+
+**It is NOT in the gate, deliberately.** Precision is poor by design — it cannot tell a
+legitimate *"either absent, or correct when present"* from a hatch, and a gate that fails on
+correct code is worse than no gate. **Recall is the point:** it would have caught both of the
+first two mechanically, on the commit that introduced them.
+
+**Two things it cannot do**, stated so a clean run is not mistaken for proof: it cannot see
+fields that only exist in states nothing constructs, and it says nothing about assertions
+that reference real fields and still assert nothing — the second kind in the table.
+
+**Both failure modes the tool itself had are recorded in its header**, because they are the
+same disease: a raw-text scan flagged `pctClean` inside the comment *documenting* the
+`pctClean` bug, and removing comment lines outright shifted every line number after them so
+it reported a defect at a line that did not contain it. **A tool carrying the defect class it
+exists to find is worse than no tool.**
+
+**Standing rule this establishes.** For every assertion a change ADDS: verify each referenced
+field exists on the object under test, and that the assertion CAN fail. Never leave
+`|| something-that-might-not-exist` in an `ok()` — an escape hatch in an assertion is
+indistinguishable from a passing test.
 
 ### Part 4 — bugs, independent of the redesign
 
