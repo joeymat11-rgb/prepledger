@@ -1256,7 +1256,38 @@ re-arms volband (declined twice) and recovery (declined once) — **the open inb
 note cards, two of which he explicitly declined.** That is the dismiss copy's literal promise
 kept; that it feels like whack-a-mole is R14's problem to solve, not a cooldown's.
 
-### R14. Informational cards leave the inbox `[decided by research side, not yet built]`
+### R14. Informational cards leave the inbox
+
+#### BUILT 2026-08-06 — at the choke point, so all ~8 producers converted in one place
+
+**The invariant is enforced where cards are born.** `propose()` routes `kind: "note"` to a
+feed line and returns — no producer was touched, and no future producer can seat a note in
+the inbox. Deduped against the feed itself (same title within 14 days), statelessly: a
+persisting condition informs once a fortnight instead of once a sweep, and there is no new
+synced field for the merge to learn.
+
+**The two live cards migrate through the withdraw pattern** — resolved
+`"converted to feed (R14)"` with a feed line carrying their content. Nothing deleted, nothing
+he was told is lost.
+
+**The note-expiry code is DELETED in the same change** (instance-19 avoidance), and the audit
+already proved it could never drain a live-condition note anyway.
+
+**What a decline buys, stated per kind** in `DECLINE_BUYS` at the decline site: `cal` re-arms
+while the pattern holds (true since the `applied()` fix); `refeed` is a one-off; `exit`
+explicitly does NOT promise re-arming, because its producers are gone and a promise nothing
+keeps is the defect this item exists to close. Asserted from the map.
+
+**Snapshot outcome, real ledger:** zero open note cards after one sweep; microload converted
+with its content in the feed ("PLATES TOO COARSE"); the badge count now means
+**decisions waiting**, which today is none — that is the feature.
+
+**Ten downstream tests rewrote against the invariant** — floor, recovery ×3, volband ×2,
+volstruct, the lifecycle test (moved to the actionable redline card), the dismissed-rearm
+proof (same), and the rate-unit stand-down (either sweep may reach it first). Each rewrite
+kept the original claim where the claim survived the surface change, and said so where it
+did not.
+ `[decided by research side, not yet built]`
 
 **The invariant: a card may exist in the inbox only if its tap enacts a state change.**
 Everything else is a feed line. Four harms, all live on deployed main: a tapped note falls
