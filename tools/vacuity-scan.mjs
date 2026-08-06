@@ -29,6 +29,13 @@
  * reported a defect at a line that did not contain it. A tool with the defect class it
  * exists to find is worse than no tool.
  *
+ * A THIRD LESSON, GENERAL TO ALL ABSENCE-CHECKS: any check asserting a token is ABSENT must
+ * strip comments first, because the comment recording the removal necessarily contains the
+ * token. This was hit twice, independently, one file apart, on the same day — by this scan
+ * flagging pctClean inside the comment documenting the pctClean bug, and by the R4 assertion
+ * banning bf.pct while the comments recording its deletion quote it. It is inherent to the
+ * shape, not a coincidence, so any new absence-check starts from the stripped source.
+ *
  *   node tools/vacuity-scan.mjs
  */
 import { readFileSync } from "node:fs";

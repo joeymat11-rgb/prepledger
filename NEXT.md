@@ -129,8 +129,29 @@ change. Device-local UI state (`prep-ledger-ui`) is never conflated with the syn
 store (`prep-ledger-v1`) — but note that *reusing* a device-local key while changing
 its meaning is its own migration problem. See NOW · fix 3.
 
-**Body-fat percentage is display-only. No proposal, gate or target may read `bfEst`
-— see `RESEARCH-DESIGN.md` §R4.** The instrument cannot resolve the range of interest at
+**No proposal, phase change, or THRESHOLD CROSSING may fire on `bfEst`. A DERIVED QUANTITY
+may use `bf.lean` provided it does not threshold on it, carries the interval, and degrades to
+a stated fallback when the anchor is stale.** *(Narrowed 2026-08-06. The original read "no
+proposal, gate or target may read `bfEst`", which was unsatisfiable: `calorieFloor` derives
+the floor from `bf.lean` via the IOC energy-availability formula, and `calorieTarget` calls
+it. Satisfying it would have meant a hardcoded floor, which `CLAUDE.md` forbids by name.)*
+
+**The distinction is DISCONTINUITY, not contamination.** `bfEst` is fine as an INPUT and
+unusable as a BOUNDARY:
+
+- **Thresholding** turns a ±3.5-point uncertainty into a binary flip. `bf.lo = 10.7` against a
+  cut point of 11.2 is a coin toss that changed the athlete's phase.
+- **Deriving** carries the uncertainty through *as* uncertainty. A continuous formula in
+  `bf.lean` propagates error proportionally; nothing is amplified by a cliff.
+
+Same reasoning as the `p2 >= 0` coin flip in the trend downgrade — **a decision boundary
+placed where the data has no power to resolve it.**
+
+**NAMED, DATED EXCEPTION: `calorieFloor` does not currently satisfy the third condition.** It
+uses `bf.lean` as a point estimate and returns a single number. Recorded here rather than
+laundered by the rule that exempts it — **a rule that does not hold against current code is
+the unreachable-guard pattern in rule form.** The exemption's conditions are the acceptance
+criteria of QUEUED · R12, and this exception expires when R12 lands. The instrument cannot resolve the range of interest at
 any cadence Joe will sustain: consecutive-day LSC is 1.3–2.2 BF points for DXA and 4.9 for
 BIA, and scan-day state alone is worth up to 5.5 points of PERMANENT anchor bias. Render the
 band, never the midpoint (Broad 2007); express uncertainty numerically, never verbally
@@ -151,6 +172,15 @@ looking:
 The shape is always the same: **the safeguard is present and nothing can reach it.** A test
 that asserts the guard is *there* does not catch any of these. A test that drives the path
 and asserts the outcome *changed* catches all five.
+
+**THE RULE HAS PAID FOR ITSELF ONCE, and it is worth recording as the payoff rather than a
+footnote.** Twelve instances were found by reading. **The thirteenth was found by a test going
+red**: a copy assertion written for R4's trap failed, and the failure was the finding —
+`energyBalanceTarget`'s gated branch was REPLACING `calorieTarget`'s reason with a mechanism,
+dropping the sentence that says what the gate is waiting for. **That is the R10 abstention
+defect, in the branch that runs when data is thinnest, which is the branch running on his
+phone right now.** First time a NEW assertion caught a NEW defect rather than documenting one
+already found.
 
 **THE TRAJECTORY IS THE FINDING, and it says where to put the effort.**
 
@@ -1035,6 +1065,48 @@ pounds for as long as it did. Guard-must-fire, applied to prose.
 **What it does not buy.** This makes the prose self-consistent and appropriately hedged. It
 does not make it correct — a sentence generated from the engine still says whatever the
 engine says.
+
+### R12. `calorieFloor` must sit at the PROTECTIVE end, not the midpoint
+
+**NOT a band. I had this wrong and the correction matters.** R4's render-no-midpoint rule is
+about DISPLAYING a body-fat estimate, where a centreline gets read as truth. **A floor is not
+an estimate, it is a PRESCRIPTION**, and the two want opposite treatments — rendering a band
+on a safety floor invites eating at the bottom of it, which is exactly what the floor exists
+to prevent.
+
+A floor under uncertainty sits at the **protective end**. Same asymmetry as everywhere else
+here: eating below the true floor risks the low-EA harms the corpus tracks; a floor set
+slightly high costs a little fat-loss rate and is recoverable.
+
+**Measured on his live state** (25 kcal/kg FFM + 166 implied training cost):
+
+    leanest   bf 10.7   lean 66.1 kg   floor 1818   <- the protective end
+    midpoint  bf 14.3   lean 63.4 kg   floor 1751   <- what it uses today
+    fattest   bf 18.3   lean 60.4 kg   floor 1677
+
+    spread 141 kcal · protective end is +67 over the midpoint
+
+**Change.** Take the leanest end of the interval, show ONE number, and say in the copy that it
+is the protective end of a range rather than a measurement. Cheaper than a band, correct under
+the asymmetry, and it does not teach him to aim at a lower bound.
+
+**Acceptance criteria** — these are the three conditions of the narrowed `bfEst` rule, so
+this item is what retires that exception:
+
+- `calorieFloor` does not threshold on `bf.lean`
+- it carries the interval (derives from `bf.lo`, the protective end, and states the range)
+- it degrades to a stated fallback when the anchor is stale
+- assertion: two states differing only in `bfEst` width produce floors differing in the
+  protective direction, and the copy names it as protective rather than measured
+
+#### TRIGGER, not priority — and the urgency really is low
+
+**It does not bind today.** His band is 2176–2263 and every end of the floor interval sits
+426–586 kcal below the band bottom. Nothing currently queued can deepen his deficit either:
+R2c's costing walk only shrinks it, and `accretionBound` adds a surplus.
+
+**It must land BEFORE any item that could deepen the deficit** — that is exactly when a floor
+derived from the midpoint would be wrong in the expensive direction. That is the trigger.
 
 ### R11. Vacuity — assertions that cannot fail
 
