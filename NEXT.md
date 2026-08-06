@@ -981,36 +981,43 @@ non-null `deltaKcal`.
 
 ### R7. `currentRate` must not silently average across a behaviour change
 
-#### BUILT 2026-08-06 — and it DECOMPOSES, which changed what the flag means
+#### BUILT 2026-08-06 — corrected after review. DETECTION and ATTRIBUTION are different jobs.
 
-The first build compared the measured rate against what his **actual recent behaviour**
-implies. On the live ledger that raw gap is **0.92 lb/wk**, and it splits:
+**I narrowed the comparator between spec and build and it silenced the flag.** The item says
+*warn when the displayed rate no longer describes his current behaviour*. My rebuild compared
+against what the **prescribed** intake at current steps would imply — a counterfactual he is
+not living — which asks the narrower question *"would the step change alone make the target
+under-deliver"* and answers no.
 
-    step effect     0.17 lb/wk   walking 14,357 against the 17,171 the tdee was solved at
-    intake effect   0.64 lb/wk   eating 2,569 against a 2,220 target
+**And the narrowed gap was a CATEGORY ERROR.** 0.28 decomposes into 0.11 (target 2,220 vs the
+2,160 window intake the regression describes) plus 0.17 (14,357 vs 17,171 steps). Both are
+**deterministic differences between specified scenarios**; neither carries sampling error.
+Testing their sum against the regression's ±0.38 compares a scenario delta to a sampling
+interval.
 
-**The intake half is nearly four times the step half, and `calorieTarget` already owns it** —
-`wkAvg 2569`, `wkOff 349`, with copy that says so. A flag firing on both would be a **second
-owner for a number that already has one**, and would bury the step signal it exists to find.
+**Corrected:** fire on measured vs **behaviour**-implied, then attribute.
 
-So the flag compares the measured rate against what the **prescribed** intake at his **current**
-activity implies, and reports intake drift separately, pointing at its existing owner.
+    measured (28-read regression)   1.17 lb/wk  +/- 0.38
+    behaviour-implied               0.25 lb/wk  +/- 0.03
+    gap 0.92 vs combined 0.38       FLAG RAISED
 
-#### THE EVIDENCE GATE ANSWERED, and the answer is "not yet"
+    attribution, sums to the gap by construction:
+      intake  0.75 lb/wk   eating 2,569 against the 2,160 the rate was measured over
+      steps   0.17 lb/wk   14,357 against 17,171
 
-    measured                1.17 lb/wk  +/- 0.38
-    implied at target       0.89 lb/wk  +/- 0.03
-    gap                     0.28        combined error 0.38
-    flag                    NOT RAISED  ("consistent")
+**The ownership concern was real and attribution answers it without exclusion.**
+`calorieTarget` owns the intake gap (`wkAvg`/`wkOff`) and a second owner would be a defect —
+so each part names its owner and re-decides nothing. One flag, no duplicated ownership, firing
+on the condition that is actually live: **he can read 1.17 on the gauge while behaving like
+0.25.**
 
-**The step effect of 0.17 lb/wk sits inside the measured rate's own confidence interval.** The
-evidence gate on the step-conditioned-primary item says to build it only once this flag is
-raised — **it is not.**
+#### NEW PRACTICE — when a gate returns NOT-FIRED and closes an item
 
-**Unproven, not disproven.** A ±0.38 interval cannot resolve a 0.17 effect; that is a statement
-about the instrument, not about the effect. The gate is doing what it was designed to do: it
-stopped a ~90 kcal/day change to what he eats from being built on a modelled coefficient whose
-largest uncertainty is stride length.
+Record **what would have fired it**, and check the comparator was not narrowed between spec
+and build. Here the spec said *behaviour-implied vs measured* and the build said
+*target-implied vs measured*; **the change was only visible by reading both.** The first
+version of a gate is written by whoever wants the answer — the same shape as the repair being
+the least-reviewed code in the change.
 
 ### R13. The step-conditioned maintenance PRIMARY  `[HELD — evidence gate not met]`
 
@@ -1028,10 +1035,17 @@ walk before merge.
 the deficit"), and this deepens it. The 267 kcal of margin to the protective floor is not a
 reason to skip it: **the margin shrinks with the same step trend that motivates this item.**
 
-**EVIDENCE GATE — CURRENTLY NOT MET.** Do not build until R7's divergence flag is actually
-RAISED on his ledger. As of 2026-08-06 it reads `consistent`: gap 0.28 against combined error
-0.38. **That is the guard-must-fire rule applied to a decision instead of a branch** — and it
-has already stopped one build.
+**EVIDENCE GATE — MET, AND THE ITEM STAYS HELD FOR A BETTER REASON.** On the corrected
+comparator the flag DOES fire (0.92 against 0.38). So the premise is no longer unproven — it
+is **measured, and it is the small term.**
+
+    intake   0.75 lb/wk   ~4x the step effect, already owned and already reported
+    steps    0.17 lb/wk   what this item would address
+
+**A ~90 kcal/day change to what he eats is not the highest-value move when 349 kcal/day of the
+same gap is adherence with an owner that already reports it.** Held on value, not on evidence.
+That is a stronger reason than the one it replaces, and it does not expire when the data
+thickens.
 
 **OPEN — do not pick now.** Whether "current activity" means the last 7 days, a smoothed level,
 or something that degrades when steps are themselves noisy. R7's output will say which has

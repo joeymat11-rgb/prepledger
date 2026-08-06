@@ -228,58 +228,56 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
     /* ---------- R7 — the divergence flag ---------- */
     {
       const RD = __test.rateDivergence;
+      const scen = (o) => RD(clone(SEED), o);
 
-      /* GUARD-MUST-FIRE: a genuinely divergent state raises it. Without this the flag could
-         be permanently off and every "consistent" reading would mean nothing. */
+      /* FIRES ON THE CONDITION THAT IS ACTUALLY LIVE: the gauge no longer describes him.
+         His real shape — gauge 1.17, recent behaviour implies 0.25. */
       {
-        const div = RD(clone(SEED), {
-          rate: { measured: true, scale: 2.6, ci: 0.15 },
-          td: { tdee: 2800, tdeeAtNow: 2700, atSteps: 17000, stepsNow: 14000 },
-          target: { gated: false, mid: 2200 },
-        });
-        ok(div.flagged === true && div.reason === "divergent", "R7 — a scale rate far from what the prescribed intake at current steps implies RAISES the flag. A flag that cannot fire is not a flag");
-        /* my first version banned the word "change" in a sentence whose job is to say "it
-           changes nothing" — the third time I have written an absence-check against copy
-           that must contain the word. Assert the positive. */
-        ok(/worth a look/i.test(div.why) && /changes nothing on its own/i.test(div.why), "R7 — and it says it changes nothing on its own. A divergence is a prompt to LOOK; letting it drive a calorie change is what separating observation from intervention exists to prevent");
-      }
-
-      /* CONSTANT BEHAVIOUR: not raised */
-      {
-        const same = RD(clone(SEED), {
-          rate: { measured: true, scale: 0.90, ci: 0.20 },
-          td: { tdee: 2800, tdeeAtNow: 2800, atSteps: 16000, stepsNow: 16000 },
-          target: { gated: false, mid: 2310 },
-        });
-        ok(same.flagged === false && same.reason === "consistent", "R7 — when the scale and the prescription agree inside their combined error the flag stays down");
-      }
-
-      /* IT DECOMPOSES RATHER THAN CONFLATING — the correction that mattered.
-         On his real ledger the raw gap is 0.92 lb/wk and it splits 0.17 step / 0.64 intake.
-         calorieTarget already owns the intake half (wkAvg / wkOff), so a flag firing on both
-         would be a SECOND OWNER for a number that has one, and would bury the step signal it
-         exists to find. */
-      {
-        const dec = RD(clone(SEED), {
+        const live = scen({
           rate: { measured: true, scale: 1.17, ci: 0.38 },
-          td: { tdee: 2795, tdeeAtNow: 2705, atSteps: 17171, stepsNow: 14357 },
-          target: { gated: false, mid: 2220 },
+          td: { tdee: 2795, tdeeAtNow: 2705, avg: 2160, atSteps: 17171, stepsNow: 14357 }, eaten: 2569,
         });
-        ok(dec.stepEffect != null && dec.intakeEffect != null, "R7 — the two components are reported separately, never as one number");
-        ok(Math.abs(dec.intakeEffect) > Math.abs(dec.stepEffect), "R7 — and on his shape the INTAKE term is the larger one. A flag that conflated them would have reported adherence as an instrument problem");
-        ok(/already owns it|not a second opinion/i.test(dec.intakeWhy || ""), "R7 — the intake term points at its existing owner rather than re-deciding it. A second owner for a number that already has one is the defect this codebase keeps producing");
+        ok(live.flagged === true, "R7 — the flag FIRES when the displayed rate stops describing current behaviour. An athlete reading 1.17 lb/wk while behaving like 0.25 is exactly who it is for");
+        ok(/no longer describes what you are doing now/i.test(live.why), "R7 — and the copy says WHY the gauge is stale: a 28-day regression across a window his behaviour changed inside");
+        ok(/changes nothing on its own/i.test(live.why), "R7 — a divergence is a prompt to LOOK. Letting it drive a calorie change is what separating observation from intervention exists to prevent");
       }
 
-      /* THE ESTIMATOR NEVER SWITCHES — a discontinuity in the control input is its own
-         failure mode: the displayed rate would jump on a day no reading changed. */
+      /* ATTRIBUTION SUMS TO THE GAP BY CONSTRUCTION, and names an owner for each part.
+         Detection and attribution are different jobs; collapsing them was the defect. */
+      {
+        const live = scen({
+          rate: { measured: true, scale: 1.17, ci: 0.38 },
+          td: { tdee: 2795, tdeeAtNow: 2705, avg: 2160, atSteps: 17171, stepsNow: 14357 }, eaten: 2569,
+        });
+        ok(Math.abs((live.intakeEffect + live.stepEffect) - live.gap) < 0.02, "R7 — the two attributed parts SUM to the gap. Both are differences from the window scenario the regression describes, so they add by construction rather than by coincidence");
+        ok(Math.abs(live.intakeEffect) > Math.abs(live.stepEffect), "R7 — and on his shape intake is the larger term. That is the finding, not a rounding detail");
+        ok(/already reported on the calorie card/i.test(live.attributionWhy || "") && /not a second opinion/i.test(live.attributionWhy || ""), "R7 — each part points at its OWNER rather than re-deciding it. calorieTarget owns the intake gap via wkAvg/wkOff and a second owner would be the defect this codebase keeps producing");
+        ok(Array.isArray(live.attribution) && live.attribution.length === 2 && live.attribution.every((x) => x.owner), "R7 — attribution is structured, so a surface cannot render the gap without its owners");
+      }
+
+      /* CONSTANT BEHAVIOUR: not raised. Without this the flag could be permanently on. */
+      {
+        const same = scen({
+          rate: { measured: true, scale: 0.90, ci: 0.20 },
+          td: { tdee: 2800, tdeeAtNow: 2800, avg: 2310, atSteps: 16000, stepsNow: 16000 }, eaten: 2310,
+        });
+        ok(same.flagged === false && same.reason === "consistent", "R7 — when behaviour has not moved, the gauge still describes him and the flag stays down");
+        ok(same.attribution === null, "R7 — and nothing is attributed when there is no gap to attribute");
+      }
+
+      /* THE COMPARATOR IS BEHAVIOUR, NOT A COUNTERFACTUAL. My rebuild compared against what
+         the PRESCRIBED intake would imply — a scenario he is not living — and it did not
+         fire. Worse, that gap (0.11 intake + 0.17 steps) is a deterministic difference
+         between two specified scenarios and carries no sampling error, so testing it against
+         the regression's +/-0.38 was a category error. */
+      ok(!/prescribed|tgt\.mid/.test(String(RD).split("const implied")[0] || ""), "R7 — the implied rate is computed from what he ATE, not from the target. A flag that compares against a counterfactual answers a narrower question than the one it was written for");
+
+      /* THE ESTIMATOR NEVER SWITCHES */
       {
         const st = clone(SEED);
-        const a = RD(st), b = RD(st);
-        ok(a.measured === b.measured, "R7 — the PRIMARY rate is the same estimator on the same data. The fix for averaging across a behaviour change is a flag, never a mid-cut estimator switch");
-        ok(!/currentRate\(s, *\{/.test(String(RD)), "R7 — and rateDivergence does not reach for a different window: it reads currentRate as-is and compares against it");
+        ok(RD(st).measured === RD(st).measured, "R7 — the PRIMARY rate is one estimator on the same data; the fix for averaging across a behaviour change is a flag, never a mid-cut estimator switch");
       }
 
-      /* graceful when the inputs are not there */
       ok(RD({}).flagged === false && typeof RD({}).reason === "string", "R7 — it abstains with a named reason on an empty state rather than throwing");
     }
 

@@ -3628,32 +3628,43 @@ function rateDivergence(s, opts) {
   const logs = (s && s.dailyLogs) || {};
   const days = Object.keys(logs).sort().slice(-7);
   const cals = days.map((d) => (logs[d] || {}).cal).filter((c) => c != null && isFinite(+c)).map(Number);
-  if (cals.length < 4) return off("intake-too-thin");
-  const eaten = cals.reduce((a, b) => a + b, 0) / cals.length;
+  const eatenOverride = (opts && isFinite(opts.eaten)) ? Number(opts.eaten) : null;
+  if (eatenOverride == null && cals.length < 4) return off("intake-too-thin");
+  const eaten = eatenOverride != null ? eatenOverride : cals.reduce((a, b) => a + b, 0) / cals.length;
 
-  /* DECOMPOSE, DO NOT CONFLATE. Measured on his ledger 2026-08-06, the raw gap between the
-     scale (1.17 lb/wk) and what his recent behaviour implies (0.25) is 0.92 — and it splits:
+  /* DETECTION AND ATTRIBUTION ARE DIFFERENT JOBS, and my first rebuild collapsed them.
 
-       step effect      0.17 lb/wk   walking 14,357 against the 17,171 the tdee was solved at
-       intake effect    0.64 lb/wk   eating 2,569 against a 2,220 target
+     The flag's purpose is to warn when THE DISPLAYED RATE NO LONGER DESCRIBES HIS CURRENT
+     BEHAVIOUR. That is live right now: the gauge shows 1.17 lb/wk and his last seven days
+     imply 0.25. He can read the gauge, conclude he is on track, and be behaving like
+     someone losing a quarter-pound a week.
 
-     The intake half is nearly FOUR TIMES the step half, and calorieTarget ALREADY owns it:
-     wkAvg 2569, wkOff 349, with copy that says so. A flag that fires on both would be
-     re-reporting adherence and burying the step signal it exists to find — a second owner
-     for a number that already has one, which is the defect this codebase keeps producing.
+     I narrowed the comparator to "what the PRESCRIBED intake at current steps implies",
+     which asks a different and narrower question — would the step change alone make the
+     target under-deliver — and answers no. That is a counterfactual he is not living.
 
-     So the flag compares the measured rate against what the PRESCRIBED intake at his
-     CURRENT activity implies. Intake drift is reported separately and pointed at its owner. */
+     Worse, the narrowed gap was a CATEGORY ERROR. 0.28 decomposes into 0.11 (target 2,220
+     vs the 2,160 window intake the regression describes) plus 0.17 (14,357 vs 17,171
+     steps). Both are DETERMINISTIC differences between specified scenarios; neither carries
+     sampling error. Testing their sum against the regression's +/-0.38 compares a scenario
+     delta to a sampling interval.
+
+     So: FIRE on measured vs BEHAVIOUR-implied, which is the honest test of whether the
+     displayed number still describes him and does not care which component causes the gap.
+     Then ATTRIBUTE the gap and point each part at its owner — intake at calorieTarget's
+     wkOff, which already reports it, and steps at R6's conditioning line. Attribution names
+     the owner; it does not require the flag to ignore anything. One flag, no duplicated
+     ownership, fires on the condition that is actually live. */
   const toRate = (kcalDeficit) => (kcalDeficit * 7) / ed.perLb;
-  /* R2b: energyBalanceTarget is the single owner. My first version reached for
-     calorieTarget directly and R2b's assertion caught it immediately — which is the
-     assertion doing exactly the job it was written for, one item later. */
-  const tgt = (opts && opts.target) || energyBalanceTarget(s);
+  const implied = toRate(td.tdeeAtNow - eaten);
+
+  /* attribution: both terms are differences from the WINDOW scenario the regression
+     describes, so they sum to the gap by construction rather than by coincidence. */
+  const intakeEffect = +toRate(eaten - td.avg).toFixed(2);
+  const stepEffect = +toRate(td.tdee - td.tdeeAtNow).toFixed(2);
+  let tgt = null;
+  try { tgt = (opts && opts.target) || energyBalanceTarget(s); } catch (e) { tgt = null; }
   const prescribed = (tgt && !tgt.gated && isFinite(tgt.mid)) ? tgt.mid : null;
-  if (prescribed == null) return off("no-prescribed-target");
-  const implied = toRate(td.tdeeAtNow - prescribed);
-  const impliedAtEaten = toRate(td.tdeeAtNow - eaten);
-  const intakeEffect = +(implied - impliedAtEaten).toFixed(2);
 
   /* the implied rate's own band: the walking-cost range is the dominant term, and it is a
      coefficient uncertainty rather than anything about him */
@@ -3669,16 +3680,18 @@ function rateDivergence(s, opts) {
     flagged, reason: flagged ? "divergent" : "consistent",
     measured: +r.scale.toFixed(2), measuredCi: +r.ci.toFixed(2),
     implied: +implied.toFixed(2), impliedCi: +impliedCi.toFixed(2),
-    eaten: Math.round(eaten), prescribed, impliedAtEaten: +impliedAtEaten.toFixed(2), intakeEffect,
-    stepEffect: +(toRate(td.tdee - prescribed) - implied).toFixed(2),
+    eaten: Math.round(eaten), prescribed, intakeEffect, stepEffect,
     atSteps: td.atSteps, stepsNow: td.stepsNow,
     gap: +gap.toFixed(2), combined: +combined.toFixed(2),
     why: flagged
-      ? `Your scale says ${r.scale.toFixed(2)} lb/wk (+/-${r.ci.toFixed(2)}). Eating the ${prescribed} target at your current ${(td.stepsNow || 0).toLocaleString()} steps implies ${implied.toFixed(2)} (+/-${impliedCi.toFixed(2)}). Those disagree by ${gap.toFixed(2)}, more than their combined error — worth a look at whether the step count or the logging has drifted. It changes nothing on its own.`
-      : `Your scale says ${r.scale.toFixed(2)} lb/wk and eating the ${prescribed} target at ${(td.stepsNow || 0).toLocaleString()} steps implies ${implied.toFixed(2)}. They agree inside their combined error (${combined.toFixed(2)}), so the long window is not hiding a behaviour change.`,
-    intakeWhy: Math.abs(intakeEffect) < 0.05 ? null
-      : `Separately, and this is the bigger term: you are averaging ${Math.round(eaten)} against a ${prescribed} target, which is worth ${Math.abs(intakeEffect).toFixed(2)} lb/wk on its own — about ${(Math.abs(intakeEffect) / Math.max(0.01, Math.abs(intakeEffect) + Math.abs(toRate(td.tdee - prescribed) - implied)) * 100).toFixed(0)}% of the whole gap. That is adherence rather than a broken instrument, and the weekly line on the calorie card already owns it — this flag is not a second opinion on it.`,
-  };
+      ? `Your gauge shows ${r.scale.toFixed(2)} lb/wk. What you have actually been eating and walking over the last week implies ${implied.toFixed(2)} — they disagree by ${gap.toFixed(2)}, more than their combined error. The displayed rate is a 28-day regression and your behaviour changed inside it, so it no longer describes what you are doing now. It changes nothing on its own.`
+      : `Your gauge shows ${r.scale.toFixed(2)} lb/wk and your recent eating and walking imply ${implied.toFixed(2)}. They agree inside their combined error (${combined.toFixed(2)}), so the long window is not hiding a behaviour change.`,    /* ATTRIBUTION, with owners named. Neither line re-decides anything. */
+    attribution: !flagged ? null : [
+      { part: "intake", lbWk: intakeEffect, owner: "the weekly line on the calorie card (wkAvg / wkOff)" },
+      { part: "steps", lbWk: stepEffect, owner: "the maintenance conditioning line (R6)" },
+    ],
+    attributionWhy: !flagged ? null
+      : `Of that ${gap.toFixed(2)}: about ${Math.abs(intakeEffect).toFixed(2)} is intake (${Math.round(eaten)} against the ${td.avg} the rate was measured over) and about ${Math.abs(stepEffect).toFixed(2)} is steps (${(td.stepsNow || 0).toLocaleString()} against ${(td.atSteps || 0).toLocaleString()}). The intake part is ${Math.abs(intakeEffect) > Math.abs(stepEffect) ? "the larger one and" : ""} already reported on the calorie card — this flag is not a second opinion on it, it just says the gauge has stopped describing you.`,  };
 }
 
 function redlineCrossing(s, opts) {
