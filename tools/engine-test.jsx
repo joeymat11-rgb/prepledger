@@ -381,17 +381,21 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
     {
       /* SUPERSEDE THROUGH DATE SUFFIXES. The dedup keyed on the exact rid and half the
          producers suffix theirs with the date, so ap_tighten_08-02 and _08-03 coexisted. */
-      {
+        /* AUDIT 3a — my first version had an if/else whose else-arm was ok(true, ...):
+           the suite printed PASS while no test ever entered the supersede branch. An
+           else-arm that passes when the fixture goes quiet is how a green run stops
+           meaning anything. Driven through the FLOOR producer instead, which fires
+           deterministically on this fixture, and asserted UNCONDITIONALLY. */
         const st9 = clone(SEED);
-        st9.proposals = [{ rid: "ap_tighten_2026-08-02", id: "x", d: "2026-08-02", title: "OLD", why: "", apply: { kind: "cal", delta: -50 }, resolved: false }];
+        st9.proposals = [{ rid: "floor_2026-07-13", id: "fx", d: "2026-07-13", title: "OLD FLOOR CARD", why: "", apply: { kind: "note" }, resolved: false }];
         st9.weekly = [{ wk: "2026-07-06", trend: 165.2 }, { wk: "2026-07-13", trend: 164.7 }, { wk: "2026-07-20", trend: 164.2 }];
         st9.blackout.until = "2026-07-01";
         const out = __test.runAdaptive(st9, "2026-07-22");
-        const olds = out.proposals.find((p) => p.rid === "ap_tighten_2026-08-02");
-        const dupes = out.proposals.filter((p) => !p.resolved && /^ap_tighten/.test(p.rid));
-        ok(dupes.length <= 1, "R9 — one open card per SUBJECT: a date-suffixed rid can no longer coexist with its yesterday self (" + dupes.length + " open ap_tighten)");
-        if (olds && olds.resolved) ok(/superseded/.test(olds.resolvedHow || ""), "R9 — and the old card says it was superseded, with a feed line — replaced on the record, not silently dropped");
-        else ok(true, "R9 — no new ap_tighten fired on this fixture, so nothing to supersede");
+        const fresh = out.proposals.filter((p) => !p.resolved && /^floor_/.test(p.rid));
+        const olds = out.proposals.find((p) => p.rid === "floor_2026-07-13");
+        ok(fresh.length === 1 && fresh[0].rid !== "floor_2026-07-13", "R9 — the floor producer fires a fresh card on this fixture, so the supersede branch is genuinely ENTERED — no conditional arms");
+        ok(olds.resolved === true && /superseded/.test(olds.resolvedHow || ""), "R9 — and the date-suffixed old card is SUPERSEDED on the record: one open card per subject, asserted unconditionally. The first version of this test had an ok(true) else-arm and never exercised the mechanism it named");
+        ok(out.feed.some((f) => /CARD SUPERSEDED/.test(f.t)), "R9 — with the feed line");
       }
       /* NOTES EXPIRE; ACTIONABLE KINDS NEVER DO. A note changes nothing when tapped, so an
          old one is pure attention cost; a cal/exit card is a pending decision and waits. */
@@ -408,6 +412,7 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         ok(note.resolved === true && note.resolvedHow === "expired", "R9 — a 21-day-old NOTE expires with a feed line: it changes nothing when tapped, so queueing it forever is pure attention cost — the refeed_review defect as a standing condition");
         ok(cal.resolved === false, "R9 — an actionable card NEVER expires: it is a pending decision, and decisions wait for him. Expiring those would be the engine deciding by timeout");
         ok(out.feed.some((f) => /CARD EXPIRED/.test(f.t)), "R9 — the expiry is on the record");
+      }
       /* THE DISMISSED-REARM CONTRADICTION, driven. dismissProposal promises re-arming;
          applied() counted any adjustments row, so a decline silenced the rid forever. */
       {
@@ -433,8 +438,6 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         const out = __test.runAdaptive(st9, "2026-07-22");
         const piv = out.proposals.find((p) => p.rid === "pivot");
         ok(piv.resolved === true && JSON.stringify((out.plan || {}).phase) === phaseBefore && !(out.targets || {}).exitStart, "R9 — withdrawing the orphaned exit card does NOT execute its apply: plan.phase is untouched and no exitStart is stamped. A withdraw routed through the tap path would end the cut while tidying up");
-      }
-      }
       }
     }
 

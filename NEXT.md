@@ -1235,6 +1235,27 @@ What is true is that nothing is MERGED, so deployed v7.15.0 still has the armed 
 the live bf-threshold producer. The distinction matters because the remedy is one merge, not
 seven pushes.
 
+#### SECOND AUDIT ROUND (2026-08-06) — three findings, two fixed, one deferred BY DESIGN
+
+- **Instance 17, in my own supersede test.** The if/else had an `ok(true)` else-arm, and the
+  else-arm is the arm that ran — on my SEED and on the auditor's. The suite was green with
+  the mechanism never exercised. Now driven through the FLOOR producer, which fires
+  deterministically on the fixture, and asserted unconditionally. The scanner flags the
+  literal `ok(true` from here on.
+- **The withdraw was a KIND-ban wearing a migration's clothes.** Predicate was
+  `kind === "exit" || "phase"` forever, justified as "producer deleted" — coextensive today,
+  wrong the day the regime detector files its own deliberate exit proposal, which is its
+  natural end state. Predicates on the orphaned SUBJECTS by name now (`pivot`, `ease2`).
+- **Expiry cannot drain a live-condition note** — verified by the auditor by execution: an
+  aged microload expires and its producer re-raises a fresh card in the SAME sweep. Net drain
+  zero, plus a false feed line every 14 days. **Deferred on purpose: it dies with R14**, and
+  it is now the sharpest argument for R14's priority.
+
+**MERGE-DAY EXPECTATION, for Joe:** with dismissed no longer meaning applied, the first sweep
+re-arms volband (declined twice) and recovery (declined once) — **the open inbox lands at 3
+note cards, two of which he explicitly declined.** That is the dismiss copy's literal promise
+kept; that it feels like whack-a-mole is R14's problem to solve, not a cooldown's.
+
 ### R14. Informational cards leave the inbox `[decided by research side, not yet built]`
 
 **The invariant: a card may exist in the inbox only if its tap enacts a state change.**
@@ -1244,7 +1265,9 @@ happened; the tap pushes `{rid}` into `s.adjustments`, permanently killing bare-
 (pre-fix); his inbox today is two cards where one tap ends the cut and the other does nothing
 — identical gesture, opposite stakes; and the ladder branch already states the rule.
 Migration: note producers become feed lines; the open microload card goes through the
-withdraw mechanism; admission assert that no proposal may be created with
+withdraw mechanism; **design input from audit round 2: state, PER KIND, what a decline BUYS** — a week's quiet,
+a changed-condition trigger, or a fresh decision daily — so copy and mechanism agree from
+birth this time; admission assert that no proposal may be created with
 `apply.kind === "note"`; **and the note-expiry code from R9 is then DELETED — expiry for a
 kind that cannot exist would be instance 17 of the safeguard nothing can reach.**
 

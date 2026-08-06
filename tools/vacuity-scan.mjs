@@ -48,7 +48,12 @@ const stripped = raw
   .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
   .replace(/(^|[^:])\/\/[^\n]*/g, (m, p) => p + m.slice(p.length).replace(/./g, " "));
 
+/* AUDIT 3b — the literal ok(true is its own class: an assertion that cannot fail by
+   construction. Usually an else-arm that "passes" when the fixture goes quiet, which is how
+   a green run stops meaning anything. Every hit needs the same human question as the
+   hatches: what would make this line go red? */
 const HATCH = [
+  /ok(s*trues*,/,
   /\|\|\s*[!(]?\s*[A-Za-z_$][\w$.]*\s*(==|===)\s*(null|undefined)/,
   /(==|===)\s*(null|undefined)\s*\|\|/,
 ];

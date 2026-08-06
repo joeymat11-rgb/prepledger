@@ -7122,8 +7122,14 @@ function runAdaptive(state, todayISO) {
      was deleted must be withdrawn by the change that deleted it — otherwise it is a card
      recommending a decision the engine has already disowned. Follows the withdrawal
      precedent (SET-REALLOCATION CARD WITHDRAWN): resolved with a feed line, never deleted. */
+  /* AUDIT 4 — predicate on the ORPHANED SUBJECTS BY NAME, not on the kind. A kind-ban
+     justified as "producer was deleted" is coextensive with the truth today and wrong the
+     day the regime detector files a deliberate exit proposal — which is its natural end
+     state. That card would be stillborn on its first sweep with a feed line falsely
+     blaming R4. The withdrawal names exactly what R4 orphaned and nothing else, ever. */
+  const R4_ORPHANS = { pivot: 1, ease2: 1 };
   for (const p of s.proposals) {
-    if (p && !p.resolved && p.apply && (p.apply.kind === "exit" || p.apply.kind === "phase")) {
+    if (p && !p.resolved && R4_ORPHANS[subjectOf(p.rid)]) {
       p.resolved = true; p.resolvedHow = "withdrawn — producer removed by R4";
       s.feed.unshift({ d: todayISO, t: "CARD WITHDRAWN — " + String(p.title || p.rid).slice(0, 40), how: "It was produced by a body-fat threshold the app no longer trusts (R4): the estimate's interval is wider than the decision. The question it asked now belongs to the regime detector, which reads lifts and scale rate instead. Nothing was deleted; this card is on the record as withdrawn." });
     }
