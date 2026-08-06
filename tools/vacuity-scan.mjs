@@ -29,6 +29,11 @@
  * reported a defect at a line that did not contain it. A tool with the defect class it
  * exists to find is worse than no tool.
  *
+ * KNOWN RECALL HOLES (audit r3 item 6), named because recall is the point: the line-based
+ * match misses a call wrapped across lines (ok( then true, on the next) and an argless
+ * ok(true). Normalising statements before matching would close both; until then they are
+ * stated so a clean run is not read as covering them.
+ *
  * A THIRD LESSON, GENERAL TO ALL ABSENCE-CHECKS: any check asserting a token is ABSENT must
  * strip comments first, because the comment recording the removal necessarily contains the
  * token. This was hit twice, independently, one file apart, on the same day — by this scan
@@ -76,6 +81,25 @@ const hits = [];
 for (let i = 0; i < lines.length; i++) {
   if (!/\bok\(/.test(lines[i])) continue;
   if (HATCH.some((re) => re.test(lines[i]))) hits.push(i + 1);
+}
+
+/* GATE MODE (audit r3 item 5). A self-checking tool nobody runs is still a dead guard —
+   the canary fixed "broken scanner runs anyway"; this fixes "working scanner never runs".
+   The baseline is keyed by CONTENT, not line number (line numbers drift), and it RATCHETS:
+   exit 1 on any hit not in the baseline, and on any baseline entry no longer hit — so fixing
+   a hit forces shrinking the baseline in the same commit, and the count can only go down. */
+const norm = (l) => l.trim().replace(/\s+/g, " ").slice(0, 100);
+const BASE_FILE = "tools/vacuity-baseline.json";
+if (process.argv.includes("--gate")) {
+  let base = [];
+  try { base = JSON.parse(readFileSync(BASE_FILE, "utf8")); } catch (e) { console.error("gate: no baseline at " + BASE_FILE); process.exit(1); }
+  const now = hits.map((n) => norm(rawLines[n - 1]));
+  const fresh = now.filter((h) => !base.includes(h));
+  const stale = base.filter((b) => !now.includes(b));
+  if (fresh.length) { console.error("VACUITY GATE — new escape-hatch-shaped assertion(s) not in the baseline:"); for (const f of fresh) console.error("  " + f); process.exit(1); }
+  if (stale.length) { console.error("VACUITY GATE — baseline entries no longer hit (a fix landed: shrink the baseline in this commit):"); for (const f of stale) console.error("  " + f); process.exit(1); }
+  console.log("vacuity gate — " + now.length + " known hit(s), baseline matched, nothing new");
+  process.exit(0);
 }
 
 console.log(`vacuity scan — ${FILE}`);

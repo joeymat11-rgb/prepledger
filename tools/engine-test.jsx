@@ -1223,12 +1223,32 @@ ok(tot2 === 55, "all 55 instruments filed exactly once: " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
-const g1 = gsW(ws, isoL(Date.now()), slpC);
-if (g1 && g1.blocks && g1.blocks.length) {
-  const done = csW(ws, isoL(Date.now()), g1.blocks.map(b => ({ id: b.id, reps: b.target ? b.target.slice() : [8], rir: 1 })), slpC);
-  const ent = done.sessionLog[isoL(Date.now())].entries[0];
-  ok(ent.w != null && ent.w > 0, "weight rides every logged set automatically: " + ent.w);
-} else { ok(true, "no session today in container calendar — weight-ride covered by shape of code"); }
+/* AUDIT r3 item 4 — instance-17's exact shape, pre-existing since v3.x, and DEEPER than
+   the audit's diagnosis. Probed every day of the week under the frozen clock: genSession
+   returns .ex — it has not returned .blocks on ANY day since the API changed shape. The
+   if-condition was not wrong-on-Wednesdays, it was UNSATISFIABLE; the else-arm was the only
+   path that had ever run in this era, and the assertion tested an API three generations
+   stale (.blocks, .target, and a state return where completeSession now returns {s,lines}).
+   The arm's name confessed: covered-by-shape-of-code meant covered by nothing. */
+let rideDay = null, rideG = null;
+for (let k = 0; k < 7 && !rideDay; k++) {
+  const dIso = isoL(Date.now() + k * 864e5);
+  const g = gsW(ws, dIso, slpC);
+  if (g && g.ex && g.ex.length) { rideDay = dIso; rideG = g; }
+}
+ok(rideDay != null, "a scheduled session day exists within a week of the frozen clock — if this fails, the container calendar broke, which is its own finding");
+{
+  const done = csW(ws, rideDay, rideG.ex.map(e => ({ id: e.id, reps: e.tgt ? e.tgt.slice() : [8], rir: 1 })), slpC);
+  const ents = done.s.sessionLog[rideDay].entries;
+  /* driving it surfaced the REAL contract the dead assertion mis-stated: completeSession
+     rides w only when the roster weight is A NUMBER. String weights (curl "55·55·50")
+     log w:null — verified in the LIVE ledger (07-27 curl w=null) — which is exactly why
+     sessionScore excludes non-numeric lifts. Two-sided so neither half can drift. */
+  const numeric = ents.filter(e => { const ex3 = ws.exercises.find(x => x.id === e.id); return ex3 && typeof ex3.w === "number"; });
+  const stringW = ents.filter(e => { const ex3 = ws.exercises.find(x => x.id === e.id); return ex3 && typeof ex3.w !== "number"; });
+ok(numeric.length > 0 && numeric.every(e => e.w != null && e.w > 0), "weight rides every NUMERICALLY-weighted set automatically, asserted unconditionally on a day the calendar actually schedules (" + numeric.length + " sets) — the dead assertion had never executed and was three API generations stale");
+ok(stringW.every(e => e.w == null), "while string-weighted lifts (curl 55·55·50) log w:null BY DESIGN — verified against the live ledger, and it is exactly why sessionScore excludes them from the trend");
+}
 
 // (interim)
 
