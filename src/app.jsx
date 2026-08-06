@@ -2396,7 +2396,7 @@ function calorieFloor(s) {
 const EXIT_HOLD_MIN_WK = 2, EXIT_HOLD_FULL_WK = 4;
 function dietExit(s) {
   const td = observedTDEE(s);
-  const ct = calorieTarget(s);
+  const ct = energyBalanceTarget(s);
   const bf = bfEst(s);
   /* The hold clock only means something if something can start it. Nothing
      wrote exitStart, so readReady/decideReady were permanently false and the
@@ -2572,7 +2572,7 @@ function _costingWeeks(s, asOf, cap) {
   return held;
 }
 
-function energyBalanceTarget(s, opts) {
+function energyBalanceTargetUncached(s, opts) {
   const reg = (opts && opts.regime) || regime(s);
   const key = reg && reg.key ? reg.key : "unknown";
   const cur = calorieTarget(s);
@@ -2668,6 +2668,15 @@ function energyBalanceTarget(s, opts) {
   return { ...cur, ...base, dir: "deficit", provisional: unconfirmed,
     why: `Lifts are holding or rising while fat falls — both halves of the objective are improving at once, which is the best state available. Hold ${cur.lo}–${cur.hi}.` };
 }
+
+/* energyBalanceTarget — memoised on state, because R2b makes this the single owner and
+   fifteen consumers now call it per render. Each call runs regime(), which is
+   progressionTrend + currentRate, then re-runs both over a truncated state for the
+   hysteresis lookback; the costing branch walks back further still. Unmemoised that is a
+   different order of cost from the calorieTarget calls it replaces.
+   opts BYPASSES the memo, so fixtures that inject a regime stay honest. */
+const _ebtMemo = memoOnState(energyBalanceTargetUncached);
+function energyBalanceTarget(s, opts) { return opts ? energyBalanceTargetUncached(s, opts) : _ebtMemo(s); }
 
 function calorieTarget(s) {
   const td = observedTDEE(s);
@@ -3858,7 +3867,7 @@ function phaseSupervisor(s, deps) {
   const ap = (deps && deps.ap) || _phaseSafe(() => autoPilot(s, apModeOf(s)), { ok: false });
   const esc = (deps && deps.esc) || _phaseSafe(() => escalation(s, ap), { ask: [], abstain: [], escalate: false });
   const ea = (deps && deps.ea) || _phaseSafe(() => energyAvailability(s), { gated: true });
-  const ct = (deps && deps.ct) || _phaseSafe(() => calorieTarget(s), { gated: true });
+  const ct = (deps && deps.ct) || _phaseSafe(() => energyBalanceTarget(s), { gated: true });
   // The supervisor's authority is over pressing the CUT deeper. Outside a cut (an active break, a
   // committed maintenance hold or lean gain) there is no deficit to press, so the cut-floor vetoes
   // do not apply — the supervisor stays quiet rather than nagging about a rate he is not running.
@@ -5984,12 +5993,12 @@ function dayProtocol(s, slp) {
   /* 4 · food — calories first, because deficit magnitude is the dominant term
      for body composition and it is the one number here derived from his own
      measured maintenance rather than an authored constant. */
-  const ct = calorieTarget(s);
+  const ct = energyBalanceTarget(s);
   if (!ct.gated) {
     /* The rolling week, not the whole measurement window — that is the number
        that answers "am I actually eating this?", and it is the one that moves. */
     steps.push({
-      a: `Calories ${ct.lo}–${ct.hi}`,
+      a: `Calories ${ct.lo}–${ct.hi}` + (ct.provisional && !ct.gated ? " · provisional" : ""),
       why: `${ct.why}${ct.wkWhy ? " " + ct.wkWhy : ""}`,
       w: 84 + (ct.wkOff != null && Math.abs(ct.wkOff) > 120 ? 6 : 0),
     });
@@ -6768,7 +6777,7 @@ function runAdaptive(state, todayISO) {
      every other change is: as a proposal, with the receipt, for his tap. They
      re-arm weekly while the gap is open and go quiet when it closes. */
 
-  /* BAND_OWNERSHIP — the calorie band is engine-owned. calorieTarget() computes it
+  /* BAND_OWNERSHIP — the calorie band is engine-owned. energyBalanceTarget() computes it (R2b: it was calorieTarget, which could only ever subtract)
      live (the "Today's Protocol" card on NOW) from measured maintenance and the
      target rate over a matched window, and RE-DERIVES it every day — including the
      step taper a hand adjustment would chase. So no proposal may restate or
@@ -6779,7 +6788,7 @@ function runAdaptive(state, todayISO) {
      "CALORIE BAND HAS DRIFTED FROM YOUR DATA", which offered to move the band by
      ct.drift — a redundant restatement of what the protocol card already shows.)
      ct stays: the refeed proposal below quotes the live band. */
-  const ct = calorieTarget(s);
+  const ct = energyBalanceTarget(s);
 
   /* ---------- REFEED_NOTE — the standing recommendation the app owed him ----------
      The programme runs a weekly Wednesday refeed at 2,450-2,500. The evidence
@@ -7036,7 +7045,7 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
       const st = stepTarget(s); const tgt = st && !st.gated ? st.mid : null;
       s.feed.unshift({ d: today, t: "STEP TARGET RAISED", how: `${p.title} — ${eff.stepsDelta > 0 ? "+" : ""}${eff.stepsDelta.toLocaleString()} steps/day${tgt != null ? ` → ~${tgt.toLocaleString()} target` : ""}. Holds until your next weigh-in, then the engine re-measures. One tap to undo.` });
     } else {
-      const ct = calorieTarget(s);
+      const ct = energyBalanceTarget(s);
       s.feed.unshift({ d: today, t: eff.calDelta < 0 ? "TARGET TIGHTENED" : "TARGET EASED", how: `${p.title} — band ${eff.calDelta < 0 ? "down" : "up"} ${Math.abs(eff.calDelta)} kcal${ct && !ct.gated ? ` → ${ct.lo}–${ct.hi}` : ""}${adj ? ` (your version, ${adj > 0 ? "+" : ""}${adj})` : ""}. Holds until your next weigh-in, then the engine re-measures. One tap to undo.` });
     }
     return s;
@@ -7926,7 +7935,7 @@ function askContext(s, docs) {
      computing its own rate from the same ledger by a different method. One
      source, stated method, stated uncertainty — and an instruction not to
      recompute it, because a second opinion here is not insight, it is drift. */
-  const rC = currentRate(s), tdC = observedTDEE(s), ctC = calorieTarget(s), eaC = energyAvailability(s);
+  const rC = currentRate(s), tdC = observedTDEE(s), ctC = energyBalanceTarget(s), eaC = energyAvailability(s);
   const bfC = bfEst(s);
   const canon = " CANONICAL NUMBERS (use these verbatim; do NOT re-derive them from the raw logs — the engine already did, with a stated method): "
     + `BODY FAT ${bfC.pct}% with an honest interval of ${bfC.lo}-${bfC.hi}% (anchored by ${bfC.src}, +/-${bfC.anchorErr} points, ${bfC.wks} weeks ago). That width is real and does not shrink by being ignored — quote the interval whenever the answer turns on which side of a threshold he sits. `
@@ -7987,7 +7996,7 @@ function agentToolExec(s, name, input, staged) {
          reaches for to model a lever was modelling a different athlete. It now
          starts from his measured step average, his measured calorie target and
          the same kcal-per-pound the rest of the engine uses. */
-      const stW = stepTarget(s), ctW = calorieTarget(s);
+      const stW = stepTarget(s), ctW = energyBalanceTarget(s);
       const stepRef = stW.gated ? null : stW.avg;
       /* Anchor to what he ACTUALLY eats, not to what he is told to eat. Using
          the prescription meant modelling his current intake returned a rate
@@ -9124,6 +9133,7 @@ __test.liftTrend = liftTrend;
 __test.progressionTrend = progressionTrend;
 __test.regime = regime;
 __test.energyBalanceTarget = energyBalanceTarget;
+__test.energyBalanceTargetUncached = energyBalanceTargetUncached;
 __test.proteinTargetForRegime = proteinTargetForRegime;
 __test.GAIN_FAT_FRAC = GAIN_FAT_FRAC;
 __test.costingStep = costingStep;
@@ -9713,9 +9723,9 @@ function statusFace(s, deps) {
    for the suite (defaults to real nowFocus). */
 function marchingOrder(s, deps) {
   const focus = (deps && deps.focus) || nowFocus(s);
-  const ct = calorieTarget(s), pt = proteinTarget(s);
+  const ct = energyBalanceTarget(s), pt = proteinTarget(s);
   const targetLine = ct && !ct.gated
-    ? `Today: ${ct.lo}–${ct.hi} kcal · ${pt.g} g protein`
+    ? `Today: ${ct.lo}–${ct.hi} kcal · ${pt.g} g protein${ct.provisional && !ct.gated ? " (provisional — " + (ct.regimeConfirmed ? "holding, not deciding" : "first reading, not yet confirmed by a second a week apart") + ")" : ""}`
     : `Today: ${pt.g} g protein · calories still calibrating`;
   const o0 = focus && focus.owed && focus.owed[0];
   if (o0) {
@@ -10004,7 +10014,7 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
     const effAuto = { calDelta: ap.action === "ease" ? Math.abs(ap.corrKcal) : -Math.abs(ap.corrKcal), stepsDelta: ap.dir === "cut" ? (ap.action === "ease" ? -Math.abs(ap.stepsAdd) : Math.abs(ap.stepsAdd)) : 0 };
     ns.proposals.push({ rid, id: rid + "_" + tISO, d: tISO, title, why: `Routine in-corridor move: ~${ap.pctRate}%BW/wk vs your ${modeLabel} target ~${ap.targetPct}% (~${ap.corrKcal} kcal). Handled at ${meta.short}.`, apply: { kind: "cal", delta: ap.corrKcal, dir: ap.action, calDelta: effAuto.calDelta, stepsDelta: effAuto.stepsDelta }, resolved: true, auto: true });
     ns.adjustments.push({ rid, id: _freshId("adj_"), d: tISO, title, nudge: 0, auto: true, level, via: "cal", calDelta: effAuto.calDelta, from: tISO });   // v7.3.1 — the routine steer TAKES EFFECT (tracked, reversible, reconciles next weigh-in); v7.2.0 audit — stable id so the keyed-union merge collapses this record across devices
-    const ctAuto = calorieTarget(ns);
+    const ctAuto = energyBalanceTarget(ns);
     ns.feed.unshift({ d: tISO, t: "AUTO-PILOT HANDLED IT", how: `${title} — ${meta.tag}. Band ${effAuto.calDelta < 0 ? "down" : "up"} ${Math.abs(effAuto.calDelta)} kcal${ctAuto && !ctAuto.gated ? ` → ${ctAuto.lo}–${ctAuto.hi}` : ""}; it holds until your next weigh-in and it's one tap to undo.` });
     setS(ns); save(ns);
   }, [pol.autoApply, tISO, ap.ok]);
@@ -10416,7 +10426,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
      and the step box to a flat 16500 — two authored numbers sitting next to a
      measured one, which made the card look like it knew three things when it
      knew one. Both now read the same engine the labels read. */
-  const stpT0 = stepTarget(s), ctT0 = calorieTarget(s);
+  const stpT0 = stepTarget(s), ctT0 = energyBalanceTarget(s);
   /* A gated calorieTarget has no mid, and an undefined useState flips the
      input uncontrolled->controlled on the first keystroke and writes NaN. */
   const [cal, setCal] = useState(dl.cal ?? (ctT0.gated ? "" : ctT0.mid));
@@ -10432,14 +10442,14 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   /* The band he is actually shown, derived from measured maintenance — see
      CALORIE_TARGET. The refeed branch is gone: it hardcoded a 2,450–2,500
      Wednesday, which against a fixed weekly total is simply a deeper Monday. */
-  const ctT = calorieTarget(s);
+  const ctT = energyBalanceTarget(s);
   const calT = !ctT.gated ? [ctT.lo, ctT.hi] : ph.band;
   const bf = bfEst(s);
   const nextUnlocks = s.queue.filter((x) => !x.done && x.kind !== "info" && x.kind !== "phase").slice(0, 2);
 
   const [sod9, setSod9] = useState(() => (s.dailyLogs[tISO] || {}).sodium || null);
   const [alc9, setAlc9] = useState(() => (s.dailyLogs[tISO] || {}).alc ?? 0);
-  useEffect(() => { const d0 = s.dailyLogs[tISO] || {}; const st1 = stepTarget(s); const ct1 = calorieTarget(s); setCal(d0.cal ?? (ct1.gated ? "" : ct1.mid)); setPro(d0.pro ?? proteinTarget(s).g); setStp(d0.steps ?? (st1.gated ? "" : Math.round((st1.lo + st1.hi) / 2))); setSod9(d0.sodium ?? null); setAlc9(d0.alc ?? 0); }, [tISO]);
+  useEffect(() => { const d0 = s.dailyLogs[tISO] || {}; const st1 = stepTarget(s); const ct1 = energyBalanceTarget(s); setCal(d0.cal ?? (ct1.gated ? "" : ct1.mid)); setPro(d0.pro ?? proteinTarget(s).g); setStp(d0.steps ?? (st1.gated ? "" : Math.round((st1.lo + st1.hi) / 2))); setSod9(d0.sodium ?? null); setAlc9(d0.alc ?? 0); }, [tISO]);
   const saveDaily = () => {
     const ns = { ...s };
     const c = cal === "" ? null : Number(cal), p = pro === "" ? null : Number(pro), st = stp === "" ? null : Number(stp);
@@ -12958,7 +12968,7 @@ function SleepTab({ s, setS, save, slp }) {
    what sleep actually costs, and says plainly that this model cannot show it. */
 function WhatIfConsole({ s }) {
   const cur = currentRate(s);
-  const stW = stepTarget(s), tdW = observedTDEE(s), ctW = calorieTarget(s);
+  const stW = stepTarget(s), tdW = observedTDEE(s), ctW = energyBalanceTarget(s);
   const stepRef = stW.gated ? 16000 : stW.avg;
   const calRef = tdW ? tdW.avg : (ctW.gated ? 1900 : ctW.mid);
   const perStep = stW.gated ? 0.35 : stW.kcalPer1k / 1000;
@@ -13536,7 +13546,7 @@ function NegotiatorConsole({ s }) {
   const bf = bfEst(s);
   const cur = currentRate(s);
   const fl = calorieFloor(s);
-  const ct = calorieTarget(s);
+  const ct = energyBalanceTarget(s);
   const stN = stepTarget(s);
   const perStepN = stN.gated ? 0.35 : stN.kcalPer1k / 1000;
   const calBase = ct.gated ? (observedTDEE(s) ? observedTDEE(s).avg : 1900) : ct.mid;
@@ -14295,7 +14305,7 @@ function CoachView({ s, onClose }) {
    cannot silently disagree with its implementation any more: if the threshold
    moves, either the sentence moves with it or the suite goes red. */
 function rulebook(s) {
-  const pt = proteinTarget(s), fl = calorieFloor(s), ct = calorieTarget(s);
+  const pt = proteinTarget(s), fl = calorieFloor(s), ct = energyBalanceTarget(s);
   const te = typicalError(s, null), bw = s.trend || 1;
   const pct = (lb) => ((lb / bw) * 100).toFixed(2);
   const acsmLb = +(0.01 * bw).toFixed(1);
@@ -14310,7 +14320,10 @@ function rulebook(s) {
     ["EVENTS", "Estimate once, after, never at the table. Compensation does not exist in this app."],
     ["PROTEIN", `${pt.straddles ? `${pt.lo}–${pt.hi} g — ${pt.g} is the middle of that range, and the range is the honest answer: ${pt.lo} is ${PROTEIN_FLOOR_G_PER_KG} g per kg of your ${pt.ffmKg} kg of lean mass, ${pt.hi} is the lean-subgroup number, and your body-fat interval (${pt.bfLo}–${pt.bfHi}%) straddles the ${LEAN_SUBGROUP_BF}% line that separates them` : `${pt.g} g, every day, derived from your ${pt.ffmKg} kg of lean mass at ${pt.perKg} g/kg`} — not a constant. Protein is a FLOOR: over it is not a miss. It does not rise on training days: the only study that compared day types found requirement HIGHER on rest days. A miss fixed inside 24 h extends the standard.`],
     ["SLEEP", `A night under ${DEBT_LAST_H} h, or a three-night mean under ${DEBT_MEAN3_H}, flags the session. What that flag buys you is protection — the day cannot count toward a stall, so you are never deloaded for a bad night. It does NOT block a record or shrink the step; that rule was retired because acute sleep loss costs about 2.85% on strength, which is inside the test-retest noise, and no trial has ever tested damping progression on low-readiness days. Your ${s.sleep.cleanH} h target is a separate question and still stands — in a deficit, short sleep shifts what you lose toward lean mass.`],
-    ["FOOD", `${ct.gated ? "Calories fall back to the phase band until there are enough clean days to measure your own maintenance." : `${ct.lo}–${ct.hi}, from your measured maintenance minus the deficit your own rate band asks for.`} The floor is ${fl.floor} — ${EA_SPARING} kcal per kg of lean mass plus what training costs, not a round number. No position stand anywhere states an absolute calorie floor for an athlete; every one of them indexes to lean mass.`],
+    /* R2b — the band now carries WHY it is what it is, generated from regime() rather than
+       written beside it (see the standing copy rule). provisional must read differently from
+       decided, or it is the same defect as a proposal whose apply.kind is note. */
+    ["FOOD", `${ct.provisional && !ct.gated ? `PROVISIONAL — ${ct.regimeWhy || "the engine is holding, not deciding"}. ` : ""}${ct.gated ? "Calories fall back to the phase band until there are enough clean days to measure your own maintenance." : `${ct.lo}–${ct.hi}, from your measured maintenance minus the deficit your own rate band asks for.`} The floor is ${fl.floor} — ${EA_SPARING} kcal per kg of lean mass plus what training costs, not a round number. No position stand anywhere states an absolute calorie floor for an athlete; every one of them indexes to lean mass.`],
     ["AUTHORITY", "Machine swaps, ladder graduations, the pivot call — the analyst's call. The app proposes; humans authorize."],
     ["ATTENTION", "From wk 10: mirror & measurements outrank the scale. The app rewards logged behavior, never checking."],
     ["EVIDENCE", "Every rule above names what it rests on, and says so when it rests on nothing. Rules retired for having no evidence behind them: the clean-sleep gate on records, the weekly refeed's benefits, and defending load rather than effort on a cut. That is the mechanism working."],
