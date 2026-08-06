@@ -372,7 +372,7 @@ const EXERCISES = [
 const SEED = {
   v: 2,
   phase: "EASE 1",
-  rate: { band: [1.0, 1.4], redline: 1.9, floor: 0.8 },
+  rate: { band: [1.0, 1.4] },   /* R3 - redline 1.9 and floor 0.8 removed: authored, uncited, and in POUNDS. cutRateBand derives both from BC.CUT_REDLINE_PCT / BC.CUT_FLOOR_PCT in %BW. Nothing reads these fields any more; a live state that still carries them is inert. */
   maintenance: [{ label: "Hard-block steps", cal: 2590, note: "validated" }, { label: "Ease-1 steps", cal: 2470 }],
   trend: 164.2,
   model: { lean: 139.7, anchorISO: "2026-07-21", drip: 0, src: "coach's eye", err: "±1.5–3" },
@@ -2914,7 +2914,8 @@ const BC = {
   // matched total weight lost. So 0.7%/wk is the lean-preserving optimum, and 1.0%/wk is a
   // conservative redline set BELOW the study's 1.4%/wk fast arm. The gauge copy reads the exact
   // figures from the named constants below (v6.2 audit — corrected the earlier +1.7%/−2.0%).
-  CUT_REDLINE_PCT: 1.0,          // Garthe 2011 — conservative cap below the 1.4%/wk fast arm
+  CUT_REDLINE_PCT: 1.0,
+  CUT_FLOOR_PCT: 0.5,           // Ruiz-Castellano 2021 - low end of the 0.5-1.0 %BW/wk retention band. Replaces an authored 0.8 lb, which at 163 lb IS 0.49 %BW: the conversion changes nothing visible today and starts behaving correctly as he leans out.          // Garthe 2011 — conservative cap below the 1.4%/wk fast arm
   CUT_OPT_PCT: 0.70,             // Garthe 2011 lean-preserving optimum (the +2.1% LBM arm)
   CUT_GARTHE_SLOW_RATE: 0.7, CUT_GARTHE_FAST_RATE: 1.4,     // the two study arms (%BW/wk)
   CUT_GARTHE_SLOW_LBM: 2.1, CUT_GARTHE_FAST_LBM: -0.2,      // LBM change per arm (%, Garthe 2011)
@@ -2973,10 +2974,26 @@ function cutRateBand(s, mode) {
   const bw = (s && s.trend) || 165;
   const m = (mode || apModeOf(s)) === "fatloss" ? "fatloss" : "recomp";
   const pct = m === "fatloss" ? BC.CUT_FATLOSS_PCT : BC.CUT_RECOMP_PCT;
-  const floor = (s && s.rate && s.rate.floor != null) ? s.rate.floor : 0.8;
-  const redline = (s && s.rate && s.rate.redline != null) ? s.rate.redline : 1.9;
+  /* R3 - ONE OWNER, AND IT IS THE CITED ONE. These were read raw off SEED.rate in
+     POUNDS while the band beside them was converted from %BW by pctToLb, so they
+     represented a LARGER fraction of bodyweight as he leaned out: the redline
+     getting more permissive exactly when lean tissue is most at risk.
+
+     And they were not merely inconsistent, they were INVERTED. bodyCompBand
+     publishes redlinePct = BC.CUT_REDLINE_PCT = 1.0 %BW (Garthe 2011) and both the
+     zone and escalation read it; redlineCrossing derived its own from the raw
+     1.9 lb = 1.157 %BW. The ANTICIPATORY layer ran a threshold 16% more permissive
+     than the alarm it exists to predict, so between 1.0 and 1.157 %BW/wk the
+     escalation fired while the forecast still read clear. A foresight layer that
+     triggers after the thing it forecasts is worse than none.
+
+     SEED.rate.redline = 1.9 was authored and uncited, so it is DELETED rather than
+     converted. At 163 lb this tightens the redline 1.9 -> 1.63 lb, the correct
+     direction; his measured 1.17 lb/wk keeps a comfortable margin. */
+  const floor = +((BC.CUT_FLOOR_PCT / 100) * bw).toFixed(2);
+  const redline = +((BC.CUT_REDLINE_PCT / 100) * bw).toFixed(2);
   const pctToLb = (p) => +((p / 100) * bw).toFixed(2);
-  return { mode: m, pct: pct.slice(), band: [pctToLb(pct[0]), pctToLb(pct[1])], floor, redline };
+  return { mode: m, pct: pct.slice(), band: [pctToLb(pct[0]), pctToLb(pct[1])], floor, redline, floorPct: BC.CUT_FLOOR_PCT, redlinePct: BC.CUT_REDLINE_PCT };
 }
 
 /* ---------- BODY-COMPOSITION CORRIDOR (v6.1) — the redline, engine-owned ----------
@@ -3315,7 +3332,11 @@ function redlineCrossing(s, opts) {
   const m = r.scale;                                   // lb/wk, + = losing
   if (!(m > 0)) return off("not-losing");
   const seRate = r.ci / FORE.PI95;                     // lb/wk — HAC 95% half-width back to 1σ
-  const redlinePct = +((rb.redline / bw) * 100).toFixed(3);   // cutRateBand's redline (lb/wk) → %BW/wk
+  /* READ the owner, never derive a second one. This line WAS the second redline:
+     rb.redline was raw pounds, so it produced 1.157 %BW against the 1.0 %BW that
+     escalation and the zone both use, and the foresight layer fired LATER than the
+     alarm it forecasts. bodyCompBand is the single publisher of redlinePct. */
+  const redlinePct = (rb && isFinite(rb.redlinePct)) ? rb.redlinePct : BC.CUT_REDLINE_PCT;   /* fall back to the CITED constant, never to a second derivation off pounds */
   if (!(redlinePct > 0)) return off("no-redline");
   const K = 100 / redlinePct;
   const tStarOf = (rate) => (rate > 0 ? bw / rate - K : Infinity);
@@ -6307,8 +6328,8 @@ function fiveLevers(s) {
   // DEFICIT — is the measured trend losing inside his own target band?
   const cr = currentRate(s);
   const band = cutRateBand(s).band;   // v6.2.1 — the DEFICIT lever now reads the selected mode's slice
-  const floor = s.rate && s.rate.floor != null ? s.rate.floor : 0.8;
-  const redline = s.rate && s.rate.redline != null ? s.rate.redline : 1.9;
+  const floor = cutRateBand(s).floor;   /* R3 - %BW-derived; was a raw authored 0.8 lb */
+  const redline = cutRateBand(s).redline;   /* R3 - %BW-derived; was a raw authored 1.9 lb */
   let deficit;
   if (sealed) deficit = { label: "DEFICIT", state: "quiet", detail: "scale sealed" };
   else if (!cr.measured) deficit = { label: "DEFICIT", state: "quiet", detail: "counting only" };
@@ -6349,7 +6370,7 @@ function theOneFix(s, levers) {
   const L = levers || fiveLevers(s);
   const owed = nowFocus(s).owed || [];
   const sealed = !!(s.blackout && daysUntil(s.blackout.until) > 0);
-  const floor = s.rate && s.rate.floor != null ? s.rate.floor : 0.8;
+  const floor = cutRateBand(s).floor;   /* R3 - %BW-derived; was a raw authored 0.8 lb */
   // Rung 1 — verify logging: a clean ledger is the cheapest lever there is
   if (owed.length) return { rung: "logging", lever: "LOGGING", state: "caution",
     title: "Close the books first",
@@ -6404,7 +6425,7 @@ function whyDecompose(s) {
   const trend = s.trend != null ? s.trend : last.w;
   const gap = +(last.w - trend).toFixed(1);
   const refeedRecent = [1, 2, 3].some((d) => dayType(isoOf(new Date(todayStart().getTime() - d * DAY)), s) === "REFEED");
-  const floor = s.rate && s.rate.floor != null ? s.rate.floor : 0.8;
+  const floor = cutRateBand(s).floor;   /* R3 - %BW-derived; was a raw authored 0.8 lb */
   const rate = currentRate(s);
   const realStall = rate.measured && rate.scale < floor && sig.state !== "reversed";
   const show = gap >= Math.max(0.4, wn.sd) || refeedRecent || realStall;
@@ -6706,8 +6727,8 @@ function runAdaptive(state, todayISO) {
 
   const sealed = daysUntil(s.blackout.until) > 0;
   const r = currentRate(s);
-  if (!sealed && r.measured && r.rates.slice(-2).length === 2 && r.rates.slice(-2).every((x) => x < s.rate.floor))
-    propose("floor_" + monday, "RATE FLOOR TRIPPED", `Two weeks under ${s.rate.floor}/wk (${r.rates.slice(-2).map((x) => x.toFixed(1)).join(", ")}). Your rule: restore steps FIRST. If steps are already at target, trim ~50 off the calorie band.`, { kind: "note" });
+  if (!sealed && r.measured && r.rates.slice(-2).length === 2 && r.rates.slice(-2).every((x) => x < cutRateBand(s).floor))
+    propose("floor_" + monday, "RATE FLOOR TRIPPED", `Two weeks under ${cutRateBand(s).floor}/wk (${r.rates.slice(-2).map((x) => x.toFixed(1)).join(", ")}). Your rule: restore steps FIRST. If steps are already at target, trim ~50 off the calorie band.`, { kind: "note" });
   /* The band had no teeth. floor and redline both fired, but the stated working
      band's UPPER edge did nothing — he could run above his own band for weeks
      and hear nothing until the redline, which sits far above it. His band top
@@ -6716,11 +6737,11 @@ function runAdaptive(state, todayISO) {
      body mass while the 1.4%/wk arm was lean-neutral (−0.2%), on matched total
      weight lost. A stated band that never speaks is decoration. */
   const apBand = cutRateBand(s).band;   // v6.2.1 — "above your band" means above the SELECTED mode's slice
-  const above = r.measured ? r.rates.slice(-2).filter((x) => x > apBand[1] && x < s.rate.redline) : [];
+  const above = r.measured ? r.rates.slice(-2).filter((x) => x > apBand[1] && x < cutRateBand(s).redline) : [];
   if (!sealed && above.length === 2)
-    propose("bandtop_" + monday, "RUNNING ABOVE YOUR BAND", `Two weeks at ${above.map((x) => x.toFixed(1)).join(" and ")} lb/wk, against a band that tops out at ${apBand[1]}. Not a redline — the redline is ${s.rate.redline} and nothing is on fire. But this is the range where the evidence starts charging you: matched for total weight lost, the slower arm of the closest trial kept more muscle AND lost more fat than the faster one. The cheapest fix is not food — it is steps, because they cost you nothing you are trying to keep.`, { kind: "cal", delta: 75 });
-  if (!sealed && r.measured && r.rates[r.rates.length - 1] >= s.rate.redline)
-    propose("redline_" + monday, "REDLINE RATE", `${r.rates[r.rates.length - 1].toFixed(1)}/wk ≥ ${s.rate.redline}. Your rule: add ~100 back and flag your coach — this is not a win, it's muscle risk.`, { kind: "cal", delta: 100 });
+    propose("bandtop_" + monday, "RUNNING ABOVE YOUR BAND", `Two weeks at ${above.map((x) => x.toFixed(1)).join(" and ")} lb/wk, against a band that tops out at ${apBand[1]}. Not a redline — the redline is ${cutRateBand(s).redline} and nothing is on fire. But this is the range where the evidence starts charging you: matched for total weight lost, the slower arm of the closest trial kept more muscle AND lost more fat than the faster one. The cheapest fix is not food — it is steps, because they cost you nothing you are trying to keep.`, { kind: "cal", delta: 75 });
+  if (!sealed && r.measured && r.rates[r.rates.length - 1] >= cutRateBand(s).redline)
+    propose("redline_" + monday, "REDLINE RATE", `${r.rates[r.rates.length - 1].toFixed(1)}/wk ≥ ${cutRateBand(s).redline}. Your rule: add ~100 back and flag your coach — this is not a win, it's muscle risk.`, { kind: "cal", delta: 100 });
 
   const bf = bfEst(s);
   if (!sealed && s.phase === "EASE 1" && bf.pct <= 13.2 && s.trend < 163)
@@ -14280,7 +14301,7 @@ function rulebook(s) {
   const acsmLb = +(0.01 * bw).toFixed(1);
   return [
     ["ADAPTIVE", "Session targets, earned loads, and the queue update themselves from what you log. Calorie & phase changes arm themselves from trend data but take one tap — nothing macro moves invisibly."],
-    ["RATE", `IF under ${s.rate.floor}/wk two weeks → restore steps first, THEN trim — steps because adding them does not deepen the food deficit, and deficit size is the variable the trained-population evidence links to lean-mass loss. IF at or over ${s.rate.redline} → redline, add back, analyst flag. Both numbers are pounds, which is a problem: at ${bw} lb they are ${pct(s.rate.floor)}% and ${pct(s.rate.redline)}% of bodyweight, and the redline sits above the ${acsmLb} lb that ${(1).toFixed(0)}%/wk works out to for you. There is an open proposal to restate the band in %BW.`],
+    ["RATE", `IF under ${cutRateBand(s).floor}/wk two weeks → restore steps first, THEN trim — steps because adding them does not deepen the food deficit, and deficit size is the variable the trained-population evidence links to lean-mass loss. IF at or over ${cutRateBand(s).redline} → redline, add back, analyst flag. Both numbers are now expressed as a % of bodyweight rather than as pounds: the floor is ${cutRateBand(s).floorPct}%/wk and the redline ${cutRateBand(s).redlinePct}%/wk, which at ${bw} lb work out to ${cutRateBand(s).floor} and ${cutRateBand(s).redline} lb. They move with you, so the redline stays the same fraction of you as you lean out instead of quietly getting more permissive.`],
     ["STRUCTURE", "One structural change per session — auto-picked from the queue. Rep progression unlimited."],
     ["OWNERSHIP", `A new best waits for ONE repeat before it becomes the standard, and a session that clears the old line by two standard errors banks on the spot. The bar is your own measured spread — ±${te.reps} reps per set, from ${te.n} paired sets at identical load. Sleep is not part of this: measurement error does not care how you slept, and it applies to every record rather than a sleep-selected minority.`],
     ["OPENERS", "The taper asks for a 2-RIR opener and one terminal set to failure. Two openers ground out at RIR 0 and the load holds until an honest one lands — a grind is not an earn."],

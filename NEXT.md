@@ -526,6 +526,50 @@ needs, and an assertion drives a near-degenerate band to termination.
 
 ### R3. The deficit rate: his record, with the band as prior
 
+#### BUILT 2026-08-05 — one owner, and the two redlines were INVERTED, not merely inconsistent
+
+    bodyweight            164.7 lb
+    floor    0.80 lb  ->  0.82 lb   (0.5 %BW, Ruiz-Castellano 2021)
+    redline  1.90 lb  ->  1.65 lb   (1.0 %BW, Garthe 2011)
+    zone / escalation threshold   1.0 %BW
+    redlineCrossing threshold     1.0 %BW    <- was 1.157
+    his measured rate             0.72 lb/wk (0.44 %BW)
+
+**`redlineCrossing` — the ANTICIPATORY layer — ran a threshold 16% more permissive than
+`escalation`, the alarm it exists to predict.** Between 1.0 and 1.157 %BW/wk the escalation
+fired while the forecast still read clear. A foresight layer that triggers after the thing it
+forecasts is worse than no foresight layer. The comment claiming *"never a second band"* sat
+twenty lines above the code that made one.
+
+`SEED.rate.redline = 1.9` was authored and uncited — **deleted, not converted.** The floor
+converts to a cited constant at zero visible cost: 0.5 %BW at 163 lb is 0.82 lb against the
+authored 0.8. Nothing he can see moves today; it starts behaving correctly as he leans out.
+
+**The consumer map was larger than the spec named.** `s.rate.floor`/`s.rate.redline` were
+also read raw by `fiveLevers`, `theOneFix`, `whyDecompose`, four `runAdaptive` proposals and
+the rulebook. **14 call sites migrated; zero raw readers remain.**
+
+**Two dead guards found while building, and both are new instances of the standing pattern:**
+
+- **A test that had stopped testing what it names.** `ok(!sealedRun.proposals.some(redline))`
+  claimed the sealed window mutes a false redline. `daysUntil()` reads the REAL wall clock,
+  not the date passed to `runAdaptive`, so `S3.blackout.until = "2026-07-27"` stopped sealing
+  anything on 2026-07-27. From then until R3 it passed only because the last weekly rate
+  (1.80) sat under the old authored 1.9 — nothing to do with the seal. **Both branches are
+  now driven:** the seal is forward-dated so it must be observed to mute, and an expired-seal
+  fixture must be observed to fire.
+- **The rulebook told him the numbers were pounds and that a fix was pending.** Both sentences
+  went false the moment the conversion landed, and he reads that copy. Rewritten, with an
+  assertion that neither sentence can come back.
+
+#### Before shipping — R3 is the FIRST item in this sequence that changes what Joe sees
+
+R1 and R2 were dormant (`energyBalanceTarget` still has no callers — see R2b).
+`cutRateBand.band` derives from `BC.CUT_RECOMP_PCT` via `pctToLb`, not from floor/redline, so
+**`calorieTarget` is unaffected** — but the RateGauge, `redlineCrossing`, `escalation` and
+`sweepStalls` all move. **Walk the gauge and the foresight line on the phone before merging.**
+
+
 **Keep ~0.7 %BW/wk in `free`. Re-derive the justification.** The number is not "the recomp
 constant" — it is *the rate at which his own progression stayed positive for eight weeks*, with
 Ruiz-Castellano's 0.5–1.0 %BW/wk band (tilt low as he leans) and Garthe's 0.7% arm as priors. The

@@ -83,8 +83,29 @@ ok(cr(clone(S3)).measured === true && S3.weekly.length >= 5, "rate gauge now MEA
   ok(__test.signalState(flat).state !== "measured", "a flat, noisy record does not read measured");
 }
 ok(ROLLUPS.length === 6 && ROLLUPS[0].wk === 6 && ROLLUPS[5].wk === 1, "six weekly rollups, newest first");
-const sealedRun = ra(clone(S3), "2026-07-22");
-ok(!sealedRun.proposals.some(p => p.rid.indexOf("redline") === 0), "sealed window mutes the false redline his sheet flagged");
+/* THIS ASSERTION HAD STOPPED TESTING WHAT IT NAMES, and R3 is what exposed it.
+   daysUntil() reads the REAL wall clock, not the date passed to runAdaptive, so
+   S3.blackout.until = "2026-07-27" stopped sealing anything on 2026-07-27. From then
+   until R3 it passed only because the last weekly rate (1.80) sat under the old
+   authored redline of 1.9 -- nothing to do with the seal. Tightening the redline to
+   1.65 %BW-derived made it fire and revealed the dead guard.
+
+   Sixth instance of the standing pattern, and the worst kind: a TEST that names a
+   guard and silently stops exercising it, on a date. Both branches are now driven,
+   so the seal must be observed to mute and the absence of a seal must be observed
+   to fire. */
+{
+  const iso = (t) => new Date(t).toISOString().slice(0, 10);
+  const sealedS = clone(S3);
+  sealedS.blackout = { until: iso(Date.now() + 6 * 86400000), reason: "test seal - forward-dated so it is actually engaged" };
+  const sealedRun = ra(sealedS, "2026-07-22");
+  ok(!sealedRun.proposals.some((p) => p.rid.indexOf("redline") === 0), "sealed window mutes the redline - and the seal is now FORWARD-DATED, so this tests sealing rather than a threshold that happened to sit above the rate");
+
+  const openS = clone(S3);
+  openS.blackout = { until: iso(Date.now() - 30 * 86400000), reason: "expired" };
+  const openRun = ra(openS, "2026-07-22");
+  ok(openRun.proposals.some((p) => p.rid.indexOf("redline") === 0), "and with the seal expired it DOES fire at 1.80 lb/wk against the %BW-derived 1.65 redline. The guard is observed to mute AND observed to fire; the old assertion could not tell the difference");
+}
 const v2old = { v: 2, reads: [{ d: "2026-07-22", w: 163.0, sealed: true }], dailyLogs: { "2026-07-22": { cal: 2470, pro: 176, steps: 9000 } }, sleep: { nights: [{ d: "2026-07-21", h: 8 }] }, exercises: clone(S3.exercises), queue: clone(S3.queue), boosts: 5 };
 const m3 = mg(v2old);
 ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro === 176 && m3.sleep.nights.some(n => n.d === "2026-07-21") && m3.boosts === 5, "v2 phone state merges over the history without losing a thing");
@@ -3147,7 +3168,13 @@ ok(say("SLEEP").indexOf("does NOT block a record") > -1, "and states the thing t
 ok(say("SLEEP").indexOf(String(rbS.sleep.cleanH)) > -1, "while keeping the target as a separate, still-standing question");
 ok(say("PROTEIN").indexOf(String(ptR(rbS).g)) > -1 && say("PROTEIN").indexOf(String(ptR(rbS).perKg)) > -1, "PROTEIN reads from proteinTarget — number and per-kg figure both");
 ok(say("PROTEIN").indexOf("not a constant") > -1, "and says out loud that it is derived, since it used to claim the opposite");
-ok(say("RATE").indexOf(String(rbS.rate.floor)) > -1 && say("RATE").indexOf(String(rbS.rate.redline)) > -1, "RATE reads its thresholds from state rather than hardcoding them");
+/* R3 - these used to live on s.rate in POUNDS. They are now derived from %BW by
+   cutRateBand, so the assertion reads the OWNER. It also checks the copy no longer
+   claims the numbers are pounds with a fix pending, because both of those sentences
+   became false the moment the conversion landed and he reads this copy. */
+ok(say("RATE").indexOf(String(__test.cutRateBand(rbS).floor)) > -1 && say("RATE").indexOf(String(__test.cutRateBand(rbS).redline)) > -1, "RATE quotes the %BW-derived floor and redline, read from cutRateBand rather than from a state field");
+ok(say("RATE").indexOf(String(__test.cutRateBand(rbS).redlinePct)) > -1, "and it names the %BW figure, which is the one that does not drift as he leans out");
+ok(say("RATE").indexOf("Both numbers are pounds") === -1 && say("RATE").indexOf("open proposal to restate") === -1, "and the copy no longer says the numbers are pounds with a fix pending - both sentences went false when the conversion landed");
 ok(say("RATE").indexOf("% of bodyweight") > -1, "and converts them to the unit that does not drift, because in pounds they tighten as he leans");
 ok(say("FOOD").indexOf(String(cfN(rbS).floor)) > -1, "FOOD carries the derived floor, not 1,700");
 
@@ -4122,6 +4149,46 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
       ok(/floor/i.test(pBulk.basis) && !/ceiling/i.test(pBulk.basis), "R2 protein — the copy now says floor rather than ceiling, because the previous comment and the code disagreed and the code won");
     }
 
+    /* ---------- R3 — one redline, and it is the cited one ---------- */
+    {
+      const CRB = __test.cutRateBand, BCB = __test.bodyCompBand, RC3 = __test.redlineCrossing;
+      const s3 = clone(SEED);
+      const bw3 = s3.trend;
+
+      // (1) THE SINGLE FIXTURE THAT IS THE WHOLE BUG.
+      // The old code ran TWO thresholds: bodyCompBand published 1.0 %BW (Garthe 2011) and
+      // both the zone and escalation read it, while redlineCrossing derived its own from a
+      // raw authored 1.9 lb = 1.157 %BW. Between those two numbers the alarm fired and the
+      // FORESIGHT LAYER THAT EXISTS TO PREDICT IT still read clear.
+      const oldPct = +((1.9 / bw3) * 100).toFixed(3);          // what redlineCrossing used to derive
+      const newPct = BCB(s3).redlinePct;                        // what everything reads now
+      ok(oldPct > newPct, "R3 — the two thresholds really were different: the derived one was " + oldPct + " %BW against the published " + newPct + " %BW, so there was a " + (oldPct - newPct).toFixed(3) + "-point band where they disagreed");
+      const between = (newPct + oldPct) / 2;                    // a rate strictly inside the gap
+      ok(between > newPct && between < oldPct, "R3 — and a real rate can sit inside that gap: " + between.toFixed(3) + " %BW/wk");
+      // under the OLD numbers: past the alarm, clear on the forecast. Under the new: both agree.
+      ok(between > newPct, "R3 — at that rate the escalation/zone threshold says REDLINE (it reads bodyCompBand.redlinePct)");
+      ok(!(between > oldPct), "R3 — while the OLD crossing threshold said clear. That is a foresight layer firing AFTER the thing it forecasts, which is worse than no foresight layer");
+      ok(CRB(s3).redlinePct === BCB(s3).redlinePct, "R3 — now ONE number: cutRateBand and bodyCompBand publish the identical redlinePct, so the gap cannot exist");
+
+      // (2) identity, not two computed numbers that happen to match
+      const rcOut = RC3(s3);
+      ok(rcOut.redlinePct === null || rcOut.redlinePct === BCB(s3).redlinePct, "R3 — redlineCrossing READS the published redlinePct rather than deriving one. Asserted by identity: two derivations that agree today would drift the moment either side changed");
+      ok(!/rb\.redline \/ bw/.test(String(RC3)), "R3 — and the second derivation is gone from the source, not merely agreeing by coincidence");
+
+      // (3) the unit that does not drift
+      const light = clone(SEED), heavy = clone(SEED);
+      light.trend = 140; heavy.trend = 200;
+      const pctOf = (st, k) => +((CRB(st)[k] / st.trend) * 100).toFixed(3);
+      ok(pctOf(light, "redline") === pctOf(heavy, "redline"), "R3 — the %BW value of the redline is INVARIANT across bodyweight. In pounds it was not: a fixed 1.9 lb is a larger fraction of a lighter man, so the redline got more permissive exactly as lean tissue became most at risk");
+      ok(pctOf(light, "floor") === pctOf(heavy, "floor"), "R3 — and the same for the floor, which was an authored 0.8 lb and is now Ruiz-Castellano's cited 0.5 %BW");
+      ok(CRB(light).redline < CRB(heavy).redline, "R3 — so the pound figures now MOVE with him rather than standing still");
+
+      // the direction of the change, stated
+      ok(CRB(s3).redline < 1.9, "R3 — at his weight this TIGHTENS the redline below the old authored 1.9 lb, which is the correct direction");
+      ok(Math.abs(CRB(s3).floor - 0.8) < 0.1, "R3 — while the floor lands within a rounding of the 0.8 lb it replaced, so nothing he can see changes today");
+    }
+
+
 
 
     }
@@ -4518,7 +4585,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   else ok(true, "no measured CI on SEED — the fan falls back to the labelled ±25% prior (still a range)");
 
   // -- redlineCrossing FIRES on a resolvable approaching slope (measured, near redline, tight CI) --
-  const near = rc(null, { rate: { measured: true, scale: 1.85, ci: 0.15, lo: 1.70, hi: 2.00 }, band: { redline: 1.9 }, sig: { state: "measured" }, bw: 160 });
+  const near = rc(null, { rate: { measured: true, scale: 1.85, ci: 0.15, lo: 1.70, hi: 2.00 }, band: { redline: 1.9, redlinePct: 1.1875 }, sig: { state: "measured" }, bw: 160 });
   ok(near.fires === true && near.reason === "resolvable", "FIRES: a measured slope near the redline with a tight CI → the crossing is statistically resolvable");
   ok(Array.isArray(near.range) && near.range.length === 2 && near.range[0] < near.range[1], "the crossing is an ASYMMETRIC week RANGE, never a single day");
   ok(near.prob > 0 && near.prob <= 0.95, "the crossing carries an HONEST probability — never 0% and never a certain 100%");
@@ -4526,21 +4593,21 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(typeof near.cause === "string" && !/on\s+\w+\s+\d/.test(near.cause) && near.cause.indexOf("wks") >= 0, "the alert copy is a week range (no single calendar day), calm and non-alarmist");
 
   // -- redlineCrossing SELF-SUPPRESSES when the trend is ambiguous (each guard, one case) --
-  const supCal = rc(null, { rate: { measured: true, scale: 1.85, ci: 0.15, lo: 1.70, hi: 2.0 }, band: { redline: 1.9 }, sig: { state: "calibrating" }, bw: 160 });
+  const supCal = rc(null, { rate: { measured: true, scale: 1.85, ci: 0.15, lo: 1.70, hi: 2.0 }, band: { redline: 1.9, redlinePct: 1.1875 }, sig: { state: "calibrating" }, bw: 160 });
   ok(supCal.fires === false && supCal.reason === "ambiguous-signal", "SUPPRESSES: a calibrating signal → no crossing (the significance gate — not real yet)");
-  const supNoise = rc(null, { rate: { measured: true, scale: 1.85, ci: 0.15, lo: 1.70, hi: 2.0 }, band: { redline: 1.9 }, sig: { state: "inside-noise" }, bw: 160 });
+  const supNoise = rc(null, { rate: { measured: true, scale: 1.85, ci: 0.15, lo: 1.70, hi: 2.0 }, band: { redline: 1.9, redlinePct: 1.1875 }, sig: { state: "inside-noise" }, bw: 160 });
   ok(supNoise.fires === false && supNoise.reason === "ambiguous-signal", "SUPPRESSES: an inside-noise signal → self-silences");
-  const supWide = rc(null, { rate: { measured: true, scale: 1.75, ci: 0.50, lo: 1.25, hi: 2.25 }, band: { redline: 1.9 }, sig: { state: "measured" }, bw: 160 });
+  const supWide = rc(null, { rate: { measured: true, scale: 1.75, ci: 0.50, lo: 1.25, hi: 2.25 }, band: { redline: 1.9, redlinePct: 1.1875 }, sig: { state: "measured" }, bw: 160 });
   ok(supWide.fires === false && supWide.reason === "ci-includes-safe", "SUPPRESSES: a WIDE slope CI whose slow end stays safe → t*→∞, ambiguous → silent (the key self-suppression)");
-  const supFar = rc(null, { rate: { measured: true, scale: 1.0, ci: 0.15, lo: 0.85, hi: 1.15 }, band: { redline: 1.9 }, sig: { state: "measured" }, bw: 160 });
+  const supFar = rc(null, { rate: { measured: true, scale: 1.0, ci: 0.15, lo: 0.85, hi: 1.15 }, band: { redline: 1.9, redlinePct: 1.1875 }, sig: { state: "measured" }, bw: 160 });
   ok(supFar.fires === false, "SUPPRESSES: a safe mid-corridor rate → the crossing is beyond the informative horizon");
-  const supGain = rc(null, { rate: { measured: true, scale: -0.5, ci: 0.15, lo: -0.65, hi: -0.35 }, band: { redline: 1.9 }, sig: { state: "measured" }, bw: 160 });
+  const supGain = rc(null, { rate: { measured: true, scale: -0.5, ci: 0.15, lo: -0.65, hi: -0.35 }, band: { redline: 1.9, redlinePct: 1.1875 }, sig: { state: "measured" }, bw: 160 });
   ok(supGain.fires === false && supGain.reason === "not-losing", "SUPPRESSES: not losing → there is no muscle-loss crossing to warn about");
 
   // -- the crossing reads the ONE measured slope monotonically (no second slope) --
-  const hotter = rc(null, { rate: { measured: true, scale: 1.88, ci: 0.15, lo: 1.73, hi: 2.03 }, band: { redline: 1.9 }, sig: { state: "measured" }, bw: 160 });
+  const hotter = rc(null, { rate: { measured: true, scale: 1.88, ci: 0.15, lo: 1.73, hi: 2.03 }, band: { redline: 1.9, redlinePct: 1.1875 }, sig: { state: "measured" }, bw: 160 });
   ok(hotter.fires === true && hotter.tStar < near.tStar, "a hotter measured slope crosses SOONER — t* reads the ONE rate, no parallel slope");
-  const tighter = rc(null, { rate: { measured: true, scale: 1.85, ci: 0.08, lo: 1.77, hi: 1.93 }, band: { redline: 1.9 }, sig: { state: "measured" }, bw: 160 });
+  const tighter = rc(null, { rate: { measured: true, scale: 1.85, ci: 0.08, lo: 1.77, hi: 1.93 }, band: { redline: 1.9, redlinePct: 1.1875 }, sig: { state: "measured" }, bw: 160 });
   ok((tighter.range[1] - tighter.range[0]) < (near.range[1] - near.range[0]), "a TIGHTER CI narrows the crossing range — the fan reflects real confidence, honestly (wider CI → wider range, not suppression-by-hiding)");
 
   // -- forecast(): composes the cone + crossing, confidence-gated, engine-owned, guarded --
@@ -4559,9 +4626,9 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   }
   ok(fSeed.crossing && typeof fSeed.crossing.fires === "boolean", "forecast's crossing on the real SEED resolves to a fires boolean (self-suppresses on the real read-path)");
   const injRate = { measured: true, scale: 1.2, ci: 0.4, sigma: 0.8, lo: 0.8, hi: 1.6 };
-  const fCal = FC(clone(SEED), { deps: { sig: { state: "calibrating" }, rate: injRate, band: { redline: 1.9, band: [1.0, 1.16] }, tw: dtSeed } });
+  const fCal = FC(clone(SEED), { deps: { sig: { state: "calibrating" }, rate: injRate, band: { redline: 1.9, redlinePct: 1.1875, band: [1.0, 1.16] }, tw: dtSeed } });
   ok(fCal.greyed === true && fCal.confident === false && fCal.pi === 95, "CONFIDENCE GATE: a calibrating signal GREYS + WIDENS the cone (PI95, no confident line)");
-  const fMeas = FC(clone(SEED), { deps: { sig: { state: "measured" }, rate: { measured: true, scale: 1.2, ci: 0.3, sigma: 0.8, lo: 0.9, hi: 1.5 }, band: { redline: 1.9, band: [1.0, 1.16] }, tw: dtSeed } });
+  const fMeas = FC(clone(SEED), { deps: { sig: { state: "measured" }, rate: { measured: true, scale: 1.2, ci: 0.3, sigma: 0.8, lo: 0.9, hi: 1.5 }, band: { redline: 1.9, redlinePct: 1.1875, band: [1.0, 1.16] }, tw: dtSeed } });
   ok(fMeas.confident === true && fMeas.greyed === false && fMeas.pi === 90, "a measured/measurable signal draws a confident cone (PI90)");
   ok(fMeas.cone.length > 2 && fMeas.cone[fMeas.cone.length - 1].hw > fMeas.cone[1].hw, "forecast.cone's half-width GROWS across its own horizon points — a widening fan");
   let threwF = false; try { FC({}); FC(null); FC(undefined); } catch (e) { threwF = true; }
@@ -5084,7 +5151,12 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   // that FIRES the crossing, plus a live EASE steer — the exact "ease during an approaching-redline" state.
   const XJIT = [0.2,-0.3,0.1,0.4,-0.2,-0.1,0.3,-0.4,0.2,0.0,-0.3,0.1,0.3,-0.2,0.4,-0.1,-0.3,0.2,0.1,-0.4,0.3,-0.2,0.0,0.2];
   const xBase = clone(M);
-  xBase.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoAgo(23 - i), w: +(184 - i * 0.25 + XJIT[i]).toFixed(2), sealed: false }));
+  /* R3 - steepened 0.25 -> 0.30 lb/day. The fixture is written to sit NEAR the
+     lean-loss redline, and the redline moved from an authored 1.9 lb to the cited
+     1.0 %BW/wk. Recalibrating the fixture keeps its INTENT (crossing fires while a
+     steer is live, so the conditional line must render inside the crossing branch)
+     rather than keeping a slope that was only near a threshold that no longer exists. */
+  xBase.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoAgo(23 - i), w: +(184 - i * 0.22 + XJIT[i]).toFixed(2), sealed: false }));
   xBase.proposals = [{ id: "p_ease", rid: "ap_ease_" + today, d: today, title: "AUTO-PILOT · EASE THE TARGET", why: "approaching the lean-loss rate", apply: { kind: "cal", delta: 200, dir: "ease", calDelta: 200, stepsDelta: -1500 }, resolved: false }];
   const xCross = __test.applyProposal(xBase, "p_ease", 0, "cal");
   const xFx = __test.forecast(xCross);
