@@ -1125,6 +1125,42 @@ on its own.
 
 ### R8. Training: delete, do not build
 
+#### BUILT 2026-08-06 — and there was almost nothing to delete, which is the finding
+
+**`VOL_BANDS` is one plain constant read identically everywhere, and `programmeVolume` reads
+the SPLIT, not the energy state.** There is no deficit-calibrated variant to remove because
+none was ever built. The claim lived entirely in copy — which is R10's worked example, so the
+two items do not overlap.
+
+**Asserted as BEHAVIOUR, not as string absence.** Deletions are where the absence-check trap
+lives and I have walked into it three times (`percentage`, `bf.pct`, `change`). So the test
+builds two states differing only in what would drive an energy-state branch — one cutting, one
+gaining at `plan.phase = "leangain"` — and asserts the set prescription is **byte-identical**.
+Same for the lift target, because zero studies have manipulated RIR under restriction and so
+there is nothing to condition on.
+
+#### THE ONE DEFICIT-CONDITIONAL LINE IS DELIBERATE AND STAYS
+
+    volumeImbalance:  actionable = detectable && !cutting
+
+**R8 says "delete any deficit-conditional volume logic." Applied literally that deletes this,
+and it should not be** — `CLAUDE.md` mandates it in as many words: *"during a deficit it is
+deliberately filed, never proposed."*
+
+The distinction is the one R4 needed:
+
+- **Conditioning the BAND on energy state** — wrong, and never built.
+- **Conditioning whether a PROPOSAL FIRES** — a conservatism gate, deliberate and documented.
+
+Measured on the snapshot: `cutting true, detectable true, actionable false`. **The gap is
+still DETECTED while filed**, which is the difference between conservatism and blindness, and
+that is asserted too.
+
+**Second time an R-item's deletion instruction has collided with a documented design.** Both
+times the resolution had the same shape: **separate what a number MEANS from what a number is
+allowed to DO.** Named here rather than rediscovered a third time.
+
+
 | variable | rule | basis |
 |---|---|---|
 | weekly sets/muscle | **10–16 fractional, unchanged by energy state** | Roth 2022 (n=38) null; Nait-Yahia 2026 (n=16, 40% CR) null on FFM |

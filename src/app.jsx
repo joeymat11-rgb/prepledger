@@ -9423,6 +9423,7 @@ __test.etaRange = etaRange;
 __test.bfEst = bfEst;
 __test.migrate = migrate;
 __test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
+__test.targetsFor = targetsFor;
 __test.stepKcal = stepKcal;
 __test.skinfoldCheck = skinfoldCheck;
 __test.skinfoldSeries = skinfoldSeries;

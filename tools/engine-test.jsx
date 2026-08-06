@@ -336,6 +336,38 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
       ok(RD({}).flagged === false && typeof RD({}).reason === "string", "R7 — it abstains with a named reason on an empty state rather than throwing");
     }
 
+    /* ---------- R8 — training: delete, do not build ---------- */
+    {
+      /* ASSERT WHAT THE CODE DOES, NOT THAT A STRING IS ABSENT. Deletions are where the
+         absence-check trap lives and I have hit it three times (percentage, bf.pct, change).
+         So: build two states that differ ONLY in the things that would drive an energy-state
+         branch, and assert the volume prescription is byte-identical. */
+      const cut8 = clone(SEED), fed8 = clone(SEED);
+      fed8.reads = (fed8.reads || []).map((r, i) => ({ ...r, w: 170 + i * 0.05 }));   // gaining, not cutting
+      fed8.trend = 172;
+      fed8.plan = { ...(fed8.plan || {}), phase: "leangain" };
+      const sigOf = (st) => JSON.stringify(__test.programmeVolume(st).map((m) => [m.mg, m.head, m.sets, m.indirectOnly]));
+      ok(sigOf(cut8) === sigOf(fed8), "R8 — the weekly set prescription is BYTE-IDENTICAL between a cutting state and a gaining one. Volume is designed, not conditioned on energy state: Roth 2022 (n=38) and Nait-Yahia 2026 (n=16, 40% CR) are both null on FFM");
+      ok(JSON.stringify(__test.VOL_BANDS) === JSON.stringify({ floor: 6, lo: 8, hi: 14, ceil: 16 }), "R8 — and the bands themselves are one constant, read identically everywhere. There is no deficit-calibrated variant to delete because none was ever built");
+
+      /* THE ONE DEFICIT-CONDITIONAL LINE IS DELIBERATE AND STAYS. It gates whether a proposal
+         FIRES, not what the band SAYS — a conservatism gate CLAUDE.md mandates in as many
+         words: "during a deficit it is deliberately filed, never proposed." */
+      {
+        const vi = __test.volumeImbalance(cut8);
+        ok(vi.cutting === true && vi.actionable === false, "R8 — while cutting, a detectable volume gap is FILED and not proposed. That is the one energy-state branch in the training path and it is deliberate: it gates whether a proposal fires, never what the band says");
+        ok(vi.detectable === true, "R8 — and it is still DETECTED while filed, so the finding is not lost — which is the difference between conservatism and blindness");
+      }
+
+      /* terminal RIR is never modulated by energy state — zero studies have manipulated it
+         under restriction, so there is nothing to condition on */
+      {
+        const rirOf = (st) => { const ex = (st.exercises || [])[0]; try { return JSON.stringify(__test.targetsFor(ex, st)); } catch (e) { return "err"; } };
+        ok(rirOf(cut8) === rirOf(fed8), "R8 — the lift target is identical in both energy states. Zero studies have ever manipulated RIR under energy restriction, so there is nothing to condition on and the engine conditions on nothing");
+      }
+    }
+
+
 
 
 
