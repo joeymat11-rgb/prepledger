@@ -3592,6 +3592,95 @@ function coneHalfWidth(sigmaLevel, seRate, h, z) {
    A wide slope CI leaves the slow end unbounded, so an ambiguous trend stays silent; the probability
    is then reported honestly (floored at P_FIRE — muscle loss is costly — capped at 0.95 — never a
    certainty). `opts` injects rate/band/sig/bw for the suite. Pure; mutates nothing. */
+/* ==================== R7_NOTE — the divergence flag ====================
+
+   currentRate averages a 28-read regression across a window his BEHAVIOUR changed inside.
+   Steps fell 19,794 -> 14,694 across it and intake rose. The regression is not wrong — it
+   is the honest answer to "what has the scale done" — but it silently averages across a
+   behaviour change, and the two halves are answers to different questions.
+
+   THE FIX IS NOT TO SWITCH ESTIMATORS. A discontinuity in the control input is its own
+   failure mode: the displayed rate would jump on a day no reading changed, and every
+   downstream number with it. So the long window stays PRIMARY and a flag is raised when
+   the behaviour-implied rate and the measured rate disagree by more than their combined
+   error.
+
+   A FLAG IS A PROMPT TO LOOK. It must not drive a calorie change on its own — that is the
+   whole point of separating observation from intervention, and it is why this item ships
+   before the one that changes what he eats.
+
+   THE IMPLIED RATE CARRIES ITS OWN UNCERTAINTY, and most of it is not metabolic: the step
+   term rests on a walking cost of 2.4 +/- 0.4 J/kg/m and an authored stride length. So the
+   comparison is band-to-band, never point-to-point — comparing two point estimates would
+   manufacture divergences out of the coefficient's own error bar. ==================== */
+function rateDivergence(s, opts) {
+  const off = (reason) => ({ flagged: false, reason, measured: null, implied: null, gap: null, combined: null, why: null, intakeWhy: null });
+  /* total: an empty or partial state must abstain with a named reason, not throw. currentRate
+     and observedTDEE both reach into s.blackout and s.reads and will throw on {}. */
+  let r = null, td = null, ed = null;
+  try { r = (opts && opts.rate) || currentRate(s); td = (opts && opts.td) || observedTDEE(s); ed = energyDensity(s); }
+  catch (e) { return off("state-incomplete"); }
+  if (!ed || !isFinite(ed.perLb)) return off("no-energy-density");
+  if (!r || !r.measured || !isFinite(r.scale) || !isFinite(r.ci)) return off("no-measured-rate");
+  if (!td || !isFinite(td.tdee) || td.tdeeAtNow == null) return off("no-activity-conditioning");
+
+  /* what he is actually eating NOW, not the window average the tdee was solved over */
+  const logs = (s && s.dailyLogs) || {};
+  const days = Object.keys(logs).sort().slice(-7);
+  const cals = days.map((d) => (logs[d] || {}).cal).filter((c) => c != null && isFinite(+c)).map(Number);
+  if (cals.length < 4) return off("intake-too-thin");
+  const eaten = cals.reduce((a, b) => a + b, 0) / cals.length;
+
+  /* DECOMPOSE, DO NOT CONFLATE. Measured on his ledger 2026-08-06, the raw gap between the
+     scale (1.17 lb/wk) and what his recent behaviour implies (0.25) is 0.92 — and it splits:
+
+       step effect      0.17 lb/wk   walking 14,357 against the 17,171 the tdee was solved at
+       intake effect    0.64 lb/wk   eating 2,569 against a 2,220 target
+
+     The intake half is nearly FOUR TIMES the step half, and calorieTarget ALREADY owns it:
+     wkAvg 2569, wkOff 349, with copy that says so. A flag that fires on both would be
+     re-reporting adherence and burying the step signal it exists to find — a second owner
+     for a number that already has one, which is the defect this codebase keeps producing.
+
+     So the flag compares the measured rate against what the PRESCRIBED intake at his
+     CURRENT activity implies. Intake drift is reported separately and pointed at its owner. */
+  const toRate = (kcalDeficit) => (kcalDeficit * 7) / ed.perLb;
+  /* R2b: energyBalanceTarget is the single owner. My first version reached for
+     calorieTarget directly and R2b's assertion caught it immediately — which is the
+     assertion doing exactly the job it was written for, one item later. */
+  const tgt = (opts && opts.target) || energyBalanceTarget(s);
+  const prescribed = (tgt && !tgt.gated && isFinite(tgt.mid)) ? tgt.mid : null;
+  if (prescribed == null) return off("no-prescribed-target");
+  const implied = toRate(td.tdeeAtNow - prescribed);
+  const impliedAtEaten = toRate(td.tdeeAtNow - eaten);
+  const intakeEffect = +(implied - impliedAtEaten).toFixed(2);
+
+  /* the implied rate's own band: the walking-cost range is the dominant term, and it is a
+     coefficient uncertainty rather than anything about him */
+  const bw = (s && s.trend) || null;
+  const stepSpan = (bw && td.atSteps != null && td.stepsNow != null)
+    ? Math.abs(stepKcal(bw, td.stepsNow - td.atSteps, WALK_J_HI) - stepKcal(bw, td.stepsNow - td.atSteps, WALK_J_LO)) / 2
+    : 0;
+  const impliedCi = Math.abs(toRate(stepSpan));
+  const gap = Math.abs(r.scale - implied);
+  const combined = Math.sqrt(r.ci * r.ci + impliedCi * impliedCi);
+  const flagged = gap > combined;
+  return {
+    flagged, reason: flagged ? "divergent" : "consistent",
+    measured: +r.scale.toFixed(2), measuredCi: +r.ci.toFixed(2),
+    implied: +implied.toFixed(2), impliedCi: +impliedCi.toFixed(2),
+    eaten: Math.round(eaten), prescribed, impliedAtEaten: +impliedAtEaten.toFixed(2), intakeEffect,
+    stepEffect: +(toRate(td.tdee - prescribed) - implied).toFixed(2),
+    atSteps: td.atSteps, stepsNow: td.stepsNow,
+    gap: +gap.toFixed(2), combined: +combined.toFixed(2),
+    why: flagged
+      ? `Your scale says ${r.scale.toFixed(2)} lb/wk (+/-${r.ci.toFixed(2)}). Eating the ${prescribed} target at your current ${(td.stepsNow || 0).toLocaleString()} steps implies ${implied.toFixed(2)} (+/-${impliedCi.toFixed(2)}). Those disagree by ${gap.toFixed(2)}, more than their combined error — worth a look at whether the step count or the logging has drifted. It changes nothing on its own.`
+      : `Your scale says ${r.scale.toFixed(2)} lb/wk and eating the ${prescribed} target at ${(td.stepsNow || 0).toLocaleString()} steps implies ${implied.toFixed(2)}. They agree inside their combined error (${combined.toFixed(2)}), so the long window is not hiding a behaviour change.`,
+    intakeWhy: Math.abs(intakeEffect) < 0.05 ? null
+      : `Separately, and this is the bigger term: you are averaging ${Math.round(eaten)} against a ${prescribed} target, which is worth ${Math.abs(intakeEffect).toFixed(2)} lb/wk on its own — about ${(Math.abs(intakeEffect) / Math.max(0.01, Math.abs(intakeEffect) + Math.abs(toRate(td.tdee - prescribed) - implied)) * 100).toFixed(0)}% of the whole gap. That is adherence rather than a broken instrument, and the weekly line on the calorie card already owns it — this flag is not a second opinion on it.`,
+  };
+}
+
 function redlineCrossing(s, opts) {
   const o = opts || {};
   const r = o.rate || currentRate(s);
@@ -9333,6 +9422,7 @@ __test.forecast = forecast;
 __test.conditionalForesight = conditionalForesight;
 __test.etaReached = etaReached;
 __test.redlineCrossing = redlineCrossing;
+__test.rateDivergence = rateDivergence;
 __test.coneHalfWidth = coneHalfWidth;
 __test.normCdf = normCdf;
 __test.FORE = FORE;

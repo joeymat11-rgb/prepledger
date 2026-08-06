@@ -239,6 +239,13 @@ Record the real-data branch in the item, every time. As of 2026-08-06:
 **Both gates read zero today** — the difference is what it takes to leave zero. The old one
 needed three unbroken clean weeks; the new one needs three clean sessions on one lift.
 
+**A REPORTING CHANGE THAT MOVES THE TARGET IS A FAILED REPORTING CHANGE.** If an item is
+scoped as diagnostics, pin the numbers it must not move and assert them byte-identical before
+and after, on the real ledger. R6 was one line of reasoning away from cutting his intake ~90
+kcal/day as a side effect of making a scalar more legible — and R2b is what made that possible,
+by putting a single owner in front of the calorie decision. **The more centralised the engine
+gets, the further a "display" change can reach.**
+
 **Copy that quotes an engine number, or describes engine behaviour, must be GENERATED from
 the engine — never written alongside it.** This is engine-owns-numbers applied to prose.
 **Copy that describes the engine is a second implementation of the engine**, and it drifts
@@ -973,6 +980,63 @@ drift. Constant steps + genuine divergence ⇒ still fires. Any `kind: "steps"` 
 non-null `deltaKcal`.
 
 ### R7. `currentRate` must not silently average across a behaviour change
+
+#### BUILT 2026-08-06 — and it DECOMPOSES, which changed what the flag means
+
+The first build compared the measured rate against what his **actual recent behaviour**
+implies. On the live ledger that raw gap is **0.92 lb/wk**, and it splits:
+
+    step effect     0.17 lb/wk   walking 14,357 against the 17,171 the tdee was solved at
+    intake effect   0.64 lb/wk   eating 2,569 against a 2,220 target
+
+**The intake half is nearly four times the step half, and `calorieTarget` already owns it** —
+`wkAvg 2569`, `wkOff 349`, with copy that says so. A flag firing on both would be a **second
+owner for a number that already has one**, and would bury the step signal it exists to find.
+
+So the flag compares the measured rate against what the **prescribed** intake at his **current**
+activity implies, and reports intake drift separately, pointing at its existing owner.
+
+#### THE EVIDENCE GATE ANSWERED, and the answer is "not yet"
+
+    measured                1.17 lb/wk  +/- 0.38
+    implied at target       0.89 lb/wk  +/- 0.03
+    gap                     0.28        combined error 0.38
+    flag                    NOT RAISED  ("consistent")
+
+**The step effect of 0.17 lb/wk sits inside the measured rate's own confidence interval.** The
+evidence gate on the step-conditioned-primary item says to build it only once this flag is
+raised — **it is not.**
+
+**Unproven, not disproven.** A ±0.38 interval cannot resolve a 0.17 effect; that is a statement
+about the instrument, not about the effect. The gate is doing what it was designed to do: it
+stopped a ~90 kcal/day change to what he eats from being built on a modelled coefficient whose
+largest uncertainty is stride length.
+
+### R13. The step-conditioned maintenance PRIMARY  `[HELD — evidence gate not met]`
+
+**WHAT.** `observedTDEE` returns maintenance at his CURRENT activity level rather than the
+window average, and `energyBalanceTarget` divides from that.
+
+**WHY.** The window-average number is conditioned on 17,171 steps and he now walks 14,357.
+Every calorie decision divides from a maintenance he no longer has.
+
+**COST.** −90 kcal/day today, ~−175 in four weeks at the current step trend of −649/wk.
+**THIS IS A CHANGE TO WHAT HE EATS, NOT A FIX.** Before/after in the build report, and a phone
+walk before merge.
+
+**TRIGGER — R12 LANDS FIRST.** R12's trigger fires on intent ("before anything that can deepen
+the deficit"), and this deepens it. The 267 kcal of margin to the protective floor is not a
+reason to skip it: **the margin shrinks with the same step trend that motivates this item.**
+
+**EVIDENCE GATE — CURRENTLY NOT MET.** Do not build until R7's divergence flag is actually
+RAISED on his ledger. As of 2026-08-06 it reads `consistent`: gap 0.28 against combined error
+0.38. **That is the guard-must-fire rule applied to a decision instead of a branch** — and it
+has already stopped one build.
+
+**OPEN — do not pick now.** Whether "current activity" means the last 7 days, a smoothed level,
+or something that degrades when steps are themselves noisy. R7's output will say which has
+signal. The item is currently a guess about a coefficient; R7 turns it into a measurement.
+
 
 Report the long window as primary, **plus an explicit divergence flag** when the behaviour-implied
 rate and the measured rate disagree by more than their combined error. **Do not switch estimators

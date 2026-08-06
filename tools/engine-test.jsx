@@ -225,6 +225,65 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
       ok(typeof AS(clone(SEED)).reason === "string", "R6 — adaptationSignal always names its branch. On the live ledger 2026-08-06 it returns detected=false reason='too-thin' — it abstains EARLIER than the activity gate, so the false-adaptation risk is latent rather than live, and the fixture above is what drives the gate");
     }
 
+    /* ---------- R7 — the divergence flag ---------- */
+    {
+      const RD = __test.rateDivergence;
+
+      /* GUARD-MUST-FIRE: a genuinely divergent state raises it. Without this the flag could
+         be permanently off and every "consistent" reading would mean nothing. */
+      {
+        const div = RD(clone(SEED), {
+          rate: { measured: true, scale: 2.6, ci: 0.15 },
+          td: { tdee: 2800, tdeeAtNow: 2700, atSteps: 17000, stepsNow: 14000 },
+          target: { gated: false, mid: 2200 },
+        });
+        ok(div.flagged === true && div.reason === "divergent", "R7 — a scale rate far from what the prescribed intake at current steps implies RAISES the flag. A flag that cannot fire is not a flag");
+        /* my first version banned the word "change" in a sentence whose job is to say "it
+           changes nothing" — the third time I have written an absence-check against copy
+           that must contain the word. Assert the positive. */
+        ok(/worth a look/i.test(div.why) && /changes nothing on its own/i.test(div.why), "R7 — and it says it changes nothing on its own. A divergence is a prompt to LOOK; letting it drive a calorie change is what separating observation from intervention exists to prevent");
+      }
+
+      /* CONSTANT BEHAVIOUR: not raised */
+      {
+        const same = RD(clone(SEED), {
+          rate: { measured: true, scale: 0.90, ci: 0.20 },
+          td: { tdee: 2800, tdeeAtNow: 2800, atSteps: 16000, stepsNow: 16000 },
+          target: { gated: false, mid: 2310 },
+        });
+        ok(same.flagged === false && same.reason === "consistent", "R7 — when the scale and the prescription agree inside their combined error the flag stays down");
+      }
+
+      /* IT DECOMPOSES RATHER THAN CONFLATING — the correction that mattered.
+         On his real ledger the raw gap is 0.92 lb/wk and it splits 0.17 step / 0.64 intake.
+         calorieTarget already owns the intake half (wkAvg / wkOff), so a flag firing on both
+         would be a SECOND OWNER for a number that has one, and would bury the step signal it
+         exists to find. */
+      {
+        const dec = RD(clone(SEED), {
+          rate: { measured: true, scale: 1.17, ci: 0.38 },
+          td: { tdee: 2795, tdeeAtNow: 2705, atSteps: 17171, stepsNow: 14357 },
+          target: { gated: false, mid: 2220 },
+        });
+        ok(dec.stepEffect != null && dec.intakeEffect != null, "R7 — the two components are reported separately, never as one number");
+        ok(Math.abs(dec.intakeEffect) > Math.abs(dec.stepEffect), "R7 — and on his shape the INTAKE term is the larger one. A flag that conflated them would have reported adherence as an instrument problem");
+        ok(/already owns it|not a second opinion/i.test(dec.intakeWhy || ""), "R7 — the intake term points at its existing owner rather than re-deciding it. A second owner for a number that already has one is the defect this codebase keeps producing");
+      }
+
+      /* THE ESTIMATOR NEVER SWITCHES — a discontinuity in the control input is its own
+         failure mode: the displayed rate would jump on a day no reading changed. */
+      {
+        const st = clone(SEED);
+        const a = RD(st), b = RD(st);
+        ok(a.measured === b.measured, "R7 — the PRIMARY rate is the same estimator on the same data. The fix for averaging across a behaviour change is a flag, never a mid-cut estimator switch");
+        ok(!/currentRate\(s, *\{/.test(String(RD)), "R7 — and rateDivergence does not reach for a different window: it reads currentRate as-is and compares against it");
+      }
+
+      /* graceful when the inputs are not there */
+      ok(RD({}).flagged === false && typeof RD({}).reason === "string", "R7 — it abstains with a named reason on an empty state rather than throwing");
+    }
+
+
 
 ok(bfEst(clone(SEED)).pct > 14 && bfEst(clone(SEED)).pct < 16, "BF model sane at current trend");
 
