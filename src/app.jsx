@@ -1460,9 +1460,17 @@ function completeSession(state, iso, entries, slp, extras = {}) {
   const cutoff = isoOf(new Date(mk(iso).getTime() - 21 * DAY));
   const counts = {};
   Object.entries(s.sessionLog).forEach(([d, sl]) => { if (d >= cutoff) (sl.niggles || []).forEach((j) => { counts[j] = (counts[j] || 0) + 1; }); });
+  /* R14 audit — THIS WAS A BIRTH-SITE BYPASS. The choke point lives in propose(), inside
+     runAdaptive; this producer pushed a kind:"note" card straight into s.proposals from
+     completeSession, so a joint hitting 3 flags in 3 weeks would have seated a note in the
+     R14 inbox — reachable in production, driven by the audit's fixture. Same rule applied
+     here: information is a feed line, deduped by title within 14 days, content intact. */
   Object.entries(counts).forEach(([j, c]) => {
-    if (c >= 3 && !s.proposals.some((p) => !p.resolved && p.rid && p.rid.indexOf("niggle_" + j.replace(/\s/g, "")) === 0))
-      s.proposals.push({ rid: `niggle_${j.replace(/\s/g, "")}_${iso}`, id: `niggle_${j.replace(/\s/g, "")}_${iso}`, d: iso, title: `${j.toUpperCase()} — 3 FLAGS IN 3 WEEKS`, why: "A pattern, not a day. Technique/deload review with your coach before it becomes a decision you don't get to make. Nothing changes automatically.", apply: { kind: "note" }, resolved: false });
+    if (c >= 3) {
+      const nTitle = `${j.toUpperCase()} — 3 FLAGS IN 3 WEEKS`;
+      const dup = (s.feed || []).some((f) => f && f.t === nTitle && f.d && (mk(iso) - mk(f.d)) / DAY < 14);
+      if (!dup) s.feed.unshift({ d: iso, t: nTitle, how: `${j} has been flagged after ${c} sessions inside three weeks. Nothing changes automatically — a recurring niggle is information for you and your coach, and the pattern is the point: one sore day is a day, three is a signal.` });
+    }
   });
   lines.forEach((l) => s.feed.unshift({ d: iso, t: l.t, how: l.how }));
   return { s, lines };
@@ -7642,6 +7650,7 @@ function dismissProposal(state, pid) {
       refeed: "This one is a one-off decision; declining closes it unless the evidence changes.",
       steps: "If the step pattern persists, it comes back with fresh numbers.",
       exit: "Phase decisions never expire and never re-file themselves — this stays yours to raise.",
+      ladder: "Filed once per lift; declining closes it — the ladder sweep never re-files a rid it has already raised, so this will not come back unless the exercise itself changes.",
       default: "The engine re-arms it if the pattern that raised it holds.",
     };
     const declKind = (p.apply && p.apply.kind) || "default";
@@ -10775,6 +10784,18 @@ function PhaseArcCard({ s, setS, save, tISO }) {
     if (!pr) return;
     const ns = JSON.parse(JSON.stringify(s));
     ns.proposals = ns.proposals || [];
+    /* R14 audit — the SECOND birth-site bypass: phaseProposal's floor-hold returns
+       apply {kind:"note"} and this pushed it verbatim into the inbox. Same choke rule as
+       propose(): a note becomes a feed line, deduped by title within 14 days. Applied at
+       the birth site rather than to the one known producer, so the third bypass neither
+       side has found yet hits the same wall. */
+    if (pr.apply && pr.apply.kind === "note") {
+      ns.feed = ns.feed || [];
+      const dup = ns.feed.some((f) => f && f.t === pr.title && f.d && (mk(tISO) - mk(f.d)) / DAY < 14);
+      if (!dup) ns.feed.unshift({ d: tISO, t: pr.title, how: pr.why });
+      setS(ns); save(ns); hap(12);
+      return;
+    }
     if (!ns.proposals.some((p) => p.rid === pr.rid && !p.resolved)) ns.proposals.push({ ...pr, id: pr.rid + "_" + tISO, d: tISO, resolved: false });
     setS(ns); save(ns); hap(12);
   };

@@ -941,7 +941,22 @@ let st2 = clone(S4);
   const en = g.ex.map(e => ({ id: e.id, n: e.n, w: e.w, tgt: e.tgt, reps: e.tgt.slice(), isDebutNow: e.isDebutNow, rir: null }));
   st2 = cs2(st2, iso, en, slpClean, { note: "", niggles: ["knee"] }).s;
 });
-ok(st2.proposals.some(p => p.rid.indexOf("niggle_knee") === 0), "3 knee flags in 3 weeks surfaces on NOW");
+/* R14 audit — this producer was a BIRTH-SITE BYPASS of the inbox invariant: it pushed a
+   kind:note card straight from completeSession. It now surfaces as a FEED LINE, same
+   content, and the fixture doubles as the bypass driver: after these three sessions, the
+   inbox must hold ZERO unresolved notes from any path. */
+ok(st2.feed.some(f => /KNEE — 3 FLAGS IN 3 WEEKS/.test(f.t)), "3 knee flags in 3 weeks surfaces — as a feed line under R14, since a recurring niggle is information for him and his coach, not a decision");
+ok(!st2.proposals.some(p => !p.resolved && p.apply && p.apply.kind === "note"), "GLOBAL ADMISSION — after the niggle fixture, no unresolved proposal anywhere carries apply.kind note. This is the assert that catches the third bypass neither side has found yet");
+/* the SECOND bypass (phaseProposal's floor-hold -> armProposal). armProposal is a component
+   closure, unreachable from the suite, so this is asserted at the source layer: the choke
+   exists at the birth site, and the producer still emits the shape it guards against —
+   if either side changes, one of these two goes red. */
+{
+  const armSrc = readFileSync("src/app.jsx", "utf8");
+  const armBody = armSrc.slice(armSrc.indexOf("const armProposal = (pr) => {"), armSrc.indexOf("const planBreak = () => {"));
+  ok(/pr\.apply && pr\.apply\.kind === "note"/.test(armBody) && /ns\.feed\.unshift/.test(armBody), "R14 audit — armProposal carries the same note-to-feed choke as propose(), so the UI birth site cannot seat a note either");
+  ok(/return;/.test(armBody.slice(armBody.indexOf('kind === "note"'))), "R14 audit — and the note path RETURNS before the proposals push: converted, never both");
+}
 // v3 → v4 patch
 const oldV3 = clone(S4); oldV3.v = 3; delete oldV3.waist; oldV3.exercises.forEach(e => { delete e.rirHist; });
 const m4 = mg2(oldV3);
@@ -3075,7 +3090,13 @@ const clearR = ra2(clearS, "2026-07-28");
 const stillArmed = (clearR.proposals || []).filter((p) => p.rid && p.rid.indexOf("recovery_") === 0 && !p.resolved);
 ok(stillArmed.length === 0, "once the signals clear the card stands down instead of lingering with a claim the engine stopped making");
 ok(clearR.proposals.some((p) => p.resolved && (p.stoodDown || /converted to feed/.test(p.resolvedHow || ""))), "it resolves rather than vanishing — nothing is deleted. Under R14 a planted recovery CARD converts to a feed line; either path is a resolution on the record");
-ok(clearR.feed.some((f) => f.t === "RECOVERY CARD STOOD DOWN" || /RECOVERY LOW/.test(f.t)), "and the record still explains itself — the stand-down line or the converted content, depending on which path ran");
+{
+  /* audit r4 tightening: assert the WINNER's feed line exists, tied to its resolvedHow —
+     not merely that some line from either path is present. */
+  const won = clearR.proposals.find((p) => p.resolved && (p.stoodDown || /converted to feed/.test(p.resolvedHow || "")));
+  const wonLine = won && won.stoodDown ? clearR.feed.some((f) => f.t === "RECOVERY CARD STOOD DOWN") : clearR.feed.some((f) => /RECOVERY LOW/.test(f.t));
+  ok(!!won && wonLine, "and the WINNING path's own feed line exists — the resolution and its receipt travel together, whichever sweep won the race");
+}
 
 // v3.99.14 — the protocol is actually ranked, and protein scales off lean mass
 const { dayProtocol: dp14, proteinTarget: pt14, bfEst: bf14, SEED: TW14 } = __test;

@@ -1258,6 +1258,34 @@ kept; that it feels like whack-a-mole is R14's problem to solve, not a cooldown'
 
 ### R14. Informational cards leave the inbox
 
+#### AUDIT ROUND (2026-08-06): "one choke point" was FALSE — two birth sites bypassed it
+
+**The audit drove a failing case through the niggle producer**: `completeSession` pushed a
+`kind: "note"` card straight into `s.proposals` — reachable in production the first time a
+joint hits 3 flags in 3 weeks. And `phaseProposal`'s floor-hold returned a note that
+`armProposal` pushed verbatim from the UI side. **"Enforced at the one place cards are born"
+was a claim about a place that was not one.**
+
+Both routed through the same note→feed rule at their own birth sites — `armProposal` gets
+the full choke rather than a producer patch, so **the third bypass neither side has found yet
+hits the same wall**. The audit's niggle fixture is committed as the driver, and the **GLOBAL
+admission assert** from the original spec is in: after the fixture, no unresolved proposal
+anywhere carries `apply.kind === "note"`.
+
+**The ladder decline promise was false and is fixed**: `sweepLadders` never re-files a rid at
+any status (deliberate, commented), but a declined ladder fell to the default "re-arms if the
+pattern holds". `DECLINE_BUYS.ladder` now states what a decline actually buys — filed once
+per lift, declining closes it — asserted like the exit entry.
+
+**Stand-down race, tightened per the audit**: the WINNING path's own feed line must exist,
+tied to its `resolvedHow` — not merely some line from either path.
+
+### R15. The analyst suggestion surface `[named by audit — not started]`
+
+`applySuggestion` still defaults `sug.apply` to `{kind: "note"}` (~7578) — the analyst
+NOW-card surface is a second inbox where approving a no-apply suggestion enacts nothing. The
+R14 charter question applies to it whole: **a card may exist only if its tap enacts.**
+
 #### BUILT 2026-08-06 — at the choke point, so all ~8 producers converted in one place
 
 **The invariant is enforced where cards are born.** `propose()` routes `kind: "note"` to a
