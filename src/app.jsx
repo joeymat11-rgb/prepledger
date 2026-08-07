@@ -13018,7 +13018,7 @@ function LogTab({ s, setS, save, slp }) {
         return gSess ? <GymMode s={s} setS={setS} save={save} slp={slp} sess={gSess} dateSel={gDate} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} /> : null;
       })()}
       {sess && !s.sessionLog[dateSel] && (
-        <button onClick={() => setGym(true)} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(94,212,162,.35)", background: "rgba(94,212,162,.06)", color: DT.jade, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>▶ GYM MODE — ONE LIFT AT A TIME, TIMERS ON</button>
+        <GymLauncher s={s} onOpen={() => setGym(true)} />
       )}
       <div style={{ display: "flex", gap: 8, overflowX: "auto", touchAction: "pan-x", paddingBottom: 2 }}>
         {/* Two RECEIPT chips lived here, both styled as buttons and neither carrying a
@@ -15560,14 +15560,42 @@ function HistTab({ s, setS, save }) {
    Mode, which restores the exact phase through resumePhase. It sits below GymMode's
    overlay (z 49 < 60) so it can never cover a live session, and its width leaves the
    FAB corridor free on every tab — the call-banner pattern under the paint-slop law. */
+/* ---------- R15c ROUND 6 · F4 — THE LAUNCHER WEARS THE LIVE SESSION ----------
+   The session's entry door on TRAIN shows the running state while a draft lives:
+   "▸ RESUME · REST 1:26 · CALVES SET 2" — same persisted anchor, same resume law, the
+   64 touch law intact. Fresh state otherwise. Self-ticking so no parent re-render is
+   ever load-bearing (the F4 lesson). */
+function GymLauncher({ s, onOpen }) {
+  const [, force] = useState(0);
+  useEffect(() => { const iv = setInterval(() => force((x) => x + 1), 800); return () => clearInterval(iv); }, []);
+  const live = findGymDraft();
+  if (!live) return (
+    <button onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(94,212,162,.35)", background: "rgba(94,212,162,.06)", color: DT.jade, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>▶ GYM MODE — ONE LIFT AT A TIME, TIMERS ON</button>
+  );
+  const liftName = (() => { try { const sess9 = genSession(s, live.iso); return ((sess9.ex || [])[live.idx || 0] || {}).n || "session"; } catch (e) { return "session"; } })();
+  const rp9 = resumePhase(live, Date.now());
+  const remain = live.restStart ? Math.max(0, (live.restLen || 0) - Math.floor((Date.now() - live.restStart) / 1000)) : 0;
+  const resting = rp9.phase === "rest" && remain > 0;
+  return (
+    <button data-launcher="live" onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(229,180,84,.45)", background: "rgba(229,180,84,.07)", color: DT.amber, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>
+      {resting
+        ? "▸ RESUME · REST " + Math.floor(remain / 60) + ":" + String(remain % 60).padStart(2, "0") + " · " + String(liftName).toUpperCase() + " SET " + ((live.setN || 0) + 1)
+        : "▸ RESUME SESSION · " + String(liftName).toUpperCase() + " SET " + ((live.setN || 0) + 1)}
+    </button>
+  );
+}
+
 function SessionLiveChip({ s, go }) {
   const [, force] = useState(0);
   const draft = findGymDraft();   /* F3 — the ONE scanner every door shares */
   useEffect(() => {
-    if (!draft) return;
-    const iv = setInterval(() => force((x) => x + 1), 500);
+    /* F4 — DISCOVERY, not just display: gym-exit mutates LogTab state, which never
+       re-renders this shell component, so a draft-gated interval left the chip null on
+       the very tab the exit lands on. The interval runs unconditionally — one cheap
+       localStorage read per 800ms buys a clock that can never be hidden on any tab. */
+    const iv = setInterval(() => force((x) => x + 1), 800);
     return () => clearInterval(iv);
-  }, [!draft]);
+  }, []);
   if (!draft) return null;
   const liftName = (() => { try { const sess9 = genSession(s, draft.iso); return ((sess9.ex || [])[draft.idx || 0] || {}).n || "session"; } catch (e) { return "session"; } })();
   const rp9 = resumePhase(draft, Date.now());

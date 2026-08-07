@@ -6674,7 +6674,7 @@ if (fail) process.exit(1);
   ok(gm.indexOf("effortWords(rp2.plan") > -1 && gm.indexOf("TARGET <b") > -1, "R15c — the prescription line is GENERATED from targetsFor's tgt and rirPlan's plan — the surface speaks the engine, it never re-derives it");
   ok(gm.indexOf("SHORT SLEEP PROTECTS, IT NEVER PUNISHES") > -1, "R15c — the weather line carries the constitution's sleep law in its own words: a short night is named, never punished");
   ok((gm.split("onClick={doneSet}").length - 1) === 1 && (gm.split("onClick={nextLift}").length - 1) === 1 && (gm.split("onClick={finish}").length - 1) === 1, "R15c — one primary path per action: exactly one LOG SET, one NEXT, one FINISH handler call-site each — the flow the tap count derives from is the flow that renders");
-  ok(srcC.indexOf('onClick={() => setGym(true)} style={{ width: "100%", minHeight: 64') > -1, "R15c — the session's ENTRY DOOR is under the same law: the GYM MODE launcher on TRAIN is a 64px control, not a carve-out");
+  ok(srcC.indexOf("<GymLauncher s={s} onOpen={() => setGym(true)} />") > -1 && (srcC.slice(srcC.indexOf("function GymLauncher("), srcC.indexOf("function SessionLiveChip(")).split("minHeight: 64").length - 1) === 2, "R15c — the session's ENTRY DOOR is under the same law in BOTH its states: the launcher component carries minHeight 64 fresh and live alike (round 6 made it wear the running session), never a carve-out");
 }
 console.log(`\nFINAL88: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
@@ -6715,6 +6715,11 @@ if (fail) process.exit(1);
   ok(chip.indexOf('data-arm={resting ? "rest" : "resume"}') > -1 && chip.indexOf('const resting = rp9.phase === "rest" && remain > 0;') > -1, "F2 — the chip's two arms are honest: the REST arm belongs to the rest phase ALONE, so a mid-ask exit wears RESUME (the owed thing is the ask) — the arm that could never render, now pinned by attribute");
   ok((srcP.split("findGymDraft()").length - 1) >= 3 && chip.indexOf("const draft = findGymDraft();") > -1, "F3 — ONE scanner on every door: the chip, the launcher path and GymMode's mount all read findGymDraft, so a 1:39 AM session keyed to yesterday resumes identically from any entrance");
   ok(srcP.indexOf("const live9 = findGymDraft();") > -1 && srcP.indexOf("const gDate = live9 ? live9.iso : dateSel;") > -1, "F3 — a live draft OWNS its session: every gym open keys GymMode to the draft's own date, so the restore + resumePhase wiring (the proven pure law) actually runs on the manual door too — the wiring was the gap, and the date boundary was the wire");
+  /* ---------- ROUND 6 · F4 — the clock can never be hidden on any tab ---------- */
+  ok(chip.indexOf("const iv = setInterval(() => force((x) => x + 1), 800);") > -1 && chip.indexOf("if (!draft) return;") === -1, "F4 — the chip DISCOVERS: its interval runs unconditionally, so a gym exit that never re-renders the shell still surfaces the clock on the very tab it lands on — a draft-gated interval was the invisible wire");
+  const launcher = srcP.slice(srcP.indexOf("function GymLauncher("), srcP.indexOf("function SessionLiveChip("));
+  ok(launcher.indexOf('data-launcher="live"') > -1 && launcher.indexOf('"▸ RESUME · REST "') > -1 && launcher.indexOf('"▸ RESUME SESSION · "') > -1 && launcher.indexOf("minHeight: 64") > -1, "F4 — AND the better design: the GYM MODE launcher itself wears the live session (both arms, same persisted anchor, 64 law intact) — the door on TRAIN shows the running state, self-ticking so no parent re-render is ever load-bearing");
+  ok(launcher.indexOf("resumePhase(live, Date.now())") > -1 && (srcP.split("findGymDraft()").length - 1) >= 4, "F4 — the launcher reads the SAME scanner and the SAME resume law as every other door: one clock, three displays, zero owned ticks");
 }
 console.log(`\nFINAL89: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
