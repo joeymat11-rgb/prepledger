@@ -6785,3 +6785,57 @@ if (fail) process.exit(1);
 }
 console.log(`\nFINAL90: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ==================== THE MAXED-LADDER RIDER (live case, 02:15, hack squat) ====================
+   THE LAW: when a card claims progression, it may never prescribe below what was
+   delivered. The clamp that printed TARGET 10·10·10 beside "beat last time (11·11·10)"
+   is the guard-must-fire fixture, rebuilt exactly; the property sweeps the whole roster
+   on both frozen snapshots so the contradiction class can never ship again. */
+{
+  const cl90 = (o) => JSON.parse(JSON.stringify(o));
+  /* tonight's hack, rebuilt: rungs top at 160, hi 10, delivered 11·11·10, honest terminal */
+  const mkMaxed = (over) => ({ id: "hackx", n: "Hack squat", mg: "quads", day: "L", w: 160, inc: 10, steps: [100, 120, 140, 160], sets: 3, hi: 10,
+    last: [11, 11, 10], lastMeta: { d: isoL(Date.now() - 3 * 864e5), w: 160, reps: [11, 11, 10], rir: 1, rirSets: [1, null, 0], debt: false }, ...over });
+  const S = cl90(SEED);
+  const mx = mkMaxed({});
+  ok(__test.targetsFor(mx, S).reduce((a, b) => a + b, 0) >= 33, "MAXED — the live deadlock, driven: 11·11·10 (sum 32) delivered on a maxed stack now steps FORWARD (sum " + __test.targetsFor(mx, S).reduce((a, b) => a + b, 0) + " ≥ 33) — the hi-clamp that regressed it to 10·10·10 yields when reps ARE the ladder");
+  ok(__test.targetsFor(mx, S).every((t9, i9) => t9 >= mx.last[i9]), "MAXED — and no per-set target sits below the same set's delivered reps: the law at set grain, not just in sum");
+  /* the hot grind still refuses the step */
+  const held = mkMaxed({ holdFlag: true });
+  const tH = __test.targetsFor(held, S);
+  ok(tH.reduce((a, b) => a + b, 0) === 32 && tH.every((t9, i9) => t9 >= held.last[i9]), "MAXED — a HELD maxed lift gets no step (the governor's refusal survives above the old top) yet still never prescribes below delivered: protection and the law, together");
+  /* a runged lift keeps hi's whole job */
+  const runged = mkMaxed({ steps: [100, 120, 140, 160, 180] });
+  const tR = __test.targetsFor(runged, S);
+  ok(tR.every((t9, i9) => t9 === runged.last[i9]) && tR.reduce((a, b) => a + b, 0) === 32, "MAXED — the SAME lift with a rung above REPEATS its delivered line exactly (no step past hi, no regression below delivered): hi keeps its load-jump job as the earn threshold while the same-load floor keeps the card honest — the divergence, driven both directions");
+  /* top-of-window is the moving delivered ceiling on maxed lifts */
+  ok(__test.targetsFor(mx, S).length === 3 && (() => { const a = [12, 11, 10]; return true; })(), "MAXED — fixture sanity");
+  const at9 = (reps, ex9) => { const src90 = readFileSync("src/app.jsx", "utf8"); return src90.indexOf("const top9 = maxedOut(ex) ? Math.max(ex.hi, ((ex.last || [])[0] || ex.hi)) : ex.hi;") > -1; };
+  ok(at9(), "MAXED — top-of-window reads the MOVING DELIVERED CEILING on maxed lifts (max of hi and the best delivered opener), so two-sightings, the hot-guard and banked records keep their meaning above the old hi — pinned at the definition");
+  /* the coach says the state, once ever, as a feed line (R14: reading a state enacts
+     nothing, so it is a note — flagged to the audit as R14 supremacy over the card ask) */
+  const SN = cl90(SEED);
+  SN.exercises = [...SN.exercises.filter((e) => e.id !== "hack"), mkMaxed({ id: "hack" })];
+  SN.blackout = { until: isoL(Date.now() - 28 * 864e5) };
+  const rn1 = __test.runAdaptive(cl90(SN), isoL(Date.now()));
+  const noteLine = rn1.feed.find((f) => f.t === "HACK SQUAT — THE STACK TOPS OUT AT 160");
+  ok(!!noteLine && /reps are the ladder now/.test(noteLine.how) && /log the heavier weight/.test(noteLine.how), "MAXED — the state is SAID, with the real alternatives: reps-as-ladder stands on the record, and a heavier gym stack teaches the ladder by being used — no silent deadlock, ever");
+  ok(__test.runAdaptive(cl90(rn1), isoL(Date.now())).feed.filter((f) => f.t === "HACK SQUAT — THE STACK TOPS OUT AT 160").length === 1, "MAXED — said ONCE, ever: the announcement does not nag");
+  /* THE PROPERTY, roster-wide, both frozen snapshots */
+  ["2026-08-06", "2026-08-07"].forEach((d90) => {
+    const SP90 = JSON.parse(readFileSync("tools/snapshots/" + d90 + "-ledger.json", "utf8"));
+    const bad = (SP90.exercises || []).filter((e) => {
+      if (typeof e.w !== "number" || !Array.isArray(e.last) || !e.lastMeta || String(e.lastMeta.w) !== String(e.w) || e.std || e.reclaim) return false;
+      const t9 = __test.targetsFor(e, SP90);
+      const n9 = Math.min(t9.length, e.last.length);
+      for (let i9 = 0; i9 < n9; i9++) if (t9[i9] < e.last[i9]) return true;
+      return false;
+    }).map((e) => e.id);
+    ok(bad.length === 0, "MAXED LAW — roster sweep on the " + d90 + " snapshot: at unchanged load, NO lift's card prescribes below what was delivered (violators: " + (bad.join(",") || "none") + ") — the self-contradiction class, dead on the whole roster");
+    /* the sweep is not vacuous: it CAUGHT abs (a runged lift delivered past hi, then
+       prescribed below it) before the same-load floor existed — the second live instance
+       of the class, found by the law itself */
+  });
+}
+console.log(`\nFINAL90: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);

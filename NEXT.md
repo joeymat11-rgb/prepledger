@@ -1285,6 +1285,24 @@ R15f asserts no orphan ad-hoc styles remain.
 **Screenshots:** the session is headless (browser pane cannot composite), so the critique
 round runs on REAL pixels instead: the branch CI publishes a Netlify draft URL — critique
 there, on a real device, which is strictly better than emulator PNGs.
+### THE MAXED-LADDER RIDER — BUILT 2026-08-08, branch feat/maxed-ladder (stacked on missed-read)
+
+**THE LAW: the engine may never prescribe below what was delivered.** Joe caught it live
+at 02:15 — hack squat, stack maxed at 160, card printing TARGET 10·10·10 beside "beat
+last time (11·11·10)". Mechanism: on a MAXED ladder (rungs on file, none above) the
+hi-clamp yields — reps ARE the ladder there, stepping with the normal engine;
+top-of-window becomes the moving delivered ceiling so two-sightings, the hot-guard and
+records keep meaning above the old hi. **And the law's roster sweep immediately caught a
+SECOND live instance**: abs — a RUNGED lift that delivered past hi and was then
+prescribed below it. So the mechanism is roster-wide: at unchanged load the final
+targets floor at the same set's delivered reps — hi keeps its load-jump job (the earn
+line), it just can never regress the card; a runged lift at the top repeats its own
+delivered line until the debut (driven both directions). The coach says the maxed state
+ONCE, ever, with the real alternatives (reps-as-ladder on the record; a heavier stack
+teaches the ladder by being used) — filed as a feed note per R14's own supremacy
+(reading a state enacts nothing), flagged to the audit. Suite → 1928 on this stack,
+baseline regenerated in the commit.
+
 ### THE OPENER ASK RETURNS — BUILT 2026-08-07, branch feat/opener-ask (rider, stacked on owner-call)
 
 **The v7.12.0 orphan, repaired at its root.** Timing was the right half (asked at the set,

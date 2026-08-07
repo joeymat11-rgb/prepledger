@@ -884,6 +884,16 @@ function progressAnchor(ex, s) {
   recent.forEach((reps) => reps.forEach((r, i) => { better[i] = Math.max(better[i] ?? 0, Number(r) || 0); }));
   return base.map((r, i) => Math.max(r, better[i] ?? 0));
 }
+/* ---------- MAXED-LADDER RIDER (live case, 2026-08-08 02:15, hack squat) ----------
+   THE LAW: the engine may never prescribe below what was delivered. The card printed
+   TARGET 10·10·10 beside "beat last time (11·11·10)" — the hi-clamp regressing a maxed
+   lift. On a MAXED ladder (rungs on file, none above the current load) hi stops
+   clamping: reps run past the window top with the normal step engine, because reps ARE
+   the ladder there. Lifts with a next rung keep hi's whole job (load-jump pacing),
+   unchanged. The record never lied — only the prescription did, and now it cannot. */
+function maxedOut(ex) {
+  return typeof ex.w === "number" && ex.hi != null && nextLoad(ex) == null;
+}
 function targetsFor(ex, s) {
   /* OWNER'S CALL rider — std/reclaim are AUTHORED target arrays sized for the set count
      they were written at. A set-count change must not silently shrink or crash the
@@ -898,14 +908,21 @@ function targetsFor(ex, s) {
   const t = progressAnchor(ex, s).slice(0, ex.sets);
   while (t.length < ex.sets) t.push(Math.max(1, (t[t.length - 1] || ex.hi - 2) - 1));
   const { add } = progressStep(ex);
+  const cap9 = maxedOut(ex) ? Infinity : ex.hi;   /* MAXED-LADDER — reps are the ladder past the top of a maxed stack */
   for (let n = 0; n < add; n++) {
     let idx = -1;
     for (let i = 1; i < t.length; i++) if (t[i] < t[i - 1]) { idx = i; break; }
-    if (idx === -1 && t[0] < ex.hi) idx = 0;
+    if (idx === -1 && t[0] < cap9) idx = 0;
     if (idx < 0) break;
-    t[idx] = Math.min(ex.hi, t[idx] + 1);
+    t[idx] = Math.min(cap9, t[idx] + 1);
   }
-  return t.map((r) => Math.min(ex.hi, r));
+  /* THE LAW, mechanized for the whole roster: at UNCHANGED load the final targets floor at
+     the same set's delivered reps — the sweep caught abs (a RUNGED lift) delivering past
+     hi and then being prescribed below it, the same contradiction in a second costume.
+     hi keeps its load-jump job (the earn line is untouched); it just can never REGRESS
+     the card: a runged lift at the top repeats its own delivered line until the debut. */
+  const sameLoad9 = ex.lastMeta && String(ex.lastMeta.w) === String(ex.w) && Array.isArray(ex.last);
+  return t.map((r, i) => { const c9 = Math.min(cap9, r); return (sameLoad9 && ex.last[i] != null) ? Math.max(c9, ex.last[i]) : c9; });
 }
 /* ---------- LOAD RUNGS — what this machine can actually make ----------
    A single `inc` assumes every machine steps evenly. Real ones do not. A Cybex
@@ -1131,7 +1148,11 @@ function coarseLifts(s) {
 function atTopOfWindow(reps, ex) {
   const r = (reps || []).slice(0, ex.sets);
   if (r.length < ex.sets) return false;
-  return r[0] >= ex.hi && r.every((x, i) => x >= ex.hi - i);
+  /* MAXED-LADDER — on a maxed stack the window top is the MOVING DELIVERED CEILING (the
+     best opener on file), so the two-sightings discipline, the hot-guard and the banked
+     records keep their meaning above the old hi instead of going dark at it. */
+  const top9 = maxedOut(ex) ? Math.max(ex.hi, ((ex.last || [])[0] || ex.hi)) : ex.hi;
+  return r[0] >= top9 && r.every((x, i) => x >= top9 - i);
 }
 
 /* pick THE structural change for a session (one per session, hard rule) */
@@ -7623,6 +7644,16 @@ function runAdaptive(state, todayISO, raOpts) {
        only APPLIED rids, so a dismissed steppush returned on the very next engine pass —
        "a no for today" was a no for zero minutes, against this producer's own no-nagging
        promise. Dismissing THIS monday's rid suppresses refiling until the monday rolls. */
+  /* ---------- MAXED-LADDER RIDER — the state, said once, on the record ---------- */
+  (s.exercises || []).forEach((exM) => {
+    if (!maxedOut(exM) || !exM.last) return;
+    const titleM = String(exM.n).toUpperCase() + " — THE STACK TOPS OUT AT " + exM.w;
+    if ((s.feed || []).some((f) => f && f.t === titleM)) return;   /* once EVER — the state does not re-announce */
+    propose("maxed_" + exM.id, titleM,
+      "No rung above " + exM.w + " is on file for this machine, so reps are the ladder now: targets keep stepping past the old window top with the same earn discipline, and every rep above it banks like any other record. If the gym's stack actually goes higher, log the heavier weight when you use it and the ladder learns the rung — otherwise nothing needs you; this line exists so a maxed lift can never silently deadlock again.",
+      { kind: "note" });
+  });
+
   /* ---------- MISSED-READ RIDER — the priced line, once per day ---------- */
   {
     const rw = readWindow(s, raOpts && raOpts.hour);
