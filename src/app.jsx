@@ -7667,7 +7667,7 @@ function runAdaptive(state, todayISO, raOpts) {
   for (const p of s.proposals) {
     if (p && !p.resolved && R4_ORPHANS[subjectOf(p.rid)]) {
       p.resolved = true; p.resolvedHow = "withdrawn — producer removed by R4";
-      s.feed.unshift({ d: todayISO, t: "CARD WITHDRAWN — " + String(p.title || p.rid).slice(0, 40), how: "It was produced by a body-fat threshold the app no longer trusts (R4): the estimate's interval is wider than the decision. The question it asked now belongs to the regime detector, which reads lifts and scale rate instead. Nothing was deleted; this card is on the record as withdrawn." });
+      s.feed.unshift({ d: todayISO, t: "CARD WITHDRAWN — " + String(p.title || p.rid).slice(0, 40), how: "It was produced by a body-fat threshold the app no longer trusts (R4): the estimate's interval is wider than the decision. The question it asked now belongs to the engine's phase read, which watches your lifts and scale rate instead. Nothing was deleted; this card is on the record as withdrawn." });
     }
   }
   /* R14 — the two live note cards migrate through the withdraw pattern: resolved with a
@@ -7886,7 +7886,7 @@ function runAdaptive(state, todayISO, raOpts) {
     const OWNER_CALLS = [
       { mg: "hams", exId: "ham",
         title: (ex, fromWk, toWk) => `OWNER'S CALL — HAMS: ${fromWk} → ${toWk} WEEKLY SETS`,
-        body: (ex, fq) => `Approving adds 1 set to ${ex.n} each lower session — ${ex.sets}→${ex.sets + 1} per session, ${ex.sets * fq}→${(ex.sets + 1) * fq} weekly, about 3 extra minutes on those days. This is the FLOOR CORRECTION: ${ex.sets * fq} weekly sets sits under the growth floor, and the climb lands in the evidence's own high-return tier (Pelland 2025, 5–10 weekly sets).` },
+        body: (ex, fq) => `Approving adds 1 set to ${ex.n} each lower session — ${ex.sets}→${ex.sets + 1} per session, ${ex.sets * fq}→${(ex.sets + 1) * fq} weekly, about 3 extra minutes on those days. This is the FLOOR CORRECTION: ${ex.sets * fq} weekly sets sits under the growth floor, and the climb lands where sets pay best on the evidence's own curve (Pelland 2025, roughly 5–10 weekly sets — returns stay positive above that, each set just buys less).` },
       { mg: "chest", exId: "press",
         title: (ex, fromWk, toWk) => `OWNER'S CALL — CHEST: ${fromWk} → ${toWk} WEEKLY SETS`,
         body: (ex, fq) => `Approving adds 1 set to ${ex.n} each upper session — ${ex.sets}→${ex.sets + 1} per session, ${ex.sets * fq}→${(ex.sets + 1) * fq} weekly, about 3 extra minutes. PRESS IS A COMPOUND: the added set fractionally credits triceps and front delts (half a set each per session), and that spillover charges those muscles' weekly structural budget — nothing else stacks on them the same week. After this move chest sits in the working zone, triceps stays inside its band, and front delts stays indirect-only by design: the press IS its lever. Grade MODERATE-TO-LOW — at-floor to working zone, and the more-volume-during-a-deficit bridge is untested (Roth 2023 asked retention).` },
@@ -7960,8 +7960,11 @@ function runAdaptive(state, todayISO, raOpts) {
   /* The volume band vs the dose-response evidence, in a deficit. */
   const volDrift = VOL_BANDS.lo !== 6 || VOL_BANDS.hi !== 12;
   if (!sealed && volDrift)
-    propose("volband", "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER",
-      `Your working zone is ${VOL_BANDS.lo}–${VOL_BANDS.hi} weekly sets per muscle. The largest dose-response analysis available (67 studies, 2,058 participants) finds returns per set highest at 5–10 sets, intermediate at 11–18, and lower above that — each added set keeps buying something, and buys less than the one before it. In a deficit the marginal set is worth less AND costs recovery you do not have, which argues for living in the high-return tier rather than the middle one. The proposal is to tighten to 6–12. This is a programme change, so it is a coach conversation as much as a tap — the app will not move it on its own.`,
+    /* R15e — Pelland reads as a smooth curve, not steps: the "tiers" were bins laid over
+       a continuous meta-regression, and quoting them as tiers invented a cliff the data
+       does not contain. Plain words at birth: the diary shows this body at headline level. */
+    propose("volband", "VOLUME BAND SITS ABOVE THE HIGH-RETURN REGION",
+      `Your working zone is ${VOL_BANDS.lo}–${VOL_BANDS.hi} weekly sets per muscle. The biggest pooled analysis available (67 studies, 2,058 people) traces a smooth curve, not steps: every added set buys a little less growth than the one before it, and the buying is best in roughly the 5–10 range — there is no cliff at any number, just diminishing returns. While you are eating in a calorie cut, each extra set is also paid for out of recovery you do not have, which argues for living where sets pay best rather than in the middle of the curve. The proposal is to tighten to 6–12. This is a programme change, so it is a coach conversation as much as a tap — the app will not move it on its own.`,
       { kind: "note" });
 
   const rec = recoveryIndex(s);
@@ -10525,7 +10528,10 @@ function Section({ title, meta, c = T.chalk, persistKey, children }) {
   const [open, setOpen] = useDisclosure(persistKey, () => false);
   return (
     <Card style={{ padding: 12 }} accent={open ? c : undefined}>
-      <div onClick={() => setOpen(!open)} style={{ cursor: "pointer" }}>
+      {/* R15e — the tappable section header was title-height (~20px). The slop extends into
+          the Card’s own inert 12px padding; equal-and-opposite padding/margin keeps every
+          painted pixel where it was. */}
+      <div onClick={() => setOpen(!open)} style={{ cursor: "pointer", minHeight: 44, display: "flex", flexDirection: "column", justifyContent: "center", padding: "12px 12px", margin: "-12px -12px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
           <div style={{ fontFamily: disp, fontWeight: 700, fontSize: TS.title, color: T.chalk, textTransform: "uppercase" }}>{title}</div>
           <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, textAlign: "right", minWidth: 0, flex: "1 1 auto", overflowWrap: "break-word", wordBreak: "normal" }}>{meta} {open ? "▾" : "▸"}</div>
@@ -10540,7 +10546,10 @@ function More({ deep, forYou, c = T.jade }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ marginTop: 8 }}>
-      <button onClick={() => setOpen(!open)} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.1em", color: open ? T.chalk : T.steel, background: "none", border: "none", padding: 0 }}>{open ? "▾ CLOSE" : "▸ MORE"}</button>
+      {/* R15e — the app-wide deep-copy disclosure was a ~15px target (padding 0). Paint-free
+          text, so padding is pure slop; the negative margins keep the paint position and the
+          layout byte-identical while the hit box clears 44. */}
+      <button onClick={() => setOpen(!open)} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.1em", color: open ? T.chalk : T.steel, background: "none", border: "none", padding: "15px 12px", margin: "-15px -12px", cursor: "pointer" }}>{open ? "▾ CLOSE" : "▸ MORE"}</button>
       {open && (
         <div style={{ marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
           <Eyebrow>WHAT IT IS</Eyebrow>
@@ -11370,8 +11379,10 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
 
       {/* WHY THIS NUMBER (SAT L1/L2/L3 + confidence) — one tap down */}
       <div style={{ marginTop: SP.md, borderTop: `1px solid ${T.line}`, paddingTop: SP.md }}>
-        <button onClick={() => setWhyOpen(!whyOpen)} aria-expanded={whyOpen}
-          style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px", cursor: "pointer" }}>why this number {whyOpen ? "▾" : "▸"}</button>
+        {/* R15e round 2 — painted-control split: the span carries the pill byte-for-byte */}
+        <button onClick={() => setWhyOpen(!whyOpen)} aria-expanded={whyOpen} style={{ background: "none", border: "none", padding: "7px 0", margin: "-7px 0", cursor: "pointer" }}>
+          <span style={{ display: "inline-block", fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px" }}>why this number {whyOpen ? "▾" : "▸"}</span>
+        </button>
         {whyOpen && (
           <div style={{ marginTop: SP.sm }}>
             {[why.l1, why.l2, why.l3].map((lv, i) => (
@@ -11387,8 +11398,10 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
 
       {/* TRACK RECORD — honest predicted-vs-actual, MISSES included (Dietvorst 2015) */}
       <div style={{ marginTop: SP.md }}>
-        <button onClick={() => setTrOpen(!trOpen)} aria-expanded={trOpen}
-          style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px", cursor: "pointer" }}>track record {trOpen ? "▾" : "▸"}{tr.graded ? ` · ${tr.hits}/${tr.graded} within noise` : ""}</button>
+        {/* R15e round 2 — painted-control split: the span carries the pill byte-for-byte */}
+        <button onClick={() => setTrOpen(!trOpen)} aria-expanded={trOpen} style={{ background: "none", border: "none", padding: "7px 0", margin: "-7px 0", cursor: "pointer" }}>
+          <span style={{ display: "inline-block", fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px" }}>track record {trOpen ? "▾" : "▸"}{tr.graded ? ` · ${tr.hits}/${tr.graded} within noise` : ""}</span>
+        </button>
         {trOpen && (
           <div style={{ marginTop: SP.sm }}>
             <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: `${LH.body}px` }}>{tr.calibration}</div>
@@ -11638,8 +11651,10 @@ function PhaseArcCard({ s, setS, save, tISO }) {
         <div style={{ fontFamily: body, fontSize: TS.micro, color: T.orange, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>&#9650; {sup.first ? sup.first.text : sup.why}</div>
       )}
       <div style={{ marginTop: SP.md, borderTop: `1px solid ${T.line}`, paddingTop: SP.md }}>
-        <button onClick={() => setOpen(!open)} aria-expanded={open}
-          style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: tone, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px", cursor: "pointer" }}>the arc {open ? "▾" : "▸"}</button>
+        {/* R15e round 2 — painted-control split: the span carries the pill byte-for-byte */}
+        <button onClick={() => setOpen(!open)} aria-expanded={open} style={{ background: "none", border: "none", padding: "7px 0", margin: "-7px 0", cursor: "pointer" }}>
+          <span style={{ display: "inline-block", fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: tone, border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px" }}>the arc {open ? "▾" : "▸"}</span>
+        </button>
         {open && (
           <div style={{ marginTop: SP.sm }}>
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.06em" }}>NOW &middot; {arc.label} &mdash; week {arc.weeks}</div>
@@ -12777,8 +12792,12 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>{oneFix.body}</div>
         {oneFix.whyNot ? (
           <div style={{ marginTop: SP.md }}>
-            <button onClick={() => setWhyOpen(!whyOpen)} style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 11px", cursor: "pointer", whiteSpace: "nowrap" }}>
-              why not cut calories? {whyOpen ? "▾" : "▸"}
+            {/* R15e — a painted pill may not be its own hit box (the R15b round-4 law): the
+                outer button is paint-free slop, the span carries the pill byte-for-byte. */}
+            <button onClick={() => setWhyOpen(!whyOpen)} style={{ background: "none", border: "none", padding: "7px 0", margin: "-7px 0", cursor: "pointer" }}>
+              <span style={{ display: "inline-block", fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 11px", whiteSpace: "nowrap" }}>
+                why not cut calories? {whyOpen ? "▾" : "▸"}
+              </span>
             </button>
             {whyOpen ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.body}px` }}>{oneFix.whyNot}</div> : null}
           </div>
@@ -13623,7 +13642,7 @@ function LogTab({ s, setS, save, slp }) {
           {ex.setup && (
             <div style={{ marginTop: 7 }}>
               <button onClick={() => setShowSetup({ ...showSetup, [ex.id]: !showSetup[ex.id] })}
-                style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: showSetup[ex.id] ? T.chalk : T.steel, background: "none", border: "none", padding: 0 }}>
+                style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.12em", color: showSetup[ex.id] ? T.chalk : T.steel, background: "none", border: "none", padding: "15px 12px", margin: "-15px -12px", cursor: "pointer" }}>
                 {showSetup[ex.id] ? "▾ SETUP + CUES" : "▸ SETUP + CUES"}
               </button>
               {showSetup[ex.id] && ex.setup.split("\n").map((l, i) => (
