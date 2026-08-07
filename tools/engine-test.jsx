@@ -71,6 +71,13 @@ const ok = (cond, name) => { cond ? pass++ : fail++; console.log((cond ? "PASS" 
     const st7 = __test.stepTarget(S7);
     ok(st7.why.indexOf(td7.atSteps.toLocaleString()) > -1, "SNAPSHOT 08-07 ITEM A — ONE owner for the measured-at step figure: stepTarget's receipt quotes observedTDEE's " + td7.atSteps.toLocaleString() + ", not its own 21-day average wearing the measurement's name");
     ok(Math.abs(st7.kcalPer1k - __test.stepKcal(S7.trend, 1000)) < 0.15, "SNAPSHOT 08-07 ITEM A — a thousand steps is worth the SAME kcal everywhere it is priced (" + st7.kcalPer1k + "): EA_KCAL_PER_1K_STEPS_PER_KG derives from the one cited walking cost instead of a round 0.4 sitting 7.6% away");
+
+    /* STEPS ITEM B — live outcomes */
+    const sp7 = __test.stepPush(S7);
+    ok(sp7.mode === "HOLD", "SNAPSHOT 08-07 ITEM B — the coach HOLDS today: his rate is inside the corridor, so the push lever stays sheathed. No always-on nagging to walk more");
+    ok(!__test.runAdaptive(JSON.parse(JSON.stringify(S7)), "2026-08-07").proposals.some((p) => /^steppush_/.test(p.rid)), "SNAPSHOT 08-07 ITEM B — and no push card is filed on the live ledger");
+    const se7 = __test.stepEfficacy(S7);
+    ok(se7.status === "LIVE" && se7.resolved === false && Math.abs(se7.slopePer1k) > se7.boundPer1k, "SNAPSHOT 08-07 ITEM B — the live stepeff fit (" + se7.slopePer1k + " lb/wk per 1k) exceeds the walking-physics ceiling (" + se7.boundPer1k + ") by three orders of magnitude: the verdict is UNRESOLVED, not negative. The old per-step toFixed(2) had been rounding this absurdity to 0.00 and calling it a reading");
   }
 
   /* FEED ORDER SURVIVES A MERGE. Pre-existing v6.2-era defect surfaced in production:
@@ -4705,6 +4712,52 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
         const ctS = __test.calorieTarget(small);
         const ctBase2 = __test.calorieTarget(mkSteps(16000, 16000));
         ok(ctS.baseHi === ctBase2.baseHi && ctS.baseLo === ctBase2.baseLo, "ITEM A — and the eat band does not move AT ALL on an unpromoted drift: it changes the story, not the target — the no-precision-theatre guard, observed to hold on a fixture built to trip it");
+      }
+      /* ---------- STEPS ITEM B — every mode driven ---------- */
+      {
+        /* a below-corridor state: slow measured rate, clean sleep, recovery not LOW */
+        const mkPushable = () => {
+          const st = clone(SEED);
+          const days = Object.keys(st.dailyLogs || {}).sort();
+          days.forEach((d) => { st.dailyLogs[d] = { ...(st.dailyLogs[d] || {}), steps: 15000 }; });
+          const isoB = (k) => new Date(Date.parse("2026-07-29T00:00:00Z") - k * 864e5).toISOString().slice(0, 10);
+          st.reads = Array.from({ length: 28 }, (_, i) => ({ d: isoB(27 - i), w: +(166 - i * 0.05).toFixed(2), sealed: false }));
+          st.trend = st.reads[st.reads.length - 1].w;
+          st.sleep.nights = Array.from({ length: 10 }, (_, i) => ({ d: isoB(9 - i), h: 8.2 }));
+          st.blackout = { until: "2026-07-01" };
+          return st;
+        };
+        const pushable = mkPushable();
+        const pre = __test.recoveryIndex(pushable);
+        ok(pre.band !== "LOW", "ITEM B — precondition driven: the pushable fixture's recovery is not LOW (" + pre.band + "), so the PUSH below is earned rather than an accident of the veto not firing");
+        const sp = __test.stepPush(pushable);
+        ok(sp.mode === "PUSH" && sp.inc > 0 && sp.inc <= 1000, "ITEM B — under the corridor the coach reaches for STEPS FIRST, at most +1,000/day per week (practitioner progression), never a jump: +" + sp.inc);
+        ok(sp.netLoKcal >= Math.round(sp.grossKcal * 0.70) - 1 && sp.netHiKcal <= Math.round(sp.grossKcal * 0.75) + 1 && sp.netHiKcal < sp.grossKcal, "ITEM B — the push is priced NET of compensation as a band (" + sp.netLoKcal + "-" + sp.netHiKcal + " of " + sp.grossKcal + " gross): the card never promises deficit the body will claw back");
+        ok(sp.grade === "moderate", "ITEM B — with his stepeff unresolved, the grade is MODERATE and the copy says the number is being checked against his own weeks — no confident voice on a MODERATE claim");
+        const out = __test.runAdaptive(JSON.parse(JSON.stringify(pushable)), "2026-07-22");
+        const card = out.proposals.find((p) => /^steppush_/.test(p.rid) && !p.resolved);
+        ok(!!card && card.apply.kind === "cal" && card.apply.stepsDelta === sp.inc && card.apply.delta < 0, "ITEM B — the card arms BOTH levers through the existing machinery (stepsDelta for walking, delta for food), so approval lands as the tracked one-tap-undo offset and the athlete picks — steps offered first, food as the alternative");
+        ok(/steps are offered first|STEPS FIRST/i.test(card.title + card.why), "ITEM B — and the copy leads with steps, because that deficit does not spend lean");
+
+        /* VETO fires: same state, sleep in debt */
+        const tired = mkPushable();
+        tired.sleep.nights = tired.sleep.nights.map((n) => ({ ...n, h: 4 }));
+        const spT = __test.stepPush(tired);
+        ok(spT.mode === "WITHHELD" && spT.veto === "sleep", "ITEM B GUARD — sleep debt WITHHOLDS the push: the body is not funding what it already does, so it is not asked to fund more. Driven, not asserted-in-principle");
+
+        /* CEILING fires — the ABSOLUTE one. Building this exposed a design fact: an
+           approved steer reconciles at the next weigh-in, so pushes persist through
+           BEHAVIOUR — and a trailing cap (base+3000) slides up with the behaviour it
+           permitted. The absolute ceiling is what terminates the climb. Driven by walking
+           the whole record to 19,800: cap binds at 20,000 and the next +500 is refused. */
+        const capped = mkPushable();
+        Object.keys(capped.dailyLogs).forEach((d) => { capped.dailyLogs[d] = { ...capped.dailyLogs[d], steps: 19800 }; });
+        const spC = __test.stepPush(capped);
+        ok(spC.mode === "WITHHELD" && spC.veto === "ceiling" && spC.cap === 20000, "ITEM B GUARD — the ABSOLUTE ceiling FIRES at 20,000: pushed walking that has become behaviour drags the trailing cap up with it, so without this bound the target climbs forever — the calorie floor that never fires, in mirror. Further deficit routes to food");
+
+        /* stepeff RESOLVED-negative blocks, with the health copy */
+        const spH = __test.stepPush(mkPushable(), { stepeff: { status: "LIVE", n: 6, resolved: true, slopePer1k: -0.03, boundPer1k: 0.059 } });
+        ok(spH.mode === "NOPUSH_HEALTH" && /cardiovascular health/.test(spH.why) && /calories are your fat lever/.test(spH.why), "ITEM B GUARD — a RESOLVED stepeff showing steps not converting blocks the push, and the copy names steps as health, not the fat lever — the instrument's verdict gates the prescription, from its output, not a constant");
       }
       /* device kcal can never enter */
       {

@@ -1075,6 +1075,47 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### STEPS ITEM B — BUILT 2026-08-07: steps as the first deficit lever
+
+**Q3 ANSWERED — the ceiling is THREE things, and building it found out why two are not
+enough:**
+
+1. **VETO** — recovery LOW or sleep debt today: the body is not funding what it already
+   does, so it is not asked to fund more. Driven: a 4-hour-nights fixture withholds.
+2. **TRAILING CAP** — measured baseline + 3,000, floored at the practitioner 12k. This
+   PACES the climb — but it cannot terminate it, because **an approved steer reconciles at
+   the next weigh-in by design, so pushes persist through BEHAVIOUR, and a trailing cap
+   slides up with the behaviour it permitted.** Found by driving the fixture, not by reading.
+3. **ABSOLUTE CEILING — 20,000**, the component that terminates. Design judgement,
+   labelled: his own history peaked ~20–21k in the window whose second half showed the
+   compensation-era drift, and ~640 kcal/day of walking approaches the high-volume region
+   where constrained-expenditure decay and the concurrent-training duration caveat both
+   bite. Driven: the whole record walked to 19,800 → cap binds at 20,000, next +500 refused,
+   further deficit routed to food.
+
+**HOLD is the default and the live state.** `stepPush` fires only when the rate is under
+the corridor; his 0.72 %BW/wk is inside it → mode HOLD, no card filed, snapshot-asserted.
+No always-on nagging.
+
+**The PUSH card arms BOTH levers through the existing machinery** (`kind: "cal"` with
+`stepsDelta`), so approval lands as the tracked one-tap-undo offset and the athlete picks —
+steps offered first, food as the alternative, +500–1,000/wk, **priced net of compensation as
+a band** (70–75% of gross), grade carried in the copy.
+
+**`stepEfficacy` extracted from the lab so the gate and the card read ONE slope — and the
+extraction unmasked a live absurdity.** The inline version's `toFixed(2)` on a per-STEP
+slope rounded every real signal to 0.00. In real units his n=4 fit reads **−78.9 lb/wk per
+1k steps against a walking-physics ceiling of 0.059** — thirteen hundred times what walking
+can move. That is calorie confounding wearing a step costume, and the old display bug had
+been hiding it. The instrument now carries a **physical-bound resolution gate** (the
+`observedTDEE.impossible` precedent): out-of-bounds fits are **UNRESOLVED**, not verdicts —
+they neither block the push (degrades to MODERATE grade) nor license confidence, and the lab
+copy says why instead of printing the absurd number.
+
+**stepeff verdict gate, driven all three ways:** RESOLVED-negative → NOPUSH, copy names
+steps as cardiovascular health and calories as the fat lever; UNRESOLVED (his live state) →
+push permitted at MODERATE with the hedge; RESOLVED-positive cites his own week-pairs.
+
 ### STEPS ITEM A — BUILT 2026-08-07 (supersedes the held R13, per the steps spec)
 
 **Open question 1, answered the audit's way, and the data decided it.** The measured 35-day
