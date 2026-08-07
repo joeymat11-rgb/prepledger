@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Measured — debrief redesign mockup (R15 grammar, real 8/7 session)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600&family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ===== DT tokens — lifted verbatim from src/app.jsx ===== */
+  :root{
+    --ink:#101418; --plate:#181E24; --plate2:#1F262E; --line:#2A323B;
+    --chalk:#E8E4DA; --steel:#8A94A0; --dim:#5A636E;
+    --jade:#4CC38A; --brass:#E5B454; --orange:#F5793A; --redline:#E8556B; --gauge:#3FB4D8;
+    --hairline:rgba(90,99,110,0.4);
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --body:'Barlow',system-ui,sans-serif;
+    --disp:'Barlow Condensed',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:#0B0E11;display:flex;justify-content:center;padding:24px 0;font-family:var(--body)}
+  .frame{width:390px;background:var(--ink);padding:14px;min-height:100px}
+  .card{background:var(--plate);border:1px solid var(--line);border-left:3px solid var(--jade);border-radius:12px;padding:16px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--jade)}
+
+  /* ===== Tier 0 — the session verdict ===== */
+  .verdict{font-family:var(--body);font-weight:600;font-size:15px;color:var(--chalk);line-height:1.45;margin-top:10px}
+  .verdict-sub{font-family:var(--mono);font-size:11px;color:var(--steel);line-height:1.7;margin-top:6px}
+
+  /* ===== Tier 1 — one row per lift (touch law: 64px, paint inner / slop outer) ===== */
+  .lifts{margin-top:12px;border-top:1px solid var(--hairline)}
+  .lrow{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+        border-bottom:1px solid var(--hairline);cursor:pointer;padding:0 2px}
+  .lrow:last-of-type{border-bottom:none}
+  .lname{font-family:var(--disp);font-weight:600;font-size:15px;letter-spacing:.04em;color:var(--chalk);text-transform:uppercase}
+  .lsub{font-family:var(--mono);font-size:11px;color:var(--steel);margin-top:3px}
+  .lmark{display:flex;align-items:center;gap:8px;flex-shrink:0;font-family:var(--mono);font-size:11px;letter-spacing:.06em;white-space:nowrap}
+  .chev{color:var(--steel);font-size:12px;transition:transform .15s}
+  .open .chev{transform:rotate(90deg)}
+  .jade{color:var(--jade)} .brass{color:var(--brass)} .steel{color:var(--steel)} .chalk{color:var(--chalk)}
+
+  /* ===== Tier 2 — the depth, one tap down, typed lines ===== */
+  .depth{display:none;padding:2px 2px 16px}
+  .open + .depth{display:block}
+  .hero{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--chalk);letter-spacing:.02em}
+  .hero .up{color:var(--jade)} .hero .eq{color:var(--steel)} .hero .dn{color:var(--brass)}
+  .hero-tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--dim);margin-bottom:5px}
+  .tline{display:flex;gap:9px;margin-top:10px;font-size:12.5px;line-height:1.55}
+  .tline .g{flex-shrink:0;font-family:var(--mono);font-size:11px;width:12px;text-align:center;padding-top:1px}
+  .tline .t{font-family:var(--body);color:var(--steel)}
+  .tline.rec .t{color:var(--chalk)} .tline.rec .g{color:var(--jade)}
+  .tline.obs .g{color:var(--brass)}
+  .next{margin-top:12px;border-top:1px solid var(--hairline);padding-top:10px}
+  .next-head{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--chalk)}
+  .next-why{font-family:var(--body);font-size:12px;color:var(--steel);line-height:1.5;margin-top:4px}
+  .micro{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:9px}
+
+  .foot{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:14px;letter-spacing:.04em}
+  .note{width:390px;margin:10px auto 0;font-family:var(--mono);font-size:10px;color:#4a5560;line-height:1.6;padding:0 14px}
+</style>
+</head>
+<body>
+<div>
+<div class="frame">
+  <div class="card">
+    <div class="eyebrow">SESSION DEBRIEF · FRI 8/7</div>
+
+    <!-- Tier 0: the engine's summary, spoken once. Line 1 is the verdict; the context
+         lines keep their exact engine words but drop to the quiet register. -->
+    <div class="verdict">A strong day: your best ever at this weight on 3 lifts (Calves, Hack squat, Ham curl).</div>
+    <div class="verdict-sub">Normal sleep, unhurried — nothing here needs discounting. 7.75 h into it.<br>
+    6 lifts · 175 reps (your usual lower day: ~140) · 28,595 lb moved (+10% vs the same lifts last time).</div>
+
+    <!-- Tier 1: one row per lift. THE one mark that matters on the right; the delivered
+         line as the subline. Row = 64px touch target, paint on inner elements only. -->
+    <div class="lifts">
+
+      <div class="lrow" onclick="tg(this)">
+        <span><span class="lname">Calves</span><span class="lsub" style="display:block">320 × 11·11·9·8 · <span class="jade">+3</span></span></span>
+        <span class="lmark"><span class="jade">◆ RECORD</span><span class="chev">›</span></span>
+      </div>
+      <div class="depth">
+        <div class="hero-tag">SET BY SET · VS LAST TIME</div>
+        <div class="hero">11 <span class="eq">(=)</span> · 11 <span class="up">(+1)</span> · 9 <span class="up">(+2)</span> · 8 <span class="eq">(=)</span></div>
+        <div class="tline rec"><span class="g">◆</span><span class="t">Best you have ever done at 320 — and it clears the old line by 3 reps against a spread of ±0.47 per set, so it banks now rather than waiting for a repeat.</span></div>
+        <div class="tline obs"><span class="g">▸</span><span class="t">Sets went 11 → 11 → 9 → 8 — a steep drop of 3. Those back sets cost full price; that is fatigue, not weakness.</span></div>
+        <div class="tline"><span class="g steel">·</span><span class="t">Set 4 of 4 went to failure at 8 reps, exactly as the taper asks — that is the set that buys the next weight.</span></div>
+        <div class="next"><div class="next-head">NEXT · 11 · 11 · 10 · 8 AT 320</div>
+        <div class="next-why">1 rep added, because you took the last set to failure exactly as prescribed — one rep is the honest step from there. 6 more reps above that and 325 queues itself — about 6 more sessions at the current step.</div></div>
+        <div class="micro">WORK DONE · 12,480 lb (+8% vs last time)</div>
+      </div>
+
+      <div class="lrow" onclick="tg(this)">
+        <span><span class="lname">Abs</span><span class="lsub" style="display:block">100 × 14·12·14 · <span class="brass">−1</span></span></span>
+        <span class="lmark"><span class="brass">◆ HOLD</span><span class="chev">›</span></span>
+      </div>
+      <div class="depth">
+        <div class="hero-tag">SET BY SET · VS LAST TIME</div>
+        <div class="hero">14 <span class="up">(+1)</span> · 12 <span class="dn">(−1)</span> · 14 <span class="dn">(−1)</span></div>
+        <div class="tline"><span class="g steel">·</span><span class="t">Sets went 14 → 12 → 14 — dead flat. Nothing was near the limit; the whole lift had room.</span></div>
+        <div class="tline"><span class="g steel">·</span><span class="t">Set 3 of 3 went to failure at 14 reps, exactly as the taper asks — that is the set that buys the next weight.</span></div>
+        <div class="next"><div class="next-head">NEXT · 14 · 13 · 14 AT 100 — UNCHANGED</div>
+        <div class="next-why">Governor hold — the opener has run hot two sessions straight, so nothing climbs until an honest one lands. That line IS the top of the window — hit it on clean sleep without grinding the opener and 105 queues itself.</div></div>
+        <div class="micro">WORK DONE · 4,000 lb (−2% vs last time)</div>
+      </div>
+
+      <div class="lrow" onclick="tg(this)">
+        <span><span class="lname">Hanging raise</span><span class="lsub" style="display:block">BW × 6·6 · <span class="jade">+1</span></span></span>
+        <span class="lmark"><span class="jade">▲ UP</span><span class="chev">›</span></span>
+      </div>
+      <div class="depth">
+        <div class="hero-tag">SET BY SET · VS LAST TIME</div>
+        <div class="hero">6 <span class="eq">(=)</span> · 6 <span class="up">(+1)</span></div>
+        <div class="tline"><span class="g steel">·</span><span class="t">Sets went 6 → 6 — dead flat. Nothing was near the limit; the whole lift had room.</span></div>
+        <div class="tline"><span class="g steel">·</span><span class="t">Set 2 of 2 went to failure at 6 reps, exactly as the taper asks — that is the set that buys the next weight.</span></div>
+        <div class="next"><div class="next-head">NEXT · 7 · 6 AT BW</div>
+        <div class="next-why">1 rep added, because you took the last set to failure exactly as prescribed — one rep is the honest step from there.</div></div>
+      </div>
+
+      <!-- The star of the night, shown expanded -->
+      <div class="lrow open" onclick="tg(this)">
+        <span><span class="lname">Hack squat</span><span class="lsub" style="display:block">160 × 12·11·13 · <span class="jade">+4</span></span></span>
+        <span class="lmark"><span class="jade">◆ RECORD</span><span class="chev">›</span></span>
+      </div>
+      <div class="depth">
+        <div class="hero-tag">SET BY SET · VS LAST TIME</div>
+        <div class="hero">12 <span class="up">(+1)</span> · 11 <span class="eq">(=)</span> · 13 <span class="up">(+3)</span></div>
+        <div class="tline rec"><span class="g">◆</span><span class="t">Best you have ever done at 160 — and it clears the old line by 4 reps against a spread of ±0.79 per set, so it banks now rather than waiting for a repeat.</span></div>
+        <div class="tline obs"><span class="g">▸</span><span class="t">Sets went 12 → 11 → 13 — you climbed into it. Set 3 beat set 1, which usually means set 1 was a warm-up in disguise: start heavier, or take the opener closer in.</span></div>
+        <div class="tline"><span class="g steel">·</span><span class="t">Set 3 of 3 went to failure at 13 reps, exactly as the taper asks — that is the set that buys the next weight.</span></div>
+        <div class="next"><div class="next-head">NEXT · 12 · 12 · 13 AT 160</div>
+        <div class="next-why">1 rep added, because you took the last set to failure exactly as prescribed — one rep is the honest step from there.</div></div>
+        <div class="micro">WORK DONE · 5,760 lb (+13% vs last time)</div>
+      </div>
+
+      <div class="lrow" onclick="tg(this)">
+        <span><span class="lname">Leg extension</span><span class="lsub" style="display:block">155 × 8·9 · <span class="steel">−2 · heavier bar</span></span></span>
+        <span class="lmark"><span class="steel">▼ JUMP PRICE</span><span class="chev">›</span></span>
+      </div>
+      <div class="depth">
+        <div class="hero-tag">SET BY SET · VS LAST TIME</div>
+        <div class="hero">8 <span class="dn">(−2)</span> · 9 <span class="eq">(=)</span></div>
+        <div class="tline"><span class="g steel">·</span><span class="t">2 down on last time — and the bar was heavier, so reps given back here are the price of the jump, not a step backwards.</span></div>
+        <div class="tline obs"><span class="g">▸</span><span class="t">Sets went 8 → 9 — you climbed into it. Set 2 beat set 1, which usually means set 1 was a warm-up in disguise: start heavier, or take the opener closer in.</span></div>
+        <div class="tline"><span class="g steel">·</span><span class="t">Set 2 of 2 went to failure at 9 reps, exactly as the taper asks — that is the set that buys the next weight.</span></div>
+        <div class="next"><div class="next-head">NEXT · 9 · 9 AT 155</div>
+        <div class="next-why">1 rep added, because you took the last set to failure exactly as prescribed. 1 more rep above that and 160 queues itself — about 1 more session at the current step.</div></div>
+        <div class="micro">WORK DONE · 2,635 lb (−8% vs last time) — the heavier bar has not paid for the lost reps yet; on a jump this usually turns positive within two sessions</div>
+      </div>
+
+      <div class="lrow" onclick="tg(this)">
+        <span><span class="lname">Ham curl</span><span class="lsub" style="display:block">120 × 11·9·11 · <span class="jade">+11</span></span></span>
+        <span class="lmark"><span class="jade">◆ RECORD</span><span class="chev">›</span></span>
+      </div>
+      <div class="depth">
+        <div class="hero-tag">SET BY SET · VS LAST TIME</div>
+        <div class="hero">11 <span class="up">(+1)</span> · 9 <span class="dn">(−1)</span> · 11 <span class="up">(new set)</span></div>
+        <div class="tline rec"><span class="g">◆</span><span class="t">Best you have ever done at 120 — and it clears the old line by 8 reps against a spread of ±0.81 per set, so it banks now rather than waiting for a repeat.</span></div>
+        <div class="tline"><span class="g steel">·</span><span class="t">Set 3 of 3 went to failure at 11 reps, exactly as the taper asks — that is the set that buys the next weight.</span></div>
+        <div class="next"><div class="next-head">NEXT · 12 · 12 · 11 AT 120</div>
+        <div class="next-why">1 rep added, because you took the last set to failure exactly as prescribed. That line IS the top of the window — hit it on clean sleep without grinding the opener and 125 queues itself.</div></div>
+        <div class="micro">WORK DONE · 3,720 lb (+55% vs last time)</div>
+      </div>
+
+    </div>
+    <div class="foot">recomputed live — old sessions get smarter as the engine does</div>
+  </div>
+</div>
+<div class="note">MOCKUP · debrief in the R15 grammar, built on the real 8/7 session. Every sentence is the engine's own output, verbatim — restructured, never rewritten. Tap any lift row.</div>
+</div>
+<script>
+function tg(row){ row.classList.toggle('open'); }
+</script>
+</body>
+</html>
