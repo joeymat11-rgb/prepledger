@@ -340,6 +340,19 @@ other six.**
 `/ledger` lockdown intact. iOS Safari is the real target and the test suite only runs
 headless — walk the render-smoke states and eyeball on the phone before shipping.
 
+**patchV24 keys on `hi === 12` (audit ruling, 2026-08-07).** Its idempotency guard is
+effect-keyed: the mutation fires only while hack's `hi !== 12`. Any future *deliberate*
+change to hack's `hi` MUST ship with a patch retiring patchV24's mutation in the same
+change, or the next schema bump silently reverts it — the reconcile heal backstops
+`last`, not `hi` (measured: `hi 13` at v−1 replays back to 12). Longer term (R16, with
+accounts/cold-start): the migration pipeline goes version-filtered so per-patch
+replay-idempotency stops being hand-maintained. Two more R16 parkings from the same
+ruling: the heal is numeric-`w` only (a string-`w` heal would defeat patchV24's one
+legitimate null in the same pass — boundary for the R16 roster builder), and the
+plate-arm note copy asserts "it is plate-loaded", true for hack, the only lift that can
+fire it today, but roster-dependent rather than derived — derive or drop the adjective
+when the roster generalizes.
+
 ---
 
 ## NOW — R1 · one regime detector replaces both phase machines
