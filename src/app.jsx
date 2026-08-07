@@ -13008,7 +13008,15 @@ function LogTab({ s, setS, save, slp }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {gym && sess && <GymMode s={s} setS={setS} save={save} slp={slp} sess={sess} dateSel={dateSel} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} />}
+      {gym && (() => {
+        /* F3 — a live draft owns its session: resuming keys GymMode to the DRAFT's date
+           (its sessions log under the day they belong to, and its gymKey matches, so the
+           restore + resumePhase wiring runs on EVERY door — launcher and chip alike). */
+        const live9 = findGymDraft();
+        const gDate = live9 ? live9.iso : dateSel;
+        const gSess = live9 && live9.iso !== dateSel ? genSession(s, live9.iso, slp) : sess;
+        return gSess ? <GymMode s={s} setS={setS} save={save} slp={slp} sess={gSess} dateSel={gDate} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} /> : null;
+      })()}
       {sess && !s.sessionLog[dateSel] && (
         <button onClick={() => setGym(true)} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(94,212,162,.35)", background: "rgba(94,212,162,.06)", color: DT.jade, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>▶ GYM MODE — ONE LIFT AT A TIME, TIMERS ON</button>
       )}
@@ -14619,6 +14627,23 @@ function effortWords(plan, held) {
    the rest it rides in resolves to SKIP (null — asked-at-the-set is the law, and a
    minutes-old memory answer is the v7.12.0 sin this flow exists to prevent) and lands
    on the next true phase. Exact, mock-clock testable. */
+/* findGymDraft — THE one scanner every door uses (chip, launcher, one-shot, GymMode's own
+   restore). A session that started at 1:39 AM is keyed to YESTERDAY's date; any door that
+   derives the key from today's dateSel misses it and lands on a fresh lift-1 — Joe's F3.
+   ±1 day covers the midnight boundary; anything older is an abandoned draft, not a live
+   session. */
+function findGymDraft() {
+  try {
+    for (let k = 0; k < localStorage.length; k++) {
+      const key = localStorage.key(k);
+      if (key && key.indexOf("prep-ledger-gymdraft-") === 0) {
+        const d = JSON.parse(localStorage.getItem(key) || "null");
+        if (d) { const iso9 = key.slice("prep-ledger-gymdraft-".length); const gap9 = Math.abs((mk(isoOf(todayStart())) - mk(iso9)) / DAY); if (gap9 <= 1) return { ...d, iso: iso9 }; }
+      }
+    }
+  } catch (e) {}
+  return null;
+}
 function resumePhase(draft, nowMs) {
   const d = draft || {};
   const ph = d.phase || "lift";
@@ -14675,6 +14700,17 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   useEffect(() => {
     try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, rirEnd, gskip, touched, rests, idx, setN, restStart, restLen, phase })); } catch (e) {}
   }, [reps, rir, rirEnd, gskip, rests, idx, setN, gymKey, phase]);
+  /* F1 — THE DOCUMENT SCROLL-LOCK (the modal pattern). The gym frame was overflow-hidden
+     but the PAGE BEHIND it kept its 1772px of scroll — html/body read overflow-y auto and
+     the wheel still moved scrollY under the overlay. Lock both while mounted, restore
+     exactly what was there on unmount. */
+  useEffect(() => {
+    const de = document.documentElement, db = document.body;
+    const prev9 = [de.style.overflow, db.style.overflow, window.scrollY];
+    de.style.overflow = "hidden"; db.style.overflow = "hidden";
+    window.scrollTo(0, 0);
+    return () => { de.style.overflow = prev9[0]; db.style.overflow = prev9[1]; window.scrollTo(0, prev9[2]); };
+  }, []);
   const ex = sess.ex[idx];
   const rp2 = rirPlan(s, ex, slp);
   const getR = (e2) => reps[e2.id] ?? e2.tgt.slice();
@@ -15526,18 +15562,7 @@ function HistTab({ s, setS, save }) {
    FAB corridor free on every tab — the call-banner pattern under the paint-slop law. */
 function SessionLiveChip({ s, go }) {
   const [, force] = useState(0);
-  const draft = (() => {
-    try {
-      for (let k = 0; k < localStorage.length; k++) {
-        const key = localStorage.key(k);
-        if (key && key.indexOf("prep-ledger-gymdraft-") === 0) {
-          const d = JSON.parse(localStorage.getItem(key) || "null");
-          if (d) { const iso9 = key.slice("prep-ledger-gymdraft-".length); const gap9 = Math.abs((mk(isoOf(todayStart())) - mk(iso9)) / DAY); if (gap9 <= 1) return { ...d, iso: iso9 }; }
-        }
-      }
-    } catch (e) {}
-    return null;
-  })();
+  const draft = findGymDraft();   /* F3 — the ONE scanner every door shares */
   useEffect(() => {
     if (!draft) return;
     const iv = setInterval(() => force((x) => x + 1), 500);
@@ -15547,12 +15572,15 @@ function SessionLiveChip({ s, go }) {
   const liftName = (() => { try { const sess9 = genSession(s, draft.iso); return ((sess9.ex || [])[draft.idx || 0] || {}).n || "session"; } catch (e) { return "session"; } })();
   const rp9 = resumePhase(draft, Date.now());
   const remain = draft.restStart ? Math.max(0, (draft.restLen || 0) - Math.floor((Date.now() - draft.restStart) / 1000)) : 0;
-  const resting = rp9.phase === "rest" || (rp9.phase === "rir-open" && remain > 0);
+  /* F2 — the REST arm belongs to the REST phase alone. Mid-ask the owed thing is the ASK,
+     so the chip says RESUME (Joe's finding: mid-ask exits wore the rest costume and the
+     spec'd second arm could never render). */
+  const resting = rp9.phase === "rest" && remain > 0;
   const label = resting
     ? "⏱ REST " + Math.floor(remain / 60) + ":" + String(remain % 60).padStart(2, "0") + " · " + String(liftName).toUpperCase() + " ▸"
     : "▸ RESUME SESSION · " + String(liftName).toUpperCase() + " SET " + ((draft.setN || 0) + 1);
   return (
-    <button data-chip="session-live" onClick={() => { try { sessionStorage.setItem("pl-resume-gym", "1"); } catch (e) {} go("TRAIN"); }}
+    <button data-chip="session-live" data-arm={resting ? "rest" : "resume"} onClick={() => { try { sessionStorage.setItem("pl-resume-gym", "1"); } catch (e) {} go("TRAIN"); }}
       style={{ position: "fixed", left: 0, bottom: "calc(64px + env(safe-area-inset-bottom))", width: "calc(100% - 90px)", zIndex: 49, background: "none", border: "none", padding: "28px 0 0 0", margin: 0, cursor: "pointer", textAlign: "left" }}>
       <span style={{ display: "block", background: DT.card2, borderTop: "1px solid " + DT.hairline2, borderBottom: "1px solid " + DT.hairline, color: resting ? DT.jade : DT.amber, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", padding: "10px 14px" }}>{label}</span>
     </button>

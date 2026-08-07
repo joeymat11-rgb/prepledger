@@ -1075,6 +1075,21 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15c ROUND 5 — THREE LOOSE WIRES, PINNED
+
+**F1** — the DOCUMENT scroll-locks while Gym Mode is mounted: the gym frame was hidden but
+html/body behind it kept 1,772px of live scroll (Joe's scrollbar). Modal pattern, both
+elements, exact restore on unmount. **F2** — the chip's REST arm belongs to the rest
+phase ALONE: a mid-ask exit was wearing the rest costume, so the spec'd RESUME arm could
+never render; mid-ask the owed thing is the ask, and the chip now says so (data-arm
+pinned). **F3** — the date boundary was the wire: a 1:39 AM session's draft keys to
+YESTERDAY, and every door deriving its key from today's dateSel missed it, landing on a
+fresh lift-1. ONE scanner (findGymDraft, ±1 day) now feeds every door — chip, launcher,
+GymMode's own restore — and a live draft OWNS its session date, so resumePhase (the
+proven pure law) actually runs on the manual door too. Suite 1911 → 1915, freeze
+byte-clean. STOPPED for the rig's re-drive: scroll lock, both arms, both doors, the
+stale-ask law.
+
 ### R15c ROUND 4 — THE LOCKED FRAME AND THE SURVIVING CLOCK (Joe's 1:39 AM session)
 
 **Two live findings from a real gym at 1:39 AM, both structural.** S1: GYM MODE DOES NOT
