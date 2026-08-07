@@ -1,6 +1,7 @@
 {
- "sha": "e1735b506f69f30c390b8486e8dba9e34e4f32ca",
- "version": "v7.17.0",
+ "sha": "98441d0",
+ "version": "v7.18.0",
  "state": "published",
- "at": "2026-08-07T03:50:43.001Z"
+ "at": "2026-08-07T04:24:13.000Z",
+ "note": "beacon push lost a race with a ledger auto-sync (run 306, rejected fetch-first); corrected from a byte-verified live check, sha e3a9b35dca7f72ab"
 }
