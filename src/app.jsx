@@ -12944,7 +12944,7 @@ function LogTab({ s, setS, save, slp }) {
                   style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.sm, width: "100%", textAlign: "left", background: "none", border: "none", borderTop: i2 ? `1px solid ${T.hairline}` : "none", padding: `${SP.sm}px 0`, minHeight: 44, cursor: "pointer", opacity: skipped[ex.id] ? 0.45 : 1 }}>
                   <span style={{ minWidth: 0 }}>
                     <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.chalk, textTransform: "uppercase", letterSpacing: "0.04em" }}>{ex.n}</span>
-                    <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 2 }}>{ex.w} \u00b7 target {ex.tgt.join(",")}</span>
+                    <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 2 }}>{ex.w} · target {ex.tgt.join(",")}</span>
                   </span>
                   <span style={{ display: "flex", alignItems: "center", gap: SP.xs, flexShrink: 0 }}>
                     {lc.verdict ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: vc, whiteSpace: "nowrap" }}>{arrow} {lc.verdict}</span> : null}
@@ -14553,7 +14553,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
               {setupOpen ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.45 }}>{ex.setup}</div> : null}
             </div>
           ) : null}
-          {ex.prev ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>last · {fmtShort(ex.prev.d)} · {ex.prev.w} \u00d7 {(ex.prev.reps || []).join(",")}{ex.prev.rir != null ? ` \u00b7 RIR ${ex.prev.rir}` : ""}</div> : null}
+          {ex.prev ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>last · {fmtShort(ex.prev.d)} · {ex.prev.w} × {(ex.prev.reps || []).join(",")}{ex.prev.rir != null ? ` \u00b7 RIR ${ex.prev.rir}` : ""}</div> : null}
           {(() => {
             /* The next rung, on the lift screen. nextLoad exists on every card and rendered
                nowhere. It returns null at the top of a stack — that is real, so it is said
@@ -15814,7 +15814,14 @@ export default function PrepLedger() {
       </div>
 
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50, background: T.plate, borderTop: `1px solid ${T.line}` }}>
-        <div style={{ position: "absolute", top: 2, right: 8, fontFamily: mono, fontSize: TS.micro, color: T.steel, opacity: 0.7, padding: 4 }}>v{APP_V}</div>
+        {/* AUDIT (R15a pointer pass) — this stamp INTERCEPTED REAL TAPS on the rail's right
+            tab: absolutely positioned over the button row with default pointer-events, it owned
+            elementFromPoint across most of LEDGER's box, and only synthetic jsdom clicks ever
+            passed through it — which is why the wall of green missed it. A passive label may
+            never be tappable: pointer-events none, PINNED by a source assert. Moved to the
+            bottom corner of the bar (out of the label line it was crowding at 390px), 9px =
+            the token ramp's floor. */}
+        <div style={{ position: "absolute", bottom: 2, right: 6, fontFamily: mono, fontSize: 9, color: T.steel, opacity: 0.55, padding: 0, pointerEvents: "none" }}>v{APP_V}</div>
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
             <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: (tab === t2 || (t2 === "LEDGER" && inMore)) ? `2px solid ${T.gauge}` : "2px solid transparent", fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, letterSpacing: "0.09em", transition: TR("color", MOT.micro), color: (tab === t2 || (t2 === "LEDGER" && inMore)) ? T.gauge : T.steel }}>

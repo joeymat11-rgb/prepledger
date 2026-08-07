@@ -6557,5 +6557,8 @@ if (fail) process.exit(1);
   ok(DT9.glyph.status === "◆" && DT9.glyph.ok === "◇" && DT9.glyph.fwd === "▸" && DT9.touch === 64, "R15a — the geometric glyph set and the 64px touch floor are tokens, not tribal knowledge");
   const src15 = readFileSync("src/app.jsx", "utf8");
   ok(src15.indexOf('const PRIMARY_TABS = ["NOW", "TRAIN", "LEDGER"];') > -1 && src15.indexOf('"MORE"') === -1, "R15a — the rail is NOW / TRAIN / LEDGER and no route answers to MORE: renamed everywhere, not aliased — a stranded surface is the failure this asserts against");
+  const stampLine = src15.split("\n").find((l) => l.indexOf(">v{APP_V}</div>") > -1 && l.indexOf('position: "absolute"') > -1);
+  ok(!!stampLine && stampLine.indexOf('pointerEvents: "none"') > -1, "R15a POINTER PASS — the version stamp carries pointer-events none: it intercepted REAL taps on the rail's right tab while every synthetic jsdom click passed through it — a passive label may never own a tap, and this pin keeps it that way");
+  ok(src15.indexOf("\\" + "u00b7 target") === -1 && src15.indexOf(" " + "\\" + "u00d7 {") === -1, "R15a — no JSX-text unicode escapes survive: \\u00b7 and \\u00d7 between JSX expressions render as LITERAL CHARACTERS on screen (they were live on TODAY'S LIFTS and GymMode's prev line) — escapes belong in JS strings, glyphs belong in JSX text");
 }console.log(`\nFINAL86: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
