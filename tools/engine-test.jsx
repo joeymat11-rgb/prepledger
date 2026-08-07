@@ -6942,3 +6942,28 @@ if (fail) process.exit(1);
 }
 console.log(`\nFINAL91: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ==================== R15d · LEDGER — DECISIONS AND DIARY, PLAIN WORDS (FINAL92) ====================
+   The hub was a settings screen wearing the LEDGER name. Per the mockup (screen 3):
+   NEEDS YOUR OK leads with the live count and a designed-normal empty state; THE RECORD
+   is the feed as a day-grouped diary in the engine's own words; LAB wears its live
+   counts; every room keeps its two-tap door. Presentation only — the engine freeze
+   stays byte-clean through this slice. */
+{
+  const srcL = readFileSync("src/app.jsx", "utf8");
+  const mt = srcL.slice(srcL.indexOf("function MoreTab("), srcL.indexOf("function CoachView("));
+  ok(mt.length > 3000 && mt.length < 20000 && (srcL.split("function MoreTab(").length - 1) === 1, "R15d — the LEDGER hub slice is bounded and MoreTab keeps its name: it is the END ANCHOR of the R15c chip pin, and renaming it would silently swallow that slice");
+  ok((mt.split(String.fromCharCode(100, 97, 116, 97, 45, 108, 101, 100, 61, 34)).length - 1) === 4, "R15d — the simplicity budget is a LAW: exactly four data-led blocks (ok, diary, lab, rooms) — a fifth is the accretion disease, and this assert is its vaccine");
+  ok(mt.indexOf(String.fromCharCode(100, 97, 116, 97, 45, 115, 112, 101, 99, 61, 34, 101, 120, 97, 109, 112, 108, 101, 34)) > -1 && mt.indexOf("aria-hidden=\"true\" style={{ pointerEvents: \"none\"") > -1, "R14 AT THE ILLUSTRATION — the example decision card is INERT by construction (pointer-events none, aria-hidden, dashed frame): a card whose taps enact nothing may not be tappable");
+  ok(mt.indexOf("A TAP HERE ALWAYS CHANGES SOMETHING REAL — AND ONE TAP ALWAYS UNDOES IT") > -1 && mt.indexOf("Nothing needs your OK right now.") > -1 && mt.indexOf("{okN} WAITING") > -1, "the empty inbox is the DESIGNED-NORMAL good state, in the mockup words, and the count on the row is the rail badge count");
+  ok(mt.indexOf("onClick={() => go(\"BRIEF\")}") > -1 && (mt.split("ApprovalInbox").length - 1) === 0, "ONE DOOR STAYS ONE DOOR — a waiting decision routes to the briefing room; the hub mounts NO second inbox, so a card can never exist in two places");
+  ok(mt.indexOf("{f.t}") > -1 && mt.indexOf("{f.how}") > -1, "the diary renders the engine feed VERBATIM — t and how untouched, no rewriting at the surface (the typed-words discipline)");
+  ok(mt.indexOf("labStatusList(s)") > -1 && mt.indexOf("{labAll.length} TOOLS") > -1 && mt.indexOf("{labLive} SPEAKING") > -1, "the LAB row counts are LENGTHS of existing selector output (labStatusList) — the UI computes nothing, per the engine-owns-numbers guardrail");
+  ok((mt.split("minHeight: DT.touch").length - 1) >= 3 && mt.indexOf("background: \"none\", border: \"none\"") > -1, "TOUCH LAW — the ok row, the lab row and every room row are 64px paint-free hit boxes; paint rides inner spans (the standing split law)");
+  ok(mt.indexOf("t: \"THE BRIEFING ROOM\"") > -1 && mt.indexOf("k: \"QUEUE\"") > -1 && mt.indexOf("k: \"SLEEP\"") > -1 && mt.indexOf("k: \"BODY\"") > -1 && mt.indexOf("onClick={() => go(\"HIST\")}") > -1, "every room keeps its two-tap door: BRIEFING ROOM / QUEUE / SLEEP / BODY rows plus the LAB hero row to HIST");
+  ok(mt.indexOf("React.Fragment") > -1 && mt.indexOf("{i > 0 ? <div style={{ borderTop: \"1px solid \" + DT.hairline }} /> : null}") > -1, "hairlines are INERT SIBLINGS between row buttons, never wrappers — a wrapper whose text shadows a row would steal the render-smoke document-order click");
+  ok((mt.split("role=\"button\"").length - 1) >= 5 && mt.indexOf("<SecRule>ANALYST & RULES</SecRule>") > -1 && (srcL.split("<SecRule>THE RECORD</SecRule>").length - 1) === 0, "rows carry the explicit role the smoke pins by attribute, and the settings section sheds the name the diary now owns");
+}
+console.log(`\nFINAL92: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
