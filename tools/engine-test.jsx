@@ -3364,7 +3364,7 @@ ok(!!calStep && calStep.w > 80, "the daily calorie number reaches the protocol a
 const progS = raR(mkReads(28, 0.2, 170), isoL(Date.now()));
 const volLine = progS.feed.find((f) => /VOLUME BAND SITS ABOVE/.test(f.t));
 ok(!!volLine, "R14 — the volume-band gap is a FEED LINE now: it was information whose tap enacted nothing, which is the inbox invariant. It is still in the app, not left in a chat window");
-ok(volLine.how.indexOf("2,058 participants") > -1 && volLine.how.indexOf("5–10") > -1, "with the evidence attached rather than a bare instruction");
+ok(volLine.how.indexOf("2,058 people") > -1 && volLine.how.indexOf("5–10") > -1 && volLine.how.indexOf("smooth curve") > -1, "with the evidence attached rather than a bare instruction — and since R15e the evidence reads as the continuous curve it is, not invented tiers");
 ok(volLine.how.indexOf("will not move it on its own") > -1, "and it is explicit that a programme change stays his call");
 ok(VBR.lo === 8 && VBR.hi === 14, "the band itself is unchanged — the app proposes, it does not reprogram him");
 
@@ -6441,7 +6441,7 @@ if (fail) process.exit(1);
   /* the copy: owner framing + caveat + grade, per card */
   ok(cards.every((c) => /OWNER'S CALL/.test(c.title) && /chose speed over waiting/.test(c.why) && /did not convert/.test(c.why) && /rollback card comes with the receipt/.test(c.why)), "OWNER — every card carries the owner's-call framing, the honest caveat (three experiments into WATCH recovery), and the measurement promise — no confident voice, the decision attributed to its decider");
   const chestC = cards.find((c) => /chest/.test(c.rid)), rearC = cards.find((c) => /delts_rear/.test(c.rid)), hamsC = cards.find((c) => /hams/.test(c.rid));
-  ok(/floor correction/i.test(hamsC.why) && /high-return tier/.test(hamsC.why), "OWNER — hams is graded as the FLOOR CORRECTION (the evidence's own high-return tier), distinct from the other two");
+  ok(/floor correction/i.test(hamsC.why) && /where sets pay best on the evidence/.test(hamsC.why), "OWNER — hams is graded as the FLOOR CORRECTION (the climb lands where sets pay best on the evidence's own curve), distinct from the other two — the R15e region framing, not the retired tier");
   ok(/COMPOUND/.test(chestC.why) && /triceps and front delts/.test(chestC.why) && /charges those muscles' weekly structural budget/.test(chestC.why) && /MODERATE-TO-LOW/.test(chestC.why), "OWNER (AUDIT B) — the chest card NAMES the compound spillover and the budget charge in its own copy");
   ok(/per side/.test(rearC.why) && /4–5 extra minutes/.test(rearC.why) && /weaker side/.test(rearC.why) && /MODERATE-TO-LOW/.test(rearC.why), "OWNER — the rear-delt card prices the UNILATERAL time honestly and keeps the weaker-side logging convention explicit");
   /* the taps */
@@ -6988,4 +6988,33 @@ if (fail) process.exit(1);
 }
 console.log(`\nFINAL92: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ==================== R15e · THE COPY SWEEP — ROUND 1 (FINAL93) ====================
+   Words are the point of the slice: the Pelland claim reads as the continuous curve it
+   is (a high-return REGION, not invented tiers); the diary-level producers shed jargon;
+   the app-wide disclosure controls meet the touch law by slop with paint unmoved. The
+   engine baseline moved by EXACTLY the retitled note (regenerated in-commit); the
+   debrief words fixture was regenerated through the flatten and proved byte-identical. */
+{
+  const srcE = readFileSync("src/app.jsx", "utf8");
+  ok((srcE.split("VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER").length - 1) === 0 && (srcE.split("VOLUME BAND SITS ABOVE THE HIGH-RETURN REGION").length - 1) === 1, "R15e — the tier is retired from the note title: the region framing is the only one the producer can file");
+  ok(srcE.indexOf("traces a smooth curve, not steps") > -1 && srcE.indexOf("there is no cliff at any number, just diminishing returns") > -1 && srcE.indexOf("2,058 people") > -1, "R15e — the body states Pelland honestly: a continuous curve with diminishing returns, in plain words at the diary headline level");
+  ok((srcE.split("the regime detector, which reads").length - 1) === 0 && srcE.indexOf("phase read, which watches your lifts") > -1, "R15e — the withdrawn-card producer speaks plain at the diary level: regime detector became the phase read that watches lifts and scale rate");
+  const moreSl = srcE.slice(srcE.indexOf("function More({"), srcE.indexOf("function More({") + 2600);
+  ok(moreSl.indexOf('padding: "15px 12px", margin: "-15px -12px"') > -1, "R15e TOUCH LAW — the app-wide MORE disclosure is a 44px hit box: paint-free text, padding as pure slop, negative margins keep every painted pixel in place");
+  const secSl = srcE.slice(srcE.indexOf("function Section({"), srcE.indexOf("function More({"));
+  ok(secSl.indexOf('minHeight: 44, display: "flex", flexDirection: "column", justifyContent: "center", padding: "12px 12px", margin: "-12px -12px"') > -1, "R15e TOUCH LAW — the shared Section header clears 44 by slopping into the Card's own inert padding; layout byte-identical by equal-and-opposite arithmetic");
+  ok(srcE.indexOf('color: showSetup[ex.id] ? T.chalk : T.steel, background: "none", border: "none", padding: "15px 12px", margin: "-15px -12px"') > -1, "R15e TOUCH LAW — SETUP + CUES on TRAIN gets the same slop treatment");
+  ok(srcE.indexOf("the span carries the pill byte-for-byte") > -1 && srcE.indexOf("why not cut calories? {whyOpen ?") > -1, "R15e — the why-not pill obeys the painted-control split: outer paint-free hit box, the pill rides the inner span (the R15b round-4 law)");
+  /* the producer itself, driven: the note files under the region title with the curve body */
+  const clE = (o) => JSON.parse(JSON.stringify(o));
+  const stE = clE(__test.SEED);
+  stE.blackout = { until: isoL(Date.now() - 28 * 864e5) };
+  const outE = __test.runAdaptive(stE, isoL(Date.now()));
+  const noteE = (outE.feed || []).find((f) => f.t.indexOf("VOLUME BAND") === 0);
+  ok(!!noteE && noteE.t === "VOLUME BAND SITS ABOVE THE HIGH-RETURN REGION" && noteE.how.indexOf("smooth curve") > -1 && noteE.how.indexOf("calorie cut") > -1, "R15e driven — the note files under the REGION title with the curve body, and the deficit jargon reads as calorie cut at the diary's headline level: " + (noteE ? noteE.t : "none"));
+}
+console.log(`\nFINAL93: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
 
