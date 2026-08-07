@@ -15894,11 +15894,18 @@ function SessionLiveChip({ s, go }) {
 }
 
 function MoreTab({ s, go, openRules, openCoach }) {
-  const rooms = [
+  /* ---------- R15d · LEDGER — decisions and diary, both in plain words ----------
+     The hub was a settings screen wearing the LEDGER name. Per the mockup (screen 3):
+     NEEDS YOUR OK leads (live count; the EMPTY state is the designed-normal good state,
+     with an inert EXAMPLE card so the surface teaches what a decision looks like);
+     THE RECORD is the feed as a day-grouped diary, newest first, engine words verbatim;
+     LAB is a hero row wearing its live counts; the remaining rooms keep their two-tap
+     doors. The UI computes NOTHING — counts are lengths of existing selector output,
+     diary lines are s.feed verbatim. One door stays one door: a waiting decision routes
+     to the briefing room where the inbox lives; no second card mount. */
+  const roomsR = [
     { k: "BRIEF", t: "THE BRIEFING ROOM", sub: "the classic NOW — capture, the briefing, the room, and every decision card in its full home",
       hint: (() => { try { const n9 = ((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length); return n9 ? n9 + " waiting on your OK" : null; } catch (e) { return null; } })() },
-    { k: "HIST", t: "LAB", sub: "the instruments — every verdict the engine is currently willing to make",
-      hint: (() => { try { return labStatusList(s).filter((c) => c.status === "LIVE").length + " speaking now"; } catch (e) { return null; } })() },
     { k: "QUEUE", t: "QUEUE", sub: "what is earned, what is waiting, and the gate on each",
       hint: (() => { try { return (s.queue || []).filter((q) => !q.done).length + " open"; } catch (e) { return null; } })() },
     { k: "SLEEP", t: "SLEEP", sub: "your clock, the lever, and the caffeine tail",
@@ -15906,6 +15913,21 @@ function MoreTab({ s, go, openRules, openCoach }) {
     { k: "BODY", t: "BODY", sub: "weight, trend, and the body-fat band at its real width",
       hint: (() => { try { const b = bfEst(s); return b.pct + "% · " + b.lo + "–" + b.hi; } catch (e) { return null; } })() },
   ];
+  const okN = (() => { try { return ((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length); } catch (e) { return 0; } })();   /* the rail badge count, verbatim */
+  const labAll = (() => { try { return labStatusList(s); } catch (e) { return []; } })();
+  const labLive = labAll.filter((c) => c.status === "LIVE").length;
+  const diary = (() => {
+    try {
+      const fl = (s.feed || []).filter((f) => f && f.t).slice(0, 12);
+      const groups = [];
+      fl.forEach((f) => { const g = groups[groups.length - 1]; if (g && g.d === f.d) g.rows.push(f); else groups.push({ d: f.d, rows: [f] }); });
+      return groups.slice(0, 3);
+    } catch (e) { return []; }
+  })();
+  const today9 = isoOf(todayStart());
+  const lbl9x = { fontFamily: mono, fontSize: 10, letterSpacing: "0.18em", color: DT.dim, fontWeight: 600 };
+  const tnum = { fontFamily: mono, fontVariantNumeric: "tabular-nums" };
+  const card9x = { background: DT.card, border: "1px solid " + DT.hairline, borderRadius: DT.radius, padding: 15 };
   /* MORE is a settings screen, so it is built like one (§4): grouped lists,
      UPPERCASE section headers, 44px rows, hairlines between rows instead of a
      card around each one. Every row used to be its own floating Card — nine
@@ -15924,25 +15946,97 @@ function MoreTab({ s, go, openRules, openCoach }) {
         <Eyebrow>the record, the decisions, and the rooms you open on purpose — nothing here ever moves on its own</Eyebrow>
       </div>
 
-      <SecRule>ROOMS</SecRule>
-      <Card style={{ padding: `${SP.xs}px ${SP.lg}px` }}>
-        {rooms.map((r, i) => (
-          <div key={r.k} onClick={() => go(r.k)} role="button" tabIndex={0}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(r.k); } }}
-            style={{ ...rowStyle, borderTop: i === 0 ? "none" : `1px solid ${T.hairline}`, alignItems: "flex-start" }}>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 17, color: T.chalk, textTransform: "uppercase", lineHeight: `${LH.title}px` }}>{r.t}</div>
-              <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.hair, lineHeight: `${LH.body}px` }}>{r.sub}</div>
+      {/* NEEDS YOUR OK — the count is the rail badge count; a waiting decision routes to
+          the ONE inbox in the briefing room. The empty state is the designed-normal good
+          state, and the example card is an INERT ILLUSTRATION: pointer-events none,
+          aria-hidden, dashed frame — under R14 a card that enacts nothing may not be
+          tappable, so the illustration is untappable by construction. */}
+      <div data-led="ok" style={card9x}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <span style={lbl9x}>NEEDS YOUR OK</span>
+          <span style={{ ...tnum, fontSize: 11, letterSpacing: "0.08em", color: okN ? DT.amber : DT.dim }}>{okN} WAITING</span>
+        </div>
+        {okN > 0 ? (
+          <button role="button" onClick={() => go("BRIEF")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: DT.touch, background: "none", border: "none", padding: "6px 0 0", cursor: "pointer", textAlign: "left" }}>
+            <span style={{ fontFamily: body, fontSize: 13, color: DT.ink, fontWeight: 600 }}>{okN === 1 ? "One decision is waiting — open the briefing room" : okN + " decisions are waiting — open the briefing room"}</span>
+            <span aria-hidden="true" style={{ fontFamily: mono, fontSize: 14, color: DT.amber, flexShrink: 0 }}>▸</span>
+          </button>
+        ) : (
+          <>
+            <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+              <span style={{ fontFamily: mono, color: DT.jade, fontSize: 14, flexShrink: 0 }}>◇</span>
+              <span style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.55 }}><b style={{ color: DT.ink, fontWeight: 600 }}>Nothing needs your OK right now.</b> Small routine tweaks happen automatically. Only real decisions show up here — and when one does, it looks like the example below.</span>
             </div>
-            <div style={{ textAlign: "right", flexShrink: 0, display: "flex", alignItems: "center", gap: SP.sm }}>
-              {r.hint ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>{r.hint}</span> : null}
-              <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.title, color: T.gauge, lineHeight: 1 }}>▸</span>
+            <div data-spec="example" aria-hidden="true" style={{ pointerEvents: "none", border: "1px dashed " + DT.hairline2, borderRadius: 12, padding: 12, marginTop: 12, opacity: 0.78 }}>
+              <div style={{ ...lbl9x, letterSpacing: "0.14em" }}>EXAMPLE — WHAT A DECISION CARD LOOKS LIKE</div>
+              <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 16, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase", marginTop: 7 }}>Trim your calories a little?</div>
+              <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, marginTop: 5 }}>You’ve drifted slightly off the planned pace. Suggestion: about 60 fewer calories a day gets you back on the line — or add a short walk instead, if you’d rather eat the same.</div>
+              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                <span style={{ flex: 1, textAlign: "center", fontFamily: mono, fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", padding: "10px 0", borderRadius: 8, background: DT.jade, color: "#0B2A1C" }}>DO IT</span>
+                <span style={{ flex: 1, textAlign: "center", fontFamily: mono, fontSize: 11, letterSpacing: "0.1em", padding: "10px 0", borderRadius: 8, border: "1px solid " + DT.hairline2, color: DT.steel }}>NOT NOW</span>
+              </div>
             </div>
+            <div style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.1em", color: DT.dim, marginTop: 9, lineHeight: 1.6 }}>A TAP HERE ALWAYS CHANGES SOMETHING REAL — AND ONE TAP ALWAYS UNDOES IT</div>
+          </>
+        )}
+      </div>
+
+      {/* THE RECORD — the feed IS the diary; every line is the engine’s own words,
+          verbatim, day-grouped, newest first. The full archive stays in QUEUE. */}
+      <div data-led="diary" style={card9x}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+          <span style={lbl9x}>THE RECORD</span>
+          <span style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.1em", color: DT.dim, flexShrink: 0 }}>THE APP’S DIARY · NEWEST FIRST</span>
+        </div>
+        {diary.map((g) => (
+          <div key={g.d}>
+            <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: DT.dim, marginTop: 12 }}>{(g.d === today9 ? "TODAY — " : "") + fmtShort(g.d).toUpperCase()}</div>
+            {g.rows.map((f, i) => (
+              <div key={i} style={{ marginTop: 8 }}>
+                <div style={{ fontFamily: mono, fontSize: 11.5, fontWeight: 700, letterSpacing: "0.02em", color: DT.ink, lineHeight: 1.45 }}>{f.t}</div>
+                {f.how ? <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, marginTop: 2 }}>{f.how}</div> : null}
+              </div>
+            ))}
           </div>
         ))}
-      </Card>
+        <button role="button" onClick={() => go("QUEUE")} style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", padding: "14px 0 2px", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>THE FULL DIARY LIVES IN QUEUE ▸</button>
+      </div>
 
-      <SecRule>THE RECORD</SecRule>
+      {/* LAB — the hero row wears its live counts. Outer button is the paint-free hit
+          box; the card paint rides the inner span — the standing split law. */}
+      <button data-led="lab" role="button" onClick={() => go("HIST")} style={{ display: "block", width: "100%", background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
+        <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, minHeight: DT.touch, background: DT.card, border: "1px solid " + DT.hairline, borderRadius: DT.radius, padding: "12px 15px", boxSizing: "border-box" }}>
+          <span style={{ minWidth: 0, flex: 1 }}>
+            <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 17, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase" }}>LAB</span>
+            <span style={{ display: "block", fontFamily: body, fontSize: 12, color: DT.steel, marginTop: 2, lineHeight: 1.45 }}>the instruments — every verdict the engine is currently willing to make</span>
+          </span>
+          <span style={{ ...tnum, flexShrink: 0, fontSize: 10.5, letterSpacing: "0.06em", color: DT.steel }}>{labAll.length} TOOLS · <span style={{ color: DT.jade }}>{labLive} SPEAKING</span> ▸</span>
+        </span>
+      </button>
+
+      {/* THE ROOMS — flat siblings with inert hairlines BETWEEN buttons: a wrapper div
+          whose text shadows the row would steal the render-smoke’s click (the finder
+          walks button/[role=button]/div in document order). role=button is explicit
+          because the smoke pins THE BRIEFING ROOM by the attribute, not the tag. */}
+      <div data-led="rooms" style={{ ...card9x, padding: "4px 15px" }}>
+        {roomsR.map((r, i) => (
+          <React.Fragment key={r.k}>
+            {i > 0 ? <div style={{ borderTop: "1px solid " + DT.hairline }} /> : null}
+            <button role="button" onClick={() => go(r.k)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: DT.touch, background: "none", border: "none", padding: "10px 0", cursor: "pointer", textAlign: "left" }}>
+              <span style={{ minWidth: 0, flex: 1 }}>
+                <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 17, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase" }}>{r.t}</span>
+                <span style={{ display: "block", fontFamily: body, fontSize: 12, color: DT.steel, marginTop: 2, lineHeight: 1.45 }}>{r.sub}</span>
+              </span>
+              <span style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                {r.hint ? <span style={{ ...tnum, fontSize: 10.5, color: DT.steel }}>{r.hint}</span> : null}
+                <span aria-hidden="true" style={{ fontFamily: mono, fontSize: 14, color: DT.dim }}>▸</span>
+              </span>
+            </button>
+          </React.Fragment>
+        ))}
+      </div>
+
+      <SecRule>ANALYST & RULES</SecRule>
       <Card style={{ padding: `${SP.xs}px ${SP.lg}px` }}>
         <div onClick={openCoach} role="button" tabIndex={0}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCoach(); } }}
