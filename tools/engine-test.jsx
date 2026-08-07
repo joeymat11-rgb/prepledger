@@ -6963,6 +6963,28 @@ if (fail) process.exit(1);
   ok(mt.indexOf("t: \"THE BRIEFING ROOM\"") > -1 && mt.indexOf("k: \"QUEUE\"") > -1 && mt.indexOf("k: \"SLEEP\"") > -1 && mt.indexOf("k: \"BODY\"") > -1 && mt.indexOf("onClick={() => go(\"HIST\")}") > -1, "every room keeps its two-tap door: BRIEFING ROOM / QUEUE / SLEEP / BODY rows plus the LAB hero row to HIST");
   ok(mt.indexOf("React.Fragment") > -1 && mt.indexOf("{i > 0 ? <div style={{ borderTop: \"1px solid \" + DT.hairline }} /> : null}") > -1, "hairlines are INERT SIBLINGS between row buttons, never wrappers — a wrapper whose text shadows a row would steal the render-smoke document-order click");
   ok((mt.split("role=\"button\"").length - 1) >= 5 && mt.indexOf("<SecRule>ANALYST & RULES</SecRule>") > -1 && (srcL.split("<SecRule>THE RECORD</SecRule>").length - 1) === 0, "rows carry the explicit role the smoke pins by attribute, and the settings section sheds the name the diary now owns");
+
+  /* ---------- ROUND 2 — the audit's two fixes + Joe's diary call ---------- */
+  ok(mt.indexOf("diaryFeed(s, 12)") > -1 && (mt.split("isLabFeedLine").length - 1) === 0 && mt.indexOf("LAB LIVE") === -1, "R2-3 — the hub consumes the ONE selection law (diaryFeed) and carries no inline family knowledge of its own: the filter lives beside the producer it filters, never at the surface");
+  ok(mt.indexOf("const ease0 = autonomyOf(s) === \"propose\"") > -1 && mt.indexOf("that’s how you have it set") > -1 && mt.indexOf("Small routine tweaks happen automatically") > -1, "R2-2 — the empty-state CLAIM reads the dial: at PROPOSE it says the setting's own truth (nothing changes without your OK), and the automatic-tweaks line renders only when autonomy is actually granted");
+  ok(mt.indexOf("minHeight: 44, width: \"100%\", textAlign: \"left\"") > -1 && mt.indexOf("margin: \"0 0 -12px\"") > -1, "R2-1 — the diary tail is a 44px hit box (measured 30 on the rig): the button is paint-free text so padding is pure slop, and the negative margin hands the growth to the card's inert padding — paint does not move");
+
+  /* GUARD-MUST-FIRE, both ways: the REAL producer writes a lab line; the selector
+     excludes exactly that line and passes everything else. The drive doctors labSeen
+     (one LIVE card marked previously-COUNTING) so sweepLab's own flip detector fires. */
+  {
+    const st92 = __test.migrate(JSON.parse(readFileSync("tools/snapshots/2026-08-06-ledger.json", "utf8")));
+    const seeded92 = __test.sweepLab(JSON.parse(JSON.stringify(st92)));   /* first pass seeds labSeen */
+    const liveId92 = Object.keys(seeded92.labSeen || {}).find((k) => seeded92.labSeen[k] === "LIVE");
+    ok(!!liveId92, "R2-3 drive precondition — the live snapshot has at least one LIVE instrument to flip (" + Object.keys(seeded92.labSeen || {}).length + " swept)");
+    seeded92.labSeen[liveId92] = "COUNTING";
+    const flipped92 = __test.sweepLab(seeded92);
+    const labLine92 = (flipped92.feed || [])[0];
+    ok(!!labLine92 && labLine92.t.indexOf("LAB LIVE — ") === 0 && __test.isLabFeedLine(labLine92), "R2-3 guard fires — the REAL producer (sweepLab) wrote its shelf-flip line and the family predicate claims it: " + (labLine92 ? labLine92.t : "none"));
+    const diary92 = __test.diaryFeed(flipped92, 12);
+    ok(diary92.length === 12 && diary92.every((f) => !__test.isLabFeedLine(f)), "R2-3 — the selector EXCLUDES the producer's line and the 12-line window fills AFTER the skip: twelve real life events, zero lab-status lines");
+    ok(diary92.some((f) => f.t === (flipped92.feed || []).filter((f2) => !__test.isLabFeedLine(f2))[0].t), "R2-3 both ways — a non-lab line passes the selector untouched, words verbatim: selection only, never rewriting");
+  }
 }
 console.log(`\nFINAL92: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

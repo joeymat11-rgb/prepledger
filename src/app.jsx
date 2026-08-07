@@ -7531,6 +7531,18 @@ function sweepStalls(s) {
   return ns;
 }
 
+/* R15d ROUND 2 — THE DIARY'S SELECTION LAW, beside the producer it filters (Joe's
+   call): lab-status lines leave THE RECORD — the LAB row one card below is their home.
+   The family key is the producer's OWN title prefix (the same predicate the fresh-map
+   and labNews readers already use), never surface guesswork. Selection only — every
+   surviving word is the stored line, verbatim — and the window fills AFTER the skip,
+   so the diary always shows its full count of real life events. */
+function isLabFeedLine(f) {
+  return !!(f && typeof f.t === "string" && f.t.indexOf("LAB LIVE — ") === 0);
+}
+function diaryFeed(s, n) {
+  return (s.feed || []).filter((f) => f && f.t && !isLabFeedLine(f)).slice(0, n || 12);
+}
 function sweepLab(s, dow = new Date().getDay()) {
   let st0 = sweepStalls(s); if (st0) s = st0;
   const ld0 = sweepLadders(s); if (ld0) s = ld0;   // inferred ladders arrive as PROPOSALS, never as applied changes
@@ -8867,7 +8879,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -15918,12 +15930,13 @@ function MoreTab({ s, go, openRules, openCoach }) {
   const labLive = labAll.filter((c) => c.status === "LIVE").length;
   const diary = (() => {
     try {
-      const fl = (s.feed || []).filter((f) => f && f.t).slice(0, 12);
+      const fl = diaryFeed(s, 12);   /* R2-3 — the selection law lives beside sweepLab; the window fills AFTER the lab-line skip */
       const groups = [];
       fl.forEach((f) => { const g = groups[groups.length - 1]; if (g && g.d === f.d) g.rows.push(f); else groups.push({ d: f.d, rows: [f] }); });
       return groups.slice(0, 3);
     } catch (e) { return []; }
   })();
+  const ease0 = autonomyOf(s) === "propose";   /* R2-2 — the empty-state claim reads the dial, never asserts autonomy the athlete has not granted */
   const today9 = isoOf(todayStart());
   const lbl9x = { fontFamily: mono, fontSize: 10, letterSpacing: "0.18em", color: DT.dim, fontWeight: 600 };
   const tnum = { fontFamily: mono, fontVariantNumeric: "tabular-nums" };
@@ -15965,7 +15978,7 @@ function MoreTab({ s, go, openRules, openCoach }) {
           <>
             <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
               <span style={{ fontFamily: mono, color: DT.jade, fontSize: 14, flexShrink: 0 }}>◇</span>
-              <span style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.55 }}><b style={{ color: DT.ink, fontWeight: 600 }}>Nothing needs your OK right now.</b> Small routine tweaks happen automatically. Only real decisions show up here — and when one does, it looks like the example below.</span>
+              <span style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.55 }}><b style={{ color: DT.ink, fontWeight: 600 }}>Nothing needs your OK right now.</b> {ease0 ? "Nothing changes without your OK — that’s how you have it set. " : "Small routine tweaks happen automatically. "}Only real decisions show up here — and when one does, it looks like the example below.</span>
             </div>
             <div data-spec="example" aria-hidden="true" style={{ pointerEvents: "none", border: "1px dashed " + DT.hairline2, borderRadius: 12, padding: 12, marginTop: 12, opacity: 0.78 }}>
               <div style={{ ...lbl9x, letterSpacing: "0.14em" }}>EXAMPLE — WHAT A DECISION CARD LOOKS LIKE</div>
@@ -15999,7 +16012,10 @@ function MoreTab({ s, go, openRules, openCoach }) {
             ))}
           </div>
         ))}
-        <button role="button" onClick={() => go("QUEUE")} style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", padding: "14px 0 2px", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>THE FULL DIARY LIVES IN QUEUE ▸</button>
+        {/* R2-1 — 30px measured on the rig; the law is 44. The button is paint-free text,
+            so padding IS pure slop; the negative bottom margin hands the growth to the
+            card's own inert padding so the paint position does not move. */}
+        <button role="button" onClick={() => go("QUEUE")} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", textAlign: "left", background: "none", border: "none", padding: "14px 0 2px", margin: "0 0 -12px", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>THE FULL DIARY LIVES IN QUEUE ▸</button>
       </div>
 
       {/* LAB — the hero row wears its live counts. Outer button is the paint-free hit
