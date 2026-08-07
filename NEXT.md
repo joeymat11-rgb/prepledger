@@ -1088,6 +1088,38 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15e ROUND 1 — THE COPY SWEEP — BUILT 2026-08-08, branch feat/r15e-copy
+
+**The Pelland claim reads as the curve it is.** The volband note retitled
+"…HIGH-RETURN REGION" with the body rewritten to the continuous truth: "traces a
+smooth curve, not steps … no cliff at any number, just diminishing returns", "2,058
+people" not participants, "calorie cut" not deficit at the diary's headline level. The
+owner-call floor-correction why says the same ("lands where sets pay best on the
+evidence's own curve … returns stay positive above that, each set just buys less").
+The withdrawn-card producer sheds "regime detector" → "the engine's phase read, which
+watches your lifts and scale rate". Two verbatim-copy pins evolved with their claims
+intact. **Deliberate freeze movements, enumerated:** engine baseline +3/−3 lines —
+exactly the retitled note on both snapshots plus one feedHead window shift (the note
+re-files under its new title; the historical TIER line stays in the record, so the
+diary briefly shows both — honest, dated, fades into history). **The debrief words
+fixture: regenerated through the flatten, byte-identical — zero movement, proven.**
+(The first regen attempt used the pre-refactor capture script and dumped typed
+objects — caught by the 964-line diff being structural, not verbal; the corrected
+capture goes through debriefWords().)
+
+**Disclosures meet the touch law.** The two SHARED controls fixed once, fixing most
+of the app: `More` (the app-wide ▸ MORE, was ~15px) and `Section` headers (was
+title-height) — slop via equal-and-opposite padding/margin, paint byte-identical.
+Local: SETUP + CUES on TRAIN (slop), the why-not pill on NOW (painted-control split:
+outer paint-free hit box, pill on the inner span). Excluded with reasons: the lab
+card's ▸ MORE label (its tap owner is the whole card body — already lawful); the
+three remaining pills (why this number / track record / the arc) flagged for round 2.
+Suite 2018 → 2026, strict gate green. Rig: Section 452×44, More 74×45 and toggling,
+the REGION note live at the diary head with the curve body.
+
+**Ops note:** the recon fan-out (4 subagents) died on usage credits; the scans were
+completed inline. Subagent spawns are unavailable until credits top up.
+
 ### R15d ROUND 2 — THE DIARY IS LIFE EVENTS; THE CLAIM READS THE DIAL — 2026-08-08
 
 **R2-3 (Joe's call):** lab-status lines leave THE RECORD — the LAB row is their home.
