@@ -5623,7 +5623,7 @@ function stepEfficacy(s) {
      to 0.00, hiding it. An instrument must never deliver a verdict physics forbids. */
   const bwSE = (s && s.trend) || 163;
   const boundPer1k = +((stepKcal(bwSE, 1000) * 7) / KCAL_PER_LB_MIX).toFixed(3);
-  const resolved = Math.abs(slopePer1k) <= boundPer1k * 5;
+  const resolved = den > 0 && Math.abs(slopePer1k) <= boundPer1k * 5;   /* AUDIT rider: den === 0 (zero step variance) fitted slope 0 and called it a RESOLVED null verdict — a health claim on zero evidence. Unreachable with real float averages; explicit anyway. */
   return { status: "LIVE", n: pairs.length, need: 4, slopePer1k, boundPer1k, resolved, excluded };
 }
 
@@ -5667,7 +5667,13 @@ function stepPush(s, opts) {
   const bc = bodyCompBand(s);
   const pctRate = (r && r.measured && isFinite(r.scale) && bw) ? (r.scale / bw) * 100 : null;
   const below = bc.dir === "cut" && pctRate != null && pctRate < bc.corrPct[0];
-  if (!below && !(opts && opts.accelerate)) return { mode: "HOLD", base, why: "the rate is inside the corridor — hold the walking that produced your maintenance. The coach reaches for this lever only when the objective wants more deficit." };
+  if (!below && !(opts && opts.accelerate)) {
+    /* AUDIT rider: this string claimed "inside the corridor" unconditionally — live today
+       the rate is ABOVE the corridor top, which is a different fact. Dead surface until
+       R15 reads these modes, but a mode string that misstates the state is the R10 family. */
+    const above = bc.dir === "cut" && pctRate != null && pctRate > bc.corrPct[1];
+    return { mode: "HOLD", base, why: (above ? "the rate is ABOVE the corridor — the deficit is already running hotter than the band asks, so more steps is not the question today. " : pctRate != null ? "the rate is inside the corridor — " : "the rate is not measurable yet — ") + "hold the walking that produced your maintenance. The coach reaches for this lever only when the objective wants more deficit." };
+  }
   const rec = recoveryIndex(s);
   const slept = cleanAtDate(s, today);
   if (rec.band === "LOW" || !slept) return { mode: "WITHHELD", base, veto: rec.band === "LOW" ? "recovery" : "sleep",
@@ -7321,9 +7327,14 @@ function runAdaptive(state, todayISO) {
      default and only fires when the rate is under the corridor. */
   {
     const sp = stepPush(s);
-    if (!sealed && sp.mode === "PUSH")
+    /* AUDIT rider: a decline must buy the WEEK on a weekly-paced lever. propose() blocks
+       only APPLIED rids, so a dismissed steppush returned on the very next engine pass —
+       "a no for today" was a no for zero minutes, against this producer's own no-nagging
+       promise. Dismissing THIS monday's rid suppresses refiling until the monday rolls. */
+    const spDismissed = (s.adjustments || []).some((a) => a && a.dismissed && a.rid === "steppush_" + monday);
+    if (!sealed && !spDismissed && sp.mode === "PUSH")
       propose("steppush_" + monday, "UNDER THE CORRIDOR — STEPS FIRST", sp.why + " Approving arms the walking lever; the dial offers the same kcal from food if you would rather eat less than walk more — but steps are offered first, because that deficit does not spend lean.",
-        { kind: "cal", delta: -(Math.round(((sp.netLoKcal || 0) + (sp.netHiKcal || 0)) / 2)), stepsDelta: sp.inc });
+        { kind: "cal", calDelta: -(Math.round(((sp.netLoKcal || 0) + (sp.netHiKcal || 0)) / 2)), delta: -(Math.round(((sp.netLoKcal || 0) + (sp.netHiKcal || 0)) / 2)), stepsDelta: sp.inc, prefer: "steps" });   /* AUDIT: calDelta explicit (the label keyed on it and read undefined), prefer flips the tap routes so the PRIMARY button does what the copy promises */
   }  /* The band had no teeth. floor and redline both fired, but the stated working
      band's UPPER edge did nothing — he could run above his own band for weeks
      and hear nothing until the redline, which sits far above it. His band top
@@ -7782,11 +7793,16 @@ function dismissProposal(state, pid) {
       cal: "If the pattern that raised it still holds, it comes back — a decline is a no for today, not a rule.",
       refeed: "This one is a one-off decision; declining closes it unless the evidence changes.",
       steps: "If the step pattern persists, it comes back with fresh numbers.",
+      steppush: "This week's steps question is answered — it stays quiet before Monday. If the rate is still under the corridor then, it returns with fresh numbers.",
       exit: "Phase decisions never expire and never re-file themselves — this stays yours to raise.",
       ladder: "Filed once per lift; declining closes it — the ladder sweep never re-files a rid it has already raised, so this will not come back unless the exercise itself changes.",
       default: "The engine re-arms it if the pattern that raised it holds.",
     };
-    const declKind = (p.apply && p.apply.kind) || "default";
+    /* AUDIT rider companion — R14's own rule: copy and mechanism agree from birth. The 6a
+       fix makes a steppush decline buy the WEEK (the rid is monday-stamped), but kind:"cal"'s
+       decline sentence says "a no for today" — true for the ap steers, false for this card.
+       Key the sentence on the rid, which is where the pacing actually lives. */
+    const declKind = (p.rid && /^steppush_/.test(p.rid)) ? "steppush" : ((p.apply && p.apply.kind) || "default");
     s.feed.unshift({ d: isoOf(todayStart()), t: "ADJUSTMENT DECLINED", how: `${p.title} — you passed; nothing changed. ${DECLINE_BUYS[declKind] || DECLINE_BUYS.default}` });
   return s;
 }
@@ -10751,15 +10767,30 @@ function ApprovalInbox({ s, setS, save, tISO }) {
     items.push({
       key: "eng_" + p.id, from: "ENGINE", type: "ADJUSTMENT ARMED", meta: fmtShort(p.d), accent: T.brass, pri, basis: "measured",
       title: p.title, why: p.why, dial: proposalDial(p),
-      approve: (n) => { const ns = applyProposal(s, p.id, n || 0, "cal"); setS(ns); save(ns); },
+      /* AUDIT (steppush surface) — TWO defects lived here, one root cause: steppush was the
+         first kind:"cal" card born without explicit calDelta, and the primary via was
+         hardcoded "cal" for every engine card.
+         1) The card said "steps are offered first" while the PRIMARY tap ran the food cut —
+            the athlete did what the card said and got the thing it said was the alternative.
+         2) approveLabel keyed on raw apply.calDelta: undefined < 0 is false, so a TIGHTENING
+            tap wore the "Ease the band" label.
+         Fix: apply.prefer === "steps" SWAPS the routes (same applyProposal, same via param,
+         same one-tap undo — no new machinery), and the label derives its sign from
+         proposalEffect(p).calDelta, the ONE owner of the signed effect — killing the class,
+         not the instance. */
+      approve: (n) => { const ns = applyProposal(s, p.id, n || 0, ((p.apply || {}).prefer === "steps" && (p.apply || {}).stepsDelta) ? "steps" : "cal"); setS(ns); save(ns); },
       approveLabel: (n) => (k === "cal"
-        ? (((p.apply || {}).calDelta < 0) ? (n ? "Tighten — my version" : "Tighten the band — apply") : (n ? "Ease — my version" : "Ease the band — apply"))
+        ? (((p.apply || {}).prefer === "steps" && (p.apply || {}).stepsDelta)
+          ? `Add the steps — +${((p.apply || {}).stepsDelta || 0).toLocaleString()}/day`
+          : ((proposalEffect(p).calDelta < 0) ? (n ? "Tighten — my version" : "Tighten the band — apply") : (n ? "Ease — my version" : "Ease the band — apply")))
         : k === "break" ? "Start the break — a week at maintenance"
         : k === "phasePlan" ? "Commit — start the phase"
         : (n ? "Apply my version" : "Apply — log it")),
-      // v7.3.1 — the "OR add steps" choice, made AT approval: same steer, the walking lever instead of the plate.
-      altApprove: (k === "cal" && (p.apply || {}).stepsDelta) ? (n) => { const ns = applyProposal(s, p.id, n || 0, "steps"); setS(ns); save(ns); } : null,
-      altLabel: (k === "cal" && (p.apply || {}).stepsDelta) ? `${(p.apply.stepsDelta > 0 ? "Add" : "Trim")} steps instead (${p.apply.stepsDelta > 0 ? "+" : ""}${(p.apply.stepsDelta || 0).toLocaleString()})` : null,
+      // v7.3.1 — the "OR add steps" choice, made AT approval: same steer, the other lever.
+      altApprove: (k === "cal" && (p.apply || {}).stepsDelta) ? (n) => { const ns = applyProposal(s, p.id, n || 0, ((p.apply || {}).prefer === "steps") ? "cal" : "steps"); setS(ns); save(ns); } : null,
+      altLabel: (k === "cal" && (p.apply || {}).stepsDelta) ? (((p.apply || {}).prefer === "steps")
+        ? `Cut it from food instead (${proposalEffect(p).calDelta} kcal)`
+        : `${(p.apply.stepsDelta > 0 ? "Add" : "Trim")} steps instead (${p.apply.stepsDelta > 0 ? "+" : ""}${(p.apply.stepsDelta || 0).toLocaleString()})`) : null,
       dismiss: () => { const ns = dismissProposal(s, p.id); setS(ns); save(ns); },
     });
   });

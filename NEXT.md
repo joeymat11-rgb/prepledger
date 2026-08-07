@@ -1075,6 +1075,48 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### STEPPUSH SURFACE FIX — BUILT 2026-08-07, branch fix/steppush-surface (audit round on v7.18.0)
+
+**Two user-facing defects, ONE root cause: steppush was the first kind:"cal" card born
+without explicit calDelta, and the items builder hardcoded the primary via to "cal" for
+every engine card.**
+
+1. **The card's promise and the primary tap were INVERTED.** Copy: "steps are offered
+   first." Primary tap: the food cut. The athlete who did what the card said got the thing
+   it called the alternative. Fix: the producer arms `prefer: "steps"` and the builder
+   SWAPS the routes for a prefer:steps card — primary is the walk ("Add the steps —
+   +1,000/day"), alt is "Cut it from food instead (−23 kcal)". Same applyProposal, same
+   via param, same one-tap undo — no new machinery.
+2. **"Ease the band" on a tightening tap.** approveLabel keyed on raw `apply.calDelta`;
+   steppush armed only `delta`, so `undefined < 0` → false → Ease. Fix kills the CLASS:
+   the producer now arms calDelta explicitly, and the label derives its sign from
+   `proposalEffect(p).calDelta` — the one owner of the signed effect — never from the raw
+   apply.
+
+**Riders, same round:**
+- **A decline now buys the WEEK.** propose() blocks only APPLIED rids, so a dismissed
+  steppush refiled on the next engine pass — "a no for today" bought zero minutes, against
+  the producer's own no-nagging comment. The producer now skips filing while THIS monday's
+  rid has a dismissed adjustments row; the monday rolls the rid, so a still-slow rate
+  re-asks next week. Companion: the decline feed copy is keyed on the steppush rid and says
+  exactly that ("quiet before Monday") — R14's copy-and-mechanism-agree rule applied to the
+  mechanism the rider changed.
+- **HOLD copy no longer claims "inside the corridor" unconditionally** — live today the
+  rate is ABOVE the top, a different fact. Branches on pctRate vs corrPct; dead surface
+  until R15 reads it, fixed before it can mislead.
+- **stepEfficacy: resolved requires den > 0** — a zero-variance fit can never deliver a
+  RESOLVED null verdict. Unreachable through state (ROLLUPS history has real variance);
+  explicit anyway, source-pinned honestly rather than fake-driven.
+
+**Tests drive the TAP, not just the card's birth (+13 assertions, 1757 total):** primary
+route on the driven card → feed "STEP TARGET RAISED" with a via:"steps" adjustments row;
+alt route → "TARGET TIGHTENED" by exactly the quoted kcal; apply fully armed (calDelta ===
+−(net mid), prefer steps); decline → same-week re-run files nothing, next-monday re-run
+files steppush_2026-07-27; live-snapshot HOLD copy says ABOVE. **The label is pinned at the
+render layer**: render-smoke mounts the real app with the real producer's card shape and
+reads the actual buttons — and the pin was FIRE-PROOFED by mutation (wrong expectation →
+exit 1, restored → green).
+
 ### STEPS ITEM B — BUILT 2026-08-07: steps as the first deficit lever
 
 **Q3 ANSWERED — the ceiling is THREE things, and building it found out why two are not

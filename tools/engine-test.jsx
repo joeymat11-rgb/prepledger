@@ -4758,6 +4758,48 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
         /* stepeff RESOLVED-negative blocks, with the health copy */
         const spH = __test.stepPush(mkPushable(), { stepeff: { status: "LIVE", n: 6, resolved: true, slopePer1k: -0.03, boundPer1k: 0.059 } });
         ok(spH.mode === "NOPUSH_HEALTH" && /cardiovascular health/.test(spH.why) && /calories are your fat lever/.test(spH.why), "ITEM B GUARD — a RESOLVED stepeff showing steps not converting blocks the push, and the copy names steps as health, not the fat lever — the instrument's verdict gates the prescription, from its output, not a constant");
+
+        /* ---------- AUDIT FIX ROUND (steppush surface) — drive the TAP, not just the card's birth ---------- */
+        {
+          const armed = __test.runAdaptive(JSON.parse(JSON.stringify(pushable)), "2026-07-22");
+          const cardT = armed.proposals.find((p) => /^steppush_/.test(p.rid) && !p.resolved);
+          /* (2) the apply is FULLY armed: explicit calDelta equal to -(the net mid), prefer:steps */
+          const netMid = -(Math.round(((sp.netLoKcal || 0) + (sp.netHiKcal || 0)) / 2));
+          ok(!!cardT && cardT.apply.calDelta != null && cardT.apply.calDelta === netMid && cardT.apply.prefer === "steps", "AUDIT — the apply is FULLY armed: explicit calDelta (" + (cardT && cardT.apply.calDelta) + " = -(net mid)) and prefer:steps. steppush was the first kind:cal card born without calDelta, and the label read undefined < 0 as Ease while the tap tightened");
+          /* (1) the PRIMARY route — the one prefer:steps makes the UI's main button take — enacts THE WALK */
+          const walked = __test.applyProposal(JSON.parse(JSON.stringify(armed)), cardT.id, 0, "steps");
+          ok(walked.feed.some((f) => f.t === "STEP TARGET RAISED"), "AUDIT — the primary tap on the driven card produces STEP TARGET RAISED: the athlete who does what the card says gets the walking lever, not a food cut wearing its name");
+          const wRow = walked.adjustments[walked.adjustments.length - 1];
+          ok(wRow.via === "steps" && wRow.stepDelta === cardT.apply.stepsDelta, "AUDIT — and it lands as the tracked, one-tap-undo steps offset (via steps, +" + wRow.stepDelta + "), reconciling at the next weigh-in like every steer");
+          /* (3) the ALT route cuts food, by exactly the kcal the card quoted */
+          const cut = __test.applyProposal(JSON.parse(JSON.stringify(armed)), cardT.id, 0, "cal");
+          ok(cut.feed.some((f) => f.t === "TARGET TIGHTENED"), "AUDIT — the alternative route tightens food and is LABELLED as tightening — Ease-on-a-tightening-tap cannot recur through this path");
+          const cRow = cut.adjustments[cut.adjustments.length - 1];
+          ok(cRow.via === "cal" && cRow.calDelta === cardT.apply.calDelta, "AUDIT — by exactly the kcal the card quoted (" + cRow.calDelta + "), through proposalEffect, the one owner of the signed effect");
+          /* (4)'s render-layer pin lives in tools/render-smoke.mjs (seeded-card mount reads the
+             real buttons). Here the MACHINERY is pinned at source, because the items builder is
+             a component closure no engine test can reach. */
+          const srcT = readFileSync("src/app.jsx", "utf8");
+          const bStart = srcT.indexOf("approve: (n) => { const ns = applyProposal(s, p.id, n || 0, ((p.apply || {}).prefer");
+          const builder = srcT.slice(bStart, srcT.indexOf("dismiss: () => { const ns = dismissProposal", bStart));
+          ok(bStart > 0 && builder.length > 0 && builder.length < 4000, "AUDIT — the items-builder slice under source-pin is the real one (found, one card's worth: " + builder.length + " chars)");
+          ok(/proposalEffect\(p\)\.calDelta < 0/.test(builder) && !/\(p\.apply \|\| \{\}\)\.calDelta < 0/.test(builder), "AUDIT — approveLabel derives its sign from proposalEffect(p).calDelta and the raw apply.calDelta read is GONE — the class is dead, not the instance");
+          ok(/prefer === "steps"/.test(builder) && /"steps" : "cal"/.test(builder), "AUDIT — and the primary via is prefer-aware: a prefer:steps card swaps the routes — same applyProposal, same via param, same undo");
+          /* rider (a): a decline buys the WEEK — and ONLY the week */
+          const declined = __test.dismissProposal(JSON.parse(JSON.stringify(armed)), cardT.id);
+          ok(/before Monday/.test((declined.feed[0] || {}).how || ""), "AUDIT — the decline copy states what the decline now buys (quiet before Monday): R14's copy-and-mechanism-agree rule, applied to the mechanism this rider changed");
+          const sameWeek = __test.runAdaptive(JSON.parse(JSON.stringify(declined)), "2026-07-22");
+          ok(!sameWeek.proposals.some((p) => /^steppush_/.test(p.rid) && !p.resolved), "AUDIT — declined, the card does NOT refile the same week: before this, propose() blocked only APPLIED rids and the no bought zero minutes, against the producer's own no-nagging promise");
+          const nextWeek = __test.runAdaptive(JSON.parse(JSON.stringify(declined)), "2026-07-27");
+          ok(nextWeek.proposals.some((p) => p.rid === "steppush_2026-07-27" && !p.resolved), "AUDIT — and the monday rolls the rid, so a still-slow rate RE-ASKS next week: the decline bought the week, not silence forever");
+          /* rider (b): the HOLD copy states the actual relation to the corridor */
+          const hold7 = __test.stepPush(JSON.parse(readFileSync("tools/snapshots/2026-08-07-ledger.json", "utf8")));
+          ok(hold7.mode === "HOLD" && /ABOVE the corridor/.test(hold7.why), "AUDIT — the live-snapshot HOLD copy says ABOVE the corridor, because that is where his rate actually is; the old string said inside unconditionally — a mode string misstating the state is the R10 family, fixed before R15 reads these modes");
+          /* rider (c): resolved requires den > 0 — SOURCE-PINNED, honestly: it is undrivable,
+             because stepEfficacy's pairs always include the authored ROLLUPS history, whose
+             real step variance keeps den > 0 through every state a caller can hand it. */
+          ok(/const resolved = den > 0 &&/.test(srcT), "AUDIT — stepEfficacy cannot call a zero-variance fit RESOLVED: den > 0 sits in the verdict line itself — a health claim needs evidence, even in a branch no reachable state currently produces");
+        }
       }
       /* device kcal can never enter */
       {
