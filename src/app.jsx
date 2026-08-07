@@ -5132,16 +5132,20 @@ function caffAt(mg, doseHour, atHour) {
    4. Read the shape honestly. Sets that ASCEND are not a fade. The old rule
       computed first-minus-last and called 5 → 6 "you barely faded". */
 function fadeRead(reps) {
+  /* R15 debrief: the return is typed {k, t} — k decides the glyph rail. A shape that
+     asks for a change (climbed / peaked / steep drop) is an OBSERVATION (▸); an
+     expected shape (flat / barely / normal fade) is a FADE (·). The sentences are
+     untouched — tools/debrief-words.json holds them frozen. */
   if (reps.length < 2) return null;
   const first = reps[0], last = reps[reps.length - 1], drop = first - last;
   const peak = Math.max(...reps), peakAt = reps.indexOf(peak);
   const seq = reps.join(" → ");
-  if (last > first) return `Sets went ${seq} — you climbed into it. Set ${reps.length} beat set 1, which usually means set 1 was a warm-up in disguise: start heavier, or take the opener closer in.`;
-  if (peakAt > 0 && peak > first) return `Sets went ${seq} — you peaked on set ${peakAt + 1}, not set 1. The opener left something behind.`;
-  if (drop === 0) return `Sets went ${seq} — dead flat. Nothing was near the limit; the whole lift had room.`;
-  if (drop <= 1) return `Sets went ${seq} — barely faded. Strength held to the end, so the last set was not the wall.`;
-  if (drop >= Math.max(3, Math.round(first * 0.3))) return `Sets went ${seq} — a steep drop of ${drop}. Those back sets cost full price; that is fatigue, not weakness.`;
-  return `Sets went ${seq} — a normal fade of ${drop}.`;
+  if (last > first) return { k: "observation", t: `Sets went ${seq} — you climbed into it. Set ${reps.length} beat set 1, which usually means set 1 was a warm-up in disguise: start heavier, or take the opener closer in.` };
+  if (peakAt > 0 && peak > first) return { k: "observation", t: `Sets went ${seq} — you peaked on set ${peakAt + 1}, not set 1. The opener left something behind.` };
+  if (drop === 0) return { k: "fade", t: `Sets went ${seq} — dead flat. Nothing was near the limit; the whole lift had room.` };
+  if (drop <= 1) return { k: "fade", t: `Sets went ${seq} — barely faded. Strength held to the end, so the last set was not the wall.` };
+  if (drop >= Math.max(3, Math.round(first * 0.3))) return { k: "observation", t: `Sets went ${seq} — a steep drop of ${drop}. Those back sets cost full price; that is fatigue, not weakness.` };
+  return { k: "fade", t: `Sets went ${seq} — a normal fade of ${drop}.` };
 }
 function sessionDebrief(s, iso) {
   const sess = s.sessionLog[iso];
@@ -5158,7 +5162,14 @@ function sessionDebrief(s, iso) {
     const name = ex ? ex.n : e.id;
     const reps = e.reps || [];
     const tot = reps.reduce((a, b) => a + b, 0);
+    /* R15 DEBRIEF CONTRACT — typed output, identical words. lines[] carries only the
+       middle species ({k, t}); delivered / next / work are their own fields so the UI
+       can build the row grammar without parsing sentences. debriefWords() flattens the
+       typed shape back to the exact legacy strings — tools/debrief-words.json is the
+       words freeze, compared in the suite on both frozen snapshots. */
     const lines = [];
+    let delivered = null, work = null, next = null;
+    let banked = false, pending = false, hot = false, dTotL = null, heavierL = false;
     try {
       const prevD = dates.filter((d) => d < iso && (s.sessionLog[d].entries || []).some((x) => x.id === e.id)).pop();
       const prev = prevD ? (s.sessionLog[prevD].entries || []).find((x) => x.id === e.id) : null;
@@ -5169,16 +5180,20 @@ function sessionDebrief(s, iso) {
       const heavier = e.w != null && baseW != null && Number(e.w) > Number(baseW);
       if (baseTot != null) {
         const dR = tot - baseTot;
+        dTotL = dR; heavierL = heavier;
         if (dR > 0) marks.up.push(name); else if (dR < 0) marks.down.push(name);
         const perSet = reps.map((r, i) => `${r}${baseReps[i] == null ? " (new set)" : r > baseReps[i] ? " (+" + (r - baseReps[i]) + ")" : r < baseReps[i] ? " (−" + (baseReps[i] - r) + ")" : " (=)"}`).join(" · ");
-        lines.push(`${tot} reps, ${dR > 0 ? dR + " up on" : dR < 0 ? Math.abs(dR) + " down on" : "level with"} last time${heavier ? " — and the bar was heavier, so reps given back here are the price of the jump, not a step backwards" : ""}. Set by set: ${perSet}.`);
-      } else lines.push(`${tot} reps — first time this lift is on record, so there is nothing to judge it against yet. This is the line everything later gets measured from.`);
+        delivered = { t: `${tot} reps, ${dR > 0 ? dR + " up on" : dR < 0 ? Math.abs(dR) + " down on" : "level with"} last time${heavier ? " — and the bar was heavier, so reps given back here are the price of the jump, not a step backwards" : ""}. Set by set: ${perSet}.`,
+          w: e.w != null ? e.w : null, reps: reps.slice(), base: baseReps.slice(), tot, dTot: dR, heavier,
+          /* the jump-price clause, engine-authored, so the surface never re-writes a sentence */
+          jumpNote: heavier && dR < 0 ? `${Math.abs(dR)} down on last time — and the bar was heavier, so reps given back here are the price of the jump, not a step backwards.` : null, first: false };
+      } else delivered = { t: `${tot} reps — first time this lift is on record, so there is nothing to judge it against yet. This is the line everything later gets measured from.`, w: e.w != null ? e.w : null, reps: reps.slice(), base: null, tot, dTot: null, heavier: false, jumpNote: null, first: true };
       if (typeof e.w === "number") {
         const load = e.w * tot;
         sessLoad += load;
         const pLoad = typeof baseW === "number" && baseTot != null ? baseW * baseTot : null;
-        if (pLoad) { prevSessLoad += pLoad; const pc = Math.round(((load - pLoad) / pLoad) * 100); lines.push(`Work done: ${load.toLocaleString()} lb (${pc >= 0 ? "+" : ""}${pc}% vs last time)${heavier && pc < 0 ? " — the heavier bar has not paid for the lost reps yet; on a jump this usually turns positive within two sessions" : ""}.`); }
-        else lines.push(`Work done: ${load.toLocaleString()} lb.`);
+        if (pLoad) { prevSessLoad += pLoad; const pc = Math.round(((load - pLoad) / pLoad) * 100); work = { t: `Work done: ${load.toLocaleString()} lb (${pc >= 0 ? "+" : ""}${pc}% vs last time)${heavier && pc < 0 ? " — the heavier bar has not paid for the lost reps yet; on a jump this usually turns positive within two sessions" : ""}.`, load, pc, tail: heavier && pc < 0 ? "the heavier bar has not paid for the lost reps yet; on a jump this usually turns positive within two sessions" : null }; }
+        else work = { t: `Work done: ${load.toLocaleString()} lb.`, load, pc: null, tail: null };
         const allTots = dates.filter((d) => d <= iso).map((d) => { const x = (s.sessionLog[d].entries || []).find((y) => y.id === e.id); return x && String(x.w) === String(e.w) ? (x.reps || []).reduce((a, b) => a + b, 0) : null; }).filter((x) => x != null);
         if (allTots.length >= 2 && tot >= Math.max(...allTots)) {
           marks.pr.push(name);
@@ -5189,9 +5204,11 @@ function sessionDebrief(s, iso) {
           const prev9 = allTots.slice(0, -1);
           const bn9 = beatsNoise(s, e.id, reps, prev9.length ? [Math.max(...prev9)] : null);
           const te9 = typicalError(s, e.id);
-          lines.push(prev9.length && tot - Math.max(...prev9) >= 2 * te9.reps * Math.sqrt(Math.max(1, reps.length))
-            ? `Best you have ever done at ${e.w} — and it clears the old line by ${tot - Math.max(...prev9)} reps against a spread of ±${te9.reps} per set, so it banks now rather than waiting for a repeat.`
-            : `Best you have ever done at ${e.w} — pending one repeat. Your own set-to-set spread is ±${te9.reps} reps (${te9.src}), so a margin this size cannot yet be told apart from a good day. Nothing to do with how you slept.`);
+          banked = !!(prev9.length && tot - Math.max(...prev9) >= 2 * te9.reps * Math.sqrt(Math.max(1, reps.length)));
+          pending = !banked;
+          lines.push(banked
+            ? { k: "record", t: `Best you have ever done at ${e.w} — and it clears the old line by ${tot - Math.max(...prev9)} reps against a spread of ±${te9.reps} per set, so it banks now rather than waiting for a repeat.` }
+            : { k: "record_pending", t: `Best you have ever done at ${e.w} — pending one repeat. Your own set-to-set spread is ±${te9.reps} reps (${te9.src}), so a margin this size cannot yet be told apart from a good day. Nothing to do with how you slept.` });
         }
       }
       const fr = fadeRead(reps);
@@ -5202,11 +5219,11 @@ function sessionDebrief(s, iso) {
       const term = rs.length > 1 ? rs[rs.length - 1] : null;
       if (term != null) {
         const nS = reps.length, lastR = reps[nS - 1];
-        if (term === 0) lines.push(`Set ${nS} of ${nS} went to failure at ${lastR} reps, exactly as the taper asks — that is the set that buys the next weight.`);
-        else { marks.room.push(name); lines.push(`Set ${nS} of ${nS} stopped at ${lastR} with ${term} left. That is the set prescribed to reach failure, so ${term >= 2 ? `you paid the fatigue for roughly ${term} more reps and did not collect them` : "you were one rep short of collecting all of it"}.`); }
+        if (term === 0) lines.push({ k: "taper", t: `Set ${nS} of ${nS} went to failure at ${lastR} reps, exactly as the taper asks — that is the set that buys the next weight.` });
+        else { marks.room.push(name); lines.push({ k: "rir", t: `Set ${nS} of ${nS} stopped at ${lastR} with ${term} left. That is the set prescribed to reach failure, so ${term >= 2 ? `you paid the fatigue for roughly ${term} more reps and did not collect them` : "you were one rep short of collecting all of it"}.` }); }
       } else {
         marks.unrated.push(name);
-        if (opener === 0) { marks.hot.push(name); lines.push(`Opener ground out at 0. That is the one reading that can freeze the load, because a grind is not an earn.`); }
+        if (opener === 0) { marks.hot.push(name); hot = true; lines.push({ k: "rir", t: `Opener ground out at 0. That is the one reading that can freeze the load, because a grind is not an earn.` }); }
       }
       const laterPrint = dates.some((d) => d > iso && (s.sessionLog[d].entries || []).some((x) => x.id === e.id));
       if (!laterPrint && ex) {
@@ -5216,19 +5233,28 @@ function sessionDebrief(s, iso) {
            EVERY lift gets hoisted into the summary and said once. Six lifts on
            one short-sleep day used to print the same excuse six times. */
         whys.push(step.why);
-        lines.push({ t: "next", add: step.add, why: step.why, text: `Next time: ${t2.join(", ")} at ${ex.w}` });
+        next = { targets: t2.slice(), w: ex.w, add: step.add, why: step.why, window: null, shared: false, t: null };
         const upW = typeof ex.w === "number" ? nextLoad(ex) : null;
         if (ex.hi && upW != null && !ex.std && !ex.reclaim && !ex.ladder) {
           const gate = Array.from({ length: ex.sets }, (_, i) => Math.max(1, ex.hi - i));
           const gap = gate.reduce((a2, g, i) => a2 + Math.max(0, g - (t2[i] ?? 0)), 0);
-          if (gap === 0) lines.push(`That line IS the top of the window — hit it on clean sleep without grinding the opener and ${upW} queues itself.`);
-          else if (step.add > 0) { const n2 = Math.ceil(gap / step.add); lines.push(`${gap} more rep${gap === 1 ? "" : "s"} above that and ${upW} queues itself — about ${n2} more session${n2 === 1 ? "" : "s"} at the current step.`); }
+          if (gap === 0) next.window = `That line IS the top of the window — hit it on clean sleep without grinding the opener and ${upW} queues itself.`;
+          else if (step.add > 0) { const n2 = Math.ceil(gap / step.add); next.window = `${gap} more rep${gap === 1 ? "" : "s"} above that and ${upW} queues itself — about ${n2} more session${n2 === 1 ? "" : "s"} at the current step.`; }
         } else if (ex.hi && typeof ex.w === "number" && loadRungs(ex) && !ex.std && !ex.reclaim) {
-          lines.push(`${ex.w} is the top rung this machine makes — reps are the only progression left here until the exercise changes.`);
+          next.window = `${ex.w} is the top rung this machine makes — reps are the only progression left here until the exercise changes.`;
         }
       }
-    } catch (err) { if (!lines.length) lines.push(`${tot} total reps.`); }
-    return { n: name, lines };
+    } catch (err) { if (!delivered && !lines.length) delivered = { t: `${tot} total reps.`, w: e.w != null ? e.w : null, reps: reps.slice(), base: null, tot, dTot: null, heavier: false, jumpNote: null, first: true }; }
+    /* THE MARK — engine-supplied, ONE per lift, by fixed priority (BUT HOT > RECORD
+       banked > RECORD pending > HOLD > JUMP PRICE > UP / LEVEL / DOWN). The UI never
+       re-derives it. FIRST is the honest label when there is no comparison at all —
+       the spec ladder ends UP/LEVEL/DOWN, but a debut lift has no delta to wear;
+       flagged to the audit as the one addition. */
+    const hold = !!(ex && ex.holdFlag);
+    const mark = hot ? "HOT" : banked ? "RECORD" : pending ? "RECORD_PENDING" : hold ? "HOLD"
+      : (heavierL && dTotL != null && dTotL < 0) ? "JUMP_PRICE"
+      : dTotL == null ? "FIRST" : dTotL > 0 ? "UP" : dTotL < 0 ? "DOWN" : "LEVEL";
+    return { n: name, mark, delivered, lines, next, work };
   });
   const totalReps = (sess.entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0);
   const sameType = dates.filter((d) => d < iso && dayType(d) === dayType(iso));
@@ -5240,11 +5266,10 @@ function sessionDebrief(s, iso) {
      a different lift does not belong on the lift. */
   const sharedWhy = whys.length > 1 && whys.every((w) => w === whys[0]) ? whys[0] : null;
   lifts.forEach((L) => {
-    L.lines = L.lines.map((l) => {
-      if (typeof l === "string") return l;
-      const tail = l.add === 0 ? " — unchanged" : ` — ${l.add} rep${l.add === 1 ? "" : "s"} added`;
-      return `${l.text}${tail}${sharedWhy ? "" : `, because ${l.why}`}.`;
-    });
+    if (!L.next) return;
+    const tail = L.next.add === 0 ? " — unchanged" : ` — ${L.next.add} rep${L.next.add === 1 ? "" : "s"} added`;
+    L.next.shared = !!sharedWhy;
+    L.next.t = `Next time: ${L.next.targets.join(", ")} at ${L.next.w}${tail}${sharedWhy ? "" : `, because ${L.next.why}`}.`;
   });
   const loadPc = prevSessLoad ? Math.round(((sessLoad - prevSessLoad) / prevSessLoad) * 100) : null;
   const nLift = (sess.entries || []).length;
@@ -5272,6 +5297,22 @@ function sessionDebrief(s, iso) {
   if (sess.niggles && sess.niggles.length) summary.push(`Watch list: ${sess.niggles.join(" · ")} — three flags in three weeks and it goes to your coach as a pattern, not a day.`);
   if (sess.note) summary.push(`Your note: \u201c${sess.note}\u201d`);
   return { lifts, summary };
+}
+
+/* The legacy string view — flattens the typed contract back to the EXACT sentences the
+   pre-R15 debrief emitted, in the same order (delivered, work, middle lines, next,
+   window). tools/debrief-words.json was captured from the pre-refactor engine on both
+   frozen snapshots and the suite compares this flatten against it, so the restructure
+   can never rewrite a word without the diff saying so. */
+function debriefWords(db) {
+  if (!db) return db;
+  return { summary: db.summary.slice(), lifts: db.lifts.map((L) => ({ n: L.n, lines: [
+    ...(L.delivered ? [L.delivered.t] : []),
+    ...(L.work ? [L.work.t] : []),
+    ...L.lines.map((l) => l.t),
+    ...(L.next ? [L.next.t] : []),
+    ...(L.next && L.next.window ? [L.next.window] : []),
+  ] })) };
 }
 
 /* per-set RIR prescription — literature base, tuned by his own logs */
@@ -8826,7 +8867,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -13048,6 +13089,121 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   );
 }
 
+/* ---------- R15 · THE DEBRIEF CARD — three tiers, the engine words ----------
+   The 3:10 AM ruling from the gym floor: the FULL DEBRIEF expansion printed ~46
+   visually identical mono lines across 6 lifts — every tier of detail at once, zero
+   species marks, one mega-accordion. The engine sentences were already right; only
+   the presentation predated R15. Tier 0: the verdict, said once (summary line 1 in
+   the display voice; context lines drop to the quiet register). Tier 1: one 64px row
+   per lift — condensed-caps name, mono delivered subline, THE one engine-supplied
+   mark. Tier 2: tap a row and that lift opens ALONE (independent accordions) — the
+   set-by-set hero, the typed sentences behind a glyph rail (◆ record · ▸ observation
+   · faint dot for taper/fade), NEXT with its why, WORK DONE closing. Paint lives on
+   inner spans; the row button is a paint-free hit box; hairline separators are their
+   own inert elements — the standing split law. The UI re-derives NOTHING: every word
+   and every mark arrives from sessionDebrief typed output. */
+function DebriefCard({ s, iso }) {
+  const db = useMemo(() => sessionDebrief(s, iso), [s, iso]);
+  const [openLifts, setOpenLifts] = useState([]);   /* independent accordions — a set, never a single index */
+  if (!db) return null;
+  const lbl9 = { fontFamily: mono, fontSize: 10, letterSpacing: "0.18em", color: DT.dim, fontWeight: 600 };
+  const tnum = { fontFamily: mono, fontVariantNumeric: "tabular-nums" };
+  const MARK9 = {
+    HOT: { g: "◆", w: "BUT HOT", c: DT.amber },
+    RECORD: { g: "◆", w: "RECORD", c: DT.jade },
+    RECORD_PENDING: { g: "◇", w: "RECORD — PENDING", c: DT.amber },
+    HOLD: { g: "◆", w: "HOLD", c: DT.amber },
+    JUMP_PRICE: { g: "▼", w: "JUMP PRICE", c: DT.steel },
+    UP: { g: "▲", w: "UP", c: DT.jade },
+    DOWN: { g: "▼", w: "DOWN", c: DT.amber },
+    LEVEL: { g: "·", w: "LEVEL", c: DT.steel },
+    FIRST: { g: "·", w: "FIRST", c: DT.steel },
+  };
+  const glyph9 = (k) =>
+    k === "record" ? { g: "◆", gc: DT.jade, tc: DT.ink }
+    : k === "record_pending" ? { g: "◇", gc: DT.amber, tc: DT.ink }
+    : k === "observation" || k === "rir" ? { g: "▸", gc: DT.amber, tc: DT.steel }
+    : { g: "·", gc: DT.steel, tc: DT.steel };
+  const tline9 = (key, g, txt) => (
+    <div key={key} style={{ display: "flex", gap: 9, marginTop: 10, fontSize: 12.5, lineHeight: 1.55 }}>
+      <span style={{ flexShrink: 0, fontFamily: mono, fontSize: 11, width: 12, textAlign: "center", paddingTop: 1, color: g.gc }}>{g.g}</span>
+      <span style={{ fontFamily: body, color: g.tc }}>{txt}</span>
+    </div>
+  );
+  const delta9 = (L) => {
+    const d = L.delivered || {};
+    if (d.first) return { txt: "first time on record", c: DT.steel };
+    if (L.mark === "JUMP_PRICE") return { txt: "−" + Math.abs(d.dTot) + " · heavier bar", c: DT.steel };
+    if (d.dTot > 0) return { txt: "+" + d.dTot, c: DT.jade };
+    if (d.dTot < 0) return { txt: "−" + Math.abs(d.dTot), c: DT.amber };
+    return { txt: "=", c: DT.steel };
+  };
+  const why9 = (nx) => {
+    const cap = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
+    const base9 = nx.add > 0
+      ? nx.add + " rep" + (nx.add === 1 ? "" : "s") + " added" + (nx.shared ? "." : ", because " + nx.why + ".")
+      : nx.shared ? "Unchanged." : cap(nx.why + ".");
+    return base9 + (nx.window ? " " + nx.window : "");
+  };
+  return (
+    <div data-db="card" style={{ background: DT.card, border: "1px solid " + DT.hairline, borderLeft: "3px solid " + DT.jade, borderRadius: DT.radius, padding: 15, marginTop: 11 }}>
+      <div data-db="eyebrow" style={{ ...lbl9, letterSpacing: "0.14em", color: DT.jade }}>SESSION DEBRIEF · {fmtShort(iso).toUpperCase()}</div>
+      <div data-db="verdict" style={{ fontFamily: body, fontWeight: 600, fontSize: 15, color: DT.ink, lineHeight: 1.45, marginTop: 10 }}>{db.summary[0]}</div>
+      {db.summary.length > 1 && (
+        <div data-db="context" style={{ fontFamily: mono, fontSize: 11, color: DT.steel, lineHeight: 1.7, marginTop: 6 }}>
+          {db.summary.slice(1).map((l, i) => <div key={i}>{l}</div>)}
+        </div>
+      )}
+      <div style={{ marginTop: 12, borderTop: "1px solid " + DT.hairline }} />
+      {db.lifts.map((L, i) => {
+        const open = openLifts.includes(i);
+        const mk9 = MARK9[L.mark] || MARK9.LEVEL;
+        const d9 = L.delivered || {};
+        const dl9 = delta9(L);
+        return (
+          <div key={i} style={{ borderBottom: i < db.lifts.length - 1 ? "1px solid " + DT.hairline : "none" }}>
+            <button data-db="row" aria-expanded={open}
+              onClick={() => setOpenLifts(open ? openLifts.filter((x) => x !== i) : [...openLifts, i])}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: DT.touch, background: "none", border: "none", padding: "0 2px", cursor: "pointer", textAlign: "left" }}>
+              <span>
+                <span style={{ fontFamily: disp, fontWeight: 600, fontSize: 15, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase" }}>{L.n}</span>
+                <span style={{ ...tnum, display: "block", fontSize: 11, color: DT.steel, marginTop: 3 }}>{(d9.w != null ? d9.w : "BW") + " × " + (d9.reps || []).join("·") + " · "}<span style={{ color: dl9.c }}>{dl9.txt}</span></span>
+              </span>
+              <span data-db="mark" style={{ ...tnum, display: "flex", alignItems: "center", gap: 8, flexShrink: 0, fontSize: 11, letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+                <span style={{ color: mk9.c }}>{mk9.g} {mk9.w}</span>
+                <span style={{ color: DT.steel, fontSize: 12, display: "inline-block", transition: "transform .15s", transform: open ? "rotate(90deg)" : "none" }}>›</span>
+              </span>
+            </button>
+            {open && (
+              <div data-db="depth" style={{ padding: "2px 2px 16px" }}>
+                <div style={{ ...lbl9, letterSpacing: "0.12em" }}>{d9.base ? "SET BY SET · VS LAST TIME" : "SET BY SET"}</div>
+                <div data-db="hero" style={{ ...tnum, fontSize: 16, fontWeight: 500, color: DT.ink, letterSpacing: "0.02em", marginTop: 5 }}>
+                  {(d9.reps || []).map((r, j) => {
+                    const b9 = d9.base ? d9.base[j] : null;
+                    const tag9 = d9.base == null ? null : b9 == null ? { t: "(new set)", c: DT.jade } : r > b9 ? { t: "(+" + (r - b9) + ")", c: DT.jade } : r < b9 ? { t: "(−" + (b9 - r) + ")", c: DT.amber } : { t: "(=)", c: DT.steel };
+                    return <span key={j}>{j > 0 && <span style={{ color: DT.dim }}> · </span>}{r}{tag9 && <span style={{ color: tag9.c, fontSize: 12 }}> {tag9.t}</span>}</span>;
+                  })}
+                </div>
+                {d9.first && tline9("first", { g: "·", gc: DT.steel, tc: DT.steel }, d9.t)}
+                {d9.jumpNote && tline9("jump", { g: "·", gc: DT.steel, tc: DT.steel }, d9.jumpNote)}
+                {L.lines.map((l, j) => tline9(j, glyph9(l.k), l.t))}
+                {L.next && (
+                  <div data-db="next" style={{ marginTop: 12, borderTop: "1px solid " + DT.hairline, paddingTop: 10 }}>
+                    <div style={{ ...tnum, fontSize: 12, letterSpacing: "0.08em", color: DT.ink }}>NEXT · {L.next.targets.join(" · ")} AT {L.next.w}{L.next.add === 0 ? " — UNCHANGED" : ""}</div>
+                    <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, marginTop: 4 }}>{why9(L.next)}</div>
+                  </div>
+                )}
+                {L.work && <div data-db="work" style={{ ...tnum, fontSize: 10.5, color: DT.dim, marginTop: 9 }}>WORK DONE · {L.work.load.toLocaleString()} lb{L.work.pc != null ? " (" + (L.work.pc >= 0 ? "+" : "−") + Math.abs(L.work.pc) + "% vs last time)" : ""}{L.work.tail ? " — " + L.work.tail : ""}</div>}
+              </div>
+            )}
+          </div>
+        );
+      })}
+      <div data-db="foot" style={{ fontFamily: mono, fontSize: 10.5, color: DT.dim, marginTop: 14, letterSpacing: "0.04em" }}>recomputed live — old sessions get smarter as the engine does</div>
+    </div>
+  );
+}
+
 function LogTab({ s, setS, save, slp }) {
   const tISO = isoOf(todayStart());
   const nextISO = nextTrainingISO(s);
@@ -13071,7 +13227,6 @@ function LogTab({ s, setS, save, slp }) {
   const [reps, setReps] = useState({});
   const [rir, setRir] = useState({});
   const [note, setNote] = useState("");
-  const [dbOpen, setDbOpen] = useState(false);
   const [nig, setNig] = useState([]);
   const [reorder, setReorder] = useState(false);
   const [showSetup, setShowSetup] = useState({});
@@ -13229,20 +13384,8 @@ function LogTab({ s, setS, save, slp }) {
                   {wins.map((w2, i) => <div key={i} style={{ fontFamily: mono, fontSize: TS.label, color: T.jade, marginTop: i ? 3 : 0 }}>◆ {w2.t.toLowerCase()}</div>)}
                 </div>
               )}
-              <div onClick={() => setDbOpen(!dbOpen)} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 8, letterSpacing: "0.1em", cursor: "pointer" }}>{dbOpen ? "▾ CLOSE DEBRIEF" : "▸ FULL DEBRIEF — PER-LIFT DEPTH"}</div>
-              {dbOpen && (() => { const db = sessionDebrief(s, dateSel); return db && (
-                <div style={{ marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
-                  {db.summary.map((l, i) => <div key={i} style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: i ? 4 : 0, lineHeight: 1.5 }}>{l}</div>)}
-                  {db.lifts.map((L, i) => (
-                    <div key={i} style={{ marginTop: 10 }}>
-                      <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 14, textTransform: "uppercase", color: T.chalk }}>{L.n}</div>
-                      {L.lines.map((l, j) => <div key={j} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 3, lineHeight: 1.5 }}>{l}</div>)}
-                    </div>
-                  ))}
-                  <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 10 }}>recomputed live — old sessions get smarter as the engine does</div>
-                </div>
-              ); })()}
             </Card>
+            <DebriefCard s={s} iso={dateSel} />
             {preview && (
               <Card>
                 <Eyebrow>NEXT {dayType(dateSel) === "U" ? "UPPER" : "LOWER"} · {fmtShort(nd)} — TARGETS ALREADY SET</Eyebrow>
@@ -13671,7 +13814,7 @@ function LogTab({ s, setS, save, slp }) {
         <Section title="The Session Archive" meta={`${Object.keys(s.sessionLog).length} logged · tap any for its receipt + debrief`}>
           <div style={{ display: "flex", flexDirection: "column" }}>
             {Object.keys(s.sessionLog).sort().reverse().map((d) => { const sl = s.sessionLog[d]; const tr = (sl.entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0); return (
-              <div key={d} onClick={() => { setDateSel(d); setDbOpen(true); try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e2) { window.scrollTo(0, 0); } }} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "10px 0", borderBottom: `1px solid ${T.line}`, cursor: "pointer", fontFamily: mono, fontSize: TS.label }}>
+              <div key={d} onClick={() => { setDateSel(d); /* the debrief toggle this used to open is gone — the DebriefCard is always visible on the selected session */ try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e2) { window.scrollTo(0, 0); } }} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "10px 0", borderBottom: `1px solid ${T.line}`, cursor: "pointer", fontFamily: mono, fontSize: TS.label }}>
                 <span style={{ color: T.chalk }}>{fmtShort(d)} · {dayType(d) === "U" ? "UPPER" : "LOWER"}</span>
                 <span style={{ color: T.steel }}>{(sl.entries || []).length} lifts · {tr} reps{cleanAtDate(s, d) ? "" : " · debt"} <span style={{ color: T.steel }}>▸</span></span>
               </div>

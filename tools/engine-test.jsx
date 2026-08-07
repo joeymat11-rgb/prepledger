@@ -1810,15 +1810,16 @@ ok(rung2.t.indexOf("Session banked") === 0 || rung2.t.indexOf("Today:") === 0 ||
 // (interim)
 
 // v3.30 — the debrief
-const { sessionDebrief: sd30, SEED: SZ } = __test;
+const { sessionDebrief: sd30, debriefWords: dw30, SEED: SZ } = __test;
 let dbS = clone(SZ);
 const d1 = isoL(Date.now() - 4 * 864e5), d2 = isoL(Date.now());
 dbS.sessionLog[d1] = { entries: [{ id: "press", reps: [8, 8, 7], rir: 1, w: 245 }], at: 1, niggles: [] };
 dbS.sessionLog[d2] = { entries: [{ id: "press", reps: [8, 8, 8], rir: 1, w: 245 }], at: 2, niggles: ["left elbow"] };
 const db = sd30(dbS, d2);
-ok(db && db.lifts.length === 1 && db.lifts[0].lines.some(l => l.indexOf("1 up on last time") > -1), "plain-words delta: " + db.lifts[0].lines[0]);
-ok(db.lifts[0].lines.some(l => l.indexOf("Best you have ever done at 245") > -1) && db.lifts[0].lines.some(l => l.indexOf("Work done:") === 0), "best-ever named + volume load computed");
-ok(db.lifts[0].lines.some(l => l.indexOf("Sets went") === 0), "the fade read still leads with the set sequence");
+const dbW30 = dw30(db).lifts[0].lines;   /* R15: the typed contract flattens back to the legacy strings */
+ok(db && db.lifts.length === 1 && dbW30.some(l => l.indexOf("1 up on last time") > -1), "plain-words delta, through the R15 flatten: " + dbW30[0]);
+ok(dbW30.some(l => l.indexOf("Best you have ever done at 245") > -1) && dbW30.some(l => l.indexOf("Work done:") === 0), "best-ever named + volume load computed — same words, now typed (record species + the work field)");
+ok(dbW30.some(l => l.indexOf("Sets went") === 0), "the fade read still leads with the set sequence");
 ok(db.summary.some(l => l.indexOf("Watch list: left elbow") > -1), "niggles surface with the governor warning");
 ok(sd30(dbS, "2020-01-01") === null, "unlogged dates return nothing, never crash");
 
@@ -2906,11 +2907,11 @@ ok(atw([12, 12, 12, 12], g4) === false, "the opener must actually reach the ceil
 ok(atw([10, 8, 7, 7], g4) === false && atw([13, 12], g4) === false, "his current calves line does not earn, and a short session cannot earn at all");
 
 // the fade read no longer calls an ascending pair a fade
-ok(frd([5, 6]).indexOf("climbed into it") > -1, "5 then 6 is climbing into the lift, not fading — the old rule called this 'barely faded'");
-ok(frd([10, 12, 10]).indexOf("peaked on set 2") > -1, "a mid-session peak is named as one");
-ok(frd([9, 9, 9]).indexOf("dead flat") > -1, "flat is flat");
-ok(frd([10, 8, 7, 7]).indexOf("steep drop of 3") > -1, "and a real drop is still called a steep drop");
-ok(frd([8, 7]).indexOf("barely faded") > -1 && frd([5]) === null && frd([]) === null, "a one-rep fade is minor, and a single set has no shape to read");
+ok(frd([5, 6]).t.indexOf("climbed into it") > -1 && frd([5, 6]).k === "observation", "5 then 6 is climbing into the lift, not fading — the old rule called this 'barely faded'; typed ▸ observation because it asks for a change");
+ok(frd([10, 12, 10]).t.indexOf("peaked on set 2") > -1 && frd([10, 12, 10]).k === "observation", "a mid-session peak is named as one — and typed as an observation");
+ok(frd([9, 9, 9]).t.indexOf("dead flat") > -1 && frd([9, 9, 9]).k === "fade", "flat is flat — the quiet fade species, a faint dot on the rail");
+ok(frd([10, 8, 7, 7]).t.indexOf("steep drop of 3") > -1 && frd([10, 8, 7, 7]).k === "observation", "and a real drop is still called a steep drop — actionable, so it wears the observation glyph");
+ok(frd([8, 7]).t.indexOf("barely faded") > -1 && frd([8, 7]).k === "fade" && frd([5]) === null && frd([]) === null, "a one-rep fade is minor (fade species), and a single set has no shape to read");
 
 // the debrief: no sentence may repeat verbatim across lifts
 const dbD = isoL(Date.now());
@@ -2919,14 +2920,16 @@ dbX.sessionLog = {};
 dbX.sessionLog[isoL(Date.now() - 4 * 864e5)] = { entries: [{ id: "hack", reps: [9, 9, 9], rir: 2, rirSets: [2, null, 2], w: 160 }, { id: "ham", reps: [10, 10], rir: 2, rirSets: [2, 2], w: 120 }, { id: "abs", reps: [10, 10, 10], rir: 2, rirSets: [2, null, 2], w: 100 }], at: 1 };
 dbX.sessionLog[dbD] = { entries: [{ id: "hack", reps: [9, 9, 9], rir: 2, rirSets: [2, null, 2], w: 160 }, { id: "ham", reps: [10, 10], rir: 2, rirSets: [2, 2], w: 120 }, { id: "abs", reps: [10, 10, 10], rir: 2, rirSets: [2, null, 2], w: 100 }], at: 2, pace: "normal" };
 const dbR = sdA(dbX, dbD);
-const allLines = dbR.lifts.flatMap((L) => L.lines);
+const dwA9 = __test.debriefWords;
+const dbRW = dwA9(dbR);   /* R15: repeats are judged on the flattened legacy strings */
+const allLines = dbRW.lifts.flatMap((L) => L.lines);
 const dupes = allLines.filter((l, i) => allLines.indexOf(l) !== i);
 ok(dupes.length === 0, "three lifts rated identically produce zero repeated sentences — the filler is gone" + (dupes.length ? ": " + dupes[0] : ""));
-ok(dbR.lifts.every((L) => L.lines.some((l) => typeof l === "string" && l.indexOf("Next time:") === 0)), "every lift says exactly what it will ask for next time");
-ok(dbR.lifts.every((L) => L.lines.every((l) => typeof l === "string")), "no deferred placeholder objects leak out to the UI");
+ok(dbRW.lifts.every((L) => L.lines.some((l) => l.indexOf("Next time:") === 0)) && dbR.lifts.every((L) => L.next && Array.isArray(L.next.targets) && typeof L.next.w !== "undefined"), "every lift says exactly what it will ask for next time — and the typed next field carries the same targets as data");
+ok(dbR.lifts.every((L) => L.lines.every((l) => l && typeof l.t === "string" && typeof l.k === "string") && (!L.next || typeof L.next.t === "string")), "the typed contract is fully resolved — every middle line carries {k, t} and next.t is a finished sentence, so no placeholder ever reaches the UI");
 /* The reason is either on the lift (when lifts differ) or hoisted into the
    summary once (when every lift steps for the same reason). Never six times. */
-const nextLines = dbR.lifts.map((L) => L.lines.find((l) => l.indexOf("Next time:") === 0));
+const nextLines = dbRW.lifts.map((L) => L.lines.find((l) => l.indexOf("Next time:") === 0));
 const hoisted = dbR.summary.some((l) => l.indexOf("for the same reason") > -1);
 ok(hoisted !== nextLines.some((l) => l.indexOf("because") > -1), "the step reason appears either per-lift or once in the summary — never both, never neither");
 ok(hoisted && new Set(nextLines.map((l) => l.replace(/[0-9,]/g, ""))).size >= 1, "with a session-wide reason the per-lift lines carry only the numbers");
@@ -2938,7 +2941,7 @@ const gMix = gsA(clone(TA9), dMix, { clean: true, run: 3, need: 3, last: { h: 8 
 const enMix = gMix.ex.map((e2) => ({ id: e2.id, n: e2.n, w: e2.w, tgt: e2.tgt, reps: e2.tgt.slice(), isDebutNow: e2.isDebutNow, rir: 2, rirEnd: e2.id === "ham" ? 3 : 0 }));
 const stMix = csA(clone(TA9), dMix, enMix, { clean: true, run: 3, need: 3, last: { h: 8 } }, { pace: "normal" }).s;
 const dbMr = sdA(stMix, dMix);
-const mixed = dbMr.lifts.map((L) => L.lines.find((l) => l.indexOf("Next time:") === 0)).filter(Boolean);
+const mixed = dwA9(dbMr).lifts.map((L) => L.lines.find((l) => l.indexOf("Next time:") === 0)).filter(Boolean);
 ok(mixed.length >= 2 && mixed.every((l) => l.indexOf("because") > -1), "with mixed ratings the reason comes back down onto each lift");
 ok(!dbMr.summary.some((l) => l.indexOf("for the same reason") > -1), "and nothing gets hoisted when the reasons differ");
 ok(mixed.some((l) => l.indexOf("3 reps added") > -1) && mixed.some((l) => l.indexOf("1 rep added") > -1),
@@ -6870,4 +6873,72 @@ if (fail) process.exit(1);
   });
 }
 console.log(`\nFINAL90: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+/* ==================== R15 · THE DEBRIEF — TYPED CONTRACT, FROZEN WORDS (FINAL91) ====================
+   Joe, 3:10 AM, from the gym floor: the FULL DEBRIEF expansion never got the redesign —
+   ~46 visually identical mono lines, every tier at once, one mega-accordion. The fix is
+   structural, never verbal: sessionDebrief now returns TYPED output ({ mark, delivered,
+   lines:[{k,t}], next, work } per lift) and tools/debrief-words.json — captured from the
+   PRE-refactor engine on both frozen snapshots — proves the words did not move. */
+{
+  const sd91 = __test.sessionDebrief, dw91 = __test.debriefWords;
+  const cl91 = (o) => JSON.parse(JSON.stringify(o));
+  const FIX91 = JSON.parse(readFileSync("tools/debrief-words.json", "utf8"));
+  const snaps91 = Object.keys(FIX91);
+  ok(snaps91.length === 2 && snaps91.every((d) => Object.keys(FIX91[d]).length >= 8), "R15 DEBRIEF — the words freeze is REAL: two snapshots, at least eight debriefed sessions each (" + snaps91.map((d) => d + ": " + Object.keys(FIX91[d]).length).join(", ") + ") — an empty fixture cannot pass vacuously");
+  for (const d91 of snaps91) {
+    const st91 = __test.migrate(JSON.parse(readFileSync("tools/snapshots/" + d91 + "-ledger.json", "utf8")));
+    for (const iso91 of Object.keys(FIX91[d91])) {
+      ok(JSON.stringify(dw91(sd91(st91, iso91))) === JSON.stringify(FIX91[d91][iso91]), "R15 DEBRIEF WORDS-IDENTITY — " + d91 + " · " + iso91 + ": restructured, never rewritten — the flatten equals the pre-refactor sentences byte-for-byte");
+    }
+  }
+
+  /* ---- THE MARK: engine-supplied, one per lift, by the spec priority ---- */
+  const mkS91 = (sessions, exMut) => {
+    const st = cl91(__test.SEED);
+    st.sessionLog = {};
+    sessions.forEach(([d, reps, w, rs]) => { st.sessionLog[d] = { entries: [{ id: "press", reps, w, rir: rs ? rs[0] : 1, rirSets: rs || [1, null, 0] }], at: 1 }; });
+    if (exMut) { const ex = st.exercises.find((x) => x.id === "press"); if (ex) exMut(ex); }
+    return st;
+  };
+  const dA91 = isoL(Date.now() - 8 * 864e5), dB91 = isoL(Date.now() - 4 * 864e5), dC91 = isoL(Date.now());
+  const markOf91 = (st) => sd91(st, dC91).lifts[0].mark;
+  ok(markOf91(mkS91([[dA91, [9, 9, 9], 245], [dB91, [8, 8, 7], 245], [dC91, [8, 8, 8], 245]])) === "UP", "MARK — up on last time but under the all-time line is UP, not RECORD: the comparison is the previous session, the record check is the whole history");
+  ok(markOf91(mkS91([[dA91, [9, 9, 9], 245], [dC91, [8, 8, 7], 245]])) === "DOWN", "MARK — fewer reps at the same load is DOWN, plainly");
+  ok(markOf91(mkS91([[dA91, [9, 9, 9], 245], [dB91, [8, 8, 8], 245], [dC91, [8, 8, 8], 245]])) === "LEVEL", "MARK — level with last time, under the all-time line: LEVEL");
+  ok(markOf91(mkS91([[dC91, [8, 8, 8], 245]], (ex) => { ex.lastMeta = null; })) === "FIRST", "MARK — a TRUE debut (no session history AND no lastMeta baseline) has no delta to wear: FIRST — the honest addition to the spec ladder, flagged to the audit. A seed lastMeta counts as a baseline, correctly: the engine measures against everything it knows");
+  ok(markOf91(mkS91([[dB91, [8, 8, 8], 245], [dC91, [7, 7, 7], 255]])) === "JUMP_PRICE", "MARK — down on a HEAVIER bar is JUMP PRICE, not DOWN: reps given back are the price of the jump");
+  ok(markOf91(mkS91([[dA91, [5, 5, 5], 245], [dC91, [8, 8, 8], 245]])) === "RECORD", "MARK — a best that clears the old line by two standard errors banks on the spot: RECORD");
+  ok(markOf91(mkS91([[dA91, [8, 8, 7], 245], [dC91, [8, 8, 8], 245]])) === "RECORD_PENDING", "MARK — a best inside his own measured spread waits for the repeat: RECORD PENDING, the hollow diamond");
+  ok(markOf91(mkS91([[dA91, [9, 9, 9], 245], [dB91, [8, 8, 8], 245], [dC91, [8, 8, 8], 245]], (ex) => { ex.holdFlag = true; })) === "HOLD", "MARK — the governor hold outranks UP/LEVEL/DOWN: the row says what the engine is doing about it");
+  ok(markOf91(mkS91([[dA91, [8, 8, 7], 245], [dC91, [8, 8, 8], 245]], (ex) => { ex.holdFlag = true; })) === "RECORD_PENDING", "MARK PRIORITY — a pending record outranks the governor hold: the spec ladder, driven at the boundary");
+  ok(markOf91(mkS91([[dA91, [5, 5, 5], 245], [dC91, [8, 8, 8], 245, [0, null, null]]])) === "HOT", "MARK PRIORITY — BUT HOT outranks even a banked record: a ground-out opener is the one reading that can freeze the load, so it owns the row");
+
+  /* ---- the typed fields carry DATA, not just sentences ---- */
+  const stT91 = mkS91([[dB91, [8, 8, 8], 245], [dC91, [7, 7, 7], 255]]);
+  const LT91 = sd91(stT91, dC91).lifts[0];
+  ok(LT91.delivered && LT91.delivered.w === 255 && JSON.stringify(LT91.delivered.reps) === "[7,7,7]" && JSON.stringify(LT91.delivered.base) === "[8,8,8]" && LT91.delivered.dTot === -3 && LT91.delivered.heavier === true, "TYPED delivered — w, reps, base, dTot, heavier all present as data: the UI builds the subline and the set-by-set hero without parsing a sentence");
+  ok(typeof LT91.delivered.jumpNote === "string" && LT91.delivered.jumpNote.indexOf("price of the jump") > -1 && LT91.delivered.jumpNote.indexOf("3 down on last time") === 0, "TYPED delivered — the jump-price clause is engine-authored, so the surface never rewrites a sentence to show it");
+  ok(LT91.work && LT91.work.load === 255 * 21 && LT91.work.pc !== undefined, "TYPED work — load and pc are data; WORK DONE renders from them, never from parsing");
+  const stN91 = mkS91([[dA91, [9, 9, 9], 245], [dB91, [8, 8, 8], 245], [dC91, [8, 8, 8], 245]]);
+  const LN91 = sd91(stN91, dC91).lifts[0];
+  ok(LN91.next && Array.isArray(LN91.next.targets) && typeof LN91.next.add === "number" && typeof LN91.next.why === "string" && typeof LN91.next.t === "string" && LN91.next.t.indexOf("Next time:") === 0, "TYPED next — targets/add/why as data plus the resolved legacy sentence: the NEXT block head is formatting, not re-derivation");
+
+  /* ---- THE SURFACE: DebriefCard in the R15 grammar, pinned at source ---- */
+  const srcD91 = readFileSync("src/app.jsx", "utf8");
+  const dc91 = srcD91.slice(srcD91.indexOf("function DebriefCard("), srcD91.indexOf("function LogTab({"));
+  ok(dc91.length > 2000 && dc91.length < 12000 && (srcD91.split("function DebriefCard(").length - 1) === 1, "R15 DEBRIEF — DebriefCard exists exactly once, directly above its one consumer, and the slice is bounded");
+  ok((srcD91.split("FULL DEBRIEF — PER-LIFT DEPTH").length - 1) === 0 && (srcD91.split("▾ CLOSE DEBRIEF").length - 1) === 0 && (srcD91.split("dbOpen").length - 1) === 0 && (srcD91.split("DbOpen").length - 1) === 0, "the mega-accordion toggle is DEAD — no toggle copy, no orphaned state, and no DANGLING SETTER either: the first pin counted lowercase dbOpen and missed the archive row setDbOpen(true) by case (capital D), which left a tap-time ReferenceError the browser rig caught — both casings now pinned at zero");
+  ok((srcD91.split("recomputed live — old sessions get smarter as the engine does").length - 1) === 1 && dc91.indexOf("recomputed live") > -1, "the honesty footer survives the redesign — exactly once, inside the card");
+  ok(dc91.indexOf("minHeight: DT.touch") > -1 && dc91.indexOf('style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: DT.touch, background: "none", border: "none"') > -1, "TOUCH LAW — each lift row is a full-width 64px PAINT-FREE hit box (background none, border none); paint lives on inner spans and the hairline separator is its own inert element — the standing split law");
+  ok(dc91.indexOf("openLifts.filter((x) => x !== i)") > -1 && dc91.indexOf("[...openLifts, i]") > -1, "INDEPENDENT ACCORDIONS — open state is a set: one lift opening never closes another, the exact opposite of the mega-accordion defect");
+  ok(dc91.indexOf("MARK9[L.mark]") > -1, "the UI consumes the engine mark by lookup and re-derives NOTHING — the mark is engine property, per the spec");
+  ok((dc91.split('data-db="').length - 1) === 11, "the simplicity budget is a LAW: exactly eleven data-db species (card, eyebrow, verdict, context, row, mark, depth, hero, next, work, foot) — a twelfth is the accretion disease, and this assert is its vaccine (" + (dc91.split('data-db="').length - 1) + ")");
+  ok(dc91.indexOf('RECORD: { g: "◆", w: "RECORD", c: DT.jade }') > -1 && dc91.indexOf('RECORD_PENDING: { g: "◇"') > -1 && dc91.indexOf('JUMP_PRICE: { g: "▼", w: "JUMP PRICE", c: DT.steel }') > -1 && dc91.indexOf('HOT: { g: "◆", w: "BUT HOT", c: DT.amber }') > -1, "the mark species are grayscale-distinct: solid diamond banked, hollow diamond pending, steel drop for jump price, amber diamond for BUT HOT — glyph plus word, never color alone");
+  ok(dc91.indexOf("fontWeight: 600, fontSize: 15, color: DT.ink") > -1 && dc91.indexOf("db.summary[0]") > -1 && dc91.indexOf("db.summary.slice(1)") > -1 && dc91.indexOf("fontSize: 11, color: DT.steel, lineHeight: 1.7") > -1, "TIER 0 — the verdict is summary line 1 in the 15px/600 display register; the remaining summary lines drop to mono 11 steel, said once, hoisting preserved");
+  ok(dc91.indexOf('k === "observation" || k === "rir" ? { g: "▸", gc: DT.amber') > -1 && dc91.indexOf('k === "record" ? { g: "◆", gc: DT.jade, tc: DT.ink }') > -1, "TIER 2 — the glyph rail types every sentence: ◆ jade record (ink text), ▸ amber observation/rir, faint dot for taper and fade");
+  ok(dc91.indexOf("<DebriefCard s={s} iso={dateSel} />") === -1 && (srcD91.split("<DebriefCard s={s} iso={dateSel} />").length - 1) === 1, "the card mounts exactly once, as a SIBLING below the receipt — the receipt card is untouched in this slice");
+}
+console.log(`\nFINAL91: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

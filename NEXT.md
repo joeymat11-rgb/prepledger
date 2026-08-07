@@ -1088,6 +1088,44 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15 · THE DEBRIEF — TYPED CONTRACT, FROZEN WORDS — BUILT 2026-08-07, branch feat/r15-debrief
+
+**Joe's 3:10 AM ruling from the gym floor: the FULL DEBRIEF expansion never got the
+redesign** — ~46 visually identical mono steel lines across 6 lifts, every tier of detail
+at once, zero species marks, one mega-accordion. The engine's words were already right;
+the presentation predated R15. Built to `debrief-mockup.html` (Cowork's, from the real
+8/7 session, committed as the design base beside `measured-redesign-mockups.html`).
+
+**The contract (engine-side, decisions frozen):** `sessionDebrief` returns TYPED output —
+per lift `{ mark, delivered, lines:[{k,t}], next, work }`, k ∈ record / record_pending /
+observation / taper / fade / rir (+ `delivered.first` for debuts). **The words did not
+change:** `tools/debrief-words.json` was captured from the PRE-refactor engine on both
+frozen snapshots (17 sessions) and FINAL91 asserts `debriefWords()` (the flatten)
+reproduces it byte-for-byte, per session. `fadeRead` types its own sentences
+(climbed/peaked/steep = observation; flat/barely/normal = fade). The engine-freeze
+baseline did not move — `sessionDebrief` is outside the freeze surface, proven byte-clean.
+
+**The MARK is engine property**, one per lift, spec priority BUT HOT > RECORD (banked) >
+RECORD PENDING > HOLD > JUMP PRICE > UP/LEVEL/DOWN — plus **FIRST** for a true debut (no
+history AND no lastMeta), the one addition, flagged. Priority driven at both boundaries
+(pending record outranks hold; BUT HOT outranks a banked record). The UI consumes
+`MARK9[L.mark]` and re-derives nothing.
+
+**The surface:** the debrief is its OWN CARD below the receipt (the mockup's call, taken
+over restyling the toggle — argued: the verdict is the value and a toggle buried it; the
+toggle + `dbOpen` are dead, pinned at zero). Tier 0 verdict = summary[1] in 15px/600,
+context drops to mono 11 steel. Tier 1 = one 64px row per lift (condensed caps name,
+mono subline `160 × 12·11·13 · +4` delta-colored, engine mark right-aligned with a
+rotating chevron) — the row button is a PAINT-FREE hit box, hairline separators are their
+own inert elements, paint on inner spans (the standing split law). Tier 2 = independent
+accordions (open state is a SET): set-by-set hero with per-set deltas, glyph rail
+(◆ jade record · ◇ pending · ▸ amber observation/rir · faint dot taper/fade), NEXT block
+(head from typed targets, why + window sentence, sharedWhy hoisting preserved), WORK DONE
+micro closing. Footer survives verbatim, once. Eleven `data-db` species, budget-pinned.
+
+**Suite 1957 → 2000** (17 words-identity + 10 mark drives + typed-field drives + 12
+surface pins). Receipt card untouched. Scope: the debrief only.
+
 ### R15c ROUND 6 — F4: THE CLOCK CAN NEVER BE HIDDEN ON ANY TAB
 
 The chip was absent on TRAIN — the tab a gym exit lands on — because its interval was
