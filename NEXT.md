@@ -1075,6 +1075,59 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15c ROUND 6 — F4: THE CLOCK CAN NEVER BE HIDDEN ON ANY TAB
+
+The chip was absent on TRAIN — the tab a gym exit lands on — because its interval was
+draft-gated and a gym exit mutates LogTab state, which never re-renders the shell: the
+chip's last render predated the draft and nothing ever woke it. The interval now runs
+unconditionally (one localStorage read per 800ms buys a clock that cannot hide). AND the
+audit's better design shipped too: the GYM MODE launcher itself wears the live session —
+"▸ RESUME · REST 1:26 · CALVES SET 2" ticking from the same persisted anchor through the
+same resume law, both arms, self-ticking, 64 law in both states. One clock, three
+displays, zero owned ticks. Suite 1915 → 1918, freeze byte-clean. STOPPED for the
+one-probe re-drive.
+
+### R15c ROUND 5 — THREE LOOSE WIRES, PINNED
+
+**F1** — the DOCUMENT scroll-locks while Gym Mode is mounted: the gym frame was hidden but
+html/body behind it kept 1,772px of live scroll (Joe's scrollbar). Modal pattern, both
+elements, exact restore on unmount. **F2** — the chip's REST arm belongs to the rest
+phase ALONE: a mid-ask exit was wearing the rest costume, so the spec'd RESUME arm could
+never render; mid-ask the owed thing is the ask, and the chip now says so (data-arm
+pinned). **F3** — the date boundary was the wire: a 1:39 AM session's draft keys to
+YESTERDAY, and every door deriving its key from today's dateSel missed it, landing on a
+fresh lift-1. ONE scanner (findGymDraft, ±1 day) now feeds every door — chip, launcher,
+GymMode's own restore — and a live draft OWNS its session date, so resumePhase (the
+proven pure law) actually runs on the manual door too. Suite 1911 → 1915, freeze
+byte-clean. STOPPED for the rig's re-drive: scroll lock, both arms, both doors, the
+stale-ask law.
+
+### R15c ROUND 4 — THE LOCKED FRAME AND THE SURVIVING CLOCK (Joe's 1:39 AM session)
+
+**Two live findings from a real gym at 1:39 AM, both structural.** S1: GYM MODE DOES NOT
+SCROLL — the frame is overflow-hidden viewport, every phase fits or its content is wrong
+(pinned: no overflowY anywhere in the component). S2: THE VOID BECAME THE INSTRUMENT —
+the opener ask's hero is the RUNNING rest clock (same fill-bar grammar as the rest
+screen, one visual system; the tick effect extends to rir-open with the auto-advance
+kept rest-only: the ask is owed, the advance is not) over a quiet banked receipt; the
+terminal ask's hero is the whole-lift receipt, because no rest is armed after the last
+set and a fake countdown is paint with no instrument behind it. S3: every phase flows
+top-down with actions in the thumb zone — no dead zones, no filler.
+
+**S4 — THE REST CLOCK SURVIVES LEAVING.** `resumePhase` is the pure re-entry law
+(mock-clock exact): mid-rest resumes at the TRUE remaining; PHASE rides the draft;
+**THE STALE-ASK LAW** — an ask that outlived the rest it rides in resolves to SKIP
+(null, the record shows unrecorded) and lands on the next true phase, because a
+minutes-old memory answer is the v7.12.0 sin this flow exists to prevent. THE
+SESSION-LIVE CHIP rides above the rail on every tab while a session is open and Gym
+Mode is off-screen — countdown DERIVED from the same persisted wall-clock anchor (one
+clock, two displays, zero owned ticks), tap returns to the exact phase; z 49 so a live
+session buries it by construction; the FAB corridor stays free; 64-hit by the
+paint-slop law.
+
+Suite 1897 → 1911 (this branch; the missed-read rider re-lands after with its own +),
+freeze byte-clean. STOPPED for the rig's leave/return drive + six-phase screenshots.
+
 ### R15c ROUND 2 — TOUCH LAW RE-DERIVED PER CONTROL, SPECIES GRAYSCALE-PROOF
 
 **S1, the rig's misses closed one by one:** paint-free text slop re-derived (26+26+14 =

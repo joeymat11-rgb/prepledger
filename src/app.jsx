@@ -10044,6 +10044,7 @@ __test.runAdaptive = runAdaptive;
 __test.stepKcal = stepKcal;
 __test.stepEfficacy = stepEfficacy;
 __test.DT = DT;
+__test.resumePhase = resumePhase;
 __test.effortWords = effortWords;
 __test.volumePush = volumePush; __test.volumeConversion = volumeConversion; __test.structuralMovesThisWeek = structuralMovesThisWeek;
 __test.stepPush = stepPush;
@@ -12985,6 +12986,9 @@ function LogTab({ s, setS, save, slp }) {
   const setRep = (ex, i, v) => setReps({ ...reps, [ex.id]: getReps(ex).map((r, j) => (j === i ? v : r)) });
 
   const [gym, setGym] = useState(false);
+  /* S4 — the session-live chip's tap lands here: re-open Gym Mode once, then clear the
+     flag; GymMode's own draft restore does the rest (exact phase, true remaining). */
+  useEffect(() => { try { if (sessionStorage.getItem("pl-resume-gym") === "1") { sessionStorage.removeItem("pl-resume-gym"); setGym(true); } } catch (e) {} }, []);
   const complete = () => {
     /* PHANTOM_SKIP — the skip inference lives HERE, at finish, not in the display path. A
        lift Gym Mode never reached and nothing typed on TRAIN is a genuine miss once the
@@ -13004,9 +13008,17 @@ function LogTab({ s, setS, save, slp }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {gym && sess && <GymMode s={s} setS={setS} save={save} slp={slp} sess={sess} dateSel={dateSel} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} />}
+      {gym && (() => {
+        /* F3 — a live draft owns its session: resuming keys GymMode to the DRAFT's date
+           (its sessions log under the day they belong to, and its gymKey matches, so the
+           restore + resumePhase wiring runs on EVERY door — launcher and chip alike). */
+        const live9 = findGymDraft();
+        const gDate = live9 ? live9.iso : dateSel;
+        const gSess = live9 && live9.iso !== dateSel ? genSession(s, live9.iso, slp) : sess;
+        return gSess ? <GymMode s={s} setS={setS} save={save} slp={slp} sess={gSess} dateSel={gDate} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} /> : null;
+      })()}
       {sess && !s.sessionLog[dateSel] && (
-        <button onClick={() => setGym(true)} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(94,212,162,.35)", background: "rgba(94,212,162,.06)", color: DT.jade, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>▶ GYM MODE — ONE LIFT AT A TIME, TIMERS ON</button>
+        <GymLauncher s={s} onOpen={() => setGym(true)} />
       )}
       <div style={{ display: "flex", gap: 8, overflowX: "auto", touchAction: "pan-x", paddingBottom: 2 }}>
         {/* Two RECEIPT chips lived here, both styled as buttons and neither carrying a
@@ -14608,6 +14620,50 @@ function effortWords(plan, held) {
   return out.map((x) => x.txt + (x.n > 1 ? " (×" + x.n + ")" : "")).join(" → ");
 }
 
+/* ---------- R15c ROUND 4 · S4 — THE REST CLOCK SURVIVES LEAVING ----------
+   The anchor (restStart, wall clock) already persists in the gym draft; what died with
+   the component was display state and PHASE. resumePhase is the pure re-entry law:
+   mid-rest resumes the rest at the TRUE remaining; an ask left unanswered longer than
+   the rest it rides in resolves to SKIP (null — asked-at-the-set is the law, and a
+   minutes-old memory answer is the v7.12.0 sin this flow exists to prevent) and lands
+   on the next true phase. Exact, mock-clock testable. */
+/* findGymDraft — THE one scanner every door uses (chip, launcher, one-shot, GymMode's own
+   restore). A session that started at 1:39 AM is keyed to YESTERDAY's date; any door that
+   derives the key from today's dateSel misses it and lands on a fresh lift-1 — Joe's F3.
+   ±1 day covers the midnight boundary; anything older is an abandoned draft, not a live
+   session. */
+function findGymDraft() {
+  try {
+    for (let k = 0; k < localStorage.length; k++) {
+      const key = localStorage.key(k);
+      if (key && key.indexOf("prep-ledger-gymdraft-") === 0) {
+        const d = JSON.parse(localStorage.getItem(key) || "null");
+        if (d) { const iso9 = key.slice("prep-ledger-gymdraft-".length); const gap9 = Math.abs((mk(isoOf(todayStart())) - mk(iso9)) / DAY); if (gap9 <= 1) return { ...d, iso: iso9 }; }
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+function resumePhase(draft, nowMs) {
+  const d = draft || {};
+  const ph = d.phase || "lift";
+  const elapsed = d.restStart ? Math.floor((nowMs - d.restStart) / 1000) : null;
+  const len = d.restLen || 0;
+  if (ph === "rest") {
+    if (elapsed == null || elapsed >= len) return { phase: "lift", autoSkip: false };
+    return { phase: "rest", autoSkip: false };
+  }
+  if (ph === "rir-open") {
+    /* stale: the ask outlived the rest it rides in — skip to null, and the rest is over too */
+    if (elapsed != null && elapsed > len) return { phase: "lift", autoSkip: true };
+    return { phase: "rir-open", autoSkip: false };
+  }
+  if (ph === "rir-end") {
+    if (elapsed != null && elapsed > len) return { phase: "lift-done", autoSkip: true };
+    return { phase: "rir-end", autoSkip: false };
+  }
+  return { phase: ph, autoSkip: false };
+}
 function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [idx, setIdx] = useState(0);
   const [setN, setSetN] = useState(0);
@@ -14633,11 +14689,28 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [rests, setRests] = useState({ n: 0, cut: 0 });
   const gymKey = "prep-ledger-gymdraft-" + dateSel;
   useEffect(() => {
-    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.touched) setTouched(d.touched);   /* absent on a pre-TOUCH draft -> gymEntries falls back to gskip alone */ setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen); } } catch (e) {}
+    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.touched) setTouched(d.touched);   /* absent on a pre-TOUCH draft -> gymEntries falls back to gskip alone */ setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen);
+      /* S4 — re-entry lands exactly where he left, through the resume law: mid-rest at the
+         TRUE remaining; a stale ask auto-skips to null with the record showing unrecorded. */
+      const rp9 = resumePhase(d, Date.now());
+      setPhase(rp9.phase);
+      if (rp9.autoSkip) { /* skip semantics — nothing written; the ask's answer stays null */ }
+    } } catch (e) {}
   }, []);
   useEffect(() => {
-    try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, rirEnd, gskip, touched, rests, idx, setN, restStart, restLen })); } catch (e) {}
-  }, [reps, rir, rirEnd, gskip, rests, idx, setN, gymKey]);
+    try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, rirEnd, gskip, touched, rests, idx, setN, restStart, restLen, phase })); } catch (e) {}
+  }, [reps, rir, rirEnd, gskip, rests, idx, setN, gymKey, phase]);
+  /* F1 — THE DOCUMENT SCROLL-LOCK (the modal pattern). The gym frame was overflow-hidden
+     but the PAGE BEHIND it kept its 1772px of scroll — html/body read overflow-y auto and
+     the wheel still moved scrollY under the overlay. Lock both while mounted, restore
+     exactly what was there on unmount. */
+  useEffect(() => {
+    const de = document.documentElement, db = document.body;
+    const prev9 = [de.style.overflow, db.style.overflow, window.scrollY];
+    de.style.overflow = "hidden"; db.style.overflow = "hidden";
+    window.scrollTo(0, 0);
+    return () => { de.style.overflow = prev9[0]; db.style.overflow = prev9[1]; window.scrollTo(0, prev9[2]); };
+  }, []);
   const ex = sess.ex[idx];
   const rp2 = rirPlan(s, ex, slp);
   const getR = (e2) => reps[e2.id] ?? e2.tgt.slice();
@@ -14654,7 +14727,11 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
 
      Date.now() cannot be throttled. The interval exists only to re-render. */
   useEffect(() => {
-    if (phase !== "rest") return;
+    /* ROUND 4 — the clock also ticks through the OPENER ask (it is the hero of that
+       screen's empty region; the rest genuinely started at the bank). The auto-advance to
+       the lift stays rest-only: an expired clock during the ask shows 0:00 and waits for
+       the tap — the ask is owed, the advance is not. */
+    if (phase !== "rest" && phase !== "rir-open") return;
     const tick = () => {
       const left = Math.max(0, restLen - Math.floor((Date.now() - restStart) / 1000));
       setT(left);
@@ -14662,7 +14739,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
     };
     tick();
     const iv = setInterval(() => {
-      if (tick() <= 0) { clearInterval(iv); setPhase("lift"); try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} }
+      if (tick() <= 0 && phase === "rest") { clearInterval(iv); setPhase("lift"); try { navigator.vibrate && navigator.vibrate(200); } catch (e) {} }
     }, 500);
     return () => clearInterval(iv);
   }, [phase, restStart, restLen]);
@@ -14720,8 +14797,10 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
      — the paint-slop split, the R15b round-4 law, applied everywhere this screen taps. */
   const slop9 = { background: "none", border: "none", cursor: "pointer", padding: "26px 12px", margin: "-20px -12px" };   /* re-derived after the rig read 58: 26+26+~14px text = 66 ≥ 64; these controls are PAINT-FREE text, so padding is pure slop — no channel to share */
   const shortN = !!(slp && slp.last && slp.last.h != null && slp.last.h < 7);
+  /* R15c ROUND 4 (Joe's 1:39 AM ruling) — GYM MODE DOES NOT SCROLL. The frame is the
+     viewport; if a phase's content exceeds it, the CONTENT is wrong, not the frame. */
   return (
-    <div style={{ position: "fixed", inset: 0, background: DT.bg, zIndex: 60, display: "flex", flexDirection: "column", padding: "0 16px", paddingTop: "calc(env(safe-area-inset-top, 24px) + 14px)", paddingBottom: "calc(env(safe-area-inset-bottom, 10px) + 12px)", overflowY: "auto" }}>
+    <div style={{ position: "fixed", inset: 0, background: DT.bg, zIndex: 60, display: "flex", flexDirection: "column", padding: "0 16px", paddingTop: "calc(env(safe-area-inset-top, 24px) + 14px)", paddingBottom: "calc(env(safe-area-inset-bottom, 10px) + 12px)", overflow: "hidden", overscrollBehavior: "none" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 11 }}>
         <span style={{ ...tnum, fontSize: 12, letterSpacing: "0.2em", fontWeight: 700, color: DT.ink }}>LIFT {idx + 1} OF {sess.ex.length}</span>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -14735,7 +14814,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
       </div>
       {al2 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, marginBottom: 8 }}>⚠ ALARM DAY — every 0 becomes a 1 · no official attempts</div>}
       {phase === "rest" ? (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 11 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 11, minHeight: 0 }}>
           <div style={card9}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={lbl9}>REST</span>
@@ -14747,6 +14826,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             <div style={{ ...tnum, fontSize: 54, fontWeight: 700, textAlign: "center", color: DT.jade, marginTop: 10 }}>{Math.floor(t / 60)}:{String(t % 60).padStart(2, "0")}</div>
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.steel, textAlign: "center", marginTop: 4 }}>next: SET {setN + 1} of {getR(ex).length} · {ex.n}</div>
           </div>
+          <div style={{ flex: 1, minHeight: 0 }} />
           <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
             <button onClick={() => { setRestLen((x) => x + 30); }} style={{ ...tnum, ...{ background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 12, color: DT.ink, fontSize: 12.5, fontWeight: 700, letterSpacing: "0.08em", padding: "0 14px", minHeight: 64, cursor: "pointer", flex: 1 } }}>+30s</button>
             <button onClick={() => { setRestStart(Date.now()); }} style={{ ...tnum, ...{ background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 12, color: DT.ink, fontSize: 12.5, fontWeight: 700, letterSpacing: "0.08em", padding: "0 14px", minHeight: 64, cursor: "pointer", flex: 1 } }}>restart</button>
@@ -14756,8 +14836,23 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
       ) : phase === "rir-open" ? (
         /* THE OPENER ASK — jade species: the gatekeeper question. Visually distinct from the
            terminal ask by accent, glyph and framing (data-ask pins both). */
-        <div data-ask="opener" style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", paddingBottom: 18, gap: 12 }}>
-          <div style={{ ...card9, borderLeft: "4px solid " + DT.jade }}>
+        <div data-ask="opener" style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12, minHeight: 0 }}>
+          {/* THE VOID BECOMES THE MOMENT'S INSTRUMENT: the rest clock is already running —
+              hero it in the SAME grammar as the rest screen (one visual system), with the
+              banked set as the quiet receipt beneath. */}
+          <div style={{ marginTop: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <span style={lbl9}>REST · RUNNING</span>
+              <span style={{ ...tnum, fontSize: 10.5, color: DT.steel }}>{Math.floor((restLen - t) / 60)}:{String(Math.max(0, restLen - t) % 60).padStart(2, "0")} of {Math.floor(restLen / 60)}:{String(restLen % 60).padStart(2, "0")}</span>
+            </div>
+            <div style={{ height: 5, background: DT.well, borderRadius: 3, overflow: "hidden", marginTop: 8 }}>
+              <div style={{ height: "100%", width: Math.max(0, Math.min(100, restLen ? ((restLen - t) / restLen) * 100 : 0)) + "%", background: DT.jade }} />
+            </div>
+            <div data-hero="clock" style={{ ...tnum, fontSize: 64, fontWeight: 700, textAlign: "center", color: DT.jade, marginTop: 14 }}>{Math.floor(t / 60)}:{String(t % 60).padStart(2, "0")}</div>
+            <div style={{ ...tnum, fontSize: 10.5, color: DT.steel, textAlign: "center", marginTop: 6 }}>SET {setN} — {getR(ex)[setN - 1]} AT {ex.w} · BANKED</div>
+          </div>
+          <div style={{ flex: 1, minHeight: 0 }} />
+          <div style={{ ...card9, borderLeft: "4px solid " + DT.jade, marginBottom: 0 }}>
             <div style={{ ...lbl9, color: DT.jade }}>◇ FIRST SET · THE HONEST GATEKEEPER</div>
             <div style={{ fontFamily: disp, fontSize: 24, fontWeight: 700, letterSpacing: "0.04em", marginTop: 8, color: DT.ink }}>How many more did you have?</div>
             <div style={{ ...tnum, fontSize: 12, color: DT.steel, marginTop: 6 }}>{ex.n} · {getR(ex)[0]} reps at {ex.w}</div>
@@ -14777,8 +14872,16 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
         </div>
       ) : phase === "rir-end" ? (
         /* THE TERMINAL ASK — amber species: did the planned effort land? */
-        <div data-ask="terminal" style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", paddingBottom: 18, gap: 12 }}>
-          <div style={{ ...card9, borderLeft: "4px solid " + DT.amber }}>
+        <div data-ask="terminal" style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12, minHeight: 0 }}>
+          {/* No rest is armed after the last set — a fake countdown would be paint with no
+              instrument behind it. The RECEIPT is this screen's hero: the whole lift, done. */}
+          <div style={{ marginTop: 10 }}>
+            <div style={lbl9}>LIFT DONE · THE LAST SET IS THE ONE THAT BUYS THE NEXT WEIGHT</div>
+            <div data-hero="receipt" style={{ ...tnum, fontSize: 44, fontWeight: 700, textAlign: "center", color: DT.amber, marginTop: 18 }}>{getR(ex).join(" · ")}</div>
+            <div style={{ ...tnum, fontSize: 10.5, color: DT.steel, textAlign: "center", marginTop: 6 }}>{ex.n} AT {ex.w} · ALL SETS BANKED</div>
+          </div>
+          <div style={{ flex: 1, minHeight: 0 }} />
+          <div style={{ ...card9, borderLeft: "4px solid " + DT.amber, marginBottom: 0 }}>
             <div style={{ ...lbl9, color: DT.amber }}>◆ LAST SET · DID THE EFFORT LAND?</div>
             <div style={{ fontFamily: disp, fontSize: 24, fontWeight: 700, letterSpacing: "0.04em", marginTop: 8, color: DT.ink }}>How many more did you have?</div>
             <div style={{ ...tnum, fontSize: 12, color: DT.steel, marginTop: 6 }}>{ex.n} · {getR(ex)[getR(ex).length - 1]} reps at {ex.w} · 0 = you emptied it, exactly as planned</div>
@@ -14795,7 +14898,8 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <div style={{ fontFamily: mono, fontSize: 9.5, color: DT.dim, letterSpacing: "0.08em", textAlign: "center", lineHeight: 1.7 }}>ASKED AT THE SET, NOT FROM MEMORY —<br />ABOUT TWO AND A HALF TIMES MORE ACCURATE THIS WAY.</div>
         </div>
       ) : phase === "lift-done" ? (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 11 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 11, minHeight: 0 }}>
+          <div style={{ flex: 0.35, minHeight: 0 }} />
           <div style={card9}>
             <div style={{ fontFamily: disp, fontSize: 23, fontWeight: 700, letterSpacing: "0.04em" }}>{ex.n} — done</div>
             <div style={{ ...tnum, fontSize: 12, color: DT.steel, marginTop: 5 }}>logged: {getR(ex).join(" · ")} at {ex.w}</div>
@@ -14810,7 +14914,8 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <button onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: DT.steel, background: "none", border: "1px solid " + DT.hairline, borderRadius: 8, padding: "9px", width: "100%", minHeight: 44, cursor: "pointer" }}>skip this lift — goes on the record, no phantom reps</button>
         </div>
       ) : phase === "all-done" ? (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 11 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 11, minHeight: 0 }}>
+          <div style={{ flex: 0.2, minHeight: 0 }} />
           <div style={card9}>
             <div style={{ fontFamily: disp, fontSize: 24, fontWeight: 700, letterSpacing: "0.04em" }}>Session complete</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 10 }}>
@@ -14825,7 +14930,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <button onClick={finish} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>LOG IT — RECEIPT + DEBRIEF</button>
         </div>
       ) : (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 11 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 11, minHeight: 0 }}>
           <div style={card9}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 9, flexWrap: "wrap" }}>
               <div style={{ fontFamily: disp, fontSize: 23, fontWeight: 700, letterSpacing: "0.04em" }}>{ex.n}</div>
@@ -14883,6 +14988,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             {idx > 0 ? <button onClick={goBackLift} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>◂ back a lift</button> : <span />}
             <button onClick={skipLift} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>skip lift ▸</button>
           </div>
+          <div style={{ flex: 1, minHeight: 0 }} />
           <div style={{ fontFamily: mono, fontSize: 9.5, color: DT.dim, letterSpacing: "0.08em", textAlign: "center", marginTop: 2, lineHeight: 1.7 }}>
             {slp && slp.last && slp.last.h != null ? "SLEPT " + slp.last.h + " H — " + (shortN ? "SHORT NIGHT. TODAY STILL COUNTS — SHORT SLEEP PROTECTS, IT NEVER PUNISHES." : "GOOD NIGHT. TODAY'S NUMBERS COUNT.") : "NO NIGHT LOGGED — TODAY'S NUMBERS COUNT EITHER WAY."}
             <br />AFTER THE LAST SET, ONE CHECK: "HOW MANY MORE DID YOU HAVE?" — DID THE PLANNED EFFORT LAND?
@@ -15447,6 +15553,68 @@ function HistTab({ s, setS, save }) {
    line of live state so the list itself answers "is there anything in there"
    without him having to go and look — which is the value adaptive nav promises
    and fails to deliver, without moving anything. */
+/* ---------- R15c ROUND 4 · S4 — THE SESSION-LIVE CHIP ----------
+   While a session draft is open and Gym Mode is off-screen, a slim bar rides above the
+   rail on EVERY tab: the rest countdown DERIVED from the same persisted wall-clock anchor
+   (never a tick-owned counter), or the resume line. Tap returns to TRAIN and re-opens Gym
+   Mode, which restores the exact phase through resumePhase. It sits below GymMode's
+   overlay (z 49 < 60) so it can never cover a live session, and its width leaves the
+   FAB corridor free on every tab — the call-banner pattern under the paint-slop law. */
+/* ---------- R15c ROUND 6 · F4 — THE LAUNCHER WEARS THE LIVE SESSION ----------
+   The session's entry door on TRAIN shows the running state while a draft lives:
+   "▸ RESUME · REST 1:26 · CALVES SET 2" — same persisted anchor, same resume law, the
+   64 touch law intact. Fresh state otherwise. Self-ticking so no parent re-render is
+   ever load-bearing (the F4 lesson). */
+function GymLauncher({ s, onOpen }) {
+  const [, force] = useState(0);
+  useEffect(() => { const iv = setInterval(() => force((x) => x + 1), 800); return () => clearInterval(iv); }, []);
+  const live = findGymDraft();
+  if (!live) return (
+    <button onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(94,212,162,.35)", background: "rgba(94,212,162,.06)", color: DT.jade, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>▶ GYM MODE — ONE LIFT AT A TIME, TIMERS ON</button>
+  );
+  const liftName = (() => { try { const sess9 = genSession(s, live.iso); return ((sess9.ex || [])[live.idx || 0] || {}).n || "session"; } catch (e) { return "session"; } })();
+  const rp9 = resumePhase(live, Date.now());
+  const remain = live.restStart ? Math.max(0, (live.restLen || 0) - Math.floor((Date.now() - live.restStart) / 1000)) : 0;
+  const resting = rp9.phase === "rest" && remain > 0;
+  return (
+    <button data-launcher="live" onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(229,180,84,.45)", background: "rgba(229,180,84,.07)", color: DT.amber, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>
+      {resting
+        ? "▸ RESUME · REST " + Math.floor(remain / 60) + ":" + String(remain % 60).padStart(2, "0") + " · " + String(liftName).toUpperCase() + " SET " + ((live.setN || 0) + 1)
+        : "▸ RESUME SESSION · " + String(liftName).toUpperCase() + " SET " + ((live.setN || 0) + 1)}
+    </button>
+  );
+}
+
+function SessionLiveChip({ s, go }) {
+  const [, force] = useState(0);
+  const draft = findGymDraft();   /* F3 — the ONE scanner every door shares */
+  useEffect(() => {
+    /* F4 — DISCOVERY, not just display: gym-exit mutates LogTab state, which never
+       re-renders this shell component, so a draft-gated interval left the chip null on
+       the very tab the exit lands on. The interval runs unconditionally — one cheap
+       localStorage read per 800ms buys a clock that can never be hidden on any tab. */
+    const iv = setInterval(() => force((x) => x + 1), 800);
+    return () => clearInterval(iv);
+  }, []);
+  if (!draft) return null;
+  const liftName = (() => { try { const sess9 = genSession(s, draft.iso); return ((sess9.ex || [])[draft.idx || 0] || {}).n || "session"; } catch (e) { return "session"; } })();
+  const rp9 = resumePhase(draft, Date.now());
+  const remain = draft.restStart ? Math.max(0, (draft.restLen || 0) - Math.floor((Date.now() - draft.restStart) / 1000)) : 0;
+  /* F2 — the REST arm belongs to the REST phase alone. Mid-ask the owed thing is the ASK,
+     so the chip says RESUME (Joe's finding: mid-ask exits wore the rest costume and the
+     spec'd second arm could never render). */
+  const resting = rp9.phase === "rest" && remain > 0;
+  const label = resting
+    ? "⏱ REST " + Math.floor(remain / 60) + ":" + String(remain % 60).padStart(2, "0") + " · " + String(liftName).toUpperCase() + " ▸"
+    : "▸ RESUME SESSION · " + String(liftName).toUpperCase() + " SET " + ((draft.setN || 0) + 1);
+  return (
+    <button data-chip="session-live" data-arm={resting ? "rest" : "resume"} onClick={() => { try { sessionStorage.setItem("pl-resume-gym", "1"); } catch (e) {} go("TRAIN"); }}
+      style={{ position: "fixed", left: 0, bottom: "calc(64px + env(safe-area-inset-bottom))", width: "calc(100% - 90px)", zIndex: 49, background: "none", border: "none", padding: "28px 0 0 0", margin: 0, cursor: "pointer", textAlign: "left" }}>
+      <span style={{ display: "block", background: DT.card2, borderTop: "1px solid " + DT.hairline2, borderBottom: "1px solid " + DT.hairline, color: resting ? DT.jade : DT.amber, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", padding: "10px 14px" }}>{label}</span>
+    </button>
+  );
+}
+
 function MoreTab({ s, go, openRules, openCoach }) {
   const rooms = [
     { k: "BRIEF", t: "THE BRIEFING ROOM", sub: "the classic NOW — capture, the briefing, the room, and every decision card in its full home",
@@ -16114,6 +16282,7 @@ export default function PrepLedger() {
 
       </div>
 
+      <SessionLiveChip s={s} go={setTab} />
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50, background: T.plate, borderTop: `1px solid ${T.line}` }}>
         {/* AUDIT (R15a pointer pass) — this stamp INTERCEPTED REAL TAPS on the rail's right
             tab: absolutely positioned over the button row with default pointer-events, it owned

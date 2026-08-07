@@ -6670,11 +6670,56 @@ if (fail) process.exit(1);
   ok(gm.indexOf('padding: "26px 12px", margin: "-20px -12px"') > -1, "R15c — small PAINT-FREE text controls carry 26px slop (26+26+~14 text = 66 ≥ 64 — re-derived after the rig read 58 off the first arithmetic; the rig is the authority, the derivation is the contract)");
   ok((gm.split('padding: "13px 9px"').length - 1) === 2 && (gm.split('padding: "11px 0", margin: "-3px 0 -11px 0"').length - 1) === 2, "R15c — the ask-screen skips carry a PAINTED border, so they get the full outer/inner split (paint on the span, 64 hit on the button) — paint and slop never share a channel, even on the quiet controls");
   ok(gm.indexOf('◇ FIRST SET') > -1 && gm.indexOf('◆ LAST SET') > -1, "R15c — the species survive GRAYSCALE: the opener wears the empty diamond (the honest gatekeeper), the terminal the filled one — glyph + edge carry the distinction before color does, the discipline R15d's decision cards inherit");
-  ok((gm.split('justifyContent: "flex-end", paddingBottom: 18').length - 1) === 2, "R15c — both asks settle into the thumb zone: the question a lifter answers one-handed between sets lives in the lower third, per the brief's own touch law");
+  ok((gm.split('<div style={{ flex: 1, minHeight: 0 }} />').length - 1) >= 2 && (gm.split('marginBottom: 0 }}').length - 1) >= 2, "R15c — both asks keep the thumb zone STRUCTURALLY (round 4): hero instrument on top, a flex spacer, the ask card pinned at the bottom — the lower third by construction, with the void carrying the moment's instrument instead of dead space");
   ok(gm.indexOf("effortWords(rp2.plan") > -1 && gm.indexOf("TARGET <b") > -1, "R15c — the prescription line is GENERATED from targetsFor's tgt and rirPlan's plan — the surface speaks the engine, it never re-derives it");
   ok(gm.indexOf("SHORT SLEEP PROTECTS, IT NEVER PUNISHES") > -1, "R15c — the weather line carries the constitution's sleep law in its own words: a short night is named, never punished");
   ok((gm.split("onClick={doneSet}").length - 1) === 1 && (gm.split("onClick={nextLift}").length - 1) === 1 && (gm.split("onClick={finish}").length - 1) === 1, "R15c — one primary path per action: exactly one LOG SET, one NEXT, one FINISH handler call-site each — the flow the tap count derives from is the flow that renders");
-  ok(srcC.indexOf('onClick={() => setGym(true)} style={{ width: "100%", minHeight: 64') > -1, "R15c — the session's ENTRY DOOR is under the same law: the GYM MODE launcher on TRAIN is a 64px control, not a carve-out");
+  ok(srcC.indexOf("<GymLauncher s={s} onOpen={() => setGym(true)} />") > -1 && (srcC.slice(srcC.indexOf("function GymLauncher("), srcC.indexOf("function SessionLiveChip(")).split("minHeight: 64").length - 1) === 2, "R15c — the session's ENTRY DOOR is under the same law in BOTH its states: the launcher component carries minHeight 64 fresh and live alike (round 6 made it wear the running session), never a carve-out");
 }
 console.log(`\nFINAL88: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+/* ==================== R15c ROUND 4 — THE LOCKED FRAME + THE SURVIVING CLOCK ====================
+   Joe's two live findings from a 1:39 AM session: the ask screen scrolled with a dead
+   upper half, and the rest clock died when he left Gym Mode. S1-S3 lock the frame and
+   give every void an instrument; S4 makes the clock derive from its persisted wall-clock
+   anchor so leaving costs nothing. resumePhase is pure and driven with exact mocked
+   clocks — no "roughly" anywhere. */
+{
+  const RP = __test.resumePhase;
+  /* mocked-clock exactness: bank at t0, rest 150s */
+  const t0 = 1000000000000;
+  ok(RP({ phase: "rest", restStart: t0, restLen: 150 }, t0 + 47000).phase === "rest", "S4 — re-entering 47s into a 150s rest RESUMES the rest screen (the display derives 1:43 remaining from the same anchor — exact, not roughly)");
+  ok(RP({ phase: "rest", restStart: t0, restLen: 150 }, t0 + 150000).phase === "lift", "S4 — re-entering at exactly 150s lands on the lift: the rest is over, the clock did its whole job while the component was dead");
+  ok(RP({ phase: "rir-open", restStart: t0, restLen: 150 }, t0 + 60000).phase === "rir-open" && RP({ phase: "rir-open", restStart: t0, restLen: 150 }, t0 + 60000).autoSkip === false, "S4 — an opener ask 60s into its 150s rest is STILL LIVE on return: asked-at-the-set holds while the set is still recent");
+  const stale = RP({ phase: "rir-open", restStart: t0, restLen: 150 }, t0 + 151000);
+  ok(stale.phase === "lift" && stale.autoSkip === true, "S4 STALE-ASK LAW — an opener ask that outlived its rest resolves to SKIP (null) and lands on the next true phase: a minutes-old memory answer is the v7.12.0 sin this flow exists to prevent");
+  const staleT = RP({ phase: "rir-end", restStart: t0, restLen: 150 }, t0 + 151000);
+  ok(staleT.phase === "lift-done" && staleT.autoSkip === true, "S4 — the terminal ask goes stale by the same clock and lands on lift-done, the record showing unrecorded, nothing downstream blocked");
+  ok(RP({ phase: "lift", restStart: t0, restLen: 150 }, t0 + 999000).phase === "lift" && RP({ phase: "all-done" }, t0).phase === "all-done", "S4 — non-ask phases restore verbatim: mid-lift lands mid-lift, the done screen stays done");
+  /* the source laws */
+  const srcP = readFileSync("src/app.jsx", "utf8");
+  const gmP = srcP.slice(srcP.indexOf("function GymMode("), srcP.indexOf("function NegotiatorConsole("));
+  ok(gmP.indexOf('overflow: "hidden", overscrollBehavior: "none"') > -1 && gmP.indexOf('overflowY: "auto"') === -1, "S1 — GYM MODE DOES NOT SCROLL: the frame is overflow hidden with no scroll fallback anywhere in the component — if content exceeds it, the content is wrong, not the frame");
+  ok(gmP.indexOf('data-hero="clock"') > -1 && gmP.indexOf('data-hero="receipt"') > -1, "S2 — both voids became instruments: the opener's hero is the RUNNING rest clock (same grammar as the rest screen — one visual system), the terminal's is the banked receipt, because no rest is armed after the last set and a fake countdown would be paint with no instrument behind it");
+  ok(gmP.indexOf('if (phase !== "rest" && phase !== "rir-open") return;') > -1 && gmP.indexOf('if (tick() <= 0 && phase === "rest")') > -1, "S2 — the clock ticks through the opener ask but the auto-advance stays rest-only: the ask is owed, the advance is not");
+  ok(gmP.indexOf("restLen, phase })") > -1 && gmP.indexOf("resumePhase(d, Date.now())") > -1, "S4 — PHASE rides the draft and re-entry routes through the resume law: leaving mid-rest and returning teleports nowhere");
+  ok((gmP.match(/= setInterval\(/g) || []).length === 1 && gmP.indexOf("restLen - Math.floor((Date.now() - restStart) / 1000)") > -1, "S4 — DERIVE, NEVER TICK-OWN: exactly one interval ASSIGNMENT exists in the session component and it only repaints; every displayed second is computed from the persisted wall-clock anchor (the comment recounting the old tick-owned bug is prose, not a second timer)");
+  /* the chip */
+  const chip = srcP.slice(srcP.indexOf("function SessionLiveChip("), srcP.indexOf("function MoreTab("));
+  ok(chip.indexOf('data-chip="session-live"') > -1 && chip.indexOf("zIndex: 49") > -1 && chip.indexOf('width: "calc(100% - 90px)"') > -1, "S4 CHIP — rides above the rail on every tab at z 49 (GymMode's overlay at 60 buries it during a live session by construction) and leaves the FAB corridor free — it may not cover either");
+  ok(chip.indexOf('padding: "28px 0 0 0"') > -1 && chip.indexOf("resumePhase(draft, Date.now())") > -1 && chip.indexOf("(draft.restLen || 0) - Math.floor((Date.now() - draft.restStart) / 1000)") > -1, "S4 CHIP — 64-hit via upward slop under the paint-slop law, and its countdown derives from the SAME persisted anchor as the gym screen: one clock, two displays, zero owned ticks");
+  ok(chip.indexOf('sessionStorage.setItem("pl-resume-gym", "1")') > -1 && srcP.indexOf('sessionStorage.getItem("pl-resume-gym")') > -1, "S4 CHIP — the tap returns to TRAIN and re-opens Gym Mode through the one-shot flag; the draft restore lands the exact phase");
+  /* ---------- ROUND 5 — three loose wires, pinned tight ---------- */
+  ok(gmP.indexOf('de.style.overflow = "hidden"; db.style.overflow = "hidden";') > -1 && gmP.indexOf("window.scrollTo(0, 0)") > -1 && gmP.indexOf("de.style.overflow = prev9[0]") > -1, "F1 — the DOCUMENT scroll-locks while Gym Mode is mounted (html AND body — the page behind the overlay kept 1772px of live scroll) and restores exactly what was there on unmount: the modal pattern, with the give-back");
+  ok(chip.indexOf('data-arm={resting ? "rest" : "resume"}') > -1 && chip.indexOf('const resting = rp9.phase === "rest" && remain > 0;') > -1, "F2 — the chip's two arms are honest: the REST arm belongs to the rest phase ALONE, so a mid-ask exit wears RESUME (the owed thing is the ask) — the arm that could never render, now pinned by attribute");
+  ok((srcP.split("findGymDraft()").length - 1) >= 3 && chip.indexOf("const draft = findGymDraft();") > -1, "F3 — ONE scanner on every door: the chip, the launcher path and GymMode's mount all read findGymDraft, so a 1:39 AM session keyed to yesterday resumes identically from any entrance");
+  ok(srcP.indexOf("const live9 = findGymDraft();") > -1 && srcP.indexOf("const gDate = live9 ? live9.iso : dateSel;") > -1, "F3 — a live draft OWNS its session: every gym open keys GymMode to the draft's own date, so the restore + resumePhase wiring (the proven pure law) actually runs on the manual door too — the wiring was the gap, and the date boundary was the wire");
+  /* ---------- ROUND 6 · F4 — the clock can never be hidden on any tab ---------- */
+  ok(chip.indexOf("const iv = setInterval(() => force((x) => x + 1), 800);") > -1 && chip.indexOf("if (!draft) return;") === -1, "F4 — the chip DISCOVERS: its interval runs unconditionally, so a gym exit that never re-renders the shell still surfaces the clock on the very tab it lands on — a draft-gated interval was the invisible wire");
+  const launcher = srcP.slice(srcP.indexOf("function GymLauncher("), srcP.indexOf("function SessionLiveChip("));
+  ok(launcher.indexOf('data-launcher="live"') > -1 && launcher.indexOf('"▸ RESUME · REST "') > -1 && launcher.indexOf('"▸ RESUME SESSION · "') > -1 && launcher.indexOf("minHeight: 64") > -1, "F4 — AND the better design: the GYM MODE launcher itself wears the live session (both arms, same persisted anchor, 64 law intact) — the door on TRAIN shows the running state, self-ticking so no parent re-render is ever load-bearing");
+  ok(launcher.indexOf("resumePhase(live, Date.now())") > -1 && (srcP.split("findGymDraft()").length - 1) >= 4, "F4 — the launcher reads the SAME scanner and the SAME resume law as every other door: one clock, three displays, zero owned ticks");
+}
+console.log(`\nFINAL89: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
