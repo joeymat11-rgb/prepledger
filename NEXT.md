@@ -1075,6 +1075,23 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15c ROUND 2 — TOUCH LAW RE-DERIVED PER CONTROL, SPECIES GRAYSCALE-PROOF
+
+**S1, the rig's misses closed one by one:** paint-free text slop re-derived (26+26+14 =
+66 ≥ 64 — the first arithmetic read 58 on the rig; the rig is the authority); the
+ask-screen skips carry a PAINTED border so they got the full outer/inner split (paint on
+the span, hit on the button — the standing rule applied even to quiet controls); the GYM
+MODE launcher on TRAIN is a 64px control (the entry door, not a carve-out); the counter
+pair holds 72 against flex squeeze (flex:none — the rig read 67 before; the comment now
+describes the element that exists). All pins updated to the derived values.
+
+**R1 taken:** the opener wears ◇ (the empty diamond IS the honest gatekeeper), the
+terminal ◆ — the species now survive grayscale on glyph + edge, the discipline R15d's
+decision cards inherit. **R2 taken:** both asks settle into the thumb zone (lower third,
+flex-end) — the question answered one-handed between sets lives where the thumb is.
+
+Suite 1893 → 1897, freeze byte-clean. STOPPED for the round-2 probe set + re-screenshots.
+
 ### R15c — TRAIN, THE IN-SESSION SCREEN — BUILT 2026-08-07, branch feat/r15c-train
 
 **A restyle with the flow frozen.** Every GymMode handler, phase and state line untouched
