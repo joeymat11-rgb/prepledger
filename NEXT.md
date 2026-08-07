@@ -2345,6 +2345,22 @@ unpushed at `e01075c`. Consolidate to one clone + worktrees — but **push or ta
 branch somewhere safe first**, as its own separate job, and only after v7.5 has shipped
 and settled. Do not fold this into a feature build.
 
+## DEPLOY INCIDENT LOG — 2026-08-07, run 306: the beacon lost a race with a phone sync
+
+**Second runner-adjacent incident this week — but a different mechanism, so not the run-299
+pattern.** The deploy itself succeeded (v7.18.0 byte-verified live, e3a9b35dca7f72ab); the
+BEACON push was rejected fetch-first because a ledger auto-sync landed on main mid-deploy,
+and the failure-path beacon was rejected the same way. The record said v7.17.0 while
+v7.18.0 was live — **the beacon holding stale truth, which is the exact condition it exists
+to prevent.**
+
+- **Record corrected on the ledger lane** ([skip ci]), to independently verified reality,
+  with the race noted in the file itself.
+- **Workflow fixed on `fix/beacon-race`**: both beacon pushes now fetch-merge-retry (×3,
+  `-X ours` — the beacon file is ours, the synced ledger is theirs and merges cleanly).
+  This is `ship.mjs`'s merge-before-push lesson, arriving at the workflow layer a week
+  later. Phone syncs are frequent; this race recurs without it.
+
 ## DEPLOY INCIDENT LOG — 2026-08-06, run 299
 
 The v7.16.1 merge (`bcc1dbf`) was gated green locally and its branch tip passed CI as run

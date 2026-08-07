@@ -114,7 +114,16 @@ jobs:
           git config user.name beacon && git config user.email beacon@prepledger
           git add ledger/deploy.json
           git commit -m "[skip ci] deploy beacon: published" || exit 0
-          git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:main
+          # BEACON RACE (run 306): main moves whenever the phone syncs, and a bare push
+          # lost that race -- rejected fetch-first, so the record said v7.17.0 while
+          # v7.18.0 was byte-verified live. Merge-then-push with retries; the beacon
+          # file is ours (-X ours), the synced ledger is theirs and merges cleanly.
+          for i in 1 2 3; do
+            git fetch "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" main
+            git merge -X ours --no-edit FETCH_HEAD || { git merge --abort; sleep 3; continue; }
+            git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:main && break
+            sleep 3
+          done
 
       - name: Beacon — failure
         if: failure()
@@ -133,7 +142,16 @@ jobs:
           git config user.name beacon && git config user.email beacon@prepledger
           git add ledger/deploy.json
           git commit -m "[skip ci] deploy beacon: FAILED" || exit 0
-          git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:main
+          # BEACON RACE (run 306): main moves whenever the phone syncs, and a bare push
+          # lost that race -- rejected fetch-first, so the record said v7.17.0 while
+          # v7.18.0 was byte-verified live. Merge-then-push with retries; the beacon
+          # file is ours (-X ours), the synced ledger is theirs and merges cleanly.
+          for i in 1 2 3; do
+            git fetch "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" main
+            git merge -X ours --no-edit FETCH_HEAD || { git merge --abort; sleep 3; continue; }
+            git push "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:main && break
+            sleep 3
+          done
 
   # ---------------------------------------------------------------- previews --
   preview:
