@@ -1075,7 +1075,47 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
-### R13. The step-conditioned maintenance PRIMARY  `[HELD — evidence gate not met]`
+### STEPS ITEM A — BUILT 2026-08-07 (supersedes the held R13, per the steps spec)
+
+**Open question 1, answered the audit's way, and the data decided it.** The measured 35-day
+figure stays the headline; `tdeeAtNow` is promoted ONLY when even the smallest net reading of
+the drift (70% of gross) clears the measured number's own band halfwidth. On the live ledger:
+gross −115, net −80…−86, halfwidth **185** — **not promoted.** The step story changes; the
+number he eats to does not. A projection must carry more uncertainty than a measurement, never
+quietly replace it inside its own noise.
+
+**Open question 2: the BAND, as the audit preferred.** `tdeeAtNowNet` (70% of gross) to
+`tdeeAtNowGross`, with `tdeeAtNowMid` (72.5%) as the promoted point. `STEP_COMP_LO/HI =
+0.25/0.30`, cited to Careau et al. at the lean end, GRADE MODERATE-HIGH carried in the copy.
+
+**The window mismatch was a live overclaim, not a tidy-up.** `stepTarget`'s receipt claimed
+*"your maintenance was measured across [21-day window] averaging [14.5k]"* — it was measured
+over the rate-matched window at ~16.8k. The copy asserted the identity the mismatch broke
+(R10a family). `observedTDEE` now owns the measured-at figure; `stepTarget` quotes it and
+names its own 21-day band as RECENT behaviour — two numbers, two names, no conflation.
+
+**One kcal-per-step owner.** `EA_KCAL_PER_1K_STEPS_PER_KG` now derives from
+`WALK_J_PER_KG_M × STEP_LEN_M` (0.430) instead of an authored 0.4 sitting 7.6% away — the
+cited constant wins. **Measured side-effect, reported:** `ea.lo` 27.2 → 26.8 (steps price
+higher, so more walking kcal is subtracted); still above `EA_SPARING` 25, no band change.
+
+**Acceptance, all driven** (snapshot `2026-08-07-ledger.json` committed, 98 KB):
+- Snapshot: primary == measured, unpromoted; eat band **byte-identical** at 2221–2308;
+  one measured-at owner; a thousand steps worth the same kcal everywhere.
+- Fixture (a): current == window steps → `tdeeAtNow == tdee`, delta 0, no promotion.
+- Fixture (b): a collapse clearing the halfwidth at the smallest net reading → promoted, and
+  the eat band moves by **at most the net delta** (the thermodynamic bound).
+- Fixture (c): a real-but-small drift → unpromoted, eat band moves **not at all** — the
+  no-precision-theatre guard observed to hold on a fixture built to trip it.
+- No device-calorie ingestion, asserted against comment-stripped source.
+- No new stored field — pure selectors over `dailyLogs.steps`.
+
+**Fixture lesson recorded:** the last-7 days sit INSIDE the measurement window, so writing
+them moves `atSteps` too — the first fixtures assumed independence and asserted against
+pre-mutation numbers. Both windows are controlled explicitly now.
+
+### R13-old (held) — superseded by the above; kept for the hold reasoning
+  `[HELD — evidence gate not met]`
 
 **WHAT.** `observedTDEE` returns maintenance at his CURRENT activity level rather than the
 window average, and `energyBalanceTarget` divides from that.

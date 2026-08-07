@@ -1804,6 +1804,12 @@ function proteinHit(target, g) { return g != null && g >= target - PROTEIN_TOL_G
    trained-population evidence links lean-mass loss to deficit magnitude
    (Murphy & Koehler 2022) and has nothing at all against walking. */
 function stepTarget(s) {
+  /* STEPS ITEM A audit fix — the WHY used to claim "your maintenance was measured across
+     [21-day window] averaging [21-day steps]" while observedTDEE measures it over the
+     rate-matched window (36 days at ~16.8k). Two baseline-step numbers for one athlete,
+     and the copy asserted the identity the mismatch broke. observedTDEE owns the
+     measured-at figure now; this band owns recent behaviour; the copy states both. */
+  let _tdA = null; try { _tdA = observedTDEE(s); } catch (e) { _tdA = null; }
   const cutoff = isoOf(new Date(todayStart().getTime() - 21 * DAY));
   /* SORTED, not insertion-ordered. dailyLogs is a plain object and its key order
      is whatever the writes happened to be; taking .slice(-7) off that gave the
@@ -1830,7 +1836,7 @@ function stepTarget(s) {
   return {
     gated: false, lo: loE, hi: hiE, mid: midE, baseMid: mid, adjSteps: stepAdj, days: rows.length, kcalPer1k, avg: Math.round(avg),
     recentAvg: recentAvg == null ? null : Math.round(recentAvg), drift, driftKcal,
-    why: `Your measured maintenance was measured across ${rows.length} days averaging ${Math.round(avg).toLocaleString()} steps — so the calorie band is only right while the walking that produced it continues. Every 1,000 steps is worth about ${kcalPer1k} kcal at your bodyweight.${Math.abs(driftKcal) >= 40 ? ` Your last week runs ${drift > 0 ? "+" : ""}${drift.toLocaleString()} against that, which is about ${driftKcal > 0 ? "+" : ""}${driftKcal} kcal/day of maintenance the target has not caught up with yet.` : ""}`,
+    why: `Your maintenance was measured at ${(_tdA && _tdA.atSteps != null) ? _tdA.atSteps.toLocaleString() : Math.round(avg).toLocaleString()} average steps over its own ${(_tdA && _tdA.days) || rows.length}-day window — that number owns the claim. This band holds you to your RECENT ${rows.length}-day average of ${Math.round(avg).toLocaleString()}, and the two differ because your walking has been falling — so the calorie band is only right while the walking that produced it continues. Every 1,000 steps is worth about ${kcalPer1k} kcal at your bodyweight.${Math.abs(driftKcal) >= 40 ? ` Your last week runs ${drift > 0 ? "+" : ""}${drift.toLocaleString()} against that, which is about ${driftKcal > 0 ? "+" : ""}${driftKcal} kcal/day of maintenance the target has not caught up with yet.` : ""}`,
   };
 }
 
@@ -2504,11 +2510,32 @@ function observedTDEE(s) {
   const bw6 = (s && s.trend) || null;
   const stepDelta = (atSteps != null && stepsNow != null && bw6) ? Math.round(stepKcal(bw6, stepsNow - atSteps)) : null;
   const tdeeAtNow = stepDelta != null ? tdee + stepDelta : null;
+  /* STEPS ITEM A (R13) — the step delta is priced NET OF COMPENSATION, as a BAND.
+     Added or removed activity is only partly additive: the body claws back ~25-30% in a
+     lean subject (Careau et al., constrained-expenditure literature; leaner compensates
+     less, ~30% vs ~46% at higher body fat). GRADE: MODERATE-HIGH, and the copy says so.
+     The band runs gross at one edge to 70%-of-gross at the other, so the uncertainty is
+     visible instead of hidden inside a coefficient.
+
+     PROMOTION IS CONSERVATIVE, which is what unblocked R13's original hold: the measured
+     35-day figure stays the headline UNLESS even the SMALLEST net reading of the drift
+     (70% of gross) clears the measured number's own band halfwidth. Measured on the live
+     ledger 2026-08-07: gross -115, net -80..-86, halfwidth 185 -> NOT promoted; the
+     step story changes, the number he eats to does not. A projection must carry MORE
+     uncertainty than a measurement, never quietly replace it inside its own noise. */
+  const STEP_COMP_LO = 0.25, STEP_COMP_HI = 0.30;   // lean-subject compensation, Careau et al.
+  const _halfw = (isFinite(hi) && isFinite(lo)) ? Math.round((hi - lo) / 2) : null;
+  const tdeeAtNowGross = tdeeAtNow;
+  const tdeeAtNowNet = stepDelta != null ? Math.round(tdee + stepDelta * (1 - STEP_COMP_HI)) : null;   // 70% of gross — the smallest honest reading
+  const tdeeAtNowMid = stepDelta != null ? Math.round(tdee + stepDelta * (1 - (STEP_COMP_LO + STEP_COMP_HI) / 2)) : null;
+  const stepPromoted = stepDelta != null && _halfw != null && Math.abs(stepDelta * (1 - STEP_COMP_HI)) > _halfw;
+  const tdeePrimary = stepPromoted ? tdeeAtNowMid : tdee;
   return {
     tdee, days: cals.length, avg: Math.round(avg),
-    atSteps, stepsNow, stepDelta, tdeeAtNow,
+    atSteps, stepsNow, stepDelta, tdeeAtNow, tdeeAtNowGross, tdeeAtNowNet, tdeeAtNowMid,
+    stepPromoted, tdeePrimary, stepCompLo: STEP_COMP_LO, stepCompHi: STEP_COMP_HI,
     stepsWhy: (atSteps == null || stepsNow == null) ? null
-      : `${tdee} is your maintenance AT ${atSteps.toLocaleString()} average steps — the activity level of the ${cals.length} days it was measured over. You are averaging ${stepsNow.toLocaleString()} over the last seven, which prices at about ${tdeeAtNow} instead. The scalar is not wrong; it is conditioned, and the condition moved. Steps are the cheapest lever here because adding them does not deepen the food deficit.`,
+      : `${tdee} is your maintenance AT ${atSteps.toLocaleString()} average steps — the activity level of the ${cals.length} days it was measured over. You are averaging ${stepsNow.toLocaleString()} over the last seven, which prices at about ${tdeeAtNowNet}–${tdeeAtNowGross} once compensation is carried — the body claws back roughly a quarter to a third of an activity change in someone your leanness, so the gross figure is the edge of the band, not the number. ${stepPromoted ? `That drift clears the measured number's own noise, so the primary is now ${tdeePrimary}, if this week's steps hold — seven days is a projection, not a measurement.` : `That drift sits inside the measured number's own noise band (±${_halfw}), so ${tdee} stays the headline and this is the story behind it, not a new number.`} Steps are the cheapest lever here because adding them does not deepen the food deficit.`,
     lo, hi, clamped: RAW > CEIL, method: r.method, rateN: r.n,
     rate: r.scale, rateCi: r.ci, from, to, matched, split,
     perLb: ed.perLb, perLbLo: ed.lo, perLbHi: ed.hi, edIdentified: ed.identified, impliedPerLb, impossible,
@@ -2957,8 +2984,13 @@ function calorieTarget(s) {
      size of the error that was there. */
   const ed = energyDensity(s);   // v7.3.0 Slice 4 — the ONE energy-density owner (== the prior 3800 until a DEXA identifies fat mass; then fat-mass-dependent)
   const kcalFor = (lbWk) => Math.round((lbWk * ed.perLb) / 7);
-  const baseHi = Math.max(floor, td.tdee - kcalFor(band[0]));
-  const baseLo = Math.max(floor, td.tdee - kcalFor(band[1]));
+  /* STEPS ITEM A — the target divides from tdeePrimary, which EQUALS the measured tdee
+     until the net step drift clears the measurement's own noise (the no-precision-theatre
+     guard). Today they are identical and the eat band is byte-identical; the promoted
+     branch is driven by fixture. */
+  const tdEff = (td.tdeePrimary != null ? td.tdeePrimary : td.tdee);
+  const baseHi = Math.max(floor, tdEff - kcalFor(band[0]));
+  const baseLo = Math.max(floor, tdEff - kcalFor(band[1]));
   /* v7.3.1 — an APPROVED Auto-Pilot steer is a tracked, reversible offset ADDED to the engine-owned
      base band (never mutating it): a tighten lowers it, an ease raises it, floored the same way, and it
      reconciles away at the next weigh-in (activeAdjustment). Zero offset when none is active, so every
@@ -2993,7 +3025,7 @@ function calorieTarget(s) {
     wkWhy: wkAvg == null ? null
       : (wkAvg >= lo && wkAvg <= hi) ? `Your last ${wkRows.length} logged days average ${wkAvg} — inside the ${lo}–${hi} band. The target and the result agree, which is the only state worth being in.`
       : `Your last ${wkRows.length} logged days average ${wkAvg}, which is ${Math.abs(wkAvg > hi ? wkAvg - hi : lo - wkAvg)} kcal/day ${wkAvg > hi ? "above the top" : "below the bottom"} of the ${lo}–${hi} band — about ${(Math.abs(wkAvg > hi ? wkAvg - hi : lo - wkAvg) * 7 / ed.perLb).toFixed(2)} lb/wk ${wkAvg > hi ? "slower" : "faster"} than the band is aiming for. Not a scolding, just the arithmetic: a daily target and a weekly result are different questions.`,
-    tdee: td.tdee, tdeeLo: td.lo, tdeeHi: td.hi, days: td.days, avg: td.avg,
+    tdee: td.tdee, tdeePrimary: td.tdeePrimary, stepPromoted: !!td.stepPromoted, tdeeLo: td.lo, tdeeHi: td.hi, days: td.days, avg: td.avg,
     band, phaseLo, phaseHi, drift, floorHit: lo === floor,
     floor, floorSoft: fl.soft, floorWhy: fl.why,
     /* If the floor is what's binding, the rate target is asking for more than
@@ -3060,7 +3092,11 @@ function calorieTarget(s) {
 const EA_SPARING = 25;
 const EA_LOW = 20;
 const EA_STEP_BASELINE = 4000;
-const EA_KCAL_PER_1K_STEPS_PER_KG = 0.4;
+/* STEPS ITEM A — derived from the ONE cited walking cost, not authored. 0.4 was a round
+   convention that priced a step 7.6% below what stepKcal charges (WALK_J_PER_KG_M x
+   STEP_LEN_M / 4184 = 0.430), so the same step was worth two different numbers depending
+   on which card priced it. One owner now; the tell for a bad constant is a round number. */
+const EA_KCAL_PER_1K_STEPS_PER_KG = +(WALK_J_PER_KG_M * STEP_LEN_M * 1000 / 4184).toFixed(3);
 const EA_KCAL_PER_SESSION = 300;
 function energyAvailability(s) {
   const cutoff = isoOf(new Date(todayStart().getTime() - 21 * DAY));
