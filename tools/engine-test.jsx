@@ -7005,7 +7005,11 @@ if (fail) process.exit(1);
   const secSl = srcE.slice(srcE.indexOf("function Section({"), srcE.indexOf("function More({"));
   ok(secSl.indexOf('minHeight: 44, display: "flex", flexDirection: "column", justifyContent: "center", padding: "12px 12px", margin: "-12px -12px"') > -1, "R15e TOUCH LAW — the shared Section header clears 44 by slopping into the Card's own inert padding; layout byte-identical by equal-and-opposite arithmetic");
   ok(srcE.indexOf('color: showSetup[ex.id] ? T.chalk : T.steel, background: "none", border: "none", padding: "15px 12px", margin: "-15px -12px"') > -1, "R15e TOUCH LAW — SETUP + CUES on TRAIN gets the same slop treatment");
-  ok(srcE.indexOf("the span carries the pill byte-for-byte") > -1 && srcE.indexOf("why not cut calories? {whyOpen ?") > -1, "R15e — the why-not pill obeys the painted-control split: outer paint-free hit box, the pill rides the inner span (the R15b round-4 law)");
+  /* ROUND 2 — THE PAINTED-PILL CLASS IS CLOSED: all four pill disclosures (why not cut
+     calories / why this number / track record / the arc) wear the same split, and the
+     old shape — a bordered pill that is its own hit box — can no longer exist. */
+  ok((srcE.split("the span carries the pill byte-for-byte").length - 1) === 4 && (srcE.split('padding: "7px 0", margin: "-7px 0", cursor: "pointer" }}').length - 1) === 4, "R15e round 2 — the painted-pill CLASS is closed: four pills, four identical splits (outer paint-free slop, pill on the inner span, hit ≥44 by the same arithmetic the audit measured on why-not)");
+  ok((srcE.split('borderRadius: 999, padding: "6px 12px", cursor: "pointer" }}>').length - 1) === 0, "R15e round 2 — and the OLD shape is extinct: no bordered pill anywhere in the app is its own hit box");
   /* the producer itself, driven: the note files under the region title with the curve body */
   const clE = (o) => JSON.parse(JSON.stringify(o));
   const stE = clE(__test.SEED);
