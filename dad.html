@@ -225,8 +225,17 @@
         <div style="font-family:var(--disp);font-weight:700;font-size:27px;text-transform:uppercase;letter-spacing:.03em">Give it two weeks.</div>
         <div class="why" style="margin-top:4px">It listens and learns you first. Then it coaches —<br>and everything it learns, it keeps for good.</div>
       </div>
+      <div id="s7diff" style="display:none">
+        <div class="card jade">
+          <div class="micro" style="color:var(--jade)">ONE OF ONE</div>
+          <div style="font-family:var(--disp);font-weight:700;font-size:24px;text-transform:uppercase;letter-spacing:.03em;margin-top:8px">There is no other copy of this.</div>
+          <div class="fact"><span class="g">◆</span><span class="t">Every app on the store was built for <b>a million strangers</b> and their averages. This engine answers to <b>one body — yours.</b> Every target it ever sets will be measured from you, on your own equipment, at your own pace.</span></div>
+          <div class="fact"><span class="g">◆</span><span class="t">Everything else out there guesses and calls it coaching. This one <b>keeps receipts</b> — every number it shows can point to the measurement it came from. And when it doesn't know you yet, it says so and waits.</span></div>
+          <div class="fact"><span class="g">◆</span><span class="t"><b>Built by your son. Tuned to your body. Nothing else like it exists — because it couldn't.</b> It has to be built around one person, and this one is built around you.</span></div>
+        </div>
+      </div>
     </div>
-    <button class="btn jade" onclick="location.href='sms:&body=' + encodeURIComponent("I'm in. Set up my coach.")">I'M IN — TEXT JOE ▸</button>
+    <button class="btn jade" id="s7btn" onclick="s7more()">SO WHAT MAKES THIS DIFFERENT ▸</button>
     <button class="btn ghost" onclick="go(0)">↺ run the tour again</button>
   </div>
 
@@ -273,6 +282,12 @@
     document.getElementById("s3prog").textContent = p;
     var el = document.getElementById("s3reps"); el.innerHTML = r; el.classList.remove("fade-in"); void el.offsetWidth; el.classList.add("fade-in");
     document.getElementById("s3note").innerHTML = n;
+  }
+  function s7more(){
+    var d = document.getElementById("s7diff"), b = document.getElementById("s7btn");
+    d.style.display = "block"; d.classList.add("fade-in"); b.style.display = "none";
+    var g = d.parentElement;
+    try { g.scrollTo({ top: g.scrollHeight, behavior: "smooth" }); } catch (e) { g.scrollTop = g.scrollHeight; }
   }
   function s5pick(btn, v){
     btn.style.background = "var(--jade)"; btn.style.color = "#0B2A1C"; btn.style.borderColor = "var(--jade)";
