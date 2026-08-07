@@ -1,16 +1,16 @@
 {
-  "gen": "2026-08-06T09:05:15.371Z",
+  "gen": "2026-08-07T09:06:50.796Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 163.45,
-    "lastRaw": 162.2,
-    "appTrend": 163.1,
+    "soft": 163.28,
+    "lastRaw": 162.8,
+    "appTrend": 163,
     "noiseFloor": 1.52,
-    "gap": 1.25
+    "gap": 0.48
   },
   "rate": {
-    "perWeekLb": 1.06,
-    "perWeekPct": 0.65,
+    "perWeekLb": 1.07,
+    "perWeekPct": 0.66,
     "bandLb": 0.79,
     "personalBand": [
       1,
@@ -19,9 +19,9 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2852,
-    "tdeeWinDays": 16,
-    "meanCal": 2242,
+    "tdee": 2882,
+    "tdeeWinDays": 17,
+    "meanCal": 2273,
     "waterSensitivityLb": 0.96,
     "waterSensDays": 3,
     "meanSleepH": 6.8,
@@ -31,7 +31,7 @@
   },
   "regime": {
     "regime": "steady loss",
-    "why": "trend descending at 1.06 lb/wk within your target band"
+    "why": "trend descending at 1.07 lb/wk within your target band"
   },
   "weeks": [
     {
@@ -71,24 +71,13 @@
     },
     {
       "wk": "2026-08-03",
-      "meanCal": 1950,
-      "meanPro": 183,
+      "meanCal": 2250,
+      "meanPro": 189,
       "proHitPct": 100,
-      "meanSteps": 12000
+      "meanSteps": 13000
     }
   ],
   "priorDecisions": [
-    {
-      "sid": "sug_2026-07-29_ext_opener",
-      "decided": "approved",
-      "d": "2026-07-29",
-      "title": "Extension: open harder — one rep in the tank, not two",
-      "apply": {
-        "kind": "progression",
-        "to": "Extension 150: take set 1 to ~1 RIR until 9,9 lands"
-      },
-      "predict": "Next lower day the opener lands 9 and the pair reaches 9,9, reopening 155 within two sessions."
-    },
     {
       "sid": "sug_2026-07-31_legcards",
       "decided": "approved",
@@ -182,11 +171,21 @@
         "kind": "note"
       },
       "predict": "Re-enter it with the weight and one of two things settles tonight. At 155, 8,8 meets the clean-debut threshold this loop named on 8/1, q_ext155 closes and the gate CL-2 shut on 7/21 is earned. At 150, it is three reps off your 10,9 and the gate stays shut. Either way exercises.extension.lastMeta moves off 2026-07-31 and your next lower day stops prescribing from a nine-day-old card."
+    },
+    {
+      "sid": "sug_2026-08-06_sleep",
+      "decided": "approved",
+      "d": "2026-08-06",
+      "title": "Bed by 00:30 tonight — and log the night. The debt went up, not down.",
+      "apply": {
+        "kind": "note"
+      },
+      "predict": "Bed by 00:30 puts tonight at 7.0-7.5 h. Grade it on sleep.nights gaining entries for 8/5 and 8/6, and on the 7-night debt falling under 3.0 h by Saturday. If the nights get logged and the debt still climbs, the ask is wrong and I stop making it."
     }
   ],
   "suggestions": [
     {
-      "sid": "sug_2026-08-05_sleep",
+      "sid": "sug_2026-08-06_sleep",
       "title": "Protect sleep: aim 7.5 h, cap afternoon caffeine",
       "apply": {
         "kind": "sleep",

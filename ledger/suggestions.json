@@ -1,21 +1,38 @@
 {
-  "gen": "2026-08-06T09:20:00.000Z",
+  "gen": "2026-08-07T09:06:50.796Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-06_sleep",
+      "sid": "sug_2026-08-07_rateopener",
       "rank": 1,
-      "title": "Bed by 00:30 tonight — and log the night. The debt went up, not down.",
+      "title": "Rate set one on every lift next session — two sessions have gone in blind",
+      "apply": {
+        "kind": "progression",
+        "to": "Log opener RIR on every lift next session; rows 180 opener at 2 RIR releases the hold"
+      },
+      "rationale": {
+        "science": "Load progression has to be anchored to proximity-to-failure, not reps alone: reps-to-failure at a fixed load vary by roughly 1 rep session to session (Mitter 2022), which is why the standard is two sightings at a known effort (Ratamess 2009) rather than one good-looking day.",
+        "data": "Every entry in the 8/4 and 8/6 sessions carries rir: null. The last rated opener in the file is 8/3. Rows still read rirHist [0,0] and holdFlag true after 180 x 9,8 on Thursday, and press 250 x 8,8,7 - the best press in the file - went in unrated.",
+        "relationship": "Your app's governor only reads the opener. A blank one is not honest and not hot, it is invisible: it can neither release the rows hold nor bank the press attempt. So the two sessions you actually trained well are the two sessions that moved nothing."
+      },
+      "predict": "Rate the opener next session and rows.rirHist gains a non-zero entry, rows.holdFlag flips to false with a HOLD RELEASED feed row, and 185 comes back in reach off 10,10. Leave it blank a third time and rows stays at 180 however the reps look - and I will call that a failure of this card, not of you.",
+      "confidence": "high",
+      "gate": "approve"
+    },
+    {
+      "sid": "sug_2026-08-07_sleeplog",
+      "rank": 2,
+      "title": "Log the last two nights, and take 7 h tonight — Thursday's 250 press banked as a debt session",
       "apply": {
         "kind": "note"
       },
       "rationale": {
-        "science": "At a matched calorie deficit, short sleep (5.5 h vs 8.5 h) cut fat loss by 55% and raised lean-mass loss by 60% — sleep barely changes how fast the scale moves, it changes how much of the loss comes off muscle (Nedeltcheva 2010; Wang 2018).",
-        "data": "Your 7-night sleep debt is 3.8 h this morning, up from 2.8 h on Tuesday. The last two logged nights are 6.17 h (bed 01:40) and 6.00 h (bed 01:20), against 7.42 / 7.50 / 7.83 the week before. Wake is pinned at 07:30-08:00, so bedtime is the entire variable — and last night is still unlogged.",
-        "relationship": "You are cutting at 0.65 %/wk with lean protection as the whole point of running it that slowly, and sleep is the only lever in the file currently pointed the wrong way. At your fixed wake time, fifty minutes of bedtime is the whole gap between a 6 h night and a 7 h one."
+        "science": "Short sleep is a body-composition lever, not a footnote: at equal deficits, 5.5 vs 8.5 h cut fat loss about 55% and raised lean-mass loss about 60% (Nedeltcheva 2010).",
+        "data": "You did the ask on 8/5 - bed 00:30, 7.58 h. The nights ending 8/6 and 8/7 are unlogged. The three nights before Thursday's session were 6.17, 6.00 and 7.58, a mean of 6.58 h against your app's own 7.0 h threshold, so the session ran on debt.",
+        "relationship": "The debt flag is computed from the three nights before a session, not from how the session felt. That is why the best press in the file - 250 x 8,8,7 - was marked provisional. Two logged nights at 7 h and the next session is clean before you walk in."
       },
-      "predict": "Bed by 00:30 puts tonight at 7.0-7.5 h. Grade it on sleep.nights gaining entries for 8/5 and 8/6, and on the 7-night debt falling under 3.0 h by Saturday. If the nights get logged and the debt still climbs, the ask is wrong and I stop making it.",
-      "confidence": "high",
+      "predict": "Log 8/6 and 8/7 and put two nights at or above 7 h in, and the three-night mean before your next session clears 7.0, so it banks clean rather than on debt. Grade it on sleep.nights gaining both dates and on lastMeta.debt reading false for the next session. If the nights get logged and the flag still trips, the threshold is the problem and not you, and I will say so.",
+      "confidence": "medium",
       "gate": "approve"
     }
   ]

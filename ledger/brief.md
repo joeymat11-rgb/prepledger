@@ -1,45 +1,91 @@
-<!-- 2026-08-06 -->
+<!-- 2026-08-07 -->
 
-# The read
+# The body is fine. The logbook lost two sessions.
 
-You're at 163.1 on the trend, off 162.2 on the scale yesterday — three clean mornings in a row now, all three pointing the same way. You're losing 1.06 lb a week, which is 0.65% of your bodyweight. That's the bottom of your own 1.0–1.4 lb band, and it's dead centre of the range the research says a trained lifter should cut at. The food doesn't need touching. It's working.
+Trend 163.3, last read 162.8, coming down 1.07 lb a week — that's 0.66% of you per week,
+which is the middle of the range the research says a trained lifter should cut at, and the
+bottom of your own band. Four mornings in a row on the scale: 164.0, 162.4, 162.2, 162.8.
+No gaps. That's the cleanest week of weighing in the file and it's why the numbers above
+are worth anything.
 
-Worth knowing: your app graded its own forecasts yesterday and found it runs pessimistic — calling you about three-quarters of a pound heavier than you turn out to be, six forecasts running. So if the trend line is wrong at all right now, it's wrong in your favour.
+Protein 189 a day this week, every week at 100% for eight weeks. Loads still going up.
+Nothing about your body composition needs a decision from me tonight.
 
-## What's driving the week
+## The one thing that matters this week
 
-**Sleep is going the wrong way, and it's the only real problem in the file.** Your seven-night debt was 2.8 hours on Tuesday. It's 3.8 hours this morning. The last two logged nights are 6.2 and 6.0, against 7.4, 7.5 and 7.8 the week before. Your wake time barely moves — you're up between 7:30 and 8:00 every day — so bedtime is the whole story: 00:20 buys you seven hours, 01:20 and 01:40 don't.
+**You've run two sessions in a row without rating a single opener.**
 
-This matters more than it sounds, and not for the reason people assume. Short sleep doesn't slow the scale much. At the same calorie deficit it changes *what comes off* — in the cleanest study we have, going from 8.5 to 5.5 hours cut fat loss by more than half and raised muscle loss by about 60% (Nedeltcheva 2010). You're doing everything else right specifically to protect lean. This is the one thing undoing it.
+Thursday and Tuesday both went in with the RIR field empty on every lift. The last session
+with an honest opener on it was 8/3.
 
-One more thing, offered as a lead and not a verdict: you had 400 mg of caffeine at 11:45 on Tuesday, the first entry in your caffeine log in a week. That's a big dose — roughly 5.4 mg per kilo, where about 3 is what actually helps a session (Grgic 2017). Half of it is still in you around midnight. That's one day and one data point, so I'm not building a case on it. But it's sitting directly behind one of the two late nights.
+That is not a small bookkeeping thing, because your app doesn't grade you on reps alone —
+it grades you on reps at a known effort. When the opener is blank, the session is invisible
+to the machinery that moves your loads. Concretely, Thursday:
 
-**Your steps have dropped hard, and that's why your maintenance number keeps sliding.** 12,000 on five of the last six days, against 15,600 the week before and 19–21,000 through June. You already know — you shipped a step-creep radar yesterday. Two things follow. Your real maintenance is falling, and the app's band will track it down on its own; that needs nothing from you. And my engine's maintenance fit is currently wrong in the *opposite* direction — it reads 2,852 and rising, off a window that still contains the 3,200 Thursday, the 4,000 Friday and the 3,000 Saturday from the party weekend. Steps down and maintenance up can't both be true. Ignore that number; it corrects itself as those days roll out. Fifth night I've had to write this — it's a defect in my engine, not a fact about you.
+- **Rows are frozen and stayed frozen.** Your rows card says it out loud: *"HELD — one
+  honest opener (RIR ≥1) releases the load."* You put up 180 × 9,8 — a good day — and the
+  hold didn't move, because a blank opener doesn't count as honest or as hot. It counts as
+  nothing. Rows cannot climb to 185 no matter how the reps look until you rate one opener.
+  You approved exactly this on Tuesday. I don't think you refused it; I think you logged
+  blind and it never got the chance.
+- **Press 250 × 8,8,7.** That's the best press in the file — the same numbers you owned at
+  245, now at 250, in your second session at the weight. It deserved a rating and didn't
+  get one.
 
-**Food is the least of your worries.** 1,950, 1,950 and 1,900 the last three days. Protein 180 to 185, another week at 100%. You have not missed a protein week anywhere in this file.
+The fix costs one tap per lift. Rate set one. That's the whole ask.
 
-## Is lean safe?
+## Driver two: the sleep number you fixed, and the one you didn't log
 
-On protein and on rate, comfortably. Your protein sits mid-range of where the research wants a lifter in a deficit, and 0.65% a week is the speed that costs the least muscle. The sleep debt is the only thing arguing the other way — which is exactly why it's tonight's job and nothing else is.
+Wednesday you did the thing — bed 00:30, 7.58 hours, exactly what the card asked for. Credit
+where it's due; that was the ask and you delivered it.
 
-## The one thing to do
+But the two nights since haven't been logged, and here's what that cost you. Your app decides
+whether a session is provisional by looking at the three nights before it. Going into
+Thursday those were 6.17, 6.00 and 7.58 — an average of 6.58 against its own 7.0 threshold.
+So the best press session in the file was banked as a debt session. Two nights at 7 hours,
+logged, and the next one runs clean.
 
-**Bed by 00:30 tonight, and log the night in the morning.**
+Watch the flag, not the guilt. This isn't "sleep more" for its own sake — it's the difference
+between a good session counting and a good session being marked provisional.
 
-I asked for this on Tuesday. You approved it and then went to bed at 01:20. I'm asking again for one reason: the debt went *up* instead of down. Fifty minutes of bedtime is the entire gap between a six-hour night and a seven-hour one, because your wake time doesn't move. And log it — Tuesday's card had no logging ask in it, which was my mistake, and it's why I couldn't grade that night until this morning.
+## Something I got wrong, out loud
 
-If the nights get logged and the debt still climbs, then the ask is wrong and I'll stop making it.
+For five nights running I've told you the rising maintenance number was an artifact — steps
+falling while the estimate says you burn more, which can't both be true. Ran the arithmetic
+tonight instead of repeating myself: you've averaged 2,273 calories over 17 days and lost
+1.07 lb a week, which is about 535 calories a day of deficit. 2,273 + 535 = roughly 2,800.
+Your app's own fit says 2,840 today. Those agree.
 
-## Already queued — nothing to do until you train
+So the number stopped being an artifact somewhere in the last week and became arithmetic. The
+three declared-estimate days still sit in the window at full weight and still inflate it a
+little, but the direction is real and I was wrong to keep calling it noise. The band the app
+prescribes off it is doing its job — your rate is landing where it should.
 
-Three things you approved yesterday are armed and waiting on sessions that haven't happened yet. None of them need re-deciding.
+## Observations, no action needed
 
-- **Rows — your next session is the upper day.** Rows can't gain load at all right now: two 0-RIR openers in a row tripped the governor, and while it's set, no rep count can move the weight. Open at 2 RIR, roughly 8 rather than 9, and the hold releases in that session.
-- **Tuesday's leg extension.** Still missing from the record. Your feed says you logged 8,8; the session holds five lifts and extension isn't one of them. Until it's back with its weight on it, your next leg day prescribes from a card dated July 31.
-- **Ham's counter.** Still reading one sighting at 120, when the session it's counting was 10,10 — which by your own rule shouldn't count. Left alone, the next good ham day queues 125 off half a baseline.
+- **Steps** are averaging 13,000 this week, down from 15,600. I'm not asking you to walk more.
+  You're losing at 0.66% with lifts going up; a steps card would be me asking you to lose
+  faster than you should.
+- **Calories** ran 2,800 Wednesday and 2,300 Thursday against the ~1,950 days before them. The
+  rate absorbed it without blinking. The band is the engine's call, not mine, and it's fine.
+- **The cut-is-done question answered itself.** Your app withdrew that card Thursday — the
+  body-fat estimate behind it had a range wider than the decision it was asking you to make.
+  The regime detector reads lifts and scale rate instead, and it says steady loss. I'll stop
+  carrying it.
+- **Three things you approved are still waiting on a leg day** — the extension entry, the ham
+  counter, and now the rows opener. Thursday was upper, so none of them were due. Next lower
+  day is the deadline for all three, and I'll grade them then rather than ask again now.
+- **Quiet instruments:** pulse since 7/25, temperature 7/26, energy and soreness 7/30. Not
+  urgent — they're context, not steering.
 
-## Horizon
+## Where this is heading
 
-At this rate you cross 162 on the trend in about a week, 160 in three. Your app refreshed the "is the cut done?" question yesterday — body fat reads 14.3%, honest range 10.7 to 18.3. That range is wider than the decision, so no number is going to settle it. That's a conversation with your coach, and it's a fair one to be having now.
+Seven days out the trend lands near 161.8 if nothing changes, and nothing needs to. Body fat
+sits around 16%.
 
-Watch this week: whether the sleep debt comes down, and whether the next upper day releases the rows hold.
+The next three milestones are all training, not scale: press 250 owned on a repeat, rows 185
+once the hold releases, and the 155 extension gate that's been shut since 7/21. Every one of
+them is waiting on the same thing — a rated opener on a session that isn't running in the
+red.
+
+Rate set one. That's the week.
