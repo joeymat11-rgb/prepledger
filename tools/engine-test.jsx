@@ -6545,3 +6545,17 @@ if (fail) process.exit(1);
 }
 console.log(`\nFINAL85: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ==================== R15a — TOKENS + SHELL (the redesign begins) ====================
+   The engine freeze itself is enforced by tools/engine-diff.mjs in the GATE (fire-proofed
+   by mutation at birth). Here: the design tokens are a census — one source of truth the
+   slices style from — and the two laws the tokens carry are pinned so drift is loud. */
+{
+  const DT9 = __test.DT;
+  ok(!!DT9 && DT9.red === "#E06056" && DT9.decision === "#5FB7E8" && DT9.jade === "#5ED4A2" && DT9.amber === "#E5B454", "R15a — the semantic tones are census'd: red is the REDLINE only, decision-blue belongs to the DECISION species only — the tokens carry the law, and a drifted hex fails loudly");
+  ok(Array.isArray(DT9.ramp) && DT9.ramp.join(",") === "9,10.5,12,13.5,15,19,24,32,54" && DT9.space.join(",") === "4,8,12,16,24", "R15a — one type ramp, one spacing scale: no ad-hoc sizes is only enforceable if the canonical list exists in exactly one place");
+  ok(DT9.glyph.status === "◆" && DT9.glyph.ok === "◇" && DT9.glyph.fwd === "▸" && DT9.touch === 64, "R15a — the geometric glyph set and the 64px touch floor are tokens, not tribal knowledge");
+  const src15 = readFileSync("src/app.jsx", "utf8");
+  ok(src15.indexOf('const PRIMARY_TABS = ["NOW", "TRAIN", "LEDGER"];') > -1 && src15.indexOf('"MORE"') === -1, "R15a — the rail is NOW / TRAIN / LEDGER and no route answers to MORE: renamed everywhere, not aliased — a stranded surface is the failure this asserts against");
+}console.log(`\nFINAL86: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);

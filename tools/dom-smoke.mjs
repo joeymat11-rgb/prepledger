@@ -48,7 +48,7 @@ check(html.includes("Measured"), "header renders", "header missing");
    itself measured ~8% slower than one that does not (Findlater & McGrenere,
    CHI 2004). Assert the primary rail, and that the demoted rooms are reachable
    rather than orphaned. */
-check(html.includes("NOW") && html.includes("TRAIN") && html.includes("MORE"), "primary tab rail renders", "primary tabs missing");
+check(html.includes("NOW") && html.includes("TRAIN") && html.includes("LEDGER"), "primary tab rail renders", "primary tabs missing");
 check(
   !!dom.window.localStorage.getItem("prep-ledger-v1"),
   "state seeded to localStorage",

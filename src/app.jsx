@@ -226,6 +226,31 @@ const LH = { metric: 36, display: 28, title: 24, body: 20, label: 16, micro: 16 
    UI). Snap paddings/gaps to these so the whole surface shares one vertical
    rhythm instead of ~a dozen ad-hoc pixel values. */
 const SP = { hair: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48, huge: 64 };
+
+/* ---------- R15 DESIGN TOKENS (R15a — the redesign's single source of truth) ----------
+   Extracted from the approved mockup (round 1.3). Slices R15b-f style FROM HERE and delete
+   per-screen ad-hoc styles as they land; R15f asserts no orphans remain. LAWS carried by
+   these tokens, not just values:
+   - DT.red is the REDLINE only — scarcity is what makes it mean something.
+   - DT.decision (the blue family) belongs to the DECISION card species ONLY; record rows
+     are flat and inert. A user must tell the species apart before reading a word.
+   - Numbers live in mono with tabular-nums; the type ramp and tracking table are the whole
+     typographic law — no ad-hoc sizes, no single tracking value across sizes.
+   - Depth by hairline, never shadow; hierarchy by ink (ink/steel/dim), never boxes.
+   - Glyphs are geometric, never emoji: status ◆ · empty/ok ◇ · forward ▸ · separator ·
+   THE ENGINE IS FROZEN through every R15 slice — tools/engine-diff.mjs holds that line in
+   the gate; these tokens may change how a number LOOKS, never what it IS. */
+const DT = {
+  bg: "#07090C", bg2: "#0A0D11", card: "#11151B", card2: "#151A21", well: "#0D1116",
+  hairline: "#222A34", hairline2: "#2C3642",
+  ink: "#E9EEF4", steel: "#8D9AAB", dim: "#5C6875",
+  jade: "#5ED4A2", amber: "#E5B454", red: "#E06056", decision: "#5FB7E8",
+  radius: 18, grid: 4, space: [4, 8, 12, 16, 24],
+  ramp: [9, 10.5, 12, 13.5, 15, 19, 24, 32, 54],
+  track: { small: "0.20em", mid: "0.10em", display: "0.04em" },
+  glyph: { status: "◆", ok: "◇", fwd: "▸", sep: "·" },
+  touch: 64,
+};
 /* `hair` (2) is an OPTICAL inset only — nudging a glyph onto its baseline, never
    a gap between two things. `xxxl`/`huge` separate whole groups (§3.2). */
 
@@ -10012,6 +10037,7 @@ __test.targetsFor = targetsFor;
 __test.runAdaptive = runAdaptive;
 __test.stepKcal = stepKcal;
 __test.stepEfficacy = stepEfficacy;
+__test.DT = DT;
 __test.volumePush = volumePush; __test.volumeConversion = volumeConversion; __test.structuralMovesThisWeek = structuralMovesThisWeek;
 __test.stepPush = stepPush;
 __test.skinfoldCheck = skinfoldCheck;
@@ -15148,8 +15174,8 @@ function MoreTab({ s, go, openRules, openCoach }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: SP.md }}>
       <div>
-        <H size={21}>More</H>
-        <Eyebrow>the rooms you open on purpose — nothing here ever moves on its own</Eyebrow>
+        <H size={21}>Ledger</H>
+        <Eyebrow>the record, the decisions, and the rooms you open on purpose — nothing here ever moves on its own</Eyebrow>
       </div>
 
       <SecRule>ROOMS</SecRule>
@@ -15711,11 +15737,13 @@ export default function PrepLedger() {
      300.7s among those who customised, and was preferred 15 to 4 over static.
      People want control; they do not benefit from the app taking it.
 
-     So: a fixed rail of the three he lives in, plus one MORE entry that never
-     moves, holding the other four. A badge may appear — a dot saying something
+     So: a fixed rail of the three he lives in, plus one LEDGER entry that never
+     moves, holding the other four (R15a: MORE renamed LEDGER — same static demotion,
+     the name the redesign gives the diary-and-decisions surface; rooms unchanged until
+     their slices land). A badge may appear — a dot saying something
      is waiting — but a badge does not move the target, and moving the target is
      what cost the 8%. */
-  const PRIMARY_TABS = ["NOW", "TRAIN", "MORE"];
+  const PRIMARY_TABS = ["NOW", "TRAIN", "LEDGER"];
   const SECONDARY_TABS = ["QUEUE", "BODY", "SLEEP", "HIST"];
   const TAB_LABEL = { HIST: "LAB" };
   const inMore = SECONDARY_TABS.indexOf(tab) > -1;
@@ -15772,7 +15800,7 @@ export default function PrepLedger() {
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(14px + env(safe-area-inset-top)) 14px calc(88px + env(safe-area-inset-bottom))", visibility: (rules || coach || kitPerson) ? "hidden" : "visible" }}>
         {inMore && (
-          <div onClick={() => setTab("MORE")} role="button" tabIndex={0} aria-label="Back to More" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, cursor: "pointer", padding: "0 0 12px", letterSpacing: "0.06em", display: "inline-block" }}>‹ MORE</div>
+          <div onClick={() => setTab("LEDGER")} role="button" tabIndex={0} aria-label="Back to Ledger" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, cursor: "pointer", padding: "0 0 12px", letterSpacing: "0.06em", display: "inline-block" }}>‹ LEDGER</div>
         )}
         {tab === "NOW" && <TabGuard name="NOW"><NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}
         {tab === "TRAIN" && <TabGuard name="TRAIN"><LogTab s={s} setS={setS} save={save} slp={slp} /></TabGuard>}
@@ -15780,7 +15808,7 @@ export default function PrepLedger() {
         {tab === "BODY" && <TabGuard name="BODY"><BodyTab s={s} setS={setS} save={save} /></TabGuard>}
         {tab === "SLEEP" && <TabGuard name="SLEEP"><SleepTab s={s} setS={setS} save={save} slp={slp} /></TabGuard>}
         {tab === "HIST" && <TabGuard name="HIST"><HistTab s={s} setS={setS} save={save} /></TabGuard>}
-        {tab === "MORE" && <TabGuard name="MORE"><MoreTab s={s} go={setTab} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}
+        {tab === "LEDGER" && <TabGuard name="LEDGER"><MoreTab s={s} go={setTab} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}
       </div>
 
       </div>
@@ -15789,7 +15817,7 @@ export default function PrepLedger() {
         <div style={{ position: "absolute", top: 2, right: 8, fontFamily: mono, fontSize: TS.micro, color: T.steel, opacity: 0.7, padding: 4 }}>v{APP_V}</div>
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
-            <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: (tab === t2 || (t2 === "MORE" && inMore)) ? `2px solid ${T.gauge}` : "2px solid transparent", fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, letterSpacing: "0.09em", transition: TR("color", MOT.micro), color: (tab === t2 || (t2 === "MORE" && inMore)) ? T.gauge : T.steel }}>
+            <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: (tab === t2 || (t2 === "LEDGER" && inMore)) ? `2px solid ${T.gauge}` : "2px solid transparent", fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, letterSpacing: "0.09em", transition: TR("color", MOT.micro), color: (tab === t2 || (t2 === "LEDGER" && inMore)) ? T.gauge : T.steel }}>
               {TAB_LABEL[t2] || t2}{t2 === "NOW" && (s.agentProposals || []).length > 0 ? <span style={{ color: T.jade, fontWeight: 700 }}> ●{(s.agentProposals || []).length}</span> : null}
             </button>
           ))}

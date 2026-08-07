@@ -1,0 +1,3979 @@
+{
+ "2026-08-06": {
+  "energyBalanceTarget": {
+   "gated": false,
+   "from": "measured",
+   "lo": 2176,
+   "hi": 2263,
+   "mid": 2220,
+   "baseLo": 2176,
+   "baseHi": 2263,
+   "adj": {
+    "delta": 0,
+    "active": false,
+    "from": null,
+    "rid": null,
+    "why": "",
+    "clipped": false
+   },
+   "wkAvg": 2569,
+   "wkN": 7,
+   "wkOff": 349,
+   "wkWhy": "Your last 7 logged days average 2569, which is 306 kcal/day above the top of the 2176–2263 band — about 0.56 lb/wk slower than the band is aiming for. Not a scolding, just the arithmetic: a daily target and a weekly result are different questions.",
+   "tdee": 2795,
+   "tdeePrimary": 2795,
+   "stepPromoted": false,
+   "tdeeLo": 2589,
+   "tdeeHi": 3002,
+   "days": 35,
+   "avg": 2160,
+   "band": [
+    0.98,
+    1.14
+   ],
+   "phaseLo": 1725,
+   "phaseHi": 1800,
+   "drift": 457,
+   "floorHit": false,
+   "floor": 1750,
+   "floorSoft": 2050,
+   "floorWhy": "1750 is 25 kcal per kg of your 63.4 kg lean mass plus the ~171 a day your training costs — the IOC's own energy-availability formula, run backwards. No position stand anywhere states an absolute calorie floor for an athlete; all four I checked express it per kg of lean mass, which is why this one moves with you instead of sitting at a round number. Treat the 25 as a convention rather than a measurement: it comes from three single-subject case reports, and the IOC declines to set a threshold at all.",
+   "floorBinds": false,
+   "floorBindsWhy": null,
+   "why": "Not enough clean training data to read a regime yet, so this HOLDS the prescription your own record validated — 2176–2263. The engine is not deciding here; it is holding. Abstaining is not a reason to stop doing the thing that is working.",
+   "regime": "unknown",
+   "regimeWhy": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything",
+   "regimeConfirmed": false,
+   "dir": "deficit",
+   "provisional": true
+  },
+  "calorieTarget": {
+   "gated": false,
+   "from": "measured",
+   "lo": 2176,
+   "hi": 2263,
+   "mid": 2220,
+   "baseLo": 2176,
+   "baseHi": 2263,
+   "adj": {
+    "delta": 0,
+    "active": false,
+    "from": null,
+    "rid": null,
+    "why": "",
+    "clipped": false
+   },
+   "wkAvg": 2569,
+   "wkN": 7,
+   "wkOff": 349,
+   "wkWhy": "Your last 7 logged days average 2569, which is 306 kcal/day above the top of the 2176–2263 band — about 0.56 lb/wk slower than the band is aiming for. Not a scolding, just the arithmetic: a daily target and a weekly result are different questions.",
+   "tdee": 2795,
+   "tdeePrimary": 2795,
+   "stepPromoted": false,
+   "tdeeLo": 2589,
+   "tdeeHi": 3002,
+   "days": 35,
+   "avg": 2160,
+   "band": [
+    0.98,
+    1.14
+   ],
+   "phaseLo": 1725,
+   "phaseHi": 1800,
+   "drift": 457,
+   "floorHit": false,
+   "floor": 1750,
+   "floorSoft": 2050,
+   "floorWhy": "1750 is 25 kcal per kg of your 63.4 kg lean mass plus the ~171 a day your training costs — the IOC's own energy-availability formula, run backwards. No position stand anywhere states an absolute calorie floor for an athlete; all four I checked express it per kg of lean mass, which is why this one moves with you instead of sitting at a round number. Treat the 25 as a convention rather than a measurement: it comes from three single-subject case reports, and the IOC declines to set a threshold at all.",
+   "floorBinds": false,
+   "floorBindsWhy": null,
+   "why": "Your measured maintenance is 2795 (2589–3002 once the rate's own error is carried through), from 35 logged days and a least-squares rate across 28 daily reads, both measured over the same stretch — Mon 6/29 to Wed 8/5. That matters because the two halves of that stretch are not the same: you averaged 2074 kcal on 19,794 steps in the first half and 2242 on 14,694 in the second. Averaging only the recent food against a rate the earlier weeks helped produce would read maintenance high. Your band asks for 0.98–1.14 lb/wk, which is 532–619 kcal/day under it. That lands at 2176–2263."
+  },
+  "currentRate": {
+   "scale": 1.17,
+   "fat": 1.17,
+   "measured": true,
+   "rates": [
+    1.799999999999983,
+    0.8000000000000114,
+    0.19999999999998863,
+    0.4000000000000057,
+    1.8000000000000114,
+    1.299999999999983,
+    0.4000000000000057
+   ],
+   "method": "regression",
+   "n": 28,
+   "ci": 0.38,
+   "lo": 0.79,
+   "hi": 1.55,
+   "sigma": 1.59,
+   "ciOls": 0.36,
+   "hacL": 3,
+   "rho1": 0.26,
+   "hacInflation": 1.07,
+   "from": "2026-06-29",
+   "to": "2026-08-05",
+   "span": "2026-06-29 → 2026-08-05"
+  },
+  "progressionTrend": {
+   "nLifts": 0,
+   "nExcludedNonNumeric": 2,
+   "excludedIds": [
+    "curl",
+    "hanging"
+   ],
+   "lifts": [],
+   "state": "unknown",
+   "pct": null,
+   "lo": null,
+   "hi": null,
+   "why": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything"
+  },
+  "regime": {
+   "key": "unknown",
+   "confirmed": false,
+   "pending": null,
+   "pendingSince": null,
+   "prog": {
+    "nLifts": 0,
+    "nExcludedNonNumeric": 2,
+    "excludedIds": [
+     "curl",
+     "hanging"
+    ],
+    "lifts": [],
+    "state": "unknown",
+    "pct": null,
+    "lo": null,
+    "hi": null,
+    "why": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything"
+   },
+   "rate": null,
+   "why": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything"
+  },
+  "recoveryIndex": {
+   "score": 50,
+   "band": "LOW",
+   "flags": [
+    {
+     "k": "sleep",
+     "receipt": "sleep reset — 0 of 3 clean nights",
+     "fix": "3 more nights at 7.5 h or better, back to back",
+     "cost": 30
+    },
+    {
+     "k": "avg5",
+     "receipt": "five-night average is 6.23 h — under 7",
+     "fix": "this one is chronic, not last night — it needs a week of earlier lights-out, not one long lie-in",
+     "cost": 10
+    },
+    {
+     "k": "held",
+     "receipt": "1 lift held by the governor: Rows (strapless)",
+     "fix": "one honest opener at 1 RIR or better on each releases it — the load is not lost, just parked",
+     "cost": 10
+    }
+   ],
+   "lever": {
+    "k": "sleep",
+    "receipt": "sleep reset — 0 of 3 clean nights",
+    "fix": "3 more nights at 7.5 h or better, back to back",
+    "cost": 30
+   },
+   "watched": 7,
+   "excludedDips": 2,
+   "factors": [
+    "sleep reset — 0 of 3 clean nights",
+    "five-night average is 6.23 h — under 7",
+    "1 lift held by the governor: Rows (strapless)"
+   ]
+  },
+  "stepPush": {
+   "mode": "HOLD",
+   "base": 17171,
+   "why": "the rate is ABOVE the corridor — the deficit is already running hotter than the band asks, so more steps is not the question today. hold the walking that produced your maintenance. The coach reaches for this lever only when the objective wants more deficit."
+  },
+  "stepTarget": {
+   "gated": false,
+   "lo": 14500,
+   "hi": 16500,
+   "mid": 15500,
+   "baseMid": 15500,
+   "adjSteps": 0,
+   "days": 26,
+   "kcalPer1k": 31.8,
+   "avg": 15731,
+   "recentAvg": 14357,
+   "drift": -1374,
+   "driftKcal": -44,
+   "why": "Your maintenance was measured at 17,171 average steps over its own 35-day window — that number owns the claim. This band holds you to your RECENT 26-day average of 15,731, and the two differ because your walking has been falling — so the calorie band is only right while the walking that produced it continues. Every 1,000 steps is worth about 31.8 kcal at your bodyweight. Your last week runs -1,374 against that, which is about -44 kcal/day of maintenance the target has not caught up with yet."
+  },
+  "stepEfficacy": {
+   "status": "LIVE",
+   "n": 4,
+   "need": 4,
+   "slopePer1k": -78.947,
+   "boundPer1k": 0.059,
+   "resolved": false,
+   "excluded": 3
+  },
+  "observedTDEE": {
+   "tdee": 2795,
+   "days": 35,
+   "avg": 2160,
+   "atSteps": 17171,
+   "stepsNow": 14357,
+   "stepDelta": -90,
+   "tdeeAtNow": 2705,
+   "tdeeAtNowGross": 2705,
+   "tdeeAtNowNet": 2732,
+   "tdeeAtNowMid": 2730,
+   "stepPromoted": false,
+   "tdeePrimary": 2795,
+   "stepCompLo": 0.25,
+   "stepCompHi": 0.3,
+   "stepsWhy": "2795 is your maintenance AT 17,171 average steps — the activity level of the 35 days it was measured over. You are averaging 14,357 over the last seven, which prices at about 2732–2705 once compensation is carried — the body claws back roughly a quarter to a third of an activity change in someone your leanness, so the gross figure is the edge of the band, not the number. That drift sits inside the measured number's own noise band (±207), so 2795 stays the headline and this is the story behind it, not a new number. Steps are the cheapest lever here because adding them does not deepen the food deficit.",
+   "lo": 2589,
+   "hi": 3002,
+   "clamped": false,
+   "method": "regression",
+   "rateN": 28,
+   "rate": 1.17,
+   "rateCi": 0.38,
+   "from": "2026-06-29",
+   "to": "2026-08-05",
+   "matched": true,
+   "split": {
+    "calA": 2074,
+    "calB": 2242,
+    "stepA": 19794,
+    "stepB": 14694
+   },
+   "perLb": 3800,
+   "perLbLo": 3523,
+   "perLbHi": 4078,
+   "edIdentified": false,
+   "impliedPerLb": 3797,
+   "impossible": false
+  },
+  "bfEst": {
+   "pct": 14.3,
+   "lean": 139.7,
+   "lo": 10.8,
+   "hi": 18.1,
+   "wks": 1.1,
+   "anchorErr": 3.5,
+   "src": "coach's eye",
+   "drip": 0,
+   "why": "Anchored 1 week ago by your coach's eye — and the live band is 7.3 points wide (10.8–18.1), asymmetric, because the anchor's own ±3.5 never washes out and the band integrates away from it. Lean mass since then is assumed flat — the evidence for a trained lean male in a deficit is −0.11 lb/wk median, and nothing in this app can measure it. The band is that uncertainty made visible rather than hidden behind a decimal."
+  },
+  "energyAvailability": {
+   "gated": false,
+   "lo": 26.4,
+   "hi": 32.3,
+   "band": "ADEQUATE",
+   "ea": 32.3,
+   "eaAll": 26.4,
+   "intake": 2216,
+   "steps": 15731,
+   "ffmKg": 63.4,
+   "trainKcal": 171,
+   "walkKcal": 373,
+   "sessPerWk": 4,
+   "days": 26,
+   "needKcal": 0,
+   "stepsToDrop": null,
+   "receipts": [
+    "Intake 2216 kcal/day averaged over 26 logged days.",
+    "Training costs about 171 kcal/day at 4 sessions a week (the programme's 4, not the 2.2 in the log — in-app logging started part way through, and under-charging training would flatter this number) — an estimate, not a measurement.",
+    "Walking 15,731 steps/day costs roughly 373 kcal/day above a sedentary baseline.",
+    "Fat-free mass 63.4 kg, from the anchored lean model.",
+    "Counting structured training only — 32.3 — is the convention the IOC's 2023 formula uses and the only one comparable to the 25 line, so it is the one banded above. Counting deliberate walking as training gives 26.4; that is a true reading of everything you burn in a day but there is no published threshold built that way. Espinar 2026 measured the same swap in free-living athletes and it moved EA from ~32 to ~20 with nothing changing physiologically.",
+    "The 25 itself is extrapolated, not measured. Fagerberg 2018 proposes it from semi-starvation work and bodybuilder case reports and says plainly that no controlled male threshold study exists; the IOC 2023 declines a universal cut-off and gives males roughly 9-25. Treat it as a direction, and watch resting pulse, morning temperature and whether the lifts hold — those are measurements."
+   ]
+  },
+  "volumePush": {
+   "mode": "ABSTAIN",
+   "regime": "unknown",
+   "why": "the regime detector cannot yet read your state — a growth push is earned by measured lifts and rate, so the lever stays dormant rather than guessing"
+  },
+  "volumeImbalance": {
+   "pv": [
+    {
+     "mg": "forearms",
+     "sets": 11,
+     "zone": "IN-BAND",
+     "tier": "intermediate return",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "sulek",
+       "n": "Sulek curl (forearm)",
+       "sets": 2,
+       "day": "U"
+      },
+      {
+       "id": "pronated",
+       "n": "Pronated EZ curl",
+       "sets": 2,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "biceps",
+     "sets": 10,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "curl",
+       "n": "Curls",
+       "sets": 3,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "quads",
+     "sets": 10,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "hack",
+       "n": "Hack squat",
+       "sets": 3,
+       "day": "L"
+      },
+      {
+       "id": "extension",
+       "n": "Leg extension",
+       "sets": 2,
+       "day": "L"
+      }
+     ]
+    },
+    {
+     "mg": "abs",
+     "sets": 10,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "abs",
+       "n": "Abs",
+       "sets": 3,
+       "day": "L"
+      },
+      {
+       "id": "hanging",
+       "n": "Hanging raise",
+       "sets": 2,
+       "day": "L"
+      }
+     ]
+    },
+    {
+     "mg": "triceps",
+     "sets": 9,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "tricep",
+       "n": "Tricep",
+       "sets": 3,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "back",
+     "sets": 8,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "rows",
+       "n": "Rows (strapless)",
+       "sets": 2,
+       "day": "U"
+      },
+      {
+       "id": "pulldown",
+       "n": "Pulldown",
+       "sets": 2,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "delts_side",
+     "sets": 8,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "lateral",
+       "n": "Lateral machine",
+       "sets": 4,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "calves",
+     "sets": 8,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "calves",
+       "n": "Calves",
+       "sets": 4,
+       "day": "L"
+      }
+     ]
+    },
+    {
+     "mg": "chest",
+     "sets": 6,
+     "zone": "LOW",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "press",
+       "n": "Press",
+       "sets": 3,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "delts_rear",
+     "sets": 6,
+     "zone": "LOW",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "rearDelt",
+       "n": "Rear-delt fly (cable · uni)",
+       "sets": 3,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "hams",
+     "sets": 4,
+     "zone": "UNDER",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "ham",
+       "n": "Ham curl",
+       "sets": 2,
+       "day": "L"
+      }
+     ]
+    },
+    {
+     "mg": "delts_front",
+     "sets": 3,
+     "zone": "UNDER",
+     "tier": "highest return per set",
+     "indirectOnly": true,
+     "lifts": []
+    }
+   ],
+   "under": [
+    {
+     "mg": "hams",
+     "sets": 4,
+     "zone": "UNDER",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "ham",
+       "n": "Ham curl",
+       "sets": 2,
+       "day": "L"
+      }
+     ]
+    }
+   ],
+   "low": [
+    {
+     "mg": "chest",
+     "sets": 6,
+     "zone": "LOW",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "press",
+       "n": "Press",
+       "sets": 3,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "delts_rear",
+     "sets": 6,
+     "zone": "LOW",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "rearDelt",
+       "n": "Rear-delt fly (cable · uni)",
+       "sets": 3,
+       "day": "U"
+      }
+     ]
+    }
+   ],
+   "over": [],
+   "donor": null,
+   "taker": {
+    "mg": "hams",
+    "sets": 4,
+    "zone": "UNDER",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "ham",
+      "n": "Ham curl",
+      "sets": 2,
+      "day": "L"
+     }
+    ]
+   },
+   "need": 6,
+   "gain": 2.05,
+   "detectable": true,
+   "actionable": false,
+   "growthOK": false,
+   "regimeKey": "unknown",
+   "sdes": 2.05,
+   "why": "Filed, not proposed — the regime detector cannot yet read your state (only 0 lift(s) carry a usable trend — 4 needed before this reads anything), and a growth decision is earned by measured lifts and rate — the engine abstains rather than guesses. The 6-12 band is a GROWTH dose-response measured in people eating enough to build. The one trial that asked the retention question of trained men in energy restriction (Roth 2023, n=38, six weeks at a 30 kcal/kg deficit and 2.8 g/kg protein) found 20 weekly sets and 12 preserved lean mass identically — 0.51 kg lost against 0.92, not a significant difference, and no difference in muscle thickness. Retention is cheaper still: Bickel 2011 held young adults' thigh lean mass for 32 weeks on one-ninth of their original volume. So hams at 4 sets is adequate for what you are actually asking of it right now, which is to hold. This is the first thing worth raising when the detector reads free — and it is on the record so nobody has to rediscover it then."
+  },
+  "programmeVolume": [
+   {
+    "mg": "forearms",
+    "sets": 11,
+    "zone": "IN-BAND",
+    "tier": "intermediate return",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "sulek",
+      "n": "Sulek curl (forearm)",
+      "sets": 2,
+      "day": "U"
+     },
+     {
+      "id": "pronated",
+      "n": "Pronated EZ curl",
+      "sets": 2,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "biceps",
+    "sets": 10,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "curl",
+      "n": "Curls",
+      "sets": 3,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "quads",
+    "sets": 10,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "hack",
+      "n": "Hack squat",
+      "sets": 3,
+      "day": "L"
+     },
+     {
+      "id": "extension",
+      "n": "Leg extension",
+      "sets": 2,
+      "day": "L"
+     }
+    ]
+   },
+   {
+    "mg": "abs",
+    "sets": 10,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "abs",
+      "n": "Abs",
+      "sets": 3,
+      "day": "L"
+     },
+     {
+      "id": "hanging",
+      "n": "Hanging raise",
+      "sets": 2,
+      "day": "L"
+     }
+    ]
+   },
+   {
+    "mg": "triceps",
+    "sets": 9,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "tricep",
+      "n": "Tricep",
+      "sets": 3,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "back",
+    "sets": 8,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "rows",
+      "n": "Rows (strapless)",
+      "sets": 2,
+      "day": "U"
+     },
+     {
+      "id": "pulldown",
+      "n": "Pulldown",
+      "sets": 2,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "delts_side",
+    "sets": 8,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "lateral",
+      "n": "Lateral machine",
+      "sets": 4,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "calves",
+    "sets": 8,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "calves",
+      "n": "Calves",
+      "sets": 4,
+      "day": "L"
+     }
+    ]
+   },
+   {
+    "mg": "chest",
+    "sets": 6,
+    "zone": "LOW",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "press",
+      "n": "Press",
+      "sets": 3,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "delts_rear",
+    "sets": 6,
+    "zone": "LOW",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "rearDelt",
+      "n": "Rear-delt fly (cable · uni)",
+      "sets": 3,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "hams",
+    "sets": 4,
+    "zone": "UNDER",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "ham",
+      "n": "Ham curl",
+      "sets": 2,
+      "day": "L"
+     }
+    ]
+   },
+   {
+    "mg": "delts_front",
+    "sets": 3,
+    "zone": "UNDER",
+    "tier": "highest return per set",
+    "indirectOnly": true,
+    "lifts": []
+   }
+  ],
+  "muscleVolume": [
+   {
+    "mg": "back",
+    "n7": 8,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "rows",
+      "mg": "back",
+      "lastMeta": {
+       "d": "2026-08-03",
+       "w": 180,
+       "reps": [
+        9,
+        9
+       ],
+       "rir": 0,
+       "rirSets": [
+        0,
+        2
+       ],
+       "debt": true
+      },
+      "n": "Rows (strapless)",
+      "day": "U",
+      "w": 180,
+      "inc": 5,
+      "sets": 2,
+      "hi": 10,
+      "last": [
+       9,
+       9
+      ],
+      "setup": "SET · seat 4 · chest pad 7 · retrace profile 1\nChest stays glued to pad · pinch the blades at the back · strapless is the standard",
+      "rirHist": [
+       0,
+       0
+      ],
+      "own": false,
+      "std": null,
+      "holdFlag": true
+     },
+     {
+      "id": "pulldown",
+      "mg": "back",
+      "lastMeta": {
+       "d": "2026-08-03",
+       "w": 160,
+       "reps": [
+        9,
+        7
+       ],
+       "rir": 1,
+       "rirSets": [
+        1,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Pulldown",
+      "day": "U",
+      "w": 160,
+      "inc": 5,
+      "sets": 2,
+      "hi": 10,
+      "last": [
+       9,
+       7
+      ],
+      "setup": "SET · silver bar · thumbs in the same spot every session\nSame grip = comparable reps · chest up, elbows down-and-in · strapless",
+      "rirHist": [
+       0,
+       1
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "rows",
+      "n": "Rows (strapless)",
+      "v": 4
+     },
+     {
+      "id": "pulldown",
+      "n": "Pulldown",
+      "v": 1
+     }
+    ],
+    "slipping": 0,
+    "gaining": 2,
+    "sore7": 0
+   },
+   {
+    "mg": "chest",
+    "n7": 6,
+    "p7": 0,
+    "zone": "LOW",
+    "lifts": [
+     {
+      "id": "press",
+      "mg": "chest",
+      "lastMeta": {
+       "d": "2026-08-03",
+       "w": 250,
+       "reps": [
+        8,
+        7,
+        7
+       ],
+       "rir": 2,
+       "rirSets": [
+        2,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Press",
+      "day": "U",
+      "w": 250,
+      "inc": 5,
+      "sets": 3,
+      "hi": 9,
+      "last": [
+       8,
+       7,
+       7
+      ],
+      "std": null,
+      "own": false,
+      "ownNote": "repeat 8,8,7 — no load until owned",
+      "setup": "SET · cam 5 · lowest seat\nShoulders back & down into the pad · no bottom bounce — this lift was won on the honest opener",
+      "rirHist": [
+       2,
+       2
+      ],
+      "lastAttempt": [
+       8,
+       8,
+       7
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "press",
+      "n": "Press",
+      "v": -1
+     }
+    ],
+    "slipping": 1,
+    "gaining": 0,
+    "sore7": 0
+   },
+   {
+    "mg": "delts_side",
+    "n7": 8,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "lateral",
+      "mg": "delts",
+      "head": "delts_side",
+      "lastMeta": {
+       "d": "2026-08-03",
+       "w": 80,
+       "reps": [
+        15,
+        15,
+        13,
+        12
+       ],
+       "rir": 2,
+       "rirSets": [
+        2,
+        null,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Lateral machine",
+      "day": "U",
+      "w": 80,
+      "inc": 5,
+      "sets": 4,
+      "hi": 15,
+      "last": [
+       15,
+       15,
+       13,
+       12
+      ],
+      "setup": "SET · resistance profile 5 · seat 5\nUpright, elbow-led (the set-4 fix) · no shrug creep · smooth top, no swing",
+      "rirHist": [
+       2,
+       2
+      ],
+      "topAt": null,
+      "topRun": 0
+     }
+    ],
+    "vels": [
+     {
+      "id": "lateral",
+      "n": "Lateral machine",
+      "v": 2
+     }
+    ],
+    "slipping": 0,
+    "gaining": 1,
+    "sore7": 0
+   },
+   {
+    "mg": "biceps",
+    "n7": 10,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "curl",
+      "mg": "biceps",
+      "lastMeta": {
+       "d": "2026-08-03",
+       "w": "55·55·50",
+       "reps": [
+        11,
+        10,
+        9
+       ],
+       "rir": 2,
+       "rirSets": [
+        2,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Curls",
+      "day": "U",
+      "w": "55·55·50",
+      "inc": 5,
+      "sets": 3,
+      "hi": 12,
+      "last": [
+       11,
+       10,
+       9
+      ],
+      "ladder": {
+       "set": 1,
+       "top": 12
+      },
+      "setup": "SET · resistance profile 5 · seat 3\nSet 2 is the money set · no shoulder creep when it grinds",
+      "rirHist": [
+       0,
+       2
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "curl",
+      "n": "Curls",
+      "v": 7
+     }
+    ],
+    "slipping": 0,
+    "gaining": 1,
+    "sore7": 0
+   },
+   {
+    "mg": "delts_rear",
+    "n7": 6,
+    "p7": 0,
+    "zone": "LOW",
+    "lifts": [
+     {
+      "id": "rearDelt",
+      "mg": "delts",
+      "head": "delts_rear",
+      "lastMeta": {
+       "d": "2026-08-03",
+       "w": 20,
+       "reps": [
+        11,
+        10,
+        10
+       ],
+       "rir": 1,
+       "rirSets": [
+        1,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Rear-delt fly (cable · uni)",
+      "day": "U",
+      "w": 20,
+      "inc": 2.5,
+      "sets": 3,
+      "hi": 12,
+      "last": [
+       11,
+       10,
+       10
+      ],
+      "note": "honest 10s — no hot opener · 3 sets per side, log the weaker side",
+      "setup": "SET · unilateral · cable at highest height\nChest tall, shoulders back & down (?) · pure sweep — the opener fix is proven here",
+      "rirHist": [
+       2,
+       1
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "rearDelt",
+      "n": "Rear-delt fly (cable · uni)",
+      "v": 3
+     }
+    ],
+    "slipping": 0,
+    "gaining": 1,
+    "sore7": 0
+   },
+   {
+    "mg": "forearms",
+    "n7": 9,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "sulek",
+      "mg": "forearms",
+      "lastMeta": {
+       "d": "2026-08-03",
+       "w": 87.5,
+       "reps": [
+        13,
+        11
+       ],
+       "rir": 2,
+       "rirSets": [
+        2,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Sulek curl (forearm)",
+      "day": "U",
+      "w": 87.5,
+      "inc": 2.5,
+      "sets": 2,
+      "hi": 15,
+      "last": [
+       13,
+       11
+      ],
+      "setup": "SET · cable, highest rung · straight bar\nSam Sulek's signature — strict curl biasing the forearm flexors · elbows quiet, control the weight rather than drop it",
+      "rirHist": [
+       1,
+       2
+      ]
+     },
+     {
+      "id": "pronated",
+      "mg": "forearms",
+      "lastMeta": {
+       "d": "2026-08-03",
+       "w": 40,
+       "reps": [
+        12,
+        11
+       ],
+       "rir": 1,
+       "rirSets": [
+        1,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Pronated EZ curl",
+      "day": "U",
+      "w": 40,
+      "inc": 5,
+      "sets": 2,
+      "hi": 13,
+      "last": [
+       12,
+       11
+      ],
+      "setup": "SET · EZ bar, pronated grip\nElbows pinned to sides, zero swing · wrists locked — don't let them bend back under load · your 11,6 session was the hot-opener demo",
+      "rirHist": [
+       0,
+       1
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "sulek",
+      "n": "Sulek curl (forearm)",
+      "v": 2
+     }
+    ],
+    "slipping": 0,
+    "gaining": 1,
+    "sore7": 0
+   },
+   {
+    "mg": "triceps",
+    "n7": 9,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "tricep",
+      "mg": "triceps",
+      "lastMeta": {
+       "d": "2026-08-03",
+       "w": 55,
+       "reps": [
+        12,
+        11,
+        11
+       ],
+       "rir": 2,
+       "rirSets": [
+        2,
+        null,
+        null
+       ],
+       "debt": true
+      },
+      "n": "Tricep",
+      "day": "U",
+      "w": 55,
+      "inc": 5,
+      "sets": 3,
+      "hi": 13,
+      "last": [
+       12,
+       11,
+       11
+      ],
+      "setup": "SET · seat 4 · back pad all the way forward · middle peg through the cut\nElbows pinned · middle peg, settled — the peg sets the resistance profile, not the shoulder angle, so it was never the overhead question",
+      "rirHist": [
+       0,
+       2
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "tricep",
+      "n": "Tricep",
+      "v": 3
+     }
+    ],
+    "slipping": 0,
+    "gaining": 1,
+    "sore7": 0
+   },
+   {
+    "mg": "quads",
+    "n7": 10,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "hack",
+      "n": "Hack squat",
+      "day": "L",
+      "w": 160,
+      "inc": null,
+      "sets": 3,
+      "hi": 12,
+      "last": [
+       11,
+       11,
+       10
+      ],
+      "pendingThird": false,
+      "rirHist": [
+       2,
+       2,
+       0
+      ],
+      "setup": "SET · foot placement = your favorited pic\nSame depth every rep · even sets are the standard here (11,11 → 12,12 → 13,13)",
+      "lastMeta": {
+       "d": "2026-08-04",
+       "w": 160,
+       "reps": [
+        11,
+        11,
+        10
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "mg": "quads",
+      "own": false,
+      "std": null
+     },
+     {
+      "id": "extension",
+      "n": "Leg extension",
+      "day": "L",
+      "w": 150,
+      "inc": 5,
+      "sets": 2,
+      "hi": 10,
+      "last": [
+       10,
+       9
+      ],
+      "std": null,
+      "own": false,
+      "ownNote": "own 150×9,9 — then the 155 gate reopens",
+      "rirHist": [
+       2,
+       2,
+       0
+      ],
+      "setup": "SET · shin pad height A · depth 3 · seat back all the way back — max quad stretch\nNo jerk at lockout · runs after hack by design — read dips as order effect, not regression",
+      "lastMeta": {
+       "d": "2026-07-31",
+       "w": 150,
+       "reps": [
+        10,
+        9
+       ],
+       "rir": 0,
+       "rirSets": [
+        0,
+        2
+       ],
+       "debt": true
+      },
+      "mg": "quads",
+      "lastAttempt": [
+       10,
+       9
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "hack",
+      "n": "Hack squat",
+      "v": 5
+     },
+     {
+      "id": "extension",
+      "n": "Leg extension",
+      "v": 0
+     }
+    ],
+    "slipping": 0,
+    "gaining": 1,
+    "sore7": 0
+   },
+   {
+    "mg": "abs",
+    "n7": 10,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "abs",
+      "n": "Abs",
+      "day": "L",
+      "w": 100,
+      "inc": 5,
+      "sets": 3,
+      "hi": 14,
+      "last": [
+       13,
+       13,
+       15
+      ],
+      "first": [
+       12,
+       12,
+       12
+      ],
+      "debutNote": "DEBUT — new baseline, log honest",
+      "rirHist": [
+       2,
+       2,
+       0
+      ],
+      "setup": "SET · back pad A · seat 6\nThe load only moves on clean, even reps — consistency of execution, not of speed",
+      "lastMeta": {
+       "d": "2026-08-04",
+       "w": 100,
+       "reps": [
+        13,
+        13,
+        15
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "mg": "abs",
+      "own": false,
+      "std": null
+     },
+     {
+      "id": "hanging",
+      "n": "Hanging raise",
+      "day": "L",
+      "w": "BW",
+      "inc": null,
+      "sets": 2,
+      "hi": 8,
+      "last": [
+       6,
+       5
+      ],
+      "rirHist": [
+       2,
+       2,
+       0
+      ],
+      "setup": "SET · bodyweight\nSlouch down/out to engage the core at rep 1 · constant tension, spine stays rounded · no swing between reps",
+      "lastMeta": {
+       "d": "2026-08-04",
+       "w": "BW",
+       "reps": [
+        6,
+        5
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "mg": "abs"
+     }
+    ],
+    "vels": [
+     {
+      "id": "abs",
+      "n": "Abs",
+      "v": 5
+     },
+     {
+      "id": "hanging",
+      "n": "Hanging raise",
+      "v": -0.5
+     }
+    ],
+    "slipping": 1,
+    "gaining": 1,
+    "sore7": 0
+   },
+   {
+    "mg": "calves",
+    "n7": 8,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "calves",
+      "n": "Calves",
+      "day": "L",
+      "w": 320,
+      "inc": 5,
+      "sets": 4,
+      "hi": 13,
+      "last": [
+       11,
+       10,
+       7,
+       8
+      ],
+      "reclaim": null,
+      "rirHist": [
+       2,
+       2,
+       2
+      ],
+      "setup": "SET · shoulder height 4\n5 s pause in the stretched position · back up to neutral · no bounce out of the hole — the pause IS the rep · drive through the big toe",
+      "lastMeta": {
+       "d": "2026-08-04",
+       "w": 320,
+       "reps": [
+        11,
+        10,
+        7,
+        8
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        null,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "mg": "calves",
+      "own": false,
+      "std": null
+     }
+    ],
+    "vels": [
+     {
+      "id": "calves",
+      "n": "Calves",
+      "v": -5
+     }
+    ],
+    "slipping": 1,
+    "gaining": 0,
+    "sore7": 0
+   },
+   {
+    "mg": "hams",
+    "n7": 4,
+    "p7": 0,
+    "zone": "UNDER",
+    "lifts": [
+     {
+      "id": "ham",
+      "n": "Ham curl",
+      "day": "L",
+      "w": 120,
+      "inc": 5,
+      "sets": 2,
+      "hi": 12,
+      "last": [
+       10,
+       10
+      ],
+      "rirHist": [
+       2,
+       2
+      ],
+      "setup": "SET · back 5 · calf pad height C · depth 3 · resistance profile 5\nHips pinned down, no lift-off · full stretch at the top of every rep",
+      "lastMeta": {
+       "d": "2026-08-04",
+       "w": 120,
+       "reps": [
+        10,
+        10
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        null
+       ],
+       "debt": true
+      },
+      "mg": "hams",
+      "topAt": 120,
+      "topRun": 1
+     }
+    ],
+    "vels": [
+     {
+      "id": "ham",
+      "n": "Ham curl",
+      "v": -1
+     }
+    ],
+    "slipping": 1,
+    "gaining": 0,
+    "sore7": 0
+   }
+  ],
+  "typicalError": {
+   "reps": 0.82,
+   "n": 92,
+   "src": "your lifts pooled"
+  },
+  "perLift": {
+   "rows": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "rows"
+    },
+    "targetsFor": [
+     9,
+     9
+    ],
+    "progressStep": {
+     "add": 0,
+     "why": "governor hold — the opener has run hot two sessions straight, so nothing climbs until an honest one lands"
+    },
+    "rirPlan": [
+     2,
+     2
+    ]
+   },
+   "press": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "press"
+    },
+    "targetsFor": [
+     8,
+     8,
+     7
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     0
+    ]
+   },
+   "lateral": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "lateral"
+    },
+    "targetsFor": [
+     15,
+     15,
+     14,
+     12
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     1,
+     0
+    ]
+   },
+   "curl": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "curl"
+    },
+    "targetsFor": [
+     11,
+     11,
+     9
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     0
+    ]
+   },
+   "rearDelt": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "rearDelt"
+    },
+    "targetsFor": [
+     11,
+     11,
+     10
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     0
+    ]
+   },
+   "pulldown": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "pulldown"
+    },
+    "targetsFor": [
+     9,
+     8
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     0
+    ]
+   },
+   "sulek": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "sulek"
+    },
+    "targetsFor": [
+     13,
+     12
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     0
+    ]
+   },
+   "tricep": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "tricep"
+    },
+    "targetsFor": [
+     12,
+     12,
+     11
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "opener at the prescribed 2 RIR, last set unrated — one rep until the terminal set is on file to say otherwise"
+    },
+    "rirPlan": [
+     2,
+     1,
+     0
+    ]
+   },
+   "pronated": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "pronated"
+    },
+    "targetsFor": [
+     13,
+     12
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     0
+    ]
+   },
+   "hack": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "hack"
+    },
+    "targetsFor": [
+     12,
+     11,
+     11
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     0
+    ]
+   },
+   "abs": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "abs"
+    },
+    "targetsFor": [
+     14,
+     13,
+     14
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     0
+    ]
+   },
+   "hanging": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "hanging"
+    },
+    "targetsFor": [
+     6,
+     6
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     0
+    ]
+   },
+   "extension": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "extension"
+    },
+    "targetsFor": [
+     10,
+     10
+    ],
+    "progressStep": {
+     "add": 2,
+     "why": "two reps left on the set meant to reach failure — there is room above, and a token single rep would waste it"
+    },
+    "rirPlan": [
+     2,
+     0
+    ]
+   },
+   "calves": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "calves"
+    },
+    "targetsFor": [
+     11,
+     11,
+     7,
+     8
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     1,
+     0
+    ]
+   },
+   "ham": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "ham"
+    },
+    "targetsFor": [
+     12,
+     12
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "nothing rated last time, so the step defaults to a single rep — rate the last set and this gets sharper"
+    },
+    "rirPlan": [
+     2,
+     0
+    ]
+   }
+  },
+  "runAdaptive": {
+   "proposals": [
+    {
+     "rid": "recovery_2026-07-27",
+     "resolved": true,
+     "title": "RECOVERY LOW — 45/100"
+    },
+    {
+     "rid": "refeed_review",
+     "resolved": true,
+     "title": "THE WEEKLY REFEED HAS NO EVIDENCE BEHIND IT"
+    },
+    {
+     "rid": "selection",
+     "resolved": true,
+     "title": "THREE MACHINES MIGHT BE THE WRONG ONES — WORTH CHECKING"
+    },
+    {
+     "rid": "microload",
+     "resolved": true,
+     "title": "TWO LIFTS HAVE PLATES TOO COARSE FOR THEM"
+    },
+    {
+     "rid": "rateunit",
+     "resolved": true,
+     "title": "YOUR RATE BAND IS IN THE WRONG UNIT"
+    },
+    {
+     "rid": "volband",
+     "resolved": true,
+     "title": "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER"
+    },
+    {
+     "rid": "calband_2026-07-27",
+     "resolved": true,
+     "title": "CALORIE BAND HAS DRIFTED FROM YOUR DATA"
+    },
+    {
+     "rid": "volband",
+     "resolved": true,
+     "title": "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER"
+    },
+    {
+     "rid": "refeed_review",
+     "resolved": true,
+     "title": "THE WEEKLY REFEED HAS NO EVIDENCE BEHIND IT"
+    },
+    {
+     "rid": "volstruct_2026-07-27",
+     "resolved": true,
+     "title": "Hams IS AT THE MINIMUM EFFECTIVE DOSE"
+    },
+    {
+     "rid": "rateunit",
+     "resolved": true,
+     "title": "YOUR RATE BAND IS IN THE WRONG UNIT"
+    },
+    {
+     "rid": "microload",
+     "resolved": true,
+     "title": "TWO LIFTS HAVE PLATES TOO COARSE FOR THEM"
+    },
+    {
+     "rid": "pivot",
+     "resolved": true,
+     "title": "WORTH ASKING: IS THE CUT DONE?"
+    },
+    {
+     "rid": "ap_tighten_2026-08-02",
+     "resolved": true,
+     "title": "AUTO-PILOT · TIGHTEN THE TARGET"
+    },
+    {
+     "rid": "ap_tighten_2026-08-03",
+     "resolved": true,
+     "title": "AUTO-PILOT · TIGHTEN THE TARGET"
+    },
+    {
+     "rid": "recovery_2026-08-03",
+     "resolved": true,
+     "title": "RECOVERY LOW — 3 OF 7 SIGNALS UP"
+    },
+    {
+     "rid": "volpush_hams_2026-08-03",
+     "resolved": false,
+     "title": "OWNER'S CALL — HAMS: 4 → 6 WEEKLY SETS"
+    },
+    {
+     "rid": "volpush_chest_2026-08-03",
+     "resolved": false,
+     "title": "OWNER'S CALL — CHEST: 6 → 8 WEEKLY SETS"
+    },
+    {
+     "rid": "volpush_delts_rear_2026-08-03",
+     "resolved": false,
+     "title": "OWNER'S CALL — REAR DELT: 6 → 8 WEEKLY SETS"
+    }
+   ],
+   "feedHead": [
+    "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER",
+    "THREE MACHINES MIGHT BE THE WRONG ONES — WORTH CHECKING",
+    "RECOVERY LOW — 3 OF 7 SIGNALS UP",
+    "TWO LIFTS HAVE PLATES TOO COARSE FOR THEM",
+    "CARD WITHDRAWN — WORTH ASKING: IS THE CUT DONE?",
+    "PHANTOM SET REMOVED — HAM 2026-07-31",
+    "PHANTOM SET REMOVED — PRONATED 2026-07-23",
+    "WEEK IN REVIEW · WK 8",
+    "LAB LIVE — ENERGY AVAILABILITY — WHAT IS LEFT AFTER TRAINING IS PAID FOR",
+    "RECOVERY CARD STOOD DOWN",
+    "THE CLEAN-SLEEP GATE IS GONE",
+    "THE EXIT PLAN IS NOW YOURS"
+   ]
+  }
+ },
+ "2026-08-07": {
+  "energyBalanceTarget": {
+   "gated": false,
+   "from": "measured",
+   "lo": 2221,
+   "hi": 2308,
+   "mid": 2265,
+   "baseLo": 2221,
+   "baseHi": 2308,
+   "adj": {
+    "delta": 0,
+    "active": false,
+    "from": null,
+    "rid": null,
+    "why": "",
+    "clipped": false
+   },
+   "wkAvg": 2557,
+   "wkN": 7,
+   "wkOff": 292,
+   "wkWhy": "Your last 7 logged days average 2557, which is 249 kcal/day above the top of the 2221–2308 band — about 0.46 lb/wk slower than the band is aiming for. Not a scolding, just the arithmetic: a daily target and a weekly result are different questions.",
+   "tdee": 2840,
+   "tdeePrimary": 2840,
+   "stepPromoted": false,
+   "tdeeLo": 2656,
+   "tdeeHi": 3025,
+   "days": 36,
+   "avg": 2194,
+   "band": [
+    0.98,
+    1.14
+   ],
+   "phaseLo": 1725,
+   "phaseHi": 1800,
+   "drift": 502,
+   "floorHit": false,
+   "floor": 1750,
+   "floorSoft": 2050,
+   "floorWhy": "1750 is 25 kcal per kg of your 63.4 kg lean mass plus the ~171 a day your training costs — the IOC's own energy-availability formula, run backwards. No position stand anywhere states an absolute calorie floor for an athlete; all four I checked express it per kg of lean mass, which is why this one moves with you instead of sitting at a round number. Treat the 25 as a convention rather than a measurement: it comes from three single-subject case reports, and the IOC declines to set a threshold at all.",
+   "floorBinds": false,
+   "floorBindsWhy": null,
+   "why": "Not enough clean training data to read a regime yet, so this HOLDS the prescription your own record validated — 2221–2308. The engine is not deciding here; it is holding. Abstaining is not a reason to stop doing the thing that is working.",
+   "regime": "unknown",
+   "regimeWhy": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything",
+   "regimeConfirmed": false,
+   "dir": "deficit",
+   "provisional": true
+  },
+  "calorieTarget": {
+   "gated": false,
+   "from": "measured",
+   "lo": 2221,
+   "hi": 2308,
+   "mid": 2265,
+   "baseLo": 2221,
+   "baseHi": 2308,
+   "adj": {
+    "delta": 0,
+    "active": false,
+    "from": null,
+    "rid": null,
+    "why": "",
+    "clipped": false
+   },
+   "wkAvg": 2557,
+   "wkN": 7,
+   "wkOff": 292,
+   "wkWhy": "Your last 7 logged days average 2557, which is 249 kcal/day above the top of the 2221–2308 band — about 0.46 lb/wk slower than the band is aiming for. Not a scolding, just the arithmetic: a daily target and a weekly result are different questions.",
+   "tdee": 2840,
+   "tdeePrimary": 2840,
+   "stepPromoted": false,
+   "tdeeLo": 2656,
+   "tdeeHi": 3025,
+   "days": 36,
+   "avg": 2194,
+   "band": [
+    0.98,
+    1.14
+   ],
+   "phaseLo": 1725,
+   "phaseHi": 1800,
+   "drift": 502,
+   "floorHit": false,
+   "floor": 1750,
+   "floorSoft": 2050,
+   "floorWhy": "1750 is 25 kcal per kg of your 63.4 kg lean mass plus the ~171 a day your training costs — the IOC's own energy-availability formula, run backwards. No position stand anywhere states an absolute calorie floor for an athlete; all four I checked express it per kg of lean mass, which is why this one moves with you instead of sitting at a round number. Treat the 25 as a convention rather than a measurement: it comes from three single-subject case reports, and the IOC declines to set a threshold at all.",
+   "floorBinds": false,
+   "floorBindsWhy": null,
+   "why": "Your measured maintenance is 2840 (2656–3025 once the rate's own error is carried through), from 36 logged days and a least-squares rate across 28 daily reads, both measured over the same stretch — Tue 6/30 to Thu 8/6. That matters because the two halves of that stretch are not the same: you averaged 2091 kcal on 18,778 steps in the first half and 2298 on 14,889 in the second. Averaging only the recent food against a rate the earlier weeks helped produce would read maintenance high. Your band asks for 0.98–1.14 lb/wk, which is 532–619 kcal/day under it. That lands at 2221–2308."
+  },
+  "currentRate": {
+   "scale": 1.19,
+   "fat": 1.19,
+   "measured": true,
+   "rates": [
+    1.799999999999983,
+    0.8000000000000114,
+    0.19999999999998863,
+    0.4000000000000057,
+    1.8000000000000114,
+    1.299999999999983,
+    0.4000000000000057
+   ],
+   "method": "regression",
+   "n": 28,
+   "ci": 0.34,
+   "lo": 0.85,
+   "hi": 1.53,
+   "sigma": 1.56,
+   "ciOls": 0.34,
+   "hacL": 3,
+   "rho1": 0.21,
+   "hacInflation": 1,
+   "from": "2026-06-30",
+   "to": "2026-08-06",
+   "span": "2026-06-30 → 2026-08-06"
+  },
+  "progressionTrend": {
+   "nLifts": 0,
+   "nExcludedNonNumeric": 2,
+   "excludedIds": [
+    "curl",
+    "hanging"
+   ],
+   "lifts": [],
+   "state": "unknown",
+   "pct": null,
+   "lo": null,
+   "hi": null,
+   "why": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything"
+  },
+  "regime": {
+   "key": "unknown",
+   "confirmed": false,
+   "pending": null,
+   "pendingSince": null,
+   "prog": {
+    "nLifts": 0,
+    "nExcludedNonNumeric": 2,
+    "excludedIds": [
+     "curl",
+     "hanging"
+    ],
+    "lifts": [],
+    "state": "unknown",
+    "pct": null,
+    "lo": null,
+    "hi": null,
+    "why": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything"
+   },
+   "rate": null,
+   "why": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything"
+  },
+  "recoveryIndex": {
+   "score": 60,
+   "band": "WATCH",
+   "flags": [
+    {
+     "k": "sleep",
+     "receipt": "sleep reset — 1 of 3 clean nights",
+     "fix": "2 more nights at 7.5 h or better, back to back",
+     "cost": 20
+    },
+    {
+     "k": "avg5",
+     "receipt": "five-night average is 6.75 h — under 7",
+     "fix": "this one is chronic, not last night — it needs a week of earlier lights-out, not one long lie-in",
+     "cost": 10
+    },
+    {
+     "k": "held",
+     "receipt": "1 lift held by the governor: Rows (strapless)",
+     "fix": "one honest opener at 1 RIR or better on each releases it — the load is not lost, just parked",
+     "cost": 10
+    }
+   ],
+   "lever": {
+    "k": "sleep",
+    "receipt": "sleep reset — 1 of 3 clean nights",
+    "fix": "2 more nights at 7.5 h or better, back to back",
+    "cost": 20
+   },
+   "watched": 7,
+   "excludedDips": 4,
+   "factors": [
+    "sleep reset — 1 of 3 clean nights",
+    "five-night average is 6.75 h — under 7",
+    "1 lift held by the governor: Rows (strapless)"
+   ]
+  },
+  "stepPush": {
+   "mode": "HOLD",
+   "base": 16833,
+   "why": "the rate is ABOVE the corridor — the deficit is already running hotter than the band asks, so more steps is not the question today. hold the walking that produced your maintenance. The coach reaches for this lever only when the objective wants more deficit."
+  },
+  "stepTarget": {
+   "gated": false,
+   "lo": 14500,
+   "hi": 16500,
+   "mid": 15500,
+   "baseMid": 15500,
+   "adjSteps": 0,
+   "days": 28,
+   "kcalPer1k": 31.8,
+   "avg": 15607,
+   "recentAvg": 13214,
+   "drift": -2393,
+   "driftKcal": -76,
+   "why": "Your maintenance was measured at 16,833 average steps over its own 36-day window — that number owns the claim. This band holds you to your RECENT 28-day average of 15,607, and the two differ because your walking has been falling — so the calorie band is only right while the walking that produced it continues. Every 1,000 steps is worth about 31.8 kcal at your bodyweight. Your last week runs -2,393 against that, which is about -76 kcal/day of maintenance the target has not caught up with yet."
+  },
+  "stepEfficacy": {
+   "status": "LIVE",
+   "n": 4,
+   "need": 4,
+   "slopePer1k": -78.947,
+   "boundPer1k": 0.059,
+   "resolved": false,
+   "excluded": 4
+  },
+  "observedTDEE": {
+   "tdee": 2840,
+   "days": 36,
+   "avg": 2194,
+   "atSteps": 16833,
+   "stepsNow": 13214,
+   "stepDelta": -115,
+   "tdeeAtNow": 2725,
+   "tdeeAtNowGross": 2725,
+   "tdeeAtNowNet": 2760,
+   "tdeeAtNowMid": 2757,
+   "stepPromoted": false,
+   "tdeePrimary": 2840,
+   "stepCompLo": 0.25,
+   "stepCompHi": 0.3,
+   "stepsWhy": "2840 is your maintenance AT 16,833 average steps — the activity level of the 36 days it was measured over. You are averaging 13,214 over the last seven, which prices at about 2760–2725 once compensation is carried — the body claws back roughly a quarter to a third of an activity change in someone your leanness, so the gross figure is the edge of the band, not the number. That drift sits inside the measured number's own noise band (±185), so 2840 stays the headline and this is the story behind it, not a new number. Steps are the cheapest lever here because adding them does not deepen the food deficit.",
+   "lo": 2656,
+   "hi": 3025,
+   "clamped": false,
+   "method": "regression",
+   "rateN": 28,
+   "rate": 1.19,
+   "rateCi": 0.34,
+   "from": "2026-06-30",
+   "to": "2026-08-06",
+   "matched": true,
+   "split": {
+    "calA": 2091,
+    "calB": 2298,
+    "stepA": 18778,
+    "stepB": 14889
+   },
+   "perLb": 3800,
+   "perLbLo": 3523,
+   "perLbHi": 4078,
+   "edIdentified": false,
+   "impliedPerLb": 3798,
+   "impossible": false
+  },
+  "bfEst": {
+   "pct": 14.3,
+   "lean": 139.7,
+   "lo": 10.7,
+   "hi": 18,
+   "wks": 1.1,
+   "anchorErr": 3.5,
+   "src": "coach's eye",
+   "drip": 0,
+   "why": "Anchored 1 week ago by your coach's eye — and the live band is 7.3 points wide (10.7–18), asymmetric, because the anchor's own ±3.5 never washes out and the band integrates away from it. Lean mass since then is assumed flat — the evidence for a trained lean male in a deficit is −0.11 lb/wk median, and nothing in this app can measure it. The band is that uncertainty made visible rather than hidden behind a decimal."
+  },
+  "energyAvailability": {
+   "gated": false,
+   "lo": 26.8,
+   "hi": 32.6,
+   "band": "ADEQUATE",
+   "ea": 32.6,
+   "eaAll": 26.8,
+   "intake": 2239,
+   "steps": 15607,
+   "ffmKg": 63.4,
+   "trainKcal": 171,
+   "walkKcal": 369,
+   "sessPerWk": 4,
+   "days": 28,
+   "needKcal": 0,
+   "stepsToDrop": null,
+   "receipts": [
+    "Intake 2239 kcal/day averaged over 28 logged days.",
+    "Training costs about 171 kcal/day at 4 sessions a week (the programme's 4, not the 2.3 in the log — in-app logging started part way through, and under-charging training would flatter this number) — an estimate, not a measurement.",
+    "Walking 15,607 steps/day costs roughly 369 kcal/day above a sedentary baseline.",
+    "Fat-free mass 63.4 kg, from the anchored lean model.",
+    "Counting structured training only — 32.6 — is the convention the IOC's 2023 formula uses and the only one comparable to the 25 line, so it is the one banded above. Counting deliberate walking as training gives 26.8; that is a true reading of everything you burn in a day but there is no published threshold built that way. Espinar 2026 measured the same swap in free-living athletes and it moved EA from ~32 to ~20 with nothing changing physiologically.",
+    "The 25 itself is extrapolated, not measured. Fagerberg 2018 proposes it from semi-starvation work and bodybuilder case reports and says plainly that no controlled male threshold study exists; the IOC 2023 declines a universal cut-off and gives males roughly 9-25. Treat it as a direction, and watch resting pulse, morning temperature and whether the lifts hold — those are measurements."
+   ]
+  },
+  "volumePush": {
+   "mode": "ABSTAIN",
+   "regime": "unknown",
+   "why": "the regime detector cannot yet read your state — a growth push is earned by measured lifts and rate, so the lever stays dormant rather than guessing"
+  },
+  "volumeImbalance": {
+   "pv": [
+    {
+     "mg": "forearms",
+     "sets": 11,
+     "zone": "IN-BAND",
+     "tier": "intermediate return",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "sulek",
+       "n": "Sulek curl (forearm)",
+       "sets": 2,
+       "day": "U"
+      },
+      {
+       "id": "pronated",
+       "n": "Pronated EZ curl",
+       "sets": 2,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "biceps",
+     "sets": 10,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "curl",
+       "n": "Curls",
+       "sets": 3,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "quads",
+     "sets": 10,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "hack",
+       "n": "Hack squat",
+       "sets": 3,
+       "day": "L"
+      },
+      {
+       "id": "extension",
+       "n": "Leg extension",
+       "sets": 2,
+       "day": "L"
+      }
+     ]
+    },
+    {
+     "mg": "abs",
+     "sets": 10,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "abs",
+       "n": "Abs",
+       "sets": 3,
+       "day": "L"
+      },
+      {
+       "id": "hanging",
+       "n": "Hanging raise",
+       "sets": 2,
+       "day": "L"
+      }
+     ]
+    },
+    {
+     "mg": "triceps",
+     "sets": 9,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "tricep",
+       "n": "Tricep",
+       "sets": 3,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "back",
+     "sets": 8,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "rows",
+       "n": "Rows (strapless)",
+       "sets": 2,
+       "day": "U"
+      },
+      {
+       "id": "pulldown",
+       "n": "Pulldown",
+       "sets": 2,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "delts_side",
+     "sets": 8,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "lateral",
+       "n": "Lateral machine",
+       "sets": 4,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "calves",
+     "sets": 8,
+     "zone": "IN-BAND",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "calves",
+       "n": "Calves",
+       "sets": 4,
+       "day": "L"
+      }
+     ]
+    },
+    {
+     "mg": "chest",
+     "sets": 6,
+     "zone": "LOW",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "press",
+       "n": "Press",
+       "sets": 3,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "delts_rear",
+     "sets": 6,
+     "zone": "LOW",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "rearDelt",
+       "n": "Rear-delt fly (cable · uni)",
+       "sets": 3,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "hams",
+     "sets": 4,
+     "zone": "UNDER",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "ham",
+       "n": "Ham curl",
+       "sets": 2,
+       "day": "L"
+      }
+     ]
+    },
+    {
+     "mg": "delts_front",
+     "sets": 3,
+     "zone": "UNDER",
+     "tier": "highest return per set",
+     "indirectOnly": true,
+     "lifts": []
+    }
+   ],
+   "under": [
+    {
+     "mg": "hams",
+     "sets": 4,
+     "zone": "UNDER",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "ham",
+       "n": "Ham curl",
+       "sets": 2,
+       "day": "L"
+      }
+     ]
+    }
+   ],
+   "low": [
+    {
+     "mg": "chest",
+     "sets": 6,
+     "zone": "LOW",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "press",
+       "n": "Press",
+       "sets": 3,
+       "day": "U"
+      }
+     ]
+    },
+    {
+     "mg": "delts_rear",
+     "sets": 6,
+     "zone": "LOW",
+     "tier": "highest return per set",
+     "indirectOnly": false,
+     "lifts": [
+      {
+       "id": "rearDelt",
+       "n": "Rear-delt fly (cable · uni)",
+       "sets": 3,
+       "day": "U"
+      }
+     ]
+    }
+   ],
+   "over": [],
+   "donor": null,
+   "taker": {
+    "mg": "hams",
+    "sets": 4,
+    "zone": "UNDER",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "ham",
+      "n": "Ham curl",
+      "sets": 2,
+      "day": "L"
+     }
+    ]
+   },
+   "need": 6,
+   "gain": 2.05,
+   "detectable": true,
+   "actionable": false,
+   "growthOK": false,
+   "regimeKey": "unknown",
+   "sdes": 2.05,
+   "why": "Filed, not proposed — the regime detector cannot yet read your state (only 0 lift(s) carry a usable trend — 4 needed before this reads anything), and a growth decision is earned by measured lifts and rate — the engine abstains rather than guesses. The 6-12 band is a GROWTH dose-response measured in people eating enough to build. The one trial that asked the retention question of trained men in energy restriction (Roth 2023, n=38, six weeks at a 30 kcal/kg deficit and 2.8 g/kg protein) found 20 weekly sets and 12 preserved lean mass identically — 0.51 kg lost against 0.92, not a significant difference, and no difference in muscle thickness. Retention is cheaper still: Bickel 2011 held young adults' thigh lean mass for 32 weeks on one-ninth of their original volume. So hams at 4 sets is adequate for what you are actually asking of it right now, which is to hold. This is the first thing worth raising when the detector reads free — and it is on the record so nobody has to rediscover it then."
+  },
+  "programmeVolume": [
+   {
+    "mg": "forearms",
+    "sets": 11,
+    "zone": "IN-BAND",
+    "tier": "intermediate return",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "sulek",
+      "n": "Sulek curl (forearm)",
+      "sets": 2,
+      "day": "U"
+     },
+     {
+      "id": "pronated",
+      "n": "Pronated EZ curl",
+      "sets": 2,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "biceps",
+    "sets": 10,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "curl",
+      "n": "Curls",
+      "sets": 3,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "quads",
+    "sets": 10,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "hack",
+      "n": "Hack squat",
+      "sets": 3,
+      "day": "L"
+     },
+     {
+      "id": "extension",
+      "n": "Leg extension",
+      "sets": 2,
+      "day": "L"
+     }
+    ]
+   },
+   {
+    "mg": "abs",
+    "sets": 10,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "abs",
+      "n": "Abs",
+      "sets": 3,
+      "day": "L"
+     },
+     {
+      "id": "hanging",
+      "n": "Hanging raise",
+      "sets": 2,
+      "day": "L"
+     }
+    ]
+   },
+   {
+    "mg": "triceps",
+    "sets": 9,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "tricep",
+      "n": "Tricep",
+      "sets": 3,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "back",
+    "sets": 8,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "rows",
+      "n": "Rows (strapless)",
+      "sets": 2,
+      "day": "U"
+     },
+     {
+      "id": "pulldown",
+      "n": "Pulldown",
+      "sets": 2,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "delts_side",
+    "sets": 8,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "lateral",
+      "n": "Lateral machine",
+      "sets": 4,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "calves",
+    "sets": 8,
+    "zone": "IN-BAND",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "calves",
+      "n": "Calves",
+      "sets": 4,
+      "day": "L"
+     }
+    ]
+   },
+   {
+    "mg": "chest",
+    "sets": 6,
+    "zone": "LOW",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "press",
+      "n": "Press",
+      "sets": 3,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "delts_rear",
+    "sets": 6,
+    "zone": "LOW",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "rearDelt",
+      "n": "Rear-delt fly (cable · uni)",
+      "sets": 3,
+      "day": "U"
+     }
+    ]
+   },
+   {
+    "mg": "hams",
+    "sets": 4,
+    "zone": "UNDER",
+    "tier": "highest return per set",
+    "indirectOnly": false,
+    "lifts": [
+     {
+      "id": "ham",
+      "n": "Ham curl",
+      "sets": 2,
+      "day": "L"
+     }
+    ]
+   },
+   {
+    "mg": "delts_front",
+    "sets": 3,
+    "zone": "UNDER",
+    "tier": "highest return per set",
+    "indirectOnly": true,
+    "lifts": []
+   }
+  ],
+  "muscleVolume": [
+   {
+    "mg": "back",
+    "n7": 8,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "rows",
+      "mg": "back",
+      "lastMeta": {
+       "d": "2026-08-06",
+       "w": 180,
+       "reps": [
+        9,
+        8
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Rows (strapless)",
+      "day": "U",
+      "w": 180,
+      "inc": 5,
+      "sets": 2,
+      "hi": 10,
+      "last": [
+       9,
+       8
+      ],
+      "setup": "SET · seat 4 · chest pad 7 · retrace profile 1\nChest stays glued to pad · pinch the blades at the back · strapless is the standard",
+      "rirHist": [
+       0,
+       0
+      ],
+      "own": false,
+      "std": null,
+      "holdFlag": true
+     },
+     {
+      "id": "pulldown",
+      "mg": "back",
+      "lastMeta": {
+       "d": "2026-08-06",
+       "w": 160,
+       "reps": [
+        9,
+        8
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Pulldown",
+      "day": "U",
+      "w": 160,
+      "inc": 5,
+      "sets": 2,
+      "hi": 10,
+      "last": [
+       9,
+       8
+      ],
+      "setup": "SET · silver bar · thumbs in the same spot every session\nSame grip = comparable reps · chest up, elbows down-and-in · strapless",
+      "rirHist": [
+       0,
+       1
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "rows",
+      "n": "Rows (strapless)",
+      "v": 1.5
+     },
+     {
+      "id": "pulldown",
+      "n": "Pulldown",
+      "v": 1
+     }
+    ],
+    "slipping": 0,
+    "gaining": 2,
+    "sore7": 0
+   },
+   {
+    "mg": "chest",
+    "n7": 6,
+    "p7": 0,
+    "zone": "LOW",
+    "lifts": [
+     {
+      "id": "press",
+      "mg": "chest",
+      "lastMeta": {
+       "d": "2026-08-06",
+       "w": 250,
+       "reps": [
+        8,
+        8,
+        7
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Press",
+      "day": "U",
+      "w": 250,
+      "inc": 5,
+      "sets": 3,
+      "hi": 9,
+      "last": [
+       8,
+       8,
+       7
+      ],
+      "std": null,
+      "own": false,
+      "ownNote": "repeat 8,8,7 — no load until owned",
+      "setup": "SET · cam 5 · lowest seat\nShoulders back & down into the pad · no bottom bounce — this lift was won on the honest opener",
+      "rirHist": [
+       2,
+       2
+      ],
+      "lastAttempt": [
+       8,
+       8,
+       7
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "press",
+      "n": "Press",
+      "v": 0
+     }
+    ],
+    "slipping": 0,
+    "gaining": 0,
+    "sore7": 0
+   },
+   {
+    "mg": "delts_side",
+    "n7": 8,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "lateral",
+      "mg": "delts",
+      "head": "delts_side",
+      "lastMeta": {
+       "d": "2026-08-06",
+       "w": 85,
+       "reps": [
+        14,
+        13,
+        12,
+        11
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        null,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Lateral machine",
+      "day": "U",
+      "w": 85,
+      "inc": 5,
+      "sets": 4,
+      "hi": 15,
+      "last": [
+       14,
+       13,
+       12,
+       11
+      ],
+      "setup": "SET · resistance profile 5 · seat 5\nUpright, elbow-led (the set-4 fix) · no shrug creep · smooth top, no swing",
+      "rirHist": [
+       2,
+       2
+      ],
+      "topAt": null,
+      "topRun": 0,
+      "own": false,
+      "std": null
+     }
+    ],
+    "vels": [
+     {
+      "id": "lateral",
+      "n": "Lateral machine",
+      "v": -1.5
+     }
+    ],
+    "slipping": 1,
+    "gaining": 0,
+    "sore7": 0
+   },
+   {
+    "mg": "biceps",
+    "n7": 10,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "curl",
+      "mg": "biceps",
+      "lastMeta": {
+       "d": "2026-08-06",
+       "w": "55·55·50",
+       "reps": [
+        11,
+        9,
+        10
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Curls",
+      "day": "U",
+      "w": "55·55·50",
+      "inc": 5,
+      "sets": 3,
+      "hi": 12,
+      "last": [
+       11,
+       9,
+       10
+      ],
+      "ladder": {
+       "set": 1,
+       "top": 12
+      },
+      "setup": "SET · resistance profile 5 · seat 3\nSet 2 is the money set · no shoulder creep when it grinds",
+      "rirHist": [
+       0,
+       2
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "curl",
+      "n": "Curls",
+      "v": 3.5
+     }
+    ],
+    "slipping": 0,
+    "gaining": 1,
+    "sore7": 0
+   },
+   {
+    "mg": "delts_rear",
+    "n7": 6,
+    "p7": 0,
+    "zone": "LOW",
+    "lifts": [
+     {
+      "id": "rearDelt",
+      "mg": "delts",
+      "head": "delts_rear",
+      "lastMeta": {
+       "d": "2026-08-06",
+       "w": 20,
+       "reps": [
+        10,
+        9,
+        9
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Rear-delt fly (cable · uni)",
+      "day": "U",
+      "w": 20,
+      "inc": 2.5,
+      "sets": 3,
+      "hi": 12,
+      "last": [
+       10,
+       9,
+       9
+      ],
+      "note": "honest 10s — no hot opener · 3 sets per side, log the weaker side",
+      "setup": "SET · unilateral · cable at highest height\nChest tall, shoulders back & down (?) · pure sweep — the opener fix is proven here",
+      "rirHist": [
+       2,
+       1
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "rearDelt",
+      "n": "Rear-delt fly (cable · uni)",
+      "v": 0
+     }
+    ],
+    "slipping": 0,
+    "gaining": 0,
+    "sore7": 0
+   },
+   {
+    "mg": "forearms",
+    "n7": 9,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "sulek",
+      "mg": "forearms",
+      "lastMeta": {
+       "d": "2026-08-06",
+       "w": 87.5,
+       "reps": [
+        14,
+        12
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Sulek curl (forearm)",
+      "day": "U",
+      "w": 87.5,
+      "inc": 2.5,
+      "sets": 2,
+      "hi": 15,
+      "last": [
+       14,
+       12
+      ],
+      "setup": "SET · cable, highest rung · straight bar\nSam Sulek's signature — strict curl biasing the forearm flexors · elbows quiet, control the weight rather than drop it",
+      "rirHist": [
+       1,
+       2
+      ]
+     },
+     {
+      "id": "pronated",
+      "mg": "forearms",
+      "lastMeta": {
+       "d": "2026-08-03",
+       "w": 40,
+       "reps": [
+        12,
+        11
+       ],
+       "rir": 1,
+       "rirSets": [
+        1,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Pronated EZ curl",
+      "day": "U",
+      "w": 40,
+      "inc": 5,
+      "sets": 2,
+      "hi": 13,
+      "last": [
+       12,
+       11
+      ],
+      "setup": "SET · EZ bar, pronated grip\nElbows pinned to sides, zero swing · wrists locked — don't let them bend back under load · your 11,6 session was the hot-opener demo",
+      "rirHist": [
+       0,
+       1
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "sulek",
+      "n": "Sulek curl (forearm)",
+      "v": 2
+     }
+    ],
+    "slipping": 0,
+    "gaining": 1,
+    "sore7": 0
+   },
+   {
+    "mg": "triceps",
+    "n7": 9,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "tricep",
+      "mg": "triceps",
+      "lastMeta": {
+       "d": "2026-08-06",
+       "w": 55,
+       "reps": [
+        12,
+        11,
+        9
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "n": "Tricep",
+      "day": "U",
+      "w": 55,
+      "inc": 5,
+      "sets": 3,
+      "hi": 13,
+      "last": [
+       12,
+       11,
+       9
+      ],
+      "setup": "SET · seat 4 · back pad all the way forward · middle peg through the cut\nElbows pinned · middle peg, settled — the peg sets the resistance profile, not the shoulder angle, so it was never the overhead question",
+      "rirHist": [
+       0,
+       2
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "tricep",
+      "n": "Tricep",
+      "v": 0.5
+     }
+    ],
+    "slipping": 0,
+    "gaining": 1,
+    "sore7": 0
+   },
+   {
+    "mg": "quads",
+    "n7": 10,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "hack",
+      "n": "Hack squat",
+      "day": "L",
+      "w": 160,
+      "inc": null,
+      "sets": 3,
+      "hi": 12,
+      "last": null,
+      "pendingThird": false,
+      "rirHist": [
+       2,
+       2,
+       0
+      ],
+      "setup": "SET · foot placement = your favorited pic\nSame depth every rep · even sets are the standard here (11,11 → 12,12 → 13,13)",
+      "lastMeta": {
+       "d": "2026-08-04",
+       "w": 160,
+       "reps": [
+        11,
+        11,
+        10
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "mg": "quads",
+      "own": false,
+      "std": null
+     },
+     {
+      "id": "extension",
+      "n": "Leg extension",
+      "day": "L",
+      "w": 150,
+      "inc": 5,
+      "sets": 2,
+      "hi": 10,
+      "last": [
+       10,
+       9
+      ],
+      "std": null,
+      "own": false,
+      "ownNote": "own 150×9,9 — then the 155 gate reopens",
+      "rirHist": [
+       2,
+       2,
+       0
+      ],
+      "setup": "SET · shin pad height A · depth 3 · seat back all the way back — max quad stretch\nNo jerk at lockout · runs after hack by design — read dips as order effect, not regression",
+      "lastMeta": {
+       "d": "2026-07-31",
+       "w": 150,
+       "reps": [
+        10,
+        9
+       ],
+       "rir": 0,
+       "rirSets": [
+        0,
+        2
+       ],
+       "debt": true
+      },
+      "mg": "quads",
+      "lastAttempt": [
+       10,
+       9
+      ]
+     }
+    ],
+    "vels": [
+     {
+      "id": "hack",
+      "n": "Hack squat",
+      "v": 5
+     },
+     {
+      "id": "extension",
+      "n": "Leg extension",
+      "v": 0
+     }
+    ],
+    "slipping": 0,
+    "gaining": 1,
+    "sore7": 0
+   },
+   {
+    "mg": "abs",
+    "n7": 10,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "abs",
+      "n": "Abs",
+      "day": "L",
+      "w": 100,
+      "inc": 5,
+      "sets": 3,
+      "hi": 14,
+      "last": [
+       13,
+       13,
+       15
+      ],
+      "first": [
+       12,
+       12,
+       12
+      ],
+      "debutNote": "DEBUT — new baseline, log honest",
+      "rirHist": [
+       2,
+       2,
+       0
+      ],
+      "setup": "SET · back pad A · seat 6\nThe load only moves on clean, even reps — consistency of execution, not of speed",
+      "lastMeta": {
+       "d": "2026-08-04",
+       "w": 100,
+       "reps": [
+        13,
+        13,
+        15
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "mg": "abs",
+      "own": false,
+      "std": null
+     },
+     {
+      "id": "hanging",
+      "n": "Hanging raise",
+      "day": "L",
+      "w": "BW",
+      "inc": null,
+      "sets": 2,
+      "hi": 8,
+      "last": [
+       6,
+       5
+      ],
+      "rirHist": [
+       2,
+       2,
+       0
+      ],
+      "setup": "SET · bodyweight\nSlouch down/out to engage the core at rep 1 · constant tension, spine stays rounded · no swing between reps",
+      "lastMeta": {
+       "d": "2026-08-04",
+       "w": "BW",
+       "reps": [
+        6,
+        5
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "mg": "abs"
+     }
+    ],
+    "vels": [
+     {
+      "id": "abs",
+      "n": "Abs",
+      "v": 5
+     },
+     {
+      "id": "hanging",
+      "n": "Hanging raise",
+      "v": -0.5
+     }
+    ],
+    "slipping": 1,
+    "gaining": 1,
+    "sore7": 0
+   },
+   {
+    "mg": "calves",
+    "n7": 8,
+    "p7": 0,
+    "zone": "IN-BAND",
+    "lifts": [
+     {
+      "id": "calves",
+      "n": "Calves",
+      "day": "L",
+      "w": 320,
+      "inc": 5,
+      "sets": 4,
+      "hi": 13,
+      "last": [
+       11,
+       10,
+       7,
+       8
+      ],
+      "reclaim": null,
+      "rirHist": [
+       2,
+       2,
+       2
+      ],
+      "setup": "SET · shoulder height 4\n5 s pause in the stretched position · back up to neutral · no bounce out of the hole — the pause IS the rep · drive through the big toe",
+      "lastMeta": {
+       "d": "2026-08-04",
+       "w": 320,
+       "reps": [
+        11,
+        10,
+        7,
+        8
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        null,
+        null,
+        0
+       ],
+       "debt": true
+      },
+      "mg": "calves",
+      "own": false,
+      "std": null
+     }
+    ],
+    "vels": [
+     {
+      "id": "calves",
+      "n": "Calves",
+      "v": -5
+     }
+    ],
+    "slipping": 1,
+    "gaining": 0,
+    "sore7": 0
+   },
+   {
+    "mg": "hams",
+    "n7": 4,
+    "p7": 0,
+    "zone": "UNDER",
+    "lifts": [
+     {
+      "id": "ham",
+      "n": "Ham curl",
+      "day": "L",
+      "w": 120,
+      "inc": 5,
+      "sets": 2,
+      "hi": 12,
+      "last": [
+       10,
+       10
+      ],
+      "rirHist": [
+       2,
+       2
+      ],
+      "setup": "SET · back 5 · calf pad height C · depth 3 · resistance profile 5\nHips pinned down, no lift-off · full stretch at the top of every rep",
+      "lastMeta": {
+       "d": "2026-08-04",
+       "w": 120,
+       "reps": [
+        10,
+        10
+       ],
+       "rir": null,
+       "rirSets": [
+        null,
+        null
+       ],
+       "debt": true
+      },
+      "mg": "hams",
+      "topAt": 120,
+      "topRun": 1
+     }
+    ],
+    "vels": [
+     {
+      "id": "ham",
+      "n": "Ham curl",
+      "v": -1
+     }
+    ],
+    "slipping": 1,
+    "gaining": 0,
+    "sore7": 0
+   }
+  ],
+  "typicalError": {
+   "reps": 0.81,
+   "n": 107,
+   "src": "your lifts pooled"
+  },
+  "perLift": {
+   "rows": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "rows"
+    },
+    "targetsFor": [
+     9,
+     9
+    ],
+    "progressStep": {
+     "add": 0,
+     "why": "governor hold — the opener has run hot two sessions straight, so nothing climbs until an honest one lands"
+    },
+    "rirPlan": [
+     2,
+     2
+    ]
+   },
+   "press": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "press"
+    },
+    "targetsFor": [
+     8,
+     8,
+     8
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     0
+    ]
+   },
+   "lateral": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "lateral"
+    },
+    "targetsFor": [
+     14,
+     14,
+     12,
+     11
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     1,
+     0
+    ]
+   },
+   "curl": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "curl"
+    },
+    "targetsFor": [
+     11,
+     10,
+     10
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     0
+    ]
+   },
+   "rearDelt": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "rearDelt"
+    },
+    "targetsFor": [
+     11,
+     11,
+     10
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     0
+    ]
+   },
+   "pulldown": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "pulldown"
+    },
+    "targetsFor": [
+     9,
+     9
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     0
+    ]
+   },
+   "sulek": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "sulek"
+    },
+    "targetsFor": [
+     14,
+     13
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     0
+    ]
+   },
+   "tricep": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "tricep"
+    },
+    "targetsFor": [
+     12,
+     12,
+     11
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     0
+    ]
+   },
+   "pronated": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "pronated"
+    },
+    "targetsFor": [
+     13,
+     12
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     0
+    ]
+   },
+   "hack": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "hack"
+    },
+    "targetsFor": [
+     10,
+     10,
+     10
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     0
+    ]
+   },
+   "abs": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "abs"
+    },
+    "targetsFor": [
+     14,
+     13,
+     14
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     0
+    ]
+   },
+   "hanging": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "hanging"
+    },
+    "targetsFor": [
+     6,
+     6
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     0
+    ]
+   },
+   "extension": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "extension"
+    },
+    "targetsFor": [
+     10,
+     10
+    ],
+    "progressStep": {
+     "add": 2,
+     "why": "two reps left on the set meant to reach failure — there is room above, and a token single rep would waste it"
+    },
+    "rirPlan": [
+     2,
+     0
+    ]
+   },
+   "calves": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "calves"
+    },
+    "targetsFor": [
+     11,
+     11,
+     7,
+     8
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
+    },
+    "rirPlan": [
+     2,
+     1,
+     1,
+     0
+    ]
+   },
+   "ham": {
+    "liftTrend": null,
+    "volumeConversion": {
+     "status": "IDLE",
+     "exId": "ham"
+    },
+    "targetsFor": [
+     12,
+     12
+    ],
+    "progressStep": {
+     "add": 1,
+     "why": "nothing rated last time, so the step defaults to a single rep — rate the last set and this gets sharper"
+    },
+    "rirPlan": [
+     2,
+     0
+    ]
+   }
+  },
+  "runAdaptive": {
+   "proposals": [
+    {
+     "rid": "recovery_2026-07-27",
+     "resolved": true,
+     "title": "RECOVERY LOW — 45/100"
+    },
+    {
+     "rid": "refeed_review",
+     "resolved": true,
+     "title": "THE WEEKLY REFEED HAS NO EVIDENCE BEHIND IT"
+    },
+    {
+     "rid": "selection",
+     "resolved": true,
+     "title": "THREE MACHINES MIGHT BE THE WRONG ONES — WORTH CHECKING"
+    },
+    {
+     "rid": "microload",
+     "resolved": true,
+     "title": "TWO LIFTS HAVE PLATES TOO COARSE FOR THEM"
+    },
+    {
+     "rid": "rateunit",
+     "resolved": true,
+     "title": "YOUR RATE BAND IS IN THE WRONG UNIT"
+    },
+    {
+     "rid": "volband",
+     "resolved": true,
+     "title": "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER"
+    },
+    {
+     "rid": "calband_2026-07-27",
+     "resolved": true,
+     "title": "CALORIE BAND HAS DRIFTED FROM YOUR DATA"
+    },
+    {
+     "rid": "volband",
+     "resolved": true,
+     "title": "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER"
+    },
+    {
+     "rid": "refeed_review",
+     "resolved": true,
+     "title": "THE WEEKLY REFEED HAS NO EVIDENCE BEHIND IT"
+    },
+    {
+     "rid": "volstruct_2026-07-27",
+     "resolved": true,
+     "title": "Hams IS AT THE MINIMUM EFFECTIVE DOSE"
+    },
+    {
+     "rid": "rateunit",
+     "resolved": true,
+     "title": "YOUR RATE BAND IS IN THE WRONG UNIT"
+    },
+    {
+     "rid": "microload",
+     "resolved": true,
+     "title": "TWO LIFTS HAVE PLATES TOO COARSE FOR THEM"
+    },
+    {
+     "rid": "pivot",
+     "resolved": true,
+     "title": "WORTH ASKING: IS THE CUT DONE?"
+    },
+    {
+     "rid": "ap_tighten_2026-08-02",
+     "resolved": true,
+     "title": "AUTO-PILOT · TIGHTEN THE TARGET"
+    },
+    {
+     "rid": "ap_tighten_2026-08-03",
+     "resolved": true,
+     "title": "AUTO-PILOT · TIGHTEN THE TARGET"
+    },
+    {
+     "rid": "recovery_2026-08-03",
+     "resolved": true,
+     "title": "RECOVERY LOW — 3 OF 7 SIGNALS UP"
+    },
+    {
+     "rid": "volband",
+     "resolved": true,
+     "title": "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER"
+    },
+    {
+     "rid": "volpush_hams_2026-08-03",
+     "resolved": false,
+     "title": "OWNER'S CALL — HAMS: 4 → 6 WEEKLY SETS"
+    },
+    {
+     "rid": "volpush_chest_2026-08-03",
+     "resolved": false,
+     "title": "OWNER'S CALL — CHEST: 6 → 8 WEEKLY SETS"
+    },
+    {
+     "rid": "volpush_delts_rear_2026-08-03",
+     "resolved": false,
+     "title": "OWNER'S CALL — REAR DELT: 6 → 8 WEEKLY SETS"
+    }
+   ],
+   "feedHead": [
+    "THREE MACHINES MIGHT BE THE WRONG ONES — WORTH CHECKING",
+    "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER",
+    "TWO LIFTS HAVE PLATES TOO COARSE FOR THEM",
+    "ANALYST SUGGESTION APPLIED",
+    "CARD WITHDRAWN — WORTH ASKING: IS THE CUT DONE?",
+    "LAB LIVE — THE CANARY LIFT",
+    "LAB LIVE — REFEED ROI",
+    "SKIPPED — Pronated EZ curl",
+    "PULLDOWN — TARGET MET",
+    "PRESS — TARGET MET",
+    "SULEK CURL (FOREARM) — TARGET MET",
+    "LATERAL MACHINE 85 DEBUT COMPLETE"
+   ]
+  }
+ }
+}

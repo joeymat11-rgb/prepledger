@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEASURED — R15 redesign mockups · round 1.2</title>
+<style>
+  :root{
+    --bg:#07090C; --page:#0A0D11; --card:#11151B; --card2:#151A21; --well:#0D1116;
+    --line:#222A34; --line2:#2C3642;
+    --ink:#E9EEF4; --steel:#8D9AAB; --dim:#5C6875;
+    --jade:#5ED4A2; --amber:#E5B454; --red:#E06056; --dec:#5FB7E8;
+    --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Inter,system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;padding:28px 14px 60px}
+  .hdr{max-width:760px;text-align:center;margin:0 auto 26px}
+  .hdr h1{font-family:var(--mono);font-size:13px;letter-spacing:.28em;color:var(--steel);font-weight:600}
+  .hdr p{font-size:13px;color:var(--dim);margin-top:8px;line-height:1.55}
+  .hdr p b{color:var(--steel);font-weight:600}
+  .row{display:flex;flex-wrap:wrap;gap:34px;justify-content:center;align-items:flex-start}
+  .unit{display:flex;flex-direction:column;align-items:center;width:378px}
+  .unit .cap{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--amber);
+    font-weight:700;margin-bottom:12px}
+  .phone{width:378px;background:var(--page);border:1px solid var(--line2);border-radius:42px;
+    overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.55);display:flex;flex-direction:column}
+  .body{padding:10px 17px 14px}
+  .brand{display:flex;justify-content:space-between;align-items:baseline;padding:16px 17px 8px}
+  .brand .wm{font-family:var(--mono);font-size:11px;letter-spacing:.34em;color:var(--steel);font-weight:700}
+  .brand .dt{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em}
+  .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--dim);font-weight:600}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:11px}
+  .tabbar{display:flex;border-top:1px solid var(--line)}
+  .tabbar div{flex:1;text-align:center;padding:13px 0 20px;font-family:var(--mono);font-size:11px;
+    letter-spacing:.16em;color:var(--dim);font-weight:600;border-top:2px solid transparent}
+  .tabbar div.here{color:var(--amber);border-top-color:var(--amber)}
+
+  .status .word{font-family:var(--mono);font-size:28px;font-weight:700;letter-spacing:.06em;color:var(--amber)}
+  .status .word .g{font-size:19px;vertical-align:3px;margin-right:9px}
+  .status .cause{font-size:13.5px;color:var(--steel);line-height:1.5;margin-top:7px}
+  .coachline{display:flex;gap:10px;align-items:flex-start;margin-top:13px;padding:12px 13px;
+    background:var(--well);border:1px dashed var(--line2);border-radius:14px}
+  .coachline .pulse{width:7px;height:7px;border-radius:50%;background:var(--dim);margin-top:5px;flex:none}
+  .coachline p{font-size:12px;color:var(--steel);line-height:1.5}
+  .coachline b{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--ink);font-weight:600}
+
+  .eat .big{display:flex;align-items:baseline;gap:7px;margin-top:9px}
+  .eat .big .n{font-family:var(--mono);font-size:32px;font-weight:700}
+  .eat .big .dash{color:var(--dim);font-size:21px}
+  .eat .big .u{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.12em}
+  .tag{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--amber);
+    border:1px solid rgba(229,180,84,.35);border-radius:999px;padding:3px 8px;margin-left:7px;vertical-align:6px}
+  .eat .sub{font-size:12px;color:var(--steel);margin-top:9px;line-height:1.5}
+  .eat .pro{font-family:var(--mono);font-size:12.5px;margin-top:11px;letter-spacing:.04em}
+  .eat .pro span{color:var(--dim);font-size:10.5px;letter-spacing:.08em}
+
+  .strip{position:relative;height:58px;margin-top:13px}
+  .strip .rail{position:absolute;left:0;right:0;top:26px;height:4px;background:var(--well);border-radius:2px}
+  .strip .zone{position:absolute;top:25px;height:6px;border-radius:3px;left:24.5%;width:38%;
+    background:linear-gradient(90deg,transparent, rgba(94,212,162,.5) 22%, rgba(94,212,162,.5) 78%, transparent)}
+  .strip .zlab{position:absolute;top:42px;left:43.5%;transform:translateX(-50%);font-family:var(--mono);
+    font-size:9px;color:var(--jade);letter-spacing:.08em}
+  .strip .tick{position:absolute;top:19px;width:1.5px;height:18px;background:var(--line2)}
+  .strip .tlab{position:absolute;top:42px;font-family:var(--mono);font-size:9px;color:var(--dim);
+    transform:translateX(-50%);letter-spacing:.06em;white-space:nowrap}
+  .strip .ci{position:absolute;top:27.5px;height:1.5px;background:rgba(233,238,244,.35)}
+  .strip .mk{position:absolute;top:17px;width:2.5px;height:22px;background:var(--ink);border-radius:2px;
+    transform:translateX(-50%)}
+  .strip .mlab{position:absolute;top:0;font-family:var(--mono);font-size:11px;font-weight:700;
+    transform:translateX(-50%);letter-spacing:.04em}
+  .rateword{font-size:12px;color:var(--steel);line-height:1.55;margin-top:5px}
+
+  .sess{display:flex;justify-content:space-between;align-items:center}
+  .sess .t{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:.1em;margin-top:6px}
+  .sess .s{font-size:11.5px;color:var(--steel);margin-top:5px}
+  .sess .go{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--jade);
+    border:1px solid rgba(94,212,162,.35);padding:9px 14px;border-radius:999px;font-weight:700;flex:none}
+
+  .traj .row2{display:flex;justify-content:space-between;align-items:baseline;margin-top:7px}
+  .traj .w{font-family:var(--mono);font-size:19px;font-weight:700}
+  .traj .p{font-size:11.5px;color:var(--steel);text-align:right;line-height:1.45}
+  .traj .foot{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.1em;margin-top:11px}
+
+  .thdr{display:flex;justify-content:space-between;align-items:center;padding:0 0 11px}
+  .thdr .t{font-family:var(--mono);font-size:12px;letter-spacing:.2em;font-weight:700}
+  .dots{display:flex;gap:5px}
+  .dots i{width:6px;height:6px;border-radius:50%;background:var(--line2)}
+  .dots i.done{background:var(--jade)} .dots i.now{background:var(--amber)}
+  .lift .nm{font-family:var(--mono);font-size:23px;font-weight:700;letter-spacing:.04em}
+  .lift .ld{font-family:var(--mono);font-size:14px;color:var(--steel);margin-top:3px}
+  .lift .tgt{margin-top:12px;padding:10px 12px;background:var(--well);border-radius:12px;
+    font-family:var(--mono);font-size:12px;color:var(--steel);letter-spacing:.04em;line-height:1.5}
+  .lift .tgt b{color:var(--ink)}
+  .setrow{display:flex;gap:8px;margin-top:14px}
+  .chip{font-family:var(--mono);font-size:12.5px;font-weight:700;padding:9px 0;width:52px;text-align:center;
+    border-radius:12px;border:1px solid var(--line)}
+  .chip.done{color:var(--jade);border-color:rgba(94,212,162,.4)}
+  .chip.now{color:var(--amber);border-color:rgba(229,180,84,.5);background:rgba(229,180,84,.06)}
+  .chip.todo{color:var(--dim)}
+  .counter{display:flex;align-items:center;justify-content:space-between;margin-top:16px}
+  .counter .pm{width:72px;height:72px;border-radius:22px;border:1px solid var(--line2);background:var(--card2);
+    font-size:29px;font-weight:300;display:flex;align-items:center;justify-content:center}
+  .counter .n{font-family:var(--mono);font-size:54px;font-weight:700;text-align:center}
+  .counter .capr{text-align:center;font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.16em;margin-top:5px}
+  .logset{margin-top:16px;width:100%;padding:15px 0;border-radius:16px;border:none;background:var(--amber);
+    color:#141008;font-family:var(--mono);font-size:12.5px;font-weight:800;letter-spacing:.18em;text-align:center}
+  .rest .t2{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--steel)}
+  .rest .bar{height:5px;background:var(--well);border-radius:3px;overflow:hidden;margin-top:8px}
+  .rest .fill{height:100%;width:62%;background:var(--jade)}
+  .nextup{display:flex;justify-content:space-between;align-items:center}
+  .nextup .a{font-family:var(--mono);font-size:12.5px;font-weight:700;margin-top:5px}
+  .nextup .b{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+  .weather{font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.08em;text-align:center;
+    margin-top:2px;line-height:1.7}
+
+  .lrow{display:flex;justify-content:space-between;align-items:baseline;margin:2px 0 8px}
+  .count{font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.12em}
+  .empty{display:flex;gap:11px;align-items:flex-start;padding:16px 15px;background:var(--card);
+    border:1px solid var(--line);border-radius:18px;margin-bottom:11px}
+  .empty .g{color:var(--jade);font-size:15px;margin-top:1px}
+  .empty p{font-size:12.5px;color:var(--steel);line-height:1.55}
+  .empty b{color:var(--ink);font-weight:600}
+  .spec{border:1.5px solid rgba(95,183,232,.5);border-left:4px solid var(--dec);border-radius:18px;
+    padding:13px 15px;margin-bottom:6px;background:linear-gradient(180deg,rgba(95,183,232,.05),transparent)}
+  .spec .k{font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--dec);font-weight:700}
+  .spec .t{font-family:var(--mono);font-size:13.5px;font-weight:700;margin-top:6px;letter-spacing:.03em}
+  .spec .w{font-size:12px;color:var(--steel);line-height:1.55;margin-top:6px}
+  .spec .btns{display:flex;gap:8px;margin-top:12px}
+  .spec .apply{flex:1;text-align:center;padding:11px 0;border-radius:12px;background:var(--dec);
+    color:#0A1620;font-family:var(--mono);font-size:10.5px;font-weight:800;letter-spacing:.16em}
+  .spec .pass{flex:1;text-align:center;padding:11px 0;border-radius:12px;border:1px solid var(--line2);
+    color:var(--steel);font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.16em}
+  .specnote{font-family:var(--mono);font-size:8.5px;color:var(--dim);letter-spacing:.13em;text-align:center;margin:0 0 12px}
+  .dayhdr{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--dim);margin:12px 2px 7px;font-weight:700}
+  .rec{padding:10px 2px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+  .rec:last-of-type{border-bottom:none}
+  .rec .d{width:4px;height:4px;border-radius:50%;background:var(--line2);margin-top:7px;flex:none}
+  .rec .t{font-family:var(--mono);font-size:11px;letter-spacing:.02em;line-height:1.5;color:var(--steel)}
+  .rec .t b{color:var(--ink);font-weight:600}
+  .lab{display:flex;justify-content:space-between;align-items:center;padding:14px 15px;background:var(--card);
+    border:1px solid var(--line);border-radius:18px;margin-top:11px}
+  .lab .a{font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.14em}
+  .lab .b{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em}
+
+  .note{width:378px;margin-top:16px;font-size:12.5px;color:var(--dim);line-height:1.6}
+  .note b{color:var(--steel);font-weight:600}
+  .note ul{margin:7px 0 0 17px}
+  .note li{margin-bottom:6px}
+</style>
+</head>
+<body>
+  <div class="hdr">
+    <h1>MEASURED · REDESIGN — ROUND 1.2 · PLAIN WORDS</h1>
+    <p>Same three screens, every line rewritten so it explains itself — no fitness-nerd or engineering vocabulary anywhere. <b>All numbers are still your real data from your real engine, today.</b> The precise technical wording isn&rsquo;t gone: it moves one tap deeper, for whenever you want it.</p>
+  </div>
+
+  <div class="row">
+
+  <!-- ============ NOW ============ -->
+  <div class="unit">
+    <div class="cap">1 · NOW</div>
+    <div class="phone">
+      <div class="brand"><span class="wm">MEASURED</span><span class="dt">THU AUG 6</span></div>
+      <div class="body">
+        <div class="status">
+          <div class="word"><span class="g">◆</span>ON COURSE</div>
+          <div class="cause">Your weight is trending down, but it&rsquo;s a little early to be sure. A few more morning weigh-ins will settle it.</div>
+          <div class="coachline">
+            <div class="pulse"></div>
+            <p><b>YOUR COACH IS STILL LEARNING</b><br>It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses.</p>
+          </div>
+        </div>
+        <div style="height:14px"></div>
+        <div class="card eat">
+          <div class="lbl">EAT TODAY</div>
+          <div class="big"><span class="n">2218</span><span class="dash">–</span><span class="n">2305</span><span class="u">KCAL</span><span class="tag">FIRST ESTIMATE</span></div>
+          <div class="sub">Eating a bit less than you burn — that&rsquo;s the plan working. This range firms up after your next weigh-in.</div>
+          <div class="pro">175 G PROTEIN &nbsp;<span>· IF IT&rsquo;S A MEAL, EAT THE PROTEIN FIRST</span></div>
+        </div>
+        <div class="card">
+          <div class="lbl">HOW FAST YOU&rsquo;RE LOSING</div>
+          <div class="strip">
+            <div class="rail"></div>
+            <div class="zone"></div>
+            <div class="zlab">SWEET SPOT</div>
+            <div class="tick" style="left:18.3%"></div><div class="tlab" style="left:18.3%">too slow</div>
+            <div class="tick" style="left:85.8%;background:rgba(224,96,86,.6)"></div><div class="tlab" style="left:85.8%;color:var(--red)">too fast</div>
+            <div class="ci" style="left:20.8%;right:20.8%"></div>
+            <div class="mk" style="left:49.2%"></div>
+            <div class="mlab" style="left:49.2%">1.2 LB/WK</div>
+          </div>
+          <div class="rateword">You&rsquo;re losing about 1.2 lb a week — a hair past the sweet spot&rsquo;s edge. But scales wobble day to day (that&rsquo;s the thin white line), so you may well be inside it. Nothing needs to change.</div>
+        </div>
+        <div class="card sess">
+          <div>
+            <div class="lbl">NEXT WORKOUT</div>
+            <div class="t">UPPER BODY · TODAY</div>
+            <div class="s">Press 250 — beat last time&rsquo;s 8·8·7 · Rows 180 — beat 9·8</div>
+          </div>
+          <div class="go">START ▸</div>
+        </div>
+        <div class="card traj">
+          <div class="lbl">WHERE YOU&rsquo;RE HEADED</div>
+          <div class="row2">
+            <div class="w">163.0 LB</div>
+            <div class="p">about 4 weeks to <b>~158</b> (could land 157–160)<br>body fat: best guess 14%, honestly 11–18</div>
+          </div>
+          <div class="foot">AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK</div>
+        </div>
+      </div>
+      <div class="tabbar"><div class="here">NOW</div><div>TRAIN</div><div>LEDGER</div></div>
+    </div>
+    <div class="note">
+      <b>NOW — the coach&rsquo;s answer, in plain words.</b>
+      <ul>
+        <li>&ldquo;Provisional&rdquo; became <b>FIRST ESTIMATE</b>. &ldquo;Floor/redline&rdquo; became <b>too slow / too fast</b>. The band became the <b>sweet spot</b>. Same honesty, human words.</li>
+        <li>The coach box says what&rsquo;s true today: still learning, plan holds, never guesses.</li>
+        <li>Nerd mode isn&rsquo;t gone — tapping any card would show the precise version (the ±numbers, the study citations).</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ TRAIN ============ -->
+  <div class="unit">
+    <div class="cap">2 · TRAIN</div>
+    <div class="phone">
+      <div class="brand"><span class="wm">MEASURED</span><span class="dt">UPPER BODY · IN SESSION</span></div>
+      <div class="body">
+        <div class="thdr">
+          <div class="t">LIFT 2 OF 6</div>
+          <div class="dots"><i class="done"></i><i class="now"></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="card lift">
+          <div class="nm">PRESS</div>
+          <div class="ld">250 LB</div>
+          <div class="tgt">TARGET <b>8 · 8 · 8</b> — beat last time (8·8·7). Don&rsquo;t sweat one rep — the total is what counts.<br><span style="color:var(--dim)">EFFORT, SET BY SET: leave <b style="color:var(--steel)">2 in the tank</b> → <b style="color:var(--steel)">1 in the tank</b> → last set, <b style="color:var(--steel)">empty it</b>.</span></div>
+          <div class="setrow">
+            <div class="chip done">8 ✓</div>
+            <div class="chip now">SET 2</div>
+            <div class="chip todo">—</div>
+          </div>
+          <div class="counter">
+            <div class="pm">−</div>
+            <div><div class="n">8</div><div class="capr">REPS</div></div>
+            <div class="pm">+</div>
+          </div>
+          <div class="logset">LOG SET · REST TIMER STARTS</div>
+        </div>
+        <div class="card rest">
+          <div class="t2"><span class="lbl">REST</span><span>1:33 of 2:30</span></div>
+          <div class="bar"><div class="fill"></div></div>
+        </div>
+        <div class="card nextup">
+          <div>
+            <div class="lbl">UP NEXT</div>
+            <div class="a">ROWS (STRAPLESS) · 180</div>
+          </div>
+          <div class="b">beat 9·8</div>
+        </div>
+        <div class="weather">SLEPT 7.6 H — GOOD NIGHT. TODAY&rsquo;S NUMBERS COUNT.<br>AFTER THE LAST SET, ONE CHECK: &ldquo;HOW MANY MORE DID YOU HAVE?&rdquo; — DID YOU HIT THE PLANNED EFFORT?</div>
+      </div>
+      <div class="tabbar"><div>NOW</div><div class="here">TRAIN</div><div>LEDGER</div></div>
+    </div>
+    <div class="note">
+      <b>TRAIN — one lift, giant buttons, plain asks.</b>
+      <ul>
+        <li>The coach <b>prescribes effort per set</b> in plain words (2 in the tank → 1 → empty it) — that&rsquo;s RIR as an instruction. The question after the last set is the <b>check</b>: did the effort land where prescribed?</li>
+        <li>Press 250, beat 8·8·7, target 8·8·8 — your real numbers from the real engine.</li>
+        <li>The bottom line tells you plainly why today counts toward your progress readings.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ LEDGER ============ -->
+  <div class="unit">
+    <div class="cap">3 · LEDGER</div>
+    <div class="phone">
+      <div class="brand"><span class="wm">MEASURED</span><span class="dt">LEDGER</span></div>
+      <div class="body">
+        <div class="lrow"><span class="lbl">NEEDS YOUR OK</span><span class="count">0 WAITING</span></div>
+        <div class="empty">
+          <div class="g">◇</div>
+          <p><b>Nothing needs your OK right now.</b> Small routine tweaks happen automatically. Only real decisions show up here — and when one does, it looks like the example below.</p>
+        </div>
+        <div class="spec">
+          <div class="k">EXAMPLE — WHAT A DECISION CARD LOOKS LIKE</div>
+          <div class="t">TRIM YOUR CALORIES A LITTLE?</div>
+          <div class="w">You&rsquo;ve drifted slightly off the planned pace. Suggestion: about 60 fewer calories a day gets you back on the line — or add a short walk instead, if you&rsquo;d rather eat the same.</div>
+          <div class="btns"><div class="apply">DO IT</div><div class="pass">NOT NOW</div></div>
+        </div>
+        <div class="specnote">A TAP HERE ALWAYS CHANGES SOMETHING REAL — AND ONE TAP ALWAYS UNDOES IT</div>
+        <div class="lrow" style="margin-top:4px"><span class="lbl">THE RECORD</span><span class="count">THE APP&rsquo;S DIARY · NEWEST FIRST</span></div>
+        <div class="dayhdr">TODAY — AUG 6</div>
+        <div class="rec"><div class="d"></div><div class="t"><b>COACH SUGGESTION APPLIED</b></div></div>
+        <div class="rec"><div class="d"></div><div class="t"><b>CARD REMOVED — &ldquo;IS THE CUT DONE?&rdquo;</b> — it leaned on a body-fat number too fuzzy to trust. The coach now judges this from your lifts and weight trend instead.</div></div>
+        <div class="rec"><div class="d"></div><div class="t"><b>NEW READING ONLINE — THE CANARY LIFT</b></div></div>
+        <div class="rec"><div class="d"></div><div class="t"><b>NEW READING ONLINE — REFEED ROI</b></div></div>
+        <div class="dayhdr">AUG 3</div>
+        <div class="rec"><div class="d"></div><div class="t"><b>WEEK 8 IN REVIEW</b> — averaged 163 lb · 2,569 cal · protein goal hit 7 of 7 days</div></div>
+        <div class="lab">
+          <div class="a">THE LAB</div>
+          <div class="b">55 MEASUREMENT TOOLS · 26 HAVE ENOUGH DATA TO SPEAK ▸</div>
+        </div>
+      </div>
+      <div class="tabbar"><div>NOW</div><div>TRAIN</div><div class="here">LEDGER</div></div>
+    </div>
+    <div class="note">
+      <b>LEDGER — decisions and diary, both in plain words.</b>
+      <ul>
+        <li>&ldquo;DECISIONS&rdquo; became <b>NEEDS YOUR OK</b>. Buttons are <b>DO IT / NOT NOW</b>. The card leads with the question, not the mechanism.</li>
+        <li>Diary lines explain themselves — &ldquo;it leaned on a body-fat number too fuzzy to trust&rdquo; instead of engine-speak.</li>
+        <li>An empty &ldquo;needs your OK&rdquo; is the normal, good state.</li>
+      </ul>
+    </div>
+  </div>
+
+  </div>
+</body>
+</html>

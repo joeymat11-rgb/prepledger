@@ -1075,6 +1075,38 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15a — TOKENS + SHELL — BUILT 2026-08-07, branch feat/r15a-shell (redesign brief v4)
+
+**NUMBERING:** R15 now names the complete UI redesign (Joe's approved sequence). The parked
+analyst-suggestion-surface item formerly called R15 is REFILED AS R16 — still parked.
+
+**THE ENGINE IS FROZEN — and the freeze has teeth.** New gate check (the 11th):
+`tools/engine-diff.mjs` bundles `tools/_engine-surface.jsx`, which prints a canonical
+JSON roster of every load-bearing engine output on BOTH frozen snapshots (17 state-level
+functions + 5 per-lift functions × 15 lifts + runAdaptive's proposals/feed head), and
+byte-compares against the committed `tools/engine-baseline.json` (85KB, generated at
+v7.19.0's engine). **Fire-proofed at birth**: a one-token engine copy mutation → exit 1
+naming the diverging lines; restore → clean. First mutation attempt taught the honest
+limit: a DORMANT branch's constant (STEP_PUSH_ABS_CEIL on a HOLD day) does not surface —
+snapshot freezing pins what the frozen states EXERCISE; dormant branches stay guarded by
+the suite's fixture drives. Stated in the driver comment, not hidden. `--write`
+regenerates, only ever alongside intended engine work — a UI slice never writes it.
+
+**The rail is NOW · TRAIN · LEDGER.** MORE renamed LEDGER everywhere (route, actives,
+back-link, aria, swipe order untouched); the room list (LAB · QUEUE · SLEEP · BODY) is
+unchanged and every pre-existing surface stays reachable in ≤2 taps — render-smoke walks
+LEDGER→each room in jsdom, dom-smoke asserts the rail, and the live DOM was read on a
+served build. No content redesign — R15b–f own that, slice by slice.
+
+**DT — the design tokens, one source of truth** (census'd in FINAL83): the mockup palette
+with the two species laws carried as comments AND assertions (red = redline only,
+decision-blue = DECISION cards only), the 9-step type ramp, the tracking table, the 4px
+spacing scale, the geometric glyph set, the 64px touch floor. Slices style FROM here;
+R15f asserts no orphan ad-hoc styles remain.
+
+**Screenshots:** the session is headless (browser pane cannot composite), so the critique
+round runs on REAL pixels instead: the branch CI publishes a Netlify draft URL — critique
+there, on a real device, which is strictly better than emulator PNGs.
 ### THE OPENER ASK RETURNS — BUILT 2026-08-07, branch feat/opener-ask (rider, stacked on owner-call)
 
 **The v7.12.0 orphan, repaired at its root.** Timing was the right half (asked at the set,
