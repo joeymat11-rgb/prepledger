@@ -14768,7 +14768,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
                   style={{ flex: 1, ...tnum, fontSize: 20, fontWeight: 700, minHeight: 64, borderRadius: 12, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, cursor: "pointer" }}>{v === 3 ? "3+" : v}</button>
               ))}
             </div>
-            <button onClick={() => setPhase("rest")} style={{ background: "none", border: "none", padding: "10px 0", margin: "-2px 0 -10px 0", width: "100%", marginTop: 8, cursor: "pointer" }}>
+            <button onClick={() => setPhase("rest")} style={{ background: "none", border: "none", padding: "11px 0", margin: "-3px 0 -11px 0", width: "100%", marginTop: 8, cursor: "pointer" }}>
               {/* the paint-slop split: the outer button is the 64 hit box, this span is the paint */}
               <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, color: DT.steel, border: "1px solid " + DT.hairline, borderRadius: 8, padding: "13px 9px" }}>skip — leave it unrecorded</span>
             </button>
@@ -14788,7 +14788,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
                   style={{ flex: 1, ...tnum, fontSize: 20, fontWeight: 700, minHeight: 64, borderRadius: 12, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, cursor: "pointer" }}>{v === 3 ? "3+" : v}</button>
               ))}
             </div>
-            <button onClick={() => setPhase("lift-done")} style={{ background: "none", border: "none", padding: "10px 0", margin: "-2px 0 -10px 0", width: "100%", marginTop: 8, cursor: "pointer" }}>
+            <button onClick={() => setPhase("lift-done")} style={{ background: "none", border: "none", padding: "11px 0", margin: "-3px 0 -11px 0", width: "100%", marginTop: 8, cursor: "pointer" }}>
               <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, color: DT.steel, border: "1px solid " + DT.hairline, borderRadius: 8, padding: "13px 9px" }}>skip — leave it unrecorded</span>
             </button>
           </div>
