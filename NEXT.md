@@ -1088,6 +1088,49 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15d ROUND 2 — THE DIARY IS LIFE EVENTS; THE CLAIM READS THE DIAL — 2026-08-08
+
+**R2-3 (Joe's call):** lab-status lines leave THE RECORD — the LAB row is their home.
+The selection law (`isLabFeedLine` / `diaryFeed`) lives **beside `sweepLab`, the producer
+it filters**, keyed on the producer's own `"LAB LIVE — "` title family (the same
+predicate the fresh-map and labNews readers already use) — never surface guesswork; the
+hub carries zero inline family knowledge (pinned). The 12-line window fills AFTER the
+skip. Guard-must-fire both ways, driven through the REAL producer: labSeen doctored so
+sweepLab's own flip detector writes a line; the family predicate claims it; `diaryFeed`
+excludes exactly it and passes 12 real events verbatim. **R2-2:** the empty-state claim
+reads `autonomyOf(s)` — at PROPOSE it says the setting's own truth ("Nothing changes
+without your OK — that's how you have it set."); the automatic-tweaks line renders only
+when autonomy is actually granted. **R2-1:** the diary tail is a 44px hit box (measured
+30 on the rig) — paint-free text, so padding is pure slop; negative margin hands the
+growth to the card's inert padding. Suite 2011 → 2018, freeze byte-clean. Rig on the
+live snapshot: diary shows zero LAB LIVE lines and reads as rulings/amendments/records;
+tail 421×44. Round-1 rulings ratified on the record: the R14 inert-example reading, and
+the always-visible card.
+
+### R15d · LEDGER — DECISIONS AND DIARY, PLAIN WORDS — BUILT 2026-08-08, branch feat/r15d-ledger
+
+**The hub was a settings screen wearing the LEDGER name.** Rebuilt to the mockup's
+screen 3, four `data-led` blocks, budget-pinned (FINAL92): **NEEDS YOUR OK** leads with
+the live count (the rail badge count, verbatim) — when decisions wait, a 64px row routes
+to the briefing room (**one door stays one door**: the hub mounts NO second inbox, pinned
+at zero `ApprovalInbox`); when nothing waits, the empty state is the designed-normal good
+state in the mockup's words, with an **INERT example decision card** (pointer-events
+none, aria-hidden, dashed frame — under R14 a card that enacts nothing may not be
+tappable, pinned). **THE RECORD** renders the feed as a day-grouped diary, newest first,
+`f.t`/`f.how` verbatim (typed-words discipline), capped at 12 lines / 3 days with a
+tappable tail to QUEUE. **LAB** is a hero row wearing its live counts — lengths of
+`labStatusList(s)` output, the UI computes nothing. **ROOMS** keeps every two-tap door
+(BRIEFING ROOM / QUEUE / SLEEP / BODY, 64px paint-free rows, hairlines as inert
+SIBLINGS — a wrapper whose text shadows a row would steal the render-smoke's
+document-order click; `role="button"` explicit because the smoke pins the attribute).
+Settings section renamed ANALYST & RULES (the diary owns THE RECORD now); DISPLAY and
+the serial plate untouched. `MoreTab` keeps its name — it is the END ANCHOR of the R15c
+chip pin. **Engine freeze byte-clean; suite 2000 → 2011.** Driven live on the real 8/7
+snapshot: badge ●3 = "3 WAITING", OK row lands in BRIEF with FOR YOU TO OK, LAB reads
+"56 TOOLS · 26 SPEAKING", room rows 330×{94,77,64,77}. One measured-not-remembered
+correction on the way in: the slice-length pin was guessed at 16k against a real 17,346 —
+re-derived from the measurement (ceiling 20k).
+
 ### R15 · THE DEBRIEF — TYPED CONTRACT, FROZEN WORDS — BUILT 2026-08-07, branch feat/r15-debrief
 
 **Joe's 3:10 AM ruling from the gym floor: the FULL DEBRIEF expansion never got the
