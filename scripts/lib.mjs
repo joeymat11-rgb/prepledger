@@ -141,6 +141,6 @@ export function appVersion() {
 /** The version baked into the service worker cache name. Must equal appVersion()
  *  or installed phones keep serving the old bundle forever. */
 export function swVersion() {
-  const m = fs.readFileSync(at("sw.js"), "utf8").match(/CACHE\s*=\s*"measured-v([0-9.]+)"/);
+  const m = fs.readFileSync(at("sw.js"), "utf8").match(/CACHE\s*=\s*"earned-v([0-9.]+)"/);
   return m ? m[1] : null;
 }

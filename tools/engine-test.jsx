@@ -7009,7 +7009,7 @@ if (fail) process.exit(1);
      calories / why this number / track record / the arc) wear the same split, and the
      old shape — a bordered pill that is its own hit box — can no longer exist. */
   ok((srcE.split("the span carries the pill byte-for-byte").length - 1) === 4 && (srcE.split('padding: "7px 0", margin: "-7px 0", cursor: "pointer" }}').length - 1) === 4, "R15e round 2 — the painted-pill CLASS is closed: four pills, four identical splits (outer paint-free slop, pill on the inner span, hit ≥44 by the same arithmetic the audit measured on why-not)");
-  ok((srcE.split('borderRadius: 999, padding: "6px 12px", cursor: "pointer" }}>').length - 1) === 0, "R15e round 2 — and the OLD shape is extinct: no bordered pill anywhere in the app is its own hit box");
+  ok((srcE.split('borderRadius: 999, padding: "6px 12px", cursor: "pointer" }}>').length - 1) === 0, "R15e round 2 — the four disclosure pills' OLD style fingerprint is extinct (audit correction on the record: this pin enforces ONE fingerprint, not every bordered pill — the five other painted-pill hit boxes it missed were named into R15f and fixed there)");
   /* the producer itself, driven: the note files under the region title with the curve body */
   const clE = (o) => JSON.parse(JSON.stringify(o));
   const stE = clE(__test.SEED);
@@ -7020,5 +7020,29 @@ if (fail) process.exit(1);
 }
 console.log(`\nFINAL93: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ==================== R15f · POLISH ROUND 1 — THE EARNED RENAME + THE FIVE CONTROLS (FINAL94) ====================
+   The product names itself EARNED everywhere text can carry it (wordmark, BRIEF header,
+   serial plate, dossier header, page title, manifest, sw cache prefix, both smoke pins).
+   Internal rename only — public launch gates on trademark clearance, a Joe-side task.
+   Icon PNGs await design assets, flagged not pinned. The audit's five named painted-pill
+   hit boxes take the standing split; the share switch keeps its conventional 44×26 paint
+   and moves its HIT to a paint-free outer. */
+{
+  const srcF = readFileSync("src/app.jsx", "utf8");
+  const idxF = readFileSync("index.html", "utf8");
+  const manF = readFileSync("manifest.webmanifest", "utf8");
+  const swF = readFileSync("sw.js", "utf8");
+  ok(idxF.indexOf("<title>EARNED</title>") > -1 && idxF.indexOf('content="EARNED"') > -1 && idxF.indexOf("Measured") === -1, "R15f RENAME — the page title and apple web-app title both say EARNED, and no Measured survives in the shell");
+  ok(manF.indexOf('"name": "EARNED"') > -1 && manF.indexOf('"short_name": "EARNED"') > -1 && manF.indexOf("Measured") === -1, "R15f RENAME — the manifest names the install EARNED, long and short");
+  ok(srcF.indexOf(">EARNED</span>") > -1 && srcF.indexOf("<H size={24}>Earned</H>") > -1 && srcF.indexOf("EARNED · v{APP_V}") > -1 && srcF.indexOf("EARNED — ANALYST DOSSIER") > -1, "R15f RENAME — all four in-app wordmark sites carry EARNED: the NOW wordmark, the BRIEF header, the serial plate, the dossier header");
+  ok(srcF.indexOf(">MEASURED</span>") === -1 && srcF.indexOf("<H size={24}>Measured</H>") === -1 && srcF.indexOf("MEASURED · v{APP_V}") === -1, "R15f RENAME — and no wordmark site still says MEASURED; the STATUS word MEASURED (trust vocabulary, a tracked quantity) is deliberately untouched");
+  ok(swF.indexOf("earned-v") > -1 && swF.indexOf("measured-v") === -1, "R15f RENAME — the sw cache prefix is earned-v; the activate sweep purges every old measured-v cache on first load");
+  ok((srcF.split("the painted chip rides the inner span").length - 1) === 4, "R15f — the audit's four chip-class controls (undo pill, two est chips, the context chip) wear the standing split, marker-pinned");
+  ok(srcF.indexOf("paint-free outer (26+18=44)") > -1 && srcF.indexOf('aria-checked={plan.share} onClick={() => savePlan({ share: !plan.share })} style={{ background: "none", border: "none", padding: "9px 0"') > -1, "R15f — the share switch: its 44×26 paint is the conventional control and stays byte-identical; the HIT moved to a paint-free outer button clearing the floor — the argued case, pinned");
+}
+console.log(`\nFINAL94: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
 
 
