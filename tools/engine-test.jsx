@@ -2629,7 +2629,7 @@ ok(dw77(mw, td77).flags.some((f) => f.k === "nomeds"), "a none-med day is named 
 let wr = clone(TS77);
 wr.blackout = { until: isoL(Date.now() - 6 * 864e5) };
 wr.dailyLogs[isoL(Date.now() - 864e5)] = { cal: 2400, pro: 170, steps: 12000, sodium: "high", alc: 3 };
-const wr2 = ar77(wr, td77, 164.2);
+const wr2 = ar77(wr, td77, 164.2, { hour: 8 });   /* MISSED-READ RIDER — this fixture is a MORNING read (the water-note test); the frozen noon clock would otherwise mark it off-window, which is a different test */
 ok(wr2.reads[wr2.reads.length - 1].note.indexOf("water noise likely") > -1, "the scale read carries its own explanation: " + wr2.reads[wr2.reads.length - 1].note.slice(0, 44));
 
 console.log(`\nFINAL76: ${pass} passed, ${fail} failed`);
@@ -6722,4 +6722,66 @@ if (fail) process.exit(1);
   ok(launcher.indexOf("resumePhase(live, Date.now())") > -1 && (srcP.split("findGymDraft()").length - 1) >= 4, "F4 — the launcher reads the SAME scanner and the SAME resume law as every other door: one clock, three displays, zero owned ticks");
 }
 console.log(`\nFINAL89: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+/* ==================== THE MISSED-READ RIDER (live incident, 2026-08-07) ====================
+   Joe missed a morning weigh-in and the move nagged all day for a read that could only
+   arrive contaminated. The remedy: the window closes (first intake/session or local noon),
+   the rung retires, ONE engine-priced line says what the miss actually cost, and late
+   reads are accepted but set aside — the sealed-read precedent at every reader. The live
+   snapshot CARRIES the incident (its last read is 08-06), so the replay below runs on the
+   real thing. */
+{
+  const cl89 = (o) => JSON.parse(JSON.stringify(o));
+  const S7m = JSON.parse(readFileSync("tools/snapshots/2026-08-07-ledger.json", "utf8"));
+  const tI = isoL(Date.now());
+  const base = cl89(S7m);
+  base.reads = base.reads.filter((r) => r.d !== tI);
+  delete base.dailyLogs[tI]; delete base.sessionLog[tI];
+  /* the window, all four ways */
+  ok(__test.readWindow(base, 9).open === true, "MISSED-READ — the window is OPEN on a bare morning: the books rung asks exactly as before");
+  ok(__test.readWindow(base, 12).open === false, "MISSED-READ — local noon closes it: an evening solicitation would collect diurnal water, not information");
+  ok(__test.readWindow({ ...base, dailyLogs: { ...base.dailyLogs, [tI]: { cal: 2000 } } }, 9).open === false, "MISSED-READ — the day's first logged intake closes it early: once the day has started, the fasted-morning read is gone whatever the clock says");
+  ok(__test.readWindow({ ...base, sessionLog: { ...base.sessionLog, [tI]: { entries: [] } } }, 9).open === false, "MISSED-READ — a logged session closes it the same way");
+  /* the rung retires; the priced line files once */
+  ok(__test.nowFocus(base, 9).owed.some((o) => o.k === "weight") && !__test.nowFocus(base, 13).owed.some((o) => o.k === "weight"), "MISSED-READ — the scale rung asks while the window is open and RETIRES when it closes: TODAY'S MOVE stops asking for the impossible, driven both sides of noon");
+  const r1 = __test.runAdaptive(cl89(base), tI, { hour: 13 });
+  const L1 = r1.feed.filter((f) => f.d === tI && /^MORNING READ MISSED/.test(f.t));
+  ok(L1.length === 1, "MISSED-READ — a closed window with no read files EXACTLY ONE line for the day");
+  const mc = __test.missedReadCost(base);
+  ok(mc.delta != null && L1[0].how.indexOf(mc.delta + " lb/wk") > -1, "MISSED-READ — the line's price IS missedReadCost's counterfactual (" + mc.delta + " lb/wk on the live state) — the R10a weld: the copy quotes the engine, never a constant, and the app PROVES calm instead of prescribing it");
+  ok(__test.runAdaptive(cl89(r1), tI, { hour: 14 }).feed.filter((f) => f.d === tI && /^MORNING READ MISSED/.test(f.t)).length === 1, "MISSED-READ — re-running the sweep files no duplicate");
+  const dA = __test.runAdaptive(cl89(base), tI, { hour: 13 }), dB = __test.runAdaptive(cl89(base), tI, { hour: 13 });
+  ok(__test.mergeState(dA, dB).feed.filter((f) => f.d === tI && /^MORNING READ MISSED/.test(f.t)).length === 1 && __test.mergeState(dB, dA).feed.filter((f) => f.d === tI && /^MORNING READ MISSED/.test(f.t)).length === 1, "MISSED-READ — two devices that both priced the miss merge to one line, both orders: identical engine outputs are identical feed entries, and the multiset union keeps one");
+  ok(__test.runAdaptive(cl89(base), tI, { hour: 9 }).feed.filter((f) => f.d === tI && /^(MORNING READ MISSED|READ GAP)/.test(f.t)).length === 0, "MISSED-READ — while the window is still open, nothing files: the line prices a fact, it never predicts one");
+  /* off-window reads: accepted, marked, set aside — driven both ways */
+  const before89 = JSON.stringify(__test.currentRate(base));
+  const off = __test.applyRead(cl89(base), tI, 161.0, { hour: 13 });
+  const offR = off.reads.find((r) => r.d === tI);
+  ok(offR && offR.offWindow === true && /set aside/.test(offR.note), "MISSED-READ — an evening read is ACCEPTED, never refused: recorded with the offWindow mark and the honest note");
+  ok(JSON.stringify(__test.currentRate(off)) === before89 && off.trend === base.trend, "MISSED-READ — and the rate is BYTE-IDENTICAL with the off-window read on file, the trend untouched: judged beside the instrument, not inside it — the sealed-read precedent, driven both ways");
+  ok(off.feed.some((f) => f.t === "EVENING READ — SET ASIDE" && /morning-standardized/.test(f.how)), "MISSED-READ — the log-time copy says why, in the dictionary's voice");
+  const on = __test.applyRead(cl89(base), tI, 161.0, { hour: 8 });
+  ok(!on.reads.find((r) => r.d === tI).offWindow && on.trend !== base.trend, "MISSED-READ — the same read in the morning window is a normal read: unmarked, trend moves — the mark is about WHEN, never about the number");
+  /* the morning after, and the gap */
+  const gapS = cl89(base);
+  gapS.reads = gapS.reads.filter((r) => r.d < isoL(Date.now() - 2 * 864e5));
+  ok(/First read after a gap/.test((__test.nowFocus(gapS, 9).owed.find((o) => o.k === "weight") || {}).why || ""), "MISSED-READ — the next morning's ask names the gap: two days of information, a bit more wobble, the trend knows — phrasing, not pressure");
+  const gap3 = cl89(base);
+  gap3.reads = gap3.reads.filter((r) => r.d < "2026-07-27");
+  const gLine = __test.runAdaptive(cl89(gap3), tI, { hour: 13 }).feed.find((f) => f.d === tI && /^READ GAP — DAY \d+/.test(f.t));
+  const cr89 = __test.currentRate(gap3);
+  ok(!!gLine && gLine.how.indexOf(cr89.lo + " to " + cr89.hi + " lb/wk") > -1 && !/streak/i.test(gLine.how), "MISSED-READ — at ≥3 consecutive misses the line upgrades ONCE to a gap note quoting the engine's own widened interval (" + cr89.lo + "–" + cr89.hi + ") — derived, no streaks, no guilt");
+  /* the laws */
+  const src89 = readFileSync("src/app.jsx", "utf8");
+  ok((src89.split(".reads.push(").length - 1) === 2, "MISSED-READ LAW — reads[] has exactly TWO writers, both characterized: applyRead (the log path) and the v1-state replay that copies EXISTING recorded reads forward. Neither synthesizes a point; the counterfactual's synthetic read lives and dies inside missedReadCost's clone");
+  ok((src89.split("!r.sealed && !r.offWindow").length - 1) === 23, "MISSED-READ LAW — the off-window exclusion rides the sealed predicate at all 23 reader sites: the 21 pre-existing readers (including steer reconciliation, which simply WAITS for a live read — the audit's verify-it clause) plus the rider's own two last-live-read finders, which must obey the same law they enforce");
+  /* the live replay: the snapshot carries the real incident */
+  ok(S7m.reads[S7m.reads.length - 1].d === "2026-08-06", "MISSED-READ — the frozen 08-07 snapshot's last read is 08-06: the live incident is IN the fixture");
+  ok(__test.runAdaptive(cl89(S7m), "2026-08-07").feed.filter((f) => f.d === "2026-08-07" && /^MORNING READ MISSED/.test(f.t)).length === 1, "MISSED-READ — REPLAYED: the real missed morning now files its one priced line on the real ledger — the incident that motivated the rider, closed by the rider, on the record");
+  /* the S1 engine fix, in its window */
+  const fx89 = __test.theOneFix(cl89(S7m));
+  ok(!/^(\w+)\s+\1\b/i.test(fx89.body || ""), "MISSED-READ — the queued S1 engine-side fix landed: theOneFix no longer prepends a verb onto imperative owed titles, so the doubled-word class is dead at its source (the surface collapse stays as belt)");
+}
+console.log(`\nFINAL90: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

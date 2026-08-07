@@ -2230,7 +2230,7 @@ function currentRate(s) {
   const w = s.weekly || [];
   const rates = [];
   for (let i = 1; i < w.length; i++) rates.push((w[i - 1].trend - w[i].trend) / Math.max(0.5, weeksBetween(w[i - 1].wk, w[i].wk)));
-  const reads = (s.reads || []).filter((r) => !r.sealed && r.w != null).slice(-28);
+  const reads = (s.reads || []).filter((r) => !r.sealed && !r.offWindow && r.w != null).slice(-28);
   if (reads.length >= 10) {
     const t0 = mk(reads[0].d).getTime();
     const xs = reads.map((r) => (mk(r.d).getTime() - t0) / DAY), ys = reads.map((r) => r.w);
@@ -2435,21 +2435,57 @@ function recoveryIndex(s) {
 }
 
 /* apply a scale read with spike damping — one meal can move a morning, not the trend */
-function applyRead(state, iso, w) {
+/* ---------- MISSED-READ RIDER (2026-08-07, live incident) ----------
+   Joe missed a morning weigh-in and TODAY'S MOVE held "log the scale" all day — by
+   evening that solicits either nothing or a contaminated read (diurnal swing runs 1–2 lb
+   against a morning-standardized trend). The remedy is the app SAYING what the miss cost
+   instead of nagging for the impossible: the read window closes at the day's first
+   logged intake/session or local noon, whichever comes first; a closed window retires
+   the rung, files ONE priced line, and any late read is accepted but set aside — the
+   sealed-read precedent, applied at every reader by the shared !sealed && !offWindow
+   predicate (including steer reconciliation, which simply waits for a live read). */
+function readWindow(s, hour) {
+  const h = typeof hour === "number" ? hour : new Date().getHours();
+  const tISO = isoOf(todayStart());
+  const dl = (s.dailyLogs || {})[tISO];
+  const logged = !!(dl && dl.cal != null) || !!(s.sessionLog || {})[tISO];
+  const hasRead = (s.reads || []).some((r) => r && r.d === tISO && !r.offWindow);
+  return { open: h < 12 && !logged, hasRead, logged, hour: h };
+}
+/* the counterfactual price of a missed morning: rate with a synthetic trend-valued read
+   minus rate as-is. The clone is internal and NEVER persisted — reads[] gains no
+   synthetic points, ever (source-asserted). Tiny by construction; the point is the app
+   PROVING calm instead of prescribing it. */
+function missedReadCost(s) {
+  const tISO = isoOf(todayStart());
+  const a = currentRate(s);
+  if (!a || !a.measured) return { delta: null, why: "no measured rate to price against" };
+  const s2 = { ...s, reads: [...(s.reads || []), { d: tISO, w: s.trend, sealed: false, pt: s.trend, note: "counterfactual — never stored" }] };
+  const b = currentRate(s2);
+  return { delta: (b && b.measured) ? +Math.abs(b.scale - a.scale).toFixed(2) : null, asIs: a.scale, withRead: b && b.scale };
+}
+function applyRead(state, iso, w, opts) {
   const s = JSON.parse(JSON.stringify(state));
   if (s.reads.some((r) => r.d === iso)) return s;
   const sealed = daysUntil(s.blackout.until) > 0;
+  /* off-window: today's read after the window closed — accepted, never refused, but it
+     rides beside the trend rather than inside it (the sealed precedent). */
+  const offW = iso === isoOf(todayStart()) && !readWindow(s, opts && opts.hour).open && !readWindow(s, opts && opts.hour).hasRead && !sealed;
   const dRaw = w - s.trend, dCl = Math.max(-1.5, Math.min(1.5, dRaw));
   const spike = Math.abs(dRaw) > 1.5;
-  const clean = s.reads.filter((r) => !r.sealed);
+  const clean = s.reads.filter((r) => !r.sealed && !r.offWindow);
   const dl = [];
   for (let i = 1; i < clean.length; i++) { if (Math.round((mk(clean[i].d) - mk(clean[i - 1].d)) / DAY) === 1) { const dd = clean[i].w - clean[i - 1].w; if (Math.abs(dd) < 1.5) dl.push(dd); } }
   const nf = dl.length >= 8 ? Math.sqrt(dl.reduce((a, b) => a + b * b, 0) / dl.length) : null;
   const ydl9 = (s.dailyLogs || {})[isoOf(new Date(mk(iso).getTime() - DAY))] || {};
   const water9 = ydl9.sodium === "high" || (ydl9.alc || 0) > 0 ? "salt or alcohol yesterday — water noise likely" : "";
   const base9 = sealed ? "sealed — excluded from trend" : spike ? "spike — damped in trend" : nf && Math.abs(dRaw) <= nf ? "inside your noise — not information" : "";
-  s.reads.push({ d: iso, w, sealed, pt: s.trend, note: water9 && base9 ? water9 + " · " + base9 : water9 || base9 });
-  if (!sealed) s.trend = +(s.trend + 0.3 * dCl).toFixed(1);
+  const note9 = offW ? ["evening read — set aside", water9, base9].filter(Boolean).join(" · ") : (water9 && base9 ? water9 + " · " + base9 : water9 || base9);   /* the salt/alcohol explanation is honest information whatever the hour */
+  const row9 = { d: iso, w, sealed, pt: s.trend, note: note9 };
+  if (offW) row9.offWindow = true;
+  s.reads.push(row9);
+  if (offW) s.feed.unshift({ d: iso, t: "EVENING READ — SET ASIDE", how: "evening reads run 1–2 lb heavy against a morning-standardized trend — recorded, set aside; tomorrow morning is the instrument." });
+  if (!sealed && !offW) s.trend = +(s.trend + 0.3 * dCl).toFixed(1);
   return s;
 }
 
@@ -4532,7 +4568,7 @@ const ciLine = (c, unit = "lb") => {
 function labAnalytics(s) {
   const out = [];
   const sealed = daysUntil(s.blackout.until) > 0;
-  const reads = s.reads.filter((r) => !r.sealed);
+  const reads = s.reads.filter((r) => !r.sealed && !r.offWindow);
   const CI = ciOf; /* local alias — every "measured" scalar in here goes through it */
   const readByD = {}; reads.forEach((r) => { readByD[r.d] = r.w; });
   const nextDay = (d) => isoOf(new Date(mk(d).getTime() + DAY));
@@ -5461,7 +5497,7 @@ function liveRollups(s) {
   return Object.keys(wks).map(Number).sort((a, b) => b - a).map((wk) => {
     const rows = wks[wk].map((d) => ({
       d,
-      w: (s.reads.find((r) => r.d === d && !r.sealed) || {}).w ?? null,
+      w: (s.reads.find((r) => r.d === d && !r.sealed && !r.offWindow) || {}).w ?? null,
       sealedW: (s.reads.find((r) => r.d === d && r.sealed) || {}).w ?? null,
       cal: (s.dailyLogs[d] || {}).cal ?? null, pro: (s.dailyLogs[d] || {}).pro ?? null,
       steps: (s.dailyLogs[d] || {}).steps ?? null, slp: (s.sleep.nights.find((n) => n.d === d) || {}).h ?? null,
@@ -5924,7 +5960,7 @@ function labAnalytics2(s) {
 
   /* 10 · compounding curve */
   add(() => {
-    const reads = s.reads.filter((r) => !r.sealed);
+    const reads = s.reads.filter((r) => !r.sealed && !r.offWindow);
     if (reads.length < 20) return null;
     let best = 0, sum = 0, cnt = 0;
     for (let i = 0; i < reads.length; i++) { const j = reads.findIndex((r) => mk(r.d) >= mk(reads[i].d) + 13 * DAY); if (j > i) { const drop = reads[i].w - reads[j].w; best = Math.max(best, drop); sum += drop; cnt++; } }
@@ -5962,12 +5998,12 @@ function labAnalytics2(s) {
     const stB = base(allDaily.slice(-30).filter((x) => x.steps).map((x) => x.steps));
     if (!slB || !stB) return null;
     let flagged = null;
-    [...allDaily].slice(-10).forEach((d2) => { const n = nightOf(prevISO(d2.d)); let hits = 0; if (n && Math.abs((n.h - slB.m) / slB.sdv) > 1.8) hits++; if (d2.steps && Math.abs((d2.steps - stB.m) / stB.sdv) > 1.8) hits++; const rd = s.reads.find((r) => r.d === d2.d && !r.sealed); if (rd && Math.abs(rd.w - s.trend) > 1.6) hits++; if (hits >= 2 && !dayWeather(s, d2.d).hard) flagged = { d: d2.d, hits }; });
+    [...allDaily].slice(-10).forEach((d2) => { const n = nightOf(prevISO(d2.d)); let hits = 0; if (n && Math.abs((n.h - slB.m) / slB.sdv) > 1.8) hits++; if (d2.steps && Math.abs((d2.steps - stB.m) / stB.sdv) > 1.8) hits++; const rd = s.reads.find((r) => r.d === d2.d && !r.sealed && !r.offWindow); if (rd && Math.abs(rd.w - s.trend) > 1.6) hits++; if (hits >= 2 && !dayWeather(s, d2.d).hard) flagged = { d: d2.d, hits }; });
     /* The screen's own false-alarm rate, computed from the thresholds it actually
        uses rather than asserted. Sleep and steps trip at |z|>1.8 (two-tailed), the
        scale at 1.6 lb which, against a measured day-to-day SD near 0.8, is about 2σ.
        A 2-of-3 co-flag over a 10-day window follows from those three rates. */
-    const scaleSd = (() => { const rr = (s.reads || []).filter((r) => !r.sealed); const d = []; for (let i = 1; i < rr.length; i++) { if (Math.round((mk(rr[i].d) - mk(rr[i - 1].d)) / DAY) === 1) { const dd = rr[i].w - rr[i - 1].w; if (Math.abs(dd) < 1.5) d.push(dd); } } if (d.length < 8) return 0.8; const m = d.reduce((a, b) => a + b, 0) / d.length; return Math.sqrt(d.reduce((a, b) => a + (b - m) ** 2, 0) / (d.length - 1)) || 0.8; })();
+    const scaleSd = (() => { const rr = (s.reads || []).filter((r) => !r.sealed && !r.offWindow); const d = []; for (let i = 1; i < rr.length; i++) { if (Math.round((mk(rr[i].d) - mk(rr[i - 1].d)) / DAY) === 1) { const dd = rr[i].w - rr[i - 1].w; if (Math.abs(dd) < 1.5) d.push(dd); } } if (d.length < 8) return 0.8; const m = d.reduce((a, b) => a + b, 0) / d.length; return Math.sqrt(d.reduce((a, b) => a + (b - m) ** 2, 0) / (d.length - 1)) || 0.8; })();
     const fa = coFlagRate([twoTail(1.8), twoTail(1.8), twoTail(1.6 / scaleSd)], 2, 10);
     return { id: "sentinel", t: "THE SENTINEL", status: "LIVE", prog: null,
       tag: "Multivariate weird-day screen — calibrated, with its own false-alarm rate.",
@@ -6311,7 +6347,7 @@ function bodyAlarm(s, slp) {
       if (slB && n && Math.abs((n.h - slB.m) / slB.sdv) > 1.8) { hits++; parts.push(`slept ${n.h} h (your norm ${slB.m.toFixed(1)}±${slB.sdv.toFixed(1)})`); }
       const dl2 = s.dailyLogs[d2];
       if (stB && dl2 && dl2.steps && Math.abs((dl2.steps - stB.m) / stB.sdv) > 1.8) { hits++; parts.push(`steps ${(dl2.steps / 1000).toFixed(1)}k (norm ${(stB.m / 1000).toFixed(1)}k)`); }
-      const rd = s.reads.find((r) => r.d === d2 && !r.sealed);
+      const rd = s.reads.find((r) => r.d === d2 && !r.sealed && !r.offWindow);
       if (rd && Math.abs(rd.w - s.trend) > 1.6) { hits++; parts.push(`scale ${rd.w} vs trend ${s.trend}`); }
       if (hits >= 2 && !dayWeather(s, d2).hard) patParts = parts;
     }
@@ -6714,7 +6750,7 @@ function plainify(t) {
 function prophetGrades(s) {
   const fc = s.forecasts || [];
   const byRead = Object.create(null);
-  (s.reads || []).forEach((r) => { if (!r.sealed && r.w != null) byRead[r.d] = r.w; });
+  (s.reads || []).forEach((r) => { if (!r.sealed && !r.offWindow && r.w != null) byRead[r.d] = r.w; });
   const nearestRead = (iso) => {
     for (const off of [0, 1, -1]) {
       const d = isoOf(new Date(mk(iso).getTime() + off * DAY));
@@ -6894,8 +6930,15 @@ function nowFocus(s, hour) {
   /* morning: the two inputs the whole engine reads */
   const nightOwed = owedNights(s, h).length > 0;
   const weighed = (s.reads || []).some((r) => r.d === tISO);
+  const rw9 = readWindow(s, h);
   if (nightOwed) owed.push({ k: "night", t: "Log last night", why: "bed, wake, and how long you took to drop off — the body-composition read leans on this harder than anything else you enter" });
-  if (!weighed) owed.push({ k: "weight", t: "Log the scale", why: "one number, fasted — the trend absorbs the noise so a single morning never moves a decision" });
+  /* MISSED-READ RIDER — the rung RETIRES when the window closes: the move never asks for
+     the impossible; the priced feed line (runAdaptive) says what the miss cost instead. */
+  if (!weighed && rw9.open) {
+    const lastLive = [...(s.reads || [])].reverse().find((r) => r && !r.sealed && !r.offWindow);
+    const gapD = lastLive ? Math.round((mk(tISO) - mk(lastLive.d)) / DAY) : 0;
+    owed.push({ k: "weight", t: "Log the scale", why: "one number, fasted — the trend absorbs the noise so a single morning never moves a decision" + (gapD >= 2 ? " First read after a gap: it carries " + gapD + " days of information — expect a bit more wobble; the trend knows." : "") });
+  }
   /* evening: the day's numbers */
   const dl = (s.dailyLogs || {})[tISO];
   const dayOpen = !dl || dl.cal == null;
@@ -6985,7 +7028,10 @@ function theOneFix(s, levers) {
   // Rung 1 — verify logging: a clean ledger is the cheapest lever there is
   if (owed.length) return { rung: "logging", lever: "LOGGING", state: "caution",
     title: "Close the books first",
-    body: `Log ${owed[0].t.toLowerCase()} — the read leans on your own numbers harder than any calorie cut, and an honest ledger is the cheapest lever there is. Nothing to change until the day is closed.`,
+    /* MISSED-READ RIDER — the queued S1 fix, landed in its engine window: the owed titles
+       are already imperative ("Log the scale"), so no verb is prepended — the doubled
+       "Log log" class dies at its source (the surface's _plain9 collapse stays as belt). */
+    body: `${owed[0].t.charAt(0).toUpperCase() + owed[0].t.slice(1)} — the read leans on your own numbers harder than any calorie cut, and an honest ledger is the cheapest lever there is. Nothing to change until the day is closed.`,
     whyNot: null };
   // Rung 2 — steps / NEAT before touching food
   if (L.steps.state === "caution") return { rung: "steps", lever: "STEPS", state: "caution",
@@ -7029,7 +7075,7 @@ function theOneFix(s, levers) {
    used for a data state here. */
 function whyDecompose(s) {
   const sig = signalState(s);
-  const clean = (s.reads || []).filter((r) => r && !r.sealed && r.w != null);
+  const clean = (s.reads || []).filter((r) => r && !r.sealed && !r.offWindow && r.w != null);
   if (clean.length < 5) return { show: false, sig };
   const last = clean[clean.length - 1];
   const wn = weightNoise(clean);
@@ -7473,10 +7519,10 @@ function sweepLab(s, dow = new Date().getDay()) {
 }
 
 /* the macro engine: snapshots + rule proposals. Idempotent per day. */
-function runAdaptive(state, todayISO) {
+function runAdaptive(state, todayISO, raOpts) {
   const s = JSON.parse(JSON.stringify(state));
   const monday = (() => { const d = mk(todayISO); const off = (d.getDay() + 6) % 7; return isoOf(new Date(d - off * DAY)); })();
-  if (!s.weekly.some((w) => w.wk === monday) && s.reads.some((r) => !r.sealed && weeksBetween(monday, r.d) >= 0 && weeksBetween(monday, r.d) < 1))
+  if (!s.weekly.some((w) => w.wk === monday) && s.reads.some((r) => !r.sealed && !r.offWindow && weeksBetween(monday, r.d) >= 0 && weeksBetween(monday, r.d) < 1))
     s.weekly.push({ wk: monday, trend: s.trend });
 
   /* R9 — DISMISSED IS NOT APPLIED. dismissProposal files {rid, dismissed:true} and its
@@ -7577,10 +7623,29 @@ function runAdaptive(state, todayISO) {
        only APPLIED rids, so a dismissed steppush returned on the very next engine pass —
        "a no for today" was a no for zero minutes, against this producer's own no-nagging
        promise. Dismissing THIS monday's rid suppresses refiling until the monday rolls. */
+  /* ---------- MISSED-READ RIDER — the priced line, once per day ---------- */
+  {
+    const rw = readWindow(s, raOpts && raOpts.hour);
+    const todayRead = (s.reads || []).some((r) => r && r.d === todayISO);
+    const already = (s.feed || []).some((f) => f && f.d === todayISO && f.t && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0));
+    if (!sealed && !rw.open && !todayRead && !already) {
+      const lastLive = [...(s.reads || [])].reverse().find((r) => r && !r.sealed && !r.offWindow);
+      const gapD = lastLive ? Math.round((mk(todayISO) - mk(lastLive.d)) / DAY) : 0;
+      const cr9 = currentRate(s);
+      if (gapD >= 3 && cr9 && cr9.measured && cr9.lo != null && cr9.hi != null)
+        s.feed.unshift({ d: todayISO, t: "READ GAP — DAY " + gapD, how: `the trend carries, wider: the measured rate now reads ${cr9.lo} to ${cr9.hi} lb/wk, and every missed morning widens that interval rather than moving any decision. Nothing is owed and nothing is counted against you — the next morning read narrows it again.` });
+      else {
+        const mc = missedReadCost(s);
+        s.feed.unshift({ d: todayISO, t: "MORNING READ MISSED", how: mc.delta != null
+          ? `the trend carries. Today it cost ${mc.delta} lb/wk of rate precision — priced by the engine, not a guilt trip; tomorrow morning is the instrument.`
+          : "the trend carries — there is not yet a measured rate for a missed morning to move. Tomorrow morning is the instrument." });
+      }
+    }
     const spDismissed = (s.adjustments || []).some((a) => a && a.dismissed && a.rid === "steppush_" + monday);
     if (!sealed && !spDismissed && sp.mode === "PUSH")
       propose("steppush_" + monday, "UNDER THE CORRIDOR — STEPS FIRST", sp.why + " Approving arms the walking lever; the dial offers the same kcal from food if you would rather eat less than walk more — but steps are offered first, because that deficit does not spend lean.",
         { kind: "cal", calDelta: -(Math.round(((sp.netLoKcal || 0) + (sp.netHiKcal || 0)) / 2)), delta: -(Math.round(((sp.netLoKcal || 0) + (sp.netHiKcal || 0)) / 2)), stepsDelta: sp.inc, prefer: "steps" });   /* AUDIT: calDelta explicit (the label keyed on it and read undefined), prefer flips the tap routes so the PRIMARY button does what the copy promises */
+    }
   }  /* The band had no teeth. floor and redline both fired, but the stated working
      band's UPPER edge did nothing — he could run above his own band for weeks
      and hear nothing until the redline, which sits far above it. His band top
@@ -7899,7 +7964,7 @@ function activeAdjustment(s) {
     const a = adj[i];
     if (!a || a.undone || a.dismissed || !a.via) continue;   // only a live, applied steer carries an effect
     const from = a.from || a.d;
-    const superseded = reads.some((r) => r && !r.sealed && r.d && from && r.d > from);   // next weigh-in reconciles it
+    const superseded = reads.some((r) => r && !r.sealed && !r.offWindow && r.d && from && r.d > from);   // next weigh-in reconciles it
     if (superseded) continue;
     return { active: true, via: a.via, calDelta: a.via === "cal" ? (a.calDelta || 0) : 0,
       stepDelta: a.via === "steps" ? (a.stepDelta || 0) : 0, rid: a.rid, title: a.title, from,
@@ -8195,7 +8260,7 @@ function undoRead(state, iso) {
   if (i === -1) return s;
   const r = s.reads[i];
   s.reads.splice(i, 1);
-  if (!r.sealed && r.pt != null) s.trend = r.pt;
+  if (!r.sealed && !r.offWindow && r.pt != null) s.trend = r.pt;
   const d = mk(iso); const off = (d.getDay() + 6) % 7; const monday = isoOf(new Date(d - off * DAY));
   const stillClean = s.reads.some((x) => !x.sealed && x.d >= monday && weeksBetween(monday, x.d) < 1);
   if (!stillClean) s.weekly = s.weekly.filter((w) => w.wk !== monday);
@@ -8644,7 +8709,7 @@ function migrate(old) {
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
   (old.reads || []).forEach((r) => { if (!s.reads.some((x) => x.d === r.d)) s.reads.push(r); });
   s.reads.sort((a, b) => (a.d < b.d ? -1 : 1));
-  s.reads.filter((r) => !r.sealed && r.d > "2026-07-21").forEach((r) => { const dCl = Math.max(-1.5, Math.min(1.5, r.w - s.trend)); s.trend = +(s.trend + 0.3 * dCl).toFixed(1); });
+  s.reads.filter((r) => !r.sealed && !r.offWindow && r.d > "2026-07-21").forEach((r) => { const dCl = Math.max(-1.5, Math.min(1.5, r.w - s.trend)); s.trend = +(s.trend + 0.3 * dCl).toFixed(1); });
   ((old.sleep && old.sleep.nights) || []).forEach((n) => { if (!s.sleep.nights.some((x) => x.d === n.d)) s.sleep.nights.push(n); });
   s.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
   Object.entries(old.dailyLogs || {}).forEach(([d, v]) => { s.dailyLogs[d] = v; });
@@ -10045,6 +10110,7 @@ __test.stepKcal = stepKcal;
 __test.stepEfficacy = stepEfficacy;
 __test.DT = DT;
 __test.resumePhase = resumePhase;
+__test.readWindow = readWindow; __test.missedReadCost = missedReadCost;
 __test.effortWords = effortWords;
 __test.volumePush = volumePush; __test.volumeConversion = volumeConversion; __test.structuralMovesThisWeek = structuralMovesThisWeek;
 __test.stepPush = stepPush;
@@ -10319,7 +10385,7 @@ const DataRow = ({ label, value, tag = null, glyph = null, c = T.chalk, first = 
 function trendDelta(reads, days) {
   const ts = trendSeries(reads || []);
   const cutoff = todayStart().getTime() - days * DAY;
-  const nClean = (reads || []).filter((r) => !r.sealed && mk(r.d).getTime() >= cutoff).length;
+  const nClean = (reads || []).filter((r) => !r.sealed && !r.offWindow && mk(r.d).getTime() >= cutoff).length;
   if (!ts.length) return { delta: null, n: 0 };
   const win = ts.filter((p) => mk(p.d).getTime() >= cutoff);
   if (win.length < 2) return { delta: null, n: nClean };
@@ -10426,7 +10492,7 @@ function trendSeries(reads) {
   let t = null;
   return reads.map((r) => {
     if (t === null) t = r.w;
-    else if (!r.sealed) t = +(t + Math.max(-1.5, Math.min(1.5, r.w - t)) * 0.3).toFixed(2);
+    else if (!r.sealed && !r.offWindow) t = +(t + Math.max(-1.5, Math.min(1.5, r.w - t)) * 0.3).toFixed(2);
     return { d: r.d, t };
   });
 }
@@ -10436,7 +10502,7 @@ function trendSeries(reads) {
    morning reads around the trend those reads produced: residual SD, n reported,
    and it says so when there is not yet enough to compute one. */
 function weightNoise(reads) {
-  const rs = (reads || []).filter((r) => !r.sealed && r.w != null);
+  const rs = (reads || []).filter((r) => !r.sealed && !r.offWindow && r.w != null);
   if (rs.length < 5) return { sd: 0.8, n: rs.length, measured: false };
   const byDate = Object.create(null);
   trendSeries(reads).forEach((p) => { byDate[p.d] = p.t; });
@@ -10535,7 +10601,7 @@ function signalReadCopy(s, sig) {
     case "calibrating": sentence = "Still learning your baseline — keep logging and the read sharpens."; break;
     default: sentence = "This week is still inside your noise — no real change to read yet.";
   }
-  const clean = (s.reads || []).filter((r) => r && !r.sealed && r.w != null);
+  const clean = (s.reads || []).filter((r) => r && !r.sealed && !r.offWindow && r.w != null);
   const last = clean.length ? clean[clean.length - 1] : null;
   let rawLine = "";
   if (last) {
@@ -13690,7 +13756,7 @@ function BodyTab({ s, setS, save }) {
   /* n for the hero's provenance tag: clean reads only. Sealed mornings are on the
      record but they never moved the trend, so counting them would inflate the
      evidence behind the number. */
-  const nClean = (s.reads || []).filter((r) => !r.sealed).length;
+  const nClean = (s.reads || []).filter((r) => !r.sealed && !r.offWindow).length;
   const eta12 = etaWeeks(s, 12), eta11 = etaWeeks(s, 11);
   const canThesis = wd.wk > s.lastThesisWk;
   const mirrorEra = wd.wk >= 10;
@@ -13821,7 +13887,7 @@ function BodyTab({ s, setS, save }) {
         <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 10 }}>weigh-in lives on NOW · mornings, once a day</div>
         <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 6 }}>PROTOCOL: fasted · post-void · pre-food/water · 16 oz water ≈ +0.5–1 lb</div>
         <More deep="The trend is a damped average: each clean read moves it 30% of the way toward the morning's number, spikes clamp at ±1.5 lb so one dinner can't lie to it, sealed reads never touch it, and moves inside your measured ±0.8 noise floor get auto-stamped 'not information'. Daily reads render small and grey on purpose — the trend is the instrument; mornings are static."
-          forYou={sealed ? `First clean read ${fmtShort(SEAL_UNTIL)}: judge it against the trend (${s.trend}), not against ${(s.reads.filter((r) => !r.sealed).slice(-1)[0] || {}).w ?? s.trend} — residual event water is expected and already forgiven by the math.` : `Trend ${s.trend}. Whatever tomorrow's scale screams, it moves this number by ±0.45 at most.`} />
+          forYou={sealed ? `First clean read ${fmtShort(SEAL_UNTIL)}: judge it against the trend (${s.trend}), not against ${(s.reads.filter((r) => !r.sealed && !r.offWindow).slice(-1)[0] || {}).w ?? s.trend} — residual event water is expected and already forgiven by the math.` : `Trend ${s.trend}. Whatever tomorrow's scale screams, it moves this number by ±0.45 at most.`} />
       </Card>
       </Section>
 
@@ -15795,7 +15861,7 @@ function CoachView({ s, onClose }) {
         {/* One hero, then the supporting figures — this was five 24px numbers with
             no provenance, so a reader could not tell a measured rate from a model. */}
         <div style={{ marginTop: SP.lg }}>
-          <Hero value={s.trend} unit="lb" n={(s.reads || []).filter((r) => !r.sealed).length} c={T.jade}
+          <Hero value={s.trend} unit="lb" n={(s.reads || []).filter((r) => !r.sealed && !r.offWindow).length} c={T.jade}
             sub={`trend · sleep ${slp.clean ? "CLEAN" : `reset ${slp.run}/${slp.need}`} · scale ${daysUntil(s.blackout.until) > 0 ? `sealed → ${fmtShort(SEAL_UNTIL)}` : "live"}`} />
         </div>
         <div style={{ marginTop: SP.md }}>
