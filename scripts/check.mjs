@@ -21,7 +21,7 @@ import path from "node:path";
 import YAML from "yaml";
 import {
   ROOT, at, isMain, head, pass, fail, warn, note,
-  appVersion, swVersion, bold, red, green, dim,
+  appVersion, swVersion, bold, red, green, dim, node,
 } from "./lib.mjs";
 import { buildCandidate } from "./build.mjs";
 import { runTests } from "./test.mjs";
@@ -205,6 +205,17 @@ export async function check({ strict = false } = {}) {
     if (r.ok && r.soft) { warn(r.detail); soft++; }
     else if (r.ok) pass(r.detail);
     else { fail(`${label}: ${r.detail}`); hard = true; }
+  }
+
+  /* R15 — THE ENGINE IS FROZEN. Every redesign slice must leave engine outputs
+     byte-identical on the frozen snapshots; tools/engine-diff.mjs compares the canonical
+     roster against the committed baseline. Fire-proofed at birth: a one-token engine copy
+     mutation trips it (exit 1) and the restore is clean. Snapshot-based, so it pins what
+     the frozen states EXERCISE — dormant branches stay guarded by the suite's drives. */
+  {
+    const r = await node([at("tools", "engine-diff.mjs")]);
+    if (r.code === 0) pass("engine outputs byte-identical to the frozen baseline (R15 freeze)");
+    else { fail("engine-diff: " + r.out.trim().split("\n").filter(Boolean).slice(-2).join(" | ")); hard = true; }
   }
 
   return { ok: !hard, soft };

@@ -12,12 +12,12 @@ import { JSDOM } from "jsdom";
 import { buildForTests } from "../scripts/build.mjs";
 
 const BANNED = ["RIR —", "undefined", "NaN", "[object Object]"];
-/* The rail is NOW / TRAIN / MORE, and the four rooms he rarely opens live one
-   predictable tap behind MORE — static demotion, never adaptive, because an
+/* The rail is NOW / TRAIN / LEDGER (R15a), and the four rooms he rarely opens live one
+   predictable tap behind LEDGER — static demotion, never adaptive, because an
    interface that rearranges itself measured ~8% SLOWER than one that does not
    (Findlater & McGrenere, CHI 2004). This smoke must still walk every room in
    every state: demoting a screen must never mean it stops being exercised.
-   PRIMARY are reachable from the bar; BEHIND_MORE need MORE clicked first. */
+   PRIMARY are reachable from the bar; BEHIND_MORE need LEDGER clicked first. */
 const PRIMARY = ["NOW", "TRAIN"];
 const BEHIND_MORE = ["QUEUE", "BODY", "SLEEP", "LAB"];
 const TABS = [...PRIMARY, ...BEHIND_MORE];
@@ -76,11 +76,11 @@ function checkDoors(window, prefix, whereLabel) {
 }
 
 async function tabText(window, label) {
-  /* Rooms behind MORE need two taps, exactly as he would make them. If MORE
+  /* Rooms behind LEDGER need two taps, exactly as he would make them. If LEDGER
      itself is missing, that is a real failure and must not be swallowed. */
   if (BEHIND_MORE.includes(label)) {
-    const more = await findClickable(window, "MORE", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("MORE"));
-    if (!more) throw new Error("MORE tab button missing — the demoted rooms are unreachable");
+    const more = await findClickable(window, "LEDGER", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("LEDGER"));
+    if (!more) throw new Error("LEDGER tab button missing — the demoted rooms are unreachable");
     more.click();
     await new Promise((r) => setTimeout(r, 60));
   }
