@@ -1075,6 +1075,73 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### VOLUME AS AN EARNED LEVER — BUILT 2026-08-07, branch feat/volume-lever (spec v5)
+
+**The heaviest engine item. Suite 1757 → 1808 (+51 driven assertions), MIN_ASSERTIONS
+raised 1300 → 1750, census 26→27 wing / 55→56 filed. Every A–G integration-audit item
+landed; the severed-feedback-loop test runs FIRST in the new block.**
+
+**AUDIT A — the loop is severed at the source, ONE owner.** `liftTrend` now cuts its
+series at the last set-count change, read from the LOGGED `reps.length` — a fresh window
+per change, the `typicalError` same-shape discipline arriving at the trend layer.
+Conversion check, regime, stall pooling all inherit it. Driven both levels: a lift that
+gains a set and merely carries it reads ~0 on the fresh window while the in-test
+counterfactual OLS manufactures **+3.2%/session** from the same data; pooled, four
+honestly-falling lifts + one stepped lift stay `falling`/`costing` — costing →
+fake-rising → free is dead. Reading the LOG makes it **author-blind by construction**
+(AUDIT F: engine, user-called, and undo changes all land as a count change) and immune to
+`_stateAsOf`'s config-blindness. Measured on the real ledger: zero reps.length blips ever
+— the cut is a proven no-op on all live data (eat band byte-identical, snapshot-pinned).
+
+**The gate reads the REGIME, not the exitStart flag.** `volumeImbalance`'s
+`cutting = !exitStart` (plus its chip twin) is gone: `growthOK = regime free && confirmed`,
+through energyBalanceTarget's memo. unknown ABSTAINS (the live state), costing/
+accretionBound keep the retention framing with the regime named, and writing exitStart
+alone now opens **nothing** — driven. All four reader surfaces (why copy, analyst prompt,
+TRAIN card, TRAIN chip) moved in lockstep; Roth 2023 / Bickel 2011 stay cited in every
+abstain branch.
+
+**volumePush — earned, zone-scaled, placed, ceilinged.** PUSH only on: free confirmed +
+pooled progression RISING + recovery GREEN + clean sleep + clear weekly budget + a readable
+target. Chooser: lowest allocation first; direct numeric-load lifts only (AUDIT C:
+trend-blind lifts refused with the reason named); holdFlag, open read windows, and
+spillover-touched muscles skipped. Zone-scaled: below-floor corrects decisively (hams
+2→3/session = 4→6 weekly = the floor in ONE move); in-zone +1/session; absolute ceiling
+**VOL_PUSH_CEIL_WK = VOL_BANDS.ceil (16 weekly)** — derived, not invented — and driven to
+fire. Card: monday-stamped rid `volpush_<mg>_<monday>`, kind:"sets" with a real apply
+branch (the v7.3.1 "sets" dial finally has an enactor — the refeed_review shape closed),
+both units in the copy (per-session AND weekly), exercise named, minutes priced,
+MODERATE-TO-LOW grade with the §2.3 gap stated in the card. Decline buys the week,
+rid-keyed DECLINE_BUYS sentence. The volstruct note is retired — superseded by the card.
+
+**volumeConversion — the honesty half, and it cannot self-confirm.** Post-change fresh
+window (liftTrend's own min-n = the read window, derived) + the final-set RIR reports as
+effort compliance. Verdicts driven all three ways: NOT_CONVERTED (flat on fresh window,
+effort delivered), UNDELIVERED (terminal RIR 3s — "the dose never arrived", volume not
+convicted), CONVERTED (rising + delivered). Rollback = NOT_CONVERTED + fatigue up → a
+receipt-carrying proposal (date added, measured non-result, CI), tap removes exactly the
+added sets, one-tap undo restores them. New Lab card `volconv` reads the same instrument
+the producer gates on — one owner, the stepeff discipline.
+
+**One-variable-per-week — ONE owner, both directions.** `structuralMovesThisWeek` reads
+what LANDED (steer rows, sets rows, agent-lane feed titles). A same-week cal or steps move
+withholds volumePush; a same-week sets move withholds stepPush (driven both ways). Compound
+spillover charges every lent-into muscle (AUDIT B: press → chest+triceps+front delts).
+Muscles stay parallel channels: same-week push to a DIFFERENT muscle is permitted and
+driven.
+
+**AUDIT G — sets survives the merge.** `ex.sets` rode the wholesale per-lift merge keyed
+on lastMeta.d, so a stale-count device that merely TRAINED the lift later resurrected the
+old count — a live defect, now closed: `setsAt` field stamp (plan.setAt discipline at
+field grain), stamped beats unstamped, newer wins, every mutator stamps (apply, undo, agent
+lane, hack debut). No schema patch — the `pace` precedent. Driven both orders + stale
+resurrection + newer-stamp revert + unstamped-vs-unstamped.
+
+**Spec corrections found by recon (measure wins):** the gate line was 7102 not ~6965;
+recovery bands are GREEN/WATCH/LOW (no "OK"); and the spec's "rirEnd is read by NO
+decision" is false — `progressStep` sizes the rep step off the last rirSets slot (load
+decisions are opener-only; the claim was true only for those).
+
 ### STEPPUSH SURFACE FIX — BUILT 2026-08-07, branch fix/steppush-surface (audit round on v7.18.0)
 
 **Two user-facing defects, ONE root cause: steppush was the first kind:"cal" card born

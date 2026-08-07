@@ -420,12 +420,12 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
       ok(sigOf(cut8) === sigOf(fed8), "R8 — the weekly set prescription is BYTE-IDENTICAL between a cutting state and a gaining one. Volume is designed, not conditioned on energy state: Roth 2022 (n=38) and Nait-Yahia 2026 (n=16, 40% CR) are both null on FFM");
       ok(JSON.stringify(__test.VOL_BANDS) === JSON.stringify({ floor: 6, lo: 8, hi: 14, ceil: 16 }), "R8 — and the bands themselves are one constant, read identically everywhere. There is no deficit-calibrated variant to delete because none was ever built");
 
-      /* THE ONE DEFICIT-CONDITIONAL LINE IS DELIBERATE AND STAYS. It gates whether a proposal
-         FIRES, not what the band SAYS — a conservatism gate CLAUDE.md mandates in as many
-         words: "during a deficit it is deliberately filed, never proposed." */
+      /* THE ONE GROWTH-CONDITIONAL LINE IS DELIBERATE AND STAYS — but its authority moved
+         (volume-lever spec): the gate reads the REGIME DETECTOR, not the exitStart phase
+         flag. It still gates whether action FIRES, never what the band SAYS. */
       {
         const vi = __test.volumeImbalance(cut8);
-        ok(vi.cutting === true && vi.actionable === false, "R8 — while cutting, a detectable volume gap is FILED and not proposed. That is the one energy-state branch in the training path and it is deliberate: it gates whether a proposal fires, never what the band says");
+        ok(vi.growthOK === false && vi.actionable === false, "VOLUME LEVER — while the measured state does not sanction growth (regime " + vi.regimeKey + "), a detectable volume gap is FILED and not actionable: the one energy-state branch in the training path, now regime-driven, still gating firing and never the band");
         ok(vi.detectable === true, "R8 — and it is still DETECTED while filed, so the finding is not lost — which is the difference between conservatism and blindness");
       }
 
@@ -1319,7 +1319,7 @@ ok(swp(ann2, 3) === null, "no re-announcement — quiet until the next flip");
 // v3.13 — the outside-the-box wing
 const { labAnalytics2: la2, labGroups: lg2, completeSession: csW, genSession: gsW, SEED: SN } = __test;
 const wing = la2(clone(SN));
-ok(wing.length === 26, "twenty-six instruments, all constructed without a single crash: " + wing.length);
+ok(wing.length === 27, "twenty-seven instruments, all constructed without a single crash: " + wing.length);
 ok(wing.every(c => c.tag && c.deep && c.forYou && c.status), "every card carries all three layers plus a status");
 const ids2 = wing.map(c => c.id);
 ok(["adaptmeter","strvelocity","canary","regularity","missarch","weekend","stepeff","refeedroi","sessionshape","compound","ghost","sentinel","letter"].every(x => ids2.includes(x)), "the full roster reports");
@@ -1336,7 +1336,7 @@ ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id ==
 const gAll = lg2(clone(SN));
 ok(gAll.length === 11 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,trials,road,models,locked,shelf", "eleven shelves, fixed order");
 const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
-ok(tot2 === 55, "all 55 instruments filed exactly once: " + tot2);
+ok(tot2 === 56, "all 56 instruments filed exactly once: " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
@@ -1386,7 +1386,7 @@ const j1 = swp3(clone(SO));
 ok(j1 && j1.forecasts.length === 1 && typeof j1.forecasts[0].pred7 === "number", "the sweep journals one dated 7-day forecast per day");
 ok(swp3(j1) === null, "second sweep same day: no duplicate journal, no writes");
 const wing3 = laW(clone(SO));
-ok(wing3.length === 26, "twenty-six instruments in the wing now: " + wing3.length);
+ok(wing3.length === 27, "twenty-seven instruments in the wing now: " + wing3.length);
 const pr = wing3.find(c => c.id === "prophet");
 ok(pr && pr.status === "ARMED" && pr.deep.indexOf("error bars") > -1, "prophet armed, philosophy attached");
 let fcS = clone(SO);
@@ -1634,7 +1634,7 @@ ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "senti
 const ranked = sl1(clone(SP));
 /* PROVISIONAL ranks 0.5 — after anything settled, before anything still gathering. */
 const rk = { LIVE: 0, TRACKING: 0, PROVISIONAL: 0.5, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
-ok(ranked.length === 55 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 55 cards, monotone rank order");
+ok(ranked.length === 56 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 56 cards, monotone rank order");
 ok(ranked.some((c) => c.status === "PROVISIONAL"), "the lens has a PROVISIONAL tier — small-n cards no longer sit among the settled ones");
 // a flip lands on the docket's fresh row
 const swD = __test.sweepLab(clone(SP));
@@ -1675,7 +1675,7 @@ ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 ph
 // v3.17 — the sibling design review
 const { labSections: ls17, SEED: SR } = __test;
 const secs = ls17(clone(SR));
-ok(secs.reduce((a, x) => a + x.cards.length, 0) === 55, "all 55 filed across the plain-language sections, none lost");
+ok(secs.reduce((a, x) => a + x.cards.length, 0) === 56, "all 56 filed across the plain-language sections, none lost");
 const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "gathering");
 ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
 ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
@@ -3656,28 +3656,30 @@ volS = raW(volS, isoL(Date.now()));
    weeks on one-NINTH of their prior volume. Retention is cheap; growth is not;
    he is buying retention. Same class of error as the sleep gate — a real
    finding, applied where it does not hold. ---- */
-const vCard = volS.proposals.find((p) => p.rid.indexOf("volstruct_") === 0 && !p.resolved);
+const vCard = volS.proposals.find((p) => /^vol(push|roll|struct)_/.test(p.rid) && !p.resolved);
 const viCut = viN(volS);
-ok(viCut && viCut.cutting === true, "the engine knows he is still in a deficit");
-ok(viCut.detectable === true && viCut.actionable === false, "the gap is still DETECTED — the arithmetic did not change — but it is not actionable while cutting");
-ok(!vCard, "so no proposal fires: the app does not ask a man in a deficit to add seven weekly sets for a growth effect he is not currently buying");
+ok(viCut && viCut.growthOK === false, "the regime does not sanction growth on this state (" + viCut.regimeKey + ")");
+ok(viCut.detectable === true && viCut.actionable === false, "the gap is still DETECTED — the arithmetic did not change — but it is not actionable while growth is unsanctioned");
+ok(!vCard, "so no volume card of any kind fires: the app does not ask a man whose state cannot fund growth to add sets for an effect he is not currently buying");
 ok(viCut.why.indexOf("Roth 2023") > -1 && viCut.why.indexOf("Bickel 2011") > -1, "and the receipt cites both trials rather than asserting it");
 ok(viCut.why.indexOf("Filed, not proposed") === 0, "it is filed for the build phase, not discarded — the finding is real, the timing is not");
 ok(viCut.why.indexOf("hams at 4 sets") > -1, "naming the muscle and the number, so it is checkable");
 
-/* once the deficit ends, the growth band is the right yardstick again */
-const volDone = clone(volS);
-volDone.targets = { ...(volDone.targets || {}), exitStart: isoL(Date.now() - 7 * 864e5) };
-volDone.proposals = []; volDone.adjustments = [];
-const viBuild = viN(volDone);
-ok(viBuild.cutting === false && viBuild.actionable === true, "off the deficit it becomes actionable — the same gap, now worth acting on");
-ok(viBuild.why.indexOf("no longer in a deficit") > -1, "and says why it changed: " + viBuild.why.slice(0, 60));
-const volDone2 = raW(volDone, isoL(Date.now()));
-/* R14 — volstruct is kind:note, so the allocation lands in the FEED once actionable */
-const vLine2 = volDone2.feed.find((f) => /MINIMUM EFFECTIVE DOSE/.test(f.t));
-ok(!!vLine2, "and only THEN is it put to him — as a feed line under R14, since reading an allocation enacts nothing");
-ok(vLine2.how.indexOf("hams 4") > -1 && vLine2.how.indexOf("delt side") > -1, "with the whole allocation shown by head, so he can check the arithmetic");
-ok(vLine2.t.indexOf("MINIMUM EFFECTIVE DOSE") > -1, "and the headline says what 4 sets actually means: " + vLine2.t);
+/* THE FLIP IS NO LONGER A DIET-EXIT DATE (volume-lever spec, key §3 finding): writing
+   targets.exitStart used to open this gate — the old binary phase flag deciding a question
+   the regime detector owns. The growth side is driven in the VOLUME LEVER block below
+   (FINAL82): regime free CONFIRMED opens it, and the actionable path files a CARD whose
+   tap enacts the set (volpush) — the volstruct note is retired, because a reader beside an
+   enactor teaches him to read neither. Here: the flag alone must now open NOTHING. */
+{
+  const volDone = clone(volS);
+  volDone.targets = { ...(volDone.targets || {}), exitStart: isoL(Date.now() - 7 * 864e5) };
+  volDone.proposals = []; volDone.adjustments = [];
+  const viBuild = viN(volDone);
+  ok(viBuild.growthOK === false && viBuild.actionable === false, "VOLUME LEVER — writing exitStart no longer opens the volume gate: the regime detector is the authority, and it still reads " + viBuild.regimeKey + " on this state. The old flag is not a back door");
+  const volDone2 = raW(volDone, isoL(Date.now()));
+  ok(!volDone2.proposals.some((p) => /^vol(push|roll)_/.test(p.rid) && !p.resolved), "VOLUME LEVER — and no volume card files off the flag alone: a growth push is EARNED by measured lifts and rate, never declared by a date field");
+}
 ok(volS.feed.some((f) => /VOLUME BAND SITS ABOVE/.test(f.t)), "the band-width question is a different one and still stands on its own — as a feed line under R14");
 
 /* THE RATE BAND'S UNIT — RETIRED v6.3.1. The card told him to restate the band as
@@ -6120,4 +6122,286 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 }
 
 console.log(`\nFINAL81: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+/* ==================== VOLUME AS AN EARNED LEVER (spec v5) — the drives ====================
+   Audit A is the single most important test in the item and runs FIRST inside this block:
+   the liftTrend feedback loop must be SEVERED AT THE SOURCE. Every mode of volumePush, the
+   conversion instrument's three verdicts, the rollback receipt, the shared weekly budget in
+   both directions, the merge stamp, and the decline pacing are driven — no
+   asserted-in-principle guards. Fixtures are anchor-relative; 07-25..27 are dayWeather-hard
+   in SEED (the real event weekend) and are deliberately avoided. */
+{
+  const cl82 = (o) => JSON.parse(JSON.stringify(o));
+  const isoV = (k) => isoL(Date.now() - k * 864e5);
+  const MON = isoV((new Date(Date.now()).getDay() + 6) % 7);
+  const NEXTMON = isoL(Date.parse(MON + "T12:00:00") + 7 * 864e5);
+
+  /* the FREE-CONFIRMED fixture: 5 numeric lifts, 8 sessions over 28 days, strictly rising
+     totals at CONSTANT set counts; reads falling 35 days; clean sleep; EA gated. */
+  const mkFree = () => {
+    const st = cl82(SEED);
+    st.blackout = { until: isoV(28) };
+    st.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoV(34 - i), w: +(170 - i * 0.09).toFixed(2), sealed: false }));
+    st.trend = st.reads[st.reads.length - 1].w;
+    st.sleep.nights = Array.from({ length: 40 }, (_, i) => ({ d: isoV(39 - i), h: 8.2 }));
+    st.dailyLogs = {};
+    st.sessionLog = {};
+    st.exercises.forEach((e) => { e.holdFlag = false; });
+    const lifts = [
+      { id: "rows", w: 175, base: 16 }, { id: "press", w: 245, base: 14 },
+      { id: "lateral", w: 80, base: 20 }, { id: "tricep", w: 55, base: 18 },
+      { id: "ham", w: 120, base: 15 },
+    ];
+    for (let k = 0; k < 8; k++) {
+      st.sessionLog[isoV(28 - k * 4)] = { at: 0, note: "", niggles: [], dips: 0, skipped: [], pace: "normal",
+        entries: lifts.map((L) => { const tot = L.base + k; const a = Math.ceil(tot / 2);
+          return { id: L.id, reps: [a, tot - a], rir: 2, rirSets: [2, 1], w: L.w }; }) };
+    }
+    return st;
+  };
+  /* the STEPPED fixture: ham runs 6 flat 2-set sessions (totals 20), then nPost 3-set
+     sessions — per-set performance FALLS while raw volume-load JUMPS +~15%. The four other
+     lifts rise unless overridden. */
+  const mkStepped = (postTotals) => {
+    const st = mkFree();
+    st.sessionLog = {};
+    const pre = [25, 22, 19, 16, 13, 10].map(isoV);
+    const post = [7, 6, 5, 1].map(isoV).slice(0, postTotals.length);
+    const others = [
+      { id: "rows", w: 175, base: 24 }, { id: "press", w: 245, base: 22 },
+      { id: "lateral", w: 80, base: 28 }, { id: "tricep", w: 55, base: 26 },
+    ];
+    [...pre, ...post].forEach((d, i) => {
+      const hamEn = i < 6
+        ? { id: "ham", reps: [10, 10], rir: 2, rirSets: [2, 0], w: 120 }
+        : { id: "ham", reps: [8, 8, postTotals[i - 6] - 16], rir: 2, rirSets: [2, null, 0], w: 120 };
+      st.sessionLog[d] = { at: 0, note: "", niggles: [], dips: 0, skipped: [], pace: "normal",
+        entries: [hamEn, ...others.map((L) => { const tot = L.base + i; const a = Math.ceil(tot / 2);
+          return { id: L.id, reps: [a, tot - a], rir: 2, rirSets: [2, 1], w: L.w }; })] };
+    });
+    return st;
+  };
+
+  /* ---------- AUDIT A — THE FEEDBACK LOOP IS SEVERED AT THE SOURCE ---------- */
+  {
+    const S = mkStepped([23, 24, 23, 23]);
+    const tHam = __test.liftTrend(S, "ham");
+    ok(!!tHam && tHam.n === 4 && tHam.resetAt === isoV(7), "AUDIT A — a set-count change starts a FRESH trend window: liftTrend reads only the " + (tHam ? tHam.n : 0) + " post-change sessions, window opening " + (tHam ? tHam.resetAt : "-") + " — the typicalError same-shape discipline arriving at the trend layer");
+    ok(!!tHam && Math.abs(tHam.pct) < 1 && !(tHam.lo > 0), "AUDIT A — and on a lift that merely CARRIES the extra set (per-set performance actually fell 10 to ~7.7), the fresh window reads ~0 (" + (tHam ? tHam.pct : "-") + "%/session), NOT rising");
+    /* the counterfactual, computed here the way the unguarded OLS would have read it */
+    const naive = (() => {
+      const seq = [20 * 120, 20 * 120, 23 * 120, 24 * 120, 23 * 120, 23 * 120];
+      const n = 6, mx = 2.5, my = seq.reduce((a, b) => a + b, 0) / n;
+      let sxx = 0, sxy = 0;
+      seq.forEach((y, i) => { sxx += (i - mx) * (i - mx); sxy += (i - mx) * (y - my); });
+      return ((sxy / sxx) / my) * 100;
+    })();
+    ok(naive > 2 && naive > 4 * Math.abs(tHam ? tHam.pct : 0), "AUDIT A — the counterfactual is REAL: a mixed-window OLS over the same data manufactures +" + naive.toFixed(2) + "%/session of pure mechanical jump — the signal the R1_NOTE warned volume would fabricate, and the number the cut just refused to read");
+    /* three post-change sessions -> the lift abstains entirely (leaves the pool, honestly) */
+    const S3 = mkStepped([23, 24, 23]);
+    ok(__test.liftTrend(S3, "ham") === null, "AUDIT A — under the instrument's own min-n the fresh window returns NULL: abstention, not blindness — the lift simply leaves the pool until the window fills");
+    /* pool + regime level: 4 lifts falling, one stepped — the jump must not rescue the verdict */
+    const SP = mkStepped([23, 24, 23, 23]);
+    Object.keys(SP.sessionLog).sort().forEach((d, i) => {
+      SP.sessionLog[d].entries.forEach((en) => {
+        if (en.id === "ham") return;
+        const tot = ({ rows: 24, press: 22, lateral: 28, tricep: 26 })[en.id] - i;
+        if (tot) { const a = Math.ceil(tot / 2); en.reps = [a, tot - a]; }
+      });
+    });
+    const pool = __test.progressionTrend(SP);
+    const ebp = __test.energyBalanceTarget(SP);
+    ok(pool.state === "falling" && ebp.regime === "costing", "AUDIT A — POOLED: with the other four lifts honestly falling, the stepped lift's mechanical jump does NOT flip the verdict — progression stays " + pool.state + ", regime stays " + ebp.regime + ". costing -> fake-rising -> free was the self-exciting loop; it is severed");
+    /* author-blind: the cut reads the LOG, not the config, so no author can dodge it */
+    const SA = mkStepped([23, 24, 23, 23]);
+    SA.exercises.find((e) => e.id === "ham").sets = 2;
+    const tA = __test.liftTrend(SA, "ham");
+    ok(!!tA && tA.n === 4 && tA.resetAt === isoV(7), "AUDIT F — the reset keys on the CHANGE, not its author: with the exercise config reverted, the logged series still carries the count change and the window still restarts — engine-proposed, user-called and undone changes all land in the log the same way");
+  }
+
+  /* ---------- the earned PUSH, end to end ---------- */
+  {
+    const F = mkFree();
+    const prog = __test.progressionTrend(F);
+    const eb = __test.energyBalanceTarget(F);
+    const rec = __test.recoveryIndex(F);
+    ok(prog.state === "rising" && eb.regime === "free" && eb.regimeConfirmed === true && rec.band === "GREEN", "VOLUME LEVER — preconditions DRIVEN, not assumed: the fixture measures rising (" + prog.pct + "%/session), regime free CONFIRMED, recovery GREEN — so every gate below is earned");
+    const vp = __test.volumePush(F);
+    ok(vp.mode === "PUSH" && vp.mg === "hams" && vp.exId === "ham", "VOLUME LEVER — the earned push targets the LOWEST readable allocation: hams via Ham curl, its direct numeric-load lift (Q3: low muscle first; AUDIT B: engine increments target the direct lift, never a compound)");
+    ok(vp.dSess === 1 && vp.fromWk === 4 && vp.toWk === 6 && vp.fromSess === 2 && vp.toSess === 3, "VOLUME LEVER — zone-scaled: hams at 4 weekly is UNDER the floor, and one per-session set corrects it to the floor in ONE move (2→3/session = 4→6 weekly) — decisive, not a month of crawling (AUDIT D: both units computed, weekly governs)");
+    const armed = __test.runAdaptive(cl82(F), isoV(0));
+    const card = armed.proposals.find((p) => /^volpush_/.test(p.rid) && !p.resolved);
+    ok(!!card && card.rid === "volpush_hams_" + MON && card.apply.kind === "sets" && card.apply.exId === "ham" && card.apply.delta === 1, "VOLUME LEVER — the producer files a monday-stamped CARD with a fully-armed apply (kind sets, exId, delta) — an enactor, not a note");
+    ok(/2→3 per session/.test(card.why) && /4→6 weekly/.test(card.why), "VOLUME LEVER — the card states BOTH units: per-session (what he does at the gym) and weekly (what the band governs)");
+    ok(/MODERATE-TO-LOW/.test(card.why) && /no trial has tested MORE volume DURING a deficit/.test(card.why), "VOLUME LEVER — grade-honest copy: the §2.3 gap is named in the card itself, no confident voice on the untested bridge");
+    ok(/Ham curl/.test(card.why) && /minutes/.test(card.why), "VOLUME LEVER — the card names the exercise and prices the session cost — executable, not aspirational");
+    /* THE TAP ENACTS */
+    const applied = __test.applyProposal(cl82(armed), card.id, 0, "cal");
+    const ham = applied.exercises.find((e) => e.id === "ham");
+    ok(ham.sets === 3 && !!ham.setsAt, "VOLUME LEVER — the tap changes the thing the card names: ham.sets 2→3, STAMPED (AUDIT G) — kind:sets had a dial since v7.3.1 and no apply branch, the refeed_review defect shape, now closed");
+    ok(applied.feed[0].t === "VOLUME +1 — HAMS via Ham curl (now 3 sets)", "VOLUME LEVER — with the receipt in the feed: " + applied.feed[0].t);
+    const row = applied.adjustments[applied.adjustments.length - 1];
+    ok(row.exUndo && row.exUndo.exId === "ham" && row.exUndo.prev === 2 && row.setsDelta === 1, "VOLUME LEVER — and an EXACT undo on the row (exUndo carries the prior count), Law 10");
+    /* undo reverts and restamps */
+    const un = __test.undoAdjustment(cl82(applied), row.rid);
+    ok(un.exercises.find((e) => e.id === "ham").sets === 2 && !!un.exercises.find((e) => e.id === "ham").setsAt, "VOLUME LEVER — undo reverts the exact count and STAMPS the revert, so a synced device cannot resurrect the undone count — and the revert is itself a set-count change the trend window restarts on (AUDIT F)");
+    /* parallel channels: a second same-week push may land on a DIFFERENT muscle */
+    const smw = __test.structuralMovesThisWeek(applied);
+    ok(smw.sets.length === 1 && smw.mgsTouched.indexOf("hams") > -1, "VOLUME LEVER — the applied move is on the weekly budget, charged to its muscle");
+    const vp2 = __test.volumePush(applied);
+    ok(vp2.mode === "PUSH" && vp2.mg !== "hams", "VOLUME LEVER — muscles are parallel measurement channels: a same-week push to a DIFFERENT muscle (" + vp2.mg + ") is permitted; the touched muscle is not re-incremented");
+    /* decline buys the week — and only the week */
+    const decl = __test.dismissProposal(cl82(armed), card.id);
+    ok(/quiet before Monday/.test((decl.feed[0] || {}).how || ""), "VOLUME LEVER — the decline copy states what it buys (quiet before Monday) — R14's copy-and-mechanism-agree rule at birth");
+    const sameWk = __test.runAdaptive(cl82(decl), isoV(0));
+    ok(!sameWk.proposals.some((p) => /^volpush_/.test(p.rid) && !p.resolved), "VOLUME LEVER — declined, the lever does NOT refile the same week — no always-on nagging");
+    const nextWk = __test.runAdaptive(cl82(decl), NEXTMON);
+    ok(nextWk.proposals.some((p) => p.rid === "volpush_hams_" + NEXTMON && !p.resolved), "VOLUME LEVER — and the monday rolls the rid, so a still-sanctioned state RE-ASKS next week: the decline bought the week, not silence forever");
+  }
+
+  /* ---------- every guard FIRES on a fixture built to trip it ---------- */
+  {
+    /* recovery ceiling */
+    const Fr = mkFree();
+    Fr.sleep.nights = Fr.sleep.nights.map((n) => ({ ...n, h: 5.5 }));
+    const vpr = __test.volumePush(Fr);
+    ok(vpr.mode === "WITHHELD" && vpr.veto === "recovery", "VOLUME GUARD — the recovery ceiling FIRES: short nights drive the band off GREEN and the push is withheld — the response-based ceiling, driven, and the first ENFORCED reader of the 'no structural change' promise the recovery card has been making in prose");
+    /* one-variable budget, cal direction */
+    const Fb = mkFree();
+    Fb.adjustments = [...(Fb.adjustments || []), { rid: "x", id: "a1", d: isoV(1), via: "cal", calDelta: -50, from: isoV(1) }];
+    const vpb = __test.volumePush(Fb);
+    ok(vpb.mode === "WITHHELD" && vpb.veto === "budget" && /calorie-band change/.test(vpb.why), "VOLUME GUARD — one variable per week FIRES: a same-week calorie steer blocks the volume push, and the copy names which lever spent the budget");
+    /* one-variable budget, steps direction */
+    const Fs = mkFree();
+    Fs.adjustments = [...(Fs.adjustments || []), { rid: "steppush_" + MON, id: "a2", d: isoV(1), via: "steps", stepDelta: 1000, from: isoV(1) }];
+    ok(__test.volumePush(Fs).veto === "budget", "VOLUME GUARD — a same-week step push spends the same budget");
+    /* and the budget binds the OTHER lever too: a sets move blocks steppush */
+    const stP = cl82(SEED);
+    Object.keys(stP.dailyLogs || {}).forEach((d) => { stP.dailyLogs[d] = { ...(stP.dailyLogs[d] || {}), steps: 15000 }; });
+    stP.reads = Array.from({ length: 28 }, (_, i) => ({ d: isoV(27 - i), w: +(166 - i * 0.05).toFixed(2), sealed: false }));
+    stP.trend = stP.reads[stP.reads.length - 1].w;
+    stP.sleep.nights = Array.from({ length: 10 }, (_, i) => ({ d: isoV(9 - i), h: 8.2 }));
+    stP.blackout = { until: isoV(28) };
+    stP.adjustments = [...(stP.adjustments || []), { rid: "volpush_hams_" + MON, id: "a3", d: isoV(1), title: "x", exUndo: { exId: "ham", field: "sets", prev: 2 }, setsDelta: 1 }];
+    const spB = __test.stepPush(stP);
+    ok(spB.mode === "WITHHELD" && spB.veto === "budget", "VOLUME GUARD — ONE owner, both directions: the same weekly budget makes stepPush withhold when a set-count change landed this week (this state pushes without the sets row — the steppush suite above proves it)");
+    /* the absolute ceiling */
+    const Fc = mkFree();
+    Fc.exercises.forEach((e) => { e.sets = 8; });
+    const vpc = __test.volumePush(Fc);
+    ok(vpc.mode === "WITHHELD" && vpc.veto === "ceiling" && vpc.skips.some((x) => x.why.indexOf(String(__test.VOL_BANDS.ceil)) > -1), "VOLUME GUARD — the ABSOLUTE ceiling FIRES: with every muscle at the top the push is withheld naming " + __test.VOL_BANDS.ceil + " weekly — the numeric backstop (Q2) behind the response gates, STEP_PUSH_ABS_CEIL in mirror, derived from VOL_BANDS.ceil rather than invented");
+    /* trend-blind refusal */
+    const Ft = mkFree();
+    Ft.exercises.find((e) => e.id === "ham").w = "hold";
+    const vpt = __test.volumePush(Ft);
+    const blindSkip = (vpt.skips || []).find((x) => x.mg === "hams");
+    ok(vpt.mode === "PUSH" && vpt.mg !== "hams" && !!blindSkip && /trend-blind/.test(blindSkip.why), "VOLUME GUARD (AUDIT C) — a trend-blind lift is REFUSED with the reason named: sessionScore cannot read a non-numeric load, so its conversion window could never close — the proposal moves to a readable muscle instead");
+    /* compound spillover charges the budget */
+    const FS = mkFree();
+    FS.feed = [{ d: isoV(1), t: "VOLUME +1 — CHEST via Press (now 4 sets)", how: "x" }, ...(FS.feed || [])];
+    const smwS = __test.structuralMovesThisWeek(FS);
+    ok(["chest", "triceps", "delts_front"].every((m) => smwS.mgsTouched.indexOf(m) > -1), "VOLUME GUARD (AUDIT B) — a compound set change charges its fractional spillover against every lent-into muscle's weekly budget: press touches chest AND triceps AND front delts — 'parallel channels' must not pretend a compound is one channel");
+  }
+
+  /* ---------- the conversion instrument — three verdicts, rollback, and no self-confirmation ---------- */
+  {
+    const S = mkStepped([23, 24, 23, 23]);
+    const vc = __test.volumeConversion(S, "ham");
+    ok(vc.status === "LIVE" && vc.verdict === "NOT_CONVERTED" && vc.delivered === true, "CONVERSION — a lift that gained a set and made ZERO progress on it reads DID NOT CONVERT, with the effort verified delivered: the check that could never fail is the defect this exists to kill, and the fresh-window reset is why it CAN fail");
+    /* READING state honors the instrument's own min-n */
+    const S3 = mkStepped([23, 24, 23]);
+    const vc3 = __test.volumeConversion(S3, "ham");
+    ok(vc3.status === "READING" && vc3.have === 3 && vc3.need === 4, "CONVERSION — the read window is DERIVED from liftTrend's own min-n (" + vc3.have + "/" + vc3.need + "), never a hand-picked constant");
+    /* and an open read window blocks the next push on that muscle only */
+    const vpR = __test.volumePush(S3);
+    const readSkip = (vpR.skips || []).find((x) => x.mg === "hams");
+    ok(!!readSkip && /still being read/.test(readSkip.why), "CONVERSION — an unread increment blocks a SECOND increment on the SAME muscle (skip names the open window) while other muscles remain eligible — one experiment per channel");
+    /* UNDELIVERED: sandbagged sets cannot convict volume */
+    const SU = mkStepped([23, 24, 23, 23]);
+    Object.keys(SU.sessionLog).sort().slice(-4).forEach((d) => {
+      const en = SU.sessionLog[d].entries.find((e) => e.id === "ham");
+      if (en && en.reps.length === 3) en.rirSets = [2, null, 3];
+    });
+    const vcU = __test.volumeConversion(SU, "ham");
+    ok(vcU.verdict === "UNDELIVERED" && /never arrived as prescribed effort/.test(vcU.why), "CONVERSION — the final-set RIR reports are the effort-compliance input: hard sets left 3 in the tank read UNDELIVERED, and the copy says the dose never arrived rather than convicting volume");
+    /* CONVERTED: genuine post-change progression with effort */
+    const SC = mkStepped([20, 22, 24, 26]);
+    const vcC = __test.volumeConversion(SC, "ham");
+    ok(vcC.verdict === "CONVERTED" && vcC.trend.lo > 0, "CONVERSION — genuine progression on the fresh window with effort delivered reads CONVERTED — the climb may continue, gated by the same read discipline");
+    /* rollback: NOT_CONVERTED + fatigue -> a receipt-carrying card whose tap removes the sets */
+    const SR = mkStepped([23, 24, 23, 23]);
+    SR.exercises.find((e) => e.id === "ham").holdFlag = true;
+    SR.exercises.find((e) => e.id === "ham").sets = 3;
+    const vcR = __test.volumeConversion(SR, "ham");
+    ok(vcR.rollback === true && vcR.fatigueUp === true, "ROLLBACK — armed only when the read window CLOSED unconverted AND fatigue rose (governor hold here) — flat-but-cheap holds instead of rolling back");
+    const raR = __test.runAdaptive(cl82(SR), isoV(0));
+    const rollCard = raR.proposals.find((p) => /^volroll_ham_/.test(p.rid) && !p.resolved);
+    ok(!!rollCard && rollCard.apply.kind === "sets" && rollCard.apply.delta === -1, "ROLLBACK — filed as a proposal with its own receipt, never a silent revert (Law 10: offer, never impose)");
+    ok(/added to Ham curl on/.test(rollCard.why) && /no progression/.test(rollCard.why), "ROLLBACK — the receipt names the date the set was added, the measured non-result, and the cost — the experiment is the receipt");
+    const rApplied = __test.applyProposal(cl82(raR), rollCard.id, 0, "cal");
+    ok(rApplied.exercises.find((e) => e.id === "ham").sets === 2 && rApplied.feed[0].t === "VOLUME -1 — HAMS via Ham curl (now 2 sets)", "ROLLBACK — the tap removes exactly the added sets, with the receipt in the feed");
+  }
+
+  /* ---------- the live snapshot: everything ABSTAINS, and nothing else moved ---------- */
+  {
+    const S7v = JSON.parse(readFileSync("tools/snapshots/2026-08-07-ledger.json", "utf8"));
+    const vp7 = __test.volumePush(S7v);
+    ok(vp7.mode === "ABSTAIN", "SNAPSHOT 2026-08-07 — volumePush ABSTAINS on the live ledger: regime unknown means the lever stays dormant rather than guessing — no push on missing data, which is today's true state");
+    const ra7 = __test.runAdaptive(cl82(S7v), "2026-08-07");
+    ok(!ra7.proposals.some((p) => /^vol(push|roll)_/.test(p.rid) && !p.resolved), "SNAPSHOT 2026-08-07 — and zero volume cards file on the live state");
+    const vi7 = __test.volumeImbalance(S7v);
+    ok(vi7.growthOK === false && vi7.regimeKey === "unknown" && vi7.why.indexOf("Filed, not proposed") === 0 && /Roth 2023/.test(vi7.why), "SNAPSHOT 2026-08-07 — the allocation card abstains WITH the regime named and the retention evidence intact");
+    const eb7 = __test.energyBalanceTarget(S7v, { asOf: "2026-08-07" });
+    ok(eb7.lo === 2221 && eb7.hi === 2308, "SNAPSHOT 2026-08-07 — the eat band is BYTE-IDENTICAL through the whole item (" + eb7.lo + "-" + eb7.hi + "): the liftTrend cut is a no-op on his real data (zero blips measured), so nothing he sees moved");
+    const t7 = __test.liftTrend(S7v, "lateral");
+    ok(t7 === null, "SNAPSHOT 2026-08-07 — and liftTrend still abstains on the real series exactly as before the cut: the fix manufactures nothing");
+  }
+
+  /* ---------- RIR integration + the lab card + the decline map ---------- */
+  {
+    const F = mkFree();
+    ok(JSON.stringify(__test.rirPlan(F, { sets: 4, hi: 12 }).plan) === "[2,1,1,0]", "RIR — an added set re-keys the taper to [2,1,1,0]: the new set arrives as a hard 1-in-the-tank set and failure stays spent exactly once, on the final set — no new wiring, verified rather than trusted");
+    ok(JSON.stringify(__test.rirPlan(F, { sets: 4, hi: 12, holdFlag: true }).plan) === "[2,2,2,2]", "RIR — and the governor hold still floors every slot at 2 across the new count: holdFlag machinery follows the set count");
+    const wing82 = __test.labAnalytics2(cl82(SEED));
+    const vcCard = wing82.find((c) => c.id === "volconv");
+    ok(!!vcCard && vcCard.status === "ARMED", "LAB — the VOLUME CONVERSION instrument exists and arms cold: no set-count change on record yet, counting only, no verdict");
+    const wingLive = __test.labAnalytics2(mkStepped([23, 24, 23, 23]));
+    const vcLive = wingLive.find((c) => c.id === "volconv");
+    ok(!!vcLive && vcLive.status === "LIVE" && /not converting/.test(vcLive.forYou), "LAB — and goes LIVE the day a change lands in the log, reading the same volumeConversion the producer gates on — one owner, one slope, the stepeff discipline");
+    const dsrc82 = readFileSync("src/app.jsx", "utf8");
+    const dbSlice = dsrc82.slice(dsrc82.indexOf("DECLINE_BUYS = {"), dsrc82.indexOf("};", dsrc82.indexOf("DECLINE_BUYS = {")));
+    ok(/volpush:/.test(dbSlice) && /volroll:/.test(dbSlice), "R14 — what a volume decline buys is stated per kind in the DECLINE_BUYS map, keyed by rid like steppush — copy and mechanism agree from birth");
+  }
+
+  /* ---------- merge (AUDIT G): a set-count change survives BOTH orders ---------- */
+  {
+    const A9 = cl82(SEED), B9 = cl82(SEED);
+    const hamA = A9.exercises.find((e) => e.id === "ham");
+    hamA.sets = 3; hamA.setsAt = isoV(0) + "T12:00:00.000Z";
+    const hamB = B9.exercises.find((e) => e.id === "ham");
+    hamB.lastMeta = { d: isoL(Date.parse(isoV(0) + "T12:00:00") + 864e5), w: 120, reps: [10, 10], debt: false };
+    const m1 = __test.mergeState(A9, B9), m2 = __test.mergeState(B9, A9);
+    const g1 = m1.exercises.find((e) => e.id === "ham"), g2 = m2.exercises.find((e) => e.id === "ham");
+    ok(g1.sets === 3 && g2.sets === 3, "AUDIT G — the stamped set-count change SURVIVES both merge orders even though the stale-count device trained the lift AFTER the change (newer lastMeta.d wins the wholesale merge — and would have resurrected sets 2 without the stamp)");
+    ok(g1.lastMeta.d === hamB.lastMeta.d && g2.lastMeta.d === hamB.lastMeta.d, "AUDIT G — while the newer SESSION still wins everything else on the lift: the stamp protects exactly one field, never the progression state");
+    ok(__test.dataLossGuard(B9, m1).safe && __test.dataLossGuard(A9, m2).safe, "AUDIT G — and the data-loss guard holds from both inputs");
+    const C9 = cl82(A9);
+    C9.exercises.find((e) => e.id === "ham").sets = 2;
+    C9.exercises.find((e) => e.id === "ham").setsAt = isoL(Date.parse(isoV(0) + "T12:00:00") + 864e5) + "T12:00:00.000Z";
+    ok(__test.mergeState(A9, C9).exercises.find((e) => e.id === "ham").sets === 2, "AUDIT G — a NEWER stamp (an undo, a later change) beats an older one: the field reconciles by deliberateness, the plan.setAt discipline at field grain");
+    const D1 = cl82(SEED), D2 = cl82(SEED);
+    ok(__test.mergeState(D1, D2).exercises.find((e) => e.id === "ham").sets === 2, "AUDIT G — unstamped vs unstamped keeps the wholesale winner: historical lifts carry no stamp on purpose (the pace precedent — absent reads as unknown, no schema patch invents one)");
+  }
+
+  /* ---------- the dial's zero is honored, not clamped away ---------- */
+  {
+    const F = mkFree();
+    const armed = __test.runAdaptive(cl82(F), isoV(0));
+    const card = armed.proposals.find((p) => /^volpush_/.test(p.rid) && !p.resolved);
+    const z = __test.applyProposal(cl82(armed), card.id, -1, "cal");
+    ok(z.exercises.find((e) => e.id === "ham").sets === 2 && /YOUR VERSION WAS ZERO/.test(z.feed[0].t), "VOLUME LEVER — dialing the change to zero enacts exactly the athlete's version: nothing moves, and the feed says so — a tap never silently does more than its label");
+  }
+}
+console.log(`\nFINAL82: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
