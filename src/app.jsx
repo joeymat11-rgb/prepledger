@@ -854,8 +854,15 @@ function progressAnchor(ex, s) {
   return base.map((r, i) => Math.max(r, better[i] ?? 0));
 }
 function targetsFor(ex, s) {
-  if (ex.std) return ex.std.slice();
-  if (ex.reclaim) return ex.reclaim.slice();
+  /* OWNER'S CALL rider — std/reclaim are AUTHORED target arrays sized for the set count
+     they were written at. A set-count change must not silently shrink or crash the
+     session: pad to ex.sets one rep under the last authored slot (the same rule the
+     anchor path uses below), truncate when sets fall. The own-hold survives — the
+     authored slots are untouched; the added slot banks whatever it gives. Identity on
+     every current lift (each std/reclaim already matches its ex.sets), asserted. */
+  const fitN = (arr) => { const t9 = arr.slice(0, ex.sets); while (t9.length < ex.sets) t9.push(Math.max(1, (t9[t9.length - 1] || ex.hi - 2) - 1)); return t9; };
+  if (ex.std) return fitN(ex.std);
+  if (ex.reclaim) return fitN(ex.reclaim);
   if (!ex.last) return (ex.first || Array(ex.sets).fill(Math.max(1, ex.hi - 2))).slice();
   const t = progressAnchor(ex, s).slice(0, ex.sets);
   while (t.length < ex.sets) t.push(Math.max(1, (t[t.length - 1] || ex.hi - 2) - 1));
@@ -7670,6 +7677,46 @@ function runAdaptive(state, todayISO) {
         propose(rid9, `${String(ex9.n).toUpperCase()} — THE ADDED SET DID NOT CONVERT`,
           `The receipt: ${vc9.dK} set${vc9.dK > 1 ? "s were" : " was"} added to ${ex9.n} on ${fmtShort(vc9.changedAt)}. Over the ${vc9.trend.n} sessions since, the fresh trend window shows no progression (${vc9.trend.pct}%/session, CI ${vc9.trend.lo} to ${vc9.trend.hi}) and recovery is paying for it${ex9.holdFlag ? " — the lift itself is held by the governor" : ""}. Approving takes the added set${vc9.dK > 1 ? "s" : ""} back off — ${ex9.sets}→${ex9.sets - vc9.dK} per session. Nothing is lost: the experiment ran, the answer was measured on your own bar, and both are on the record. Junk volume is fatigue wearing a growth costume.`,
           { kind: "sets", exId: ex9.id, delta: -vc9.dK, mg: (ex9.head || ex9.mg) });
+    });
+  }
+
+  /* ---------- OWNER'S CALL — 2026-08-07, ON THE RECORD: RAISE ALL THREE ----------
+     Joe was shown the full designed allocation, the closed gates (recovery WATCH, the
+     detector 0/4 readable, sleep debt, rate above the corridor top) and the honest risk
+     profile — three simultaneous experiments is the highest junk-volume-risk configuration
+     the lever allows — and chose speed over waiting. The owner decides; the app measures.
+     Nothing here weakens an instrument: each lift keeps its own fresh trend window, its
+     own conversion verdict, its own rollback with receipt.
+     PRE-FILED, once ever, per card: the guard is the proposals/adjustments record itself
+     (no stored flag), so it is merge-safe by the proposals union — a card that has ever
+     existed for the muscle, at ANY status, is never re-filed by this producer. The cards
+     ride the standard volpush rid family, so decline-buys-the-week, the READING skip, the
+     weekly budget and the apply branch all treat them natively. A produced card, never a
+     migration. */
+  {
+    const ownerGate = "The gates were closed — recovery reads WATCH, the detector cannot read your lifts yet, and the rate is above the corridor top — and you chose speed over waiting, on the record. The owner decides; the app measures. ";
+    const ownerCaveat = " HONEST CAVEAT: three simultaneous experiments into WATCH recovery raises the odds any given read returns \"did not convert\" — junk volume is the risk you accepted, and the instruments will say so without flinching. THE MEASUREMENT PROMISE: this lift's trend window restarts at the change, it gets its own conversion verdict on your own bar, and if it reads junk a rollback card comes with the receipt. Declining buys the week.";
+    const OWNER_CALLS = [
+      { mg: "hams", exId: "ham",
+        title: (ex, fromWk, toWk) => `OWNER'S CALL — HAMS: ${fromWk} → ${toWk} WEEKLY SETS`,
+        body: (ex, fq) => `Approving adds 1 set to ${ex.n} each lower session — ${ex.sets}→${ex.sets + 1} per session, ${ex.sets * fq}→${(ex.sets + 1) * fq} weekly, about 3 extra minutes on those days. This is the FLOOR CORRECTION: ${ex.sets * fq} weekly sets sits under the growth floor, and the climb lands in the evidence's own high-return tier (Pelland 2025, 5–10 weekly sets).` },
+      { mg: "chest", exId: "press",
+        title: (ex, fromWk, toWk) => `OWNER'S CALL — CHEST: ${fromWk} → ${toWk} WEEKLY SETS`,
+        body: (ex, fq) => `Approving adds 1 set to ${ex.n} each upper session — ${ex.sets}→${ex.sets + 1} per session, ${ex.sets * fq}→${(ex.sets + 1) * fq} weekly, about 3 extra minutes. PRESS IS A COMPOUND: the added set fractionally credits triceps and front delts (half a set each per session), and that spillover charges those muscles' weekly structural budget — nothing else stacks on them the same week. After this move chest sits in the working zone, triceps stays inside its band, and front delts stays indirect-only by design: the press IS its lever. Grade MODERATE-TO-LOW — at-floor to working zone, and the more-volume-during-a-deficit bridge is untested (Roth 2023 asked retention).` },
+      { mg: "delts_rear", exId: "rearDelt",
+        title: (ex, fromWk, toWk) => `OWNER'S CALL — REAR DELT: ${fromWk} → ${toWk} WEEKLY SETS`,
+        body: (ex, fq) => `Approving adds 1 set per side to ${ex.n} each upper session — ${ex.sets}→${ex.sets + 1} per side, ${ex.sets * fq}→${(ex.sets + 1) * fq} weekly. UNILATERAL, so the honest gym time is ~4–5 extra minutes (a set per side plus rests), and the logging convention is unchanged: one number per round, the weaker side. Grade MODERATE-TO-LOW — at-floor to working zone, the same untested bridge.` },
+    ];
+    OWNER_CALLS.forEach((oc) => {
+      const seen = (s.proposals || []).some((p) => p && p.rid && p.rid.indexOf("volpush_" + oc.mg + "_") === 0)
+        || (s.adjustments || []).some((a) => a && a.rid && a.rid.indexOf("volpush_" + oc.mg + "_") === 0);
+      if (seen || sealed) return;
+      const ex = (s.exercises || []).find((x) => x.id === oc.exId);
+      if (!ex) return;
+      const fq = _weeklyFreq(ex.day) || 2;
+      propose("volpush_" + oc.mg + "_" + monday, oc.title(ex, ex.sets * fq, (ex.sets + 1) * fq),
+        ownerGate + oc.body(ex, fq) + ownerCaveat,
+        { kind: "sets", exId: oc.exId, delta: 1, mg: oc.mg, owner: true });
     });
   }
 

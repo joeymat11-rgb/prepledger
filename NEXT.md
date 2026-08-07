@@ -1075,6 +1075,44 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### OWNER'S CALL — RAISE ALL THREE — BUILT 2026-08-07, branch feat/owner-call-volume (rider)
+
+**Joe overrode the closed gates, on the record.** He was shown the allocation, the closed
+gates (recovery WATCH, detector 0/4, sleep debt, rate above corridor top) and the
+junk-volume risk of three simultaneous experiments — and chose speed. The owner decides;
+the app measures. A one-time producer PRE-FILES three cards in the standard volpush
+family: hams (Ham curl 2→3/session, 4→6 weekly — floor correction), chest (Press
+3→4/session, 6→8 weekly — compound; the copy names the triceps+front-delt spillover and
+its budget charge), rear delt (3→4 per side, 6→8 weekly — unilateral, ~4–5 min priced
+honestly). All copy carries the owner framing, the caveat, the measurement promise, and
+the grade. Once-only guard = the proposals/adjustments record itself (no flag; merge-safe
+by the proposals union — driven ×2 reruns, next-week, and BOTH merge orders → 3 cards, no
+dupes, forever).
+
+**Engine edge closed en route:** `targetsFor`'s std/reclaim branches returned the
+authored arrays verbatim — a set-count change would have silently shrunk the session (the
+press own-hold at 4 sets produced 3 targets). Now padded/truncated to `ex.sets` by the
+anchor path's own rule; proven IDENTITY on every current lift (every live std/reclaim
+already matches its count — asserted so this stays a future-only change).
+
+**Driven (+24, suite 1832):** cards file exactly once (all four ways); each tap raises the
+right lift stamped with exact exUndo + receipts; post-approval designed allocation hams 6 /
+chest 8 / delts_rear 8 / triceps 10 / delts_front 4 with every other bucket pinned
+UNCHANGED (quads/calves/abs "under" reads are logged-vs-designed artifacts — asserted so
+nobody fixes them later); combined week = 3 moves + spillover = five muscles on the budget,
+stepPush WITHHELD/budget; three parallel READING states coexist; rollback/undo isolation
+(reversing ham never touches press); press [8,8,8,6]-shape sanity + rirPlan 2·1·1·0 on
+press/rearDelt specifically; declined owner card never refiles (once EVER — the earned
+producer is the only path back and must re-earn the gates).
+
+**Snapshot outcome updated by design:** the live S7 sweep now files exactly the three
+owner cards (earned producer still abstains, regime unknown; zero rollbacks).
+
+**R15a note:** parked on its branch during this rider; rebases on the new main and
+REGENERATES tools/engine-baseline.json (the freeze baselines AFTER this ships).
+measured-redesign-mockups.html has landed in the repo folder — commits with the R15a
+rebase.
+
 ### VOLUME AS AN EARNED LEVER — BUILT 2026-08-07, branch feat/volume-lever (spec v5)
 
 **The heaviest engine item. Suite 1757 → 1808 (+51 driven assertions), MIN_ASSERTIONS

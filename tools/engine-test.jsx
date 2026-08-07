@@ -3656,7 +3656,7 @@ volS = raW(volS, isoL(Date.now()));
    weeks on one-NINTH of their prior volume. Retention is cheap; growth is not;
    he is buying retention. Same class of error as the sleep gate — a real
    finding, applied where it does not hold. ---- */
-const vCard = volS.proposals.find((p) => /^vol(push|roll|struct)_/.test(p.rid) && !p.resolved);
+const vCard = volS.proposals.find((p) => /^vol(push|roll|struct)_/.test(p.rid) && !p.resolved && !(p.apply && p.apply.owner));   /* the owner's-call pre-filed cards are a sanctioned OWNER decision, not the engine's — the earned path is what must abstain here */
 const viCut = viN(volS);
 ok(viCut && viCut.growthOK === false, "the regime does not sanction growth on this state (" + viCut.regimeKey + ")");
 ok(viCut.detectable === true && viCut.actionable === false, "the gap is still DETECTED — the arithmetic did not change — but it is not actionable while growth is unsanctioned");
@@ -3678,7 +3678,7 @@ ok(viCut.why.indexOf("hams at 4 sets") > -1, "naming the muscle and the number, 
   const viBuild = viN(volDone);
   ok(viBuild.growthOK === false && viBuild.actionable === false, "VOLUME LEVER — writing exitStart no longer opens the volume gate: the regime detector is the authority, and it still reads " + viBuild.regimeKey + " on this state. The old flag is not a back door");
   const volDone2 = raW(volDone, isoL(Date.now()));
-  ok(!volDone2.proposals.some((p) => /^vol(push|roll)_/.test(p.rid) && !p.resolved), "VOLUME LEVER — and no volume card files off the flag alone: a growth push is EARNED by measured lifts and rate, never declared by a date field");
+  ok(!volDone2.proposals.some((p) => /^vol(push|roll)_/.test(p.rid) && !p.resolved && !(p.apply && p.apply.owner)), "VOLUME LEVER — and no EARNED volume card files off the flag alone: a growth push is earned by measured lifts and rate, never declared by a date field (the owner's-call cards file regardless — that is the point of an owner)");
 }
 ok(volS.feed.some((f) => /VOLUME BAND SITS ABOVE/.test(f.t)), "the band-width question is a different one and still stands on its own — as a feed line under R14");
 
@@ -6255,7 +6255,7 @@ if (fail) process.exit(1);
     const decl = __test.dismissProposal(cl82(armed), card.id);
     ok(/quiet before Monday/.test((decl.feed[0] || {}).how || ""), "VOLUME LEVER — the decline copy states what it buys (quiet before Monday) — R14's copy-and-mechanism-agree rule at birth");
     const sameWk = __test.runAdaptive(cl82(decl), isoV(0));
-    ok(!sameWk.proposals.some((p) => /^volpush_/.test(p.rid) && !p.resolved), "VOLUME LEVER — declined, the lever does NOT refile the same week — no always-on nagging");
+    ok(!sameWk.proposals.some((p) => /^volpush_hams_/.test(p.rid) && !p.resolved), "VOLUME LEVER — declined, the DECLINED muscle does not refile the same week — no always-on nagging (the owner's-call cards for other muscles are a separate, once-ever filing and legitimately stay open)");
     const nextWk = __test.runAdaptive(cl82(decl), NEXTMON);
     ok(nextWk.proposals.some((p) => p.rid === "volpush_hams_" + NEXTMON && !p.resolved), "VOLUME LEVER — and the monday rolls the rid, so a still-sanctioned state RE-ASKS next week: the decline bought the week, not silence forever");
   }
@@ -6349,7 +6349,9 @@ if (fail) process.exit(1);
     const vp7 = __test.volumePush(S7v);
     ok(vp7.mode === "ABSTAIN", "SNAPSHOT 2026-08-07 — volumePush ABSTAINS on the live ledger: regime unknown means the lever stays dormant rather than guessing — no push on missing data, which is today's true state");
     const ra7 = __test.runAdaptive(cl82(S7v), "2026-08-07");
-    ok(!ra7.proposals.some((p) => /^vol(push|roll)_/.test(p.rid) && !p.resolved), "SNAPSHOT 2026-08-07 — and zero volume cards file on the live state");
+    const oc7 = ra7.proposals.filter((p) => /^volpush_/.test(p.rid) && !p.resolved);
+    ok(oc7.length === 3 && ["volpush_hams_", "volpush_chest_", "volpush_delts_rear_"].every((r) => oc7.some((p) => p.rid.indexOf(r) === 0)), "SNAPSHOT 2026-08-07 — exactly the THREE owner's-call cards file on the live state (hams, chest, rear delt) — the earned producer still abstains (regime unknown), and the owner's decision rides the same machinery it would have earned");
+    ok(!ra7.proposals.some((p) => /^volroll_/.test(p.rid) && !p.resolved), "SNAPSHOT 2026-08-07 — and no rollback fires: nothing has been read yet");
     const vi7 = __test.volumeImbalance(S7v);
     ok(vi7.growthOK === false && vi7.regimeKey === "unknown" && vi7.why.indexOf("Filed, not proposed") === 0 && /Roth 2023/.test(vi7.why), "SNAPSHOT 2026-08-07 — the allocation card abstains WITH the regime named and the retention evidence intact");
     const eb7 = __test.energyBalanceTarget(S7v, { asOf: "2026-08-07" });
@@ -6404,4 +6406,88 @@ if (fail) process.exit(1);
   }
 }
 console.log(`\nFINAL82: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+/* ==================== OWNER'S CALL — RAISE ALL THREE (rider) ====================
+   Joe overrode the closed gates, on the record. The producer PRE-FILES three cards in the
+   standard volpush family; the guard is the proposals/adjustments record itself, so the
+   cards file once EVER, survive both merge orders, and every downstream instrument
+   (conversion, budget, rollback, decline pacing) treats them natively. The owner decides;
+   the app measures — driven below, not asserted in principle. */
+{
+  const cl84 = (o) => JSON.parse(JSON.stringify(o));
+  const S7o = JSON.parse(readFileSync("tools/snapshots/2026-08-07-ledger.json", "utf8"));
+  const r1 = __test.runAdaptive(cl84(S7o), "2026-08-07");
+  const cards = r1.proposals.filter((p) => /^volpush_/.test(p.rid) && !p.resolved);
+  ok(cards.length === 3 && cards.map((c) => c.rid).join(",") === "volpush_hams_2026-08-03,volpush_chest_2026-08-03,volpush_delts_rear_2026-08-03", "OWNER — the three cards file on the live ledger, monday-stamped, in the standard rid family: " + cards.map((c) => c.rid).join(","));
+  ok(__test.runAdaptive(cl84(r1), "2026-08-07").proposals.filter((p) => /^volpush_/.test(p.rid)).length === 3, "OWNER — re-running the sweep files NOTHING new: the once-only guard reads the proposals record, not a flag");
+  ok(__test.runAdaptive(cl84(r1), "2026-08-14").proposals.filter((p) => /^volpush_/.test(p.rid)).length === 3, "OWNER — and a NEW week still files nothing: once ever, not once per monday");
+  const d1 = __test.runAdaptive(cl84(S7o), "2026-08-07"), d2 = __test.runAdaptive(cl84(S7o), "2026-08-07");
+  ok(__test.mergeState(d1, d2).proposals.filter((p) => /^volpush_/.test(p.rid)).length === 3 && __test.mergeState(d2, d1).proposals.filter((p) => /^volpush_/.test(p.rid)).length === 3, "OWNER — two devices that each ran the producer merge to exactly three cards, both orders: the guard is merge-safe because the proposals union IS the guard's memory");
+  /* the copy: owner framing + caveat + grade, per card */
+  ok(cards.every((c) => /OWNER'S CALL/.test(c.title) && /chose speed over waiting/.test(c.why) && /did not convert/.test(c.why) && /rollback card comes with the receipt/.test(c.why)), "OWNER — every card carries the owner's-call framing, the honest caveat (three experiments into WATCH recovery), and the measurement promise — no confident voice, the decision attributed to its decider");
+  const chestC = cards.find((c) => /chest/.test(c.rid)), rearC = cards.find((c) => /delts_rear/.test(c.rid)), hamsC = cards.find((c) => /hams/.test(c.rid));
+  ok(/floor correction/i.test(hamsC.why) && /high-return tier/.test(hamsC.why), "OWNER — hams is graded as the FLOOR CORRECTION (the evidence's own high-return tier), distinct from the other two");
+  ok(/COMPOUND/.test(chestC.why) && /triceps and front delts/.test(chestC.why) && /charges those muscles' weekly structural budget/.test(chestC.why) && /MODERATE-TO-LOW/.test(chestC.why), "OWNER (AUDIT B) — the chest card NAMES the compound spillover and the budget charge in its own copy");
+  ok(/per side/.test(rearC.why) && /4–5 extra minutes/.test(rearC.why) && /weaker side/.test(rearC.why) && /MODERATE-TO-LOW/.test(rearC.why), "OWNER — the rear-delt card prices the UNILATERAL time honestly and keeps the weaker-side logging convention explicit");
+  /* the taps */
+  let st = cl84(r1);
+  cards.forEach((c) => { const live = st.proposals.find((p) => p.rid === c.rid && !p.resolved); if (live) st = __test.applyProposal(st, live.id, 0, "cal"); });
+  const gx = (id) => st.exercises.find((e) => e.id === id);
+  ok(gx("ham").sets === 3 && gx("press").sets === 4 && gx("rearDelt").sets === 4 && [gx("ham"), gx("press"), gx("rearDelt")].every((e) => !!e.setsAt), "OWNER — three taps raise exactly the three lifts, every one STAMPED for the merge (AUDIT G)");
+  ok(["VOLUME +1 — HAMS via Ham curl (now 3 sets)", "VOLUME +1 — CHEST via Press (now 4 sets)"].every((t) => st.feed.some((f) => f.t === t)), "OWNER — with the exact receipts in the feed");
+  ok(st.adjustments.slice(-3).every((a) => a.exUndo && a.exUndo.prev >= 2 && a.setsDelta === 1), "OWNER — and an exact exUndo on every row: three one-tap reversals, independently");
+  /* the designed allocation, post-approval — and what must NOT move */
+  const pv84 = {}; __test.programmeVolume(st).forEach((m) => { pv84[m.mg] = m.sets; });
+  ok(pv84.hams === 6 && pv84.chest === 8 && pv84.delts_rear === 8, "OWNER — the designed allocation lands: hams 6 (at the floor), chest 8 and rear delt 8 (working zone)");
+  ok(pv84.triceps === 10 && pv84.delts_front === 4, "OWNER (AUDIT B) — the press spillover credits triceps to 10 and front delts to 4, both INSIDE their bands: no muscle exits its band via the spilled fraction — asserted, not assumed");
+  ok(pv84.quads === 10 && pv84.calves === 8 && pv84.abs === 10 && pv84.back === 8 && pv84.delts_side === 8 && pv84.biceps === 10 && pv84.forearms === 11, "OWNER — every other bucket is UNTOUCHED: quads/calves/abs 'under' reads elsewhere are logged-vs-designed artifacts, and this assertion exists so nobody 'fixes' them later");
+  /* the combined week: budget + parallel reads */
+  const smw84 = __test.structuralMovesThisWeek(st);
+  ok(smw84.sets.length === 3 && ["chest", "delts_front", "delts_rear", "hams", "triceps"].every((m) => smw84.mgsTouched.indexOf(m) > -1), "OWNER — the weekly budget carries all three moves and the spillover: five muscles touched in one week — the configuration the caveat priced");
+  const pushable84 = (() => { const p = cl84(SEED);
+    Object.keys(p.dailyLogs || {}).forEach((d) => { p.dailyLogs[d] = { ...(p.dailyLogs[d] || {}), steps: 15000 }; });
+    p.reads = Array.from({ length: 28 }, (_, i) => ({ d: isoL(Date.now() - (27 - i) * 864e5), w: +(166 - i * 0.05).toFixed(2), sealed: false }));
+    p.trend = p.reads[p.reads.length - 1].w;
+    p.sleep.nights = Array.from({ length: 10 }, (_, i) => ({ d: isoL(Date.now() - (9 - i) * 864e5), h: 8.2 }));
+    p.blackout = { until: isoL(Date.now() - 28 * 864e5) };
+    p.adjustments = [...(p.adjustments || []),
+      { rid: "volpush_hams_x", id: "o1", d: isoL(Date.now() - 1 * 864e5), exUndo: { exId: "ham", field: "sets", prev: 2 }, setsDelta: 1 },
+      { rid: "volpush_chest_x", id: "o2", d: isoL(Date.now() - 1 * 864e5), exUndo: { exId: "press", field: "sets", prev: 3 }, setsDelta: 1 },
+      { rid: "volpush_delts_rear_x", id: "o3", d: isoL(Date.now() - 1 * 864e5), exUndo: { exId: "rearDelt", field: "sets", prev: 3 }, setsDelta: 1 }];
+    return p; })();
+  const sp84 = __test.stepPush(pushable84);
+  ok(sp84.mode === "WITHHELD" && sp84.veto === "budget", "OWNER — with three set moves on the week, a state that would otherwise PUSH steps is WITHHELD on the shared budget: the one-variable law holds under the owner's own configuration");
+  /* three parallel READING states + rollback isolation */
+  let rd = cl84(st);
+  const iso84 = (k) => isoL(Date.parse("2026-08-07T12:00:00") + k * 864e5);
+  [1, 4].forEach((k, i) => {
+    rd.sessionLog[iso84(k)] = { at: 0, note: "", niggles: [], dips: 0, skipped: [], pace: "normal",
+      entries: [
+        { id: "ham", reps: [10, 10, 8], rir: 2, rirSets: [2, null, 0], w: 120 },
+        { id: "press", reps: [8, 8, 7, 6], rir: 2, rirSets: [2, null, null, 0], w: 245 },
+        { id: "rearDelt", reps: [10, 10, 9, 8], rir: 2, rirSets: [2, null, null, 0], w: 20 },
+      ] };
+  });
+  const vcs = ["ham", "press", "rearDelt"].map((id) => __test.volumeConversion(rd, id));
+  ok(vcs.every((v) => v.status === "READING") && vcs.every((v) => v.exId), "OWNER — three READING states coexist, one per lift: parallel measurement channels, each with its own window (" + vcs.map((v) => v.exId + " " + v.have + "/" + v.need).join(", ") + ")");
+  /* rollback isolation: roll ham back; press and rearDelt untouched */
+  let iso = cl84(st);
+  iso = __test.undoAdjustment(iso, iso.adjustments.filter((a) => a.exUndo && a.exUndo.exId === "ham").slice(-1)[0].rid);
+  ok(iso.exercises.find((e) => e.id === "ham").sets === 2 && iso.exercises.find((e) => e.id === "press").sets === 4 && iso.exercises.find((e) => e.id === "rearDelt").sets === 4, "OWNER — reversing one lift's move never touches another: the channels are independent in the undo direction too");
+  /* the own-hold and short-last edge cases (targetsFor fit) */
+  const tgtP = __test.targetsFor(gx("press"), st), tgtR = __test.targetsFor(gx("rearDelt"), st), tgtH = __test.targetsFor(gx("ham"), st);
+  ok(tgtP.length === 4 && tgtP.every((x) => Number.isFinite(x) && x >= 1 && x <= gx("press").hi), "OWNER EDGE — press at 4 sets produces FOUR sane targets through its authored-array path (" + tgtP.join(",") + "): the own-hold survives the count change instead of silently shrinking the session");
+  ok(tgtR.length === 4 && tgtR.every((x) => Number.isFinite(x) && x >= 1) && tgtH.length === 3 && tgtH.every((x) => Number.isFinite(x) && x >= 1), "OWNER EDGE — rear delt pads its short last-array to 4 and ham to 3, no undefined or NaN slot anywhere (" + tgtR.join(",") + " / " + tgtH.join(",") + ")");
+  ok(JSON.stringify(__test.rirPlan(st, gx("press")).plan) === "[2,1,1,0]" && JSON.stringify(__test.rirPlan(st, gx("rearDelt")).plan) === "[2,1,1,0]" && JSON.stringify(__test.rirPlan(st, gx("ham")).plan) === "[2,1,0]", "OWNER EDGE — the effort ladders re-key on THESE lifts specifically: press and rear delt run 2·1·1·0, ham 2·1·0 — failure spent exactly once each");
+  /* fitN is IDENTITY on every live authored array — the engine change changes nothing today */
+  const idOK = [...(S7o.exercises || []), ...SEED.exercises].filter((e) => e.std || e.reclaim).every((e) => ((e.std || e.reclaim).length === e.sets));
+  ok(idOK, "OWNER EDGE — every live std/reclaim array already matches its set count, so the fit rule is a proven IDENTITY on current data: it exists for the count-change future, and it changed nothing about today");
+  /* decline: once ever means a decline is durable for this producer */
+  let dst = cl84(r1);
+  dst = __test.dismissProposal(dst, dst.proposals.find((p) => /^volpush_hams_/.test(p.rid) && !p.resolved).id);
+  const dre = __test.runAdaptive(cl84(dst), "2026-08-14");
+  ok(dre.proposals.filter((p) => /^volpush_hams_/.test(p.rid)).length === 1 && !dre.proposals.some((p) => /^volpush_hams_/.test(p.rid) && !p.resolved), "OWNER — a declined owner's-call card never refiles from this producer (once EVER); the earned producer remains the only path back, and it must re-earn the gates");
+}
+console.log(`\nFINAL84: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
