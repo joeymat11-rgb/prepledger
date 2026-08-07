@@ -11589,7 +11589,18 @@ function NowTab2({ s, setS, save, go }) {
           <div style={{ fontFamily: disp, fontSize: 16, fontWeight: 700, letterSpacing: "0.10em", marginTop: 6 }}>{m.workout.title}</div>
           {m.workout.sub ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, marginTop: 5, lineHeight: 1.5 }}>{m.workout.sub}</div> : null}
         </div>
-        <button onClick={() => go("TRAIN")} style={{ ...tnum, fontSize: 10.5, letterSpacing: "0.12em", color: DT.jade, border: "1px solid rgba(94,212,162,.35)", padding: "9px 14px", borderRadius: 999, fontWeight: 700, flex: "none", background: "none", minHeight: 64, cursor: "pointer", position: "relative", zIndex: 1, marginTop: -26, marginBottom: 1, boxSizing: "border-box", borderTop: "27px solid transparent", borderBottom: "0px none transparent", backgroundClip: "padding-box" }}>START ▸</button>
+        <button onClick={() => go("TRAIN")} aria-label="Start the workout"
+          style={{ background: "none", border: "none", padding: "27px 0 0 0", margin: "-26px 0 1px 0", position: "relative", zIndex: 2, flex: "none", cursor: "pointer", display: "block" }}>
+          {/* ROUND 4 — PAINT AND SLOP NEVER SHARE A CHANNEL. The OUTER button is the hit
+              box: 37px inner + 27px top padding = 64, every pixel of slop pointing UP and
+              owned by the element (padding, not border — elementFromPoint honors it; z 2
+              outranks the card's inert text, which took 2 of 30 probes in round 3). Its
+              bottom edge IS the paint bottom, so it cannot reach the FAB. The INNER span
+              is the round-2 paint byte-for-byte — the side-caps pill — and no slop
+              arithmetic can ever move it again. The rig may read the box a shade over 64
+              (DPR rounding); the law is ≥64, and the derivation here is the contract. */}
+          <span style={{ ...tnum, display: "inline-block", fontSize: 10.5, letterSpacing: "0.12em", color: DT.jade, borderLeft: "1px solid rgba(94,212,162,.35)", borderRight: "1px solid rgba(94,212,162,.35)", borderTop: "none", borderBottom: "none", padding: "9px 14px", borderRadius: 999, fontWeight: 700, background: "none" }}>START ▸</span>
+        </button>
       </div>
       <div data-now="headed" style={card9}>
         <div style={lbl9}>WHERE YOU'RE HEADED</div>
@@ -11603,7 +11614,13 @@ function NowTab2({ s, setS, save, go }) {
       {/* the + affordance (§3): weight is the one log that feeds everything — one tap here;
           the full capture lives one tap further, in the classic briefing room. */}
       <button onClick={() => { hap(8); setQlOpen(true); }} aria-label="Quick log"
-        style={{ position: "fixed", right: 16, bottom: "calc(50px + env(safe-area-inset-bottom))", zIndex: 60, width: 52, height: 52, boxSizing: "content-box", borderStyle: "solid", borderColor: "transparent", borderTopWidth: 0, borderRightWidth: 6, borderBottomWidth: 12, borderLeftWidth: 6, backgroundClip: "padding-box", borderRadius: "50%", background: DT.amber, color: "#141008", boxShadow: "none", fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", cursor: "pointer" }}>+</button>
+        style={{ position: "fixed", right: 10, bottom: "calc(50px + env(safe-area-inset-bottom))", zIndex: 60, width: 64, height: 64, background: "none", border: "none", padding: 0, margin: 0, cursor: "pointer", display: "block" }}>
+        {/* ROUND 4 — the outer box is the 64×64 hit area, all slop pointing DOWN and RIGHT
+            (away from START); the inner circle sits at its top-left, which puts the paint
+            exactly where round 2 painted it: right edge 10+12 = 22 from the screen edge,
+            bottom 50+12 = 62 — the round-2 16+6 / 56+6, by construction. */}
+        <span style={{ display: "block", width: 52, height: 52, borderRadius: "50%", background: DT.amber, color: "#141008", fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", textAlign: "center" }}>+</span>
+      </button>
       <Sheet open={qlOpen} onClose={() => setQlOpen(false)} title="LOG WEIGHT">
         <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.5 }}>{readToday ? "Already logged " + readToday.w + " lb this morning — update it if the scale said otherwise." : "This morning's scale, straight in. Everything else lives one tap away in the briefing room."}</div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, justifyContent: "center" }}>

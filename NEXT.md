@@ -1075,6 +1075,21 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15b ROUND 4 — PAINT AND SLOP NEVER SHARE A CHANNEL
+
+Round 3 broke its own zero-pixel contract (4,842 px moved): the visible outline and the
+invisible slop shared the border channel, so slop arithmetic dragged paint — architectural,
+exactly as the audit named it. Round 4 separates the channels: START is an outer PAINT-FREE
+hit box (27px top padding = all slop UP, elementFromPoint-owned, z 2 over the card's inert
+text — the round-3 2/30 probe leak, answered) around an inner span carrying the round-2
+side-caps pill byte-for-byte; the FAB is a 64×64 invisible outer box with the painted 52px
+circle at its top-left — paint lands at the round-2 position by construction (right 22,
+bottom 62), slop only down/right. Neither hit box can cross its own paint toward the
+other: disjoint by construction, and paint can never move with slop math again. Comment
+honesty corrected per the audit: the rig's rect may read over 64 (DPR); the law is ≥64.
+FINAL87 pins rewritten to the split structure. Suite 1880/0, freeze byte-clean. STOPPED
+for the rect pair, the probe grid, and the pixel diff vs ROUND 2.
+
 ### R15b ROUND 3 — S3' HIT GEOMETRY, ZERO PAINTED PIXELS
 
 The round-2 arithmetic hadn't landed (border-box ate the slop: 59 measured, not 64+; a

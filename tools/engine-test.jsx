@@ -6640,8 +6640,8 @@ if (fail) process.exit(1);
      round 2). Disjoint by construction: START's box cannot extend below its paint, the
      FAB's cannot extend above its own. The audit re-measures the rects; this pins the
      values so a refactor cannot silently un-derive them. */
-  ok(nt2.indexOf('borderTop: "27px solid transparent"') > -1 && nt2.indexOf("marginTop: -26, marginBottom: 1") > -1 && nt2.indexOf("minHeight: 64") > -1, "CRITIQUE S3' — START's hit box is 64 with every pixel of slop pointing UP, away from the FAB — paint offsets unchanged (margin+border constant per edge)");
-  ok(nt2.indexOf("borderTopWidth: 0, borderRightWidth: 6, borderBottomWidth: 12, borderLeftWidth: 6") > -1 && nt2.indexOf('bottom: "calc(50px + env(safe-area-inset-bottom))"') > -1, "CRITIQUE S3' — the FAB's hit box is 64 with its slop pointing DOWN, its paint bottom held at 62 (50+12 = the round-2 56+6), and its hit top 6px lower than round 2 — the two rects are disjoint by construction");
+  ok(nt2.indexOf('padding: "27px 0 0 0"') > -1 && nt2.indexOf('margin: "-26px 0 1px 0"') > -1 && nt2.indexOf("zIndex: 2") > -1 && nt2.indexOf('borderLeft: "1px solid rgba(94,212,162,.35)"') > -1, "ROUND 4 — START: paint and slop never share a channel — the outer button is the 64px hit box (27px padding slop, all UP, z 2 over inert text) and the inner span carries the round-2 side-caps pill untouched; slop arithmetic can no longer drag paint by construction");
+  ok(nt2.indexOf("width: 64, height: 64, background: \"none\", border: \"none\"") > -1 && nt2.indexOf('right: 10, bottom: "calc(50px + env(safe-area-inset-bottom))"') > -1 && nt2.indexOf("width: 52, height: 52, borderRadius: \"50%\", background: DT.amber") > -1, "ROUND 4 — the FAB: a 64×64 invisible outer hit box with the painted 52px circle at its top-left — paint at the round-2 position (right 22, bottom 62) by construction, slop only down/right, the rects disjoint because neither box can cross its own paint toward the other");
 }
 console.log(`\nFINAL87: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
