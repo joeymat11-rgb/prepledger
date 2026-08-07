@@ -1075,6 +1075,88 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15b ROUND 4 — PAINT AND SLOP NEVER SHARE A CHANNEL
+
+Round 3 broke its own zero-pixel contract (4,842 px moved): the visible outline and the
+invisible slop shared the border channel, so slop arithmetic dragged paint — architectural,
+exactly as the audit named it. Round 4 separates the channels: START is an outer PAINT-FREE
+hit box (27px top padding = all slop UP, elementFromPoint-owned, z 2 over the card's inert
+text — the round-3 2/30 probe leak, answered) around an inner span carrying the round-2
+side-caps pill byte-for-byte; the FAB is a 64×64 invisible outer box with the painted 52px
+circle at its top-left — paint lands at the round-2 position by construction (right 22,
+bottom 62), slop only down/right. Neither hit box can cross its own paint toward the
+other: disjoint by construction, and paint can never move with slop math again. Comment
+honesty corrected per the audit: the rig's rect may read over 64 (DPR); the law is ≥64.
+FINAL87 pins rewritten to the split structure. Suite 1880/0, freeze byte-clean. STOPPED
+for the rect pair, the probe grid, and the pixel diff vs ROUND 2.
+
+### R15b ROUND 3 — S3' HIT GEOMETRY, ZERO PAINTED PIXELS
+
+The round-2 arithmetic hadn't landed (border-box ate the slop: 59 measured, not 64+; a
+5px hit fringe shared with the FAB). Re-derived with the margin+border sum held CONSTANT
+per edge so paint offsets cannot move: START's slop is ALL upward (27 top / 0 bottom,
+margins −26/+1 → hit 37+27=64, box bottom = paint bottom); the FAB's is all downward
+(0 top / 12 bottom, bottom 56→50 → paint bottom still 62, hit 64×64, box top 6px LOWER
+than round 2). Disjoint by construction: START's box cannot extend below its own paint,
+the FAB's cannot extend above its own. Values pinned in FINAL87 so a refactor cannot
+silently un-derive them. Suite 1878 → 1880, freeze byte-clean. STOPPED for the audit's
+rect re-measure + pixel-identity diff.
+
+### R15b ROUND 2 — CRITIQUE FIXES (S1–S3 structural, R1–R4 taken)
+
+**S1** — "Log log the scale": theOneFix composes a verb onto an owed title already carrying
+it — ENGINE copy, frozen, so the surface collapses a doubled LEADING word as a class
+(driven), and the engine-side copy fix is filed for the next engine window. Found under S1:
+the earlier heredoc had turned the deficit-translation's word boundaries into literal
+BACKSPACE BYTES (the incident-log class, third occurrence) — the regex was dead while every
+test stayed green because the plain-string first replace carried the live case. Rebuilt by
+line surgery, zero BS bytes verified, and BOTH the collapse and the bare-"deficit" boundary
+now have drives so a dead guard cannot hide again.
+
+**S2** — the FAB drops to the clear air above the rail (bottom 56+inset) and the column
+gains 72px bottom clearance: START never shares pixels with it, the last block scrolls
+past. **S3** — the 64px law is met by HIT AREA (transparent-border slop: FAB 52-visual/
+64-hit, START 44-visual/64-hit), and the resolution is written into the tokens comment.
+
+**R1** dash sized to the numerals (32px, weight 300, optically centered). **R2** WHERE
+YOU'RE HEADED is one left-anchored column. **R3** the abstention marker is ◇, the app's
+own vocabulary. **R4** DECIDED AND WRITTEN INTO THE TOKENS: Barlow Condensed 600/700 owns
+the status word and card sub-heads; Plex Mono owns data (numbers, overline labels); Barlow
+owns prose. Applied to status word, move title, workout title.
+
+Suite 1876 → 1878, freeze byte-clean. STOPPED for round-2 re-screenshots.
+
+### R15b — NOW, THE FIVE-BLOCK ANSWER — BUILT 2026-08-07, branch feat/r15b-now
+
+**NOW is the mockup's screen 1 with live engine values, and the budget is a LAW.** Exactly
+five `data-now` blocks — status → EAT TODAY → TODAY'S MOVE → NEXT WORKOUT → WHERE YOU'RE
+HEADED — asserted at source AND counted in the live DOM by the render smoke. `nowModel`
+is a memoized FORMATTER (statusFace, energyBalanceTarget, proteinTarget, theOneFix,
+cutRateBand, currentRate, paceProjection, bfEst, genSession, structuralMovesThisWeek —
+rearranged, never re-derived; the engine-freeze gate stayed byte-clean through the whole
+slice). On the live ledger it reproduces the mockup almost verbatim: ON COURSE ◆, the
+learning box ("0 of the 4 lifts... It never guesses"), 2221–2308 KCAL · FIRST ESTIMATE,
+"about 4 weeks to ~158 (could land 157–160)", "best guess 14%, honestly 11–18".
+
+**TODAY'S MOVE picks ONE thing:** unanswered decisions (tap → the briefing room) →
+theOneFix's ladder → the rate story (the BandStrip: zones soft, rules hard, whisker,
+marker — built ONCE) → the designed quiet line. All five driven; at most ONE coach box
+(learning beats the one-variable wait, driven on a both-conditions fixture). The one
+jargon leak found by the scan — "deficit" in ladder copy — is translated AT the surface
+(`_plain9`), engine copy untouched one tap down. Word-boundary jargon scan (provisional /
+regime / RIR / redline / corridor / deficit) clean across the live model and every
+driven variant.
+
+**The classic NOW is THE BRIEFING ROOM behind LEDGER — moved, never stranded.** Full
+capture, the doors, the inbox, every decision card: two taps. The rail badge (decisions
+count) moved to LEDGER. The + on NOW logs weight in one tap (the log that feeds
+everything); everything else is one tap further. Render smoke walks the new path (door
+keys, seeded inbox, steppush label pin all re-anchored there; the room-finder is
+role-scoped after the ancestor-match trap bit once).
+
+**Suite 1849 → 1876.** Screenshots remain the audit's rung (headless here) — critique
+round 1 runs on the branch preview.
+
 ### R15a — TOKENS + SHELL — BUILT 2026-08-07, branch feat/r15a-shell (redesign brief v4)
 
 **NUMBERING:** R15 now names the complete UI redesign (Joe's approved sequence). The parked
