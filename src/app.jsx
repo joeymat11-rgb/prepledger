@@ -1460,9 +1460,17 @@ function completeSession(state, iso, entries, slp, extras = {}) {
   const cutoff = isoOf(new Date(mk(iso).getTime() - 21 * DAY));
   const counts = {};
   Object.entries(s.sessionLog).forEach(([d, sl]) => { if (d >= cutoff) (sl.niggles || []).forEach((j) => { counts[j] = (counts[j] || 0) + 1; }); });
+  /* R14 audit — THIS WAS A BIRTH-SITE BYPASS. The choke point lives in propose(), inside
+     runAdaptive; this producer pushed a kind:"note" card straight into s.proposals from
+     completeSession, so a joint hitting 3 flags in 3 weeks would have seated a note in the
+     R14 inbox — reachable in production, driven by the audit's fixture. Same rule applied
+     here: information is a feed line, deduped by title within 14 days, content intact. */
   Object.entries(counts).forEach(([j, c]) => {
-    if (c >= 3 && !s.proposals.some((p) => !p.resolved && p.rid && p.rid.indexOf("niggle_" + j.replace(/\s/g, "")) === 0))
-      s.proposals.push({ rid: `niggle_${j.replace(/\s/g, "")}_${iso}`, id: `niggle_${j.replace(/\s/g, "")}_${iso}`, d: iso, title: `${j.toUpperCase()} — 3 FLAGS IN 3 WEEKS`, why: "A pattern, not a day. Technique/deload review with your coach before it becomes a decision you don't get to make. Nothing changes automatically.", apply: { kind: "note" }, resolved: false });
+    if (c >= 3) {
+      const nTitle = `${j.toUpperCase()} — 3 FLAGS IN 3 WEEKS`;
+      const dup = (s.feed || []).some((f) => f && f.t === nTitle && f.d && (mk(iso) - mk(f.d)) / DAY < 14);
+      if (!dup) s.feed.unshift({ d: iso, t: nTitle, how: `${j} has been flagged after ${c} sessions inside three weeks. Nothing changes automatically — a recurring niggle is information for you and your coach, and the pattern is the point: one sore day is a day, three is a signal.` });
+    }
   });
   lines.forEach((l) => s.feed.unshift({ d: iso, t: l.t, how: l.how }));
   return { s, lines };
@@ -7120,6 +7128,25 @@ function runAdaptive(state, todayISO) {
      SUPERSEDES: the old card is resolved with a feed line, never silently replaced. */
   const subjectOf = (rid) => String(rid || "").replace(/_\d{4}-\d{2}-\d{2}$/, "");
   const propose = (rid, title, why, apply) => {
+    /* R14 — THE INVARIANT: a card may exist in the inbox only if its tap enacts a state
+       change. Everything else is a feed line. Enforced at the ONE place cards are born, so
+       all ~8 note producers convert here without touching any of them.
+
+       Four harms this closes, all previously live: a tapped note fell through to the else
+       branch and wrote "ADJUSTMENT LOGGED" for an adjustment that never happened; the tap
+       pushed {rid} into s.adjustments, permanently killing bare-rid channels; the inbox
+       held cards where one tap ended the cut and the neighbouring tap did nothing —
+       identical gesture, opposite stakes; and information could never drain, because its
+       producer re-raised it as fast as any mechanism cleared it.
+
+       Deduped against the feed itself (same title within 14 days), so a persisting
+       condition informs once a fortnight instead of spamming a line per sweep — stateless,
+       no new synced field, nothing for the merge to learn. */
+    if (apply && apply.kind === "note") {
+      const dup = (s.feed || []).some((f) => f && f.t === title && f.d && (mk(todayISO) - mk(f.d)) / DAY < 14);
+      if (!dup) s.feed.unshift({ d: todayISO, t: title, how: why });
+      return;
+    }
     if (applied(rid)) return;
     const open = s.proposals.find((p) => p && !p.resolved && subjectOf(p.rid) === subjectOf(rid));
     if (open && open.rid === rid) { open.title = title; open.why = why; open.apply = apply; open.refreshed = todayISO; return; }
@@ -7148,13 +7175,15 @@ function runAdaptive(state, todayISO) {
       s.feed.unshift({ d: todayISO, t: "CARD WITHDRAWN — " + String(p.title || p.rid).slice(0, 40), how: "It was produced by a body-fat threshold the app no longer trusts (R4): the estimate's interval is wider than the decision. The question it asked now belongs to the regime detector, which reads lifts and scale rate instead. Nothing was deleted; this card is on the record as withdrawn." });
     }
   }
-  /* R9 — NOTES EXPIRE. A note card changes nothing when tapped, so an old one is pure
-     attention cost. 14 days, then resolved as expired, on the record. Actionable kinds
-     never expire — they represent decisions, and decisions wait for him. */
+  /* R14 — the two live note cards migrate through the withdraw pattern: resolved with a
+     feed line CARRYING THEIR CONTENT, never deleted. This replaces R9's note-expiry sweep
+     outright — with note cards inadmissible, expiry code for them would be instance 19 of
+     the safeguard nothing can reach. (The audit proved expiry could not drain a
+     live-condition note anyway: the producer re-raised it in the same sweep.) */
   for (const p of s.proposals) {
-    if (p && !p.resolved && p.apply && p.apply.kind === "note" && p.d && (mk(todayISO) - mk(p.d)) / DAY > 14) {
-      p.resolved = true; p.resolvedHow = "expired";
-      s.feed.unshift({ d: todayISO, t: "CARD EXPIRED — " + String(p.title || p.rid).slice(0, 40), how: "a two-week-old note is stale information, not a pending decision — it expires rather than queueing forever" });
+    if (p && !p.resolved && p.apply && p.apply.kind === "note") {
+      p.resolved = true; p.resolvedHow = "converted to feed (R14)";
+      s.feed.unshift({ d: todayISO, t: p.title, how: (p.why ? p.why + " — " : "") + "Moved out of the inbox: information is a feed line now, and only decisions are cards. Nothing was deleted." });
     }
   }
 
@@ -7612,7 +7641,20 @@ function dismissProposal(state, pid) {
   if (!p || p.resolved) return s;
   p.resolved = true; p.dismissed = true;
   s.adjustments.push({ rid: p.rid, id: _freshId("adj_"), d: isoOf(todayStart()), title: p.title, dismissed: true });
-  s.feed.unshift({ d: isoOf(todayStart()), t: "ADJUSTMENT DECLINED", how: `${p.title} — you passed; nothing changed. The engine re-arms it if the pattern that raised it holds.` });
+  /* R14 — WHAT A DECLINE BUYS, STATED PER KIND, so copy and mechanism agree from birth.
+       The mechanism (since the applied() fix) is: a declined rid re-arms whenever its
+       condition still holds on a later sweep. That is the honest default. Kinds whose
+       producers fire on a schedule or a one-off get their own sentence. */
+    const DECLINE_BUYS = {
+      cal: "If the pattern that raised it still holds, it comes back — a decline is a no for today, not a rule.",
+      refeed: "This one is a one-off decision; declining closes it unless the evidence changes.",
+      steps: "If the step pattern persists, it comes back with fresh numbers.",
+      exit: "Phase decisions never expire and never re-file themselves — this stays yours to raise.",
+      ladder: "Filed once per lift; declining closes it — the ladder sweep never re-files a rid it has already raised, so this will not come back unless the exercise itself changes.",
+      default: "The engine re-arms it if the pattern that raised it holds.",
+    };
+    const declKind = (p.apply && p.apply.kind) || "default";
+    s.feed.unshift({ d: isoOf(todayStart()), t: "ADJUSTMENT DECLINED", how: `${p.title} — you passed; nothing changed. ${DECLINE_BUYS[declKind] || DECLINE_BUYS.default}` });
   return s;
 }
 
@@ -10742,6 +10784,18 @@ function PhaseArcCard({ s, setS, save, tISO }) {
     if (!pr) return;
     const ns = JSON.parse(JSON.stringify(s));
     ns.proposals = ns.proposals || [];
+    /* R14 audit — the SECOND birth-site bypass: phaseProposal's floor-hold returns
+       apply {kind:"note"} and this pushed it verbatim into the inbox. Same choke rule as
+       propose(): a note becomes a feed line, deduped by title within 14 days. Applied at
+       the birth site rather than to the one known producer, so the third bypass neither
+       side has found yet hits the same wall. */
+    if (pr.apply && pr.apply.kind === "note") {
+      ns.feed = ns.feed || [];
+      const dup = ns.feed.some((f) => f && f.t === pr.title && f.d && (mk(tISO) - mk(f.d)) / DAY < 14);
+      if (!dup) ns.feed.unshift({ d: tISO, t: pr.title, how: pr.why });
+      setS(ns); save(ns); hap(12);
+      return;
+    }
     if (!ns.proposals.some((p) => p.rid === pr.rid && !p.resolved)) ns.proposals.push({ ...pr, id: pr.rid + "_" + tISO, d: tISO, resolved: false });
     setS(ns); save(ns); hap(12);
   };

@@ -80,6 +80,18 @@ const ok = (cond, name) => { cond ? pass++ : fail++; console.log((cond ? "PASS" 
     }
   }
 
+  /* R14 — THE INBOX INVARIANT, on the real ledger: a card may exist only if its tap enacts
+     a state change. After one sweep, zero open note cards; their content is in the feed. */
+  {
+    const out14 = __test.runAdaptive(JSON.parse(JSON.stringify(SNAP)), "2026-08-06");
+    const openNotes = out14.proposals.filter((p) => !p.resolved && p.apply && p.apply.kind === "note");
+    ok(openNotes.length === 0, "SNAPSHOT R14 — ZERO open note cards after one sweep on his real ledger. The badge count now means decisions waiting, which is the feature");
+    const micro = out14.proposals.find((p) => p.rid === "microload");
+    ok(micro && micro.resolved && /converted to feed/.test(micro.resolvedHow || ""), "SNAPSHOT R14 — the live microload card converted through the withdraw pattern, resolved on the record");
+    ok(out14.feed.some((f) => /PLATES TOO COARSE/.test(f.t)), "SNAPSHOT R14 — and its content survives in the feed: nothing he was told is lost, it just stopped pretending to be a decision");
+    ok(!out14.proposals.some((p) => !p.resolved && p.apply && p.apply.kind === "note"), "SNAPSHOT R14 — the admission invariant holds end-to-end: no path in runAdaptive can seat a note in the inbox, because propose() converts them at the one place cards are born");
+  }
+
   /* R9 — the orphaned pivot card. Its producer was deleted by R4 but its apply branch is
      LIVE: tapping it steps calories to maintenance on the authority of a body-fat threshold
      the app no longer trusts. The change that deletes a producer must withdraw its cards. */
@@ -132,7 +144,14 @@ ok(afterDebt.exercises.find(e => e.id === "press").lastMeta.debt === true, "the 
 let m = clone(SEED);
 m.weekly = [{ wk: "2026-07-06", trend: 165.2 }, { wk: "2026-07-13", trend: 164.7 }, { wk: "2026-07-20", trend: 164.2 }]; m.blackout.until = "2026-07-01";
 m = runAdaptive(m, "2026-07-22");
-ok(m.proposals.some(p => p.title.indexOf("RATE FLOOR") === 0), "floor rule arms after two slow weeks");
+/* R14 — the floor producer is kind:note, so it is now a FEED LINE, not a card. The
+   invariant: a card may exist in the inbox only if its tap enacts a state change. */
+ok(!m.proposals.some(p => !p.resolved && p.title.indexOf("RATE FLOOR") === 0), "R14 — the floor note no longer becomes a CARD: information is not a decision");
+ok(m.feed.some(f => f.t.indexOf("RATE FLOOR") === 0), "R14 — it lands in the FEED instead, where information lives, with the same title and body");
+{
+  const again = runAdaptive(JSON.parse(JSON.stringify(m)), "2026-07-22");
+  ok(again.feed.filter(f => f.t.indexOf("RATE FLOOR") === 0).length === 1, "R14 — and a persisting condition informs ONCE per fortnight, not once per sweep: deduped against the feed itself, statelessly");
+}
 let e2 = clone(SEED); e2.trend = 160; e2.blackout.until = "2026-07-01";
 e2 = runAdaptive(e2, "2026-07-22");
 /* R4 — the inverse of what this used to assert. The EASE 2 trigger fired on
@@ -406,15 +425,17 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
            else-arm that passes when the fixture goes quiet is how a green run stops
            meaning anything. Driven through the FLOOR producer instead, which fires
            deterministically on this fixture, and asserted UNCONDITIONALLY. */
+        /* R14 moved the floor producer to the feed, so the supersede drive now uses the
+           REDLINE producer — kind:cal, actionable, deterministic on a hot-rate fixture. */
         const st9 = clone(SEED);
-        st9.proposals = [{ rid: "floor_2026-07-13", id: "fx", d: "2026-07-13", title: "OLD FLOOR CARD", why: "", apply: { kind: "note" }, resolved: false }];
-        st9.weekly = [{ wk: "2026-07-06", trend: 165.2 }, { wk: "2026-07-13", trend: 164.7 }, { wk: "2026-07-20", trend: 164.2 }];
+        st9.proposals = [{ rid: "redline_2026-07-13", id: "rx", d: "2026-07-13", title: "OLD REDLINE CARD", why: "", apply: { kind: "cal", delta: 100 }, resolved: false }];
+        st9.weekly = [{ wk: "2026-07-06", trend: 168 }, { wk: "2026-07-13", trend: 166 }, { wk: "2026-07-20", trend: 164 }];
         st9.blackout.until = "2026-07-01";
         const out = __test.runAdaptive(st9, "2026-07-22");
-        const fresh = out.proposals.filter((p) => !p.resolved && /^floor_/.test(p.rid));
-        const olds = out.proposals.find((p) => p.rid === "floor_2026-07-13");
-        ok(fresh.length === 1 && fresh[0].rid !== "floor_2026-07-13", "R9 — the floor producer fires a fresh card on this fixture, so the supersede branch is genuinely ENTERED — no conditional arms");
-        ok(olds.resolved === true && /superseded/.test(olds.resolvedHow || ""), "R9 — and the date-suffixed old card is SUPERSEDED on the record: one open card per subject, asserted unconditionally. The first version of this test had an ok(true) else-arm and never exercised the mechanism it named");
+        const fresh = out.proposals.filter((p) => !p.resolved && /^redline_/.test(p.rid));
+        const olds = out.proposals.find((p) => p.rid === "redline_2026-07-13");
+        ok(fresh.length === 1 && fresh[0].rid !== "redline_2026-07-13", "R9 — the redline producer fires a fresh card on this hot-rate fixture, so the supersede branch is genuinely ENTERED — no conditional arms");
+        ok(olds.resolved === true && /superseded/.test(olds.resolvedHow || ""), "R9 — and the date-suffixed old card is SUPERSEDED on the record: one open card per subject, asserted unconditionally");
         ok(out.feed.some((f) => /CARD SUPERSEDED/.test(f.t)), "R9 — with the feed line");
       }
       /* NOTES EXPIRE; ACTIONABLE KINDS NEVER DO. A note changes nothing when tapped, so an
@@ -429,9 +450,11 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         const out = __test.runAdaptive(st9, "2026-07-22");
         const note = out.proposals.find((p) => p.rid === "volband");
         const cal = out.proposals.find((p) => p.rid === "calx");
-        ok(note.resolved === true && note.resolvedHow === "expired", "R9 — a 21-day-old NOTE expires with a feed line: it changes nothing when tapped, so queueing it forever is pure attention cost — the refeed_review defect as a standing condition");
-        ok(cal.resolved === false, "R9 — an actionable card NEVER expires: it is a pending decision, and decisions wait for him. Expiring those would be the engine deciding by timeout");
-        ok(out.feed.some((f) => /CARD EXPIRED/.test(f.t)), "R9 — the expiry is on the record");
+        /* R14 — expiry is DELETED with the kind it served (instance-19 avoidance): a live
+           note card CONVERTS to a feed line immediately, carrying its content. */
+        ok(note.resolved === true && /converted to feed/.test(note.resolvedHow || ""), "R14 — an open NOTE card converts to a feed line on the next sweep, carrying its content — never deleted, never expiring, never re-raised as a card");
+        ok(out.feed.some((f) => f.t === "OLD NOTE"), "R14 — and its content is IN the feed, so nothing he was told is lost");
+        ok(cal.resolved === false, "R14 — an actionable card is untouched: it is a pending decision, and decisions wait for him");
       }
       /* ---------- R10a — the two live overclaims ---------- */
       {
@@ -454,23 +477,34 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         ok(!/±3–4 points, and that error never washes out/.test(w10), "R10a — and the flat ±3-4 sentence is gone from the rendered copy: it described a narrower instrument than the one producing the number beside it");
         /* dismiss copy and mechanism agree, both directions driven elsewhere; here the COPY */
         const dsrc = readFileSync("src/app.jsx", "utf8");
-        const dm = dsrc.match(/ADJUSTMENT DECLINED[^\n]{0,220}/);
-        ok(dm && /re-arm/i.test(dm[0]), "R10a — the decline copy still promises re-arming, and since the applied() fix that promise is TRUE: copy and mechanism agree, asserted from the copy side to close the loop the audit opened");
+        /* R14 — the decline copy is now PER KIND (what a decline buys, stated per kind so
+           copy and mechanism agree from birth). The map must exist, carry a default that
+           matches the re-arm mechanism, and a phase/exit entry that does NOT promise
+           re-arming, because those producers are gone and nothing would keep the promise. */
+        ok(/DECLINE_BUYS = \{/.test(dsrc), "R14 — what a decline buys is stated per kind, in a named map at the decline site");
+        const dmap = dsrc.slice(dsrc.indexOf("DECLINE_BUYS = {"), dsrc.indexOf("};", dsrc.indexOf("DECLINE_BUYS = {")));
+        ok(/default:.*re-arms/.test(dmap), "R14 — the default matches the mechanism: a declined rid re-arms while its condition holds, which the applied() fix made true");
+        ok(/exit:.*never expire|exit:.*stays yours/.test(dmap), "R14 — and the exit entry does NOT promise re-arming: its producers are deleted, and a promise nothing keeps is the defect this whole item exists to close");
       }
       /* THE DISMISSED-REARM CONTRADICTION, driven. dismissProposal promises re-arming;
          applied() counted any adjustments row, so a decline silenced the rid forever. */
       {
         const st9 = clone(SEED);
-        st9.adjustments = [...(st9.adjustments || []), { rid: "microload", id: "adjx", d: "2026-08-01", dismissed: true }];
+        /* R14 moved microload (a note) to the feed, so the CARD re-arm proof now uses the
+           actionable redline producer. Same mechanism under test: a dismissed row must not
+           silence the rid; a genuinely applied one must. */
+        st9.adjustments = [...(st9.adjustments || []), { rid: "redline_2026-07-20", id: "adjx", d: "2026-07-21", dismissed: true }];
+        st9.weekly = [{ wk: "2026-07-06", trend: 168 }, { wk: "2026-07-13", trend: 166 }, { wk: "2026-07-20", trend: 164 }];
         st9.blackout.until = "2026-07-01";
         const out = __test.runAdaptive(st9, "2026-07-22");
-        const re = out.proposals.find((p) => p.rid === "microload" && !p.resolved);
+        const re = out.proposals.find((p) => p.rid === "redline_2026-07-20" && !p.resolved);
         ok(!!re, "R9 — a DISMISSED rid re-arms when its condition persists, which is what the dismiss copy has promised all along. applied() counted any adjustments row, so one decline was a permanent silence — a verdict wearing a decline's clothes");
         const st9b = clone(SEED);
-        st9b.adjustments = [...(st9b.adjustments || []), { rid: "microload", id: "adjy", d: "2026-08-01" }];
+        st9b.adjustments = [...(st9b.adjustments || []), { rid: "redline_2026-07-20", id: "adjy", d: "2026-07-21" }];
+        st9b.weekly = [{ wk: "2026-07-06", trend: 168 }, { wk: "2026-07-13", trend: 166 }, { wk: "2026-07-20", trend: 164 }];
         st9b.blackout.until = "2026-07-01";
         const out2 = __test.runAdaptive(st9b, "2026-07-22");
-        ok(!out2.proposals.find((p) => p.rid === "microload" && !p.resolved), "R9 — while a genuinely APPLIED rid does not refile: the exclusion is dismissed/undone rows only, not the gate itself");
+        ok(!out2.proposals.find((p) => p.rid === "redline_2026-07-20" && !p.resolved), "R9 — while a genuinely APPLIED rid does not refile: the exclusion is dismissed/undone rows only, not the gate itself");
       }
       /* WITHDRAW MUST NOT EXECUTE THE APPLY (audit item 4b). A withdraw routed through the
          tap path would end the cut while cleaning up. */
@@ -907,7 +941,22 @@ let st2 = clone(S4);
   const en = g.ex.map(e => ({ id: e.id, n: e.n, w: e.w, tgt: e.tgt, reps: e.tgt.slice(), isDebutNow: e.isDebutNow, rir: null }));
   st2 = cs2(st2, iso, en, slpClean, { note: "", niggles: ["knee"] }).s;
 });
-ok(st2.proposals.some(p => p.rid.indexOf("niggle_knee") === 0), "3 knee flags in 3 weeks surfaces on NOW");
+/* R14 audit — this producer was a BIRTH-SITE BYPASS of the inbox invariant: it pushed a
+   kind:note card straight from completeSession. It now surfaces as a FEED LINE, same
+   content, and the fixture doubles as the bypass driver: after these three sessions, the
+   inbox must hold ZERO unresolved notes from any path. */
+ok(st2.feed.some(f => /KNEE — 3 FLAGS IN 3 WEEKS/.test(f.t)), "3 knee flags in 3 weeks surfaces — as a feed line under R14, since a recurring niggle is information for him and his coach, not a decision");
+ok(!st2.proposals.some(p => !p.resolved && p.apply && p.apply.kind === "note"), "GLOBAL ADMISSION — after the niggle fixture, no unresolved proposal anywhere carries apply.kind note. This is the assert that catches the third bypass neither side has found yet");
+/* the SECOND bypass (phaseProposal's floor-hold -> armProposal). armProposal is a component
+   closure, unreachable from the suite, so this is asserted at the source layer: the choke
+   exists at the birth site, and the producer still emits the shape it guards against —
+   if either side changes, one of these two goes red. */
+{
+  const armSrc = readFileSync("src/app.jsx", "utf8");
+  const armBody = armSrc.slice(armSrc.indexOf("const armProposal = (pr) => {"), armSrc.indexOf("const planBreak = () => {"));
+  ok(/pr\.apply && pr\.apply\.kind === "note"/.test(armBody) && /ns\.feed\.unshift/.test(armBody), "R14 audit — armProposal carries the same note-to-feed choke as propose(), so the UI birth site cannot seat a note either");
+  ok(/return;/.test(armBody.slice(armBody.indexOf('kind === "note"'))), "R14 audit — and the note path RETURNS before the proposals push: converted, never both");
+}
 // v3 → v4 patch
 const oldV3 = clone(S4); oldV3.v = 3; delete oldV3.waist; oldV3.exercises.forEach(e => { delete e.rirHist; });
 const m4 = mg2(oldV3);
@@ -1015,7 +1064,11 @@ const beatIdx = ri(beat);
 ok(beatIdx.band === "LOW" && beatIdx.score < 55, "stacked drag lands LOW: " + beatIdx.score);
 beat.blackout.until = "2026-07-01";
 const raOut = ra3(beat, "2026-07-22");
-ok(raOut.proposals.some(p => p.rid.indexOf("recovery_") === 0), "LOW recovery arms the hold-structure proposal");
+/* R14 — recovery is kind:note, so LOW recovery now INFORMS via the feed rather than
+   arming a card. Same trigger, same content, different surface: information is a feed
+   line, only decisions are cards. */
+ok(!raOut.proposals.some(p => !p.resolved && p.rid.indexOf("recovery_") === 0), "R14 — LOW recovery no longer arms a CARD: its tap enacted nothing, which failed the inbox invariant");
+ok(raOut.feed.some(f => /RECOVERY LOW/.test(f.t)), "R14 — it lands in the feed with the same receipts, so the information survives the surface change");
 // spike damping
 let sd = clone(SA); sd.blackout.until = "2026-07-01"; const t0b = sd.trend;
 const sd2 = ar(sd, "2026-07-28", sd.trend + 4.6);
@@ -3015,25 +3068,35 @@ propS.exercises.find((e) => e.id === "ham").holdFlag = true;
 propS.exercises.find((e) => e.id === "hack").holdFlag = true;
 propS.blackout.until = "2026-01-01";
 const propR = ra2(propS, "2026-07-27");
-const recCard = propR.proposals.find((p) => p.rid && p.rid.indexOf("recovery_") === 0);
-ok(!!recCard, "a low-recovery week still arms the card");
-ok(!/\d+\/100/.test(recCard.title), "the headline is no longer a score out of 100 — the charter forbids a composite: " + recCard.title);
-ok(/\d+ OF \d+ SIGNALS UP/.test(recCard.title), "it counts named signals instead, which is an enumeration rather than an index: " + recCard.title);
-ok(recCard.why.indexOf("Start here:") > -1, "the body leads with the single biggest lever");
-ok(recCard.why.indexOf("Converging signals") === -1, "and the old jargon opener is gone");
-ok(recCard.why.indexOf("nothing auto-changes") > -1 && recCard.why.indexOf("Reps still progress") > -1,
-   "it still says exactly what is held and what is not — a hold on loads is not a hold on progress");
-ok(recCard.why.indexOf("re-reads it every morning") > -1, "and says when it looks again, so an unread card is not a dead end");
+/* R14 — the recovery surface is the FEED now; the composite-score and enumeration
+   checks move with it, because the charter applies to whatever surface he reads. */
+const recLine = propR.feed.find((f) => /RECOVERY LOW/.test(f.t));
+ok(!!recLine, "R14 — a low-recovery week still informs, as a feed line rather than a card whose tap did nothing");
+ok(!/\d+\/100/.test(recLine.t), "the headline is no longer a score out of 100 — the charter forbids a composite: " + recLine.t);
+ok(/\d+ OF \d+ SIGNALS UP/.test(recLine.t), "it counts named signals instead, which is an enumeration rather than an index: " + recLine.t);
+ok(recLine.how.indexOf("Start here:") > -1, "the body leads with the single biggest lever");
+ok(recLine.how.indexOf("Converging signals") === -1, "and the old jargon opener is gone");
+ok(recLine.how.indexOf("nothing auto-changes") > -1 && recLine.how.indexOf("Reps still progress") > -1,
+  "it states the standstill contract in plain words");
+ok(recLine.how.indexOf("re-reads it every morning") > -1, "and says when it looks again, so an unread line is not a dead end");
 /* A card whose trigger has cleared must stand down rather than sit there asking
    to be applied. His live card was armed partly off dips that no longer count. */
 let clearS = clone(propR);
+/* R14: recovery never becomes a card any more, so propR carries none — this scenario is a card armed by the OLD build surviving in state. Plant it, as his phone would carry it. */
+clearS.proposals = [...(clearS.proposals || []), { rid: "recovery_2026-07-27", id: "rc9", d: "2026-07-27", title: "RECOVERY LOW — 3 OF 7 SIGNALS UP", why: "legacy card from the pre-R14 build", apply: { kind: "note" }, resolved: false }];
 clearS.sleep.nights = ["2026-07-24", "2026-07-25", "2026-07-26", "2026-07-27"].map((d) => ({ d, h: 8.2 }));
 clearS.exercises.forEach((e) => { e.holdFlag = false; });
 const clearR = ra2(clearS, "2026-07-28");
 const stillArmed = (clearR.proposals || []).filter((p) => p.rid && p.rid.indexOf("recovery_") === 0 && !p.resolved);
 ok(stillArmed.length === 0, "once the signals clear the card stands down instead of lingering with a claim the engine stopped making");
-ok(clearR.proposals.some((p) => p.stoodDown), "it resolves rather than vanishing — nothing is deleted");
-ok(clearR.feed.some((f) => f.t === "RECOVERY CARD STOOD DOWN"), "and the stand-down is written into the record, so the history still explains itself");
+ok(clearR.proposals.some((p) => p.resolved && (p.stoodDown || /converted to feed/.test(p.resolvedHow || ""))), "it resolves rather than vanishing — nothing is deleted. Under R14 a planted recovery CARD converts to a feed line; either path is a resolution on the record");
+{
+  /* audit r4 tightening: assert the WINNER's feed line exists, tied to its resolvedHow —
+     not merely that some line from either path is present. */
+  const won = clearR.proposals.find((p) => p.resolved && (p.stoodDown || /converted to feed/.test(p.resolvedHow || "")));
+  const wonLine = won && won.stoodDown ? clearR.feed.some((f) => f.t === "RECOVERY CARD STOOD DOWN") : clearR.feed.some((f) => /RECOVERY LOW/.test(f.t));
+  ok(!!won && wonLine, "and the WINNING path's own feed line exists — the resolution and its receipt travel together, whichever sweep won the race");
+}
 
 // v3.99.14 — the protocol is actually ranked, and protein scales off lean mass
 const { dayProtocol: dp14, proteinTarget: pt14, bfEst: bf14, SEED: TW14 } = __test;
@@ -3276,10 +3339,10 @@ ok(!!calStep && calStep.w > 80, "the daily calorie number reaches the protocol a
 
 /* Suggestions belong in the app, not in a conversation. */
 const progS = raR(mkReads(28, 0.2, 170), isoL(Date.now()));
-const volCard = progS.proposals.find((p) => p.rid === "volband" && !p.resolved);
-ok(!!volCard, "the volume-band gap is filed as a proposal he can act on, not left in a chat window");
-ok(volCard.why.indexOf("2,058 participants") > -1 && volCard.why.indexOf("5–10") > -1, "with the evidence attached rather than asserted");
-ok(volCard.why.indexOf("will not move it on its own") > -1, "and it is explicit that a programme change stays his call");
+const volLine = progS.feed.find((f) => /VOLUME BAND SITS ABOVE/.test(f.t));
+ok(!!volLine, "R14 — the volume-band gap is a FEED LINE now: it was information whose tap enacted nothing, which is the inbox invariant. It is still in the app, not left in a chat window");
+ok(volLine.how.indexOf("2,058 participants") > -1 && volLine.how.indexOf("5–10") > -1, "with the evidence attached rather than a bare instruction");
+ok(volLine.how.indexOf("will not move it on its own") > -1, "and it is explicit that a programme change stays his call");
 ok(VBR.lo === 8 && VBR.hi === 14, "the band itself is unchanged — the app proposes, it does not reprogram him");
 
 /* The analyst and the engine must stop quoting different numbers. */
@@ -3296,22 +3359,22 @@ ok(ctx17.indexOf("do NOT re-derive") > -1, "and told not to recompute them — a
    calorie band — a proposal must never restate an engine-owned number — so the
    standing volume-band card now exercises the same refresh / resolve path. */
 const dayA18 = isoL(Date.now() - 864e5), dayB18 = isoL(Date.now());
-const st18 = raR(mkReads(28, 0.2, 170), dayA18);
-ok(!st18.proposals.some((p) => p.rid.indexOf("calband_") === 0), "the calorie-band drift card is retired — the engine owns the band, so no proposal restates it");
-const card18a = st18.proposals.find((p) => p.rid === "volband" && !p.resolved);
-ok(!!card18a, "a standing engine proposal is raised and open on the day it applies");
+/* R14 — volband is a feed line now, so the refresh/resolve LIFECYCLE (which is real and
+   must survive) is exercised on the actionable REDLINE card, driven by a hot-rate fixture. */
+const st18 = raR(mkReads(28, 0.3, 170), dayA18);
+ok(!st18.proposals.some((p) => p.rid.indexOf("calband_") === 0), "the calorie-band drift card is retired — the engine owns the band");
+const card18a = st18.proposals.find((p) => p.rid.indexOf("redline_") === 0 && !p.resolved);
+ok(!!card18a, "a standing engine proposal is raised and open on the day it applies (redline, on a 2.1 lb/wk fixture)");
 const raisedOn18 = card18a.d, id18 = card18a.id;
-/* a day passes and the run fires again while the card is still open */
 const st18b = raR(clone(st18), dayB18);
-const open18 = st18b.proposals.filter((p) => p.rid === "volband" && !p.resolved);
-ok(open18.length === 1, "a day later there is still exactly one open card — refreshed, not duplicated");
-ok(open18[0].d === raisedOn18 && open18[0].id === id18, "while the raised-on date and id hold, so the age of the flag stays honest");
-ok(open18[0].refreshed === dayB18, "the refresh is stamped, so the card is re-processed each run instead of freezing on the day it was raised");
-/* one he has already acted on is never resurrected or rewritten */
-const acted18 = __test.applyProposal(st18b, id18, 0);
-ok(acted18.proposals.find((p) => p.id === id18).resolved === true, "applying resolves it");
+const open18 = st18b.proposals.filter((p) => p.rid.indexOf("redline_") === 0 && !p.resolved);
+ok(open18.length === 1, "a day later there is still exactly one open card — refreshed or superseded, never duplicated");
+if (open18[0].id === id18) ok(open18[0].refreshed === dayB18 && open18[0].d === raisedOn18, "same-week: refreshed in place, raised-on date and id hold so the age of the flag stays honest");
+else ok(/superseded/.test((st18b.proposals.find((p) => p.id === id18) || {}).resolvedHow || ""), "week rolled: the old card is superseded on the record, not duplicated");
+const acted18 = __test.applyProposal(st18b, open18[0].id, 0);
+ok(acted18.proposals.find((p) => p.id === open18[0].id).resolved === true, "applying resolves it");
 const after18 = raR(acted18, dayB18);
-ok(!after18.proposals.some((p) => p.rid === "volband" && !p.resolved), "and it does not come back to life on the next run");
+ok(!after18.proposals.some((p) => p.rid.indexOf("redline_") === 0 && !p.resolved), "and it does not come back to life on the next run — applied is applied");
 
 /* ================= v3.99.19 — noise, not sleep ================= */
 const { typicalError: teN, beatsNoise: bnN, cleanAtDate: caN, stepTarget: stN, proteinTarget: ptN, SEED: TN19 } = __test;
@@ -3585,11 +3648,12 @@ const viBuild = viN(volDone);
 ok(viBuild.cutting === false && viBuild.actionable === true, "off the deficit it becomes actionable — the same gap, now worth acting on");
 ok(viBuild.why.indexOf("no longer in a deficit") > -1, "and says why it changed: " + viBuild.why.slice(0, 60));
 const volDone2 = raW(volDone, isoL(Date.now()));
-const vCard2 = volDone2.proposals.find((p) => p.rid.indexOf("volstruct_") === 0 && !p.resolved);
-ok(!!vCard2, "and only THEN is it put to him as a proposal");
-ok(vCard2.why.indexOf("hams 4") > -1 && vCard2.why.indexOf("delt side") > -1, "with the whole allocation shown by head, so he can check the arithmetic himself");
-ok(vCard2.title.indexOf("MINIMUM EFFECTIVE DOSE") > -1, "and the headline says what 4 sets actually means: " + vCard2.title);
-ok(volS.proposals.filter((p) => !p.resolved && p.rid.indexOf("volband") === 0).length === 1, "the band-width proposal is a different question and still stands on its own");
+/* R14 — volstruct is kind:note, so the allocation lands in the FEED once actionable */
+const vLine2 = volDone2.feed.find((f) => /MINIMUM EFFECTIVE DOSE/.test(f.t));
+ok(!!vLine2, "and only THEN is it put to him — as a feed line under R14, since reading an allocation enacts nothing");
+ok(vLine2.how.indexOf("hams 4") > -1 && vLine2.how.indexOf("delt side") > -1, "with the whole allocation shown by head, so he can check the arithmetic");
+ok(vLine2.t.indexOf("MINIMUM EFFECTIVE DOSE") > -1, "and the headline says what 4 sets actually means: " + vLine2.t);
+ok(volS.feed.some((f) => /VOLUME BAND SITS ABOVE/.test(f.t)), "the band-width question is a different one and still stands on its own — as a feed line under R14");
 
 /* THE RATE BAND'S UNIT — RETIRED v6.3.1. The card told him to restate the band as
    "% of bodyweight"; cutRateBand() now derives the corridor as %BW per mode and
@@ -3605,7 +3669,7 @@ armedRU.proposals = (armedRU.proposals || []).filter((p) => p.rid !== "rateunit"
 ]);
 const stoodRU = raW(armedRU, isoL(Date.now()));
 ok(!stoodRU.proposals.find((p) => p.rid === "rateunit" && !p.resolved), "an already-armed rate-unit card is gone from the screen after one pass");
-ok(!!stoodRU.proposals.find((p) => p.rid === "rateunit" && p.resolved && p.stoodDown), "it stands down (resolved + stoodDown), not deleted — the record keeps it, the screen does not");
+ok(!!stoodRU.proposals.find((p) => p.rid === "rateunit" && p.resolved && (p.stoodDown || /converted to feed/.test(p.resolvedHow || ""))), "it leaves the screen on the record — stood down by its own retirement sweep or converted by R14, whichever sweep reaches it first; the record keeps it either way");
 /* and the figure it used to get wrong is pinned to the verified constants, everywhere it appears */
 ok(__test.BC.CUT_GARTHE_SLOW_LBM === 2.1 && __test.BC.CUT_GARTHE_SLOW_RATE === 0.7, "Garthe slow arm is the verified truth: +2.1% LBM at 0.7%/wk");
 ok(__test.BC.CUT_GARTHE_FAST_LBM === -0.2 && __test.BC.CUT_GARTHE_FAST_RATE === 1.4, "Garthe fast arm is lean-neutral (-0.2%) at 1.4%/wk — there is no 1.0%/wk arm");
