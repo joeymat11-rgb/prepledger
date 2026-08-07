@@ -1088,6 +1088,25 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15d ROUND 2 — THE DIARY IS LIFE EVENTS; THE CLAIM READS THE DIAL — 2026-08-08
+
+**R2-3 (Joe's call):** lab-status lines leave THE RECORD — the LAB row is their home.
+The selection law (`isLabFeedLine` / `diaryFeed`) lives **beside `sweepLab`, the producer
+it filters**, keyed on the producer's own `"LAB LIVE — "` title family (the same
+predicate the fresh-map and labNews readers already use) — never surface guesswork; the
+hub carries zero inline family knowledge (pinned). The 12-line window fills AFTER the
+skip. Guard-must-fire both ways, driven through the REAL producer: labSeen doctored so
+sweepLab's own flip detector writes a line; the family predicate claims it; `diaryFeed`
+excludes exactly it and passes 12 real events verbatim. **R2-2:** the empty-state claim
+reads `autonomyOf(s)` — at PROPOSE it says the setting's own truth ("Nothing changes
+without your OK — that's how you have it set."); the automatic-tweaks line renders only
+when autonomy is actually granted. **R2-1:** the diary tail is a 44px hit box (measured
+30 on the rig) — paint-free text, so padding is pure slop; negative margin hands the
+growth to the card's inert padding. Suite 2011 → 2018, freeze byte-clean. Rig on the
+live snapshot: diary shows zero LAB LIVE lines and reads as rulings/amendments/records;
+tail 421×44. Round-1 rulings ratified on the record: the R14 inert-example reading, and
+the always-visible card.
+
 ### R15d · LEDGER — DECISIONS AND DIARY, PLAIN WORDS — BUILT 2026-08-08, branch feat/r15d-ledger
 
 **The hub was a settings screen wearing the LEDGER name.** Rebuilt to the mockup's
