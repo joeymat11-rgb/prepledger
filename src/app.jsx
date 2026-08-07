@@ -1804,6 +1804,12 @@ function proteinHit(target, g) { return g != null && g >= target - PROTEIN_TOL_G
    trained-population evidence links lean-mass loss to deficit magnitude
    (Murphy & Koehler 2022) and has nothing at all against walking. */
 function stepTarget(s) {
+  /* STEPS ITEM A audit fix — the WHY used to claim "your maintenance was measured across
+     [21-day window] averaging [21-day steps]" while observedTDEE measures it over the
+     rate-matched window (36 days at ~16.8k). Two baseline-step numbers for one athlete,
+     and the copy asserted the identity the mismatch broke. observedTDEE owns the
+     measured-at figure now; this band owns recent behaviour; the copy states both. */
+  let _tdA = null; try { _tdA = observedTDEE(s); } catch (e) { _tdA = null; }
   const cutoff = isoOf(new Date(todayStart().getTime() - 21 * DAY));
   /* SORTED, not insertion-ordered. dailyLogs is a plain object and its key order
      is whatever the writes happened to be; taking .slice(-7) off that gave the
@@ -1830,7 +1836,7 @@ function stepTarget(s) {
   return {
     gated: false, lo: loE, hi: hiE, mid: midE, baseMid: mid, adjSteps: stepAdj, days: rows.length, kcalPer1k, avg: Math.round(avg),
     recentAvg: recentAvg == null ? null : Math.round(recentAvg), drift, driftKcal,
-    why: `Your measured maintenance was measured across ${rows.length} days averaging ${Math.round(avg).toLocaleString()} steps — so the calorie band is only right while the walking that produced it continues. Every 1,000 steps is worth about ${kcalPer1k} kcal at your bodyweight.${Math.abs(driftKcal) >= 40 ? ` Your last week runs ${drift > 0 ? "+" : ""}${drift.toLocaleString()} against that, which is about ${driftKcal > 0 ? "+" : ""}${driftKcal} kcal/day of maintenance the target has not caught up with yet.` : ""}`,
+    why: `Your maintenance was measured at ${(_tdA && _tdA.atSteps != null) ? _tdA.atSteps.toLocaleString() : Math.round(avg).toLocaleString()} average steps over its own ${(_tdA && _tdA.days) || rows.length}-day window — that number owns the claim. This band holds you to your RECENT ${rows.length}-day average of ${Math.round(avg).toLocaleString()}, and the two differ because your walking has been falling — so the calorie band is only right while the walking that produced it continues. Every 1,000 steps is worth about ${kcalPer1k} kcal at your bodyweight.${Math.abs(driftKcal) >= 40 ? ` Your last week runs ${drift > 0 ? "+" : ""}${drift.toLocaleString()} against that, which is about ${driftKcal > 0 ? "+" : ""}${driftKcal} kcal/day of maintenance the target has not caught up with yet.` : ""}`,
   };
 }
 
@@ -2504,11 +2510,32 @@ function observedTDEE(s) {
   const bw6 = (s && s.trend) || null;
   const stepDelta = (atSteps != null && stepsNow != null && bw6) ? Math.round(stepKcal(bw6, stepsNow - atSteps)) : null;
   const tdeeAtNow = stepDelta != null ? tdee + stepDelta : null;
+  /* STEPS ITEM A (R13) — the step delta is priced NET OF COMPENSATION, as a BAND.
+     Added or removed activity is only partly additive: the body claws back ~25-30% in a
+     lean subject (Careau et al., constrained-expenditure literature; leaner compensates
+     less, ~30% vs ~46% at higher body fat). GRADE: MODERATE-HIGH, and the copy says so.
+     The band runs gross at one edge to 70%-of-gross at the other, so the uncertainty is
+     visible instead of hidden inside a coefficient.
+
+     PROMOTION IS CONSERVATIVE, which is what unblocked R13's original hold: the measured
+     35-day figure stays the headline UNLESS even the SMALLEST net reading of the drift
+     (70% of gross) clears the measured number's own band halfwidth. Measured on the live
+     ledger 2026-08-07: gross -115, net -80..-86, halfwidth 185 -> NOT promoted; the
+     step story changes, the number he eats to does not. A projection must carry MORE
+     uncertainty than a measurement, never quietly replace it inside its own noise. */
+  const STEP_COMP_LO = 0.25, STEP_COMP_HI = 0.30;   // lean-subject compensation, Careau et al.
+  const _halfw = (isFinite(hi) && isFinite(lo)) ? Math.round((hi - lo) / 2) : null;
+  const tdeeAtNowGross = tdeeAtNow;
+  const tdeeAtNowNet = stepDelta != null ? Math.round(tdee + stepDelta * (1 - STEP_COMP_HI)) : null;   // 70% of gross — the smallest honest reading
+  const tdeeAtNowMid = stepDelta != null ? Math.round(tdee + stepDelta * (1 - (STEP_COMP_LO + STEP_COMP_HI) / 2)) : null;
+  const stepPromoted = stepDelta != null && _halfw != null && Math.abs(stepDelta * (1 - STEP_COMP_HI)) > _halfw;
+  const tdeePrimary = stepPromoted ? tdeeAtNowMid : tdee;
   return {
     tdee, days: cals.length, avg: Math.round(avg),
-    atSteps, stepsNow, stepDelta, tdeeAtNow,
+    atSteps, stepsNow, stepDelta, tdeeAtNow, tdeeAtNowGross, tdeeAtNowNet, tdeeAtNowMid,
+    stepPromoted, tdeePrimary, stepCompLo: STEP_COMP_LO, stepCompHi: STEP_COMP_HI,
     stepsWhy: (atSteps == null || stepsNow == null) ? null
-      : `${tdee} is your maintenance AT ${atSteps.toLocaleString()} average steps — the activity level of the ${cals.length} days it was measured over. You are averaging ${stepsNow.toLocaleString()} over the last seven, which prices at about ${tdeeAtNow} instead. The scalar is not wrong; it is conditioned, and the condition moved. Steps are the cheapest lever here because adding them does not deepen the food deficit.`,
+      : `${tdee} is your maintenance AT ${atSteps.toLocaleString()} average steps — the activity level of the ${cals.length} days it was measured over. You are averaging ${stepsNow.toLocaleString()} over the last seven, which prices at about ${tdeeAtNowNet}–${tdeeAtNowGross} once compensation is carried — the body claws back roughly a quarter to a third of an activity change in someone your leanness, so the gross figure is the edge of the band, not the number. ${stepPromoted ? `That drift clears the measured number's own noise, so the primary is now ${tdeePrimary}, if this week's steps hold — seven days is a projection, not a measurement.` : `That drift sits inside the measured number's own noise band (±${_halfw}), so ${tdee} stays the headline and this is the story behind it, not a new number.`} Steps are the cheapest lever here because adding them does not deepen the food deficit.`,
     lo, hi, clamped: RAW > CEIL, method: r.method, rateN: r.n,
     rate: r.scale, rateCi: r.ci, from, to, matched, split,
     perLb: ed.perLb, perLbLo: ed.lo, perLbHi: ed.hi, edIdentified: ed.identified, impliedPerLb, impossible,
@@ -2957,8 +2984,13 @@ function calorieTarget(s) {
      size of the error that was there. */
   const ed = energyDensity(s);   // v7.3.0 Slice 4 — the ONE energy-density owner (== the prior 3800 until a DEXA identifies fat mass; then fat-mass-dependent)
   const kcalFor = (lbWk) => Math.round((lbWk * ed.perLb) / 7);
-  const baseHi = Math.max(floor, td.tdee - kcalFor(band[0]));
-  const baseLo = Math.max(floor, td.tdee - kcalFor(band[1]));
+  /* STEPS ITEM A — the target divides from tdeePrimary, which EQUALS the measured tdee
+     until the net step drift clears the measurement's own noise (the no-precision-theatre
+     guard). Today they are identical and the eat band is byte-identical; the promoted
+     branch is driven by fixture. */
+  const tdEff = (td.tdeePrimary != null ? td.tdeePrimary : td.tdee);
+  const baseHi = Math.max(floor, tdEff - kcalFor(band[0]));
+  const baseLo = Math.max(floor, tdEff - kcalFor(band[1]));
   /* v7.3.1 — an APPROVED Auto-Pilot steer is a tracked, reversible offset ADDED to the engine-owned
      base band (never mutating it): a tighten lowers it, an ease raises it, floored the same way, and it
      reconciles away at the next weigh-in (activeAdjustment). Zero offset when none is active, so every
@@ -2993,7 +3025,7 @@ function calorieTarget(s) {
     wkWhy: wkAvg == null ? null
       : (wkAvg >= lo && wkAvg <= hi) ? `Your last ${wkRows.length} logged days average ${wkAvg} — inside the ${lo}–${hi} band. The target and the result agree, which is the only state worth being in.`
       : `Your last ${wkRows.length} logged days average ${wkAvg}, which is ${Math.abs(wkAvg > hi ? wkAvg - hi : lo - wkAvg)} kcal/day ${wkAvg > hi ? "above the top" : "below the bottom"} of the ${lo}–${hi} band — about ${(Math.abs(wkAvg > hi ? wkAvg - hi : lo - wkAvg) * 7 / ed.perLb).toFixed(2)} lb/wk ${wkAvg > hi ? "slower" : "faster"} than the band is aiming for. Not a scolding, just the arithmetic: a daily target and a weekly result are different questions.`,
-    tdee: td.tdee, tdeeLo: td.lo, tdeeHi: td.hi, days: td.days, avg: td.avg,
+    tdee: td.tdee, tdeePrimary: td.tdeePrimary, stepPromoted: !!td.stepPromoted, tdeeLo: td.lo, tdeeHi: td.hi, days: td.days, avg: td.avg,
     band, phaseLo, phaseHi, drift, floorHit: lo === floor,
     floor, floorSoft: fl.soft, floorWhy: fl.why,
     /* If the floor is what's binding, the rate target is asking for more than
@@ -3060,7 +3092,11 @@ function calorieTarget(s) {
 const EA_SPARING = 25;
 const EA_LOW = 20;
 const EA_STEP_BASELINE = 4000;
-const EA_KCAL_PER_1K_STEPS_PER_KG = 0.4;
+/* STEPS ITEM A — derived from the ONE cited walking cost, not authored. 0.4 was a round
+   convention that priced a step 7.6% below what stepKcal charges (WALK_J_PER_KG_M x
+   STEP_LEN_M / 4184 = 0.430), so the same step was worth two different numbers depending
+   on which card priced it. One owner now; the tell for a bad constant is a round number. */
+const EA_KCAL_PER_1K_STEPS_PER_KG = +(WALK_J_PER_KG_M * STEP_LEN_M * 1000 / 4184).toFixed(3);
 const EA_KCAL_PER_SESSION = 300;
 function energyAvailability(s) {
   const cutoff = isoOf(new Date(todayStart().getTime() - 21 * DAY));
@@ -5558,6 +5594,100 @@ function shelfItems(s) {
 }
 
 /* THE OUTSIDE-THE-BOX WING — thirteen auto-running instruments. Each defensive: one failing card never darkens the lab. */
+/* ==================== STEPS ITEM B ====================
+   stepEfficacy — extracted from the lab's stepeff instrument so the PUSH gate and the lab
+   card read the SAME slope (one owner; the lab formats). Weekly average steps vs that
+   week's weight change, clean week-pairs only. SIGN: wks runs newest-first, so
+   drop = older - newer, POSITIVE when losing — a positive slope means more steps, faster
+   loss. UNITS: lb/wk per 1,000 daily steps. (The inline version's toFixed(2) on a
+   per-STEP slope rounded every real signal to 0.00 — a latent display bug the extraction
+   retires.) Small n, confounded (calories move too): DIRECTIONAL, never causal. */
+function stepEfficacy(s) {
+  const wks = [...liveRollups(s), ...ROLLUPS].filter((w) => w.avgSteps != null && w.avgW != null);
+  const pairs = [];
+  let excluded = 0;
+  for (let i = 0; i < wks.length - 1; i++) {
+    const wkDays = (wks[i].days || []).concat(wks[i + 1].days || []);
+    if (wkDays.length && !weekWeather(s, wkDays).clean) { excluded++; continue; }
+    const drop = wks[i + 1].avgW - wks[i].avgW; pairs.push({ steps: wks[i].avgSteps, drop });
+  }
+  if (pairs.length < 4) return { status: "ARMED", n: pairs.length, need: 4, slopePer1k: null, excluded };
+  const ms = pairs.reduce((a, p) => a + p.steps, 0) / pairs.length, md = pairs.reduce((a, p) => a + p.drop, 0) / pairs.length;
+  let num = 0, den = 0; pairs.forEach((p2) => { num += (p2.steps - ms) * (p2.drop - md); den += (p2.steps - ms) ** 2; });
+  const slopePer1k = den ? +((num / den) * 1000).toFixed(3) : 0;
+  /* PHYSICAL BOUND — the observedTDEE `impossible` precedent, applied here. 1,000 daily
+     steps is ~stepKcal(bw,1000) kcal/day ≈ 0.06 lb/wk at his mass. A fitted slope far
+     outside that is calorie confounding wearing a step costume: the verdict is UNRESOLVED,
+     not negative. On the live ledger the n=4 fit reads -78.9 — thirteen hundred times the
+     ceiling — and the old per-step toFixed(2) display bug had been rounding that absurdity
+     to 0.00, hiding it. An instrument must never deliver a verdict physics forbids. */
+  const bwSE = (s && s.trend) || 163;
+  const boundPer1k = +((stepKcal(bwSE, 1000) * 7) / KCAL_PER_LB_MIX).toFixed(3);
+  const resolved = Math.abs(slopePer1k) <= boundPer1k * 5;
+  return { status: "LIVE", n: pairs.length, need: 4, slopePer1k, boundPer1k, resolved, excluded };
+}
+
+/* stepPush — steps as the FIRST deficit lever, ceilinged and validated on his own data.
+   Q3 ANSWERED — the ceiling is BOTH:
+     VETO  recovery LOW, or sleep debt today: an instrument says the body is not funding
+           what it already does, so it is not asked to fund more.
+     CAP   measured-at baseline + STEP_PUSH_CAP_OVER_BASE (never below the 12k top of the
+           practitioner cut range, which is a floor sanity-check, not his target). The cap
+           is a DESIGN JUDGEMENT, labelled: the constrained-expenditure literature says
+           compensation worsens at high volumes and the concurrent-training meta never
+           tested very high durations, but neither hands over a number — so it anchors on
+           HIS baseline, the same move as R8's change gate.
+   THE stepeff VERDICT GATES THE PUSH: LIVE with slope <= 0 means his own clean week-pairs
+   show steps NOT converting to loss — no push, and the copy names steps as cardiovascular
+   health, not the fat lever. ARMED (n < 4) permits a push at MODERATE grade, checked
+   against his weeks as they accrue. DEFAULT IS HOLD — no always-on nagging. Priced NET of
+   compensation as a band; filed with the steps lever ARMED so approval lands as the
+   existing tracked, one-tap-undo offset (Law 10). */
+const STEP_PUSH_WEEKLY = 1000;          // +500-1,000/wk practitioner progression; the top is the per-week cap
+const STEP_PUSH_CAP_OVER_BASE = 3000;   // trailing headroom over his measured baseline — PACES the climb
+/* STEP_PUSH_ABS_CEIL — the component that TERMINATES it. The trailing cap slides: as pushed
+   walking becomes behaviour, the measurement-window baseline climbs and base+3000 climbs
+   with it — a ceiling that follows you up is the calorie floor that never fires, in mirror
+   (an approved steer reconciles at the next weigh-in BY DESIGN, so pushes persist through
+   behaviour, not a standing offset — meaning the trailing cap alone can climb forever).
+   20,000 is a DESIGN JUDGEMENT, labelled: his own history peaked at ~20-21k in the window
+   whose second half showed the compensation-era drift, ~640 kcal/day of walking on top of
+   training approaches the high-volume region where the constrained-expenditure literature
+   says the return decays and the concurrent-training meta stops vouching for interference-
+   free. Anchored on his data and the evidence's own warnings, not on a trial. */
+const STEP_PUSH_ABS_CEIL = 20000;
+function stepPush(s, opts) {
+  const today = isoOf(todayStart());
+  const st = stepTarget(s);
+  if (st.gated) return { mode: "HOLD", why: "too few logged step days to steer from" };
+  let td = null; try { td = observedTDEE(s); } catch (e) { td = null; }
+  const base = (td && td.atSteps != null) ? td.atSteps : st.avg;
+  const bw = (s && s.trend) || null;
+  let r = null; try { r = currentRate(s); } catch (e) { r = null; }
+  const bc = bodyCompBand(s);
+  const pctRate = (r && r.measured && isFinite(r.scale) && bw) ? (r.scale / bw) * 100 : null;
+  const below = bc.dir === "cut" && pctRate != null && pctRate < bc.corrPct[0];
+  if (!below && !(opts && opts.accelerate)) return { mode: "HOLD", base, why: "the rate is inside the corridor — hold the walking that produced your maintenance. The coach reaches for this lever only when the objective wants more deficit." };
+  const rec = recoveryIndex(s);
+  const slept = cleanAtDate(s, today);
+  if (rec.band === "LOW" || !slept) return { mode: "WITHHELD", base, veto: rec.band === "LOW" ? "recovery" : "sleep",
+    why: `more deficit is wanted, but ${rec.band === "LOW" ? "recovery is LOW" : "sleep is in debt"} — the body is not funding what it already does, so it is not asked to fund more. The push returns when the flag clears.` };
+  const cap = Math.min(Math.max(base + STEP_PUSH_CAP_OVER_BASE, 12000), STEP_PUSH_ABS_CEIL);
+  const cur = st.mid;
+  if (cur + 500 > cap) return { mode: "WITHHELD", base, veto: "ceiling", cap,
+    why: `you are already at the step ceiling (${cap.toLocaleString()} — your measured baseline plus the headroom the evidence supports). Past here compensation eats the return and the recovery caveats bite: more deficit now comes from food, priced by the calorie card.` };
+  const se = (opts && opts.stepeff) || stepEfficacy(s);
+  if (se.status === "LIVE" && se.resolved && se.slopePer1k != null && se.slopePer1k <= 0) return { mode: "NOPUSH_HEALTH", base, stepeff: se,
+    why: `across ${se.n} clean week-pairs, your own record shows extra steps NOT converting to extra loss — so steps are cardiovascular health here, and calories are your fat lever. The coach will not push a lever your data says is not connected.` };
+  const inc = Math.min(STEP_PUSH_WEEKLY, cap - cur);
+  const gross = bw ? Math.round(stepKcal(bw, inc)) : null;
+  const netLo = gross != null ? Math.round(gross * 0.70) : null;
+  const netHi = gross != null ? Math.round(gross * 0.75) : null;
+  return { mode: "PUSH", inc, cap, base, cur, grossKcal: gross, netLoKcal: netLo, netHiKcal: netHi, stepeff: se,
+    grade: se.status === "LIVE" && se.resolved ? "measured-on-you" : "moderate",
+    why: `the rate is under the corridor, and steps are the lean-cheaper deficit: +${inc.toLocaleString()} steps/day is worth about ${netLo}\u2013${netHi} kcal/day once compensation is carried — the body claws back a quarter to a third of an activity change — against the same kcal cut from food, which is the variable tied to lean loss. ${se.status === "LIVE" && se.resolved ? `Your own ${se.n} clean week-pairs show extra steps converting to loss.` : `The mechanism is sound and coaches agree, but no trial handed us this number — your own step-efficacy read is ${se.status === "LIVE" ? "too confounded to resolve yet" : "still accruing"}, so this is checked against your weeks as they arrive.`}` };
+}
+
 function labAnalytics2(s) {
   const out = [];
   const add = (fn) => { try { const c = fn(); if (c) out.push(c); } catch (e) {} };
@@ -5663,24 +5793,17 @@ function labAnalytics2(s) {
       lines: [] };
   });
 
-  /* 7 · step efficacy */
+  /* 7 · step efficacy — the computation moved to stepEfficacy() (Item B) so the PUSH gate
+     and this card read the same slope. This formats; it no longer computes. The old inline
+     toFixed(2) on a per-STEP slope rounded every real signal to 0.00 — retired. */
   add(() => {
-    const wks = [...liveRollups(s), ...ROLLUPS].filter((w) => w.avgSteps != null && w.avgW != null);
-    const pairs = [];
-    let excluded = 0;
-    for (let i = 0; i < wks.length - 1; i++) {
-      const wkDays = (wks[i].days || []).concat(wks[i + 1].days || []);
-      if (wkDays.length && !weekWeather(s, wkDays).clean) { excluded++; continue; }
-      const drop = wks[i + 1].avgW - wks[i].avgW; pairs.push({ steps: wks[i].avgSteps, drop });
-    }
-    if (pairs.length < 4) return { id: "stepeff", t: "STEP EFFICACY", status: "ARMED", prog: { n: pairs.length, need: 4, label: "week pairs" }, tag: "Do your extra steps actually show up on the scale?", deep: "Weekly step averages vs that week's scale movement.", forYou: "Accruing weekly.", lines: [] };
-    const ms = pairs.reduce((a, p) => a + p.steps, 0) / pairs.length, md = pairs.reduce((a, p) => a + p.drop, 0) / pairs.length;
-    let num = 0, den = 0; pairs.forEach((p2) => { num += (p2.steps - ms) * (p2.drop - md); den += (p2.steps - ms) ** 2; });
-    const slope = den ? +(num / den).toFixed(2) : 0;
+    const se = stepEfficacy(s);
+    if (se.status === "ARMED") return { id: "stepeff", t: "STEP EFFICACY", status: "ARMED", prog: { n: se.n, need: se.need, label: "week pairs" }, tag: "Do your extra steps actually show up on the scale?", deep: "Weekly step averages vs that week's scale movement.", forYou: "Accruing weekly.", lines: [] };
+    const perK = se.slopePer1k;
     return { id: "stepeff", t: "STEP EFFICACY", status: "LIVE", prog: null,
       tag: "Do your extra steps show up on the scale? Directional verdict.",
       deep: "Weekly average steps vs that week's weight change, across every week on file. Small n and confounded (calories move too) — stated honestly as directional, not causal. But if high-step weeks consistently out-drop low-step weeks at similar intake, your NEAT is doing real work; if not, steps are cardiovascular health, and calories are the fat lever.",
-      forYou: `Across ${pairs.length} clean week-pairs${excluded ? ` (${excluded} excluded for event water/estimates — they were poisoning this read)` : ""}: each extra 1k daily steps associates with ~${Math.abs(Math.round(slope * 10) / 10)} lb/wk ${slope > 0 ? "faster" : "slower"} loss (directional, n=${pairs.length}). ${slope > 0.05 ? "Your 16–17k target is earning its keep." : "Signal weak so far — steps stay for health; the deficit does the cutting."}`,
+      forYou: se.resolved === false ? `Across ${se.n} clean week-pairs the fitted association is ${Math.abs(perK).toFixed(1)} lb/wk per 1k steps — but walking can only physically move ~${se.boundPer1k} lb/wk per 1k at your mass, so that number is calorie confounding, not a step effect. Verdict stays OPEN until the weeks separate the two. (The old display rounded this absurdity to 0.00 and called it a reading.)` : `Across ${se.n} clean week-pairs${se.excluded ? ` (${se.excluded} excluded for event water/estimates — they were poisoning this read)` : ""}: each extra 1k daily steps associates with ~${Math.abs(Math.round(perK * 100) / 100)} lb/wk ${perK > 0 ? "faster" : "slower"} loss (directional, n=${se.n}). ${perK > 0.02 ? "Your walking is earning its keep." : "Signal weak — steps may be cardiovascular health here rather than the fat lever."}`,
       lines: [] };
   });
 
@@ -7191,7 +7314,17 @@ function runAdaptive(state, todayISO) {
   const r = currentRate(s);
   if (!sealed && r.measured && r.rates.slice(-2).length === 2 && r.rates.slice(-2).every((x) => x < cutRateBand(s).floor))
     propose("floor_" + monday, "RATE FLOOR TRIPPED", `Two weeks under ${cutRateBand(s).floor}/wk (${r.rates.slice(-2).map((x) => x.toFixed(1)).join(", ")}). Your rule: restore steps FIRST. If steps are already at target, trim ~50 off the calorie band.`, { kind: "note" });
-  /* The band had no teeth. floor and redline both fired, but the stated working
+
+  /* STEPS ITEM B — the PUSH card. Steps first, food as the alternative: the same apply
+     machinery arms both (kind cal + stepsDelta), and the athlete's pick lands as the
+     existing tracked, reversible offset. Never sealed, never nagging: stepPush holds by
+     default and only fires when the rate is under the corridor. */
+  {
+    const sp = stepPush(s);
+    if (!sealed && sp.mode === "PUSH")
+      propose("steppush_" + monday, "UNDER THE CORRIDOR — STEPS FIRST", sp.why + " Approving arms the walking lever; the dial offers the same kcal from food if you would rather eat less than walk more — but steps are offered first, because that deficit does not spend lean.",
+        { kind: "cal", delta: -(Math.round(((sp.netLoKcal || 0) + (sp.netHiKcal || 0)) / 2)), stepsDelta: sp.inc });
+  }  /* The band had no teeth. floor and redline both fired, but the stated working
      band's UPPER edge did nothing — he could run above his own band for weeks
      and hear nothing until the redline, which sits far above it. His band top
      is 1.4 lb/wk; the redline is 1.9. That gap is 0.3%/wk of bodyweight, and it
@@ -9538,6 +9671,8 @@ __test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
 __test.targetsFor = targetsFor;
 __test.runAdaptive = runAdaptive;
 __test.stepKcal = stepKcal;
+__test.stepEfficacy = stepEfficacy;
+__test.stepPush = stepPush;
 __test.skinfoldCheck = skinfoldCheck;
 __test.skinfoldSeries = skinfoldSeries;
 __test.skinfoldTrend = skinfoldTrend;

@@ -1075,7 +1075,88 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
-### R13. The step-conditioned maintenance PRIMARY  `[HELD — evidence gate not met]`
+### STEPS ITEM B — BUILT 2026-08-07: steps as the first deficit lever
+
+**Q3 ANSWERED — the ceiling is THREE things, and building it found out why two are not
+enough:**
+
+1. **VETO** — recovery LOW or sleep debt today: the body is not funding what it already
+   does, so it is not asked to fund more. Driven: a 4-hour-nights fixture withholds.
+2. **TRAILING CAP** — measured baseline + 3,000, floored at the practitioner 12k. This
+   PACES the climb — but it cannot terminate it, because **an approved steer reconciles at
+   the next weigh-in by design, so pushes persist through BEHAVIOUR, and a trailing cap
+   slides up with the behaviour it permitted.** Found by driving the fixture, not by reading.
+3. **ABSOLUTE CEILING — 20,000**, the component that terminates. Design judgement,
+   labelled: his own history peaked ~20–21k in the window whose second half showed the
+   compensation-era drift, and ~640 kcal/day of walking approaches the high-volume region
+   where constrained-expenditure decay and the concurrent-training duration caveat both
+   bite. Driven: the whole record walked to 19,800 → cap binds at 20,000, next +500 refused,
+   further deficit routed to food.
+
+**HOLD is the default and the live state.** `stepPush` fires only when the rate is under
+the corridor; his 0.72 %BW/wk is inside it → mode HOLD, no card filed, snapshot-asserted.
+No always-on nagging.
+
+**The PUSH card arms BOTH levers through the existing machinery** (`kind: "cal"` with
+`stepsDelta`), so approval lands as the tracked one-tap-undo offset and the athlete picks —
+steps offered first, food as the alternative, +500–1,000/wk, **priced net of compensation as
+a band** (70–75% of gross), grade carried in the copy.
+
+**`stepEfficacy` extracted from the lab so the gate and the card read ONE slope — and the
+extraction unmasked a live absurdity.** The inline version's `toFixed(2)` on a per-STEP
+slope rounded every real signal to 0.00. In real units his n=4 fit reads **−78.9 lb/wk per
+1k steps against a walking-physics ceiling of 0.059** — thirteen hundred times what walking
+can move. That is calorie confounding wearing a step costume, and the old display bug had
+been hiding it. The instrument now carries a **physical-bound resolution gate** (the
+`observedTDEE.impossible` precedent): out-of-bounds fits are **UNRESOLVED**, not verdicts —
+they neither block the push (degrades to MODERATE grade) nor license confidence, and the lab
+copy says why instead of printing the absurd number.
+
+**stepeff verdict gate, driven all three ways:** RESOLVED-negative → NOPUSH, copy names
+steps as cardiovascular health and calories as the fat lever; UNRESOLVED (his live state) →
+push permitted at MODERATE with the hedge; RESOLVED-positive cites his own week-pairs.
+
+### STEPS ITEM A — BUILT 2026-08-07 (supersedes the held R13, per the steps spec)
+
+**Open question 1, answered the audit's way, and the data decided it.** The measured 35-day
+figure stays the headline; `tdeeAtNow` is promoted ONLY when even the smallest net reading of
+the drift (70% of gross) clears the measured number's own band halfwidth. On the live ledger:
+gross −115, net −80…−86, halfwidth **185** — **not promoted.** The step story changes; the
+number he eats to does not. A projection must carry more uncertainty than a measurement, never
+quietly replace it inside its own noise.
+
+**Open question 2: the BAND, as the audit preferred.** `tdeeAtNowNet` (70% of gross) to
+`tdeeAtNowGross`, with `tdeeAtNowMid` (72.5%) as the promoted point. `STEP_COMP_LO/HI =
+0.25/0.30`, cited to Careau et al. at the lean end, GRADE MODERATE-HIGH carried in the copy.
+
+**The window mismatch was a live overclaim, not a tidy-up.** `stepTarget`'s receipt claimed
+*"your maintenance was measured across [21-day window] averaging [14.5k]"* — it was measured
+over the rate-matched window at ~16.8k. The copy asserted the identity the mismatch broke
+(R10a family). `observedTDEE` now owns the measured-at figure; `stepTarget` quotes it and
+names its own 21-day band as RECENT behaviour — two numbers, two names, no conflation.
+
+**One kcal-per-step owner.** `EA_KCAL_PER_1K_STEPS_PER_KG` now derives from
+`WALK_J_PER_KG_M × STEP_LEN_M` (0.430) instead of an authored 0.4 sitting 7.6% away — the
+cited constant wins. **Measured side-effect, reported:** `ea.lo` 27.2 → 26.8 (steps price
+higher, so more walking kcal is subtracted); still above `EA_SPARING` 25, no band change.
+
+**Acceptance, all driven** (snapshot `2026-08-07-ledger.json` committed, 98 KB):
+- Snapshot: primary == measured, unpromoted; eat band **byte-identical** at 2221–2308;
+  one measured-at owner; a thousand steps worth the same kcal everywhere.
+- Fixture (a): current == window steps → `tdeeAtNow == tdee`, delta 0, no promotion.
+- Fixture (b): a collapse clearing the halfwidth at the smallest net reading → promoted, and
+  the eat band moves by **at most the net delta** (the thermodynamic bound).
+- Fixture (c): a real-but-small drift → unpromoted, eat band moves **not at all** — the
+  no-precision-theatre guard observed to hold on a fixture built to trip it.
+- No device-calorie ingestion, asserted against comment-stripped source.
+- No new stored field — pure selectors over `dailyLogs.steps`.
+
+**Fixture lesson recorded:** the last-7 days sit INSIDE the measurement window, so writing
+them moves `atSteps` too — the first fixtures assumed independence and asserted against
+pre-mutation numbers. Both windows are controlled explicitly now.
+
+### R13-old (held) — superseded by the above; kept for the hold reasoning
+  `[HELD — evidence gate not met]`
 
 **WHAT.** `observedTDEE` returns maintenance at his CURRENT activity level rather than the
 window average, and `energyBalanceTarget` divides from that.

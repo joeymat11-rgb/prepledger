@@ -60,6 +60,26 @@ const ok = (cond, name) => { cond ? pass++ : fail++; console.log((cond ? "PASS" 
   ok(rb.floor === 0.82 && rb.redline === 1.63, "SNAPSHOT — floor 0.82 and redline 1.63 lb/wk, %BW-derived. These were an authored 0.8 and 1.9 in pounds, and the redline got MORE permissive as he leaned out");
   ok(rb.redlinePct === __test.bodyCompBand(SNAP).redlinePct, "SNAPSHOT — one redline, published once. The foresight layer used to run 1.157 against the alarm's 1.0");
 
+  /* STEPS ITEM A — outcomes on the fresh 2026-08-07 snapshot. */
+  {
+    const S7 = JSON.parse(readFileSync("tools/snapshots/2026-08-07-ledger.json", "utf8"));
+    const td7 = __test.observedTDEE(S7);
+    ok(td7.stepPromoted === false && td7.tdeePrimary === td7.tdee, "SNAPSHOT 08-07 ITEM A — the PRIMARY is the measured 35-day figure, NOT promoted: net drift (" + Math.abs(Math.round(td7.stepDelta * 0.70)) + ") sits inside the measured band's own halfwidth. The step story changed; the number he eats to did not — which is the conservative rule that unblocked R13");
+    ok(td7.tdeeAtNowNet != null && td7.tdeeAtNowGross != null && td7.tdeeAtNowNet > td7.tdeeAtNowGross, "SNAPSHOT 08-07 ITEM A — the step delta is priced NET of compensation as a BAND (net " + td7.tdeeAtNowNet + " to gross " + td7.tdeeAtNowGross + "): the body claws back ~25-30% in a lean subject, so gross is the band edge, never the number");
+    const ct7 = __test.calorieTarget(S7);
+    ok(ct7.tdee === td7.tdee && ct7.stepPromoted === false, "SNAPSHOT 08-07 ITEM A — calorieTarget divides from the primary, which today IS the measured number, so the eat band is byte-identical to the pre-Item-A build");
+    const st7 = __test.stepTarget(S7);
+    ok(st7.why.indexOf(td7.atSteps.toLocaleString()) > -1, "SNAPSHOT 08-07 ITEM A — ONE owner for the measured-at step figure: stepTarget's receipt quotes observedTDEE's " + td7.atSteps.toLocaleString() + ", not its own 21-day average wearing the measurement's name");
+    ok(Math.abs(st7.kcalPer1k - __test.stepKcal(S7.trend, 1000)) < 0.15, "SNAPSHOT 08-07 ITEM A — a thousand steps is worth the SAME kcal everywhere it is priced (" + st7.kcalPer1k + "): EA_KCAL_PER_1K_STEPS_PER_KG derives from the one cited walking cost instead of a round 0.4 sitting 7.6% away");
+
+    /* STEPS ITEM B — live outcomes */
+    const sp7 = __test.stepPush(S7);
+    ok(sp7.mode === "HOLD", "SNAPSHOT 08-07 ITEM B — the coach HOLDS today: his rate is inside the corridor, so the push lever stays sheathed. No always-on nagging to walk more");
+    ok(!__test.runAdaptive(JSON.parse(JSON.stringify(S7)), "2026-08-07").proposals.some((p) => /^steppush_/.test(p.rid)), "SNAPSHOT 08-07 ITEM B — and no push card is filed on the live ledger");
+    const se7 = __test.stepEfficacy(S7);
+    ok(se7.status === "LIVE" && se7.resolved === false && Math.abs(se7.slopePer1k) > se7.boundPer1k, "SNAPSHOT 08-07 ITEM B — the live stepeff fit (" + se7.slopePer1k + " lb/wk per 1k) exceeds the walking-physics ceiling (" + se7.boundPer1k + ") by three orders of magnitude: the verdict is UNRESOLVED, not negative. The old per-step toFixed(2) had been rounding this absurdity to 0.00 and calling it a reading");
+  }
+
   /* FEED ORDER SURVIVES A MERGE. Pre-existing v6.2-era defect surfaced in production:
      _unionMulti iterated remote keys first, so local-only entries appended at the TAIL —
      the 2026-08-06 withdrawal receipt sat at index 189 of 191, under July lines, and he
@@ -3427,7 +3447,12 @@ const stA = stN(stS);
 ok(!stA.gated && stA.lo < stA.mid && stA.mid < stA.hi, "the step target is a band around what he actually walks: " + stA.lo + "–" + stA.hi);
 ok(Math.abs(stA.mid - 16000) <= 500, "centred on the measured average rather than a round authored number");
 ok(stA.kcalPer1k > 20 && stA.kcalPer1k < 40, "and it prices a thousand steps at his bodyweight: ~" + stA.kcalPer1k + " kcal");
-ok(stA.why.indexOf("measured maintenance was measured") > -1, "the receipt says why the number exists — it protects the calorie band, it is not a health guideline");
+/* STEPS ITEM A — the old copy claimed maintenance was measured across THIS band's own
+   21-day window, which was false: observedTDEE measures it over the rate-matched window.
+   The receipt now names the OWNER's figure and window, and states the recent band
+   separately — the claim and the identity behind it finally agree. */
+ok(stA.why.indexOf("maintenance was measured at") > -1 && stA.why.indexOf("that number owns the claim") > -1, "the receipt says why the number exists — and reads the measured-at figure from its OWNER (observedTDEE), instead of asserting the identity the window mismatch broke");
+ok(stA.why.indexOf("RECENT") > -1, "while the hold-band is named as recent behaviour, a different quantity with a different window — two numbers, two names, no conflation");
 const stFew = clone(TN19); stFew.dailyLogs = { "2026-07-27": { cal: 1800, steps: 16000 } };
 ok(stN(stFew).gated === true && stN(stFew).need === 8, "under eight logged step days it declines to derive one");
 /* drift off the window is priced, because it silently invalidates the calorie target */
@@ -4648,6 +4673,100 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
       ok(/Morton/i.test(pB.basis), "R2 proteinTarget — the surplus figure is Morton 2018's 1.6 g/kg bodyweight, which had been sitting unread in BULK_PROTEIN_G_PER_KG_BW");
 
       ok(EBT(st, { regime: { key: "nonsense" } }).dir === "deficit", "R2 energyBalanceTarget is total — an unrecognised regime falls to the deficit path rather than throwing");
+
+    /* ---------- STEPS ITEM A — promotion rule, both branches DRIVEN ---------- */
+    {
+      /* the last-7 days sit INSIDE the measurement window, so writing them moves atSteps
+         too — the first version of these fixtures assumed independence and asserted against
+         pre-mutation numbers. Control both windows explicitly and assert on the recomputed
+         state's own internal consistency. */
+      const mkSteps = (allVal, last7Val) => {
+        const st = clone(SEED);
+        const days = Object.keys(st.dailyLogs || {}).sort();
+        days.forEach((d, i) => { st.dailyLogs[d] = { ...(st.dailyLogs[d] || {}), steps: i >= days.length - 7 ? last7Val : allVal }; });
+        return st;
+      };
+      /* (a) no drift invented from noise */
+      {
+        const same = __test.observedTDEE(mkSteps(16000, 16000));
+        ok(same.stepDelta === 0 && same.tdeeAtNow === same.tdee && same.stepPromoted === false && same.tdeePrimary === same.tdee, "ITEM A — current steps equal to the measurement window returns tdeeAtNow == measured with zero delta and no promotion: no drift is invented from noise");
+      }
+      /* (b) a LARGE drift promotes, and the eat target moves by exactly the net amount */
+      {
+        const big = mkSteps(20000, 0);   /* SEED halfwidth is 304, and the last-7 zeros dilute into the window average — 18000/2000 netted 273, just under. This nets ~340. */
+        const tdB = __test.observedTDEE(big);
+        ok(tdB.stepDelta < -200, "ITEM A — the collapse fixture genuinely collapses (delta " + tdB.stepDelta + " kcal/day)");
+        ok(tdB.stepPromoted === true && tdB.tdeePrimary === tdB.tdeeAtNowMid, "ITEM A — a collapse whose smallest net reading clears the measured band's halfwidth IS promoted: the rule can fire; it has simply not earned to on his real data");
+        const ctBase = __test.calorieTarget(mkSteps(20000, 20000));
+        const ctB = __test.calorieTarget(big);
+        const shift = Math.abs(ctB.baseHi - ctBase.baseHi);
+        const net = Math.abs(tdB.tdee - tdB.tdeePrimary);
+        ok(shift > 0 && shift <= net + 1, "ITEM A — the promoted eat band moves by AT MOST the net step delta (" + shift + " <= " + net + "): the displayed deficit never exceeds what the step adjustment funds — the thermodynamic bound, driven");
+      }
+      /* (c) the guard is NOT vacuous: a real but small drift moves nothing */
+      {
+        const small = mkSteps(16000, 14800);
+        const tdS = __test.observedTDEE(small);
+        ok(tdS.stepDelta != null && tdS.stepDelta < 0, "ITEM A — the small-drift fixture genuinely drifts (delta " + tdS.stepDelta + "), so the next assertion is driven, not vacuous");
+        ok(tdS.stepPromoted === false && tdS.tdeePrimary === tdS.tdee, "ITEM A — but the drift nets inside the measured band's halfwidth, so the primary stays measured");
+        const ctS = __test.calorieTarget(small);
+        const ctBase2 = __test.calorieTarget(mkSteps(16000, 16000));
+        ok(ctS.baseHi === ctBase2.baseHi && ctS.baseLo === ctBase2.baseLo, "ITEM A — and the eat band does not move AT ALL on an unpromoted drift: it changes the story, not the target — the no-precision-theatre guard, observed to hold on a fixture built to trip it");
+      }
+      /* ---------- STEPS ITEM B — every mode driven ---------- */
+      {
+        /* a below-corridor state: slow measured rate, clean sleep, recovery not LOW */
+        const mkPushable = () => {
+          const st = clone(SEED);
+          const days = Object.keys(st.dailyLogs || {}).sort();
+          days.forEach((d) => { st.dailyLogs[d] = { ...(st.dailyLogs[d] || {}), steps: 15000 }; });
+          const isoB = (k) => new Date(Date.parse("2026-07-29T00:00:00Z") - k * 864e5).toISOString().slice(0, 10);
+          st.reads = Array.from({ length: 28 }, (_, i) => ({ d: isoB(27 - i), w: +(166 - i * 0.05).toFixed(2), sealed: false }));
+          st.trend = st.reads[st.reads.length - 1].w;
+          st.sleep.nights = Array.from({ length: 10 }, (_, i) => ({ d: isoB(9 - i), h: 8.2 }));
+          st.blackout = { until: "2026-07-01" };
+          return st;
+        };
+        const pushable = mkPushable();
+        const pre = __test.recoveryIndex(pushable);
+        ok(pre.band !== "LOW", "ITEM B — precondition driven: the pushable fixture's recovery is not LOW (" + pre.band + "), so the PUSH below is earned rather than an accident of the veto not firing");
+        const sp = __test.stepPush(pushable);
+        ok(sp.mode === "PUSH" && sp.inc > 0 && sp.inc <= 1000, "ITEM B — under the corridor the coach reaches for STEPS FIRST, at most +1,000/day per week (practitioner progression), never a jump: +" + sp.inc);
+        ok(sp.netLoKcal >= Math.round(sp.grossKcal * 0.70) - 1 && sp.netHiKcal <= Math.round(sp.grossKcal * 0.75) + 1 && sp.netHiKcal < sp.grossKcal, "ITEM B — the push is priced NET of compensation as a band (" + sp.netLoKcal + "-" + sp.netHiKcal + " of " + sp.grossKcal + " gross): the card never promises deficit the body will claw back");
+        ok(sp.grade === "moderate", "ITEM B — with his stepeff unresolved, the grade is MODERATE and the copy says the number is being checked against his own weeks — no confident voice on a MODERATE claim");
+        const out = __test.runAdaptive(JSON.parse(JSON.stringify(pushable)), "2026-07-22");
+        const card = out.proposals.find((p) => /^steppush_/.test(p.rid) && !p.resolved);
+        ok(!!card && card.apply.kind === "cal" && card.apply.stepsDelta === sp.inc && card.apply.delta < 0, "ITEM B — the card arms BOTH levers through the existing machinery (stepsDelta for walking, delta for food), so approval lands as the tracked one-tap-undo offset and the athlete picks — steps offered first, food as the alternative");
+        ok(/steps are offered first|STEPS FIRST/i.test(card.title + card.why), "ITEM B — and the copy leads with steps, because that deficit does not spend lean");
+
+        /* VETO fires: same state, sleep in debt */
+        const tired = mkPushable();
+        tired.sleep.nights = tired.sleep.nights.map((n) => ({ ...n, h: 4 }));
+        const spT = __test.stepPush(tired);
+        ok(spT.mode === "WITHHELD" && spT.veto === "sleep", "ITEM B GUARD — sleep debt WITHHOLDS the push: the body is not funding what it already does, so it is not asked to fund more. Driven, not asserted-in-principle");
+
+        /* CEILING fires — the ABSOLUTE one. Building this exposed a design fact: an
+           approved steer reconciles at the next weigh-in, so pushes persist through
+           BEHAVIOUR — and a trailing cap (base+3000) slides up with the behaviour it
+           permitted. The absolute ceiling is what terminates the climb. Driven by walking
+           the whole record to 19,800: cap binds at 20,000 and the next +500 is refused. */
+        const capped = mkPushable();
+        Object.keys(capped.dailyLogs).forEach((d) => { capped.dailyLogs[d] = { ...capped.dailyLogs[d], steps: 19800 }; });
+        const spC = __test.stepPush(capped);
+        ok(spC.mode === "WITHHELD" && spC.veto === "ceiling" && spC.cap === 20000, "ITEM B GUARD — the ABSOLUTE ceiling FIRES at 20,000: pushed walking that has become behaviour drags the trailing cap up with it, so without this bound the target climbs forever — the calorie floor that never fires, in mirror. Further deficit routes to food");
+
+        /* stepeff RESOLVED-negative blocks, with the health copy */
+        const spH = __test.stepPush(mkPushable(), { stepeff: { status: "LIVE", n: 6, resolved: true, slopePer1k: -0.03, boundPer1k: 0.059 } });
+        ok(spH.mode === "NOPUSH_HEALTH" && /cardiovascular health/.test(spH.why) && /calories are your fat lever/.test(spH.why), "ITEM B GUARD — a RESOLVED stepeff showing steps not converting blocks the push, and the copy names steps as health, not the fat lever — the instrument's verdict gates the prescription, from its output, not a constant");
+      }
+      /* device kcal can never enter */
+      {
+        const src7 = readFileSync("src/app.jsx", "utf8")
+          .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
+          .replace(/(^|[^:])\/\/[^\n]*/g, (m, p) => p + m.slice(p.length).replace(/./g, " "));
+        ok(!/kcalBurned|deviceCal|activeEnergy|caloriesBurned/i.test(src7), "ITEM A — no engine path ingests a device calorie figure. Steps are the trustworthy input; kcal is derived in-engine from the cited walking cost, which is why one owner for that constant matters");
+      }
+    }
     }
 
     /* ---------- R2 defects found in audit of main@66cd7a7 ---------- */
