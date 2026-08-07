@@ -30,6 +30,10 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
   let u9; try { u9 = new URL(e.request.url); if (u9.hostname === "api.github.com" || u9.hostname.endsWith("githubusercontent.com")) return; } catch (err) {}
   if (u9 && u9.origin === self.location.origin && /^\/ledger\//.test(u9.pathname)) { e.respondWith(fetch(e.request)); return; }
+  /* The demo page is a pitch artifact edited between deploys — never runtime-cache it.
+     The cache-first fill below pinned the first-ever copy on Joe's phone and served it
+     after the origin had moved (caught live, 2026-08-08). Network-only, like /ledger/. */
+  if (u9 && u9.origin === self.location.origin && /^\/dad(\.html)?$/.test(u9.pathname)) { e.respondWith(fetch(e.request)); return; }
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then(
       (hit) =>
