@@ -1075,6 +1075,32 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15c ROUND 4 — THE LOCKED FRAME AND THE SURVIVING CLOCK (Joe's 1:39 AM session)
+
+**Two live findings from a real gym at 1:39 AM, both structural.** S1: GYM MODE DOES NOT
+SCROLL — the frame is overflow-hidden viewport, every phase fits or its content is wrong
+(pinned: no overflowY anywhere in the component). S2: THE VOID BECAME THE INSTRUMENT —
+the opener ask's hero is the RUNNING rest clock (same fill-bar grammar as the rest
+screen, one visual system; the tick effect extends to rir-open with the auto-advance
+kept rest-only: the ask is owed, the advance is not) over a quiet banked receipt; the
+terminal ask's hero is the whole-lift receipt, because no rest is armed after the last
+set and a fake countdown is paint with no instrument behind it. S3: every phase flows
+top-down with actions in the thumb zone — no dead zones, no filler.
+
+**S4 — THE REST CLOCK SURVIVES LEAVING.** `resumePhase` is the pure re-entry law
+(mock-clock exact): mid-rest resumes at the TRUE remaining; PHASE rides the draft;
+**THE STALE-ASK LAW** — an ask that outlived the rest it rides in resolves to SKIP
+(null, the record shows unrecorded) and lands on the next true phase, because a
+minutes-old memory answer is the v7.12.0 sin this flow exists to prevent. THE
+SESSION-LIVE CHIP rides above the rail on every tab while a session is open and Gym
+Mode is off-screen — countdown DERIVED from the same persisted wall-clock anchor (one
+clock, two displays, zero owned ticks), tap returns to the exact phase; z 49 so a live
+session buries it by construction; the FAB corridor stays free; 64-hit by the
+paint-slop law.
+
+Suite 1897 → 1911 (this branch; the missed-read rider re-lands after with its own +),
+freeze byte-clean. STOPPED for the rig's leave/return drive + six-phase screenshots.
+
 ### R15c ROUND 2 — TOUCH LAW RE-DERIVED PER CONTROL, SPECIES GRAYSCALE-PROOF
 
 **S1, the rig's misses closed one by one:** paint-free text slop re-derived (26+26+14 =
