@@ -7647,10 +7647,17 @@ function runAdaptive(state, todayISO, raOpts) {
   /* ---------- MAXED-LADDER RIDER — the state, said once, on the record ---------- */
   (s.exercises || []).forEach((exM) => {
     if (!maxedOut(exM) || !exM.last) return;
-    const titleM = String(exM.n).toUpperCase() + " — THE STACK TOPS OUT AT " + exM.w;
+    /* THE NOTE MUST NOT GUESS (fix round): rungs on file and exhausted → the stack
+       measurably tops out. No rungs and no inc (plate-loaded, athlete-held) → nobody
+       measured a limit; the honest claim is that no NEXT load is on file. cap9 behavior
+       is identical for both arms — only the claim changes. */
+    const rungArm = !!loadRungs(exM);
+    const titleM = String(exM.n).toUpperCase() + (rungArm ? " — THE STACK TOPS OUT AT " + exM.w : " — NO NEXT LOAD ON FILE AT " + exM.w);
     if ((s.feed || []).some((f) => f && f.t === titleM)) return;   /* once EVER — the state does not re-announce */
     propose("maxed_" + exM.id, titleM,
-      "No rung above " + exM.w + " is on file for this machine, so reps are the ladder now: targets keep stepping past the old window top with the same earn discipline, and every rep above it banks like any other record. If the gym's stack actually goes higher, log the heavier weight when you use it and the ladder learns the rung — otherwise nothing needs you; this line exists so a maxed lift can never silently deadlock again.",
+      rungArm
+        ? "No rung above " + exM.w + " is on file for this machine, so reps are the ladder now: targets keep stepping past the old window top with the same earn discipline, and every rep above it banks like any other record. If the gym's stack actually goes higher, log the heavier weight when you use it and the ladder learns the rung — otherwise nothing needs you; this line exists so a maxed lift can never silently deadlock again."
+        : "No next load is on file for this machine — it is plate-loaded, so nobody has measured a ceiling. Reps carry progression until you log a heavier weight, with the same earn discipline, and every rep past the old window top banks like any other record. Nothing needs you; this line exists so the lift can never silently deadlock.",
       { kind: "note" });
   });
 
@@ -8569,7 +8576,14 @@ function patchV25(s) {
 }
 function patchV24(s) {
   const hk = (s.exercises || []).find((x) => x.id === "hack");
-  if (hk) { hk.hi = 12; hk.last = null; }
+  /* IDEMPOTENCY (maxed-ladder fix round) — this null was correct ONCE and destructive on
+     every replay (migrate reruns the whole reduce each bump; it erased the banked delivery
+     for weeks). The audited w-inequality guard does NOT mark that first firing — at
+     v24-time hack's w was the STRING "hold" on both sides (the +20 lived in the plates,
+     not the field; the v3.63 fixtures prove it) — so the patch keys on ITS OWN EFFECT:
+     hi !== 12 means the ruling has not applied yet; hi === 12 means this is a replay and
+     the mutation is a no-op. Idempotent by construction. */
+  if (hk && hk.hi !== 12) { hk.hi = 12; hk.last = null; }
   s.feed = s.feed || [];
   if (!s.feed.some((f) => f.t && f.t.indexOf("RULING — HACK LOADED UP") === 0)) {
     s.feed.unshift({ d: isoOf(todayStart()), t: "RULING — HACK LOADED UP +20", how: "when breathing fails before the quads, the weight rises and the reps drop — athlete call on the gym floor; rep ceiling now 12, fresh targets seeded at the new load" });
@@ -8694,6 +8708,11 @@ function patchV38(s) {
   s.v = 38;
   return s;
 }
+/* THE PATCH LAW (maxed-ladder fix round): migrate() replays EVERY patch below on EVERY
+   bump (old.v < SCHEMA_V runs the whole reduce). A patch must therefore be IDEMPOTENT
+   AGAINST LATER STATES — its mutation guarded so a second, tenth, or fiftieth replay
+   changes nothing. patchV24's unguarded null erased a banked delivery on every bump for
+   weeks before the guard below; do not add the next one. */
 const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
@@ -8715,7 +8734,26 @@ const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10,
 function reconcileLiftCaches(s) {
   let healed = 0;
   for (const ex of ((s && s.exercises) || [])) {
-    if (!ex || !ex.last || !Array.isArray(ex.last)) continue;
+    if (!ex) continue;
+    const lm0 = ex.lastMeta;
+    /* MAXED-LADDER FIX ROUND — THE SAME-LOAD NULL IS A STALE CACHE, NEVER A RESEED.
+       patchV24 nulled hack.last unguarded, and migrate() replays every patch on every
+       schema bump — so each bump re-erased the banked 11·11·10 and the card regressed to
+       the hi-2 fill (the 02:15 photograph's TRUE mechanism; the hi-clamp was the second
+       one). The weight editor and RESET both change w BEFORE nulling, so a deliberate
+       reseed always carries lastMeta.w ≠ w and survives untouched. This runs after the
+       patch reduce, so it self-heals after ANY future replay — a restatement of the log,
+       lawful under the migration law. */
+    /* numeric loads only: on a string-load lift ("hold", per-set strings) the load lives
+       OUTSIDE the field, so lastMeta.w equality proves nothing about staleness — the v24
+       ruling's own deliberate null had "hold" === "hold". Where w is a number, a same-load
+       null is definitionally stale: every deliberate reseed changes w first. */
+    if (typeof ex.w === "number" && ex.last == null && lm0 && Array.isArray(lm0.reps) && lm0.reps.length && String(lm0.w) === String(ex.w)) {
+      ex.last = lm0.reps.slice();
+      healed++;
+      continue;
+    }
+    if (!ex.last || !Array.isArray(ex.last)) continue;
     const lm = ex.lastMeta;
     if (!lm || !Array.isArray(lm.reps) || !lm.reps.length) continue;
     if (JSON.stringify(ex.last) === JSON.stringify(lm.reps)) continue;
@@ -13171,7 +13209,7 @@ function LogTab({ s, setS, save, slp }) {
                           const exN = (ns.exercises || []).find((z) => z.id === k.id) || {};
                           const en = { id: k.id, reps, rir: null, rirSets: buildRirSets({ reps, rir: null, rirEnd: null }, reps.length), w: typeof exN.w === "number" ? exN.w : null };
                           rec.entries = [...(rec.entries || []), en]; _stampCorr(rec);   /* CORRECTION_MERGE — un-skipping already wins on score, but the stamp makes it deliberate to a third device and orders it against any competing correction */
-                          const dm = deriveLastMeta(ns, k.id); if (exN) { if (dm) { exN.lastMeta = dm; exN.last = dm.reps.slice(); } else { exN.last = null; } }   /* ex.last too — see the ✕ handler */
+                          const dm = deriveLastMeta(ns, k.id); if (exN) { if (dm) { exN.lastMeta = dm; exN.last = dm.reps.slice(); } else { exN.lastMeta = { d: null, w: exN.w, reps: [], rir: null, rirSets: [], debt: false }; exN.last = null; } }   /* ex.last too — see the ✕ handler. The else now ALSO empties lastMeta like that handler: the maxed-ladder heal restores any same-load null from lastMeta.reps, so leaving stale reps behind a null would resurrect them at the next schema bump */
                           ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + ex.n + " UN-SKIPPED on " + fmtShort(dateSel), how: `logged ${reps.join(",")} — it was on the record as skipped and it should not have been. Reps entered by hand, not inferred; RIR is left unrecorded because it was never captured.` });
                           setS(ns); save(ns);
                         }} style={{ fontFamily: mono, fontSize: TS.label, color: T.jade, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 8px", cursor: "pointer" }}>↩</span>

@@ -4463,8 +4463,17 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
       ok(RC(stale) === 1 && JSON.stringify(stale.exercises[0].last) === JSON.stringify([10, 10]), "RECONCILE — a stale ex.last is brought back in line with lastMeta: the exact ham case after the 07-31 correction");
       const agree = mk([10, 10], [10, 10]);
       ok(RC(agree) === 0, "RECONCILE — agreement is left alone");
+      /* FIX-ROUND EVOLUTION — the old fixture modeled a "deliberate reseed" with an
+         UNCHANGED load, which is not how any reseed path leaves the state: RESET and the
+         weight editor both change w before nulling (RESET: ex.w = newW; ex.last = null —
+         one mutation). A same-load null on a numeric lift is therefore definitionally
+         stale, and healing it is the fix for the patch-replay erasure that regressed the
+         hack card for weeks. */
       const reseeded = mk(null, [10, 10]);
-      ok(RC(reseeded) === 0 && reseeded.exercises[0].last === null, "RECONCILE — a DELIBERATE null survives: the weight editor nulls ex.last to re-seed targets for a new load, and healing it would undo that");
+      reseeded.exercises[0].w = 125;   /* the load changed under the cache — the TRUE reseed shape */
+      ok(RC(reseeded) === 0 && reseeded.exercises[0].last === null, "RECONCILE — a DELIBERATE null survives in its TRUE shape: the reseed paths change w first, so lastMeta.w ≠ w marks it and the heal leaves it alone");
+      const sameLoadNull = mk(null, [10, 10]);
+      ok(RC(sameLoadNull) === 1 && JSON.stringify(sameLoadNull.exercises[0].last) === JSON.stringify([10, 10]), "RECONCILE — a SAME-LOAD null on a numeric lift is healed from the log: the patch-replay erasure class (the hack card's true mechanism), dead at the cache layer");
       const noMeta = { exercises: [{ id: "ham", last: [12, 12], lastMeta: { d: null, reps: [] } }] };
       ok(RC(noMeta) === 0 && JSON.stringify(noMeta.exercises[0].last) === JSON.stringify([12, 12]), "RECONCILE — an empty lastMeta is not evidence and does not clobber ex.last");
       ok(RC({}) === 0 && RC(null) === 0, "RECONCILE is total");
@@ -6821,6 +6830,29 @@ if (fail) process.exit(1);
   const noteLine = rn1.feed.find((f) => f.t === "HACK SQUAT — THE STACK TOPS OUT AT 160");
   ok(!!noteLine && /reps are the ladder now/.test(noteLine.how) && /log the heavier weight/.test(noteLine.how), "MAXED — the state is SAID, with the real alternatives: reps-as-ladder stands on the record, and a heavier gym stack teaches the ladder by being used — no silent deadlock, ever");
   ok(__test.runAdaptive(cl90(rn1), isoL(Date.now())).feed.filter((f) => f.t === "HACK SQUAT — THE STACK TOPS OUT AT 160").length === 1, "MAXED — said ONCE, ever: the announcement does not nag");
+  /* ---------- THE FIX ROUND — the incident's TRUE mechanism, measured not remembered ---------- */
+  const prodHack = { id: "hack", n: "Hack squat", mg: "quads", day: "L", w: 160, inc: null, sets: 3, hi: 12,
+    last: null, lastMeta: { d: isoL(Date.now() - 3 * 864e5), w: 160, reps: [11, 11, 10], rir: 1, rirSets: [1, null, 0], debt: false } };
+  ok(JSON.stringify(__test.targetsFor(cl90(prodHack), cl90(SEED))) === JSON.stringify([10, 10, 10]), "FIX ROUND — the PHOTOGRAPH, reproduced from the MEASURED live shape (w 160, hi 12, last NULL, lastMeta 11·11·10 at the same load): the hi-2 fill prints 10·10·10 beside a beat-line built from the log — the first fixture fixed the hi-clamp, which was real but not the mechanism running");
+  const stH = cl90(SEED); stH.exercises = [...stH.exercises.filter((e) => e.id !== "hack"), cl90(prodHack)]; stH.v = __test.SCHEMA_V;
+  const healed90 = __test.migrate(cl90(stH));
+  const hkH = healed90.exercises.find((e) => e.id === "hack");
+  ok(JSON.stringify(hkH.last) === JSON.stringify([11, 11, 10]) && __test.targetsFor(hkH, healed90).every((t9, i9) => t9 >= [11, 11, 10][i9]), "FIX ROUND — THE HEAL: a same-load null is definitionally a stale cache (a deliberate reseed changes w first), so reconcileLiftCaches restores last from lastMeta and the card reads 11·11·11-class on next open — a restatement of the log, lawful under the migration law");
+  const stR = cl90(stH); stR.exercises.find((e) => e.id === "hack").last = [11, 11, 10]; stR.v = __test.SCHEMA_V - 1;
+  const mR = __test.migrate(cl90(stR));
+  ok(JSON.stringify(mR.exercises.find((e) => e.id === "hack").last) === JSON.stringify([11, 11, 10]), "FIX ROUND — THE RECURRENCE, DEAD: a full patch replay (v one behind runs the whole reduce, patchV24 included) no longer erases the banked delivery — the patch is idempotent against later states, which the PATCHES law now demands of every patch");
+  const stD = cl90(stR); const hD = stD.exercises.find((e) => e.id === "hack"); hD.last = null; hD.w = 180;
+  ok(__test.migrate(cl90(stD)).exercises.find((e) => e.id === "hack").last === null, "FIX ROUND — and a DELIBERATE reseed (load changed under the cache: lastMeta.w 160 ≠ w 180) survives both the guard and the heal untouched — the weight editor's and RESET's nulls keep their meaning");
+  ["2026-08-06", "2026-08-07"].forEach((d91) => {
+    const SP91 = __test.migrate(JSON.parse(readFileSync("tools/snapshots/" + d91 + "-ledger.json", "utf8")));
+    const bad91 = (SP91.exercises || []).filter((e) => e && e.last == null && e.lastMeta && Array.isArray(e.lastMeta.reps) && e.lastMeta.reps.length && String(e.lastMeta.w) === String(e.w)).map((e) => e.id);
+    ok(bad91.length === 0, "FIX ROUND — the LIVE-SHAPE sweep on the migrated " + d91 + " snapshot: no lift carries a same-load null (the exact shape that shipped) — the class the per-set floor sweep exempted, now swept by its own law (violators: " + (bad91.join(",") || "none") + ")");
+  });
+  const stArm = cl90(SEED);
+  stArm.exercises = [...stArm.exercises.filter((e) => e.id !== "hack"), { ...cl90(prodHack), last: [11, 11, 10] }];
+  stArm.blackout = { until: isoL(Date.now() - 28 * 864e5) };
+  const armLine = __test.runAdaptive(cl90(stArm), isoL(Date.now())).feed.find((f) => /HACK SQUAT — /.test(f.t));
+  ok(!!armLine && armLine.t === "HACK SQUAT — NO NEXT LOAD ON FILE AT 160" && /nobody has measured a ceiling/.test(armLine.how) && /log a heavier weight/.test(armLine.how), "FIX ROUND — THE NOTE DOES NOT GUESS: a plate-loaded lift (no rungs, no inc) gets the athlete-held claim — no next load ON FILE, not a stack limit nobody measured; the rungs-exhausted arm keeps TOPS OUT (asserted above), cap9 identical for both");
   /* THE PROPERTY, roster-wide, both frozen snapshots */
   ["2026-08-06", "2026-08-07"].forEach((d90) => {
     const SP90 = JSON.parse(readFileSync("tools/snapshots/" + d90 + "-ledger.json", "utf8"));
