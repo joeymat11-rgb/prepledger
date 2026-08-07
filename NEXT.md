@@ -1075,6 +1075,32 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15c — TRAIN, THE IN-SESSION SCREEN — BUILT 2026-08-07, branch feat/r15c-train
+
+**A restyle with the flow frozen.** Every GymMode handler, phase and state line untouched
+(FINAL85 pins the routing, the freeze gate pins the engine — byte-clean throughout). The
+visual layer is mockup screen 2 in DT tokens: LIFT x OF n header with progress dots, the
+lift card (display-voice name, TARGET well with beat-line from prev, set chips
+done✓/SET n/todo, 72px counter pair, amber LOG SET ≥64), the rest card with fill bar,
+restyled lift-done / session-complete.
+
+**New surfaces, all driven (+13, suite 1893):** `effortWords` speaks rirPlan as the
+mockup's exact instruction ("leave 2 in the tank → 1 in the tank → last set, empty it";
+×2 collapse at 4 sets; single-set and governor-hold cases honest); THE TWO ASKS are
+distinct species — opener jade ("THE HONEST GATEKEEPER", the HELD stake) vs terminal
+amber ("DID THE EFFORT LAND?" · "0 = you emptied it, exactly as planned") — pinned by
+data-ask attribute AND accent; ⊙ ON TRIAL tag on any lift inside its volumeConversion
+read window (§4b — the same instrument the producer reads, with have/need count); the
+weather line carries the sleep law ("SHORT SLEEP PROTECTS, IT NEVER PUNISHES") + the
+last-set check; touch ≥64 everywhere (primaries minHeight 64, counters 72, small text
+controls via the paint-slop split — now the standing rule).
+
+**The tap count, DERIVED not promised:** taps(n) = n logs + phaseAfterSet's own asks + 1
+advance, computed from the router in the test — 3-set = 6, single-set = 3, unchanged.
+
+STOPPED for critique round 1 (audit screenshots on the real ledger; ⊙ tag goes live the
+day a volume card is approved and its first session logs).
+
 ### R15b ROUND 4 — PAINT AND SLOP NEVER SHARE A CHANNEL
 
 Round 3 broke its own zero-pixel contract (4,842 px moved): the visible outline and the

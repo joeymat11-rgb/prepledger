@@ -6645,3 +6645,32 @@ if (fail) process.exit(1);
 }
 console.log(`\nFINAL87: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ==================== R15c — TRAIN, THE IN-SESSION SCREEN ====================
+   A restyle with the flow FROZEN: every handler, phase and state line of GymMode is
+   untouched (FINAL85 pins the routing; the freeze gate pins the engine). What R15c adds
+   is SPOKEN prescription (effortWords), the ⊙ trial tag, the paint-slop touch law
+   everywhere, and the two asks made visually distinct — driven and pinned below. */
+{
+  /* effort, in plain words — the mockup's own sentence, generated never authored */
+  ok(__test.effortWords([2, 1, 0]) === "leave 2 in the tank → 1 in the tank → last set, empty it", "R15c — rirPlan [2,1,0] speaks as the mockup's exact sentence: RIR as an instruction, generated from the plan");
+  ok(__test.effortWords([2, 1, 1, 0]) === "leave 2 in the tank → 1 in the tank (×2) → last set, empty it", "R15c — a fourth set collapses the repeated middle instead of droning: the added set is visible as ×2, failure still spent exactly once");
+  ok(__test.effortWords([2, 0]) === "leave 2 in the tank → last set, empty it", "R15c — a two-set lift speaks both asks' sets");
+  ok(__test.effortWords([0]) === "one set — empty it", "R15c — a single-set lift does not say 'leave' about a set it empties");
+  ok(/governor hold/.test(__test.effortWords([2, 2, 2, 2], true)) && /honest opener/.test(__test.effortWords([2, 2, 2, 2], true)), "R15c — a held lift's prescription names the governor and the way out, instead of pretending the flat plan is a taper");
+  /* the tap count, derived from the router itself — the acceptance says COUNT IT */
+  const taps = (n) => { let asks = 0; for (let i9 = 0; i9 < n; i9++) { const ph = __test.phaseAfterSet(i9, n); if (ph === "rir-open" || ph === "rir-end") asks++; } return n + asks + 1; };
+  ok(taps(3) === 6 && taps(2) === 5 && taps(1) === 3 && taps(4) === 7, "R15c — mandatory taps per lift, DERIVED from phaseAfterSet: n logs + its own asks + one advance (3-set = 6, single-set = 3). The restyle changed zero flow, so the count is the router's own arithmetic — not a hand promise");
+  /* the screen's laws, pinned at source */
+  const srcC = readFileSync("src/app.jsx", "utf8");
+  const gm = srcC.slice(srcC.indexOf("function GymMode("), srcC.indexOf("function NegotiatorConsole("));
+  ok(gm.indexOf('data-ask="opener"') > -1 && gm.indexOf('data-ask="terminal"') > -1 && gm.indexOf('borderLeft: "4px solid " + DT.jade') > -1 && gm.indexOf('borderLeft: "4px solid " + DT.amber') > -1, "R15c — the TWO asks are visually distinct species: the opener wears jade (the gatekeeper), the terminal wears amber (did the effort land) — pinned by attribute and accent so they can never converge silently");
+  ok(gm.indexOf("⊙ ON TRIAL — EARNING ITS PLACE") > -1 && gm.indexOf('vcT.status === "READING"') > -1, "R15c (§4b) — a set inside its read window wears the ⊙ trial tag, gated on the SAME volumeConversion the producer reads: the experiment made visible is the honesty made visible");
+  ok((gm.split("minHeight: 64").length - 1) >= 4 && gm.indexOf("width: 72, height: 72") > -1, "R15c — the 64 touch law on every primary control (LOG SET, NEXT, LOG IT, the ask chips) and 72px counter buttons: measured targets, not hopes");
+  ok(gm.indexOf('padding: "22px 12px", margin: "-16px -12px"') > -1, "R15c — small text controls carry hit-slop by the paint-slop split (padding grows the box, margin holds layout) — the R15b round-4 law, now the standing rule");
+  ok(gm.indexOf("effortWords(rp2.plan") > -1 && gm.indexOf("TARGET <b") > -1, "R15c — the prescription line is GENERATED from targetsFor's tgt and rirPlan's plan — the surface speaks the engine, it never re-derives it");
+  ok(gm.indexOf("SHORT SLEEP PROTECTS, IT NEVER PUNISHES") > -1, "R15c — the weather line carries the constitution's sleep law in its own words: a short night is named, never punished");
+  ok((gm.split("onClick={doneSet}").length - 1) === 1 && (gm.split("onClick={nextLift}").length - 1) === 1 && (gm.split("onClick={finish}").length - 1) === 1, "R15c — one primary path per action: exactly one LOG SET, one NEXT, one FINISH handler call-site each — the flow the tap count derives from is the flow that renders");
+}
+console.log(`\nFINAL88: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
