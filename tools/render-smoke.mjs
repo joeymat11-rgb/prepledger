@@ -19,9 +19,9 @@ const BANNED = ["RIR —", "undefined", "NaN", "[object Object]"];
    every state: demoting a screen must never mean it stops being exercised.
    PRIMARY are reachable from the bar; BEHIND_MORE need LEDGER clicked first. */
 const PRIMARY = ["NOW", "TRAIN"];
-const BEHIND_MORE = ["QUEUE", "BODY", "SLEEP", "LAB"];
+const BEHIND_MORE = ["QUEUE", "BODY", "SLEEP", "LAB", "THE BRIEFING ROOM"];   /* R15b — the classic NOW, moved not stranded */
 const TABS = [...PRIMARY, ...BEHIND_MORE];
-const MIN = { NOW: 300, TRAIN: 150, QUEUE: 200, BODY: 250, SLEEP: 250, LAB: 200 };
+const MIN = { NOW: 300, TRAIN: 150, QUEUE: 200, BODY: 250, SLEEP: 250, LAB: 200, "THE BRIEFING ROOM": 300 };
 
 const bundle = fs.readFileSync(await buildForTests(), "utf8");
 
@@ -96,6 +96,21 @@ async function tabText(window, label) {
     setTimeout(() => r(window.document.getElementById("root").textContent || ""), 60));
 }
 
+/* R15b — walk to the classic NOW (LEDGER -> THE BRIEFING ROOM), where NOW_DOORS' Groups
+   and the approval inbox now mount. Two taps, exactly as he would make them. */
+async function openBriefing(window) {
+  const led = await findClickable(window, "LEDGER", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("LEDGER"));
+  if (!led) throw new Error("LEDGER tab button missing");
+  led.click();
+  await new Promise((r) => setTimeout(r, 80));
+  /* role-scoped: an ancestor card's textContent also startsWith the row title — the same
+     trap tabText's length cap guards; role=button pins the actual tappable row. */
+  const room = await findClickable(window, "THE BRIEFING ROOM", (b) => b.getAttribute && b.getAttribute("role") === "button" && b.textContent.trim().startsWith("THE BRIEFING ROOM"));
+  if (!room) throw new Error("THE BRIEFING ROOM row missing — the classic NOW is stranded");
+  room.click();
+  await new Promise((r) => setTimeout(r, 250));
+}
+
 const todayISO = (() => {
   const d = new Date();
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" +
@@ -114,6 +129,16 @@ const states = [
 ];
 
 let failed = 0;
+/* R15b — the simplicity budget in the LIVE DOM: exactly five data-now blocks on NOW. */
+{
+  const w5 = await mount();
+  await new Promise((r) => setTimeout(r, 250));
+  const nBlocks = w5.document.querySelectorAll("[data-now]").length;
+  if (nBlocks !== 5) { console.error("RENDER-SMOKE: NOW renders " + nBlocks + " blocks, the budget is FIVE — accretion is the disease the redesign cures"); failed++; }
+  const plus = [...w5.document.querySelectorAll("button")].some((b) => (b.getAttribute("aria-label") || "") === "Quick log");
+  if (!plus) { console.error("RENDER-SMOKE: the + capture affordance is missing from NOW"); failed++; }
+  w5.close();
+}
 for (const [name, mut] of states) {
   const w = await mount(mut);
   for (const t of TABS) {
@@ -147,7 +172,8 @@ for (const [name, mut] of states) {
 {
   const w = await mount();
   await new Promise((r) => setTimeout(r, 250));
-  for (const m of checkDoors(w, "now.", "NOW")) { console.error("RENDER-SMOKE: " + m); failed++; }
+  await openBriefing(w);
+  for (const m of checkDoors(w, "now.", "THE BRIEFING ROOM")) { console.error("RENDER-SMOKE: " + m); failed++; }
   // TRAIN's Groups register only while TRAIN is mounted
   try {
     const t = await findClickable(w, "TRAIN", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("TRAIN"));
@@ -169,11 +195,12 @@ for (const [name, mut] of states) {
     st.proposals = [{ rid: 'ap_smoke', id: 'ap_smoke_1', d: todayISO, title: 'AUTO-PILOT · EASE THE TARGET', why: 'smoke', apply: { kind: 'cal', delta: 100, dir: 'ease', calDelta: 100, stepsDelta: 0 }, resolved: false }];
   });
   await new Promise((r) => setTimeout(r, 250));
+  await openBriefing(w);
   if (!(w.document.body.textContent || '').includes('FOR YOU TO OK')) {
-    console.error('RENDER-SMOKE: seeded a proposal but the approval inbox did not mount — its door key cannot be checked');
+    console.error('RENDER-SMOKE: seeded a proposal but the approval inbox did not mount in the briefing room — its door key cannot be checked');
     failed++;
   } else {
-    for (const m of checkDoors(w, "now.", "NOW with the inbox mounted")) { console.error("RENDER-SMOKE: " + m); failed++; }
+    for (const m of checkDoors(w, "now.", "the briefing room with the inbox mounted")) { console.error("RENDER-SMOKE: " + m); failed++; }
   }
 }
 
@@ -187,6 +214,7 @@ for (const [name, mut] of states) {
     st.proposals = [{ rid: "steppush_2026-08-03", id: "sp_smoke_1", d: todayISO, title: "UNDER THE CORRIDOR — STEPS FIRST", why: "smoke", apply: { kind: "cal", calDelta: -23, delta: -23, stepsDelta: 1000, prefer: "steps" }, resolved: false }];
   });
   await new Promise((r) => setTimeout(r, 250));
+  await openBriefing(w);
   const txt = w.document.body.textContent || "";
   if (!txt.includes("Add the steps — +1,000/day")) {
     console.error("RENDER-SMOKE: prefer:steps card's PRIMARY button is not the walk — expected 'Add the steps — +1,000/day' in the mounted inbox");

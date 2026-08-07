@@ -10780,6 +10780,102 @@ function statusTarget(s, deps) {
   return null;
 }
 __test.statusFace = statusFace;
+
+/* ---------- R15b — THE NOW MODEL (the five-block simplicity budget, brief §1) ----------
+   Complexity lives in the engine, never on the screen. This is a FORMATTER: every number
+   it emits is an engine call's output rearranged — engine-owns-numbers, and the R15
+   freeze proves it computes nothing new. Plain-language law: the dictionary's surface
+   terms only; the precise phrasing stays one tap down, in the classic briefing room.
+   `deps` is the statusFace pattern: fixtures inject a rung to drive TODAY'S MOVE without
+   reverse-engineering five levers of state. */
+function nowModelUncached(s, deps) {
+  const tISO = isoOf(todayStart());
+  const eb = energyBalanceTarget(s);
+  const face = (deps && deps.face) || statusFace(s);
+  const prog = (deps && deps.prog) || ((eb.regime === "unknown") ? progressionTrend(s) : null);
+  const nTrend = (() => { if (!prog || prog.state !== "unknown") return 4; const m9 = /only (\d+) lift/.exec(prog.why || ""); return m9 ? +m9[1] : 0; })();
+  /* AT MOST ONE coach-state box — the most consequential wins (§1). Learning beats the
+     one-variable wait: a detector that cannot read yet explains every other silence. */
+  const smw = structuralMovesThisWeek(s);
+  const coach = eb.regime === "unknown"
+    ? { title: "YOUR COACH IS STILL LEARNING", body: "It wants more workout data before changing anything — it can read " + nTrend + " of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses." }
+    : (smw.moves.length ? { title: "ONE CHANGE AT A TIME", body: "Something changed this week (" + (smw.moves[0].kind === "sets" ? "a training tweak" : smw.moves[0].kind === "steps" ? "your step target" : "your calorie range") + ") — the coach holds every other lever until the scale can say what that one change did." } : null);
+  const pt = proteinTarget(s);
+  const eat = {
+    gated: !!eb.gated, lo: eb.gated ? null : eb.lo, hi: eb.gated ? null : eb.hi,
+    tag: eb.provisional && !eb.gated ? "FIRST ESTIMATE" : null,
+    sub: eb.gated ? "A few more logged days and the range appears — the coach never guesses a number this important."
+      : (eb.dir === "deficit" ? "Eating a bit less than you burn — that's the plan working." : eb.dir === "surplus" ? "Eating a bit more than you burn — building costs fuel, and that's the plan." : "Eating about what you burn — holding steady is the plan right now.") + (eb.provisional ? " This range firms up after your next weigh-in." : ""),
+    proteinG: pt.g, proteinNote: "IF IT'S A MEAL, EAT THE PROTEIN FIRST",
+  };
+  /* TODAY'S MOVE — the coach picks ONE thing (§1: a coach that surfaces everything at
+     once is a dashboard; one that picks is a coach). Unanswered decision cards outrank
+     the ladder — they ARE what matters most today; then theOneFix's ladder (logging →
+     steps → sleep → break/trim); then the rate story; then the quiet line. */
+  const decisionsN = ((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length);
+  const fix = (deps && deps.fix) || theOneFix(s);
+  const rb = cutRateBand(s);
+  const cr = currentRate(s);
+  let move;
+  if (decisionsN > 0) move = { kind: "decisions", n: decisionsN,
+    title: decisionsN === 1 ? "ONE DECISION WAITS ON YOU" : decisionsN + " DECISIONS WAIT ON YOU",
+    body: "Real changes never happen without your OK. Each card says what it does in plain words, and one tap always undoes it. Tap here to open them." };
+  else if (fix.state === "caution") move = { kind: "fix", lever: fix.lever, title: _plain9(String(fix.title || "").toUpperCase()), body: _plain9(fix.body) };
+  else if (cr.measured && !eb.gated && (cr.scale > rb.band[1] || cr.scale < rb.band[0]))
+    move = { kind: "rate", title: "HOW FAST YOU'RE LOSING", strip: _rateStrip(rb, cr), body: _rateWord(rb, cr) };
+  else move = { kind: "quiet", title: "NOTHING NEEDS YOU", body: "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying." };
+  /* NEXT WORKOUT */
+  let workout = { title: "REST DAY", sub: "Recovery is training too — the next session is on its way.", today: false };
+  try {
+    for (let k9 = 0; k9 < 7; k9++) {
+      const d9 = isoOf(new Date(todayStart().getTime() + k9 * 864e5));
+      const dt9 = dayType(d9, s);
+      if (dt9 === "U" || dt9 === "L") {
+        const sess9 = genSession(s, d9);
+        const beats = ((sess9 && sess9.ex) || []).filter((e) => e && e.prev && Array.isArray(e.prev.reps) && e.prev.reps.length).slice(0, 2)
+          .map((e) => e.n + (typeof e.w === "number" ? " " + e.w : "") + " — beat " + e.prev.reps.join("·"));
+        workout = { title: (dt9 === "U" ? "UPPER BODY" : "LOWER BODY") + " · " + (k9 === 0 ? "TODAY" : k9 === 1 ? "TOMORROW" : fmtShort(d9).toUpperCase()), sub: beats.join(" · "), today: k9 === 0, iso: d9 };
+        break;
+      }
+    }
+  } catch (e) {}
+  /* WHERE YOU'RE HEADED */
+  const pp = paceProjection(s);
+  const bf = bfEst(s);
+  const rng = (pp.ok && pp.banded) ? [pp.lo, pp.hi].filter((x) => x != null).map((x) => Math.round(x)).sort((a, b) => a - b) : [];
+  const headed = {
+    weight: s.trend,
+    line: pp.ok ? "about " + pp.wks + " weeks to ~" + Math.round(pp.mid) + (rng.length === 2 ? " (could land " + rng[0] + "–" + rng[1] + ")" : "") : "a few more weigh-ins and the road ahead draws itself",
+    bfLine: "body fat: best guess " + Math.round(bf.pct) + "%, honestly " + Math.round(bf.lo) + "–" + Math.round(bf.hi),
+    foot: "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK",
+  };
+  return { tISO, status: { word: face.word, glyph: face.glyph, cause: face.cause, coach }, eat, move, decisionsN, workout, headed };
+}
+/* the surface translation (brief §1): the ladder's engine copy is already mostly plain,
+   but a few engine terms leak — swap them at the surface, never in the engine, so the
+   precise wording survives one tap down where the classic briefing room renders it. */
+function _plain9(t) { return String(t || "").replace(/the deficit/g, "the calorie cut").replace(/deficit/gi, "calorie cut"); }
+/* strip geometry: one domain (0 → a hair past the fast rule), everything a % of it */
+function _rateStrip(rb, cr) {
+  const D9 = rb.redline * 1.18;
+  const pc = (x) => Math.max(0, Math.min(100, +((x / D9) * 100).toFixed(1)));
+  return { zoneLo: pc(rb.band[0]), zoneHi: pc(rb.band[1]), slow: pc(rb.floor), fast: pc(rb.redline),
+    ciLo: cr.lo != null ? pc(Math.max(0, cr.lo)) : null, ciHi: cr.hi != null ? pc(cr.hi) : null,
+    mark: pc(cr.scale), label: cr.scale.toFixed(1) + " LB/WK" };
+}
+function _rateWord(rb, cr) {
+  const above = cr.scale > rb.band[1], below = cr.scale < rb.band[0];
+  const nearEdge = above ? (cr.lo != null && cr.lo <= rb.band[1]) : (below ? (cr.hi != null && cr.hi >= rb.band[0]) : false);
+  const rel = above ? (nearEdge ? "a hair past the sweet spot's edge" : "faster than the sweet spot") : (below ? (nearEdge ? "just under the sweet spot" : "slower than the sweet spot") : "inside the sweet spot");
+  const act = cr.scale > rb.redline ? "That is fast enough to start costing muscle — a card with the fix will come to you."
+    : nearEdge ? "But scales wobble day to day (that's the thin white line), so you may well be inside it. Nothing needs to change."
+    : above ? "Worth watching for a week — if it holds, the coach will bring you a card." : "If it holds, the coach reaches for the cheapest lever first — never a crash cut.";
+  return "You're losing about " + cr.scale.toFixed(1) + " lb a week — " + rel + ". " + act;
+}
+const _nowMemo = memoOnState((s) => nowModelUncached(s));
+function nowModel(s, deps) { return deps ? nowModelUncached(s, deps) : _nowMemo(s); }
+__test.nowModel = nowModel;
+
 __test.marchingOrder = marchingOrder;
 __test.statusTarget = statusTarget;
 __test.activeAdjustment = activeAdjustment; __test.apSteerHandled = apSteerHandled; __test.proposalEffect = proposalEffect;
@@ -11390,6 +11486,118 @@ function ConditionalForesightLine({ s }) {
         {etaReached(cf.etaWks) ? <>target reached {cf.label}</> : <>~<span data-num style={{ fontFamily: mono }}>{cf.etaWks}</span> wks {cf.label}</>}
       </div>
       <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs }}>plan-conditional — not your measured trend yet; it converges as weigh-ins land</div>
+    </div>
+  );
+}
+
+
+/* ---------- R15b — THE BAND STRIP (the signature element, brief §2b) ----------
+   ONE grammar for every uncertain quantity: a soft gradient ZONE (zones are zones, never
+   cliffs), hard TICKS only where real rules fire, a whisker for the day-to-day wobble,
+   one marker. Built once, reused; a one-off range visual anywhere else is a build error. */
+function BandStrip({ g }) {
+  if (!g) return null;
+  const tick = (left, colr, label, lc) => (<>
+    <div style={{ position: "absolute", top: 19, width: 1.5, height: 18, background: colr, left: left + "%" }} />
+    <div style={{ position: "absolute", top: 42, left: left + "%", transform: "translateX(-50%)", fontFamily: mono, fontSize: 9, color: lc, letterSpacing: "0.06em", whiteSpace: "nowrap" }}>{label}</div>
+  </>);
+  return (
+    <div style={{ position: "relative", height: 58, marginTop: 13 }}>
+      <div style={{ position: "absolute", left: 0, right: 0, top: 26, height: 4, background: DT.well, borderRadius: 2 }} />
+      <div style={{ position: "absolute", top: 25, height: 6, borderRadius: 3, left: g.zoneLo + "%", width: Math.max(0, g.zoneHi - g.zoneLo) + "%", background: "linear-gradient(90deg,transparent, rgba(94,212,162,.5) 22%, rgba(94,212,162,.5) 78%, transparent)" }} />
+      <div style={{ position: "absolute", top: 42, left: ((g.zoneLo + g.zoneHi) / 2) + "%", transform: "translateX(-50%)", fontFamily: mono, fontSize: 9, color: DT.jade, letterSpacing: "0.08em" }}>SWEET SPOT</div>
+      {tick(g.slow, DT.hairline2, "too slow", DT.dim)}
+      {tick(g.fast, "rgba(224,96,86,.6)", "too fast", DT.red)}
+      {g.ciLo != null && g.ciHi != null && <div style={{ position: "absolute", top: 27.5, height: 1.5, background: "rgba(233,238,244,.35)", left: g.ciLo + "%", width: Math.max(0, g.ciHi - g.ciLo) + "%" }} />}
+      <div style={{ position: "absolute", top: 17, width: 2.5, height: 22, background: DT.ink, borderRadius: 2, left: g.mark + "%", transform: "translateX(-50%)" }} />
+      <div style={{ position: "absolute", top: 0, fontFamily: mono, fontSize: 11, fontWeight: 700, left: g.mark + "%", transform: "translateX(-50%)", letterSpacing: "0.04em", fontVariantNumeric: "tabular-nums", color: DT.ink }}>{g.label}</div>
+    </div>
+  );
+}
+
+/* ---------- R15b — NOW (mockup screen 1, live engine values) ----------
+   Exactly FIVE blocks — the simplicity budget is a law, not a layout: status → EAT TODAY
+   → TODAY'S MOVE (the one dynamic block) → NEXT WORKOUT → WHERE YOU'RE HEADED. Every
+   number renders from nowModel, which only rearranges engine outputs. The classic NOW
+   (capture, briefing, the room, the decision cards' full home) is one tap away in THE
+   BRIEFING ROOM behind LEDGER — moved, never stranded. */
+function NowTab2({ s, setS, save, go }) {
+  const m = nowModel(s);
+  const [qlOpen, setQlOpen] = useState(false);
+  const readToday = (s.reads || []).find((r) => r.d === m.tISO);
+  const [wIn, setWIn] = useState(() => (readToday ? readToday.w : s.trend));
+  const card9 = { background: DT.card, border: "1px solid " + DT.hairline, borderRadius: DT.radius, padding: 15, marginBottom: 11 };
+  const lbl9 = { fontFamily: mono, fontSize: 10, letterSpacing: "0.18em", color: DT.dim, fontWeight: 600 };
+  const tnum = { fontFamily: mono, fontVariantNumeric: "tabular-nums" };
+  const dt9 = new Date(Date.parse(m.tISO + "T12:00:00"));
+  const brandDate = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][dt9.getDay()] + " " + ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][dt9.getMonth()] + " " + dt9.getDate();
+  return (
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      {/* the brand row is chrome, not a content block — the budget counts blocks */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "4px 2px 10px" }}>
+        <span style={{ fontFamily: mono, fontSize: 11, letterSpacing: "0.34em", color: DT.steel, fontWeight: 700 }}>MEASURED</span>
+        <span style={{ fontFamily: mono, fontSize: 10, color: DT.dim, letterSpacing: "0.08em", fontVariantNumeric: "tabular-nums" }}>{brandDate}</span>
+      </div>
+      <div data-now="status" style={{ padding: "6px 2px 14px" }}>
+        <div style={{ ...tnum, fontSize: 28, fontWeight: 700, letterSpacing: "0.06em", color: DT.amber }}><span style={{ fontSize: 19, verticalAlign: 3, marginRight: 9 }}>{m.status.glyph || DT.glyph.status}</span>{m.status.word}</div>
+        <div style={{ fontFamily: body, fontSize: 13.5, color: DT.steel, lineHeight: 1.5, marginTop: 7 }}>{m.status.cause}</div>
+        {m.status.coach && (
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginTop: 13, padding: "12px 13px", background: DT.well, border: "1px dashed " + DT.hairline2, borderRadius: 14 }}>
+            <div style={{ width: 7, height: 7, borderRadius: "50%", background: DT.dim, marginTop: 5, flex: "none" }} />
+            <p style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, margin: 0 }}><b style={{ ...tnum, fontSize: 10.5, letterSpacing: "0.1em", color: DT.ink, fontWeight: 600 }}>{m.status.coach.title}</b><br />{m.status.coach.body}</p>
+          </div>
+        )}
+      </div>
+      <div data-now="eat" style={card9}>
+        <div style={lbl9}>EAT TODAY</div>
+        {m.eat.gated
+          ? <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, marginTop: 9, lineHeight: 1.5 }}>{m.eat.sub}</div>
+          : (<>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 7, marginTop: 9, flexWrap: "wrap" }}>
+              <span style={{ ...tnum, fontSize: 32, fontWeight: 700 }}>{m.eat.lo}</span><span style={{ color: DT.dim, fontSize: 21 }}>–</span><span style={{ ...tnum, fontSize: 32, fontWeight: 700 }}>{m.eat.hi}</span><span style={{ ...tnum, fontSize: 11, color: DT.dim, letterSpacing: "0.12em" }}>KCAL</span>
+              {m.eat.tag && <span style={{ ...tnum, fontSize: 9, letterSpacing: "0.14em", color: DT.amber, border: "1px solid rgba(229,180,84,.35)", borderRadius: 999, padding: "3px 8px" }}>{m.eat.tag}</span>}
+            </div>
+            <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, marginTop: 9, lineHeight: 1.5 }}>{m.eat.sub}</div>
+            <div style={{ ...tnum, fontSize: 12.5, marginTop: 11, letterSpacing: "0.04em" }}>{m.eat.proteinG} G PROTEIN <span style={{ color: DT.dim, fontSize: 10.5, letterSpacing: "0.08em" }}>· {m.eat.proteinNote}</span></div>
+          </>)}
+      </div>
+      <div data-now="move" style={{ ...card9, cursor: m.move.kind === "decisions" ? "pointer" : "default" }} onClick={m.move.kind === "decisions" ? () => go("BRIEF") : undefined} role={m.move.kind === "decisions" ? "button" : undefined} tabIndex={m.move.kind === "decisions" ? 0 : undefined}>
+        <div style={lbl9}>{m.move.kind === "rate" ? m.move.title : "TODAY'S MOVE"}</div>
+        {m.move.kind === "rate"
+          ? (<><BandStrip g={m.move.strip} /><div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.55, marginTop: 5 }}>{m.move.body}</div></>)
+          : (<><div style={{ ...tnum, fontSize: 14, fontWeight: 700, letterSpacing: "0.06em", marginTop: 6, color: m.move.kind === "decisions" ? DT.decision : DT.ink }}>{m.move.title}</div>
+              <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.55, marginTop: 6 }}>{m.move.body}</div></>)}
+      </div>
+      <div data-now="workout" style={{ ...card9, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={lbl9}>NEXT WORKOUT</div>
+          <div style={{ ...tnum, fontSize: 14, fontWeight: 700, letterSpacing: "0.1em", marginTop: 6 }}>{m.workout.title}</div>
+          {m.workout.sub ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, marginTop: 5, lineHeight: 1.5 }}>{m.workout.sub}</div> : null}
+        </div>
+        <button onClick={() => go("TRAIN")} style={{ ...tnum, fontSize: 10.5, letterSpacing: "0.12em", color: DT.jade, border: "1px solid rgba(94,212,162,.35)", padding: "9px 14px", borderRadius: 999, fontWeight: 700, flex: "none", background: "none", minHeight: 44, cursor: "pointer" }}>START ▸</button>
+      </div>
+      <div data-now="headed" style={card9}>
+        <div style={lbl9}>WHERE YOU'RE HEADED</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 7, gap: 10 }}>
+          <div style={{ ...tnum, fontSize: 19, fontWeight: 700 }}>{m.headed.weight} LB</div>
+          <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, textAlign: "right", lineHeight: 1.45 }}>{m.headed.line}<br />{m.headed.bfLine}</div>
+        </div>
+        <div style={{ ...tnum, fontSize: 9, color: DT.dim, letterSpacing: "0.1em", marginTop: 11 }}>{m.headed.foot}</div>
+      </div>
+      {/* the + affordance (§3): weight is the one log that feeds everything — one tap here;
+          the full capture lives one tap further, in the classic briefing room. */}
+      <button onClick={() => { hap(8); setQlOpen(true); }} aria-label="Quick log"
+        style={{ position: "fixed", right: 16, bottom: "calc(96px + env(safe-area-inset-bottom))", zIndex: 60, width: 52, height: 52, borderRadius: "50%", background: DT.amber, color: "#141008", border: "none", boxShadow: "none", fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", cursor: "pointer" }}>+</button>
+      <Sheet open={qlOpen} onClose={() => setQlOpen(false)} title="LOG WEIGHT">
+        <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.5 }}>{readToday ? "Already logged " + readToday.w + " lb this morning — update it if the scale said otherwise." : "This morning's scale, straight in. Everything else lives one tap away in the briefing room."}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, justifyContent: "center" }}>
+          <button aria-label="less" onClick={() => setWIn((x) => +(x - 0.1).toFixed(1))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>−</button>
+          <div style={{ ...tnum, fontSize: 32, fontWeight: 700, minWidth: 110, textAlign: "center" }}>{wIn}</div>
+          <button aria-label="more" onClick={() => setWIn((x) => +(x + 0.1).toFixed(1))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>+</button>
+        </div>
+        <Btn full tone="jade" onClick={() => { const base = readToday ? undoRead(s, m.tISO) : s; const ns2 = runAdaptive(applyRead(base, m.tISO, wIn), m.tISO); setS(ns2); save(ns2); hap(12); setQlOpen(false); }}>{readToday ? "Update to " + wIn + " lb" : "Log " + wIn + " lb"}</Btn>
+        <button onClick={() => { setQlOpen(false); go("BRIEF"); }} style={{ marginTop: 8, width: "100%", fontFamily: mono, fontSize: TS.micro, color: DT.steel, background: "none", border: "1px solid " + DT.hairline, borderRadius: 8, padding: "9px", cursor: "pointer" }}>everything else — open the briefing room</button>
+      </Sheet>
     </div>
   );
 }
@@ -15151,6 +15359,8 @@ function HistTab({ s, setS, save }) {
    and fails to deliver, without moving anything. */
 function MoreTab({ s, go, openRules, openCoach }) {
   const rooms = [
+    { k: "BRIEF", t: "THE BRIEFING ROOM", sub: "the classic NOW — capture, the briefing, the room, and every decision card in its full home",
+      hint: (() => { try { const n9 = ((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length); return n9 ? n9 + " waiting on your OK" : null; } catch (e) { return null; } })() },
     { k: "HIST", t: "LAB", sub: "the instruments — every verdict the engine is currently willing to make",
       hint: (() => { try { return labStatusList(s).filter((c) => c.status === "LIVE").length + " speaking now"; } catch (e) { return null; } })() },
     { k: "QUEUE", t: "QUEUE", sub: "what is earned, what is waiting, and the gate on each",
@@ -15744,7 +15954,7 @@ export default function PrepLedger() {
      is waiting — but a badge does not move the target, and moving the target is
      what cost the 8%. */
   const PRIMARY_TABS = ["NOW", "TRAIN", "LEDGER"];
-  const SECONDARY_TABS = ["QUEUE", "BODY", "SLEEP", "HIST"];
+  const SECONDARY_TABS = ["BRIEF", "QUEUE", "BODY", "SLEEP", "HIST"];
   const TAB_LABEL = { HIST: "LAB" };
   const inMore = SECONDARY_TABS.indexOf(tab) > -1;
   const tabs = PRIMARY_TABS;
@@ -15802,7 +16012,8 @@ export default function PrepLedger() {
         {inMore && (
           <div onClick={() => setTab("LEDGER")} role="button" tabIndex={0} aria-label="Back to Ledger" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, cursor: "pointer", padding: "0 0 12px", letterSpacing: "0.06em", display: "inline-block" }}>‹ LEDGER</div>
         )}
-        {tab === "NOW" && <TabGuard name="NOW"><NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}
+        {tab === "NOW" && <TabGuard name="NOW"><NowTab2 s={s} setS={setS} save={save} go={setTab} /></TabGuard>}
+        {tab === "BRIEF" && <TabGuard name="BRIEF"><NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}
         {tab === "TRAIN" && <TabGuard name="TRAIN"><LogTab s={s} setS={setS} save={save} slp={slp} /></TabGuard>}
         {tab === "QUEUE" && <TabGuard name="QUEUE"><QueueTab s={s} slp={slp} /></TabGuard>}
         {tab === "BODY" && <TabGuard name="BODY"><BodyTab s={s} setS={setS} save={save} /></TabGuard>}
@@ -15825,7 +16036,7 @@ export default function PrepLedger() {
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
             <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: (tab === t2 || (t2 === "LEDGER" && inMore)) ? `2px solid ${T.gauge}` : "2px solid transparent", fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, letterSpacing: "0.09em", transition: TR("color", MOT.micro), color: (tab === t2 || (t2 === "LEDGER" && inMore)) ? T.gauge : T.steel }}>
-              {TAB_LABEL[t2] || t2}{t2 === "NOW" && (s.agentProposals || []).length > 0 ? <span style={{ color: T.jade, fontWeight: 700 }}> ●{(s.agentProposals || []).length}</span> : null}
+              {TAB_LABEL[t2] || t2}{t2 === "LEDGER" && (((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length)) > 0 ? <span style={{ color: T.jade, fontWeight: 700 }}> ●{((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length)}</span> : null}
             </button>
           ))}
         </div>

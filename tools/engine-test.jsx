@@ -6562,3 +6562,70 @@ if (fail) process.exit(1);
   ok(src15.indexOf("\\" + "u00b7 target") === -1 && src15.indexOf(" " + "\\" + "u00d7 {") === -1, "R15a — no JSX-text unicode escapes survive: \\u00b7 and \\u00d7 between JSX expressions render as LITERAL CHARACTERS on screen (they were live on TODAY'S LIFTS and GymMode's prev line) — escapes belong in JS strings, glyphs belong in JSX text");
 }console.log(`\nFINAL86: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ==================== R15b — NOW, THE FIVE-BLOCK ANSWER ====================
+   nowModel is a FORMATTER: every number it emits is an engine output rearranged. The
+   engine-freeze gate proves it computes nothing new; these drives prove the five-block
+   budget, the one-thing selection, the abstention box, plain language, and
+   engine-owns-numbers — on the REAL frozen ledger first, fixtures after. */
+{
+  const cl87 = (o) => JSON.parse(JSON.stringify(o));
+  const S7n = JSON.parse(readFileSync("tools/snapshots/2026-08-07-ledger.json", "utf8"));
+  const m = __test.nowModel(S7n);
+  const eb87 = __test.energyBalanceTarget(S7n);
+  ok(m.status.word === "ON COURSE" && m.status.glyph === "◆" && (m.status.cause || "").length > 20, "R15b — the live status is the app's face: ON COURSE ◆ with a plain-sentence cause, straight from statusFace — the redesign renders the engine's voice, it does not invent one");
+  ok(!!m.status.coach && m.status.coach.title === "YOUR COACH IS STILL LEARNING" && /never guesses/.test(m.status.coach.body) && /0 of the 4/.test(m.status.coach.body), "R15b — the ABSTENTION BOX appears on the real snapshot exactly when the regime is unknown, and says the honest thing: still learning, 0 of 4 lifts readable, the plan holds, it never guesses — an instrument warming up must not look broken");
+  ok(m.eat.lo === eb87.lo && m.eat.hi === eb87.hi && m.eat.gated === false, "R15b — ENGINE OWNS THE NUMBERS: the EAT band on screen is energyBalanceTarget's own lo–hi (" + m.eat.lo + "–" + m.eat.hi + "), never re-derived, never rounded differently");
+  ok(eb87.provisional === true && m.eat.tag === "FIRST ESTIMATE", "R15b — 'provisional' reaches the athlete as FIRST ESTIMATE, and the tag appears exactly when the engine says provisional — the dictionary is a translation, never a second opinion");
+  ok(m.eat.proteinG === __test.proteinTarget(S7n).g, "R15b — the protein number is proteinTarget's own headline gram figure");
+  const openN = (S7n.proposals || []).filter((p) => p && !p.resolved).length + (S7n.agentProposals || []).length;
+  ok(m.move.kind === "decisions" && m.move.n === openN && openN > 0, "R15b — TODAY'S MOVE on the live state: " + openN + " unanswered decision cards ARE what matters most today, and the count is computed from the same state the inbox reads");
+  ok(/UPPER BODY|LOWER BODY|REST DAY/.test(m.workout.title) && /beat /.test(m.workout.sub), "R15b — NEXT WORKOUT names the day type and builds its beat-lines from genSession's own prev reps: " + m.workout.title);
+  const bf87 = __test.bfEst(S7n);
+  ok(m.headed.bfLine === "body fat: best guess " + Math.round(bf87.pct) + "%, honestly " + Math.round(bf87.lo) + "–" + Math.round(bf87.hi), "R15b — the honest body-fat range renders bfEst's own interval in the dictionary's words: " + m.headed.bfLine);
+  ok(/AN ESTIMATE, NOT A PROMISE/.test(m.headed.foot), "R15b — and the trajectory footer says what a projection is");
+  /* the ladder surfaces when decisions clear — on the REAL state, sleep is today's rung */
+  const R87 = cl87(S7n);
+  (R87.proposals || []).forEach((p) => { p.resolved = true; });
+  R87.agentProposals = [];
+  const m2 = __test.nowModel(R87);
+  ok(m2.move.kind === "fix" && m2.move.lever === "SLEEP", "R15b — decisions cleared, TODAY'S MOVE is theOneFix's own ladder speaking on the real state (tonight's rung: sleep) — the one-thing machinery, not a new invention");
+  ok(/calorie cut/.test(m2.move.body) && !/\bdeficit\b/i.test(m2.move.body), "R15b — the ladder's one engine term is translated AT THE SURFACE ('the deficit' → 'the calorie cut'); the engine copy itself is untouched and lives one tap down");
+  /* the rate story, driven with the ladder quiet */
+  const m3 = __test.nowModel(R87, { fix: { rung: "hold", lever: null, state: "good", title: "x", body: "y" } });
+  const cr87 = __test.currentRate(R87);
+  ok(m3.move.kind === "rate" && m3.move.strip.label === cr87.scale.toFixed(1) + " LB/WK", "R15b — with the ladder quiet and the rate outside the sweet spot, the band strip is the move — marker label is currentRate's own 1dp figure");
+  const g87 = m3.move.strip;
+  ok([g87.zoneLo, g87.zoneHi, g87.slow, g87.fast, g87.mark].every((x) => x >= 0 && x <= 100) && g87.zoneLo < g87.zoneHi && g87.slow <= g87.zoneLo && g87.fast >= g87.zoneHi, "R15b — strip geometry is sane: zone inside the rail, the slow rule at or left of the zone, the fast rule at or right of it — zones soft, rules hard, one domain");
+  ok(/sweet spot/.test(m3.move.body) && /wobble|inside it|watching/.test(m3.move.body), "R15b — and the rate sentence speaks the dictionary: sweet spot, scales wobble — never floor, redline, or an interval symbol");
+  /* the quiet state — a fixture whose rate sits INSIDE the sweet spot */
+  const isoW = (k) => isoL(Date.now() - k * 864e5);
+  const Q87 = cl87(SEED);
+  Q87.blackout = { until: isoW(28) };
+  Q87.reads = Array.from({ length: 28 }, (_, i) => ({ d: isoW(27 - i), w: +(167 - i * 0.15).toFixed(2), sealed: false }));
+  Q87.trend = Q87.reads[Q87.reads.length - 1].w;
+  Q87.sleep.nights = Array.from({ length: 10 }, (_, i) => ({ d: isoW(9 - i), h: 8.2 }));
+  Q87.proposals = []; Q87.agentProposals = [];
+  const mq = __test.nowModel(Q87, { fix: { rung: "hold", lever: null, state: "good", title: "x", body: "y" } });
+  ok(mq.move.kind === "quiet" && /Silence is a valid state/.test(mq.move.body), "R15b — nothing to say IS a designed state: rate inside the sweet spot, ladder quiet, no decisions — the block says the quiet thing instead of inventing urgency");
+  /* the steps line, via the statusFace deps pattern */
+  const ms = __test.nowModel(Q87, { fix: { rung: "steps", lever: "STEPS", state: "caution", title: "Add a walk today", body: "Steps are the lever here, not your calories." } });
+  ok(ms.move.kind === "fix" && ms.move.lever === "STEPS" && /walk/i.test(ms.move.title), "R15b — a steps-drifted day makes the walk the move, through the same injected-deps pattern statusFace already uses for fixtures");
+  /* AT MOST ONE coach box, most consequential wins */
+  const MC87 = cl87(S7n);
+  MC87.adjustments = [...(MC87.adjustments || []), { rid: "x9", id: "mc1", d: "2026-08-04", via: "cal", calDelta: -50, from: "2026-08-04" }];
+  const m6 = __test.nowModel(MC87);
+  ok(!!m6.status.coach && m6.status.coach.title === "YOUR COACH IS STILL LEARNING" && !Array.isArray(m6.status.coach), "R15b — with the detector unreadable AND a structural move on the week, exactly ONE coach box renders and learning wins: dashed boxes stay rare to stay meaningful");
+  /* THE BANNED-JARGON SCAN — word-boundary-aware, over everything the surface emits */
+  const corpus = JSON.stringify(m) + JSON.stringify(m2) + JSON.stringify(m3) + JSON.stringify(mq) + JSON.stringify(ms);
+  [[/\bprovisional\b/i, "provisional"], [/\bregime\b/i, "regime"], [/\bRIR\b/, "RIR"], [/\bredline\b/i, "redline"], [/\bcorridor\b/i, "corridor"], [/\bdeficit\b/i, "deficit"]].forEach(([re, w9]) => {
+    ok(!re.test(corpus), "R15b JARGON — no NOW surface says \"" + w9 + "\": the plain-language law, scanned across the live model and every driven variant");
+  });
+  /* the five-block budget, at the source layer (render smoke counts the DOM) */
+  const srcN = readFileSync("src/app.jsx", "utf8");
+  const nt2 = srcN.slice(srcN.indexOf("function NowTab2("), srcN.indexOf("function NowTab({"));
+  ok((nt2.split('data-now="').length - 1) === 5, "R15b — the simplicity budget is a LAW: NowTab2 renders exactly five data-now blocks (" + (nt2.split('data-now="').length - 1) + ") — a sixth block is the accretion disease the redesign exists to cure, and this assert is its vaccine");
+  ok(nt2.indexOf("BandStrip") > -1 && (srcN.split("function BandStrip(").length - 1) === 1, "R15b — ONE band-strip component, used by the move block: every uncertain quantity draws the same way, and a one-off range visual is a build error");
+}
+console.log(`\nFINAL87: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);

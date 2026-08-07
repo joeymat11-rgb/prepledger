@@ -1075,6 +1075,37 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15b — NOW, THE FIVE-BLOCK ANSWER — BUILT 2026-08-07, branch feat/r15b-now
+
+**NOW is the mockup's screen 1 with live engine values, and the budget is a LAW.** Exactly
+five `data-now` blocks — status → EAT TODAY → TODAY'S MOVE → NEXT WORKOUT → WHERE YOU'RE
+HEADED — asserted at source AND counted in the live DOM by the render smoke. `nowModel`
+is a memoized FORMATTER (statusFace, energyBalanceTarget, proteinTarget, theOneFix,
+cutRateBand, currentRate, paceProjection, bfEst, genSession, structuralMovesThisWeek —
+rearranged, never re-derived; the engine-freeze gate stayed byte-clean through the whole
+slice). On the live ledger it reproduces the mockup almost verbatim: ON COURSE ◆, the
+learning box ("0 of the 4 lifts... It never guesses"), 2221–2308 KCAL · FIRST ESTIMATE,
+"about 4 weeks to ~158 (could land 157–160)", "best guess 14%, honestly 11–18".
+
+**TODAY'S MOVE picks ONE thing:** unanswered decisions (tap → the briefing room) →
+theOneFix's ladder → the rate story (the BandStrip: zones soft, rules hard, whisker,
+marker — built ONCE) → the designed quiet line. All five driven; at most ONE coach box
+(learning beats the one-variable wait, driven on a both-conditions fixture). The one
+jargon leak found by the scan — "deficit" in ladder copy — is translated AT the surface
+(`_plain9`), engine copy untouched one tap down. Word-boundary jargon scan (provisional /
+regime / RIR / redline / corridor / deficit) clean across the live model and every
+driven variant.
+
+**The classic NOW is THE BRIEFING ROOM behind LEDGER — moved, never stranded.** Full
+capture, the doors, the inbox, every decision card: two taps. The rail badge (decisions
+count) moved to LEDGER. The + on NOW logs weight in one tap (the log that feeds
+everything); everything else is one tap further. Render smoke walks the new path (door
+keys, seeded inbox, steppush label pin all re-anchored there; the room-finder is
+role-scoped after the ancestor-match trap bit once).
+
+**Suite 1849 → 1876.** Screenshots remain the audit's rung (headless here) — critique
+round 1 runs on the branch preview.
+
 ### R15a — TOKENS + SHELL — BUILT 2026-08-07, branch feat/r15a-shell (redesign brief v4)
 
 **NUMBERING:** R15 now names the complete UI redesign (Joe's approved sequence). The parked
