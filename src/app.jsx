@@ -11379,8 +11379,10 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
 
       {/* WHY THIS NUMBER (SAT L1/L2/L3 + confidence) — one tap down */}
       <div style={{ marginTop: SP.md, borderTop: `1px solid ${T.line}`, paddingTop: SP.md }}>
-        <button onClick={() => setWhyOpen(!whyOpen)} aria-expanded={whyOpen}
-          style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px", cursor: "pointer" }}>why this number {whyOpen ? "▾" : "▸"}</button>
+        {/* R15e round 2 — painted-control split: the span carries the pill byte-for-byte */}
+        <button onClick={() => setWhyOpen(!whyOpen)} aria-expanded={whyOpen} style={{ background: "none", border: "none", padding: "7px 0", margin: "-7px 0", cursor: "pointer" }}>
+          <span style={{ display: "inline-block", fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px" }}>why this number {whyOpen ? "▾" : "▸"}</span>
+        </button>
         {whyOpen && (
           <div style={{ marginTop: SP.sm }}>
             {[why.l1, why.l2, why.l3].map((lv, i) => (
@@ -11396,8 +11398,10 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
 
       {/* TRACK RECORD — honest predicted-vs-actual, MISSES included (Dietvorst 2015) */}
       <div style={{ marginTop: SP.md }}>
-        <button onClick={() => setTrOpen(!trOpen)} aria-expanded={trOpen}
-          style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px", cursor: "pointer" }}>track record {trOpen ? "▾" : "▸"}{tr.graded ? ` · ${tr.hits}/${tr.graded} within noise` : ""}</button>
+        {/* R15e round 2 — painted-control split: the span carries the pill byte-for-byte */}
+        <button onClick={() => setTrOpen(!trOpen)} aria-expanded={trOpen} style={{ background: "none", border: "none", padding: "7px 0", margin: "-7px 0", cursor: "pointer" }}>
+          <span style={{ display: "inline-block", fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.gauge, border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px" }}>track record {trOpen ? "▾" : "▸"}{tr.graded ? ` · ${tr.hits}/${tr.graded} within noise` : ""}</span>
+        </button>
         {trOpen && (
           <div style={{ marginTop: SP.sm }}>
             <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: `${LH.body}px` }}>{tr.calibration}</div>
@@ -11647,8 +11651,10 @@ function PhaseArcCard({ s, setS, save, tISO }) {
         <div style={{ fontFamily: body, fontSize: TS.micro, color: T.orange, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>&#9650; {sup.first ? sup.first.text : sup.why}</div>
       )}
       <div style={{ marginTop: SP.md, borderTop: `1px solid ${T.line}`, paddingTop: SP.md }}>
-        <button onClick={() => setOpen(!open)} aria-expanded={open}
-          style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: tone, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px", cursor: "pointer" }}>the arc {open ? "▾" : "▸"}</button>
+        {/* R15e round 2 — painted-control split: the span carries the pill byte-for-byte */}
+        <button onClick={() => setOpen(!open)} aria-expanded={open} style={{ background: "none", border: "none", padding: "7px 0", margin: "-7px 0", cursor: "pointer" }}>
+          <span style={{ display: "inline-block", fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: tone, border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px" }}>the arc {open ? "▾" : "▸"}</span>
+        </button>
         {open && (
           <div style={{ marginTop: SP.sm }}>
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.06em" }}>NOW &middot; {arc.label} &mdash; week {arc.weeks}</div>

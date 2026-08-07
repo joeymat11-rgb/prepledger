@@ -1088,6 +1088,20 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15e ROUND 2 — THE PAINTED-PILL CLASS IS CLOSED — 2026-08-08
+
+Both audit rulings executed. **Ruling 1** (dual diary lines): correct as built, no
+rid-keyed dedupe — closed, nothing changed. **Ruling 2**: the three remaining pills
+(why this number / track record / the arc — AutoPilotTrust ×2, PhaseArcCard) wear the
+identical split the why-not pill got: outer button paint-free slop (`7px 0` padding,
+equal-and-opposite margin), the pill byte-for-byte on the inner span, hit ≥44 by the
+same arithmetic the audit measured at 45px on why-not. Class-closure pins: four pills,
+four identical splits, and the OLD shape (a bordered pill that is its own hit box)
+pinned EXTINCT file-wide. Suite 2026 → 2027, freeze byte-clean, both fixtures unmoved
+this round. Rig note: the three cards are state-conditional and DORMANT on the live 8/7
+snapshot (no instance mounts on BRIEF to measure) — the pins and the identical
+arithmetic carry the proof; a fixture state can drive pixels if the audit wants them.
+
 ### R15e ROUND 1 — THE COPY SWEEP — BUILT 2026-08-08, branch feat/r15e-copy
 
 **The Pelland claim reads as the curve it is.** The volband note retitled
