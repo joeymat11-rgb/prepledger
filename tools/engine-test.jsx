@@ -4280,10 +4280,12 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
   // RIR_TIMING (§3.1.7-9) — the last set is asked for AT the set, not at lift-done.
   {
     const PAS = __test.phaseAfterSet;
-    ok(PAS(0, 3) === "rest" && PAS(1, 3) === "rest", "a non-final set still goes to REST — the timer flow is unchanged");
-    ok(PAS(2, 3) === "rir-end", "the FINAL set routes to the RIR screen, not to lift-done: the estimate is taken seconds after the set instead of recalled after the whole lift (~0.46 vs ~1.2 reps of error)");
-    ok(PAS(0, 1) === "rir-end", "a single-set lift asks immediately too");
-    ok(PAS(5, 3) === "rir-end", "and an over-run set index still lands on the RIR screen rather than falling through");
+    ok(PAS(0, 3) === "rir-open", "OPENER RIDER — the FIRST set routes to the opener ask: re-timed to the set (where the error is smallest), not removed — v7.12.0's removal broke the governor in production and this is the repair");
+    ok(PAS(1, 3) === "rest", "a middle set still goes straight to REST — middle sets are prescribed, unrated on purpose");
+    ok(PAS(2, 3) === "rir-end", "the FINAL set routes to the terminal RIR screen, untouched: the estimate is taken seconds after the set (~0.46 vs ~1.2 reps of error)");
+    ok(PAS(0, 1) === "rir-end", "a SINGLE-set lift asks the terminal question only — its one set IS the failure set, so the opener ask would be the same question twice");
+    ok(PAS(0, 2) === "rir-open" && PAS(1, 2) === "rir-end", "a two-set lift asks both questions, one per set — exactly what the field dictionary promises");
+    ok(PAS(5, 3) === "rir-end", "and an over-run set index still lands on the terminal screen rather than falling through");
   }
 
   // QUEUED #2 E — exOrder had NO merge hardening and rode the wholesale local-wins spread.
@@ -6490,4 +6492,56 @@ if (fail) process.exit(1);
   ok(dre.proposals.filter((p) => /^volpush_hams_/.test(p.rid)).length === 1 && !dre.proposals.some((p) => /^volpush_hams_/.test(p.rid) && !p.resolved), "OWNER — a declined owner's-call card never refiles from this producer (once EVER); the earned producer remains the only path back, and it must re-earn the gates");
 }
 console.log(`\nFINAL84: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+/* ==================== THE OPENER ASK RETURNS (rider) ====================
+   Production 8/4 + 8/6: v7.12.0 removed the opener ask, every entry carried rir:null,
+   rows' holdFlag froze TRUE (the release branch needs en.rir >= 1 — unreachable), and the
+   analyst blamed the blank it created. The flow is re-timed, the engine unchanged — the
+   drives below replay the production failure END TO END through the gym path
+   (gymEntries -> completeSession), never from hand-built entries. */
+{
+  const cl85 = (o) => JSON.parse(JSON.stringify(o));
+  const SNAP85 = JSON.parse(readFileSync("tools/snapshots/2026-08-06-ledger.json", "utf8"));
+  const slp85 = { clean: true, run: 3, last: { d: "2026-08-05", h: 8 } };
+  const sessEx = [{ id: "rows", n: "Rows (strapless)", w: 180, tgt: [9, 8] }];
+  const viaGym = (tgt, reps, rirVal, rirEndVal) => __test.gymEntries(sessEx.map((e) => ({ ...e, tgt })), { reps: { rows: reps }, rir: rirVal == null ? {} : { rows: rirVal }, rirEnd: rirEndVal == null ? {} : { rows: rirEndVal }, gskip: {}, touched: { rows: true } }).entries;
+  /* THE PRODUCTION REPLAY: rows 180x9,8, honest opener 1, through the gym path */
+  ok(SNAP85.exercises.find((e) => e.id === "rows").holdFlag === true && JSON.stringify(SNAP85.exercises.find((e) => e.id === "rows").rirHist) === "[0,0]", "OPENER — the frozen snapshot carries the real stuck state: rows HELD with rirHist [0,0], the exact production condition this rider exists to release");
+  const rated = __test.completeSession(cl85(SNAP85), "2026-08-06", viaGym([9, 8], [9, 8], 1, 0), slp85, {});
+  ok(rated.lines.some((l) => l.t === "ROWS (STRAPLESS) — HOLD RELEASED") && rated.s.exercises.find((e) => e.id === "rows").holdFlag === false, "OPENER — REPLAYED: the same honest 180x9,8 WITH its opener rated 1 fires HOLD RELEASED and the governor lets go — driven end to end from the gym path on the real ledger state");
+  ok(JSON.stringify(rated.s.exercises.find((e) => e.id === "rows").rirHist) === "[0,0,1]", "OPENER — and rirHist breathes again: the rolling window the freeze/release logic reads had been suffocated at [0,0] since v7.12.0");
+  const unrated = __test.completeSession(cl85(SNAP85), "2026-08-06", viaGym([9, 8], [9, 8], null, 0), slp85, {});
+  ok(!unrated.lines.some((l) => /HOLD RELEASED/.test(l.t)) && unrated.s.exercises.find((e) => e.id === "rows").holdFlag === true, "OPENER — the counterfactual, same path: unrated, the release branch is unreachable and the hold stays stuck — the production failure, reproduced before it was fixed");
+  /* the skip path fabricates nothing and blocks nothing */
+  const skipped = unrated.s.sessionLog["2026-08-06"].entries[0];
+  ok(skipped.rir === null && JSON.stringify(skipped.rirSets) === "[null,0]" && !!unrated.s.exercises.find((e) => e.id === "rows").lastMeta, "OPENER — declining the ask records null, never a fabricated number: the entry logs, lastMeta writes, every downstream read treats absent as unknown");
+  /* THE GOVERNOR'S SIGHT, both ways: a top-of-window GRIND with the opener captured is
+     refused; the same grind unrated was being BANKED AS AN EARN — the deepest harm of the
+     removal, worse than the stuck hold, driven here in both directions */
+  const G85 = cl85(SNAP85);
+  const rowsG = G85.exercises.find((e) => e.id === "rows");
+  rowsG.holdFlag = false; rowsG.rirHist = [];
+  const grindSeen = __test.completeSession(cl85(G85), "2026-08-06", viaGym([10, 9], [10, 9], 0, 0), slp85, {});
+  ok(grindSeen.lines.some((l) => l.t === "ROWS (STRAPLESS) — TOP OF WINDOW, BUT HOT") && !grindSeen.s.queue.some((q) => q.exId === "rows" && q.kind === "debut" && !q.done), "OPENER — a top-of-window GRIND with its opener captured at 0 is refused: a grind is not an earn, and the governor can finally see it again");
+  const grindBlind = __test.completeSession(cl85(G85), "2026-08-06", viaGym([10, 9], [10, 9], null, 0), slp85, {});
+  ok(grindBlind.lines.some((l) => l.t === "ROWS (STRAPLESS) 185 EARNED"), "OPENER — the same grind UNRATED banks 185 as an earn: the blind engine promotes a grind to a load jump. This is the deepest production harm of the v7.12.0 removal — not just a stuck hold, a corrupted earn — and it is why the ask returns");
+  /* the press replay, both ways — MEASURE WINS over the rider's claim: banking is
+     opener-independent in current mechanics (the 8/6 press never tops its window at
+     8 < hi 9, and the record's banks-now/pending line is a 2SE question, not an RIR one).
+     Asserted so the fact is on the record and the claim cannot silently drift into lore. */
+  const e86p = JSON.parse(readFileSync("tools/snapshots/2026-08-07-ledger.json", "utf8")).sessionLog["2026-08-06"].entries.filter((e) => e.id === "press");
+  const pR = __test.completeSession(cl85(SNAP85), "2026-08-06", [{ ...cl85(e86p[0]), rir: 1 }], slp85, {});
+  const pU = __test.completeSession(cl85(SNAP85), "2026-08-06", [{ ...cl85(e86p[0]), rir: null }], slp85, {});
+  ok(pR.lines.map((l) => l.t).join("|") === pU.lines.map((l) => l.t).join("|") && !pR.s.queue.some((q) => q.exId === "press" && q.kind === "debut" && !q.done) && !pU.s.queue.some((q) => q.exId === "press" && q.kind === "debut" && !q.done), "OPENER — the real 8/6 press replays IDENTICALLY rated and unrated: its bank was never opener-gated (8 < hi 9 never tops the window; the record line is sized by 2SE, not RIR). The rider's press claim did not reproduce — the grind-earn above is the true mechanism, and this assert keeps the record straight");
+  /* copy-mechanism agreement: the dictionary's promise is delivered by the flow */
+  const src85 = readFileSync("src/app.jsx", "utf8");
+  ok(/Rate two sets: the FIRST/.test(src85) && __test.phaseAfterSet(0, 3) === "rir-open" && __test.phaseAfterSet(2, 3) === "rir-end", "OPENER — the field dictionary says 'Rate two sets: the FIRST... and the LAST' and the flow now offers exactly those two asks: the app no longer documents a flow it does not offer");
+  ok(/HELD — an honest ≥1 here releases the load/.test(src85), "OPENER — when the lift is HELD, the ask names its stake in one line: the tap that matters most is labeled with why");
+  /* a flow + input change, not a formula change: the frozen reads are untouched */
+  const S7f = JSON.parse(readFileSync("tools/snapshots/2026-08-07-ledger.json", "utf8"));
+  const ebf = __test.energyBalanceTarget(S7f, { asOf: "2026-08-07" });
+  ok(ebf.lo === 2221 && ebf.hi === 2308 && __test.regime(S7f, { asOf: "2026-08-07" }).key === "unknown", "OPENER — the eat band and the regime read are byte-identical through this rider: the engine's formulas did not move, only the flow that feeds them");
+}
+console.log(`\nFINAL85: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

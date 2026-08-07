@@ -304,7 +304,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.20.0";
+const APP_V = "7.20.1";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -14248,22 +14248,27 @@ function mergeSessionDrafts(sessEx, trainDraft, gymDraft, opts) {
   return out;
 }
 
-/* RIR_TIMING — which phase follows a banked set.
+/* RIR_TIMING — which phase follows a banked set. RE-TIMED, NOT REMOVED (opener rider).
 
-   Self-reported RIR carries a large, directional error that is dominated by WHEN you ask:
-   it falls from ~4.8 reps at 33% of a set to ~1.2 at 90%, and from 1.2 reps at 5 RIR to
-   0.46 at 1 RIR [2]. The app used to collect both RIRs at lift-done — after every set of
-   the lift was finished, from memory — which is the worst available moment, and it gave
-   the opener equal visual weight to the last set.
+   Self-reported RIR carries a large, directional error dominated by WHEN you ask: it
+   falls from ~4.8 reps at 33% of a set to ~1.2 at 90%, and from 1.2 reps at 5 RIR to
+   0.46 at 1 RIR [2]. The app once collected both RIRs at lift-done — from memory, the
+   worst moment. v7.12.0 fixed the timing for the LAST set (asked at the set) but fixed
+   the opener by REMOVING its ask entirely. That was the wrong half of a right idea, and
+   it broke the governor in production (8/4 + 8/6): every entry carried rir:null, the
+   holdFlag release branch requires en.rir >= 1 — unreachable when the flow never captures
+   it — so rows sat HELD after an honest 180×9,8, and the earn-block's grind detection
+   (en.rir === 0) went blind the same day. The system removed the input, then blamed the
+   blank. The governor's own design says the opener is the honest gatekeeper: earns judge
+   the OPENER, so the terminal 0 can never corrupt the signal — and the field dictionary
+   tells him to rate two sets. Flow and engine agree again:
 
-   The last set is now asked for at the moment it is banked. The opener prompt leaves the
-   default flow entirely: the engine's own comment says the opener is a weak signal, every
-   opener in the log reads 1-2 so it carries almost no variance, and it is measured where
-   error is largest. The field stays and remains editable from the lift detail on TRAIN.
-
-   The 0/1/2/3+ scale is deliberately NOT widened — accuracy collapses above ~3 RIR, so
-   finer buckets up there would be false precision. [2] */
-function phaseAfterSet(setN, nSets) { return setN + 1 < nSets ? "rest" : "rir-end"; }
+   set 1 banks -> the opener ask, in the same instant-capture pattern as the last set
+   ("asked HERE, seconds after the set"), then rest; middle sets -> rest; the last set ->
+   the terminal ask, untouched. One tap, skippable — a skip records null, never
+   fabricates. A single-set lift asks the terminal question only. The 0/1/2/3+ scale is
+   deliberately NOT widened — accuracy collapses above ~3 RIR [2]. */
+function phaseAfterSet(setN, nSets) { return setN + 1 >= nSets ? "rir-end" : setN === 0 ? "rir-open" : "rest"; }
 
 /* backLift — step a Gym Mode session back one lift and CLEAR the skip on the lift it
    returns to. Skipping was one-way: nextLift only moves forward, skipLift sets gskip and
@@ -14380,8 +14385,13 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const doneSet = () => {
     touch(ex.id);   // TOUCH — a banked set is an action only he can take
     const nSets = getR(ex).length;
-    if (setN + 1 < nSets) { const len = restFor(ex.id, setN + 1, nSets); setSetN(setN + 1); setRestLen(len); setRestStart(Date.now()); setT(len); setPhase("rest"); setRests((r) => ({ ...r, n: r.n + 1 })); }
-    else setPhase(phaseAfterSet(setN, nSets));   // RIR_TIMING — the last set asks immediately
+    const nx = phaseAfterSet(setN, nSets);   // RIR_TIMING — one router, all three destinations
+    if (nx === "rir-end") { setPhase(nx); return; }
+    /* rest params are armed NOW for both rest and the opener ask: the rest clock starts at
+       the bank (restStart = wall time), so the two seconds the ask takes are honestly
+       inside the rest, never added to the session */
+    const len = restFor(ex.id, setN + 1, nSets); setSetN(setN + 1); setRestLen(len); setRestStart(Date.now()); setT(len); setRests((r) => ({ ...r, n: r.n + 1 }));
+    setPhase(nx);
   };
   /* Undo the last banked set: step back one and restore the value it held. */
   const undoSet = () => { if (setN <= 0) return; setSetN(setN - 1); setPhase("lift"); setRests((r) => ({ ...r, n: Math.max(0, r.n - 1) })); };
@@ -14435,6 +14445,22 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <Btn small onClick={() => { setRestStart(Date.now()); }}>restart rest</Btn>
           <Btn small onClick={() => { if (restCut(restStart, Date.now())) setRests((r) => ({ ...r, cut: r.cut + 1 })); setT(0); setPhase("lift"); }}>Skip rest</Btn>
         </div>
+      ) : phase === "rir-open" ? (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
+          <H size={26}>First set — how many left?</H>
+          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>{ex.n} · {getR(ex)[0]} reps at {ex.w}</div>
+          {/* RIR_TIMING — asked HERE, seconds after the set; the rest clock is already running. */}
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em" }}>REPS IN RESERVE · the opener is the honest gatekeeper — earns judge THIS number</div>
+          {ex.holdFlag && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.06em" }}>HELD — an honest ≥1 here releases the load</div>}
+          <div style={{ display: "flex", gap: 8 }}>
+            {[0, 1, 2, 3].map((v) => (
+              <button key={v} onClick={() => { touch(ex.id); setRir({ ...rir, [ex.id]: v }); setPhase("rest"); }}
+                style={{ flex: 1, fontFamily: mono, fontSize: 20, padding: "16px 0", borderRadius: 10, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>{v === 3 ? "3+" : v}</button>
+            ))}
+          </div>
+          <button onClick={() => setPhase("rest")} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "9px", width: "100%" }}>skip — leave it unrecorded</button>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: 1.5 }}>One tap, then rest. 0 twice running holds the weight; an honest 1 keeps every earn judged on a number you actually reported.</div>
+        </div>
       ) : phase === "rir-end" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
           <H size={26}>Last set — how many left?</H>
@@ -14455,13 +14481,13 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <H size={26}>{ex.n} — done</H>
           <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>logged: {getR(ex).join(" · ")} at {ex.w}</div>
           <div>
-            {/* The opener prompt has left the default flow — see RIR_TIMING. The field still
-                exists and is editable from the lift detail on TRAIN; it is simply no longer
-                asked for on every lift of every session, which is ~15 taps a week spent on
-                the measurement with the largest error and the least variance. */}
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em" }}>LAST SET RIR</div>
-            <div style={{ fontFamily: mono, fontSize: TS.label, color: rirEnd[ex.id] == null ? T.steel : T.jade, marginTop: 6 }}>
-              {rirEnd[ex.id] == null ? "not recorded" : `${rirEnd[ex.id] === 3 ? "3+" : rirEnd[ex.id]} — taken at the set`}
+            {/* Both asks live in the flow again — see RIR_TIMING (re-timed, not removed).
+                Each is one tap at its own set; both editable from the lift detail on TRAIN. */}
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em" }}>OPENER RIR · LAST SET RIR</div>
+            <div style={{ fontFamily: mono, fontSize: TS.label, marginTop: 6 }}>
+              <span style={{ color: rir[ex.id] == null ? T.steel : T.jade }}>{rir[ex.id] == null ? "opener not recorded" : `opener ${rir[ex.id] === 3 ? "3+" : rir[ex.id]}`}</span>
+              <span style={{ color: T.steel }}> · </span>
+              <span style={{ color: rirEnd[ex.id] == null ? T.steel : T.jade }}>{rirEnd[ex.id] == null ? "last not recorded" : `last ${rirEnd[ex.id] === 3 ? "3+" : rirEnd[ex.id]} — taken at the set`}</span>
             </div>
           </div>
           <Btn full tone="jade" onClick={nextLift}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</Btn>

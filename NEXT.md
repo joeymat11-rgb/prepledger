@@ -1075,6 +1075,35 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### THE OPENER ASK RETURNS — BUILT 2026-08-07, branch feat/opener-ask (rider, stacked on owner-call)
+
+**The v7.12.0 orphan, repaired at its root.** Timing was the right half (asked at the set,
+error collapses); REMOVING the opener instead of re-timing it was the wrong half — in
+production every entry carried rir:null, rows' holdFlag froze TRUE at rirHist [0,0] (the
+release branch needs en.rir >= 1, unreachable), and the analyst blamed the blank the
+system created. `phaseAfterSet` now routes set 1 → the opener ask (same instant-capture
+pattern as the terminal ask, rest clock already running so the tap costs zero session
+time), middle sets → rest, last set → terminal (untouched); single-set lifts ask the
+terminal only. One tap, skippable, null never fabricated. A HELD lift's ask names its
+stake ("HELD — an honest ≥1 here releases the load").
+
+**Driven end to end from the gym path** (gymEntries → completeSession, never hand-built),
+on the real frozen ledger: the honest 180×9,8 WITH opener 1 → HOLD RELEASED, holdFlag
+false, rirHist breathing again ([0,0,1]); unrated → stuck, the production failure
+reproduced. **The deepest harm found while driving:** a top-of-window GRIND unrated was
+being BANKED AS AN EARN ("185 EARNED" off an opener-0 grind) — the blind engine promoted
+grinds to load jumps; with the opener captured it is refused ("TOP OF WINDOW, BUT HOT").
+Both directions asserted.
+
+**MEASURE WON over one rider claim, flagged:** the real 8/6 press replays IDENTICALLY
+rated and unrated — its bank was never opener-gated (8 < hi 9 never tops the window; the
+record's banks-now/pending line is a 2SE question, not an RIR one). Asserted so the claim
+cannot drift into lore; the grind-earn above is the true mechanism.
+
+**Copy-mechanism agreement:** the dictionary's "Rate two sets" is now delivered by the
+flow, asserted. Eat band + regime byte-identical (flow + input change, no formula change).
+Suite 1832 → 1845. RIR_TIMING comment rewritten to the re-timed truth.
+
 ### OWNER'S CALL — RAISE ALL THREE — BUILT 2026-08-07, branch feat/owner-call-volume (rider)
 
 **Joe overrode the closed gates, on the record.** He was shown the allocation, the closed
