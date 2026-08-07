@@ -6611,6 +6611,13 @@ if (fail) process.exit(1);
   /* the steps line, via the statusFace deps pattern */
   const ms = __test.nowModel(Q87, { fix: { rung: "steps", lever: "STEPS", state: "caution", title: "Add a walk today", body: "Steps are the lever here, not your calories." } });
   ok(ms.move.kind === "fix" && ms.move.lever === "STEPS" && /walk/i.test(ms.move.title), "R15b — a steps-drifted day makes the walk the move, through the same injected-deps pattern statusFace already uses for fixtures");
+  /* CRITIQUE S1 — the doubled leading verb, driven as a class */
+  const md = __test.nowModel(Q87, { fix: { rung: "logging", lever: "LOGGING", state: "caution", title: "Close the books first", body: "Log log the scale — the read leans on your own numbers." } });
+  ok(md.move.body.indexOf("Log the scale") === 0, "CRITIQUE S1 — a rung whose copy already starts with the verb never gets a second one: the surface collapses the doubled LEADING word as a class ('Log log the scale' becomes 'Log the scale'); the engine's own copy is frozen and its fix is filed separately");
+  /* and the repaired boundary regex actually fires on a BARE 'deficit' (the backspace-byte
+     incident left the old one unreachable — this drive keeps it alive) */
+  const mb = __test.nowModel(Q87, { fix: { rung: "calories", lever: "DEFICIT", state: "caution", title: "Trim", body: "A deficit deepened now is honest." } });
+  ok(/calorie cut deepened/.test(mb.move.body), "CRITIQUE S1 — the word-boundary translation fires on a bare 'deficit' too: the repaired regex is driven, not decorative — a dead guard indistinguishable from a live one was this session's own incident class");
   /* AT MOST ONE coach box, most consequential wins */
   const MC87 = cl87(S7n);
   MC87.adjustments = [...(MC87.adjustments || []), { rid: "x9", id: "mc1", d: "2026-08-04", via: "cal", calDelta: -50, from: "2026-08-04" }];

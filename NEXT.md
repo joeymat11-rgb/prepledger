@@ -1075,6 +1075,30 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15b ROUND 2 — CRITIQUE FIXES (S1–S3 structural, R1–R4 taken)
+
+**S1** — "Log log the scale": theOneFix composes a verb onto an owed title already carrying
+it — ENGINE copy, frozen, so the surface collapses a doubled LEADING word as a class
+(driven), and the engine-side copy fix is filed for the next engine window. Found under S1:
+the earlier heredoc had turned the deficit-translation's word boundaries into literal
+BACKSPACE BYTES (the incident-log class, third occurrence) — the regex was dead while every
+test stayed green because the plain-string first replace carried the live case. Rebuilt by
+line surgery, zero BS bytes verified, and BOTH the collapse and the bare-"deficit" boundary
+now have drives so a dead guard cannot hide again.
+
+**S2** — the FAB drops to the clear air above the rail (bottom 56+inset) and the column
+gains 72px bottom clearance: START never shares pixels with it, the last block scrolls
+past. **S3** — the 64px law is met by HIT AREA (transparent-border slop: FAB 52-visual/
+64-hit, START 44-visual/64-hit), and the resolution is written into the tokens comment.
+
+**R1** dash sized to the numerals (32px, weight 300, optically centered). **R2** WHERE
+YOU'RE HEADED is one left-anchored column. **R3** the abstention marker is ◇, the app's
+own vocabulary. **R4** DECIDED AND WRITTEN INTO THE TOKENS: Barlow Condensed 600/700 owns
+the status word and card sub-heads; Plex Mono owns data (numbers, overline labels); Barlow
+owns prose. Applied to status word, move title, workout title.
+
+Suite 1876 → 1878, freeze byte-clean. STOPPED for round-2 re-screenshots.
+
 ### R15b — NOW, THE FIVE-BLOCK ANSWER — BUILT 2026-08-07, branch feat/r15b-now
 
 **NOW is the mockup's screen 1 with live engine values, and the budget is a LAW.** Exactly

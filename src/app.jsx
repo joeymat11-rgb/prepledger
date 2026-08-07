@@ -249,6 +249,12 @@ const DT = {
   ramp: [9, 10.5, 12, 13.5, 15, 19, 24, 32, 54],
   track: { small: "0.20em", mid: "0.10em", display: "0.04em" },
   glyph: { status: "◆", ok: "◇", fwd: "▸", sep: "·" },
+  /* touch: the 64px law is met by HIT AREA — transparent borders / negative-margin slop —
+     so a 44px pill or a 52px FAB keeps its visual size while its tap box reaches 64
+     (critique S3). A control whose HIT box is under 64 is the violation, not its paint.
+     DISPLAY VOICE (critique R4): Barlow Condensed 600/700 owns the status word and card
+     sub-heads; IBM Plex Mono owns DATA — numbers, overline labels, ticks. Prose is
+     Barlow. No fourth voice. */
   touch: 64,
 };
 /* `hair` (2) is an OPTICAL inset only — nudging a glyph onto its baseline, never
@@ -10854,7 +10860,16 @@ function nowModelUncached(s, deps) {
 /* the surface translation (brief §1): the ladder's engine copy is already mostly plain,
    but a few engine terms leak — swap them at the surface, never in the engine, so the
    precise wording survives one tap down where the classic briefing room renders it. */
-function _plain9(t) { return String(t || "").replace(/the deficit/g, "the calorie cut").replace(/deficit/gi, "calorie cut"); }
+function _plain9(t) { return String(t || "").replace(/the deficit/g, "the calorie cut").replace(/\bdeficit\b/gi, "calorie cut")
+  /* CRITIQUE S1 — theOneFix composes a verb onto an owed title that may already carry
+     the same verb ("Log " + "log the scale" -> "Log log the scale"). The engine is
+     FROZEN, so the surface collapses a doubled LEADING word — the class, not the
+     instance — and the engine-side copy fix is filed for the next engine window.
+     (This line also repairs its own predecessor: a shell heredoc once turned the
+     word-boundary escapes into literal backspace bytes — the incident-log class —
+     leaving the second replace unreachable; the plain-string first replace carried
+     the live case, which is why every test stayed green while the regex was dead.) */
+  .replace(/^(\w+)\s+\1\b/i, "$1"); }
 /* strip geometry: one domain (0 → a hair past the fast rule), everything a % of it */
 function _rateStrip(rb, cr) {
   const D9 = rb.redline * 1.18;
@@ -11532,18 +11547,18 @@ function NowTab2({ s, setS, save, go }) {
   const dt9 = new Date(Date.parse(m.tISO + "T12:00:00"));
   const brandDate = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][dt9.getDay()] + " " + ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][dt9.getMonth()] + " " + dt9.getDate();
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
+    <div style={{ display: "flex", flexDirection: "column", paddingBottom: 72 /* CRITIQUE S2 — the last block scrolls past the FAB; the FAB itself sits in the clear air above the rail, never on START */ }}>
       {/* the brand row is chrome, not a content block — the budget counts blocks */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "4px 2px 10px" }}>
         <span style={{ fontFamily: mono, fontSize: 11, letterSpacing: "0.34em", color: DT.steel, fontWeight: 700 }}>MEASURED</span>
         <span style={{ fontFamily: mono, fontSize: 10, color: DT.dim, letterSpacing: "0.08em", fontVariantNumeric: "tabular-nums" }}>{brandDate}</span>
       </div>
       <div data-now="status" style={{ padding: "6px 2px 14px" }}>
-        <div style={{ ...tnum, fontSize: 28, fontWeight: 700, letterSpacing: "0.06em", color: DT.amber }}><span style={{ fontSize: 19, verticalAlign: 3, marginRight: 9 }}>{m.status.glyph || DT.glyph.status}</span>{m.status.word}</div>
+        <div style={{ fontFamily: disp, fontSize: 28, fontWeight: 700, letterSpacing: "0.04em", color: DT.amber }}><span style={{ fontFamily: mono, fontSize: 19, verticalAlign: 3, marginRight: 9 }}>{m.status.glyph || DT.glyph.status}</span>{m.status.word}</div>
         <div style={{ fontFamily: body, fontSize: 13.5, color: DT.steel, lineHeight: 1.5, marginTop: 7 }}>{m.status.cause}</div>
         {m.status.coach && (
           <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginTop: 13, padding: "12px 13px", background: DT.well, border: "1px dashed " + DT.hairline2, borderRadius: 14 }}>
-            <div style={{ width: 7, height: 7, borderRadius: "50%", background: DT.dim, marginTop: 5, flex: "none" }} />
+            <span style={{ fontFamily: mono, color: DT.dim, fontSize: 13, lineHeight: "18px", flex: "none" }}>{DT.glyph.ok}</span>
             <p style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, margin: 0 }}><b style={{ ...tnum, fontSize: 10.5, letterSpacing: "0.1em", color: DT.ink, fontWeight: 600 }}>{m.status.coach.title}</b><br />{m.status.coach.body}</p>
           </div>
         )}
@@ -11554,7 +11569,7 @@ function NowTab2({ s, setS, save, go }) {
           ? <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, marginTop: 9, lineHeight: 1.5 }}>{m.eat.sub}</div>
           : (<>
             <div style={{ display: "flex", alignItems: "baseline", gap: 7, marginTop: 9, flexWrap: "wrap" }}>
-              <span style={{ ...tnum, fontSize: 32, fontWeight: 700 }}>{m.eat.lo}</span><span style={{ color: DT.dim, fontSize: 21 }}>–</span><span style={{ ...tnum, fontSize: 32, fontWeight: 700 }}>{m.eat.hi}</span><span style={{ ...tnum, fontSize: 11, color: DT.dim, letterSpacing: "0.12em" }}>KCAL</span>
+              <span style={{ ...tnum, fontSize: 32, fontWeight: 700 }}>{m.eat.lo}</span><span style={{ fontFamily: mono, color: DT.dim, fontSize: 32, fontWeight: 300, lineHeight: 1, alignSelf: "center", marginTop: -3 }}>–</span><span style={{ ...tnum, fontSize: 32, fontWeight: 700 }}>{m.eat.hi}</span><span style={{ ...tnum, fontSize: 11, color: DT.dim, letterSpacing: "0.12em" }}>KCAL</span>
               {m.eat.tag && <span style={{ ...tnum, fontSize: 9, letterSpacing: "0.14em", color: DT.amber, border: "1px solid rgba(229,180,84,.35)", borderRadius: 999, padding: "3px 8px" }}>{m.eat.tag}</span>}
             </div>
             <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, marginTop: 9, lineHeight: 1.5 }}>{m.eat.sub}</div>
@@ -11565,29 +11580,30 @@ function NowTab2({ s, setS, save, go }) {
         <div style={lbl9}>{m.move.kind === "rate" ? m.move.title : "TODAY'S MOVE"}</div>
         {m.move.kind === "rate"
           ? (<><BandStrip g={m.move.strip} /><div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.55, marginTop: 5 }}>{m.move.body}</div></>)
-          : (<><div style={{ ...tnum, fontSize: 14, fontWeight: 700, letterSpacing: "0.06em", marginTop: 6, color: m.move.kind === "decisions" ? DT.decision : DT.ink }}>{m.move.title}</div>
+          : (<><div style={{ fontFamily: disp, fontSize: 16, fontWeight: 700, letterSpacing: "0.10em", marginTop: 6, color: m.move.kind === "decisions" ? DT.decision : DT.ink }}>{m.move.title}</div>
               <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.55, marginTop: 6 }}>{m.move.body}</div></>)}
       </div>
       <div data-now="workout" style={{ ...card9, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
         <div style={{ minWidth: 0 }}>
           <div style={lbl9}>NEXT WORKOUT</div>
-          <div style={{ ...tnum, fontSize: 14, fontWeight: 700, letterSpacing: "0.1em", marginTop: 6 }}>{m.workout.title}</div>
+          <div style={{ fontFamily: disp, fontSize: 16, fontWeight: 700, letterSpacing: "0.10em", marginTop: 6 }}>{m.workout.title}</div>
           {m.workout.sub ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, marginTop: 5, lineHeight: 1.5 }}>{m.workout.sub}</div> : null}
         </div>
-        <button onClick={() => go("TRAIN")} style={{ ...tnum, fontSize: 10.5, letterSpacing: "0.12em", color: DT.jade, border: "1px solid rgba(94,212,162,.35)", padding: "9px 14px", borderRadius: 999, fontWeight: 700, flex: "none", background: "none", minHeight: 44, cursor: "pointer" }}>START ▸</button>
+        <button onClick={() => go("TRAIN")} style={{ ...tnum, fontSize: 10.5, letterSpacing: "0.12em", color: DT.jade, border: "1px solid rgba(94,212,162,.35)", padding: "9px 14px", borderRadius: 999, fontWeight: 700, flex: "none", background: "none", minHeight: 44, cursor: "pointer", position: "relative", zIndex: 1, marginTop: -10, marginBottom: -10, boxSizing: "border-box", borderTop: "11px solid transparent", borderBottom: "11px solid transparent", backgroundClip: "padding-box" }}>START ▸</button>
       </div>
       <div data-now="headed" style={card9}>
         <div style={lbl9}>WHERE YOU'RE HEADED</div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 7, gap: 10 }}>
+        {/* CRITIQUE R2 — one alignment logic: a left-anchored column, reading order top-down */}
+        <div style={{ marginTop: 7 }}>
           <div style={{ ...tnum, fontSize: 19, fontWeight: 700 }}>{m.headed.weight} LB</div>
-          <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, textAlign: "right", lineHeight: 1.45 }}>{m.headed.line}<br />{m.headed.bfLine}</div>
+          <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 4 }}>{m.headed.line}<br />{m.headed.bfLine}</div>
         </div>
         <div style={{ ...tnum, fontSize: 9, color: DT.dim, letterSpacing: "0.1em", marginTop: 11 }}>{m.headed.foot}</div>
       </div>
       {/* the + affordance (§3): weight is the one log that feeds everything — one tap here;
           the full capture lives one tap further, in the classic briefing room. */}
       <button onClick={() => { hap(8); setQlOpen(true); }} aria-label="Quick log"
-        style={{ position: "fixed", right: 16, bottom: "calc(96px + env(safe-area-inset-bottom))", zIndex: 60, width: 52, height: 52, borderRadius: "50%", background: DT.amber, color: "#141008", border: "none", boxShadow: "none", fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", cursor: "pointer" }}>+</button>
+        style={{ position: "fixed", right: 16, bottom: "calc(56px + env(safe-area-inset-bottom))", zIndex: 60, width: 52, height: 52, boxSizing: "content-box", border: "6px solid transparent", backgroundClip: "padding-box", borderRadius: "50%", background: DT.amber, color: "#141008", boxShadow: "none", fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", cursor: "pointer" }}>+</button>
       <Sheet open={qlOpen} onClose={() => setQlOpen(false)} title="LOG WEIGHT">
         <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.5 }}>{readToday ? "Already logged " + readToday.w + " lb this morning — update it if the scale said otherwise." : "This morning's scale, straight in. Everything else lives one tap away in the briefing room."}</div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, justifyContent: "center" }}>
