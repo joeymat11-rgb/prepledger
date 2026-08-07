@@ -177,6 +177,31 @@ for (const [name, mut] of states) {
   }
 }
 
+/* AUDIT (steppush surface), item 5(4) — PIN THE PRIMARY LABEL for a prefer:"steps" card at
+   the render layer. The defect was invisible to every engine test because it lived in the
+   items builder's closure: the primary button ran the food cut while the copy promised the
+   walk, and the label read "Ease the band" off undefined < 0. Mount the real app with the
+   real producer's card shape and read the actual buttons. */
+{
+  const w = await mount((st) => {
+    st.proposals = [{ rid: "steppush_2026-08-03", id: "sp_smoke_1", d: todayISO, title: "UNDER THE CORRIDOR — STEPS FIRST", why: "smoke", apply: { kind: "cal", calDelta: -23, delta: -23, stepsDelta: 1000, prefer: "steps" }, resolved: false }];
+  });
+  await new Promise((r) => setTimeout(r, 250));
+  const txt = w.document.body.textContent || "";
+  if (!txt.includes("Add the steps — +1,000/day")) {
+    console.error("RENDER-SMOKE: prefer:steps card's PRIMARY button is not the walk — expected 'Add the steps — +1,000/day' in the mounted inbox");
+    failed++;
+  }
+  if (!txt.includes("Cut it from food instead (-23 kcal)")) {
+    console.error("RENDER-SMOKE: prefer:steps card's ALT button is not the honest food route — expected 'Cut it from food instead (-23 kcal)'");
+    failed++;
+  }
+  if (txt.includes("Ease the band")) {
+    console.error("RENDER-SMOKE: 'Ease the band' rendered on a tightening steppush card — the undefined < 0 label defect is back");
+    failed++;
+  }
+}
+
 if (failed) {
   console.error(`RENDER-SMOKE: ${failed} failures`);
   process.exit(1);
