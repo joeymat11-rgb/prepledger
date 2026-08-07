@@ -1075,6 +1075,18 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15b ROUND 3 — S3' HIT GEOMETRY, ZERO PAINTED PIXELS
+
+The round-2 arithmetic hadn't landed (border-box ate the slop: 59 measured, not 64+; a
+5px hit fringe shared with the FAB). Re-derived with the margin+border sum held CONSTANT
+per edge so paint offsets cannot move: START's slop is ALL upward (27 top / 0 bottom,
+margins −26/+1 → hit 37+27=64, box bottom = paint bottom); the FAB's is all downward
+(0 top / 12 bottom, bottom 56→50 → paint bottom still 62, hit 64×64, box top 6px LOWER
+than round 2). Disjoint by construction: START's box cannot extend below its own paint,
+the FAB's cannot extend above its own. Values pinned in FINAL87 so a refactor cannot
+silently un-derive them. Suite 1878 → 1880, freeze byte-clean. STOPPED for the audit's
+rect re-measure + pixel-identity diff.
+
 ### R15b ROUND 2 — CRITIQUE FIXES (S1–S3 structural, R1–R4 taken)
 
 **S1** — "Log log the scale": theOneFix composes a verb onto an owed title already carrying

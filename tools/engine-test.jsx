@@ -6633,6 +6633,15 @@ if (fail) process.exit(1);
   const nt2 = srcN.slice(srcN.indexOf("function NowTab2("), srcN.indexOf("function NowTab({"));
   ok((nt2.split('data-now="').length - 1) === 5, "R15b — the simplicity budget is a LAW: NowTab2 renders exactly five data-now blocks (" + (nt2.split('data-now="').length - 1) + ") — a sixth block is the accretion disease the redesign exists to cure, and this assert is its vaccine");
   ok(nt2.indexOf("BandStrip") > -1 && (srcN.split("function BandStrip(").length - 1) === 1, "R15b — ONE band-strip component, used by the move block: every uncertain quantity draws the same way, and a one-off range visual is a build error");
+  /* CRITIQUE S3' — hit geometry is the law's currency, pinned in numbers: START's slop is
+     ALL upward (27 top / 0 bottom, margins −26/+1 → paint offsets unchanged at +1/+1,
+     hit 37+27 = 64, box bottom = paint bottom); the FAB's is all downward (0 top / 12
+     bottom, bottom 56→50 → paint bottom unchanged at 62, hit 64, box top 6px LOWER than
+     round 2). Disjoint by construction: START's box cannot extend below its paint, the
+     FAB's cannot extend above its own. The audit re-measures the rects; this pins the
+     values so a refactor cannot silently un-derive them. */
+  ok(nt2.indexOf('borderTop: "27px solid transparent"') > -1 && nt2.indexOf("marginTop: -26, marginBottom: 1") > -1 && nt2.indexOf("minHeight: 64") > -1, "CRITIQUE S3' — START's hit box is 64 with every pixel of slop pointing UP, away from the FAB — paint offsets unchanged (margin+border constant per edge)");
+  ok(nt2.indexOf("borderTopWidth: 0, borderRightWidth: 6, borderBottomWidth: 12, borderLeftWidth: 6") > -1 && nt2.indexOf('bottom: "calc(50px + env(safe-area-inset-bottom))"') > -1, "CRITIQUE S3' — the FAB's hit box is 64 with its slop pointing DOWN, its paint bottom held at 62 (50+12 = the round-2 56+6), and its hit top 6px lower than round 2 — the two rects are disjoint by construction");
 }
 console.log(`\nFINAL87: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

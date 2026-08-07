@@ -11589,7 +11589,7 @@ function NowTab2({ s, setS, save, go }) {
           <div style={{ fontFamily: disp, fontSize: 16, fontWeight: 700, letterSpacing: "0.10em", marginTop: 6 }}>{m.workout.title}</div>
           {m.workout.sub ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, marginTop: 5, lineHeight: 1.5 }}>{m.workout.sub}</div> : null}
         </div>
-        <button onClick={() => go("TRAIN")} style={{ ...tnum, fontSize: 10.5, letterSpacing: "0.12em", color: DT.jade, border: "1px solid rgba(94,212,162,.35)", padding: "9px 14px", borderRadius: 999, fontWeight: 700, flex: "none", background: "none", minHeight: 44, cursor: "pointer", position: "relative", zIndex: 1, marginTop: -10, marginBottom: -10, boxSizing: "border-box", borderTop: "11px solid transparent", borderBottom: "11px solid transparent", backgroundClip: "padding-box" }}>START ▸</button>
+        <button onClick={() => go("TRAIN")} style={{ ...tnum, fontSize: 10.5, letterSpacing: "0.12em", color: DT.jade, border: "1px solid rgba(94,212,162,.35)", padding: "9px 14px", borderRadius: 999, fontWeight: 700, flex: "none", background: "none", minHeight: 64, cursor: "pointer", position: "relative", zIndex: 1, marginTop: -26, marginBottom: 1, boxSizing: "border-box", borderTop: "27px solid transparent", borderBottom: "0px none transparent", backgroundClip: "padding-box" }}>START ▸</button>
       </div>
       <div data-now="headed" style={card9}>
         <div style={lbl9}>WHERE YOU'RE HEADED</div>
@@ -11603,7 +11603,7 @@ function NowTab2({ s, setS, save, go }) {
       {/* the + affordance (§3): weight is the one log that feeds everything — one tap here;
           the full capture lives one tap further, in the classic briefing room. */}
       <button onClick={() => { hap(8); setQlOpen(true); }} aria-label="Quick log"
-        style={{ position: "fixed", right: 16, bottom: "calc(56px + env(safe-area-inset-bottom))", zIndex: 60, width: 52, height: 52, boxSizing: "content-box", border: "6px solid transparent", backgroundClip: "padding-box", borderRadius: "50%", background: DT.amber, color: "#141008", boxShadow: "none", fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", cursor: "pointer" }}>+</button>
+        style={{ position: "fixed", right: 16, bottom: "calc(50px + env(safe-area-inset-bottom))", zIndex: 60, width: 52, height: 52, boxSizing: "content-box", borderStyle: "solid", borderColor: "transparent", borderTopWidth: 0, borderRightWidth: 6, borderBottomWidth: 12, borderLeftWidth: 6, backgroundClip: "padding-box", borderRadius: "50%", background: DT.amber, color: "#141008", boxShadow: "none", fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", cursor: "pointer" }}>+</button>
       <Sheet open={qlOpen} onClose={() => setQlOpen(false)} title="LOG WEIGHT">
         <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.5 }}>{readToday ? "Already logged " + readToday.w + " lb this morning — update it if the scale said otherwise." : "This morning's scale, straight in. Everything else lives one tap away in the briefing room."}</div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, justifyContent: "center" }}>
