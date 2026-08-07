@@ -10044,6 +10044,7 @@ __test.runAdaptive = runAdaptive;
 __test.stepKcal = stepKcal;
 __test.stepEfficacy = stepEfficacy;
 __test.DT = DT;
+__test.effortWords = effortWords;
 __test.volumePush = volumePush; __test.volumeConversion = volumeConversion; __test.structuralMovesThisWeek = structuralMovesThisWeek;
 __test.stepPush = stepPush;
 __test.skinfoldCheck = skinfoldCheck;
@@ -13005,7 +13006,7 @@ function LogTab({ s, setS, save, slp }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {gym && sess && <GymMode s={s} setS={setS} save={save} slp={slp} sess={sess} dateSel={dateSel} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} />}
       {sess && !s.sessionLog[dateSel] && (
-        <Btn full tone="jade" onClick={() => setGym(true)}>▶ GYM MODE — one lift at a time, timers on</Btn>
+        <button onClick={() => setGym(true)} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(94,212,162,.35)", background: "rgba(94,212,162,.06)", color: DT.jade, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>▶ GYM MODE — ONE LIFT AT A TIME, TIMERS ON</button>
       )}
       <div style={{ display: "flex", gap: 8, overflowX: "auto", touchAction: "pan-x", paddingBottom: 2 }}>
         {/* Two RECEIPT chips lived here, both styled as buttons and neither carrying a
@@ -14591,6 +14592,22 @@ const REST_CUT_S = 60;
 function restCut(startMs, nowMs) { return Math.floor(((nowMs || 0) - (startMs || 0)) / 1000) < REST_CUT_S; }
 __test.gymEntries = gymEntries; __test.backLift = backLift; __test.phaseAfterSet = phaseAfterSet; __test.mergeSessionDrafts = mergeSessionDrafts; __test.restCut = restCut; __test.REST_CUT_S = REST_CUT_S;   // GymMode integrity — see SKIP_ONE_PATH / REST_WALLCLOCK
 
+/* ---------- R15c — EFFORT, IN PLAIN WORDS ----------
+   rirPlan's ladder as an instruction a person can follow mid-set (brief §1: RIR as a
+   prescription reads "leave 2 in the tank → 1 in the tank → last set, empty it"). Pure,
+   exported, driven — the surface never re-derives the plan, it only speaks it. */
+function effortWords(plan, held) {
+  if (held) return "governor hold — every set stays 2 in the tank until an honest opener releases the load";
+  const p = Array.isArray(plan) ? plan : [];
+  if (!p.length) return "";
+  if (p.length === 1) return p[0] === 0 ? "one set — empty it" : "one set — leave " + p[0] + " in the tank";
+  const seg = (r, i) => (i === p.length - 1 && r === 0) ? "last set, empty it" : r === 0 ? "empty it" : r + " in the tank";
+  const parts = p.map((r, i) => (i === 0 ? "leave " + seg(r, i) : seg(r, i)));
+  const out = [];
+  for (const w of parts) { const L = out[out.length - 1]; if (L && L.txt === w) L.n++; else out.push({ txt: w, n: 1 }); }
+  return out.map((x) => x.txt + (x.n > 1 ? " (×" + x.n + ")" : "")).join(" → ");
+}
+
 function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [idx, setIdx] = useState(0);
   const [setN, setSetN] = useState(0);
@@ -14692,143 +14709,183 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
     setS(ns); save(ns); onClose(lines);   // the WHAT MOVED recap was thrown away on the path Joe actually uses
   };
   const big = { fontFamily: mono, fontWeight: 800, letterSpacing: "-0.02em" };
+  /* R15c — the volume experiment made visible (brief §4b): a lift whose set count changed
+     and is still inside its read window wears the ⊙ tag. Reads the same volumeConversion
+     the producer gates on — one owner. */
+  const vcT = (() => { try { const e9 = exById(s, ex.id); return e9 && typeof e9.w === "number" ? volumeConversion(s, ex.id) : { status: "IDLE" }; } catch (e) { return { status: "IDLE" }; } })();
+  const card9 = { background: DT.card, border: "1px solid " + DT.hairline, borderRadius: DT.radius, padding: 15, marginBottom: 11 };
+  const lbl9 = { fontFamily: mono, fontSize: 10, letterSpacing: "0.18em", color: DT.dim, fontWeight: 600 };
+  const tnum = { fontFamily: mono, fontVariantNumeric: "tabular-nums" };
+  /* hit-slop for small text controls: padding grows the box, negative margin holds layout
+     — the paint-slop split, the R15b round-4 law, applied everywhere this screen taps. */
+  const slop9 = { background: "none", border: "none", cursor: "pointer", padding: "26px 12px", margin: "-20px -12px" };   /* re-derived after the rig read 58: 26+26+~14px text = 66 ≥ 64; these controls are PAINT-FREE text, so padding is pure slop — no channel to share */
+  const shortN = !!(slp && slp.last && slp.last.h != null && slp.last.h < 7);
   return (
-    <div style={{ position: "fixed", inset: 0, background: T.ink, zIndex: 60, display: "flex", flexDirection: "column", padding: "0 16px", paddingTop: "calc(env(safe-area-inset-top, 24px) + 14px)", paddingBottom: "calc(env(safe-area-inset-bottom, 10px) + 12px)", overflowY: "auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>GYM MODE · LIFT {idx + 1}/{sess.ex.length}</span>
-        <span onClick={onClose} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>exit ✕</span>
+    <div style={{ position: "fixed", inset: 0, background: DT.bg, zIndex: 60, display: "flex", flexDirection: "column", padding: "0 16px", paddingTop: "calc(env(safe-area-inset-top, 24px) + 14px)", paddingBottom: "calc(env(safe-area-inset-bottom, 10px) + 12px)", overflowY: "auto" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 11 }}>
+        <span style={{ ...tnum, fontSize: 12, letterSpacing: "0.2em", fontWeight: 700, color: DT.ink }}>LIFT {idx + 1} OF {sess.ex.length}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", gap: 5 }}>
+            {sess.ex.map((e9, i9) => (
+              <i key={e9.id} style={{ width: 6, height: 6, borderRadius: "50%", background: i9 < idx ? DT.jade : i9 === idx ? DT.amber : DT.hairline2, display: "block" }} />
+            ))}
+          </div>
+          <button onClick={onClose} aria-label="Exit gym mode" style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>exit ✕</button>
+        </div>
       </div>
-      {al2 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: 6 }}>⚠ ALARM DAY — every 0 becomes a 1 · no official attempts</div>}
+      {al2 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, marginBottom: 8 }}>⚠ ALARM DAY — every 0 becomes a 1 · no official attempts</div>}
       {phase === "rest" ? (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: 16 }}>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.15em" }}>REST</div>
-          <div style={{ ...big, fontSize: 84, color: T.jade }}>{Math.floor(t / 60)}:{String(t % 60).padStart(2, "0")}</div>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>next: SET {setN + 1} of {getR(ex).length} · {ex.n}</div>
-          {/* A rest counts as CUT when the actual rest lands under 60 s — the
-              threshold the meta-analysis actually resolves, not a fraction of
-              the prescription. See REST_NOTE and PACE_NOTE. */}
-          {/* A set banked late, or one that needs longer, previously had only Skip rest. */}
-          <Btn small onClick={() => { setRestLen((x) => x + 30); }}>+30s</Btn>
-          <Btn small onClick={() => { setRestStart(Date.now()); }}>restart rest</Btn>
-          <Btn small onClick={() => { if (restCut(restStart, Date.now())) setRests((r) => ({ ...r, cut: r.cut + 1 })); setT(0); setPhase("lift"); }}>Skip rest</Btn>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 11 }}>
+          <div style={card9}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <span style={lbl9}>REST</span>
+              <span style={{ ...tnum, fontSize: 10.5, color: DT.steel }}>{Math.floor((restLen - t) / 60)}:{String(Math.max(0, restLen - t) % 60).padStart(2, "0")} of {Math.floor(restLen / 60)}:{String(restLen % 60).padStart(2, "0")}</span>
+            </div>
+            <div style={{ height: 5, background: DT.well, borderRadius: 3, overflow: "hidden", marginTop: 8 }}>
+              <div style={{ height: "100%", width: Math.max(0, Math.min(100, restLen ? ((restLen - t) / restLen) * 100 : 0)) + "%", background: DT.jade }} />
+            </div>
+            <div style={{ ...tnum, fontSize: 54, fontWeight: 700, textAlign: "center", color: DT.jade, marginTop: 10 }}>{Math.floor(t / 60)}:{String(t % 60).padStart(2, "0")}</div>
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.steel, textAlign: "center", marginTop: 4 }}>next: SET {setN + 1} of {getR(ex).length} · {ex.n}</div>
+          </div>
+          <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+            <button onClick={() => { setRestLen((x) => x + 30); }} style={{ ...tnum, ...{ background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 12, color: DT.ink, fontSize: 12.5, fontWeight: 700, letterSpacing: "0.08em", padding: "0 14px", minHeight: 64, cursor: "pointer", flex: 1 } }}>+30s</button>
+            <button onClick={() => { setRestStart(Date.now()); }} style={{ ...tnum, ...{ background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 12, color: DT.ink, fontSize: 12.5, fontWeight: 700, letterSpacing: "0.08em", padding: "0 14px", minHeight: 64, cursor: "pointer", flex: 1 } }}>restart</button>
+            <button onClick={() => { if (restCut(restStart, Date.now())) setRests((r) => ({ ...r, cut: r.cut + 1 })); setT(0); setPhase("lift"); }} style={{ ...tnum, ...{ background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 12, color: DT.steel, fontSize: 12.5, fontWeight: 700, letterSpacing: "0.08em", padding: "0 14px", minHeight: 64, cursor: "pointer", flex: 1 } }}>skip rest</button>
+          </div>
         </div>
       ) : phase === "rir-open" ? (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
-          <H size={26}>First set — how many left?</H>
-          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>{ex.n} · {getR(ex)[0]} reps at {ex.w}</div>
-          {/* RIR_TIMING — asked HERE, seconds after the set; the rest clock is already running. */}
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em" }}>REPS IN RESERVE · the opener is the honest gatekeeper — earns judge THIS number</div>
-          {ex.holdFlag && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.06em" }}>HELD — an honest ≥1 here releases the load</div>}
-          <div style={{ display: "flex", gap: 8 }}>
-            {[0, 1, 2, 3].map((v) => (
-              <button key={v} onClick={() => { touch(ex.id); setRir({ ...rir, [ex.id]: v }); setPhase("rest"); }}
-                style={{ flex: 1, fontFamily: mono, fontSize: 20, padding: "16px 0", borderRadius: 10, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>{v === 3 ? "3+" : v}</button>
-            ))}
+        /* THE OPENER ASK — jade species: the gatekeeper question. Visually distinct from the
+           terminal ask by accent, glyph and framing (data-ask pins both). */
+        <div data-ask="opener" style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", paddingBottom: 18, gap: 12 }}>
+          <div style={{ ...card9, borderLeft: "4px solid " + DT.jade }}>
+            <div style={{ ...lbl9, color: DT.jade }}>◇ FIRST SET · THE HONEST GATEKEEPER</div>
+            <div style={{ fontFamily: disp, fontSize: 24, fontWeight: 700, letterSpacing: "0.04em", marginTop: 8, color: DT.ink }}>How many more did you have?</div>
+            <div style={{ ...tnum, fontSize: 12, color: DT.steel, marginTop: 6 }}>{ex.n} · {getR(ex)[0]} reps at {ex.w}</div>
+            {ex.holdFlag && <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, letterSpacing: "0.06em", marginTop: 8 }}>HELD — an honest ≥1 here releases the load</div>}
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              {[0, 1, 2, 3].map((v) => (
+                <button key={v} onClick={() => { touch(ex.id); setRir({ ...rir, [ex.id]: v }); setPhase("rest"); }}
+                  style={{ flex: 1, ...tnum, fontSize: 20, fontWeight: 700, minHeight: 64, borderRadius: 12, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, cursor: "pointer" }}>{v === 3 ? "3+" : v}</button>
+              ))}
+            </div>
+            <button onClick={() => setPhase("rest")} style={{ background: "none", border: "none", padding: "11px 0", margin: "-3px 0 -11px 0", width: "100%", marginTop: 8, cursor: "pointer" }}>
+              {/* the paint-slop split: the outer button is the 64 hit box, this span is the paint */}
+              <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, color: DT.steel, border: "1px solid " + DT.hairline, borderRadius: 8, padding: "13px 9px" }}>skip — leave it unrecorded</span>
+            </button>
           </div>
-          <button onClick={() => setPhase("rest")} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "9px", width: "100%" }}>skip — leave it unrecorded</button>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: 1.5 }}>One tap, then rest. 0 twice running holds the weight; an honest 1 keeps every earn judged on a number you actually reported.</div>
+          <div style={{ fontFamily: mono, fontSize: 9.5, color: DT.dim, letterSpacing: "0.08em", textAlign: "center", lineHeight: 1.7 }}>ONE TAP, THEN REST — THE CLOCK IS ALREADY RUNNING.<br />0 TWICE RUNNING HOLDS THE WEIGHT; EVERY EARN JUDGES THIS NUMBER.</div>
         </div>
       ) : phase === "rir-end" ? (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
-          <H size={26}>Last set — how many left?</H>
-          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>{ex.n} · {getR(ex)[getR(ex).length - 1]} reps at {ex.w}</div>
-          {/* RIR_TIMING — asked HERE, seconds after the set, not at lift-done from memory. */}
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em" }}>REPS IN RESERVE · 0 = it was the failure set</div>
-          <div style={{ display: "flex", gap: 8 }}>
-            {[0, 1, 2, 3].map((v) => (
-              <button key={v} onClick={() => { touch(ex.id); setRirEnd({ ...rirEnd, [ex.id]: v }); setPhase("lift-done"); }}
-                style={{ flex: 1, fontFamily: mono, fontSize: 20, padding: "16px 0", borderRadius: 10, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>{v === 3 ? "3+" : v}</button>
-            ))}
+        /* THE TERMINAL ASK — amber species: did the planned effort land? */
+        <div data-ask="terminal" style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", paddingBottom: 18, gap: 12 }}>
+          <div style={{ ...card9, borderLeft: "4px solid " + DT.amber }}>
+            <div style={{ ...lbl9, color: DT.amber }}>◆ LAST SET · DID THE EFFORT LAND?</div>
+            <div style={{ fontFamily: disp, fontSize: 24, fontWeight: 700, letterSpacing: "0.04em", marginTop: 8, color: DT.ink }}>How many more did you have?</div>
+            <div style={{ ...tnum, fontSize: 12, color: DT.steel, marginTop: 6 }}>{ex.n} · {getR(ex)[getR(ex).length - 1]} reps at {ex.w} · 0 = you emptied it, exactly as planned</div>
+            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              {[0, 1, 2, 3].map((v) => (
+                <button key={v} onClick={() => { touch(ex.id); setRirEnd({ ...rirEnd, [ex.id]: v }); setPhase("lift-done"); }}
+                  style={{ flex: 1, ...tnum, fontSize: 20, fontWeight: 700, minHeight: 64, borderRadius: 12, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, cursor: "pointer" }}>{v === 3 ? "3+" : v}</button>
+              ))}
+            </div>
+            <button onClick={() => setPhase("lift-done")} style={{ background: "none", border: "none", padding: "11px 0", margin: "-3px 0 -11px 0", width: "100%", marginTop: 8, cursor: "pointer" }}>
+              <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, color: DT.steel, border: "1px solid " + DT.hairline, borderRadius: 8, padding: "13px 9px" }}>skip — leave it unrecorded</span>
+            </button>
           </div>
-          <button onClick={() => setPhase("lift-done")} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "9px", width: "100%" }}>skip — leave it unrecorded</button>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: 1.5 }}>Asked now rather than at the end of the lift: a reserve estimate is about two and a half times more accurate taken at the set than recalled after it.</div>
+          <div style={{ fontFamily: mono, fontSize: 9.5, color: DT.dim, letterSpacing: "0.08em", textAlign: "center", lineHeight: 1.7 }}>ASKED AT THE SET, NOT FROM MEMORY —<br />ABOUT TWO AND A HALF TIMES MORE ACCURATE THIS WAY.</div>
         </div>
       ) : phase === "lift-done" ? (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
-          <H size={26}>{ex.n} — done</H>
-          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>logged: {getR(ex).join(" · ")} at {ex.w}</div>
-          <div>
-            {/* Both asks live in the flow again — see RIR_TIMING (re-timed, not removed).
-                Each is one tap at its own set; both editable from the lift detail on TRAIN. */}
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.1em" }}>OPENER RIR · LAST SET RIR</div>
-            <div style={{ fontFamily: mono, fontSize: TS.label, marginTop: 6 }}>
-              <span style={{ color: rir[ex.id] == null ? T.steel : T.jade }}>{rir[ex.id] == null ? "opener not recorded" : `opener ${rir[ex.id] === 3 ? "3+" : rir[ex.id]}`}</span>
-              <span style={{ color: T.steel }}> · </span>
-              <span style={{ color: rirEnd[ex.id] == null ? T.steel : T.jade }}>{rirEnd[ex.id] == null ? "last not recorded" : `last ${rirEnd[ex.id] === 3 ? "3+" : rirEnd[ex.id]} — taken at the set`}</span>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 11 }}>
+          <div style={card9}>
+            <div style={{ fontFamily: disp, fontSize: 23, fontWeight: 700, letterSpacing: "0.04em" }}>{ex.n} — done</div>
+            <div style={{ ...tnum, fontSize: 12, color: DT.steel, marginTop: 5 }}>logged: {getR(ex).join(" · ")} at {ex.w}</div>
+            <div style={{ ...lbl9, marginTop: 12 }}>OPENER · LAST SET</div>
+            <div style={{ ...tnum, fontSize: 12.5, marginTop: 5 }}>
+              <span style={{ color: rir[ex.id] == null ? DT.dim : DT.jade }}>{rir[ex.id] == null ? "opener not recorded" : "opener " + (rir[ex.id] === 3 ? "3+" : rir[ex.id]) + " in the tank"}</span>
+              <span style={{ color: DT.dim }}> · </span>
+              <span style={{ color: rirEnd[ex.id] == null ? DT.dim : DT.amber }}>{rirEnd[ex.id] == null ? "last not recorded" : "last " + (rirEnd[ex.id] === 3 ? "3+" : rirEnd[ex.id]) + " — taken at the set"}</span>
             </div>
           </div>
-          <Btn full tone="jade" onClick={nextLift}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</Btn>
-          <button onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "9px", width: "100%", marginTop: 8 }}>skip this lift — goes on the record, no phantom reps</button>
+          <button onClick={nextLift} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</button>
+          <button onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: DT.steel, background: "none", border: "1px solid " + DT.hairline, borderRadius: 8, padding: "9px", width: "100%", minHeight: 44, cursor: "pointer" }}>skip this lift — goes on the record, no phantom reps</button>
         </div>
       ) : phase === "all-done" ? (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 14 }}>
-          {/* Derived from the SAME selector finish() uses, so what he reads here and what
-              gets written cannot disagree. It read gskip directly before. */}
-          <H size={26}>Session complete</H>
-          {/* joined with \n inside a div, so it rendered as one run-on line */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            {sess.ex.map((e2) => (
-              <div key={e2.id} style={{ fontFamily: mono, fontSize: TS.label, color: doneSkip[e2.id] ? T.steel : T.chalk, textDecoration: doneSkip[e2.id] ? "line-through" : "none" }}>
-                {e2.n}: {doneSkip[e2.id] ? "skipped — on record" : `${getR(e2).join(",")} @ ${e2.w}`}
-              </div>
-            ))}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 11 }}>
+          <div style={card9}>
+            <div style={{ fontFamily: disp, fontSize: 24, fontWeight: 700, letterSpacing: "0.04em" }}>Session complete</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 10 }}>
+              {sess.ex.map((e2) => (
+                <div key={e2.id} style={{ ...tnum, fontSize: 12.5, color: doneSkip[e2.id] ? DT.dim : DT.ink, textDecoration: doneSkip[e2.id] ? "line-through" : "none" }}>
+                  {e2.n}: {doneSkip[e2.id] ? "skipped — on record" : getR(e2).join(",") + " @ " + e2.w}
+                </div>
+              ))}
+            </div>
           </div>
-          {/* the note field was hardcoded to "gym mode", overwriting the real note and then
-              printing it in the receipt and the debrief; niggles was hardcoded [], which made
-              the joint check unreachable from the mode Joe uses. Both are his to fill now. */}
-          <input value={gNote} onChange={(e3) => setGNote(e3.target.value)} placeholder="anything worth remembering about this session" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8, color: T.chalk, fontFamily: body, fontSize: 16, padding: "10px 12px" }} />
-          <Btn full tone="jade" onClick={finish}>LOG IT — receipt + debrief</Btn>
+          <input value={gNote} onChange={(e3) => setGNote(e3.target.value)} placeholder="anything worth remembering about this session" style={{ background: DT.card2, border: "1px solid " + DT.hairline, borderRadius: 12, color: DT.ink, fontFamily: body, fontSize: 16, padding: "14px 12px" }} />
+          <button onClick={finish} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>LOG IT — RECEIPT + DEBRIEF</button>
         </div>
       ) : (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 10 }}>
-          <H size={30}>{ex.n}</H>
-          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>{ex.w} · target {ex.tgt.join(",")}{ex.isDebutNow ? " · FIRST RUN — log what it gives" : ""}</div>
-          {/* ex.cue never existed — genSession returns setup / live / note / prev, so the cue
-              line, the setup cues and the DEBUT/OWN-IT/RECLAIM note were all unreachable in
-              the one mode Joe actually uses. They render here now, composed, not recomputed. */}
-          {ex.live ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: 1.45 }}>NOW &rsaquo; {ex.live}</div> : null}
-          {ex.note ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.04em" }}>{ex.note}</div> : null}
-          {ex.setup ? (
-            <div>
-              <button onClick={() => setSetupOpen(!setupOpen)} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "5px 10px" }}>{setupOpen ? "\u25be setup" : "\u25b8 setup"}</button>
-              {setupOpen ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.45 }}>{ex.setup}</div> : null}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 11 }}>
+          <div style={card9}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 9, flexWrap: "wrap" }}>
+              <div style={{ fontFamily: disp, fontSize: 23, fontWeight: 700, letterSpacing: "0.04em" }}>{ex.n}</div>
+              {vcT.status === "READING" && <span style={{ ...tnum, fontSize: 9, letterSpacing: "0.14em", color: DT.decision, border: "1px solid rgba(95,183,232,.35)", borderRadius: 999, padding: "3px 8px" }}>⊙ ON TRIAL — EARNING ITS PLACE · {vcT.have}/{vcT.need} READS</span>}
             </div>
-          ) : null}
-          {ex.prev ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>last · {fmtShort(ex.prev.d)} · {ex.prev.w} × {(ex.prev.reps || []).join(",")}{ex.prev.rir != null ? ` \u00b7 RIR ${ex.prev.rir}` : ""}</div> : null}
-          {(() => {
-            /* The next rung, on the lift screen. nextLoad exists on every card and rendered
-               nowhere. It returns null at the top of a stack — that is real, so it is said
-               rather than hidden. Composes the existing selector; no new number. */
-            const exFull = exById(s, ex.id); if (!exFull) return null;
-            const up = nextLoad(exFull);
-            return (
-              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>
-                {up == null ? "next rung \u00b7 none on file — the top of this stack is real" : `next rung \u00b7 ${up}`}
+            <div style={{ ...tnum, fontSize: 14, color: DT.steel, marginTop: 3 }}>{typeof ex.w === "number" ? ex.w + " LB" : ex.w}{ex.isDebutNow ? " · FIRST RUN — log what it gives" : ""}</div>
+            <div style={{ marginTop: 12, padding: "10px 12px", background: DT.well, borderRadius: 12, fontFamily: mono, fontSize: 12, color: DT.steel, letterSpacing: "0.04em", lineHeight: 1.5 }}>
+              TARGET <b style={{ color: DT.ink }}>{ex.tgt.join(" · ")}</b>{ex.prev && (ex.prev.reps || []).length ? " — beat last time (" + ex.prev.reps.join("·") + "). Don't sweat one rep — the total is what counts." : " — first time on record: this line is the one everything later gets measured from."}
+              <br /><span style={{ color: DT.dim }}>EFFORT, SET BY SET: <b style={{ color: DT.steel }}>{effortWords(rp2.plan, /governor hold/.test(((rp2.why || [])[0]) || ""))}</b>.</span>
+            </div>
+            {ex.live ? <div style={{ fontFamily: body, fontSize: TS.body, color: DT.ink, lineHeight: 1.45, marginTop: 8 }}>NOW › {ex.live}</div> : null}
+            {ex.note ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, letterSpacing: "0.04em", marginTop: 6 }}>{ex.note}</div> : null}
+            {ex.setup ? (
+              <div style={{ marginTop: 8 }}>
+                <button onClick={() => setSetupOpen(!setupOpen)} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>{setupOpen ? "▾ setup" : "▸ setup"}</button>
+                {setupOpen ? <div style={{ fontFamily: body, fontSize: TS.body, color: DT.steel, marginTop: 2, lineHeight: 1.45 }}>{ex.setup}</div> : null}
               </div>
-            );
-          })()}
-          <div style={{ marginTop: 10 }}>
-            <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>SET {setN + 1} OF {getR(ex).length} · <span style={{ color: rp2.plan[setN] === 0 ? T.brass : rp2.plan[setN] === 1 ? T.chalk : T.jade, fontWeight: 700 }}>RIR {rp2.plan[setN] ?? "—"}</span></div>
-            <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 8 }}>
-              <button onClick={() => { touch(ex.id); const r2 = getR(ex).slice(); r2[setN] = Math.max(0, r2[setN] - 1); setReps({ ...reps, [ex.id]: r2 }); }} style={{ ...big, fontSize: 40, width: 64, height: 64, borderRadius: 12, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>−</button>
-              <div style={{ ...big, fontSize: 72, color: T.chalk, minWidth: 96, textAlign: "center" }}>{getR(ex)[setN]}</div>
-              <button onClick={() => { touch(ex.id); const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ ...big, fontSize: 40, width: 64, height: 64, borderRadius: 12, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk }}>+</button>
+            ) : null}
+            {ex.prev ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim, marginTop: 8 }}>last · {fmtShort(ex.prev.d)} · {ex.prev.w} × {(ex.prev.reps || []).join(",")}{ex.prev.rir != null ? " · opener " + ex.prev.rir + " in the tank" : ""}</div> : null}
+            {(() => {
+              const exFull = exById(s, ex.id); if (!exFull) return null;
+              const up = nextLoad(exFull);
+              return (
+                <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim, marginTop: 3 }}>
+                  {up == null ? "next rung · none on file — the top of this stack is real" : "next rung · " + up}
+                </div>
+              );
+            })()}
+            <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+              {getR(ex).map((r9, i9) => (
+                <div key={i9} style={{ ...tnum, fontSize: 12.5, fontWeight: 700, padding: "9px 0", width: 52, textAlign: "center", borderRadius: 12,
+                  border: "1px solid " + (i9 < setN ? "rgba(94,212,162,.4)" : i9 === setN ? "rgba(229,180,84,.5)" : DT.hairline),
+                  background: i9 === setN ? "rgba(229,180,84,.06)" : "none",
+                  color: i9 < setN ? DT.jade : i9 === setN ? DT.amber : DT.dim }}>
+                  {i9 < setN ? r9 + " ✓" : i9 === setN ? "SET " + (i9 + 1) : "—"}
+                </div>
+              ))}
             </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
+              <button aria-label="one rep less" onClick={() => { touch(ex.id); const r2 = getR(ex).slice(); r2[setN] = Math.max(0, r2[setN] - 1); setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>−</button>
+              <div>
+                <div style={{ ...tnum, fontSize: 54, fontWeight: 700, textAlign: "center", color: DT.ink }}>{getR(ex)[setN]}</div>
+                <div style={{ ...tnum, fontSize: 9, color: DT.dim, letterSpacing: "0.16em", textAlign: "center", marginTop: 5 }}>REPS · SET {setN + 1} OF {getR(ex).length} · {rp2.plan[setN] === 0 ? "EMPTY IT" : (rp2.plan[setN] ?? "—") + " IN THE TANK"}</div>
+              </div>
+              <button aria-label="one rep more" onClick={() => { touch(ex.id); const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>+</button>
+            </div>
+            <button onClick={doneSet} style={{ marginTop: 16, width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>
+              {setN + 1 < getR(ex).length ? "LOG SET · REST TIMER STARTS" : "LOG SET · ONE QUESTION AFTER"}
+            </button>
           </div>
-          <Btn full tone="jade" onClick={doneSet}>SET DONE {setN + 1 < getR(ex).length ? "→ REST " + restFor(ex.id, setN + 1, getR(ex).length) + "s" : "→"}</Btn>
-          {/* One mis-tap on SET DONE had no recovery path at all — the only way back was to
-              leave the mode. Steps setN back and restores what that set held. */}
           {setN > 0 ? (
-            <button onClick={undoSet} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "8px", width: "100%" }}>\u25c2 undo last set</button>
+            <button onClick={undoSet} style={{ fontFamily: mono, fontSize: TS.micro, color: DT.steel, background: "none", border: "1px solid " + DT.hairline, borderRadius: 8, padding: "9px", width: "100%", minHeight: 44, cursor: "pointer" }}>◂ undo last set</button>
           ) : null}
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            {/* The stray transparent spacer that used to live here made this row THREE
-                children under space-between, which pushed ◂ back a lift and skip lift ▸ next
-                to each other: two small unpadded spans, adjacent, on the screen he is using
-                mid-set with one hand. A stray tap there sets gskip. Two children now, with
-                the destructive one kept at the far edge. */}
-            {idx > 0 ? <span onClick={goBackLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer", padding: "10px 12px", margin: "-10px -12px" }}>◂ back a lift</span> : <span style={{ fontFamily: mono, fontSize: TS.micro, color: "transparent" }}>.</span>}
-            <span onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer", padding: "10px 12px", margin: "-10px -12px" }}>skip lift ▸</span>
+            {idx > 0 ? <button onClick={goBackLift} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>◂ back a lift</button> : <span />}
+            <button onClick={skipLift} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>skip lift ▸</button>
+          </div>
+          <div style={{ fontFamily: mono, fontSize: 9.5, color: DT.dim, letterSpacing: "0.08em", textAlign: "center", marginTop: 2, lineHeight: 1.7 }}>
+            {slp && slp.last && slp.last.h != null ? "SLEPT " + slp.last.h + " H — " + (shortN ? "SHORT NIGHT. TODAY STILL COUNTS — SHORT SLEEP PROTECTS, IT NEVER PUNISHES." : "GOOD NIGHT. TODAY'S NUMBERS COUNT.") : "NO NIGHT LOGGED — TODAY'S NUMBERS COUNT EITHER WAY."}
+            <br />AFTER THE LAST SET, ONE CHECK: "HOW MANY MORE DID YOU HAVE?" — DID THE PLANNED EFFORT LAND?
           </div>
         </div>
       )}
