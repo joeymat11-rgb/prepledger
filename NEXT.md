@@ -1088,6 +1088,29 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### THE MAIN-COMMIT GUARD IS PHYSICS NOW — 2026-08-08 (audit ask, with the v7.30.0 merge)
+
+`tools/githooks/pre-commit` + `git config core.hooksPath tools/githooks` (local, per
+clone — re-run the config line on a fresh checkout): a plain commit while HEAD is main
+is **REFUSED** outright. The deliberate ritual path stays open — merge commits use a
+different hook, and the bump/tooling commits the ritual makes on main run with
+`PLEDGER_MAIN_OK=1` set for that one command, an explicit visible act. Both directions
+proven at install: a probe commit on main was refused; the ritual commit below went
+through with the override. This mechanizes the rail that R15g's owned near-miss hit
+("check where you are before you ship").
+
+### THE R15f RENAME'S THREE MISSED NEEDLES — the full record (audit ask)
+
+1. **The all-caps needle** — round 1 swept `MEASURED`/wordmark sites but five
+   Title-Case "Measured" brand strings survived (tagline, rules token line, export
+   card, import alert, crash report); fixed in R15f round 2 (106efac).
+2. **prod-check.mjs:53** — its OWN `/measured-v/` regex on the live sw.js, beside the
+   lib.mjs parser the sweep did update; caught by the v7.29.0 ritual's own prodcheck
+   step; fixed 044ad02.
+3. **deploy.yml:106** — the beacon step's `/measured-(v…)/`, which published
+   `version: "unknown"` for v7.29.0; fixed ecf4d7e. Sweep verified clean after:
+   zero `measured-` needles across scripts/, tools/, .github/.
+
 ### R15g — LAB COHESION: THE REGIME DETECTOR CARD — BUILT 2026-08-08, branch feat/r15f-polish
 
 **1 THE CARD.** The door the volume lever and the eat band gate on, finally visible.

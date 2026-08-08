@@ -1,0 +1,20 @@
+#!/bin/sh
+# EARNED repo guard — physics for the rail CLAUDE.md carries as words:
+# "Check where you are before you ship — a rebase has left this repo checked out
+# on main before now." R15g was built and committed on local main by exactly that
+# trap (caught before any push; owned in NEXT.md). This hook makes the rail
+# mechanical: a plain commit while HEAD is main is REFUSED.
+#
+# The deliberate path stays open: the merge ritual (merge commits use the
+# pre-merge-commit hook, which this is not) and the version-bump/tooling commits
+# that the ritual makes ON main set PLEDGER_MAIN_OK=1 for that one command —
+# an explicit, visible act, never a default.
+#
+# Installed via:  git config core.hooksPath tools/githooks   (local config, per clone)
+branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+if [ "$branch" = "main" ] && [ "$PLEDGER_MAIN_OK" != "1" ]; then
+  echo "REFUSED: HEAD is main. main deploys to Joe's phone." >&2
+  echo "Commit on a branch, or — for the deliberate merge ritual only — re-run with PLEDGER_MAIN_OK=1." >&2
+  exit 1
+fi
+exit 0
