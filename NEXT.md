@@ -372,7 +372,23 @@ is not missing protein. The no-shame law is on the sheet.
 so the protein fix-window and sodium/alcohol preservation cannot drift between doors.
 No new state key (pinned), existing paths only, freeze byte-identical, no feed lines.
 
-**Rig-caught defect, fixed:** a funds-label read "48 of 8" — a live instrument past its
+**ROUND 2 (2026-08-08) — the audit's data-loss defect and three more, all fixed.**
+(1) **DATA LOSS, dead — belt and braces.** `writeDaily` is now a PARTIAL: any field a
+caller does not name survives untouched, so writing only sodium can never null the
+day. And the sheet re-reads the LIVE day on the OPEN transition, so a day logged after
+tab mount never renders blank. Driven on the rig end to end: log on BRIEF →
+`{cal 2265, pro 175, steps 15000}` → open the sheet (fields now render 2265/175/15000,
+not blank) → tap sodium "high" → `{cal 2265, pro 175, steps 15000, sodium "high"}`.
+Pinned as behaviour, not a grep. (2) **My call, filed:** the chips keep their instant
+write — a tap that visibly selects then silently forgets is worse than one that
+records — and the partial merge makes it safe: on an unlogged day it writes the chip
+alone, no row of nulls, and `readWindow(...).logged` stays false (pinned). (3)
+**Misattribution dead:** sodium never fed the noise floor (`INS_MAP noise:
+["weigh-in"]`); its real consumer is `applyRead`'s morning water-noise annotation, now
+quoted. The alcohol line audited and kept honest (count-only, never added to calories,
+same annotation). (4) The fold label counts five and names the menu.
+
+**Rig-caught defect (round 1), fixed:** a funds-label read "48 of 8" — a live instrument past its
 own need. The counter is a DISTANCE and now prints only while distance remains; past
 the line it says "already speaking". **Open question for Joe:** the sheet keeps the
 in-context cards (close-the-day on BRIEF, the weekly card) where they are, per the

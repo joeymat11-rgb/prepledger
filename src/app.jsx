@@ -15956,10 +15956,25 @@ function SessionLiveChip({ s, go }) {
    yesterday's still-open books. No new state key, no new threshold: both are pure
    reads/restatements of machinery that already shipped. */
 function writeDaily(s, iso, v) {
+  /* R15j r2 — THE MERGE IS THE BELT. This takes a PARTIAL: any field the caller does
+     not name survives untouched. The capture sheet destroyed a logged day by writing
+     its own stale snapshot back over it (rig-driven: log 2279/175/15000 on BRIEF, tap
+     the sodium chip, watch cal/pro/steps become null). A writer that must be handed
+     the whole row to avoid erasing it is a data-loss machine waiting for a second
+     door — and the sheet was that second door. Full-row callers pass every key and
+     keep their old overwrite semantics exactly, blanks included. */
   const ns = { ...s };
   const num = (x) => (x === "" || x == null ? null : Number(x));
-  const c = num(v.cal), p = num(v.pro), st = num(v.steps);
-  ns.dailyLogs = { ...ns.dailyLogs, [iso]: { cal: c, pro: p, steps: st, sodium: v.sodium || null, alc: +v.alc || 0 } };
+  const has = (k) => v && Object.prototype.hasOwnProperty.call(v, k);
+  const prev = (ns.dailyLogs || {})[iso] || {};
+  const row = { ...prev };
+  if (has("cal")) row.cal = num(v.cal);
+  if (has("pro")) row.pro = num(v.pro);
+  if (has("steps")) row.steps = num(v.steps);
+  if (has("sodium")) row.sodium = v.sodium || null;
+  if (has("alc")) row.alc = +v.alc || 0;
+  ns.dailyLogs = { ...ns.dailyLogs, [iso]: row };
+  const p = has("pro") ? num(v.pro) : null;
   if (p != null) {
     const hit = proteinHit(proteinTarget(s).lo, p);
     if (!hit && !ns.fixWindow) ns.fixWindow = { opened: iso };
@@ -16056,6 +16071,24 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
   const [alc, setAlc] = useState(dl.alc ?? 0);
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
   const [optOpen, setOptOpen] = useState(false);
+  /* R15j r2 — THE SYNC IS THE BRACES. useState reads the day ONCE at tab mount; a day
+     logged after that (on BRIEF, or in the log screen) left these inputs blank, and a
+     blank input is a lie the sheet would then write down. Re-read on the OPEN
+     transition — the moment the athlete can see the fields. */
+  const [wasOpen, setWasOpen] = useState(false);
+  useEffect(() => {
+    if (open && !wasOpen) {
+      const live = (s.dailyLogs || {})[tISO] || {};
+      setCal(live.cal ?? "");
+      setPro(live.pro ?? "");
+      setStp(live.steps ?? "");
+      setSod(live.sodium || null);
+      setAlc(live.alc ?? 0);
+      const r0 = (s.reads || []).find((r) => r && r.d === tISO);
+      setWIn(r0 ? r0.w : s.trend);
+    }
+    if (open !== wasOpen) setWasOpen(open);
+  }, [open]);
   const ask = captureAsk(s);
   const cards = (() => { try { return labStatusList(s); } catch (e) { return []; } })();
   const byId = (id) => cards.find((c) => c && c.id === id) || null;
@@ -16095,7 +16128,12 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
     </button>
   );
   const saveScale = () => { const base = readToday ? undoRead(s, tISO) : s; const ns = runAdaptive(applyRead(base, tISO, wIn), tISO); setS(ns); save(ns); hap(12); onClose(); };
-  const saveDay = (over) => { const ns = writeDaily(s, tISO, { cal, pro, steps: stp, sodium: sod, alc, ...(over || {}) }); setS(ns); save(ns); hap(12); };
+  /* R15j r2 — MY CALL, filed: the chips keep their instant write, because a tap that
+     visibly selects and then silently forgets is worse than one that records. It is
+     safe now because it is a TRUE partial: tapping sodium on an unlogged day writes
+     sodium and nothing else — no row of nulls, and nothing reads as logged (every
+     logged-state gate asks cal != null). The full commit still sends every field. */
+  const saveDay = (over) => { const ns = writeDaily(s, tISO, over || { cal, pro, steps: stp, sodium: sod, alc }); setS(ns); save(ns); hap(12); };
   return (
     <Sheet open={open} onClose={onClose} title="LOG">
       <div data-cap="hero">
@@ -16131,12 +16169,16 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
           <span style={{ fontFamily: mono, fontSize: 10, color: DT.dim, letterSpacing: "0.14em" }}>SODIUM</span>
           {["low", "med", "high"].map((v) => chip(sod === v, v, () => { setSod(v); saveDay({ sodium: v }); }))}
         </div>
-        <div style={{ fontFamily: body, fontSize: 11, color: DT.dim, lineHeight: 1.4, marginTop: 4 }}>sharpens the scale's error model — {funds("noise", "funds the noise floor")}</div>
+        {/* R15j r2 — a funds-label must name a REAL consumer. The noise floor reads
+            weigh-ins (INS_MAP noise: ["weigh-in"]); sodium's actual consumer is
+            applyRead's morning water-noise annotation, which is where a salty day earns
+            its explanation on tomorrow's scale. */}
+        <div style={{ fontFamily: body, fontSize: 11, color: DT.dim, lineHeight: 1.4, marginTop: 4 }}>a high-salt day annotates tomorrow morning's read — &ldquo;salt or alcohol yesterday — water noise likely&rdquo; — so a jump is explained at the moment you would otherwise worry</div>
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
           <span style={{ fontFamily: mono, fontSize: 10, color: DT.dim, letterSpacing: "0.14em" }}>ALCOHOL</span>
           {[0, 2, 4, 6].map((u) => chip(+alc === u, String(u), () => { setAlc(u); saveDay({ alc: u }); }))}
         </div>
-        <div style={{ fontFamily: body, fontSize: 11, color: DT.dim, lineHeight: 1.4, marginTop: 4 }}>a covariate for sleep, pulse and the scale — never added to your calories</div>
+        <div style={{ fontFamily: body, fontSize: 11, color: DT.dim, lineHeight: 1.4, marginTop: 4 }}>a count only — a covariate for sleep, pulse and scale attribution, never added to your calories; any units yesterday annotate tomorrow&rsquo;s read the same way</div>
         {optOpen ? (
           <div style={{ marginTop: 8 }}>
             {optRow("WAKE TAG", funds("wakesig", "funds the wake signature"), "in SLEEP ▸", () => { onClose(); go("SLEEP"); })}
@@ -16172,7 +16214,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
             </div>
           </div>
         ) : (
-          <button onClick={() => setOptOpen(true)} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", background: "none", border: "none", padding: "10px 0 0", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>▸ FOUR MORE — WAKE TAG · PULSE · TEMPERATURE · WAIST · PHOTOS</button>
+          <button onClick={() => setOptOpen(true)} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", background: "none", border: "none", padding: "10px 0 0", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>▸ FIVE MORE — WAKE TAG · PULSE · TEMPERATURE · WAIST · PHOTOS — AND WHAT ELSE THIS COULD DO</button>
         )}
       </div>
     </Sheet>
