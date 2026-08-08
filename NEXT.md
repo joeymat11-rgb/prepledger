@@ -355,7 +355,29 @@ when the roster generalizes.
 
 ---
 
-## NOW — EXPERIMENT LEGIBILITY (filed 2026-08-08, audit directive; building on feat/r15h-legibility)
+## NOW — R15i · THE LAB ROOM, ROWS NOT ESSAYS (filed 2026-08-08, Joe's word: "a lot of unnecessary detail"; building on feat/r15i-labroom)
+
+**The density law:** the room is ROWS; detail is never deleted — it moves one tap down.
+(1) Every instrument = ONE 44px row: name · status word · counter, one line where the
+name fits; the status parenthetical folds into the right column. Tap → the card: plain
+question (tag) → forYou (live read, engine words verbatim) → deep/lines behind the
+standing ▸ MORE. Nothing rendered closed but a name, a status, a number. (2) Masthead:
+one sentence; the forking-paths disclosure survives as a single line (surface prose —
+compressible; engine words untouchable). (3) N-OF-1 collapses to a 44px header, CLOSED
+by default, every parameter verbatim one tap down. (4) THE RECORD weekly card out of
+the hero position — **my call: below the instruments** (not behind a door). (5) Models
+/ shelf / later: already closed 44px headers with visible counts — **my call: keep the
+three honest headers** rather than a BACK ROOM door (smaller change, census stays in
+view). (6) The instruments LEAD the room: hoisted out of the collapsible Section to the
+top, both doors land on them open and in view; the outer Section's duplicate census
+drops (the card's own eyebrow is the single source). Still in force: doubled bucket
+counts fixed (surface brass duplicate dropped, engine titles byte-identical); the
+prophet-scorecard MACHINE TRUST line gets its ≥44 slop (the named defect); words
+verbatim for ALL engine text; freeze/roster/words byte-identical; census 57; no feed
+lines. **Round 2 queued (not built): the audit's named cull list, Joe vetoing item by
+item — round 1 is presentation only.**
+
+## SHIPPED (was NOW) — EXPERIMENT LEGIBILITY (filed 2026-08-08, audit directive; merged as v7.31.0)
 
 **The question it answers on screen:** "what is the app currently trying to learn about
 me, and what would settle each question?" The machinery exists; this slice makes it
