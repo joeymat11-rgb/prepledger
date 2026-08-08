@@ -7113,8 +7113,8 @@ if (fail) process.exit(1);
     const prov96 = (secs96.find((x) => x.k === "provisional") || { cards: [] }).cards.filter((c) => c && c.prog && c.prog.need);
     const gRows = digest.rows.filter((r) => r.kind === "gathering");
     const pRows = digest.rows.filter((r) => r.kind === "provisional");
-    ok(gRows.length === gath96.length && gRows.every((r, i) => r.q === gath96[i].t && r.n === gath96[i].prog.n && r.need === gath96[i].prog.need && r.label === gath96[i].prog.label), "R15h VERBATIM LAW on " + d96 + " — every gathering row restates its lab card in the lab's OWN closeness order: " + gRows.length + " rows, titles and prog fields identical, nothing recomputed, nothing re-sorted");
-    ok(pRows.length === prov96.length && pRows.every((r, i) => r.q === prov96[i].t && r.n === prov96[i].prog.n && r.need === prov96[i].prog.need), "R15h VERBATIM LAW on " + d96 + " — provisional rows the same: " + pRows.length + " rows, prog verbatim");
+    ok(gRows.length === gath96.length && gRows.every((r, i) => r.q === (gath96[i].tag || gath96[i].t) && r.n === gath96[i].prog.n && r.need === gath96[i].prog.need && r.label === gath96[i].prog.label), "R15h VERBATIM LAW on " + d96 + " — every gathering row leads with its card's own PLAIN QUESTION (tag, title fallback — Joe's word, both engine words verbatim) in the lab's OWN order: " + gRows.length + " rows, prog fields identical, nothing recomputed");
+    ok(pRows.length === prov96.length && pRows.every((r, i) => r.q === (prov96[i].tag || prov96[i].t) && r.n === prov96[i].prog.n && r.need === prov96[i].prog.need), "R15h VERBATIM LAW on " + d96 + " — provisional rows the same: tag-first question, prog verbatim (" + pRows.length + " rows)");
     ok(!!digest.head && digest.rows.length === gRows.length + pRows.length + digest.rows.filter((r) => r.kind === "trial" || r.kind === "regime").length, "R15h — the digest has a head and every row is accounted for by kind on " + d96);
   }
   /* the trial fixture: an approved caffcut trial leads the ladder */
@@ -7124,6 +7124,43 @@ if (fail) process.exit(1);
   const dT = dg96(stT);
   ok(!!dT.head && dT.head.kind === "trial" && dT.head.q === "Does a smaller pre-lift dose cost reps — or buy sleep?", "R15h — an approved trial leads the ladder and the headline is the template's OWN question, verbatim: " + (dT.head ? dT.head.q : "none"));
   ok(dT.head.n === 2 && dT.head.need === 6 && ["usual dose", "usual −100 mg"].includes(dT.head.arm), "R15h — block and arm come from trialArmOn's own fields: day 4 of 3-day blocks = block 2 of 6, arm from the template's arms array (" + dT.head.n + "/" + dT.head.need + " · " + dT.head.arm + ")");
+  /* ---------- ROUND 2 — Joe's word, the grammar, and the audit's pending-flip fixture ---------- */
+  {
+    const st2 = __test.migrate(JSON.parse(readFileSync("tools/snapshots/2026-08-07-ledger.json", "utf8")));
+    const d2 = dg96(st2);
+    const secs2 = __test.labSections(st2);
+    const all2 = [...(secs2.find((x) => x.k === "gathering") || { cards: [] }).cards, ...(secs2.find((x) => x.k === "provisional") || { cards: [] }).cards];
+    const ws2 = all2.find((c) => c.id === "wakesig");
+    const wsRow = d2.rows.find((r) => r.q === (ws2 && ws2.tag));
+    ok(!!ws2 && !!ws2.tag && !!wsRow && wsRow.q === "Is the 6-hour wake a pattern with an address, or noise?", "R2 JOE'S WORD — the WAKE SIGNATURE row leads with the card's own plain question, engine words verbatim: " + (wsRow ? wsRow.q : "row missing"));
+    ok(all2.every((c) => !!c.tag), "R2 — no tagless card exists in today's buckets, so the title FALLBACK is source-pinned rather than state-driven (the honest scope): every current card carries its plain question");
+    ok(wsRow.need - wsRow.n === 1 && wsRow.settle === "one more and it speaks", "R2 GRAMMAR — exactly-one-remaining drops the label repeat: " + JSON.stringify(wsRow.settle));
+    const plural2 = d2.rows.find((r) => (r.kind === "gathering") && (r.need - r.n) > 1);
+    ok(!!plural2 && plural2.settle.indexOf((plural2.need - plural2.n) + " more " + (plural2.label || "observations")) === 0, "R2 GRAMMAR — plural cases keep the count and label verbatim: " + JSON.stringify(plural2 && plural2.settle));
+  }
+  /* the audit's pending-flip fixture, folded in permanent: confirmed FREE reading COSTING once */
+  {
+    const isoW2 = (back) => isoL(Date.now() - back * 864e5);
+    const stP = cl96(__test.SEED);
+    stP.blackout = { until: isoW2(28) };
+    stP.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoW2(34 - i), w: +(170 - i * 0.09).toFixed(2), sealed: false }));
+    stP.trend = stP.reads[stP.reads.length - 1].w;
+    stP.sleep.nights = Array.from({ length: 40 }, (_, i) => ({ d: isoW2(39 - i), h: 8.2 }));
+    stP.dailyLogs = {}; stP.sessionLog = {};
+    stP.exercises.forEach((e) => { e.holdFlag = false; });
+    const liftsP = [{ id: "rows", w: 175, base: 16 }, { id: "press", w: 245, base: 14 }, { id: "lateral", w: 80, base: 20 }, { id: "tricep", w: 55, base: 18 }, { id: "ham", w: 120, base: 15 }];
+    for (let k = 0; k < 6; k++) stP.sessionLog[isoW2(28 - k * 4)] = { at: 0, note: "", niggles: [], dips: 0, skipped: [], pace: "normal", entries: liftsP.map((L) => { const tot = L.base + k; const a = Math.ceil(tot / 2); return { id: L.id, reps: [a, tot - a], rir: 2, rirSets: [2, 1], w: L.w }; }) };
+    for (let j = 0; j < 3; j++) stP.sessionLog[isoW2(5 - j * 2)] = { at: 0, note: "", niggles: [], dips: 0, skipped: [], pace: "normal", entries: liftsP.map((L) => { const tot = Math.max(4, L.base + 5 - 3 * (j + 1)); const a = Math.ceil(tot / 2); return { id: L.id, reps: [a, tot - a], rir: 2, rirSets: [2, 1], w: L.w }; }) };
+    const rgP = __test.regime(stP);
+    ok(rgP.key === "free" && rgP.confirmed === true && rgP.pending === "costing" && !!rgP.pendingSince, "R2 FIXTURE — the audit's shape reproduces: confirmed FREE holding, COSTING read once (pendingSince " + rgP.pendingSince + ")");
+    const dP = dg96(stP);
+    const rRow = dP.rows.find((r) => r.kind === "regime");
+    ok(!!rRow && rRow.q === "has the cut left FREE for COSTING?" && rRow.n === 1 && rRow.need === 2, "R2 — the digest's regime row states the pending flip: " + (rRow ? rRow.q : "missing") + " (1 of 2 readings)");
+    const sd2 = new Date(new Date(rgP.pendingSince + "T12:00:00").getTime() + 7 * 864e5);
+    const secondDate = (sd2.getMonth() + 1) + "/" + sd2.getDate();
+    ok(rRow.settle.indexOf(secondDate) > -1 && rRow.q.indexOf("undefined") === -1 && rRow.settle.indexOf("undefined") === -1, "R2 — the settle names the second-reading date (" + secondDate + ") and nothing reads undefined: " + rRow.settle);
+  }
+
   /* derived-only, at source: the digest writes nothing and files nothing */
   const srcH = readFileSync("src/app.jsx", "utf8");
   const hSl = srcH.slice(srcH.indexOf("function expDigest("), srcH.indexOf("R15d · LEDGER — decisions and diary"));

@@ -379,6 +379,19 @@ lab's own sort → provisional) and says so. Also: the headline shows the instru
 own title (sometimes technical); its plain sub lives one tap down in LAB — rule if the
 hub headline needs a plain translation layer instead.
 
+**ROUND 2 (2026-08-08) — Joe's word + the audit's fixture, executed.** The ladder is
+ACCEPTED AS BUILT. Instrument rows now lead with the card's own **plain question**
+(`c.tag`, engine words verbatim, title fallback — the LAB keeps the name; no tagless
+card exists in today's buckets, so the fallback is source-pinned, stated honestly).
+The settle grammar drops the label repeat at exactly-one-remaining ("one more and it
+speaks" / "one more to a verdict it can stand behind"); plural cases unchanged. The
+audit's pending-flip fixture is folded in permanent: confirmed-FREE + three falling
+sessions in the last 6 days → `free/confirmed/pending=costing`, and the digest's
+regime row drives green ("has the cut left FREE for COSTING?", 1 of 2 readings, the
+second-reading date named, zero "undefined"). Suite 2060 → 2067; freeze byte-identical;
+rig headline now "Is the 6-hour wake a pattern with an address, or noise? · 4 of 5
+tagged mid-night wakes · one more and it speaks".
+
 ## FILED (was NOW) — R1 · one regime detector replaces both phase machines
 
 **Source: `RESEARCH-DESIGN.md` §R1.** That file is the *why*; this item is the *what*. It is
