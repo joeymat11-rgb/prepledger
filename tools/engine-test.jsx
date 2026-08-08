@@ -7370,6 +7370,30 @@ if (fail) process.exit(1);
     ok((cs.match(/lineHeight: 1.55/g) || []).length >= 5 && (cs.match(/lineHeight: 1.5[^5]/g) || []).length === 0, "R15k r3 — prose leading is 1.55 throughout, matching the LEDGER hub: tight leading is half of why dense reads dense");
     ok((cs.match(/marginTop: SP.lg/g) || []).length === 3, "R15k r3 — each primary button has SP.lg (16) clear above it: the scale commit, the day commit and the waist commit all breathe");
   }
+
+  /* ---------- THE STEPPER CRASH — from HIS PHONE, not a fixture ----------
+     ledger/errors.json, 2026-08-08T10:56:09.481Z, v7.33.0:
+       "(e+n).toFixed is not a function. (In '(e+n).toFixed(1)', ...)"
+     `+(v + step).toFixed(1)` with a blank field: "" + 10 === "10", a STRING, and
+     .toFixed does not exist on it. Decrease survived by luck ("" - 10 === -10). Joe
+     tapped + on a blank CALORIES and the tab died. Fixed once at the component — the
+     handlers now call this exported law, so this drives the ACTUAL arithmetic they run,
+     not a lookalike. Two live paths can still hand it a blank: the clear-today control
+     and NowTab's effect when the calorie or step target is GATED (a new user, the dad
+     build) — which is why the fix is at the component and not at 21 call sites. */
+  {
+    const sv = __test.stepValue;
+    ok(typeof sv === "function", "the Stepper arithmetic is an exported pure law, so the crash can be driven rather than grepped");
+    ok(sv("", 10, 1, 0) === 10 && isFinite(sv("", 10, 1, 0)), "STEPPER CRASH — the exact beacon case: + on a BLANK field returns a finite 10 instead of building the string \"10\" and throwing on .toFixed");
+    ok(sv("", 10, -1, 0) === 0 && isFinite(sv("", 10, -1, 0)), "and − on a blank field floors at min rather than running away negative");
+    ok(sv("2200", 10, 1, 0) === 2210 && sv("2200", 10, -1, 0) === 2190, "a STRING-typed value still steps correctly in both directions — the coercion reads it, it does not discard it");
+    ok(sv(163.1, 0.1, 1, 100) === 163.2 && sv(163.1, 0.1, -1, 100) === 163, "the ordinary numeric path is unchanged, decimals included (the scale stepper)");
+    ok(sv("", 0.1, -1, 100) === 100 && sv(undefined, 5, 1, 0) === 5 && sv(null, 1, -1, 0) === 0, "blank/undefined/null all read as the control's own min for the arithmetic: every input is total, and no caller can hand it a value that throws");
+    /* both handlers go through it — the component cannot drift back */
+    const stepSrc = srcJ.slice(srcJ.indexOf("function stepValue("), srcJ.indexOf("const Num = ({ children"));
+    ok(stepSrc.indexOf("set(stepValue(v, step, -1, min))") > -1 && stepSrc.indexOf("set(stepValue(v, step, 1, min))") > -1 && stepSrc.indexOf("+(v + step).toFixed(1))} style") === -1, "STEPPER — both handlers call the law; the raw arithmetic that crashed his phone exists nowhere in the component");
+    ok((srcJ.match(/<Stepper /g) || []).length === 21, "STEPPER — and all 21 call sites are untouched: the fix is at the component, exactly once, where a call-site fix would have had 21 chances to be missed");
+  }
 }
 console.log(`\nFINAL98: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

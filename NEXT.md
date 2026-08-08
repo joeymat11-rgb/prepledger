@@ -355,7 +355,32 @@ when the roster generalizes.
 
 ---
 
-## NOW — R15k · THE CAPTURE SHEET WEARS THE DESIGN (built 2026-08-08, branch feat/r15k-sheet)
+## NOW — R17 · THE ESTIMATE FLAG IS OVER-SCOPED (filed 2026-08-08, audit-root-caused; builds next)
+
+**The failing case, on his live ledger:** setting `dayCtx.est` on 2026-08-07 (calories
+amended 2500 → 3000) made `dayWeather().hard` true, `liftTrend` excludes hard days
+outright, 8/7 was every lift's most recent point, and `progressionTrend` went **nLifts
+3 → 0, state unknown** — the coach card now reads "0 of the 4 lifts it needs". The
+session itself is intact. **The defect:** "I estimated my calories" is a claim about the
+day's FOOD numbers, applied to TRAINING data that was measured exactly. A guessed dinner
+does not make 11 reps at 320 less true. **The fix, spec'd:** split the flag by what it
+claims — every FOOD/SCALE consumer stays byte-identical (pinned both directions), and
+`liftTrend`'s hard exclusion stops reading it; session quality is pace/rushed and the
+downside-only protection's job. Any surviving exclusion must surface its receipt in the
+coach card (which session, why, what undoes it) — the 3 → 0 drop was silent. Every other
+`dayWeather().hard` consumer gets named and ruled one by one. Event days stay as they
+are. Deliberate engine movement: freeze regen enumerated leaf-by-leaf.
+
+## TRIAGE — the older beacon entry (filed 2026-08-08)
+
+`ledger/errors.json`, 2026-07-29T23:03:26Z, v4.0.11: *"undefined is not an object
+(evaluating 'B.dailyLogs[U].sodium=R')"* — a write into `dailyLogs[iso].sodium` on a row
+that did not exist. The R15j `writeDaily` partial-merge path builds the row before
+writing, so this specific shape looks dead — **but that must be ruled explicitly, not
+assumed**: find every remaining `dailyLogs[...].<field> =` assignment, prove each one
+either creates the row first or cannot run on a missing row, and pin it.
+
+## FILED — R15k · THE CAPTURE SHEET WEARS THE DESIGN (2026-08-08, branch feat/r15k-sheet → v7.34.0; round 3 on feat/r15k-air)
 
 Joe from his phone: *"you can scroll, and the formatting is awful."* Four measured
 defects, all fixed, plus the polish pass itself.

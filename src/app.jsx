@@ -8929,7 +8929,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, stepValue, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -10504,6 +10504,28 @@ const stepBtn = {
   fontFamily: mono, cursor: "pointer", flexShrink: 0,
   transition: TR("background-color", MOT.state), WebkitTapHighlightColor: "transparent",
 };
+/* ---------- R17-PRE · THE STEPPER CRASH (his phone, not a fixture) ----------
+   ledger/errors.json 2026-08-08T10:56:09Z, v7.33.0:
+     "(e+n).toFixed is not a function. (In '(e+n).toFixed(1)', ...)"
+   The arithmetic was `+(v + step).toFixed(1)`. With a BLANK field, v is "", so
+   "" + 10 === "10" — a STRING — and .toFixed does not exist on it. Decrease survived
+   by luck ("" - 10 === -10, numeric coercion), so only + killed the tab. Joe tapped +
+   on a blank CALORIES and the screen died. v7.34.0's target seeding removed that
+   particular trigger by accident, but two live paths still hand a blank string in:
+   the "clear today" control (setCal("")), and NowTab's effect when the calorie or step
+   target is GATED — a new user, or the dad build's thin early data.
+   The fix is ONE coercion at the component (21 call sites; none of them touched), and
+   the arithmetic lives in this exported pure function so the law can be DRIVEN rather
+   than grepped: a non-finite value reads as min for the arithmetic, and both
+   directions are total. */
+function stepValue(v, step, dir, min) {
+  const floor = typeof min === "number" && isFinite(min) ? min : 0;
+  const parsed = typeof v === "number" ? v : parseFloat(v);
+  const base = isFinite(parsed) ? parsed : floor;
+  const next = +((dir < 0 ? base - step : base + step).toFixed(1));
+  return dir < 0 ? Math.max(floor, next) : next;
+}
+
 /* R15k r2 — THE SLOT CAN BE PINNED. Default minWidth 42 fits four digits at this mono
    size; a five-digit value (15000) grows the slot and shoves − and + sideways, so three
    stacked rows jogged by 3px — which is exactly what reads as unpolished. Callers that
@@ -10511,9 +10533,9 @@ const stepBtn = {
    value. Omitting it changes nothing: the other nineteen call sites are byte-identical. */
 const Stepper = ({ v, set, step = 1, min = 0, w }) => (
   <div style={{ display: "flex", alignItems: "center", gap: SP.sm }}>
-    <button aria-label="decrease" onClick={() => set(Math.max(min, +(v - step).toFixed(1)))} style={stepBtn}>−</button>
+    <button aria-label="decrease" onClick={() => set(stepValue(v, step, -1, min))} style={stepBtn}>−</button>
     <div data-num style={{ fontFamily: mono, fontSize: 15, color: T.chalk, minWidth: w || 42, width: w || undefined, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{v}</div>
-    <button aria-label="increase" onClick={() => set(+(v + step).toFixed(1))} style={stepBtn}>+</button>
+    <button aria-label="increase" onClick={() => set(stepValue(v, step, 1, min))} style={stepBtn}>+</button>
   </div>
 );
 const Num = ({ children, size = 30, c = T.chalk }) => (
