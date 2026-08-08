@@ -40,6 +40,13 @@ for (const [path, asOf] of SNAPS) {
   o.programmeVolume = grab(() => T.programmeVolume(S));
   o.muscleVolume = grab(() => T.muscleVolume(S));
   o.typicalError = grab(() => T.typicalError(S, null));
+  /* R15g — DELIBERATE SURFACE EXPANSION: the lab roster joins the freeze. The audit's
+     premise was that labStatusList already lived here; measurement said no — so a new
+     instrument or a retitle could ship without the gate seeing it. From this commit the
+     roster (id + title + status per card, both snapshots) is frozen like everything
+     else, and R15g's own movement (the regime card + the mrv retitle) is its first
+     enumerated entry. */
+  o.labRoster = grab(() => T.labStatusList(S).map((c) => ({ id: c.id, t: c.t, status: c.status })));
   o.perLift = {};
   for (const ex of (S.exercises || [])) {
     o.perLift[ex.id] = {

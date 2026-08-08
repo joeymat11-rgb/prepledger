@@ -5075,7 +5075,53 @@ function labAnalytics(s) {
       lines: ea.gated ? [] : ea.receipts,
     });
   })();
-  out.push({ id: "mrv", t: "VOLUME RETURN CURVE — WHERE ADDED SETS STOP PAYING", status: "LOCKED", prog: null,
+  /* R15g — THE REGIME DETECTOR, visible at last: the door the volume lever and the eat
+     band both gate on. DERIVED-ONLY — one regime(s) call, zero new math; every sentence
+     restates what the machinery already computed. Adding this card GROWS labStatusList,
+     which lives in the engine-freeze baseline — a deliberate movement, enumerated in the
+     regen. When it first turns LIVE on the phone, sweepLab's shelf-flip announcer files
+     the "LAB LIVE — THE REGIME DETECTOR" diary line with these words at birth. */
+  (() => {
+    let reg = null;
+    try { reg = regime(s); } catch (e) { reg = null; }
+    const MEAN9 = {
+      free: "lifts holding or rising while fat still falls — both terms improving at once, so the volume lever and bigger pushes stay unlocked",
+      costing: "lifts falling while fat falls — progress is being paid for in muscle, so the engine tightens protection",
+      accretionBound: "the scale rate is indistinguishable from zero and lifts are not rising — the fat term has stalled",
+    };
+    const FLIP9 = {
+      free: "It flips to COSTING if the pooled lift trend turns falling while the rate stays above zero, or to ACCRETION-BOUND if the rate's own interval collapses onto zero — and either way the new state must be read twice, at least " + REGIME_HOLD_D + " days apart, before anything acts on it.",
+      costing: "It flips back to FREE when the pooled lift trend stops falling while fat keeps coming off — read twice, at least " + REGIME_HOLD_D + " days apart, before anything acts on it.",
+      accretionBound: "It flips when the rate's interval leaves zero or the lifts turn — read twice, at least " + REGIME_HOLD_D + " days apart, before anything acts on it.",
+    };
+    if (!reg || reg.key === "unknown") {
+      /* the gathering grammar: every ARMED card carries its counter. This one counts the
+         lift term (the slower funder); when the lifts are funded but the rate is not, the
+         bar reads full and forYou names the missing term — the label says what it counts. */
+      out.push({ id: "regime", t: "THE REGIME DETECTOR", status: "ARMED",
+        prog: { n: Math.min((reg && reg.prog && typeof reg.prog.nLifts === "number") ? reg.prog.nLifts : 0, TREND_MIN_LIFTS), need: TREND_MIN_LIFTS, label: "lifts carrying a usable trend" },
+        tag: "Which regime is this cut in — free, costing, or accretion-bound? Counting only — no verdict yet.",
+        deep: "Two existing measurements, crossed: the pooled per-lift trend (inverse-variance weighted, its own 95% interval) and the scale rate (autocorrelation-honest interval). FREE = lifts not falling while the rate sits above zero. COSTING = lifts falling while fat falls. ACCRETION-BOUND = a rate indistinguishable from zero without rising lifts. No verdict is issued until both terms can be read.",
+        forYou: reg && reg.why ? reg.why : "not enough data to read either term yet",
+        lines: [] });
+      return;
+    }
+    const lines9 = [];
+    lines9.push("STATE — " + reg.key.toUpperCase() + (reg.confirmed ? " (confirmed)" : " (first establishment — not yet confirmed)") + ": " + MEAN9[reg.key] + ".");
+    lines9.push(reg.confirmed
+      ? "CONFIRMED because the same state was read at both evaluations — today and " + REGIME_HOLD_D + " days back. The hysteresis law: a known regime may never flip on one reading; a hunting target is worse than a wrong constant one."
+      : "Awaiting its second reading — a state must be read twice, at least " + REGIME_HOLD_D + " days apart, before it counts. Until then the engine acts on nothing new.");
+    if (reg.pending) lines9.push("PENDING FLIP — " + String(reg.pending).toUpperCase() + " has been read once (pending since " + reg.pendingSince + ") and needs its second reading, at least " + REGIME_HOLD_D + " days after the first, before it counts.");
+    lines9.push(FLIP9[reg.key]);
+    lines9.push("DOWNSIDE-ONLY PROTECTION — a rushed or short-sleep session can never be what CREATES a falling lift verdict: the trend re-pools on unprotected points, and if falling does not survive, it is not a decline you answer for. A rise still banks — protection never blocks the upside.");
+    out.push({ id: "regime", t: "THE REGIME DETECTOR", status: reg.confirmed ? "LIVE" : "PROVISIONAL", prog: null,
+      tag: "Which regime is this cut in — free, costing, or accretion-bound? The door the volume lever and the eat band both gate on.",
+      deep: "Two existing measurements, crossed: the pooled per-lift trend (inverse-variance weighted, its own 95% interval) and the scale rate (autocorrelation-honest interval). FREE = lifts not falling while the rate sits above zero. COSTING = lifts falling while fat falls. ACCRETION-BOUND = a rate indistinguishable from zero without rising lifts. Hysteresis: a KNOWN state flips only after being read twice at least " + REGIME_HOLD_D + " days apart.",
+      forYou: reg.why,
+      lines: lines9 });
+  })();
+
+  out.push({ id: "mrv", t: "VOLUME RETURN CURVE — WHERE AN ADDED SET STOPS PAYING FOR ITS FATIGUE", status: "LOCKED", prog: null,
     tag: "Finds where your own added sets stop earning their fatigue — not a template's number.",
     deep: "Weekly sets per muscle plotted against volume-load slope and recovery response — the point where an added set stops improving output. What this can find is a marginal-return inflection, NOT a 'maximum recoverable volume': MRV is a coaching model, not a measured quantity, and no study validates training just beneath it. The literature prior it starts from: Schoenfeld, Ogborn & Krieger 2017 (meta-analysis) found a graded dose-response, 10+ weekly sets per muscle outgrowing lower volumes; later meta-regressions sharpen that to roughly logarithmic returns — each added set keeps buying a little, and buys less than the one before it. That's the build-phase climb target. The cut deliberately sits below it, because in a deficit load is what protects muscle and volume is the lever that comes down.",
     forYou: (() => { const cut7 = isoOf(new Date(todayStart().getTime() - 7 * DAY)); const perMg = {}; Object.entries(s.sessionLog).forEach(([d, sl]) => { if (d >= cut7) (sl.entries || []).forEach((e2) => { const ex2 = exById(s, e2.id); if (ex2 && ex2.mg && e2.reps) perMg[ex2.mg] = (perMg[ex2.mg] || 0) + e2.reps.length; }); }); const parts = Object.entries(perMg).map(([m, n2]) => `${m} ${n2}`); return `MEV on purpose while cutting — growing on the minimum is the plan. Your logged sets this week: ${parts.length ? parts.join(" · ") : "none in-app yet"} · the build climbs each toward the 10+ landmark, then keeps climbing only while the volume-load slope still pays for the fatigue.`; })(),
@@ -6272,6 +6318,7 @@ function labAnalytics2(s) {
 /* THE MAP — what feeds every instrument; the suite refuses cards that aren't on it */
 const INS_MAP = {
   whoosh: ["weigh-in"], refeed: ["weigh-in"], noise: ["weigh-in"], masked: ["weigh-in", "day numbers"], creep: ["day numbers"],
+  regime: ["session", "weigh-in"],   /* R15g — the detector eats the lift trend and the scale rate */
   adaptmeter: ["day numbers", "weigh-in"], stepeff: ["day numbers", "weigh-in"], volconv: ["session", "your consent"], refeedroi: ["day numbers", "session"],
   tuefri: ["session"], volumeledger: ["session"], signals: ["morning"], fingerprint: ["session"], strvelocity: ["session"], sessionshape: ["session"], rirtruth: ["session"], notes: ["session"], miss: ["day numbers"],
   sleepdose: ["sleep night", "session"], sleeplag: ["sleep night", "session"], melaexp: ["sleep night"], wakesig: ["sleep night"], regularity: ["sleep night"], variancetax: ["sleep night", "session"], canary: ["sleep night", "session"],
@@ -6349,7 +6396,7 @@ function labGroups(s) {
   const all = [...labAnalytics(s), ...labAnalytics2(s), ...sleepLab(s), ...shelfItems(s)];
   const MAP = {
     scale: ["whoosh", "refeed", "noise", "masked", "creep"],
-    engine: ["ea", "adaptmeter", "stepeff", "volconv", "refeedroi"],
+    engine: ["regime", "ea", "adaptmeter", "stepeff", "volconv", "refeedroi"],   /* R15g — the regime detector leads the shelf: the door the rest gates on */
     training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss", "volumeledger", "signals"],
     sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "variancetax", "canary"],
     pulse: ["pulsebase", "cutstress", "pulsewarn", "refeedpulse", "furnacebase", "exittherm"],
@@ -12576,13 +12623,19 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center", flexWrap: "wrap" }}>
           <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>SODIUM</span>
           {["low", "med", "high"].map((sv) => (
-            <span key={sv} onClick={() => { setSod9(sv); if (s.dailyLogs[tISO]) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].sodium = sv; setS(ns); save(ns); } }}
-              style={{ fontFamily: mono, fontSize: TS.micro, color: sod9 === sv ? T.jade : T.steel, border: `1px solid ${sod9 === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px", cursor: "pointer" }}>{sv}</span>
+            <button key={sv} onClick={() => { setSod9(sv); if (s.dailyLogs[tISO]) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].sodium = sv; setS(ns); save(ns); } }}
+              style={{ background: "none", border: "none", padding: "10px 4px", margin: "-10px -4px", cursor: "pointer" }}>
+              {/* R15g — the painted chip rides the inner span */}
+              <span style={{ display: "inline-block", fontFamily: mono, fontSize: TS.micro, color: sod9 === sv ? T.jade : T.steel, border: `1px solid ${sod9 === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px" }}>{sv}</span>
+            </button>
           ))}
           <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginLeft: 8 }}>ALCOHOL{((s.dayCtx || {})[tISO] || {}).est ? " ~ est" : ""}</span>
           {[2, 4, 6, 8, 10, 12].map((u0) => (
-            <span key={u0} onClick={() => { setAlc9(u0); if (s.dailyLogs[tISO]) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].alc = u0; setS(ns); save(ns); } }}
-              style={{ fontFamily: mono, fontSize: TS.micro, color: +alc9 === u0 ? T.jade : T.steel, border: `1px solid ${+alc9 === u0 ? T.jade : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>{u0}</span>
+            <button key={u0} onClick={() => { setAlc9(u0); if (s.dailyLogs[tISO]) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].alc = u0; setS(ns); save(ns); } }}
+              style={{ background: "none", border: "none", padding: "10px 4px", margin: "-10px -4px", cursor: "pointer" }}>
+              {/* R15g — the painted chip rides the inner span */}
+              <span style={{ display: "inline-block", fontFamily: mono, fontSize: TS.micro, color: +alc9 === u0 ? T.jade : T.steel, border: `1px solid ${+alc9 === u0 ? T.jade : T.line}`, borderRadius: 999, padding: "4px 9px" }}>{u0}</span>
+            </button>
           ))}
           <Stepper v={+alc9} set={(v0) => { setAlc9(v0); if (s.dailyLogs[tISO]) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[tISO].alc = v0; setS(ns); save(ns); } }} step={1} min={0} />
           <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>units</span>
@@ -12771,11 +12824,17 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center", flexWrap: "wrap" }}>
               <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>SODIUM</span>
               {["low", "med", "high"].map((sv) => (
-                <span key={sv} onClick={() => setYSod(sv)} style={{ fontFamily: mono, fontSize: TS.micro, color: ySod === sv ? T.jade : T.steel, border: `1px solid ${ySod === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px", cursor: "pointer" }}>{sv}</span>
+                <button key={sv} onClick={() => setYSod(sv)} style={{ background: "none", border: "none", padding: "10px 4px", margin: "-10px -4px", cursor: "pointer" }}>
+                  {/* R15g — the painted chip rides the inner span */}
+                  <span style={{ display: "inline-block", fontFamily: mono, fontSize: TS.micro, color: ySod === sv ? T.jade : T.steel, border: `1px solid ${ySod === sv ? T.jade : T.line}`, borderRadius: 999, padding: "4px 10px" }}>{sv}</span>
+                </button>
               ))}
               <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginLeft: 8 }}>ALCOHOL</span>
               {[2, 4, 6, 8, 10, 12].map((u0) => (
-                <span key={u0} onClick={() => setYAlc(u0)} style={{ fontFamily: mono, fontSize: TS.micro, color: +yAlc === u0 ? T.jade : T.steel, border: `1px solid ${+yAlc === u0 ? T.jade : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>{u0}</span>
+                <button key={u0} onClick={() => setYAlc(u0)} style={{ background: "none", border: "none", padding: "10px 4px", margin: "-10px -4px", cursor: "pointer" }}>
+                  {/* R15g — the painted chip rides the inner span */}
+                  <span style={{ display: "inline-block", fontFamily: mono, fontSize: TS.micro, color: +yAlc === u0 ? T.jade : T.steel, border: `1px solid ${+yAlc === u0 ? T.jade : T.line}`, borderRadius: 999, padding: "4px 9px" }}>{u0}</span>
+                </button>
               ))}
               <Stepper v={+yAlc} set={setYAlc} step={1} min={0} />
             </div>
