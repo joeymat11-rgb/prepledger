@@ -1,5 +1,5 @@
 {
-  "gen": "2026-08-07T09:06:50.796Z",
+  "gen": "2026-08-08T09:05:16.276Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
     "soft": 163.28,
@@ -19,12 +19,12 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2882,
+    "tdee": 2907,
     "tdeeWinDays": 17,
-    "meanCal": 2273,
+    "meanCal": 2298,
     "waterSensitivityLb": 0.96,
     "waterSensDays": 3,
-    "meanSleepH": 6.8,
+    "meanSleepH": 6.9,
     "sleepDebt7H": 3.8,
     "ffmKg": 63.4,
     "proteinTargetG": 146
@@ -71,10 +71,10 @@
     },
     {
       "wk": "2026-08-03",
-      "meanCal": 2250,
+      "meanCal": 2400,
       "meanPro": 189,
       "proHitPct": 100,
-      "meanSteps": 13000
+      "meanSteps": 13200
     }
   ],
   "priorDecisions": [
@@ -193,7 +193,7 @@
       },
       "rationale": {
         "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss 55% and raised lean-mass loss 60% (Nedeltcheva 2010).",
-        "data": "Last 13 nights average 6.8 h (7-night debt 3.8 h); 1 recent days had >=300 mg or afternoon caffeine.",
+        "data": "Last 14 nights average 6.9 h (7-night debt 3.8 h); 1 recent days had >=300 mg or afternoon caffeine.",
         "relationship": "Short sleep + late caffeine track with your low recovery score and rep dips - the lever that protects lean while you cut."
       },
       "predict": "Higher share of loss as fat; lean protected; better session quality.",

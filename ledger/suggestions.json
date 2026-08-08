@@ -1,39 +1,39 @@
 {
-  "gen": "2026-08-07T09:06:50.796Z",
+  "gen": "2026-08-08T09:05:16.276Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-07_rateopener",
+      "sid": "sug_2026-08-08_openerrir",
       "rank": 1,
-      "title": "Rate set one on every lift next session — two sessions have gone in blind",
+      "title": "Open at 1–2 reps in reserve, not 0 — a rated 0 is what froze abs",
       "apply": {
         "kind": "progression",
-        "to": "Log opener RIR on every lift next session; rows 180 opener at 2 RIR releases the hold"
+        "to": "Open every lift at 1–2 RIR and log it: abs at 1 RIR next lower day releases its hold, rows 180 at 2 RIR next upper day releases its"
       },
       "rationale": {
-        "science": "Load progression has to be anchored to proximity-to-failure, not reps alone: reps-to-failure at a fixed load vary by roughly 1 rep session to session (Mitter 2022), which is why the standard is two sightings at a known effort (Ratamess 2009) rather than one good-looking day.",
-        "data": "Every entry in the 8/4 and 8/6 sessions carries rir: null. The last rated opener in the file is 8/3. Rows still read rirHist [0,0] and holdFlag true after 180 x 9,8 on Thursday, and press 250 x 8,8,7 - the best press in the file - went in unrated.",
-        "relationship": "Your app's governor only reads the opener. A blank one is not honest and not hot, it is invisible: it can neither release the rows hold nor bank the press attempt. So the two sessions you actually trained well are the two sessions that moved nothing."
+        "science": "Sets stopped 1–3 reps short of failure produce the same hypertrophy as sets to failure at markedly lower fatigue cost, and on a deficit the priority is defending load rather than accumulating failure work (Schoenfeld 2017; Robinson 2024; Grgic 2021).",
+        "data": "You rated five of six openers on 8/7 — the first rated session since 8/3 — and abs went in at 0. Its rirHist is now [2,0,0], holdFlag is true, and your feed reads 'ABS — RIR 0 TWICE · load HELD until an honest session lands'. Rows carries the same flag off [0,0]. Same session: hack opened at 2 and went 32 reps to 36, extension opened at 1 and debuted 155 × 8,9, abs opened at 0 and went 41 reps to 40.",
+        "relationship": "Your app's governor reads only the opener. Two consecutive 0s freeze the load however good the reps are, and a single opener at 1 or better releases it — the release is written into progressStep, not into a coach's judgement. My 8/7 card asked you to rate set one and never named a target, which is why a correctly-followed card cost you a lift."
       },
-      "predict": "Rate the opener next session and rows.rirHist gains a non-zero entry, rows.holdFlag flips to false with a HOLD RELEASED feed row, and 185 comes back in reach off 10,10. Leave it blank a third time and rows stays at 180 however the reps look - and I will call that a failure of this card, not of you.",
+      "predict": "Abs opens at 1 RIR on your next lower day and abs.holdFlag flips to false with an ABS — HOLD RELEASED feed row, putting 105 back in reach. Rows opens at 2 RIR on your next upper day and does the same, with 185 back off 10,10. Grade both on holdFlag, not on reps. If an opener goes in at 1 or better and either flag stays true, the rule is not what I read in your source and I will say so.",
       "confidence": "high",
       "gate": "approve"
     },
     {
-      "sid": "sug_2026-08-07_sleeplog",
+      "sid": "sug_2026-08-08_volstack",
       "rank": 2,
-      "title": "Log the last two nights, and take 7 h tonight — Thursday's 250 press banked as a debt session",
+      "title": "Stagger the two upper-day set additions — raise it with your coach before you train",
       "apply": {
         "kind": "note"
       },
       "rationale": {
-        "science": "Short sleep is a body-composition lever, not a footnote: at equal deficits, 5.5 vs 8.5 h cut fat loss about 55% and raised lean-mass loss about 60% (Nedeltcheva 2010).",
-        "data": "You did the ask on 8/5 - bed 00:30, 7.58 h. The nights ending 8/6 and 8/7 are unlogged. The three nights before Thursday's session were 6.17, 6.00 and 7.58, a mean of 6.58 h against your app's own 7.0 h threshold, so the session ran on debt.",
-        "relationship": "The debt flag is computed from the three nights before a session, not from how the session felt. That is why the best press in the file - 250 x 8,8,7 - was marked provisional. Two logged nights at 7 h and the next session is clean before you walk in."
+        "science": "Weekly set volume shows diminishing returns — highest per-set payoff at roughly 5–10 sets, less above it (Pelland 2025, 67 studies / 2,058 participants) — and on an energy deficit the marginal set costs recovery that is already scarce, which is the case for living in the high-return tier rather than stacking additions (Schoenfeld 2017).",
+        "data": "You approved three owner's calls on 8/7: hams 4→6, chest 6→8, rear delt 6→8 weekly sets. Hams has run once (120 × 11,9,11). Chest and rear delt have not run at all — they both land on your next upper day, which is also press 250's ownership repeat. Your own app flagged the risk on the cards: recovery reads WATCH and three simultaneous experiments raise the odds any single read comes back 'did not convert'.",
+        "relationship": "Your app restarts each lift's volume-conversion window at the change and grades each one on its own bar. Two changes on the same upper session, with the press set fractionally billing triceps and front delts as well, means the reads overlap and none of them answers cleanly. Splitting them by a week costs one week and buys three separate verdicts instead of one blurred one."
       },
-      "predict": "Log 8/6 and 8/7 and put two nights at or above 7 h in, and the three-night mean before your next session clears 7.0, so it banks clean rather than on debt. Grade it on sleep.nights gaining both dates and on lastMeta.debt reading false for the next session. If the nights get logged and the flag still trips, the threshold is the problem and not you, and I will say so.",
+      "predict": "Take one of the two upper-day additions this week and the other next, and each lift's conversion read comes back attributable. Take both at once and expect at least one 'did not convert' you cannot assign a cause to — and a press ownership repeat confounded by a fourth set on the same day.",
       "confidence": "medium",
-      "gate": "approve"
+      "gate": "coach"
     }
   ]
 }
