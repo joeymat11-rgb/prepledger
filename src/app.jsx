@@ -16030,6 +16030,20 @@ function expDigest(s) {
    writes nothing, colours nothing, and files no card. Every write here goes through a
    path that already shipped — writeDaily, applyRead/undoRead/runAdaptive, the waist
    and photos pushes, the sleep-night push. No new state key. */
+/* R15j · THE MENU (Joe's ruling, audit-named): the instruments with no data are not
+   clutter — they are the menu of what more the app could do, each priced in the ONE
+   input that wakes it. Grouped by that input, so "start tagging morning pulse" reads
+   as three instruments waking at once. Titles and counters are the cards' own fields,
+   verbatim; the two MISS cards are deliberately OUT — they sit at 0 because he is not
+   missing protein, and offering to fund them would be asking him to fail. */
+const CAPTURE_MENU = [
+  { input: "MORNING PULSE", how: "5 seconds at the wrist, on waking", ids: ["pulsebase", "pulsewarn", "cutstress"], to: "BODY" },
+  { input: "WAKING TEMPERATURE", how: "15 seconds, oral, before you move", ids: ["furnacebase"], to: "BODY" },
+  { input: "POST-REFEED PULSE", how: "the same reading, the morning after a refeed", ids: ["refeedpulse"], to: "BODY" },
+  { input: "SLEEP HOURS ON BOTH SIDES OF 8", how: "bed and wake times — nights near 7.5 and near 8.5", ids: ["sleepdose"], to: "SLEEP" },
+  { input: "A DEXA SCAN", how: "one measured body-fat anchor, whenever you get one", ids: ["dexarecon"], to: null },
+  { input: "JUST KEEP LOGGING", how: "matched day-pairs accrue on their own", ids: ["miner"], to: null },
+];
 function CaptureSheet({ s, setS, save, open, onClose, go }) {
   const tISO = isoOf(todayStart());
   const readToday = (s.reads || []).find((r) => r && r.d === tISO);
@@ -16048,8 +16062,12 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
   const funds = (id, fallback) => {
     const c = byId(id);
     if (!c) return fallback;
-    const n = c.prog && c.prog.n != null && c.prog.need != null ? " — " + c.prog.n + " of " + c.prog.need : "";
-    return "funds " + c.t + n;
+    /* the counter is a DISTANCE, so it only reads while there is distance left: a live
+       instrument that has run past its own need said "48 of 8" on the rig, which is not a
+       counter, it is an artefact. Past the line it says so in words. */
+    const p = c.prog;
+    const short = p && p.n != null && p.need != null && p.n < p.need;
+    return "funds " + c.t + (short ? " — " + p.n + " of " + p.need : " — already speaking");
   };
   const nights = (s.sleep && s.sleep.nights) || [];
   const lastNight = nights[nights.length - 1];
@@ -16133,6 +16151,25 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
             </div>
             <Btn full tone="gauge" onClick={() => { const ns = { ...s, waist: [...(s.waist || []), { d: tISO, v: +waistIn }] }; setS(ns); save(ns); hap(12); onClose(); }}>Log {waistIn}&quot; waist</Btn>
             {optRow("PROGRESS PHOTOS", "the record the mirror cannot keep — marked, never uploaded", "mark done ▸", () => { const ns = JSON.parse(JSON.stringify(s)); ns.photos = ns.photos || []; ns.photos.push({ d: tISO }); setS(ns); save(ns); hap(12); onClose(); })}
+            <div data-cap="menu" style={{ marginTop: 14, borderTop: "1px solid " + DT.hairline, paddingTop: 12 }}>
+              <div style={lbl9}>WHAT ELSE THIS COULD DO</div>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 6 }}>Instruments built and waiting on one input each. Nothing here is owed — this is the menu, not a list of misses.</div>
+              {CAPTURE_MENU.map((g) => {
+                const cs9 = g.ids.map(byId).filter(Boolean);
+                if (!cs9.length) return null;
+                const names = cs9.map((c) => c.t).join(" · ");
+                const near = cs9.map((c) => (c.prog && c.prog.need ? c.prog.n + " of " + c.prog.need : null)).filter(Boolean)[0];
+                return (
+                  <button key={g.input} onClick={() => { if (g.to) { onClose(); go(g.to); } }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: 44, background: "none", border: "none", padding: "8px 0", cursor: g.to ? "pointer" : "default", textAlign: "left" }}>
+                    <span style={{ minWidth: 0, flex: 1 }}>
+                      <span style={{ display: "block", fontFamily: mono, fontSize: 11.5, color: DT.ink, letterSpacing: "0.04em" }}>{g.input}{cs9.length > 1 ? " → " + cs9.length + " INSTRUMENTS" : ""}</span>
+                      <span style={{ display: "block", fontFamily: body, fontSize: 11.5, color: DT.steel, marginTop: 2, lineHeight: 1.4 }}>{g.how} — wakes {names}</span>
+                    </span>
+                    <span style={{ ...tnum9, flexShrink: 0, fontSize: 10.5, color: DT.dim }}>{near || ""}{g.to ? " ▸" : ""}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         ) : (
           <button onClick={() => setOptOpen(true)} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", background: "none", border: "none", padding: "10px 0 0", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>▸ FOUR MORE — WAKE TAG · PULSE · TEMPERATURE · WAIST · PHOTOS</button>
