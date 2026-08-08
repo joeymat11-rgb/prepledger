@@ -388,7 +388,38 @@ through the same setter so `stepValue`'s coercion still owns every non-finite ca
 typing 1950 stored `{cal 1950, pro 175, steps 15000}` — siblings untouched; the night
 wrote `{d 2026-08-07, h 7.25, bed 23:30, wake 06:45}` with no duplicate row.
 
-## NOW — R17 · THE ESTIMATE FLAG IS OVER-SCOPED (filed 2026-08-08, audit-root-caused; builds next)
+## DONE, AWAITING AUDIT — R17 (2026-08-08, branch feat/r17-estflag)
+
+**Split by what the flag claims.** `dayWeather` now answers two questions: `hard` — "are
+this day's FOOD and SCALE numbers trustworthy" (unchanged, every food/scale consumer
+keeps reading it) — and `hardSession` — "was the TRAINING compromised", which only an
+event day fails. **The consumer ruling, one by one:** `liftTrend`'s exclusion, `liftCall`'s
+velocity window and `liftCall`'s stall counter all read reps counted at a known load →
+switched to `hardSession`. The anomaly detector and `bodyAlarm` read sleep/steps/**scale**
+quality, and the natural-experiment miner matches pairs on **calories** → all three keep
+`hard`, ruled explicitly and pinned at source. Event days untouched, per Joe.
+
+**Measured on his real ledger (8/7 — what his phone holds): nLifts 0 → 10, state unknown
+→ rising, regime unknown → free, volumePush ABSTAIN → HOLD.** The eat band is
+**byte-identical** (2221–2308) and so is `observedTDEE` — pinned in both directions. The
+coach card's "0 of the 4 lifts it needs" box is simply gone, because the detector can
+read. **The receipt:** `progressionTrend.setAsideDays` names every session the trend
+layer set aside (his ledger: `["2026-07-27"]`, an event day), and the still-learning box
+names which day, why, and what undoes it.
+
+**Freeze movement, enumerated: 161 leaves.** Headline — `progressionTrend` (nLifts,
+state, pct/lo/hi/se, 13 lift entries), `regime` (key + its 27 prog leaves + why + basis),
+`volumePush.mode`, `volumeImbalance.regimeKey/why`, `energyBalanceTarget.regime/regimeWhy`
+(the *band* itself unmoved), `muscleVolume` per-muscle reads, `perLift` trend leaves, and
+one roster status (`regime`: ARMED → PROVISIONAL — the detector card now has a reading).
+Roster stays 57; words fixture untouched; no new state key; no migration.
+
+**One regression of my own, caught by the suite:** I first had `liftTrend` return a
+truthy `{short:true}` stub to carry the set-aside days, which broke every `if (t)`/`t.n`
+consumer (`volumeConversion` read have/need as undefined). The contract is null-or-a-trend
+again, and the set-aside list is derived at the pooled layer where it belongs.
+
+## FILED — R17 · THE ESTIMATE FLAG WAS OVER-SCOPED (filed 2026-08-08, audit-root-caused)
 
 **The failing case, on his live ledger:** setting `dayCtx.est` on 2026-08-07 (calories
 amended 2500 → 3000) made `dayWeather().hard` true, `liftTrend` excludes hard days

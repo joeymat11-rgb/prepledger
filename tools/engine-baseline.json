@@ -42,7 +42,7 @@
    "floorBindsWhy": null,
    "why": "Not enough clean training data to read a regime yet, so this HOLDS the prescription your own record validated — 2176–2263. The engine is not deciding here; it is holding. Abstaining is not a reason to stop doing the thing that is working.",
    "regime": "unknown",
-   "regimeWhy": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything",
+   "regimeWhy": "only 3 lift(s) carry a usable trend — 4 needed before this reads anything",
    "regimeConfirmed": false,
    "dir": "deficit",
    "provisional": true
@@ -117,18 +117,139 @@
    "span": "2026-06-29 → 2026-08-05"
   },
   "progressionTrend": {
-   "nLifts": 0,
+   "nLifts": 3,
    "nExcludedNonNumeric": 2,
    "excludedIds": [
     "curl",
     "hanging"
    ],
-   "lifts": [],
+   "setAsideDays": [
+    "2026-07-27"
+   ],
+   "lifts": [
+    {
+     "id": "calves",
+     "n": 4,
+     "nSoft": 2,
+     "pct": -7.019,
+     "se": 7.188,
+     "lo": -37.951,
+     "hi": 23.913,
+     "from": "2026-07-24",
+     "to": "2026-08-04",
+     "pts": [
+      {
+       "d": "2026-07-24",
+       "y": 14490,
+       "soft": false,
+       "k": 4
+      },
+      {
+       "d": "2026-07-28",
+       "y": 10240,
+       "soft": true,
+       "k": 4
+      },
+      {
+       "d": "2026-07-31",
+       "y": 10880,
+       "soft": false,
+       "k": 4
+      },
+      {
+       "d": "2026-08-04",
+       "y": 11520,
+       "soft": true,
+       "k": 4
+      }
+     ],
+     "k": 4,
+     "resetAt": null
+    },
+    {
+     "id": "abs",
+     "n": 4,
+     "nSoft": 2,
+     "pct": 10.35,
+     "se": 2.22,
+     "lo": 0.796,
+     "hi": 19.903,
+     "from": "2026-07-24",
+     "to": "2026-08-04",
+     "pts": [
+      {
+       "d": "2026-07-24",
+       "y": 3100,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-07-28",
+       "y": 3200,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-31",
+       "y": 3900,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-08-04",
+       "y": 4100,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    },
+    {
+     "id": "hack",
+     "n": 4,
+     "nSoft": 2,
+     "pct": 12.389,
+     "se": 3.066,
+     "lo": -0.802,
+     "hi": 25.581,
+     "from": "2026-07-24",
+     "to": "2026-08-04",
+     "pts": [
+      {
+       "d": "2026-07-24",
+       "y": 3520,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-07-28",
+       "y": 4320,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-31",
+       "y": 5120,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-08-04",
+       "y": 5120,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    }
+   ],
    "state": "unknown",
    "pct": null,
    "lo": null,
    "hi": null,
-   "why": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything"
+   "why": "only 3 lift(s) carry a usable trend — 4 needed before this reads anything"
   },
   "regime": {
    "key": "unknown",
@@ -136,21 +257,142 @@
    "pending": null,
    "pendingSince": null,
    "prog": {
-    "nLifts": 0,
+    "nLifts": 3,
     "nExcludedNonNumeric": 2,
     "excludedIds": [
      "curl",
      "hanging"
     ],
-    "lifts": [],
+    "setAsideDays": [
+     "2026-07-27"
+    ],
+    "lifts": [
+     {
+      "id": "calves",
+      "n": 4,
+      "nSoft": 2,
+      "pct": -7.019,
+      "se": 7.188,
+      "lo": -37.951,
+      "hi": 23.913,
+      "from": "2026-07-24",
+      "to": "2026-08-04",
+      "pts": [
+       {
+        "d": "2026-07-24",
+        "y": 14490,
+        "soft": false,
+        "k": 4
+       },
+       {
+        "d": "2026-07-28",
+        "y": 10240,
+        "soft": true,
+        "k": 4
+       },
+       {
+        "d": "2026-07-31",
+        "y": 10880,
+        "soft": false,
+        "k": 4
+       },
+       {
+        "d": "2026-08-04",
+        "y": 11520,
+        "soft": true,
+        "k": 4
+       }
+      ],
+      "k": 4,
+      "resetAt": null
+     },
+     {
+      "id": "abs",
+      "n": 4,
+      "nSoft": 2,
+      "pct": 10.35,
+      "se": 2.22,
+      "lo": 0.796,
+      "hi": 19.903,
+      "from": "2026-07-24",
+      "to": "2026-08-04",
+      "pts": [
+       {
+        "d": "2026-07-24",
+        "y": 3100,
+        "soft": false,
+        "k": 3
+       },
+       {
+        "d": "2026-07-28",
+        "y": 3200,
+        "soft": true,
+        "k": 3
+       },
+       {
+        "d": "2026-07-31",
+        "y": 3900,
+        "soft": false,
+        "k": 3
+       },
+       {
+        "d": "2026-08-04",
+        "y": 4100,
+        "soft": true,
+        "k": 3
+       }
+      ],
+      "k": 3,
+      "resetAt": null
+     },
+     {
+      "id": "hack",
+      "n": 4,
+      "nSoft": 2,
+      "pct": 12.389,
+      "se": 3.066,
+      "lo": -0.802,
+      "hi": 25.581,
+      "from": "2026-07-24",
+      "to": "2026-08-04",
+      "pts": [
+       {
+        "d": "2026-07-24",
+        "y": 3520,
+        "soft": false,
+        "k": 3
+       },
+       {
+        "d": "2026-07-28",
+        "y": 4320,
+        "soft": true,
+        "k": 3
+       },
+       {
+        "d": "2026-07-31",
+        "y": 5120,
+        "soft": false,
+        "k": 3
+       },
+       {
+        "d": "2026-08-04",
+        "y": 5120,
+        "soft": true,
+        "k": 3
+       }
+      ],
+      "k": 3,
+      "resetAt": null
+     }
+    ],
     "state": "unknown",
     "pct": null,
     "lo": null,
     "hi": null,
-    "why": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything"
+    "why": "only 3 lift(s) carry a usable trend — 4 needed before this reads anything"
    },
    "rate": null,
-   "why": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything"
+   "why": "only 3 lift(s) carry a usable trend — 4 needed before this reads anything"
   },
   "recoveryIndex": {
    "score": 50,
@@ -571,7 +813,7 @@
    "growthOK": false,
    "regimeKey": "unknown",
    "sdes": 2.05,
-   "why": "Filed, not proposed — the regime detector cannot yet read your state (only 0 lift(s) carry a usable trend — 4 needed before this reads anything), and a growth decision is earned by measured lifts and rate — the engine abstains rather than guesses. The 6-12 band is a GROWTH dose-response measured in people eating enough to build. The one trial that asked the retention question of trained men in energy restriction (Roth 2023, n=38, six weeks at a 30 kcal/kg deficit and 2.8 g/kg protein) found 20 weekly sets and 12 preserved lean mass identically — 0.51 kg lost against 0.92, not a significant difference, and no difference in muscle thickness. Retention is cheaper still: Bickel 2011 held young adults' thigh lean mass for 32 weeks on one-ninth of their original volume. So hams at 4 sets is adequate for what you are actually asking of it right now, which is to hold. This is the first thing worth raising when the detector reads free — and it is on the record so nobody has to rediscover it then."
+   "why": "Filed, not proposed — the regime detector cannot yet read your state (only 3 lift(s) carry a usable trend — 4 needed before this reads anything), and a growth decision is earned by measured lifts and rate — the engine abstains rather than guesses. The 6-12 band is a GROWTH dose-response measured in people eating enough to build. The one trial that asked the retention question of trained men in energy restriction (Roth 2023, n=38, six weeks at a 30 kcal/kg deficit and 2.8 g/kg protein) found 20 weekly sets and 12 preserved lean mass identically — 0.51 kg lost against 0.92, not a significant difference, and no difference in muscle thickness. Retention is cheaper still: Bickel 2011 held young adults' thigh lean mass for 32 weeks on one-ninth of their original volume. So hams at 4 sets is adequate for what you are actually asking of it right now, which is to hold. This is the first thing worth raising when the detector reads free — and it is on the record so nobody has to rediscover it then."
   },
   "programmeVolume": [
    {
@@ -853,12 +1095,12 @@
      {
       "id": "rows",
       "n": "Rows (strapless)",
-      "v": 4
+      "v": 2
      },
      {
       "id": "pulldown",
       "n": "Pulldown",
-      "v": 1
+      "v": 0.5
      }
     ],
     "slipping": 0,
@@ -920,7 +1162,7 @@
      {
       "id": "press",
       "n": "Press",
-      "v": -1
+      "v": -0.5
      }
     ],
     "slipping": 1,
@@ -980,7 +1222,7 @@
      {
       "id": "lateral",
       "n": "Lateral machine",
-      "v": 2
+      "v": 1
      }
     ],
     "slipping": 0,
@@ -1038,7 +1280,7 @@
      {
       "id": "curl",
       "n": "Curls",
-      "v": 7
+      "v": 3.5
      }
     ],
     "slipping": 0,
@@ -1094,7 +1336,7 @@
      {
       "id": "rearDelt",
       "n": "Rear-delt fly (cable · uni)",
-      "v": 3
+      "v": 1.5
      }
     ],
     "slipping": 0,
@@ -1178,10 +1420,15 @@
      {
       "id": "sulek",
       "n": "Sulek curl (forearm)",
-      "v": 2
+      "v": 1
+     },
+     {
+      "id": "pronated",
+      "n": "Pronated EZ curl",
+      "v": -1
      }
     ],
-    "slipping": 0,
+    "slipping": 1,
     "gaining": 1,
     "sore7": 0
    },
@@ -1232,7 +1479,7 @@
      {
       "id": "tricep",
       "n": "Tricep",
-      "v": 3
+      "v": 1.5
      }
     ],
     "slipping": 0,
@@ -1331,16 +1578,16 @@
      {
       "id": "hack",
       "n": "Hack squat",
-      "v": 5
+      "v": 3.3
      },
      {
       "id": "extension",
       "n": "Leg extension",
-      "v": 0
+      "v": 2
      }
     ],
     "slipping": 0,
-    "gaining": 1,
+    "gaining": 2,
     "sore7": 0
    },
    {
@@ -1433,12 +1680,12 @@
      {
       "id": "abs",
       "n": "Abs",
-      "v": 5
+      "v": 3.3
      },
      {
       "id": "hanging",
       "n": "Hanging raise",
-      "v": -0.5
+      "v": -0.3
      }
     ],
     "slipping": 1,
@@ -1499,7 +1746,7 @@
      {
       "id": "calves",
       "n": "Calves",
-      "v": -5
+      "v": -3.3
      }
     ],
     "slipping": 1,
@@ -1707,6 +1954,11 @@
     "status": "ARMED"
    },
    {
+    "id": "regime",
+    "t": "THE REGIME DETECTOR",
+    "status": "ARMED"
+   },
+   {
     "id": "refeedroi",
     "t": "REFEED ROI",
     "status": "ARMED"
@@ -1759,11 +2011,6 @@
    {
     "id": "tuefri",
     "t": "TUE/FRI CONTRAST — REFEED DISTANCE",
-    "status": "ARMED"
-   },
-   {
-    "id": "regime",
-    "t": "THE REGIME DETECTOR",
     "status": "ARMED"
    },
    {
@@ -2037,7 +2284,45 @@
     ]
    },
    "hack": {
-    "liftTrend": null,
+    "liftTrend": {
+     "id": "hack",
+     "n": 4,
+     "nSoft": 2,
+     "pct": 12.389,
+     "se": 3.066,
+     "lo": -0.802,
+     "hi": 25.581,
+     "from": "2026-07-24",
+     "to": "2026-08-04",
+     "pts": [
+      {
+       "d": "2026-07-24",
+       "y": 3520,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-07-28",
+       "y": 4320,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-31",
+       "y": 5120,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-08-04",
+       "y": 5120,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    },
     "volumeConversion": {
      "status": "IDLE",
      "exId": "hack"
@@ -2058,7 +2343,45 @@
     ]
    },
    "abs": {
-    "liftTrend": null,
+    "liftTrend": {
+     "id": "abs",
+     "n": 4,
+     "nSoft": 2,
+     "pct": 10.35,
+     "se": 2.22,
+     "lo": 0.796,
+     "hi": 19.903,
+     "from": "2026-07-24",
+     "to": "2026-08-04",
+     "pts": [
+      {
+       "d": "2026-07-24",
+       "y": 3100,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-07-28",
+       "y": 3200,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-31",
+       "y": 3900,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-08-04",
+       "y": 4100,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    },
     "volumeConversion": {
      "status": "IDLE",
      "exId": "abs"
@@ -2117,7 +2440,45 @@
     ]
    },
    "calves": {
-    "liftTrend": null,
+    "liftTrend": {
+     "id": "calves",
+     "n": 4,
+     "nSoft": 2,
+     "pct": -7.019,
+     "se": 7.188,
+     "lo": -37.951,
+     "hi": 23.913,
+     "from": "2026-07-24",
+     "to": "2026-08-04",
+     "pts": [
+      {
+       "d": "2026-07-24",
+       "y": 14490,
+       "soft": false,
+       "k": 4
+      },
+      {
+       "d": "2026-07-28",
+       "y": 10240,
+       "soft": true,
+       "k": 4
+      },
+      {
+       "d": "2026-07-31",
+       "y": 10880,
+       "soft": false,
+       "k": 4
+      },
+      {
+       "d": "2026-08-04",
+       "y": 11520,
+       "soft": true,
+       "k": 4
+      }
+     ],
+     "k": 4,
+     "resetAt": null
+    },
     "volumeConversion": {
      "status": "IDLE",
      "exId": "calves"
@@ -2314,9 +2675,9 @@
    "floorWhy": "1750 is 25 kcal per kg of your 63.4 kg lean mass plus the ~171 a day your training costs — the IOC's own energy-availability formula, run backwards. No position stand anywhere states an absolute calorie floor for an athlete; all four I checked express it per kg of lean mass, which is why this one moves with you instead of sitting at a round number. Treat the 25 as a convention rather than a measurement: it comes from three single-subject case reports, and the IOC declines to set a threshold at all.",
    "floorBinds": false,
    "floorBindsWhy": null,
-   "why": "Not enough clean training data to read a regime yet, so this HOLDS the prescription your own record validated — 2221–2308. The engine is not deciding here; it is holding. Abstaining is not a reason to stop doing the thing that is working.",
-   "regime": "unknown",
-   "regimeWhy": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything",
+   "why": "Lifts are holding or rising while fat falls — both halves of the objective are improving at once, which is the best state available. Hold 2221–2308.",
+   "regime": "free",
+   "regimeWhy": "lifts rising and fat still falling — both terms improving at once — not yet confirmed by a second reading a week back",
    "regimeConfirmed": false,
    "dir": "deficit",
    "provisional": true
@@ -2391,40 +2752,863 @@
    "span": "2026-06-30 → 2026-08-06"
   },
   "progressionTrend": {
-   "nLifts": 0,
+   "nLifts": 10,
    "nExcludedNonNumeric": 2,
    "excludedIds": [
     "curl",
     "hanging"
    ],
-   "lifts": [],
-   "state": "unknown",
-   "pct": null,
-   "lo": null,
-   "hi": null,
-   "why": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything"
+   "setAsideDays": [
+    "2026-07-27"
+   ],
+   "lifts": [
+    {
+     "id": "lateral",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 0.825,
+     "se": 1.584,
+     "lo": -5.99,
+     "hi": 7.64,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 4240,
+       "soft": true,
+       "k": 4
+      },
+      {
+       "d": "2026-07-30",
+       "y": 4080,
+       "soft": true,
+       "k": 4
+      },
+      {
+       "d": "2026-08-03",
+       "y": 4400,
+       "soft": true,
+       "k": 4
+      },
+      {
+       "d": "2026-08-06",
+       "y": 4250,
+       "soft": true,
+       "k": 4
+      }
+     ],
+     "k": 4,
+     "resetAt": null
+    },
+    {
+     "id": "rearDelt",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 1.043,
+     "se": 2.761,
+     "lo": -10.836,
+     "hi": 12.923,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 560,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-30",
+       "y": 560,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-08-03",
+       "y": 620,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-08-06",
+       "y": 560,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    },
+    {
+     "id": "sulek",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 5.957,
+     "se": 1.474,
+     "lo": -0.386,
+     "hi": 12.3,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 1925,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-07-30",
+       "y": 1925,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-08-03",
+       "y": 2100,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-08-06",
+       "y": 2275,
+       "soft": true,
+       "k": 2
+      }
+     ],
+     "k": 2,
+     "resetAt": null
+    },
+    {
+     "id": "press",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 0.373,
+     "se": 0.959,
+     "lo": -3.753,
+     "hi": 4.499,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 5635,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-30",
+       "y": 5635,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-08-03",
+       "y": 5500,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-08-06",
+       "y": 5750,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    },
+    {
+     "id": "pulldown",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 4.444,
+     "se": 1.1,
+     "lo": -0.288,
+     "hi": 9.177,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 2400,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-07-30",
+       "y": 2400,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-08-03",
+       "y": 2560,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-08-06",
+       "y": 2720,
+       "soft": true,
+       "k": 2
+      }
+     ],
+     "k": 2,
+     "resetAt": null
+    },
+    {
+     "id": "rows",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 6.769,
+     "se": 3.198,
+     "lo": -6.99,
+     "hi": 20.529,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 2520,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-07-30",
+       "y": 2880,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-08-03",
+       "y": 3240,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-08-06",
+       "y": 3060,
+       "soft": true,
+       "k": 2
+      }
+     ],
+     "k": 2,
+     "resetAt": null
+    },
+    {
+     "id": "tricep",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 1.875,
+     "se": 2.025,
+     "lo": -6.84,
+     "hi": 10.59,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 1705,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-30",
+       "y": 1705,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-08-03",
+       "y": 1870,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-08-06",
+       "y": 1760,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    },
+    {
+     "id": "calves",
+     "n": 4,
+     "nSoft": 2,
+     "pct": -7.019,
+     "se": 7.188,
+     "lo": -37.951,
+     "hi": 23.913,
+     "from": "2026-07-24",
+     "to": "2026-08-04",
+     "pts": [
+      {
+       "d": "2026-07-24",
+       "y": 14490,
+       "soft": false,
+       "k": 4
+      },
+      {
+       "d": "2026-07-28",
+       "y": 10240,
+       "soft": true,
+       "k": 4
+      },
+      {
+       "d": "2026-07-31",
+       "y": 10880,
+       "soft": false,
+       "k": 4
+      },
+      {
+       "d": "2026-08-04",
+       "y": 11520,
+       "soft": true,
+       "k": 4
+      }
+     ],
+     "k": 4,
+     "resetAt": null
+    },
+    {
+     "id": "abs",
+     "n": 4,
+     "nSoft": 2,
+     "pct": 10.35,
+     "se": 2.22,
+     "lo": 0.796,
+     "hi": 19.903,
+     "from": "2026-07-24",
+     "to": "2026-08-04",
+     "pts": [
+      {
+       "d": "2026-07-24",
+       "y": 3100,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-07-28",
+       "y": 3200,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-31",
+       "y": 3900,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-08-04",
+       "y": 4100,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    },
+    {
+     "id": "hack",
+     "n": 4,
+     "nSoft": 2,
+     "pct": 12.389,
+     "se": 3.066,
+     "lo": -0.802,
+     "hi": 25.581,
+     "from": "2026-07-24",
+     "to": "2026-08-04",
+     "pts": [
+      {
+       "d": "2026-07-24",
+       "y": 3520,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-07-28",
+       "y": 4320,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-31",
+       "y": 5120,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-08-04",
+       "y": 5120,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    }
+   ],
+   "state": "rising",
+   "protectedBy": null,
+   "confidence": "normal",
+   "nSoft": 34,
+   "pct": 3.27,
+   "se": 0.529,
+   "lo": 2.233,
+   "hi": 4.307,
+   "why": "pooled 3.27 %/session across 10 lifts"
   },
   "regime": {
-   "key": "unknown",
+   "key": "free",
    "confirmed": false,
    "pending": null,
    "pendingSince": null,
+   "basis": "first-establishment",
    "prog": {
-    "nLifts": 0,
+    "nLifts": 10,
     "nExcludedNonNumeric": 2,
     "excludedIds": [
      "curl",
      "hanging"
     ],
-    "lifts": [],
-    "state": "unknown",
-    "pct": null,
-    "lo": null,
-    "hi": null,
-    "why": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything"
+    "setAsideDays": [
+     "2026-07-27"
+    ],
+    "lifts": [
+     {
+      "id": "lateral",
+      "n": 4,
+      "nSoft": 4,
+      "pct": 0.825,
+      "se": 1.584,
+      "lo": -5.99,
+      "hi": 7.64,
+      "from": "2026-07-23",
+      "to": "2026-08-06",
+      "pts": [
+       {
+        "d": "2026-07-23",
+        "y": 4240,
+        "soft": true,
+        "k": 4
+       },
+       {
+        "d": "2026-07-30",
+        "y": 4080,
+        "soft": true,
+        "k": 4
+       },
+       {
+        "d": "2026-08-03",
+        "y": 4400,
+        "soft": true,
+        "k": 4
+       },
+       {
+        "d": "2026-08-06",
+        "y": 4250,
+        "soft": true,
+        "k": 4
+       }
+      ],
+      "k": 4,
+      "resetAt": null
+     },
+     {
+      "id": "rearDelt",
+      "n": 4,
+      "nSoft": 4,
+      "pct": 1.043,
+      "se": 2.761,
+      "lo": -10.836,
+      "hi": 12.923,
+      "from": "2026-07-23",
+      "to": "2026-08-06",
+      "pts": [
+       {
+        "d": "2026-07-23",
+        "y": 560,
+        "soft": true,
+        "k": 3
+       },
+       {
+        "d": "2026-07-30",
+        "y": 560,
+        "soft": true,
+        "k": 3
+       },
+       {
+        "d": "2026-08-03",
+        "y": 620,
+        "soft": true,
+        "k": 3
+       },
+       {
+        "d": "2026-08-06",
+        "y": 560,
+        "soft": true,
+        "k": 3
+       }
+      ],
+      "k": 3,
+      "resetAt": null
+     },
+     {
+      "id": "sulek",
+      "n": 4,
+      "nSoft": 4,
+      "pct": 5.957,
+      "se": 1.474,
+      "lo": -0.386,
+      "hi": 12.3,
+      "from": "2026-07-23",
+      "to": "2026-08-06",
+      "pts": [
+       {
+        "d": "2026-07-23",
+        "y": 1925,
+        "soft": true,
+        "k": 2
+       },
+       {
+        "d": "2026-07-30",
+        "y": 1925,
+        "soft": true,
+        "k": 2
+       },
+       {
+        "d": "2026-08-03",
+        "y": 2100,
+        "soft": true,
+        "k": 2
+       },
+       {
+        "d": "2026-08-06",
+        "y": 2275,
+        "soft": true,
+        "k": 2
+       }
+      ],
+      "k": 2,
+      "resetAt": null
+     },
+     {
+      "id": "press",
+      "n": 4,
+      "nSoft": 4,
+      "pct": 0.373,
+      "se": 0.959,
+      "lo": -3.753,
+      "hi": 4.499,
+      "from": "2026-07-23",
+      "to": "2026-08-06",
+      "pts": [
+       {
+        "d": "2026-07-23",
+        "y": 5635,
+        "soft": true,
+        "k": 3
+       },
+       {
+        "d": "2026-07-30",
+        "y": 5635,
+        "soft": true,
+        "k": 3
+       },
+       {
+        "d": "2026-08-03",
+        "y": 5500,
+        "soft": true,
+        "k": 3
+       },
+       {
+        "d": "2026-08-06",
+        "y": 5750,
+        "soft": true,
+        "k": 3
+       }
+      ],
+      "k": 3,
+      "resetAt": null
+     },
+     {
+      "id": "pulldown",
+      "n": 4,
+      "nSoft": 4,
+      "pct": 4.444,
+      "se": 1.1,
+      "lo": -0.288,
+      "hi": 9.177,
+      "from": "2026-07-23",
+      "to": "2026-08-06",
+      "pts": [
+       {
+        "d": "2026-07-23",
+        "y": 2400,
+        "soft": true,
+        "k": 2
+       },
+       {
+        "d": "2026-07-30",
+        "y": 2400,
+        "soft": true,
+        "k": 2
+       },
+       {
+        "d": "2026-08-03",
+        "y": 2560,
+        "soft": true,
+        "k": 2
+       },
+       {
+        "d": "2026-08-06",
+        "y": 2720,
+        "soft": true,
+        "k": 2
+       }
+      ],
+      "k": 2,
+      "resetAt": null
+     },
+     {
+      "id": "rows",
+      "n": 4,
+      "nSoft": 4,
+      "pct": 6.769,
+      "se": 3.198,
+      "lo": -6.99,
+      "hi": 20.529,
+      "from": "2026-07-23",
+      "to": "2026-08-06",
+      "pts": [
+       {
+        "d": "2026-07-23",
+        "y": 2520,
+        "soft": true,
+        "k": 2
+       },
+       {
+        "d": "2026-07-30",
+        "y": 2880,
+        "soft": true,
+        "k": 2
+       },
+       {
+        "d": "2026-08-03",
+        "y": 3240,
+        "soft": true,
+        "k": 2
+       },
+       {
+        "d": "2026-08-06",
+        "y": 3060,
+        "soft": true,
+        "k": 2
+       }
+      ],
+      "k": 2,
+      "resetAt": null
+     },
+     {
+      "id": "tricep",
+      "n": 4,
+      "nSoft": 4,
+      "pct": 1.875,
+      "se": 2.025,
+      "lo": -6.84,
+      "hi": 10.59,
+      "from": "2026-07-23",
+      "to": "2026-08-06",
+      "pts": [
+       {
+        "d": "2026-07-23",
+        "y": 1705,
+        "soft": true,
+        "k": 3
+       },
+       {
+        "d": "2026-07-30",
+        "y": 1705,
+        "soft": true,
+        "k": 3
+       },
+       {
+        "d": "2026-08-03",
+        "y": 1870,
+        "soft": true,
+        "k": 3
+       },
+       {
+        "d": "2026-08-06",
+        "y": 1760,
+        "soft": true,
+        "k": 3
+       }
+      ],
+      "k": 3,
+      "resetAt": null
+     },
+     {
+      "id": "calves",
+      "n": 4,
+      "nSoft": 2,
+      "pct": -7.019,
+      "se": 7.188,
+      "lo": -37.951,
+      "hi": 23.913,
+      "from": "2026-07-24",
+      "to": "2026-08-04",
+      "pts": [
+       {
+        "d": "2026-07-24",
+        "y": 14490,
+        "soft": false,
+        "k": 4
+       },
+       {
+        "d": "2026-07-28",
+        "y": 10240,
+        "soft": true,
+        "k": 4
+       },
+       {
+        "d": "2026-07-31",
+        "y": 10880,
+        "soft": false,
+        "k": 4
+       },
+       {
+        "d": "2026-08-04",
+        "y": 11520,
+        "soft": true,
+        "k": 4
+       }
+      ],
+      "k": 4,
+      "resetAt": null
+     },
+     {
+      "id": "abs",
+      "n": 4,
+      "nSoft": 2,
+      "pct": 10.35,
+      "se": 2.22,
+      "lo": 0.796,
+      "hi": 19.903,
+      "from": "2026-07-24",
+      "to": "2026-08-04",
+      "pts": [
+       {
+        "d": "2026-07-24",
+        "y": 3100,
+        "soft": false,
+        "k": 3
+       },
+       {
+        "d": "2026-07-28",
+        "y": 3200,
+        "soft": true,
+        "k": 3
+       },
+       {
+        "d": "2026-07-31",
+        "y": 3900,
+        "soft": false,
+        "k": 3
+       },
+       {
+        "d": "2026-08-04",
+        "y": 4100,
+        "soft": true,
+        "k": 3
+       }
+      ],
+      "k": 3,
+      "resetAt": null
+     },
+     {
+      "id": "hack",
+      "n": 4,
+      "nSoft": 2,
+      "pct": 12.389,
+      "se": 3.066,
+      "lo": -0.802,
+      "hi": 25.581,
+      "from": "2026-07-24",
+      "to": "2026-08-04",
+      "pts": [
+       {
+        "d": "2026-07-24",
+        "y": 3520,
+        "soft": false,
+        "k": 3
+       },
+       {
+        "d": "2026-07-28",
+        "y": 4320,
+        "soft": true,
+        "k": 3
+       },
+       {
+        "d": "2026-07-31",
+        "y": 5120,
+        "soft": false,
+        "k": 3
+       },
+       {
+        "d": "2026-08-04",
+        "y": 5120,
+        "soft": true,
+        "k": 3
+       }
+      ],
+      "k": 3,
+      "resetAt": null
+     }
+    ],
+    "state": "rising",
+    "protectedBy": null,
+    "confidence": "normal",
+    "nSoft": 34,
+    "pct": 3.27,
+    "se": 0.529,
+    "lo": 2.233,
+    "hi": 4.307,
+    "why": "pooled 3.27 %/session across 10 lifts"
    },
-   "rate": null,
-   "why": "only 0 lift(s) carry a usable trend — 4 needed before this reads anything"
+   "rate": {
+    "scale": 1.19,
+    "fat": 1.19,
+    "measured": true,
+    "rates": [
+     1.799999999999983,
+     0.8000000000000114,
+     0.19999999999998863,
+     0.4000000000000057,
+     1.8000000000000114,
+     1.299999999999983,
+     0.4000000000000057
+    ],
+    "method": "regression",
+    "n": 28,
+    "ci": 0.34,
+    "lo": 0.85,
+    "hi": 1.53,
+    "sigma": 1.56,
+    "ciOls": 0.34,
+    "hacL": 3,
+    "rho1": 0.21,
+    "hacInflation": 1,
+    "from": "2026-06-30",
+    "to": "2026-08-06",
+    "span": "2026-06-30 → 2026-08-06"
+   },
+   "why": "lifts rising and fat still falling — both terms improving at once — not yet confirmed by a second reading a week back"
   },
   "recoveryIndex": {
    "score": 60,
@@ -2568,9 +3752,9 @@
    ]
   },
   "volumePush": {
-   "mode": "ABSTAIN",
-   "regime": "unknown",
-   "why": "the regime detector cannot yet read your state — a growth push is earned by measured lifts and rate, so the lever stays dormant rather than guessing"
+   "mode": "HOLD",
+   "regime": "free",
+   "why": "the regime reads free (unconfirmed) — an added set spends recovery, and the measured state says that budget is already funding something"
   },
   "volumeImbalance": {
    "pv": [
@@ -2843,9 +4027,9 @@
    "detectable": true,
    "actionable": false,
    "growthOK": false,
-   "regimeKey": "unknown",
+   "regimeKey": "free",
    "sdes": 2.05,
-   "why": "Filed, not proposed — the regime detector cannot yet read your state (only 0 lift(s) carry a usable trend — 4 needed before this reads anything), and a growth decision is earned by measured lifts and rate — the engine abstains rather than guesses. The 6-12 band is a GROWTH dose-response measured in people eating enough to build. The one trial that asked the retention question of trained men in energy restriction (Roth 2023, n=38, six weeks at a 30 kcal/kg deficit and 2.8 g/kg protein) found 20 weekly sets and 12 preserved lean mass identically — 0.51 kg lost against 0.92, not a significant difference, and no difference in muscle thickness. Retention is cheaper still: Bickel 2011 held young adults' thigh lean mass for 32 weeks on one-ninth of their original volume. So hams at 4 sets is adequate for what you are actually asking of it right now, which is to hold. This is the first thing worth raising when the detector reads free — and it is on the record so nobody has to rediscover it then."
+   "why": "Filed, not proposed — your measured regime reads free — lifts rising and fat still falling — both terms improving at once — not yet confirmed by a second reading a week back, and adding sets there spends recovery the state says is already paying for something. The 6-12 band is a GROWTH dose-response measured in people eating enough to build. The one trial that asked the retention question of trained men in energy restriction (Roth 2023, n=38, six weeks at a 30 kcal/kg deficit and 2.8 g/kg protein) found 20 weekly sets and 12 preserved lean mass identically — 0.51 kg lost against 0.92, not a significant difference, and no difference in muscle thickness. Retention is cheaper still: Bickel 2011 held young adults' thigh lean mass for 32 weeks on one-ninth of their original volume. So hams at 4 sets is adequate for what you are actually asking of it right now, which is to hold. This is the first thing worth raising when the detector reads free — and it is on the record so nobody has to rediscover it then."
   },
   "programmeVolume": [
    {
@@ -3127,12 +4311,12 @@
      {
       "id": "rows",
       "n": "Rows (strapless)",
-      "v": 1.5
+      "v": 1
      },
      {
       "id": "pulldown",
       "n": "Pulldown",
-      "v": 1
+      "v": 0.7
      }
     ],
     "slipping": 0,
@@ -3256,7 +4440,7 @@
      {
       "id": "lateral",
       "n": "Lateral machine",
-      "v": -1.5
+      "v": -1
      }
     ],
     "slipping": 1,
@@ -3314,7 +4498,7 @@
      {
       "id": "curl",
       "n": "Curls",
-      "v": 3.5
+      "v": 2.3
      }
     ],
     "slipping": 0,
@@ -3454,10 +4638,15 @@
      {
       "id": "sulek",
       "n": "Sulek curl (forearm)",
-      "v": 2
+      "v": 1.3
+     },
+     {
+      "id": "pronated",
+      "n": "Pronated EZ curl",
+      "v": -1
      }
     ],
-    "slipping": 0,
+    "slipping": 1,
     "gaining": 1,
     "sore7": 0
    },
@@ -3508,7 +4697,7 @@
      {
       "id": "tricep",
       "n": "Tricep",
-      "v": 0.5
+      "v": 0.3
      }
     ],
     "slipping": 0,
@@ -3603,16 +4792,16 @@
      {
       "id": "hack",
       "n": "Hack squat",
-      "v": 5
+      "v": 3.3
      },
      {
       "id": "extension",
       "n": "Leg extension",
-      "v": 0
+      "v": 2
      }
     ],
     "slipping": 0,
-    "gaining": 1,
+    "gaining": 2,
     "sore7": 0
    },
    {
@@ -3705,12 +4894,12 @@
      {
       "id": "abs",
       "n": "Abs",
-      "v": 5
+      "v": 3.3
      },
      {
       "id": "hanging",
       "n": "Hanging raise",
-      "v": -0.5
+      "v": -0.3
      }
     ],
     "slipping": 1,
@@ -3771,7 +4960,7 @@
      {
       "id": "calves",
       "n": "Calves",
-      "v": -5
+      "v": -3.3
      }
     ],
     "slipping": 1,
@@ -3979,6 +5168,11 @@
     "status": "PROVISIONAL"
    },
    {
+    "id": "regime",
+    "t": "THE REGIME DETECTOR",
+    "status": "PROVISIONAL"
+   },
+   {
     "id": "wakesig",
     "t": "WAKE SIGNATURE",
     "status": "ARMED"
@@ -4031,11 +5225,6 @@
    {
     "id": "tuefri",
     "t": "TUE/FRI CONTRAST — REFEED DISTANCE",
-    "status": "ARMED"
-   },
-   {
-    "id": "regime",
-    "t": "THE REGIME DETECTOR",
     "status": "ARMED"
    },
    {
@@ -4126,7 +5315,45 @@
   ],
   "perLift": {
    "rows": {
-    "liftTrend": null,
+    "liftTrend": {
+     "id": "rows",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 6.769,
+     "se": 3.198,
+     "lo": -6.99,
+     "hi": 20.529,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 2520,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-07-30",
+       "y": 2880,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-08-03",
+       "y": 3240,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-08-06",
+       "y": 3060,
+       "soft": true,
+       "k": 2
+      }
+     ],
+     "k": 2,
+     "resetAt": null
+    },
     "volumeConversion": {
      "status": "IDLE",
      "exId": "rows"
@@ -4145,7 +5372,45 @@
     ]
    },
    "press": {
-    "liftTrend": null,
+    "liftTrend": {
+     "id": "press",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 0.373,
+     "se": 0.959,
+     "lo": -3.753,
+     "hi": 4.499,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 5635,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-30",
+       "y": 5635,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-08-03",
+       "y": 5500,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-08-06",
+       "y": 5750,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    },
     "volumeConversion": {
      "status": "IDLE",
      "exId": "press"
@@ -4166,7 +5431,45 @@
     ]
    },
    "lateral": {
-    "liftTrend": null,
+    "liftTrend": {
+     "id": "lateral",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 0.825,
+     "se": 1.584,
+     "lo": -5.99,
+     "hi": 7.64,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 4240,
+       "soft": true,
+       "k": 4
+      },
+      {
+       "d": "2026-07-30",
+       "y": 4080,
+       "soft": true,
+       "k": 4
+      },
+      {
+       "d": "2026-08-03",
+       "y": 4400,
+       "soft": true,
+       "k": 4
+      },
+      {
+       "d": "2026-08-06",
+       "y": 4250,
+       "soft": true,
+       "k": 4
+      }
+     ],
+     "k": 4,
+     "resetAt": null
+    },
     "volumeConversion": {
      "status": "IDLE",
      "exId": "lateral"
@@ -4210,7 +5513,45 @@
     ]
    },
    "rearDelt": {
-    "liftTrend": null,
+    "liftTrend": {
+     "id": "rearDelt",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 1.043,
+     "se": 2.761,
+     "lo": -10.836,
+     "hi": 12.923,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 560,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-30",
+       "y": 560,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-08-03",
+       "y": 620,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-08-06",
+       "y": 560,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    },
     "volumeConversion": {
      "status": "IDLE",
      "exId": "rearDelt"
@@ -4231,7 +5572,45 @@
     ]
    },
    "pulldown": {
-    "liftTrend": null,
+    "liftTrend": {
+     "id": "pulldown",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 4.444,
+     "se": 1.1,
+     "lo": -0.288,
+     "hi": 9.177,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 2400,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-07-30",
+       "y": 2400,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-08-03",
+       "y": 2560,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-08-06",
+       "y": 2720,
+       "soft": true,
+       "k": 2
+      }
+     ],
+     "k": 2,
+     "resetAt": null
+    },
     "volumeConversion": {
      "status": "IDLE",
      "exId": "pulldown"
@@ -4250,7 +5629,45 @@
     ]
    },
    "sulek": {
-    "liftTrend": null,
+    "liftTrend": {
+     "id": "sulek",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 5.957,
+     "se": 1.474,
+     "lo": -0.386,
+     "hi": 12.3,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 1925,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-07-30",
+       "y": 1925,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-08-03",
+       "y": 2100,
+       "soft": true,
+       "k": 2
+      },
+      {
+       "d": "2026-08-06",
+       "y": 2275,
+       "soft": true,
+       "k": 2
+      }
+     ],
+     "k": 2,
+     "resetAt": null
+    },
     "volumeConversion": {
      "status": "IDLE",
      "exId": "sulek"
@@ -4269,7 +5686,45 @@
     ]
    },
    "tricep": {
-    "liftTrend": null,
+    "liftTrend": {
+     "id": "tricep",
+     "n": 4,
+     "nSoft": 4,
+     "pct": 1.875,
+     "se": 2.025,
+     "lo": -6.84,
+     "hi": 10.59,
+     "from": "2026-07-23",
+     "to": "2026-08-06",
+     "pts": [
+      {
+       "d": "2026-07-23",
+       "y": 1705,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-30",
+       "y": 1705,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-08-03",
+       "y": 1870,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-08-06",
+       "y": 1760,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    },
     "volumeConversion": {
      "status": "IDLE",
      "exId": "tricep"
@@ -4309,7 +5764,45 @@
     ]
    },
    "hack": {
-    "liftTrend": null,
+    "liftTrend": {
+     "id": "hack",
+     "n": 4,
+     "nSoft": 2,
+     "pct": 12.389,
+     "se": 3.066,
+     "lo": -0.802,
+     "hi": 25.581,
+     "from": "2026-07-24",
+     "to": "2026-08-04",
+     "pts": [
+      {
+       "d": "2026-07-24",
+       "y": 3520,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-07-28",
+       "y": 4320,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-31",
+       "y": 5120,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-08-04",
+       "y": 5120,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    },
     "volumeConversion": {
      "status": "IDLE",
      "exId": "hack"
@@ -4330,7 +5823,45 @@
     ]
    },
    "abs": {
-    "liftTrend": null,
+    "liftTrend": {
+     "id": "abs",
+     "n": 4,
+     "nSoft": 2,
+     "pct": 10.35,
+     "se": 2.22,
+     "lo": 0.796,
+     "hi": 19.903,
+     "from": "2026-07-24",
+     "to": "2026-08-04",
+     "pts": [
+      {
+       "d": "2026-07-24",
+       "y": 3100,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-07-28",
+       "y": 3200,
+       "soft": true,
+       "k": 3
+      },
+      {
+       "d": "2026-07-31",
+       "y": 3900,
+       "soft": false,
+       "k": 3
+      },
+      {
+       "d": "2026-08-04",
+       "y": 4100,
+       "soft": true,
+       "k": 3
+      }
+     ],
+     "k": 3,
+     "resetAt": null
+    },
     "volumeConversion": {
      "status": "IDLE",
      "exId": "abs"
@@ -4389,7 +5920,45 @@
     ]
    },
    "calves": {
-    "liftTrend": null,
+    "liftTrend": {
+     "id": "calves",
+     "n": 4,
+     "nSoft": 2,
+     "pct": -7.019,
+     "se": 7.188,
+     "lo": -37.951,
+     "hi": 23.913,
+     "from": "2026-07-24",
+     "to": "2026-08-04",
+     "pts": [
+      {
+       "d": "2026-07-24",
+       "y": 14490,
+       "soft": false,
+       "k": 4
+      },
+      {
+       "d": "2026-07-28",
+       "y": 10240,
+       "soft": true,
+       "k": 4
+      },
+      {
+       "d": "2026-07-31",
+       "y": 10880,
+       "soft": false,
+       "k": 4
+      },
+      {
+       "d": "2026-08-04",
+       "y": 11520,
+       "soft": true,
+       "k": 4
+      }
+     ],
+     "k": 4,
+     "resetAt": null
+    },
     "volumeConversion": {
      "status": "IDLE",
      "exId": "calves"
