@@ -1088,6 +1088,39 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15g — LAB COHESION: THE REGIME DETECTOR CARD — BUILT 2026-08-08, branch feat/r15f-polish
+
+**1 THE CARD.** The door the volume lever and the eat band gate on, finally visible.
+DERIVED-ONLY — one `regime(s)` call, source-pinned (the slice makes no other engine
+call); every sentence restates the machinery: state + plain meaning, the hysteresis
+receipt ("read at both evaluations, today and 7 days back" — the closest existing
+truth to a confirmed-since date, since regime() carries no such field; argued), the
+PENDING FLIP line with pendingSince, per-state flip conditions, and the downside-only
+note quoting the constitution ("a rushed or short-sleep session can never be what
+CREATES a falling lift verdict … a rise still banks"). Statuses: unknown → ARMED with
+counting-only tag + the lift-term counter (the gathering grammar demands a counter —
+found when a census pin dereferenced prog.n); first-establishment → PROVISIONAL;
+confirmed → LIVE. `forYou = reg.why` verbatim, so sweepLab's shelf-flip announcer
+carries engine words at birth into the diary when it first turns LIVE. Filed leading
+the ENGINE shelf; INS_MAP `["session","weigh-in"]`; census amended 56→57 ×3.
+
+**2 THE FREEZE FINDING, on the record.** The audit's premise — "labStatusList lives in
+the engine-freeze baseline" — was FALSE as measured: the surface froze regime() itself
+but never the lab roster, so a new instrument or retitle could ship gate-blind. Fixed
+as a DELIBERATE SURFACE EXPANSION: `o.labRoster` (id + title + status per card, both
+snapshots) joins `_engine-surface.jsx`; baseline +574 lines = the entire new leaf, 57
+entries per snapshot, including regime (ARMED on the raw frozen snapshots — 0 migrated
+lift trends, consistent with the long-frozen o.regime=unknown) and the retitled mrv.
+The regime() leaf itself did not move — the card computes nothing.
+
+**3 THE MRV RETITLE** per the R15e curve law: "…WHERE AN ADDED SET STOPS PAYING FOR
+ITS FATIGUE" (net, no cliff). **4 THE FOUR SELECTOR CHIP GROUPS** (sodium/alcohol,
+today + yesterday) take the standing split; the chip-class pin grew 4→8 with the
+message naming both generations. Suite 2039 → 2050. Rig: hub "57 TOOLS · 26 SPEAKING",
+lab section "26 SPEAKING · 19 GATHERING · 57 TOTAL"; the card's in-shelf pixel left to
+the audit's real-pointer pass (the collapsed-tree toggling is theirs; placement + status
+are suite-law on both migrated snapshots).
+
 ### R15f ROUND 2 — THE FIVE TITLE-CASE SURVIVORS — 2026-08-08
 
 The round-1 needle was all-caps; five Title-Case brand strings survived, named by the

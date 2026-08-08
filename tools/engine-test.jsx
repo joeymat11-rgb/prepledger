@@ -1336,7 +1336,7 @@ ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id ==
 const gAll = lg2(clone(SN));
 ok(gAll.length === 11 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,trials,road,models,locked,shelf", "eleven shelves, fixed order");
 const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
-ok(tot2 === 56, "all 56 instruments filed exactly once: " + tot2);
+ok(tot2 === 57, "all 57 instruments filed exactly once (R15g added the regime detector): " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
@@ -1634,7 +1634,7 @@ ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "senti
 const ranked = sl1(clone(SP));
 /* PROVISIONAL ranks 0.5 — after anything settled, before anything still gathering. */
 const rk = { LIVE: 0, TRACKING: 0, PROVISIONAL: 0.5, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
-ok(ranked.length === 56 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 56 cards, monotone rank order");
+ok(ranked.length === 57 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 57 cards, monotone rank order");
 ok(ranked.some((c) => c.status === "PROVISIONAL"), "the lens has a PROVISIONAL tier — small-n cards no longer sit among the settled ones");
 // a flip lands on the docket's fresh row
 const swD = __test.sweepLab(clone(SP));
@@ -1675,7 +1675,7 @@ ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 ph
 // v3.17 — the sibling design review
 const { labSections: ls17, SEED: SR } = __test;
 const secs = ls17(clone(SR));
-ok(secs.reduce((a, x) => a + x.cards.length, 0) === 56, "all 56 filed across the plain-language sections, none lost");
+ok(secs.reduce((a, x) => a + x.cards.length, 0) === 57, "all 57 filed across the plain-language sections, none lost");
 const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "gathering");
 ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
 ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
@@ -7038,7 +7038,7 @@ if (fail) process.exit(1);
   ok(srcF.indexOf(">EARNED</span>") > -1 && srcF.indexOf("<H size={24}>Earned</H>") > -1 && srcF.indexOf("EARNED · v{APP_V}") > -1 && srcF.indexOf("EARNED — ANALYST DOSSIER") > -1, "R15f RENAME — all four in-app wordmark sites carry EARNED: the NOW wordmark, the BRIEF header, the serial plate, the dossier header");
   ok(srcF.indexOf(">MEASURED</span>") === -1 && srcF.indexOf("<H size={24}>Measured</H>") === -1 && srcF.indexOf("MEASURED · v{APP_V}") === -1, "R15f RENAME — and no wordmark site still says MEASURED; the STATUS word MEASURED (trust vocabulary, a tracked quantity) is deliberately untouched");
   ok(swF.indexOf("earned-v") > -1 && swF.indexOf("measured-v") === -1, "R15f RENAME — the sw cache prefix is earned-v; the activate sweep purges every old measured-v cache on first load");
-  ok((srcF.split("the painted chip rides the inner span").length - 1) === 4, "R15f — the audit's four chip-class controls (undo pill, two est chips, the context chip) wear the standing split, marker-pinned");
+  ok((srcF.split("the painted chip rides the inner span").length - 1) === 8, "R15f+g — the chip class wears the standing split everywhere it exists: the R15f four (undo pill, two est chips, the context chip) plus the R15g four selector groups (sodium/alcohol, today and yesterday), marker-pinned so a ninth chip must join the law or fail here");
   ok(srcF.indexOf("paint-free outer (26+18=44)") > -1 && srcF.indexOf('aria-checked={plan.share} onClick={() => savePlan({ share: !plan.share })} style={{ background: "none", border: "none", padding: "9px 0"') > -1, "R15f — the share switch: its 44×26 paint is the conventional control and stays byte-identical; the HIT moved to a paint-free outer button clearing the floor — the argued case, pinned");
   /* ROUND 2 — five Title-Case brand survivors (the round-1 needle was all-caps). No
      blanket title-case needle is possible: the VERB uses (Measured from your own trend,
@@ -7053,6 +7053,49 @@ if (fail) process.exit(1);
 }
 console.log(`\nFINAL94: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ==================== R15g · LAB COHESION — THE REGIME DETECTOR CARD (FINAL95) ====================
+   The door the volume lever and the eat band gate on, finally visible as an instrument.
+   Derived-only (one regime(s) call); the lab ROSTER joins the engine-freeze surface as a
+   deliberate expansion — the audit believed it was already frozen, measurement said no. */
+{
+  const cl95 = (o) => JSON.parse(JSON.stringify(o));
+  /* the LAW on both migrated snapshots: status is a pure function of regime(st) */
+  for (const d95 of ["2026-08-06", "2026-08-07"]) {
+    const st95 = __test.migrate(JSON.parse(readFileSync("tools/snapshots/" + d95 + "-ledger.json", "utf8")));
+    const cards95 = __test.labStatusList(st95).filter((c) => c.id === "regime");
+    const reg95 = __test.regime(st95);
+    ok(cards95.length === 1 && cards95[0].status === (reg95.key === "unknown" ? "ARMED" : reg95.confirmed ? "LIVE" : "PROVISIONAL"), "R15g LAW on " + d95 + " — exactly one regime card, and its status is a pure restatement of regime(s): " + cards95[0].status + " for key=" + reg95.key + "/confirmed=" + reg95.confirmed);
+    if (cards95[0].status === "ARMED") ok(cards95[0].tag.indexOf("Counting only") > -1 && cards95[0].prog && typeof cards95[0].prog.n === "number", "R15g — an unknown regime says COUNTING ONLY and carries its counter, never a verdict (instruments gate on n)");
+  }
+  /* the LIVE path, driven on a confirmed-free fixture (the FINAL82 shape, rebuilt) */
+  const isoW = (back) => isoL(Date.now() - back * 864e5);
+  const stF = cl95(__test.SEED);
+  stF.blackout = { until: isoW(28) };
+  stF.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoW(34 - i), w: +(170 - i * 0.09).toFixed(2), sealed: false }));
+  stF.trend = stF.reads[stF.reads.length - 1].w;
+  stF.sleep.nights = Array.from({ length: 40 }, (_, i) => ({ d: isoW(39 - i), h: 8.2 }));
+  stF.dailyLogs = {}; stF.sessionLog = {};
+  stF.exercises.forEach((e) => { e.holdFlag = false; });
+  const liftsF = [{ id: "rows", w: 175, base: 16 }, { id: "press", w: 245, base: 14 }, { id: "lateral", w: 80, base: 20 }, { id: "tricep", w: 55, base: 18 }, { id: "ham", w: 120, base: 15 }];
+  for (let k = 0; k < 8; k++) stF.sessionLog[isoW(28 - k * 4)] = { at: 0, note: "", niggles: [], dips: 0, skipped: [], pace: "normal", entries: liftsF.map((L) => { const tot = L.base + k; const a = Math.ceil(tot / 2); return { id: L.id, reps: [a, tot - a], rir: 2, rirSets: [2, 1], w: L.w }; }) };
+  const regF = __test.regime(stF);
+  const cardF = __test.labStatusList(stF).find((c) => c.id === "regime");
+  ok(regF.key === "free" && regF.confirmed === true && cardF.status === "LIVE", "R15g LIVE — a confirmed FREE regime puts the card in SPEAKING NOW: " + regF.key + "/" + regF.confirmed + " -> " + cardF.status);
+  ok(cardF.lines.some((l) => l.indexOf("CONFIRMED because the same state was read at both evaluations") === 0) && cardF.lines.some((l) => l.indexOf("It flips to COSTING") === 0), "R15g — the receipt says WHY it is confirmed (the hysteresis law, twice at least 7 days apart) and exactly what evidence would flip it");
+  ok(cardF.lines.some((l) => l.indexOf("DOWNSIDE-ONLY PROTECTION") === 0 && l.indexOf("can never be what CREATES a falling lift verdict") > -1 && l.indexOf("protection never blocks the upside") > -1), "R15g — the downside-only note states the constitution literally: a rushed session cannot CREATE a falling verdict, and a rise still banks");
+  ok(cardF.forYou === regF.why, "R15g — forYou is the engine words VERBATIM (reg.why), so the sweepLab shelf-flip line carries them at birth into the diary");
+  /* derived-only: the card slice makes ONE regime(s) call and computes nothing else */
+  const srcG = readFileSync("src/app.jsx", "utf8");
+  const gSl = srcG.slice(srcG.indexOf("R15g — THE REGIME DETECTOR, visible at last"), srcG.indexOf("id: \"mrv\""));
+  ok(gSl.length > 500 && (gSl.split("reg = regime(s);").length - 1) === 1 && (gSl.split("currentRate(").length - 1) === 0 && (gSl.split("progressionTrend(").length - 1) === 0, "R15g DERIVED-ONLY — the card slice calls regime(s) exactly once and no other engine function: every sentence restates, nothing recomputes");
+  ok(srcG.indexOf("VOLUME RETURN CURVE — WHERE AN ADDED SET STOPS PAYING FOR ITS FATIGUE") > -1 && srcG.indexOf("WHERE ADDED SETS STOP PAYING" + String.fromCharCode(34)) === -1, "R15g — the mrv title joins the R15e curve law: an added set stops paying FOR ITS FATIGUE (net), never stops paying outright (there is no cliff)");
+  const surfG = readFileSync("tools/_engine-surface.jsx", "utf8");
+  ok(surfG.indexOf("o.labRoster = grab(() => T.labStatusList(S).map((c) => ({ id: c.id, t: c.t, status: c.status })))") > -1, "R15g — the lab ROSTER is frozen from here on (id + title + status, both snapshots): a new instrument or a retitle can never again ship without the gate seeing it");
+}
+console.log(`\nFINAL95: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
 
 
 
