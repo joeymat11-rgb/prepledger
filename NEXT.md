@@ -355,7 +355,44 @@ when the roster generalizes.
 
 ---
 
-## NOW — R1 · one regime detector replaces both phase machines
+## NOW — EXPERIMENT LEGIBILITY (filed 2026-08-08, audit directive; building on feat/r15h-legibility)
+
+**The question it answers on screen:** "what is the app currently trying to learn about
+me, and what would settle each question?" The machinery exists; this slice makes it
+legible in ONE place. **Derived-only, hard rails:** no new engine math, no persisted
+experiment object (the rejected WeeklyExperiment stays rejected), no new thresholds, no
+migration, no new state key, zero engine movement (baseline byte-identical, roster
+stays 57, words fixture untouched, no feed lines filed). The digest composes purely
+from: (1) `activeTrial`/`trialVerdict` — the trial's own q, today's arm, blocks
+measured, its own end date; (2) `regime()`'s pending flip — pendingSince + the
+second-reading date (`pendingSince + REGIME_HOLD_D`); (3) gathering instruments —
+`labSections`' own bucket, its own closeness order, `prog {n, need, label}` VERBATIM;
+(4) provisional cards, same law. Placement: the LEDGER hub, one capped block (the
+single nearest-to-answer question as the headline, the rest a count), DT tokens, touch
+law, the one door to LAB. Every number pinned to its engine field verbatim; the
+digest's law driven on both frozen snapshots + a trial fixture.
+
+**Open question for Joe:** cross-species "nearness" (is an approved trial at block 3/6
+nearer than an instrument at 3-of-4?) has no derived answer — the smallest honest
+version uses a fixed priority ladder (explicit trial → regime flip → gathering by the
+lab's own sort → provisional) and says so. Also: the headline shows the instrument's
+own title (sometimes technical); its plain sub lives one tap down in LAB — rule if the
+hub headline needs a plain translation layer instead.
+
+**ROUND 2 (2026-08-08) — Joe's word + the audit's fixture, executed.** The ladder is
+ACCEPTED AS BUILT. Instrument rows now lead with the card's own **plain question**
+(`c.tag`, engine words verbatim, title fallback — the LAB keeps the name; no tagless
+card exists in today's buckets, so the fallback is source-pinned, stated honestly).
+The settle grammar drops the label repeat at exactly-one-remaining ("one more and it
+speaks" / "one more to a verdict it can stand behind"); plural cases unchanged. The
+audit's pending-flip fixture is folded in permanent: confirmed-FREE + three falling
+sessions in the last 6 days → `free/confirmed/pending=costing`, and the digest's
+regime row drives green ("has the cut left FREE for COSTING?", 1 of 2 readings, the
+second-reading date named, zero "undefined"). Suite 2060 → 2067; freeze byte-identical;
+rig headline now "Is the 6-hour wake a pattern with an address, or noise? · 4 of 5
+tagged mid-night wakes · one more and it speaks".
+
+## FILED (was NOW) — R1 · one regime detector replaces both phase machines
 
 **Source: `RESEARCH-DESIGN.md` §R1.** That file is the *why*; this item is the *what*. It is
 self-contained and buildable without any other item.

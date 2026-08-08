@@ -8929,7 +8929,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -16001,6 +16001,43 @@ function SessionLiveChip({ s, go }) {
   );
 }
 
+/* ---------- R15h · EXPERIMENT LEGIBILITY — expDigest ----------
+   "What is the app currently trying to learn about me, and what would settle each
+   question?" Composed PURELY from existing deriveds: activeTrial/trialVerdict (the
+   trial's own q, today's arm, its own end date), regime()'s pending flip
+   (pendingSince + REGIME_HOLD_D — the mechanism's own law), and labSections' own
+   gathering/provisional buckets in their own closeness order, prog fields VERBATIM.
+   DERIVED-ONLY: no state key, no new math, no feed line, nothing persisted — the
+   rejected WeeklyExperiment stays rejected. Cross-species nearness (trial block 3/6
+   vs instrument 3-of-4) has no derived answer, so the head is a FIXED PRIORITY
+   LADDER — explicit trial, then the regime flip, then the lab's own order — stated
+   here and filed as the open question for Joe in NEXT.md. */
+function expDigest(s) {
+  const rows = [];
+  try {
+    const at = activeTrial(s);
+    if (at && at.arm && at.arm.tpl) {
+      const tpl = at.arm.tpl;
+      let v = null; try { v = trialVerdict(s, at.tr); } catch (e) { v = null; }
+      rows.push({ kind: "trial", q: tpl.q || tpl.t, arm: (tpl.arms || [])[at.arm.armIdx], n: at.arm.block, need: at.arm.of, label: "blocks",
+        settle: v && v.endISO ? (v.done ? "done — the verdict is ready on the trials desk" : "runs to " + fmtShort(v.endISO) + " — its own design settles it") : null });
+    }
+  } catch (e) {}
+  try {
+    const rg = regime(s);
+    if (rg && rg.pending) rows.push({ kind: "regime", q: "has the cut left " + String(rg.key).toUpperCase() + " for " + String(rg.pending).toUpperCase() + "?", n: 1, need: 2, label: "readings",
+      settle: "a second " + String(rg.pending).toUpperCase() + " reading on or after " + fmtShort(isoOf(new Date(mk(rg.pendingSince).getTime() + REGIME_HOLD_D * DAY))) });
+  } catch (e) {}
+  try {
+    const secs = labSections(s);
+    const gath = (secs.find((x) => x.k === "gathering") || { cards: [] }).cards;
+    const prov = (secs.find((x) => x.k === "provisional") || { cards: [] }).cards;
+    gath.forEach((c) => { if (c && c.prog && c.prog.need) { const rem = Math.max(0, c.prog.need - c.prog.n); rows.push({ kind: "gathering", q: c.tag || c.t, n: c.prog.n, need: c.prog.need, label: c.prog.label, settle: rem === 1 ? "one more and it speaks" : rem + " more " + (c.prog.label || "observations") + " and it speaks" }); } });   /* q: the card's own plain question (tag), title fallback — both engine words (Joe's word, round 2) */
+    prov.forEach((c) => { if (c && c.prog && c.prog.need) { const rem = Math.max(0, c.prog.need - c.prog.n); rows.push({ kind: "provisional", q: c.tag || c.t, n: c.prog.n, need: c.prog.need, label: c.prog.label, settle: rem === 1 ? "one more to a verdict it can stand behind" : rem + " more " + (c.prog.label || "observations") + " to a verdict it can stand behind" }); } });
+  } catch (e) {}
+  return { head: rows[0] || null, rows };
+}
+
 function MoreTab({ s, go, openRules, openCoach }) {
   /* ---------- R15d · LEDGER — decisions and diary, both in plain words ----------
      The hub was a settings screen wearing the LEDGER name. Per the mockup (screen 3):
@@ -16089,6 +16126,28 @@ function MoreTab({ s, go, openRules, openCoach }) {
           </>
         )}
       </div>
+
+      {/* R15h · STILL LEARNING — what the app is trying to learn and what settles each
+          question. One capped block: the nearest question by the stated ladder as the
+          headline, the rest a count, the one door to LAB. Absent entirely when nothing
+          is being learned — an empty study list is not news. */}
+      {(() => {
+        const dg = expDigest(s);
+        if (!dg.head) return null;
+        const h9 = dg.head;
+        return (
+          <div data-led="learning" style={card9x}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+              <span style={lbl9x}>STILL LEARNING</span>
+              <span style={{ ...tnum, fontSize: 10.5, letterSpacing: "0.08em", color: DT.dim }}>{dg.rows.length} OPEN QUESTION{dg.rows.length === 1 ? "" : "S"}</span>
+            </div>
+            <div style={{ fontFamily: body, fontWeight: 600, fontSize: 13, color: DT.ink, lineHeight: 1.45, marginTop: 10 }}>{h9.q}</div>
+            <div style={{ ...tnum, fontSize: 11, color: DT.steel, marginTop: 4 }}>{h9.n != null && h9.need != null ? h9.n + " of " + h9.need + (h9.label ? " " + h9.label : "") : ""}{h9.arm ? " · today: " + h9.arm : ""}</div>
+            {h9.settle ? <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, marginTop: 4 }}>{h9.settle}</div> : null}
+            <button role="button" onClick={() => go("HIST")} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", textAlign: "left", background: "none", border: "none", padding: "10px 0 0", margin: "0 0 -10px", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>EVERY QUESTION KEEPS ITS COUNTER IN THE LAB ▸</button>
+          </div>
+        );
+      })()}
 
       {/* THE RECORD — the feed IS the diary; every line is the engine’s own words,
           verbatim, day-grouped, newest first. The full archive stays in QUEUE. */}
