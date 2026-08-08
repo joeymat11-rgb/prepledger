@@ -1565,6 +1565,293 @@
    "n": 92,
    "src": "your lifts pooled"
   },
+  "labRoster": [
+   {
+    "id": "noise",
+    "t": "YOUR NOISE FLOOR",
+    "status": "LIVE"
+   },
+   {
+    "id": "masked",
+    "t": "MASKED-LOSS MONITOR",
+    "status": "LIVE"
+   },
+   {
+    "id": "creep",
+    "t": "STEP-CREEP RADAR v2",
+    "status": "LIVE"
+   },
+   {
+    "id": "ea",
+    "t": "ENERGY AVAILABILITY — WHAT IS LEFT AFTER TRAINING IS PAID FOR",
+    "status": "LIVE"
+   },
+   {
+    "id": "adaptmeter",
+    "t": "THE ADAPTATION METER",
+    "status": "LIVE"
+   },
+   {
+    "id": "stepeff",
+    "t": "STEP EFFICACY",
+    "status": "LIVE"
+   },
+   {
+    "id": "fingerprint",
+    "t": "REP-DROP FINGERPRINTS",
+    "status": "LIVE"
+   },
+   {
+    "id": "strvelocity",
+    "t": "STRENGTH VELOCITY",
+    "status": "LIVE"
+   },
+   {
+    "id": "sessionshape",
+    "t": "SESSION SHAPE",
+    "status": "LIVE"
+   },
+   {
+    "id": "rirtruth",
+    "t": "RIR CALIBRATION CHECK",
+    "status": "LIVE"
+   },
+   {
+    "id": "volumeledger",
+    "t": "THE VOLUME LEDGER — WEEKLY SETS PER MUSCLE",
+    "status": "LIVE"
+   },
+   {
+    "id": "signals",
+    "t": "MORNING SIGNALS — WIRED INTO THE MACHINE",
+    "status": "LIVE"
+   },
+   {
+    "id": "sleeplag",
+    "t": "SLEEP→LIFT LAG MAP",
+    "status": "LIVE"
+   },
+   {
+    "id": "melaexp",
+    "t": "MELATONIN EXPERIMENT — ARM 1: NONE",
+    "status": "LIVE"
+   },
+   {
+    "id": "regularity",
+    "t": "REGULARITY INDEX",
+    "status": "LIVE"
+   },
+   {
+    "id": "weekend",
+    "t": "THE WEEKEND SPLIT",
+    "status": "LIVE"
+   },
+   {
+    "id": "compound",
+    "t": "THE COMPOUNDING CURVE",
+    "status": "LIVE"
+   },
+   {
+    "id": "trialsdesk",
+    "t": "THE TRIALS DESK",
+    "status": "LIVE"
+   },
+   {
+    "id": "cone",
+    "t": "PIVOT PROBABILITY CONE",
+    "status": "LIVE"
+   },
+   {
+    "id": "forecast",
+    "t": "THE FORECAST — WEEK BY WEEK, ON YOUR OWN SLOPE",
+    "status": "LIVE"
+   },
+   {
+    "id": "sentinel",
+    "t": "THE SENTINEL",
+    "status": "LIVE"
+   },
+   {
+    "id": "letter",
+    "t": "THE MONTHLY LETTER",
+    "status": "LIVE"
+   },
+   {
+    "id": "prophet",
+    "t": "THE PROPHET'S SCORECARD",
+    "status": "LIVE"
+   },
+   {
+    "id": "dossier",
+    "t": "THE HANDOFF DOSSIER",
+    "status": "LIVE"
+   },
+   {
+    "id": "whoosh",
+    "t": "WHOOSH SIGNATURE",
+    "status": "PROVISIONAL"
+   },
+   {
+    "id": "refeed",
+    "t": "REFEED BUMP LINE",
+    "status": "PROVISIONAL"
+   },
+   {
+    "id": "wakesig",
+    "t": "WAKE SIGNATURE",
+    "status": "ARMED"
+   },
+   {
+    "id": "canary",
+    "t": "THE CANARY LIFT",
+    "status": "ARMED"
+   },
+   {
+    "id": "refeedroi",
+    "t": "REFEED ROI",
+    "status": "ARMED"
+   },
+   {
+    "id": "seasonone",
+    "t": "SEASON ONE — THE BOOK OF THE CUT",
+    "status": "ARMED"
+   },
+   {
+    "id": "notes",
+    "t": "NOTE-MINING · CUE GRADUATION",
+    "status": "ARMED"
+   },
+   {
+    "id": "furnacebase",
+    "t": "YOUR FURNACE",
+    "status": "ARMED"
+   },
+   {
+    "id": "exittherm",
+    "t": "THE EXIT THERMOMETER",
+    "status": "ARMED"
+   },
+   {
+    "id": "medswindow",
+    "t": "THE MEDS WINDOW — WHAT CHANGES WHEN THEY DON'T",
+    "status": "ARMED"
+   },
+   {
+    "id": "pulsebase",
+    "t": "YOUR RESTING PULSE",
+    "status": "ARMED"
+   },
+   {
+    "id": "pulsewarn",
+    "t": "ILLNESS EARLY-WARNING",
+    "status": "ARMED"
+   },
+   {
+    "id": "variancetax",
+    "t": "THE VARIANCE TAX",
+    "status": "ARMED"
+   },
+   {
+    "id": "cutstress",
+    "t": "CUT-STRESS INDEX",
+    "status": "ARMED"
+   },
+   {
+    "id": "tuefri",
+    "t": "TUE/FRI CONTRAST — REFEED DISTANCE",
+    "status": "ARMED"
+   },
+   {
+    "id": "regime",
+    "t": "THE REGIME DETECTOR",
+    "status": "ARMED"
+   },
+   {
+    "id": "volconv",
+    "t": "VOLUME CONVERSION",
+    "status": "ARMED"
+   },
+   {
+    "id": "miss",
+    "t": "MISS-ANTECEDENT MAP",
+    "status": "ARMED"
+   },
+   {
+    "id": "sleepdose",
+    "t": "SLEEP DOSE — 7.5 FLOOR vs 8.5 CEILING",
+    "status": "ARMED"
+   },
+   {
+    "id": "refeedpulse",
+    "t": "REFEED REBOUND",
+    "status": "ARMED"
+   },
+   {
+    "id": "missarch",
+    "t": "MISS ARCHAEOLOGY",
+    "status": "ARMED"
+   },
+   {
+    "id": "miner",
+    "t": "NATURAL-EXPERIMENT MINER",
+    "status": "ARMED"
+   },
+   {
+    "id": "dexarecon",
+    "t": "DEXA RECONCILIATION",
+    "status": "ARMED"
+   },
+   {
+    "id": "ghost",
+    "t": "GHOST JOEY",
+    "status": "MODEL"
+   },
+   {
+    "id": "whatif",
+    "t": "THE WHAT-IF CONSOLE",
+    "status": "MODEL"
+   },
+   {
+    "id": "negotiator",
+    "t": "THE NEGOTIATOR",
+    "status": "MODEL"
+   },
+   {
+    "id": "spread",
+    "t": "PROTEIN SPREAD",
+    "status": "ON FILE"
+   },
+   {
+    "id": "caffdose",
+    "t": "CAFFEINE — THE STUDY RANGE, AT YOUR WEIGHT",
+    "status": "ON FILE"
+   },
+   {
+    "id": "creatine",
+    "t": "CREATINE PROTOCOL",
+    "status": "ON FILE"
+   },
+   {
+    "id": "matador",
+    "t": "DIET-BREAK EVIDENCE",
+    "status": "ON FILE"
+   },
+   {
+    "id": "sleepceil",
+    "t": "SLEEP CEILING",
+    "status": "ON FILE"
+   },
+   {
+    "id": "mrv",
+    "t": "VOLUME RETURN CURVE — WHERE AN ADDED SET STOPS PAYING FOR ITS FATIGUE",
+    "status": "LOCKED"
+   },
+   {
+    "id": "debutmodel",
+    "t": "DEBUT-READINESS MODEL",
+    "status": "LOCKED"
+   }
+  ],
   "perLift": {
    "rows": {
     "liftTrend": null,
@@ -3550,6 +3837,293 @@
    "n": 107,
    "src": "your lifts pooled"
   },
+  "labRoster": [
+   {
+    "id": "noise",
+    "t": "YOUR NOISE FLOOR",
+    "status": "LIVE"
+   },
+   {
+    "id": "masked",
+    "t": "MASKED-LOSS MONITOR",
+    "status": "LIVE"
+   },
+   {
+    "id": "creep",
+    "t": "STEP-CREEP RADAR v2",
+    "status": "LIVE"
+   },
+   {
+    "id": "ea",
+    "t": "ENERGY AVAILABILITY — WHAT IS LEFT AFTER TRAINING IS PAID FOR",
+    "status": "LIVE"
+   },
+   {
+    "id": "adaptmeter",
+    "t": "THE ADAPTATION METER",
+    "status": "LIVE"
+   },
+   {
+    "id": "stepeff",
+    "t": "STEP EFFICACY",
+    "status": "LIVE"
+   },
+   {
+    "id": "refeedroi",
+    "t": "REFEED ROI",
+    "status": "LIVE"
+   },
+   {
+    "id": "fingerprint",
+    "t": "REP-DROP FINGERPRINTS",
+    "status": "LIVE"
+   },
+   {
+    "id": "strvelocity",
+    "t": "STRENGTH VELOCITY",
+    "status": "LIVE"
+   },
+   {
+    "id": "sessionshape",
+    "t": "SESSION SHAPE",
+    "status": "LIVE"
+   },
+   {
+    "id": "rirtruth",
+    "t": "RIR CALIBRATION CHECK",
+    "status": "LIVE"
+   },
+   {
+    "id": "volumeledger",
+    "t": "THE VOLUME LEDGER — WEEKLY SETS PER MUSCLE",
+    "status": "LIVE"
+   },
+   {
+    "id": "signals",
+    "t": "MORNING SIGNALS — WIRED INTO THE MACHINE",
+    "status": "LIVE"
+   },
+   {
+    "id": "sleeplag",
+    "t": "SLEEP→LIFT LAG MAP",
+    "status": "LIVE"
+   },
+   {
+    "id": "melaexp",
+    "t": "MELATONIN EXPERIMENT — ARM 1: NONE",
+    "status": "LIVE"
+   },
+   {
+    "id": "regularity",
+    "t": "REGULARITY INDEX",
+    "status": "LIVE"
+   },
+   {
+    "id": "canary",
+    "t": "THE CANARY LIFT",
+    "status": "LIVE"
+   },
+   {
+    "id": "weekend",
+    "t": "THE WEEKEND SPLIT",
+    "status": "LIVE"
+   },
+   {
+    "id": "compound",
+    "t": "THE COMPOUNDING CURVE",
+    "status": "LIVE"
+   },
+   {
+    "id": "trialsdesk",
+    "t": "THE TRIALS DESK",
+    "status": "LIVE"
+   },
+   {
+    "id": "cone",
+    "t": "PIVOT PROBABILITY CONE",
+    "status": "LIVE"
+   },
+   {
+    "id": "forecast",
+    "t": "THE FORECAST — WEEK BY WEEK, ON YOUR OWN SLOPE",
+    "status": "LIVE"
+   },
+   {
+    "id": "sentinel",
+    "t": "THE SENTINEL",
+    "status": "LIVE"
+   },
+   {
+    "id": "letter",
+    "t": "THE MONTHLY LETTER",
+    "status": "LIVE"
+   },
+   {
+    "id": "prophet",
+    "t": "THE PROPHET'S SCORECARD",
+    "status": "LIVE"
+   },
+   {
+    "id": "dossier",
+    "t": "THE HANDOFF DOSSIER",
+    "status": "LIVE"
+   },
+   {
+    "id": "whoosh",
+    "t": "WHOOSH SIGNATURE",
+    "status": "PROVISIONAL"
+   },
+   {
+    "id": "refeed",
+    "t": "REFEED BUMP LINE",
+    "status": "PROVISIONAL"
+   },
+   {
+    "id": "wakesig",
+    "t": "WAKE SIGNATURE",
+    "status": "ARMED"
+   },
+   {
+    "id": "seasonone",
+    "t": "SEASON ONE — THE BOOK OF THE CUT",
+    "status": "ARMED"
+   },
+   {
+    "id": "notes",
+    "t": "NOTE-MINING · CUE GRADUATION",
+    "status": "ARMED"
+   },
+   {
+    "id": "furnacebase",
+    "t": "YOUR FURNACE",
+    "status": "ARMED"
+   },
+   {
+    "id": "exittherm",
+    "t": "THE EXIT THERMOMETER",
+    "status": "ARMED"
+   },
+   {
+    "id": "medswindow",
+    "t": "THE MEDS WINDOW — WHAT CHANGES WHEN THEY DON'T",
+    "status": "ARMED"
+   },
+   {
+    "id": "pulsebase",
+    "t": "YOUR RESTING PULSE",
+    "status": "ARMED"
+   },
+   {
+    "id": "pulsewarn",
+    "t": "ILLNESS EARLY-WARNING",
+    "status": "ARMED"
+   },
+   {
+    "id": "variancetax",
+    "t": "THE VARIANCE TAX",
+    "status": "ARMED"
+   },
+   {
+    "id": "cutstress",
+    "t": "CUT-STRESS INDEX",
+    "status": "ARMED"
+   },
+   {
+    "id": "tuefri",
+    "t": "TUE/FRI CONTRAST — REFEED DISTANCE",
+    "status": "ARMED"
+   },
+   {
+    "id": "regime",
+    "t": "THE REGIME DETECTOR",
+    "status": "ARMED"
+   },
+   {
+    "id": "volconv",
+    "t": "VOLUME CONVERSION",
+    "status": "ARMED"
+   },
+   {
+    "id": "miss",
+    "t": "MISS-ANTECEDENT MAP",
+    "status": "ARMED"
+   },
+   {
+    "id": "sleepdose",
+    "t": "SLEEP DOSE — 7.5 FLOOR vs 8.5 CEILING",
+    "status": "ARMED"
+   },
+   {
+    "id": "refeedpulse",
+    "t": "REFEED REBOUND",
+    "status": "ARMED"
+   },
+   {
+    "id": "missarch",
+    "t": "MISS ARCHAEOLOGY",
+    "status": "ARMED"
+   },
+   {
+    "id": "miner",
+    "t": "NATURAL-EXPERIMENT MINER",
+    "status": "ARMED"
+   },
+   {
+    "id": "dexarecon",
+    "t": "DEXA RECONCILIATION",
+    "status": "ARMED"
+   },
+   {
+    "id": "ghost",
+    "t": "GHOST JOEY",
+    "status": "MODEL"
+   },
+   {
+    "id": "whatif",
+    "t": "THE WHAT-IF CONSOLE",
+    "status": "MODEL"
+   },
+   {
+    "id": "negotiator",
+    "t": "THE NEGOTIATOR",
+    "status": "MODEL"
+   },
+   {
+    "id": "spread",
+    "t": "PROTEIN SPREAD",
+    "status": "ON FILE"
+   },
+   {
+    "id": "caffdose",
+    "t": "CAFFEINE — THE STUDY RANGE, AT YOUR WEIGHT",
+    "status": "ON FILE"
+   },
+   {
+    "id": "creatine",
+    "t": "CREATINE PROTOCOL",
+    "status": "ON FILE"
+   },
+   {
+    "id": "matador",
+    "t": "DIET-BREAK EVIDENCE",
+    "status": "ON FILE"
+   },
+   {
+    "id": "sleepceil",
+    "t": "SLEEP CEILING",
+    "status": "ON FILE"
+   },
+   {
+    "id": "mrv",
+    "t": "VOLUME RETURN CURVE — WHERE AN ADDED SET STOPS PAYING FOR ITS FATIGUE",
+    "status": "LOCKED"
+   },
+   {
+    "id": "debutmodel",
+    "t": "DEBUT-READINESS MODEL",
+    "status": "LOCKED"
+   }
+  ],
   "perLift": {
    "rows": {
     "liftTrend": null,
