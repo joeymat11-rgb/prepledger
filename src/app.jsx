@@ -16132,10 +16132,19 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
   const nights = (s.sleep && s.sleep.nights) || [];
   const lastNight = nights[nights.length - 1];
   const lastNightFresh = lastNight && ((mk(tISO) - mk(lastNight.d)) / DAY) <= 1;
+  /* R15k r3 — THE RHYTHM, tokenised. Joe: "still a little tight together." The cause was
+     hand-picked spacing — 4,5,6,8,10,12,14,16 all appeared, and the SECTION breaks were
+     barely larger than the gaps inside a section, so four groups read as one column.
+     Three tiers with a real ratio, every one an SP token: GROUP (24) · WITHIN (12) ·
+     PAIR (8) / TIGHT (4). No raw pixel survives below — the pin enforces it. */
+  const GAP_GROUP = SP.xl;   /* 24 — between hero / core / optional / menu */
+  const GAP_WITHIN = SP.md;  /* 12 — label → content, row → row, control → caption */
+  const GAP_PAIR = SP.sm;    /*  8 — a value and its unit caption */
+  const GAP_TIGHT = SP.xs;   /*  4 — a line and the line it belongs to */
   /* one type scale, one rhythm — the LAB rows' and the LEDGER hub's, not a third */
   const lbl9 = { fontFamily: mono, fontSize: 10, letterSpacing: "0.18em", color: DT.dim, fontWeight: 600 };
   const tnum9 = { fontFamily: mono, fontVariantNumeric: "tabular-nums" };
-  const rule9 = { borderTop: "1px solid " + DT.hairline, marginTop: 16, paddingTop: 14 };
+  const rule9 = { borderTop: "1px solid " + DT.hairline, marginTop: GAP_GROUP, paddingTop: GAP_GROUP };
   const rowName = { fontFamily: mono, fontSize: 11.5, color: DT.ink, letterSpacing: "0.04em" };
   const rowRight = { ...tnum9, flexShrink: 0, fontSize: 10.5, color: DT.dim, whiteSpace: "nowrap" };
   const ROW9 = 44;      /* one row height for every row in the sheet — no bespoke spacing */
@@ -16148,21 +16157,21 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
     return (
       <div key={key} style={{ borderTop: "1px solid " + DT.hairline }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={onTap} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flex: 1, minWidth: 0, minHeight: ROW9, background: "none", border: "none", padding: "0 0", cursor: onTap ? "pointer" : "default", textAlign: "left" }}>
+          <button onClick={onTap} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flex: 1, minWidth: 0, minHeight: ROW9, background: "none", border: "none", padding: 0, cursor: onTap ? "pointer" : "default", textAlign: "left" }}>
             <span style={{ ...rowName, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}<span style={{ color: DT.steel }}>{buys ? " · " + buys : ""}</span></span>
             <span style={rowRight}>{right}</span>
           </button>
           {why ? (
-            <button aria-label="why" onClick={() => setWhyOpen(openW ? null : key)} style={{ background: "none", border: "none", padding: "12px 0 12px 10px", margin: "-12px 0", cursor: "pointer", fontFamily: mono, fontSize: 10, letterSpacing: "0.1em", color: openW ? DT.ink : DT.dim, flexShrink: 0 }}>{openW ? "▾" : "▸"}</button>
+            <button aria-label="why" onClick={() => setWhyOpen(openW ? null : key)} style={{ background: "none", border: "none", padding: `${GAP_WITHIN}px 0 ${GAP_WITHIN}px ${GAP_WITHIN - 2}px`, margin: `-${GAP_WITHIN}px 0`, cursor: "pointer", fontFamily: mono, fontSize: 10, letterSpacing: "0.1em", color: openW ? DT.ink : DT.dim, flexShrink: 0 }}>{openW ? "▾" : "▸"}</button>
           ) : null}
         </div>
-        {openW && why ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, padding: "0 0 10px" }}>{why}</div> : null}
+        {openW && why ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.55, padding: `0 0 ${GAP_WITHIN}px` }}>{why}</div> : null}
       </div>
     );
   };
   const chip = (on, txt, onTap) => (
-    <button key={txt} onClick={onTap} style={{ background: "none", border: "none", padding: "10px 4px", margin: "-10px -4px", cursor: "pointer" }}>
-      <span style={{ display: "inline-block", fontFamily: mono, fontSize: 11, color: on ? DT.jade : DT.steel, border: "1px solid " + (on ? DT.jade : DT.hairline2), borderRadius: 999, padding: "4px 10px" }}>{txt}</span>
+    <button key={txt} onClick={onTap} style={{ background: "none", border: "none", padding: `${GAP_WITHIN - 2}px ${GAP_TIGHT}px`, margin: `-${GAP_WITHIN - 2}px -${GAP_TIGHT}px`, cursor: "pointer" }}>
+      <span style={{ display: "inline-block", fontFamily: mono, fontSize: 11, color: on ? DT.jade : DT.steel, border: "1px solid " + (on ? DT.jade : DT.hairline2), borderRadius: 999, padding: `${GAP_TIGHT}px ${GAP_WITHIN - 2}px` }}>{txt}</span>
     </button>
   );
   /* R15k r2 — one fixed slot (SLOT9) across the three stacked day rows, so − and + land
@@ -16180,29 +16189,31 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
     <Sheet open={open} onClose={onClose} title="LOG">
       <div data-cap="hero">
         <div style={{ ...lbl9, color: ask.k === "none" ? DT.jade : DT.amber }}>{ask.k === "none" ? "UP TO DATE" : "DUE NOW"}</div>
-        <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 19, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase", marginTop: 6, lineHeight: 1.15 }}>{ask.t}</div>
-        <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.5, marginTop: 5 }}>{ask.why}</div>
+        <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 19, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase", marginTop: GAP_PAIR, lineHeight: 1.15 }}>{ask.t}</div>
+        <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.55, marginTop: GAP_PAIR }}>{ask.why}</div>
       </div>
       {/* R15k — ONE HERO ACTION. The ask at the top names which is due; that button is
           filled and the other is the quiet variant. Two filled greens in one view was the
           defect. */}
       <div data-cap="core" style={rule9}>
         <div style={lbl9}>THE CORE — WHAT RUNS EVERYTHING</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, justifyContent: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: SP.md, marginTop: GAP_WITHIN + SP.xs, justifyContent: "center" }}>
           <button aria-label="less" onClick={() => setWIn((x) => +(x - 0.1).toFixed(1))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>−</button>
           <div style={{ ...tnum9, fontSize: 34, fontWeight: 700, minWidth: 118, textAlign: "center", color: DT.ink, letterSpacing: "0.01em" }}>{wIn}</div>
           <button aria-label="more" onClick={() => setWIn((x) => +(x + 0.1).toFixed(1))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>+</button>
         </div>
-        <div style={{ ...tnum9, fontSize: 10, letterSpacing: "0.12em", color: readToday ? DT.jade : DT.dim, textAlign: "center", marginTop: 8 }}>{readToday ? "LOGGED " + readToday.w + " LB TODAY — SAVING UPDATES IT" : "MORNING SCALE · LB"}</div>
+        <div style={{ ...tnum9, fontSize: 10, letterSpacing: "0.12em", color: readToday ? DT.jade : DT.dim, textAlign: "center", marginTop: GAP_WITHIN }}>{readToday ? "LOGGED " + readToday.w + " LB TODAY — SAVING UPDATES IT" : "MORNING SCALE · LB"}</div>
+        <div style={{ marginTop: SP.lg }} />
         <Btn full tone={heroIs("scale") ? "jade" : "ghost"} onClick={saveScale}>{readToday ? "Update the scale" : "Log " + wIn + " lb"}</Btn>
-        <div style={{ marginTop: 16 }}>
+        <div style={{ marginTop: GAP_GROUP }}>
           <div style={lbl9}>CLOSE THE DAY</div>
           {stepRow("CALORIES", cal, setCal, 10, dl.cal == null)}
           {stepRow("PROTEIN g", pro, setPro, 5, dl.pro == null)}
           {stepRow("STEPS", stp, setStp, 500, dl.steps == null)}
+          <div style={{ marginTop: SP.lg }} />
           <Btn full tone={heroIs("day") || heroIs("amend") ? "jade" : "ghost"} onClick={() => { saveDay(); onClose(); }}>{dl.cal != null ? "Update today's numbers" : "Save today's numbers"}</Btn>
         </div>
-        <div style={{ borderTop: "1px solid " + DT.hairline, marginTop: 14 }}>
+        <div style={{ borderTop: "1px solid " + DT.hairline, marginTop: GAP_GROUP }}>
           <button onClick={() => { onClose(); go("SLEEP"); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: ROW9, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
             <span style={rowName}>SLEEP<span style={{ color: DT.steel }}> · last night</span></span>
             <span style={rowRight}>{lastNightFresh ? lastNight.h + " h" : "not logged"} ▸</span>
@@ -16211,26 +16222,26 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
       </div>
       <div data-cap="optional" style={rule9}>
         <div style={lbl9}>OPTIONAL — WHAT EACH ONE BUYS</div>
-        <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 6, marginBottom: 4 }}>Skipping any of these files nothing, colours nothing, and never makes a card. Optional means optional — forever.</div>
+        <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.55, marginTop: GAP_WITHIN, marginBottom: GAP_PAIR }}>Skipping any of these files nothing, colours nothing, and never makes a card. Optional means optional — forever.</div>
         <div style={{ borderTop: "1px solid " + DT.hairline }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: ROW9 }}>
             <span style={rowName}>SODIUM<span style={{ color: DT.steel }}> · explains tomorrow's scale</span></span>
             <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
               {["low", "med", "high"].map((v) => chip(sod === v, v, () => { setSod(v); saveDay({ sodium: v }); }))}
-              <button aria-label="why" onClick={() => setWhyOpen(whyOpen === "sodium" ? null : "sodium")} style={{ background: "none", border: "none", padding: "12px 0 12px 8px", margin: "-12px 0", cursor: "pointer", fontFamily: mono, fontSize: 10, color: whyOpen === "sodium" ? DT.ink : DT.dim }}>{whyOpen === "sodium" ? "▾" : "▸"}</button>
+              <button aria-label="why" onClick={() => setWhyOpen(whyOpen === "sodium" ? null : "sodium")} style={{ background: "none", border: "none", padding: `${GAP_WITHIN}px 0 ${GAP_WITHIN}px ${GAP_PAIR}px`, margin: "-12px 0", cursor: "pointer", fontFamily: mono, fontSize: 10, color: whyOpen === "sodium" ? DT.ink : DT.dim }}>{whyOpen === "sodium" ? "▾" : "▸"}</button>
             </span>
           </div>
-          {whyOpen === "sodium" ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, padding: "0 0 10px" }}>A high-salt day annotates tomorrow morning&rsquo;s read — &ldquo;salt or alcohol yesterday — water noise likely&rdquo; — so a jump is explained at the moment you would otherwise worry.</div> : null}
+          {whyOpen === "sodium" ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.55, padding: `0 0 ${GAP_WITHIN}px` }}>A high-salt day annotates tomorrow morning&rsquo;s read — &ldquo;salt or alcohol yesterday — water noise likely&rdquo; — so a jump is explained at the moment you would otherwise worry.</div> : null}
         </div>
         <div style={{ borderTop: "1px solid " + DT.hairline }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: ROW9 }}>
             <span style={rowName}>ALCOHOL<span style={{ color: DT.steel }}> · units, a covariate</span></span>
             <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
               {[0, 2, 4, 6].map((u) => chip(+alc === u, String(u), () => { setAlc(u); saveDay({ alc: u }); }))}
-              <button aria-label="why" onClick={() => setWhyOpen(whyOpen === "alc" ? null : "alc")} style={{ background: "none", border: "none", padding: "12px 0 12px 8px", margin: "-12px 0", cursor: "pointer", fontFamily: mono, fontSize: 10, color: whyOpen === "alc" ? DT.ink : DT.dim }}>{whyOpen === "alc" ? "▾" : "▸"}</button>
+              <button aria-label="why" onClick={() => setWhyOpen(whyOpen === "alc" ? null : "alc")} style={{ background: "none", border: "none", padding: `${GAP_WITHIN}px 0 ${GAP_WITHIN}px ${GAP_PAIR}px`, margin: "-12px 0", cursor: "pointer", fontFamily: mono, fontSize: 10, color: whyOpen === "alc" ? DT.ink : DT.dim }}>{whyOpen === "alc" ? "▾" : "▸"}</button>
             </span>
           </div>
-          {whyOpen === "alc" ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, padding: "0 0 10px" }}>A count only — a covariate for sleep, pulse and scale attribution, never added to your calories; any units yesterday annotate tomorrow&rsquo;s read the same way.</div> : null}
+          {whyOpen === "alc" ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.55, padding: `0 0 ${GAP_WITHIN}px` }}>A count only — a covariate for sleep, pulse and scale attribution, never added to your calories; any units yesterday annotate tomorrow&rsquo;s read the same way.</div> : null}
         </div>
         {optOpen ? (
           <>
@@ -16242,12 +16253,13 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
                 <span style={rowName}>WAIST<span style={{ color: DT.steel }}> · the tape the band leans on</span></span>
                 <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
               </div>
+              <div style={{ marginTop: SP.lg }} />
               <Btn full tone="ghost" onClick={() => { const ns = { ...s, waist: [...(s.waist || []), { d: tISO, v: +waistIn }] }; setS(ns); save(ns); hap(12); onClose(); }}>Log {waistIn}&quot; waist</Btn>
             </div>
             {row9("photos", "PROGRESS PHOTOS", "marked, never uploaded", "mark done ▸", "The record the mirror cannot keep. The app stores the date only — no image ever leaves the phone.", () => { const ns = JSON.parse(JSON.stringify(s)); ns.photos = ns.photos || []; ns.photos.push({ d: tISO }); setS(ns); save(ns); hap(12); onClose(); })}
             <div data-cap="menu" style={rule9}>
               <div style={lbl9}>WHAT ELSE THIS COULD DO</div>
-              <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 6, marginBottom: 4 }}>Instruments built and waiting on one input each. Nothing here is owed.</div>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.55, marginTop: GAP_WITHIN, marginBottom: GAP_PAIR }}>Instruments built and waiting on one input each. Nothing here is owed.</div>
               {CAPTURE_MENU.map((g) => {
                 const cs9 = g.ids.map(byId).filter(Boolean);
                 if (!cs9.length) return null;

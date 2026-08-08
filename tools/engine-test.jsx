@@ -7353,6 +7353,23 @@ if (fail) process.exit(1);
     ok(cs.indexOf('{isTarget ? <>{" "}<span') > -1, "R15k r2 FIX 2 — the TARGET tag carries a REAL space, so the text layer reads \"CALORIES TARGET\" rather than CALORIESTARGET: visually spaced was not enough, a screen reader heard the defect");
     ok(cs.indexOf("Skipping any of these files nothing, colours nothing, and never makes a card.") > -1, "R15k r2 FIX 3 — the optional intro parses again: the trim had left \"files\" without an object");
   }
+
+  /* ---------- R15k r3 — THE RHYTHM IS TOKENISED ----------
+     Joe: "still a little tight together." The measured cause was hand-picked spacing —
+     4,5,6,8,10,12,14,16 all appeared, and the SECTION breaks (14-16) were barely larger
+     than the gaps WITHIN a section (10-12), so four groups read as one column. Three
+     tiers with a real ratio now, every value an SP token. This pin is what stops the
+     rhythm eroding next round: a raw pixel in this component fails the suite. */
+  {
+    const rawV = cs.match(/(marginTop|marginBottom|paddingTop|paddingBottom):\\s*\\d/g) || [];
+    const rawP = cs.match(/padding:\\s*"[^"]*\\d/g) || [];
+    ok(rawV.length === 0 && rawP.length === 0, "R15k r3 NO-RAW-SPACING LAW — every vertical space inside the capture sheet is an SP token or a named constant built from one; a raw pixel fails here (found: " + (rawV.concat(rawP).join(", ") || "none") + ")");
+    ok(cs.indexOf("const GAP_GROUP = SP.xl;") > -1 && cs.indexOf("const GAP_WITHIN = SP.md;") > -1 && cs.indexOf("const GAP_PAIR = SP.sm;") > -1 && cs.indexOf("const GAP_TIGHT = SP.xs;") > -1, "R15k r3 — the three tiers are named and derived: GROUP 24 · WITHIN 12 · PAIR 8 · TIGHT 4, a real ratio rather than eight hand-picked numbers");
+    ok(cs.indexOf("const rule9 = { borderTop: " + String.fromCharCode(34) + "1px solid " + String.fromCharCode(34) + " + DT.hairline, marginTop: GAP_GROUP, paddingTop: GAP_GROUP };") > -1, "R15k r3 — the divider sits CENTRED in the group gap (equal above and below) instead of crowding the block beneath it");
+    ok(cs.indexOf("const GAP_GROUP") < cs.indexOf("const rule9"), "R15k r3 — and the tokens are declared BEFORE the styles that read them: the first attempt put them after rule9, which threw on mount (temporal dead zone) and the dom smoke caught it as a missing wordmark");
+    ok((cs.match(/lineHeight: 1.55/g) || []).length >= 5 && (cs.match(/lineHeight: 1.5[^5]/g) || []).length === 0, "R15k r3 — prose leading is 1.55 throughout, matching the LEDGER hub: tight leading is half of why dense reads dense");
+    ok((cs.match(/marginTop: SP.lg/g) || []).length === 3, "R15k r3 — each primary button has SP.lg (16) clear above it: the scale commit, the day commit and the waist commit all breathe");
+  }
 }
 console.log(`\nFINAL98: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

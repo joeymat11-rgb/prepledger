@@ -391,6 +391,21 @@ rows, sodium, alcohol, sleep, optional rows, waist, the fold — no bespoke spac
 The audit's observation that a fully-logged day fills **no** button is deliberate and
 kept: nothing is due, so nothing shouts.
 
+**ROUND 3 (2026-08-08) — the sheet gets air.** Joe: *"still a little tight together."*
+Spacing only — no words moved, no controls moved, nothing added or removed. The cause
+was hand-picked values (4/5/6/8/10/12/14/16) with section breaks barely larger than the
+gaps inside a section. Now three named tiers built from SP: **GAP_GROUP 24 · GAP_WITHIN
+12 · GAP_PAIR 8 · GAP_TIGHT 4**, with the divider centred in the group gap (equal above
+and below) and SP.lg clear above each primary button. Prose leading 1.55 throughout, to
+match the LEDGER hub. **Pinned: no raw numeric marginTop/marginBottom/paddingTop, and no
+raw pixel in a padding string, survives inside CaptureSheet** — that assert is what keeps
+the rhythm from eroding. Rig, both states: group gaps measure exactly **24**, columns
+still 214/214/214, body **868px = 1.03 screens** (well under the 1.4-screen line, so
+nothing was compressed to fit). One incident owned: the gap tokens first landed *after*
+`rule9`, which reads them — a temporal-dead-zone throw at mount that the dom smoke
+caught as "wordmark missing"; declarations hoisted, and the ordering is now itself
+pinned.
+
 **Instrument note for the audit:** my first scroll-lock probe used a programmatic
 `scrollTo`, which bypasses `overflow: hidden` — the exact instrument error the R15c
 round-5 audit corrected. The lock is the GymMode mechanism, unchanged.
