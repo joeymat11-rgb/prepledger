@@ -6952,8 +6952,8 @@ if (fail) process.exit(1);
 {
   const srcL = readFileSync("src/app.jsx", "utf8");
   const mt = srcL.slice(srcL.indexOf("function MoreTab("), srcL.indexOf("function CoachView("));
-  ok(mt.length > 3000 && mt.length < 20000 && (srcL.split("function MoreTab(").length - 1) === 1, "R15d — the LEDGER hub slice is bounded and MoreTab keeps its name: it is the END ANCHOR of the R15c chip pin, and renaming it would silently swallow that slice");
-  ok((mt.split(String.fromCharCode(100, 97, 116, 97, 45, 108, 101, 100, 61, 34)).length - 1) === 4, "R15d — the simplicity budget is a LAW: exactly four data-led blocks (ok, diary, lab, rooms) — a fifth is the accretion disease, and this assert is its vaccine");
+  ok(mt.length > 3000 && mt.length < 24000 && (srcL.split("function MoreTab(").length - 1) === 1, "R15d — the LEDGER hub slice is bounded and MoreTab keeps its name: it is the END ANCHOR of the R15c chip pin, and renaming it would silently swallow that slice");
+  ok((mt.split(String.fromCharCode(100, 97, 116, 97, 45, 108, 101, 100, 61, 34)).length - 1) === 5, "R15d+h — the simplicity budget is a LAW, deliberately grown once: five data-led blocks (ok, LEARNING, diary, lab, rooms) — the fifth was the audit-directed experiment-legibility digest, and a SIXTH is the accretion disease this assert still vaccinates against");
   ok(mt.indexOf(String.fromCharCode(100, 97, 116, 97, 45, 115, 112, 101, 99, 61, 34, 101, 120, 97, 109, 112, 108, 101, 34)) > -1 && mt.indexOf("aria-hidden=\"true\" style={{ pointerEvents: \"none\"") > -1, "R14 AT THE ILLUSTRATION — the example decision card is INERT by construction (pointer-events none, aria-hidden, dashed frame): a card whose taps enact nothing may not be tappable");
   ok(mt.indexOf("A TAP HERE ALWAYS CHANGES SOMETHING REAL — AND ONE TAP ALWAYS UNDOES IT") > -1 && mt.indexOf("Nothing needs your OK right now.") > -1 && mt.indexOf("{okN} WAITING") > -1, "the empty inbox is the DESIGNED-NORMAL good state, in the mockup words, and the count on the row is the rail badge count");
   ok(mt.indexOf("onClick={() => go(\"BRIEF\")}") > -1 && (mt.split("ApprovalInbox").length - 1) === 0, "ONE DOOR STAYS ONE DOOR — a waiting decision routes to the briefing room; the hub mounts NO second inbox, so a card can never exist in two places");
@@ -7095,6 +7095,44 @@ if (fail) process.exit(1);
 }
 console.log(`\nFINAL95: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ==================== R15h · EXPERIMENT LEGIBILITY — THE DIGEST'S LAW (FINAL96) ====================
+   Every row is a pure restatement of its source: trial rows of the trial's own template
+   and arm machinery, the regime row of regime()'s pending fields, instrument rows of
+   labSections' own buckets in their own order with prog fields VERBATIM. Derived-only:
+   no state key, no feed line, zero engine movement — the freeze gate holds the baseline
+   byte-identical through this slice. */
+{
+  const dg96 = __test.expDigest;
+  const cl96 = (o) => JSON.parse(JSON.stringify(o));
+  for (const d96 of ["2026-08-06", "2026-08-07"]) {
+    const st96 = __test.migrate(JSON.parse(readFileSync("tools/snapshots/" + d96 + "-ledger.json", "utf8")));
+    const digest = dg96(st96);
+    const secs96 = __test.labSections(st96);
+    const gath96 = (secs96.find((x) => x.k === "gathering") || { cards: [] }).cards.filter((c) => c && c.prog && c.prog.need);
+    const prov96 = (secs96.find((x) => x.k === "provisional") || { cards: [] }).cards.filter((c) => c && c.prog && c.prog.need);
+    const gRows = digest.rows.filter((r) => r.kind === "gathering");
+    const pRows = digest.rows.filter((r) => r.kind === "provisional");
+    ok(gRows.length === gath96.length && gRows.every((r, i) => r.q === gath96[i].t && r.n === gath96[i].prog.n && r.need === gath96[i].prog.need && r.label === gath96[i].prog.label), "R15h VERBATIM LAW on " + d96 + " — every gathering row restates its lab card in the lab's OWN closeness order: " + gRows.length + " rows, titles and prog fields identical, nothing recomputed, nothing re-sorted");
+    ok(pRows.length === prov96.length && pRows.every((r, i) => r.q === prov96[i].t && r.n === prov96[i].prog.n && r.need === prov96[i].prog.need), "R15h VERBATIM LAW on " + d96 + " — provisional rows the same: " + pRows.length + " rows, prog verbatim");
+    ok(!!digest.head && digest.rows.length === gRows.length + pRows.length + digest.rows.filter((r) => r.kind === "trial" || r.kind === "regime").length, "R15h — the digest has a head and every row is accounted for by kind on " + d96);
+  }
+  /* the trial fixture: an approved caffcut trial leads the ladder */
+  const stT = cl96(__test.SEED);
+  stT.sleep.caffMg = 200;
+  stT.trials = [{ tplId: "caffcut", started: isoL(Date.now() - 4 * 864e5) }];
+  const dT = dg96(stT);
+  ok(!!dT.head && dT.head.kind === "trial" && dT.head.q === "Does a smaller pre-lift dose cost reps — or buy sleep?", "R15h — an approved trial leads the ladder and the headline is the template's OWN question, verbatim: " + (dT.head ? dT.head.q : "none"));
+  ok(dT.head.n === 2 && dT.head.need === 6 && ["usual dose", "usual −100 mg"].includes(dT.head.arm), "R15h — block and arm come from trialArmOn's own fields: day 4 of 3-day blocks = block 2 of 6, arm from the template's arms array (" + dT.head.n + "/" + dT.head.need + " · " + dT.head.arm + ")");
+  /* derived-only, at source: the digest writes nothing and files nothing */
+  const srcH = readFileSync("src/app.jsx", "utf8");
+  const hSl = srcH.slice(srcH.indexOf("function expDigest("), srcH.indexOf("R15d · LEDGER — decisions and diary"));
+  ok(hSl.length > 500 && (hSl.split("save(").length - 1) === 0 && (hSl.split("setS(").length - 1) === 0 && (hSl.split("feed.unshift").length - 1) === 0 && (hSl.split("localStorage").length - 1) === 0, "R15h DERIVED-ONLY — expDigest writes nothing: no save, no setS, no feed line, no storage — a pure read, pinned");
+  ok((srcH.split("data-led=" + String.fromCharCode(34) + "learning" + String.fromCharCode(34)).length - 1) === 1 && srcH.indexOf("EVERY QUESTION KEEPS ITS COUNTER IN THE LAB") > -1 && srcH.indexOf("if (!dg.head) return null;") > -1, "R15h — one learning block on the hub, the one door to LAB, and the block is ABSENT when nothing is being learned (an empty study list is not news)");
+}
+console.log(`\nFINAL96: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
 
 
 
