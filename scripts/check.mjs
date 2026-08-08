@@ -54,10 +54,10 @@ function swMatch() {
   if (app !== sw) {
     return {
       ok: false,
-      detail: `APP_V is ${app} but sw.js caches measured-v${sw} — installed phones would never pick up the new bundle`,
+      detail: `APP_V is ${app} but sw.js caches earned-v${sw} — installed phones would never pick up the new bundle`,
     };
   }
-  return { ok: true, detail: `APP_V ${app} === sw cache measured-v${sw}` };
+  return { ok: true, detail: `APP_V ${app} === sw cache earned-v${sw}` };
 }
 
 // --------------------------------------------------------------- 4. lockdown --

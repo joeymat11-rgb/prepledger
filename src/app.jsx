@@ -6482,7 +6482,7 @@ function dossierData(s) {
 }
 function dossierText(s) {
   const d = dossierData(s);
-  const L = [`MEASURED — ANALYST DOSSIER · ${d.header.d} · wk ${d.header.wk}`,
+  const L = [`EARNED — ANALYST DOSSIER · ${d.header.d} · wk ${d.header.wk}`,
     `Trend ${d.header.trend} lb · body fat ~${d.header.bf}% · pace ${d.header.pace} lb/wk${d.header.sealed ? ` · scale sealed until ${d.header.sealed}` : ""}`,
     `Machine trust: ${d.trust}`, "", `TOP LINE: ${d.topline}`, ""];
   d.sections.forEach((sec) => { L.push(sec.h); sec.items.forEach((it) => L.push(`  • ${it.t}: ${it.line}`)); L.push(""); });
@@ -8940,7 +8940,7 @@ class TabGuard extends React.Component {
   static getDerivedStateFromError(err) { return { err }; }
   render() {
     if (!this.state.err) return this.props.children;
-    const report = `Measured ${APP_V} · tab ${this.props.name} · ${new Date().toISOString()}\n${this.state.err.message}\n${(this.state.err.stack || "").slice(0, 600)}`;
+    const report = `EARNED ${APP_V} · tab ${this.props.name} · ${new Date().toISOString()}\n${this.state.err.message}\n${(this.state.err.stack || "").slice(0, 600)}`;
     return (
       <Card accent={T.brass}>
         <Eyebrow c={T.brass}>THIS TAB HIT AN ERROR</Eyebrow>
@@ -11372,8 +11372,11 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
       {undoable && (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm, marginTop: SP.sm, padding: `${SP.sm}px ${SP.md}px`, border: `1px solid ${T.line}`, borderRadius: 8, background: T.plate }}>
           <span style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.micro}px` }}>{undoable.auto ? "Auto-Pilot handled a routine move" : "Last move applied"}: {String(undoable.title || "").replace(/^AUTO-PILOT · /i, "").toLowerCase()}</span>
+          {/* R15f — painted-control split: the painted chip rides the inner span; hit 36+8=44 */}
           <button onClick={() => { hap(10); const ns = undoAdjustment(s, undoable.rid); setS(ns); save(ns); }} aria-label="undo last move"
-            style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.gauge, background: "none", border: `1px solid ${T.line}`, borderRadius: 999, padding: "5px 12px", cursor: "pointer", whiteSpace: "nowrap", minHeight: 36 }}>↩ Undo</button>
+            style={{ background: "none", border: "none", padding: "4px 0", margin: "-4px 0", cursor: "pointer", flexShrink: 0 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.gauge, border: `1px solid ${T.line}`, borderRadius: 999, padding: "5px 12px", whiteSpace: "nowrap", minHeight: 36, boxSizing: "border-box" }}>↩ Undo</span>
+          </button>
         </div>
       )}
 
@@ -11755,7 +11758,7 @@ function NowTab2({ s, setS, save, go }) {
     <div style={{ display: "flex", flexDirection: "column", paddingBottom: 72 /* CRITIQUE S2 — the last block scrolls past the FAB; the FAB itself sits in the clear air above the rail, never on START */ }}>
       {/* the brand row is chrome, not a content block — the budget counts blocks */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "4px 2px 10px" }}>
-        <span style={{ fontFamily: mono, fontSize: 11, letterSpacing: "0.34em", color: DT.steel, fontWeight: 700 }}>MEASURED</span>
+        <span style={{ fontFamily: mono, fontSize: 11, letterSpacing: "0.34em", color: DT.steel, fontWeight: 700 }}>EARNED</span>
         <span style={{ fontFamily: mono, fontSize: 10, color: DT.dim, letterSpacing: "0.08em", fontVariantNumeric: "tabular-nums" }}>{brandDate}</span>
       </div>
       <div data-now="status" style={{ padding: "6px 2px 14px" }}>
@@ -12017,7 +12020,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
       </Sheet>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: SP.md }}>
         <div style={{ minWidth: 0 }}>
-          <H size={24}>Measured</H>
+          <H size={24}>Earned</H>
           {/* v6.3 §5e — the tagline "Measured. Not guessed." is demoted to the
               footer (it's brand, not "now"), and the raw BF (lo–hi) moves into THE
               READ's bottom line where it carries its epistemic word. A body-comp
@@ -12521,8 +12524,11 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
             <span style={{ fontFamily: mono, fontSize: TS.label, color: T.jade }}>✓ day closed · {Math.round(dl.cal)} cal · {Math.round(dl.pro)} pro · {dl.steps != null ? (dl.steps / 1000).toFixed(1) + "k" : "—"}</span>
             <span style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
               {(() => { const est = ((s.dayCtx || {})[tISO] || {}).est; return (
-                <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if (est) delete ns.dayCtx[tISO]; else ns.dayCtx[tISO] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
-                  style={{ fontFamily: mono, fontSize: TS.micro, color: est ? T.brass : T.steel, border: `1px solid ${est ? T.brass : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>{est ? "⌁ EST ✓" : "⌁ est?"}</span>
+                <button onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if (est) delete ns.dayCtx[tISO]; else ns.dayCtx[tISO] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
+                  style={{ background: "none", border: "none", padding: "12px 8px", margin: "-12px -8px", cursor: "pointer" }}>
+                  {/* R15f — painted-control split: the painted chip rides the inner span */}
+                  <span style={{ display: "inline-block", fontFamily: mono, fontSize: TS.micro, color: est ? T.brass : T.steel, border: `1px solid ${est ? T.brass : T.line}`, borderRadius: 999, padding: "3px 8px" }}>{est ? "⌁ EST ✓" : "⌁ est?"}</span>
+                </button>
               ); })()}
               <button onClick={() => setDayEdit(true)} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, background: "none", border: "none" }}>edit</button>
             </span>
@@ -12533,10 +12539,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Eyebrow c={((s.dayCtx || {})[tISO] || {}).est ? T.brass : new Date().getHours() >= 17 && !(dl && dl.cal != null) ? T.brass : undefined}>{((s.dayCtx || {})[tISO] || {}).est ? "ESTIMATE DAY — ROUGH NUMBERS COUNT" : new Date().getHours() >= 17 && !(dl && dl.cal != null) ? "TONIGHT — CLOSE THE DAY" : "TODAY'S NUMBERS — LOG THESE TONIGHT"}</Eyebrow>
           {(() => { const est = ((s.dayCtx || {})[tISO] || {}).est; return (
-            <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if (est) delete ns.dayCtx[tISO]; else ns.dayCtx[tISO] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
-              style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.05em", color: est ? T.brass : T.steel, border: `1px solid ${est ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>
-              {est ? "⌁ ESTIMATE DAY ✓" : "estimates today?"}
-            </span>
+            <button onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if (est) delete ns.dayCtx[tISO]; else ns.dayCtx[tISO] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
+              style={{ background: "none", border: "none", padding: "11px 8px", margin: "-11px -8px", cursor: "pointer" }}>
+              {/* R15f — painted-control split: the painted chip rides the inner span */}
+              <span style={{ display: "inline-block", fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.05em", color: est ? T.brass : T.steel, border: `1px solid ${est ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px" }}>
+                {est ? "⌁ ESTIMATE DAY ✓" : "estimates today?"}
+              </span>
+            </button>
           ); })()}
         </div>
         {evUp && evUp.d === tISO && !((s.dayCtx || {})[tISO] || {}).est && (
@@ -12741,10 +12750,14 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <Card id="pl-amend" accent={T.brass}>
             <Eyebrow c={T.brass}>{isAmend ? `AMEND ${fmtShort(y8).toUpperCase()} — HONEST CORRECTIONS WELCOME` : `YESTERDAY'S BOOKS STILL OPEN — CLOSE ${fmtShort(y8).toUpperCase()} IN 30 SECONDS`}</Eyebrow>
             <div style={{ marginTop: 6 }}>
-              <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if ((ns.dayCtx[y8] || {}).est) delete ns.dayCtx[y8]; else ns.dayCtx[y8] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
-                style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.05em", color: ((s.dayCtx || {})[y8] || {}).est ? T.brass : T.steel, border: `1px solid ${((s.dayCtx || {})[y8] || {}).est ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px", cursor: "pointer" }}>
+              {/* R15f — painted-control split: the painted chip rides the inner span */}
+              <button onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.dayCtx = ns.dayCtx || {}; if ((ns.dayCtx[y8] || {}).est) delete ns.dayCtx[y8]; else ns.dayCtx[y8] = { est: true, note: "declared estimate day" }; setS(ns); save(ns); }}
+                style={{ background: "none", border: "none", padding: "11px 8px", margin: "-11px -8px", cursor: "pointer" }}>
+              <span
+                style={{ display: "inline-block", fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.05em", color: ((s.dayCtx || {})[y8] || {}).est ? T.brass : T.steel, border: `1px solid ${((s.dayCtx || {})[y8] || {}).est ? T.brass : T.line}`, borderRadius: 999, padding: "4px 9px" }}>
                 {((s.dayCtx || {})[y8] || {}).est ? "⌁ ESTIMATE DAY ✓" : "was it an estimate day?"}
               </span>
+              </button>
             </div>
             <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>{isAmend ? "Late bites count on the day they belong to. Corrected numbers replace the old ones; the amendment itself goes on the record — that is accuracy, not failure." : "Midnight passed but the day didn't file itself. Same numbers, honest timestamp — the ledger marks it logged-late, which is a fact, not a fault."}</div>
             <div style={{ display: "flex", gap: 8, marginTop: 9 }}>
@@ -13006,8 +13019,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>One option, offered not ordered: hold the deficit and put the levers on the board. This week so far — {`training ${levers.training.detail} · protein ${levers.protein.detail} · steps ${levers.steps.detail} · sleep ${levers.sleep.detail}`}.</div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.md, marginTop: SP.md, minHeight: 44 }}>
             <span style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, minWidth: 0 }}>Share this week's summary with one person</span>
-            <button role="switch" aria-checked={plan.share} onClick={() => savePlan({ share: !plan.share })} style={{ width: 44, height: 26, borderRadius: 999, border: `1px solid ${T.line}`, background: plan.share ? T.jade : T.plate2, position: "relative", cursor: "pointer", flexShrink: 0, transition: TR("background-color", MOT.micro) }}>
-              <span style={{ position: "absolute", top: 2, left: plan.share ? 20 : 2, width: 20, height: 20, borderRadius: "50%", background: plan.share ? T.ink : T.steel, transition: TR("left", MOT.micro) }} />
+            {/* R15f — the switch's 44×26 paint is the conventional control and stays
+                byte-identical; 26px is under the touch floor, so the HIT moves to this
+                paint-free outer (26+18=44) and the track is an inert inner span. */}
+            <button role="switch" aria-checked={plan.share} onClick={() => savePlan({ share: !plan.share })} style={{ background: "none", border: "none", padding: "9px 0", margin: "-9px 0", cursor: "pointer", flexShrink: 0 }}>
+              <span style={{ display: "block", width: 44, height: 26, borderRadius: 999, border: `1px solid ${T.line}`, background: plan.share ? T.jade : T.plate2, position: "relative", transition: TR("background-color", MOT.micro) }}>
+                <span style={{ position: "absolute", top: 2, left: plan.share ? 20 : 2, width: 20, height: 20, borderRadius: "50%", background: plan.share ? T.ink : T.steel, transition: TR("left", MOT.micro) }} />
+              </span>
             </button>
           </div>
           <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>Off by default. The highest-evidence accountability isn't the app nagging you — it's one human. Nothing leaves this device until you turn it on.</div>
@@ -13114,7 +13132,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       {/* §5e — the tagline lands here (demoted off the fold masthead): brand, at rest,
           at the bottom, beside the version. */}
-      <div style={{ textAlign: "center", fontFamily: mono, fontSize: TS.micro, color: T.steel, opacity: 0.55, padding: "10px 0 2px" }}>Measured. Not guessed. · v{APP_V}</div>
+      <div style={{ textAlign: "center", fontFamily: mono, fontSize: TS.micro, color: T.steel, opacity: 0.55, padding: "10px 0 2px" }}>Earned. Not guessed. · v{APP_V}</div>
 
     </div>
   );
@@ -16145,7 +16163,7 @@ function MoreTab({ s, go, openRules, openCoach }) {
       {/* The instrument's serial plate (§4): what you are running, what schema the
           record is on, and where the numbers come from. TS.micro steel, bottom. */}
       <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, textAlign: "center", padding: `${SP.lg}px ${SP.sm}px 0`, lineHeight: `${LH.micro}px`, letterSpacing: "0.04em" }}>
-        MEASURED · v{APP_V} · SCHEMA v{SCHEMA_V}
+        EARNED · v{APP_V} · SCHEMA v{SCHEMA_V}
         <br />every figure on every screen is computed from your own logs — no defaults, no population averages
         <br />record starts {fmtShort(START)} · {(s.reads || []).length} weigh-ins · {((s.sleep || {}).nights || []).length} nights · {Object.keys(s.sessionLog || {}).length} sessions
       </div>
@@ -16402,10 +16420,10 @@ function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
               </div>
             </div>
           )}
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 8 }}>Stays on this device · never included in exports or sync payloads · scoped to Measured only. Every Sunday the ledger commits itself — backup and coach review in one move.</div>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 8 }}>Stays on this device · never included in exports or sync payloads · scoped to EARNED only. Every Sunday the ledger commits itself — backup and coach review in one move.</div>
         </div>
         <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 12 }}>
-          The ledger lives on this device only. Export after big weeks — the backup file is the insurance policy. · Measured v{APP_V}
+          The ledger lives on this device only. Export after big weeks — the backup file is the insurance policy. · EARNED v{APP_V}
         </div>
       </div>
     </div>
@@ -16585,7 +16603,7 @@ export default function PrepLedger() {
         const data = migrate(JSON.parse(rd.result));
         if (!data || !Array.isArray(data.queue)) throw new Error("bad");
         setS(data); save(data, { force: true }); setRules(false);
-      } catch (e) { alert("That file isn't a Measured backup — nothing was changed."); }
+      } catch (e) { alert("That file isn't an EARNED backup — nothing was changed."); }
     };
     rd.readAsText(file);
   };

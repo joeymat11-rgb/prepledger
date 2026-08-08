@@ -1088,6 +1088,46 @@ and build. Here the spec said *behaviour-implied vs measured* and the build said
 version of a gate is written by whoever wants the answer — the same shape as the repair being
 the least-reviewed code in the change.
 
+### R15f ROUND 2 — THE FIVE TITLE-CASE SURVIVORS — 2026-08-08
+
+The round-1 needle was all-caps; five Title-Case brand strings survived, named by the
+audit and renamed exactly: the BRIEF footer tagline → **"Earned. Not guessed. ·
+v{APP_V}"** (Joe's word, default taken); the rules-sheet token line → "scoped to EARNED
+only"; the export card → "· EARNED v{APP_V}"; the import alert → "That file isn't an
+EARNED backup — nothing was changed" (a→an); the crash report → `` `EARNED ${APP_V} ·
+tab …` `` so beacon lines name the product. **Deliberate survivors, untouched:** the
+verb uses ("Measured from your own trend…", "Measured pace…"), all comments (incl. the
+v6.3 comment quoting the old tagline — history), and the MEASURED trust vocabulary.
+Pinned honestly: no blanket title-case needle exists (the verb uses forbid it) — the
+five exact old strings pinned extinct (the tagline needle scoped to the RENDERED
+string), five replacements pinned present, survivors named in the pin messages. Suite
+2034 → 2039, freeze byte-identical, words fixture untouched. Merge-ritual note per the
+audit: the branch never modified ledger/deploy.json, so the merge keeps main's copy
+automatically and the beacon republishes post-deploy.
+
+### R15f ROUND 1 — THE EARNED RENAME + THE FIVE CONTROLS — BUILT 2026-08-08, branch feat/r15f-polish
+
+**The product names itself EARNED** everywhere text can carry it: the NOW wordmark, the
+BRIEF header, the serial plate, the dossier header, the page title, the apple web-app
+title, the manifest (name + short_name), the sw cache prefix (`earned-v` — the activate
+sweep purges old `measured-v` caches on first load), plus the swVersion parser
+(lib.mjs), ship's sync regex, check's detail copy, and both smoke pins. **Internal
+rename only — public launch still gates on trademark clearance (Joe-side).** The STATUS
+word MEASURED (trust vocabulary, a tracked quantity) is deliberately untouched — the
+rename hit wordmark sites only, all four pinned. **Icon PNGs await design assets** —
+flagged, not renamed; a text rename cannot redraw artwork honestly.
+
+**The audit's five named controls** (their correction on the record — the extinction pin
+enforces one fingerprint, and its message now says exactly that): the ↩ Undo pill, the
+two est chips and the yesterday context chip wear the standing painted-control split
+(marker-pinned ×4); the **share switch** keeps its conventional 44×26 paint
+byte-identical — argued: a switch's paint IS its control — and moves its HIT to a
+paint-free outer button (26+18=44). Zero engine copy moved: baseline byte-identical,
+words fixture untouched. Suite 2027 → 2034. Rig: title EARNED, wordmark EARNED on
+NOW/BRIEF, est chip hit 46px / paint 24px live; Undo pill and switch dormant in the
+live state (pins carry them, per the R15e dormant-card precedent). Remaining chip
+GROUPS (sodium/alcohol selectors) stay on the fifty-details list for later rounds.
+
 ### R15e ROUND 2 — THE PAINTED-PILL CLASS IS CLOSED — 2026-08-08
 
 Both audit rulings executed. **Ruling 1** (dual diary lines): correct as built, no
