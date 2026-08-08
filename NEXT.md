@@ -355,7 +355,32 @@ when the roster generalizes.
 
 ---
 
-## NOW — R15j · THE CAPTURE, TIERED (built 2026-08-08, branch feat/r15j-capture)
+## NOW — R15k · THE CAPTURE SHEET WEARS THE DESIGN (built 2026-08-08, branch feat/r15k-sheet)
+
+Joe from his phone: *"you can scroll, and the formatting is awful."* Four measured
+defects, all fixed, plus the polish pass itself.
+
+**1 GEOMETRY, fixed at the shared `Sheet`** (every caller inherits it; swept — one
+caller today, named not assumed): a flex column capped at `calc(86vh - env(safe-area-
+inset-top))` with `overflow: hidden`; the grabber/title/Close pin as a non-scrolling
+header; the body scrolls with momentum. Rig, 390×844: **910×(top −66) → 726×(top 118),
+header 85px pinned at 119, body 641 visible of 776**. Plus the modal law borrowed from
+GymMode: the document scroll-locks while a sheet is up. **2 NO BLANK CONTROLS** — the
+steppers seed from the engine's own targets (the same numbers the log screen seeds) and
+a row showing a target says **TARGET** beside it, so a suggestion is never mistaken for
+a record. **3 ONE HERO** — the ask decides which button is filled; the other is the
+quiet variant (rig: unlogged → "Log 163 lb" jade / "Save today's numbers" transparent;
+logged → the reverse). **4 THE DENSITY LAW APPLIED HERE** — optional rows are one line
+(input · what it buys · counter) with the full explanation behind the row's own ▸.
+**Copy nit:** "THE THREE THAT RUN EVERYTHING" → "THE CORE — WHAT RUNS EVERYTHING".
+**Polish:** one type scale, one divider rhythm, one label voice, declared once at the
+top of the sheet and reused — the LAB rows' and the LEDGER hub's grammar, not a third.
+
+**Instrument note for the audit:** my first scroll-lock probe used a programmatic
+`scrollTo`, which bypasses `overflow: hidden` — the exact instrument error the R15c
+round-5 audit corrected. The lock is the GymMode mechanism, unchanged.
+
+## FILED — R15j · THE CAPTURE, TIERED (2026-08-08, merged as v7.33.0)
 
 **One door.** Both + buttons mount the same `CaptureSheet` (the two divergent sheets —
 LOG WEIGHT on NOW, QUICK LOG on BRIEF — are extinct, pinned). Four `data-cap` tiers:
