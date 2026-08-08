@@ -7235,10 +7235,20 @@ if (fail) process.exit(1);
   /* tier order, by index */
   const cs = srcJ.slice(srcJ.indexOf("function CaptureSheet("), srcJ.indexOf("function MoreTab("));
   const iH = cs.indexOf("data-cap=" + Q + "hero" + Q), iC = cs.indexOf("data-cap=" + Q + "core" + Q), iO = cs.indexOf("data-cap=" + Q + "optional" + Q);
-  ok(iH > -1 && iC > iH && iO > iC && (cs.split("data-cap=" + Q).length - 1) === 3, "R15j TIER ORDER — hero ask, then the core three, then the optional tier below its divider: exactly three tiers, in that order, pinned");
+  ok(iH > -1 && iC > iH && iO > iC && (cs.split("data-cap=" + Q).length - 1) === 4, "R15j TIER ORDER — hero ask, then the core three, then the optional tier below its divider, then the MENU nested inside it (Joe's ruling, grown deliberately from three): exactly four data-cap blocks, in that order, pinned");
+    /* THE MENU — the audit-named seven, grouped by the ONE input that wakes each */
+    const menuSl = srcJ.slice(srcJ.indexOf("const CAPTURE_MENU = ["), srcJ.indexOf("function CaptureSheet("));
+    const menuIds = (menuSl.match(/ids: \[[^\]]*\]/g) || []).join(" ");
+    ["pulsebase", "pulsewarn", "cutstress", "furnacebase", "refeedpulse", "sleepdose", "dexarecon", "miner"].forEach((id) => {
+      ok(menuIds.indexOf(Q + id + Q) > -1, "R15j MENU — " + id + " is on the menu: an instrument with no data is not clutter, it is what the app could do next");
+    });
+    ok(menuIds.indexOf(Q + "miss" + Q) === -1 && menuIds.indexOf(Q + "missarch" + Q) === -1, "R15j MENU — the two MISS cards are deliberately ABSENT: they read 0 because Joe is not missing protein, and offering to fund them would be asking him to fail (Joe's ruling, pinned so a later sweep cannot quietly add them)");
+    ok(menuSl.indexOf("MORNING PULSE") > -1 && menuSl.indexOf('ids: ["pulsebase", "pulsewarn", "cutstress"]') > -1 && cs.indexOf('cs9.length > 1 ? " → " + cs9.length + " INSTRUMENTS"') > -1, "R15j MENU — grouped by the input that wakes them, so one morning pulse reads as THREE instruments waking at once");
+    ok(cs.indexOf("const cs9 = g.ids.map(byId).filter(Boolean);") > -1 && cs.indexOf("cs9.map((c) => c.t).join") > -1 && cs.indexOf("c.prog.n + " + Q + " of " + Q + " + c.prog.need") > -1, "R15j MENU — every name and counter on the menu is the instrument's OWN title and OWN prog, read live through byId: nothing authored, nothing recomputed");
+    ok(cs.indexOf("Nothing here is owed — this is the menu, not a list of misses.") > -1, "R15j MENU — and the framing says it in the athlete's words: nothing here is owed");
   ok(cs.indexOf("Skipping any of these files nothing, colours nothing, and never makes a card. Optional means optional — forever.") > -1, "R15j NO-SHAME LAW — stated on the sheet itself, in the athlete's words");
   /* the funds labels read the instruments' OWN fields */
-  ok(cs.indexOf("const c = byId(id);") > -1 && cs.indexOf("return " + Q + "funds " + Q + " + c.t + n;") > -1 && cs.indexOf("c.prog.n + " + Q + " of " + Q + " + c.prog.need") > -1, "R15j — every funds-label is the instrument's OWN title and OWN prog counter (labStatusList verbatim), never a recomputed or authored number");
+  ok(cs.indexOf("const c = byId(id);") > -1 && cs.indexOf("return " + Q + "funds " + Q + " + c.t + (short ?") > -1 && cs.indexOf("p.n + " + Q + " of " + Q + " + p.need") > -1 && cs.indexOf("const short = p && p.n != null && p.need != null && p.n < p.need;") > -1, "R15j — every funds-label is the instrument's OWN title and OWN prog counter (labStatusList verbatim), never authored — and the counter is a DISTANCE, printed only while distance remains: the rig caught a live card reading '48 of 8', which is an artefact, not a counter; past its need it says 'already speaking'");
   ok(cs.indexOf('funds("wakesig"') > -1 && cs.indexOf('funds("pulsebase"') > -1 && cs.indexOf('funds("furnacebase"') > -1 && cs.indexOf('funds("noise"') > -1, "R15j — the optional rows name the instruments they fund by id: wake tag → WAKE SIGNATURE, pulse → the pulse baseline, temperature → the furnace baseline, sodium → the noise floor");
   /* NO novel state key: every write goes through a path that already shipped */
   ok((cs.split("writeDaily(").length - 1) === 1 && (cs.split("applyRead(").length - 1) === 1 && (cs.split("undoRead(").length - 1) === 1 && (cs.split("runAdaptive(").length - 1) === 1, "R15j EXISTING WRITE PATHS — the sheet files the day through writeDaily and the scale through undoRead/applyRead/runAdaptive: the same functions the scattered affordances already used");
