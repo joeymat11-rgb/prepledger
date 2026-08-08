@@ -355,7 +355,32 @@ when the roster generalizes.
 
 ---
 
-## NOW — R15k · THE CAPTURE SHEET WEARS THE DESIGN (built 2026-08-08, branch feat/r15k-sheet)
+## NOW — R17 · THE ESTIMATE FLAG IS OVER-SCOPED (filed 2026-08-08, audit-root-caused; builds next)
+
+**The failing case, on his live ledger:** setting `dayCtx.est` on 2026-08-07 (calories
+amended 2500 → 3000) made `dayWeather().hard` true, `liftTrend` excludes hard days
+outright, 8/7 was every lift's most recent point, and `progressionTrend` went **nLifts
+3 → 0, state unknown** — the coach card now reads "0 of the 4 lifts it needs". The
+session itself is intact. **The defect:** "I estimated my calories" is a claim about the
+day's FOOD numbers, applied to TRAINING data that was measured exactly. A guessed dinner
+does not make 11 reps at 320 less true. **The fix, spec'd:** split the flag by what it
+claims — every FOOD/SCALE consumer stays byte-identical (pinned both directions), and
+`liftTrend`'s hard exclusion stops reading it; session quality is pace/rushed and the
+downside-only protection's job. Any surviving exclusion must surface its receipt in the
+coach card (which session, why, what undoes it) — the 3 → 0 drop was silent. Every other
+`dayWeather().hard` consumer gets named and ruled one by one. Event days stay as they
+are. Deliberate engine movement: freeze regen enumerated leaf-by-leaf.
+
+## TRIAGE — the older beacon entry (filed 2026-08-08)
+
+`ledger/errors.json`, 2026-07-29T23:03:26Z, v4.0.11: *"undefined is not an object
+(evaluating 'B.dailyLogs[U].sodium=R')"* — a write into `dailyLogs[iso].sodium` on a row
+that did not exist. The R15j `writeDaily` partial-merge path builds the row before
+writing, so this specific shape looks dead — **but that must be ruled explicitly, not
+assumed**: find every remaining `dailyLogs[...].<field> =` assignment, prove each one
+either creates the row first or cannot run on a missing row, and pin it.
+
+## FILED — R15k · THE CAPTURE SHEET WEARS THE DESIGN (2026-08-08, branch feat/r15k-sheet → v7.34.0; round 3 on feat/r15k-air)
 
 Joe from his phone: *"you can scroll, and the formatting is awful."* Four measured
 defects, all fixed, plus the polish pass itself.
@@ -390,6 +415,21 @@ a card."* Plus the rhythm: one `ROW9 = 44` token drives every row in the sheet �
 rows, sodium, alcohol, sleep, optional rows, waist, the fold — no bespoke spacing left.
 The audit's observation that a fully-logged day fills **no** button is deliberate and
 kept: nothing is due, so nothing shouts.
+
+**ROUND 3 (2026-08-08) — the sheet gets air.** Joe: *"still a little tight together."*
+Spacing only — no words moved, no controls moved, nothing added or removed. The cause
+was hand-picked values (4/5/6/8/10/12/14/16) with section breaks barely larger than the
+gaps inside a section. Now three named tiers built from SP: **GAP_GROUP 24 · GAP_WITHIN
+12 · GAP_PAIR 8 · GAP_TIGHT 4**, with the divider centred in the group gap (equal above
+and below) and SP.lg clear above each primary button. Prose leading 1.55 throughout, to
+match the LEDGER hub. **Pinned: no raw numeric marginTop/marginBottom/paddingTop, and no
+raw pixel in a padding string, survives inside CaptureSheet** — that assert is what keeps
+the rhythm from eroding. Rig, both states: group gaps measure exactly **24**, columns
+still 214/214/214, body **868px = 1.03 screens** (well under the 1.4-screen line, so
+nothing was compressed to fit). One incident owned: the gap tokens first landed *after*
+`rule9`, which reads them — a temporal-dead-zone throw at mount that the dom smoke
+caught as "wordmark missing"; declarations hoisted, and the ordering is now itself
+pinned.
 
 **Instrument note for the audit:** my first scroll-lock probe used a programmatic
 `scrollTo`, which bypasses `overflow: hidden` — the exact instrument error the R15c

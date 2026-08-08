@@ -7353,6 +7353,47 @@ if (fail) process.exit(1);
     ok(cs.indexOf('{isTarget ? <>{" "}<span') > -1, "R15k r2 FIX 2 — the TARGET tag carries a REAL space, so the text layer reads \"CALORIES TARGET\" rather than CALORIESTARGET: visually spaced was not enough, a screen reader heard the defect");
     ok(cs.indexOf("Skipping any of these files nothing, colours nothing, and never makes a card.") > -1, "R15k r2 FIX 3 — the optional intro parses again: the trim had left \"files\" without an object");
   }
+
+  /* ---------- R15k r3 — THE RHYTHM IS TOKENISED ----------
+     Joe: "still a little tight together." The measured cause was hand-picked spacing —
+     4,5,6,8,10,12,14,16 all appeared, and the SECTION breaks (14-16) were barely larger
+     than the gaps WITHIN a section (10-12), so four groups read as one column. Three
+     tiers with a real ratio now, every value an SP token. This pin is what stops the
+     rhythm eroding next round: a raw pixel in this component fails the suite. */
+  {
+    const rawV = cs.match(/(marginTop|marginBottom|paddingTop|paddingBottom):\\s*\\d/g) || [];
+    const rawP = cs.match(/padding:\\s*"[^"]*\\d/g) || [];
+    ok(rawV.length === 0 && rawP.length === 0, "R15k r3 NO-RAW-SPACING LAW — every vertical space inside the capture sheet is an SP token or a named constant built from one; a raw pixel fails here (found: " + (rawV.concat(rawP).join(", ") || "none") + ")");
+    ok(cs.indexOf("const GAP_GROUP = SP.xl;") > -1 && cs.indexOf("const GAP_WITHIN = SP.md;") > -1 && cs.indexOf("const GAP_PAIR = SP.sm;") > -1 && cs.indexOf("const GAP_TIGHT = SP.xs;") > -1, "R15k r3 — the three tiers are named and derived: GROUP 24 · WITHIN 12 · PAIR 8 · TIGHT 4, a real ratio rather than eight hand-picked numbers");
+    ok(cs.indexOf("const rule9 = { borderTop: " + String.fromCharCode(34) + "1px solid " + String.fromCharCode(34) + " + DT.hairline, marginTop: GAP_GROUP, paddingTop: GAP_GROUP };") > -1, "R15k r3 — the divider sits CENTRED in the group gap (equal above and below) instead of crowding the block beneath it");
+    ok(cs.indexOf("const GAP_GROUP") < cs.indexOf("const rule9"), "R15k r3 — and the tokens are declared BEFORE the styles that read them: the first attempt put them after rule9, which threw on mount (temporal dead zone) and the dom smoke caught it as a missing wordmark");
+    ok((cs.match(/lineHeight: 1.55/g) || []).length >= 5 && (cs.match(/lineHeight: 1.5[^5]/g) || []).length === 0, "R15k r3 — prose leading is 1.55 throughout, matching the LEDGER hub: tight leading is half of why dense reads dense");
+    ok((cs.match(/marginTop: SP.lg/g) || []).length === 3, "R15k r3 — each primary button has SP.lg (16) clear above it: the scale commit, the day commit and the waist commit all breathe");
+  }
+
+  /* ---------- THE STEPPER CRASH — from HIS PHONE, not a fixture ----------
+     ledger/errors.json, 2026-08-08T10:56:09.481Z, v7.33.0:
+       "(e+n).toFixed is not a function. (In '(e+n).toFixed(1)', ...)"
+     `+(v + step).toFixed(1)` with a blank field: "" + 10 === "10", a STRING, and
+     .toFixed does not exist on it. Decrease survived by luck ("" - 10 === -10). Joe
+     tapped + on a blank CALORIES and the tab died. Fixed once at the component — the
+     handlers now call this exported law, so this drives the ACTUAL arithmetic they run,
+     not a lookalike. Two live paths can still hand it a blank: the clear-today control
+     and NowTab's effect when the calorie or step target is GATED (a new user, the dad
+     build) — which is why the fix is at the component and not at 21 call sites. */
+  {
+    const sv = __test.stepValue;
+    ok(typeof sv === "function", "the Stepper arithmetic is an exported pure law, so the crash can be driven rather than grepped");
+    ok(sv("", 10, 1, 0) === 10 && isFinite(sv("", 10, 1, 0)), "STEPPER CRASH — the exact beacon case: + on a BLANK field returns a finite 10 instead of building the string \"10\" and throwing on .toFixed");
+    ok(sv("", 10, -1, 0) === 0 && isFinite(sv("", 10, -1, 0)), "and − on a blank field floors at min rather than running away negative");
+    ok(sv("2200", 10, 1, 0) === 2210 && sv("2200", 10, -1, 0) === 2190, "a STRING-typed value still steps correctly in both directions — the coercion reads it, it does not discard it");
+    ok(sv(163.1, 0.1, 1, 100) === 163.2 && sv(163.1, 0.1, -1, 100) === 163, "the ordinary numeric path is unchanged, decimals included (the scale stepper)");
+    ok(sv("", 0.1, -1, 100) === 100 && sv(undefined, 5, 1, 0) === 5 && sv(null, 1, -1, 0) === 0, "blank/undefined/null all read as the control's own min for the arithmetic: every input is total, and no caller can hand it a value that throws");
+    /* both handlers go through it — the component cannot drift back */
+    const stepSrc = srcJ.slice(srcJ.indexOf("function stepValue("), srcJ.indexOf("const Num = ({ children"));
+    ok(stepSrc.indexOf("set(stepValue(v, step, -1, min))") > -1 && stepSrc.indexOf("set(stepValue(v, step, 1, min))") > -1 && stepSrc.indexOf("+(v + step).toFixed(1))} style") === -1, "STEPPER — both handlers call the law; the raw arithmetic that crashed his phone exists nowhere in the component");
+    ok((srcJ.match(/<Stepper /g) || []).length === 21, "STEPPER — and all 21 call sites are untouched: the fix is at the component, exactly once, where a call-site fix would have had 21 chances to be missed");
+  }
 }
 console.log(`\nFINAL98: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
