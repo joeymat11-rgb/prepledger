@@ -8929,7 +8929,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -11876,16 +11876,7 @@ function NowTab2({ s, setS, save, go }) {
             bottom 50+12 = 62 — the round-2 16+6 / 56+6, by construction. */}
         <span style={{ display: "block", width: 52, height: 52, borderRadius: "50%", background: DT.amber, color: "#141008", fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", textAlign: "center" }}>+</span>
       </button>
-      <Sheet open={qlOpen} onClose={() => setQlOpen(false)} title="LOG WEIGHT">
-        <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.5 }}>{readToday ? "Already logged " + readToday.w + " lb this morning — update it if the scale said otherwise." : "This morning's scale, straight in. Everything else lives one tap away in the briefing room."}</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, justifyContent: "center" }}>
-          <button aria-label="less" onClick={() => setWIn((x) => +(x - 0.1).toFixed(1))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>−</button>
-          <div style={{ ...tnum, fontSize: 32, fontWeight: 700, minWidth: 110, textAlign: "center" }}>{wIn}</div>
-          <button aria-label="more" onClick={() => setWIn((x) => +(x + 0.1).toFixed(1))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>+</button>
-        </div>
-        <Btn full tone="jade" onClick={() => { const base = readToday ? undoRead(s, m.tISO) : s; const ns2 = runAdaptive(applyRead(base, m.tISO, wIn), m.tISO); setS(ns2); save(ns2); hap(12); setQlOpen(false); }}>{readToday ? "Update to " + wIn + " lb" : "Log " + wIn + " lb"}</Btn>
-        <button onClick={() => { setQlOpen(false); go("BRIEF"); }} style={{ marginTop: 8, width: "100%", fontFamily: mono, fontSize: TS.micro, color: DT.steel, background: "none", border: "1px solid " + DT.hairline, borderRadius: 8, padding: "9px", cursor: "pointer" }}>everything else — open the briefing room</button>
-      </Sheet>
+      <CaptureSheet s={s} setS={setS} save={save} open={qlOpen} onClose={() => setQlOpen(false)} go={go} />
     </div>
   );
 }
@@ -11982,17 +11973,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
   const [alc9, setAlc9] = useState(() => (s.dailyLogs[tISO] || {}).alc ?? 0);
   useEffect(() => { const d0 = s.dailyLogs[tISO] || {}; const st1 = stepTarget(s); const ct1 = energyBalanceTarget(s); setCal(d0.cal ?? (ct1.gated ? "" : ct1.mid)); setPro(d0.pro ?? proteinTarget(s).g); setStp(d0.steps ?? (st1.gated ? "" : Math.round((st1.lo + st1.hi) / 2))); setSod9(d0.sodium ?? null); setAlc9(d0.alc ?? 0); }, [tISO]);
   const saveDaily = () => {
-    const ns = { ...s };
-    const c = cal === "" ? null : Number(cal), p = pro === "" ? null : Number(pro), st = stp === "" ? null : Number(stp);
-    ns.dailyLogs = { ...ns.dailyLogs, [tISO]: { cal: c, pro: p, steps: st, sodium: sod9, alc: +alc9 || 0 } };
-    if (p != null) {
-      const hit = proteinHit(proteinTarget(s).lo, p);
-      if (!hit && !ns.fixWindow) ns.fixWindow = { opened: tISO };
-      if (hit && ns.fixWindow && ns.fixWindow.opened !== tISO) {
-        ns.fixWindow = null;
-        ns.feed = [{ d: tISO, t: "PROTEIN RECOVERY", how: "miss fixed inside 24 h — the standard extends, it does not reset" }, ...ns.feed];
-      }
-    }
+    /* R15j — ONE write path: the capture sheet and this screen file the day through the
+       same function, so the protein fix-window and the sodium/alcohol preservation can
+       never diverge between two doors. */
+    const ns = writeDaily(s, tISO, { cal, pro, steps: stp, sodium: sod9, alc: alc9 });
     setS(ns); save(ns);
   };
 
@@ -12005,66 +11989,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           visible close, never traps. Highest-value additive per the spec. */}
       <button onClick={() => { hap(8); setQlOpen(true); }} aria-label="Quick log"
         style={{ position: "fixed", right: 16, bottom: "calc(96px + env(safe-area-inset-bottom))", zIndex: 60, width: 52, height: 52, borderRadius: "50%", background: T.gauge, color: T.ink, border: "none", boxShadow: "0 4px 16px rgba(0,0,0,0.4)", fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", cursor: "pointer" }}>+</button>
-      <Sheet open={qlOpen} onClose={() => setQlOpen(false)} title="QUICK LOG">
-        {(() => {
-          // v6.2 F3 — every field names WHICH day it logs, and shows an already-logged read
-          // (recognition-over-recall, NN/g heuristic #6) rather than prompting as if empty. Sleep is
-          // a STATUS only: it's a morning metric and lives in the SLEEP tab — surfaced here, not
-          // re-entered (research: keep the daily flow one-tap, no second sleep-logging surface).
-          const readToday = (s.reads || []).find((r) => r.d === tISO);
-          const d0 = s.dailyLogs[tISO] || {};
-          const waistWeek = (s.waist || []).slice().reverse().find((w) => { const g = (mk(tISO) - mk(w.d)) / DAY; return g >= 0 && g < 7; });
-          const nights = (s.sleep && s.sleep.nights) || [];
-          const lastNight = nights[nights.length - 1];
-          const lastNightFresh = lastNight && ((mk(tISO) - mk(lastNight.d)) / DAY) <= 1;
-          const lblCss = { fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.steel, letterSpacing: "0.06em", textTransform: "uppercase" };
-          const doneCss = { fontFamily: mono, fontSize: TS.micro, color: T.jade, marginBottom: SP.xs, ...NUMERIC };
-          const anyDaily = d0.cal != null || d0.pro != null || d0.steps != null;
-          return (
-          <div style={{ display: "flex", flexDirection: "column", gap: SP.lg }}>
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: SP.sm }}>
-                <span style={lblCss}>WEIGHT · this morning</span>
-                <Stepper v={wIn} set={setWIn} step={0.1} min={100} />
-              </div>
-              {readToday && <div style={doneCss}>logged {readToday.w} lb today ✓ — re-logging updates it</div>}
-              <Btn full tone="jade" onClick={() => { const base = readToday ? undoRead(s, tISO) : s; const ns2 = runAdaptive(applyRead(base, tISO, wIn), tISO); setS(ns2); save(ns2); hap(12); setQlOpen(false); }}>{readToday ? `Update to ${wIn} lb` : `Log ${wIn} lb`}</Btn>
-            </div>
-            <div>
-              {/* SLEEP · last night — STATUS ONLY, morning-specific; entry stays in the SLEEP tab (non-redundant) */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                <span style={lblCss}>SLEEP · last night</span>
-                <span style={{ fontFamily: mono, fontSize: TS.micro, color: lastNightFresh ? T.jade : T.steel, ...NUMERIC }}>{lastNightFresh ? `${lastNight.h}h logged ✓` : "not logged — in the SLEEP tab"}</span>
-              </div>
-            </div>
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: SP.sm }}>
-                <span style={lblCss}>WAIST · this week</span>
-                <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
-              </div>
-              {waistWeek && <div style={doneCss}>logged {waistWeek.v}&quot; this week ✓ — adds another reading</div>}
-              <Btn full tone="gauge" onClick={() => { const ns2 = { ...s, waist: [...(s.waist || []), { d: tISO, v: +waistIn }] }; setS(ns2); save(ns2); hap(12); setQlOpen(false); }}>Log {waistIn}&quot; waist</Btn>
-            </div>
-            {/* CLOSE THE DAY — the core daily numbers, one tap, into the SAME dailyLogs store the
-                full log screen reads (saveDaily; preserves sodium/alc, keeps the protein fix-window
-                logic). Non-redundant: this is the fast path, the log screen is the full one. */}
-            <div style={{ borderTop: `1px solid ${T.hairline}`, paddingTop: SP.md }}>
-              <div style={{ ...lblCss, marginBottom: SP.sm }}>CLOSE THE DAY · today's numbers</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: SP.sm }}>
-                {[["CALORIES", cal, setCal, 10, d0.cal], ["PROTEIN g", pro, setPro, 5, d0.pro], ["STEPS", stp, setStp, 500, d0.steps]].map(([label, val, setter, step, logged]) => (
-                  <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm }}>
-                    <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, color: T.steel, letterSpacing: "0.06em", textTransform: "uppercase" }}>{label}{logged != null && <span style={{ fontFamily: mono, color: T.jade, fontWeight: 400, textTransform: "none", letterSpacing: 0 }}> · {logged} ✓</span>}</span>
-                    <Stepper v={val === "" || val == null ? 0 : val} set={(x) => setter(x)} step={step} min={0} />
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginTop: SP.md }}><Btn full tone="jade" onClick={() => { saveDaily(); hap(12); setQlOpen(false); }}>{anyDaily ? "Update today's numbers" : "Save today's numbers"}</Btn></div>
-            </div>
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.micro}px` }}>Only the transcription moves here — stepping on the scale is still the deliberate act. One tap from anywhere on this screen.</div>
-          </div>
-          );
-        })()}
-      </Sheet>
+      <CaptureSheet s={s} setS={setS} save={save} open={qlOpen} onClose={() => setQlOpen(false)} go={(k) => { setQlOpen(false); go(k); }} />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: SP.md }}>
         <div style={{ minWidth: 0 }}>
           <H size={24}>Earned</H>
@@ -16023,6 +15948,42 @@ function SessionLiveChip({ s, go }) {
   );
 }
 
+/* ---------- R15j · THE CAPTURE — one door, explicitly tiered ----------
+   writeDaily is the ONE day-numbers write (extracted from the log screen's saveDaily,
+   byte-for-byte in behaviour: same dailyLogs shape, same protein fix-window, same
+   sodium/alcohol preservation). captureAsk names WHAT IS DUE RIGHT NOW from the
+   engine's own existing context — readWindow's morning gate, the day's own numbers,
+   yesterday's still-open books. No new state key, no new threshold: both are pure
+   reads/restatements of machinery that already shipped. */
+function writeDaily(s, iso, v) {
+  const ns = { ...s };
+  const num = (x) => (x === "" || x == null ? null : Number(x));
+  const c = num(v.cal), p = num(v.pro), st = num(v.steps);
+  ns.dailyLogs = { ...ns.dailyLogs, [iso]: { cal: c, pro: p, steps: st, sodium: v.sodium || null, alc: +v.alc || 0 } };
+  if (p != null) {
+    const hit = proteinHit(proteinTarget(s).lo, p);
+    if (!hit && !ns.fixWindow) ns.fixWindow = { opened: iso };
+    if (hit && ns.fixWindow && ns.fixWindow.opened !== iso) {
+      ns.fixWindow = null;
+      ns.feed = [{ d: iso, t: "PROTEIN RECOVERY", how: "miss fixed inside 24 h — the standard extends, it does not reset" }, ...ns.feed];
+    }
+  }
+  return ns;
+}
+function captureAsk(s, hour) {
+  const tISO = isoOf(todayStart());
+  const yISO = isoOf(new Date(todayStart().getTime() - DAY));
+  const rw = readWindow(s, hour);
+  const dl = (s.dailyLogs || {})[tISO] || {};
+  const yl = (s.dailyLogs || {})[yISO];
+  if (rw.open && !rw.hasRead) return { k: "scale", t: "THIS MORNING'S SCALE", why: "the read the whole engine steers on — one tap, then the trend absorbs it" };
+  if (!yl && (s.reads || []).some((r) => r && r.d < tISO)) return { k: "amend", t: "YESTERDAY'S BOOKS ARE STILL OPEN", why: "close " + fmtShort(yISO) + " — an unlogged day is a hole in every average below" };
+  if (dl.cal == null && rw.hour >= 17) return { k: "day", t: "CLOSE THE DAY", why: "calories, protein, steps — the three the targets are measured against" };
+  if (!rw.hasRead) return { k: "scale", t: "THE SCALE, WHEN YOU GET TO IT", why: "off-window reads are kept and set aside — logged honestly, never fed to the trend" };
+  if (dl.cal == null) return { k: "day", t: "CLOSE THE DAY", why: "calories, protein, steps — the three the targets are measured against" };
+  return { k: "none", t: "NOTHING IS DUE", why: "the scale and the day are both logged. Anything below is optional — and optional means optional." };
+}
+
 /* ---------- R15h · EXPERIMENT LEGIBILITY — expDigest ----------
    "What is the app currently trying to learn about me, and what would settle each
    question?" Composed PURELY from existing deriveds: activeTrial/trialVerdict (the
@@ -16058,6 +16019,127 @@ function expDigest(s) {
     prov.forEach((c) => { if (c && c.prog && c.prog.need) { const rem = Math.max(0, c.prog.need - c.prog.n); rows.push({ kind: "provisional", q: c.tag || c.t, n: c.prog.n, need: c.prog.need, label: c.prog.label, settle: rem === 1 ? "one more to a verdict it can stand behind" : rem + " more " + (c.prog.label || "observations") + " to a verdict it can stand behind" }); } });
   } catch (e) {}
   return { head: rows[0] || null, rows };
+}
+
+/* ---------- R15j · THE CAPTURE SHEET — the universal door ----------
+   Both + buttons open THIS. Three tiers, in the order the engine cares about them:
+   the HERO ASK (what is due right now), the CORE (scale · the day · sleep — the three
+   that run everything), and below a divider the OPTIONAL tier, every row wearing WHAT
+   IT FUNDS in the instrument's own words with the instrument's own counter. The
+   no-shame law is stated on the sheet and true in code: skipping an optional input
+   writes nothing, colours nothing, and files no card. Every write here goes through a
+   path that already shipped — writeDaily, applyRead/undoRead/runAdaptive, the waist
+   and photos pushes, the sleep-night push. No new state key. */
+function CaptureSheet({ s, setS, save, open, onClose, go }) {
+  const tISO = isoOf(todayStart());
+  const readToday = (s.reads || []).find((r) => r && r.d === tISO);
+  const dl = (s.dailyLogs || {})[tISO] || {};
+  const [wIn, setWIn] = useState(() => (readToday ? readToday.w : s.trend));
+  const [cal, setCal] = useState(dl.cal ?? "");
+  const [pro, setPro] = useState(dl.pro ?? "");
+  const [stp, setStp] = useState(dl.steps ?? "");
+  const [sod, setSod] = useState(dl.sodium || null);
+  const [alc, setAlc] = useState(dl.alc ?? 0);
+  const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
+  const [optOpen, setOptOpen] = useState(false);
+  const ask = captureAsk(s);
+  const cards = (() => { try { return labStatusList(s); } catch (e) { return []; } })();
+  const byId = (id) => cards.find((c) => c && c.id === id) || null;
+  const funds = (id, fallback) => {
+    const c = byId(id);
+    if (!c) return fallback;
+    const n = c.prog && c.prog.n != null && c.prog.need != null ? " — " + c.prog.n + " of " + c.prog.need : "";
+    return "funds " + c.t + n;
+  };
+  const nights = (s.sleep && s.sleep.nights) || [];
+  const lastNight = nights[nights.length - 1];
+  const lastNightFresh = lastNight && ((mk(tISO) - mk(lastNight.d)) / DAY) <= 1;
+  const lbl9 = { fontFamily: mono, fontSize: 10, letterSpacing: "0.18em", color: DT.dim, fontWeight: 600 };
+  const tnum9 = { fontFamily: mono, fontVariantNumeric: "tabular-nums" };
+  const numRow = (label, val, setter, step) => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, minHeight: 44 }}>
+      <span style={{ fontFamily: mono, fontSize: 11, color: DT.steel, letterSpacing: "0.06em" }}>{label}</span>
+      <Stepper v={val} set={setter} step={step} min={0} />
+    </div>
+  );
+  const optRow = (name, sub, right, onTap) => (
+    <button key={name} onClick={onTap} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: 44, background: "none", border: "none", padding: "6px 0", cursor: "pointer", textAlign: "left" }}>
+      <span style={{ minWidth: 0, flex: 1 }}>
+        <span style={{ display: "block", fontFamily: mono, fontSize: 11.5, color: DT.ink, letterSpacing: "0.04em" }}>{name}</span>
+        <span style={{ display: "block", fontFamily: body, fontSize: 11.5, color: DT.steel, marginTop: 2, lineHeight: 1.4 }}>{sub}</span>
+      </span>
+      <span style={{ ...tnum9, flexShrink: 0, fontSize: 10.5, color: DT.dim }}>{right}</span>
+    </button>
+  );
+  const chip = (on, txt, onTap) => (
+    <button key={txt} onClick={onTap} style={{ background: "none", border: "none", padding: "10px 4px", margin: "-10px -4px", cursor: "pointer" }}>
+      <span style={{ display: "inline-block", fontFamily: mono, fontSize: 11, color: on ? DT.jade : DT.steel, border: "1px solid " + (on ? DT.jade : DT.hairline2), borderRadius: 999, padding: "4px 10px" }}>{txt}</span>
+    </button>
+  );
+  const saveScale = () => { const base = readToday ? undoRead(s, tISO) : s; const ns = runAdaptive(applyRead(base, tISO, wIn), tISO); setS(ns); save(ns); hap(12); onClose(); };
+  const saveDay = (over) => { const ns = writeDaily(s, tISO, { cal, pro, steps: stp, sodium: sod, alc, ...(over || {}) }); setS(ns); save(ns); hap(12); };
+  return (
+    <Sheet open={open} onClose={onClose} title="LOG">
+      <div data-cap="hero">
+        <div style={{ ...lbl9, color: DT.amber }}>{ask.k === "none" ? "UP TO DATE" : "DUE NOW"}</div>
+        <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 19, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase", marginTop: 6 }}>{ask.t}</div>
+        <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.5, marginTop: 4 }}>{ask.why}</div>
+      </div>
+      <div data-cap="core" style={{ marginTop: 16, borderTop: "1px solid " + DT.hairline, paddingTop: 12 }}>
+        <div style={lbl9}>THE THREE THAT RUN EVERYTHING</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 10, justifyContent: "center" }}>
+          <button aria-label="less" onClick={() => setWIn((x) => +(x - 0.1).toFixed(1))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>−</button>
+          <div style={{ ...tnum9, fontSize: 32, fontWeight: 700, minWidth: 110, textAlign: "center", color: DT.ink }}>{wIn}</div>
+          <button aria-label="more" onClick={() => setWIn((x) => +(x + 0.1).toFixed(1))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>+</button>
+        </div>
+        {readToday ? <div style={{ ...tnum9, fontSize: 10.5, color: DT.jade, textAlign: "center", marginTop: 6 }}>logged {readToday.w} lb today — saving updates it</div> : null}
+        <Btn full tone="jade" onClick={saveScale}>{readToday ? "Update the scale" : "Log " + wIn + " lb"}</Btn>
+        <div style={{ marginTop: 14 }}>
+          <div style={lbl9}>CLOSE THE DAY</div>
+          {numRow("CALORIES", cal, setCal, 10)}
+          {numRow("PROTEIN g", pro, setPro, 5)}
+          {numRow("STEPS", stp, setStp, 500)}
+          <Btn full tone="jade" onClick={() => { saveDay(); onClose(); }}>{dl.cal != null ? "Update today's numbers" : "Save today's numbers"}</Btn>
+        </div>
+        <button onClick={() => { onClose(); go("SLEEP"); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: 44, background: "none", border: "none", padding: "12px 0 0", cursor: "pointer", textAlign: "left" }}>
+          <span style={{ fontFamily: mono, fontSize: 11, color: DT.ink, letterSpacing: "0.04em" }}>SLEEP · last night</span>
+          <span style={{ ...tnum9, fontSize: 10.5, color: lastNightFresh ? DT.jade : DT.steel }}>{lastNightFresh ? lastNight.h + " h logged" : "not logged — bed + wake in SLEEP"} ▸</span>
+        </button>
+      </div>
+      <div data-cap="optional" style={{ marginTop: 14, borderTop: "1px solid " + DT.hairline, paddingTop: 12 }}>
+        <div style={lbl9}>OPTIONAL — WHAT EACH ONE BUYS</div>
+        <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 6 }}>Skipping any of these files nothing, colours nothing, and never makes a card. Optional means optional — forever.</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 12 }}>
+          <span style={{ fontFamily: mono, fontSize: 10, color: DT.dim, letterSpacing: "0.14em" }}>SODIUM</span>
+          {["low", "med", "high"].map((v) => chip(sod === v, v, () => { setSod(v); saveDay({ sodium: v }); }))}
+        </div>
+        <div style={{ fontFamily: body, fontSize: 11, color: DT.dim, lineHeight: 1.4, marginTop: 4 }}>sharpens the scale's error model — {funds("noise", "funds the noise floor")}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
+          <span style={{ fontFamily: mono, fontSize: 10, color: DT.dim, letterSpacing: "0.14em" }}>ALCOHOL</span>
+          {[0, 2, 4, 6].map((u) => chip(+alc === u, String(u), () => { setAlc(u); saveDay({ alc: u }); }))}
+        </div>
+        <div style={{ fontFamily: body, fontSize: 11, color: DT.dim, lineHeight: 1.4, marginTop: 4 }}>a covariate for sleep, pulse and the scale — never added to your calories</div>
+        {optOpen ? (
+          <div style={{ marginTop: 8 }}>
+            {optRow("WAKE TAG", funds("wakesig", "funds the wake signature"), "in SLEEP ▸", () => { onClose(); go("SLEEP"); })}
+            {optRow("MORNING PULSE", funds("pulsebase", "funds the pulse baseline"), "in BODY ▸", () => { onClose(); go("BODY"); })}
+            {optRow("WAKING TEMPERATURE", funds("furnacebase", "funds the furnace baseline"), "in BODY ▸", () => { onClose(); go("BODY"); })}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, minHeight: 44 }}>
+              <span style={{ minWidth: 0, flex: 1 }}>
+                <span style={{ display: "block", fontFamily: mono, fontSize: 11.5, color: DT.ink, letterSpacing: "0.04em" }}>WAIST</span>
+                <span style={{ display: "block", fontFamily: body, fontSize: 11.5, color: DT.steel, marginTop: 2, lineHeight: 1.4 }}>the one tape reading the body-fat band leans on</span>
+              </span>
+              <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
+            </div>
+            <Btn full tone="gauge" onClick={() => { const ns = { ...s, waist: [...(s.waist || []), { d: tISO, v: +waistIn }] }; setS(ns); save(ns); hap(12); onClose(); }}>Log {waistIn}&quot; waist</Btn>
+            {optRow("PROGRESS PHOTOS", "the record the mirror cannot keep — marked, never uploaded", "mark done ▸", () => { const ns = JSON.parse(JSON.stringify(s)); ns.photos = ns.photos || []; ns.photos.push({ d: tISO }); setS(ns); save(ns); hap(12); onClose(); })}
+          </div>
+        ) : (
+          <button onClick={() => setOptOpen(true)} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", background: "none", border: "none", padding: "10px 0 0", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>▸ FOUR MORE — WAKE TAG · PULSE · TEMPERATURE · WAIST · PHOTOS</button>
+        )}
+      </div>
+    </Sheet>
+  );
 }
 
 function MoreTab({ s, go, openRules, openCoach }) {
