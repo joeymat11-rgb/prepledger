@@ -16233,16 +16233,35 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
     </div>
   );
   const saveScale = () => { const w9 = stepValue(wIn, 0, 1, 0); const base = readToday ? undoRead(s, tISO) : s; const ns = runAdaptive(applyRead(base, tISO, w9), tISO); setS(ns); save(ns); hap(12); onClose(); };
-  /* the SAME push the BRIEF card uses: replace the night for that date, derive h from
-     sleepSpanH, keep the list sorted. Drift-off defaults to 0 here because this row
-     does not ask for it — the SLEEP tab owns that field and overwrites on its own save. */
+  /* R15k r5 — THE SURFACE MAY NOT AUTHOR A MEASUREMENT. This wrote sol: 0 when no prior
+     night existed, which asserts he fell asleep instantly — something he never said. On
+     his record every other night carries 10, and 23:15→07:00 stored 7.75 h against the
+     7.58 the same clock times give with his own drift: a quarter hour of sleep credited
+     into the very array that funds sleep debt, the lights-out target and the sleep
+     instruments. OPTION (b), and the number is the ENGINE'S, not a constant of mine:
+     medianSOL(s) is the app's own owner — his measured median once five nights are on
+     file, 15 until then — and the row SAYS which it used. A default that names itself is
+     not an invention; a silent zero is.
+     ALSO: the two doors now agree. The BRIEF card computes
+     sleepSpanH(bed, wake, sol + (woke ? awakeMin : 0)); this passed sol alone, so a night
+     with mid-night wake minutes read LONGER through this door. awakeMin is preserved on
+     re-log and carried into the arithmetic, so the same night files the same hours
+     whichever door it comes through. */
+  const solPrev9 = (() => { const p = ((s.sleep && s.sleep.nights) || []).find((n) => n && n.d === isoOf(new Date(todayStart().getTime() - DAY))); return p && p.sol != null ? p.sol : null; })();
+  const solUse9 = solPrev9 != null ? solPrev9 : medianSOL(s);
+  const awakePrev9 = (() => { const p = ((s.sleep && s.sleep.nights) || []).find((n) => n && n.d === isoOf(new Date(todayStart().getTime() - DAY))); return p && p.awakeMin != null ? p.awakeMin : 0; })();
+  const wokePrev9 = (() => { const p = ((s.sleep && s.sleep.nights) || []).find((n) => n && n.d === isoOf(new Date(todayStart().getTime() - DAY))); return !!(p && (p.tags || []).includes("woke")); })();
+  const awakeUse9 = wokePrev9 ? awakePrev9 : 0;
+  const hPreview9 = sleepSpanH(bedIn, wakeIn, solUse9 + awakeUse9);
   const saveNight = () => {
     const ns = JSON.parse(JSON.stringify(s));
     const d9 = isoOf(new Date(todayStart().getTime() - DAY));
     const prev9 = (ns.sleep.nights || []).find((n) => n && n.d === d9) || null;
-    const sol9 = prev9 && prev9.sol != null ? prev9.sol : 0;
+    const tags9 = prev9 && prev9.tags ? prev9.tags.slice() : [];
+    const row9 = { d: d9, h: sleepSpanH(bedIn, wakeIn, solUse9 + awakeUse9), bed: bedIn, wake: wakeIn, tags: tags9, sol: solUse9 };
+    if (prev9 && prev9.awakeMin != null) row9.awakeMin = prev9.awakeMin;
     ns.sleep.nights = (ns.sleep.nights || []).filter((n) => n && n.d !== d9);
-    ns.sleep.nights.push({ d: d9, h: sleepSpanH(bedIn, wakeIn, sol9), bed: bedIn, wake: wakeIn, tags: prev9 && prev9.tags ? prev9.tags.slice() : [], sol: sol9 });
+    ns.sleep.nights.push(row9);
     ns.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
     setS(ns); save(ns); hap(12); onClose();
   };
@@ -16288,7 +16307,8 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
             <span style={{ ...rowName, color: DT.steel }}>WAKE</span>
             <input type="time" value={wakeIn} onChange={(e) => setWakeIn(e.target.value)} aria-label="wake time" style={timeIn9} />
           </div>
-          <div style={{ ...tnum9, fontSize: 10, letterSpacing: "0.12em", color: lastNightFresh ? DT.jade : DT.dim, marginTop: GAP_PAIR }}>{lastNightFresh ? "LOGGED " + lastNight.h + " H — SAVING UPDATES IT" : "DERIVED " + sleepSpanH(bedIn, wakeIn, 0) + " H IN BED, LESS DRIFT-OFF"}</div>
+          <div style={{ ...tnum9, fontSize: 10, letterSpacing: "0.12em", color: lastNightFresh ? DT.jade : DT.dim, marginTop: GAP_PAIR }}>{lastNightFresh ? "LOGGED " + lastNight.h + " H — SAVING UPDATES IT" : hPreview9 + " H ASLEEP"}</div>
+          <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.55, marginTop: GAP_TIGHT }}>{(solPrev9 != null ? "Using the " + solUse9 + " min you logged for this night" : "Assumes " + solUse9 + " min to fall asleep — " + (((s.sleep && s.sleep.nights) || []).filter((n) => n && n.sol != null).length >= 5 ? "your own median" : "the app's default until five nights are measured") + "; set yours in SLEEP") + (awakeUse9 ? ", less the " + awakeUse9 + " min you were awake" : "") + "."}</div>
           <div style={{ marginTop: SP.lg }} />
           <Btn full tone="ghost" onClick={saveNight}>{lastNightFresh ? "Update last night" : "Log last night"}</Btn>
           <button onClick={() => { onClose(); go("SLEEP"); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: ROW9, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>

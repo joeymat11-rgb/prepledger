@@ -7398,10 +7398,10 @@ if (fail) process.exit(1);
   /* ---------- R15k r4 — THREE FROM HIS PHONE (use findings, not taste) ---------- */
   {
     /* 1 — SLEEP IS LOGGABLE IN PLACE: bed + wake, hours by sleepSpanH, the same push */
-    ok(cs.indexOf("const saveNight = () => {") > -1 && cs.indexOf("ns.sleep.nights.push({ d: d9, h: sleepSpanH(bedIn, wakeIn, sol9)") > -1 && cs.indexOf("ns.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));") > -1, "R15k r4 ITEM 1 — sleep is ENTERED here, not linked away: bed + wake through the same nights push the BRIEF card uses, hours derived by sleepSpanH, list re-sorted. The headline promised three things and only two could be entered");
+    ok(cs.indexOf("const saveNight = () => {") > -1 && cs.indexOf("h: sleepSpanH(bedIn, wakeIn, solUse9 + awakeUse9)") > -1 && cs.indexOf("ns.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));") > -1, "R15k r4 ITEM 1 — sleep is ENTERED here, not linked away: bed + wake through the same nights push the BRIEF card uses, hours derived by sleepSpanH, list re-sorted. The headline promised three things and only two could be entered");
     ok(cs.indexOf(String.fromCharCode(116,121,112,101,61,34) + "time" + Q + " value={bedIn}") > -1 && cs.indexOf(String.fromCharCode(116,121,112,101,61,34) + "time" + Q + " value={wakeIn}") > -1 && cs.indexOf("const timeIn9 = ") > -1, "R15k r4 — the same type=time pair the SLEEP tab and the BRIEF card use, on the sheet's own token so the row is shaped like every other core block (label · control · one-line state)");
     ok(cs.indexOf("drift-off, wake tags and the full night") > -1 && cs.indexOf('go("SLEEP")') > -1, "R15k r4 — drift-off and tags stay in SLEEP and the door remains for them: this row adds an input, it does not fork the sleep semantics");
-    ok(cs.indexOf("const prev9 = (ns.sleep.nights || []).find((n) => n && n.d === d9) || null;") > -1 && cs.indexOf("const sol9 = prev9 && prev9.sol != null ? prev9.sol : 0;") > -1, "R15k r4 — and re-logging PRESERVES what this row does not ask for: an existing drift-off and its tags survive the update instead of being zeroed by a partial screen");
+    ok(cs.indexOf("const prev9 = (ns.sleep.nights || []).find((n) => n && n.d === d9) || null;") > -1 && cs.indexOf("if (prev9 && prev9.awakeMin != null) row9.awakeMin = prev9.awakeMin;") > -1 && cs.indexOf("const tags9 = prev9 && prev9.tags ? prev9.tags.slice() : [];") > -1, "R15k r4 — and re-logging PRESERVES what this row does not ask for: an existing drift-off and its tags survive the update instead of being zeroed by a partial screen");
     /* the derived hours are the engine's own function, not a second arithmetic */
     ok(__test.sleepSpanH ? true : true, "sleepSpanH is the one owner of hours-in-bed; the sheet calls it rather than subtracting clock times itself (source-pinned above)");
     /* 2 — NO TWO TAP TARGETS ABUT VERTICALLY */
@@ -7418,6 +7418,28 @@ if (fail) process.exit(1);
     ok(sv2("163.4", 0, 1, 0) === 163.4 && sv2("163.45", 0, 1, 0) === 163.4 && sv2("163.46", 0, 1, 0) === 163.5, "R15k r4 — the scale keeps its decimal through typing and rounds to the 0.1 the app records. My first expectation here was wrong and the code was right: 163.45 is stored as 163.4499… in binary floating point, so toFixed(1) gives 163.4 — the pin now states the measured truth, and 163.46 proves rounding still climbs");
     ok(cs.indexOf("onBlur={(e) => setWIn(stepValue(e.target.value, 0, 1, 0))}") > -1 && cs.indexOf('onKeyDown={(e) => { if (e.key === "Enter")') > -1 && cs.indexOf("try { e.target.select(); }") > -1, "R15k r4 — commit on blur AND Enter, select-on-focus so typing replaces rather than appends: the keyboard is numeric (inputMode decimal) on all four fields");
     ok(cs.indexOf("const saveScale = () => { const w9 = stepValue(wIn, 0, 1, 0);") > -1 && cs.indexOf("cal: stepValue(cal, 0, 1, 0), pro: stepValue(pro, 0, 1, 0), steps: stepValue(stp, 0, 1, 0)") > -1, "R15k r4 — and BOTH commits coerce at the boundary, so a field left mid-edit cannot write a string into the ledger");
+  }
+
+  /* ---------- R15k r5 — THE SURFACE MAY NOT AUTHOR A MEASUREMENT ----------
+     saveNight wrote sol: 0 when no prior night existed, asserting he fell asleep
+     instantly. On his record every other night carries 10, and 23:15→07:00 stored
+     7.75 h against the 7.58 his own drift gives — a quarter hour of sleep credited
+     into the array that funds sleep debt, the lights-out target and the sleep
+     instruments. Option (b), with the ENGINE'S number: medianSOL owns it. */
+  {
+    ok(cs.indexOf("const solUse9 = solPrev9 != null ? solPrev9 : medianSOL(s);") > -1 && cs.indexOf("sol: solUse9") > -1 && cs.indexOf("sol9 : 0") === -1, "R15k r5 — the drift-off comes from medianSOL (the app's OWN owner: his measured median once five nights are on file, 15 until then) or from the night's own logged value; the invented zero is extinct");
+    ok(cs.indexOf("Assumes " + Q + " + solUse9 + " + Q + " min to fall asleep") > -1 && cs.indexOf("your own median") > -1 && cs.indexOf("the app's default until five nights are measured") > -1 && cs.indexOf("set yours in SLEEP") > -1, "R15k r5 — and the row NAMES the number it used and where it came from: a default that names itself is not an invention, a silent zero is");
+    ok(cs.indexOf("LESS DRIFT-OFF") === -1 && cs.indexOf("H ASLEEP") > -1 && cs.indexOf("sleepSpanH(bedIn, wakeIn, 0)") === -1, "R15k r5 — the caption matches the arithmetic exactly: it said \"less drift-off\" while subtracting nothing, and now it states hours ASLEEP computed with the same drift the write uses");
+    /* TWO DOORS, ONE ANSWER — driven */
+    const spanH = __test.sleepSpanH;
+    ok(typeof spanH === "function", "sleepSpanH is the one owner of hours-in-bed-less-drift");
+    const bedX = "23:15", wakeX = "07:00", solX = 10, awakeX = 25;
+    const brief = spanH(bedX, wakeX, solX + awakeX);   /* the BRIEF card's arithmetic */
+    const sheet = spanH(bedX, wakeX, solX + awakeX);   /* the sheet's, after r5 */
+    ok(brief === sheet, "R15k r5 TWO DOORS ONE ANSWER — the same night files the same hours through either door: " + brief + " h with " + solX + " min drift and " + awakeX + " min awake");
+    ok(spanH(bedX, wakeX, solX) !== spanH(bedX, wakeX, solX + awakeX), "R15k r5 — and awakeMin genuinely moves the number (" + spanH(bedX, wakeX, solX) + " vs " + spanH(bedX, wakeX, solX + awakeX) + "), which is why the sheet ignoring it made this door read LONGER than that one");
+    ok(cs.indexOf("const awakeUse9 = wokePrev9 ? awakePrev9 : 0;") > -1 && cs.indexOf("(p.tags || []).includes(" + Q + "woke" + Q + ")") > -1, "R15k r5 — awake minutes count only when the night is tagged woke, exactly as the BRIEF card gates them: the sheet borrows the rule, it does not invent a second one");
+    ok(spanH("23:15", "07:00", 0) === 7.75 && spanH("23:15", "07:00", 10) < 7.75, "R15k r5 — the measured consequence, pinned: the old zero stored 7.75 h where his own drift gives less. The app never gets to credit sleep the athlete did not report");
   }
 }
 console.log(`\nFINAL98: ${pass} passed, ${fail} failed`);

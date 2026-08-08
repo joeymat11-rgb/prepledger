@@ -355,7 +355,23 @@ when the roster generalizes.
 
 ---
 
-## DONE, AWAITING AUDIT — R15k ROUND 4 (2026-08-08, branch feat/r15k-r4)
+## DONE, AWAITING AUDIT — R15k ROUNDS 4+5 (2026-08-08, branch feat/r15k-r4)
+
+**Round 5 — the surface was authoring a measurement.** `saveNight` wrote `sol: 0`
+whenever no prior night existed, asserting he fell asleep instantly. Every other night on
+his record carries 10; 23:15→07:00 stored 7.75 h against his own drift's 7.58 — a quarter
+hour of sleep credited into the array that funds sleep debt, the lights-out target and
+the sleep instruments. **Option (b), with the engine's own number:** `medianSOL(s)` is the
+app's owner (his measured median once five nights exist, 15 until then), and the row now
+says which it used and why — *"7.08 H ASLEEP · Assumes 10 min to fall asleep — your own
+median; set yours in SLEEP."* A default that names itself is not an invention; a silent
+zero is. The caption matches the arithmetic exactly — "less drift-off" is gone, because
+it promised a subtraction it did not perform. **Two doors, one answer:** `awakeMin` is
+preserved on re-log and carried into the arithmetic, gated on the `woke` tag exactly as
+the BRIEF card gates it, so the same night files the same hours through either door.
+Rig: `{d 2026-08-07, h 7.08, bed 23:30, wake 06:45, sol 10}`, one row for the date.
+
+## (round 4) — R15k ROUND 4 (2026-08-08, branch feat/r15k-r4)
 
 Three use findings from Joe's phone. **1 Sleep is loggable in place**: bed + wake
 (`type="time"`, the same pair BRIEF and the SLEEP tab use), hours derived by
