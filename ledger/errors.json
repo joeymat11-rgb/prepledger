@@ -8,5 +8,15 @@
   "stack": "onClick@https://fitnessledger2.netlify.app/app.js:83:69553\ncy@https://fitnessledger2.netlify.app/app.js:8:127457\n@https://fitnessledger2.netlify.app/app.js:8:132466\ncg@https://fitnessledger2.netlify.app/app.js:8:15139\nnc@https://fitnessledger2.netlify.app/app.js:8:128692\nVu@https://fitnessledger2.netlify.app/app.js:9:28583\nFb@https://fitnessledger2.netlify.app/app.js:9:28397",
   "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
   "page": "/"
+ },
+ {
+  "at": "2026-08-08T10:56:09.481Z",
+  "n": 2,
+  "v": "7.33.0",
+  "kind": "window.onerror",
+  "msg": "(e+n).toFixed is not a function. (In '(e+n).toFixed(1)', '(e+n).toFixed' is undefined)",
+  "stack": "onClick@https://fitnessledger2.netlify.app/app.js:83:44491\nov@https://fitnessledger2.netlify.app/app.js:8:127542\n@https://fitnessledger2.netlify.app/app.js:8:132551\nob@https://fitnessledger2.netlify.app/app.js:8:15144\nih@https://fitnessledger2.netlify.app/app.js:8:128777\nJf@https://fitnessledger2.netlify.app/app.js:9:28603\nik@https://fitnessledger2.netlify.app/app.js:9:28417",
+  "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+  "page": "/"
  }
 ]
