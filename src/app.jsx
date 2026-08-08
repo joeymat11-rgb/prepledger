@@ -16032,8 +16032,8 @@ function expDigest(s) {
     const secs = labSections(s);
     const gath = (secs.find((x) => x.k === "gathering") || { cards: [] }).cards;
     const prov = (secs.find((x) => x.k === "provisional") || { cards: [] }).cards;
-    gath.forEach((c) => { if (c && c.prog && c.prog.need) rows.push({ kind: "gathering", q: c.t, n: c.prog.n, need: c.prog.need, label: c.prog.label, settle: Math.max(0, c.prog.need - c.prog.n) + " more " + (c.prog.label || "observations") + " and it speaks" }); });
-    prov.forEach((c) => { if (c && c.prog && c.prog.need) rows.push({ kind: "provisional", q: c.t, n: c.prog.n, need: c.prog.need, label: c.prog.label, settle: Math.max(0, c.prog.need - c.prog.n) + " more " + (c.prog.label || "observations") + " to a verdict it can stand behind" }); });
+    gath.forEach((c) => { if (c && c.prog && c.prog.need) { const rem = Math.max(0, c.prog.need - c.prog.n); rows.push({ kind: "gathering", q: c.tag || c.t, n: c.prog.n, need: c.prog.need, label: c.prog.label, settle: rem === 1 ? "one more and it speaks" : rem + " more " + (c.prog.label || "observations") + " and it speaks" }); } });   /* q: the card's own plain question (tag), title fallback — both engine words (Joe's word, round 2) */
+    prov.forEach((c) => { if (c && c.prog && c.prog.need) { const rem = Math.max(0, c.prog.need - c.prog.n); rows.push({ kind: "provisional", q: c.tag || c.t, n: c.prog.n, need: c.prog.need, label: c.prog.label, settle: rem === 1 ? "one more to a verdict it can stand behind" : rem + " more " + (c.prog.label || "observations") + " to a verdict it can stand behind" }); } });
   } catch (e) {}
   return { head: rows[0] || null, rows };
 }
