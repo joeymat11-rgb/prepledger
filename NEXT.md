@@ -355,7 +355,47 @@ when the roster generalizes.
 
 ---
 
-## NOW — R15i ROUND 2 + R15j QUEUED (2026-08-08)
+## NOW — R15j · THE CAPTURE, TIERED (built 2026-08-08, branch feat/r15j-capture)
+
+**One door.** Both + buttons mount the same `CaptureSheet` (the two divergent sheets —
+LOG WEIGHT on NOW, QUICK LOG on BRIEF — are extinct, pinned). Four `data-cap` tiers:
+**hero** (`captureAsk` reads the engine's own context — readWindow's morning gate →
+yesterday's open books → tonight's numbers → NOTHING IS DUE; four states driven);
+**core** (scale · close the day · sleep status with its door); **optional** below a
+divider, each row wearing what it funds in the instrument's own words and counter; and
+**menu** nested inside it — Joe's ruling: the dormant instruments are the menu of what
+more the app could do, grouped by the ONE input that wakes each group ("MORNING PULSE →
+3 INSTRUMENTS · 2 of 7"). The two MISS cards are pinned ABSENT: they read 0 because he
+is not missing protein. The no-shame law is on the sheet.
+
+**One write path.** `writeDaily` extracted; the log screen's `saveDaily` now calls it,
+so the protein fix-window and sodium/alcohol preservation cannot drift between doors.
+No new state key (pinned), existing paths only, freeze byte-identical, no feed lines.
+
+**ROUND 2 (2026-08-08) — the audit's data-loss defect and three more, all fixed.**
+(1) **DATA LOSS, dead — belt and braces.** `writeDaily` is now a PARTIAL: any field a
+caller does not name survives untouched, so writing only sodium can never null the
+day. And the sheet re-reads the LIVE day on the OPEN transition, so a day logged after
+tab mount never renders blank. Driven on the rig end to end: log on BRIEF →
+`{cal 2265, pro 175, steps 15000}` → open the sheet (fields now render 2265/175/15000,
+not blank) → tap sodium "high" → `{cal 2265, pro 175, steps 15000, sodium "high"}`.
+Pinned as behaviour, not a grep. (2) **My call, filed:** the chips keep their instant
+write — a tap that visibly selects then silently forgets is worse than one that
+records — and the partial merge makes it safe: on an unlogged day it writes the chip
+alone, no row of nulls, and `readWindow(...).logged` stays false (pinned). (3)
+**Misattribution dead:** sodium never fed the noise floor (`INS_MAP noise:
+["weigh-in"]`); its real consumer is `applyRead`'s morning water-noise annotation, now
+quoted. The alcohol line audited and kept honest (count-only, never added to calories,
+same annotation). (4) The fold label counts five and names the menu.
+
+**Rig-caught defect (round 1), fixed:** a funds-label read "48 of 8" — a live instrument past its
+own need. The counter is a DISTANCE and now prints only while distance remains; past
+the line it says "already speaking". **Open question for Joe:** the sheet keeps the
+in-context cards (close-the-day on BRIEF, the weekly card) where they are, per the
+directive's "not a demolition" — say the word if the sheet should become the only door
+for the day numbers too.
+
+## FILED — R15i ROUND 2 (2026-08-08, merged as v7.32.0)
 
 **R15i round 2, built:** (1) the back-link "‹ LEDGER" measured 27px — now a 44px hit
 box, paint-free text with padding as pure slop and an equal-and-opposite margin so the

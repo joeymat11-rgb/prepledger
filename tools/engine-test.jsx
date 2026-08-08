@@ -7163,7 +7163,7 @@ if (fail) process.exit(1);
 
   /* derived-only, at source: the digest writes nothing and files nothing */
   const srcH = readFileSync("src/app.jsx", "utf8");
-  const hSl = srcH.slice(srcH.indexOf("function expDigest("), srcH.indexOf("R15d · LEDGER — decisions and diary"));
+  const hSl = srcH.slice(srcH.indexOf("function expDigest("), srcH.indexOf("R15j · THE CAPTURE SHEET — the universal door"));   /* end anchor re-derived R15j: the capture sheet now sits between expDigest and MoreTab, so the old boundary swallowed a component that legitimately writes */
   ok(hSl.length > 500 && (hSl.split("save(").length - 1) === 0 && (hSl.split("setS(").length - 1) === 0 && (hSl.split("feed.unshift").length - 1) === 0 && (hSl.split("localStorage").length - 1) === 0, "R15h DERIVED-ONLY — expDigest writes nothing: no save, no setS, no feed line, no storage — a pure read, pinned");
   ok((srcH.split("data-led=" + String.fromCharCode(34) + "learning" + String.fromCharCode(34)).length - 1) === 1 && srcH.indexOf("EVERY QUESTION KEEPS ITS COUNTER IN THE LAB") > -1 && srcH.indexOf("if (!dg.head) return null;") > -1, "R15h — one learning block on the hub, the one door to LAB, and the block is ABSENT when nothing is being learned (an empty study list is not news)");
 }
@@ -7221,6 +7221,101 @@ if (fail) process.exit(1);
 }
 console.log(`\nFINAL97: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ==================== R15j · THE CAPTURE — ONE DOOR, TIERED (FINAL98) ====================
+   Joe's read: the + only carried weight, and inputs asked with equal weight everywhere.
+   Both + buttons now open the SAME sheet: hero ask (what is due, from the engine's own
+   context) → the core three → the optional tier wearing what each one funds, in the
+   instruments' own words with their own counters. Existing write paths only. */
+{
+  const Q = String.fromCharCode(34);   /* the double-quote needle, built at runtime so the generator's own quoting can never leak into the assert */
+  const srcJ = readFileSync("src/app.jsx", "utf8");
+  /* ONE sheet, two doors */
+  ok((srcJ.split("function CaptureSheet(").length - 1) === 1 && (srcJ.split("<CaptureSheet s={s}").length - 1) === 2 && (srcJ.split(String.fromCharCode(116,105,116,108,101,61,34) + "QUICK LOG" + Q).length - 1) === 0 && (srcJ.split(String.fromCharCode(116,105,116,108,101,61,34) + "LOG WEIGHT" + Q).length - 1) === 0, "R15j — ONE capture sheet defined once and mounted by BOTH + doors; the two divergent sheets (LOG WEIGHT on NOW, QUICK LOG on BRIEF) are extinct — the door can no longer differ by which tab you were standing on");
+  /* tier order, by index */
+  const cs = srcJ.slice(srcJ.indexOf("function CaptureSheet("), srcJ.indexOf("function MoreTab("));
+  const iH = cs.indexOf("data-cap=" + Q + "hero" + Q), iC = cs.indexOf("data-cap=" + Q + "core" + Q), iO = cs.indexOf("data-cap=" + Q + "optional" + Q);
+  ok(iH > -1 && iC > iH && iO > iC && (cs.split("data-cap=" + Q).length - 1) === 4, "R15j TIER ORDER — hero ask, then the core three, then the optional tier below its divider, then the MENU nested inside it (Joe's ruling, grown deliberately from three): exactly four data-cap blocks, in that order, pinned");
+    /* THE MENU — the audit-named seven, grouped by the ONE input that wakes each */
+    const menuSl = srcJ.slice(srcJ.indexOf("const CAPTURE_MENU = ["), srcJ.indexOf("function CaptureSheet("));
+    const menuIds = (menuSl.match(/ids: \[[^\]]*\]/g) || []).join(" ");
+    ["pulsebase", "pulsewarn", "cutstress", "furnacebase", "refeedpulse", "sleepdose", "dexarecon", "miner"].forEach((id) => {
+      ok(menuIds.indexOf(Q + id + Q) > -1, "R15j MENU — " + id + " is on the menu: an instrument with no data is not clutter, it is what the app could do next");
+    });
+    ok(menuIds.indexOf(Q + "miss" + Q) === -1 && menuIds.indexOf(Q + "missarch" + Q) === -1, "R15j MENU — the two MISS cards are deliberately ABSENT: they read 0 because Joe is not missing protein, and offering to fund them would be asking him to fail (Joe's ruling, pinned so a later sweep cannot quietly add them)");
+    ok(menuSl.indexOf("MORNING PULSE") > -1 && menuSl.indexOf('ids: ["pulsebase", "pulsewarn", "cutstress"]') > -1 && cs.indexOf('cs9.length > 1 ? " → " + cs9.length + " INSTRUMENTS"') > -1, "R15j MENU — grouped by the input that wakes them, so one morning pulse reads as THREE instruments waking at once");
+    ok(cs.indexOf("const cs9 = g.ids.map(byId).filter(Boolean);") > -1 && cs.indexOf("cs9.map((c) => c.t).join") > -1 && cs.indexOf("c.prog.n + " + Q + " of " + Q + " + c.prog.need") > -1, "R15j MENU — every name and counter on the menu is the instrument's OWN title and OWN prog, read live through byId: nothing authored, nothing recomputed");
+    ok(cs.indexOf("Nothing here is owed — this is the menu, not a list of misses.") > -1, "R15j MENU — and the framing says it in the athlete's words: nothing here is owed");
+  ok(cs.indexOf("Skipping any of these files nothing, colours nothing, and never makes a card. Optional means optional — forever.") > -1, "R15j NO-SHAME LAW — stated on the sheet itself, in the athlete's words");
+  /* the funds labels read the instruments' OWN fields */
+  ok(cs.indexOf("const c = byId(id);") > -1 && cs.indexOf("return " + Q + "funds " + Q + " + c.t + (short ?") > -1 && cs.indexOf("p.n + " + Q + " of " + Q + " + p.need") > -1 && cs.indexOf("const short = p && p.n != null && p.need != null && p.n < p.need;") > -1, "R15j — every funds-label is the instrument's OWN title and OWN prog counter (labStatusList verbatim), never authored — and the counter is a DISTANCE, printed only while distance remains: the rig caught a live card reading '48 of 8', which is an artefact, not a counter; past its need it says 'already speaking'");
+  ok(cs.indexOf('funds("wakesig"') > -1 && cs.indexOf('funds("pulsebase"') > -1 && cs.indexOf('funds("furnacebase"') > -1, "R15j — the optional rows name the instruments they fund by id: wake tag → WAKE SIGNATURE, pulse → the pulse baseline, temperature → the furnace baseline");
+  /* R2 FIX 3 — MISATTRIBUTION, dead: sodium never fed the noise floor (INS_MAP noise:
+     ["weigh-in"]). Its real consumer is applyRead's morning water-noise annotation. */
+  ok(cs.indexOf('funds("noise"') === -1 && cs.indexOf("a high-salt day annotates tomorrow morning's read") > -1 && cs.indexOf("water noise likely") > -1, "R15j r2 FIX 3 — the sodium line no longer claims the noise floor; it names its REAL consumer, quoting the annotation applyRead actually writes");
+  ok(srcJ.indexOf('const water9 = ydl9.sodium === "high" || (ydl9.alc || 0) > 0 ?') > -1, "R15j r2 — and that consumer exists at source: applyRead reads yesterday's sodium AND alcohol, which is why the alcohol line makes the same claim honestly");
+  ok(cs.indexOf("a count only — a covariate for sleep, pulse and scale attribution, never added to your calories") > -1, "R15j r2 — the alcohol line audited: count-only, never added to calories (the LEDGER_DICT's own law), plus the annotation it shares with sodium");
+  ok(cs.indexOf("▸ FIVE MORE — WAKE TAG · PULSE · TEMPERATURE · WAIST · PHOTOS — AND WHAT ELSE THIS COULD DO") > -1 && cs.indexOf("FOUR MORE") === -1, "R15j r2 FIX 4 — the fold label counts what it lists (five) and names the menu inside it");
+  /* NO novel state key: every write goes through a path that already shipped */
+  ok((cs.split("writeDaily(").length - 1) === 1 && (cs.split("applyRead(").length - 1) === 1 && (cs.split("undoRead(").length - 1) === 1 && (cs.split("runAdaptive(").length - 1) === 1, "R15j EXISTING WRITE PATHS — the sheet files the day through writeDaily and the scale through undoRead/applyRead/runAdaptive: the same functions the scattered affordances already used");
+  ok((cs.split("s.waist || []").length - 1) === 1 && (cs.split("ns.photos.push({ d: tISO })").length - 1) === 1 && cs.indexOf("s.sleep") > -1 && (cs.split("localStorage").length - 1) === 0, "R15j — waist, photos and the sleep read use their existing stores; the sheet touches no storage of its own");
+  ok((cs.match(/ns[.][a-zA-Z]+ = /g) || []).every((m) => ["ns.photos = "].includes(m)) , "R15j NO NOVEL STATE KEY — the only direct assignment in the sheet is the guarded photos array that already exists in SEED; every other write is delegated: " + JSON.stringify(cs.match(/ns[.][a-zA-Z]+ = /g) || []));
+  /* ONE write path for the day numbers, shared with the log screen */
+  ok((srcJ.split("function writeDaily(").length - 1) === 1 && (srcJ.split("writeDaily(s, tISO,").length - 1) === 2 && srcJ.indexOf("const ns = writeDaily(s, tISO, { cal, pro, steps: stp, sodium: sod9, alc: alc9 });") > -1, "R15j — the log screen's saveDaily now CALLS writeDaily: one function owns the protein fix-window and the sodium/alcohol preservation, so two doors can never drift apart");
+  /* the hero ask is the engine's own context, driven */
+  const ca = __test.captureAsk, cl98 = (o) => JSON.parse(JSON.stringify(o));
+  const stJ = cl98(__test.SEED);
+  const tJ = isoL(Date.now()), yJ = isoL(Date.now() - 864e5);
+  stJ.reads = [{ d: isoL(Date.now() - 2 * 864e5), w: 170, sealed: false }];
+  stJ.dailyLogs = {}; stJ.sessionLog = {};
+  ok(ca(stJ, 8).k === "scale" && ca(stJ, 8).t === "THIS MORNING'S SCALE", "R15j HERO — inside the morning window with no read, the scale leads: " + ca(stJ, 8).t);
+  const stJ2 = cl98(stJ);
+  stJ2.reads.push({ d: tJ, w: 170, sealed: false });
+  stJ2.dailyLogs[yJ] = { cal: 2000, pro: 175, steps: 12000 };
+  ok(ca(stJ2, 19).k === "day" && ca(stJ2, 19).t === "CLOSE THE DAY", "R15j HERO — evening, scale in, yesterday closed: the day's numbers lead: " + ca(stJ2, 19).t);
+  const stJ3 = cl98(stJ2);
+  delete stJ3.dailyLogs[yJ];
+  ok(ca(stJ3, 19).k === "amend" && ca(stJ3, 19).t === "YESTERDAY'S BOOKS ARE STILL OPEN", "R15j HERO — an unlogged yesterday outranks tonight: " + ca(stJ3, 19).t);
+  const stJ4 = cl98(stJ2);
+  stJ4.dailyLogs[tJ] = { cal: 2100, pro: 180, steps: 13000 };
+  ok(ca(stJ4, 19).k === "none" && ca(stJ4, 19).why.indexOf("optional means optional") > -1, "R15j HERO — everything logged: the sheet says NOTHING IS DUE rather than inventing an ask");
+  /* writeDaily behaviour is the old saveDaily behaviour */
+  const wd = __test.writeDaily;
+  const stW = cl98(__test.SEED); stW.dailyLogs = {}; stW.fixWindow = null;
+  const w1 = wd(stW, tJ, { cal: 2000, pro: 100, steps: 9000, sodium: "low", alc: 2 });
+  ok(w1.dailyLogs[tJ].cal === 2000 && w1.dailyLogs[tJ].sodium === "low" && w1.dailyLogs[tJ].alc === 2 && w1.fixWindow && w1.fixWindow.opened === tJ, "R15j WRITE PATH — the day files with its optional fields intact and a protein miss opens the fix window, exactly as the log screen always did");
+  const stW2 = cl98(w1); stW2.fixWindow = { opened: yJ };
+  const w2 = wd(stW2, tJ, { cal: 2000, pro: 200, steps: 9000, sodium: null, alc: 0 });
+  ok(w2.fixWindow === null && (w2.feed || [])[0] && w2.feed[0].t === "PROTEIN RECOVERY", "R15j WRITE PATH — and a hit inside the window files PROTEIN RECOVERY with the engine's own words: the behaviour moved, not the meaning");
+
+  /* ---------- R2 FIX 1 — THE DATA-LOSS DEFECT, pinned as BEHAVIOUR ----------
+     The rig case: a day logged on BRIEF, then ONLY sodium written through the sheet's
+     path, destroyed cal/pro/steps. writeDaily is a PARTIAL now — this drives exactly
+     that sequence and asserts the logged numbers survive. */
+  {
+    const wd2 = __test.writeDaily, cl = (o) => JSON.parse(JSON.stringify(o));
+    const isoT = isoL(Date.now());
+    const st0 = cl(__test.SEED); st0.dailyLogs = {}; st0.fixWindow = null;
+    const logged = wd2(st0, isoT, { cal: 2279, pro: 175, steps: 15000, sodium: null, alc: 0 });
+    ok(logged.dailyLogs[isoT].cal === 2279 && logged.dailyLogs[isoT].pro === 175 && logged.dailyLogs[isoT].steps === 15000, "R15j r2 — the day logs through the full-row path exactly as before: 2279 / 175 / 15000");
+    const afterChip = wd2(logged, isoT, { sodium: "high" });
+    ok(afterChip.dailyLogs[isoT].cal === 2279 && afterChip.dailyLogs[isoT].pro === 175 && afterChip.dailyLogs[isoT].steps === 15000 && afterChip.dailyLogs[isoT].sodium === "high", "R15j r2 FIX 1 — THE DATA LOSS IS DEAD: writing ONLY sodium preserves cal/pro/steps (the rig case, driven as behaviour) — " + JSON.stringify(afterChip.dailyLogs[isoT]));
+    const afterAlc = wd2(afterChip, isoT, { alc: 2 });
+    ok(afterAlc.dailyLogs[isoT].cal === 2279 && afterAlc.dailyLogs[isoT].sodium === "high" && afterAlc.dailyLogs[isoT].alc === 2, "R15j r2 — and the same for the alcohol chip: each partial adds its own field and touches nothing else");
+    /* the unlogged day: a chip tap records the chip and creates no phantom logged day */
+    const st1 = cl(__test.SEED); st1.dailyLogs = {};
+    const chipOnly = wd2(st1, isoT, { sodium: "high" });
+    ok(chipOnly.dailyLogs[isoT].sodium === "high" && chipOnly.dailyLogs[isoT].cal == null && __test.readWindow(chipOnly, 9).logged === false, "R15j r2 FIX 2 (my call) — the instant chip write is safe on an UNLOGGED day: it records the chip, writes no row of nulls, and the day still reads unlogged to every gate that asks");
+    /* the full-row caller keeps its old clearing semantics, blanks included */
+    const cleared = wd2(logged, isoT, { cal: "", pro: "", steps: "", sodium: null, alc: 0 });
+    ok(cleared.dailyLogs[isoT].cal === null && cleared.dailyLogs[isoT].pro === null && cleared.dailyLogs[isoT].steps === null, "R15j r2 — a caller that NAMES a field with a blank still clears it: the log screen's overwrite semantics are unchanged, only the unnamed fields are now safe");
+    /* the sheet re-syncs on the open transition (the braces) */
+    ok(cs.indexOf("if (open && !wasOpen) {") > -1 && cs.indexOf("const live = (s.dailyLogs || {})[tISO] || {};") > -1 && cs.indexOf("setCal(live.cal ?? " + Q + Q + ");") > -1, "R15j r2 FIX 1b — and the sheet re-reads the LIVE day on the open transition, so a day logged elsewhere after tab mount can never render blank");
+  }
+}
+console.log(`\nFINAL98: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
 
 
 
