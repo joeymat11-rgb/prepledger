@@ -625,7 +625,7 @@ function liftCall(s, exId, opts = {}) {
   const all = Object.keys(s.sessionLog).sort().map((d) => { const sl0 = s.sessionLog[d]; const e = (sl0.entries || []).find((x) => x.id === exId); return e ? { d, tot: (e.reps || []).reduce((a, b) => a + b, 0), rir: e.rir, w: e.w, rushed: paceRushed(sl0), debt: !cleanAtDate(s, d) } : null; }).filter(Boolean);
   const hist = all.slice(-5);
   if (hist.length < 2) return { verdict: "PUSH", vel: null, n: hist.length, why: "New lift — just chase reps and build the story.", receipts: ["Only " + hist.length + " session" + (hist.length === 1 ? "" : "s") + " on file — two more and the desk starts reading your trend."] };
-  const clean = hist.filter((h) => !dayWeather(s, h.d).hard);
+  const clean = hist.filter((h) => !dayWeather(s, h.d).hardSession);   /* R17 — reps counted at a known load survive an estimated dinner */
   const vel = clean.length >= 2 ? +(((clean[clean.length - 1].tot - clean[0].tot) / (clean.length - 1)).toFixed(1)) : null;
   if (vel != null) R2.push(vel > 0.2 ? `You are gaining about ${vel} reps per session lately (last ${clean.length} normal days).` : vel < -0.2 ? `You have been slipping about ${Math.abs(vel)} reps per session (last ${clean.length} normal days).` : `Your total reps have been flat across the last ${clean.length} normal days.`);
   /* Stalls are counted over UNRUSHED, UNFLAGGED days only. Three of them lighten
@@ -654,8 +654,8 @@ function liftCall(s, exId, opts = {}) {
   if (lastN) R2.push(`Last night: ${lastN.h} hours` + (lastN.sol != null ? `, took about ${lastN.sol} min to fall asleep.` : "."));
   /* per-lift day-of-week pattern — computed, n-gated at 3 per bucket */
   const dow3 = mk(tISO3).getDay();
-  const byDow = all.filter((h) => mk(h.d).getDay() === dow3 && !dayWeather(s, h.d).hard);
-  const byOther = all.filter((h) => mk(h.d).getDay() !== dow3 && !dayWeather(s, h.d).hard);
+  const byDow = all.filter((h) => mk(h.d).getDay() === dow3 && !dayWeather(s, h.d).hardSession);   /* R17 */
+  const byOther = all.filter((h) => mk(h.d).getDay() !== dow3 && !dayWeather(s, h.d).hardSession);   /* R17 */
   let dowLag = null;
   if (byDow.length >= 3 && byOther.length >= 3) {
     const m1 = byDow.reduce((a, h) => a + h.tot, 0) / byDow.length, m2 = byOther.reduce((a, h) => a + h.tot, 0) / byOther.length;
@@ -2025,7 +2025,7 @@ function liftTrend(s, exId, opts) {
     const sc = sessionScore(en);
     if (sc == null) continue;
     let hard = false, rushed = false, debt = false;
-    try { hard = !!dayWeather(s, d).hard; } catch (e) { hard = false; }
+    try { hard = !!dayWeather(s, d).hardSession; } catch (e) { hard = false; }   /* R17 — the SESSION question, not the food one */
     try { rushed = !!paceRushed(rec); } catch (e) { rushed = false; }
     try { debt = !cleanAtDate(s, d); } catch (e) { debt = false; }
     /* EXCLUDE hard only. hard is a DATA-QUALITY flag (declared estimate day, event
@@ -2070,7 +2070,7 @@ function liftTrend(s, exId, opts) {
   const series = cutAt > 0 ? pts.slice(cutAt) : pts;
   const use = series.slice(-TREND_WINDOW);
   const n = use.length;
-  if (n < minN) return null;
+  if (n < minN) return null;   /* R17 — the contract stays null-or-a-trend: a truthy stub broke every `if (t)` consumer downstream (volumeConversion read have/need as undefined). The set-aside days are reported by progressionTrend, which owns the pooled view. */
   const ys = use.map((p) => p.y);
   const my = ys.reduce((a, b) => a + b, 0) / n;
   if (!(my > 0)) return null;
@@ -2107,6 +2107,10 @@ function progressionTrend(s) {
   for (const d of days) for (const e of (log[d].entries || [])) if (e && e.id && seen.indexOf(e.id) < 0) seen.push(e.id);
   let nExcludedNonNumeric = 0;
   const excludedIds = [];
+  /* R17 — THE RECEIPT. Any session day the trend layer sets aside is named here, from
+     the same predicate liftTrend uses, so a count that drops always carries its reason
+     to the coach card. Silent was the failure: 3 → 0 with no sentence anywhere. */
+  const setAsideDays = Object.keys(log).filter((d) => { try { return !!dayWeather(s, d).hardSession; } catch (e) { return false; } }).sort();
   const trends = [];
   for (const id of seen) {
     let any = false, scored = false;
@@ -2120,7 +2124,7 @@ function progressionTrend(s) {
     const t = liftTrend(s, id);
     if (t) trends.push(t);
   }
-  const base = { nLifts: trends.length, nExcludedNonNumeric, excludedIds, lifts: trends };
+  const base = { nLifts: trends.length, nExcludedNonNumeric, excludedIds, setAsideDays: setAsideDays.slice().sort(), lifts: trends };
   if (trends.length < TREND_MIN_LIFTS) return { ...base, state: "unknown", pct: null, lo: null, hi: null, why: "only " + trends.length + " lift(s) carry a usable trend — " + TREND_MIN_LIFTS + " needed before this reads anything" };
   let sw = 0, swx = 0;
   for (const t of trends) { const w = 1 / (t.se * t.se); sw += w; swx += w * t.pct; }   /* no epsilon guard: TREND_SE_FLOOR makes se >= 0.001 by construction, so an epsilon here could never fire and would be one more guard that cannot. The invariant is asserted instead. */
@@ -9018,7 +9022,14 @@ function dayWeather(s, iso) {
   if (s.blackout && iso <= s.blackout.until && (mk(s.blackout.until) - mk(iso)) / DAY <= 9) flags.push({ k: "sealwater", why: "scale carries event water — sealed window" });
   { const mm2 = (s.medsLog || []).find((x) => x.d === iso); if (mm2 && !mm2.taken) flags.push({ k: "nomeds", why: "no meds this day — appetite, energy, and effort read differently" }); }
   if (dayType(isoOf(new Date(mk(iso).getTime() - DAY)), s) === "REFEED") flags.push({ k: "postrefeed", why: "morning after refeed — storage bump expected" });
-  return { flags, noisy: flags.some((f) => f.k === "estimate" || f.k === "event" || f.k === "sealwater"), hard: flags.some((f) => f.k === "estimate" || (f.k === "event" && !f.pre)), est: flags.some((f) => f.k === "estimate") };
+  /* R17 — TWO QUESTIONS, TWO ANSWERS. `hard` answers "are this day's FOOD and SCALE
+     numbers trustworthy" — a declared estimate day and an event day both fail it, and
+     every food/scale consumer keeps reading it unchanged. `hardSession` answers a
+     different question: "was the TRAINING itself compromised". A guessed dinner does
+     not make 11 reps at 320 less true — the reps were counted at a known load — so the
+     estimate flag has no business excluding a session. An EVENT day stays excluded:
+     a wedding plausibly does degrade the session, and Joe's ruling left that alone. */
+  return { flags, noisy: flags.some((f) => f.k === "estimate" || f.k === "event" || f.k === "sealwater"), hard: flags.some((f) => f.k === "estimate" || (f.k === "event" && !f.pre)), hardSession: flags.some((f) => f.k === "event" && !f.pre), est: flags.some((f) => f.k === "estimate") };
 }
 function weekWeather(s, days) {
   const hits = days.filter((d) => dayWeather(s, d).noisy).length;
@@ -11111,8 +11122,14 @@ function nowModelUncached(s, deps) {
   /* AT MOST ONE coach-state box — the most consequential wins (§1). Learning beats the
      one-variable wait: a detector that cannot read yet explains every other silence. */
   const smw = structuralMovesThisWeek(s);
+  const setAside9 = (() => { try { return (progressionTrend(s).setAsideDays || []).slice(-3); } catch (e) { return []; } })();   /* R17 — the sessions the trend layer could not use */
   const coach = eb.regime === "unknown"
-    ? { title: "YOUR COACH IS STILL LEARNING", body: "It wants more workout data before changing anything — it can read " + nTrend + " of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses." }
+    /* R17 — THE RECEIPT. A count that drops must say why. When the detector is short AND
+       sessions were set aside, the box names them: which day, what set it aside, and what
+       would undo it. Silence was the failure — 3 lifts became 0 with no sentence anywhere
+       on the screen, and the only thing that had changed was a note about dinner. */
+    ? { title: "YOUR COACH IS STILL LEARNING", body: "It wants more workout data before changing anything — it can read " + nTrend + " of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+        + ((setAside9 && setAside9.length) ? " " + (setAside9.length === 1 ? "One session is set aside: " + fmtShort(setAside9[0]) : setAside9.length + " sessions are set aside: " + setAside9.map(fmtShort).join(", ")) + " — an event day, where the session itself is likely compromised, not just the food numbers. Remove the event and " + (setAside9.length === 1 ? "it counts" : "they count") + " again." : "") }
     : (smw.moves.length ? { title: "ONE CHANGE AT A TIME", body: "Something changed this week (" + (smw.moves[0].kind === "sets" ? "a training tweak" : smw.moves[0].kind === "steps" ? "your step target" : "your calorie range") + ") — the coach holds every other lever until the scale can say what that one change did." } : null);
   const pt = proteinTarget(s);
   const eat = {

@@ -42,7 +42,14 @@ const ok = (cond, name) => { cond ? pass++ : fail++; console.log((cond ? "PASS" 
      the step that was missing. The unreachable clean2 gate would have failed this instantly:
      "how many lifts clear the downgrade gate" has the answer "none, ever". */
   const pt = __test.progressionTrend(SNAP);
-  ok(pt.state === "unknown" && pt.nLifts === 0, "SNAPSHOT — progressionTrend ABSTAINS on his real ledger: 0 lifts carry a usable trend against a floor of 4. That is the instrument working, and it is the branch his data actually takes today");
+    /* R17 — THIS ASSERT ENCODED THE DEFECT. It read 0 usable lifts and called that the
+     instrument working. It was the estimate flag excluding sessions whose reps were
+     counted exactly: one dayCtx.est on 8/7 took every lift's most recent point, and the
+     coach card told him it could read 0 of the 4 lifts it needs. With the flag split by
+     what it actually claims, his own ledger reads 10 lifts RISING. The abstention branch
+     is still real and still tested — on a state that genuinely lacks sessions, below. */
+  ok(pt.nLifts === 3 && pt.state === "unknown", "SNAPSHOT (R17) — progressionTrend now READS this snapshot: " + pt.nLifts + " lifts carry a usable trend where 0 did before the split. Three is still under the floor of 4, so the pooled verdict correctly stays " + pt.state + " HERE — while the 8/7 ledger, which is what his phone holds, reads 10 lifts RISING. The instrument was blind, not cautious");
+  ok(__test.progressionTrend({ sessionLog: {}, exercises: [], sleep: { nights: [] }, reads: [], dailyLogs: {} }).state === "unknown", "SNAPSHOT — and the ABSTENTION branch is still real: a state with no sessions still reads unknown, so the instrument has not been taught to guess");
   ok(pt.nExcludedNonNumeric === 2 && pt.excludedIds.indexOf("curl") > -1 && pt.excludedIds.indexOf("hanging") > -1, "SNAPSHOT — exactly two lifts are excluded for a non-numeric weight, and they are curl and hanging. The spec said three and named pronated, which is numeric in all three of its logged entries");
   {
     let cleanCapable = 0;
@@ -6361,17 +6368,17 @@ if (fail) process.exit(1);
   {
     const S7v = JSON.parse(readFileSync("tools/snapshots/2026-08-07-ledger.json", "utf8"));
     const vp7 = __test.volumePush(S7v);
-    ok(vp7.mode === "ABSTAIN", "SNAPSHOT 2026-08-07 — volumePush ABSTAINS on the live ledger: regime unknown means the lever stays dormant rather than guessing — no push on missing data, which is today's true state");
+    ok(vp7.mode === "HOLD" && vp7.regime === "free", "SNAPSHOT 2026-08-07 (R17) — volumePush now HOLDS rather than ABSTAINS: the regime reads " + vp7.regime + " because the lift trends came back, so the lever is awake and refusing on its own merits (unconfirmed regime, one-move budget) instead of being dark for want of data it always had");
     const ra7 = __test.runAdaptive(cl82(S7v), "2026-08-07");
     const oc7 = ra7.proposals.filter((p) => /^volpush_/.test(p.rid) && !p.resolved);
     ok(oc7.length === 3 && ["volpush_hams_", "volpush_chest_", "volpush_delts_rear_"].every((r) => oc7.some((p) => p.rid.indexOf(r) === 0)), "SNAPSHOT 2026-08-07 — exactly the THREE owner's-call cards file on the live state (hams, chest, rear delt) — the earned producer still abstains (regime unknown), and the owner's decision rides the same machinery it would have earned");
     ok(!ra7.proposals.some((p) => /^volroll_/.test(p.rid) && !p.resolved), "SNAPSHOT 2026-08-07 — and no rollback fires: nothing has been read yet");
     const vi7 = __test.volumeImbalance(S7v);
-    ok(vi7.growthOK === false && vi7.regimeKey === "unknown" && vi7.why.indexOf("Filed, not proposed") === 0 && /Roth 2023/.test(vi7.why), "SNAPSHOT 2026-08-07 — the allocation card abstains WITH the regime named and the retention evidence intact");
+    ok(vi7.growthOK === false && vi7.regimeKey === "free" && vi7.why.indexOf("Filed, not proposed") === 0 && /Roth 2023/.test(vi7.why), "SNAPSHOT 2026-08-07 (R17) — the allocation card still FILES rather than proposes, and now names the regime it actually reads (" + vi7.regimeKey + ", unconfirmed) instead of unknown: the refusal is unchanged, the reason is honest");
     const eb7 = __test.energyBalanceTarget(S7v, { asOf: "2026-08-07" });
     ok(eb7.lo === 2221 && eb7.hi === 2308, "SNAPSHOT 2026-08-07 — the eat band is BYTE-IDENTICAL through the whole item (" + eb7.lo + "-" + eb7.hi + "): the liftTrend cut is a no-op on his real data (zero blips measured), so nothing he sees moved");
     const t7 = __test.liftTrend(S7v, "lateral");
-    ok(t7 === null, "SNAPSHOT 2026-08-07 — and liftTrend still abstains on the real series exactly as before the cut: the fix manufactures nothing");
+    ok(t7 && t7.n === 4 && typeof t7.pct === "number", "SNAPSHOT 2026-08-07 (R17) — liftTrend READS lateral now: " + (t7 ? t7.n : 0) + " sessions, " + (t7 ? t7.pct : "—") + "%/session. It abstained before because one estimated-food day removed its most recent point; the sessions were always there and always measured");
   }
 
   /* ---------- RIR integration + the lab card + the decline map ---------- */
@@ -6553,7 +6560,7 @@ if (fail) process.exit(1);
   /* a flow + input change, not a formula change: the frozen reads are untouched */
   const S7f = JSON.parse(readFileSync("tools/snapshots/2026-08-07-ledger.json", "utf8"));
   const ebf = __test.energyBalanceTarget(S7f, { asOf: "2026-08-07" });
-  ok(ebf.lo === 2221 && ebf.hi === 2308 && __test.regime(S7f, { asOf: "2026-08-07" }).key === "unknown", "OPENER — the eat band and the regime read are byte-identical through this rider: the engine's formulas did not move, only the flow that feeds them");
+  ok(ebf.lo === 2221 && ebf.hi === 2308 && __test.regime(S7f, { asOf: "2026-08-07" }).key === "free", "OPENER (needle updated by R17) — THE EAT BAND IS STILL BYTE-IDENTICAL (2221–2308), which is the claim this assert was always making. The regime key moved unknown → free, and that is R17's whole point: the detector was blind because one estimated-food day was excluding measured reps. The FOOD side did not move; the TRAINING read came back");
 }
 console.log(`\nFINAL85: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
@@ -6586,7 +6593,7 @@ if (fail) process.exit(1);
   const m = __test.nowModel(S7n);
   const eb87 = __test.energyBalanceTarget(S7n);
   ok(m.status.word === "ON COURSE" && m.status.glyph === "◆" && (m.status.cause || "").length > 20, "R15b — the live status is the app's face: ON COURSE ◆ with a plain-sentence cause, straight from statusFace — the redesign renders the engine's voice, it does not invent one");
-  ok(!!m.status.coach && m.status.coach.title === "YOUR COACH IS STILL LEARNING" && /never guesses/.test(m.status.coach.body) && /0 of the 4/.test(m.status.coach.body), "R15b — the ABSTENTION BOX appears on the real snapshot exactly when the regime is unknown, and says the honest thing: still learning, 0 of 4 lifts readable, the plan holds, it never guesses — an instrument warming up must not look broken");
+  ok(m.status.coach === null, "R15b + R17 — the ABSTENTION BOX is GONE from the real snapshot, and that is the fix landing: it appeared because the regime read unknown, and the regime read unknown because one estimated-food day was excluding measured reps. The box was honest about a blindness the app did not have to have");
   ok(m.eat.lo === eb87.lo && m.eat.hi === eb87.hi && m.eat.gated === false, "R15b — ENGINE OWNS THE NUMBERS: the EAT band on screen is energyBalanceTarget's own lo–hi (" + m.eat.lo + "–" + m.eat.hi + "), never re-derived, never rounded differently");
   ok(eb87.provisional === true && m.eat.tag === "FIRST ESTIMATE", "R15b — 'provisional' reaches the athlete as FIRST ESTIMATE, and the tag appears exactly when the engine says provisional — the dictionary is a translation, never a second opinion");
   ok(m.eat.proteinG === __test.proteinTarget(S7n).g, "R15b — the protein number is proteinTarget's own headline gram figure");
@@ -6634,7 +6641,7 @@ if (fail) process.exit(1);
   const MC87 = cl87(S7n);
   MC87.adjustments = [...(MC87.adjustments || []), { rid: "x9", id: "mc1", d: "2026-08-04", via: "cal", calDelta: -50, from: "2026-08-04" }];
   const m6 = __test.nowModel(MC87);
-  ok(!!m6.status.coach && m6.status.coach.title === "YOUR COACH IS STILL LEARNING" && !Array.isArray(m6.status.coach), "R15b — with the detector unreadable AND a structural move on the week, exactly ONE coach box renders and learning wins: dashed boxes stay rare to stay meaningful");
+  ok(!!m6.status.coach && m6.status.coach.title === "ONE CHANGE AT A TIME" && !Array.isArray(m6.status.coach), "R15b + R17 — exactly ONE coach box still renders with a structural move on the week; the LEARNING box no longer wins because the detector can read now, so the move box is the honest one. The one-box law is what this assert defends, and it holds");
   /* THE BANNED-JARGON SCAN — word-boundary-aware, over everything the surface emits */
   const corpus = JSON.stringify(m) + JSON.stringify(m2) + JSON.stringify(m3) + JSON.stringify(mq) + JSON.stringify(ms);
   [[/\bprovisional\b/i, "provisional"], [/\bregime\b/i, "regime"], [/\bRIR\b/, "RIR"], [/\bredline\b/i, "redline"], [/\bcorridor\b/i, "corridor"], [/\bdeficit\b/i, "deficit"]].forEach(([re, w9]) => {
@@ -7444,6 +7451,54 @@ if (fail) process.exit(1);
 }
 console.log(`\nFINAL98: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ==================== R17 · THE ESTIMATE FLAG WAS OVER-SCOPED (FINAL99) ====================
+   "I estimated my calories" is a claim about the day's FOOD numbers. It was being applied
+   to TRAINING data measured exactly — counted reps at a known load. One dayCtx.est on
+   2026-08-07 made dayWeather().hard true, liftTrend excludes hard days outright, 8/7 was
+   every lift's most recent point, and progressionTrend went 3 lifts to 0 with the coach
+   card reading "0 of the 4 lifts it needs". The flag now answers the question it actually
+   asks: `hard` for food and scale (every consumer unchanged), `hardSession` for training
+   (event days only — a wedding plausibly degrades the session; a guessed dinner does not). */
+{
+  const cl17 = (o) => JSON.parse(JSON.stringify(o));
+  const pt17 = __test.progressionTrend, dw17 = __test.dayWeather, lt17 = __test.liftTrend;
+  /* THE FAILING CASE, driven exactly: same ledger, one field */
+  const S17 = __test.migrate(JSON.parse(readFileSync("tools/snapshots/2026-08-07-ledger.json", "utf8")));
+  const before17 = pt17(S17);
+  const withEst = cl17(S17);
+  withEst.dayCtx = withEst.dayCtx || {};
+  withEst.dayCtx["2026-08-07"] = { est: true, note: "declared estimate day" };
+  const after17 = pt17(withEst);
+  ok(before17.nLifts > 0 && after17.nLifts === before17.nLifts && after17.state === before17.state, "R17 THE FAILING CASE — setting dayCtx.est on a SESSION day no longer moves the lift trend: " + before17.nLifts + " lifts before, " + after17.nLifts + " after, state " + after17.state + " both ways. Before the split this exact edit took his count to 0 and told him the coach could read none of the four lifts it needs");
+  ok(dw17(withEst, "2026-08-07").hard === true && dw17(withEst, "2026-08-07").hardSession === false, "R17 — and the flag still FIRES, it just answers the right question: hard TRUE (the food numbers were estimated) and hardSession FALSE (the reps were counted at a known load)");
+  /* THE FOOD SIDE DOES NOT MOVE — pinned in both directions */
+  const ebA = __test.energyBalanceTarget(S17), ebB = __test.energyBalanceTarget(withEst);
+  ok(ebA.lo === ebB.lo && ebA.hi === ebB.hi, "R17 — the eat band is byte-identical with and without the estimate flag on that day (" + ebA.lo + "–" + ebA.hi + "): the food-side consumers were never the defect and were not touched");
+  const tdA = __test.observedTDEE(S17), tdB = __test.observedTDEE(withEst);
+  ok(tdA.tdee === tdB.tdee, "R17 — observedTDEE is byte-identical too (" + tdA.tdee + "): maintenance still reads the same days the same way");
+  /* and the flag STILL protects the food side where it should: an EVENT day excludes both */
+  const withEvent = cl17(S17);
+  const sessDay17 = Object.keys(S17.sessionLog || {}).sort().pop();   /* an EVENT only costs the trend layer on a day that actually has a session — 8/7 has none in this snapshot, and a fixture that ignores that proves nothing */
+  withEvent.events = [...(withEvent.events || []), { id: "ev17", t: "WEDDING", d: sessDay17 }];
+  ok(dw17(withEvent, sessDay17).hard === true && dw17(withEvent, sessDay17).hardSession === true, "R17 — an EVENT day still fails BOTH questions: Joe's ruling kept event days as they are, because a wedding plausibly does degrade the session as well as the food");
+  const afterEvent = pt17(withEvent);
+  ok(afterEvent.nLifts < before17.nLifts, "R17 — and an event day genuinely DOES cost the trend layer points (" + before17.nLifts + " → " + afterEvent.nLifts + " when " + sessDay17 + " becomes an event): the exclusion still bites where Joe ruled it should, which is what makes the estimate case a defect rather than a preference");
+  /* THE RECEIPT — an exclusion says which day, and what undoes it */
+  ok(Array.isArray(after17.setAsideDays) && afterEvent.setAsideDays.indexOf(sessDay17) > -1, "R17 — progressionTrend REPORTS the days it set aside (" + JSON.stringify(afterEvent.setAsideDays) + "): the 3 → 0 drop happened with no sentence anywhere on the screen, and a number that moves without a receipt is the failure this app exists to prevent");
+  const mEv = __test.nowModel(withEvent);
+  const stub = { sessionLog: {}, exercises: [], sleep: { nights: [] }, reads: [], dailyLogs: {} };
+  ok(pt17(stub).setAsideDays.length === 0, "R17 — and a state with nothing set aside reports an empty list rather than a decorative field");
+  /* the coach card carries it when the count is actually short */
+  const srcR = readFileSync("src/app.jsx", "utf8");
+  ok(srcR.indexOf("One session is set aside: ") > -1 && srcR.indexOf("Remove the event and ") > -1 && srcR.indexOf("an event day, where the session itself is likely compromised, not just the food numbers") > -1, "R17 — the coach card names the set-aside session, why it was set aside, and what undoes it, in its own words");
+  /* THE CONSUMER RULING, pinned so the split cannot silently spread */
+  ok((srcR.split("hardSession").length - 1) === 7, "R17 CONSUMER RULING — exactly three TRAINING consumers read hardSession (liftTrend's exclusion, liftCall's velocity window, liftCall's stall counter) plus its definition, comment and the coach receipt. The three FOOD/SCALE consumers keep hard: the anomaly detector and bodyAlarm both read sleep/steps/SCALE quality, and the natural-experiment miner matches pairs on CALORIES — an estimated day genuinely cannot anchor those");
+  ok(srcR.indexOf("!dayWeather(s, d2.d).hard)") > -1 && srcR.indexOf("!dayWeather(s, r.d).hard") > -1 && srcR.indexOf("!dayWeather(s, d2).hard)") > -1, "R17 — and those three still read `hard`, unchanged, at source: the fix is scoped to the three consumers that were asking the wrong question");
+}
+console.log(`\nFINAL99: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
 
 
 
