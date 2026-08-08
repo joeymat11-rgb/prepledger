@@ -10531,10 +10531,24 @@ function stepValue(v, step, dir, min) {
    stacked rows jogged by 3px — which is exactly what reads as unpolished. Callers that
    stack rows pass `w` for a FIXED slot, so the buttons land on the same x at every
    value. Omitting it changes nothing: the other nineteen call sites are byte-identical. */
-const Stepper = ({ v, set, step = 1, min = 0, w }) => (
+const Stepper = ({ v, set, step = 1, min = 0, w, edit }) => (
   <div style={{ display: "flex", alignItems: "center", gap: SP.sm }}>
     <button aria-label="decrease" onClick={() => set(stepValue(v, step, -1, min))} style={stepBtn}>−</button>
+    {/* R15k r4 — TYPEABLE, opt-in (same shape as the fixed slot, which the audit
+        approved for shared-component changes). Going 2279 → 1950 was 33 taps; the
+        BRIEF card used to allow typing, so this was a capability REGRESSION. The typed
+        value routes through the SAME setter the buttons use, so stepValue's coercion
+        still owns every non-finite case — "" or "abc" can never reach the store. */}
+    {edit ? (
+      <input value={v} inputMode="decimal" aria-label="value"
+        onFocus={(e) => { try { e.target.select(); } catch (err) {} }}
+        onChange={(e) => set(e.target.value)}
+        onBlur={(e) => set(stepValue(e.target.value, 0, 1, min))}
+        onKeyDown={(e) => { if (e.key === "Enter") { set(stepValue(e.target.value, 0, 1, min)); try { e.target.blur(); } catch (err) {} } }}
+        style={{ fontFamily: mono, fontSize: 16, color: T.chalk, background: "none", border: "none", borderBottom: `1px dashed ${T.line}`, minWidth: w || 42, width: w || undefined, textAlign: "center", fontVariantNumeric: "tabular-nums", padding: 0 }} />
+    ) : (
     <div data-num style={{ fontFamily: mono, fontSize: 15, color: T.chalk, minWidth: w || 42, width: w || undefined, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{v}</div>
+    )}
     <button aria-label="increase" onClick={() => set(stepValue(v, step, 1, min))} style={stepBtn}>+</button>
   </div>
 );
@@ -16128,6 +16142,14 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
   const [sod, setSod] = useState(dl.sodium || null);
   const [alc, setAlc] = useState(dl.alc ?? 0);
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
+  /* R15k r4 — SLEEP IS LOGGABLE HERE. The headline says three things run everything and
+     only two could be entered. Bed + wake, the same type=time pair the BRIEF card and
+     the SLEEP tab use, hours derived by sleepSpanH exactly as they are today, written
+     through the same nights push. Drift-off and tags stay in SLEEP — the door remains
+     for those. No new state key, no second sleep semantics. */
+  const anchor9 = (s.sleep && s.sleep.anchor) || {};
+  const [bedIn, setBedIn] = useState(anchor9.bed || "23:30");
+  const [wakeIn, setWakeIn] = useState(anchor9.wake || "07:30");
   const [optOpen, setOptOpen] = useState(false);
   const [whyOpen, setWhyOpen] = useState(null);
   /* R15j r2 — THE SYNC IS THE BRACES: re-read the LIVE day on the OPEN transition, so a
@@ -16143,6 +16165,10 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
       setAlc(live.alc ?? 0);
       const r0 = (s.reads || []).find((r) => r && r.d === tISO);
       setWIn(r0 ? r0.w : s.trend);
+      const n0 = ((s.sleep && s.sleep.nights) || [])[((s.sleep && s.sleep.nights) || []).length - 1];
+      const fresh0 = n0 && ((mk(tISO) - mk(n0.d)) / DAY) <= 1;
+      if (fresh0 && n0.bed) setBedIn(n0.bed);
+      if (fresh0 && n0.wake) setWakeIn(n0.wake);
     }
     if (open !== wasOpen) setWasOpen(open);
   }, [open]);
@@ -16169,6 +16195,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
   const rule9 = { borderTop: "1px solid " + DT.hairline, marginTop: GAP_GROUP, paddingTop: GAP_GROUP };
   const rowName = { fontFamily: mono, fontSize: 11.5, color: DT.ink, letterSpacing: "0.04em" };
   const rowRight = { ...tnum9, flexShrink: 0, fontSize: 10.5, color: DT.dim, whiteSpace: "nowrap" };
+  const timeIn9 = { ...tnum9, flex: 1, minWidth: 0, fontSize: 15, color: DT.ink, background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 8, padding: `${SP.sm}px ${SP.sm}px` };
   const ROW9 = 44;      /* one row height for every row in the sheet — no bespoke spacing */
   const SLOT9 = 56;     /* the number slot: five digits at mono 15 with room to breathe */
   const heroIs = (k) => ask.k === k;
@@ -16200,13 +16227,45 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
      on the same x whether the value is 175 or 15000. And the TARGET tag carries a REAL
      space: innerText read "CALORIESTARGET", which is visually spaced and audibly wrong. */
   const stepRow = (label, val, setter, step, isTarget) => (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, minHeight: ROW9 }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, minHeight: ROW9, marginTop: GAP_WITHIN }}>
       <span style={{ ...rowName, color: DT.steel }}>{label}{isTarget ? <>{" "}<span style={{ ...tnum9, fontSize: 9.5, letterSpacing: "0.12em", color: DT.dim }}>TARGET</span></> : null}</span>
-      <Stepper v={val} set={setter} step={step} min={0} w={SLOT9} />
+      <Stepper v={val} set={setter} step={step} min={0} w={SLOT9} edit />
     </div>
   );
-  const saveScale = () => { const base = readToday ? undoRead(s, tISO) : s; const ns = runAdaptive(applyRead(base, tISO, wIn), tISO); setS(ns); save(ns); hap(12); onClose(); };
-  const saveDay = (over) => { const ns = writeDaily(s, tISO, over || { cal, pro, steps: stp, sodium: sod, alc }); setS(ns); save(ns); hap(12); };
+  const saveScale = () => { const w9 = stepValue(wIn, 0, 1, 0); const base = readToday ? undoRead(s, tISO) : s; const ns = runAdaptive(applyRead(base, tISO, w9), tISO); setS(ns); save(ns); hap(12); onClose(); };
+  /* R15k r5 — THE SURFACE MAY NOT AUTHOR A MEASUREMENT. This wrote sol: 0 when no prior
+     night existed, which asserts he fell asleep instantly — something he never said. On
+     his record every other night carries 10, and 23:15→07:00 stored 7.75 h against the
+     7.58 the same clock times give with his own drift: a quarter hour of sleep credited
+     into the very array that funds sleep debt, the lights-out target and the sleep
+     instruments. OPTION (b), and the number is the ENGINE'S, not a constant of mine:
+     medianSOL(s) is the app's own owner — his measured median once five nights are on
+     file, 15 until then — and the row SAYS which it used. A default that names itself is
+     not an invention; a silent zero is.
+     ALSO: the two doors now agree. The BRIEF card computes
+     sleepSpanH(bed, wake, sol + (woke ? awakeMin : 0)); this passed sol alone, so a night
+     with mid-night wake minutes read LONGER through this door. awakeMin is preserved on
+     re-log and carried into the arithmetic, so the same night files the same hours
+     whichever door it comes through. */
+  const solPrev9 = (() => { const p = ((s.sleep && s.sleep.nights) || []).find((n) => n && n.d === isoOf(new Date(todayStart().getTime() - DAY))); return p && p.sol != null ? p.sol : null; })();
+  const solUse9 = solPrev9 != null ? solPrev9 : medianSOL(s);
+  const awakePrev9 = (() => { const p = ((s.sleep && s.sleep.nights) || []).find((n) => n && n.d === isoOf(new Date(todayStart().getTime() - DAY))); return p && p.awakeMin != null ? p.awakeMin : 0; })();
+  const wokePrev9 = (() => { const p = ((s.sleep && s.sleep.nights) || []).find((n) => n && n.d === isoOf(new Date(todayStart().getTime() - DAY))); return !!(p && (p.tags || []).includes("woke")); })();
+  const awakeUse9 = wokePrev9 ? awakePrev9 : 0;
+  const hPreview9 = sleepSpanH(bedIn, wakeIn, solUse9 + awakeUse9);
+  const saveNight = () => {
+    const ns = JSON.parse(JSON.stringify(s));
+    const d9 = isoOf(new Date(todayStart().getTime() - DAY));
+    const prev9 = (ns.sleep.nights || []).find((n) => n && n.d === d9) || null;
+    const tags9 = prev9 && prev9.tags ? prev9.tags.slice() : [];
+    const row9 = { d: d9, h: sleepSpanH(bedIn, wakeIn, solUse9 + awakeUse9), bed: bedIn, wake: wakeIn, tags: tags9, sol: solUse9 };
+    if (prev9 && prev9.awakeMin != null) row9.awakeMin = prev9.awakeMin;
+    ns.sleep.nights = (ns.sleep.nights || []).filter((n) => n && n.d !== d9);
+    ns.sleep.nights.push(row9);
+    ns.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
+    setS(ns); save(ns); hap(12); onClose();
+  };
+  const saveDay = (over) => { const ns = writeDaily(s, tISO, over || { cal: stepValue(cal, 0, 1, 0), pro: stepValue(pro, 0, 1, 0), steps: stepValue(stp, 0, 1, 0), sodium: sod, alc }); setS(ns); save(ns); hap(12); };
   return (
     <Sheet open={open} onClose={onClose} title="LOG">
       <div data-cap="hero">
@@ -16220,9 +16279,14 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
       <div data-cap="core" style={rule9}>
         <div style={lbl9}>THE CORE — WHAT RUNS EVERYTHING</div>
         <div style={{ display: "flex", alignItems: "center", gap: SP.md, marginTop: GAP_WITHIN + SP.xs, justifyContent: "center" }}>
-          <button aria-label="less" onClick={() => setWIn((x) => +(x - 0.1).toFixed(1))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>−</button>
-          <div style={{ ...tnum9, fontSize: 34, fontWeight: 700, minWidth: 118, textAlign: "center", color: DT.ink, letterSpacing: "0.01em" }}>{wIn}</div>
-          <button aria-label="more" onClick={() => setWIn((x) => +(x + 0.1).toFixed(1))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>+</button>
+          <button aria-label="less" onClick={() => setWIn((x) => stepValue(x, 0.1, -1, 0))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>−</button>
+          <input value={wIn} inputMode="decimal" aria-label="weight"
+            onFocus={(e) => { try { e.target.select(); } catch (err) {} }}
+            onChange={(e) => setWIn(e.target.value)}
+            onBlur={(e) => setWIn(stepValue(e.target.value, 0, 1, 0))}
+            onKeyDown={(e) => { if (e.key === "Enter") { setWIn(stepValue(e.target.value, 0, 1, 0)); try { e.target.blur(); } catch (err) {} } }}
+            style={{ ...tnum9, fontSize: 34, fontWeight: 700, width: 118, textAlign: "center", color: DT.ink, letterSpacing: "0.01em", background: "none", border: "none", borderBottom: "1px dashed " + DT.hairline2, padding: 0 }} />
+          <button aria-label="more" onClick={() => setWIn((x) => stepValue(x, 0.1, 1, 0))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>+</button>
         </div>
         <div style={{ ...tnum9, fontSize: 10, letterSpacing: "0.12em", color: readToday ? DT.jade : DT.dim, textAlign: "center", marginTop: GAP_WITHIN }}>{readToday ? "LOGGED " + readToday.w + " LB TODAY — SAVING UPDATES IT" : "MORNING SCALE · LB"}</div>
         <div style={{ marginTop: SP.lg }} />
@@ -16235,10 +16299,21 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
           <div style={{ marginTop: SP.lg }} />
           <Btn full tone={heroIs("day") || heroIs("amend") ? "jade" : "ghost"} onClick={() => { saveDay(); onClose(); }}>{dl.cal != null ? "Update today's numbers" : "Save today's numbers"}</Btn>
         </div>
-        <div style={{ borderTop: "1px solid " + DT.hairline, marginTop: GAP_GROUP }}>
+        <div style={{ marginTop: GAP_GROUP }}>
+          <div style={lbl9}>LAST NIGHT</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: GAP_PAIR, minHeight: ROW9 }}>
+            <span style={{ ...rowName, color: DT.steel }}>BED</span>
+            <input type="time" value={bedIn} onChange={(e) => setBedIn(e.target.value)} aria-label="bed time" style={timeIn9} />
+            <span style={{ ...rowName, color: DT.steel }}>WAKE</span>
+            <input type="time" value={wakeIn} onChange={(e) => setWakeIn(e.target.value)} aria-label="wake time" style={timeIn9} />
+          </div>
+          <div style={{ ...tnum9, fontSize: 10, letterSpacing: "0.12em", color: lastNightFresh ? DT.jade : DT.dim, marginTop: GAP_PAIR }}>{lastNightFresh ? "LOGGED " + lastNight.h + " H — SAVING UPDATES IT" : hPreview9 + " H ASLEEP"}</div>
+          <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.55, marginTop: GAP_TIGHT }}>{(solPrev9 != null ? "Using the " + solUse9 + " min you logged for this night" : "Assumes " + solUse9 + " min to fall asleep — " + (((s.sleep && s.sleep.nights) || []).filter((n) => n && n.sol != null).length >= 5 ? "your own median" : "the app's default until five nights are measured") + "; set yours in SLEEP") + (awakeUse9 ? ", less the " + awakeUse9 + " min you were awake" : "") + "."}</div>
+          <div style={{ marginTop: SP.lg }} />
+          <Btn full tone="ghost" onClick={saveNight}>{lastNightFresh ? "Update last night" : "Log last night"}</Btn>
           <button onClick={() => { onClose(); go("SLEEP"); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: ROW9, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
-            <span style={rowName}>SLEEP<span style={{ color: DT.steel }}> · last night</span></span>
-            <span style={rowRight}>{lastNightFresh ? lastNight.h + " h" : "not logged"} ▸</span>
+            <span style={{ ...rowName, color: DT.steel }}>drift-off, wake tags and the full night</span>
+            <span style={rowRight}>in SLEEP ▸</span>
           </button>
         </div>
       </div>

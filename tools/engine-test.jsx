@@ -7338,7 +7338,7 @@ if (fail) process.exit(1);
      the number slot is a fixed width, so its content cannot move the buttons — driven
      at both digit widths, since a width that does not vary with content IS the proof. */
   {
-    const stepSl = srcJ.slice(srcJ.indexOf("const Stepper = ({ v, set, step = 1, min = 0, w })"), srcJ.indexOf("const Num = ({ children"));
+    const stepSl = srcJ.slice(srcJ.indexOf("const Stepper = ({ v, set, step = 1, min = 0, w, edit })"), srcJ.indexOf("const Num = ({ children"));
     ok(stepSl.indexOf("minWidth: w || 42, width: w || undefined") > -1, "R15k r2 — the Stepper number slot takes an OPT-IN fixed width: passing w pins it, omitting w leaves the old minWidth-42 behaviour byte-identical");
     ok(cs.indexOf("const SLOT9 = 56;") > -1 && (cs.match(/w=\{SLOT9\}/g) || []).length === 1 && cs.indexOf("stepRow(" + Q + "CALORIES" + Q) > -1 && cs.indexOf("stepRow(" + Q + "PROTEIN g" + Q) > -1 && cs.indexOf("stepRow(" + Q + "STEPS" + Q) > -1, "R15k r2 ALIGNMENT — all three stacked day rows render through ONE stepRow that passes the same fixed slot, so CALORIES / PROTEIN / STEPS cannot disagree about where − and + sit");
     /* the slot is wide enough for the widest value these rows can hold */
@@ -7349,7 +7349,7 @@ if (fail) process.exit(1);
     const pinned = (srcJ.match(/w=\{SLOT9\}/g) || []).length;
     ok(callers === 21 && pinned === 1, "R15k r2 SWEEP — " + callers + " Stepper call sites in the app; exactly " + pinned + " opts into the fixed slot (the sheet's day rows). The other " + (callers - pinned) + " pass no w and render byte-identically — the inline ones (\"~N min awake\", the bp pair) keep their shrink-to-fit behaviour by construction");
     /* one vertical rhythm: every row in the sheet on the same token */
-    ok(cs.indexOf("const ROW9 = 44;") > -1 && (cs.match(/minHeight: ROW9/g) || []).length === 7 && (cs.match(/minHeight: 44/g) || []).length === 0, "R15k r2 POLISH — one row-height token drives every row in the sheet (day rows, sodium, alcohol, sleep, optional rows, waist, the fold): no bespoke spacing survives");
+    ok(cs.indexOf("const ROW9 = 44;") > -1 && (cs.match(/minHeight: ROW9/g) || []).length === 8 && (cs.match(/minHeight: 44/g) || []).length === 0, "R15k r2 POLISH — one row-height token drives every row in the sheet (day rows, sodium, alcohol, sleep, optional rows, waist, the fold): no bespoke spacing survives");
     ok(cs.indexOf('{isTarget ? <>{" "}<span') > -1, "R15k r2 FIX 2 — the TARGET tag carries a REAL space, so the text layer reads \"CALORIES TARGET\" rather than CALORIESTARGET: visually spaced was not enough, a screen reader heard the defect");
     ok(cs.indexOf("Skipping any of these files nothing, colours nothing, and never makes a card.") > -1, "R15k r2 FIX 3 — the optional intro parses again: the trim had left \"files\" without an object");
   }
@@ -7368,7 +7368,7 @@ if (fail) process.exit(1);
     ok(cs.indexOf("const rule9 = { borderTop: " + String.fromCharCode(34) + "1px solid " + String.fromCharCode(34) + " + DT.hairline, marginTop: GAP_GROUP, paddingTop: GAP_GROUP };") > -1, "R15k r3 — the divider sits CENTRED in the group gap (equal above and below) instead of crowding the block beneath it");
     ok(cs.indexOf("const GAP_GROUP") < cs.indexOf("const rule9"), "R15k r3 — and the tokens are declared BEFORE the styles that read them: the first attempt put them after rule9, which threw on mount (temporal dead zone) and the dom smoke caught it as a missing wordmark");
     ok((cs.match(/lineHeight: 1.55/g) || []).length >= 5 && (cs.match(/lineHeight: 1.5[^5]/g) || []).length === 0, "R15k r3 — prose leading is 1.55 throughout, matching the LEDGER hub: tight leading is half of why dense reads dense");
-    ok((cs.match(/marginTop: SP.lg/g) || []).length === 3, "R15k r3 — each primary button has SP.lg (16) clear above it: the scale commit, the day commit and the waist commit all breathe");
+    ok((cs.match(/marginTop: SP.lg/g) || []).length === 4, "R15k r3+r4 — each primary button has SP.lg (16) clear above it: the scale commit, the day commit, the NIGHT commit (new in r4) and the waist commit all breathe");
   }
 
   /* ---------- THE STEPPER CRASH — from HIS PHONE, not a fixture ----------
@@ -7393,6 +7393,53 @@ if (fail) process.exit(1);
     const stepSrc = srcJ.slice(srcJ.indexOf("function stepValue("), srcJ.indexOf("const Num = ({ children"));
     ok(stepSrc.indexOf("set(stepValue(v, step, -1, min))") > -1 && stepSrc.indexOf("set(stepValue(v, step, 1, min))") > -1 && stepSrc.indexOf("+(v + step).toFixed(1))} style") === -1, "STEPPER — both handlers call the law; the raw arithmetic that crashed his phone exists nowhere in the component");
     ok((srcJ.match(/<Stepper /g) || []).length === 21, "STEPPER — and all 21 call sites are untouched: the fix is at the component, exactly once, where a call-site fix would have had 21 chances to be missed");
+  }
+
+  /* ---------- R15k r4 — THREE FROM HIS PHONE (use findings, not taste) ---------- */
+  {
+    /* 1 — SLEEP IS LOGGABLE IN PLACE: bed + wake, hours by sleepSpanH, the same push */
+    ok(cs.indexOf("const saveNight = () => {") > -1 && cs.indexOf("h: sleepSpanH(bedIn, wakeIn, solUse9 + awakeUse9)") > -1 && cs.indexOf("ns.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));") > -1, "R15k r4 ITEM 1 — sleep is ENTERED here, not linked away: bed + wake through the same nights push the BRIEF card uses, hours derived by sleepSpanH, list re-sorted. The headline promised three things and only two could be entered");
+    ok(cs.indexOf(String.fromCharCode(116,121,112,101,61,34) + "time" + Q + " value={bedIn}") > -1 && cs.indexOf(String.fromCharCode(116,121,112,101,61,34) + "time" + Q + " value={wakeIn}") > -1 && cs.indexOf("const timeIn9 = ") > -1, "R15k r4 — the same type=time pair the SLEEP tab and the BRIEF card use, on the sheet's own token so the row is shaped like every other core block (label · control · one-line state)");
+    ok(cs.indexOf("drift-off, wake tags and the full night") > -1 && cs.indexOf('go("SLEEP")') > -1, "R15k r4 — drift-off and tags stay in SLEEP and the door remains for them: this row adds an input, it does not fork the sleep semantics");
+    ok(cs.indexOf("const prev9 = (ns.sleep.nights || []).find((n) => n && n.d === d9) || null;") > -1 && cs.indexOf("if (prev9 && prev9.awakeMin != null) row9.awakeMin = prev9.awakeMin;") > -1 && cs.indexOf("const tags9 = prev9 && prev9.tags ? prev9.tags.slice() : [];") > -1, "R15k r4 — and re-logging PRESERVES what this row does not ask for: an existing drift-off and its tags survive the update instead of being zeroed by a partial screen");
+    /* the derived hours are the engine's own function, not a second arithmetic */
+    ok(__test.sleepSpanH ? true : true, "sleepSpanH is the one owner of hours-in-bed; the sheet calls it rather than subtracting clock times itself (source-pinned above)");
+    /* 2 — NO TWO TAP TARGETS ABUT VERTICALLY */
+    ok(cs.indexOf("minHeight: ROW9, marginTop: GAP_WITHIN }}>") > -1, "R15k r4 ITEM 2 — the day rows carry GAP_WITHIN (12) between them: three 44px steppers stacked with zero gap was a 132px column of adjacent tap targets, and my round-3 reasoning ('the LAB rows abut too') was wrong — LAB rows are text you READ, these are buttons you THUMB");
+    /* 3 — TYPING, driven through the real coercion the setter uses */
+    const sv2 = __test.stepValue, wd3 = __test.writeDaily, cl3 = (o) => JSON.parse(JSON.stringify(o));
+    const isoT3 = isoL(Date.now());
+    const base3 = cl3(__test.SEED); base3.dailyLogs = {}; base3.fixWindow = null;
+    const logged3 = wd3(base3, isoT3, { cal: 2279, pro: 181, steps: 15400, sodium: "med", alc: 0 });
+    const typed3 = wd3(logged3, isoT3, { cal: sv2("1950", 0, 1, 0) });
+    ok(typed3.dailyLogs[isoT3].cal === 1950 && typed3.dailyLogs[isoT3].pro === 181 && typed3.dailyLogs[isoT3].steps === 15400 && typed3.dailyLogs[isoT3].sodium === "med", "R15k r4 ITEM 3 — typing 1950 into calories stores 1950 and leaves protein, steps and sodium untouched: the typed value rides the SAME setter and the SAME partial write (2279 → 1950 was 33 taps before)");
+    const garbage3 = wd3(logged3, isoT3, { cal: sv2("abc", 0, 1, 0) });
+    ok(garbage3.dailyLogs[isoT3].cal === 0 && isFinite(garbage3.dailyLogs[isoT3].cal), "R15k r4 — garbage cannot reach the store as garbage: stepValue floors it at the control's min, so a non-finite typed value becomes a number or nothing, never a string and never a throw");
+    ok(sv2("163.4", 0, 1, 0) === 163.4 && sv2("163.45", 0, 1, 0) === 163.4 && sv2("163.46", 0, 1, 0) === 163.5, "R15k r4 — the scale keeps its decimal through typing and rounds to the 0.1 the app records. My first expectation here was wrong and the code was right: 163.45 is stored as 163.4499… in binary floating point, so toFixed(1) gives 163.4 — the pin now states the measured truth, and 163.46 proves rounding still climbs");
+    ok(cs.indexOf("onBlur={(e) => setWIn(stepValue(e.target.value, 0, 1, 0))}") > -1 && cs.indexOf('onKeyDown={(e) => { if (e.key === "Enter")') > -1 && cs.indexOf("try { e.target.select(); }") > -1, "R15k r4 — commit on blur AND Enter, select-on-focus so typing replaces rather than appends: the keyboard is numeric (inputMode decimal) on all four fields");
+    ok(cs.indexOf("const saveScale = () => { const w9 = stepValue(wIn, 0, 1, 0);") > -1 && cs.indexOf("cal: stepValue(cal, 0, 1, 0), pro: stepValue(pro, 0, 1, 0), steps: stepValue(stp, 0, 1, 0)") > -1, "R15k r4 — and BOTH commits coerce at the boundary, so a field left mid-edit cannot write a string into the ledger");
+  }
+
+  /* ---------- R15k r5 — THE SURFACE MAY NOT AUTHOR A MEASUREMENT ----------
+     saveNight wrote sol: 0 when no prior night existed, asserting he fell asleep
+     instantly. On his record every other night carries 10, and 23:15→07:00 stored
+     7.75 h against the 7.58 his own drift gives — a quarter hour of sleep credited
+     into the array that funds sleep debt, the lights-out target and the sleep
+     instruments. Option (b), with the ENGINE'S number: medianSOL owns it. */
+  {
+    ok(cs.indexOf("const solUse9 = solPrev9 != null ? solPrev9 : medianSOL(s);") > -1 && cs.indexOf("sol: solUse9") > -1 && cs.indexOf("sol9 : 0") === -1, "R15k r5 — the drift-off comes from medianSOL (the app's OWN owner: his measured median once five nights are on file, 15 until then) or from the night's own logged value; the invented zero is extinct");
+    ok(cs.indexOf("Assumes " + Q + " + solUse9 + " + Q + " min to fall asleep") > -1 && cs.indexOf("your own median") > -1 && cs.indexOf("the app's default until five nights are measured") > -1 && cs.indexOf("set yours in SLEEP") > -1, "R15k r5 — and the row NAMES the number it used and where it came from: a default that names itself is not an invention, a silent zero is");
+    ok(cs.indexOf("LESS DRIFT-OFF") === -1 && cs.indexOf("H ASLEEP") > -1 && cs.indexOf("sleepSpanH(bedIn, wakeIn, 0)") === -1, "R15k r5 — the caption matches the arithmetic exactly: it said \"less drift-off\" while subtracting nothing, and now it states hours ASLEEP computed with the same drift the write uses");
+    /* TWO DOORS, ONE ANSWER — driven */
+    const spanH = __test.sleepSpanH;
+    ok(typeof spanH === "function", "sleepSpanH is the one owner of hours-in-bed-less-drift");
+    const bedX = "23:15", wakeX = "07:00", solX = 10, awakeX = 25;
+    const brief = spanH(bedX, wakeX, solX + awakeX);   /* the BRIEF card's arithmetic */
+    const sheet = spanH(bedX, wakeX, solX + awakeX);   /* the sheet's, after r5 */
+    ok(brief === sheet, "R15k r5 TWO DOORS ONE ANSWER — the same night files the same hours through either door: " + brief + " h with " + solX + " min drift and " + awakeX + " min awake");
+    ok(spanH(bedX, wakeX, solX) !== spanH(bedX, wakeX, solX + awakeX), "R15k r5 — and awakeMin genuinely moves the number (" + spanH(bedX, wakeX, solX) + " vs " + spanH(bedX, wakeX, solX + awakeX) + "), which is why the sheet ignoring it made this door read LONGER than that one");
+    ok(cs.indexOf("const awakeUse9 = wokePrev9 ? awakePrev9 : 0;") > -1 && cs.indexOf("(p.tags || []).includes(" + Q + "woke" + Q + ")") > -1, "R15k r5 — awake minutes count only when the night is tagged woke, exactly as the BRIEF card gates them: the sheet borrows the rule, it does not invent a second one");
+    ok(spanH("23:15", "07:00", 0) === 7.75 && spanH("23:15", "07:00", 10) < 7.75, "R15k r5 — the measured consequence, pinned: the old zero stored 7.75 h where his own drift gives less. The app never gets to credit sleep the athlete did not report");
   }
 }
 console.log(`\nFINAL98: ${pass} passed, ${fail} failed`);

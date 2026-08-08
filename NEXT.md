@@ -355,6 +355,39 @@ when the roster generalizes.
 
 ---
 
+## DONE, AWAITING AUDIT — R15k ROUNDS 4+5 (2026-08-08, branch feat/r15k-r4)
+
+**Round 5 — the surface was authoring a measurement.** `saveNight` wrote `sol: 0`
+whenever no prior night existed, asserting he fell asleep instantly. Every other night on
+his record carries 10; 23:15→07:00 stored 7.75 h against his own drift's 7.58 — a quarter
+hour of sleep credited into the array that funds sleep debt, the lights-out target and
+the sleep instruments. **Option (b), with the engine's own number:** `medianSOL(s)` is the
+app's owner (his measured median once five nights exist, 15 until then), and the row now
+says which it used and why — *"7.08 H ASLEEP · Assumes 10 min to fall asleep — your own
+median; set yours in SLEEP."* A default that names itself is not an invention; a silent
+zero is. The caption matches the arithmetic exactly — "less drift-off" is gone, because
+it promised a subtraction it did not perform. **Two doors, one answer:** `awakeMin` is
+preserved on re-log and carried into the arithmetic, gated on the `woke` tag exactly as
+the BRIEF card gates it, so the same night files the same hours through either door.
+Rig: `{d 2026-08-07, h 7.08, bed 23:30, wake 06:45, sol 10}`, one row for the date.
+
+## (round 4) — R15k ROUND 4 (2026-08-08, branch feat/r15k-r4)
+
+Three use findings from Joe's phone. **1 Sleep is loggable in place**: bed + wake
+(`type="time"`, the same pair BRIEF and the SLEEP tab use), hours derived by
+`sleepSpanH`, written through the same nights push — and re-logging *preserves* the
+drift-off and tags this row does not ask for, instead of zeroing them. The row now has
+the same shape as the other core blocks (label · control · one-line state) and the door
+to SLEEP stays for drift-off/tags. **2 The ± boxes no longer abut**: `GAP_WITHIN` (12)
+between the day rows, measured 12/12 on the rig. **My round-3 reasoning was wrong and is
+retracted in the pin**: LAB rows are text you READ, these are buttons you THUMB, and
+three 44px targets stacked at zero gap invites the mis-tap. **3 Typed entry restored**
+(a capability regression, not a nicety — 2279 → 1950 was 33 taps): all four numbers are
+directly editable, `inputMode="decimal"`, select-on-focus, commit on blur/Enter, routed
+through the same setter so `stepValue`'s coercion still owns every non-finite case. Rig:
+typing 1950 stored `{cal 1950, pro 175, steps 15000}` — siblings untouched; the night
+wrote `{d 2026-08-07, h 7.25, bed 23:30, wake 06:45}` with no duplicate row.
+
 ## NOW — R17 · THE ESTIMATE FLAG IS OVER-SCOPED (filed 2026-08-08, audit-root-caused; builds next)
 
 **The failing case, on his live ledger:** setting `dayCtx.est` on 2026-08-07 (calories
