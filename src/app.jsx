@@ -10504,10 +10504,15 @@ const stepBtn = {
   fontFamily: mono, cursor: "pointer", flexShrink: 0,
   transition: TR("background-color", MOT.state), WebkitTapHighlightColor: "transparent",
 };
-const Stepper = ({ v, set, step = 1, min = 0 }) => (
+/* R15k r2 — THE SLOT CAN BE PINNED. Default minWidth 42 fits four digits at this mono
+   size; a five-digit value (15000) grows the slot and shoves − and + sideways, so three
+   stacked rows jogged by 3px — which is exactly what reads as unpolished. Callers that
+   stack rows pass `w` for a FIXED slot, so the buttons land on the same x at every
+   value. Omitting it changes nothing: the other nineteen call sites are byte-identical. */
+const Stepper = ({ v, set, step = 1, min = 0, w }) => (
   <div style={{ display: "flex", alignItems: "center", gap: SP.sm }}>
     <button aria-label="decrease" onClick={() => set(Math.max(min, +(v - step).toFixed(1)))} style={stepBtn}>−</button>
-    <div data-num style={{ fontFamily: mono, fontSize: 15, color: T.chalk, minWidth: 42, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{v}</div>
+    <div data-num style={{ fontFamily: mono, fontSize: 15, color: T.chalk, minWidth: w || 42, width: w || undefined, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{v}</div>
     <button aria-label="increase" onClick={() => set(+(v + step).toFixed(1))} style={stepBtn}>+</button>
   </div>
 );
@@ -10649,18 +10654,39 @@ const hap = (pattern = 10) => { try { if (!reduceMotionOn() && typeof navigator 
    disclosure that keeps the screen behind visible, a visible Close, a grabber, and
    the same rounded-top grammar as the glossary sheet so a sheet always reads the
    same way (§7 additive #2). Backdrop tap and Close both dismiss; never traps. */
+/* R15k — THE SHEET'S GEOMETRY, fixed at the component because every caller inherits it.
+   Measured on a 390×844 rig: the dialog rendered 910px tall with maxHeight none and
+   overflowY visible, so its top sat at −66px — the title and Close pushed under the iOS
+   status bar, and the PAGE scrolled instead of the sheet. Now: a flex column capped at
+   86vh, a header that PINS (grabber + title + Close, flex-shrink 0), and a body that
+   scrolls with momentum. The cap respects the top inset so the header can never hide
+   under the notch. One caller today (the capture sheet) — swept and named. */
 function Sheet({ open, onClose, title, accent = T.gauge, children }) {
+  /* R15k — THE MODAL LAW, borrowed from GymMode (R15c F1): while a sheet is up, the
+     DOCUMENT does not scroll. The 86vh cap stops the sheet overflowing; this stops the
+     page behind it moving under the athlete's thumb. Restores exactly what was there. */
+  useEffect(() => {
+    if (!open) return undefined;
+    const de = document.documentElement, db = document.body;
+    const prev9 = [de.style.overflow, db.style.overflow];
+    de.style.overflow = "hidden"; db.style.overflow = "hidden";
+    return () => { de.style.overflow = prev9[0]; db.style.overflow = prev9[1]; };
+  }, [open]);
   if (!open) return null;
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 70, background: "rgba(8,10,12,0.55)" }}>
       <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true"
-        style={{ position: "fixed", left: 0, right: 0, bottom: 0, maxWidth: 520, margin: "0 auto", background: T.plate, borderTop: `1px solid ${T.line}`, borderRadius: "14px 14px 0 0", padding: `${SP.md}px ${SP.lg}px calc(${SP.xl}px + env(safe-area-inset-bottom))` }}>
+        style={{ position: "fixed", left: 0, right: 0, bottom: 0, maxWidth: 520, margin: "0 auto", background: T.plate, borderTop: `1px solid ${T.line}`, borderRadius: "14px 14px 0 0", boxShadow: "0 -18px 48px rgba(0,0,0,0.45)", display: "flex", flexDirection: "column", maxHeight: "calc(86vh - env(safe-area-inset-top))", overflow: "hidden" }}>
+        <div style={{ flexShrink: 0, padding: `${SP.md}px ${SP.lg}px 0` }}>
         <div style={{ width: 36, height: 4, borderRadius: 99, background: T.line, margin: `0 auto ${SP.md}px` }} />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: SP.md }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: SP.md, borderBottom: `1px solid ${T.hairline}` }}>
           <Eyebrow c={accent}>{title}</Eyebrow>
           <button onClick={onClose} aria-label="Close" style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.04em", color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 6, padding: "6px 10px", cursor: "pointer", minHeight: 44 }}>Close</button>
         </div>
-        {children}
+        </div>
+        <div data-sheet="body" style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: `${SP.md}px ${SP.lg}px calc(${SP.xl}px + env(safe-area-inset-bottom))` }}>
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -16063,25 +16089,34 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
   const tISO = isoOf(todayStart());
   const readToday = (s.reads || []).find((r) => r && r.d === tISO);
   const dl = (s.dailyLogs || {})[tISO] || {};
+  /* R15k — NEVER A BLANK CONTROL. An empty stepper is not a control; it is a hole. The
+     seeds are the engine's OWN targets — the same numbers the log screen seeds from —
+     and a row showing a target rather than a logged value says TARGET beside it, so a
+     suggestion is never mistaken for a record. */
+  const eb0 = (() => { try { return energyBalanceTarget(s); } catch (e) { return { gated: true }; } })();
+  const st0 = (() => { try { return stepTarget(s); } catch (e) { return { gated: true }; } })();
+  const pt0 = (() => { try { return proteinTarget(s); } catch (e) { return { g: 175 }; } })();
+  const seedCal = eb0 && !eb0.gated && eb0.mid != null ? eb0.mid : 2000;
+  const seedStp = st0 && !st0.gated && st0.lo != null && st0.hi != null ? Math.round((st0.lo + st0.hi) / 2) : 10000;
+  const seedPro = pt0 && pt0.g != null ? pt0.g : 175;
   const [wIn, setWIn] = useState(() => (readToday ? readToday.w : s.trend));
-  const [cal, setCal] = useState(dl.cal ?? "");
-  const [pro, setPro] = useState(dl.pro ?? "");
-  const [stp, setStp] = useState(dl.steps ?? "");
+  const [cal, setCal] = useState(dl.cal ?? seedCal);
+  const [pro, setPro] = useState(dl.pro ?? seedPro);
+  const [stp, setStp] = useState(dl.steps ?? seedStp);
   const [sod, setSod] = useState(dl.sodium || null);
   const [alc, setAlc] = useState(dl.alc ?? 0);
   const [waistIn, setWaistIn] = useState(s.waist && s.waist.length ? s.waist[s.waist.length - 1].v : 32);
   const [optOpen, setOptOpen] = useState(false);
-  /* R15j r2 — THE SYNC IS THE BRACES. useState reads the day ONCE at tab mount; a day
-     logged after that (on BRIEF, or in the log screen) left these inputs blank, and a
-     blank input is a lie the sheet would then write down. Re-read on the OPEN
-     transition — the moment the athlete can see the fields. */
+  const [whyOpen, setWhyOpen] = useState(null);
+  /* R15j r2 — THE SYNC IS THE BRACES: re-read the LIVE day on the OPEN transition, so a
+     day logged elsewhere after tab mount can never render stale (or blank). */
   const [wasOpen, setWasOpen] = useState(false);
   useEffect(() => {
     if (open && !wasOpen) {
       const live = (s.dailyLogs || {})[tISO] || {};
-      setCal(live.cal ?? "");
-      setPro(live.pro ?? "");
-      setStp(live.steps ?? "");
+      setCal(live.cal ?? seedCal);
+      setPro(live.pro ?? seedPro);
+      setStp(live.steps ?? seedStp);
       setSod(live.sodium || null);
       setAlc(live.alc ?? 0);
       const r0 = (s.reads || []).find((r) => r && r.d === tISO);
@@ -16092,135 +16127,145 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
   const ask = captureAsk(s);
   const cards = (() => { try { return labStatusList(s); } catch (e) { return []; } })();
   const byId = (id) => cards.find((c) => c && c.id === id) || null;
-  const funds = (id, fallback) => {
-    const c = byId(id);
-    if (!c) return fallback;
-    /* the counter is a DISTANCE, so it only reads while there is distance left: a live
-       instrument that has run past its own need said "48 of 8" on the rig, which is not a
-       counter, it is an artefact. Past the line it says so in words. */
-    const p = c.prog;
-    const short = p && p.n != null && p.need != null && p.n < p.need;
-    return "funds " + c.t + (short ? " — " + p.n + " of " + p.need : " — already speaking");
-  };
+  const counter = (id) => { const c = byId(id); if (!c || !c.prog || c.prog.need == null) return null; return c.prog.n < c.prog.need ? c.prog.n + " of " + c.prog.need : "speaking"; };
+  const wakes = (id) => { const c = byId(id); return c ? c.t : null; };
   const nights = (s.sleep && s.sleep.nights) || [];
   const lastNight = nights[nights.length - 1];
   const lastNightFresh = lastNight && ((mk(tISO) - mk(lastNight.d)) / DAY) <= 1;
+  /* one type scale, one rhythm — the LAB rows' and the LEDGER hub's, not a third */
   const lbl9 = { fontFamily: mono, fontSize: 10, letterSpacing: "0.18em", color: DT.dim, fontWeight: 600 };
   const tnum9 = { fontFamily: mono, fontVariantNumeric: "tabular-nums" };
-  const numRow = (label, val, setter, step) => (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, minHeight: 44 }}>
-      <span style={{ fontFamily: mono, fontSize: 11, color: DT.steel, letterSpacing: "0.06em" }}>{label}</span>
-      <Stepper v={val} set={setter} step={step} min={0} />
-    </div>
-  );
-  const optRow = (name, sub, right, onTap) => (
-    <button key={name} onClick={onTap} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: 44, background: "none", border: "none", padding: "6px 0", cursor: "pointer", textAlign: "left" }}>
-      <span style={{ minWidth: 0, flex: 1 }}>
-        <span style={{ display: "block", fontFamily: mono, fontSize: 11.5, color: DT.ink, letterSpacing: "0.04em" }}>{name}</span>
-        <span style={{ display: "block", fontFamily: body, fontSize: 11.5, color: DT.steel, marginTop: 2, lineHeight: 1.4 }}>{sub}</span>
-      </span>
-      <span style={{ ...tnum9, flexShrink: 0, fontSize: 10.5, color: DT.dim }}>{right}</span>
-    </button>
-  );
+  const rule9 = { borderTop: "1px solid " + DT.hairline, marginTop: 16, paddingTop: 14 };
+  const rowName = { fontFamily: mono, fontSize: 11.5, color: DT.ink, letterSpacing: "0.04em" };
+  const rowRight = { ...tnum9, flexShrink: 0, fontSize: 10.5, color: DT.dim, whiteSpace: "nowrap" };
+  const ROW9 = 44;      /* one row height for every row in the sheet — no bespoke spacing */
+  const SLOT9 = 56;     /* the number slot: five digits at mono 15 with room to breathe */
+  const heroIs = (k) => ask.k === k;
+  /* R15k ROW LAW (the R15i density law, applied here): ONE line — input · what it buys ·
+     counter. The full explanation waits behind the standing ▸ MORE. Nothing is deleted. */
+  const row9 = (key, name, buys, right, why, onTap) => {
+    const openW = whyOpen === key;
+    return (
+      <div key={key} style={{ borderTop: "1px solid " + DT.hairline }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button onClick={onTap} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flex: 1, minWidth: 0, minHeight: ROW9, background: "none", border: "none", padding: "0 0", cursor: onTap ? "pointer" : "default", textAlign: "left" }}>
+            <span style={{ ...rowName, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}<span style={{ color: DT.steel }}>{buys ? " · " + buys : ""}</span></span>
+            <span style={rowRight}>{right}</span>
+          </button>
+          {why ? (
+            <button aria-label="why" onClick={() => setWhyOpen(openW ? null : key)} style={{ background: "none", border: "none", padding: "12px 0 12px 10px", margin: "-12px 0", cursor: "pointer", fontFamily: mono, fontSize: 10, letterSpacing: "0.1em", color: openW ? DT.ink : DT.dim, flexShrink: 0 }}>{openW ? "▾" : "▸"}</button>
+          ) : null}
+        </div>
+        {openW && why ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, padding: "0 0 10px" }}>{why}</div> : null}
+      </div>
+    );
+  };
   const chip = (on, txt, onTap) => (
     <button key={txt} onClick={onTap} style={{ background: "none", border: "none", padding: "10px 4px", margin: "-10px -4px", cursor: "pointer" }}>
       <span style={{ display: "inline-block", fontFamily: mono, fontSize: 11, color: on ? DT.jade : DT.steel, border: "1px solid " + (on ? DT.jade : DT.hairline2), borderRadius: 999, padding: "4px 10px" }}>{txt}</span>
     </button>
   );
+  /* R15k r2 — one fixed slot (SLOT9) across the three stacked day rows, so − and + land
+     on the same x whether the value is 175 or 15000. And the TARGET tag carries a REAL
+     space: innerText read "CALORIESTARGET", which is visually spaced and audibly wrong. */
+  const stepRow = (label, val, setter, step, isTarget) => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, minHeight: ROW9 }}>
+      <span style={{ ...rowName, color: DT.steel }}>{label}{isTarget ? <>{" "}<span style={{ ...tnum9, fontSize: 9.5, letterSpacing: "0.12em", color: DT.dim }}>TARGET</span></> : null}</span>
+      <Stepper v={val} set={setter} step={step} min={0} w={SLOT9} />
+    </div>
+  );
   const saveScale = () => { const base = readToday ? undoRead(s, tISO) : s; const ns = runAdaptive(applyRead(base, tISO, wIn), tISO); setS(ns); save(ns); hap(12); onClose(); };
-  /* R15j r2 — MY CALL, filed: the chips keep their instant write, because a tap that
-     visibly selects and then silently forgets is worse than one that records. It is
-     safe now because it is a TRUE partial: tapping sodium on an unlogged day writes
-     sodium and nothing else — no row of nulls, and nothing reads as logged (every
-     logged-state gate asks cal != null). The full commit still sends every field. */
   const saveDay = (over) => { const ns = writeDaily(s, tISO, over || { cal, pro, steps: stp, sodium: sod, alc }); setS(ns); save(ns); hap(12); };
   return (
     <Sheet open={open} onClose={onClose} title="LOG">
       <div data-cap="hero">
-        <div style={{ ...lbl9, color: DT.amber }}>{ask.k === "none" ? "UP TO DATE" : "DUE NOW"}</div>
-        <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 19, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase", marginTop: 6 }}>{ask.t}</div>
-        <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.5, marginTop: 4 }}>{ask.why}</div>
+        <div style={{ ...lbl9, color: ask.k === "none" ? DT.jade : DT.amber }}>{ask.k === "none" ? "UP TO DATE" : "DUE NOW"}</div>
+        <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 19, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase", marginTop: 6, lineHeight: 1.15 }}>{ask.t}</div>
+        <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.5, marginTop: 5 }}>{ask.why}</div>
       </div>
-      <div data-cap="core" style={{ marginTop: 16, borderTop: "1px solid " + DT.hairline, paddingTop: 12 }}>
-        <div style={lbl9}>THE THREE THAT RUN EVERYTHING</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 10, justifyContent: "center" }}>
+      {/* R15k — ONE HERO ACTION. The ask at the top names which is due; that button is
+          filled and the other is the quiet variant. Two filled greens in one view was the
+          defect. */}
+      <div data-cap="core" style={rule9}>
+        <div style={lbl9}>THE CORE — WHAT RUNS EVERYTHING</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, justifyContent: "center" }}>
           <button aria-label="less" onClick={() => setWIn((x) => +(x - 0.1).toFixed(1))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>−</button>
-          <div style={{ ...tnum9, fontSize: 32, fontWeight: 700, minWidth: 110, textAlign: "center", color: DT.ink }}>{wIn}</div>
+          <div style={{ ...tnum9, fontSize: 34, fontWeight: 700, minWidth: 118, textAlign: "center", color: DT.ink, letterSpacing: "0.01em" }}>{wIn}</div>
           <button aria-label="more" onClick={() => setWIn((x) => +(x + 0.1).toFixed(1))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>+</button>
         </div>
-        {readToday ? <div style={{ ...tnum9, fontSize: 10.5, color: DT.jade, textAlign: "center", marginTop: 6 }}>logged {readToday.w} lb today — saving updates it</div> : null}
-        <Btn full tone="jade" onClick={saveScale}>{readToday ? "Update the scale" : "Log " + wIn + " lb"}</Btn>
-        <div style={{ marginTop: 14 }}>
+        <div style={{ ...tnum9, fontSize: 10, letterSpacing: "0.12em", color: readToday ? DT.jade : DT.dim, textAlign: "center", marginTop: 8 }}>{readToday ? "LOGGED " + readToday.w + " LB TODAY — SAVING UPDATES IT" : "MORNING SCALE · LB"}</div>
+        <Btn full tone={heroIs("scale") ? "jade" : "ghost"} onClick={saveScale}>{readToday ? "Update the scale" : "Log " + wIn + " lb"}</Btn>
+        <div style={{ marginTop: 16 }}>
           <div style={lbl9}>CLOSE THE DAY</div>
-          {numRow("CALORIES", cal, setCal, 10)}
-          {numRow("PROTEIN g", pro, setPro, 5)}
-          {numRow("STEPS", stp, setStp, 500)}
-          <Btn full tone="jade" onClick={() => { saveDay(); onClose(); }}>{dl.cal != null ? "Update today's numbers" : "Save today's numbers"}</Btn>
+          {stepRow("CALORIES", cal, setCal, 10, dl.cal == null)}
+          {stepRow("PROTEIN g", pro, setPro, 5, dl.pro == null)}
+          {stepRow("STEPS", stp, setStp, 500, dl.steps == null)}
+          <Btn full tone={heroIs("day") || heroIs("amend") ? "jade" : "ghost"} onClick={() => { saveDay(); onClose(); }}>{dl.cal != null ? "Update today's numbers" : "Save today's numbers"}</Btn>
         </div>
-        <button onClick={() => { onClose(); go("SLEEP"); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: 44, background: "none", border: "none", padding: "12px 0 0", cursor: "pointer", textAlign: "left" }}>
-          <span style={{ fontFamily: mono, fontSize: 11, color: DT.ink, letterSpacing: "0.04em" }}>SLEEP · last night</span>
-          <span style={{ ...tnum9, fontSize: 10.5, color: lastNightFresh ? DT.jade : DT.steel }}>{lastNightFresh ? lastNight.h + " h logged" : "not logged — bed + wake in SLEEP"} ▸</span>
-        </button>
+        <div style={{ borderTop: "1px solid " + DT.hairline, marginTop: 14 }}>
+          <button onClick={() => { onClose(); go("SLEEP"); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: ROW9, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
+            <span style={rowName}>SLEEP<span style={{ color: DT.steel }}> · last night</span></span>
+            <span style={rowRight}>{lastNightFresh ? lastNight.h + " h" : "not logged"} ▸</span>
+          </button>
+        </div>
       </div>
-      <div data-cap="optional" style={{ marginTop: 14, borderTop: "1px solid " + DT.hairline, paddingTop: 12 }}>
+      <div data-cap="optional" style={rule9}>
         <div style={lbl9}>OPTIONAL — WHAT EACH ONE BUYS</div>
-        <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 6 }}>Skipping any of these files nothing, colours nothing, and never makes a card. Optional means optional — forever.</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 12 }}>
-          <span style={{ fontFamily: mono, fontSize: 10, color: DT.dim, letterSpacing: "0.14em" }}>SODIUM</span>
-          {["low", "med", "high"].map((v) => chip(sod === v, v, () => { setSod(v); saveDay({ sodium: v }); }))}
+        <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 6, marginBottom: 4 }}>Skipping any of these files nothing, colours nothing, and never makes a card. Optional means optional — forever.</div>
+        <div style={{ borderTop: "1px solid " + DT.hairline }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: ROW9 }}>
+            <span style={rowName}>SODIUM<span style={{ color: DT.steel }}> · explains tomorrow's scale</span></span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+              {["low", "med", "high"].map((v) => chip(sod === v, v, () => { setSod(v); saveDay({ sodium: v }); }))}
+              <button aria-label="why" onClick={() => setWhyOpen(whyOpen === "sodium" ? null : "sodium")} style={{ background: "none", border: "none", padding: "12px 0 12px 8px", margin: "-12px 0", cursor: "pointer", fontFamily: mono, fontSize: 10, color: whyOpen === "sodium" ? DT.ink : DT.dim }}>{whyOpen === "sodium" ? "▾" : "▸"}</button>
+            </span>
+          </div>
+          {whyOpen === "sodium" ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, padding: "0 0 10px" }}>A high-salt day annotates tomorrow morning&rsquo;s read — &ldquo;salt or alcohol yesterday — water noise likely&rdquo; — so a jump is explained at the moment you would otherwise worry.</div> : null}
         </div>
-        {/* R15j r2 — a funds-label must name a REAL consumer. The noise floor reads
-            weigh-ins (INS_MAP noise: ["weigh-in"]); sodium's actual consumer is
-            applyRead's morning water-noise annotation, which is where a salty day earns
-            its explanation on tomorrow's scale. */}
-        <div style={{ fontFamily: body, fontSize: 11, color: DT.dim, lineHeight: 1.4, marginTop: 4 }}>a high-salt day annotates tomorrow morning's read — &ldquo;salt or alcohol yesterday — water noise likely&rdquo; — so a jump is explained at the moment you would otherwise worry</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
-          <span style={{ fontFamily: mono, fontSize: 10, color: DT.dim, letterSpacing: "0.14em" }}>ALCOHOL</span>
-          {[0, 2, 4, 6].map((u) => chip(+alc === u, String(u), () => { setAlc(u); saveDay({ alc: u }); }))}
+        <div style={{ borderTop: "1px solid " + DT.hairline }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: ROW9 }}>
+            <span style={rowName}>ALCOHOL<span style={{ color: DT.steel }}> · units, a covariate</span></span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+              {[0, 2, 4, 6].map((u) => chip(+alc === u, String(u), () => { setAlc(u); saveDay({ alc: u }); }))}
+              <button aria-label="why" onClick={() => setWhyOpen(whyOpen === "alc" ? null : "alc")} style={{ background: "none", border: "none", padding: "12px 0 12px 8px", margin: "-12px 0", cursor: "pointer", fontFamily: mono, fontSize: 10, color: whyOpen === "alc" ? DT.ink : DT.dim }}>{whyOpen === "alc" ? "▾" : "▸"}</button>
+            </span>
+          </div>
+          {whyOpen === "alc" ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, padding: "0 0 10px" }}>A count only — a covariate for sleep, pulse and scale attribution, never added to your calories; any units yesterday annotate tomorrow&rsquo;s read the same way.</div> : null}
         </div>
-        <div style={{ fontFamily: body, fontSize: 11, color: DT.dim, lineHeight: 1.4, marginTop: 4 }}>a count only — a covariate for sleep, pulse and scale attribution, never added to your calories; any units yesterday annotate tomorrow&rsquo;s read the same way</div>
         {optOpen ? (
-          <div style={{ marginTop: 8 }}>
-            {optRow("WAKE TAG", funds("wakesig", "funds the wake signature"), "in SLEEP ▸", () => { onClose(); go("SLEEP"); })}
-            {optRow("MORNING PULSE", funds("pulsebase", "funds the pulse baseline"), "in BODY ▸", () => { onClose(); go("BODY"); })}
-            {optRow("WAKING TEMPERATURE", funds("furnacebase", "funds the furnace baseline"), "in BODY ▸", () => { onClose(); go("BODY"); })}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, minHeight: 44 }}>
-              <span style={{ minWidth: 0, flex: 1 }}>
-                <span style={{ display: "block", fontFamily: mono, fontSize: 11.5, color: DT.ink, letterSpacing: "0.04em" }}>WAIST</span>
-                <span style={{ display: "block", fontFamily: body, fontSize: 11.5, color: DT.steel, marginTop: 2, lineHeight: 1.4 }}>the one tape reading the body-fat band leans on</span>
-              </span>
-              <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
+          <>
+            {row9("wake", "WAKE TAG", wakes("wakesig"), counter("wakesig") + " · in SLEEP ▸", "Tagging a mid-night wake is what lets the sleep wing tell a pattern with an address from noise.", () => { onClose(); go("SLEEP"); })}
+            {row9("pulse", "MORNING PULSE", wakes("pulsebase"), counter("pulsebase") + " · in BODY ▸", "Five seconds at the wrist on waking. It is the input three instruments are waiting on.", () => { onClose(); go("BODY"); })}
+            {row9("temp", "WAKING TEMPERATURE", wakes("furnacebase"), counter("furnacebase") + " · in BODY ▸", "Fifteen seconds, oral, before you move — the furnace baseline reads it.", () => { onClose(); go("BODY"); })}
+            <div style={{ borderTop: "1px solid " + DT.hairline }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, minHeight: ROW9 }}>
+                <span style={rowName}>WAIST<span style={{ color: DT.steel }}> · the tape the band leans on</span></span>
+                <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
+              </div>
+              <Btn full tone="ghost" onClick={() => { const ns = { ...s, waist: [...(s.waist || []), { d: tISO, v: +waistIn }] }; setS(ns); save(ns); hap(12); onClose(); }}>Log {waistIn}&quot; waist</Btn>
             </div>
-            <Btn full tone="gauge" onClick={() => { const ns = { ...s, waist: [...(s.waist || []), { d: tISO, v: +waistIn }] }; setS(ns); save(ns); hap(12); onClose(); }}>Log {waistIn}&quot; waist</Btn>
-            {optRow("PROGRESS PHOTOS", "the record the mirror cannot keep — marked, never uploaded", "mark done ▸", () => { const ns = JSON.parse(JSON.stringify(s)); ns.photos = ns.photos || []; ns.photos.push({ d: tISO }); setS(ns); save(ns); hap(12); onClose(); })}
-            <div data-cap="menu" style={{ marginTop: 14, borderTop: "1px solid " + DT.hairline, paddingTop: 12 }}>
+            {row9("photos", "PROGRESS PHOTOS", "marked, never uploaded", "mark done ▸", "The record the mirror cannot keep. The app stores the date only — no image ever leaves the phone.", () => { const ns = JSON.parse(JSON.stringify(s)); ns.photos = ns.photos || []; ns.photos.push({ d: tISO }); setS(ns); save(ns); hap(12); onClose(); })}
+            <div data-cap="menu" style={rule9}>
               <div style={lbl9}>WHAT ELSE THIS COULD DO</div>
-              <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 6 }}>Instruments built and waiting on one input each. Nothing here is owed — this is the menu, not a list of misses.</div>
+              <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 6, marginBottom: 4 }}>Instruments built and waiting on one input each. Nothing here is owed.</div>
               {CAPTURE_MENU.map((g) => {
                 const cs9 = g.ids.map(byId).filter(Boolean);
                 if (!cs9.length) return null;
-                const names = cs9.map((c) => c.t).join(" · ");
-                const near = cs9.map((c) => (c.prog && c.prog.need ? c.prog.n + " of " + c.prog.need : null)).filter(Boolean)[0];
-                return (
-                  <button key={g.input} onClick={() => { if (g.to) { onClose(); go(g.to); } }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: 44, background: "none", border: "none", padding: "8px 0", cursor: g.to ? "pointer" : "default", textAlign: "left" }}>
-                    <span style={{ minWidth: 0, flex: 1 }}>
-                      <span style={{ display: "block", fontFamily: mono, fontSize: 11.5, color: DT.ink, letterSpacing: "0.04em" }}>{g.input}{cs9.length > 1 ? " → " + cs9.length + " INSTRUMENTS" : ""}</span>
-                      <span style={{ display: "block", fontFamily: body, fontSize: 11.5, color: DT.steel, marginTop: 2, lineHeight: 1.4 }}>{g.how} — wakes {names}</span>
-                    </span>
-                    <span style={{ ...tnum9, flexShrink: 0, fontSize: 10.5, color: DT.dim }}>{near || ""}{g.to ? " ▸" : ""}</span>
-                  </button>
-                );
+                const near = cs9.map((c) => (c.prog && c.prog.need != null ? c.prog.n + " of " + c.prog.need : null)).filter(Boolean)[0];
+                return row9("menu-" + g.input, g.input, cs9.length > 1 ? cs9.length + " instruments" : cs9[0].t,
+                  (near || "") + (g.to ? " ▸" : ""),
+                  g.how + " — wakes " + cs9.map((c) => c.t).join(" · "),
+                  g.to ? () => { onClose(); go(g.to); } : null);
               })}
             </div>
-          </div>
+          </>
         ) : (
-          <button onClick={() => setOptOpen(true)} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", background: "none", border: "none", padding: "10px 0 0", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>▸ FIVE MORE — WAKE TAG · PULSE · TEMPERATURE · WAIST · PHOTOS — AND WHAT ELSE THIS COULD DO</button>
+          <button onClick={() => setOptOpen(true)} style={{ display: "flex", alignItems: "center", minHeight: ROW9, width: "100%", background: "none", border: "none", borderTop: "1px solid " + DT.hairline, padding: 0, cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>▸ FIVE MORE — WAKE TAG · PULSE · TEMPERATURE · WAIST · PHOTOS — AND WHAT ELSE THIS COULD DO</button>
         )}
       </div>
     </Sheet>
   );
 }
-
 function MoreTab({ s, go, openRules, openCoach }) {
   /* ---------- R15d · LEDGER — decisions and diary, both in plain words ----------
      The hub was a settings screen wearing the LEDGER name. Per the mockup (screen 3):

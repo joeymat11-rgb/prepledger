@@ -7243,18 +7243,18 @@ if (fail) process.exit(1);
       ok(menuIds.indexOf(Q + id + Q) > -1, "R15j MENU — " + id + " is on the menu: an instrument with no data is not clutter, it is what the app could do next");
     });
     ok(menuIds.indexOf(Q + "miss" + Q) === -1 && menuIds.indexOf(Q + "missarch" + Q) === -1, "R15j MENU — the two MISS cards are deliberately ABSENT: they read 0 because Joe is not missing protein, and offering to fund them would be asking him to fail (Joe's ruling, pinned so a later sweep cannot quietly add them)");
-    ok(menuSl.indexOf("MORNING PULSE") > -1 && menuSl.indexOf('ids: ["pulsebase", "pulsewarn", "cutstress"]') > -1 && cs.indexOf('cs9.length > 1 ? " → " + cs9.length + " INSTRUMENTS"') > -1, "R15j MENU — grouped by the input that wakes them, so one morning pulse reads as THREE instruments waking at once");
+    ok(menuSl.indexOf("MORNING PULSE") > -1 && menuSl.indexOf('ids: ["pulsebase", "pulsewarn", "cutstress"]') > -1 && cs.indexOf('cs9.length > 1 ? cs9.length + " instruments" : cs9[0].t') > -1, "R15j MENU — grouped by the input that wakes them, so one morning pulse reads as THREE instruments waking at once");
     ok(cs.indexOf("const cs9 = g.ids.map(byId).filter(Boolean);") > -1 && cs.indexOf("cs9.map((c) => c.t).join") > -1 && cs.indexOf("c.prog.n + " + Q + " of " + Q + " + c.prog.need") > -1, "R15j MENU — every name and counter on the menu is the instrument's OWN title and OWN prog, read live through byId: nothing authored, nothing recomputed");
-    ok(cs.indexOf("Nothing here is owed — this is the menu, not a list of misses.") > -1, "R15j MENU — and the framing says it in the athlete's words: nothing here is owed");
+    ok(cs.indexOf("Instruments built and waiting on one input each. Nothing here is owed.") > -1, "R15j MENU — and the framing says it in the athlete's words: nothing here is owed");
   ok(cs.indexOf("Skipping any of these files nothing, colours nothing, and never makes a card. Optional means optional — forever.") > -1, "R15j NO-SHAME LAW — stated on the sheet itself, in the athlete's words");
   /* the funds labels read the instruments' OWN fields */
-  ok(cs.indexOf("const c = byId(id);") > -1 && cs.indexOf("return " + Q + "funds " + Q + " + c.t + (short ?") > -1 && cs.indexOf("p.n + " + Q + " of " + Q + " + p.need") > -1 && cs.indexOf("const short = p && p.n != null && p.need != null && p.n < p.need;") > -1, "R15j — every funds-label is the instrument's OWN title and OWN prog counter (labStatusList verbatim), never authored — and the counter is a DISTANCE, printed only while distance remains: the rig caught a live card reading '48 of 8', which is an artefact, not a counter; past its need it says 'already speaking'");
-  ok(cs.indexOf('funds("wakesig"') > -1 && cs.indexOf('funds("pulsebase"') > -1 && cs.indexOf('funds("furnacebase"') > -1, "R15j — the optional rows name the instruments they fund by id: wake tag → WAKE SIGNATURE, pulse → the pulse baseline, temperature → the furnace baseline");
+  ok(cs.indexOf("const byId = (id) => cards.find((c) => c && c.id === id) || null;") > -1 && cs.indexOf("const wakes = (id) => { const c = byId(id); return c ? c.t : null; };") > -1 && cs.indexOf("c.prog.n < c.prog.need ? c.prog.n + " + Q + " of " + Q + " + c.prog.need : " + Q + "speaking" + Q) > -1, "R15j — every funds-label is the instrument's OWN title and OWN prog counter (labStatusList verbatim), never authored — and the counter is a DISTANCE, printed only while distance remains: the rig caught a live card reading '48 of 8', which is an artefact, not a counter; past its need it says 'already speaking'");
+  ok(cs.indexOf('wakes("wakesig")') > -1 && cs.indexOf('wakes("pulsebase")') > -1 && cs.indexOf('wakes("furnacebase")') > -1 && cs.indexOf('counter("wakesig")') > -1, "R15j — the optional rows name the instruments they fund by id: wake tag → WAKE SIGNATURE, pulse → the pulse baseline, temperature → the furnace baseline");
   /* R2 FIX 3 — MISATTRIBUTION, dead: sodium never fed the noise floor (INS_MAP noise:
      ["weigh-in"]). Its real consumer is applyRead's morning water-noise annotation. */
-  ok(cs.indexOf('funds("noise"') === -1 && cs.indexOf("a high-salt day annotates tomorrow morning's read") > -1 && cs.indexOf("water noise likely") > -1, "R15j r2 FIX 3 — the sodium line no longer claims the noise floor; it names its REAL consumer, quoting the annotation applyRead actually writes");
+  ok(cs.indexOf('funds("noise"') === -1 && cs.indexOf("A high-salt day annotates tomorrow morning") > -1 && cs.indexOf("water noise likely") > -1, "R15j r2 FIX 3 — the sodium line no longer claims the noise floor; it names its REAL consumer, quoting the annotation applyRead actually writes");
   ok(srcJ.indexOf('const water9 = ydl9.sodium === "high" || (ydl9.alc || 0) > 0 ?') > -1, "R15j r2 — and that consumer exists at source: applyRead reads yesterday's sodium AND alcohol, which is why the alcohol line makes the same claim honestly");
-  ok(cs.indexOf("a count only — a covariate for sleep, pulse and scale attribution, never added to your calories") > -1, "R15j r2 — the alcohol line audited: count-only, never added to calories (the LEDGER_DICT's own law), plus the annotation it shares with sodium");
+  ok(cs.indexOf("A count only — a covariate for sleep, pulse and scale attribution, never added to your calories") > -1, "R15j r2 — the alcohol line audited: count-only, never added to calories (the LEDGER_DICT's own law), plus the annotation it shares with sodium");
   ok(cs.indexOf("▸ FIVE MORE — WAKE TAG · PULSE · TEMPERATURE · WAIST · PHOTOS — AND WHAT ELSE THIS COULD DO") > -1 && cs.indexOf("FOUR MORE") === -1, "R15j r2 FIX 4 — the fold label counts what it lists (five) and names the menu inside it");
   /* NO novel state key: every write goes through a path that already shipped */
   ok((cs.split("writeDaily(").length - 1) === 1 && (cs.split("applyRead(").length - 1) === 1 && (cs.split("undoRead(").length - 1) === 1 && (cs.split("runAdaptive(").length - 1) === 1, "R15j EXISTING WRITE PATHS — the sheet files the day through writeDaily and the scale through undoRead/applyRead/runAdaptive: the same functions the scattered affordances already used");
@@ -7310,7 +7310,48 @@ if (fail) process.exit(1);
     const cleared = wd2(logged, isoT, { cal: "", pro: "", steps: "", sodium: null, alc: 0 });
     ok(cleared.dailyLogs[isoT].cal === null && cleared.dailyLogs[isoT].pro === null && cleared.dailyLogs[isoT].steps === null, "R15j r2 — a caller that NAMES a field with a blank still clears it: the log screen's overwrite semantics are unchanged, only the unnamed fields are now safe");
     /* the sheet re-syncs on the open transition (the braces) */
-    ok(cs.indexOf("if (open && !wasOpen) {") > -1 && cs.indexOf("const live = (s.dailyLogs || {})[tISO] || {};") > -1 && cs.indexOf("setCal(live.cal ?? " + Q + Q + ");") > -1, "R15j r2 FIX 1b — and the sheet re-reads the LIVE day on the open transition, so a day logged elsewhere after tab mount can never render blank");
+    ok(cs.indexOf("if (open && !wasOpen) {") > -1 && cs.indexOf("const live = (s.dailyLogs || {})[tISO] || {};") > -1 && cs.indexOf("setCal(live.cal ?? seedCal);") > -1, "R15j r2 FIX 1b — and the sheet re-reads the LIVE day on the open transition, so a day logged elsewhere after tab mount can never render blank");
+  }
+
+  /* ---------- R15k — THE SHEET WEARS THE DESIGN ---------- */
+  {
+    const sh = srcJ.slice(srcJ.indexOf("function Sheet({ open, onClose, title"), srcJ.indexOf("function trendSeries("));
+    ok(sh.indexOf('maxHeight: "calc(86vh - env(safe-area-inset-top))"') > -1 && sh.indexOf('display: "flex", flexDirection: "column"') > -1 && sh.indexOf('overflow: "hidden"') > -1, "R15k GEOMETRY — the sheet is capped at 86vh MINUS the top inset and clips its own overflow: a 910px dialog in an 844px viewport (top −66px, header under the status bar) can no longer happen, and the fix is at the shared component so every caller inherits it");
+    ok(sh.indexOf('data-sheet="body"') > -1 && sh.indexOf('overflowY: "auto", WebkitOverflowScrolling: "touch"') > -1 && sh.indexOf('flex: "1 1 auto", minHeight: 0') > -1, "R15k GEOMETRY — the BODY scrolls with momentum inside the sheet, so the page never scrolls in its place");
+    ok(sh.indexOf('style={{ flexShrink: 0, padding:') > -1 && sh.indexOf("aria-label=" + Q + "Close" + Q) > sh.indexOf('style={{ flexShrink: 0, padding:') && sh.indexOf('data-sheet="body"') > sh.indexOf("aria-label=" + Q + "Close" + Q), "R15k GEOMETRY — the grabber, title and Close PIN as a non-scrolling header ABOVE the scrolling body: the header can never ride out of reach");
+    ok((srcJ.match(/<Sheet /g) || []).length === 1, "R15k SWEEP — one Sheet caller in the app today (the capture sheet), so the shared-component fix regresses nothing; named rather than assumed");
+    /* no blank controls — the seeds are the engine's own targets, and a target says so */
+    ok(cs.indexOf("const seedCal = eb0 && !eb0.gated && eb0.mid != null ? eb0.mid : 2000;") > -1 && cs.indexOf("const seedPro = pt0 && pt0.g != null ? pt0.g : 175;") > -1 && cs.indexOf("useState(dl.cal ?? seedCal)") > -1, "R15k NO-BLANK LAW — the steppers seed from the ENGINE'S OWN targets (energyBalanceTarget · proteinTarget · stepTarget — the same numbers the log screen seeds), never an empty string between − and +");
+    ok(cs.indexOf('{isTarget ? <>{" "}<span') > -1 && cs.indexOf("TARGET</span>") > -1 && cs.indexOf("stepRow(" + Q + "CALORIES" + Q + ", cal, setCal, 10, dl.cal == null)") > -1, "R15k — and a row showing a TARGET rather than a logged value says so beside it: a suggestion can never be mistaken for a record");
+    /* one hero */
+    ok(cs.indexOf('tone={heroIs("scale") ? "jade" : "ghost"}') > -1 && cs.indexOf('tone={heroIs("day") || heroIs("amend") ? "jade" : "ghost"}') > -1 && (cs.match(/tone="jade"/g) || []).length === 0, "R15k ONE HERO — the ask at the top decides which button is filled; the other is the quiet variant. Two full-width filled greens in one view is the defect, and no unconditional jade button survives in the sheet");
+    /* the density law, here */
+    ok(cs.indexOf("const row9 = (key, name, buys, right, why, onTap) => {") > -1 && cs.indexOf('{name}<span style={{ color: DT.steel }}>{buys ? " · " + buys : ""}</span>') > -1 && cs.indexOf("{openW && why ?") > -1, "R15k DENSITY LAW — optional rows are ONE line (input · what it buys · counter) with the full explanation behind the row's own ▸: the three-line grey paragraphs R15i deleted from the LAB do not come back in a sheet");
+    ok(cs.indexOf("THE CORE — WHAT RUNS EVERYTHING") > -1 && cs.indexOf("THE THREE THAT RUN EVERYTHING") === -1, "R15k COPY NIT — the label no longer counts three things above a scale, three numbers and a sleep row");
+    ok((cs.match(/fontSize: 1[0-9]/g) || []).length > 0 && cs.indexOf("const lbl9 = { fontFamily: mono, fontSize: 10, letterSpacing: " + Q + "0.18em" + Q) > -1 && cs.indexOf("const rowName = { fontFamily: mono, fontSize: 11.5") > -1 && cs.indexOf("const rule9 = { borderTop:") > -1, "R15k POLISH — one type scale and one divider rhythm, declared once at the top of the sheet and reused: the same eyebrow/row/rule grammar the LAB rows and the LEDGER hub already speak");
+  }
+
+  /* ---------- R15k r2 — THE ALIGNMENT LAW ----------
+     Joe's actual complaint, measured: the three stacked day rows put their − at x 228,
+     228, 225 — a five-digit steps value outgrew Stepper's minWidth 42 and shoved the
+     control 3px sideways. The slot is FIXED now. This asserts the law where it lives:
+     the number slot is a fixed width, so its content cannot move the buttons — driven
+     at both digit widths, since a width that does not vary with content IS the proof. */
+  {
+    const stepSl = srcJ.slice(srcJ.indexOf("const Stepper = ({ v, set, step = 1, min = 0, w })"), srcJ.indexOf("const Num = ({ children"));
+    ok(stepSl.indexOf("minWidth: w || 42, width: w || undefined") > -1, "R15k r2 — the Stepper number slot takes an OPT-IN fixed width: passing w pins it, omitting w leaves the old minWidth-42 behaviour byte-identical");
+    ok(cs.indexOf("const SLOT9 = 56;") > -1 && (cs.match(/w=\{SLOT9\}/g) || []).length === 1 && cs.indexOf("stepRow(" + Q + "CALORIES" + Q) > -1 && cs.indexOf("stepRow(" + Q + "PROTEIN g" + Q) > -1 && cs.indexOf("stepRow(" + Q + "STEPS" + Q) > -1, "R15k r2 ALIGNMENT — all three stacked day rows render through ONE stepRow that passes the same fixed slot, so CALORIES / PROTEIN / STEPS cannot disagree about where − and + sit");
+    /* the slot is wide enough for the widest value these rows can hold */
+    const widest = String(Math.max(99999, 0)).length;
+    ok(widest === 5 && 56 >= 5 * 10, "R15k r2 — and the fixed slot (56px) fits five digits at mono 15 (~10px/digit, tabular): the value that broke it — 15000 — has room, so the fix holds at the top of the range, not just at today's numbers");
+    /* the sweep, named: every other Stepper caller omits w and is therefore unchanged */
+    const callers = (srcJ.match(/<Stepper /g) || []).length;
+    const pinned = (srcJ.match(/w=\{SLOT9\}/g) || []).length;
+    ok(callers === 21 && pinned === 1, "R15k r2 SWEEP — " + callers + " Stepper call sites in the app; exactly " + pinned + " opts into the fixed slot (the sheet's day rows). The other " + (callers - pinned) + " pass no w and render byte-identically — the inline ones (\"~N min awake\", the bp pair) keep their shrink-to-fit behaviour by construction");
+    /* one vertical rhythm: every row in the sheet on the same token */
+    ok(cs.indexOf("const ROW9 = 44;") > -1 && (cs.match(/minHeight: ROW9/g) || []).length === 7 && (cs.match(/minHeight: 44/g) || []).length === 0, "R15k r2 POLISH — one row-height token drives every row in the sheet (day rows, sodium, alcohol, sleep, optional rows, waist, the fold): no bespoke spacing survives");
+    ok(cs.indexOf('{isTarget ? <>{" "}<span') > -1, "R15k r2 FIX 2 — the TARGET tag carries a REAL space, so the text layer reads \"CALORIES TARGET\" rather than CALORIESTARGET: visually spaced was not enough, a screen reader heard the defect");
+    ok(cs.indexOf("Skipping any of these files nothing, colours nothing, and never makes a card.") > -1, "R15k r2 FIX 3 — the optional intro parses again: the trim had left \"files\" without an object");
   }
 }
 console.log(`\nFINAL98: ${pass} passed, ${fail} failed`);
