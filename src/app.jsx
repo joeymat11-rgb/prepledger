@@ -15477,11 +15477,9 @@ function HistTab({ s, setS, save }) {
           The INSTRUMENTS lead the room, hoisted out of their collapsible wrapper so both
           doors (the hub LAB row, STILL LEARNING's counter line) land on them open and in
           view. Detail is never deleted — it moves one tap down: row → card (tag → forYou)
-          → ▸ MORE (deep + receipts). The masthead is ONE sentence. */}
-      <Card style={{ padding: SP.md }} accent={T.gauge}>
-        <Eyebrow c={T.gauge}>THE LAB · READ TO DECIDE</Eyebrow>
-        <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Read to decide, not to browse — every instrument below waits for its own n before it speaks.</div>
-      </Card>
+          → ▸ MORE (deep + receipts). ROUND 2: the two mastheads are ONE — the census
+          eyebrow carries both surviving sentences, and the entrance no longer says the
+          same thing twice in two cards. */}
       {(() => {
         const groups = labGroupsM(s);
         const tot = groups.reduce((a, g) => a + g.cards.length, 0);
@@ -15522,6 +15520,18 @@ function HistTab({ s, setS, save }) {
             {a.id === "negotiator" && <NegotiatorConsole s={s} />}
             {a.id === "trialsdesk" && <TrialsDesk s={s} setS={setS} save={save} />}
             {a.id === "dossier" && <DossierBlock s={s} />}
+            {/* R15i r2 — the MACHINE TRUST receipt belongs to the instrument that earned
+                it: the same words, on the prophet's own card, where the scope caveat sits
+                beside the number it qualifies. */}
+            {a.id === "prophet" && (() => { const pg = prophetGrades(s); const first = (s.forecasts || [])[0];
+              const firstGrade = first ? fmtShort(isoOf(new Date(mk(first.d).getTime() + 7 * DAY))) : "~1 week out";
+              return (
+                <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: pg.n >= 2 ? T.jade : T.brass, marginTop: 10, lineHeight: 1.5 }}>
+                  {pg.n >= 2
+                    ? `MACHINE TRUST · 7-day weight miss ±${pg.mae} lb vs the real reading · bias ${pg.bias > 0 ? "+" + pg.bias + " (runs optimistic)" : pg.bias < 0 ? pg.bias + " (runs pessimistic — you beat it)" : "0.00 (dead-on)"}${pg.provisional ? ` · PROVISIONAL, n=${pg.n} of ${pg.TRUST_N}` : ""} — weight only; BF dates carry more`
+                    : `MACHINE TRUST · the lab is grading its forecasts against the real morning reading — first marks ${firstGrade}`}
+                </div>
+              ); })()}
             <button onClick={() => setMoreOpen(more ? null : a.id)} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.1em", color: more ? T.chalk : T.steel, background: "none", border: "none", padding: "15px 12px", margin: "-9px -12px -15px", cursor: "pointer", display: "block" }}>{more ? "▾ CLOSE" : "▸ MORE"}</button>
             {more && (
               <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
@@ -15571,6 +15581,7 @@ function HistTab({ s, setS, save }) {
               return (
                 <Card accent={T.jade} style={{ padding: "12px 12px 10px" }}>
                   <Eyebrow c={T.jade}>THE LAB · {totLive} SPEAKING · {totArmed} GATHERING · {tot} TOTAL</Eyebrow>
+                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Read to decide, not to browse — every instrument below waits for its own n before it speaks.</div>
                   {/* THE FORKING-PATHS DISCLOSURE (§P0-2). One sentence, permanently on
                       the masthead, because the density itself is the disclosure: dozens
                       of instruments mining one person's history will turn up a few
@@ -15580,18 +15591,18 @@ function HistTab({ s, setS, save }) {
                   <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px`, maxWidth: "34em" }}>
                     {tot} instruments read one person's data — a few will always look interesting by chance, and anything under {LAB_MIN_N} observations reads PROVISIONAL, not measured.
                   </div>
-                  {(() => { const pg = prophetGrades(s); const first = (s.forecasts || [])[0];
-                    const firstGrade = first ? fmtShort(isoOf(new Date(mk(first.d).getTime() + 7 * DAY))) : "~1 week out";
+                  {/* R15i r2 — MACHINE TRUST moved OFF the doorway: the full receipt now
+                      lives on the prophet's own card, where it is the instrument's read.
+                      MY CALL, filed: a ONE-LINE summary stays at the top, because the
+                      number is the room's calibration and a reader deciding whether to
+                      trust anything below deserves it in one glance — the tap still opens
+                      the scorecard, the words are the engine's, the row is 44px. */}
+                  {(() => { const pg = prophetGrades(s);
                     return (
-                      <div onClick={() => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); }} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); } }} style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: pg.n >= 2 ? T.jade : T.brass, marginTop: 2, cursor: "pointer", lineHeight: 1.5 }}>
-                        {/* Scoped deliberately. This number is 7-day WEIGHT-tracking error
-                            graded against the real morning reading. It is not the error bar
-                            on a body-fat ETA — those carry the lean model's uncertainty too —
-                            so the old "read every date below through this" was lending a
-                            number earned on one quantity to claims about another. */}
+                      <div onClick={() => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); }} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); } }} style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: pg.n >= 2 ? T.jade : T.brass, cursor: "pointer" }}>
                         {pg.n >= 2
-                          ? `MACHINE TRUST · 7-day weight miss ±${pg.mae} lb vs the real reading · bias ${pg.bias > 0 ? "+" + pg.bias + " (runs optimistic)" : pg.bias < 0 ? pg.bias + " (runs pessimistic — you beat it)" : "0.00 (dead-on)"}${pg.provisional ? ` · PROVISIONAL, n=${pg.n} of ${pg.TRUST_N}` : ""} — weight only; BF dates carry more ▸`
-                          : `MACHINE TRUST · the lab is grading its forecasts against the real morning reading — first marks ${firstGrade} ▸`}
+                          ? `MACHINE TRUST · 7-day weight miss ±${pg.mae} lb ▸`
+                          : "MACHINE TRUST · grading its first forecasts ▸"}
                       </div>
                     ); })()}
                   {(() => { const pr3 = trialProposals(s); const run3 = (s.trials || []).filter((t) => !t.declined && !trialVerdict(s, t).done).length; return (
@@ -16821,8 +16832,10 @@ export default function PrepLedger() {
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "env(safe-area-inset-top)", background: T.ink, zIndex: 55 }} />
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(14px + env(safe-area-inset-top)) 14px calc(88px + env(safe-area-inset-bottom))", visibility: (rules || coach || kitPerson) ? "hidden" : "visible" }}>
+        {/* R15i r2 — the back-link measured 27px: paint-free text, so the extra padding
+            is pure slop and the negative margin keeps the glyph exactly where it painted. */}
         {inMore && (
-          <div onClick={() => setTab("LEDGER")} role="button" tabIndex={0} aria-label="Back to Ledger" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, cursor: "pointer", padding: "0 0 12px", letterSpacing: "0.06em", display: "inline-block" }}>‹ LEDGER</div>
+          <div onClick={() => setTab("LEDGER")} role="button" tabIndex={0} aria-label="Back to Ledger" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, cursor: "pointer", minHeight: 44, display: "inline-flex", alignItems: "center", padding: "12px 14px 12px 0", margin: "-12px 0 0 -14px", letterSpacing: "0.06em" }}>‹ LEDGER</div>
         )}
         {tab === "NOW" && <TabGuard name="NOW"><NowTab2 s={s} setS={setS} save={save} go={setTab} /></TabGuard>}
         {tab === "BRIEF" && <TabGuard name="BRIEF"><NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}

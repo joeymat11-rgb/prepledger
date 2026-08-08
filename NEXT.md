@@ -355,7 +355,28 @@ when the roster generalizes.
 
 ---
 
-## NOW — R15i · THE LAB ROOM, ROWS NOT ESSAYS (filed 2026-08-08, Joe's word: "a lot of unnecessary detail"; building on feat/r15i-labroom)
+## NOW — R15i ROUND 2 + R15j QUEUED (2026-08-08)
+
+**R15i round 2, built:** (1) the back-link "‹ LEDGER" measured 27px — now a 44px hit
+box, paint-free text with padding as pure slop and an equal-and-opposite margin so the
+glyph never moves (rig: 77×44). Sweep result named: it was the last sub-44 tappable in
+the room; everything else already carries 44 (rows, section headers, desk/ask/gather
+controls, the card's ▸ MORE slop). (2) The two mastheads are ONE card — the census
+eyebrow now carries the read-to-decide sentence and the forking-paths line, both
+verbatim, exactly once; the duplicate card is gone. (3) MACHINE TRUST moved off the
+doorway: the full receipt (bias, PROVISIONAL n-of, the weight-only caveat) now lives on
+the prophet's own card beside the number it qualifies. **My call, filed:** ONE short
+line stays at the entrance — "MACHINE TRUST · 7-day weight miss ±0.61 lb ▸" — because
+that number is the room's calibration and a reader deciding whether to trust anything
+below deserves it in a glance; it keeps the tap to the scorecard and its 44px box.
+
+**Both round-1 calls accepted as built** (three back-room headers over a door; THE
+RECORD below the instruments). **R15j queued per Joe's ruling:** no instrument is
+culled — the 8 dead ones are the MENU of what more the app could do, and each becomes
+an optional-input row in the tiered capture sheet ("start tagging morning pulse →
+three instruments wake up"). No withdrawals, no engine movement.
+
+## FILED — R15i · THE LAB ROOM, ROWS NOT ESSAYS (2026-08-08, Joe's word: "a lot of unnecessary detail"; feat/r15i-labroom)
 
 **The density law:** the room is ROWS; detail is never deleted — it moves one tap down.
 (1) Every instrument = ONE 44px row: name · status word · counter, one line where the
