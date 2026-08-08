@@ -10504,10 +10504,15 @@ const stepBtn = {
   fontFamily: mono, cursor: "pointer", flexShrink: 0,
   transition: TR("background-color", MOT.state), WebkitTapHighlightColor: "transparent",
 };
-const Stepper = ({ v, set, step = 1, min = 0 }) => (
+/* R15k r2 — THE SLOT CAN BE PINNED. Default minWidth 42 fits four digits at this mono
+   size; a five-digit value (15000) grows the slot and shoves − and + sideways, so three
+   stacked rows jogged by 3px — which is exactly what reads as unpolished. Callers that
+   stack rows pass `w` for a FIXED slot, so the buttons land on the same x at every
+   value. Omitting it changes nothing: the other nineteen call sites are byte-identical. */
+const Stepper = ({ v, set, step = 1, min = 0, w }) => (
   <div style={{ display: "flex", alignItems: "center", gap: SP.sm }}>
     <button aria-label="decrease" onClick={() => set(Math.max(min, +(v - step).toFixed(1)))} style={stepBtn}>−</button>
-    <div data-num style={{ fontFamily: mono, fontSize: 15, color: T.chalk, minWidth: 42, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{v}</div>
+    <div data-num style={{ fontFamily: mono, fontSize: 15, color: T.chalk, minWidth: w || 42, width: w || undefined, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{v}</div>
     <button aria-label="increase" onClick={() => set(+(v + step).toFixed(1))} style={stepBtn}>+</button>
   </div>
 );
@@ -16133,6 +16138,8 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
   const rule9 = { borderTop: "1px solid " + DT.hairline, marginTop: 16, paddingTop: 14 };
   const rowName = { fontFamily: mono, fontSize: 11.5, color: DT.ink, letterSpacing: "0.04em" };
   const rowRight = { ...tnum9, flexShrink: 0, fontSize: 10.5, color: DT.dim, whiteSpace: "nowrap" };
+  const ROW9 = 44;      /* one row height for every row in the sheet — no bespoke spacing */
+  const SLOT9 = 56;     /* the number slot: five digits at mono 15 with room to breathe */
   const heroIs = (k) => ask.k === k;
   /* R15k ROW LAW (the R15i density law, applied here): ONE line — input · what it buys ·
      counter. The full explanation waits behind the standing ▸ MORE. Nothing is deleted. */
@@ -16141,7 +16148,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
     return (
       <div key={key} style={{ borderTop: "1px solid " + DT.hairline }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={onTap} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flex: 1, minWidth: 0, minHeight: 44, background: "none", border: "none", padding: "0 0", cursor: onTap ? "pointer" : "default", textAlign: "left" }}>
+          <button onClick={onTap} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flex: 1, minWidth: 0, minHeight: ROW9, background: "none", border: "none", padding: "0 0", cursor: onTap ? "pointer" : "default", textAlign: "left" }}>
             <span style={{ ...rowName, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}<span style={{ color: DT.steel }}>{buys ? " · " + buys : ""}</span></span>
             <span style={rowRight}>{right}</span>
           </button>
@@ -16158,10 +16165,13 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
       <span style={{ display: "inline-block", fontFamily: mono, fontSize: 11, color: on ? DT.jade : DT.steel, border: "1px solid " + (on ? DT.jade : DT.hairline2), borderRadius: 999, padding: "4px 10px" }}>{txt}</span>
     </button>
   );
+  /* R15k r2 — one fixed slot (SLOT9) across the three stacked day rows, so − and + land
+     on the same x whether the value is 175 or 15000. And the TARGET tag carries a REAL
+     space: innerText read "CALORIESTARGET", which is visually spaced and audibly wrong. */
   const stepRow = (label, val, setter, step, isTarget) => (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, minHeight: 44 }}>
-      <span style={{ ...rowName, color: DT.steel }}>{label}{isTarget ? <span style={{ ...tnum9, fontSize: 9.5, letterSpacing: "0.12em", color: DT.dim, marginLeft: 8 }}>TARGET</span> : null}</span>
-      <Stepper v={val} set={setter} step={step} min={0} />
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, minHeight: ROW9 }}>
+      <span style={{ ...rowName, color: DT.steel }}>{label}{isTarget ? <>{" "}<span style={{ ...tnum9, fontSize: 9.5, letterSpacing: "0.12em", color: DT.dim }}>TARGET</span></> : null}</span>
+      <Stepper v={val} set={setter} step={step} min={0} w={SLOT9} />
     </div>
   );
   const saveScale = () => { const base = readToday ? undoRead(s, tISO) : s; const ns = runAdaptive(applyRead(base, tISO, wIn), tISO); setS(ns); save(ns); hap(12); onClose(); };
@@ -16193,7 +16203,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
           <Btn full tone={heroIs("day") || heroIs("amend") ? "jade" : "ghost"} onClick={() => { saveDay(); onClose(); }}>{dl.cal != null ? "Update today's numbers" : "Save today's numbers"}</Btn>
         </div>
         <div style={{ borderTop: "1px solid " + DT.hairline, marginTop: 14 }}>
-          <button onClick={() => { onClose(); go("SLEEP"); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: 44, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
+          <button onClick={() => { onClose(); go("SLEEP"); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: ROW9, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
             <span style={rowName}>SLEEP<span style={{ color: DT.steel }}> · last night</span></span>
             <span style={rowRight}>{lastNightFresh ? lastNight.h + " h" : "not logged"} ▸</span>
           </button>
@@ -16201,9 +16211,9 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
       </div>
       <div data-cap="optional" style={rule9}>
         <div style={lbl9}>OPTIONAL — WHAT EACH ONE BUYS</div>
-        <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 6, marginBottom: 4 }}>Skipping any of these files nothing and never makes a card. Optional means optional — forever.</div>
+        <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 6, marginBottom: 4 }}>Skipping any of these files nothing, colours nothing, and never makes a card. Optional means optional — forever.</div>
         <div style={{ borderTop: "1px solid " + DT.hairline }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 44 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: ROW9 }}>
             <span style={rowName}>SODIUM<span style={{ color: DT.steel }}> · explains tomorrow's scale</span></span>
             <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
               {["low", "med", "high"].map((v) => chip(sod === v, v, () => { setSod(v); saveDay({ sodium: v }); }))}
@@ -16213,7 +16223,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
           {whyOpen === "sodium" ? <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, padding: "0 0 10px" }}>A high-salt day annotates tomorrow morning&rsquo;s read — &ldquo;salt or alcohol yesterday — water noise likely&rdquo; — so a jump is explained at the moment you would otherwise worry.</div> : null}
         </div>
         <div style={{ borderTop: "1px solid " + DT.hairline }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 44 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: ROW9 }}>
             <span style={rowName}>ALCOHOL<span style={{ color: DT.steel }}> · units, a covariate</span></span>
             <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
               {[0, 2, 4, 6].map((u) => chip(+alc === u, String(u), () => { setAlc(u); saveDay({ alc: u }); }))}
@@ -16228,7 +16238,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
             {row9("pulse", "MORNING PULSE", wakes("pulsebase"), counter("pulsebase") + " · in BODY ▸", "Five seconds at the wrist on waking. It is the input three instruments are waiting on.", () => { onClose(); go("BODY"); })}
             {row9("temp", "WAKING TEMPERATURE", wakes("furnacebase"), counter("furnacebase") + " · in BODY ▸", "Fifteen seconds, oral, before you move — the furnace baseline reads it.", () => { onClose(); go("BODY"); })}
             <div style={{ borderTop: "1px solid " + DT.hairline }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, minHeight: 44 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, minHeight: ROW9 }}>
                 <span style={rowName}>WAIST<span style={{ color: DT.steel }}> · the tape the band leans on</span></span>
                 <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
               </div>
@@ -16250,7 +16260,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
             </div>
           </>
         ) : (
-          <button onClick={() => setOptOpen(true)} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", background: "none", border: "none", borderTop: "1px solid " + DT.hairline, padding: 0, cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>▸ FIVE MORE — WAKE TAG · PULSE · TEMPERATURE · WAIST · PHOTOS — AND WHAT ELSE THIS COULD DO</button>
+          <button onClick={() => setOptOpen(true)} style={{ display: "flex", alignItems: "center", minHeight: ROW9, width: "100%", background: "none", border: "none", borderTop: "1px solid " + DT.hairline, padding: 0, cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>▸ FIVE MORE — WAKE TAG · PULSE · TEMPERATURE · WAIST · PHOTOS — AND WHAT ELSE THIS COULD DO</button>
         )}
       </div>
     </Sheet>

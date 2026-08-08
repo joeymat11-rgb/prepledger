@@ -376,6 +376,21 @@ logged → the reverse). **4 THE DENSITY LAW APPLIED HERE** — optional rows ar
 **Polish:** one type scale, one divider rhythm, one label voice, declared once at the
 top of the sheet and reused — the LAB rows' and the LEDGER hub's grammar, not a third.
 
+**ROUND 2 (2026-08-08) — the three polish defects, fixed.** (1) **The columns line up.**
+Root cause: a five-digit value outgrew `Stepper`'s `minWidth: 42` and shoved the control
+sideways (228 / 228 / **225**). `Stepper` now takes an **opt-in** fixed slot `w`; the
+sheet's three day rows pass one token (`SLOT9 = 56`, five digits at mono 15 with room).
+Rig, both states: minus-left **214 / 214 / 214**, plus-right **374 / 374 / 374**. Sweep
+named: **21 Stepper call sites, exactly 1 opts in** — the other 20 pass no `w` and are
+byte-identical, so the inline ones ("~N min awake", the blood-pressure pair) keep their
+shrink-to-fit by construction. (2) **"CALORIESTARGET" → "CALORIES TARGET"** — a real
+space in the text layer, not just visual spacing (a screen reader heard the defect).
+(3) The optional intro parses again: *"files nothing, colours nothing, and never makes
+a card."* Plus the rhythm: one `ROW9 = 44` token drives every row in the sheet — day
+rows, sodium, alcohol, sleep, optional rows, waist, the fold — no bespoke spacing left.
+The audit's observation that a fully-logged day fills **no** button is deliberate and
+kept: nothing is due, so nothing shouts.
+
 **Instrument note for the audit:** my first scroll-lock probe used a programmatic
 `scrollTo`, which bypasses `overflow: hidden` — the exact instrument error the R15c
 round-5 audit corrected. The lock is the GymMode mechanism, unchanged.
