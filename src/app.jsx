@@ -8940,7 +8940,7 @@ class TabGuard extends React.Component {
   static getDerivedStateFromError(err) { return { err }; }
   render() {
     if (!this.state.err) return this.props.children;
-    const report = `Measured ${APP_V} · tab ${this.props.name} · ${new Date().toISOString()}\n${this.state.err.message}\n${(this.state.err.stack || "").slice(0, 600)}`;
+    const report = `EARNED ${APP_V} · tab ${this.props.name} · ${new Date().toISOString()}\n${this.state.err.message}\n${(this.state.err.stack || "").slice(0, 600)}`;
     return (
       <Card accent={T.brass}>
         <Eyebrow c={T.brass}>THIS TAB HIT AN ERROR</Eyebrow>
@@ -13132,7 +13132,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
 
       {/* §5e — the tagline lands here (demoted off the fold masthead): brand, at rest,
           at the bottom, beside the version. */}
-      <div style={{ textAlign: "center", fontFamily: mono, fontSize: TS.micro, color: T.steel, opacity: 0.55, padding: "10px 0 2px" }}>Measured. Not guessed. · v{APP_V}</div>
+      <div style={{ textAlign: "center", fontFamily: mono, fontSize: TS.micro, color: T.steel, opacity: 0.55, padding: "10px 0 2px" }}>Earned. Not guessed. · v{APP_V}</div>
 
     </div>
   );
@@ -16420,10 +16420,10 @@ function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
               </div>
             </div>
           )}
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 8 }}>Stays on this device · never included in exports or sync payloads · scoped to Measured only. Every Sunday the ledger commits itself — backup and coach review in one move.</div>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 8 }}>Stays on this device · never included in exports or sync payloads · scoped to EARNED only. Every Sunday the ledger commits itself — backup and coach review in one move.</div>
         </div>
         <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 12 }}>
-          The ledger lives on this device only. Export after big weeks — the backup file is the insurance policy. · Measured v{APP_V}
+          The ledger lives on this device only. Export after big weeks — the backup file is the insurance policy. · EARNED v{APP_V}
         </div>
       </div>
     </div>
@@ -16603,7 +16603,7 @@ export default function PrepLedger() {
         const data = migrate(JSON.parse(rd.result));
         if (!data || !Array.isArray(data.queue)) throw new Error("bad");
         setS(data); save(data, { force: true }); setRules(false);
-      } catch (e) { alert("That file isn't a Measured backup — nothing was changed."); }
+      } catch (e) { alert("That file isn't an EARNED backup — nothing was changed."); }
     };
     rd.readAsText(file);
   };
