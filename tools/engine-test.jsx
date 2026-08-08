@@ -7249,7 +7249,13 @@ if (fail) process.exit(1);
   ok(cs.indexOf("Skipping any of these files nothing, colours nothing, and never makes a card. Optional means optional — forever.") > -1, "R15j NO-SHAME LAW — stated on the sheet itself, in the athlete's words");
   /* the funds labels read the instruments' OWN fields */
   ok(cs.indexOf("const c = byId(id);") > -1 && cs.indexOf("return " + Q + "funds " + Q + " + c.t + (short ?") > -1 && cs.indexOf("p.n + " + Q + " of " + Q + " + p.need") > -1 && cs.indexOf("const short = p && p.n != null && p.need != null && p.n < p.need;") > -1, "R15j — every funds-label is the instrument's OWN title and OWN prog counter (labStatusList verbatim), never authored — and the counter is a DISTANCE, printed only while distance remains: the rig caught a live card reading '48 of 8', which is an artefact, not a counter; past its need it says 'already speaking'");
-  ok(cs.indexOf('funds("wakesig"') > -1 && cs.indexOf('funds("pulsebase"') > -1 && cs.indexOf('funds("furnacebase"') > -1 && cs.indexOf('funds("noise"') > -1, "R15j — the optional rows name the instruments they fund by id: wake tag → WAKE SIGNATURE, pulse → the pulse baseline, temperature → the furnace baseline, sodium → the noise floor");
+  ok(cs.indexOf('funds("wakesig"') > -1 && cs.indexOf('funds("pulsebase"') > -1 && cs.indexOf('funds("furnacebase"') > -1, "R15j — the optional rows name the instruments they fund by id: wake tag → WAKE SIGNATURE, pulse → the pulse baseline, temperature → the furnace baseline");
+  /* R2 FIX 3 — MISATTRIBUTION, dead: sodium never fed the noise floor (INS_MAP noise:
+     ["weigh-in"]). Its real consumer is applyRead's morning water-noise annotation. */
+  ok(cs.indexOf('funds("noise"') === -1 && cs.indexOf("a high-salt day annotates tomorrow morning's read") > -1 && cs.indexOf("water noise likely") > -1, "R15j r2 FIX 3 — the sodium line no longer claims the noise floor; it names its REAL consumer, quoting the annotation applyRead actually writes");
+  ok(srcJ.indexOf('const water9 = ydl9.sodium === "high" || (ydl9.alc || 0) > 0 ?') > -1, "R15j r2 — and that consumer exists at source: applyRead reads yesterday's sodium AND alcohol, which is why the alcohol line makes the same claim honestly");
+  ok(cs.indexOf("a count only — a covariate for sleep, pulse and scale attribution, never added to your calories") > -1, "R15j r2 — the alcohol line audited: count-only, never added to calories (the LEDGER_DICT's own law), plus the annotation it shares with sodium");
+  ok(cs.indexOf("▸ FIVE MORE — WAKE TAG · PULSE · TEMPERATURE · WAIST · PHOTOS — AND WHAT ELSE THIS COULD DO") > -1 && cs.indexOf("FOUR MORE") === -1, "R15j r2 FIX 4 — the fold label counts what it lists (five) and names the menu inside it");
   /* NO novel state key: every write goes through a path that already shipped */
   ok((cs.split("writeDaily(").length - 1) === 1 && (cs.split("applyRead(").length - 1) === 1 && (cs.split("undoRead(").length - 1) === 1 && (cs.split("runAdaptive(").length - 1) === 1, "R15j EXISTING WRITE PATHS — the sheet files the day through writeDaily and the scale through undoRead/applyRead/runAdaptive: the same functions the scattered affordances already used");
   ok((cs.split("s.waist || []").length - 1) === 1 && (cs.split("ns.photos.push({ d: tISO })").length - 1) === 1 && cs.indexOf("s.sleep") > -1 && (cs.split("localStorage").length - 1) === 0, "R15j — waist, photos and the sleep read use their existing stores; the sheet touches no storage of its own");
@@ -7281,6 +7287,31 @@ if (fail) process.exit(1);
   const stW2 = cl98(w1); stW2.fixWindow = { opened: yJ };
   const w2 = wd(stW2, tJ, { cal: 2000, pro: 200, steps: 9000, sodium: null, alc: 0 });
   ok(w2.fixWindow === null && (w2.feed || [])[0] && w2.feed[0].t === "PROTEIN RECOVERY", "R15j WRITE PATH — and a hit inside the window files PROTEIN RECOVERY with the engine's own words: the behaviour moved, not the meaning");
+
+  /* ---------- R2 FIX 1 — THE DATA-LOSS DEFECT, pinned as BEHAVIOUR ----------
+     The rig case: a day logged on BRIEF, then ONLY sodium written through the sheet's
+     path, destroyed cal/pro/steps. writeDaily is a PARTIAL now — this drives exactly
+     that sequence and asserts the logged numbers survive. */
+  {
+    const wd2 = __test.writeDaily, cl = (o) => JSON.parse(JSON.stringify(o));
+    const isoT = isoL(Date.now());
+    const st0 = cl(__test.SEED); st0.dailyLogs = {}; st0.fixWindow = null;
+    const logged = wd2(st0, isoT, { cal: 2279, pro: 175, steps: 15000, sodium: null, alc: 0 });
+    ok(logged.dailyLogs[isoT].cal === 2279 && logged.dailyLogs[isoT].pro === 175 && logged.dailyLogs[isoT].steps === 15000, "R15j r2 — the day logs through the full-row path exactly as before: 2279 / 175 / 15000");
+    const afterChip = wd2(logged, isoT, { sodium: "high" });
+    ok(afterChip.dailyLogs[isoT].cal === 2279 && afterChip.dailyLogs[isoT].pro === 175 && afterChip.dailyLogs[isoT].steps === 15000 && afterChip.dailyLogs[isoT].sodium === "high", "R15j r2 FIX 1 — THE DATA LOSS IS DEAD: writing ONLY sodium preserves cal/pro/steps (the rig case, driven as behaviour) — " + JSON.stringify(afterChip.dailyLogs[isoT]));
+    const afterAlc = wd2(afterChip, isoT, { alc: 2 });
+    ok(afterAlc.dailyLogs[isoT].cal === 2279 && afterAlc.dailyLogs[isoT].sodium === "high" && afterAlc.dailyLogs[isoT].alc === 2, "R15j r2 — and the same for the alcohol chip: each partial adds its own field and touches nothing else");
+    /* the unlogged day: a chip tap records the chip and creates no phantom logged day */
+    const st1 = cl(__test.SEED); st1.dailyLogs = {};
+    const chipOnly = wd2(st1, isoT, { sodium: "high" });
+    ok(chipOnly.dailyLogs[isoT].sodium === "high" && chipOnly.dailyLogs[isoT].cal == null && __test.readWindow(chipOnly, 9).logged === false, "R15j r2 FIX 2 (my call) — the instant chip write is safe on an UNLOGGED day: it records the chip, writes no row of nulls, and the day still reads unlogged to every gate that asks");
+    /* the full-row caller keeps its old clearing semantics, blanks included */
+    const cleared = wd2(logged, isoT, { cal: "", pro: "", steps: "", sodium: null, alc: 0 });
+    ok(cleared.dailyLogs[isoT].cal === null && cleared.dailyLogs[isoT].pro === null && cleared.dailyLogs[isoT].steps === null, "R15j r2 — a caller that NAMES a field with a blank still clears it: the log screen's overwrite semantics are unchanged, only the unnamed fields are now safe");
+    /* the sheet re-syncs on the open transition (the braces) */
+    ok(cs.indexOf("if (open && !wasOpen) {") > -1 && cs.indexOf("const live = (s.dailyLogs || {})[tISO] || {};") > -1 && cs.indexOf("setCal(live.cal ?? " + Q + Q + ");") > -1, "R15j r2 FIX 1b — and the sheet re-reads the LIVE day on the open transition, so a day logged elsewhere after tab mount can never render blank");
+  }
 }
 console.log(`\nFINAL98: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
