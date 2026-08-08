@@ -15453,6 +15453,8 @@ function HistTab({ s, setS, save }) {
   const [deskOpen, setDeskOpen] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
   const [gatherAll, setGatherAll] = useState(false);
+  const [nof1Open, setNof1Open] = useState(false);   /* R15i — N-OF-1 closed by default */
+  const [moreOpen, setMoreOpen] = useState(null);   /* R15i — the open card's deep/lines fold */
   const [twCal, setTwCal] = useState(0);
   const [twSteps, setTwSteps] = useState(() => { const st = stepTarget(s); return st.gated ? 8000 : (st.recentAvg || st.avg || 8000); });
   const [twPro, setTwPro] = useState(() => proteinTarget(s).g);
@@ -15471,63 +15473,189 @@ function HistTab({ s, setS, save }) {
   );
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* ---------- LAB decision-support framing (v2 slice F) ----------
-          Re-points the LAB from a browsing surface to a decision one. The Twin and the
-          record lead; the ~50 instruments below carry an explicit multiple-comparisons
-          disclosure up top, so a chance finding is never mistaken for a signal. Nothing
-          is deleted — presentation only — but the honest frame is no longer buried. */}
-      <Card style={{ padding: SP.md }} accent={T.gauge}>
-        <Eyebrow c={T.gauge}>THE LAB · READ TO DECIDE</Eyebrow>
-        <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>The twin and the record answer this week's calls. The ~50 instruments further down each wait for their own n — and with that many on one person's data, a few will look interesting by chance. Read them to decide, not to browse.</div>
-      </Card>
-      <Card accent={T.jade}>
-        <Eyebrow>THE RECORD · {HISTORY.length + liveDayCount} DAYS · 6/10 → LIVE</Eyebrow>
-        <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 8, lineHeight: 1.6 }}>{weekDigest(s)}</div>
-        <div style={{ display: "flex", gap: 18, marginTop: 10, flexWrap: "wrap" }}>
-          {stat(wDelta != null ? `−${wDelta}` : "—", "lb · wk-avg vs wk 1")}
-          {stat(`${proHitTot}/${proNTot}`, "protein on target")}
-          {stat(`${s.zeroComp.count}`, "events · zero comp")}
-          {stat(`${latest && latest.avgSteps != null ? latest.avgSteps + "k" : "—"}`, "steps avg · latest wk")}
-        </div>
-        <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 8 }}>Weight fell while every headline lift rose — the whole thesis, in one screen. Tap a week for the day-by-day.</div>
-      </Card>
-
-      {/* ---------- N-OF-1 LEARNING (v7.3.0 · Slice 4) ----------
-          What the app has learned about HIM from HIS own data — persisted, engine-owned, honest.
-          tdeeLearned / partitionPrior / energyDensity / adaptationSignal are the OWNERS the Twin below
-          + Auto-Pilot read; this card only DISCLOSES them, each WITH its band and a name for what it
-          can't yet know. Fully guarded — renders calm "calibrating" copy in thin/early states. */}
+      {/* ---------- R15i · THE DENSITY LAW (Joe's word: rows, not essays) ----------
+          The INSTRUMENTS lead the room, hoisted out of their collapsible wrapper so both
+          doors (the hub LAB row, STILL LEARNING's counter line) land on them open and in
+          view. Detail is never deleted — it moves one tap down: row → card (tag → forYou)
+          → ▸ MORE (deep + receipts). ROUND 2: the two mastheads are ONE — the census
+          eyebrow carries both surviving sentences, and the entrance no longer says the
+          same thing twice in two cards. */}
       {(() => {
-        const tl = tdeeLearned(s); const pp = partitionPrior(s); const ed = energyDensity(s); const ad = adaptationSignal(s);
-        const row = (label, value, detail, accent) => (
-          <div style={{ marginTop: SP.md, paddingTop: SP.sm, borderTop: `1px solid ${T.hairline}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: SP.sm, flexWrap: "wrap" }}>
-              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.1em", color: T.steel, textTransform: "uppercase" }}>{label}</span>
-              <span data-num style={{ fontFamily: mono, fontSize: TS.body, fontWeight: 600, color: accent || T.chalk, ...NUMERIC }}>{value}</span>
+        const groups = labGroupsM(s);
+        const tot = groups.reduce((a, g) => a + g.cards.length, 0);
+        const totLive = groups.reduce((a, g) => a + g.live, 0);
+        const totArmed = groups.reduce((a, g) => a + g.armed, 0);
+        /* R15i — the open card obeys the density law: the plain question (tag) leads,
+           the live read (forYou) follows — both engine words verbatim — and everything
+           heavier (deep, the receipt lines) waits behind the standing ▸ MORE. Tapping
+           the header returns to the row. The ARMED counter stays visible: a number,
+           not an essay. */
+        const renderCard = (a) => {
+          const more = moreOpen === a.id;
+          return (
+          <Card key={a.id} style={{ padding: 12 }} accent={a.status === "LIVE" ? T.jade : undefined}>
+            <div onClick={() => { setLabOpen(null); setMoreOpen(null); }} style={{ cursor: "pointer" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
+                <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 16, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk }}>{a.t}</div>
+                <Stamp st={a.status} />
+              </div>
+              <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 3 }}>{plainify(a.tag)}</div>
             </div>
-            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.hair, lineHeight: `${LH.micro}px` }}>{detail}</div>
-          </div>
-        );
-        const tdeeBand = tl.acc != null ? tl.acc : (tl.hi != null && tl.lo != null ? Math.round((tl.hi - tl.lo) / 2) : null);
-        const tdeeVal = tl.value != null ? (tdeeBand != null ? `${tl.value} ± ${tdeeBand} kcal` : `${tl.value} kcal`) : "calibrating";
-        const tdeeDetail = tl.value != null
-          ? `${tl.converged ? "converged" : "still converging (~2–4 wk)"} · ${tl.n} fit${tl.n === 1 ? "" : "s"} · TDEE minus logging bias, not physiology`
-          : "keep logging — your maintenance converges in ~2–4 weeks";
-        const pFatLo = Math.round(pp.fatFrac.lo * 100), pFatHi = Math.round(pp.fatFrac.hi * 100);
-        const edVal = ed.identified ? `~${ed.perLb} kcal/lb` : `${ed.perLb} kcal/lb · prior`;
-        const adVal = ad.detected ? `~${Math.abs(ad.kcal)} kcal/day under` : "not detected";
-        return (
-          <Card accent={T.brass} style={{ padding: SP.lg }}>
-            <Eyebrow c={T.brass}>N-OF-1 · WHAT THE APP HAS LEARNED</Eyebrow>
-            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Your own parameters, learned from your own data and feeding the Twin below. Research set the starting point; your data moves it. Every number ships with its band and names what it can't yet know — nothing here is a physiological measurement.</div>
-            {row("MAINTENANCE · TDEE", tdeeVal, tdeeDetail, tl.converged ? T.gauge : T.steel)}
-            {row("PARTITION · p-RATIO", `${pFatLo}–${pFatHi}% fat`, pp.identified ? "anchored to a measured body fat — the band narrows as more DEXA anchors land" : "a RANGE, not a point — barely identifiable from the scale; needs repeated DEXA anchors to narrow (Forbes)", T.chalk)}
-            {row("ENERGY DENSITY", edVal, ed.identified ? `${ed.lo}–${ed.hi} band · fat-mass-dependent — leaner prices lower, not a fixed 3,500` : `${ed.lo}–${ed.hi} band · held at the prior until a DEXA measures your fat mass`, T.chalk)}
-            {row("METABOLIC ADAPTATION", adVal, ad.detected ? "observed maintenance below what mass loss alone predicts — persistent + significant; calibration for the plan, not a target" : "gated on significance + persistence — a single low week can't fire it", ad.detected ? T.brass : T.steel)}
+            <div style={{ marginTop: 10 }}>
+              <Eyebrow c={a.status === "LIVE" ? T.jade : T.brass}>FOR YOU · RIGHT NOW</Eyebrow>
+              <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{plainify(a.forYou)}</div>
+            </div>
+            {a.status === "ARMED" && a.prog && (
+              <div style={{ marginTop: 8 }}>
+                <Bar pct={(a.prog.n / a.prog.need) * 100} c={T.brass} />
+                <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 4 }}>{a.prog.n} / {a.prog.need} {a.prog.label}</div>
+              </div>
+            )}
+            {a.action && (
+              <div style={{ marginTop: 10 }}>
+                <Btn small tone="jade" onClick={(e) => { e.stopPropagation(); const ns = JSON.parse(JSON.stringify(s)); ns.creatine = { start: isoOf(todayStart()) }; ns.feed.unshift({ d: isoOf(todayStart()), t: "CREATINE STARTED", how: "5 g/day begins inside the sealed window — the water bump files itself under quarantine (Kreider 2017)" }); setS(ns); save(ns); }}>Log creatine start — today</Btn>
+              </div>
+            )}
+            {a.id === "whatif" && <WhatIfConsole s={s} />}
+            {a.id === "negotiator" && <NegotiatorConsole s={s} />}
+            {a.id === "trialsdesk" && <TrialsDesk s={s} setS={setS} save={save} />}
+            {a.id === "dossier" && <DossierBlock s={s} />}
+            {/* R15i r2 — the MACHINE TRUST receipt belongs to the instrument that earned
+                it: the same words, on the prophet's own card, where the scope caveat sits
+                beside the number it qualifies. */}
+            {a.id === "prophet" && (() => { const pg = prophetGrades(s); const first = (s.forecasts || [])[0];
+              const firstGrade = first ? fmtShort(isoOf(new Date(mk(first.d).getTime() + 7 * DAY))) : "~1 week out";
+              return (
+                <div style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: pg.n >= 2 ? T.jade : T.brass, marginTop: 10, lineHeight: 1.5 }}>
+                  {pg.n >= 2
+                    ? `MACHINE TRUST · 7-day weight miss ±${pg.mae} lb vs the real reading · bias ${pg.bias > 0 ? "+" + pg.bias + " (runs optimistic)" : pg.bias < 0 ? pg.bias + " (runs pessimistic — you beat it)" : "0.00 (dead-on)"}${pg.provisional ? ` · PROVISIONAL, n=${pg.n} of ${pg.TRUST_N}` : ""} — weight only; BF dates carry more`
+                    : `MACHINE TRUST · the lab is grading its forecasts against the real morning reading — first marks ${firstGrade}`}
+                </div>
+              ); })()}
+            <button onClick={() => setMoreOpen(more ? null : a.id)} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.1em", color: more ? T.chalk : T.steel, background: "none", border: "none", padding: "15px 12px", margin: "-9px -12px -15px", cursor: "pointer", display: "block" }}>{more ? "▾ CLOSE" : "▸ MORE"}</button>
+            {more && (
+              <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
+                <Eyebrow>WHAT IT IS</Eyebrow>
+                <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{plainify(a.deep)}</div>
+                {(a.lines || []).map((l, i) => (
+                  <div key={i} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{l}</div>
+                ))}
+              </div>
+            )}
           </Card>
+        );};
+        return (
+          <>
+            {(() => {
+              const wkAgo = isoOf(new Date(todayStart().getTime() - 7 * DAY));
+              const freshMap = {};
+              (s.feed || []).forEach((f) => { if (f.t && f.t.indexOf("LAB LIVE — ") === 0 && f.d >= wkAgo) freshMap[f.t.replace("LAB LIVE — ", "")] = f.d; });
+              const secs = labSections(s);
+              const row = (a) => labOpen === a.id ? (
+                <div key={a.id} style={{ margin: "8px 0" }}>{renderCard(a)}</div>
+              ) : (
+                /* The densest rows in the app, and still on spec: 44px, hairline
+                   between rows rather than a box each, and every row states its own
+                   provenance. An instrument that is still gathering says how far off
+                   it is — n=3 of 8 needed — because "locked" with no number attached
+                   is a teaser, and the brief rules teasers out: an earned state must
+                   show what earns it. */
+                <div key={a.id} onClick={() => setLabOpen(a.id)} role="button" tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLabOpen(a.id); } }}
+                  style={{ display: "flex", alignItems: "center", gap: SP.md, minHeight: 44, padding: `${SP.sm}px 0`, borderTop: `1px solid ${T.hairline}`, cursor: "pointer" }}>
+                  {/* was a bare 7px coloured dot — hue was the only difference between
+                      "speaking" and "locked". Shape carries it now too. */}
+                  <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.label, lineHeight: 1, color: stampColor(a.status), flexShrink: 0, width: 12, textAlign: "center" }}>{stampGlyph(a.status)}</span>
+                  {/* R15i ROW LAW — one line closed: the name fits by ellipsis (full name on
+                      the open card); the status parenthetical folds into the right column. */}
+                  <span style={{ minWidth: 0, flex: 1, fontFamily: disp, fontWeight: 600, fontSize: 14, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{a.t.split(" — ")[0]}</span>
+                  <span style={{ fontFamily: mono, fontSize: TS.micro, whiteSpace: "nowrap", flexShrink: 0, ...NUMERIC, color: freshMap[a.t] ? T.jade : a.status === "LIVE" || a.status === "TRACKING" ? T.jade : a.status === "PROVISIONAL" ? T.brass : a.status === "ARMED" ? T.brass : T.steel }}>
+                    {freshMap[a.t] ? `new · ${fmtShort(freshMap[a.t])}`
+                      : a.status === "LIVE" || a.status === "TRACKING" ? `measured${a.prog && a.prog.n != null ? ` · n=${a.prog.n}` : ""}`
+                      : a.status === "PROVISIONAL" ? `provisional · ${a.prog && a.prog.n != null ? a.prog.n : "?"}${a.prog && a.prog.need ? ` of ${a.prog.need}` : ""}`
+                      : a.status === "ARMED" && a.prog ? `${a.prog.n}/${a.prog.need}`
+                      : a.status.toLowerCase()} <span style={{ color: T.steel }}>▸</span>
+                  </span>
+                </div>
+              );
+              return (
+                <Card accent={T.jade} style={{ padding: "12px 12px 10px" }}>
+                  <Eyebrow c={T.jade}>THE LAB · {totLive} SPEAKING · {totArmed} GATHERING · {tot} TOTAL</Eyebrow>
+                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Read to decide, not to browse — every instrument below waits for its own n before it speaks.</div>
+                  {/* THE FORKING-PATHS DISCLOSURE (§P0-2). One sentence, permanently on
+                      the masthead, because the density itself is the disclosure: dozens
+                      of instruments mining one person's history will turn up a few
+                      interesting-looking things on noise alone. Saying so once, up
+                      front, discharges most of that honestly — and it is the same move
+                      the rest of the app makes with (measured, n=X). */}
+                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px`, maxWidth: "34em" }}>
+                    {tot} instruments read one person's data — a few will always look interesting by chance, and anything under {LAB_MIN_N} observations reads PROVISIONAL, not measured.
+                  </div>
+                  {/* R15i r2 — MACHINE TRUST moved OFF the doorway: the full receipt now
+                      lives on the prophet's own card, where it is the instrument's read.
+                      MY CALL, filed: a ONE-LINE summary stays at the top, because the
+                      number is the room's calibration and a reader deciding whether to
+                      trust anything below deserves it in one glance — the tap still opens
+                      the scorecard, the words are the engine's, the row is 44px. */}
+                  {(() => { const pg = prophetGrades(s);
+                    return (
+                      <div onClick={() => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); }} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); } }} style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: pg.n >= 2 ? T.jade : T.brass, cursor: "pointer" }}>
+                        {pg.n >= 2
+                          ? `MACHINE TRUST · 7-day weight miss ±${pg.mae} lb ▸`
+                          : "MACHINE TRUST · grading its first forecasts ▸"}
+                      </div>
+                    ); })()}
+                  {(() => { const pr3 = trialProposals(s); const run3 = (s.trials || []).filter((t) => !t.declined && !trialVerdict(s, t).done).length; return (
+                    <div onClick={() => setDeskOpen(!deskOpen)} role="button" tabIndex={0} aria-expanded={deskOpen}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setDeskOpen(!deskOpen); } }}
+                      style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: run3 ? T.brass : T.chalk, cursor: "pointer" }}>
+                      ⚗ TRIALS DESK · {run3 ? `${run3} running` : "none running"} · {pr3.length} proposed {deskOpen ? "▾" : "▸"}
+                    </div>
+                  ); })()}
+                  {deskOpen && <TrialsDesk s={s} setS={setS} save={save} />}
+                  <div onClick={() => setAskOpen(true)} role="button" tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setAskOpen(true); } }}
+                    style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.gauge, cursor: "pointer" }}>🜁 ASK THE ANALYST — any question, answered from your data ▸</div>
+                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>Tap any line for the full story, in plain words. Fresh verdicts carry their date.</div>
+                  {secs.map((sec) => {
+                    const openSec = secOpen[sec.k] !== undefined ? secOpen[sec.k] : false;
+                    const cards = sec.k === "gathering" && !gatherAll ? sec.cards.slice(0, 5) : sec.cards;
+                    return (
+                      <div key={sec.k}>
+                        {/* Section header per §3.5: TS.label UPPER steel with its count
+                            in brass, 24 above and 12 below, and a 44px hit area since
+                            the whole thing is the disclosure control. */}
+                        <div onClick={() => setSecOpen({ ...secOpen, [sec.k]: !openSec })} role="button" tabIndex={0}
+                          aria-expanded={openSec}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, [sec.k]: !openSec }); } }}
+                          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.sm, minHeight: 44, marginTop: SP.xl, cursor: "pointer" }}>
+                          <span style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, letterSpacing: "0.16em", color: T.steel, textTransform: "uppercase" }}>
+                            {sec.title}{/* R15i — the engine title carries its own count; the brass duplicate is gone */}
+                          </span>
+                          <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.label, color: T.gauge }}>{openSec ? "▾" : "▸"}</span>
+                        </div>
+                        {openSec && sec.sub && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginBottom: SP.md, lineHeight: `${LH.body}px` }}>{sec.sub}</div>}
+                        {openSec && (cards.length ? cards.map(row) : (
+                          /* Empty explains the gate rather than showing a blank shelf. */
+                          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, padding: `${SP.sm}px 0`, lineHeight: `${LH.micro}px` }}>
+                            (measured, n=0) — nothing in this group yet. Instruments appear here once the ledger holds enough logged days to earn them.
+                          </div>
+                        ))}
+                        {openSec && sec.k === "gathering" && sec.cards.length > 5 && (
+                          <div onClick={() => setGatherAll(!gatherAll)} role="button" tabIndex={0}
+                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setGatherAll(!gatherAll); } }}
+                            style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>{gatherAll ? "▴ show the closest five only" : `▸ ${sec.cards.length - 5} more gathering — further from speaking`}</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </Card>
+              );
+            })()}
+
+          </>
         );
       })()}
-
       {/* ---------- THE DIGITAL TWIN (v2 slice D) ----------
           LAB re-pointed from passive measurement toward decision support: a validated
           energy-balance model tuned to his data. Composes observedTDEE + currentRate +
@@ -15671,6 +15799,53 @@ function HistTab({ s, setS, save }) {
         </Card>
       ); })()}
 
+      {/* R15i — N-OF-1 collapses to a 44px header, CLOSED by default: every parameter
+          and band verbatim one tap down. */}
+      <div onClick={() => setNof1Open(!nof1Open)} role="button" tabIndex={0} aria-expanded={nof1Open}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setNof1Open(!nof1Open); } }}
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.sm, minHeight: 44, cursor: "pointer" }}>
+        <span style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, letterSpacing: "0.16em", color: T.brass, textTransform: "uppercase" }}>N-OF-1 · WHAT THE APP HAS LEARNED</span>
+        <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.label, color: T.gauge }}>{nof1Open ? "▾" : "▸"}</span>
+      </div>
+      {nof1Open && (<>
+      {/* ---------- N-OF-1 LEARNING (v7.3.0 · Slice 4) ----------
+          What the app has learned about HIM from HIS own data — persisted, engine-owned, honest.
+          tdeeLearned / partitionPrior / energyDensity / adaptationSignal are the OWNERS the Twin below
+          + Auto-Pilot read; this card only DISCLOSES them, each WITH its band and a name for what it
+          can't yet know. Fully guarded — renders calm "calibrating" copy in thin/early states. */}
+      {(() => {
+        const tl = tdeeLearned(s); const pp = partitionPrior(s); const ed = energyDensity(s); const ad = adaptationSignal(s);
+        const row = (label, value, detail, accent) => (
+          <div style={{ marginTop: SP.md, paddingTop: SP.sm, borderTop: `1px solid ${T.hairline}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: SP.sm, flexWrap: "wrap" }}>
+              <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, letterSpacing: "0.1em", color: T.steel, textTransform: "uppercase" }}>{label}</span>
+              <span data-num style={{ fontFamily: mono, fontSize: TS.body, fontWeight: 600, color: accent || T.chalk, ...NUMERIC }}>{value}</span>
+            </div>
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.hair, lineHeight: `${LH.micro}px` }}>{detail}</div>
+          </div>
+        );
+        const tdeeBand = tl.acc != null ? tl.acc : (tl.hi != null && tl.lo != null ? Math.round((tl.hi - tl.lo) / 2) : null);
+        const tdeeVal = tl.value != null ? (tdeeBand != null ? `${tl.value} ± ${tdeeBand} kcal` : `${tl.value} kcal`) : "calibrating";
+        const tdeeDetail = tl.value != null
+          ? `${tl.converged ? "converged" : "still converging (~2–4 wk)"} · ${tl.n} fit${tl.n === 1 ? "" : "s"} · TDEE minus logging bias, not physiology`
+          : "keep logging — your maintenance converges in ~2–4 weeks";
+        const pFatLo = Math.round(pp.fatFrac.lo * 100), pFatHi = Math.round(pp.fatFrac.hi * 100);
+        const edVal = ed.identified ? `~${ed.perLb} kcal/lb` : `${ed.perLb} kcal/lb · prior`;
+        const adVal = ad.detected ? `~${Math.abs(ad.kcal)} kcal/day under` : "not detected";
+        return (
+          <Card accent={T.brass} style={{ padding: SP.lg }}>
+            <Eyebrow c={T.brass}>N-OF-1 · WHAT THE APP HAS LEARNED</Eyebrow>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Your own parameters, learned from your own data and feeding the Twin below. Research set the starting point; your data moves it. Every number ships with its band and names what it can't yet know — nothing here is a physiological measurement.</div>
+            {row("MAINTENANCE · TDEE", tdeeVal, tdeeDetail, tl.converged ? T.gauge : T.steel)}
+            {row("PARTITION · p-RATIO", `${pFatLo}–${pFatHi}% fat`, pp.identified ? "anchored to a measured body fat — the band narrows as more DEXA anchors land" : "a RANGE, not a point — barely identifiable from the scale; needs repeated DEXA anchors to narrow (Forbes)", T.chalk)}
+            {row("ENERGY DENSITY", edVal, ed.identified ? `${ed.lo}–${ed.hi} band · fat-mass-dependent — leaner prices lower, not a fixed 3,500` : `${ed.lo}–${ed.hi} band · held at the prior until a DEXA measures your fat mass`, T.chalk)}
+            {row("METABOLIC ADAPTATION", adVal, ad.detected ? "observed maintenance below what mass loss alone predicts — persistent + significant; calibration for the plan, not a target" : "gated on significance + persistence — a single low week can't fire it", ad.detected ? T.brass : T.steel)}
+          </Card>
+        );
+      })()}
+
+
+      </>)}
       {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
       {mapOpen && <MapView s={s} onClose={() => setMapOpen(false)} />}
       <Card style={{ padding: 11, cursor: "pointer" }} onClick={() => setMapOpen(true)}>
@@ -15683,171 +15858,18 @@ function HistTab({ s, setS, save }) {
         </div>
       </Card>
       <RedCellCard />
-      <Section title="The Lab" meta={(() => { const g2 = labGroups(s); return `${g2.reduce((a3, g3) => a3 + g3.cards.length, 0)} instruments · ${g2.reduce((a3, g3) => a3 + g3.live, 0)} live`; })()} c={T.jade}>
-        {(() => {
-        const groups = labGroupsM(s);
-        const tot = groups.reduce((a, g) => a + g.cards.length, 0);
-        const totLive = groups.reduce((a, g) => a + g.live, 0);
-        const totArmed = groups.reduce((a, g) => a + g.armed, 0);
-        const renderCard = (a) => (
-          <Card key={a.id} style={{ padding: 12, cursor: "pointer" }} accent={a.status === "LIVE" ? T.jade : undefined}>
-            <div onClick={() => setLabOpen(labOpen === a.id ? null : a.id)}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
-                <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 16, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk }}>{a.t}</div>
-                <Stamp st={a.status} />
-              </div>
-              <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 3 }}>{plainify(a.tag)}</div>
-              {(a.lines || []).map((l, i) => (
-                <div key={i} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{l}</div>
-              ))}
-              {a.status === "ARMED" && a.prog && (
-                <div style={{ marginTop: 8 }}>
-                  <Bar pct={(a.prog.n / a.prog.need) * 100} c={T.brass} />
-                  <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 4 }}>{a.prog.n} / {a.prog.need} {a.prog.label}</div>
-                </div>
-              )}
-              <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 6, letterSpacing: "0.1em" }}>{labOpen === a.id ? "▾ CLOSE" : "▸ MORE"}</div>
-            </div>
-            {labOpen === a.id && (
-              <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
-                <Eyebrow>WHAT IT IS</Eyebrow>
-                <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 5, lineHeight: 1.55 }}>{plainify(a.deep)}</div>
-                <div style={{ marginTop: 10 }}>
-                  <Eyebrow c={a.status === "LIVE" ? T.jade : T.brass}>FOR YOU · RIGHT NOW</Eyebrow>
-                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{plainify(a.forYou)}</div>
-                </div>
-                {a.action && (
-                  <div style={{ marginTop: 10 }}>
-                    <Btn small tone="jade" onClick={(e) => { e.stopPropagation(); const ns = JSON.parse(JSON.stringify(s)); ns.creatine = { start: isoOf(todayStart()) }; ns.feed.unshift({ d: isoOf(todayStart()), t: "CREATINE STARTED", how: "5 g/day begins inside the sealed window — the water bump files itself under quarantine (Kreider 2017)" }); setS(ns); save(ns); }}>Log creatine start — today</Btn>
-                  </div>
-                )}
-                {a.id === "whatif" && <WhatIfConsole s={s} />}
-                {a.id === "negotiator" && <NegotiatorConsole s={s} />}
-                {a.id === "trialsdesk" && <TrialsDesk s={s} setS={setS} save={save} />}
-                {a.id === "dossier" && <DossierBlock s={s} />}
-              </div>
-            )}
-          </Card>
-        );
-        return (
-          <>
-            {(() => {
-              const wkAgo = isoOf(new Date(todayStart().getTime() - 7 * DAY));
-              const freshMap = {};
-              (s.feed || []).forEach((f) => { if (f.t && f.t.indexOf("LAB LIVE — ") === 0 && f.d >= wkAgo) freshMap[f.t.replace("LAB LIVE — ", "")] = f.d; });
-              const secs = labSections(s);
-              const row = (a) => labOpen === a.id ? (
-                <div key={a.id} style={{ margin: "8px 0" }}>{renderCard(a)}</div>
-              ) : (
-                /* The densest rows in the app, and still on spec: 44px, hairline
-                   between rows rather than a box each, and every row states its own
-                   provenance. An instrument that is still gathering says how far off
-                   it is — n=3 of 8 needed — because "locked" with no number attached
-                   is a teaser, and the brief rules teasers out: an earned state must
-                   show what earns it. */
-                <div key={a.id} onClick={() => setLabOpen(a.id)} role="button" tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLabOpen(a.id); } }}
-                  style={{ display: "flex", alignItems: "center", gap: SP.md, minHeight: 44, padding: `${SP.sm}px 0`, borderTop: `1px solid ${T.hairline}`, cursor: "pointer" }}>
-                  {/* was a bare 7px coloured dot — hue was the only difference between
-                      "speaking" and "locked". Shape carries it now too. */}
-                  <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.label, lineHeight: 1, color: stampColor(a.status), flexShrink: 0, width: 12, textAlign: "center" }}>{stampGlyph(a.status)}</span>
-                  <span style={{ minWidth: 0, flex: 1 }}>
-                    <span style={{ display: "block", fontFamily: disp, fontWeight: 600, fontSize: 14, textTransform: "uppercase", color: a.status === "LOCKED" ? T.steel : T.chalk, lineHeight: 1.2 }}>{a.t.split(" — ")[0]}</span>
-                    <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, lineHeight: `${LH.micro}px`, marginTop: SP.hair, letterSpacing: "0.04em", color: a.status === "LIVE" || a.status === "TRACKING" ? T.brass : T.orange }}>
-                      {a.status === "LIVE" || a.status === "TRACKING"
-                        ? `(measured${a.prog && a.prog.n != null ? `, n=${a.prog.n}` : ""})`
-                        /* PROVISIONAL must never borrow the word "measured" — it has a
-                           number, and the n underneath it is not yet enough to stand on. */
-                        : a.status === "PROVISIONAL"
-                          ? `(provisional, n=${a.prog && a.prog.n != null ? a.prog.n : "?"}${a.prog && a.prog.need ? ` of ${a.prog.need}` : ""} — not yet a verdict)`
-                          : a.prog && a.prog.need != null
-                            ? `(not yet earned — n=${a.prog.n} of ${a.prog.need} needed)`
-                            : "(speculation)"}
-                    </span>
-                  </span>
-                  <span style={{ fontFamily: mono, fontSize: TS.micro, whiteSpace: "nowrap", color: freshMap[a.t] ? T.jade : a.status === "LIVE" || a.status === "TRACKING" ? T.jade : a.status === "ARMED" ? T.brass : T.steel }}>
-                    {freshMap[a.t] ? `new · ${fmtShort(freshMap[a.t])}` : a.status === "ARMED" && a.prog ? `${a.prog.n}/${a.prog.need}` : a.status.toLowerCase()} <span style={{ color: T.steel }}>▸</span>
-                  </span>
-                </div>
-              );
-              return (
-                <Card accent={T.jade} style={{ padding: "12px 12px 10px" }}>
-                  <Eyebrow c={T.jade}>THE LAB · {totLive} SPEAKING · {totArmed} GATHERING · {tot} TOTAL</Eyebrow>
-                  {/* THE FORKING-PATHS DISCLOSURE (§P0-2). One sentence, permanently on
-                      the masthead, because the density itself is the disclosure: dozens
-                      of instruments mining one person's history will turn up a few
-                      interesting-looking things on noise alone. Saying so once, up
-                      front, discharges most of that honestly — and it is the same move
-                      the rest of the app makes with (measured, n=X). */}
-                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px`, maxWidth: "34em" }}>
-                    {tot} instruments read one person's data. A few will look interesting by chance — the pattern-hunters print their own false-alarm rate, and anything under {LAB_MIN_N} observations reads PROVISIONAL rather than measured.
-                  </div>
-                  {(() => { const pg = prophetGrades(s); const first = (s.forecasts || [])[0];
-                    const firstGrade = first ? fmtShort(isoOf(new Date(mk(first.d).getTime() + 7 * DAY))) : "~1 week out";
-                    return (
-                      <div onClick={() => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); }} style={{ fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: pg.n >= 2 ? T.jade : T.brass, marginTop: 6, cursor: "pointer", lineHeight: 1.5 }}>
-                        {/* Scoped deliberately. This number is 7-day WEIGHT-tracking error
-                            graded against the real morning reading. It is not the error bar
-                            on a body-fat ETA — those carry the lean model's uncertainty too —
-                            so the old "read every date below through this" was lending a
-                            number earned on one quantity to claims about another. */}
-                        {pg.n >= 2
-                          ? `MACHINE TRUST · 7-day weight miss ±${pg.mae} lb vs the real reading · bias ${pg.bias > 0 ? "+" + pg.bias + " (runs optimistic)" : pg.bias < 0 ? pg.bias + " (runs pessimistic — you beat it)" : "0.00 (dead-on)"}${pg.provisional ? ` · PROVISIONAL, n=${pg.n} of ${pg.TRUST_N}` : ""} — weight only; BF dates carry more ▸`
-                          : `MACHINE TRUST · the lab is grading its forecasts against the real morning reading — first marks ${firstGrade} ▸`}
-                      </div>
-                    ); })()}
-                  {(() => { const pr3 = trialProposals(s); const run3 = (s.trials || []).filter((t) => !t.declined && !trialVerdict(s, t).done).length; return (
-                    <div onClick={() => setDeskOpen(!deskOpen)} role="button" tabIndex={0} aria-expanded={deskOpen}
-                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setDeskOpen(!deskOpen); } }}
-                      style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: run3 ? T.brass : T.chalk, cursor: "pointer" }}>
-                      ⚗ TRIALS DESK · {run3 ? `${run3} running` : "none running"} · {pr3.length} proposed {deskOpen ? "▾" : "▸"}
-                    </div>
-                  ); })()}
-                  {deskOpen && <TrialsDesk s={s} setS={setS} save={save} />}
-                  <div onClick={() => setAskOpen(true)} role="button" tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setAskOpen(true); } }}
-                    style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.gauge, cursor: "pointer" }}>🜁 ASK THE ANALYST — any question, answered from your data ▸</div>
-                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>Tap any line for the full story, in plain words. Fresh verdicts carry their date.</div>
-                  {secs.map((sec) => {
-                    const openSec = secOpen[sec.k] !== undefined ? secOpen[sec.k] : false;
-                    const cards = sec.k === "gathering" && !gatherAll ? sec.cards.slice(0, 5) : sec.cards;
-                    return (
-                      <div key={sec.k}>
-                        {/* Section header per §3.5: TS.label UPPER steel with its count
-                            in brass, 24 above and 12 below, and a 44px hit area since
-                            the whole thing is the disclosure control. */}
-                        <div onClick={() => setSecOpen({ ...secOpen, [sec.k]: !openSec })} role="button" tabIndex={0}
-                          aria-expanded={openSec}
-                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, [sec.k]: !openSec }); } }}
-                          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.sm, minHeight: 44, marginTop: SP.xl, cursor: "pointer" }}>
-                          <span style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, letterSpacing: "0.16em", color: T.steel, textTransform: "uppercase" }}>
-                            {sec.title} <span style={{ color: T.brass }}>{sec.cards.length}</span>
-                          </span>
-                          <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.label, color: T.gauge }}>{openSec ? "▾" : "▸"}</span>
-                        </div>
-                        {openSec && sec.sub && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginBottom: SP.md, lineHeight: `${LH.body}px` }}>{sec.sub}</div>}
-                        {openSec && (cards.length ? cards.map(row) : (
-                          /* Empty explains the gate rather than showing a blank shelf. */
-                          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, padding: `${SP.sm}px 0`, lineHeight: `${LH.micro}px` }}>
-                            (measured, n=0) — nothing in this group yet. Instruments appear here once the ledger holds enough logged days to earn them.
-                          </div>
-                        ))}
-                        {openSec && sec.k === "gathering" && sec.cards.length > 5 && (
-                          <div onClick={() => setGatherAll(!gatherAll)} role="button" tabIndex={0}
-                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setGatherAll(!gatherAll); } }}
-                            style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>{gatherAll ? "▴ show the closest five only" : `▸ ${sec.cards.length - 5} more gathering — further from speaking`}</div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </Card>
-              );
-            })()}
-
-          </>
-        );
-      })()}
-      </Section>
+      {/* R15i — the collapsible wrapper is gone: the instruments lead, always visible; the card's own eyebrow is the single census. */}
+        <Card accent={T.jade}>
+        <Eyebrow>THE RECORD · {HISTORY.length + liveDayCount} DAYS · 6/10 → LIVE</Eyebrow>
+        <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 8, lineHeight: 1.6 }}>{weekDigest(s)}</div>
+        <div style={{ display: "flex", gap: 18, marginTop: 10, flexWrap: "wrap" }}>
+          {stat(wDelta != null ? `−${wDelta}` : "—", "lb · wk-avg vs wk 1")}
+          {stat(`${proHitTot}/${proNTot}`, "protein on target")}
+          {stat(`${s.zeroComp.count}`, "events · zero comp")}
+          {stat(`${latest && latest.avgSteps != null ? latest.avgSteps + "k" : "—"}`, "steps avg · latest wk")}
+        </div>
+        <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 8 }}>Weight fell while every headline lift rose — the whole thesis, in one screen. Tap a week for the day-by-day.</div>
+      </Card>
 
       <Section title="Live Weeks" meta={`${liveWks.length} accruing${liveWks.length ? " · wk " + liveWks[0].wk + " current" : ""}`} c={T.orange}>
         {liveWks.map((w) => (
@@ -16810,8 +16832,10 @@ export default function PrepLedger() {
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "env(safe-area-inset-top)", background: T.ink, zIndex: 55 }} />
 
       <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(14px + env(safe-area-inset-top)) 14px calc(88px + env(safe-area-inset-bottom))", visibility: (rules || coach || kitPerson) ? "hidden" : "visible" }}>
+        {/* R15i r2 — the back-link measured 27px: paint-free text, so the extra padding
+            is pure slop and the negative margin keeps the glyph exactly where it painted. */}
         {inMore && (
-          <div onClick={() => setTab("LEDGER")} role="button" tabIndex={0} aria-label="Back to Ledger" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, cursor: "pointer", padding: "0 0 12px", letterSpacing: "0.06em", display: "inline-block" }}>‹ LEDGER</div>
+          <div onClick={() => setTab("LEDGER")} role="button" tabIndex={0} aria-label="Back to Ledger" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, cursor: "pointer", minHeight: 44, display: "inline-flex", alignItems: "center", padding: "12px 14px 12px 0", margin: "-12px 0 0 -14px", letterSpacing: "0.06em" }}>‹ LEDGER</div>
         )}
         {tab === "NOW" && <TabGuard name="NOW"><NowTab2 s={s} setS={setS} save={save} go={setTab} /></TabGuard>}
         {tab === "BRIEF" && <TabGuard name="BRIEF"><NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}

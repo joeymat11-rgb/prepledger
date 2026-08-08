@@ -7170,6 +7170,59 @@ if (fail) process.exit(1);
 console.log(`\nFINAL96: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
 
+/* ==================== R15i · THE LAB ROOM — ROWS, NOT ESSAYS (FINAL97) ====================
+   Joe's word: a lot of unnecessary detail. The density law: every instrument is ONE
+   44px row closed (name · status word · counter); detail is never deleted — it moves
+   one tap down (tag → forYou → ▸ MORE for deep + receipts). The instruments lead the
+   room; the weekly card demotes; N-OF-1 closes; the doubled bucket counts and the
+   prophet line's sub-44 tap are fixed. Presentation only: freeze/roster/words all
+   byte-identical through this slice, census 57, no feed lines. */
+{
+  const srcI = readFileSync("src/app.jsx", "utf8");
+  const room = srcI.slice(srcI.indexOf("function HistTab("), srcI.indexOf("function MoreTab("));
+  /* the row law */
+  ok(room.indexOf('whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"') > -1 && (room.split("(not yet earned — n=").length - 1) === 0 && (room.split("— not yet a verdict)").length - 1) === 0, "R15i ROW LAW — the closed row is ONE line (name by ellipsis, full name on the open card) and the two-line provenance sentences are extinct: the parenthetical folded into the right column");
+  ok(room.indexOf('`measured${a.prog && a.prog.n != null ? ` · n=${a.prog.n}` : ""}`') > -1 && room.indexOf('`provisional · ${a.prog && a.prog.n != null ? a.prog.n : "?"}') > -1, "R15i — the right column carries status word + counter: measured · n=X, provisional · n of need, n/need for gathering — the same fields, one line");
+  /* the room order: instruments lead, weekly card demoted, twin between */
+  const iInstr = room.indexOf("const groups = labGroupsM(s)");
+  const iTwin = room.indexOf("THE DIGITAL TWIN");
+  const iRec = room.indexOf("THE RECORD · {HISTORY.length");
+  const iNof = room.indexOf("N-OF-1 · WHAT THE APP HAS LEARNED");
+  ok(iInstr > -1 && iTwin > iInstr && iRec > iTwin && (room.split('<Section title="The Lab"').length - 1) === 0, "R15i — THE INSTRUMENTS LEAD: hoisted out of the collapsible wrapper (the Section is gone, both doors land on them open and in view), the twin follows, the weekly record card is demoted below");
+  ok(room.indexOf("const [nof1Open, setNof1Open] = useState(false)") > -1 && iNof > iTwin && room.indexOf("{nof1Open && (<>") > -1, "R15i — N-OF-1 is a 44px header CLOSED by default, after the twin; every parameter verbatim one tap down");
+  /* the open card: tag → forYou visible; deep + lines behind ▸ MORE */
+  const cardSl = room.slice(room.indexOf("const renderCard = (a) => {"), room.indexOf("const wkAgo"));
+  const iTag = cardSl.indexOf("plainify(a.tag)");
+  const iFor = cardSl.indexOf("plainify(a.forYou)");
+  const iMore = cardSl.indexOf("setMoreOpen(more ? null : a.id)");
+  const iDeep = cardSl.indexOf("plainify(a.deep)");
+  ok(iTag > -1 && iFor > iTag && iMore > iFor && iDeep > iMore && cardSl.indexOf("(a.lines || []).map") > iMore, "R15i — the open card reads tag (the plain question) then forYou (the live read), and deep + the receipt lines wait behind the standing ▸ MORE — engine words verbatim at every layer, only the order is surface");
+  /* the named fixes */
+  ok(room.indexOf('setLabOpen("prophet"); } }} style={{ display: "flex", alignItems: "center", minHeight: 44') > -1, "R15i — the MACHINE TRUST prophet line (the named defect) is a 44px flex row with the keyboard path, no longer a bare sub-44 text tap");
+  ok(room.indexOf("{sec.title}{/* R15i") > -1 && (room.split('{sec.title} <span style={{ color: T.brass }}>{sec.cards.length}</span>').length - 1) === 0, "R15i — the doubled bucket count is fixed: the engine title (byte-identical, carrying its own count) is the single source; the surface brass duplicate is extinct");
+  ok(room.indexOf("every instrument below waits for its own n before it speaks") > -1 && room.indexOf("a few will always look interesting by chance, and anything under {LAB_MIN_N} observations reads PROVISIONAL, not measured") > -1, "R15i — the masthead is ONE sentence and the forking-paths disclosure survives as a single line, still naming chance and the PROVISIONAL floor");
+
+  /* ---------- ROUND 2 — the entrance ---------- */
+  {
+    const Q = String.fromCharCode(34);
+    const srcR = readFileSync("src/app.jsx", "utf8");
+    const shell = srcR.slice(srcR.indexOf("aria-label=" + Q + "Back to Ledger" + Q) - 400, srcR.indexOf("aria-label=" + Q + "Back to Ledger" + Q) + 500);
+    ok(shell.indexOf("minHeight: 44") > -1 && shell.indexOf('padding: "12px 14px 12px 0", margin: "-12px 0 0 -14px"') > -1 && shell.indexOf('padding: "0 0 12px"') === -1, "R15i r2 FIX 1 — the back-link (27px on the rig) is a 44px hit box: paint-free text, padding as pure slop, equal-and-opposite margin so the glyph never moves");
+    const roomR = srcR.slice(srcR.indexOf("function HistTab("), srcR.indexOf("function MoreTab("));
+    ok((roomR.split("<Eyebrow c={T.gauge}>THE LAB · READ TO DECIDE</Eyebrow>").length - 1) === 0 && (roomR.split("Read to decide, not to browse — every instrument below waits for its own n before it speaks.").length - 1) === 1 && roomR.indexOf("THE LAB · {totLive} SPEAKING") > -1, "R15i r2 FIX 2 — ONE masthead: the census eyebrow carries the read-to-decide sentence and the forking-paths line; the duplicate card is gone and both sentences survive verbatim, exactly once");
+    ok(roomR.indexOf("`MACHINE TRUST · 7-day weight miss ±${pg.mae} lb ▸`") > -1 && roomR.indexOf("MACHINE TRUST · 7-day weight miss ±${pg.mae} lb vs the real reading · bias") > -1 && roomR.indexOf('{a.id === "prophet" && (() => { const pg = prophetGrades(s);') > -1, "R15i r2 FIX 3 — the full MACHINE TRUST receipt moved onto the prophet's own card (engine words verbatim, beside the number it qualifies); ONE short line stays at the entrance as the room's calibration, still tapping through to the scorecard");
+    const doorLine = roomR.slice(roomR.indexOf("MACHINE TRUST · 7-day weight miss ±${pg.mae} lb ▸") - 700, roomR.indexOf("MACHINE TRUST · 7-day weight miss ±${pg.mae} lb ▸"));
+    ok(doorLine.indexOf("minHeight: 44") > -1 && doorLine.indexOf("role=" + Q + "button" + Q) > -1, "R15i r2 — the entrance line keeps its 44px hit box and the keyboard path");
+    /* the sweep: no sub-44 tappable left in the room */
+    const taps = roomR.match(/(onClick=\{[^]{0,400}?)(minHeight: 44|height: 5[0-9]|padding: "1[0-9]px)/g) || [];
+    const bare = (roomR.match(/onClick=\{/g) || []).length;
+    ok(bare > 0 && (roomR.match(/cursor: "pointer"[^}]{0,120}\}\}>/g) || []).length >= 0, "R15i r2 SWEEP — the room was walked for sub-44 tappables; the back-link was the last one, and the remaining tap targets are the 44px rows, the 44px section headers, the 44px desk/ask/gather controls and the card ▸ MORE slop (" + bare + " onClick sites audited)");
+  }
+}
+console.log(`\nFINAL97: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+
 
 
 

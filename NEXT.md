@@ -355,7 +355,50 @@ when the roster generalizes.
 
 ---
 
-## NOW — EXPERIMENT LEGIBILITY (filed 2026-08-08, audit directive; building on feat/r15h-legibility)
+## NOW — R15i ROUND 2 + R15j QUEUED (2026-08-08)
+
+**R15i round 2, built:** (1) the back-link "‹ LEDGER" measured 27px — now a 44px hit
+box, paint-free text with padding as pure slop and an equal-and-opposite margin so the
+glyph never moves (rig: 77×44). Sweep result named: it was the last sub-44 tappable in
+the room; everything else already carries 44 (rows, section headers, desk/ask/gather
+controls, the card's ▸ MORE slop). (2) The two mastheads are ONE card — the census
+eyebrow now carries the read-to-decide sentence and the forking-paths line, both
+verbatim, exactly once; the duplicate card is gone. (3) MACHINE TRUST moved off the
+doorway: the full receipt (bias, PROVISIONAL n-of, the weight-only caveat) now lives on
+the prophet's own card beside the number it qualifies. **My call, filed:** ONE short
+line stays at the entrance — "MACHINE TRUST · 7-day weight miss ±0.61 lb ▸" — because
+that number is the room's calibration and a reader deciding whether to trust anything
+below deserves it in a glance; it keeps the tap to the scorecard and its 44px box.
+
+**Both round-1 calls accepted as built** (three back-room headers over a door; THE
+RECORD below the instruments). **R15j queued per Joe's ruling:** no instrument is
+culled — the 8 dead ones are the MENU of what more the app could do, and each becomes
+an optional-input row in the tiered capture sheet ("start tagging morning pulse →
+three instruments wake up"). No withdrawals, no engine movement.
+
+## FILED — R15i · THE LAB ROOM, ROWS NOT ESSAYS (2026-08-08, Joe's word: "a lot of unnecessary detail"; feat/r15i-labroom)
+
+**The density law:** the room is ROWS; detail is never deleted — it moves one tap down.
+(1) Every instrument = ONE 44px row: name · status word · counter, one line where the
+name fits; the status parenthetical folds into the right column. Tap → the card: plain
+question (tag) → forYou (live read, engine words verbatim) → deep/lines behind the
+standing ▸ MORE. Nothing rendered closed but a name, a status, a number. (2) Masthead:
+one sentence; the forking-paths disclosure survives as a single line (surface prose —
+compressible; engine words untouchable). (3) N-OF-1 collapses to a 44px header, CLOSED
+by default, every parameter verbatim one tap down. (4) THE RECORD weekly card out of
+the hero position — **my call: below the instruments** (not behind a door). (5) Models
+/ shelf / later: already closed 44px headers with visible counts — **my call: keep the
+three honest headers** rather than a BACK ROOM door (smaller change, census stays in
+view). (6) The instruments LEAD the room: hoisted out of the collapsible Section to the
+top, both doors land on them open and in view; the outer Section's duplicate census
+drops (the card's own eyebrow is the single source). Still in force: doubled bucket
+counts fixed (surface brass duplicate dropped, engine titles byte-identical); the
+prophet-scorecard MACHINE TRUST line gets its ≥44 slop (the named defect); words
+verbatim for ALL engine text; freeze/roster/words byte-identical; census 57; no feed
+lines. **Round 2 queued (not built): the audit's named cull list, Joe vetoing item by
+item — round 1 is presentation only.**
+
+## SHIPPED (was NOW) — EXPERIMENT LEGIBILITY (filed 2026-08-08, audit directive; merged as v7.31.0)
 
 **The question it answers on screen:** "what is the app currently trying to learn about
 me, and what would settle each question?" The machinery exists; this slice makes it
