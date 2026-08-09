@@ -13341,7 +13341,7 @@ function DebriefCard({ s, iso }) {
               style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: DT.touch, background: "none", border: "none", padding: "0 2px", cursor: "pointer", textAlign: "left" }}>
               <span>
                 <span style={{ fontFamily: disp, fontWeight: 600, fontSize: 15, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase" }}>{L.n}</span>
-                <span style={{ ...tnum, display: "block", fontSize: 11, color: DT.steel, marginTop: 3 }}>{(d9.w != null ? d9.w : "BW") + " × " + (d9.reps || []).join("·") + " · "}<span style={{ color: dl9.c }}>{dl9.txt}</span></span>
+                <span style={{ ...tnum, display: "block", fontSize: 11, color: DT.steel, marginTop: 3 }}>{(d9.w != null ? d9.w + " × " : "") + (d9.reps || []).join("·") + " · "}   /* v7.38.2 (d) — print the stored load or nothing; never invent BW */<span style={{ color: dl9.c }}>{dl9.txt}</span></span>
               </span>
               <span data-db="mark" style={{ ...tnum, display: "flex", alignItems: "center", gap: 8, flexShrink: 0, fontSize: 11, letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
                 <span style={{ color: mk9.c }}>{mk9.g} {mk9.w}</span>
@@ -13478,58 +13478,48 @@ function LogTab({ s, setS, save, slp }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* v7.38.2 (a)(c) — THE ORPHAN BELT, unconditional at TRAIN top: the v7.38.1 card
+          sat inside the unlogged-session conditional, so the one night it was built for
+          (today logged, draft trapped) unmounted it. And it offered "Log under <date>" —
+          dropped entirely: the mismatch PROVES the date was borrowed, and the reps can
+          carry unattested targets; re-banking them under a stale date is the phantom
+          machine again. Recap · explicit discard · guidance. The athlete's memory is the
+          only honest source at this point. */}
+      {(() => {
+        const orphans = [];
+        try {
+          for (let i9 = 0; i9 < localStorage.length; i9++) {
+            const k9 = localStorage.key(i9);
+            if (!k9 || k9.indexOf("prep-ledger-gymdraft-orphan-") !== 0) continue;
+            const dr9 = JSON.parse(localStorage.getItem(k9) || "null");
+            if (dr9) orphans.push({ k: k9, d: k9.slice("prep-ledger-gymdraft-orphan-".length), dr: dr9 });
+          }
+        } catch (e) {}
+        if (!orphans.length) return null;
+        const o9 = orphans[0];
+        const name9 = (id9) => { const e9 = (s.exercises || []).find((z) => z.id === id9); return e9 ? e9.n : id9; };
+        return (
+          <Card accent={T.brass}>
+            <Eyebrow c={T.brass}>A DRAFT FROM {fmtShort(o9.d)} EXISTS</Eyebrow>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>Its lifts do not match that date’s session, so gym mode set it aside rather than resume it wrong. It cannot be logged from here — its reps may include tapped-through targets nobody attested. If these sets were real, enter them under the right date in the classic list; your memory is the only honest source now.</div>
+            <div style={{ marginTop: 8 }}>{Object.keys(o9.dr.reps || {}).map((id9) => <div key={id9} style={{ fontFamily: mono, fontSize: 11, color: T.chalk }}>{name9(id9)} · {(o9.dr.reps[id9] || []).join("/") || "—"}{o9.dr.rir && o9.dr.rir[id9] != null ? " · RIR " + o9.dr.rir[id9] : ""}</div>)}</div>
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              <Btn small onClick={() => { if (!window.confirm("Discard the " + fmtShort(o9.d) + " draft? Its reps leave the phone.")) return; try { localStorage.removeItem(o9.k); } catch (e) {} setS({ ...s }); }}>Discard</Btn>
+            </div>
+          </Card>
+        );
+      })()}
       {gym && (() => {
         /* F3 — a live draft owns its session: resuming keys GymMode to the DRAFT's date
            (its sessions log under the day they belong to, and its gymKey matches, so the
            restore + resumePhase wiring runs on EVERY door — launcher and chip alike). */
-        const live9 = findGymDraft();
+        const live9 = findGymDraft(s);
         const gDate = live9 ? live9.iso : dateSel;
         const gSess = live9 && live9.iso !== dateSel ? genSession(s, live9.iso, slp) : sess;
         return gSess ? <GymMode s={s} setS={setS} save={save} slp={slp} sess={gSess} dateSel={gDate === dateSel ? fileISO : gDate} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} /> : null;
       })()}
       {sess && !s.sessionLog[dateSel] && (
         <>
-        {/* H2 (v7.38.1) — THE ORPHAN BELT. A gymdraft whose date has no logged session
-            and whose ids mismatch that date's template is trapped work — Joe's
-            gymdraft-2026-08-10 (upper ids on a lower date) crashed the resume path and
-            held his reps invisibly. It surfaces as a RECOVERY card now: read-only
-            per-set recap, log-under-its-date, or explicit discard. A date that already
-            HAS a session offers DISCARD ONLY — never a second log, no duplicate day. */}
-        {(() => {
-          const found = [];
-          try {
-            for (let i9 = 0; i9 < localStorage.length; i9++) {
-              const k9 = localStorage.key(i9);
-              if (!k9 || k9.indexOf("prep-ledger-gymdraft-") !== 0) continue;
-              const d9 = k9.slice("prep-ledger-gymdraft-".length);
-              if (d9 === dateSel && !s.sessionLog[d9]) continue;   /* the live draft the launcher already owns */
-              const dr9 = JSON.parse(localStorage.getItem(k9) || "null");
-              if (!dr9) continue;
-              const ids9 = Object.keys(dr9.reps || {});
-              const logged9 = !!s.sessionLog[d9];
-              const tpl9 = logged9 ? null : (() => { try { return genSession(s, d9, slp); } catch (e) { return null; } })();
-              const tplIds9 = tpl9 && tpl9.ex ? tpl9.ex.map((x) => x.id) : [];
-              const mism9 = !logged9 && ids9.some((x) => tplIds9.indexOf(x) < 0);
-              if (logged9 || mism9) found.push({ k: k9, d: d9, dr: dr9, ids: ids9, logged: logged9 });
-            }
-          } catch (e) {}
-          if (!found.length) return null;
-          const o9 = found[0];
-          const name9 = (id9) => { const e9 = (s.exercises || []).find((z) => z.id === id9); return e9 ? e9.n : id9; };
-          return (
-            <Card accent={T.brass}>
-              <Eyebrow c={T.brass}>A DRAFT FROM {fmtShort(o9.d)} EXISTS</Eyebrow>
-              <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{o9.logged ? fmtShort(o9.d) + " already has a logged session, so this draft can only be discarded — a second log would make a duplicate day." : "Its lifts do not match " + fmtShort(o9.d) + "’s template, so gym mode cannot resume it. Log it under its own date, or discard it — nothing is dropped silently."}</div>
-              <div style={{ marginTop: 8 }}>{o9.ids.map((id9) => <div key={id9} style={{ fontFamily: mono, fontSize: 11, color: T.chalk }}>{name9(id9)} · {(o9.dr.reps[id9] || []).join("/") || "—"}{o9.dr.rir && o9.dr.rir[id9] != null ? " · RIR " + o9.dr.rir[id9] : ""}</div>)}</div>
-              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                {!o9.logged ? (
-                  <Btn small tone="jade" onClick={() => { const entries9 = o9.ids.map((id9) => { const e9 = (s.exercises || []).find((z) => z.id === id9); return e9 ? { id: id9, n: e9.n, w: e9.w, tgt: (o9.dr.reps[id9] || []).slice(), reps: (o9.dr.reps[id9] || []).slice(), isDebutNow: false, rir: o9.dr.rir ? o9.dr.rir[id9] ?? null : null } : null; }).filter(Boolean); if (!entries9.length) return; const { s: ns, lines } = completeSession(s, o9.d, entries9, slp, { note: "recovered draft", niggles: [], skipped: [], pace: null }); setS(ns); save(ns); try { localStorage.removeItem(o9.k); } catch (e) {} setRecap(lines); }}>Log under {fmtShort(o9.d)}</Btn>
-                ) : null}
-                <Btn small onClick={() => { if (!window.confirm("Discard the " + fmtShort(o9.d) + " draft? Its reps leave the phone.")) return; try { localStorage.removeItem(o9.k); } catch (e) {} setS({ ...s }); }}>Discard</Btn>
-              </div>
-            </Card>
-          );
-        })()}
         {/* R19d — GYM ON A REST DAY ASKS, IT NEVER SILENTLY BORROWS. The old dateSel
             quietly filed a rest-day session under the next training day, which is how
             Sunday 8/09 landed as 8/10. The borrow is now declared, with a one-tap switch. */}
@@ -15146,12 +15136,27 @@ function effortWords(plan, held) {
    derives the key from today's dateSel misses it and lands on a fresh lift-1 — Joe's F3.
    ±1 day covers the midnight boundary; anything older is an abandoned draft, not a live
    session. */
-function findGymDraft() {
+/* v7.38.2 (b) — a draft whose ids mismatch ITS OWN DATE'S current template is never the
+   launcher's draft. Tonight's failure: the Monday chip resolved Joe's trapped Sunday
+   draft as "SESSION SET 1", and Monday's FINISH would have removeItem'd the SAME key —
+   silent deletion of trapped reps. Quarantine on sight: rename to gymdraft-orphan-<date>
+   (recoverable, never deleted); the recovery card owns orphans, the chip never sees
+   them, and a fresh session gets a clean key. */
+function findGymDraft(s9) {
   try {
     for (let k = 0; k < localStorage.length; k++) {
       const key = localStorage.key(k);
-      if (key && key.indexOf("prep-ledger-gymdraft-") === 0) {
+      if (key && key.indexOf("prep-ledger-gymdraft-") === 0 && key.indexOf("prep-ledger-gymdraft-orphan-") !== 0) {
         const d = JSON.parse(localStorage.getItem(key) || "null");
+        if (d && s9) {
+          const iso0 = key.slice("prep-ledger-gymdraft-".length);
+          const ids0 = Object.keys(d.reps || {});
+          const tpl0 = (() => { try { const g0 = genSession(s9, iso0); return g0 && g0.ex ? g0.ex.map((x) => x.id) : []; } catch (e) { return []; } })();
+          if (ids0.length && ids0.some((x) => tpl0.indexOf(x) < 0)) {
+            try { localStorage.setItem("prep-ledger-gymdraft-orphan-" + iso0, JSON.stringify(d)); localStorage.removeItem(key); } catch (e) {}
+            continue;
+          }
+        }
         if (d) { const iso9 = key.slice("prep-ledger-gymdraft-".length); const gap9 = Math.abs((mk(isoOf(todayStart())) - mk(iso9)) / DAY); if (gap9 <= 1) return { ...d, iso: iso9 }; }
       }
     }
@@ -16180,7 +16185,7 @@ function HistTab({ s, setS, save }) {
 function GymLauncher({ s, onOpen }) {
   const [, force] = useState(0);
   useEffect(() => { const iv = setInterval(() => force((x) => x + 1), 800); return () => clearInterval(iv); }, []);
-  const live = findGymDraft();
+  const live = findGymDraft(s);
   if (!live) return (
     <button onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(94,212,162,.35)", background: "rgba(94,212,162,.06)", color: DT.jade, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>▶ GYM MODE — ONE LIFT AT A TIME, TIMERS ON</button>
   );
@@ -16199,7 +16204,7 @@ function GymLauncher({ s, onOpen }) {
 
 function SessionLiveChip({ s, go }) {
   const [, force] = useState(0);
-  const draft = findGymDraft();   /* F3 — the ONE scanner every door shares */
+  const draft = findGymDraft(s);   /* F3 — the ONE scanner every door shares; it quarantines mismatches so no door ever resolves an orphan */
   useEffect(() => {
     /* F4 — DISCOVERY, not just display: gym-exit mutates LogTab state, which never
        re-renders this shell component, so a draft-gated interval left the chip null on

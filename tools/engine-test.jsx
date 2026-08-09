@@ -6733,13 +6733,13 @@ if (fail) process.exit(1);
   /* ---------- ROUND 5 — three loose wires, pinned tight ---------- */
   ok(gmP.indexOf('de.style.overflow = "hidden"; db.style.overflow = "hidden";') > -1 && gmP.indexOf("window.scrollTo(0, 0)") > -1 && gmP.indexOf("de.style.overflow = prev9[0]") > -1, "F1 — the DOCUMENT scroll-locks while Gym Mode is mounted (html AND body — the page behind the overlay kept 1772px of live scroll) and restores exactly what was there on unmount: the modal pattern, with the give-back");
   ok(chip.indexOf('data-arm={resting ? "rest" : "resume"}') > -1 && chip.indexOf('const resting = rp9.phase === "rest" && remain > 0;') > -1, "F2 — the chip's two arms are honest: the REST arm belongs to the rest phase ALONE, so a mid-ask exit wears RESUME (the owed thing is the ask) — the arm that could never render, now pinned by attribute");
-  ok((srcP.split("findGymDraft()").length - 1) >= 3 && chip.indexOf("const draft = findGymDraft();") > -1, "F3 — ONE scanner on every door: the chip, the launcher path and GymMode's mount all read findGymDraft, so a 1:39 AM session keyed to yesterday resumes identically from any entrance");
-  ok(srcP.indexOf("const live9 = findGymDraft();") > -1 && srcP.indexOf("const gDate = live9 ? live9.iso : dateSel;") > -1, "F3 — a live draft OWNS its session: every gym open keys GymMode to the draft's own date, so the restore + resumePhase wiring (the proven pure law) actually runs on the manual door too — the wiring was the gap, and the date boundary was the wire");
+  ok((srcP.split("findGymDraft(s)").length - 1) >= 3 && chip.indexOf("const draft = findGymDraft(s);") > -1, "F3 — ONE scanner on every door: the chip, the launcher path and GymMode's mount all read findGymDraft, so a 1:39 AM session keyed to yesterday resumes identically from any entrance");
+  ok(srcP.indexOf("const live9 = findGymDraft(s);") > -1 && srcP.indexOf("const gDate = live9 ? live9.iso : dateSel;") > -1, "F3 — a live draft OWNS its session: every gym open keys GymMode to the draft's own date, so the restore + resumePhase wiring (the proven pure law) actually runs on the manual door too — the wiring was the gap, and the date boundary was the wire");
   /* ---------- ROUND 6 · F4 — the clock can never be hidden on any tab ---------- */
   ok(chip.indexOf("const iv = setInterval(() => force((x) => x + 1), 800);") > -1 && chip.indexOf("if (!draft) return;") === -1, "F4 — the chip DISCOVERS: its interval runs unconditionally, so a gym exit that never re-renders the shell still surfaces the clock on the very tab it lands on — a draft-gated interval was the invisible wire");
   const launcher = srcP.slice(srcP.indexOf("function GymLauncher("), srcP.indexOf("function SessionLiveChip("));
   ok(launcher.indexOf('data-launcher="live"') > -1 && launcher.indexOf('"▸ RESUME · REST "') > -1 && launcher.indexOf('"▸ RESUME SESSION · "') > -1 && launcher.indexOf("minHeight: 64") > -1, "F4 — AND the better design: the GYM MODE launcher itself wears the live session (both arms, same persisted anchor, 64 law intact) — the door on TRAIN shows the running state, self-ticking so no parent re-render is ever load-bearing");
-  ok(launcher.indexOf("resumePhase(live, Date.now())") > -1 && (srcP.split("findGymDraft()").length - 1) >= 4, "F4 — the launcher reads the SAME scanner and the SAME resume law as every other door: one clock, three displays, zero owned ticks");
+  ok(launcher.indexOf("resumePhase(live, Date.now())") > -1 && (srcP.split("findGymDraft(s)").length - 1) >= 3, "F4 — the launcher reads the SAME scanner and the SAME resume law as every other door: one clock, three displays, zero owned ticks");
 }
 console.log(`\nFINAL89: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
@@ -7611,7 +7611,16 @@ if (fail) process.exit(1);
   ok(srcH.indexOf('markAdj(ex.id, setN); const r2') > -1 && srcH.indexOf("e2.reps.forEach((v9, i9) => { if (!adj[e2.id + " + String.fromCharCode(34) + ":" + String.fromCharCode(34) + " + i9]) out9.push") > -1, "H3 — engagement is per (lift, SET): a slot an approved +1 added mid-day, pre-filled with its target and tapped through, lists on FINISH by itself even when earlier slots of the same lift were honestly adjusted — the lift-granular belt could not see it");
   ok(srcH.indexOf("if (!keep.length) { split.skipped.push({ id: e9.id }); continue; }") > -1 && srcH.indexOf("split.entries.push({ ...e9, reps: keep });") > -1, "H3 — a struck SLOT leaves the entry; a lift with every slot struck files as skipped: per-set honesty all the way into the record");
   /* H2 — the orphan belt */
-  ok(srcH.indexOf("A DRAFT FROM {fmtShort(o9.d)} EXISTS") > -1 && srcH.indexOf("already has a logged session, so this draft can only be discarded") > -1 && srcH.indexOf("Log under {fmtShort(o9.d)}") > -1, "H2 — a trapped gymdraft surfaces as a recovery card (per-set recap · log under its date · explicit discard), and a date that already HAS a session offers DISCARD ONLY — never a duplicate day (Joe's 8/10 draft against his logged 8/09)");
+  /* v7.38.2 — the v7.38.1 H2 pin was EVOLVED with the audit's three kills: the card was
+     unreachable (mounted inside the unlogged conditional), the launcher still resolved
+     the mismatched draft as its own (and Monday's FINISH would have deleted the trapped
+     key), and "Log under <date>" could re-bank unattested targets under a borrowed date.
+     Honest accounting: the shipped v7.38.1 card never looked at the 8/09 session at all
+     — the DISCARD-ONLY claim in the report was aspiration, not code. */
+  ok(srcH.indexOf("A DRAFT FROM {fmtShort(o9.d)} EXISTS") > -1 && srcH.indexOf("Log under") === srcH.lastIndexOf("Log under") && srcH.indexOf("enter them under the right date in the classic list") > -1, "H2 v2 — the recovery card is DISCARD-ONLY with guidance: the mismatch proves the date was borrowed and the reps may carry unattested targets, so no log path exists off this card at all");
+  ok(srcH.indexOf("prep-ledger-gymdraft-orphan-") > -1 && srcH.indexOf("function findGymDraft(s9)") > -1 && srcH.indexOf('key.indexOf("prep-ledger-gymdraft-orphan-") !== 0') > -1, "H2 v2 — QUARANTINE ON SIGHT in the one scanner every door shares: a mismatched draft renames to gymdraft-orphan-<date> (recoverable, never deleted), the chip and launcher never see it, and a fresh session gets a clean key — Monday's FINISH can no longer delete Sunday's trapped reps");
+  ok(srcH.split("{gym && (() => {")[0].indexOf("A DRAFT FROM") > -1, "H2 v2 — the card mounts UNCONDITIONALLY at TRAIN top level, before the gym block: the one night it was built for (today logged, draft trapped) is exactly when the old conditional unmounted it");
+  ok(srcH.indexOf('(d9.w != null ? d9.w + " × " : "")') > -1, "(d) — the debrief prints the stored load or nothing; it never invents BW");
 }
 console.log(`\nFINAL101: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
