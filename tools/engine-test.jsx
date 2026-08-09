@@ -279,7 +279,7 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         const old = clone(SEED); delete old.skinfolds; old.v = 38;
         const up = __test.migrate(JSON.parse(JSON.stringify(old)));
         ok(Array.isArray(up.skinfolds) && up.skinfolds.length === 0, "R5 migration — patchV39 adds s.skinfolds = [] and nothing was there to restate");
-        ok(up.v === 40, "R5 migration — and bumps to 40 (v40 = R19: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
+        ok(up.v === 41, "R5 migration — and bumps to 41 (v40 = R19; v41 = the H4 record correction: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
                 ok(Array.isArray(up.split) && up.split.length === 1 && up.split[0].from === "2026-08-09" && up.split[0].map[0] === "U" && up.split[0].map[1] === "L" && up.split[0].map[4] === "U" && up.split[0].map[5] === "L" && up.split[0].map[3] === "REST", "R19c migration — patchV40 seeds the athlete-stated split, DATED from the day he said it: Sun U · Mon L · Thu U · Fri L, rest elsewhere");
         /* byte-identity is the wrong invariant: migrate() replays the WHOLE patch chain, so
            other idempotent patches legitimately touch the state. The invariant that matters
@@ -5561,13 +5561,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 40, "schema: SCHEMA_V is 40 (patchV40 appended for R19: the dated split + the date restatement)");
+  ok(SC === 41, "schema: SCHEMA_V is 41 (patchV41: the athlete-attested H4 record correction)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
-  ok(migd.v === 40 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
+  ok(migd.v === 41 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
   ok(migd.reads.length === oldV35.reads.length && Object.keys(migd.dailyLogs).length === Object.keys(oldV35.dailyLogs).length, "patchV36: ADDITIVE — no read or dailyLog is added or lost (count-preserving)");
   ok(SEED.plan.autonomy === "propose", "patchV36: SEED already carries autonomy='propose' so a fresh install === a migrated one");
-  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 40, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
+  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 41, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
   const future = clone(SEED); future.v = 41;
   ok(mig(future).v === 41, "migrate: a NEWER (v41) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
   const legacy = clone(SEED); legacy.v = 35; legacy.plan = { goals: [{ text: "no-id" }], ifthen: [{ cue: "x", action: "y" }], share: false };
@@ -5858,13 +5858,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 40, "schema: SCHEMA_V is 40 (patchV40 appended for R19)");
+  ok(__test.SCHEMA_V === 41, "schema: SCHEMA_V is 41 (patchV41 on top of R19)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
-  ok(m37.v === 40 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
+  ok(m37.v === 41 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
   ok(m37.reads.length === oldV36.reads.length && Object.keys(m37.dailyLogs).length === Object.keys(oldV36.dailyLogs).length, "patchV37: ADDITIVE — no read or dailyLog added or lost (count-preserving)");
-  ok(MIG(clone(SEED)).v === 40, "patchV37/38/39/40: idempotent on a current SEED (no double-patch drift)");
+  ok(MIG(clone(SEED)).v === 41, "patchV37..41: idempotent on a current SEED (no double-patch drift)");
   const fut39 = clone(SEED); fut39.v = 41; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
   ok(MIG(fut39).v === 41 && MIG(fut39).learned.tdee.length === 1, "patchV38: a NEWER (v41) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
 
@@ -6109,13 +6109,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(JSON.stringify(calorieTarget(clone(SEED))) === JSON.stringify(calorieTarget(clone(SEED))), "ENGINE-OWNS-NUMBERS — calorieTarget is unchanged by the phase layer on a normal cut (no phase number injected)");
 
   // ---- E · patchV38 — additive + rollback-safe; fresh SEED === migrated --------------------
-  ok(SCHEMA_V === 40, "patchV39/40 — SCHEMA_V is 40 (R19 landed on top of the R5 skinfold tracker)");
+  ok(SCHEMA_V === 41, "patchV39/40/41 — SCHEMA_V is 41 (H4 on top of R19)");
   ok(Array.isArray(SEED.plan.phaseLog) && SEED.plan.phaseLog.length === 0 && !("phase" in SEED.plan) && !("brk" in SEED.plan), "patchV38 — SEED authors an EMPTY phaseLog and NO phase/brk override: a fresh install === a migrated state");
   const oldV37 = clone(SEED); oldV37.v = 37; delete oldV37.plan.phaseLog;
   const m38 = migrate(oldV37);
-  ok(m38.v === 40 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
+  ok(m38.v === 41 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
   ok(m38.reads.length === oldV37.reads.length && Object.keys(m38.dailyLogs).length === Object.keys(oldV37.dailyLogs).length, "patchV38 — ADDITIVE: no read or dailyLog added or lost (count-preserving)");
-  ok(migrate(clone(SEED)).v === 40 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
+  ok(migrate(clone(SEED)).v === 41 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
   const fut39 = clone(SEED); fut39.v = 41; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };
   ok(migrate(fut39).v === 41 && migrate(fut39).plan.phase === "leangain", "patchV38 — a NEWER (v41) state is handed back UNTOUCHED: rollback-safe, no phase decision wiped");
 
@@ -7549,9 +7549,9 @@ if (fail) process.exit(1);
   ok(srcG.indexOf("if (setN > 0) { undoSet(); setT(0); } else goBackLift()") > -1, "R19a — the shared control undoes the last set when there is one (stopping the rest clock) and steps back a lift when there is not: one button, the honest action for the position");
   ok((srcG.match(/first lift, set 1 — nothing behind you/g) || []).length >= 2, "R19a — at lift 1 set 1 the control disables VISIBLY with why, on the lift screen AND the shared row: a control that vanishes reads as broken (Joe's exact report)");
   /* R19b — click-through cannot bank phantom targets */
-  ok(srcG.indexOf("const [adj, setAdj] = useState({});") > -1 && srcG.indexOf("markAdj(ex.id); const r2 = getR(ex).slice()") > -1 && srcG.indexOf("markAdj(ex.id); setRir({") > -1, "R19b — explicit engagement (a rep button or an RIR answer) is tracked separately from touch, because doneSet touches and LOG SET alone proves nothing about the numbers");
-  ok(srcG.indexOf("LOGGED AT TARGET — NOBODY CONFIRMED THE REPS") > -1 && srcG.indexOf("!adj[e2.id] && e2.rir == null && (rirEnd[e2.id] == null)") > -1, "R19b — FINISH lists every logged lift with no adjustment and no RIR answer — the exact signature of the 7/23 pronated and 7/31 ham phantoms (rir null, reps === tgt element-wise) — for the athlete to rule");
-  ok(srcG.indexOf("disabled={unruled.length > 0}") > -1 && srcG.indexOf('if (v9 === "strike") g2[id9] = true;') > -1 && srcG.indexOf('if (v9 === "strike") delete t2[id9];') > -1, "R19b — FINISH blocks until every suspect is ruled, and a STRIKE lands the lift on the record as SKIPPED (clearing its touch so the skip actually takes — touched wins over gskip in gymEntries by design)");
+  ok(srcG.indexOf("const [adj, setAdj] = useState({});") > -1 && srcG.indexOf("markAdj(ex.id, setN); const r2 = getR(ex).slice()") > -1 && srcG.indexOf("markAdj(ex.id, 0); setRir({") > -1 && srcG.indexOf("markAdj(ex.id, getR(ex).length - 1); setRirEnd({") > -1, "R19b — explicit engagement (a rep button or an RIR answer) is tracked separately from touch, because doneSet touches and LOG SET alone proves nothing about the numbers");
+  ok(srcG.indexOf("LOGGED AT TARGET — NOBODY CONFIRMED THE REPS") > -1 && srcG.indexOf('if (!adj[e2.id + ":" + i9]) out9.push') > -1, "R19b — FINISH lists every logged lift with no adjustment and no RIR answer — the exact signature of the 7/23 pronated and 7/31 ham phantoms (rir null, reps === tgt element-wise) — for the athlete to rule");
+  ok(srcG.indexOf("disabled={unruled.length > 0}") > -1 && srcG.indexOf('if (v9 === "strike") { const p9 = k9.split(":")') > -1 && srcG.indexOf("if (!keep.length) { split.skipped.push({ id: e9.id }); continue; }") > -1, "R19b — FINISH blocks until every suspect is ruled, and a STRIKE lands the lift on the record as SKIPPED (clearing its touch so the skip actually takes — touched wins over gskip in gymEntries by design)");
   /* the struck lift really does leave the entries */
   const sessX = [{ id: "a1", n: "A", w: 100, tgt: [10, 10], isDebutNow: false }, { id: "b1", n: "B", w: 50, tgt: [12, 12], isDebutNow: false }];
   const partX = __test.gymEntries(sessX, { reps: {}, rir: { a1: 2 }, rirEnd: {}, gskip: { b1: true }, touched: { a1: true } });
@@ -7580,6 +7580,42 @@ if (fail) process.exit(1);
 }
 console.log(`\nFINAL100: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ==================== v7.38.1 HOTFIX (FINAL101) ==================== */
+{
+  const cl = (o) => JSON.parse(JSON.stringify(o));
+  const srcH = readFileSync("src/app.jsx", "utf8");
+  /* H1 — the beacon crash (2026-08-09T19:51:37Z, t.sets): a stale draft idx clamps */
+  ok(srcH.indexOf("sess.ex[idx] || sess.ex[Math.min(idx, sess.ex.length - 1)] || sess.ex[0]") > -1 && srcH.indexOf("d.idx >= sess.ex.length) d.idx = Math.max(0, sess.ex.length - 1)") > -1, "H1 — the beacon crash is guarded at BOTH doors: the live ex resolution clamps a stale draft idx (an upper draft against a shorter lower template read undefined and threw on .sets), and the draft restore clamps before it ever sets state");
+  /* H4 — the correction, driven on the exact live shape */
+  const S9 = cl(__test.SEED); S9.v = 40;
+  S9.sessionLog = { ...S9.sessionLog, "2026-08-09": { entries: [
+    { id: "tricep", n: "Tricep", w: 42.5, tgt: [12, 12, 11, 10], reps: [12, 12, 11, 10], rir: null, rirSets: [null, null, null, null] },
+    { id: "curl", n: "Curls", w: 55, tgt: [11, 10, 10, 9], reps: [11, 10, 10, 9], rir: 2, rirSets: [2, null, null, null] },
+    { id: "rows", n: "Rows", w: 120, tgt: [9, 9, 8], reps: [9, 9, 8], rir: 1, rirSets: [1, null, 0] },
+    { id: "press", n: "Press", w: 250, tgt: [8, 8], reps: [9, 8], rir: 2, rirSets: [2, 1] },
+  ], skipped: [{ id: "pronated" }], note: "re-log" } };
+  const C9 = __test.migrate(cl(S9));
+  const g9 = (id) => C9.sessionLog["2026-08-09"].entries.find((e) => e.id === id);
+  ok(JSON.stringify(g9("tricep").reps) === "[12,12]" && JSON.stringify(g9("curl").reps) === "[11,10,10]" && JSON.stringify(g9("rows").reps) === "[9,9]", "H4 — the attested record: tricep keeps two sets, curl three, rows two — Joe's words on the record: 'I didn't do the 3rd set of arms' · 'the first ones look correct'. Strike what nothing attests");
+  ok(JSON.stringify(g9("rows").rirSets) === "[1,0]", "H4 — the terminal RIR answer reassigns to the TRUE last set (rows [1,null,0] → [1,0]): the answer was about the last set he did, not the slot the belt banked");
+  ok(JSON.stringify(g9("press").reps) === "[9,8]" && C9.sessionLog["2026-08-09"].skipped[0].id === "pronated" && C9.sessionLog["2026-08-09"].note === "re-log", "H4 — everything attested stands: press untouched, skipped[pronated] and the note intact");
+  const R9 = __test.migrate(cl(C9));
+  ok(JSON.stringify(R9.sessionLog["2026-08-09"].entries.find((e) => e.id === "tricep").reps) === "[12,12]", "H4 — replay is a no-op: the content key no longer matches after the edit, so the corrected state passes through untouched — and the same key means a later attested restore cannot be silently re-struck");
+  const M9 = cl(S9); M9.v = 40; M9.sessionLog["2026-08-09"].entries[0].reps = [12, 12, 11];
+  const K9 = __test.migrate(M9);
+  ok(JSON.stringify(K9.sessionLog["2026-08-09"].entries[0].reps) === "[12,12,11]", "H4 — a record that does NOT match the key exactly is untouched: content-keyed means this correction can never fire on data it was not written for");
+  ok((C9.exercises.find((z) => z.id === "tricep") || {}).lastMeta !== undefined, "H4 — caches re-derive through deriveLastMeta, never hand-edited");
+  ok((C9.feed[0] || {}).t === "RECORD CORRECTED — unattested sets struck from Sunday's re-log" && /restores it by the same mechanism/.test((C9.feed[0] || {}).how), "H4 — the feed line cites Joe's words AND names the restore path");
+  /* H3 — per-set: the tonight shape, driven through the suspects logic */
+  ok(srcH.indexOf('markAdj(ex.id, setN); const r2') > -1 && srcH.indexOf("e2.reps.forEach((v9, i9) => { if (!adj[e2.id + " + String.fromCharCode(34) + ":" + String.fromCharCode(34) + " + i9]) out9.push") > -1, "H3 — engagement is per (lift, SET): a slot an approved +1 added mid-day, pre-filled with its target and tapped through, lists on FINISH by itself even when earlier slots of the same lift were honestly adjusted — the lift-granular belt could not see it");
+  ok(srcH.indexOf("if (!keep.length) { split.skipped.push({ id: e9.id }); continue; }") > -1 && srcH.indexOf("split.entries.push({ ...e9, reps: keep });") > -1, "H3 — a struck SLOT leaves the entry; a lift with every slot struck files as skipped: per-set honesty all the way into the record");
+  /* H2 — the orphan belt */
+  ok(srcH.indexOf("A DRAFT FROM {fmtShort(o9.d)} EXISTS") > -1 && srcH.indexOf("already has a logged session, so this draft can only be discarded") > -1 && srcH.indexOf("Log under {fmtShort(o9.d)}") > -1, "H2 — a trapped gymdraft surfaces as a recovery card (per-set recap · log under its date · explicit discard), and a date that already HAS a session offers DISCARD ONLY — never a duplicate day (Joe's 8/10 draft against his logged 8/09)");
+}
+console.log(`\nFINAL101: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
 
 
 
