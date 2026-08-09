@@ -3259,7 +3259,7 @@ function energyAvailability(s) {
   const wks = Math.max(1, rows.length / 7);
   const logged = sessDays / wks;
   let scheduled = 0;
-  for (let i = 0; i < 7; i++) { const d = isoOf(new Date(todayStart().getTime() - i * DAY)); const t2 = dayType(d); if (t2 === "U" || t2 === "L") scheduled++; }
+  for (let i = 0; i < 7; i++) { const d = isoOf(new Date(todayStart().getTime() - i * DAY)); const t2 = dayType(d, s); if (t2 === "U" || t2 === "L") scheduled++; }
   const perWk = Math.max(logged, scheduled);
   const sessPerDay = perWk / 7;
   const trainKcal = sessPerDay * EA_KCAL_PER_SESSION;
@@ -13354,6 +13354,12 @@ function LogTab({ s, setS, save, slp }) {
   const tISO = isoOf(todayStart());
   const nextISO = nextTrainingISO(s);
   const [dateSel, setDateSel] = useState(dayType(tISO, s) === "U" || dayType(tISO, s) === "L" ? tISO : nextISO);   /* R19 — today's type reads the athlete's OWN split */
+  /* R19 fix round — FILE-AS vs TEMPLATE. "Log as today" used to setDateSel(tISO), and
+     genSession returns null on a REST day, so the tap unmounted the ask card AND the
+     launcher that offered it. Now the TEMPLATE date never moves; fileAs carries where
+     the record lands. A tap may never unmount the control that offered it. */
+  const [fileAs, setFileAs] = useState(null);
+  const fileISO = fileAs || dateSel;
   /* §5 move 1 — was rebuilt on EVERY render, including every keystroke in the notes
      textarea and every stepper tap. slp is sleepInfo(s), so s is the only real input. */
   const sess = useMemo(() => (dateSel && !s.sessionLog[dateSel] ? genSession(s, dateSel, slp) : null), [s, dateSel, slp]);
@@ -13409,7 +13415,7 @@ function LogTab({ s, setS, save, slp }) {
   const options = [];
   for (let i = 0; i <= 10 && options.length < 4; i++) {
     const d = isoOf(new Date(todayStart().getTime() + i * DAY));
-    const t2 = dayType(d);
+    const t2 = dayType(d, s);   /* R19 census — a chip offered for a future day must read the athlete's split */
     if (t2 === "U" || t2 === "L") options.push(d);
   }
 
@@ -13438,7 +13444,7 @@ function LogTab({ s, setS, save, slp }) {
     } catch (e) {}
     const entries = sess.ex.filter((ex) => !fin[ex.id]).map((ex) => ({ id: ex.id, n: ex.n, w: ex.w, tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null, rirEnd: rirEnd[ex.id] ?? null }));
     const skippedList = sess.ex.filter((ex) => fin[ex.id]).map((ex) => ({ id: ex.id }));
-    const { s: ns, lines } = completeSession(s, dateSel, entries, slp, { note: note.trim(), niggles: nig, skipped: skippedList, pace });
+    const { s: ns, lines } = completeSession(s, fileISO, entries, slp, { note: note.trim(), niggles: nig, skipped: skippedList, pace });
     setS(ns); save(ns); setRecap(lines); setBoosted(false); setReps({}); setRir({}); setRirEnd({}); setNote(""); setNig([]); setSkipped({}); setPace(null); try { localStorage.removeItem(draftKey); } catch (e) {}
   };
 
@@ -13451,20 +13457,20 @@ function LogTab({ s, setS, save, slp }) {
         const live9 = findGymDraft();
         const gDate = live9 ? live9.iso : dateSel;
         const gSess = live9 && live9.iso !== dateSel ? genSession(s, live9.iso, slp) : sess;
-        return gSess ? <GymMode s={s} setS={setS} save={save} slp={slp} sess={gSess} dateSel={gDate} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} /> : null;
+        return gSess ? <GymMode s={s} setS={setS} save={save} slp={slp} sess={gSess} dateSel={gDate === dateSel ? fileISO : gDate} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} /> : null;
       })()}
       {sess && !s.sessionLog[dateSel] && (
         <>
         {/* R19d — GYM ON A REST DAY ASKS, IT NEVER SILENTLY BORROWS. The old dateSel
             quietly filed a rest-day session under the next training day, which is how
             Sunday 8/09 landed as 8/10. The borrow is now declared, with a one-tap switch. */}
-        {dayType(tISO, s) === "REST" && dateSel !== tISO && !s.sessionLog[tISO] ? (
+        {dayType(tISO, s) === "REST" && !s.sessionLog[tISO] && !s.sessionLog[dateSel] ? (
           <Card accent={T.brass}>
             <Eyebrow c={T.brass}>REST DAY — WHICH DATE GETS THIS SESSION?</Eyebrow>
-            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>Today reads REST on your split, so this session is set to file under {fmtShort(dateSel)}. If you are training right now, it should carry today’s date.</div>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>Today reads REST on your split. {fmtShort(dateSel)}’s session template is loaded either way — this only decides which DATE the record lands under. {fileAs ? fmtShort(dateSel) + "’s session, filed under today." : "Filing under " + fmtShort(dateSel) + "."}</div>
             <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-              <Btn small tone="jade" onClick={() => setDateSel(tISO)}>Log as today · {fmtShort(tISO)}</Btn>
-              <Btn small onClick={() => {}}>Keep {fmtShort(dateSel)}</Btn>
+              <Btn small tone={fileAs ? "jade" : "ghost"} onClick={() => setFileAs(tISO)}>Log as today · {fmtShort(tISO)}</Btn>
+              <Btn small tone={fileAs ? "ghost" : "jade"} onClick={() => setFileAs(null)}>Keep {fmtShort(dateSel)}</Btn>
             </div>
           </Card>
         ) : null}
@@ -13479,14 +13485,14 @@ function LogTab({ s, setS, save, slp }) {
         {options.map((d) => (
           <button key={d} onClick={() => { setDateSel(d); setReps({}); setRir({}); setRirEnd({}); setPace(null); setNote(""); setNig([]); setSkipped({}); }} style={{ flex: "1 0 auto", minWidth: 118, fontFamily: mono, fontSize: TS.label, letterSpacing: "0.05em", padding: "10px 8px", borderRadius: 7, border: `1px solid ${dateSel === d ? T.chalk : T.line}`, background: dateSel === d ? T.plate2 : "transparent", color: dateSel === d ? T.chalk : s.sessionLog[d] ? T.jade : T.steel }}>
             {s.sessionLog[d] ? "✓ " : ""}
-            {fmtShort(d)} · {dayType(d) === "U" ? "UPPER" : "LOWER"}
+            {fmtShort(d)} · {dayType(d, s) === "U" ? "UPPER" : "LOWER"}
           </button>
         ))}
       </div>
 
       {logged ? (() => {
         const done = s.sessionLog[dateSel];
-        const nd = (() => { for (let i = 1; i <= 7; i++) { const d2 = isoOf(new Date(mk(dateSel).getTime() + i * DAY)); if (dayType(d2) === dayType(dateSel)) return d2; } return null; })();
+        const nd = (() => { for (let i = 1; i <= 7; i++) { const d2 = isoOf(new Date(mk(dateSel).getTime() + i * DAY)); if (dayType(d2, s) === dayType(dateSel, s)) return d2; } return null; })();
         const preview = nd ? genSession(s, nd, slp) : null;
         const wins = s.feed.filter((f) => f.d === dateSel && /OWNED|DEBUT|EARNED|RECLAIM|COMPLETE|4TH SET|UNI/.test(f.t)).slice(0, 4);
         return (
@@ -13549,8 +13555,8 @@ function LogTab({ s, setS, save, slp }) {
             <DebriefCard s={s} iso={dateSel} />
             {preview && (
               <Card>
-                <Eyebrow>NEXT {dayType(dateSel) === "U" ? "UPPER" : "LOWER"} · {fmtShort(nd)} — TARGETS ALREADY SET</Eyebrow>
-                {(() => { const t5 = dayType(nd); for (let k5 = 1; k5 < 10; k5++) { const dd = isoOf(new Date(mk(nd).getTime() - k5 * DAY)); if (dd <= isoOf(todayStart())) break; if (dayType(dd) === t5 && !s.sessionLog[dd]) return <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 3 }}>provisional — these re-key the moment {fmtShort(dd)} is logged</div>; } return null; })()}
+                <Eyebrow>NEXT {dayType(dateSel, s) === "U" ? "UPPER" : "LOWER"} · {fmtShort(nd)} — TARGETS ALREADY SET</Eyebrow>
+                {(() => { const t5 = dayType(nd, s); for (let k5 = 1; k5 < 10; k5++) { const dd = isoOf(new Date(mk(nd).getTime() - k5 * DAY)); if (dd <= isoOf(todayStart())) break; if (dayType(dd, s) === t5 && !s.sessionLog[dd]) return <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 3 }}>provisional — these re-key the moment {fmtShort(dd)} is logged</div>; } return null; })()}
                 <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 5 }}>
                   {(preview.ex || []).map((b, i) => (
                     <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: TS.label }}>
@@ -13584,7 +13590,7 @@ function LogTab({ s, setS, save, slp }) {
           release valve and a "deferral #3" counter — a lock, a countdown and an
           escape hatch built around a rule that no longer exists. A third set is
           a set. It runs on its next lower day like any other structural change. */}
-      {dayType(dateSel) === "L" && hackPending && (
+      {dayType(dateSel, s) === "L" && hackPending && (
         <Card accent={T.jade}>
           <Eyebrow c={T.jade}>HACK — THIRD SET DEBUTS TODAY</Eyebrow>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>
@@ -13676,12 +13682,12 @@ function LogTab({ s, setS, save, slp }) {
                 {[["▲", -1], ["▼", 1]].map(([g, dir]) => (
                   <button key={g} onClick={() => {
                     const ns = JSON.parse(JSON.stringify(s));
-                    const arr = ns.exOrder[dayType(dateSel)];
+                    const arr = ns.exOrder[dayType(dateSel, s)];
                     const i = arr.indexOf(ex.id), j = i + dir;
                     if (i < 0 || j < 0 || j >= arr.length) return;
                     [arr[i], arr[j]] = [arr[j], arr[i]];
                     /* stamp the deliberate reorder so a stale device cannot revert it — see _unionExOrder */
-                    ns.exOrder.setAt = { ...(ns.exOrder.setAt || {}), [dayType(dateSel)]: new Date().toISOString() };
+                    ns.exOrder.setAt = { ...(ns.exOrder.setAt || {}), [dayType(dateSel, s)]: new Date().toISOString() };
                     setS(ns); save(ns);
                   }} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, fontFamily: mono, fontSize: TS.label }}>{g}</button>
                 ))}
@@ -13976,7 +13982,7 @@ function LogTab({ s, setS, save, slp }) {
           <div style={{ display: "flex", flexDirection: "column" }}>
             {Object.keys(s.sessionLog).sort().reverse().map((d) => { const sl = s.sessionLog[d]; const tr = (sl.entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0); return (
               <div key={d} onClick={() => { setDateSel(d); /* the debrief toggle this used to open is gone — the DebriefCard is always visible on the selected session */ try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e2) { window.scrollTo(0, 0); } }} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "10px 0", borderBottom: `1px solid ${T.line}`, cursor: "pointer", fontFamily: mono, fontSize: TS.label }}>
-                <span style={{ color: T.chalk }}>{fmtShort(d)} · {dayType(d) === "U" ? "UPPER" : "LOWER"}</span>
+                <span style={{ color: T.chalk }}>{fmtShort(d)} · {dayType(d, s) === "U" ? "UPPER" : "LOWER"}</span>
                 <span style={{ color: T.steel }}>{(sl.entries || []).length} lifts · {tr} reps{cleanAtDate(s, d) ? "" : " · debt"} <span style={{ color: T.steel }}>▸</span></span>
               </div>
             ); })}
@@ -13990,7 +13996,7 @@ function LogTab({ s, setS, save, slp }) {
 }
 
 function QueueTab({ s, slp }) {
-  const nextOfType = (t2) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); if (dayType(d) === t2) return d; } return null; };
+  const nextOfType = (t2) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); if (dayType(d, s) === t2) return d; } return null; };
   const live = s.queue.filter((x) => !x.done);
   const flipped = s.queue.filter((x) => x.done);
   const curl = exById(s, "curl");
@@ -15215,7 +15221,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const backRow = (why9) => (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
       {idx > 0 || setN > 0 ? (
-        <button onClick={() => { if (setN > 0) { undoSet(); setT(0); } else goBackLift(); }} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>{setN > 0 ? "\u25c2 undo last set" : "\u25c2 back a lift"}</button>
+        <button onClick={() => { if (phase === "rir-end") { setPhase("lift"); setT(0); } else if (setN > 0) { undoSet(); setT(0); } else goBackLift(); }} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>{phase === "rir-end" ? "\u25c2 back to this set" : setN > 0 ? "\u25c2 undo last set" : "\u25c2 back a lift"}</button>
       ) : (
         <span style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim }}>first lift, set 1 — nothing behind you</span>
       )}

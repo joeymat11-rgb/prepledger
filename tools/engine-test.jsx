@@ -7556,6 +7556,27 @@ if (fail) process.exit(1);
   const sessX = [{ id: "a1", n: "A", w: 100, tgt: [10, 10], isDebutNow: false }, { id: "b1", n: "B", w: 50, tgt: [12, 12], isDebutNow: false }];
   const partX = __test.gymEntries(sessX, { reps: {}, rir: { a1: 2 }, rirEnd: {}, gskip: { b1: true }, touched: { a1: true } });
   ok(partX.entries.length === 1 && partX.entries[0].id === "a1" && partX.skipped[0].id === "b1", "R19b — driven through gymEntries: with the touch cleared and gskip set (exactly what a STRIKE writes), the lift files as skipped and its target reps never reach the ledger");
+
+  /* ---------- R19 FIX ROUND — three defects from the audit's read ---------- */
+  {
+    const srcF = readFileSync("src/app.jsx", "utf8");
+    /* DEFECT 1 — the ask no longer unmounts its own launcher: FILE-AS is separate from
+       TEMPLATE. genSession is null on a REST day BY DESIGN (driven), which is exactly why
+       "Log as today" must never move the template date. */
+    const S41 = JSON.parse(JSON.stringify(__test.SEED));
+    ok(__test.genSession(S41, "2026-08-11", { last: null }) === null, "R19 fix — genSession returns null on a REST day (2026-08-11 under the athlete's split): the defect precondition, on the record — setDateSel(tISO) on a rest day unmounted the ask AND the launcher");
+    ok(srcF.indexOf("const [fileAs, setFileAs] = useState(null);") > -1 && srcF.indexOf("const fileISO = fileAs || dateSel;") > -1 && srcF.indexOf("setFileAs(tISO)") > -1 && srcF.indexOf("setDateSel(tISO)}>Log as today") === -1, "R19 fix 1 — 'Log as today' sets fileAs and never touches the template date: the tap can no longer unmount the control that offered it (the R14 family law)");
+    ok(srcF.indexOf("completeSession(s, fileISO, entries, slp, {") > -1 && srcF.indexOf("dateSel={gDate === dateSel ? fileISO : gDate}") > -1, "R19 fix 1 — BOTH commit paths file under fileISO (the plain log screen and gym mode), while a resumed live draft keeps its own date");
+    ok(srcF.indexOf("s session template is loaded either way") > -1 && srcF.indexOf("filed under today") > -1, "R19 fix 1 — the card says BOTH truths: whose template, and which date the record lands under");
+    /* DEFECT 2 — the census, pinned so a new stateless caller fails the suite */
+    const calls = srcF.match(/dayType\(([^)]*)\)/g) || [];
+    const real = calls.filter((c) => c.indexOf("dayType(iso") !== 0);
+    const stateless = real.filter((c) => c.split(",").length === 1);
+    ok(stateless.length === 7, "R19 CENSUS — exactly SEVEN stateless dayType calls survive, every one RULED: the Tue/Fri experiment (keyed to the retired Tue/Fri structure; its dow buckets drop post-split lowers by design), four REFEED history reads (the refeed is retired and dated; these read the past), the refeed-pulse pair, the miner's dayBefore, and the anomaly screen — all bounded history. Found " + stateless.length + ": an EIGHTH stateless caller is a defect until ruled here");
+    ok(real.length - stateless.length >= 19 && srcF.indexOf("const t2 = dayType(d, s);   /* R19 census") > -1, "R19 CENSUS — " + (real.length - stateless.length) + " callers pass state, including every site the rig caught: the chip OPTIONS builder, both chip labels, the next-same-type previews, the NEXT eyebrow, the scheduled-count, the hack rider and exOrder's day keys — a chip offered for a future day reads the athlete's split");
+    /* DEFECT 3 — back from the terminal ask returns to the terminal set, no decrement */
+    ok(srcF.indexOf('if (phase === "rir-end") { setPhase("lift"); setT(0); }') > -1 && srcF.indexOf("back to this set") > -1, "R19 fix 3 — the terminal set never incremented setN (doneSet returns before setSetN on the rir-end route), so undoSet from that screen walked back PAST it: back from rir-end now returns to the terminal set's lift phase without a decrement, and the label says what it does");
+  }
 }
 console.log(`\nFINAL100: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
