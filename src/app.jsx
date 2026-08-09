@@ -13341,7 +13341,7 @@ function DebriefCard({ s, iso }) {
               style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: DT.touch, background: "none", border: "none", padding: "0 2px", cursor: "pointer", textAlign: "left" }}>
               <span>
                 <span style={{ fontFamily: disp, fontWeight: 600, fontSize: 15, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase" }}>{L.n}</span>
-                <span style={{ ...tnum, display: "block", fontSize: 11, color: DT.steel, marginTop: 3 }}>{(d9.w != null ? d9.w + " × " : "") + (d9.reps || []).join("·") + " · "}   /* v7.38.2 (d) — print the stored load or nothing; never invent BW */<span style={{ color: dl9.c }}>{dl9.txt}</span></span>
+                <span style={{ ...tnum, display: "block", fontSize: 11, color: DT.steel, marginTop: 3 }}>{/* v7.38.2 (d) — print the stored load or nothing; never invent BW */}{(d9.w != null ? d9.w + " × " : "") + (d9.reps || []).join("·") + " · "}<span style={{ color: dl9.c }}>{dl9.txt}</span></span>
               </span>
               <span data-db="mark" style={{ ...tnum, display: "flex", alignItems: "center", gap: 8, flexShrink: 0, fontSize: 11, letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
                 <span style={{ color: mk9.c }}>{mk9.g} {mk9.w}</span>
