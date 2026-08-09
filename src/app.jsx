@@ -5322,7 +5322,7 @@ function sessionDebrief(s, iso) {
     return { n: name, mark, delivered, lines, next, work };
   });
   const totalReps = (sess.entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0);
-  const sameType = dates.filter((d) => d < iso && dayType(d) === dayType(iso));
+  const sameType = dates.filter((d) => d < iso && dayType(d, s) === dayType(iso, s));   /* R19 survivor — BOTH sides typed with state: historical days keep their historical truth (dated entries), the anchor day gets its own */
   const typeTots = sameType.map((d) => (s.sessionLog[d].entries || []).reduce((a, e) => a + (e.reps || []).reduce((x, y) => x + y, 0), 0)).sort((a, b) => a - b);
   const med = typeTots.length ? typeTots[Math.floor(typeTots.length / 2)] : null;
   /* Resolve the deferred "Next time" lines. A reason every lift shares is a
@@ -5352,7 +5352,7 @@ function sessionDebrief(s, iso) {
   if (!wasClean) summary.push(`Short sleep${night ? ` (${night.h} h)` : ""} — worth about 3% on a heavy set and closer to 10% on a long one, so it is the likeliest reason for anything down here. It does not cost you anything else: the reps count, a record can still bank, and the step is still sized by what you had left. What the flag buys is that today cannot be read as a stall.`);
   else if (rushedDay) summary.push(`You logged this one rushed. Short rest costs reps on the back sets, so nothing here counts toward a stall.`);
   else summary.push(`Normal sleep, unhurried — nothing here needs discounting.${night ? ` ${night.h} h into it.` : ""}`);
-  summary.push(`${nLift} lifts · ${totalReps} reps${med ? ` (your usual ${dayType(iso) === "U" ? "upper" : "lower"} day: ~${med})` : ""}${sessLoad ? ` · ${sessLoad.toLocaleString()} lb moved${loadPc != null ? ` (${loadPc >= 0 ? "+" : ""}${loadPc}% vs the same lifts last time)` : ""}` : ""}.`);
+  summary.push(`${nLift} lifts · ${totalReps} reps${med ? ` (your usual ${dayType(iso, s) === "U" ? "upper" : "lower"} day: ~${med})` : ""}${sessLoad ? ` · ${sessLoad.toLocaleString()} lb moved${loadPc != null ? ` (${loadPc >= 0 ? "+" : ""}${loadPc}% vs the same lifts last time)` : ""}` : ""}.`);
   /* Cross-lift reads. Each earns its place by needing more than one lift to see. */
   if (marks.room.length >= 2) summary.push(`${marks.room.length} lifts finished with reps left on the set that is meant to reach failure (${marks.room.join(", ")}). Muscle growth tracks how close a set ends to failure, so that is the cheapest thing on this page to fix — and the app has already sized bigger steps there because of it.`);
   if (nLift && marks.unrated.length === nLift) summary.push(`No last-set ratings anywhere today, so every step below defaults to a single rep. Rating the final set is what lets the app size the jump to what you actually had left.`);
