@@ -435,7 +435,9 @@ coach card (which session, why, what undoes it) — the 3 → 0 drop was silent.
 `dayWeather().hard` consumer gets named and ruled one by one. Event days stay as they
 are. Deliberate engine movement: freeze regen enumerated leaf-by-leaf.
 
-## TRIAGE — the older beacon entry (filed 2026-08-08)
+## TRIAGE — RULED 2026-08-09 (branch chore/triage-dailylogs): the 2026-07-29 beacon shape is DEAD AT SOURCE. Census: exactly THREE field-level dailyLogs writes remain (NowTab evening sodium chip, alcohol chip, alcohol stepper), every one guarded by if (s.dailyLogs[tISO]) on the same line — the write cannot run on a missing row. Every other writer (SEED, _stateAsOf, the import merge, writeDaily) creates or copies whole rows. The exact v4.0.11 sequence (sodium onto a day with no row) is DRIVEN through writeDaily and succeeds — the row is built before the field lands. Pinned: the census count (a fourth writer fails the suite), the guard-before-write on all three, and the driven sequence.
+
+### (original filing, 2026-08-08)
 
 `ledger/errors.json`, 2026-07-29T23:03:26Z, v4.0.11: *"undefined is not an object
 (evaluating 'B.dailyLogs[U].sodium=R')"* — a write into `dailyLogs[iso].sodium` on a row

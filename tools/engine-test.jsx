@@ -7495,6 +7495,23 @@ if (fail) process.exit(1);
   /* THE CONSUMER RULING, pinned so the split cannot silently spread */
   ok((srcR.split("hardSession").length - 1) === 7, "R17 CONSUMER RULING — exactly three TRAINING consumers read hardSession (liftTrend's exclusion, liftCall's velocity window, liftCall's stall counter) plus its definition, comment and the coach receipt. The three FOOD/SCALE consumers keep hard: the anomaly detector and bodyAlarm both read sleep/steps/SCALE quality, and the natural-experiment miner matches pairs on CALORIES — an estimated day genuinely cannot anchor those");
   ok(srcR.indexOf("!dayWeather(s, d2.d).hard)") > -1 && srcR.indexOf("!dayWeather(s, r.d).hard") > -1 && srcR.indexOf("!dayWeather(s, d2).hard)") > -1, "R17 — and those three still read `hard`, unchanged, at source: the fix is scoped to the three consumers that were asking the wrong question");
+
+  /* ---------- TRIAGE — the 2026-07-29 beacon entry, RULED not assumed ----------
+     ledger/errors.json, v4.0.11: "undefined is not an object (evaluating
+     'B.dailyLogs[U].sodium=R')" — a field write into a day row that did not exist.
+     The audit's order: find every remaining dailyLogs field assignment and prove each
+     one either creates the row first or cannot run on a missing row. The census: */
+  {
+    const srcT = readFileSync("src/app.jsx", "utf8");
+    const fieldWrites = srcT.split("\n").filter((l) => /dailyLogs\[[^\]]*\]\.[a-zA-Z]+ =[^=]/.test(l));
+    ok(fieldWrites.length === 3, "TRIAGE — exactly THREE field-level dailyLogs writes remain in the app (NowTab's evening sodium chip, alcohol chip and alcohol stepper): " + fieldWrites.length + " found. A fourth appearing here means a new writer skipped writeDaily and must be ruled");
+    ok(fieldWrites.every((l) => l.indexOf("if (s.dailyLogs[tISO])") > -1 && l.indexOf("if (s.dailyLogs[tISO])") < l.search(/dailyLogs\[[^\]]*\]\.[a-zA-Z]+ =/)), "TRIAGE — and every one of the three is GUARDED on its own line: `if (s.dailyLogs[tISO])` stands before the write, so the v4.0.11 crash shape — a field set on a missing row — cannot run. On an unlogged day these chips file nothing; the capture sheet is the door that records, through writeDaily, which BUILDS the row");
+    ok(srcT.indexOf("const row = { ...prev };") > -1 && srcT.indexOf("ns.dailyLogs = { ...ns.dailyLogs, [iso]: row };") > -1, "TRIAGE — writeDaily, the ONE day-numbers write path, constructs the row before any field lands on it: the row exists by the time sodium does, which is what the v4.0.11 code failed to ensure");
+    /* the crash shape itself, driven dead through the shared path */
+    const stT = JSON.parse(JSON.stringify(__test.SEED)); stT.dailyLogs = {};
+    const outT = __test.writeDaily(stT, "2026-07-29", { sodium: "high" });
+    ok(outT.dailyLogs["2026-07-29"].sodium === "high", "TRIAGE — the exact v4.0.11 sequence (write sodium on a day with NO row) now succeeds through writeDaily instead of throwing: the beacon entry is ruled DEAD AT SOURCE, by construction and by guard, not assumed dead");
+  }
 }
 console.log(`\nFINAL99: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
