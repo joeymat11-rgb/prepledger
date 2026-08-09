@@ -18,5 +18,15 @@
   "stack": "onClick@https://fitnessledger2.netlify.app/app.js:83:44491\nov@https://fitnessledger2.netlify.app/app.js:8:127542\n@https://fitnessledger2.netlify.app/app.js:8:132551\nob@https://fitnessledger2.netlify.app/app.js:8:15144\nih@https://fitnessledger2.netlify.app/app.js:8:128777\nJf@https://fitnessledger2.netlify.app/app.js:9:28603\nik@https://fitnessledger2.netlify.app/app.js:9:28417",
   "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
   "page": "/"
+ },
+ {
+  "at": "2026-08-09T19:51:37.143Z",
+  "n": 1,
+  "v": "7.38.0",
+  "kind": "react-caught",
+  "msg": "undefined is not an object (evaluating 't.sets')",
+  "stack": "Nc@https://fitnessledger2.netlify.app/app.js:25:157636\naA@https://fitnessledger2.netlify.app/app.js:96:69444\nDf@https://fitnessledger2.netlify.app/app.js:8:47958\nBh@https://fitnessledger2.netlify.app/app.js:8:70799\nP0@https://fitnessledger2.netlify.app/app.js:8:116919\nET@https://fitnessledger2.netlify.app/app.js:8:115962\noh@https://fitnessledger2.netlify.app/app.js:8:115792\nY0@https://fitnessledger2.netlify.app/app.js:8:112580\niv@https://fitnessledger2.netlify.app/app.js:8:124420\nbu@https://fitnessledger2.netlify.app/app.js:1:2203",
+  "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+  "page": "/"
  }
 ]
