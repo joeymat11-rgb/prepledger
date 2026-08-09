@@ -1,4 +1,16 @@
-# NEXT.md — the work queue
+# NEXT
+
+## DONE, AWAITING AUDIT — R19 (2026-08-09, branch feat/r19-gym-split)
+
+R19a back everywhere (shared backRow on rest/rir-open/rir-end; visible-disable at lift 1
+set 1). R19b finish confirm/strike for untouched-but-logged lifts (adj tracked separately
+from touch; strike files as SKIPPED by clearing touch + setting gskip). R19c s.split dated
+config, patchV40 + SEED, legacy hardcode kept as the pre-config reader (preserves the
+dated refeed retirement). R19d 8/10→8/09 restatement keyed on content, lastMeta.d follows,
+feed line cites consent; rest-day gym ASKS which date. SCHEMA_V 40. Freeze moved ZERO
+leaves — the frozen clock predates 8/09; split behaviour pinned by FINAL100 drives.
+QUEUED BEHIND: R18, R18e, R18f (full specs in the 2026-08-09 directive).
+.md — the work queue
 
 **Read this file at the start of every session, before you touch anything else.**
 

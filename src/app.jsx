@@ -341,7 +341,7 @@ const APP_V = "7.37.0";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 39;
+const SCHEMA_V = 40;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -487,6 +487,9 @@ const SEED = {
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
   SEED.v = SCHEMA_V;
+  /* v40 — the seed is authored already-current: a fresh install carries the athlete's
+     dated split entry exactly as the migration writes it. */
+  SEED.split = [{ from: "2026-08-09", map: { 0: "U", 1: "L", 2: "REST", 3: "REST", 4: "U", 5: "L", 6: "REST" }, why: "athlete-stated 2026-08-09 — Sun U · Mon L · Thu U · Fri L (consent relayed on the record, R19)" }];
   SEED.medsLog = [];
   SEED.energy = []; SEED.soreness = []; SEED.grip = [];
   SEED.caffLog = [];
@@ -581,8 +584,20 @@ const exById = (s, id) => s.exercises.find((e) => e.id === id);
    water flag and the Tue/Fri experiment are all reading history and must keep
    reading it truthfully. Callers reasoning about today or tomorrow pass state;
    callers analysing the record do not, and get the historical answer. */
+/* R19c — THE SPLIT IS THE ATHLETE'S, and it is DATED. s.split is a list of dated entries
+   ({from, map, why}); the entry in effect at `iso` answers. Dates BEFORE the first entry
+   fall through to the legacy hardcode below — deliberately kept in code rather than
+   seeded as an epoch-dated config entry, because the hardcode IS the historical truth:
+   it carries the DATED refeed retirement, and an epoch config entry would misread every
+   past Wednesday as REST. History callers that pass no state get the same legacy answer
+   as ever. dayType stays the ONE owner — chips, genSession, pickStructural, weather and
+   forecasts all follow it. */
 function dayType(iso, s) {
   const d = mk(iso).getDay();
+  const list = (s && s.split) || [];
+  let ent = null;
+  for (const x of list) if (x && x.from && x.from <= iso) ent = x;
+  if (ent && ent.map) { const v = ent.map[d]; return v === "U" || v === "L" ? v : "REST"; }
   if (d === 3) {
     const off = s && s.targets && s.targets.refeedOff;
     return off && iso >= off ? "REST" : "REFEED";
@@ -8801,6 +8816,25 @@ function patchV37(s) {
 /* R5 — additive only. Nothing in the old record can be restated as a skinfold reading, so
    this creates the collection and touches nothing else (the `pace` precedent). */
 function patchV39(s) { s.skinfolds = s.skinfolds || []; s.v = 39; return s; }
+function patchV40(s) {
+  /* R19c — the athlete's split, stated 2026-08-09 (his message is the consent on the
+     record): Sun UPPER · Mon LOWER · Tue/Wed REST · Thu UPPER · Fri LOWER · Sat REST.
+     Dated from the day he said it; every earlier day keeps the legacy reading. */
+  s.split = s.split || [{ from: "2026-08-09", map: { 0: "U", 1: "L", 2: "REST", 3: "REST", 4: "U", 5: "L", 6: "REST" }, why: "athlete-stated 2026-08-09 — Sun U · Mon L · Thu U · Fri L (consent relayed on the record, R19)" }];
+  /* R19d — DATE HONESTY, one-time restatement with the athlete's confirmation: his
+     Sunday 8/09 session was filed under 8/10 because the old hardcode called Sunday
+     REST and dateSel borrowed the next training day. The workout ran Sunday. Move the
+     entry to the day it happened — nothing deleted, the row changes address. Keyed on
+     content (8/10 present, 8/09 absent) so replay is a no-op and a device that never
+     had the mislabel is untouched. */
+  if (s.sessionLog && s.sessionLog["2026-08-10"] && !s.sessionLog["2026-08-09"]) {
+    s.sessionLog["2026-08-09"] = s.sessionLog["2026-08-10"];
+    delete s.sessionLog["2026-08-10"];
+    for (const ex9 of s.exercises || []) { if (ex9 && ex9.lastMeta && ex9.lastMeta.d === "2026-08-10") ex9.lastMeta.d = "2026-08-09"; }
+    if (s.feed && s.feed.unshift) s.feed.unshift({ d: "2026-08-09", t: "RECORD RESTATED — Sunday's session moved 8/10 → 8/09", how: "the workout ran Sunday 2026-08-09; the old fixed split called Sunday REST and borrowed Monday's date. Nothing deleted — the entry moved to the day it happened, with Joe's confirmation on the record." });
+  }
+  s.v = 40; return s;
+}
 function patchV38(s) {
   /* v7.4.0 Slice 5 — the PHASE ARC lands its decisions in the already-hardened s.plan (a planned diet
      break + phase transitions). ADDITIVE + idempotent: default the append-only phase-transition LOG to
@@ -8820,7 +8854,7 @@ function patchV38(s) {
    AGAINST LATER STATES — its mutation guarded so a second, tenth, or fiftieth replay
    changes nothing. patchV24's unguarded null erased a banked delivery on every bump for
    weeks before the guard below; do not add the next one. */
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39];
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39, patchV40];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -10254,7 +10288,7 @@ const nextDow = (dow, from = todayStart()) => {
 };
 /* First of the next month — for the monthly letter, which was promising "Aug 1" forever. */
 const nextMonthFirst = (from = todayStart()) => isoOf(new Date(from.getFullYear(), from.getMonth() + 1, 1));
-const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d); if ((t === "U" || t === "L") && !s.sessionLog[d]) return d; } return null; };
+const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d, s); if ((t === "U" || t === "L") && !s.sessionLog[d]) return d; } return null; };
 __test.nextTrainingISO = nextTrainingISO;
 __test.typicalError = typicalError;
 __test.MORNING_PARKED = MORNING_PARKED;
@@ -13319,7 +13353,7 @@ function DebriefCard({ s, iso }) {
 function LogTab({ s, setS, save, slp }) {
   const tISO = isoOf(todayStart());
   const nextISO = nextTrainingISO(s);
-  const [dateSel, setDateSel] = useState(dayType(tISO) === "U" || dayType(tISO) === "L" ? tISO : nextISO);
+  const [dateSel, setDateSel] = useState(dayType(tISO, s) === "U" || dayType(tISO, s) === "L" ? tISO : nextISO);   /* R19 — today's type reads the athlete's OWN split */
   /* §5 move 1 — was rebuilt on EVERY render, including every keystroke in the notes
      textarea and every stepper tap. slp is sleepInfo(s), so s is the only real input. */
   const sess = useMemo(() => (dateSel && !s.sessionLog[dateSel] ? genSession(s, dateSel, slp) : null), [s, dateSel, slp]);
@@ -13420,7 +13454,22 @@ function LogTab({ s, setS, save, slp }) {
         return gSess ? <GymMode s={s} setS={setS} save={save} slp={slp} sess={gSess} dateSel={gDate} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} /> : null;
       })()}
       {sess && !s.sessionLog[dateSel] && (
+        <>
+        {/* R19d — GYM ON A REST DAY ASKS, IT NEVER SILENTLY BORROWS. The old dateSel
+            quietly filed a rest-day session under the next training day, which is how
+            Sunday 8/09 landed as 8/10. The borrow is now declared, with a one-tap switch. */}
+        {dayType(tISO, s) === "REST" && dateSel !== tISO && !s.sessionLog[tISO] ? (
+          <Card accent={T.brass}>
+            <Eyebrow c={T.brass}>REST DAY — WHICH DATE GETS THIS SESSION?</Eyebrow>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>Today reads REST on your split, so this session is set to file under {fmtShort(dateSel)}. If you are training right now, it should carry today’s date.</div>
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              <Btn small tone="jade" onClick={() => setDateSel(tISO)}>Log as today · {fmtShort(tISO)}</Btn>
+              <Btn small onClick={() => {}}>Keep {fmtShort(dateSel)}</Btn>
+            </div>
+          </Card>
+        ) : null}
         <GymLauncher s={s} onOpen={() => setGym(true)} />
+        </>
       )}
       <div style={{ display: "flex", gap: 8, overflowX: "auto", touchAction: "pan-x", paddingBottom: 2 }}>
         {/* Two RECEIPT chips lived here, both styled as buttons and neither carrying a
@@ -15071,6 +15120,15 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   /* TOUCH_NOTE — positive action per lift, recorded as it happens. Never reconstructed:
      getR falls back to the target, so reps can never distinguish performed from untouched. */
   const [touched, setTouched] = useState({});
+  /* R19b — `adj` is EXPLICIT ENGAGEMENT with the numbers: a rep button or an RIR answer.
+     `touched` cannot carry this — doneSet touches, so a lift tapped straight through with
+     LOG SET is touched yet its reps were never confirmed by anyone. getR banks the TARGET
+     for such a lift — the SKIP_ONE_PATH disease through the log door (7/23 pronated,
+     7/31 ham: rir null, reps === tgt element-wise). At FINISH, any logged lift with no
+     adj and no RIR answer is listed for the athlete to confirm or strike. */
+  const [adj, setAdj] = useState({});
+  const markAdj = (id) => { if (id) setAdj((m) => (m[id] ? m : { ...m, [id]: true })); };
+  const [strikes, setStrikes] = useState({});   /* FINISH-screen verdicts: id -> "bank" | "strike" */
   const touch = (id) => { if (id) setTouched((t) => (t[id] ? t : { ...t, [id]: true })); };
   /* Pace is MEASURED here, not asked — the timer already knows. Every rest gets
      counted, and a rest cut short by more than half its prescription counts as
@@ -15149,6 +15207,21 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   /* Back a lift, and un-skip the one we land on — see backLift. Rest is stopped so the timer
      is never left running against a lift he is no longer on. */
   const goBackLift = () => { const b = backLift(idx, gskip, sess.ex); if (!b.moved) return; setGskip(b.gskip); setIdx(b.idx); setSetN(0); setT(0); setPhase("lift"); };
+  /* R19a — BACK WORKS EVERYWHERE. Joe reached the last lift and could not get back:
+     the back control lived only on the lift screen, undo was hidden at set 1, and the
+     rest/RIR screens had no back control at all. One shared footer now rides every
+     phase; using it from rest stops the clock (goBackLift already zeroes it). At lift 1
+     set 1 the control disables VISIBLY with why, instead of vanishing. */
+  const backRow = (why9) => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+      {idx > 0 || setN > 0 ? (
+        <button onClick={() => { if (setN > 0) { undoSet(); setT(0); } else goBackLift(); }} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>{setN > 0 ? "\u25c2 undo last set" : "\u25c2 back a lift"}</button>
+      ) : (
+        <span style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim }}>first lift, set 1 — nothing behind you</span>
+      )}
+      {why9 || null}
+    </div>
+  );
   const nextLift = () => { if (idx + 1 < sess.ex.length) { setIdx(idx + 1); setSetN(0); setPhase("lift"); } else setPhase("all-done"); };
   /* SKIP_ONE_PATH — a control labelled "skip" must put the lift on the record as skipped
      BEFORE advancing. The lift-screen link used to call nextLift directly, which advances
@@ -15166,8 +15239,15 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
      counted" — is only true because of this. */
   const skipLift = () => { setGskip((g) => ({ ...g, [ex.id]: true })); nextLift(); };
   const doneSkip = (() => { const m = {}; for (const r of gymEntries(sess.ex, { reps, rir, rirEnd, gskip, touched }).skipped) m[r.id] = true; return m; })();
+  /* R19b — the suspects: logged lifts whose numbers nobody ever confirmed. Computed the
+     same way the audit found the real cases: no explicit adjustment AND no RIR answer. */
+  const suspects = () => gymEntries(sess.ex, { reps, rir, rirEnd, gskip, touched }).entries.filter((e2) => !adj[e2.id] && e2.rir == null && (rirEnd[e2.id] == null));
   const finish = () => {
-    const split = gymEntries(sess.ex, { reps, rir, rirEnd, gskip, touched });   // SKIP_ONE_PATH — entries and skipped partition the session
+    const g2 = { ...gskip };
+    for (const [id9, v9] of Object.entries(strikes)) if (v9 === "strike") g2[id9] = true;
+    const t2 = { ...touched };
+    for (const [id9, v9] of Object.entries(strikes)) if (v9 === "strike") delete t2[id9];   /* touched wins over gskip in gymEntries; a struck lift must actually skip */
+    const split = gymEntries(sess.ex, { reps, rir, rirEnd, gskip: g2, touched: t2 });   // SKIP_ONE_PATH — entries and skipped partition the session
     try { localStorage.removeItem(gymKey); localStorage.removeItem("prep-ledger-draft-" + dateSel); } catch (e) {}   // both drafts, or the other one resurrects a logged session
     /* n-gated like every other read in here: under three rests there is no
        session-level statement to make, so it stays unknown rather than guessed. */
@@ -15222,6 +15302,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             <button onClick={() => { setRestStart(Date.now()); }} style={{ ...tnum, ...{ background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 12, color: DT.ink, fontSize: 12.5, fontWeight: 700, letterSpacing: "0.08em", padding: "0 14px", minHeight: 64, cursor: "pointer", flex: 1 } }}>restart</button>
             <button onClick={() => { if (restCut(restStart, Date.now())) setRests((r) => ({ ...r, cut: r.cut + 1 })); setT(0); setPhase("lift"); }} style={{ ...tnum, ...{ background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 12, color: DT.steel, fontSize: 12.5, fontWeight: 700, letterSpacing: "0.08em", padding: "0 14px", minHeight: 64, cursor: "pointer", flex: 1 } }}>skip rest</button>
           </div>
+          {backRow()}   {/* R19a — back exists ON the rest screen; using it stops the clock */}
         </div>
       ) : phase === "rir-open" ? (
         /* THE OPENER ASK — jade species: the gatekeeper question. Visually distinct from the
@@ -15249,7 +15330,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             {ex.holdFlag && <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, letterSpacing: "0.06em", marginTop: 8 }}>HELD — an honest ≥1 here releases the load</div>}
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
               {[0, 1, 2, 3].map((v) => (
-                <button key={v} onClick={() => { touch(ex.id); setRir({ ...rir, [ex.id]: v }); setPhase("rest"); }}
+                <button key={v} onClick={() => { touch(ex.id); markAdj(ex.id); setRir({ ...rir, [ex.id]: v }); setPhase("rest"); }}
                   style={{ flex: 1, ...tnum, fontSize: 20, fontWeight: 700, minHeight: 64, borderRadius: 12, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, cursor: "pointer" }}>{v === 3 ? "3+" : v}</button>
               ))}
             </div>
@@ -15259,6 +15340,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             </button>
           </div>
           <div style={{ fontFamily: mono, fontSize: 9.5, color: DT.dim, letterSpacing: "0.08em", textAlign: "center", lineHeight: 1.7 }}>ONE TAP, THEN REST — THE CLOCK IS ALREADY RUNNING.<br />0 TWICE RUNNING HOLDS THE WEIGHT; EVERY EARN JUDGES THIS NUMBER.</div>
+          {backRow()}   {/* R19a */}
         </div>
       ) : phase === "rir-end" ? (
         /* THE TERMINAL ASK — amber species: did the planned effort land? */
@@ -15277,7 +15359,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             <div style={{ ...tnum, fontSize: 12, color: DT.steel, marginTop: 6 }}>{ex.n} · {getR(ex)[getR(ex).length - 1]} reps at {ex.w} · 0 = you emptied it, exactly as planned</div>
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
               {[0, 1, 2, 3].map((v) => (
-                <button key={v} onClick={() => { touch(ex.id); setRirEnd({ ...rirEnd, [ex.id]: v }); setPhase("lift-done"); }}
+                <button key={v} onClick={() => { touch(ex.id); markAdj(ex.id); setRirEnd({ ...rirEnd, [ex.id]: v }); setPhase("lift-done"); }}
                   style={{ flex: 1, ...tnum, fontSize: 20, fontWeight: 700, minHeight: 64, borderRadius: 12, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, cursor: "pointer" }}>{v === 3 ? "3+" : v}</button>
               ))}
             </div>
@@ -15302,6 +15384,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           </div>
           <button onClick={nextLift} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</button>
           <button onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: DT.steel, background: "none", border: "1px solid " + DT.hairline, borderRadius: 8, padding: "9px", width: "100%", minHeight: 44, cursor: "pointer" }}>skip this lift — goes on the record, no phantom reps</button>
+          {backRow()}   {/* R19a */}
         </div>
       ) : phase === "all-done" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 11, minHeight: 0 }}>
@@ -15317,7 +15400,31 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             </div>
           </div>
           <input value={gNote} onChange={(e3) => setGNote(e3.target.value)} placeholder="anything worth remembering about this session" style={{ background: DT.card2, border: "1px solid " + DT.hairline, borderRadius: 12, color: DT.ink, fontFamily: body, fontSize: 16, padding: "14px 12px" }} />
-          <button onClick={finish} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>LOG IT — RECEIPT + DEBRIEF</button>
+          {(() => {
+            const sus9 = suspects();
+            const unruled = sus9.filter((e2) => !strikes[e2.id]);
+            return (
+              <>
+                {sus9.length ? (
+                  <div style={card9}>
+                    <div style={lbl9}>LOGGED AT TARGET — NOBODY CONFIRMED THE REPS</div>
+                    <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.55, marginTop: 6 }}>These lifts were tapped through with LOG SET and never adjusted or asked about. Banked as-is they would write the TARGET as if performed — the phantom the 7/23 and 7/31 sessions already put on the record. Rule each one.</div>
+                    {sus9.map((e2) => (
+                      <div key={e2.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, minHeight: 44 }}>
+                        <span style={{ fontFamily: mono, fontSize: 11.5, color: DT.ink }}>{e2.n}<span style={{ color: DT.steel }}> · {e2.reps.join("/")} @ {e2.w}</span></span>
+                        <span style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                          <button onClick={() => setStrikes((m) => ({ ...m, [e2.id]: "bank" }))} style={{ fontFamily: mono, fontSize: 10.5, color: strikes[e2.id] === "bank" ? DT.jade : DT.steel, border: "1px solid " + (strikes[e2.id] === "bank" ? DT.jade : DT.hairline2), borderRadius: 999, padding: "6px 10px", background: "none", cursor: "pointer" }}>I did this</button>
+                          <button onClick={() => setStrikes((m) => ({ ...m, [e2.id]: "strike" }))} style={{ fontFamily: mono, fontSize: 10.5, color: strikes[e2.id] === "strike" ? DT.amber : DT.steel, border: "1px solid " + (strikes[e2.id] === "strike" ? DT.amber : DT.hairline2), borderRadius: 999, padding: "6px 10px", background: "none", cursor: "pointer" }}>strike — I didn't</button>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <button onClick={finish} disabled={unruled.length > 0} style={{ opacity: unruled.length ? 0.45 : 1,  width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>LOG IT — RECEIPT + DEBRIEF</button>
+                {unruled.length ? <div style={{ fontFamily: mono, fontSize: 10, color: DT.dim, textAlign: "center", marginTop: 6 }}>rule the {unruled.length} unconfirmed lift{unruled.length > 1 ? "s" : ""} above to finish</div> : null}
+              </>
+            );
+          })()}
         </div>
       ) : (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 11, minHeight: 0 }}>
@@ -15360,12 +15467,12 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
               ))}
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
-              <button aria-label="one rep less" onClick={() => { touch(ex.id); const r2 = getR(ex).slice(); r2[setN] = Math.max(0, r2[setN] - 1); setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>−</button>
+              <button aria-label="one rep less" onClick={() => { touch(ex.id); markAdj(ex.id); const r2 = getR(ex).slice(); r2[setN] = Math.max(0, r2[setN] - 1); setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>−</button>
               <div>
                 <div style={{ ...tnum, fontSize: 54, fontWeight: 700, textAlign: "center", color: DT.ink }}>{getR(ex)[setN]}</div>
                 <div style={{ ...tnum, fontSize: 9, color: DT.dim, letterSpacing: "0.16em", textAlign: "center", marginTop: 5 }}>REPS · SET {setN + 1} OF {getR(ex).length} · {rp2.plan[setN] === 0 ? "EMPTY IT" : (rp2.plan[setN] ?? "—") + " IN THE TANK"}</div>
               </div>
-              <button aria-label="one rep more" onClick={() => { touch(ex.id); const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>+</button>
+              <button aria-label="one rep more" onClick={() => { touch(ex.id); markAdj(ex.id); const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>+</button>
             </div>
             <button onClick={doneSet} style={{ marginTop: 16, width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>
               {setN + 1 < getR(ex).length ? "LOG SET · REST TIMER STARTS" : "LOG SET · ONE QUESTION AFTER"}
@@ -15375,7 +15482,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             <button onClick={undoSet} style={{ fontFamily: mono, fontSize: TS.micro, color: DT.steel, background: "none", border: "1px solid " + DT.hairline, borderRadius: 8, padding: "9px", width: "100%", minHeight: 44, cursor: "pointer" }}>◂ undo last set</button>
           ) : null}
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            {idx > 0 ? <button onClick={goBackLift} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>◂ back a lift</button> : <span />}
+            {idx > 0 ? <button onClick={goBackLift} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>◂ back a lift</button> : setN === 0 ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim }}>first lift, set 1 — nothing behind you</span> : <span />}
             <button onClick={skipLift} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>skip lift ▸</button>
           </div>
           <div style={{ flex: 1, minHeight: 0 }} />
