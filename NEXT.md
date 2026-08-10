@@ -1,4 +1,18 @@
-## QUEUED — THE v7.42.1 FOLLOW-UP ROUND (three items, one branch; filed 2026-08-10)
+## QUEUED — THE v7.42.1 FOLLOW-UP ROUND (FOUR items, one branch, suggest v7.43.0; filed 2026-08-10)
+
+**0. OWNER'S RULING (Joe, verbatim: "Calves 11, rows 9, press stays")** — patchV45,
+SCHEMA_V 45, the established ruling pattern: calves.hi 13→11 keyed on the 13; rows.hi
+10→9 keyed on the 10; PRESS EXPLICITLY UNTOUCHED (the ruling, not an omission). last
+UNTOUCHED both (11,11,10,8 at 320 · 9,9 at 180 stand, reading against the new lines).
+RECEIPTS DERIVE per the binding law — each clause from the state at patch time, no
+predictions. SIGHTINGS: neither was at top under the OLD ceiling — nothing pre-banks at
+migration; the next top banks sighting one. CHAIN CHECK: audit pre-verified only hack's
+hi mutations exist (patchV24 guarded, patchV43) — confirm by grep, nothing to retire.
+SEED authored calves 11 / rows 9, SEED.v 45. windowFor DERIVES the floors (expect 9-11
+and 6-9 — derived, never authored). Freeze leaves that move are DELIBERATE, enumerated.
+Grounding: the rep-range audit (big movers at ceiling 9-10), range-equivalence near
+failure, Carlson 2022 for the deficit case.
+
 
 1. **SETUP free-entry**: the rung-walker weight editor gains the typeable input (the
    gym-mode cage pattern — inputMode decimal, select-on-focus, stepValue coercion,
