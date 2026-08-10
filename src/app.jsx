@@ -341,7 +341,7 @@ const APP_V = "7.38.0";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 40;
+const SCHEMA_V = 41;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -8835,6 +8835,34 @@ function patchV40(s) {
   }
   s.v = 40; return s;
 }
+function patchV41(s) {
+  /* v7.38.1 H4 — RECORD CORRECTION, content-keyed, athlete-attested. Joe, tonight, on
+     the record: "I didn't do the 3rd set of arms"; "I don't remember my lifts almost
+     at all, but the first ones look correct" — strike what nothing attests. Unattested
+     tail slots (banked by the pre-per-set belt) leave three 8/09 entries; the terminal
+     RIR answer reassigns to the true last set. Keyed on the EXACT current content: if
+     any entry no longer matches, that edit no-ops (replay-safe, restore-safe). If Joe
+     later attests tricep's third set was real, it restores by this same mechanism. */
+  const rec = s.sessionLog && s.sessionLog["2026-08-09"];
+  if (rec && rec.entries) {
+    const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    let moved = false;
+    for (const e of rec.entries) {
+      if (e.id === "tricep" && eq(e.reps, [12, 12, 11, 10]) && eq(e.rirSets, [null, null, null, null])) { e.reps = [12, 12]; e.rirSets = [null, null]; moved = true; }
+      if (e.id === "curl" && eq(e.reps, [11, 10, 10, 9]) && eq(e.rirSets, [2, null, null, null])) { e.reps = [11, 10, 10]; e.rirSets = [2, null, null]; moved = true; }
+      if (e.id === "rows" && eq(e.reps, [9, 9, 8]) && eq(e.rirSets, [1, null, 0])) { e.reps = [9, 9]; e.rirSets = [1, 0]; moved = true; }
+    }
+    if (moved) {
+      /* recompute the caches through the existing reconcile machinery — never hand-edit */
+      for (const id9 of ["tricep", "curl", "rows"]) {
+        const exL = (s.exercises || []).find((z) => z.id === id9);
+        if (exL) { const dm = deriveLastMeta(s, id9); if (dm) { exL.lastMeta = dm; exL.last = dm.reps.slice(); } }
+      }
+      if (s.feed && s.feed.unshift) s.feed.unshift({ d: "2026-08-09", t: "RECORD CORRECTED — unattested sets struck from Sunday's re-log", how: "Joe, on the record: 'I didn't do the 3rd set of arms' · 'the first ones look correct'. Tail slots nothing attested left tricep, curl and rows; the terminal RIR moved to the true last set. If a struck set was real, saying so restores it by the same mechanism." });
+    }
+  }
+  s.v = 41; return s;
+}
 function patchV38(s) {
   /* v7.4.0 Slice 5 — the PHASE ARC lands its decisions in the already-hardened s.plan (a planned diet
      break + phase transitions). ADDITIVE + idempotent: default the append-only phase-transition LOG to
@@ -8854,7 +8882,7 @@ function patchV38(s) {
    AGAINST LATER STATES — its mutation guarded so a second, tenth, or fiftieth replay
    changes nothing. patchV24's unguarded null erased a banked delivery on every bump for
    weeks before the guard below; do not add the next one. */
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39, patchV40];
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39, patchV40, patchV41];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -13313,7 +13341,7 @@ function DebriefCard({ s, iso }) {
               style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: DT.touch, background: "none", border: "none", padding: "0 2px", cursor: "pointer", textAlign: "left" }}>
               <span>
                 <span style={{ fontFamily: disp, fontWeight: 600, fontSize: 15, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase" }}>{L.n}</span>
-                <span style={{ ...tnum, display: "block", fontSize: 11, color: DT.steel, marginTop: 3 }}>{(d9.w != null ? d9.w : "BW") + " × " + (d9.reps || []).join("·") + " · "}<span style={{ color: dl9.c }}>{dl9.txt}</span></span>
+                <span style={{ ...tnum, display: "block", fontSize: 11, color: DT.steel, marginTop: 3 }}>{/* v7.38.2 (d) — print the stored load or nothing; never invent BW */}{(d9.w != null ? d9.w + " × " : "") + (d9.reps || []).join("·") + " · "}<span style={{ color: dl9.c }}>{dl9.txt}</span></span>
               </span>
               <span data-db="mark" style={{ ...tnum, display: "flex", alignItems: "center", gap: 8, flexShrink: 0, fontSize: 11, letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
                 <span style={{ color: mk9.c }}>{mk9.g} {mk9.w}</span>
@@ -13450,11 +13478,42 @@ function LogTab({ s, setS, save, slp }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* v7.38.2 (a)(c) — THE ORPHAN BELT, unconditional at TRAIN top: the v7.38.1 card
+          sat inside the unlogged-session conditional, so the one night it was built for
+          (today logged, draft trapped) unmounted it. And it offered "Log under <date>" —
+          dropped entirely: the mismatch PROVES the date was borrowed, and the reps can
+          carry unattested targets; re-banking them under a stale date is the phantom
+          machine again. Recap · explicit discard · guidance. The athlete's memory is the
+          only honest source at this point. */}
+      {(() => {
+        const orphans = [];
+        try {
+          for (let i9 = 0; i9 < localStorage.length; i9++) {
+            const k9 = localStorage.key(i9);
+            if (!k9 || k9.indexOf("prep-ledger-gymdraft-orphan-") !== 0) continue;
+            const dr9 = JSON.parse(localStorage.getItem(k9) || "null");
+            if (dr9) orphans.push({ k: k9, d: k9.slice("prep-ledger-gymdraft-orphan-".length), dr: dr9 });
+          }
+        } catch (e) {}
+        if (!orphans.length) return null;
+        const o9 = orphans[0];
+        const name9 = (id9) => { const e9 = (s.exercises || []).find((z) => z.id === id9); return e9 ? e9.n : id9; };
+        return (
+          <Card accent={T.brass}>
+            <Eyebrow c={T.brass}>A DRAFT FROM {fmtShort(o9.d)} EXISTS</Eyebrow>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>Its lifts do not match that date’s session, so gym mode set it aside rather than resume it wrong. It cannot be logged from here — its reps may include tapped-through targets nobody attested. If these sets were real, enter them under the right date in the classic list; your memory is the only honest source now.</div>
+            <div style={{ marginTop: 8 }}>{Object.keys(o9.dr.reps || {}).map((id9) => <div key={id9} style={{ fontFamily: mono, fontSize: 11, color: T.chalk }}>{name9(id9)} · {(o9.dr.reps[id9] || []).join("/") || "—"}{o9.dr.rir && o9.dr.rir[id9] != null ? " · RIR " + o9.dr.rir[id9] : ""}</div>)}</div>
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              <Btn small onClick={() => { if (!window.confirm("Discard the " + fmtShort(o9.d) + " draft? Its reps leave the phone.")) return; try { localStorage.removeItem(o9.k); } catch (e) {} setS({ ...s }); }}>Discard</Btn>
+            </div>
+          </Card>
+        );
+      })()}
       {gym && (() => {
         /* F3 — a live draft owns its session: resuming keys GymMode to the DRAFT's date
            (its sessions log under the day they belong to, and its gymKey matches, so the
            restore + resumePhase wiring runs on EVERY door — launcher and chip alike). */
-        const live9 = findGymDraft();
+        const live9 = findGymDraft(s);
         const gDate = live9 ? live9.iso : dateSel;
         const gSess = live9 && live9.iso !== dateSel ? genSession(s, live9.iso, slp) : sess;
         return gSess ? <GymMode s={s} setS={setS} save={save} slp={slp} sess={gSess} dateSel={gDate === dateSel ? fileISO : gDate} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} /> : null;
@@ -15077,12 +15136,27 @@ function effortWords(plan, held) {
    derives the key from today's dateSel misses it and lands on a fresh lift-1 — Joe's F3.
    ±1 day covers the midnight boundary; anything older is an abandoned draft, not a live
    session. */
-function findGymDraft() {
+/* v7.38.2 (b) — a draft whose ids mismatch ITS OWN DATE'S current template is never the
+   launcher's draft. Tonight's failure: the Monday chip resolved Joe's trapped Sunday
+   draft as "SESSION SET 1", and Monday's FINISH would have removeItem'd the SAME key —
+   silent deletion of trapped reps. Quarantine on sight: rename to gymdraft-orphan-<date>
+   (recoverable, never deleted); the recovery card owns orphans, the chip never sees
+   them, and a fresh session gets a clean key. */
+function findGymDraft(s9) {
   try {
     for (let k = 0; k < localStorage.length; k++) {
       const key = localStorage.key(k);
-      if (key && key.indexOf("prep-ledger-gymdraft-") === 0) {
+      if (key && key.indexOf("prep-ledger-gymdraft-") === 0 && key.indexOf("prep-ledger-gymdraft-orphan-") !== 0) {
         const d = JSON.parse(localStorage.getItem(key) || "null");
+        if (d && s9) {
+          const iso0 = key.slice("prep-ledger-gymdraft-".length);
+          const ids0 = Object.keys(d.reps || {});
+          const tpl0 = (() => { try { const g0 = genSession(s9, iso0); return g0 && g0.ex ? g0.ex.map((x) => x.id) : []; } catch (e) { return []; } })();
+          if (ids0.length && ids0.some((x) => tpl0.indexOf(x) < 0)) {
+            try { localStorage.setItem("prep-ledger-gymdraft-orphan-" + iso0, JSON.stringify(d)); localStorage.removeItem(key); } catch (e) {}
+            continue;
+          }
+        }
         if (d) { const iso9 = key.slice("prep-ledger-gymdraft-".length); const gap9 = Math.abs((mk(isoOf(todayStart())) - mk(iso9)) / DAY); if (gap9 <= 1) return { ...d, iso: iso9 }; }
       }
     }
@@ -15132,8 +15206,11 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
      for such a lift — the SKIP_ONE_PATH disease through the log door (7/23 pronated,
      7/31 ham: rir null, reps === tgt element-wise). At FINISH, any logged lift with no
      adj and no RIR answer is listed for the athlete to confirm or strike. */
+  /* H3 (v7.38.1) — adj is PER SET now. Tonight's shape: five approved +1s added slots
+     pre-filled with targets, and the lift-granular belt let an attested lift bank an
+     unattested SLOT. A slot never explicitly engaged may not bank a target value. */
   const [adj, setAdj] = useState({});
-  const markAdj = (id) => { if (id) setAdj((m) => (m[id] ? m : { ...m, [id]: true })); };
+  const markAdj = (id, i9) => { if (id) setAdj((m) => (m[id + ":" + i9] ? m : { ...m, [id + ":" + i9]: true })); };
   const [strikes, setStrikes] = useState({});   /* FINISH-screen verdicts: id -> "bank" | "strike" */
   const touch = (id) => { if (id) setTouched((t) => (t[id] ? t : { ...t, [id]: true })); };
   /* Pace is MEASURED here, not asked — the timer already knows. Every rest gets
@@ -15143,7 +15220,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [rests, setRests] = useState({ n: 0, cut: 0 });
   const gymKey = "prep-ledger-gymdraft-" + dateSel;
   useEffect(() => {
-    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.touched) setTouched(d.touched);   /* absent on a pre-TOUCH draft -> gymEntries falls back to gskip alone */ setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen);
+    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { if (d.idx != null && sess && sess.ex && d.idx >= sess.ex.length) d.idx = Math.max(0, sess.ex.length - 1);   /* H1 */ setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.touched) setTouched(d.touched);   /* absent on a pre-TOUCH draft -> gymEntries falls back to gskip alone */ setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen);
       /* S4 — re-entry lands exactly where he left, through the resume law: mid-rest at the
          TRUE remaining; a stale ask auto-skips to null with the record showing unrecorded. */
       const rp9 = resumePhase(d, Date.now());
@@ -15165,7 +15242,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
     window.scrollTo(0, 0);
     return () => { de.style.overflow = prev9[0]; db.style.overflow = prev9[1]; window.scrollTo(0, prev9[2]); };
   }, []);
-  const ex = sess.ex[idx];
+  const ex = sess.ex[idx] || sess.ex[Math.min(idx, sess.ex.length - 1)] || sess.ex[0];   /* H1 — the beacon crash: a stale draft's idx against a mismatched template must not throw */
   const rp2 = rirPlan(s, ex, slp);
   const getR = (e2) => reps[e2.id] ?? e2.tgt.slice();
   const al2 = bodyAlarm(s, slp);
@@ -15247,13 +15324,28 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const doneSkip = (() => { const m = {}; for (const r of gymEntries(sess.ex, { reps, rir, rirEnd, gskip, touched }).skipped) m[r.id] = true; return m; })();
   /* R19b — the suspects: logged lifts whose numbers nobody ever confirmed. Computed the
      same way the audit found the real cases: no explicit adjustment AND no RIR answer. */
-  const suspects = () => gymEntries(sess.ex, { reps, rir, rirEnd, gskip, touched }).entries.filter((e2) => !adj[e2.id] && e2.rir == null && (rirEnd[e2.id] == null));
+  /* per-set suspects: every (lift, slot) with no rep tap and no ask attesting it */
+  const suspects = () => {
+    const out9 = [];
+    for (const e2 of gymEntries(sess.ex, { reps, rir, rirEnd, gskip, touched }).entries)
+      e2.reps.forEach((v9, i9) => { if (!adj[e2.id + ":" + i9]) out9.push({ id: e2.id, n: e2.n, i: i9, v: v9, w: e2.w }); });
+    return out9;
+  };
   const finish = () => {
+    /* H3 — struck SLOTS leave the entry; a lift with every slot struck files as skipped */
+    const cut9 = {};
+    for (const [k9, v9] of Object.entries(strikes)) if (v9 === "strike") { const p9 = k9.split(":"); (cut9[p9[0]] = cut9[p9[0]] || []).push(+p9[1]); }
     const g2 = { ...gskip };
-    for (const [id9, v9] of Object.entries(strikes)) if (v9 === "strike") g2[id9] = true;
     const t2 = { ...touched };
-    for (const [id9, v9] of Object.entries(strikes)) if (v9 === "strike") delete t2[id9];   /* touched wins over gskip in gymEntries; a struck lift must actually skip */
-    const split = gymEntries(sess.ex, { reps, rir, rirEnd, gskip: g2, touched: t2 });   // SKIP_ONE_PATH — entries and skipped partition the session
+    const split0 = gymEntries(sess.ex, { reps, rir, rirEnd, gskip: g2, touched: t2 });
+    const split = { skipped: split0.skipped.slice(), entries: [] };
+    for (const e9 of split0.entries) {
+      const cuts = cut9[e9.id] || [];
+      if (!cuts.length) { split.entries.push(e9); continue; }
+      const keep = e9.reps.map((v9, i9) => (cuts.indexOf(i9) < 0 ? v9 : null)).filter((v9) => v9 != null);
+      if (!keep.length) { split.skipped.push({ id: e9.id }); continue; }
+      split.entries.push({ ...e9, reps: keep });
+    }   // SKIP_ONE_PATH — entries and skipped partition the session
     try { localStorage.removeItem(gymKey); localStorage.removeItem("prep-ledger-draft-" + dateSel); } catch (e) {}   // both drafts, or the other one resurrects a logged session
     /* n-gated like every other read in here: under three rests there is no
        session-level statement to make, so it stays unknown rather than guessed. */
@@ -15336,7 +15428,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             {ex.holdFlag && <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, letterSpacing: "0.06em", marginTop: 8 }}>HELD — an honest ≥1 here releases the load</div>}
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
               {[0, 1, 2, 3].map((v) => (
-                <button key={v} onClick={() => { touch(ex.id); markAdj(ex.id); setRir({ ...rir, [ex.id]: v }); setPhase("rest"); }}
+                <button key={v} onClick={() => { touch(ex.id); markAdj(ex.id, 0); setRir({   /* the opener ask attests SET 1 */ ...rir, [ex.id]: v }); setPhase("rest"); }}
                   style={{ flex: 1, ...tnum, fontSize: 20, fontWeight: 700, minHeight: 64, borderRadius: 12, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, cursor: "pointer" }}>{v === 3 ? "3+" : v}</button>
               ))}
             </div>
@@ -15365,7 +15457,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             <div style={{ ...tnum, fontSize: 12, color: DT.steel, marginTop: 6 }}>{ex.n} · {getR(ex)[getR(ex).length - 1]} reps at {ex.w} · 0 = you emptied it, exactly as planned</div>
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
               {[0, 1, 2, 3].map((v) => (
-                <button key={v} onClick={() => { touch(ex.id); markAdj(ex.id); setRirEnd({ ...rirEnd, [ex.id]: v }); setPhase("lift-done"); }}
+                <button key={v} onClick={() => { touch(ex.id); markAdj(ex.id, getR(ex).length - 1); setRirEnd({   /* the terminal ask attests the LAST set */ ...rirEnd, [ex.id]: v }); setPhase("lift-done"); }}
                   style={{ flex: 1, ...tnum, fontSize: 20, fontWeight: 700, minHeight: 64, borderRadius: 12, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, cursor: "pointer" }}>{v === 3 ? "3+" : v}</button>
               ))}
             </div>
@@ -15408,19 +15500,19 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <input value={gNote} onChange={(e3) => setGNote(e3.target.value)} placeholder="anything worth remembering about this session" style={{ background: DT.card2, border: "1px solid " + DT.hairline, borderRadius: 12, color: DT.ink, fontFamily: body, fontSize: 16, padding: "14px 12px" }} />
           {(() => {
             const sus9 = suspects();
-            const unruled = sus9.filter((e2) => !strikes[e2.id]);
+            const unruled = sus9.filter((e2) => !strikes[e2.id + ":" + e2.i]);
             return (
               <>
                 {sus9.length ? (
                   <div style={card9}>
                     <div style={lbl9}>LOGGED AT TARGET — NOBODY CONFIRMED THE REPS</div>
-                    <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.55, marginTop: 6 }}>These lifts were tapped through with LOG SET and never adjusted or asked about. Banked as-is they would write the TARGET as if performed — the phantom the 7/23 and 7/31 sessions already put on the record. Rule each one.</div>
+                    <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.55, marginTop: 6 }}>These SETS were never adjusted or asked about — including slots an approved +1 added mid-day, pre-filled with targets. Banked as-is they would write the TARGET as if performed — the phantom the 7/23 and 7/31 sessions already put on the record. Rule each one.</div>
                     {sus9.map((e2) => (
-                      <div key={e2.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, minHeight: 44 }}>
-                        <span style={{ fontFamily: mono, fontSize: 11.5, color: DT.ink }}>{e2.n}<span style={{ color: DT.steel }}> · {e2.reps.join("/")} @ {e2.w}</span></span>
+                      <div key={e2.id + ":" + e2.i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, minHeight: 44 }}>
+                        <span style={{ fontFamily: mono, fontSize: 11.5, color: DT.ink }}>{e2.n}<span style={{ color: DT.steel }}> · set {e2.i + 1} · {e2.v} @ {e2.w}</span></span>
                         <span style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                          <button onClick={() => setStrikes((m) => ({ ...m, [e2.id]: "bank" }))} style={{ fontFamily: mono, fontSize: 10.5, color: strikes[e2.id] === "bank" ? DT.jade : DT.steel, border: "1px solid " + (strikes[e2.id] === "bank" ? DT.jade : DT.hairline2), borderRadius: 999, padding: "6px 10px", background: "none", cursor: "pointer" }}>I did this</button>
-                          <button onClick={() => setStrikes((m) => ({ ...m, [e2.id]: "strike" }))} style={{ fontFamily: mono, fontSize: 10.5, color: strikes[e2.id] === "strike" ? DT.amber : DT.steel, border: "1px solid " + (strikes[e2.id] === "strike" ? DT.amber : DT.hairline2), borderRadius: 999, padding: "6px 10px", background: "none", cursor: "pointer" }}>strike — I didn't</button>
+                          <button onClick={() => setStrikes((m) => ({ ...m, [e2.id + ":" + e2.i]: "bank" }))} style={{ fontFamily: mono, fontSize: 10.5, color: strikes[e2.id + ":" + e2.i] === "bank" ? DT.jade : DT.steel, border: "1px solid " + (strikes[e2.id + ":" + e2.i] === "bank" ? DT.jade : DT.hairline2), borderRadius: 999, padding: "6px 10px", background: "none", cursor: "pointer" }}>I did this</button>
+                          <button onClick={() => setStrikes((m) => ({ ...m, [e2.id + ":" + e2.i]: "strike" }))} style={{ fontFamily: mono, fontSize: 10.5, color: strikes[e2.id + ":" + e2.i] === "strike" ? DT.amber : DT.steel, border: "1px solid " + (strikes[e2.id + ":" + e2.i] === "strike" ? DT.amber : DT.hairline2), borderRadius: 999, padding: "6px 10px", background: "none", cursor: "pointer" }}>strike — I didn't</button>
                         </span>
                       </div>
                     ))}
@@ -15473,12 +15565,12 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
               ))}
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
-              <button aria-label="one rep less" onClick={() => { touch(ex.id); markAdj(ex.id); const r2 = getR(ex).slice(); r2[setN] = Math.max(0, r2[setN] - 1); setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>−</button>
+              <button aria-label="one rep less" onClick={() => { touch(ex.id); markAdj(ex.id, setN); const r2 = getR(ex).slice(); r2[setN] = Math.max(0, r2[setN] - 1); setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>−</button>
               <div>
                 <div style={{ ...tnum, fontSize: 54, fontWeight: 700, textAlign: "center", color: DT.ink }}>{getR(ex)[setN]}</div>
                 <div style={{ ...tnum, fontSize: 9, color: DT.dim, letterSpacing: "0.16em", textAlign: "center", marginTop: 5 }}>REPS · SET {setN + 1} OF {getR(ex).length} · {rp2.plan[setN] === 0 ? "EMPTY IT" : (rp2.plan[setN] ?? "—") + " IN THE TANK"}</div>
               </div>
-              <button aria-label="one rep more" onClick={() => { touch(ex.id); markAdj(ex.id); const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>+</button>
+              <button aria-label="one rep more" onClick={() => { touch(ex.id); markAdj(ex.id, setN); const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>+</button>
             </div>
             <button onClick={doneSet} style={{ marginTop: 16, width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>
               {setN + 1 < getR(ex).length ? "LOG SET · REST TIMER STARTS" : "LOG SET · ONE QUESTION AFTER"}
@@ -16093,7 +16185,7 @@ function HistTab({ s, setS, save }) {
 function GymLauncher({ s, onOpen }) {
   const [, force] = useState(0);
   useEffect(() => { const iv = setInterval(() => force((x) => x + 1), 800); return () => clearInterval(iv); }, []);
-  const live = findGymDraft();
+  const live = findGymDraft(s);
   if (!live) return (
     <button onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(94,212,162,.35)", background: "rgba(94,212,162,.06)", color: DT.jade, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>▶ GYM MODE — ONE LIFT AT A TIME, TIMERS ON</button>
   );
@@ -16112,7 +16204,7 @@ function GymLauncher({ s, onOpen }) {
 
 function SessionLiveChip({ s, go }) {
   const [, force] = useState(0);
-  const draft = findGymDraft();   /* F3 — the ONE scanner every door shares */
+  const draft = findGymDraft(s);   /* F3 — the ONE scanner every door shares; it quarantines mismatches so no door ever resolves an orphan */
   useEffect(() => {
     /* F4 — DISCOVERY, not just display: gym-exit mutates LogTab state, which never
        re-renders this shell component, so a draft-gated interval left the chip null on
