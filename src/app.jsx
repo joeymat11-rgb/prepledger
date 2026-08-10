@@ -341,7 +341,7 @@ const APP_V = "7.41.0";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 42;
+const SCHEMA_V = 43;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -391,7 +391,7 @@ const EXERCISES = [
     setup: "SET · back pad A · seat 6\nThe load only moves on clean, even reps — consistency of execution, not of speed" },
   { id: "hanging", mg: "abs", lastMeta: { d: "2026-07-21", w: "BW", reps: [6, 5], debt: true }, n: "Hanging raise", day: "L", w: "BW", inc: null, sets: 2, hi: 8, last: [6, 5],
     setup: "SET · bodyweight\nSlouch down/out to engage the core at rep 1 · constant tension, spine stays rounded · no swing between reps" },
-  { id: "hack", mg: "quads", lastMeta: { d: "2026-07-21", w: "hold", reps: [13, 12], debt: true }, n: "Hack squat", day: "L", w: "hold", inc: 10, sets: 2, hi: 12, last: null, pendingThird: true,
+  { id: "hack", mg: "quads", lastMeta: { d: "2026-07-21", w: "hold", reps: [13, 12], debt: true }, n: "Hack squat", day: "L", w: "hold",   /* hi is authored 10 below by weave (the 2026-08-10 ruling) — the seed is already-current */ inc: 10, sets: 2, hi: 12, last: null, pendingThird: true,
     setup: "SET · foot placement = your favorited pic\nSame depth every rep · even sets are the standard here (11,11 → 12,12 → 13,13)" },
   { id: "extension", mg: "quads", lastMeta: { d: "2026-07-21", w: 155, reps: [9, 6], debt: true }, n: "Leg extension", day: "L", w: 150, inc: 5, sets: 2, hi: 10, last: [9, 6], std: [9, 9], own: true, ownNote: "own 150×9,9 — then the 155 gate reopens",
     setup: "SET · shin pad height A · depth 3 · seat back all the way back — max quad stretch\nNo jerk at lockout · runs after hack by design — read dips as order effect, not regression" },
@@ -487,6 +487,8 @@ const SEED = {
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
   SEED.v = SCHEMA_V;
+  /* v43 — the seed is authored already-current: hack carries the 6-10 ruling */
+  { const hk0 = SEED.exercises.find((x) => x.id === "hack"); if (hk0) hk0.hi = 10; }
   /* v40 — the seed is authored already-current: a fresh install carries the athlete's
      dated split entry exactly as the migration writes it. */
   SEED.split = [{ from: "2026-08-09", map: { 0: "U", 1: "L", 2: "REST", 3: "REST", 4: "U", 5: "L", 6: "REST" }, why: "athlete-stated 2026-08-09 — Sun U · Mon L · Thu U · Fri L (consent relayed on the record, R19)" }];
@@ -1226,11 +1228,13 @@ function genSession(s, iso, slp) {
       if (e.last && e.last.length && e.sets && e.last.length < e.sets) return "arming: " + e.last.length + " of " + e.sets + " sets on file — the window reads only a full " + e.sets + "-set session; log one and the runway prices itself";
       const dist9 = base9.reduce((a9, v9, i9) => a9 + Math.max(0, ((win9.hi || 0) - i9) - (v9 || 0)), 0);
       if (up9 == null) return loadRungs(e)
-        ? "the stack tops out at " + e.w + " — reps are the ladder now, same earn discipline past the old top"
+        ? "no rung above " + e.w + " is on file — if the machine makes more, answer the ask on TRAIN (or SETUP ✎) and the next earn has a price; if this is the top of the stack, reps are the ladder from here"
         : "no next load on file — answer the ask on TRAIN and the sighting you already banked counts toward the earn";
       const sight9 = String(e.topAt) === String(e.w) && (e.topRun || 0) >= 1;
       const te9 = (() => { try { return typicalError(s, e.id).reps.toFixed(2); } catch (err) { return null; } })();
-      return up9 + " EARNS AT THE TOP OF THE WINDOW (" + win9.lo + "-" + win9.hi + ") — " + (dist9 === 0 ? "you are there" : "you are " + dist9 + " rep" + (dist9 === 1 ? "" : "s") + " away") + " · " + (sight9 ? "one sighting banked — one more banks it" : "two sightings bank it") + (te9 ? ", or one that beats your ±" + te9 + " spread" : "");
+      const rungsUp9 = loadRungs(e) ? loadRungs(e).filter((x) => x > e.w).length : null;
+      const blind9 = rungsUp9 != null && rungsUp9 <= 1 ? " · the ladder goes blind above " + up9 + " — file the machine's next rungs in SETUP (uneven ✎) so the earn after this one has a price" : "";
+      return up9 + " EARNS AT THE TOP OF THE WINDOW (" + win9.lo + "-" + win9.hi + ") — " + (dist9 === 0 ? "you are there" : "you are " + dist9 + " rep" + (dist9 === 1 ? "" : "s") + " away") + " · " + (sight9 ? "one sighting banked — one more banks it" : "two sightings bank it") + (te9 ? ", or one that beats your ±" + te9 + " spread" : "") + blind9;
     })();
     return { id: e.id, n: e.n, w, tgt, note, isDebutNow, setup: e.setup, live, runway, prev: e.lastMeta };
   });
@@ -8916,7 +8920,12 @@ function patchV24(s) {
      not the field; the v3.63 fixtures prove it) — so the patch keys on ITS OWN EFFECT:
      hi !== 12 means the ruling has not applied yet; hi === 12 means this is a replay and
      the mutation is a no-op. Idempotent by construction. */
-  if (hk && hk.hi !== 12) { hk.hi = 12; hk.last = null; }
+  /* RETIRED 2026-08-10 (the round the standing rule was written for): the effect key
+     hi !== 12 re-asserted the v24 ruling on every chain replay, which would overwrite
+     the owner's 6-10 ruling (patchV43) forever. The mutation now also stops at the NEW
+     ruling's value, so a replayed chain lands where the newest ruling left it — and
+     patchV43 runs after this in every chain anyway, keying on the 12 this writes. */
+  if (hk && hk.hi !== 12 && hk.hi !== 10) { hk.hi = 12; hk.last = null; }
   s.feed = s.feed || [];
   if (!s.feed.some((f) => f.t && f.t.indexOf("RULING — HACK LOADED UP") === 0)) {
     s.feed.unshift({ d: isoOf(todayStart()), t: "RULING — HACK LOADED UP +20", how: "when breathing fails before the quads, the weight rises and the reps drop — athlete call on the gym floor; rep ceiling now 12, fresh targets seeded at the new load" });
@@ -9099,6 +9108,25 @@ function patchV42(s) {
   }
   s.v = 42; return s;
 }
+function patchV43(s) {
+  /* OWNER'S RULING, 2026-08-10: hack squats move to a 6-10 rep range — round two of
+     the on-record HACK LOADED UP pattern (breathing fails before the quads; the weight
+     rises, the reps drop; his call, and it worked). hi 12 → 10, content-keyed on the
+     12 the old ruling holds. hack.last is DELIBERATELY untouched: 12,11,13 at 160
+     stands, reads as over the new top, and the banked sighting + two-for-two carry
+     forward toward whatever rung the ladder holds when the top comes. windowFor derives the floor: the
+     160→170 ladder at ceiling 10 yields exactly 6-10. */
+  const hk = (s.exercises || []).find((x) => x.id === "hack");
+  if (hk && hk.hi === 12) {
+    hk.hi = 10;
+    /* THE RECEIPT MAY NOT PREDICT (the R18e overclaim law, applied to patch receipts):
+       the patch runs on whatever state the phone holds at patch time — Joe jumped to
+       180 past both rungs the same day this was written. Every clause derives. */
+    const nx43 = nextLoad(hk);
+    if (s.feed && s.feed.unshift) s.feed.unshift({ d: "2026-08-10", t: "HACK — REP RANGE MOVES TO 6-10", how: "Your ruling, on the record: breathing fails before the quads, so the weight rises and the reps drop — round two of the pattern that already worked." + (hk.last && hk.last.length ? " Your " + hk.last.join(",") + " at " + hk.w + " stands untouched and reads against the new window." : "") + (nx43 != null ? " The next rung on file is " + nx43 + "." : " No next rung is on file above " + hk.w + " — file the ladder and the next earn has a price.") });
+  }
+  s.v = 43; return s;
+}
 function patchV38(s) {
   /* v7.4.0 Slice 5 — the PHASE ARC lands its decisions in the already-hardened s.plan (a planned diet
      break + phase transitions). ADDITIVE + idempotent: default the append-only phase-transition LOG to
@@ -9118,7 +9146,7 @@ function patchV38(s) {
    AGAINST LATER STATES — its mutation guarded so a second, tenth, or fiftieth replay
    changes nothing. patchV24's unguarded null erased a banked delivery on every bump for
    weeks before the guard below; do not add the next one. */
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39, patchV40, patchV41, patchV42];
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39, patchV40, patchV41, patchV42, patchV43];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -13931,7 +13959,7 @@ function LogTab({ s, setS, save, slp }) {
           already delivered counts toward the earn: demanding two NEW ones would
           prescribe below what was delivered. Rung-exhausted stacks keep TOPS-OUT. */}
       {(() => {
-        const askEx = (s.exercises || []).find((e) => typeof e.w === "number" && e.hi != null && nextLoad(e) == null && !loadRungs(e));
+        const askEx = (s.exercises || []).find((e) => typeof e.w === "number" && e.hi != null && nextLoad(e) == null && (!loadRungs(e) || loadRungs(e).every((x) => x <= e.w)));   /* an EXHAUSTED ladder (Joe jumped past its rungs) needs the ask as much as a bare one */
         if (!askEx) return null;
         const sighted = String(askEx.topAt) === String(askEx.w) && (askEx.topRun || 0) >= 1;
         const histTop = !sighted && askEx.last ? atTopOfWindow(askEx.last, askEx) : false;
@@ -13955,7 +13983,7 @@ function LogTab({ s, setS, save, slp }) {
                 {/* one heavier number seeds the ladder's first rungs [w, next]; several seed
                     the ladder outright. inc stays untouched — a machine that needed asking
                     is exactly the machine whose increments are uneven. */}
-                ex4.steps = [ex4.w, ...ups];
+                ex4.steps = [...new Set([...(loadRungs(ex4) || []), ex4.w, ...ups])].sort((a9, b9) => a9 - b9);   /* MERGE — an answer above an exhausted ladder must not erase the rungs already priced */
                 let banked = false;
                 if (ex4.last && atTopOfWindow(ex4.last, ex4) && !(String(ex4.topAt) === String(ex4.w) && (ex4.topRun || 0) >= 1)) { ex4.topAt = ex4.w; ex4.topRun = 1; banked = true; }
                 ns.feed.unshift({ d: isoOf(todayStart()), t: askEx.n.toUpperCase() + " — NEXT LOAD ON FILE: " + ups[0], how: "You told the app this machine's ladder (" + [ex4.w, ...ups].join(", ") + ")." + ((banked || (String(ex4.topAt) === String(ex4.w) && (ex4.topRun || 0) >= 1)) ? " The top-of-window session already on your record counts as sighting one — one more honest top, or one that beats your own spread, earns the " + ups[0] + " debut." : " Top the window twice at " + ex4.w + " — or once beating your own spread — and " + ups[0] + " queues itself.") });
