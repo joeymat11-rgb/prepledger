@@ -7769,7 +7769,7 @@ if (fail) process.exit(1);
     ok(CR.agentProposals.length === 1 && CR.agentProposals[0].kind === "trial" && (CR.feed[0].t.indexOf("DESK OFFERS RECALLED") > -1 || CR.feed[1].t.indexOf("DESK OFFERS RECALLED") > -1), "H1/H3 — the standing desk offers (both delts cards) AND the coach calorie card are recalled at source with a feed receipt; a non-desk proposal (trial) survives");
     /* H2 — the R14 law at the suggestion card */
     ok(srcH3.indexOf("function noteSuggestion(state, sug)") > -1 && srcH3.indexOf('decided: "noted"') > -1, "H2 — Noted is a real verb with its own honest writer: it logs the observation and files a feed line saying approving would have changed nothing");
-    ok(srcH3.indexOf('return real9 ? "Approve — apply it" : "Noted";') > -1 && srcH3.indexOf("const ns = real9 ? applySuggestion(s, p) : noteSuggestion(s, p);") > -1, "H2 — a suggestion whose apply is inert (note · cal · progression) can NEVER render Approve — apply it: the label and the handler both fork on the same real-kinds test, so the button always enacts exactly what it says");
+    ok(srcH3.indexOf('return this.does ? "Approve — apply it" : "Noted";') > -1 && srcH3.indexOf("const ns = this.does ? applySuggestion(s, p) : noteSuggestion(s, p);") > -1, "H2 → R20a — the fork EVOLVED: the apply control now derives from the Approving-does line itself (no line, no Approve, structurally) — the R20a voice law completing what the hygiene round started; inert kinds and sub-high confidence both fall to Noted through the same single fork");
     ok(srcH3.indexOf("Approving does: sets your protein target to ") > -1 && srcH3.indexOf("{it.does ?") > -1, "H2 — every real apply carries the one-line receipt (Approving does: <exact change>) rendered above the button; a card without it renders note-only by construction (does is null for inert kinds)");
     /* H3 — the desk gate + the guards named as code */
     ok(srcH3.indexOf("THE DESK WAKES, DEMOTED TO A DOOR") > -1 && srcH3.indexOf("the WHICH is volumePush") > -1, "H3 → R18f — the hygiene hard gate is LIFTED because the defect it guarded is gone: the desk no longer routes. Its zone triggers are the WHEN; the WHICH is the one chooser, house gates by construction");
@@ -7891,6 +7891,32 @@ if (fail) process.exit(1);
     const srcDD = readFileSync("src/app.jsx", "utf8");
     ok(srcDD.indexOf("const tplOk = (() => { try { return !!genSession(s9, iso1); } catch (e) { return false; } })();") > -1 && srcDD.indexOf("if (Object.keys(d.reps || {}).length) { localStorage.setItem(\"prep-ledger-gymdraft-orphan-\" + iso1,") > -1, "v7.40.1 — a draft keyed to a template-null date never reaches the launcher: with banked reps it quarantines like any orphan, with ZERO reps it is removed as noise (it holds no athlete data). The empty draft had no ids to mismatch, so every earlier belt was blind to it");
     ok(srcDD.indexOf(": sess) || sess;   /* v7.40.1") > -1, "v7.40.1 — R14 at the gym door: the tap may never mount NOTHING — an unresolvable draft date falls back to today's session");
+  }
+
+  /* ---------- R20 — THE VOICE LAW + NEW-SET GRACE ---------- */
+  {
+    const srcV = readFileSync("src/app.jsx", "utf8");
+    const conV = readFileSync("ledger/analyst-constitution.md", "utf8");
+    /* R20a — the render belt */
+    ok(srcV.indexOf('if (conf !== "high") return null;') > -1, "R20a — SPECULATION NEVER WEARS APPLY: the does line is null below high confidence, and the apply control derives from the line — the same single fork, so a hunch structurally cannot carry a tap");
+    ok(conV.indexOf("## THE VOICE LAW (R20a") > -1 && conV.indexOf("One idea per card.") > -1 && conV.indexOf("banked,") > -1 && conV.indexOf("Speculation never wears an apply button.") > -1 && conV.indexOf("Approving does: <the change>") > -1, "R20a — the constitution carries the voice law in Joe's ruling's own terms: one idea per card, plain words with his numbers as receipts, the jargon ban (banked/scoring/feed-row/target-array), severity honest, the mandatory Approving-does line, engine-owned numbers unproposable (regression from the hygiene round)");
+    /* R20b — new-set grace, driven on the press live-case shape */
+    const cl20 = (o) => JSON.parse(JSON.stringify(o));
+    const S20 = cl20(__test.SEED);
+    const eP = S20.exercises.find((e) => typeof e.w === "number" && e.hi);
+    eP.sets = 4;
+    eP.last = [8, 8, 7]; eP.lastMeta = { d: "2026-08-06", w: eP.w, reps: [8, 8, 7], rir: 2, rirSets: [2, 2, 2], debt: false };
+    const { s: N20 } = __test.completeSession(S20, "2026-08-20", [{ id: eP.id, n: eP.n, w: eP.w, tgt: [8, 8, 7, 6], reps: [8, 8, 7, 4], rir: 2, rirSets: [2, 2, 2, 1] }], { last: null }, { note: "", niggles: [], skipped: [], pace: null });
+    ok(N20.feed.some((f) => f.t && f.t.indexOf(" — TARGET MET") > -1), "R20b — the press live-case shape ([8,8,7,4] against [8,8,7,6], the 4th slot brand new): TARGET MET fires — three real sets met their line and the new slot has no line to miss. The silent miss that hit twice in four days is dead");
+    ok(N20.feed.some((f) => f.t && f.t.indexOf("NEW SET, BANKS WHAT IT GIVES") > -1 && /set 4: 4/.test(f.how || "")), "R20b — and the receipt NAMES it: set 4: 4 — a slot the volume push just created banks what it gives, and the anchor machinery owns it from the next session (the grace ends when the slot posts its first value — which this session IS)");
+    /* the counter-case: a shortfall on an OLD slot still fails honestly */
+    const S21 = cl20(__test.SEED);
+    const eQ = S21.exercises.find((e) => typeof e.w === "number" && e.hi);
+    eQ.sets = 4; eQ.last = [8, 8, 7]; eQ.lastMeta = { d: "2026-08-06", w: eQ.w, reps: [8, 8, 7], rir: 2, rirSets: [2, 2, 2], debt: false };
+    const { s: N21 } = __test.completeSession(S21, "2026-08-20", [{ id: eQ.id, n: eQ.n, w: eQ.w, tgt: [8, 8, 7, 6], reps: [8, 8, 5, 4], rir: 2, rirSets: [2, 2, 2, 1] }], { last: null }, { note: "", niggles: [], skipped: [], pace: null });
+    ok(!N21.feed.some((f) => f.t && f.t.indexOf(" — TARGET MET") > -1), "R20b — the grace is surgical: a shortfall on an OLD slot (set 3: 5 vs 7) still fails TARGET MET — only the slot with no history is graced");
+    /* THE RULING, pinned: FORWARD, not retroactive */
+    ok(srcV.indexOf("const graceFrom = prevMeta && Array.isArray(prevMeta.reps) ? prevMeta.reps.length : 0;") > -1, "R20b RULING — the grace applies FORWARD, at completeSession time, derived from the record's own prevMeta. The 8/09 press feed lines STAND as written: restating stored history would be editing the record, and the 4th slot has since posted its value — the anchor machinery already owns it, so retroactive healing would change nothing he still sees. The words say which: forward");
   }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);
