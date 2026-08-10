@@ -7622,9 +7622,130 @@ if (fail) process.exit(1);
   ok(srcH.split("{gym && (() => {")[0].indexOf("A DRAFT FROM") > -1, "H2 v2 — the card mounts UNCONDITIONALLY at TRAIN top level, before the gym block: the one night it was built for (today logged, draft trapped) is exactly when the old conditional unmounted it");
   ok(srcH.indexOf("{/* v7.38.2 (d) — print the stored load or nothing; never invent BW */}{(d9.w != null ? d9.w + " + String.fromCharCode(34) + " × " + String.fromCharCode(34)) > -1, "(d) — the debrief prints the stored load or nothing, never invents BW — and the note rides as a JSX COMMENT, not screen text: the v7.38.2-candidate comment rendered literally on every debrief lift row");
   { const dcSlice = srcH.slice(srcH.indexOf("function DebriefCard"), srcH.indexOf("function DebriefCard") + 9000); const leak = (dcSlice.match(/}\s+\/\*/g) || []).filter((m) => m.indexOf("{") === -1); ok(leak.length === 0, "COMMENT-LEAK LAW — no /* sits after a closing brace in the debrief card render path, where JSX treats it as literal screen text; a comment belongs in {/* */} form or above the line (found: " + leak.length + ")"); }
+
+  /* ---------- R18b increment 1 — a sighting banks with no next load on file ---------- */
+  {
+    const cl8 = (o) => JSON.parse(JSON.stringify(o));
+    const S8 = cl8(__test.SEED);
+    /* the seed carries no natural no-next-load lift; MANUFACTURE the hack shape on a real
+       exercise by clearing its increments — the drive is about the earn block, not the seed */
+    const exA = (S8.exercises || []).find((e) => typeof e.w === "number" && e.hi);
+    if (exA) { delete exA.inc; delete exA.steps; if (exA.ladder) delete exA.ladder; exA.topAt = null; exA.topRun = 0; }
+    const ex8 = exA;
+    ok(!!ex8, "R18b — a no-next-load lift is manufactured from a real seed exercise (the live case is hack): " + (ex8 ? ex8.id : "NONE"));
+    if (ex8) {
+      const hi8 = ex8.hi || 12;
+      const reps8 = Array(ex8.sets || 3).fill(hi8 + 20);   /* atTopOfWindow slices to ex.sets, and a maxed lift tops against the MOVING delivered ceiling (best opener on file) — clear it decisively */
+      const { s: NS8 } = __test.completeSession(S8, "2026-08-20", [{ id: ex8.id, n: ex8.n, w: ex8.w, tgt: reps8.map(() => hi8 - 1), reps: reps8, rir: 2, rirSets: reps8.map(() => 2) }], { last: null }, { note: "", niggles: [], skipped: [], pace: null });
+      const ex9 = NS8.exercises.find((e) => e.id === ex8.id);
+      ok(String(ex9.topAt) === String(ex8.w) && ex9.topRun >= 1, "R18b — topping the window with NO next load on file now BANKS the sighting (topAt/topRun write): the 8/07 hack sighting class is no longer lost, so answering the next-load ask later starts from the record already delivered");
+      ok((NS8.feed || []).some((f) => f && f.t && f.t.indexOf(" — TOP OF WINDOW, NO NEXT LOAD ON FILE") > -1), "R18b — and it says so in the feed, words at birth: the sighting is on the record, the ask is named as what unlocks the earn");
+    }
+  }
 }
 console.log(`\nFINAL101: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+/* ==================== R18 · LOAD PROGRESSION (FINAL102) ==================== */
+{
+  const cl = (o) => JSON.parse(JSON.stringify(o));
+  const srcR8 = readFileSync("src/app.jsx", "utf8");
+  const mk18 = () => {
+    const S = cl(__test.SEED);
+    const ex = S.exercises.find((e) => typeof e.w === "number" && e.hi);
+    ex.steps = [ex.w, ex.w + 10, ex.w + 25, ex.w + 35];   /* a rung ladder on file */
+    if (ex.ladder) delete ex.ladder;
+    ex.topAt = null; ex.topRun = 0; ex.holdFlag = false;
+    return { S, ex };
+  };
+  const drive18 = (S, ex, rirT, presight) => {
+    const eF = S.exercises.find((z) => z.id === ex.id);
+    const topline = Array(ex.sets || 3).fill(0).map((_, i9) => Math.max(1, (ex.hi || 12) - i9));
+    eF.last = topline.slice(); eF.lastMeta = { d: "2026-08-18", w: eF.w, reps: topline.slice(), rir: 2, rirSets: topline.map(() => 2), debt: false };   /* the PREVIOUS same-load session already at the top: margin ~0, so beatsNoise cannot confirm on sighting one and the arms under test actually run */
+    if (presight) { eF.topAt = eF.w; eF.topRun = 1; }
+    const reps = Array(ex.sets || 3).fill(0).map((_, i9) => Math.max(1, (ex.hi || 12) - i9));   /* the window-top fade line, matching the seeded previous session: tops honestly, clears nothing */
+    return __test.completeSession(S, "2026-08-21", [{ id: ex.id, n: ex.n, w: ex.w, tgt: reps.map(() => ex.hi - 1), reps, rir: 2, rirSets: reps.map((_, i) => (i === reps.length - 1 ? rirT : 2)) }], { last: null }, { note: "", niggles: [], skipped: [], pace: null }).s;
+  };
+  /* R18d — terminal RIR ≥3 with a ladder proposes the TWO-rung debut beside the earned single */
+  { const { S, ex } = mk18(); const NS = drive18(S, ex, 3, true);
+    const q1 = NS.queue.find((q) => q.exId === ex.id && q.kind === "debut" && q.state === "DEBUT");
+    const q2 = NS.queue.find((q) => q.exId === ex.id && q.state === "PROPOSED" && /TWO-RUNG/.test(q.t));
+    ok(!!q1 && q1.newW === ex.w + 10, "R18d — the confirmed earn still queues the SINGLE rung automatically (" + (q1 ? q1.newW : "—") + "): today's behaviour is the floor, never lowered");
+    ok(!!q2 && q2.newW === ex.w + 25 && /Your call/.test(q2.gate), "R18d — terminal RIR 3 at the top with a ladder PROPOSES the two-rung debut (" + (q2 ? q2.newW : "—") + ") beside it: the athlete consents by tapping, the single-rung floor rides either way");
+  }
+  /* R18d — terminal RIR 1-2: single rung only, no two-rung proposal (today's behaviour) */
+  { const { S, ex } = mk18(); const NS = drive18(S, ex, 1, true);
+    ok(!NS.queue.some((q) => q.exId === ex.id && /TWO-RUNG/.test(q.t || "")), "R18d — terminal RIR 1 proposes nothing extra: the two-rung door opens at ≥3 only, and even-inc lifts with no ladder are byte-identical by construction (rung2 needs loadRungs)");
+  }
+  /* R18d AMENDMENT (Joe, 2026-08-10) — ONE sighting at terminal RIR ≥2 earns as a PROPOSAL */
+  { const { S, ex } = mk18(); const NS = drive18(S, ex, 2, false);
+    const q3 = NS.queue.find((q) => q.exId === ex.id && q.state === "PROPOSED" && /ONE SIGHTING/.test(q.t));
+    ok(!!q3 && q3.newW === ex.w + 10 && /two-for-two law runs as always/.test(q3.gate), "R18d AMENDMENT — first sighting at the top with 2 in reserve on the failure set files the early-earn PROPOSAL: tap it and the debut rides; skip it and two-for-two stands. The automatic queue is untouched");
+    ok(!NS.queue.some((q) => q.exId === ex.id && q.state === "DEBUT"), "R18d AMENDMENT — and it is a proposal ONLY: one sighting still queues no automatic debut");
+  }
+  /* the amendment stays silent when the terminal answer is missing or low */
+  { const { S, ex } = mk18(); const NS = drive18(S, ex, 1, false);
+    ok(!NS.queue.some((q) => q.exId === ex.id && /ONE SIGHTING/.test(q.t || "")), "R18d AMENDMENT — terminal RIR 1 on a first sighting proposes nothing: an early earn needs the athlete's own answer saying the top was not a grind");
+  }
+  /* R18a — the runway on every numeric lift + the header receipt */
+  { const S = cl(__test.SEED);
+    const g = __test.genSession(S, "2026-08-13", { last: null });
+    ok(!!g && g.ex.filter((l) => typeof l.w === "number").every((l) => l.runway), "R18a — every numeric lift on the session card carries a runway line, derived only (nextLoad · windowFor · last · topRun · typicalError)");
+    const r1 = (g.ex.find((l) => /EARNS AT THE TOP OF THE WINDOW/.test(l.runway || "")) || {}).runway || "";
+    ok(/EARNS AT THE TOP OF THE WINDOW \(\d+-\d+\)/.test(r1) && (/you are \d+ reps? away/.test(r1) || /you are there/.test(r1)) && /two sightings bank it|one sighting banked/.test(r1), "R18a — the runway names the next load, the window, the measured rep distance and the sighting state in one engine-authored line: " + r1.slice(0, 90));
+    ok((g.structural || "").length > 0 && srcR8.indexOf(String.fromCharCode(34) + " · nearest earn: " + String.fromCharCode(34)) > -1, "R18a — the header receipt exists at source ( · nearest earn: name, N reps from W) and rides whenever no structural claims the day; this seed day carries one (" + g.structural.slice(0, 40) + "), so the receipt yields to it — by design, the receipt explains only the NO-debut claim");
+  }
+  /* R18b — the ask card at source */
+  ok(srcR8.indexOf("WHAT IS THE NEXT WEIGHT THIS MACHINE MAKES AFTER") > -1 && srcR8.indexOf("ex4.steps = [ex4.w, ...ups];") > -1 && srcR8.indexOf("counts as sighting one") > -1, "R18b — the ask card captures the machine's ladder in one tap (parseRungs — one weight or the whole ladder) and the already-delivered sighting counts the moment it is answered");
+  ok(srcR8.indexOf("Confirm the rung: does this machine actually make ") > -1, "R18c — the EARNED banner asks for rung confirmation where no ladder is on file, and points at the SETUP editor (the power path stays)");
+  ok(srcR8.indexOf("GATES the next jump") > -1 && srcR8.indexOf("Last-set RIR gates the next jump") > -1, "R18d — the two prose claim-sites now describe what the engine does (gate + propose), not a sizing that never ran; the gym label 'this one sizes the jump' became TRUE under this round");
+
+  /* ---------- R18 FIX ROUND — five defects from the audit read ---------- */
+  {
+    const srcF8 = readFileSync("src/app.jsx", "utf8");
+    /* D1 — PROPOSED never runs untapped (fixtures G/H through genSession) */
+    { const { S: SG, ex: exG } = mk18();
+      SG.queue.push({ id: "q_gx_2r", kind: "debut", exId: exG.id, newW: exG.w + 25, done: false, state: "PROPOSED", t: exG.n.toUpperCase() + " X — TWO-RUNG DEBUT PROPOSED", gate: "x" });
+      const gG = __test.genSession(SG, "2026-08-13", { last: null });
+      ok(gG && gG.structural.indexOf("PROPOSED") === -1, "R18 fix D1 (G/H) — a PROPOSED item never wins the structural slot: pickStructural excludes it, so an untapped offer cannot preempt an earned debut or run itself. Consent is the tap, by MECHANISM now, not by copy");
+    }
+    { const { S, ex } = mk18(); const eS = S.exercises.find((z) => z.id === ex.id); eS.topAt = eS.w; eS.topRun = 1;
+      S.queue.push({ id: "q_sup_1s", kind: "debut", exId: ex.id, newW: ex.w + 10, done: false, state: "PROPOSED", t: "X — EARN PROPOSED OFF ONE SIGHTING", gate: "x" });
+      const NS = drive18(S, ex, 1, false);   /* second sighting confirms via two-for-two */
+      const sup = NS.queue.find((x) => x.id === "q_sup_1s");
+      const deb = NS.queue.find((x) => x.exId === ex.id && x.state === "DEBUT");
+      ok(!!deb && sup && sup.done === true && sup.state === "SUPERSEDED", "R18 fix D1 — the two-for-two earn SUPERSEDES the standing offer: it goes done/SUPERSEDED and the automatic debut queues, so an offer can never double-fire after the law has run");
+    }
+    ok(srcF8.indexOf('q2.state = "DEBUT"') > -1 && srcF8.indexOf("Take it") > -1 && srcF8.indexOf('q2.state = "DECLINED"') > -1, "R18 fix D1 — PROPOSED items render as tappable cards on TRAIN: Take it flips to a normal DEBUT, Not today declines on the record");
+    /* D2 — the single-weight answer */
+    ok(srcF8.indexOf("const one9 = parsed ? null : Number(String(raw9).replace(") > -1 && srcF8.indexOf("one number (the next step up) or the whole ladder") > -1, "R18 fix D2 — the advertised single-weight answer works (parseRungs needs 2+; one number is the COMMON case and seeds [w, n]) and an unparseable answer speaks instead of no-oping");
+    /* D3 — both surfaces */
+    ok(srcF8.indexOf("{ex.runway && (") > -1 && srcF8.indexOf("RUNWAY › {ex.runway}") > -1, "R18 fix D3 — the runway renders on BOTH promised surfaces: the TRAIN row (unconditional, one line, density law) and gym mode under the live line");
+    /* D4 — the earn's exact predicate + the arming condition */
+    { const S4 = JSON.parse(JSON.stringify(__test.SEED));
+      const e4 = S4.exercises.find((e) => typeof e.w === "number" && e.hi && e.sets >= 3);
+      e4.inc = e4.inc || 5; if (e4.steps) delete e4.steps; if (e4.ladder) delete e4.ladder;
+      e4.last = Array(e4.sets).fill(0).map((_, i) => Math.max(1, e4.hi - i - (i === 0 ? 1 : 0)));
+      e4.lastMeta = { d: "2026-08-06", w: e4.w, reps: e4.last.slice(), rir: 2, rirSets: e4.last.map(() => 2), debt: false };
+      const g4 = __test.genSession(S4, "2026-08-13", { last: null });
+      const l4 = g4.ex.find((x) => x.id === e4.id);
+      ok(!!l4 && /you are 1 rep away/.test(l4.runway || ""), "R18 fix D4 — the distance is the earn predicate itself (top - i, UNFLOORED): one rep short on the opener reads ONE rep away, where the floored formula printed more — " + (l4 ? (l4.runway || "").slice(0, 80) : "—"));
+      const e5 = S4.exercises.find((e) => e !== e4 && typeof e.w === "number" && e.sets >= 3);
+      if (e5) { e5.last = [e5.hi, e5.hi].slice(0, Math.max(1, e5.sets - 1));
+        const g5 = __test.genSession(S4, "2026-08-13", { last: null });
+        const l5 = g5.ex.find((x) => x.id === e5.id);
+        ok(!!l5 && /arming: \d+ of \d+ sets on file/.test(l5.runway || ""), "R18 fix D4 — a lift with fewer logged sets than it now runs names the ARMING condition instead of implying tonight can earn: " + (l5 ? (l5.runway || "").slice(0, 70) : "—"));
+      }
+    }
+    /* D5 — the laws sentence */
+    ok(srcF8.indexOf("terminal RIR gates every earn (0 blocks it), can take an earn early off one honest sighting") > -1 && srcF8.indexOf("RIR on the LAST set is what sizes the next jump") === -1, "R18 fix D5 — the laws block says what R18d made true (gates · early-by-tap · sizes only where rungs are on file); the ~6786 session-step sentence is ruled KEPT as approximately true, per the audit");
+    /* RIDER — the sighting-window law, ruled */
+    ok(srcF8.indexOf("any writer that moves ex.hi MUST reset topAt/topRun") > -1, "SIGHTING-WINDOW LAW — a sighting is a claim about a specific window: ruled with the audit, written at the bank site, binding on the next hi-writer (none live today). Pronated's phone-banked sighting stands for Joe's call at merge");
+  }
+}
+console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
 
 
 

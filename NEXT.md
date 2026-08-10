@@ -1,3 +1,77 @@
+## QUEUED NEXT AFTER R18 MERGE — CONSENT HYGIENE ROUND (filed 2026-08-10; BEFORE R18e/R18f)
+
+Joe, verbatim: "I accepted two today that I didn't really understand... We need to
+audit and fix." Measured: the approved hand-back card was kind:note — Approve enacted
+NOTHING; all five desk +1s remain (rows 3, hack 4, tricep 4, curl 4, abs 4); the desk
+filed DELTS_SIDE +1 the morning after its own recall notice; a coach card proposes a
+competing calorie band (1,950–2,050) against the derived 2267–2354.
+
+**H1 THE HAND-BACK, FOR REAL:** restate the five desk additions away — rows 3→2, hack
+4→3, tricep 4→3, curl 4→3, abs 4→3; Friday's owner's-call three (hams/chest/rearDelt)
+STAND. Content-keyed, replay-safe, feed receipt citing the approved card AND Joe's audit
+ruling (consent on the record in the 2026-08-10 exchange). Targets regenerate at the
+restored counts.
+
+**H2 R14 REACHES ANALYST CARDS:** kind:note may NEVER wear an Approve control (renders
+Noted/Dismiss only); any real apply control carries "Approving does: <exact change>"
+above the button. Pin both. (R20a's core, pulled forward; the rest of R20 stays queued.)
+
+**H3 THE DESK GOES QUIET:** sweepVolume files NOTHING (hard gate) until R18f lands.
+Verify the "14 full days / Sundays / two at most" guard is code, not feed-line words —
+build it if words. Recall the two pending delts cards + the coach calorie card at source
+(on the record either way). analyst-constitution.md gains: the analyst may not propose
+values for engine-owned numbers (calories/protein/steps targets); render belt in R20a.
+
+ORDER: R18 merge word → THIS → R18e → R18f → R20 remainder.
+
+## QUEUED — R20 · ANALYST CARDS OBEY THE HOUSE PHILOSOPHY + NEW-SET GRACE (filed 2026-08-10)
+
+Joe's ruling, verbatim: **"Proposals need to have the same philosophy as the rest of
+the app."** Build order: R18 merge word → R18e → R18f → THIS.
+
+**R20a — THE ANALYST VOICE LAW**, written into analyst-constitution.md and enforced at
+the render: every analyst suggestion card speaks the debrief's language — plain words,
+his own numbers as receipts, ONE idea per card, no engine-room jargon (banked/scoring/
+feed-row/target-array). A card labelled speculation or unverifiable may NOT wear an
+apply button — it files as a note/observation (the R14 invariant: a tap enacts exactly
+what the button says, and the card SAYS what applying does). Severity honest. PIN:
+suggestion cards with an apply control must carry a one-line "Approving does: <the
+change>" — a card without it renders note-only.
+
+**R20b — NEW-SET GRACE**: a set slot added by an approved volume push carries
+"banks whatever it gives" semantics for its first outings (the DEBUT precedent —
+hack's pendingThird), instead of a padded target that can fail the whole session's
+TARGET MET read. Live case: press 8/09 [8,8,7,4] — three sets met, the brand-new 4th's
+padded target 6 read the session as a silent miss, twice in four days. Rule the grace
+duration (recommended: until the set posts its first value — then the anchor machinery
+owns it), pin it, and the receipt names it ("4th set: 4 — new set, banks what it
+gives").
+
+## DONE, AWAITING AUDIT — R18 · LOAD PROGRESSION (2026-08-10, branch feat/r18-loadprog)
+
+All four sub-items built and driven. R18b: sightings bank with no next load on file
+(increment 1) + the NEXT-LOAD ASK card (one weight or the whole ladder via parseRungs;
+the banked sighting counts on answer; rung-exhausted keeps TOPS-OUT). R18d: with a rung
+ladder at the confirmed top, terminal RIR ≥3 PROPOSES the two-rung debut beside the
+automatic single rung; Joe amendment — one sighting + terminal RIR ≥2 files the
+early-earn PROPOSAL, two-for-two untouched; both prose claim-sites reworded to gate+
+propose, and the gym label became TRUE. R18a: every numeric lift carries an
+engine-authored runway line (next load · window · measured rep distance · sighting
+state) rendered under the live line; the header no-debut claim carries the nearest-earn
+receipt. R18c: full-ladder capture in the ask; rung-confirm clause on the EARNED banner
+pointing at the SETUP editor (the power path stays). Freeze byte-identical throughout.
+
+
+**RECON MAP (measured this session):**
+- nextLoad(ex, from) at ~1045: rungs → next rung or null; else ex.inc or NULL. prevLoad/snapLoad/deloadLoad adjacent. loadRungs ~1039, parseRungs ~1082, proposeLadder ~978, windowFor ~1147 (derived width via repsLostOnJump).
+- THE EARN BLOCK ~1483-1516: upNext==null skips ENTIRELY (the hack disease — topAt/topRun never write, sightings never bank). Two-for-two: topRun>=2 || beatsNoise.clear. RIR gate: en.rir===0 || holdFlag → HOT (no earn). Debut queues as {kind:debut, exId, newW, state:DEBUT}. PROVISIONAL arm for first sighting.
+- THE MAXED RIDER ~7766-7781: maxedOut(exM) non-rung arm files kind:note "NO NEXT LOAD ON FILE AT w" once-ever (title-keyed). R18b replaces THIS arm with the ASK; rung-exhausted TOPS-OUT arm unchanged.
+- rirEnd lives in entries (rirSets terminal); R18d reads it at the earn site.
+
+**BUILD ORDER:** R18b first (the ask + seed topAt/topRun from the delivered sighting when ex.last atTopOfWindow — the earn block must also WRITE topAt/topRun when upNext==null so sightings bank while the ask is open). Then R18d (rirEnd picks the rung at top-of-window when ladder on file: RIR0 no earn · RIR1-2 one rung · RIR>=3 two-rung as PROPOSAL; PLUS Joe's amendment: top-of-window + rirEnd>=2 earns off ONE sighting AS A PROPOSAL; reword the three claim-sites ~9140/~6720/~16745 to actual behaviour). Then R18a (runway lines on TRAIN cards, derived-only: nextLoad/windowFor/ex.last/topRun/beatsNoise/typicalError; header receipt "nearest: X, N reps from W"). Then R18c (rung entry in the ask + on the EARNED banner via parseRungs; editor stays).
+- Engine moves → freeze regen DELIBERATE with leaves enumerated. New proposal kinds need applyProposal branches (the refeed_review law: a proposal must do what its text says).
+- HACK is the live case: at top RIGHT NOW ([12,11,13] >= 12,11,10), inc=null steps=null, the 8/07 sighting unbanked.
+
 # NEXT
 
 ## DONE, AWAITING AUDIT — R19 (2026-08-09, branch feat/r19-gym-split)
