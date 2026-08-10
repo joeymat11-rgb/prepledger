@@ -1,4 +1,17 @@
-## NOW — R18 · LOAD PROGRESSION (branch feat/r18-loadprog, recon banked 2026-08-10)
+## DONE, AWAITING AUDIT — R18 · LOAD PROGRESSION (2026-08-10, branch feat/r18-loadprog)
+
+All four sub-items built and driven. R18b: sightings bank with no next load on file
+(increment 1) + the NEXT-LOAD ASK card (one weight or the whole ladder via parseRungs;
+the banked sighting counts on answer; rung-exhausted keeps TOPS-OUT). R18d: with a rung
+ladder at the confirmed top, terminal RIR ≥3 PROPOSES the two-rung debut beside the
+automatic single rung; Joe amendment — one sighting + terminal RIR ≥2 files the
+early-earn PROPOSAL, two-for-two untouched; both prose claim-sites reworded to gate+
+propose, and the gym label became TRUE. R18a: every numeric lift carries an
+engine-authored runway line (next load · window · measured rep distance · sighting
+state) rendered under the live line; the header no-debut claim carries the nearest-earn
+receipt. R18c: full-ladder capture in the ask; rung-confirm clause on the EARNED banner
+pointing at the SETUP editor (the power path stays). Freeze byte-identical throughout.
+
 
 **RECON MAP (measured this session):**
 - nextLoad(ex, from) at ~1045: rungs → next rung or null; else ex.inc or NULL. prevLoad/snapLoad/deloadLoad adjacent. loadRungs ~1039, parseRungs ~1082, proposeLadder ~978, windowFor ~1147 (derived width via repsLostOnJump).

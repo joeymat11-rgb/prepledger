@@ -1209,9 +1209,33 @@ function genSession(s, iso, slp) {
       if (e.ladder) return `set ${e.ladder.set + 1} is the money set — ${e.last ? e.last[e.ladder.set] : "?"} → ${e.ladder.top} finishes the rung`;
       return `chase ${tgt.join(",")} — ${progressStep(e).why}`;
     })();
-    return { id: e.id, n: e.n, w, tgt, note, isDebutNow, setup: e.setup, live, prev: e.lastMeta };
+    /* R18a — THE RUNWAY, VISIBLE. Every numeric lift names its next load and the measured
+       distance to it — derived ONLY from fields that already exist (nextLoad, windowFor,
+       e.last, topRun, typicalError). No new math: the distance is the same top-of-window
+       line the earn block already tests, restated as reps remaining. */
+    const runway = (() => {
+      if (typeof e.w !== "number") return null;
+      if (e.holdFlag) return "HELD — an honest opener (RIR ≥1) releases the load; the runway resumes where it left off";
+      const up9 = nextLoad(e);
+      const win9 = windowFor(e);
+      const base9 = e.last && e.last.length ? e.last : tgt;
+      const dist9 = base9.reduce((a9, v9, i9) => a9 + Math.max(0, Math.max(win9.lo, (win9.hi || 0) - i9) - (v9 || 0)), 0);
+      if (up9 == null) return loadRungs(e)
+        ? "the stack tops out at " + e.w + " — reps are the ladder now, same earn discipline past the old top"
+        : "no next load on file — answer the ask on TRAIN and the sighting you already banked counts toward the earn";
+      const sight9 = String(e.topAt) === String(e.w) && (e.topRun || 0) >= 1;
+      const te9 = (() => { try { return typicalError(s, e.id).reps.toFixed(2); } catch (err) { return null; } })();
+      return up9 + " EARNS AT THE TOP OF THE WINDOW (" + win9.lo + "-" + win9.hi + ") — " + (dist9 === 0 ? "you are there" : "you are " + dist9 + " rep" + (dist9 === 1 ? "" : "s") + " away") + " · " + (sight9 ? "one sighting banked — one more banks it" : "two sightings bank it") + (te9 ? ", or one that beats your ±" + te9 + " spread" : "");
+    })();
+    return { id: e.id, n: e.n, w, tgt, note, isDebutNow, setup: e.setup, live, runway, prev: e.lastMeta };
   });
-  return { name: dt === "U" ? "UPPER" : "LOWER", structural: main ? main.t : "none queued — rep progression day", structuralId: main ? main.id : null, riderIds: riders.map((r) => r.id), ex };
+  /* R18a — the header's no-debut claim carries a receipt: the nearest earn on THIS card,
+     named with its measured distance, so "rep progression day" reads as a location. */
+  const nearest = (() => {
+    const c9 = ex.map((l9) => { const m9 = l9.runway && l9.runway.match(/^(\S+) EARNS AT THE TOP OF THE WINDOW \([^)]*\) — you are (\d+) rep/); return m9 ? { n: l9.n, up: m9[1], d: +m9[2] } : (l9.runway && /you are there/.test(l9.runway) ? { n: l9.n, up: (l9.runway.split(" ")[0]), d: 0 } : null); }).filter(Boolean).sort((a9, b9) => a9.d - b9.d);
+    return c9.length ? " · nearest earn: " + c9[0].n + ", " + (c9[0].d === 0 ? "at the line" : c9[0].d + " rep" + (c9[0].d === 1 ? "" : "s") + " from " + c9[0].up) : "";
+  })();
+  return { name: dt === "U" ? "UPPER" : "LOWER", structural: main ? main.t : "none queued — rep progression day" + nearest, structuralId: main ? main.id : null, riderIds: riders.map((r) => r.id), ex };
 }
 
 /* evaluate a completed session — transitions, earns, own-flips, refills */
@@ -1513,12 +1537,29 @@ function completeSession(state, iso, entries, slp, extras = {}) {
         if (!already) push(`${ex.n.toUpperCase()} — TOP OF WINDOW, BUT HOT`, `${r.join(",")} at RIR 0 — a grind is not an earn; repeat it honest and the load queues itself`);
       } else if (confirmed && !already) {
         ex.topRun = 0; ex.topAt = null;
+        /* R18d — THE JUMP SIZES ITSELF, but only where a measured ladder exists and only
+           as a PROPOSAL when it goes beyond today's behaviour. Terminal RIR (the failure
+           set's answer): 1-2 → one rung, exactly as before. ≥3 with a rung ladder → the
+           TWO-rung debut MAY be proposed — the athlete consents by tapping it, the
+           structural budget is untouched, and even-inc lifts keep today's behaviour
+           byte-identical. Never prescribe below what was delivered. */
+        const rirT9 = (() => { const a9 = Array.isArray(en.rirSets) ? en.rirSets : []; const v9 = a9.length ? a9[a9.length - 1] : null; return v9 != null ? v9 : (en.rirEnd != null ? en.rirEnd : null); })();
+        const rung2 = loadRungs(ex) && rirT9 != null && rirT9 >= 3 ? nextLoad(ex, upNext) : null;
         const how = bn.clear && topRun < 2
           ? `${ex.w}×${r.join(",")} — ${bn.margin} reps clear of last time, and two standard errors of your own measured spread is ${bn.need}. That is outside the noise, so it banks on one sighting.`
           : `${ex.w}×${r.join(",")} — second session at the top of the window at this load. One is inside your ±${(typicalError(s, ex.id).reps).toFixed(2)}-rep spread; two is not.`;
+        if (rung2 != null) s.queue.push({ id: `q_${ex.id}_${rung2}_2r`, kind: "debut", exId: ex.id, newW: rung2, t: `${ex.n.toUpperCase()} ${rung2} — TWO-RUNG DEBUT PROPOSED`, state: "PROPOSED", gate: `Terminal set had ${rirT9} in reserve at the top of the window — the one-rung jump underprices what was delivered. Your call: this rides only if you tap it, and the ${upNext} single-rung debut queues either way.` });
         s.queue.push({ id: `q_${ex.id}_${upNext}`, kind: "debut", exId: ex.id, newW: upNext, t: `${ex.n.toUpperCase()} ${upNext} DEBUT`, state: "DEBUT", gate: `Earned via ${ex.w}×${r.join(",")}`, rule: "Auto-queued — runs when it wins the structural slot", done: false });
-        push(`${ex.n.toUpperCase()} ${upNext} EARNED`, how + (loadRungs(ex) ? " Next rung this machine makes." : ""));
+        push(`${ex.n.toUpperCase()} ${upNext} EARNED`, how + (loadRungs(ex) ? " Next rung this machine makes." : " Confirm the rung: does this machine actually make " + upNext + " next? If not, fix the ladder in SETUP (uneven ✎) before the debut."));   /* R18c — the EARNED banner asks for rung confirmation where no ladder is on file */
       } else if (!already) {
+        /* R18d AMENDMENT (Joe's ruling, 2026-08-10): at the top of the window with the
+           terminal set reporting ≥2 in reserve, ONE sighting may earn — as a PROPOSAL.
+           The two-for-two law stands for the automatic queue; this arm only offers, and
+           only when the athlete's own terminal answer says the top was not a grind. */
+        const rirT8 = (() => { const a9 = Array.isArray(en.rirSets) ? en.rirSets : []; const v9 = a9.length ? a9[a9.length - 1] : null; return v9 != null ? v9 : (en.rirEnd != null ? en.rirEnd : null); })();
+        if (rirT8 != null && rirT8 >= 2) {
+          s.queue.push({ id: `q_${ex.id}_${upNext}_1s`, kind: "debut", exId: ex.id, newW: upNext, t: `${ex.n.toUpperCase()} ${upNext} — EARN PROPOSED OFF ONE SIGHTING`, state: "PROPOSED", gate: `${ex.w}×${r.join(",")} tops the window with ${rirT8} in reserve on the failure set. One sighting is inside your own spread, so the automatic earn still waits for the second — but an honest top with reps in reserve is your call to take early. Tap it and ${upNext} debuts; skip it and the two-for-two law runs as always.` });
+        }
         const te = typicalError(s, ex.id);
         push(`${ex.n.toUpperCase()} — TOP OF WINDOW, PROVISIONAL`, `${r.join(",")} tops the window${bn.margin > 0 ? `, ${bn.margin} rep${bn.margin === 1 ? "" : "s"} up on last time` : ""} — but your own set-to-set spread is ±${te.reps.toFixed(2)} reps (${te.src}), so one sighting cannot be told apart from a good day. Repeat it and the load queues itself. Sleep does not enter into it.`);
       }
@@ -9461,7 +9502,7 @@ const CONSTITUTION = [
   ["Facts are live, prose is dawn", "Numbers come from engines reading this second; the analyst's essay is a morning newspaper and says so."],
   ["Done-ness is derived", "The ledger decides what's complete — never a screen's memory. In-progress work is a draft that survives."],
   ["Smallest honest increment", "Weight moves by the machine's real smallest step; new sets and loads expect to keep almost every rep."],
-  ["One terminal failure set", "Each exercise ends in exactly one all-out set, and the RIR you give that set is what sizes the next session's jump. It is the single most valuable number you enter."],
+  ["One terminal failure set", "Each exercise ends in exactly one all-out set. The RIR you give that set GATES the next jump — 0 blocks the earn, ≥2 can propose an early or bigger one where a machine's rung ladder is on file — and the jump itself is always the machine's own next rung, never an invented numbep. It is the single most valuable number you enter."],
   ["The tilt", "Volume is presumed useful until your own bar speed says otherwise. Adds come easier than trims."],
   ["Records need repeating, not good sleep", "A new best waits for one confirmation — because your own measured set-to-set spread is small, so a +1 record cannot be told apart from a good day. A jump clearly outside that spread banks immediately. This used to depend on a three-night sleep streak; that condition had no evidence behind it and, at 7.5 h against your 7 h median, it never once opened."],
   ["Short sleep protects, it does not punish", "A short night is logged and it counts — for reps, for records, for every trend. What the flag buys you is that the day cannot be read as a stall, so you are never deloaded for a bad night. Sleep still matters most where it is actually measured: in a deficit, short sleep shifts what you lose toward lean mass."],
@@ -13668,6 +13709,43 @@ function LogTab({ s, setS, save, slp }) {
         </Card>
       )}
 
+      {/* R18b — THE NEXT-LOAD ASK. A numeric lift with no next load on file and no
+          measured ceiling (plate-loaded / no inc / no rungs) used to fall silent into
+          reps-forever while its sightings went unbanked. The machine has a next weight —
+          only the app doesn't know it. Ask once, capture in one tap, and the sighting
+          already delivered counts toward the earn: demanding two NEW ones would
+          prescribe below what was delivered. Rung-exhausted stacks keep TOPS-OUT. */}
+      {(() => {
+        const askEx = (s.exercises || []).find((e) => typeof e.w === "number" && e.hi != null && nextLoad(e) == null && !loadRungs(e));
+        if (!askEx) return null;
+        const sighted = String(askEx.topAt) === String(askEx.w) && (askEx.topRun || 0) >= 1;
+        const histTop = !sighted && askEx.last ? atTopOfWindow(askEx.last, askEx) : false;
+        return (
+          <Card accent={T.brass}>
+            <Eyebrow c={T.brass}>{askEx.n.toUpperCase()} — WHAT IS THE NEXT WEIGHT THIS MACHINE MAKES AFTER {askEx.w}?</Eyebrow>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>No next load is on file, so reps are carrying progression blind. One number unlocks the earn ladder{sighted || histTop ? " — and the top-of-window session already on your record counts as sighting one the moment you answer" : ""}. One weight, or the whole ladder (commas or spaces).</div>
+            <input id={"nla-" + askEx.id} inputMode="decimal" placeholder={"e.g. " + (askEx.w + 10) + "  ·  or: " + (askEx.w + 10) + ", " + (askEx.w + 25) + ", " + (askEx.w + 35)} style={{ width: "100%", boxSizing: "border-box", marginTop: 8, background: T.ink, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 16, padding: "10px" }} />
+            <div style={{ marginTop: 10 }}>
+              <Btn small tone="jade" onClick={() => {
+                const el = document.getElementById("nla-" + askEx.id);
+                const parsed = parseRungs(el ? el.value : "");
+                const ups = (parsed || []).filter((x) => x > askEx.w);
+                if (!ups.length) { window.alert("That needs at least one weight heavier than " + askEx.w + "."); return; }
+                const ns = JSON.parse(JSON.stringify(s));
+                const ex4 = ns.exercises.find((x) => x.id === askEx.id);
+                {/* one heavier number seeds the ladder's first rungs [w, next]; several seed
+                    the ladder outright. inc stays untouched — a machine that needed asking
+                    is exactly the machine whose increments are uneven. */}
+                ex4.steps = [ex4.w, ...ups];
+                let banked = false;
+                if (ex4.last && atTopOfWindow(ex4.last, ex4) && !(String(ex4.topAt) === String(ex4.w) && (ex4.topRun || 0) >= 1)) { ex4.topAt = ex4.w; ex4.topRun = 1; banked = true; }
+                ns.feed.unshift({ d: isoOf(todayStart()), t: askEx.n.toUpperCase() + " — NEXT LOAD ON FILE: " + ups[0], how: "You told the app this machine's ladder (" + [ex4.w, ...ups].join(", ") + ")." + ((banked || (String(ex4.topAt) === String(ex4.w) && (ex4.topRun || 0) >= 1)) ? " The top-of-window session already on your record counts as sighting one — one more honest top, or one that beats your own spread, earns the " + ups[0] + " debut." : " Top the window twice at " + ex4.w + " — or once beating your own spread — and " + ups[0] + " queues itself.") });
+                setS(ns); save(ns); hap(12);
+              }}>Save the ladder</Btn>
+            </div>
+          </Card>
+        );
+      })()}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {/* Was "records count as pending" on a short night — the retired gate, at the
         top of the page he opens to train. What replaces it says the true thing:
@@ -13855,6 +13933,10 @@ function LogTab({ s, setS, save, slp }) {
               ))}
               {showSetup[ex.id] && ex.live && (
                 <div style={{ fontFamily: mono, fontSize: TS.label, color: ex.isDebutNow ? T.orange : T.jade, marginTop: 5, lineHeight: 1.55 }}>NOW ▸ {ex.live}</div>
+              )}
+              {/* R18a — the runway rides the same fold as the live line: engine words verbatim */}
+              {showSetup[ex.id] && ex.runway && (
+                <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 4, lineHeight: 1.55 }}>RUNWAY ▸ {ex.runway}</div>
               )}
             </div>
           )}
@@ -16957,7 +17039,7 @@ function rulebook(s) {
     ["STRUCTURE", "One structural change per session — auto-picked from the queue. Rep progression unlimited."],
     ["OWNERSHIP", `A new best waits for ONE repeat before it becomes the standard, and a session that clears the old line by two standard errors banks on the spot. The bar is your own measured spread — ±${te.reps} reps per set, from ${te.n} paired sets at identical load. Sleep is not part of this: measurement error does not care how you slept, and it applies to every record rather than a sleep-selected minority.`],
     ["OPENERS", "The taper asks for a 2-RIR opener and one terminal set to failure. Two openers ground out at RIR 0 and the load holds until an honest one lands — a grind is not an earn."],
-    ["SIGNALS", "Last-set RIR is the one that sizes the next jump; the opener only feeds the hold governor. Joint flags three times in three weeks surface on NOW as a pattern rather than a day. Waist is still an unlogged input — until entries exist, it changes nothing and the app will not pretend otherwise."],
+    ["SIGNALS", "Last-set RIR gates the next jump — 0 blocks it, ≥2 can propose an early or two-rung debut on laddered machines; the opener only feeds the hold governor. Joint flags three times in three weeks surface on NOW as a pattern rather than a day. Waist is still an unlogged input — until entries exist, it changes nothing and the app will not pretend otherwise."],
     ["SCALE", "Fasted · post-void · pre-food. Once a day. Sealed windows excluded. Trend is the hero — a single reading carries several pounds of water and means nothing on its own."],
     ["EVENTS", "Estimate once, after, never at the table. Compensation does not exist in this app."],
     ["PROTEIN", `${pt.straddles ? `${pt.lo}–${pt.hi} g — ${pt.g} is the middle of that range, and the range is the honest answer: ${pt.lo} is ${PROTEIN_FLOOR_G_PER_KG} g per kg of your ${pt.ffmKg} kg of lean mass, ${pt.hi} is the lean-subgroup number, and your body-fat interval (${pt.bfLo}–${pt.bfHi}%) straddles the ${LEAN_SUBGROUP_BF}% line that separates them` : `${pt.g} g, every day, derived from your ${pt.ffmKg} kg of lean mass at ${pt.perKg} g/kg`} — not a constant. Protein is a FLOOR: over it is not a miss. It does not rise on training days: the only study that compared day types found requirement HIGHER on rest days. A miss fixed inside 24 h extends the standard.`],

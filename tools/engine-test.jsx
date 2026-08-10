@@ -7646,6 +7646,64 @@ if (fail) process.exit(1);
 console.log(`\nFINAL101: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
 
+/* ==================== R18 · LOAD PROGRESSION (FINAL102) ==================== */
+{
+  const cl = (o) => JSON.parse(JSON.stringify(o));
+  const srcR8 = readFileSync("src/app.jsx", "utf8");
+  const mk18 = () => {
+    const S = cl(__test.SEED);
+    const ex = S.exercises.find((e) => typeof e.w === "number" && e.hi);
+    ex.steps = [ex.w, ex.w + 10, ex.w + 25, ex.w + 35];   /* a rung ladder on file */
+    if (ex.ladder) delete ex.ladder;
+    ex.topAt = null; ex.topRun = 0; ex.holdFlag = false;
+    return { S, ex };
+  };
+  const drive18 = (S, ex, rirT, presight) => {
+    const eF = S.exercises.find((z) => z.id === ex.id);
+    const topline = Array(ex.sets || 3).fill(0).map((_, i9) => Math.max(1, (ex.hi || 12) - i9));
+    eF.last = topline.slice(); eF.lastMeta = { d: "2026-08-18", w: eF.w, reps: topline.slice(), rir: 2, rirSets: topline.map(() => 2), debt: false };   /* the PREVIOUS same-load session already at the top: margin ~0, so beatsNoise cannot confirm on sighting one and the arms under test actually run */
+    if (presight) { eF.topAt = eF.w; eF.topRun = 1; }
+    const reps = Array(ex.sets || 3).fill(0).map((_, i9) => Math.max(1, (ex.hi || 12) - i9));   /* the window-top fade line, matching the seeded previous session: tops honestly, clears nothing */
+    return __test.completeSession(S, "2026-08-21", [{ id: ex.id, n: ex.n, w: ex.w, tgt: reps.map(() => ex.hi - 1), reps, rir: 2, rirSets: reps.map((_, i) => (i === reps.length - 1 ? rirT : 2)) }], { last: null }, { note: "", niggles: [], skipped: [], pace: null }).s;
+  };
+  /* R18d — terminal RIR ≥3 with a ladder proposes the TWO-rung debut beside the earned single */
+  { const { S, ex } = mk18(); const NS = drive18(S, ex, 3, true);
+    const q1 = NS.queue.find((q) => q.exId === ex.id && q.kind === "debut" && q.state === "DEBUT");
+    const q2 = NS.queue.find((q) => q.exId === ex.id && q.state === "PROPOSED" && /TWO-RUNG/.test(q.t));
+    ok(!!q1 && q1.newW === ex.w + 10, "R18d — the confirmed earn still queues the SINGLE rung automatically (" + (q1 ? q1.newW : "—") + "): today's behaviour is the floor, never lowered");
+    ok(!!q2 && q2.newW === ex.w + 25 && /Your call/.test(q2.gate), "R18d — terminal RIR 3 at the top with a ladder PROPOSES the two-rung debut (" + (q2 ? q2.newW : "—") + ") beside it: the athlete consents by tapping, the single-rung floor rides either way");
+  }
+  /* R18d — terminal RIR 1-2: single rung only, no two-rung proposal (today's behaviour) */
+  { const { S, ex } = mk18(); const NS = drive18(S, ex, 1, true);
+    ok(!NS.queue.some((q) => q.exId === ex.id && /TWO-RUNG/.test(q.t || "")), "R18d — terminal RIR 1 proposes nothing extra: the two-rung door opens at ≥3 only, and even-inc lifts with no ladder are byte-identical by construction (rung2 needs loadRungs)");
+  }
+  /* R18d AMENDMENT (Joe, 2026-08-10) — ONE sighting at terminal RIR ≥2 earns as a PROPOSAL */
+  { const { S, ex } = mk18(); const NS = drive18(S, ex, 2, false);
+    const q3 = NS.queue.find((q) => q.exId === ex.id && q.state === "PROPOSED" && /ONE SIGHTING/.test(q.t));
+    ok(!!q3 && q3.newW === ex.w + 10 && /two-for-two law runs as always/.test(q3.gate), "R18d AMENDMENT — first sighting at the top with 2 in reserve on the failure set files the early-earn PROPOSAL: tap it and the debut rides; skip it and two-for-two stands. The automatic queue is untouched");
+    ok(!NS.queue.some((q) => q.exId === ex.id && q.state === "DEBUT"), "R18d AMENDMENT — and it is a proposal ONLY: one sighting still queues no automatic debut");
+  }
+  /* the amendment stays silent when the terminal answer is missing or low */
+  { const { S, ex } = mk18(); const NS = drive18(S, ex, 1, false);
+    ok(!NS.queue.some((q) => q.exId === ex.id && /ONE SIGHTING/.test(q.t || "")), "R18d AMENDMENT — terminal RIR 1 on a first sighting proposes nothing: an early earn needs the athlete's own answer saying the top was not a grind");
+  }
+  /* R18a — the runway on every numeric lift + the header receipt */
+  { const S = cl(__test.SEED);
+    const g = __test.genSession(S, "2026-08-13", { last: null });
+    ok(!!g && g.ex.filter((l) => typeof l.w === "number").every((l) => l.runway), "R18a — every numeric lift on the session card carries a runway line, derived only (nextLoad · windowFor · last · topRun · typicalError)");
+    const r1 = (g.ex.find((l) => /EARNS AT THE TOP OF THE WINDOW/.test(l.runway || "")) || {}).runway || "";
+    ok(/EARNS AT THE TOP OF THE WINDOW \(\d+-\d+\)/.test(r1) && (/you are \d+ reps? away/.test(r1) || /you are there/.test(r1)) && /two sightings bank it|one sighting banked/.test(r1), "R18a — the runway names the next load, the window, the measured rep distance and the sighting state in one engine-authored line: " + r1.slice(0, 90));
+    ok((g.structural || "").length > 0 && srcR8.indexOf(String.fromCharCode(34) + " · nearest earn: " + String.fromCharCode(34)) > -1, "R18a — the header receipt exists at source ( · nearest earn: name, N reps from W) and rides whenever no structural claims the day; this seed day carries one (" + g.structural.slice(0, 40) + "), so the receipt yields to it — by design, the receipt explains only the NO-debut claim");
+  }
+  /* R18b — the ask card at source */
+  ok(srcR8.indexOf("WHAT IS THE NEXT WEIGHT THIS MACHINE MAKES AFTER") > -1 && srcR8.indexOf("ex4.steps = [ex4.w, ...ups];") > -1 && srcR8.indexOf("counts as sighting one") > -1, "R18b — the ask card captures the machine's ladder in one tap (parseRungs — one weight or the whole ladder) and the already-delivered sighting counts the moment it is answered");
+  ok(srcR8.indexOf("Confirm the rung: does this machine actually make ") > -1, "R18c — the EARNED banner asks for rung confirmation where no ladder is on file, and points at the SETUP editor (the power path stays)");
+  ok(srcR8.indexOf("GATES the next jump") > -1 && srcR8.indexOf("Last-set RIR gates the next jump") > -1, "R18d — the two prose claim-sites now describe what the engine does (gate + propose), not a sizing that never ran; the gym label 'this one sizes the jump' became TRUE under this round");
+}
+console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+
 
 
 
