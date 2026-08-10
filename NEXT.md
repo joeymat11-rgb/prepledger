@@ -1,3 +1,15 @@
+## NOW — R18 · LOAD PROGRESSION (branch feat/r18-loadprog, recon banked 2026-08-10)
+
+**RECON MAP (measured this session):**
+- nextLoad(ex, from) at ~1045: rungs → next rung or null; else ex.inc or NULL. prevLoad/snapLoad/deloadLoad adjacent. loadRungs ~1039, parseRungs ~1082, proposeLadder ~978, windowFor ~1147 (derived width via repsLostOnJump).
+- THE EARN BLOCK ~1483-1516: upNext==null skips ENTIRELY (the hack disease — topAt/topRun never write, sightings never bank). Two-for-two: topRun>=2 || beatsNoise.clear. RIR gate: en.rir===0 || holdFlag → HOT (no earn). Debut queues as {kind:debut, exId, newW, state:DEBUT}. PROVISIONAL arm for first sighting.
+- THE MAXED RIDER ~7766-7781: maxedOut(exM) non-rung arm files kind:note "NO NEXT LOAD ON FILE AT w" once-ever (title-keyed). R18b replaces THIS arm with the ASK; rung-exhausted TOPS-OUT arm unchanged.
+- rirEnd lives in entries (rirSets terminal); R18d reads it at the earn site.
+
+**BUILD ORDER:** R18b first (the ask + seed topAt/topRun from the delivered sighting when ex.last atTopOfWindow — the earn block must also WRITE topAt/topRun when upNext==null so sightings bank while the ask is open). Then R18d (rirEnd picks the rung at top-of-window when ladder on file: RIR0 no earn · RIR1-2 one rung · RIR>=3 two-rung as PROPOSAL; PLUS Joe's amendment: top-of-window + rirEnd>=2 earns off ONE sighting AS A PROPOSAL; reword the three claim-sites ~9140/~6720/~16745 to actual behaviour). Then R18a (runway lines on TRAIN cards, derived-only: nextLoad/windowFor/ex.last/topRun/beatsNoise/typicalError; header receipt "nearest: X, N reps from W"). Then R18c (rung entry in the ask + on the EARNED banner via parseRungs; editor stays).
+- Engine moves → freeze regen DELIBERATE with leaves enumerated. New proposal kinds need applyProposal branches (the refeed_review law: a proposal must do what its text says).
+- HACK is the live case: at top RIGHT NOW ([12,11,13] >= 12,11,10), inc=null steps=null, the 8/07 sighting unbanked.
+
 # NEXT
 
 ## DONE, AWAITING AUDIT — R19 (2026-08-09, branch feat/r19-gym-split)
