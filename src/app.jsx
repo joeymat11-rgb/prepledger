@@ -1509,7 +1509,18 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     }
 
     /* generic progression + earn */
-    const tgtMet = en.tgt && en.tgt.every((t2, i) => (r[i] ?? 0) >= t2);
+    /* R20b — NEW-SET GRACE. A slot with NO prior value on file (created by an approved
+       volume push; prevMeta is the record of what existed before) banks whatever it
+       gives for its debut — the DEBUT precedent, hack's pendingThird — instead of a
+       padded target failing the whole session's TARGET MET read (press 8/09 [8,8,7,4]:
+       three sets met, the brand-new 4th's padded 6 read the session as a silent miss,
+       twice in four days). The grace lasts until the slot posts its first value — this
+       session IS that first value, so next time prevMeta covers the slot and the anchor
+       machinery owns it. DERIVED, no state key: the rule is 'no history at this index'. */
+    const graceFrom = prevMeta && Array.isArray(prevMeta.reps) ? prevMeta.reps.length : 0;
+    const graceIdx = r.map((_, i) => i).filter((i) => i >= graceFrom && i < r.length && en.tgt && i < en.tgt.length && graceFrom < r.length);
+    const tgtMet = en.tgt && en.tgt.every((t2, i) => (i >= graceFrom && graceFrom < r.length) || (r[i] ?? 0) >= t2);
+    if (graceIdx.length && graceFrom > 0) push(`${ex.n.toUpperCase()} — NEW SET, BANKS WHAT IT GIVES`, graceIdx.map((i) => `set ${i + 1}: ${r[i]}`).join(" · ") + " — a slot the volume push just created has no line to miss; what it gives today IS the line, and the anchor machinery owns it from the next session.");
     const atTop = atTopOfWindow(r, ex);
     ex.last = r.slice();
     const upNext = typeof ex.w === "number" ? nextLoad(ex) : null;
@@ -1577,7 +1588,11 @@ function completeSession(state, iso, entries, slp, extras = {}) {
       }
     } else {
       if (!atTop && typeof ex.w === "number" && String(ex.topAt) === String(ex.w)) { ex.topRun = 0; }   /* R18b — reset only on falling OFF the top; a no-next-load sighting banked above must survive this line */
-      if (tgtMet) push(`${ex.n.toUpperCase()} — TARGET MET`, `${en.w} × ${r.join(",")}`);
+      /* R20b ruling (audit low note, ruled at merge): a lift with NO history grades every
+         slot as graced — DEBUT-consistent — but TARGET MET would overclaim: no line
+         existed to meet. The first outing gets its own honest receipt instead. */
+      if (tgtMet && graceFrom === 0 && r.length) push(`${ex.n.toUpperCase()} — FIRST OUTING, BANKS WHAT IT GIVES`, `${en.w} × ${r.join(",")} — no line existed to meet; this IS the line everything later is measured against.`);
+      else if (tgtMet) push(`${ex.n.toUpperCase()} — TARGET MET`, `${en.w} × ${r.join(",")}`);
     }
 
     /* rows special: establish → earn 185 via 10,10 handled by generic atTop (hi=10) */
@@ -11912,9 +11927,14 @@ function ApprovalInbox({ s, setS, save, tISO }) {
            card carries the one-line receipt of what approving does. Everything else —
            note, cal (engine-owned by design), progression (a flag nobody reads) — is
            an observation and renders Noted/Dismiss. */
-        does: (() => { const a9 = p.apply || {}; return a9.kind === "protein" && a9.to != null ? "Approving does: sets your protein target to " + a9.to + " g/day." : a9.kind === "sleep" && a9.to != null ? "Approving does: sets your sleep target to " + a9.to + " h." : a9.kind === "dietbreak" ? "Approving does: arms a diet break — this week holds at maintenance." : null; })(),
-        approve: () => { const a9 = p.apply || {}; const real9 = (a9.kind === "protein" && a9.to != null) || (a9.kind === "sleep" && a9.to != null) || a9.kind === "dietbreak"; const ns = real9 ? applySuggestion(s, p) : noteSuggestion(s, p); setS(ns); save(ns); },
-        approveLabel: () => { const a9 = p.apply || {}; const real9 = (a9.kind === "protein" && a9.to != null) || (a9.kind === "sleep" && a9.to != null) || a9.kind === "dietbreak"; return real9 ? "Approve — apply it" : "Noted"; },
+        /* R20a — THE VOICE LAW at the render: the apply control DERIVES from the
+           'Approving does:' line — no line, no Approve, structurally. And a card whose
+           basis is speculation (conf below high) never wears apply even for a real
+           kind: the analyst interprets, the engine measures, and a tap enacts only
+           what a measured read earned. */
+        does: (() => { const a9 = p.apply || {}; if (conf !== "high") return null; return a9.kind === "protein" && a9.to != null ? "Approving does: sets your protein target to " + a9.to + " g/day." : a9.kind === "sleep" && a9.to != null ? "Approving does: sets your sleep target to " + a9.to + " h." : a9.kind === "dietbreak" ? "Approving does: arms a diet break — this week holds at maintenance." : null; })(),
+        approve: function () { const ns = this.does ? applySuggestion(s, p) : noteSuggestion(s, p); setS(ns); save(ns); },
+        approveLabel: function () { return this.does ? "Approve — apply it" : "Noted"; },
         dismiss: () => { const ns = dismissSuggestion(s, p); setS(ns); save(ns); },
       });
     });

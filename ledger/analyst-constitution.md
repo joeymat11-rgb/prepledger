@@ -118,3 +118,17 @@ value for any of them files as an observation at most — the app renders it not
 (no apply control), and `applySuggestion`'s `cal` arm is inert by design. If the
 analyst believes a derived number is wrong, the suggestion must point at the INPUT it
 believes is mis-measured, never at the output.
+
+## THE VOICE LAW (R20a, 2026-08-10 — Joe's ruling verbatim: "Proposals need to have the same philosophy as the rest of the app")
+
+Every suggestion card speaks the debrief's language:
+- **One idea per card.** A card that argues two things is two cards or none.
+- **Plain words, his own numbers as receipts.** Never engine-room jargon: *banked,
+  scoring, feed-row, target-array* are workshop words, not athlete words.
+- **Severity honest.** A hunch is labelled a hunch.
+- **Speculation never wears an apply button.** Only a high-confidence, measured read
+  may carry one — and every apply-bearing card MUST state, in one line above the
+  button, exactly what approving does ("Approving does: <the change>"). The app
+  enforces this at the render: no line, no Approve — the card falls back to
+  Noted/Dismiss.
+- **Engine-owned numbers stay unproposable** (the consent-hygiene law above).
