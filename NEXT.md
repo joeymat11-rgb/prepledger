@@ -1,3 +1,62 @@
+## R18F FIX 2 RE-DRIVE VERDICT — THE AUDIT, 2026-08-10 (round 2)
+
+**THE THREE FACES: GREEN.** Rig 22/0, real clock, the gates-open FINAL82 shape your
+SEED drives cannot reach; suite 2277/0, freeze byte-identical (122,771 disk bytes) and
+strict gate green all reproduced independently first; c551409 verified verbatim on main
+with the standing rule beneath it.
+
+- **Face 1 driven BEHAVIORALLY, both orders** (your (b) pin was source-only): order X —
+  door 2 files the one earned card (volpush_hams_<monday>) and the open card CLOSES the
+  desk; order Y — the desk's offer files and CLOSES door 2. One card either way.
+- **Face 2, your exact shape** (Monday sets move + both stores populated): the
+  budget-premised proposal resolves "withdrawn — the week's structural budget was spent
+  after this filed" — on the record, never deleted — the desk twin leaves, and both
+  withdrawals speak on the feed.
+- **Face 3 on the gates-open morning shape:** the spent-week tap enacts NOTHING (sets
+  unchanged, no exUndo row lands), resolves "expired at the tap", and the feed names
+  what expired and that it returns Monday; the clean-week tap still ENACTS with its
+  exact undo. The 3→4 drive is dead.
+- **The scope correction holds:** owner's-call cards file UNSTAMPED, the reconciler
+  leaves them standing in a move-week, and their tap still enacts. Consent intact,
+  exactly as the 8/07 record requires.
+
+**HELD FOR ONE MORE KEYED ROUND — THE DECLINE FACE (driven, both directions).** The
+cross-store guard reads OPEN cards; a decline RESOLVES the card, so each door keeps
+only its own promise:
+
+1. **Decline the earned card** — its copy promises "the lever stays quiet before
+   Monday" — and the desk files the identical VOLUME +1 the same day (driven: "VOLUME
+   +1 — HAMS via Ham curl", minutes after "ADJUSTMENT DECLINED"). Door 2 honors
+   declines via vpDeclined; the desk checks nothing about them.
+2. **Pass the desk's offer** — its copy promises "the ledger waits two weeks before
+   raising this muscle again" — and door 2 files the identical EARNED VOLUME card the
+   same day (driven: volpush_hams_<monday>, right after "VOLUME PASSED — HAMS"). The
+   desk honors its own promise via its recent-feed guard; door 2 never reads it.
+
+FIX SHAPE, symmetric and already in the house: the desk takes door 2's vpDeclined
+check (a dismissed volpush_ adjustment row ≥ monday closes the desk for the week);
+door 2 takes the desk's recent check (a "VOLUME PASSED — <MG>" feed line < 14d closes
+the producer for that muscle — or give the desk pass its own record if a feed-string
+read offends). R14's copy-and-mechanism law is the whole finding: the words already
+promise both silences; only the mechanism is missing.
+
+**TWO NOTES, ON THE RECORD (not blocking):**
+- applyAgentProposal is UI-only (unexported), so the desk belt carries a source pin and
+  no drive on either rig — export it with this round and drive both belts.
+- volroll's belt/reconciler exemption reads as DELIBERATE and correct: its premise is
+  the conversion verdict, which a move-week does not expire, and its decline copy
+  already says Monday-if-the-verdict-holds. Read, not changed.
+
+Production today on fix 2: chooser HOLD (regime free, unconfirmed), desk silent, door 2
+quiet, zero open volume offers — the decline face, like the last one, cannot bite
+before next Monday.
+
+Audit hygiene: same as round 1 — the rig ran local to the audit sandbox and was deleted
+after; nothing committed; the re-drive after your fix will take the two decline
+directions plus both belts via the export. R20 remainder unchanged behind it.
+
+---
+
 ## R18F RE-DRIVE VERDICT — THE AUDIT, 2026-08-10 (read before the R20 remainder)
 
 **THE TWO COMMISSIONED DRIVES: GREEN.** Driven on the audit rig's own harness, REAL
