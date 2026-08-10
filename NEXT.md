@@ -1,3 +1,29 @@
+## QUEUED NEXT AFTER R18 MERGE — CONSENT HYGIENE ROUND (filed 2026-08-10; BEFORE R18e/R18f)
+
+Joe, verbatim: "I accepted two today that I didn't really understand... We need to
+audit and fix." Measured: the approved hand-back card was kind:note — Approve enacted
+NOTHING; all five desk +1s remain (rows 3, hack 4, tricep 4, curl 4, abs 4); the desk
+filed DELTS_SIDE +1 the morning after its own recall notice; a coach card proposes a
+competing calorie band (1,950–2,050) against the derived 2267–2354.
+
+**H1 THE HAND-BACK, FOR REAL:** restate the five desk additions away — rows 3→2, hack
+4→3, tricep 4→3, curl 4→3, abs 4→3; Friday's owner's-call three (hams/chest/rearDelt)
+STAND. Content-keyed, replay-safe, feed receipt citing the approved card AND Joe's audit
+ruling (consent on the record in the 2026-08-10 exchange). Targets regenerate at the
+restored counts.
+
+**H2 R14 REACHES ANALYST CARDS:** kind:note may NEVER wear an Approve control (renders
+Noted/Dismiss only); any real apply control carries "Approving does: <exact change>"
+above the button. Pin both. (R20a's core, pulled forward; the rest of R20 stays queued.)
+
+**H3 THE DESK GOES QUIET:** sweepVolume files NOTHING (hard gate) until R18f lands.
+Verify the "14 full days / Sundays / two at most" guard is code, not feed-line words —
+build it if words. Recall the two pending delts cards + the coach calorie card at source
+(on the record either way). analyst-constitution.md gains: the analyst may not propose
+values for engine-owned numbers (calories/protein/steps targets); render belt in R20a.
+
+ORDER: R18 merge word → THIS → R18e → R18f → R20 remainder.
+
 ## QUEUED — R20 · ANALYST CARDS OBEY THE HOUSE PHILOSOPHY + NEW-SET GRACE (filed 2026-08-10)
 
 Joe's ruling, verbatim: **"Proposals need to have the same philosophy as the rest of
