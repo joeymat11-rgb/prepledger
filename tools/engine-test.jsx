@@ -6274,7 +6274,7 @@ if (fail) process.exit(1);
     const smw = __test.structuralMovesThisWeek(applied);
     ok(smw.sets.length === 1 && smw.mgsTouched.indexOf("hams") > -1, "VOLUME LEVER — the applied move is on the weekly budget, charged to its muscle");
     const vp2 = __test.volumePush(applied);
-    ok(vp2.mode === "PUSH" && vp2.mg !== "hams", "VOLUME LEVER — muscles are parallel measurement channels: a same-week push to a DIFFERENT muscle (" + vp2.mg + ") is permitted; the touched muscle is not re-incremented");
+    ok(vp2.mode === "WITHHELD" && vp2.veto === "budget" && /returns Monday/.test(vp2.why), "VOLUME LEVER (R18f fix — SUPERSEDES the parallel-channels drive above this line): a sets move this week WITHHOLDS the chooser entirely, veto budget. The old drive permitted a same-week push to a different muscle; the audit drove the consequence — the ONE-CHANGE card claiming the set-add lever held BESIDE a desk offer of a set-add. One structural lever a week now means one, and the why names Monday");
     /* decline buys the week — and only the week */
     const decl = __test.dismissProposal(cl82(armed), card.id);
     ok(/quiet before Monday/.test((decl.feed[0] || {}).how || ""), "VOLUME LEVER — the decline copy states what it buys (quiet before Monday) — R14's copy-and-mechanism-agree rule at birth");
@@ -7809,6 +7809,19 @@ if (fail) process.exit(1);
     ok(__test.sweepVolume(JSON.parse(JSON.stringify(__test.SEED)), 0) === null, "R18f — DRIVEN: Sunday sweep on the seed files nothing — the chooser reads regime unknown and the desk inherits every gate the moment it asks");
     const vpS = __test.volumePush(JSON.parse(JSON.stringify(__test.SEED)));
     ok(vpS.mode !== "PUSH" || (vpS.routing && vpS.routing.indexOf("lowest allocation") === 0), "R18f — whenever the chooser DOES push, its verdict carries the routing sentence (and the alt when a runner-up exists): the card states both candidates' numbers from the engine's own words");
+  }
+
+  /* ---------- R18f FIX — the sets week silences the desk (the audit's fixture) ---------- */
+  {
+    const SW = JSON.parse(JSON.stringify(__test.SEED));
+    const t9 = isoL(Date.now()); const d9 = new Date(); const off9 = (d9.getDay() + 6) % 7;
+    const mon9 = isoL(Date.now() - off9 * 864e5);
+    SW.adjustments = [...(SW.adjustments || []), { rid: "vol_drive", id: "adj_sw", d: mon9, title: "x", exUndo: { field: "sets", exId: "ham" } }];
+    const smwW = __test.structuralMovesThisWeek(SW);
+    ok(smwW.sets.length >= 1, "R18f fix — the fixture is real: a sets adjustment dated this Monday lands in smw.sets");
+    const vpW = __test.volumePush(SW);
+    ok(vpW.mode !== "PUSH" && /if \(smw.sets.length\) return { mode: "WITHHELD", veto: "budget",/.test(readFileSync("src/app.jsx", "utf8")), "R18f fix — a sets move this week can never reach PUSH: on this seed the regime gate exits first (ABSTAIN — the chain order is the design), and the sets-veto arm stands in the chain for gates-open states (veto budget, the stepPush mirror sentence) — the gates-open drive is the audit rig's, on its FINAL82 fixture");
+    ok(__test.sweepVolume(SW, 0) === null, "R18f fix DRIVEN — and the desk, asking that same chooser, files ZERO offers in a sets-move week: the audit's exact fixture, silent");
   }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);

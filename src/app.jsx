@@ -7580,6 +7580,12 @@ function volumePush(s) {
   if (!cleanAtDate(s, isoOf(todayStart()))) return { mode: "WITHHELD", veto: "sleep",
     why: "sleep is in debt today — the body is not funding what it already does, so it is not asked to fund more" };
   const smw = structuralMovesThisWeek(s);
+  /* R18f fix — the budget veto covers ALL three lever kinds. It fired only on cal/steps,
+     so a sets week left the desk free to offer a SECOND set-add beside the ONE-CHANGE
+     card claiming the lever was held — the five-cards disease in miniature, driven by
+     the audit. mgsTouched stays as the additional per-muscle spillover skip below. */
+  if (smw.sets.length) return { mode: "WITHHELD", veto: "budget",
+    why: "a set change already landed this week — one structural lever a week, so the scale can say which one moved it; the question returns Monday" };
   if (smw.calOrSteps.length) return { mode: "WITHHELD", veto: "budget",
     why: "a " + (smw.calOrSteps[0].kind === "cal" ? "calorie-band change" : "step push") + " already landed this week — one structural lever a week, or the scale cannot say which one moved it. The volume question returns Monday" };
   /* the chooser — lowest allocation first (spec Q3), and the target must be READABLE:
