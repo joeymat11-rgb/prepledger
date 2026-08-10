@@ -279,7 +279,7 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         const old = clone(SEED); delete old.skinfolds; old.v = 38;
         const up = __test.migrate(JSON.parse(JSON.stringify(old)));
         ok(Array.isArray(up.skinfolds) && up.skinfolds.length === 0, "R5 migration — patchV39 adds s.skinfolds = [] and nothing was there to restate");
-        ok(up.v === 42, "R5 migration — and bumps to 42 (v40 R19 · v41 H4 · v42 the consent-hygiene hand-back: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
+        ok(up.v === 43, "R5 migration — and bumps to 43 (v42 hygiene · v43 the hack 6-10 ruling: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
                 ok(Array.isArray(up.split) && up.split.length === 1 && up.split[0].from === "2026-08-09" && up.split[0].map[0] === "U" && up.split[0].map[1] === "L" && up.split[0].map[4] === "U" && up.split[0].map[5] === "L" && up.split[0].map[3] === "REST", "R19c migration — patchV40 seeds the athlete-stated split, DATED from the day he said it: Sun U · Mon L · Thu U · Fri L, rest elsewhere");
         /* byte-identity is the wrong invariant: migrate() replays the WHOLE patch chain, so
            other idempotent patches legitimately touch the state. The invariant that matters
@@ -2323,7 +2323,7 @@ oldV23a.exercises.find((x) => x.id === "hack").hi = 13;
 oldV23a.exercises.find((x) => x.id === "hack").last = [13, 12];
 const m63 = mg63(oldV23a);
 const hk63 = m63.exercises.find((x) => x.id === "hack");
-ok(m63.v >= 24 && hk63.hi === 12 && hk63.last === null, "phones inherit the ruling: rep ceiling 12, fresh block at the new load");
+ok(m63.v >= 24 && hk63.hi === 10 && hk63.last === null, "phones inherit the NEWEST ruling: a v23 phone walks the whole chain — patchV24 asserts 12 and nulls the pre-ruling block (its own dated truth), then patchV43 lands the owner's 2026-08-10 ruling on top: ceiling 10. The chain replays HISTORY, and history now ends at 6-10");
 ok(m63.feed.some((f) => f.t.indexOf("RULING — HACK LOADED UP") === 0), "the ruling is on the record for the clerk to mine");
 ok(tf63(hk63).every((r) => r <= 10), "fresh targets seed under the new ceiling: " + tf63(hk63).join(","));
 
@@ -5563,15 +5563,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 42, "schema: SCHEMA_V is 42 (patchV42: the consent-hygiene hand-back + desk recall)");
+  ok(SC === 43, "schema: SCHEMA_V is 43 (patchV43: the owner's hack 6-10 ruling)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
-  ok(migd.v === 42 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
+  ok(migd.v === 43 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
   ok(migd.reads.length === oldV35.reads.length && Object.keys(migd.dailyLogs).length === Object.keys(oldV35.dailyLogs).length, "patchV36: ADDITIVE — no read or dailyLog is added or lost (count-preserving)");
   ok(SEED.plan.autonomy === "propose", "patchV36: SEED already carries autonomy='propose' so a fresh install === a migrated one");
-  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 42, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
-  const future = clone(SEED); future.v = 43;
-  ok(mig(future).v === 43, "migrate: a NEWER (v43) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
+  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 43, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
+  const future = clone(SEED); future.v = 44;
+  ok(mig(future).v === 44, "migrate: a NEWER (v44) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
   const legacy = clone(SEED); legacy.v = 35; legacy.plan = { goals: [{ text: "no-id" }], ifthen: [{ cue: "x", action: "y" }], share: false };
   const lm = mig(legacy);
   ok(lm.plan.goals[0].id != null && lm.plan.ifthen[0].id != null, "patchV36: legacy goal/if-then entries get a stable id backfilled (so the keyed union keys every entry)");
@@ -5860,15 +5860,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 42, "schema: SCHEMA_V is 42 (patchV42 on top of the chain)");
+  ok(__test.SCHEMA_V === 43, "schema: SCHEMA_V is 43 (patchV43 on top of the chain)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
-  ok(m37.v === 42 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
+  ok(m37.v === 43 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
   ok(m37.reads.length === oldV36.reads.length && Object.keys(m37.dailyLogs).length === Object.keys(oldV36.dailyLogs).length, "patchV37: ADDITIVE — no read or dailyLog added or lost (count-preserving)");
-  ok(MIG(clone(SEED)).v === 42, "patchV37..42: idempotent on a current SEED (no double-patch drift)");
-  const fut39 = clone(SEED); fut39.v = 43; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
-  ok(MIG(fut39).v === 43 && MIG(fut39).learned.tdee.length === 1, "patchV38: a NEWER (v43) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
+  ok(MIG(clone(SEED)).v === 43, "patchV37..43: idempotent on a current SEED (no double-patch drift)");
+  const fut39 = clone(SEED); fut39.v = 44; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
+  ok(MIG(fut39).v === 44 && MIG(fut39).learned.tdee.length === 1, "patchV38: a NEWER (v44) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
 
   // -------- MERGE HARDENING — s.learned adversarial: must-not-LOSE + must-not-REVERT, BOTH orders --------
   ok(typeof UL === "function", "s.learned: _unionLearned is the registered reconciler (mirrors _unionPlan)");
@@ -6111,15 +6111,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(JSON.stringify(calorieTarget(clone(SEED))) === JSON.stringify(calorieTarget(clone(SEED))), "ENGINE-OWNS-NUMBERS — calorieTarget is unchanged by the phase layer on a normal cut (no phase number injected)");
 
   // ---- E · patchV38 — additive + rollback-safe; fresh SEED === migrated --------------------
-  ok(SCHEMA_V === 42, "patchV39..42 — SCHEMA_V is 42 (hygiene on top of H4 on top of R19)");
+  ok(SCHEMA_V === 43, "patchV39..43 — SCHEMA_V is 43 (the hack ruling on the chain)");
   ok(Array.isArray(SEED.plan.phaseLog) && SEED.plan.phaseLog.length === 0 && !("phase" in SEED.plan) && !("brk" in SEED.plan), "patchV38 — SEED authors an EMPTY phaseLog and NO phase/brk override: a fresh install === a migrated state");
   const oldV37 = clone(SEED); oldV37.v = 37; delete oldV37.plan.phaseLog;
   const m38 = migrate(oldV37);
-  ok(m38.v === 42 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
+  ok(m38.v === 43 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
   ok(m38.reads.length === oldV37.reads.length && Object.keys(m38.dailyLogs).length === Object.keys(oldV37.dailyLogs).length, "patchV38 — ADDITIVE: no read or dailyLog added or lost (count-preserving)");
-  ok(migrate(clone(SEED)).v === 42 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
-  const fut39 = clone(SEED); fut39.v = 43; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };
-  ok(migrate(fut39).v === 43 && migrate(fut39).plan.phase === "leangain", "patchV38 — a NEWER (v43) state is handed back UNTOUCHED: rollback-safe, no phase decision wiped");
+  ok(migrate(clone(SEED)).v === 43 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
+  const fut39 = clone(SEED); fut39.v = 44; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };
+  ok(migrate(fut39).v === 44 && migrate(fut39).plan.phase === "leangain", "patchV38 — a NEWER (v44) state is handed back UNTOUCHED: rollback-safe, no phase decision wiped");
 
   // ---- F · s.plan KEYED-UNION — a stale device must NOT REVERT nor LOSE a phase decision, BOTH orders --
   const devNew = clone(SEED); devNew.plan = { ...devNew.plan, phase: "leangain", setAt: { phase: "2026-07-29T10:00:00Z" }, rev: 5, phaseLog: [{ id: "ph_new", at: "2026-07-29T10:00:00Z", to: "leangain" }] };
@@ -7927,6 +7927,30 @@ if (fail) process.exit(1);
     eN.sets = 3; eN.last = null; eN.lastMeta = { d: null, w: eN.w, reps: [], rir: null, rirSets: [], debt: false };
     const { s: N22 } = __test.completeSession(S22, "2026-08-20", [{ id: eN.id, n: eN.n, w: eN.w, tgt: [8, 8, 8], reps: [6, 6, 5], rir: 2, rirSets: [2, 2, 2] }], { last: null }, { note: "", niggles: [], skipped: [], pace: null });
     ok(!N22.feed.some((f) => f.t && f.t.indexOf(" — TARGET MET") > -1) && N22.feed.some((f) => f.t && f.t.indexOf("FIRST OUTING, BANKS WHAT IT GIVES") > -1 && /no line existed to meet/.test((N22.feed.find((f) => /FIRST OUTING/.test(f.t)) || {}).how || "")), "R20b RULING (the audit low note) — a lift with NO history cannot claim TARGET MET (no line existed to meet — the overclaim class R18e killed); the first outing speaks its own truth: FIRST OUTING, BANKS WHAT IT GIVES, and the reps become the line everything later is measured against");
+  }
+
+  /* ---------- THE OWNER'S RULING — HACK 6-10 (2026-08-10) ---------- */
+  {
+    const cl43 = (o) => JSON.parse(JSON.stringify(o));
+    const S43 = cl43(__test.SEED); S43.v = 42;
+    const h0 = S43.exercises.find((x) => x.id === "hack");
+    h0.hi = 12; h0.w = 160; h0.steps = [160, 170]; h0.inc = null; h0.last = [12, 11, 13]; h0.topAt = 160; h0.topRun = 1;
+    h0.lastMeta = { d: "2026-08-07", w: 160, reps: [12, 11, 13], rir: 1, rirSets: [1, 1, 1], debt: false };
+    const C43 = __test.migrate(cl43(S43));
+    const h1 = C43.exercises.find((x) => x.id === "hack");
+    ok(h1.hi === 10 && JSON.stringify(h1.last) === "[12,11,13]" && String(h1.topAt) === "160" && h1.topRun === 1, "HACK 6-10 — the ruling lands on the exact live shape: hi 12 → 10, and hack.last STANDS (12,11,13 at 160 is over the new top; the banked sighting and two-for-two carry forward — 170 debuts on the next honest top). Nothing nulled");
+    ok(C43.feed.some((f) => f.t === "HACK — REP RANGE MOVES TO 6-10" && /breathing fails before the quads/.test(f.how)), "HACK 6-10 — the feed receipt is in his words: round two of the pattern that already worked");
+    const R43 = __test.migrate(cl43(C43));
+    ok((R43.exercises.find((x) => x.id === "hack") || {}).hi === 10, "HACK 6-10 — replay no-op: keyed on the 12 the old ruling held");
+    const w43 = __test.windowFor(h1);
+    ok(w43.lo === 6 && w43.hi === 10, "HACK 6-10 — windowFor DERIVES the floor: ceiling 10 on the 160→170 ladder yields exactly 6-10 (" + w43.lo + "-" + w43.hi + "), the owner's stated range with no second authored number");
+    /* the retired patchV24 mutation: the standing rule fired */
+    const srcH4 = readFileSync("src/app.jsx", "utf8");
+    ok(srcH4.indexOf("if (hk && hk.hi !== 12 && hk.hi !== 10) { hk.hi = 12; hk.last = null; }") > -1 && srcH4.indexOf("RETIRED 2026-08-10 (the round the standing rule was written for)") > -1, "HACK 6-10 — the patchV24 standing rule FIRED as pinned at its audit: the effect-keyed mutation now also stops at the new ruling's value, so no replay path can re-assert 12 over the owner's call");
+    /* the ladder nudge — the runway warns where the ladder goes blind */
+    const g43 = __test.genSession(C43, "2026-08-14", { last: null });
+    const l43 = g43 && g43.ex.find((x) => x.id === "hack");
+    ok(!l43 || !l43.runway || /the ladder goes blind above 170/.test(l43.runway) || /arming:|tops out|no next load/.test(l43.runway), "HACK 6-10 — the runway names the blind ladder on the live shape (one rung above 160): file the next rungs in SETUP so the earn after 170 has a price. At ceiling 10 the debuts come faster; the runway must not go dark above the ladder — " + (l43 && l43.runway ? l43.runway.slice(0, 90) : "(not on this day)"));
   }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);
