@@ -1,3 +1,26 @@
+## QUEUED — R20 · ANALYST CARDS OBEY THE HOUSE PHILOSOPHY + NEW-SET GRACE (filed 2026-08-10)
+
+Joe's ruling, verbatim: **"Proposals need to have the same philosophy as the rest of
+the app."** Build order: R18 merge word → R18e → R18f → THIS.
+
+**R20a — THE ANALYST VOICE LAW**, written into analyst-constitution.md and enforced at
+the render: every analyst suggestion card speaks the debrief's language — plain words,
+his own numbers as receipts, ONE idea per card, no engine-room jargon (banked/scoring/
+feed-row/target-array). A card labelled speculation or unverifiable may NOT wear an
+apply button — it files as a note/observation (the R14 invariant: a tap enacts exactly
+what the button says, and the card SAYS what applying does). Severity honest. PIN:
+suggestion cards with an apply control must carry a one-line "Approving does: <the
+change>" — a card without it renders note-only.
+
+**R20b — NEW-SET GRACE**: a set slot added by an approved volume push carries
+"banks whatever it gives" semantics for its first outings (the DEBUT precedent —
+hack's pendingThird), instead of a padded target that can fail the whole session's
+TARGET MET read. Live case: press 8/09 [8,8,7,4] — three sets met, the brand-new 4th's
+padded target 6 read the session as a silent miss, twice in four days. Rule the grace
+duration (recommended: until the set posts its first value — then the anchor machinery
+owns it), pin it, and the receipt names it ("4th set: 4 — new set, banks what it
+gives").
+
 ## DONE, AWAITING AUDIT — R18 · LOAD PROGRESSION (2026-08-10, branch feat/r18-loadprog)
 
 All four sub-items built and driven. R18b: sightings bank with no next load on file
