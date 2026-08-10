@@ -2372,8 +2372,8 @@ ok(hams && hams.n7 === 2 && hams.zone === "UNDER", "sets counted per rolling wee
    notice. The old drive ("two weeks under the floor files a +1") is the behaviour R18f
    will restore THROUGH the one chooser; until then the gate is the law. */
 const swept66 = sv66(vl, 0);
-ok(swept66 === null, "CONSENT HYGIENE — the desk files NOTHING while hard-gated (was: two weeks under the floor files a +1). The zone triggers survive as the WHEN for R18f; the gate closes the WHICH until one chooser owns it");
-ok(sv66(vl, 0) === null && sv66(JSON.parse(JSON.stringify(vl)), 1) === null, "CONSENT HYGIENE — the gate holds on both filing days (Sun and Mon): the throttle and plain-words drives return with the desk in the R18f round");
+ok(swept66 === null, "R18f — the desk is AWAKE but the house gates hold: on this fixture the chooser (volumePush) is not at PUSH (regime unknown), so the under-floor trigger files NOTHING — gates closed means silence, never a default offer");
+ok(sv66(vl, 0) === null && sv66(JSON.parse(JSON.stringify(vl)), 1) === null, "R18f — silence holds on both filing days: the chooser's verdict, not a calendar gate, is what decides");
 
 console.log(`\nFINAL65: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
@@ -2406,7 +2406,7 @@ let mt = clone(TL69);
 for (const k of [2, 5, 9, 12, 16]) mt.sessionLog[isoL(Date.now() - k * 864e5)] = { entries: [{ id: "ham", reps: [10, 10], rir: 2, w: 120 }], at: 1 };
 ok(sv69(mt, 3) === null, "midweek says nothing — volume is a Sunday conversation");
 const sun69 = sv69(mt, 0);
-ok(sun69 === null, "CONSENT HYGIENE — Sunday files nothing either while the desk is hard-gated (the two-cap drive returns with R18f, riding the one chooser)");
+ok(sun69 === null, "R18f — Sunday files nothing here either: the chooser is not at PUSH on this fixture, and the desk only ever files the chooser's ONE pick (the two-cap is superseded by a one-pick construction)");
 const oldV26a = clone(TL69); oldV26a.v = 26;
 oldV26a.agentProposals = [{ id: "v1", kind: "volume", mg: "chest", dir: 1 }, { id: "t1", kind: "trial", title: "keep me" }];
 const m69 = mg69(oldV26a);
@@ -7772,7 +7772,7 @@ if (fail) process.exit(1);
     ok(srcH3.indexOf('return real9 ? "Approve — apply it" : "Noted";') > -1 && srcH3.indexOf("const ns = real9 ? applySuggestion(s, p) : noteSuggestion(s, p);") > -1, "H2 — a suggestion whose apply is inert (note · cal · progression) can NEVER render Approve — apply it: the label and the handler both fork on the same real-kinds test, so the button always enacts exactly what it says");
     ok(srcH3.indexOf("Approving does: sets your protein target to ") > -1 && srcH3.indexOf("{it.does ?") > -1, "H2 — every real apply carries the one-line receipt (Approving does: <exact change>) rendered above the button; a card without it renders note-only by construction (does is null for inert kinds)");
     /* H3 — the desk gate + the guards named as code */
-    ok(srcH3.indexOf("THE DESK IS HARD-GATED until the") > -1 && /return null;\s*\n\s*const tISO7/.test(srcH3), "H3 — sweepVolume files NOTHING (hard gate at the top, removed only in the R18f round). The claimed guards ARE code and are named in the comment: the 14-day first-session gate, dow 0/1, the per-mg cooldown scan, the ≤2-per-run cap");
+    ok(srcH3.indexOf("THE DESK WAKES, DEMOTED TO A DOOR") > -1 && srcH3.indexOf("the WHICH is volumePush") > -1, "H3 → R18f — the hygiene hard gate is LIFTED because the defect it guarded is gone: the desk no longer routes. Its zone triggers are the WHEN; the WHICH is the one chooser, house gates by construction");
     ok(__test.sweepVolume(JSON.parse(JSON.stringify(__test.SEED)), 0) === null, "H3 — driven: a Sunday sweep on a full seed files nothing while the gate holds");
   }
 
@@ -7795,6 +7795,20 @@ if (fail) process.exit(1);
     ok(smwV.calOrSteps.length >= 1 && smwV.calOrSteps.some((m) => m.rid === "ap_tighten_T"), "R18e-3 — structuralMovesThisWeek SEES the approved steer in calOrSteps the same week");
     const vpV = __test.volumePush(AV);
     ok(vpV.mode !== "PROPOSE" && srcE.indexOf('if (smw.calOrSteps.length) return { mode: "WITHHELD", veto: "budget",') > -1, "R18e-3 — and volumePush cannot propose that week (mode " + vpV.mode + (vpV.veto ? "/" + vpV.veto : "") + "): the budget arm exists at source and the approved steer feeds it — driven end to end, approve → via:cal → calOrSteps → no volume push");
+  }
+
+  /* ---------- R18f — ONE OWNER FOR THE ADDED SET ---------- */
+  {
+    const srcFf = readFileSync("src/app.jsx", "utf8");
+    ok(srcFf.indexOf("const picks = [];") > -1 && srcFf.indexOf("alt: p1 ? { mg: p1.mg, exName: p1.exName") > -1 && srcFf.indexOf("lowest allocation carries it — rep-velocity is never consulted for routing") > -1, "R18f-1 — the chooser names its runner-up and states the routing law: allocation, never rep-velocity — a maxed ladder (hack, forced reps-only, vel 3.5) can no longer masquerade as responsiveness and a fresh load jump (extension, reps reset by the debut) costs nothing");
+    ok(srcFf.indexOf("const vp9 = volumePush(s);") > -1 && srcFf.indexOf('if (vp9.mode === "PUSH") {') > -1 && srcFf.indexOf("The desk is awake again — one chooser, house gates.") > -1, "R18f-2 — the desk's +1 arm ASKS THE SAME FUNCTION: every house gate (regime, rising, recovery, sleep, the smw budget, spillover, conversion, ceiling) applies to the desk by construction, and the card SAYS the desk woke with this round");
+    ok(srcFf.indexOf("if (dir < 0) {") > -1 && srcFf.indexOf("} else cands.push({ m, dir, why, pick: null,") > -1, "R18f-2 — the +1 trigger carries NO pick of its own (the chooser owns WHICH); the -1 give-back keeps its weakest-mover pick — a different question, no ladder bias rewards the giver");
+    ok(srcFf.indexOf("if (smw9.moves.length) return;   /* R18f-3") > -1, "R18f-3 — the give-back is a structural move too: it waits out ANY move-week (sets, cal or steps), so no desk card can contradict the ONE-CHANGE card in the same render");
+    ok(srcFf.indexOf("slice(0, 1).forEach") > -1 && srcFf.indexOf("gatesClosed: false") > -1, "R18f — default offers cap at ONE by construction (the chooser returns one pick; the give-back files at most one), and never five simultaneous defaults again");
+    /* driven: the awake desk on a full seed still files nothing while the chooser holds */
+    ok(__test.sweepVolume(JSON.parse(JSON.stringify(__test.SEED)), 0) === null, "R18f — DRIVEN: Sunday sweep on the seed files nothing — the chooser reads regime unknown and the desk inherits every gate the moment it asks");
+    const vpS = __test.volumePush(JSON.parse(JSON.stringify(__test.SEED)));
+    ok(vpS.mode !== "PUSH" || (vpS.routing && vpS.routing.indexOf("lowest allocation") === 0), "R18f — whenever the chooser DOES push, its verdict carries the routing sentence (and the alt when a runner-up exists): the card states both candidates' numbers from the engine's own words");
   }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);
