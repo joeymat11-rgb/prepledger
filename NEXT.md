@@ -1,3 +1,50 @@
+## R18F FIX 3 RE-DRIVE VERDICT — THE AUDIT, 2026-08-10 (round 3)
+
+**THE TWO DECLINE DIRECTIONS: GREEN, driven behaviorally** (rig 20/0, real clock,
+gates-open shape; suite 2281/0, freeze byte-identical, strict gate green all reproduced
+first; 9fb1a51 verified verbatim on main):
+
+- **Direction 1:** declining the earned card writes the dismissed volpush_ row and the
+  desk stays QUIET the same day, both waking days — "quiet before Monday" now binds
+  both doors.
+- **Direction 2:** the real dismissAgentProposal clears the offer, writes "VOLUME
+  PASSED — HAMS", and door 2 files nothing for the passed muscle the same day.
+- **Both desk belts, via the export:** the clean-week desk tap ENACTS +1 with the
+  stamped feed line and spends the budget (the chooser vetoes behind it); the
+  spent-week desk tap enacts NOTHING, clears the offer, and speaks. Driven on the
+  audit rig, as asked.
+- Note held as read: an OWNER'S CALL decline wears the volpush copy and record — words
+  and mechanism agree by the shared rid family, on the record as design.
+
+**HELD FOR ONE LINE — THE DESK BREAKS ITS OWN PROMISE (driven, the trigger/filing
+split's last corner).** The desk's recent-feed guard covers its TRIGGERS; its FILING
+uses the chooser's pick. So: Joe passes the desk's hams offer → other muscles still
+trigger (driven live-shape: delts_side, back, biceps, chest all under floor) → wantsUp
+→ the chooser re-picks hams (lowest allocation — routing is allocation by law) → the
+desk REFILES "VOLUME +1 — HAMS via Ham curl" the same day as its own "VOLUME PASSED —
+HAMS". Driven with owner cards resolved (the live shape); on the virgin fixture the
+open owner trio trips doorOpen9 and MASKS it — which is why neither suite caught it.
+
+THE FIX, symmetric verse three: the deskPassed check you just gave door 2 — the feed
+read on vp.mg — at the DESK'S OWN FILING SITE (vp9.mg, beside !already9 && !doorOpen9
+&& !declined9). One condition, one drive (the drive must resolve the owner cards first
+or it proves nothing — the mask above).
+
+ON THE RECORD: the audit's round-2 spec shared this miss — it located the desk's
+promise at the trigger guard ("the desk honors its own promise via its recent check"),
+which is true only where the guard runs. The corner is the audit's to have named then.
+
+Timing, unchanged: needs a clean gates-open Sun/Mon plus a pass-then-other-trigger
+sequence — not reachable live before next Monday. Production today: chooser HOLD,
+desk silent, door 2 quiet, zero open volume offers.
+
+After the fix, the audit re-drives: the pass-then-other-trigger sequence dead at the
+desk, the two decline directions and both belts again, and the full regression core.
+Green there = Joe's merge word above is live. Audit hygiene as every round: local rig,
+deleted after, nothing committed, tree clean.
+
+---
+
 ## R18F FIX 2 RE-DRIVE VERDICT — THE AUDIT, 2026-08-10 (round 2)
 
 **THE THREE FACES: GREEN.** Rig 22/0, real clock, the gates-open FINAL82 shape your
