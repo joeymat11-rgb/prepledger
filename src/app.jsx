@@ -341,7 +341,7 @@ const APP_V = "7.42.0";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 43;
+const SCHEMA_V = 44;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -1512,6 +1512,16 @@ function completeSession(state, iso, entries, slp, extras = {}) {
       return;
     }
 
+    /* CAGE (v7.42.1) — REALITY OUTRANKS THE FILED LADDER: an entry logged at a weight
+       the config did not hold moves the config to reality — ex.w follows what was
+       lifted, and an off-ladder weight MERGES into the rungs (never erasing them),
+       so the ask/ladder machinery prices the next earn from where he actually is. */
+    if (typeof en.w === "number" && typeof ex.w === "number" && en.w !== ex.w) {
+      const r0 = loadRungs(ex);
+      if (r0 && r0.indexOf(en.w) < 0) ex.steps = [...new Set([...r0, en.w])].sort((a9, b9) => a9 - b9);
+      push(`${ex.n.toUpperCase()} — LOGGED AT ${en.w} (plan said ${ex.w})`, "Reality outranks the filed ladder: the lift now lives at " + en.w + (r0 ? ", and the rung joined the ladder" : "") + ".");
+      ex.w = en.w; ex.topAt = null; ex.topRun = 0;   /* a new load starts its own sighting record */
+    }
     /* generic progression + earn */
     /* R20b — NEW-SET GRACE. A slot with NO prior value on file (created by an approved
        volume push; prevMeta is the record of what existed before) banks whatever it
@@ -9127,6 +9137,34 @@ function patchV43(s) {
   }
   s.v = 43; return s;
 }
+function patchV44(s) {
+  /* THE WRONG RECORD (Joe's attestation, verbatim, 2026-08-10: 'I just hit hack 180
+     for 9 (2 RIR), 9, 10 (0 RIR)'). The phone logged the PRE-FILLED PLAN — 160 ×
+     12,12,13 — because the weight editor walked the filed ladder only and 180 was
+     unrepresentable; his honest RIR answers then attested phantom reps, and the earn
+     machinery banked 'hack squat 170 earned' off them. Content-keyed on the exact
+     synced record; replay-safe; nothing deleted — the record changes to what happened. */
+  const rec = s.sessionLog && s.sessionLog["2026-08-10"];
+  const en = rec && rec.entries ? rec.entries.find((e) => e && e.id === "hack") : null;
+  if (en && en.w === 160 && JSON.stringify(en.reps) === "[12,12,13]" && JSON.stringify(en.rirSets) === "[2,null,0]") {
+    en.w = 180; en.reps = [9, 9, 10];   /* the rir answers stand — they were his, and they were about THESE sets */
+    _stampCorr(rec);
+    const ex = (s.exercises || []).find((x) => x.id === "hack");
+    if (ex) {
+      ex.w = 180;
+      const dm = deriveLastMeta(s, "hack");
+      if (dm) { ex.lastMeta = dm; ex.last = dm.reps.slice(); }
+      ex.topAt = null; ex.topRun = 0;   /* the phantom sighting cannot survive its reps; the honest 9,9,10 opener is under the 10,9,8 line, so nothing re-banks */
+    }
+    const q = (s.queue || []).find((x) => x && x.id === "q_hack_170" && !x.done);
+    if (q) { q.done = true; q.state = "RETRACTED"; q.gate = "Earned on reps since corrected — retracted, on the record."; }
+    if (s.feed && s.feed.unshift) {
+      s.feed.unshift({ d: "2026-08-10", t: "HACK 170 EARN RETRACTED", how: "The earn was banked on the pre-filled plan (160 × 12,12,13), not the day. Corrected below; retracted, on the record." });
+      s.feed.unshift({ d: "2026-08-10", t: "RECORD CORRECTED — HACK 180 × 9,9,10", how: "Your attestation, verbatim: 'I just hit hack 180 for 9 (2 RIR), 9, 10 (0 RIR).' The phone had logged the plan (160 × 12,12,13) because the weight editor walked the filed ladder only — 180 had no way in. The record now says what you did; every read derives from it, and the best-ever claim restates with it." });
+    }
+  }
+  s.v = 44; return s;
+}
 function patchV38(s) {
   /* v7.4.0 Slice 5 — the PHASE ARC lands its decisions in the already-hardened s.plan (a planned diet
      break + phase transitions). ADDITIVE + idempotent: default the append-only phase-transition LOG to
@@ -9146,7 +9184,7 @@ function patchV38(s) {
    AGAINST LATER STATES — its mutation guarded so a second, tenth, or fiftieth replay
    changes nothing. patchV24's unguarded null erased a banked delivery on every bump for
    weeks before the guard below; do not add the next one. */
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39, patchV40, patchV41, patchV42, patchV43];
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39, patchV40, patchV41, patchV42, patchV43, patchV44];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -15564,6 +15602,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
      pre-filled with targets, and the lift-granular belt let an attested lift bank an
      unattested SLOT. A slot never explicitly engaged may not bank a target value. */
   const [adj, setAdj] = useState({});
+  const [wOver, setWOver] = useState({});   /* CAGE — a weight actually lifted is ALWAYS loggable as lifted, on-ladder or off */
   const markAdj = (id, i9) => { if (id) setAdj((m) => (m[id + ":" + i9] ? m : { ...m, [id + ":" + i9]: true })); };
   const [strikes, setStrikes] = useState({});   /* FINISH-screen verdicts: id -> "bank" | "strike" */
   const touch = (id) => { if (id) setTouched((t) => (t[id] ? t : { ...t, [id]: true })); };
@@ -15704,6 +15743,8 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
     /* n-gated like every other read in here: under three rests there is no
        session-level statement to make, so it stays unknown rather than guessed. */
     const pace = rests.n >= 3 ? (rests.cut / rests.n >= 0.5 ? PACE.rushed : PACE.normal) : null;
+    /* CAGE — the override rides into the record: reality outranks the filed ladder */
+    split.entries = split.entries.map((e9) => (wOver[e9.id] != null && Number(wOver[e9.id]) > 0 && Number(wOver[e9.id]) !== Number(e9.w) ? { ...e9, w: Number(wOver[e9.id]) } : e9));
     const { s: ns, lines } = completeSession(s, dateSel, split.entries, slp, { note: gNote.trim(), niggles: gNig, skipped: split.skipped, pace });
     setS(ns); save(ns); onClose(lines);   // the WHAT MOVED recap was thrown away on the path Joe actually uses
   };
@@ -15839,7 +15880,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           {backRow()}   {/* R19a */}
         </div>
       ) : phase === "all-done" ? (
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 11, minHeight: 0 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 11, minHeight: 0, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>   {/* v7.42.1 — the belt scrolls: a long suspects list clipped in the fixed frame and LOG IT was unreachable */}
           <div style={{ flex: 0.2, minHeight: 0 }} />
           <div style={card9}>
             <div style={{ fontFamily: disp, fontSize: 24, fontWeight: 700, letterSpacing: "0.04em" }}>Session complete</div>
@@ -15885,7 +15926,22 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
               <div style={{ fontFamily: disp, fontSize: 23, fontWeight: 700, letterSpacing: "0.04em" }}>{ex.n}</div>
               {vcT.status === "READING" && <span style={{ ...tnum, fontSize: 9, letterSpacing: "0.14em", color: DT.decision, border: "1px solid rgba(95,183,232,.35)", borderRadius: 999, padding: "3px 8px" }}>⊙ ON TRIAL — EARNING ITS PLACE · {vcT.have}/{vcT.need} READS</span>}
             </div>
-            <div style={{ ...tnum, fontSize: 14, color: DT.steel, marginTop: 3 }}>{typeof ex.w === "number" ? ex.w + " LB" : ex.w}{ex.isDebutNow ? " · FIRST RUN — log what it gives" : ""}</div>
+            {/* CAGE (v7.42.1) — the weight is TYPEABLE in gym mode: the 180 session logged
+                as the plan's 160 because no path could say what was actually lifted. A
+                weight actually lifted is ALWAYS loggable as lifted, on-ladder or off. */}
+            <div style={{ ...tnum, fontSize: 14, color: DT.steel, marginTop: 3, display: "flex", alignItems: "baseline", gap: 6 }}>
+              {typeof ex.w === "number" ? (
+                <>
+                  <input value={wOver[ex.id] ?? ex.w} inputMode="decimal" aria-label="weight lifted"
+                    onFocus={(e) => { try { e.target.select(); } catch (err) {} }}
+                    onChange={(e) => setWOver({ ...wOver, [ex.id]: e.target.value })}
+                    onBlur={(e) => { const v9 = stepValue(e.target.value, 0, 1, 0); setWOver({ ...wOver, [ex.id]: v9 === 0 ? ex.w : v9 }); markAdj(ex.id, 0); }}
+                    style={{ ...tnum, fontSize: 14, color: Number(wOver[ex.id] ?? ex.w) === Number(ex.w) ? DT.steel : DT.amber, background: "none", border: "none", borderBottom: "1px dashed " + DT.hairline2, width: 56, padding: 0 }} />
+                  <span>LB{Number(wOver[ex.id] ?? ex.w) !== Number(ex.w) ? " — off-plan, logs as lifted" : ""}</span>
+                </>
+              ) : ex.w}
+              {ex.isDebutNow ? " · FIRST RUN — log what it gives" : ""}
+            </div>
             <div style={{ marginTop: 12, padding: "10px 12px", background: DT.well, borderRadius: 12, fontFamily: mono, fontSize: 12, color: DT.steel, letterSpacing: "0.04em", lineHeight: 1.5 }}>
               TARGET <b style={{ color: DT.ink }}>{ex.tgt.join(" · ")}</b>{ex.prev && (ex.prev.reps || []).length ? " — beat last time (" + ex.prev.reps.join("·") + "). Don't sweat one rep — the total is what counts." : " — first time on record: this line is the one everything later gets measured from."}
               <br /><span style={{ color: DT.dim }}>EFFORT, SET BY SET: <b style={{ color: DT.steel }}>{effortWords(rp2.plan, /governor hold/.test(((rp2.why || [])[0]) || ""))}</b>.</span>
