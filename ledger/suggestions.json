@@ -1,53 +1,55 @@
 {
-  "gen": "2026-08-09T15:06:37.466Z",
+  "gen": "2026-08-10T09:45:00.000Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-09_volstack5",
-      "title": "Hand back this morning's five set additions — keep Friday's three",
+      "sid": "sug_2026-08-10_sleeplog3",
+      "title": "Log Friday, Saturday and Sunday nights — three dark nights told your app the week was clean",
       "apply": {
         "kind": "note"
       },
       "rationale": {
-        "science": "The largest dose-response analysis available (Pelland 2025, 67 studies, 2,058 participants) puts returns per set highest at 5-10 weekly sets and only intermediate at 11-18; >=10 hard sets is the floor, not the target (Schoenfeld 2017). On limited recovery the marginal set costs more than it buys.",
-        "data": "Friday you added hams 4-to-6, chest 6-to-8, rear delt 6-to-8 — all three at or under the growth floor by your app's own count. This morning you added five more: quads 10-to-12, abs 10-to-12, biceps 10-to-12, triceps 9-to-11, back 8-to-10. Every one of those climbs out of the 5-10 tier, and it happened 24 hours after you approved the card asking you to stagger two.",
-        "relationship": "Your next upper day now carries seven changes at once — press 4th set, rear delt 4th, triceps 4th, biceps 4th, rows 3rd, the press 250 ownership repeat, and the rows hold release — into a recovery state your own app reads WATCH with two unlogged nights behind it. Your app promised each push its own conversion verdict; eight simultaneous changes makes all eight unreadable."
+        "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss about 55% and raised lean-mass loss about 60% (Nedeltcheva 2010; Wang 2018). Sleep is the recovery account the eight new weekly sets are being charged to, so it is the one input that has to be measured this week rather than assumed.",
+        "data": "sleep.nights stops at 8/6 (7.75 h). 8/7, 8/8 and 8/9 are all unlogged — three consecutive nights. Your 11-night mean is 6.8 h and the 7-night debt reads 1.8 h against the 7.5 h you set, and both numbers stopped updating on Thursday.",
+        "relationship": "The debt flag is a three-night calendar mean, and it returns clean when three consecutive nights are missing. That is exactly what happened: every lift in Sunday's session carries debt: false, and this morning's WEEK IN REVIEW reports 'sleep 2/3 clean' off three logged nights in seven. A missing night does not make your app cautious, it makes it confident — and Sunday's session is the one carrying seven simultaneous changes that need an honest recovery read to be worth anything."
       },
-      "predict": "Undo today's five (each has a one-tap undo on file) and the next upper day gives you attributable reads on chest and rear delt. Run all seven and I expect at least two 'did not convert' verdicts inside two weeks that neither of us can assign a cause to, plus a press 250 ownership repeat landing on the same day as a fourth press set — which means it cannot bank clean. Grade on the next upper session's entry counts: press 4 / rearDelt 4 / tricep 4 / curl 4 / rows 3 means all seven ran.",
-      "confidence": "high",
-      "gate": "coach",
+      "predict": "Log 8/7, 8/8 and 8/9 — estimates are fine, flag them as estimates — and log tonight. Grade on sleep.nights gaining entries for 8/7 through 8/10 within 24 hours, and on the next session's lastMeta.debt being computed from three real nights instead of three missing ones. If the nights go in and all three were 7 h or better, the clean flag was honest by accident and I will say so plainly.",
+      "confidence": "medium",
+      "gate": "approve",
       "rank": 1
     },
     {
-      "sid": "sug_2026-08-09_sleeplog",
-      "title": "Log Friday and Saturday nights — an unlogged night doesn't flag debt, it hides it",
+      "sid": "sug_2026-08-10_volunwind",
+      "title": "Set Sunday's five back by hand — your app recalled the proposals that made them, and there is no undo button",
       "apply": {
-        "kind": "note"
+        "kind": "progression",
+        "to": "Set back the five 8/9 volume additions by hand: hack 4 to 3, abs 4 to 3, curls 4 to 3, triceps 4 to 3, rows 3 to 2. Keep Friday's three (hams, chest, rear delt)."
       },
       "rationale": {
-        "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss about 55% and raised lean-mass loss about 60% (Nedeltcheva 2010; Wang 2018). Sleep is the recovery currency the eight new sets are being charged to.",
-        "data": "sleep.nights stops at 8/6 (7.75 h). 8/7 and 8/8 are unlogged. Your 11-night mean is 6.8 h and the 7-night debt is 1.8 h against the 7.5 h you set.",
-        "relationship": "The debt flag is a three-night calendar mean (threshold 7.0 h), and when three consecutive nights aren't on file it returns clean. Two dark nights don't make the app cautious, they make it confident — and your next upper day carries the press 250 ownership repeat, which only banks on a genuinely clean day."
+        "science": "The largest dose-response analysis available (Pelland 2025, 67 studies, 2,058 participants) puts returns per set highest at 5-10 weekly sets and only intermediate at 11-18; 10 hard sets is the floor, not the target (Schoenfeld 2017). On a limited recovery budget the marginal set costs more than it buys.",
+        "data": "This morning your app posted VOLUME PROPOSALS RECALLED — 'cold-start misfire: the ledger compared your first logged week against a week before this app existed' — and tightened the rule to 14 full days and two proposals on Sundays. The five sets it already shipped are still on the lifts: hack 4, abs 4, curls 4, triceps 4, rows 3. Friday's three were different and still stand — hams 4, chest 6, rear delt 6 were at or under the growth floor.",
+        "relationship": "A recall stops future proposals, it does not reverse what already shipped. And I have to correct myself here: Friday's card said each of the five had a one-tap undo on file. They do not. The exUndo records exist for Friday's three OWNER'S CALL pushes and not for Sunday's five, which went in with no adjustment entry behind them. So this needs doing by hand, and my last card asked you to press a button that does not exist."
       },
-      "predict": "Log 8/7 and 8/8, and bed by 00:30 tonight for 7.5 h. Grade on sleep.nights gaining entries for 8/7 and 8/8 within 24 hours, and on the next session's lastMeta.debt being computed from three real nights instead of laundered by two missing ones. If both nights get logged and both were 7 h or better, the flag was honest and I will say so.",
-      "confidence": "high",
-      "gate": "approve",
+      "predict": "Set the five back and the next upper day gives attributable conversion reads on chest and rear delt — the two pushes that actually had an argument. Leave them and I expect at least two 'did not convert' verdicts inside a fortnight that neither of us can assign a cause to. Grade on entry counts: next upper day triceps 3 / curls 3 / rows 2, next lower day hack 3 / abs 3.",
+      "confidence": "medium",
+      "gate": "coach",
       "rank": 2
     },
     {
-      "sid": "sug_2026-08-09_scale",
-      "title": "Two clean morning reads this week — the food changed and the instrument went dark",
+      "sid": "sug_2026-08-10_press4",
+      "title": "Decide what press set four is — 250 has done its best work twice and banked neither time",
       "apply": {
-        "kind": "note"
+        "kind": "progression",
+        "to": "Before the next upper day, settle with your coach whether press set four is a fourth working set or an explicit lighter back-off — and log it as whichever it is"
       },
       "rationale": {
-        "science": "A single reading is noise around a slow-moving trend; sodium and carbohydrate move water and scale weight, not fat (Juraschek 2020; Powers 2003). Down-weight the reading, don't throw it away.",
-        "data": "8/7 no read. 8/8 evening only — your app marked it offWindow and set it aside. 8/9 came in at 164.5 the morning after Saturday's high-sodium day. Your measured water sensitivity is +1.11 lb after a salted day, and trend 163.37 + 1.11 is 164.5 — today's read is water to the ounce, not information. One usable morning read in three days.",
-        "relationship": "Your intake has run about 2,875 for four days against a measured maintenance of roughly 2,850-3,050 — a deficit near zero. The 14-day rate still says 0.97 lb/wk because half that window predates the change. A run of clean morning reads is the only instrument that can show whether the trend actually flattened."
+        "science": "On a cut, defend load rather than chase volume, and take working sets to about 1-3 reps in reserve (Schoenfeld 2017; Robinson 2024; Grgic 2021). A trailing set that falls off a cliff is not a hard set, it is a scoring problem.",
+        "data": "8/6: press 250 x 8,8,7 drew PRESS — TARGET MET. 8/9: the same 250 x 8,8,7 plus a fourth set at 4 reps, opener rated at 1, and the feed carries no press row at all — while rows, triceps, sulek and lateral all got one from the same session. The variable that changed between the two is chest going 3 to 4 sets on 8/7.",
+        "relationship": "My best read is that the target now has four slots, so a 4-rep fourth set fails it and the whole session scores as a miss. I could not verify that in your file — the target array is not saved with the session — so this is a best guess and I am labelling it as one. What is certain from the feed is that the best press in your record produced nothing on Sunday, and it is the second time in four days that 250 x 8,8,7 has gone unbanked."
       },
-      "predict": "Two in-window morning reads on 8/10 and 8/11. As the salt clears I would expect 162.8-163.4 — priced at the optimistic edge of my range on purpose, because my weight forecasts have run about 2 lb pessimistic three times running. If they come in at 163.5 or above on clean mornings, that is the four maintenance days showing up and I will call the trend flat. Grade on reads gaining 8/10 and 8/11 with no offWindow flag.",
-      "confidence": "medium",
-      "gate": "approve",
+      "predict": "Settle it and the next upper day produces a press row one way or the other — TARGET MET if set four is honestly reachable, or a clean miss you can actually read. Grade on whether any press feed row appears on the next upper day. If a row appears with four sets logged and no change to the load, my reading of the mechanism was wrong and I will withdraw it.",
+      "confidence": "low",
+      "gate": "coach",
       "rank": 3
     }
   ]

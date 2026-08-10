@@ -1,5 +1,5 @@
 {
-  "gen": "2026-08-09T15:06:37.466Z",
+  "gen": "2026-08-10T09:05:05.415Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
     "soft": 163.37,
@@ -78,16 +78,6 @@
     }
   ],
   "priorDecisions": [
-    {
-      "sid": "sug_2026-08-01_hamlog",
-      "decided": "approved",
-      "d": "2026-08-02",
-      "title": "Strike Friday's ham curl — your note says you skipped it",
-      "apply": {
-        "kind": "note"
-      },
-      "predict": "The ham entry comes off Friday's session or lands in that day's skipped list, the top-of-window counter goes back to zero, and ham holds at 120 until you put up 12,12 on a session you actually ran."
-    },
     {
       "sid": "sug_2026-08-01_ext155",
       "decided": "approved",
@@ -181,6 +171,16 @@
         "to": "Open every lift at 1–2 RIR and log it: abs at 1 RIR next lower day releases its hold, rows 180 at 2 RIR next upper day releases its"
       },
       "predict": "Abs opens at 1 RIR on your next lower day and abs.holdFlag flips to false with an ABS — HOLD RELEASED feed row, putting 105 back in reach. Rows opens at 2 RIR on your next upper day and does the same, with 185 back off 10,10. Grade both on holdFlag, not on reps. If an opener goes in at 1 or better and either flag stays true, the rule is not what I read in your source and I will say so."
+    },
+    {
+      "sid": "sug_2026-08-09_volstack5",
+      "decided": "approved",
+      "d": "2026-08-09",
+      "title": "Hand back this morning's five set additions — keep Friday's three",
+      "apply": {
+        "kind": "note"
+      },
+      "predict": "Undo today's five (each has a one-tap undo on file) and the next upper day gives you attributable reads on chest and rear delt. Run all seven and I expect at least two 'did not convert' verdicts inside two weeks that neither of us can assign a cause to, plus a press 250 ownership repeat landing on the same day as a fourth press set — which means it cannot bank clean. Grade on the next upper session's entry counts: press 4 / rearDelt 4 / tricep 4 / curl 4 / rows 3 means all seven ran."
     }
   ],
   "suggestions": [
