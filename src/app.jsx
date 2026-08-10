@@ -9114,7 +9114,7 @@ function patchV43(s) {
      rises, the reps drop; his call, and it worked). hi 12 → 10, content-keyed on the
      12 the old ruling holds. hack.last is DELIBERATELY untouched: 12,11,13 at 160
      stands, reads as over the new top, and the banked sighting + two-for-two carry
-     forward — 170 debuts on the next top session. windowFor derives the floor: the
+     forward toward whatever rung the ladder holds when the top comes. windowFor derives the floor: the
      160→170 ladder at ceiling 10 yields exactly 6-10. */
   const hk = (s.exercises || []).find((x) => x.id === "hack");
   if (hk && hk.hi === 12) {
