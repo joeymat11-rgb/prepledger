@@ -7879,6 +7879,12 @@ if (fail) process.exit(1);
     const RC2 = __test.applyAgentProposal(SC2, SC2.agentProposals[0], isoT0);
     ok((RC2.exercises.find((x) => x.id === "hack") || {}).sets === hackC + 1, "R18f fix3 — and the clean-week desk tap still ENACTS: the belt refuses only what the budget already spent");
   }
+
+  /* ---------- R18f FIX 4 — the desk keeps its promise at its own FILING site ---------- */
+  {
+    const srcP = readFileSync("src/app.jsx", "utf8");
+    ok(srcP.indexOf("const passed9 = (s.feed || []).slice(0, 80).some((f) => f && f.t && f.d && f.t.indexOf(\"VOLUME PASSED — \" + String(vp9.mg).toUpperCase()) === 0") > -1 && srcP.indexOf("!already9 && !doorOpen9 && !declined9 && !passed9") > -1, "R18f fix4 — the deskPassed read guards the desk's own FILING site on the CHOOSER's pick (vp9.mg): a passed muscle cannot be refiled by another muscle's trigger re-picking it by allocation. The trigger guard covered only the WHEN — the audit's driven corner, and the mask (the open owner trio tripping doorOpen9) is why neither suite caught it; the gates-open owner-resolved drive is the audit rig's");
+  }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

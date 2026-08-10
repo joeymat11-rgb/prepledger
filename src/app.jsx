@@ -7697,9 +7697,14 @@ function sweepVolume(s, dow7 = new Date().getDay()) {
       const dm9 = new Date(); const doff9 = (dm9.getDay() + 6) % 7;
       const mon9x = isoOf(new Date(mk(tISO7).getTime() - doff9 * DAY));
       const declined9 = (s.adjustments || []).some((a) => a && a.dismissed && a.rid && String(a.rid).indexOf("volpush_") === 0 && a.d >= mon9x);
+      /* R18f fix4 — the desk's promise at its own FILING site: the trigger guard covered
+         the WHEN, but the chooser re-picks by allocation, so a passed muscle could be
+         refiled by ANOTHER muscle's trigger the same day (the audit drove it). The same
+         feed read door 2 carries, on vp9.mg. */
+      const passed9 = (s.feed || []).slice(0, 80).some((f) => f && f.t && f.d && f.t.indexOf("VOLUME PASSED — " + String(vp9.mg).toUpperCase()) === 0 && (mk(tISO7) - mk(f.d)) / DAY < 14);
       const already9 = (s.agentProposals || []).some((ap) => ap.kind === "volume" && ap.mg === vp9.mg);
       const doorOpen9 = (s.proposals || []).some((p) => p && !p.resolved && p.rid && String(p.rid).indexOf("volpush_") === 0);   /* R18f fix2 — one door files: an open EARNED VOLUME card closes this one */
-      if (!already9 && !doorOpen9 && !declined9) {
+      if (!already9 && !doorOpen9 && !declined9 && !passed9) {
         ns = ns || JSON.parse(JSON.stringify(s));
         ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + vp9.mg + Date.now(), kind: "volume", mg: vp9.mg, exId: vp9.exId, dir: 1, title: `VOLUME +1 — ${vp9.mg.toUpperCase()} via ${vp9.exName}`, body: "The desk is awake again — one chooser, house gates. " + vp9.routing + " Weekly " + vp9.fromWk + " → " + vp9.toWk + " sets; every gate (regime, recovery, sleep, the weekly budget, spillover charges, the conversion read) passed before this filed.", gatesClosed: false }];
       }
