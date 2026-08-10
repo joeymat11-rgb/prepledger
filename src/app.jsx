@@ -1484,6 +1484,16 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     const atTop = atTopOfWindow(r, ex);
     ex.last = r.slice();
     const upNext = typeof ex.w === "number" ? nextLoad(ex) : null;
+    /* R18b — A SIGHTING BANKS EVEN WHEN NO NEXT LOAD IS ON FILE. upNext==null used to
+       skip this whole block, so topAt/topRun never wrote and the maxed rider's 8/07
+       hack sighting was never banked — demanding two NEW ones later would prescribe
+       below what was delivered. The earn itself still waits for a load to earn INTO;
+       the RECORD of having topped the window does not. */
+    if (atTop && typeof ex.w === "number" && upNext == null) {
+      const topRun0 = String(ex.topAt) === String(ex.w) ? (ex.topRun || 0) + 1 : 1;
+      ex.topAt = ex.w; ex.topRun = topRun0;
+      if (!loadRungs(ex)) push(ex.n.toUpperCase() + " — TOP OF WINDOW, NO NEXT LOAD ON FILE", ex.w + "×" + r.join(",") + " tops the window (sighting " + topRun0 + " banked). No next weight is on file for this machine — answer the next-load ask and this sighting already counts toward the earn.");
+    }
     if (atTop && typeof ex.w === "number" && upNext != null) {
       const already = s.queue.some((x) => x.exId === ex.id && !x.done && x.kind === "debut");
       /* Two-for-two, from measurement error rather than sleep. Topping the rep
@@ -1513,7 +1523,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
         push(`${ex.n.toUpperCase()} — TOP OF WINDOW, PROVISIONAL`, `${r.join(",")} tops the window${bn.margin > 0 ? `, ${bn.margin} rep${bn.margin === 1 ? "" : "s"} up on last time` : ""} — but your own set-to-set spread is ±${te.reps.toFixed(2)} reps (${te.src}), so one sighting cannot be told apart from a good day. Repeat it and the load queues itself. Sleep does not enter into it.`);
       }
     } else {
-      if (typeof ex.w === "number" && String(ex.topAt) === String(ex.w)) { ex.topRun = 0; }
+      if (!atTop && typeof ex.w === "number" && String(ex.topAt) === String(ex.w)) { ex.topRun = 0; }   /* R18b — reset only on falling OFF the top; a no-next-load sighting banked above must survive this line */
       if (tgtMet) push(`${ex.n.toUpperCase()} — TARGET MET`, `${en.w} × ${r.join(",")}`);
     }
 

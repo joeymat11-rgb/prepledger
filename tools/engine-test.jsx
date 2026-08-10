@@ -7622,6 +7622,26 @@ if (fail) process.exit(1);
   ok(srcH.split("{gym && (() => {")[0].indexOf("A DRAFT FROM") > -1, "H2 v2 — the card mounts UNCONDITIONALLY at TRAIN top level, before the gym block: the one night it was built for (today logged, draft trapped) is exactly when the old conditional unmounted it");
   ok(srcH.indexOf("{/* v7.38.2 (d) — print the stored load or nothing; never invent BW */}{(d9.w != null ? d9.w + " + String.fromCharCode(34) + " × " + String.fromCharCode(34)) > -1, "(d) — the debrief prints the stored load or nothing, never invents BW — and the note rides as a JSX COMMENT, not screen text: the v7.38.2-candidate comment rendered literally on every debrief lift row");
   { const dcSlice = srcH.slice(srcH.indexOf("function DebriefCard"), srcH.indexOf("function DebriefCard") + 9000); const leak = (dcSlice.match(/}\s+\/\*/g) || []).filter((m) => m.indexOf("{") === -1); ok(leak.length === 0, "COMMENT-LEAK LAW — no /* sits after a closing brace in the debrief card render path, where JSX treats it as literal screen text; a comment belongs in {/* */} form or above the line (found: " + leak.length + ")"); }
+
+  /* ---------- R18b increment 1 — a sighting banks with no next load on file ---------- */
+  {
+    const cl8 = (o) => JSON.parse(JSON.stringify(o));
+    const S8 = cl8(__test.SEED);
+    /* the seed carries no natural no-next-load lift; MANUFACTURE the hack shape on a real
+       exercise by clearing its increments — the drive is about the earn block, not the seed */
+    const exA = (S8.exercises || []).find((e) => typeof e.w === "number" && e.hi);
+    if (exA) { delete exA.inc; delete exA.steps; if (exA.ladder) delete exA.ladder; exA.topAt = null; exA.topRun = 0; }
+    const ex8 = exA;
+    ok(!!ex8, "R18b — a no-next-load lift is manufactured from a real seed exercise (the live case is hack): " + (ex8 ? ex8.id : "NONE"));
+    if (ex8) {
+      const hi8 = ex8.hi || 12;
+      const reps8 = Array(ex8.sets || 3).fill(hi8 + 20);   /* atTopOfWindow slices to ex.sets, and a maxed lift tops against the MOVING delivered ceiling (best opener on file) — clear it decisively */
+      const { s: NS8 } = __test.completeSession(S8, "2026-08-20", [{ id: ex8.id, n: ex8.n, w: ex8.w, tgt: reps8.map(() => hi8 - 1), reps: reps8, rir: 2, rirSets: reps8.map(() => 2) }], { last: null }, { note: "", niggles: [], skipped: [], pace: null });
+      const ex9 = NS8.exercises.find((e) => e.id === ex8.id);
+      ok(String(ex9.topAt) === String(ex8.w) && ex9.topRun >= 1, "R18b — topping the window with NO next load on file now BANKS the sighting (topAt/topRun write): the 8/07 hack sighting class is no longer lost, so answering the next-load ask later starts from the record already delivered");
+      ok((NS8.feed || []).some((f) => f && f.t && f.t.indexOf(" — TOP OF WINDOW, NO NEXT LOAD ON FILE") > -1), "R18b — and it says so in the feed, words at birth: the sighting is on the record, the ask is named as what unlocks the earn");
+    }
+  }
 }
 console.log(`\nFINAL101: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
