@@ -13747,7 +13747,7 @@ function LogTab({ s, setS, save, slp }) {
            restore + resumePhase wiring runs on EVERY door — launcher and chip alike). */
         const live9 = findGymDraft(s);
         const gDate = live9 ? live9.iso : dateSel;
-        const gSess = live9 && live9.iso !== dateSel ? genSession(s, live9.iso, slp) : sess;
+        const gSess = (live9 && live9.iso !== dateSel ? genSession(s, live9.iso, slp) : sess) || sess;   /* v7.40.1 — R14: the tap may never mount NOTHING; an unresolvable draft date falls back to today's session */
         return gSess ? <GymMode s={s} setS={setS} save={save} slp={slp} sess={gSess} dateSel={gDate === dateSel ? fileISO : gDate} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} /> : null;
       })()}
       {sess && !s.sessionLog[dateSel] && (
@@ -15446,6 +15446,20 @@ function findGymDraft(s9) {
           const tpl0 = (() => { try { const g0 = genSession(s9, iso0); return g0 && g0.ex ? g0.ex.map((x) => x.id) : []; } catch (e) { return []; } })();
           if (ids0.length && ids0.some((x) => tpl0.indexOf(x) < 0)) {
             try { localStorage.setItem("prep-ledger-gymdraft-orphan-" + iso0, JSON.stringify(d)); localStorage.removeItem(key); } catch (e) {}
+            continue;
+          }
+        }
+        /* v7.40.1 — A DRAFT THE LAUNCHER CANNOT RESOLVE IS NEVER THE LAUNCHER'S DRAFT.
+           Joe, live, 12:25: the chip read SESSION SET 1 and the tap mounted nothing — a
+           draft keyed to a date whose template is null slipped every belt (the quarantine
+           only catches lift-ID mismatches, and an EMPTY draft has no ids to mismatch).
+           A template-null draft with banked reps quarantines like any orphan; one with
+           ZERO reps holds zero athlete data and is removed as noise. */
+        if (d && s9) {
+          const iso1 = key.slice("prep-ledger-gymdraft-".length);
+          const tplOk = (() => { try { return !!genSession(s9, iso1); } catch (e) { return false; } })();
+          if (!tplOk) {
+            try { if (Object.keys(d.reps || {}).length) { localStorage.setItem("prep-ledger-gymdraft-orphan-" + iso1, JSON.stringify(d)); } localStorage.removeItem(key); } catch (e) {}
             continue;
           }
         }

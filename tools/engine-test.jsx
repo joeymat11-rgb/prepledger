@@ -7885,6 +7885,13 @@ if (fail) process.exit(1);
     const srcP = readFileSync("src/app.jsx", "utf8");
     ok(srcP.indexOf("const passed9 = (s.feed || []).slice(0, 80).some((f) => f && f.t && f.d && f.t.indexOf(\"VOLUME PASSED — \" + String(vp9.mg).toUpperCase()) === 0") > -1 && srcP.indexOf("!already9 && !doorOpen9 && !declined9 && !passed9") > -1, "R18f fix4 — the deskPassed read guards the desk's own FILING site on the CHOOSER's pick (vp9.mg): a passed muscle cannot be refiled by another muscle's trigger re-picking it by allocation. The trigger guard covered only the WHEN — the audit's driven corner, and the mask (the open owner trio tripping doorOpen9) is why neither suite caught it; the gates-open owner-resolved drive is the audit rig's");
   }
+
+  /* ---------- v7.40.1 — a dead draft can never hold the launcher (Joe, live, 12:25) ---------- */
+  {
+    const srcDD = readFileSync("src/app.jsx", "utf8");
+    ok(srcDD.indexOf("const tplOk = (() => { try { return !!genSession(s9, iso1); } catch (e) { return false; } })();") > -1 && srcDD.indexOf("if (Object.keys(d.reps || {}).length) { localStorage.setItem(\"prep-ledger-gymdraft-orphan-\" + iso1,") > -1, "v7.40.1 — a draft keyed to a template-null date never reaches the launcher: with banked reps it quarantines like any orphan, with ZERO reps it is removed as noise (it holds no athlete data). The empty draft had no ids to mismatch, so every earlier belt was blind to it");
+    ok(srcDD.indexOf(": sess) || sess;   /* v7.40.1") > -1, "v7.40.1 — R14 at the gym door: the tap may never mount NOTHING — an unresolvable draft date falls back to today's session");
+  }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
