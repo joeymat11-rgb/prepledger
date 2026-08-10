@@ -1,3 +1,16 @@
+## QUEUED — THE v7.42.1 FOLLOW-UP ROUND (three items, one branch; filed 2026-08-10)
+
+1. **SETUP free-entry**: the rung-walker weight editor gains the typeable input (the
+   gym-mode cage pattern — inputMode decimal, select-on-focus, stepValue coercion,
+   merge law on off-ladder values). Audit: read as flagged, land as the small add.
+2. **The long-belt smoke fixture**: the 17-row all-done belt walk becomes a fixture in
+   the smoke (the audit's word was said; its manual walk carries until this lands).
+3. **THE WINS FOOTER MAY NOT CELEBRATE A RETRACTION** (audit one-liner, verbatim): the
+   SESSION LOGGED card's ◆ wins filter matches /EARNED/ on the day's feed but never
+   checks for a same-day "EARN RETRACTED" on the same subject — a retracted earn keeps
+   its diamond. Same words-law as everything else: filter wins whose subject carries a
+   same-day retraction, pin it on the hack 8/10 shape (the live case).
+
 ## R18F FIX 3 RE-DRIVE VERDICT — THE AUDIT, 2026-08-10 (round 3)
 
 **THE TWO DECLINE DIRECTIONS: GREEN, driven behaviorally** (rig 20/0, real clock,
