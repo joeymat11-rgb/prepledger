@@ -341,7 +341,7 @@ const APP_V = "7.42.1";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 44;
+const SCHEMA_V = 45;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -489,6 +489,8 @@ const SEED = {
   SEED.v = SCHEMA_V;
   /* v43 — the seed is authored already-current: hack carries the 6-10 ruling */
   { const hk0 = SEED.exercises.find((x) => x.id === "hack"); if (hk0) hk0.hi = 10; }
+  /* v45 — the seed carries the calves/rows ruling too */
+  { const c0 = SEED.exercises.find((x) => x.id === "calves"); if (c0) c0.hi = 11; const r0 = SEED.exercises.find((x) => x.id === "rows"); if (r0) r0.hi = 9; }
   /* v40 — the seed is authored already-current: a fresh install carries the athlete's
      dated split entry exactly as the migration writes it. */
   SEED.split = [{ from: "2026-08-09", map: { 0: "U", 1: "L", 2: "REST", 3: "REST", 4: "U", 5: "L", 6: "REST" }, why: "athlete-stated 2026-08-09 — Sun U · Mon L · Thu U · Fri L (consent relayed on the record, R19)" }];
@@ -9165,6 +9167,24 @@ function patchV44(s) {
   }
   s.v = 44; return s;
 }
+function patchV45(s) {
+  /* OWNER'S RULING (Joe, verbatim, 2026-08-10): 'Calves 11, rows 9, press stays.'
+     Felt-fatigue calls the evidence prices at zero (range-equivalence near failure;
+     Carlson 2022 for the deficit case). PRESS IS EXPLICITLY UNTOUCHED — the ruling,
+     not an omission. last untouched on both; receipts DERIVE (the binding law); no
+     sighting is seeded — neither lift was at top under the OLD ceiling, so the next
+     session topping the new line banks sighting one honestly. */
+  const rule45 = (id, fromHi, toHi) => {
+    const ex = (s.exercises || []).find((x) => x.id === id);
+    if (!ex || ex.hi !== fromHi) return;
+    ex.hi = toHi;
+    const nx = nextLoad(ex);
+    if (s.feed && s.feed.unshift) s.feed.unshift({ d: "2026-08-10", t: ex.n.toUpperCase() + " — REP CEILING MOVES TO " + toHi, how: "Your ruling, on the record: the felt-fatigue call the evidence prices at zero — range-equivalence near failure holds in a deficit." + (ex.last && ex.last.length ? " Your " + ex.last.join(",") + " at " + ex.w + " stands untouched and reads against the new line." : "") + (nx != null ? " The next load on file is " + nx + "." : " No next load is on file above " + ex.w + " — file the ladder and the next earn has a price.") });
+  };
+  rule45("calves", 13, 11);
+  rule45("rows", 10, 9);
+  s.v = 45; return s;
+}
 function patchV38(s) {
   /* v7.4.0 Slice 5 — the PHASE ARC lands its decisions in the already-hardened s.plan (a planned diet
      break + phase transitions). ADDITIVE + idempotent: default the append-only phase-transition LOG to
@@ -9184,7 +9204,7 @@ function patchV38(s) {
    AGAINST LATER STATES — its mutation guarded so a second, tenth, or fiftieth replay
    changes nothing. patchV24's unguarded null erased a banked delivery on every bump for
    weeks before the guard below; do not add the next one. */
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39, patchV40, patchV41, patchV42, patchV43, patchV44];
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39, patchV40, patchV41, patchV42, patchV43, patchV44, patchV45];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -13871,7 +13891,14 @@ function LogTab({ s, setS, save, slp }) {
         const done = s.sessionLog[dateSel];
         const nd = (() => { for (let i = 1; i <= 7; i++) { const d2 = isoOf(new Date(mk(dateSel).getTime() + i * DAY)); if (dayType(d2, s) === dayType(dateSel, s)) return d2; } return null; })();
         const preview = nd ? genSession(s, nd, slp) : null;
-        const wins = s.feed.filter((f) => f.d === dateSel && /OWNED|DEBUT|EARNED|RECLAIM|COMPLETE|4TH SET|UNI/.test(f.t)).slice(0, 4);
+        /* v7.43.0 — A CARD MAY NOT CELEBRATE WHAT THE RECORD HAS RETRACTED: a win whose
+           subject carries a same-day RETRACTED line loses its diamond (hack 170, 8/10,
+           is the live case). The feed keeps both lines; only the celebration filters. */
+        const wins = s.feed.filter((f) => {
+          if (f.d !== dateSel || !/OWNED|DEBUT|EARNED|RECLAIM|COMPLETE|4TH SET|UNI/.test(f.t)) return false;
+          const subj = String(f.t).split(" ")[0];
+          return !s.feed.some((g) => g && g.d === dateSel && g !== f && /RETRACTED/.test(g.t) && String(g.t).split(" ")[0] === subj);
+        }).slice(0, 4);
         return (
           <>
             <Card accent={T.jade}>
@@ -14131,7 +14158,13 @@ function LogTab({ s, setS, save, slp }) {
                     {loadRungs(ex) ? (
                       <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <button onClick={() => setWVal(prevLoad(ex, wVal) ?? wVal)} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>−</button>
-                        <div style={{ fontFamily: mono, fontSize: 15, color: T.chalk, minWidth: 44, textAlign: "center" }}>{wVal}</div>
+                        {/* CAGE follow-up — free entry in SETUP too: reality outranks the
+                            filed ladder here as everywhere. */}
+                        <input value={wVal} inputMode="decimal" aria-label="weight value"
+                          onFocus={(e) => { try { e.target.select(); } catch (err) {} }}
+                          onChange={(e) => setWVal(e.target.value)}
+                          onBlur={(e) => setWVal(stepValue(e.target.value, 0, 1, 0) || wVal)}
+                          style={{ fontFamily: mono, fontSize: 16, color: T.chalk, background: "none", border: "none", borderBottom: `1px dashed ${T.line}`, width: 56, textAlign: "center", padding: 0 }} />
                         <button onClick={() => setWVal(nextLoad(ex, wVal) ?? wVal)} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
                         <span style={{ fontFamily: mono, fontSize: TS.label, color: T.jade }}>rung {loadRungs(ex).indexOf(snapLoad(ex, wVal)) + 1}/{loadRungs(ex).length}</span>
                       </span>
