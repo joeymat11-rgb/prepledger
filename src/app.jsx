@@ -341,7 +341,7 @@ const APP_V = "7.39.0";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 41;
+const SCHEMA_V = 42;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -7609,6 +7609,14 @@ function volumePush(s) {
 }
 
 function sweepVolume(s, dow7 = new Date().getDay()) {
+  /* CONSENT HYGIENE (2026-08-10, Joe's audit ruling) — THE DESK IS HARD-GATED until the
+     R18f one-chooser round lands: it filed five +1s in one week against the one-lever
+     law, then DELTS_SIDE the morning after its own recall notice. Its existing guards
+     ARE code (the 14-day first-session gate and dow 0/1 two lines below; the per-mg
+     cooldown via the agentProposals/feed scan; the ≤2-per-run cap at the bottom) — but
+     the guards are not the defect, the routing is, and that is R18f's job. Until then:
+     nothing files. Remove this return in the R18f round. */
+  return null;
   const tISO7 = isoOf(todayStart());
   const firstS = Object.keys(s.sessionLog).sort()[0];
   if (!firstS || (mk(tISO7) - mk(firstS)) / DAY < 14) return null;
@@ -8353,6 +8361,18 @@ function applySuggestion(state, sug) {
   s.feed.unshift({ d, t: "ANALYST SUGGESTION APPLIED", how: `${sug.title} — ${how}` });
   return s;
 }
+/* CONSENT HYGIENE — a suggestion whose apply is inert (note / cal / progression: the
+   first files nothing, the second is engine-owned by design, the third sets a flag no
+   instrument reads) may not wear an Approve control. 'Noted' is its honest verb. */
+function noteSuggestion(state, sug) {
+  const s = JSON.parse(JSON.stringify(state));
+  s.suggestionLog = s.suggestionLog || [];
+  if (s.suggestionLog.some((x) => x.sid === sug.sid)) return s;
+  const d = isoOf(todayStart());
+  s.suggestionLog.push({ sid: sug.sid, decided: "noted", d, title: sug.title });
+  s.feed.unshift({ d, t: "ANALYST SUGGESTION NOTED", how: sug.title + " — an observation, filed; approving it would have changed nothing, so nothing wears an apply button" });
+  return s;
+}
 function dismissSuggestion(state, sug) {
   const s = JSON.parse(JSON.stringify(state));
   s.suggestionLog = s.suggestionLog || [];
@@ -8926,6 +8946,31 @@ function patchV41(s) {
   }
   s.v = 41; return s;
 }
+function patchV42(s) {
+  /* CONSENT HYGIENE (2026-08-10). Joe: "I accepted two today that I didn't really
+     understand... We need to audit and fix." The approved hand-back card ("Hand back
+     this morning's five set additions — keep Friday's three") was kind:note — Approve
+     enacted NOTHING. This is the enactment, content-keyed on the exact counts the desk
+     left behind; if a count has already moved, that lift no-ops. Friday's owner's-call
+     three (hams/chest/rearDelt) STAND. Consent: the approved card + Joe's audit ruling,
+     both on the record. */
+  const back9 = [["rows", 3, 2], ["hack", 4, 3], ["tricep", 4, 3], ["curl", 4, 3], ["abs", 4, 3]];
+  const moved9 = [];
+  for (const [id9, from9, to9] of back9) {
+    const e9 = (s.exercises || []).find((x) => x.id === id9);
+    if (e9 && e9.sets === from9) { e9.sets = to9; e9.setsAt = "2026-08-10T12:00:00.000Z"; moved9.push(id9 + " " + from9 + "\u2192" + to9); }
+  }
+  if (moved9.length && s.feed && s.feed.unshift) s.feed.unshift({ d: "2026-08-10", t: "THE HAND-BACK, ENACTED — " + moved9.join(" · "), how: "The card you approved on 8/09 said this and did nothing (its apply was a note). Done now, exactly as it read: the morning five go back, Friday's three stand. On the record: that approval, and your audit ruling — 'we need to audit and fix.'" });
+  /* the desk's standing offers are recalled at source: the two delts cards and every
+     other pending +1 (the desk is hard-gated until R18f, so a standing offer is noise),
+     plus the coach card that proposed against the engine-owned calorie band. */
+  const drop9 = (s.agentProposals || []).filter((p) => p && (p.kind === "volume" || p.kind === "coach"));
+  if (drop9.length) {
+    s.agentProposals = (s.agentProposals || []).filter((p) => !(p && (p.kind === "volume" || p.kind === "coach")));
+    if (s.feed && s.feed.unshift) s.feed.unshift({ d: "2026-08-10", t: "DESK OFFERS RECALLED — " + drop9.length + " card" + (drop9.length === 1 ? "" : "s"), how: "The volume desk is quiet until its routing is rebuilt (one chooser, house gates); its standing offers left with it. The coach card proposing a calorie band is recalled too — the engine owns that number and derives it from your own maintenance." });
+  }
+  s.v = 42; return s;
+}
 function patchV38(s) {
   /* v7.4.0 Slice 5 — the PHASE ARC lands its decisions in the already-hardened s.plan (a planned diet
      break + phase transitions). ADDITIVE + idempotent: default the append-only phase-transition LOG to
@@ -8945,7 +8990,7 @@ function patchV38(s) {
    AGAINST LATER STATES — its mutation guarded so a second, tenth, or fiftieth replay
    changes nothing. patchV24's unguarded null erased a banked delivery on every bump for
    weeks before the guard below; do not add the next one. */
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39, patchV40, patchV41];
+const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39, patchV40, patchV41, patchV42];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -11745,8 +11790,14 @@ function ApprovalInbox({ s, setS, save, tISO }) {
            is, which is the engine-versus-coach line the app is built on. */
         basis: conf === "high" ? "measured" : "speculation",
         title: p.title, rationale: p.rationale, predict: p.predict, conf,
-        approve: () => { const ns = applySuggestion(s, p); setS(ns); save(ns); },
-        approveLabel: () => "Approve — apply it",
+        /* H2 — the R14 law: the button enacts EXACTLY what it says, and says what it
+           enacts. Only kinds with a real arm in applySuggestion earn an Approve; the
+           card carries the one-line receipt of what approving does. Everything else —
+           note, cal (engine-owned by design), progression (a flag nobody reads) — is
+           an observation and renders Noted/Dismiss. */
+        does: (() => { const a9 = p.apply || {}; return a9.kind === "protein" && a9.to != null ? "Approving does: sets your protein target to " + a9.to + " g/day." : a9.kind === "sleep" && a9.to != null ? "Approving does: sets your sleep target to " + a9.to + " h." : a9.kind === "dietbreak" ? "Approving does: arms a diet break — this week holds at maintenance." : null; })(),
+        approve: () => { const a9 = p.apply || {}; const real9 = (a9.kind === "protein" && a9.to != null) || (a9.kind === "sleep" && a9.to != null) || a9.kind === "dietbreak"; const ns = real9 ? applySuggestion(s, p) : noteSuggestion(s, p); setS(ns); save(ns); },
+        approveLabel: () => { const a9 = p.apply || {}; const real9 = (a9.kind === "protein" && a9.to != null) || (a9.kind === "sleep" && a9.to != null) || a9.kind === "dietbreak"; return real9 ? "Approve — apply it" : "Noted"; },
         dismiss: () => { const ns = dismissSuggestion(s, p); setS(ns); save(ns); },
       });
     });
@@ -11811,6 +11862,7 @@ function ApprovalInbox({ s, setS, save, tISO }) {
               </div>
             )}
             <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
+              {it.does ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.chalk, width: "100%", marginBottom: 2 }}>{it.does}</div> : null}
               {it.approve && <Btn small tone="jade" onClick={() => { it.approve(n); if (it.dial) setNudge({ ...nudge, [it.key]: 0 }); }}>{it.approveLabel(n)}</Btn>}
               {it.altApprove && <Btn small onClick={() => { it.altApprove(n); if (it.dial) setNudge({ ...nudge, [it.key]: 0 }); }}>{it.altLabel}</Btn>}
               <Btn small onClick={it.dismiss}>Dismiss</Btn>

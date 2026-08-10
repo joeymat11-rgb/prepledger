@@ -279,7 +279,7 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         const old = clone(SEED); delete old.skinfolds; old.v = 38;
         const up = __test.migrate(JSON.parse(JSON.stringify(old)));
         ok(Array.isArray(up.skinfolds) && up.skinfolds.length === 0, "R5 migration — patchV39 adds s.skinfolds = [] and nothing was there to restate");
-        ok(up.v === 41, "R5 migration — and bumps to 41 (v40 = R19; v41 = the H4 record correction: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
+        ok(up.v === 42, "R5 migration — and bumps to 42 (v40 R19 · v41 H4 · v42 the consent-hygiene hand-back: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
                 ok(Array.isArray(up.split) && up.split.length === 1 && up.split[0].from === "2026-08-09" && up.split[0].map[0] === "U" && up.split[0].map[1] === "L" && up.split[0].map[4] === "U" && up.split[0].map[5] === "L" && up.split[0].map[3] === "REST", "R19c migration — patchV40 seeds the athlete-stated split, DATED from the day he said it: Sun U · Mon L · Thu U · Fri L, rest elsewhere");
         /* byte-identity is the wrong invariant: migrate() replays the WHOLE patch chain, so
            other idempotent patches legitimately touch the state. The invariant that matters
@@ -2367,11 +2367,13 @@ vl.sessionLog[d2x] = { entries: [{ id: "ham", reps: [10, 10], rir: 2, w: 120 }],
 vl.sessionLog[d3x] = { entries: [{ id: "ham", reps: [10, 10], rir: 2, w: 120 }], at: 1 };
 const hams = mv66(vl).find((m) => m.mg === "hams");
 ok(hams && hams.n7 === 2 && hams.zone === "UNDER", "sets counted per rolling week, judged against the retention floor: " + hams.n7 + " " + hams.zone);
+/* CONSENT HYGIENE (2026-08-10) — THE DESK IS HARD-GATED until R18f: it filed five +1s
+   in one week against the one-lever law, then another the morning after its own recall
+   notice. The old drive ("two weeks under the floor files a +1") is the behaviour R18f
+   will restore THROUGH the one chooser; until then the gate is the law. */
 const swept66 = sv66(vl, 0);
-ok(swept66 && swept66.agentProposals.some((ap) => ap.kind === "volume" && ap.mg === "hams" && ap.dir === 1), "two weeks under the floor files a +1 proposal to the inbox");
-ok(!sv66(swept66, 0), "one proposal per muscle — the throttle holds");
-const inb = swept66.agentProposals.find((ap) => ap.kind === "volume");
-ok(inb.body.indexOf("retention floor") > -1 || inb.body.indexOf("insurance") > -1, "the proposal explains itself in plain words: " + inb.body.slice(0, 50));
+ok(swept66 === null, "CONSENT HYGIENE — the desk files NOTHING while hard-gated (was: two weeks under the floor files a +1). The zone triggers survive as the WHEN for R18f; the gate closes the WHICH until one chooser owns it");
+ok(sv66(vl, 0) === null && sv66(JSON.parse(JSON.stringify(vl)), 1) === null, "CONSENT HYGIENE — the gate holds on both filing days (Sun and Mon): the throttle and plain-words drives return with the desk in the R18f round");
 
 console.log(`\nFINAL65: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
@@ -2404,7 +2406,7 @@ let mt = clone(TL69);
 for (const k of [2, 5, 9, 12, 16]) mt.sessionLog[isoL(Date.now() - k * 864e5)] = { entries: [{ id: "ham", reps: [10, 10], rir: 2, w: 120 }], at: 1 };
 ok(sv69(mt, 3) === null, "midweek says nothing — volume is a Sunday conversation");
 const sun69 = sv69(mt, 0);
-ok(sun69 && sun69.agentProposals.filter((ap) => ap.kind === "volume").length <= 2, "at most two proposals per sweep — worst first, the rest wait");
+ok(sun69 === null, "CONSENT HYGIENE — Sunday files nothing either while the desk is hard-gated (the two-cap drive returns with R18f, riding the one chooser)");
 const oldV26a = clone(TL69); oldV26a.v = 26;
 oldV26a.agentProposals = [{ id: "v1", kind: "volume", mg: "chest", dir: 1 }, { id: "t1", kind: "trial", title: "keep me" }];
 const m69 = mg69(oldV26a);
@@ -5561,15 +5563,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 41, "schema: SCHEMA_V is 41 (patchV41: the athlete-attested H4 record correction)");
+  ok(SC === 42, "schema: SCHEMA_V is 42 (patchV42: the consent-hygiene hand-back + desk recall)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
-  ok(migd.v === 41 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
+  ok(migd.v === 42 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
   ok(migd.reads.length === oldV35.reads.length && Object.keys(migd.dailyLogs).length === Object.keys(oldV35.dailyLogs).length, "patchV36: ADDITIVE — no read or dailyLog is added or lost (count-preserving)");
   ok(SEED.plan.autonomy === "propose", "patchV36: SEED already carries autonomy='propose' so a fresh install === a migrated one");
-  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 41, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
-  const future = clone(SEED); future.v = 41;
-  ok(mig(future).v === 41, "migrate: a NEWER (v41) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
+  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 42, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
+  const future = clone(SEED); future.v = 43;
+  ok(mig(future).v === 43, "migrate: a NEWER (v43) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
   const legacy = clone(SEED); legacy.v = 35; legacy.plan = { goals: [{ text: "no-id" }], ifthen: [{ cue: "x", action: "y" }], share: false };
   const lm = mig(legacy);
   ok(lm.plan.goals[0].id != null && lm.plan.ifthen[0].id != null, "patchV36: legacy goal/if-then entries get a stable id backfilled (so the keyed union keys every entry)");
@@ -5858,15 +5860,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 41, "schema: SCHEMA_V is 41 (patchV41 on top of R19)");
+  ok(__test.SCHEMA_V === 42, "schema: SCHEMA_V is 42 (patchV42 on top of the chain)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
-  ok(m37.v === 41 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
+  ok(m37.v === 42 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
   ok(m37.reads.length === oldV36.reads.length && Object.keys(m37.dailyLogs).length === Object.keys(oldV36.dailyLogs).length, "patchV37: ADDITIVE — no read or dailyLog added or lost (count-preserving)");
-  ok(MIG(clone(SEED)).v === 41, "patchV37..41: idempotent on a current SEED (no double-patch drift)");
-  const fut39 = clone(SEED); fut39.v = 41; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
-  ok(MIG(fut39).v === 41 && MIG(fut39).learned.tdee.length === 1, "patchV38: a NEWER (v41) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
+  ok(MIG(clone(SEED)).v === 42, "patchV37..42: idempotent on a current SEED (no double-patch drift)");
+  const fut39 = clone(SEED); fut39.v = 43; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
+  ok(MIG(fut39).v === 43 && MIG(fut39).learned.tdee.length === 1, "patchV38: a NEWER (v43) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
 
   // -------- MERGE HARDENING — s.learned adversarial: must-not-LOSE + must-not-REVERT, BOTH orders --------
   ok(typeof UL === "function", "s.learned: _unionLearned is the registered reconciler (mirrors _unionPlan)");
@@ -6109,15 +6111,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(JSON.stringify(calorieTarget(clone(SEED))) === JSON.stringify(calorieTarget(clone(SEED))), "ENGINE-OWNS-NUMBERS — calorieTarget is unchanged by the phase layer on a normal cut (no phase number injected)");
 
   // ---- E · patchV38 — additive + rollback-safe; fresh SEED === migrated --------------------
-  ok(SCHEMA_V === 41, "patchV39/40/41 — SCHEMA_V is 41 (H4 on top of R19)");
+  ok(SCHEMA_V === 42, "patchV39..42 — SCHEMA_V is 42 (hygiene on top of H4 on top of R19)");
   ok(Array.isArray(SEED.plan.phaseLog) && SEED.plan.phaseLog.length === 0 && !("phase" in SEED.plan) && !("brk" in SEED.plan), "patchV38 — SEED authors an EMPTY phaseLog and NO phase/brk override: a fresh install === a migrated state");
   const oldV37 = clone(SEED); oldV37.v = 37; delete oldV37.plan.phaseLog;
   const m38 = migrate(oldV37);
-  ok(m38.v === 41 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
+  ok(m38.v === 42 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
   ok(m38.reads.length === oldV37.reads.length && Object.keys(m38.dailyLogs).length === Object.keys(oldV37.dailyLogs).length, "patchV38 — ADDITIVE: no read or dailyLog added or lost (count-preserving)");
-  ok(migrate(clone(SEED)).v === 41 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
-  const fut39 = clone(SEED); fut39.v = 41; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };
-  ok(migrate(fut39).v === 41 && migrate(fut39).plan.phase === "leangain", "patchV38 — a NEWER (v41) state is handed back UNTOUCHED: rollback-safe, no phase decision wiped");
+  ok(migrate(clone(SEED)).v === 42 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
+  const fut39 = clone(SEED); fut39.v = 43; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };
+  ok(migrate(fut39).v === 43 && migrate(fut39).plan.phase === "leangain", "patchV38 — a NEWER (v43) state is handed back UNTOUCHED: rollback-safe, no phase decision wiped");
 
   // ---- F · s.plan KEYED-UNION — a stale device must NOT REVERT nor LOSE a phase decision, BOTH orders --
   const devNew = clone(SEED); devNew.plan = { ...devNew.plan, phase: "leangain", setAt: { phase: "2026-07-29T10:00:00Z" }, rev: 5, phaseLog: [{ id: "ph_new", at: "2026-07-29T10:00:00Z", to: "leangain" }] };
@@ -7741,6 +7743,37 @@ if (fail) process.exit(1);
     ok(srcF8.indexOf("terminal RIR gates every earn (0 blocks it), can take an earn early off one honest sighting") > -1 && srcF8.indexOf("RIR on the LAST set is what sizes the next jump") === -1, "R18 fix D5 — the laws block says what R18d made true (gates · early-by-tap · sizes only where rungs are on file); the ~6786 session-step sentence is ruled KEPT as approximately true, per the audit");
     /* RIDER — the sighting-window law, ruled */
     ok(srcF8.indexOf("any writer that moves ex.hi MUST reset topAt/topRun") > -1, "SIGHTING-WINDOW LAW — a sighting is a claim about a specific window: ruled with the audit, written at the bank site, binding on the next hi-writer (none live today). Pronated's phone-banked sighting stands for Joe's call at merge");
+  }
+
+  /* ---------- CONSENT HYGIENE ROUND (Joe's audit ruling, 2026-08-10) ---------- */
+  {
+    const srcH3 = readFileSync("src/app.jsx", "utf8");
+    /* H1 — the hand-back, driven on the exact desk-left shape */
+    const SH = JSON.parse(JSON.stringify(__test.SEED)); SH.v = 41;
+    const setTo = (id, n) => { const e = SH.exercises.find((x) => x.id === id); if (e) e.sets = n; };
+    ["rows"].forEach((id) => setTo(id, 3)); ["hack", "tricep", "curl", "abs"].forEach((id) => setTo(id, 4));
+    const fri = {}; ["ham", "hams", "chest", "rearDelt"].forEach((id) => { const e = SH.exercises.find((x) => x.id === id); if (e) fri[id] = e.sets; });
+    const CH = __test.migrate(JSON.parse(JSON.stringify(SH)));
+    const g = (id) => (CH.exercises.find((x) => x.id === id) || {}).sets;
+    ok(g("rows") === 2 && g("hack") === 3 && g("tricep") === 3 && g("curl") === 3 && g("abs") === 3, "H1 — THE HAND-BACK ENACTED: rows 3→2, hack 4→3, tricep 4→3, curl 4→3, abs 4→3 — exactly what the approved-but-inert card said, now done by the migration with both consents cited in the feed");
+    ok(Object.keys(fri).every((id) => (CH.exercises.find((x) => x.id === id) || {}).sets === fri[id]), "H1 — Friday's owner's-call three STAND: hams, chest and rearDelt keep their counts untouched");
+    ok((CH.feed[0].t.indexOf("HAND-BACK") > -1 || CH.feed[1].t.indexOf("HAND-BACK") > -1) && /audit and fix/.test(JSON.stringify(CH.feed.slice(0, 3))), "H1 — the receipt cites the approved card AND Joe's audit ruling, verbatim");
+    const CH2 = __test.migrate(JSON.parse(JSON.stringify(CH)));
+    ok((CH2.exercises.find((x) => x.id === "rows") || {}).sets === 2, "H1 — replay is a no-op: content-keyed on the exact counts the desk left, so a corrected state passes through untouched");
+    const SM = JSON.parse(JSON.stringify(SH)); SM.v = 41; const em = SM.exercises.find((x) => x.id === "hack"); if (em) em.sets = 5;
+    ok((__test.migrate(SM).exercises.find((x) => x.id === "hack") || {}).sets === 5, "H1 — a count that already moved is NOT touched: the restatement fires only on the shape it was written for");
+    /* H1 — the recalls */
+    const SR = JSON.parse(JSON.stringify(__test.SEED)); SR.v = 41;
+    SR.agentProposals = [{ id: "vd1", kind: "volume", mg: "delts_side", dir: 1 }, { id: "vd2", kind: "volume", mg: "delts_rear", dir: 1 }, { id: "cc1", kind: "coach" }, { id: "tr1", kind: "trial", tplId: "x" }];
+    const CR = __test.migrate(SR);
+    ok(CR.agentProposals.length === 1 && CR.agentProposals[0].kind === "trial" && (CR.feed[0].t.indexOf("DESK OFFERS RECALLED") > -1 || CR.feed[1].t.indexOf("DESK OFFERS RECALLED") > -1), "H1/H3 — the standing desk offers (both delts cards) AND the coach calorie card are recalled at source with a feed receipt; a non-desk proposal (trial) survives");
+    /* H2 — the R14 law at the suggestion card */
+    ok(srcH3.indexOf("function noteSuggestion(state, sug)") > -1 && srcH3.indexOf('decided: "noted"') > -1, "H2 — Noted is a real verb with its own honest writer: it logs the observation and files a feed line saying approving would have changed nothing");
+    ok(srcH3.indexOf('return real9 ? "Approve — apply it" : "Noted";') > -1 && srcH3.indexOf("const ns = real9 ? applySuggestion(s, p) : noteSuggestion(s, p);") > -1, "H2 — a suggestion whose apply is inert (note · cal · progression) can NEVER render Approve — apply it: the label and the handler both fork on the same real-kinds test, so the button always enacts exactly what it says");
+    ok(srcH3.indexOf("Approving does: sets your protein target to ") > -1 && srcH3.indexOf("{it.does ?") > -1, "H2 — every real apply carries the one-line receipt (Approving does: <exact change>) rendered above the button; a card without it renders note-only by construction (does is null for inert kinds)");
+    /* H3 — the desk gate + the guards named as code */
+    ok(srcH3.indexOf("THE DESK IS HARD-GATED until the") > -1 && /return null;\s*\n\s*const tISO7/.test(srcH3), "H3 — sweepVolume files NOTHING (hard gate at the top, removed only in the R18f round). The claimed guards ARE code and are named in the comment: the 14-day first-session gate, dow 0/1, the per-mg cooldown scan, the ≤2-per-run cap");
+    ok(__test.sweepVolume(JSON.parse(JSON.stringify(__test.SEED)), 0) === null, "H3 — driven: a Sunday sweep on a full seed files nothing while the gate holds");
   }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);

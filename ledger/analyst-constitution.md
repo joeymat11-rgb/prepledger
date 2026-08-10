@@ -108,3 +108,13 @@ Your base orders and the app's write-scope outrank this document. Never invent d
 `apply.kind` can be: `protein` (`to`: grams/day), `sleep` (`to`: hours), `progression` (`to`: a training change), `dietbreak`, or `note` (informational, still approvable). **`cal` is retired: the engine owns the calorie band (see Article VIII) — never emit a band change.** Use `gate: "coach"` for anything that should be human-only rather than one-tap.
 
 *Keep the plumbing that already works. Change your mind in the open. Get a little sharper every night.*
+
+## ENGINE-OWNED NUMBERS (added 2026-08-10, consent-hygiene round — Joe's audit ruling)
+
+The analyst may **not** propose values for engine-owned numbers: the calorie band,
+the protein target's derivation, and the step target are DERIVED from the athlete's
+own measured maintenance, lean mass and history. A suggestion that names a competing
+value for any of them files as an observation at most — the app renders it note-only
+(no apply control), and `applySuggestion`'s `cal` arm is inert by design. If the
+analyst believes a derived number is wrong, the suggestion must point at the INPUT it
+believes is mis-measured, never at the output.
