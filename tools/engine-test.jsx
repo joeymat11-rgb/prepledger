@@ -7775,6 +7775,27 @@ if (fail) process.exit(1);
     ok(srcH3.indexOf("THE DESK IS HARD-GATED until the") > -1 && /return null;\s*\n\s*const tISO7/.test(srcH3), "H3 — sweepVolume files NOTHING (hard gate at the top, removed only in the R18f round). The claimed guards ARE code and are named in the comment: the 14-day first-session gate, dow 0/1, the per-mg cooldown scan, the ≤2-per-run cap");
     ok(__test.sweepVolume(JSON.parse(JSON.stringify(__test.SEED)), 0) === null, "H3 — driven: a Sunday sweep on a full seed files nothing while the gate holds");
   }
+
+  /* ---------- R18e — THE ONE-CHANGE CARD STOPS OVERCLAIMING ---------- */
+  {
+    const srcE = readFileSync("src/app.jsx", "utf8");
+    /* 1 — the card says the true thing, with an end date */
+    ok(srcE.indexOf("the set-add and step-push levers are held while the scale reads it") > -1 && srcE.indexOf("Your daily calorie band keeps updating and corrective steers stay live") > -1 && srcE.indexOf('. The budget reopens ') > -1 && srcE.indexOf(' + fmtShort(isoOf(new Date(mk(smw.monday).getTime() + 7 * DAY)))') > -1 && srcE.indexOf("the coach holds every other lever until the scale can say what that one change did") === -1, "R18e-1 — the card names the levers ACTUALLY held (volume push, step push), says the band and steers stay live, and dates the budget reopening; the every-other-lever overclaim is extinct");
+    /* 2 — tighten abstains in a sets week; ease and the floor never held, by construction */
+    ok(srcE.indexOf('if (action === "tighten") { try { const smw9 = structuralMovesThisWeek(s); if (smw9.sets.length) { action = "hold"; setsWeekHold = true; } } catch (e) {} }') > -1, "R18e-2 — Auto-Pilot TIGHTEN abstains for the budget week after a SETS change (the mirror of volumePush's cal veto — one budget, symmetric). The guard fires ONLY on the tighten branch, so ease and the redline floor are never held BY CONSTRUCTION, and the daily band is untouched (the guard moves action, never the band)");
+    ok(srcE.indexOf("repair water inflates the scale for a week or two, so a slower-looking rate right now is the steer most likely to be false") > -1, "R18e-2 — the abstain carries its mechanism (new-volume repair water), surfaced on the read (setsWeekHold/setsWeekWhy) so the card can say why the tighten waits");
+    /* 3 — THE VERIFICATION the audit could not confirm from the dump: an APPROVED cal
+       steer carries via:cal all the way into the budget, driven end to end */
+    const SV = JSON.parse(JSON.stringify(__test.SEED));
+    SV.proposals = [...(SV.proposals || []), { rid: "ap_tighten_T", id: "apt_drive", d: isoL(Date.now()), title: "tighten drive", apply: { kind: "cal" }, corrKcal: 100, action: "tighten" }];
+    const AV = __test.applyProposal(SV, "apt_drive");
+    const row = (AV.adjustments || [])[AV.adjustments.length - 1];
+    ok(row && row.via === "cal" && row.rid === "ap_tighten_T", "R18e-3 VERIFIED — an APPROVED cal steer writes via:cal on its adjustment row (the live bare {d, rid} ap_tighten rows predate v7.3.1's approval-takes-effect): the cal-blocks-volume arm is ALIVE, not dead code");
+    const smwV = __test.structuralMovesThisWeek(AV);
+    ok(smwV.calOrSteps.length >= 1 && smwV.calOrSteps.some((m) => m.rid === "ap_tighten_T"), "R18e-3 — structuralMovesThisWeek SEES the approved steer in calOrSteps the same week");
+    const vpV = __test.volumePush(AV);
+    ok(vpV.mode !== "PROPOSE" && srcE.indexOf('if (smw.calOrSteps.length) return { mode: "WITHHELD", veto: "budget",') > -1, "R18e-3 — and volumePush cannot propose that week (mode " + vpV.mode + (vpV.veto ? "/" + vpV.veto : "") + "): the budget arm exists at source and the approved steer feeds it — driven end to end, approve → via:cal → calOrSteps → no volume push");
+  }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

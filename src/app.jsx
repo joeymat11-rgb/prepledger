@@ -4162,6 +4162,15 @@ function autoPilot(s, mode) {
   const rec = readRecency(s);
   const intendedAction = action;
   if (rec.stale) action = "hold";
+  /* R18e — THE BUDGET REACHES AUTO-PILOT, in the one direction it is sound: for the
+     budget week after a SETS change, TIGHTEN abstains (the mirror of the exact veto
+     volumePush applies to cal moves — one budget, symmetric). Mechanism, not calendar
+     superstition: new-volume repair water inflates the scale for ~1-2 weeks, so a
+     slower-looking rate right after added sets is the one steer most likely to be
+     false. EASE and the redline floor are NEVER held — safety does not wait. The
+     daily band itself is untouched: prescription is measurement, not a lever. */
+  let setsWeekHold = false;
+  if (action === "tighten") { try { const smw9 = structuralMovesThisWeek(s); if (smw9.sets.length) { action = "hold"; setsWeekHold = true; } } catch (e) {} }
   /* CONFIDENCE GATE (v6.3.2, Slice 0) - a proposal must clear NOISE, not just the +/-90 kcal
      dead-band. `proposed` fired off the POINT estimate, so one big morning (a +3 lb water/sodium
      spike) drops the 28-read rate ~0.2 lb/wk and can tip a false "tighten" past the band while the
@@ -4195,7 +4204,7 @@ function autoPilot(s, mode) {
   const proteinOff = lastPro != null && lastPro < proFloorG;
   return {
     ok: true, dir, mode: apMode, goalRate: targetLb, targetLb, targetPct, measRate: +measRate.toFixed(2), tdee: Math.round(td.tdee), n: r.n || 0,
-    band, pctRate, action, corrKcal, stepsAdd, proposed, onLine: !proposed, handledForToday: steerHandled,
+    band, pctRate, action, corrKcal, stepsAdd, proposed, onLine: !proposed, handledForToday: steerHandled, setsWeekHold, setsWeekWhy: setsWeekHold ? "a set change landed this week — repair water inflates the scale for a week or two, so a slower-looking rate right now is the steer most likely to be false. Tighten waits for the budget week to close; easing and the floor never wait." : null,
     proteinOff, proteinTargetG: pt.g, proteinFloorG: proFloorG, lastPro,
     stale: rec.stale, staleDays: rec.days, lastReadISO: rec.lastISO, heldForStale: rec.stale && intendedAction !== "hold",
     driftSig, heldForNoise: !driftSig && !rec.stale && intendedAction !== "hold" && corrKcal >= 90,
@@ -11300,7 +11309,11 @@ function nowModelUncached(s, deps) {
        on the screen, and the only thing that had changed was a note about dinner. */
     ? { title: "YOUR COACH IS STILL LEARNING", body: "It wants more workout data before changing anything — it can read " + nTrend + " of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
         + ((setAside9 && setAside9.length) ? " " + (setAside9.length === 1 ? "One session is set aside: " + fmtShort(setAside9[0]) : setAside9.length + " sessions are set aside: " + setAside9.map(fmtShort).join(", ")) + " — an event day, where the session itself is likely compromised, not just the food numbers. Remove the event and " + (setAside9.length === 1 ? "it counts" : "they count") + " again." : "") }
-    : (smw.moves.length ? { title: "ONE CHANGE AT A TIME", body: "Something changed this week (" + (smw.moves[0].kind === "sets" ? "a training tweak" : smw.moves[0].kind === "steps" ? "your step target" : "your calorie range") + ") — the coach holds every other lever until the scale can say what that one change did." } : null);
+    /* R18e — the card OVERCLAIMED: 'holds every other lever' while Auto-Pilot never
+       consulted the budget and the daily band updated daily. It now names the levers
+       actually held (the volume push and the step push), says what stays live, and
+       names when the budget reopens — all from smw's own state. */
+    : (smw.moves.length ? { title: "ONE CHANGE AT A TIME", body: "Something changed this week (" + (smw.moves[0].kind === "sets" ? "a training tweak" : smw.moves[0].kind === "steps" ? "your step target" : "your calorie range") + ") — so the set-add and step-push levers are held while the scale reads it. Your daily calorie band keeps updating and corrective steers stay live" + (smw.sets.length ? " (a tighten waits out the new-volume water; easing and the safety floor never wait)" : "") + ". The budget reopens " + fmtShort(isoOf(new Date(mk(smw.monday).getTime() + 7 * DAY))) + "." } : null);
   const pt = proteinTarget(s);
   const eat = {
     gated: !!eb.gated, lo: eb.gated ? null : eb.lo, hi: eb.gated ? null : eb.hi,
