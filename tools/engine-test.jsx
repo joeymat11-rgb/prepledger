@@ -7858,6 +7858,27 @@ if (fail) process.exit(1);
     /* (b) one door files — both directions at source */
     ok(srcO.indexOf("const deskOpen = (s.agentProposals || []).some((ap) => ap && ap.kind === " + String.fromCharCode(34) + "volume" + String.fromCharCode(34) + ");") > -1 && srcO.indexOf("const doorOpen9 = (s.proposals || []).some((p) => p && !p.resolved && p.rid && String(p.rid).indexOf(" + String.fromCharCode(34) + "volpush_" + String.fromCharCode(34) + ") === 0);") > -1, "R18f fix2 (b) — the cross-store guard runs both directions: an open desk offer closes door 2, an open EARNED VOLUME card closes the desk — a clean Monday yields ONE card, not two");
   }
+
+  /* ---------- R18f FIX 3 — THE DECLINE FACE (each door honors BOTH promises) ---------- */
+  {
+    const srcD = readFileSync("src/app.jsx", "utf8");
+    ok(srcD.indexOf('const declined9 = (s.adjustments || []).some((a) => a && a.dismissed && a.rid && String(a.rid).indexOf("volpush_") === 0 && a.d >= mon9x);') > -1 && srcD.indexOf("!already9 && !doorOpen9 && !declined9") > -1, "R18f fix3 — a declined EARNED VOLUME card closes the DESK for the week (door 2's own vpDeclined check, taken by the desk): the card promised 'the lever stays quiet before Monday', and now both doors keep it");
+    ok(srcD.indexOf('"VOLUME PASSED — " + String(vp.mg).toUpperCase()') > -1 && srcD.indexOf("!deskOpen && !deskPassed && vp.mode") > -1, "R18f fix3 — a PASSED desk offer closes DOOR 2 for that muscle for 14 days (the desk's recent-feed guard, taken by the producer): the pass promised two weeks, and now both doors keep it");
+    /* the desk belts, DRIVEN via the export (the audit's note 1) */
+    const isoT0 = isoL(Date.now());
+    const dW = new Date(); const offW = (dW.getDay() + 6) % 7; const monW = isoL(Date.now() - offW * 864e5);
+    const SB = JSON.parse(JSON.stringify(__test.SEED));
+    SB.adjustments = [...(SB.adjustments || []), { rid: "vol_wk2", id: "adj_wk2", d: monW, title: "x", exUndo: { field: "sets", exId: "ham" } }];
+    SB.agentProposals = [{ id: "vb1", kind: "volume", mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }];
+    const hackB = (SB.exercises.find((x) => x.id === "hack") || {}).sets;
+    const RB = __test.applyAgentProposal(SB, SB.agentProposals[0], isoT0);
+    ok((RB.exercises.find((x) => x.id === "hack") || {}).sets === hackB && RB.agentProposals.length === 0 && RB.feed.some((f) => f.t && f.t.indexOf("OFFER EXPIRED AT THE TAP") === 0), "R18f fix3 — THE DESK BELT, DRIVEN via the export: a spent-week desk tap enacts nothing, clears the offer and speaks — mirroring the proposal belt");
+    const SC2 = JSON.parse(JSON.stringify(__test.SEED));
+    SC2.agentProposals = [{ id: "vb2", kind: "volume", mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }];
+    const hackC = (SC2.exercises.find((x) => x.id === "hack") || {}).sets;
+    const RC2 = __test.applyAgentProposal(SC2, SC2.agentProposals[0], isoT0);
+    ok((RC2.exercises.find((x) => x.id === "hack") || {}).sets === hackC + 1, "R18f fix3 — and the clean-week desk tap still ENACTS: the belt refuses only what the budget already spent");
+  }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

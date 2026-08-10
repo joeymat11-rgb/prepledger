@@ -7690,9 +7690,16 @@ function sweepVolume(s, dow7 = new Date().getDay()) {
   if (wantsUp) {
     const vp9 = volumePush(s);
     if (vp9.mode === "PUSH") {
+      /* R18f fix3 — THE DECLINE FACE. A declined EARNED VOLUME card promised 'the lever
+         stays quiet before Monday'; the desk filing the identical +1 the same day broke
+         that promise (driven by the audit). Door 2's own vpDeclined check, taken here:
+         a dismissed volpush_ adjustment row this week closes the desk too. */
+      const dm9 = new Date(); const doff9 = (dm9.getDay() + 6) % 7;
+      const mon9x = isoOf(new Date(mk(tISO7).getTime() - doff9 * DAY));
+      const declined9 = (s.adjustments || []).some((a) => a && a.dismissed && a.rid && String(a.rid).indexOf("volpush_") === 0 && a.d >= mon9x);
       const already9 = (s.agentProposals || []).some((ap) => ap.kind === "volume" && ap.mg === vp9.mg);
       const doorOpen9 = (s.proposals || []).some((p) => p && !p.resolved && p.rid && String(p.rid).indexOf("volpush_") === 0);   /* R18f fix2 — one door files: an open EARNED VOLUME card closes this one */
-      if (!already9 && !doorOpen9) {
+      if (!already9 && !doorOpen9 && !declined9) {
         ns = ns || JSON.parse(JSON.stringify(s));
         ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + vp9.mg + Date.now(), kind: "volume", mg: vp9.mg, exId: vp9.exId, dir: 1, title: `VOLUME +1 — ${vp9.mg.toUpperCase()} via ${vp9.exName}`, body: "The desk is awake again — one chooser, house gates. " + vp9.routing + " Weekly " + vp9.fromWk + " → " + vp9.toWk + " sets; every gate (regime, recovery, sleep, the weekly budget, spillover charges, the conversion read) passed before this filed.", gatesClosed: false }];
       }
@@ -8062,7 +8069,11 @@ function runAdaptive(state, todayISO, raOpts) {
     const vp = volumePush(s);
     const vpDeclined = (s.adjustments || []).some((a) => a && a.dismissed && a.rid && a.rid.indexOf("volpush_") === 0 && a.d >= monday);
     const deskOpen = (s.agentProposals || []).some((ap) => ap && ap.kind === "volume");   /* R18f fix2 — one door files: an open desk offer closes this one */
-    if (!sealed && !vpDeclined && !deskOpen && vp.mode === "PUSH")
+    /* R18f fix3 — the desk's PASS promised 'the ledger waits two weeks before raising
+       this muscle again'; door 2 filing the identical earned card the same day broke
+       that promise (driven by the audit). The desk's own recent-feed guard, taken here. */
+    const deskPassed = vp.mode === "PUSH" && (s.feed || []).slice(0, 80).some((f) => f && f.t && f.d && f.t.indexOf("VOLUME PASSED — " + String(vp.mg).toUpperCase()) === 0 && (mk(todayISO) - mk(f.d)) / DAY < 14);
+    if (!sealed && !vpDeclined && !deskOpen && !deskPassed && vp.mode === "PUSH")
       propose(`volpush_${vp.mg}_${monday}`, `${cap(mgLabel(vp.mg))} — EARNED VOLUME: ${vp.fromWk} → ${vp.toWk} WEEKLY SETS`,
         `Your own measured state earned this: regime FREE confirmed a week apart, pooled progression rising, recovery GREEN, and no other structural move this week. ${cap(mgLabel(vp.mg))} is the lowest readable allocation at ${vp.fromWk} weekly sets${vp.zone === "UNDER" ? " — under the growth floor, an underdose to correct decisively rather than creep at" : ""}. Approving adds ${vp.dSess} set${vp.dSess > 1 ? "s" : ""} to ${vp.exName} each ${vp.day === "L" ? "lower" : "upper"} session — ${vp.fromSess}→${vp.toSess} per session, ${vp.fromWk}→${vp.toWk} weekly, roughly ${vp.dSess * 3} extra minutes on those days (one set plus its rest). The new set lands inside the effort taper automatically: the RIR ladder re-keys, and failure stays spent exactly once, on the final set. HONEST GRADE — MODERATE-TO-LOW: volume drives growth with no in-range plateau (Pelland 2025) and you fit the recomp profile (Barakat 2020 — headroom, ~14% body fat, deficit under ~500), but no trial has tested MORE volume DURING a deficit for growth (Roth 2023 asked retention, underpowered), so the coach adds a LITTLE and reads your own bar before the next step. The trend window restarts at the change on purpose — a bigger number from more sets proves nothing. If the read ends with no progress and fatigue up, the sets come off, with a receipt. Absolute ceiling ${vp.ceil} weekly sets.`,
         { kind: "sets", exId: vp.exId, delta: vp.dSess, mg: vp.mg, fromWk: vp.fromWk, toWk: vp.toWk, freq: vp.freq, budgetPremise: true });   /* R18f fix2 — this card's premise IS the clean budget; the belt and reconciler key on it, so owner's-call cards (whose premise is Joe's ask, the 8/07 three-tap pattern) are untouched */
@@ -10555,7 +10566,7 @@ __test.bfEst = bfEst;
 __test.migrate = migrate;
 __test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
 __test.targetsFor = targetsFor;
-__test.runAdaptive = runAdaptive;
+__test.runAdaptive = runAdaptive; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
 __test.stepKcal = stepKcal;
 __test.stepEfficacy = stepEfficacy;
 __test.DT = DT;
