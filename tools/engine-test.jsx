@@ -2372,8 +2372,8 @@ ok(hams && hams.n7 === 2 && hams.zone === "UNDER", "sets counted per rolling wee
    notice. The old drive ("two weeks under the floor files a +1") is the behaviour R18f
    will restore THROUGH the one chooser; until then the gate is the law. */
 const swept66 = sv66(vl, 0);
-ok(swept66 === null, "CONSENT HYGIENE — the desk files NOTHING while hard-gated (was: two weeks under the floor files a +1). The zone triggers survive as the WHEN for R18f; the gate closes the WHICH until one chooser owns it");
-ok(sv66(vl, 0) === null && sv66(JSON.parse(JSON.stringify(vl)), 1) === null, "CONSENT HYGIENE — the gate holds on both filing days (Sun and Mon): the throttle and plain-words drives return with the desk in the R18f round");
+ok(swept66 === null, "R18f — the desk is AWAKE but the house gates hold: on this fixture the chooser (volumePush) is not at PUSH (regime unknown), so the under-floor trigger files NOTHING — gates closed means silence, never a default offer");
+ok(sv66(vl, 0) === null && sv66(JSON.parse(JSON.stringify(vl)), 1) === null, "R18f — silence holds on both filing days: the chooser's verdict, not a calendar gate, is what decides");
 
 console.log(`\nFINAL65: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
@@ -2406,7 +2406,7 @@ let mt = clone(TL69);
 for (const k of [2, 5, 9, 12, 16]) mt.sessionLog[isoL(Date.now() - k * 864e5)] = { entries: [{ id: "ham", reps: [10, 10], rir: 2, w: 120 }], at: 1 };
 ok(sv69(mt, 3) === null, "midweek says nothing — volume is a Sunday conversation");
 const sun69 = sv69(mt, 0);
-ok(sun69 === null, "CONSENT HYGIENE — Sunday files nothing either while the desk is hard-gated (the two-cap drive returns with R18f, riding the one chooser)");
+ok(sun69 === null, "R18f — Sunday files nothing here either: the chooser is not at PUSH on this fixture, and the desk only ever files the chooser's ONE pick (the two-cap is superseded by a one-pick construction)");
 const oldV26a = clone(TL69); oldV26a.v = 26;
 oldV26a.agentProposals = [{ id: "v1", kind: "volume", mg: "chest", dir: 1 }, { id: "t1", kind: "trial", title: "keep me" }];
 const m69 = mg69(oldV26a);
@@ -6274,7 +6274,7 @@ if (fail) process.exit(1);
     const smw = __test.structuralMovesThisWeek(applied);
     ok(smw.sets.length === 1 && smw.mgsTouched.indexOf("hams") > -1, "VOLUME LEVER — the applied move is on the weekly budget, charged to its muscle");
     const vp2 = __test.volumePush(applied);
-    ok(vp2.mode === "PUSH" && vp2.mg !== "hams", "VOLUME LEVER — muscles are parallel measurement channels: a same-week push to a DIFFERENT muscle (" + vp2.mg + ") is permitted; the touched muscle is not re-incremented");
+    ok(vp2.mode === "WITHHELD" && vp2.veto === "budget" && /returns Monday/.test(vp2.why), "VOLUME LEVER (R18f fix — SUPERSEDES the parallel-channels drive above this line): a sets move this week WITHHOLDS the chooser entirely, veto budget. The old drive permitted a same-week push to a different muscle; the audit drove the consequence — the ONE-CHANGE card claiming the set-add lever held BESIDE a desk offer of a set-add. One structural lever a week now means one, and the why names Monday");
     /* decline buys the week — and only the week */
     const decl = __test.dismissProposal(cl82(armed), card.id);
     ok(/quiet before Monday/.test((decl.feed[0] || {}).how || ""), "VOLUME LEVER — the decline copy states what it buys (quiet before Monday) — R14's copy-and-mechanism-agree rule at birth");
@@ -7772,7 +7772,7 @@ if (fail) process.exit(1);
     ok(srcH3.indexOf('return real9 ? "Approve — apply it" : "Noted";') > -1 && srcH3.indexOf("const ns = real9 ? applySuggestion(s, p) : noteSuggestion(s, p);") > -1, "H2 — a suggestion whose apply is inert (note · cal · progression) can NEVER render Approve — apply it: the label and the handler both fork on the same real-kinds test, so the button always enacts exactly what it says");
     ok(srcH3.indexOf("Approving does: sets your protein target to ") > -1 && srcH3.indexOf("{it.does ?") > -1, "H2 — every real apply carries the one-line receipt (Approving does: <exact change>) rendered above the button; a card without it renders note-only by construction (does is null for inert kinds)");
     /* H3 — the desk gate + the guards named as code */
-    ok(srcH3.indexOf("THE DESK IS HARD-GATED until the") > -1 && /return null;\s*\n\s*const tISO7/.test(srcH3), "H3 — sweepVolume files NOTHING (hard gate at the top, removed only in the R18f round). The claimed guards ARE code and are named in the comment: the 14-day first-session gate, dow 0/1, the per-mg cooldown scan, the ≤2-per-run cap");
+    ok(srcH3.indexOf("THE DESK WAKES, DEMOTED TO A DOOR") > -1 && srcH3.indexOf("the WHICH is volumePush") > -1, "H3 → R18f — the hygiene hard gate is LIFTED because the defect it guarded is gone: the desk no longer routes. Its zone triggers are the WHEN; the WHICH is the one chooser, house gates by construction");
     ok(__test.sweepVolume(JSON.parse(JSON.stringify(__test.SEED)), 0) === null, "H3 — driven: a Sunday sweep on a full seed files nothing while the gate holds");
   }
 
@@ -7795,6 +7795,95 @@ if (fail) process.exit(1);
     ok(smwV.calOrSteps.length >= 1 && smwV.calOrSteps.some((m) => m.rid === "ap_tighten_T"), "R18e-3 — structuralMovesThisWeek SEES the approved steer in calOrSteps the same week");
     const vpV = __test.volumePush(AV);
     ok(vpV.mode !== "PROPOSE" && srcE.indexOf('if (smw.calOrSteps.length) return { mode: "WITHHELD", veto: "budget",') > -1, "R18e-3 — and volumePush cannot propose that week (mode " + vpV.mode + (vpV.veto ? "/" + vpV.veto : "") + "): the budget arm exists at source and the approved steer feeds it — driven end to end, approve → via:cal → calOrSteps → no volume push");
+  }
+
+  /* ---------- R18f — ONE OWNER FOR THE ADDED SET ---------- */
+  {
+    const srcFf = readFileSync("src/app.jsx", "utf8");
+    ok(srcFf.indexOf("const picks = [];") > -1 && srcFf.indexOf("alt: p1 ? { mg: p1.mg, exName: p1.exName") > -1 && srcFf.indexOf("lowest allocation carries it — rep-velocity is never consulted for routing") > -1, "R18f-1 — the chooser names its runner-up and states the routing law: allocation, never rep-velocity — a maxed ladder (hack, forced reps-only, vel 3.5) can no longer masquerade as responsiveness and a fresh load jump (extension, reps reset by the debut) costs nothing");
+    ok(srcFf.indexOf("const vp9 = volumePush(s);") > -1 && srcFf.indexOf('if (vp9.mode === "PUSH") {') > -1 && srcFf.indexOf("The desk is awake again — one chooser, house gates.") > -1, "R18f-2 — the desk's +1 arm ASKS THE SAME FUNCTION: every house gate (regime, rising, recovery, sleep, the smw budget, spillover, conversion, ceiling) applies to the desk by construction, and the card SAYS the desk woke with this round");
+    ok(srcFf.indexOf("if (dir < 0) {") > -1 && srcFf.indexOf("} else cands.push({ m, dir, why, pick: null,") > -1, "R18f-2 — the +1 trigger carries NO pick of its own (the chooser owns WHICH); the -1 give-back keeps its weakest-mover pick — a different question, no ladder bias rewards the giver");
+    ok(srcFf.indexOf("if (smw9.moves.length) return;   /* R18f-3") > -1, "R18f-3 — the give-back is a structural move too: it waits out ANY move-week (sets, cal or steps), so no desk card can contradict the ONE-CHANGE card in the same render");
+    ok(srcFf.indexOf("slice(0, 1).forEach") > -1 && srcFf.indexOf("gatesClosed: false") > -1, "R18f — default offers cap at ONE by construction (the chooser returns one pick; the give-back files at most one), and never five simultaneous defaults again");
+    /* driven: the awake desk on a full seed still files nothing while the chooser holds */
+    ok(__test.sweepVolume(JSON.parse(JSON.stringify(__test.SEED)), 0) === null, "R18f — DRIVEN: Sunday sweep on the seed files nothing — the chooser reads regime unknown and the desk inherits every gate the moment it asks");
+    const vpS = __test.volumePush(JSON.parse(JSON.stringify(__test.SEED)));
+    ok(vpS.mode !== "PUSH" || (vpS.routing && vpS.routing.indexOf("lowest allocation") === 0), "R18f — whenever the chooser DOES push, its verdict carries the routing sentence (and the alt when a runner-up exists): the card states both candidates' numbers from the engine's own words");
+  }
+
+  /* ---------- R18f FIX — the sets week silences the desk (the audit's fixture) ---------- */
+  {
+    const SW = JSON.parse(JSON.stringify(__test.SEED));
+    const t9 = isoL(Date.now()); const d9 = new Date(); const off9 = (d9.getDay() + 6) % 7;
+    const mon9 = isoL(Date.now() - off9 * 864e5);
+    SW.adjustments = [...(SW.adjustments || []), { rid: "vol_drive", id: "adj_sw", d: mon9, title: "x", exUndo: { field: "sets", exId: "ham" } }];
+    const smwW = __test.structuralMovesThisWeek(SW);
+    ok(smwW.sets.length >= 1, "R18f fix — the fixture is real: a sets adjustment dated this Monday lands in smw.sets");
+    const vpW = __test.volumePush(SW);
+    ok(vpW.mode !== "PUSH" && /if \(smw.sets.length\) return { mode: "WITHHELD", veto: "budget",/.test(readFileSync("src/app.jsx", "utf8")), "R18f fix — a sets move this week can never reach PUSH: on this seed the regime gate exits first (ABSTAIN — the chain order is the design), and the sets-veto arm stands in the chain for gates-open states (veto budget, the stepPush mirror sentence) — the gates-open drive is the audit rig's, on its FINAL82 fixture");
+    ok(__test.sweepVolume(SW, 0) === null, "R18f fix DRIVEN — and the desk, asking that same chooser, files ZERO offers in a sets-move week: the audit's exact fixture, silent");
+  }
+
+  /* ---------- R18f FIX 2 — OFFERS DO NOT OUTLIVE THE BUDGET (the audit's held round) ---------- */
+  {
+    const srcO = readFileSync("src/app.jsx", "utf8");
+    const isoT9 = isoL(Date.now());
+    const mkWk = () => {
+      const S = JSON.parse(JSON.stringify(__test.SEED));
+      const d9 = new Date(); const off9 = (d9.getDay() + 6) % 7;
+      const mon9 = isoL(Date.now() - off9 * 864e5);
+      S.adjustments = [...(S.adjustments || []), { rid: "vol_wk", id: "adj_wk", d: mon9, title: "x", exUndo: { field: "sets", exId: "ham" } }];
+      return S;
+    };
+    /* (a) the reconciler withdraws BOTH stores when a move lands — never deletes */
+    const SA = mkWk();
+    SA.proposals = [...(SA.proposals || []), { rid: "volpush_quads_x", id: "vpx", d: isoT9, title: "QUADS — EARNED VOLUME", why: "w", apply: { kind: "sets", exId: "hack", delta: 1, budgetPremise: true } }];
+    SA.agentProposals = [...(SA.agentProposals || []), { id: "vq1", kind: "volume", mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }];
+    const RA = __test.runAdaptive(SA, isoT9);
+    const pA = RA.proposals.find((p) => p.id === "vpx");
+    ok(pA && pA.resolved === true && /withdrawn/.test(pA.resolvedHow || "") && !RA.agentProposals.some((ap) => ap.kind === "volume"), "R18f fix2 (a) — the moment a structural move is on the week, the reconciler withdraws open volume offers in BOTH stores: the proposal resolves (never deleted) and the desk card leaves, each with a feed line — the audit's items 1 and 2, dead at the grooming pass");
+    ok(RA.feed.some((f) => f.t && f.t.indexOf("CARD WITHDRAWN") === 0) && RA.feed.some((f) => f.t && f.t.indexOf("DESK OFFER") === 0), "R18f fix2 (a) — both withdrawals speak on the feed, the R4-orphan precedent");
+    /* (c) the apply-time belt — the tap re-checks and SPEAKS; the enact path survives */
+    const SC = mkWk();
+    const hackW = (SC.exercises.find((x) => x.id === "hack") || {}).sets;
+    SC.proposals = [...(SC.proposals || []), { rid: "volpush_quads_y", id: "vpy", d: isoT9, title: "QUADS — EARNED VOLUME", why: "w", apply: { kind: "sets", exId: "hack", delta: 1, budgetPremise: true } }];
+    const RC = __test.applyProposal(SC, "vpy");
+    ok((RC.exercises.find((x) => x.id === "hack") || {}).sets === hackW && (RC.proposals.find((p) => p.id === "vpy") || {}).resolved === true && RC.feed.some((f) => f.t && f.t.indexOf("OFFER EXPIRED AT THE TAP") === 0), "R18f fix2 (c) — DESIGN CALL enacted: a budget-premised sets tap in a spent week enacts NOTHING, resolves the card and says why on the feed (what expired, when it returns) — the audit's 3→4 drive is dead");
+    /* (c) — and the owner's-call family is EXEMPT: its premise is Joe's ask, not the budget */
+    const SO = mkWk();
+    SO.proposals = [...(SO.proposals || []), { rid: "volpush_hams_oc", id: "vpo", d: isoT9, title: "HAMS — OWNER'S CALL", why: "w", apply: { kind: "sets", exId: "ham", delta: 1 } }];
+    const hamW = (SO.exercises.find((x) => x.id === "ham") || {}).sets;
+    const RO = __test.applyProposal(SO, "vpo");
+    ok((RO.exercises.find((x) => x.id === "ham") || {}).sets === hamW + 1, "R18f fix2 — the belt keys on budgetPremise, so the owner's-call three-tap pattern (8/07, consent on the record) still enacts in a move-week: the first suite run caught the unscoped belt breaking exactly that flow, on the record");
+    /* (b) one door files — both directions at source */
+    ok(srcO.indexOf("const deskOpen = (s.agentProposals || []).some((ap) => ap && ap.kind === " + String.fromCharCode(34) + "volume" + String.fromCharCode(34) + ");") > -1 && srcO.indexOf("const doorOpen9 = (s.proposals || []).some((p) => p && !p.resolved && p.rid && String(p.rid).indexOf(" + String.fromCharCode(34) + "volpush_" + String.fromCharCode(34) + ") === 0);") > -1, "R18f fix2 (b) — the cross-store guard runs both directions: an open desk offer closes door 2, an open EARNED VOLUME card closes the desk — a clean Monday yields ONE card, not two");
+  }
+
+  /* ---------- R18f FIX 3 — THE DECLINE FACE (each door honors BOTH promises) ---------- */
+  {
+    const srcD = readFileSync("src/app.jsx", "utf8");
+    ok(srcD.indexOf('const declined9 = (s.adjustments || []).some((a) => a && a.dismissed && a.rid && String(a.rid).indexOf("volpush_") === 0 && a.d >= mon9x);') > -1 && srcD.indexOf("!already9 && !doorOpen9 && !declined9") > -1, "R18f fix3 — a declined EARNED VOLUME card closes the DESK for the week (door 2's own vpDeclined check, taken by the desk): the card promised 'the lever stays quiet before Monday', and now both doors keep it");
+    ok(srcD.indexOf('"VOLUME PASSED — " + String(vp.mg).toUpperCase()') > -1 && srcD.indexOf("!deskOpen && !deskPassed && vp.mode") > -1, "R18f fix3 — a PASSED desk offer closes DOOR 2 for that muscle for 14 days (the desk's recent-feed guard, taken by the producer): the pass promised two weeks, and now both doors keep it");
+    /* the desk belts, DRIVEN via the export (the audit's note 1) */
+    const isoT0 = isoL(Date.now());
+    const dW = new Date(); const offW = (dW.getDay() + 6) % 7; const monW = isoL(Date.now() - offW * 864e5);
+    const SB = JSON.parse(JSON.stringify(__test.SEED));
+    SB.adjustments = [...(SB.adjustments || []), { rid: "vol_wk2", id: "adj_wk2", d: monW, title: "x", exUndo: { field: "sets", exId: "ham" } }];
+    SB.agentProposals = [{ id: "vb1", kind: "volume", mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }];
+    const hackB = (SB.exercises.find((x) => x.id === "hack") || {}).sets;
+    const RB = __test.applyAgentProposal(SB, SB.agentProposals[0], isoT0);
+    ok((RB.exercises.find((x) => x.id === "hack") || {}).sets === hackB && RB.agentProposals.length === 0 && RB.feed.some((f) => f.t && f.t.indexOf("OFFER EXPIRED AT THE TAP") === 0), "R18f fix3 — THE DESK BELT, DRIVEN via the export: a spent-week desk tap enacts nothing, clears the offer and speaks — mirroring the proposal belt");
+    const SC2 = JSON.parse(JSON.stringify(__test.SEED));
+    SC2.agentProposals = [{ id: "vb2", kind: "volume", mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }];
+    const hackC = (SC2.exercises.find((x) => x.id === "hack") || {}).sets;
+    const RC2 = __test.applyAgentProposal(SC2, SC2.agentProposals[0], isoT0);
+    ok((RC2.exercises.find((x) => x.id === "hack") || {}).sets === hackC + 1, "R18f fix3 — and the clean-week desk tap still ENACTS: the belt refuses only what the budget already spent");
+  }
+
+  /* ---------- R18f FIX 4 — the desk keeps its promise at its own FILING site ---------- */
+  {
+    const srcP = readFileSync("src/app.jsx", "utf8");
+    ok(srcP.indexOf("const passed9 = (s.feed || []).slice(0, 80).some((f) => f && f.t && f.d && f.t.indexOf(\"VOLUME PASSED — \" + String(vp9.mg).toUpperCase()) === 0") > -1 && srcP.indexOf("!already9 && !doorOpen9 && !declined9 && !passed9") > -1, "R18f fix4 — the deskPassed read guards the desk's own FILING site on the CHOOSER's pick (vp9.mg): a passed muscle cannot be refiled by another muscle's trigger re-picking it by allocation. The trigger guard covered only the WHEN — the audit's driven corner, and the mask (the open owner trio tripping doorOpen9) is why neither suite caught it; the gates-open owner-resolved drive is the audit rig's");
   }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);

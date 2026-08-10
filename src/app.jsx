@@ -7580,6 +7580,12 @@ function volumePush(s) {
   if (!cleanAtDate(s, isoOf(todayStart()))) return { mode: "WITHHELD", veto: "sleep",
     why: "sleep is in debt today — the body is not funding what it already does, so it is not asked to fund more" };
   const smw = structuralMovesThisWeek(s);
+  /* R18f fix — the budget veto covers ALL three lever kinds. It fired only on cal/steps,
+     so a sets week left the desk free to offer a SECOND set-add beside the ONE-CHANGE
+     card claiming the lever was held — the five-cards disease in miniature, driven by
+     the audit. mgsTouched stays as the additional per-muscle spillover skip below. */
+  if (smw.sets.length) return { mode: "WITHHELD", veto: "budget",
+    why: "a set change already landed this week — one structural lever a week, so the scale can say which one moved it; the question returns Monday" };
   if (smw.calOrSteps.length) return { mode: "WITHHELD", veto: "budget",
     why: "a " + (smw.calOrSteps[0].kind === "cal" ? "calorie-band change" : "step push") + " already landed this week — one structural lever a week, or the scale cannot say which one moved it. The volume question returns Monday" };
   /* the chooser — lowest allocation first (spec Q3), and the target must be READABLE:
@@ -7589,6 +7595,7 @@ function volumePush(s) {
      charged to the budget, never spent as a proposal. */
   const cands = pv.filter((m) => !m.indirectOnly).sort((a, b) => a.sets - b.sets);
   const skips = [];
+  const picks = [];   /* R18f — the chooser also names its runner-up, so the card can state BOTH candidates' numbers */
   for (const m of cands) {
     const lifts = (m.lifts || []).map((x) => (s.exercises || []).find((e) => e && e.id === x.id)).filter(Boolean);
     const direct = lifts.filter((e) => typeof e.w === "number");
@@ -7605,27 +7612,42 @@ function volumePush(s) {
     const dSess = m.sets < VOL_BANDS.floor ? Math.min(2, Math.max(1, Math.ceil((VOL_BANDS.floor - m.sets) / freq))) : 1;
     const toWk = +(m.sets + dSess * freq).toFixed(1);
     if (toWk > VOL_PUSH_CEIL_WK) { skips.push({ mg: m.mg, why: "the absolute ceiling binds — " + m.sets + " weekly now, +" + (dSess * freq) + " would pass " + VOL_PUSH_CEIL_WK }); continue; }
-    return { mode: "PUSH", exId: ex.id, exName: ex.n, day: ex.day, mg: m.mg, zone: m.zone, dSess,
+    picks.push({ mode: "PUSH", exId: ex.id, exName: ex.n, day: ex.day, mg: m.mg, zone: m.zone, dSess,
       fromSess: ex.sets || 1, toSess: (ex.sets || 1) + dSess, fromWk: m.sets, toWk, freq,
-      ceil: VOL_PUSH_CEIL_WK, grade: "moderate-low", skips };
+      ceil: VOL_PUSH_CEIL_WK, grade: "moderate-low", skips });
+    if (picks.length >= 2) break;
+    continue;
   }
   /* if ANY candidate was ceiling-bound and nothing was eligible, the honest veto is the
      ceiling — the climb is over for every readable muscle, which is the state this absolute
      backstop exists to terminate (the rest of the skips are structural, not temporal). */
   const ceilBound = skips.some((x) => x.why.indexOf("ceiling") > -1);
+  /* R18f — the chooser's verdict: the pick, its runner-up, and the routing law said
+     once. Routing is ALLOCATION (fewest session sets), never rep-velocity — velocity
+     rewards a maxed ladder (forced reps-only) and punishes a fresh load jump (reps
+     reset by the debut), which is ladder position masquerading as responsiveness.
+     The desk's five-card week routed by velocity; this is the one owner both doors
+     call now. */
+  if (picks.length) {
+    const p0 = picks[0], p1 = picks[1] || null;
+    return { ...p0, alt: p1 ? { mg: p1.mg, exName: p1.exName, fromSess: p1.fromSess, fromWk: p1.fromWk } : null,
+      routing: "lowest allocation carries it — rep-velocity is never consulted for routing, so a maxed ladder cannot masquerade as responsiveness and a fresh load jump costs nothing" + (p1 ? ". " + p0.exName + " at " + p0.fromSess + " set" + (p0.fromSess === 1 ? "" : "s") + "/session vs " + p1.exName + " at " + p1.fromSess + " — " + p0.exName + " carries it." : ".") };
+  }
   return { mode: "WITHHELD", veto: ceilBound ? "ceiling" : (skips.length ? "eligibility" : "none"), skips,
     why: skips.length ? "every candidate is blocked: " + skips.map((x) => mgLabel(x.mg) + " — " + x.why).join("; ") : "no muscle is below the ceiling with a readable lift" };
 }
 
 function sweepVolume(s, dow7 = new Date().getDay()) {
-  /* CONSENT HYGIENE (2026-08-10, Joe's audit ruling) — THE DESK IS HARD-GATED until the
-     R18f one-chooser round lands: it filed five +1s in one week against the one-lever
-     law, then DELTS_SIDE the morning after its own recall notice. Its existing guards
-     ARE code (the 14-day first-session gate and dow 0/1 two lines below; the per-mg
-     cooldown via the agentProposals/feed scan; the ≤2-per-run cap at the bottom) — but
-     the guards are not the defect, the routing is, and that is R18f's job. Until then:
-     nothing files. Remove this return in the R18f round. */
-  return null;
+  /* R18f — THE DESK WAKES, DEMOTED TO A DOOR. The hygiene gate is lifted because the
+     defect it guarded is gone: the desk no longer routes. Its zone triggers remain the
+     WHEN; the WHICH is volumePush — the one chooser, with every house gate (regime,
+     rising, recovery, sleep, the smw budget, spillover charges, conversion reads, the
+     ceiling) applied by construction because the desk now ASKS THE SAME FUNCTION.
+     Gates closed → the desk files NOTHING: no desk card can ever again contradict the
+     ONE-CHANGE card in the same render, because during a spent budget there is no desk
+     card. The owner's-call door is the chat (the 8/07 pattern — Joe asks, cards file
+     as owner's-call with consent on the record). Default offers cap at ONE per run by
+     construction: the chooser returns one pick. */
   const tISO7 = isoOf(todayStart());
   const firstS = Object.keys(s.sessionLog).sort()[0];
   if (!firstS || (mk(tISO7) - mk(firstS)) / DAY < 14) return null;
@@ -7652,12 +7674,47 @@ function sweepVolume(s, dow7 = new Date().getDay()) {
        muscles being trained hardest. It was an anti-progression engine. */) { dir = -1; why = m.zone === "OVER" ? `${m.mg} has run past the deficit ceiling two weeks straight (${m.n7} now, ${m.p7} last — caution starts at ${VOL_BANDS.ceil}). This house tilts toward stimulus, but two confirmed weeks over the line is the data speaking.` : (m.slipping >= 2 && slp7.clean) ? `${m.mg} sits high (${m.n7} sets) and ${m.slipping} of its lifts are slipping on clean sleep — that is your own bar speed saying this specific volume is costing more than it buys.` : `${m.mg} sits high (${m.n7} sets) and reported sore ${m.sore7} of the last 7 mornings — recovery is the constraint speaking before the bar speed does.`; }
     else if (m.zone === "IN-BAND" && m.n7 <= (VOL_BANDS.lo + VOL_BANDS.hi) / 2 && m.gaining >= 1 && m.slipping === 0 && slp7.clean && m.sore7 <= 1) { dir = +1; why = `${m.mg} is mid-band (${m.n7} sets), every lift is holding or gaining, and sleep is clean — the signals say there is headroom. One added set is the smallest honest experiment.`; }
     if (!dir) return;
-    const pool = m.vels.length ? m.vels : m.lifts.map((x) => ({ id: x.id, n: x.n, v: 0 }));
-    const pick = dir > 0 ? pool.slice().sort((a, b) => (b.v ?? 0) - (a.v ?? 0))[0] : pool.slice().sort((a, b) => (a.v ?? 0) - (b.v ?? 0))[0];
-    if (!pick) return;
-    cands.push({ m, dir, why, pick, sev: dir > 0 ? VOL_BANDS.floor - m.n7 : m.n7 - VOL_BANDS.hi });
+    /* R18f — the +1 arm carries NO pick: the chooser owns WHICH. The -1 arm keeps its
+       weakest-mover pick — giving a set back is a different question from routing an
+       added one, and no ladder bias rewards the giver. */
+    if (dir < 0) {
+      const pool = m.vels.length ? m.vels : m.lifts.map((x) => ({ id: x.id, n: x.n, v: 0 }));
+      const pick = pool.slice().sort((a, b) => (a.v ?? 0) - (b.v ?? 0))[0];
+      if (!pick) return;
+      cands.push({ m, dir, why, pick, sev: m.n7 - VOL_BANDS.hi });
+    } else cands.push({ m, dir, why, pick: null, sev: VOL_BANDS.floor - m.n7 });
   });
-  cands.sort((a, b) => b.sev - a.sev).slice(0, 2).forEach(({ m, dir, why, pick }) => {
+  /* the +1 door: any under/headroom trigger asks the ONE chooser; the smw budget,
+     regime, recovery, sleep, spillover and conversion gates all live inside it */
+  const wantsUp = cands.some((c) => c.dir > 0);
+  if (wantsUp) {
+    const vp9 = volumePush(s);
+    if (vp9.mode === "PUSH") {
+      /* R18f fix3 — THE DECLINE FACE. A declined EARNED VOLUME card promised 'the lever
+         stays quiet before Monday'; the desk filing the identical +1 the same day broke
+         that promise (driven by the audit). Door 2's own vpDeclined check, taken here:
+         a dismissed volpush_ adjustment row this week closes the desk too. */
+      const dm9 = new Date(); const doff9 = (dm9.getDay() + 6) % 7;
+      const mon9x = isoOf(new Date(mk(tISO7).getTime() - doff9 * DAY));
+      const declined9 = (s.adjustments || []).some((a) => a && a.dismissed && a.rid && String(a.rid).indexOf("volpush_") === 0 && a.d >= mon9x);
+      /* R18f fix4 — the desk's promise at its own FILING site: the trigger guard covered
+         the WHEN, but the chooser re-picks by allocation, so a passed muscle could be
+         refiled by ANOTHER muscle's trigger the same day (the audit drove it). The same
+         feed read door 2 carries, on vp9.mg. */
+      const passed9 = (s.feed || []).slice(0, 80).some((f) => f && f.t && f.d && f.t.indexOf("VOLUME PASSED — " + String(vp9.mg).toUpperCase()) === 0 && (mk(tISO7) - mk(f.d)) / DAY < 14);
+      const already9 = (s.agentProposals || []).some((ap) => ap.kind === "volume" && ap.mg === vp9.mg);
+      const doorOpen9 = (s.proposals || []).some((p) => p && !p.resolved && p.rid && String(p.rid).indexOf("volpush_") === 0);   /* R18f fix2 — one door files: an open EARNED VOLUME card closes this one */
+      if (!already9 && !doorOpen9 && !declined9 && !passed9) {
+        ns = ns || JSON.parse(JSON.stringify(s));
+        ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + vp9.mg + Date.now(), kind: "volume", mg: vp9.mg, exId: vp9.exId, dir: 1, title: `VOLUME +1 — ${vp9.mg.toUpperCase()} via ${vp9.exName}`, body: "The desk is awake again — one chooser, house gates. " + vp9.routing + " Weekly " + vp9.fromWk + " → " + vp9.toWk + " sets; every gate (regime, recovery, sleep, the weekly budget, spillover charges, the conversion read) passed before this filed.", gatesClosed: false }];
+      }
+    }
+    /* gates closed → silence: the ONE-CHANGE card owns that render, and the owner's-call
+       door is the chat, never a default offer */
+  }
+  cands.filter((c) => c.dir < 0).sort((a, b) => b.sev - a.sev).slice(0, 1).forEach(({ m, dir, why, pick }) => {
+    const smw9 = structuralMovesThisWeek(s);
+    if (smw9.moves.length) return;   /* R18f-3 — the give-back is a structural move too: one lever a week, words and budget reconciled */
     ns = ns || JSON.parse(JSON.stringify(s));
     ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + m.mg + Date.now(), kind: "volume", mg: m.mg, exId: pick.id, dir, title: `VOLUME ${dir > 0 ? "+1" : "−1"} — ${m.mg.toUpperCase()} via ${pick.n}`, body: why + ` ${dir > 0 ? "Adds one set to " + pick.n + " (its strongest mover). The new set arrives as the final set — the effort ladder re-keys itself: it becomes the all-out set, the old final pulls back to 1 in reserve, and its rep target seeds one under your current last set." : "Removes the final set from " + pick.n + " (its weakest mover) — the effort ladder re-keys to the shorter shape automatically."} Two weeks of data before the ledger revisits this muscle.`, at: tISO7 }];
   });
@@ -7809,6 +7866,27 @@ function runAdaptive(state, todayISO, raOpts) {
      day the regime detector files a deliberate exit proposal — which is its natural end
      state. That card would be stillborn on its first sweep with a feed line falsely
      blaming R4. The withdrawal names exactly what R4 orphaned and nothing else, ever. */
+  /* R18f fix2 — OFFERS DO NOT OUTLIVE THE BUDGET. The budget gated producers only:
+     an offer already open when a structural move landed stayed tappable beside the
+     ONE-CHANGE card, and its tap enacted a second set-add into the spent week (the
+     audit drove 3→4). This grooming pass runs the R4-orphan precedent across BOTH
+     stores the moment any move lands: resolved with a feed line, never deleted. */
+  {
+    const smwG = structuralMovesThisWeek(s);
+    if (smwG.moves.length) {
+      for (const p of s.proposals || []) {
+        if (p && !p.resolved && p.rid && String(p.rid).indexOf("volpush_") === 0 && (p.apply || {}).budgetPremise) {
+          p.resolved = true; p.resolvedHow = "withdrawn — the week's structural budget was spent after this filed";
+          s.feed.unshift({ d: todayISO, t: "CARD WITHDRAWN — " + String(p.title || p.rid).slice(0, 40), how: "A structural move landed this week after this offer filed. One lever a week — the offer returns when it is re-earned, Monday at the earliest." });
+        }
+      }
+      const dropG = (s.agentProposals || []).filter((ap) => ap && ap.kind === "volume");
+      if (dropG.length) {
+        s.agentProposals = (s.agentProposals || []).filter((ap) => !(ap && ap.kind === "volume"));
+        s.feed.unshift({ d: todayISO, t: "DESK OFFER" + (dropG.length === 1 ? "" : "S") + " WITHDRAWN — the budget is spent", how: "A structural move landed this week; the desk's open volume offer" + (dropG.length === 1 ? "" : "s") + " left with it. One lever a week — the desk re-asks when the chooser re-earns it." });
+      }
+    }
+  }
   const R4_ORPHANS = { pivot: 1, ease2: 1 };
   for (const p of s.proposals) {
     if (p && !p.resolved && R4_ORPHANS[subjectOf(p.rid)]) {
@@ -7995,10 +8073,15 @@ function runAdaptive(state, todayISO, raOpts) {
   {
     const vp = volumePush(s);
     const vpDeclined = (s.adjustments || []).some((a) => a && a.dismissed && a.rid && a.rid.indexOf("volpush_") === 0 && a.d >= monday);
-    if (!sealed && !vpDeclined && vp.mode === "PUSH")
+    const deskOpen = (s.agentProposals || []).some((ap) => ap && ap.kind === "volume");   /* R18f fix2 — one door files: an open desk offer closes this one */
+    /* R18f fix3 — the desk's PASS promised 'the ledger waits two weeks before raising
+       this muscle again'; door 2 filing the identical earned card the same day broke
+       that promise (driven by the audit). The desk's own recent-feed guard, taken here. */
+    const deskPassed = vp.mode === "PUSH" && (s.feed || []).slice(0, 80).some((f) => f && f.t && f.d && f.t.indexOf("VOLUME PASSED — " + String(vp.mg).toUpperCase()) === 0 && (mk(todayISO) - mk(f.d)) / DAY < 14);
+    if (!sealed && !vpDeclined && !deskOpen && !deskPassed && vp.mode === "PUSH")
       propose(`volpush_${vp.mg}_${monday}`, `${cap(mgLabel(vp.mg))} — EARNED VOLUME: ${vp.fromWk} → ${vp.toWk} WEEKLY SETS`,
         `Your own measured state earned this: regime FREE confirmed a week apart, pooled progression rising, recovery GREEN, and no other structural move this week. ${cap(mgLabel(vp.mg))} is the lowest readable allocation at ${vp.fromWk} weekly sets${vp.zone === "UNDER" ? " — under the growth floor, an underdose to correct decisively rather than creep at" : ""}. Approving adds ${vp.dSess} set${vp.dSess > 1 ? "s" : ""} to ${vp.exName} each ${vp.day === "L" ? "lower" : "upper"} session — ${vp.fromSess}→${vp.toSess} per session, ${vp.fromWk}→${vp.toWk} weekly, roughly ${vp.dSess * 3} extra minutes on those days (one set plus its rest). The new set lands inside the effort taper automatically: the RIR ladder re-keys, and failure stays spent exactly once, on the final set. HONEST GRADE — MODERATE-TO-LOW: volume drives growth with no in-range plateau (Pelland 2025) and you fit the recomp profile (Barakat 2020 — headroom, ~14% body fat, deficit under ~500), but no trial has tested MORE volume DURING a deficit for growth (Roth 2023 asked retention, underpowered), so the coach adds a LITTLE and reads your own bar before the next step. The trend window restarts at the change on purpose — a bigger number from more sets proves nothing. If the read ends with no progress and fatigue up, the sets come off, with a receipt. Absolute ceiling ${vp.ceil} weekly sets.`,
-        { kind: "sets", exId: vp.exId, delta: vp.dSess, mg: vp.mg, fromWk: vp.fromWk, toWk: vp.toWk, freq: vp.freq });
+        { kind: "sets", exId: vp.exId, delta: vp.dSess, mg: vp.mg, fromWk: vp.fromWk, toWk: vp.toWk, freq: vp.freq, budgetPremise: true });   /* R18f fix2 — this card's premise IS the clean budget; the belt and reconciler key on it, so owner's-call cards (whose premise is Joe's ask, the 8/07 three-tap pattern) are untouched */
     /* the rollback half — an earned lever stays earned only if the receipt runs backwards */
     (s.exercises || []).forEach((ex9) => {
       if (typeof ex9.w !== "number") return;
@@ -8265,6 +8348,20 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
     }
     return s;
   }
+  /* R18f fix2 (c) — DESIGN CALL, filed: the tap RE-CHECKS the budget. 'What you approve
+     is what happens' cuts both ways once the card's own premise — no other structural
+     move this week — has expired: enacting it silently would make the tap a lie in the
+     other direction. The refusal SPEAKS (feed line: what expired, why, when it returns)
+     and resolves the card. The reconciler normally withdraws first; this is the belt
+     for the race inside a single render. */
+  if ((p.apply || {}).kind === "sets" && (p.apply || {}).budgetPremise) {
+    const smwT = structuralMovesThisWeek(s);
+    if (smwT.moves.length) {
+      p.resolved = true; p.resolvedHow = "expired at the tap — the budget was spent after this filed";
+      s.feed.unshift({ d: today, t: "OFFER EXPIRED AT THE TAP — " + String(p.title || p.rid).slice(0, 40), how: "A structural move already landed this week, so this card's own premise (no other move) had expired. Nothing changed. One lever a week — it returns when re-earned, Monday at the earliest." });
+      return s;
+    }
+  }
   s.adjustments.push(row);
   /* VOLUME LEVER — the tap changes the thing the card names: ex.sets, stamped for the merge
      (AUDIT G), with an exact undo (AUDIT F: the undo is itself a set-count change).
@@ -8398,6 +8495,13 @@ function dismissSuggestion(state, sug) {
 function applyAgentProposal(state, ap, tISO) {
   const s = JSON.parse(JSON.stringify(state));
   if (ap.kind === "volume" && ap.exId && ap.dir) {
+    /* R18f fix2 (c) — the desk's tap re-checks the budget too, and speaks */
+    const smwT2 = structuralMovesThisWeek(s);
+    if (smwT2.moves.length) {
+      s.agentProposals = (s.agentProposals || []).filter((x) => x.id !== ap.id);
+      s.feed.unshift({ d: tISO, t: "OFFER EXPIRED AT THE TAP — " + (ap.title || "VOLUME"), how: "A structural move already landed this week, so this offer's premise had expired. Nothing changed. One lever a week — the desk re-asks when the chooser re-earns it." });
+      return s;
+    }
     const ex7 = s.exercises.find((x) => x.id === ap.exId);
     if (ex7) { ex7.sets = Math.max(1, (ex7.sets || 1) + ap.dir); ex7.setsAt = new Date().toISOString();   /* AUDIT G — every sets mutator stamps, or the merge reverts the change */ s.feed.unshift({ d: tISO, t: `VOLUME ${ap.dir > 0 ? "+1" : "−1"} — ${ap.mg.toUpperCase()} via ${ex7.n} (now ${ex7.sets} sets)`, how: "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited" }); }
   } else if (ap.kind === "reset" && ap.exId && ap.newW) {
@@ -10467,7 +10571,7 @@ __test.bfEst = bfEst;
 __test.migrate = migrate;
 __test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
 __test.targetsFor = targetsFor;
-__test.runAdaptive = runAdaptive;
+__test.runAdaptive = runAdaptive; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
 __test.stepKcal = stepKcal;
 __test.stepEfficacy = stepEfficacy;
 __test.DT = DT;
