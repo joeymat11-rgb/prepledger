@@ -1,3 +1,72 @@
+## R18F RE-DRIVE VERDICT — THE AUDIT, 2026-08-10 (read before the R20 remainder)
+
+**THE TWO COMMISSIONED DRIVES: GREEN.** Driven on the audit rig's own harness, REAL
+clock (the live Monday, the defect's own day), the FINAL82 shape rebuilt from SEED
+(blackout spent, 35 reads at −0.09/day, 40 clean nights, 8 progressing sessions →
+regime free CONFIRMED, fixture-sanity asserted first):
+
+- **Sets-week silence, gates open:** the clean week reaches PUSH (regime, rising,
+  recovery, sleep, budget ALL passed; the routing sentence rides the verdict). Flip ONE
+  Monday-dated sets adjustment (exUndo.field "sets", ham) and the chooser returns
+  WITHHELD/budget with the stepPush mirror sentence VERBATIM — the counterfactual pair
+  pins the arm itself, not a masking gate. The desk is silent on both waking days, door
+  2 files no EARNED VOLUME card, and the ONE-CHANGE card stands alone. The driven
+  contradiction is impossible at the chooser.
+- **The single offer:** clean open week — the desk files EXACTLY ONE, dir +1, the
+  chooser's own mg, routing sentence in the body; a re-run files no second. R18f-3
+  driven behaviorally both ways (give-back alive in a clean week, silent in a
+  move-week).
+
+Suite 2272/0, freeze byte-identical, strict gate green — all three reproduced
+independently in the audit sandbox before the drives. 24/0 on the rig.
+
+**HELD FOR ONE FIX ROUND — OFFERS OUTLIVE THE BUDGET (driven; the same disease, its
+last face).** The budget gates PRODUCERS only: nothing withdraws an open offer once the
+week's budget is spent, and no guard spans the two stores.
+
+1. **Both doors file the same muscle in the same clean week.** runAdaptive files
+   volpush_<mg>_<monday> (s.proposals) AND the desk files VOLUME +1 (s.agentProposals):
+   two tappable set-adds, one lever, one morning. NEW-IN-R18F: main's hard gate (the H3
+   `return null`) keeps this shape unreachable today — merging arms it.
+2. **Approving either leaves the other OPEN beside the ONE-CHANGE card** — the driven
+   contradiction, one tap later in time. No reconciliation withdraws it (the withdraw
+   pattern exists — the R4-orphans loop — but only for named subjects).
+3. **The survivor's tap enacts a SECOND set-add into the spent week** — driven 3→4 via
+   applyProposal, no apply-time check; mirrored for the desk store, whose approve branch
+   reads no budget. And the record then UNDERCOUNTS: structuralMovesThisWeek's
+   same-exercise echo-dedup collapses the two real taps into ONE recorded move.
+
+Exposure timing, measured on today's synced ledger: production cannot reach this before
+next Monday at the earliest (regime free UNCONFIRMED, hysteresis ≥7 days; desk and door
+2 both verified quiet today).
+
+**FIX SHAPE (yours to design):** (a) when smw.moves is non-empty, withdraw open volume
+offers in BOTH stores — resolved with a feed line, never deleted, the R4-orphan
+precedent; (b) ONE door files, or a cross-store guard — a clean Monday yields one card,
+not two; (c) whether kind:sets re-checks the budget at APPLY time is a design call —
+"what you approve is what happens" cuts both ways once the card's own premise ("no
+other structural move this week") has expired. The words must say what happens either
+way.
+
+**TWO NOTES, ON THE RECORD (low, not blocking):**
+- The 8/10 hand-back (patchV42) stamped five exercises' setsAt TODAY, yet smw reads an
+  empty week — patch-enacted sets changes bypass every record the budget reads (no
+  adjustments row; the feed line opens HAND-BACK, not VOLUME). Harmless this week by
+  regime timing alone. Standing rule worth pinning: any patch that mutates ex.sets also
+  writes a record smw can see.
+- The owner's-call producer pre-files its three consent cards on ANY ledger that never
+  carried them (SEED-derived drives show all three). Single-user today; a dad-era item
+  for the R16 rails.
+
+Audit hygiene: the rig ran local to the audit sandbox and was deleted after; nothing of
+it was committed. This section is the audit's only push — docs-only, [skip ci], main
+untouched otherwise, CC's branch untouched. Awaiting Joe's word on merge-vs-fix-first.
+
+
+## STANDING RULE (from the verdict's low notes, pinned here): any patch that mutates ex.sets must also write a record structuralMovesThisWeek can see — the 8/10 hand-back stamped setsAt while smw read an empty week. And the owner's-call pre-file on virgin ledgers is an R16 rails item.
+
+---
+
 ## QUEUED NEXT AFTER R18 MERGE — CONSENT HYGIENE ROUND (filed 2026-08-10; BEFORE R18e/R18f)
 
 Joe, verbatim: "I accepted two today that I didn't really understand... We need to
