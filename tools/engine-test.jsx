@@ -279,7 +279,7 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         const old = clone(SEED); delete old.skinfolds; old.v = 38;
         const up = __test.migrate(JSON.parse(JSON.stringify(old)));
         ok(Array.isArray(up.skinfolds) && up.skinfolds.length === 0, "R5 migration — patchV39 adds s.skinfolds = [] and nothing was there to restate");
-        ok(up.v === 43, "R5 migration — and bumps to 43 (v42 hygiene · v43 the hack 6-10 ruling: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
+        ok(up.v === 44, "R5 migration — and bumps to 44 (v43 the hack ruling · v44 the 180 record correction: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
                 ok(Array.isArray(up.split) && up.split.length === 1 && up.split[0].from === "2026-08-09" && up.split[0].map[0] === "U" && up.split[0].map[1] === "L" && up.split[0].map[4] === "U" && up.split[0].map[5] === "L" && up.split[0].map[3] === "REST", "R19c migration — patchV40 seeds the athlete-stated split, DATED from the day he said it: Sun U · Mon L · Thu U · Fri L, rest elsewhere");
         /* byte-identity is the wrong invariant: migrate() replays the WHOLE patch chain, so
            other idempotent patches legitimately touch the state. The invariant that matters
@@ -5563,15 +5563,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 43, "schema: SCHEMA_V is 43 (patchV43: the owner's hack 6-10 ruling)");
+  ok(SC === 44, "schema: SCHEMA_V is 44 (patchV44: the athlete-attested 180 correction)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
-  ok(migd.v === 43 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
+  ok(migd.v === 44 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
   ok(migd.reads.length === oldV35.reads.length && Object.keys(migd.dailyLogs).length === Object.keys(oldV35.dailyLogs).length, "patchV36: ADDITIVE — no read or dailyLog is added or lost (count-preserving)");
   ok(SEED.plan.autonomy === "propose", "patchV36: SEED already carries autonomy='propose' so a fresh install === a migrated one");
-  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 43, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
-  const future = clone(SEED); future.v = 44;
-  ok(mig(future).v === 44, "migrate: a NEWER (v44) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
+  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 44, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
+  const future = clone(SEED); future.v = 45;
+  ok(mig(future).v === 45, "migrate: a NEWER (v45) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
   const legacy = clone(SEED); legacy.v = 35; legacy.plan = { goals: [{ text: "no-id" }], ifthen: [{ cue: "x", action: "y" }], share: false };
   const lm = mig(legacy);
   ok(lm.plan.goals[0].id != null && lm.plan.ifthen[0].id != null, "patchV36: legacy goal/if-then entries get a stable id backfilled (so the keyed union keys every entry)");
@@ -5860,15 +5860,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 43, "schema: SCHEMA_V is 43 (patchV43 on top of the chain)");
+  ok(__test.SCHEMA_V === 44, "schema: SCHEMA_V is 44 (patchV44 on top of the chain)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
-  ok(m37.v === 43 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
+  ok(m37.v === 44 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
   ok(m37.reads.length === oldV36.reads.length && Object.keys(m37.dailyLogs).length === Object.keys(oldV36.dailyLogs).length, "patchV37: ADDITIVE — no read or dailyLog added or lost (count-preserving)");
-  ok(MIG(clone(SEED)).v === 43, "patchV37..43: idempotent on a current SEED (no double-patch drift)");
-  const fut39 = clone(SEED); fut39.v = 44; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
-  ok(MIG(fut39).v === 44 && MIG(fut39).learned.tdee.length === 1, "patchV38: a NEWER (v44) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
+  ok(MIG(clone(SEED)).v === 44, "patchV37..44: idempotent on a current SEED (no double-patch drift)");
+  const fut39 = clone(SEED); fut39.v = 45; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
+  ok(MIG(fut39).v === 45 && MIG(fut39).learned.tdee.length === 1, "patchV38: a NEWER (v45) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
 
   // -------- MERGE HARDENING — s.learned adversarial: must-not-LOSE + must-not-REVERT, BOTH orders --------
   ok(typeof UL === "function", "s.learned: _unionLearned is the registered reconciler (mirrors _unionPlan)");
@@ -6111,15 +6111,15 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(JSON.stringify(calorieTarget(clone(SEED))) === JSON.stringify(calorieTarget(clone(SEED))), "ENGINE-OWNS-NUMBERS — calorieTarget is unchanged by the phase layer on a normal cut (no phase number injected)");
 
   // ---- E · patchV38 — additive + rollback-safe; fresh SEED === migrated --------------------
-  ok(SCHEMA_V === 43, "patchV39..43 — SCHEMA_V is 43 (the hack ruling on the chain)");
+  ok(SCHEMA_V === 44, "patchV39..44 — SCHEMA_V is 44 (the 180 correction on the chain)");
   ok(Array.isArray(SEED.plan.phaseLog) && SEED.plan.phaseLog.length === 0 && !("phase" in SEED.plan) && !("brk" in SEED.plan), "patchV38 — SEED authors an EMPTY phaseLog and NO phase/brk override: a fresh install === a migrated state");
   const oldV37 = clone(SEED); oldV37.v = 37; delete oldV37.plan.phaseLog;
   const m38 = migrate(oldV37);
-  ok(m38.v === 43 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
+  ok(m38.v === 44 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
   ok(m38.reads.length === oldV37.reads.length && Object.keys(m38.dailyLogs).length === Object.keys(oldV37.dailyLogs).length, "patchV38 — ADDITIVE: no read or dailyLog added or lost (count-preserving)");
-  ok(migrate(clone(SEED)).v === 43 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
-  const fut39 = clone(SEED); fut39.v = 44; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };
-  ok(migrate(fut39).v === 44 && migrate(fut39).plan.phase === "leangain", "patchV38 — a NEWER (v44) state is handed back UNTOUCHED: rollback-safe, no phase decision wiped");
+  ok(migrate(clone(SEED)).v === 44 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
+  const fut39 = clone(SEED); fut39.v = 45; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };
+  ok(migrate(fut39).v === 45 && migrate(fut39).plan.phase === "leangain", "patchV38 — a NEWER (v45) state is handed back UNTOUCHED: rollback-safe, no phase decision wiped");
 
   // ---- F · s.plan KEYED-UNION — a stale device must NOT REVERT nor LOSE a phase decision, BOTH orders --
   const devNew = clone(SEED); devNew.plan = { ...devNew.plan, phase: "leangain", setAt: { phase: "2026-07-29T10:00:00Z" }, rev: 5, phaseLog: [{ id: "ph_new", at: "2026-07-29T10:00:00Z", to: "leangain" }] };
@@ -6722,7 +6722,7 @@ if (fail) process.exit(1);
   /* the source laws */
   const srcP = readFileSync("src/app.jsx", "utf8");
   const gmP = srcP.slice(srcP.indexOf("function GymMode("), srcP.indexOf("function NegotiatorConsole("));
-  ok(gmP.indexOf('overflow: "hidden", overscrollBehavior: "none"') > -1 && gmP.indexOf('overflowY: "auto"') === -1, "S1 — GYM MODE DOES NOT SCROLL: the frame is overflow hidden with no scroll fallback anywhere in the component — if content exceeds it, the content is wrong, not the frame");
+  ok(gmP.indexOf('overflow: "hidden", overscrollBehavior: "none"') > -1 && (gmP.match(/overflowY: "auto"/g) || []).length === 1 && gmP.indexOf('the belt scrolls') > -1, "S1 (evolved, v7.42.1) — THE FRAME does not scroll (overflow hidden, Joe's 1:39 AM ruling stands) — but exactly ONE bounded inner belt does: the all-done suspects column, where a long list clipped and LOG IT sat unreachable below the fold (the audit's 14:12 finding). One belt, named, with its why in the source — a second overflowY here fails this pin");
   ok(gmP.indexOf('data-hero="clock"') > -1 && gmP.indexOf('data-hero="receipt"') > -1, "S2 — both voids became instruments: the opener's hero is the RUNNING rest clock (same grammar as the rest screen — one visual system), the terminal's is the banked receipt, because no rest is armed after the last set and a fake countdown would be paint with no instrument behind it");
   ok(gmP.indexOf('if (phase !== "rest" && phase !== "rir-open") return;') > -1 && gmP.indexOf('if (tick() <= 0 && phase === "rest")') > -1, "S2 — the clock ticks through the opener ask but the auto-advance stays rest-only: the ask is owed, the advance is not");
   ok(gmP.indexOf("restLen, phase })") > -1 && gmP.indexOf("resumePhase(d, Date.now())") > -1, "S4 — PHASE rides the draft and re-entry routes through the resume law: leaving mid-rest and returning teleports nowhere");
@@ -7985,6 +7985,39 @@ if (fail) process.exit(1);
     const SB6 = cl45(SB5); SB6.exercises.find((x) => x.id === "hack").hi = 10;
     const CB6 = __test.migrate(SB6);
     ok(JSON.stringify((CB5.exercises.find((x) => x.id === "hack") || {}).last) === JSON.stringify((CB6.exercises.find((x) => x.id === "hack") || {}).last), "HACK REV — patchV43 touches NO rep data: with-patch and no-op-patch controls land the identical last (migrate's log-derived cache reconcile owns that field; the first pin assumed the cache was free-standing — corrected to the measured mechanism, on the record)");
+  }
+
+  /* ---------- v7.42.1 — THE WRONG RECORD CORRECTED + THE WEIGHT CAGE ---------- */
+  {
+    const cl47 = (o) => JSON.parse(JSON.stringify(o));
+    const srcW = readFileSync("src/app.jsx", "utf8");
+    /* the correction, driven on the EXACT synced shape */
+    const S47 = cl47(__test.SEED); S47.v = 43;
+    S47.sessionLog = { ...S47.sessionLog, "2026-08-09": { entries: [{ id: "press", reps: [9, 8], rir: 2, rirSets: [2, 1], w: 250 }], skipped: [] }, "2026-08-10": { entries: [{ id: "hack", reps: [12, 12, 13], rir: 2, rirSets: [2, null, 0], w: 160 }], skipped: [] } };   /* 8/09 present, as on his real ledger — migrate replays the WHOLE content-keyed chain, and patchV40's date restatement would otherwise move this fixture's 8/10 (the mechanism the probe caught) */
+    const h47 = S47.exercises.find((x) => x.id === "hack");
+    h47.w = 160; h47.hi = 10; h47.steps = [160, 170]; h47.inc = null; h47.last = [12, 12, 13]; h47.topAt = null; h47.topRun = 0;
+    S47.queue = [...(S47.queue || []), { id: "q_hack_170", kind: "debut", exId: "hack", newW: 170, t: "HACK SQUAT 170 DEBUT", state: "DEBUT", done: false }];
+    const C47 = __test.migrate(cl47(S47));
+    const e47 = C47.sessionLog["2026-08-10"].entries.find((e) => e.id === "hack");
+    const x47 = C47.exercises.find((x) => x.id === "hack");
+    ok(e47.w === 180 && JSON.stringify(e47.reps) === "[9,9,10]" && JSON.stringify(e47.rirSets) === "[2,null,0]", "v7.42.1 — the record says what he did: 180 × 9,9,10 with his own RIR answers standing (they were about THESE sets). Content-keyed on the exact synced plan-record; his attestation is the receipt");
+    ok(x47.w === 180 && x47.topAt === null && x47.topRun === 0 && JSON.stringify(x47.steps) === "[160,170]", "v7.42.1 — POST-CORRECTION STATE IS SHAPE B, the shape the last audit drove green: w 180, ladder exhausted (ask open for the rung after 180), NO sighting banked (the honest 9,9,10 opener is under the 10,9,8 line), windowFor fallback until a rung is priced");
+    const q47 = C47.queue.find((x) => x.id === "q_hack_170");
+    ok(q47.done === true && q47.state === "RETRACTED" && C47.feed.some((f) => f.t === "HACK 170 EARN RETRACTED"), "v7.42.1 — THE PHANTOM EARN RETRACTS with its receipt: earned on reps since corrected — on the record, never deleted");
+    ok(C47.feed.some((f) => f.t === "RECORD CORRECTED — HACK 180 × 9,9,10" && /I just hit hack 180/.test(f.how)), "v7.42.1 — the correction receipt cites his attestation verbatim and names the cage that caused it");
+    const R47 = __test.migrate(cl47(C47));
+    ok(R47.sessionLog["2026-08-10"].entries.find((e) => e.id === "hack").w === 180, "v7.42.1 — replay no-op: the content key no longer matches");
+    /* THE CAGE — the override rides into the record and reality follows */
+    ok(srcW.indexOf("const [wOver, setWOver] = useState({});") > -1 && srcW.indexOf('aria-label="weight lifted"') > -1 && srcW.indexOf("off-plan, logs as lifted") > -1, "CAGE — the gym weight is TYPEABLE (inputMode decimal, select-on-focus, stepValue coercion): a weight actually lifted is ALWAYS loggable as lifted, on-ladder or off, and the off-plan state names itself in amber");
+    ok(srcW.indexOf("split.entries = split.entries.map((e9) => (wOver[e9.id] != null") > -1, "CAGE — the override rides into the finish record through the same partition every entry takes");
+    ok(srcW.indexOf("ex.steps = [...new Set([...r0, en.w])].sort") > -1 && srcW.indexOf("ex.w = en.w; ex.topAt = null; ex.topRun = 0;") > -1 && srcW.indexOf("Reality outranks the filed ladder") > -1, "CAGE — reality follows at completeSession: ex.w moves to what was lifted, the off-ladder weight MERGES into the rungs (never erasing), a new load starts its own sighting record, and the feed says so in the law's own words");
+    /* driven: an entry at 180 against a 160 config */
+    const S48 = cl47(__test.SEED); S48.v = 44;
+    const h48 = S48.exercises.find((x) => x.id === "hack");
+    h48.w = 160; h48.hi = 10; h48.steps = [160, 170]; h48.inc = null; h48.last = [12, 12, 13];
+    const { s: N48 } = __test.completeSession(S48, "2026-08-21", [{ id: "hack", n: "Hack squat", w: 180, tgt: [10, 9, 8], reps: [9, 9, 10], rir: 2, rirSets: [2, null, 0] }], { last: null }, { note: "", niggles: [], skipped: [], pace: null });
+    const h49 = N48.exercises.find((x) => x.id === "hack");
+    ok(h49.w === 180 && JSON.stringify(h49.steps) === "[160,170,180]" && N48.feed.some((f) => /LOGGED AT 180 \(plan said 160\)/.test(f.t)), "CAGE DRIVEN — logging 180 against a 160 plan moves the config to reality, merges 180 into the ladder, and the feed carries the receipt: the class that logged the plan instead of the day is dead end-to-end");
   }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);
