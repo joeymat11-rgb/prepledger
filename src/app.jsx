@@ -1588,7 +1588,11 @@ function completeSession(state, iso, entries, slp, extras = {}) {
       }
     } else {
       if (!atTop && typeof ex.w === "number" && String(ex.topAt) === String(ex.w)) { ex.topRun = 0; }   /* R18b — reset only on falling OFF the top; a no-next-load sighting banked above must survive this line */
-      if (tgtMet) push(`${ex.n.toUpperCase()} — TARGET MET`, `${en.w} × ${r.join(",")}`);
+      /* R20b ruling (audit low note, ruled at merge): a lift with NO history grades every
+         slot as graced — DEBUT-consistent — but TARGET MET would overclaim: no line
+         existed to meet. The first outing gets its own honest receipt instead. */
+      if (tgtMet && graceFrom === 0 && r.length) push(`${ex.n.toUpperCase()} — FIRST OUTING, BANKS WHAT IT GIVES`, `${en.w} × ${r.join(",")} — no line existed to meet; this IS the line everything later is measured against.`);
+      else if (tgtMet) push(`${ex.n.toUpperCase()} — TARGET MET`, `${en.w} × ${r.join(",")}`);
     }
 
     /* rows special: establish → earn 185 via 10,10 handled by generic atTop (hi=10) */

@@ -7918,6 +7918,16 @@ if (fail) process.exit(1);
     /* THE RULING, pinned: FORWARD, not retroactive */
     ok(srcV.indexOf("const graceFrom = prevMeta && Array.isArray(prevMeta.reps) ? prevMeta.reps.length : 0;") > -1, "R20b RULING — the grace applies FORWARD, at completeSession time, derived from the record's own prevMeta. The 8/09 press feed lines STAND as written: restating stored history would be editing the record, and the 4th slot has since posted its value — the anchor machinery already owns it, so retroactive healing would change nothing he still sees. The words say which: forward");
   }
+
+  /* ---------- R20b ruling — the first outing speaks its own truth ---------- */
+  {
+    const cl22 = (o) => JSON.parse(JSON.stringify(o));
+    const S22 = cl22(__test.SEED);
+    const eN = S22.exercises.find((e) => typeof e.w === "number" && e.hi);
+    eN.sets = 3; eN.last = null; eN.lastMeta = { d: null, w: eN.w, reps: [], rir: null, rirSets: [], debt: false };
+    const { s: N22 } = __test.completeSession(S22, "2026-08-20", [{ id: eN.id, n: eN.n, w: eN.w, tgt: [8, 8, 8], reps: [6, 6, 5], rir: 2, rirSets: [2, 2, 2] }], { last: null }, { note: "", niggles: [], skipped: [], pace: null });
+    ok(!N22.feed.some((f) => f.t && f.t.indexOf(" — TARGET MET") > -1) && N22.feed.some((f) => f.t && f.t.indexOf("FIRST OUTING, BANKS WHAT IT GIVES") > -1 && /no line existed to meet/.test((N22.feed.find((f) => /FIRST OUTING/.test(f.t)) || {}).how || "")), "R20b RULING (the audit low note) — a lift with NO history cannot claim TARGET MET (no line existed to meet — the overclaim class R18e killed); the first outing speaks its own truth: FIRST OUTING, BANKS WHAT IT GIVES, and the reps become the line everything later is measured against");
+  }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
