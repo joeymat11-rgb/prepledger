@@ -230,6 +230,36 @@ for (const [name, mut] of states) {
   }
 }
 
+/* THE LONG-BELT FIXTURE (v7.43.0, the audit word) — the all-done suspects belt at 17+
+   rows, reached DETERMINISTICALLY: a draft parked at all-done with every lift touched
+   (banked) and no set ever adjusted or asked about, so EVERY set is a suspect. The
+   jsdom-honest asserts: every suspect row is IN the DOM (nothing clipped out), the
+   finish control is present-and-disabled until ruled, and the all-done column carries
+   the one sanctioned overflowY (the S1-evolved law). Pixel reachability stays the rig. */
+{
+  const w = await mount((st) => {
+    st.split = [{ from: "1970-01-01", map: { 0: "U", 1: "U", 2: "U", 3: "U", 4: "U", 5: "U", 6: "U" }, why: "smoke — every day trains" }];
+  });
+  await new Promise((r) => setTimeout(r, 250));
+  const click = (el) => el && el.dispatchEvent(new w.window.MouseEvent("click", { bubbles: true }));
+  /* every session lift touched (banked as tapped-through), nothing attested */
+  const iso9 = new Date().getFullYear() + "-" + String(new Date().getMonth() + 1).padStart(2, "0") + "-" + String(new Date().getDate()).padStart(2, "0");
+  const st9 = JSON.parse(w.localStorage.getItem("prep-ledger-v1"));
+  const ids9 = (st9.exercises || []).filter((e) => e.day).map((e) => e.id);
+  const touched9 = {}; ids9.forEach((id) => { touched9[id] = true; });
+  w.localStorage.setItem("prep-ledger-gymdraft-" + iso9, JSON.stringify({ iso: iso9, idx: 0, setN: 0, phase: "all-done", reps: {}, rir: {}, rirEnd: {}, gskip: {}, touched: touched9, rests: { n: 0, cut: 0 }, restStart: 0, restLen: 0 }));
+  click([...w.document.querySelectorAll("button")].find((b) => (b.textContent || "").trim().startsWith("TRAIN")));
+  await new Promise((r) => setTimeout(r, 150));
+  click([...w.document.querySelectorAll("button")].find((b) => (b.textContent || "").includes("RESUME SESSION")));
+  await new Promise((r) => setTimeout(r, 250));
+  const rows9 = [...w.document.querySelectorAll("button")].filter((b) => (b.textContent || "").trim() === "I did this").length;
+  if (rows9 < 10) { console.error("RENDER-SMOKE long-belt: expected a 10+-row suspects belt, found " + rows9); failed++; }
+  const fin9 = [...w.document.querySelectorAll("button")].find((b) => b.disabled && (b.textContent || "").length);
+  if (rows9 >= 10 && !fin9) { console.error("RENDER-SMOKE long-belt: no present-and-disabled finish above an unruled belt"); failed++; }
+  const belt9 = [...w.document.querySelectorAll("div")].find((d) => d.style && d.style.overflowY === "auto" && (d.textContent || "").includes("NOBODY CONFIRMED THE REPS"));
+  if (rows9 >= 10 && !belt9) { console.error("RENDER-SMOKE long-belt: the all-done column lacks its sanctioned overflowY:auto"); failed++; }
+  if (rows9 >= 10 && fin9 && belt9) console.log("RENDER-SMOKE long-belt: " + rows9 + "-row belt renders in a scrolling column with finish present-and-disabled");
+}
 if (failed) {
   console.error(`RENDER-SMOKE: ${failed} failures`);
   process.exit(1);
