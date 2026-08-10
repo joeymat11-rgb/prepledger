@@ -7691,7 +7691,8 @@ function sweepVolume(s, dow7 = new Date().getDay()) {
     const vp9 = volumePush(s);
     if (vp9.mode === "PUSH") {
       const already9 = (s.agentProposals || []).some((ap) => ap.kind === "volume" && ap.mg === vp9.mg);
-      if (!already9) {
+      const doorOpen9 = (s.proposals || []).some((p) => p && !p.resolved && p.rid && String(p.rid).indexOf("volpush_") === 0);   /* R18f fix2 — one door files: an open EARNED VOLUME card closes this one */
+      if (!already9 && !doorOpen9) {
         ns = ns || JSON.parse(JSON.stringify(s));
         ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + vp9.mg + Date.now(), kind: "volume", mg: vp9.mg, exId: vp9.exId, dir: 1, title: `VOLUME +1 — ${vp9.mg.toUpperCase()} via ${vp9.exName}`, body: "The desk is awake again — one chooser, house gates. " + vp9.routing + " Weekly " + vp9.fromWk + " → " + vp9.toWk + " sets; every gate (regime, recovery, sleep, the weekly budget, spillover charges, the conversion read) passed before this filed.", gatesClosed: false }];
       }
@@ -7853,6 +7854,27 @@ function runAdaptive(state, todayISO, raOpts) {
      day the regime detector files a deliberate exit proposal — which is its natural end
      state. That card would be stillborn on its first sweep with a feed line falsely
      blaming R4. The withdrawal names exactly what R4 orphaned and nothing else, ever. */
+  /* R18f fix2 — OFFERS DO NOT OUTLIVE THE BUDGET. The budget gated producers only:
+     an offer already open when a structural move landed stayed tappable beside the
+     ONE-CHANGE card, and its tap enacted a second set-add into the spent week (the
+     audit drove 3→4). This grooming pass runs the R4-orphan precedent across BOTH
+     stores the moment any move lands: resolved with a feed line, never deleted. */
+  {
+    const smwG = structuralMovesThisWeek(s);
+    if (smwG.moves.length) {
+      for (const p of s.proposals || []) {
+        if (p && !p.resolved && p.rid && String(p.rid).indexOf("volpush_") === 0 && (p.apply || {}).budgetPremise) {
+          p.resolved = true; p.resolvedHow = "withdrawn — the week's structural budget was spent after this filed";
+          s.feed.unshift({ d: todayISO, t: "CARD WITHDRAWN — " + String(p.title || p.rid).slice(0, 40), how: "A structural move landed this week after this offer filed. One lever a week — the offer returns when it is re-earned, Monday at the earliest." });
+        }
+      }
+      const dropG = (s.agentProposals || []).filter((ap) => ap && ap.kind === "volume");
+      if (dropG.length) {
+        s.agentProposals = (s.agentProposals || []).filter((ap) => !(ap && ap.kind === "volume"));
+        s.feed.unshift({ d: todayISO, t: "DESK OFFER" + (dropG.length === 1 ? "" : "S") + " WITHDRAWN — the budget is spent", how: "A structural move landed this week; the desk's open volume offer" + (dropG.length === 1 ? "" : "s") + " left with it. One lever a week — the desk re-asks when the chooser re-earns it." });
+      }
+    }
+  }
   const R4_ORPHANS = { pivot: 1, ease2: 1 };
   for (const p of s.proposals) {
     if (p && !p.resolved && R4_ORPHANS[subjectOf(p.rid)]) {
@@ -8039,10 +8061,11 @@ function runAdaptive(state, todayISO, raOpts) {
   {
     const vp = volumePush(s);
     const vpDeclined = (s.adjustments || []).some((a) => a && a.dismissed && a.rid && a.rid.indexOf("volpush_") === 0 && a.d >= monday);
-    if (!sealed && !vpDeclined && vp.mode === "PUSH")
+    const deskOpen = (s.agentProposals || []).some((ap) => ap && ap.kind === "volume");   /* R18f fix2 — one door files: an open desk offer closes this one */
+    if (!sealed && !vpDeclined && !deskOpen && vp.mode === "PUSH")
       propose(`volpush_${vp.mg}_${monday}`, `${cap(mgLabel(vp.mg))} — EARNED VOLUME: ${vp.fromWk} → ${vp.toWk} WEEKLY SETS`,
         `Your own measured state earned this: regime FREE confirmed a week apart, pooled progression rising, recovery GREEN, and no other structural move this week. ${cap(mgLabel(vp.mg))} is the lowest readable allocation at ${vp.fromWk} weekly sets${vp.zone === "UNDER" ? " — under the growth floor, an underdose to correct decisively rather than creep at" : ""}. Approving adds ${vp.dSess} set${vp.dSess > 1 ? "s" : ""} to ${vp.exName} each ${vp.day === "L" ? "lower" : "upper"} session — ${vp.fromSess}→${vp.toSess} per session, ${vp.fromWk}→${vp.toWk} weekly, roughly ${vp.dSess * 3} extra minutes on those days (one set plus its rest). The new set lands inside the effort taper automatically: the RIR ladder re-keys, and failure stays spent exactly once, on the final set. HONEST GRADE — MODERATE-TO-LOW: volume drives growth with no in-range plateau (Pelland 2025) and you fit the recomp profile (Barakat 2020 — headroom, ~14% body fat, deficit under ~500), but no trial has tested MORE volume DURING a deficit for growth (Roth 2023 asked retention, underpowered), so the coach adds a LITTLE and reads your own bar before the next step. The trend window restarts at the change on purpose — a bigger number from more sets proves nothing. If the read ends with no progress and fatigue up, the sets come off, with a receipt. Absolute ceiling ${vp.ceil} weekly sets.`,
-        { kind: "sets", exId: vp.exId, delta: vp.dSess, mg: vp.mg, fromWk: vp.fromWk, toWk: vp.toWk, freq: vp.freq });
+        { kind: "sets", exId: vp.exId, delta: vp.dSess, mg: vp.mg, fromWk: vp.fromWk, toWk: vp.toWk, freq: vp.freq, budgetPremise: true });   /* R18f fix2 — this card's premise IS the clean budget; the belt and reconciler key on it, so owner's-call cards (whose premise is Joe's ask, the 8/07 three-tap pattern) are untouched */
     /* the rollback half — an earned lever stays earned only if the receipt runs backwards */
     (s.exercises || []).forEach((ex9) => {
       if (typeof ex9.w !== "number") return;
@@ -8309,6 +8332,20 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
     }
     return s;
   }
+  /* R18f fix2 (c) — DESIGN CALL, filed: the tap RE-CHECKS the budget. 'What you approve
+     is what happens' cuts both ways once the card's own premise — no other structural
+     move this week — has expired: enacting it silently would make the tap a lie in the
+     other direction. The refusal SPEAKS (feed line: what expired, why, when it returns)
+     and resolves the card. The reconciler normally withdraws first; this is the belt
+     for the race inside a single render. */
+  if ((p.apply || {}).kind === "sets" && (p.apply || {}).budgetPremise) {
+    const smwT = structuralMovesThisWeek(s);
+    if (smwT.moves.length) {
+      p.resolved = true; p.resolvedHow = "expired at the tap — the budget was spent after this filed";
+      s.feed.unshift({ d: today, t: "OFFER EXPIRED AT THE TAP — " + String(p.title || p.rid).slice(0, 40), how: "A structural move already landed this week, so this card's own premise (no other move) had expired. Nothing changed. One lever a week — it returns when re-earned, Monday at the earliest." });
+      return s;
+    }
+  }
   s.adjustments.push(row);
   /* VOLUME LEVER — the tap changes the thing the card names: ex.sets, stamped for the merge
      (AUDIT G), with an exact undo (AUDIT F: the undo is itself a set-count change).
@@ -8442,6 +8479,13 @@ function dismissSuggestion(state, sug) {
 function applyAgentProposal(state, ap, tISO) {
   const s = JSON.parse(JSON.stringify(state));
   if (ap.kind === "volume" && ap.exId && ap.dir) {
+    /* R18f fix2 (c) — the desk's tap re-checks the budget too, and speaks */
+    const smwT2 = structuralMovesThisWeek(s);
+    if (smwT2.moves.length) {
+      s.agentProposals = (s.agentProposals || []).filter((x) => x.id !== ap.id);
+      s.feed.unshift({ d: tISO, t: "OFFER EXPIRED AT THE TAP — " + (ap.title || "VOLUME"), how: "A structural move already landed this week, so this offer's premise had expired. Nothing changed. One lever a week — the desk re-asks when the chooser re-earns it." });
+      return s;
+    }
     const ex7 = s.exercises.find((x) => x.id === ap.exId);
     if (ex7) { ex7.sets = Math.max(1, (ex7.sets || 1) + ap.dir); ex7.setsAt = new Date().toISOString();   /* AUDIT G — every sets mutator stamps, or the merge reverts the change */ s.feed.unshift({ d: tISO, t: `VOLUME ${ap.dir > 0 ? "+1" : "−1"} — ${ap.mg.toUpperCase()} via ${ex7.n} (now ${ex7.sets} sets)`, how: "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited" }); }
   } else if (ap.kind === "reset" && ap.exId && ap.newW) {

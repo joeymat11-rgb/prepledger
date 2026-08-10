@@ -7823,6 +7823,41 @@ if (fail) process.exit(1);
     ok(vpW.mode !== "PUSH" && /if \(smw.sets.length\) return { mode: "WITHHELD", veto: "budget",/.test(readFileSync("src/app.jsx", "utf8")), "R18f fix — a sets move this week can never reach PUSH: on this seed the regime gate exits first (ABSTAIN — the chain order is the design), and the sets-veto arm stands in the chain for gates-open states (veto budget, the stepPush mirror sentence) — the gates-open drive is the audit rig's, on its FINAL82 fixture");
     ok(__test.sweepVolume(SW, 0) === null, "R18f fix DRIVEN — and the desk, asking that same chooser, files ZERO offers in a sets-move week: the audit's exact fixture, silent");
   }
+
+  /* ---------- R18f FIX 2 — OFFERS DO NOT OUTLIVE THE BUDGET (the audit's held round) ---------- */
+  {
+    const srcO = readFileSync("src/app.jsx", "utf8");
+    const isoT9 = isoL(Date.now());
+    const mkWk = () => {
+      const S = JSON.parse(JSON.stringify(__test.SEED));
+      const d9 = new Date(); const off9 = (d9.getDay() + 6) % 7;
+      const mon9 = isoL(Date.now() - off9 * 864e5);
+      S.adjustments = [...(S.adjustments || []), { rid: "vol_wk", id: "adj_wk", d: mon9, title: "x", exUndo: { field: "sets", exId: "ham" } }];
+      return S;
+    };
+    /* (a) the reconciler withdraws BOTH stores when a move lands — never deletes */
+    const SA = mkWk();
+    SA.proposals = [...(SA.proposals || []), { rid: "volpush_quads_x", id: "vpx", d: isoT9, title: "QUADS — EARNED VOLUME", why: "w", apply: { kind: "sets", exId: "hack", delta: 1, budgetPremise: true } }];
+    SA.agentProposals = [...(SA.agentProposals || []), { id: "vq1", kind: "volume", mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }];
+    const RA = __test.runAdaptive(SA, isoT9);
+    const pA = RA.proposals.find((p) => p.id === "vpx");
+    ok(pA && pA.resolved === true && /withdrawn/.test(pA.resolvedHow || "") && !RA.agentProposals.some((ap) => ap.kind === "volume"), "R18f fix2 (a) — the moment a structural move is on the week, the reconciler withdraws open volume offers in BOTH stores: the proposal resolves (never deleted) and the desk card leaves, each with a feed line — the audit's items 1 and 2, dead at the grooming pass");
+    ok(RA.feed.some((f) => f.t && f.t.indexOf("CARD WITHDRAWN") === 0) && RA.feed.some((f) => f.t && f.t.indexOf("DESK OFFER") === 0), "R18f fix2 (a) — both withdrawals speak on the feed, the R4-orphan precedent");
+    /* (c) the apply-time belt — the tap re-checks and SPEAKS; the enact path survives */
+    const SC = mkWk();
+    const hackW = (SC.exercises.find((x) => x.id === "hack") || {}).sets;
+    SC.proposals = [...(SC.proposals || []), { rid: "volpush_quads_y", id: "vpy", d: isoT9, title: "QUADS — EARNED VOLUME", why: "w", apply: { kind: "sets", exId: "hack", delta: 1, budgetPremise: true } }];
+    const RC = __test.applyProposal(SC, "vpy");
+    ok((RC.exercises.find((x) => x.id === "hack") || {}).sets === hackW && (RC.proposals.find((p) => p.id === "vpy") || {}).resolved === true && RC.feed.some((f) => f.t && f.t.indexOf("OFFER EXPIRED AT THE TAP") === 0), "R18f fix2 (c) — DESIGN CALL enacted: a budget-premised sets tap in a spent week enacts NOTHING, resolves the card and says why on the feed (what expired, when it returns) — the audit's 3→4 drive is dead");
+    /* (c) — and the owner's-call family is EXEMPT: its premise is Joe's ask, not the budget */
+    const SO = mkWk();
+    SO.proposals = [...(SO.proposals || []), { rid: "volpush_hams_oc", id: "vpo", d: isoT9, title: "HAMS — OWNER'S CALL", why: "w", apply: { kind: "sets", exId: "ham", delta: 1 } }];
+    const hamW = (SO.exercises.find((x) => x.id === "ham") || {}).sets;
+    const RO = __test.applyProposal(SO, "vpo");
+    ok((RO.exercises.find((x) => x.id === "ham") || {}).sets === hamW + 1, "R18f fix2 — the belt keys on budgetPremise, so the owner's-call three-tap pattern (8/07, consent on the record) still enacts in a move-week: the first suite run caught the unscoped belt breaking exactly that flow, on the record");
+    /* (b) one door files — both directions at source */
+    ok(srcO.indexOf("const deskOpen = (s.agentProposals || []).some((ap) => ap && ap.kind === " + String.fromCharCode(34) + "volume" + String.fromCharCode(34) + ");") > -1 && srcO.indexOf("const doorOpen9 = (s.proposals || []).some((p) => p && !p.resolved && p.rid && String(p.rid).indexOf(" + String.fromCharCode(34) + "volpush_" + String.fromCharCode(34) + ") === 0);") > -1, "R18f fix2 (b) — the cross-store guard runs both directions: an open desk offer closes door 2, an open EARNED VOLUME card closes the desk — a clean Monday yields ONE card, not two");
+  }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
