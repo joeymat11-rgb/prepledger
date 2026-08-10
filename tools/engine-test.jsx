@@ -7698,7 +7698,7 @@ if (fail) process.exit(1);
     ok((g.structural || "").length > 0 && srcR8.indexOf(String.fromCharCode(34) + " · nearest earn: " + String.fromCharCode(34)) > -1, "R18a — the header receipt exists at source ( · nearest earn: name, N reps from W) and rides whenever no structural claims the day; this seed day carries one (" + g.structural.slice(0, 40) + "), so the receipt yields to it — by design, the receipt explains only the NO-debut claim");
   }
   /* R18b — the ask card at source */
-  ok(srcR8.indexOf("WHAT IS THE NEXT WEIGHT THIS MACHINE MAKES AFTER") > -1 && srcR8.indexOf("ex4.steps = [ex4.w, ...ups];") > -1 && srcR8.indexOf("counts as sighting one") > -1, "R18b — the ask card captures the machine's ladder in one tap (parseRungs — one weight or the whole ladder) and the already-delivered sighting counts the moment it is answered");
+  ok(srcR8.indexOf("WHAT IS THE NEXT WEIGHT THIS MACHINE MAKES AFTER") > -1 && srcR8.indexOf("[...new Set([...(loadRungs(ex4) || []), ex4.w, ...ups])].sort") > -1 && srcR8.indexOf("counts as sighting one") > -1, "R18b — the ask card captures the machine's ladder in one tap (parseRungs — one weight or the whole ladder) and the already-delivered sighting counts the moment it is answered");
   ok(srcR8.indexOf("Confirm the rung: does this machine actually make ") > -1, "R18c — the EARNED banner asks for rung confirmation where no ladder is on file, and points at the SETUP editor (the power path stays)");
   ok(srcR8.indexOf("GATES the next jump") > -1 && srcR8.indexOf("Last-set RIR gates the next jump") > -1, "R18d — the two prose claim-sites now describe what the engine does (gate + propose), not a sizing that never ran; the gym label 'this one sizes the jump' became TRUE under this round");
 
@@ -7951,6 +7951,40 @@ if (fail) process.exit(1);
     const g43 = __test.genSession(C43, "2026-08-14", { last: null });
     const l43 = g43 && g43.ex.find((x) => x.id === "hack");
     ok(!l43 || !l43.runway || /the ladder goes blind above 170/.test(l43.runway) || /arming:|tops out|no next load/.test(l43.runway), "HACK 6-10 — the runway names the blind ladder on the live shape (one rung above 160): file the next rungs in SETUP so the earn after 170 has a price. At ceiling 10 the debuts come faster; the runway must not go dark above the ladder — " + (l43 && l43.runway ? l43.runway.slice(0, 90) : "(not on this day)"));
+  }
+
+  /* ---------- HACK 6-10 REVISION — the state moved under the round (180 × 9,9,10) ---------- */
+  {
+    const cl45 = (o) => JSON.parse(JSON.stringify(o));
+    const srcR5 = readFileSync("src/app.jsx", "utf8");
+    /* the NEW live shape: the owner jumped past both filed rungs the same day */
+    const h45 = { id: "hack", n: "Hack squat", w: 180, hi: 10, sets: 3, steps: [160, 170], inc: null, last: [9, 9, 10], lastMeta: { d: "2026-08-10", w: 180, reps: [9, 9, 10], rir: 0, rirSets: [2, null, 0], debt: false } };
+    ok(__test.nextLoad(h45) === null, "HACK REV — nextLoad at w 180 over the [160,170] ladder returns NULL, never 170: the ladder is blind above AND below the current load, and no rung below ever reads as next");
+    ok(__test.atTopOfWindow([9, 9, 10], h45) === false, "HACK REV — 9,9,10 does NOT top the 10,9,8 line (the opener is one rep from the first sighting): nothing false-banks off the owner's jump session");
+    const w45 = __test.windowFor(h45);
+    ok(w45.hi === 10, "HACK REV — the earn line at 180 derives from ceiling 10 (window " + w45.lo + "-" + w45.hi + "): 10,9,8 is the sighting line the next session is measured against");
+    /* the ask now fires for the EXHAUSTED ladder, and its answer MERGES */
+    ok(srcR5.indexOf("(!loadRungs(e) || loadRungs(e).every((x) => x <= e.w))") > -1, "HACK REV — the ask card fires for an exhausted ladder too: rungs on file, none above the load Joe now holds — the rung after 180 is exactly what it asks for");
+    ok(srcR5.indexOf("[...new Set([...(loadRungs(ex4) || []), ex4.w, ...ups])].sort") > -1, "HACK REV — and the answer MERGES into the existing rungs: pricing 190 must not erase the 160 and 170 already priced");
+    /* the receipt derives — driven on BOTH shapes */
+    const SA5 = cl45(__test.SEED); SA5.v = 42;
+    const hA = SA5.exercises.find((x) => x.id === "hack");
+    hA.hi = 12; hA.w = 160; hA.steps = [160, 170]; hA.inc = null; hA.last = [12, 11, 13];
+    const CA5 = __test.migrate(cl45(SA5));
+    const fA = CA5.feed.find((f) => f.t === "HACK — REP RANGE MOVES TO 6-10");
+    ok(fA && /12,11,13 at 160 stands untouched/.test(fA.how) && /The next rung on file is 170/.test(fA.how), "HACK REV — on the pre-jump shape the receipt derives its own truth: the last session at its own load, the next rung from nextLoad — no prediction");
+    const SB5 = cl45(__test.SEED); SB5.v = 42;
+    const hB = SB5.exercises.find((x) => x.id === "hack");
+    hB.hi = 12; hB.w = 180; hB.steps = [160, 170]; hB.inc = null; hB.last = [9, 9, 10];
+    const CB5 = __test.migrate(cl45(SB5));
+    const fB = CB5.feed.find((f) => f.t === "HACK — REP RANGE MOVES TO 6-10");
+    ok(fB && /9,9,10 at 180 stands untouched/.test(fB.how) && /No next rung is on file above 180/.test(fB.how) && !/170 debuts/.test(fB.how), "HACK REV — on the shape Joe just created the SAME patch speaks the new truth: 9,9,10 at 180, ladder unpriced above — the R18e overclaim law now binds patch receipts, and the prediction the audit caught is extinct");
+    /* migrate's own cache reconcile re-derives ex.last from the LOG (the fixture set only
+       the cache), so the honest invariant is: the PATCH adds nothing to what migrate does
+       without it — a no-op-patch control at hi 10 must land the identical last. */
+    const SB6 = cl45(SB5); SB6.exercises.find((x) => x.id === "hack").hi = 10;
+    const CB6 = __test.migrate(SB6);
+    ok(JSON.stringify((CB5.exercises.find((x) => x.id === "hack") || {}).last) === JSON.stringify((CB6.exercises.find((x) => x.id === "hack") || {}).last), "HACK REV — patchV43 touches NO rep data: with-patch and no-op-patch controls land the identical last (migrate's log-derived cache reconcile owns that field; the first pin assumed the cache was free-standing — corrected to the measured mechanism, on the record)");
   }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);

@@ -1228,7 +1228,7 @@ function genSession(s, iso, slp) {
       if (e.last && e.last.length && e.sets && e.last.length < e.sets) return "arming: " + e.last.length + " of " + e.sets + " sets on file — the window reads only a full " + e.sets + "-set session; log one and the runway prices itself";
       const dist9 = base9.reduce((a9, v9, i9) => a9 + Math.max(0, ((win9.hi || 0) - i9) - (v9 || 0)), 0);
       if (up9 == null) return loadRungs(e)
-        ? "the stack tops out at " + e.w + " — reps are the ladder now, same earn discipline past the old top"
+        ? "no rung above " + e.w + " is on file — if the machine makes more, answer the ask on TRAIN (or SETUP ✎) and the next earn has a price; if this is the top of the stack, reps are the ladder from here"
         : "no next load on file — answer the ask on TRAIN and the sighting you already banked counts toward the earn";
       const sight9 = String(e.topAt) === String(e.w) && (e.topRun || 0) >= 1;
       const te9 = (() => { try { return typicalError(s, e.id).reps.toFixed(2); } catch (err) { return null; } })();
@@ -9119,7 +9119,11 @@ function patchV43(s) {
   const hk = (s.exercises || []).find((x) => x.id === "hack");
   if (hk && hk.hi === 12) {
     hk.hi = 10;
-    if (s.feed && s.feed.unshift) s.feed.unshift({ d: "2026-08-10", t: "HACK — REP RANGE MOVES TO 6-10", how: "Your ruling, on the record: breathing fails before the quads, so the weight rises and the reps drop — round two of the pattern that already worked. Your 12,11,13 at 160 stands and counts: it tops the new window, the banked sighting carries, and 170 debuts on the next honest top." });
+    /* THE RECEIPT MAY NOT PREDICT (the R18e overclaim law, applied to patch receipts):
+       the patch runs on whatever state the phone holds at patch time — Joe jumped to
+       180 past both rungs the same day this was written. Every clause derives. */
+    const nx43 = nextLoad(hk);
+    if (s.feed && s.feed.unshift) s.feed.unshift({ d: "2026-08-10", t: "HACK — REP RANGE MOVES TO 6-10", how: "Your ruling, on the record: breathing fails before the quads, so the weight rises and the reps drop — round two of the pattern that already worked." + (hk.last && hk.last.length ? " Your " + hk.last.join(",") + " at " + hk.w + " stands untouched and reads against the new window." : "") + (nx43 != null ? " The next rung on file is " + nx43 + "." : " No next rung is on file above " + hk.w + " — file the ladder and the next earn has a price.") });
   }
   s.v = 43; return s;
 }
@@ -13955,7 +13959,7 @@ function LogTab({ s, setS, save, slp }) {
           already delivered counts toward the earn: demanding two NEW ones would
           prescribe below what was delivered. Rung-exhausted stacks keep TOPS-OUT. */}
       {(() => {
-        const askEx = (s.exercises || []).find((e) => typeof e.w === "number" && e.hi != null && nextLoad(e) == null && !loadRungs(e));
+        const askEx = (s.exercises || []).find((e) => typeof e.w === "number" && e.hi != null && nextLoad(e) == null && (!loadRungs(e) || loadRungs(e).every((x) => x <= e.w)));   /* an EXHAUSTED ladder (Joe jumped past its rungs) needs the ask as much as a bare one */
         if (!askEx) return null;
         const sighted = String(askEx.topAt) === String(askEx.w) && (askEx.topRun || 0) >= 1;
         const histTop = !sighted && askEx.last ? atTopOfWindow(askEx.last, askEx) : false;
@@ -13979,7 +13983,7 @@ function LogTab({ s, setS, save, slp }) {
                 {/* one heavier number seeds the ladder's first rungs [w, next]; several seed
                     the ladder outright. inc stays untouched — a machine that needed asking
                     is exactly the machine whose increments are uneven. */}
-                ex4.steps = [ex4.w, ...ups];
+                ex4.steps = [...new Set([...(loadRungs(ex4) || []), ex4.w, ...ups])].sort((a9, b9) => a9 - b9);   /* MERGE — an answer above an exhausted ladder must not erase the rungs already priced */
                 let banked = false;
                 if (ex4.last && atTopOfWindow(ex4.last, ex4) && !(String(ex4.topAt) === String(ex4.w) && (ex4.topRun || 0) >= 1)) { ex4.topAt = ex4.w; ex4.topRun = 1; banked = true; }
                 ns.feed.unshift({ d: isoOf(todayStart()), t: askEx.n.toUpperCase() + " — NEXT LOAD ON FILE: " + ups[0], how: "You told the app this machine's ladder (" + [ex4.w, ...ups].join(", ") + ")." + ((banked || (String(ex4.topAt) === String(ex4.w) && (ex4.topRun || 0) >= 1)) ? " The top-of-window session already on your record counts as sighting one — one more honest top, or one that beats your own spread, earns the " + ups[0] + " debut." : " Top the window twice at " + ex4.w + " — or once beating your own spread — and " + ups[0] + " queues itself.") });
