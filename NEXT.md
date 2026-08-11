@@ -236,6 +236,24 @@ successful slow arm) · the 7-day regime hysteresis (the data's shutter, not a c
 
 ---
 
+## QUEUED — BOARD FIX FOLLOW-UPS (two audit low notes from the v7.45.0 re-drive, filed 2026-08-11; ride a future round, nothing blocked the merge)
+
+**1. NOT-NOW IS VISUALLY INERT ON A PRISTINE BOOT (driven):** the tap clears the marker
+but the card renders on marker-OR-fingerprint, so it stays on screen — and the next
+boot's loadState re-sets the marker. His dismissal only takes effect after his first
+log. One-line fix: "Not now" writes a "no" sentinel; the boot-setter respects it
+(set "1" only when the key is absent) and pristine9 becomes
+restoreOfferStands() || (isPristineSeed(s) && sentinel !== "no").
+
+**2. THE ~6s COLD RESIDUE:** the first lab compute on an absurd-valued state costs
+seconds of main thread once per boot (entry now guarded by the net at every door, so
+this needs a kept-override or pre-existing bad data to occur). Audit's measurement on
+the old tip: a SINGLE labAnalytics call on the absurd state ran >200s in the browser —
+the pre-fix stall was one catastrophic call with the memo-miss multiplication stacked
+on top; post-fix the same state costs ~6s once per boot, then 0ms. Naming the
+instrument and clamping at ITS input boundary would kill the residue — a polish-round
+item, not urgent.
+
 ## QUEUED — BRIEF SHEDS ITS TWO NOW-DUPLICATES (item 3 of the owed-ledger round, filed 2026-08-11)
 
 **Three audit low notes ride this round (2026-08-11):** (1) cold start — zero nights
