@@ -5,6 +5,73 @@ v7.45.0). One branch, next free version. VERDICT: NOT YET BUILT.** The build ord
 and the consolidated verdict beneath it are both verbatim; the verdict is the spec of
 record.
 
+### AMENDMENT — SECTION F FOLDS IN (Cowork, verbatim, 2026-08-11, filed same day)
+
+> **FILING NOTE (build side, on the record):** the amendment directive below arrived
+> WITHOUT its attachment — the upload on this PC
+> (`b302ec1d-VOLUMEENGINECONSOLIDATEDVERDICT.md`, 152 lines, re-checked at filing time)
+> is still the pre-F document: zero hits for OUTCOME-COMPATIBLE, REPLICATED, Räntilä,
+> Henselmans, Mattocks or Plotkin. The verbatim verdict block below therefore REMAINS the
+> 1f5e126 version until the amended file actually lands — the spec of record is never
+> reconstructed from a summary. The BUILD-ORDER DELTAS in this amendment are complete in
+> the directive itself and BIND THE BUILD now.
+
+FOR CLAUDE CODE — AMENDMENT TO THE FILED VOLUME ROUND: SECTION F FOLDS IN (docs-only now, build deltas when the round builds)
+
+THE RE-FILE: the attached VOLUMEENGINECONSOLIDATEDVERDICT.md supersedes the one filed at
+1f5e126 — same document plus the new SECTION F (Sol's second pass, adjudicated). Replace
+the verbatim verdict block in NEXT.md with this version, keeping your marked B3 DERIVE
+annotation exactly as it stands. Same filing protocol: docs-only, [skip ci], no bump.
+
+BUILD-ORDER DELTAS (amend these items in the filed build order; everything else stands):
+
+ITEM 0 (A1) — the read gains a fourth tier and a derived calendar:
+  Verdict vocabulary is now DELIVERED / TOLERATED / OUTCOME-COMPATIBLE / REPLICATED.
+  OUTCOME-COMPATIBLE needs 8–12 stable weeks AND more than one signal agreeing;
+  REPLICATED (the benefit recurs in a comparable block) is the ONLY tier where a strong
+  individual-response claim may live (Räntilä 2025: single-block non-response rarely
+  repeats — never brand a muscle off one block or one instrument). UNCLEAR stays a legal
+  verdict. If the phase flips mid-read (cut ends), the observation is labeled
+  MIXED-PHASE, never force-classified.
+  The DELIVERY definition gains standardization: same exercise, same ROM, same rest, no
+  technique change — and the ≥50%-of-sessions threshold loses its arbitrariness: either
+  derive it or keep it as a NAMED numeric trip per house law (every guard carries one).
+  Review dates DERIVE from each muscle's own change date (+~2wk = delivery/tolerance
+  review · +8wk = earliest defensible outcome review · +12wk = credible classification)
+  — never hardcoded calendar dates. For the Aug 7 adds that derivation lands ~Aug 21 /
+  ~Oct 2 / ~Oct 30, which the instrument should reproduce on its own.
+
+ITEM 5 (A6) — surplus cadence copy softens: batching 1–2 muscles at a block start is
+  "a reasonable coaching experiment, not validated as optimal"; and add the law to the
+  copy: A BIGGER SURPLUS IS NEVER A REASON TO ESCALATE VOLUME FASTER (Helms 2023;
+  Henselmans 2026 rides in the docs — see citation hygiene below).
+
+D SWEEPS gain one: the +4%/session figure is a PERFORMANCE rate, never a tissue rate
+  (Mattocks 2017 direction: test practice raises strength without matching growth).
+  Short-horizon lift trends = performance and tolerance evidence; only long-horizon
+  (8–12+ wk) trends corroborate outcomes. Sweep every surface that quotes the +4%.
+
+NEW ITEM 9 — THE HEADROOM SOFT NOTE (Joe's ruling, 2026-08-11, on the record: soft
+  note chosen over full gate and over skip): set-add offers still fire exactly when
+  earned; when the target muscle's lifts are still climbing on rep/load alone, the
+  offer card carries one added sentence of context — "this muscle is still progressing
+  without the new set" (derived from the lift trend the engine already computes;
+  Plotkin 2022: sets are the lever for when rep/load overload exhausts). It is
+  INFORMATION on the card, never a brake — the full gate was explicitly rejected as
+  more conservative than his data.
+
+NO CHANGE from Sol's partially-wrong claim: the terminal-set delivery mechanics stand
+  as verified (the added set BECOMES the terminal set, the taper re-keys, existence and
+  effort are checked) — only the standardization fold above touches delivery.
+
+CITATION HYGIENE (extends the standing rule): in-APP receipts may only carry citations
+  the audit verified — Balshaw 2026 stays banned; Räntilä 2025 and Henselmans 2026 live
+  in NEXT.md/docs only unless verified before the build round ships them.
+
+STANDING STATE unchanged: the build still gates on fix/board-p0p1 landing (Cowork's
+re-drive is GREEN; Joe's merge word rides in the audit paste) → then this round builds
+on one fresh branch at the next free version. Report the re-file FOR COWORK, stop.
+
 ### THE BUILD ORDER (Cowork, verbatim, 2026-08-11)
 
 FOR CLAUDE CODE — THE VOLUME ENGINE ROUND (three-audit consolidated verdict, Joe-ruled)
