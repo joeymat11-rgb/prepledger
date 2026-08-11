@@ -515,4 +515,4 @@ Convert or quote Pelland's tiers.
 
 **"Defend load on a cut" is folklore.** One trial manipulated load under energy
 restriction (Carlson 2022, n=115 trained, 80% vs 60% 1RM both to failure) and
-found nothing. Defend effort; keep the deficit under ~500 kcal/day.
+found nothing. Defend effort; treat deficit size as a graded risk, not a wall (N1, v7.48.0) — the corridor steers, 0.70%/wk is the upper default, and hard stops are reserved for health/recovery red flags.

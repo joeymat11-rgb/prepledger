@@ -408,6 +408,20 @@ while a lift_pair trial stands, receipt names the freeze) and U3 (the window-wid
 note's invented validation retracted; typicalError defined in LEDGER_DICT) — both in
 the volume-verdicts round at d962b93.
 
+## QUEUED — FIVE NUTRITION LOW RIDERS (audit, 2026-08-11; file on the BRIEF-dedup/design round)
+
+R1 · ~3070: the surplus-band why renders a dangling unit token — "...% BW/MONTH (the
+settled monthly cap) %bw/wk." (surplus regime only, not live today).
+R2 · the Refalo retraction landed at the proteinTarget definition ONLY: "(Refalo/Helms)"
+survives in LIVE copy ~4347 (autoPilot rationale) and comments ~3454/~4214.
+R3 · THE UNEXPLAINED RESIDUAL card (~6102): retitled but the body still says "the gap is
+adaptive thermogenesis" and calls MATADOR "the counter-move" — contradicts its own
+rename AND hints a break counters adaptation, which A7 denies.
+R4 · dead code: the pre-proteinTarget comment (~1874-78) still describes the retired
+12.2% switch; the sup.kind==="forceBreak" ternary ~12590 is unreachable (harmless).
+R5 · CLAUDE.md final line still reads "keep the deficit under ~500 kcal/day" — stale
+against N1 (one-line docs fix, done in this filing commit).
+
 ## QUEUED — BOARD FIX FOLLOW-UPS (two audit low notes from the v7.45.0 re-drive, filed 2026-08-11; ride a future round, nothing blocked the merge)
 
 **1. NOT-NOW IS VISUALLY INERT ON A PRISTINE BOOT (driven):** the tap clears the marker
