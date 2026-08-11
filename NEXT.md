@@ -1,3 +1,10 @@
+## QUEUED — BRIEF SHEDS ITS TWO NOW-DUPLICATES (item 3 of the owed-ledger round, filed 2026-08-11)
+
+The COCKPIT STATUS FACE block (same statusFace(s) as NOW) and THE ONE THING card (same
+theOneFix as TODAY'S MOVE) leave BRIEF; the decision desk, TODAY'S PROTOCOL, THE FIVE
+and the reviews stay put. The full room-by-room dissolution of the briefing room stays
+QUEUED pending Joe's ruling — this item is only the two literal duplicates.
+
 ## QUEUED — THE v7.42.1 FOLLOW-UP ROUND (FOUR items, one branch, suggest v7.43.0; filed 2026-08-10)
 
 **0. OWNER'S RULING (Joe, verbatim: "Calves 11, rows 9, press stays")** — patchV45,
