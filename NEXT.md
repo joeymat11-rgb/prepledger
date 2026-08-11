@@ -373,6 +373,12 @@ by √2). CONFIRMED as audited: the three-non-beat auto-RESET reflex; beatsNoise
 ±0.8" scale-noise floor in athlete copy while weightNoise() measures the real one —
 the authored-round-number tell.
 
+**Defensive note (audit, 2026-08-11, not blocking):** trialArmOn throws on a malformed
+trials row missing `started` — unreachable via real writers (the row is born at the
+consent tap; declined rows short-circuit before the date math) — but a one-line guard
+`if (!trial.started) return null` is the same belt class as the container heal. Ride
+any future round.
+
 **Already built (do not rebuild):** U1 (the A/B's progression targets frozen flat +1
 while a lift_pair trial stands, receipt names the freeze) and U3 (the window-width
 note's invented validation retracted; typicalError defined in LEDGER_DICT) — both in
