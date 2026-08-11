@@ -8394,3 +8394,36 @@ if (fail) process.exit(1);
 }
 console.log(`\nFINAL103: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
+
+
+/* ==================== U1 — THE A/B'S PROGRESSION TARGETS ARE FROZEN ==================== */
+{
+  const clU = (o) => JSON.parse(JSON.stringify(o));
+  const SU1 = clU(__test.SEED);
+  const isoU = isoL(Date.now());
+  const mkLift = (id) => {
+    const e = SU1.exercises.find((x) => x.id === id);
+    e.w = 55; e.hi = 15; e.sets = 3; e.holdFlag = false; e.std = null; e.reclaim = null; e.ladder = null;
+    e.last = [12, 12, 12];
+    return e;
+  };
+  const exT = mkLift("tricep"); exT.lastMeta = { reps: [12, 12, 12], rirSets: [2, 1, 1] };
+  const exS = mkLift("sulek"); exS.lastMeta = { reps: [12, 12, 12], rirSets: [2, 1, 0] };
+  /* control: WITHOUT the trial the two arms earn DIFFERENT steps — the confound is real */
+  const stepT0 = __test.progressStep(exT, SU1), stepS0 = __test.progressStep(exS, SU1);
+  ok(stepT0.add === 2 && stepS0.add === 1, "U1 CONTROL — the confound the audit drove is real on this engine: terminal RIR 1 earns +" + stepT0.add + " while all-out 0 earns +" + stepS0.add + " — different progression exposure between the arms");
+  /* with the trial standing, BOTH arms step flat +1, and the receipt names the freeze */
+  SU1.trials = [{ custom: { t: "AB", q: "q", arms: ["a", "b"], blockDays: 28, cycles: 1, metric: "lift_pair", exA: "tricep", exB: "sulek", abId: "failureAB1" }, started: isoU }];
+  const stepT1 = __test.progressStep(exT, SU1), stepS1 = __test.progressStep(exS, SU1);
+  ok(stepT1.add === 1 && stepS1.add === 1, "U1 — with the lift_pair trial standing BOTH arms step flat +1: identical progression exposure, the experiment unconfounded");
+  ok(/failure A\/B/.test(stepT1.why) && /flat/.test(stepT1.why) && /calibration data/.test(stepT1.why), "U1 — the receipt NAMES the chosen freeze (flat +1) and keeps the calibration promise");
+  /* and the freeze reaches the actual targets */
+  const tT = __test.targetsFor(exT, SU1), tS = __test.targetsFor(exS, SU1);
+  const sum9 = (a) => a.reduce((x, y) => x + y, 0);
+  ok(sum9(tT) - 36 === sum9(tS) - 36 && sum9(tT) - 36 === 1, "U1 — targetsFor steps both lifts by exactly the same +1 total rep while the trial runs (tricep " + tT.join(",") + " · sulek " + tS.join(",") + ")");
+  /* the governor still outranks the trial */
+  const exH = clU(exT); exH.holdFlag = true;
+  ok(__test.progressStep(exH, SU1).add === 0, "U1 — the governor hold still outranks the trial freeze: safety above symmetry");
+}
+console.log(`\nFINAL104: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);

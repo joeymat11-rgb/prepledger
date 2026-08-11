@@ -849,8 +849,16 @@ function liftCall(s, exId, opts = {}) {
    cannot count toward a STALL (three of which lighten the bar 5%), the same
    protection a rushed session already gets. The flag now shields him from being
    punished for a bad night instead of blocking him from gaining on one. */
-function progressStep(ex) {
+function progressStep(ex, s) {
   if (ex.holdFlag) return { add: 0, why: "governor hold — the opener has run hot two sessions straight, so nothing climbs until an honest one lands" };
+  /* U1 (volume-verdicts audit, pre-merge) — while a lift_pair trial covers this lift,
+     BOTH arms use the identical next-session rule: FLAT +1, named here as the chosen
+     freeze. The capped arm's prescribed 1 RIR would otherwise earn +2 while the
+     all-out arm's 0 earned +1 — different progression exposure, confounding the very
+     experiment the A/B exists to run. The governor still outranks the trial (above);
+     terminal-RIR reports still file as calibration data. */
+  const abU1 = s && (s.trials || []).find((t9) => t9 && !t9.declined && t9.custom && t9.custom.metric === "lift_pair" && (t9.custom.exA === ex.id || t9.custom.exB === ex.id) && trialArmOn(t9, isoOf(todayStart())));
+  if (abU1) return { add: 1, why: "failure A/B — both arms step +1 flat while the trial runs, so progression exposure stays identical between the capped and the all-out lift; your terminal-RIR reports still file as calibration data" };
   const rs = ex.lastMeta ? rirSetsOf(ex.lastMeta) : [];
   const term = rs.length > 1 ? rs[rs.length - 1] : null;
   const open = rs.length ? rs[0] : null;
@@ -926,7 +934,7 @@ function targetsFor(ex, s) {
   if (!ex.last) return (ex.first || Array(ex.sets).fill(Math.max(1, ex.hi - 2))).slice();
   const t = progressAnchor(ex, s).slice(0, ex.sets);
   while (t.length < ex.sets) t.push(Math.max(1, (t[t.length - 1] || ex.hi - 2) - 1));
-  const { add } = progressStep(ex);
+  const { add } = progressStep(ex, s);
   const cap9 = maxedOut(ex) ? Infinity : ex.hi;   /* MAXED-LADDER — reps are the ladder past the top of a maxed stack */
   for (let n = 0; n < add; n++) {
     let idx = -1;
@@ -1114,9 +1122,10 @@ function parseRungs(text) {
 
    How far reps fall is answerable. Nuzzo et al. 2024 (Sports Medicine; 952
    reps-to-failure tests, 7,289 individuals, 269 studies, 60% resistance-trained)
-   is the best available load-repetition model. Differentiating Epley against
-   their anchors gives a mean absolute error of 0.31 reps; Brzycki underestimates
-   the cost by about 40% and is not used here:
+   is the best available load-repetition model. Nuzzo's aggregate spline serves as a ROUGH SLOPE SOURCE — nothing finer is
+   claimed for it, and the width formula below is an app derivation, not a
+   validated model (an earlier version of this note carried invented validation
+   numbers; retracted):
 
      reps lost ~ (top_of_window + 30) x step / (load + step)
 
@@ -1211,7 +1220,7 @@ function genSession(s, iso, slp) {
       if (e.std && e.own) return `${e.std.join(",")} clean owns it — honest opener, controlled every rep`;
       if (e.reclaim) return `reclaim the exact ${e.reclaim.join(",")} — ${e.reclaim.reduce((a, b) => a + b, 0)} honest reps buys the increment`;
       if (e.ladder) return `set ${e.ladder.set + 1} is the money set — ${e.last ? e.last[e.ladder.set] : "?"} → ${e.ladder.top} finishes the rung`;
-      return `chase ${tgt.join(",")} — ${progressStep(e).why}`;
+      return `chase ${tgt.join(",")} — ${progressStep(e, s).why}`;
     })();
     /* R18a — THE RUNWAY, VISIBLE. Every numeric lift names its next load and the measured
        distance to it — derived ONLY from fields that already exist (nextLoad, windowFor,
@@ -5395,7 +5404,7 @@ function sessionDebrief(s, iso) {
       }
       const laterPrint = dates.some((d) => d > iso && (s.sessionLog[d].entries || []).some((x) => x.id === e.id));
       if (!laterPrint && ex) {
-        const step = progressStep(ex);
+        const step = progressStep(ex, s);
         const t2 = targetsFor(ex, s);
         /* The reason clause is collected, not printed, so that a reason shared by
            EVERY lift gets hoisted into the summary and said once. Six lifts on
@@ -9570,7 +9579,7 @@ export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chan
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
-const LEDGER_DICT = "FIELD DICTIONARY (authoritative — never guess a meaning): NIGHTS: h = hours asleep · bed/wake = clock times as logged (they vary; that is expected) · sol = drift-off, minutes to fall asleep · tags: woke = woke mid-night, caff = late caffeine. DAYS: cal/pro/steps as logged · dayCtx est = athlete-declared estimate day (rough numbers, lower evidentiary weight) · ⌁flags = day weather (event window / seal water / post-refeed / estimate). SESSIONS: entries = performed lifts only, w = load, reps per set, rir = reps in reserve on the opener · skipped = lifts deliberately not done (structured truth, zero phantom reps) · note = athlete prose, read it · niggles = flagged aches · dips = incidental dip count. READS: raw morning scale, sealed = quarantined event water, judge only via damped trend. PULSE bpm / TEMP °F = 60s wrist count and oral reading at wake. MEDSLOG: prescription taken/none with clock time — pure adherence bookkeeping; the system's biggest confound (appetite, pulse, effort, drift-off all move with it) now has a clock. ENERGY: morning 1–5 (1 fumes · 5 caged animal). SORENESS: muscles tapped sore at wake (empty list = nothing sore, logged). GRIP: best squeeze per hand in lb, same posture daily — a CNS-readiness number. DAILY sodium low/med/high and alcohol units ride the day numbers — units are a COUNT ONLY, a covariate for sleep/pulse/scale attribution; their calories live inside the athlete's logged cal and are never added by the app; on estimate days the unit count is a bracket midpoint like everything else. CAFFLOG: actual daily caffeine — mg and clock time as logged (mg 0 = a deliberate none-day); tail math runs on these, never an assumed noon. FEED: the app's event log — amendments and corrections here OVERRIDE older raw rows. RECORDS: a rep line becomes his when it clears his own measured set-to-set spread and then repeats — sleep is NOT a condition on it and never mention pending-on-sleep, that rule is retired. LAWS: a single terminal failure set per exercise, every session, including after a short night.";
+const LEDGER_DICT = "FIELD DICTIONARY (authoritative — never guess a meaning): NIGHTS: h = hours asleep · bed/wake = clock times as logged (they vary; that is expected) · sol = drift-off, minutes to fall asleep · tags: woke = woke mid-night, caff = late caffeine. DAYS: cal/pro/steps as logged · dayCtx est = athlete-declared estimate day (rough numbers, lower evidentiary weight) · ⌁flags = day weather (event window / seal water / post-refeed / estimate). SESSIONS: entries = performed lifts only, w = load, reps per set, rir = reps in reserve on the opener · skipped = lifts deliberately not done (structured truth, zero phantom reps) · note = athlete prose, read it · niggles = flagged aches · dips = incidental dip count. READS: raw morning scale, sealed = quarantined event water, judge only via damped trend. PULSE bpm / TEMP °F = 60s wrist count and oral reading at wake. MEDSLOG: prescription taken/none with clock time — pure adherence bookkeeping; the system's biggest confound (appetite, pulse, effort, drift-off all move with it) now has a clock. ENERGY: morning 1–5 (1 fumes · 5 caged animal). SORENESS: muscles tapped sore at wake (empty list = nothing sore, logged). GRIP: best squeeze per hand in lb, same posture daily — a CNS-readiness number. DAILY sodium low/med/high and alcohol units ride the day numbers — units are a COUNT ONLY, a covariate for sleep/pulse/scale attribution; their calories live inside the athlete's logged cal and are never added by the app; on estimate days the unit count is a bracket midpoint like everything else. CAFFLOG: actual daily caffeine — mg and clock time as logged (mg 0 = a deliberate none-day); tail math runs on these, never an assumed noon. FEED: the app's event log — amendments and corrections here OVERRIDE older raw rows. RECORDS: a rep line becomes his when it clears his own measured set-to-set spread and then repeats — the spread is typicalError, a SINGLE-OBSERVATION typical error: paired same-load, same-set-count differences ÷ √2 (31 pairs when defined; the live n grows with the log) — sleep is NOT a condition on it and never mention pending-on-sleep, that rule is retired. LAWS: a single terminal failure set per exercise, every session, including after a short night.";
 
 async function ghSync(state) {
   let tok = null;
@@ -10968,7 +10977,7 @@ __test.bfEst = bfEst;
 __test.migrate = migrate;
 __test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
 __test.targetsFor = targetsFor;
-__test.runAdaptive = runAdaptive; __test.isPristineSeed = isPristineSeed; __test.sleepMean3At = sleepMean3At; __test.VOL_SESS_CAP = VOL_SESS_CAP; __test.VOL_REVIEW_HI = VOL_REVIEW_HI; __test.DELIVERED_MAJ = DELIVERED_MAJ; __test.REVIEW_OUTCOME_D = REVIEW_OUTCOME_D; __test.restoreOfferStands = restoreOfferStands; __test.clearRestoreOffer = clearRestoreOffer; __test.labGroupsM = labGroupsM; __test.restoreFromCloud = restoreFromCloud; __test.mergeState = __test.mergeState || mergeState; __test.dossierText = __test.dossierText || dossierText; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
+__test.runAdaptive = runAdaptive; __test.isPristineSeed = isPristineSeed; __test.sleepMean3At = sleepMean3At; __test.progressStep = progressStep; __test.VOL_SESS_CAP = VOL_SESS_CAP; __test.VOL_REVIEW_HI = VOL_REVIEW_HI; __test.DELIVERED_MAJ = DELIVERED_MAJ; __test.REVIEW_OUTCOME_D = REVIEW_OUTCOME_D; __test.restoreOfferStands = restoreOfferStands; __test.clearRestoreOffer = clearRestoreOffer; __test.labGroupsM = labGroupsM; __test.restoreFromCloud = restoreFromCloud; __test.mergeState = __test.mergeState || mergeState; __test.dossierText = __test.dossierText || dossierText; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
 __test.stepKcal = stepKcal;
 __test.stepEfficacy = stepEfficacy;
 __test.DT = DT;
