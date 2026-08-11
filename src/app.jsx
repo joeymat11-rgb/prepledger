@@ -80,13 +80,13 @@ function hexA(hex, a) {
 const PALETTE = {
   dark: {
     ink: "#101418", plate: "#181E24", plate2: "#1F262E", line: "#2A323B",
-    chalk: "#E8E4DA", steel: "#8A94A0", dim: "#5A636E",
-    jade: "#4CC38A", brass: "#E5B454", orange: "#F5793A", redline: "#E8556B", gauge: "#3FB4D8",
+    chalk: "#E8E4DA", steel: "#8A94A0", dim: "#848E9A",   /* A1 — was #5A636E (2.76:1 on plate): the queued 3.0-3.2 class, killed by the auditor */
+    jade: "#4CC38A", brass: "#E5B454", orange: "#F5793A", redline: "#F0697E", gauge: "#3FB4D8",
     hairline: "rgba(90,99,110,0.4)",
   },
   light: {
     ink: "#F4F2ED", plate: "#FFFFFF", plate2: "#F0EDE6", line: "#DBD6CC",
-    chalk: "#1A1F25", steel: "#5C646E", dim: "#A8AEB6",
+    chalk: "#1A1F25", steel: "#5C646E", dim: "#6E7680",   /* A1 — was #A8AEB6 (2.24:1 on paper) */
     jade: "#14663F", brass: "#8A6520", orange: "#B4471A", redline: "#B3123C", gauge: "#0E6C87",
     hairline: "rgba(168,174,182,0.55)",
   },
@@ -104,6 +104,7 @@ const resolveTheme = (choice) => (choice === "light" || choice === "dark") ? cho
 function applyTheme(choice) {
   const mode = resolveTheme(choice);
   Object.assign(T, PALETTE[mode]);
+  Object.assign(DT, DT_PALETTE[mode]);   /* A1 — the second token system dies: DT themes with T */
   T.focus = T.gauge;
   SEM.good.c = T.jade; SEM.caution.c = T.orange; SEM.limit.c = T.redline;
   SEM.measured.c = T.brass; SEM.quiet.c = T.steel;
@@ -240,11 +241,29 @@ const SP = { hair: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48, h
    - Glyphs are geometric, never emoji: status ◆ · empty/ok ◇ · forward ▸ · separator ·
    THE ENGINE IS FROZEN through every R15 slice — tools/engine-diff.mjs holds that line in
    the gate; these tokens may change how a number LOOKS, never what it IS. */
+/* A1 (design round) — ONE TOKEN SYSTEM. DT was a hardcoded dark island: NOW/gym
+   built plates on it while THEMED text landed on top — light mode rendered the app's
+   most important numbers at 1.10:1 (V1, the round's P0). DT is now THEMED like T:
+   applyTheme assigns DT_PALETTE[mode], dark values verbatim (dark mode is
+   byte-identical), light gets true paper. The CI contrast auditor
+   (tools/contrast-audit.mjs, in the gate) holds every resolved pair ≥ 4.5 in BOTH
+   themes — no hand recolor ships without it. */
+const DT_PALETTE = {
+  dark: {
+    bg: "#07090C", bg2: "#0A0D11", card: "#11151B", card2: "#151A21", well: "#0D1116",
+    hairline: "#222A34", hairline2: "#2C3642",
+    ink: "#E9EEF4", steel: "#8D9AAB", dim: "#7C8794",   /* RB-2 — was #5C6875 (~3.1:1 on card); 4.6:1 now, still a step under steel: quiet, legible */
+    jade: "#5ED4A2", amber: "#E5B454", red: "#E06056", decision: "#5FB7E8",
+  },
+  light: {
+    bg: "#F4F2ED", bg2: "#EFECE5", card: "#FFFFFF", card2: "#F5F2EB", well: "#ECE8E0",
+    hairline: "#D8D3C9", hairline2: "#C9C3B8",
+    ink: "#1A1F25", steel: "#525A64", dim: "#5D656F",
+    jade: "#14663F", amber: "#7A5A1C", red: "#B3123C", decision: "#0E6C87",
+  },
+};
 const DT = {
-  bg: "#07090C", bg2: "#0A0D11", card: "#11151B", card2: "#151A21", well: "#0D1116",
-  hairline: "#222A34", hairline2: "#2C3642",
-  ink: "#E9EEF4", steel: "#8D9AAB", dim: "#7C8794",   /* RB-2 — was #5C6875 (~3.1:1 on card); 4.6:1 now, still a step under steel: quiet, legible */
-  jade: "#5ED4A2", amber: "#E5B454", red: "#E06056", decision: "#5FB7E8",
+  ...DT_PALETTE.dark,
   radius: 18, grid: 4, space: [4, 8, 12, 16, 24],
   ramp: [9, 10.5, 12, 13.5, 15, 19, 24, 32, 54],
   track: { small: "0.20em", mid: "0.10em", display: "0.04em" },
@@ -11055,7 +11074,7 @@ __test.bfEst = bfEst;
 __test.migrate = migrate;
 __test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
 __test.targetsFor = targetsFor;
-__test.runAdaptive = runAdaptive; __test.isPristineSeed = isPristineSeed; __test.sleepMean3At = sleepMean3At; __test.progressStep = progressStep; __test.setOneRead = setOneRead; __test.deloadLoad = deloadLoad; __test.progressAnchor = __test.progressAnchor || progressAnchor; __test.VOL_SESS_CAP = VOL_SESS_CAP; __test.VOL_REVIEW_HI = VOL_REVIEW_HI; __test.DELIVERED_MAJ = DELIVERED_MAJ; __test.REVIEW_OUTCOME_D = REVIEW_OUTCOME_D; __test.restoreOfferStands = restoreOfferStands; __test.clearRestoreOffer = clearRestoreOffer; __test.labGroupsM = labGroupsM; __test.restoreFromCloud = restoreFromCloud; __test.mergeState = __test.mergeState || mergeState; __test.dossierText = __test.dossierText || dossierText; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
+__test.runAdaptive = runAdaptive; __test.isPristineSeed = isPristineSeed; __test.sleepMean3At = sleepMean3At; __test.progressStep = progressStep; __test.PALETTE = PALETTE; __test.DT_PALETTE = DT_PALETTE; __test.setOneRead = setOneRead; __test.deloadLoad = deloadLoad; __test.progressAnchor = __test.progressAnchor || progressAnchor; __test.VOL_SESS_CAP = VOL_SESS_CAP; __test.VOL_REVIEW_HI = VOL_REVIEW_HI; __test.DELIVERED_MAJ = DELIVERED_MAJ; __test.REVIEW_OUTCOME_D = REVIEW_OUTCOME_D; __test.restoreOfferStands = restoreOfferStands; __test.clearRestoreOffer = clearRestoreOffer; __test.labGroupsM = labGroupsM; __test.restoreFromCloud = restoreFromCloud; __test.mergeState = __test.mergeState || mergeState; __test.dossierText = __test.dossierText || dossierText; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
 __test.stepKcal = stepKcal;
 __test.stepEfficacy = stepEfficacy;
 __test.DT = DT;

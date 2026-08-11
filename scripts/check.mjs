@@ -17,6 +17,7 @@
 // only exercises the app's logic.
 
 import fs from "node:fs";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import YAML from "yaml";
 import {
@@ -46,6 +47,14 @@ export async function freshness() {
 }
 
 // ------------------------------------------------------------ 3. sw version --
+/* A1 (design round) — the contrast auditor runs as a hard gate: two token systems
+   collided once (V1: 1.10:1 hero numbers in light mode) and no hand recolor ships
+   without every resolved pair clearing 4.5:1 in BOTH themes. */
+function contrastGate() {
+  const r = spawnSync(process.execPath, [at("tools", "contrast-audit.mjs")], { cwd: ROOT, encoding: "utf8" });
+  const out = ((r.stdout || "") + (r.stderr || "")).trim().split(String.fromCharCode(10)).pop() || "contrast audit";
+  return r.status === 0 ? { ok: true, detail: out } : { ok: false, detail: out };
+}
 function swMatch() {
   const app = appVersion();
   const sw = swVersion();
@@ -194,6 +203,7 @@ export async function check({ strict = false } = {}) {
   else { warn(fresh.detail); note("run `npm run build` — or just `npm run ship`, which rebuilds for you"); soft++; }
 
   for (const [label, fn] of [
+    ["contrast", contrastGate],   /* A1 (design round) — resolved pairs, both themes */
     ["sw version", swMatch],
     ["lockdown", lockdown],
     ["secrets", secretScan],
