@@ -7427,7 +7427,7 @@ if (fail) process.exit(1);
     ok(garbage3.dailyLogs[isoT3].cal === 0 && isFinite(garbage3.dailyLogs[isoT3].cal), "R15k r4 — garbage cannot reach the store as garbage: stepValue floors it at the control's min, so a non-finite typed value becomes a number or nothing, never a string and never a throw");
     ok(sv2("163.4", 0, 1, 0) === 163.4 && sv2("163.45", 0, 1, 0) === 163.4 && sv2("163.46", 0, 1, 0) === 163.5, "R15k r4 — the scale keeps its decimal through typing and rounds to the 0.1 the app records. My first expectation here was wrong and the code was right: 163.45 is stored as 163.4499… in binary floating point, so toFixed(1) gives 163.4 — the pin now states the measured truth, and 163.46 proves rounding still climbs");
     ok(cs.indexOf("onBlur={(e) => setWIn(stepValue(e.target.value, 0, 1, 0))}") > -1 && cs.indexOf('onKeyDown={(e) => { if (e.key === "Enter")') > -1 && cs.indexOf("try { e.target.select(); }") > -1, "R15k r4 — commit on blur AND Enter, select-on-focus so typing replaces rather than appends: the keyboard is numeric (inputMode decimal) on all four fields");
-    ok(cs.indexOf("const saveScale = () => { const w9 = stepValue(wIn, 0, 1, 0);") > -1 && cs.indexOf("cal: stepValue(cal, 0, 1, 0), pro: stepValue(pro, 0, 1, 0), steps: stepValue(stp, 0, 1, 0)") > -1, "R15k r4 — and BOTH commits coerce at the boundary, so a field left mid-edit cannot write a string into the ledger");
+    ok(cs.indexOf('const w9 = stepValue(wIn, 0, 1, 0); const tk = typoKeep("weight", w9);') > -1 && cs.indexOf("const c9 = stepValue(cal, 0, 1, 0), p9 = stepValue(pro, 0, 1, 0), st9 = stepValue(stp, 0, 1, 0);") > -1, "R15k r4 (evolved by RB-3) — BOTH commits still coerce at the boundary AND now pass the typo net: a mid-edit string can never reach the ledger, and an absurd number asks once in plain words before it does");
   }
 
   /* ---------- R15k r5 — THE SURFACE MAY NOT AUTHOR A MEASUREMENT ----------
@@ -8073,7 +8073,97 @@ if (fail) process.exit(1);
     ok(srcL.indexOf("} dark — can't read") > -1 && srcL.indexOf('state: "quiet", detail: `${darkD} night') > -1, "DARK GAUGES — THE FIVE's sleep row goes quiet with the count of dark nights when the newest night is older than yesterday: three dark nights can never again read as a clean week");
     ok(srcL.indexOf("slp.last.d >= isoOf(new Date(todayStart().getTime() - DAY))") > -1, "DARK GAUGES — the gym header's SLEPT-N-H line claims currency only when the night IS current; a stale night renders the fallback, not a false reading. Engine behaviour unchanged: cleanAtDate keeps its permissive default (short sleep protects), the retired upside gate stays retired — this round moved LABELS only");
     /* the sheet renders the ledger, answerable */
-    ok(srcL.indexOf("OWED — ") > -1 && srcL.indexOf("saveNightFor(r.d, bd, wk)") > -1 && srcL.indexOf("writeDaily(s, r.d, { cal: stepValue(") > -1 && srcL.indexOf('"≈ estimated" : "exact"') > -1 && srcL.indexOf("MORE</button>") > -1, "THE SHEET — the hero is the OWED list (~3 shown, +N MORE), each row answerable inline: nights through the parameterized saveNightFor (the write path's only change is the date), days through writeDaily(s, iso) with the est flag defaulting ON for backfills older than yesterday (toggleable — rough numbers count)");
+    ok(srcL.indexOf("OWED — ") > -1 && srcL.indexOf("saveNightFor(r.d, bd, wk)") > -1 && srcL.indexOf("writeDaily(s, r.d, { cal: cB, pro: pB, steps: sB })") > -1 && srcL.indexOf('"≈ estimated" : "exact"') > -1 && srcL.indexOf("MORE</button>") > -1, "THE SHEET — the hero is the OWED list (~3 shown, +N MORE), each row answerable inline: nights through the parameterized saveNightFor (the write path's only change is the date), days through writeDaily(s, iso) with the est flag defaulting ON for backfills older than yesterday (toggleable — rough numbers count)");
+  }
+
+  /* ---------- THE RELEASE BOARD ROUND (RB-1 · RB-2 · RB-3 · RB-6) ---------- */
+  {
+    const cl60 = (o) => JSON.parse(JSON.stringify(o));
+    const srcB = readFileSync("src/app.jsx", "utf8");
+    /* RB-1 — the fingerprint, both directions */
+    const P0 = __test.migrate(null);   /* the eviction boot: migrate(null) = the seed */
+    ok(__test.isPristineSeed(P0) === true, "RB-1 — a wiped device boots the seed and the fingerprint SAYS SO: every append store at seed counts and tail dates");
+    const P1 = cl60(P0); P1.reads = [...P1.reads, { d: "2026-09-01", w: 160 }];
+    ok(__test.isPristineSeed(P1) === false, "RB-1 — one real read and the card never shows: the fingerprint is deep, not a version check");
+    /* the restore's MERGE MECHANICS, driven synchronously (the same path minus fetch:
+       restoreFromCloud = fetch -> strip -> migrate -> mergeState(remote, local) -> feed).
+       The fetch specifics are source-pinned below; the async wrapper cannot run at the
+       suite's top level (cjs bundle). */
+    const REMOTE = cl60(__test.SEED);
+    REMOTE.reads = [...REMOTE.reads, { d: "2026-08-09", w: 162.5 }, { d: "2026-08-10", w: 162.1 }];
+    REMOTE.sleep.nights = [...REMOTE.sleep.nights, { d: "2026-08-08", h: 7.4, bed: "23:30", wake: "07:00", tags: [], sol: 10 }];
+    REMOTE.targets = { ...(REMOTE.targets || {}), proteinG: 178 };
+    const LOCAL = cl60(P0);
+    LOCAL.dailyLogs = { ...LOCAL.dailyLogs, "2026-09-02": { cal: 2100, pro: 170, steps: 12000 } };
+    const RESTORED = __test.migrate(__test.mergeState(__test.migrate(cl60(REMOTE)), LOCAL));
+    ok(RESTORED.reads.length === REMOTE.reads.length && RESTORED.sleep.nights.length === REMOTE.sleep.nights.length && RESTORED.dailyLogs["2026-09-02"] && RESTORED.dailyLogs["2026-09-02"].cal === 2100, "RB-1 — the restore merge lands the remote counts AND keeps the post-wipe log: the merge never shrinks (data-loss law across the restore)");
+    ok(RESTORED.targets.proteinG === 178, "RB-1 — remote wins the scalars: his real targets come back, not the seed's");
+    ok((RESTORED.reads || []).length >= (LOCAL.reads || []).length && Object.keys(RESTORED.dailyLogs).length >= Object.keys(LOCAL.dailyLogs).length && Object.keys(RESTORED.sessionLog).length >= Object.keys(LOCAL.sessionLog).length, "RB-1 — every count >= before, measured");
+    ok(srcB.indexOf("if (!res.ok) throw new Error(") > -1 && srcB.indexOf("LEDGER RESTORED FROM THE CLOUD") > -1 && srcB.indexOf("delete remote._dictionary;") > -1, "RB-1 — the fetch path at source: a bad response THROWS to the card (no partial write), the receipt names the restored counts, the dictionary strips before migrate");
+    ok((() => { const fx = srcB.slice(srcB.indexOf("async function restoreFromCloud"), srcB.indexOf("function loadState()")); return fx.indexOf("application/vnd.github.raw") > -1 && fx.indexOf("Authorization") === -1; })(), "RB-1 — the restore carries NO Authorization header anywhere in the app source: a wiped phone with an evicted token still restores, because the repo is public by Joe's own decision");
+    ok(srcB.indexOf("THIS DEVICE HAS NO HISTORY") > -1 && srcB.indexOf("Re-link keys (sync + analyst)") > -1 && srcB.indexOf("openRules ? openRules() : go(") > -1, "RB-1 — the card is on NOW in plain words with a LIVE re-link door (R14: the tap opens the Rulebook where both keys live)");
+    /* RB-3 — the board's exact repro, timed */
+    const SR3 = cl60(__test.SEED);
+    SR3.dailyLogs = { ...SR3.dailyLogs, "2026-08-05": { cal: 10000000, pro: 200, steps: 12000 } };
+    SR3.reads = [...SR3.reads, { d: "2026-08-06", w: 500 }];
+    const t0 = performance.now();
+    const dossier = __test.dossierText(__test.migrate(SR3));
+    const ms3 = performance.now() - t0;
+    ok(typeof dossier === "string" && ms3 < 2000, "RB-3 ACCEPTANCE — the board's exact repro (a 10,000,000-cal day + a 500-lb read) runs dossierText in " + Math.round(ms3) + "ms (< 2000): the ±10 lb/wk clamp at the cone boundary ends the runCone+GC stall");
+    ok(srcB.indexOf("rts.push(Math.max(-10, Math.min(10,") > -1 && srcB.indexOf('const SANE = { weight: [80, 400], cal: [0, 20000], pro: [0, 500], steps: [0, 200000] };') > -1 && srcB.indexOf("Keep it anyway?") > -1, "RB-3 — the typo net at every typed write site (asks once, keeps on the athlete's say-so with a feed receipt) and the lab clamp at the boundary the instrument consumes");
+    /* RB-2 — the contrast token, computed */
+    const hex2rgb = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+    const lum = (h) => { const [r, g, b] = hex2rgb(h).map((c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+    const contrast = (a, b) => { const l1 = lum(a), l2 = lum(b); return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05); };
+    const dimM = srcB.match(/dim: "(#[0-9A-Fa-f]{6})",[^\n]*RB-2/);
+    const cardM = srcB.match(/card: "(#[0-9A-Fa-f]{6})"/);
+    ok(dimM && cardM && contrast(dimM[1], cardM[1]) >= 4.5, "RB-2 — DT.dim (" + (dimM ? dimM[1] : "?") + ") clears 4.5:1 on DT.card (" + (cardM ? cardM[1] : "?") + "): " + (dimM && cardM ? contrast(dimM[1], cardM[1]).toFixed(2) : "?") + ":1 — computed from the tokens themselves, so the class cannot regress silently");
+    /* RB-6 — the honest banner + the container heal */
+    ok(srcB.indexOf("STORED DATA UNREADABLE — this device's copy would not load.") > -1 && srcB.indexOf("private browsing?") === -1, "RB-6 — the banner reports what it knows (the stored copy would not load) instead of guessing at private browsing");
+    const mal6 = cl60(__test.SEED); delete mal6.sleep; delete mal6.dailyLogs; mal6.reads = [{ d: "2026-08-01", w: 165 }];
+    const healed = __test.migrate(mal6);
+    ok(Array.isArray(healed.sleep.nights) && healed.reads.length === 1, "RB-6 — a malformed store missing containers heals in migrate and keeps every array it did hold");
+  }
+
+  /* ---------- BOARD FIX ROUND — the stall's mechanism, the persistent offer ---------- */
+  {
+    const cl70 = (o) => JSON.parse(JSON.stringify(o));
+    const srcF = readFileSync("src/app.jsx", "utf8");
+    /* DEFECT 1 — the guarantees at source, and the memo driven on the LIVE shape */
+    ok(srcF.indexOf("const safe9 = (fn) => { try { return fn(s) || []; } catch (e) { return []; } };") > -1 && srcF.indexOf("safe9(labAnalytics), ...safe9(labAnalytics2), ...safe9(sleepLab), ...safe9(shelfItems)") > -1, "BOARD FIX 1 — PER-PRODUCER ISOLATION: a choking producer yields [] and the other three stand; labGroups structurally cannot throw partway");
+    ok(srcF.indexOf("let g; try { g = labGroups(s); } catch (e) { g = []; } _labMemo.set(s, g);") > -1, "BOARD FIX 1 — THE MEMO LANDS ON EVERY OUTCOME: the set-only-on-success gap that made every caller re-pay the full 49-instrument compute is structurally dead");
+    /* the LIVE-shaped acceptance — the fixture law honored: the real ledger, absurd
+       values injected, and the SECOND call must be memo-instant */
+    const rawL = JSON.parse(readFileSync("ledger/state.json", "utf8")); delete rawL._dictionary;
+    let SL = __test.migrate(rawL);
+    SL.dailyLogs = { ...SL.dailyLogs, "2026-08-05": { ...(SL.dailyLogs["2026-08-05"] || {}), cal: 10000000 } };
+    SL.reads = [...SL.reads, { d: "2026-08-06", w: 500 }];
+    SL = __test.migrate(SL);
+    const tA = performance.now();
+    const g1 = __test.labGroupsM(SL);
+    const msA = performance.now() - tA;
+    const tB = performance.now();
+    const g2 = __test.labGroupsM(SL);
+    const msB = performance.now() - tB;
+    ok(Array.isArray(g1) && msA < 2000, "BOARD FIX 1 ACCEPTANCE (live shape) — the full lab computes on the REAL ledger with the board's absurd values in " + Math.round(msA) + "ms (< 2000). My node rig could not reproduce the browser's >60s (31ms snapshot / 19ms live, frozen AND real clock — on the record); the mechanism guarantees close the audit's profiled multiplication regardless");
+    ok(g2 === g1 && msB < 50, "BOARD FIX 1 — the SECOND call is the memo (" + msB.toFixed(1) + "ms, same reference): the re-payment multiplication — the stall's engine — cannot run");
+    const tD = performance.now();
+    const dossL = __test.dossierText(SL);
+    ok(typeof dossL === "string" && performance.now() - tD < 2000, "BOARD FIX 1 — dossierText on the live+absurd shape: " + Math.round(performance.now() - tD) + "ms");
+    /* DEFECT 2 — the offer persists; driven through a stubbed store */
+    const realLS = globalThis.localStorage;
+    const store7 = {};
+    globalThis.localStorage = { getItem: (k) => (k in store7 ? store7[k] : null), setItem: (k, v) => { store7[k] = String(v); }, removeItem: (k) => { delete store7[k]; } };
+    store7["pl-restore-offer"] = "1";
+    ok(__test.restoreOfferStands() === true, "BOARD FIX 2 — the offer is a MARKER, not a re-derivation: it stands while set…");
+    __test.clearRestoreOffer();
+    ok(__test.restoreOfferStands() === false, "…and only an explicit clear (restore success, or the athlete's Not now) removes it");
+    globalThis.localStorage = realLS;
+    ok(srcF.indexOf('if (isPristineSeed(s)) { try { localStorage.setItem(RESTORE_OFFER_KEY, "1"); } catch (e) {} }') > -1 && srcF.indexOf("const pristine9 = isPristineSeed(s) || restoreOfferStands();") > -1, "BOARD FIX 2 — the marker is set on the pristine BOOT and the card renders on marker-OR-fingerprint: log the morning scale after a wipe and the card STILL offers — its own promise, now mechanically true");
+    ok(srcF.indexOf(".then((ns) => { clearRestoreOffer(); setS(ns);") > -1 && srcF.indexOf("onClick={() => { clearRestoreOffer(); const ns = { ...s }; setS(ns); save(ns); }}>Not now</Btn>") > -1, "BOARD FIX 2 — exactly two clears exist: restore success, and the athlete's own Not now tap. A dismissal is his act, never a side effect of logging");
+    /* the low notes */
+    ok(srcF.indexOf("for (const [kC, vC] of [[" + String.fromCharCode(34) + "cal" + String.fromCharCode(34)) > -1 && srcF.indexOf("const tkB = typoKeep(kB, vB);") > -1, "LOW 1 — the two bypassing doors (BRIEF's classic day card, the owed backfill rows) now pass the typo net like every other typed write");
+    ok(srcF.indexOf('offline === "load" ?') > -1 && srcF.indexOf("CANNOT SAVE — private browsing or full storage") > -1, "LOW 2 — the banner says WHICH truth: would-not-load (the cloud is intact) vs cannot-save (quota/private browsing) — honest in both directions");
   }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);
