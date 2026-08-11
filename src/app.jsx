@@ -1879,91 +1879,32 @@ function anchorTighten(s) {
    steps the target up, because that is where his own subgroup's evidence gets
    stronger. It never drops below the house number he already runs. */
 const PROTEIN_FLOOR_G_PER_KG = 2.5;
-const PROTEIN_LEAN_G_PER_KG = 3.0;
-const LEAN_SUBGROUP_BF = 12.2;
 function proteinTarget(s) {
   const bf = bfEst(s);
   const ffmKg = bf.lean / 2.2046;
-  /* ---------- PROTEIN_BAND_NOTE — a knife-edge threshold on a number with
-     three and a half points of error ----------
-     inLeanSubgroup used to be a hard test of the POINT estimate against 12.2%.
-     His body-fat read is 15% with an honest interval of 11.4–18.7 — the
-     threshold sits INSIDE his own confidence band. So a single decimal of drift
-     in a coach's-eye anchor would swing the target thirty grams, and the app
-     would state either number with the same flat confidence. That is a hard
-     seal on a noisy reading, which is precisely what the charter forbids.
-
-     Soft design instead: when the band straddles the line, carry BOTH numbers
-     as a range rather than picking one and hiding the coin-flip. The floor is
-     the evidence-backed line either way — the deficit meta-regression's trend
-     crosses zero net lean-mass change at 2.5 g/kg FFM. The top of the range is
-     the lean-subgroup coefficient, which applies if he is at the low end of his
-     own interval. Anywhere in between is defensible; below the floor is not. */
-  const straddles = bf.lo <= LEAN_SUBGROUP_BF && bf.hi >= LEAN_SUBGROUP_BF;
-  const inLeanSubgroup = bf.hi <= LEAN_SUBGROUP_BF;
-  const perKg = inLeanSubgroup ? PROTEIN_LEAN_G_PER_KG : PROTEIN_FLOOR_G_PER_KG;
-  const evidence = Math.round((ffmKg * perKg) / 5) * 5;
+  /* N5/B1 (nutrition round) — THE DYNAMIC EVIDENCE TARGET. The 12.2% body-fat switch
+     is REMOVED: a sample-quartile boundary with subgroup intervals overlapping zero —
+     a range cannot rescue an unsupported discontinuity. The target is 2.5 g/kg of his
+     CURRENT measured FFM (2025 Bayesian deficit-protein meta-regression, authorship
+     TBC — the zero-crossing for net lean change), recomputed whenever the estimate
+     updates and moving in EITHER direction, shown against the estimate's own FFM
+     interval. Eating above it is continuous owner preference, never body-fat-
+     triggered. Joe's standing principle, on the record: "it should always be a
+     dynamic evidence based target" — for every future target display, not just this
+     one. */
   const floor = Math.round(ffmKg * PROTEIN_FLOOR_G_PER_KG);
-  const hi = Math.round((ffmKg * PROTEIN_LEAN_G_PER_KG) / 5) * 5;
-  /* ---------- PROTEIN_CONST_NOTE — the authored 175 finally leaves ----------
-     This read Math.max(PROTEIN, evidence), where PROTEIN was a hardcoded 175.
-     That is the exact failure the rest of this file spent the session removing:
-     a derived number wearing a constant as a floor, so the constant kept
-     winning whenever the evidence sat below it and nothing ever recalculated.
-     It also meant the card DISPLAYED the derived figure while the fix-window
-     logic JUDGED against 175 — the app showing one number and testing another.
-
-     There is no evidence for 175 specifically. The deficit meta-regression's
-     trend line crosses zero net lean-mass change at 2.5 g/kg FFM, and the lean
-     subgroup coefficient roughly doubles under ~12.2% body fat. Both of those
-     are per-kg-of-HIS-lean-mass numbers, and both are already computed above.
-     The target is now whichever of those two the evidence points at, rounded to
-     something a person can actually hit. If his lean mass moves, so does it. */
-  const lo = Math.max(Math.round(floor / 5) * 5, evidence);
-  /* When the band straddles, the headline number is the middle of the defended
-     range, not either end. Quoting the top would tell him to eat thirty grams
-     more on the strength of a coin-flip; quoting the bottom would quietly drop
-     his target on the same coin-flip. The midpoint is the standard estimator
-     when you know the interval and not the point — and the range is printed
-     next to it, so the width is visible rather than implied. */
-  const g = straddles ? Math.round(((lo + hi) / 2) / 5) * 5 : lo;
+  const g = Math.round(floor / 5) * 5;
+  const bw9 = (s && s.trend) || (bf.lean / Math.max(0.5, 1 - bf.pct / 100));
+  const gLo = Math.round(((bw9 * (1 - bf.hi / 100)) / 2.2046) * PROTEIN_FLOOR_G_PER_KG);
+  const gHi = Math.round(((bw9 * (1 - bf.lo / 100)) / 2.2046) * PROTEIN_FLOOR_G_PER_KG);
   return {
-    g, lo, hi: Math.max(lo, hi), floor, perKg, inLeanSubgroup, straddles,
+    g, lo: g, hi: Math.max(g, Math.round(gHi / 5) * 5), floor, perKg: PROTEIN_FLOOR_G_PER_KG,
+    gLo, gHi, inLeanSubgroup: false, straddles: false,
     ffmKg: +ffmKg.toFixed(1), bf: bf.pct, bfLo: bf.lo, bfHi: bf.hi,
-    why: inLeanSubgroup
-      ? `${perKg} g per kg of your ${(+ffmKg.toFixed(1))} kg lean mass — under ${LEAN_SUBGROUP_BF}% body fat the measured return per gram is at its largest (the per-FFM coefficient roughly doubles), so the target steps up rather than down`
-      : straddles
-      /* The honest version of "we do not know which side of the line you are
-         on." Say the range and say why it is a range, rather than quoting one
-         end with false confidence. */
-      ? `${lo}–${Math.max(lo, hi)} g, and the range is the point. ${lo} g is ${PROTEIN_FLOOR_G_PER_KG} g per kg of your ${(+ffmKg.toFixed(1))} kg lean mass — the line where the deficit meta-regression's trend crosses zero net lean-mass change. ${Math.max(lo, hi)} g is the lean-subgroup number, which applies below ${LEAN_SUBGROUP_BF}% body fat. Your body-fat read is ${bf.pct}% with an honest spread of ${bf.lo}–${bf.hi}%, so the threshold sits inside your own error bars and nobody can say which side you are on. Anywhere in the range is defended; under ${floor} g is not. It does not rise on training days — the one study that compared day types found requirement higher on REST days`
-      /* Say plainly that this is ONE number, held every day, and why it does not
-         move: the only direct training-day-vs-rest-day comparison (Moore 2024,
-         indicator amino acid oxidation) found requirement HIGHER on the rest day,
-         and no study has ever tested raising protein on a short-sleep day. */
-      : `Same number every day — ${g} g, which is ${(+(g / ffmKg).toFixed(2))} g per kg of your ${(+ffmKg.toFixed(1))} kg lean mass. The deficit meta-regression's trend line crosses zero net lean-mass change at ${PROTEIN_FLOOR_G_PER_KG} g/kg (${floor} g for you), so you sit clear of it. It does not rise on training days: the one study that compared day types found requirement higher on REST days, not lower`,
+    why: `${g} g today — ${PROTEIN_FLOOR_G_PER_KG} g per kg of your current measured ${(+ffmKg.toFixed(1))} kg lean mass (${gLo}–${gHi} g across the estimate's own ${bf.lo}–${bf.hi}% spread). It moves when the estimate moves, in either direction — the TARGET is always the evidence number, never a pinned constant; eating above it is preference, and legal. Protein is a FLOOR, not a bullseye — over it is never a miss. It does not rise on training days: the one study that compared day types found requirement HIGHER on REST days`,
   };
 }
-/* ---------- PROTEIN_HIT_NOTE — protein is a floor, not a bullseye ----------
-   Every caller used to ask Math.abs(logged - 175) <= 10, which counts eating
-   MORE protein than the target as a miss. Nothing in the literature supports
-   that. The meta-regression identifies a lower threshold below which lean-mass
-   loss rises; there is no upper threshold anywhere near this range, and the
-   only real cost of overshoot is that protein calories displace carbohydrate
-   inside a fixed budget — a note, not a failure.
-
-   The symmetric band was invisible while the target sat at 175, because that is
-   roughly where he eats. The moment the target became derived it would have
-   retroactively reclassified 25 of his 44 logged days from hit to miss, days he
-   ate 175–186 g — the app inventing a compliance problem out of arithmetic.
-   So the test is: at or above the floor, with a small tolerance for the fact
-   that nobody weighs food to the gram. */
-/* The tolerance is ZERO on a floor. It was carried over from the symmetric
-   band, where +/-10 was a food-scale allowance either side of a bullseye — but
-   subtracting it from a floor just moves the floor and creates a third number.
-   The app was saying "under 158 is not defended" and "anywhere 160-190 counts"
-   while actually passing anything at or above 150. One number now. */
-const PROTEIN_TOL_G = 0;
+const PROTEIN_TOL_G = 0;   /* restored — the N5 region rewrite had swallowed it */
 function proteinHit(target, g) { return g != null && g >= target - PROTEIN_TOL_G; }
 
 /* ---------- STEP_NOTE — why the step target is now his own number ----------
@@ -2578,7 +2519,7 @@ function recoveryIndex(s) {
   const eaR = energyAvailability(s);
   if (!eaR.gated && eaR.hi < EA_SPARING) {
     add("ea", `energy availability ${eaR.lo}–${eaR.hi} kcal per kg lean — under the ${EA_SPARING} where a lean male spares muscle`,
-      eaR.stepsToDrop ? `eat ~${eaR.needKcal} more or walk ~${eaR.stepsToDrop.toLocaleString()} fewer steps — the steps are the cheaper half to give back` : `close a ~${eaR.needKcal} kcal/day gap`,
+      eaR.stepsToDrop ? `eat ~${eaR.needKcal} more — FOOD is named first: deficit size is what the trained evidence ties to lean-mass loss (walking ~${eaR.stepsToDrop.toLocaleString()} fewer steps closes the same gap, as the second option)` : `close a ~${eaR.needKcal} kcal/day gap`,
       eaR.lo < EA_LOW ? 25 : 15);
   }
   const score = Math.max(0, Math.round(100 - flags.reduce((a, f) => a + f.cost, 0)));
@@ -2676,7 +2617,7 @@ function stepKcal(bwLb, steps, jPerKgM) {
   return j / 4184;
 }
 
-function observedTDEE(s) {
+function observedTDEE(s, opts) {
   if (daysUntil(s.blackout.until) > 0) return null;
   const r = currentRate(s);
   if (!r.measured) return null;
@@ -2702,14 +2643,17 @@ function observedTDEE(s) {
   const fallback = isoOf(new Date(todayStart().getTime() - 21 * DAY));
   const from = r.from || fallback, to = r.to || isoOf(todayStart());
   let rows = Object.entries(s.dailyLogs).filter(([d, v]) => d >= from && d <= to && v && v.cal != null);
+  const estOf9 = (d) => !!(((s.dayCtx || {})[d] || {}).est);
+  const estW9 = opts && opts.estWeight != null ? opts.estWeight : null;   /* N2 — the DAILY FIT series down-weights estimate days; the primary band path stays byte-identical (THE HOLD) */
   /* matched only when the rate actually HAD endpoints to match against — a
      snapshot rate has none, and claiming a match there would be the same
      quiet fiction this whole note exists to remove */
   let matched = !!(r.from && r.to);
   if (rows.length < 8) { rows = Object.entries(s.dailyLogs).filter(([d, v]) => d >= fallback && v && v.cal != null); matched = false; }
+  const estShare = rows.length ? rows.filter(([d]) => estOf9(d)).length / rows.length : 0;
   const cals = rows.map(([, v]) => v.cal);
   if (cals.length < 8) return null;
-  const avg = cals.reduce((a, b) => a + b, 0) / cals.length;
+  const avg = estW9 == null ? ( cals.reduce((a, b) => a + b, 0) / cals.length) : (rows.reduce((a9, [d, v]) => a9 + v.cal * (estOf9(d) ? estW9 : 1), 0) / Math.max(1, rows.reduce((a9, [d]) => a9 + (estOf9(d) ? estW9 : 1), 0)));
   /* The two halves of the window, so the card can SHOW the difference rather
      than assert it. The first draft of that sentence said his earlier weeks
      "ran leaner", meaning ate less — in an app where lean mass is a tracked
@@ -2791,7 +2735,7 @@ function observedTDEE(s) {
     stepsWhy: (atSteps == null || stepsNow == null) ? null
       : `${tdee} is your maintenance AT ${atSteps.toLocaleString()} average steps — the activity level of the ${cals.length} days it was measured over. You are averaging ${stepsNow.toLocaleString()} over the last seven, which prices at about ${tdeeAtNowNet}–${tdeeAtNowGross} once compensation is carried — the body claws back roughly a quarter to a third of an activity change in someone your leanness, so the gross figure is the edge of the band, not the number. ${stepPromoted ? `That drift clears the measured number's own noise, so the primary is now ${tdeePrimary}, if this week's steps hold — seven days is a projection, not a measurement.` : `That drift sits inside the measured number's own noise band (±${_halfw}), so ${tdee} stays the headline and this is the story behind it, not a new number.`} Steps are the cheapest lever here because adding them does not deepen the food deficit.`,
     lo, hi, clamped: RAW > CEIL, method: r.method, rateN: r.n,
-    rate: r.scale, rateCi: r.ci, from, to, matched, split,
+    rate: r.scale, rateCi: r.ci, from, to, matched, split, estShare: +estShare.toFixed(2), estWeighted: estW9 != null,
     perLb: ed.perLb, perLbLo: ed.lo, perLbHi: ed.hi, edIdentified: ed.identified, impliedPerLb, impossible,
   };
 }
@@ -2834,9 +2778,9 @@ function observedTDEE(s) {
    lying, just more precisely. The hedge travels WITH the number so no call site can quote
    one without the other. */
 const DEFICIT_CEILING = {
-  kcal: 500,
-  claim: "keep the deficit under ~500 kcal/day",
-  hedge: "that 500 comes from a meta-regression whose participants averaged 51-60 years old — at 24 it is the best available number, not a measured one for you",
+  kcal: 500,   /* N1 — a GRADED PRIOR, not a law: the mechanism never enforced it and the words no longer claim it */
+  claim: "treat deficit size as a graded risk — larger deficits buy lean-tissue loss on average, with wide individual spread",
+  hedge: "the ~500 figure is a population meta-regression whose participants averaged 51-60 years old — at 24 it is a hedge, not a wall; the corridor stays the steering target, 0.70%/wk is the upper DEFAULT (the slower arm of one confounded trial, not a discovered optimum), the 1.0%/wk redline matches the fast arm's ACHIEVED rate, and your own green outcomes arbitrate. Hard stops are reserved for genuine health and recovery red flags",
   line() { return this.claim + " (" + this.hedge + ")"; },
 };
 
@@ -2899,7 +2843,9 @@ function dietExit(s) {
     || (((s.feed || []).filter((f) => f.t === "DIET EXIT — MAINTENANCE HELD").pop() || {}).d)
     || null;
   if (!td) {
-    return { gated: true, started, why: "Your maintenance is not measured yet, and the whole point of this plan is that the number you step up to is YOURS. Two clean weekly snapshots and it prints." };
+    /* N4 — the wash-in SEAL gates the maintenance read, never the hold CLOCK: the
+       clock is a date fact and keeps counting through the sealed fortnight */
+    return { gated: true, started, wksHeld: started ? +(((todayStart() - mk(started)) / DAY) / 7).toFixed(1) : 0, why: "Your maintenance is not measured yet, and the whole point of this plan is that the number you step up to is YOURS. Two clean weekly snapshots and it prints." };
   }
   const wksHeld = started ? +(((todayStart() - mk(started)) / DAY) / 7).toFixed(1) : 0;
   const step = ct.gated ? null : td.tdee - ct.mid;
@@ -2916,7 +2862,7 @@ function dietExit(s) {
       step == null
         ? `Step one: eat at ${td.tdee} — your measured maintenance, from ${td.days} logged days of your own intake against your own measured rate.`
         : `Step one: ${ct.mid} → ${td.tdee}. That is ${step > 0 ? "+" : ""}${step} kcal a day, in ONE step, not a ramp. ${td.tdee} is your measured maintenance from ${td.days} logged days — not a number anyone picked.`,
-      `Step two: hold it. ${EXIT_HOLD_MIN_WK} weeks before the scale means anything again — the first few pounds back are glycogen and the water bound to it, and reading those as fat is how people talk themselves back into a deficit they do not need. ${EXIT_HOLD_FULL_WK} weeks before your re-measured maintenance has enough days behind it to trust.`,
+      `Step two: hold it — the REPLENISHMENT WASH-IN. ${EXIT_HOLD_MIN_WK} weeks before the scale means anything again — the first few pounds back are glycogen and the water bound to it, and reading those as fat is how people talk themselves back into a deficit they do not need. ${EXIT_HOLD_FULL_WK} weeks before your re-measured maintenance has enough days behind it to trust.`,
       `Step three: decide, with the numbers the hold produced. Not before, and not on a date. A surplus is one option; staying here is another, and there is no rule that says the next phase has to be a build.`,
     ],
     why: `Reverse dieting — creeping up a hundred calories a week — has no controlled trial behind it; it is practitioner convention. What is replicated is the value of time spent AT maintenance (MATADOR, Byrne 2018, and the diet-break literature), and none of that requires arriving there slowly. The old plan in this app aimed at ~2,450, which was authored and sits ${td.tdee - 2450 > 0 ? `${td.tdee - 2450} kcal under` : `${2450 - td.tdee} kcal over`} your actual measured maintenance — walking into a "maintenance" that is not your maintenance is just a smaller cut wearing a better name.`,
@@ -3121,7 +3067,7 @@ function energyBalanceTargetUncached(s, opts) {
     const hi = td.tdee + kcalFor(BC.BULK_REDLINE_PCT);
     return { ...cur, ...base, dir: "surplus", provisional: unconfirmed, lo, hi, mid: Math.round((lo + hi) / 2),
       capPct: BC.BULK_REDLINE_PCT, perLb: ed.perLb,
-      why: `Lifts are not rising and the scale rate is indistinguishable from zero — the fat term is exhausted, so the only remaining way to move body composition is to build. ${lo}–${hi} is a surplus capped at ${BC.BULK_REDLINE_PCT} %bw/wk.`,
+      why: `Lifts are not rising and the scale rate is indistinguishable from zero — the fat term is exhausted, so the only remaining way to move body composition is to build. ${lo}–${hi} is a surplus capped at ${+(BC.BULK_REDLINE_PCT * 4.345).toFixed(2)} %BW/MONTH (the settled monthly cap) %bw/wk.`,
       doesNotBuy: "The cap is defensible, not optimal. The only trial in trained lifters ran at 18% of its own required sample size; what is well supported is that a bigger surplus reliably adds fat, not that it builds faster." };
   }
 
@@ -3493,11 +3439,16 @@ const BC = {
   // 0.25–0.5 %BW/wk is the novice/intermediate band; above ~0.25%/wk an advanced lifter's surplus
   // spills to fat (Slater 2019: no controlled surplus-size trial exists — practitioner band,
   // labelled as such in the UI). Brackets BULK_LEAN_CEIL_PCT (0.15). [v6.2 audit 4b recalibration]
-  BULK_CORR_PCT: [0.125, 0.25], BULK_REDLINE_PCT: 0.25,   // Aragon & Schoenfeld 2020 / Lyle McDonald / Slater 2019
+  /* N4 — THE MONTHLY BAND IS THE RULING UNIT: 0.25–0.5 %BW/MONTH, redline 0.5/month
+     (the settled cap). The weekly literals below are that band ÷ 4.345, kept weekly
+     ONLY because every internal consumer prices per-week — no instrument anywhere may
+     permit faster than 0.5 %BW/month. The old [0.125,0.25]/wk corridor = 0.54–1.08
+     %/month sat ENTIRELY above the cap — the erratum ran the full depth. */
+  BULK_CORR_PCT: [0.0575, 0.1151], BULK_REDLINE_PCT: 0.1151,
   // BULK · lean-gain ceiling by training age (Aragon & Schoenfeld 2020 / Lyle McDonald model of
   // muscular potential): intermediate ~0.25 %BW/wk, advanced ~0.125. Multi-year trained → the
   // advanced-leaning midpoint. Used as the lean cap on a bulk.
-  BULK_LEAN_CEIL_PCT: 0.15,     // Aragon & Schoenfeld 2020 / Lyle McDonald
+  BULK_LEAN_CEIL_PCT: 0.0921,   // N4 — 0.4 %BW/MONTH ÷ 4.345, reconciled INSIDE the monthly corridor (the old 0.15/wk = 0.65/month also broke the cap)
   BULK_LEAN_BASE: 0.55, BULK_LEAN_SLOPE: 0.60, BULK_LEAN_MIN: 0.15, BULK_LEAN_MAX: 0.60,
   // PROTEIN · the partition lever. CUT lean-retention floor is FFM-based and already derived in
   // proteinTarget (2.5 g/kg FFM: Refalo 2025 zero-crossing for net FFM change; Helms 2014;
@@ -3745,8 +3696,8 @@ function energyDensity(s, dir) {
 // ---- TDEE (Topic 1): a slowly-drifting latent state, EWMA self-learning ----
 const TDEE_EMA_ALPHA = 0.10;              // per-update forgetting (~10-day constant); converges ~2–4 wk
 const TDEE_CONVERGE_MIN = 10;             // snapshots before "converged"
-const TDEE_ACC_LO = 130, TDEE_ACC_HI = 215;   // realistic individual accuracy band, kcal/day (Sanghvi 2015)
-const TDEE_LABEL = "observed maintenance — TDEE MINUS logging bias, not a physiological measurement";
+const TDEE_ACC_LO = 130, TDEE_ACC_HI = 215;   // provisional band floor until his own rolling forecast errors take over below — the old Sanghvi 2015 attribution is RETRACTED (it validated a different estimator)
+const TDEE_LABEL = "apparent maintenance under a 3,500-kcal/lb convention, including net log error — not a physiological measurement";
 
 function tdeeLearned(s, deps) {
   /* TDEE as a slowly-DRIFTING LATENT STATE, self-learning from HIS OWN data. observedTDEE(s) is today's
@@ -3769,19 +3720,26 @@ function tdeeLearned(s, deps) {
   const mean = recent.reduce((a, b) => a + b, 0) / recent.length;
   const sd = recent.length >= 3 ? Math.sqrt(recent.reduce((a, b) => a + (b - mean) * (b - mean), 0) / (recent.length - 1)) : 0;
   const n = rows.length, converged = n >= TDEE_CONVERGE_MIN;
-  const acc = Math.round(Math.max(converged ? TDEE_ACC_HI : TDEE_ACC_HI + 120, sd));   // honest floor, widened before convergence / when fits disagree
+  /* N2 — the band is EMPIRICAL: rolling one-step forecast errors of this very EMA
+     against each next fit (his own data grading his own estimator). Under 6 errors the
+     provisional floor stands, widened before convergence. */
+  const fErr = [];
+  { let e9 = null;
+    for (const r9 of series) { if (e9 != null && r9.tdee != null) fErr.push(Math.abs(r9.tdee - e9)); e9 = e9 == null ? r9.tdee : TDEE_EMA_ALPHA * r9.tdee + (1 - TDEE_EMA_ALPHA) * e9; } }
+  const q90 = fErr.length >= 6 ? fErr.slice().sort((a, b) => a - b)[Math.min(fErr.length - 1, Math.floor(fErr.length * 0.9))] : null;
+  const acc = Math.round(Math.max(q90 != null ? Math.max(q90, sd) : (converged ? TDEE_ACC_HI : TDEE_ACC_HI + 120), sd));   // empirical when it can be, honest floor until then
   const value = Math.round(ema);
   return {
     value, lo: value - acc, hi: value + acc, n, converged, source: "ema", acc, sd: +sd.toFixed(0),
     accLo: TDEE_ACC_LO, accHi: TDEE_ACC_HI, alpha: TDEE_EMA_ALPHA, label: TDEE_LABEL,
-    why: `A ${Math.round(1 / TDEE_EMA_ALPHA)}-day exponential average of ${n} of your own maintenance fits — it tracks the drift without chasing one noisy morning. ${converged ? "Converged" : "Still converging (~2–4 wk)"}. This is your intake-and-scale maintenance MINUS logging bias, carried with a ±${acc} kcal band — not a physiological TDEE.`,
+    why: `A ${Math.round(1 / TDEE_EMA_ALPHA)}-day exponential average of ${n} of your own maintenance fits — it tracks the drift without chasing one noisy morning. ${converged ? "Converged" : "Still converging (~2–4 wk)"}. This is APPARENT maintenance under a 3,500-kcal/lb convention — it includes net log error, which can run either direction — carried with a ±${acc} kcal band calibrated from your own forecast errors. Not a physiological TDEE.`,
   };
 }
 
 // ---- adaptation (Topic 3): observed maintenance below MASS-predicted, gated on significance+persistence ----
 const MAINT_KCAL_PER_LB = 12;   // mass-driven maintenance coefficient (an ESTIMATE/convention, labeled — preferred over naïve RMR-per-kg but not physiology)
 const ADAPT_PERSIST_MIN = 3;    // consecutive below-expected updates before it can fire (never one reading)
-const ADAPT_LABEL = "metabolic adaptation (observed maintenance below mass-predicted) — a GATED directional signal, not a physiological measurement";
+const ADAPT_LABEL = "unexplained residual (observed minus mass-predicted maintenance) — informs forecasts only; never a phase transition, never a diet-break trigger";
 
 function adaptationSignal(s, deps) {
   /* METABOLIC ADAPTATION = observed maintenance drifting BELOW the twin's MASS-predicted maintenance by
@@ -3830,12 +3788,18 @@ function adaptationSignal(s, deps) {
   const stepSwingKcal = (_sSd != null && base.w) ? Math.abs(stepKcal(base.w, _sSd)) : null;
   const predAt = (w) => base.tdee + MAINT_KCAL_PER_LB * (w - base.w);                                  // mass-driven expectation (falls as mass falls)
   const resid = rows.map((x) => ({ d: x.d, stepAdj: Math.round(stepTermAt(x)), r: x.tdee - predAt(x.w) - stepTermAt(x), lo: (x.lo != null ? x.lo : x.tdee) - predAt(x.w) - stepTermAt(x), hi: (x.hi != null ? x.hi : x.tdee) - predAt(x.w) - stepTermAt(x) }));
-  const tail = resid.slice(-ADAPT_PERSIST_MIN);
-  const persistent = tail.every((z) => z.r < 0);                                                        // persistently BELOW mass-expected
+  /* N3 — NONOVERLAPPING persistence: each daily fit spans ~the same 21-28d window, so
+     consecutive rows are pseudo-replicates. Keep one row per 21 days, then ask for
+     ADAPT_PERSIST_MIN of THOSE below zero. */
   const last = resid[resid.length - 1];
+  const spaced9 = [];
+  for (const z9 of resid) { if (!spaced9.length || (mk(z9.d) - mk(spaced9[spaced9.length - 1].d)) / DAY >= 21) spaced9.push(z9); }
+  const tail = spaced9.slice(-ADAPT_PERSIST_MIN);
+  const persistent = tail.length >= ADAPT_PERSIST_MIN && tail.every((z) => z.r < 0);                    // persistently BELOW mass-expected, on NONOVERLAPPING windows
   /* R6 abstention — a residual smaller than the activity swing that produced it is not
      evidence about metabolism. Named in the reason so it does not read as "no adaptation". */
   if (stepSwingKcal != null && Math.abs(last.r) < stepSwingKcal) return off("activity-drift");
+  if (tail.length < ADAPT_PERSIST_MIN) return off("too-thin");   /* N3 — not enough NONOVERLAPPING windows yet */
   const significant = last.hi < 0;                                                                      // the whole residual band clears zero
   const detected = persistent && significant;
   const kcal = Math.round(tail.reduce((a, z) => a + z.r, 0) / tail.length);
@@ -3845,8 +3809,8 @@ function adaptationSignal(s, deps) {
     stepAdj: Math.round(stepTermAt(rows[rows.length - 1])), stepSwingKcal: stepSwingKcal == null ? null : Math.round(stepSwingKcal),
     persistent, significant, perLbCoef: MAINT_KCAL_PER_LB, label: ADAPT_LABEL,
     why: detected
-      ? `Your measured maintenance has run ~${Math.abs(kcal)} kcal/day BELOW what mass loss alone predicts, across the last ${ADAPT_PERSIST_MIN}+ updates with the band clear of zero — a persistent, significant signal, not one reading. Calibration for the plan (it informs the phase arc + the forecast), not a target; the mass expectation is an estimate, so this is a direction, not a decimal.`
-      : `No confident adaptation signal: ${persistent ? "the drop isn't yet clear of the noise band" : "it hasn't persisted across enough updates"}. Gated on significance + persistence so a single low week can't fire it.`,
+      ? `Your measured maintenance has run ~${Math.abs(kcal)} kcal/day BELOW what mass loss alone predicts, across the last ${ADAPT_PERSIST_MIN}+ updates with the band clear of zero — a persistent signal across NONOVERLAPPING windows with the band clear of zero. It informs the forecast only — never a phase change, never a break. Calibration for the plan (it informs the phase arc + the forecast), not a target; the mass expectation is an estimate, so this is a direction, not a decimal.`
+      : `No confident residual: ${persistent ? "the drop isn't yet clear of the noise band" : "it hasn't persisted across enough nonoverlapping windows"}. Gated on significance + persistence so a single low week can't fire it — and even fired, it informs forecasts only.`,
   };
 }
 
@@ -4349,7 +4313,7 @@ function autoPilotPolicy(s, deps) {
 function confidenceField(s, deps) {
   let sig = deps && deps.sig; if (!sig) { try { sig = signalState(s); } catch (e) { sig = { state: "calibrating", n: 0, ticks: 0 }; } }
   const map = {
-    measured:       { word: "MEASURED",     detail: `your trend is real — the rate's 95% CI excludes zero (n=${sig.n || 0})` },
+    measured:       { word: "MEASURED",     detail: `your trend is real — the rate's 95% CI excludes zero (n=${sig.n || 0}). That badge is HIGH confidence, not the only grade of evidence — and at these sample sizes the interval itself is a small-sample estimate` },
     measurable:     { word: "MEASURABLE",   detail: "a real direction, still tightening — treat the number as a range" },
     calibrating:    { word: "CALIBRATING",  detail: "baseline still forming — no confident rate yet" },
     "inside-noise": { word: "INSIDE NOISE", detail: "this week sits inside your scale noise — holding for a clear read" },
@@ -4459,7 +4423,7 @@ function dietBreakHonest() {
     what: "A planned week eating at maintenance — a recovery and adherence pause, then the cut picks back up.",
     metabolic: "It is not a metabolic trick. In lean, trained people a diet break does not rescue metabolic rate: ICECAP (Peos 2021, n=61 resistance-trained) found hunger and diet-satisfaction improved while fat mass, fat-free mass, resting metabolism, leptin, testosterone and T3 were all unchanged. MATADOR's benefit in this population is adherence — and a water/glycogen swing on the scale — not a faster metabolism.",
     scale: "Expect the scale to jump a few pounds within days. That is glycogen and the water bound to it (~3 g of water per gram of carbohydrate stored), transient — not fat regained — and it comes back off when the deficit resumes. Reading it as fat is how people talk themselves out of a break they benefited from.",
-    buys: "What it buys is a break from hunger and dietary restraint, which is the effect the evidence actually replicates. It is not a fat-loss accelerator, and the app will never sell it as one.",
+    buys: "What it buys is a break from hunger and dietary restraint, which is the effect the evidence actually replicates. It is not a fat-loss accelerator and buys no extra muscle — the trained-subgroup resting-metabolism effect is ~11 kcal/day with an interval spanning zero (−46 to +67) — and the app will never sell it as one. The trend window is SEALED across it, so the water back is never read as fat.",
   };
 }
 /* dietBreakState — proposed / active / recent / none, plus the ENGINE-OWNED maintenance number to eat at
@@ -4575,7 +4539,7 @@ function phaseSupervisor(s, deps) {
   }
   const veto = reasons.some((r) => r.floor);
   let kind = null;
-  if (reasons.some((r) => r.code === "ea")) kind = "forceBreak";          // EA low -> a maintenance week
+  if (reasons.some((r) => r.code === "ea")) kind = "leaSentinel";         // N7/N8 — calculated EA can RAISE A SENTINEL, never propose a break (never clearance, never a calorie heuristic)
   else if (veto) kind = "blockDeeper";                                    // redline / protein / floor -> don't deepen; ease / transition
   return {
     veto, kind, reasons, first: reasons[0] || null,
@@ -4598,7 +4562,34 @@ function phaseProposal(s, deps) {
   const arc = (deps && deps.arc) || phaseArc(s, { ...(deps || {}), brk: brkS, sup });
   const h = brkS.honest;
   // 1) SUPERVISOR forces a break (EA under the sparing line) and none is armed/active -> propose one.
-  if (sup.kind === "forceBreak" && (brkS.status === "none" || brkS.status === "recent")) {
+  if (sup.kind === "leaSentinel") {
+    /* N8 — THE LEA SENTINEL: floor-binding/EA events surface a small symptom check —
+       proposal-only, never a calorie heuristic. Libido/morning function is the one
+       discriminating item (LEAM-Q, n=405); the rest is context. Persistent clusters
+       are a HUMAN MEDICAL REVIEW conversation. */
+    return { rid: "leasent_" + today, title: "LOW-ENERGY CHECK — ONE QUESTION THAT DISCRIMINATES", gate: null,
+      why: "Calculated energy availability is running low. A number is never clearance and never a diagnosis — so the check is symptoms, and the one that discriminates in men is libido/morning function; energy, mood and hunger are context. Nothing here changes a calorie. If a cluster like that persists across weeks, the honest next step is a human medical review, not another heuristic.",
+      apply: { kind: "note" } };
+  }
+  const brkCluster = (() => {
+    /* N7 — the ONLY break proposer: a SUSTAINED reported adherence/recovery cluster,
+       after sleep and logging are checked. Never duration, never one rate-floor
+       event, never the residual. */
+    try {
+      const t7 = isoOf(todayStart());
+      const eH7 = (s.energy || []).filter((x) => x.d < t7).slice(-7).map((x) => x.v);
+      const lowEnergy = eH7.length >= 4 && eH7.slice().sort((a9, b9) => a9 - b9)[Math.floor(eH7.length / 2)] <= 2;
+      const eb7 = energyBalanceTarget(s);
+      const last7 = Object.entries(s.dailyLogs || {}).filter(([d, v]) => v && v.cal != null).slice(-7);
+      const unmet = eb7 && eb7.hi ? last7.filter(([, v]) => v.cal > eb7.hi).length >= 3 : false;
+      const recOff = recoveryIndex(s).band !== "GREEN";
+      const sleepOK = sleepMean3At(s, t7);
+      const estShare7 = last7.length ? last7.filter(([d]) => (((s.dayCtx || {})[d] || {}).est)).length / last7.length : 0;
+      const n9 = [lowEnergy, unmet, recOff].filter(Boolean).length;
+      return (n9 >= 2 && sleepOK && estShare7 < 0.5) ? { lowEnergy, unmet, recOff } : null;
+    } catch (e) { return null; }
+  })();
+  if (brkCluster && (brkS.status === "none" || brkS.status === "recent")) {
     const start = today, end = isoOf(new Date(mk(today).getTime() + (BREAK_LEN_DAYS - 1) * DAY));
     return { rid: "phase_break_" + today, title: "DIET BREAK — A WEEK AT MAINTENANCE", gate: null,
       why: `${sup.first ? sup.first.text : "adherence and recovery"}. ${h.metabolic} ${h.scale}`,
@@ -5215,7 +5206,7 @@ function labAnalytics(s) {
       deep: `Energy availability is intake minus the energy training costs, divided by fat-free mass — what is left to run the body on. Fagerberg's 2018 review of lean male physique athletes puts the sparing threshold at ${EA_SPARING} kcal per kg of fat-free mass per day; below about ${EA_LOW}, more than 40% of the weight lost comes off lean mass, alongside falls in testosterone, T3, leptin and resting metabolic rate. Those are the only male-specific thresholds in this literature — most low-energy-availability work is female and built on a questionnaire (LEAF-Q) that cannot be used in men, since half its items concern menstrual function. Two honesty notes. First, the convention counts PURPOSEFUL exercise, and a deliberate 16k-step day sits exactly on the boundary between training and incidental movement, which the convention does not resolve — so this shows both ends of the range rather than picking one and pretending. Second, session cost and walking cost are population estimates, not your measured expenditure. The instrument's job is to say which side of ${EA_SPARING} you are on, and to say which lever closes the gap more cheaply. It is not precise enough to argue about a decimal, and it never changes anything on its own.`,
       forYou: ea.gated
         ? `${ea.have} of ${ea.need} logged calorie days — this opens once there is enough intake data to average honestly.`
-        : `${ea.lo}–${ea.hi} kcal per kg lean, which reads ${ea.band}. ${ea.hi < EA_SPARING ? `You are under the ${EA_SPARING} line on every way of counting it. ${ea.stepsToDrop ? `Closing it takes about ${ea.needKcal} more calories a day, or about ${ea.stepsToDrop.toLocaleString()} fewer steps — and steps are the cheaper half to give back, because they cost you nothing you are trying to keep.` : ""}` : ea.lo < EA_SPARING ? `Counting the walking you are under the line; counting training alone you are over it. That gap is the accounting question, not a measurement error — and at 16k deliberate steps a day the lower number is the more honest one.` : `Above the sparing threshold on both ways of counting.`}`,
+        : `${ea.lo}–${ea.hi} kcal per kg lean, which reads ${ea.band}. ${ea.hi < EA_SPARING ? `You are under the ${EA_SPARING} line on every way of counting it. ${ea.stepsToDrop ? `Closing it names FOOD first — about ${ea.needKcal} more calories a day — because deficit magnitude is what the trained-population evidence links to lean-mass loss; about ${ea.stepsToDrop.toLocaleString()} fewer steps closes the same gap as the second option.` : ""}` : ea.lo < EA_SPARING ? `Counting the walking you are under the line; counting training alone you are over it. That gap is the accounting question, not a measurement error — and at 16k deliberate steps a day the lower number is the more honest one.` : `Above the sparing threshold on both ways of counting.`}`,
       lines: ea.gated ? [] : ea.receipts,
     });
   })();
@@ -6111,7 +6102,7 @@ function labAnalytics2(s) {
     const obs = observedTDEE(s);
     const bmr = Math.round(10 * kg + 6.25 * 178 - 5 * 24 + 5);
     const pred = Math.round(bmr * 1.55);
-    return { id: "adaptmeter", t: "THE ADAPTATION METER", status: obs ? "LIVE" : "ARMED", prog: { n: obs ? 1 : 0, need: 1, label: "observed maintenance (prints with clean post-seal weeks)" },
+    return { id: "adaptmeter", t: "THE UNEXPLAINED RESIDUAL", status: obs ? "LIVE" : "ARMED", prog: { n: obs ? 1 : 0, need: 1, label: "observed maintenance (prints with clean post-seal weeks)" },
       tag: "How much has the deficit slowed your engine, in kcal?",
       deep: "Predicted burn = Mifflin-St Jeor at your live weight (BMR ~" + bmr + ") × 1.55 for your activity pattern — a textbook estimate, stated as such. Observed burn = the maintenance your own ledger measures. The gap is adaptive thermogenesis: the metabolic slowdown dieting causes. It's the single number that sizes September's reverse — eat to the OBSERVED number fast, then build.",
       forYou: obs ? `Textbook says ~${pred}. Your ledger says ~${obs.tdee}. Adaptation: ~${pred - obs.tdee > 0 ? pred - obs.tdee : 0} kcal — ${pred - obs.tdee > 250 ? "real but normal for week " + weekDay().wk + "; the MATADOR card is the counter-move." : "small. Your engine is holding remarkably well."}` : "Arms with the first clean post-seal maintenance print (Mon 7/27+). The textbook half is already computed and waiting.",
@@ -7840,7 +7831,8 @@ const VOL_PUSH_CEIL_WK = VOL_BANDS.ceil;   /* the absolute backstop — a named 
 const VOL_SESS_CAP = 8;                    /* direct hard sets of ONE muscle in ONE session — the concentration cap (~6-8 in the corpus; the trip is the top of that range). Past it the next set belongs on another day. */
 const VOL_REVIEW_LO = VOL_BANDS.hi + 1;    /* the review zone opens past the band top (15) */
 const VOL_REVIEW_HI = 18;                  /* review zone 15-18: offers continue; progression PAST it is gated on the muscle's own delivered+tolerated reads */
-const GAIN_CAP_PCT_WK = 0.5;               /* surplus controlled-gain cap, %BW/wk (0.25-0.5 band; faster gain buys mostly fat — Helms 2023). A bigger surplus is never a reason to escalate volume faster. */
+const WEEKS_PER_MONTH = 4.345;
+const GAIN_CAP_PCT_MO = 0.5;               /* N4 — the SETTLED cap is 0.25–0.5 %BW/MONTH (the volume verdict's "/wk" was an owned erratum, ~4x too permissive). Faster gain buys mostly fat; a bigger surplus is never a reason to escalate volume faster. */
 const SURPLUS_HOLD_D = 28;                 /* hold after a surplus batch (4-6wk; the low end, named) */
 const SURPLUS_BATCH_MAX = 2;               /* anatomically non-overlapping muscles per block start — a reasonable coaching experiment, not validated as optimal */
 /* volume moves since an ISO — read from the FEED (the one record every enact path
@@ -7873,8 +7865,15 @@ function volumePush(s) {
       why: "surplus, but no usable scale rate yet — the controlled-gain cap cannot be read, so the lever stays dormant rather than guessing" };
     const bw9 = ((s.reads || []).filter((r) => r && r.w != null).slice(-1)[0] || {}).w || s.trend;
     const gainPct9 = bw9 ? +((-rate9.scale / bw9) * 100).toFixed(2) : null;
-    if (gainPct9 == null || gainPct9 > GAIN_CAP_PCT_WK) return { mode: "HOLD", regime: eb.regime,
-      why: "gaining at " + (gainPct9 == null ? "an unreadable rate" : gainPct9 + "% BW/wk") + " — past the controlled-gain cap (" + GAIN_CAP_PCT_WK + "% BW/wk; faster gain buys mostly fat). A bigger surplus is never a reason to escalate volume faster — slow the gain first" };
+    const gainPctMo9 = gainPct9 == null ? null : +(gainPct9 * WEEKS_PER_MONTH).toFixed(2);
+    const ciMoPct9 = (rate9.ci != null && bw9) ? +(((rate9.ci / bw9) * 100) * WEEKS_PER_MONTH).toFixed(2) : null;
+    /* N4 — the cap band sits below a short window's resolution: when the rate's own
+       interval is wider than the cap, the honest answer is NOT YET MEASURABLE, and
+       the lever HOLDs rather than guessing (longer windows/monthly aggregation read it) */
+    if (ciMoPct9 == null || ciMoPct9 > GAIN_CAP_PCT_MO) return { mode: "HOLD", regime: eb.regime,
+      why: "the monthly gain rate is not yet measurable at this window's resolution (interval ±" + (ciMoPct9 == null ? "?" : ciMoPct9) + "% BW/month vs a " + GAIN_CAP_PCT_MO + " cap) — the controlled-gain cap cannot be read, so the lever holds; longer windows or monthly aggregation read it" };
+    if (gainPctMo9 == null || gainPctMo9 > GAIN_CAP_PCT_MO) return { mode: "HOLD", regime: eb.regime,
+      why: "gaining at " + (gainPctMo9 == null ? "an unreadable rate" : gainPctMo9 + "% BW/month") + " — past the controlled-gain cap (0.25–" + GAIN_CAP_PCT_MO + "% BW/MONTH; faster gain buys mostly fat). A bigger surplus is never a reason to escalate volume faster — slow the gain first" };
     basis9 = "surplus";
   } else {
     const rg9 = regime(s);
@@ -8099,7 +8098,7 @@ function sweepLab(s, dow = new Date().getDay()) {
     ns.forecasts = [...(ns.forecasts || []), { d: tISO2, trend: ns.trend, rate: r2, pred7: +(ns.trend - r2).toFixed(1), sealed: blackoutOn(ns) }].slice(-60);
   }
   if (needTdee) {
-    const td2 = observedTDEE(ns);
+    const td2 = observedTDEE(ns, { estWeight: 0.5 });   /* N2/V2d — the learned series is the estimator surface: estimate days feed it at half weight; the live band path is untouched (THE HOLD) */
     if (td2 && td2.tdee) {
       ns.learned = (ns.learned && typeof ns.learned === "object") ? ns.learned : { tdee: [], anchors: [] };
       if (!Array.isArray(ns.learned.tdee)) ns.learned.tdee = [];
@@ -8238,7 +8237,7 @@ function runAdaptive(state, todayISO, raOpts) {
   const sealed = daysUntil(s.blackout.until) > 0;
   const r = currentRate(s);
   if (!sealed && r.measured && r.rates.slice(-2).length === 2 && r.rates.slice(-2).every((x) => x < cutRateBand(s).floor))
-    propose("floor_" + monday, "RATE FLOOR TRIPPED", `Two weeks under ${cutRateBand(s).floor}/wk (${r.rates.slice(-2).map((x) => x.toFixed(1)).join(", ")}). Your rule: restore steps FIRST. If steps are already at target, trim ~50 off the calorie band.`, { kind: "note" });
+    propose("floor_" + monday, "RATE FLOOR TRIPPED", `Two weeks under ${cutRateBand(s).floor}/wk (${r.rates.slice(-2).map((x) => x.toFixed(1)).join(", ")}). Your rule: steps below baseline → restore them FIRST. At baseline already → steps-vs-a-~50-kcal-trim is an ADHERENCE EXPERIMENT, not a hierarchy — run whichever you will actually keep.`, { kind: "note" });
 
   /* STEPS ITEM B — the PUSH card. Steps first, food as the alternative: the same apply
      machinery arms both (kind cal + stepsDelta), and the athlete's pick lands as the
@@ -8287,7 +8286,7 @@ function runAdaptive(state, todayISO, raOpts) {
     }
     const spDismissed = (s.adjustments || []).some((a) => a && a.dismissed && a.rid === "steppush_" + monday);
     if (!sealed && !spDismissed && sp.mode === "PUSH")
-      propose("steppush_" + monday, "UNDER THE CORRIDOR — STEPS FIRST", sp.why + " Approving arms the walking lever; the dial offers the same kcal from food if you would rather eat less than walk more — but steps are offered first, because that deficit does not spend lean.",
+      propose("steppush_" + monday, "UNDER THE CORRIDOR — STEPS FIRST", sp.why + " Approving arms the walking lever; the dial offers the same kcal from food if you would rather eat less than walk more. Steps lead HERE because yours sit below your own baseline — restoring them is not a new deficit. At baseline, steps-vs-a-small-trim is an adherence experiment, not a hierarchy. The credited kcal are already haircut ~25-30% for compensation.",
         { kind: "cal", calDelta: -(Math.round(((sp.netLoKcal || 0) + (sp.netHiKcal || 0)) / 2)), delta: -(Math.round(((sp.netLoKcal || 0) + (sp.netHiKcal || 0)) / 2)), stepsDelta: sp.inc, prefer: "steps" });   /* AUDIT: calDelta explicit (the label keyed on it and read undefined), prefer flips the tap routes so the PRIMARY button does what the copy promises */
     }
   }  /* The band had no teeth. floor and redline both fired, but the stated working
@@ -8763,12 +8762,16 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
        is only pretending to run. This is a dated decision like any other. */
     s.targets = s.targets || {};
     s.targets.exitStart = isoOf(todayStart());
+    /* N4 — THE BOUNDARY SEAL: the exit jump refills glycogen and its water (ICECAP:
+       +0.6 kg scale / +0.7 kg FFM inside one week), so the rate window is sealed for
+       the ~14-day REPLENISHMENT WASH-IN. Never "adaptation recovering" — water. */
+    s.blackout = { until: isoOf(new Date(todayStart().getTime() + 14 * DAY)) };
     _stampPlan(s, { phase: "maintenance" }, { kind: "transition", from: "cut", to: "maintenance" });   // v7.4.0 Slice 5 — hardened so a stale device cannot revert the maintenance decision
     const dxA = dietExit(s);
     s.feed.unshift({ d: isoOf(todayStart()), t: "DIET EXIT — MAINTENANCE HELD",
-      how: dxA.gated
+      how: (dxA.gated
         ? "The cut is over. Maintenance is not measured yet, so the number to eat at is the one you and your coach set — the hold still starts today."
-        : `The cut is over. From today you eat at ${dxA.maintenance} — your own measured maintenance from ${dxA.days} logged days, in one step, not a ramp. Hold it ${dxA.holdMin} weeks before the scale means anything (the first pounds back are glycogen and water), and ${dxA.holdFull} before the re-measured number is worth trusting. Nothing about a surplus is decided; that is what the hold is for.` });
+        : `The cut is over. From today you eat at ${dxA.maintenance} — your own measured maintenance from ${dxA.days} logged days, in one step, not a ramp. Hold it ${dxA.holdMin} weeks before the scale means anything (the first pounds back are glycogen and water), and ${dxA.holdFull} before the re-measured number is worth trusting. Nothing about a surplus is decided; that is what the hold is for.`) + " The first ~14 days are REPLENISHMENT WASH-IN — glycogen and water refilling, never adaptation recovering — and the scale is SEALED across them; re-measure after, then any build starts at +100–150 kcal (~3–5%), governed by the 0.25–0.5 %BW/month cap." });
   } else if (p.apply.kind === "phase" && p.apply.to) {
     s.phase = p.apply.to;
     const q = s.queue.find((x) => x.id === "q_ease2"); if (q) { q.done = true; q.state = "FIRED"; }
@@ -8782,6 +8785,10 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
     row.planUndo = { field: "brk", prev: (s.plan && s.plan.brk) || null };
     _stampPlan(s, { brk: { start: p.apply.start, end: p.apply.end, planned: isoOf(todayStart()) } }, { kind: "break", from: "cut", to: "break", start: p.apply.start, end: p.apply.end });
     const dbA = dietBreakState(s);
+    /* N4/N7 — the break seals the rate window through its own water: break end +3d
+       (the audit will drive the clearance tail; widening to +5-7d is the named fix
+       if watery readings tail into the reopened window) */
+    s.blackout = { until: isoOf(new Date(mk(p.apply.end).getTime() + 3 * DAY)) };
     s.feed.unshift({ d: isoOf(todayStart()), t: "DIET BREAK — A WEEK AT MAINTENANCE",
       how: `${dbA.maintenance ? `Eat at ${dbA.maintenance} — your measured maintenance — through ${fmtShort(p.apply.end)}.` : `Eat at maintenance through ${fmtShort(p.apply.end)}.`} ${dbA.honest.scale} A break from hunger, not a metabolic reset — and one tap to undo.` });
   } else if (p.apply.kind === "phasePlan" && p.apply.to) {
@@ -9731,6 +9738,8 @@ function dayWeather(s, iso) {
   const flags = [];
   const manual = (s.dayCtx || {})[iso];
   if (manual && manual.est) flags.push({ k: "estimate", why: manual.note || "declared estimate day" });
+  if (manual && manual.travel) flags.push({ k: "travel", why: "travel day — interpretation context only, never a trigger" });
+  if (manual && manual.illness) flags.push({ k: "illness", why: "illness noted — interpretation context only, never a trigger" });
   (s.events || []).forEach((e) => { const gap = (mk(iso) - mk(e.d)) / DAY; if (gap >= -1 && gap <= 2) flags.push({ k: "event", why: e.t || "event window", pre: gap < 0 }); });
   if (s.blackout && iso <= s.blackout.until && (mk(s.blackout.until) - mk(iso)) / DAY <= 9) flags.push({ k: "sealwater", why: "scale carries event water — sealed window" });
   { const mm2 = (s.medsLog || []).find((x) => x.d === iso); if (mm2 && !mm2.taken) flags.push({ k: "nomeds", why: "no meds this day — appetite, energy, and effort read differently" }); }
@@ -9867,9 +9876,7 @@ function askContext(s, docs) {
     + (tdC ? `MEASURED TDEE ${tdC.tdee} kcal${tdC.lo && tdC.hi ? ` (${tdC.lo}–${tdC.hi} carrying the rate's error)` : ""} from ${tdC.days} logged days at ${tdC.avg} kcal/day average intake. ` : "MEASURED TDEE: not enough clean days yet. ")
     + (ctC.gated ? "" : `TARGET INTAKE ${ctC.lo}–${ctC.hi} kcal/day, derived from that maintenance and his ${ctC.band[0]}–${ctC.band[1]} lb/wk band. `)
     + (eaC.gated ? "" : `ENERGY AVAILABILITY ${eaC.ea} kcal/kg lean (${eaC.band}) counting structured training only — that is the IOC's convention and the only figure comparable to the ${EA_SPARING} threshold. Counting his deliberate walking as training instead gives ${eaC.eaAll}, which is a real reading of everything he burns in a day but has no published threshold behind it: quote ${eaC.ea} against the line and mention ${eaC.eaAll} only as the other convention. The ${EA_SPARING} itself is EXTRAPOLATED from semi-starvation work and bodybuilder case reports — the IOC's 2023 male range is roughly 9–25 and no controlled study has tested a lean resistance-trained male at 23 vs 30. Say so if you cite it. `)
-    + (() => { const p9 = proteinTarget(s); return p9.straddles
-        ? `PROTEIN TARGET ${p9.g} g, and the honest statement is a RANGE of ${p9.lo}-${p9.hi} g. ${p9.lo} is 2.5 g/kg of his ${p9.ffmKg} kg lean mass — the line where the deficit meta-regression's trend crosses zero net lean-mass change. ${p9.hi} is the lean-subgroup coefficient, which applies under ${LEAN_SUBGROUP_BF}% body fat. His body-fat read is ${p9.bf}% with an interval of ${p9.bfLo}-${p9.bfHi}%, so that threshold sits INSIDE his own error bars and neither end can be stated with confidence — give the range if he asks. Anything at or above ${p9.floor} g is defended: protein is a FLOOR, not a bullseye, so never call a high-protein day a miss. `
-        : `PROTEIN TARGET ${p9.g} g (${p9.perKg} g/kg of ${p9.ffmKg} kg lean), floor ${p9.floor} g. Protein is a FLOOR, not a bullseye — never call a day above it a miss. `; })()
+    + (() => { const p9 = proteinTarget(s); return `PROTEIN TARGET ${p9.g} g — a DYNAMIC evidence target: ${p9.perKg} g/kg of his current measured ${p9.ffmKg} kg lean mass (${p9.gLo}-${p9.gHi} g across the estimate's own ${p9.bfLo}-${p9.bfHi}% spread). It moves when the estimate moves, in either direction; it is a FLOOR, not a bullseye — never call a high-protein day a miss — and eating above it is his preference, never body-fat-triggered. `; })()
     + `Do NOT vary it by day type: the only direct training-vs-rest-day comparison (Moore 2024, indicator amino acid oxidation) found requirement HIGHER on rest days, and no study has ever tested raising protein on a short-sleep or low-recovery day. `
     + (() => { const stC = stepTarget(s); return stC.gated ? "" : `STEP TARGET ${stC.lo.toLocaleString()}–${stC.hi.toLocaleString()}/day — this is not a health guideline, it is the step count his measured maintenance was measured at (${stC.avg.toLocaleString()} across ${stC.days} days). Every 1,000 steps is about ${stC.kcalPer1k} kcal at his bodyweight, so drifting off it silently invalidates the calorie band. `; })()
     + (() => { const an = sleepAnchor(s); if (!an.measured) return `SLEEP CLOCK: not enough nights with bed and wake times yet — ${an.why} `;
@@ -13407,7 +13414,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                derived calorie number, which made the card look like it knew
                three things when it knew one. */
             { l: `CAL ${calT[0]}–${calT[1]}${!isRefeed && !ctT.gated ? " · from your measured maintenance" : ""}`, v: cal, set: setCal },
-            { l: (() => { const p9 = proteinTarget(s); return p9.straddles ? `PRO ${p9.g} · anywhere ${p9.lo}–${p9.hi} counts` : `PRO ${p9.g} · ${p9.perKg} g per kg lean`; })(), v: pro, set: setPro },
+            { l: (() => { const p9 = proteinTarget(s); return `PRO ${p9.g} · ${p9.perKg} g/kg of your current lean`; })(), v: pro, set: setPro },
             { l: (() => { const st9 = stepTarget(s); return st9.gated ? `STEPS ${ph.steps}` : `STEPS ${(st9.lo / 1000).toFixed(1)}–${(st9.hi / 1000).toFixed(1)}k · what your maintenance was measured at`; })(), v: stp, set: setStp },
           ].map((f, i) => (
             <div key={i} style={{ flex: 1 }}>
@@ -13447,11 +13454,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         <More deep="Protein is a FLOOR, not a bullseye. This card used to say the opposite — that the number was proximity and chronic overshoot was drift too — and the code behind it counted any day more than 10 g either side as a miss. Nothing supports the upper half of that: the deficit meta-regression finds a lower threshold where lean-mass loss starts rising and no upper one anywhere near this range. Eating over it costs you carbohydrate inside a fixed calorie budget, which is worth knowing and is not a failure. Calories live in a band, not a point. A shortfall opens a 24-hour fix window, and closing it EXTENDS the standard instead of resetting it — recovery speed is the metric, never an unbroken chain."
           forYou={(() => { const p9 = proteinTarget(s); return s.fixWindow
             ? `The fix window is OPEN — clearing ${p9.lo} g today closes it and the record extends.`
-            : p9.straddles
-              ? [`Your floor is ${p9.lo} g and the lean-subgroup number is ${p9.hi} g. Body fat reads ${p9.bf}% with a real spread of ${p9.bfLo}–${p9.bfHi}%, and the ${LEAN_SUBGROUP_BF}% line that separates those two targets sits inside it — so the honest answer is the range, and ${p9.g} is its middle.`,
-                 `Both numbers come off your ${p9.ffmKg} kg of lean mass. Neither was authored. If your lean mass moves, they move.`,
-                 "Log once, done — the app rewards the logging, never the checking."]
-              : "Standard intact. Log once, done — the app rewards the logging, never the checking."; })()} />
+            : "Standard intact. Log once, done — the app rewards the logging, never the checking."; })()} />
       </Card>
 
 )}
@@ -16874,7 +16877,7 @@ function HistTab({ s, setS, save }) {
         const tdeeBand = tl.acc != null ? tl.acc : (tl.hi != null && tl.lo != null ? Math.round((tl.hi - tl.lo) / 2) : null);
         const tdeeVal = tl.value != null ? (tdeeBand != null ? `${tl.value} ± ${tdeeBand} kcal` : `${tl.value} kcal`) : "calibrating";
         const tdeeDetail = tl.value != null
-          ? `${tl.converged ? "converged" : "still converging (~2–4 wk)"} · ${tl.n} fit${tl.n === 1 ? "" : "s"} · TDEE minus logging bias, not physiology`
+          ? `${tl.converged ? "converged" : "still converging (~2–4 wk)"} · ${tl.n} fit${tl.n === 1 ? "" : "s"} · apparent maintenance incl. net log error (either sign), not physiology`
           : "keep logging — your maintenance converges in ~2–4 weeks";
         const pFatLo = Math.round(pp.fatFrac.lo * 100), pFatHi = Math.round(pp.fatFrac.hi * 100);
         const edVal = ed.identified ? `~${ed.perLb} kcal/lb` : `${ed.perLb} kcal/lb · prior`;
@@ -17878,7 +17881,7 @@ function rulebook(s) {
     ["SIGNALS", "Last-set RIR gates the next jump — 0 blocks it, ≥2 can propose an early or two-rung debut on laddered machines; the opener only feeds the hold governor. Joint flags three times in three weeks surface on NOW as a pattern rather than a day. Waist is still an unlogged input — until entries exist, it changes nothing and the app will not pretend otherwise."],
     ["SCALE", "Fasted · post-void · pre-food. Once a day. Sealed windows excluded. Trend is the hero — a single reading carries several pounds of water and means nothing on its own."],
     ["EVENTS", "Estimate once, after, never at the table. Compensation does not exist in this app."],
-    ["PROTEIN", `${pt.straddles ? `${pt.lo}–${pt.hi} g — ${pt.g} is the middle of that range, and the range is the honest answer: ${pt.lo} is ${PROTEIN_FLOOR_G_PER_KG} g per kg of your ${pt.ffmKg} kg of lean mass, ${pt.hi} is the lean-subgroup number, and your body-fat interval (${pt.bfLo}–${pt.bfHi}%) straddles the ${LEAN_SUBGROUP_BF}% line that separates them` : `${pt.g} g, every day, derived from your ${pt.ffmKg} kg of lean mass at ${pt.perKg} g/kg`} — not a constant. Protein is a FLOOR: over it is not a miss. It does not rise on training days: the only study that compared day types found requirement HIGHER on rest days. A miss fixed inside 24 h extends the standard.`],
+    ["PROTEIN", `${pt.g} g today — ${pt.perKg} g per kg of your current measured ${pt.ffmKg} kg lean mass, with ${pt.gLo}–${pt.gHi} g the honest span across the estimate\u2019s own spread. It is not a constant — always a dynamic evidence-based target: it moves when the estimate moves, in either direction, never a pinned constant. Protein is a FLOOR: over it is not a miss, and eating above it is preference. It does not rise on training days: the only study that compared day types found requirement HIGHER on rest days. A miss fixed inside 24 h extends the standard.`],
     ["SLEEP", `A night under ${DEBT_LAST_H} h, or a three-night mean under ${DEBT_MEAN3_H}, flags the session. What that flag buys you is protection — the day cannot count toward a stall, so you are never deloaded for a bad night. It does NOT block a record or shrink the step; that rule was retired because acute sleep loss costs about 2.85% on strength — a real cost (CI 1.23–4.47), just smaller than your own spread — and no trial has ever tested damping progression on low-readiness days. Your ${s.sleep.cleanH} h target is a separate question and still stands — in a deficit, short sleep shifts what you lose toward lean mass.`],
     /* R2b — the band now carries WHY it is what it is, generated from regime() rather than
        written beside it (see the standing copy rule). provisional must read differently from

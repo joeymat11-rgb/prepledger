@@ -357,6 +357,18 @@ nutrition NOW; BRIEF-dedup waits behind the design-audit consolidation.
 
  (audit landed 2026-08-11; U1/U3 already built in the volume-verdicts round at d962b93)
 
+## QUEUED — N10 DEFERRED HALF rides the Bayesian-confidence round (named per audit condition C2b, 2026-08-11)
+
+The nutrition round shipped N10 WORDS (small-sample caveat on the rate label; the
+CI-clears-zero demoted to a high-confidence BADGE in copy). DEFERRED under THE HOLD,
+to build in the Bayesian-confidence round: (1) graded-evidence STEERING — small,
+reversible steers acting below full significance; (2) window length, robustness and
+any weekday term CALIBRATED ON HIS OWN HELD-OUT HISTORY — the named place individual
+data outranks group heuristics. A named deferral is legal; a silent one is not.
+
+## QUEUED — THE PROGRESSION BUILD (audit landed 2026-08-11; U1/U3 built at d962b93; U2/U4 and the queue below still open)
+*(heading restored — the nutrition filing script mangled it via a shell-expansion bug; body below was never touched)*
+
 **The full audit is in-repo: [PROGRESSION-ENGINE-AUDIT.md](PROGRESSION-ENGINE-AUDIT.md)
 (569 lines, verbatim as delivered).** Read it with the adjudication below — the
 estimator re-audit runs on the corrected premise, not the audited brief's.
