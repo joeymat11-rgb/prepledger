@@ -487,7 +487,7 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
       /* ---------- R10a — the two live overclaims ---------- */
       {
         const DC = __test.DEFICIT_CEILING;
-        ok(DC.kcal === 500 && /51-60 years old/.test(DC.hedge) && /not a measured one for you/.test(DC.hedge), "R10a — the ~500 kcal/day ceiling carries its own hedge: Murphy & Koehler's pooled population averaged 51-60 and he is 24. A correctly generated number stated with unearned confidence is still the engine lying, just more precisely");
+        ok(DC.kcal === 500 && /51-60 years old/.test(DC.hedge) && /graded risk/.test(DC.claim) && /upper DEFAULT/.test(DC.hedge) && /ACHIEVED rate/.test(DC.hedge), "R10a — the ~500 kcal/day ceiling carries its own hedge: Murphy & Koehler's pooled population averaged 51-60 and he is 24. A correctly generated number stated with unearned confidence is still the engine lying, just more precisely");
         ok(DC.line().indexOf(DC.claim) === 0 && DC.line().indexOf(DC.hedge) > 0, "R10a — and line() welds claim to hedge, so no call site can quote one without the other");
         const src10 = readFileSync("src/app.jsx", "utf8")
           .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " "))
@@ -495,7 +495,7 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         /* the OWNER's own claim: field legitimately contains the words — the assertion
            excepts the definition and bans quotes everywhere else. My first version forgot
            the owner and failed on the single source of truth it had just created. */
-        const flatLines = src10.split("\n").filter((l) => l.includes("under ~500 kcal/day"));
+        const flatLines = src10.split("\n").filter((l) => l.includes("treat deficit size as a graded risk"));
         const welded = (src10.match(/DEFICIT_CEILING\.line\(\)/g) || []).length;
         ok(flatLines.length === 1 && /claim:/.test(flatLines[0]) && welded >= 2, "R10a — the ceiling's words appear on exactly ONE live line, the owner's own claim: field, and both former sites read the welded line (" + welded + "). No call site can quote the number without its hedge");
         /* the bfEst copy renders the live interval, not the anchor constant */
@@ -843,7 +843,7 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
   const wrongMod = clone(SEED); wrongMod.blackout = { until: "2026-05-01" };
   wrongMod.reads = Array.from({ length: 24 }, (_, i) => ({ d: isoAgo(23 - i), w: +(164 + i * 0.128 + (i % 2 ? 1.5 : -1.5)).toFixed(2), sealed: false }));
   const crMod = __test.currentRate(wrongMod), sigMod = __test.signalState(wrongMod), apMod = __test.autoPilot(wrongMod, "recomp");
-  ok(apMod.dir === "bulk" && crMod.ci > 0 && sigMod.ciExcludesZero === true && apMod.corrKcal >= 90 && apMod.driftSig === false && apMod.action === "hold" && apMod.proposed === false && apMod.heldForNoise === true, "(h) a confidently-gaining wrong-way mover whose overshoot is within the rate CI HOLDS - 'rate != 0' and 'rate != target' are different questions; the gate turns on the drift from target, and receipts the hold as noise rather than firing a false steer");
+  ok(apMod.dir === "bulk" && crMod.ci > 0 && sigMod.ciExcludesZero === true && apMod.corrKcal >= 90 && apMod.driftSig === true, "(h) N4 INVERSION — a ~0.9 lb/wk gainer is no longer inside-noise against the MONTHLY-capped corridor: the drift from the tightened target is now significant, which is the settled 0.25-0.5 %BW/month cap doing exactly its job (the rate!=0 vs rate!=target distinction survives at smaller drifts)");
 }
 
 // Auto-Pilot MODE toggle — v6.2 (one corridor engine; the mode only selects which slice it steers to)
@@ -877,7 +877,7 @@ ok(m3.v === SEED.v && m3.reads.length === 40 && m3.dailyLogs["2026-07-22"].pro =
 // v6.2 audit 4b — bulk corridor recalibrated to the advanced lean-bulk band
 {
   const BC = __test.BC;
-  ok(BC.BULK_CORR_PCT[0] === 0.125 && BC.BULK_CORR_PCT[1] === 0.25 && BC.BULK_REDLINE_PCT === 0.25, "bulk corridor is the advanced band 0.125–0.25 %BW/wk, redline 0.25 (Aragon & Schoenfeld / Lyle)");
+  ok(BC.BULK_CORR_PCT[0] === 0.0575 && BC.BULK_CORR_PCT[1] === 0.1151 && BC.BULK_REDLINE_PCT === 0.1151, "N4 — the bulk corridor is the MONTHLY band expressed weekly: 0.25–0.5 %BW/MONTH ÷ 4.345, redline 0.5/month — the old weekly corridor sat ENTIRELY above the settled cap (the erratum ran the full depth)");
   ok(BC.BULK_LEAN_CEIL_PCT >= BC.BULK_CORR_PCT[0] && BC.BULK_LEAN_CEIL_PCT <= BC.BULK_CORR_PCT[1], "the lean-gain ceiling (0.15) now sits inside the recalibrated bulk corridor");
 }
 
@@ -1186,7 +1186,7 @@ const { shelfItems: sh, labAnalytics: la5, migrate: mg5, SEED: SE } = __test;
 const shelf = sh(clone(SE));
 ok(shelf.length === 5 && shelf.every(a => a.tag && a.deep && a.forYou), "five evidence cards, all three layers present");
 ok(/mg at 74\.\d kg/.test(shelf.find(a => a.id === "caffdose").lines[0]) === false && shelf.find(a => a.id === "caffdose").lines[0].indexOf("224–449 mg") > -1 || /\d+–\d+ mg at \d+(\.\d+)? kg/.test(shelf.find(a => a.id === "caffdose").lines[0]), "caffeine range computed at his live weight");
-ok(shelf.find(a => a.id === "spread").lines[0].indexOf("44 g × 4") > -1 || shelf.find(a => a.id === "spread").lines[0].indexOf("~44 g") > -1, "protein spread derives from THE number");
+ok(shelf.find(a => a.id === "spread").lines[0].indexOf("~" + Math.round(__test.proteinTarget(clone(SE)).g / 4) + " g") > -1, "protein spread derives from THE number — now the DYNAMIC target (N5), never a pinned constant");
 ok(["2013", "2017", "2018", "2011", "2019"].every(y => JSON.stringify(shelf).indexOf(y) > -1), "citations ride the cards");
 let cre = clone(SE); cre.creatine = { start: "2026-07-20" };
 const creLine = sh(cre).find(a => a.id === "creatine"); const creDay = parseInt(((creLine.lines[0] || "").match(/^day (\d+) of ~28/) || [0, 0])[1], 10);
@@ -1892,7 +1892,7 @@ ok(!!lights && /\d\d:\d\d/.test(lights.a), "after a short night the bedtime step
 ok(lights.w > 60, "and it ranks high, because sleep is a first-order fat-versus-lean lever when it is actually short: w=" + lights.w);
 ok(!proto.steps.some(x => x.a.indexOf("Lights out") === 0) || proto.steps.find(x => x.a.indexOf("Lights out") === 0).w < 40,
    "on a clean night it either drops off or ranks low — a reminder to do what you already did is the definition of filler");
-ok(proto.steps.some(x => x.a.indexOf("Protein 175") === 0), "protein step present with the spread");
+ok(proto.steps.some(x => x.a.indexOf("Protein " + __test.proteinTarget(clone(SEED)).g) === 0), "protein step present with the spread — quoting the DYNAMIC target (N5), never 175");
 ok(proto.steps.every(x => x.a && x.why), "every step is action + reason, nothing bare");
 
 // (interim)
@@ -3165,12 +3165,15 @@ const pLean = pt14(leanS);
     not by the point estimate crossing it — see PROTEIN_BAND_NOTE. A point
     estimate at 12.1 with a band of 8.6-15.6 is a coin-flip, and the old test
     let a coin-flip swing the target thirty grams. */
-ok(pLean.bfHi <= 12.2 && pLean.inLeanSubgroup, "the sub-group opens only when his whole body-fat band clears 12.2%, not when the midpoint does");
-ok(pLean.perKg === 3.0 && pLean.g > p0.lo, `and the target steps UP, not down: ${pLean.g} g against a ${p0.lo} g floor`);
-ok(!pLean.straddles, "and once the band clears the line there is nothing left to straddle");
+/* N5 — THE SWITCH IS DEAD: no discontinuity anywhere in body fat. The target is
+   2.5 g/kg of CURRENT measured FFM and moves continuously, in either direction. */
+ok(pLean.inLeanSubgroup === false && pLean.perKg === 2.5, "N5 — the 12.2% sub-group switch is REMOVED: a sample-quartile boundary with subgroup intervals overlapping zero cannot gate a target");
+ok(pLean.g === Math.round(Math.round(pLean.ffmKg * 2.5) / 5) * 5, "N5 — the target IS 2.5 g/kg of current measured FFM, rounded to something a person can hit: " + pLean.g + " g off " + pLean.ffmKg + " kg");
+ok(pLean.g > p0.g, "N5 — MORE lean mass, HIGHER target: the dynamic number moves UP with the estimate");
 const fatS = clone(TW14);
 fatS.model.lean = fatS.trend * 0.82;
-ok(!pt14(fatS).inLeanSubgroup && pt14(fatS).perKg === 2.5, "above that line it sits at the 2.5 g/kg floor multiplier");
+ok(pt14(fatS).g < p0.g && pt14(fatS).perKg === 2.5, "N5 — LESS lean mass, LOWER target: it moves DOWN too — in either direction, never body-fat-triggered (Joe's standing principle: always a dynamic evidence-based target)");
+ok(/moves when the estimate moves/.test(p0.why) && /either direction/.test(p0.why), "N5 — and the why says the law out loud");
 
 // the protocol: a real ranking, and no silent truncation
 const slp14 = { clean: false, run: 0, need: 3, last: { h: 6 } };
@@ -3483,9 +3486,9 @@ ok(stN(stDrift).driftKcal < -30, "a week of shorter walks is reported as the kca
 
 /* protein holds still, and says why */
 const ptA = ptN(clone(TN19));
-ok(ptA.perKg === 2.5 && ptA.straddles === true, "his body-fat band straddles the 12.2% line, so the floor multiplier is 2.5 and both numbers are carried");
-ok(ptA.g === Math.round(((ptA.lo + ptA.hi) / 2) / 5) * 5, "the headline is the midpoint of the defended range: " + ptA.lo + "-" + ptA.hi + " gives " + ptA.g);
-ok(ptA.why.indexOf("the range is the point") > -1, "and the receipt says out loud that the width is the finding, not a rounding artefact");
+ok(ptA.perKg === 2.5 && ptA.straddles === false, "N5 — no line, no straddle: the target is 2.5 g/kg FFM everywhere in body fat");
+ok(ptA.g === ptA.lo, "N5 — the headline IS the evidence floor, never a midpoint over a retired coin-flip: " + ptA.g);
+ok(ptA.why.indexOf("moves when the estimate moves") > -1, "N5 — the receipt states the dynamic law: the number tracks the estimate, in either direction");
 ok(ptA.why.indexOf("REST days") > -1, "naming the one study that compared day types, which found requirement higher on rest days — the opposite of the intuition");
 
 /* ================= v3.99.21 — matched windows, and a proposal with hands ================= */
@@ -3800,9 +3803,9 @@ const { proteinTargetFn: pt27F, proteinHit: ph27, sleepAnchor: sa27, liftCall: l
 const pt27 = pt27F(clone(SS27));
 ok(Math.abs(pt27.floor - pt27.ffmKg * 2.5) <= 1, "the protein floor is 2.5 g per kg of his OWN lean mass: " + pt27.floor + " g off " + pt27.ffmKg + " kg");
 ok(pt27.g !== 175 || pt27.ffmKg > 0, "the headline number is computed, not the old authored 175 sitting in a Math.max");
-ok(pt27.lo < pt27.hi, "two defensible numbers exist, floor " + pt27.lo + " and lean-subgroup " + pt27.hi);
-ok(pt27.straddles === (pt27.bfLo <= 12.2 && pt27.bfHi >= 12.2), "straddle is decided by the body-fat INTERVAL, not the point estimate");
-ok(!pt27.straddles || pt27.g === Math.round(((pt27.lo + pt27.hi) / 2) / 5) * 5, "when it straddles, the headline is the midpoint of the range — never one end quoted with false confidence");
+ok(pt27.lo === pt27.g && pt27.hi >= pt27.g && pt27.gLo <= pt27.gHi, "N5 — the floor IS the target (2.5 g/kg FFM) and the displayed span is the ESTIMATE's own interval (" + pt27.gLo + "-" + pt27.gHi + " g), never a subgroup coin-flip");
+ok(pt27.straddles === false, "N5 — nothing straddles any more: there is no line left to straddle");
+ok(pt27.g === Math.round(Math.round(pt27.ffmKg * 2.5) / 5) * 5, "N5 — the headline is always the evidence number itself — no midpoint arithmetic over a retired coin-flip");
 /* the knife-edge that used to exist */
 const leanEdge = clone(SS27); leanEdge.model = { ...(leanEdge.model || {}), lean: leanEdge.model ? leanEdge.model.lean : 140 };
 ok(pt27F(leanEdge).g === pt27.g, "a state that differs only in noise does not swing the target thirty grams");
@@ -5840,29 +5843,32 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(tl.converged === true && tl.n === 14, "TDEE: converges once ~2–4 wk of fits are in (n ≥ 10)");
   ok(tl.value < tlSeries[0].tdee && tl.value > tlSeries[tlSeries.length - 1].tdee, "TDEE: a SMOOTHED latent state (EWMA α≈0.1) — it TRACKS the drift but LAGS the last point, so it can't overfit one noisy morning");
   ok(tl.lo < tl.value && tl.value < tl.hi, "TDEE: the learned estimate carries an honest ± band (never a bare integer)");
-  ok(/logging bias/i.test(tl.label) && /not a physiological/i.test(tl.label), "TDEE: labeled TDEE-MINUS-LOGGING-BIAS, explicitly NOT physiology");
-  ok(tl.alpha === 0.10 && tl.accHi === 215, "TDEE: the EWMA constant + realistic-accuracy floor (~130–215 kcal/day, Sanghvi 2015) are the cited honest bounds");
+  ok(/net log error/i.test(tl.label) && /not a physiological/i.test(tl.label) && /apparent maintenance/i.test(tl.label), "N2 — labeled APPARENT maintenance incl. NET log error (either sign — the one-sided minus-logging-bias phrasing is dead), explicitly NOT physiology");
+  ok(tl.alpha === 0.10 && tl.acc >= (tl.sd || 0), "N2 — the EWMA constant stands and the band is EMPIRICAL: at least the fits' own spread, from his rolling forecast errors once they exist (the Sanghvi attribution is retracted — it validated a different estimator)");
 
   // -------- ADAPTATION — observed below MASS-predicted, gated on SIGNIFICANCE + PERSISTENCE --------
+/* N3 — rows now 21d apart: NONOVERLAPPING windows are the persistence unit */
   const adaptSeries = [
-    { d: "2026-07-01", tdee: 2600, w: 170.0, lo: 2520, hi: 2680 },
-    { d: "2026-07-08", tdee: 2560, w: 168.5, lo: 2480, hi: 2640 },
-    { d: "2026-07-15", tdee: 2470, w: 167.0, lo: 2400, hi: 2540 },
-    { d: "2026-07-22", tdee: 2430, w: 166.0, lo: 2360, hi: 2500 },
-    { d: "2026-07-29", tdee: 2400, w: 165.0, lo: 2330, hi: 2470 },
+    { d: "2026-05-01", tdee: 2600, w: 170.0, lo: 2520, hi: 2680 },
+    { d: "2026-05-22", tdee: 2560, w: 168.5, lo: 2480, hi: 2640 },
+    { d: "2026-06-12", tdee: 2470, w: 167.0, lo: 2400, hi: 2540 },
+    { d: "2026-07-03", tdee: 2430, w: 166.0, lo: 2360, hi: 2500 },
+    { d: "2026-07-24", tdee: 2400, w: 165.0, lo: 2330, hi: 2470 },
   ];
+  const weeklySeries = adaptSeries.map((r, i) => ({ ...r, d: isoL(Date.parse("2026-07-01T12:00:00") + i * 7 * 864e5) }));
+  ok(AS({}, { series: weeklySeries, sig: { state: "measured" } }).reason === "too-thin", "N3 (THE INVERSION) — five WEEKLY fits are pseudo-replicates of one ~monthlong window and can no longer fire the residual: persistence needs nonoverlapping windows");
   const adaptFire = AS({}, { series: adaptSeries, sig: { state: "measured" } });
   ok(adaptFire.detected === true && adaptFire.kcal < 0, "adaptation: a PERSISTENT + SIGNIFICANT drift below the mass-predicted line FIRES (observed maintenance running under what mass loss alone predicts)");
-  ok(/not a physiological/i.test(adaptFire.label), "adaptation: labeled a directional signal, NOT a physiological measurement (calibration, not a target)");
-  ok(AS({}, { series: adaptSeries.slice(0, 3), sig: { state: "measured" } }).reason === "too-thin", "adaptation: degrades gracefully — too little history returns 'too-thin', never a guess");
+  ok(/unexplained residual/i.test(adaptFire.label) && /informs forecasts only/i.test(adaptFire.label), "N3 — labeled the UNEXPLAINED RESIDUAL, forecast-informing only — never a phase transition, never a break trigger");
+  ok(AS({}, { series: adaptSeries.slice(0, 2), sig: { state: "measured" } }).reason === "too-thin", "residual: degrades gracefully — too few nonoverlapping windows returns too-thin, never a guess");
   ok(AS({}, { series: adaptSeries, sig: { state: "calibrating" } }).detected === false && AS({}, { series: adaptSeries, sig: { state: "calibrating" } }).reason === "signal-not-real", "adaptation: SIGNIFICANCE gate — it never fires while the underlying rate signal is still calibrating");
-  const oneDip = adaptSeries.slice(0, 4).concat([{ d: "2026-07-29", tdee: 2620, w: 165.0, lo: 2550, hi: 2690 }]);
+  const oneDip = adaptSeries.slice(0, 4).concat([{ d: "2026-07-24", tdee: 2620, w: 165.0, lo: 2550, hi: 2690 }]);
   ok(AS({}, { series: oneDip, sig: { state: "measured" } }).detected === false && AS({}, { series: oneDip, sig: { state: "measured" } }).reason === "not-persistent", "adaptation: PERSISTENCE gate — a single low reading among a rebound does NOT fire (never one reading)");
-  const wideBand = adaptSeries.slice(0, 4).concat([{ d: "2026-07-29", tdee: 2500, w: 165.0, lo: 2380, hi: 2700 }]);
+  const wideBand = adaptSeries.slice(0, 4).concat([{ d: "2026-07-24", tdee: 2500, w: 165.0, lo: 2380, hi: 2700 }]);
   ok(AS({}, { series: wideBand, sig: { state: "measured" } }).detected === false && AS({}, { series: wideBand, sig: { state: "measured" } }).reason === "not-significant", "adaptation: SIGNIFICANCE gate — a below-expected drift whose band still straddles zero does NOT fire");
 
   // -------- DEXA → protein RANGE collapse (the top unfinished work), + anchor recorded --------
-  ok(PT(clone(SEED)).straddles === true, "protein: on the coach's-eye anchor the BF band straddles the 12.2% line → protein is a RANGE (160–190 g)");
+  ok(PT(clone(SEED)).straddles === false && PT(clone(SEED)).g === Math.round(Math.round(PT(clone(SEED)).ffmKg * 2.5) / 5) * 5, "N5 — no straddle exists any more: the target is the dynamic 2.5 g/kg FFM number, full stop");
   const anchored = AD(clone(SEED), 15);
   ok(PT(anchored).straddles === false, "protein: a DEXA anchor (±1) collapses the BF band clear of 12.2% → straddles FALSE → a single number (the DEXA that sharpens the whole model)");
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
@@ -6076,8 +6082,18 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   // supervisor-forced break proposal carries the SAME honesty and no boost claim
   const supForce = phaseSupervisor({}, { ap: { ok: false }, esc: { ask: [], escalate: false }, ea: { gated: false, ea: 22 }, ct: { gated: true } });
   const brkProp = phaseProposal(clone(SEED), { sup: supForce, brk: { status: "none", honest: H, maintenance: null }, today });
-  ok(brkProp && brkProp.apply && brkProp.apply.kind === "break", "DIET BREAK — a supervisor-forced break is a propose-only 'break' proposal (routes through the inbox)");
-  ok(!FORBIDDEN.test(brkProp.why) && /glycogen|water|not a metabolic/i.test(brkProp.why), "DIET BREAK — the proposal's own copy is honest (transient scale, no metabolic-boost claim)");
+  ok(brkProp && brkProp.apply && brkProp.apply.kind === "note" && /^leasent_/.test(brkProp.rid) && /libido.morning function/.test(brkProp.why) && /human medical review/.test(brkProp.why), "N7/N8 (THE INVERSION) — calculated EA can no longer force a break: it raises the LEA SENTINEL (proposal-only, names the one discriminating symptom, recommends a HUMAN review on persistence, never a calorie heuristic)");
+  const sCl9 = clone(SEED);
+  const dCl = (k) => isoL(Date.parse(today + "T12:00:00") - k * 864e5);
+  sCl9.energy = [1,2,3,4,5].map((k) => ({ d: dCl(k), v: 2 }));
+  sCl9.sleep.nights = [1,2,3,4,5,6,7,8].map((k) => ({ d: dCl(k), h: 8.0 }));
+  sCl9.reads = Array.from({ length: 28 }, (_, i) => ({ d: dCl(27 - i), w: +(170 - i * 0.1).toFixed(1), sealed: false }));
+  sCl9.trend = 167.3;
+  sCl9.dailyLogs = {};
+  for (let k = 10; k >= 1; k--) sCl9.dailyLogs[dCl(k)] = { cal: k <= 3 ? 4000 : 2200, pro: 170, steps: 12000 };
+  const brkProp2 = phaseProposal(sCl9, { arc: { key: "cut" }, sup: { veto: false, kind: null, reasons: [] }, brk: __test.dietBreakState(sCl9) });
+  ok(brkProp2 && brkProp2.apply && brkProp2.apply.kind === "break", "N7 — the break IS still proposable, by the SYMPTOM CLUSTER alone: sustained low reported energy + recovery off GREEN, with sleep and logging checked first");
+  ok(brkProp2 && !FORBIDDEN.test(brkProp2.why) && /glycogen|water|not a metabolic/i.test(brkProp2.why), "DIET BREAK — the cluster-proposed card's copy is honest (transient scale, no metabolic-boost claim, the 11 kcal/day CI on the record)");
 
   // applying a break writes the honest feed
   const preBrk = clone(SEED); preBrk.proposals = [{ id: "pb1", rid: "phase_break_x", d: today, title: "DIET BREAK — A WEEK AT MAINTENANCE", why: brkProp.why, apply: { kind: "break", start: today, end: inDays(BREAK_LEN_DAYS - 1) }, resolved: false }];
@@ -6089,7 +6105,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(phaseSupervisor({}, clearD).veto === false && phaseSupervisor({}, clearD).kind === null, "SUPERVISOR — every hard floor clear ⇒ no veto, the phase plan proceeds");
   ok(phaseSupervisor({}, { ...clearD, esc: { ask: [{ code: "redline", text: "past the muscle-loss redline" }], escalate: true } }).veto === true, "SUPERVISOR VETO — the muscle-loss REDLINE (reused from escalation) vetoes pressing the cut deeper");
   ok(phaseSupervisor({}, { ...clearD, esc: { ask: [{ code: "floor-protein", text: "under the protein floor" }], escalate: true } }).reasons.some((r) => r.code === "floor-protein"), "SUPERVISOR VETO — the protein lean-retention FLOOR (reused from escalation) vetoes");
-  ok(phaseSupervisor({}, { ...clearD, ea: { gated: false, ea: 22 } }).kind === "forceBreak", "SUPERVISOR VETO — energy availability under the sparing line FORCES a break (a maintenance week)");
+  ok(phaseSupervisor({}, { ...clearD, ea: { gated: false, ea: 22 } }).kind === "leaSentinel", "N8 — energy availability under the sparing line raises the SENTINEL, never a forced break: calculated EA is not clearance and not a diagnosis");
   ok(phaseSupervisor({}, { ...clearD, ct: { gated: false, floorBinds: true } }).kind === "blockDeeper", "SUPERVISOR VETO — a binding calorie floor blocks a deeper cut (the rate is misconfigured, not 'eat at the floor')");
   ok(phaseSupervisor({ plan: { phase: "leangain" } }, { ...clearD, ct: { gated: false, floorBinds: true } }).veto === false, "SUPERVISOR — the cut-floor veto is PHASE-AWARE: it stays quiet outside a cut (lean gain has no deficit to press)");
   ok(phaseSupervisor({ targets: { exitStart: "2026-07-01" } }, { ...clearD, esc: { ask: [{ code: "redline", text: "x" }], escalate: true } }).veto === false, "SUPERVISOR — a started maintenance hold suppresses the redline veto too (no cut to deepen)");
@@ -8316,10 +8332,15 @@ if (fail) process.exit(1);
   /* ---------- A6 — THE SURPLUS ARM: the controlled-gain cap replaces the losing requirement ---------- */
   const FS1 = mkFreeV();
   FS1.plan = { ...(FS1.plan || {}), phase: "leangain" };
-  FS1.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoVV(34 - i), w: +(166 + i * 0.045).toFixed(2), sealed: false }));
+  FS1.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoVV(34 - i), w: +(166 + i * 0.01).toFixed(2), sealed: false }));
   FS1.trend = FS1.reads[FS1.reads.length - 1].w;
   const vpS1 = __test.volumePush(FS1);
-  ok(vpS1.mode === "PUSH" && vpS1.basis === "surplus", "A6 — IN SURPLUS the losing requirement is GONE: a controlled gain (~0.19% BW/wk, inside the 0.5 cap) with lifts not falling reaches PUSH on the surplus basis — FREE's clearly-losing arm is replaced, exactly as ruled");
+  ok(vpS1.mode === "PUSH" && vpS1.basis === "surplus", "A6+N4 — IN SURPLUS the losing requirement is GONE and the cap is MONTHLY: a ~0.18 %BW/MONTH gain with lifts not falling reaches PUSH on the surplus basis");
+  const FS1f = clV(FS1);
+  FS1f.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoVV(34 - i), w: +(166 + i * 0.045).toFixed(2), sealed: false }));
+  FS1f.trend = FS1f.reads[FS1f.reads.length - 1].w;
+  const vpS1f = __test.volumePush(FS1f);
+  ok(vpS1f.mode === "HOLD" && /BW.month/i.test(vpS1f.why || ""), "N4 (THE INVERSION) — the volume round's own 0.19%/wk PUSH fixture now HOLDS: 0.19%/wk is 0.83 %BW/MONTH, past the settled monthly cap the /wk erratum had quadrupled");
   const FS2 = mkFreeV();
   FS2.plan = { ...(FS2.plan || {}), phase: "leangain" };
   FS2.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoVV(34 - i), w: +(160 + i * 0.16).toFixed(2), sealed: false }));
@@ -8328,7 +8349,7 @@ if (fail) process.exit(1);
   ok(vpS2.mode === "HOLD" && /controlled-gain cap/.test(vpS2.why) && /never a reason to escalate volume faster/.test(vpS2.why), "A6 — and the CAP HOLDS the fast gainer (~0.66% BW/wk): the why teaches the law — a bigger surplus is never a reason to escalate volume faster (faster gain buys mostly fat)");
   const FS3 = mkFreeV();
   FS3.plan = { ...(FS3.plan || {}), phase: "leangain" };
-  FS3.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoVV(34 - i), w: +(166 + i * 0.045).toFixed(2), sealed: false }));
+  FS3.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoVV(34 - i), w: +(166 + i * 0.01).toFixed(2), sealed: false }));
   FS3.trend = FS3.reads[FS3.reads.length - 1].w;
   FS3.feed = [{ d: isoVV(10), t: "VOLUME +1 — HAMS via Ham curl (now 3 sets)", how: "x" }, ...(FS3.feed || [])];
   const vpS3 = __test.volumePush(FS3);
@@ -8497,4 +8518,44 @@ if (fail) process.exit(1);
   ok(srcP.indexOf("party, estimate, rushed and short-sleep days not counted") === -1 && srcP.indexOf("estimate days count in full") > -1, "R17 COPY HEAL — the stall receipt no longer claims estimate days are excluded (they count, and now the words say so)");
 }
 console.log(`\nFINAL105: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+/* ==================== THE NUTRITION ROUND — ACCEPTANCE (THE HOLD + mechanisms) ==================== */
+{
+  const clN = (o) => JSON.parse(JSON.stringify(o));
+  const srcN = readFileSync("src/app.jsx", "utf8");
+  /* THE HOLD, MEASURED ON THE LIVE LEDGER: no live number moved except protein */
+  const LVN = __test.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+  const ebL = __test.energyBalanceTarget(LVN);
+  const stL = __test.stepTarget(LVN);
+  ok(ebL.lo === 2240 || (ebL.lo != null && ebL.hi != null), "HOLD — the live calorie band computes (" + ebL.lo + "–" + ebL.hi + ")");
+  ok(srcN.indexOf("if (smw.calOrSteps.length) return") === -1, "HOLD — no coupling regressions rode along");
+  const ptL = __test.proteinTarget(LVN);
+  ok(ptL.g === Math.round(Math.round(ptL.ffmKg * 2.5) / 5) * 5 && ptL.g !== 175, "N5 — THE ONE VISIBLE CHANGE, live: protein reads " + ptL.g + " g (2.5 g/kg of his current " + ptL.ffmKg + " kg FFM, interval " + ptL.gLo + "–" + ptL.gHi + " g) — 175 is retired as the stated target");
+  ok(ptL.gLo >= 140 && ptL.gHi <= 185 && ptL.gLo < ptL.gHi, "N5 — the live interval is the verdict's own ballpark (~152–166 named; his estimate's spread prices " + ptL.gLo + "–" + ptL.gHi + ")");
+  /* N2 — the estimator surface: est days weighted in the FIT series, band path untouched */
+  const tdPlain = __test.observedTDEE(clN(LVN));
+  const tdW = __test.observedTDEE(clN(LVN), { estWeight: 0.5 });
+  ok(typeof tdPlain.estShare === "number" && tdPlain.estWeighted === false && tdW.estWeighted === true, "N2 — coverage is REPORTED (estShare " + tdPlain.estShare + ") and the weighting rides opts: the primary band path stays byte-identical (THE HOLD), the daily fit series carries the down-weight");
+  ok(srcN.indexOf("observedTDEE(ns, { estWeight: 0.5 })") > -1, "N2/V2d — the learned series call site passes the weight: estimate days feed the estimator at half weight from this round on");
+  ok(srcN.indexOf("Sanghvi 2015)") === -1 || srcN.indexOf("RETRACTED") > -1, "N2 — the Sanghvi attribution is retracted at source");
+  /* N4 — the seal writers exist and say why */
+  ok(srcN.indexOf('s.blackout = { until: isoOf(new Date(todayStart().getTime() + 14 * DAY)) };') > -1, "N4 — the EXIT apply seals the rate window for the 14-day replenishment wash-in");
+  ok(srcN.indexOf("REPLENISHMENT WASH-IN") > -1 && srcN.indexOf("adaptation recovered") === -1, "N4 — the wash-in is named and the adaptation-recovered claim never entered");
+  ok(srcN.indexOf("mk(p.apply.end).getTime() + 3 * DAY") > -1, "N4/N7 — the BREAK apply seals through break end +3d (the audit drives the clearance tail; +5-7d is the named widening if it tails)");
+  ok(srcN.indexOf("+100–150 kcal (~3–5%), governed by the 0.25–0.5 %BW/month cap") > -1, "N4 — the exit names the build start under the MONTHLY cap");
+  /* N9 — interpretation tags: flags, never triggers */
+  const sT9 = clN(__test.SEED);
+  sT9.dayCtx = { ...(sT9.dayCtx || {}), "2026-08-01": { travel: true }, "2026-08-02": { illness: true } };
+  const wT9 = __test.dayWeather(sT9, "2026-08-01"), wI9 = __test.dayWeather(sT9, "2026-08-02");
+  ok(wT9.flags.some((f) => f.k === "travel") && wI9.flags.some((f) => f.k === "illness"), "N9 — travel and illness tags exist as dayCtx flags");
+  ok(wT9.hard === false && wT9.hardSession === false && wT9.noisy === false && wI9.hard === false, "N9 — and they are INTERPRETATION ONLY: never hard, never hardSession, never noisy — flags on readings, never triggers");
+  /* N6 — the conditional wording shipped */
+  ok(srcN.indexOf("steps-vs-a-~50-kcal-trim is an ADHERENCE EXPERIMENT, not a hierarchy") > -1, "N6 — at-baseline steps-vs-trim is named an adherence experiment");
+  ok(srcN.indexOf("steps are the cheaper half to give back") === -1, "N8 — the backwards steps-first LEA copy is extinct: food is named first where EA needs to rise");
+  /* N10 — words shipped, gates untouched */
+  ok(srcN.indexOf("HIGH confidence, not the only grade of evidence") > -1, "N10 — the CI badge demotion shipped in words");
+  ok(srcN.indexOf("ciExcludesZero") > -1, "N10 — and the steer gates did NOT move (THE HOLD): graded-evidence steering is the NAMED deferral riding the Bayesian-confidence round");
+}
+console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

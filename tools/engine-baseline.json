@@ -492,6 +492,8 @@
     "stepA": 19794,
     "stepB": 14694
    },
+   "estShare": 0.11,
+   "estWeighted": false,
    "perLb": 3800,
    "perLbLo": 3523,
    "perLbHi": 4078,
@@ -1835,7 +1837,7 @@
    },
    {
     "id": "adaptmeter",
-    "t": "THE ADAPTATION METER",
+    "t": "THE UNEXPLAINED RESIDUAL",
     "status": "LIVE"
    },
    {
@@ -3713,6 +3715,8 @@
     "stepA": 18778,
     "stepB": 14889
    },
+   "estShare": 0.11,
+   "estWeighted": false,
    "perLb": 3800,
    "perLbLo": 3523,
    "perLbHi": 4078,
@@ -5054,7 +5058,7 @@
    },
    {
     "id": "adaptmeter",
-    "t": "THE ADAPTATION METER",
+    "t": "THE UNEXPLAINED RESIDUAL",
     "status": "LIVE"
    },
    {
