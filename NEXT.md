@@ -408,6 +408,21 @@ while a lift_pair trial stands, receipt names the freeze) and U3 (the window-wid
 note's invented validation retracted; typicalError defined in LEDGER_DICT) — both in
 the volume-verdicts round at d962b93.
 
+## BUILDING — THE DESIGN ROUND (round 4; Joe's order 2026-08-11; branch feat/design; target v7.49.0)
+
+**The three-audit consolidated verdict v2 is in-repo:
+[DESIGN-CONSOLIDATED-VERDICT.md](DESIGN-CONSOLIDATED-VERDICT.md) (verbatim; D1–D4
+DECIDED).** THE LAW: the ENGINE IS UNTOUCHED — render/copy/token/navigation surgery
+only; expected refreeze ZERO (any baseline byte wanting to move = STOP and report).
+One sanctioned data-adjacent fix: V2's duplicate feed guard + dedupe-on-render.
+Build order: A1 token system + CI CONTRAST AUDITOR GATE first — nothing recolors
+before it · A4 tap-color grammar + AFFORDANCE LINT · A2 decisions answer-first ·
+A3 record anatomy · A5 TRAIN opens on session (D1 auto-file + undo row) · A6 row
+glyphs · A7 destination hero · A8 context chips (D2 one-liner) · A9 navigation ·
+A10 dev chrome off · A11 copy micro-bundle · the five nutrition riders R1–R4 ride
+here (R5 done) · A12 seeds round 5 only. Scope fences: gym mode/capture sheet/
+decision detail UNGRADED — mechanical changes only; V8 capture artifact is not a bug.
+
 ## QUEUED — FIVE NUTRITION LOW RIDERS (audit, 2026-08-11; file on the BRIEF-dedup/design round)
 
 R1 · ~3070: the surplus-band why renders a dangling unit token — "...% BW/MONTH (the
