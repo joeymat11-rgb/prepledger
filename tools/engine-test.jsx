@@ -426,7 +426,7 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
       fed8.plan = { ...(fed8.plan || {}), phase: "leangain" };
       const sigOf = (st) => JSON.stringify(__test.programmeVolume(st).map((m) => [m.mg, m.head, m.sets, m.indirectOnly]));
       ok(sigOf(cut8) === sigOf(fed8), "R8 — the weekly set prescription is BYTE-IDENTICAL between a cutting state and a gaining one. Volume is designed, not conditioned on energy state: Roth 2022 (n=38) and Nait-Yahia 2026 (n=16, 40% CR) are both null on FFM");
-      ok(JSON.stringify(__test.VOL_BANDS) === JSON.stringify({ floor: 6, lo: 8, hi: 14, ceil: 16 }), "R8 — and the bands themselves are one constant, read identically everywhere. There is no deficit-calibrated variant to delete because none was ever built");
+      ok(JSON.stringify(__test.VOL_BANDS) === JSON.stringify({ floor: 6, lo: 8, hi: 14, ceil: 22 }), "R8 + A4 — the bands stay one constant, read identically everywhere; the ceiling is the ABSOLUTE BACKSTOP (22, never-normally-reached) since the volume-verdicts round — the working scrutiny moved to the review zone (15-18) and the per-session cap");
 
       /* THE ONE GROWTH-CONDITIONAL LINE IS DELIBERATE AND STAYS — but its authority moved
          (volume-lever spec): the gate reads the REGIME DETECTOR, not the exitStart phase
@@ -6252,36 +6252,36 @@ if (fail) process.exit(1);
     const rec = __test.recoveryIndex(F);
     ok(prog.state === "rising" && eb.regime === "free" && eb.regimeConfirmed === true && rec.band === "GREEN", "VOLUME LEVER — preconditions DRIVEN, not assumed: the fixture measures rising (" + prog.pct + "%/session), regime free CONFIRMED, recovery GREEN — so every gate below is earned");
     const vp = __test.volumePush(F);
-    ok(vp.mode === "PUSH" && vp.mg === "hams" && vp.exId === "ham", "VOLUME LEVER — the earned push targets the LOWEST readable allocation: hams via Ham curl, its direct numeric-load lift (Q3: low muscle first; AUDIT B: engine increments target the direct lift, never a compound)");
-    ok(vp.dSess === 1 && vp.fromWk === 4 && vp.toWk === 6 && vp.fromSess === 2 && vp.toSess === 3, "VOLUME LEVER — zone-scaled: hams at 4 weekly is UNDER the floor, and one per-session set corrects it to the floor in ONE move (2→3/session = 4→6 weekly) — decisive, not a month of crawling (AUDIT D: both units computed, weekly governs)");
+    ok(vp.mode === "PUSH" && vp.mg === "delts_side" && vp.exId === "lateral", "VOLUME LEVER (B3, ruled DERIVE) — the push routes by HIS OWN TRAINING ORDER: delts_side via Lateral machine, the first-trained muscle in exOrder.U — priority derives from the session order he already keeps, and lowest allocation is demoted to the tie-breaker (AUDIT B: the direct lift, never a compound)");
+    ok(vp.dSess === 1 && vp.fromWk === 8 && vp.toWk === 10 && vp.fromSess === 4 && vp.toSess === 5, "VOLUME LEVER — both units computed (AUDIT D): 4→5/session = 8→10 weekly on the priority muscle; the step stays +2 weekly max per move (E-law)");
     const armed = __test.runAdaptive(cl82(F), isoV(0));
     const card = armed.proposals.find((p) => /^volpush_/.test(p.rid) && !p.resolved);
-    ok(!!card && card.rid === "volpush_hams_" + MON && card.apply.kind === "sets" && card.apply.exId === "ham" && card.apply.delta === 1, "VOLUME LEVER — the producer files a monday-stamped CARD with a fully-armed apply (kind sets, exId, delta) — an enactor, not a note");
-    ok(/2→3 per session/.test(card.why) && /4→6 weekly/.test(card.why), "VOLUME LEVER — the card states BOTH units: per-session (what he does at the gym) and weekly (what the band governs)");
+    ok(!!card && card.rid === "volpush_delts_side_" + MON && card.apply.kind === "sets" && card.apply.exId === "lateral" && card.apply.delta === 1, "VOLUME LEVER — the producer files a monday-stamped CARD with a fully-armed apply (kind sets, exId, delta) — an enactor, not a note");
+    ok(/4→5 per session/.test(card.why) && /8→10 weekly/.test(card.why), "VOLUME LEVER — the card states BOTH units: per-session (what he does at the gym) and weekly (what the band governs)");
     ok(/MODERATE-TO-LOW/.test(card.why) && /no trial has tested MORE volume DURING a deficit/.test(card.why), "VOLUME LEVER — grade-honest copy: the §2.3 gap is named in the card itself, no confident voice on the untested bridge");
-    ok(/Ham curl/.test(card.why) && /minutes/.test(card.why), "VOLUME LEVER — the card names the exercise and prices the session cost — executable, not aspirational");
+    ok(/Lateral machine/.test(card.why) && /minutes/.test(card.why), "VOLUME LEVER — the card names the exercise and prices the session cost — executable, not aspirational");
     /* THE TAP ENACTS */
     const applied = __test.applyProposal(cl82(armed), card.id, 0, "cal");
-    const ham = applied.exercises.find((e) => e.id === "ham");
-    ok(ham.sets === 3 && !!ham.setsAt, "VOLUME LEVER — the tap changes the thing the card names: ham.sets 2→3, STAMPED (AUDIT G) — kind:sets had a dial since v7.3.1 and no apply branch, the refeed_review defect shape, now closed");
-    ok(applied.feed[0].t === "VOLUME +1 — HAMS via Ham curl (now 3 sets)", "VOLUME LEVER — with the receipt in the feed: " + applied.feed[0].t);
+    const lat = applied.exercises.find((e) => e.id === "lateral");
+    ok(lat.sets === 5 && !!lat.setsAt, "VOLUME LEVER — the tap changes the thing the card names: lateral.sets 4→5, STAMPED (AUDIT G) — kind:sets had a dial since v7.3.1 and no apply branch, the refeed_review defect shape, now closed");
+    ok(applied.feed[0].t === "VOLUME +1 — SIDE DELT via Lateral machine (now 5 sets)", "VOLUME LEVER — with the receipt in the feed (the display label, not the bucket key): " + applied.feed[0].t);
     const row = applied.adjustments[applied.adjustments.length - 1];
-    ok(row.exUndo && row.exUndo.exId === "ham" && row.exUndo.prev === 2 && row.setsDelta === 1, "VOLUME LEVER — and an EXACT undo on the row (exUndo carries the prior count), Law 10");
+    ok(row.exUndo && row.exUndo.exId === "lateral" && row.exUndo.prev === 4 && row.setsDelta === 1, "VOLUME LEVER — and an EXACT undo on the row (exUndo carries the prior count), Law 10");
     /* undo reverts and restamps */
     const un = __test.undoAdjustment(cl82(applied), row.rid);
-    ok(un.exercises.find((e) => e.id === "ham").sets === 2 && !!un.exercises.find((e) => e.id === "ham").setsAt, "VOLUME LEVER — undo reverts the exact count and STAMPS the revert, so a synced device cannot resurrect the undone count — and the revert is itself a set-count change the trend window restarts on (AUDIT F)");
-    /* parallel channels: a second same-week push may land on a DIFFERENT muscle */
+    ok(un.exercises.find((e) => e.id === "lateral").sets === 4 && !!un.exercises.find((e) => e.id === "lateral").setsAt, "VOLUME LEVER — undo reverts the exact count and STAMPS the revert, so a synced device cannot resurrect the undone count — and the revert is itself a set-count change the trend window restarts on (AUDIT F)");
+    /* the applied move charges the VOLUME budget, per-muscle */
     const smw = __test.structuralMovesThisWeek(applied);
-    ok(smw.sets.length === 1 && smw.mgsTouched.indexOf("hams") > -1, "VOLUME LEVER — the applied move is on the weekly budget, charged to its muscle");
+    ok(smw.sets.length === 1 && smw.mgsTouched.indexOf("delts_side") > -1, "VOLUME LEVER — the applied move is on the weekly VOLUME budget, charged to its muscle");
     const vp2 = __test.volumePush(applied);
-    ok(vp2.mode === "WITHHELD" && vp2.veto === "budget" && /returns Monday/.test(vp2.why), "VOLUME LEVER (R18f fix — SUPERSEDES the parallel-channels drive above this line): a sets move this week WITHHOLDS the chooser entirely, veto budget. The old drive permitted a same-week push to a different muscle; the audit drove the consequence — the ONE-CHANGE card claiming the set-add lever held BESIDE a desk offer of a set-add. One structural lever a week now means one, and the why names Monday");
+    ok(vp2.mode === "WITHHELD" && vp2.veto === "budget" && /returns Monday/.test(vp2.why) && /no longer holds this lever/.test(vp2.why), "VOLUME LEVER (A5+A6) — a VOLUME move this week still withholds the chooser: the cut cadence is batch-then-hold, one muscle at a time — and the why now SAYS the calorie/step steer no longer holds this lever (different budgets)");
     /* decline buys the week — and only the week */
     const decl = __test.dismissProposal(cl82(armed), card.id);
     ok(/quiet before Monday/.test((decl.feed[0] || {}).how || ""), "VOLUME LEVER — the decline copy states what it buys (quiet before Monday) — R14's copy-and-mechanism-agree rule at birth");
     const sameWk = __test.runAdaptive(cl82(decl), isoV(0));
-    ok(!sameWk.proposals.some((p) => /^volpush_hams_/.test(p.rid) && !p.resolved), "VOLUME LEVER — declined, the DECLINED muscle does not refile the same week — no always-on nagging (the owner's-call cards for other muscles are a separate, once-ever filing and legitimately stay open)");
+    ok(!sameWk.proposals.some((p) => /^volpush_delts_side_/.test(p.rid) && !p.resolved), "VOLUME LEVER — declined, the DECLINED muscle does not refile the same week — no always-on nagging (the owner's-call cards for other muscles are a separate, once-ever filing and legitimately stay open)");
     const nextWk = __test.runAdaptive(cl82(decl), NEXTMON);
-    ok(nextWk.proposals.some((p) => p.rid === "volpush_hams_" + NEXTMON && !p.resolved), "VOLUME LEVER — and the monday rolls the rid, so a still-sanctioned state RE-ASKS next week: the decline bought the week, not silence forever");
+    ok(nextWk.proposals.some((p) => p.rid === "volpush_delts_side_" + NEXTMON && !p.resolved), "VOLUME LEVER — and the monday rolls the rid, so a still-sanctioned state RE-ASKS next week: the decline bought the week, not silence forever");
   }
 
   /* ---------- every guard FIRES on a fixture built to trip it ---------- */
@@ -6295,11 +6295,11 @@ if (fail) process.exit(1);
     const Fb = mkFree();
     Fb.adjustments = [...(Fb.adjustments || []), { rid: "x", id: "a1", d: isoV(1), via: "cal", calDelta: -50, from: isoV(1) }];
     const vpb = __test.volumePush(Fb);
-    ok(vpb.mode === "WITHHELD" && vpb.veto === "budget" && /calorie-band change/.test(vpb.why), "VOLUME GUARD — one variable per week FIRES: a same-week calorie steer blocks the volume push, and the copy names which lever spent the budget");
+    ok(vpb.mode === "PUSH", "A5 DECOUPLED (THE INVERSION) — a same-week calorie steer NO LONGER blocks a volume push: the scale cannot identify a local set-add, so they never shared a budget — the old coupling arm is dead and the chooser answers on its own merits");
     /* one-variable budget, steps direction */
     const Fs = mkFree();
     Fs.adjustments = [...(Fs.adjustments || []), { rid: "steppush_" + MON, id: "a2", d: isoV(1), via: "steps", stepDelta: 1000, from: isoV(1) }];
-    ok(__test.volumePush(Fs).veto === "budget", "VOLUME GUARD — a same-week step push spends the same budget");
+    ok(__test.volumePush(Fs).mode === "PUSH", "A5 DECOUPLED — a same-week step push no longer touches the volume budget either: both scale-side levers left this gate in the same change");
     /* and the budget binds the OTHER lever too: a sets move blocks steppush */
     const stP = cl82(SEED);
     Object.keys(stP.dailyLogs || {}).forEach((d) => { stP.dailyLogs[d] = { ...(stP.dailyLogs[d] || {}), steps: 15000 }; });
@@ -6309,18 +6309,18 @@ if (fail) process.exit(1);
     stP.blackout = { until: isoV(28) };
     stP.adjustments = [...(stP.adjustments || []), { rid: "volpush_hams_" + MON, id: "a3", d: isoV(1), title: "x", exUndo: { exId: "ham", field: "sets", prev: 2 }, setsDelta: 1 }];
     const spB = __test.stepPush(stP);
-    ok(spB.mode === "WITHHELD" && spB.veto === "budget", "VOLUME GUARD — ONE owner, both directions: the same weekly budget makes stepPush withhold when a set-count change landed this week (this state pushes without the sets row — the steppush suite above proves it)");
+    ok(spB.mode === "PUSH", "A5 DECOUPLED, THE MIRROR — a set-count change this week no longer withholds stepPush: a set-add must never block a needed calorie/step steer, or vice versa (the fixture pushes with the sets row ON the week — the same state the old coupling used to veto)");
     /* the absolute ceiling */
     const Fc = mkFree();
     Fc.exercises.forEach((e) => { e.sets = 8; });
     const vpc = __test.volumePush(Fc);
-    ok(vpc.mode === "WITHHELD" && vpc.veto === "ceiling" && vpc.skips.some((x) => x.why.indexOf(String(__test.VOL_BANDS.ceil)) > -1), "VOLUME GUARD — the ABSOLUTE ceiling FIRES: with every muscle at the top the push is withheld naming " + __test.VOL_BANDS.ceil + " weekly — the numeric backstop (Q2) behind the response gates, STEP_PUSH_ABS_CEIL in mirror, derived from VOL_BANDS.ceil rather than invented");
+    ok(vpc.mode === "WITHHELD" && vpc.skips.some((x) => /per-session cap/.test(x.why) && /frequency change/.test(x.why)), "A4 — the PER-SESSION CAP fires first at this frequency: every muscle at 8 sets/session is refused with the concentration named and FREQUENCY offered as the release valve (the owner's split call, never session bloat) — at 2x/week the weekly backstop is structurally unreachable before the session cap, which is the reshape working");
     /* trend-blind refusal */
     const Ft = mkFree();
-    Ft.exercises.find((e) => e.id === "ham").w = "hold";
+    Ft.exercises.find((e) => e.id === "lateral").w = "hold";
     const vpt = __test.volumePush(Ft);
-    const blindSkip = (vpt.skips || []).find((x) => x.mg === "hams");
-    ok(vpt.mode === "PUSH" && vpt.mg !== "hams" && !!blindSkip && /trend-blind/.test(blindSkip.why), "VOLUME GUARD (AUDIT C) — a trend-blind lift is REFUSED with the reason named: sessionScore cannot read a non-numeric load, so its conversion window could never close — the proposal moves to a readable muscle instead");
+    const blindSkip = (vpt.skips || []).find((x) => x.mg === "delts_side");
+    ok(vpt.mode === "PUSH" && vpt.mg !== "delts_side" && !!blindSkip && /trend-blind/.test(blindSkip.why) && /delivery read/.test(blindSkip.why), "VOLUME GUARD (AUDIT C) — a trend-blind lift is REFUSED with the reason named (now worded as the DELIVERY read): a non-numeric load on the TOP-PRIORITY muscle is skipped and the proposal moves down his own order to a readable one");
     /* compound spillover charges the budget */
     const FS = mkFree();
     FS.feed = [{ d: isoV(1), t: "VOLUME +1 — CHEST via Press (now 4 sets)", how: "x" }, ...(FS.feed || [])];
@@ -6328,43 +6328,88 @@ if (fail) process.exit(1);
     ok(["chest", "triceps", "delts_front"].every((m) => smwS.mgsTouched.indexOf(m) > -1), "VOLUME GUARD (AUDIT B) — a compound set change charges its fractional spillover against every lent-into muscle's weekly budget: press touches chest AND triceps AND front delts — 'parallel channels' must not pretend a compound is one channel");
   }
 
-  /* ---------- the conversion instrument — three verdicts, rollback, and no self-confirmation ---------- */
+  /* ---------- the verdict ladder — delivery, tolerance, the staged hold, and the derived calendar ---------- */
   {
+    /* A1 — the flat read is TOLERATED, never "NOT_CONVERTED": a null strength read is
+       UNKNOWN, and the muscle stays eligible through tolerance */
     const S = mkStepped([23, 24, 23, 23]);
     const vc = __test.volumeConversion(S, "ham");
-    ok(vc.status === "LIVE" && vc.verdict === "NOT_CONVERTED" && vc.delivered === true, "CONVERSION — a lift that gained a set and made ZERO progress on it reads DID NOT CONVERT, with the effort verified delivered: the check that could never fail is the defect this exists to kill, and the fresh-window reset is why it CAN fail");
+    ok(vc.status === "LIVE" && vc.tier === "TOLERATED" && vc.delivered === true && vc.tolerated === true, "LADDER — a lift that gained a set and made zero progress on it reads TOLERATED (delivered, carrying it) — the old permanent NOT_CONVERTED block is dead: four sessions can establish delivery and tolerance, never growth");
+    ok(vc.subtract === false, "STAGED HOLD (A2) — and the null read HOLDS: an interval spanning zero can never subtract a set — rollback-on-null is dead");
+    ok(/performance evidence, never tissue evidence/.test(vc.why), "LADDER — the why says what a short-horizon trend IS: performance and tolerance evidence, never tissue evidence");
+    ok(vc.reviews && vc.reviews.delivery && vc.reviews.outcome && vc.reviews.classify, "LADDER (F) — the read carries its derived review calendar: delivery/tolerance, earliest outcome, credible classification, each from the muscle's own change date");
     /* READING state honors the instrument's own min-n */
     const S3 = mkStepped([23, 24, 23]);
     const vc3 = __test.volumeConversion(S3, "ham");
-    ok(vc3.status === "READING" && vc3.have === 3 && vc3.need === 4, "CONVERSION — the read window is DERIVED from liftTrend's own min-n (" + vc3.have + "/" + vc3.need + "), never a hand-picked constant");
+    ok(vc3.status === "READING" && vc3.have === 3 && vc3.need === 4, "LADDER — the read window is DERIVED from liftTrend's own min-n (" + vc3.have + "/" + vc3.need + "), never a hand-picked constant");
     /* and an open read window blocks the next push on that muscle only */
-    const vpR = __test.volumePush(S3);
+    const S3o = cl82(S3);
+    S3o.exOrder = { ...S3o.exOrder, L: ["ham", ...S3o.exOrder.L.filter((x) => x !== "ham")] };
+    const vpR = __test.volumePush(S3o);
     const readSkip = (vpR.skips || []).find((x) => x.mg === "hams");
-    ok(!!readSkip && /still being read/.test(readSkip.why), "CONVERSION — an unread increment blocks a SECOND increment on the SAME muscle (skip names the open window) while other muscles remain eligible — one experiment per channel");
-    /* UNDELIVERED: sandbagged sets cannot convict volume */
+    ok(!!readSkip && /still being read/.test(readSkip.why), "LADDER — an unread increment blocks a SECOND increment on the SAME muscle (skip names the open window, surfaced by making hams the fixture's own top priority) while other muscles remain eligible — one experiment per channel");
+    /* UNDELIVERED: sandbagged sets cannot convict volume (the criterion is UNCHANGED) */
     const SU = mkStepped([23, 24, 23, 23]);
     Object.keys(SU.sessionLog).sort().slice(-4).forEach((d) => {
       const en = SU.sessionLog[d].entries.find((e) => e.id === "ham");
       if (en && en.reps.length === 3) en.rirSets = [2, null, 3];
     });
     const vcU = __test.volumeConversion(SU, "ham");
-    ok(vcU.verdict === "UNDELIVERED" && /never arrived as prescribed effort/.test(vcU.why), "CONVERSION — the final-set RIR reports are the effort-compliance input: hard sets left 3 in the tank read UNDELIVERED, and the copy says the dose never arrived rather than convicting volume");
-    /* CONVERTED: genuine post-change progression with effort */
+    ok(vcU.tier === "UNDELIVERED" && vcU.delivered === false && /never arrived as prescribed effort/.test(vcU.why), "LADDER — the terminal-set RIR reports stay the effort-compliance input: hard sets left 3 in the tank read UNDELIVERED, and the copy says the dose never arrived rather than convicting volume");
+    /* genuine post-change progression: TOLERATED, and NEVER a conversion claim (A1's core) */
     const SC = mkStepped([20, 22, 24, 26]);
     const vcC = __test.volumeConversion(SC, "ham");
-    ok(vcC.verdict === "CONVERTED" && vcC.trend.lo > 0, "CONVERSION — genuine progression on the fresh window with effort delivered reads CONVERTED — the climb may continue, gated by the same read discipline");
-    /* rollback: NOT_CONVERTED + fatigue -> a receipt-carrying card whose tap removes the sets */
+    ok(vcC.tier === "TOLERATED" && vcC.trend.lo > 0 && vcC.why.indexOf("convert") === -1, "LADDER (A1) — genuine progression on a TWO-WEEK window still reads only TOLERATED: a short trend can never mint a growth verdict, and the word convert does not appear");
+    ok(/outcome opens/.test(vcC.why), "LADDER (F) — the why names the derived outcome date instead of claiming conversion");
+    /* UNCLEAR is a legal verdict */
+    const SN = mkStepped([23, 24, 23, 23]);
+    Object.keys(SN.sessionLog).sort().forEach((d) => {
+      const en = SN.sessionLog[d].entries.find((e) => e.id === "ham");
+      if (en && en.reps.length === 3) en.rirSets = [null, null, null];
+    });
+    const vcN = __test.volumeConversion(SN, "ham");
+    ok(vcN.tier === "UNCLEAR" && vcN.delivered === null && /Camargo 2026, a preprint/.test(vcN.why), "LADDER (F) — unrated effort + an interval spanning zero reads UNCLEAR, a legal verdict — and the null-read hold cites Camargo 2026 LABELED AS A PREPRINT, per the citation-hygiene rule");
+    /* MIXED-PHASE: a phase flip inside the read window is labeled, never force-classified */
+    const SM = mkStepped([23, 24, 23, 23]);
+    SM.plan = { ...(SM.plan || {}), phaseLog: [{ to: "maintenance", at: isoV(3) + "T10:00:00Z" }] };
+    ok(__test.volumeConversion(SM, "ham").tier === "MIXED-PHASE", "LADDER (F) — a phase transition inside the read window reads MIXED-PHASE — the observation is labeled, never force-classified");
+    /* THE DERIVED CALENDAR reproduces the amendment's own dates: an Aug 7 change lands
+       Aug 21 / Oct 2 / Oct 30 with no hardcoded calendar anywhere */
+    const SD = mkStepped([23, 24, 23, 23]);
+    SD.sessionLog = {};
+    ["2026-07-20", "2026-07-24", "2026-07-27", "2026-07-31", "2026-08-03"].forEach((d) => {
+      SD.sessionLog[d] = { at: 0, note: "", niggles: [], dips: 0, skipped: [], pace: "normal", entries: [{ id: "ham", reps: [10, 10], rir: 2, rirSets: [2, 0], w: 120 }] };
+    });
+    ["2026-08-07", "2026-08-10"].forEach((d) => {
+      SD.sessionLog[d] = { at: 0, note: "", niggles: [], dips: 0, skipped: [], pace: "normal", entries: [{ id: "ham", reps: [8, 8, 7], rir: 2, rirSets: [2, null, 0], w: 120 }] };
+    });
+    const vcD = __test.volumeConversion(SD, "ham");
+    ok(vcD.changedAt === "2026-08-07" && vcD.reviews.delivery === "2026-08-21" && vcD.reviews.outcome === "2026-10-02" && vcD.reviews.classify === "2026-10-30", "LADDER (F) — the review calendar DERIVES from the muscle's own change date: the Aug 7 add reproduces ~Aug 21 / ~Oct 2 / ~Oct 30 on its own, exactly as the amendment demanded — no hardcoded date anywhere");
+    /* A2 THE INVERSION — flat + governor hold NO LONGER rolls back: a null read holds */
     const SR = mkStepped([23, 24, 23, 23]);
     SR.exercises.find((e) => e.id === "ham").holdFlag = true;
     SR.exercises.find((e) => e.id === "ham").sets = 3;
     const vcR = __test.volumeConversion(SR, "ham");
-    ok(vcR.rollback === true && vcR.fatigueUp === true, "ROLLBACK — armed only when the read window CLOSED unconverted AND fatigue rose (governor hold here) — flat-but-cheap holds instead of rolling back");
-    const raR = __test.runAdaptive(cl82(SR), isoV(0));
+    ok(vcR.tier === "NOT-TOLERATED" && vcR.subtract === false, "STAGED HOLD (A2, THE INVERSION) — the old rollback trigger (flat read + fatigue up) now HOLDS: a governor hold makes the add NOT-TOLERATED, but with the lift itself not falling nothing subtracts — a null short read is not evidence of no hypertrophy");
+    ok(!__test.runAdaptive(cl82(SR), isoV(0)).proposals.some((p) => /^volroll_/.test(p.rid) && !p.resolved), "STAGED HOLD (A2) — and no card files on the hold: the reflex is dead in the producer too");
+    /* the subtract stage: the lift ITSELF deteriorating + the safety path */
+    const SFH = mkStepped([22, 21, 19, 18]);
+    SFH.exercises.find((e) => e.id === "ham").holdFlag = true;
+    SFH.exercises.find((e) => e.id === "ham").sets = 3;
+    const vcFH = __test.volumeConversion(SFH, "ham");
+    ok(vcFH.tier === "NOT-TOLERATED" && vcFH.subtract === true && vcFH.safety === true, "STAGED HOLD — a FALLING read (interval fully below zero) with the governor holding the lift meets the subtract condition on the immediate safety path");
+    const raR = __test.runAdaptive(cl82(SFH), isoV(0));
     const rollCard = raR.proposals.find((p) => /^volroll_ham_/.test(p.rid) && !p.resolved);
-    ok(!!rollCard && rollCard.apply.kind === "sets" && rollCard.apply.delta === -1, "ROLLBACK — filed as a proposal with its own receipt, never a silent revert (Law 10: offer, never impose)");
-    ok(/added to Ham curl on/.test(rollCard.why) && /no progression/.test(rollCard.why), "ROLLBACK — the receipt names the date the set was added, the measured non-result, and the cost — the experiment is the receipt");
+    ok(!!rollCard && rollCard.apply.kind === "sets" && rollCard.apply.delta === -1 && /NOT BEING TOLERATED/.test(rollCard.title), "STAGED HOLD — the subtract files as a proposal titled for what it measured (NOT BEING TOLERATED), never a silent revert (Law 10)");
+    ok(/was added to Ham curl on/.test(rollCard.why) && /deteriorating/.test(rollCard.why) && /safety path/.test(rollCard.why), "STAGED HOLD — the receipt names the date, the measured deterioration, and WHICH trigger fired — every clause derives from the state at filing time");
+    ok(/execution, rest and technique/.test(rollCard.why), "STAGED HOLD (F) — the verify stage is NAMED as the athlete's checks: the instrument does not pretend to measure standardization it cannot see");
     const rApplied = __test.applyProposal(cl82(raR), rollCard.id, 0, "cal");
-    ok(rApplied.exercises.find((e) => e.id === "ham").sets === 2 && rApplied.feed[0].t === "VOLUME -1 — HAMS via Ham curl (now 2 sets)", "ROLLBACK — the tap removes exactly the added sets, with the receipt in the feed");
+    ok(rApplied.exercises.find((e) => e.id === "ham").sets === 2 && rApplied.feed[0].t === "VOLUME -1 — HAMS via Ham curl (now 2 sets)", "STAGED HOLD — the tap removes exactly the added set, with the receipt in the feed");
+    /* a falling read WITHOUT hold, GREEN recovery, minimum window: still a hold */
+    const SF2 = mkStepped([22, 21, 19, 18]);
+    SF2.exercises.find((e) => e.id === "ham").sets = 3;
+    const vcF2 = __test.volumeConversion(SF2, "ham");
+    ok(vcF2.tier === "NOT-TOLERATED" && vcF2.subtract === false && /repeats, pain speaks, or recovery leaves GREEN/.test(vcF2.why), "STAGED HOLD — one falling window with GREEN recovery and no pain still HOLDS: subtraction needs the deterioration to repeat, pain to speak, or recovery to leave GREEN — and the why says exactly that");
   }
 
   /* ---------- the live snapshot: everything ABSTAINS, and nothing else moved ---------- */
@@ -6391,10 +6436,10 @@ if (fail) process.exit(1);
     ok(JSON.stringify(__test.rirPlan(F, { sets: 4, hi: 12, holdFlag: true }).plan) === "[2,2,2,2]", "RIR — and the governor hold still floors every slot at 2 across the new count: holdFlag machinery follows the set count");
     const wing82 = __test.labAnalytics2(cl82(SEED));
     const vcCard = wing82.find((c) => c.id === "volconv");
-    ok(!!vcCard && vcCard.status === "ARMED", "LAB — the VOLUME CONVERSION instrument exists and arms cold: no set-count change on record yet, counting only, no verdict");
+    ok(!!vcCard && vcCard.status === "ARMED" && vcCard.t === "VOLUME VERDICTS", "LAB — the VOLUME VERDICTS instrument (renamed from VOLUME CONVERSION: the old title claimed a read the instrument cannot make) exists and arms cold: no set-count change on record yet, counting only, no verdict");
     const wingLive = __test.labAnalytics2(mkStepped([23, 24, 23, 23]));
     const vcLive = wingLive.find((c) => c.id === "volconv");
-    ok(!!vcLive && vcLive.status === "LIVE" && /not converting/.test(vcLive.forYou), "LAB — and goes LIVE the day a change lands in the log, reading the same volumeConversion the producer gates on — one owner, one slope, the stepeff discipline");
+    ok(!!vcLive && vcLive.status === "LIVE" && /TOLERATED/.test(vcLive.forYou) && vcLive.forYou.indexOf("not converting") === -1, "LAB — goes LIVE the day a change lands in the log and speaks the LADDER (TOLERATED here), reading the same volumeConversion the producer gates on — one owner, one slope, and the conversion vocabulary is extinct on the card");
     const dsrc82 = readFileSync("src/app.jsx", "utf8");
     const dbSlice = dsrc82.slice(dsrc82.indexOf("DECLINE_BUYS = {"), dsrc82.indexOf("};", dsrc82.indexOf("DECLINE_BUYS = {")));
     ok(/volpush:/.test(dbSlice) && /volroll:/.test(dbSlice), "R14 — what a volume decline buys is stated per kind in the DECLINE_BUYS map, keyed by rid like steppush — copy and mechanism agree from birth");
@@ -6449,7 +6494,7 @@ if (fail) process.exit(1);
   const d1 = __test.runAdaptive(cl84(S7o), "2026-08-07"), d2 = __test.runAdaptive(cl84(S7o), "2026-08-07");
   ok(__test.mergeState(d1, d2).proposals.filter((p) => /^volpush_/.test(p.rid)).length === 3 && __test.mergeState(d2, d1).proposals.filter((p) => /^volpush_/.test(p.rid)).length === 3, "OWNER — two devices that each ran the producer merge to exactly three cards, both orders: the guard is merge-safe because the proposals union IS the guard's memory");
   /* the copy: owner framing + caveat + grade, per card */
-  ok(cards.every((c) => /OWNER'S CALL/.test(c.title) && /chose speed over waiting/.test(c.why) && /did not convert/.test(c.why) && /rollback card comes with the receipt/.test(c.why)), "OWNER — every card carries the owner's-call framing, the honest caveat (three experiments into WATCH recovery), and the measurement promise — no confident voice, the decision attributed to its decider");
+  ok(cards.every((c) => /OWNER'S CALL/.test(c.title) && /chose speed over waiting/.test(c.why) && /NOT-TOLERATED or UNCLEAR/.test(c.why) && /staged-hold card comes with the receipt/.test(c.why)), "OWNER — every card carries the owner's-call framing, the honest caveat in the LADDER vocabulary (NOT-TOLERATED or UNCLEAR — the conversion words are extinct), and the staged-hold measurement promise — no confident voice, the decision attributed to its decider");
   const chestC = cards.find((c) => /chest/.test(c.rid)), rearC = cards.find((c) => /delts_rear/.test(c.rid)), hamsC = cards.find((c) => /hams/.test(c.rid));
   ok(/floor correction/i.test(hamsC.why) && /where sets pay best on the evidence/.test(hamsC.why), "OWNER — hams is graded as the FLOOR CORRECTION (the climb lands where sets pay best on the evidence's own curve), distinct from the other two — the R15e region framing, not the retired tier");
   ok(/COMPOUND/.test(chestC.why) && /triceps and front delts/.test(chestC.why) && /charges those muscles' weekly structural budget/.test(chestC.why) && /MODERATE-TO-LOW/.test(chestC.why), "OWNER (AUDIT B) — the chest card NAMES the compound spillover and the budget charge in its own copy");
@@ -6481,7 +6526,7 @@ if (fail) process.exit(1);
       { rid: "volpush_delts_rear_x", id: "o3", d: isoL(Date.now() - 1 * 864e5), exUndo: { exId: "rearDelt", field: "sets", prev: 3 }, setsDelta: 1 }];
     return p; })();
   const sp84 = __test.stepPush(pushable84);
-  ok(sp84.mode === "WITHHELD" && sp84.veto === "budget", "OWNER — with three set moves on the week, a state that would otherwise PUSH steps is WITHHELD on the shared budget: the one-variable law holds under the owner's own configuration");
+  ok(sp84.mode === "PUSH", "OWNER + A5 (THE INVERSION) — three set moves on the week no longer withhold the step push: sets left the scale's budget, so the owner's batch cannot starve a needed steer — the old shared-budget veto is dead");
   /* three parallel READING states + rollback isolation */
   let rd = cl84(st);
   const iso84 = (k) => isoL(Date.parse("2026-08-07T12:00:00") + k * 864e5);
@@ -7780,7 +7825,7 @@ if (fail) process.exit(1);
   {
     const srcE = readFileSync("src/app.jsx", "utf8");
     /* 1 — the card says the true thing, with an end date */
-    ok(srcE.indexOf("the set-add and step-push levers are held while the scale reads it") > -1 && srcE.indexOf("Your daily calorie band keeps updating and corrective steers stay live") > -1 && srcE.indexOf('. The budget reopens ') > -1 && srcE.indexOf(' + fmtShort(isoOf(new Date(mk(smw.monday).getTime() + 7 * DAY)))') > -1 && srcE.indexOf("the coach holds every other lever until the scale can say what that one change did") === -1, "R18e-1 — the card names the levers ACTUALLY held (volume push, step push), says the band and steers stay live, and dates the budget reopening; the every-other-lever overclaim is extinct");
+    ok(srcE.indexOf("the scale cannot read a set-add, so they never shared a budget") > -1 && srcE.indexOf("Your daily calorie band keeps updating and corrective steers stay live") > -1 && srcE.indexOf(' + fmtShort(isoOf(new Date(mk(smw.monday).getTime() + 7 * DAY)))') > -1 && srcE.indexOf("the set-add and step-push levers are held while the scale reads it") === -1, "R18e-1 + A5 — the ONE CHANGE card evolved with the decoupling: it names WHICH budget is held and states the other stays live (the scale cannot read a set-add), still dating the reopening; the old joint-hold sentence is extinct");
     /* 2 — tighten abstains in a sets week; ease and the floor never held, by construction */
     ok(srcE.indexOf('if (action === "tighten") { try { const smw9 = structuralMovesThisWeek(s); if (smw9.sets.length) { action = "hold"; setsWeekHold = true; } } catch (e) {} }') > -1, "R18e-2 — Auto-Pilot TIGHTEN abstains for the budget week after a SETS change (the mirror of volumePush's cal veto — one budget, symmetric). The guard fires ONLY on the tighten branch, so ease and the redline floor are never held BY CONSTRUCTION, and the daily band is untouched (the guard moves action, never the band)");
     ok(srcE.indexOf("repair water inflates the scale for a week or two, so a slower-looking rate right now is the steer most likely to be false") > -1, "R18e-2 — the abstain carries its mechanism (new-volume repair water), surfaced on the read (setsWeekHold/setsWeekWhy) so the card can say why the tighten waits");
@@ -7794,21 +7839,21 @@ if (fail) process.exit(1);
     const smwV = __test.structuralMovesThisWeek(AV);
     ok(smwV.calOrSteps.length >= 1 && smwV.calOrSteps.some((m) => m.rid === "ap_tighten_T"), "R18e-3 — structuralMovesThisWeek SEES the approved steer in calOrSteps the same week");
     const vpV = __test.volumePush(AV);
-    ok(vpV.mode !== "PROPOSE" && srcE.indexOf('if (smw.calOrSteps.length) return { mode: "WITHHELD", veto: "budget",') > -1, "R18e-3 — and volumePush cannot propose that week (mode " + vpV.mode + (vpV.veto ? "/" + vpV.veto : "") + "): the budget arm exists at source and the approved steer feeds it — driven end to end, approve → via:cal → calOrSteps → no volume push");
+    ok(srcE.indexOf('if (smw.calOrSteps.length) return { mode: "WITHHELD", veto: "budget",') === -1 && (__test.volumePush(AV).veto !== "budget" || false), "R18e-3 + A5 (THE INVERSION) — the calOrSteps arm is GONE FROM SOURCE: an approved calorie steer still writes via:cal onto the scale's own budget, but the volume chooser never reads it — grep-the-claim, both directions");
   }
 
   /* ---------- R18f — ONE OWNER FOR THE ADDED SET ---------- */
   {
     const srcFf = readFileSync("src/app.jsx", "utf8");
-    ok(srcFf.indexOf("const picks = [];") > -1 && srcFf.indexOf("alt: p1 ? { mg: p1.mg, exName: p1.exName") > -1 && srcFf.indexOf("lowest allocation carries it — rep-velocity is never consulted for routing") > -1, "R18f-1 — the chooser names its runner-up and states the routing law: allocation, never rep-velocity — a maxed ladder (hack, forced reps-only, vel 3.5) can no longer masquerade as responsiveness and a fresh load jump (extension, reps reset by the debut) costs nothing");
-    ok(srcFf.indexOf("const vp9 = volumePush(s);") > -1 && srcFf.indexOf('if (vp9.mode === "PUSH") {') > -1 && srcFf.indexOf("The desk is awake again — one chooser, house gates.") > -1, "R18f-2 — the desk's +1 arm ASKS THE SAME FUNCTION: every house gate (regime, rising, recovery, sleep, the smw budget, spillover, conversion, ceiling) applies to the desk by construction, and the card SAYS the desk woke with this round");
+    ok(srcFf.indexOf("const picks = [];") > -1 && srcFf.indexOf("alt: p1 ? { mg: p1.mg, exName: p1.exName") > -1 && srcFf.indexOf("his own training order carries it — the first-trained muscle is the priority") > -1 && srcFf.indexOf("Rep-velocity is never consulted for routing") > -1, "R18f-1 + B3 — the chooser names its runner-up and states the NEW routing law: his own training order first (derived from exOrder, ruled DERIVE), allocation demoted to tie-breaker, and rep-velocity still never consulted (E-law held)");
+    ok(srcFf.indexOf("const vp9 = volumePush(s);") > -1 && srcFf.indexOf('if (vp9.mode === "PUSH") {') > -1 && srcFf.indexOf("The desk is awake again — one chooser, house gates.") > -1, "R18f-2 — the desk's +1 arm ASKS THE SAME FUNCTION: every house gate (the regime or stall read, not-falling, recovery, the sleep mean, the volume budget, spillover, delivery reads, the caps) applies to the desk by construction, and the card SAYS the desk woke with this round");
     ok(srcFf.indexOf("if (dir < 0) {") > -1 && srcFf.indexOf("} else cands.push({ m, dir, why, pick: null,") > -1, "R18f-2 — the +1 trigger carries NO pick of its own (the chooser owns WHICH); the -1 give-back keeps its weakest-mover pick — a different question, no ladder bias rewards the giver");
-    ok(srcFf.indexOf("if (smw9.moves.length) return;   /* R18f-3") > -1, "R18f-3 — the give-back is a structural move too: it waits out ANY move-week (sets, cal or steps), so no desk card can contradict the ONE-CHANGE card in the same render");
+    ok(srcFf.indexOf("if (smw9.sets.length) return;   /* R18f-3, evolved by A5") > -1 && srcFf.indexOf("if (smw9.moves.length) return;   /* R18f-3") === -1, "R18f-3 + A5 — the give-back waits out VOLUME move weeks only now: sets left the scale's budget, so a calorie steer no longer silences the -1 arm — the guard evolved with the decoupling, deliberately");
     ok(srcFf.indexOf("slice(0, 1).forEach") > -1 && srcFf.indexOf("gatesClosed: false") > -1, "R18f — default offers cap at ONE by construction (the chooser returns one pick; the give-back files at most one), and never five simultaneous defaults again");
     /* driven: the awake desk on a full seed still files nothing while the chooser holds */
     ok(__test.sweepVolume(JSON.parse(JSON.stringify(__test.SEED)), 0) === null, "R18f — DRIVEN: Sunday sweep on the seed files nothing — the chooser reads regime unknown and the desk inherits every gate the moment it asks");
     const vpS = __test.volumePush(JSON.parse(JSON.stringify(__test.SEED)));
-    ok(vpS.mode !== "PUSH" || (vpS.routing && vpS.routing.indexOf("lowest allocation") === 0), "R18f — whenever the chooser DOES push, its verdict carries the routing sentence (and the alt when a runner-up exists): the card states both candidates' numbers from the engine's own words");
+    ok(vpS.mode !== "PUSH" || (vpS.routing && vpS.routing.indexOf("his own training order carries it") === 0), "R18f + B3 — whenever the chooser DOES push, its verdict carries the routing sentence (and the alt when a runner-up exists): the card states both candidates from the engine's own words");
   }
 
   /* ---------- R18f FIX — the sets week silences the desk (the audit's fixture) ---------- */
@@ -8179,3 +8224,206 @@ if (fail) process.exit(1);
 
 
 
+
+
+/* ==================== THE VOLUME-VERDICTS ROUND — NEW-MECHANISM DRIVES + E-PINS ==================== */
+{
+  const clV = (o) => JSON.parse(JSON.stringify(o));
+  const isoVV = (k) => isoL(Date.now() - k * 864e5);
+  const srcV = readFileSync("src/app.jsx", "utf8");
+  const mkFreeV = () => {
+    const st = clV(__test.SEED);
+    st.blackout = { until: isoVV(28) };
+    st.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoVV(34 - i), w: +(170 - i * 0.09).toFixed(2), sealed: false }));
+    st.trend = st.reads[st.reads.length - 1].w;
+    st.sleep.nights = Array.from({ length: 40 }, (_, i) => ({ d: isoVV(39 - i), h: 8.2 }));
+    st.dailyLogs = {};
+    st.sessionLog = {};
+    st.exercises.forEach((e) => { e.holdFlag = false; });
+    const lifts = [
+      { id: "rows", w: 175, base: 16 }, { id: "press", w: 245, base: 14 },
+      { id: "lateral", w: 80, base: 20 }, { id: "tricep", w: 55, base: 18 },
+      { id: "ham", w: 120, base: 15 },
+    ];
+    for (let k = 0; k < 8; k++) {
+      st.sessionLog[isoVV(28 - k * 4)] = { at: 0, note: "", niggles: [], dips: 0, skipped: [], pace: "normal",
+        entries: lifts.map((L) => { const tot = L.base + k; const a = Math.ceil(tot / 2);
+          return { id: L.id, reps: [a, tot - a], rir: 2, rirSets: [2, 1], w: L.w }; }) };
+    }
+    return st;
+  };
+
+  /* ---------- A3+B4 — THE GATE ---------- */
+  const FB4 = mkFreeV();
+  FB4.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoVV(34 - i), w: 168.0, sealed: false }));
+  FB4.trend = 168.0;
+  const vpB4 = __test.volumePush(FB4);
+  ok(vpB4.mode === "PUSH" && vpB4.basis === "stall", "B4 — A STALLED SCALE WITH CLEAN INSTRUMENTS STILL EARNS THE OFFER: a perfectly flat 35-read scale (rate interval spanning zero) with rising lifts, GREEN recovery and a clean sleep mean reaches PUSH on the stall arm — nothing looks wrong suffices, and the engine is no longer more conservative than his data");
+  const raB4 = __test.runAdaptive(clV(FB4), isoVV(0));
+  const cardB4 = raB4.proposals.find((p) => /^volpush_/.test(p.rid) && !p.resolved);
+  ok(!!cardB4 && /stall arm/.test(cardB4.why) && /nothing looking wrong/.test(cardB4.why), "B4 — and the card SAYS which arm earned it: the stall basis is named to the athlete, never silently blended with the FREE story");
+  ok(srcV.indexOf('if (prog.state === "falling") return { mode: "HOLD"') > -1 && srcV.indexOf('if (prog.state !== "rising") return { mode: "HOLD", regime: "free"') === -1, "A3 — the gate asks NOT FALLING at source and the old rising requirement is extinct: stable lifts in a deficit are already a success signal");
+
+  /* ---------- B2 — THE SLEEP VETO NARROWS TO THE 3-NIGHT MEAN ---------- */
+  const FB2 = mkFreeV();
+  FB2.sleep.nights[FB2.sleep.nights.length - 2] = { d: isoVV(1), h: 6.2 };
+  ok(__test.cleanAtDate(FB2, isoL(Date.now())) === false, "B2 — the fixture is real: LAST NIGHT at 6.2 h makes cleanAtDate FALSE (the old single-night veto would have fired here)");
+  const vpB2 = __test.volumePush(FB2);
+  ok(vpB2.mode === "PUSH", "B2 (THE INVERSION, ruled) — ONE short night no longer blocks a volume offer: the same state the single-night arm used to veto now reaches PUSH, because the acute cost is real but smaller than his own day-to-day spread");
+  const FB2b = mkFreeV();
+  for (let i = 1; i <= 3; i++) FB2b.sleep.nights[FB2b.sleep.nights.length - 1 - i] = { d: isoVV(i), h: 6.8 };
+  const vpB2b = __test.volumePush(FB2b);
+  ok(vpB2b.mode === "WITHHELD" && vpB2b.veto === "sleep" && /3-night sleep mean/.test(vpB2b.why), "B2 — the 3-NIGHT MEAN check STAYS: three 6.8 h nights (mean under 7) still hold the ADD gate, and the why names the mean, not the night");
+  ok(/CI 1.23–4.47/.test(vpB2b.why), "B2 — the receipt is CORRECTED in the same change: the veto copy states the −2.85% cost is real with its interval, never the retired inside-noise overclaim");
+  ok(srcV.indexOf("function sleepMean3At(") > -1 && srcV.split("sleepMean3At(").length - 1 >= 3, "B2 — sleepMean3At is the narrowed gate's one owner; cleanAtDate keeps BOTH arms for every protective downside-only consumer (records, stalls, the -1 arm)");
+
+  /* ---------- A5 — THE RECONCILER NO LONGER WITHDRAWS ON A SCALE MOVE ---------- */
+  const SRec = clV(__test.SEED);
+  const dRec = new Date(); const offRec = (dRec.getDay() + 6) % 7;
+  const monRec = isoL(Date.now() - offRec * 864e5);
+  SRec.adjustments = [...(SRec.adjustments || []), { rid: "ap_x", id: "arec", d: monRec, via: "cal", calDelta: -50 }];
+  SRec.proposals = [...(SRec.proposals || []), { rid: "volpush_quads_z", id: "vpz", d: isoVV(0), title: "QUADS — EARNED VOLUME", why: "w", apply: { kind: "sets", exId: "hack", delta: 1, budgetPremise: true } }];
+  const RRec = __test.runAdaptive(SRec, isoVV(0));
+  ok((RRec.proposals.find((p) => p.id === "vpz") || {}).resolved !== true, "A5 — the reconciler belt keys on the VOLUME budget now: a same-week CALORIE steer no longer withdraws an open EARNED VOLUME card — the offer's premise is the volume budget, which that steer never touched");
+  const RApl = __test.applyProposal(clV(SRec), "vpz");
+  ok((RApl.exercises.find((x) => x.id === "hack") || {}).sets === (SRec.exercises.find((x) => x.id === "hack") || {}).sets + 1, "A5 — and the tap-time belt agrees: the budget-premised card ENACTS in a calorie-steer week — only a volume move expires it (the sets-spend expiry is driven in the R18f FIX 2 block above, unchanged)");
+
+  /* ---------- A4 — THE REVIEW ZONE AND THE TRUE BACKSTOP (frequency as release valve) ---------- */
+  const F3 = mkFreeV();
+  F3.split = [{ from: "2026-07-01", map: { 0: "L", 1: "L", 2: "REST", 3: "L", 4: "U", 5: "U", 6: "REST" } }];
+  F3.exercises.find((e) => e.id === "ham").sets = 6;
+  F3.exOrder = { ...F3.exOrder, L: ["ham", ...F3.exOrder.L.filter((x) => x !== "ham")] };
+  const vpF3 = __test.volumePush(F3);
+  const revSkip = (vpF3.skips || []).find((x) => x.mg === "hams");
+  ok(!!revSkip && /past the review zone/.test(revSkip.why) && /delivered\+tolerated/.test(revSkip.why), "A4 — THE REVIEW ZONE: at 3x frequency a push landing past 18 weekly sets is refused unless the muscle's OWN reads stand delivered+tolerated — the hard 16 refusal is dead, the scrutiny is earned-progression, and the skip says so");
+  const F4 = mkFreeV();
+  F4.split = [{ from: "2026-07-01", map: { 0: "L", 1: "L", 2: "REST", 3: "L", 4: "U", 5: "U", 6: "REST" } }];
+  F4.exercises.find((e) => e.id === "ham").sets = 7;
+  F4.exOrder = { ...F4.exOrder, L: ["ham", ...F4.exOrder.L.filter((x) => x !== "ham")] };
+  const vpF4 = __test.volumePush(F4);
+  const ceilSkip = (vpF4.skips || []).find((x) => x.mg === "hams");
+  ok(!!ceilSkip && /absolute ceiling binds/.test(ceilSkip.why) && ceilSkip.why.indexOf("22") > -1, "A4 — THE ABSOLUTE BACKSTOP: only a 3x-frequency muscle can even REACH the low-20s ceiling (at 2x the session cap trips first — frequency is the release valve, structurally), and when it binds the skip names 22");
+
+  /* ---------- A6 — THE SURPLUS ARM: the controlled-gain cap replaces the losing requirement ---------- */
+  const FS1 = mkFreeV();
+  FS1.plan = { ...(FS1.plan || {}), phase: "leangain" };
+  FS1.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoVV(34 - i), w: +(166 + i * 0.045).toFixed(2), sealed: false }));
+  FS1.trend = FS1.reads[FS1.reads.length - 1].w;
+  const vpS1 = __test.volumePush(FS1);
+  ok(vpS1.mode === "PUSH" && vpS1.basis === "surplus", "A6 — IN SURPLUS the losing requirement is GONE: a controlled gain (~0.19% BW/wk, inside the 0.5 cap) with lifts not falling reaches PUSH on the surplus basis — FREE's clearly-losing arm is replaced, exactly as ruled");
+  const FS2 = mkFreeV();
+  FS2.plan = { ...(FS2.plan || {}), phase: "leangain" };
+  FS2.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoVV(34 - i), w: +(160 + i * 0.16).toFixed(2), sealed: false }));
+  FS2.trend = FS2.reads[FS2.reads.length - 1].w;
+  const vpS2 = __test.volumePush(FS2);
+  ok(vpS2.mode === "HOLD" && /controlled-gain cap/.test(vpS2.why) && /never a reason to escalate volume faster/.test(vpS2.why), "A6 — and the CAP HOLDS the fast gainer (~0.66% BW/wk): the why teaches the law — a bigger surplus is never a reason to escalate volume faster (faster gain buys mostly fat)");
+  const FS3 = mkFreeV();
+  FS3.plan = { ...(FS3.plan || {}), phase: "leangain" };
+  FS3.reads = Array.from({ length: 35 }, (_, i) => ({ d: isoVV(34 - i), w: +(166 + i * 0.045).toFixed(2), sealed: false }));
+  FS3.trend = FS3.reads[FS3.reads.length - 1].w;
+  FS3.feed = [{ d: isoVV(10), t: "VOLUME +1 — HAMS via Ham curl (now 3 sets)", how: "x" }, ...(FS3.feed || [])];
+  const vpS3 = __test.volumePush(FS3);
+  ok(vpS3.mode === "WITHHELD" && vpS3.veto === "budget" && /batch window closed/.test(vpS3.why), "A6 — SURPLUS CADENCE: one add placed 10 days ago closes the batch window (batch at the block start, then hold) — the hold is running and the why says when the next block opens");
+  const FS4 = clV(FS3);
+  FS4.feed = [{ d: isoVV(2), t: "VOLUME +1 — CHEST via Press (now 4 sets)", how: "x" }, ...FS4.feed];
+  const vpS4 = __test.volumePush(FS4);
+  ok(vpS4.mode === "WITHHELD" && /batch is placed/.test(vpS4.why) && /not validated as optimal/.test(vpS4.why), "A6 (amended) — two adds inside the window fill the batch (max 2, anatomically non-overlapping via the mgsTouched skip), and the copy carries the amendment's own humility: a reasonable coaching experiment, not validated as optimal");
+
+  /* ---------- B3 — ROUTING DERIVES FROM HIS ORDER (the flip drive) ---------- */
+  const FO = mkFreeV();
+  FO.exOrder = { U: FO.exOrder.U, L: ["ham", ...FO.exOrder.L.filter((x) => x !== "ham")] };
+  const vpO = __test.volumePush(FO);
+  ok(vpO.mode === "PUSH" && vpO.mg === "hams", "B3 — REORDER THE SESSION, REROUTE THE OFFER: the untouched state picks delts_side (first-trained, tie broken by allocation); moving ham to the front of exOrder.L moves the push to hams — same state, one reorder, different offer. Priority IS his training order: zero new UI, zero new synced field, cannot drift");
+  ok(/his own training order carries it/.test(vpO.routing || ""), "B3 — the routing sentence attributes the pick to HIS order, with allocation demoted to tie-breaker");
+
+  /* ---------- ITEM 9 — THE HEADROOM SOFT NOTE (information, never a brake) ---------- */
+  const FH = mkFreeV();
+  const vpH = __test.volumePush(FH);
+  ok(vpH.mode === "PUSH" && !!vpH.headroomNote && /information, not a brake/.test(vpH.headroomNote), "ITEM 9 (Joe's ruling: soft note) — a still-climbing target muscle gets ONE added sentence of context on the offer, and the note itself says it is information, not a brake: the offer FIRED — the full gate was rejected as more conservative than his data");
+  const raH = __test.runAdaptive(clV(FH), isoVV(0));
+  const cardH = raH.proposals.find((p) => /^volpush_/.test(p.rid) && !p.resolved);
+  ok(!!cardH && /still climbing on rep and load alone/.test(cardH.why), "ITEM 9 — and the sentence reaches the card the athlete actually reads");
+  const FHf = mkFreeV();
+  Object.keys(FHf.sessionLog).forEach((d) => { const en = FHf.sessionLog[d].entries.find((e) => e.id === "lateral"); if (en) en.reps = [10, 10]; });
+  const vpHf = __test.volumePush(FHf);
+  ok(vpHf.mode === "PUSH" && vpHf.mg === "delts_side" && !vpHf.headroomNote, "ITEM 9 — a flat target muscle carries NO note: the sentence derives from the lift trend the engine already computes, never from a vibe");
+
+  /* ---------- B1 — THE FAILURE A/B, END TO END ---------- */
+  const FT = mkFreeV();
+  const raT = __test.runAdaptive(clV(FT), isoVV(0));
+  const abCard = (raT.agentProposals || []).find((x) => x.kind === "trial" && x.custom && x.custom.abId === "failureAB1");
+  ok(!!abCard && /RULED: RUN IT/.test(abCard.title) && /Tricep and Sulek curl/.test(abCard.body) && /bias, not just noise/.test(abCard.body), "B1 — the A/B files once as a desk card: the pairing is NAMED with its ledger evidence (two same-session isolations, six reads each, loads unchanged) and the calibration-anchor argument rides the body — the tap is the consent, on the record");
+  ok(/1 RIR still satisfies the delivered-dose criterion/.test(abCard.body), "B1 — the card states the interaction that keeps the capped arm honest: 1 RIR still reads as delivered");
+  const started = __test.applyAgentProposal(clV(raT), abCard, isoVV(0));
+  ok((started.trials || []).some((t) => t.custom && t.custom.abId === "failureAB1" && t.started) && started.feed.some((f) => /^TRIAL STARTED — THE FAILURE A\/B/.test(f.t)), "B1 — the tap starts the trial: the record lands in s.trials with its start date and the feed says so");
+  const raT2 = __test.runAdaptive(clV(started), isoVV(0));
+  ok(!(raT2.agentProposals || []).some((x) => x.kind === "trial" && x.custom && x.custom.abId === "failureAB1"), "B1 — once ever: a started trial never refiles");
+  const armT = __test.trialArmOn((started.trials || []).find((t) => t.custom && t.custom.abId === "failureAB1"), isoVV(0));
+  ok(!!armT && armT.armIdx === 0 && armT.of === 4, "B1 — the standing arm renders (week " + (armT ? armT.block : "-") + "/4): a lift-pair trial has no daily alternation, so TODAY'S PROTOCOL shows the standing instruction");
+  const rpT = __test.rirPlan(started, started.exercises.find((e) => e.id === "tricep"));
+  ok(rpT.plan[rpT.plan.length - 1] === 1 && rpT.why.some((w) => /failure A\/B/.test(w)), "B1 — the capped arm reaches the gym: tricep's terminal set is prescribed 1 RIR (1-2 allowed, still delivered) with the trial named in the why");
+  const rpS = __test.rirPlan(started, started.exercises.find((e) => e.id === "sulek"));
+  ok(rpS.plan[rpS.plan.length - 1] === 0, "B1 — and the control keeps its all-out terminal set: sulek stays the calibration anchor");
+  const vT = __test.trialVerdict(started, (started.trials || []).find((t) => t.custom && t.custom.abId === "failureAB1"));
+  ok(!!vT && vT.done === false && typeof vT.nA === "number" && typeof vT.nB === "number", "B1 — the verdict machinery reads the pair (done only when BOTH lifts carry a full post-start window) — parallel arms, two slopes with intervals, direction not gospel");
+  const declT = __test.dismissAgentProposal(clV(raT), abCard, isoVV(0));
+  ok((declT.trials || []).some((t) => t.custom && t.custom.abId === "failureAB1" && t.declined) && declT.feed.some((f) => /^TRIAL PASSED/.test(f.t)), "B1 — a decline is RECORDED (the refile loop the template path already closed, now closed for staged trials too)");
+  ok(!(__test.runAdaptive(clV(declT), isoVV(0)).agentProposals || []).some((x) => x.kind === "trial" && x.custom && x.custom.abId === "failureAB1"), "B1 — and a declined trial never refiles either — the once-ever guard reads both outcomes");
+  ok(srcV.indexOf('enum: ["session_reps", "sleep_h", "trend_delta", "lift_pair"]') > -1, "B1 — the analyst's trial-design tool learned the new metric, so a future analyst-staged pair rides the same rails");
+
+  /* ---------- E — UNCHANGED IS LAW: every kept rule pinned as NOT moved ---------- */
+  ok(srcV.indexOf("const dSess = m.sets < VOL_BANDS.floor ? Math.min(2, Math.max(1, Math.ceil((VOL_BANDS.floor - m.sets) / freq))) : 1;") > -1, "E — step size did NOT move: dSess stays zone-scaled and capped at 2 per session (+2 weekly per move at this split)");
+  ok(srcV.indexOf("while (cutAt > 0 && pts[cutAt - 1].k === lastK) cutAt--;") > -1, "E — trend-restart hygiene did NOT move: any set-count change still starts a fresh window (AUDIT A)");
+  ok(srcV.indexOf("terms.filter((x) => x <= 1).length / terms.length >= DELIVERED_MAJ") > -1 && srcV.indexOf("const DELIVERED_MAJ = 0.5;") > -1, "E + F — the delivered-dose RIR criterion did NOT move, and the 0.5 threshold is now a NAMED numeric trip (DELIVERED_MAJ) per the amendment: kept over a derivation because no derivation exists that is not itself a choice");
+  ok(JSON.stringify(__test.INDIRECT.press) === JSON.stringify({ triceps: 0.5, delts: 0.5 }), "E — the 0.5 fractional spillover did NOT move: press still lends half a set each to triceps and front delts");
+  ok(srcV.indexOf("Rep-velocity is never consulted for routing") > -1, "E — velocity stays excluded from routing, stated in the routing sentence itself");
+  ok(srcV.indexOf('if (rec.band !== "GREEN") return { mode: "WITHHELD", veto: "recovery"') > -1 && srcV.indexOf("if (!sleepMean3At(s, isoOf(todayStart()))) return") > -1, "E — recovery-GREEN and the sleep gate remain ADD-gates inside volumePush only (the -1 give-back keeps its own protective reads)");
+  ok(srcV.indexOf("indirectOnly: lifts.length === 0") > -1, "E — front delts stays indirect-only: a bucket with no direct lift cannot be a volume subject");
+  ok(__test.VOL_BANDS.floor === 6, "E — floor 6 did NOT move (a soft prior, not a law)");
+  ok(srcV.indexOf("CUT_OPT_PCT: 0.70") > -1, "E — the 0.70% BW/wk cut rate did NOT move");
+  ok(__test.REGIME_HOLD_D === 7, "E — the 7-day regime hysteresis did NOT move (the data's shutter, not a constant)");
+
+  /* ---------- GREP-THE-CLAIM: the retired rules are extinct in code AND copy ---------- */
+  ok(srcV.split('"NOT_CONVERTED"').length - 1 === 0 && srcV.split('"CONVERTED"').length - 1 === 0 && srcV.split('"UNDELIVERED"').length - 1 <= 2, "SWEEP — the conversion verdict tokens are extinct as values (UNDELIVERED survives only as a LADDER tier string): the eleven-places lesson, applied at retirement time");
+  ok(srcV.indexOf("waits for that verdict") === -1, "SWEEP — the permanent-block sentence is extinct");
+  ok(srcV.indexOf("pooled progression rising") === -1, "SWEEP — the rising claim left the receipts with the mechanism (the card now says lifts not falling while fat clearly falls, or names the stall arm)");
+  ok(srcV.indexOf("inside the test-retest") === -1 && srcV.indexOf("inside the measurement noise") === -1, "SWEEP (B2/D) — the inside-noise overclaim is extinct at every living site: the cost is stated as real (CI 1.23-4.47) and smaller than his own spread — eleven copy sites swept, the patchV34 feed line left as the historical record it is");
+  ok(srcV.indexOf("Balshaw") === -1 && srcV.indexOf("Räntilä") === -1, "CITATION HYGIENE — Balshaw stays banned everywhere and Räntilä never entered the app; Henselmans appears only in two pre-existing code COMMENTS (the docs side the rule permits — grep-verified no receipt carries it), and this round added none");
+  ok(srcV.split("Camargo 2026, a preprint").length - 1 >= 2, "CITATION HYGIENE — every Camargo receipt carries the preprint label at the point of use");
+  ok(srcV.indexOf("muscle-memory drip (+0.3/wk), so BF%") === -1 && srcV.indexOf("drifting up weekly — that number rising") === -1, "SWEEP (D) — the retired drip no longer survives in copy, and the lean line no longer claims to drift up weekly: retained performance is named as such, never sold as new muscle");
+}
+console.log(`\nFINAL103: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+
+/* ==================== U1 — THE A/B'S PROGRESSION TARGETS ARE FROZEN ==================== */
+{
+  const clU = (o) => JSON.parse(JSON.stringify(o));
+  const SU1 = clU(__test.SEED);
+  const isoU = isoL(Date.now());
+  const mkLift = (id) => {
+    const e = SU1.exercises.find((x) => x.id === id);
+    e.w = 55; e.hi = 15; e.sets = 3; e.holdFlag = false; e.std = null; e.reclaim = null; e.ladder = null;
+    e.last = [12, 12, 12];
+    return e;
+  };
+  const exT = mkLift("tricep"); exT.lastMeta = { reps: [12, 12, 12], rirSets: [2, 1, 1] };
+  const exS = mkLift("sulek"); exS.lastMeta = { reps: [12, 12, 12], rirSets: [2, 1, 0] };
+  /* control: WITHOUT the trial the two arms earn DIFFERENT steps — the confound is real */
+  const stepT0 = __test.progressStep(exT, SU1), stepS0 = __test.progressStep(exS, SU1);
+  ok(stepT0.add === 2 && stepS0.add === 1, "U1 CONTROL — the confound the audit drove is real on this engine: terminal RIR 1 earns +" + stepT0.add + " while all-out 0 earns +" + stepS0.add + " — different progression exposure between the arms");
+  /* with the trial standing, BOTH arms step flat +1, and the receipt names the freeze */
+  SU1.trials = [{ custom: { t: "AB", q: "q", arms: ["a", "b"], blockDays: 28, cycles: 1, metric: "lift_pair", exA: "tricep", exB: "sulek", abId: "failureAB1" }, started: isoU }];
+  const stepT1 = __test.progressStep(exT, SU1), stepS1 = __test.progressStep(exS, SU1);
+  ok(stepT1.add === 1 && stepS1.add === 1, "U1 — with the lift_pair trial standing BOTH arms step flat +1: identical progression exposure, the experiment unconfounded");
+  ok(/failure A\/B/.test(stepT1.why) && /flat/.test(stepT1.why) && /calibration data/.test(stepT1.why), "U1 — the receipt NAMES the chosen freeze (flat +1) and keeps the calibration promise");
+  /* and the freeze reaches the actual targets */
+  const tT = __test.targetsFor(exT, SU1), tS = __test.targetsFor(exS, SU1);
+  const sum9 = (a) => a.reduce((x, y) => x + y, 0);
+  ok(sum9(tT) - 36 === sum9(tS) - 36 && sum9(tT) - 36 === 1, "U1 — targetsFor steps both lifts by exactly the same +1 total rep while the trial runs (tricep " + tT.join(",") + " · sulek " + tS.join(",") + ")");
+  /* the governor still outranks the trial */
+  const exH = clU(exT); exH.holdFlag = true;
+  ok(__test.progressStep(exH, SU1).add === 0, "U1 — the governor hold still outranks the trial freeze: safety above symmetry");
+}
+console.log(`\nFINAL104: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
