@@ -335,7 +335,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.45.0";
+const APP_V = "7.46.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -667,7 +667,7 @@ function liftCall(s, exId, opts = {}) {
   for (let i = honest.length - 1; i >= 1; i--) { if (honest[i].tot <= honest[i - 1].tot && (honest[i].rir == null || honest[i].rir <= 2)) stall++; else break; }
   if (stall) R2.push(`${stall} session${stall > 1 ? "s" : ""} in a row without beating your total — honestly fought; party, estimate, rushed and short-sleep days not counted.`);
   if (rushedN) R2.push(`${rushedN} of your last ${clean.length} on this lift ${rushedN === 1 ? "was" : "were"} logged rushed — short rest costs you reps on the back sets, so ${rushedN === 1 ? "it does" : "they do"} not count toward a stall.`);
-  if (debtN) R2.push(`${debtN} of your last ${clean.length} ran on short sleep — worth about 2.85% on strength — inside the test-retest error, so it is context for reading the day, not a reason to change it, so ${debtN === 1 ? "it does" : "they do"} not count toward a stall either. ${debtN === 1 ? "It still counts" : "They still count"} for reps, records and every trend on this page.`);
+  if (debtN) R2.push(`${debtN} of your last ${clean.length} ran on short sleep — worth about 2.85% on strength, a real cost (CI 1.23–4.47) that is smaller than your own set-to-set spread, so it is context for reading the day, not a reason to change it, so ${debtN === 1 ? "it does" : "they do"} not count toward a stall either. ${debtN === 1 ? "It still counts" : "They still count"} for reps, records and every trend on this page.`);
   const slp2 = sleepInfo(s);
   const lastN = s.sleep.nights[s.sleep.nights.length - 1];
   if (lastN) R2.push(`Last night: ${lastN.h} hours` + (lastN.sol != null ? `, took about ${lastN.sol} min to fall asleep.` : "."));
@@ -719,9 +719,9 @@ function liftCall(s, exId, opts = {}) {
      lift on the day at once.
 
      The evidence does not support holding a session on a short night. Craven
-     2022's meta-analysis puts sleep restriction at -2.85% on strength — inside
-     the test-retest coefficient of variation for these lifts, i.e. smaller than
-     the day-to-day noise the app already models at +/-0.8 reps per set. Knowles
+     2022's meta-analysis puts sleep restriction at -2.85% on strength — a real
+     cost (95% CI 1.23-4.47), just smaller than the day-to-day spread the app
+     already measures live (typicalError — repeatability, not accuracy). Knowles
      2022 ran nine consecutive nights at 5 h and volume load fell under 1%. Gong
      2024 finds start-of-night restriction indistinguishable from zero (d=-0.25,
      95% CI -0.53 to +0.04). Holding a whole session for an effect that small
@@ -834,9 +834,9 @@ function liftCall(s, exId, opts = {}) {
    single rep while he was faithfully rating 28 of those 30 sets.
 
    The evidence does not support the branch either. Craven et al. (2022; 69
-   studies, 959 participants) put acute sleep loss at -2.85% on strength — below
-   the 1.8-3.3% test-retest CV of a trained lifter (Grgic 2020), i.e. inside the
-   measurement noise. The subgroup matching his pattern (late bedtime rather
+   studies, 959 participants) put acute sleep loss at -2.85% on strength — a real
+   cost (95% CI 1.23-4.47), smaller than the 1.8-3.3% test-retest CV of a
+   trained lifter (Grgic 2020) but never zero. The subgroup matching his pattern (late bedtime rather
    than early waking) is -5.85%, 95% CI -13.4 to +1.66, p=0.125 — not
    distinguishable from zero. And no trial has ever tested damping progression
    on low-readiness days against not damping it: the literature on that question
@@ -2177,7 +2177,7 @@ function liftTrend(s, exId, opts) {
   let cutAt = pts.length;
   while (cutAt > 0 && pts[cutAt - 1].k === lastK) cutAt--;
   const series = cutAt > 0 ? pts.slice(cutAt) : pts;
-  const use = series.slice(-TREND_WINDOW);
+  const use = series.slice(-((opts && opts.window) || TREND_WINDOW));   /* opts.window — the outcome read's long horizon; default unchanged */
   const n = use.length;
   if (n < minN) return null;   /* R17 — the contract stays null-or-a-trend: a truthy stub broke every `if (t)` consumer downstream (volumeConversion read have/need as undefined). The set-aside days are reported by progressionTrend, which owns the pooled view. */
   const ys = use.map((p) => p.y);
@@ -5491,11 +5491,16 @@ function rirPlan(s, ex, slp) {
   /* The short-sleep RIR pull is deleted — see SLEEP_HOLD_NOTE in liftCall.
      Proximity to failure is THE hypertrophy variable in the dose-response
      literature; backing the terminal set off to 1 RIR on a short night traded
-     the one thing that reliably drives growth for a -2.85% strength effect that
-     sits inside the test-retest noise. It also fired on roughly one morning in
+     the one thing that reliably drives growth for a -2.85% strength effect —
+     real (CI 1.23-4.47), but smaller than his own set-to-set spread. It also fired on roughly one morning in
      three, which made "the set that reaches failure" a set that often did not.
      Effort is defended; the night is a receipt, not a governor. */
   if (ex.holdFlag) { plan = plan.map((r) => Math.max(r, 2)); why.push("governor hold — stay two clean reps back"); }
+  /* B1 — the failure A/B: the capped arm's terminal set is prescribed 1 RIR (1-2
+     allowed; 1 still satisfies the delivered-dose criterion). The paired control lift
+     keeps its all-out terminal — the calibration anchor. */
+  const abT9 = (s.trials || []).find((t9) => t9 && !t9.declined && t9.custom && t9.custom.metric === "lift_pair" && t9.custom.exA === ex.id && trialArmOn(t9, isoOf(todayStart())));
+  if (abT9) { plan = plan.map((r, i) => (i === plan.length - 1 ? Math.max(r, 1) : r)); why.push("failure A/B — cap the last set at 1-2 RIR (this lift is the capped arm; its pair keeps all-out)"); }
   const opens = Object.values(s.sessionLog).flatMap((sl) => (sl.entries || []).filter((e) => e.id === ex.id && e.rir != null).map((e) => e.rir)).sort((a, b) => a - b);
   if (opens.length >= 3 && opens[Math.floor(opens.length / 2)] <= 0) { plan = plan.map((r, i) => (i === 0 ? r + 1 : r)); why.push("your openers run hot on this lift — bank one early"); }
   return { plan, why };
@@ -5813,6 +5818,22 @@ function cleanAtDate(s, iso) {
   if (run.length < 3) return true;
   return run.reduce((a, b) => a + b.h, 0) / run.length >= DEBT_MEAN3_H;
 }
+/* B2 (volume-verdicts round) — the volume offer's sleep gate is the 3-NIGHT MEAN
+   only. One short night no longer blocks a volume offer: the −2.85% acute strength
+   effect is real (CI 1.23–4.47, Craven 2022), simply smaller than his own day-to-day
+   spread — the old "inside noise" sentence overclaimed and was corrected in the same
+   change. cleanAtDate keeps BOTH arms for every protective (downside-only) consumer. */
+function sleepMean3At(s, iso) {
+  const nights = nightsBefore(s, iso);
+  if (!nights.length) return true;
+  const run = [nights[nights.length - 1]];
+  for (let i = nights.length - 2; i >= 0 && run.length < 3; i--) {
+    if (Math.round((mk(run[0].d) - mk(nights[i].d)) / DAY) !== 1) break;
+    run.unshift(nights[i]);
+  }
+  if (run.length < 3) return true;
+  return run.reduce((a, b) => a + b.h, 0) / run.length >= DEBT_MEAN3_H;
+}
 /* Is he hitting his sleep TARGET? A separate question from the one above, and
    the one the sleep score, the lights-out nudge and the lean-mass line ask. */
 function atSleepTarget(s, iso) {
@@ -6026,11 +6047,12 @@ function stepPush(s, opts) {
   const slept = cleanAtDate(s, today);
   if (rec.band === "LOW" || !slept) return { mode: "WITHHELD", base, veto: rec.band === "LOW" ? "recovery" : "sleep",
     why: `more deficit is wanted, but ${rec.band === "LOW" ? "recovery is LOW" : "sleep is in debt"} — the body is not funding what it already does, so it is not asked to fund more. The push returns when the flag clears.` };
-  /* ONE-VARIABLE-PER-WEEK, the other direction (spec Q4): a set-count change this week
-     blocks the steps push — the same budget volumePush spends, one owner. */
-  const smw9 = structuralMovesThisWeek(s);
-  if (smw9.sets.length) return { mode: "WITHHELD", base, veto: "budget",
-    why: "a set-count change landed this week — one structural lever a week, so the scale can say which one moved it. The steps question returns Monday." };
+  /* A5 (volume-verdicts round) — the sets arm is DELETED: sets and the scale are
+     different attribution domains, so a set-count change no longer blocks a steps push
+     (and a steer no longer blocks a set-add — volumePush's mirror arm died in the same
+     change). The scale's one-at-a-time budget lives with the calorie/step levers;
+     Auto-Pilot's tighten still waits out new-volume repair water, which is a
+     measurement-honesty rule about the SCALE READ, not a budget coupling. */
   const cap = Math.min(Math.max(base + STEP_PUSH_CAP_OVER_BASE, 12000), STEP_PUSH_ABS_CEIL);
   const cur = st.mid;
   if (cur + 500 > cap) return { mode: "WITHHELD", base, veto: "ceiling", cap,
@@ -6166,22 +6188,23 @@ function labAnalytics2(s) {
       lines: [] };
   });
 
-  /* 7b · volume conversion — the earned lever's receipt, stepeff's sibling: the
-     instrument whose verdict gates the CONFIDENCE of the next volume push. IDLE until a
-     set-count change exists in the LOGGED series (engine-proposed, user-called, or undone —
-     the log is author-blind), then it reads the fresh post-change trend window (which
-     liftTrend restarts at the change — AUDIT A) plus the final-set RIR reports, so a
+  /* 7b · volume verdicts — the earned lever's receipt, rebuilt for the ladder read
+     (A1+F): DELIVERED and TOLERATED are what four sessions can know; the outcome tiers
+     open on the derived review calendar, and REPLICATED alone may carry an
+     individual-response claim. IDLE until a set-count change exists in the LOGGED
+     series (author-blind — AUDIT F), then the fresh post-change trend window (which
+     liftTrend restarts at the change — AUDIT A) plus the terminal-set RIR reports, so a
      sandbagged set can never convict volume. */
   add(() => {
     const rows9 = (s.exercises || []).filter((e) => typeof e.w === "number").map((e) => ({ e, vc: volumeConversion(s, e.id) })).filter((x) => x.vc.status !== "IDLE");
-    if (!rows9.length) return { id: "volconv", t: "VOLUME CONVERSION", status: "ARMED", prog: { n: 0, need: 1, label: "set-count changes to read" },
-      tag: "When a set is added, does it convert on your own bar?",
-      deep: "After any set-count change, the lift's trend window restarts (the mechanical volume-load jump of a new set must never read as progress) and this instrument waits out the fresh window — liftTrend's own minimum, not a hand-picked constant. The verdict needs BOTH progression on the fresh window AND the final-set RIR reports showing the hard sets ran hard: a non-converting muscle whose sets were quietly sandbagged is not evidence volume fails — it is evidence the dose never arrived.",
+    const tagV = "When a set is added: was it delivered? is it tolerated? — and only much later, did it grow anything?";
+    const deepV = "After any set-count change the lift's trend window restarts (the mechanical volume-load jump of a new set must never read as progress) and the read climbs a ladder it can actually defend: DELIVERED (the terminal-set RIR reports say the hard sets ran) and TOLERATED (the lift itself not deteriorating) are what four sessions can establish. Growth claims wait for the derived review calendar — delivery/tolerance at +2 weeks, earliest outcome at +8, credible classification at +12, each from the muscle's own change date, lengthening in a surplus — and need two signals agreeing; REPLICATED, the only tier where an individual-response claim may live, needs the benefit to recur in a comparable block: one block never brands a muscle. A null read HOLDS — even +120% habitual volume did not impair growth in the one direct test (Camargo 2026, a preprint: it informs the hold, it never fires a subtraction).";
+    if (!rows9.length) return { id: "volconv", t: "VOLUME VERDICTS", status: "ARMED", prog: { n: 0, need: 1, label: "set-count changes to read" },
+      tag: tagV, deep: deepV,
       forYou: "Arms itself the day a set-count change lands in your log. No change on record yet.", lines: [] };
-    return { id: "volconv", t: "VOLUME CONVERSION", status: "LIVE", prog: null,
-      tag: "When a set is added, does it convert on your own bar?",
-      deep: "After any set-count change, the lift's trend window restarts (the mechanical volume-load jump of a new set must never read as progress) and this instrument waits out the fresh window — liftTrend's own minimum, not a hand-picked constant. The verdict needs BOTH progression on the fresh window AND the final-set RIR reports showing the hard sets ran hard: a non-converting muscle whose sets were quietly sandbagged is not evidence volume fails — it is evidence the dose never arrived.",
-      forYou: rows9.map((x) => `${x.e.n}: ${x.vc.status === "READING" ? `reading — ${x.vc.have}/${x.vc.need} post-change sessions` : `${x.vc.verdict === "CONVERTED" ? "CONVERTING" : x.vc.verdict === "UNDELIVERED" ? "effort not delivered" : "not converting"} — ${x.vc.why}`}`).join(" · "),
+    return { id: "volconv", t: "VOLUME VERDICTS", status: "LIVE", prog: null,
+      tag: tagV, deep: deepV,
+      forYou: rows9.map((x) => `${x.e.n}: ${x.vc.status === "READING" ? `reading — ${x.vc.have}/${x.vc.need} post-change sessions` : `${x.vc.tier} — ${x.vc.why}`}`).join(" · "),
       lines: [] };
   });
 
@@ -6715,6 +6738,12 @@ function trialTpl(trial) { return trial.custom ? trial.custom : TRIAL_TPL[trial.
 function trialArmOn(trial, iso) {
   const tpl = trialTpl(trial);
   if (!tpl) return null;
+  if (tpl.metric === "lift_pair") {
+    /* B1 — parallel arms, constant per lift: arms[0] is the standing instruction */
+    const dayP = Math.floor((mk(iso) - mk(trial.started)) / DAY);
+    if (dayP < 0 || dayP >= tpl.blockDays * tpl.cycles) return null;
+    return { armIdx: 0, block: Math.floor(dayP / 7) + 1, of: Math.ceil((tpl.blockDays * tpl.cycles) / 7), tpl };
+  }
   const day = Math.floor((mk(iso) - mk(trial.started)) / DAY);
   if (day < 0 || day >= tpl.blockDays * tpl.cycles) return null;
   return { armIdx: Math.floor(day / tpl.blockDays) % 2, block: Math.floor(day / tpl.blockDays) + 1, of: tpl.cycles, tpl };
@@ -6722,6 +6751,18 @@ function trialArmOn(trial, iso) {
 function trialVerdict(s, trial) {
   const tpl = trialTpl(trial);
   if (!tpl) return null;
+  if (tpl.metric === "lift_pair") {
+    /* B1 — parallel arms on two comparable lifts, one full read window each. The
+       verdict is two slopes with their own intervals, side by side — no randomization
+       test exists for n=1 per arm, and the card says so instead of implying one. */
+    const postN9 = (id9) => Object.keys(s.sessionLog || {}).filter((d) => d >= trial.started && ((s.sessionLog[d] || {}).entries || []).some((e) => e && e.id === id9)).length;
+    const nA = postN9(tpl.exA), nB = postN9(tpl.exB);
+    const done = nA >= TREND_WINDOW && nB >= TREND_WINDOW;
+    const tA = liftTrend(s, tpl.exA), tB = liftTrend(s, tpl.exB);
+    return { done, nA, nB, a: tA ? tA.pct : null, b: tB ? tB.pct : null,
+      diff: (tA && tB) ? +(tA.pct - tB.pct).toFixed(2) : null, diffCI: null, pRand: null, nSplits: null, needsWashout: false,
+      note: "parallel arms — two slopes with intervals, side by side; direction, not gospel (n=1 per arm)" };
+  }
   const endISO = isoOf(new Date(mk(trial.started).getTime() + tpl.blockDays * tpl.cycles * DAY));
   const done = isoOf(todayStart()) >= endISO;
   const perArm = [[], []];
@@ -7089,7 +7130,7 @@ function labStatusList(s) {
 }
 
 /* results announce themselves — any card crossing its threshold posts to the feed */
-const VOL_BANDS = { floor: 6, lo: 8, hi: 14, ceil: 16 };
+const VOL_BANDS = { floor: 6, lo: 8, hi: 14, ceil: 22 };   /* A4 — ceil is the ABSOLUTE BACKSTOP (low-to-mid 20s, never-normally-reached); the working scrutiny moved to the review zone (15-18) and the per-session cap. floor 6 is a soft prior, not a law. */
 const INDIRECT = { press: { triceps: 0.5, delts: 0.5 }, rows: { biceps: 0.5 }, pulldown: { biceps: 0.5 }, curl: { forearms: 0.5 } };
 /* ---------- HEAD_BUCKET_NOTE — the instrument behind a card I already retracted ----------
    patchV33 split the deltoids into heads, withdrew a set-reallocation proposal
@@ -7537,9 +7578,10 @@ function volumeImbalance(s) {
 /* ==================== VOLUME AS AN EARNED LEVER (spec v5) ====================
    The app had brakes but no accelerator on volume — identical to the steps finding. This
    block is the accelerator, with the ceiling wired in from birth: a push is EARNED by
-   regime free (confirmed), pooled progression rising, recovery GREEN, a clear structural
-   budget, and a readable target lift — and it is KEPT only if the athlete's own post-change
-   trend says the sets converted. Grade MODERATE-TO-LOW and said out loud: §2.3's bridge
+   regime free (confirmed) OR the stall arm (B4), lifts NOT FALLING, recovery GREEN, a
+   clean 3-night sleep mean, a clear VOLUME budget, and a readable target lift — and it is
+   KEPT while the athlete's own post-change reads stay delivered and tolerated (the
+   verdict ladder; growth claims wait for the derived review calendar). Grade MODERATE-TO-LOW and said out loud: §2.3's bridge
    ("more volume -> more muscle IN A DEFICIT") has never been directly tested; both the
    frozen frame and the hard push over-read the evidence, so the lever moves in small,
    read, reversible steps and lets his own bar adjudicate. */
@@ -7582,15 +7624,48 @@ function structuralMovesThisWeek(s) {
     mgsTouched: [...new Set(moves.filter((m) => m.kind === "sets").flatMap((m) => m.mgs || []))] };
 }
 
-/* volumeConversion — the honesty half: after a set-count change, did the added dose CONVERT
-   on his own bar? Reads the LOGGED series (author-blind, merge-proof — AUDIT F), the fresh
-   trend window liftTrend already cut (AUDIT A: one owner, so this check CANNOT credit the
-   mechanical volume-load jump — the self-confirming-instrument shape, closed by
-   construction), and the final-set RIR reports (the effort-compliance signal): an added set
-   only counts as delivered dose if the hard sets actually ran hard — otherwise a
-   non-converting muscle whose sets were quietly sandbagged would read as "volume doesn't
-   work" when the truth is the volume never arrived. The read window is the trend
-   instrument's OWN minimum, never a hand-picked constant. */
+/* volumeConversion — the honesty half, rebuilt by the volume-verdicts round (A1+A2+F).
+   THE READ IS A LADDER, NEVER A CONVERSION CLAIM. Four post-change sessions can establish
+   DELIVERY (the sets happened at prescribed effort — the terminal-set RIR<=1 criterion,
+   unchanged) and TOLERANCE (the lift itself not deteriorating, no governor hold). They
+   cannot establish growth: a short-horizon lift trend is PERFORMANCE evidence — test
+   practice raises strength without matching tissue — so the outcome tiers open only on a
+   long stable block, and REPLICATED (the only tier where an individual-response claim may
+   live) needs the benefit to recur in a comparable block: one block never brands a muscle.
+   NOT_CONVERTED is dead everywhere including copy — a null strength read is UNKNOWN, and
+   re-eligibility keys on TOLERANCE. The review calendar DERIVES from each muscle's own
+   change date, never a hardcoded date. Rollback-on-null is dead too (A2): a null read
+   HOLDS; subtraction needs repeated local deterioration, pain (the governor), or recovery
+   leaving GREEN — with the immediate safety path (governor hold while the lift falls)
+   kept. Delivery standardization (same exercise, same ROM, same rest, no technique
+   change): the instrument can verify exercise identity and the logged shape; ROM/rest/
+   technique are not instrumented, so the staged review NAMES them as the athlete's checks
+   rather than pretending to measure them. */
+const DELIVERED_MAJ = 0.5;      /* share of rated terminal sets at RIR<=1 for DELIVERED — a NAMED numeric trip (house law: every guard carries one). No derivation exists that is not itself a choice, so the choice is named where it can be argued with. */
+const REVIEW_DELIV_D = 14;      /* +2wk — delivery/tolerance review */
+const REVIEW_OUTCOME_D = 56;    /* +8wk — earliest defensible outcome review */
+const REVIEW_CLASSIFY_D = 84;   /* +12wk — credible classification; in surplus the outcome read runs THIS long (A6: growth reads lengthen in surplus, never shorten) */
+/* OLS %/session over one HISTORICAL block's logged points — the replication read. The
+   live block reads through liftTrend (hard-day exclusions and all); frozen blocks are
+   records, read as logged. Null under the same minimum as everything else. */
+function _blockSlope(pts9) {
+  const ys = pts9.map((p) => sessionScore(p.en)).filter((y) => y != null);
+  const n = ys.length;
+  if (n < TREND_MIN_SESSIONS) return null;
+  const my = ys.reduce((a, b) => a + b, 0) / n;
+  if (!(my > 0)) return null;
+  const mx = (n - 1) / 2;
+  let sxx = 0, sxy = 0;
+  for (let i = 0; i < n; i++) { sxx += (i - mx) * (i - mx); sxy += (i - mx) * (ys[i] - my); }
+  if (!(sxx > 0)) return null;
+  const b = sxy / sxx;
+  let sse = 0;
+  for (let i = 0; i < n; i++) { const yh = my + b * (i - mx); sse += (ys[i] - yh) * (ys[i] - yh); }
+  const sePct = Math.max((Math.sqrt(Math.max(sse / (n - 2), 0) / sxx) / my) * 100, TREND_SE_FLOOR);
+  const pct = (b / my) * 100;
+  const t9 = _tCrit(n - 2);
+  return { n, pct: +pct.toFixed(3), lo: +(pct - t9 * sePct).toFixed(3), hi: +(pct + t9 * sePct).toFixed(3) };
+}
 function volumeConversion(s, exId) {
   const log = (s && s.sessionLog) || {};
   const days = Object.keys(log).sort();
@@ -7604,99 +7679,208 @@ function volumeConversion(s, exId) {
   const prevK = seq[cut - 1].k, dK = lastK - prevK;
   const post = seq.slice(cut);
   const changedAt = post[0].d;
+  /* the derived calendar — every review date comes off THIS muscle's own change date */
+  const revAt = (n9) => isoOf(new Date(mk(changedAt).getTime() + n9 * DAY));
+  const reviews = { delivery: revAt(REVIEW_DELIV_D), outcome: revAt(REVIEW_OUTCOME_D), classify: revAt(REVIEW_CLASSIFY_D) };
+  const blockDays = Math.max(0, Math.round((mk(isoOf(todayStart())) - mk(changedAt)) / DAY));
   const t = liftTrend(s, exId);
-  if (!t || t.n < TREND_MIN_SESSIONS) return { status: "READING", exId, changedAt, prevK, k: lastK, dK, have: post.length, need: TREND_MIN_SESSIONS,
-    why: "the read window is open — " + post.length + " of " + TREND_MIN_SESSIONS + " post-change sessions logged; the window is liftTrend's own minimum, derived, never hand-picked" };
+  if (!t || t.n < TREND_MIN_SESSIONS) return { status: "READING", exId, changedAt, prevK, k: lastK, dK, have: post.length, need: TREND_MIN_SESSIONS, reviews, blockDays,
+    why: "the read window is open — " + post.length + " of " + TREND_MIN_SESSIONS + " post-change sessions logged; the window is liftTrend's own minimum, derived, never hand-picked. Reviews derive from the change date itself: delivery/tolerance " + fmtShort(reviews.delivery) + ", earliest outcome " + fmtShort(reviews.outcome) + ", credible classification " + fmtShort(reviews.classify) };
   const terms = post.map((p9) => { const rs = rirSetsOf(p9.en); return rs.length > 1 ? rs[rs.length - 1] : null; }).filter((x) => x != null);
-  const delivered = terms.length >= 2 ? (terms.filter((x) => x <= 1).length / terms.length >= 0.5) : null;
-  const rising = t.lo > 0;
+  const delivered = terms.length >= 2 ? (terms.filter((x) => x <= 1).length / terms.length >= DELIVERED_MAJ) : null;
   const ex = (s.exercises || []).find((x) => x.id === exId);
-  const fatigueUp = !!(ex && ex.holdFlag) || recoveryIndex(s).band !== "GREEN";
-  const verdict = delivered === false ? "UNDELIVERED" : rising ? "CONVERTED" : "NOT_CONVERTED";
-  return { status: "LIVE", exId, changedAt, prevK, k: lastK, dK, trend: t, delivered, fatigueUp, verdict,
-    rollback: verdict === "NOT_CONVERTED" && fatigueUp && dK > 0,
-    why: verdict === "UNDELIVERED"
-      ? "the added set never arrived as prescribed effort — the final-set RIR reports say the hard sets were left in the tank, so this read says nothing about volume: the dose was not delivered"
-      : verdict === "CONVERTED"
-      ? "post-change, this lift is rising on its own fresh window (" + t.pct + "%/session, CI " + t.lo + " to " + t.hi + ")" + (delivered === true ? " with the effort delivered" : " (final-set effort unrated — graded lower for it)") + " — the added sets are converting"
-      : "post-change, the fresh window shows no progression (" + t.pct + "%/session, CI " + t.lo + " to " + t.hi + ") — the lift is carrying the extra set, not growing with it. The window restarted at the change ON PURPOSE: the raw volume-load jump of a new set would have read as progress every time" };
+  const falling = t.hi < 0;
+  const tolerated = !falling && !(ex && ex.holdFlag);
+  const band9 = recoveryIndex(s).band;
+  /* MIXED-PHASE (F): a phase transition inside the read window — labeled, never
+     force-classified into a cut or surplus response. */
+  const phLog9 = (s.plan && Array.isArray(s.plan.phaseLog)) ? s.plan.phaseLog : [];
+  const mixedPhase = phLog9.some((p9) => p9 && p9.at && String(p9.at).slice(0, 10) > changedAt);
+  /* A2 — THE STAGED HOLD. Subtract needs the lift ITSELF deteriorating (interval fully
+     below zero) AND one of: the deterioration repeating past the minimum window, the
+     governor holding the lift (pain speaks there — the immediate safety path), or
+     recovery leaving GREEN. An interval spanning zero can never subtract. */
+  const safety = falling && !!(ex && ex.holdFlag);
+  const subtract = dK > 0 && falling && (t.n >= TREND_MIN_SESSIONS + 2 || safety || band9 !== "GREEN");
+  const effort9 = delivered === true ? "delivered (the terminal-set RIR reports say the hard sets ran hard)" : delivered === false ? "NOT delivered" : "unrated (fewer than 2 terminal-set RIR reports)";
+  const revLine9 = "Reviews derive from the change date: outcome opens " + fmtShort(reviews.outcome) + " (day " + blockDays + " of " + REVIEW_OUTCOME_D + "), credible classification " + fmtShort(reviews.classify) + ".";
+  /* THE LADDER (F): UNDELIVERED / NOT-TOLERATED / MIXED-PHASE / UNCLEAR / TOLERATED /
+     OUTCOME-COMPATIBLE / REPLICATED. Outcome tiers need the long block AND more than one
+     signal agreeing (the long strength trend AND the effort record — two different
+     instruments; a body-composition corroborant joins when a re-anchor exists). */
+  let tier, tLong = null, why;
+  if (delivered === false) { tier = "UNDELIVERED";
+    why = "the added set never arrived as prescribed effort — the final-set RIR reports say the hard sets were left in the tank, so this read says nothing about volume: the dose was not delivered";
+  } else if (!tolerated) { tier = "NOT-TOLERATED";
+    why = "post-change, the lift itself is deteriorating (" + t.pct + "%/session, CI " + t.lo + " to " + t.hi + ") — the added set is not being tolerated. Delivery was " + effort9 + "; execution, rest and technique standardization are yours to check — the instrument cannot see them. " + (subtract
+      ? "The staged review's subtract condition is met" + (safety ? " on the safety path (the governor holds this lift while it falls)" : (band9 !== "GREEN" ? " — recovery has left GREEN while the lift falls" : " — the deterioration repeated past the minimum window")) + "; the card carries the receipt."
+      : "A set comes off only if this repeats, pain speaks, or recovery leaves GREEN — a hold is not a verdict.");
+  } else if (mixedPhase) { tier = "MIXED-PHASE";
+    why = "the phase flipped inside this read window — the observation is filed MIXED-PHASE and never force-classified: a cut read and a surplus read answer different questions. " + revLine9;
+  } else if (delivered === null && !(t.lo > 0) && !falling) { tier = "UNCLEAR";
+    why = "the read is UNCLEAR — final-set effort is " + effort9 + " and the fresh window's interval spans zero (" + t.lo + " to " + t.hi + "): nothing here supports any claim, including a negative one. A null read HOLDS — even +120% habitual volume did not impair growth in the one direct test (Camargo 2026, a preprint: it informs the hold, it never fires a subtraction). " + revLine9;
+  } else {
+    const needD9 = (function () { try { return phaseArc(s).key === "leangain" ? REVIEW_CLASSIFY_D : REVIEW_OUTCOME_D; } catch (e) { return REVIEW_OUTCOME_D; } })();
+    if (blockDays >= needD9) {
+      tLong = liftTrend(s, exId, { window: 999 });
+      if (tLong && tLong.lo > 0 && delivered === true) {
+        /* replication — any EARLIER stable block of outcome length that also rose */
+        const segs = [];
+        let s0 = 0;
+        for (let i = 1; i <= seq.length; i++) { if (i === seq.length || seq[i].k !== seq[i - 1].k) { segs.push(seq.slice(s0, i)); s0 = i; } }
+        segs.pop();
+        const priorOK = segs.some((g9) => g9.length >= TREND_MIN_SESSIONS && (mk(g9[g9.length - 1].d) - mk(g9[0].d)) / DAY >= REVIEW_OUTCOME_D && ((_blockSlope(g9) || {}).lo > 0));
+        tier = priorOK ? "REPLICATED" : "OUTCOME-COMPATIBLE";
+        why = priorOK
+          ? "the benefit recurred across comparable stable blocks — REPLICATED, the only tier where an individual-response claim may live."
+          : "the long window is rising (" + tLong.pct + "%/session over " + blockDays + " days) with the effort record agreeing — OUTCOME-COMPATIBLE, two signals. Not REPLICATED: the benefit has not yet recurred in a comparable block, and one block never brands a muscle.";
+      } else { tier = "TOLERATED";
+        why = "effort " + effort9 + " and the lift is carrying the added set — TOLERATED. The block is long enough to ask the outcome question, but the two signals do not yet agree" + (delivered === true ? " (the long window is not rising with confidence)" : " (the effort record is unrated)") + ". " + revLine9;
+      }
+    } else { tier = "TOLERATED";
+      why = "effort " + effort9 + " and the lift is carrying the added set — TOLERATED. Growth is a longer question: a short-horizon lift trend is performance evidence, never tissue evidence. " + revLine9;
+    }
+  }
+  return { status: "LIVE", exId, changedAt, prevK, k: lastK, dK, trend: t, delivered, tolerated, tier, mixedPhase, reviews, blockDays, subtract, safety, why };
 }
 
-/* volumePush — the earned accelerator. HOLD/ABSTAIN is the default and the live state
-   (regime unknown today). The RESPONSE is the real ceiling — regime, rising, recovery,
-   conversion — and VOL_PUSH_CEIL_WK is the absolute backstop that terminates a climb the
-   response gates kept green: STEP_PUSH_ABS_CEIL's move, in mirror (spec Q2's named numeric
-   trip, so guard-must-fire has a concrete fixture). */
-const VOL_PUSH_CEIL_WK = VOL_BANDS.ceil;
+/* volumePush — the earned accelerator, rebuilt by the volume-verdicts round.
+   HOLD/ABSTAIN stays the default. The gates in order: pooled progression NOT FALLING
+   (A3 — "rising" is retired as a requirement: stable lifts in a deficit are already a
+   success signal); then the phase arm — cut: regime FREE confirmed OR the B4 stall arm
+   (a stalled scale with readable, not-falling lifts still earns the question — "nothing
+   looks wrong" suffices); surplus: the controlled-gain cap replaces the losing arm
+   entirely (A6). Then recovery GREEN, the 3-NIGHT SLEEP MEAN (B2 — one short night no
+   longer gates an offer), and the VOLUME budget (A5 — sets left the scale's budget; a
+   calorie or step steer never blocks a set-add again). VOL_PUSH_CEIL_WK is the absolute
+   backstop, raised to the low 20s and demoted to never-normally-reached; the working
+   scrutiny lives in the REVIEW ZONE and the PER-SESSION CAP, with frequency as the
+   release valve (A4). */
+const VOL_PUSH_CEIL_WK = VOL_BANDS.ceil;   /* the absolute backstop — a named numeric trip, never-normally-reached */
+const VOL_SESS_CAP = 8;                    /* direct hard sets of ONE muscle in ONE session — the concentration cap (~6-8 in the corpus; the trip is the top of that range). Past it the next set belongs on another day. */
+const VOL_REVIEW_LO = VOL_BANDS.hi + 1;    /* the review zone opens past the band top (15) */
+const VOL_REVIEW_HI = 18;                  /* review zone 15-18: offers continue; progression PAST it is gated on the muscle's own delivered+tolerated reads */
+const GAIN_CAP_PCT_WK = 0.5;               /* surplus controlled-gain cap, %BW/wk (0.25-0.5 band; faster gain buys mostly fat — Helms 2023). A bigger surplus is never a reason to escalate volume faster. */
+const SURPLUS_HOLD_D = 28;                 /* hold after a surplus batch (4-6wk; the low end, named) */
+const SURPLUS_BATCH_MAX = 2;               /* anatomically non-overlapping muscles per block start — a reasonable coaching experiment, not validated as optimal */
+/* volume moves since an ISO — read from the FEED (the one record every enact path
+   writes; adjustments alone miss the desk lane). The feed line survives an undo, so
+   this over-counts after an undo — conservative, and the same asymmetry the weekly
+   owner already carries on the record. */
+function _setsMovesSince(s, sinceISO) {
+  const out = [];
+  (s.feed || []).slice(0, 120).forEach((f) => {
+    if (f && f.t && f.d && f.d >= sinceISO && f.t.indexOf("VOLUME ") === 0 && f.t.indexOf("via ") > -1) out.push({ d: f.d, t: f.t });
+  });
+  return out.sort((a, b) => (a.d < b.d ? -1 : 1));
+}
 function volumePush(s) {
   const pv = programmeVolume(s);
   if (!pv.length) return { mode: "HOLD", why: "no designed programme to steer from" };
   const eb = energyBalanceTarget(s);
-  if (eb.regime === "unknown") return { mode: "ABSTAIN", regime: "unknown",
-    why: "the regime detector cannot yet read your state — a growth push is earned by measured lifts and rate, so the lever stays dormant rather than guessing" };
-  if (!(eb.regime === "free" && eb.regimeConfirmed)) return { mode: "HOLD", regime: eb.regime,
-    why: "the regime reads " + eb.regime + (eb.regimeConfirmed ? "" : " (unconfirmed)") + " — an added set spends recovery, and the measured state says that budget is already funding something" };
   const prog = progressionTrend(s);
-  if (prog.state !== "rising") return { mode: "HOLD", regime: "free",
-    why: "regime free sanctions the question, but the pooled progression is " + prog.state + ", not rising with power — the push is EARNED by lifts actually climbing, never by a phase label" };
+  let surplus9 = false;
+  try { surplus9 = phaseArc(s).key === "leangain"; } catch (e) { surplus9 = false; }
+  /* A3 — the gate asks NOT FALLING, never rising */
+  if (prog.state === "falling") return { mode: "HOLD", regime: eb.regime,
+    why: "the pooled progression is falling — the volume gate asks for lifts NOT FALLING (stable lifts in a deficit are already a success signal), and falling fails even that. Adding sets into a falling read answers nothing" };
+  let basis9 = "free";
+  if (surplus9) {
+    /* A6 — the surplus arm: the controlled-gain cap replaces the losing requirement */
+    const rg9 = regime(s);
+    const rate9 = rg9.rate;
+    if (!rate9 || !isFinite(rate9.lo) || !isFinite(rate9.hi)) return { mode: "ABSTAIN", regime: eb.regime,
+      why: "surplus, but no usable scale rate yet — the controlled-gain cap cannot be read, so the lever stays dormant rather than guessing" };
+    const bw9 = ((s.reads || []).filter((r) => r && r.w != null).slice(-1)[0] || {}).w || s.trend;
+    const gainPct9 = bw9 ? +((-rate9.scale / bw9) * 100).toFixed(2) : null;
+    if (gainPct9 == null || gainPct9 > GAIN_CAP_PCT_WK) return { mode: "HOLD", regime: eb.regime,
+      why: "gaining at " + (gainPct9 == null ? "an unreadable rate" : gainPct9 + "% BW/wk") + " — past the controlled-gain cap (" + GAIN_CAP_PCT_WK + "% BW/wk; faster gain buys mostly fat). A bigger surplus is never a reason to escalate volume faster — slow the gain first" };
+    basis9 = "surplus";
+  } else {
+    const rg9 = regime(s);
+    const rate9 = rg9.rate;
+    const stalled9 = !!(rate9 && isFinite(rate9.lo) && isFinite(rate9.hi) && rate9.lo <= 0 && rate9.hi >= 0);
+    const readable9 = prog.state !== "unknown";
+    /* B4 — the stall arm: a stalled scale mid-cut with readable, not-falling lifts still
+       permits the offer; the remaining instruments (recovery, sleep mean, budget) still
+       have to be clean below. "Nothing looks wrong" suffices — the engine must not be
+       more conservative than his data. */
+    if (eb.regime === "free" && eb.regimeConfirmed) basis9 = "free";
+    else if (stalled9 && readable9) basis9 = "stall";
+    else if (eb.regime === "unknown") return { mode: "ABSTAIN", regime: "unknown",
+      why: "the regime detector cannot yet read your state — a growth push is earned by measured lifts and rate, so the lever stays dormant rather than guessing" };
+    else return { mode: "HOLD", regime: eb.regime,
+      why: "the regime reads " + eb.regime + (eb.regimeConfirmed ? "" : " (unconfirmed)") + " and the scale is not stalled — an added set spends recovery, and the measured state says that budget is already funding something" };
+  }
   const rec = recoveryIndex(s);
   if (rec.band !== "GREEN") return { mode: "WITHHELD", veto: "recovery", band: rec.band,
     why: "recovery is " + rec.band + " (" + rec.flags.map((f) => f.k).join(", ") + ") — an added set spends recovery, and the instrument says there is nothing spare. This is the ceiling working, not the lever failing" };
-  if (!cleanAtDate(s, isoOf(todayStart()))) return { mode: "WITHHELD", veto: "sleep",
-    why: "sleep is in debt today — the body is not funding what it already does, so it is not asked to fund more" };
+  /* B2 — one short night no longer gates the offer; sustained debt still does */
+  if (!sleepMean3At(s, isoOf(todayStart()))) return { mode: "WITHHELD", veto: "sleep",
+    why: "the 3-night sleep mean is under " + DEBT_MEAN3_H + " h — sustained debt still holds the ADD gate. One short night no longer does: the acute cost is real (−2.85% on strength, CI 1.23–4.47), just smaller than your own day-to-day spread" };
   const smw = structuralMovesThisWeek(s);
-  /* R18f fix — the budget veto covers ALL three lever kinds. It fired only on cal/steps,
-     so a sets week left the desk free to offer a SECOND set-add beside the ONE-CHANGE
-     card claiming the lever was held — the five-cards disease in miniature, driven by
-     the audit. mgsTouched stays as the additional per-muscle spillover skip below. */
-  if (smw.sets.length) return { mode: "WITHHELD", veto: "budget",
-    why: "a set change already landed this week — one structural lever a week, so the scale can say which one moved it; the question returns Monday" };
-  if (smw.calOrSteps.length) return { mode: "WITHHELD", veto: "budget",
-    why: "a " + (smw.calOrSteps[0].kind === "cal" ? "calorie-band change" : "step push") + " already landed this week — one structural lever a week, or the scale cannot say which one moved it. The volume question returns Monday" };
-  /* the chooser — lowest allocation first (spec Q3), and the target must be READABLE:
-     AUDIT C — sessionScore returns null on non-numeric loads, so a set added to a
-     trend-blind lift could never close its read window; the proposal refuses and says why.
-     Engine increments target the muscle's DIRECT lift (AUDIT B) — compound spillover is
-     charged to the budget, never spent as a proposal. */
-  const cands = pv.filter((m) => !m.indirectOnly).sort((a, b) => a.sets - b.sets);
+  /* A5 — THE BUDGETS DECOUPLE. The calOrSteps arm is DELETED: the scale cannot identify
+     a local set-add, so a calorie or step steer never blocks a volume push (and a set-add
+     never blocks a steer — stepPush's mirror arm died in the same round). Sets keep
+     their OWN budget: cut = batch-then-hold, one muscle at a time; surplus = a small
+     batch at the block start, then a named hold. */
+  if (!surplus9) {
+    if (smw.sets.length) return { mode: "WITHHELD", veto: "budget",
+      why: "a volume move already landed this week — the cut's cadence is batch-then-hold, one muscle at a time, read before the next; the question returns Monday. (A calorie or step steer no longer holds this lever: the scale cannot read a set-add, so they never shared a budget)" };
+  } else {
+    const since28 = isoOf(new Date(todayStart().getTime() - SURPLUS_HOLD_D * DAY));
+    const batch9 = _setsMovesSince(s, since28);
+    if (batch9.length >= SURPLUS_BATCH_MAX) return { mode: "WITHHELD", veto: "budget",
+      why: "the block's batch is placed (" + batch9.length + " adds inside " + SURPLUS_HOLD_D + " days) — surplus cadence is batch at the block start, then hold 4–6 weeks and read. A reasonable coaching experiment, not validated as optimal — and a bigger surplus is never a reason to escalate volume faster" };
+    if (batch9.length === 1 && (mk(isoOf(todayStart())) - mk(batch9[batch9.length - 1].d)) / DAY > 7) return { mode: "WITHHELD", veto: "budget",
+      why: "the batch window closed — the block's add landed more than a week ago, so the hold is running (" + SURPLUS_HOLD_D + " days from the add). The next batch opens at the next block start" };
+  }
+  /* THE CHOOSER — B3, ruled DERIVE: routing follows HIS OWN training order. He trains
+     muscles in priority order within each session, so the priority list IS s.exOrder —
+     zero new UI, zero new synced field, cannot drift. A muscle's rank is its best lift's
+     position in its day's order; LOWEST ALLOCATION is demoted to the tie-breaker.
+     Rep-velocity stays excluded from routing (E-law). Targets must be READABLE
+     (AUDIT C), and engine increments target the muscle's DIRECT lift (AUDIT B). */
+  const rank9 = (m) => { let best = 99; for (const L9 of (m.lifts || [])) { const ex9 = (s.exercises || []).find((e) => e && e.id === L9.id); if (!ex9) continue; const ord9 = (s.exOrder && s.exOrder[ex9.day]) || []; const i9 = ord9.indexOf(ex9.id); if (i9 > -1 && i9 < best) best = i9; } return best; };
+  const cands = pv.filter((m) => !m.indirectOnly).sort((a, b) => (rank9(a) - rank9(b)) || (a.sets - b.sets));
   const skips = [];
-  const picks = [];   /* R18f — the chooser also names its runner-up, so the card can state BOTH candidates' numbers */
+  const picks = [];
   for (const m of cands) {
     const lifts = (m.lifts || []).map((x) => (s.exercises || []).find((e) => e && e.id === x.id)).filter(Boolean);
     const direct = lifts.filter((e) => typeof e.w === "number");
-    if (!direct.length) { skips.push({ mg: m.mg, why: "trend-blind — its only lift carries a non-numeric load, so the conversion read is structurally impossible; effort lives there, measurement does not" }); continue; }
+    if (!direct.length) { skips.push({ mg: m.mg, why: "trend-blind — its only lift carries a non-numeric load, so the delivery read is structurally impossible; effort lives there, measurement does not" }); continue; }
     const ex = direct.reduce((a, b) => (((a.sets || 0) <= (b.sets || 0)) ? a : b));
     if (ex.holdFlag) { skips.push({ mg: m.mg, why: "its lift is held by the governor — an honest opener releases it first" }); continue; }
     if (smw.mgsTouched.indexOf(m.mg) > -1) { skips.push({ mg: m.mg, why: "a set change already touched this muscle this week, directly or through compound spillover" }); continue; }
     const vc = volumeConversion(s, ex.id);
     if (vc.status === "READING") { skips.push({ mg: m.mg, why: "its last set change is still being read (" + vc.have + "/" + vc.need + " sessions) — one increment per read, per muscle" }); continue; }
-    if (vc.status === "LIVE" && vc.verdict === "NOT_CONVERTED") { skips.push({ mg: m.mg, why: "its last added set did not convert — the next push waits for that verdict to change" }); continue; }
-    if (vc.status === "LIVE" && vc.verdict === "UNDELIVERED") { skips.push({ mg: m.mg, why: "the last added set was never delivered at prescribed effort — effort first, then dose" }); continue; }
+    if (vc.status === "LIVE" && vc.delivered === false) { skips.push({ mg: m.mg, why: "the last added set was never delivered at prescribed effort — effort first, then dose" }); continue; }
+    if (vc.status === "LIVE" && !vc.tolerated) { skips.push({ mg: m.mg, why: "its last add is not being tolerated — the staged review (hold, verify, subtract only on repeats, pain, or recovery leaving GREEN) owns this muscle. A null read never blocks: re-eligibility keys on tolerance, not on a growth claim the instrument cannot make" }); continue; }
     const freq = _weeklyFreq(ex.day);
     if (!freq) { skips.push({ mg: m.mg, why: "no training day carries its lift" }); continue; }
     const dSess = m.sets < VOL_BANDS.floor ? Math.min(2, Math.max(1, Math.ceil((VOL_BANDS.floor - m.sets) / freq))) : 1;
     const toWk = +(m.sets + dSess * freq).toFixed(1);
+    const toSess9 = (ex.sets || 1) + dSess;
+    /* A4 — the per-session concentration cap, with frequency as the release valve */
+    if (toSess9 > VOL_SESS_CAP) { skips.push({ mg: m.mg, why: "the session is full — " + toSess9 + " direct sets of one muscle in one session passes the per-session cap (" + VOL_SESS_CAP + "). The next set for this muscle belongs on ANOTHER day: a frequency change, which is the owner's split to change — never session bloat" }); continue; }
     if (toWk > VOL_PUSH_CEIL_WK) { skips.push({ mg: m.mg, why: "the absolute ceiling binds — " + m.sets + " weekly now, +" + (dSess * freq) + " would pass " + VOL_PUSH_CEIL_WK }); continue; }
+    if (toWk > VOL_REVIEW_HI && !(vc.status === "LIVE" && vc.delivered !== false && vc.tolerated)) { skips.push({ mg: m.mg, why: "past the review zone (" + VOL_REVIEW_LO + "–" + VOL_REVIEW_HI + " weekly sets) progression is gated on this muscle's own delivered+tolerated reads, and it has none standing" }); continue; }
+    /* ITEM 9 — THE HEADROOM SOFT NOTE (Joe's ruling: information on the card, never a
+       brake). When the target's lift is still climbing on rep/load alone, the card says
+       so — sets are the lever for when that overload exhausts. */
+    let hn9 = null;
+    try { const t9 = liftTrend(s, ex.id); if (t9 && t9.lo > 0) hn9 = "Context: " + ex.n + " is still climbing on rep and load alone (" + t9.pct + "%/session) — sets are the lever for when that overload exhausts. The offer stands; this is information, not a brake."; } catch (e) { hn9 = null; }
     picks.push({ mode: "PUSH", exId: ex.id, exName: ex.n, day: ex.day, mg: m.mg, zone: m.zone, dSess,
-      fromSess: ex.sets || 1, toSess: (ex.sets || 1) + dSess, fromWk: m.sets, toWk, freq,
-      ceil: VOL_PUSH_CEIL_WK, grade: "moderate-low", skips });
+      fromSess: ex.sets || 1, toSess: toSess9, fromWk: m.sets, toWk, freq,
+      ceil: VOL_PUSH_CEIL_WK, reviewZone: toWk >= VOL_REVIEW_LO, headroomNote: hn9, basis: basis9, grade: "moderate-low", skips });
     if (picks.length >= 2) break;
     continue;
   }
-  /* if ANY candidate was ceiling-bound and nothing was eligible, the honest veto is the
-     ceiling — the climb is over for every readable muscle, which is the state this absolute
-     backstop exists to terminate (the rest of the skips are structural, not temporal). */
   const ceilBound = skips.some((x) => x.why.indexOf("ceiling") > -1);
-  /* R18f — the chooser's verdict: the pick, its runner-up, and the routing law said
-     once. Routing is ALLOCATION (fewest session sets), never rep-velocity — velocity
-     rewards a maxed ladder (forced reps-only) and punishes a fresh load jump (reps
-     reset by the debut), which is ladder position masquerading as responsiveness.
-     The desk's five-card week routed by velocity; this is the one owner both doors
-     call now. */
   if (picks.length) {
     const p0 = picks[0], p1 = picks[1] || null;
     return { ...p0, alt: p1 ? { mg: p1.mg, exName: p1.exName, fromSess: p1.fromSess, fromWk: p1.fromWk } : null,
-      routing: "lowest allocation carries it — rep-velocity is never consulted for routing, so a maxed ladder cannot masquerade as responsiveness and a fresh load jump costs nothing" + (p1 ? ". " + p0.exName + " at " + p0.fromSess + " set" + (p0.fromSess === 1 ? "" : "s") + "/session vs " + p1.exName + " at " + p1.fromSess + " — " + p0.exName + " carries it." : ".") };
+      routing: "his own training order carries it — the first-trained muscle is the priority (derived from the session order he already keeps; nothing new to maintain, nothing to drift) and lowest allocation breaks ties. Rep-velocity is never consulted for routing, so a maxed ladder cannot masquerade as responsiveness and a fresh load jump costs nothing" + (p1 ? ". " + p0.exName + " (order " + (rank9(cands.find((c) => c.mg === p0.mg)) + 1) + ") vs " + p1.exName + " — " + p0.exName + " carries it." : ".") };
   }
   return { mode: "WITHHELD", veto: ceilBound ? "ceiling" : (skips.length ? "eligibility" : "none"), skips,
     why: skips.length ? "every candidate is blocked: " + skips.map((x) => mgLabel(x.mg) + " — " + x.why).join("; ") : "no muscle is below the ceiling with a readable lift" };
@@ -7705,8 +7889,8 @@ function volumePush(s) {
 function sweepVolume(s, dow7 = new Date().getDay()) {
   /* R18f — THE DESK WAKES, DEMOTED TO A DOOR. The hygiene gate is lifted because the
      defect it guarded is gone: the desk no longer routes. Its zone triggers remain the
-     WHEN; the WHICH is volumePush — the one chooser, with every house gate (regime,
-     rising, recovery, sleep, the smw budget, spillover charges, conversion reads, the
+     WHEN; the WHICH is volumePush — the one chooser, with every house gate (the regime
+     or stall read, not-falling, recovery, the sleep mean, the VOLUME budget, spillover charges, delivery reads, the
      ceiling) applied by construction because the desk now ASKS THE SAME FUNCTION.
      Gates closed → the desk files NOTHING: no desk card can ever again contradict the
      ONE-CHANGE card in the same render, because during a spent budget there is no desk
@@ -7737,7 +7921,7 @@ function sweepVolume(s, dow7 = new Date().getDay()) {
        slightly HELPS. On a four-day week with the question asked every morning,
        a sore-blocks-progression rule systematically suppresses exactly the
        muscles being trained hardest. It was an anti-progression engine. */) { dir = -1; why = m.zone === "OVER" ? `${m.mg} has run past the deficit ceiling two weeks straight (${m.n7} now, ${m.p7} last — caution starts at ${VOL_BANDS.ceil}). This house tilts toward stimulus, but two confirmed weeks over the line is the data speaking.` : (m.slipping >= 2 && slp7.clean) ? `${m.mg} sits high (${m.n7} sets) and ${m.slipping} of its lifts are slipping on clean sleep — that is your own bar speed saying this specific volume is costing more than it buys.` : `${m.mg} sits high (${m.n7} sets) and reported sore ${m.sore7} of the last 7 mornings — recovery is the constraint speaking before the bar speed does.`; }
-    else if (m.zone === "IN-BAND" && m.n7 <= (VOL_BANDS.lo + VOL_BANDS.hi) / 2 && m.gaining >= 1 && m.slipping === 0 && slp7.clean && m.sore7 <= 1) { dir = +1; why = `${m.mg} is mid-band (${m.n7} sets), every lift is holding or gaining, and sleep is clean — the signals say there is headroom. One added set is the smallest honest experiment.`; }
+    else if (m.zone === "IN-BAND" && m.n7 <= (VOL_BANDS.lo + VOL_BANDS.hi) / 2 && m.gaining >= 1 && m.slipping === 0 && sleepMean3At(s, tISO7) && m.sore7 <= 1) { dir = +1; why = `${m.mg} is mid-band (${m.n7} sets), every lift is holding or gaining, and the sleep mean is clean — the signals say there is headroom. One added set is the smallest honest experiment.`; }
     if (!dir) return;
     /* R18f — the +1 arm carries NO pick: the chooser owns WHICH. The -1 arm keeps its
        weakest-mover pick — giving a set back is a different question from routing an
@@ -7771,7 +7955,7 @@ function sweepVolume(s, dow7 = new Date().getDay()) {
       const doorOpen9 = (s.proposals || []).some((p) => p && !p.resolved && p.rid && String(p.rid).indexOf("volpush_") === 0);   /* R18f fix2 — one door files: an open EARNED VOLUME card closes this one */
       if (!already9 && !doorOpen9 && !declined9 && !passed9) {
         ns = ns || JSON.parse(JSON.stringify(s));
-        ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + vp9.mg + Date.now(), kind: "volume", mg: vp9.mg, exId: vp9.exId, dir: 1, title: `VOLUME +1 — ${vp9.mg.toUpperCase()} via ${vp9.exName}`, body: "The desk is awake again — one chooser, house gates. " + vp9.routing + " Weekly " + vp9.fromWk + " → " + vp9.toWk + " sets; every gate (regime, recovery, sleep, the weekly budget, spillover charges, the conversion read) passed before this filed.", gatesClosed: false }];
+        ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + vp9.mg + Date.now(), kind: "volume", mg: vp9.mg, exId: vp9.exId, dir: 1, title: `VOLUME +1 — ${vp9.mg.toUpperCase()} via ${vp9.exName}`, body: "The desk is awake again — one chooser, house gates. " + vp9.routing + " Weekly " + vp9.fromWk + " → " + vp9.toWk + " sets; every gate (the regime or stall read, recovery, the sleep mean, the volume budget, spillover charges, the delivery read) passed before this filed." + (vp9.headroomNote ? " " + vp9.headroomNote : ""), gatesClosed: false }];
       }
     }
     /* gates closed → silence: the ONE-CHANGE card owns that render, and the owner's-call
@@ -7779,7 +7963,7 @@ function sweepVolume(s, dow7 = new Date().getDay()) {
   }
   cands.filter((c) => c.dir < 0).sort((a, b) => b.sev - a.sev).slice(0, 1).forEach(({ m, dir, why, pick }) => {
     const smw9 = structuralMovesThisWeek(s);
-    if (smw9.moves.length) return;   /* R18f-3 — the give-back is a structural move too: one lever a week, words and budget reconciled */
+    if (smw9.sets.length) return;   /* R18f-3, evolved by A5 — the give-back waits out VOLUME move weeks only: sets left the scale's budget, so a calorie or step steer no longer holds it */
     ns = ns || JSON.parse(JSON.stringify(s));
     ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + m.mg + Date.now(), kind: "volume", mg: m.mg, exId: pick.id, dir, title: `VOLUME ${dir > 0 ? "+1" : "−1"} — ${m.mg.toUpperCase()} via ${pick.n}`, body: why + ` ${dir > 0 ? "Adds one set to " + pick.n + " (its strongest mover). The new set arrives as the final set — the effort ladder re-keys itself: it becomes the all-out set, the old final pulls back to 1 in reserve, and its rep target seeds one under your current last set." : "Removes the final set from " + pick.n + " (its weakest mover) — the effort ladder re-keys to the shorter shape automatically."} Two weeks of data before the ledger revisits this muscle.`, at: tISO7 }];
   });
@@ -7938,17 +8122,17 @@ function runAdaptive(state, todayISO, raOpts) {
      stores the moment any move lands: resolved with a feed line, never deleted. */
   {
     const smwG = structuralMovesThisWeek(s);
-    if (smwG.moves.length) {
+    if (smwG.sets.length) {   /* A5 — only a VOLUME move invalidates a volume offer's premise now */
       for (const p of s.proposals || []) {
         if (p && !p.resolved && p.rid && String(p.rid).indexOf("volpush_") === 0 && (p.apply || {}).budgetPremise) {
           p.resolved = true; p.resolvedHow = "withdrawn — the week's structural budget was spent after this filed";
-          s.feed.unshift({ d: todayISO, t: "CARD WITHDRAWN — " + String(p.title || p.rid).slice(0, 40), how: "A structural move landed this week after this offer filed. One lever a week — the offer returns when it is re-earned, Monday at the earliest." });
+          s.feed.unshift({ d: todayISO, t: "CARD WITHDRAWN — " + String(p.title || p.rid).slice(0, 40), how: "A volume move landed this week after this offer filed. One volume move at a time — the offer returns when it is re-earned, Monday at the earliest." });
         }
       }
       const dropG = (s.agentProposals || []).filter((ap) => ap && ap.kind === "volume");
       if (dropG.length) {
         s.agentProposals = (s.agentProposals || []).filter((ap) => !(ap && ap.kind === "volume"));
-        s.feed.unshift({ d: todayISO, t: "DESK OFFER" + (dropG.length === 1 ? "" : "S") + " WITHDRAWN — the budget is spent", how: "A structural move landed this week; the desk's open volume offer" + (dropG.length === 1 ? "" : "s") + " left with it. One lever a week — the desk re-asks when the chooser re-earns it." });
+        s.feed.unshift({ d: todayISO, t: "DESK OFFER" + (dropG.length === 1 ? "" : "S") + " WITHDRAWN — the budget is spent", how: "A volume move landed this week; the desk's open volume offer" + (dropG.length === 1 ? "" : "s") + " left with it. One volume move at a time — the desk re-asks when the chooser re-earns it." });
       }
     }
   }
@@ -8145,18 +8329,21 @@ function runAdaptive(state, todayISO, raOpts) {
     const deskPassed = vp.mode === "PUSH" && (s.feed || []).slice(0, 80).some((f) => f && f.t && f.d && f.t.indexOf("VOLUME PASSED — " + String(vp.mg).toUpperCase()) === 0 && (mk(todayISO) - mk(f.d)) / DAY < 14);
     if (!sealed && !vpDeclined && !deskOpen && !deskPassed && vp.mode === "PUSH")
       propose(`volpush_${vp.mg}_${monday}`, `${cap(mgLabel(vp.mg))} — EARNED VOLUME: ${vp.fromWk} → ${vp.toWk} WEEKLY SETS`,
-        `Your own measured state earned this: regime FREE confirmed a week apart, pooled progression rising, recovery GREEN, and no other structural move this week. ${cap(mgLabel(vp.mg))} is the lowest readable allocation at ${vp.fromWk} weekly sets${vp.zone === "UNDER" ? " — under the growth floor, an underdose to correct decisively rather than creep at" : ""}. Approving adds ${vp.dSess} set${vp.dSess > 1 ? "s" : ""} to ${vp.exName} each ${vp.day === "L" ? "lower" : "upper"} session — ${vp.fromSess}→${vp.toSess} per session, ${vp.fromWk}→${vp.toWk} weekly, roughly ${vp.dSess * 3} extra minutes on those days (one set plus its rest). The new set lands inside the effort taper automatically: the RIR ladder re-keys, and failure stays spent exactly once, on the final set. HONEST GRADE — MODERATE-TO-LOW: volume drives growth with no in-range plateau (Pelland 2025) and you fit the recomp profile (Barakat 2020 — headroom, ~14% body fat, deficit under ~500), but no trial has tested MORE volume DURING a deficit for growth (Roth 2023 asked retention, underpowered), so the coach adds a LITTLE and reads your own bar before the next step. The trend window restarts at the change on purpose — a bigger number from more sets proves nothing. If the read ends with no progress and fatigue up, the sets come off, with a receipt. Absolute ceiling ${vp.ceil} weekly sets.`,
-        { kind: "sets", exId: vp.exId, delta: vp.dSess, mg: vp.mg, fromWk: vp.fromWk, toWk: vp.toWk, freq: vp.freq, budgetPremise: true });   /* R18f fix2 — this card's premise IS the clean budget; the belt and reconciler key on it, so owner's-call cards (whose premise is Joe's ask, the 8/07 three-tap pattern) are untouched */
-    /* the rollback half — an earned lever stays earned only if the receipt runs backwards */
+        `${vp.basis === "stall" ? "Your own measured state earned this through the stall arm: the scale is stalled with nothing looking wrong — lifts not falling, recovery GREEN, the 3-night sleep mean clean, no other volume move this week — and a stalled scale with clean instruments still earns the question." : vp.basis === "surplus" ? "Your own measured state earned this: a surplus inside the controlled-gain cap, lifts not falling, recovery GREEN, the sleep mean clean, and the block's batch open." : "Your own measured state earned this: regime FREE confirmed a week apart, lifts not falling while fat clearly falls, recovery GREEN, the 3-night sleep mean clean, and no other volume move this week."} ${cap(mgLabel(vp.mg))} carries your own training-order priority at ${vp.fromWk} weekly sets${vp.zone === "UNDER" ? " — under the growth floor, an underdose to correct decisively rather than creep at" : ""}. Approving adds ${vp.dSess} set${vp.dSess > 1 ? "s" : ""} to ${vp.exName} each ${vp.day === "L" ? "lower" : "upper"} session — ${vp.fromSess}→${vp.toSess} per session, ${vp.fromWk}→${vp.toWk} weekly, roughly ${vp.dSess * 3} extra minutes on those days (one set plus its rest). The new set lands inside the effort taper automatically: the RIR ladder re-keys, and failure stays spent exactly once, on the final set.${vp.reviewZone ? ` REVIEW ZONE: this lands past ${VOL_BANDS.hi} weekly sets (${VOL_REVIEW_LO}–${VOL_REVIEW_HI}) — progression here continues only on your own delivered+tolerated reads.` : ""}${vp.headroomNote ? " " + vp.headroomNote : ""} HONEST GRADE — MODERATE-TO-LOW: volume drives growth with no in-range plateau (Pelland 2025) and you fit the recomp profile (Barakat 2020 — headroom, ~14% body fat, deficit under ~500), but no trial has tested MORE volume DURING a deficit for growth (Roth 2023 and Nait-Yahia 2026 asked retention; neither found a volume advantage), so the coach adds a LITTLE and reads your own bar before the next step. The trend window restarts at the change on purpose — a bigger number from more sets proves nothing. A null read HOLDS; sets come off only on repeated deterioration, pain, or recovery leaving GREEN, with a receipt. Per-session cap ${VOL_SESS_CAP}; absolute ceiling ${vp.ceil} weekly sets, never normally reached.`,
+        { kind: "sets", exId: vp.exId, delta: vp.dSess, mg: vp.mg, fromWk: vp.fromWk, toWk: vp.toWk, freq: vp.freq, budgetPremise: true });   /* A5 — the premise is now the clean VOLUME budget; the belt and reconciler key on it, so owner's-call cards (whose premise is Joe's ask) are untouched */
+    /* the staged-hold half (A2) — subtraction is the LAST stage, never the reflex: a
+       null read HOLDS, verification is named on the card, and the proposal files only
+       when the lift ITSELF deteriorates AND the deterioration repeats, pain speaks
+       (the governor — the immediate safety path), or recovery leaves GREEN. */
     (s.exercises || []).forEach((ex9) => {
       if (typeof ex9.w !== "number") return;
       const vc9 = volumeConversion(s, ex9.id);
-      if (!(vc9.status === "LIVE" && vc9.rollback)) return;
+      if (!(vc9.status === "LIVE" && vc9.subtract)) return;
       const rid9 = `volroll_${ex9.id}_${monday}`;
       const rollDeclined = (s.adjustments || []).some((a) => a && a.dismissed && a.rid === rid9);
       if (!sealed && !rollDeclined)
-        propose(rid9, `${String(ex9.n).toUpperCase()} — THE ADDED SET DID NOT CONVERT`,
-          `The receipt: ${vc9.dK} set${vc9.dK > 1 ? "s were" : " was"} added to ${ex9.n} on ${fmtShort(vc9.changedAt)}. Over the ${vc9.trend.n} sessions since, the fresh trend window shows no progression (${vc9.trend.pct}%/session, CI ${vc9.trend.lo} to ${vc9.trend.hi}) and recovery is paying for it${ex9.holdFlag ? " — the lift itself is held by the governor" : ""}. Approving takes the added set${vc9.dK > 1 ? "s" : ""} back off — ${ex9.sets}→${ex9.sets - vc9.dK} per session. Nothing is lost: the experiment ran, the answer was measured on your own bar, and both are on the record. Junk volume is fatigue wearing a growth costume.`,
+        propose(rid9, `${String(ex9.n).toUpperCase()} — THE ADDED SET IS NOT BEING TOLERATED`,
+          `The staged receipt: ${vc9.dK} set${vc9.dK > 1 ? "s were" : " was"} added to ${ex9.n} on ${fmtShort(vc9.changedAt)}. Over the ${vc9.trend.n} sessions since, the lift ITSELF is deteriorating (${vc9.trend.pct}%/session, CI ${vc9.trend.lo} to ${vc9.trend.hi}) — a falling read, not a null one — and ${vc9.safety ? "the governor holds this lift while it falls: the immediate safety path" : (vc9.trend.n >= TREND_MIN_SESSIONS + 2 ? "the deterioration has repeated past the minimum window" : "recovery has left GREEN while it falls")}. Delivery was ${vc9.delivered === true ? "verified — the RIR reports say the sets ran hard" : "unrated"}; execution, rest and technique standardization are yours to check before you tap. Approving takes the added set${vc9.dK > 1 ? "s" : ""} back off — ${ex9.sets}→${ex9.sets - vc9.dK} per session. Nothing is lost: the experiment ran, the answer was measured on your own bar, and both are on the record.`,
           { kind: "sets", exId: ex9.id, delta: -vc9.dK, mg: (ex9.head || ex9.mg) });
     });
   }
@@ -8176,7 +8363,7 @@ function runAdaptive(state, todayISO, raOpts) {
      migration. */
   {
     const ownerGate = "The gates were closed — recovery reads WATCH, the detector cannot read your lifts yet, and the rate is above the corridor top — and you chose speed over waiting, on the record. The owner decides; the app measures. ";
-    const ownerCaveat = " HONEST CAVEAT: three simultaneous experiments into WATCH recovery raises the odds any given read returns \"did not convert\" — junk volume is the risk you accepted, and the instruments will say so without flinching. THE MEASUREMENT PROMISE: this lift's trend window restarts at the change, it gets its own conversion verdict on your own bar, and if it reads junk a rollback card comes with the receipt. Declining buys the week.";
+    const ownerCaveat = " HONEST CAVEAT: three simultaneous experiments into WATCH recovery raises the odds a read comes back NOT-TOLERATED or UNCLEAR — junk volume is the risk you accepted, and the instruments will say so without flinching. THE MEASUREMENT PROMISE: this lift's trend window restarts at the change, it climbs the delivery/tolerance ladder on your own bar, and if the lift itself deteriorates a staged-hold card comes with the receipt. Declining buys the week.";
     const OWNER_CALLS = [
       { mg: "hams", exId: "ham",
         title: (ex, fromWk, toWk) => `OWNER'S CALL — HAMS: ${fromWk} → ${toWk} WEEKLY SETS`,
@@ -8199,6 +8386,25 @@ function runAdaptive(state, todayISO, raOpts) {
         ownerGate + oc.body(ex, fq) + ownerCaveat,
         { kind: "sets", exId: oc.exId, delta: 1, mg: oc.mg, owner: true });
     });
+  }
+
+  /* ---------- B1 — THE FAILURE A/B (Joe's ruling, 2026-08-11: RUN IT) ----------
+     Pairing chosen AT SPEC TIME from his own ledger: tricep vs sulek — both pure
+     isolations, both in the same upper session, six reads each across the window,
+     loads unchanged throughout (55 and 87.5). The capped arm is TRICEP (its terminal
+     RIR reporting is also the spottiest — a prescribed terminal helps the record);
+     SULEK keeps the all-out terminal set, because failure contact is the RIR
+     calibration anchor: the error is bias (~0.95 reps toward underprediction), not
+     just noise. 1 RIR still satisfies the delivered-dose criterion. Filed once ever;
+     the tap is the consent, on the record. */
+  {
+    const AB9 = { t: "THE FAILURE A/B — TRICEP CAPPED vs SULEK ALL-OUT", q: "Does keeping 1-2 reps in reserve on the last set cost strength — on your own bar?", arms: ["Tricep — terminal set capped at 1-2 RIR", "Sulek curl — terminal set stays all-out"], blockDays: 28, cycles: 1, metric: "lift_pair", exA: "tricep", exB: "sulek", abId: "failureAB1" };
+    const seenAB = (s.trials || []).some((t9) => t9 && t9.custom && t9.custom.abId === "failureAB1") || (s.agentProposals || []).some((ap9) => ap9 && ap9.kind === "trial" && ap9.custom && ap9.custom.abId === "failureAB1");
+    if (!seenAB && !sealed) {
+      s.agentProposals = [...(s.agentProposals || []), { id: "abfail1", kind: "trial", title: "THE FAILURE A/B — RULED: RUN IT",
+        body: "Joe's ruling, on the record: run the A/B. The pairing, chosen from your own ledger: Tricep and Sulek curl — both pure isolations, both in the same upper session, six reads each across the recent window, loads unchanged throughout (55 and 87.5). TRICEP caps its final set at 1-2 RIR through one full read window; SULEK keeps the all-out terminal set — the calibration anchor stays, because RIR error is bias, not just noise, and periodic failure contact is what keeps your reports calibrated. 1 RIR still satisfies the delivered-dose criterion, so the capped arm never reads as sandbagging. When both lifts carry a full post-start window, the desk compares their strength trends side by side — direction, not gospel.",
+        custom: AB9, at: isoOf(todayStart()) }];
+    }
   }
 
   /* ---------- SELECTION_NOTE — the one training change worth the ink ----------
@@ -8421,9 +8627,9 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
      for the race inside a single render. */
   if ((p.apply || {}).kind === "sets" && (p.apply || {}).budgetPremise) {
     const smwT = structuralMovesThisWeek(s);
-    if (smwT.moves.length) {
+    if (smwT.sets.length) {   /* A5 — the premise is the VOLUME budget */
       p.resolved = true; p.resolvedHow = "expired at the tap — the budget was spent after this filed";
-      s.feed.unshift({ d: today, t: "OFFER EXPIRED AT THE TAP — " + String(p.title || p.rid).slice(0, 40), how: "A structural move already landed this week, so this card's own premise (no other move) had expired. Nothing changed. One lever a week — it returns when re-earned, Monday at the earliest." });
+      s.feed.unshift({ d: today, t: "OFFER EXPIRED AT THE TAP — " + String(p.title || p.rid).slice(0, 40), how: "A volume move already landed this week, so this card's own premise (no other volume move) had expired. Nothing changed. It returns when re-earned, Monday at the earliest." });
       return s;
     }
   }
@@ -8562,9 +8768,9 @@ function applyAgentProposal(state, ap, tISO) {
   if (ap.kind === "volume" && ap.exId && ap.dir) {
     /* R18f fix2 (c) — the desk's tap re-checks the budget too, and speaks */
     const smwT2 = structuralMovesThisWeek(s);
-    if (smwT2.moves.length) {
+    if (smwT2.sets.length) {   /* A5 — the premise is the VOLUME budget */
       s.agentProposals = (s.agentProposals || []).filter((x) => x.id !== ap.id);
-      s.feed.unshift({ d: tISO, t: "OFFER EXPIRED AT THE TAP — " + (ap.title || "VOLUME"), how: "A structural move already landed this week, so this offer's premise had expired. Nothing changed. One lever a week — the desk re-asks when the chooser re-earns it." });
+      s.feed.unshift({ d: tISO, t: "OFFER EXPIRED AT THE TAP — " + (ap.title || "VOLUME"), how: "A volume move already landed this week, so this offer's premise had expired. Nothing changed. The desk re-asks when the chooser re-earns it." });
       return s;
     }
     const ex7 = s.exercises.find((x) => x.id === ap.exId);
@@ -8583,6 +8789,12 @@ function applyAgentProposal(state, ap, tISO) {
 function dismissAgentProposal(state, ap, tISO) {
   const s = JSON.parse(JSON.stringify(state));
   if (ap.kind === "volume" && ap.mg) s.feed.unshift({ d: tISO, t: `VOLUME PASSED — ${ap.mg.toUpperCase()}`, how: "athlete dismissed — the ledger waits two weeks before raising this muscle again" });
+  if (ap.kind === "trial") {
+    /* the decline is RECORDED in s.trials, so a pre-filed trial card never refiles —
+       the same once-ever shape the owner's-call cards use */
+    s.trials = [...(s.trials || []), ap.custom ? { custom: ap.custom, declined: true } : { tplId: ap.tplId, declined: true }];
+    s.feed.unshift({ d: tISO, t: "TRIAL PASSED — " + (ap.custom ? ap.custom.t : ((TRIAL_TPL[ap.tplId] || {}).t || "")), how: "athlete declined — the pass is recorded, so the desk never re-raises it" });
+  }
   s.agentProposals = (s.agentProposals || []).filter((x) => x.id !== ap.id);
   return s;
 }
@@ -8607,7 +8819,7 @@ function dismissProposal(state, pid) {
       steps: "If the step pattern persists, it comes back with fresh numbers.",
       steppush: "This week's steps question is answered — it stays quiet before Monday. If the rate is still under the corridor then, it returns with fresh numbers.",
       volpush: "This week's volume question is answered — the lever stays quiet before Monday. If your state still sanctions growth then, it returns with fresh numbers.",
-      volroll: "Declined — the sets stay on for now. The conversion read continues, and the rollback returns Monday if the verdict has not changed.",
+      volroll: "Declined — the sets stay on for now. The tolerance read continues, and the staged hold returns Monday if the lift is still deteriorating.",
       exit: "Phase decisions never expire and never re-file themselves — this stays yours to raise.",
       ladder: "Filed once per lift; declining closes it — the ladder sweep never re-files a rid it has already raised, so this will not come back unless the exercise itself changes.",
       default: "The engine re-arms it if the pattern that raised it holds.",
@@ -9335,8 +9547,8 @@ const GLOSSARY = {
   ea: ["Energy availability", "What is left to run your body on after training is paid for: calories in, minus what training and deliberate walking cost, divided by your lean mass. The threshold that matters for a lean man is 25 kcal per kg of lean mass per day — above it, a deficit mostly takes fat; below about 20, more than 40% of what you lose comes off lean mass, and testosterone, thyroid and resting metabolism go with it. It shows a RANGE, not a number, and that is deliberate: the convention counts purposeful exercise, and 16,000 deliberate steps sit exactly on the line between training and just moving. Nobody has settled that, so the app shows both ways of counting instead of picking one and sounding certain. The session and step costs are population estimates, not measurements of you — which is why this instrument only ever claims which side of the line you are on."],
   rest: ["Rest between sets", "90 s on isolation, 150 s on compounds, and 30 s more before the final set. The number comes from where the evidence stops moving: pooled across nine studies, longer rest beats short rest by a small margin that runs through volume load — you keep more reps on the back sets — but no further benefit is measurable past about 90 s. So 90 is the floor worth holding and anything beyond it on isolation work is session time you are spending for nothing. Compounds sit at 150 s because that is inside the 2–3 min band tested directly in trained lifters. The extra 30 s before the last set is a judgement call, not a finding: that set is the one prescribed to failure, and it is the one the progression engine reads to size your next jump — so it is the set worth protecting."],
   pace: ["RUSHED (pace)", "That session ran on short rest — under about a minute between sets. It matters for one reason: less rest means fewer reps on the back sets, so the volume load drops. The reps still count and still move your trend. What a rushed day can't do is count toward a stall — three stalls lighten the bar 5%, and running out of time is not evidence that the weight is too heavy. The research here is modest and honest about itself: pooled across nine studies the rest effect is small and mostly runs through volume load, with nothing measurable past ~90 s. So the app records it as context, not as a verdict on the session."],
-  debt: ["Short night", "That session followed a night under 6.5 h, or a three-night run averaging under 7. Down numbers on a short night read as context rather than regression, so the day is exempt from counting toward a stall. It does NOT make a record provisional — the strength cost of a short night is about 2.85%, smaller than the set-to-set noise the app already models, and no record here was ever gated on sleep once the desk stopped holding lifts."],
-  clean: ["AT TARGET (sleep)", "A run of consecutive nights at your sleep target. It is NOT a gate — owns and earns count whenever you hit them, on any amount of sleep, because the strength cost of a short night is about 2.85% and that is smaller than your own set-to-set spread. What a run at target buys sits on the body-composition side: at a matched deficit, short sleep sends roughly 60% more of what you lose off lean mass instead of fat."],
+  debt: ["Short night", "That session followed a night under 6.5 h, or a three-night run averaging under 7. Down numbers on a short night read as context rather than regression, so the day is exempt from counting toward a stall. It does NOT make a record provisional — the strength cost of a short night is about 2.85% — real (CI 1.23–4.47) — smaller than the set-to-set spread the app already measures, and no record here was ever gated on sleep once the desk stopped holding lifts."],
+  clean: ["AT TARGET (sleep)", "A run of consecutive nights at your sleep target. It is NOT a gate — owns and earns count whenever you hit them, on any amount of sleep, because the strength cost of a short night is about 2.85% — real (CI 1.23–4.47) — and that is smaller than your own set-to-set spread. What a run at target buys sits on the body-composition side: at a matched deficit, short sleep sends roughly 60% more of what you lose off lean mass instead of fat."],
   seal: ["Sealed scale", "Around events, reads are quarantined: logged but excluded from the trend, and every rate rule is muted. The seal exists so event water can never trigger a false alarm."],
   trend: ["Trend", "The damped average the whole app runs on: each clean read moves it 30% of the way, spikes clamp at ±1.5 lb, sealed reads don't touch it. Mornings are static; the trend is the instrument."],
   own: ["OWNED", "The standard repeated. One hit is a visit; a repeat is an address — and the repeat IS the confirmation, which is the entire statistical content of the rule. Sleep used to be a third condition stacked on top of it and is gone. Only owned standards let the load move."],
@@ -9558,7 +9770,7 @@ function askContext(s, docs) {
     .map(([d, v]) => { const w2 = dayWeather(s, d); return `${d}: cal ${v.cal ?? "—"} · pro ${v.pro ?? "—"} · steps ${v.steps ?? "—"}${w2.flags.length ? "  ⌁[" + w2.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n");
   const sess2 = Object.keys(s.sessionLog).sort().slice(-6).map((d) => { const sl2 = s.sessionLog[d]; const parts = [(sl2.entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ") || "no lifts"]; if ((sl2.skipped || []).length) parts.push("SKIPPED: " + sl2.skipped.map((k) => k.id).join(", ")); if (sl2.note) parts.push(`note: "${sl2.note.slice(0, 120)}"`); return `${d}: ` + parts.join(" · "); }).join("\n");
   const nights2 = s.sleep.nights.slice(-14).map((n) => `${n.d}: ${n.h}h · bed ${n.bed || "—"} → wake ${n.wake || "—"} · drift-off ${n.sol ?? "?"}m${(n.tags || []).length ? " · " + n.tags.join("/") : ""}`).join("\n");
-  const laws = `DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor ${cutRateBand(s).band.join('–')} lb/wk in ${apModeOf(s) === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP"} mode (${(s.rate || {}).redline || 1.9}+ = too fast); calorie floor ${calorieFloor(s).floor} (DERIVED from energy availability at his lean mass — not the old authored 1,700); calories, protein and steps are all DERIVED from his record, never quoted as constants — take them from the CANONICAL NUMBERS block and nowhere else; a new best becomes official on ONE repeat, because his own measured set-to-set spread is about ±${typicalError(s, null).reps} reps (${typicalError(s, null).src}) and a +1 record sits inside it — a jump two standard errors clear of the old line banks on the first sighting instead; short sleep does NOT block a record and does NOT cap the step (that rule was retired — Craven 2022 puts acute sleep loss at −2.85% on strength, inside the 1.8–3.3% test-retest CV, and no trial has ever tested damping progression on low-readiness days), what it does is exempt the day from counting toward a stall; terminal RIR gates every earn (0 blocks it), can take an earn early off one honest sighting — always by his tap, never automatically — and sizes the jump where the machine's rung ladder is on file; it is the most valuable number he enters; one structural change per session; effort tapers to a single terminal failure set per exercise (RIR 2→1→…→0) — proximity to failure is the training variable with the dose-response, not load or rep range, which are interchangeable from about 5 to 30 reps; the scale seal quarantines event water; the weekly refeed is RETIRED — he took it off the calendar himself after the evidence was laid out, so do not propose one and never claim a refeed aids fat loss, muscle retention, metabolism or next-day performance; past Wednesdays on the record were refeeds and stay described as such, because they were; every change is a proposal — the athlete consents, the coach holds structural authority. NEVER assert a mechanism this app cannot cite; saying 'there is no good evidence either way' is always available and always preferred to a confident guess.`;
+  const laws = `DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor ${cutRateBand(s).band.join('–')} lb/wk in ${apModeOf(s) === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP"} mode (${(s.rate || {}).redline || 1.9}+ = too fast); calorie floor ${calorieFloor(s).floor} (DERIVED from energy availability at his lean mass — not the old authored 1,700); calories, protein and steps are all DERIVED from his record, never quoted as constants — take them from the CANONICAL NUMBERS block and nowhere else; a new best becomes official on ONE repeat, because his own measured set-to-set spread is about ±${typicalError(s, null).reps} reps (${typicalError(s, null).src}) and a +1 record sits inside it — a jump two standard errors clear of the old line banks on the first sighting instead; short sleep does NOT block a record and does NOT cap the step (that rule was retired — Craven 2022 puts acute sleep loss at −2.85% on strength — real, CI 1.23–4.47, just smaller than his own day-to-day spread — and no trial has ever tested damping progression on low-readiness days), what it does is exempt the day from counting toward a stall; terminal RIR gates every earn (0 blocks it), can take an earn early off one honest sighting — always by his tap, never automatically — and sizes the jump where the machine's rung ladder is on file; it is the most valuable number he enters; one structural change per session; effort tapers to a single terminal failure set per exercise (RIR 2→1→…→0) — proximity to failure is the training variable with the dose-response, not load or rep range, which are interchangeable from about 5 to 30 reps; the scale seal quarantines event water; the weekly refeed is RETIRED — he took it off the calendar himself after the evidence was laid out, so do not propose one and never claim a refeed aids fat loss, muscle retention, metabolism or next-day performance; past Wednesdays on the record were refeeds and stay described as such, because they were; every change is a proposal — the athlete consents, the coach holds structural authority. NEVER assert a mechanism this app cannot cite; saying 'there is no good evidence either way' is always available and always preferred to a confident guess.`;
   const evs = (s.events || []).map((e) => `${e.d}: ${e.t}${e.estimated ? " (est-declared)" : ""}`).join(" · ") || "none";
   const trls = (s.trials || []).map((t3) => { const tp = trialTpl(t3); return tp ? `${tp.t} (started ${t3.started})` : ""; }).filter(Boolean).join(" · ") || "none";
   const gate2 = sleepInfo(s);
@@ -9597,13 +9809,13 @@ function askContext(s, docs) {
   const suggSec = docs.suggestions ? `\n\n=== YOUR CURRENT APPROVE/DISMISS SUGGESTIONS (the NOW cards) ===\n${clip(docs.suggestions, 1800)}` : "";
   const briefSec = docs.brief ? `\n\n=== YOUR LATEST READ (brief.md — your own nightly words, the voice to match) ===\n${clip(docs.brief, 1800)}` : "";
   const caselawSec = docs.caselaw ? `\n\n=== CASE-LAW / MEMORY (what has held true before) ===\n${clip(docs.caselaw, 1800)}` : "";
-  return `You are Joe's Analyst — the same analyst that writes his nightly read. When Joe asks something here, he is asking you: answer in the same voice, from the same knowledge. Your one goal: the best body-composition change — fat down, lean held or built — as fast as he can sustain. Read everything through two lenses only: established sports-science research, and Joe's own data. HOW YOU TALK: plain conversational prose, exactly like your nightly read — the way you'd say it out loud to a sharp friend who lifts. Use no markdown at all — no # headers, no **bold**, no bullet lists or numbered scaffolding, no tables. No jargon, no (measured)/(speculation) tags, no "provisional". Lead with the answer and the one thing that matters, use his real numbers, keep it tight; if the data is thin, just say so in plain words. TWO LAWS: look at everything relevant and how the variables move each other; and weigh science and his own data together — where they agree, say it plainly, where they disagree, name the tension. Never go dark on a noisy number: a single scale reading is noise around a slow trend, so attribute spikes to their cause (water from sodium, carbs, a big meal, a short night) instead of hiding them. THE SCIENCE FLOOR (your prior): lean-safe loss is about 0.5–1.0%/wk (~1.0–1.4 lb/wk for him; 1.9+ is too fast) and deficit MAGNITUDE is the variable most tightly linked to lean-mass loss in trained people; protein ~2.3–3.1 g/kg fat-free mass, fixed daily, not varied by training vs rest day; sleep is a first-order fat-vs-LEAN lever in a deficit (Nedeltcheva 2010: 5.5 h vs 8.5 h shifted 60% more of the loss onto fat-free mass) but only a small SESSION lever (Craven 2022: −2.85% on strength, inside the test-retest CV) — do not tell him a short night ruins a session or invalidates a record, because the app no longer treats it that way and the evidence never did; train to roughly 6–12 hard sets per muscle per week at 0–2 reps in reserve, where the dose-response return per set is highest. Things that DO NOT matter and must never be presented as if they do: rep tempo (meta-analytic SMD 0.09, and it favours going faster, not slower), slow or accentuated eccentrics (hypertrophy SMD −0.06 while perceived effort rises SMD +1.72 — a pure fatigue tax), periodisation model (d = −0.02 for linear vs undulating), machines vs free weights (SMD −0.055, p=0.751 — his machine-heavy programme costs him nothing), planned deloads (zero positive RCTs; the only trained-subject trial found a 3.6 kg squat 1RM decrement and reduced motivation), and lengthened partials (a 297-person multi-site trial found them practically equivalent to full range; trained-subject Bayes factors of 0.16–0.30 are moderate evidence FOR the null, and there are no range-of-motion studies at all in pecs, delts or lats). What DOES matter and is 5–15× larger: exercise selection for biarticular muscles, where the joint you are not training sets the muscle's length — standing vs seated calf raise d = 0.88–1.58, overhead vs pushdown triceps d = 0.54–0.61, seated vs lying ham curl. "Defend load on a cut" is folklore — the only trial that manipulated load under energy restriction (Carlson 2022, n=115 trained, 80% vs 60% 1RM both to failure) found no difference in fat or lean mass, so defend EFFORT and ${DEFICIT_CEILING.line()} instead; sodium, carbs and creatine move water, not fat; caffeine helps training but taken late steals sleep; DIET BREAKS (a full week at maintenance) have replicated adherence benefits and no metabolic ones in trained people; weekly REFEED DAYS have neither — the only matched-energy RCT was overturned on reanalysis and no isocaloric carbohydrate study has ever improved strength or hypertrophy, so never claim a refeed buys fat loss, lean retention, metabolism or next-day performance; adherence is the biggest lever; metabolic adaptation is real but small. A single set of reps carries about ±0.8 reps of noise for him, so treat a one-rep change as weather, not signal. Answer only from the knowledge below plus that science. Never invent data, and when the evidence is absent say so — "nobody has tested this" is a better answer than a confident mechanism.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}${analysisSec}${suggSec}${briefSec}${caselawSec}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== MEDS (last 7 logged) ===\n${(s.medsLog || []).slice(-7).map((m8) => `${m8.d}: ${m8.taken ? "taken @ " + m8.at : "none"}`).join("\\n") || "none logged"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
+  return `You are Joe's Analyst — the same analyst that writes his nightly read. When Joe asks something here, he is asking you: answer in the same voice, from the same knowledge. Your one goal: the best body-composition change — fat down, lean held or built — as fast as he can sustain. Read everything through two lenses only: established sports-science research, and Joe's own data. HOW YOU TALK: plain conversational prose, exactly like your nightly read — the way you'd say it out loud to a sharp friend who lifts. Use no markdown at all — no # headers, no **bold**, no bullet lists or numbered scaffolding, no tables. No jargon, no (measured)/(speculation) tags, no "provisional". Lead with the answer and the one thing that matters, use his real numbers, keep it tight; if the data is thin, just say so in plain words. TWO LAWS: look at everything relevant and how the variables move each other; and weigh science and his own data together — where they agree, say it plainly, where they disagree, name the tension. Never go dark on a noisy number: a single scale reading is noise around a slow trend, so attribute spikes to their cause (water from sodium, carbs, a big meal, a short night) instead of hiding them. THE SCIENCE FLOOR (your prior): lean-safe loss is about 0.5–1.0%/wk (~1.0–1.4 lb/wk for him; 1.9+ is too fast) and deficit MAGNITUDE is the variable most tightly linked to lean-mass loss in trained people; protein ~2.3–3.1 g/kg fat-free mass, fixed daily, not varied by training vs rest day; sleep is a first-order fat-vs-LEAN lever in a deficit (Nedeltcheva 2010: 5.5 h vs 8.5 h shifted 60% more of the loss onto fat-free mass) but only a small SESSION lever (Craven 2022: −2.85% on strength — real, CI 1.23–4.47, smaller than his own day-to-day spread) — do not tell him a short night ruins a session or invalidates a record, because the app no longer treats it that way and the evidence never did; train to roughly 6–12 hard sets per muscle per week at 0–2 reps in reserve, where the dose-response return per set is highest. Things that DO NOT matter and must never be presented as if they do: rep tempo (meta-analytic SMD 0.09, and it favours going faster, not slower), slow or accentuated eccentrics (hypertrophy SMD −0.06 while perceived effort rises SMD +1.72 — a pure fatigue tax), periodisation model (d = −0.02 for linear vs undulating), machines vs free weights (SMD −0.055, p=0.751 — his machine-heavy programme costs him nothing), planned deloads (zero positive RCTs; the only trained-subject trial found a 3.6 kg squat 1RM decrement and reduced motivation), and lengthened partials (a 297-person multi-site trial found them practically equivalent to full range; trained-subject Bayes factors of 0.16–0.30 are moderate evidence FOR the null, and there are no range-of-motion studies at all in pecs, delts or lats). What DOES matter and is 5–15× larger: exercise selection for biarticular muscles, where the joint you are not training sets the muscle's length — standing vs seated calf raise d = 0.88–1.58, overhead vs pushdown triceps d = 0.54–0.61, seated vs lying ham curl. "Defend load on a cut" is folklore — the only trial that manipulated load under energy restriction (Carlson 2022, n=115 trained, 80% vs 60% 1RM both to failure) found no difference in fat or lean mass, so defend EFFORT and ${DEFICIT_CEILING.line()} instead; sodium, carbs and creatine move water, not fat; caffeine helps training but taken late steals sleep; DIET BREAKS (a full week at maintenance) have replicated adherence benefits and no metabolic ones in trained people; weekly REFEED DAYS have neither — the only matched-energy RCT was overturned on reanalysis and no isocaloric carbohydrate study has ever improved strength or hypertrophy, so never claim a refeed buys fat loss, lean retention, metabolism or next-day performance; adherence is the biggest lever; metabolic adaptation is real but small. A single set of reps carries his own measured set-to-set spread (the live figure in the canon — REPEATABILITY, not accuracy: pooled RIR reports run about 0.95 reps biased toward underprediction), so treat a one-rep change as weather, not signal. Answer only from the knowledge below plus that science. Never invent data, and when the evidence is absent say so — "nobody has tested this" is a better answer than a confident mechanism.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}${analysisSec}${suggSec}${briefSec}${caselawSec}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== MEDS (last 7 logged) ===\n${(s.medsLog || []).slice(-7).map((m8) => `${m8.d}: ${m8.taken ? "taken @ " + m8.at : "none"}`).join("\\n") || "none logged"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
 }
 const AGENT_TOOLS = [
   { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads|feed. Feed = the app event log; amendments there override older raw rows. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
   { name: "read_instruments", description: "All current lab instrument verdicts, compiled plain.", input_schema: { type: "object", properties: {} } },
   { name: "run_whatif", description: "Forward-model a lever change. Any of: steps, cal, sleep, refeed.", input_schema: { type: "object", properties: { steps: { type: "number" }, cal: { type: "number" }, sleep: { type: "number" }, refeed: { type: "number" } } } },
-  { name: "stage_proposal", description: "Stage a proposal for the athlete's one-tap consent. NEVER changes anything itself. kind: trial|note|coach. For trials: either tplId (refeedsize|caffcut|lightsshift|steptarget) OR a custom design.", input_schema: { type: "object", properties: { kind: { type: "string" }, title: { type: "string" }, body: { type: "string" }, tplId: { type: "string" }, custom: { type: "object", properties: { t: { type: "string" }, q: { type: "string" }, arms: { type: "array", items: { type: "string" } }, blockDays: { type: "number" }, cycles: { type: "number" }, metric: { type: "string", enum: ["session_reps", "sleep_h", "trend_delta"] } }, required: ["t", "q", "arms", "blockDays", "cycles", "metric"] } }, required: ["kind", "title", "body"] } },
+  { name: "stage_proposal", description: "Stage a proposal for the athlete's one-tap consent. NEVER changes anything itself. kind: trial|note|coach. For trials: either tplId (refeedsize|caffcut|lightsshift|steptarget) OR a custom design.", input_schema: { type: "object", properties: { kind: { type: "string" }, title: { type: "string" }, body: { type: "string" }, tplId: { type: "string" }, custom: { type: "object", properties: { t: { type: "string" }, q: { type: "string" }, arms: { type: "array", items: { type: "string" } }, blockDays: { type: "number" }, cycles: { type: "number" }, metric: { type: "string", enum: ["session_reps", "sleep_h", "trend_delta", "lift_pair"] } }, required: ["t", "q", "arms", "blockDays", "cycles", "metric"] } }, required: ["kind", "title", "body"] } },
 ];
 function agentToolExec(s, name, input, staged) {
   try {
@@ -10756,7 +10968,7 @@ __test.bfEst = bfEst;
 __test.migrate = migrate;
 __test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
 __test.targetsFor = targetsFor;
-__test.runAdaptive = runAdaptive; __test.isPristineSeed = isPristineSeed; __test.restoreOfferStands = restoreOfferStands; __test.clearRestoreOffer = clearRestoreOffer; __test.labGroupsM = labGroupsM; __test.restoreFromCloud = restoreFromCloud; __test.mergeState = __test.mergeState || mergeState; __test.dossierText = __test.dossierText || dossierText; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
+__test.runAdaptive = runAdaptive; __test.isPristineSeed = isPristineSeed; __test.sleepMean3At = sleepMean3At; __test.VOL_SESS_CAP = VOL_SESS_CAP; __test.VOL_REVIEW_HI = VOL_REVIEW_HI; __test.DELIVERED_MAJ = DELIVERED_MAJ; __test.REVIEW_OUTCOME_D = REVIEW_OUTCOME_D; __test.restoreOfferStands = restoreOfferStands; __test.clearRestoreOffer = clearRestoreOffer; __test.labGroupsM = labGroupsM; __test.restoreFromCloud = restoreFromCloud; __test.mergeState = __test.mergeState || mergeState; __test.dossierText = __test.dossierText || dossierText; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
 __test.stepKcal = stepKcal;
 __test.stepEfficacy = stepEfficacy;
 __test.DT = DT;
@@ -11602,7 +11814,7 @@ function nowModelUncached(s, deps) {
        consulted the budget and the daily band updated daily. It now names the levers
        actually held (the volume push and the step push), says what stays live, and
        names when the budget reopens — all from smw's own state. */
-    : (smw.moves.length ? { title: "ONE CHANGE AT A TIME", body: "Something changed this week (" + (smw.moves[0].kind === "sets" ? "a training tweak" : smw.moves[0].kind === "steps" ? "your step target" : "your calorie range") + ") — so the set-add and step-push levers are held while the scale reads it. Your daily calorie band keeps updating and corrective steers stay live" + (smw.sets.length ? " (a tighten waits out the new-volume water; easing and the safety floor never wait)" : "") + ". The budget reopens " + fmtShort(isoOf(new Date(mk(smw.monday).getTime() + 7 * DAY))) + "." } : null);
+    : (smw.moves.length ? { title: "ONE CHANGE AT A TIME", body: (smw.sets.length ? "A training tweak landed this week — the set-add lever is held while its lift reads, and a tighten waits out the new-volume water (easing and the safety floor never wait). Calorie and step steers stay live: the scale cannot read a set-add, so they never shared a budget. " : "") + (smw.calOrSteps.length ? "Your " + (smw.calOrSteps[0].kind === "steps" ? "step target" : "calorie range") + " moved this week — that lever is held while the scale reads it; the volume desk stays live on its own budget. " : "") + "Your daily calorie band keeps updating and corrective steers stay live. The budget" + (smw.sets.length && smw.calOrSteps.length ? "s reopen" : " reopens") + " " + fmtShort(isoOf(new Date(mk(smw.monday).getTime() + 7 * DAY))) + "." } : null);
   const pt = proteinTarget(s);
   const eat = {
     gated: !!eb.gated, lo: eb.gated ? null : eb.lo, hi: eb.gated ? null : eb.hi,
@@ -14854,8 +15066,8 @@ function BodyTab({ s, setS, save }) {
           <Btn small onClick={() => { const p = Number(dexaIn); if (p > 5 && p < 30) { const ns = anchorDexa(s, p); setS(ns); save(ns); setDexaIn(""); } }}>Anchor model to DEXA</Btn>
         </div>
         <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 6 }}>One measured number recalibrates every estimate and ETA below.</div>
-        <More deep="A lean-mass model, not a formula: anchored lean weight plus the muscle-memory drip (+0.3/wk), so BF% = (trend − lean) ÷ trend. It falls as the trend falls and rises as muscle returns. The eye and DEXA disagree by method (~1.5 points) — both are shown until a real scan replaces estimation with measurement."
-          forYou={s.model.src === "DEXA" ? `Anchored to your DEXA — lean ≈ ${bf.lean} lb and the drip carries it forward. A post-pivot re-scan re-trues the build phase.` : `Lean mass ≈ ${bf.lean} lb today and drifting up weekly — that number rising while the trend falls IS the recomp, in two digits. One DEXA input re-anchors everything; book any clean morning ≥2 days clear of a refeed or event.`} />
+        <More deep="A lean-mass model, not a formula: anchored lean weight carried FLAT — the +0.3/wk muscle-memory drip was retired (drip = 0.0: the app’s own numbers refuted it, see DRIP_NOTE) — so BF% = (trend − lean) ÷ trend, with the interval widening as the anchor ages. The eye and DEXA disagree by method (~1.5 points) — both are shown until a real scan replaces estimation with measurement."
+          forYou={s.model.src === "DEXA" ? `Anchored to your DEXA — lean ≈ ${bf.lean} lb, carried flat (the drip was retired — no measurement backed it). A post-pivot re-scan re-trues the build phase.` : `Lean mass ≈ ${bf.lean} lb, held flat by the model — the drip was retired because no measurement backed it. The trend falling against a held lean line is retained performance, not yet proof of new muscle. One DEXA input re-anchors everything; book any clean morning ≥2 days clear of a refeed or event.`} />
       </Card>
         <Card>
         <Eyebrow>MAINTENANCE LEDGER · LIVE</Eyebrow>
@@ -14997,7 +15209,7 @@ function BodyTab({ s, setS, save }) {
         <Eyebrow>THE THESIS · VS LAST CUT</Eyebrow>
         <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>
           Last cut: 1,400–1,600 · 140 g · hours of incline · stalled lifts → muscle LOSS, flat at 163.<br />
-          This cut: same fat rate with muscle RISING, lifts progressing, zero panic adjustments. Same weight ⇒ visibly better.
+          This cut: same fat rate with lifts progressing and lean mass defended, zero panic adjustments. Same weight ⇒ visibly better.
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
           <Chip c={T.jade}>Fuller-not-flatter · ×{s.thesisConfirms}</Chip>
@@ -15076,7 +15288,7 @@ function SleepTab({ s, setS, save, slp }) {
           </div>
         )}
         <More c={at ? T.jade : T.brass}
-          deep="Two different questions used to share one switch, which is why the old card read as a gate. The first is whether last night was short enough to measurably depress a session — and the performance literature says almost never at his numbers: Craven 2022 puts sleep restriction at −2.85% on strength, inside the test-retest error, and Knowles 2022 ran nine straight nights at 5 h for under 1% of volume load. The second is whether chronic short sleep changes what a deficit takes off you, and there the effect is enormous: Nedeltcheva 2010, 5.5 h vs 8.5 h, 60% more of the loss shifted onto fat-free mass. The app now answers them separately. Nothing here blocks a record; everything here is about body composition. Sleep also taxes the same dopamine circuitry ADHD already taxes, which is why a short week costs drive and focus before it costs anything physical — real, and a reason to protect the night, not a reason to void a rep."
+          deep="Two different questions used to share one switch, which is why the old card read as a gate. The first is whether last night was short enough to measurably depress a session — and the performance literature says almost never at his numbers: Craven 2022 puts sleep restriction at −2.85% on strength — real (CI 1.23–4.47), just smaller than your own day-to-day spread — and Knowles 2022 ran nine straight nights at 5 h for under 1% of volume load. The second is whether chronic short sleep changes what a deficit takes off you, and there the effect is enormous: Nedeltcheva 2010, 5.5 h vs 8.5 h, 60% more of the loss shifted onto fat-free mass. The app now answers them separately. Nothing here blocks a record; everything here is about body composition. Sleep also taxes the same dopamine circuitry ADHD already taxes, which is why a short week costs drive and focus before it costs anything physical — real, and a reason to protect the night, not a reason to void a rep."
           forYou={(() => { const out = []; if (an.measured) { out.push(an.why); if (an.bedSDmin != null && an.wakeSDmin != null) out.push(an.bedSDmin <= an.wakeSDmin ? `Your bedtime is the steadier end — ${an.bedSDmin} minutes of spread against ${an.wakeSDmin} on your wake time. That makes bed the lever: it is the end of the night you already control.` : `Your wake time is the steadier end (${an.wakeSDmin} min against ${an.bedSDmin} on your bedtime), so an earlier lights-out is the whole move.`); } else { out.push(an.why); } out.push(at ? "You are at target. Protect it — this is the cheapest lean mass you will ever keep." : "Nothing about this stops you lifting or banking today. It changes what the scale is made of a month from now."); return out; })()} />
       </Card>
       ); })()}
@@ -15313,7 +15525,7 @@ function WhatIfConsole({ s }) {
             else in the app. What sleep actually changes is invisible to this
             model, and saying so is more useful than a wrong warning. */}
         {wSlp < (s.sleep.cleanH || 7.5)
-          ? `At ${wSlp} h your sessions are barely affected — the measured cost is about 2.85% on strength, inside the test-retest error, and nothing here gates a record on it. What this slider CANNOT show you is the part that matters: at a matched deficit, short sleep sends roughly 60% more of what you lose off lean mass. The pound-per-week number above would look identical and the physique underneath it would not.`
+          ? `At ${wSlp} h your sessions are barely affected — the measured cost is about 2.85% on strength — real (CI 1.23–4.47), just smaller than your own set-to-set spread — and nothing here gates a record on it. What this slider CANNOT show you is the part that matters: at a matched deficit, short sleep sends roughly 60% more of what you lose off lean mass. The pound-per-week number above would look identical and the physique underneath it would not.`
           : `At ${wSlp} h the deficit is taking mostly what you want it to take. That is the whole reason this number is on the page — it does not move the lb/wk figure above, it changes what those pounds are made of.`}
       </div>
       <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 8 }}>modelled against YOUR numbers: {Math.round(stepRef).toLocaleString()} steps and {Math.round(calRef).toLocaleString()} kcal as logged, {perStep.toFixed(2)} kcal/step at your bodyweight, {edWhatIf.toLocaleString()} kcal/lb · your band is {rb[0]}–{rb[1]} lb/wk, redline {(s.rate || {}).redline || 1.9} · sandbox only, nothing real moves</div>
@@ -17587,7 +17799,7 @@ function rulebook(s) {
     ["SCALE", "Fasted · post-void · pre-food. Once a day. Sealed windows excluded. Trend is the hero — a single reading carries several pounds of water and means nothing on its own."],
     ["EVENTS", "Estimate once, after, never at the table. Compensation does not exist in this app."],
     ["PROTEIN", `${pt.straddles ? `${pt.lo}–${pt.hi} g — ${pt.g} is the middle of that range, and the range is the honest answer: ${pt.lo} is ${PROTEIN_FLOOR_G_PER_KG} g per kg of your ${pt.ffmKg} kg of lean mass, ${pt.hi} is the lean-subgroup number, and your body-fat interval (${pt.bfLo}–${pt.bfHi}%) straddles the ${LEAN_SUBGROUP_BF}% line that separates them` : `${pt.g} g, every day, derived from your ${pt.ffmKg} kg of lean mass at ${pt.perKg} g/kg`} — not a constant. Protein is a FLOOR: over it is not a miss. It does not rise on training days: the only study that compared day types found requirement HIGHER on rest days. A miss fixed inside 24 h extends the standard.`],
-    ["SLEEP", `A night under ${DEBT_LAST_H} h, or a three-night mean under ${DEBT_MEAN3_H}, flags the session. What that flag buys you is protection — the day cannot count toward a stall, so you are never deloaded for a bad night. It does NOT block a record or shrink the step; that rule was retired because acute sleep loss costs about 2.85% on strength, which is inside the test-retest noise, and no trial has ever tested damping progression on low-readiness days. Your ${s.sleep.cleanH} h target is a separate question and still stands — in a deficit, short sleep shifts what you lose toward lean mass.`],
+    ["SLEEP", `A night under ${DEBT_LAST_H} h, or a three-night mean under ${DEBT_MEAN3_H}, flags the session. What that flag buys you is protection — the day cannot count toward a stall, so you are never deloaded for a bad night. It does NOT block a record or shrink the step; that rule was retired because acute sleep loss costs about 2.85% on strength — a real cost (CI 1.23–4.47), just smaller than your own spread — and no trial has ever tested damping progression on low-readiness days. Your ${s.sleep.cleanH} h target is a separate question and still stands — in a deficit, short sleep shifts what you lose toward lean mass.`],
     /* R2b — the band now carries WHY it is what it is, generated from regime() rather than
        written beside it (see the standing copy rule). provisional must read differently from
        decided, or it is the same defect as a proposal whose apply.kind is note. */

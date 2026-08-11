@@ -2015,7 +2015,7 @@
    },
    {
     "id": "volconv",
-    "t": "VOLUME CONVERSION",
+    "t": "VOLUME VERDICTS",
     "status": "ARMED"
    },
    {
@@ -3754,7 +3754,7 @@
   "volumePush": {
    "mode": "HOLD",
    "regime": "free",
-   "why": "the regime reads free (unconfirmed) — an added set spends recovery, and the measured state says that budget is already funding something"
+   "why": "the regime reads free (unconfirmed) and the scale is not stalled — an added set spends recovery, and the measured state says that budget is already funding something"
   },
   "volumeImbalance": {
    "pv": [
@@ -5229,7 +5229,7 @@
    },
    {
     "id": "volconv",
-    "t": "VOLUME CONVERSION",
+    "t": "VOLUME VERDICTS",
     "status": "ARMED"
    },
    {
