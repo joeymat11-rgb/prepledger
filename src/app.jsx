@@ -243,7 +243,7 @@ const SP = { hair: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48, h
 const DT = {
   bg: "#07090C", bg2: "#0A0D11", card: "#11151B", card2: "#151A21", well: "#0D1116",
   hairline: "#222A34", hairline2: "#2C3642",
-  ink: "#E9EEF4", steel: "#8D9AAB", dim: "#5C6875",
+  ink: "#E9EEF4", steel: "#8D9AAB", dim: "#7C8794",   /* RB-2 — was #5C6875 (~3.1:1 on card); 4.6:1 now, still a step under steel: quiet, legible */
   jade: "#5ED4A2", amber: "#E5B454", red: "#E06056", decision: "#5FB7E8",
   radius: 18, grid: 4, space: [4, 8, 12, 16, 24],
   ramp: [9, 10.5, 12, 13.5, 15, 19, 24, 32, 54],
@@ -335,7 +335,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.44.0";
+const APP_V = "7.45.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -4985,7 +4985,7 @@ function labAnalytics(s) {
   /* 14 · pivot probability cone */
   const w2 = s.weekly;
   const rts = [];
-  for (let i = 1; i < w2.length; i++) rts.push((w2[i - 1].trend - w2[i].trend) / Math.max(0.5, weeksBetween(w2[i - 1].wk, w2[i].wk)));
+  for (let i = 1; i < w2.length; i++) rts.push(Math.max(-10, Math.min(10, (w2[i - 1].trend - w2[i].trend) / Math.max(0.5, weeksBetween(w2[i - 1].wk, w2[i].wk)))));   /* RB-3 LAB CLAMP — a 500-lb typo read once drove sigma so wide runCone+GC stalled >60s; a rate beyond ±10 lb/wk is a data error, clamped at the boundary the instrument consumes */
   if (rts.length >= 4) {
     const nR = rts.length;
     const mu = rts.reduce((a, b) => a + b, 0) / nR;
@@ -9282,6 +9282,9 @@ function reconcileLiftCaches(s) {
 }
 
 function migrate(old) {
+  /* RB-6 — the one-line container heal: a malformed store missing a container must
+     not crash the chain; the arrays it holds stay exactly as found. */
+  if (old && typeof old === "object") { old.sleep = old.sleep || { nights: [], needed: 3 }; old.sleep.nights = old.sleep.nights || []; old.dailyLogs = old.dailyLogs || {}; old.sessionLog = old.sessionLog || {}; old.reads = old.reads || []; }
   if (old && old.v === SCHEMA_V) { reconcileLiftCaches(old); return old; }   // a corrected log must not leave a stale derived cache behind
   /* A state NEWER than this build — he upgraded, then the app was rolled back.
      Hand it back untouched: no patch here understands schema n+1, and the only
@@ -10216,6 +10219,43 @@ function BackupsBlock() {
 
 /* ---------- storage ---------- */
 const KEY = "prep-ledger-v1";
+/* RB-3 — SANITY BOUNDS at the typed write sites. Out of range asks ONCE in plain
+   words; keeping is the athlete's override and files a feed receipt — nothing is
+   ever refused silently. The ranges are typo-nets, not physiology claims. */
+const SANE = { weight: [80, 400], cal: [0, 20000], pro: [0, 500], steps: [0, 200000] };
+function typoKeep(kind, v) {
+  const r = SANE[kind];
+  if (!r || (v >= r[0] && v <= r[1])) return "ok";
+  return window.confirm("That reads like a typo — " + kind + " " + v + ". Keep it anyway?") ? "keep" : "abort";
+}
+function typoReceipt(ns, kind, v) {
+  if (ns.feed && ns.feed.unshift) ns.feed.unshift({ d: isoOf(todayStart()), t: "KEPT AN UNUSUAL NUMBER — " + kind.toUpperCase() + " " + v, how: "Outside the sanity net (" + SANE[kind][0] + "–" + SANE[kind][1] + "); kept on your say-so, on the record." });
+  return ns;
+}
+/* RB-1 — THE P0: a storage wipe silently booted the July SEED as current. Detection is
+   a deep fingerprint: every append-only store still exactly at the seed's own counts
+   and tail dates. The repo is PUBLIC, so the cloud ledger restores with ZERO
+   credentials — the card offers it in plain words and never blocks the app. */
+function isPristineSeed(s) {
+  try {
+    const same = (a, b) => (a || []).length === (b || []).length;
+    return same(s.reads, SEED.reads) && same(s.sleep.nights, SEED.sleep.nights)
+      && Object.keys(s.dailyLogs || {}).length === Object.keys(SEED.dailyLogs || {}).length
+      && Object.keys(s.sessionLog || {}).length === Object.keys(SEED.sessionLog || {}).length
+      && ((s.reads || [])[ (s.reads || []).length - 1] || {}).d === ((SEED.reads || [])[(SEED.reads || []).length - 1] || {}).d;
+  } catch (e) { return false; }
+}
+async function restoreFromCloud(s) {
+  const res = await fetch("https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/state.json", { headers: { Accept: "application/vnd.github.raw" } });
+  if (!res.ok) throw new Error("cloud fetch " + res.status);
+  const remote = await res.json();
+  delete remote._dictionary;
+  const rm = migrate(remote);
+  /* remote wins scalars (his real targets), arrays UNION — post-wipe logs survive */
+  const merged = mergeState(rm, s);
+  merged.feed = [{ d: isoOf(todayStart()), t: "LEDGER RESTORED FROM THE CLOUD", how: "This device had no history (a storage wipe boots the seed). Restored: " + (merged.reads || []).length + " reads · " + merged.sleep.nights.length + " nights · " + Object.keys(merged.dailyLogs).length + " day logs · " + Object.keys(merged.sessionLog).length + " sessions. Anything logged after the wipe was kept — the merge never shrinks." }, ...(merged.feed || [])];
+  return migrate(merged);
+}
 function loadState() {
   let raw = null;
   try { raw = localStorage.getItem(KEY); } catch (e) {}
@@ -10699,7 +10739,7 @@ __test.bfEst = bfEst;
 __test.migrate = migrate;
 __test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
 __test.targetsFor = targetsFor;
-__test.runAdaptive = runAdaptive; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
+__test.runAdaptive = runAdaptive; __test.isPristineSeed = isPristineSeed; __test.restoreFromCloud = restoreFromCloud; __test.mergeState = __test.mergeState || mergeState; __test.dossierText = __test.dossierText || dossierText; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
 __test.stepKcal = stepKcal;
 __test.stepEfficacy = stepEfficacy;
 __test.DT = DT;
@@ -12297,8 +12337,11 @@ function BandStrip({ g }) {
    number renders from nowModel, which only rearranges engine outputs. The classic NOW
    (capture, briefing, the room, the decision cards' full home) is one tap away in THE
    BRIEFING ROOM behind LEDGER — moved, never stranded. */
-function NowTab2({ s, setS, save, go }) {
+function NowTab2({ s, setS, save, go, openRules }) {
   const m = nowModel(s);
+  const [restoreBusy, setRestoreBusy] = useState(false);
+  const [restoreErr, setRestoreErr] = useState(null);
+  const pristine9 = isPristineSeed(s);
   const [qlOpen, setQlOpen] = useState(false);
   const readToday = (s.reads || []).find((r) => r.d === m.tISO);
   const [wIn, setWIn] = useState(() => (readToday ? readToday.w : s.trend));
@@ -12309,6 +12352,19 @@ function NowTab2({ s, setS, save, go }) {
   const brandDate = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][dt9.getDay()] + " " + ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][dt9.getMonth()] + " " + dt9.getDate();
   return (
     <div style={{ display: "flex", flexDirection: "column", paddingBottom: 72 /* CRITIQUE S2 — the last block scrolls past the FAB; the FAB itself sits in the clear air above the rail, never on START */ }}>
+      {/* RB-1 — THE RESTORE CARD: only on a pristine-seed boot. Plain words, one tap,
+          zero credentials (the repo is public). The app is fully usable beneath it. */}
+      {pristine9 ? (
+        <Card accent={T.brass}>
+          <Eyebrow c={T.brass}>THIS DEVICE HAS NO HISTORY</Eyebrow>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>The phone's copy was wiped (iOS does this to apps it hasn't opened in a while) — but your ledger lives in the cloud and one tap brings it back. Anything you log before restoring is kept; the merge never shrinks.</div>
+          {restoreErr ? <div style={{ fontFamily: mono, fontSize: 11, color: T.brass, marginTop: 6 }}>The cloud fetch failed ({restoreErr}) — the app works fine meanwhile; try again on signal.</div> : null}
+          <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+            <Btn small tone="jade" onClick={() => { if (restoreBusy) return; setRestoreBusy(true); setRestoreErr(null); restoreFromCloud(s).then((ns) => { setS(ns); save(ns); setRestoreBusy(false); hap(12); }).catch((e) => { setRestoreErr(String(e && e.message || e).slice(0, 40)); setRestoreBusy(false); }); }}>{restoreBusy ? "Restoring…" : "Restore my ledger"}</Btn>
+            <Btn small onClick={() => (openRules ? openRules() : go("LEDGER"))}>Re-link keys (sync + analyst)</Btn>
+          </div>
+        </Card>
+      ) : null}
       {/* the brand row is chrome, not a content block — the budget counts blocks */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "4px 2px 10px" }}>
         <span style={{ fontFamily: mono, fontSize: 11, letterSpacing: "0.34em", color: DT.steel, fontWeight: 700 }}>EARNED</span>
@@ -14190,7 +14246,7 @@ function LogTab({ s, setS, save, slp }) {
                         <input value={wVal} inputMode="decimal" aria-label="weight value"
                           onFocus={(e) => { try { e.target.select(); } catch (err) {} }}
                           onChange={(e) => setWVal(e.target.value)}
-                          onBlur={(e) => setWVal(stepValue(e.target.value, 0, 1, 0) || wVal)}
+                          onBlur={(e) => { const v9 = stepValue(e.target.value, 0, 1, 0); setWVal(v9 && typoKeep("weight", v9) !== "abort" ? v9 : wVal); }}
                           style={{ fontFamily: mono, fontSize: 16, color: T.chalk, background: "none", border: "none", borderBottom: `1px dashed ${T.line}`, width: 56, textAlign: "center", padding: 0 }} />
                         <button onClick={() => setWVal(nextLoad(ex, wVal) ?? wVal)} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
                         <span style={{ fontFamily: mono, fontSize: TS.label, color: T.jade }}>rung {loadRungs(ex).indexOf(snapLoad(ex, wVal)) + 1}/{loadRungs(ex).length}</span>
@@ -15995,7 +16051,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
                   <input value={wOver[ex.id] ?? ex.w} inputMode="decimal" aria-label="weight lifted"
                     onFocus={(e) => { try { e.target.select(); } catch (err) {} }}
                     onChange={(e) => setWOver({ ...wOver, [ex.id]: e.target.value })}
-                    onBlur={(e) => { const v9 = stepValue(e.target.value, 0, 1, 0); setWOver({ ...wOver, [ex.id]: v9 === 0 ? ex.w : v9 }); markAdj(ex.id, 0); }}
+                    onBlur={(e) => { let v9 = stepValue(e.target.value, 0, 1, 0); if (v9 !== 0 && typoKeep("weight", v9) === "abort") v9 = 0; setWOver({ ...wOver, [ex.id]: v9 === 0 ? ex.w : v9 }); markAdj(ex.id, 0); }}
                     style={{ ...tnum, fontSize: 14, color: Number(wOver[ex.id] ?? ex.w) === Number(ex.w) ? DT.steel : DT.amber, background: "none", border: "none", borderBottom: "1px dashed " + DT.hairline2, width: 56, padding: 0 }} />
                   <span>LB{Number(wOver[ex.id] ?? ex.w) !== Number(ex.w) ? " — off-plan, logs as lifted" : ""}</span>
                 </>
@@ -16938,7 +16994,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
       <Stepper v={val} set={setter} step={step} min={0} w={SLOT9} edit />
     </div>
   );
-  const saveScale = () => { const w9 = stepValue(wIn, 0, 1, 0); const base = readToday ? undoRead(s, tISO) : s; const ns = runAdaptive(applyRead(base, tISO, w9), tISO); setS(ns); save(ns); hap(12); onClose(); };
+  const saveScale = () => { const w9 = stepValue(wIn, 0, 1, 0); const tk = typoKeep("weight", w9); if (tk === "abort") return; const base = readToday ? undoRead(s, tISO) : s; let ns = runAdaptive(applyRead(base, tISO, w9), tISO); if (tk === "keep") ns = typoReceipt(ns, "weight", w9); setS(ns); save(ns); hap(12); onClose(); };
   /* R15k r5 — THE SURFACE MAY NOT AUTHOR A MEASUREMENT. This wrote sol: 0 when no prior
      night existed, which asserts he fell asleep instantly — something he never said. On
      his record every other night carries 10, and 23:15→07:00 stored 7.75 h against the
@@ -16987,7 +17043,14 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
     ns.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
     setS(ns); save(ns); hap(12); onClose();
   };
-  const saveDay = (over) => { const ns = writeDaily(s, tISO, over || { cal: stepValue(cal, 0, 1, 0), pro: stepValue(pro, 0, 1, 0), steps: stepValue(stp, 0, 1, 0), sodium: sod, alc }); setS(ns); save(ns); hap(12); };
+  const saveDay = (over) => {
+    const c9 = stepValue(cal, 0, 1, 0), p9 = stepValue(pro, 0, 1, 0), st9 = stepValue(stp, 0, 1, 0);
+    let kept = [];
+    if (!over) for (const [k9, v9] of [["cal", c9], ["pro", p9], ["steps", st9]]) { const tk = typoKeep(k9, v9); if (tk === "abort") return; if (tk === "keep") kept.push([k9, v9]); }
+    let ns = writeDaily(s, tISO, over || { cal: c9, pro: p9, steps: st9, sodium: sod, alc });
+    for (const [k9, v9] of kept) ns = typoReceipt(ns, k9, v9);
+    setS(ns); save(ns); hap(12);
+  };
   return (
     <Sheet open={open} onClose={onClose} title="LOG">
       {/* THE OWED LEDGER — the + answers what is missing (Joe's ruling). One owner
@@ -17546,6 +17609,8 @@ function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
     <div style={{ position: "fixed", inset: 0, background: "rgba(8,10,13,0.94)", zIndex: 70, overflowY: "auto" }} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480, margin: "0 auto", padding: "calc(26px + env(safe-area-inset-top)) 18px 40px" }}>
         <H size={26}>The Rulebook</H>
+        {/* RB-13 — the contact row, before the dad beta: a human to reach when the app confuses */}
+        <a href="mailto:joeymat11@gmail.com?subject=EARNED" style={{ display: "block", fontFamily: mono, fontSize: 11, color: T.steel, textDecoration: "none", padding: "10px 0", borderBottom: "1px solid " + T.hairline }}>Something confusing? Email Joe ▸</a>
         <Eyebrow>IF-THEN, SURFACED · YOU WROTE THESE — v2 RUNS THEM</Eyebrow>
 
         {/* PHILOSOPHY PRE-STATED (§4) — the screen should teach the values before it
@@ -17911,7 +17976,7 @@ export default function PrepLedger() {
 
       {offline && (
         <div style={{ background: T.plate2, borderBottom: `1px solid ${T.line}`, padding: "calc(8px + env(safe-area-inset-top)) 14px 8px", fontFamily: mono, fontSize: TS.micro, color: T.brass, textAlign: "center" }}>
-          STORAGE BLOCKED — private browsing? Nothing persists this session. Export from RULES before closing.
+          STORED DATA UNREADABLE — this device's copy would not load. Nothing persists this session; the cloud ledger is intact. Export from RULES before closing.
         </div>
       )}
 
@@ -17929,7 +17994,7 @@ export default function PrepLedger() {
         {inMore && (
           <div onClick={() => setTab("LEDGER")} role="button" tabIndex={0} aria-label="Back to Ledger" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, cursor: "pointer", minHeight: 44, display: "inline-flex", alignItems: "center", padding: "12px 14px 12px 0", margin: "-12px 0 0 -14px", letterSpacing: "0.06em" }}>‹ LEDGER</div>
         )}
-        {tab === "NOW" && <TabGuard name="NOW"><NowTab2 s={s} setS={setS} save={save} go={setTab} /></TabGuard>}
+        {tab === "NOW" && <TabGuard name="NOW"><NowTab2 s={s} setS={setS} save={save} go={setTab} openRules={() => setRules(true)} /></TabGuard>}
         {tab === "BRIEF" && <TabGuard name="BRIEF"><NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}
         {tab === "TRAIN" && <TabGuard name="TRAIN"><LogTab s={s} setS={setS} save={save} slp={slp} /></TabGuard>}
         {tab === "QUEUE" && <TabGuard name="QUEUE"><QueueTab s={s} slp={slp} /></TabGuard>}

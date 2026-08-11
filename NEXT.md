@@ -3895,3 +3895,25 @@ engine entirely.
 **This is a data-model change: it needs merge hardening and a migration, so it is not
 overnight work.** It also changes what the app can say about three lifts it currently says
 nothing about, which is a bigger claim than a refactor.
+
+## RELEASE REVIEW BOARD — SEVERITY-RANKED QUEUE (candidate fdda0ec, reviewed 2026-08-11)
+Verdict: NOT YET — 1 P0, 4 P1. Every finding driven on the candidate by execution.
+- P0 RB-1 EVICTION RESTORE — storage wipe silently boots the July SEED as current; no
+  notice, no restore; evicted token = post-wipe logs never sync. Fix: pristine-SEED
+  boot detection → restore card; public repo means ledger/state.json is fetchable
+  WITHOUT a token; union in via existing mergeState; card re-links GH + analyst keys.
+- P1 RB-2 CONTRAST TOKEN — the 10–11px dim mono labels read ≈3.0–3.2:1 (bar 4.5),
+  ~30 instances on NOW/sheet/LEDGER; one token class.
+- P1 RB-3 ABSURD-INPUT BOUNDS + LAB STALL — 10M-cal day + 500-lb read stalls
+  labGroups/labAnalytics >60s (profiled to runCone + GC), persistently. Bounds at
+  typed write sites + clamp at the lab boundary.
+- P1 RB-4 PERF — 318KB gz vs 250 budget; sheet 358ms vs 250 @4x. WAITS on Joe's
+  real-phone ground truth before any work.
+- P1 RB-5 RUNBOOK — no-merge-without-APP_V/sw-bump ritual + roll-FORWARD un-ship
+  (never reuse a cache name); closes when RUNBOOK.md lands.
+- P2: RB-6 malformed-storage banner misdiagnosis ("private browsing?") + one-line
+  container heal in migrate(); RB-7 small-target cluster; RB-8 Dynamic Type
+  unsupported (px-fixed, documented); RB-9 ⚑ OWNER'S CALL PENDING — queue CLEAN-gate
+  + "streak" copy vs no-streaks charter, DO NOT ACT; RB-10 rider: the "! SYNC
+  FAILING" caveat lives on BRIEF and must move to NOW/LEDGER when BRIEF sheds;
+  RB-13 contact row in RULES before the dad beta.
