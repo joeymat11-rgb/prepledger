@@ -335,7 +335,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.46.0";
+const APP_V = "7.47.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -611,6 +611,7 @@ function dayType(iso, s) {
 
 /* target generator: climb the earliest set that lags the one before it */
 const CALL_PLAIN = {
+  REVIEW: { chip: "REVIEW", mean: "stall confirmed on comparable sessions — the cause check ran; nothing supports a load cut, so the target stands" },
   "PUSH": { chip: "CHASE", mean: "Beat last time. Add reps wherever you honestly can — weight bumps queue themselves when you hit the standard." },
   "PUSH+": { chip: "CHASE — GREEN LIGHT", mean: "Best conditions you get: refeed fuel aboard, sleep clean. If a record is coming, it comes today." },
   "HOLD": { chip: "REPEAT", mean: "Run the exact same numbers as last time. Nothing banks today, so we protect the pattern instead of spending it." },
@@ -665,7 +666,7 @@ function liftCall(s, exId, opts = {}) {
   const debtN = clean.filter((h) => h.debt && !h.rushed).length;
   let stall = 0;
   for (let i = honest.length - 1; i >= 1; i--) { if (honest[i].tot <= honest[i - 1].tot && (honest[i].rir == null || honest[i].rir <= 2)) stall++; else break; }
-  if (stall) R2.push(`${stall} session${stall > 1 ? "s" : ""} in a row without beating your total — honestly fought; party, estimate, rushed and short-sleep days not counted.`);
+  if (stall) R2.push(`${stall} session${stall > 1 ? "s" : ""} in a row without beating your total — honestly fought; event, rushed and short-sleep days never counted — estimate days count in full (reps at a known load survive a guessed dinner).`);
   if (rushedN) R2.push(`${rushedN} of your last ${clean.length} on this lift ${rushedN === 1 ? "was" : "were"} logged rushed — short rest costs you reps on the back sets, so ${rushedN === 1 ? "it does" : "they do"} not count toward a stall.`);
   if (debtN) R2.push(`${debtN} of your last ${clean.length} ran on short sleep — worth about 2.85% on strength, a real cost (CI 1.23–4.47) that is smaller than your own set-to-set spread, so it is context for reading the day, not a reason to change it, so ${debtN === 1 ? "it does" : "they do"} not count toward a stall either. ${debtN === 1 ? "It still counts" : "They still count"} for reps, records and every trend on this page.`);
   const slp2 = sleepInfo(s);
@@ -705,13 +706,29 @@ function liftCall(s, exId, opts = {}) {
   const alarm = opts.alarm !== undefined ? opts.alarm : (typeof bodyAlarm === "function" ? bodyAlarm(s, slp2) : null);
   const ex2 = s.exercises.find((x) => x.id === exId);
   /* verdict ladder — most protective first */
-  if (alarm && alarm.level === "RED") return { verdict: "STAND-DOWN", vel, n: clean.length, why: "Body alarm is RED. Skip the iron today — walk, eat, sleep, and come back tomorrow ahead.", receipts: R2.concat(["Body alarm: RED — the pattern held a second day."]) };
+  if (alarm && alarm.tier === "RED") return { verdict: "STAND-DOWN", vel, n: clean.length, why: "Body alarm is RED. Skip the iron today — walk, eat, sleep, and come back tomorrow ahead.", receipts: R2.concat(["Body alarm: RED — the pattern held a second day."]) };
   const recentReset = (s.feed || []).slice(0, 60).find((f) => f.t && ex2 && f.t.indexOf("RESET APPLIED — " + ex2.n) === 0 && (mk(tISO3) - mk(f.d)) / DAY <= 14);
   if (recentReset) return { verdict: "REBUILD", vel, n: clean.length, why: `You lightened this on ${fmtShort(recentReset.d)}. Climb the reps back — the old numbers usually fall within three sessions.`, receipts: R2.concat(["Day " + Math.round((mk(tISO3) - mk(recentReset.d)) / DAY) + " of your 14-day climb-back."]) };
   /* A reset must land on a weight the machine can actually make — see
      deloadLoad. Never a number he cannot set on the machine. */
-  if (stall >= 3) { const newW = ex2 && typeof ex2.w === "number" ? deloadLoad(ex2) : null; return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest sessions without beating your total. Time to lighten a notch and rebuild — that is how walls fall.`, receipts: R2 }; }
-  if (alarm && alarm.level === "AMBER") return { verdict: "HOLD", vel, n: clean.length, why: "Body alarm is AMBER. Normal session, but no all-out sets and no record attempts today.", receipts: R2.concat(["Body alarm: AMBER — off day, not a failure."]) };
+  if (stall >= 3) {
+    /* U4 — A STALL OPENS A DIAGNOSIS, never a reflex. The three-count is the SIGNAL
+       (already filtered to comparable sessions: rushed, short-sleep and event days
+       never counted); the CAUSE decides the move. Lightening is supported only when
+       pain speaks (the governor holds this lift) or recovery has left GREEN —
+       otherwise a plateau with a green body is time-or-stimulus, and a load cut
+       answers neither (deload trials tested different interventions entirely).
+       PRECEDENCE, NAMED: a diagnosed reset is the one sanctioned exception to
+       never-prescribe-below-delivered — a deliberate recovery move, on his tap only. */
+    const pain9 = !!(ex2 && ex2.holdFlag);
+    const fat9 = (() => { try { return recoveryIndex(s).band !== "GREEN"; } catch (e) { return false; } })();
+    if (pain9 || fat9) { const newW = ex2 && typeof ex2.w === "number" ? deloadLoad(ex2) : null;
+      return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest sessions without beating your total, and ${pain9 ? "the governor holds this lift — pain speaks there" : "recovery has left GREEN"} — the diagnosis supports lightening a notch to rebuild. A reset deliberately prescribes below delivered capacity: the named exception, on your tap only.`, receipts: R2 }; }
+    return { verdict: "REVIEW", vel, n: clean.length,
+      why: `${stall} comparable sessions without a beat — a stall signal, not yet a cause. The check ran: governor clear (no pain flag), recovery GREEN, and protocol noise was never in the count. A plateau with a green body is time or stimulus, and lightening answers neither — the target stands.`,
+      receipts: R2.concat(["Stall review: the cause check ran and nothing supports a load cut today. If pain or recovery turns while the stall holds, the reset offer files itself."]) };
+  }
+  if (alarm && alarm.tier === "AMBER") return { verdict: "HOLD", vel, n: clean.length, why: "Body alarm is AMBER. Normal session, but no all-out sets — every 0 becomes a 1. Anything you do deliver still counts and still banks: a label is not a validity failure.", receipts: R2.concat(["Body alarm: AMBER — off day, not a failure. Delivered reps keep their full standing."]) };
   /* ---------- SLEEP_HOLD_NOTE — the verdict that should never have been here ----------
      This used to return HOLD on any short-sleep morning: "repeat last time,
      nothing counts as a record today anyway." It was the last place the retired
@@ -772,7 +789,7 @@ function liftCall(s, exId, opts = {}) {
       why: `Readiness ${eT.v}/10 against your usual ${md2(eH)} — repeat last time rather than chasing. This is the one morning reading that predicts the session: in resistance-trained men it tracks bar velocity at r = .80.`,
       receipts: R2.concat([`Readiness gate: ${eT.v}/10 vs a ${md2(eH)} median across ${eH.length} mornings.`]) };
   }
-  if (estToday) return { verdict: "PUSH", vel, n: clean.length, why: "Estimate day — train normally; the numbers just count a little lighter, like you asked.", receipts: R2.concat(["You declared today an estimate day — numbers count, just lighter."]) };
+  if (estToday) return { verdict: "PUSH", vel, n: clean.length, why: "Estimate day — train normally. The FOOD numbers carry lower weight; the reps count in full (a guessed dinner does not make reps at a known load less true).", receipts: R2.concat(["You declared today an estimate day — food numbers carry lower weight; reps count in full."]) };
   /* The old line here promised "refeed fuel aboard" as if that were an
      established performance edge. It is not: 11 of 19 acute carbohydrate studies
      found no effect, every study that favoured higher carbs also had higher
@@ -875,41 +892,28 @@ function progressStep(ex, s) {
   }
   return { add: 1, why: "nothing rated last time, so the step defaults to a single rep — rate the last set and this gets sharper" };
 }
-/** The per-set line to build from: the last session, unless that session was
- *  flagged, in which case the best unflagged session at this same weight. */
+/** THE ANCHOR (progression audit P1): the LAST COMPARABLE LINE — the most recent
+ *  same-load session that was not rushed (protocol-valid), returned as ONE delivered
+ *  line. The best-of-three per-set ratchet is DEAD: E[max of 3] = mean + 0.85σ built
+ *  ~0.65 rep/set of selection bias into every anchor and could assemble a Frankenstein
+ *  total never delivered in one session (two live cases at retirement: rear delt +4,
+ *  abs +1) — the false-stall engine the audit condemned at Grade A. Ambition lives in
+ *  the STEP, never the estimator; only the delivered floor in targetsFor may hold a
+ *  target above this line, and it reads the same one session. A rushed session still
+ *  cannot set the line (changed rest = changed test); short sleep still can (the
+ *  retired upside gate stays retired). */
 function progressAnchor(ex, s) {
   const base = (ex.last || []).slice();
   if (!s || !base.length) return base;
-  /* The anchor is the best RECENT session at this same load, not the most
-     recent one. The old version only reached for a better line when the last
-     session was sleep-flagged, and required the replacement to come from a
-     sleep-clean day — on a record with no clean days at all, that made the whole
-     mechanism inert while still ratcheting him down off any dip.
-
-     Capacity is what the anchor is trying to estimate, and a single low session
-     is the noisiest possible estimate of it: his own set-to-set spread is ±0.75
-     reps, so one bad set moves the whole next target. Taking the best of the
-     last three sessions at this load is a max-of-three estimator, which is
-     biased slightly high and therefore ambitious — the correct direction of
-     error when the cost of an over-ambitious target is one missed rep and the
-     cost of an under-ambitious one is a block of wasted progression.
-
-     A rushed session still cannot set the line: short rest lowers volume load
-     on the later sets by construction, so it is measuring something else. */
-  const window = 3;
-  const seen = [];
-  Object.keys(s.sessionLog || {}).sort().forEach((d) => {
-    const sl = s.sessionLog[d];
-    if (paceRushed(sl)) return;
+  const days9 = Object.keys(s.sessionLog || {}).sort();
+  for (let i = days9.length - 1; i >= 0; i--) {
+    const sl = s.sessionLog[days9[i]];
+    if (paceRushed(sl)) continue;
     const en = (sl.entries || []).find((x) => x.id === ex.id);
-    if (!en || !en.reps || !en.reps.length || String(en.w) !== String(ex.w)) return;
-    seen.push(en.reps);
-  });
-  const recent = seen.slice(-window);
-  if (!recent.length) return base;
-  const better = [];
-  recent.forEach((reps) => reps.forEach((r, i) => { better[i] = Math.max(better[i] ?? 0, Number(r) || 0); }));
-  return base.map((r, i) => Math.max(r, better[i] ?? 0));
+    if (!en || !en.reps || !en.reps.length || String(en.w) !== String(ex.w)) continue;
+    return en.reps.slice();
+  }
+  return base;
 }
 /* ---------- MAXED-LADDER RIDER (live case, 2026-08-08 02:15, hack squat) ----------
    THE LAW: the engine may never prescribe below what was delivered. The card printed
@@ -948,8 +952,13 @@ function targetsFor(ex, s) {
      hi and then being prescribed below it, the same contradiction in a second costume.
      hi keeps its load-jump job (the earn line is untouched); it just can never REGRESS
      the card: a runged lift at the top repeats its own delivered line until the debut. */
-  const sameLoad9 = ex.lastMeta && String(ex.lastMeta.w) === String(ex.w) && Array.isArray(ex.last);
-  return t.map((r, i) => { const c9 = Math.min(cap9, r); return (sameLoad9 && ex.last[i] != null) ? Math.max(c9, ex.last[i]) : c9; });
+  /* THE LAW + P1 PRECEDENCE: never prescribe below the last COMPARABLE delivered
+     line — the SAME single-session line the anchor is (protocol-valid: a rushed
+     session cannot floor a target), reversible by construction (it rolls with the
+     line). This floor is the ONLY thing that may hold a target above the anchor,
+     and on a maxed ladder it is what keeps reps the ladder. */
+  const floor9 = progressAnchor(ex, s);
+  return t.map((r, i) => { const c9 = Math.min(cap9, r); return (floor9[i] != null) ? Math.max(c9, floor9[i]) : c9; });
 }
 /* ---------- LOAD RUNGS — what this machine can actually make ----------
    A single `inc` assumes every machine steps evenly. Real ones do not. A Cybex
@@ -1426,8 +1435,12 @@ function beatsNoise(s, exId, reps, prev) {
   if (!prev || !prev.length || !reps || !reps.length) return { clear: false, te, margin: 0, need: 0 };
   const n = Math.min(reps.length, prev.length);
   const margin = reps.slice(0, n).reduce((a, b) => a + (Number(b) || 0), 0) - prev.slice(0, n).reduce((a, b) => a + (Number(b) || 0), 0);
-  /* two standard errors of the SESSION total, which grows as root-n across sets */
-  const need = +(2 * te.reps * Math.sqrt(n)).toFixed(1);
+  /* P3 — two standard errors of the NEW-MINUS-OLD DIFFERENCE: the old line carries
+     error too, so SE(diff) = √2·TE·√n under equal independent per-set errors.
+     Within-session covariance is documented as unmodeled (a LOOK item — it would
+     widen this further); the old 2·TE·√n band treated the old record as noiseless
+     and ran ~7.9% one-sided false-positive before selection. */
+  const need = +(2 * Math.SQRT2 * te.reps * Math.sqrt(n)).toFixed(1);
   return { clear: margin >= need, te, margin, need, n };
 }
 
@@ -1593,7 +1606,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
         const rirT9 = (() => { const a9 = Array.isArray(en.rirSets) ? en.rirSets : []; const v9 = a9.length ? a9[a9.length - 1] : null; return v9 != null ? v9 : (en.rirEnd != null ? en.rirEnd : null); })();
         const rung2 = loadRungs(ex) && rirT9 != null && rirT9 >= 3 ? nextLoad(ex, upNext) : null;
         const how = bn.clear && topRun < 2
-          ? `${ex.w}×${r.join(",")} — ${bn.margin} reps clear of last time, and two standard errors of your own measured spread is ${bn.need}. That is outside the noise, so it banks on one sighting.`
+          ? `${ex.w}×${r.join(",")} — ${bn.margin} reps clear of last time, and two standard errors of the new-minus-old difference (both sessions carry error) is ${bn.need}. That is outside the noise, so it banks on one sighting.`
           : `${ex.w}×${r.join(",")} — second session at the top of the window at this load. One is inside your ±${(typicalError(s, ex.id).reps).toFixed(2)}-rep spread; two is not.`;
         s.queue.forEach((x) => { if (x.exId === ex.id && x.state === "PROPOSED" && !x.done) { x.done = true; x.state = "SUPERSEDED"; } });   /* the classic earn outranks any standing offer */
         if (rung2 != null) s.queue.push({ id: `q_${ex.id}_${rung2}_2r`, kind: "debut", exId: ex.id, newW: rung2, done: false, rule: "Rides only on your tap — the single-rung debut queues automatically either way.", t: `${ex.n.toUpperCase()} ${rung2} — TWO-RUNG DEBUT PROPOSED`, state: "PROPOSED", gate: `Terminal set had ${rirT9} in reserve at the top of the window — the one-rung jump underprices what was delivered. Your call: this rides only if you tap it, and the ${upNext} single-rung debut queues either way.` });
@@ -5379,9 +5392,10 @@ function sessionDebrief(s, iso) {
              standard errors banks on the spot; one inside it waits for a repeat.
              Sleep is not part of this sentence any more — see NOISE_NOTE. */
           const prev9 = allTots.slice(0, -1);
-          const bn9 = beatsNoise(s, e.id, reps, prev9.length ? [Math.max(...prev9)] : null);
           const te9 = typicalError(s, e.id);
-          banked = !!(prev9.length && tot - Math.max(...prev9) >= 2 * te9.reps * Math.sqrt(Math.max(1, reps.length)));
+          /* P3 — unified with beatsNoise: the difference carries both sessions' error
+             (the dead bn9 mis-scaled call is gone) */
+          banked = !!(prev9.length && tot - Math.max(...prev9) >= 2 * Math.SQRT2 * te9.reps * Math.sqrt(Math.max(1, reps.length)));
           pending = !banked;
           lines.push(banked
             ? { k: "record", t: `Best you have ever done at ${e.w} — and it clears the old line by ${tot - Math.max(...prev9)} reps against a spread of ±${te9.reps} per set, so it banks now rather than waiting for a repeat.` }
@@ -5505,6 +5519,10 @@ function rirPlan(s, ex, slp) {
      three, which made "the set that reaches failure" a set that often did not.
      Effort is defended; the night is a receipt, not a governor. */
   if (ex.holdFlag) { plan = plan.map((r) => Math.max(r, 2)); why.push("governor hold — stay two clean reps back"); }
+  /* ALARM DAY (P5) — the every-0-becomes-1 rule lived only in copy; now the terminal
+     set actually floors at 1 on an alarm day. Effort is modified; validity is not —
+     what he delivers still counts and still banks. */
+  try { const al9p = bodyAlarm(s); if (al9p) { plan = plan.map((r) => Math.max(r, 1)); why.push("alarm day — every 0 becomes a 1; delivered reps still count and bank"); } } catch (e) {}
   /* B1 — the failure A/B: the capped arm's terminal set is prescribed 1 RIR (1-2
      allowed; 1 still satisfies the delivered-dose criterion). The paired control lift
      keeps its all-out terminal — the calibration anchor. */
@@ -6217,6 +6235,25 @@ function labAnalytics2(s) {
       lines: [] };
   });
 
+  /* 7c · SET ONE — the standardized strength read (P6). Session totals mix five
+     constructs and restart at every set-count change (correctly — AUDIT A); set 1 at a
+     constant load is the protocol-stable read: same set position, freshest state,
+     standard rest, and it SURVIVES set-count changes. New instrumentation BESIDE the
+     restart, never a retirement of it. Feeds nothing yet — an instrument first. */
+  add(() => {
+    const rows1 = (s.exercises || []).filter((e) => typeof e.w === "number").map((e) => ({ e, r: setOneRead(s, e.id) })).filter((x) => x.r.status !== "IDLE");
+    const live1 = rows1.filter((x) => x.r.status === "LIVE");
+    const tag1 = "The strength read that survives a set-count change: set 1, same load, standard protocol.";
+    const deep1 = "The strength test embedded in training, standardized: the FIRST set only (same set position, freshest state), at the CURRENT load only, with event days and rushed sessions excluded — the protocol is the same seat and settings from SETUP, the prescribed rest, and the same brief warm-up each time. A session TOTAL mixes strength, set count, rest, order-fatigue and proximity to failure, so its window correctly restarts when sets change; set one does not care how many sets follow it, so this read carries straight through a volume change. It informs; it gates nothing yet.";
+    if (!live1.length) return { id: "set1", t: "SET ONE — THE STANDARDIZED READ", status: "ARMED", prog: { n: rows1.length ? Math.max(...rows1.map((x) => x.r.n || 0)) : 0, need: TREND_MIN_SESSIONS, label: "same-load set-1 reads on the busiest lift" },
+      tag: tag1, deep: deep1,
+      forYou: "Counting only — no lift carries " + TREND_MIN_SESSIONS + " comparable set-1 reads at its current load yet. No verdict until it does.", lines: [] };
+    return { id: "set1", t: "SET ONE — THE STANDARDIZED READ", status: "LIVE", prog: null,
+      tag: tag1, deep: deep1,
+      forYou: live1.map((x) => x.e.n + ": " + (x.r.pct > 0 ? "+" : "") + x.r.pct + "%/session on set 1 over " + x.r.n + " comparable reads (CI " + x.r.lo + " to " + x.r.hi + ")").join(" · "),
+      lines: [] };
+  });
+
   /* 8 · refeed ROI */
   add(() => {
     const refeedDays = allDaily.filter((x) => dayType(x.d) === "REFEED" && x.d > "2026-07-21");
@@ -6493,7 +6530,7 @@ function labAnalytics2(s) {
 const INS_MAP = {
   whoosh: ["weigh-in"], refeed: ["weigh-in"], noise: ["weigh-in"], masked: ["weigh-in", "day numbers"], creep: ["day numbers"],
   regime: ["session", "weigh-in"],   /* R15g — the detector eats the lift trend and the scale rate */
-  adaptmeter: ["day numbers", "weigh-in"], stepeff: ["day numbers", "weigh-in"], volconv: ["session", "your consent"], refeedroi: ["day numbers", "session"],
+  adaptmeter: ["day numbers", "weigh-in"], stepeff: ["day numbers", "weigh-in"], volconv: ["session", "your consent"], set1: ["session"], refeedroi: ["day numbers", "session"],
   tuefri: ["session"], volumeledger: ["session"], signals: ["morning"], fingerprint: ["session"], strvelocity: ["session"], sessionshape: ["session"], rirtruth: ["session"], notes: ["session"], miss: ["day numbers"],
   sleepdose: ["sleep night", "session"], sleeplag: ["sleep night", "session"], melaexp: ["sleep night"], wakesig: ["sleep night"], regularity: ["sleep night"], variancetax: ["sleep night", "session"], canary: ["sleep night", "session"],
   pulsebase: ["pulse"], cutstress: ["pulse"], pulsewarn: ["pulse"], refeedpulse: ["pulse"], furnacebase: ["temperature"], exittherm: ["temperature"],
@@ -6578,7 +6615,7 @@ function labGroups(s) {
   const MAP = {
     scale: ["whoosh", "refeed", "noise", "masked", "creep"],
     engine: ["regime", "ea", "adaptmeter", "stepeff", "volconv", "refeedroi"],   /* R15g — the regime detector leads the shelf: the door the rest gates on */
-    training: ["tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss", "volumeledger", "signals"],
+    training: ["set1", "tuefri", "fingerprint", "strvelocity", "sessionshape", "rirtruth", "notes", "miss", "volumeledger", "signals"],   /* P6 — the standardized read leads the shelf */
     sleep: ["sleepdose", "sleeplag", "melaexp", "wakesig", "regularity", "variancetax", "canary"],
     pulse: ["pulsebase", "cutstress", "pulsewarn", "refeedpulse", "furnacebase", "exittherm"],
     behavior: ["missarch", "weekend", "compound", "miner", "medswindow"],
@@ -6658,7 +6695,7 @@ function bodyAlarm(s, slp) {
     if (red) lines.push("Session: convert to a walk or push it a day — nothing is lost; targets wait, the structural pick keeps its slot, and no gate closes.");
     else {
       lines.push("Session runs, one rule changed: normal plan, but every 0 becomes a 1 — no failure today. The early sets carry the growth cheap; the zeros carry the strain, and those are the only thing benched.");
-      lines.push("No make-it-official attempts and no new-weight tries today — those need a normal body to mean anything; the standards wait untouched.");
+      lines.push("New-weight debuts wait for a normal body — but anything you deliver still counts and still banks: a label is not a validity failure, and the record rule already prices your measured noise.");
       if (canaryName) lines.push(`Watch ${canaryName} — your measured stress-first lift; a dip there today is the alarm confirming, not you failing.`);
     }
   }
@@ -6747,6 +6784,7 @@ function trialTpl(trial) { return trial.custom ? trial.custom : TRIAL_TPL[trial.
 function trialArmOn(trial, iso) {
   const tpl = trialTpl(trial);
   if (!tpl) return null;
+  if (!trial.started) return null;   /* defensive belt (audit note): a malformed row without a start date reads as no arm, never a throw */
   if (tpl.metric === "lift_pair") {
     /* B1 — parallel arms, constant per lift: arms[0] is the standing instruction */
     const dayP = Math.floor((mk(iso) - mk(trial.started)) / DAY);
@@ -7675,6 +7713,39 @@ function _blockSlope(pts9) {
   const t9 = _tCrit(n - 2);
   return { n, pct: +pct.toFixed(3), lo: +(pct - t9 * sePct).toFixed(3), hi: +(pct + t9 * sePct).toFixed(3) };
 }
+/* setOneRead — P6's engine: set-1 reps at the CURRENT load, protocol-comparable
+   sessions only (no event days, no rushed rest), OLS %/session with a 95% interval.
+   Survives set-count changes by construction. Gates on n. */
+function setOneRead(s, exId) {
+  const ex9 = (s.exercises || []).find((x) => x && x.id === exId);
+  if (!ex9 || typeof ex9.w !== "number") return { status: "IDLE", exId };
+  const pts = [];
+  for (const d of Object.keys(s.sessionLog || {}).sort()) {
+    const sl = s.sessionLog[d];
+    const en = (sl.entries || []).find((x) => x && x.id === exId);
+    if (!en || !en.reps || !en.reps.length || String(en.w) !== String(ex9.w)) continue;
+    let evt = false; try { evt = !!dayWeather(s, d).hardSession; } catch (e) { evt = false; }
+    if (evt || paceRushed(sl)) continue;
+    pts.push({ d, y: Number(en.reps[0]) || 0 });
+  }
+  const n = pts.length;
+  if (n < TREND_MIN_SESSIONS) return { status: "COUNTING", exId, n, need: TREND_MIN_SESSIONS };
+  const ys = pts.map((p) => p.y);
+  const my = ys.reduce((a, b) => a + b, 0) / n;
+  if (!(my > 0)) return { status: "COUNTING", exId, n: 0, need: TREND_MIN_SESSIONS };
+  const mx = (n - 1) / 2;
+  let sxx = 0, sxy = 0;
+  for (let i = 0; i < n; i++) { sxx += (i - mx) * (i - mx); sxy += (i - mx) * (ys[i] - my); }
+  if (!(sxx > 0)) return { status: "COUNTING", exId, n: 0, need: TREND_MIN_SESSIONS };
+  const b = sxy / sxx;
+  let sse = 0;
+  for (let i = 0; i < n; i++) { const yh = my + b * (i - mx); sse += (ys[i] - yh) * (ys[i] - yh); }
+  const sePct = Math.max((Math.sqrt(Math.max(sse / (n - 2), 0) / sxx) / my) * 100, TREND_SE_FLOOR);
+  const pct = (b / my) * 100;
+  const t9 = _tCrit(n - 2);
+  return { status: "LIVE", exId, n, pct: +pct.toFixed(3), lo: +(pct - t9 * sePct).toFixed(3), hi: +(pct + t9 * sePct).toFixed(3), from: pts[0].d, to: pts[n - 1].d };
+}
+
 function volumeConversion(s, exId) {
   const log = (s && s.sessionLog) || {};
   const days = Object.keys(log).sort();
@@ -10977,7 +11048,7 @@ __test.bfEst = bfEst;
 __test.migrate = migrate;
 __test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
 __test.targetsFor = targetsFor;
-__test.runAdaptive = runAdaptive; __test.isPristineSeed = isPristineSeed; __test.sleepMean3At = sleepMean3At; __test.progressStep = progressStep; __test.VOL_SESS_CAP = VOL_SESS_CAP; __test.VOL_REVIEW_HI = VOL_REVIEW_HI; __test.DELIVERED_MAJ = DELIVERED_MAJ; __test.REVIEW_OUTCOME_D = REVIEW_OUTCOME_D; __test.restoreOfferStands = restoreOfferStands; __test.clearRestoreOffer = clearRestoreOffer; __test.labGroupsM = labGroupsM; __test.restoreFromCloud = restoreFromCloud; __test.mergeState = __test.mergeState || mergeState; __test.dossierText = __test.dossierText || dossierText; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
+__test.runAdaptive = runAdaptive; __test.isPristineSeed = isPristineSeed; __test.sleepMean3At = sleepMean3At; __test.progressStep = progressStep; __test.setOneRead = setOneRead; __test.deloadLoad = deloadLoad; __test.progressAnchor = __test.progressAnchor || progressAnchor; __test.VOL_SESS_CAP = VOL_SESS_CAP; __test.VOL_REVIEW_HI = VOL_REVIEW_HI; __test.DELIVERED_MAJ = DELIVERED_MAJ; __test.REVIEW_OUTCOME_D = REVIEW_OUTCOME_D; __test.restoreOfferStands = restoreOfferStands; __test.clearRestoreOffer = clearRestoreOffer; __test.labGroupsM = labGroupsM; __test.restoreFromCloud = restoreFromCloud; __test.mergeState = __test.mergeState || mergeState; __test.dossierText = __test.dossierText || dossierText; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
 __test.stepKcal = stepKcal;
 __test.stepEfficacy = stepEfficacy;
 __test.DT = DT;
@@ -13102,10 +13173,10 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         {evUp && <Chip c={T.chalk}>{evUp.t} · {fmtShort(evUp.d)}</Chip>}
         {(() => { try { const ls2 = +(localStorage.getItem("pl-lastsync") || 0); if (localStorage.getItem(TOKEN_KEY) && ls2 && Date.now() - ls2 > 36 * 36e5) return <Caveat c={T.brass}>books haven't reached your analyst since {new Date(ls2).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })} — tap sync in RULES</Caveat>; } catch (e) {} return null; })()}
       </div>
-      {(() => { const al9 = bodyAlarm(s, slp); if (!al9 || (al9.level !== "RED" && al9.level !== "AMBER")) return null; return (
-        <Card accent={al9.level === "RED" ? T.redline : T.brass}>
-          <Eyebrow c={al9.level === "RED" ? T.redline : T.brass}>{al9.level === "RED" ? "⚠ BODY ALARM — REST TODAY" : "⚠ BODY ALARM — OFF DAY"}</Eyebrow>
-          <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{al9.level === "RED" ? "The pattern held a second day. Today buys nothing worth its cost — walk, eat, sleep, and come back tomorrow ahead. Every lift's desk already says REST TODAY." : "Normal session, one rule changed: no all-out sets and no record attempts. Every zero becomes a one — the desk chips already carry it."}</div>
+      {(() => { const al9 = bodyAlarm(s, slp); if (!al9 || (al9.tier !== "RED" && al9.tier !== "AMBER")) return null; return (
+        <Card accent={al9.tier === "RED" ? T.redline : T.brass}>
+          <Eyebrow c={al9.tier === "RED" ? T.redline : T.brass}>{al9.tier === "RED" ? "⚠ BODY ALARM — REST TODAY" : "⚠ BODY ALARM — OFF DAY"}</Eyebrow>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 5, lineHeight: 1.55 }}>{al9.tier === "RED" ? "The pattern held a second day. Today buys nothing worth its cost — walk, eat, sleep, and come back tomorrow ahead. Every lift's desk already says REST TODAY." : "Normal session, one rule changed: no all-out sets and no record attempts. Every zero becomes a one — the desk chips already carry it."}</div>
         </Card>
       ); })()}
 
@@ -16130,7 +16201,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <button onClick={onClose} aria-label="Exit gym mode" style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>exit ✕</button>
         </div>
       </div>
-      {al2 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, marginBottom: 8 }}>⚠ ALARM DAY — every 0 becomes a 1 · no official attempts</div>}
+      {al2 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, marginBottom: 8 }}>{al2.tier === "RED" ? "⚠ ALARM DAY — RED: convert to a walk or push it a day" : "⚠ ALARM DAY — every 0 becomes a 1 · what you deliver still banks"}</div>}
       {phase === "rest" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 11, minHeight: 0 }}>
           <div style={card9}>

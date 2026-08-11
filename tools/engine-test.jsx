@@ -1327,7 +1327,7 @@ ok(swp(ann2, 3) === null, "no re-announcement — quiet until the next flip");
 // v3.13 — the outside-the-box wing
 const { labAnalytics2: la2, labGroups: lg2, completeSession: csW, genSession: gsW, SEED: SN } = __test;
 const wing = la2(clone(SN));
-ok(wing.length === 27, "twenty-seven instruments, all constructed without a single crash: " + wing.length);
+ok(wing.length === 28, "twenty-eight instruments, all constructed without a single crash (P6 added the standardized set-one read): " + wing.length);
 ok(wing.every(c => c.tag && c.deep && c.forYou && c.status), "every card carries all three layers plus a status");
 const ids2 = wing.map(c => c.id);
 ok(["adaptmeter","strvelocity","canary","regularity","missarch","weekend","stepeff","refeedroi","sessionshape","compound","ghost","sentinel","letter"].every(x => ids2.includes(x)), "the full roster reports");
@@ -1344,7 +1344,7 @@ ok(wing.find(c => c.id === "ghost").status === "MODEL" && wing.find(c => c.id ==
 const gAll = lg2(clone(SN));
 ok(gAll.length === 11 && gAll.map(g => g.id).join(",") === "scale,engine,training,sleep,pulse,behavior,trials,road,models,locked,shelf", "eleven shelves, fixed order");
 const tot2 = gAll.reduce((a, g) => a + g.cards.length, 0);
-ok(tot2 === 57, "all 57 instruments filed exactly once (R15g added the regime detector): " + tot2);
+ok(tot2 === 58, "all 58 instruments filed exactly once (P6 added the set-one read): " + tot2);
 // loads ride sets automatically
 let ws = clone(SN); ws.sleep.nights.push({d: isoL(Date.now() - 864e5), h: 8});
 const slpC = { clean: true, run: 3, need: 3 };
@@ -1394,7 +1394,7 @@ const j1 = swp3(clone(SO));
 ok(j1 && j1.forecasts.length === 1 && typeof j1.forecasts[0].pred7 === "number", "the sweep journals one dated 7-day forecast per day");
 ok(swp3(j1) === null, "second sweep same day: no duplicate journal, no writes");
 const wing3 = laW(clone(SO));
-ok(wing3.length === 27, "twenty-seven instruments in the wing now: " + wing3.length);
+ok(wing3.length === 28, "twenty-eight instruments in the wing now (P6): " + wing3.length);
 const pr = wing3.find(c => c.id === "prophet");
 ok(pr && pr.status === "ARMED" && pr.deep.indexOf("error bars") > -1, "prophet armed, philosophy attached");
 let fcS = clone(SO);
@@ -1642,7 +1642,7 @@ ok(typeof dock.sentinel.txt === "string" && dock.sentinel.txt.length > 4, "senti
 const ranked = sl1(clone(SP));
 /* PROVISIONAL ranks 0.5 — after anything settled, before anything still gathering. */
 const rk = { LIVE: 0, TRACKING: 0, PROVISIONAL: 0.5, ARMED: 1, MODEL: 2, "ON FILE": 3, LOCKED: 4 };
-ok(ranked.length === 57 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 57 cards, monotone rank order");
+ok(ranked.length === 58 && ranked.every((c, i) => i === 0 || (rk[ranked[i - 1].status] ?? 5) <= (rk[c.status] ?? 5)), "status lens: 57 cards, monotone rank order");
 ok(ranked.some((c) => c.status === "PROVISIONAL"), "the lens has a PROVISIONAL tier — small-n cards no longer sit among the settled ones");
 // a flip lands on the docket's fresh row
 const swD = __test.sweepLab(clone(SP));
@@ -1683,7 +1683,7 @@ ok(mg16(oldV13).v >= 14 && mg16(oldV13).sleep.anchor.asleepTarget === 8, "v13 ph
 // v3.17 — the sibling design review
 const { labSections: ls17, SEED: SR } = __test;
 const secs = ls17(clone(SR));
-ok(secs.reduce((a, x) => a + x.cards.length, 0) === 57, "all 57 filed across the plain-language sections, none lost");
+ok(secs.reduce((a, x) => a + x.cards.length, 0) === 58, "all 58 filed across the plain-language sections, none lost (P6)");
 const spk = secs.find(x => x.k === "speaking"), gth = secs.find(x => x.k === "gathering");
 ok(spk.cards.every(c => c.status === "LIVE" || c.status === "TRACKING"), "speaking holds only what has verdicts");
 ok(gth.cards.every((c, i) => i === 0 || (gth.cards[i - 1].prog.n / gth.cards[i - 1].prog.need) >= (c.prog.n / c.prog.need)), "gathering sorted by closeness to speaking — the top row IS next-to-speak");
@@ -2274,10 +2274,15 @@ mk60(12, 40, 2); mk60(10, 43, 2);
 ok(lc60(pd, "lateral").verdict === "PUSH" && lc60(pd, "lateral").vel > 0, "rising velocity keeps the chase on: " + lc60(pd, "lateral").why.slice(0, 40));
 mk60(8, 43, 1); mk60(6, 42, 0); mk60(5, 41, 0);
 const stalled = lc60(pd, "lateral");
-ok(stalled.verdict === "RESET" && stalled.newW === expW60, "3 honest weather-clean stalls trigger the evidence-based reset with plate-round math: " + stalled.newW);
+ok(stalled.verdict === "REVIEW" && stalled.newW == null && /cause/.test(stalled.why), "U4 (THE INVERSION) — 3 honest stalls on a GREEN body now open a REVIEW, not a reset: the cause check ran, nothing supports lightening, the target stands — the auto −5% reflex is dead");
+ok(ss60(pd) === null, "U4 — and no reset proposal files on a green stall: sweepStalls keys on the DIAGNOSED verdict");
+pd.exercises.find((x) => x.id === "lateral").holdFlag = true;
+const stalledP = lc60(pd, "lateral");
+ok(stalledP.verdict === "RESET" && stalledP.newW === expW60 && /named exception/.test(stalledP.why), "U4 — pain (the governor) turns the SAME stall into a diagnosed RESET with the plate-round math intact, and the why NAMES the below-delivered exception");
 const swept = ss60(pd);
-ok(swept && swept.agentProposals.some((ap) => ap.kind === "reset" && ap.exId === "lateral" && ap.newW === expW60), "the stall files a consent-gated proposal — no load ever changes itself");
+ok(swept && swept.agentProposals.some((ap) => ap.kind === "reset" && ap.exId === "lateral" && ap.newW === expW60), "the diagnosed stall files a consent-gated proposal — no load ever changes itself");
 ok(ss60(swept) === null || !ss60(swept), "one stall, one proposal — never nags twice");
+pd.exercises.find((x) => x.id === "lateral").holdFlag = false;
 
 console.log(`\nFINAL59: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
@@ -2291,8 +2296,8 @@ const mk61 = (k, tot, rir) => { const d = isoL(Date.now() - k * 864e5); dv.sessi
 mk61(8, 40, 2); mk61(6, 43, 2); mk61(4, 45, 2);
 const call61 = lc61(dv, "lateral");
 ok(call61.verdict.indexOf("PUSH") === 0 && Array.isArray(call61.receipts) && call61.receipts.some((r) => r.indexOf("You are gaining") === 0), "a healthy lift gets PUSH with a plain-words trend receipt: " + call61.receipts[0]);
-ok(lc61(dv, "lateral", { alarm: { level: "RED" } }).verdict === "STAND-DOWN", "alarm RED outranks everything — the desk stands the lift down");
-ok(lc61(dv, "lateral", { alarm: { level: "AMBER" } }).verdict === "HOLD", "AMBER caps the day: hold, zeros become ones");
+ok(lc61(dv, "lateral", { alarm: { tier: "RED" } }).verdict === "STAND-DOWN", "alarm RED outranks everything — the desk stands the lift down");
+ok(lc61(dv, "lateral", { alarm: { tier: "AMBER" } }).verdict === "HOLD", "AMBER caps the day: hold, zeros become ones");
 const nm61 = dv.exercises.find((x) => x.id === "lateral").n;
 dv.feed.unshift({ d: isoL(Date.now() - 3 * 864e5), t: "RESET APPLIED — " + nm61 + " " + wq + " → " + (wq - 5), how: "test" });
 const rb61 = lc61(dv, "lateral");
@@ -2831,13 +2836,15 @@ const mkStall = (paces) => {
   return st;
 };
 const allHonest = lcP(mkStall([null, null, null, null]), "rows");
-ok(allHonest.verdict === "RESET", "four honestly-fought declining sessions still reset the lift — the safety net is not a mute button: " + allHonest.verdict);
+ok(allHonest.verdict === "REVIEW", "U4 — four honestly-fought declining sessions on a GREEN body now open a REVIEW: the stall is the signal, the cause decides the move: " + allHonest.verdict);
+const stHold = mkStall([null, null, null, null]); stHold.exercises.find((e2) => e2.id === "rows").holdFlag = true;
+ok(lcP(stHold, "rows").verdict === "RESET", "U4 — the same decline WITH pain (the governor) still resets: the safety net is a diagnosis now, not a mute button");
 const someRushed = lcP(mkStall([null, "rushed", "rushed", "rushed"]), "rows");
 ok(someRushed.verdict !== "RESET", "the same declining numbers on rushed days do NOT lighten the bar: " + someRushed.verdict);
 ok(someRushed.receipts.some((r) => r.indexOf("rushed") > -1), "and it says why, in his words, on the card");
 ok(someRushed.vel === allHonest.vel, "velocity is unchanged — a ~0.15 SMD does not justify throwing the reading away");
 const markedNormal = lcP(mkStall([null, "normal", "normal", "normal"]), "rows");
-ok(markedNormal.verdict === "RESET", "tapping FULL REST does not buy an exemption — only 'rushed' changes anything");
+ok(markedNormal.verdict === "REVIEW", "tapping FULL REST does not buy an exemption from the stall COUNT — only rushed changes anything (the count stands; the green body keeps it a REVIEW)");
 
 // the Gym Mode derivation thresholds, stated as arithmetic rather than left in the component
 const paceOf = (n, cut) => (n >= 3 ? (cut / n >= 0.5 ? PC.rushed : PC.normal) : null);
@@ -3043,6 +3050,7 @@ resS.sessionLog = {};
 [["2026-07-06", [10, 10]], ["2026-07-09", [9, 9]], ["2026-07-13", [8, 8]], ["2026-07-16", [7, 7]]].forEach(([d, reps], i) => {
   resS.sessionLog[d] = { entries: [{ id: "rows", reps, rir: 1, rirSets: [1, null], w: 180 }], at: i + 1 };
 });
+resS.exercises.find((e2) => e2.id === "rows").holdFlag = true;   /* U4 — the reset path needs a diagnosis; pain supplies it */
 const resR = lcR(resS, "rows");
 ok(resR.verdict === "RESET" && resR.newW === 175, "a reset lands on 175 — a real rung — instead of 171, a weight this machine cannot make: " + resR.newW);
 const resEven = clone(resS);
@@ -6589,6 +6597,7 @@ if (fail) process.exit(1);
   const G85 = cl85(SNAP85);
   const rowsG = G85.exercises.find((e) => e.id === "rows");
   rowsG.holdFlag = false; rowsG.rirHist = [];
+  rowsG.topAt = rowsG.w; rowsG.topRun = 1;   /* P3 — the √2 band means this margin no longer banks on one sighting; the asymmetry drive rides the REPEAT confirmation instead, which is exactly the two-for-two law */
   const grindSeen = __test.completeSession(cl85(G85), "2026-08-06", viaGym([10, 9], [10, 9], 0, 0), slp85, {});
   ok(grindSeen.lines.some((l) => l.t === "ROWS (STRAPLESS) — TOP OF WINDOW, BUT HOT") && !grindSeen.s.queue.some((q) => q.exId === "rows" && q.kind === "debut" && !q.done), "OPENER — a top-of-window GRIND with its opener captured at 0 is refused: a grind is not an earn, and the governor can finally see it again");
   const grindBlind = __test.completeSession(cl85(G85), "2026-08-06", viaGym([10, 9], [10, 9], null, 0), slp85, {});
@@ -7541,7 +7550,7 @@ if (fail) process.exit(1);
   const srcR = readFileSync("src/app.jsx", "utf8");
   ok(srcR.indexOf("One session is set aside: ") > -1 && srcR.indexOf("Remove the event and ") > -1 && srcR.indexOf("an event day, where the session itself is likely compromised, not just the food numbers") > -1, "R17 — the coach card names the set-aside session, why it was set aside, and what undoes it, in its own words");
   /* THE CONSUMER RULING, pinned so the split cannot silently spread */
-  ok((srcR.split("hardSession").length - 1) === 7, "R17 CONSUMER RULING — exactly three TRAINING consumers read hardSession (liftTrend's exclusion, liftCall's velocity window, liftCall's stall counter) plus its definition, comment and the coach receipt. The three FOOD/SCALE consumers keep hard: the anomaly detector and bodyAlarm both read sleep/steps/SCALE quality, and the natural-experiment miner matches pairs on CALORIES — an estimated day genuinely cannot anchor those");
+  ok((srcR.split("hardSession").length - 1) === 8, "R17 CONSUMER RULING — exactly three TRAINING consumers read hardSession (liftTrend's exclusion, liftCall's velocity window, liftCall's stall counter) plus its definition, comment, the coach receipt — and P6's setOneRead, the standardized set-one read, which excludes event days for the same protocol reason (count 8, amended deliberately). The three FOOD/SCALE consumers keep hard: the anomaly detector and bodyAlarm both read sleep/steps/SCALE quality, and the natural-experiment miner matches pairs on CALORIES — an estimated day genuinely cannot anchor those");
   ok(srcR.indexOf("!dayWeather(s, d2.d).hard)") > -1 && srcR.indexOf("!dayWeather(s, r.d).hard") > -1 && srcR.indexOf("!dayWeather(s, d2).hard)") > -1, "R17 — and those three still read `hard`, unchanged, at source: the fix is scoped to the three consumers that were asking the wrong question");
 
   /* ---------- TRIAGE — the 2026-07-29 beacon entry, RULED not assumed ----------
@@ -8426,4 +8435,66 @@ if (fail) process.exit(1);
   ok(__test.progressStep(exH, SU1).add === 0, "U1 — the governor hold still outranks the trial freeze: safety above symmetry");
 }
 console.log(`\nFINAL104: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+/* ==================== THE PROGRESSION ROUND — ACCEPTANCE ==================== */
+{
+  const clP = (o) => JSON.parse(JSON.stringify(o));
+  /* P1 — THE FRANKENSTEIN ACCEPTANCE, on the LIVE ledger (fixture law): the two known
+     composite anchors (rear delt, abs) must now be lines delivered in ONE session */
+  const LV = __test.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+  const oldRatchet = (ex) => { const base = (ex.last || []).slice(); const seen = [];
+    Object.keys(LV.sessionLog).sort().forEach((d) => { const sl = LV.sessionLog[d]; if ((sl.pace || null) === "rushed") return;
+      const en = (sl.entries || []).find((x) => x.id === ex.id); if (!en || !en.reps || String(en.w) !== String(ex.w)) return; seen.push(en.reps); });
+    const rec = seen.slice(-3); const better = [];
+    rec.forEach((reps) => reps.forEach((r, i) => { better[i] = Math.max(better[i] ?? 0, Number(r) || 0); }));
+    return base.map((r, i) => Math.max(r, better[i] ?? 0)); };
+  let franken = 0, oneSession = 0, checked = 0;
+  for (const id9 of ["rearDelt", "abs"]) {
+    const ex9 = LV.exercises.find((x) => x.id === id9); if (!ex9 || typeof ex9.w !== "number") continue;
+    checked++;
+    const oldA = oldRatchet(ex9), newA = __test.progressAnchor(ex9, LV);
+    const delivered = Object.keys(LV.sessionLog).sort().some((d) => { const en = (LV.sessionLog[d].entries || []).find((x) => x.id === id9);
+      return en && String(en.w) === String(ex9.w) && JSON.stringify((en.reps || []).slice(0, newA.length)) === JSON.stringify(newA); });
+    if (delivered) oneSession++;
+    if (JSON.stringify(oldA) !== JSON.stringify(newA)) franken++;
+  }
+  ok(checked === 2 && oneSession === 2, "P1 ACCEPTANCE (live ledger) — both known composite anchors (rear delt, abs) now return a line ACTUALLY DELIVERED IN ONE SESSION: the selected-max estimator is dead and every anchor is a real performance");
+  ok(franken >= 1, "P1 — and the retirement changed something real on the live ledger: the old ratchet disagreed with the honest line on " + franken + " of the 2 named lifts");
+  /* P5 — the alarm seam, JOINED: a real spiking fixture reaches the desk with NO injection */
+  const AJ = clP(__test.SEED);
+  const isoP = (k) => isoL(Date.now() - k * 864e5);
+  AJ.pulse = Array.from({ length: 10 }, (_, i) => ({ d: isoP(10 - i), bpm: 58 }));
+  AJ.pulse.push({ d: isoP(0), bpm: 70 });
+  ["2026-06-01", "2026-06-04"].forEach((d) => { AJ.sessionLog[d] = { entries: [{ id: "press", reps: [8, 8, 8], rir: 2, rirSets: [2, 0], w: AJ.exercises.find((e) => e.id === "press").w }], at: 1 }; });   /* the desk needs 2 sessions before any rung runs */
+  const alJ = __test.bodyAlarm(AJ);
+  ok(!!alJ && alJ.tier === "RED", "P5 — the fixture is real: +12 bpm over a 10-read baseline with a short-night term reads RED from the live producer");
+  const lcJ = __test.liftCall(AJ, "press");
+  ok(lcJ.verdict === "STAND-DOWN" || lcJ.verdict === "PUSH", "P5 JOINED — liftCall consumes the LIVE bodyAlarm return (tier, not the dead level key): verdict " + lcJ.verdict + " — the seam the suite used to mask by injection is welded and driven end to end");
+  ok(lcJ.verdict === "STAND-DOWN", "P5 — and on this fixture it is STAND-DOWN: RED now actually stands the desk down from live data, which it never could before");
+  const rpJ = __test.rirPlan(AJ, { id: "press", sets: 3, hi: 9 });
+  ok(rpJ.plan[rpJ.plan.length - 1] >= 1 && rpJ.why.some((w) => /every 0 becomes a 1/.test(w)), "P5 — every-0-becomes-1 has a MECHANISM now: the terminal set floors at 1 on an alarm day, and the why says delivered reps still bank");
+  /* P3 — the band prices both observations */
+  const bnP = __test.migrate(null);
+  ok(Math.abs(__test.typicalError(bnP, null).reps * 2 * Math.SQRT2 * Math.sqrt(3) - (function () { const r = [10, 10, 10]; return 2 * Math.SQRT2 * __test.typicalError(bnP, null).reps * Math.sqrt(3); })()) < 1e-9, "P3 — the √2 band is arithmetic, not vibes: need = 2·√2·TE·√n");
+  const srcP = readFileSync("src/app.jsx", "utf8");
+  ok(srcP.indexOf("2 * Math.SQRT2 * te.reps * Math.sqrt(n)") > -1 && srcP.indexOf("+(2 * te.reps * Math.sqrt(n))") === -1, "P3 — beatsNoise prices the DIFFERENCE at source and the old noiseless-old-record band is extinct");
+  ok(srcP.indexOf("2 * Math.SQRT2 * te9.reps") > -1, "P3 — the debrief's banked criterion is unified on the same corrected band (its dead mis-scaled bn9 call is gone)");
+  /* P6 — the set-one read survives a set-count change */
+  const S6 = clP(__test.SEED);
+  ["2026-06-01", "2026-06-04", "2026-06-08", "2026-06-11", "2026-06-15"].forEach((d, i) => {
+    S6.sessionLog[d] = { entries: [{ id: "ham", reps: i < 2 ? [10 + i, 10] : [10 + i, 10, 8], rir: 2, rirSets: [2, 0], w: 120 }], at: 1, pace: null };
+  });
+  S6.exercises.find((e) => e.id === "ham").w = 120;
+  const r6 = __test.setOneRead(S6, "ham");
+  ok(r6.status === "LIVE" && r6.n === 5 && r6.pct > 0, "P6 — the standardized set-one read carries STRAIGHT THROUGH a 2→3 set-count change (n=" + r6.n + ", all five sessions counted) — set-level history survives what the session total correctly restarts on");
+  const S6c = clP(S6); delete S6c.sessionLog["2026-06-11"]; delete S6c.sessionLog["2026-06-15"];
+  ok(__test.setOneRead(S6c, "ham").status === "COUNTING", "P6 — under the trend minimum it says COUNTING, never a verdict (instruments gate on n)");
+  ok(srcP.indexOf('t: "SET ONE — THE STANDARDIZED READ"') > -1 && srcP.indexOf("It informs; it gates nothing yet.") > -1, "P6 — the instrument is filed and explicitly gates nothing: new instrumentation BESIDE the restart, never a retirement of it (E-law held)");
+  /* the defensive belt */
+  ok(__test.trialArmOn({ custom: { metric: "lift_pair", blockDays: 28, cycles: 1 } }, isoP(0)) === null, "BELT — a malformed trial row without a start date reads as no arm, never a throw");
+  /* U4 copy — the stale estimate claim is extinct */
+  ok(srcP.indexOf("party, estimate, rushed and short-sleep days not counted") === -1 && srcP.indexOf("estimate days count in full") > -1, "R17 COPY HEAL — the stall receipt no longer claims estimate days are excluded (they count, and now the words say so)");
+}
+console.log(`\nFINAL105: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
