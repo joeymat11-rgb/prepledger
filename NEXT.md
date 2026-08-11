@@ -343,7 +343,19 @@ successful slow arm) · the 7-day regime hysteresis (the data's shutter, not a c
 
 ---
 
-## QUEUED — THE PROGRESSION BUILD (audit landed 2026-08-11; U1/U3 already built in the volume-verdicts round at d962b93)
+## BUILDING — THE NUTRITION/TDEE ROUND (Joe's order 2026-08-11; branch feat/nutrition; target v7.48.0)
+
+**The three-audit consolidated verdict v2 is in-repo:
+[NUTRITION-TDEE-VERDICT.md](NUTRITION-TDEE-VERDICT.md) (verbatim as delivered; B1–B3
+DECIDED).** The build order is Joe's paste of the same date — N1 ceiling→graded prior ·
+N2 estimator honesty · N3 unexplained residual · N4 phase semantics + the %BW/MONTH
+unit fix (v7.46.0's GAIN_CAP_PCT_WK erratum) · N5 dynamic protein (the round's ONE
+visible number change; the 12.2% switch removed) · N6 conditional steps-first ·
+N7 symptom-proposed diet break · N8 male LEA sentinels · N9 corroboration+tags ·
+N10 rate-instrument honesty. THE HOLD: no live number moves except N5. Sequencing:
+nutrition NOW; BRIEF-dedup waits behind the design-audit consolidation.
+
+ (audit landed 2026-08-11; U1/U3 already built in the volume-verdicts round at d962b93)
 
 **The full audit is in-repo: [PROGRESSION-ENGINE-AUDIT.md](PROGRESSION-ENGINE-AUDIT.md)
 (569 lines, verbatim as delivered).** Read it with the adjudication below — the
