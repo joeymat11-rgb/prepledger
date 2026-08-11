@@ -15,6 +15,11 @@ record.
 > 1f5e126 version until the amended file actually lands — the spec of record is never
 > reconstructed from a summary. The BUILD-ORDER DELTAS in this amendment are complete in
 > the directive itself and BIND THE BUILD now.
+>
+> **RESOLVED same day:** the attachment landed with the audit verdict (188 lines,
+> Section F present — OUTCOME-COMPATIBLE / REPLICATED / Räntilä / Henselmans all
+> carried). The spec-of-record block below is now that version, verbatim, with the
+> marked B3 DERIVE annotation preserved.
 
 FOR CLAUDE CODE — AMENDMENT TO THE FILED VOLUME ROUND: SECTION F FOLDS IN (docs-only now, build deltas when the round builds)
 
@@ -291,6 +296,41 @@ exactly a tap-sized owner decision.
   trend-restart works). It is strong evidence of successful recomp behavior, but it is
   not yet direct evidence of new muscle; the app's claims should keep that distinction.
 
+## F. SOL SECOND PASS (2026-08-11) — folded in after adjudication
+
+Sol ran an unprompted sensitivity pass on its volume verdicts. Accepted upgrades:
+
+- **A1 gains a fourth tier and a calendar.** Verdicts become DELIVERED / TOLERATED /
+  OUTCOME-COMPATIBLE / REPLICATED — outcome-compatibility needs 8–12 stable weeks and
+  more than one signal agreeing; REPLICATED (the benefit recurs in a comparable block)
+  is the only place a strong individual-response claim may live (Räntilä 2025:
+  single-block "non-response" rarely repeats across blocks/measures — never brand a
+  muscle off one block or one instrument). "UNCLEAR" stays a legal verdict. If the cut
+  ends mid-read, the observation is labeled MIXED-PHASE, not force-classified.
+  For the Aug 7 additions: ~Aug 21 = delivery/tolerance review only; ~Oct 2 = earliest
+  defensible outcome review; ~Oct 30 = credible outcome classification.
+- **The +4%/session framing sharpens:** it is a performance rate, not a tissue rate
+  (literal compounding would be absurd; Mattocks 2017 shows 1RM practice alone can
+  raise strength without matching growth). Short-horizon lift trends = performance and
+  tolerance evidence; long-horizon (8–12+ wk) = corroborating outcome evidence.
+- **Surplus cadence wording softens:** batching 1–2 muscles at a block start remains
+  the recommendation but is "a reasonable coaching experiment, not validated as
+  optimal" — and a bigger surplus is NOT a reason to escalate faster (Helms 2023;
+  Henselmans 2026: +485 kcal/day bought no extra muscle).
+- **New candidate gate for the progression consolidation (not yet consensus):** before
+  offering a set, confirm the muscle's lifts haven't still got rep/load progression
+  headroom (Plotkin 2022: both progressions work — sets are the lever for when
+  rep/load overload exhausts, and his lifts are currently still climbing without new
+  sets).
+
+One Sol claim ADJUDICATED PARTIALLY WRONG against the code: "the terminal-RIR
+delivery check inspects the wrong set." In this engine the added set BECOMES the
+terminal set (the taper re-keys), and the read additionally keys on the logged
+set-count change — so set-existence and its effort ARE checked. What survives of
+Sol's point: the ≥50%-of-sessions threshold is arbitrary, and delivery should also
+confirm standardization (same exercise, ROM, rest, no technique change) — folded
+into A1's delivery definition.
+
 ## E. UNCHANGED — verified and defended
 
 Step size (+2 weekly per move) · trend-restart hygiene · delivered-dose RIR criterion ·
@@ -302,6 +342,41 @@ successful slow arm) · the 7-day regime hysteresis (the data's shutter, not a c
 *(End of the spec of record.)*
 
 ---
+
+## QUEUED — THE PROGRESSION BUILD (audit landed 2026-08-11; U1/U3 already built in the volume-verdicts round at d962b93)
+
+**The full audit is in-repo: [PROGRESSION-ENGINE-AUDIT.md](PROGRESSION-ENGINE-AUDIT.md)
+(569 lines, verbatim as delivered).** Read it with the adjudication below — the
+estimator re-audit runs on the corrected premise, not the audited brief's.
+
+**COWORK ADJUDICATION (verbatim):** the anchor is the LAST session's per-set line
+(targetsFor / ex.last), NOT the max-of-three the audited brief claimed — but the
+consolidation's live-ledger check found 2 real Frankenstein anchors (rear delt +4,
+abs +1) and 3 anchors above last-session via the same-load ratchet: the bias exists at
+plateaus by a different mechanism; the estimator re-audit runs in the PROGRESSION build
+on that corrected premise. ±0.77 is ALREADY single-observation TE (typicalError divides
+by √2). CONFIRMED as audited: the three-non-beat auto-RESET reflex; beatsNoise =
+2·TE·√n against a noiseless old record; the two-hot-opener hold.
+
+**QUEUED for the progression build:**
+- **U2** — records provisional under the four-tier read; maxed-ladder floor keys only
+  on confirmed, stays reversible.
+- **U4** — stall → staged cause-check instead of the auto −5% reset; NAME the
+  maxed-floor/reset precedence.
+- Rest/warm-up/setup standardization.
+- The set-level strength read (the restart stays for session totals — the set-level
+  read is NEW instrumentation).
+- The estimator re-audit (on the corrected anchor premise above).
+- AMBER-veto and est-food-exclusion review.
+
+**Low note riding along (verbal, 2026-08-11):** line ~14839 hardcodes a "measured
+±0.8" scale-noise floor in athlete copy while weightNoise() measures the real one —
+the authored-round-number tell.
+
+**Already built (do not rebuild):** U1 (the A/B's progression targets frozen flat +1
+while a lift_pair trial stands, receipt names the freeze) and U3 (the window-width
+note's invented validation retracted; typicalError defined in LEDGER_DICT) — both in
+the volume-verdicts round at d962b93.
 
 ## QUEUED — BOARD FIX FOLLOW-UPS (two audit low notes from the v7.45.0 re-drive, filed 2026-08-11; ride a future round, nothing blocked the merge)
 
