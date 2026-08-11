@@ -1,56 +1,53 @@
 {
-  "gen": "2026-08-10T09:45:00.000Z",
+  "gen": "2026-08-11T09:05:42.409Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-10_sleeplog3",
-      "title": "Log Friday, Saturday and Sunday nights — three dark nights told your app the week was clean",
+      "sid": "sug_2026-08-11_morningread",
+      "rank": 1,
+      "title": "Weigh in the morning, not at night — you did step on the scale yesterday and the app binned it",
+      "apply": { "kind": "note" },
+      "rationale": {
+        "science": "A single reading is noise around a slow trend, so the trend only works if the readings are taken under the same conditions each time; overnight fluid and food shifts are exactly the confound a fixed morning window removes (Article III; DASH-Sodium / Juraschek 2020 on how much water alone moves the number).",
+        "data": "Your last clean, usable morning read is 8/6 at 162.8 — five days ago. Since then: 8/8 read filed evening and set aside, 8/9 morning read flagged for salt, 8/10 read filed evening and set aside. On 8/10 the ledger recorded both MORNING READ MISSED (priced at 0.02 lb/wk of rate precision) and a discarded evening read on the same day.",
+        "relationship": "You are not skipping the scale — you are weighing at the wrong end of the day, which is a different problem with a different fix. Every rate number in front of you right now (your app's 1.15/wk, the engine's 0.80/wk) is extrapolating from that one 8/6 morning, which is why the two disagree."
+      },
+      "predict": "One in-window morning read tomorrow re-anchors the trend and closes the gap between the two rate figures. I expect it to land 162.8–163.6 if the four maintenance days cost what I think they did. Grade it on reads gaining an 8/12 entry with offWindow absent, and on the app's rate moving off 1.15.",
+      "confidence": "high",
+      "gate": "approve"
+    },
+    {
+      "sid": "sug_2026-08-11_press4th",
+      "rank": 2,
+      "title": "Press: next upper day, either give the fourth set an honest set or run three — Sunday's best press scored nothing",
+      "apply": {
+        "kind": "progression",
+        "to": "Press 250 next upper day: run 3 working sets, or run 4 with the fourth taken to 1-2 reps in reserve like the first three. Do not repeat 8,8,7 plus a 4-rep tail."
+      },
+      "rationale": {
+        "science": "On a cut you defend load rather than chase volume, and a set taken far short of failure adds fatigue without adding the stimulus that justifies it (Schoenfeld 2017; Robinson 2024; Grgic 2021).",
+        "data": "250 x 8,8,7 drew PRESS — TARGET MET on 8/6. The identical top three plus a fourth set at 4 reps on 8/9 drew no press feed row at all, while rows, triceps, sulek and lateral each got one from the same session. Press is the only lift from Friday's push still at 4 sets.",
+        "relationship": "My best read is that chest going 3 to 4 sets on 8/7 gave the target a fourth slot that a 4-rep set fails, killing the whole grade — but the target list isn't saved with your sessions, so I can't verify that and you should treat it as a guess. What is not a guess: your best press scored zero and set count was the only thing that changed. Withdrawal clause stands — if the next upper day produces a press row with four sets logged and no load change, my reading is wrong and I'll retire it."
+      },
+      "predict": "Run three sets, or four honest ones, and 250 produces a press feed row on the next upper day and the ownership repeat can finally bank. Repeat Sunday's shape and I expect no press row again — a third session where the best press in your file counts for nothing.",
+      "confidence": "medium",
+      "gate": "approve"
+    },
+    {
+      "sid": "sug_2026-08-11_ham125rung",
+      "rank": 3,
+      "title": "Check the ham machine actually makes 125 before you debut it — the hack number went wrong exactly this way",
       "apply": {
         "kind": "note"
       },
       "rationale": {
-        "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss about 55% and raised lean-mass loss about 60% (Nedeltcheva 2010; Wang 2018). Sleep is the recovery account the eight new weekly sets are being charged to, so it is the one input that has to be measured this week rather than assumed.",
-        "data": "sleep.nights stops at 8/6 (7.75 h). 8/7, 8/8 and 8/9 are all unlogged — three consecutive nights. Your 11-night mean is 6.8 h and the 7-night debt reads 1.8 h against the 7.5 h you set, and both numbers stopped updating on Thursday.",
-        "relationship": "The debt flag is a three-night calendar mean, and it returns clean when three consecutive nights are missing. That is exactly what happened: every lift in Sunday's session carries debt: false, and this morning's WEEK IN REVIEW reports 'sleep 2/3 clean' off three logged nights in seven. A missing night does not make your app cautious, it makes it confident — and Sunday's session is the one carrying seven simultaneous changes that need an honest recovery read to be worth anything."
+        "science": "Progressive overload only reads as progress if the load on the record is the load that was moved; a debut onto a rung that doesn't physically exist corrupts the lift's history rather than advancing it (Article IX — never let an instrument report what wasn't measured).",
+        "data": "Ham 125 is queued live and undone (q_ham_125, state DEBUT), earned honestly off 120 x 12,12,11 — four reps clear of last time against your own measured spread of 2.7. Your app filed the question itself on 8/10: 'does this machine actually make 125 next? If not, fix the ladder in SETUP.' Separately on the same day, hack had to be record-corrected from a filed 160 to the 180 x 9,9,10 you actually did, because the weight editor only walked the ladder already on file.",
+        "relationship": "Same failure mode, one day apart: the app can only offer rungs it already knows about, so an unverified ladder either blocks a load you can do or debuts one you can't. Thirty seconds in SETUP before the next lower day is the whole fix."
       },
-      "predict": "Log 8/7, 8/8 and 8/9 — estimates are fine, flag them as estimates — and log tonight. Grade on sleep.nights gaining entries for 8/7 through 8/10 within 24 hours, and on the next session's lastMeta.debt being computed from three real nights instead of three missing ones. If the nights go in and all three were 7 h or better, the clean flag was honest by accident and I will say so plainly.",
+      "predict": "Confirm or correct the rung and the 125 debut runs against a real number, and hack's reps-are-the-ladder rule holds cleanly at the 180 top. Skip it and the next lower day either stalls on a rung that isn't there or files a load you didn't move.",
       "confidence": "medium",
-      "gate": "approve",
-      "rank": 1
-    },
-    {
-      "sid": "sug_2026-08-10_volunwind",
-      "title": "Set Sunday's five back by hand — your app recalled the proposals that made them, and there is no undo button",
-      "apply": {
-        "kind": "progression",
-        "to": "Set back the five 8/9 volume additions by hand: hack 4 to 3, abs 4 to 3, curls 4 to 3, triceps 4 to 3, rows 3 to 2. Keep Friday's three (hams, chest, rear delt)."
-      },
-      "rationale": {
-        "science": "The largest dose-response analysis available (Pelland 2025, 67 studies, 2,058 participants) puts returns per set highest at 5-10 weekly sets and only intermediate at 11-18; 10 hard sets is the floor, not the target (Schoenfeld 2017). On a limited recovery budget the marginal set costs more than it buys.",
-        "data": "This morning your app posted VOLUME PROPOSALS RECALLED — 'cold-start misfire: the ledger compared your first logged week against a week before this app existed' — and tightened the rule to 14 full days and two proposals on Sundays. The five sets it already shipped are still on the lifts: hack 4, abs 4, curls 4, triceps 4, rows 3. Friday's three were different and still stand — hams 4, chest 6, rear delt 6 were at or under the growth floor.",
-        "relationship": "A recall stops future proposals, it does not reverse what already shipped. And I have to correct myself here: Friday's card said each of the five had a one-tap undo on file. They do not. The exUndo records exist for Friday's three OWNER'S CALL pushes and not for Sunday's five, which went in with no adjustment entry behind them. So this needs doing by hand, and my last card asked you to press a button that does not exist."
-      },
-      "predict": "Set the five back and the next upper day gives attributable conversion reads on chest and rear delt — the two pushes that actually had an argument. Leave them and I expect at least two 'did not convert' verdicts inside a fortnight that neither of us can assign a cause to. Grade on entry counts: next upper day triceps 3 / curls 3 / rows 2, next lower day hack 3 / abs 3.",
-      "confidence": "medium",
-      "gate": "coach",
-      "rank": 2
-    },
-    {
-      "sid": "sug_2026-08-10_press4",
-      "title": "Decide what press set four is — 250 has done its best work twice and banked neither time",
-      "apply": {
-        "kind": "progression",
-        "to": "Before the next upper day, settle with your coach whether press set four is a fourth working set or an explicit lighter back-off — and log it as whichever it is"
-      },
-      "rationale": {
-        "science": "On a cut, defend load rather than chase volume, and take working sets to about 1-3 reps in reserve (Schoenfeld 2017; Robinson 2024; Grgic 2021). A trailing set that falls off a cliff is not a hard set, it is a scoring problem.",
-        "data": "8/6: press 250 x 8,8,7 drew PRESS — TARGET MET. 8/9: the same 250 x 8,8,7 plus a fourth set at 4 reps, opener rated at 1, and the feed carries no press row at all — while rows, triceps, sulek and lateral all got one from the same session. The variable that changed between the two is chest going 3 to 4 sets on 8/7.",
-        "relationship": "My best read is that the target now has four slots, so a 4-rep fourth set fails it and the whole session scores as a miss. I could not verify that in your file — the target array is not saved with the session — so this is a best guess and I am labelling it as one. What is certain from the feed is that the best press in your record produced nothing on Sunday, and it is the second time in four days that 250 x 8,8,7 has gone unbanked."
-      },
-      "predict": "Settle it and the next upper day produces a press row one way or the other — TARGET MET if set four is honestly reachable, or a clean miss you can actually read. Grade on whether any press feed row appears on the next upper day. If a row appears with four sets logged and no change to the load, my reading of the mechanism was wrong and I will withdraw it.",
-      "confidence": "low",
-      "gate": "coach",
-      "rank": 3
+      "gate": "approve"
     }
   ]
 }

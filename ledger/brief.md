@@ -1,122 +1,132 @@
-<!-- 2026-08-10 -->
+<!-- 2026-08-11 -->
 
-# Your app graded the week this morning. It graded three nights and called them seven.
+# You did weigh yourself yesterday. The app threw it away.
 
-WEEK IN REVIEW landed on your feed a few hours ago: *"the boring, winning kind
-of week — the kind that compounds."* Protein 5/5. Four sessions. Three wins
-filed. Sleep 2/3 clean. Rate about 1.15 a week.
+For three runs I've been telling you to get on the scale, and I had the problem
+wrong. You're getting on it. You got on it Friday and you got on it yesterday.
+Both times it went in as an **evening read**, and both times the app set it
+aside — that's what `offWindow` means on those two entries. Yesterday it did
+both things at once: filed *MORNING READ MISSED*, priced it at 0.02 lb/wk of
+lost precision, and then discarded the read you actually gave it a few hours
+later.
 
-Most of that is true and earned. But "sleep 2/3 clean" is three logged nights
-out of seven, and the rate is computed off a trend whose last clean morning read
-is **Thursday**. The week may well have been good. Right now your instruments
-can't tell you that — they're reporting confidence they haven't earned.
+So this isn't a discipline problem and I should stop treating it like one. It's
+a clock problem. The fix isn't "weigh more" — it's **weigh before the day
+starts** instead of at the end of it.
 
-Where the body actually is: soft trend **163.37**, your app's gauge 163.4, rate
-**0.97 lb a week — 0.59% of bodyweight**, which is the middle of the range that
-protects lean. Today's 164.5 is not information. Saturday was a high-sodium day,
-your own measured water number is +1.11 lb the morning after one, and 163.37 +
-1.11 is 164.5 to the ounce. That is water, and it will be gone in two or three
-clean mornings.
+The cost is real. Your last clean, usable morning read is **Wednesday 8/6, at
+162.8**. Five days ago. Every rate number either of us has quoted since then —
+your app's 1.15 a week, my engine's 0.80 — is extrapolating off that one
+morning.
 
-## The three things that matter
+## The three that matter
 
-**1. Three dark nights manufactured a clean training day.** Sleep stops at 8/6
-(7.75 h). Friday, Saturday and Sunday nights never got logged. Here's the
-mechanical part: the debt flag is a three-night calendar mean, and when three
-consecutive nights aren't on file it returns **clean** by default. So every lift
-in Sunday's session carries `debt: false` — not because you slept, but because
-nobody asked. Your eleven-night average is 6.8 h and the seven-night debt reads
-1.8 h against the 7.5 you set, and both of those numbers stopped updating on
-Thursday. A missing night doesn't make the app cautious. It makes it confident.
+**1. The cut has slowed down, and the food log says exactly why.**
 
-**2. Sunday ran all seven changes, and the best press in the file got nothing
-for it.** Entry counts came in at press 4 / rear delt 4 / triceps 4 / curls 4 /
-rows 3 — exactly the five numbers I said on Friday would mean all seven ran at
-once. One of them was a clean win: you opened rows at 1 RIR and the app wrote
-*ROWS — HOLD RELEASED · opener back to 1 RIR, honest again, loads can earn.* 185
-is back in reach. That is your card from Saturday, performed, on the exact field
-it named.
+The measured rate is now **0.80 lb a week, 0.49% of bodyweight**, down from
+about 0.97 last week. Your own band is 1.0–1.4 lb with a floor at 0.8 — you are
+sitting on the floor.
 
-Press is the other side. You put up **250 × 8,8,7** plus a fourth set at 4 — the
-same top three that earned *PRESS — TARGET MET* on 8/6 — and the feed has **no
-press row at all** on Sunday, while every other lift in the session got one. My
-best read is that chest went 3→4 sets on Friday, so the target now has four
-slots and a 4-rep set misses it. I could not verify that in your file, because
-the target array isn't saved with the session — so treat it as my best guess,
-not a fact. Either way, 250 has now done its best work twice and banked neither
-time: once with no effort scores on it, once with a fourth set attached.
+Nothing mysterious about it. Your last five logged days: 2,800 · 2,800 · 3,000 ·
+2,900, then yesterday's 2,231. The first four average **2,875**. Measured
+maintenance is 2,810 by my fit and 2,886 by your app's, which came up again
+yesterday. Four days at maintenance is four days of not losing, and the trend is
+just now catching up to that. Sunday's food never got logged at all, on a
+training day.
 
-Credit where it's due: you struck the sets you didn't actually do. *RECORD
-CORRECTED — unattested sets struck from Sunday's re-log*, on triceps, curls and
-rows. That's the honest version of walking something back.
+Yesterday broke the pattern hard — 2,231 calories on **19,500 steps**, your
+biggest step day in the file. That's a real deficit day. One day doesn't move a
+trend, but it's the right direction and it's worth knowing you did it.
 
-**3. The app recalled the proposals that made the five sets — and the sets
-stayed.** This morning's feed: *VOLUME PROPOSALS RECALLED — cold-start misfire;
-the ledger compared your first logged week against a week before this app
-existed.* That is your own app agreeing at source with Friday's argument, and
-tightening the rule so it can't happen again. But a recall stops future
-proposals; it doesn't undo what already shipped. Hack, abs, curls and triceps
-still read 4 sets and rows 3.
+This is a read, not a proposal. Your app owns the intake band and I'm not
+putting a competing number beside it.
 
-And I owe you a correction on that card. I wrote that each of the five had a
-one-tap undo already on file. **They don't.** The undo records exist for Friday's
-three — hams, chest, rear delt — and not for Sunday's five, which went in with no
-adjustment entry behind them at all. I asked you to press a button that isn't
-there, and then I was ready to read the silence as a decision. That's my error,
-not yours.
+**2. Yesterday was one of the best training days on your record.**
+
+Genuinely. Hack **180 × 9, 9, 10** — and the reason that needed a record
+correction is worth understanding: the phone had logged 160, because the weight
+editor could only walk the ladder already on file, and 180 had no way in. Your
+attestation fixed it, and the app then filed something useful: **the stack tops
+out at 180**, so from here reps are the ladder, not weight.
+
+Alongside it: extension **155 × 9, 9** — target met, which is the card you
+approved on the 5th, landing better than the 8,8 I predicted. Abs opened at 2
+reps in reserve and the hold released, exactly the way rows did on Sunday, on
+the exact field I said to watch. Calves 320 met. Ham 120 × 12,12,11 earned 125
+outright — four reps clear of last time against a measured spread of 2.7, so it
+banked on one honest sighting rather than two.
+
+Five lifts moving in one session, on a week where the scale did nothing. That is
+what "the weight stalled but the body didn't" looks like.
+
+**3. Press is still the one broken gauge, and it's set up to break again.**
+
+On 8/6 you pressed 250 × 8,8,7 and got *PRESS — TARGET MET*. On Sunday you
+pressed the same top three, added a fourth set at 4 reps, and the feed gave you
+**nothing at all** — while every other lift in that session got a row.
+
+My read is that Friday's push took chest from 3 sets to 4, so the target now has
+four slots and a 4-rep set fails the whole thing. I still can't prove that from
+your file — the target list isn't saved with the session — so treat it as my
+best guess. What isn't a guess: the best press in your record scored zero, and
+the only thing that changed was the set count.
+
+Press is the one lift from Friday's push that stayed at 4 sets, and it should
+have — it was one of the three that had an argument. But that means next upper
+day walks into the same trap.
 
 ## Is lean safe?
 
-Yes, comfortably, and it isn't the thing to worry about this week. Protein has
-run 190–200 g against a 146–196 window with nine straight weeks at 100% of
-target. Loads are being defended and then some — extension 155 owned off 8,9,
-calves holding 320, lateral 85 × 14,14,12,12 on Sunday, rows off its hold. At
-0.59%/wk you're inside the range where a trained lifter keeps tissue.
+Yes, and it's not close. Protein has run 175–200 g against a 146–196 window,
+every week at target. And look at what the loads did in one session — hack,
+extension, ham, abs, calves all up or holding, rows off its hold at 180, press
+still moving 250. Bodies shedding lean tissue do not do that.
 
-The risk has changed shape. It isn't losing lean too fast anymore — it's paying
-for eight muscle groups of new volume out of a recovery account nobody is
-keeping the books on.
+If anything the risk has flipped. At 0.49% a week you're now losing *slower*
+than the range that's known to protect lean, not faster. The thing to worry
+about this week isn't tissue — it's that the cut has quietly stopped.
 
-## One observation on the food, and it stays an observation
+## One small thing on the log
 
-Your last four logged days ran 2,800 / 2,800 / 3,000 / 2,900 — a mean of
-**2,875**. Sunday's food isn't logged at all. Meanwhile measured maintenance
-moved again in your favour: the engine fits **2,911**, and your app's own
-learned figure came up to **2,886 (2,701–3,070)** this morning, from 2,854. Two
-independent fits, 25 kcal apart. Four days at 2,875 against that is a deficit of
-roughly nothing.
-
-That is a read, not a proposal. Your app owns the intake band and I'm not
-putting a second number next to it. But `phase` still says EASE 1, `phaseLog` is
-still empty, and the rate band is still written in pounds — so if the block has
-genuinely turned into a recomp, it's still undeclared, and that one belongs to
-you and your coach rather than to a card.
+Three lifts went in with no effort rating at all: extension and ham yesterday,
+triceps on Sunday. That matters more than it sounds, because the whole abs and
+rows freeze story was about a *rated* opener. A blank rating is the next version
+of the same problem — the app can't grade what you didn't tell it. Rate the
+opener, even roughly.
 
 ## The one move
 
-**Log the three nights and this morning's read.** Three minutes.
+**Weigh tomorrow morning, before you eat and before you leave the house.**
 
-Not because sleep is a virtue — because right now the debt flag says clean on no
-data, the week-in-review says 2/3 clean on three nights out of seven, the trend
-is coasting on a Thursday read, and the food log stops Friday. Four gauges, all
-confident, none of them looking at this week. Everything else on this page —
-whether the volume converted, whether press is stalling or was mis-scored,
-whether the trend actually flattened — is unanswerable until those three minutes
-happen. If you sleep badly, log it badly. A bad night on the record is worth
-more to you than a missing one.
+Same three minutes you've already been spending — just at the other end of the
+day. Nothing else on this page can be settled until it happens: whether the
+trend actually flattened or is just stale, whether your app's 1.15 a week or my
+0.80 is the real number, whether four maintenance days cost you what I think
+they did. One in-window read tomorrow and all three of those answer themselves.
 
 ## The horizon
 
-Your next session is a **lower** day, and abs is still held — `rirHist` reads
-[2,0,0] after Friday's rated 0. Open it at 1 RIR and it releases exactly the way
-rows did on Sunday, and 105 comes back into play. Same act, same mechanism, one
-session away.
+**Next lower day:** ham 125 is queued and live. Before you run it, your own app
+asked you a fair question — does that machine actually make 125? Check the
+ladder in SETUP first. A debut onto a rung that doesn't exist is how the hack
+number got wrong in the first place.
 
-Two forecasts of mine are live and gradeable: a clean morning read landing
-**162.8–163.4**, and the measured rate falling **under 0.7 lb/wk by about the
-16th** if intake stays where it is. The second one predicts a slowdown, so if
-your app keeps reporting 1.15 a week into next weekend, I'm wrong and I'll say
-so.
+**Next upper day:** the press decision. Either give the fourth set an honest
+effort or run three, but don't repeat Sunday.
 
-Three things to watch: whether the nights get logged, whether the morning reads
-come back in-window, and whether abs releases on the next lower day.
+**Further out:** EASE 2 arms at about 13% body fat and your current estimate is
+~16%, so that's weeks away and only if the rate resumes — this isn't a threshold
+sneaking up on you. The DEXA is still unbooked, and that's the one that matters,
+because every phase line you have hangs off a lean-mass figure carrying ±1.5–3
+lb of error. Booking it is the highest-value thing on the queue that isn't food
+or sleep.
+
+**Two of my forecasts are still open:** a clean morning read landing 162.8–163.4
+(can't be graded — there hasn't been one), and the measured rate dropping under
+0.7 lb/wk by about the 16th. That second one is at 0.80 and falling, so it's
+tracking. If your app is still reporting 1.15 a week next weekend, I was wrong
+and I'll say so.
+
+Three things to watch: whether tomorrow's read is a morning read, whether Sunday
+and Monday's food gets backfilled, and whether press produces a feed row on the
+next upper day.

@@ -1,16 +1,16 @@
 {
-  "gen": "2026-08-10T09:05:05.415Z",
+  "gen": "2026-08-11T09:05:42.409Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 163.37,
-    "lastRaw": 164.5,
+    "soft": 163.56,
+    "lastRaw": 164,
     "appTrend": 163.4,
     "noiseFloor": 1.52,
-    "gap": -1.13
+    "gap": -0.44
   },
   "rate": {
-    "perWeekLb": 0.97,
-    "perWeekPct": 0.59,
+    "perWeekLb": 0.8,
+    "perWeekPct": 0.49,
     "bandLb": 0.89,
     "personalBand": [
       1,
@@ -19,28 +19,21 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2911,
-    "tdeeWinDays": 20,
-    "meanCal": 2409,
+    "tdee": 2810,
+    "tdeeWinDays": 19,
+    "meanCal": 2432,
     "waterSensitivityLb": 1.11,
     "waterSensDays": 4,
-    "meanSleepH": 6.8,
-    "sleepDebt7H": 1.8,
+    "meanSleepH": 7,
+    "sleepDebt7H": 1,
     "ffmKg": 63.4,
     "proteinTargetG": 146
   },
   "regime": {
-    "regime": "steady loss",
-    "why": "trend descending at 0.97 lb/wk within your target band"
+    "regime": "plateau",
+    "why": "water masking (recent sodium/alcohol/event) - a whoosh likely pending"
   },
   "weeks": [
-    {
-      "wk": "2026-06-29",
-      "meanCal": 2078,
-      "meanPro": 182,
-      "proHitPct": 100,
-      "meanSteps": 21714
-    },
     {
       "wk": "2026-07-06",
       "meanCal": 2197,
@@ -75,20 +68,16 @@
       "meanPro": 191,
       "proHitPct": 100,
       "meanSteps": 13500
+    },
+    {
+      "wk": "2026-08-10",
+      "meanCal": 2231,
+      "meanPro": 175,
+      "proHitPct": 100,
+      "meanSteps": 19500
     }
   ],
   "priorDecisions": [
-    {
-      "sid": "sug_2026-08-01_ext155",
-      "decided": "approved",
-      "d": "2026-08-02",
-      "title": "Extension 155: debut it, and treat 9,8 as a win",
-      "apply": {
-        "kind": "progression",
-        "to": "Extension 155 — debut on the next lower day; 8,8 or better counts as a clean debut"
-      },
-      "predict": "155 opens near 9 and lands around 9,8. Anything at or above 8,8 is a clean debut and 155 stays. Set two is where it fell over in July — 9 then 6 — so that is the number to watch."
-    },
     {
       "sid": "sug_2026-08-02_scale",
       "decided": "approved",
@@ -181,25 +170,18 @@
         "kind": "note"
       },
       "predict": "Undo today's five (each has a one-tap undo on file) and the next upper day gives you attributable reads on chest and rear delt. Run all seven and I expect at least two 'did not convert' verdicts inside two weeks that neither of us can assign a cause to, plus a press 250 ownership repeat landing on the same day as a fourth press set — which means it cannot bank clean. Grade on the next upper session's entry counts: press 4 / rearDelt 4 / tricep 4 / curl 4 / rows 3 means all seven ran."
+    },
+    {
+      "sid": "sug_2026-08-10_volunwind",
+      "decided": "approved",
+      "d": "2026-08-10",
+      "title": "Set Sunday's five back by hand — your app recalled the proposals that made them, and there is no undo button",
+      "apply": {
+        "kind": "progression",
+        "to": "Set back the five 8/9 volume additions by hand: hack 4 to 3, abs 4 to 3, curls 4 to 3, triceps 4 to 3, rows 3 to 2. Keep Friday's three (hams, chest, rear delt)."
+      },
+      "predict": "Set the five back and the next upper day gives attributable conversion reads on chest and rear delt — the two pushes that actually had an argument. Leave them and I expect at least two 'did not convert' verdicts inside a fortnight that neither of us can assign a cause to. Grade on entry counts: next upper day triceps 3 / curls 3 / rows 2, next lower day hack 3 / abs 3."
     }
   ],
-  "suggestions": [
-    {
-      "sid": "sug_2026-08-09_sleep",
-      "title": "Protect sleep: aim 7.5 h, cap afternoon caffeine",
-      "apply": {
-        "kind": "sleep",
-        "to": 7.5
-      },
-      "rationale": {
-        "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss 55% and raised lean-mass loss 60% (Nedeltcheva 2010).",
-        "data": "Last 11 nights average 6.8 h (7-night debt 1.8 h); 1 recent days had >=300 mg or afternoon caffeine.",
-        "relationship": "Short sleep + late caffeine track with your low recovery score and rep dips - the lever that protects lean while you cut."
-      },
-      "predict": "Higher share of loss as fat; lean protected; better session quality.",
-      "confidence": "high",
-      "gate": "approve",
-      "rank": 1
-    }
-  ]
+  "suggestions": []
 }
