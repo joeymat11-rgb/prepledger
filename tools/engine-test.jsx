@@ -7267,7 +7267,7 @@ if (fail) process.exit(1);
   ok(cs.indexOf("A count only — a covariate for sleep, pulse and scale attribution, never added to your calories") > -1, "R15j r2 — the alcohol line audited: count-only, never added to calories (the LEDGER_DICT's own law), plus the annotation it shares with sodium");
   ok(cs.indexOf("▸ FIVE MORE — WAKE TAG · PULSE · TEMPERATURE · WAIST · PHOTOS — AND WHAT ELSE THIS COULD DO") > -1 && cs.indexOf("FOUR MORE") === -1, "R15j r2 FIX 4 — the fold label counts what it lists (five) and names the menu inside it");
   /* NO novel state key: every write goes through a path that already shipped */
-  ok((cs.split("writeDaily(").length - 1) === 1 && (cs.split("applyRead(").length - 1) === 1 && (cs.split("undoRead(").length - 1) === 1 && (cs.split("runAdaptive(").length - 1) === 1, "R15j EXISTING WRITE PATHS — the sheet files the day through writeDaily and the scale through undoRead/applyRead/runAdaptive: the same functions the scattered affordances already used");
+  ok((cs.split("writeDaily(").length - 1) === 2 && (cs.split("applyRead(").length - 1) === 1 && (cs.split("undoRead(").length - 1) === 1 && (cs.split("runAdaptive(").length - 1) === 1, "R15j EXISTING WRITE PATHS — the sheet files the day through writeDaily and the scale through undoRead/applyRead/runAdaptive: the same functions the scattered affordances already used");
   ok((cs.split("s.waist || []").length - 1) === 1 && (cs.split("ns.photos.push({ d: tISO })").length - 1) === 1 && cs.indexOf("s.sleep") > -1 && (cs.split("localStorage").length - 1) === 0, "R15j — waist, photos and the sleep read use their existing stores; the sheet touches no storage of its own");
   ok((cs.match(/ns[.][a-zA-Z]+ = /g) || []).every((m) => ["ns.photos = "].includes(m)) , "R15j NO NOVEL STATE KEY — the only direct assignment in the sheet is the guarded photos array that already exists in SEED; every other write is delegated: " + JSON.stringify(cs.match(/ns[.][a-zA-Z]+ = /g) || []));
   /* ONE write path for the day numbers, shared with the log screen */
@@ -7334,7 +7334,7 @@ if (fail) process.exit(1);
     ok(cs.indexOf("const seedCal = eb0 && !eb0.gated && eb0.mid != null ? eb0.mid : 2000;") > -1 && cs.indexOf("const seedPro = pt0 && pt0.g != null ? pt0.g : 175;") > -1 && cs.indexOf("useState(dl.cal ?? seedCal)") > -1, "R15k NO-BLANK LAW — the steppers seed from the ENGINE'S OWN targets (energyBalanceTarget · proteinTarget · stepTarget — the same numbers the log screen seeds), never an empty string between − and +");
     ok(cs.indexOf('{isTarget ? <>{" "}<span') > -1 && cs.indexOf("TARGET</span>") > -1 && cs.indexOf("stepRow(" + Q + "CALORIES" + Q + ", cal, setCal, 10, dl.cal == null)") > -1, "R15k — and a row showing a TARGET rather than a logged value says so beside it: a suggestion can never be mistaken for a record");
     /* one hero */
-    ok(cs.indexOf('tone={heroIs("scale") ? "jade" : "ghost"}') > -1 && cs.indexOf('tone={heroIs("day") || heroIs("amend") ? "jade" : "ghost"}') > -1 && (cs.match(/tone="jade"/g) || []).length === 0, "R15k ONE HERO — the ask at the top decides which button is filled; the other is the quiet variant. Two full-width filled greens in one view is the defect, and no unconditional jade button survives in the sheet");
+    ok(cs.indexOf('tone={heroIs("scale") ? "jade" : "ghost"}') > -1 && cs.indexOf('tone={heroIs("day") || heroIs("amend") ? "jade" : "ghost"}') > -1 && (cs.match(/tone="jade"/g) || []).length === 2 && (cs.match(/<Btn small tone="jade"/g) || []).length === 2, "R15k ONE HERO (evolved for the OWED LEDGER) — the ask at the top decides which button is filled; the other is the quiet variant. Two full-width filled greens in one view is the defect; the FULL-hero law holds, and the only unconditional jades are the ledger rows' two per-row small Saves — a commit per debt row, not a competing hero");
     /* the density law, here */
     ok(cs.indexOf("const row9 = (key, name, buys, right, why, onTap) => {") > -1 && cs.indexOf('{name}<span style={{ color: DT.steel }}>{buys ? " · " + buys : ""}</span>') > -1 && cs.indexOf("{openW && why ?") > -1, "R15k DENSITY LAW — optional rows are ONE line (input · what it buys · counter) with the full explanation behind the row's own ▸: the three-line grey paragraphs R15i deleted from the LAB do not come back in a sheet");
     ok(cs.indexOf("THE CORE — WHAT RUNS EVERYTHING") > -1 && cs.indexOf("THE THREE THAT RUN EVERYTHING") === -1, "R15k COPY NIT — the label no longer counts three things above a scale, three numbers and a sleep row");
@@ -7359,7 +7359,7 @@ if (fail) process.exit(1);
     const pinned = (srcJ.match(/w=\{SLOT9\}/g) || []).length;
     ok(callers === 21 && pinned === 1, "R15k r2 SWEEP — " + callers + " Stepper call sites in the app; exactly " + pinned + " opts into the fixed slot (the sheet's day rows). The other " + (callers - pinned) + " pass no w and render byte-identically — the inline ones (\"~N min awake\", the bp pair) keep their shrink-to-fit behaviour by construction");
     /* one vertical rhythm: every row in the sheet on the same token */
-    ok(cs.indexOf("const ROW9 = 44;") > -1 && (cs.match(/minHeight: ROW9/g) || []).length === 8 && (cs.match(/minHeight: 44/g) || []).length === 0, "R15k r2 POLISH — one row-height token drives every row in the sheet (day rows, sodium, alcohol, sleep, optional rows, waist, the fold): no bespoke spacing survives");
+    ok(cs.indexOf("const ROW9 = 44;") > -1 && (cs.match(/minHeight: ROW9/g) || []).length === 10 && (cs.match(/minHeight: 44/g) || []).length === 0, "R15k r2 POLISH — one row-height token drives every row in the sheet (day rows, sodium, alcohol, sleep, optional rows, waist, the fold): no bespoke spacing survives");
     ok(cs.indexOf('{isTarget ? <>{" "}<span') > -1, "R15k r2 FIX 2 — the TARGET tag carries a REAL space, so the text layer reads \"CALORIES TARGET\" rather than CALORIESTARGET: visually spaced was not enough, a screen reader heard the defect");
     ok(cs.indexOf("Skipping any of these files nothing, colours nothing, and never makes a card.") > -1, "R15k r2 FIX 3 — the optional intro parses again: the trim had left \"files\" without an object");
   }
@@ -8018,6 +8018,62 @@ if (fail) process.exit(1);
     const { s: N48 } = __test.completeSession(S48, "2026-08-21", [{ id: "hack", n: "Hack squat", w: 180, tgt: [10, 9, 8], reps: [9, 9, 10], rir: 2, rirSets: [2, null, 0] }], { last: null }, { note: "", niggles: [], skipped: [], pace: null });
     const h49 = N48.exercises.find((x) => x.id === "hack");
     ok(h49.w === 180 && JSON.stringify(h49.steps) === "[160,170,180]" && N48.feed.some((f) => /LOGGED AT 180 \(plan said 160\)/.test(f.t)), "CAGE DRIVEN — logging 180 against a 160 plan moves the config to reality, merges 180 into the ladder, and the feed carries the receipt: the class that logged the plan instead of the day is dead end-to-end");
+  }
+
+  /* ---------- THE OWED LEDGER — one owner of the debt list ---------- */
+  {
+    const cl50 = (o) => JSON.parse(JSON.stringify(o));
+    const srcL = readFileSync("src/app.jsx", "utf8");
+    const tI = isoL(Date.now());
+    const dAgo = (k) => isoL(Date.now() - k * 864e5);
+    /* the mandated fixture shape: 2 dark nights + 1 open day */
+    const mkOwed = () => {
+      const S = cl50(__test.SEED);
+      S.sleep.nights = (S.sleep.nights || []).filter((n) => n && n.d !== dAgo(1) && n.d !== dAgo(2));
+      for (let k = 3; k <= 6; k++) if (!S.sleep.nights.some((n) => n.d === dAgo(k))) S.sleep.nights.push({ d: dAgo(k), h: 7.5, bed: "23:30", wake: "07:00", tags: [], sol: 10 });
+      S.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
+      const dl = { ...(S.dailyLogs || {}) };
+      delete dl[dAgo(1)];
+      for (let k = 2; k <= 3; k++) dl[dAgo(k)] = dl[dAgo(k)] && dl[dAgo(k)].cal != null ? dl[dAgo(k)] : { cal: 2200, pro: 170, steps: 12000 };
+      S.dailyLogs = dl;
+      return S;
+    };
+    const SO = mkOwed();
+    const led = __test.owedLedger(SO, 12);   /* midday: the read window is closed, so no scale row muddies the shape */
+    ok(led.every((r) => r && r.k && r.d && r.t && r.why), "OWED LEDGER — every row carries the {k, d, t, why} shape");
+    const nightsL = led.filter((r) => r.k === "night").map((r) => r.d);
+    const daysL = led.filter((r) => r.k === "day").map((r) => r.d);
+    ok(JSON.stringify(nightsL) === JSON.stringify([dAgo(2), dAgo(1)]) && daysL.indexOf(dAgo(1)) > -1, "OWED LEDGER — the fixture reads true: the two dark nights oldest-first, the open day present (fixture: 2 dark nights + 1 open day, as mandated)");
+    ok(led.findIndex((r) => r.k === "night") < led.findIndex((r) => r.k === "day"), "OWED LEDGER — ordering law: nights before days (scale leads when the window is open — the one time-sensitive item; you cannot measure the past)");
+    /* the 3-day cap: a week-deep hole yields at most 3 night rows */
+    const SC = mkOwed(); SC.sleep.nights = SC.sleep.nights.filter((n) => n.d < dAgo(8));
+    ok(__test.owedLedger(SC, 12).filter((r) => r.k === "night").length === 3, "OWED LEDGER — the 3-day law holds: morning-after logging is the honest instrument, multi-day recall drifts — a week of dark nights lists exactly three");
+    /* [] when fully logged */
+    const SF = cl50(__test.SEED);
+    for (let k = 1; k <= 3; k++) {
+      if (!SF.sleep.nights.some((n) => n.d === dAgo(k))) SF.sleep.nights.push({ d: dAgo(k), h: 7.5, bed: "23:30", wake: "07:00", tags: [], sol: 10 });
+      SF.dailyLogs[dAgo(k)] = SF.dailyLogs[dAgo(k)] && SF.dailyLogs[dAgo(k)].cal != null ? SF.dailyLogs[dAgo(k)] : { cal: 2200, pro: 170, steps: 12000 };
+    }
+    SF.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
+    ok(__test.owedLedger(SF, 12).length === 0, "OWED LEDGER — fully logged reads EMPTY: UP TO DATE is earned, not asserted");
+    /* the nag's old contract preserved through the wrapper */
+    ok(JSON.stringify(__test.owedNights(SO, 12)) === JSON.stringify([dAgo(1), dAgo(2)]), "OWED LEDGER — owedNights stays byte-compatible: the two NEWEST missing nights, newest first — the one owner, no second law");
+    /* the fix-window guard: live coaching, not bookkeeping */
+    const SG5 = cl50(__test.SEED); SG5.fixWindow = null;
+    const oldD = dAgo(2);
+    const G1 = __test.writeDaily(SG5, oldD, { cal: 2200, pro: 20, steps: 10000 });
+    ok(G1.fixWindow === null, "OWED LEDGER — a protein miss BACKFILLED for a day older than yesterday opens NO fix window: the 24-hour recovery window is live coaching, and that day's 24 hours are gone");
+    const G2 = __test.writeDaily(SG5, dAgo(1), { cal: 2200, pro: 20, steps: 10000 });
+    ok(G2.fixWindow && G2.fixWindow.opened === dAgo(1), "OWED LEDGER — and yesterday still opens it: the guard is a date line, not a retirement");
+    /* data-loss law: the ledger writes only ever ADD */
+    const c0 = { n: SO.sleep.nights.length, d: Object.keys(SO.dailyLogs).length, r: (SO.reads || []).length, s: Object.keys(SO.sessionLog).length, q: (SO.queue || []).length };
+    const W1 = __test.writeDaily(SO, dAgo(1), { cal: 2100, pro: 170, steps: 11000 });
+    ok(W1.sleep.nights.length >= c0.n && Object.keys(W1.dailyLogs).length >= c0.d && (W1.reads || []).length >= c0.r && Object.keys(W1.sessionLog).length >= c0.s && (W1.queue || []).length >= c0.q, "OWED LEDGER — the data-loss law measured across a ledger write: reads, nights, dailyLogs, sessionLog and queue every one >= before");
+    /* dark gauges say dark — at source, on the FIVE row and the gym header */
+    ok(srcL.indexOf("} dark — can't read") > -1 && srcL.indexOf('state: "quiet", detail: `${darkD} night') > -1, "DARK GAUGES — THE FIVE's sleep row goes quiet with the count of dark nights when the newest night is older than yesterday: three dark nights can never again read as a clean week");
+    ok(srcL.indexOf("slp.last.d >= isoOf(new Date(todayStart().getTime() - DAY))") > -1, "DARK GAUGES — the gym header's SLEPT-N-H line claims currency only when the night IS current; a stale night renders the fallback, not a false reading. Engine behaviour unchanged: cleanAtDate keeps its permissive default (short sleep protects), the retired upside gate stays retired — this round moved LABELS only");
+    /* the sheet renders the ledger, answerable */
+    ok(srcL.indexOf("OWED — ") > -1 && srcL.indexOf("saveNightFor(r.d, bd, wk)") > -1 && srcL.indexOf("writeDaily(s, r.d, { cal: stepValue(") > -1 && srcL.indexOf('"≈ estimated" : "exact"') > -1 && srcL.indexOf("MORE</button>") > -1, "THE SHEET — the hero is the OWED list (~3 shown, +N MORE), each row answerable inline: nights through the parameterized saveNightFor (the write path's only change is the date), days through writeDaily(s, iso) with the est flag defaulting ON for backfills older than yesterday (toggleable — rough numbers count)");
   }
 }
 console.log(`\nFINAL102: ${pass} passed, ${fail} failed`);

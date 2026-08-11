@@ -260,6 +260,33 @@ for (const [name, mut] of states) {
   if (rows9 >= 10 && !belt9) { console.error("RENDER-SMOKE long-belt: the all-done column lacks its sanctioned overflowY:auto"); failed++; }
   if (rows9 >= 10 && fin9 && belt9) console.log("RENDER-SMOKE long-belt: " + rows9 + "-row belt renders in a scrolling column with finish present-and-disabled");
 }
+/* THE OWED LEDGER FIXTURE — 2 dark nights + 1 open day (the mandated shape): the FIVE's
+   sleep row must say DARK instead of reading clean, and the + sheet must list the debt
+   with answerable rows. */
+{
+  const dAgo = (k) => { const d = new Date(Date.now() - k * 864e5); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+  const w = await mount((st) => {
+    st.sleep.nights = (st.sleep.nights || []).filter((n) => n && n.d !== dAgo(1) && n.d !== dAgo(2));
+    for (let k = 3; k <= 5; k++) if (!st.sleep.nights.some((n) => n.d === dAgo(k))) st.sleep.nights.push({ d: dAgo(k), h: 7.5, bed: "23:30", wake: "07:00", tags: [], sol: 10 });
+    st.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
+    const dl = { ...(st.dailyLogs || {}) };
+    delete dl[dAgo(1)];
+    st.dailyLogs = dl;
+  });
+  await new Promise((r) => setTimeout(r, 250));
+  const click = (el) => el && el.dispatchEvent(new w.window.MouseEvent("click", { bubbles: true }));
+  await openBriefing(w);   /* THE FIVE lives in the briefing room */
+  const t1 = w.document.body.textContent || "";
+  if (!/night(s)? dark — can't read/.test(t1)) { console.error("RENDER-SMOKE owed: THE FIVE does not say dark over 2 dark nights — absence is reading as clean again"); failed++; }
+  click(w.document.querySelector('[aria-label="Quick log"]'));
+  await new Promise((r) => setTimeout(r, 200));
+  const t2 = w.document.body.textContent || "";
+  if (!/OWED — \d+ ITEM/.test(t2)) { console.error("RENDER-SMOKE owed: the + sheet does not lead with the OWED list"); failed++; }
+  if (!t2.includes("THE NIGHT OF") || !t2.includes("CLOSE ")) { console.error("RENDER-SMOKE owed: the debt rows (night + day) are not rendered"); failed++; }
+  const saves = [...w.document.querySelectorAll("button")].filter((b) => (b.textContent || "").trim() === "Save").length;
+  if (saves < 2) { console.error("RENDER-SMOKE owed: expected inline Save controls on the debt rows, found " + saves); failed++; }
+  if (/night(s)? dark/.test(t1) && /OWED — /.test(t2) && saves >= 2) console.log("RENDER-SMOKE owed: the FIVE says dark and the + answers " + (t2.match(/OWED — (\d+)/) || [])[1] + " owed items inline");
+}
 if (failed) {
   console.error(`RENDER-SMOKE: ${failed} failures`);
   process.exit(1);

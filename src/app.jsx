@@ -335,7 +335,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.43.0";
+const APP_V = "7.44.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -5657,14 +5657,34 @@ function sleepLab(s) {
 }
 
 /* which nights are owed? dated by the evening they began; logged the morning after; pre-5am still means the night you finished */
-function owedNights(s, hour = new Date().getHours()) {
+/* THE OWED LEDGER — ONE pure selector owns the debt list (Joe's ruling: the + answers
+   what's missing). Three row kinds, in a fixed order that leads with the only
+   time-sensitive item: TODAY'S SCALE first (you cannot measure the past — no backfill
+   for scale, pulse or temperature, ever; the surface may not author a measurement),
+   then missing NIGHTS oldest-first, then open DAY LOGS oldest-first. The lookback is
+   the existing 3-day law for both: morning-after logging is the honest instrument,
+   and multi-day recall drifts. Sessions stay TRAIN's. owedNights / nowFocus /
+   captureAsk are callers of this — one owner, no second law. */
+function owedLedger(s, hour = new Date().getHours()) {
   const ref = hour < 5 ? new Date(todayStart().getTime() - DAY) : todayStart();
-  const out = [];
-  for (let k = 1; k <= 3; k++) {
+  const tISO = isoOf(todayStart());
+  const rows = [];
+  const rw = readWindow(s, hour);
+  if (rw.open && !rw.hasRead) rows.push({ k: "scale", d: tISO, t: "THIS MORNING'S SCALE", why: "the read the whole engine steers on — one tap, then the trend absorbs it" });
+  for (let k = 3; k >= 1; k--) {
     const d = isoOf(new Date(ref.getTime() - k * DAY));
-    if (!s.sleep.nights.some((n) => n.d === d)) out.push(d);
+    if (!(s.sleep.nights || []).some((n) => n && n.d === d)) rows.push({ k: "night", d, t: "THE NIGHT OF " + fmtShort(d), why: "bed and wake — three dark nights read as a clean week to every gauge that trusts the record" });
   }
-  return out.slice(0, 2);
+  for (let k = 3; k >= 1; k--) {
+    const d = isoOf(new Date(todayStart().getTime() - k * DAY));
+    const dl = (s.dailyLogs || {})[d];
+    if (!dl || dl.cal == null) rows.push({ k: "day", d, t: "CLOSE " + fmtShort(d), why: "calories, protein, steps — an open day is a hole in every average the targets are measured against" });
+  }
+  return rows;
+}
+/* the nag's old contract, preserved exactly: the two NEWEST missing nights */
+function owedNights(s, hour = new Date().getHours()) {
+  return owedLedger(s, hour).filter((r) => r.k === "night").map((r) => r.d).sort((a, b) => (a < b ? 1 : -1)).slice(0, 2);
 }
 
 /* THE ONE THING — the priority ladder that answers "what do I do?" before scrolling */
@@ -7239,8 +7259,15 @@ function fiveLevers(s) {
     ? { label: "TRAINING", state: "good", detail: `${wk7} of 4 · complete` }
     : { label: "TRAINING", state: "quiet", detail: wk7 === 0 ? "none logged yet" : `${wk7} of 4 this week` };
   // SLEEP — is he on his clean-night target run?
+  // SLEEP — but ONLY if the record is current: three dark nights must not read as a
+  // clean week. The run atSleepTarget reports ended whenever the nights end; when the
+  // newest night is older than yesterday, the honest state is quiet (counting-only).
   const sl = atSleepTarget(s, null);
-  const sleep = { label: "SLEEP", state: sl.at ? "good" : "caution", detail: `${sl.run}/${s.sleep.needed} clean` };
+  const newestN = (s.sleep.nights || [])[(s.sleep.nights || []).length - 1];
+  const darkD = newestN ? Math.round((mk(tISO) - mk(newestN.d)) / DAY) - 1 : 99;
+  const sleep = darkD >= 1
+    ? { label: "SLEEP", state: "quiet", detail: `${darkD} night${darkD === 1 ? "" : "s"} dark — can't read` }
+    : { label: "SLEEP", state: sl.at ? "good" : "caution", detail: `${sl.run}/${s.sleep.needed} clean` };
   // STEPS — today's steps against his own measured floor
   const stg = stepTarget(s);
   const todaySteps = (s.dailyLogs[tISO] || {}).steps;
@@ -10715,7 +10742,7 @@ __test.beatsNoise = beatsNoise;
 __test.cleanAtDate = cleanAtDate;
 __test.progressStep = progressStep;
 __test.sleepInfo = sleepInfo;
-__test.atSleepTarget = atSleepTarget;
+__test.atSleepTarget = atSleepTarget; __test.owedLedger = owedLedger; __test.owedNights = owedNights;
 __test.labAnalytics = labAnalytics;
 __test.INS_MAP = INS_MAP;
 __test.liveBooks = liveBooks;
@@ -16030,7 +16057,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           </div>
           <div style={{ flex: 1, minHeight: 0 }} />
           <div style={{ fontFamily: mono, fontSize: 9.5, color: DT.dim, letterSpacing: "0.08em", textAlign: "center", marginTop: 2, lineHeight: 1.7 }}>
-            {slp && slp.last && slp.last.h != null ? "SLEPT " + slp.last.h + " H — " + (shortN ? "SHORT NIGHT. TODAY STILL COUNTS — SHORT SLEEP PROTECTS, IT NEVER PUNISHES." : "GOOD NIGHT. TODAY'S NUMBERS COUNT.") : "NO NIGHT LOGGED — TODAY'S NUMBERS COUNT EITHER WAY."}
+            {slp && slp.last && slp.last.h != null && slp.last.d >= isoOf(new Date(todayStart().getTime() - DAY)) ? "SLEPT " + slp.last.h + " H — " + (shortN ? "SHORT NIGHT. TODAY STILL COUNTS — SHORT SLEEP PROTECTS, IT NEVER PUNISHES." : "GOOD NIGHT. TODAY'S NUMBERS COUNT.") : "NO NIGHT LOGGED — TODAY'S NUMBERS COUNT EITHER WAY."}
             <br />AFTER THE LAST SET, ONE CHECK: "HOW MANY MORE DID YOU HAVE?" — DID THE PLANNED EFFORT LAND?
           </div>
         </div>
@@ -16704,7 +16731,10 @@ function writeDaily(s, iso, v) {
   if (has("alc")) row.alc = +v.alc || 0;
   ns.dailyLogs = { ...ns.dailyLogs, [iso]: row };
   const p = has("pro") ? num(v.pro) : null;
-  if (p != null) {
+  /* OWED LEDGER guard — the fix window is LIVE coaching: a backfilled day older than
+     yesterday must not open (or close) a 24-hour recovery window that already passed. */
+  const yFix = isoOf(new Date(todayStart().getTime() - DAY));
+  if (p != null && iso >= yFix) {
     const hit = proteinHit(proteinTarget(s).lo, p);
     if (!hit && !ns.fixWindow) ns.fixWindow = { opened: iso };
     if (hit && ns.fixWindow && ns.fixWindow.opened !== iso) {
@@ -16720,8 +16750,11 @@ function captureAsk(s, hour) {
   const rw = readWindow(s, hour);
   const dl = (s.dailyLogs || {})[tISO] || {};
   const yl = (s.dailyLogs || {})[yISO];
-  if (rw.open && !rw.hasRead) return { k: "scale", t: "THIS MORNING'S SCALE", why: "the read the whole engine steers on — one tap, then the trend absorbs it" };
-  if (!yl && (s.reads || []).some((r) => r && r.d < tISO)) return { k: "amend", t: "YESTERDAY'S BOOKS ARE STILL OPEN", why: "close " + fmtShort(yISO) + " — an unlogged day is a hole in every average below" };
+  /* the ledger is the one owner; this ladder is a VIEW of it plus the two conditions
+     that are about the ASK's wording, not the debt (reads-exist, the evening hour) */
+  const led = owedLedger(s, hour);
+  if (led.some((r) => r.k === "scale")) return { k: "scale", t: "THIS MORNING'S SCALE", why: "the read the whole engine steers on — one tap, then the trend absorbs it" };
+  if (led.some((r) => r.k === "day" && r.d === yISO) && !yl && (s.reads || []).some((r) => r && r.d < tISO)) return { k: "amend", t: "YESTERDAY'S BOOKS ARE STILL OPEN", why: "close " + fmtShort(yISO) + " — an unlogged day is a hole in every average below" };
   if (dl.cal == null && rw.hour >= 17) return { k: "day", t: "CLOSE THE DAY", why: "calories, protein, steps — the three the targets are measured against" };
   if (!rw.hasRead) return { k: "scale", t: "THE SCALE, WHEN YOU GET TO IT", why: "off-window reads are kept and set aside — logged honestly, never fed to the trend" };
   if (dl.cal == null) return { k: "day", t: "CLOSE THE DAY", why: "calories, protein, steps — the three the targets are measured against" };
@@ -16822,6 +16855,12 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
   /* R15j r2 — THE SYNC IS THE BRACES: re-read the LIVE day on the OPEN transition, so a
      day logged elsewhere after tab mount can never render stale (or blank). */
   const [wasOpen, setWasOpen] = useState(false);
+  /* OWED LEDGER inline-answer state, keyed by date; seeds name their own source */
+  const [owedAll, setOwedAll] = useState(false);
+  const [nB, setNB] = useState({});   /* night bed per date */
+  const [nW, setNW] = useState({});   /* night wake per date */
+  const [dV, setDV] = useState({});   /* day rows: { d: {cal,pro,steps} } */
+  const [estOff, setEstOff] = useState({});   /* backfill est defaults ON older than yesterday; tap to clear */
   useEffect(() => {
     if (open && !wasOpen) {
       const live = (s.dailyLogs || {})[tISO] || {};
@@ -16920,6 +16959,22 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
   const wokePrev9 = (() => { const p = ((s.sleep && s.sleep.nights) || []).find((n) => n && n.d === isoOf(new Date(todayStart().getTime() - DAY))); return !!(p && (p.tags || []).includes("woke")); })();
   const awakeUse9 = wokePrev9 ? awakePrev9 : 0;
   const hPreview9 = sleepSpanH(bedIn, wakeIn, solUse9 + awakeUse9);
+  /* OWED LEDGER — saveNight takes the row's DATE; the write path is otherwise
+     byte-identical (same row shape, same sort, nothing deleted). Per-date sol: the
+     date's own logged sol on a re-log, else medianSOL — the same law, per row. */
+  const saveNightFor = (d9, bed9, wake9) => {
+    const ns = JSON.parse(JSON.stringify(s));
+    const pd = (ns.sleep.nights || []).find((n) => n && n.d === d9) || null;
+    const solD = pd && pd.sol != null ? pd.sol : medianSOL(s);
+    const awakeD = pd && (pd.tags || []).includes("woke") && pd.awakeMin != null ? pd.awakeMin : 0;
+    const tagsD = pd && pd.tags ? pd.tags.slice() : [];
+    const rowD = { d: d9, h: sleepSpanH(bed9, wake9, solD + awakeD), bed: bed9, wake: wake9, tags: tagsD, sol: solD };
+    if (pd && pd.awakeMin != null) rowD.awakeMin = pd.awakeMin;
+    ns.sleep.nights = (ns.sleep.nights || []).filter((n) => n && n.d !== d9);
+    ns.sleep.nights.push(rowD);
+    ns.sleep.nights.sort((a, b) => (a.d < b.d ? -1 : 1));
+    setS(ns); save(ns); hap(12);
+  };
   const saveNight = () => {
     const ns = JSON.parse(JSON.stringify(s));
     const d9 = isoOf(new Date(todayStart().getTime() - DAY));
@@ -16935,8 +16990,63 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
   const saveDay = (over) => { const ns = writeDaily(s, tISO, over || { cal: stepValue(cal, 0, 1, 0), pro: stepValue(pro, 0, 1, 0), steps: stepValue(stp, 0, 1, 0), sodium: sod, alc }); setS(ns); save(ns); hap(12); };
   return (
     <Sheet open={open} onClose={onClose} title="LOG">
+      {/* THE OWED LEDGER — the + answers what is missing (Joe's ruling). One owner
+          (owedLedger) supplies the rows; each is answerable inline; skipping files
+          nothing, colours nothing, cards nothing — the sheet's standing law. */}
       <div data-cap="hero">
-        <div style={{ ...lbl9, color: ask.k === "none" ? DT.jade : DT.amber }}>{ask.k === "none" ? "UP TO DATE" : "DUE NOW"}</div>
+        {(() => {
+          const led = owedLedger(s);
+          const yLed = isoOf(new Date(todayStart().getTime() - DAY));
+          if (!led.length) return (<>
+            <div style={{ ...lbl9, color: DT.jade }}>UP TO DATE</div>
+            <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.55, marginTop: GAP_PAIR }}>Nothing is owed. Anything below is optional — and optional means optional.</div>
+          </>);
+          const show = owedAll ? led : led.slice(0, 3);
+          return (<>
+            <div style={{ ...lbl9, color: DT.amber }}>OWED — {led.length} ITEM{led.length === 1 ? "" : "S"}</div>
+            {show.map((r) => {
+              if (r.k === "scale") return (
+                <div key={r.d + r.k} style={{ borderTop: "1px solid " + DT.hairline, marginTop: GAP_PAIR, paddingTop: GAP_PAIR }}>
+                  <div style={{ ...rowName }}>{r.t}<span style={{ color: DT.steel }}> · in the core below — one tap</span></div>
+                </div>);
+              if (r.k === "night") {
+                const bd = nB[r.d] ?? ((s.sleep && s.sleep.anchor) || {}).bed ?? "23:30";
+                const wk = nW[r.d] ?? ((s.sleep && s.sleep.anchor) || {}).wake ?? "07:30";
+                return (
+                  <div key={r.d + r.k} style={{ borderTop: "1px solid " + DT.hairline, marginTop: GAP_PAIR, paddingTop: GAP_PAIR }}>
+                    <div style={{ ...rowName }}>{r.t}</div>
+                    <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.55, marginTop: 3 }}>{r.why}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: GAP_PAIR, minHeight: ROW9 }}>
+                      <span style={{ ...rowName, color: DT.steel }}>BED</span>
+                      <input type="time" value={bd} onChange={(e) => setNB({ ...nB, [r.d]: e.target.value })} aria-label={"bed " + r.d} style={timeIn9} />
+                      <span style={{ ...rowName, color: DT.steel }}>WAKE</span>
+                      <input type="time" value={wk} onChange={(e) => setNW({ ...nW, [r.d]: e.target.value })} aria-label={"wake " + r.d} style={timeIn9} />
+                      <Btn small tone="jade" onClick={() => saveNightFor(r.d, bd, wk)}>Save</Btn>
+                    </div>
+                  </div>);
+              }
+              const dv = dV[r.d] || { cal: seedCal, pro: seedPro, steps: seedStp };
+              const estOn = r.d < yLed && !estOff[r.d];
+              return (
+                <div key={r.d + r.k} style={{ borderTop: "1px solid " + DT.hairline, marginTop: GAP_PAIR, paddingTop: GAP_PAIR }}>
+                  <div style={{ ...rowName }}>{r.t}<span style={{ ...tnum9, fontSize: 9.5, letterSpacing: "0.12em", color: DT.dim }}> TARGET-SEEDED</span></div>
+                  <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.55, marginTop: 3 }}>{r.why}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: GAP_PAIR, minHeight: ROW9, flexWrap: "wrap" }}>
+                    {["cal", "pro", "steps"].map((f9) => (
+                      <input key={f9} value={dv[f9]} inputMode="decimal" aria-label={f9 + " " + r.d}
+                        onFocus={(e) => { try { e.target.select(); } catch (err) {} }}
+                        onChange={(e) => setDV({ ...dV, [r.d]: { ...dv, [f9]: e.target.value } })}
+                        style={{ ...tnum9, fontSize: 14, color: DT.ink, background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 8, width: f9 === "steps" ? 64 : 56, padding: "8px 6px", textAlign: "center" }} />
+                    ))}
+                    {r.d < yLed ? <button onClick={() => setEstOff({ ...estOff, [r.d]: !estOff[r.d] })} style={{ background: "none", border: "1px solid " + (estOn ? DT.amber : DT.hairline2), borderRadius: 999, padding: "5px 9px", fontFamily: mono, fontSize: 10, color: estOn ? DT.amber : DT.steel, cursor: "pointer" }}>{estOn ? "≈ estimated" : "exact"}</button> : null}
+                    <Btn small tone="jade" onClick={() => { let ns = writeDaily(s, r.d, { cal: stepValue(dv.cal, 0, 1, 0), pro: stepValue(dv.pro, 0, 1, 0), steps: stepValue(dv.steps, 0, 1, 0) }); if (estOn) { ns = { ...ns, dayCtx: { ...(ns.dayCtx || {}), [r.d]: { ...((ns.dayCtx || {})[r.d] || {}), est: true, note: "backfilled — rough numbers count" } } }; } setS(ns); save(ns); hap(12); }}>Save</Btn>
+                  </div>
+                </div>);
+            })}
+            {led.length > 3 && !owedAll ? <button onClick={() => setOwedAll(true)} style={{ background: "none", border: "none", padding: "10px 0", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel, cursor: "pointer" }}>▸ +{led.length - 3} MORE</button> : null}
+          </>);
+        })()}
+        <div style={{ ...lbl9, color: ask.k === "none" ? DT.jade : DT.amber, display: "none" }}>{ask.k === "none" ? "UP TO DATE" : "DUE NOW"}</div>
         <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 19, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase", marginTop: GAP_PAIR, lineHeight: 1.15 }}>{ask.t}</div>
         <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.55, marginTop: GAP_PAIR }}>{ask.why}</div>
       </div>
