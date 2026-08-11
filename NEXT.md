@@ -1,3 +1,241 @@
+## NEXT ROUND — THE VOLUME ENGINE (three-audit consolidated verdict, Joe-ruled; filed 2026-08-11)
+
+**BUILD ONLY AFTER the fix/board-p0p1 defects land (Cowork re-drives 354bac7, Joe merges
+v7.45.0). One branch, next free version. VERDICT: NOT YET BUILT.** The build order below
+and the consolidated verdict beneath it are both verbatim; the verdict is the spec of
+record.
+
+### THE BUILD ORDER (Cowork, verbatim, 2026-08-11)
+
+FOR CLAUDE CODE — THE VOLUME ENGINE ROUND (three-audit consolidated verdict, Joe-ruled)
+FILE NOW in NEXT.md as the next round; BUILD ONLY AFTER the fix/board-p0p1 defects land.
+The attached VOLUMEENGINECONSOLIDATEDVERDICT.md is the spec of record; this is the build
+order and acceptance. One branch, next free version. B3's pending word is now given: DERIVE.
+
+CURRENT-CODE ANCHORS (Cowork re-verified at main today): verdict = delivered===false ?
+UNDELIVERED : rising ? CONVERTED : NOT_CONVERTED, with NOT_CONVERTED permanently blocking
+the next push ("waits for that verdict to change"); rollback: NOT_CONVERTED && fatigueUp;
+VOL_BANDS = { floor: 6, lo: 8, hi: 14, ceil: 16 }; the push receipt claims "pooled
+progression rising". The audits read the code correctly.
+
+BUILD ORDER (dependencies first):
+0. A1 — SPLIT THE READ: DELIVERED / TOLERATED / GROWTH-UNKNOWN. RIR≤1 delivered criterion
+   stays. NOT_CONVERTED dies EVERYWHERE INCLUDING COPY (grep the claim, not the function —
+   the eleven-places lesson). Re-eligibility keys on TOLERATED. Growth attribution only
+   from an 8–12wk stable block; until then the instrument says GROWTH-UNKNOWN, never a
+   conversion verdict off a two-week trend.
+1. A2 — rollback-on-null → STAGED HOLD: hold → verify delivery/execution/rest/nutrition →
+   subtract only on repeated local deterioration, pain, or recovery leaving GREEN;
+   immediate safety rollback stays. Camargo 2026 is a PREPRINT — label it so in receipts.
+2. A3 + B4 — THE GATE: "rising" → "lifts not falling"; and (ruling B4) a stalled scale
+   mid-cut with every other instrument clean still permits offers — "nothing looks wrong"
+   suffices. Copy moves with the mechanism.
+3. A4 — CEILING RESHAPE: per-session cap ~6–8 direct hard sets/muscle (today's 16-at-2×
+   = 8 in one session is the real trip); weekly hard-16 → review zone 15–18, progression
+   past it gated on delivered+tolerated; documented absolute backstop low-to-mid 20s,
+   never-normally-reached; when a weekly target exceeds ~2× the session cap, offer a
+   FREQUENCY change, not session bloat.
+4. A5 — DECOUPLE THE BUDGETS: sets leave the scale's one-lever budget (calories/steps
+   keep it); staggered multi-muscle set-adds read against per-lift baselines; a set-add
+   never blocks a calorie steer or vice versa. NOTE: the R18f one-chooser/budget suite
+   hardened the OLD coupling — evolve those tests DELIBERATELY: the desk one-door law,
+   decline guards and echo-dedup all stay; what changes is which budget sets spend.
+5. A6 — CADENCE BY PHASE: cut = batch-then-hold (one priority muscle per 2–4 wks);
+   surplus = batch 1–2 anatomically non-overlapping at block start, hold 4–6 wks, growth
+   reads get LONGER; in surplus, FREE's "clearly losing" arm is replaced by a
+   controlled-gain-rate cap of 0.25–0.5% BW/wk (Helms 2023: faster buys fat).
+6. B1 — THE FAILURE A/B (ruled: run it): one lift's terminal set capped at 1–2 RIR
+   through one full read window vs a comparable lift keeping the all-out terminal set;
+   pairing chosen AT SPEC TIME from his data — two comparable, readable, same-day
+   isolation lifts, named in the receipt; compare strength trends after. 1 RIR still
+   satisfies delivered; failure contact stays the RIR calibration anchor (Halperin:
+   bias ~0.95 reps, not just noise).
+7. B2 — DROP THE SAME-NIGHT VETO (ruled): one short night (<6.5h) no longer blocks a
+   volume offer; the 3-night-mean debt check stays; fix the receipt in the same change —
+   the −2.85% acute strength effect is real (CI 1.23–4.47, Craven), simply smaller than
+   his individual day-to-day spread; the old "inside noise" sentence overclaimed.
+8. B3 — ROUTING BY HIS PRIORITY, ruled DERIVE: the app reads priority from his actual
+   session training order — zero new UI, zero new synced field, cannot drift.
+   Lowest-allocation demotes to tie-breaker. (If this ever grows a list, the house
+   hardening applies — but not this round.)
+
+D CORRECTIONS RIDE ALONG as copy sweeps: Enes 2024 cited as a STRENGTH finding wherever
+it appears; ±0.77 described as repeatability, not accuracy; "rising lifts in a deficit"
+copy keeps the retained-performance-vs-new-muscle distinction everywhere.
+CITATION HYGIENE: Balshaw 2026 is UNVERIFIED — it may not appear in any receipt.
+
+E UNCHANGED IS LAW: step size +2 · trend-restart hygiene · delivered-dose RIR criterion ·
+0.5 fractional spillover · velocity excluded from routing · recovery-GREEN and sleep gates
+as ADD-gates only · front delts indirect-only · floor 6 demoted to soft prior · the 0.70%
+BW/wk rate · 7-day regime hysteresis. Add suite pins that these did NOT move.
+
+GUARDRAILS: branch; strict gate green with the census grown; grep-the-claim sweeps for
+every retired rule (NOT_CONVERTED, "rising", the same-night veto, "clearly losing") in
+code AND copy; receipts derive from live state; engine-baseline refreeze deliberate and
+enumerated; APP_V + sw bump included; data-loss counts >= before; report FOR COWORK with
+commits, gate output and fixture shapes; STOP. Cowork re-drives the split read, the
+staged hold, the gate faces and the decoupled budgets on the live ledger; Joe merges.
+
+### THE SPEC OF RECORD — VOLUMEENGINECONSOLIDATEDVERDICT.md (verbatim)
+
+# VOLUME ENGINE — THREE-AUDIT CONSOLIDATED VERDICT
+**For the build chat. Produced by the audit chat (read-only), 2026-08-11.**
+**STATUS: Joe's four rulings recorded in section B (2026-08-11) — sections A and B are
+both build-ready; only B3's flavor (derive vs list) awaits one word.**
+
+How this was made: three independent audits of the same brief — Grok (plus a follow-up
+round), Fable 5 max (blind), GPT-5.6 Sol max (blind) — adjudicated here against the
+engine's actual code at main, the live ledger, and live spot-checks of the load-bearing
+citations. Governing test, Joe's ruling on the record: **the engine must not be more
+conservative than his data — push to, never past, the measured limit.** Corollary
+applied throughout: a rule is legitimate if it is the data's own shutter speed;
+illegitimate if it is a typed constant overriding green instruments.
+
+Citation spot-checks run live today: Nait-Yahia 2026 (deficit 12-vs-30 sets) VERIFIED —
+title and finding exact. Camargo 2026 VERIFIED as a bioRxiv preprint (Sol's journal
+attribution unconfirmed — treat as preprint). Enes 2024 direction VERIFIED by three-way
+consistency (strength clearly favors progression; hypertrophy contrasts cross zero);
+Sol's exact figures not independently confirmed. Balshaw 2026 (ultrasound vs MRI)
+UNVERIFIED — could not locate; treat its claim as provisional. Pelland peer-reviewed
+2026 version confirmed by two auditors independently.
+
+---
+
+## A. CONSENSUS — all three audits agree, adjudicated build-ready
+
+**A1. Rename and split the read. (Highest priority — Sol's centerpiece, Fable's r≈0.6
+supports it, and it is the app's own honesty law applied to its own instrument.)**
+Four post-change sessions can establish DELIVERY (the set happened, at prescribed
+effort — the RIR≤1 criterion stays) and TOLERANCE (anchor performance stable, no pain,
+no persistent fatigue). They cannot establish GROWTH. The verdict vocabulary becomes:
+DELIVERED / TOLERATED / GROWTH-UNKNOWN — never "CONVERTED" off a two-week lift trend.
+NOT_CONVERTED as a permanent block dies; a null strength read is UNKNOWN, and the
+muscle's re-eligibility keys on tolerance, not on a growth claim the instrument cannot
+make. Growth attribution, where wanted, needs a long stable block (8–12 weeks).
+*Why this is first: the current card claims more than the engine can know — a
+words-and-mechanism violation before it is a physiology error.*
+
+**A2. Rollback-on-null → staged HOLD.** (1) Hold — a null short read is not evidence of
+no hypertrophy. (2) Verify delivery/execution/rest/nutrition. (3) Subtract only on
+repeated local deterioration, pain, or the recovery instrument leaving GREEN.
+(4) Immediate rollback stays available for safety. Camargo 2026 (preprint): even +120%
+habitual volume did not impair growth — brief fatigue after an add is not evidence the
+set failed.
+
+**A3. Gate: "lifts RISING" → "lifts not falling."** Unanimous. Stable lifts in a
+deficit are already a success signal (strength saturates at far lower volumes than
+hypertrophy — Pelland 2026; strength–hypertrophy r≈0.6 in trained). Card copy moves
+with the mechanism: "earned by lifts holding while fat clearly falls."
+
+**A4. The ceiling reshaped, three parts.**
+- **Per-session cap ~6–8 direct hard sets/muscle** (Fable's finding; Sol concurs as a
+  redistribution trigger; Remmert 2025 preprint). The current 16-at-2×/week = 8 sets in
+  one session — the concentration, not the weekly number, is the real error.
+- **Weekly: hard refusal at 16 → review zone ~15–18** (Sol), with progression beyond it
+  gated on continued delivered+tolerated reads and, eventually, outcome evidence (Grok's
+  conversion-gating, renamed per A1).
+- **A documented absolute backstop stays** (house law: every guard carries a named
+  numeric trip), raised into the low-to-mid 20s and demoted to never-normally-reached.
+  Frequency becomes the release valve: when a weekly target exceeds ~2× the session
+  cap, offer a frequency change, not session bloat.
+
+**A5. Decouple the budgets.** The scale cannot identify a local set-add; sets and
+calories/steps are different attribution domains (Sol; Fable's SCED argument; confirmed
+by the adjudicator: the one-lever rule conflates lever-KIND attribution — the scale's —
+with muscle-level attribution — the bar's). Calories/steps keep one-at-a-time on the
+scale's budget. Sets-adds may run staggered multi-muscle (changing-criterion /
+multiple-baseline logic), each read against its own lift baseline. In the cut: batching
+stays conservative (see A6). A set-add must never block a needed calorie steer, or vice
+versa.
+
+**A6. Phase-dependent cadence.**
+- **Cut (now):** batch-then-hold. One priority muscle every 2–4 weeks is defensible;
+  the current serial pace is acceptable; nothing forces faster while the deficit blunts
+  per-set returns (Roth + Nait-Yahia: two trials, neither shows a retention advantage
+  from more volume in a deficit).
+- **Surplus (coming):** batch 1–2 anatomically non-overlapping muscles at a block
+  start, then hold 4–6 weeks — not a drip of weekly changes. Replace the "clearly
+  losing" arm of FREE with a **controlled-gain-rate cap (~0.25–0.5% BW/week)** — Helms
+  2023: faster gain adds mostly fat. Growth reads get LONGER in surplus, not shorter.
+
+---
+
+## B. RULED — Joe's decisions, on the record 2026-08-11 (build these)
+
+**B1. Failure policy — RULED: RUN THE A/B.** One lift's terminal set capped at 1–2 RIR
+through one full read window; a comparable lift keeps the all-out terminal set; compare
+strength trends after. Pairing chosen at spec time (two comparable, readable lifts —
+ideally same-day isolation movements). Context the spec should keep: 1 RIR still
+satisfies the delivered-dose criterion; the calibration-anchor argument (Halperin: RIR
+error is bias, not just noise) is why failure contact is not being dropped wholesale —
+the A/B decides with his own bar.
+
+**B2. Same-night sleep veto — RULED: DROP IT.** One short night (<6.5h) no longer
+blocks a volume offer; the 3-night-mean debt check stays. The receipt wording is
+corrected in the same change: the −2.85% average acute strength effect is real
+(CI 1.23–4.47, Craven), simply smaller than his individual day-to-day spread — the old
+"inside noise" sentence overclaimed.
+
+**B3. Routing — RULED: BY HIS PRIORITY, EDITABLE IN-APP, never a code change.** He
+trains muscles in priority order within upper and lower sessions and will reorder over
+months. Flavor pending one word from him: **derive** (the app reads priority from his
+session order — zero new UI, cannot drift out of sync) vs **list** (an explicit
+reorderable list in settings, for when training order and true priority diverge).
+Lowest-allocation demotes to tie-breaker. Standard hardening applies if a new synced
+field is created (keyed-union, additive migration — house law).
+*(Build order supersedes the pending word: Joe's ruling is DERIVE.)*
+
+**B4. FREE-gate depth (cut) — RULED: B.** A stalled scale mid-cut with every other
+instrument clean (lifts not falling, recovery GREEN, sleep clean, budget clean) still
+permits volume offers — "nothing looks wrong" suffices; "clearly losing" is no longer
+required. Rationale on the record: his governing test (the engine must not be more
+conservative than his data), and the surplus flip in A6 already replaces "losing" with
+a controlled-gain-rate cap, so the cut rule aligns with the same shape.
+
+---
+
+## C. SOL'S IMMEDIATE COUNSEL — for Joe now, no build required
+
+Sol's practical call: **no further adds and no rollbacks right now** — 9 of 11 muscles
+are mid-experiment (Aug 7 owner adds + Aug 10 hand-back/rep-range changes), he is
+already overloading at +4%/session, and the marginal deficit set is small. The engine
+will likely offer side delts +1 on Thursday (regime confirms Aug 13 if the picture
+holds). Adjudication: **both approving and declining are compatible with his data.**
+Approving costs little and muddies no open read (side delts is clean; per-muscle
+attribution holds). Declining honors settle-first and costs one deficit-blunted set
+for one week. The audit's lean is Sol's hold — the board is crowded — but this is
+exactly a tap-sized owner decision.
+
+---
+
+## D. CORRECTIONS ON THE RECORD (including the audit's own)
+
+- **Enes 2024 is a strength finding.** Progressive volume clearly beat constant for
+  strength; the hypertrophy contrasts cross zero. Earlier rounds (including this
+  audit's own framing) cited it as "adding beats holding" for growth — corrected.
+- **The deficit-volume bridge is no longer untested** — Roth 2023 and Nait-Yahia 2026
+  both tested it; neither shows a retention advantage for higher volume. This brakes
+  cut-phase aggression independently of any gate.
+- **±0.77 reps is repeatability, not accuracy** (Halperin: pooled RIR bias ~0.95 reps
+  underprediction). His reports stay trusted; periodic failure contact is what keeps
+  them calibrated — feeds B1.
+- **"Rising lifts in a deficit" = performance retained/improving while fat falls.**
+  Verified today as genuine (the pooled +4.03% excludes all Aug-7-changed lifts — the
+  trend-restart works). It is strong evidence of successful recomp behavior, but it is
+  not yet direct evidence of new muscle; the app's claims should keep that distinction.
+
+## E. UNCHANGED — verified and defended
+
+Step size (+2 weekly per move) · trend-restart hygiene · delivered-dose RIR criterion ·
+0.5 fractional spillover (as default heuristic) · velocity excluded from routing ·
+recovery-GREEN and sleep gates as ADD-gates only · front delts indirect-only ·
+floor 6 demoted from law to soft prior · his 0.70% BW/week cut rate (Garthe's
+successful slow arm) · the 7-day regime hysteresis (the data's shutter, not a constant).
+
+*(End of the spec of record.)*
+
+---
+
 ## QUEUED — BRIEF SHEDS ITS TWO NOW-DUPLICATES (item 3 of the owed-ledger round, filed 2026-08-11)
 
 **Three audit low notes ride this round (2026-08-11):** (1) cold start — zero nights
