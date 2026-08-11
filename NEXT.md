@@ -1,5 +1,13 @@
 ## QUEUED — BRIEF SHEDS ITS TWO NOW-DUPLICATES (item 3 of the owed-ledger round, filed 2026-08-11)
 
+**Three audit low notes ride this round (2026-08-11):** (1) cold start — zero nights
+prints "99 nights dark"; counting-only copy wants "no nights logged yet". (2) the owed
+night rows write sol = medianSOL silently with no computed-hours preview — the R15k r5
+naming law wants one sentence or an "= X h" preview; and the rows seed bed/wake from the
+authored anchor rather than his measured median (~01:38/08:53) — "times are his, not
+authored" when a cheap median exists. (3) double-voice hero — the legacy ask headline
+still prints beneath the ledger; today's-day ask folds into the ledger frame here.
+
 The COCKPIT STATUS FACE block (same statusFace(s) as NOW) and THE ONE THING card (same
 theOneFix as TODAY'S MOVE) leave BRIEF; the decision desk, TODAY'S PROTOCOL, THE FIVE
 and the reviews stay put. The full room-by-room dissolution of the briefing room stays
