@@ -6535,7 +6535,14 @@ function RedCellCard() {
 
 /* LAB GROUPS — every analytic, experiment, and evidence card filed on one shelf system */
 function labGroups(s) {
-  const all = [...labAnalytics(s), ...labAnalytics2(s), ...sleepLab(s), ...shelfItems(s)];
+  /* BOARD FIX (RB-3 round 2) — PER-PRODUCER ISOLATION. The audit's profile: an
+     instrument throwing partway on absurd persisted values aborted labGroups, the
+     WeakMap memo (set only on success) never landed, and EVERY caller re-paid the
+     full 49-instrument compute — runCone included — which is the >60s stall. One
+     choking producer now yields its cards as an empty list; the other three stand,
+     and labGroups STRUCTURALLY cannot throw, so the memo always lands. */
+  const safe9 = (fn) => { try { return fn(s) || []; } catch (e) { return []; } };
+  const all = [...safe9(labAnalytics), ...safe9(labAnalytics2), ...safe9(sleepLab), ...safe9(shelfItems)];
   const MAP = {
     scale: ["whoosh", "refeed", "noise", "masked", "creep"],
     engine: ["regime", "ea", "adaptmeter", "stepeff", "volconv", "refeedroi"],   /* R15g — the regime detector leads the shelf: the door the rest gates on */
@@ -9423,7 +9430,7 @@ class TabGuard extends React.Component {
 
 /* analytics memo — the 49 instruments compute once per state object, not once per render */
 const _labMemo = new WeakMap();
-function labGroupsM(s) { if (_labMemo.has(s)) return _labMemo.get(s); const g = labGroups(s); _labMemo.set(s, g); return g; }
+function labGroupsM(s) { if (_labMemo.has(s)) return _labMemo.get(s); let g; try { g = labGroups(s); } catch (e) { g = []; } _labMemo.set(s, g); return g; }   /* BOARD FIX — the memo lands on EVERY outcome: the re-payment multiplication is structurally dead */
 const _docketMemo = new WeakMap();
 function labDocketM(s) { if (_docketMemo.has(s)) return _docketMemo.get(s); const d = labDocket(s); _docketMemo.set(s, d); return d; }
 
@@ -10256,10 +10263,20 @@ async function restoreFromCloud(s) {
   merged.feed = [{ d: isoOf(todayStart()), t: "LEDGER RESTORED FROM THE CLOUD", how: "This device had no history (a storage wipe boots the seed). Restored: " + (merged.reads || []).length + " reads · " + merged.sleep.nights.length + " nights · " + Object.keys(merged.dailyLogs).length + " day logs · " + Object.keys(merged.sessionLog).length + " sessions. Anything logged after the wipe was kept — the merge never shrinks." }, ...(merged.feed || [])];
   return migrate(merged);
 }
+/* BOARD FIX (RB-1 round 2) — THE OFFER PERSISTS. The card's own copy promises
+   "anything you log before restoring is kept", but the exact-counts fingerprint broke
+   on the first post-wipe log and the card vanished with the restore unreachable.
+   The offer is now a MARKER set on the first pristine boot; it stands until restore
+   succeeds or the athlete taps Not now — a dismissal must be his act, never a side
+   effect of logging. */
+const RESTORE_OFFER_KEY = "pl-restore-offer";
+function restoreOfferStands() { try { return localStorage.getItem(RESTORE_OFFER_KEY) === "1"; } catch (e) { return false; } }
+function clearRestoreOffer() { try { localStorage.removeItem(RESTORE_OFFER_KEY); } catch (e) {} }
 function loadState() {
   let raw = null;
   try { raw = localStorage.getItem(KEY); } catch (e) {}
   let s = migrate(raw ? JSON.parse(raw) : null);
+  if (isPristineSeed(s)) { try { localStorage.setItem(RESTORE_OFFER_KEY, "1"); } catch (e) {} }
   s = runAdaptive(s, isoOf(todayStart()));
   try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
   return s;
@@ -10739,7 +10756,7 @@ __test.bfEst = bfEst;
 __test.migrate = migrate;
 __test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
 __test.targetsFor = targetsFor;
-__test.runAdaptive = runAdaptive; __test.isPristineSeed = isPristineSeed; __test.restoreFromCloud = restoreFromCloud; __test.mergeState = __test.mergeState || mergeState; __test.dossierText = __test.dossierText || dossierText; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
+__test.runAdaptive = runAdaptive; __test.isPristineSeed = isPristineSeed; __test.restoreOfferStands = restoreOfferStands; __test.clearRestoreOffer = clearRestoreOffer; __test.labGroupsM = labGroupsM; __test.restoreFromCloud = restoreFromCloud; __test.mergeState = __test.mergeState || mergeState; __test.dossierText = __test.dossierText || dossierText; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
 __test.stepKcal = stepKcal;
 __test.stepEfficacy = stepEfficacy;
 __test.DT = DT;
@@ -12341,7 +12358,7 @@ function NowTab2({ s, setS, save, go, openRules }) {
   const m = nowModel(s);
   const [restoreBusy, setRestoreBusy] = useState(false);
   const [restoreErr, setRestoreErr] = useState(null);
-  const pristine9 = isPristineSeed(s);
+  const pristine9 = isPristineSeed(s) || restoreOfferStands();
   const [qlOpen, setQlOpen] = useState(false);
   const readToday = (s.reads || []).find((r) => r.d === m.tISO);
   const [wIn, setWIn] = useState(() => (readToday ? readToday.w : s.trend));
@@ -12360,8 +12377,9 @@ function NowTab2({ s, setS, save, go, openRules }) {
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>The phone's copy was wiped (iOS does this to apps it hasn't opened in a while) — but your ledger lives in the cloud and one tap brings it back. Anything you log before restoring is kept; the merge never shrinks.</div>
           {restoreErr ? <div style={{ fontFamily: mono, fontSize: 11, color: T.brass, marginTop: 6 }}>The cloud fetch failed ({restoreErr}) — the app works fine meanwhile; try again on signal.</div> : null}
           <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-            <Btn small tone="jade" onClick={() => { if (restoreBusy) return; setRestoreBusy(true); setRestoreErr(null); restoreFromCloud(s).then((ns) => { setS(ns); save(ns); setRestoreBusy(false); hap(12); }).catch((e) => { setRestoreErr(String(e && e.message || e).slice(0, 40)); setRestoreBusy(false); }); }}>{restoreBusy ? "Restoring…" : "Restore my ledger"}</Btn>
+            <Btn small tone="jade" onClick={() => { if (restoreBusy) return; setRestoreBusy(true); setRestoreErr(null); restoreFromCloud(s).then((ns) => { clearRestoreOffer(); setS(ns); save(ns); setRestoreBusy(false); hap(12); }).catch((e) => { setRestoreErr(String(e && e.message || e).slice(0, 40)); setRestoreBusy(false); }); }}>{restoreBusy ? "Restoring…" : "Restore my ledger"}</Btn>
             <Btn small onClick={() => (openRules ? openRules() : go("LEDGER"))}>Re-link keys (sync + analyst)</Btn>
+            <Btn small onClick={() => { clearRestoreOffer(); const ns = { ...s }; setS(ns); save(ns); }}>Not now</Btn>
           </div>
         </Card>
       ) : null}
@@ -13326,7 +13344,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <Stepper v={+yAlc} set={setYAlc} step={1} min={0} />
             </div>
             <div style={{ marginTop: 10 }}>
-              <Btn full tone="jade" onClick={() => { if (yCal === "" && yPro === "" && yStp === "") return; const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: yCal === "" ? null : +yCal, pro: yPro === "" ? null : +yPro, steps: yStp === "" ? null : +yStp, sodium: ySod, alc: +yAlc || 0 }; ns.feed.unshift(isAmend ? { d: y8, t: `DAY AMENDED — ${fmtShort(y8)}: ${(s.dailyLogs[y8] || {}).cal ?? "—"}→${yCal || "—"} cal · ${(s.dailyLogs[y8] || {}).pro ?? "—"}→${yPro || "—"} g`, how: "athlete corrected the record after close — late bites logged where they belong" } : { d: y8, t: `BOOKS CLOSED LATE — ${fmtShort(y8)} logged after midnight`, how: "the repair door on NOW — same numbers, honest timestamp" }); setAmendY(false); setS(ns); save(ns); }}>{isAmend ? `Refile ${fmtShort(y8)} — corrected` : `Close ${fmtShort(y8)} — file it`}</Btn>
+              <Btn full tone="jade" onClick={() => { if (yCal === "" && yPro === "" && yStp === "") return; /* RB-3 low note — this classic door takes the typo net too */ for (const [kC, vC] of [["cal", yCal], ["pro", yPro], ["steps", yStp]]) { if (vC !== "" && typoKeep(kC, +vC) === "abort") return; } const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: yCal === "" ? null : +yCal, pro: yPro === "" ? null : +yPro, steps: yStp === "" ? null : +yStp, sodium: ySod, alc: +yAlc || 0 }; ns.feed.unshift(isAmend ? { d: y8, t: `DAY AMENDED — ${fmtShort(y8)}: ${(s.dailyLogs[y8] || {}).cal ?? "—"}→${yCal || "—"} cal · ${(s.dailyLogs[y8] || {}).pro ?? "—"}→${yPro || "—"} g`, how: "athlete corrected the record after close — late bites logged where they belong" } : { d: y8, t: `BOOKS CLOSED LATE — ${fmtShort(y8)} logged after midnight`, how: "the repair door on NOW — same numbers, honest timestamp" }); setAmendY(false); setS(ns); save(ns); }}>{isAmend ? `Refile ${fmtShort(y8)} — corrected` : `Close ${fmtShort(y8)} — file it`}</Btn>
             </div>
           </Card>
         );
@@ -17102,7 +17120,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
                         style={{ ...tnum9, fontSize: 14, color: DT.ink, background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 8, width: f9 === "steps" ? 64 : 56, padding: "8px 6px", textAlign: "center" }} />
                     ))}
                     {r.d < yLed ? <button onClick={() => setEstOff({ ...estOff, [r.d]: !estOff[r.d] })} style={{ background: "none", border: "1px solid " + (estOn ? DT.amber : DT.hairline2), borderRadius: 999, padding: "5px 9px", fontFamily: mono, fontSize: 10, color: estOn ? DT.amber : DT.steel, cursor: "pointer" }}>{estOn ? "≈ estimated" : "exact"}</button> : null}
-                    <Btn small tone="jade" onClick={() => { let ns = writeDaily(s, r.d, { cal: stepValue(dv.cal, 0, 1, 0), pro: stepValue(dv.pro, 0, 1, 0), steps: stepValue(dv.steps, 0, 1, 0) }); if (estOn) { ns = { ...ns, dayCtx: { ...(ns.dayCtx || {}), [r.d]: { ...((ns.dayCtx || {})[r.d] || {}), est: true, note: "backfilled — rough numbers count" } } }; } setS(ns); save(ns); hap(12); }}>Save</Btn>
+                    <Btn small tone="jade" onClick={() => { const cB = stepValue(dv.cal, 0, 1, 0), pB = stepValue(dv.pro, 0, 1, 0), sB = stepValue(dv.steps, 0, 1, 0); let keptB = []; for (const [kB, vB] of [["cal", cB], ["pro", pB], ["steps", sB]]) { const tkB = typoKeep(kB, vB); if (tkB === "abort") return; if (tkB === "keep") keptB.push([kB, vB]); } let ns = writeDaily(s, r.d, { cal: cB, pro: pB, steps: sB }); for (const [kB, vB] of keptB) ns = typoReceipt(ns, kB, vB); if (estOn) { ns = { ...ns, dayCtx: { ...(ns.dayCtx || {}), [r.d]: { ...((ns.dayCtx || {})[r.d] || {}), est: true, note: "backfilled — rough numbers count" } } }; } setS(ns); save(ns); hap(12); }}>Save</Btn>
                   </div>
                 </div>);
             })}
@@ -17749,7 +17767,7 @@ export default function PrepLedger() {
   }, [s]);
   const [kitPerson, setKitPerson] = useState(() => { try { const qp = new URLSearchParams(window.location.search).get("p"); if (qp && KIT_SPECS[qp]) { localStorage.setItem(KIT_KEY, qp); return qp; } return localStorage.getItem(KIT_KEY); } catch (e) { return null; } });
   const [updReady, setUpdReady] = useState(false);
-  const [offline, setOffline] = useState(false);
+  const [offline, setOffline] = useState(false);   /* false | "load" | "save" — the banner says which truth */
 
   useEffect(() => {
     try {
@@ -17757,7 +17775,7 @@ export default function PrepLedger() {
       const sw2 = sweepLab(st);
       if (sw2) { st = sw2; save(st); }
       setS(st);
-    } catch (e) { setS(JSON.parse(JSON.stringify(SEED))); setOffline(true); }
+    } catch (e) { setS(JSON.parse(JSON.stringify(SEED))); setOffline("load"); }
   }, []);
 
   const [gloss, setGloss] = useState(null);
@@ -17874,7 +17892,7 @@ export default function PrepLedger() {
         }
       }
       localStorage.setItem(KEY, JSON.stringify(ns));
-    } catch (e) { setOffline(true); }
+    } catch (e) { setOffline("save"); }
   }, []);
 
   const reset = () => {
@@ -17976,7 +17994,7 @@ export default function PrepLedger() {
 
       {offline && (
         <div style={{ background: T.plate2, borderBottom: `1px solid ${T.line}`, padding: "calc(8px + env(safe-area-inset-top)) 14px 8px", fontFamily: mono, fontSize: TS.micro, color: T.brass, textAlign: "center" }}>
-          STORED DATA UNREADABLE — this device's copy would not load. Nothing persists this session; the cloud ledger is intact. Export from RULES before closing.
+          {offline === "load" ? "STORED DATA UNREADABLE — this device's copy would not load. The cloud ledger is intact." : "CANNOT SAVE — private browsing or full storage; nothing new persists this session."} Export from RULES before closing.
         </div>
       )}
 
