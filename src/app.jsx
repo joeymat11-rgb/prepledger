@@ -16680,7 +16680,8 @@ function HistTab({ s, setS, save }) {
                       disclosure and the instruction essay all survive: they moved into
                       "How evidence works" and the room's own detail, one tap down. */}
                   <Eyebrow c={T.jade}>EVIDENCE</Eyebrow>
-                  {(() => { const nf9 = (labAll || []).find((c) => (c.status === "LIVE" || c.status === "TRACKING") && freshMap[c.t]) || (labAll || []).find((c) => c.status === "LIVE" || c.status === "TRACKING");
+                  {(() => { const labAll9 = (() => { try { return labStatusList(s); } catch (e) { return []; } })();   /* R6 FIX — this was reaching for the HUB component's labAll: an undeclared identifier THROWS before (x || []) can guard it, and the room died on the live ledger while the gate read green */
+                    const nf9 = labAll9.find((c) => (c.status === "LIVE" || c.status === "TRACKING") && freshMap[c.t]) || labAll9.find((c) => c.status === "LIVE" || c.status === "TRACKING");
                     return nf9 ? (
                       <div onClick={() => setLabOpen(nf9.id)} role="button" tabIndex={0}
                         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLabOpen(nf9.id); } }}
@@ -16694,11 +16695,15 @@ function HistTab({ s, setS, save }) {
                     ); })()}
                   {(() => {
                     const pg9 = prophetGrades(s);
+                    /* R6 FIX — trials counts computed HERE: the old row that owned them lived in a
+                       different block, and reaching across scopes is what killed this room */
+                    const pr9 = (() => { try { return trialProposals(s); } catch (e) { return []; } })();
+                    const run9 = (() => { try { return (s.trials || []).filter((t9) => t9 && !t9.declined && !trialVerdict(s, t9).done).length; } catch (e) { return 0; } })();
                     const dg9 = (() => { try { return expDigest(s); } catch (e) { return { rows: [] }; } })();
                     const doors9 = [
                       { t: "FINDINGS", hint: totLive + " established", on: () => setSecOpen({ ...secOpen, speaking: !secOpen.speaking }) },
                       { t: "STILL LEARNING", hint: dg9.rows.length + " open question" + (dg9.rows.length === 1 ? "" : "s"), on: () => setSecOpen({ ...secOpen, gathering: !secOpen.gathering }) },
-                      { t: "EXPERIMENTS", hint: (run3 ? run3 + " running" : "none running") + " · " + pr3.length + " proposed", on: () => setDeskOpen(!deskOpen) },
+                      { t: "EXPERIMENTS", hint: (run9 ? run9 + " running" : "none running") + " · " + pr9.length + " proposed", on: () => setDeskOpen(!deskOpen) },
                       { t: "DATA QUALITY", hint: pg9.n >= 2 ? "7-day weight miss ±" + pg9.mae + " lb" : "grading its first forecasts", on: () => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); } },
                       { t: "ASK ABOUT YOUR DATA", hint: "your analyst, on this record", on: () => setAskOpen(true) },
                       { t: "DATA SUMMARY", hint: "made fresh when you ask", on: () => setSumOpen(!sumOpen) },
@@ -17728,7 +17733,7 @@ function HistoryTab({ s, go }) {
   const today9 = isoOf(todayStart());
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: SP.md }}>
-      <button role="button" onClick={() => go("LEDGER")} aria-label="Back to Progress" style={{ background: "none", border: "none", padding: "10px 0", margin: "-10px 0 0", cursor: "pointer", fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.1em", color: T.gauge, textAlign: "left" }}>◂ PROGRESS</button>
+      <button role="button" onClick={() => go("LEDGER")} aria-label="Back to Progress" style={{ background: "none", border: "none", minHeight: 44, padding: "12px 14px 12px 0", margin: "-12px 0 -12px 0", cursor: "pointer", fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.1em", color: T.gauge, textAlign: "left" }}>◂ PROGRESS</button>
       <div>
         <H size={21}>History</H>
         <Eyebrow>every change this record has made, newest first — tap a row for its receipt</Eyebrow>
@@ -17756,10 +17761,11 @@ function HistoryTab({ s, go }) {
    concise statement of what this record is. Demoted, never cut. */
 function SettingsTab({ s, go, openRules, openCoach }) {
   const [theme, setTheme] = useState(readThemeChoice);   /* R6 — the theme control moved rooms; its state moved with it */
+  const [rm, setRm] = useState(reduceMotionOn);   /* R6 — and so did reduce-motion: both controls left MoreTab, so both states live here now */
   const rowStyle = { display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.md, minHeight: 44, padding: `${SP.sm}px 0`, cursor: "pointer" };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: SP.md }}>
-      <button role="button" onClick={() => go("LEDGER")} aria-label="Back to Progress" style={{ background: "none", border: "none", padding: "10px 0", margin: "-10px 0 0", cursor: "pointer", fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.1em", color: T.gauge, textAlign: "left" }}>◂ PROGRESS</button>
+      <button role="button" onClick={() => go("LEDGER")} aria-label="Back to Progress" style={{ background: "none", border: "none", minHeight: 44, padding: "12px 14px 12px 0", margin: "-12px 0 -12px 0", cursor: "pointer", fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.1em", color: T.gauge, textAlign: "left" }}>◂ PROGRESS</button>
       <div>
         <H size={21}>Settings &amp; data</H>
         <Eyebrow>your data, how it looks, and how the decisions get made</Eyebrow>
@@ -18372,7 +18378,7 @@ export default function PrepLedger() {
         {/* R15i r2 — the back-link measured 27px: paint-free text, so the extra padding
             is pure slop and the negative margin keeps the glyph exactly where it painted. */}
         {inMore && (
-          <div onClick={() => setTab("LEDGER")} role="button" tabIndex={0} aria-label="Back to Ledger" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, cursor: "pointer", minHeight: 44, display: "inline-flex", alignItems: "center", padding: "12px 14px 12px 0", margin: "-12px 0 0 -14px", letterSpacing: "0.06em" }}>‹ LEDGER</div>
+          <div onClick={() => setTab("LEDGER")} role="button" tabIndex={0} aria-label="Back to Progress" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, cursor: "pointer", minHeight: 44, display: "inline-flex", alignItems: "center", padding: "12px 14px 12px 0", margin: "-12px 0 0 -14px", letterSpacing: "0.06em" }}>‹ PROGRESS</div>
         )}
         {tab === "NOW" && <TabGuard name="NOW"><NowTab2 s={s} setS={setS} save={save} go={setTab} openRules={() => setRules(true)} /></TabGuard>}
         {tab === "BRIEF" && <TabGuard name="BRIEF"><NowTab s={s} setS={setS} save={save} slp={slp} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}

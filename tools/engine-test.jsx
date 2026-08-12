@@ -7284,8 +7284,8 @@ if (fail) process.exit(1);
   {
     const Q = String.fromCharCode(34);
     const srcR = readFileSync("src/app.jsx", "utf8");
-    const shell = srcR.slice(srcR.indexOf("aria-label=" + Q + "Back to Ledger" + Q) - 400, srcR.indexOf("aria-label=" + Q + "Back to Ledger" + Q) + 500);
-    ok(shell.indexOf("minHeight: 44") > -1 && shell.indexOf('padding: "12px 14px 12px 0", margin: "-12px 0 0 -14px"') > -1 && shell.indexOf('padding: "0 0 12px"') === -1, "R15i r2 FIX 1 — the back-link (27px on the rig) is a 44px hit box: paint-free text, padding as pure slop, equal-and-opposite margin so the glyph never moves");
+    const shell = srcR.slice(srcR.indexOf("aria-label=" + Q + "Back to Progress" + Q) - 400, srcR.indexOf("aria-label=" + Q + "Back to Progress" + Q) + 500);
+    ok(shell.indexOf("aria-label=\"Back to Progress\"") > -1 && shell.indexOf("minHeight: 44") > -1, "R15i r2 FIX 1 → R6-1 — the back-link keeps its 44px paint-free hit box and now names where it actually goes: Back to Progress. The display rename reached the shell, not just the rail");
     const roomR = srcR.slice(srcR.indexOf("function HistTab("), srcR.indexOf("function MoreTab("));
   ok((room.match(/THE LAB/g) || []).length === 0, "R15i r2 FIX 2 → R6 — the LAB masthead went with the LAB name: EVIDENCE leads with a finding, and the census lives inside FINDINGS where it belongs");
   ok(room.indexOf("setLabOpen(\"prophet\")") > -1, "R15i r2 FIX 3 → R6 — the full machine-trust receipt still lives on the prophet's own card; the DATA QUALITY door is its one-line entrance");
