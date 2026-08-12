@@ -6911,8 +6911,8 @@ function dayProtocol(s, slp) {
        at -0.031 on the lean-mass effect size, with ~500 kcal/day predicted to
        blunt lean-mass gains entirely. Nothing else on this page is that big.
      - Protein scaled to FAT-FREE MASS is the next lever, and it is the one with
-       an interval that excludes zero (Refalo, Trexler & Helms 2025 meta-
-       regression, 29 studies, 729 participants: per-FFM b = 0.06 [0.01, 0.12],
+       an interval that excludes zero (the 2025 Bayesian deficit-protein
+       meta-regression, authorship TBC — 29 studies, 729 participants: per-FFM b = 0.06 [0.01, 0.12],
        99% probability of direction; the per-bodyweight model's interval does
        NOT exclude zero). That is why the target below is computed off lean mass.
      - The session itself is the entire training stimulus, so on a training day
@@ -11691,7 +11691,7 @@ function registerGroup(key, setter) {
 function openGroup(key) { try { if (typeof window !== "undefined" && window.__plGroups && window.__plGroups[key]) window.__plGroups[key](true); } catch (e) {} }
 function scrollToId(id, delay = 80) {
   if (typeof document === "undefined") return;
-  setTimeout(() => { try { const el = document.getElementById(id); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: reduceMotionOn() ? "auto" : "smooth", block: "center" }); } catch (e) {} }, delay);
+  setTimeout(() => { try { const el = document.getElementById(id); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: reduceMotionOn() ? "auto" : "smooth", block: "start" });   /* A2 — every consumer here is a GROUP or door: start is the honest landing (center put the athlete 1,539px into a 3,922px list) */ } catch (e) {} }, delay);
 }
 /* oweTarget — the WHAT YOU OWE deep-link map (unit-tested via __test): which
    collapsed group to force-open and which element to scroll to, keyed by the owed
@@ -12722,7 +12722,7 @@ function NowTab2({ s, setS, save, go, openRules }) {
           : (<>
             <div style={{ display: "flex", alignItems: "baseline", gap: 7, marginTop: 9, flexWrap: "wrap" }}>
               <span style={{ ...tnum, fontSize: 32, fontWeight: 700 }}>{m.eat.lo}</span><span style={{ fontFamily: mono, color: DT.dim, fontSize: 32, fontWeight: 300, lineHeight: 1, alignSelf: "center", marginTop: -3 }}>–</span><span style={{ ...tnum, fontSize: 32, fontWeight: 700 }}>{m.eat.hi}</span><span style={{ ...tnum, fontSize: 11, color: DT.dim, letterSpacing: "0.12em" }}>KCAL</span>
-              {m.eat.tag && <span style={{ ...tnum, fontSize: 9, letterSpacing: "0.14em", color: DT.amber }}>{m.eat.tag}</span>}   /* A4/D3 — a label, not a pill: non-tappable brass never wears a button shape */
+              {m.eat.tag && <span style={{ ...tnum, fontSize: 9, letterSpacing: "0.14em", color: DT.amber }}>{m.eat.tag}</span>}{/* A4/D3 — a label, not a pill: non-tappable brass never wears a button shape */}
             </div>
             <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, marginTop: 9, lineHeight: 1.5 }}>{m.eat.sub}</div>
             <div style={{ ...tnum, fontSize: 12.5, marginTop: 11, letterSpacing: "0.04em" }}>{m.eat.proteinG} G PROTEIN{m.eat.proteinNote ? <span style={{ color: DT.dim, fontSize: 10.5, letterSpacing: "0.08em" }}> · {m.eat.proteinNote}</span> : null}</div>

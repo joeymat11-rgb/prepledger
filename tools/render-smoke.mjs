@@ -11,7 +11,11 @@ import fs from "node:fs";
 import { JSDOM } from "jsdom";
 import { buildForTests } from "../scripts/build.mjs";
 
-const BANNED = ["RIR —", "undefined", "NaN", "[object Object]"];
+/* "/*" joins the banned list after the design round: a JSX annotation written as a
+   BARE block comment inside JSX children renders as literal text — it shipped on the
+   app's front door (EAT TODAY carried its own source comment in serif). One string
+   here closes the whole class. */
+const BANNED = ["RIR —", "undefined", "NaN", "[object Object]", "/*"];
 /* The rail is NOW / TRAIN / LEDGER (R15a), and the four rooms he rarely opens live one
    predictable tap behind LEDGER — static demotion, never adaptive, because an
    interface that rearranges itself measured ~8% SLOWER than one that does not
