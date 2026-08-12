@@ -8091,7 +8091,12 @@ function isLabFeedLine(f) {
   return !!(f && typeof f.t === "string" && f.t.indexOf("LAB LIVE — ") === 0);
 }
 function diaryFeed(s, n) {
-  return (s.feed || []).filter((f) => f && f.t && !isLabFeedLine(f)).slice(0, n || 12);
+  /* A3/V2 — dedupe-on-render (belt to the patchV27 guard): consecutive identical
+     {d,t,how} rows render once; the record stays honest, its twin was noise */
+  const rows = (s.feed || []).filter((f) => f && f.t && !isLabFeedLine(f));
+  const out = [];
+  for (const f of rows) { const p = out[out.length - 1]; if (p && p.d === f.d && p.t === f.t && p.how === f.how) continue; out.push(f); }
+  return out.slice(0, n || 12);
 }
 function sweepLab(s, dow = new Date().getDay()) {
   let st0 = sweepStalls(s); if (st0) s = st0;
@@ -9247,7 +9252,7 @@ function patchV28(s) {
 function patchV27(s) {
   const had = (s.agentProposals || []).some((ap) => ap.kind === "volume");
   s.agentProposals = (s.agentProposals || []).filter((ap) => ap.kind !== "volume");
-  if (had) { s.feed = s.feed || []; s.feed.unshift({ d: isoOf(todayStart()), t: "VOLUME PROPOSALS RECALLED", how: "cold-start misfire — the ledger compared your first logged week against a week before this app existed. It now waits for 14 full days of your logs and speaks on Sundays, two proposals at most." }); }
+  if (had && !(s.feed || []).some((f) => f && f.t === "VOLUME PROPOSALS RECALLED")) { s.feed = s.feed || []; s.feed.unshift({ d: isoOf(todayStart()), t: "VOLUME PROPOSALS RECALLED", how: "cold-start misfire — the ledger compared your first logged week against a week before this app existed. It now waits for 14 full days of your logs and speaks on Sundays, two proposals at most." }); }
   s.v = 27; return s;
 }
 function patchV26(s) {
@@ -11938,9 +11943,16 @@ function nowModelUncached(s, deps) {
   const rb = cutRateBand(s);
   const cr = currentRate(s);
   let move;
-  if (decisionsN > 0) move = { kind: "decisions", n: decisionsN,
-    title: decisionsN === 1 ? "ONE DECISION WAITS ON YOU" : decisionsN + " DECISIONS WAIT ON YOU",
-    body: "Real changes never happen without your OK. Each card says what it does in plain words, and one tap always undoes it. Tap here to open them." };
+  if (decisionsN > 0) {
+    /* A2 — ANSWER-FIRST: the headline IS decision #1 (verb + object, the engine's own
+       card title); its one-line effect follows; "+N more" is quiet metadata. The
+       philosophy paragraph lives on the decisions surface header now. */
+    const first9 = (s.proposals || []).find((p) => p && !p.resolved) || (s.agentProposals || [])[0] || null;
+    const eff9 = first9 ? String(first9.why || first9.body || "").split(". ")[0] : "";
+    move = { kind: "decisions", n: decisionsN,
+      title: first9 ? String(first9.title || "ONE DECISION WAITS") : "ONE DECISION WAITS",
+      body: (eff9 ? eff9 + (/[.!?]$/.test(eff9) ? "" : ".") + " " : "") + "One tap decides — and one tap always undoes it." + (decisionsN > 1 ? "  +" + (decisionsN - 1) + " more ▸" : "") };
+  }
   else if (fix.state === "caution") move = { kind: "fix", lever: fix.lever, title: _plain9(String(fix.title || "").toUpperCase()), body: _plain9(fix.body) };
   else if (cr.measured && !eb.gated && (cr.scale > rb.band[1] || cr.scale < rb.band[0]))
     move = { kind: "rate", title: "HOW FAST YOU'RE LOSING", strip: _rateStrip(rb, cr), body: _rateWord(rb, cr) };
@@ -12437,10 +12449,11 @@ function ApprovalInbox({ s, setS, save, tISO }) {
      auto-opens on first visit ONLY when a MATERIAL item exists (a phase/exit change
      or an engine cal/rate proposal, pri ≤ 1); softer suggestions wait quietly behind
      the count. The count is a plain T.gauge numeral, never a red dot or a streak. */
-  if (items.length === 0) return null;
-  const material = items.some((it) => it.pri <= 1);
+  if (items.length === 0) return (
+    <div id="pl-inbox" style={{ fontFamily: mono, fontSize: TS.micro, color: T.dim, letterSpacing: "0.08em", padding: "6px 0" }}>DECISIONS — nothing needs your decision today.</div>
+  );
   return (
-    <Group title="FOR YOU TO OK" sub="changes waiting on your tap" persistKey={NOW_DOORS.inbox} id="pl-inbox" count={items.length} defaultOpen={material}>
+    <Group title="DECISIONS" sub="real changes never happen without your OK — each card says what it does, and one tap always undoes it" persistKey={NOW_DOORS.inbox} id="pl-inbox" count={items.length} defaultOpen={true}>
       {items.map((it) => {
         const n = nudge[it.key] || 0;
         return (
@@ -12729,7 +12742,7 @@ function NowTab2({ s, setS, save, go, openRules }) {
             <div style={{ ...tnum, fontSize: 12.5, marginTop: 11, letterSpacing: "0.04em" }}>{m.eat.proteinG} G PROTEIN <span style={{ color: DT.dim, fontSize: 10.5, letterSpacing: "0.08em" }}>· {m.eat.proteinNote}</span></div>
           </>)}
       </div>
-      <div data-now="move" style={{ ...card9, cursor: m.move.kind === "decisions" ? "pointer" : "default" }} onClick={m.move.kind === "decisions" ? () => go("BRIEF") : undefined} role={m.move.kind === "decisions" ? "button" : undefined} tabIndex={m.move.kind === "decisions" ? 0 : undefined}>
+      <div data-now="move" style={{ ...card9, cursor: m.move.kind === "decisions" ? "pointer" : "default" }} onClick={m.move.kind === "decisions" ? () => { go("BRIEF"); openGroup(NOW_DOORS.inbox); scrollToId("pl-inbox"); } : undefined} role={m.move.kind === "decisions" ? "button" : undefined} tabIndex={m.move.kind === "decisions" ? 0 : undefined}>
         <div style={lbl9}>{m.move.kind === "rate" ? m.move.title : "TODAY'S MOVE"}</div>
         {m.move.kind === "rate"
           ? (<><BandStrip g={m.move.strip} /><div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.55, marginTop: 5 }}>{m.move.body}</div></>)
@@ -14974,7 +14987,7 @@ function QueueTab({ s, slp }) {
         </Section>
       )}
 
-      <Section title="The Story So Far" meta={`${s.feed.length} entries · latest: ${((s.feed[0] || {}).t || "—").slice(0, 22)}`} c={T.jade}>
+      <Section title="History — the story so far" meta={`${s.feed.length} entries · latest: ${((s.feed[0] || {}).t || "—").slice(0, 22)}`} c={T.jade}>
         <Card style={{ padding: 0 }}>
         {s.feed.slice(0, 40).map((f, i) => (
           <div key={i} style={{ padding: "12px 14px", borderBottom: i < Math.min(s.feed.length, 40) - 1 ? `1px solid ${T.line}` : "none" }}>
@@ -17558,7 +17571,7 @@ function MoreTab({ s, go, openRules, openCoach }) {
      diary lines are s.feed verbatim. One door stays one door: a waiting decision routes
      to the briefing room where the inbox lives; no second card mount. */
   const roomsR = [
-    { k: "BRIEF", t: "THE BRIEFING ROOM", sub: "the classic NOW — capture, the briefing, the room, and every decision card in its full home",
+    { k: "BRIEF", t: "DECISIONS", sub: "the briefing room — capture, the briefing, and every decision card in its full home",
       hint: (() => { try { const n9 = ((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length); return n9 ? n9 + " waiting on your OK" : null; } catch (e) { return null; } })() },
     { k: "QUEUE", t: "QUEUE", sub: "what is earned, what is waiting, and the gate on each",
       hint: (() => { try { return (s.queue || []).filter((q) => !q.done).length + " open"; } catch (e) { return null; } })() },
@@ -17570,6 +17583,7 @@ function MoreTab({ s, go, openRules, openCoach }) {
   const okN = (() => { try { return ((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length); } catch (e) { return 0; } })();   /* the rail badge count, verbatim */
   const labAll = (() => { try { return labStatusList(s); } catch (e) { return []; } })();
   const labLive = labAll.filter((c) => c.status === "LIVE").length;
+  const [rcptOpen, setRcptOpen] = React.useState(null);   /* A3 — one open receipt at a time */
   const diary = (() => {
     try {
       const fl = diaryFeed(s, 12);   /* R2-3 — the selection law lives beside sweepLab; the window fills AFTER the lab-line skip */
@@ -17671,7 +17685,14 @@ function MoreTab({ s, go, openRules, openCoach }) {
             {g.rows.map((f, i) => (
               <div key={i} style={{ marginTop: 8 }}>
                 <div style={{ fontFamily: mono, fontSize: 11.5, fontWeight: 700, letterSpacing: "0.02em", color: DT.ink, lineHeight: 1.45 }}>{f.t}</div>
-                {f.how ? <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, marginTop: 2 }}>{f.how}</div> : null}
+                {f.how ? (() => { const s1 = String(f.how).split(". ")[0]; const rest = String(f.how).slice(s1.length).replace(/^\. ?/, ""); const k9 = g.d + "·" + i; return (
+                  <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, marginTop: 2 }}>
+                    {s1 + (rest ? "." : "")}
+                    {rest ? (rcptOpen === k9
+                      ? <div style={{ marginTop: 4 }}>{rest}</div>
+                      : <button role="button" onClick={() => setRcptOpen(k9)} style={{ display: "block", background: "none", border: "none", padding: "8px 0", margin: 0, cursor: "pointer", fontFamily: mono, fontSize: 9.5, letterSpacing: "0.12em", color: T.gauge, textAlign: "left" }}>VIEW RECEIPT ▸</button>) : null}
+                  </div>
+                ); })() : null}
               </div>
             ))}
           </div>
@@ -17679,7 +17700,7 @@ function MoreTab({ s, go, openRules, openCoach }) {
         {/* R2-1 — 30px measured on the rig; the law is 44. The button is paint-free text,
             so padding IS pure slop; the negative bottom margin hands the growth to the
             card's own inert padding so the paint position does not move. */}
-        <button role="button" onClick={() => go("QUEUE")} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", textAlign: "left", background: "none", border: "none", padding: "14px 0 2px", margin: "0 0 -12px", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>THE FULL DIARY LIVES IN QUEUE ▸</button>
+        <button role="button" onClick={() => go("QUEUE")} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", textAlign: "left", background: "none", border: "none", padding: "14px 0 2px", margin: "0 0 -12px", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>THE FULL HISTORY ▸</button>
       </div>
 
       {/* LAB — the hero row wears its live counts. Outer button is the paint-free hit
@@ -18351,7 +18372,7 @@ export default function PrepLedger() {
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
             <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: (tab === t2 || (t2 === "LEDGER" && inMore)) ? `2px solid ${T.gauge}` : "2px solid transparent", fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, letterSpacing: "0.09em", transition: TR("color", MOT.micro), color: (tab === t2 || (t2 === "LEDGER" && inMore)) ? T.gauge : T.steel }}>
-              {TAB_LABEL[t2] || t2}{t2 === "LEDGER" && (((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length)) > 0 ? <span style={{ color: T.jade, fontWeight: 700 }}> ●{((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length)}</span> : null}
+              {TAB_LABEL[t2] || t2}{t2 === "LEDGER" && (((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length)) > 0 ? <span style={{ color: T.brass, fontWeight: 700 }}> ●{((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length)}</span> : null}
             </button>
           ))}
         </div>
