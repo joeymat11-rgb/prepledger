@@ -17586,6 +17586,28 @@ function MoreTab({ s, go, openRules, openCoach }) {
      doors. The UI computes NOTHING — counts are lengths of existing selector output,
      diary lines are s.feed verbatim. One door stays one door: a waiting decision routes
      to the briefing room where the inbox lives; no second card mount. */
+  /* R6 — the first pending decision's own summary, the newest record entry, and six
+     doors whose hints render EXISTING engine state in plain deterministic copy. The
+     engine owns every value, its freshness and its empty state; nothing here computes
+     a new conclusion, and no importance ranking is invented — LATEST RESULT is simply
+     the newest entry (Sol's honesty rule). */
+  const firstDec9 = (() => { try { const p = (s.proposals || []).find((x) => x && !x.resolved) || (s.agentProposals || [])[0]; return p ? String(p.title || "A decision is waiting") : "A decision is waiting"; } catch (e) { return "A decision is waiting"; } })();
+  const latest9 = (() => { try { return diaryFeed(s, 1)[0] || null; } catch (e) { return null; } })();
+  const latestOne9 = (() => { try { const h = String((latest9 || {}).how || ""); const c = h.indexOf(". "); return c > 20 ? h.slice(0, c + 1) : h; } catch (e) { return ""; } })();
+  const doorsR = [
+    { k: "QUEUE", t: "WHAT'S NEXT",
+      hint: (() => { try { const n = (s.queue || []).filter((q) => !q.done).length; return n + " plan" + (n === 1 ? "" : "s") + " in motion"; } catch (e) { return null; } })() },
+    { k: "SLEEP", t: "SLEEP",
+      hint: (() => { try { const an = sleepAnchor(s); if (!an.measured) return "needs bed + wake times"; const d = +((+an.curH) - (s.sleep.cleanH || 7.5)).toFixed(1); return (+an.curH).toFixed(1) + " h/night · " + (d === 0 ? "at target" : Math.abs(d) + " h " + (d > 0 ? "above" : "below") + " target"); } catch (e) { return null; } })() },
+    { k: "BODY", t: "BODY",
+      hint: (() => { try { const pp = paceProjection(s); return s.trend + " lb" + (pp.ok ? " · heading ~" + Math.round(pp.mid) + " in ~" + pp.wks + " wks" : ""); } catch (e) { return null; } })() },
+    { k: "HIST", t: "EVIDENCE",
+      hint: (() => { try { const dg = expDigest(s); const live = labStatusList(s).filter((c) => c.status === "LIVE").length; return live + " findings · " + dg.rows.length + " still learning"; } catch (e) { return null; } })() },
+    { k: "HISTORY", t: "HISTORY",
+      hint: (() => { try { const f = diaryFeed(s, 1)[0]; return f ? "latest entry · " + fmtShort(f.d) : null; } catch (e) { return null; } })() },
+    { k: "SETTINGS", t: "SETTINGS & DATA",
+      hint: (() => { try { return "theme " + resolveTheme((typeof localStorage !== "undefined" && localStorage.getItem(THEME_KEY)) || "system"); } catch (e) { return null; } })() },
+  ];
   const roomsR = [
     { k: "BRIEF", t: "DECISIONS", sub: "the briefing room — capture, the briefing, and every decision card in its full home",
       hint: (() => { try { const n9 = ((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length); return n9 ? n9 + " waiting on your OK" : null; } catch (e) { return null; } })() },
@@ -17626,134 +17648,114 @@ function MoreTab({ s, go, openRules, openCoach }) {
   };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: SP.md }}>
+      {/* ROUND 6 — THE PROGRESS HUB. The LEDGER hub carried six jobs at once (585 words,
+          23 tappables, 3.3 screens): notifications, learning status, the full diary, a
+          room directory, settings and a manifesto. Sol's tier model, Joe's density
+          ruling: TWO cards and compact doors, one viewport, one primary action. The
+          hub ANSWERS; the rooms FOCUS; the receipts PROVE. Nothing was cut — the diary
+          moved to HISTORY, the learning counter to the EVIDENCE door's own hint, the
+          settings and the manifesto to SETTINGS & DATA. R6-1: this is a DISPLAY rename;
+          every internal identifier (MoreTab, the route keys, the record vocabulary)
+          stands unchanged, because five source slices anchor on them. */}
       <div>
-        <H size={21}>Ledger</H>
-        <Eyebrow>the record, the decisions, and the rooms you open on purpose — nothing here ever moves on its own</Eyebrow>
+        <H size={21}>Progress</H>
+        <Eyebrow>See what your work has shown — and what still needs your say.</Eyebrow>
       </div>
 
-      {/* NEEDS YOUR OK — the count is the rail badge count; a waiting decision routes to
-          the ONE inbox in the briefing room. The empty state is the designed-normal good
-          state, and the example card is an INERT ILLUSTRATION: pointer-events none,
-          aria-hidden, dashed frame — under R14 a card that enacts nothing may not be
-          tappable, so the illustration is untappable by construction. */}
       <div data-led="ok" style={card9x}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <span style={lbl9x}>NEEDS YOUR OK</span>
-          <span style={{ ...tnum, fontSize: 11, letterSpacing: "0.08em", color: okN ? DT.amber : DT.dim }}>{okN} WAITING</span>
+          <span style={lbl9x}>DECISIONS</span>
+          <span style={{ ...tnum, fontSize: 11, letterSpacing: "0.08em", color: okN ? DT.amber : DT.dim }}>{okN ? okN + " NEED YOUR OK" : "NONE WAITING"}</span>
         </div>
         {okN > 0 ? (
-          <button role="button" onClick={() => go("BRIEF")} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: DT.touch, background: "none", border: "none", padding: "6px 0 0", cursor: "pointer", textAlign: "left" }}>
-            <span style={{ fontFamily: body, fontSize: 13, color: DT.ink, fontWeight: 600 }}>{okN === 1 ? "One decision is waiting — open the briefing room" : okN + " decisions are waiting — open the briefing room"}</span>
+          <button role="button" aria-label="Open decisions" onClick={() => { go("BRIEF"); openGroup(NOW_DOORS.inbox); scrollToId("pl-inbox"); }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: DT.touch, background: "none", border: "none", padding: "6px 0 0", cursor: "pointer", textAlign: "left" }}>
+            <span style={{ fontFamily: body, fontSize: 13, color: DT.ink, fontWeight: 600, minWidth: 0 }}>{firstDec9}</span>
             <span aria-hidden="true" style={{ fontFamily: mono, fontSize: 14, color: DT.amber, flexShrink: 0 }}>▸</span>
           </button>
         ) : (
-          <>
-            <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-              <span style={{ fontFamily: mono, color: DT.jade, fontSize: 14, flexShrink: 0 }}>◇</span>
-              <span style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, lineHeight: 1.55 }}><b style={{ color: DT.ink, fontWeight: 600 }}>Nothing needs your OK right now.</b> {ease0 ? "Nothing changes without your OK — that’s how you have it set. " : "Small routine tweaks happen automatically. "}Only real decisions show up here — and when one does, it looks like the example below.</span>
-            </div>
-            <div data-spec="example" aria-hidden="true" style={{ pointerEvents: "none", border: "1px dashed " + DT.hairline2, borderRadius: 12, padding: 12, marginTop: 12, opacity: 0.78 }}>
-              <div style={{ ...lbl9x, letterSpacing: "0.14em" }}>EXAMPLE — WHAT A DECISION CARD LOOKS LIKE</div>
-              <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 16, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase", marginTop: 7 }}>Trim your calories a little?</div>
-              <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, marginTop: 5 }}>You’ve drifted slightly off the planned pace. Suggestion: about 60 fewer calories a day gets you back on the line — or add a short walk instead, if you’d rather eat the same.</div>
-              <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                <span style={{ flex: 1, textAlign: "center", fontFamily: mono, fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", padding: "10px 0", borderRadius: 8, background: DT.jade, color: "#0B2A1C" }}>DO IT</span>
-                <span style={{ flex: 1, textAlign: "center", fontFamily: mono, fontSize: 11, letterSpacing: "0.1em", padding: "10px 0", borderRadius: 8, border: "1px solid " + DT.hairline2, color: DT.steel }}>NOT NOW</span>
-              </div>
-            </div>
-            <div style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.1em", color: DT.dim, marginTop: 9, lineHeight: 1.6 }}>A TAP HERE ALWAYS CHANGES SOMETHING REAL — AND ONE TAP ALWAYS UNDOES IT</div>
-          </>
+          <div style={{ fontFamily: body, fontSize: 12.5, color: DT.steel, marginTop: 6 }}>Nothing needs your OK.</div>
         )}
       </div>
 
-      {/* R15h · STILL LEARNING — what the app is trying to learn and what settles each
-          question. One capped block: the nearest question by the stated ladder as the
-          headline, the rest a count, the one door to LAB. Absent entirely when nothing
-          is being learned — an empty study list is not news. */}
-      {(() => {
-        const dg = expDigest(s);
-        if (!dg.head) return null;
-        const h9 = dg.head;
-        return (
-          <div data-led="learning" style={card9x}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-              <span style={lbl9x}>STILL LEARNING</span>
-              <span style={{ ...tnum, fontSize: 10.5, letterSpacing: "0.08em", color: DT.dim }}>{dg.rows.length} OPEN QUESTION{dg.rows.length === 1 ? "" : "S"}</span>
-            </div>
-            <div style={{ fontFamily: body, fontWeight: 600, fontSize: 13, color: DT.ink, lineHeight: 1.45, marginTop: 10 }}>{h9.q}</div>
-            <div style={{ ...tnum, fontSize: 11, color: DT.steel, marginTop: 4 }}>{h9.n != null && h9.need != null ? h9.n + " of " + h9.need + (h9.label ? " " + h9.label : "") : ""}{h9.arm ? " · today: " + h9.arm : ""}</div>
-            {h9.settle ? <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, marginTop: 4 }}>{h9.settle}</div> : null}
-            <button role="button" onClick={() => go("HIST")} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", textAlign: "left", background: "none", border: "none", padding: "10px 0 0", margin: "0 0 -10px", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>EVERY QUESTION KEEPS ITS COUNTER IN THE LAB ▸</button>
-          </div>
-        );
-      })()}
-
-      {/* THE RECORD — the feed IS the diary; every line is the engine’s own words,
-          verbatim, day-grouped, newest first. The full archive stays in QUEUE. */}
-      <div data-led="diary" style={card9x}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-          <span style={lbl9x}>THE RECORD</span>
-          <span style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.1em", color: DT.dim, flexShrink: 0 }}>THE APP’S DIARY · NEWEST FIRST</span>
+      {latest9 ? (
+        <div data-led="latest" style={card9x}>
+          <div style={lbl9x}>LATEST RESULT</div>
+          <button role="button" onClick={() => go("HISTORY")} style={{ display: "block", width: "100%", minHeight: DT.touch, background: "none", border: "none", padding: "6px 0 0", cursor: "pointer", textAlign: "left" }}>
+            <span style={{ display: "block", fontFamily: mono, fontSize: 11.5, fontWeight: 700, color: DT.ink, lineHeight: 1.45 }}>{latest9.t}</span>
+            <span style={{ display: "block", fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, marginTop: 3 }}>{latestOne9}</span>
+          </button>
         </div>
-        {diary.map((g) => (
-          <div key={g.d}>
-            <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", color: DT.dim, marginTop: 12 }}>{(g.d === today9 ? "TODAY — " : "") + fmtShort(g.d).toUpperCase()}</div>
-            {g.rows.map((f, i) => (
-              <div key={i} style={{ marginTop: 8 }}>
-                <div style={{ fontFamily: mono, fontSize: 11.5, fontWeight: 700, letterSpacing: "0.02em", color: DT.ink, lineHeight: 1.45 }}>{f.t}</div>
-                {f.how ? (() => { const s1 = String(f.how).split(". ")[0]; const rest = String(f.how).slice(s1.length).replace(/^\. ?/, ""); const k9 = g.d + "·" + i; return (
-                  <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, marginTop: 2 }}>
-                    {s1 + (rest ? "." : "")}
-                    {rest ? (rcptOpen === k9
-                      ? <div style={{ marginTop: 4 }}>{rest}</div>
-                      : <button role="button" onClick={() => setRcptOpen(k9)} style={{ display: "block", background: "none", border: "none", padding: "8px 0", margin: 0, cursor: "pointer", fontFamily: mono, fontSize: 9.5, letterSpacing: "0.12em", color: T.gauge, textAlign: "left" }}>VIEW RECEIPT ▸</button>) : null}
-                  </div>
-                ); })() : null}
-              </div>
-            ))}
-          </div>
-        ))}
-        {/* R2-1 — 30px measured on the rig; the law is 44. The button is paint-free text,
-            so padding IS pure slop; the negative bottom margin hands the growth to the
-            card's own inert padding so the paint position does not move. */}
-        <button role="button" onClick={() => go("QUEUE")} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", textAlign: "left", background: "none", border: "none", padding: "14px 0 2px", margin: "0 0 -12px", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>THE FULL HISTORY ▸</button>
-      </div>
+      ) : null}
 
-      {/* LAB — the hero row wears its live counts. Outer button is the paint-free hit
-          box; the card paint rides the inner span — the standing split law. */}
-      <div style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.16em", color: DT.dim, margin: "14px 0 4px" }}>EXPERT — the machinery, after the daily surfaces</div>
-      <button data-led="lab" role="button" onClick={() => go("HIST")} style={{ display: "block", width: "100%", background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
-        <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, minHeight: DT.touch, background: DT.card, border: "1px solid " + DT.hairline, borderRadius: DT.radius, padding: "12px 15px", boxSizing: "border-box" }}>
-          <span style={{ minWidth: 0, flex: 1 }}>
-            <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 17, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase" }}>LAB</span>
-            <span style={{ display: "block", fontFamily: body, fontSize: 12, color: DT.steel, marginTop: 2, lineHeight: 1.45 }}>the instruments — every verdict the engine is currently willing to make</span>
-          </span>
-          <span style={{ ...tnum, flexShrink: 0, fontSize: 10.5, letterSpacing: "0.06em", color: DT.steel }}>the instruments ▸</span>{/* A9 — the census lives inside LAB now */}
-        </span>
-      </button>
-
-      {/* THE ROOMS — flat siblings with inert hairlines BETWEEN buttons: a wrapper div
-          whose text shadows the row would steal the render-smoke’s click (the finder
-          walks button/[role=button]/div in document order). role=button is explicit
-          because the smoke pins THE BRIEFING ROOM by the attribute, not the tag. */}
       <div data-led="rooms" style={{ ...card9x, padding: "4px 15px" }}>
-        {roomsR.map((r, i) => (
+        {doorsR.map((r, i) => (
           <React.Fragment key={r.k}>
             {i > 0 ? <div style={{ borderTop: "1px solid " + DT.hairline }} /> : null}
             <button role="button" onClick={() => go(r.k)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", minHeight: DT.touch, background: "none", border: "none", padding: "10px 0", cursor: "pointer", textAlign: "left" }}>
               <span style={{ minWidth: 0, flex: 1 }}>
-                <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 17, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase" }}>{r.t}</span>
-                <span style={{ display: "block", fontFamily: body, fontSize: 12, color: DT.steel, marginTop: 2, lineHeight: 1.45 }}>{r.sub}</span>
+                <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 16, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase" }}>{r.t}</span>
+                {r.hint ? <span style={{ display: "block", fontFamily: body, fontSize: 11.5, color: DT.steel, marginTop: 2, lineHeight: 1.4 }}>{r.hint}</span> : null}
               </span>
-              <span style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                {r.hint ? <span style={{ ...tnum, fontSize: 10.5, color: DT.steel }}>{r.hint}</span> : null}
-                <span aria-hidden="true" style={{ fontFamily: mono, fontSize: 14, color: DT.dim }}>▸</span>
-              </span>
+              <span aria-hidden="true" style={{ fontFamily: mono, fontSize: 14, color: DT.dim, flexShrink: 0 }}>▸</span>
             </button>
           </React.Fragment>
         ))}
       </div>
+    </div>
+  );
+}
 
+/* ROUND 6 — HISTORY. The record left the hub and became its own room: five entries by
+   default, newest first, lightly day-grouped, the WHOLE ROW opening its receipt (the
+   repeated VIEW RECEIPT links die; the row carries the intent). Every event stays
+   reachable — misses, reversals, no-ops, trial events — through the full list. */
+function HistoryTab({ s, go }) {
+  const [openK, setOpenK] = React.useState(null);
+  const [all9, setAll9] = React.useState(false);
+  const lbl9h = { fontFamily: mono, fontSize: 10, letterSpacing: "0.18em", color: DT.dim, fontWeight: 600 };
+  const card9h = { background: DT.card, border: "1px solid " + DT.hairline, borderRadius: DT.radius, padding: 15 };
+  const rows9 = diaryFeed(s, all9 ? 200 : 5);
+  const groups9 = [];
+  rows9.forEach((f) => { const g = groups9[groups9.length - 1]; if (g && g.d === f.d) g.rows.push(f); else groups9.push({ d: f.d, rows: [f] }); });
+  const today9 = isoOf(todayStart());
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: SP.md }}>
+      <button role="button" onClick={() => go("LEDGER")} aria-label="Back to Progress" style={{ background: "none", border: "none", padding: "10px 0", margin: "-10px 0 0", cursor: "pointer", fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.1em", color: T.gauge, textAlign: "left" }}>◂ PROGRESS</button>
+      <div>
+        <H size={21}>History</H>
+        <Eyebrow>every change this record has made, newest first — tap a row for its receipt</Eyebrow>
+      </div>
+      <div data-hist="list" style={card9h}>
+        {groups9.map((g) => (
+          <div key={g.d}>
+            <div style={{ ...lbl9h, letterSpacing: "0.14em", marginTop: 12 }}>{(g.d === today9 ? "TODAY — " : "") + fmtShort(g.d).toUpperCase()}</div>
+            {g.rows.map((f, i) => { const k9 = g.d + "·" + i; const open9 = openK === k9; return (
+              <button key={i} role="button" aria-label={"Open the receipt for " + f.t} onClick={() => setOpenK(open9 ? null : k9)} style={{ display: "block", width: "100%", minHeight: DT.touch, textAlign: "left", background: "none", border: "none", padding: "8px 0", cursor: "pointer" }}>
+                <span style={{ display: "block", fontFamily: mono, fontSize: 11.5, fontWeight: 700, color: DT.ink, lineHeight: 1.45 }}>{f.t}</span>
+                {f.how ? <span style={{ display: "block", fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, marginTop: 2 }}>{open9 ? f.how : String(f.how).split(". ")[0] + (String(f.how).indexOf(". ") > -1 ? "." : "")}</span> : null}
+              </button>
+            ); })}
+          </div>
+        ))}
+        {!all9 ? <button role="button" onClick={() => setAll9(true)} style={{ display: "block", width: "100%", minHeight: 44, textAlign: "left", background: "none", border: "none", padding: "14px 0 2px", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: T.gauge }}>VIEW ALL HISTORY ▸</button> : null}
+      </div>
+    </div>
+  );
+}
+
+/* ROUND 6 — SETTINGS & DATA. Everything the hub used to carry that is not progress:
+   the analyst handoff, the rulebook, sync/backup/reset, theme and motion, and the one
+   concise statement of what this record is. Demoted, never cut. */
+function SettingsTab({ s, go, openRules, openCoach }) {
+  const [theme, setTheme] = useState(readThemeChoice);   /* R6 — the theme control moved rooms; its state moved with it */
+  const rowStyle = { display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.md, minHeight: 44, padding: `${SP.sm}px 0`, cursor: "pointer" };
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: SP.md }}>
+      <button role="button" onClick={() => go("LEDGER")} aria-label="Back to Progress" style={{ background: "none", border: "none", padding: "10px 0", margin: "-10px 0 0", cursor: "pointer", fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.1em", color: T.gauge, textAlign: "left" }}>◂ PROGRESS</button>
+      <div>
+        <H size={21}>Settings &amp; data</H>
+        <Eyebrow>your data, how it looks, and how the decisions get made</Eyebrow>
+      </div>
       <SecRule>ANALYST & RULES</SecRule>
       <Card style={{ padding: `${SP.xs}px ${SP.lg}px` }}>
         <div onClick={openCoach} role="button" tabIndex={0}
@@ -18304,8 +18306,8 @@ export default function PrepLedger() {
      is waiting — but a badge does not move the target, and moving the target is
      what cost the 8%. */
   const PRIMARY_TABS = ["NOW", "TRAIN", "LEDGER"];
-  const SECONDARY_TABS = ["BRIEF", "QUEUE", "BODY", "SLEEP", "HIST"];
-  const TAB_LABEL = { HIST: "LAB" };
+  const SECONDARY_TABS = ["BRIEF", "QUEUE", "BODY", "SLEEP", "HIST", "HISTORY", "SETTINGS"];
+  const TAB_LABEL = { HIST: "EVIDENCE", LEDGER: "PROGRESS" };   /* R6-1/R6-2 — DISPLAY names only; every route key and internal identifier stands */
   const inMore = SECONDARY_TABS.indexOf(tab) > -1;
   const tabs = PRIMARY_TABS;
 
@@ -18372,6 +18374,8 @@ export default function PrepLedger() {
         {tab === "SLEEP" && <TabGuard name="SLEEP"><SleepTab s={s} setS={setS} save={save} slp={slp} /></TabGuard>}
         {tab === "HIST" && <TabGuard name="HIST"><HistTab s={s} setS={setS} save={save} /></TabGuard>}
         {tab === "LEDGER" && <TabGuard name="LEDGER"><MoreTab s={s} go={setTab} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}
+        {tab === "HISTORY" && <TabGuard name="HISTORY"><HistoryTab s={s} go={setTab} /></TabGuard>}
+        {tab === "SETTINGS" && <TabGuard name="SETTINGS"><SettingsTab s={s} go={setTab} openRules={() => setRules(true)} openCoach={() => setCoach(true)} /></TabGuard>}
       </div>
 
       </div>

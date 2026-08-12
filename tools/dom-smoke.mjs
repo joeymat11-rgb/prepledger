@@ -48,7 +48,7 @@ check(html.includes("EARNED") || html.includes("Earned"), "header renders — th
    itself measured ~8% slower than one that does not (Findlater & McGrenere,
    CHI 2004). Assert the primary rail, and that the demoted rooms are reachable
    rather than orphaned. */
-check(html.includes("NOW") && html.includes("TRAIN") && html.includes("LEDGER"), "primary tab rail renders", "primary tabs missing");
+check(html.includes("NOW") && html.includes("TRAIN") && html.includes("PROGRESS"), "primary tab rail renders", "primary tabs missing");   /* R6-1 — the third rail tab DISPLAYS as PROGRESS; its route key is still LEDGER */
 check(
   !!dom.window.localStorage.getItem("prep-ledger-v1"),
   "state seeded to localStorage",

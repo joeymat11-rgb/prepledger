@@ -23,9 +23,9 @@ const BANNED = ["RIR —", "undefined", "NaN", "[object Object]", "/*"];
    every state: demoting a screen must never mean it stops being exercised.
    PRIMARY are reachable from the bar; BEHIND_MORE need LEDGER clicked first. */
 const PRIMARY = ["NOW", "TRAIN"];
-const BEHIND_MORE = ["QUEUE", "BODY", "SLEEP", "LAB", "DECISIONS"];   /* R15b — the classic NOW, moved not stranded */
+const BEHIND_MORE = ["WHAT'S NEXT", "BODY", "SLEEP", "EVIDENCE", "HISTORY", "SETTINGS & DATA"]   /* R6 — DECISIONS left the door list: it is the hub CARD, walked by openBriefing */;   /* R15b — the classic NOW, moved not stranded */
 const TABS = [...PRIMARY, ...BEHIND_MORE];
-const MIN = { NOW: 300, TRAIN: 150, QUEUE: 200, BODY: 250, SLEEP: 250, LAB: 200, "DECISIONS": 300 };
+const MIN = { NOW: 300, TRAIN: 150, "WHAT'S NEXT": 200, BODY: 250, SLEEP: 250, EVIDENCE: 200, HISTORY: 120, "SETTINGS & DATA": 120 }   /* R6 — renamed WITH the walk: an unknown key silently disables the floor */;
 
 const bundle = fs.readFileSync(await buildForTests(), "utf8");
 
@@ -83,7 +83,7 @@ async function tabText(window, label) {
   /* Rooms behind LEDGER need two taps, exactly as he would make them. If LEDGER
      itself is missing, that is a real failure and must not be swallowed. */
   if (BEHIND_MORE.includes(label)) {
-    const more = await findClickable(window, "LEDGER", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("LEDGER"));
+    const more = await findClickable(window, "LEDGER", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("PROGRESS"));
     if (!more) throw new Error("LEDGER tab button missing — the demoted rooms are unreachable");
     more.click();
     await new Promise((r) => setTimeout(r, 60));
@@ -103,13 +103,16 @@ async function tabText(window, label) {
 /* R15b — walk to the classic NOW (LEDGER -> DECISIONS), where NOW_DOORS' Groups
    and the approval inbox now mount. Two taps, exactly as he would make them. */
 async function openBriefing(window) {
-  const led = await findClickable(window, "LEDGER", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("LEDGER"));
+  const led = await findClickable(window, "LEDGER", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("PROGRESS"));
   if (!led) throw new Error("LEDGER tab button missing");
   led.click();
   await new Promise((r) => setTimeout(r, 80));
   /* role-scoped: an ancestor card's textContent also startsWith the row title — the same
      trap tabText's length cap guards; role=button pins the actual tappable row. */
-  const room = await findClickable(window, "DECISIONS", (b) => b.getAttribute && b.getAttribute("role") === "button" && b.textContent.trim().startsWith("DECISIONS"));
+  /* R6 — the decisions surface is reached from the hub CARD now, not a door row: the
+     card carries the intent in its accessible label, which is a stabler handle than
+     matching card text that changes with the first pending proposal. */
+  const room = await findClickable(window, "the decisions card", (b) => b.getAttribute && b.getAttribute("aria-label") === "Open decisions");
   if (!room) throw new Error("DECISIONS row missing — the classic NOW is stranded");
   room.click();
   await new Promise((r) => setTimeout(r, 250));
@@ -316,6 +319,32 @@ if (failed) {
   console.log("RENDER-SMOKE chrome: one reserved fixed zone (" + (tabH + band) + "px), the resume bar inside it, every scroll surface reserving it");
 }
 
+/* ROUND 6 — THE HUB BUDGET, enforced in the live DOM. The old hub carried six jobs at
+   once (585 words, 23 tappables, 3.3 screens). These are Sol's budgets, adopted as
+   TESTS so the surface cannot silently re-bloat: the DOM-countable half runs here; the
+   pixel half (<=1.05 viewports) is the browser rig's, because jsdom has no layout. */
+{
+  const w = await mount();
+  const btn = [...w.document.querySelectorAll("button")].find((b) => b.textContent.trim().startsWith("PROGRESS"));
+  if (!btn) { console.error("RENDER-SMOKE FAIL [hub] the PROGRESS tab is missing"); process.exit(1); }
+  btn.click();
+  await new Promise((r2) => setTimeout(r2, 200));
+  const root = w.document.querySelector("[data-led='ok']") ? w.document.querySelector("[data-led='ok']").parentElement : w.document.body;
+  const txt = (root.textContent || "").trim();
+  const words = txt.split(/s+/).filter(Boolean).length;
+  const taps = root.querySelectorAll("button, [role=button], input, select, textarea").length;
+  const heads = root.querySelectorAll("h1,h2,h3,h4").length;
+  const fails = [];
+  if (words > 120) fails.push("words " + words + " > 120");
+  if (taps > 11) fails.push("content tappables " + taps + " > 11");
+  if (heads > 7) fails.push("headings " + heads + " > 7");
+  if (root.querySelectorAll("[data-led]").length !== 3) fails.push("expected exactly 3 hub blocks (decisions, latest result, doors)");
+  for (const banned of ["THEME", "Light reads better", "EXPERT", "every figure on every screen"]) {
+    if (txt.indexOf(banned) > -1) fails.push("the hub must not carry: " + banned);
+  }
+  if (fails.length) { console.error("RENDER-SMOKE FAIL [hub budget] " + fails.join(" · ")); process.exit(1); }
+  console.log("RENDER-SMOKE hub: " + words + " words · " + taps + " tappables · " + heads + " headings · 3 blocks — the answer screen holds its budget");
+}
 console.log("RENDER-SMOKE: all tabs alive in all states — no silent fallbacks");
 process.exit(0);
 
