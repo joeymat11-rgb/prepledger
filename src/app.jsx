@@ -1281,7 +1281,7 @@ function genSession(s, iso, slp) {
      named with its measured distance, so "rep progression day" reads as a location. */
   const nearest = (() => {
     const c9 = ex.map((l9) => { const m9 = l9.runway && l9.runway.match(/^(\S+) EARNS AT THE TOP OF THE WINDOW \([^)]*\) — you are (\d+) rep/); return m9 ? { n: l9.n, up: m9[1], d: +m9[2] } : (l9.runway && /you are there/.test(l9.runway) ? { n: l9.n, up: (l9.runway.split(" ")[0]), d: 0 } : null); }).filter(Boolean).sort((a9, b9) => a9.d - b9.d);
-    return c9.length ? " · nearest earn: " + c9[0].n + ", " + (c9[0].d === 0 ? "at the line" : c9[0].d + " rep" + (c9[0].d === 1 ? "" : "s") + " from " + c9[0].up) : "";
+    return c9.length ? " · closest to a new weight: " + c9[0].n + ", " + (c9[0].d === 0 ? "at the line" : c9[0].d + " rep" + (c9[0].d === 1 ? "" : "s") + " away from " + c9[0].up) : "";
   })();
   return { name: dt === "U" ? "UPPER" : "LOWER", structural: main ? main.t : "none queued — rep progression day" + nearest, structuralId: main ? main.id : null, riderIds: riders.map((r) => r.id), ex };
 }
@@ -1880,23 +1880,8 @@ function anchorTighten(s) {
   return { pct: bf.pct, lo: bf.lo, hi: bf.hi, wks: bf.wks, src: s.model.src, eye, dexa, steps };
 }
 
-/* ---------- PROTEIN_NOTE — why the number is no longer a constant ----------
-   175 g was hard-coded. The current best evidence scales protein to FAT-FREE
-   MASS, not bodyweight, and says so with numbers: Refalo, Trexler & Helms
-   (2025) meta-regressed 29 studies / 729 participants and found the per-FFM
-   model's interval EXCLUDES zero (b = 0.06 [0.01, 0.12], 99% probability of
-   direction) while the per-bodyweight model's does not (b = 0.07 [-0.01, 0.14]).
-   Scaling to lean mass is therefore the better-supported unit, not a preference.
-
-   Two numbers matter. 2.5 g/kg FFM is where the trend line crosses zero — the
-   floor below which protein stops reliably protecting lean mass. And the
-   sub-group with the LARGEST coefficient is lean males under 12.2% body fat
-   (b = 0.12, 94% probability) — leaner means more return per gram, which is the
-   opposite of the intuition that a smaller person needs less.
-
-   So: the floor tracks his measured lean mass, and crossing 12.2% body fat
-   steps the target up, because that is where his own subgroup's evidence gets
-   stronger. It never drops below the house number he already runs. */
+/* (retired note — the 12.2% switch this block described was REMOVED in the
+   nutrition round; the N5 comment inside proteinTarget is the living record) */
 const PROTEIN_FLOOR_G_PER_KG = 2.5;
 function proteinTarget(s) {
   const bf = bfEst(s);
@@ -3086,7 +3071,7 @@ function energyBalanceTargetUncached(s, opts) {
     const hi = td.tdee + kcalFor(BC.BULK_REDLINE_PCT);
     return { ...cur, ...base, dir: "surplus", provisional: unconfirmed, lo, hi, mid: Math.round((lo + hi) / 2),
       capPct: BC.BULK_REDLINE_PCT, perLb: ed.perLb,
-      why: `Lifts are not rising and the scale rate is indistinguishable from zero — the fat term is exhausted, so the only remaining way to move body composition is to build. ${lo}–${hi} is a surplus capped at ${+(BC.BULK_REDLINE_PCT * 4.345).toFixed(2)} %BW/MONTH (the settled monthly cap) %bw/wk.`,
+      why: `Lifts are not rising and the scale rate is indistinguishable from zero — the fat term is exhausted, so the only remaining way to move body composition is to build. ${lo}–${hi} is a surplus capped at ${+(BC.BULK_REDLINE_PCT * 4.345).toFixed(2)} %BW/MONTH (the settled monthly cap).`,
       doesNotBuy: "The cap is defensible, not optimal. The only trial in trained lifters ran at 18% of its own required sample size; what is well supported is that a bigger surplus reliably adds fat, not that it builds faster." };
   }
 
@@ -3470,7 +3455,7 @@ const BC = {
   BULK_LEAN_CEIL_PCT: 0.0921,   // N4 — 0.4 %BW/MONTH ÷ 4.345, reconciled INSIDE the monthly corridor (the old 0.15/wk = 0.65/month also broke the cap)
   BULK_LEAN_BASE: 0.55, BULK_LEAN_SLOPE: 0.60, BULK_LEAN_MIN: 0.15, BULK_LEAN_MAX: 0.60,
   // PROTEIN · the partition lever. CUT lean-retention floor is FFM-based and already derived in
-  // proteinTarget (2.5 g/kg FFM: Refalo 2025 zero-crossing for net FFM change; Helms 2014;
+  // proteinTarget (2.5 g/kg FFM: the 2025 Bayesian meta-regression's zero-crossing for net FFM change, authorship TBC; Helms 2014;
   // Longland 2016, where 2.4 g/kg recomposed in a deficit). BULK MPS saturates at ~1.6 g/kg BW
   // (Morton 2018 meta-analysis) — no added hypertrophy above it.
   BULK_PROTEIN_G_PER_KG_BW: 1.6,   // Morton 2018
@@ -4230,7 +4215,7 @@ function autoPilot(s, mode) {
   const steerHandled = apSteerHandled(s, isoOf(todayStart()));
   if (steerHandled) proposed = false;
   // protein as a body-comp lever — the partition depends on it. Flag if the last logged day is
-  // under the derived lean-retention floor (proteinTarget.lo = 2.5 g/kg FFM; Refalo/Helms/Longland).
+  // under the derived lean-retention floor (proteinTarget.lo = 2.5 g/kg FFM; 2025 Bayesian meta-regression [authorship TBC]/Helms/Longland).
   const pt = proteinTarget(s);
   // Cut floor = FFM-based lean-retention (proteinTarget.lo, 2.5 g/kg FFM). Bulk floor = MPS
   // saturation, 1.6 g/kg BW (Morton 2018) — direction-aware, both from BC / the derived target.
@@ -4363,7 +4348,7 @@ function whyThisNumber(s, deps) {
     ? `Hold your ${modeLabel} line — ~${ap.targetPct}%BW/wk.`
     : `${cap(act)} toward your ${modeLabel} line — from ~${ap.pctRate}%BW/wk to ~${ap.targetPct}%BW/wk (≈${ap.corrKcal} kcal).`;
   let pt = null; try { pt = proteinTarget(s); } catch (e) {}
-  const rationale = `Measured from your own trend: ~${ap.pctRate}%BW/wk over n=${ap.n} mornings, observed TDEE ~${ap.tdee} kcal. The corridor is engine-owned (Garthe 2011 ≈0.7%/wk for the best body-comp change; the redline guards muscle)${pt ? `, and protein holds at ${pt.g} g (${pt.lo}–${pt.hi}) — 2.5 g/kg FFM, the lean-retention floor (Refalo/Helms)` : ""}.`;
+  const rationale = `Measured from your own trend: ~${ap.pctRate}%BW/wk over n=${ap.n} mornings, observed TDEE ~${ap.tdee} kcal. The corridor is engine-owned (Garthe 2011 ≈0.7%/wk for the best body-comp change; the redline guards muscle)${pt ? `, and protein holds at ${pt.g} g (${pt.lo}–${pt.hi}) — 2.5 g/kg FFM, the lean-retention floor (2025 Bayesian meta-regression, authorship TBC; Helms)` : ""}.`;
   let fx = null; try { fx = forecast(s); } catch (e) {}
   const projection = fx && fx.ok && fx.confident && fx.etaMid != null
     ? `On this line, ~${fx.etaMid} wks to ${fx.targetPct}% BF (range ${fx.etaFast}–${fx.etaSlow} wks — the fan widens with distance, not a promise).`
@@ -6123,8 +6108,8 @@ function labAnalytics2(s) {
     const pred = Math.round(bmr * 1.55);
     return { id: "adaptmeter", t: "THE UNEXPLAINED RESIDUAL", status: obs ? "LIVE" : "ARMED", prog: { n: obs ? 1 : 0, need: 1, label: "observed maintenance (prints with clean post-seal weeks)" },
       tag: "How much has the deficit slowed your engine, in kcal?",
-      deep: "Predicted burn = Mifflin-St Jeor at your live weight (BMR ~" + bmr + ") × 1.55 for your activity pattern — a textbook estimate, stated as such. Observed burn = the maintenance your own ledger measures. The gap is adaptive thermogenesis: the metabolic slowdown dieting causes. It's the single number that sizes September's reverse — eat to the OBSERVED number fast, then build.",
-      forYou: obs ? `Textbook says ~${pred}. Your ledger says ~${obs.tdee}. Adaptation: ~${pred - obs.tdee > 0 ? pred - obs.tdee : 0} kcal — ${pred - obs.tdee > 250 ? "real but normal for week " + weekDay().wk + "; the MATADOR card is the counter-move." : "small. Your engine is holding remarkably well."}` : "Arms with the first clean post-seal maintenance print (Mon 7/27+). The textbook half is already computed and waiting.",
+      deep: "Predicted burn = Mifflin-St Jeor at your live weight (BMR ~" + bmr + ") × 1.55 for your activity pattern — a textbook estimate, stated as such. Observed burn = the maintenance your own ledger measures. The gap is the UNEXPLAINED RESIDUAL — textbook minus measured, which folds adaptation, activity drift and log error together. It informs the forecast, never a phase move — and at the exit you still eat to the OBSERVED number.",
+      forYou: obs ? `Textbook says ~${pred}. Your ledger says ~${obs.tdee}. Unexplained residual: ~${pred - obs.tdee > 0 ? pred - obs.tdee : 0} kcal — ${pred - obs.tdee > 250 ? "real but normal for week " + weekDay().wk + " — it informs the forecast; nothing counters it, and nothing needs to." : "small. Your engine is holding remarkably well."}` : "Arms with the first clean post-seal maintenance print (Mon 7/27+). The textbook half is already computed and waiting.",
       lines: [] };
   });
 
@@ -8261,7 +8246,7 @@ function runAdaptive(state, todayISO, raOpts) {
   const sealed = daysUntil(s.blackout.until) > 0;
   const r = currentRate(s);
   if (!sealed && r.measured && r.rates.slice(-2).length === 2 && r.rates.slice(-2).every((x) => x < cutRateBand(s).floor))
-    propose("floor_" + monday, "RATE FLOOR TRIPPED", `Two weeks under ${cutRateBand(s).floor}/wk (${r.rates.slice(-2).map((x) => x.toFixed(1)).join(", ")}). Your rule: steps below baseline → restore them FIRST. At baseline already → steps-vs-a-~50-kcal-trim is an ADHERENCE EXPERIMENT, not a hierarchy — run whichever you will actually keep.`, { kind: "note" });
+    propose("floor_" + monday, "TWO SLOW WEEKS — YOUR RULE KICKS IN", `Weight loss ran under ${cutRateBand(s).floor} lb/wk for two straight weeks (${r.rates.slice(-2).map((x) => x.toFixed(1)).join(" and ")} lb/wk). Your rule: steps below baseline → restore them FIRST. At baseline already → steps-vs-a-~50-kcal-trim is an ADHERENCE EXPERIMENT, not a hierarchy — run whichever you will actually keep.`, { kind: "note" });
 
   /* STEPS ITEM B — the PUSH card. Steps first, food as the alternative: the same apply
      machinery arms both (kind cal + stepsDelta), and the athlete's pick lands as the
@@ -11638,7 +11623,7 @@ function signalReadCopy(s, sig) {
   let sentence;
   switch (sig.state) {
     case "measured": sentence = losing ? "The cut is working — this week's drop is real now, not noise." : "The gain is real now — the trend has left the noise behind."; break;
-    case "measurable": sentence = "The trend is leaning, but not certain yet — a few more clean mornings and it's called."; break;
+    case "measurable": sentence = "The trend is leaning, but not certain yet — a few more clean mornings and we'll know."; break;
     case "reversed": sentence = "The trend has turned the wrong way — worth a look before it settles in."; break;
     case "calibrating": sentence = "Still learning your baseline — keep logging and the read sharpens."; break;
     default: sentence = "This week is still inside your noise — no real change to read yet.";
@@ -11931,8 +11916,8 @@ function nowModelUncached(s, deps) {
     gated: !!eb.gated, lo: eb.gated ? null : eb.lo, hi: eb.gated ? null : eb.hi,
     tag: eb.provisional && !eb.gated ? "FIRST ESTIMATE" : null,
     sub: eb.gated ? "A few more logged days and the range appears — the coach never guesses a number this important."
-      : (eb.dir === "deficit" ? "Eating a bit less than you burn — that's the plan working." : eb.dir === "surplus" ? "Eating a bit more than you burn — building costs fuel, and that's the plan." : "Eating about what you burn — holding steady is the plan right now.") + (eb.provisional ? " This range firms up after your next weigh-in." : ""),
-    proteinG: pt.g, proteinNote: "IF IT'S A MEAL, EAT THE PROTEIN FIRST",
+      : (eb.dir === "deficit" ? "" : eb.dir === "surplus" ? "Eating a bit more than you burn — building costs fuel, and that's the plan." : "Eating about what you burn — holding steady is the plan right now.") + (eb.provisional ? " This range firms up after your next weigh-in." : ""),
+    proteinG: pt.g, proteinNote: weekDay().wk <= 4 ? "IF IT'S A MEAL, EAT THE PROTEIN FIRST" : null,   /* A11 — a first-weeks tip, not a permanent fixture */
   };
   /* TODAY'S MOVE — the coach picks ONE thing (§1: a coach that surfaces everything at
      once is a dashboard; one that picks is a coach). Unanswered decision cards outrank
@@ -12619,7 +12604,7 @@ function PhaseArcCard({ s, setS, save, tISO }) {
           : armed
           ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>a phase change is waiting in your inbox &darr;</div>
           : (prop && prop.apply && prop.apply.kind === "break")
-          ? <Btn small tone="gauge" onClick={() => armProposal(prop)}>{sup.kind === "forceBreak" ? "Plan the diet break →" : "Plan a diet break →"}</Btn>
+          ? <Btn small tone="gauge" onClick={() => armProposal(prop)}>Plan a diet break →</Btn>
           : <Btn small onClick={planBreak}>Plan a diet break →</Btn>}
       </div>
     </Card>
@@ -12739,7 +12724,7 @@ function NowTab2({ s, setS, save, go, openRules }) {
               {m.eat.tag && <span style={{ ...tnum, fontSize: 9, letterSpacing: "0.14em", color: DT.amber }}>{m.eat.tag}</span>}   /* A4/D3 — a label, not a pill: non-tappable brass never wears a button shape */
             </div>
             <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, marginTop: 9, lineHeight: 1.5 }}>{m.eat.sub}</div>
-            <div style={{ ...tnum, fontSize: 12.5, marginTop: 11, letterSpacing: "0.04em" }}>{m.eat.proteinG} G PROTEIN <span style={{ color: DT.dim, fontSize: 10.5, letterSpacing: "0.08em" }}>· {m.eat.proteinNote}</span></div>
+            <div style={{ ...tnum, fontSize: 12.5, marginTop: 11, letterSpacing: "0.04em" }}>{m.eat.proteinG} G PROTEIN{m.eat.proteinNote ? <span style={{ color: DT.dim, fontSize: 10.5, letterSpacing: "0.08em" }}> · {m.eat.proteinNote}</span> : null}</div>
           </>)}
       </div>
       <div data-now="move" style={{ ...card9, cursor: m.move.kind === "decisions" ? "pointer" : "default" }} onClick={m.move.kind === "decisions" ? () => { go("BRIEF"); openGroup(NOW_DOORS.inbox); scrollToId("pl-inbox"); } : undefined} role={m.move.kind === "decisions" ? "button" : undefined} tabIndex={m.move.kind === "decisions" ? 0 : undefined}>
@@ -13334,7 +13319,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                     <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 8, lineHeight: 1.5, paddingLeft: 8, borderLeft: `2px solid ${T.jade}` }}>
                       <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.jade, letterSpacing: "0.06em" }}>THE LEVER — LIGHTS OUT {fmt12(anch.needBed)}</span>
                       <div style={{ marginTop: 3 }}>
-                        Your last {anch.n} nights: bed {fmt12(anch.bed)}, up {fmt12(anch.wake)} — {anch.curH} h.
+                        Your last {anch.n} nights: bed {fmt12(anch.bed)}, up {fmt12(anch.wake)} — {(+anch.curH).toFixed(1)} h.
                         {anch.bedSDmin != null && anch.wakeSDmin != null && anch.bedSDmin <= anch.wakeSDmin
                           ? ` Your bedtime is the steady end (${anch.bedSDmin} min of spread against ${anch.wakeSDmin} on your wake), so it is the end you can actually move.`
                           : ""}
@@ -14459,7 +14444,7 @@ function LogTab({ s, setS, save, slp }) {
         return (
           <Card accent={T.brass}>
             <Eyebrow c={T.brass}>{askEx.n.toUpperCase()} — WHAT IS THE NEXT WEIGHT THIS MACHINE MAKES AFTER {askEx.w}?</Eyebrow>
-            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>No next load is on file, so reps are carrying progression blind. One number unlocks the earn ladder{sighted || histTop ? " — and the top-of-window session already on your record counts as sighting one the moment you answer" : ""}. One weight, or the whole ladder (commas or spaces).</div>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>No next load is on file, so reps are carrying progression blind. One number unlocks the next-load ladder{sighted || histTop ? " — and the top-of-window session already on your record counts as the first of the two sightings the moment you answer" : ""}. One weight, or the whole ladder (commas or spaces).</div>
             <input id={"nla-" + askEx.id} inputMode="decimal" placeholder={"e.g. " + (askEx.w + 10) + "  ·  or: " + (askEx.w + 10) + ", " + (askEx.w + 25) + ", " + (askEx.w + 35)} style={{ width: "100%", boxSizing: "border-box", marginTop: 8, background: T.ink, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 16, padding: "10px" }} />
             <div style={{ marginTop: 10 }}>
               <Btn small tone="gauge" onClick={() => {
@@ -15373,7 +15358,7 @@ function SleepTab({ s, setS, save, slp }) {
           return (
             <>
               <div style={{ marginTop: SP.sm }}>
-                <Hero value={an.measured ? an.curH : "—"} unit={an.measured ? "h / night" : null}
+                <Hero value={an.measured ? (+an.curH).toFixed(1) : "—"} unit={an.measured ? "h / night" : null}
                   n={nN} c={at ? T.jade : T.brass}
                   sub={an.measured ? `bed ${fmt12(an.bed)} · up ${fmt12(an.wake)}` : "log bed and wake times and this reads itself"} />
               </div>
@@ -17193,7 +17178,7 @@ function expDigest(s) {
     const secs = labSections(s);
     const gath = (secs.find((x) => x.k === "gathering") || { cards: [] }).cards;
     const prov = (secs.find((x) => x.k === "provisional") || { cards: [] }).cards;
-    gath.forEach((c) => { if (c && c.prog && c.prog.need) { const rem = Math.max(0, c.prog.need - c.prog.n); rows.push({ kind: "gathering", q: c.tag || c.t, n: c.prog.n, need: c.prog.need, label: c.prog.label, settle: rem === 1 ? "one more and it speaks" : rem + " more " + (c.prog.label || "observations") + " and it speaks" }); } });   /* q: the card's own plain question (tag), title fallback — both engine words (Joe's word, round 2) */
+    gath.forEach((c) => { if (c && c.prog && c.prog.need) { const rem = Math.max(0, c.prog.need - c.prog.n); rows.push({ kind: "gathering", q: c.tag || c.t, n: c.prog.n, need: c.prog.need, label: c.prog.label, settle: rem === 1 ? "one more and it reads" : rem + " more " + (c.prog.label || "observations") + " and it reads" }); } });   /* q: the card's own plain question (tag), title fallback — both engine words (Joe's word, round 2) */
     prov.forEach((c) => { if (c && c.prog && c.prog.need) { const rem = Math.max(0, c.prog.need - c.prog.n); rows.push({ kind: "provisional", q: c.tag || c.t, n: c.prog.n, need: c.prog.need, label: c.prog.label, settle: rem === 1 ? "one more to a verdict it can stand behind" : rem + " more " + (c.prog.label || "observations") + " to a verdict it can stand behind" }); } });
   } catch (e) {}
   return { head: rows[0] || null, rows };
@@ -17573,11 +17558,11 @@ function MoreTab({ s, go, openRules, openCoach }) {
   const roomsR = [
     { k: "BRIEF", t: "DECISIONS", sub: "the briefing room — capture, the briefing, and every decision card in its full home",
       hint: (() => { try { const n9 = ((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length); return n9 ? n9 + " waiting on your OK" : null; } catch (e) { return null; } })() },
-    { k: "QUEUE", t: "QUEUE", sub: "what is earned, what is waiting, and the gate on each",
+    { k: "QUEUE", t: "QUEUE", sub: "what you've earned, what's waiting, and what each is waiting on",
       hint: (() => { try { return (s.queue || []).filter((q) => !q.done).length + " open"; } catch (e) { return null; } })() },
     { k: "SLEEP", t: "SLEEP", sub: "your clock, the lever, and the caffeine tail",
-      hint: (() => { try { const an = sleepAnchor(s); return an.measured ? an.curH + " h average" : "needs bed + wake times"; } catch (e) { return null; } })() },
-    { k: "BODY", t: "BODY", sub: "weight, trend, and the body-fat band at its real width",
+      hint: (() => { try { const an = sleepAnchor(s); return an.measured ? (+an.curH).toFixed(1) + " h average" : "needs bed + wake times"; } catch (e) { return null; } })() },
+    { k: "BODY", t: "BODY", sub: "weight, trend, and the body-fat band — the honest range",
       hint: (() => { try { const b = bfEst(s); return b.pct + "% · " + b.lo + "–" + b.hi; } catch (e) { return null; } })() },
   ];
   const okN = (() => { try { return ((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length); } catch (e) { return 0; } })();   /* the rail badge count, verbatim */
@@ -17811,7 +17796,7 @@ function MoreTab({ s, go, openRules, openCoach }) {
       {/* The instrument's serial plate (§4): what you are running, what schema the
           record is on, and where the numbers come from. TS.micro steel, bottom. */}
       <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, textAlign: "center", padding: `${SP.lg}px ${SP.sm}px 0`, lineHeight: `${LH.micro}px`, letterSpacing: "0.04em" }}>
-        EARNED · v{APP_V} · SCHEMA v{SCHEMA_V}
+        EARNED — built for one athlete, from his own logs
         <br />every figure on every screen is computed from your own logs — no defaults, no population averages
         <br />record starts {fmtShort(START)} · {(s.reads || []).length} weigh-ins · {((s.sleep || {}).nights || []).length} nights · {Object.keys(s.sessionLog || {}).length} sessions
       </div>
@@ -18368,7 +18353,7 @@ export default function PrepLedger() {
             never be tappable: pointer-events none, PINNED by a source assert. Moved to the
             bottom corner of the bar (out of the label line it was crowding at 390px), 9px =
             the token ramp's floor. */}
-        <div style={{ position: "absolute", bottom: 2, right: 6, fontFamily: mono, fontSize: 9, color: T.steel, opacity: 0.55, padding: 0, pointerEvents: "none" }}>v{APP_V}</div>
+
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
             <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: (tab === t2 || (t2 === "LEDGER" && inMore)) ? `2px solid ${T.gauge}` : "2px solid transparent", fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, letterSpacing: "0.09em", transition: TR("color", MOT.micro), color: (tab === t2 || (t2 === "LEDGER" && inMore)) ? T.gauge : T.steel }}>

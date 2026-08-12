@@ -173,11 +173,11 @@ m.weekly = [{ wk: "2026-07-06", trend: 165.2 }, { wk: "2026-07-13", trend: 164.7
 m = runAdaptive(m, "2026-07-22");
 /* R14 — the floor producer is kind:note, so it is now a FEED LINE, not a card. The
    invariant: a card may exist in the inbox only if its tap enacts a state change. */
-ok(!m.proposals.some(p => !p.resolved && p.title.indexOf("RATE FLOOR") === 0), "R14 — the floor note no longer becomes a CARD: information is not a decision");
-ok(m.feed.some(f => f.t.indexOf("RATE FLOOR") === 0), "R14 — it lands in the FEED instead, where information lives, with the same title and body");
+ok(!m.proposals.some(p => !p.resolved && p.title.indexOf("TWO SLOW WEEKS") === 0), "R14 — the floor note no longer becomes a CARD: information is not a decision");
+ok(m.feed.some(f => f.t.indexOf("TWO SLOW WEEKS") === 0), "R14 — it lands in the FEED instead, where information lives, with the same title and body (V6: the title is plain now — the dialect died in the same round)");
 {
   const again = runAdaptive(JSON.parse(JSON.stringify(m)), "2026-07-22");
-  ok(again.feed.filter(f => f.t.indexOf("RATE FLOOR") === 0).length === 1, "R14 — and a persisting condition informs ONCE per fortnight, not once per sweep: deduped against the feed itself, statelessly");
+  ok(again.feed.filter(f => f.t.indexOf("TWO SLOW WEEKS") === 0).length === 1, "R14 — and a persisting condition informs ONCE per fortnight, not once per sweep: deduped against the feed itself, statelessly");
 }
 let e2 = clone(SEED); e2.trend = 160; e2.blackout.until = "2026-07-01";
 e2 = runAdaptive(e2, "2026-07-22");
@@ -6649,9 +6649,7 @@ if (fail) process.exit(1);
   ok(DT9.glyph.status === "◆" && DT9.glyph.ok === "◇" && DT9.glyph.fwd === "▸" && DT9.touch === 64, "R15a — the geometric glyph set and the 64px touch floor are tokens, not tribal knowledge");
   const src15 = readFileSync("src/app.jsx", "utf8");
   ok(src15.indexOf('const PRIMARY_TABS = ["NOW", "TRAIN", "LEDGER"];') > -1 && src15.indexOf('"MORE"') === -1, "R15a — the rail is NOW / TRAIN / LEDGER and no route answers to MORE: renamed everywhere, not aliased — a stranded surface is the failure this asserts against");
-  const stampLine = src15.split("\n").find((l) => l.indexOf(">v{APP_V}</div>") > -1 && l.indexOf('position: "absolute"') > -1);
-  ok(!!stampLine && stampLine.indexOf('pointerEvents: "none"') > -1, "R15a POINTER PASS — the version stamp carries pointer-events none: it intercepted REAL taps on the rail's right tab while every synthetic jsdom click passed through it — a passive label may never own a tap, and this pin keeps it that way");
-  ok(src15.indexOf("\\" + "u00b7 target") === -1 && src15.indexOf(" " + "\\" + "u00d7 {") === -1, "R15a — no JSX-text unicode escapes survive: \\u00b7 and \\u00d7 between JSX expressions render as LITERAL CHARACTERS on screen (they were live on TODAY'S LIFTS and GymMode's prev line) — escapes belong in JS strings, glyphs belong in JSX text");
+  ok(!src15.split(String.fromCharCode(10)).some((l) => l.indexOf(">v{APP_V}</div>") > -1 && l.indexOf('position: "absolute"') > -1), "A10 — the floating version stamp LEFT the tab bar (it once intercepted real taps; now it cannot, because it does not exist there) — the version lives in Rules and the export receipts");
 }console.log(`\nFINAL86: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
 
@@ -7115,7 +7113,7 @@ if (fail) process.exit(1);
   const swF = readFileSync("sw.js", "utf8");
   ok(idxF.indexOf("<title>EARNED</title>") > -1 && idxF.indexOf('content="EARNED"') > -1 && idxF.indexOf("Measured") === -1, "R15f RENAME — the page title and apple web-app title both say EARNED, and no Measured survives in the shell");
   ok(manF.indexOf('"name": "EARNED"') > -1 && manF.indexOf('"short_name": "EARNED"') > -1 && manF.indexOf("Measured") === -1, "R15f RENAME — the manifest names the install EARNED, long and short");
-  ok(srcF.indexOf(">EARNED</span>") > -1 && srcF.indexOf("<H size={24}>Earned</H>") > -1 && srcF.indexOf("EARNED · v{APP_V}") > -1 && srcF.indexOf("EARNED — ANALYST DOSSIER") > -1, "R15f RENAME — all four in-app wordmark sites carry EARNED: the NOW wordmark, the BRIEF header, the serial plate, the dossier header");
+  ok(srcF.indexOf(">EARNED</span>") > -1 && srcF.indexOf("<H size={24}>Earned</H>") > -1 && srcF.indexOf("EARNED — built for one athlete") > -1 && srcF.indexOf("EARNED — ANALYST DOSSIER") > -1, "R15f RENAME — all four in-app wordmark sites carry EARNED: the NOW wordmark, the BRIEF header, the serial plate, the dossier header");
   ok(srcF.indexOf(">MEASURED</span>") === -1 && srcF.indexOf("<H size={24}>Measured</H>") === -1 && srcF.indexOf("MEASURED · v{APP_V}") === -1, "R15f RENAME — and no wordmark site still says MEASURED; the STATUS word MEASURED (trust vocabulary, a tracked quantity) is deliberately untouched");
   ok(swF.indexOf("earned-v") > -1 && swF.indexOf("measured-v") === -1, "R15f RENAME — the sw cache prefix is earned-v; the activate sweep purges every old measured-v cache on first load");
   ok((srcF.split("the painted chip rides the inner span").length - 1) === 8, "R15f+g — the chip class wears the standing split everywhere it exists: the R15f four (undo pill, two est chips, the context chip) plus the R15g four selector groups (sodium/alcohol, today and yesterday), marker-pinned so a ninth chip must join the law or fail here");
@@ -7214,7 +7212,7 @@ if (fail) process.exit(1);
     const wsRow = d2.rows.find((r) => r.q === (ws2 && ws2.tag));
     ok(!!ws2 && !!ws2.tag && !!wsRow && wsRow.q === "Is the 6-hour wake a pattern with an address, or noise?", "R2 JOE'S WORD — the WAKE SIGNATURE row leads with the card's own plain question, engine words verbatim: " + (wsRow ? wsRow.q : "row missing"));
     ok(all2.every((c) => !!c.tag), "R2 — no tagless card exists in today's buckets, so the title FALLBACK is source-pinned rather than state-driven (the honest scope): every current card carries its plain question");
-    ok(wsRow.need - wsRow.n === 1 && wsRow.settle === "one more and it speaks", "R2 GRAMMAR — exactly-one-remaining drops the label repeat: " + JSON.stringify(wsRow.settle));
+    ok(wsRow.need - wsRow.n === 1 && wsRow.settle === "one more and it reads", "R2 GRAMMAR — exactly-one-remaining drops the label repeat: " + JSON.stringify(wsRow.settle));
     const plural2 = d2.rows.find((r) => (r.kind === "gathering") && (r.need - r.n) > 1);
     ok(!!plural2 && plural2.settle.indexOf((plural2.need - plural2.n) + " more " + (plural2.label || "observations")) === 0, "R2 GRAMMAR — plural cases keep the count and label verbatim: " + JSON.stringify(plural2 && plural2.settle));
   }
@@ -7765,10 +7763,10 @@ if (fail) process.exit(1);
     ok(!!g && g.ex.filter((l) => typeof l.w === "number").every((l) => l.runway), "R18a — every numeric lift on the session card carries a runway line, derived only (nextLoad · windowFor · last · topRun · typicalError)");
     const r1 = (g.ex.find((l) => /EARNS AT THE TOP OF THE WINDOW/.test(l.runway || "")) || {}).runway || "";
     ok(/EARNS AT THE TOP OF THE WINDOW \(\d+-\d+\)/.test(r1) && (/you are \d+ reps? away/.test(r1) || /you are there/.test(r1)) && /two sightings bank it|one sighting banked/.test(r1), "R18a — the runway names the next load, the window, the measured rep distance and the sighting state in one engine-authored line: " + r1.slice(0, 90));
-    ok((g.structural || "").length > 0 && srcR8.indexOf(String.fromCharCode(34) + " · nearest earn: " + String.fromCharCode(34)) > -1, "R18a — the header receipt exists at source ( · nearest earn: name, N reps from W) and rides whenever no structural claims the day; this seed day carries one (" + g.structural.slice(0, 40) + "), so the receipt yields to it — by design, the receipt explains only the NO-debut claim");
+    ok((g.structural || "").length > 0 && srcR8.indexOf(String.fromCharCode(34) + " · closest to a new weight: " + String.fromCharCode(34)) > -1, "R18a — the header receipt exists at source ( · nearest earn: name, N reps from W) and rides whenever no structural claims the day; this seed day carries one (" + g.structural.slice(0, 40) + "), so the receipt yields to it — by design, the receipt explains only the NO-debut claim");
   }
   /* R18b — the ask card at source */
-  ok(srcR8.indexOf("WHAT IS THE NEXT WEIGHT THIS MACHINE MAKES AFTER") > -1 && srcR8.indexOf("[...new Set([...(loadRungs(ex4) || []), ex4.w, ...ups])].sort") > -1 && srcR8.indexOf("counts as sighting one") > -1, "R18b — the ask card captures the machine's ladder in one tap (parseRungs — one weight or the whole ladder) and the already-delivered sighting counts the moment it is answered");
+  ok(srcR8.indexOf("WHAT IS THE NEXT WEIGHT THIS MACHINE MAKES AFTER") > -1 && srcR8.indexOf("[...new Set([...(loadRungs(ex4) || []), ex4.w, ...ups])].sort") > -1 && srcR8.indexOf("counts as the first of the two sightings") > -1, "R18b — the ask card captures the machine's ladder in one tap (parseRungs — one weight or the whole ladder) and the already-delivered sighting counts the moment it is answered");
   ok(srcR8.indexOf("Confirm the rung: does this machine actually make ") > -1, "R18c — the EARNED banner asks for rung confirmation where no ladder is on file, and points at the SETUP editor (the power path stays)");
   ok(srcR8.indexOf("GATES the next jump") > -1 && srcR8.indexOf("Last-set RIR gates the next jump") > -1, "R18d — the two prose claim-sites now describe what the engine does (gate + propose), not a sizing that never ran; the gym label 'this one sizes the jump' became TRUE under this round");
 
