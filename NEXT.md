@@ -54,12 +54,23 @@ Dynamic-Type/landscape.
 word given on the full-round audit at 6787887. The record below is what was built and
 what was deliberately left; the stage-4 block further down carries the deferrals.
 
-**NOW — NOTHING IS ASSIGNED. The next brief comes from cowork, unprompted: the
-MOTION/INTERACTION pass.** Do not start a QUEUED item below without Joe's say-so. The
-motion pass already carries four named items, all found during round 6 and all ruled
-OUT of it: the four data-deleting spans on NOW · the `Section`-header semantics (plain
+**NOW — THE PLAN OF RECORD IS [docs/pipeline-2026-08-12.md](docs/pipeline-2026-08-12.md). Work it top to bottom; one part per go.**
+
+*(The block below replaces "NOTHING IS ASSIGNED", which was stale the moment it was
+written — the motion pass had already been briefed, blind-audited and Joe-ruled, with
+two rounds specced ahead of it. Cowork's amendment, verbatim:)*
+
+**NOW — THREE ROUNDS ARE SPECCED AND SEQUENCED, files with Joe (drag-in .md per round):**
+1. **v7.52.0 — PERSISTENCE** (builds first): patch-runner version-skip + V46 feed dedupe + guard-block banner + thrown-getItem banner + corrupt-blob stash + hi/inc/setup merge stamps. Root cause: migrate() replays the full patch chain on every bump and thirteen historical patches are destructive against later state — executed proof: a simulated bump reverted an approved volume set and wiped the pending inbox. **NO round may bump SCHEMA_V before this one lands.**
+2. **v7.53.0 — RETIREMENT + WORD BUNDLE** (owner-ruled R1–R4): retire the failure A/B cleanly, 14 rewritten SETUP cues + renames + THE READ corrections + hooks policy + 2s calf pause + baseline forks + the [PIN] calibration blocker. Builds only on merged v7.52.0. Cue texts: [docs/cue-texts-2026-08-12.md](docs/cue-texts-2026-08-12.md).
+3. **v7.54.0 — MOTION ROUND** (Sol-audited, cowork-adjudicated, Joe-ruled): every AGENT decision gets its promised one-tap undo (approve AND dismiss), per-species honest dismiss copy (the universal "Dismiss: nothing changes." is factually false), Section becomes a real keyboard control app-wide, **the FAB docks into the fixed-chrome band (Joe's ruling)**, the four quick-undo spans become real buttons, Escape closes the capture sheet, one back control per room. Absorbs and closes all four named motion items below.
+
+Do not start a QUEUED item without Joe's say-so.
+
+*(The four named motion items, kept for context — all absorbed by v7.54.0's spec:
+the four data-deleting spans on NOW · the `Section`-header semantics (plain
 `<div onClick>`, no role/tabIndex/onKeyDown) · the FAB (with the CORRECTED numbers —
-read them, my first filing was wrong) · HISTORY's duplicate back control.
+read them, my first filing was wrong) · HISTORY's duplicate back control.)*
 
 **THE TWO THINGS ROUND 6 SHOULD BE REMEMBERED FOR, because both are about the gates
 rather than the app:**
