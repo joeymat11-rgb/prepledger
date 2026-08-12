@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.49.0";
+const APP_V = "7.50.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -12340,6 +12340,7 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
 }
 
 function ApprovalInbox({ s, setS, save, tISO }) {
+  const [whyCard, setWhyCard] = useState(null);   /* M6 — one card's receipt expanded at a time */
   const [nudge, setNudge] = useState({});
   const raw = useRepoDoc("ledger/suggestions.json");
   const sugData = (() => { try { return raw ? JSON.parse(raw) : null; } catch (e) { return null; } })();
@@ -12467,8 +12468,14 @@ function ApprovalInbox({ s, setS, save, tISO }) {
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: it.basis === "speculation" ? T.orange : T.brass, letterSpacing: "0.06em", marginTop: SP.hair }}>
               {it.basis === "speculation" ? "(speculation)" : "(measured — computed from your own logs)"}
             </div>
-            {it.why && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.body}px` }}>{it.why}</div>}
-            {it.rationale && (
+            {it.consent && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.chalk, marginTop: SP.sm, lineHeight: 1.5 }}>{it.consent} Dismiss: nothing changes.</div>}
+            {it.why && (() => { const w9 = String(it.why); const cut9 = w9.indexOf(". "); const one9 = cut9 > 20 ? w9.slice(0, cut9 + 1) : w9; const rest9 = w9.slice(one9.length).trim();
+              return (<>
+                <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.body}px` }}>{one9}</div>
+                {rest9 || it.rationale ? <button onClick={() => setWhyCard(whyCard === it.key ? null : it.key)} style={{ background: "none", border: "none", padding: "10px 0 2px", margin: 0, cursor: "pointer", fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.08em", color: T.gauge, textAlign: "left" }}>{whyCard === it.key ? "▾ why this proposal?" : "▸ why this proposal?"}</button> : null}
+                {whyCard === it.key && rest9 ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>{rest9}</div> : null}
+              </>); })()}
+            {it.rationale && whyCard === it.key && (
               <>
                 {it.rationale.science && <div style={rline}><b style={{ color: T.chalk }}>Science:</b> {it.rationale.science}</div>}
                 {it.rationale.data && <div style={rline}><b style={{ color: T.chalk }}>Your data:</b> {it.rationale.data}</div>}
@@ -12476,7 +12483,7 @@ function ApprovalInbox({ s, setS, save, tISO }) {
               </>
             )}
             {it.predict && <div style={{ fontFamily: mono, fontSize: TS.label, color: it.conf === "high" ? T.jade : it.conf === "low" ? T.steel : T.brass, marginTop: SP.sm }}>→ expected: {it.predict}</div>}
-            {it.consent && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: 1.5 }}>{it.consent} Dismiss: nothing changes.</div>}
+
             {it.dial && (
               <div style={{ marginTop: SP.sm }}>
                 <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.08em" }}>TAKE IT AS PROPOSED, OR MOVE IT — YOUR CALL EITHER WAY</div>
