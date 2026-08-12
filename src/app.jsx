@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.50.0";
+const APP_V = "7.51.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -17019,6 +17019,37 @@ function HistTab({ s, setS, save }) {
           evidence, so they sit at the top of the findings list rather than loose in the
           room. Content verbatim, still a 44px header, still closed by default. */}
       {secOpen.speaking && (<>
+      {/* R6 STAGE 4 — HOW EVIDENCE WORKS. The method behind the inventory: what
+          the room is for, what a room full of instruments does to a single
+          person's data, and the map that traces every number to the logging
+          that feeds it. First thing inside FINDINGS, so it is read before the
+          findings rather than after them. */}
+      <Section persistKey="lab.howevidenceworks" title="How evidence works" meta="what to trust, and why" c={T.jade}>
+        <Card style={{ padding: 11 }}>
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, lineHeight: `${LH.body}px` }}>Read to decide, not to browse — every instrument below waits for its own n before it speaks.</div>
+          {/* THE FORKING-PATHS DISCLOSURE (§P0-2), restored verbatim. One sentence,
+              because the density itself is the disclosure: dozens of instruments
+              mining one person's history will turn up a few interesting-looking
+              things on noise alone. Saying so once, plainly, discharges most of
+              that honestly — and it is the same move the rest of the app makes
+              with (measured, n=X). Stage 2 dropped it; stage 4 puts it back. */}
+          <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.body}px`, maxWidth: "34em" }}>
+            {(() => { try { return labStatusList(s).length; } catch (e) { return 0; } })()} instruments read one person's data — a few will always look interesting by chance, and anything under {LAB_MIN_N} observations reads PROVISIONAL, not measured.
+          </div>
+        </Card>
+        {/* THE MAP, moved here from FINDINGS per the stage-4 checklist. Provenance
+            documentation belongs with the method, not loose among the findings. */}
+        <Card style={{ padding: 11, cursor: "pointer" }} onClick={() => setMapOpen(true)} role="button" tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setMapOpen(true); } }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", minHeight: 44 }}>
+            <div>
+              <Eyebrow c={T.jade}>🗺 THE MAP</Eyebrow>
+              <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 3 }}>All 50 instruments, traced to the logging that feeds them.</div>
+            </div>
+            <span aria-hidden="true" style={{ fontFamily: mono, fontSize: 14, color: T.gauge }}>▸</span>
+          </div>
+        </Card>
+      </Section>
       <div onClick={() => setNof1Open(!nof1Open)} role="button" tabIndex={0} aria-expanded={nof1Open}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setNof1Open(!nof1Open); } }}
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.sm, minHeight: 44, cursor: "pointer" }}>
@@ -17067,20 +17098,9 @@ function HistTab({ s, setS, save }) {
       {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
       {mapOpen && <MapView s={s} onClose={() => setMapOpen(false)} />}
       </>)}
-      {/* R6 — THE MAP is provenance documentation, so it lives with the inventory it
-         documents: inside FINDINGS, one tap from the instruments it traces. (The "How
-         evidence works" page the ruling names is stage-4 work — the essays and the
-         legend land there; until it exists, the map sits with its own subject rather
-         than adding an eighth door to the landing.) */}
-      {secOpen.speaking && <Card style={{ padding: 11, cursor: "pointer" }} onClick={() => setMapOpen(true)}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <Eyebrow c={T.jade}>🗺 THE MAP</Eyebrow>
-            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 3 }}>All 50 instruments, traced to the logging that feeds them. Run this many on one person and a few will look interesting by chance — so each one waits for its own n before it speaks.</div>
-          </div>
-          <span style={{ fontFamily: mono, fontSize: 14, color: T.jade }}>▸</span>
-        </div>
-      </Card>}
+      {/* R6 STAGE 4 — THE MAP moved UP into "How evidence works" (top of this
+          section). The stage-2 interim is discharged; this marker stays so the
+          next reader does not go looking for it where it used to be. */}
       <RedCellCard />
       {/* R15i — the collapsible wrapper is gone: the instruments lead, always visible; the card's own eyebrow is the single census. */}
         <Card accent={T.jade}>
@@ -17904,7 +17924,20 @@ function SettingsTab({ s, go, openRules, openCoach }) {
         </div>
       </Card>
 
-      <SecRule>DISPLAY</SecRule>
+      {/* R6 STAGE 4 — THE NAMING PASS, and what it could honestly reach.
+          Sol's tier map is the in-repo spec of record and names three renames:
+          DISPLAY → APPEARANCE & MOTION (done, here) · RULES → HOW DECISIONS WORK
+          (DEFERRED: the same destination is opened by a button on NOW, and NOW is
+          fenced by this round's own law, so renaming here alone would give one
+          destination two names) · sync/backup/export/reset → YOUR DATA with a
+          destructive boundary (DEFERRED: that is a new destination and a new
+          boundary, which is structure, not a rename).
+          THE 58 INSTRUMENT NAMES ARE NOT TOUCHED. R6-2's fence allows renames only
+          from a code-extracted list, and no such list exists in this repo — the
+          proposal says "full detail in the build spec" and the build spec's naming
+          bundle was delivered in the owner's chat, not filed here. With no list,
+          every rename would be invented, which is exactly what the fence forbids. */}
+      <SecRule>APPEARANCE &amp; MOTION</SecRule>
       <Card style={{ padding: `${SP.xs}px ${SP.lg}px` }}>
         {/* THEME. Three states, explicit and reversible, with the resolved mode named
             so "System" is never ambiguous about what it currently resolved to. */}

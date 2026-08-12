@@ -8617,5 +8617,33 @@ if (fail) process.exit(1);
   ok(src3.indexOf('{nf9.t.split(" — ")[0]}') > -1,
     "RIDER 1 — the newest-finding headline obeys the R15i ROW LAW its own room already runs on; it was the single most prominent line in EVIDENCE and the only place exempt from it");
 }
+/* ============================================================================
+   R6 STAGE 4 — THE ROUND CLOSES. Source pins for the naming pass, the restored
+   honesty content, and the destination that was owed since stage 2.
+   ============================================================================ */
+{
+  const src4 = readFileSync("src/app.jsx", "utf8");
+
+  /* ITEM 1 — the destination exists, the map is in it, and the cut is undone. */
+  ok(src4.indexOf('persistKey="lab.howevidenceworks"') > -1 && src4.indexOf('title="How evidence works"') > -1,
+    "R6-4 — 'How evidence works' EXISTS. Stage 2 promised this destination in a commit comment and did not build it, which is how two honesty sentences ended up on the floor with nobody able to see they had gone");
+  ok((src4.match(/setMapOpen\(true\)/g) || []).length >= 1 && src4.indexOf("THE MAP moved UP into") > -1,
+    "R6-4 — THE MAP moved into it, once, not duplicated: the stage-2 interim is discharged and a marker is left where it used to sit");
+
+  /* THE TWO SENTENCES STAGE 2 CUT, restored verbatim. The DOM half of this is in
+     the render smoke, which opens the door and reads them off the page. */
+  ok(src4.indexOf("Read to decide, not to browse — every instrument below waits for its own n before it speaks.") > -1,
+    "R6-4 — the 'read to decide, not to browse' line is BACK, verbatim. Round 6's law is DEMOTE NEVER CUT, and stage 2 cut it while its own comment claimed it had survived — the comment is what the next reader checks instead of the diff, which is what made it invisible");
+  ok(src4.indexOf("a few will always look interesting by chance") > -1 && src4.indexOf("reads PROVISIONAL, not measured") > -1 && src4.indexOf("{LAB_MIN_N} observations") > -1,
+    "R6-4 — the FORKING-PATHS DISCLOSURE (§P0-2) is BACK, verbatim, with its LAB_MIN_N interpolation intact. Its original comment says it belongs permanently on the MASTHEAD; it is one tap down instead, because restoring it up top puts the landing at ~193 words against a 175 ceiling. That is a demotion the law allows and a FLAG, not a settled call");
+
+  /* ITEM 2 — the naming pass, and its two named deferrals. */
+  ok(src4.indexOf("<SecRule>APPEARANCE &amp; MOTION</SecRule>") > -1 && src4.indexOf("<SecRule>DISPLAY</SecRule>") === -1,
+    "R6-4 — DISPLAY became APPEARANCE & MOTION, the one rename in Sol's tier map reachable without crossing a fence");
+  ok(src4.indexOf("THE 58 INSTRUMENT NAMES ARE NOT TOUCHED") > -1,
+    "R6-4 — and the instrument names did NOT move. R6-2's fence permits renames only from a code-extracted list; no such list is in this repo, so every rename would have been invented — which is the thing the fence exists to stop");
+  ok(src4.indexOf("RULES → HOW DECISIONS WORK") > -1 && src4.indexOf("fenced by this round's own law") > -1,
+    "R6-4 — RULES → HOW DECISIONS WORK is DEFERRED IN CODE with its reason: the same destination is opened from a button on NOW, and renaming only one side would give one destination two names");
+}
 console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

@@ -113,6 +113,13 @@ async function tabText(window, label) {
   let btn = null;
   for (let tries = 0; tries < 40 && !btn; tries++) {
     btn = [...window.document.querySelectorAll("button, div")]
+      /* 400 CHARACTERS = the ancestor-card guard. A card and the row inside it both
+         "start with" the row's label, and querySelectorAll returns the ancestor first,
+         so without a cap the wrapping card answers for its own child and the assertion
+         reads the whole card's text. Spec: one ROW's worth of text. Allowance: generous
+         — the longest legitimate row here (a door title plus its live hint) runs ~120
+         chars, so 400 is roughly 3x the longest real row and still far under any card,
+         which run 600+. It is a discriminator, not a length limit on the row. */
       .find((b) => b.textContent.trim().startsWith(label) && b.textContent.trim().length < 400);
     if (!btn) await new Promise((r) => setTimeout(r, 50));
   }
@@ -259,8 +266,10 @@ for (const [name, mut] of states) {
   }
 }
 
-/* THE LONG-BELT FIXTURE (v7.43.0, the audit word) — the all-done suspects belt at 17+
-   rows, reached DETERMINISTICALLY: a draft parked at all-done with every lift touched
+/* THE LONG-BELT FIXTURE (v7.43.0, the audit word) — the all-done suspects belt, floor
+   17 rows and measuring 24 today (see the assert below, which used to read 10 while
+   this comment read 17+; comment and law now agree),
+   reached DETERMINISTICALLY: a draft parked at all-done with every lift touched
    (banked) and no set ever adjusted or asked about, so EVERY set is a suspect. The
    jsdom-honest asserts: every suspect row is IN the DOM (nothing clipped out), the
    finish control is present-and-disabled until ruled, and the all-done column carries
@@ -282,7 +291,15 @@ for (const [name, mut] of states) {
   click([...w.document.querySelectorAll("button")].find((b) => (b.textContent || "").includes("RESUME SESSION")));
   await new Promise((r) => setTimeout(r, 250));
   const rows9 = [...w.document.querySelectorAll("button")].filter((b) => (b.textContent || "").trim() === "I did this").length;
-  if (rows9 < 10) { console.error("RENDER-SMOKE long-belt: expected a 10+-row suspects belt, found " + rows9); failed++; }
+  /* THE FLOOR IS 17, AND IT MEASURES 24. The comment above this block said "17+ rows"
+     while the assert fired below TEN — they disagreed, and the assert is what runs, so
+     the belt could have quietly halved and passed. The fixture is deterministic (a
+     parked all-done draft with every lift banked and no set adjusted, so every set is
+     a suspect), and it renders 24 today. 17 is kept as the law because it is the
+     number the fixture was designed around; the 24 is recorded so the next person to
+     see a smaller figure knows it moved. Not === 24: the point is a belt long enough
+     to exercise the scrolling column and the disabled finish, not an exact count. */
+  if (rows9 < 17) { console.error("RENDER-SMOKE long-belt: expected a 17+-row suspects belt (24 when this was written), found " + rows9); failed++; }
   const fin9 = [...w.document.querySelectorAll("button")].find((b) => b.disabled && (b.textContent || "").length);
   if (rows9 >= 10 && !fin9) { console.error("RENDER-SMOKE long-belt: no present-and-disabled finish above an unruled belt"); failed++; }
   const belt9 = [...w.document.querySelectorAll("div")].find((d) => d.style && d.style.overflowY === "auto" && (d.textContent || "").includes("NOBODY CONFIRMED THE REPS"));
@@ -337,7 +354,15 @@ if (failed) {
   need("bottom: `calc(${TAB_BAR_H}px + env(safe-area-inset-bottom))`", "the resume bar must sit inside the reserved zone, measured from the same constant");
   const band = +(src.match(/const CHROME_BAND_H = (\d+)/) || [])[1];
   const tabH = +(src.match(/const TAB_BAR_H = (\d+)/) || [])[1];
-  if (!(band >= 40 && tabH >= 60)) { console.error("RENDER-SMOKE FAIL [chrome] the zone is smaller than the chrome it must cover (band " + band + ", tab " + tabH + ")"); process.exit(1); }
+  /* 40 and 60 ARE FLOORS DERIVED FROM WHAT THE ZONE MUST COVER, not round numbers.
+     The band holds the resume bar, whose content is one 44px row — spec 44, floor set
+     at 40 with a 4px allowance because the bar may sit flush and lose its own padding
+     without losing the row. The tab rail holds three 44px targets plus their labels —
+     spec 64 (the shipped TAB_BAR_H), floor 60 with a 4px allowance for the same
+     reason. Both are FLOORS, so the allowance runs downward: they exist to catch a
+     zone shrunk below the chrome it reserves, not to pin the exact value. Shipped
+     today: CHROME_BAND_H 44, TAB_BAR_H 64. */
+  if (!(band >= 40 && tabH >= 60)) { console.error("RENDER-SMOKE FAIL [chrome] the zone is smaller than the chrome it must cover (band " + band + " needs >= 40, tab " + tabH + " needs >= 60)");process.exit(1); }
   console.log("RENDER-SMOKE chrome: one reserved fixed zone (" + (tabH + band) + "px), the resume bar inside it, every scroll surface reserving it");
 }
 
@@ -381,7 +406,24 @@ if (failed) {
 /* ROUND 6 — THE ROOM-LANDING BUDGETS, in the live DOM. The hub budget guarded only the
    hub, so the EVIDENCE landing shipped its whole 29-instrument inventory below the six
    doors and both the gate and my report called it clean — a single scroll disproved it.
-   Same M3 split as the hub: DOM counts here, viewport pixels on the browser rig. */
+   Same M3 split as the hub: DOM counts here, viewport pixels on the browser rig.
+
+   THE VIEWPORT BUDGETS, recorded here because this is where the room budgets live
+   even though only the rig can measure them (jsdom has no layout engine):
+
+     HUB              <= 1.05 viewports. Sol's number, unamended. Measuring 1.0.
+     EVIDENCE LANDING <= 1.15 viewports. AMENDED from 1.05, deliberately, by ruling.
+                      Spec 1.05 + 0.10 named allowance for the seventh door. The
+                      arithmetic: the WHAT IF door was ruled to stay, and seven doors
+                      at the 44px floor is 308px of tap targets before a single word
+                      of the newest finding. 1.05 is then unreachable without either
+                      shrinking targets below 44px or cutting ruled content, and both
+                      are worse than 0.10 of a viewport. Measured 1.14 after the
+                      density pass, both themes.
+
+   Anyone tightening EVIDENCE back to 1.05 has to remove a door or break the 44px
+   floor; that is the trade, and it is written down so it is re-argued rather than
+   re-discovered. */
 {
   const walk = async (label) => {
     const w = await mount();
@@ -406,7 +448,14 @@ if (failed) {
     /* the >3-instrument test: count the room's own instrument rows, which carry the
        status words the inventory prints beside every name */
     const inst = (txt.match(/measured · n=|provisional · |\d+\/\d+ ▸/g) || []).length;
-    if (inst > 3) fails.push("the landing lists " + inst + " instruments (max 3)");
+    /* 3 IS THE SPEC, WITH ALLOWANCE ZERO. Sol's landing contract is ONE newest
+       finding; the ruled shape is "one finding + seven doors + nothing else", so the
+       honest spec is 1. It is written as 3 because this counts STATUS-WORD matches,
+       not rows: a door hint can legitimately carry an instrument's status words
+       ("12 established", "measured · n="), so 2 is the noise floor of the counting
+       method itself. Spec 1 + 2 for the method = 3. Measured today: 0. If this ever
+       reads 4+, an inventory is back on the landing. */
+    if (inst > 3) fails.push("the landing lists " + inst + " instruments (spec 1 + 2 for the counting method's own noise = 3)");
     /* THE REAL BUDGET now that the ruling landed: one newest finding + seven doors.
        130 is the spec; the allowance covers the shell chrome the walk also captures (the
        back link, the tab rail, the room title) — named, not hidden. */
@@ -420,7 +469,14 @@ if (failed) {
        and every other test in the suite stayed green. */
     const liveState = JSON.parse(w.localStorage.getItem("prep-ledger-v1") || "{}");
     const census = censusOf(liveState) || [];
-    if (census.length < 20) { console.error("RENDER-SMOKE FAIL [findings] the census probe returned " + census.length + " instruments — it is not reading the state the room renders"); process.exit(1); }
+    /* 20 IS A WIRING FLOOR, NOT A CONTENT BUDGET. The equivalence below is only
+       meaningful if the probe is actually reading the same state the room renders; a
+       probe wired to an empty object returns 0 and then "0 of 0 render" passes
+       triumphantly. The census ships 58 instruments. Floor 20 = roughly a third of
+       that: low enough that legitimately retiring instruments never trips it, high
+       enough that a broken or empty probe cannot. It is checking the INSTRUMENT, not
+       the app. Measured today: 58. */
+    if (census.length < 20) { console.error("RENDER-SMOKE FAIL [findings] the census probe returned " + census.length + " instruments, under the wiring floor of 20 (58 ship) — it is not reading the state the room renders"); process.exit(1); }
     const tap = async (pred, what) => {
       const el = [...w.document.querySelectorAll("button, [role=button], div[tabindex]")].find(pred);
       if (!el) { if (what) { console.error("RENDER-SMOKE FAIL [census] no " + what + " on the landing"); process.exit(1); } return false; }
@@ -435,6 +491,12 @@ if (failed) {
        card replaces its own row, which would read as a missing instrument. */
     await tap((b) => b.textContent.trim().startsWith("FINDINGS"), "FINDINGS door");
     await tap((b) => b.textContent.trim().startsWith("STILL LEARNING"), "STILL LEARNING door");
+    /* 4 IS A RUNAWAY STOP, NOT AN EXPECTATION. GATHERING has exactly ONE "N more"
+       toggle, so the loop's real work is one tap and the `break` on not-found is what
+       normally ends it. The bound exists only so a future toggle that re-labels itself
+       instead of disappearing cannot spin this walk forever. Spec 1 + 3 spare = 4. If
+       a second expander is ever added, raise this deliberately — a silently truncated
+       walk would report "nothing dropped" while leaving rows unopened. */
     for (let k9 = 0; k9 < 4; k9++) { if (!(await tap((b) => /more gathering/.test(b.textContent || "")))) break; }
     /* THE EQUIVALENCE, counted. Every census entry renders as exactly one row (or one
        expanded card) — data-lab-row / data-lab-card exist for this and nothing else,
@@ -443,6 +505,34 @@ if (failed) {
     const seen = new Set([...w.document.querySelectorAll("[data-lab-row],[data-lab-card]")].map((el) => el.getAttribute("data-lab-row") || el.getAttribute("data-lab-card")));
     const missing = census.filter((c) => c.status !== "MODEL" && !seen.has(c.id)).map((c) => c.status + " · " + c.t);
     if (missing.length) { console.error("RENDER-SMOKE FAIL [census] " + missing.length + " of " + census.length + " instruments the census knows have NO row behind any door — they left the app: " + missing.slice(0, 8).join(" | ")); process.exit(1); }
+    /* THE HONESTY GUARD, and why it exists. Round 6's law is DEMOTE, NEVER CUT, and
+       stage 2 cut two sentences anyway — the "read to decide, not to browse" line and
+       the §P0-2 forking-paths disclosure — while the commit comment asserted they had
+       survived into a page that did not yet exist. Nothing in the suite could see it:
+       every assertion was about what IS rendered, none about what USED to be. These
+       two strings are now load-bearing. If a future pass moves them, move this guard
+       with them; if it removes them, this fails and says so out loud. */
+    const HONEST = [
+      "Read to decide, not to browse",
+      "a few will always look interesting by chance",
+      "reads PROVISIONAL, not measured",
+    ];
+    /* Section headers are plain <div onClick> — no role="button", no tabIndex, no
+       onKeyDown — unlike every hand-built 44px door in this app, which has all three.
+       So `tap` (which queries button/[role=button]/div[tabindex]) cannot see them and
+       this needs its own finder. REPORTED AS A FINDING, not fixed here: Section is
+       shared by every room, and stage 4's scope is a closed list.
+       Deepest match, because clicking the innermost text div bubbles to the header's
+       handler while clicking an outer ancestor would not. */
+    {
+      const cands = [...w.document.querySelectorAll("div")].filter((d) => (d.textContent || "").trim().startsWith("How evidence works"));
+      const el = cands[cands.length - 1];
+      if (!el) { console.error("RENDER-SMOKE FAIL [honesty] the 'How evidence works' door does not render inside FINDINGS"); process.exit(1); }
+      el.click();
+      await new Promise((r2) => setTimeout(r2, 250));
+    }
+    const gone = HONEST.filter((h) => (w.document.body.textContent || "").indexOf(h) === -1);
+    if (gone.length) { console.error("RENDER-SMOKE FAIL [honesty] " + gone.length + " ruled honesty sentence(s) no longer render anywhere behind the EVIDENCE doors — demote never cut: " + gone.join(" | ")); process.exit(1); }
     const orphan = [...seen].filter((id) => id && !census.some((c) => c.id === id));
     if (orphan.length) { console.error("RENDER-SMOKE FAIL [census] " + orphan.length + " rows render that the census does not know: " + orphan.slice(0, 5).join(" | ")); process.exit(1); }
         await tap((b) => b.textContent.trim().startsWith("DATA QUALITY"), "DATA QUALITY door");

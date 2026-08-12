@@ -38,19 +38,53 @@ gym/capture/decision-anatomy UNTOUCHED. Two verified facts: the two counters cou
 DIFFERENT entities (never merge); Analyst Generate is a live Anthropic call. Recon item:
 the RULES surface rendered dark in a light drive.
 
-**STAGE-4 CHECKLIST (carried, by name, so nothing rides on memory):**
+**STAGE 4 — DISCHARGED 2026-08-12 (branch feat/progress-tab, v7.51.0). What it did,
+and what it deliberately did NOT do:**
 
-1. **MOVE THE MAP INTO "HOW EVIDENCE WORKS".** Stage 2 put THE MAP inside FINDINGS as an
-   INTERIM: the ruling names "How evidence works" as its home, and that page is stage-4
-   work, so shipping a dangling reference would have been worse. Cowork adjudicated the
-   deviation APPROVED AS INTERIM on condition it is carried here by name. When the page
-   exists, the map moves and the interim comment in HistTab comes out with it.
-2. The naming pass inside its two fences (QUEUE state words NOT renamed until
-   code-verified; the instrument names only from a code-extracted list).
-3. Every budget in tools/render-smoke.mjs reads as SPEC + NAMED ALLOWANCE, never a magic
-   constant (rider 2 starts this in stage 3 for HUB and SETTINGS & DATA).
-4. The two 0110b6d riders: the floating + over provenance; the JSX-aware affordance audit.
-5. APP_V 7.51.0 + the matching sw cache bump, at the round's gate-green END only.
+1. **DONE — "How evidence works" now exists**, and THE MAP moved into it. Building the
+   destination is what exposed the real defect: **stage 2 CUT two honesty sentences**
+   (the "read to decide, not to browse" line and the §P0-2 forking-paths disclosure)
+   while its own commit comment asserted they had survived into this page. They are
+   restored verbatim. A render-smoke HONESTY GUARD now fails if any of the three ruled
+   strings stops rendering — the suite could only ever see what IS on screen, never
+   what used to be.
+   **OPEN FLAG:** §P0-2's own comment says that disclosure belongs *permanently on the
+   masthead*. It is one tap down instead, because restoring it to the landing puts that
+   surface at ~193 words against a 175-word ceiling. Demotion is legal under the round's
+   law; whether "permanently" was meant literally is a ruling, not a build decision.
+2. **PARTLY DONE — the naming pass reached exactly one rename.** DISPLAY →
+   APPEARANCE & MOTION. Two deferrals, both recorded in code with their reasons:
+   RULES → HOW DECISIONS WORK (the same destination is opened from a button on NOW,
+   which this round fences, so renaming one side gives one destination two names);
+   sync/backup/export/reset → YOUR DATA with a destructive boundary (a new destination
+   and a new boundary — structure, not a rename).
+   **THE 58 INSTRUMENT NAMES DID NOT MOVE.** R6-2 permits renames only from a
+   code-extracted list, and no such list is in this repo — the proposal defers to a
+   build spec delivered in the owner's chat. With no list every rename is invented,
+   which is what the fence exists to prevent.
+3. **DONE — every budget and every bare constant reads SPEC + NAMED ALLOWANCE.** The
+   five named constants (instrument count, census wiring floor, chrome-zone floors,
+   the ancestor-card char cap, the expansion-loop bound) now each state their spec,
+   their allowance and what they measure today. The EVIDENCE viewport budget is
+   recorded at **≤1.15 (spec 1.05 + 0.10 for the seventh door)** with the arithmetic
+   written next to it. The long-belt disagreement is resolved: the comment said 17+,
+   the assert fired below 10, and the fixture actually renders 24 — floor is now 17,
+   with 24 recorded.
+4. **NOT DONE, BY DESIGN — both 0110b6d riders stay named future work.** Neither is
+   cheap in the sense stage 4 allowed:
+   · THE FLOATING + spans 96–148px from the bottom while the reserved chrome zone is
+     FIXED_CHROME_H = 108px, so 40px of content scrolls under it. The only geometry
+     that fits is a 44px control at bottom = TAB_BAR_H; the button is 52px today, and
+     it lives on a FENCED surface. Needs a ruling, not a patch.
+   · THE JSX-AWARE AFFORDANCE AUDIT needs a real parser that resolves each element's
+     own handler and its own paint. That is a tool, not an edit.
+5. **DONE — APP_V 7.51.0 + sw cache earned-v7.51.0**, the round's only version stamps.
+
+**FOUND IN PASSING, NOT FIXED (fenced or out of scope):**
+· `Section` headers are plain `<div onClick>` — no `role="button"`, no `tabIndex`, no
+  `onKeyDown` — unlike every hand-built 44px door in the app. Shared by every room.
+· Four data-deleting `<span>`s on NOW (caffeine, meds, pulse, temp): 12px, no button
+  semantics, no 44px box. RULED OUT of round 6; named for the motion/interaction pass.
 
 ## QUEUED — TWO RIDERS FROM THE MINI-PASS RE-AUDIT (2026-08-12, P2, next design round)
 
