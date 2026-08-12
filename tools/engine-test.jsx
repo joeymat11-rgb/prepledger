@@ -5581,8 +5581,10 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(migd.reads.length === oldV35.reads.length && Object.keys(migd.dailyLogs).length === Object.keys(oldV35.dailyLogs).length, "patchV36: ADDITIVE — no read or dailyLog is added or lost (count-preserving)");
   ok(SEED.plan.autonomy === "propose", "patchV36: SEED already carries autonomy='propose' so a fresh install === a migrated one");
   ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 46, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
-  const future = clone(SEED); future.v = 46;
-  ok(mig(future).v === 46, "migrate: a NEWER (v46) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
+  const future = clone(SEED); future.v = __test.SCHEMA_V + 1;   /* FIX 2a — a literal 46 became CURRENT when SCHEMA_V bumped, and this silently tested the v===SCHEMA_V branch instead of the rollback hand-back it claims */
+  const futureBefore = JSON.stringify(future);
+  const futOut = mig(future);
+  ok(JSON.stringify(futOut) === futureBefore, "migrate: a NEWER (SCHEMA_V+1) state is handed back DEEP-IDENTICAL — rollback-safe, not merely version-preserved: no patch understands schema n+1, so touching ANY byte of it is a bug");
   const legacy = clone(SEED); legacy.v = 35; legacy.plan = { goals: [{ text: "no-id" }], ifthen: [{ cue: "x", action: "y" }], share: false };
   const lm = mig(legacy);
   ok(lm.plan.goals[0].id != null && lm.plan.ifthen[0].id != null, "patchV36: legacy goal/if-then entries get a stable id backfilled (so the keyed union keys every entry)");
@@ -5881,8 +5883,9 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(m37.v === 46 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
   ok(m37.reads.length === oldV36.reads.length && Object.keys(m37.dailyLogs).length === Object.keys(oldV36.dailyLogs).length, "patchV37: ADDITIVE — no read or dailyLog added or lost (count-preserving)");
   ok(MIG(clone(SEED)).v === 46, "patchV37..46: idempotent on a current SEED (no double-patch drift — under the v7.52.0 runner a current seed takes the v===SCHEMA_V fast path and no patch runs at all, which is the stronger form of the same claim)");
-  const fut39 = clone(SEED); fut39.v = 46; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
-  ok(MIG(fut39).v === 46 && MIG(fut39).learned.tdee.length === 1, "patchV38: a NEWER (v46) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
+  const fut39 = clone(SEED); fut39.v = __test.SCHEMA_V + 1; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };   /* FIX 2a — floats above SCHEMA_V */
+  const fut39Before = JSON.stringify(fut39);
+  ok(JSON.stringify(MIG(fut39)) === fut39Before, "patchV38: a NEWER (SCHEMA_V+1) state is handed back DEEP-IDENTICAL — rollback-safe, the learned history byte-for-byte");
 
   // -------- MERGE HARDENING — s.learned adversarial: must-not-LOSE + must-not-REVERT, BOTH orders --------
   ok(typeof UL === "function", "s.learned: _unionLearned is the registered reconciler (mirrors _unionPlan)");
@@ -6142,8 +6145,9 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(m38.v === 46 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
   ok(m38.reads.length === oldV37.reads.length && Object.keys(m38.dailyLogs).length === Object.keys(oldV37.dailyLogs).length, "patchV38 — ADDITIVE: no read or dailyLog added or lost (count-preserving)");
   ok(migrate(clone(SEED)).v === 46 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
-  const fut39 = clone(SEED); fut39.v = 46; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };
-  ok(migrate(fut39).v === 46 && migrate(fut39).plan.phase === "leangain", "patchV38 — a NEWER (v46) state is handed back UNTOUCHED: rollback-safe, no phase decision wiped");
+  const fut39 = clone(SEED); fut39.v = SCHEMA_V + 1; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };   /* FIX 2a — floats above SCHEMA_V */
+  const fut39B = JSON.stringify(fut39);
+  ok(JSON.stringify(migrate(fut39)) === fut39B, "patchV38 — a NEWER (SCHEMA_V+1) state is handed back DEEP-IDENTICAL: rollback-safe, no phase decision wiped");
 
   // ---- F · s.plan KEYED-UNION — a stale device must NOT REVERT nor LOSE a phase decision, BOTH orders --
   const devNew = clone(SEED); devNew.plan = { ...devNew.plan, phase: "leangain", setAt: { phase: "2026-07-29T10:00:00Z" }, rev: 5, phaseLog: [{ id: "ph_new", at: "2026-07-29T10:00:00Z", to: "leangain" }] };
@@ -8726,6 +8730,11 @@ if (fail) process.exit(1);
     const s0 = clP(__test.SEED);
     s0.adjustments = [];   /* no structural move this week, so the approve APPLIES rather than expiring at the tap */
     const ex0 = s0.exercises.find((x) => x.id === "curl") || s0.exercises[0];
+    /* FIX 2a — SENTINELS. Values that exist nowhere in SEED or the fixture, so a
+       patch restoring "the seed's copy" of any of them cannot accidentally pass. */
+    ex0.setup = "E1-SENTINEL-SETUP · athlete-calibrated, appears nowhere else";
+    ex0.inc = 3.25;
+    s0.model.drip = 0.31;   /* the executed proof zeroed a future measured drip — so the fixture carries one */
     const before = ex0.sets || 1;
     s0.agentProposals = [
       { id: "e1_vol", kind: "volume", exId: ex0.id, dir: +1, mg: "biceps", title: "VOLUME +1 — biceps" },
@@ -8739,7 +8748,10 @@ if (fail) process.exit(1);
       "E1 — the second proposal is still pending after the approve");
     const setupsBefore = JSON.stringify(ns.exercises.map((x) => [x.id, x.setup]));
     const dripBefore = ns.model.drip;
-    const feedTitles = new Set(ns.feed.map((f) => f && f.t));
+    /* FIX 2a — count EVERY title, not membership: the old Set let a replayed
+       duplicate of an EXISTING title sail through. */
+    const titleCounts = (feed9) => { const m9 = new Map(); for (const f of feed9) { const k9 = f && f.t; m9.set(k9, (m9.get(k9) || 0) + 1); } return m9; };
+    const countsBefore = titleCounts(ns.feed);
     /* the bump */
     ns.v = __test.SCHEMA_V - 1;
     const out = __test.migrate(clP(ns));
@@ -8748,13 +8760,21 @@ if (fail) process.exit(1);
       "E1 — THE HEADLINE: the approved set count SURVIVES the schema bump. Under the old replay-everything runner this exact fixture reverted " + (before + 1) + " → " + before);
     ok(out.agentProposals.length === 1 && out.agentProposals[0].id === "e1_pending",
       "E1 — the pending inbox SURVIVES the bump: the executed proof had it wiped");
-    const newTitles = out.feed.filter((f) => f && !feedTitles.has(f.t)).map((f) => f.t);
-    ok(!newTitles.some((tt) => /HAND-BACK|DESK OFFERS RECALLED|^RULING/.test(tt || "")),
-      "E1 — no phantom HAND-BACK / DESK OFFERS RECALLED / RULING receipt is minted by the bump" + (newTitles.length ? " (new titles were only: " + newTitles.join(" | ") + ")" : ""));
+    const countsAfter = titleCounts(out.feed);
+    const drifted = [];
+    for (const [k9, n9] of countsAfter) { const b9 = countsBefore.get(k9) || 0; if (n9 !== b9 && !/^FEED DEDUPED — /.test(String(k9))) drifted.push(k9 + " " + b9 + "→" + n9); }
+    for (const [k9, n9] of countsBefore) { if (!countsAfter.has(k9)) drifted.push(k9 + " " + n9 + "→0"); }
+    ok(drifted.length === 0,
+      "E1 — the WHOLE feed's per-title counts are identical through the bump (only a legitimate V46 dedupe receipt may differ): a replayed duplicate of an EXISTING title now fails, which the old membership Set let through" + (drifted.length ? " — drifted: " + drifted.join(" | ") : ""));
+    ok(!countsAfter.has("FEED DEDUPED — 0 historical replay duplicates removed"),
+      "E1 — and no zero-work dedupe receipt exists under any phrasing");
+    const exS = out.exercises.find((x) => x.id === ex0.id);
+    ok(exS.setup === "E1-SENTINEL-SETUP · athlete-calibrated, appears nowhere else" && exS.inc === 3.25,
+      "E1 — the SENTINEL setup and inc survive the bump byte-for-byte: values that exist nowhere in SEED, so a patch restoring the seed's copy cannot fake a pass");
     ok(JSON.stringify(out.exercises.map((x) => [x.id, x.setup])) === setupsBefore,
       "E1 — every setup string is BYTE-IDENTICAL through the bump: the old runner overwrote an athlete-calibrated setup with SEED's copy");
-    ok(out.model.drip === dripBefore,
-      "E1 — model.drip is untouched by the bump (the old runner zeroed a future measured drip)");
+    ok(out.model.drip === dripBefore && out.model.drip === 0.31,
+      "E1 — the SENTINEL drip (0.31 — a future measured value, exactly what the old runner zeroed) is untouched by the bump");
   }
 
   /* ITEM 6 — THE STAMP DISCIPLINE, both merge orders, fields judged
@@ -8781,6 +8801,25 @@ if (fail) process.exit(1);
     const e2 = m2.exercises.find((x) => x.id === "press");
     ok(e2.hi === 8 && e2.sets === 4,
       "v7.52.0 stamps — hi and sets travel on their OWN stamps: A's ceiling and B's set count both survive one merge, because a device can be newest on one field and stale on another");
+    /* FIX 2a — BOTH SIDES STAMPED, one strictly newer: the newer stamp wins from
+       both merge orders. The first cut only ever fixtured stamped-vs-unstamped. */
+    const N1 = mk9({ hi: 7, hiAt: "2026-08-12T12:00:00.000Z", lastMeta: { d: "2026-08-10", reps: [8], w: 245 } });
+    const O1 = mk9({ hi: 9, hiAt: "2026-08-11T12:00:00.000Z", lastMeta: { d: "2026-08-12", reps: [9], w: 245 } });
+    for (const [l9, r9, ord9] of [[N1, O1, "newer local"], [O1, N1, "newer remote"]]) {
+      const e9 = __test.mergeState(l9, r9).exercises.find((x) => x.id === "press");
+      ok(e9.hi === 7 && e9.hiAt === "2026-08-12T12:00:00.000Z",
+        "FIX 2a stamps (" + ord9 + ") — two STAMPED sides: the strictly newer stamp wins regardless of merge order or which side trained last");
+    }
+    /* the EXACT TIE: identical stamps, different values — the wholesale winner
+       keeps its field. This is the > vs >= tripwire: with >= the OTHER side
+       would win a tie, and the same merge from the two orders would produce two
+       different states. */
+    const T1 = mk9({ hi: 7, hiAt: "2026-08-12T12:00:00.000Z", lastMeta: { d: "2026-08-12", reps: [9], w: 245 } });
+    const T2 = mk9({ hi: 9, hiAt: "2026-08-12T12:00:00.000Z", lastMeta: { d: "2026-08-10", reps: [8], w: 245 } });
+    const tieM = __test.mergeState(T1, T2);   /* wholesale winner: T1 (newer lastMeta.d) */
+    const tieE = tieM.exercises.find((x) => x.id === "press");
+    ok(tieE.hi === 7,
+      "FIX 2a stamps — EXACT TIE keeps the wholesale winner's field: a >= regression would hand the tie to the loser and make merge order change the result");
   }
 
   /* ITEMS 3+4+5 — the voice, pinned at source (the banner renders in the app
@@ -8793,11 +8832,64 @@ if (fail) process.exit(1);
       "item 3 — and the banner's third truth names what would shrink, in plain words");
     ok(src5.indexOf("raw = localStorage.getItem(KEY);") > -1 && !/function loadState\(\) \{\n  let raw = null;\n  try \{ raw = localStorage\.getItem\(KEY\); \} catch \(e\) \{\}/.test(src5),
       "item 4 — loadState no longer swallows a thrown getItem: 'storage unreadable' propagates to the component catch (SEED in memory only + the load banner) instead of silently seed-booting and then overwriting the real blob on write-back");
-    ok(src5.indexOf('localStorage.setItem("prep-ledger-corrupt", raw2)') > -1,
-      "item 5 — the corrupt blob is stashed to prep-ledger-corrupt BEFORE the first post-corrupt-boot write can destroy the only recoverable copy");
-    ok(src5.indexOf('localStorage.getItem("prep-ledger-corrupt") !== raw2') > -1,
-      "item 5 — one-shot per blob: an identical stash is left alone, a different corruption overwrites the old slot");
+    ok(src5.indexOf('localStorage.setItem("prep-ledger-corrupt", raw); stashOk = localStorage.getItem("prep-ledger-corrupt") === raw;') > -1,
+      "item 5 (2a-hardened) — the stash writes the FIRST read's bytes and VERIFIES them back: no second read feeds it (the TOCTOU Sol confirmed), and a failed write is known, not assumed");
+    ok(src5.indexOf('if (localStorage.getItem("prep-ledger-corrupt") === raw) stashOk = true;') > -1,
+      "item 5 (2a-hardened) — one-shot per blob: an identical stash short-circuits as already-safe; a different corruption overwrites the one slot");
+    ok(src5.indexOf("let raw = null, prev = null, parseFailed = false;") > -1 && src5.indexOf("if (parseFailed && !stashOk)") > -1 && src5.indexOf('setOffline("stash:");') > -1,
+      "FIX 2a item 1d — a non-force write over an unparseable blob ABORTS when the stash failed: the app never destroys the only recoverable copy silently; force proceeds because force is a deliberate user act — and it still stashed first, because the stash now runs ABOVE the force branch");
+    ok(src5.indexOf("const raw3 = localStorage.getItem(KEY); if (raw3 !== null) { prev = JSON.parse(raw3); parseFailed = false; }") > -1,
+      "FIX 2a item 1c — one re-read before the write: another tab may have REPAIRED the blob (the restore flow writes this key); if it now parses, the guard judges against IT instead of null");
+    ok(src5.indexOf("let s = migrate(raw === null ? null : JSON.parse(raw));") > -1 && src5.indexOf("if (raw !== null) {") > -1,
+      "FIX 2a item 1e — raw === null is the ONLY absence, in BOTH readers: an empty-string blob parses (and throws, reaching the banner + stash), never silently seeds");
+    ok(src5.indexOf("SAVE REFUSED — the stored copy is unreadable and its rescue stash could not be written.") > -1,
+      "FIX 2a — the abort has its own banner truth, and both original pinned strings survive beside it");
   }
+}
+/* ============================================================================
+   FIX 2a ITEM 6 — THE STAMP-DISCIPLINE PIN. Retires Sol's P0 permanently: the
+   day someone ships a ceiling / increment / setup editor without its *At stamp,
+   this goes red instead of the merge going wrong on two phones.
+   ============================================================================ */
+{
+  const srcD = readFileSync("src/app.jsx", "utf8");
+  const linesD = srcD.split("\n");
+  /* enclosing-function scan: nearest preceding top-level `function name(` */
+  const fnAt = (idx) => { for (let j = idx; j >= 0; j--) { const m = linesD[j].match(/^function ([A-Za-z0-9_]+)\s*\(/); if (m) return m[1]; } return null; };
+  const offenders = [];
+  for (let ln = 0; ln < linesD.length; ln++) {
+    const L = linesD[ln];
+    /* live ASSIGNMENTS only: .hi= /.inc= /.setup= not followed by = (equality) —
+       object-literal keys (the seed's hi:/inc:/setup:) do not match this shape. */
+    /* EVERY match on the line, not the first. THE MUTATION TEST CAUGHT THIS SCAN
+       ITSELF on its first run: an unstamped .hi planted AFTER a stamped .inc on
+       one line sailed through, because match() returns only the first hit and
+       the scan judged the line by the field that happened to come first. One
+       line, one verdict per FIELD. */
+    const ms = [...L.matchAll(/\.(hi|inc|setup)\s*=(?!=)/g)].map((x) => x[1]);
+    if (!ms.length) continue;
+    /* exemption 1 — seed weave, explicitly marked in-line */
+    if (L.indexOf("seed-authored — unstamped by design") > -1) continue;
+    /* exemption 2 — patches and the migration runner: pre-stamp era by doctrine
+       (stamping them would move the frozen baseline; a NEW patch that wants its
+       write protected stamps deliberately, with a fixed ISO literal) */
+    const fn9 = fnAt(ln);
+    if (fn9 && (/^patchV\d+$/.test(fn9) || fn9 === "migrate")) continue;
+    /* the requirement: the *At stamp written in the same statement block —
+       same line or the following two */
+    const nearby = linesD.slice(ln, ln + 3).join("\n");
+    for (const field of ms) {
+      const stamp = field + "At";
+      if (nearby.indexOf(stamp + " = ") === -1 && nearby.indexOf(stamp + ": ") === -1) {
+        offenders.push("line " + (ln + 1) + " (" + (fn9 || "top-level") + "): ." + field + " assigned without " + stamp);
+      }
+    }
+  }
+  ok(offenders.length === 0,
+    "FIX 2a item 6 — THE STAMP DISCIPLINE, as a gate: every LIVE assignment to .hi/.inc/.setup outside the seed weave and the patch chain writes its *At stamp in the same statement block. Offenders: " + (offenders.join(" | ") || "none") + ". This is how Sol's P0 stays retired: the machinery shipped ahead of its writers, and the first writer that forgets the stamp fails HERE, not in a two-phone merge");
+  /* the scan must actually SEE the one live mutator, or it is scanning nothing */
+  ok(srcD.indexOf("ex5.inc = jz; ex5.incAt = new Date().toISOString();") > -1,
+    "FIX 2a item 6 — and the scan's one live subject exists: the jump-size chip stamps on the same line (delete that mutator and this pin forces the scan's coverage question to be re-asked)");
 }
 console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

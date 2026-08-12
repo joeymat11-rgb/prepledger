@@ -507,9 +507,9 @@ const SEED = {
 (function weave() {
   SEED.v = SCHEMA_V;
   /* v43 — the seed is authored already-current: hack carries the 6-10 ruling */
-  { const hk0 = SEED.exercises.find((x) => x.id === "hack"); if (hk0) hk0.hi = 10; }
+  { const hk0 = SEED.exercises.find((x) => x.id === "hack"); if (hk0) hk0.hi = 10; }   /* seed-authored — unstamped by design */
   /* v45 — the seed carries the calves/rows ruling too */
-  { const c0 = SEED.exercises.find((x) => x.id === "calves"); if (c0) c0.hi = 11; const r0 = SEED.exercises.find((x) => x.id === "rows"); if (r0) r0.hi = 9; }
+  { const c0 = SEED.exercises.find((x) => x.id === "calves"); if (c0) c0.hi = 11; const r0 = SEED.exercises.find((x) => x.id === "rows"); if (r0) r0.hi = 9; }   /* seed-authored — unstamped by design */
   /* v40 — the seed is authored already-current: a fresh install carries the athlete's
      dated split entry exactly as the migration writes it. */
   SEED.split = [{ from: "2026-08-09", map: { 0: "U", 1: "L", 2: "REST", 3: "REST", 4: "U", 5: "L", 6: "REST" }, why: "athlete-stated 2026-08-09 — Sun U · Mon L · Thu U · Fri L (consent relayed on the record, R19)" }];
@@ -10625,7 +10625,7 @@ function loadState() {
      banner, nothing written. Distinguishing "unreadable" from "absent" is the whole
      fix; getItem returning null still means absent and still seeds. */
   raw = localStorage.getItem(KEY);
-  let s = migrate(raw ? JSON.parse(raw) : null);
+  let s = migrate(raw === null ? null : JSON.parse(raw));   /* FIX 2a — null is the ONLY absence: an empty-string blob PARSES (and throws, reaching the banner) rather than silently seeding */
   if (isPristineSeed(s)) { try { localStorage.setItem(RESTORE_OFFER_KEY, "1"); } catch (e) {} }
   s = runAdaptive(s, isoOf(todayStart()));
   try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
@@ -18453,20 +18453,41 @@ export default function PrepLedger() {
 
   const save = useCallback((ns, opts) => {
     try {
+      /* FIX 2a — ONE read up front, shared by the stash AND the guard. The first
+         cut re-read storage inside the catch (a TOCTOU Sol confirmed in code), ran
+         only on the non-force path (reset/import overwrote the corrupt blob with
+         no stash at all), and used `raw ?` — so an EMPTY-STRING blob read as
+         absence and silently seeded. raw === null is now the ONLY absence; any
+         other value goes down the parse path, where a throw means "unreadable",
+         never "fresh install". */
+      let raw = null, prev = null, parseFailed = false;
+      try { raw = localStorage.getItem(KEY); } catch (e) { raw = null; }
+      if (raw !== null) {
+        try { prev = JSON.parse(raw); } catch (e) { parseFailed = true; }
+      }
+      let stashOk = true;
+      if (parseFailed) {
+        /* the stash runs for EVERY write, force included — a deliberate reset is
+           still no reason to destroy the only recoverable copy of unsynced
+           history. First read's bytes, verified back, one slot. */
+        stashOk = false;
+        try {
+          if (localStorage.getItem("prep-ledger-corrupt") === raw) stashOk = true;
+          else { localStorage.setItem("prep-ledger-corrupt", raw); stashOk = localStorage.getItem("prep-ledger-corrupt") === raw; }
+        } catch (e2) { stashOk = false; }
+        /* one re-read, because another tab may have REPAIRED the blob between our
+           read and now (the restore flow writes this key): if it parses, that is
+           the real prev and the guard judges against it instead of null. Still
+           corrupt → the parse throws again and nothing changes. */
+        try { const raw3 = localStorage.getItem(KEY); if (raw3 !== null) { prev = JSON.parse(raw3); parseFailed = false; } } catch (e3) {}
+      }
       if (!(opts && opts.force)) {
-        let prev = null;
-        try { const raw = localStorage.getItem(KEY); prev = raw ? JSON.parse(raw) : null; } catch (e) {
-          prev = null;
-          /* v7.52.0 — the blob is unparseable, and the setItem below is about to
-             destroy the only recoverable copy of anything unsynced. Stash the raw
-             bytes FIRST. Best-effort and one-shot per corrupt blob: an existing
-             identical stash is left alone, a different corruption overwrites the
-             old stash (one slot, oldest goes). Recovery is manual by design —
-             export the stash from the console or a future RULES door. */
-          try {
-            const raw2 = localStorage.getItem(KEY);
-            if (raw2 && localStorage.getItem("prep-ledger-corrupt") !== raw2) localStorage.setItem("prep-ledger-corrupt", raw2);
-          } catch (e2) {}
+        if (parseFailed && !stashOk) {
+          /* the blob is unreadable AND the rescue failed — writing now would
+             silently destroy the only copy. Abort loudly; force is the only
+             override, because force is a deliberate user act. */
+          setOffline("stash:");
+          return;
         }
         const guard = dataLossGuard(prev, ns);
         if (!guard.safe) {
@@ -18587,7 +18608,7 @@ export default function PrepLedger() {
 
       {offline && (
         <div style={{ background: T.plate2, borderBottom: `1px solid ${T.line}`, padding: "calc(8px + env(safe-area-inset-top)) 14px 8px", fontFamily: mono, fontSize: TS.micro, color: T.brass, textAlign: "center" }}>
-          {offline === "load" ? "STORED DATA UNREADABLE — this device's copy would not load. The cloud ledger is intact." : String(offline).indexOf("guard:") === 0 ? "SAVE REFUSED — this write would shrink the stored record (" + String(offline).slice(6) + "). Nothing was lost: the stored copy is intact and this screen still shows your work." : "CANNOT SAVE — private browsing or full storage; nothing new persists this session."} Export from RULES before closing.
+          {offline === "load" ? "STORED DATA UNREADABLE — this device's copy would not load. The cloud ledger is intact." : String(offline).indexOf("stash:") === 0 ? "SAVE REFUSED — the stored copy is unreadable and its rescue stash could not be written. Nothing was overwritten; this screen still shows your work." : String(offline).indexOf("guard:") === 0 ? "SAVE REFUSED — this write would shrink the stored record (" + String(offline).slice(6) + "). Nothing was lost: the stored copy is intact and this screen still shows your work." : "CANNOT SAVE — private browsing or full storage; nothing new persists this session."} Export from RULES before closing.
         </div>
       )}
 
