@@ -17442,7 +17442,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
                       <input type="time" value={bd} onChange={(e) => setNB({ ...nB, [r.d]: e.target.value })} aria-label={"bed " + r.d} style={timeIn9} />
                       <span style={{ ...rowName, color: DT.steel }}>WAKE</span>
                       <input type="time" value={wk} onChange={(e) => setNW({ ...nW, [r.d]: e.target.value })} aria-label={"wake " + r.d} style={timeIn9} />
-                      <Btn small tone="gauge" onClick={() => saveNightFor(r.d, bd, wk)}>Save</Btn>
+                      <Btn small tone="gauge" onClick={() => saveNightFor(r.d, bd, wk)}>{"Save " + fmtShort(r.d)}</Btn>
                     </div>
                   </div>);
               }

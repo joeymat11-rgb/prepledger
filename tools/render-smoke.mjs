@@ -287,7 +287,10 @@ for (const [name, mut] of states) {
   const t2 = w.document.body.textContent || "";
   if (!/OWED — \d+ ITEM/.test(t2)) { console.error("RENDER-SMOKE owed: the + sheet does not lead with the OWED list"); failed++; }
   if (!t2.includes("THE NIGHT OF") || !t2.includes("CLOSE ")) { console.error("RENDER-SMOKE owed: the debt rows (night + day) are not rendered"); failed++; }
-  const saves = [...w.document.querySelectorAll("button")].filter((b) => (b.textContent || "").trim() === "Save").length;
+  /* M5b — every owed action names its own date ("Save Tue 8/11"), night row and day row
+     alike: a context-free verb over three unlabelled numbers was the defect. The pin
+     counts by PREFIX so it proves the symmetry instead of the old bare word. */
+  const saves = [...w.document.querySelectorAll("button")].filter((b) => /^Save /.test((b.textContent || "").trim())).length;
   if (saves < 2) { console.error("RENDER-SMOKE owed: expected inline Save controls on the debt rows, found " + saves); failed++; }
   if (/night(s)? dark/.test(t1) && /OWED — /.test(t2) && saves >= 2) console.log("RENDER-SMOKE owed: the FIVE says dark and the + answers " + (t2.match(/OWED — (\d+)/) || [])[1] + " owed items inline");
 }
