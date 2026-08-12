@@ -15703,7 +15703,7 @@ function DossierBlock({ s }) {
   const [copied, setCopied] = useState(false);
   return (
     <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
-      {!d ? <Btn full tone="gauge" onClick={() => setD(dossierData(s))}>Generate — fresh, right now</Btn> : (
+      {!d ? <Btn full tone="gauge" onClick={() => setD(dossierData(s))}>Create data summary</Btn> : (
         <>
           <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
             <div><Num size={19}>{d.header.trend}</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>TREND{d.header.sealed ? " · SEALED" : ""}</div></div>
@@ -15743,7 +15743,7 @@ function DossierBlock({ s }) {
           )}
           <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
             <Btn small tone="gauge" onClick={() => { try { navigator.clipboard.writeText(dossierText(s)); setCopied(true); } catch (e) { setCopied(false); } }}>{copied ? "Copied ✓" : "Copy as text"}</Btn>
-            <Btn small onClick={() => { setD(null); setCopied(false); }}>Close</Btn>
+            <Btn small tone="gauge" onClick={() => { setD(dossierData(s)); setCopied(false); }}>Refresh summary</Btn>   {/* R6 — the summary is EPHEMERAL by construction (never stored), so REFRESH replaces the redundant Close: the shell already goes back, and a stale summary is never shown as current */}
           </div>
         </>
       )}
@@ -16546,6 +16546,7 @@ function HistTab({ s, setS, save }) {
   const [labOpen, setLabOpen] = useState(null);
   const [secOpen, setSecOpen] = useState({ speaking: true, gathering: true });
   const [deskOpen, setDeskOpen] = useState(false);
+  const [sumOpen, setSumOpen] = useState(false);   /* R6 — the DATA SUMMARY door */
   const [askOpen, setAskOpen] = useState(false);
   const [gatherAll, setGatherAll] = useState(false);
   const [nof1Open, setNof1Open] = useState(false);   /* R15i — N-OF-1 closed by default */
@@ -16675,43 +16676,50 @@ function HistTab({ s, setS, save }) {
               );
               return (
                 <Card accent={T.jade} style={{ padding: "12px 12px 10px" }}>
-                  <Eyebrow c={T.jade}>THE LAB · {totLive} SPEAKING · {totArmed} GATHERING · {tot} TOTAL</Eyebrow>
-                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>Read to decide, not to browse — every instrument below waits for its own n before it speaks.</div>
-                  {/* THE FORKING-PATHS DISCLOSURE (§P0-2). One sentence, permanently on
-                      the masthead, because the density itself is the disclosure: dozens
-                      of instruments mining one person's history will turn up a few
-                      interesting-looking things on noise alone. Saying so once, up
-                      front, discharges most of that honestly — and it is the same move
-                      the rest of the app makes with (measured, n=X). */}
-                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px`, maxWidth: "34em" }}>
-                    {tot} instruments read one person's data — a few will always look interesting by chance, and anything under {LAB_MIN_N} observations reads PROVISIONAL, not measured.
-                  </div>
-                  {/* R15i r2 — MACHINE TRUST moved OFF the doorway: the full receipt now
-                      lives on the prophet's own card, where it is the instrument's read.
-                      MY CALL, filed: a ONE-LINE summary stays at the top, because the
-                      number is the room's calibration and a reader deciding whether to
-                      trust anything below deserves it in one glance — the tap still opens
-                      the scorecard, the words are the engine's, the row is 44px. */}
-                  {(() => { const pg = prophetGrades(s);
+                  {/* R6 — THE ANSWER, then the doors. The census, the forking-paths
+                      disclosure and the instruction essay all survive: they moved into
+                      "How evidence works" and the room's own detail, one tap down. */}
+                  <Eyebrow c={T.jade}>EVIDENCE</Eyebrow>
+                  {(() => { const nf9 = (labAll || []).find((c) => (c.status === "LIVE" || c.status === "TRACKING") && freshMap[c.t]) || (labAll || []).find((c) => c.status === "LIVE" || c.status === "TRACKING");
+                    return nf9 ? (
+                      <div onClick={() => setLabOpen(nf9.id)} role="button" tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLabOpen(nf9.id); } }}
+                        style={{ minHeight: 44, padding: "6px 0 2px", cursor: "pointer" }}>
+                        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.dim, letterSpacing: "0.1em" }}>NEWEST FINDING{freshMap[nf9.t] ? " · " + fmtShort(freshMap[nf9.t]).toUpperCase() : ""}</div>
+                        <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 15, color: T.chalk, marginTop: 3, letterSpacing: "0.02em" }}>{nf9.t}</div>
+                        <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, lineHeight: `${LH.body}px`, marginTop: 2 }}>{String(nf9.forYou || nf9.tag || "").split(". ")[0]}</div>
+                      </div>
+                    ) : (
+                      <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs }}>No instrument has spoken yet — the counters below show what each is still waiting on.</div>
+                    ); })()}
+                  {(() => {
+                    const pg9 = prophetGrades(s);
+                    const dg9 = (() => { try { return expDigest(s); } catch (e) { return { rows: [] }; } })();
+                    const doors9 = [
+                      { t: "FINDINGS", hint: totLive + " established", on: () => setSecOpen({ ...secOpen, speaking: !secOpen.speaking }) },
+                      { t: "STILL LEARNING", hint: dg9.rows.length + " open question" + (dg9.rows.length === 1 ? "" : "s"), on: () => setSecOpen({ ...secOpen, gathering: !secOpen.gathering }) },
+                      { t: "EXPERIMENTS", hint: (run3 ? run3 + " running" : "none running") + " · " + pr3.length + " proposed", on: () => setDeskOpen(!deskOpen) },
+                      { t: "DATA QUALITY", hint: pg9.n >= 2 ? "7-day weight miss ±" + pg9.mae + " lb" : "grading its first forecasts", on: () => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); } },
+                      { t: "ASK ABOUT YOUR DATA", hint: "your analyst, on this record", on: () => setAskOpen(true) },
+                      { t: "DATA SUMMARY", hint: "made fresh when you ask", on: () => setSumOpen(!sumOpen) },
+                    ];
                     return (
-                      <div onClick={() => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); }} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); } }} style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.gauge /* M2 — a DOOR takes the tappable hue; the row says its own trust state in words, so the paint carried nothing the copy did not */, cursor: "pointer" }}>
-                        {pg.n >= 2
-                          ? `MACHINE TRUST · 7-day weight miss ±${pg.mae} lb ▸`
-                          : "MACHINE TRUST · grading its first forecasts ▸"}
+                      <div style={{ marginTop: SP.sm }}>
+                        {doors9.map((d9, i9) => (
+                          <div key={d9.t} onClick={d9.on} role="button" tabIndex={0}
+                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); d9.on(); } }}
+                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, minHeight: 44, padding: `${SP.sm}px 0`, borderTop: i9 ? `1px solid ${T.hairline}` : `1px solid ${T.hairline}`, cursor: "pointer" }}>
+                            <span style={{ minWidth: 0, flex: 1 }}>
+                              <span style={{ fontFamily: mono, fontSize: TS.label, color: T.chalk, letterSpacing: "0.06em" }}>{d9.t}</span>
+                              <span style={{ display: "block", fontFamily: body, fontSize: TS.micro, color: T.steel, marginTop: 1 }}>{d9.hint}</span>
+                            </span>
+                            <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.title, color: T.gauge, lineHeight: 1, flexShrink: 0 }}>▸</span>
+                          </div>
+                        ))}
                       </div>
                     ); })()}
-                  {(() => { const pr3 = trialProposals(s); const run3 = (s.trials || []).filter((t) => !t.declined && !trialVerdict(s, t).done).length; return (
-                    <div onClick={() => setDeskOpen(!deskOpen)} role="button" tabIndex={0} aria-expanded={deskOpen}
-                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setDeskOpen(!deskOpen); } }}
-                      style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: run3 ? T.brass : T.chalk, cursor: "pointer" }}>
-                      ⚗ TRIALS DESK · {run3 ? `${run3} running` : "none running"} · {pr3.length} proposed {deskOpen ? "▾" : "▸"}
-                    </div>
-                  ); })()}
+                  {sumOpen ? <div style={{ marginTop: SP.md, borderTop: `1px solid ${T.hairline}`, paddingTop: SP.md }}><DossierBlock s={s} /></div> : null}
                   {deskOpen && <TrialsDesk s={s} setS={setS} save={save} />}
-                  <div onClick={() => setAskOpen(true)} role="button" tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setAskOpen(true); } }}
-                    style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.gauge, cursor: "pointer" }}>🜁 ASK THE ANALYST — any question, answered from your data ▸</div>
-                  <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>Tap any line for the full story, in plain words. Fresh verdicts carry their date.</div>
                   {secs.map((sec) => {
                     const openSec = secOpen[sec.k] !== undefined ? secOpen[sec.k] : false;
                     const cards = sec.k === "gathering" && !gatherAll ? sec.cards.slice(0, 5) : sec.cards;
