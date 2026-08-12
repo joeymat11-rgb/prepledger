@@ -10,6 +10,10 @@
 import fs from "node:fs";
 import { JSDOM } from "jsdom";
 import { buildForTests } from "../scripts/build.mjs";
+import esbuild from "esbuild";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 
 /* "/*" joins the banned list after the design round: a JSX annotation written as a
    BARE block comment inside JSX children renders as literal text — it shipped on the
@@ -32,6 +36,20 @@ const TABS = [...PRIMARY, ...BEHIND_MORE];
 const MIN = { NOW: 300, TRAIN: 150, "WHAT'S NEXT": 200, BODY: 250, SLEEP: 250, EVIDENCE: 200, HISTORY: 120, "SETTINGS & DATA": 120 }   /* R6 — renamed WITH the walk: an unknown key silently disables the floor */;
 
 const bundle = fs.readFileSync(await buildForTests(), "utf8");
+
+/* THE CENSUS PROBE — the same engine the room renders from, reachable from node so the
+   FINDINGS assertion can be an EQUIVALENCE (census === DOM) instead of a hand-written
+   count. Same pattern the contrast auditor uses for the palettes. */
+const R6ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+const R6OUT = join(R6ROOT, ".tmp", "lab-probe.cjs");
+await esbuild.build({
+  entryPoints: [join(R6ROOT, "tools", "_lab-probe.jsx")],
+  bundle: true, platform: "node", jsx: "automatic", loader: { ".jsx": "jsx" },
+  outfile: R6OUT, absWorkingDir: R6ROOT, logLevel: "silent",
+});
+const r6req = createRequire(import.meta.url);
+delete r6req.cache[R6OUT];
+const { labStatusList: censusOf } = r6req(R6OUT);
 
 async function mount(mutateState) {
   const dom = new JSDOM(`<!doctype html><html><body><div id="root"></div></body></html>`, {
@@ -378,15 +396,50 @@ if (failed) {
        status words the inventory prints beside every name */
     const inst = (txt.match(/measured · n=|provisional · |\d+\/\d+ ▸/g) || []).length;
     if (inst > 3) fails.push("the landing lists " + inst + " instruments (max 3)");
-    /* 437 measured after the inventory left. What remains below the doors is NOT the
-       inventory: it is THE DIGITAL TWIN, the N-OF-1 fold and the MAP door — blocks that
-       shared this room before round 6 and that NO audit leg has graded (the directive's
-       own fence: do not guess at ungraded surfaces). The ceiling is set just above the
-       measured value so re-bloat still fails, and the residual is named for a ruling
-       rather than silently deleted (demote-never-cut) or silently allowed. */
-    if (words > 460) fails.push("landing words " + words + " > 460 — the EVIDENCE landing re-bloated");
+    /* THE REAL BUDGET now that the ruling landed: one newest finding + seven doors.
+       130 is the spec; the allowance covers the shell chrome the walk also captures (the
+       back link, the tab rail, the room title) — named, not hidden. */
+    if (words > 175) fails.push("landing words " + words + " > 175 (spec 130 + the shell chrome the walk captures)");
     if (fails.length) { console.error("RENDER-SMOKE FAIL [evidence landing] " + fails.join(" · ")); process.exit(1); }
-    console.log("RENDER-SMOKE evidence: " + words + " words · " + inst + " instruments on the landing · the inventory labels stay behind their doors");
+    /* THE CENSUS EQUIVALENCE — machine-checked, not a hand-written count. Open every
+       door that carries census sections and assert that what labStatusList knows is
+       exactly what renders. This is the permanent answer to "did the inventory really
+       move, or did it just disappear?" — and it earned its keep on its first run: the
+       first cut of the section gate dropped four of six sections (47 of 58 instruments)
+       and every other test in the suite stayed green. */
+    const liveState = JSON.parse(w.localStorage.getItem("prep-ledger-v1") || "{}");
+    const census = censusOf(liveState) || [];
+    if (census.length < 20) { console.error("RENDER-SMOKE FAIL [findings] the census probe returned " + census.length + " instruments — it is not reading the state the room renders"); process.exit(1); }
+    const tap = async (pred, what) => {
+      const el = [...w.document.querySelectorAll("button, [role=button], div[tabindex]")].find(pred);
+      if (!el) { if (what) { console.error("RENDER-SMOKE FAIL [census] no " + what + " on the landing"); process.exit(1); } return false; }
+      el.click();
+      await new Promise((r2) => setTimeout(r2, 200));
+      return true;
+    };
+    /* FINDINGS covers speaking + on-file; STILL LEARNING covers provisional + gathering
+       + later. GATHERING caps at the closest five behind its own toggle, so the walk
+       keeps tapping until no "more" remains — reachability is the claim. DATA QUALITY
+       is taken LAST and checked separately: it expands the prophet card, and an expanded
+       card replaces its own row, which would read as a missing instrument. */
+    await tap((b) => b.textContent.trim().startsWith("FINDINGS"), "FINDINGS door");
+    await tap((b) => b.textContent.trim().startsWith("STILL LEARNING"), "STILL LEARNING door");
+    for (let k9 = 0; k9 < 4; k9++) { if (!(await tap((b) => /more gathering/.test(b.textContent || "")))) break; }
+    /* THE EQUIVALENCE, counted. Every census entry renders as exactly one row (or one
+       expanded card) — data-lab-row / data-lab-card exist for this and nothing else,
+       because the R15i row law prints only the head of a name, so a title match reads
+       eleven live instruments as missing. MODEL sits behind DATA QUALITY, taken next. */
+    const seen = new Set([...w.document.querySelectorAll("[data-lab-row],[data-lab-card]")].map((el) => el.getAttribute("data-lab-row") || el.getAttribute("data-lab-card")));
+    const missing = census.filter((c) => c.status !== "MODEL" && !seen.has(c.id)).map((c) => c.status + " · " + c.t);
+    if (missing.length) { console.error("RENDER-SMOKE FAIL [census] " + missing.length + " of " + census.length + " instruments the census knows have NO row behind any door — they left the app: " + missing.slice(0, 8).join(" | ")); process.exit(1); }
+    const orphan = [...seen].filter((id) => id && !census.some((c) => c.id === id));
+    if (orphan.length) { console.error("RENDER-SMOKE FAIL [census] " + orphan.length + " rows render that the census does not know: " + orphan.slice(0, 5).join(" | ")); process.exit(1); }
+        await tap((b) => b.textContent.trim().startsWith("DATA QUALITY"), "DATA QUALITY door");
+    const seen2 = new Set([...w.document.querySelectorAll("[data-lab-row],[data-lab-card]")].map((el) => el.getAttribute("data-lab-row") || el.getAttribute("data-lab-card")));
+    const mMiss = census.filter((c) => c.status === "MODEL" && !seen2.has(c.id)).map((c) => c.t);
+    if (mMiss.length) { console.error("RENDER-SMOKE FAIL [census] the sandbox models do not render behind DATA QUALITY: " + mMiss.join(" | ")); process.exit(1); }
+        console.log("RENDER-SMOKE census: ROW COUNT === labStatusList — all " + census.length + " instruments render behind the three census doors, none dropped, none invented");
+        console.log("RENDER-SMOKE evidence: " + words + " words · " + inst + " instruments on the landing · the inventory labels stay behind their doors");
   }
   {
     const w = await walk("SETTINGS & DATA");

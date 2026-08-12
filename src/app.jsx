@@ -16544,9 +16544,15 @@ function HistTab({ s, setS, save }) {
   const [mapOpen, setMapOpen] = useState(false);
   const [open, setOpen] = useState(null);
   const [labOpen, setLabOpen] = useState(null);
-  const [secOpen, setSecOpen] = useState({ speaking: false, gathering: false });   /* R6 — the landing is an ANSWER plus doors: the inventory lives behind FINDINGS and STILL LEARNING, one tap down, complete */
+  /* R6 — SECTION_DOOR: each of labSections' six sections belongs to exactly one door,
+     so the whole census stays reachable behind a name that matches its question. The
+     smoke asserts the equivalence (census === what renders), because the first cut of
+     this gate dropped four sections and 47 instruments without a single test going red. */
+  const SECTION_DOOR = { speaking: "speaking", shelf2: "speaking", provisional: "gathering", gathering: "gathering", later: "gathering", models: "models" };
+  const [secOpen, setSecOpen] = useState({ speaking: false, gathering: false, models: false });   /* R6 — the landing is an ANSWER plus doors: the inventory lives behind FINDINGS, STILL LEARNING and DATA QUALITY, one tap down, COMPLETE */
   const [deskOpen, setDeskOpen] = useState(false);
   const [sumOpen, setSumOpen] = useState(false);   /* R6 — the DATA SUMMARY door */
+  const [twinOpen, setTwinOpen] = useState(false);   /* R6 — the WHAT IF door */
   const [askOpen, setAskOpen] = useState(false);
   const [gatherAll, setGatherAll] = useState(false);
   const [nof1Open, setNof1Open] = useState(false);   /* R15i — N-OF-1 closed by default */
@@ -16648,7 +16654,7 @@ function HistTab({ s, setS, save }) {
               (s.feed || []).forEach((f) => { if (f.t && f.t.indexOf("LAB LIVE — ") === 0 && f.d >= wkAgo) freshMap[f.t.replace("LAB LIVE — ", "")] = f.d; });
               const secs = labSections(s);
               const row = (a) => labOpen === a.id ? (
-                <div key={a.id} style={{ margin: "8px 0" }}>{renderCard(a)}</div>
+                <div key={a.id} data-lab-card={a.id} style={{ margin: "8px 0" }}>{renderCard(a)}</div>
               ) : (
                 /* The densest rows in the app, and still on spec: 44px, hairline
                    between rows rather than a box each, and every row states its own
@@ -16656,7 +16662,7 @@ function HistTab({ s, setS, save }) {
                    it is — n=3 of 8 needed — because "locked" with no number attached
                    is a teaser, and the brief rules teasers out: an earned state must
                    show what earns it. */
-                <div key={a.id} onClick={() => setLabOpen(a.id)} role="button" tabIndex={0}
+                <div key={a.id} data-lab-row={a.id} onClick={() => setLabOpen(a.id)} role="button" tabIndex={0}
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLabOpen(a.id); } }}
                   style={{ display: "flex", alignItems: "center", gap: SP.md, minHeight: 44, padding: `${SP.sm}px 0`, borderTop: `1px solid ${T.hairline}`, cursor: "pointer" }}>
                   {/* was a bare 7px coloured dot — hue was the only difference between
@@ -16707,6 +16713,7 @@ function HistTab({ s, setS, save }) {
                       { t: "DATA QUALITY", hint: pg9.n >= 2 ? "7-day weight miss ±" + pg9.mae + " lb" : "grading its first forecasts", on: () => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); } },
                       { t: "ASK ABOUT YOUR DATA", hint: "your analyst, on this record", on: () => setAskOpen(true) },
                       { t: "DATA SUMMARY", hint: "made fresh when you ask", on: () => setSumOpen(!sumOpen) },
+                      { t: "WHAT IF", hint: (() => { try { const cr9 = currentRate(s); return cr9 && cr9.measured ? "try a change before you make it" : "needs a measured rate first"; } catch (e) { return "try a change before you make it"; } })(), on: () => setTwinOpen(!twinOpen) },
                     ];
                     return (
                       <div style={{ marginTop: SP.sm }}>
@@ -16726,7 +16733,7 @@ function HistTab({ s, setS, save }) {
                   {sumOpen ? <div style={{ marginTop: SP.md, borderTop: `1px solid ${T.hairline}`, paddingTop: SP.md }}><DossierBlock s={s} /></div> : null}
                   {deskOpen && <TrialsDesk s={s} setS={setS} save={save} />}
                   {secs.map((sec) => {
-                    const openSec = secOpen[sec.k] !== undefined ? secOpen[sec.k] : false;
+                    const openSec = !!secOpen[SECTION_DOOR[sec.k] || sec.k];
                     if (!openSec) return null;   /* R6 — closed means ABSENT, not collapsed: the door above is the only header, and a second one would put SPEAKING NOW back on the landing */
                     const cards = sec.k === "gathering" && !gatherAll ? sec.cards.slice(0, 5) : sec.cards;
                     return (
@@ -16734,9 +16741,9 @@ function HistTab({ s, setS, save }) {
                         {/* Section header per §3.5: TS.label UPPER steel with its count
                             in brass, 24 above and 12 below, and a 44px hit area since
                             the whole thing is the disclosure control. */}
-                        <div onClick={() => setSecOpen({ ...secOpen, [sec.k]: !openSec })} role="button" tabIndex={0}
+                        <div onClick={() => setSecOpen({ ...secOpen, [SECTION_DOOR[sec.k] || sec.k]: !openSec })} role="button" tabIndex={0}
                           aria-expanded={openSec}
-                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, [sec.k]: !openSec }); } }}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, [SECTION_DOOR[sec.k] || sec.k]: !openSec }); } }}
                           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.sm, minHeight: 44, marginTop: SP.xl, cursor: "pointer" }}>
                           <span style={{ fontFamily: mono, fontSize: TS.label, fontWeight: 600, letterSpacing: "0.16em", color: T.steel, textTransform: "uppercase" }}>
                             {sec.title}{/* R15i — the engine title carries its own count; the brass duplicate is gone */}
@@ -16769,7 +16776,7 @@ function HistTab({ s, setS, save }) {
           LAB re-pointed from passive measurement toward decision support: a validated
           energy-balance model tuned to his data. Composes observedTDEE + currentRate +
           bfEst; drag three levers, read a widening range. Never a date-certain promise. */}
-      {(() => { const twin = twinBodyComp(s, { calDelta: twCal, steps: twSteps, protein: twPro }); const wnT = weightNoise(s.reads); const rangeInp = { width: "100%", accentColor: T.gauge }; const rec = readRecency(s);
+      {twinOpen && (() => { const twin = twinBodyComp(s, { calDelta: twCal, steps: twSteps, protein: twPro }); const wnT = weightNoise(s.reads); const rangeInp = { width: "100%", accentColor: T.gauge }; const rec = readRecency(s);
         return (
         <Card accent={T.gauge} style={{ padding: SP.lg }}>
           <Eyebrow c={T.gauge}>THE DIGITAL TWIN</Eyebrow>
@@ -16908,8 +16915,10 @@ function HistTab({ s, setS, save }) {
         </Card>
       ); })()}
 
-      {/* R15i — N-OF-1 collapses to a 44px header, CLOSED by default: every parameter
-          and band verbatim one tap down. */}
+      {/* R6 — N-OF-1 moved INSIDE FINDINGS: his learned parameters ARE established
+          evidence, so they sit at the top of the findings list rather than loose in the
+          room. Content verbatim, still a 44px header, still closed by default. */}
+      {secOpen.speaking && (<>
       <div onClick={() => setNof1Open(!nof1Open)} role="button" tabIndex={0} aria-expanded={nof1Open}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setNof1Open(!nof1Open); } }}
         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.sm, minHeight: 44, cursor: "pointer" }}>
@@ -16957,7 +16966,13 @@ function HistTab({ s, setS, save }) {
       </>)}
       {askOpen && <AskLedger s={s} setS={setS} save={save} onClose={() => setAskOpen(false)} />}
       {mapOpen && <MapView s={s} onClose={() => setMapOpen(false)} />}
-      <Card style={{ padding: 11, cursor: "pointer" }} onClick={() => setMapOpen(true)}>
+      </>)}
+      {/* R6 — THE MAP is provenance documentation, so it lives with the inventory it
+         documents: inside FINDINGS, one tap from the instruments it traces. (The "How
+         evidence works" page the ruling names is stage-4 work — the essays and the
+         legend land there; until it exists, the map sits with its own subject rather
+         than adding an eighth door to the landing.) */}
+      {secOpen.speaking && <Card style={{ padding: 11, cursor: "pointer" }} onClick={() => setMapOpen(true)}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <Eyebrow c={T.jade}>🗺 THE MAP</Eyebrow>
@@ -16965,7 +16980,7 @@ function HistTab({ s, setS, save }) {
           </div>
           <span style={{ fontFamily: mono, fontSize: 14, color: T.jade }}>▸</span>
         </div>
-      </Card>
+      </Card>}
       <RedCellCard />
       {/* R15i — the collapsible wrapper is gone: the instruments lead, always visible; the card's own eyebrow is the single census. */}
         <Card accent={T.jade}>
