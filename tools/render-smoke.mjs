@@ -10,12 +10,20 @@
 import fs from "node:fs";
 import { JSDOM } from "jsdom";
 import { buildForTests } from "../scripts/build.mjs";
+import esbuild from "esbuild";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 
 /* "/*" joins the banned list after the design round: a JSX annotation written as a
    BARE block comment inside JSX children renders as literal text — it shipped on the
    app's front door (EAT TODAY carried its own source comment in serif). One string
    here closes the whole class. */
-const BANNED = ["RIR —", "undefined", "NaN", "[object Object]", "/*"];
+/* "THIS TAB HIT AN ERROR" joins the list after round 6 stage 2: a room that renders
+   its OWN ERROR BOUNDARY still has text, still has tappables, and still passed this
+   walk as "alive" — the EVIDENCE room was dead on the live ledger while the gate
+   reported green. The boundary headline is the tell; one string closes the class. */
+const BANNED = ["RIR —", "undefined", "NaN", "[object Object]", "/*", "THIS TAB HIT AN ERROR"];
 /* The rail is NOW / TRAIN / LEDGER (R15a), and the four rooms he rarely opens live one
    predictable tap behind LEDGER — static demotion, never adaptive, because an
    interface that rearranges itself measured ~8% SLOWER than one that does not
@@ -23,11 +31,25 @@ const BANNED = ["RIR —", "undefined", "NaN", "[object Object]", "/*"];
    every state: demoting a screen must never mean it stops being exercised.
    PRIMARY are reachable from the bar; BEHIND_MORE need LEDGER clicked first. */
 const PRIMARY = ["NOW", "TRAIN"];
-const BEHIND_MORE = ["QUEUE", "BODY", "SLEEP", "LAB", "DECISIONS"];   /* R15b — the classic NOW, moved not stranded */
+const BEHIND_MORE = ["WHAT'S NEXT", "BODY", "SLEEP", "EVIDENCE", "HISTORY", "SETTINGS & DATA"]   /* R6 — DECISIONS left the door list: it is the hub CARD, walked by openBriefing */;   /* R15b — the classic NOW, moved not stranded */
 const TABS = [...PRIMARY, ...BEHIND_MORE];
-const MIN = { NOW: 300, TRAIN: 150, QUEUE: 200, BODY: 250, SLEEP: 250, LAB: 200, "DECISIONS": 300 };
+const MIN = { NOW: 300, TRAIN: 150, "WHAT'S NEXT": 200, BODY: 250, SLEEP: 250, EVIDENCE: 200, HISTORY: 120, "SETTINGS & DATA": 120 }   /* R6 — renamed WITH the walk: an unknown key silently disables the floor */;
 
 const bundle = fs.readFileSync(await buildForTests(), "utf8");
+
+/* THE CENSUS PROBE — the same engine the room renders from, reachable from node so the
+   FINDINGS assertion can be an EQUIVALENCE (census === DOM) instead of a hand-written
+   count. Same pattern the contrast auditor uses for the palettes. */
+const R6ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+const R6OUT = join(R6ROOT, ".tmp", "lab-probe.cjs");
+await esbuild.build({
+  entryPoints: [join(R6ROOT, "tools", "_lab-probe.jsx")],
+  bundle: true, platform: "node", jsx: "automatic", loader: { ".jsx": "jsx" },
+  outfile: R6OUT, absWorkingDir: R6ROOT, logLevel: "silent",
+});
+const r6req = createRequire(import.meta.url);
+delete r6req.cache[R6OUT];
+const { labStatusList: censusOf } = r6req(R6OUT);
 
 async function mount(mutateState) {
   const dom = new JSDOM(`<!doctype html><html><body><div id="root"></div></body></html>`, {
@@ -83,7 +105,7 @@ async function tabText(window, label) {
   /* Rooms behind LEDGER need two taps, exactly as he would make them. If LEDGER
      itself is missing, that is a real failure and must not be swallowed. */
   if (BEHIND_MORE.includes(label)) {
-    const more = await findClickable(window, "LEDGER", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("LEDGER"));
+    const more = await findClickable(window, "LEDGER", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("PROGRESS"));
     if (!more) throw new Error("LEDGER tab button missing — the demoted rooms are unreachable");
     more.click();
     await new Promise((r) => setTimeout(r, 60));
@@ -91,6 +113,13 @@ async function tabText(window, label) {
   let btn = null;
   for (let tries = 0; tries < 40 && !btn; tries++) {
     btn = [...window.document.querySelectorAll("button, div")]
+      /* 400 CHARACTERS = the ancestor-card guard. A card and the row inside it both
+         "start with" the row's label, and querySelectorAll returns the ancestor first,
+         so without a cap the wrapping card answers for its own child and the assertion
+         reads the whole card's text. Spec: one ROW's worth of text. Allowance: generous
+         — the longest legitimate row here (a door title plus its live hint) runs ~120
+         chars, so 400 is roughly 3x the longest real row and still far under any card,
+         which run 600+. It is a discriminator, not a length limit on the row. */
       .find((b) => b.textContent.trim().startsWith(label) && b.textContent.trim().length < 400);
     if (!btn) await new Promise((r) => setTimeout(r, 50));
   }
@@ -103,13 +132,16 @@ async function tabText(window, label) {
 /* R15b — walk to the classic NOW (LEDGER -> DECISIONS), where NOW_DOORS' Groups
    and the approval inbox now mount. Two taps, exactly as he would make them. */
 async function openBriefing(window) {
-  const led = await findClickable(window, "LEDGER", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("LEDGER"));
+  const led = await findClickable(window, "LEDGER", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("PROGRESS"));
   if (!led) throw new Error("LEDGER tab button missing");
   led.click();
   await new Promise((r) => setTimeout(r, 80));
   /* role-scoped: an ancestor card's textContent also startsWith the row title — the same
      trap tabText's length cap guards; role=button pins the actual tappable row. */
-  const room = await findClickable(window, "DECISIONS", (b) => b.getAttribute && b.getAttribute("role") === "button" && b.textContent.trim().startsWith("DECISIONS"));
+  /* R6 — the decisions surface is reached from the hub CARD now, not a door row: the
+     card carries the intent in its accessible label, which is a stabler handle than
+     matching card text that changes with the first pending proposal. */
+  const room = await findClickable(window, "the decisions card", (b) => b.getAttribute && b.getAttribute("aria-label") === "Open decisions");
   if (!room) throw new Error("DECISIONS row missing — the classic NOW is stranded");
   room.click();
   await new Promise((r) => setTimeout(r, 250));
@@ -234,8 +266,10 @@ for (const [name, mut] of states) {
   }
 }
 
-/* THE LONG-BELT FIXTURE (v7.43.0, the audit word) — the all-done suspects belt at 17+
-   rows, reached DETERMINISTICALLY: a draft parked at all-done with every lift touched
+/* THE LONG-BELT FIXTURE (v7.43.0, the audit word) — the all-done suspects belt, floor
+   17 rows and measuring 24 today (see the assert below, which used to read 10 while
+   this comment read 17+; comment and law now agree),
+   reached DETERMINISTICALLY: a draft parked at all-done with every lift touched
    (banked) and no set ever adjusted or asked about, so EVERY set is a suspect. The
    jsdom-honest asserts: every suspect row is IN the DOM (nothing clipped out), the
    finish control is present-and-disabled until ruled, and the all-done column carries
@@ -257,7 +291,15 @@ for (const [name, mut] of states) {
   click([...w.document.querySelectorAll("button")].find((b) => (b.textContent || "").includes("RESUME SESSION")));
   await new Promise((r) => setTimeout(r, 250));
   const rows9 = [...w.document.querySelectorAll("button")].filter((b) => (b.textContent || "").trim() === "I did this").length;
-  if (rows9 < 10) { console.error("RENDER-SMOKE long-belt: expected a 10+-row suspects belt, found " + rows9); failed++; }
+  /* THE FLOOR IS 17, AND IT MEASURES 24. The comment above this block said "17+ rows"
+     while the assert fired below TEN — they disagreed, and the assert is what runs, so
+     the belt could have quietly halved and passed. The fixture is deterministic (a
+     parked all-done draft with every lift banked and no set adjusted, so every set is
+     a suspect), and it renders 24 today. 17 is kept as the law because it is the
+     number the fixture was designed around; the 24 is recorded so the next person to
+     see a smaller figure knows it moved. Not === 24: the point is a belt long enough
+     to exercise the scrolling column and the disabled finish, not an exact count. */
+  if (rows9 < 17) { console.error("RENDER-SMOKE long-belt: expected a 17+-row suspects belt (24 when this was written), found " + rows9); failed++; }
   const fin9 = [...w.document.querySelectorAll("button")].find((b) => b.disabled && (b.textContent || "").length);
   if (rows9 >= 10 && !fin9) { console.error("RENDER-SMOKE long-belt: no present-and-disabled finish above an unruled belt"); failed++; }
   const belt9 = [...w.document.querySelectorAll("div")].find((d) => d.style && d.style.overflowY === "auto" && (d.textContent || "").includes("NOBODY CONFIRMED THE REPS"));
@@ -312,8 +354,263 @@ if (failed) {
   need("bottom: `calc(${TAB_BAR_H}px + env(safe-area-inset-bottom))`", "the resume bar must sit inside the reserved zone, measured from the same constant");
   const band = +(src.match(/const CHROME_BAND_H = (\d+)/) || [])[1];
   const tabH = +(src.match(/const TAB_BAR_H = (\d+)/) || [])[1];
-  if (!(band >= 40 && tabH >= 60)) { console.error("RENDER-SMOKE FAIL [chrome] the zone is smaller than the chrome it must cover (band " + band + ", tab " + tabH + ")"); process.exit(1); }
+  /* 40 and 60 ARE FLOORS DERIVED FROM WHAT THE ZONE MUST COVER, not round numbers.
+     The band holds the resume bar, whose content is one 44px row — spec 44, floor set
+     at 40 with a 4px allowance because the bar may sit flush and lose its own padding
+     without losing the row. The tab rail holds three 44px targets plus their labels —
+     spec 64 (the shipped TAB_BAR_H), floor 60 with a 4px allowance for the same
+     reason. Both are FLOORS, so the allowance runs downward: they exist to catch a
+     zone shrunk below the chrome it reserves, not to pin the exact value. Shipped
+     today: CHROME_BAND_H 44, TAB_BAR_H 64. */
+  if (!(band >= 40 && tabH >= 60)) { console.error("RENDER-SMOKE FAIL [chrome] the zone is smaller than the chrome it must cover (band " + band + " needs >= 40, tab " + tabH + " needs >= 60)");process.exit(1); }
   console.log("RENDER-SMOKE chrome: one reserved fixed zone (" + (tabH + band) + "px), the resume bar inside it, every scroll surface reserving it");
+}
+
+/* ROUND 6 — THE HUB BUDGET, enforced in the live DOM. The old hub carried six jobs at
+   once (585 words, 23 tappables, 3.3 screens). These are Sol's budgets, adopted as
+   TESTS so the surface cannot silently re-bloat: the DOM-countable half runs here; the
+   pixel half (<=1.05 viewports) is the browser rig's, because jsdom has no layout. */
+{
+  const w = await mount();
+  const btn = [...w.document.querySelectorAll("button")].find((b) => b.textContent.trim().startsWith("PROGRESS"));
+  if (!btn) { console.error("RENDER-SMOKE FAIL [hub] the PROGRESS tab is missing"); process.exit(1); }
+  btn.click();
+  await new Promise((r2) => setTimeout(r2, 200));
+  const root = w.document.querySelector("[data-led='ok']") ? w.document.querySelector("[data-led='ok']").parentElement : w.document.body;
+  const txt = (root.textContent || "").trim();
+  /* THE ESCAPE THAT WENT MISSING. This shipped in stage 1 as `/s+/` — no backslash — so
+     it split the hub text on the LETTER s and the 120-word budget was never once
+     measured. It reported 18 words for a screen carrying well over a hundred, and
+     passed every run. The cause is mechanical: the block was authored through a shell
+     heredoc that ate the backslash, and nothing downstream can tell a bad regex from a
+     small screen. Any budget that reads implausibly LOW is now a suspect, not a pass. */
+  const words = txt.split(/\s+/).filter(Boolean).length;
+  const taps = root.querySelectorAll("button, [role=button], input, select, textarea").length;
+  const heads = root.querySelectorAll("h1,h2,h3,h4").length;
+  const fails = [];
+  /* EVERY CEILING READS AS SPEC + NAMED ALLOWANCE, never a magic constant (rider 2).
+     The hub's three numbers are Sol's spec exactly, with allowance ZERO: `root` is the
+     hub block's own container, not the shell, so nothing but the hub is being counted
+     and there is no chrome to allow for. Say the zero out loud — an undocumented number
+     cannot be told apart from a fudged one at the moment it starts failing. */
+  if (words > 120) fails.push("words " + words + " > 120 (spec 120 + allowance 0 — the count is scoped to the hub block)");
+  if (taps > 11) fails.push("content tappables " + taps + " > 11 (spec 11 + allowance 0)");
+  if (heads > 7) fails.push("headings " + heads + " > 7 (spec 7 + allowance 0)");
+  if (root.querySelectorAll("[data-led]").length !== 3) fails.push("expected exactly 3 hub blocks (decisions, latest result, doors)");
+  for (const banned of ["THEME", "Light reads better", "EXPERT", "every figure on every screen"]) {
+    if (txt.indexOf(banned) > -1) fails.push("the hub must not carry: " + banned);
+  }
+  if (fails.length) { console.error("RENDER-SMOKE FAIL [hub budget] " + fails.join(" · ")); process.exit(1); }
+  console.log("RENDER-SMOKE hub: " + words + " words · " + taps + " tappables · " + heads + " headings · 3 blocks — the answer screen holds its budget");
+}
+/* ROUND 6 — THE ROOM-LANDING BUDGETS, in the live DOM. The hub budget guarded only the
+   hub, so the EVIDENCE landing shipped its whole 29-instrument inventory below the six
+   doors and both the gate and my report called it clean — a single scroll disproved it.
+   Same M3 split as the hub: DOM counts here, viewport pixels on the browser rig.
+
+   THE VIEWPORT BUDGETS, recorded here because this is where the room budgets live
+   even though only the rig can measure them (jsdom has no layout engine):
+
+     HUB              <= 1.05 viewports. Sol's number, unamended. Measuring 1.0.
+     EVIDENCE LANDING <= 1.15 viewports. AMENDED from 1.05, deliberately, by ruling.
+                      Spec 1.05 + 0.10 named allowance for the seventh door. The
+                      arithmetic: the WHAT IF door was ruled to stay, and seven doors
+                      at the 44px floor is 308px of tap targets before a single word
+                      of the newest finding. 1.05 is then unreachable without either
+                      shrinking targets below 44px or cutting ruled content, and both
+                      are worse than 0.10 of a viewport. Measured 1.14 after the
+                      density pass, both themes.
+
+   Anyone tightening EVIDENCE back to 1.05 has to remove a door or break the 44px
+   floor; that is the trade, and it is written down so it is re-argued rather than
+   re-discovered. */
+{
+  const walk = async (label) => {
+    const w = await mount();
+    const tabBtn = [...w.document.querySelectorAll("button")].find((b) => b.textContent.trim().startsWith("PROGRESS"));
+    if (!tabBtn) { console.error("RENDER-SMOKE FAIL [landing] the PROGRESS tab is missing"); process.exit(1); }
+    tabBtn.click();
+    await new Promise((r2) => setTimeout(r2, 150));
+    const door = [...w.document.querySelectorAll("button, [role=button]")].find((b) => b.textContent.trim().startsWith(label));
+    if (!door) { console.error("RENDER-SMOKE FAIL [landing] no door for " + label); process.exit(1); }
+    door.click();
+    await new Promise((r2) => setTimeout(r2, 250));
+    return w;
+  };
+  {
+    const w = await walk("EVIDENCE");
+    const txt = (w.document.body.textContent || "").trim();
+    const words = txt.split(/\s+/).filter(Boolean).length;
+    const fails = [];
+    for (const banned of ["SPEAKING NOW", "GATHERING", "THE LAB"]) {
+      if (txt.indexOf(banned) > -1) fails.push("the landing still renders the label " + banned);
+    }
+    /* the >3-instrument test: count the room's own instrument rows, which carry the
+       status words the inventory prints beside every name */
+    const inst = (txt.match(/measured · n=|provisional · |\d+\/\d+ ▸/g) || []).length;
+    /* 3 IS THE SPEC, WITH ALLOWANCE ZERO. Sol's landing contract is ONE newest
+       finding; the ruled shape is "one finding + seven doors + nothing else", so the
+       honest spec is 1. It is written as 3 because this counts STATUS-WORD matches,
+       not rows: a door hint can legitimately carry an instrument's status words
+       ("12 established", "measured · n="), so 2 is the noise floor of the counting
+       method itself. Spec 1 + 2 for the method = 3. Measured today: 0. If this ever
+       reads 4+, an inventory is back on the landing. */
+    if (inst > 3) fails.push("the landing lists " + inst + " instruments (spec 1 + 2 for the counting method's own noise = 3)");
+    /* THE REAL BUDGET now that the ruling landed: one newest finding + seven doors.
+       130 is the spec; the allowance covers the shell chrome the walk also captures (the
+       back link, the tab rail, the room title) — named, not hidden. */
+    if (words > 175) fails.push("landing words " + words + " > 175 (spec 130 + the shell chrome the walk captures)");
+    if (fails.length) { console.error("RENDER-SMOKE FAIL [evidence landing] " + fails.join(" · ")); process.exit(1); }
+    /* THE CENSUS EQUIVALENCE — machine-checked, not a hand-written count. Open every
+       door that carries census sections and assert that what labStatusList knows is
+       exactly what renders. This is the permanent answer to "did the inventory really
+       move, or did it just disappear?" — and it earned its keep on its first run: the
+       first cut of the section gate dropped four of six sections (47 of 58 instruments)
+       and every other test in the suite stayed green. */
+    const liveState = JSON.parse(w.localStorage.getItem("prep-ledger-v1") || "{}");
+    const census = censusOf(liveState) || [];
+    /* 20 IS A WIRING FLOOR, NOT A CONTENT BUDGET. The equivalence below is only
+       meaningful if the probe is actually reading the same state the room renders; a
+       probe wired to an empty object returns 0 and then "0 of 0 render" passes
+       triumphantly. The census ships 58 instruments. Floor 20 = roughly a third of
+       that: low enough that legitimately retiring instruments never trips it, high
+       enough that a broken or empty probe cannot. It is checking the INSTRUMENT, not
+       the app. Measured today: 58. */
+    if (census.length < 20) { console.error("RENDER-SMOKE FAIL [findings] the census probe returned " + census.length + " instruments, under the wiring floor of 20 (58 ship) — it is not reading the state the room renders"); process.exit(1); }
+    const tap = async (pred, what) => {
+      const el = [...w.document.querySelectorAll("button, [role=button], div[tabindex]")].find(pred);
+      if (!el) { if (what) { console.error("RENDER-SMOKE FAIL [census] no " + what + " on the landing"); process.exit(1); } return false; }
+      el.click();
+      await new Promise((r2) => setTimeout(r2, 200));
+      return true;
+    };
+    /* FINDINGS covers speaking + on-file; STILL LEARNING covers provisional + gathering
+       + later. GATHERING caps at the closest five behind its own toggle, so the walk
+       keeps tapping until no "more" remains — reachability is the claim. DATA QUALITY
+       is taken LAST and checked separately: it expands the prophet card, and an expanded
+       card replaces its own row, which would read as a missing instrument. */
+    await tap((b) => b.textContent.trim().startsWith("FINDINGS"), "FINDINGS door");
+    await tap((b) => b.textContent.trim().startsWith("STILL LEARNING"), "STILL LEARNING door");
+    /* 4 IS A RUNAWAY STOP, NOT AN EXPECTATION. GATHERING has exactly ONE "N more"
+       toggle, so the loop's real work is one tap and the `break` on not-found is what
+       normally ends it. The bound exists only so a future toggle that re-labels itself
+       instead of disappearing cannot spin this walk forever. Spec 1 + 3 spare = 4. If
+       a second expander is ever added, raise this deliberately — a silently truncated
+       walk would report "nothing dropped" while leaving rows unopened. */
+    for (let k9 = 0; k9 < 4; k9++) { if (!(await tap((b) => /more gathering/.test(b.textContent || "")))) break; }
+    /* THE EQUIVALENCE, counted. Every census entry renders as exactly one row (or one
+       expanded card) — data-lab-row / data-lab-card exist for this and nothing else,
+       because the R15i row law prints only the head of a name, so a title match reads
+       eleven live instruments as missing. MODEL sits behind DATA QUALITY, taken next. */
+    const seen = new Set([...w.document.querySelectorAll("[data-lab-row],[data-lab-card]")].map((el) => el.getAttribute("data-lab-row") || el.getAttribute("data-lab-card")));
+    const missing = census.filter((c) => c.status !== "MODEL" && !seen.has(c.id)).map((c) => c.status + " · " + c.t);
+    if (missing.length) { console.error("RENDER-SMOKE FAIL [census] " + missing.length + " of " + census.length + " instruments the census knows have NO row behind any door — they left the app: " + missing.slice(0, 8).join(" | ")); process.exit(1); }
+    /* THE HONESTY GUARD, and why it exists. Round 6's law is DEMOTE, NEVER CUT, and
+       stage 2 cut two sentences anyway — the "read to decide, not to browse" line and
+       the §P0-2 forking-paths disclosure — while the commit comment asserted they had
+       survived into a page that did not yet exist. Nothing in the suite could see it:
+       every assertion was about what IS rendered, none about what USED to be. These
+       two strings are now load-bearing. If a future pass moves them, move this guard
+       with them; if it removes them, this fails and says so out loud. */
+    const HONEST = [
+      "Read to decide, not to browse",
+      "a few will always look interesting by chance",
+      "reads PROVISIONAL, not measured",
+    ];
+    /* Section headers are plain <div onClick> — no role="button", no tabIndex, no
+       onKeyDown — unlike every hand-built 44px door in this app, which has all three.
+       So `tap` (which queries button/[role=button]/div[tabindex]) cannot see them and
+       this needs its own finder. REPORTED AS A FINDING, not fixed here: Section is
+       shared by every room, and stage 4's scope is a closed list.
+       Deepest match, because clicking the innermost text div bubbles to the header's
+       handler while clicking an outer ancestor would not. */
+    {
+      const cands = [...w.document.querySelectorAll("div")].filter((d) => (d.textContent || "").trim().startsWith("How evidence works"));
+      const el = cands[cands.length - 1];
+      if (!el) { console.error("RENDER-SMOKE FAIL [honesty] the 'How evidence works' door does not render inside FINDINGS"); process.exit(1); }
+      el.click();
+      await new Promise((r2) => setTimeout(r2, 250));
+    }
+    const gone = HONEST.filter((h) => (w.document.body.textContent || "").indexOf(h) === -1);
+    if (gone.length) { console.error("RENDER-SMOKE FAIL [honesty] " + gone.length + " ruled honesty sentence(s) no longer render anywhere behind the EVIDENCE doors — demote never cut: " + gone.join(" | ")); process.exit(1); }
+    const orphan = [...seen].filter((id) => id && !census.some((c) => c.id === id));
+    if (orphan.length) { console.error("RENDER-SMOKE FAIL [census] " + orphan.length + " rows render that the census does not know: " + orphan.slice(0, 5).join(" | ")); process.exit(1); }
+        await tap((b) => b.textContent.trim().startsWith("DATA QUALITY"), "DATA QUALITY door");
+    const seen2 = new Set([...w.document.querySelectorAll("[data-lab-row],[data-lab-card]")].map((el) => el.getAttribute("data-lab-row") || el.getAttribute("data-lab-card")));
+    const mMiss = census.filter((c) => c.status === "MODEL" && !seen2.has(c.id)).map((c) => c.t);
+    if (mMiss.length) { console.error("RENDER-SMOKE FAIL [census] the sandbox models do not render behind DATA QUALITY: " + mMiss.join(" | ")); process.exit(1); }
+        console.log("RENDER-SMOKE census: ROW COUNT === labStatusList — all " + census.length + " instruments render behind the three census doors, none dropped, none invented");
+        console.log("RENDER-SMOKE evidence: " + words + " words · " + inst + " instruments on the landing · the inventory labels stay behind their doors");
+  }
+  {
+    const w = await walk("SETTINGS & DATA");
+    const txt = (w.document.body.textContent || "").trim();
+    if (txt.indexOf("THIS TAB HIT AN ERROR") > -1) { console.error("RENDER-SMOKE FAIL [settings] the room renders its error boundary"); process.exit(1); }
+    if (txt.indexOf("THEME") === -1) { console.error("RENDER-SMOKE FAIL [settings] the theme control did not travel with the room"); process.exit(1); }
+    /* SETTINGS & DATA carried no ceiling at all — a room with no budget is a room that
+       re-bloats for free, and this one is the natural drain for anything that does not
+       fit elsewhere. Spec 150 (a working room of controls, not an answer screen) + 45
+       for the shell chrome the walk captures = 195, against 128 measured. The first
+       number I wrote here was 305, which cleared the measurement by 2.4x — a ceiling
+       set that far above what shipped enforces nothing at all, which is the same
+       mistake as a ceiling set just above the residual, pointing the other way. */
+    const swords = txt.split(/\s+/).filter(Boolean).length;
+    if (swords > 195) { console.error("RENDER-SMOKE FAIL [settings budget] " + swords + " words > 195 (spec 150 + 45 named shell-chrome allowance)"); process.exit(1); }
+    console.log("RENDER-SMOKE settings: " + swords + " words · alive, and the theme control works from its new home");
+  }
+  /* ROUND 6 STAGE 3 — THE THREE ANSWER ROOMS. Each one must open with a verdict
+     welded to its number, not a bare figure under a topic heading. The DOM-checkable
+     half of "answer-first" is: a data-answer block exists, it is ABOVE the room's
+     detail, and it is not empty. The pixel half (does it land above the fold) is the
+     browser rig's, as always — jsdom has no layout.
+
+     THE CEILINGS. All three are body-scoped, so all three pay the same 45-word
+     shell-chrome allowance that SETTINGS calibrated (these rooms render only the
+     shell's back link, not a second one of their own, so 45 is conservative for
+     them). Specs differ because the rooms differ: WHAT'S NEXT is a list of plans,
+     SLEEP and BODY are instrument rooms with charts and receipts.
+
+     ONE CROSS-CHECK, because this file has nowhere else that a floor and a ceiling
+     meet: MIN (line 36) is a CHARACTER floor — SLEEP 250, BODY 250, WHAT'S NEXT 200
+     — while every budget here is a WORD ceiling. At ~5.5 chars/word the ceilings
+     below sit far above those floors, so they cannot squeeze each other; if a future
+     spec drops near MIN/5.5 the room becomes unshippable and neither number would
+     explain why. Check both when you move either.
+
+     Each spec is set against what the room ACTUALLY measures today, with enough
+     headroom for honest variation and not a word more. My first pass wrote 330 for
+     SLEEP and 300 for BODY against measurements of 160 and 201 — ceilings with two
+     hundred words of slack, which is the SETTINGS-305 mistake again: a budget nothing
+     can trip is not a budget. Measured today: queue 291, sleep 160, body 201. */
+  const ROOMS = [
+    { door: "WHAT'S NEXT", key: "queue", spec: 280, why: "one lead plan plus a compact row per live plan; the count moves with the queue" },
+    { door: "SLEEP", key: "sleep", spec: 150, why: "hero, answer, three components; the night chart and debt receipts sit behind doors" },
+    { door: "BODY", key: "body", spec: 200, why: "trend, answer, three deltas, the anchor band and its honesty line" },
+  ];
+  for (const R of ROOMS) {
+    const w = await walk(R.door);
+    const txt = (w.document.body.textContent || "").trim();
+    const fails = [];
+    if (txt.indexOf("THIS TAB HIT AN ERROR") > -1) fails.push("the room renders its error boundary");
+    const ans = w.document.querySelector('[data-answer="' + R.key + '"]');
+    if (!ans) fails.push("no data-answer block — the room opens on a number with no verdict beside it");
+    else {
+      const words9 = (ans.textContent || "").trim().split(/\s+/).filter(Boolean).length;
+      if (words9 < 4) fails.push("the answer block is empty or a stub (" + words9 + " words)");
+      /* ABOVE THE DETAIL, checked structurally: every room's detail lives in Sections
+         and Cards below the lead. compareDocumentPosition is the only ordering fact
+         jsdom can give us, and it is the one that matters — an answer rendered after
+         the inventory is not an answer-first room however it is styled. */
+      const heads = [...w.document.querySelectorAll("div, button")].filter((e) => /^(Weight|Body Fat|Pace & Timeline|Waist & Photos|Night Log|Sleep Rules|Bedtime, Wake & Caffeine|How plans move|Wins)$/.test((e.textContent || "").trim()));
+      const after = heads.filter((h) => ans.compareDocumentPosition(h) & 4);   /* 4 = DOCUMENT_POSITION_FOLLOWING */
+      if (heads.length && after.length !== heads.length) fails.push("the answer is not above the room's detail — " + (heads.length - after.length) + " of " + heads.length + " section headings render before it");
+    }
+    const words = txt.split(/\s+/).filter(Boolean).length;
+    const cap = R.spec + 45;
+    if (words > cap) fails.push("words " + words + " > " + cap + " (spec " + R.spec + " — " + R.why + " — plus the 45 named shell-chrome allowance)");
+    if (fails.length) { console.error("RENDER-SMOKE FAIL [" + R.door + "] " + fails.join(" · ")); process.exit(1); }
+    console.log("RENDER-SMOKE " + R.door + ": " + words + " words / " + cap + " · answers first, above its own detail");
+  }
 }
 
 console.log("RENDER-SMOKE: all tabs alive in all states — no silent fallbacks");

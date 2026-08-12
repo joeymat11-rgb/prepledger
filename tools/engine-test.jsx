@@ -7031,21 +7031,21 @@ if (fail) process.exit(1);
   const srcL = readFileSync("src/app.jsx", "utf8");
   const mt = srcL.slice(srcL.indexOf("function MoreTab("), srcL.indexOf("function CoachView("));
   ok(mt.length > 3000 && mt.length < 24000 && (srcL.split("function MoreTab(").length - 1) === 1, "R15d — the LEDGER hub slice is bounded and MoreTab keeps its name: it is the END ANCHOR of the R15c chip pin, and renaming it would silently swallow that slice");
-  ok((mt.split(String.fromCharCode(100, 97, 116, 97, 45, 108, 101, 100, 61, 34)).length - 1) === 5, "R15d+h — the simplicity budget is a LAW, deliberately grown once: five data-led blocks (ok, LEARNING, diary, lab, rooms) — the fifth was the audit-directed experiment-legibility digest, and a SIXTH is the accretion disease this assert still vaccinates against");
-  ok(mt.indexOf(String.fromCharCode(100, 97, 116, 97, 45, 115, 112, 101, 99, 61, 34, 101, 120, 97, 109, 112, 108, 101, 34)) > -1 && mt.indexOf("aria-hidden=\"true\" style={{ pointerEvents: \"none\"") > -1, "R14 AT THE ILLUSTRATION — the example decision card is INERT by construction (pointer-events none, aria-hidden, dashed frame): a card whose taps enact nothing may not be tappable");
-  ok(mt.indexOf("A TAP HERE ALWAYS CHANGES SOMETHING REAL — AND ONE TAP ALWAYS UNDOES IT") > -1 && mt.indexOf("Nothing needs your OK right now.") > -1 && mt.indexOf("{okN} WAITING") > -1, "the empty inbox is the DESIGNED-NORMAL good state, in the mockup words, and the count on the row is the rail badge count");
-  ok(mt.indexOf("onClick={() => go(\"BRIEF\")}") > -1 && (mt.split("ApprovalInbox").length - 1) === 0, "ONE DOOR STAYS ONE DOOR — a waiting decision routes to the briefing room; the hub mounts NO second inbox, so a card can never exist in two places");
-  ok(mt.indexOf("const s1 = String(f.how).split(\". \")[0]") > -1 && mt.indexOf("VIEW RECEIPT ▸") > -1, "A3 — the diary anatomy is PROGRESSIVE DISCLOSURE, never rewriting: the first sentence shows plain and the FULL engine text sits verbatim behind VIEW RECEIPT — the typed-words discipline holds at both layers");
-  ok(mt.indexOf("the instruments ▸") > -1 && mt.indexOf("labAll.length} TOOLS") === -1, "A9 — the tool census left the LEDGER surface (it lives inside LAB now); the hero row is a plain door");
+  ok((mt.match(/data-led=/g) || []).length === 3, "R15d+h → R6 — the simplicity budget SHRANK, deliberately: the hub is THREE data-led blocks (decisions, latest result, doors). The five-block law described the old hub carrying six jobs at once; density is now the point of the surface, and the new hub-budget smoke counts words, headings and tappables in the live DOM");
+  ok(mt.indexOf("data-spec=") === -1, "R14 AT THE ILLUSTRATION → R6 — the inert EXAMPLE card left with the old hub: the empty state is one quiet row now, and a surface that teaches by illustration belongs where decisions live, not on the answer screen");
+  ok(mt.indexOf("Nothing needs your OK.") > -1 && mt.indexOf("NEED YOUR OK") > -1, "R6 — the empty state stays the designed-normal good state in one calm row, and the count on the card is still the rail badge count (okN), unchanged");
+  ok((mt.match(/go\("BRIEF"\)/g) || []).length === 1 && mt.indexOf("openGroup(NOW_DOORS.inbox)") > -1 && mt.indexOf("pl-inbox") > -1, "ONE DOOR STAYS ONE DOOR → R6 — still exactly one route to decisions from the hub, and it is now the A2 landing: inbox expanded, scrolled to top. Three origins (NOW, PROGRESS, the tab badge), one destination");
+  ok(srcL.indexOf("function HistoryTab(") > -1 && srcL.indexOf("Open the receipt for ") > -1, "A3 → R6 — the record moved into its own HISTORY room and the anatomy came with it: the row IS the receipt (whole-row target, intent in its accessible label), first sentence plain, the full engine text verbatim when open");
+  ok(mt.indexOf("labAll.length} TOOLS") === -1 && mt.indexOf("EVIDENCE") > -1, "A9 → R6 — the census stays out of the hub, and the door that leads to it is named for what it holds: EVIDENCE");
   ok((mt.split("minHeight: DT.touch").length - 1) >= 3 && mt.indexOf("background: \"none\", border: \"none\"") > -1, "TOUCH LAW — the ok row, the lab row and every room row are 64px paint-free hit boxes; paint rides inner spans (the standing split law)");
-  ok(mt.indexOf("t: \"DECISIONS\"") > -1 && mt.indexOf("k: \"QUEUE\"") > -1 && mt.indexOf("k: \"SLEEP\"") > -1 && mt.indexOf("k: \"BODY\"") > -1 && mt.indexOf("onClick={() => go(\"HIST\")}") > -1, "every room keeps its two-tap door: BRIEFING ROOM / QUEUE / SLEEP / BODY rows plus the LAB hero row to HIST");
+  ok(mt.indexOf("WHAT'S NEXT") > -1 && mt.indexOf("SETTINGS & DATA") > -1 && mt.indexOf("HISTORY") > -1, "R6 — every room keeps its two-tap door under its plain name: WHAT'S NEXT · SLEEP · BODY · EVIDENCE · HISTORY · SETTINGS & DATA — six doors, one live insight each, no manifesto subtitles");
   ok(mt.indexOf("React.Fragment") > -1 && mt.indexOf("{i > 0 ? <div style={{ borderTop: \"1px solid \" + DT.hairline }} /> : null}") > -1, "hairlines are INERT SIBLINGS between row buttons, never wrappers — a wrapper whose text shadows a row would steal the render-smoke document-order click");
   ok((mt.split("role=\"button\"").length - 1) >= 5 && mt.indexOf("<SecRule>ANALYST & RULES</SecRule>") > -1 && (srcL.split("<SecRule>THE RECORD</SecRule>").length - 1) === 0, "rows carry the explicit role the smoke pins by attribute, and the settings section sheds the name the diary now owns");
 
   /* ---------- ROUND 2 — the audit's two fixes + Joe's diary call ---------- */
   ok(mt.indexOf("diaryFeed(s, 12)") > -1 && (mt.split("isLabFeedLine").length - 1) === 0 && mt.indexOf("LAB LIVE") === -1, "R2-3 — the hub consumes the ONE selection law (diaryFeed) and carries no inline family knowledge of its own: the filter lives beside the producer it filters, never at the surface");
-  ok(mt.indexOf("const ease0 = autonomyOf(s) === \"propose\"") > -1 && mt.indexOf("that’s how you have it set") > -1 && mt.indexOf("Small routine tweaks happen automatically") > -1, "R2-2 — the empty-state CLAIM reads the dial: at PROPOSE it says the setting's own truth (nothing changes without your OK), and the automatic-tweaks line renders only when autonomy is actually granted");
-  ok(mt.indexOf("minHeight: 44, width: \"100%\", textAlign: \"left\"") > -1 && mt.indexOf("margin: \"0 0 -12px\"") > -1, "R2-1 — the diary tail is a 44px hit box (measured 30 on the rig): the button is paint-free text so padding is pure slop, and the negative margin hands the growth to the card's inert padding — paint does not move");
+  ok(srcL.indexOf("Nothing changes without you.") > -1, "R2-2 → R6 — the consent claim survives the rebuild on the decisions surface header, where the cards it describes actually are");
+  ok(srcL.indexOf("VIEW ALL HISTORY ▸") > -1 && srcL.indexOf("minHeight: 44") > -1, "R2-1 → R6 — the full-history door moved into the HISTORY room and keeps its 44px paint-free hit box; the hub carries no diary tail because it carries no diary");
 
   /* GUARD-MUST-FIRE, both ways: the REAL producer writes a lab line; the selector
      excludes exactly that line and passes everything else. The drive doctors labSeen
@@ -7243,7 +7243,7 @@ if (fail) process.exit(1);
   const srcH = readFileSync("src/app.jsx", "utf8");
   const hSl = srcH.slice(srcH.indexOf("function expDigest("), srcH.indexOf("R15j · THE CAPTURE SHEET — the universal door"));   /* end anchor re-derived R15j: the capture sheet now sits between expDigest and MoreTab, so the old boundary swallowed a component that legitimately writes */
   ok(hSl.length > 500 && (hSl.split("save(").length - 1) === 0 && (hSl.split("setS(").length - 1) === 0 && (hSl.split("feed.unshift").length - 1) === 0 && (hSl.split("localStorage").length - 1) === 0, "R15h DERIVED-ONLY — expDigest writes nothing: no save, no setS, no feed line, no storage — a pure read, pinned");
-  ok((srcH.split("data-led=" + String.fromCharCode(34) + "learning" + String.fromCharCode(34)).length - 1) === 1 && srcH.indexOf("EVERY QUESTION KEEPS ITS COUNTER IN THE LAB") > -1 && srcH.indexOf("if (!dg.head) return null;") > -1, "R15h — one learning block on the hub, the one door to LAB, and the block is ABSENT when nothing is being learned (an empty study list is not news)");
+  ok(srcH.indexOf("data-led=\"learning\"") === -1 && srcH.indexOf("still learning") > -1, "R15h → R6-3 — the STILL LEARNING card left the hub by Joe’s ruling and became the EVIDENCE door’s own live hint (findings + open questions on one line). The counter still comes from expDigest and is never merged with the LAB ARMED count — they count different entities");
 }
 console.log(`\nFINAL96: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
@@ -7276,21 +7276,21 @@ if (fail) process.exit(1);
   const iDeep = cardSl.indexOf("plainify(a.deep)");
   ok(iTag > -1 && iFor > iTag && iMore > iFor && iDeep > iMore && cardSl.indexOf("(a.lines || []).map") > iMore, "R15i — the open card reads tag (the plain question) then forYou (the live read), and deep + the receipt lines wait behind the standing ▸ MORE — engine words verbatim at every layer, only the order is surface");
   /* the named fixes */
-  ok(room.indexOf('setLabOpen("prophet"); } }} style={{ display: "flex", alignItems: "center", minHeight: 44') > -1, "R15i — the MACHINE TRUST prophet line (the named defect) is a 44px flex row with the keyboard path, no longer a bare sub-44 text tap");
+  ok(room.indexOf("t: \"DATA QUALITY\"") > -1 && room.indexOf("minHeight: 44") > -1, "R15i → R6 — the machine-trust line became the DATA QUALITY door: still a 44px row with its keyboard path, still tapping through to the prophet scorecard, now named for the question it answers");
   ok(room.indexOf("{sec.title}{/* R15i") > -1 && (room.split('{sec.title} <span style={{ color: T.brass }}>{sec.cards.length}</span>').length - 1) === 0, "R15i — the doubled bucket count is fixed: the engine title (byte-identical, carrying its own count) is the single source; the surface brass duplicate is extinct");
-  ok(room.indexOf("every instrument below waits for its own n before it speaks") > -1 && room.indexOf("a few will always look interesting by chance, and anything under {LAB_MIN_N} observations reads PROVISIONAL, not measured") > -1, "R15i — the masthead is ONE sentence and the forking-paths disclosure survives as a single line, still naming chance and the PROVISIONAL floor");
+  ok(room.indexOf("NEWEST FINDING") > -1 && room.indexOf("<Eyebrow c={T.jade}>EVIDENCE</Eyebrow>") > -1, "R15i → R6 — the masthead census gave way to the ANSWER: one newest finding leads the room, then six named doors. The forking-paths disclosure and the read-to-decide sentence demote into the room's own detail — demoted, never cut");
 
   /* ---------- ROUND 2 — the entrance ---------- */
   {
     const Q = String.fromCharCode(34);
     const srcR = readFileSync("src/app.jsx", "utf8");
-    const shell = srcR.slice(srcR.indexOf("aria-label=" + Q + "Back to Ledger" + Q) - 400, srcR.indexOf("aria-label=" + Q + "Back to Ledger" + Q) + 500);
-    ok(shell.indexOf("minHeight: 44") > -1 && shell.indexOf('padding: "12px 14px 12px 0", margin: "-12px 0 0 -14px"') > -1 && shell.indexOf('padding: "0 0 12px"') === -1, "R15i r2 FIX 1 — the back-link (27px on the rig) is a 44px hit box: paint-free text, padding as pure slop, equal-and-opposite margin so the glyph never moves");
+    const shell = srcR.slice(srcR.indexOf("aria-label=" + Q + "Back to Progress" + Q) - 400, srcR.indexOf("aria-label=" + Q + "Back to Progress" + Q) + 500);
+    ok(shell.indexOf("aria-label=\"Back to Progress\"") > -1 && shell.indexOf("minHeight: 44") > -1, "R15i r2 FIX 1 → R6-1 — the back-link keeps its 44px paint-free hit box and now names where it actually goes: Back to Progress. The display rename reached the shell, not just the rail");
     const roomR = srcR.slice(srcR.indexOf("function HistTab("), srcR.indexOf("function MoreTab("));
-    ok((roomR.split("<Eyebrow c={T.gauge}>THE LAB · READ TO DECIDE</Eyebrow>").length - 1) === 0 && (roomR.split("Read to decide, not to browse — every instrument below waits for its own n before it speaks.").length - 1) === 1 && roomR.indexOf("THE LAB · {totLive} SPEAKING") > -1, "R15i r2 FIX 2 — ONE masthead: the census eyebrow carries the read-to-decide sentence and the forking-paths line; the duplicate card is gone and both sentences survive verbatim, exactly once");
-    ok(roomR.indexOf("`MACHINE TRUST · 7-day weight miss ±${pg.mae} lb ▸`") > -1 && roomR.indexOf("MACHINE TRUST · 7-day weight miss ±${pg.mae} lb vs the real reading · bias") > -1 && roomR.indexOf('{a.id === "prophet" && (() => { const pg = prophetGrades(s);') > -1, "R15i r2 FIX 3 — the full MACHINE TRUST receipt moved onto the prophet's own card (engine words verbatim, beside the number it qualifies); ONE short line stays at the entrance as the room's calibration, still tapping through to the scorecard");
+  ok((room.match(/THE LAB/g) || []).length === 0, "R15i r2 FIX 2 → R6 — the LAB masthead went with the LAB name: EVIDENCE leads with a finding, and the census lives inside FINDINGS where it belongs");
+  ok(room.indexOf("setLabOpen(\"prophet\")") > -1, "R15i r2 FIX 3 → R6 — the full machine-trust receipt still lives on the prophet's own card; the DATA QUALITY door is its one-line entrance");
     const doorLine = roomR.slice(roomR.indexOf("MACHINE TRUST · 7-day weight miss ±${pg.mae} lb ▸") - 700, roomR.indexOf("MACHINE TRUST · 7-day weight miss ±${pg.mae} lb ▸"));
-    ok(doorLine.indexOf("minHeight: 44") > -1 && doorLine.indexOf("role=" + Q + "button" + Q) > -1, "R15i r2 — the entrance line keeps its 44px hit box and the keyboard path");
+  ok(room.indexOf("onKeyDown={(e) => { if (e.key === \"Enter\" || e.key === \" \") { e.preventDefault(); d9.on(); } }}") > -1, "R15i r2 → R6 — every EVIDENCE door keeps the 44px hit box and the keyboard path: the entrance is six rows now, and each one carries what the single machine-trust line carried");
     /* the sweep: no sub-44 tappable left in the room */
     const taps = roomR.match(/(onClick=\{[^]{0,400}?)(minHeight: 44|height: 5[0-9]|padding: "1[0-9]px)/g) || [];
     const bare = (roomR.match(/onClick=\{/g) || []).length;
@@ -8554,6 +8554,96 @@ if (fail) process.exit(1);
   /* N10 — words shipped, gates untouched */
   ok(srcN.indexOf("HIGH confidence, not the only grade of evidence") > -1, "N10 — the CI badge demotion shipped in words");
   ok(srcN.indexOf("ciExcludesZero") > -1, "N10 — and the steer gates did NOT move (THE HOLD): graded-evidence steering is the NAMED deferral riding the Bayesian-confidence round");
+}
+/* ============================================================================
+   R6 STAGE 3 — THE THREE ANSWER ROOMS, PINNED AT SOURCE.
+
+   These are SOURCE pins, not engine pins: nothing in the engine moved this
+   stage (the R15 freeze is byte-clean), so what has to be held is that the
+   ROOMS still read the engine rather than re-authoring it, and that four
+   retired claims stay dead. The DOM half — an answer block exists, renders,
+   and sits above the room's own detail — is the render smoke's job, because
+   only the smoke can prove a thing is on the screen.
+   ============================================================================ */
+{
+  const src3 = readFileSync("src/app.jsx", "utf8");
+
+  /* SLEEP — the engine's own verdict reached the face. */
+  ok(src3.indexOf('data-answer="sleep"') > -1 && src3.indexOf("{clock12(an.why)}") > -1,
+    "R6-3 SLEEP — the ANSWER is welded to the number, and it is sleepAnchor's own why: the room promotes the engine's sentence instead of writing a second copy that drifts");
+  ok(!/\{an\.measured && an\.shiftMin > 0 && \(/.test(src3),
+    "R6-3 SLEEP — the conditional 'THE LEVER —' line is gone: gated on shiftMin > 0, it left the card with NO closing sentence on exactly the nights he was already clearing his floor. The room went quiet when the news was good");
+  ok(src3.indexOf("function clock12(") > -1 && src3.indexOf("The engine keeps authorship of the words.") > -1,
+    "R6-3 SLEEP — the 24h clocks inside the engine sentence are reformatted for display only; the words stay the engine's and the freeze stays byte-clean");
+
+  /* BODY — one author for the rate verdict, and the honesty line. */
+  /* three hits, not two: one definition plus the two call sites, named individually
+     so the pin fails loudly if either reader is deleted or a third author appears */
+  ok((src3.match(/function rateVerdict\(/g) || []).length === 1
+     && (src3.match(/rateVerdict\(s, cur/g) || []).length === 3
+     && src3.indexOf("rateVerdict(s, cur, rbTop, sealed)") > -1
+     && src3.indexOf("rateVerdict(s, cur, rb, sealed)") > -1,
+    "R6-3 BODY — the rate adjudication is authored ONCE and read TWICE (hero + gauge card). Promoting the sentence without extracting it would have made two copies of one claim, which is how this codebase has drifted three times before");
+  ok(src3.indexOf('data-answer="body"') > -1 && src3.indexOf("EST BF is inferred from them") > -1,
+    "R6-3 BODY — the answer sits with the trend, and the honesty line sits under the three-up strip: two of those figures are measured and one is inferred, and they had been rendering in identical type");
+  ok(src3.indexOf("{bf.lo}% to {bf.hi}%") > -1,
+    "R6-3 BODY — the honesty line prints bfEst's OWN band; it is not a new claim, it is a number the engine always returned and the room never showed");
+
+  /* THE RETIRED DRIP STOPPED TALKING — four sites, checked by claim. */
+  ok(src3.indexOf("muscle-drip correction") === -1 && src3.indexOf("drip +{s.model.drip}/wk") === -1
+     && src3.indexOf("measured trend + drip model") === -1 && src3.indexOf("measured rate plus the drip") === -1,
+    "R6-3 BODY — all four surviving drip claims are extinct. model.drip has been 0.0 since v3.99.24 and this card's own MORE copy said so, while the line directly above it rendered 'drip +0/wk (muscle memory)' as a live model term. CLAUDE.md's rule: grep for the CLAIM, not the function — a rule surviving only in copy is still a rule, because he reads the copy");
+
+  /* WHAT'S NEXT — the room answers its own name. */
+  ok(src3.indexOf('data-answer="queue"') > -1 && /const nextUp = \(\(\) => \{/.test(src3) && src3.indexOf("pickStructural(s, nd, slp).main") > -1,
+    "R6-3 WHAT'S NEXT — the room finally asks the room-level question. pickStructural already decided which ONE change runs on a day; eleven per-card doors asked it 'am I the one?' and nobody asked 'which one is it?' where the reader could see the answer");
+  ok(src3.indexOf('persistKey="queue.howplansmove"') > -1 && src3.indexOf('title="How plans move"') > -1,
+    "R6-3 WHAT'S NEXT — the state-machine legend moved behind 'How plans move', verbatim: a taxonomy is what you read after you know what is happening, not before");
+  ok(src3.indexOf('persistKey="queue.standards"') > -1,
+    "R6-3 WHAT'S NEXT — STANDING GAINS and PROCESS STANDARDS are behind one door, carried across verbatim. Neither answers 'what runs next', and demoting them is also what brought the room inside its word budget without touching a single plan");
+
+  /* EVERY DOOR IN ALL THREE ROOMS REMEMBERS. */
+  const keys3 = ["sleep.clock", "sleep.nights", "sleep.rules", "body.weight", "body.bf", "body.pace", "body.waist", "queue.howplansmove", "queue.wins", "queue.history", "queue.standards"];
+  ok(keys3.every((k) => src3.indexOf('persistKey="' + k + '"') > -1),
+    "R6-3 — all eleven doors across the three rooms carry a persistKey. Every one of them passed none, so useDisclosure skipped its persisted read entirely: open SLEEP twice and the app had learned nothing about what he wants to see");
+
+  /* THE ROOM'S ONE LEVER IS A CONTROL, NOT A WORD. */
+  ok(src3.indexOf('aria-label="Undo today\'s caffeine entry"') > -1,
+    "R6-3 SLEEP — the only state-changing control in the room was a 12px <span> with no button semantics and no 44px box, and it mutates the ledger. FOUR IDENTICAL SPANS REMAIN ON NOW (caffeine, meds, pulse, temp) and are REPORTED, not swept in: NOW is untouched by this round's own law");
+
+  /* RIDER 1 — the EVIDENCE landing's height. */
+  ok(src3.indexOf("padding: `${SP.xs}px 0`, borderTop: `1px solid ${T.hairline}`") > -1,
+    "RIDER 1 — the door rows drop to SP.xs. At SP.sm each row computed to 50px and minHeight:44 NEVER BOUND — the 44 was documenting an intention the layout had quietly overshot. At 4 it computes to 42, the floor binds, and every row paints at exactly 44: same tap target, 42px off the landing");
+  ok(src3.indexOf('{nf9.t.split(" — ")[0]}') > -1,
+    "RIDER 1 — the newest-finding headline obeys the R15i ROW LAW its own room already runs on; it was the single most prominent line in EVIDENCE and the only place exempt from it");
+}
+/* ============================================================================
+   R6 STAGE 4 — THE ROUND CLOSES. Source pins for the naming pass, the restored
+   honesty content, and the destination that was owed since stage 2.
+   ============================================================================ */
+{
+  const src4 = readFileSync("src/app.jsx", "utf8");
+
+  /* ITEM 1 — the destination exists, the map is in it, and the cut is undone. */
+  ok(src4.indexOf('persistKey="lab.howevidenceworks"') > -1 && src4.indexOf('title="How evidence works"') > -1,
+    "R6-4 — 'How evidence works' EXISTS. Stage 2 promised this destination in a commit comment and did not build it, which is how two honesty sentences ended up on the floor with nobody able to see they had gone");
+  ok((src4.match(/setMapOpen\(true\)/g) || []).length >= 1 && src4.indexOf("THE MAP moved UP into") > -1,
+    "R6-4 — THE MAP moved into it, once, not duplicated: the stage-2 interim is discharged and a marker is left where it used to sit");
+
+  /* THE TWO SENTENCES STAGE 2 CUT, restored verbatim. The DOM half of this is in
+     the render smoke, which opens the door and reads them off the page. */
+  ok(src4.indexOf("Read to decide, not to browse — every instrument below waits for its own n before it speaks.") > -1,
+    "R6-4 — the 'read to decide, not to browse' line is BACK, verbatim. Round 6's law is DEMOTE NEVER CUT, and stage 2 cut it while its own comment claimed it had survived — the comment is what the next reader checks instead of the diff, which is what made it invisible");
+  ok(src4.indexOf("a few will always look interesting by chance") > -1 && src4.indexOf("reads PROVISIONAL, not measured") > -1 && src4.indexOf("{LAB_MIN_N} observations") > -1,
+    "R6-4 — the FORKING-PATHS DISCLOSURE (§P0-2) is BACK, verbatim, with its LAB_MIN_N interpolation intact. Its original comment says it belongs permanently on the MASTHEAD; it is one tap down instead, because restoring it up top puts the landing at ~193 words against a 175 ceiling. That is a demotion the law allows and a FLAG, not a settled call");
+
+  /* ITEM 2 — the naming pass, and its two named deferrals. */
+  ok(src4.indexOf("<SecRule>APPEARANCE &amp; MOTION</SecRule>") > -1 && src4.indexOf("<SecRule>DISPLAY</SecRule>") === -1,
+    "R6-4 — DISPLAY became APPEARANCE & MOTION, the one rename in Sol's tier map reachable without crossing a fence");
+  ok(src4.indexOf("THE 58 INSTRUMENT NAMES ARE NOT TOUCHED") > -1,
+    "R6-4 — and the instrument names did NOT move. R6-2's fence permits renames only from a code-extracted list; no such list is in this repo, so every rename would have been invented — which is the thing the fence exists to stop");
+  ok(src4.indexOf("RULES → HOW DECISIONS WORK") > -1 && src4.indexOf("fenced by this round's own law") > -1,
+    "R6-4 — RULES → HOW DECISIONS WORK is DEFERRED IN CODE with its reason: the same destination is opened from a button on NOW, and renaming only one side would give one destination two names");
 }
 console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
