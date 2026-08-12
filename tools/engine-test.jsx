@@ -8555,5 +8555,67 @@ if (fail) process.exit(1);
   ok(srcN.indexOf("HIGH confidence, not the only grade of evidence") > -1, "N10 — the CI badge demotion shipped in words");
   ok(srcN.indexOf("ciExcludesZero") > -1, "N10 — and the steer gates did NOT move (THE HOLD): graded-evidence steering is the NAMED deferral riding the Bayesian-confidence round");
 }
+/* ============================================================================
+   R6 STAGE 3 — THE THREE ANSWER ROOMS, PINNED AT SOURCE.
+
+   These are SOURCE pins, not engine pins: nothing in the engine moved this
+   stage (the R15 freeze is byte-clean), so what has to be held is that the
+   ROOMS still read the engine rather than re-authoring it, and that four
+   retired claims stay dead. The DOM half — an answer block exists, renders,
+   and sits above the room's own detail — is the render smoke's job, because
+   only the smoke can prove a thing is on the screen.
+   ============================================================================ */
+{
+  const src3 = readFileSync("src/app.jsx", "utf8");
+
+  /* SLEEP — the engine's own verdict reached the face. */
+  ok(src3.indexOf('data-answer="sleep"') > -1 && src3.indexOf("{clock12(an.why)}") > -1,
+    "R6-3 SLEEP — the ANSWER is welded to the number, and it is sleepAnchor's own why: the room promotes the engine's sentence instead of writing a second copy that drifts");
+  ok(!/\{an\.measured && an\.shiftMin > 0 && \(/.test(src3),
+    "R6-3 SLEEP — the conditional 'THE LEVER —' line is gone: gated on shiftMin > 0, it left the card with NO closing sentence on exactly the nights he was already clearing his floor. The room went quiet when the news was good");
+  ok(src3.indexOf("function clock12(") > -1 && src3.indexOf("The engine keeps authorship of the words.") > -1,
+    "R6-3 SLEEP — the 24h clocks inside the engine sentence are reformatted for display only; the words stay the engine's and the freeze stays byte-clean");
+
+  /* BODY — one author for the rate verdict, and the honesty line. */
+  /* three hits, not two: one definition plus the two call sites, named individually
+     so the pin fails loudly if either reader is deleted or a third author appears */
+  ok((src3.match(/function rateVerdict\(/g) || []).length === 1
+     && (src3.match(/rateVerdict\(s, cur/g) || []).length === 3
+     && src3.indexOf("rateVerdict(s, cur, rbTop, sealed)") > -1
+     && src3.indexOf("rateVerdict(s, cur, rb, sealed)") > -1,
+    "R6-3 BODY — the rate adjudication is authored ONCE and read TWICE (hero + gauge card). Promoting the sentence without extracting it would have made two copies of one claim, which is how this codebase has drifted three times before");
+  ok(src3.indexOf('data-answer="body"') > -1 && src3.indexOf("EST BF is inferred from them") > -1,
+    "R6-3 BODY — the answer sits with the trend, and the honesty line sits under the three-up strip: two of those figures are measured and one is inferred, and they had been rendering in identical type");
+  ok(src3.indexOf("{bf.lo}% to {bf.hi}%") > -1,
+    "R6-3 BODY — the honesty line prints bfEst's OWN band; it is not a new claim, it is a number the engine always returned and the room never showed");
+
+  /* THE RETIRED DRIP STOPPED TALKING — four sites, checked by claim. */
+  ok(src3.indexOf("muscle-drip correction") === -1 && src3.indexOf("drip +{s.model.drip}/wk") === -1
+     && src3.indexOf("measured trend + drip model") === -1 && src3.indexOf("measured rate plus the drip") === -1,
+    "R6-3 BODY — all four surviving drip claims are extinct. model.drip has been 0.0 since v3.99.24 and this card's own MORE copy said so, while the line directly above it rendered 'drip +0/wk (muscle memory)' as a live model term. CLAUDE.md's rule: grep for the CLAIM, not the function — a rule surviving only in copy is still a rule, because he reads the copy");
+
+  /* WHAT'S NEXT — the room answers its own name. */
+  ok(src3.indexOf('data-answer="queue"') > -1 && /const nextUp = \(\(\) => \{/.test(src3) && src3.indexOf("pickStructural(s, nd, slp).main") > -1,
+    "R6-3 WHAT'S NEXT — the room finally asks the room-level question. pickStructural already decided which ONE change runs on a day; eleven per-card doors asked it 'am I the one?' and nobody asked 'which one is it?' where the reader could see the answer");
+  ok(src3.indexOf('persistKey="queue.howplansmove"') > -1 && src3.indexOf('title="How plans move"') > -1,
+    "R6-3 WHAT'S NEXT — the state-machine legend moved behind 'How plans move', verbatim: a taxonomy is what you read after you know what is happening, not before");
+  ok(src3.indexOf('persistKey="queue.standards"') > -1,
+    "R6-3 WHAT'S NEXT — STANDING GAINS and PROCESS STANDARDS are behind one door, carried across verbatim. Neither answers 'what runs next', and demoting them is also what brought the room inside its word budget without touching a single plan");
+
+  /* EVERY DOOR IN ALL THREE ROOMS REMEMBERS. */
+  const keys3 = ["sleep.clock", "sleep.nights", "sleep.rules", "body.weight", "body.bf", "body.pace", "body.waist", "queue.howplansmove", "queue.wins", "queue.history", "queue.standards"];
+  ok(keys3.every((k) => src3.indexOf('persistKey="' + k + '"') > -1),
+    "R6-3 — all eleven doors across the three rooms carry a persistKey. Every one of them passed none, so useDisclosure skipped its persisted read entirely: open SLEEP twice and the app had learned nothing about what he wants to see");
+
+  /* THE ROOM'S ONE LEVER IS A CONTROL, NOT A WORD. */
+  ok(src3.indexOf('aria-label="Undo today\'s caffeine entry"') > -1,
+    "R6-3 SLEEP — the only state-changing control in the room was a 12px <span> with no button semantics and no 44px box, and it mutates the ledger. FOUR IDENTICAL SPANS REMAIN ON NOW (caffeine, meds, pulse, temp) and are REPORTED, not swept in: NOW is untouched by this round's own law");
+
+  /* RIDER 1 — the EVIDENCE landing's height. */
+  ok(src3.indexOf("padding: `${SP.xs}px 0`, borderTop: `1px solid ${T.hairline}`") > -1,
+    "RIDER 1 — the door rows drop to SP.xs. At SP.sm each row computed to 50px and minHeight:44 NEVER BOUND — the 44 was documenting an intention the layout had quietly overshot. At 4 it computes to 42, the floor binds, and every row paints at exactly 44: same tap target, 42px off the landing");
+  ok(src3.indexOf('{nf9.t.split(" — ")[0]}') > -1,
+    "RIDER 1 — the newest-finding headline obeys the R15i ROW LAW its own room already runs on; it was the single most prominent line in EVIDENCE and the only place exempt from it");
+}
 console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

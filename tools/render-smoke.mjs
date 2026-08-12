@@ -353,13 +353,24 @@ if (failed) {
   await new Promise((r2) => setTimeout(r2, 200));
   const root = w.document.querySelector("[data-led='ok']") ? w.document.querySelector("[data-led='ok']").parentElement : w.document.body;
   const txt = (root.textContent || "").trim();
-  const words = txt.split(/s+/).filter(Boolean).length;
+  /* THE ESCAPE THAT WENT MISSING. This shipped in stage 1 as `/s+/` — no backslash — so
+     it split the hub text on the LETTER s and the 120-word budget was never once
+     measured. It reported 18 words for a screen carrying well over a hundred, and
+     passed every run. The cause is mechanical: the block was authored through a shell
+     heredoc that ate the backslash, and nothing downstream can tell a bad regex from a
+     small screen. Any budget that reads implausibly LOW is now a suspect, not a pass. */
+  const words = txt.split(/\s+/).filter(Boolean).length;
   const taps = root.querySelectorAll("button, [role=button], input, select, textarea").length;
   const heads = root.querySelectorAll("h1,h2,h3,h4").length;
   const fails = [];
-  if (words > 120) fails.push("words " + words + " > 120");
-  if (taps > 11) fails.push("content tappables " + taps + " > 11");
-  if (heads > 7) fails.push("headings " + heads + " > 7");
+  /* EVERY CEILING READS AS SPEC + NAMED ALLOWANCE, never a magic constant (rider 2).
+     The hub's three numbers are Sol's spec exactly, with allowance ZERO: `root` is the
+     hub block's own container, not the shell, so nothing but the hub is being counted
+     and there is no chrome to allow for. Say the zero out loud — an undocumented number
+     cannot be told apart from a fudged one at the moment it starts failing. */
+  if (words > 120) fails.push("words " + words + " > 120 (spec 120 + allowance 0 — the count is scoped to the hub block)");
+  if (taps > 11) fails.push("content tappables " + taps + " > 11 (spec 11 + allowance 0)");
+  if (heads > 7) fails.push("headings " + heads + " > 7 (spec 7 + allowance 0)");
   if (root.querySelectorAll("[data-led]").length !== 3) fails.push("expected exactly 3 hub blocks (decisions, latest result, doors)");
   for (const banned of ["THEME", "Light reads better", "EXPERT", "every figure on every screen"]) {
     if (txt.indexOf(banned) > -1) fails.push("the hub must not carry: " + banned);
@@ -446,7 +457,69 @@ if (failed) {
     const txt = (w.document.body.textContent || "").trim();
     if (txt.indexOf("THIS TAB HIT AN ERROR") > -1) { console.error("RENDER-SMOKE FAIL [settings] the room renders its error boundary"); process.exit(1); }
     if (txt.indexOf("THEME") === -1) { console.error("RENDER-SMOKE FAIL [settings] the theme control did not travel with the room"); process.exit(1); }
-    console.log("RENDER-SMOKE settings: alive, and the theme control works from its new home");
+    /* SETTINGS & DATA carried no ceiling at all — a room with no budget is a room that
+       re-bloats for free, and this one is the natural drain for anything that does not
+       fit elsewhere. Spec 150 (a working room of controls, not an answer screen) + 45
+       for the shell chrome the walk captures = 195, against 128 measured. The first
+       number I wrote here was 305, which cleared the measurement by 2.4x — a ceiling
+       set that far above what shipped enforces nothing at all, which is the same
+       mistake as a ceiling set just above the residual, pointing the other way. */
+    const swords = txt.split(/\s+/).filter(Boolean).length;
+    if (swords > 195) { console.error("RENDER-SMOKE FAIL [settings budget] " + swords + " words > 195 (spec 150 + 45 named shell-chrome allowance)"); process.exit(1); }
+    console.log("RENDER-SMOKE settings: " + swords + " words · alive, and the theme control works from its new home");
+  }
+  /* ROUND 6 STAGE 3 — THE THREE ANSWER ROOMS. Each one must open with a verdict
+     welded to its number, not a bare figure under a topic heading. The DOM-checkable
+     half of "answer-first" is: a data-answer block exists, it is ABOVE the room's
+     detail, and it is not empty. The pixel half (does it land above the fold) is the
+     browser rig's, as always — jsdom has no layout.
+
+     THE CEILINGS. All three are body-scoped, so all three pay the same 45-word
+     shell-chrome allowance that SETTINGS calibrated (these rooms render only the
+     shell's back link, not a second one of their own, so 45 is conservative for
+     them). Specs differ because the rooms differ: WHAT'S NEXT is a list of plans,
+     SLEEP and BODY are instrument rooms with charts and receipts.
+
+     ONE CROSS-CHECK, because this file has nowhere else that a floor and a ceiling
+     meet: MIN (line 36) is a CHARACTER floor — SLEEP 250, BODY 250, WHAT'S NEXT 200
+     — while every budget here is a WORD ceiling. At ~5.5 chars/word the ceilings
+     below sit far above those floors, so they cannot squeeze each other; if a future
+     spec drops near MIN/5.5 the room becomes unshippable and neither number would
+     explain why. Check both when you move either.
+
+     Each spec is set against what the room ACTUALLY measures today, with enough
+     headroom for honest variation and not a word more. My first pass wrote 330 for
+     SLEEP and 300 for BODY against measurements of 160 and 201 — ceilings with two
+     hundred words of slack, which is the SETTINGS-305 mistake again: a budget nothing
+     can trip is not a budget. Measured today: queue 291, sleep 160, body 201. */
+  const ROOMS = [
+    { door: "WHAT'S NEXT", key: "queue", spec: 280, why: "one lead plan plus a compact row per live plan; the count moves with the queue" },
+    { door: "SLEEP", key: "sleep", spec: 150, why: "hero, answer, three components; the night chart and debt receipts sit behind doors" },
+    { door: "BODY", key: "body", spec: 200, why: "trend, answer, three deltas, the anchor band and its honesty line" },
+  ];
+  for (const R of ROOMS) {
+    const w = await walk(R.door);
+    const txt = (w.document.body.textContent || "").trim();
+    const fails = [];
+    if (txt.indexOf("THIS TAB HIT AN ERROR") > -1) fails.push("the room renders its error boundary");
+    const ans = w.document.querySelector('[data-answer="' + R.key + '"]');
+    if (!ans) fails.push("no data-answer block — the room opens on a number with no verdict beside it");
+    else {
+      const words9 = (ans.textContent || "").trim().split(/\s+/).filter(Boolean).length;
+      if (words9 < 4) fails.push("the answer block is empty or a stub (" + words9 + " words)");
+      /* ABOVE THE DETAIL, checked structurally: every room's detail lives in Sections
+         and Cards below the lead. compareDocumentPosition is the only ordering fact
+         jsdom can give us, and it is the one that matters — an answer rendered after
+         the inventory is not an answer-first room however it is styled. */
+      const heads = [...w.document.querySelectorAll("div, button")].filter((e) => /^(Weight|Body Fat|Pace & Timeline|Waist & Photos|Night Log|Sleep Rules|Bedtime, Wake & Caffeine|How plans move|Wins)$/.test((e.textContent || "").trim()));
+      const after = heads.filter((h) => ans.compareDocumentPosition(h) & 4);   /* 4 = DOCUMENT_POSITION_FOLLOWING */
+      if (heads.length && after.length !== heads.length) fails.push("the answer is not above the room's detail — " + (heads.length - after.length) + " of " + heads.length + " section headings render before it");
+    }
+    const words = txt.split(/\s+/).filter(Boolean).length;
+    const cap = R.spec + 45;
+    if (words > cap) fails.push("words " + words + " > " + cap + " (spec " + R.spec + " — " + R.why + " — plus the 45 named shell-chrome allowance)");
+    if (fails.length) { console.error("RENDER-SMOKE FAIL [" + R.door + "] " + fails.join(" · ")); process.exit(1); }
+    console.log("RENDER-SMOKE " + R.door + ": " + words + " words / " + cap + " · answers first, above its own detail");
   }
 }
 

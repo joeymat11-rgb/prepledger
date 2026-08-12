@@ -14902,18 +14902,52 @@ function QueueTab({ s, slp }) {
   const live = s.queue.filter((x) => !x.done);
   const flipped = s.queue.filter((x) => x.done);
   const curl = exById(s, "curl");
+  /* R6 STAGE 3 — the room-level question, asked once. Per-card forYou blocks
+     already ran pickStructural eleven times to answer "am I the one?"; nobody
+     ever asked "which one is it?" where the reader could see the answer. */
+  const nextUp = (() => {
+    try {
+      let best = null;
+      for (const u of live) {
+        const ex = u.exId ? exById(s, u.exId) : null;
+        if (!ex || !ex.day) continue;
+        const nd = nextOfType(ex.day);
+        if (!nd) continue;
+        const mn = pickStructural(s, nd, slp).main;
+        if (mn && mn.id === u.id && (best === null || nd < best.nd)) best = { u, nd, ex };
+      }
+      return best;
+    } catch (e) { return null; }
+  })();
+  const rest = nextUp ? live.filter((u) => u.id !== nextUp.u.id) : live;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <Eyebrow>WHAT'S NEXT — UPDATES ITSELF AS YOU TRAIN</Eyebrow>
-      <Card style={{ padding: 11 }}>
-        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.05em", lineHeight: 2 }}>
-          <Term k="gated" c={T.steel}>LOCKED</Term> → <Term k="earned" c={T.jade}>EARNED</Term> → <Term k="debut" c={T.orange}>FIRST RUN</Term> → <Term k="own" c={T.jade}>YOURS</Term>
-          <span style={{ color: T.steel }}>  ·  other paths: </span><Term k="reclaim" c={T.brass}>WIN IT BACK</Term> · <Term k="parked" c={T.steel}>ON HOLD</Term>
-          <span style={{ color: T.steel }}>  — tap any word</span>
-        </div>
+      {/* R6 STAGE 3 — THE ANSWER, where the legend used to be. A taxonomy is
+          what you read AFTER you know what is happening, so the six state words
+          moved intact into "How plans move" below and the room now opens on the
+          one change that actually runs next, with its date and its load. */}
+      <Card accent={nextUp ? T.jade : T.brass} style={{ padding: SP.lg }}>
+        <Eyebrow c={nextUp ? T.jade : T.brass}>NEXT UP</Eyebrow>
+        {nextUp ? (
+          <div data-answer="queue">
+            <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 19, textTransform: "uppercase", color: T.chalk, marginTop: SP.xs, letterSpacing: "0.02em" }}>{nextUp.u.t}</div>
+            <div style={{ fontFamily: mono, fontSize: TS.label, color: T.jade, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>
+              Runs {fmtShort(nextUp.nd)}{nextUp.ex.w ? ` at ${nextUp.ex.w}` : ""} — it wins that session's one structural slot.
+            </div>
+            <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.micro}px` }}>
+              {live.length === 1 ? "It is the only plan live." : `${live.length - 1} other plan${live.length === 2 ? "" : "s"} below, each waiting on its own day.`}
+            </div>
+          </div>
+        ) : (
+          <div data-answer="queue" style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>
+            {live.length ? "No plan is scheduled to run in the next seven days — each one below is waiting on its own day or its own condition." : "Nothing is queued. Plans arrive when the engine earns them, never by hand."}
+          </div>
+        )}
       </Card>
-      {live.map((u) => (
-        <Card key={u.id}>
+      {rest.length > 0 && <Eyebrow c={T.steel}>THE REST — EACH ON ITS OWN DAY</Eyebrow>}
+      {rest.map((u) => (
+        <Card key={u.id} style={{ padding: 11 }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
             <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 17, textTransform: "uppercase", color: T.chalk }}>{u.t}</div>
             <Stamp st={u.state} />
@@ -14977,8 +15011,17 @@ function QueueTab({ s, slp }) {
         </Card>
       ))}
 
+      <Section persistKey="queue.howplansmove" title="How plans move" meta="the six words, and what each one means" c={T.steel}>
+        <Card style={{ padding: 11 }}>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.05em", lineHeight: 2 }}>
+            <Term k="gated" c={T.steel}>LOCKED</Term> → <Term k="earned" c={T.jade}>EARNED</Term> → <Term k="debut" c={T.orange}>FIRST RUN</Term> → <Term k="own" c={T.jade}>YOURS</Term>
+            <span style={{ color: T.steel }}>  ·  other paths: </span><Term k="reclaim" c={T.brass}>WIN IT BACK</Term> · <Term k="parked" c={T.steel}>ON HOLD</Term>
+            <span style={{ color: T.steel }}>  — tap any word</span>
+          </div>
+        </Card>
+      </Section>
       {flipped.length > 0 && (
-        <Section title="Wins" meta={`${flipped.length} on the board · earned the hard way`} c={T.jade}>
+        <Section persistKey="queue.wins" title="Wins" meta={`${flipped.length} on the board · earned the hard way`} c={T.jade}>
           {flipped.map((u) => (
             <Card key={u.id} accent={T.jade}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
@@ -14991,7 +15034,7 @@ function QueueTab({ s, slp }) {
         </Section>
       )}
 
-      <Section title="History — the story so far" meta={`${s.feed.length} entries · latest: ${((s.feed[0] || {}).t || "—").slice(0, 22)}`} c={T.jade}>
+      <Section persistKey="queue.history" title="History — the story so far" meta={`${s.feed.length} entries · latest: ${((s.feed[0] || {}).t || "—").slice(0, 22)}`} c={T.jade}>
         <Card style={{ padding: 0 }}>
         {s.feed.slice(0, 40).map((f, i) => (
           <div key={i} style={{ padding: "12px 14px", borderBottom: i < Math.min(s.feed.length, 40) - 1 ? `1px solid ${T.line}` : "none" }}>
@@ -15005,6 +15048,12 @@ function QueueTab({ s, slp }) {
       </Card>
       </Section>
 
+      {/* R6 STAGE 3 — these two were always-open cards at the foot of a room whose
+          job is "what runs next". Neither answers that: one is a hand-kept summary
+          of gains already banked, the other is three standing counters. Both are
+          carried across VERBATIM behind one door — demoted, not cut — which is also
+          what brings the room inside its word budget without touching a plan. */}
+      <Section persistKey="queue.standards" title="Standing gains & process standards" meta="what is already banked, and the standards that do not move" c={T.steel}>
       <Card>
         <Eyebrow>STANDING GAINS · ALL WHILE CUTTING</Eyebrow>
         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 6, lineHeight: 1.7 }}>{s.standing}</div>
@@ -15018,10 +15067,25 @@ function QueueTab({ s, slp }) {
           <div><span style={{ color: T.chalk }}>POST-SESSION BOOSTS × {s.boosts}</span> — the felt executive-function return, logged</div>
         </div>
       </Card>
+      </Section>
     </div>
   );
 }
 
+/* R6 STAGE 3 — the rate adjudication, authored ONCE. Returns the words and the
+   tone; the hero states it beside the number, the gauge card restates it as its
+   own forYou. Both read this function, so there is exactly one sentence in the
+   app that decides whether the current rate is fine. */
+function rateVerdict(s, cur, rb, sealed) {
+  try {
+    if (sealed) return { txt: `Scale sealed until ${fmtShort(SEAL_UNTIL)} — the rules are muted, so nothing here is a reading yet.`, tone: "hold" };
+    if (!cur || !cur.measured) return { txt: "Two clean weekly snapshots and this reads measured. Until then the rate is a prior, not a finding.", tone: "hold" };
+    const lo = rb.band[0], hi = rb.band[1];
+    if (cur.fat >= lo && cur.fat <= hi) return { txt: `Losing ~${cur.fat} lb/wk of fat-equivalent — inside your ${lo}–${hi} corridor. Nothing to change.`, tone: "ok" };
+    if (cur.fat < lo) return { txt: `Losing ~${cur.fat} lb/wk against a ${lo}–${hi} corridor — under it. The floor rule is the nearest tripwire.`, tone: "watch" };
+    return { txt: `Losing ~${cur.fat} lb/wk against a ${lo}–${hi} corridor — above it. The redline is the nearest tripwire, and speed there is muscle risk.`, tone: "watch" };
+  } catch (e) { return { txt: "The rate cannot be read from the record right now.", tone: "hold" }; }
+}
 function BodyTab({ s, setS, save }) {
   const tISO = isoOf(todayStart());
   const sealed = blackoutOn(s);
@@ -15034,6 +15098,7 @@ function BodyTab({ s, setS, save }) {
   const xPct = (() => { const f0 = (s.weekly || [])[0]; const start0 = f0 ? f0.trend : s.trend; const bfE = bfEst(s); const tgt0 = bfE.lean / 0.89; const span = Math.max(0.1, start0 - tgt0); return Math.max(0, Math.min(100, Math.round(((start0 - s.trend) / span) * 100))); })();
   const bf = bfEst(s);
   const cur = currentRate(s);
+  const rbTop = cutRateBand(s);   /* R6 STAGE 3 — hoisted so the ANSWER can sit with the number; the gauge card still computes its own rb locally */
   /* n for the hero's provenance tag: clean reads only. Sealed mornings are on the
      record but they never moved the trend, so counting them would inflate the
      evidence behind the number. */
@@ -15071,6 +15136,13 @@ function BodyTab({ s, setS, save }) {
           <Hero value={s.trend} unit="lb" n={nClean} c={T.jade}
             sub={sealed ? `scale sealed · first clean read ${fmtShort(SEAL_UNTIL)}` : "damped average — one dinner cannot move it"} />
         </div>
+        {/* R6 STAGE 3 — THE ANSWER, FUSED TO THE NUMBER. The words come from
+            rateVerdict, which the gauge card two doors down also reads, so the
+            room cannot end up holding two opinions about one rate. */}
+        {(() => { const rv = rateVerdict(s, cur, rbTop, sealed); const rc = rv.tone === "ok" ? T.jade : rv.tone === "watch" ? T.orange : T.brass;
+          return (
+            <div data-answer="body" style={{ fontFamily: mono, fontSize: TS.label, color: rc, marginTop: SP.sm, paddingLeft: 8, borderLeft: `2px solid ${rc}`, lineHeight: `${LH.body}px` }}>{rv.txt}</div>
+          ); })()}
         <div style={{ marginTop: SP.md }}>
           {[[7, "7-day"], [30, "30-day"], [90, "90-day"]].map(([days, lbl], i) => {
             const dl = trendDelta(s.reads, days);
@@ -15099,6 +15171,13 @@ function BodyTab({ s, setS, save }) {
             <div data-num style={{ fontFamily: mono, fontSize: TS.title, fontWeight: 600, color: T.chalk, fontVariantNumeric: "tabular-nums" }}>{s.waist.length ? s.waist[s.waist.length - 1].v + '"' : "—"}</div>
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.06em" }}>WAIST (measured, n={s.waist.length})</div>
           </div>
+        </div>
+        {/* R6 STAGE 3 — THE HONESTY LINE. Three numbers sat side by side in one
+            type size, and only two of them are measurements. The band is not new
+            information — bfEst has always returned lo/hi — it was simply never
+            printed beside the figure it qualifies. */}
+        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.micro}px` }}>
+          The trend and the waist are measured. EST BF is inferred from them — today it could honestly read anywhere from {bf.lo}% to {bf.hi}%.
         </div>
       </Card>
 
@@ -15143,7 +15222,7 @@ function BodyTab({ s, setS, save }) {
         </Card>
       ); })()}
 
-      <Section title="Weight" meta={`${s.trend}${sealed ? " · sealed → " + fmtShort(SEAL_UNTIL) : " · live"}`}>
+      <Section persistKey="body.weight" title="Weight" meta={`${s.trend}${sealed ? " · sealed → " + fmtShort(SEAL_UNTIL) : " · live"}`}>
         <Card>
         {/* The hero lives at the top of the screen now, so this card stops repeating
             it and does the job only a chart can: show the shape. Solid trend inside
@@ -15172,12 +15251,12 @@ function BodyTab({ s, setS, save }) {
       </Card>
       </Section>
 
-      <Section title="Body Fat" meta={`~${bf.pct}% · ${s.model.src}${observedTDEE(s) ? " · maint ~" + observedTDEE(s).tdee : ""}`}>
+      <Section persistKey="body.bf" title="Body Fat" meta={`~${bf.pct}% · ${s.model.src}${observedTDEE(s) ? " · maint ~" + observedTDEE(s).tdee : ""}`}>
         <Card>
         <Eyebrow>BODY FAT — LIVE MODEL · ANCHORED TO {s.model.src.toUpperCase()}</Eyebrow>
         <div style={{ display: "flex", gap: 18, marginTop: 8, alignItems: "baseline" }}>
           <div><Num size={26}>{bf.pct}%</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>EST NOW {s.model.err} · LEAN ~{bf.lean}</div></div>
-          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>drip +{s.model.drip}/wk (muscle memory)<br />DEXA would read {s.dexaPred}</div>
+          <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>lean carried flat — the muscle-memory drip was retired<br />DEXA would read {s.dexaPred}</div>
         </div>
         <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
           <input inputMode="decimal" placeholder="DEXA %" value={dexaIn} onChange={(e) => setDexaIn(e.target.value)}
@@ -15196,7 +15275,7 @@ function BodyTab({ s, setS, save }) {
             <div style={{ marginTop: 8 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                 <Num size={26} c={T.jade}>~{obs.tdee}</Num>
-                <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>±150 · OBSERVED — {obs.days} logged days, avg intake {obs.avg}, your measured rate + the muscle-drip correction</span>
+                <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>±150 · OBSERVED — {obs.days} logged days, avg intake {obs.avg}, and your measured rate</span>
               </div>
               <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 8 }}>Recalculates as you log — first estimates run hot off the whoosh week, then converge. Falls as you shrink (~10 kcal/lb). The reverse in September aims at THIS number, not June's.</div>
             </div>
@@ -15223,7 +15302,7 @@ function BodyTab({ s, setS, save }) {
       </Card>
       </Section>
 
-      <Section title="Pace & Timeline" meta={`${cur.fat}/wk · wk ${wd.wk}`}>
+      <Section persistKey="body.pace" title="Pace & Timeline" meta={`${cur.fat}/wk · wk ${wd.wk}`}>
         <Card>
         <Eyebrow>RATE OF LOSS · MODE-AWARE</Eyebrow>
         {(() => {
@@ -15237,25 +15316,30 @@ function BodyTab({ s, setS, save }) {
             {!sealed && rec.stale && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: 8, lineHeight: `${LH.micro}px` }}>⏱ {rec.flag}</div>}
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 8 }}>Rules run themselves: floor and redline arm one-tap adjustments on the NOW screen when trend data trips them.</div>
             <More deep={`The green band is your ${modeLabel} corridor — ${lo}–${hi} lb/wk, derived from ${rb.pct[0].toFixed(2)}–${rb.pct[1].toFixed(2)} %BW at today's weight, so it tracks you down as you lean instead of tightening. Floor rule: two weeks under ${rb.floor} → restore steps FIRST, then trim calories. Redline: ≥${rb.redline} → add ~100 back and coach-flag, because speed there is muscle risk, not a win. Sealed windows mute both rules so event noise can never fire them.`}
-              forYou={sealed ? `Rules muted while sealed (clean read ${fmtShort(SEAL_UNTIL)}) — your sheet's 7/21 REDLINE gap-artifact is exactly what this muting exists to prevent.` : cur.measured ? `Measured ~${cur.fat}/wk fat-equivalent right now — ${inBand ? "inside the corridor; nothing to do." : cur.fat < lo ? "under the corridor; the floor rule is the nearest tripwire." : "hot; the redline is the nearest tripwire."}` : "Two clean weekly snapshots and this goes fully measured."} />
+              forYou={sealed ? `Rules muted while sealed (clean read ${fmtShort(SEAL_UNTIL)}) — your sheet's 7/21 REDLINE gap-artifact is exactly what this muting exists to prevent.` : `${rateVerdict(s, cur, rb, sealed).txt}${inBand ? "" : cur.fat < lo ? " Two weeks under the floor restores steps first, then trims calories." : " The redline response is ~100 kcal back, and a coach flag."}`} />
           </>);
         })()}
       </Card>
         <Card>
         <Eyebrow>ROAD · LIVE ETAS OFF YOUR ACTUAL RATE</Eyebrow>
+        {/* R6 STAGE 3 — the fill was unlabelled and its percentage was never printed
+            anywhere, so it read as progress toward a date. It is not: it is distance
+            travelled between the first weekly trend on file and the weight at which
+            today's measured lean mass would sit at 11% — both ends now named. */}
         <div style={{ margin: "10px 0 4px" }}><Bar pct={xPct} c={T.chalk} /></div>
+        <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>{xPct}% of the way from your first logged trend to the weight your measured lean mass would sit at 11%</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10, fontFamily: mono, fontSize: TS.label, color: T.steel }}>
           <div>12% est → <span style={{ color: T.chalk }}>{eta12 == null ? "—" : eta12 === 0 ? "now" : `~${eta12} wk (${fmtShort(isoOf(new Date(todayStart().getTime() + eta12 * 7 * DAY)))})`}</span></div>
           <div>Pivot band (~11%) → <span style={{ color: T.chalk }}>{eta11 == null ? "—" : `~${eta11} wk (${fmtShort(isoOf(new Date(todayStart().getTime() + eta11 * 7 * DAY)))})`}</span> · coach's eye decides</div>
-          <div style={{ color: T.steel }}>{cur.measured ? "ETAs from your measured trend + drip model" : "ETAs on prior rates until 2 clean weeks exist — they self-correct as reads land"}</div>
+          <div style={{ color: T.steel }}>{cur.measured ? "ETAs from your measured trend — straight-line, no drip term" : "ETAs on prior rates until 2 clean weeks exist — they self-correct as reads land"}</div>
         </div>
         <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: 8 }}>Weeks 8–13 = visual acceleration: each BF point worth 2–3× the visible change.</div>
-        <More c={T.brass} deep="Straight-line ETAs from your measured rate plus the drip — useful for direction, honest about nothing else; the cone on the LAB tab is the version with uncertainty attached. The acceleration note is subcutaneous math: below ~13%, the same pound of fat comes off a smaller, leaner surface, so each BF point shows 2–3× the visible change of earlier points."
+        <More c={T.brass} deep="Straight-line ETAs from your measured rate — the drip term was retired and adds nothing — useful for direction, honest about nothing else; the cone on the LAB tab is the version with uncertainty attached. The acceleration note is subcutaneous math: below ~13%, the same pound of fat comes off a smaller, leaner surface, so each BF point shows 2–3× the visible change of earlier points."
           forYou={wd.wk < 8 ? `Week ${wd.wk} now — the acceleration window opens wk 8 (~${fmtShort(isoOf(new Date(mk(START).getTime() + 49 * DAY)))}), the mirror outranks the scale from wk 10, and the pivot ETA above is the straight line the cone bends around. The boring middle is almost over.` : wd.wk < 10 ? `Week ${wd.wk} — you are IN the acceleration window: each BF point now shows 2–3× the visual change. Mirror takes over at wk 10; the pivot ETA above is the straight line the cone bends around.` : `Week ${wd.wk} — mirror era. Photos and waist outrank everything on this card; the ETAs are background math now.`} />
       </Card>
       </Section>
 
-      <Section title="Waist & Photos" meta={`${s.waist.length ? s.waist[s.waist.length - 1].v + '"' : "waist due"} · photos ×${s.photos.length}`}>
+      <Section persistKey="body.waist" title="Waist & Photos" meta={`${s.waist.length ? s.waist[s.waist.length - 1].v + '"' : "waist due"} · photos ×${s.photos.length}`}>
         <Card>
         <Eyebrow>WAIST · WEEKLY — THE SIGNAL THE SCALE CAN'T FAKE</Eyebrow>
         {(() => {
@@ -15342,10 +15426,17 @@ function BodyTab({ s, setS, save }) {
   );
 }
 
+/* R6 STAGE 3 — display-only: rewrite HH:MM clocks inside an engine sentence into
+   the room's 12-hour house style. Matches a colon-separated pair only, so "7.5 h",
+   "15 minutes" and "60%" are untouched. The engine keeps authorship of the words. */
+function clock12(str) {
+  try { return String(str == null ? "" : str).replace(/\b(\d{1,2}):(\d{2})\b/g, (m) => fmt12(m)); } catch (e) { return str; }
+}
 function SleepTab({ s, setS, save, slp }) {
-  const [cMg, setCMg] = useState(200);
-  const [cAt, setCAt] = useState(() => { const d9 = new Date(); return String(d9.getHours()).padStart(2, "0") + ":" + String(Math.floor(d9.getMinutes() / 15) * 15).padStart(2, "0"); });
-  const [caffIn, setCaffIn] = useState(200);
+  /* R6 STAGE 3 — three useState pairs (cMg/cAt/caffIn) were removed here. They were
+     the remains of the caffeine entry form that moved to NOW; each name occurred
+     exactly once in this component, on its own declaration line, so they rendered
+     nothing and gated nothing. Two authored 200s went with them. */
   /* No slice(-8) here any more — the night log builds its own calendar window so
      that unlogged nights can render as gaps rather than being collapsed away. */
   const maxH = 9;
@@ -15381,6 +15472,18 @@ function SleepTab({ s, setS, save, slp }) {
                   n={nN} c={at ? T.jade : T.brass}
                   sub={an.measured ? `bed ${fmt12(an.bed)} · up ${fmt12(an.wake)}` : "log bed and wake times and this reads itself"} />
               </div>
+              {/* R6 STAGE 3 — THE ANSWER, FUSED TO THE NUMBER. This replaces the
+                  conditional "THE LEVER —" line that used to sit four blocks lower,
+                  gated on shiftMin > 0. That gate meant the card closed with NO
+                  sentence at all on exactly the nights he was already clearing his
+                  own floor — the room went quiet when the news was good, which is
+                  the shape of a nag rather than a read. an.why answers every state,
+                  including cold start ("N more nights ... and this reads off your
+                  own clock"), and it is the ENGINE's sentence: the room promotes it
+                  rather than writing a second, drifting copy of the same claim. */}
+              <div data-answer="sleep" style={{ fontFamily: mono, fontSize: TS.label, color: at ? T.jade : T.brass, marginTop: SP.sm, paddingLeft: 8, borderLeft: `2px solid ${at ? T.jade : T.brass}`, lineHeight: `${LH.body}px` }}>
+                {clock12(an.why)}
+              </div>
               {/* TIER 2 — the components behind the number, not a second hero */}
               <div style={{ marginTop: SP.md }}>
                 <DataRow first label={`vs target ${s.sleep.cleanH} h`}
@@ -15401,18 +15504,13 @@ function SleepTab({ s, setS, save, slp }) {
         <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 8, lineHeight: 1.55 }}>
           This is not about whether today's session counts — it always counts. It is about what the pounds you lose are made of. At a matched deficit, short sleep sent about 60% more of the loss onto lean mass in the one trial that measured it directly. You cannot out-eat or out-protein that.
         </div>
-        {an.measured && an.shiftMin > 0 && (
-          <div style={{ fontFamily: mono, fontSize: TS.label, color: T.jade, marginTop: 9, paddingLeft: 8, borderLeft: `2px solid ${T.jade}` }}>
-            THE LEVER — lights out {fmt12(an.needBed)}, {an.shiftMin} min earlier than you go now
-          </div>
-        )}
         <More c={at ? T.jade : T.brass}
           deep="Two different questions used to share one switch, which is why the old card read as a gate. The first is whether last night was short enough to measurably depress a session — and the performance literature says almost never at his numbers: Craven 2022 puts sleep restriction at −2.85% on strength — real (CI 1.23–4.47), just smaller than your own day-to-day spread — and Knowles 2022 ran nine straight nights at 5 h for under 1% of volume load. The second is whether chronic short sleep changes what a deficit takes off you, and there the effect is enormous: Nedeltcheva 2010, 5.5 h vs 8.5 h, 60% more of the loss shifted onto fat-free mass. The app now answers them separately. Nothing here blocks a record; everything here is about body composition. Sleep also taxes the same dopamine circuitry ADHD already taxes, which is why a short week costs drive and focus before it costs anything physical — real, and a reason to protect the night, not a reason to void a rep."
           forYou={(() => { const out = []; if (an.measured) { out.push(an.why); if (an.bedSDmin != null && an.wakeSDmin != null) out.push(an.bedSDmin <= an.wakeSDmin ? `Your bedtime is the steadier end — ${an.bedSDmin} minutes of spread against ${an.wakeSDmin} on your wake time. That makes bed the lever: it is the end of the night you already control.` : `Your wake time is the steadier end (${an.wakeSDmin} min against ${an.bedSDmin} on your bedtime), so an earlier lights-out is the whole move.`); } else { out.push(an.why); } out.push(at ? "You are at target. Protect it — this is the cheapest lean mass you will ever keep." : "Nothing about this stops you lifting or banking today. It changes what the scale is made of a month from now."); return out; })()} />
       </Card>
       ); })()}
 
-      <Section title="Bedtime, Wake & Caffeine" meta={(() => { const tc9 = todayCaff(s); const an9 = sleepAnchor(s); return `${an9.measured ? `bed ${fmt12(an9.bed)} · up ${fmt12(an9.wake)}` : "clock times not logged yet"} · caffeine today: ${tc9 && tc9.logged ? (tc9.mg > 0 ? tc9.mg + " mg @ " + fmt12(tc9.at) : "none ✓") : "not logged"}`; })()} c={T.jade}>
+      <Section title="Bedtime, Wake & Caffeine" meta={(() => { const tc9 = todayCaff(s); const an9 = sleepAnchor(s); return `${an9.measured ? `bed ${fmt12(an9.bed)} · up ${fmt12(an9.wake)}` : "clock times not logged yet"} · caffeine today: ${tc9 && tc9.logged ? (tc9.mg > 0 ? tc9.mg + " mg @ " + fmt12(tc9.at) : "none ✓") : "not logged"}`; })()} c={T.jade} persistKey="sleep.clock">
         <Card accent={T.jade}>
         {/* Bedtime leads, because bedtime is the end he holds steady and the end
             that bounds the whole night. The old heading claimed a fixed wake
@@ -15453,7 +15551,9 @@ function SleepTab({ s, setS, save, slp }) {
                 <div style={{ display: "flex", gap: 18, alignItems: "baseline" }}>
                   <div><Num size={22}>{e9.mg}</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>MG · LOGGED {e9.mg > 0 ? "AT " + fmt12(e9.at) : "— NONE TODAY"}</div></div>
                   <div><Num size={22} c={tail9 > 50 ? T.brass : T.jade}>~{tail9}</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>MG AT {fmt12(lo9.t)} · HALF-LIFE ~5 H</div></div>
-                  <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = (ns.caffLog || []).filter((x) => x.d !== tISO9); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer", marginLeft: "auto" }}>undo</span>
+                  <button type="button" aria-label="Undo today's caffeine entry"
+                    onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = (ns.caffLog || []).filter((x) => x.d !== tISO9); setS(ns); save(ns); }}
+                    style={{ background: "none", border: "none", fontFamily: mono, fontSize: TS.micro, color: T.gauge, cursor: "pointer", marginLeft: "auto", minHeight: 44, padding: "12px 0 12px 14px", margin: "-12px 0 -12px 0" }}>undo</button>
                 </div>
                 <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 7, lineHeight: 1.5 }}>{tail9 > 50 ? "Above ~50 mg at lights-out, deep sleep measurably thins — tonight's drift-off is worth an honest note." : tail9 > 0 ? "Under the ~50 mg line — tonight should be largely clear of it." : "A zero-caffeine day is data too. Clean night, clean read."}</div>
               </div>
@@ -15472,7 +15572,7 @@ function SleepTab({ s, setS, save, slp }) {
       </Card>
       </Section>
 
-      <Section title="Night Log" meta={`${s.sleep.nights.length} nights on file`}>
+      <Section persistKey="sleep.nights" title="Night Log" meta={`${s.sleep.nights.length} nights on file`}>
         <Card>
         {/* TIER 3 — the raw nights. MISSING NIGHTS ARE GAPS, NOT ZEROS (§4).
             This used to take the last 8 RECORDS and stand them shoulder to
@@ -15569,7 +15669,7 @@ function SleepTab({ s, setS, save, slp }) {
       </Card>
       </Section>
 
-      <Section title="Sleep Rules" meta="the standing orders">
+      <Section persistKey="sleep.rules" title="Sleep Rules" meta="the standing orders">
         <Card>
         <Eyebrow>PROTOCOL</Eyebrow>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8, fontFamily: mono, fontSize: TS.micro, color: T.steel }}>
@@ -15582,8 +15682,6 @@ function SleepTab({ s, setS, save, slp }) {
 
       <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, textAlign: "center", padding: "2px 0" }}>logging lives on NOW · this tab is the ledger</div>
 
-      {/* the anchor */}
-      {/* caffeine tail */}
       <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, textAlign: "center", padding: "2px 0" }}>the melatonin experiment + wake signature live on the LAB tab</div>
 
       
@@ -16681,7 +16779,7 @@ function HistTab({ s, setS, save }) {
                 </div>
               );
               return (
-                <Card accent={T.jade} style={{ padding: "12px 12px 10px" }}>
+                <Card accent={T.jade} style={{ padding: "10px 12px 8px" }}>
                   {/* R6 — THE ANSWER, then the doors. The census, the forking-paths
                       disclosure and the instruction essay all survive: they moved into
                       "How evidence works" and the room's own detail, one tap down. */}
@@ -16691,10 +16789,12 @@ function HistTab({ s, setS, save }) {
                     return nf9 ? (
                       <div onClick={() => setLabOpen(nf9.id)} role="button" tabIndex={0}
                         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setLabOpen(nf9.id); } }}
-                        style={{ minHeight: 44, padding: "6px 0 2px", cursor: "pointer" }}>
+                        style={{ minHeight: 44, padding: "2px 0 0", cursor: "pointer" }}>
                         <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.dim, letterSpacing: "0.1em" }}>NEWEST FINDING{freshMap[nf9.t] ? " · " + fmtShort(freshMap[nf9.t]).toUpperCase() : ""}</div>
-                        <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 15, color: T.chalk, marginTop: 3, letterSpacing: "0.02em" }}>{nf9.t}</div>
-                        <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, lineHeight: `${LH.body}px`, marginTop: 2 }}>{String(nf9.forYou || nf9.tag || "").split(". ")[0]}</div>
+                        {/* RIDER 1 — the R15i ROW LAW, applied to the headline that was exempt from it: head of the name here, full name on the card one tap down */}
+                        <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 15, color: T.chalk, marginTop: 3, letterSpacing: "0.02em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{nf9.t.split(" — ")[0]}</div>
+                        {/* RIDER 1 — one RENDERED line, not one sentence: the split returns 45-110 chars against ~57 per line, so the block's height was a coin flip between 40 and 60px */}
+                        <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, lineHeight: `${LH.body}px`, marginTop: 2, display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{String(nf9.forYou || nf9.tag || "").split(". ")[0]}</div>
                       </div>
                     ) : (
                       <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs }}>No instrument has spoken yet — the counters below show what each is still waiting on.</div>
@@ -16716,11 +16816,11 @@ function HistTab({ s, setS, save }) {
                       { t: "WHAT IF", hint: (() => { try { const cr9 = currentRate(s); return cr9 && cr9.measured ? "try a change before you make it" : "needs a measured rate first"; } catch (e) { return "try a change before you make it"; } })(), on: () => setTwinOpen(!twinOpen) },
                     ];
                     return (
-                      <div style={{ marginTop: SP.sm }}>
+                      <div style={{ marginTop: SP.xs }}>
                         {doors9.map((d9, i9) => (
                           <div key={d9.t} onClick={d9.on} role="button" tabIndex={0}
                             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); d9.on(); } }}
-                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, minHeight: 44, padding: `${SP.sm}px 0`, borderTop: i9 ? `1px solid ${T.hairline}` : `1px solid ${T.hairline}`, cursor: "pointer" }}>
+                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, minHeight: 44, padding: `${SP.xs}px 0`, borderTop: `1px solid ${T.hairline}`, cursor: "pointer" }}   /* RIDER 1 — SP.xs, not SP.sm: at 8 the row computed to 50px and minHeight:44 never bound. At 4 it computes to 42, the floor binds, and the row paints at exactly 44 — same target, 6px each, 42px over seven rows. (The borderTop ternary went too: both branches were identical.) */>
                             <span style={{ minWidth: 0, flex: 1 }}>
                               <span style={{ fontFamily: mono, fontSize: TS.label, color: T.chalk, letterSpacing: "0.06em" }}>{d9.t}</span>
                               <span style={{ display: "block", fontFamily: body, fontSize: TS.micro, color: T.steel, marginTop: 1 }}>{d9.hint}</span>

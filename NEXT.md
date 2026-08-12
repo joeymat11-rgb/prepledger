@@ -38,6 +38,20 @@ gym/capture/decision-anatomy UNTOUCHED. Two verified facts: the two counters cou
 DIFFERENT entities (never merge); Analyst Generate is a live Anthropic call. Recon item:
 the RULES surface rendered dark in a light drive.
 
+**STAGE-4 CHECKLIST (carried, by name, so nothing rides on memory):**
+
+1. **MOVE THE MAP INTO "HOW EVIDENCE WORKS".** Stage 2 put THE MAP inside FINDINGS as an
+   INTERIM: the ruling names "How evidence works" as its home, and that page is stage-4
+   work, so shipping a dangling reference would have been worse. Cowork adjudicated the
+   deviation APPROVED AS INTERIM on condition it is carried here by name. When the page
+   exists, the map moves and the interim comment in HistTab comes out with it.
+2. The naming pass inside its two fences (QUEUE state words NOT renamed until
+   code-verified; the instrument names only from a code-extracted list).
+3. Every budget in tools/render-smoke.mjs reads as SPEC + NAMED ALLOWANCE, never a magic
+   constant (rider 2 starts this in stage 3 for HUB and SETTINGS & DATA).
+4. The two 0110b6d riders: the floating + over provenance; the JSX-aware affordance audit.
+5. APP_V 7.51.0 + the matching sw cache bump, at the round's gate-green END only.
+
 ## QUEUED — TWO RIDERS FROM THE MINI-PASS RE-AUDIT (2026-08-12, P2, next design round)
 
 1. THE FLOATING + OVERLAYS CARD TEXT at some scroll positions — with M6 collapsing the
