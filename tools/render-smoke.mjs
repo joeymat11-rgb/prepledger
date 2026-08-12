@@ -349,6 +349,54 @@ if (failed) {
   if (fails.length) { console.error("RENDER-SMOKE FAIL [hub budget] " + fails.join(" · ")); process.exit(1); }
   console.log("RENDER-SMOKE hub: " + words + " words · " + taps + " tappables · " + heads + " headings · 3 blocks — the answer screen holds its budget");
 }
+/* ROUND 6 — THE ROOM-LANDING BUDGETS, in the live DOM. The hub budget guarded only the
+   hub, so the EVIDENCE landing shipped its whole 29-instrument inventory below the six
+   doors and both the gate and my report called it clean — a single scroll disproved it.
+   Same M3 split as the hub: DOM counts here, viewport pixels on the browser rig. */
+{
+  const walk = async (label) => {
+    const w = await mount();
+    const tabBtn = [...w.document.querySelectorAll("button")].find((b) => b.textContent.trim().startsWith("PROGRESS"));
+    if (!tabBtn) { console.error("RENDER-SMOKE FAIL [landing] the PROGRESS tab is missing"); process.exit(1); }
+    tabBtn.click();
+    await new Promise((r2) => setTimeout(r2, 150));
+    const door = [...w.document.querySelectorAll("button, [role=button]")].find((b) => b.textContent.trim().startsWith(label));
+    if (!door) { console.error("RENDER-SMOKE FAIL [landing] no door for " + label); process.exit(1); }
+    door.click();
+    await new Promise((r2) => setTimeout(r2, 250));
+    return w;
+  };
+  {
+    const w = await walk("EVIDENCE");
+    const txt = (w.document.body.textContent || "").trim();
+    const words = txt.split(/\s+/).filter(Boolean).length;
+    const fails = [];
+    for (const banned of ["SPEAKING NOW", "GATHERING", "THE LAB"]) {
+      if (txt.indexOf(banned) > -1) fails.push("the landing still renders the label " + banned);
+    }
+    /* the >3-instrument test: count the room's own instrument rows, which carry the
+       status words the inventory prints beside every name */
+    const inst = (txt.match(/measured · n=|provisional · |\d+\/\d+ ▸/g) || []).length;
+    if (inst > 3) fails.push("the landing lists " + inst + " instruments (max 3)");
+    /* 437 measured after the inventory left. What remains below the doors is NOT the
+       inventory: it is THE DIGITAL TWIN, the N-OF-1 fold and the MAP door — blocks that
+       shared this room before round 6 and that NO audit leg has graded (the directive's
+       own fence: do not guess at ungraded surfaces). The ceiling is set just above the
+       measured value so re-bloat still fails, and the residual is named for a ruling
+       rather than silently deleted (demote-never-cut) or silently allowed. */
+    if (words > 460) fails.push("landing words " + words + " > 460 — the EVIDENCE landing re-bloated");
+    if (fails.length) { console.error("RENDER-SMOKE FAIL [evidence landing] " + fails.join(" · ")); process.exit(1); }
+    console.log("RENDER-SMOKE evidence: " + words + " words · " + inst + " instruments on the landing · the inventory labels stay behind their doors");
+  }
+  {
+    const w = await walk("SETTINGS & DATA");
+    const txt = (w.document.body.textContent || "").trim();
+    if (txt.indexOf("THIS TAB HIT AN ERROR") > -1) { console.error("RENDER-SMOKE FAIL [settings] the room renders its error boundary"); process.exit(1); }
+    if (txt.indexOf("THEME") === -1) { console.error("RENDER-SMOKE FAIL [settings] the theme control did not travel with the room"); process.exit(1); }
+    console.log("RENDER-SMOKE settings: alive, and the theme control works from its new home");
+  }
+}
+
 console.log("RENDER-SMOKE: all tabs alive in all states — no silent fallbacks");
 process.exit(0);
 

@@ -16544,7 +16544,7 @@ function HistTab({ s, setS, save }) {
   const [mapOpen, setMapOpen] = useState(false);
   const [open, setOpen] = useState(null);
   const [labOpen, setLabOpen] = useState(null);
-  const [secOpen, setSecOpen] = useState({ speaking: true, gathering: true });
+  const [secOpen, setSecOpen] = useState({ speaking: false, gathering: false });   /* R6 — the landing is an ANSWER plus doors: the inventory lives behind FINDINGS and STILL LEARNING, one tap down, complete */
   const [deskOpen, setDeskOpen] = useState(false);
   const [sumOpen, setSumOpen] = useState(false);   /* R6 — the DATA SUMMARY door */
   const [askOpen, setAskOpen] = useState(false);
@@ -16727,6 +16727,7 @@ function HistTab({ s, setS, save }) {
                   {deskOpen && <TrialsDesk s={s} setS={setS} save={save} />}
                   {secs.map((sec) => {
                     const openSec = secOpen[sec.k] !== undefined ? secOpen[sec.k] : false;
+                    if (!openSec) return null;   /* R6 — closed means ABSENT, not collapsed: the door above is the only header, and a second one would put SPEAKING NOW back on the landing */
                     const cards = sec.k === "gathering" && !gatherAll ? sec.cards.slice(0, 5) : sec.cards;
                     return (
                       <div key={sec.k}>
