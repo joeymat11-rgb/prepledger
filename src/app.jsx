@@ -354,13 +354,13 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.51.0";
+const APP_V = "7.52.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 45;
+const SCHEMA_V = 46;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -9527,6 +9527,36 @@ function patchV45(s) {
   rule45("rows", 10, 9);
   s.v = 45; return s;
 }
+function patchV46(s) {
+  /* THE DEDUPE (v7.52.0, Joe's ruling: "dedupe once"). The OLD runner replayed the
+     whole chain on every bump, and each replay re-minted the feed entries some
+     patches author — these three titles accumulated byte-identical copies on his
+     live phone. One-time, content-exact removal: for EXACTLY these titles, drop
+     entries that are JSON-equal to an earlier entry, keep the first occurrence.
+     JSON-equal, not title-equal — two entries with the same title but different
+     dates or bodies are different receipts and BOTH survive. Touches nothing else.
+     Under the new runner this executes once and never again; it is also that
+     runner's first live proof — a v45 state receives ONLY this patch. */
+  const DUP_TITLES = ["RULING — SMALLEST HONEST INCREMENT", "RULING — SMALLEST STEP, EVERY LIFT", "VOLUME PROPOSALS RECALLED"];
+  if (Array.isArray(s.feed)) {
+    const seen = new Set();
+    const kept = [];
+    let removed = 0;
+    for (const f of s.feed) {
+      if (f && DUP_TITLES.includes(f.t)) {
+        const key = JSON.stringify(f);
+        if (seen.has(key)) { removed++; continue; }
+        seen.add(key);
+      }
+      kept.push(f);
+    }
+    if (removed > 0) {
+      s.feed = kept;
+      s.feed.unshift({ d: "2026-08-12", t: "FEED DEDUPED — " + removed + " historical replay duplicate" + (removed === 1 ? "" : "s") + " removed", how: "The old migration runner replayed every patch on every schema bump, and each replay re-minted these receipts: " + DUP_TITLES.join(" · ") + ". Byte-identical copies are gone; the first of each stays. Nothing else was touched." });
+    }
+  }
+  s.v = 46; return s;
+}
 function patchV38(s) {
   /* v7.4.0 Slice 5 — the PHASE ARC lands its decisions in the already-hardened s.plan (a planned diet
      break + phase transitions). ADDITIVE + idempotent: default the append-only phase-transition LOG to
@@ -9541,12 +9571,18 @@ function patchV38(s) {
   s.v = 38;
   return s;
 }
-/* THE PATCH LAW (maxed-ladder fix round): migrate() replays EVERY patch below on EVERY
-   bump (old.v < SCHEMA_V runs the whole reduce). A patch must therefore be IDEMPOTENT
-   AGAINST LATER STATES — its mutation guarded so a second, tenth, or fiftieth replay
-   changes nothing. patchV24's unguarded null erased a banked delivery on every bump for
-   weeks before the guard below; do not add the next one. */
-const PATCHES = [patchV4, patchV5, patchV6, patchV7, patchV8, patchV9, patchV10, patchV11, patchV12, patchV13, patchV14, patchV15, patchV16, patchV17, patchV18, patchV19, patchV20, patchV21, patchV22, patchV23, patchV24, patchV25, patchV26, patchV27, patchV28, patchV29, patchV30, patchV31, patchV32, patchV33, patchV34, patchV35, patchV36, patchV37, patchV38, patchV39, patchV40, patchV41, patchV42, patchV43, patchV44, patchV45];
+/* THE PATCH LAW (v7.52.0, the persistence round — this rewrites the old law).
+   Patches are [n, fn] pairs and migrate() runs ONLY the ones with n > old.v: each
+   patch executes AT MOST ONCE per state, in ascending order. The old runner replayed
+   the whole chain on every bump, and its law — "be idempotent against later states" —
+   asked every past patch to anticipate every future shape. Thirteen could not:
+   cowork's executed proof had one simulated bump revert an approved volume set, wipe
+   the pending inbox, overwrite a calibrated setup string, and mint a phantom receipt.
+   IDEMPOTENCY STAYS DEMANDED — a patch must still be safe to re-run — but as
+   defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
+   no longer as the only wall between a bump and his history. The gate asserts the
+   pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -9608,7 +9644,7 @@ function migrate(old) {
      may read oddly on fields this code does not know; re-upgrading restores full
      function. A visible misbehaviour is recoverable — a wipe is not. */
   if (old && old.v > SCHEMA_V) return old;
-  if (old && old.v >= 3 && old.v < SCHEMA_V) { const st = PATCHES.reduce((s, p) => p(s), JSON.parse(JSON.stringify(old))); reconcileLiftCaches(st); return st; }
+  if (old && old.v >= 3 && old.v < SCHEMA_V) { const st = PATCHES.filter(([n]) => n > old.v).reduce((s, [, p]) => p(s), JSON.parse(JSON.stringify(old))); reconcileLiftCaches(st); return st; }
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -9634,7 +9670,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return PATCHES.reduce((acc, p) => p(acc), s);
+  return PATCHES.reduce((acc, [, p]) => p(acc), s);   /* v1/v2 only: a legacy state predates every patch, so the full chain over a fresh seed is correct here — this is also why idempotency stays demanded */
 }
 
 const GLOSSARY = {
@@ -9662,7 +9698,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, stepValue, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { PATCHES, SCHEMA_V, applyAgentProposal, mergeState, ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, stepValue, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -10582,7 +10618,13 @@ function restoreOfferStands() { try { return localStorage.getItem(RESTORE_OFFER_
 function clearRestoreOffer() { try { localStorage.removeItem(RESTORE_OFFER_KEY); } catch (e) {} }
 function loadState() {
   let raw = null;
-  try { raw = localStorage.getItem(KEY); } catch (e) {}
+  /* v7.52.0 — the throw PROPAGATES. It used to be swallowed, and a storage-access
+     exception became raw = null = "fresh install": SEED booted with no banner, and
+     the write-back below would overwrite the real ledger the moment storage came
+     back. The component catch is the right handler — SEED in memory only, loud
+     banner, nothing written. Distinguishing "unreadable" from "absent" is the whole
+     fix; getItem returning null still means absent and still seeds. */
+  raw = localStorage.getItem(KEY);
   let s = migrate(raw ? JSON.parse(raw) : null);
   if (isPristineSeed(s)) { try { localStorage.setItem(RESTORE_OFFER_KEY, "1"); } catch (e) {} }
   s = runAdaptive(s, isoOf(todayStart()));
@@ -10908,16 +10950,32 @@ function mergeState(local, remote) {
      discipline at field grain: setsAt is a full ISO string written by every sets mutator;
      stamped beats unstamped, newer stamp wins, exact tie keeps the wholesale winner (local).
      Historical lifts have no knowable stamp, so there is no schema patch (the pace precedent):
-     absent reads as unstamped, and one honest stamped write wins from BOTH merge orders. */
+     absent reads as unstamped, and one honest stamped write wins from BOTH merge orders.
+     v7.52.0 — hi/inc/setup join sets under the same law (hiAt/incAt/setupAt): the
+     executed loss mode had a device that merely TRAINED a lift revert another
+     device's deliberate hi ruling, setup edit and increment, because only sets had
+     field grain. Every LIVE mutator of these fields stamps; historical patches
+     stay unstamped on purpose (pre-stamp era, exactly like patchV18's sets). */
   {
     const pick = (arr, id) => (Array.isArray(arr) ? arr.find((e) => e && e.id === id) : null);
+    /* v7.52.0 — the setsAt discipline, generalized to every deliberate-config
+       field. Each field rides its OWN stamp and is judged INDEPENDENTLY: a
+       device can hold the newer set count while the other holds the newer rep
+       ceiling, and both survive. Stamped beats unstamped, newer stamp wins,
+       exact tie keeps the wholesale winner. rirHist is deliberately NOT here
+       this round (filed): it is a series, not a scalar, and needs a union, not
+       a stamp. */
+    const STAMPED_FIELDS = [["sets", "setsAt"], ["hi", "hiAt"], ["inc", "incAt"], ["setup", "setupAt"]];
     out.exercises = (out.exercises || []).map((w) => {
       if (!w || w.id == null) return w;
       const r0 = pick(remote.exercises, w.id), l0 = pick(local.exercises, w.id);
       const other = w === r0 ? l0 : r0;
       if (!other) return w;
-      if (_isoOr(other.setsAt) > _isoOr(w.setsAt)) return { ...w, sets: other.sets, setsAt: other.setsAt };
-      return w;
+      let w2 = w;
+      for (const [f9, at9] of STAMPED_FIELDS) {
+        if (_isoOr(other[at9]) > _isoOr(w2[at9])) w2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };
+      }
+      return w2;
     });
   }
   const rn = (remote.sleep && remote.sleep.nights) || [], ln = (local.sleep && local.sleep.nights) || [];
@@ -14603,7 +14661,7 @@ function LogTab({ s, setS, save, slp }) {
                     )}
                     <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>jump:</span>
                     {[2.5, 5, 10].map((jz) => (
-                      <span key={jz} onClick={() => { const had = Array.isArray(ex.steps) && ex.steps.length >= 2; if (had && !window.confirm(`${ex.n} has a ${ex.steps.length}-rung ladder on file. Setting an even ${jz} lb jump deletes it. Keep the ladder?\n\nOK = delete the ladder\nCancel = keep it`)) return; const ns = JSON.parse(JSON.stringify(s)); const ex5 = ns.exercises.find((x) => x.id === ex.id); ex5.inc = jz; if (had) delete ex5.steps; ns.feed.unshift({ d: isoOf(todayStart()), t: `JUMP SIZE — ${ex5.n.toUpperCase()} steps by ${jz}`, how: "athlete set the machine's smallest honest increment — even ladder" }); setS(ns); save(ns); }}
+                      <span key={jz} onClick={() => { const had = Array.isArray(ex.steps) && ex.steps.length >= 2; if (had && !window.confirm(`${ex.n} has a ${ex.steps.length}-rung ladder on file. Setting an even ${jz} lb jump deletes it. Keep the ladder?\n\nOK = delete the ladder\nCancel = keep it`)) return; const ns = JSON.parse(JSON.stringify(s)); const ex5 = ns.exercises.find((x) => x.id === ex.id); ex5.inc = jz; ex5.incAt = new Date().toISOString();   /* v7.52.0 — every live inc mutator stamps */ if (had) delete ex5.steps; ns.feed.unshift({ d: isoOf(todayStart()), t: `JUMP SIZE — ${ex5.n.toUpperCase()} steps by ${jz}`, how: "athlete set the machine's smallest honest increment — even ladder" }); setS(ns); save(ns); }}
                         style={{ fontFamily: mono, fontSize: TS.label, color: !loadRungs(ex) && (ex.inc || 5) === jz ? T.jade : T.steel, border: `1px solid ${!loadRungs(ex) && (ex.inc || 5) === jz ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>{jz}</span>
                     ))}
                     <span onClick={() => setRungEdit(rungEdit === ex.id ? null : ex.id)}
@@ -18397,7 +18455,19 @@ export default function PrepLedger() {
     try {
       if (!(opts && opts.force)) {
         let prev = null;
-        try { const raw = localStorage.getItem(KEY); prev = raw ? JSON.parse(raw) : null; } catch (e) { prev = null; }
+        try { const raw = localStorage.getItem(KEY); prev = raw ? JSON.parse(raw) : null; } catch (e) {
+          prev = null;
+          /* v7.52.0 — the blob is unparseable, and the setItem below is about to
+             destroy the only recoverable copy of anything unsynced. Stash the raw
+             bytes FIRST. Best-effort and one-shot per corrupt blob: an existing
+             identical stash is left alone, a different corruption overwrites the
+             old stash (one slot, oldest goes). Recovery is manual by design —
+             export the stash from the console or a future RULES door. */
+          try {
+            const raw2 = localStorage.getItem(KEY);
+            if (raw2 && localStorage.getItem("prep-ledger-corrupt") !== raw2) localStorage.setItem("prep-ledger-corrupt", raw2);
+          } catch (e2) {}
+        }
         const guard = dataLossGuard(prev, ns);
         if (!guard.safe) {
           /* Refuse to clobber the good ledger with a shrinking/corrupt write — the
@@ -18405,6 +18475,12 @@ export default function PrepLedger() {
              the durable copy stays intact so a reload recovers it. reset()/import()
              are deliberate and pass { force:true }. */
           try { console.warn("[measured] durability guard blocked a shrinking write:", guard.lost.join(", ")); } catch (e) {}
+          /* v7.52.0 — the refusal now has a VOICE. console.warn is invisible on an
+             iPhone, full stop, and a refused write means new work dies on the next
+             reload — strictly worse news than QUOTA, which at least announced
+             itself. Same banner chrome, guard-specific words, and the lost counts
+             ride in the state value so the message can name what would shrink. */
+          setOffline("guard:" + guard.lost.join(", "));
           return;
         }
       }
@@ -18511,7 +18587,7 @@ export default function PrepLedger() {
 
       {offline && (
         <div style={{ background: T.plate2, borderBottom: `1px solid ${T.line}`, padding: "calc(8px + env(safe-area-inset-top)) 14px 8px", fontFamily: mono, fontSize: TS.micro, color: T.brass, textAlign: "center" }}>
-          {offline === "load" ? "STORED DATA UNREADABLE — this device's copy would not load. The cloud ledger is intact." : "CANNOT SAVE — private browsing or full storage; nothing new persists this session."} Export from RULES before closing.
+          {offline === "load" ? "STORED DATA UNREADABLE — this device's copy would not load. The cloud ledger is intact." : String(offline).indexOf("guard:") === 0 ? "SAVE REFUSED — this write would shrink the stored record (" + String(offline).slice(6) + "). Nothing was lost: the stored copy is intact and this screen still shows your work." : "CANNOT SAVE — private browsing or full storage; nothing new persists this session."} Export from RULES before closing.
         </div>
       )}
 

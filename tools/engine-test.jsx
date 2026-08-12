@@ -279,7 +279,7 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         const old = clone(SEED); delete old.skinfolds; old.v = 38;
         const up = __test.migrate(JSON.parse(JSON.stringify(old)));
         ok(Array.isArray(up.skinfolds) && up.skinfolds.length === 0, "R5 migration — patchV39 adds s.skinfolds = [] and nothing was there to restate");
-        ok(up.v === 45, "R5 migration — and bumps to 45 (v44 the 180 correction · v45 calves 11 / rows 9: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
+        ok(up.v === 46, "R5 migration — and bumps to 46 (v44 the 180 correction · v45 calves 11 / rows 9 · v46 the replay-duplicate dedupe: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
                 ok(Array.isArray(up.split) && up.split.length === 1 && up.split[0].from === "2026-08-09" && up.split[0].map[0] === "U" && up.split[0].map[1] === "L" && up.split[0].map[4] === "U" && up.split[0].map[5] === "L" && up.split[0].map[3] === "REST", "R19c migration — patchV40 seeds the athlete-stated split, DATED from the day he said it: Sun U · Mon L · Thu U · Fri L, rest elsewhere");
         /* byte-identity is the wrong invariant: migrate() replays the WHOLE patch chain, so
            other idempotent patches legitimately touch the state. The invariant that matters
@@ -5574,13 +5574,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 45, "schema: SCHEMA_V is 45 (patchV45: the calves/rows ruling)");
+  ok(SC === 46, "schema: SCHEMA_V is 46 (patchV46: the replay-duplicate dedupe, the new runner's first live bump)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
-  ok(migd.v === 45 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
+  ok(migd.v === 46 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
   ok(migd.reads.length === oldV35.reads.length && Object.keys(migd.dailyLogs).length === Object.keys(oldV35.dailyLogs).length, "patchV36: ADDITIVE — no read or dailyLog is added or lost (count-preserving)");
   ok(SEED.plan.autonomy === "propose", "patchV36: SEED already carries autonomy='propose' so a fresh install === a migrated one");
-  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 45, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
+  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 46, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
   const future = clone(SEED); future.v = 46;
   ok(mig(future).v === 46, "migrate: a NEWER (v46) state is handed back UNTOUCHED — rollback-safe, never wiped to SEED");
   const legacy = clone(SEED); legacy.v = 35; legacy.plan = { goals: [{ text: "no-id" }], ifthen: [{ cue: "x", action: "y" }], share: false };
@@ -5874,13 +5874,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 45, "schema: SCHEMA_V is 45 (patchV45 on top of the chain)");
+  ok(__test.SCHEMA_V === 46, "schema: SCHEMA_V is 46 (patchV46 on top of the chain)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
-  ok(m37.v === 45 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
+  ok(m37.v === 46 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
   ok(m37.reads.length === oldV36.reads.length && Object.keys(m37.dailyLogs).length === Object.keys(oldV36.dailyLogs).length, "patchV37: ADDITIVE — no read or dailyLog added or lost (count-preserving)");
-  ok(MIG(clone(SEED)).v === 45, "patchV37..45: idempotent on a current SEED (no double-patch drift)");
+  ok(MIG(clone(SEED)).v === 46, "patchV37..46: idempotent on a current SEED (no double-patch drift — under the v7.52.0 runner a current seed takes the v===SCHEMA_V fast path and no patch runs at all, which is the stronger form of the same claim)");
   const fut39 = clone(SEED); fut39.v = 46; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };
   ok(MIG(fut39).v === 46 && MIG(fut39).learned.tdee.length === 1, "patchV38: a NEWER (v46) state is handed back UNTOUCHED — rollback-safe, learned history not wiped");
 
@@ -6135,13 +6135,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(JSON.stringify(calorieTarget(clone(SEED))) === JSON.stringify(calorieTarget(clone(SEED))), "ENGINE-OWNS-NUMBERS — calorieTarget is unchanged by the phase layer on a normal cut (no phase number injected)");
 
   // ---- E · patchV38 — additive + rollback-safe; fresh SEED === migrated --------------------
-  ok(SCHEMA_V === 45, "patchV39..45 — SCHEMA_V is 45 (the calves/rows ruling on the chain)");
+  ok(SCHEMA_V === 46, "patchV39..46 — SCHEMA_V is 46 (the dedupe on top of the calves/rows ruling)");
   ok(Array.isArray(SEED.plan.phaseLog) && SEED.plan.phaseLog.length === 0 && !("phase" in SEED.plan) && !("brk" in SEED.plan), "patchV38 — SEED authors an EMPTY phaseLog and NO phase/brk override: a fresh install === a migrated state");
   const oldV37 = clone(SEED); oldV37.v = 37; delete oldV37.plan.phaseLog;
   const m38 = migrate(oldV37);
-  ok(m38.v === 45 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
+  ok(m38.v === 46 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
   ok(m38.reads.length === oldV37.reads.length && Object.keys(m38.dailyLogs).length === Object.keys(oldV37.dailyLogs).length, "patchV38 — ADDITIVE: no read or dailyLog added or lost (count-preserving)");
-  ok(migrate(clone(SEED)).v === 45 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
+  ok(migrate(clone(SEED)).v === 46 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
   const fut39 = clone(SEED); fut39.v = 46; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };
   ok(migrate(fut39).v === 46 && migrate(fut39).plan.phase === "leangain", "patchV38 — a NEWER (v46) state is handed back UNTOUCHED: rollback-safe, no phase decision wiped");
 
@@ -8644,6 +8644,160 @@ if (fail) process.exit(1);
     "R6-4 — and the instrument names did NOT move. R6-2's fence permits renames only from a code-extracted list; no such list is in this repo, so every rename would have been invented — which is the thing the fence exists to stop");
   ok(src4.indexOf("RULES → HOW DECISIONS WORK") > -1 && src4.indexOf("fenced by this round's own law") > -1,
     "R6-4 — RULES → HOW DECISIONS WORK is DEFERRED IN CODE with its reason: the same destination is opened from a button on NOW, and renaming only one side would give one destination two names");
+}
+/* ============================================================================
+   v7.52.0 — THE PERSISTENCE ROUND. Items 1 + 2: the runner and its first bump.
+   ============================================================================ */
+{
+  const clP = (x) => JSON.parse(JSON.stringify(x));
+
+  /* THE CONTIGUITY GATE (item 1). The pair list must be contiguous ascending
+     4..SCHEMA_V. A misordered or gapped future insert must fail LOUDLY here —
+     under the old runner a mis-slotted patch merely ran in the wrong order;
+     under the version-keyed runner a gap means a version nothing patches TO,
+     and a state stranded below it would re-enter the filter forever. */
+  ok(Array.isArray(__test.PATCHES) && __test.PATCHES.every((p) => Array.isArray(p) && p.length === 2 && typeof p[0] === "number" && typeof p[1] === "function"),
+    "v7.52.0 runner — PATCHES is explicit [n, fn] pairs: every patch carries its own version, no positional guessing");
+  ok(__test.PATCHES[0][0] === 4 && __test.PATCHES[__test.PATCHES.length - 1][0] === __test.SCHEMA_V
+     && __test.PATCHES.every((p, i9) => p[0] === 4 + i9),
+    "v7.52.0 runner — the pair list is contiguous ascending 4.." + __test.SCHEMA_V + ": a gapped or misordered insert fails here, not silently in a phone's migration");
+
+  /* THE RUNNER RUNS ONLY WHAT IS OWED (item 1). A v45 state receives ONLY V46:
+     no patch below its version executes. The probe is patchV45's own mutation —
+     under replay-everything, calves.hi 13 would be forced to 11 again. */
+  {
+    const s45 = clP(__test.SEED);
+    s45.v = 45;
+    const cal = (s45.exercises || []).find((x) => x.id === "calves");
+    if (cal) cal.hi = 13;   /* legal later state: the athlete moved his own ceiling back up */
+    const feedLen0 = s45.feed.length;
+    const out = __test.migrate(clP(s45));
+    ok(out.v === 46, "v7.52.0 runner — a v45 state lands at 46");
+    const calOut = (out.exercises || []).find((x) => x.id === "calves");
+    ok(calOut && calOut.hi === 13,
+      "v7.52.0 runner — patchV45 did NOT re-run on a v45 state: the athlete's own hi=13 survives the bump. Under the old replay-everything runner this exact field was forced back to 11 on every future bump, forever");
+    ok(!out.feed.some((f) => f && /REP CEILING MOVES TO/.test(f.t || "") && !s45.feed.some((g) => JSON.stringify(g) === JSON.stringify(f))),
+      "v7.52.0 runner — and no phantom patchV45 receipt was re-minted into the feed");
+    ok(out.feed.length <= feedLen0 + 1,
+      "v7.52.0 runner — the only feed growth a v45→46 bump may produce is the dedupe's own receipt (and only if it removed something)");
+  }
+
+  /* THE DEDUPE (item 2), content-exact. */
+  {
+    const s45 = clP(__test.SEED);
+    s45.v = 45;
+    const dup = { d: "2026-08-09", t: "RULING — SMALLEST HONEST INCREMENT", how: "the same body, byte for byte" };
+    const near = { d: "2026-08-10", t: "RULING — SMALLEST HONEST INCREMENT", how: "a DIFFERENT body — a real second receipt" };
+    const other = { d: "2026-08-09", t: "SOME OTHER TITLE", how: "the same body, byte for byte" };
+    s45.feed = [clP(dup), clP(other), clP(dup), clP(near), clP(dup), clP(other)];
+    const out = __test.migrate(clP(s45));
+    const hits = out.feed.filter((f) => f.t === "RULING — SMALLEST HONEST INCREMENT");
+    ok(hits.length === 2 && hits.some((f) => f.how === near.how) && hits.some((f) => f.how === dup.how),
+      "V46 dedupe — JSON-equal duplicates of a named title collapse to the FIRST occurrence, and a same-title entry with a different body is a DIFFERENT receipt and survives");
+    ok(out.feed.filter((f) => f.t === "SOME OTHER TITLE").length === 2,
+      "V46 dedupe — an unnamed title is untouched even when byte-identical: the patch dedupes exactly three titles and nothing else, because 'dedupe once' was the ruling, not 'dedupe everything'");
+    const rec = out.feed.find((f) => /^FEED DEDUPED — /.test(f.t || ""));
+    ok(rec && /2 historical replay duplicates removed/.test(rec.t) && /SMALLEST HONEST INCREMENT/.test(rec.how),
+      "V46 dedupe — one receipt, counting exactly what was removed and naming the titles");
+    /* feed length: 6 in, minus 2 dups, plus 1 receipt = 5 */
+    ok(out.feed.length === 5, "V46 dedupe — feed shrinks by exactly the removed count (plus its one receipt): 6 → 5");
+  }
+  {
+    /* nothing to remove → no receipt: a patch may not announce work it did not do */
+    const s45 = clP(__test.SEED);
+    s45.v = 45;
+    const out = __test.migrate(clP(s45));
+    ok(!out.feed.some((f) => /^FEED DEDUPED/.test(f.t || "")),
+      "V46 dedupe — a feed with no duplicates gets NO receipt: the patch does not announce work it did not do");
+  }
+}
+/* ============================================================================
+   v7.52.0 — THE E1 REGRESSION (permanent), THE STAMP DISCIPLINE, AND THE VOICE.
+   ============================================================================ */
+{
+  const clP = (x) => JSON.parse(JSON.stringify(x));
+
+  /* THE E1 REGRESSION — the exact executed loss, as a permanent gate. Approve a
+     volume proposal on a live-shaped state, drop v one below current, migrate:
+     under the old runner this replay reverted the approved set count, deleted
+     the pending inbox, overwrote setup with SEED's copy and minted a phantom
+     receipt. Every one of those is asserted dead. */
+  {
+    const s0 = clP(__test.SEED);
+    s0.adjustments = [];   /* no structural move this week, so the approve APPLIES rather than expiring at the tap */
+    const ex0 = s0.exercises.find((x) => x.id === "curl") || s0.exercises[0];
+    const before = ex0.sets || 1;
+    s0.agentProposals = [
+      { id: "e1_vol", kind: "volume", exId: ex0.id, dir: +1, mg: "biceps", title: "VOLUME +1 — biceps" },
+      { id: "e1_pending", kind: "trial", custom: "the pending coach card that died in the executed proof", title: "PENDING CARD" },
+    ];
+    const ns = __test.applyAgentProposal(s0, s0.agentProposals[0], "2026-08-12");
+    const exA = ns.exercises.find((x) => x.id === ex0.id);
+    ok(exA.sets === before + 1 && typeof exA.setsAt === "string",
+      "E1 — the approve applied: sets " + before + " → " + (before + 1) + ", stamped");
+    ok(ns.agentProposals.length === 1 && ns.agentProposals[0].id === "e1_pending",
+      "E1 — the second proposal is still pending after the approve");
+    const setupsBefore = JSON.stringify(ns.exercises.map((x) => [x.id, x.setup]));
+    const dripBefore = ns.model.drip;
+    const feedTitles = new Set(ns.feed.map((f) => f && f.t));
+    /* the bump */
+    ns.v = __test.SCHEMA_V - 1;
+    const out = __test.migrate(clP(ns));
+    const exB = out.exercises.find((x) => x.id === ex0.id);
+    ok(exB.sets === before + 1,
+      "E1 — THE HEADLINE: the approved set count SURVIVES the schema bump. Under the old replay-everything runner this exact fixture reverted " + (before + 1) + " → " + before);
+    ok(out.agentProposals.length === 1 && out.agentProposals[0].id === "e1_pending",
+      "E1 — the pending inbox SURVIVES the bump: the executed proof had it wiped");
+    const newTitles = out.feed.filter((f) => f && !feedTitles.has(f.t)).map((f) => f.t);
+    ok(!newTitles.some((tt) => /HAND-BACK|DESK OFFERS RECALLED|^RULING/.test(tt || "")),
+      "E1 — no phantom HAND-BACK / DESK OFFERS RECALLED / RULING receipt is minted by the bump" + (newTitles.length ? " (new titles were only: " + newTitles.join(" | ") + ")" : ""));
+    ok(JSON.stringify(out.exercises.map((x) => [x.id, x.setup])) === setupsBefore,
+      "E1 — every setup string is BYTE-IDENTICAL through the bump: the old runner overwrote an athlete-calibrated setup with SEED's copy");
+    ok(out.model.drip === dripBefore,
+      "E1 — model.drip is untouched by the bump (the old runner zeroed a future measured drip)");
+  }
+
+  /* ITEM 6 — THE STAMP DISCIPLINE, both merge orders, fields judged
+     independently. The executed loss mode: device A rules hi and edits setup;
+     device B merely TRAINS the lift later, wins wholesale on lastMeta.d, and
+     resurrects A's old configuration. */
+  {
+    const mk9 = (over) => { const s9 = clP(__test.SEED); const e9 = s9.exercises.find((x) => x.id === "press"); Object.assign(e9, over); return s9; };
+    /* A: deliberate config, stamped. B: trained LATER (newer lastMeta.d), unstamped config. */
+    const A9 = mk9({ hi: 8, hiAt: "2026-08-12T10:00:00.000Z", setup: "athlete-calibrated setup", setupAt: "2026-08-12T10:00:00.000Z", inc: 2.5, incAt: "2026-08-12T10:00:00.000Z", lastMeta: { d: "2026-08-10", reps: [8, 8], w: 245 } });
+    const B9 = mk9({ lastMeta: { d: "2026-08-12", reps: [9, 8], w: 245 } });
+    for (const [local9, remote9, ord9] of [[A9, B9, "A local"], [B9, A9, "A remote"]]) {
+      const m9 = __test.mergeState(local9, remote9);
+      const e9 = m9.exercises.find((x) => x.id === "press");
+      ok(e9.hi === 8 && e9.setup === "athlete-calibrated setup" && e9.inc === 2.5,
+        "v7.52.0 stamps (" + ord9 + ") — the stamped hi/setup/inc all beat the merely-trained wholesale winner: one honest stamped write wins from BOTH merge orders");
+      ok(e9.lastMeta && e9.lastMeta.d === "2026-08-12",
+        "v7.52.0 stamps (" + ord9 + ") — while the wholesale winner still carries the NEWER training history: field grain, not object grain");
+    }
+    /* fields judged INDEPENDENTLY: A holds the newer hiAt, B the newer setsAt. */
+    const A2 = mk9({ hi: 8, hiAt: "2026-08-12T10:00:00.000Z", lastMeta: { d: "2026-08-10", reps: [8], w: 245 } });
+    const B2 = mk9({ sets: 4, setsAt: "2026-08-12T11:00:00.000Z", lastMeta: { d: "2026-08-12", reps: [9], w: 245 } });
+    const m2 = __test.mergeState(A2, B2);
+    const e2 = m2.exercises.find((x) => x.id === "press");
+    ok(e2.hi === 8 && e2.sets === 4,
+      "v7.52.0 stamps — hi and sets travel on their OWN stamps: A's ceiling and B's set count both survive one merge, because a device can be newest on one field and stale on another");
+  }
+
+  /* ITEMS 3+4+5 — the voice, pinned at source (the banner renders in the app
+     shell, which the engine suite cannot mount; the render smoke walks it). */
+  {
+    const src5 = readFileSync("src/app.jsx", "utf8");
+    ok(src5.indexOf('setOffline("guard:" + guard.lost.join(", "));') > -1,
+      "item 3 — the guard refusal SETS THE BANNER with the lost counts riding in the value; console.warn is invisible on an iPhone, full stop");
+    ok(src5.indexOf("SAVE REFUSED — this write would shrink the stored record (") > -1,
+      "item 3 — and the banner's third truth names what would shrink, in plain words");
+    ok(src5.indexOf("raw = localStorage.getItem(KEY);") > -1 && !/function loadState\(\) \{\n  let raw = null;\n  try \{ raw = localStorage\.getItem\(KEY\); \} catch \(e\) \{\}/.test(src5),
+      "item 4 — loadState no longer swallows a thrown getItem: 'storage unreadable' propagates to the component catch (SEED in memory only + the load banner) instead of silently seed-booting and then overwriting the real blob on write-back");
+    ok(src5.indexOf('localStorage.setItem("prep-ledger-corrupt", raw2)') > -1,
+      "item 5 — the corrupt blob is stashed to prep-ledger-corrupt BEFORE the first post-corrupt-boot write can destroy the only recoverable copy");
+    ok(src5.indexOf('localStorage.getItem("prep-ledger-corrupt") !== raw2') > -1,
+      "item 5 — one-shot per blob: an identical stash is left alone, a different corruption overwrites the old slot");
+  }
 }
 console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
