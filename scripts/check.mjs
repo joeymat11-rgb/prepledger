@@ -55,6 +55,11 @@ function contrastGate() {
   const out = ((r.stdout || "") + (r.stderr || "")).trim().split(String.fromCharCode(10)).pop() || "contrast audit";
   return r.status === 0 ? { ok: true, detail: out } : { ok: false, detail: out };
 }
+function affordanceGate() {
+  const r = spawnSync(process.execPath, [at("tools", "affordance-lint.mjs")], { cwd: ROOT, encoding: "utf8" });
+  const out = ((r.stdout || "") + (r.stderr || "")).trim().split(String.fromCharCode(10)).pop() || "affordance lint";
+  return r.status === 0 ? { ok: true, detail: out } : { ok: false, detail: out };
+}
 function swMatch() {
   const app = appVersion();
   const sw = swVersion();
@@ -204,6 +209,7 @@ export async function check({ strict = false } = {}) {
 
   for (const [label, fn] of [
     ["contrast", contrastGate],   /* A1 (design round) — resolved pairs, both themes */
+    ["affordance", affordanceGate],   /* A4 — the tap-color grammar, lint-enforced */
     ["sw version", swMatch],
     ["lockdown", lockdown],
     ["secrets", secretScan],

@@ -9737,7 +9737,7 @@ class TabGuard extends React.Component {
         <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 6 }}>Your data is safe — this is a display error, and the other tabs still work.</div>
         <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 6 }}>{this.state.err.message}</div>
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-          <Btn small tone="jade" onClick={() => this.setState({ err: null })}>Try again</Btn>
+          <Btn small tone="gauge" onClick={() => this.setState({ err: null })}>Try again</Btn>
           <Btn small onClick={() => { try { navigator.clipboard.writeText(report); } catch (e) {} }}>Copy report</Btn>
           <Btn small onClick={() => { try { localStorage.setItem("prep-ledger-crash", report); alert("Saved. Open LAB → Ask the Analyst and ask: diagnose my last crash"); } catch (e) {} }}>Ask the Analyst</Btn>
         </div>
@@ -9827,7 +9827,7 @@ function KitApp({ spec, onExit }) {
           <Eyebrow c={T.jade}>{spec.vocab.walk.toUpperCase()}</Eyebrow>
           {day.walkMin >= spec.walkGoalMin ? <div style={{ fontFamily: body, fontSize: F(15), color: T.jade, marginTop: 6 }}>✓ done — {day.walkMin} minutes</div> : (
             <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
-              {[spec.walkGoalMin, spec.walkGoalMin + 15].map((m2) => <Btn key={m2} tone="jade" onClick={() => up({ walkMin: m2 })}><span style={{ fontSize: F(13) }}>{m2} min ✓</span></Btn>)}
+              {[spec.walkGoalMin, spec.walkGoalMin + 15].map((m2) => <Btn key={m2} tone="gauge" onClick={() => up({ walkMin: m2 })}><span style={{ fontSize: F(13) }}>{m2} min ✓</span></Btn>)}
             </div>
           )}
         </Card>
@@ -9836,7 +9836,7 @@ function KitApp({ spec, onExit }) {
         <Card style={{ marginTop: 10 }}>
           <Eyebrow>{spec.vocab.weight.toUpperCase()}</Eyebrow>
           {day.weight ? <div style={{ fontFamily: mono, fontSize: F(15), color: T.jade, marginTop: 6 }}>✓ {day.weight} {spec.weightUnit}</div> : (
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}><Stepper v={w2} set={setW2} step={0.5} min={60} /><Btn small tone="jade" onClick={() => up({ weight: w2 })}>Save</Btn></div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}><Stepper v={w2} set={setW2} step={0.5} min={60} /><Btn small tone="gauge" onClick={() => up({ weight: w2 })}>Save</Btn></div>
           )}
         </Card>
       )}
@@ -9854,7 +9854,7 @@ function KitApp({ spec, onExit }) {
           {day.bp ? <div style={{ fontFamily: mono, fontSize: F(14), color: T.jade, marginTop: 6 }}>✓ {day.bp} on file</div> : (
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
               <Stepper v={bp1} set={setBp1} step={2} min={70} /><span style={{ color: T.steel }}>/</span><Stepper v={bp2} set={setBp2} step={2} min={40} />
-              <Btn small tone="jade" onClick={() => up({ bp: bp1 + "/" + bp2 })}>Save</Btn>
+              <Btn small tone="gauge" onClick={() => up({ bp: bp1 + "/" + bp2 })}>Save</Btn>
             </div>
           )}
           <div style={{ fontFamily: body, fontSize: F(TS.body), color: T.steel, marginTop: 7 }}>{spec.safety}</div>
@@ -10073,7 +10073,7 @@ function AskLedger({ s, setS, save, onClose }) {
       <div style={{ display: "flex", gap: 8, paddingTop: 10, borderTop: `1px solid ${T.line}` }}>
         <input value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && ask()} placeholder="ask anything about your data…"
           style={{ flex: 1, fontFamily: body, fontSize: TS.body, padding: "11px 12px", borderRadius: 9, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, outline: "none" }} />
-        <Btn small tone="jade" onClick={ask}>{busy ? "…" : "Ask"}</Btn>
+        <Btn small tone="gauge" onClick={ask}>{busy ? "…" : "Ask"}</Btn>
       </div>
     </div>
   );
@@ -10115,7 +10115,7 @@ function ApiKeyBlock() {
       <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 5, lineHeight: 1.5 }}>Two locks, two keys: the GitHub token files your data; this Anthropic key answers questions about it. Both live only on this phone — neither syncs, neither replaces the other. Get one at console.anthropic.com → API Keys.</div>
       <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
         <input value={v} onChange={(e) => { setV(e.target.value); setSaved(false); }} placeholder="sk-ant-…" style={{ flex: 1, fontFamily: mono, fontSize: TS.micro, padding: "9px 10px", borderRadius: 8, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, outline: "none" }} />
-        <Btn small tone="jade" onClick={() => { try { v.trim() ? localStorage.setItem(ANTH_KEY, v.trim()) : localStorage.removeItem(ANTH_KEY); setSaved(true); } catch (e) {} }}>{saved ? "Saved ✓" : "Save"}</Btn>
+        <Btn small tone="gauge" onClick={() => { try { v.trim() ? localStorage.setItem(ANTH_KEY, v.trim()) : localStorage.removeItem(ANTH_KEY); setSaved(true); } catch (e) {} }}>{saved ? "Saved ✓" : "Save"}</Btn>
       </div>
     </div>
   );
@@ -10177,7 +10177,7 @@ function MinuteView({ s, setS, save, onClose }) {
         <div style={{ maxWidth: 480, margin: "60px auto 0", textAlign: "center" }}>
           <div style={{ fontSize: 44, color: T.jade }}>✓</div>
           <div style={{ fontFamily: body, fontSize: 15, color: T.chalk, marginTop: 10 }}>Morning banked — the day's yours.</div>
-          <Btn tone="jade" full style={{ marginTop: 18 }} onClick={onClose}>Close</Btn>
+          <Btn tone="gauge" full style={{ marginTop: 18 }} onClick={onClose}>Close</Btn>
         </div>
       )}
       <div style={{ maxWidth: 480, margin: "0 auto", width: "100%" }}>
@@ -10195,7 +10195,7 @@ function MinuteView({ s, setS, save, onClose }) {
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
             {["woke", "screens", "mela"].map((tg) => <span key={tg} onClick={() => setTags9(tags9.includes(tg) ? tags9.filter((x) => x !== tg) : [...tags9, tg])} style={{ fontFamily: mono, fontSize: TS.micro, color: tags9.includes(tg) ? T.brass : T.steel, border: `1px solid ${tags9.includes(tg) ? T.brass : T.line}`, borderRadius: 999, padding: "5px 10px" }}>{tg === "woke" ? "woke mid-night" : tg === "mela" ? "melatonin" : "screens"}</span>)}
           </div>
-          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.sleep.nights = ns.sleep.nights.filter((n) => n.d !== y9); ns.sleep.nights.push({ d: y9, h: spanH, bed: bed9, wake: wake9, sol: sol9, tags: tags9 }); })}>Bank the night →</Btn>
+          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.sleep.nights = ns.sleep.nights.filter((n) => n.d !== y9); ns.sleep.nights.push({ d: y9, h: spanH, bed: bed9, wake: wake9, sol: sol9, tags: tags9 }); })}>Bank the night →</Btn>
         </div>
       )}
       {cur === "weight" && (
@@ -10204,7 +10204,7 @@ function MinuteView({ s, setS, save, onClose }) {
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Scale, fasted</div>
           <Cond how="Same scale, minimal clothing, same spot on the floor." when="After the bathroom, before food or water. Same order every morning or the number drifts for reasons that are not you." />
           <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={wt9} set={setWt9} step={0.1} min={100} /><span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>lb</span></div>
-          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.reads = ns.reads.filter((r) => r.d !== t9); const r2 = applyRead(ns, t9, +wt9); Object.assign(ns, r2); })}>{blackoutOn(s, t9) ? "Log weight (quarantined) →" : "Log weight →"}</Btn>
+          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.reads = ns.reads.filter((r) => r.d !== t9); const r2 = applyRead(ns, t9, +wt9); Object.assign(ns, r2); })}>{blackoutOn(s, t9) ? "Log weight (quarantined) →" : "Log weight →"}</Btn>
         </div>
       )}
       {cur === "energy" && (
@@ -10233,7 +10233,7 @@ function MinuteView({ s, setS, save, onClose }) {
             ))}
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-            <Btn full tone="jade" onClick={() => w9((ns) => { ns.soreness = [...(ns.soreness || []).filter((x) => x.d !== t9), { d: t9, mgs: sore9.slice() }]; })}>{sore9.length ? "Log soreness →" : "Nothing sore ✓ →"}</Btn>
+            <Btn full tone="gauge" onClick={() => w9((ns) => { ns.soreness = [...(ns.soreness || []).filter((x) => x.d !== t9), { d: t9, mgs: sore9.slice() }]; })}>{sore9.length ? "Log soreness →" : "Nothing sore ✓ →"}</Btn>
           </div>
         </div>
       )}
@@ -10246,7 +10246,7 @@ function MinuteView({ s, setS, save, onClose }) {
             <div style={{ flex: 1 }}><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>LEFT (lb)</div><input inputMode="decimal" value={gl9} onChange={(e9) => setGl9(e9.target.value)} style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 16, padding: "10px", outline: "none", marginTop: 4 }} /></div>
             <div style={{ flex: 1 }}><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>RIGHT (lb)</div><input inputMode="decimal" value={gr9} onChange={(e9) => setGr9(e9.target.value)} style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 16, padding: "10px", outline: "none", marginTop: 4 }} /></div>
           </div>
-          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.grip = [...(ns.grip || []).filter((x) => x.d !== t9), { d: t9, l: +gl9 || null, r: +gr9 || null }]; })}>Log grip →</Btn>
+          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.grip = [...(ns.grip || []).filter((x) => x.d !== t9), { d: t9, l: +gl9 || null, r: +gr9 || null }]; })}>Log grip →</Btn>
         </div>
       )}
       {cur === "pulse" && (
@@ -10254,7 +10254,7 @@ function MinuteView({ s, setS, save, onClose }) {
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Morning pulse</div>
           <Cond how="Count beats for 60 seconds, or 30 and double it." when="Within a few minutes of waking, still lying down, before coffee, food, or getting up. Already up and moving? Skip it — a contaminated number is worse than none." />
           <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={bpm9} set={setBpm9} step={1} min={30} /><span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>bpm</span></div>
-          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.pulse = [...(ns.pulse || []).filter((x) => x.d !== t9), { d: t9, bpm: bpm9 }]; })}>Log pulse →</Btn>
+          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.pulse = [...(ns.pulse || []).filter((x) => x.d !== t9), { d: t9, bpm: bpm9 }]; })}>Log pulse →</Btn>
         </div>
       )}
       {cur === "temp" && (
@@ -10262,7 +10262,7 @@ function MinuteView({ s, setS, save, onClose }) {
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Temperature</div>
           <Cond how="Same thermometer, same site, every single time." when="Right after waking, before food, drink, or a shower. Anything warm in your mouth invalidates it." />
           <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={tf9} set={setTf9} step={0.1} min={90} /><span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>°F</span></div>
-          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.temp = [...(ns.temp || []).filter((x) => x.d !== t9), { d: t9, f: +tf9 }]; })}>Log temp →</Btn>
+          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.temp = [...(ns.temp || []).filter((x) => x.d !== t9), { d: t9, f: +tf9 }]; })}>Log temp →</Btn>
         </div>
       )}
       {cur === "brief" && (
@@ -10275,11 +10275,11 @@ function MinuteView({ s, setS, save, onClose }) {
               <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>THE ANALYST ASKS — 10 SECONDS, BECOMES LABELED DATA</div>
               <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
                 <input value={ans9} onChange={(e) => setAns9(e.target.value)} placeholder="your answer…" style={{ flex: 1, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8, color: T.chalk, fontFamily: body, fontSize: TS.body, padding: "9px 10px", outline: "none" }} />
-                <Btn small tone="jade" onClick={() => { if (!ans9.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: t9, t: "ANALYST ANSWER", how: qm9[1].slice(0, 120) + " → " + ans9.trim() }); setS(ns); save(ns); setAns9(""); }}>File it</Btn>
+                <Btn small tone="gauge" onClick={() => { if (!ans9.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: t9, t: "ANALYST ANSWER", how: qm9[1].slice(0, 120) + " → " + ans9.trim() }); setS(ns); save(ns); setAns9(""); }}>File it</Btn>
               </div>
             </div>
           )}
-          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={advance}>Done ☀</Btn>
+          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={advance}>Done ☀</Btn>
         </div>
       )}
       <div onClick={advance} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, textAlign: "center", marginTop: 16, cursor: "pointer" }}>conditions not right? skip — its card stays open on NOW, and a skip is never a miss</div>
@@ -10448,7 +10448,7 @@ function BriefCard({ s, setS: setS2, save: save2 }) {
           <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.06em" }}>THE ANALYST ASKS — 10 SECONDS, BECOMES LABELED DATA</div>
           <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
             <input value={ans} onChange={(e) => setAns(e.target.value)} placeholder="your answer…" style={{ flex: 1, fontFamily: body, fontSize: TS.body, padding: "9px 10px", borderRadius: 8, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, outline: "none" }} />
-            <Btn small tone="jade" onClick={() => { if (!ans.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: isoOf(todayStart()), t: "ANALYST ANSWER", how: qm[1].slice(0, 120) + " → " + ans.trim().slice(0, 200) }); setS2 && setS2(ns); save2 && save2(ns); setAnswered(true); }}>File it</Btn>
+            <Btn small tone="gauge" onClick={() => { if (!ans.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: isoOf(todayStart()), t: "ANALYST ANSWER", how: qm[1].slice(0, 120) + " → " + ans.trim().slice(0, 200) }); setS2 && setS2(ns); save2 && save2(ns); setAnswered(true); }}>File it</Btn>
           </div>
         </div>
       )}
@@ -10490,7 +10490,7 @@ function RndDesk({ s, setS: sS, save: sv }) {
             {!filed ? (
               <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
                 <input value={ruling} onChange={(e) => setRuling(e.target.value)} placeholder="your ruling…" style={{ flex: 1, fontFamily: body, fontSize: TS.body, padding: "9px 10px", borderRadius: 8, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, outline: "none" }} />
-                <Btn small tone="jade" onClick={() => { if (!ruling.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: isoOf(todayStart()), t: "RND VERDICT", how: ruling.trim().slice(0, 220) }); sS && sS(ns); sv && sv(ns); setFiled(true); }}>File ruling</Btn>
+                <Btn small tone="gauge" onClick={() => { if (!ruling.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: isoOf(todayStart()), t: "RND VERDICT", how: ruling.trim().slice(0, 220) }); sS && sS(ns); sv && sv(ns); setFiled(true); }}>File ruling</Btn>
               </div>
             ) : <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.jade, marginTop: 7 }}>✓ filed — the desk reads it on Sunday's run</div>}
           </div>
@@ -12275,7 +12275,7 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
       {level === "propose" && tr.cleanStreak >= 3 && (
         <div style={{ marginTop: SP.sm, padding: SP.md, border: `1px solid ${T.line}`, borderLeft: `3px solid ${T.brass}`, borderRadius: 8, background: T.plate }}>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: `${LH.body}px` }}>You've matched my last {tr.cleanStreak} calls within your own noise — want me to handle routine adjustments and just tell you? You can switch back anytime.</div>
-          <div style={{ marginTop: SP.sm }}><Btn small tone="jade" onClick={() => setAutonomy("autonotice")}>Let Auto-Pilot handle routine →</Btn></div>
+          <div style={{ marginTop: SP.sm }}><Btn small tone="gauge" onClick={() => setAutonomy("autonotice")}>Let Auto-Pilot handle routine →</Btn></div>
         </div>
       )}
 
@@ -12488,7 +12488,7 @@ function ApprovalInbox({ s, setS, save, tISO }) {
             )}
             <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
               {it.does ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.chalk, width: "100%", marginBottom: 2 }}>{it.does}</div> : null}
-              {it.approve && <Btn small tone="jade" onClick={() => { it.approve(n); if (it.dial) setNudge({ ...nudge, [it.key]: 0 }); }}>{it.approveLabel(n)}</Btn>}
+              {it.approve && <Btn small tone="gauge" onClick={() => { it.approve(n); if (it.dial) setNudge({ ...nudge, [it.key]: 0 }); }}>{it.approveLabel(n)}</Btn>}
               {it.altApprove && <Btn small onClick={() => { it.altApprove(n); if (it.dial) setNudge({ ...nudge, [it.key]: 0 }); }}>{it.altLabel}</Btn>}
               <Btn small onClick={it.dismiss}>Dismiss</Btn>
             </div>
@@ -12606,7 +12606,7 @@ function PhaseArcCard({ s, setS, save, tISO }) {
           : armed
           ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>a phase change is waiting in your inbox &darr;</div>
           : (prop && prop.apply && prop.apply.kind === "break")
-          ? <Btn small tone="jade" onClick={() => armProposal(prop)}>{sup.kind === "forceBreak" ? "Plan the diet break →" : "Plan a diet break →"}</Btn>
+          ? <Btn small tone="gauge" onClick={() => armProposal(prop)}>{sup.kind === "forceBreak" ? "Plan the diet break →" : "Plan a diet break →"}</Btn>
           : <Btn small onClick={planBreak}>Plan a diet break →</Btn>}
       </div>
     </Card>
@@ -12695,7 +12695,7 @@ function NowTab2({ s, setS, save, go, openRules }) {
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>The phone's copy was wiped (iOS does this to apps it hasn't opened in a while) — but your ledger lives in the cloud and one tap brings it back. Anything you log before restoring is kept; the merge never shrinks.</div>
           {restoreErr ? <div style={{ fontFamily: mono, fontSize: 11, color: T.brass, marginTop: 6 }}>The cloud fetch failed ({restoreErr}) — the app works fine meanwhile; try again on signal.</div> : null}
           <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-            <Btn small tone="jade" onClick={() => { if (restoreBusy) return; setRestoreBusy(true); setRestoreErr(null); restoreFromCloud(s).then((ns) => { clearRestoreOffer(); setS(ns); save(ns); setRestoreBusy(false); hap(12); }).catch((e) => { setRestoreErr(String(e && e.message || e).slice(0, 40)); setRestoreBusy(false); }); }}>{restoreBusy ? "Restoring…" : "Restore my ledger"}</Btn>
+            <Btn small tone="gauge" onClick={() => { if (restoreBusy) return; setRestoreBusy(true); setRestoreErr(null); restoreFromCloud(s).then((ns) => { clearRestoreOffer(); setS(ns); save(ns); setRestoreBusy(false); hap(12); }).catch((e) => { setRestoreErr(String(e && e.message || e).slice(0, 40)); setRestoreBusy(false); }); }}>{restoreBusy ? "Restoring…" : "Restore my ledger"}</Btn>
             <Btn small onClick={() => (openRules ? openRules() : go("LEDGER"))}>Re-link keys (sync + analyst)</Btn>
             <Btn small onClick={() => { clearRestoreOffer(); const ns = { ...s }; setS(ns); save(ns); }}>Not now</Btn>
           </div>
@@ -12723,7 +12723,7 @@ function NowTab2({ s, setS, save, go, openRules }) {
           : (<>
             <div style={{ display: "flex", alignItems: "baseline", gap: 7, marginTop: 9, flexWrap: "wrap" }}>
               <span style={{ ...tnum, fontSize: 32, fontWeight: 700 }}>{m.eat.lo}</span><span style={{ fontFamily: mono, color: DT.dim, fontSize: 32, fontWeight: 300, lineHeight: 1, alignSelf: "center", marginTop: -3 }}>–</span><span style={{ ...tnum, fontSize: 32, fontWeight: 700 }}>{m.eat.hi}</span><span style={{ ...tnum, fontSize: 11, color: DT.dim, letterSpacing: "0.12em" }}>KCAL</span>
-              {m.eat.tag && <span style={{ ...tnum, fontSize: 9, letterSpacing: "0.14em", color: DT.amber, border: "1px solid rgba(229,180,84,.35)", borderRadius: 999, padding: "3px 8px" }}>{m.eat.tag}</span>}
+              {m.eat.tag && <span style={{ ...tnum, fontSize: 9, letterSpacing: "0.14em", color: DT.amber }}>{m.eat.tag}</span>}   /* A4/D3 — a label, not a pill: non-tappable brass never wears a button shape */
             </div>
             <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, marginTop: 9, lineHeight: 1.5 }}>{m.eat.sub}</div>
             <div style={{ ...tnum, fontSize: 12.5, marginTop: 11, letterSpacing: "0.04em" }}>{m.eat.proteinG} G PROTEIN <span style={{ color: DT.dim, fontSize: 10.5, letterSpacing: "0.08em" }}>· {m.eat.proteinNote}</span></div>
@@ -12752,7 +12752,7 @@ function NowTab2({ s, setS, save, go, openRules }) {
               is the round-2 paint byte-for-byte — the side-caps pill — and no slop
               arithmetic can ever move it again. The rig may read the box a shade over 64
               (DPR rounding); the law is ≥64, and the derivation here is the contract. */}
-          <span style={{ ...tnum, display: "inline-block", fontSize: 10.5, letterSpacing: "0.12em", color: DT.jade, borderLeft: "1px solid rgba(94,212,162,.35)", borderRight: "1px solid rgba(94,212,162,.35)", borderTop: "none", borderBottom: "none", padding: "9px 14px", borderRadius: 999, fontWeight: 700, background: "none" }}>START ▸</span>
+          <span style={{ ...tnum, display: "inline-block", fontSize: 10.5, letterSpacing: "0.12em", color: T.gauge, borderLeft: `1px solid ${T.gauge}59`, borderRight: `1px solid ${T.gauge}59`, borderTop: "none", borderBottom: "none", padding: "9px 14px", borderRadius: 999, fontWeight: 700, background: "none" }}>START ▸</span>
         </button>
       </div>
       <div data-now="headed" style={card9}>
@@ -12772,7 +12772,7 @@ function NowTab2({ s, setS, save, go, openRules }) {
             (away from START); the inner circle sits at its top-left, which puts the paint
             exactly where round 2 painted it: right edge 10+12 = 22 from the screen edge,
             bottom 50+12 = 62 — the round-2 16+6 / 56+6, by construction. */}
-        <span style={{ display: "block", width: 52, height: 52, borderRadius: "50%", background: DT.amber, color: "#141008", fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", textAlign: "center" }}>+</span>
+        <span style={{ display: "block", width: 52, height: 52, borderRadius: "50%", background: T.gauge, color: T.ink, fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", textAlign: "center" }}>+</span>
       </button>
       <CaptureSheet s={s} setS={setS} save={save} open={qlOpen} onClose={() => setQlOpen(false)} go={go} />
     </div>
@@ -13096,7 +13096,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         const target = oweTarget(o0.k);
         return (
           <div>
-            <Btn full tone="jade" onClick={() => { hap(8); openGroup(target.key); scrollToId(target.id); }}>{focus.lead.t} →</Btn>
+            <Btn full tone="gauge" onClick={() => { hap(8); openGroup(target.key); scrollToId(target.id); }}>{focus.lead.t} →</Btn>
             {focus.lead.more > 0 ? (
               <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, letterSpacing: "0.04em", textAlign: "center" }}>then {focus.owed.slice(1).map((o) => o.t.toLowerCase()).join(" · ")}</div>
             ) : null}
@@ -13242,7 +13242,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                  dinner into TONIGHT's log — mis-dated intake landing in the ledger the whole
                  trend is computed from. Same class as EVENT_RECENCY_NOTE. */}
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginBottom: 8 }}>{evF.days >= -1 ? "after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button" : `one tap files it against ${fmtShort(ev.d)}, the day it happened — not tonight. Tomorrow runs the normal plan either way.`}</div>
-              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>{evF.days >= -1 ? "File the event ✓ — your estimate goes in tonight's numbers" : `File it against ${fmtShort(ev.d)} ✓ — where it belongs`}</Btn>
+              <Btn full tone="gauge" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>{evF.days >= -1 ? "File the event ✓ — your estimate goes in tonight's numbers" : `File it against ${fmtShort(ev.d)} ✓ — where it belongs`}</Btn>
             </div>
           )}
         </Card>
@@ -13344,7 +13344,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                     )}
                   </div>
                   <div style={{ marginTop: 8 }}>
-                    <Btn full small tone="jade" onClick={() => {
+                    <Btn full small tone="gauge" onClick={() => {
                       const od = owed[0];
                       const ns = JSON.parse(JSON.stringify(s));
                       ns.sleep.nights.push({ d: od, h: sleepSpanH(bedT, wakeT, solMin + (slTags.includes("woke") ? awakeMin : 0)), bed: bedT, wake: wakeT, tags: slTags.slice(), awakeMin: slTags.includes("woke") ? awakeMin : 0, sol: solMin });
@@ -13467,7 +13467,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         {s.fixWindow && (
           <div style={{ marginTop: 10, fontFamily: mono, fontSize: TS.label, color: T.brass }}><Term k="fixwindow" c={T.brass}>FIX WINDOW OPEN</Term> — hit protein today and yesterday's miss counts as a save, not a break. Nothing resets.</div>
         )}
-        <div style={{ marginTop: 10 }}><Btn tone="jade" full onClick={() => { const h9 = new Date().getHours(); if (h9 < 4) { const y8 = isoOf(new Date(todayStart().getTime() - DAY)); if (window.confirm("It's after midnight — should these numbers file as YESTERDAY (" + fmtShort(y8) + ")?\n\nOK = yesterday, the day they belong to\nCancel = today")) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: cal === "" ? null : +cal, pro: pro === "" ? null : +pro, steps: stp === "" ? null : +stp, sodium: sod9, alc: +alc9 || 0 }; ns.feed.unshift({ d: y8, t: "FILED TO YESTERDAY — " + fmtShort(y8) + " logged after midnight", how: "the midnight intercept asked; the athlete chose the day it belonged to" }); setS(ns); save(ns); setDayEdit(false); return; } } saveDaily(); setDayEdit(false); }}>Log today</Btn></div>
+        <div style={{ marginTop: 10 }}><Btn tone="gauge" full onClick={() => { const h9 = new Date().getHours(); if (h9 < 4) { const y8 = isoOf(new Date(todayStart().getTime() - DAY)); if (window.confirm("It's after midnight — should these numbers file as YESTERDAY (" + fmtShort(y8) + ")?\n\nOK = yesterday, the day they belong to\nCancel = today")) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: cal === "" ? null : +cal, pro: pro === "" ? null : +pro, steps: stp === "" ? null : +stp, sodium: sod9, alc: +alc9 || 0 }; ns.feed.unshift({ d: y8, t: "FILED TO YESTERDAY — " + fmtShort(y8) + " logged after midnight", how: "the midnight intercept asked; the athlete chose the day it belonged to" }); setS(ns); save(ns); setDayEdit(false); return; } } saveDaily(); setDayEdit(false); }}>Log today</Btn></div>
         {dl && <div style={{ textAlign: "center", marginTop: 6 }}><span onClick={() => { if (window.confirm("Clear today's saved numbers? Use this if last night's log landed on the wrong day. Tonight's real numbers will close the day fresh.")) { const ns = JSON.parse(JSON.stringify(s)); delete ns.dailyLogs[tISO]; ns.feed.unshift({ d: tISO, t: "TODAY'S LOG CLEARED — filed in error after midnight", how: "the day reopens; tonight closes it honestly" }); setS(ns); save(ns); setCal(""); setPro(""); setStp(""); setSod9(null); setAlc9(0); } }} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>logged by mistake? clear today ✗</span></div>}
 
         <More deep="Protein is a FLOOR, not a bullseye. This card used to say the opposite — that the number was proximity and chronic overshoot was drift too — and the code behind it counted any day more than 10 g either side as a miss. Nothing supports the upper half of that: the deficit meta-regression finds a lower threshold where lean-mass loss starts rising and no upper one anywhere near this range. Eating over it costs you carbohydrate inside a fixed calorie budget, which is worth knowing and is not a failure. Calories live in a band, not a point. A shortfall opens a 24-hour fix window, and closing it EXTENDS the standard instead of resetting it — recovery speed is the metric, never an unbroken chain."
@@ -13506,7 +13506,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                 <span key={m0} onClick={() => setNCMg(m0)} style={{ fontFamily: mono, fontSize: TS.micro, color: nCMg === m0 ? T.jade : T.steel, border: `1px solid ${nCMg === m0 ? T.jade : T.line}`, borderRadius: 999, padding: "5px 10px", cursor: "pointer" }}>{m0 === 0 ? "none ✓" : m0}</span>
               ))}
               <input type="time" value={nCAt} onChange={(e3) => setNCAt(e3.target.value)} style={{ width: 60, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: TS.label, padding: "6px 7px", outline: "none", opacity: nCMg === 0 ? 0.4 : 1 }} />
-              <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = [...(ns.caffLog || []).filter((x) => x.d !== tISO), { d: tISO, mg: nCMg, at: nCMg === 0 ? "—" : nCAt }]; ns.feed.unshift({ d: tISO, t: nCMg === 0 ? "CAFFEINE — NONE TODAY" : `CAFFEINE — ${nCMg} mg at ${fmt12(nCAt)}`, how: "logged on NOW — the tail math runs on this" }); setS(ns); save(ns); }}>Log</Btn>
+              <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = [...(ns.caffLog || []).filter((x) => x.d !== tISO), { d: tISO, mg: nCMg, at: nCMg === 0 ? "—" : nCAt }]; ns.feed.unshift({ d: tISO, t: nCMg === 0 ? "CAFFEINE — NONE TODAY" : `CAFFEINE — ${nCMg} mg at ${fmt12(nCAt)}`, how: "logged on NOW — the tail math runs on this" }); setS(ns); save(ns); }}>Log</Btn>
             </div>
           </Card>
         );
@@ -13531,7 +13531,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.medsLog = [...(ns.medsLog || []).filter((x) => x.d !== tISO), { d: tISO, taken: false, at: "—" }]; ns.feed.unshift({ d: tISO, t: "MEDS — NONE TODAY", how: "logged — the analysts read appetite, pulse, and effort against this" }); setS(ns); save(ns); }}
                 style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, border: `1px solid ${T.line}`, borderRadius: 999, padding: "5px 10px", cursor: "pointer" }}>none today ✓</span>
               <input type="time" value={mAt} onChange={(e6) => setMAt(e6.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: TS.label, padding: "6px 7px", outline: "none" }} />
-              <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.medsLog = [...(ns.medsLog || []).filter((x) => x.d !== tISO), { d: tISO, taken: true, at: mAt }]; ns.feed.unshift({ d: tISO, t: `MEDS — TAKEN AT ${fmt12(mAt)}`, how: "logged — the biggest confound in the system now has a clock" }); setS(ns); save(ns); }}>Log</Btn>
+              <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.medsLog = [...(ns.medsLog || []).filter((x) => x.d !== tISO), { d: tISO, taken: true, at: mAt }]; ns.feed.unshift({ d: tISO, t: `MEDS — TAKEN AT ${fmt12(mAt)}`, how: "logged — the biggest confound in the system now has a clock" }); setS(ns); save(ns); }}>Log</Btn>
             </div>
           </Card>
         );
@@ -13550,7 +13550,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                 <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.08em" }}>MORNING PULSE<div style={{ fontSize: TS.micro }}>optional · 5 s · feeds the lab</div></div>
                 <Stepper v={pulseIn} set={setPulseIn} step={1} min={35} />
-                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.pulse = [...(ns.pulse || []), { d: tISO, bpm: pulseIn }]; setS(ns); save(ns); }}>Log</Btn>
+                <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.pulse = [...(ns.pulse || []), { d: tISO, bpm: pulseIn }]; setS(ns); save(ns); }}>Log</Btn>
               </div>
             )}
             {(() => { const todayT = (s.temp || []).find((x) => x.d === tISO); return todayT ? (
@@ -13562,7 +13562,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 8 }}>
                 <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.08em" }}>TEMPERATURE °F<div style={{ fontSize: TS.micro }}>optional · 15 s · the furnace</div></div>
                 <Stepper v={tempIn} set={setTempIn} step={0.1} min={94} />
-                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.temp = [...(ns.temp || []), { d: tISO, f: +tempIn.toFixed(1) }]; setS(ns); save(ns); }}>Log</Btn>
+                <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.temp = [...(ns.temp || []), { d: tISO, f: +tempIn.toFixed(1) }]; setS(ns); save(ns); }}>Log</Btn>
               </div>
             ); })()}
           </Card>
@@ -13585,7 +13585,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
                     <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, width: 62 }}>WAIST<br />at navel</div>
                     <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
-                    <div style={{ flex: 1 }}><Btn full small tone="jade" onClick={() => {
+                    <div style={{ flex: 1 }}><Btn full small tone="gauge" onClick={() => {
                       const ns = JSON.parse(JSON.stringify(s));
                       const prev = ns.waist[ns.waist.length - 1];
                       ns.waist.push({ d: tISO, v: waistIn });
@@ -13658,7 +13658,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <Stepper v={+yAlc} set={setYAlc} step={1} min={0} />
             </div>
             <div style={{ marginTop: 10 }}>
-              <Btn full tone="jade" onClick={() => { if (yCal === "" && yPro === "" && yStp === "") return; /* RB-3 low note — this classic door takes the typo net too */ for (const [kC, vC] of [["cal", yCal], ["pro", yPro], ["steps", yStp]]) { if (vC !== "" && typoKeep(kC, +vC) === "abort") return; } const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: yCal === "" ? null : +yCal, pro: yPro === "" ? null : +yPro, steps: yStp === "" ? null : +yStp, sodium: ySod, alc: +yAlc || 0 }; ns.feed.unshift(isAmend ? { d: y8, t: `DAY AMENDED — ${fmtShort(y8)}: ${(s.dailyLogs[y8] || {}).cal ?? "—"}→${yCal || "—"} cal · ${(s.dailyLogs[y8] || {}).pro ?? "—"}→${yPro || "—"} g`, how: "athlete corrected the record after close — late bites logged where they belong" } : { d: y8, t: `BOOKS CLOSED LATE — ${fmtShort(y8)} logged after midnight`, how: "the repair door on NOW — same numbers, honest timestamp" }); setAmendY(false); setS(ns); save(ns); }}>{isAmend ? `Refile ${fmtShort(y8)} — corrected` : `Close ${fmtShort(y8)} — file it`}</Btn>
+              <Btn full tone="gauge" onClick={() => { if (yCal === "" && yPro === "" && yStp === "") return; /* RB-3 low note — this classic door takes the typo net too */ for (const [kC, vC] of [["cal", yCal], ["pro", yPro], ["steps", yStp]]) { if (vC !== "" && typoKeep(kC, +vC) === "abort") return; } const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: yCal === "" ? null : +yCal, pro: yPro === "" ? null : +yPro, steps: yStp === "" ? null : +yStp, sodium: ySod, alc: +yAlc || 0 }; ns.feed.unshift(isAmend ? { d: y8, t: `DAY AMENDED — ${fmtShort(y8)}: ${(s.dailyLogs[y8] || {}).cal ?? "—"}→${yCal || "—"} cal · ${(s.dailyLogs[y8] || {}).pro ?? "—"}→${yPro || "—"} g`, how: "athlete corrected the record after close — late bites logged where they belong" } : { d: y8, t: `BOOKS CLOSED LATE — ${fmtShort(y8)} logged after midnight`, how: "the repair door on NOW — same numbers, honest timestamp" }); setAmendY(false); setS(ns); save(ns); }}>{isAmend ? `Refile ${fmtShort(y8)} — corrected` : `Close ${fmtShort(y8)} — file it`}</Btn>
             </div>
           </Card>
         );
@@ -13778,7 +13778,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, lineHeight: `${LH.body}px` }}>{proposalBody}</div>
               <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.06em", marginTop: SP.sm }}>◆ from your own numbers</div>
               <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
-                <Btn small tone="jade" onClick={() => {
+                <Btn small tone="gauge" onClick={() => {
                   // v6.2 audit 4a — stage a REAL engine proposal into the approval inbox (s.proposals),
                   // instead of the old no-op dismiss. One-door inbox owns approve/apply; this only stages.
                   const rid = `ap_${ap.action}_${tISO}`;
@@ -13793,7 +13793,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                   ns.plan = { ...(ns.plan || {}), apDismiss: tISO };
                   setS(ns); save(ns); hap(12);
                 }}>{easing ? "Ease the target →" : "Tighten the target →"}</Btn>
-                {cut && <Btn small tone="jade" onClick={() => savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: `${easing ? "Trim" : "Add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps on non-lifting days (auto-pilot)` }], apDismiss: tISO })}>{easing ? "Trim the steps" : "Add the steps"}</Btn>}
+                {cut && <Btn small tone="gauge" onClick={() => savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: `${easing ? "Trim" : "Add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps on non-lifting days (auto-pilot)` }], apDismiss: tISO })}>{easing ? "Trim the steps" : "Add the steps"}</Btn>}
                 <Btn small onClick={() => savePlan({ apDismiss: tISO })}>Not now</Btn>
               </div>
             </>
@@ -13874,7 +13874,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           ))}
           <div style={{ display: "flex", gap: SP.sm, marginTop: SP.sm }}>
             <input value={newGoal} onChange={(e) => setNewGoal(e.target.value)} placeholder="a process goal" style={{ flex: 1, minWidth: 0, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
-            <Btn small tone="jade" onClick={() => { const t = newGoal.trim(); if (!t) return; savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: t }] }); setNewGoal(""); }}>Add</Btn>
+            <Btn small tone="gauge" onClick={() => { const t = newGoal.trim(); if (!t) return; savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: t }] }); setNewGoal(""); }}>Add</Btn>
           </div>
         </div>
         <div>
@@ -13889,7 +13889,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ display: "flex", flexDirection: "column", gap: SP.sm, marginTop: SP.sm }}>
             <input value={ifCue} onChange={(e) => setIfCue(e.target.value)} placeholder="IF — e.g. it's Tuesday and I've not trained by 6pm" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
             <input value={ifAct} onChange={(e) => setIfAct(e.target.value)} placeholder="THEN — e.g. I train at 6:15" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
-            <div><Btn small tone="jade" onClick={() => { const c = ifCue.trim(), a = ifAct.trim(); if (!c || !a) return; savePlan({ ifthen: [...plan.ifthen, { id: _freshId("p"), cue: c, action: a }] }); setIfCue(""); setIfAct(""); }}>Add plan</Btn></div>
+            <div><Btn small tone="gauge" onClick={() => { const c = ifCue.trim(), a = ifAct.trim(); if (!c || !a) return; savePlan({ ifthen: [...plan.ifthen, { id: _freshId("p"), cue: c, action: a }] }); setIfCue(""); setIfAct(""); }}>Add plan</Btn></div>
           </div>
         </div>
         <div>
@@ -14281,7 +14281,7 @@ function LogTab({ s, setS, save, slp }) {
             <Eyebrow c={T.brass}>REST DAY — WHICH DATE GETS THIS SESSION?</Eyebrow>
             <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>Today reads REST on your split. {fmtShort(dateSel)}’s session template is loaded either way — this only decides which DATE the record lands under. {fileAs ? fmtShort(dateSel) + "’s session, filed under today." : "Filing under " + fmtShort(dateSel) + "."}</div>
             <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-              <Btn small tone={fileAs ? "jade" : "ghost"} onClick={() => setFileAs(tISO)}>Log as today · {fmtShort(tISO)}</Btn>
+              <Btn small tone={fileAs ? "gauge" : "ghost"} onClick={() => setFileAs(tISO)}>Log as today · {fmtShort(tISO)}</Btn>
               <Btn small tone={fileAs ? "ghost" : "jade"} onClick={() => setFileAs(null)}>Keep {fmtShort(dateSel)}</Btn>
             </div>
           </Card>
@@ -14427,7 +14427,7 @@ function LogTab({ s, setS, save, slp }) {
           <Eyebrow c={T.brass}>{q.t}</Eyebrow>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{q.gate}</div>
           <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-            <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const q2 = ns.queue.find((x) => x.id === q.id); if (q2) { q2.state = "DEBUT"; q2.t = q2.t.replace(" — TWO-RUNG DEBUT PROPOSED", " DEBUT (two-rung, your call)").replace(" — EARN PROPOSED OFF ONE SIGHTING", " DEBUT (early, your call)"); } ns.feed.unshift({ d: isoOf(todayStart()), t: q.t + " — TAKEN", how: "Your tap is the consent on the record; it queues like any earned debut from here." }); setS(ns); save(ns); hap(12); }}>Take it</Btn>
+            <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const q2 = ns.queue.find((x) => x.id === q.id); if (q2) { q2.state = "DEBUT"; q2.t = q2.t.replace(" — TWO-RUNG DEBUT PROPOSED", " DEBUT (two-rung, your call)").replace(" — EARN PROPOSED OFF ONE SIGHTING", " DEBUT (early, your call)"); } ns.feed.unshift({ d: isoOf(todayStart()), t: q.t + " — TAKEN", how: "Your tap is the consent on the record; it queues like any earned debut from here." }); setS(ns); save(ns); hap(12); }}>Take it</Btn>
             <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const q2 = ns.queue.find((x) => x.id === q.id); if (q2) { q2.done = true; q2.state = "DECLINED"; } setS(ns); save(ns); }}>Not today</Btn>
           </div>
         </Card>
@@ -14449,7 +14449,7 @@ function LogTab({ s, setS, save, slp }) {
             <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>No next load is on file, so reps are carrying progression blind. One number unlocks the earn ladder{sighted || histTop ? " — and the top-of-window session already on your record counts as sighting one the moment you answer" : ""}. One weight, or the whole ladder (commas or spaces).</div>
             <input id={"nla-" + askEx.id} inputMode="decimal" placeholder={"e.g. " + (askEx.w + 10) + "  ·  or: " + (askEx.w + 10) + ", " + (askEx.w + 25) + ", " + (askEx.w + 35)} style={{ width: "100%", boxSizing: "border-box", marginTop: 8, background: T.ink, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 16, padding: "10px" }} />
             <div style={{ marginTop: 10 }}>
-              <Btn small tone="jade" onClick={() => {
+              <Btn small tone="gauge" onClick={() => {
                 const el = document.getElementById("nla-" + askEx.id);
                 const raw9 = el ? el.value : "";
                 const parsed = parseRungs(raw9);
@@ -14595,7 +14595,7 @@ function LogTab({ s, setS, save, slp }) {
                       style={{ fontFamily: mono, fontSize: TS.label, color: loadRungs(ex) ? T.jade : T.steel, border: `1px solid ${loadRungs(ex) ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>
                       {loadRungs(ex) ? `uneven · ${loadRungs(ex).length} rungs ✎` : "uneven ✎"}
                     </span>
-                    <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id); const oldW = ex4.w; ex4.w = loadRungs(ex4) ? snapLoad(ex4, wVal) : wVal; if (oldW !== ex4.w) ex4.last = null; ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${ex4.w}`, how: "athlete entry on the card — targets re-seeded for the new load" }); setS(ns); save(ns); setWEdit(null); setRungEdit(null); }}>Save</Btn>
+                    <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id); const oldW = ex4.w; ex4.w = loadRungs(ex4) ? snapLoad(ex4, wVal) : wVal; if (oldW !== ex4.w) ex4.last = null; ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${ex4.w}`, how: "athlete entry on the card — targets re-seeded for the new load" }); setS(ns); save(ns); setWEdit(null); setRungEdit(null); }}>Save</Btn>
                     {rungEdit === ex.id && (
                       <div style={{ width: "100%", marginTop: 6, padding: "9px 10px", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8 }}>
                         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, letterSpacing: "0.08em", lineHeight: 1.6 }}>
@@ -14606,7 +14606,7 @@ function LogTab({ s, setS, save, slp }) {
                           placeholder="80, 82.5, 85, 90, 100"
                           style={{ width: "100%", boxSizing: "border-box", marginTop: 7, background: T.ink, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 13, padding: 8, outline: "none", resize: "vertical" }} />
                         <div style={{ display: "flex", gap: 8, marginTop: 7, flexWrap: "wrap" }}>
-                          <Btn small tone="jade" onClick={() => {
+                          <Btn small tone="gauge" onClick={() => {
                             const el = document.getElementById("rungs-" + ex.id);
                             const parsed = parseRungs(el ? el.value : "");
                             const ns = JSON.parse(JSON.stringify(s)); const ex6 = ns.exercises.find((x) => x.id === ex.id);
@@ -14775,7 +14775,7 @@ function LogTab({ s, setS, save, slp }) {
       {logged ? (
         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.jade, textAlign: "center", padding: 6 }}>SESSION BANKED — next targets already regenerated.</div>
       ) : (
-        <Btn tone="orange" full onClick={complete}>Complete session — what moved?</Btn>
+        <Btn tone="gauge" full onClick={complete}>Complete session — what moved?</Btn>
       )}
 
       {recap && (
@@ -14796,7 +14796,7 @@ function LogTab({ s, setS, save, slp }) {
               <Eyebrow>THE OTHER REWARD — SHARPER THAN BEFORE THE SESSION?</Eyebrow>
               <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>Training is the strongest non-Rx lever on your executive function today.</div>
               <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                <Btn small tone={boosted ? "jade" : "ghost"} onClick={() => { if (!boosted) { const ns = { ...s, boosts: s.boosts + 1 }; setS(ns); save(ns); setBoosted(true); } }}>{boosted ? `Felt it · ${s.boosts}` : "Yes — felt it"}</Btn>
+                <Btn small tone={boosted ? "gauge" : "ghost"} onClick={() => { if (!boosted) { const ns = { ...s, boosts: s.boosts + 1 }; setS(ns); save(ns); setBoosted(true); } }}>{boosted ? `Felt it · ${s.boosts}` : "Yes — felt it"}</Btn>
                 <Btn small onClick={() => setRecap(null)}>Done</Btn>
               </div>
             </div>
@@ -15655,7 +15655,7 @@ function TrialsDesk({ s, setS, save }) {
           <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.chalk }}>PROPOSED · {pr2.t}</div>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 3 }}>{pr2.q} {pr2.cycles} blocks of {pr2.blockDays} days, alternating. Measures: {pr2.metric}.</div>
           <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
-            <Btn small tone="jade" onClick={() => act(pr2.id, false)}>Start — I consent</Btn>
+            <Btn small tone="gauge" onClick={() => act(pr2.id, false)}>Start — I consent</Btn>
             <Btn small onClick={() => act(pr2.id, true)}>Not now</Btn>
           </div>
         </div>
@@ -15686,7 +15686,7 @@ function DossierBlock({ s }) {
   const [copied, setCopied] = useState(false);
   return (
     <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
-      {!d ? <Btn full tone="jade" onClick={() => setD(dossierData(s))}>Generate — fresh, right now</Btn> : (
+      {!d ? <Btn full tone="gauge" onClick={() => setD(dossierData(s))}>Generate — fresh, right now</Btn> : (
         <>
           <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
             <div><Num size={19}>{d.header.trend}</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>TREND{d.header.sealed ? " · SEALED" : ""}</div></div>
@@ -15725,7 +15725,7 @@ function DossierBlock({ s }) {
             </div>
           )}
           <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-            <Btn small tone="jade" onClick={() => { try { navigator.clipboard.writeText(dossierText(s)); setCopied(true); } catch (e) { setCopied(false); } }}>{copied ? "Copied ✓" : "Copy as text"}</Btn>
+            <Btn small tone="gauge" onClick={() => { try { navigator.clipboard.writeText(dossierText(s)); setCopied(true); } catch (e) { setCopied(false); } }}>{copied ? "Copied ✓" : "Copy as text"}</Btn>
             <Btn small onClick={() => { setD(null); setCopied(false); }}>Close</Btn>
           </div>
         </>
@@ -16323,7 +16323,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
               <span style={{ color: rirEnd[ex.id] == null ? DT.dim : DT.amber }}>{rirEnd[ex.id] == null ? "last not recorded" : "last " + (rirEnd[ex.id] === 3 ? "3+" : rirEnd[ex.id]) + " — taken at the set"}</span>
             </div>
           </div>
-          <button onClick={nextLift} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</button>
+          <button onClick={nextLift} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: T.gauge, color: T.ink, ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</button>
           <button onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: DT.steel, background: "none", border: "1px solid " + DT.hairline, borderRadius: 8, padding: "9px", width: "100%", minHeight: 44, cursor: "pointer" }}>skip this lift — goes on the record, no phantom reps</button>
           {backRow()}   {/* R19a */}
         </div>
@@ -16361,7 +16361,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
                     ))}
                   </div>
                 ) : null}
-                <button onClick={finish} disabled={unruled.length > 0} style={{ opacity: unruled.length ? 0.45 : 1,  width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>LOG IT — RECEIPT + DEBRIEF</button>
+                <button onClick={finish} disabled={unruled.length > 0} style={{ opacity: unruled.length ? 0.45 : 1,  width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: T.gauge, color: T.ink, ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>LOG IT — RECEIPT + DEBRIEF</button>
                 {unruled.length ? <div style={{ fontFamily: mono, fontSize: 10, color: DT.dim, textAlign: "center", marginTop: 6 }}>rule the {unruled.length} unconfirmed lift{unruled.length > 1 ? "s" : ""} above to finish</div> : null}
               </>
             );
@@ -16432,7 +16432,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
               </div>
               <button aria-label="one rep more" onClick={() => { touch(ex.id); markAdj(ex.id, setN); const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>+</button>
             </div>
-            <button onClick={doneSet} style={{ marginTop: 16, width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>
+            <button onClick={doneSet} style={{ marginTop: 16, width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: T.gauge, color: T.ink, ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>
               {setN + 1 < getR(ex).length ? "LOG SET · REST TIMER STARTS" : "LOG SET · ONE QUESTION AFTER"}
             </button>
           </div>
@@ -16582,7 +16582,7 @@ function HistTab({ s, setS, save }) {
             )}
             {a.action && (
               <div style={{ marginTop: 10 }}>
-                <Btn small tone="jade" onClick={(e) => { e.stopPropagation(); const ns = JSON.parse(JSON.stringify(s)); ns.creatine = { start: isoOf(todayStart()) }; ns.feed.unshift({ d: isoOf(todayStart()), t: "CREATINE STARTED", how: "5 g/day begins inside the sealed window — the water bump files itself under quarantine (Kreider 2017)" }); setS(ns); save(ns); }}>Log creatine start — today</Btn>
+                <Btn small tone="gauge" onClick={(e) => { e.stopPropagation(); const ns = JSON.parse(JSON.stringify(s)); ns.creatine = { start: isoOf(todayStart()) }; ns.feed.unshift({ d: isoOf(todayStart()), t: "CREATINE STARTED", how: "5 g/day begins inside the sealed window — the water bump files itself under quarantine (Kreider 2017)" }); setS(ns); save(ns); }}>Log creatine start — today</Btn>
               </div>
             )}
             {a.id === "whatif" && <WhatIfConsole s={s} />}
@@ -17047,14 +17047,14 @@ function GymLauncher({ s, onOpen }) {
   useEffect(() => { const iv = setInterval(() => force((x) => x + 1), 800); return () => clearInterval(iv); }, []);
   const live = findGymDraft(s);
   if (!live) return (
-    <button onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(94,212,162,.35)", background: "rgba(94,212,162,.06)", color: DT.jade, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>▶ GYM MODE — ONE LIFT AT A TIME, TIMERS ON</button>
+    <button onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: `1px solid ${T.gauge}59`, background: `${T.gauge}0F`, color: T.gauge, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>▶ GYM MODE — ONE LIFT AT A TIME, TIMERS ON</button>
   );
   const liftName = (() => { try { const sess9 = genSession(s, live.iso); return ((sess9.ex || [])[live.idx || 0] || {}).n || "session"; } catch (e) { return "session"; } })();
   const rp9 = resumePhase(live, Date.now());
   const remain = live.restStart ? Math.max(0, (live.restLen || 0) - Math.floor((Date.now() - live.restStart) / 1000)) : 0;
   const resting = rp9.phase === "rest" && remain > 0;
   return (
-    <button data-launcher="live" onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(229,180,84,.45)", background: "rgba(229,180,84,.07)", color: DT.amber, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>
+    <button data-launcher="live" onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: `1px solid ${T.gauge}73`, background: `${T.gauge}12`, color: T.gauge, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>
       {resting
         ? "▸ RESUME · REST " + Math.floor(remain / 60) + ":" + String(remain % 60).padStart(2, "0") + " · " + String(liftName).toUpperCase() + " SET " + ((live.setN || 0) + 1)
         : "▸ RESUME SESSION · " + String(liftName).toUpperCase() + " SET " + ((live.setN || 0) + 1)}
@@ -17416,7 +17416,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
                       <input type="time" value={bd} onChange={(e) => setNB({ ...nB, [r.d]: e.target.value })} aria-label={"bed " + r.d} style={timeIn9} />
                       <span style={{ ...rowName, color: DT.steel }}>WAKE</span>
                       <input type="time" value={wk} onChange={(e) => setNW({ ...nW, [r.d]: e.target.value })} aria-label={"wake " + r.d} style={timeIn9} />
-                      <Btn small tone="jade" onClick={() => saveNightFor(r.d, bd, wk)}>Save</Btn>
+                      <Btn small tone="gauge" onClick={() => saveNightFor(r.d, bd, wk)}>Save</Btn>
                     </div>
                   </div>);
               }
@@ -17434,7 +17434,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
                         style={{ ...tnum9, fontSize: 14, color: DT.ink, background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 8, width: f9 === "steps" ? 64 : 56, padding: "8px 6px", textAlign: "center" }} />
                     ))}
                     {r.d < yLed ? <button onClick={() => setEstOff({ ...estOff, [r.d]: !estOff[r.d] })} style={{ background: "none", border: "1px solid " + (estOn ? DT.amber : DT.hairline2), borderRadius: 999, padding: "5px 9px", fontFamily: mono, fontSize: 10, color: estOn ? DT.amber : DT.steel, cursor: "pointer" }}>{estOn ? "≈ estimated" : "exact"}</button> : null}
-                    <Btn small tone="jade" onClick={() => { const cB = stepValue(dv.cal, 0, 1, 0), pB = stepValue(dv.pro, 0, 1, 0), sB = stepValue(dv.steps, 0, 1, 0); let keptB = []; for (const [kB, vB] of [["cal", cB], ["pro", pB], ["steps", sB]]) { const tkB = typoKeep(kB, vB); if (tkB === "abort") return; if (tkB === "keep") keptB.push([kB, vB]); } let ns = writeDaily(s, r.d, { cal: cB, pro: pB, steps: sB }); for (const [kB, vB] of keptB) ns = typoReceipt(ns, kB, vB); if (estOn) { ns = { ...ns, dayCtx: { ...(ns.dayCtx || {}), [r.d]: { ...((ns.dayCtx || {})[r.d] || {}), est: true, note: "backfilled — rough numbers count" } } }; } setS(ns); save(ns); hap(12); }}>Save</Btn>
+                    <Btn small tone="gauge" onClick={() => { const cB = stepValue(dv.cal, 0, 1, 0), pB = stepValue(dv.pro, 0, 1, 0), sB = stepValue(dv.steps, 0, 1, 0); let keptB = []; for (const [kB, vB] of [["cal", cB], ["pro", pB], ["steps", sB]]) { const tkB = typoKeep(kB, vB); if (tkB === "abort") return; if (tkB === "keep") keptB.push([kB, vB]); } let ns = writeDaily(s, r.d, { cal: cB, pro: pB, steps: sB }); for (const [kB, vB] of keptB) ns = typoReceipt(ns, kB, vB); if (estOn) { ns = { ...ns, dayCtx: { ...(ns.dayCtx || {}), [r.d]: { ...((ns.dayCtx || {})[r.d] || {}), est: true, note: "backfilled — rough numbers count" } } }; } setS(ns); save(ns); hap(12); }}>Save</Btn>
                   </div>
                 </div>);
             })}
@@ -17462,14 +17462,14 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
         </div>
         <div style={{ ...tnum9, fontSize: 10, letterSpacing: "0.12em", color: readToday ? DT.jade : DT.dim, textAlign: "center", marginTop: GAP_WITHIN }}>{readToday ? "LOGGED " + readToday.w + " LB TODAY — SAVING UPDATES IT" : "MORNING SCALE · LB"}</div>
         <div style={{ marginTop: SP.lg }} />
-        <Btn full tone={heroIs("scale") ? "jade" : "ghost"} onClick={saveScale}>{readToday ? "Update the scale" : "Log " + wIn + " lb"}</Btn>
+        <Btn full tone={heroIs("scale") ? "gauge" : "ghost"} onClick={saveScale}>{readToday ? "Update the scale" : "Log " + wIn + " lb"}</Btn>
         <div style={{ marginTop: GAP_GROUP }}>
           <div style={lbl9}>CLOSE THE DAY</div>
           {stepRow("CALORIES", cal, setCal, 10, dl.cal == null)}
           {stepRow("PROTEIN g", pro, setPro, 5, dl.pro == null)}
           {stepRow("STEPS", stp, setStp, 500, dl.steps == null)}
           <div style={{ marginTop: SP.lg }} />
-          <Btn full tone={heroIs("day") || heroIs("amend") ? "jade" : "ghost"} onClick={() => { saveDay(); onClose(); }}>{dl.cal != null ? "Update today's numbers" : "Save today's numbers"}</Btn>
+          <Btn full tone={heroIs("day") || heroIs("amend") ? "gauge" : "ghost"} onClick={() => { saveDay(); onClose(); }}>{dl.cal != null ? "Update today's numbers" : "Save today's numbers"}</Btn>
         </div>
         <div style={{ marginTop: GAP_GROUP }}>
           <div style={lbl9}>LAST NIGHT</div>
@@ -18029,7 +18029,7 @@ function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
             <div style={{ marginTop: 8 }}>
               <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>Token saved on this device · last sync: {sync && sync.last ? `${fmtShort(sync.last)} — ${sync.status}` : "never"}</div>
               <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                <Btn small tone="jade" onClick={onSync}>Sync now</Btn>
+                <Btn small tone="gauge" onClick={onSync}>Sync now</Btn>
                 <Btn small onClick={() => { try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} setHasTok(false); }}>Remove token</Btn>
               </div>
             </div>
@@ -18037,7 +18037,7 @@ function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
             <div style={{ marginTop: 8 }}>
               <input type="password" placeholder="paste the github_pat_ token" value={tok} onChange={(e) => setTok(e.target.value)}
                 style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: TS.label, padding: 10, outline: "none" }} />
-              <div style={{ marginTop: 8 }}><Btn small tone="jade" onClick={() => { if (tok.indexOf("github_pat_") === 0) { try { localStorage.setItem(TOKEN_KEY, tok.trim()); } catch (e) {} setHasTok(true); setTok(""); } }}>Save token</Btn></div>
+              <div style={{ marginTop: 8 }}><Btn small tone="gauge" onClick={() => { if (tok.indexOf("github_pat_") === 0) { try { localStorage.setItem(TOKEN_KEY, tok.trim()); } catch (e) {} setHasTok(true); setTok(""); } }}>Save token</Btn></div>
               <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${T.line}` }}>
                 <Eyebrow c={T.brass}>SYNC DOCTOR — the pipe, in the open</Eyebrow>
                 {(() => { const ok9 = +(localStorage.getItem("pl-lastsync") || 0); let se9 = null; try { se9 = JSON.parse(localStorage.getItem("plSyncErr") || "null"); } catch (e) {}
@@ -18045,7 +18045,7 @@ function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
                     last success: {ok9 ? new Date(ok9).toLocaleString() : "never"}<br />
                     last error: {se9 ? `HTTP ${se9.status} at ${se9.at.slice(11, 19)} · ${se9.msg || "no body"}${se9.tr ? " · attempts " + se9.tr.join("→") : ""}` : "none on record"}
                   </div>); })()}
-                <div style={{ marginTop: 10 }}><Btn small tone="jade" onClick={async () => { const r9 = await ghSync(s); alert(r9.ok ? "Synced ✓ — the server has everything on this phone now." : "STILL FAILING — " + r9.msg + "\nScreenshot this and send it to your builder."); }}>Sync now</Btn></div>
+                <div style={{ marginTop: 10 }}><Btn small tone="gauge" onClick={async () => { const r9 = await ghSync(s); alert(r9.ok ? "Synced ✓ — the server has everything on this phone now." : "STILL FAILING — " + r9.msg + "\nScreenshot this and send it to your builder."); }}>Sync now</Btn></div>
               </div>
             </div>
           )}
