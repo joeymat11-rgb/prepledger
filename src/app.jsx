@@ -86,7 +86,7 @@ const PALETTE = {
   },
   light: {
     ink: "#F4F2ED", plate: "#FFFFFF", plate2: "#F0EDE6", line: "#DBD6CC",
-    chalk: "#1A1F25", steel: "#5C646E", dim: "#6E7680",   /* A1 — was #A8AEB6 (2.24:1 on paper) */
+    chalk: "#1A1F25", steel: "#5C646E", dim: "#646C76",   /* A1 — was #A8AEB6 (2.24:1 on paper); M1 — then #6E7680, which cleared plate but not the PAGE background (4.11:1) or plate2 (3.93): the matrix hole the widened auditor found */
     jade: "#14663F", brass: "#8A6520", orange: "#B4471A", redline: "#B3123C", gauge: "#0E6C87",
     hairline: "rgba(168,174,182,0.55)",
   },
@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.49.0";
+const APP_V = "7.50.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -5697,7 +5697,7 @@ function owedLedger(s, hour = new Date().getHours()) {
   const tISO = isoOf(todayStart());
   const rows = [];
   const rw = readWindow(s, hour);
-  if (rw.open && !rw.hasRead) rows.push({ k: "scale", d: tISO, t: "THIS MORNING'S SCALE", why: "the read the whole engine steers on — one tap, then the trend absorbs it" });
+  if (rw.open && !rw.hasRead) rows.push({ k: "scale", d: tISO, t: "THIS MORNING'S SCALE", why: "Daily weight updates the trend — one tap, then the trend absorbs it" });
   for (let k = 3; k >= 1; k--) {
     const d = isoOf(new Date(ref.getTime() - k * DAY));
     if (!(s.sleep.nights || []).some((n) => n && n.d === d)) rows.push({ k: "night", d, t: "THE NIGHT OF " + fmtShort(d), why: "bed and wake — three dark nights read as a clean week to every gauge that trusts the record" });
@@ -8048,7 +8048,7 @@ function sweepVolume(s, dow7 = new Date().getDay()) {
     const smw9 = structuralMovesThisWeek(s);
     if (smw9.sets.length) return;   /* R18f-3, evolved by A5 — the give-back waits out VOLUME move weeks only: sets left the scale's budget, so a calorie or step steer no longer holds it */
     ns = ns || JSON.parse(JSON.stringify(s));
-    ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + m.mg + Date.now(), kind: "volume", mg: m.mg, exId: pick.id, dir, title: `VOLUME ${dir > 0 ? "+1" : "−1"} — ${m.mg.toUpperCase()} via ${pick.n}`, body: why + ` ${dir > 0 ? "Adds one set to " + pick.n + " (its strongest mover). The new set arrives as the final set — the effort ladder re-keys itself: it becomes the all-out set, the old final pulls back to 1 in reserve, and its rep target seeds one under your current last set." : "Removes the final set from " + pick.n + " (its weakest mover) — the effort ladder re-keys to the shorter shape automatically."} Two weeks of data before the ledger revisits this muscle.`, at: tISO7 }];
+    ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + m.mg + Date.now(), kind: "volume", mg: m.mg, exId: pick.id, dir, title: `VOLUME ${dir > 0 ? "+1" : "−1"} — ${m.mg.toUpperCase()} via ${pick.n}`, body: why + ` ${dir > 0 ? "Adds one set to " + pick.n + ", its strongest mover. The new set arrives as the final set — the effort ladder re-keys itself: it becomes the all-out set, the old final pulls back to 1 in reserve, and its rep target seeds one under your current last set." : "Removes the final set from " + pick.n + ", its weakest mover — the effort ladder re-keys to the shorter shape automatically."} Two weeks of data before the ledger revisits this muscle.`, at: tISO7 }];
   });
   return ns;
 }
@@ -11703,6 +11703,9 @@ function scrollToId(id, delay = 80) {
    cannot survive in a link. The suite asserts the maps against THIS set rather than against
    restated literals: the previous check compared each key to the same string the assertion
    above it already compared, so it could not fail unless that one had. */
+const TAB_BAR_H = 64;              /* the rail's own painted height */
+const CHROME_BAND_H = 44;          /* the band above it: the resume bar's paint, and the FAB corridor */
+const FIXED_CHROME_H = TAB_BAR_H + CHROME_BAND_H;   /* M3 — every scroll surface reserves THIS, so no fixed element can cover card content */
 const NOW_DOORS = { capture: "now.capture2", briefing: "now.briefing", room: "now.room", inbox: "now.inbox" };
 /* TRAIN's doors, same contract: the Groups render from these, the roster's deep links may
    only name one of them, and the render smoke asserts declared ⊆ the live registry that
@@ -12337,6 +12340,7 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
 }
 
 function ApprovalInbox({ s, setS, save, tISO }) {
+  const [whyCard, setWhyCard] = useState(null);   /* M6 — one card's receipt expanded at a time */
   const [nudge, setNudge] = useState({});
   const raw = useRepoDoc("ledger/suggestions.json");
   const sugData = (() => { try { return raw ? JSON.parse(raw) : null; } catch (e) { return null; } })();
@@ -12439,7 +12443,7 @@ function ApprovalInbox({ s, setS, save, tISO }) {
     <div id="pl-inbox" style={{ fontFamily: mono, fontSize: TS.micro, color: T.dim, letterSpacing: "0.08em", padding: "6px 0" }}>DECISIONS — nothing needs your decision today.</div>
   );
   return (
-    <Group title="DECISIONS" sub="real changes never happen without your OK — each card says what it does, and one tap always undoes it" persistKey={NOW_DOORS.inbox} id="pl-inbox" count={items.length} defaultOpen={true}>
+    <Group title="DECISIONS" sub="Nothing changes without you. One tap always undoes it." persistKey={NOW_DOORS.inbox} id="pl-inbox" count={items.length} defaultOpen={true}>
       {items.map((it) => {
         const n = nudge[it.key] || 0;
         return (
@@ -12464,8 +12468,14 @@ function ApprovalInbox({ s, setS, save, tISO }) {
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: it.basis === "speculation" ? T.orange : T.brass, letterSpacing: "0.06em", marginTop: SP.hair }}>
               {it.basis === "speculation" ? "(speculation)" : "(measured — computed from your own logs)"}
             </div>
-            {it.why && <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.body}px` }}>{it.why}</div>}
-            {it.rationale && (
+            {it.consent && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.chalk, marginTop: SP.sm, lineHeight: 1.5 }}>{it.consent} Dismiss: nothing changes.</div>}
+            {it.why && (() => { const w9 = String(it.why); const cut9 = w9.indexOf(". "); const one9 = cut9 > 20 ? w9.slice(0, cut9 + 1) : w9; const rest9 = w9.slice(one9.length).trim();
+              return (<>
+                <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.sm, lineHeight: `${LH.body}px` }}>{one9}</div>
+                {rest9 || it.rationale ? <button onClick={() => setWhyCard(whyCard === it.key ? null : it.key)} style={{ background: "none", border: "none", padding: "10px 0 2px", margin: 0, cursor: "pointer", fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.08em", color: T.gauge, textAlign: "left" }}>{whyCard === it.key ? "▾ why this proposal?" : "▸ why this proposal?"}</button> : null}
+                {whyCard === it.key && rest9 ? <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.xs, lineHeight: `${LH.body}px` }}>{rest9}</div> : null}
+              </>); })()}
+            {it.rationale && whyCard === it.key && (
               <>
                 {it.rationale.science && <div style={rline}><b style={{ color: T.chalk }}>Science:</b> {it.rationale.science}</div>}
                 {it.rationale.data && <div style={rline}><b style={{ color: T.chalk }}>Your data:</b> {it.rationale.data}</div>}
@@ -12473,7 +12483,7 @@ function ApprovalInbox({ s, setS, save, tISO }) {
               </>
             )}
             {it.predict && <div style={{ fontFamily: mono, fontSize: TS.label, color: it.conf === "high" ? T.jade : it.conf === "low" ? T.steel : T.brass, marginTop: SP.sm }}>→ expected: {it.predict}</div>}
-            {it.consent && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.sm, lineHeight: 1.5 }}>{it.consent} Dismiss: nothing changes.</div>}
+
             {it.dial && (
               <div style={{ marginTop: SP.sm }}>
                 <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.08em" }}>TAKE IT AS PROPOSED, OR MOVE IT — YOUR CALL EITHER WAY</div>
@@ -16066,6 +16076,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
      compressed. See PACE_NOTE for why the threshold is coarse: the evidence
      resolves "under about a minute" versus "not", and nothing finer. */
   const [rests, setRests] = useState({ n: 0, cut: 0 });
+  const [whyOpen9, setWhyOpen9] = useState(false);   /* M4 — the receipt stack's one disclosure */
   const gymKey = "prep-ledger-gymdraft-" + dateSel;
   useEffect(() => {
     try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { if (d.idx != null && sess && sess.ex && d.idx >= sess.ex.length) d.idx = Math.max(0, sess.ex.length - 1);   /* H1 */ setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.touched) setTouched(d.touched);   /* absent on a pre-TOUCH draft -> gymEntries falls back to gskip alone */ setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen);
@@ -16230,7 +16241,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <button onClick={onClose} aria-label="Exit gym mode" style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>exit ✕</button>
         </div>
       </div>
-      {(() => { const me1 = todayMeds(s); return <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim, marginBottom: 6 }}>STIM CHECK — {me1 && me1.taken ? "meds @ " + fmt12(me1.at) + " · effort feels easier mid-peak than it is" : me1 && !me1.taken ? "none today · effort reads truer, energy may run lower" : "meds peak midday · if lifting then, effort feels easier than it is"}</div>; })()}
+      {(() => { if (!(idx === 0 && setN === 0)) return null; const me1 = todayMeds(s); return <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim, marginBottom: 6 }}>STIM CHECK — {me1 && me1.taken ? "meds @ " + fmt12(me1.at) + " · effort feels easier mid-peak than it is" : me1 && !me1.taken ? "none today · effort reads truer, energy may run lower" : "meds peak midday · if lifting then, effort feels easier than it is"}</div>; })()}
       {al2 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, marginBottom: 8 }}>{al2.tier === "RED" ? "⚠ ALARM DAY — RED: convert to a walk or push it a day" : "⚠ ALARM DAY — every 0 becomes a 1 · what you deliver still banks"}</div>}
       {phase === "rest" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 11, minHeight: 0 }}>
@@ -16398,6 +16409,33 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
               ) : ex.w}
               {ex.isDebutNow ? " · FIRST RUN — log what it gives" : ""}
             </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+              {getR(ex).map((r9, i9) => (
+                <div key={i9} style={{ ...tnum, fontSize: 12.5, fontWeight: 700, padding: "9px 0 7px", width: 52, textAlign: "center",
+                  borderBottom: "2px solid " + (i9 < setN ? DT.jade : i9 === setN ? DT.amber : DT.hairline),
+                  color: i9 < setN ? DT.jade : i9 === setN ? DT.amber : DT.dim }}>
+                  {i9 < setN ? r9 + " ✓" : i9 === setN ? "SET " + (i9 + 1) : "—"}
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
+              <button aria-label="one rep less" onClick={() => { touch(ex.id); markAdj(ex.id, setN); const r2 = getR(ex).slice(); r2[setN] = Math.max(0, r2[setN] - 1); setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>−</button>
+              <div>
+                <div style={{ ...tnum, fontSize: 54, fontWeight: 700, textAlign: "center", color: DT.ink }}>{getR(ex)[setN]}</div>
+                <div style={{ ...tnum, fontSize: 9, color: DT.dim, letterSpacing: "0.16em", textAlign: "center", marginTop: 5 }}>REPS · SET {setN + 1} OF {getR(ex).length}</div>
+                {/* M4b — the ONE instruction that changes how the set is performed gets its
+                    own line: it was wrapping mid-thought ("2 IN THE / TANK") under the big
+                    number, subordinate to a position it already states twice above. */}
+                <div style={{ ...tnum, fontSize: 11, color: DT.ink, letterSpacing: "0.10em", textAlign: "center", marginTop: 4, whiteSpace: "nowrap" }}>{rp2.plan[setN] === 0 ? "EMPTY IT" : (rp2.plan[setN] ?? "—") + " IN THE TANK"}</div>
+              </div>
+              <button aria-label="one rep more" onClick={() => { touch(ex.id); markAdj(ex.id, setN); const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>+</button>
+            </div>
+            <button onClick={doneSet} style={{ marginTop: 16, width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: T.gauge, color: T.ink, ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>
+              {setN + 1 < getR(ex).length ? "LOG SET · REST TIMER STARTS" : "LOG SET · ONE QUESTION AFTER"}
+            </button>
+            {/* M4 — the receipts, complete and unchanged, one tap below the command */}
+            <button onClick={() => setWhyOpen9(!whyOpen9)} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.1em", color: DT.steel, marginTop: 12 }}>{whyOpen9 ? "▾ why this set" : "▸ why this set"}</button>
+            {whyOpen9 ? (<div style={{ marginTop: 4 }}>
             <div style={{ marginTop: 12, padding: "10px 12px", background: DT.well, borderRadius: 12, fontFamily: mono, fontSize: 12, color: DT.steel, letterSpacing: "0.04em", lineHeight: 1.5 }}>
               TARGET <b style={{ color: DT.ink }}>{ex.tgt.join(" · ")}</b>{ex.prev && (ex.prev.reps || []).length ? " — beat last time (" + ex.prev.reps.join("·") + "). Don't sweat one rep — the total is what counts." : " — first time on record: this line is the one everything later gets measured from."}
               <br /><span style={{ color: DT.dim }}>EFFORT, SET BY SET: <b style={{ color: DT.steel }}>{effortWords(rp2.plan, /governor hold/.test(((rp2.why || [])[0]) || ""))}</b>.</span>
@@ -16422,33 +16460,13 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
                 </div>
               );
             })()}
-            <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-              {getR(ex).map((r9, i9) => (
-                <div key={i9} style={{ ...tnum, fontSize: 12.5, fontWeight: 700, padding: "9px 0", width: 52, textAlign: "center", borderRadius: 12,
-                  border: "1px solid " + (i9 < setN ? "rgba(94,212,162,.4)" : i9 === setN ? "rgba(229,180,84,.5)" : DT.hairline),
-                  background: i9 === setN ? "rgba(229,180,84,.06)" : "none",
-                  color: i9 < setN ? DT.jade : i9 === setN ? DT.amber : DT.dim }}>
-                  {i9 < setN ? r9 + " ✓" : i9 === setN ? "SET " + (i9 + 1) : "—"}
-                </div>
-              ))}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
-              <button aria-label="one rep less" onClick={() => { touch(ex.id); markAdj(ex.id, setN); const r2 = getR(ex).slice(); r2[setN] = Math.max(0, r2[setN] - 1); setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>−</button>
-              <div>
-                <div style={{ ...tnum, fontSize: 54, fontWeight: 700, textAlign: "center", color: DT.ink }}>{getR(ex)[setN]}</div>
-                <div style={{ ...tnum, fontSize: 9, color: DT.dim, letterSpacing: "0.16em", textAlign: "center", marginTop: 5 }}>REPS · SET {setN + 1} OF {getR(ex).length} · {rp2.plan[setN] === 0 ? "EMPTY IT" : (rp2.plan[setN] ?? "—") + " IN THE TANK"}</div>
-              </div>
-              <button aria-label="one rep more" onClick={() => { touch(ex.id); markAdj(ex.id, setN); const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>+</button>
-            </div>
-            <button onClick={doneSet} style={{ marginTop: 16, width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: T.gauge, color: T.ink, ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>
-              {setN + 1 < getR(ex).length ? "LOG SET · REST TIMER STARTS" : "LOG SET · ONE QUESTION AFTER"}
-            </button>
+            </div>) : null}
           </div>
           {setN > 0 ? (
             <button onClick={undoSet} style={{ fontFamily: mono, fontSize: TS.micro, color: DT.steel, background: "none", border: "1px solid " + DT.hairline, borderRadius: 8, padding: "9px", width: "100%", minHeight: 44, cursor: "pointer" }}>◂ undo last set</button>
           ) : null}
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            {idx > 0 ? <button onClick={goBackLift} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>◂ back a lift</button> : setN === 0 ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim }}>first lift, set 1 — nothing behind you</span> : <span />}
+            {idx > 0 ? <button onClick={goBackLift} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>◂ back a lift</button> : <span style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim }}>◂ nothing behind you</span>}
             <button onClick={skipLift} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>skip lift ▸</button>
           </div>
           <div style={{ flex: 1, minHeight: 0 }} />
@@ -16676,7 +16694,7 @@ function HistTab({ s, setS, save }) {
                       the scorecard, the words are the engine's, the row is 44px. */}
                   {(() => { const pg = prophetGrades(s);
                     return (
-                      <div onClick={() => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); }} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); } }} style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: pg.n >= 2 ? T.jade : T.brass, cursor: "pointer" }}>
+                      <div onClick={() => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); }} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); } }} style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.gauge /* M2 — a DOOR takes the tappable hue; the row says its own trust state in words, so the paint carried nothing the copy did not */, cursor: "pointer" }}>
                         {pg.n >= 2
                           ? `MACHINE TRUST · 7-day weight miss ±${pg.mae} lb ▸`
                           : "MACHINE TRUST · grading its first forecasts ▸"}
@@ -17094,8 +17112,8 @@ function SessionLiveChip({ s, go }) {
     : "▸ RESUME SESSION · " + String(liftName).toUpperCase() + " SET " + ((draft.setN || 0) + 1);
   return (
     <button data-chip="session-live" data-arm={resting ? "rest" : "resume"} onClick={() => { try { sessionStorage.setItem("pl-resume-gym", "1"); } catch (e) {} go("TRAIN"); }}
-      style={{ position: "fixed", left: 0, bottom: "calc(64px + env(safe-area-inset-bottom))", width: "calc(100% - 90px)", zIndex: 49, background: "none", border: "none", padding: "28px 0 0 0", margin: 0, cursor: "pointer", textAlign: "left" }}>
-      <span style={{ display: "block", background: DT.card2, borderTop: "1px solid " + DT.hairline2, borderBottom: "1px solid " + DT.hairline, color: resting ? DT.jade : DT.amber, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", padding: "10px 14px" }}>{label}</span>
+      style={{ position: "fixed", left: 0, bottom: `calc(${TAB_BAR_H}px + env(safe-area-inset-bottom))`, width: "calc(100% - 90px)", zIndex: 49, background: "none", border: "none", padding: "28px 0 0 0", margin: 0, cursor: "pointer", textAlign: "left" }}>
+      <span style={{ display: "block", background: DT.card2, borderTop: "1px solid " + DT.hairline2, borderBottom: "1px solid " + DT.hairline, color: T.gauge, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", padding: "10px 14px" }}>{label}</span>
     </button>
   );
 }
@@ -17149,7 +17167,7 @@ function captureAsk(s, hour) {
   /* the ledger is the one owner; this ladder is a VIEW of it plus the two conditions
      that are about the ASK's wording, not the debt (reads-exist, the evening hour) */
   const led = owedLedger(s, hour);
-  if (led.some((r) => r.k === "scale")) return { k: "scale", t: "THIS MORNING'S SCALE", why: "the read the whole engine steers on — one tap, then the trend absorbs it" };
+  if (led.some((r) => r.k === "scale")) return { k: "scale", t: "THIS MORNING'S SCALE", why: "Daily weight updates the trend — one tap, then the trend absorbs it" };
   if (led.some((r) => r.k === "day" && r.d === yISO) && !yl && (s.reads || []).some((r) => r && r.d < tISO)) return { k: "amend", t: "YESTERDAY'S BOOKS ARE STILL OPEN", why: "close " + fmtShort(yISO) + " — an unlogged day is a hole in every average below" };
   if (dl.cal == null && rw.hour >= 17) return { k: "day", t: "CLOSE THE DAY", why: "calories, protein, steps — the three the targets are measured against" };
   if (!rw.hasRead) return { k: "scale", t: "THE SCALE, WHEN YOU GET TO IT", why: "off-window reads are kept and set aside — logged honestly, never fed to the trend" };
@@ -17424,7 +17442,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
                       <input type="time" value={bd} onChange={(e) => setNB({ ...nB, [r.d]: e.target.value })} aria-label={"bed " + r.d} style={timeIn9} />
                       <span style={{ ...rowName, color: DT.steel }}>WAKE</span>
                       <input type="time" value={wk} onChange={(e) => setNW({ ...nW, [r.d]: e.target.value })} aria-label={"wake " + r.d} style={timeIn9} />
-                      <Btn small tone="gauge" onClick={() => saveNightFor(r.d, bd, wk)}>Save</Btn>
+                      <Btn small tone="gauge" onClick={() => saveNightFor(r.d, bd, wk)}>{"Save " + fmtShort(r.d)}</Btn>
                     </div>
                   </div>);
               }
@@ -17432,17 +17450,20 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
               const estOn = r.d < yLed && !estOff[r.d];
               return (
                 <div key={r.d + r.k} style={{ borderTop: "1px solid " + DT.hairline, marginTop: GAP_PAIR, paddingTop: GAP_PAIR }}>
-                  <div style={{ ...rowName }}>{r.t}<span style={{ ...tnum9, fontSize: 9.5, letterSpacing: "0.12em", color: DT.dim }}> TARGET-SEEDED</span></div>
+                  <div style={{ ...rowName }}>{r.t}<span style={{ ...tnum9, fontSize: 9.5, letterSpacing: "0.12em", color: DT.dim }}> · PRE-FILLED FROM TARGET</span></div>
                   <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.55, marginTop: 3 }}>{r.why}</div>
                   <div style={{ display: "flex", alignItems: "center", gap: GAP_PAIR, minHeight: ROW9, flexWrap: "wrap" }}>
                     {["cal", "pro", "steps"].map((f9) => (
-                      <input key={f9} value={dv[f9]} inputMode="decimal" aria-label={f9 + " " + r.d}
+                      <div key={f9} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <span style={{ ...tnum9, fontSize: 9, letterSpacing: "0.12em", color: DT.dim }}>{f9 === "cal" ? "CALORIES" : f9 === "pro" ? "PROTEIN g" : "STEPS"}</span>
+                      <input value={dv[f9]} inputMode="decimal" aria-label={f9 + " " + r.d}
                         onFocus={(e) => { try { e.target.select(); } catch (err) {} }}
                         onChange={(e) => setDV({ ...dV, [r.d]: { ...dv, [f9]: e.target.value } })}
-                        style={{ ...tnum9, fontSize: 14, color: DT.ink, background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 8, width: f9 === "steps" ? 64 : 56, padding: "8px 6px", textAlign: "center" }} />
+                        style={{ ...tnum9, fontSize: 16, color: DT.ink, background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 8, width: f9 === "steps" ? 72 : 64, padding: "8px 6px", textAlign: "center" }} />
+                      </div>
                     ))}
                     {r.d < yLed ? <button onClick={() => setEstOff({ ...estOff, [r.d]: !estOff[r.d] })} style={{ background: "none", border: "1px solid " + (estOn ? DT.amber : DT.hairline2), borderRadius: 999, padding: "5px 9px", fontFamily: mono, fontSize: 10, color: estOn ? DT.amber : DT.steel, cursor: "pointer" }}>{estOn ? "≈ estimated" : "exact"}</button> : null}
-                    <Btn small tone="gauge" onClick={() => { const cB = stepValue(dv.cal, 0, 1, 0), pB = stepValue(dv.pro, 0, 1, 0), sB = stepValue(dv.steps, 0, 1, 0); let keptB = []; for (const [kB, vB] of [["cal", cB], ["pro", pB], ["steps", sB]]) { const tkB = typoKeep(kB, vB); if (tkB === "abort") return; if (tkB === "keep") keptB.push([kB, vB]); } let ns = writeDaily(s, r.d, { cal: cB, pro: pB, steps: sB }); for (const [kB, vB] of keptB) ns = typoReceipt(ns, kB, vB); if (estOn) { ns = { ...ns, dayCtx: { ...(ns.dayCtx || {}), [r.d]: { ...((ns.dayCtx || {})[r.d] || {}), est: true, note: "backfilled — rough numbers count" } } }; } setS(ns); save(ns); hap(12); }}>Save</Btn>
+                    <Btn small tone="gauge" onClick={() => { const cB = stepValue(dv.cal, 0, 1, 0), pB = stepValue(dv.pro, 0, 1, 0), sB = stepValue(dv.steps, 0, 1, 0); let keptB = []; for (const [kB, vB] of [["cal", cB], ["pro", pB], ["steps", sB]]) { const tkB = typoKeep(kB, vB); if (tkB === "abort") return; if (tkB === "keep") keptB.push([kB, vB]); } let ns = writeDaily(s, r.d, { cal: cB, pro: pB, steps: sB }); for (const [kB, vB] of keptB) ns = typoReceipt(ns, kB, vB); if (estOn) { ns = { ...ns, dayCtx: { ...(ns.dayCtx || {}), [r.d]: { ...((ns.dayCtx || {})[r.d] || {}), est: true, note: "backfilled — rough numbers count" } } }; } setS(ns); save(ns); hap(12); }}>{"Save " + fmtShort(r.d)}</Btn>
                   </div>
                 </div>);
             })}
@@ -17457,7 +17478,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
           filled and the other is the quiet variant. Two filled greens in one view was the
           defect. */}
       <div data-cap="core" style={rule9}>
-        <div style={lbl9}>THE CORE — WHAT RUNS EVERYTHING</div>
+
         <div style={{ display: "flex", alignItems: "center", gap: SP.md, marginTop: GAP_WITHIN + SP.xs, justifyContent: "center" }}>
           <button aria-label="less" onClick={() => setWIn((x) => stepValue(x, 0.1, -1, 0))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>−</button>
           <input value={wIn} inputMode="decimal" aria-label="weight"
@@ -17472,7 +17493,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
         <div style={{ marginTop: SP.lg }} />
         <Btn full tone={heroIs("scale") ? "gauge" : "ghost"} onClick={saveScale}>{readToday ? "Update the scale" : "Log " + wIn + " lb"}</Btn>
         <div style={{ marginTop: GAP_GROUP }}>
-          <div style={lbl9}>CLOSE THE DAY</div>
+          <div style={lbl9}>CLOSE TODAY · {fmtShort(tISO)}</div>
           {stepRow("CALORIES", cal, setCal, 10, dl.cal == null)}
           {stepRow("PROTEIN g", pro, setPro, 5, dl.pro == null)}
           {stepRow("STEPS", stp, setStp, 500, dl.steps == null)}
@@ -18337,7 +18358,7 @@ export default function PrepLedger() {
 
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "env(safe-area-inset-top)", background: T.ink, zIndex: 55 }} />
 
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(14px + env(safe-area-inset-top)) 14px calc(88px + env(safe-area-inset-bottom))", visibility: (rules || coach || kitPerson) ? "hidden" : "visible" }}>
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: `calc(14px + env(safe-area-inset-top)) 14px calc(${FIXED_CHROME_H}px + env(safe-area-inset-bottom))`, visibility: (rules || coach || kitPerson) ? "hidden" : "visible" }}>
         {/* R15i r2 — the back-link measured 27px: paint-free text, so the extra padding
             is pure slop and the negative margin keeps the glyph exactly where it painted. */}
         {inMore && (

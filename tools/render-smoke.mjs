@@ -287,7 +287,10 @@ for (const [name, mut] of states) {
   const t2 = w.document.body.textContent || "";
   if (!/OWED — \d+ ITEM/.test(t2)) { console.error("RENDER-SMOKE owed: the + sheet does not lead with the OWED list"); failed++; }
   if (!t2.includes("THE NIGHT OF") || !t2.includes("CLOSE ")) { console.error("RENDER-SMOKE owed: the debt rows (night + day) are not rendered"); failed++; }
-  const saves = [...w.document.querySelectorAll("button")].filter((b) => (b.textContent || "").trim() === "Save").length;
+  /* M5b — every owed action names its own date ("Save Tue 8/11"), night row and day row
+     alike: a context-free verb over three unlabelled numbers was the defect. The pin
+     counts by PREFIX so it proves the symmetry instead of the old bare word. */
+  const saves = [...w.document.querySelectorAll("button")].filter((b) => /^Save /.test((b.textContent || "").trim())).length;
   if (saves < 2) { console.error("RENDER-SMOKE owed: expected inline Save controls on the debt rows, found " + saves); failed++; }
   if (/night(s)? dark/.test(t1) && /OWED — /.test(t2) && saves >= 2) console.log("RENDER-SMOKE owed: the FIVE says dark and the + answers " + (t2.match(/OWED — (\d+)/) || [])[1] + " owed items inline");
 }
@@ -295,5 +298,24 @@ if (failed) {
   console.error(`RENDER-SMOKE: ${failed} failures`);
   process.exit(1);
 }
+/* M3 — THE FIXED-CHROME CLEARANCE, enforced as arithmetic. jsdom has no layout engine
+   (every getBoundingClientRect is zero), so a true pixel-intersection test belongs to a
+   browser rig — stated plainly rather than faked here. What CAN be enforced, and is what
+   actually guarantees the clearance: one constant owns the fixed zone, the resume bar
+   sits inside it, and every scroll surface reserves exactly it. If any of those three
+   drift apart, cards scroll under fixed UI again — and this fails. */
+{
+  const src = fs.readFileSync(new URL("../src/app.jsx", import.meta.url), "utf8");
+  const need = (p, why) => { if (src.indexOf(p) === -1) { console.error("RENDER-SMOKE FAIL [chrome] " + why); process.exit(1); } };
+  need("const FIXED_CHROME_H = TAB_BAR_H + CHROME_BAND_H;", "the fixed-chrome zone must be ONE named constant");
+  need("14px calc(${FIXED_CHROME_H}px + env(safe-area-inset-bottom))", "the scroll content must reserve exactly the fixed-chrome zone");
+  need("bottom: `calc(${TAB_BAR_H}px + env(safe-area-inset-bottom))`", "the resume bar must sit inside the reserved zone, measured from the same constant");
+  const band = +(src.match(/const CHROME_BAND_H = (\d+)/) || [])[1];
+  const tabH = +(src.match(/const TAB_BAR_H = (\d+)/) || [])[1];
+  if (!(band >= 40 && tabH >= 60)) { console.error("RENDER-SMOKE FAIL [chrome] the zone is smaller than the chrome it must cover (band " + band + ", tab " + tabH + ")"); process.exit(1); }
+  console.log("RENDER-SMOKE chrome: one reserved fixed zone (" + (tabH + band) + "px), the resume bar inside it, every scroll surface reserving it");
+}
+
 console.log("RENDER-SMOKE: all tabs alive in all states — no silent fallbacks");
 process.exit(0);
+
