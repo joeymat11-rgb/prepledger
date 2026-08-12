@@ -423,6 +423,29 @@ A10 dev chrome off · A11 copy micro-bundle · the five nutrition riders R1–R4
 here (R5 done) · A12 seeds round 5 only. Scope fences: gym mode/capture sheet/
 decision detail UNGRADED — mechanical changes only; V8 capture artifact is not a bug.
 
+## BUILDING — THE MINI-PASS ROUND (Joe's order 2026-08-12; branch feat/minipass; target v7.50.0)
+
+The three never-graded surfaces (capture sheet, gym mode, decision detail), consolidated
+from Cowork's execution drive + GPT-5.6 Sol's blind leg.
+
+> **FILING NOTE (build side, on the record):** the directive says Sol's leg is attached
+> and should be filed in-repo (the 84de4c6 pattern). NO ATTACHMENT ARRIVED on this PC —
+> the newest upload is still the design verdict. The directive's own M1–M7 text is
+> complete and self-contained, so THE BUILD RUNS FROM THE PASTE, filed verbatim below.
+> Send the Sol leg and it lands in-repo as its own commit.
+
+THE LAW: engine untouched, refreeze ZERO (any baseline byte = STOP and report); both
+standing gates stay green and TWO are EXTENDED (M1 contrast matrix hole, M2 affordance
+lint sees only Btn); honesty content may be DEMOTED, never CUT. Order: M1 → M2 → M3 →
+M4 → M5 → M6 → M7. Joe's rulings (M6): decision cards collapse to summaries with the
+engine paragraph behind a per-card disclosure VERBATIM, consequence above reasoning, one
+receipt open at a time, the GROUP still opens expanded at top (A2 intact); brass counts
+STAND (A2's brass register, re-affirmed — the badge, the OWED label and the gym
+progress dot do not recolor). UNGRADEABLE without a state-sequence drive (do not build
+blind): the capture sheet's absolute bottom, focus/keyboard, everything after a LOG SET
+tap, skip/exit consequences, approve/dismiss/undo/error states, screen-reader/
+Dynamic-Type/landscape.
+
 ## SEEDED — ROUND 5: THE MOMENT/INSTALL LAYER (A12; design round seeds only, builds after the statics)
 
 The earned-moment beat (brass rule, slight scale, ONE haptic — no confetti, charter) ·
