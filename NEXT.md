@@ -23,6 +23,18 @@ blind): the capture sheet's absolute bottom, focus/keyboard, everything after a 
 tap, skip/exit consequences, approve/dismiss/undo/error states, screen-reader/
 Dynamic-Type/landscape.
 
+## QUEUED — TWO RIDERS FROM THE MINI-PASS RE-AUDIT (2026-08-12, P2, next design round)
+
+1. THE FLOATING + OVERLAYS CARD TEXT at some scroll positions — with M6 collapsing the
+   cards no decision is expanded, so it satisfies the directive's letter, but it visibly
+   covers the provenance line "(measured — computed from your own logs)" on card 3 in
+   both themes (Cowork, driven). Mid-scroll pass-behind is inherent to a fixed bar and is
+   NOT a defect; this one is the + specifically.
+2. THE JSX-AWARE AFFORDANCE AUDIT — the general element rule the line-based lint cannot
+   carry (it flagged 23 state-coloured children inside tappable cards, the register M6
+   blessed). A parser that resolves each element's own handler and its own paint is the
+   real answer; the scoped rules and their reasoning live in tools/affordance-lint.mjs.
+
 ## SEEDED — ROUND 5: THE MOMENT/INSTALL LAYER (A12; design round seeds only, builds after the statics)
 
 The earned-moment beat (brass rule, slight scale, ONE haptic — no confetti, charter) ·
