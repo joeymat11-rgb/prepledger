@@ -11703,6 +11703,9 @@ function scrollToId(id, delay = 80) {
    cannot survive in a link. The suite asserts the maps against THIS set rather than against
    restated literals: the previous check compared each key to the same string the assertion
    above it already compared, so it could not fail unless that one had. */
+const TAB_BAR_H = 64;              /* the rail's own painted height */
+const CHROME_BAND_H = 44;          /* the band above it: the resume bar's paint, and the FAB corridor */
+const FIXED_CHROME_H = TAB_BAR_H + CHROME_BAND_H;   /* M3 — every scroll surface reserves THIS, so no fixed element can cover card content */
 const NOW_DOORS = { capture: "now.capture2", briefing: "now.briefing", room: "now.room", inbox: "now.inbox" };
 /* TRAIN's doors, same contract: the Groups render from these, the roster's deep links may
    only name one of them, and the render smoke asserts declared ⊆ the live registry that
@@ -17093,7 +17096,7 @@ function SessionLiveChip({ s, go }) {
     : "▸ RESUME SESSION · " + String(liftName).toUpperCase() + " SET " + ((draft.setN || 0) + 1);
   return (
     <button data-chip="session-live" data-arm={resting ? "rest" : "resume"} onClick={() => { try { sessionStorage.setItem("pl-resume-gym", "1"); } catch (e) {} go("TRAIN"); }}
-      style={{ position: "fixed", left: 0, bottom: "calc(64px + env(safe-area-inset-bottom))", width: "calc(100% - 90px)", zIndex: 49, background: "none", border: "none", padding: "28px 0 0 0", margin: 0, cursor: "pointer", textAlign: "left" }}>
+      style={{ position: "fixed", left: 0, bottom: `calc(${TAB_BAR_H}px + env(safe-area-inset-bottom))`, width: "calc(100% - 90px)", zIndex: 49, background: "none", border: "none", padding: "28px 0 0 0", margin: 0, cursor: "pointer", textAlign: "left" }}>
       <span style={{ display: "block", background: DT.card2, borderTop: "1px solid " + DT.hairline2, borderBottom: "1px solid " + DT.hairline, color: T.gauge, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", padding: "10px 14px" }}>{label}</span>
     </button>
   );
@@ -18336,7 +18339,7 @@ export default function PrepLedger() {
 
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "env(safe-area-inset-top)", background: T.ink, zIndex: 55 }} />
 
-      <div style={{ maxWidth: 480, margin: "0 auto", padding: "calc(14px + env(safe-area-inset-top)) 14px calc(88px + env(safe-area-inset-bottom))", visibility: (rules || coach || kitPerson) ? "hidden" : "visible" }}>
+      <div style={{ maxWidth: 480, margin: "0 auto", padding: `calc(14px + env(safe-area-inset-top)) 14px calc(${FIXED_CHROME_H}px + env(safe-area-inset-bottom))`, visibility: (rules || coach || kitPerson) ? "hidden" : "visible" }}>
         {/* R15i r2 — the back-link measured 27px: paint-free text, so the extra padding
             is pure slop and the negative margin keeps the glyph exactly where it painted. */}
         {inMore && (

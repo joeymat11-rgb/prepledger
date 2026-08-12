@@ -295,5 +295,24 @@ if (failed) {
   console.error(`RENDER-SMOKE: ${failed} failures`);
   process.exit(1);
 }
+/* M3 — THE FIXED-CHROME CLEARANCE, enforced as arithmetic. jsdom has no layout engine
+   (every getBoundingClientRect is zero), so a true pixel-intersection test belongs to a
+   browser rig — stated plainly rather than faked here. What CAN be enforced, and is what
+   actually guarantees the clearance: one constant owns the fixed zone, the resume bar
+   sits inside it, and every scroll surface reserves exactly it. If any of those three
+   drift apart, cards scroll under fixed UI again — and this fails. */
+{
+  const src = fs.readFileSync(new URL("../src/app.jsx", import.meta.url), "utf8");
+  const need = (p, why) => { if (src.indexOf(p) === -1) { console.error("RENDER-SMOKE FAIL [chrome] " + why); process.exit(1); } };
+  need("const FIXED_CHROME_H = TAB_BAR_H + CHROME_BAND_H;", "the fixed-chrome zone must be ONE named constant");
+  need("14px calc(${FIXED_CHROME_H}px + env(safe-area-inset-bottom))", "the scroll content must reserve exactly the fixed-chrome zone");
+  need("bottom: `calc(${TAB_BAR_H}px + env(safe-area-inset-bottom))`", "the resume bar must sit inside the reserved zone, measured from the same constant");
+  const band = +(src.match(/const CHROME_BAND_H = (\d+)/) || [])[1];
+  const tabH = +(src.match(/const TAB_BAR_H = (\d+)/) || [])[1];
+  if (!(band >= 40 && tabH >= 60)) { console.error("RENDER-SMOKE FAIL [chrome] the zone is smaller than the chrome it must cover (band " + band + ", tab " + tabH + ")"); process.exit(1); }
+  console.log("RENDER-SMOKE chrome: one reserved fixed zone (" + (tabH + band) + "px), the resume bar inside it, every scroll surface reserving it");
+}
+
 console.log("RENDER-SMOKE: all tabs alive in all states — no silent fallbacks");
 process.exit(0);
+
