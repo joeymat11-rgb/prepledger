@@ -23,6 +23,21 @@ blind): the capture sheet's absolute bottom, focus/keyboard, everything after a 
 tap, skip/exit consequences, approve/dismiss/undo/error states, screen-reader/
 Dynamic-Type/landscape.
 
+## BUILDING — ROUND 6: THE PROGRESS TAB (Joe 2026-08-12; branch feat/progress-tab; target v7.51.0)
+
+**Sol's generative proposal is in-repo: [ROUND6-SOL-PROPOSAL.md](ROUND6-SOL-PROPOSAL.md).**
+An information-architecture REPLACEMENT of the LEDGER region. "Progress answers. Rooms
+focus. Receipts prove." RULINGS: R6-1 display-rename to PROGRESS (internal identifiers
+UNCHANGED) · R6-2 naming bundle approved with TWO FENCES (QUEUE state words not renamed
+until code-verified; the 58 instrument names only from a code-extracted list) · R6-3 hub
+is TWO cards + doors. Order: (1) shell + hub + HISTORY + SETTINGS & DATA + nav/census +
+the HUB BUDGET SMOKE · (2) EVIDENCE + DATA SUMMARY (recon first: is the summary stored?) ·
+(3) answer-first SLEEP/BODY/WHAT'S NEXT · (4) naming + budgets + riders. LAWS: engine
+untouched, ZERO refreeze, demote-never-cut, no streaks/urgency, both themes, NOW/TRAIN/
+gym/capture/decision-anatomy UNTOUCHED. Two verified facts: the two counters count
+DIFFERENT entities (never merge); Analyst Generate is a live Anthropic call. Recon item:
+the RULES surface rendered dark in a light drive.
+
 ## QUEUED — TWO RIDERS FROM THE MINI-PASS RE-AUDIT (2026-08-12, P2, next design round)
 
 1. THE FLOATING + OVERLAYS CARD TEXT at some scroll positions — with M6 collapsing the
