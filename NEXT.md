@@ -48,10 +48,13 @@ and what it deliberately did NOT do:**
    restored verbatim. A render-smoke HONESTY GUARD now fails if any of the three ruled
    strings stops rendering — the suite could only ever see what IS on screen, never
    what used to be.
-   **OPEN FLAG:** §P0-2's own comment says that disclosure belongs *permanently on the
-   masthead*. It is one tap down instead, because restoring it to the landing puts that
-   surface at ~193 words against a 175-word ceiling. Demotion is legal under the round's
-   law; whether "permanently" was meant literally is a ruling, not a build decision.
+   **§P0-2 PLACEMENT — CLOSED.** The flag was: §P0-2's own comment says that disclosure
+   belongs *permanently on the masthead*, and it is one tap down instead, because
+   restoring it to the landing puts that surface at ~193 words against a 175-word
+   ceiling. **RULED (cowork, full-round audit): demotion stands — the comment's
+   "permanently" was the R15i builder's emphasis, not an owner ruling; the disclosure's
+   rationale travels with the density, which now lives behind FINDINGS; the
+   render-smoke honesty guard makes the placement structural. Words budget unchanged.**
 2. **PARTLY DONE — the naming pass reached exactly one rename.** DISPLAY →
    APPEARANCE & MOTION. Two deferrals, both recorded in code with their reasons:
    RULES → HOW DECISIONS WORK (the same destination is opened from a button on NOW,
@@ -72,10 +75,16 @@ and what it deliberately did NOT do:**
    with 24 recorded.
 4. **NOT DONE, BY DESIGN — both 0110b6d riders stay named future work.** Neither is
    cheap in the sense stage 4 allowed:
-   · THE FLOATING + spans 96–148px from the bottom while the reserved chrome zone is
-     FIXED_CHROME_H = 108px, so 40px of content scrolls under it. The only geometry
-     that fits is a 44px control at bottom = TAB_BAR_H; the button is 52px today, and
-     it lives on a FENCED surface. Needs a ruling, not a patch.
+   · THE FLOATING + — **CORRECTED 2026-08-12 (cowork, measured on the tip, both
+     themes). My earlier arithmetic here was wrong and the motion pass must start from
+     the DOM, not from this note.** The FAB is a **64×64 tap box at
+     `bottom: calc(50px + safe-area)`, spanning 50–114px** from the bottom; its 52px
+     paint spans ~56–108, which kisses FIXED_CHROME_H = 108 **exactly** — zero paint
+     above the reserve, and only the ~6px transparent tap-halo exceeds it. The
+     "96–148px / 40px of content scrolls under it" figures I filed match nothing in the
+     DOM, and the shrink-to-44px I proposed may not be needed at all. The rider STAYS
+     OPEN — the mini-pass did photograph the + covering a provenance line mid-scroll —
+     but with these numbers.
    · THE JSX-AWARE AFFORDANCE AUDIT needs a real parser that resolves each element's
      own handler and its own paint. That is a tool, not an edit.
 5. **DONE — APP_V 7.51.0 + sw cache earned-v7.51.0**, the round's only version stamps.
@@ -85,6 +94,13 @@ and what it deliberately did NOT do:**
   `onKeyDown` — unlike every hand-built 44px door in the app. Shared by every room.
 · Four data-deleting `<span>`s on NOW (caffeine, meds, pulse, temp): 12px, no button
   semantics, no 44px box. RULED OUT of round 6; named for the motion/interaction pass.
+· HISTORY renders a duplicate back control (shell "‹ PROGRESS" + room "◂ PROGRESS")
+  stacked directly above each other — the only room with the duplication; EVIDENCE
+  shows one. Cosmetic, not a merge blocker (cowork, found on pixels, 2026-08-12).
+
+**THE MOTION/INTERACTION PASS carries, by name:** the four NOW deleting spans · the
+`Section`-header semantics · the FAB (with the corrected numbers above) · the HISTORY
+double back control.
 
 ## QUEUED — TWO RIDERS FROM THE MINI-PASS RE-AUDIT (2026-08-12, P2, next design round)
 
