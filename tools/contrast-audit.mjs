@@ -38,14 +38,17 @@ let checked = 0;
 for (const mode of ["dark", "light"]) {
   const P = PALETTE[mode], D = DT_PALETTE[mode];
   /* themed text on themed surfaces */
-  for (const fg of ["chalk", "steel", "jade", "brass", "orange", "redline", "gauge"]) {
+  /* M1 — dim JOINS THE MATRIX. It was hand-tested against T.plate ALONE, so the D2
+     line rendering T.dim on the PAGE background (#F4F2ED, 4.11:1) sailed through a gate
+     reporting 120/120 green: the gate we shipped to close the class could not see the
+     class. Every text token now runs the full surface list. */
+  for (const fg of ["chalk", "steel", "dim", "jade", "brass", "orange", "redline", "gauge"]) {
     for (const bg of ["ink", "plate", "plate2"]) {
       checked++;
       const r = ratio(P[fg], P[bg]);
       if (r < MIN) fails.push(`${mode} T.${fg} on T.${bg} = ${r}:1`);
     }
   }
-  { checked++; const r = ratio(P.dim, P.plate); if (r < MIN) fails.push(`${mode} T.dim on T.plate = ${r}:1`); }
   /* DT text on DT surfaces */
   for (const fg of ["ink", "steel", "dim", "jade", "amber", "red", "decision"]) {
     for (const bg of ["bg", "bg2", "card", "card2", "well"]) {

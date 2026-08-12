@@ -86,7 +86,7 @@ const PALETTE = {
   },
   light: {
     ink: "#F4F2ED", plate: "#FFFFFF", plate2: "#F0EDE6", line: "#DBD6CC",
-    chalk: "#1A1F25", steel: "#5C646E", dim: "#6E7680",   /* A1 — was #A8AEB6 (2.24:1 on paper) */
+    chalk: "#1A1F25", steel: "#5C646E", dim: "#646C76",   /* A1 — was #A8AEB6 (2.24:1 on paper); M1 — then #6E7680, which cleared plate but not the PAGE background (4.11:1) or plate2 (3.93): the matrix hole the widened auditor found */
     jade: "#14663F", brass: "#8A6520", orange: "#B4471A", redline: "#B3123C", gauge: "#0E6C87",
     hairline: "rgba(168,174,182,0.55)",
   },
@@ -16424,9 +16424,8 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             })()}
             <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
               {getR(ex).map((r9, i9) => (
-                <div key={i9} style={{ ...tnum, fontSize: 12.5, fontWeight: 700, padding: "9px 0", width: 52, textAlign: "center", borderRadius: 12,
-                  border: "1px solid " + (i9 < setN ? "rgba(94,212,162,.4)" : i9 === setN ? "rgba(229,180,84,.5)" : DT.hairline),
-                  background: i9 === setN ? "rgba(229,180,84,.06)" : "none",
+                <div key={i9} style={{ ...tnum, fontSize: 12.5, fontWeight: 700, padding: "9px 0 7px", width: 52, textAlign: "center",
+                  borderBottom: "2px solid " + (i9 < setN ? DT.jade : i9 === setN ? DT.amber : DT.hairline),
                   color: i9 < setN ? DT.jade : i9 === setN ? DT.amber : DT.dim }}>
                   {i9 < setN ? r9 + " ✓" : i9 === setN ? "SET " + (i9 + 1) : "—"}
                 </div>
@@ -16676,7 +16675,7 @@ function HistTab({ s, setS, save }) {
                       the scorecard, the words are the engine's, the row is 44px. */}
                   {(() => { const pg = prophetGrades(s);
                     return (
-                      <div onClick={() => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); }} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); } }} style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: pg.n >= 2 ? T.jade : T.brass, cursor: "pointer" }}>
+                      <div onClick={() => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); }} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); } }} style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.gauge, cursor: "pointer" }}>   /* M2 — a DOOR takes the tappable hue; the row already says its own trust state in words, so the paint was carrying nothing the copy did not */
                         {pg.n >= 2
                           ? `MACHINE TRUST · 7-day weight miss ±${pg.mae} lb ▸`
                           : "MACHINE TRUST · grading its first forecasts ▸"}
@@ -17095,7 +17094,7 @@ function SessionLiveChip({ s, go }) {
   return (
     <button data-chip="session-live" data-arm={resting ? "rest" : "resume"} onClick={() => { try { sessionStorage.setItem("pl-resume-gym", "1"); } catch (e) {} go("TRAIN"); }}
       style={{ position: "fixed", left: 0, bottom: "calc(64px + env(safe-area-inset-bottom))", width: "calc(100% - 90px)", zIndex: 49, background: "none", border: "none", padding: "28px 0 0 0", margin: 0, cursor: "pointer", textAlign: "left" }}>
-      <span style={{ display: "block", background: DT.card2, borderTop: "1px solid " + DT.hairline2, borderBottom: "1px solid " + DT.hairline, color: resting ? DT.jade : DT.amber, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", padding: "10px 14px" }}>{label}</span>
+      <span style={{ display: "block", background: DT.card2, borderTop: "1px solid " + DT.hairline2, borderBottom: "1px solid " + DT.hairline, color: T.gauge, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", padding: "10px 14px" }}>{label}</span>
     </button>
   );
 }
