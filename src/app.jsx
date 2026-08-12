@@ -16675,7 +16675,7 @@ function HistTab({ s, setS, save }) {
                       the scorecard, the words are the engine's, the row is 44px. */}
                   {(() => { const pg = prophetGrades(s);
                     return (
-                      <div onClick={() => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); }} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); } }} style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.gauge, cursor: "pointer" }}>   /* M2 — a DOOR takes the tappable hue; the row already says its own trust state in words, so the paint was carrying nothing the copy did not */
+                      <div onClick={() => { setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); }} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSecOpen({ ...secOpen, gathering: true, models: true }); setLabOpen("prophet"); } }} style={{ display: "flex", alignItems: "center", minHeight: 44, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.04em", color: T.gauge /* M2 — a DOOR takes the tappable hue; the row says its own trust state in words, so the paint carried nothing the copy did not */, cursor: "pointer" }}>
                         {pg.n >= 2
                           ? `MACHINE TRUST · 7-day weight miss ±${pg.mae} lb ▸`
                           : "MACHINE TRUST · grading its first forecasts ▸"}
