@@ -24,6 +24,14 @@ const PRIVATE = [
   /^tools\//,      // test + maintenance scripts
   /^scripts\//,    // build + ship scripts
   /^\.github\//,   // CI
+  /* Any _-prefixed root DIRECTORY is working material, never site content (Joe's
+     ruling, 2026-08-12: commit + never ship — filed for _design-proposal-now/ and
+     _handoff/, written as a class so the next scratch folder is covered on arrival).
+     DIRECTORY, not path: _redirects and _headers are _-prefixed root FILES on the
+     REQUIRED list, and a bare ^_ would silently unship both — the gate would catch
+     it, but the rule should not be wrong in the first place. The trailing slash in
+     the pattern is what draws that line. */
+  /^_[^/]*\//,     // _design-proposal-now/, _handoff/, and any future _* folder
   /\.md$/,         // CLAUDE.md, HANDOFF.md, BLUEPRINT.md
   /^DEPLOY\.txt$/,
   /^setup\.sh$/,
