@@ -1,9 +1,34 @@
-## NEXT ROUND — THE VOLUME ENGINE (three-audit consolidated verdict, Joe-ruled; filed 2026-08-11)
+## SHIPPED — THE VOLUME ENGINE (v7.46.0, merged 0d513a8) · and the five rounds after it
 
-**BUILD ONLY AFTER the fix/board-p0p1 defects land (Cowork re-drives 354bac7, Joe merges
-v7.45.0). One branch, next free version. VERDICT: NOT YET BUILT.** The build order below
-and the consolidated verdict beneath it are both verbatim; the verdict is the spec of
-record.
+**THIS HEADER READ "NEXT ROUND ... VERDICT: NOT YET BUILT" UNTIL 2026-08-12, LONG AFTER
+IT WAS BUILT.** It sat at line 1 — the first thing every session reads, per CLAUDE.md's
+own START HERE rule — telling each new session to build a round that had already
+shipped. That is the exact defect this repo names as its dominant one: work written
+down and then never reconciled with the code. Fixed here, and the whole shipped run is
+listed so the same thing cannot happen again silently:
+
+| version | round | merge |
+|---|---|---|
+| v7.45.0 | board fix (P0/P1) | — |
+| v7.46.0 | the volume engine — verdict ladder, decoupled budgets, not-falling gate, failure A/B | 0d513a8 |
+| v7.47.0 | progression — honest anchor, diagnosed stall, corrected record band, welded alarm seam, set-one read | 413afe6 |
+| v7.48.0 | nutrition/TDEE — graded priors, honest estimator, unexplained residual, %BW/month cap, dynamic protein, symptom-proposed break, LEA sentinel | 8929150 |
+| v7.49.0 | design — one token system + contrast auditor, tap-color grammar + affordance lint, answer-first decisions, record anatomy | 643013f |
+| v7.50.0 | mini-pass — gate holes closed, fixed-chrome zone, gym command-first, owed-editor labels, collapsed decision cards | bc987d8 |
+| v7.51.0 | **round 6 — THE PROGRESS TAB** (see below) | c15d5ef |
+
+**MAINTENANCE RULE FOR THIS FILE, from the failure above:** when a round merges, its
+header changes from NEXT/BUILDING to SHIPPED *in the same session as the merge*. A
+header is state, not a note. The verdict text below is kept verbatim as the historical
+spec of record — it is what was built against, and several later rounds cite it.
+
+### The original filing, kept verbatim as the spec of record:
+
+~~**BUILD ONLY AFTER the fix/board-p0p1 defects land (Cowork re-drives 354bac7, Joe
+merges v7.45.0). One branch, next free version. VERDICT: NOT YET BUILT.**~~ **← BUILT
+AND MERGED as v7.46.0 (0d513a8). Struck rather than deleted so the status line and the
+spec it belonged to stay legible together.** The build order below and the consolidated
+verdict beneath it are both verbatim; the verdict is the spec of record.
 
 ### AMENDMENT — SECTION F FOLDS IN (Cowork, verbatim, 2026-08-11, filed same day)
 
@@ -23,7 +48,35 @@ blind): the capture sheet's absolute bottom, focus/keyboard, everything after a 
 tap, skip/exit consequences, approve/dismiss/undo/error states, screen-reader/
 Dynamic-Type/landscape.
 
-## BUILDING — ROUND 6: THE PROGRESS TAB (Joe 2026-08-12; branch feat/progress-tab; target v7.51.0)
+## SHIPPED — ROUND 6: THE PROGRESS TAB (v7.51.0, merged c15d5ef, live 2026-08-12T17:37Z)
+
+**Four stages, four cowork re-drives, zero engine refreeze, zero ledger writes.** Merge
+word given on the full-round audit at 6787887. The record below is what was built and
+what was deliberately left; the stage-4 block further down carries the deferrals.
+
+**NOW — NOTHING IS ASSIGNED. The next brief comes from cowork, unprompted: the
+MOTION/INTERACTION pass.** Do not start a QUEUED item below without Joe's say-so. The
+motion pass already carries four named items, all found during round 6 and all ruled
+OUT of it: the four data-deleting spans on NOW · the `Section`-header semantics (plain
+`<div onClick>`, no role/tabIndex/onKeyDown) · the FAB (with the CORRECTED numbers —
+read them, my first filing was wrong) · HISTORY's duplicate back control.
+
+**THE TWO THINGS ROUND 6 SHOULD BE REMEMBERED FOR, because both are about the gates
+rather than the app:**
+
+1. **A budget that had never once run.** The hub's word ceiling shipped in stage 1 as
+   `split(/s+/)` — no backslash — so it split on the LETTER s, reported 18 words for a
+   screen carrying 59, and passed every gate for two stages. Authored through a shell
+   heredoc that ate the escape, and it happened AGAIN mid-repair. **Standing rule now
+   in the file: a budget reading implausibly LOW is a suspect, not a pass.**
+2. **Two honesty sentences were CUT in stage 2 while the commit comment said they had
+   survived.** Nothing in 2,466 assertions could see it, because every assertion in the
+   suite is about what IS rendered and none about what USED to be. The render-smoke
+   HONESTY GUARD now holds three ruled strings; cowork mutation-tested it by changing
+   one word of §P0-2 in a scratch tree and confirming it fails loudly. **A guard nobody
+   has seen fail is a guard nobody has tested.**
+
+**THE ORIGINAL ROUND-6 BRIEF, kept for the record:**
 
 **Sol's generative proposal is in-repo: [ROUND6-SOL-PROPOSAL.md](ROUND6-SOL-PROPOSAL.md).**
 An information-architecture REPLACEMENT of the LEDGER region. "Progress answers. Rooms
