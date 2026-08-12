@@ -5697,7 +5697,7 @@ function owedLedger(s, hour = new Date().getHours()) {
   const tISO = isoOf(todayStart());
   const rows = [];
   const rw = readWindow(s, hour);
-  if (rw.open && !rw.hasRead) rows.push({ k: "scale", d: tISO, t: "THIS MORNING'S SCALE", why: "the read the whole engine steers on — one tap, then the trend absorbs it" });
+  if (rw.open && !rw.hasRead) rows.push({ k: "scale", d: tISO, t: "THIS MORNING'S SCALE", why: "Daily weight updates the trend — one tap, then the trend absorbs it" });
   for (let k = 3; k >= 1; k--) {
     const d = isoOf(new Date(ref.getTime() - k * DAY));
     if (!(s.sleep.nights || []).some((n) => n && n.d === d)) rows.push({ k: "night", d, t: "THE NIGHT OF " + fmtShort(d), why: "bed and wake — three dark nights read as a clean week to every gauge that trusts the record" });
@@ -8048,7 +8048,7 @@ function sweepVolume(s, dow7 = new Date().getDay()) {
     const smw9 = structuralMovesThisWeek(s);
     if (smw9.sets.length) return;   /* R18f-3, evolved by A5 — the give-back waits out VOLUME move weeks only: sets left the scale's budget, so a calorie or step steer no longer holds it */
     ns = ns || JSON.parse(JSON.stringify(s));
-    ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + m.mg + Date.now(), kind: "volume", mg: m.mg, exId: pick.id, dir, title: `VOLUME ${dir > 0 ? "+1" : "−1"} — ${m.mg.toUpperCase()} via ${pick.n}`, body: why + ` ${dir > 0 ? "Adds one set to " + pick.n + " (its strongest mover). The new set arrives as the final set — the effort ladder re-keys itself: it becomes the all-out set, the old final pulls back to 1 in reserve, and its rep target seeds one under your current last set." : "Removes the final set from " + pick.n + " (its weakest mover) — the effort ladder re-keys to the shorter shape automatically."} Two weeks of data before the ledger revisits this muscle.`, at: tISO7 }];
+    ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + m.mg + Date.now(), kind: "volume", mg: m.mg, exId: pick.id, dir, title: `VOLUME ${dir > 0 ? "+1" : "−1"} — ${m.mg.toUpperCase()} via ${pick.n}`, body: why + ` ${dir > 0 ? "Adds one set to " + pick.n + ", its strongest mover. The new set arrives as the final set — the effort ladder re-keys itself: it becomes the all-out set, the old final pulls back to 1 in reserve, and its rep target seeds one under your current last set." : "Removes the final set from " + pick.n + ", its weakest mover — the effort ladder re-keys to the shorter shape automatically."} Two weeks of data before the ledger revisits this muscle.`, at: tISO7 }];
   });
   return ns;
 }
@@ -12442,7 +12442,7 @@ function ApprovalInbox({ s, setS, save, tISO }) {
     <div id="pl-inbox" style={{ fontFamily: mono, fontSize: TS.micro, color: T.dim, letterSpacing: "0.08em", padding: "6px 0" }}>DECISIONS — nothing needs your decision today.</div>
   );
   return (
-    <Group title="DECISIONS" sub="real changes never happen without your OK — each card says what it does, and one tap always undoes it" persistKey={NOW_DOORS.inbox} id="pl-inbox" count={items.length} defaultOpen={true}>
+    <Group title="DECISIONS" sub="Nothing changes without you. One tap always undoes it." persistKey={NOW_DOORS.inbox} id="pl-inbox" count={items.length} defaultOpen={true}>
       {items.map((it) => {
         const n = nudge[it.key] || 0;
         return (
@@ -16069,6 +16069,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
      compressed. See PACE_NOTE for why the threshold is coarse: the evidence
      resolves "under about a minute" versus "not", and nothing finer. */
   const [rests, setRests] = useState({ n: 0, cut: 0 });
+  const [whyOpen9, setWhyOpen9] = useState(false);   /* M4 — the receipt stack's one disclosure */
   const gymKey = "prep-ledger-gymdraft-" + dateSel;
   useEffect(() => {
     try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { if (d.idx != null && sess && sess.ex && d.idx >= sess.ex.length) d.idx = Math.max(0, sess.ex.length - 1);   /* H1 */ setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.touched) setTouched(d.touched);   /* absent on a pre-TOUCH draft -> gymEntries falls back to gskip alone */ setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen);
@@ -16233,7 +16234,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <button onClick={onClose} aria-label="Exit gym mode" style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>exit ✕</button>
         </div>
       </div>
-      {(() => { const me1 = todayMeds(s); return <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim, marginBottom: 6 }}>STIM CHECK — {me1 && me1.taken ? "meds @ " + fmt12(me1.at) + " · effort feels easier mid-peak than it is" : me1 && !me1.taken ? "none today · effort reads truer, energy may run lower" : "meds peak midday · if lifting then, effort feels easier than it is"}</div>; })()}
+      {(() => { if (!(idx === 0 && setN === 0)) return null; const me1 = todayMeds(s); return <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim, marginBottom: 6 }}>STIM CHECK — {me1 && me1.taken ? "meds @ " + fmt12(me1.at) + " · effort feels easier mid-peak than it is" : me1 && !me1.taken ? "none today · effort reads truer, energy may run lower" : "meds peak midday · if lifting then, effort feels easier than it is"}</div>; })()}
       {al2 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, marginBottom: 8 }}>{al2.tier === "RED" ? "⚠ ALARM DAY — RED: convert to a walk or push it a day" : "⚠ ALARM DAY — every 0 becomes a 1 · what you deliver still banks"}</div>}
       {phase === "rest" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 11, minHeight: 0 }}>
@@ -16401,6 +16402,33 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
               ) : ex.w}
               {ex.isDebutNow ? " · FIRST RUN — log what it gives" : ""}
             </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+              {getR(ex).map((r9, i9) => (
+                <div key={i9} style={{ ...tnum, fontSize: 12.5, fontWeight: 700, padding: "9px 0 7px", width: 52, textAlign: "center",
+                  borderBottom: "2px solid " + (i9 < setN ? DT.jade : i9 === setN ? DT.amber : DT.hairline),
+                  color: i9 < setN ? DT.jade : i9 === setN ? DT.amber : DT.dim }}>
+                  {i9 < setN ? r9 + " ✓" : i9 === setN ? "SET " + (i9 + 1) : "—"}
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
+              <button aria-label="one rep less" onClick={() => { touch(ex.id); markAdj(ex.id, setN); const r2 = getR(ex).slice(); r2[setN] = Math.max(0, r2[setN] - 1); setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>−</button>
+              <div>
+                <div style={{ ...tnum, fontSize: 54, fontWeight: 700, textAlign: "center", color: DT.ink }}>{getR(ex)[setN]}</div>
+                <div style={{ ...tnum, fontSize: 9, color: DT.dim, letterSpacing: "0.16em", textAlign: "center", marginTop: 5 }}>REPS · SET {setN + 1} OF {getR(ex).length}</div>
+                {/* M4b — the ONE instruction that changes how the set is performed gets its
+                    own line: it was wrapping mid-thought ("2 IN THE / TANK") under the big
+                    number, subordinate to a position it already states twice above. */}
+                <div style={{ ...tnum, fontSize: 11, color: DT.ink, letterSpacing: "0.10em", textAlign: "center", marginTop: 4, whiteSpace: "nowrap" }}>{rp2.plan[setN] === 0 ? "EMPTY IT" : (rp2.plan[setN] ?? "—") + " IN THE TANK"}</div>
+              </div>
+              <button aria-label="one rep more" onClick={() => { touch(ex.id); markAdj(ex.id, setN); const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>+</button>
+            </div>
+            <button onClick={doneSet} style={{ marginTop: 16, width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: T.gauge, color: T.ink, ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>
+              {setN + 1 < getR(ex).length ? "LOG SET · REST TIMER STARTS" : "LOG SET · ONE QUESTION AFTER"}
+            </button>
+            {/* M4 — the receipts, complete and unchanged, one tap below the command */}
+            <button onClick={() => setWhyOpen9(!whyOpen9)} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, letterSpacing: "0.1em", color: DT.steel, marginTop: 12 }}>{whyOpen9 ? "▾ why this set" : "▸ why this set"}</button>
+            {whyOpen9 ? (<div style={{ marginTop: 4 }}>
             <div style={{ marginTop: 12, padding: "10px 12px", background: DT.well, borderRadius: 12, fontFamily: mono, fontSize: 12, color: DT.steel, letterSpacing: "0.04em", lineHeight: 1.5 }}>
               TARGET <b style={{ color: DT.ink }}>{ex.tgt.join(" · ")}</b>{ex.prev && (ex.prev.reps || []).length ? " — beat last time (" + ex.prev.reps.join("·") + "). Don't sweat one rep — the total is what counts." : " — first time on record: this line is the one everything later gets measured from."}
               <br /><span style={{ color: DT.dim }}>EFFORT, SET BY SET: <b style={{ color: DT.steel }}>{effortWords(rp2.plan, /governor hold/.test(((rp2.why || [])[0]) || ""))}</b>.</span>
@@ -16425,32 +16453,13 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
                 </div>
               );
             })()}
-            <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-              {getR(ex).map((r9, i9) => (
-                <div key={i9} style={{ ...tnum, fontSize: 12.5, fontWeight: 700, padding: "9px 0 7px", width: 52, textAlign: "center",
-                  borderBottom: "2px solid " + (i9 < setN ? DT.jade : i9 === setN ? DT.amber : DT.hairline),
-                  color: i9 < setN ? DT.jade : i9 === setN ? DT.amber : DT.dim }}>
-                  {i9 < setN ? r9 + " ✓" : i9 === setN ? "SET " + (i9 + 1) : "—"}
-                </div>
-              ))}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
-              <button aria-label="one rep less" onClick={() => { touch(ex.id); markAdj(ex.id, setN); const r2 = getR(ex).slice(); r2[setN] = Math.max(0, r2[setN] - 1); setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>−</button>
-              <div>
-                <div style={{ ...tnum, fontSize: 54, fontWeight: 700, textAlign: "center", color: DT.ink }}>{getR(ex)[setN]}</div>
-                <div style={{ ...tnum, fontSize: 9, color: DT.dim, letterSpacing: "0.16em", textAlign: "center", marginTop: 5 }}>REPS · SET {setN + 1} OF {getR(ex).length} · {rp2.plan[setN] === 0 ? "EMPTY IT" : (rp2.plan[setN] ?? "—") + " IN THE TANK"}</div>
-              </div>
-              <button aria-label="one rep more" onClick={() => { touch(ex.id); markAdj(ex.id, setN); const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>+</button>
-            </div>
-            <button onClick={doneSet} style={{ marginTop: 16, width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: T.gauge, color: T.ink, ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>
-              {setN + 1 < getR(ex).length ? "LOG SET · REST TIMER STARTS" : "LOG SET · ONE QUESTION AFTER"}
-            </button>
+            </div>) : null}
           </div>
           {setN > 0 ? (
             <button onClick={undoSet} style={{ fontFamily: mono, fontSize: TS.micro, color: DT.steel, background: "none", border: "1px solid " + DT.hairline, borderRadius: 8, padding: "9px", width: "100%", minHeight: 44, cursor: "pointer" }}>◂ undo last set</button>
           ) : null}
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            {idx > 0 ? <button onClick={goBackLift} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>◂ back a lift</button> : setN === 0 ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim }}>first lift, set 1 — nothing behind you</span> : <span />}
+            {idx > 0 ? <button onClick={goBackLift} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>◂ back a lift</button> : <span style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim }}>◂ nothing behind you</span>}
             <button onClick={skipLift} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>skip lift ▸</button>
           </div>
           <div style={{ flex: 1, minHeight: 0 }} />
@@ -17151,7 +17160,7 @@ function captureAsk(s, hour) {
   /* the ledger is the one owner; this ladder is a VIEW of it plus the two conditions
      that are about the ASK's wording, not the debt (reads-exist, the evening hour) */
   const led = owedLedger(s, hour);
-  if (led.some((r) => r.k === "scale")) return { k: "scale", t: "THIS MORNING'S SCALE", why: "the read the whole engine steers on — one tap, then the trend absorbs it" };
+  if (led.some((r) => r.k === "scale")) return { k: "scale", t: "THIS MORNING'S SCALE", why: "Daily weight updates the trend — one tap, then the trend absorbs it" };
   if (led.some((r) => r.k === "day" && r.d === yISO) && !yl && (s.reads || []).some((r) => r && r.d < tISO)) return { k: "amend", t: "YESTERDAY'S BOOKS ARE STILL OPEN", why: "close " + fmtShort(yISO) + " — an unlogged day is a hole in every average below" };
   if (dl.cal == null && rw.hour >= 17) return { k: "day", t: "CLOSE THE DAY", why: "calories, protein, steps — the three the targets are measured against" };
   if (!rw.hasRead) return { k: "scale", t: "THE SCALE, WHEN YOU GET TO IT", why: "off-window reads are kept and set aside — logged honestly, never fed to the trend" };
@@ -17434,17 +17443,20 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
               const estOn = r.d < yLed && !estOff[r.d];
               return (
                 <div key={r.d + r.k} style={{ borderTop: "1px solid " + DT.hairline, marginTop: GAP_PAIR, paddingTop: GAP_PAIR }}>
-                  <div style={{ ...rowName }}>{r.t}<span style={{ ...tnum9, fontSize: 9.5, letterSpacing: "0.12em", color: DT.dim }}> TARGET-SEEDED</span></div>
+                  <div style={{ ...rowName }}>{r.t}<span style={{ ...tnum9, fontSize: 9.5, letterSpacing: "0.12em", color: DT.dim }}> · PRE-FILLED FROM TARGET</span></div>
                   <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.55, marginTop: 3 }}>{r.why}</div>
                   <div style={{ display: "flex", alignItems: "center", gap: GAP_PAIR, minHeight: ROW9, flexWrap: "wrap" }}>
                     {["cal", "pro", "steps"].map((f9) => (
-                      <input key={f9} value={dv[f9]} inputMode="decimal" aria-label={f9 + " " + r.d}
+                      <div key={f9} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <span style={{ ...tnum9, fontSize: 9, letterSpacing: "0.12em", color: DT.dim }}>{f9 === "cal" ? "CALORIES" : f9 === "pro" ? "PROTEIN g" : "STEPS"}</span>
+                      <input value={dv[f9]} inputMode="decimal" aria-label={f9 + " " + r.d}
                         onFocus={(e) => { try { e.target.select(); } catch (err) {} }}
                         onChange={(e) => setDV({ ...dV, [r.d]: { ...dv, [f9]: e.target.value } })}
-                        style={{ ...tnum9, fontSize: 14, color: DT.ink, background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 8, width: f9 === "steps" ? 64 : 56, padding: "8px 6px", textAlign: "center" }} />
+                        style={{ ...tnum9, fontSize: 16, color: DT.ink, background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 8, width: f9 === "steps" ? 72 : 64, padding: "8px 6px", textAlign: "center" }} />
+                      </div>
                     ))}
                     {r.d < yLed ? <button onClick={() => setEstOff({ ...estOff, [r.d]: !estOff[r.d] })} style={{ background: "none", border: "1px solid " + (estOn ? DT.amber : DT.hairline2), borderRadius: 999, padding: "5px 9px", fontFamily: mono, fontSize: 10, color: estOn ? DT.amber : DT.steel, cursor: "pointer" }}>{estOn ? "≈ estimated" : "exact"}</button> : null}
-                    <Btn small tone="gauge" onClick={() => { const cB = stepValue(dv.cal, 0, 1, 0), pB = stepValue(dv.pro, 0, 1, 0), sB = stepValue(dv.steps, 0, 1, 0); let keptB = []; for (const [kB, vB] of [["cal", cB], ["pro", pB], ["steps", sB]]) { const tkB = typoKeep(kB, vB); if (tkB === "abort") return; if (tkB === "keep") keptB.push([kB, vB]); } let ns = writeDaily(s, r.d, { cal: cB, pro: pB, steps: sB }); for (const [kB, vB] of keptB) ns = typoReceipt(ns, kB, vB); if (estOn) { ns = { ...ns, dayCtx: { ...(ns.dayCtx || {}), [r.d]: { ...((ns.dayCtx || {})[r.d] || {}), est: true, note: "backfilled — rough numbers count" } } }; } setS(ns); save(ns); hap(12); }}>Save</Btn>
+                    <Btn small tone="gauge" onClick={() => { const cB = stepValue(dv.cal, 0, 1, 0), pB = stepValue(dv.pro, 0, 1, 0), sB = stepValue(dv.steps, 0, 1, 0); let keptB = []; for (const [kB, vB] of [["cal", cB], ["pro", pB], ["steps", sB]]) { const tkB = typoKeep(kB, vB); if (tkB === "abort") return; if (tkB === "keep") keptB.push([kB, vB]); } let ns = writeDaily(s, r.d, { cal: cB, pro: pB, steps: sB }); for (const [kB, vB] of keptB) ns = typoReceipt(ns, kB, vB); if (estOn) { ns = { ...ns, dayCtx: { ...(ns.dayCtx || {}), [r.d]: { ...((ns.dayCtx || {})[r.d] || {}), est: true, note: "backfilled — rough numbers count" } } }; } setS(ns); save(ns); hap(12); }}>{"Save " + fmtShort(r.d)}</Btn>
                   </div>
                 </div>);
             })}
@@ -17459,7 +17471,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
           filled and the other is the quiet variant. Two filled greens in one view was the
           defect. */}
       <div data-cap="core" style={rule9}>
-        <div style={lbl9}>THE CORE — WHAT RUNS EVERYTHING</div>
+
         <div style={{ display: "flex", alignItems: "center", gap: SP.md, marginTop: GAP_WITHIN + SP.xs, justifyContent: "center" }}>
           <button aria-label="less" onClick={() => setWIn((x) => stepValue(x, 0.1, -1, 0))} style={{ width: 52, height: 52, borderRadius: 14, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 22, cursor: "pointer" }}>−</button>
           <input value={wIn} inputMode="decimal" aria-label="weight"
@@ -17474,7 +17486,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
         <div style={{ marginTop: SP.lg }} />
         <Btn full tone={heroIs("scale") ? "gauge" : "ghost"} onClick={saveScale}>{readToday ? "Update the scale" : "Log " + wIn + " lb"}</Btn>
         <div style={{ marginTop: GAP_GROUP }}>
-          <div style={lbl9}>CLOSE THE DAY</div>
+          <div style={lbl9}>CLOSE TODAY · {fmtShort(tISO)}</div>
           {stepRow("CALORIES", cal, setCal, 10, dl.cal == null)}
           {stepRow("PROTEIN g", pro, setPro, 5, dl.pro == null)}
           {stepRow("STEPS", stp, setStp, 500, dl.steps == null)}
