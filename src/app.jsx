@@ -11963,6 +11963,7 @@ function nowModelUncached(s, deps) {
   const rng = (pp.ok && pp.banded) ? [pp.lo, pp.hi].filter((x) => x != null).map((x) => Math.round(x)).sort((a, b) => a - b) : [];
   const headed = {
     weight: s.trend,
+    dest: pp.ok ? Math.round(pp.mid) : null, wksOut: pp.ok ? pp.wks : null,
     line: pp.ok ? "about " + pp.wks + " weeks to ~" + Math.round(pp.mid) + (rng.length === 2 ? " (could land " + rng[0] + "–" + rng[1] + ")" : "") : "a few more weigh-ins and the road ahead draws itself",
     bfLine: "body fat: best guess " + Math.round(bf.pct) + "%, honestly " + Math.round(bf.lo) + "–" + Math.round(bf.hi),
     foot: "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK",
@@ -12757,8 +12758,10 @@ function NowTab2({ s, setS, save, go, openRules }) {
         <div style={lbl9}>WHERE YOU'RE HEADED</div>
         {/* CRITIQUE R2 — one alignment logic: a left-anchored column, reading order top-down */}
         <div style={{ marginTop: 7 }}>
-          <div style={{ ...tnum, fontSize: 19, fontWeight: 700 }}>{m.headed.weight} LB</div>
-          <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 4 }}>{m.headed.line}<br />{m.headed.bfLine}</div>
+          {/* A7 — the DESTINATION is the hero; today's trend is the small line; the
+              body-fat band lives in BODY where its receipt is */}
+          <div style={{ ...tnum, fontSize: 19, fontWeight: 700 }}>{m.headed.dest != null ? "~" + m.headed.dest + " LB · ~" + m.headed.wksOut + " WKS" : m.headed.weight + " LB"}</div>
+          <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 4 }}>{m.headed.dest != null ? "now " + m.headed.weight + " lb · " + m.headed.line : m.headed.line}</div>
         </div>
         <div style={{ ...tnum, fontSize: 9, color: DT.dim, letterSpacing: "0.1em", marginTop: 11 }}>{m.headed.foot}</div>
       </div>
@@ -13234,7 +13237,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>{ev.protocol}. Events filed without a make-up day: <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> straight — an event never buys a punishment here: tomorrow runs exactly as planned.</div>
           {evF.closable && (
             <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-              {evF.overdue && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>{evF.stale ? `unfiled for ${Math.abs(evF.days)} days — this stays here until you close it, because a miss you never see is a miss the ledger silently ate` : "waiting on you to close it — the ledger doesn't guess"}</div>}
+              {evF.overdue && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>{Math.abs(evF.days) > 10 ? `unfiled ${Math.abs(evF.days)} days — after 10 this folds to one line; it never expires, it just stops shouting. Close it in the capture sheet` : evF.stale ? `unfiled for ${Math.abs(evF.days)} days — this stays here until you close it, because a miss you never see is a miss the ledger silently ate` : "waiting on you to close it — the ledger doesn't guess"}</div>}
             {/* r3 blocker C — this copy was written for D and D+1 and used to render
                  unconditionally inside evF.closable. On D+4 it told him to put a four-day-old
                  dinner into TONIGHT's log — mis-dated intake landing in the ledger the whole
@@ -14138,6 +14141,8 @@ function LogTab({ s, setS, save, slp }) {
      launcher that offered it. Now the TEMPLATE date never moves; fileAs carries where
      the record lands. A tap may never unmount the control that offered it. */
   const [fileAs, setFileAs] = useState(null);
+  const [extraOpen9, setExtraOpen9] = useState(false);   /* A5 — notes + joint check behind one row */
+  const gymDraftLive9 = (() => { try { return !!localStorage.getItem("prep-ledger-gymdraft-" + dateSel); } catch (e) { return false; } })();   /* A5 — gym mode's measurement wins; the manual hides */
   const fileISO = fileAs || dateSel;
   /* §5 move 1 — was rebuilt on EVERY render, including every keystroke in the notes
      textarea and every stepper tap. slp is sleepInfo(s), so s is the only real input. */
@@ -14276,11 +14281,11 @@ function LogTab({ s, setS, save, slp }) {
             Sunday 8/09 landed as 8/10. The borrow is now declared, with a one-tap switch. */}
         {dayType(tISO, s) === "REST" && !s.sessionLog[tISO] && !s.sessionLog[dateSel] ? (
           <Card accent={T.brass}>
-            <Eyebrow c={T.brass}>REST DAY — WHICH DATE GETS THIS SESSION?</Eyebrow>
-            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>Today reads REST on your split. {fmtShort(dateSel)}’s session template is loaded either way — this only decides which DATE the record lands under. {fileAs ? fmtShort(dateSel) + "’s session, filed under today." : "Filing under " + fmtShort(dateSel) + "."}</div>
-            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-              <Btn small tone={fileAs ? "gauge" : "ghost"} onClick={() => setFileAs(tISO)}>Log as today · {fmtShort(tISO)}</Btn>
-              <Btn small tone={fileAs ? "ghost" : "jade"} onClick={() => setFileAs(null)}>Keep {fmtShort(dateSel)}</Btn>
+            {/* D1 (ruled) — the filing AUTO-FILES under the template date; this one quiet row
+                is the consent surface, visible until the session logs, one tap to change.
+                The filed date prints in the record exactly as always. */}
+            <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, letterSpacing: "0.04em" }}>
+              REST DAY — filed under {fmtShort(fileISO)}{fileAs ? " (today)" : ""} · <button role="button" onClick={() => setFileAs(fileAs ? null : tISO)} style={{ background: "none", border: "none", padding: "10px 4px", margin: "-10px 0", cursor: "pointer", fontFamily: mono, fontSize: TS.label, color: T.gauge, letterSpacing: "0.04em" }}>change</button>
             </div>
           </Card>
         ) : null}
@@ -14394,11 +14399,11 @@ function LogTab({ s, setS, save, slp }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
           <div>
             <Eyebrow c={T.orange}>TODAY'S ONE <Term k="structural" c={T.orange}>CHANGE</Term> — PICKED FOR YOU</Eyebrow>
-            <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 17, letterSpacing: "0.02em", color: T.chalk }}>{sess.structural}</div>{/* was H size 22 — the largest type on the page, competing with the gym button for Tier 0 */}
+            <div style={{ fontFamily: body, fontWeight: 600, fontSize: 13.5, color: T.chalk, lineHeight: 1.5 }}>{sess.structural}</div>{/* A5 — a one-liner tied to its lift; the session owns Tier 0 */}
           </div>
           <button onClick={() => setReorder(!reorder)} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.1em", color: reorder ? T.chalk : T.steel, background: reorder ? T.plate2 : "none", border: `1px solid ${reorder ? T.chalk : T.line}`, borderRadius: 6, padding: "6px 9px", whiteSpace: "nowrap" }}>{reorder ? "DONE" : "REORDER"}</button>
         </div>
-        <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 4 }}>Everything else just chases reps — no limit on that. New weight increases you earn wait in line for their own day.</div>
+        
         <More c={T.orange} deep="One structural change per session keeps the signal clean — when something moves, you know exactly what caused the response. Rep progression stays unlimited because it's the noise-free kind of change. The scheduler auto-picks from the queue in order; doc-approved riders are the only exception."
           forYou="Structural changes queue themselves as you earn them. The full queue lives on QUEUE — it is not restated here." />
       </Card>
@@ -14475,13 +14480,15 @@ function LogTab({ s, setS, save, slp }) {
         {/* Was "records count as pending" on a short night — the retired gate, at the
         top of the page he opens to train. What replaces it says the true thing:
         a short night is context for reading the session, never a verdict on it. */}
-        <Caveat c={slp.clean ? T.jade : T.brass}>{slp.clean ? "NORMAL NIGHT — nothing to caveat" : <>SHORT NIGHT{slp.last && slp.last.h ? " · " + slp.last.h + " h" : ""} — reps still count, records still bank; today just cannot be read as a stall</>}</Caveat>
-        <Caveat><Term k="noonwindow" c={T.steel}>STIM CHECK</Term>{(() => { const me1 = todayMeds(s); if (me1 && me1.taken) return <> — meds @ {fmt12(me1.at)} · effort feels easier mid-peak than it is</>; if (me1 && !me1.taken) return <> — none today · effort reads truer, energy may run lower</>; return <> — meds peak midday · if lifting then, effort feels easier than it is · log it on NOW</>; })()}</Caveat>
+        {slp.clean
+          ? <div style={{ flex: "1 1 100%", fontFamily: lbl, fontWeight: 500, fontSize: TS.label, color: T.dim }}>NORMAL NIGHT — checked, clear</div>
+          : <Caveat c={T.brass}><>SHORT NIGHT{slp.last && slp.last.h ? " · " + slp.last.h + " h" : ""} — reps still count, records still bank; today just cannot be read as a stall</></Caveat>}
+        
       </div>
 
       {(() => { const mv2 = muscleVolume(s); if (!mv2.length) return null; const fS = Object.keys(s.sessionLog).sort()[0]; const matureV = !!fS && (mk(isoOf(todayStart())) - mk(fS)) / DAY >= 14; const eb9 = energyBalanceTarget(s); const hold9 = !(eb9.regime === "free" && eb9.regimeConfirmed);   /* same authority as the allocation card below — the regime, never the exitStart flag (the chip and the card once disagreed on screen; HEAD_BUCKET_NOTE documents that defect class) */ return (
         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, padding: "8px 2px", lineHeight: 1.7 }}>
-          {matureV ? (hold9 ? "THIS WEEK'S SETS · holding, not growing — see below · " : "THIS WEEK'S SETS · your data sanctions growth — see below · ") : "SETS THIS WEEK — counting only, no verdicts until the ledger has 14 days of your logs · "}{(() => { return mv2.map((m) => {
+          {matureV ? ("THIS WEEK'S SETS · " + mv2.filter((m) => m.zone === "IN-BAND").length + " in band ✓ · " + mv2.filter((m) => m.zone === "UNDER" || m.zone === "LOW").length + " low · " + mv2.filter((m) => m.zone === "OVER" || m.zone === "HIGH").length + " high — ") : "SETS THIS WEEK — counting only, no verdicts until the ledger has 14 days of your logs · "}{(() => { return mv2.map((m) => {
             /* While the regime does not sanction growth, red on a muscle below
                the GROWTH band is the app telling him to add work the retention
                evidence says buys nothing — and it would contradict the card
@@ -14518,7 +14525,7 @@ function LogTab({ s, setS, save, slp }) {
                     <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 2 }}>{ex.w} · target {ex.tgt.join(",")}</span>
                   </span>
                   <span style={{ display: "flex", alignItems: "center", gap: SP.xs, flexShrink: 0 }}>
-                    {lc.verdict ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: vc, whiteSpace: "nowrap" }}>{arrow} {lc.verdict}</span> : null}
+                    {lc.verdict && !(lc.verdict === "PUSH" && !(lc.vel < -0.2)) ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: vc, whiteSpace: "nowrap" }}>{arrow} {lc.verdict}</span> : (typeof ex.w === "number" && nextLoad(ex) != null ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.dim, whiteSpace: "nowrap" }}>→ {nextLoad(ex)}</span> : null)}   {/* A6 — exceptions speak; a routine PUSH shows the next load on file instead */}
                     <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>&rsaquo;</span>
                   </span>
                 </button>
@@ -14728,7 +14735,7 @@ function LogTab({ s, setS, save, slp }) {
       ))}
       </Group>
 
-      <Card style={{ padding: 16 }}>
+      {!gymDraftLive9 && (<Card style={{ padding: 16 }}>
       {/* PACE had two owners: Gym Mode measures it from real rest timestamps, TRAIN asked
           him to declare it from memory afterwards. The measurement wins. This control stays
           for the hand-logged path only and is labelled as the fallback it is. */}
@@ -14747,9 +14754,11 @@ function LogTab({ s, setS, save, slp }) {
         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 6, lineHeight: 1.5 }}>
           Gym Mode measures this from your actual rests and needs three of them before it will say anything — if you used it, leave this alone and its measurement stands. This is the fallback for a session logged by hand. RUSHED = under about a minute between sets. Reps still count, but a compressed day cannot count toward a stall, so it never lightens your bar by mistake.
         </div>
-      </Card>
+      </Card>)}
 
-      <Card style={{ padding: 16 }}>
+      {!extraOpen9 ? (
+        <button role="button" onClick={() => setExtraOpen9(true)} style={{ display: "block", width: "100%", minHeight: 44, textAlign: "left", background: "none", border: "none", padding: "10px 0", cursor: "pointer", fontFamily: mono, fontSize: TS.label, letterSpacing: "0.08em", color: T.gauge }}>NOTES + JOINT CHECK ▸ <span style={{ color: T.dim }}>optional — only if something talked</span></button>
+      ) : (<><Card style={{ padding: 16 }}>
         <Eyebrow>SESSION NOTES · OPTIONAL — THE "SET-4 ANOMALY" BOX</Eyebrow>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="anything the numbers missed — your night analyst reads this; the engines only read the numbers…"
           style={{ width: "100%", boxSizing: "border-box", marginTop: 8, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: TS.body, padding: 10, outline: "none", resize: "vertical" }} />
@@ -14768,7 +14777,7 @@ function LogTab({ s, setS, save, slp }) {
           </div>
           <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 8 }}>3 flags on one joint in 3 weeks → it surfaces on NOW. Nothing auto-changes.</div>
         </div>
-      </Card>
+      </Card></>)}
 
       {logged ? (
         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.jade, textAlign: "center", padding: 6 }}>SESSION BANKED — next targets already regenerated.</div>
@@ -16221,6 +16230,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <button onClick={onClose} aria-label="Exit gym mode" style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>exit ✕</button>
         </div>
       </div>
+      {(() => { const me1 = todayMeds(s); return <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim, marginBottom: 6 }}>STIM CHECK — {me1 && me1.taken ? "meds @ " + fmt12(me1.at) + " · effort feels easier mid-peak than it is" : me1 && !me1.taken ? "none today · effort reads truer, energy may run lower" : "meds peak midday · if lifting then, effort feels easier than it is"}</div>; })()}
       {al2 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, marginBottom: 8 }}>{al2.tier === "RED" ? "⚠ ALARM DAY — RED: convert to a walk or push it a day" : "⚠ ALARM DAY — every 0 becomes a 1 · what you deliver still banks"}</div>}
       {phase === "rest" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 11, minHeight: 0 }}>
@@ -17690,13 +17700,14 @@ function MoreTab({ s, go, openRules, openCoach }) {
 
       {/* LAB — the hero row wears its live counts. Outer button is the paint-free hit
           box; the card paint rides the inner span — the standing split law. */}
+      <div style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.16em", color: DT.dim, margin: "14px 0 4px" }}>EXPERT — the machinery, after the daily surfaces</div>
       <button data-led="lab" role="button" onClick={() => go("HIST")} style={{ display: "block", width: "100%", background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
         <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, minHeight: DT.touch, background: DT.card, border: "1px solid " + DT.hairline, borderRadius: DT.radius, padding: "12px 15px", boxSizing: "border-box" }}>
           <span style={{ minWidth: 0, flex: 1 }}>
             <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 17, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase" }}>LAB</span>
             <span style={{ display: "block", fontFamily: body, fontSize: 12, color: DT.steel, marginTop: 2, lineHeight: 1.45 }}>the instruments — every verdict the engine is currently willing to make</span>
           </span>
-          <span style={{ ...tnum, flexShrink: 0, fontSize: 10.5, letterSpacing: "0.06em", color: DT.steel }}>{labAll.length} TOOLS · <span style={{ color: DT.jade }}>{labLive} SPEAKING</span> ▸</span>
+          <span style={{ ...tnum, flexShrink: 0, fontSize: 10.5, letterSpacing: "0.06em", color: DT.steel }}>the instruments ▸</span>{/* A9 — the census lives inside LAB now */}
         </span>
       </button>
 
