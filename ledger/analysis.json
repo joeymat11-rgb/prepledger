@@ -1,17 +1,17 @@
 {
-  "gen": "2026-08-11T09:05:42.409Z",
+  "gen": "2026-08-12T09:07:00.720Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 163.56,
-    "lastRaw": 164,
-    "appTrend": 163.4,
-    "noiseFloor": 1.52,
-    "gap": -0.44
+    "soft": 163.75,
+    "lastRaw": 164.2,
+    "appTrend": 163.6,
+    "noiseFloor": 1.5,
+    "gap": -0.45
   },
   "rate": {
-    "perWeekLb": 0.8,
-    "perWeekPct": 0.49,
-    "bandLb": 0.89,
+    "perWeekLb": 0.62,
+    "perWeekPct": 0.38,
+    "bandLb": 0.88,
     "personalBand": [
       1,
       1.4
@@ -19,13 +19,13 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2810,
-    "tdeeWinDays": 19,
-    "meanCal": 2432,
+    "tdee": 2747,
+    "tdeeWinDays": 20,
+    "meanCal": 2421,
     "waterSensitivityLb": 1.11,
     "waterSensDays": 4,
-    "meanSleepH": 7,
-    "sleepDebt7H": 1,
+    "meanSleepH": 7.1,
+    "sleepDebt7H": 0,
     "ffmKg": 63.4,
     "proteinTargetG": 146
   },
@@ -64,52 +64,20 @@
     },
     {
       "wk": "2026-08-03",
-      "meanCal": 2567,
-      "meanPro": 191,
+      "meanCal": 2536,
+      "meanPro": 189,
       "proHitPct": 100,
-      "meanSteps": 13500
+      "meanSteps": 13671
     },
     {
       "wk": "2026-08-10",
-      "meanCal": 2231,
+      "meanCal": 2255,
       "meanPro": 175,
       "proHitPct": 100,
-      "meanSteps": 19500
+      "meanSteps": 18500
     }
   ],
   "priorDecisions": [
-    {
-      "sid": "sug_2026-08-02_scale",
-      "decided": "approved",
-      "d": "2026-08-03",
-      "title": "Weigh in this morning — three mornings dark, and every gauge is flying on Friday's data",
-      "apply": {
-        "kind": "note"
-      },
-      "predict": "The first read back comes in high — mid-to-high 160s is an estimate, not a promise — then gives back roughly a pound a morning for three or four mornings, the same shape as 7/12 through 7/15, settling near the mid-164s the trend already holds. The test: reads gains 8/3 and 8/4, and the forecast trend moves off 163.9."
-    },
-    {
-      "sid": "sug_2026-08-04_sleep",
-      "decided": "approved",
-      "d": "2026-08-04",
-      "title": "Lights out by 00:30 tonight — Sunday's 01:40 bed cost you 1.3 hours",
-      "apply": {
-        "kind": "sleep",
-        "to": 7.5
-      },
-      "predict": "Bed by 00:30 tonight puts you back at 7–7.5 h. Expect the 7-night debt under 2 h by Thursday, and your next leg day — which carries the 155 debut and the 0-RIR bill — to run without a short night sitting in the middle of it."
-    },
-    {
-      "sid": "sug_2026-08-05_rows_open",
-      "decided": "approved",
-      "d": "2026-08-05",
-      "title": "Open rows at 2 RIR next upper day — it is frozen until you do",
-      "apply": {
-        "kind": "progression",
-        "to": "Rows 180: log the opener at 2 RIR next upper day to release the governor hold"
-      },
-      "predict": "Open rows at 2 RIR next upper day - roughly 180 x 8 rather than 9 - and the hold releases in that session, putting 185 back in reach off 10,10. Leave the opener hot and 180 cannot climb however good the reps look, which is a slower and much less obvious way to lose the lift."
-    },
     {
       "sid": "sug_2026-08-05_hamcounter",
       "decided": "approved",
@@ -181,6 +149,30 @@
         "to": "Set back the five 8/9 volume additions by hand: hack 4 to 3, abs 4 to 3, curls 4 to 3, triceps 4 to 3, rows 3 to 2. Keep Friday's three (hams, chest, rear delt)."
       },
       "predict": "Set the five back and the next upper day gives attributable conversion reads on chest and rear delt — the two pushes that actually had an argument. Leave them and I expect at least two 'did not convert' verdicts inside a fortnight that neither of us can assign a cause to. Grade on entry counts: next upper day triceps 3 / curls 3 / rows 2, next lower day hack 3 / abs 3."
+    },
+    {
+      "sid": "sug_2026-08-11_morningread",
+      "decided": "noted",
+      "d": "2026-08-11",
+      "title": "Weigh in the morning, not at night — you did step on the scale yesterday and the app binned it",
+      "apply": null,
+      "predict": ""
+    },
+    {
+      "sid": "sug_2026-08-11_press4th",
+      "decided": "noted",
+      "d": "2026-08-11",
+      "title": "Press: next upper day, either give the fourth set an honest set or run three — Sunday's best press scored nothing",
+      "apply": null,
+      "predict": ""
+    },
+    {
+      "sid": "sug_2026-08-11_ham125rung",
+      "decided": "noted",
+      "d": "2026-08-11",
+      "title": "Check the ham machine actually makes 125 before you debut it — the hack number went wrong exactly this way",
+      "apply": null,
+      "predict": ""
     }
   ],
   "suggestions": []

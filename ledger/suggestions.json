@@ -1,52 +1,33 @@
 {
-  "gen": "2026-08-11T09:05:42.409Z",
+  "gen": "2026-08-12T09:07:00.720Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-11_morningread",
+      "sid": "sug_2026-08-12_press4th",
       "rank": 1,
-      "title": "Weigh in the morning, not at night — you did step on the scale yesterday and the app binned it",
+      "title": "Press tomorrow: four honest sets or three — don't repeat Sunday's 8,8,7,4",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "A single reading is noise around a slow trend, so the trend only works if the readings are taken under the same conditions each time; overnight fluid and food shifts are exactly the confound a fixed morning window removes (Article III; DASH-Sodium / Juraschek 2020 on how much water alone moves the number).",
-        "data": "Your last clean, usable morning read is 8/6 at 162.8 — five days ago. Since then: 8/8 read filed evening and set aside, 8/9 morning read flagged for salt, 8/10 read filed evening and set aside. On 8/10 the ledger recorded both MORNING READ MISSED (priced at 0.02 lb/wk of rate precision) and a discarded evening read on the same day.",
-        "relationship": "You are not skipping the scale — you are weighing at the wrong end of the day, which is a different problem with a different fix. Every rate number in front of you right now (your app's 1.15/wk, the engine's 0.80/wk) is extrapolating from that one 8/6 morning, which is why the two disagree."
+        "science": "On a cut you defend load rather than chase volume, and a working set is one taken near 1-3 reps in reserve. A fourth set that stops less than half way to the other three isn't extra stimulus — it's an extra slot on the scorecard that the session then fails (Schoenfeld 2017; Robinson 2024; Grgic 2021).",
+        "data": "8/6: press 250 x 8,8,7 drew PRESS - TARGET MET. 8/9: the identical top three plus a fourth set at 4 reps drew no press row at all, while rows, tricep, sulek and lateral each got one from that same session. Press still reads 4 sets on file and tomorrow is an upper day.",
+        "relationship": "Chest went 3 to 4 sets on 8/7, so the target list re-keyed to four slots and the app's target check needs every slot met. A 4-rep fourth set fails the whole conjunction and the lift scores nothing, however good the top three were. The target list isn't saved with the session, so this mechanism is my best guess rather than a proven fact - but the observable isn't a guess: the best press in your record scored zero and the set count was the only thing that changed."
       },
-      "predict": "One in-window morning read tomorrow re-anchors the trend and closes the gap between the two rate figures. I expect it to land 162.8–163.6 if the four maintenance days cost what I think they did. Grade it on reads gaining an 8/12 entry with offWindow absent, and on the app's rate moving off 1.15.",
-      "confidence": "high",
+      "predict": "Run four sets with an honest fourth, or run three, and press draws a feed row tomorrow. Repeat 8,8,7,4 and it draws nothing again and 250 stays ungraded a second session. Withdrawal clause, restated: if you log four sets with a short fourth and press DOES produce a row, my reading is wrong and I'll retire it.",
+      "confidence": "medium",
       "gate": "approve"
     },
     {
-      "sid": "sug_2026-08-11_press4th",
+      "sid": "sug_2026-08-12_trialghost",
       "rank": 2,
-      "title": "Press: next upper day, either give the fourth set an honest set or run three — Sunday's best press scored nothing",
-      "apply": {
-        "kind": "progression",
-        "to": "Press 250 next upper day: run 3 working sets, or run 4 with the fourth taken to 1-2 reps in reserve like the first three. Do not repeat 8,8,7 plus a 4-rep tail."
-      },
+      "title": "The A/B your app started yesterday isn't on file — check for an arm before you train, and don't re-tap it",
+      "apply": { "kind": "note" },
       "rationale": {
-        "science": "On a cut you defend load rather than chase volume, and a set taken far short of failure adds fatigue without adding the stimulus that justifies it (Schoenfeld 2017; Robinson 2024; Grgic 2021).",
-        "data": "250 x 8,8,7 drew PRESS — TARGET MET on 8/6. The identical top three plus a fourth set at 4 reps on 8/9 drew no press feed row at all, while rows, triceps, sulek and lateral each got one from the same session. Press is the only lift from Friday's push still at 4 sets.",
-        "relationship": "My best read is that chest going 3 to 4 sets on 8/7 gave the target a fourth slot that a 4-rep set fails, killing the whole grade — but the target list isn't saved with your sessions, so I can't verify that and you should treat it as a guess. What is not a guess: your best press scored zero and set count was the only thing that changed. Withdrawal clause stands — if the next upper day produces a press row with four sets logged and no load change, my reading is wrong and I'll retire it."
+        "science": "An A/B is worth its cost only because the assignment is recorded; that's the whole difference between it and just watching. Your own app says this about its Friday-vs-Tuesday comparison — without a controlled assignment it is 'a hint worth having, not a finding.' An unrecorded trial charges you the protocol and pays you no evidence.",
+        "data": "The feed carries TRIAL STARTED - THE FAILURE A/B - TRICEP CAPPED vs SULEK ALL-OUT dated 8/11. The trials list in your synced state is empty.",
+        "relationship": "A started trial is stored as { custom, started } with no id and no date. The sync merge keys trials on id or d and its union helper drops any record whose key comes back empty. So the trial dies at the first sync while the dated feed row survives - which is exactly the pair you're looking at. The decline path writes the same shape, so passing on it wouldn't stick either, and the guard that stops the proposal re-offering reads that same empty list."
       },
-      "predict": "Run three sets, or four honest ones, and 250 produces a press feed row on the next upper day and the ownership repeat can finally bank. Repeat Sunday's shape and I expect no press row again — a third session where the best press in your file counts for nothing.",
-      "confidence": "medium",
-      "gate": "approve"
-    },
-    {
-      "sid": "sug_2026-08-11_ham125rung",
-      "rank": 3,
-      "title": "Check the ham machine actually makes 125 before you debut it — the hack number went wrong exactly this way",
-      "apply": {
-        "kind": "note"
-      },
-      "rationale": {
-        "science": "Progressive overload only reads as progress if the load on the record is the load that was moved; a debut onto a rung that doesn't physically exist corrupts the lift's history rather than advancing it (Article IX — never let an instrument report what wasn't measured).",
-        "data": "Ham 125 is queued live and undone (q_ham_125, state DEBUT), earned honestly off 120 x 12,12,11 — four reps clear of last time against your own measured spread of 2.7. Your app filed the question itself on 8/10: 'does this machine actually make 125 next? If not, fix the ladder in SETUP.' Separately on the same day, hack had to be record-corrected from a filed 160 to the 180 x 9,9,10 you actually did, because the weight editor only walked the ladder already on file.",
-        "relationship": "Same failure mode, one day apart: the app can only offer rungs it already knows about, so an unverified ladder either blocks a load you can do or debuts one you can't. Thirty seconds in SETUP before the next lower day is the whole fix."
-      },
-      "predict": "Confirm or correct the rung and the 125 debut runs against a real number, and hack's reps-are-the-ladder rule holds cleanly at the 180 top. Skip it and the next lower day either stalls on a rung that isn't there or files a load you didn't move.",
-      "confidence": "medium",
+      "predict": "Tomorrow's upper day prescribes no arm for tricep or sulek, and the same failure A/B can reappear in your inbox asking for consent again — re-tapping writes the identical unkeyable record. If tomorrow's protocol does name an arm for either lift, I've read this wrong and I'll withdraw it.",
+      "confidence": "high",
       "gate": "approve"
     }
   ]
