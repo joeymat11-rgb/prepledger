@@ -423,6 +423,15 @@ A10 dev chrome off · A11 copy micro-bundle · the five nutrition riders R1–R4
 here (R5 done) · A12 seeds round 5 only. Scope fences: gym mode/capture sheet/
 decision detail UNGRADED — mechanical changes only; V8 capture artifact is not a bug.
 
+## SEEDED — ROUND 5: THE MOMENT/INSTALL LAYER (A12; design round seeds only, builds after the statics)
+
+The earned-moment beat (brass rule, slight scale, ONE haptic — no confetti, charter) ·
+app icon: the ◆ in brass on ink · themed splash/status bar · home-badge count ·
+widget/lock-screen "eat band + status + next session" · a motion vocabulary honoring
+reduce-motion. ON-DEVICE iOS PWA VALIDATION PRECEDES SPECCING (badge/wake-lock limits).
+Follow-up mini-pass also queued: gym mode / capture sheet / decision detail remain
+UNGRADED by any leg — supplement shots exist; redesign waits for that pass.
+
 ## QUEUED — FIVE NUTRITION LOW RIDERS (audit, 2026-08-11; file on the BRIEF-dedup/design round)
 
 R1 · ~3070: the surplus-band why renders a dangling unit token — "...% BW/MONTH (the

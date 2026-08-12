@@ -80,13 +80,13 @@ function hexA(hex, a) {
 const PALETTE = {
   dark: {
     ink: "#101418", plate: "#181E24", plate2: "#1F262E", line: "#2A323B",
-    chalk: "#E8E4DA", steel: "#8A94A0", dim: "#5A636E",
-    jade: "#4CC38A", brass: "#E5B454", orange: "#F5793A", redline: "#E8556B", gauge: "#3FB4D8",
+    chalk: "#E8E4DA", steel: "#8A94A0", dim: "#848E9A",   /* A1 — was #5A636E (2.76:1 on plate): the queued 3.0-3.2 class, killed by the auditor */
+    jade: "#4CC38A", brass: "#E5B454", orange: "#F5793A", redline: "#F0697E", gauge: "#3FB4D8",
     hairline: "rgba(90,99,110,0.4)",
   },
   light: {
     ink: "#F4F2ED", plate: "#FFFFFF", plate2: "#F0EDE6", line: "#DBD6CC",
-    chalk: "#1A1F25", steel: "#5C646E", dim: "#A8AEB6",
+    chalk: "#1A1F25", steel: "#5C646E", dim: "#6E7680",   /* A1 — was #A8AEB6 (2.24:1 on paper) */
     jade: "#14663F", brass: "#8A6520", orange: "#B4471A", redline: "#B3123C", gauge: "#0E6C87",
     hairline: "rgba(168,174,182,0.55)",
   },
@@ -104,6 +104,7 @@ const resolveTheme = (choice) => (choice === "light" || choice === "dark") ? cho
 function applyTheme(choice) {
   const mode = resolveTheme(choice);
   Object.assign(T, PALETTE[mode]);
+  Object.assign(DT, DT_PALETTE[mode]);   /* A1 — the second token system dies: DT themes with T */
   T.focus = T.gauge;
   SEM.good.c = T.jade; SEM.caution.c = T.orange; SEM.limit.c = T.redline;
   SEM.measured.c = T.brass; SEM.quiet.c = T.steel;
@@ -240,11 +241,29 @@ const SP = { hair: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48, h
    - Glyphs are geometric, never emoji: status ◆ · empty/ok ◇ · forward ▸ · separator ·
    THE ENGINE IS FROZEN through every R15 slice — tools/engine-diff.mjs holds that line in
    the gate; these tokens may change how a number LOOKS, never what it IS. */
+/* A1 (design round) — ONE TOKEN SYSTEM. DT was a hardcoded dark island: NOW/gym
+   built plates on it while THEMED text landed on top — light mode rendered the app's
+   most important numbers at 1.10:1 (V1, the round's P0). DT is now THEMED like T:
+   applyTheme assigns DT_PALETTE[mode], dark values verbatim (dark mode is
+   byte-identical), light gets true paper. The CI contrast auditor
+   (tools/contrast-audit.mjs, in the gate) holds every resolved pair ≥ 4.5 in BOTH
+   themes — no hand recolor ships without it. */
+const DT_PALETTE = {
+  dark: {
+    bg: "#07090C", bg2: "#0A0D11", card: "#11151B", card2: "#151A21", well: "#0D1116",
+    hairline: "#222A34", hairline2: "#2C3642",
+    ink: "#E9EEF4", steel: "#8D9AAB", dim: "#7C8794",   /* RB-2 — was #5C6875 (~3.1:1 on card); 4.6:1 now, still a step under steel: quiet, legible */
+    jade: "#5ED4A2", amber: "#E5B454", red: "#E06056", decision: "#5FB7E8",
+  },
+  light: {
+    bg: "#F4F2ED", bg2: "#EFECE5", card: "#FFFFFF", card2: "#F5F2EB", well: "#ECE8E0",
+    hairline: "#D8D3C9", hairline2: "#C9C3B8",
+    ink: "#1A1F25", steel: "#525A64", dim: "#5D656F",
+    jade: "#14663F", amber: "#7A5A1C", red: "#B3123C", decision: "#0E6C87",
+  },
+};
 const DT = {
-  bg: "#07090C", bg2: "#0A0D11", card: "#11151B", card2: "#151A21", well: "#0D1116",
-  hairline: "#222A34", hairline2: "#2C3642",
-  ink: "#E9EEF4", steel: "#8D9AAB", dim: "#7C8794",   /* RB-2 — was #5C6875 (~3.1:1 on card); 4.6:1 now, still a step under steel: quiet, legible */
-  jade: "#5ED4A2", amber: "#E5B454", red: "#E06056", decision: "#5FB7E8",
+  ...DT_PALETTE.dark,
   radius: 18, grid: 4, space: [4, 8, 12, 16, 24],
   ramp: [9, 10.5, 12, 13.5, 15, 19, 24, 32, 54],
   track: { small: "0.20em", mid: "0.10em", display: "0.04em" },
@@ -335,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.48.0";
+const APP_V = "7.49.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -1262,7 +1281,7 @@ function genSession(s, iso, slp) {
      named with its measured distance, so "rep progression day" reads as a location. */
   const nearest = (() => {
     const c9 = ex.map((l9) => { const m9 = l9.runway && l9.runway.match(/^(\S+) EARNS AT THE TOP OF THE WINDOW \([^)]*\) — you are (\d+) rep/); return m9 ? { n: l9.n, up: m9[1], d: +m9[2] } : (l9.runway && /you are there/.test(l9.runway) ? { n: l9.n, up: (l9.runway.split(" ")[0]), d: 0 } : null); }).filter(Boolean).sort((a9, b9) => a9.d - b9.d);
-    return c9.length ? " · nearest earn: " + c9[0].n + ", " + (c9[0].d === 0 ? "at the line" : c9[0].d + " rep" + (c9[0].d === 1 ? "" : "s") + " from " + c9[0].up) : "";
+    return c9.length ? " · closest to a new weight: " + c9[0].n + ", " + (c9[0].d === 0 ? "at the line" : c9[0].d + " rep" + (c9[0].d === 1 ? "" : "s") + " away from " + c9[0].up) : "";
   })();
   return { name: dt === "U" ? "UPPER" : "LOWER", structural: main ? main.t : "none queued — rep progression day" + nearest, structuralId: main ? main.id : null, riderIds: riders.map((r) => r.id), ex };
 }
@@ -1861,23 +1880,8 @@ function anchorTighten(s) {
   return { pct: bf.pct, lo: bf.lo, hi: bf.hi, wks: bf.wks, src: s.model.src, eye, dexa, steps };
 }
 
-/* ---------- PROTEIN_NOTE — why the number is no longer a constant ----------
-   175 g was hard-coded. The current best evidence scales protein to FAT-FREE
-   MASS, not bodyweight, and says so with numbers: Refalo, Trexler & Helms
-   (2025) meta-regressed 29 studies / 729 participants and found the per-FFM
-   model's interval EXCLUDES zero (b = 0.06 [0.01, 0.12], 99% probability of
-   direction) while the per-bodyweight model's does not (b = 0.07 [-0.01, 0.14]).
-   Scaling to lean mass is therefore the better-supported unit, not a preference.
-
-   Two numbers matter. 2.5 g/kg FFM is where the trend line crosses zero — the
-   floor below which protein stops reliably protecting lean mass. And the
-   sub-group with the LARGEST coefficient is lean males under 12.2% body fat
-   (b = 0.12, 94% probability) — leaner means more return per gram, which is the
-   opposite of the intuition that a smaller person needs less.
-
-   So: the floor tracks his measured lean mass, and crossing 12.2% body fat
-   steps the target up, because that is where his own subgroup's evidence gets
-   stronger. It never drops below the house number he already runs. */
+/* (retired note — the 12.2% switch this block described was REMOVED in the
+   nutrition round; the N5 comment inside proteinTarget is the living record) */
 const PROTEIN_FLOOR_G_PER_KG = 2.5;
 function proteinTarget(s) {
   const bf = bfEst(s);
@@ -3067,7 +3071,7 @@ function energyBalanceTargetUncached(s, opts) {
     const hi = td.tdee + kcalFor(BC.BULK_REDLINE_PCT);
     return { ...cur, ...base, dir: "surplus", provisional: unconfirmed, lo, hi, mid: Math.round((lo + hi) / 2),
       capPct: BC.BULK_REDLINE_PCT, perLb: ed.perLb,
-      why: `Lifts are not rising and the scale rate is indistinguishable from zero — the fat term is exhausted, so the only remaining way to move body composition is to build. ${lo}–${hi} is a surplus capped at ${+(BC.BULK_REDLINE_PCT * 4.345).toFixed(2)} %BW/MONTH (the settled monthly cap) %bw/wk.`,
+      why: `Lifts are not rising and the scale rate is indistinguishable from zero — the fat term is exhausted, so the only remaining way to move body composition is to build. ${lo}–${hi} is a surplus capped at ${+(BC.BULK_REDLINE_PCT * 4.345).toFixed(2)} %BW/MONTH (the settled monthly cap).`,
       doesNotBuy: "The cap is defensible, not optimal. The only trial in trained lifters ran at 18% of its own required sample size; what is well supported is that a bigger surplus reliably adds fat, not that it builds faster." };
   }
 
@@ -3451,7 +3455,7 @@ const BC = {
   BULK_LEAN_CEIL_PCT: 0.0921,   // N4 — 0.4 %BW/MONTH ÷ 4.345, reconciled INSIDE the monthly corridor (the old 0.15/wk = 0.65/month also broke the cap)
   BULK_LEAN_BASE: 0.55, BULK_LEAN_SLOPE: 0.60, BULK_LEAN_MIN: 0.15, BULK_LEAN_MAX: 0.60,
   // PROTEIN · the partition lever. CUT lean-retention floor is FFM-based and already derived in
-  // proteinTarget (2.5 g/kg FFM: Refalo 2025 zero-crossing for net FFM change; Helms 2014;
+  // proteinTarget (2.5 g/kg FFM: the 2025 Bayesian meta-regression's zero-crossing for net FFM change, authorship TBC; Helms 2014;
   // Longland 2016, where 2.4 g/kg recomposed in a deficit). BULK MPS saturates at ~1.6 g/kg BW
   // (Morton 2018 meta-analysis) — no added hypertrophy above it.
   BULK_PROTEIN_G_PER_KG_BW: 1.6,   // Morton 2018
@@ -4211,7 +4215,7 @@ function autoPilot(s, mode) {
   const steerHandled = apSteerHandled(s, isoOf(todayStart()));
   if (steerHandled) proposed = false;
   // protein as a body-comp lever — the partition depends on it. Flag if the last logged day is
-  // under the derived lean-retention floor (proteinTarget.lo = 2.5 g/kg FFM; Refalo/Helms/Longland).
+  // under the derived lean-retention floor (proteinTarget.lo = 2.5 g/kg FFM; 2025 Bayesian meta-regression [authorship TBC]/Helms/Longland).
   const pt = proteinTarget(s);
   // Cut floor = FFM-based lean-retention (proteinTarget.lo, 2.5 g/kg FFM). Bulk floor = MPS
   // saturation, 1.6 g/kg BW (Morton 2018) — direction-aware, both from BC / the derived target.
@@ -4344,7 +4348,7 @@ function whyThisNumber(s, deps) {
     ? `Hold your ${modeLabel} line — ~${ap.targetPct}%BW/wk.`
     : `${cap(act)} toward your ${modeLabel} line — from ~${ap.pctRate}%BW/wk to ~${ap.targetPct}%BW/wk (≈${ap.corrKcal} kcal).`;
   let pt = null; try { pt = proteinTarget(s); } catch (e) {}
-  const rationale = `Measured from your own trend: ~${ap.pctRate}%BW/wk over n=${ap.n} mornings, observed TDEE ~${ap.tdee} kcal. The corridor is engine-owned (Garthe 2011 ≈0.7%/wk for the best body-comp change; the redline guards muscle)${pt ? `, and protein holds at ${pt.g} g (${pt.lo}–${pt.hi}) — 2.5 g/kg FFM, the lean-retention floor (Refalo/Helms)` : ""}.`;
+  const rationale = `Measured from your own trend: ~${ap.pctRate}%BW/wk over n=${ap.n} mornings, observed TDEE ~${ap.tdee} kcal. The corridor is engine-owned (Garthe 2011 ≈0.7%/wk for the best body-comp change; the redline guards muscle)${pt ? `, and protein holds at ${pt.g} g (${pt.lo}–${pt.hi}) — 2.5 g/kg FFM, the lean-retention floor (2025 Bayesian meta-regression, authorship TBC; Helms)` : ""}.`;
   let fx = null; try { fx = forecast(s); } catch (e) {}
   const projection = fx && fx.ok && fx.confident && fx.etaMid != null
     ? `On this line, ~${fx.etaMid} wks to ${fx.targetPct}% BF (range ${fx.etaFast}–${fx.etaSlow} wks — the fan widens with distance, not a promise).`
@@ -6104,8 +6108,8 @@ function labAnalytics2(s) {
     const pred = Math.round(bmr * 1.55);
     return { id: "adaptmeter", t: "THE UNEXPLAINED RESIDUAL", status: obs ? "LIVE" : "ARMED", prog: { n: obs ? 1 : 0, need: 1, label: "observed maintenance (prints with clean post-seal weeks)" },
       tag: "How much has the deficit slowed your engine, in kcal?",
-      deep: "Predicted burn = Mifflin-St Jeor at your live weight (BMR ~" + bmr + ") × 1.55 for your activity pattern — a textbook estimate, stated as such. Observed burn = the maintenance your own ledger measures. The gap is adaptive thermogenesis: the metabolic slowdown dieting causes. It's the single number that sizes September's reverse — eat to the OBSERVED number fast, then build.",
-      forYou: obs ? `Textbook says ~${pred}. Your ledger says ~${obs.tdee}. Adaptation: ~${pred - obs.tdee > 0 ? pred - obs.tdee : 0} kcal — ${pred - obs.tdee > 250 ? "real but normal for week " + weekDay().wk + "; the MATADOR card is the counter-move." : "small. Your engine is holding remarkably well."}` : "Arms with the first clean post-seal maintenance print (Mon 7/27+). The textbook half is already computed and waiting.",
+      deep: "Predicted burn = Mifflin-St Jeor at your live weight (BMR ~" + bmr + ") × 1.55 for your activity pattern — a textbook estimate, stated as such. Observed burn = the maintenance your own ledger measures. The gap is the UNEXPLAINED RESIDUAL — textbook minus measured, which folds adaptation, activity drift and log error together. It informs the forecast, never a phase move — and at the exit you still eat to the OBSERVED number.",
+      forYou: obs ? `Textbook says ~${pred}. Your ledger says ~${obs.tdee}. Unexplained residual: ~${pred - obs.tdee > 0 ? pred - obs.tdee : 0} kcal — ${pred - obs.tdee > 250 ? "real but normal for week " + weekDay().wk + " — it informs the forecast; nothing counters it, and nothing needs to." : "small. Your engine is holding remarkably well."}` : "Arms with the first clean post-seal maintenance print (Mon 7/27+). The textbook half is already computed and waiting.",
       lines: [] };
   });
 
@@ -6907,8 +6911,8 @@ function dayProtocol(s, slp) {
        at -0.031 on the lean-mass effect size, with ~500 kcal/day predicted to
        blunt lean-mass gains entirely. Nothing else on this page is that big.
      - Protein scaled to FAT-FREE MASS is the next lever, and it is the one with
-       an interval that excludes zero (Refalo, Trexler & Helms 2025 meta-
-       regression, 29 studies, 729 participants: per-FFM b = 0.06 [0.01, 0.12],
+       an interval that excludes zero (the 2025 Bayesian deficit-protein
+       meta-regression, authorship TBC — 29 studies, 729 participants: per-FFM b = 0.06 [0.01, 0.12],
        99% probability of direction; the per-bodyweight model's interval does
        NOT exclude zero). That is why the target below is computed off lean mass.
      - The session itself is the entire training stimulus, so on a training day
@@ -8072,7 +8076,12 @@ function isLabFeedLine(f) {
   return !!(f && typeof f.t === "string" && f.t.indexOf("LAB LIVE — ") === 0);
 }
 function diaryFeed(s, n) {
-  return (s.feed || []).filter((f) => f && f.t && !isLabFeedLine(f)).slice(0, n || 12);
+  /* A3/V2 — dedupe-on-render (belt to the patchV27 guard): consecutive identical
+     {d,t,how} rows render once; the record stays honest, its twin was noise */
+  const rows = (s.feed || []).filter((f) => f && f.t && !isLabFeedLine(f));
+  const out = [];
+  for (const f of rows) { const p = out[out.length - 1]; if (p && p.d === f.d && p.t === f.t && p.how === f.how) continue; out.push(f); }
+  return out.slice(0, n || 12);
 }
 function sweepLab(s, dow = new Date().getDay()) {
   let st0 = sweepStalls(s); if (st0) s = st0;
@@ -8237,7 +8246,7 @@ function runAdaptive(state, todayISO, raOpts) {
   const sealed = daysUntil(s.blackout.until) > 0;
   const r = currentRate(s);
   if (!sealed && r.measured && r.rates.slice(-2).length === 2 && r.rates.slice(-2).every((x) => x < cutRateBand(s).floor))
-    propose("floor_" + monday, "RATE FLOOR TRIPPED", `Two weeks under ${cutRateBand(s).floor}/wk (${r.rates.slice(-2).map((x) => x.toFixed(1)).join(", ")}). Your rule: steps below baseline → restore them FIRST. At baseline already → steps-vs-a-~50-kcal-trim is an ADHERENCE EXPERIMENT, not a hierarchy — run whichever you will actually keep.`, { kind: "note" });
+    propose("floor_" + monday, "TWO SLOW WEEKS — YOUR RULE KICKS IN", `Weight loss ran under ${cutRateBand(s).floor} lb/wk for two straight weeks (${r.rates.slice(-2).map((x) => x.toFixed(1)).join(" and ")} lb/wk). Your rule: steps below baseline → restore them FIRST. At baseline already → steps-vs-a-~50-kcal-trim is an ADHERENCE EXPERIMENT, not a hierarchy — run whichever you will actually keep.`, { kind: "note" });
 
   /* STEPS ITEM B — the PUSH card. Steps first, food as the alternative: the same apply
      machinery arms both (kind cal + stepsDelta), and the athlete's pick lands as the
@@ -9228,7 +9237,7 @@ function patchV28(s) {
 function patchV27(s) {
   const had = (s.agentProposals || []).some((ap) => ap.kind === "volume");
   s.agentProposals = (s.agentProposals || []).filter((ap) => ap.kind !== "volume");
-  if (had) { s.feed = s.feed || []; s.feed.unshift({ d: isoOf(todayStart()), t: "VOLUME PROPOSALS RECALLED", how: "cold-start misfire — the ledger compared your first logged week against a week before this app existed. It now waits for 14 full days of your logs and speaks on Sundays, two proposals at most." }); }
+  if (had && !(s.feed || []).some((f) => f && f.t === "VOLUME PROPOSALS RECALLED")) { s.feed = s.feed || []; s.feed.unshift({ d: isoOf(todayStart()), t: "VOLUME PROPOSALS RECALLED", how: "cold-start misfire — the ledger compared your first logged week against a week before this app existed. It now waits for 14 full days of your logs and speaks on Sundays, two proposals at most." }); }
   s.v = 27; return s;
 }
 function patchV26(s) {
@@ -9718,7 +9727,7 @@ class TabGuard extends React.Component {
         <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 6 }}>Your data is safe — this is a display error, and the other tabs still work.</div>
         <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 6 }}>{this.state.err.message}</div>
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-          <Btn small tone="jade" onClick={() => this.setState({ err: null })}>Try again</Btn>
+          <Btn small tone="gauge" onClick={() => this.setState({ err: null })}>Try again</Btn>
           <Btn small onClick={() => { try { navigator.clipboard.writeText(report); } catch (e) {} }}>Copy report</Btn>
           <Btn small onClick={() => { try { localStorage.setItem("prep-ledger-crash", report); alert("Saved. Open LAB → Ask the Analyst and ask: diagnose my last crash"); } catch (e) {} }}>Ask the Analyst</Btn>
         </div>
@@ -9808,7 +9817,7 @@ function KitApp({ spec, onExit }) {
           <Eyebrow c={T.jade}>{spec.vocab.walk.toUpperCase()}</Eyebrow>
           {day.walkMin >= spec.walkGoalMin ? <div style={{ fontFamily: body, fontSize: F(15), color: T.jade, marginTop: 6 }}>✓ done — {day.walkMin} minutes</div> : (
             <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
-              {[spec.walkGoalMin, spec.walkGoalMin + 15].map((m2) => <Btn key={m2} tone="jade" onClick={() => up({ walkMin: m2 })}><span style={{ fontSize: F(13) }}>{m2} min ✓</span></Btn>)}
+              {[spec.walkGoalMin, spec.walkGoalMin + 15].map((m2) => <Btn key={m2} tone="gauge" onClick={() => up({ walkMin: m2 })}><span style={{ fontSize: F(13) }}>{m2} min ✓</span></Btn>)}
             </div>
           )}
         </Card>
@@ -9817,7 +9826,7 @@ function KitApp({ spec, onExit }) {
         <Card style={{ marginTop: 10 }}>
           <Eyebrow>{spec.vocab.weight.toUpperCase()}</Eyebrow>
           {day.weight ? <div style={{ fontFamily: mono, fontSize: F(15), color: T.jade, marginTop: 6 }}>✓ {day.weight} {spec.weightUnit}</div> : (
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}><Stepper v={w2} set={setW2} step={0.5} min={60} /><Btn small tone="jade" onClick={() => up({ weight: w2 })}>Save</Btn></div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}><Stepper v={w2} set={setW2} step={0.5} min={60} /><Btn small tone="gauge" onClick={() => up({ weight: w2 })}>Save</Btn></div>
           )}
         </Card>
       )}
@@ -9835,7 +9844,7 @@ function KitApp({ spec, onExit }) {
           {day.bp ? <div style={{ fontFamily: mono, fontSize: F(14), color: T.jade, marginTop: 6 }}>✓ {day.bp} on file</div> : (
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
               <Stepper v={bp1} set={setBp1} step={2} min={70} /><span style={{ color: T.steel }}>/</span><Stepper v={bp2} set={setBp2} step={2} min={40} />
-              <Btn small tone="jade" onClick={() => up({ bp: bp1 + "/" + bp2 })}>Save</Btn>
+              <Btn small tone="gauge" onClick={() => up({ bp: bp1 + "/" + bp2 })}>Save</Btn>
             </div>
           )}
           <div style={{ fontFamily: body, fontSize: F(TS.body), color: T.steel, marginTop: 7 }}>{spec.safety}</div>
@@ -10054,7 +10063,7 @@ function AskLedger({ s, setS, save, onClose }) {
       <div style={{ display: "flex", gap: 8, paddingTop: 10, borderTop: `1px solid ${T.line}` }}>
         <input value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && ask()} placeholder="ask anything about your data…"
           style={{ flex: 1, fontFamily: body, fontSize: TS.body, padding: "11px 12px", borderRadius: 9, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, outline: "none" }} />
-        <Btn small tone="jade" onClick={ask}>{busy ? "…" : "Ask"}</Btn>
+        <Btn small tone="gauge" onClick={ask}>{busy ? "…" : "Ask"}</Btn>
       </div>
     </div>
   );
@@ -10096,7 +10105,7 @@ function ApiKeyBlock() {
       <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 5, lineHeight: 1.5 }}>Two locks, two keys: the GitHub token files your data; this Anthropic key answers questions about it. Both live only on this phone — neither syncs, neither replaces the other. Get one at console.anthropic.com → API Keys.</div>
       <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
         <input value={v} onChange={(e) => { setV(e.target.value); setSaved(false); }} placeholder="sk-ant-…" style={{ flex: 1, fontFamily: mono, fontSize: TS.micro, padding: "9px 10px", borderRadius: 8, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, outline: "none" }} />
-        <Btn small tone="jade" onClick={() => { try { v.trim() ? localStorage.setItem(ANTH_KEY, v.trim()) : localStorage.removeItem(ANTH_KEY); setSaved(true); } catch (e) {} }}>{saved ? "Saved ✓" : "Save"}</Btn>
+        <Btn small tone="gauge" onClick={() => { try { v.trim() ? localStorage.setItem(ANTH_KEY, v.trim()) : localStorage.removeItem(ANTH_KEY); setSaved(true); } catch (e) {} }}>{saved ? "Saved ✓" : "Save"}</Btn>
       </div>
     </div>
   );
@@ -10158,7 +10167,7 @@ function MinuteView({ s, setS, save, onClose }) {
         <div style={{ maxWidth: 480, margin: "60px auto 0", textAlign: "center" }}>
           <div style={{ fontSize: 44, color: T.jade }}>✓</div>
           <div style={{ fontFamily: body, fontSize: 15, color: T.chalk, marginTop: 10 }}>Morning banked — the day's yours.</div>
-          <Btn tone="jade" full style={{ marginTop: 18 }} onClick={onClose}>Close</Btn>
+          <Btn tone="gauge" full style={{ marginTop: 18 }} onClick={onClose}>Close</Btn>
         </div>
       )}
       <div style={{ maxWidth: 480, margin: "0 auto", width: "100%" }}>
@@ -10176,7 +10185,7 @@ function MinuteView({ s, setS, save, onClose }) {
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
             {["woke", "screens", "mela"].map((tg) => <span key={tg} onClick={() => setTags9(tags9.includes(tg) ? tags9.filter((x) => x !== tg) : [...tags9, tg])} style={{ fontFamily: mono, fontSize: TS.micro, color: tags9.includes(tg) ? T.brass : T.steel, border: `1px solid ${tags9.includes(tg) ? T.brass : T.line}`, borderRadius: 999, padding: "5px 10px" }}>{tg === "woke" ? "woke mid-night" : tg === "mela" ? "melatonin" : "screens"}</span>)}
           </div>
-          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.sleep.nights = ns.sleep.nights.filter((n) => n.d !== y9); ns.sleep.nights.push({ d: y9, h: spanH, bed: bed9, wake: wake9, sol: sol9, tags: tags9 }); })}>Bank the night →</Btn>
+          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.sleep.nights = ns.sleep.nights.filter((n) => n.d !== y9); ns.sleep.nights.push({ d: y9, h: spanH, bed: bed9, wake: wake9, sol: sol9, tags: tags9 }); })}>Bank the night →</Btn>
         </div>
       )}
       {cur === "weight" && (
@@ -10185,7 +10194,7 @@ function MinuteView({ s, setS, save, onClose }) {
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Scale, fasted</div>
           <Cond how="Same scale, minimal clothing, same spot on the floor." when="After the bathroom, before food or water. Same order every morning or the number drifts for reasons that are not you." />
           <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={wt9} set={setWt9} step={0.1} min={100} /><span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>lb</span></div>
-          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.reads = ns.reads.filter((r) => r.d !== t9); const r2 = applyRead(ns, t9, +wt9); Object.assign(ns, r2); })}>{blackoutOn(s, t9) ? "Log weight (quarantined) →" : "Log weight →"}</Btn>
+          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.reads = ns.reads.filter((r) => r.d !== t9); const r2 = applyRead(ns, t9, +wt9); Object.assign(ns, r2); })}>{blackoutOn(s, t9) ? "Log weight (quarantined) →" : "Log weight →"}</Btn>
         </div>
       )}
       {cur === "energy" && (
@@ -10214,7 +10223,7 @@ function MinuteView({ s, setS, save, onClose }) {
             ))}
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-            <Btn full tone="jade" onClick={() => w9((ns) => { ns.soreness = [...(ns.soreness || []).filter((x) => x.d !== t9), { d: t9, mgs: sore9.slice() }]; })}>{sore9.length ? "Log soreness →" : "Nothing sore ✓ →"}</Btn>
+            <Btn full tone="gauge" onClick={() => w9((ns) => { ns.soreness = [...(ns.soreness || []).filter((x) => x.d !== t9), { d: t9, mgs: sore9.slice() }]; })}>{sore9.length ? "Log soreness →" : "Nothing sore ✓ →"}</Btn>
           </div>
         </div>
       )}
@@ -10227,7 +10236,7 @@ function MinuteView({ s, setS, save, onClose }) {
             <div style={{ flex: 1 }}><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>LEFT (lb)</div><input inputMode="decimal" value={gl9} onChange={(e9) => setGl9(e9.target.value)} style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 16, padding: "10px", outline: "none", marginTop: 4 }} /></div>
             <div style={{ flex: 1 }}><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>RIGHT (lb)</div><input inputMode="decimal" value={gr9} onChange={(e9) => setGr9(e9.target.value)} style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 16, padding: "10px", outline: "none", marginTop: 4 }} /></div>
           </div>
-          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.grip = [...(ns.grip || []).filter((x) => x.d !== t9), { d: t9, l: +gl9 || null, r: +gr9 || null }]; })}>Log grip →</Btn>
+          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.grip = [...(ns.grip || []).filter((x) => x.d !== t9), { d: t9, l: +gl9 || null, r: +gr9 || null }]; })}>Log grip →</Btn>
         </div>
       )}
       {cur === "pulse" && (
@@ -10235,7 +10244,7 @@ function MinuteView({ s, setS, save, onClose }) {
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Morning pulse</div>
           <Cond how="Count beats for 60 seconds, or 30 and double it." when="Within a few minutes of waking, still lying down, before coffee, food, or getting up. Already up and moving? Skip it — a contaminated number is worse than none." />
           <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={bpm9} set={setBpm9} step={1} min={30} /><span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>bpm</span></div>
-          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.pulse = [...(ns.pulse || []).filter((x) => x.d !== t9), { d: t9, bpm: bpm9 }]; })}>Log pulse →</Btn>
+          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.pulse = [...(ns.pulse || []).filter((x) => x.d !== t9), { d: t9, bpm: bpm9 }]; })}>Log pulse →</Btn>
         </div>
       )}
       {cur === "temp" && (
@@ -10243,7 +10252,7 @@ function MinuteView({ s, setS, save, onClose }) {
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Temperature</div>
           <Cond how="Same thermometer, same site, every single time." when="Right after waking, before food, drink, or a shower. Anything warm in your mouth invalidates it." />
           <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={tf9} set={setTf9} step={0.1} min={90} /><span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>°F</span></div>
-          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.temp = [...(ns.temp || []).filter((x) => x.d !== t9), { d: t9, f: +tf9 }]; })}>Log temp →</Btn>
+          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={() => w9((ns) => { ns.temp = [...(ns.temp || []).filter((x) => x.d !== t9), { d: t9, f: +tf9 }]; })}>Log temp →</Btn>
         </div>
       )}
       {cur === "brief" && (
@@ -10256,11 +10265,11 @@ function MinuteView({ s, setS, save, onClose }) {
               <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>THE ANALYST ASKS — 10 SECONDS, BECOMES LABELED DATA</div>
               <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
                 <input value={ans9} onChange={(e) => setAns9(e.target.value)} placeholder="your answer…" style={{ flex: 1, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8, color: T.chalk, fontFamily: body, fontSize: TS.body, padding: "9px 10px", outline: "none" }} />
-                <Btn small tone="jade" onClick={() => { if (!ans9.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: t9, t: "ANALYST ANSWER", how: qm9[1].slice(0, 120) + " → " + ans9.trim() }); setS(ns); save(ns); setAns9(""); }}>File it</Btn>
+                <Btn small tone="gauge" onClick={() => { if (!ans9.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: t9, t: "ANALYST ANSWER", how: qm9[1].slice(0, 120) + " → " + ans9.trim() }); setS(ns); save(ns); setAns9(""); }}>File it</Btn>
               </div>
             </div>
           )}
-          <Btn full tone="jade" style={{ marginTop: 14 }} onClick={advance}>Done ☀</Btn>
+          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={advance}>Done ☀</Btn>
         </div>
       )}
       <div onClick={advance} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, textAlign: "center", marginTop: 16, cursor: "pointer" }}>conditions not right? skip — its card stays open on NOW, and a skip is never a miss</div>
@@ -10429,7 +10438,7 @@ function BriefCard({ s, setS: setS2, save: save2 }) {
           <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.06em" }}>THE ANALYST ASKS — 10 SECONDS, BECOMES LABELED DATA</div>
           <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
             <input value={ans} onChange={(e) => setAns(e.target.value)} placeholder="your answer…" style={{ flex: 1, fontFamily: body, fontSize: TS.body, padding: "9px 10px", borderRadius: 8, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, outline: "none" }} />
-            <Btn small tone="jade" onClick={() => { if (!ans.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: isoOf(todayStart()), t: "ANALYST ANSWER", how: qm[1].slice(0, 120) + " → " + ans.trim().slice(0, 200) }); setS2 && setS2(ns); save2 && save2(ns); setAnswered(true); }}>File it</Btn>
+            <Btn small tone="gauge" onClick={() => { if (!ans.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: isoOf(todayStart()), t: "ANALYST ANSWER", how: qm[1].slice(0, 120) + " → " + ans.trim().slice(0, 200) }); setS2 && setS2(ns); save2 && save2(ns); setAnswered(true); }}>File it</Btn>
           </div>
         </div>
       )}
@@ -10471,7 +10480,7 @@ function RndDesk({ s, setS: sS, save: sv }) {
             {!filed ? (
               <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
                 <input value={ruling} onChange={(e) => setRuling(e.target.value)} placeholder="your ruling…" style={{ flex: 1, fontFamily: body, fontSize: TS.body, padding: "9px 10px", borderRadius: 8, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, outline: "none" }} />
-                <Btn small tone="jade" onClick={() => { if (!ruling.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: isoOf(todayStart()), t: "RND VERDICT", how: ruling.trim().slice(0, 220) }); sS && sS(ns); sv && sv(ns); setFiled(true); }}>File ruling</Btn>
+                <Btn small tone="gauge" onClick={() => { if (!ruling.trim()) return; const ns = JSON.parse(JSON.stringify(s)); ns.feed.unshift({ d: isoOf(todayStart()), t: "RND VERDICT", how: ruling.trim().slice(0, 220) }); sS && sS(ns); sv && sv(ns); setFiled(true); }}>File ruling</Btn>
               </div>
             ) : <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.jade, marginTop: 7 }}>✓ filed — the desk reads it on Sunday's run</div>}
           </div>
@@ -11055,7 +11064,7 @@ __test.bfEst = bfEst;
 __test.migrate = migrate;
 __test.PARTITION_ANCHORS_TO_NARROW = PARTITION_ANCHORS_TO_NARROW;
 __test.targetsFor = targetsFor;
-__test.runAdaptive = runAdaptive; __test.isPristineSeed = isPristineSeed; __test.sleepMean3At = sleepMean3At; __test.progressStep = progressStep; __test.setOneRead = setOneRead; __test.deloadLoad = deloadLoad; __test.progressAnchor = __test.progressAnchor || progressAnchor; __test.VOL_SESS_CAP = VOL_SESS_CAP; __test.VOL_REVIEW_HI = VOL_REVIEW_HI; __test.DELIVERED_MAJ = DELIVERED_MAJ; __test.REVIEW_OUTCOME_D = REVIEW_OUTCOME_D; __test.restoreOfferStands = restoreOfferStands; __test.clearRestoreOffer = clearRestoreOffer; __test.labGroupsM = labGroupsM; __test.restoreFromCloud = restoreFromCloud; __test.mergeState = __test.mergeState || mergeState; __test.dossierText = __test.dossierText || dossierText; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
+__test.runAdaptive = runAdaptive; __test.isPristineSeed = isPristineSeed; __test.sleepMean3At = sleepMean3At; __test.progressStep = progressStep; __test.PALETTE = PALETTE; __test.DT_PALETTE = DT_PALETTE; __test.setOneRead = setOneRead; __test.deloadLoad = deloadLoad; __test.progressAnchor = __test.progressAnchor || progressAnchor; __test.VOL_SESS_CAP = VOL_SESS_CAP; __test.VOL_REVIEW_HI = VOL_REVIEW_HI; __test.DELIVERED_MAJ = DELIVERED_MAJ; __test.REVIEW_OUTCOME_D = REVIEW_OUTCOME_D; __test.restoreOfferStands = restoreOfferStands; __test.clearRestoreOffer = clearRestoreOffer; __test.labGroupsM = labGroupsM; __test.restoreFromCloud = restoreFromCloud; __test.mergeState = __test.mergeState || mergeState; __test.dossierText = __test.dossierText || dossierText; __test.applyAgentProposal = applyAgentProposal; __test.dismissAgentProposal = dismissAgentProposal;
 __test.stepKcal = stepKcal;
 __test.stepEfficacy = stepEfficacy;
 __test.DT = DT;
@@ -11614,7 +11623,7 @@ function signalReadCopy(s, sig) {
   let sentence;
   switch (sig.state) {
     case "measured": sentence = losing ? "The cut is working — this week's drop is real now, not noise." : "The gain is real now — the trend has left the noise behind."; break;
-    case "measurable": sentence = "The trend is leaning, but not certain yet — a few more clean mornings and it's called."; break;
+    case "measurable": sentence = "The trend is leaning, but not certain yet — a few more clean mornings and we'll know."; break;
     case "reversed": sentence = "The trend has turned the wrong way — worth a look before it settles in."; break;
     case "calibrating": sentence = "Still learning your baseline — keep logging and the read sharpens."; break;
     default: sentence = "This week is still inside your noise — no real change to read yet.";
@@ -11682,7 +11691,7 @@ function registerGroup(key, setter) {
 function openGroup(key) { try { if (typeof window !== "undefined" && window.__plGroups && window.__plGroups[key]) window.__plGroups[key](true); } catch (e) {} }
 function scrollToId(id, delay = 80) {
   if (typeof document === "undefined") return;
-  setTimeout(() => { try { const el = document.getElementById(id); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: reduceMotionOn() ? "auto" : "smooth", block: "center" }); } catch (e) {} }, delay);
+  setTimeout(() => { try { const el = document.getElementById(id); if (el && el.scrollIntoView) el.scrollIntoView({ behavior: reduceMotionOn() ? "auto" : "smooth", block: "start" });   /* A2 — every consumer here is a GROUP or door: start is the honest landing (center put the athlete 1,539px into a 3,922px list) */ } catch (e) {} }, delay);
 }
 /* oweTarget — the WHAT YOU OWE deep-link map (unit-tested via __test): which
    collapsed group to force-open and which element to scroll to, keyed by the owed
@@ -11907,8 +11916,8 @@ function nowModelUncached(s, deps) {
     gated: !!eb.gated, lo: eb.gated ? null : eb.lo, hi: eb.gated ? null : eb.hi,
     tag: eb.provisional && !eb.gated ? "FIRST ESTIMATE" : null,
     sub: eb.gated ? "A few more logged days and the range appears — the coach never guesses a number this important."
-      : (eb.dir === "deficit" ? "Eating a bit less than you burn — that's the plan working." : eb.dir === "surplus" ? "Eating a bit more than you burn — building costs fuel, and that's the plan." : "Eating about what you burn — holding steady is the plan right now.") + (eb.provisional ? " This range firms up after your next weigh-in." : ""),
-    proteinG: pt.g, proteinNote: "IF IT'S A MEAL, EAT THE PROTEIN FIRST",
+      : (eb.dir === "deficit" ? "" : eb.dir === "surplus" ? "Eating a bit more than you burn — building costs fuel, and that's the plan." : "Eating about what you burn — holding steady is the plan right now.") + (eb.provisional ? " This range firms up after your next weigh-in." : ""),
+    proteinG: pt.g, proteinNote: weekDay().wk <= 4 ? "IF IT'S A MEAL, EAT THE PROTEIN FIRST" : null,   /* A11 — a first-weeks tip, not a permanent fixture */
   };
   /* TODAY'S MOVE — the coach picks ONE thing (§1: a coach that surfaces everything at
      once is a dashboard; one that picks is a coach). Unanswered decision cards outrank
@@ -11919,9 +11928,16 @@ function nowModelUncached(s, deps) {
   const rb = cutRateBand(s);
   const cr = currentRate(s);
   let move;
-  if (decisionsN > 0) move = { kind: "decisions", n: decisionsN,
-    title: decisionsN === 1 ? "ONE DECISION WAITS ON YOU" : decisionsN + " DECISIONS WAIT ON YOU",
-    body: "Real changes never happen without your OK. Each card says what it does in plain words, and one tap always undoes it. Tap here to open them." };
+  if (decisionsN > 0) {
+    /* A2 — ANSWER-FIRST: the headline IS decision #1 (verb + object, the engine's own
+       card title); its one-line effect follows; "+N more" is quiet metadata. The
+       philosophy paragraph lives on the decisions surface header now. */
+    const first9 = (s.proposals || []).find((p) => p && !p.resolved) || (s.agentProposals || [])[0] || null;
+    const eff9 = first9 ? String(first9.why || first9.body || "").split(". ")[0] : "";
+    move = { kind: "decisions", n: decisionsN,
+      title: first9 ? String(first9.title || "ONE DECISION WAITS") : "ONE DECISION WAITS",
+      body: (eff9 ? eff9 + (/[.!?]$/.test(eff9) ? "" : ".") + " " : "") + "One tap decides — and one tap always undoes it." + (decisionsN > 1 ? "  +" + (decisionsN - 1) + " more ▸" : "") };
+  }
   else if (fix.state === "caution") move = { kind: "fix", lever: fix.lever, title: _plain9(String(fix.title || "").toUpperCase()), body: _plain9(fix.body) };
   else if (cr.measured && !eb.gated && (cr.scale > rb.band[1] || cr.scale < rb.band[0]))
     move = { kind: "rate", title: "HOW FAST YOU'RE LOSING", strip: _rateStrip(rb, cr), body: _rateWord(rb, cr) };
@@ -11947,6 +11963,7 @@ function nowModelUncached(s, deps) {
   const rng = (pp.ok && pp.banded) ? [pp.lo, pp.hi].filter((x) => x != null).map((x) => Math.round(x)).sort((a, b) => a - b) : [];
   const headed = {
     weight: s.trend,
+    dest: pp.ok ? Math.round(pp.mid) : null, wksOut: pp.ok ? pp.wks : null,
     line: pp.ok ? "about " + pp.wks + " weeks to ~" + Math.round(pp.mid) + (rng.length === 2 ? " (could land " + rng[0] + "–" + rng[1] + ")" : "") : "a few more weigh-ins and the road ahead draws itself",
     bfLine: "body fat: best guess " + Math.round(bf.pct) + "%, honestly " + Math.round(bf.lo) + "–" + Math.round(bf.hi),
     foot: "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK",
@@ -12256,7 +12273,7 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
       {level === "propose" && tr.cleanStreak >= 3 && (
         <div style={{ marginTop: SP.sm, padding: SP.md, border: `1px solid ${T.line}`, borderLeft: `3px solid ${T.brass}`, borderRadius: 8, background: T.plate }}>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, lineHeight: `${LH.body}px` }}>You've matched my last {tr.cleanStreak} calls within your own noise — want me to handle routine adjustments and just tell you? You can switch back anytime.</div>
-          <div style={{ marginTop: SP.sm }}><Btn small tone="jade" onClick={() => setAutonomy("autonotice")}>Let Auto-Pilot handle routine →</Btn></div>
+          <div style={{ marginTop: SP.sm }}><Btn small tone="gauge" onClick={() => setAutonomy("autonotice")}>Let Auto-Pilot handle routine →</Btn></div>
         </div>
       )}
 
@@ -12418,10 +12435,11 @@ function ApprovalInbox({ s, setS, save, tISO }) {
      auto-opens on first visit ONLY when a MATERIAL item exists (a phase/exit change
      or an engine cal/rate proposal, pri ≤ 1); softer suggestions wait quietly behind
      the count. The count is a plain T.gauge numeral, never a red dot or a streak. */
-  if (items.length === 0) return null;
-  const material = items.some((it) => it.pri <= 1);
+  if (items.length === 0) return (
+    <div id="pl-inbox" style={{ fontFamily: mono, fontSize: TS.micro, color: T.dim, letterSpacing: "0.08em", padding: "6px 0" }}>DECISIONS — nothing needs your decision today.</div>
+  );
   return (
-    <Group title="FOR YOU TO OK" sub="changes waiting on your tap" persistKey={NOW_DOORS.inbox} id="pl-inbox" count={items.length} defaultOpen={material}>
+    <Group title="DECISIONS" sub="real changes never happen without your OK — each card says what it does, and one tap always undoes it" persistKey={NOW_DOORS.inbox} id="pl-inbox" count={items.length} defaultOpen={true}>
       {items.map((it) => {
         const n = nudge[it.key] || 0;
         return (
@@ -12469,7 +12487,7 @@ function ApprovalInbox({ s, setS, save, tISO }) {
             )}
             <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
               {it.does ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.chalk, width: "100%", marginBottom: 2 }}>{it.does}</div> : null}
-              {it.approve && <Btn small tone="jade" onClick={() => { it.approve(n); if (it.dial) setNudge({ ...nudge, [it.key]: 0 }); }}>{it.approveLabel(n)}</Btn>}
+              {it.approve && <Btn small tone="gauge" onClick={() => { it.approve(n); if (it.dial) setNudge({ ...nudge, [it.key]: 0 }); }}>{it.approveLabel(n)}</Btn>}
               {it.altApprove && <Btn small onClick={() => { it.altApprove(n); if (it.dial) setNudge({ ...nudge, [it.key]: 0 }); }}>{it.altLabel}</Btn>}
               <Btn small onClick={it.dismiss}>Dismiss</Btn>
             </div>
@@ -12587,7 +12605,7 @@ function PhaseArcCard({ s, setS, save, tISO }) {
           : armed
           ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>a phase change is waiting in your inbox &darr;</div>
           : (prop && prop.apply && prop.apply.kind === "break")
-          ? <Btn small tone="jade" onClick={() => armProposal(prop)}>{sup.kind === "forceBreak" ? "Plan the diet break →" : "Plan a diet break →"}</Btn>
+          ? <Btn small tone="gauge" onClick={() => armProposal(prop)}>Plan a diet break →</Btn>
           : <Btn small onClick={planBreak}>Plan a diet break →</Btn>}
       </div>
     </Card>
@@ -12676,7 +12694,7 @@ function NowTab2({ s, setS, save, go, openRules }) {
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>The phone's copy was wiped (iOS does this to apps it hasn't opened in a while) — but your ledger lives in the cloud and one tap brings it back. Anything you log before restoring is kept; the merge never shrinks.</div>
           {restoreErr ? <div style={{ fontFamily: mono, fontSize: 11, color: T.brass, marginTop: 6 }}>The cloud fetch failed ({restoreErr}) — the app works fine meanwhile; try again on signal.</div> : null}
           <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-            <Btn small tone="jade" onClick={() => { if (restoreBusy) return; setRestoreBusy(true); setRestoreErr(null); restoreFromCloud(s).then((ns) => { clearRestoreOffer(); setS(ns); save(ns); setRestoreBusy(false); hap(12); }).catch((e) => { setRestoreErr(String(e && e.message || e).slice(0, 40)); setRestoreBusy(false); }); }}>{restoreBusy ? "Restoring…" : "Restore my ledger"}</Btn>
+            <Btn small tone="gauge" onClick={() => { if (restoreBusy) return; setRestoreBusy(true); setRestoreErr(null); restoreFromCloud(s).then((ns) => { clearRestoreOffer(); setS(ns); save(ns); setRestoreBusy(false); hap(12); }).catch((e) => { setRestoreErr(String(e && e.message || e).slice(0, 40)); setRestoreBusy(false); }); }}>{restoreBusy ? "Restoring…" : "Restore my ledger"}</Btn>
             <Btn small onClick={() => (openRules ? openRules() : go("LEDGER"))}>Re-link keys (sync + analyst)</Btn>
             <Btn small onClick={() => { clearRestoreOffer(); const ns = { ...s }; setS(ns); save(ns); }}>Not now</Btn>
           </div>
@@ -12704,13 +12722,13 @@ function NowTab2({ s, setS, save, go, openRules }) {
           : (<>
             <div style={{ display: "flex", alignItems: "baseline", gap: 7, marginTop: 9, flexWrap: "wrap" }}>
               <span style={{ ...tnum, fontSize: 32, fontWeight: 700 }}>{m.eat.lo}</span><span style={{ fontFamily: mono, color: DT.dim, fontSize: 32, fontWeight: 300, lineHeight: 1, alignSelf: "center", marginTop: -3 }}>–</span><span style={{ ...tnum, fontSize: 32, fontWeight: 700 }}>{m.eat.hi}</span><span style={{ ...tnum, fontSize: 11, color: DT.dim, letterSpacing: "0.12em" }}>KCAL</span>
-              {m.eat.tag && <span style={{ ...tnum, fontSize: 9, letterSpacing: "0.14em", color: DT.amber, border: "1px solid rgba(229,180,84,.35)", borderRadius: 999, padding: "3px 8px" }}>{m.eat.tag}</span>}
+              {m.eat.tag && <span style={{ ...tnum, fontSize: 9, letterSpacing: "0.14em", color: DT.amber }}>{m.eat.tag}</span>}{/* A4/D3 — a label, not a pill: non-tappable brass never wears a button shape */}
             </div>
             <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, marginTop: 9, lineHeight: 1.5 }}>{m.eat.sub}</div>
-            <div style={{ ...tnum, fontSize: 12.5, marginTop: 11, letterSpacing: "0.04em" }}>{m.eat.proteinG} G PROTEIN <span style={{ color: DT.dim, fontSize: 10.5, letterSpacing: "0.08em" }}>· {m.eat.proteinNote}</span></div>
+            <div style={{ ...tnum, fontSize: 12.5, marginTop: 11, letterSpacing: "0.04em" }}>{m.eat.proteinG} G PROTEIN{m.eat.proteinNote ? <span style={{ color: DT.dim, fontSize: 10.5, letterSpacing: "0.08em" }}> · {m.eat.proteinNote}</span> : null}</div>
           </>)}
       </div>
-      <div data-now="move" style={{ ...card9, cursor: m.move.kind === "decisions" ? "pointer" : "default" }} onClick={m.move.kind === "decisions" ? () => go("BRIEF") : undefined} role={m.move.kind === "decisions" ? "button" : undefined} tabIndex={m.move.kind === "decisions" ? 0 : undefined}>
+      <div data-now="move" style={{ ...card9, cursor: m.move.kind === "decisions" ? "pointer" : "default" }} onClick={m.move.kind === "decisions" ? () => { go("BRIEF"); openGroup(NOW_DOORS.inbox); scrollToId("pl-inbox"); } : undefined} role={m.move.kind === "decisions" ? "button" : undefined} tabIndex={m.move.kind === "decisions" ? 0 : undefined}>
         <div style={lbl9}>{m.move.kind === "rate" ? m.move.title : "TODAY'S MOVE"}</div>
         {m.move.kind === "rate"
           ? (<><BandStrip g={m.move.strip} /><div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.55, marginTop: 5 }}>{m.move.body}</div></>)
@@ -12733,15 +12751,17 @@ function NowTab2({ s, setS, save, go, openRules }) {
               is the round-2 paint byte-for-byte — the side-caps pill — and no slop
               arithmetic can ever move it again. The rig may read the box a shade over 64
               (DPR rounding); the law is ≥64, and the derivation here is the contract. */}
-          <span style={{ ...tnum, display: "inline-block", fontSize: 10.5, letterSpacing: "0.12em", color: DT.jade, borderLeft: "1px solid rgba(94,212,162,.35)", borderRight: "1px solid rgba(94,212,162,.35)", borderTop: "none", borderBottom: "none", padding: "9px 14px", borderRadius: 999, fontWeight: 700, background: "none" }}>START ▸</span>
+          <span style={{ ...tnum, display: "inline-block", fontSize: 10.5, letterSpacing: "0.12em", color: T.gauge, borderLeft: `1px solid ${T.gauge}59`, borderRight: `1px solid ${T.gauge}59`, borderTop: "none", borderBottom: "none", padding: "9px 14px", borderRadius: 999, fontWeight: 700, background: "none" }}>START ▸</span>
         </button>
       </div>
       <div data-now="headed" style={card9}>
         <div style={lbl9}>WHERE YOU'RE HEADED</div>
         {/* CRITIQUE R2 — one alignment logic: a left-anchored column, reading order top-down */}
         <div style={{ marginTop: 7 }}>
-          <div style={{ ...tnum, fontSize: 19, fontWeight: 700 }}>{m.headed.weight} LB</div>
-          <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 4 }}>{m.headed.line}<br />{m.headed.bfLine}</div>
+          {/* A7 — the DESTINATION is the hero; today's trend is the small line; the
+              body-fat band lives in BODY where its receipt is */}
+          <div style={{ ...tnum, fontSize: 19, fontWeight: 700 }}>{m.headed.dest != null ? "~" + m.headed.dest + " LB · ~" + m.headed.wksOut + " WKS" : m.headed.weight + " LB"}</div>
+          <div style={{ fontFamily: body, fontSize: 11.5, color: DT.steel, lineHeight: 1.5, marginTop: 4 }}>{m.headed.dest != null ? "now " + m.headed.weight + " lb · " + m.headed.line : m.headed.line}</div>
         </div>
         <div style={{ ...tnum, fontSize: 9, color: DT.dim, letterSpacing: "0.1em", marginTop: 11 }}>{m.headed.foot}</div>
       </div>
@@ -12753,7 +12773,7 @@ function NowTab2({ s, setS, save, go, openRules }) {
             (away from START); the inner circle sits at its top-left, which puts the paint
             exactly where round 2 painted it: right edge 10+12 = 22 from the screen edge,
             bottom 50+12 = 62 — the round-2 16+6 / 56+6, by construction. */}
-        <span style={{ display: "block", width: 52, height: 52, borderRadius: "50%", background: DT.amber, color: "#141008", fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", textAlign: "center" }}>+</span>
+        <span style={{ display: "block", width: 52, height: 52, borderRadius: "50%", background: T.gauge, color: T.ink, fontFamily: disp, fontWeight: 700, fontSize: 28, lineHeight: "52px", textAlign: "center" }}>+</span>
       </button>
       <CaptureSheet s={s} setS={setS} save={save} open={qlOpen} onClose={() => setQlOpen(false)} go={go} />
     </div>
@@ -13077,7 +13097,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         const target = oweTarget(o0.k);
         return (
           <div>
-            <Btn full tone="jade" onClick={() => { hap(8); openGroup(target.key); scrollToId(target.id); }}>{focus.lead.t} →</Btn>
+            <Btn full tone="gauge" onClick={() => { hap(8); openGroup(target.key); scrollToId(target.id); }}>{focus.lead.t} →</Btn>
             {focus.lead.more > 0 ? (
               <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: SP.xs, letterSpacing: "0.04em", textAlign: "center" }}>then {focus.owed.slice(1).map((o) => o.t.toLowerCase()).join(" · ")}</div>
             ) : null}
@@ -13217,13 +13237,13 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>{ev.protocol}. Events filed without a make-up day: <span style={{ color: T.chalk, fontFamily: mono }}>{s.zeroComp.count}</span> straight — an event never buys a punishment here: tomorrow runs exactly as planned.</div>
           {evF.closable && (
             <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-              {evF.overdue && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>{evF.stale ? `unfiled for ${Math.abs(evF.days)} days — this stays here until you close it, because a miss you never see is a miss the ledger silently ate` : "waiting on you to close it — the ledger doesn't guess"}</div>}
+              {evF.overdue && <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass }}>{Math.abs(evF.days) > 10 ? `unfiled ${Math.abs(evF.days)} days — after 10 this folds to one line; it never expires, it just stops shouting. Close it in the capture sheet` : evF.stale ? `unfiled for ${Math.abs(evF.days)} days — this stays here until you close it, because a miss you never see is a miss the ledger silently ate` : "waiting on you to close it — the ledger doesn't guess"}</div>}
             {/* r3 blocker C — this copy was written for D and D+1 and used to render
                  unconditionally inside evF.closable. On D+4 it told him to put a four-day-old
                  dinner into TONIGHT's log — mis-dated intake landing in the ledger the whole
                  trend is computed from. Same class as EVENT_RECENCY_NOTE. */}
             <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, marginBottom: 8 }}>{evF.days >= -1 ? "after tonight: one tap files the day — tomorrow runs the normal plan, and whether it went big lives in the numbers you log, not in a button" : `one tap files it against ${fmtShort(ev.d)}, the day it happened — not tonight. Tomorrow runs the normal plan either way.`}</div>
-              <Btn full tone="jade" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>{evF.days >= -1 ? "File the event ✓ — your estimate goes in tonight's numbers" : `File it against ${fmtShort(ev.d)} ✓ — where it belongs`}</Btn>
+              <Btn full tone="gauge" onClick={() => { const ns = closeEvent(s, ev.id, true); setS(ns); save(ns); }}>{evF.days >= -1 ? "File the event ✓ — your estimate goes in tonight's numbers" : `File it against ${fmtShort(ev.d)} ✓ — where it belongs`}</Btn>
             </div>
           )}
         </Card>
@@ -13302,7 +13322,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                     <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 8, lineHeight: 1.5, paddingLeft: 8, borderLeft: `2px solid ${T.jade}` }}>
                       <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.jade, letterSpacing: "0.06em" }}>THE LEVER — LIGHTS OUT {fmt12(anch.needBed)}</span>
                       <div style={{ marginTop: 3 }}>
-                        Your last {anch.n} nights: bed {fmt12(anch.bed)}, up {fmt12(anch.wake)} — {anch.curH} h.
+                        Your last {anch.n} nights: bed {fmt12(anch.bed)}, up {fmt12(anch.wake)} — {(+anch.curH).toFixed(1)} h.
                         {anch.bedSDmin != null && anch.wakeSDmin != null && anch.bedSDmin <= anch.wakeSDmin
                           ? ` Your bedtime is the steady end (${anch.bedSDmin} min of spread against ${anch.wakeSDmin} on your wake), so it is the end you can actually move.`
                           : ""}
@@ -13325,7 +13345,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                     )}
                   </div>
                   <div style={{ marginTop: 8 }}>
-                    <Btn full small tone="jade" onClick={() => {
+                    <Btn full small tone="gauge" onClick={() => {
                       const od = owed[0];
                       const ns = JSON.parse(JSON.stringify(s));
                       ns.sleep.nights.push({ d: od, h: sleepSpanH(bedT, wakeT, solMin + (slTags.includes("woke") ? awakeMin : 0)), bed: bedT, wake: wakeT, tags: slTags.slice(), awakeMin: slTags.includes("woke") ? awakeMin : 0, sol: solMin });
@@ -13448,7 +13468,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
         {s.fixWindow && (
           <div style={{ marginTop: 10, fontFamily: mono, fontSize: TS.label, color: T.brass }}><Term k="fixwindow" c={T.brass}>FIX WINDOW OPEN</Term> — hit protein today and yesterday's miss counts as a save, not a break. Nothing resets.</div>
         )}
-        <div style={{ marginTop: 10 }}><Btn tone="jade" full onClick={() => { const h9 = new Date().getHours(); if (h9 < 4) { const y8 = isoOf(new Date(todayStart().getTime() - DAY)); if (window.confirm("It's after midnight — should these numbers file as YESTERDAY (" + fmtShort(y8) + ")?\n\nOK = yesterday, the day they belong to\nCancel = today")) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: cal === "" ? null : +cal, pro: pro === "" ? null : +pro, steps: stp === "" ? null : +stp, sodium: sod9, alc: +alc9 || 0 }; ns.feed.unshift({ d: y8, t: "FILED TO YESTERDAY — " + fmtShort(y8) + " logged after midnight", how: "the midnight intercept asked; the athlete chose the day it belonged to" }); setS(ns); save(ns); setDayEdit(false); return; } } saveDaily(); setDayEdit(false); }}>Log today</Btn></div>
+        <div style={{ marginTop: 10 }}><Btn tone="gauge" full onClick={() => { const h9 = new Date().getHours(); if (h9 < 4) { const y8 = isoOf(new Date(todayStart().getTime() - DAY)); if (window.confirm("It's after midnight — should these numbers file as YESTERDAY (" + fmtShort(y8) + ")?\n\nOK = yesterday, the day they belong to\nCancel = today")) { const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: cal === "" ? null : +cal, pro: pro === "" ? null : +pro, steps: stp === "" ? null : +stp, sodium: sod9, alc: +alc9 || 0 }; ns.feed.unshift({ d: y8, t: "FILED TO YESTERDAY — " + fmtShort(y8) + " logged after midnight", how: "the midnight intercept asked; the athlete chose the day it belonged to" }); setS(ns); save(ns); setDayEdit(false); return; } } saveDaily(); setDayEdit(false); }}>Log today</Btn></div>
         {dl && <div style={{ textAlign: "center", marginTop: 6 }}><span onClick={() => { if (window.confirm("Clear today's saved numbers? Use this if last night's log landed on the wrong day. Tonight's real numbers will close the day fresh.")) { const ns = JSON.parse(JSON.stringify(s)); delete ns.dailyLogs[tISO]; ns.feed.unshift({ d: tISO, t: "TODAY'S LOG CLEARED — filed in error after midnight", how: "the day reopens; tonight closes it honestly" }); setS(ns); save(ns); setCal(""); setPro(""); setStp(""); setSod9(null); setAlc9(0); } }} style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, cursor: "pointer" }}>logged by mistake? clear today ✗</span></div>}
 
         <More deep="Protein is a FLOOR, not a bullseye. This card used to say the opposite — that the number was proximity and chronic overshoot was drift too — and the code behind it counted any day more than 10 g either side as a miss. Nothing supports the upper half of that: the deficit meta-regression finds a lower threshold where lean-mass loss starts rising and no upper one anywhere near this range. Eating over it costs you carbohydrate inside a fixed calorie budget, which is worth knowing and is not a failure. Calories live in a band, not a point. A shortfall opens a 24-hour fix window, and closing it EXTENDS the standard instead of resetting it — recovery speed is the metric, never an unbroken chain."
@@ -13487,7 +13507,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                 <span key={m0} onClick={() => setNCMg(m0)} style={{ fontFamily: mono, fontSize: TS.micro, color: nCMg === m0 ? T.jade : T.steel, border: `1px solid ${nCMg === m0 ? T.jade : T.line}`, borderRadius: 999, padding: "5px 10px", cursor: "pointer" }}>{m0 === 0 ? "none ✓" : m0}</span>
               ))}
               <input type="time" value={nCAt} onChange={(e3) => setNCAt(e3.target.value)} style={{ width: 60, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: TS.label, padding: "6px 7px", outline: "none", opacity: nCMg === 0 ? 0.4 : 1 }} />
-              <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = [...(ns.caffLog || []).filter((x) => x.d !== tISO), { d: tISO, mg: nCMg, at: nCMg === 0 ? "—" : nCAt }]; ns.feed.unshift({ d: tISO, t: nCMg === 0 ? "CAFFEINE — NONE TODAY" : `CAFFEINE — ${nCMg} mg at ${fmt12(nCAt)}`, how: "logged on NOW — the tail math runs on this" }); setS(ns); save(ns); }}>Log</Btn>
+              <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.caffLog = [...(ns.caffLog || []).filter((x) => x.d !== tISO), { d: tISO, mg: nCMg, at: nCMg === 0 ? "—" : nCAt }]; ns.feed.unshift({ d: tISO, t: nCMg === 0 ? "CAFFEINE — NONE TODAY" : `CAFFEINE — ${nCMg} mg at ${fmt12(nCAt)}`, how: "logged on NOW — the tail math runs on this" }); setS(ns); save(ns); }}>Log</Btn>
             </div>
           </Card>
         );
@@ -13512,7 +13532,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <span onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.medsLog = [...(ns.medsLog || []).filter((x) => x.d !== tISO), { d: tISO, taken: false, at: "—" }]; ns.feed.unshift({ d: tISO, t: "MEDS — NONE TODAY", how: "logged — the analysts read appetite, pulse, and effort against this" }); setS(ns); save(ns); }}
                 style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, border: `1px solid ${T.line}`, borderRadius: 999, padding: "5px 10px", cursor: "pointer" }}>none today ✓</span>
               <input type="time" value={mAt} onChange={(e6) => setMAt(e6.target.value)} style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: TS.label, padding: "6px 7px", outline: "none" }} />
-              <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.medsLog = [...(ns.medsLog || []).filter((x) => x.d !== tISO), { d: tISO, taken: true, at: mAt }]; ns.feed.unshift({ d: tISO, t: `MEDS — TAKEN AT ${fmt12(mAt)}`, how: "logged — the biggest confound in the system now has a clock" }); setS(ns); save(ns); }}>Log</Btn>
+              <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.medsLog = [...(ns.medsLog || []).filter((x) => x.d !== tISO), { d: tISO, taken: true, at: mAt }]; ns.feed.unshift({ d: tISO, t: `MEDS — TAKEN AT ${fmt12(mAt)}`, how: "logged — the biggest confound in the system now has a clock" }); setS(ns); save(ns); }}>Log</Btn>
             </div>
           </Card>
         );
@@ -13531,7 +13551,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                 <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.08em" }}>MORNING PULSE<div style={{ fontSize: TS.micro }}>optional · 5 s · feeds the lab</div></div>
                 <Stepper v={pulseIn} set={setPulseIn} step={1} min={35} />
-                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.pulse = [...(ns.pulse || []), { d: tISO, bpm: pulseIn }]; setS(ns); save(ns); }}>Log</Btn>
+                <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.pulse = [...(ns.pulse || []), { d: tISO, bpm: pulseIn }]; setS(ns); save(ns); }}>Log</Btn>
               </div>
             )}
             {(() => { const todayT = (s.temp || []).find((x) => x.d === tISO); return todayT ? (
@@ -13543,7 +13563,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 8, borderTop: `1px solid ${T.line}`, paddingTop: 8 }}>
                 <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, letterSpacing: "0.08em" }}>TEMPERATURE °F<div style={{ fontSize: TS.micro }}>optional · 15 s · the furnace</div></div>
                 <Stepper v={tempIn} set={setTempIn} step={0.1} min={94} />
-                <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.temp = [...(ns.temp || []), { d: tISO, f: +tempIn.toFixed(1) }]; setS(ns); save(ns); }}>Log</Btn>
+                <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); ns.temp = [...(ns.temp || []), { d: tISO, f: +tempIn.toFixed(1) }]; setS(ns); save(ns); }}>Log</Btn>
               </div>
             ); })()}
           </Card>
@@ -13566,7 +13586,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
                     <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, width: 62 }}>WAIST<br />at navel</div>
                     <Stepper v={waistIn} set={setWaistIn} step={0.1} min={20} />
-                    <div style={{ flex: 1 }}><Btn full small tone="jade" onClick={() => {
+                    <div style={{ flex: 1 }}><Btn full small tone="gauge" onClick={() => {
                       const ns = JSON.parse(JSON.stringify(s));
                       const prev = ns.waist[ns.waist.length - 1];
                       ns.waist.push({ d: tISO, v: waistIn });
@@ -13639,7 +13659,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <Stepper v={+yAlc} set={setYAlc} step={1} min={0} />
             </div>
             <div style={{ marginTop: 10 }}>
-              <Btn full tone="jade" onClick={() => { if (yCal === "" && yPro === "" && yStp === "") return; /* RB-3 low note — this classic door takes the typo net too */ for (const [kC, vC] of [["cal", yCal], ["pro", yPro], ["steps", yStp]]) { if (vC !== "" && typoKeep(kC, +vC) === "abort") return; } const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: yCal === "" ? null : +yCal, pro: yPro === "" ? null : +yPro, steps: yStp === "" ? null : +yStp, sodium: ySod, alc: +yAlc || 0 }; ns.feed.unshift(isAmend ? { d: y8, t: `DAY AMENDED — ${fmtShort(y8)}: ${(s.dailyLogs[y8] || {}).cal ?? "—"}→${yCal || "—"} cal · ${(s.dailyLogs[y8] || {}).pro ?? "—"}→${yPro || "—"} g`, how: "athlete corrected the record after close — late bites logged where they belong" } : { d: y8, t: `BOOKS CLOSED LATE — ${fmtShort(y8)} logged after midnight`, how: "the repair door on NOW — same numbers, honest timestamp" }); setAmendY(false); setS(ns); save(ns); }}>{isAmend ? `Refile ${fmtShort(y8)} — corrected` : `Close ${fmtShort(y8)} — file it`}</Btn>
+              <Btn full tone="gauge" onClick={() => { if (yCal === "" && yPro === "" && yStp === "") return; /* RB-3 low note — this classic door takes the typo net too */ for (const [kC, vC] of [["cal", yCal], ["pro", yPro], ["steps", yStp]]) { if (vC !== "" && typoKeep(kC, +vC) === "abort") return; } const ns = JSON.parse(JSON.stringify(s)); ns.dailyLogs[y8] = { cal: yCal === "" ? null : +yCal, pro: yPro === "" ? null : +yPro, steps: yStp === "" ? null : +yStp, sodium: ySod, alc: +yAlc || 0 }; ns.feed.unshift(isAmend ? { d: y8, t: `DAY AMENDED — ${fmtShort(y8)}: ${(s.dailyLogs[y8] || {}).cal ?? "—"}→${yCal || "—"} cal · ${(s.dailyLogs[y8] || {}).pro ?? "—"}→${yPro || "—"} g`, how: "athlete corrected the record after close — late bites logged where they belong" } : { d: y8, t: `BOOKS CLOSED LATE — ${fmtShort(y8)} logged after midnight`, how: "the repair door on NOW — same numbers, honest timestamp" }); setAmendY(false); setS(ns); save(ns); }}>{isAmend ? `Refile ${fmtShort(y8)} — corrected` : `Close ${fmtShort(y8)} — file it`}</Btn>
             </div>
           </Card>
         );
@@ -13759,7 +13779,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
               <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: SP.md, lineHeight: `${LH.body}px` }}>{proposalBody}</div>
               <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, letterSpacing: "0.06em", marginTop: SP.sm }}>◆ from your own numbers</div>
               <div style={{ display: "flex", gap: SP.sm, marginTop: SP.md, flexWrap: "wrap" }}>
-                <Btn small tone="jade" onClick={() => {
+                <Btn small tone="gauge" onClick={() => {
                   // v6.2 audit 4a — stage a REAL engine proposal into the approval inbox (s.proposals),
                   // instead of the old no-op dismiss. One-door inbox owns approve/apply; this only stages.
                   const rid = `ap_${ap.action}_${tISO}`;
@@ -13774,7 +13794,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
                   ns.plan = { ...(ns.plan || {}), apDismiss: tISO };
                   setS(ns); save(ns); hap(12);
                 }}>{easing ? "Ease the target →" : "Tighten the target →"}</Btn>
-                {cut && <Btn small tone="jade" onClick={() => savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: `${easing ? "Trim" : "Add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps on non-lifting days (auto-pilot)` }], apDismiss: tISO })}>{easing ? "Trim the steps" : "Add the steps"}</Btn>}
+                {cut && <Btn small tone="gauge" onClick={() => savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: `${easing ? "Trim" : "Add"} ~${(ap.stepsAdd / 1000).toFixed(1)}k steps on non-lifting days (auto-pilot)` }], apDismiss: tISO })}>{easing ? "Trim the steps" : "Add the steps"}</Btn>}
                 <Btn small onClick={() => savePlan({ apDismiss: tISO })}>Not now</Btn>
               </div>
             </>
@@ -13855,7 +13875,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           ))}
           <div style={{ display: "flex", gap: SP.sm, marginTop: SP.sm }}>
             <input value={newGoal} onChange={(e) => setNewGoal(e.target.value)} placeholder="a process goal" style={{ flex: 1, minWidth: 0, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
-            <Btn small tone="jade" onClick={() => { const t = newGoal.trim(); if (!t) return; savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: t }] }); setNewGoal(""); }}>Add</Btn>
+            <Btn small tone="gauge" onClick={() => { const t = newGoal.trim(); if (!t) return; savePlan({ goals: [...plan.goals, { id: _freshId("g"), text: t }] }); setNewGoal(""); }}>Add</Btn>
           </div>
         </div>
         <div>
@@ -13870,7 +13890,7 @@ function NowTab({ s, setS, save, slp, openRules, openCoach }) {
           <div style={{ display: "flex", flexDirection: "column", gap: SP.sm, marginTop: SP.sm }}>
             <input value={ifCue} onChange={(e) => setIfCue(e.target.value)} placeholder="IF — e.g. it's Tuesday and I've not trained by 6pm" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
             <input value={ifAct} onChange={(e) => setIfAct(e.target.value)} placeholder="THEN — e.g. I train at 6:15" style={{ background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: 16, padding: "8px 10px" }} />
-            <div><Btn small tone="jade" onClick={() => { const c = ifCue.trim(), a = ifAct.trim(); if (!c || !a) return; savePlan({ ifthen: [...plan.ifthen, { id: _freshId("p"), cue: c, action: a }] }); setIfCue(""); setIfAct(""); }}>Add plan</Btn></div>
+            <div><Btn small tone="gauge" onClick={() => { const c = ifCue.trim(), a = ifAct.trim(); if (!c || !a) return; savePlan({ ifthen: [...plan.ifthen, { id: _freshId("p"), cue: c, action: a }] }); setIfCue(""); setIfAct(""); }}>Add plan</Btn></div>
           </div>
         </div>
         <div>
@@ -14121,6 +14141,8 @@ function LogTab({ s, setS, save, slp }) {
      launcher that offered it. Now the TEMPLATE date never moves; fileAs carries where
      the record lands. A tap may never unmount the control that offered it. */
   const [fileAs, setFileAs] = useState(null);
+  const [extraOpen9, setExtraOpen9] = useState(false);   /* A5 — notes + joint check behind one row */
+  const gymDraftLive9 = (() => { try { return !!localStorage.getItem("prep-ledger-gymdraft-" + dateSel); } catch (e) { return false; } })();   /* A5 — gym mode's measurement wins; the manual hides */
   const fileISO = fileAs || dateSel;
   /* §5 move 1 — was rebuilt on EVERY render, including every keystroke in the notes
      textarea and every stepper tap. slp is sleepInfo(s), so s is the only real input. */
@@ -14259,11 +14281,11 @@ function LogTab({ s, setS, save, slp }) {
             Sunday 8/09 landed as 8/10. The borrow is now declared, with a one-tap switch. */}
         {dayType(tISO, s) === "REST" && !s.sessionLog[tISO] && !s.sessionLog[dateSel] ? (
           <Card accent={T.brass}>
-            <Eyebrow c={T.brass}>REST DAY — WHICH DATE GETS THIS SESSION?</Eyebrow>
-            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>Today reads REST on your split. {fmtShort(dateSel)}’s session template is loaded either way — this only decides which DATE the record lands under. {fileAs ? fmtShort(dateSel) + "’s session, filed under today." : "Filing under " + fmtShort(dateSel) + "."}</div>
-            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-              <Btn small tone={fileAs ? "jade" : "ghost"} onClick={() => setFileAs(tISO)}>Log as today · {fmtShort(tISO)}</Btn>
-              <Btn small tone={fileAs ? "ghost" : "jade"} onClick={() => setFileAs(null)}>Keep {fmtShort(dateSel)}</Btn>
+            {/* D1 (ruled) — the filing AUTO-FILES under the template date; this one quiet row
+                is the consent surface, visible until the session logs, one tap to change.
+                The filed date prints in the record exactly as always. */}
+            <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, letterSpacing: "0.04em" }}>
+              REST DAY — filed under {fmtShort(fileISO)}{fileAs ? " (today)" : ""} · <button role="button" onClick={() => setFileAs(fileAs ? null : tISO)} style={{ background: "none", border: "none", padding: "10px 4px", margin: "-10px 0", cursor: "pointer", fontFamily: mono, fontSize: TS.label, color: T.gauge, letterSpacing: "0.04em" }}>change</button>
             </div>
           </Card>
         ) : null}
@@ -14377,11 +14399,11 @@ function LogTab({ s, setS, save, slp }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
           <div>
             <Eyebrow c={T.orange}>TODAY'S ONE <Term k="structural" c={T.orange}>CHANGE</Term> — PICKED FOR YOU</Eyebrow>
-            <div style={{ fontFamily: disp, fontWeight: 700, fontSize: 17, letterSpacing: "0.02em", color: T.chalk }}>{sess.structural}</div>{/* was H size 22 — the largest type on the page, competing with the gym button for Tier 0 */}
+            <div style={{ fontFamily: body, fontWeight: 600, fontSize: 13.5, color: T.chalk, lineHeight: 1.5 }}>{sess.structural}</div>{/* A5 — a one-liner tied to its lift; the session owns Tier 0 */}
           </div>
           <button onClick={() => setReorder(!reorder)} style={{ fontFamily: mono, fontSize: TS.label, letterSpacing: "0.1em", color: reorder ? T.chalk : T.steel, background: reorder ? T.plate2 : "none", border: `1px solid ${reorder ? T.chalk : T.line}`, borderRadius: 6, padding: "6px 9px", whiteSpace: "nowrap" }}>{reorder ? "DONE" : "REORDER"}</button>
         </div>
-        <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 4 }}>Everything else just chases reps — no limit on that. New weight increases you earn wait in line for their own day.</div>
+        
         <More c={T.orange} deep="One structural change per session keeps the signal clean — when something moves, you know exactly what caused the response. Rep progression stays unlimited because it's the noise-free kind of change. The scheduler auto-picks from the queue in order; doc-approved riders are the only exception."
           forYou="Structural changes queue themselves as you earn them. The full queue lives on QUEUE — it is not restated here." />
       </Card>
@@ -14408,7 +14430,7 @@ function LogTab({ s, setS, save, slp }) {
           <Eyebrow c={T.brass}>{q.t}</Eyebrow>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{q.gate}</div>
           <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-            <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const q2 = ns.queue.find((x) => x.id === q.id); if (q2) { q2.state = "DEBUT"; q2.t = q2.t.replace(" — TWO-RUNG DEBUT PROPOSED", " DEBUT (two-rung, your call)").replace(" — EARN PROPOSED OFF ONE SIGHTING", " DEBUT (early, your call)"); } ns.feed.unshift({ d: isoOf(todayStart()), t: q.t + " — TAKEN", how: "Your tap is the consent on the record; it queues like any earned debut from here." }); setS(ns); save(ns); hap(12); }}>Take it</Btn>
+            <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const q2 = ns.queue.find((x) => x.id === q.id); if (q2) { q2.state = "DEBUT"; q2.t = q2.t.replace(" — TWO-RUNG DEBUT PROPOSED", " DEBUT (two-rung, your call)").replace(" — EARN PROPOSED OFF ONE SIGHTING", " DEBUT (early, your call)"); } ns.feed.unshift({ d: isoOf(todayStart()), t: q.t + " — TAKEN", how: "Your tap is the consent on the record; it queues like any earned debut from here." }); setS(ns); save(ns); hap(12); }}>Take it</Btn>
             <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const q2 = ns.queue.find((x) => x.id === q.id); if (q2) { q2.done = true; q2.state = "DECLINED"; } setS(ns); save(ns); }}>Not today</Btn>
           </div>
         </Card>
@@ -14427,10 +14449,10 @@ function LogTab({ s, setS, save, slp }) {
         return (
           <Card accent={T.brass}>
             <Eyebrow c={T.brass}>{askEx.n.toUpperCase()} — WHAT IS THE NEXT WEIGHT THIS MACHINE MAKES AFTER {askEx.w}?</Eyebrow>
-            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>No next load is on file, so reps are carrying progression blind. One number unlocks the earn ladder{sighted || histTop ? " — and the top-of-window session already on your record counts as sighting one the moment you answer" : ""}. One weight, or the whole ladder (commas or spaces).</div>
+            <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>No next load is on file, so reps are carrying progression blind. One number unlocks the next-load ladder{sighted || histTop ? " — and the top-of-window session already on your record counts as the first of the two sightings the moment you answer" : ""}. One weight, or the whole ladder (commas or spaces).</div>
             <input id={"nla-" + askEx.id} inputMode="decimal" placeholder={"e.g. " + (askEx.w + 10) + "  ·  or: " + (askEx.w + 10) + ", " + (askEx.w + 25) + ", " + (askEx.w + 35)} style={{ width: "100%", boxSizing: "border-box", marginTop: 8, background: T.ink, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 16, padding: "10px" }} />
             <div style={{ marginTop: 10 }}>
-              <Btn small tone="jade" onClick={() => {
+              <Btn small tone="gauge" onClick={() => {
                 const el = document.getElementById("nla-" + askEx.id);
                 const raw9 = el ? el.value : "";
                 const parsed = parseRungs(raw9);
@@ -14458,13 +14480,15 @@ function LogTab({ s, setS, save, slp }) {
         {/* Was "records count as pending" on a short night — the retired gate, at the
         top of the page he opens to train. What replaces it says the true thing:
         a short night is context for reading the session, never a verdict on it. */}
-        <Caveat c={slp.clean ? T.jade : T.brass}>{slp.clean ? "NORMAL NIGHT — nothing to caveat" : <>SHORT NIGHT{slp.last && slp.last.h ? " · " + slp.last.h + " h" : ""} — reps still count, records still bank; today just cannot be read as a stall</>}</Caveat>
-        <Caveat><Term k="noonwindow" c={T.steel}>STIM CHECK</Term>{(() => { const me1 = todayMeds(s); if (me1 && me1.taken) return <> — meds @ {fmt12(me1.at)} · effort feels easier mid-peak than it is</>; if (me1 && !me1.taken) return <> — none today · effort reads truer, energy may run lower</>; return <> — meds peak midday · if lifting then, effort feels easier than it is · log it on NOW</>; })()}</Caveat>
+        {slp.clean
+          ? <div style={{ flex: "1 1 100%", fontFamily: lbl, fontWeight: 500, fontSize: TS.label, color: T.dim }}>NORMAL NIGHT — checked, clear</div>
+          : <Caveat c={T.brass}><>SHORT NIGHT{slp.last && slp.last.h ? " · " + slp.last.h + " h" : ""} — reps still count, records still bank; today just cannot be read as a stall</></Caveat>}
+        
       </div>
 
       {(() => { const mv2 = muscleVolume(s); if (!mv2.length) return null; const fS = Object.keys(s.sessionLog).sort()[0]; const matureV = !!fS && (mk(isoOf(todayStart())) - mk(fS)) / DAY >= 14; const eb9 = energyBalanceTarget(s); const hold9 = !(eb9.regime === "free" && eb9.regimeConfirmed);   /* same authority as the allocation card below — the regime, never the exitStart flag (the chip and the card once disagreed on screen; HEAD_BUCKET_NOTE documents that defect class) */ return (
         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, padding: "8px 2px", lineHeight: 1.7 }}>
-          {matureV ? (hold9 ? "THIS WEEK'S SETS · holding, not growing — see below · " : "THIS WEEK'S SETS · your data sanctions growth — see below · ") : "SETS THIS WEEK — counting only, no verdicts until the ledger has 14 days of your logs · "}{(() => { return mv2.map((m) => {
+          {matureV ? ("THIS WEEK'S SETS · " + mv2.filter((m) => m.zone === "IN-BAND").length + " in band ✓ · " + mv2.filter((m) => m.zone === "UNDER" || m.zone === "LOW").length + " low · " + mv2.filter((m) => m.zone === "OVER" || m.zone === "HIGH").length + " high — ") : "SETS THIS WEEK — counting only, no verdicts until the ledger has 14 days of your logs · "}{(() => { return mv2.map((m) => {
             /* While the regime does not sanction growth, red on a muscle below
                the GROWTH band is the app telling him to add work the retention
                evidence says buys nothing — and it would contradict the card
@@ -14501,7 +14525,7 @@ function LogTab({ s, setS, save, slp }) {
                     <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 2 }}>{ex.w} · target {ex.tgt.join(",")}</span>
                   </span>
                   <span style={{ display: "flex", alignItems: "center", gap: SP.xs, flexShrink: 0 }}>
-                    {lc.verdict ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: vc, whiteSpace: "nowrap" }}>{arrow} {lc.verdict}</span> : null}
+                    {lc.verdict && !(lc.verdict === "PUSH" && !(lc.vel < -0.2)) ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: vc, whiteSpace: "nowrap" }}>{arrow} {lc.verdict}</span> : (typeof ex.w === "number" && nextLoad(ex) != null ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.dim, whiteSpace: "nowrap" }}>→ {nextLoad(ex)}</span> : null)}   {/* A6 — exceptions speak; a routine PUSH shows the next load on file instead */}
                     <span aria-hidden="true" style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>&rsaquo;</span>
                   </span>
                 </button>
@@ -14576,7 +14600,7 @@ function LogTab({ s, setS, save, slp }) {
                       style={{ fontFamily: mono, fontSize: TS.label, color: loadRungs(ex) ? T.jade : T.steel, border: `1px solid ${loadRungs(ex) ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>
                       {loadRungs(ex) ? `uneven · ${loadRungs(ex).length} rungs ✎` : "uneven ✎"}
                     </span>
-                    <Btn small tone="jade" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id); const oldW = ex4.w; ex4.w = loadRungs(ex4) ? snapLoad(ex4, wVal) : wVal; if (oldW !== ex4.w) ex4.last = null; ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${ex4.w}`, how: "athlete entry on the card — targets re-seeded for the new load" }); setS(ns); save(ns); setWEdit(null); setRungEdit(null); }}>Save</Btn>
+                    <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id); const oldW = ex4.w; ex4.w = loadRungs(ex4) ? snapLoad(ex4, wVal) : wVal; if (oldW !== ex4.w) ex4.last = null; ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${ex4.w}`, how: "athlete entry on the card — targets re-seeded for the new load" }); setS(ns); save(ns); setWEdit(null); setRungEdit(null); }}>Save</Btn>
                     {rungEdit === ex.id && (
                       <div style={{ width: "100%", marginTop: 6, padding: "9px 10px", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8 }}>
                         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, letterSpacing: "0.08em", lineHeight: 1.6 }}>
@@ -14587,7 +14611,7 @@ function LogTab({ s, setS, save, slp }) {
                           placeholder="80, 82.5, 85, 90, 100"
                           style={{ width: "100%", boxSizing: "border-box", marginTop: 7, background: T.ink, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 13, padding: 8, outline: "none", resize: "vertical" }} />
                         <div style={{ display: "flex", gap: 8, marginTop: 7, flexWrap: "wrap" }}>
-                          <Btn small tone="jade" onClick={() => {
+                          <Btn small tone="gauge" onClick={() => {
                             const el = document.getElementById("rungs-" + ex.id);
                             const parsed = parseRungs(el ? el.value : "");
                             const ns = JSON.parse(JSON.stringify(s)); const ex6 = ns.exercises.find((x) => x.id === ex.id);
@@ -14711,7 +14735,7 @@ function LogTab({ s, setS, save, slp }) {
       ))}
       </Group>
 
-      <Card style={{ padding: 16 }}>
+      {!gymDraftLive9 && (<Card style={{ padding: 16 }}>
       {/* PACE had two owners: Gym Mode measures it from real rest timestamps, TRAIN asked
           him to declare it from memory afterwards. The measurement wins. This control stays
           for the hand-logged path only and is labelled as the fallback it is. */}
@@ -14730,9 +14754,11 @@ function LogTab({ s, setS, save, slp }) {
         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 6, lineHeight: 1.5 }}>
           Gym Mode measures this from your actual rests and needs three of them before it will say anything — if you used it, leave this alone and its measurement stands. This is the fallback for a session logged by hand. RUSHED = under about a minute between sets. Reps still count, but a compressed day cannot count toward a stall, so it never lightens your bar by mistake.
         </div>
-      </Card>
+      </Card>)}
 
-      <Card style={{ padding: 16 }}>
+      {!extraOpen9 ? (
+        <button role="button" onClick={() => setExtraOpen9(true)} style={{ display: "block", width: "100%", minHeight: 44, textAlign: "left", background: "none", border: "none", padding: "10px 0", cursor: "pointer", fontFamily: mono, fontSize: TS.label, letterSpacing: "0.08em", color: T.gauge }}>NOTES + JOINT CHECK ▸ <span style={{ color: T.dim }}>optional — only if something talked</span></button>
+      ) : (<><Card style={{ padding: 16 }}>
         <Eyebrow>SESSION NOTES · OPTIONAL — THE "SET-4 ANOMALY" BOX</Eyebrow>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="anything the numbers missed — your night analyst reads this; the engines only read the numbers…"
           style={{ width: "100%", boxSizing: "border-box", marginTop: 8, background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: body, fontSize: TS.body, padding: 10, outline: "none", resize: "vertical" }} />
@@ -14751,12 +14777,12 @@ function LogTab({ s, setS, save, slp }) {
           </div>
           <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 8 }}>3 flags on one joint in 3 weeks → it surfaces on NOW. Nothing auto-changes.</div>
         </div>
-      </Card>
+      </Card></>)}
 
       {logged ? (
         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.jade, textAlign: "center", padding: 6 }}>SESSION BANKED — next targets already regenerated.</div>
       ) : (
-        <Btn tone="orange" full onClick={complete}>Complete session — what moved?</Btn>
+        <Btn tone="gauge" full onClick={complete}>Complete session — what moved?</Btn>
       )}
 
       {recap && (
@@ -14777,7 +14803,7 @@ function LogTab({ s, setS, save, slp }) {
               <Eyebrow>THE OTHER REWARD — SHARPER THAN BEFORE THE SESSION?</Eyebrow>
               <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 4 }}>Training is the strongest non-Rx lever on your executive function today.</div>
               <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                <Btn small tone={boosted ? "jade" : "ghost"} onClick={() => { if (!boosted) { const ns = { ...s, boosts: s.boosts + 1 }; setS(ns); save(ns); setBoosted(true); } }}>{boosted ? `Felt it · ${s.boosts}` : "Yes — felt it"}</Btn>
+                <Btn small tone={boosted ? "gauge" : "ghost"} onClick={() => { if (!boosted) { const ns = { ...s, boosts: s.boosts + 1 }; setS(ns); save(ns); setBoosted(true); } }}>{boosted ? `Felt it · ${s.boosts}` : "Yes — felt it"}</Btn>
                 <Btn small onClick={() => setRecap(null)}>Done</Btn>
               </div>
             </div>
@@ -14955,7 +14981,7 @@ function QueueTab({ s, slp }) {
         </Section>
       )}
 
-      <Section title="The Story So Far" meta={`${s.feed.length} entries · latest: ${((s.feed[0] || {}).t || "—").slice(0, 22)}`} c={T.jade}>
+      <Section title="History — the story so far" meta={`${s.feed.length} entries · latest: ${((s.feed[0] || {}).t || "—").slice(0, 22)}`} c={T.jade}>
         <Card style={{ padding: 0 }}>
         {s.feed.slice(0, 40).map((f, i) => (
           <div key={i} style={{ padding: "12px 14px", borderBottom: i < Math.min(s.feed.length, 40) - 1 ? `1px solid ${T.line}` : "none" }}>
@@ -15341,7 +15367,7 @@ function SleepTab({ s, setS, save, slp }) {
           return (
             <>
               <div style={{ marginTop: SP.sm }}>
-                <Hero value={an.measured ? an.curH : "—"} unit={an.measured ? "h / night" : null}
+                <Hero value={an.measured ? (+an.curH).toFixed(1) : "—"} unit={an.measured ? "h / night" : null}
                   n={nN} c={at ? T.jade : T.brass}
                   sub={an.measured ? `bed ${fmt12(an.bed)} · up ${fmt12(an.wake)}` : "log bed and wake times and this reads itself"} />
               </div>
@@ -15636,7 +15662,7 @@ function TrialsDesk({ s, setS, save }) {
           <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.chalk }}>PROPOSED · {pr2.t}</div>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 3 }}>{pr2.q} {pr2.cycles} blocks of {pr2.blockDays} days, alternating. Measures: {pr2.metric}.</div>
           <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
-            <Btn small tone="jade" onClick={() => act(pr2.id, false)}>Start — I consent</Btn>
+            <Btn small tone="gauge" onClick={() => act(pr2.id, false)}>Start — I consent</Btn>
             <Btn small onClick={() => act(pr2.id, true)}>Not now</Btn>
           </div>
         </div>
@@ -15667,7 +15693,7 @@ function DossierBlock({ s }) {
   const [copied, setCopied] = useState(false);
   return (
     <div style={{ marginTop: 10, borderTop: `1px solid ${T.line}`, paddingTop: 10 }}>
-      {!d ? <Btn full tone="jade" onClick={() => setD(dossierData(s))}>Generate — fresh, right now</Btn> : (
+      {!d ? <Btn full tone="gauge" onClick={() => setD(dossierData(s))}>Generate — fresh, right now</Btn> : (
         <>
           <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
             <div><Num size={19}>{d.header.trend}</Num><div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>TREND{d.header.sealed ? " · SEALED" : ""}</div></div>
@@ -15706,7 +15732,7 @@ function DossierBlock({ s }) {
             </div>
           )}
           <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-            <Btn small tone="jade" onClick={() => { try { navigator.clipboard.writeText(dossierText(s)); setCopied(true); } catch (e) { setCopied(false); } }}>{copied ? "Copied ✓" : "Copy as text"}</Btn>
+            <Btn small tone="gauge" onClick={() => { try { navigator.clipboard.writeText(dossierText(s)); setCopied(true); } catch (e) { setCopied(false); } }}>{copied ? "Copied ✓" : "Copy as text"}</Btn>
             <Btn small onClick={() => { setD(null); setCopied(false); }}>Close</Btn>
           </div>
         </>
@@ -16204,6 +16230,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <button onClick={onClose} aria-label="Exit gym mode" style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>exit ✕</button>
         </div>
       </div>
+      {(() => { const me1 = todayMeds(s); return <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.dim, marginBottom: 6 }}>STIM CHECK — {me1 && me1.taken ? "meds @ " + fmt12(me1.at) + " · effort feels easier mid-peak than it is" : me1 && !me1.taken ? "none today · effort reads truer, energy may run lower" : "meds peak midday · if lifting then, effort feels easier than it is"}</div>; })()}
       {al2 && <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, marginBottom: 8 }}>{al2.tier === "RED" ? "⚠ ALARM DAY — RED: convert to a walk or push it a day" : "⚠ ALARM DAY — every 0 becomes a 1 · what you deliver still banks"}</div>}
       {phase === "rest" ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 11, minHeight: 0 }}>
@@ -16304,7 +16331,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
               <span style={{ color: rirEnd[ex.id] == null ? DT.dim : DT.amber }}>{rirEnd[ex.id] == null ? "last not recorded" : "last " + (rirEnd[ex.id] === 3 ? "3+" : rirEnd[ex.id]) + " — taken at the set"}</span>
             </div>
           </div>
-          <button onClick={nextLift} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</button>
+          <button onClick={nextLift} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: T.gauge, color: T.ink, ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>{idx + 1 < sess.ex.length ? "NEXT LIFT ▸" : "FINISH SESSION"}</button>
           <button onClick={skipLift} style={{ fontFamily: mono, fontSize: TS.micro, color: DT.steel, background: "none", border: "1px solid " + DT.hairline, borderRadius: 8, padding: "9px", width: "100%", minHeight: 44, cursor: "pointer" }}>skip this lift — goes on the record, no phantom reps</button>
           {backRow()}   {/* R19a */}
         </div>
@@ -16342,7 +16369,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
                     ))}
                   </div>
                 ) : null}
-                <button onClick={finish} disabled={unruled.length > 0} style={{ opacity: unruled.length ? 0.45 : 1,  width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>LOG IT — RECEIPT + DEBRIEF</button>
+                <button onClick={finish} disabled={unruled.length > 0} style={{ opacity: unruled.length ? 0.45 : 1,  width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: T.gauge, color: T.ink, ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>LOG IT — RECEIPT + DEBRIEF</button>
                 {unruled.length ? <div style={{ fontFamily: mono, fontSize: 10, color: DT.dim, textAlign: "center", marginTop: 6 }}>rule the {unruled.length} unconfirmed lift{unruled.length > 1 ? "s" : ""} above to finish</div> : null}
               </>
             );
@@ -16413,7 +16440,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
               </div>
               <button aria-label="one rep more" onClick={() => { touch(ex.id); markAdj(ex.id, setN); const r2 = getR(ex).slice(); r2[setN] = r2[setN] + 1; setReps({ ...reps, [ex.id]: r2 }); }} style={{ width: 72, height: 72, flex: "none", borderRadius: 22, border: "1px solid " + DT.hairline2, background: DT.card2, color: DT.ink, fontSize: 29, fontWeight: 300, cursor: "pointer" }}>+</button>
             </div>
-            <button onClick={doneSet} style={{ marginTop: 16, width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: DT.amber, color: "#141008", ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>
+            <button onClick={doneSet} style={{ marginTop: 16, width: "100%", minHeight: 64, borderRadius: 16, border: "none", background: T.gauge, color: T.ink, ...tnum, fontSize: 12.5, fontWeight: 800, letterSpacing: "0.18em", cursor: "pointer" }}>
               {setN + 1 < getR(ex).length ? "LOG SET · REST TIMER STARTS" : "LOG SET · ONE QUESTION AFTER"}
             </button>
           </div>
@@ -16563,7 +16590,7 @@ function HistTab({ s, setS, save }) {
             )}
             {a.action && (
               <div style={{ marginTop: 10 }}>
-                <Btn small tone="jade" onClick={(e) => { e.stopPropagation(); const ns = JSON.parse(JSON.stringify(s)); ns.creatine = { start: isoOf(todayStart()) }; ns.feed.unshift({ d: isoOf(todayStart()), t: "CREATINE STARTED", how: "5 g/day begins inside the sealed window — the water bump files itself under quarantine (Kreider 2017)" }); setS(ns); save(ns); }}>Log creatine start — today</Btn>
+                <Btn small tone="gauge" onClick={(e) => { e.stopPropagation(); const ns = JSON.parse(JSON.stringify(s)); ns.creatine = { start: isoOf(todayStart()) }; ns.feed.unshift({ d: isoOf(todayStart()), t: "CREATINE STARTED", how: "5 g/day begins inside the sealed window — the water bump files itself under quarantine (Kreider 2017)" }); setS(ns); save(ns); }}>Log creatine start — today</Btn>
               </div>
             )}
             {a.id === "whatif" && <WhatIfConsole s={s} />}
@@ -17028,14 +17055,14 @@ function GymLauncher({ s, onOpen }) {
   useEffect(() => { const iv = setInterval(() => force((x) => x + 1), 800); return () => clearInterval(iv); }, []);
   const live = findGymDraft(s);
   if (!live) return (
-    <button onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(94,212,162,.35)", background: "rgba(94,212,162,.06)", color: DT.jade, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>▶ GYM MODE — ONE LIFT AT A TIME, TIMERS ON</button>
+    <button onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: `1px solid ${T.gauge}59`, background: `${T.gauge}0F`, color: T.gauge, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>▶ GYM MODE — ONE LIFT AT A TIME, TIMERS ON</button>
   );
   const liftName = (() => { try { const sess9 = genSession(s, live.iso); return ((sess9.ex || [])[live.idx || 0] || {}).n || "session"; } catch (e) { return "session"; } })();
   const rp9 = resumePhase(live, Date.now());
   const remain = live.restStart ? Math.max(0, (live.restLen || 0) - Math.floor((Date.now() - live.restStart) / 1000)) : 0;
   const resting = rp9.phase === "rest" && remain > 0;
   return (
-    <button data-launcher="live" onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: "1px solid rgba(229,180,84,.45)", background: "rgba(229,180,84,.07)", color: DT.amber, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>
+    <button data-launcher="live" onClick={onOpen} style={{ width: "100%", minHeight: 64, borderRadius: 16, border: `1px solid ${T.gauge}73`, background: `${T.gauge}12`, color: T.gauge, fontFamily: mono, fontVariantNumeric: "tabular-nums", fontSize: 12.5, fontWeight: 800, letterSpacing: "0.14em", cursor: "pointer" }}>
       {resting
         ? "▸ RESUME · REST " + Math.floor(remain / 60) + ":" + String(remain % 60).padStart(2, "0") + " · " + String(liftName).toUpperCase() + " SET " + ((live.setN || 0) + 1)
         : "▸ RESUME SESSION · " + String(liftName).toUpperCase() + " SET " + ((live.setN || 0) + 1)}
@@ -17161,7 +17188,7 @@ function expDigest(s) {
     const secs = labSections(s);
     const gath = (secs.find((x) => x.k === "gathering") || { cards: [] }).cards;
     const prov = (secs.find((x) => x.k === "provisional") || { cards: [] }).cards;
-    gath.forEach((c) => { if (c && c.prog && c.prog.need) { const rem = Math.max(0, c.prog.need - c.prog.n); rows.push({ kind: "gathering", q: c.tag || c.t, n: c.prog.n, need: c.prog.need, label: c.prog.label, settle: rem === 1 ? "one more and it speaks" : rem + " more " + (c.prog.label || "observations") + " and it speaks" }); } });   /* q: the card's own plain question (tag), title fallback — both engine words (Joe's word, round 2) */
+    gath.forEach((c) => { if (c && c.prog && c.prog.need) { const rem = Math.max(0, c.prog.need - c.prog.n); rows.push({ kind: "gathering", q: c.tag || c.t, n: c.prog.n, need: c.prog.need, label: c.prog.label, settle: rem === 1 ? "one more and it reads" : rem + " more " + (c.prog.label || "observations") + " and it reads" }); } });   /* q: the card's own plain question (tag), title fallback — both engine words (Joe's word, round 2) */
     prov.forEach((c) => { if (c && c.prog && c.prog.need) { const rem = Math.max(0, c.prog.need - c.prog.n); rows.push({ kind: "provisional", q: c.tag || c.t, n: c.prog.n, need: c.prog.need, label: c.prog.label, settle: rem === 1 ? "one more to a verdict it can stand behind" : rem + " more " + (c.prog.label || "observations") + " to a verdict it can stand behind" }); } });
   } catch (e) {}
   return { head: rows[0] || null, rows };
@@ -17397,7 +17424,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
                       <input type="time" value={bd} onChange={(e) => setNB({ ...nB, [r.d]: e.target.value })} aria-label={"bed " + r.d} style={timeIn9} />
                       <span style={{ ...rowName, color: DT.steel }}>WAKE</span>
                       <input type="time" value={wk} onChange={(e) => setNW({ ...nW, [r.d]: e.target.value })} aria-label={"wake " + r.d} style={timeIn9} />
-                      <Btn small tone="jade" onClick={() => saveNightFor(r.d, bd, wk)}>Save</Btn>
+                      <Btn small tone="gauge" onClick={() => saveNightFor(r.d, bd, wk)}>Save</Btn>
                     </div>
                   </div>);
               }
@@ -17415,7 +17442,7 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
                         style={{ ...tnum9, fontSize: 14, color: DT.ink, background: DT.card2, border: "1px solid " + DT.hairline2, borderRadius: 8, width: f9 === "steps" ? 64 : 56, padding: "8px 6px", textAlign: "center" }} />
                     ))}
                     {r.d < yLed ? <button onClick={() => setEstOff({ ...estOff, [r.d]: !estOff[r.d] })} style={{ background: "none", border: "1px solid " + (estOn ? DT.amber : DT.hairline2), borderRadius: 999, padding: "5px 9px", fontFamily: mono, fontSize: 10, color: estOn ? DT.amber : DT.steel, cursor: "pointer" }}>{estOn ? "≈ estimated" : "exact"}</button> : null}
-                    <Btn small tone="jade" onClick={() => { const cB = stepValue(dv.cal, 0, 1, 0), pB = stepValue(dv.pro, 0, 1, 0), sB = stepValue(dv.steps, 0, 1, 0); let keptB = []; for (const [kB, vB] of [["cal", cB], ["pro", pB], ["steps", sB]]) { const tkB = typoKeep(kB, vB); if (tkB === "abort") return; if (tkB === "keep") keptB.push([kB, vB]); } let ns = writeDaily(s, r.d, { cal: cB, pro: pB, steps: sB }); for (const [kB, vB] of keptB) ns = typoReceipt(ns, kB, vB); if (estOn) { ns = { ...ns, dayCtx: { ...(ns.dayCtx || {}), [r.d]: { ...((ns.dayCtx || {})[r.d] || {}), est: true, note: "backfilled — rough numbers count" } } }; } setS(ns); save(ns); hap(12); }}>Save</Btn>
+                    <Btn small tone="gauge" onClick={() => { const cB = stepValue(dv.cal, 0, 1, 0), pB = stepValue(dv.pro, 0, 1, 0), sB = stepValue(dv.steps, 0, 1, 0); let keptB = []; for (const [kB, vB] of [["cal", cB], ["pro", pB], ["steps", sB]]) { const tkB = typoKeep(kB, vB); if (tkB === "abort") return; if (tkB === "keep") keptB.push([kB, vB]); } let ns = writeDaily(s, r.d, { cal: cB, pro: pB, steps: sB }); for (const [kB, vB] of keptB) ns = typoReceipt(ns, kB, vB); if (estOn) { ns = { ...ns, dayCtx: { ...(ns.dayCtx || {}), [r.d]: { ...((ns.dayCtx || {})[r.d] || {}), est: true, note: "backfilled — rough numbers count" } } }; } setS(ns); save(ns); hap(12); }}>Save</Btn>
                   </div>
                 </div>);
             })}
@@ -17443,14 +17470,14 @@ function CaptureSheet({ s, setS, save, open, onClose, go }) {
         </div>
         <div style={{ ...tnum9, fontSize: 10, letterSpacing: "0.12em", color: readToday ? DT.jade : DT.dim, textAlign: "center", marginTop: GAP_WITHIN }}>{readToday ? "LOGGED " + readToday.w + " LB TODAY — SAVING UPDATES IT" : "MORNING SCALE · LB"}</div>
         <div style={{ marginTop: SP.lg }} />
-        <Btn full tone={heroIs("scale") ? "jade" : "ghost"} onClick={saveScale}>{readToday ? "Update the scale" : "Log " + wIn + " lb"}</Btn>
+        <Btn full tone={heroIs("scale") ? "gauge" : "ghost"} onClick={saveScale}>{readToday ? "Update the scale" : "Log " + wIn + " lb"}</Btn>
         <div style={{ marginTop: GAP_GROUP }}>
           <div style={lbl9}>CLOSE THE DAY</div>
           {stepRow("CALORIES", cal, setCal, 10, dl.cal == null)}
           {stepRow("PROTEIN g", pro, setPro, 5, dl.pro == null)}
           {stepRow("STEPS", stp, setStp, 500, dl.steps == null)}
           <div style={{ marginTop: SP.lg }} />
-          <Btn full tone={heroIs("day") || heroIs("amend") ? "jade" : "ghost"} onClick={() => { saveDay(); onClose(); }}>{dl.cal != null ? "Update today's numbers" : "Save today's numbers"}</Btn>
+          <Btn full tone={heroIs("day") || heroIs("amend") ? "gauge" : "ghost"} onClick={() => { saveDay(); onClose(); }}>{dl.cal != null ? "Update today's numbers" : "Save today's numbers"}</Btn>
         </div>
         <div style={{ marginTop: GAP_GROUP }}>
           <div style={lbl9}>LAST NIGHT</div>
@@ -17539,18 +17566,19 @@ function MoreTab({ s, go, openRules, openCoach }) {
      diary lines are s.feed verbatim. One door stays one door: a waiting decision routes
      to the briefing room where the inbox lives; no second card mount. */
   const roomsR = [
-    { k: "BRIEF", t: "THE BRIEFING ROOM", sub: "the classic NOW — capture, the briefing, the room, and every decision card in its full home",
+    { k: "BRIEF", t: "DECISIONS", sub: "the briefing room — capture, the briefing, and every decision card in its full home",
       hint: (() => { try { const n9 = ((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length); return n9 ? n9 + " waiting on your OK" : null; } catch (e) { return null; } })() },
-    { k: "QUEUE", t: "QUEUE", sub: "what is earned, what is waiting, and the gate on each",
+    { k: "QUEUE", t: "QUEUE", sub: "what you've earned, what's waiting, and what each is waiting on",
       hint: (() => { try { return (s.queue || []).filter((q) => !q.done).length + " open"; } catch (e) { return null; } })() },
     { k: "SLEEP", t: "SLEEP", sub: "your clock, the lever, and the caffeine tail",
-      hint: (() => { try { const an = sleepAnchor(s); return an.measured ? an.curH + " h average" : "needs bed + wake times"; } catch (e) { return null; } })() },
-    { k: "BODY", t: "BODY", sub: "weight, trend, and the body-fat band at its real width",
+      hint: (() => { try { const an = sleepAnchor(s); return an.measured ? (+an.curH).toFixed(1) + " h average" : "needs bed + wake times"; } catch (e) { return null; } })() },
+    { k: "BODY", t: "BODY", sub: "weight, trend, and the body-fat band — the honest range",
       hint: (() => { try { const b = bfEst(s); return b.pct + "% · " + b.lo + "–" + b.hi; } catch (e) { return null; } })() },
   ];
   const okN = (() => { try { return ((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length); } catch (e) { return 0; } })();   /* the rail badge count, verbatim */
   const labAll = (() => { try { return labStatusList(s); } catch (e) { return []; } })();
   const labLive = labAll.filter((c) => c.status === "LIVE").length;
+  const [rcptOpen, setRcptOpen] = React.useState(null);   /* A3 — one open receipt at a time */
   const diary = (() => {
     try {
       const fl = diaryFeed(s, 12);   /* R2-3 — the selection law lives beside sweepLab; the window fills AFTER the lab-line skip */
@@ -17652,7 +17680,14 @@ function MoreTab({ s, go, openRules, openCoach }) {
             {g.rows.map((f, i) => (
               <div key={i} style={{ marginTop: 8 }}>
                 <div style={{ fontFamily: mono, fontSize: 11.5, fontWeight: 700, letterSpacing: "0.02em", color: DT.ink, lineHeight: 1.45 }}>{f.t}</div>
-                {f.how ? <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, marginTop: 2 }}>{f.how}</div> : null}
+                {f.how ? (() => { const s1 = String(f.how).split(". ")[0]; const rest = String(f.how).slice(s1.length).replace(/^\. ?/, ""); const k9 = g.d + "·" + i; return (
+                  <div style={{ fontFamily: body, fontSize: 12, color: DT.steel, lineHeight: 1.5, marginTop: 2 }}>
+                    {s1 + (rest ? "." : "")}
+                    {rest ? (rcptOpen === k9
+                      ? <div style={{ marginTop: 4 }}>{rest}</div>
+                      : <button role="button" onClick={() => setRcptOpen(k9)} style={{ display: "block", background: "none", border: "none", padding: "8px 0", margin: 0, cursor: "pointer", fontFamily: mono, fontSize: 9.5, letterSpacing: "0.12em", color: T.gauge, textAlign: "left" }}>VIEW RECEIPT ▸</button>) : null}
+                  </div>
+                ); })() : null}
               </div>
             ))}
           </div>
@@ -17660,18 +17695,19 @@ function MoreTab({ s, go, openRules, openCoach }) {
         {/* R2-1 — 30px measured on the rig; the law is 44. The button is paint-free text,
             so padding IS pure slop; the negative bottom margin hands the growth to the
             card's own inert padding so the paint position does not move. */}
-        <button role="button" onClick={() => go("QUEUE")} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", textAlign: "left", background: "none", border: "none", padding: "14px 0 2px", margin: "0 0 -12px", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>THE FULL DIARY LIVES IN QUEUE ▸</button>
+        <button role="button" onClick={() => go("QUEUE")} style={{ display: "flex", alignItems: "center", minHeight: 44, width: "100%", textAlign: "left", background: "none", border: "none", padding: "14px 0 2px", margin: "0 0 -12px", cursor: "pointer", fontFamily: mono, fontSize: 10.5, letterSpacing: "0.1em", color: DT.steel }}>THE FULL HISTORY ▸</button>
       </div>
 
       {/* LAB — the hero row wears its live counts. Outer button is the paint-free hit
           box; the card paint rides the inner span — the standing split law. */}
+      <div style={{ fontFamily: mono, fontSize: 9.5, letterSpacing: "0.16em", color: DT.dim, margin: "14px 0 4px" }}>EXPERT — the machinery, after the daily surfaces</div>
       <button data-led="lab" role="button" onClick={() => go("HIST")} style={{ display: "block", width: "100%", background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}>
         <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, minHeight: DT.touch, background: DT.card, border: "1px solid " + DT.hairline, borderRadius: DT.radius, padding: "12px 15px", boxSizing: "border-box" }}>
           <span style={{ minWidth: 0, flex: 1 }}>
             <span style={{ fontFamily: disp, fontWeight: 700, fontSize: 17, letterSpacing: "0.04em", color: DT.ink, textTransform: "uppercase" }}>LAB</span>
             <span style={{ display: "block", fontFamily: body, fontSize: 12, color: DT.steel, marginTop: 2, lineHeight: 1.45 }}>the instruments — every verdict the engine is currently willing to make</span>
           </span>
-          <span style={{ ...tnum, flexShrink: 0, fontSize: 10.5, letterSpacing: "0.06em", color: DT.steel }}>{labAll.length} TOOLS · <span style={{ color: DT.jade }}>{labLive} SPEAKING</span> ▸</span>
+          <span style={{ ...tnum, flexShrink: 0, fontSize: 10.5, letterSpacing: "0.06em", color: DT.steel }}>the instruments ▸</span>{/* A9 — the census lives inside LAB now */}
         </span>
       </button>
 
@@ -17771,7 +17807,7 @@ function MoreTab({ s, go, openRules, openCoach }) {
       {/* The instrument's serial plate (§4): what you are running, what schema the
           record is on, and where the numbers come from. TS.micro steel, bottom. */}
       <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, textAlign: "center", padding: `${SP.lg}px ${SP.sm}px 0`, lineHeight: `${LH.micro}px`, letterSpacing: "0.04em" }}>
-        EARNED · v{APP_V} · SCHEMA v{SCHEMA_V}
+        EARNED — built for one athlete, from his own logs
         <br />every figure on every screen is computed from your own logs — no defaults, no population averages
         <br />record starts {fmtShort(START)} · {(s.reads || []).length} weigh-ins · {((s.sleep || {}).nights || []).length} nights · {Object.keys(s.sessionLog || {}).length} sessions
       </div>
@@ -18010,7 +18046,7 @@ function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
             <div style={{ marginTop: 8 }}>
               <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>Token saved on this device · last sync: {sync && sync.last ? `${fmtShort(sync.last)} — ${sync.status}` : "never"}</div>
               <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                <Btn small tone="jade" onClick={onSync}>Sync now</Btn>
+                <Btn small tone="gauge" onClick={onSync}>Sync now</Btn>
                 <Btn small onClick={() => { try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} setHasTok(false); }}>Remove token</Btn>
               </div>
             </div>
@@ -18018,7 +18054,7 @@ function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
             <div style={{ marginTop: 8 }}>
               <input type="password" placeholder="paste the github_pat_ token" value={tok} onChange={(e) => setTok(e.target.value)}
                 style={{ width: "100%", boxSizing: "border-box", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: TS.label, padding: 10, outline: "none" }} />
-              <div style={{ marginTop: 8 }}><Btn small tone="jade" onClick={() => { if (tok.indexOf("github_pat_") === 0) { try { localStorage.setItem(TOKEN_KEY, tok.trim()); } catch (e) {} setHasTok(true); setTok(""); } }}>Save token</Btn></div>
+              <div style={{ marginTop: 8 }}><Btn small tone="gauge" onClick={() => { if (tok.indexOf("github_pat_") === 0) { try { localStorage.setItem(TOKEN_KEY, tok.trim()); } catch (e) {} setHasTok(true); setTok(""); } }}>Save token</Btn></div>
               <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${T.line}` }}>
                 <Eyebrow c={T.brass}>SYNC DOCTOR — the pipe, in the open</Eyebrow>
                 {(() => { const ok9 = +(localStorage.getItem("pl-lastsync") || 0); let se9 = null; try { se9 = JSON.parse(localStorage.getItem("plSyncErr") || "null"); } catch (e) {}
@@ -18026,7 +18062,7 @@ function Rules({ s, onClose, onReset, onExport, onImport, sync, onSync }) {
                     last success: {ok9 ? new Date(ok9).toLocaleString() : "never"}<br />
                     last error: {se9 ? `HTTP ${se9.status} at ${se9.at.slice(11, 19)} · ${se9.msg || "no body"}${se9.tr ? " · attempts " + se9.tr.join("→") : ""}` : "none on record"}
                   </div>); })()}
-                <div style={{ marginTop: 10 }}><Btn small tone="jade" onClick={async () => { const r9 = await ghSync(s); alert(r9.ok ? "Synced ✓ — the server has everything on this phone now." : "STILL FAILING — " + r9.msg + "\nScreenshot this and send it to your builder."); }}>Sync now</Btn></div>
+                <div style={{ marginTop: 10 }}><Btn small tone="gauge" onClick={async () => { const r9 = await ghSync(s); alert(r9.ok ? "Synced ✓ — the server has everything on this phone now." : "STILL FAILING — " + r9.msg + "\nScreenshot this and send it to your builder."); }}>Sync now</Btn></div>
               </div>
             </div>
           )}
@@ -18328,11 +18364,11 @@ export default function PrepLedger() {
             never be tappable: pointer-events none, PINNED by a source assert. Moved to the
             bottom corner of the bar (out of the label line it was crowding at 390px), 9px =
             the token ramp's floor. */}
-        <div style={{ position: "absolute", bottom: 2, right: 6, fontFamily: mono, fontSize: 9, color: T.steel, opacity: 0.55, padding: 0, pointerEvents: "none" }}>v{APP_V}</div>
+
         <div style={{ maxWidth: 480, margin: "0 auto", display: "flex" }}>
           {tabs.map((t2) => (
             <button key={t2} onClick={() => setTab(t2)} style={{ flex: 1, padding: "13px 0 calc(8px + env(safe-area-inset-bottom))", background: "none", border: "none", borderTop: (tab === t2 || (t2 === "LEDGER" && inMore)) ? `2px solid ${T.gauge}` : "2px solid transparent", fontFamily: lbl, fontWeight: 600, fontSize: TS.micro, letterSpacing: "0.09em", transition: TR("color", MOT.micro), color: (tab === t2 || (t2 === "LEDGER" && inMore)) ? T.gauge : T.steel }}>
-              {TAB_LABEL[t2] || t2}{t2 === "LEDGER" && (((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length)) > 0 ? <span style={{ color: T.jade, fontWeight: 700 }}> ●{((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length)}</span> : null}
+              {TAB_LABEL[t2] || t2}{t2 === "LEDGER" && (((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length)) > 0 ? <span style={{ color: T.brass, fontWeight: 700 }}> ●{((s.proposals || []).filter((p) => p && !p.resolved).length) + ((s.agentProposals || []).length)}</span> : null}
             </button>
           ))}
         </div>

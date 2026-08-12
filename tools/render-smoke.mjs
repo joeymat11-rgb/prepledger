@@ -11,7 +11,11 @@ import fs from "node:fs";
 import { JSDOM } from "jsdom";
 import { buildForTests } from "../scripts/build.mjs";
 
-const BANNED = ["RIR —", "undefined", "NaN", "[object Object]"];
+/* "/*" joins the banned list after the design round: a JSX annotation written as a
+   BARE block comment inside JSX children renders as literal text — it shipped on the
+   app's front door (EAT TODAY carried its own source comment in serif). One string
+   here closes the whole class. */
+const BANNED = ["RIR —", "undefined", "NaN", "[object Object]", "/*"];
 /* The rail is NOW / TRAIN / LEDGER (R15a), and the four rooms he rarely opens live one
    predictable tap behind LEDGER — static demotion, never adaptive, because an
    interface that rearranges itself measured ~8% SLOWER than one that does not
@@ -19,9 +23,9 @@ const BANNED = ["RIR —", "undefined", "NaN", "[object Object]"];
    every state: demoting a screen must never mean it stops being exercised.
    PRIMARY are reachable from the bar; BEHIND_MORE need LEDGER clicked first. */
 const PRIMARY = ["NOW", "TRAIN"];
-const BEHIND_MORE = ["QUEUE", "BODY", "SLEEP", "LAB", "THE BRIEFING ROOM"];   /* R15b — the classic NOW, moved not stranded */
+const BEHIND_MORE = ["QUEUE", "BODY", "SLEEP", "LAB", "DECISIONS"];   /* R15b — the classic NOW, moved not stranded */
 const TABS = [...PRIMARY, ...BEHIND_MORE];
-const MIN = { NOW: 300, TRAIN: 150, QUEUE: 200, BODY: 250, SLEEP: 250, LAB: 200, "THE BRIEFING ROOM": 300 };
+const MIN = { NOW: 300, TRAIN: 150, QUEUE: 200, BODY: 250, SLEEP: 250, LAB: 200, "DECISIONS": 300 };
 
 const bundle = fs.readFileSync(await buildForTests(), "utf8");
 
@@ -96,7 +100,7 @@ async function tabText(window, label) {
     setTimeout(() => r(window.document.getElementById("root").textContent || ""), 60));
 }
 
-/* R15b — walk to the classic NOW (LEDGER -> THE BRIEFING ROOM), where NOW_DOORS' Groups
+/* R15b — walk to the classic NOW (LEDGER -> DECISIONS), where NOW_DOORS' Groups
    and the approval inbox now mount. Two taps, exactly as he would make them. */
 async function openBriefing(window) {
   const led = await findClickable(window, "LEDGER", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("LEDGER"));
@@ -105,8 +109,8 @@ async function openBriefing(window) {
   await new Promise((r) => setTimeout(r, 80));
   /* role-scoped: an ancestor card's textContent also startsWith the row title — the same
      trap tabText's length cap guards; role=button pins the actual tappable row. */
-  const room = await findClickable(window, "THE BRIEFING ROOM", (b) => b.getAttribute && b.getAttribute("role") === "button" && b.textContent.trim().startsWith("THE BRIEFING ROOM"));
-  if (!room) throw new Error("THE BRIEFING ROOM row missing — the classic NOW is stranded");
+  const room = await findClickable(window, "DECISIONS", (b) => b.getAttribute && b.getAttribute("role") === "button" && b.textContent.trim().startsWith("DECISIONS"));
+  if (!room) throw new Error("DECISIONS row missing — the classic NOW is stranded");
   room.click();
   await new Promise((r) => setTimeout(r, 250));
 }
@@ -173,7 +177,7 @@ for (const [name, mut] of states) {
   const w = await mount();
   await new Promise((r) => setTimeout(r, 250));
   await openBriefing(w);
-  for (const m of checkDoors(w, "now.", "THE BRIEFING ROOM")) { console.error("RENDER-SMOKE: " + m); failed++; }
+  for (const m of checkDoors(w, "now.", "DECISIONS")) { console.error("RENDER-SMOKE: " + m); failed++; }
   // TRAIN's Groups register only while TRAIN is mounted
   try {
     const t = await findClickable(w, "TRAIN", (b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("TRAIN"));
@@ -196,7 +200,7 @@ for (const [name, mut] of states) {
   });
   await new Promise((r) => setTimeout(r, 250));
   await openBriefing(w);
-  if (!(w.document.body.textContent || '').includes('FOR YOU TO OK')) {
+  if (!(w.document.body.textContent || '').includes('DECISIONS')) {
     console.error('RENDER-SMOKE: seeded a proposal but the approval inbox did not mount in the briefing room — its door key cannot be checked');
     failed++;
   } else {

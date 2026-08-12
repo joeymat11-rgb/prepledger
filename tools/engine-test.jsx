@@ -173,11 +173,11 @@ m.weekly = [{ wk: "2026-07-06", trend: 165.2 }, { wk: "2026-07-13", trend: 164.7
 m = runAdaptive(m, "2026-07-22");
 /* R14 — the floor producer is kind:note, so it is now a FEED LINE, not a card. The
    invariant: a card may exist in the inbox only if its tap enacts a state change. */
-ok(!m.proposals.some(p => !p.resolved && p.title.indexOf("RATE FLOOR") === 0), "R14 — the floor note no longer becomes a CARD: information is not a decision");
-ok(m.feed.some(f => f.t.indexOf("RATE FLOOR") === 0), "R14 — it lands in the FEED instead, where information lives, with the same title and body");
+ok(!m.proposals.some(p => !p.resolved && p.title.indexOf("TWO SLOW WEEKS") === 0), "R14 — the floor note no longer becomes a CARD: information is not a decision");
+ok(m.feed.some(f => f.t.indexOf("TWO SLOW WEEKS") === 0), "R14 — it lands in the FEED instead, where information lives, with the same title and body (V6: the title is plain now — the dialect died in the same round)");
 {
   const again = runAdaptive(JSON.parse(JSON.stringify(m)), "2026-07-22");
-  ok(again.feed.filter(f => f.t.indexOf("RATE FLOOR") === 0).length === 1, "R14 — and a persisting condition informs ONCE per fortnight, not once per sweep: deduped against the feed itself, statelessly");
+  ok(again.feed.filter(f => f.t.indexOf("TWO SLOW WEEKS") === 0).length === 1, "R14 — and a persisting condition informs ONCE per fortnight, not once per sweep: deduped against the feed itself, statelessly");
 }
 let e2 = clone(SEED); e2.trend = 160; e2.blackout.until = "2026-07-01";
 e2 = runAdaptive(e2, "2026-07-22");
@@ -6649,9 +6649,7 @@ if (fail) process.exit(1);
   ok(DT9.glyph.status === "◆" && DT9.glyph.ok === "◇" && DT9.glyph.fwd === "▸" && DT9.touch === 64, "R15a — the geometric glyph set and the 64px touch floor are tokens, not tribal knowledge");
   const src15 = readFileSync("src/app.jsx", "utf8");
   ok(src15.indexOf('const PRIMARY_TABS = ["NOW", "TRAIN", "LEDGER"];') > -1 && src15.indexOf('"MORE"') === -1, "R15a — the rail is NOW / TRAIN / LEDGER and no route answers to MORE: renamed everywhere, not aliased — a stranded surface is the failure this asserts against");
-  const stampLine = src15.split("\n").find((l) => l.indexOf(">v{APP_V}</div>") > -1 && l.indexOf('position: "absolute"') > -1);
-  ok(!!stampLine && stampLine.indexOf('pointerEvents: "none"') > -1, "R15a POINTER PASS — the version stamp carries pointer-events none: it intercepted REAL taps on the rail's right tab while every synthetic jsdom click passed through it — a passive label may never own a tap, and this pin keeps it that way");
-  ok(src15.indexOf("\\" + "u00b7 target") === -1 && src15.indexOf(" " + "\\" + "u00d7 {") === -1, "R15a — no JSX-text unicode escapes survive: \\u00b7 and \\u00d7 between JSX expressions render as LITERAL CHARACTERS on screen (they were live on TODAY'S LIFTS and GymMode's prev line) — escapes belong in JS strings, glyphs belong in JSX text");
+  ok(!src15.split(String.fromCharCode(10)).some((l) => l.indexOf(">v{APP_V}</div>") > -1 && l.indexOf('position: "absolute"') > -1), "A10 — the floating version stamp LEFT the tab bar (it once intercepted real taps; now it cannot, because it does not exist there) — the version lives in Rules and the export receipts");
 }console.log(`\nFINAL86: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
 
@@ -6732,8 +6730,8 @@ if (fail) process.exit(1);
      round 2). Disjoint by construction: START's box cannot extend below its paint, the
      FAB's cannot extend above its own. The audit re-measures the rects; this pins the
      values so a refactor cannot silently un-derive them. */
-  ok(nt2.indexOf('padding: "27px 0 0 0"') > -1 && nt2.indexOf('margin: "-26px 0 1px 0"') > -1 && nt2.indexOf("zIndex: 2") > -1 && nt2.indexOf('borderLeft: "1px solid rgba(94,212,162,.35)"') > -1, "ROUND 4 — START: paint and slop never share a channel — the outer button is the 64px hit box (27px padding slop, all UP, z 2 over inert text) and the inner span carries the round-2 side-caps pill untouched; slop arithmetic can no longer drag paint by construction");
-  ok(nt2.indexOf("width: 64, height: 64, background: \"none\", border: \"none\"") > -1 && nt2.indexOf('right: 10, bottom: "calc(50px + env(safe-area-inset-bottom))"') > -1 && nt2.indexOf("width: 52, height: 52, borderRadius: \"50%\", background: DT.amber") > -1, "ROUND 4 — the FAB: a 64×64 invisible outer hit box with the painted 52px circle at its top-left — paint at the round-2 position (right 22, bottom 62) by construction, slop only down/right, the rects disjoint because neither box can cross its own paint toward the other");
+  ok(nt2.indexOf('padding: "27px 0 0 0"') > -1 && nt2.indexOf('margin: "-26px 0 1px 0"') > -1 && nt2.indexOf("zIndex: 2") > -1 && nt2.indexOf('borderLeft: `1px solid ${T.gauge}59`') > -1, "ROUND 4 — START: paint and slop never share a channel — the outer button is the 64px hit box (27px padding slop, all UP, z 2 over inert text) and the inner span carries the round-2 side-caps pill untouched; slop arithmetic can no longer drag paint by construction");
+  ok(nt2.indexOf("width: 64, height: 64, background: \"none\", border: \"none\"") > -1 && nt2.indexOf('right: 10, bottom: "calc(50px + env(safe-area-inset-bottom))"') > -1 && nt2.indexOf("width: 52, height: 52, borderRadius: \"50%\", background: T.gauge") > -1, "ROUND 4 — the FAB: a 64×64 invisible outer hit box with the painted 52px circle at its top-left — paint at the round-2 position (right 22, bottom 62) by construction, slop only down/right, the rects disjoint because neither box can cross its own paint toward the other");
 }
 console.log(`\nFINAL87: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
@@ -7037,10 +7035,10 @@ if (fail) process.exit(1);
   ok(mt.indexOf(String.fromCharCode(100, 97, 116, 97, 45, 115, 112, 101, 99, 61, 34, 101, 120, 97, 109, 112, 108, 101, 34)) > -1 && mt.indexOf("aria-hidden=\"true\" style={{ pointerEvents: \"none\"") > -1, "R14 AT THE ILLUSTRATION — the example decision card is INERT by construction (pointer-events none, aria-hidden, dashed frame): a card whose taps enact nothing may not be tappable");
   ok(mt.indexOf("A TAP HERE ALWAYS CHANGES SOMETHING REAL — AND ONE TAP ALWAYS UNDOES IT") > -1 && mt.indexOf("Nothing needs your OK right now.") > -1 && mt.indexOf("{okN} WAITING") > -1, "the empty inbox is the DESIGNED-NORMAL good state, in the mockup words, and the count on the row is the rail badge count");
   ok(mt.indexOf("onClick={() => go(\"BRIEF\")}") > -1 && (mt.split("ApprovalInbox").length - 1) === 0, "ONE DOOR STAYS ONE DOOR — a waiting decision routes to the briefing room; the hub mounts NO second inbox, so a card can never exist in two places");
-  ok(mt.indexOf("{f.t}") > -1 && mt.indexOf("{f.how}") > -1, "the diary renders the engine feed VERBATIM — t and how untouched, no rewriting at the surface (the typed-words discipline)");
-  ok(mt.indexOf("labStatusList(s)") > -1 && mt.indexOf("{labAll.length} TOOLS") > -1 && mt.indexOf("{labLive} SPEAKING") > -1, "the LAB row counts are LENGTHS of existing selector output (labStatusList) — the UI computes nothing, per the engine-owns-numbers guardrail");
+  ok(mt.indexOf("const s1 = String(f.how).split(\". \")[0]") > -1 && mt.indexOf("VIEW RECEIPT ▸") > -1, "A3 — the diary anatomy is PROGRESSIVE DISCLOSURE, never rewriting: the first sentence shows plain and the FULL engine text sits verbatim behind VIEW RECEIPT — the typed-words discipline holds at both layers");
+  ok(mt.indexOf("the instruments ▸") > -1 && mt.indexOf("labAll.length} TOOLS") === -1, "A9 — the tool census left the LEDGER surface (it lives inside LAB now); the hero row is a plain door");
   ok((mt.split("minHeight: DT.touch").length - 1) >= 3 && mt.indexOf("background: \"none\", border: \"none\"") > -1, "TOUCH LAW — the ok row, the lab row and every room row are 64px paint-free hit boxes; paint rides inner spans (the standing split law)");
-  ok(mt.indexOf("t: \"THE BRIEFING ROOM\"") > -1 && mt.indexOf("k: \"QUEUE\"") > -1 && mt.indexOf("k: \"SLEEP\"") > -1 && mt.indexOf("k: \"BODY\"") > -1 && mt.indexOf("onClick={() => go(\"HIST\")}") > -1, "every room keeps its two-tap door: BRIEFING ROOM / QUEUE / SLEEP / BODY rows plus the LAB hero row to HIST");
+  ok(mt.indexOf("t: \"DECISIONS\"") > -1 && mt.indexOf("k: \"QUEUE\"") > -1 && mt.indexOf("k: \"SLEEP\"") > -1 && mt.indexOf("k: \"BODY\"") > -1 && mt.indexOf("onClick={() => go(\"HIST\")}") > -1, "every room keeps its two-tap door: BRIEFING ROOM / QUEUE / SLEEP / BODY rows plus the LAB hero row to HIST");
   ok(mt.indexOf("React.Fragment") > -1 && mt.indexOf("{i > 0 ? <div style={{ borderTop: \"1px solid \" + DT.hairline }} /> : null}") > -1, "hairlines are INERT SIBLINGS between row buttons, never wrappers — a wrapper whose text shadows a row would steal the render-smoke document-order click");
   ok((mt.split("role=\"button\"").length - 1) >= 5 && mt.indexOf("<SecRule>ANALYST & RULES</SecRule>") > -1 && (srcL.split("<SecRule>THE RECORD</SecRule>").length - 1) === 0, "rows carry the explicit role the smoke pins by attribute, and the settings section sheds the name the diary now owns");
 
@@ -7115,7 +7113,7 @@ if (fail) process.exit(1);
   const swF = readFileSync("sw.js", "utf8");
   ok(idxF.indexOf("<title>EARNED</title>") > -1 && idxF.indexOf('content="EARNED"') > -1 && idxF.indexOf("Measured") === -1, "R15f RENAME — the page title and apple web-app title both say EARNED, and no Measured survives in the shell");
   ok(manF.indexOf('"name": "EARNED"') > -1 && manF.indexOf('"short_name": "EARNED"') > -1 && manF.indexOf("Measured") === -1, "R15f RENAME — the manifest names the install EARNED, long and short");
-  ok(srcF.indexOf(">EARNED</span>") > -1 && srcF.indexOf("<H size={24}>Earned</H>") > -1 && srcF.indexOf("EARNED · v{APP_V}") > -1 && srcF.indexOf("EARNED — ANALYST DOSSIER") > -1, "R15f RENAME — all four in-app wordmark sites carry EARNED: the NOW wordmark, the BRIEF header, the serial plate, the dossier header");
+  ok(srcF.indexOf(">EARNED</span>") > -1 && srcF.indexOf("<H size={24}>Earned</H>") > -1 && srcF.indexOf("EARNED — built for one athlete") > -1 && srcF.indexOf("EARNED — ANALYST DOSSIER") > -1, "R15f RENAME — all four in-app wordmark sites carry EARNED: the NOW wordmark, the BRIEF header, the serial plate, the dossier header");
   ok(srcF.indexOf(">MEASURED</span>") === -1 && srcF.indexOf("<H size={24}>Measured</H>") === -1 && srcF.indexOf("MEASURED · v{APP_V}") === -1, "R15f RENAME — and no wordmark site still says MEASURED; the STATUS word MEASURED (trust vocabulary, a tracked quantity) is deliberately untouched");
   ok(swF.indexOf("earned-v") > -1 && swF.indexOf("measured-v") === -1, "R15f RENAME — the sw cache prefix is earned-v; the activate sweep purges every old measured-v cache on first load");
   ok((srcF.split("the painted chip rides the inner span").length - 1) === 8, "R15f+g — the chip class wears the standing split everywhere it exists: the R15f four (undo pill, two est chips, the context chip) plus the R15g four selector groups (sodium/alcohol, today and yesterday), marker-pinned so a ninth chip must join the law or fail here");
@@ -7214,7 +7212,7 @@ if (fail) process.exit(1);
     const wsRow = d2.rows.find((r) => r.q === (ws2 && ws2.tag));
     ok(!!ws2 && !!ws2.tag && !!wsRow && wsRow.q === "Is the 6-hour wake a pattern with an address, or noise?", "R2 JOE'S WORD — the WAKE SIGNATURE row leads with the card's own plain question, engine words verbatim: " + (wsRow ? wsRow.q : "row missing"));
     ok(all2.every((c) => !!c.tag), "R2 — no tagless card exists in today's buckets, so the title FALLBACK is source-pinned rather than state-driven (the honest scope): every current card carries its plain question");
-    ok(wsRow.need - wsRow.n === 1 && wsRow.settle === "one more and it speaks", "R2 GRAMMAR — exactly-one-remaining drops the label repeat: " + JSON.stringify(wsRow.settle));
+    ok(wsRow.need - wsRow.n === 1 && wsRow.settle === "one more and it reads", "R2 GRAMMAR — exactly-one-remaining drops the label repeat: " + JSON.stringify(wsRow.settle));
     const plural2 = d2.rows.find((r) => (r.kind === "gathering") && (r.need - r.n) > 1);
     ok(!!plural2 && plural2.settle.indexOf((plural2.need - plural2.n) + " more " + (plural2.label || "observations")) === 0, "R2 GRAMMAR — plural cases keep the count and label verbatim: " + JSON.stringify(plural2 && plural2.settle));
   }
@@ -7404,7 +7402,7 @@ if (fail) process.exit(1);
     ok(cs.indexOf("const seedCal = eb0 && !eb0.gated && eb0.mid != null ? eb0.mid : 2000;") > -1 && cs.indexOf("const seedPro = pt0 && pt0.g != null ? pt0.g : 175;") > -1 && cs.indexOf("useState(dl.cal ?? seedCal)") > -1, "R15k NO-BLANK LAW — the steppers seed from the ENGINE'S OWN targets (energyBalanceTarget · proteinTarget · stepTarget — the same numbers the log screen seeds), never an empty string between − and +");
     ok(cs.indexOf('{isTarget ? <>{" "}<span') > -1 && cs.indexOf("TARGET</span>") > -1 && cs.indexOf("stepRow(" + Q + "CALORIES" + Q + ", cal, setCal, 10, dl.cal == null)") > -1, "R15k — and a row showing a TARGET rather than a logged value says so beside it: a suggestion can never be mistaken for a record");
     /* one hero */
-    ok(cs.indexOf('tone={heroIs("scale") ? "jade" : "ghost"}') > -1 && cs.indexOf('tone={heroIs("day") || heroIs("amend") ? "jade" : "ghost"}') > -1 && (cs.match(/tone="jade"/g) || []).length === 2 && (cs.match(/<Btn small tone="jade"/g) || []).length === 2, "R15k ONE HERO (evolved for the OWED LEDGER) — the ask at the top decides which button is filled; the other is the quiet variant. Two full-width filled greens in one view is the defect; the FULL-hero law holds, and the only unconditional jades are the ledger rows' two per-row small Saves — a commit per debt row, not a competing hero");
+    ok(cs.indexOf('tone={heroIs("scale") ? "gauge" : "ghost"}') > -1 && cs.indexOf('tone={heroIs("day") || heroIs("amend") ? "gauge" : "ghost"}') > -1 && (cs.match(/tone="gauge"/g) || []).length === 2 && (cs.match(/<Btn small tone="gauge"/g) || []).length === 2, "R15k ONE HERO (evolved for the OWED LEDGER) — the ask at the top decides which button is filled; the other is the quiet variant. Two full-width filled greens in one view is the defect; the FULL-hero law holds, and the only unconditional jades are the ledger rows' two per-row small Saves — a commit per debt row, not a competing hero");
     /* the density law, here */
     ok(cs.indexOf("const row9 = (key, name, buys, right, why, onTap) => {") > -1 && cs.indexOf('{name}<span style={{ color: DT.steel }}>{buys ? " · " + buys : ""}</span>') > -1 && cs.indexOf("{openW && why ?") > -1, "R15k DENSITY LAW — optional rows are ONE line (input · what it buys · counter) with the full explanation behind the row's own ▸: the three-line grey paragraphs R15i deleted from the LAB do not come back in a sheet");
     ok(cs.indexOf("THE CORE — WHAT RUNS EVERYTHING") > -1 && cs.indexOf("THE THREE THAT RUN EVERYTHING") === -1, "R15k COPY NIT — the label no longer counts three things above a scale, three numbers and a sleep row");
@@ -7614,7 +7612,7 @@ if (fail) process.exit(1);
   const kept = __test.migrate(both9);
   ok(!!kept.sessionLog["2026-08-09"] && !!kept.sessionLog["2026-08-10"] && kept.sessionLog["2026-08-10"].entries[0].id === "hack", "R19d — a device that GENUINELY trains Monday 8/10 after the correction is untouched: both days survive, because the guard keys on the mislabeled shape, not the date alone");
   /* R19d forward — the borrow is a question now */
-  ok(srcG.indexOf("REST DAY — WHICH DATE GETS THIS SESSION?") > -1 && srcG.indexOf("Log as today · ") > -1 && srcG.indexOf('useState(dayType(tISO, s) === "U" || dayType(tISO, s) === "L" ? tISO : nextISO)') > -1, "R19d — gym on a rest day ASKS which date gets the session instead of silently borrowing the next training day (the exact mechanism that misfiled Sunday), and dateSel reads the athlete's OWN split");
+  ok(srcG.indexOf("REST DAY — filed under") > -1 && srcG.indexOf("setFileAs(fileAs ? null : tISO)") > -1 && srcG.indexOf('useState(dayType(tISO, s) === "U" || dayType(tISO, s) === "L" ? tISO : nextISO)') > -1, "R19d — gym on a rest day ASKS which date gets the session instead of silently borrowing the next training day (the exact mechanism that misfiled Sunday), and dateSel reads the athlete's OWN split");
   ok(srcG.indexOf("const t = dayType(d, s); if ((t === " + String.fromCharCode(34) + "U" + String.fromCharCode(34)) > -1, "R19d — nextTrainingISO passes state too: every future-reasoning caller reads the athlete's split, not the retired hardcode");
   /* R19a — back works everywhere */
   ok(srcG.indexOf("const backRow = (why9) =>") > -1 && (srcG.match(/\{backRow\(\)\}/g) || []).length === 3, "R19a — ONE shared back row renders on the rest, opener-ask and terminal-ask screens (3 mounts): the athlete can walk back from any phase, where before those screens had no back control at all");
@@ -7637,9 +7635,9 @@ if (fail) process.exit(1);
        "Log as today" must never move the template date. */
     const S41 = JSON.parse(JSON.stringify(__test.SEED));
     ok(__test.genSession(S41, "2026-08-11", { last: null }) === null, "R19 fix — genSession returns null on a REST day (2026-08-11 under the athlete's split): the defect precondition, on the record — setDateSel(tISO) on a rest day unmounted the ask AND the launcher");
-    ok(srcF.indexOf("const [fileAs, setFileAs] = useState(null);") > -1 && srcF.indexOf("const fileISO = fileAs || dateSel;") > -1 && srcF.indexOf("setFileAs(tISO)") > -1 && srcF.indexOf("setDateSel(tISO)}>Log as today") === -1, "R19 fix 1 — 'Log as today' sets fileAs and never touches the template date: the tap can no longer unmount the control that offered it (the R14 family law)");
+    ok(srcF.indexOf("const [fileAs, setFileAs] = useState(null);") > -1 && srcF.indexOf("const fileISO = fileAs || dateSel;") > -1 && srcF.indexOf("setFileAs(fileAs ? null : tISO)") > -1 && srcF.indexOf("setDateSel(tISO)}>Log as today") === -1, "R19 fix 1 — 'Log as today' sets fileAs and never touches the template date: the tap can no longer unmount the control that offered it (the R14 family law)");
     ok(srcF.indexOf("completeSession(s, fileISO, entries, slp, {") > -1 && srcF.indexOf("dateSel={gDate === dateSel ? fileISO : gDate}") > -1, "R19 fix 1 — BOTH commit paths file under fileISO (the plain log screen and gym mode), while a resumed live draft keeps its own date");
-    ok(srcF.indexOf("s session template is loaded either way") > -1 && srcF.indexOf("filed under today") > -1, "R19 fix 1 — the card says BOTH truths: whose template, and which date the record lands under");
+    ok(srcF.indexOf("REST DAY — filed under {fmtShort(fileISO)}") > -1 && srcF.indexOf("{fileAs ? \" (today)\" : \"\"}") > -1, "R19 fix 1 + D1 — the ROW says both truths now: the filed date and the (today) marker when changed — auto-filed, one tap to change, visible until the session logs");
     /* DEFECT 2 — the census, pinned so a new stateless caller fails the suite */
     const calls = srcF.match(/dayType\(([^)]*)\)/g) || [];
     const real = calls.filter((c) => c.indexOf("dayType(iso") !== 0);
@@ -7765,10 +7763,10 @@ if (fail) process.exit(1);
     ok(!!g && g.ex.filter((l) => typeof l.w === "number").every((l) => l.runway), "R18a — every numeric lift on the session card carries a runway line, derived only (nextLoad · windowFor · last · topRun · typicalError)");
     const r1 = (g.ex.find((l) => /EARNS AT THE TOP OF THE WINDOW/.test(l.runway || "")) || {}).runway || "";
     ok(/EARNS AT THE TOP OF THE WINDOW \(\d+-\d+\)/.test(r1) && (/you are \d+ reps? away/.test(r1) || /you are there/.test(r1)) && /two sightings bank it|one sighting banked/.test(r1), "R18a — the runway names the next load, the window, the measured rep distance and the sighting state in one engine-authored line: " + r1.slice(0, 90));
-    ok((g.structural || "").length > 0 && srcR8.indexOf(String.fromCharCode(34) + " · nearest earn: " + String.fromCharCode(34)) > -1, "R18a — the header receipt exists at source ( · nearest earn: name, N reps from W) and rides whenever no structural claims the day; this seed day carries one (" + g.structural.slice(0, 40) + "), so the receipt yields to it — by design, the receipt explains only the NO-debut claim");
+    ok((g.structural || "").length > 0 && srcR8.indexOf(String.fromCharCode(34) + " · closest to a new weight: " + String.fromCharCode(34)) > -1, "R18a — the header receipt exists at source ( · nearest earn: name, N reps from W) and rides whenever no structural claims the day; this seed day carries one (" + g.structural.slice(0, 40) + "), so the receipt yields to it — by design, the receipt explains only the NO-debut claim");
   }
   /* R18b — the ask card at source */
-  ok(srcR8.indexOf("WHAT IS THE NEXT WEIGHT THIS MACHINE MAKES AFTER") > -1 && srcR8.indexOf("[...new Set([...(loadRungs(ex4) || []), ex4.w, ...ups])].sort") > -1 && srcR8.indexOf("counts as sighting one") > -1, "R18b — the ask card captures the machine's ladder in one tap (parseRungs — one weight or the whole ladder) and the already-delivered sighting counts the moment it is answered");
+  ok(srcR8.indexOf("WHAT IS THE NEXT WEIGHT THIS MACHINE MAKES AFTER") > -1 && srcR8.indexOf("[...new Set([...(loadRungs(ex4) || []), ex4.w, ...ups])].sort") > -1 && srcR8.indexOf("counts as the first of the two sightings") > -1, "R18b — the ask card captures the machine's ladder in one tap (parseRungs — one weight or the whole ladder) and the already-delivered sighting counts the moment it is answered");
   ok(srcR8.indexOf("Confirm the rung: does this machine actually make ") > -1, "R18c — the EARNED banner asks for rung confirmation where no ladder is on file, and points at the SETUP editor (the power path stays)");
   ok(srcR8.indexOf("GATES the next jump") > -1 && srcR8.indexOf("Last-set RIR gates the next jump") > -1, "R18d — the two prose claim-sites now describe what the engine does (gate + propose), not a sizing that never ran; the gym label 'this one sizes the jump' became TRUE under this round");
 
