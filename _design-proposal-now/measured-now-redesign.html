@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Measured — NOW redesign (design pass)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============ EXACT palette from src/app.jsx (PALETTE.dark / PALETTE.light) ============ */
+:root[data-theme="dark"]{
+  --ink:#101418; --plate:#181E24; --plate2:#1F262E; --line:#2A323B;
+  --chalk:#E8E4DA; --steel:#8A94A0; --dim:#5A636E;
+  --jade:#4CC38A; --brass:#E5B454; --orange:#F5793A; --redline:#E8556B; --gauge:#3FB4D8;
+  --hairline:rgba(90,99,110,0.4);
+}
+:root[data-theme="light"]{
+  --ink:#F4F2ED; --plate:#FFFFFF; --plate2:#F0EDE6; --line:#DBD6CC;
+  --chalk:#1A1F25; --steel:#5C646E; --dim:#A8AEB6;
+  --jade:#14663F; --brass:#8A6520; --orange:#B4471A; --redline:#B3123C; --gauge:#0E6C87;
+  --hairline:rgba(168,174,182,0.55);
+}
+/* type roles: metric34 display26 title17 body13 label12 micro11 (TS in source) */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:#0c0f13; color:#c9d0d8;
+  font-family:'Barlow',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased; padding-bottom:60px;
+}
+.disp{font-family:'Barlow Condensed',system-ui,sans-serif}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+.tnum{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1,'zero' 1}
+
+/* ---------- page chrome ---------- */
+.top{position:sticky;top:0;z-index:20;background:rgba(10,13,16,.9);backdrop-filter:blur(8px);
+  border-bottom:1px solid #232a31;padding:14px 20px;display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center}
+.top h1{font-family:'Barlow Condensed';font-weight:700;font-size:22px;letter-spacing:.02em;margin:0;color:#eef1f4;text-transform:uppercase}
+.top .sub{font-family:'IBM Plex Mono';font-size:11.5px;color:#8A94A0;letter-spacing:.04em;max-width:520px;line-height:1.5}
+.controls{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ctl{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#c9d0d8;
+  background:#151a1f;border:1px solid #2f3944;border-radius:8px;padding:9px 13px;cursor:pointer;transition:.15s}
+.ctl:hover{border-color:#3FB4D8;color:#eef1f4}
+.ctl b{color:#3FB4D8}
+.legend{max-width:1180px;margin:20px auto 4px;padding:0 20px;display:flex;gap:12px;flex-wrap:wrap}
+.legend .k{font-family:'IBM Plex Mono';font-size:11px;color:#8A94A0;letter-spacing:.03em;background:#12161b;
+  border:1px solid #232a31;border-radius:8px;padding:9px 12px;line-height:1.5;flex:1 1 220px}
+.legend .k b{color:#c9d0d8}
+.legend .t0 b{color:#3FB4D8}.legend .t1 b{color:#E5B454}.legend .t2 b{color:#8A94A0}
+
+/* ---------- gallery ---------- */
+.gallery{max-width:1240px;margin:14px auto 0;padding:14px 20px 60px;
+  display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap;justify-content:center}
+.dir{flex:0 0 auto;width:390px;max-width:100%}
+.dir .tag{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#3FB4D8}
+.dir h2{font-family:'Barlow Condensed';font-weight:700;font-size:26px;text-transform:uppercase;letter-spacing:.01em;
+  color:#eef1f4;margin:4px 0 6px}
+.dir .desc{font-family:'Barlow';font-size:13.5px;line-height:1.55;color:#9aa4af;margin:0 0 6px}
+.dir .desc b{color:#c9d0d8;font-weight:600}
+.dir .moves{font-family:'IBM Plex Mono';font-size:11px;line-height:1.6;color:#7c8792;margin:0 0 16px}
+.dir .moves .hide{color:#E5B454}
+.dir .moves .keep{color:#4CC38A}
+
+/* ---------- iPhone frame ---------- */
+.phone{width:390px;height:800px;border-radius:46px;background:#04060a;
+  padding:11px;box-shadow:0 22px 60px rgba(0,0,0,.55),0 0 0 2px #23262b,inset 0 0 0 2px #0a0d11;position:relative}
+.screen{position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:var(--ink);
+  display:flex;flex-direction:column}
+.island{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:104px;height:26px;background:#04060a;border-radius:16px;z-index:8}
+.statusbar{height:44px;flex:0 0 44px;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 22px 5px;font-family:'IBM Plex Mono';font-size:12px;color:var(--chalk);letter-spacing:.02em}
+.statusbar .r{display:flex;gap:6px;align-items:center;opacity:.9}
+.app{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 14px 20px;scrollbar-width:thin}
+.app::-webkit-scrollbar{width:0}
+.tabbar{flex:0 0 auto;height:58px;display:flex;background:var(--plate);border-top:1px solid var(--line);position:relative}
+.tabbar .v{position:absolute;top:3px;right:9px;font-family:'IBM Plex Mono';font-size:10px;color:var(--steel);opacity:.7}
+.tabbar button{flex:1;background:none;border:none;border-top:2px solid transparent;
+  font-family:'Barlow';font-weight:600;font-size:11px;letter-spacing:.09em;color:var(--steel);cursor:pointer;padding-top:10px}
+.tabbar button.on{color:var(--gauge);border-top-color:var(--gauge)}
+.tabbar .dot{color:var(--jade);font-weight:700}
+
+/* ---------- app component styles (mirror Card/Eyebrow/H/Btn/SemTag/Group) ---------- */
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:6px 2px 2px}
+.wordmark{font-family:'Barlow Condensed';font-weight:700;font-size:24px;text-transform:uppercase;letter-spacing:.01em;color:var(--chalk);line-height:1}
+.tagline{font-family:'Barlow';font-size:12px;color:var(--steel);margin-top:2px}
+.metaline{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.13em;color:var(--steel);text-transform:uppercase;margin-top:8px}
+.metaline .band{color:var(--steel)}
+.hbtns{display:flex;gap:8px;flex-shrink:0}
+.hbtn{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.12em;color:var(--steel);background:none;
+  border:1px solid var(--line);border-radius:6px;padding:7px 10px;white-space:nowrap;cursor:pointer}
+
+.card{background:var(--plate);border:1px solid var(--line);border-radius:8px;padding:16px;margin-top:12px}
+.card.tight{padding:11px 14px}
+.acc-gauge{border-left:3px solid var(--gauge)}
+.acc-jade{border-left:3px solid var(--jade)}
+.acc-brass{border-left:3px solid var(--brass)}
+.acc-orange{border-left:3px solid var(--orange)}
+.eyebrow{font-family:'Barlow';font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--steel)}
+.eyebrow.gauge{color:var(--gauge)}.eyebrow.jade{color:var(--jade)}.eyebrow.brass{color:var(--brass)}.eyebrow.orange{color:var(--orange)}
+.h{font-family:'Barlow Condensed';font-weight:700;text-transform:uppercase;letter-spacing:.01em;line-height:1.02;color:var(--chalk)}
+.prose{font-family:'Barlow';font-size:13px;line-height:1.55;color:var(--steel)}
+.prose.chalk{color:var(--chalk)}
+.micro{font-family:'IBM Plex Mono';font-size:11px;line-height:1.5;color:var(--steel);letter-spacing:.02em}
+.micro.brass{color:var(--brass)}.micro.jade{color:var(--jade)}.micro.orange{color:var(--orange)}
+.btn{font-family:'Barlow';font-weight:600;font-size:12px;letter-spacing:.06em;border-radius:8px;padding:12px 16px;
+  min-height:44px;display:inline-flex;align-items:center;justify-content:center;width:100%;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--chalk)}
+.btn.jade{background:var(--jade);color:var(--ink);border-color:var(--jade)}
+.btn.gauge{background:var(--gauge);color:var(--ink);border-color:var(--gauge)}
+.btn.ghost{background:transparent;color:var(--chalk)}
+.sem{display:inline-flex;align-items:baseline;gap:4px;font-family:'Barlow';font-weight:600;font-size:11px;letter-spacing:.06em;white-space:nowrap}
+.sem.good{color:var(--jade)}.sem.caution{color:var(--orange)}.sem.measured{color:var(--brass)}.sem.quiet{color:var(--steel)}.sem.limit{color:var(--redline);font-weight:700}
+
+/* status word hero */
+.statusword{font-family:'Barlow Condensed';font-weight:700;font-size:38px;line-height:1;letter-spacing:.005em;text-transform:uppercase;color:var(--jade)}
+.statusword.small{font-size:26px}
+
+/* corridor gauge */
+.corridor{position:relative;height:12px;border-radius:6px;margin:12px 0 6px;
+  background:linear-gradient(90deg,var(--redline) 0 14%,var(--plate2) 14% 30%,color-mix(in srgb,var(--jade) 26%,transparent) 30% 62%,var(--plate2) 62% 84%,var(--orange) 84% 100%);
+  border:1px solid var(--line)}
+.corridor .mk{position:absolute;top:-4px;width:3px;height:20px;border-radius:2px;background:var(--chalk);box-shadow:0 0 0 2px var(--ink)}
+.corridor .mk::after{content:"";position:absolute;left:-4px;top:-6px;width:11px;height:11px;border-radius:50%;background:var(--jade);box-shadow:0 0 0 2px var(--ink)}
+.corlab{display:flex;justify-content:space-between;font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.06em;color:var(--steel);text-transform:uppercase}
+
+/* five levers strip */
+.levers{display:flex;gap:6px;margin-top:10px}
+.lever{flex:1;text-align:center;border:1px solid var(--line);border-radius:8px;padding:8px 3px;background:var(--plate2)}
+.lever .lab{font-family:'IBM Plex Mono';font-size:9px;letter-spacing:.06em;color:var(--steel);text-transform:uppercase}
+.lever .g{font-size:15px;margin-top:3px;line-height:1}
+.lever .d{font-family:'IBM Plex Mono';font-size:9.5px;color:var(--steel);margin-top:2px}
+.g-good{color:var(--jade)}.g-caution{color:var(--orange)}.g-quiet{color:var(--steel)}
+
+/* five levers as rows (expanded) */
+.lrow{display:flex;justify-content:space-between;align-items:center;min-height:40px;border-top:1px solid var(--hairline);gap:10px}
+.lrow:first-child{border-top:none}
+.lrow .lab{font-family:'Barlow';font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--steel)}
+
+/* disclosure rows (Tier 2) */
+.row{background:var(--plate);border:1px solid var(--line);border-radius:8px;margin-top:10px;overflow:hidden}
+.row>.head{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 14px;cursor:pointer}
+.row .car{font-family:'IBM Plex Mono';font-size:13px;color:var(--steel);width:12px;flex:0 0 12px;transition:.15s}
+.row.open .car{color:var(--brass);transform:none}
+.row .title{font-family:'Barlow';font-weight:600;font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--chalk);white-space:nowrap}
+.row .peek{font-family:'IBM Plex Mono';font-size:10.5px;color:var(--steel);margin-left:auto;text-align:right;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .body{display:none;padding:2px 14px 14px;border-top:1px solid var(--hairline)}
+.row.open .body{display:block}
+.row .body .prose{margin-top:10px}
+
+/* secondary hairline rule */
+.secrule{display:flex;align-items:center;gap:12px;margin:22px 2px 6px}
+.secrule span{font-family:'Barlow';font-size:12px;font-weight:600;letter-spacing:.16em;color:var(--steel);text-transform:uppercase;white-space:nowrap}
+.secrule i{flex:1;height:1px;background:var(--line)}
+
+/* group header (collapsible section) */
+.grp{border-top:1px solid var(--line);padding-top:8px;margin-top:14px}
+.grp>.gh{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer}
+.grp .car{font-family:'IBM Plex Mono';font-size:15px;color:var(--steel);width:12px}
+.grp.open .car{color:var(--brass)}
+.grp .gt{font-family:'Barlow';font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--chalk)}
+.grp .gs{font-family:'Barlow';font-size:13px;color:var(--steel);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grp .gc{display:none}
+.grp.open .gc{display:block}
+
+/* FORESIGHT surface */
+.fs-measured{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:8px}
+.fs-num{font-family:'Barlow Condensed';font-weight:700;font-size:24px;color:var(--chalk);line-height:1}
+.fs-unit{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.06em;color:var(--brass)}
+/* the NEW plan-conditional steer line (v7.4.1) — subordinate, only on active steer */
+.fs-cond{display:none}
+body.steer .fs-cond{display:block}
+.fs-cond-a{margin-top:9px;padding-left:11px;border-left:2px dotted var(--orange)}
+.fs-cond-a .lbl{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--orange)}
+.fs-cond-a .val{font-family:'Barlow';font-size:12.5px;color:var(--steel);line-height:1.45;margin-top:2px}
+.fs-cond-a .val b{color:var(--chalk);font-weight:600}
+.fs-cond-a .tagc{font-family:'IBM Plex Mono';font-size:10px;color:var(--orange);letter-spacing:.02em}
+
+/* steer chip */
+.steerchip{display:none;margin-top:8px}
+body.steer .steerchip{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono';font-size:10px;
+  letter-spacing:.06em;color:var(--brass);border:1px solid var(--brass);border-radius:999px;padding:4px 9px}
+.hint{font-family:'IBM Plex Mono';font-size:10px;color:var(--steel);opacity:.75;text-align:center;margin-top:4px}
+
+/* mode toggle (auto-pilot) */
+.mode{display:flex;gap:6px;margin-top:12px}
+.mode button{flex:1;text-align:left;background:transparent;border:1px solid var(--line);border-radius:8px;padding:8px 11px;cursor:pointer}
+.mode button.on{border-color:var(--jade);background:color-mix(in srgb,var(--jade) 13%,transparent)}
+.mode button.on.fl{border-color:var(--orange);background:color-mix(in srgb,var(--orange) 13%,transparent)}
+.mode .ml{font-family:'Barlow';font-weight:700;font-size:11px;letter-spacing:.07em;color:var(--steel)}
+.mode button.on .ml{color:var(--jade)}
+.mode button.on.fl .ml{color:var(--orange)}
+.mode .mp{font-family:'IBM Plex Mono';font-size:10px;color:var(--steel);margin-top:2px}
+
+/* mini spark line (auto-pilot) */
+.spark{margin-top:12px;height:52px;width:100%;display:block}
+
+/* instrument (dir C) */
+.instr{margin:14px 0 4px}
+.footer{text-align:center;font-family:'IBM Plex Mono';font-size:11px;color:var(--steel);opacity:.55;padding:16px 0 6px;letter-spacing:.04em}
+.divnote{font-family:'IBM Plex Mono';font-size:11px;line-height:1.6;color:#8A94A0;background:#101419;border:1px solid #222a31;
+  border-radius:10px;padding:12px 14px;margin:16px 0 0}
+.divnote b{color:#E5B454}
+.pill-live{font-family:'IBM Plex Mono';font-size:9.5px;letter-spacing:.08em;color:var(--gauge);border:1px solid var(--line);border-radius:999px;padding:2px 8px}
+</style>
+</head>
+<body class="steer">
+
+<div class="top">
+  <div>
+    <h1>Measured — the NOW page, decluttered</h1>
+    <div class="sub mono">Design pass · 3 directions to react to · not built, not shipped. Same design system, charter (calm / no streaks / no urgency) and engine-owns-numbers. Every number shown is illustrative of a real engine output.</div>
+  </div>
+  <div class="controls">
+    <button class="ctl" id="steerBtn" onclick="toggleSteer()">Auto-Pilot steer: <b id="steerState">ACTIVE</b></button>
+    <button class="ctl" id="themeBtn" onclick="toggleTheme()">Theme: <b id="themeState">DARK</b></button>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="k t0"><b>TIER 0 — the cockpit.</b> Auto-Pilot status word + today's ONE action. The eye lands here first, every morning.</div>
+  <div class="k t1"><b>TIER 1 — glanceable.</b> The five levers + the measured trajectory / FORESIGHT. Visible, but never competes with Tier 0.</div>
+  <div class="k t2"><b>TIER 2 — one tap down.</b> Capture surfaces, the analyst read, the room. Nothing deleted — everything is one labelled tap away, in the same place every day.</div>
+</div>
+
+<div class="gallery">
+
+<!-- =================================================================== A -->
+<section class="dir" id="dirA">
+  <div class="tag mono">Direction A</div>
+  <h2>The Cockpit</h2>
+  <p class="desc"><b>One hero, one action, five doors.</b> Fuses the six competing top cards into a single Auto-Pilot cockpit: a status word you read in half a second, and the one thing to do this morning. Everything else becomes a labelled row that opens in place.</p>
+  <p class="moves"><span class="keep">keeps visible:</span> status word · rate · today's action &nbsp;|&nbsp; <span class="hide">tucks one tap down:</span> the five, foresight, the read, all capture, the room</p>
+  <div class="phone"><div class="island"></div><div class="screen">
+    <div class="statusbar mono"><span>7:14</span><span class="r">◐ 5G ▮▮▮ 82%</span></div>
+    <div class="app">
+      <div class="hdr">
+        <div><div class="wordmark">Measured</div><div class="metaline">WK 8 · EASE 1 · BF 15% <span class="band">(11.4–18.9)</span></div></div>
+        <div class="hbtns"><button class="hbtn">ANALYST</button><button class="hbtn">RULES</button></div>
+      </div>
+
+      <!-- TIER 0: cockpit -->
+      <div class="card acc-gauge">
+        <div class="eyebrow gauge">AUTO-PILOT · HOLDING YOUR LINE</div>
+        <div class="statusword" style="margin-top:9px">On your line</div>
+        <div class="micro brass" style="margin-top:7px">◆ measured · −0.7 lb/wk · about 86% of it fat</div>
+        <div class="prose chalk" style="margin-top:10px;font-size:13.5px;line-height:1.5">You're riding your <b style="color:var(--chalk)">MAX BODY COMP</b> line (~0.5&#37;BW/wk) — the best body-comp change your body banks.</div>
+        <div class="corridor"><div class="mk" style="left:46%"></div></div>
+        <div class="corlab"><span>floor</span><span>sweet spot</span><span>redline</span></div>
+        <div class="micro" style="margin-top:8px">measured TDEE 2450 kcal · n=9 · corridor 0.3–0.6&#37;BW/wk</div>
+        <div class="steerchip">◆ steer staged — riding a new target</div>
+      </div>
+
+      <!-- TIER 0: the one action -->
+      <div class="card acc-brass">
+        <div class="eyebrow brass">THIS MORNING · ONE THING</div>
+        <div class="h" style="font-size:22px;margin-top:8px">Log last night &amp; weigh in</div>
+        <div class="prose" style="margin-top:5px">30 seconds — sleep and the scale. Everything else can wait for tonight.</div>
+        <div style="margin-top:12px"><button class="btn jade" onclick="expand('A-cap')">Open capture →</button></div>
+      </div>
+
+      <!-- TIER 1 + TIER 2 as rows -->
+      <div class="secrule"><span>Today at a glance</span><i></i></div>
+
+      <div class="row" id="A-five"><div class="head" onclick="toggle('A-five')">
+        <span class="car">▸</span><span class="title">The five today</span>
+        <span class="peek"><span class="sem good">✓</span> <span class="sem good">✓</span> <span class="sem caution">▲</span> <span class="sem good">✓</span> <span class="sem good">✓</span></span></div>
+        <div class="body">
+          <div class="lrow"><span class="lab">Training</span><span class="sem good">✓ done · upper</span></div>
+          <div class="lrow"><span class="lab">Protein</span><span class="sem good">✓ 182 g</span></div>
+          <div class="lrow"><span class="lab">Steps</span><span class="sem caution">▲ 9.2k · target 11k</span></div>
+          <div class="lrow"><span class="lab">Sleep</span><span class="sem good">✓ 7.25 h</span></div>
+          <div class="lrow"><span class="lab">Deficit</span><span class="sem good">✓ on band</span></div>
+        </div></div>
+
+      <!-- FORESIGHT lives here (pre-opened so the new conditional line is visible) -->
+      <div class="row open" id="A-fore"><div class="head" onclick="toggle('A-fore')">
+        <span class="car">▾</span><span class="title">Where this lands</span>
+        <span class="peek">4 wks → ~161.5 lb</span></div>
+        <div class="body">
+          <div class="eyebrow" style="margin-top:12px">WHERE THIS PACE LANDS YOU · <span style="color:var(--steel)">no date set</span></div>
+          <div class="fs-measured"><span class="fs-num">~161.5 lb</span><span class="fs-unit">◆ MEASURED · in 4 wks</span></div>
+          <div class="prose" style="margin-top:6px">At the −0.7 lb/wk you're actually moving. No clock — you stop when the read and the mirror say so.</div>
+          <!-- NEW v7.4.1 plan-conditional line -->
+          <div class="fs-cond"><div class="fs-cond-a">
+            <div class="lbl">▹ if you hold this new target</div>
+            <div class="val"><b>~7 wks to 12&#37; BF</b> <span class="tagc">· plan-conditional — not your measured trend yet</span></div>
+          </div></div>
+          <div class="micro" style="margin-top:8px">body fat 15&#37; · honest range 11.4–18.9&#37;</div>
+        </div></div>
+
+      <div class="row" id="A-read"><div class="head" onclick="toggle('A-read')">
+        <span class="car">▸</span><span class="title">The read</span>
+        <span class="peek">down 0.7/wk · ~86% fat</span></div>
+        <div class="body">
+          <div class="prose chalk" style="margin-top:12px">Down 0.7 lb/wk and holding — at your protein and training, ~86&#37; of it is coming off fat, not muscle. This week's half-pound wobble is water; the trend didn't change.</div>
+          <div style="margin-top:10px"><button class="btn ghost" onclick="event.stopPropagation()">Ask the analyst →</button></div>
+        </div></div>
+
+      <div class="row" id="A-cap"><div class="head" onclick="toggle('A-cap')">
+        <span class="car">▸</span><span class="title">Capture the day</span>
+        <span class="peek">weight · food · caffeine · meds · body</span></div>
+        <div class="body">
+          <div class="prose" style="margin-top:12px">Everything you log lives here — one surface, in order of what the engines actually need.</div>
+          <div class="micro" style="margin-top:8px;line-height:1.9">
+            · SLEEP &amp; WEIGHT <span style="color:var(--brass)">— owed this morning</span><br>
+            · CALORIES · PROTEIN · STEPS — tonight<br>
+            · CAFFEINE · MEDS — optional<br>
+            · PULSE · TEMP · WAIST · PHOTOS — when due
+          </div>
+          <div style="margin-top:10px"><button class="btn jade" onclick="event.stopPropagation()">Log sleep &amp; weight</button></div>
+        </div></div>
+
+      <div class="row" id="A-room"><div class="head" onclick="toggle('A-room')">
+        <span class="car">▸</span><span class="title">The room</span>
+        <span class="peek">session · recovery · week · laws</span></div>
+        <div class="body">
+          <div class="micro" style="margin-top:12px;line-height:1.9">
+            · NEXT SESSION — Tue · upper · 6 lifts<br>
+            · RECOVERY — 1 of 6 signals up<br>
+            · THE WEEK IN REVIEW<br>
+            · THE HOUSE LAWS
+          </div>
+        </div></div>
+
+      <div class="footer">MEASURED · v7.4.1</div>
+    </div>
+    <div class="tabbar"><span class="v mono">v7.4.1</span>
+      <button class="on">NOW <span class="dot">●1</span></button><button>TRAIN</button><button>MORE</button></div>
+  </div></div>
+  <div class="divnote"><b>The FORESIGHT idea here:</b> the conditional steer line is an indented sub-line under the measured projection, marked <b>▹</b> with an orange "plan-conditional" tag. Small, honest, clearly not the measured number.</div>
+</section>
+
+<!-- =================================================================== B -->
+<section class="dir" id="dirB">
+  <div class="tag mono">Direction B</div>
+  <h2>The Briefing</h2>
+  <p class="desc"><b>A morning column you scan top to bottom.</b> A slim status strip, then the one owed action with its inputs right there, then the five levers inline, then a single <b>Trajectory</b> card that finally merges the three places that talk about your rate today — the read, the Auto-Pilot rate, and FORESIGHT — into one.</p>
+  <p class="moves"><span class="keep">keeps visible:</span> status strip · action · five levers · one trajectory card &nbsp;|&nbsp; <span class="hide">collapses to 3 doors:</span> capture · read-in-full · the room</p>
+  <div class="phone"><div class="island"></div><div class="screen">
+    <div class="statusbar mono"><span>7:14</span><span class="r">◐ 5G ▮▮▮ 82%</span></div>
+    <div class="app">
+      <div class="hdr">
+        <div><div class="wordmark">Measured</div><div class="metaline">WK 8 · EASE 1 · BF 15% <span class="band">(11.4–18.9)</span></div></div>
+        <div class="hbtns"><button class="hbtn">ANALYST</button><button class="hbtn">RULES</button></div>
+      </div>
+
+      <!-- TIER 0: slim status strip -->
+      <div class="card acc-gauge tight" style="display:flex;align-items:center;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div class="eyebrow gauge" style="font-size:10px">AUTO-PILOT</div>
+          <div class="statusword small" style="margin-top:3px">On your line</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="micro brass">◆ −0.7 lb/wk</div>
+          <div class="corridor" style="width:96px;height:8px;margin:6px 0 0"><div class="mk" style="left:46%;height:14px;top:-3px"></div></div>
+        </div>
+      </div>
+
+      <!-- TIER 0: the owed action, with its inputs inline -->
+      <div class="card acc-brass">
+        <div class="eyebrow brass">THIS MORNING · WHAT YOU OWE</div>
+        <div class="h" style="font-size:23px;margin-top:8px">Log last night &amp; weigh in</div>
+        <div class="prose" style="margin-top:5px">The two inputs the body-comp read leans on hardest. 30 seconds, right here.</div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn" style="flex:1">Sleep · 7.25 h ▸</button>
+          <button class="btn" style="flex:1">Weight · 164.3 ▸</button>
+        </div>
+        <div style="margin-top:8px"><button class="btn jade" onclick="event.stopPropagation()">Log both →</button></div>
+      </div>
+
+      <!-- TIER 1: five levers inline -->
+      <div class="card tight">
+        <div class="eyebrow" style="margin-bottom:2px">THE FIVE TODAY</div>
+        <div class="levers">
+          <div class="lever"><div class="lab">Train</div><div class="g g-good">✓</div><div class="d">done</div></div>
+          <div class="lever"><div class="lab">Protein</div><div class="g g-good">✓</div><div class="d">182g</div></div>
+          <div class="lever"><div class="lab">Steps</div><div class="g g-caution">▲</div><div class="d">9.2k</div></div>
+          <div class="lever"><div class="lab">Sleep</div><div class="g g-good">✓</div><div class="d">7.25h</div></div>
+          <div class="lever"><div class="lab">Deficit</div><div class="g g-good">✓</div><div class="d">on band</div></div>
+        </div>
+      </div>
+
+      <!-- TIER 1: merged Trajectory card (read + rate + FORESIGHT) -->
+      <div class="card acc-gauge">
+        <div class="eyebrow gauge">TRAJECTORY · MEASURED LIVE</div>
+        <div class="prose chalk" style="margin-top:8px;font-size:13.5px;line-height:1.5">Down 0.7 lb/wk — about 86&#37; of it fat. The trend is real; this week's wobble is water.</div>
+        <div style="border-top:1px solid var(--hairline);margin-top:12px;padding-top:10px">
+          <div class="fs-measured"><span class="fs-num">~161.5 lb</span><span class="fs-unit">◆ MEASURED · IN 4 WKS</span></div>
+          <div class="prose" style="margin-top:4px">No date — you stop when the read and the mirror say so.</div>
+          <!-- NEW v7.4.1 plan-conditional line -->
+          <div class="fs-cond"><div class="fs-cond-a" style="margin-top:11px">
+            <div class="lbl">▹ if you hold the new steer target</div>
+            <div class="val"><b>~7 wks to 12&#37; BF</b></div>
+            <div class="tagc" style="margin-top:2px">plan-conditional — not your measured trend yet</div>
+          </div></div>
+        </div>
+        <div class="micro" style="margin-top:10px">TDEE 2450 · n=9 · body fat 15&#37; (11.4–18.9)</div>
+      </div>
+
+      <!-- TIER 2: three doors -->
+      <div class="grp" id="B-cap"><div class="gh" onclick="toggleGrp('B-cap')">
+        <span class="car">▸</span><span class="gt">Capture</span><span class="gs">food · caffeine · meds · body · photos</span></div>
+        <div class="gc"><div class="card tight" style="margin-top:8px">
+          <div class="micro" style="line-height:1.9">· CALORIES · PROTEIN · STEPS — tonight<br>· CAFFEINE · MEDS — optional<br>· PULSE · TEMP · WAIST · PHOTOS — when due</div>
+        </div></div></div>
+
+      <div class="grp" id="B-read"><div class="gh" onclick="toggleGrp('B-read')">
+        <span class="car">▸</span><span class="gt">The read in full</span><span class="gs">analyst brief · ask · approvals</span></div>
+        <div class="gc"><div class="card tight acc-jade" style="margin-top:8px">
+          <div class="micro jade">🜁 ASK THE ANALYST — same voice as the read ▸</div>
+          <div class="prose" style="margin-top:8px">Nightly brief, anything you want to ask, and any change waiting on your tap.</div>
+        </div></div></div>
+
+      <div class="grp" id="B-room"><div class="gh" onclick="toggleGrp('B-room')">
+        <span class="car">▸</span><span class="gt">The room</span><span class="gs">session · recovery · week · laws</span></div>
+        <div class="gc"><div class="card tight" style="margin-top:8px">
+          <div class="micro" style="line-height:1.9">· NEXT SESSION — Tue · upper<br>· RECOVERY — 1 of 6 up<br>· WEEK IN REVIEW · HOUSE LAWS</div>
+        </div></div></div>
+
+      <div class="footer">MEASURED · v7.4.1</div>
+    </div>
+    <div class="tabbar"><span class="v mono">v7.4.1</span>
+      <button class="on">NOW <span class="dot">●1</span></button><button>TRAIN</button><button>MORE</button></div>
+  </div></div>
+  <div class="divnote"><b>The FORESIGHT idea here:</b> the conditional line sits inside the merged Trajectory card, under the measured projection, on a dotted orange rule — with "plan-conditional" on its own micro line so the honesty label can't be missed.</div>
+</section>
+
+<!-- =================================================================== C -->
+<section class="dir" id="dirC">
+  <div class="tag mono">Direction C</div>
+  <h2>The Instrument</h2>
+  <p class="desc"><b>Lead with the gauge.</b> Leans into the "measured instrument" identity: the Auto-Pilot corridor becomes a real dial with your rate as a needle, and FORESIGHT becomes a small timeline where the measured trend is a solid line and the plan-conditional steer is a <b>dashed fork</b> — the honesty is in the shape, not just the label.</p>
+  <p class="moves"><span class="keep">keeps visible:</span> the dial + status word · action · foresight timeline &nbsp;|&nbsp; <span class="hide">tucks one tap down:</span> levers detail, capture, read, room</p>
+  <div class="phone"><div class="island"></div><div class="screen">
+    <div class="statusbar mono"><span>7:14</span><span class="r">◐ 5G ▮▮▮ 82%</span></div>
+    <div class="app">
+      <div class="hdr">
+        <div><div class="wordmark">Measured</div><div class="metaline">WK 8 · EASE 1 · BF 15% <span class="band">(11.4–18.9)</span></div></div>
+        <div class="hbtns"><button class="hbtn">ANALYST</button><button class="hbtn">RULES</button></div>
+      </div>
+
+      <!-- TIER 0: instrument hero -->
+      <div class="card acc-gauge">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div class="eyebrow gauge">AUTO-PILOT · HOLDING YOUR LINE</div>
+          <span class="pill-live mono">LIVE</span>
+        </div>
+        <div style="text-align:center;margin-top:6px">
+          <div class="statusword">On your line</div>
+          <div class="micro brass" style="margin-top:5px">◆ measured −0.7 lb/wk · ~86% fat</div>
+        </div>
+        <!-- the dial -->
+        <svg class="instr" viewBox="0 0 320 96" width="100%" height="96" aria-label="rate corridor dial">
+          <defs></defs>
+          <!-- track zones -->
+          <rect x="8" y="60" width="44" height="10" rx="5" fill="var(--redline)" opacity="0.55"/>
+          <rect x="54" y="60" width="40" height="10" rx="5" fill="var(--plate2)"/>
+          <rect x="96" y="60" width="128" height="10" rx="5" fill="var(--jade)" opacity="0.30"/>
+          <rect x="226" y="60" width="40" height="10" rx="5" fill="var(--plate2)"/>
+          <rect x="268" y="60" width="44" height="10" rx="5" fill="var(--orange)" opacity="0.55"/>
+          <!-- needle at ~46% -->
+          <line x1="155" y1="40" x2="155" y2="78" stroke="var(--chalk)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="155" cy="40" r="6" fill="var(--jade)" stroke="var(--ink)" stroke-width="2"/>
+          <text x="12" y="88" font-family="IBM Plex Mono" font-size="9" fill="var(--steel)">FLOOR</text>
+          <text x="132" y="88" font-family="IBM Plex Mono" font-size="9" fill="var(--steel)">SWEET SPOT</text>
+          <text x="270" y="88" font-family="IBM Plex Mono" font-size="9" fill="var(--steel)">REDLINE</text>
+        </svg>
+        <div class="micro" style="margin-top:2px;text-align:center">TDEE 2450 · n=9 · corridor 0.3–0.6&#37;BW/wk · MAX BODY COMP</div>
+        <div style="text-align:center"><span class="steerchip">◆ steer staged — riding a new target</span></div>
+      </div>
+
+      <!-- TIER 0: action -->
+      <div class="card acc-brass tight">
+        <div class="eyebrow brass">THIS MORNING · ONE THING</div>
+        <div class="h" style="font-size:20px;margin-top:6px">Log last night &amp; weigh in</div>
+        <div style="margin-top:10px"><button class="btn jade" onclick="event.stopPropagation()">Open capture →</button></div>
+      </div>
+
+      <!-- TIER 1: FORESIGHT timeline -->
+      <div class="card">
+        <div class="eyebrow" style="margin-bottom:2px">WHERE THIS PACE LANDS · <span style="color:var(--steel)">no date set</span></div>
+        <svg class="instr" viewBox="0 0 320 130" width="100%" height="130" aria-label="foresight timeline">
+          <!-- origin at NOW -->
+          <text x="8" y="46" font-family="IBM Plex Mono" font-size="9" fill="var(--steel)">NOW · 164.3</text>
+          <circle cx="20" cy="58" r="3" fill="var(--steel)"/>
+          <!-- measured solid line (leaner = down-right) -->
+          <line x1="20" y1="58" x2="250" y2="96" stroke="var(--chalk)" stroke-width="2.5"/>
+          <circle cx="250" cy="96" r="4.5" fill="var(--brass)"/>
+          <text x="112" y="88" font-family="IBM Plex Mono" font-size="9.5" fill="var(--brass)">◆ MEASURED</text>
+          <text x="150" y="118" font-family="IBM Plex Mono" font-size="9.5" fill="var(--chalk)">~161.5 lb · 4 wks</text>
+          <!-- conditional dashed fork (only when steer active) -->
+          <g class="fs-cond-svg">
+            <line x1="20" y1="58" x2="288" y2="30" stroke="var(--orange)" stroke-width="2" stroke-dasharray="4 4"/>
+            <circle cx="288" cy="30" r="4.5" fill="none" stroke="var(--orange)" stroke-width="2"/>
+            <text x="58" y="22" font-family="IBM Plex Mono" font-size="9.5" fill="var(--orange)">▹ IF YOU HOLD THE STEER</text>
+            <text x="214" y="22" font-family="IBM Plex Mono" font-size="9.5" fill="var(--orange)">12% · ~7 wks</text>
+          </g>
+        </svg>
+        <!-- conditional caption -->
+        <div class="fs-cond"><div class="micro orange" style="margin-top:2px">Dashed = plan-conditional. It's what holding the new target would buy — not your measured trend yet.</div></div>
+        <div class="micro" style="margin-top:6px">Solid line is your measured −0.7 lb/wk. Body fat 15&#37; (11.4–18.9).</div>
+      </div>
+
+      <!-- TIER 1: levers dot row -->
+      <div class="card tight">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="eyebrow">THE FIVE TODAY</div>
+          <div class="peek" style="margin:0"><span class="sem good">✓</span> train &nbsp;<span class="sem good">✓</span> pro &nbsp;<span class="sem caution">▲</span> steps &nbsp;<span class="sem good">✓</span> sleep &nbsp;<span class="sem good">✓</span> def</div>
+        </div>
+      </div>
+
+      <!-- TIER 2 rows -->
+      <div class="row" id="C-cap"><div class="head" onclick="toggle('C-cap')">
+        <span class="car">▸</span><span class="title">Capture</span><span class="peek">food · caffeine · meds · body</span></div>
+        <div class="body"><div class="micro" style="margin-top:12px;line-height:1.9">· CAL · PRO · STEPS — tonight<br>· CAFFEINE · MEDS — optional<br>· PULSE · TEMP · WAIST · PHOTOS — when due</div></div></div>
+      <div class="row" id="C-read"><div class="head" onclick="toggle('C-read')">
+        <span class="car">▸</span><span class="title">The read &amp; approvals</span><span class="peek">down 0.7/wk · ~86% fat</span></div>
+        <div class="body"><div class="prose chalk" style="margin-top:12px">Down 0.7 lb/wk, ~86&#37; fat. Ask the analyst anything; approve any staged change here.</div></div></div>
+      <div class="row" id="C-room"><div class="head" onclick="toggle('C-room')">
+        <span class="car">▸</span><span class="title">The room</span><span class="peek">session · recovery · week · laws</span></div>
+        <div class="body"><div class="micro" style="margin-top:12px;line-height:1.9">· NEXT SESSION — Tue · upper<br>· RECOVERY — 1 of 6 up<br>· WEEK IN REVIEW · HOUSE LAWS</div></div></div>
+
+      <div class="footer">MEASURED · v7.4.1</div>
+    </div>
+    <div class="tabbar"><span class="v mono">v7.4.1</span>
+      <button class="on">NOW <span class="dot">●1</span></button><button>TRAIN</button><button>MORE</button></div>
+  </div></div>
+  <div class="divnote"><b>The FORESIGHT idea here:</b> the conditional steer is a <b>dashed orange fork</b> diverging from the solid measured line — you can see at a glance that it's a different, softer kind of claim. The word "plan-conditional" backs up the shape.</div>
+</section>
+
+</div>
+
+<script>
+function toggleTheme(){
+  var r=document.documentElement, next=r.getAttribute('data-theme')==='dark'?'light':'dark';
+  r.setAttribute('data-theme',next);
+  document.getElementById('themeState').textContent=next.toUpperCase();
+}
+function toggleSteer(){
+  var on=document.body.classList.toggle('steer');
+  document.getElementById('steerState').textContent=on?'ACTIVE':'OFF';
+}
+function toggle(id){var el=document.getElementById(id);el.classList.toggle('open');
+  var car=el.querySelector('.car');if(car)car.textContent=el.classList.contains('open')?'▾':'▸';}
+function toggleGrp(id){var el=document.getElementById(id);el.classList.toggle('open');
+  var car=el.querySelector('.car');if(car)car.textContent=el.classList.contains('open')?'▾':'▸';}
+function expand(id){var el=document.getElementById(id);if(!el.classList.contains('open'))toggle(id);
+  el.scrollIntoView({behavior:'smooth',block:'center'});}
+/* keep the dashed SVG fork hidden when steer is off */
+var css=document.createElement('style');
+css.textContent='.fs-cond-svg{display:none} body.steer .fs-cond-svg{display:inline}';
+document.head.appendChild(css);
+</script>
+</body>
+</html>

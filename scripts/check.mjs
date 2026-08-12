@@ -131,7 +131,12 @@ function deployManifest() {
   try { files = siteFiles({ includeUntracked: true }); } catch (e) {
     return { ok: false, detail: "could not build the deploy manifest — " + (e && e.message) };
   }
-  const leaked = files.filter((f) => /^(ledger|src|tools|scripts|\.github)\//.test(f));
+  /* _[^/]*\/ joined 2026-08-12: _-prefixed root DIRECTORIES are committed working
+     material (Joe: commit + never ship). Directory, not bare ^_ — _redirects and
+     _headers are required FILES. This is the second direction of the same rule in
+     site-manifest.mjs: if that filter is ever loosened, this line fails the build
+     instead of letting the folders ride to the CDN. */
+  const leaked = files.filter((f) => /^(ledger|src|tools|scripts|\.github|_[^/]*)\//.test(f));
   if (leaked.length) {
     return { ok: false, detail: `these would be uploaded to the CDN: ${leaked.slice(0, 6).join(", ")}` };
   }
