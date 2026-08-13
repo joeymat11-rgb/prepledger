@@ -9107,9 +9107,16 @@ if (fail) process.exit(1);
   SD5.sessionLog["2026-08-01"] = { entries: [{ id: "rows", reps: [12, 12], w: 175, rir: 1 }], at: 1 };   /* a BIG strapless total */
   SD5.sessionLog["2026-08-14"] = { entries: [{ id: "rows", reps: [10, 10], w: 175, rir: 1 }], at: 1 };   /* the first hooked session, smaller */
   const db5 = __test.sessionDebrief(SD5, "2026-08-14").lifts.find((l) => /row/i.test(l.n));
-  const all5 = JSON.stringify(db5);
-  ok(all5.indexOf("12,12") === -1 && all5.indexOf("24") === -1,
-    "P1-5 accept — the first hooked session's debrief carries NO strapless figure anywhere in its lines: nothing-to-compare is the honest read, not a comparison against the old era's 12,12");
+  /* 3c item 2 — assert the RENDERED SHAPE, not the absence of planted figures:
+     the original grep-for-"24" form passed while SEED's lastMeta (10,10 at the
+     same load) rendered a cross-era "level with last time" — the fixture that
+     existed to prove cross-era comparisons impossible was hosting one. */
+  ok(db5 && db5.delivered && db5.delivered.base === null && db5.delivered.first === true,
+    "3c item 2 — the first new-era session's delivered line has base === null and first === true: a SHAPE no old-era figure can sneak past, unlike the grep-for-planted-figures form this pin used to be");
+  ok(/first time this lift is on record/.test(db5.delivered.t) && !/last time/.test(db5.delivered.t),
+    "3c item 2 — and the words say first-time-on-record, with no 'last time' comparison anywhere in the sentence");
+  ok(!db5.work || !/vs last time/.test(db5.work.t || ""),
+    "3c item 2 — the work line carries no false 'vs last time' either");
   /* P1-4 accept — logged-before-calibration label, and it names itself */
   const SD4 = clD(SD5);
   SD4.exercises.find((x) => x.id === "rows").calibratedAt = "2026-08-20T12:00:00.000Z";
@@ -9126,6 +9133,66 @@ if (fail) process.exit(1);
   /* CARRY-CHECK — the enumeration's one unfiltered reader, closed and pinned */
   ok(srcS.indexOf('t3.declined ? (t3.retired ? "retired " + t3.retired : "declined") : "started "') > -1,
     "CARRY — the analyst's trial dictionary names declined/retired trials as what they are instead of listing them as running (the census's one unfiltered reader, closed)");
+}
+/* ==== FIX 3c — the prescription/earn era law, "ever", and the transition stamp ==== */
+{
+  const cl3 = (x) => JSON.parse(JSON.stringify(x));
+  /* ITEM 1, end to end — the exact executed case: calves' first session after
+     the pause change. The plan may use the old numbers; the card says nothing
+     about beating them; no step sizes; no earn banks. */
+  const S1 = cl3(__test.SEED);
+  const cv1 = S1.exercises.find((x) => x.id === "calves");
+  cv1.forks = [{ from: "2026-07-01", why: "2 s pause replaces 5 s", prevN: "Calves" }];   /* dated BEFORE the suite's pinned clock (07-29), so "today" sits in era 1 and the prescription guards can actually arm */
+  cv1.calibratedAt = "2026-07-01T00:00:00.000Z";
+  cv1.last = [11, 11, 10, 8]; cv1.lastMeta = { d: "2026-06-20", w: 315, reps: [11, 11, 10, 8] };
+  S1.sessionLog = { "2026-06-20": { entries: [{ id: "calves", reps: [11, 11, 10, 8], w: 315, rir: 1 }], at: 1 } };
+  ok(__test.progressStep(cv1, S1).add === 0 && /new baseline/.test(__test.progressStep(cv1, S1).why),
+    "3c item 1 — the step WAITS: on the era's first prescription the add is 0 and the why names the new baseline, not a cross-era RIR");
+  ok(readFileSync("src/app.jsx", "utf8").indexOf("prev: eraFresh(s, e.id) ? null : e.lastMeta") > -1,
+    "3c item 1 — the card gets NO prev on a fresh era, at source: 'beat last time (11,11,10,8)' cannot render, because those reps were set under the five-second pause (the gym card's prev-line renders only when prev is non-null)");
+  /* the earn: log the era's first session ABOVE the old line — nothing banks */
+  const cs1 = __test.completeSession(cl3(S1), "2026-07-24", [{ id: "calves", n: "Calves", w: 315, tgt: [11, 11, 10, 8], reps: [13, 12, 11, 10], rir: 1, rirSets: [2, 1, 1, 1] }], { clean: true, run: 3, need: 3, last: { h: 8 } });
+  const s1o = cs1.s || cs1;
+  ok(!(s1o.queue || []).some((q) => q.exId === "calves" && !q.done && q.kind === "debut"),
+    "3c item 1 — the era's FIRST session banks no earn and queues no debut, however good it looks: a protocol change is not a strength change");
+  /* the SECOND era session progresses normally off the first */
+  const cv2 = s1o.exercises.find((x) => x.id === "calves");
+  ok(__test.progressStep(cv2, s1o).add > 0,
+    "3c item 1 — and the SECOND era session progresses normally: the era now owns a line, and the step sizes off it (add " + __test.progressStep(cv2, s1o).add + ")");
+  /* ITEM 4 — "ever" is era-bounded English, both directions */
+  const S4 = cl3(__test.SEED);
+  const rx4 = S4.exercises.find((x) => x.id === "rows");
+  rx4.forks = [{ from: "2026-07-01", why: "hooks standardized", prevN: "Rows (strapless)" }];
+  rx4.calibratedAt = "2026-07-01T00:00:00.000Z";
+  S4.sessionLog = {
+    "2026-06-20": { entries: [{ id: "rows", reps: [9, 9], w: 180, rir: 1 }], at: 1 },
+    "2026-07-14": { entries: [{ id: "rows", reps: [8, 8], w: 180, rir: 1 }], at: 1 },
+    "2026-07-16": { entries: [{ id: "rows", reps: [9, 8], w: 180, rir: 1 }], at: 1 },
+  };
+  const db4a = __test.sessionDebrief(S4, "2026-07-16").lifts.find((l) => /row/i.test(l.n));
+  const rec4a = (db4a.lines || []).find((l9) => l9.k === "record" || l9.k === "record_pending");
+  ok(!!rec4a && rec4a.t.indexOf("ever") === -1 && /under the current setup/.test(rec4a.t),
+    "3c item 4 — July's strapless 18 at 180 outranks the hooks-era 17, so the receipt names the boundary ('under the current setup') and the word 'ever' is gone: era-scoped measurement, era-bounded English");
+  const S4b = cl3(S4);
+  S4b.sessionLog["2026-06-20"].entries[0].reps = [7, 7];   /* now the new era genuinely beats all time */
+  const db4b = __test.sessionDebrief(S4b, "2026-07-16").lifts.find((l) => /row/i.test(l.n));
+  const rec4b = (db4b.lines || []).find((l9) => l9.k === "record" || l9.k === "record_pending");
+  ok(!!rec4b && /ever/.test(rec4b.t),
+    "3c item 4 — and when nothing earlier outranks it, 'ever' SURVIVES: the word is bounded, not banned");
+  /* ITEM 5 — the late first sweep no longer un-calibrates a pin-free lift */
+  const S5 = cl3(__test.SEED);
+  const pd5 = S5.exercises.find((x) => x.id === "pulldown");
+  pd5.forks = [{ from: "2026-07-01", why: "hooks standardized", prevN: "Pulldown" }];
+  delete pd5.calibratedAt; delete pd5.pinsSeen;
+  S5.sessionLog = { "2026-07-05": { entries: [{ id: "pulldown", reps: [8, 8], w: 160, rir: 1 }], at: 1 } };
+  const r5 = __test.runAdaptive(cl3(S5), "2026-07-10");   /* the late first sweep */
+  ok(__test.forkExposures(r5, "pulldown") === 1,
+    "3c item 5 — a late first sweep (second device, restored backup, first open after a gap) leaves the pin-free pulldown's exposure count INTACT at 1: calibratedAt records a TRANSITION, and a lift that never carried a [PIN] was never uncalibrated");
+  ok(!JSON.stringify(__test.sessionDebrief(r5, "2026-07-05")).includes("Logged before calibration"),
+    "3c item 5 — and no provisional label renders about machine settings that do not exist on that lift");
+  const rw5 = r5.exercises.find((x) => x.id === "rows");
+  ok(rw5.pinsSeen === true && !rw5.calibratedAt,
+    "3c item 5 — while rows (which HAS pins) is marked pinsSeen and stays unstamped until the pins actually leave: the one bit of memory that makes the stamp a transition");
 }
 console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

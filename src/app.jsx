@@ -901,6 +901,11 @@ function liftCall(s, exId, opts = {}) {
    punished for a bad night instead of blocking him from gaining on one. */
 function progressStep(ex, s) {
   if (ex.holdFlag) return { add: 0, why: "governor hold — the opener has run hot two sessions straight, so nothing climbs until an honest one lands" };
+  /* FIX 3c — no step sizes off a cross-era comparison: the last known numbers
+     prescribe as a baseline plan, and progression resumes from what the new
+     era's own first session says. One era's worth of patience, bought by his
+     own ruled protocol change. */
+  if (s && eraFresh(s, ex.id)) return { add: 0, why: "new baseline — the setup changed, so the first session under it sets the line; steps resume from what it says" };
   /* v7.53.0 JOB 1 — the U1 flat-freeze is RETIRED with the failure A/B (Joe's
      ruling, before a single session ran under it). Progression is RIR-driven on
      every lift again; a stray lift_pair trial on an unsynced device can no
@@ -935,7 +940,10 @@ function progressAnchor(ex, s) {
   const base = (ex.last || []).slice();
   if (!s || !base.length) return base;
   const days9 = Object.keys(s.sessionLog || {}).sort();
+  const fkA = forksOf(s, ex.id);
+  const atA = isoOf(todayStart());
   for (let i = days9.length - 1; i >= 0; i--) {
+    if (!sameEra(fkA, days9[i], atA)) continue;   /* FIX 3c — an anchor from another technique era anchors nothing */
     const sl = s.sessionLog[days9[i]];
     if (paceRushed(sl)) continue;
     const en = (sl.entries || []).find((x) => x.id === ex.id);
@@ -1285,7 +1293,7 @@ function genSession(s, iso, slp) {
       const blind9 = rungsUp9 != null && rungsUp9 <= 1 ? " · the ladder goes blind above " + up9 + " — file the machine's next rungs in SETUP (uneven ✎) so the earn after this one has a price" : "";
       return up9 + " EARNS AT THE TOP OF THE WINDOW (" + win9.lo + "-" + win9.hi + ") — " + (dist9 === 0 ? "you are there" : "you are " + dist9 + " rep" + (dist9 === 1 ? "" : "s") + " away") + " · " + (sight9 ? "one sighting banked — one more banks it" : "two sightings bank it") + (te9 ? ", or one that beats your ±" + te9 + " spread" : "") + blind9;
     })();
-    return { id: e.id, n: e.n, w, tgt, note, isDebutNow, setup: e.setup, live, runway, prev: e.lastMeta };
+    return { id: e.id, n: e.n, w, tgt, note, isDebutNow, setup: e.setup, live, runway, prev: eraFresh(s, e.id) ? null : e.lastMeta };   /* FIX 3c — a fresh era has no "last time" to beat; the baseline banner carries the why */
   });
   /* R18a — the header's no-debut claim carries a receipt: the nearest earn on THIS card,
      named with its measured distance, so "rep progression day" reads as a location. */
@@ -1484,6 +1492,25 @@ function nameAt(s, exId, d) {
 function pinsUnfilled(ex) {
   try { return ((ex && ex.setup ? String(ex.setup).match(/\[PIN\]/g) : null) || []).length; } catch (e) { return 0; }
 }
+/* FIX 3c — a forked lift with no session of its own inside the current era.
+   beforeISO (exclusive) lets completeSession ask the question AS OF the session
+   being logged, so the first era session itself banks nothing. */
+function eraFresh(s, exId, asOf) {
+  /* ERA-AWARE, like everything else: the question is asked OF a date, and the
+     answer concerns the era CONTAINING that date. Era 0 is never fresh — its
+     behavior must be byte-identical to the pre-fork engine (the suite's pinned
+     clock lives there, and so does every frozen fixture). The first cut
+     anchored on the LATEST era unconditionally and skipped the earn on
+     pre-fork fixtures; six pins caught it before it left the tree. */
+  const fks = forksOf(s, exId);
+  if (!fks.length) return false;
+  const ref = asOf || isoOf(todayStart());
+  if (eraIdx(fks, ref) === 0) return false;
+  for (const d of Object.keys((s && s.sessionLog) || {})) {
+    if (d < ref && sameEra(fks, d, ref) && (((s.sessionLog[d] || {}).entries) || []).some((e) => e && e.id === exId)) return false;
+  }
+  return true;
+}
 /* v7.53.0 A3 — sessions on this lift since its fork: the banner's n of 4. */
 function forkExposures(s, exId) {
   const from = forkFrom(s, exId);
@@ -1613,7 +1640,12 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     }
 
     /* reclaim standards */
-    if (ex.reclaim) {
+    /* FIX 3c — the era guard covers EVERY earn, and the reclaim path proved
+       why: the reclaim line itself was set under the old technique, so
+       re-earning it under the new one is the same protocol-change-as-strength
+       claim the atTop guard blocks. Computed once, used by both. */
+    const eraFirst9 = eraFresh(s, ex.id, iso);
+    if (ex.reclaim && !eraFirst9) {
       const ok = ex.reclaim.every((n, i) => (r[i] ?? 0) >= n);
       if (ok) {
         const std = ex.reclaim.join(","); ex.reclaim = null; ex.last = r.slice();
@@ -1664,7 +1696,11 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     const graceIdx = r.map((_, i) => i).filter((i) => i >= graceFrom && i < r.length && en.tgt && i < en.tgt.length && graceFrom < r.length);
     const tgtMet = en.tgt && en.tgt.every((t2, i) => (i >= graceFrom && graceFrom < r.length) || (r[i] ?? 0) >= t2);
     if (graceIdx.length && graceFrom > 0) push(`${ex.n.toUpperCase()} — NEW SET, BANKS WHAT IT GIVES`, graceIdx.map((i) => `set ${i + 1}: ${r[i]}`).join(" · ") + " — a slot the volume push just created has no line to miss; what it gives today IS the line, and the anchor machinery owns it from the next session.");
-    const atTop = atTopOfWindow(r, ex);
+    /* FIX 3c — the era's FIRST session banks nothing: every comparator below
+       (ex.last, lastMeta, topRun, beatsNoise's prev) is a prior-era cache, and
+       an earn against a different technique is a protocol change wearing a
+       strength costume. The session logs normally and BECOMES the line. */
+    const atTop = !eraFirst9 && atTopOfWindow(r, ex);   /* eraFirst9 hoisted above the reclaim branch — one guard, every earn */
     ex.last = r.slice();
     const upNext = typeof ex.w === "number" ? nextLoad(ex) : null;
     /* R18b — A SIGHTING BANKS EVEN WHEN NO NEXT LOAD IS ON FILE. upNext==null used to
@@ -5450,7 +5486,8 @@ function sessionDebrief(s, iso) {
       if (fkL && iso >= fkL) {
         const exL = (s.exercises || []).find((x9) => x9.id === e.id);
         const calL = exL && exL.calibratedAt ? String(exL.calibratedAt).slice(0, 10) : null;
-        if (!calL || iso < calL) lines.push({ k: "note", t: "Logged before calibration — kept on the record, counted as provisional until the machine settings are pinned." });
+        const hasPinsL = pinsUnfilled(exL) > 0;
+        if (calL ? iso < calL : hasPinsL) lines.push({ k: "note", t: "Logged before calibration — kept on the record, counted as provisional until the machine settings are pinned." });   /* FIX 3c item 5 — a pin-free lift with no stamp was never uncalibrated: no label; the label needs LIVE pins or a stamp this session predates */
       }
     } catch (eL) {}
     let delivered = null, work = null, next = null;
@@ -5458,7 +5495,7 @@ function sessionDebrief(s, iso) {
     try {
       const prevD = dates.filter((d) => d < iso && eraOk(d) && (s.sessionLog[d].entries || []).some((x) => x.id === e.id)).pop();   /* FIX 3a item 3 — "vs last time" means last time under the SAME technique */
       const prev = prevD ? (s.sessionLog[prevD].entries || []).find((x) => x.id === e.id) : null;
-      const meta = ex && ex.lastMeta && ex.lastMeta.d < iso ? ex.lastMeta : null;
+      const meta = ex && ex.lastMeta && ex.lastMeta.d < iso && eraOk(ex.lastMeta.d) ? ex.lastMeta : null;   /* FIX 3c item 2 — lastMeta is a cache with a date, and the date obeys the same era law as the log it caches */
       const baseReps = prev ? prev.reps || [] : meta ? meta.reps : null;
       const baseTot = baseReps ? baseReps.reduce((a, b) => a + b, 0) : null;
       const baseW = prev && prev.w != null ? prev.w : meta ? meta.w : null;
@@ -5480,6 +5517,11 @@ function sessionDebrief(s, iso) {
         if (pLoad) { prevSessLoad += pLoad; const pc = Math.round(((load - pLoad) / pLoad) * 100); work = { t: `Work done: ${load.toLocaleString()} lb (${pc >= 0 ? "+" : ""}${pc}% vs last time)${heavier && pc < 0 ? " — the heavier bar has not paid for the lost reps yet; on a jump this usually turns positive within two sessions" : ""}.`, load, pc, tail: heavier && pc < 0 ? "the heavier bar has not paid for the lost reps yet; on a jump this usually turns positive within two sessions" : null }; }
         else work = { t: `Work done: ${load.toLocaleString()} lb.`, load, pc: null, tail: null };
         const allTots = dates.filter((d) => d <= iso && eraOk(d)).map((d) => {   /* FIX 3a item 3 (P1-5, confirmed) — the banked/PR comparator pools ONE era's totals: a hooked total is not a strapless PR */ const x = (s.sessionLog[d].entries || []).find((y) => y.id === e.id); return x && String(x.w) === String(e.w) ? (x.reps || []).reduce((a, b) => a + b, 0) : null; }).filter((x) => x != null);
+        /* FIX 3c item 4 — does an EARLIER era hold a total >= this one at the
+           same load? Then "ever" is false English, and the receipt names the
+           boundary instead. Era 0 keeps the word — nothing earlier exists. */
+        const crossBeaten = dates.some((d9) => { if (d9 >= iso || eraOk(d9)) return false; const x9 = ((s.sessionLog[d9] || {}).entries || []).find((y9) => y9.id === e.id); return x9 && String(x9.w) === String(e.w) && (x9.reps || []).reduce((a9, b9) => a9 + b9, 0) >= tot; });
+        const recAt = crossBeaten ? "Best at " + e.w + " under the current setup" : "Best you have ever done at " + e.w;
         if (allTots.length >= 2 && tot >= Math.max(...allTots)) {
           marks.pr.push(name);
           /* The confirmation line is now sized against HIS measured spread, and
@@ -5493,8 +5535,8 @@ function sessionDebrief(s, iso) {
           banked = !!(prev9.length && tot - Math.max(...prev9) >= 2 * Math.SQRT2 * te9.reps * Math.sqrt(Math.max(1, reps.length)));
           pending = !banked;
           lines.push(banked
-            ? { k: "record", t: `Best you have ever done at ${e.w} — and it clears the old line by ${tot - Math.max(...prev9)} reps against a spread of ±${te9.reps} per set, so it banks now rather than waiting for a repeat.` }
-            : { k: "record_pending", t: `Best you have ever done at ${e.w} — pending one repeat. Your own set-to-set spread is ±${te9.reps} reps (${te9.src}), so a margin this size cannot yet be told apart from a good day. Nothing to do with how you slept.` });
+            ? { k: "record", t: `${recAt} — and it clears the old line by ${tot - Math.max(...prev9)} reps against a spread of ±${te9.reps} per set, so it banks now rather than waiting for a repeat.` }
+            : { k: "record_pending", t: `${recAt} — pending one repeat. Your own set-to-set spread is ±${te9.reps} reps (${te9.src}), so a margin this size cannot yet be told apart from a good day. Nothing to do with how you slept.` });
         }
       }
       const fr = fadeRead(reps);
@@ -7315,7 +7357,7 @@ const mgLabel = (k) => MG_LABEL[k] || k;
 const SELECTION_AUDIT = [
   { id: "calves", ok: (ex) => /near-straight knee|knee straight|standing/i.test(ex.setup || "") && !/seated|bent[- ]knee/i.test(ex.setup || ""),   /* FIX 3a item 7 — the predicate validates the LEVER (knee angle), not incidental words: seated/bent-knee wording REJECTS */
     lever: "knee angle", d: "0.88-1.58",
-    right: "Standing, knee straight, with a pause in the stretch. The gastrocnemius crosses the knee, so a seated calf raise leaves it slackened and shifts the work toward the soleus — it trains soleus instead. This is the single largest exercise-selection effect anywhere in the hypertrophy literature and you are on the right side of it.",
+    right: "Standing, knee straight, with a pause in the stretch. The gastrocnemius crosses the knee, so a seated calf raise leaves it slackened and shifts the work toward the soleus — it trains soleus instead. This is the strongest selection lever in the hypertrophy literature I have read for you — one small untrained-cohort trial behind the calf number, so direction more than size — and you are on the right side of it.",
     wrong: "A seated calf raise bends the knee and slackens the gastrocnemius. Switching to a standing or leg-press calf raise is the highest-return selection change this programme has open to it (d = 0.88-1.58 in the one small untrained trial) — see the calf note in this programme." },
   { id: "ham", ok: (ex) => /seated|back \d|hips down|hips pinned/i.test(ex.setup || ""),   /* v7.53.0 — evolved WITH the cue it reads: the new setup says "back 5" and "Keep hips down" */
     lever: "hip angle", d: "seated favoured",
@@ -8611,7 +8653,15 @@ function runAdaptive(state, todayISO, raOpts) {
        sweep detection, so ANY future setup writer (editor, patch, hand edit)
        gets it for free. Stamped once; deleting tokens later cannot un-know it. */
     for (const eC of (s.exercises || [])) {
-      if (eC && !eC.calibratedAt && !(String(eC.setup || "").match(/\[PIN\]/))) eC.calibratedAt = todayISO + "T12:00:00.000Z";
+      if (!eC) continue;
+      if (String(eC.setup || "").match(/\[PIN\]/)) { if (!eC.pinsSeen) eC.pinsSeen = true; }
+      else if (eC.pinsSeen && !eC.calibratedAt) eC.calibratedAt = todayISO + "T12:00:00.000Z";
+      /* FIX 3c item 5 — the first cut stamped ANY pin-free lift, so a late first
+         sweep (second device, restored backup, first open after a gap) stamped
+         pulldown days after its fork, dropped its exposure count 1 → 0, and 3b's
+         label then said "until the machine settings are pinned" about settings
+         that do not exist on that lift. pinsSeen is the one bit of memory that
+         makes the stamp a transition: observed WITH pins, later without. */
     }
   }
 
@@ -8645,7 +8695,7 @@ function runAdaptive(state, todayISO, raOpts) {
      every authored constant this audit has removed. */
   if (!sealed && (s.exercises || []).some((e) => ["calves", "ham", "tricep"].includes(e.id)))
     propose("selection", "THREE MACHINES MIGHT BE THE WRONG ONES — WORTH CHECKING",
-      `This is the largest effect in the selection literature I have read for you — one small untrained-cohort trial behind the calf number, so direction more than size — and it is not about reps or range of motion — it is about which machine, because a muscle that crosses two joints has its length set by the joint you are NOT training. Three questions. Is your calf raise done with the knee STRAIGHT (standing, or on a leg press) or BENT (seated)? Straight-knee produced +9-12% gastrocnemius growth against +0.6-1.7% for seated in a within-person MRI study — d = 0.88 to 1.58, the biggest single effect in this whole literature. Seated calf work essentially trains soleus only. Is your triceps work an overhead extension or a pushdown? Overhead grew the long head +28.5% vs +19.6% and the whole triceps +19.9% vs +13.9%, achieved with LIGHTER loads, because shoulder flexion puts the long head on stretch. And is your ham curl seated or lying? Seated flexes the hip and lengthens the hamstrings; the direction is established though I could not retrieve the exact percentages. Caveats worth having: these are small studies, mostly untrained subjects, and the calf one is n=14 — but they are within-person MRI designs and the mechanism is not in dispute. Set against that, the fashionable stuff is dead: lengthened partials came back practically equivalent to full range in a 297-person trial, tempo does not matter and if anything favours going faster, and slow eccentrics cost a great deal of perceived effort for a hypertrophy effect of −0.06. If any of the three answers is the short-muscle version, switching machines is free and worth more than every rep-mechanics tweak combined.`,
+      `This is the strongest lever in the selection literature I have read for you — one small untrained-cohort trial behind the calf number, so direction more than size — and it is not about reps or range of motion — it is about which machine, because a muscle that crosses two joints has its length set by the joint you are NOT training. Three questions. Is your calf raise done with the knee STRAIGHT (standing, or on a leg press) or BENT (seated)? Straight-knee produced +9-12% gastrocnemius growth against +0.6-1.7% for seated in a within-person MRI study — d = 0.88 to 1.58, the strongest selection lever in this literature, from one small untrained trial. Seated calf work essentially trains soleus only. Is your triceps work an overhead extension or a pushdown? Overhead grew the long head +28.5% vs +19.6% and the whole triceps +19.9% vs +13.9%, achieved with LIGHTER loads, because shoulder flexion puts the long head on stretch. And is your ham curl seated or lying? Seated flexes the hip and lengthens the hamstrings; the direction is established though I could not retrieve the exact percentages. Caveats worth having: these are small studies, mostly untrained subjects, and the calf one is n=14 — but they are within-person MRI designs and the mechanism is not in dispute. Set against that, the fashionable stuff is dead: lengthened partials came back practically equivalent to full range in a 297-person trial, tempo does not matter and if anything favours going faster, and slow eccentrics cost a great deal of perceived effort for a hypertrophy effect of −0.06. If any of the three answers is the short-muscle version, switching machines is free and worth more than every rep-mechanics tweak combined.`,
       { kind: "note" });
 
   /* Plates too coarse for the muscle — a hardware finding, not a programming one. */
@@ -10152,7 +10202,7 @@ function askContext(s, docs) {
     + (() => { const dx = dietExit(s); if (dx.gated) return "";
         return `THE DIET EXIT (his stated plan, not a default): straight to maintenance, hold, then decide. One step from ${dx.from} to ${dx.maintenance} — his MEASURED maintenance — then hold ${dx.holdMin}-${dx.holdFull} weeks before choosing anything else. Do NOT propose a reverse-diet ramp: it has no controlled trial behind it, only practitioner convention, and what is replicated is time spent AT maintenance (MATADOR, Byrne 2018), which does not require arriving slowly. Do NOT assume a surplus or a build follows — he has not decided that, and the hold exists so the decision has data behind it. If he asks when to stop cutting, say plainly that no study answers it and his body-fat interval (${dx.bfLo}-${dx.bfHi}%) is wider than the decision. `; })()
     + (() => { const se8 = exerciseSelection(s); if (!se8.items.length || !se8.allGood) return "";
-        return `EXERCISE SELECTION (audited against his real gym, confirmed by him directly): every biarticular lift in his programme is already in the lengthened position — standing calf raise with a stretch pause, seated ham curl with hips pinned, reclined leg extension. That is the largest effect in the training literature (standing vs seated calf raise d = 0.88-1.58, against rep tempo at 0.09) and he is on the right side of all of it. Say so if training comes up, and do NOT go hunting for exercise-selection upgrades that are not there. His triceps use a Prime 3-peg rather than an overhead position: he was shown the d = 0.54-0.61 case and chose to keep it. That is settled — the peg changes the resistance profile, not the shoulder angle, so it was never the same variable — and it must not be raised again. `; })()
+        return `EXERCISE SELECTION (audited against his real gym, confirmed by him directly): every biarticular lift in his programme is already in the lengthened position — standing calf raise with a stretch pause, seated ham curl with hips pinned, reclined leg extension. That is the strongest selection lever in the literature I have read for him (standing vs seated calf raise d = 0.88-1.58 in one small untrained trial, against rep tempo at 0.09) and he is on the right side of all of it. Say so if training comes up, and do NOT go hunting for exercise-selection upgrades that are not there. His triceps use a Prime 3-peg rather than an overhead position: he was shown the d = 0.54-0.61 case and chose to keep it. That is settled — the peg changes the resistance profile, not the shoulder angle, so it was never the same variable — and it must not be raised again. `; })()
     + (() => { const vi8 = volumeImbalance(s); if (!vi8) return "";
         return `WEEKLY SET ALLOCATION (by head; deltoids counted separately because they are separately trained): ${vi8.pv.map((m) => mgLabel(m.mg) + " " + m.sets + (m.indirectOnly ? " (indirect only)" : "")).join(", ")}. ${vi8.growthOK ? "His MEASURED regime is FREE — lifts holding or rising while fat still falls, confirmed a week apart — so the growth band applies again and raising the lowest muscle is worth proposing; the engine may already have filed that card, so do not double-propose." : "The regime detector does NOT currently sanction adding sets (regime: " + vi8.regimeKey + "), so do NOT recommend adding sets to a muscle sitting below the 6-12 band. That band is a GROWTH dose-response measured in people eating enough to build. Roth 2023 (n=38, six weeks, 30 kcal/kg deficit, 2.8 g/kg protein) compared ~20 weekly sets against ~12 and found lean mass preserved identically with no muscle-thickness difference; Bickel 2011 held young adults' thigh lean mass for 32 weeks on one-ninth of the volume that built it. Retention is cheap and is not volume-sensitive. If he asks about a low muscle, say it is adequate for holding and is the first thing to raise when his own measured state sanctions building."} `; })()
     + `HIS MEASURED SET-TO-SET REP SPREAD ${typicalError(s, null).reps} reps (n=${typicalError(s, null).n} paired sets at identical load) — use this when judging whether a rep change is real. A +1 rep session is inside it. `
@@ -15145,12 +15195,12 @@ function LogTab({ s, setS, save, slp }) {
       {/* ---------- The thing he is getting right, said out loud ----------
           An app that only ever speaks to correct you teaches you nothing about
           what to protect. His exercise selection is on the right side of the
-          largest effect in the training literature — larger than everything
+          strongest selection lever in the literature reviewed — stronger than everything
           this session removed put together — and the app had never mentioned
           it. See EXERCISE_SELECTION. */}
       {(() => { const sel = exerciseSelection(s); if (!sel.items.length) return null; return (
         <Card accent={sel.allGood ? T.jade : T.brass} style={{ padding: 16 }}>
-          <Eyebrow c={sel.allGood ? T.jade : T.brass}>{sel.allGood ? "EXERCISE SELECTION — ALREADY RIGHT, AND IT MATTERS MOST" : "EXERCISE SELECTION — ONE TO LOOK AT"}</Eyebrow>
+          <Eyebrow c={sel.allGood ? T.jade : T.brass}>{sel.allGood ? "EXERCISE SELECTION — ALREADY RIGHT" : "EXERCISE SELECTION — ONE TO LOOK AT"}</Eyebrow>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 6, lineHeight: 1.55 }}>
             For a muscle that crosses two joints, the joint you are NOT training sets its length — and length under load is where the growth difference actually lives. The per-exercise numbers below carry their own caveats. Rep tempo is 0.09 (CI crosses zero; cadence still must stay consistent). Eccentric speed is +0.06, periodisation −0.02 — and that last is linear vs DUP, two periodized models; periodized vs not is ES 0.13, CI −0.10 to 0.36. This is the lever; those were rounding.
           </div>
