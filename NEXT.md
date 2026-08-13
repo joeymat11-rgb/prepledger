@@ -67,6 +67,18 @@ two rounds specced ahead of it. Cowork's amendment, verbatim:)*
 
 Do not start a QUEUED item without Joe's say-so.
 
+**FILED BY v7.52.0 (persistence round), NOT BUILT — from cowork's adjudication:**
+photos keyed id-first (same-day front/side currently collide — executed) · the restore
+receipt's "anything logged after the wipe was kept" overclaims same-key edits ·
+pre-restore copy verified before replace · STANDING LAW: any future patch that SHRINKS
+a record calls `_stampCorr` (V44 did, V41 didn't — both merge directions executed) ·
+dailyLogs same-date field union · counts-guard identity for top stores · id-less
+agentProposals are silently DROPPED by `_unionBy` (legacy-only today) · `rirHist` merge
+protection (a series wants a union, not a stamp — deliberately left out of the v7.52.0
+stamp discipline) · the ghSync first-attempt shrink-refusal writes no plSyncErr and is
+never retried or surfaced (found in the v7.52.0 recon; the round's scope was the six
+items, so it is named here rather than swept in).
+
 *(The four named motion items, kept for context — all absorbed by v7.54.0's spec:
 the four data-deleting spans on NOW · the `Section`-header semantics (plain
 `<div onClick>`, no role/tabIndex/onKeyDown) · the FAB (with the CORRECTED numbers —
