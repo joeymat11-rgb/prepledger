@@ -279,7 +279,7 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         const old = clone(SEED); delete old.skinfolds; old.v = 38;
         const up = __test.migrate(JSON.parse(JSON.stringify(old)));
         ok(Array.isArray(up.skinfolds) && up.skinfolds.length === 0, "R5 migration — patchV39 adds s.skinfolds = [] and nothing was there to restate");
-        ok(up.v === 46, "R5 migration — and bumps to 46 (v44 the 180 correction · v45 calves 11 / rows 9 · v46 the replay-duplicate dedupe: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
+        ok(up.v === 47, "R5 migration — and bumps to 47 (v44 the 180 correction · v45 calves 11 / rows 9 · v46 the dedupe · v47 the failure-A/B retirement: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
                 ok(Array.isArray(up.split) && up.split.length === 1 && up.split[0].from === "2026-08-09" && up.split[0].map[0] === "U" && up.split[0].map[1] === "L" && up.split[0].map[4] === "U" && up.split[0].map[5] === "L" && up.split[0].map[3] === "REST", "R19c migration — patchV40 seeds the athlete-stated split, DATED from the day he said it: Sun U · Mon L · Thu U · Fri L, rest elsewhere");
         /* byte-identity is the wrong invariant: migrate() replays the WHOLE patch chain, so
            other idempotent patches legitimately touch the state. The invariant that matters
@@ -5574,13 +5574,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 46, "schema: SCHEMA_V is 46 (patchV46: the replay-duplicate dedupe, the new runner's first live bump)");
+  ok(SC === 47, "schema: SCHEMA_V is 47 (patchV47: the failure-A/B retirement)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
-  ok(migd.v === 46 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
+  ok(migd.v === 47 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
   ok(migd.reads.length === oldV35.reads.length && Object.keys(migd.dailyLogs).length === Object.keys(oldV35.dailyLogs).length, "patchV36: ADDITIVE — no read or dailyLog is added or lost (count-preserving)");
   ok(SEED.plan.autonomy === "propose", "patchV36: SEED already carries autonomy='propose' so a fresh install === a migrated one");
-  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 46, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
+  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 47, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
   const future = clone(SEED); future.v = __test.SCHEMA_V + 1;   /* FIX 2a — a literal 46 became CURRENT when SCHEMA_V bumped, and this silently tested the v===SCHEMA_V branch instead of the rollback hand-back it claims */
   const futureBefore = JSON.stringify(future);
   const futOut = mig(future);
@@ -5876,13 +5876,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 46, "schema: SCHEMA_V is 46 (patchV46 on top of the chain)");
+  ok(__test.SCHEMA_V === 47, "schema: SCHEMA_V is 47 (patchV47 on top of the chain)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
-  ok(m37.v === 46 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
+  ok(m37.v === 47 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
   ok(m37.reads.length === oldV36.reads.length && Object.keys(m37.dailyLogs).length === Object.keys(oldV36.dailyLogs).length, "patchV37: ADDITIVE — no read or dailyLog added or lost (count-preserving)");
-  ok(MIG(clone(SEED)).v === 46, "patchV37..46: idempotent on a current SEED (no double-patch drift — under the v7.52.0 runner a current seed takes the v===SCHEMA_V fast path and no patch runs at all, which is the stronger form of the same claim)");
+  ok(MIG(clone(SEED)).v === 47, "patchV37..47: idempotent on a current SEED (no double-patch drift — under the v7.52.0 runner a current seed takes the v===SCHEMA_V fast path and no patch runs at all, which is the stronger form of the same claim)");
   const fut39 = clone(SEED); fut39.v = __test.SCHEMA_V + 1; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };   /* FIX 2a — floats above SCHEMA_V */
   const fut39Before = JSON.stringify(fut39);
   ok(JSON.stringify(MIG(fut39)) === fut39Before, "patchV38: a NEWER (SCHEMA_V+1) state is handed back DEEP-IDENTICAL — rollback-safe, the learned history byte-for-byte");
@@ -6138,13 +6138,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(JSON.stringify(calorieTarget(clone(SEED))) === JSON.stringify(calorieTarget(clone(SEED))), "ENGINE-OWNS-NUMBERS — calorieTarget is unchanged by the phase layer on a normal cut (no phase number injected)");
 
   // ---- E · patchV38 — additive + rollback-safe; fresh SEED === migrated --------------------
-  ok(SCHEMA_V === 46, "patchV39..46 — SCHEMA_V is 46 (the dedupe on top of the calves/rows ruling)");
+  ok(SCHEMA_V === 47, "patchV39..47 — SCHEMA_V is 47 (the retirement on top of the chain)");
   ok(Array.isArray(SEED.plan.phaseLog) && SEED.plan.phaseLog.length === 0 && !("phase" in SEED.plan) && !("brk" in SEED.plan), "patchV38 — SEED authors an EMPTY phaseLog and NO phase/brk override: a fresh install === a migrated state");
   const oldV37 = clone(SEED); oldV37.v = 37; delete oldV37.plan.phaseLog;
   const m38 = migrate(oldV37);
-  ok(m38.v === 46 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
+  ok(m38.v === 47 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
   ok(m38.reads.length === oldV37.reads.length && Object.keys(m38.dailyLogs).length === Object.keys(oldV37.dailyLogs).length, "patchV38 — ADDITIVE: no read or dailyLog added or lost (count-preserving)");
-  ok(migrate(clone(SEED)).v === 46 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
+  ok(migrate(clone(SEED)).v === 47 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
   const fut39 = clone(SEED); fut39.v = SCHEMA_V + 1; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };   /* FIX 2a — floats above SCHEMA_V */
   const fut39B = JSON.stringify(fut39);
   ok(JSON.stringify(migrate(fut39)) === fut39B, "patchV38 — a NEWER (SCHEMA_V+1) state is handed back DEEP-IDENTICAL: rollback-safe, no phase decision wiped");
@@ -7680,7 +7680,10 @@ if (fail) process.exit(1);
   const K9 = __test.migrate(M9);
   ok(JSON.stringify(K9.sessionLog["2026-08-09"].entries[0].reps) === "[12,12,11]", "H4 — a record that does NOT match the key exactly is untouched: content-keyed means this correction can never fire on data it was not written for");
   ok((C9.exercises.find((z) => z.id === "tricep") || {}).lastMeta !== undefined, "H4 — caches re-derive through deriveLastMeta, never hand-edited");
-  ok((C9.feed[0] || {}).t === "RECORD CORRECTED — unattested sets struck from Sunday's re-log" && /restores it by the same mechanism/.test((C9.feed[0] || {}).how), "H4 — the feed line cites Joe's words AND names the restore path");
+  /* v7.53.0 — find, don't index: patchV47's retirement receipt now unshifts ahead of
+     this one on any migrated state, so feed[0] is position-fragile by design. */
+  const h4rec = (C9.feed || []).find((f9) => f9 && f9.t === "RECORD CORRECTED — unattested sets struck from Sunday's re-log");
+  ok(!!h4rec && /restores it by the same mechanism/.test(h4rec.how), "H4 — the feed line cites Joe's words AND names the restore path");
   /* H3 — per-set: the tonight shape, driven through the suspects logic */
   ok(srcH.indexOf('markAdj(ex.id, setN); const r2') > -1 && srcH.indexOf("e2.reps.forEach((v9, i9) => { if (!adj[e2.id + " + String.fromCharCode(34) + ":" + String.fromCharCode(34) + " + i9]) out9.push") > -1, "H3 — engagement is per (lift, SET): a slot an approved +1 added mid-day, pre-filled with its target and tapped through, lists on FINISH by itself even when earlier slots of the same lift were honestly adjusted — the lift-granular belt could not see it");
   ok(srcH.indexOf("if (!keep.length) { split.skipped.push({ id: e9.id }); continue; }") > -1 && srcH.indexOf("split.entries.push({ ...e9, reps: keep });") > -1, "H3 — a struck SLOT leaves the entry; a lift with every slot struck files as skipped: per-set honesty all the way into the record");
@@ -8380,27 +8383,56 @@ if (fail) process.exit(1);
   const vpHf = __test.volumePush(FHf);
   ok(vpHf.mode === "PUSH" && vpHf.mg === "delts_side" && !vpHf.headroomNote, "ITEM 9 — a flat target muscle carries NO note: the sentence derives from the lift trend the engine already computes, never from a vibe");
 
-  /* ---------- B1 — THE FAILURE A/B, END TO END ---------- */
+  /* ---------- v7.53.0 JOB 1 — THE FAILURE A/B IS RETIRED, END TO END ----------
+     This block used to drive the experiment: proposer → card → consent → frozen
+     targets → capped terminal set. It now proves the RETIREMENT, at the same
+     depth. Joe's ruling: zero sessions ran; the research default stands. */
   const FT = mkFreeV();
   const raT = __test.runAdaptive(clV(FT), isoVV(0));
-  const abCard = (raT.agentProposals || []).find((x) => x.kind === "trial" && x.custom && x.custom.abId === "failureAB1");
-  ok(!!abCard && /RULED: RUN IT/.test(abCard.title) && /Tricep and Sulek curl/.test(abCard.body) && /bias, not just noise/.test(abCard.body), "B1 — the A/B files once as a desk card: the pairing is NAMED with its ledger evidence (two same-session isolations, six reads each, loads unchanged) and the calibration-anchor argument rides the body — the tap is the consent, on the record");
-  ok(/1 RIR still satisfies the delivered-dose criterion/.test(abCard.body), "B1 — the card states the interaction that keeps the capped arm honest: 1 RIR still reads as delivered");
-  const started = __test.applyAgentProposal(clV(raT), abCard, isoVV(0));
-  ok((started.trials || []).some((t) => t.custom && t.custom.abId === "failureAB1" && t.started) && started.feed.some((f) => /^TRIAL STARTED — THE FAILURE A\/B/.test(f.t)), "B1 — the tap starts the trial: the record lands in s.trials with its start date and the feed says so");
-  const raT2 = __test.runAdaptive(clV(started), isoVV(0));
-  ok(!(raT2.agentProposals || []).some((x) => x.kind === "trial" && x.custom && x.custom.abId === "failureAB1"), "B1 — once ever: a started trial never refiles");
-  const armT = __test.trialArmOn((started.trials || []).find((t) => t.custom && t.custom.abId === "failureAB1"), isoVV(0));
-  ok(!!armT && armT.armIdx === 0 && armT.of === 4, "B1 — the standing arm renders (week " + (armT ? armT.block : "-") + "/4): a lift-pair trial has no daily alternation, so TODAY'S PROTOCOL shows the standing instruction");
-  const rpT = __test.rirPlan(started, started.exercises.find((e) => e.id === "tricep"));
-  ok(rpT.plan[rpT.plan.length - 1] === 1 && rpT.why.some((w) => /failure A\/B/.test(w)), "B1 — the capped arm reaches the gym: tricep's terminal set is prescribed 1 RIR (1-2 allowed, still delivered) with the trial named in the why");
-  const rpS = __test.rirPlan(started, started.exercises.find((e) => e.id === "sulek"));
-  ok(rpS.plan[rpS.plan.length - 1] === 0, "B1 — and the control keeps its all-out terminal set: sulek stays the calibration anchor");
-  const vT = __test.trialVerdict(started, (started.trials || []).find((t) => t.custom && t.custom.abId === "failureAB1"));
-  ok(!!vT && vT.done === false && typeof vT.nA === "number" && typeof vT.nB === "number", "B1 — the verdict machinery reads the pair (done only when BOTH lifts carry a full post-start window) — parallel arms, two slopes with intervals, direction not gospel");
-  const declT = __test.dismissAgentProposal(clV(raT), abCard, isoVV(0));
-  ok((declT.trials || []).some((t) => t.custom && t.custom.abId === "failureAB1" && t.declined) && declT.feed.some((f) => /^TRIAL PASSED/.test(f.t)), "B1 — a decline is RECORDED (the refile loop the template path already closed, now closed for staged trials too)");
-  ok(!(__test.runAdaptive(clV(declT), isoVV(0)).agentProposals || []).some((x) => x.kind === "trial" && x.custom && x.custom.abId === "failureAB1"), "B1 — and a declined trial never refiles either — the once-ever guard reads both outcomes");
+  ok(!(raT.agentProposals || []).some((x) => x.kind === "trial" && x.custom && x.custom.abId === "failureAB1"),
+    "RETIRE — the proposer is GONE: no sweep files the A/B consent card any more, so the withdrawal below cannot be undone by the next boot");
+  /* the stale-device case: a phone that approved the card before syncing. The
+     patch disarms the trial; the freeze and the cap are gone from the engine. */
+  const stale9 = clV(raT);
+  stale9.agentProposals = [...(stale9.agentProposals || []), { id: "abfail1", kind: "trial", title: "THE FAILURE A/B — RULED: RUN IT", custom: { t: "AB", q: "q", arms: ["a", "b"], blockDays: 28, cycles: 1, metric: "lift_pair", exA: "tricep", exB: "sulek", abId: "failureAB1" } }];
+  stale9.trials = [{ custom: { t: "AB", q: "q", arms: ["a", "b"], blockDays: 28, cycles: 1, metric: "lift_pair", exA: "tricep", exB: "sulek", abId: "failureAB1" }, started: isoVV(0) }];
+  stale9.v = 46;
+  const ret9 = __test.migrate(clV(stale9));
+  ok(!(ret9.agentProposals || []).some((x) => x && x.custom && x.custom.abId === "failureAB1"),
+    "RETIRE — patchV47 withdraws the pending consent card: a card proposing a retired experiment is a card that lies");
+  const rt9 = (ret9.trials || []).find((x) => x && x.custom && x.custom.abId === "failureAB1");
+  ok(!!rt9 && rt9.declined === true && rt9.retired === "2026-08-13",
+    "RETIRE — the approved trial is DISARMED, not deleted: declined + a retirement date. The tap was athlete history; the mark silences every reader, because they all filter !declined");
+  ok((ret9.feed || []).filter((f) => f && f.t === "FAILURE EXPERIMENT RETIRED").length === 1
+     && /No session ever ran under the experiment, so nothing is lost/.test((ret9.feed.find((f) => f.t === "FAILURE EXPERIMENT RETIRED") || {}).how)
+     && /1–2 reps shy/.test((ret9.feed.find((f) => f.t === "FAILURE EXPERIMENT RETIRED") || {}).how),
+    "RETIRE — ONE receipt, house voice, Joe's ruling verbatim: the default stands, the occasional all-out set is the honesty tool, nothing is lost");
+  /* zero-session early end ERRORS NOWHERE: every reader of the retired trial
+     returns instead of throwing. */
+  /* no try/catch here ON PURPOSE (the vacuity gate bans the shape): if either
+     reader throws on the zero-session retired trial, the whole suite dies right
+     here — which IS the errors-nowhere claim, enforced harder than a boolean. */
+  const vd9 = __test.trialVerdict(ret9, rt9);
+  ok(typeof vd9.done === "boolean" && typeof vd9.nA === "number" && typeof vd9.nB === "number",
+    "RETIRE — trialVerdict on the retired trial still reads the pair calmly (booleans and counts, no throw on the way here): retiring the experiment could not break the reader the LAB renders from");
+  const arm9 = __test.trialArmOn(rt9, isoVV(0));
+  ok(arm9 && arm9.armIdx === 0,
+    "RETIRE — trialArmOn on the retired trial still reads its window without throwing; every SURFACE that could show it filters !declined, which the disarm set");
+  /* BOTH LIFTS RETURN TO NORMAL ENGINE PROGRESSION — even against a stale device
+     whose trial is still standing un-declined, because the freeze itself is gone. */
+  const un9 = clV(stale9);   /* trial NOT declined here — the hostile case */
+  const exT9 = un9.exercises.find((e) => e.id === "tricep");
+  exT9.w = 55; exT9.hi = 15; exT9.sets = 3; exT9.holdFlag = false; exT9.std = null; exT9.reclaim = null; exT9.ladder = null;
+  exT9.last = [12, 12, 12]; exT9.lastMeta = { reps: [12, 12, 12], rirSets: [2, 1, 1] };
+  const exS9 = un9.exercises.find((e) => e.id === "sulek");
+  exS9.w = 87.5; exS9.hi = 15; exS9.sets = 3; exS9.holdFlag = false; exS9.std = null; exS9.reclaim = null; exS9.ladder = null;
+  exS9.last = [12, 12, 12]; exS9.lastMeta = { reps: [12, 12, 12], rirSets: [2, 1, 0] };
+  const stT9 = __test.progressStep(exT9, un9), stS9 = __test.progressStep(exS9, un9);
+  ok(stT9.add === 2 && stS9.add === 1 && !/failure A\/B/.test(stT9.why),
+    "RETIRE — progression is RIR-DRIVEN again on both arms (terminal 1 earns +2, terminal 0 earns +1), even with a stray un-declined lift_pair trial standing: the U1 freeze is out of the engine, not merely off the data");
+  const rpT9 = __test.rirPlan(un9, exT9);
+  ok(!rpT9.why.some((w) => /failure A\/B/.test(w)),
+    "RETIRE — and the terminal-set cap is gone from the plan: no lift's prescription mentions the experiment");
   ok(srcV.indexOf('enum: ["session_reps", "sleep_h", "trend_delta", "lift_pair"]') > -1, "B1 — the analyst's trial-design tool learned the new metric, so a future analyst-staged pair rides the same rails");
 
   /* ---------- E — UNCHANGED IS LAW: every kept rule pinned as NOT moved ---------- */
@@ -8428,11 +8460,10 @@ console.log(`\nFINAL103: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
 
 
-/* ==================== U1 — THE A/B'S PROGRESSION TARGETS ARE FROZEN ==================== */
+/* ==================== v7.53.0 — THE A/B FREEZE IS RETIRED; RIR DRIVES BOTH ARMS ==================== */
 {
   const clU = (o) => JSON.parse(JSON.stringify(o));
   const SU1 = clU(__test.SEED);
-  const isoU = isoL(Date.now());
   const mkLift = (id) => {
     const e = SU1.exercises.find((x) => x.id === id);
     e.w = 55; e.hi = 15; e.sets = 3; e.holdFlag = false; e.std = null; e.reclaim = null; e.ladder = null;
@@ -8441,21 +8472,19 @@ if (fail) process.exit(1);
   };
   const exT = mkLift("tricep"); exT.lastMeta = { reps: [12, 12, 12], rirSets: [2, 1, 1] };
   const exS = mkLift("sulek"); exS.lastMeta = { reps: [12, 12, 12], rirSets: [2, 1, 0] };
-  /* control: WITHOUT the trial the two arms earn DIFFERENT steps — the confound is real */
-  const stepT0 = __test.progressStep(exT, SU1), stepS0 = __test.progressStep(exS, SU1);
-  ok(stepT0.add === 2 && stepS0.add === 1, "U1 CONTROL — the confound the audit drove is real on this engine: terminal RIR 1 earns +" + stepT0.add + " while all-out 0 earns +" + stepS0.add + " — different progression exposure between the arms");
-  /* with the trial standing, BOTH arms step flat +1, and the receipt names the freeze */
-  SU1.trials = [{ custom: { t: "AB", q: "q", arms: ["a", "b"], blockDays: 28, cycles: 1, metric: "lift_pair", exA: "tricep", exB: "sulek", abId: "failureAB1" }, started: isoU }];
+  /* what USED to be the U1 control is now the LAW: different terminal RIR earns
+     different steps, trial or no trial. */
+  SU1.trials = [{ custom: { t: "AB", q: "q", arms: ["a", "b"], blockDays: 28, cycles: 1, metric: "lift_pair", exA: "tricep", exB: "sulek", abId: "failureAB1" }, started: isoL(Date.now()) }];
   const stepT1 = __test.progressStep(exT, SU1), stepS1 = __test.progressStep(exS, SU1);
-  ok(stepT1.add === 1 && stepS1.add === 1, "U1 — with the lift_pair trial standing BOTH arms step flat +1: identical progression exposure, the experiment unconfounded");
-  ok(/failure A\/B/.test(stepT1.why) && /flat/.test(stepT1.why) && /calibration data/.test(stepT1.why), "U1 — the receipt NAMES the chosen freeze (flat +1) and keeps the calibration promise");
-  /* and the freeze reaches the actual targets */
+  ok(stepT1.add === 2 && stepS1.add === 1,
+    "RETIRE — the old U1 control IS the law now: terminal RIR 1 earns +2 and terminal 0 earns +1, with the lift_pair trial standing. The freeze that made them identical retired with the experiment");
   const tT = __test.targetsFor(exT, SU1), tS = __test.targetsFor(exS, SU1);
   const sum9 = (a) => a.reduce((x, y) => x + y, 0);
-  ok(sum9(tT) - 36 === sum9(tS) - 36 && sum9(tT) - 36 === 1, "U1 — targetsFor steps both lifts by exactly the same +1 total rep while the trial runs (tricep " + tT.join(",") + " · sulek " + tS.join(",") + ")");
-  /* the governor still outranks the trial */
+  ok(sum9(tT) - 36 === 2 && sum9(tS) - 36 === 1,
+    "RETIRE — and targetsFor carries the difference to the actual numbers: +2 total on the tricep, +1 on the sulek");
+  /* the governor still outranks everything — that never belonged to the trial */
   const exH = clU(exT); exH.holdFlag = true;
-  ok(__test.progressStep(exH, SU1).add === 0, "U1 — the governor hold still outranks the trial freeze: safety above symmetry");
+  ok(__test.progressStep(exH, SU1).add === 0, "RETIRE — the governor hold still outranks all of it: safety above progression, exactly as before the experiment and exactly as after it");
 }
 console.log(`\nFINAL104: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
@@ -8676,7 +8705,7 @@ if (fail) process.exit(1);
     if (cal) cal.hi = 13;   /* legal later state: the athlete moved his own ceiling back up */
     const feedLen0 = s45.feed.length;
     const out = __test.migrate(clP(s45));
-    ok(out.v === 46, "v7.52.0 runner — a v45 state lands at 46");
+    ok(out.v === 47, "v7.52.0 runner — a v45 state lands at the chain top (47)");
     const calOut = (out.exercises || []).find((x) => x.id === "calves");
     ok(calOut && calOut.hi === 13,
       "v7.52.0 runner — patchV45 did NOT re-run on a v45 state: the athlete's own hi=13 survives the bump. Under the old replay-everything runner this exact field was forced back to 11 on every future bump, forever");
@@ -8703,8 +8732,10 @@ if (fail) process.exit(1);
     const rec = out.feed.find((f) => /^FEED DEDUPED — /.test(f.t || ""));
     ok(rec && /2 historical replay duplicates removed/.test(rec.t) && /SMALLEST HONEST INCREMENT/.test(rec.how),
       "V46 dedupe — one receipt, counting exactly what was removed and naming the titles");
-    /* feed length: 6 in, minus 2 dups, plus 1 receipt = 5 */
-    ok(out.feed.length === 5, "V46 dedupe — feed shrinks by exactly the removed count (plus its one receipt): 6 → 5");
+    /* feed length: 6 in, minus 2 dups, plus the dedupe receipt, plus V47's
+       retirement receipt (the fixture crosses both patches now) = 6 */
+    ok(out.feed.length === 6 && out.feed.some((f) => f.t === "FAILURE EXPERIMENT RETIRED"),
+      "V46 dedupe — feed shrinks by exactly the removed count, then carries one receipt per patch crossed: 6 − 2 + 1 (dedupe) + 1 (V47 retirement) = 6");
   }
   {
     /* nothing to remove → no receipt: a patch may not announce work it did not do */
@@ -8762,7 +8793,7 @@ if (fail) process.exit(1);
       "E1 — the pending inbox SURVIVES the bump: the executed proof had it wiped");
     const countsAfter = titleCounts(out.feed);
     const drifted = [];
-    for (const [k9, n9] of countsAfter) { const b9 = countsBefore.get(k9) || 0; if (n9 !== b9 && !/^FEED DEDUPED — /.test(String(k9))) drifted.push(k9 + " " + b9 + "→" + n9); }
+    for (const [k9, n9] of countsAfter) { const b9 = countsBefore.get(k9) || 0; if (n9 !== b9 && !/^FEED DEDUPED — /.test(String(k9)) && String(k9) !== "FAILURE EXPERIMENT RETIRED") drifted.push(k9 + " " + b9 + "→" + n9); }   /* the two receipts patches in the window legitimately file; everything else is a phantom */
     for (const [k9, n9] of countsBefore) { if (!countsAfter.has(k9)) drifted.push(k9 + " " + n9 + "→0"); }
     ok(drifted.length === 0,
       "E1 — the WHOLE feed's per-title counts are identical through the bump (only a legitimate V46 dedupe receipt may differ): a replayed duplicate of an EXISTING title now fails, which the old membership Set let through" + (drifted.length ? " — drifted: " + drifted.join(" | ") : ""));

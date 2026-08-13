@@ -360,7 +360,7 @@ const APP_V = "7.52.0";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 46;
+const SCHEMA_V = 47;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -887,14 +887,10 @@ function liftCall(s, exId, opts = {}) {
    punished for a bad night instead of blocking him from gaining on one. */
 function progressStep(ex, s) {
   if (ex.holdFlag) return { add: 0, why: "governor hold — the opener has run hot two sessions straight, so nothing climbs until an honest one lands" };
-  /* U1 (volume-verdicts audit, pre-merge) — while a lift_pair trial covers this lift,
-     BOTH arms use the identical next-session rule: FLAT +1, named here as the chosen
-     freeze. The capped arm's prescribed 1 RIR would otherwise earn +2 while the
-     all-out arm's 0 earned +1 — different progression exposure, confounding the very
-     experiment the A/B exists to run. The governor still outranks the trial (above);
-     terminal-RIR reports still file as calibration data. */
-  const abU1 = s && (s.trials || []).find((t9) => t9 && !t9.declined && t9.custom && t9.custom.metric === "lift_pair" && (t9.custom.exA === ex.id || t9.custom.exB === ex.id) && trialArmOn(t9, isoOf(todayStart())));
-  if (abU1) return { add: 1, why: "failure A/B — both arms step +1 flat while the trial runs, so progression exposure stays identical between the capped and the all-out lift; your terminal-RIR reports still file as calibration data" };
+  /* v7.53.0 JOB 1 — the U1 flat-freeze is RETIRED with the failure A/B (Joe's
+     ruling, before a single session ran under it). Progression is RIR-driven on
+     every lift again; a stray lift_pair trial on an unsynced device can no
+     longer freeze what he lifts. */
   const rs = ex.lastMeta ? rirSetsOf(ex.lastMeta) : [];
   const term = rs.length > 1 ? rs[rs.length - 1] : null;
   const open = rs.length ? rs[0] : null;
@@ -5518,11 +5514,9 @@ function rirPlan(s, ex, slp) {
      set actually floors at 1 on an alarm day. Effort is modified; validity is not —
      what he delivers still counts and still banks. */
   try { const al9p = bodyAlarm(s); if (al9p) { plan = plan.map((r) => Math.max(r, 1)); why.push("alarm day — every 0 becomes a 1; delivered reps still count and bank"); } } catch (e) {}
-  /* B1 — the failure A/B: the capped arm's terminal set is prescribed 1 RIR (1-2
-     allowed; 1 still satisfies the delivered-dose criterion). The paired control lift
-     keeps its all-out terminal — the calibration anchor. */
-  const abT9 = (s.trials || []).find((t9) => t9 && !t9.declined && t9.custom && t9.custom.metric === "lift_pair" && t9.custom.exA === ex.id && trialArmOn(t9, isoOf(todayStart())));
-  if (abT9) { plan = plan.map((r, i) => (i === plan.length - 1 ? Math.max(r, 1) : r)); why.push("failure A/B — cap the last set at 1-2 RIR (this lift is the capped arm; its pair keeps all-out)"); }
+  /* v7.53.0 JOB 1 — the failure A/B's terminal-set cap is RETIRED with the
+     experiment. The research default is the standing policy: 1-2 RIR
+     everywhere, an occasional all-out last set as the honesty tool. */
   const opens = Object.values(s.sessionLog).flatMap((sl) => (sl.entries || []).filter((e) => e.id === ex.id && e.rir != null).map((e) => e.rir)).sort((a, b) => a - b);
   if (opens.length >= 3 && opens[Math.floor(opens.length / 2)] <= 0) { plan = plan.map((r, i) => (i === 0 ? r + 1 : r)); why.push("your openers run hot on this lift — bank one early"); }
   return { plan, why };
@@ -8476,24 +8470,12 @@ function runAdaptive(state, todayISO, raOpts) {
     });
   }
 
-  /* ---------- B1 — THE FAILURE A/B (Joe's ruling, 2026-08-11: RUN IT) ----------
-     Pairing chosen AT SPEC TIME from his own ledger: tricep vs sulek — both pure
-     isolations, both in the same upper session, six reads each across the window,
-     loads unchanged throughout (55 and 87.5). The capped arm is TRICEP (its terminal
-     RIR reporting is also the spottiest — a prescribed terminal helps the record);
-     SULEK keeps the all-out terminal set, because failure contact is the RIR
-     calibration anchor: the error is bias (~0.95 reps toward underprediction), not
-     just noise. 1 RIR still satisfies the delivered-dose criterion. Filed once ever;
-     the tap is the consent, on the record. */
-  {
-    const AB9 = { t: "THE FAILURE A/B — TRICEP CAPPED vs SULEK ALL-OUT", q: "Does keeping 1-2 reps in reserve on the last set cost strength — on your own bar?", arms: ["Tricep — terminal set capped at 1-2 RIR", "Sulek curl — terminal set stays all-out"], blockDays: 28, cycles: 1, metric: "lift_pair", exA: "tricep", exB: "sulek", abId: "failureAB1" };
-    const seenAB = (s.trials || []).some((t9) => t9 && t9.custom && t9.custom.abId === "failureAB1") || (s.agentProposals || []).some((ap9) => ap9 && ap9.kind === "trial" && ap9.custom && ap9.custom.abId === "failureAB1");
-    if (!seenAB && !sealed) {
-      s.agentProposals = [...(s.agentProposals || []), { id: "abfail1", kind: "trial", title: "THE FAILURE A/B — RULED: RUN IT",
-        body: "Joe's ruling, on the record: run the A/B. The pairing, chosen from your own ledger: Tricep and Sulek curl — both pure isolations, both in the same upper session, six reads each across the recent window, loads unchanged throughout (55 and 87.5). TRICEP caps its final set at 1-2 RIR through one full read window; SULEK keeps the all-out terminal set — the calibration anchor stays, because RIR error is bias, not just noise, and periodic failure contact is what keeps your reports calibrated. 1 RIR still satisfies the delivered-dose criterion, so the capped arm never reads as sandbagging. When both lifts carry a full post-start window, the desk compares their strength trends side by side — direction, not gospel.",
-        custom: AB9, at: isoOf(todayStart()) }];
-    }
-  }
+  /* ---------- v7.53.0 JOB 1 — THE FAILURE A/B PROPOSER LIVED HERE ----------
+     Removed with the experiment (Joe's retirement ruling, zero sessions logged).
+     patchV47 withdraws the pending consent card and disarms any approved trial;
+     removing the proposer is what keeps the card from being re-filed on the
+     next sweep. The lift_pair metric machinery survives for future experiments;
+     nothing that touches progression or prescription reads it any more. */
 
   /* ---------- SELECTION_NOTE — the one training change worth the ink ----------
      The whole lengthened-partials story collapsed under testing: a 297-person
@@ -9527,6 +9509,24 @@ function patchV45(s) {
   rule45("rows", 10, 9);
   s.v = 45; return s;
 }
+function patchV47(s) {
+  /* v7.53.0 JOB 1 — THE FAILURE A/B RETIRES (Joe's ruling, before it began).
+     Three restatements, all content-keyed and safe under the one-shot runner:
+     the pending consent card is withdrawn (a card proposing a retired
+     experiment is a card that lies); any approved-but-unrun trial is marked
+     declined + retired rather than deleted — the tap was athlete history, the
+     disarm is the retirement; and ONE receipt files the ruling in the house
+     voice. Readers all filter !declined, so the mark alone silences every
+     surface. */
+  s.agentProposals = (s.agentProposals || []).filter((ap9) => !(ap9 && ap9.kind === "trial" && ap9.custom && ap9.custom.abId === "failureAB1"));
+  for (const t9 of (s.trials || [])) {
+    if (t9 && !t9.declined && t9.custom && t9.custom.abId === "failureAB1") { t9.declined = true; t9.retired = "2026-08-13"; }
+  }
+  if (!(s.feed || []).some((f9) => f9 && f9.t === "FAILURE EXPERIMENT RETIRED")) {
+    s.feed.unshift({ d: "2026-08-13", t: "FAILURE EXPERIMENT RETIRED", how: "Your call, before it began. The research default stands: train 1–2 reps shy; an occasional all-out last set keeps your effort reporting honest. No session ever ran under the experiment, so nothing is lost." });
+  }
+  s.v = 47; return s;
+}
 function patchV46(s) {
   /* THE DEDUPE (v7.52.0, Joe's ruling: "dedupe once"). The OLD runner replayed the
      whole chain on every bump, and each replay re-minted the feed entries some
@@ -9582,7 +9582,7 @@ function patchV38(s) {
    defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
    no longer as the only wall between a bump and his history. The gate asserts the
    pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
-const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46]];
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
