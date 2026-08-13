@@ -75,6 +75,17 @@ two rounds specced ahead of it. Cowork's amendment, verbatim:)*
 
 Do not start a QUEUED item without Joe's say-so.
 
+**FILED BY v7.53.0 (retirement + words), NOT BUILT — the A10 LOOK-DON'T-ACT list
+minus the two built (the 2s gym-timed pause, the [PIN] calibration blocker):**
+technique-version identity automation · automatic fingerprint fork · pinned reference
+photos · rep-invalid marker · hook-use field · cue lifecycle automation (the 2-of-4
+recurrence / 4-clean-expiry) · naming-consistency check · A9's rear-delt repeatability
+trial (the app's instruments decide later). Also: the fly / hip-thrust INSERTIONS
+themselves (the armed A3 table fires when they enter the programme) · the EZ-curl exit
+(Joe's hand edit; records stay archived) · "money set"/"strapless" survivals OUTSIDE
+SETUP (queue gate strings, the ladder line — A6's rule was cue-scoped; named here so
+the naming round can rule on them).
+
 **FILED BY v7.52.0 (persistence round), NOT BUILT — from cowork's adjudication:**
 photos keyed id-first (same-day front/side currently collide — executed) · the restore
 receipt's "anything logged after the wipe was kept" overclaims same-key edits ·
