@@ -101,9 +101,50 @@ await hostileBoot("corrupt-blob", (w9) => {
   w9.localStorage.setItem(KEY9, "{corrupt json, not even close");
 });
 
+/* FIX 2b — RESET OVER A CORRUPT BLOB, driven end to end. reset() was the ONE
+   writer that never entered the hardened path: its own direct setItem destroyed
+   the only recoverable copy with no stash and no banner (cowork drove it). It
+   routes through save(fresh, {force:true}) now — this drive proves the route,
+   by walking the real UI: corrupt boot → PROGRESS → SETTINGS & DATA → RULES →
+   Reset, then asserting the corrupt bytes are IN THE STASH and the main key
+   parses as the fresh seed. */
+{
+  const CORRUPT9 = "{corrupt json, not even close — reset drive";
+  const d9 = new JSDOM(
+    `<!doctype html><html><body><div id="root"></div></body></html>`,
+    { url: "https://smoke.local/", runScripts: "outside-only", pretendToBeVisual: true }
+  );
+  d9.window.scrollTo = () => {};
+  d9.window.matchMedia = d9.window.matchMedia || (() => ({ matches: false, addListener() {}, removeListener() {} }));
+  d9.window.localStorage.setItem(KEY9, CORRUPT9);
+  try { d9.window.eval(fs.readFileSync(bundlePath, "utf8")); }
+  catch (e) { check(false, "", `[storage/reset] the bundle threw on boot: ${e && e.message}`); }
+  await new Promise((r) => setTimeout(r, 400));
+  const tap9 = async (pred, what) => {
+    const el = [...d9.window.document.querySelectorAll("button, [role=button]")].find(pred);
+    if (!el) { check(false, "", `[storage/reset] could not find ${what} on the walk`); return false; }
+    el.click();
+    await new Promise((r) => setTimeout(r, 250));
+    return true;
+  };
+  await tap9((b) => b.tagName === "BUTTON" && b.textContent.trim().startsWith("PROGRESS"), "the PROGRESS tab");
+  await tap9((b) => b.textContent.trim().startsWith("SETTINGS & DATA") && b.textContent.trim().length < 400, "the SETTINGS & DATA door");
+  await tap9((b) => b.textContent.trim().startsWith("RULES") && b.textContent.trim().length < 400, "the RULES row");
+  await tap9((b) => b.textContent.trim() === "Reset to seeded state (7/22)", "the Reset button");
+  check(d9.window.localStorage.getItem("prep-ledger-corrupt") === CORRUPT9,
+    "[storage/reset] the corrupt bytes are IN THE STASH after Reset — reset now stashes before it overwrites",
+    "[storage/reset] the stash does not hold the corrupt bytes — reset destroyed the only recoverable copy");
+  let seedOk = false;
+  try { const st9 = JSON.parse(d9.window.localStorage.getItem(KEY9)); seedOk = st9 && typeof st9.v === "number" && Array.isArray(st9.exercises); } catch (e) {}
+  check(seedOk,
+    "[storage/reset] and the main key parses as the fresh seed — the reset itself still worked",
+    "[storage/reset] the main key does not parse as a seed after Reset");
+  d9.window.close();
+}
+
 if (failed) {
   console.error(`DOM-SMOKE: ${failed} failure(s)`);
   process.exit(1);
 }
-console.log("DOM-SMOKE: the shipped bundle boots clean, and both hostile-storage boots banner without touching the blob");
+console.log("DOM-SMOKE: the shipped bundle boots clean, both hostile-storage boots banner without touching the blob, and reset over a corrupt blob stashes before it overwrites");
 process.exit(0);

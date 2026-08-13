@@ -18512,7 +18512,15 @@ export default function PrepLedger() {
   const reset = () => {
     const fresh = runAdaptive(JSON.parse(JSON.stringify(SEED)), isoOf(todayStart()));
     setS(fresh); setRules(false);
-    try { localStorage.setItem(KEY, JSON.stringify(fresh)); } catch (e) {}
+    /* FIX 2b — reset routes through save() like every other writer. Its own
+       direct setItem (with a swallowed catch) was the ONE write that never
+       entered the hardened path: cowork drove corrupt blob + Reset and watched
+       the only recoverable copy die with no stash and no banner. force:true
+       keeps reset deliberate — the guard does not second-guess it — but the
+       stash now runs first (it sits ABOVE the force branch), and a quota
+       failure gets the save banner instead of the old silent swallow. import
+       already came through here; reset was the odd one out. */
+    save(fresh, { force: true });
   };
 
   const doExport = () => {
