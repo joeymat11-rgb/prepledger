@@ -61,7 +61,15 @@ written — the motion pass had already been briefed, blind-audited and Joe-rule
 two rounds specced ahead of it. Cowork's amendment, verbatim:)*
 
 **NOW — THREE ROUNDS ARE SPECCED AND SEQUENCED, files with Joe (drag-in .md per round):**
-1. **v7.52.0 — PERSISTENCE** (builds first): patch-runner version-skip + V46 feed dedupe + guard-block banner + thrown-getItem banner + corrupt-blob stash + hi/inc/setup merge stamps. Root cause: migrate() replays the full patch chain on every bump and thirteen historical patches are destructive against later state — executed proof: a simulated bump reverted an approved volume set and wiped the pending inbox. **NO round may bump SCHEMA_V before this one lands.**
+1. **SHIPPED — v7.52.0 PERSISTENCE** (merged c25a1ab, live 2026-08-13T01:17Z; base
+   round + fix 2a + fix 2b, cowork GREEN at b2783c9). The runner runs each patch at
+   most once; V46 deduped the replay duplicates; the guard/load/stash banners speak;
+   reset routes through the hardened save; hi/inc/setup ride their own merge stamps.
+   **The SCHEMA_V fence is LIFTED: v7.53.0 may bump it — that is exactly what this
+   round made safe.** The original brief, for the record: patch-runner version-skip +
+   V46 feed dedupe + guard-block banner + thrown-getItem banner + corrupt-blob stash +
+   hi/inc/setup merge stamps, root-caused to migrate() replaying the full chain with
+   thirteen patches destructive against later state.
 2. **v7.53.0 — RETIREMENT + WORD BUNDLE** (owner-ruled R1–R4): retire the failure A/B cleanly, 14 rewritten SETUP cues + renames + THE READ corrections + hooks policy + 2s calf pause + baseline forks + the [PIN] calibration blocker. Builds only on merged v7.52.0. Cue texts: [docs/cue-texts-2026-08-12.md](docs/cue-texts-2026-08-12.md).
 3. **v7.54.0 — MOTION ROUND** (Sol-audited, cowork-adjudicated, Joe-ruled): every AGENT decision gets its promised one-tap undo (approve AND dismiss), per-species honest dismiss copy (the universal "Dismiss: nothing changes." is factually false), Section becomes a real keyboard control app-wide, **the FAB docks into the fixed-chrome band (Joe's ruling)**, the four quick-undo spans become real buttons, Escape closes the capture sheet, one back control per room. Absorbs and closes all four named motion items below.
 
