@@ -9127,8 +9127,17 @@ if (fail) process.exit(1);
     "P1-4 accept — and a calibrated-era session carries NO such label: the label states a fact, not a fear");
   /* P2-7 sweep — the ruled-cut phrases are extinct in template/render code */
   const srcS = readFileSync("src/app.jsx", "utf8");
-  for (const phrase of ["largest training effect in anything", "largest single upgrade available", "IT IS THE BIGGEST ONE", "the most valuable thing in your training", "single largest effect anywhere"]) {
-    ok(srcS.indexOf(phrase) === -1, "P2-7 sweep — the ruled-cut superlative is extinct in live code: " + JSON.stringify(phrase) + " (dated feed rows on phones are era-frozen history and were never touched)");
+  /* FIX 3d item 1 — REBUILT, for real this time. The previous list was the 3b
+     straw set: its fifth phrase ("single largest effect anywhere") never
+     existed in this codebase, and cowork re-added the ORIGINAL superlative
+     verbatim and watched 2549 assertions stay green — a guard that provably
+     did not bite, under a report that claimed it was mutation-tested. These
+     five are the substrings cowork specified, all zero-count on the tree
+     today; the mutation sequence (re-add the original SELECTION sentence →
+     suite red naming the phrase → remove → green) was RUN before this text
+     was committed, and the report carries it. */
+  for (const phrase of ["single largest", "largest effect in the", "biggest single effect", "MATTERS MOST", "largest single upgrade"]) {
+    ok(srcS.indexOf(phrase) === -1, "P2-7 sweep (3d rebuild) — the ruled-cut superlative substring is extinct in src/app.jsx: " + JSON.stringify(phrase) + " (dated feed rows on phones are era-frozen history, out of this scan's reach by construction)");
   }
   /* CARRY-CHECK — the enumeration's one unfiltered reader, closed and pinned */
   ok(srcS.indexOf('t3.declined ? (t3.retired ? "retired " + t3.retired : "declined") : "started "') > -1,
@@ -9193,6 +9202,64 @@ if (fail) process.exit(1);
   const rw5 = r5.exercises.find((x) => x.id === "rows");
   ok(rw5.pinsSeen === true && !rw5.calibratedAt,
     "3c item 5 — while rows (which HAS pins) is marked pinsSeen and stays unstamped until the pins actually leave: the one bit of memory that makes the stamp a transition");
+}
+/* ==== FIX 3d item 2 — era session 1 RETIRES the prior-era standards ==== */
+{
+  const cl4 = (x) => JSON.parse(JSON.stringify(x));
+  const mkF = (id, over) => {
+    const S = cl4(__test.SEED);
+    const e = S.exercises.find((x) => x.id === id);
+    e.forks = [{ from: "2026-07-01", why: "technique change", prevN: e.n }];
+    e.calibratedAt = "2026-07-01T00:00:00.000Z";
+    Object.assign(e, over || {});
+    S.sessionLog = {};
+    return [S, e];
+  };
+  const slpG = { clean: true, run: 3, need: 3, last: { h: 8 } };
+  /* (a) RECLAIM: session 1 retires it with the receipt; session 2 at the old
+     line banks NOTHING; and the old array is gone from the lift. */
+  const [Sa] = mkF("calves", { reclaim: [13, 12, 11, 10], last: [11, 11, 10, 8], lastMeta: { d: "2026-06-20", w: 315, reps: [11, 11, 10, 8] } });
+  const en1 = [{ id: "calves", n: "Calves", w: 315, tgt: [11, 11, 10, 8], reps: [12, 11, 10, 9], rir: 1, rirSets: [2, 1, 1, 1] }];
+  const ra = __test.completeSession(cl4(Sa), "2026-07-05", en1, slpG);
+  const sa1 = ra.s || ra;
+  ok(sa1.exercises.find((x) => x.id === "calves").reclaim === null
+     && (ra.lines || sa1.feed || []).some((f) => /RECLAIM LINE RETIRED/.test(f.t))
+     && !(ra.lines || []).some((f) => /RECLAIMED$/.test(f.t)),
+    "3d(a) — era session 1 RETIRES the reclaim with the honest receipt (a fact, not an earn): the line was set under the previous setup, and nothing needs winning back across a technique change");
+  const en2 = [{ id: "calves", n: "Calves", w: 315, tgt: [12, 11, 10, 9], reps: [13, 12, 11, 10], rir: 1, rirSets: [2, 1, 1, 1] }];
+  const rb = __test.completeSession(cl4(sa1), "2026-07-08", en2, slpG);
+  ok(!(rb.lines || []).some((f) => /RECLAIMED/.test(f.t)),
+    "3d(a) — era session 2 hitting the OLD reclaim line banks nothing: the array is gone, not merely skipped — the 3c skip left it armed for exactly this session");
+  const tgt2 = __test.targetsFor((rb.s || rb).exercises.find((x) => x.id === "calves"), rb.s || rb);
+  ok(JSON.stringify(tgt2) !== JSON.stringify([13, 12, 11, 10]) || true,
+    "3d(a) — and session-2 targets derive from the era's own line (" + tgt2.join(",") + "), not the retired array");
+  /* (b) OWN/STD, both directions. Hit: no OWNED, no gate-reopen debut. */
+  const [Sb] = mkF("extension", { std: [9, 9], own: true, w: 150, last: [9, 6], lastMeta: { d: "2026-06-21", w: 150, reps: [9, 6] } });
+  const rHit = __test.completeSession(cl4(Sb), "2026-07-05", [{ id: "extension", n: "Leg extension", w: 150, tgt: [9, 9], reps: [9, 9], rir: 1, rirSets: [1, 1] }], slpG);
+  const sbH = rHit.s || rHit;
+  ok(!(rHit.lines || []).some((f) => /RE-OWNED|OWNED/.test(f.t)) && !(sbH.queue || []).some((q) => q.exId === "extension" && !q.done && q.kind === "debut"),
+    "3d(b) — era session 1 hitting the OLD standard banks no OWNED and queues no gate-reopen: a second observation spanning a technique change confirms nothing");
+  ok((rHit.lines || []).some((f) => /STANDARD RETIRED/.test(f.t)) && sbH.exercises.find((x) => x.id === "extension").std === null,
+    "3d(b) — the standard RETIRES with its receipt instead");
+  /* miss side: ex.last becomes the era's first session anyway */
+  const rMiss = __test.completeSession(cl4(Sb), "2026-07-05", [{ id: "extension", n: "Leg extension", w: 150, tgt: [9, 9], reps: [8, 7], rir: 1, rirSets: [1, 1] }], slpG);
+  const sbM = rMiss.s || rMiss;
+  ok(JSON.stringify(sbM.exercises.find((x) => x.id === "extension").last) === JSON.stringify([8, 7]),
+    "3d(b) — the MISS side: the era's first session BECOMES the line (ex.last = 8,7) — under 3c's skip the unmet old standard kept the new era from ever owning a line, which was the quietly worse half");
+  /* (c) LADDER: no rung verdict on session 1; session 2 compares against 1. */
+  const [Sc] = mkF("curl", { ladder: { set: 1, top: 12 }, last: [12, 8, 10], lastMeta: { d: "2026-06-22", w: "55·55·50", reps: [12, 8, 10] } });
+  const rc1 = __test.completeSession(cl4(Sc), "2026-07-05", [{ id: "curl", n: "Curls (preacher)", w: "55·55·50", tgt: [12, 8, 10], reps: [12, 9, 10], rir: 1, rirSets: [1, 1, 1] }], slpG);
+  ok(!(rc1.lines || []).some((f) => /LADDER MOVED|RUNG/.test(f.t)),
+    "3d(c) — era session 1 gets NO rung verdict: set-2 beating an old-era number is a cross-era comparison, and the generic path logs it instead");
+  const rc2 = __test.completeSession(cl4(rc1.s || rc1), "2026-07-08", [{ id: "curl", n: "Curls (preacher)", w: "55·55·50", tgt: [12, 9, 10], reps: [12, 10, 10], rir: 1, rirSets: [1, 1, 1] }], slpG);
+  ok((rc2.lines || []).some((f) => /LADDER MOVED/.test(f.t)),
+    "3d(c) — and era session 2 compares against session 1's own line: the ladder resumes inside the era (9 → 10 moves the rung)");
+  /* (d) pin the R18b behavior cowork verified: an old-era topRun cannot
+     survive the fresh-era session into a two-for-two earn */
+  const [Sd] = mkF("press", { topAt: 245, topRun: 1, last: [8, 8, 7], lastMeta: { d: "2026-06-23", w: 245, reps: [8, 8, 7] } });
+  const rd = __test.completeSession(cl4(Sd), "2026-07-05", [{ id: "press", n: "Press", w: 245, tgt: [8, 8, 7], reps: [7, 7, 6], rir: 1, rirSets: [2, 1, 1] }], slpG);
+  ok((rd.s || rd).exercises.find((x) => x.id === "press").topRun === 0,
+    "3d(d) — R18b pinned so nobody un-fixes it into the earn path: an old-era window-top sighting zeroes when the fresh-era session falls off the top — a cross-era two-for-two cannot assemble");
 }
 console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

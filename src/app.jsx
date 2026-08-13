@@ -1602,6 +1602,25 @@ function completeSession(state, iso, entries, slp, extras = {}) {
       if (h2.length === 2 && h2.every((x) => x === 0)) { ex.holdFlag = true; push(`${ex.n.toUpperCase()} — RIR 0 TWICE`, "opener running hot two sessions straight — load HELD until an honest session lands"); }
     }
 
+    /* FIX 3d — computed ONCE at the top of the walk: 3c put it above the
+       reclaim branch, which left own/std and ladder — both earlier, both
+       early-returning — never meeting it at all. */
+    const eraFirst9 = eraFresh(s, ex.id, iso);
+    if (eraFirst9) {
+      /* ERA SESSION 1 RETIRES THE PRIOR-ERA STANDARDS. A standard is a claim
+         about a technique; the technique changed; the claim retires with it.
+         Receipts in the house register — facts, not earns. The branches below
+         then skip themselves naturally (null/false conditions), and the walk
+         falls through to the generic path, which logs and sets the line. */
+      if (ex.reclaim) {
+        ex.reclaim = null;
+        push(`${ex.n.toUpperCase()} — RECLAIM LINE RETIRED`, "the line was set under the previous setup; the first session under the new one sets the line, and nothing needs winning back across a technique change");
+      }
+      if (ex.std || ex.own) {
+        ex.std = null; ex.own = false;
+        push(`${ex.n.toUpperCase()} — STANDARD RETIRED`, "the standard was set under the previous setup; the first session under the new one sets the line");
+      }
+    }
     /* debut lands */
     if (q && en.isDebutNow) {
       q.done = true; q.state = "ESTABLISH";
@@ -1640,12 +1659,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     }
 
     /* reclaim standards */
-    /* FIX 3c — the era guard covers EVERY earn, and the reclaim path proved
-       why: the reclaim line itself was set under the old technique, so
-       re-earning it under the new one is the same protocol-change-as-strength
-       claim the atTop guard blocks. Computed once, used by both. */
-    const eraFirst9 = eraFresh(s, ex.id, iso);
-    if (ex.reclaim && !eraFirst9) {
+    if (ex.reclaim) {
       const ok = ex.reclaim.every((n, i) => (r[i] ?? 0) >= n);
       if (ok) {
         const std = ex.reclaim.join(","); ex.reclaim = null; ex.last = r.slice();
@@ -1659,7 +1673,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     }
 
     /* ladder (curl set-2) */
-    if (ex.ladder) {
+    if (ex.ladder && !eraFirst9) {   /* FIX 3d — a rung verdict is a comparison, and era session 1 has nothing of its own to compare against; the generic path logs and sets the line */
       const li = ex.ladder.set, val = r[li] ?? 0, prev = ex.last ? ex.last[li] : 0;
       ex.last = r.slice();
       if (val > prev) {
