@@ -3,6 +3,7 @@
 import "./_fixed-now.mjs";
 import { readFileSync } from "node:fs";
 import { __test } from "../src/app.jsx";
+import { runClosureSF1 } from "./closure-sf1.mjs";
 const { targetsFor, genSession, completeSession, runAdaptive, bfEst, migrate, SEED } = __test;
 let pass = 0, fail = 0;
 const ok = (cond, name) => { cond ? pass++ : fail++; console.log((cond ? "PASS" : "FAIL") + " — " + name); };
@@ -6796,7 +6797,7 @@ if (fail) process.exit(1);
   ok(gmP.indexOf('overflow: "hidden", overscrollBehavior: "none"') > -1 && (gmP.match(/overflowY: "auto"/g) || []).length === 1 && gmP.indexOf('the belt scrolls') > -1, "S1 (evolved, v7.42.1) — THE FRAME does not scroll (overflow hidden, Joe's 1:39 AM ruling stands) — but exactly ONE bounded inner belt does: the all-done suspects column, where a long list clipped and LOG IT sat unreachable below the fold (the audit's 14:12 finding). One belt, named, with its why in the source — a second overflowY here fails this pin");
   ok(gmP.indexOf('data-hero="clock"') > -1 && gmP.indexOf('data-hero="receipt"') > -1, "S2 — both voids became instruments: the opener's hero is the RUNNING rest clock (same grammar as the rest screen — one visual system), the terminal's is the banked receipt, because no rest is armed after the last set and a fake countdown would be paint with no instrument behind it");
   ok(gmP.indexOf('if (phase !== "rest" && phase !== "rir-open") return;') > -1 && gmP.indexOf('if (tick() <= 0 && phase === "rest")') > -1, "S2 — the clock ticks through the opener ask but the auto-advance stays rest-only: the ask is owed, the advance is not");
-  ok(gmP.indexOf("restLen, phase })") > -1 && gmP.indexOf("resumePhase(d, Date.now())") > -1, "S4 — PHASE rides the draft and re-entry routes through the resume law: leaving mid-rest and returning teleports nowhere");
+  ok(gmP.indexOf("restLen, phase, wOver, pg: capPg") > -1 && gmP.indexOf("resumePhase(d, Date.now())") > -1, "S4 — PHASE rides the draft and re-entry routes through the resume law: leaving mid-rest and returning teleports nowhere (evolved: the draft now ALSO carries the typed debut load, its captured plan generation and its frozen ids — the P0-3 contract)");
   ok((gmP.match(/= setInterval\(/g) || []).length === 1 && gmP.indexOf("restLen - Math.floor((Date.now() - restStart) / 1000)") > -1, "S4 — DERIVE, NEVER TICK-OWN: exactly one interval ASSIGNMENT exists in the session component and it only repaints; every displayed second is computed from the persisted wall-clock anchor (the comment recounting the old tick-owned bug is prose, not a second timer)");
   /* the chip */
   const chip = srcP.slice(srcP.indexOf("function SessionLiveChip("), srcP.indexOf("function MoreTab("));
@@ -7920,8 +7921,8 @@ if (fail) process.exit(1);
     };
     /* (a) the reconciler withdraws BOTH stores when a move lands — never deletes */
     const SA = mkWk();
-    SA.proposals = [...(SA.proposals || []), { rid: "volpush_quads_x", id: "vpx", d: isoT9, title: "QUADS — EARNED VOLUME", why: "w", apply: { kind: "sets", exId: "hack", delta: 1, budgetPremise: true } }];
-    SA.agentProposals = [...(SA.agentProposals || []), { id: "vq1", kind: "volume", mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }];
+    SA.proposals = [...(SA.proposals || []), { rid: "volpush_quads_x", id: "vpx", d: isoT9, pg: 51, title: "QUADS — EARNED VOLUME", why: "w", apply: { kind: "sets", exId: "hack", delta: 1, budgetPremise: true } }];
+    SA.agentProposals = [...(SA.agentProposals || []), { id: "vq1", kind: "volume", pg: 51, mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }];
     const RA = __test.runAdaptive(SA, isoT9);
     const pA = RA.proposals.find((p) => p.id === "vpx");
     ok(pA && pA.resolved === true && /withdrawn/.test(pA.resolvedHow || "") && !RA.agentProposals.some((ap) => ap.kind === "volume"), "R18f fix2 (a) — the moment a structural move is on the week, the reconciler withdraws open volume offers in BOTH stores: the proposal resolves (never deleted) and the desk card leaves, each with a feed line — the audit's items 1 and 2, dead at the grooming pass");
@@ -7929,12 +7930,12 @@ if (fail) process.exit(1);
     /* (c) the apply-time belt — the tap re-checks and SPEAKS; the enact path survives */
     const SC = mkWk();
     const hackW = (SC.exercises.find((x) => x.id === "hack") || {}).sets;
-    SC.proposals = [...(SC.proposals || []), { rid: "volpush_quads_y", id: "vpy", d: isoT9, title: "QUADS — EARNED VOLUME", why: "w", apply: { kind: "sets", exId: "hack", delta: 1, budgetPremise: true } }];
+    SC.proposals = [...(SC.proposals || []), { rid: "volpush_quads_y", id: "vpy", d: isoT9, pg: 51, title: "QUADS — EARNED VOLUME", why: "w", apply: { kind: "sets", exId: "hack", delta: 1, budgetPremise: true } }];
     const RC = __test.applyProposal(SC, "vpy");
     ok((RC.exercises.find((x) => x.id === "hack") || {}).sets === hackW && (RC.proposals.find((p) => p.id === "vpy") || {}).resolved === true && RC.feed.some((f) => f.t && f.t.indexOf("OFFER EXPIRED AT THE TAP") === 0), "R18f fix2 (c) — DESIGN CALL enacted: a budget-premised sets tap in a spent week enacts NOTHING, resolves the card and says why on the feed (what expired, when it returns) — the audit's 3→4 drive is dead");
     /* (c) — and the owner's-call family is EXEMPT: its premise is Joe's ask, not the budget */
     const SO = mkWk();
-    SO.proposals = [...(SO.proposals || []), { rid: "volpush_hams_oc", id: "vpo", d: isoT9, title: "HAMS — OWNER'S CALL", why: "w", apply: { kind: "sets", exId: "ham", delta: 1 } }];
+    SO.proposals = [...(SO.proposals || []), { rid: "volpush_hams_oc", id: "vpo", d: isoT9, pg: 51, title: "HAMS — OWNER'S CALL", why: "w", apply: { kind: "sets", exId: "ham", delta: 1 } }];
     const hamW = (SO.exercises.find((x) => x.id === "ham") || {}).sets;
     const RO = __test.applyProposal(SO, "vpo");
     ok((RO.exercises.find((x) => x.id === "ham") || {}).sets === hamW + 1, "R18f fix2 — the belt keys on budgetPremise, so the owner's-call three-tap pattern (8/07, consent on the record) still enacts in a move-week: the first suite run caught the unscoped belt breaking exactly that flow, on the record");
@@ -7952,12 +7953,12 @@ if (fail) process.exit(1);
     const dW = new Date(); const offW = (dW.getDay() + 6) % 7; const monW = isoL(Date.now() - offW * 864e5);
     const SB = JSON.parse(JSON.stringify(__test.SEED));
     SB.adjustments = [...(SB.adjustments || []), { rid: "vol_wk2", id: "adj_wk2", d: monW, title: "x", exUndo: { field: "sets", exId: "ham" } }];
-    SB.agentProposals = [{ id: "vb1", kind: "volume", mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }];
+    SB.agentProposals = [{ id: "vb1", kind: "volume", pg: 51, mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }];
     const hackB = (SB.exercises.find((x) => x.id === "hack") || {}).sets;
     const RB = __test.applyAgentProposal(SB, SB.agentProposals[0], isoT0);
     ok((RB.exercises.find((x) => x.id === "hack") || {}).sets === hackB && RB.agentProposals.length === 0 && RB.feed.some((f) => f.t && f.t.indexOf("OFFER EXPIRED AT THE TAP") === 0), "R18f fix3 — THE DESK BELT, DRIVEN via the export: a spent-week desk tap enacts nothing, clears the offer and speaks — mirroring the proposal belt");
     const SC2 = JSON.parse(JSON.stringify(__test.SEED));
-    SC2.agentProposals = [{ id: "vb2", kind: "volume", mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }];
+    SC2.agentProposals = [{ id: "vb2", kind: "volume", pg: 51, mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }];
     const hackC = (SC2.exercises.find((x) => x.id === "hack") || {}).sets;
     const RC2 = __test.applyAgentProposal(SC2, SC2.agentProposals[0], isoT0);
     ok((RC2.exercises.find((x) => x.id === "hack") || {}).sets === hackC + 1, "R18f fix3 — and the clean-week desk tap still ENACTS: the belt refuses only what the budget already spent");
@@ -8320,7 +8321,7 @@ if (fail) process.exit(1);
   const dRec = new Date(); const offRec = (dRec.getDay() + 6) % 7;
   const monRec = isoL(Date.now() - offRec * 864e5);
   SRec.adjustments = [...(SRec.adjustments || []), { rid: "ap_x", id: "arec", d: monRec, via: "cal", calDelta: -50 }];
-  SRec.proposals = [...(SRec.proposals || []), { rid: "volpush_quads_z", id: "vpz", d: isoVV(0), title: "QUADS — EARNED VOLUME", why: "w", apply: { kind: "sets", exId: "hack", delta: 1, budgetPremise: true } }];
+  SRec.proposals = [...(SRec.proposals || []), { rid: "volpush_quads_z", id: "vpz", d: isoVV(0), pg: 51, title: "QUADS — EARNED VOLUME", why: "w", apply: { kind: "sets", exId: "hack", delta: 1, budgetPremise: true } }];
   const RRec = __test.runAdaptive(SRec, isoVV(0));
   ok((RRec.proposals.find((p) => p.id === "vpz") || {}).resolved !== true, "A5 — the reconciler belt keys on the VOLUME budget now: a same-week CALORIE steer no longer withdraws an open EARNED VOLUME card — the offer's premise is the volume budget, which that steer never touched");
   const RApl = __test.applyProposal(clV(SRec), "vpz");
@@ -8796,7 +8797,7 @@ if (fail) process.exit(1);
     s0.model.drip = 0.31;   /* the executed proof zeroed a future measured drip — so the fixture carries one */
     const before = ex0.sets || 1;
     s0.agentProposals = [
-      { id: "e1_vol", kind: "volume", exId: ex0.id, dir: +1, mg: "biceps", title: "VOLUME +1 — biceps" },
+      { id: "e1_vol", kind: "volume", pg: 51, exId: ex0.id, dir: +1, mg: "biceps", title: "VOLUME +1 — biceps" },
       { id: "e1_pending", kind: "trial", custom: "the pending coach card that died in the executed proof", title: "PENDING CARD" },
     ];
     const ns = __test.applyAgentProposal(s0, s0.agentProposals[0], "2026-08-12");
@@ -8845,8 +8846,8 @@ if (fail) process.exit(1);
       const dOut = __test.migrate(clP(deep9));
       ok(dOut.exercises.every((x) => { const se9 = __test.SEED.exercises.find((y) => y.id === x.id); return !se9 || (x.setup === se9.setup && x.n === se9.n); }),
         "E1 (v7.53.0) — a bump crossing V48 lands every setup and name on exactly the RULED text (=== SEED's authoring): patch map and seed literal agree, and even the sentinel yields to the ruling");
-      ok(dOut.exercises.every((x) => { const se9 = __test.SEED.exercises.find((y) => y.id === x.id); return !se9 || x.setupAt === "2026-08-13T12:00:00.000Z"; }),
-        "E1 (v7.53.0) — and every ruled rewrite carries the fixed adoption stamp, so a stale device's old cue loses the merge from both orders");
+      ok(dOut.exercises.every((x) => { const se9 = __test.SEED.exercises.find((y) => y.id === x.id); return !se9 || x.setupAt === "2026-08-13T12:00:00.000Z" || ((x.id === "fly" || x.id === "hipthrust") && x.setupAt === "2026-08-12T00:00:00.000Z"); }),
+        "E1 (split fix-1) — every ruled rewrite carries ITS OWN fixed stamp: the cue adoption at 8/13, the split newborns at the 8/12 RULING_EPOCH (so a genuine 8/13 athlete pin-edit beats a fresh device's unfilled setup)");
       ok(["pulldown", "rows", "calves"].every((id9) => { const f9 = __test.forksOf(dOut, id9); return f9.length === 2 && f9[0].from === "2026-08-13" && f9[1].split === true; }),
         "E1 (SPLIT) — the three technique-changed lifts carry BOTH seams in order: the 8/13 adoption first, the split insertion after it — appended, never overwritten");
     }
@@ -8896,10 +8897,11 @@ if (fail) process.exit(1);
        different states. */
     const T1 = mk9({ hi: 7, hiAt: "2026-08-12T12:00:00.000Z", lastMeta: { d: "2026-08-12", reps: [9], w: 245 } });
     const T2 = mk9({ hi: 9, hiAt: "2026-08-12T12:00:00.000Z", lastMeta: { d: "2026-08-10", reps: [8], w: 245 } });
-    const tieM = __test.mergeState(T1, T2);   /* wholesale winner: T1 (newer lastMeta.d) */
-    const tieE = tieM.exercises.find((x) => x.id === "press");
-    ok(tieE.hi === 7,
-      "FIX 2a stamps — EXACT TIE keeps the wholesale winner's field: a >= regression would hand the tie to the loser and make merge order change the result");
+    const clT = (x) => JSON.parse(JSON.stringify(x));
+    const tieAB = __test.mergeState(clT(T1), clT(T2)).exercises.find((x) => x.id === "press").hi;
+    const tieBA = __test.mergeState(clT(T2), clT(T1)).exercises.find((x) => x.id === "press").hi;
+    ok(tieAB === 9 && tieBA === 9,
+      "SPLIT fix-1 (P1-5) — EXACT TIE resolves by VALUE, identically from BOTH merge orders (9 beats 7 lexicographically): the old wholesale-winner tie was direction-dependent, which Sol confirmed and this replaces");
   }
 
   /* ITEMS 3+4+5 — the voice, pinned at source (the banner renders in the app
@@ -9128,9 +9130,9 @@ if (fail) process.exit(1);
   const SD4 = clD(SD5);
   SD4.exercises.find((x) => x.id === "rows").calibratedAt = "2026-08-20T12:00:00.000Z";
   const db4 = __test.sessionDebrief(SD4, "2026-08-14").lifts.find((l) => /row/i.test(l.n));
-  ok(db4 && (db4.lines || []).some((l9) => /Logged before calibration/.test(l9.t)),
+  ok(db4 && (db4.lines || []).some((l9) => /logged before calibration/i.test(l9.t)),
     "P1-4 accept — a new-era session logged before the pins were filled is retained AND labeled: kept on the record, counted as provisional, never silently comparable");
-  ok(!JSON.stringify(__test.sessionDebrief(SD5, "2026-08-14")).includes("Logged before calibration"),
+  ok(!/logged before calibration/i.test(JSON.stringify(__test.sessionDebrief(SD5, "2026-08-14"))),
     "P1-4 accept — and a calibrated-era session carries NO such label: the label states a fact, not a fear");
   /* P2-7 sweep — the ruled-cut phrases are extinct in template/render code */
   const srcS = readFileSync("src/app.jsx", "utf8");
@@ -9204,7 +9206,7 @@ if (fail) process.exit(1);
   const r5 = __test.runAdaptive(cl3(S5), "2026-07-10");   /* the late first sweep */
   ok(__test.forkExposures(r5, "pulldown") === 1,
     "3c item 5 — a late first sweep (second device, restored backup, first open after a gap) leaves the pin-free pulldown's exposure count INTACT at 1: calibratedAt records a TRANSITION, and a lift that never carried a [PIN] was never uncalibrated");
-  ok(!JSON.stringify(__test.sessionDebrief(r5, "2026-07-05")).includes("Logged before calibration"),
+  ok(!/logged before calibration/i.test(JSON.stringify(__test.sessionDebrief(r5, "2026-07-05"))),
     "3c item 5 — and no provisional label renders about machine settings that do not exist on that lift");
   const rw5 = r5.exercises.find((x) => x.id === "rows");
   ok(rw5.pinsSeen === true && !rw5.calibratedAt,
@@ -9328,10 +9330,15 @@ if (fail) process.exit(1);
     const fly2 = s2.exercises.find((x) => x.id === "fly");
     ok(fly2.w === 70 && fly2.wAt >= fly1.wAt && typeof fly2.wAt === "string",
       "SPLIT item c — a later completed load at 70 updates w with a fresh stamp (the CAGE path stamps; same-millisecond runs tie, and the tie resolves by the existing exact-tie rule)");
+    /* a REAL stale device holds an OLDER stamp by construction; the two
+       completions above can land in the same millisecond, which is the
+       equal-stamp case (deterministic value-tie, tested separately below),
+       not the staleness case. Make the staleness explicit. */
+    s1.exercises.find((x) => x.id === "fly").wAt = new Date(Date.parse(fly2.wAt) - 60000).toISOString();
     for (const [l9, r9, ord9] of [[s2, s1, "stale remote"], [s1, s2, "stale local"]]) {
       const m9 = __test.mergeState(cs(l9), cs(r9));
       ok(m9.exercises.find((x) => x.id === "fly").w === 70,
-        "SPLIT item c — the stale 90 cannot restore from either direction (" + ord9 + "): w rides its stamp like the other four pairs");
+        "SPLIT item c — the stale 90 (older stamp) cannot restore from either direction (" + ord9 + "): w rides its stamp like the other four pairs");
     }
     /* equal-stamp different-value: deterministic, both orders identical */
     const eqA = cs(s1), eqB = cs(s1);
@@ -9417,4 +9424,12 @@ if (fail) process.exit(1);
   }
 }
 console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+/* ==================== SPLIT FIX-ROUND 1 · THE CLOSURE MATRIX (FINAL107) ====================
+   Sol's eight, adopted verbatim as the pin set. The SAME module runs against
+   the 9e40815 bundle in the fail-first runner — the ledger of those reds is in
+   the round report. See tools/closure-sf1.mjs for the tests. */
+runClosureSF1(__test, ok, readFileSync);
+console.log(`\nFINAL107: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

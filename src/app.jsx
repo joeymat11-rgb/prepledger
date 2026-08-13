@@ -513,7 +513,7 @@ const SEED = {
   /* v7.53.0 — the cue adoption stamp: every rewritten setup is deliberate config
      under the v7.52.0 merge discipline, and the seed carries the SAME fixed
      stamp patchV48 writes, so a fresh install and a migrated state agree. */
-  SEED.exercises.forEach((e0) => { e0.setupAt = "2026-08-13T12:00:00.000Z"; });   /* seed-authored — the fixed cue-adoption stamp */
+  SEED.exercises.forEach((e0) => { if (!e0.setupAt) e0.setupAt = "2026-08-13T12:00:00.000Z"; });   /* seed-authored — the cue-adoption stamp; lifts that carry their OWN authored stamp (the split's newborns at RULING_EPOCH) keep it, so a real 8/13 athlete edit outranks a fresh device's unfilled setup */
   /* v7.53.0 — the two technique changes that are REAL today fork their lifts:
      hooks standardize on both pulls (R1) and the calf pause changes 5s → 2s
      (R2). A word rewrite is not a technique change; these two are. */
@@ -1236,7 +1236,7 @@ function windowFor(ex) {
 }
 /** Lifts where the plate is too coarse for the muscle — the micro-loading case. */
 function coarseLifts(s) {
-  return (s.exercises || []).map((e) => ({ e, w: windowFor(e) })).filter((x) => x.w.derived && x.w.tight)
+  return (s.exercises || []).filter((e) => exActive(s, e.id)).map((e) => ({ e, w: windowFor(e) })).filter((x) => x.w.derived && x.w.tight)   /* FIX split-1 (P1-1): a retired lift's plates are nobody's problem — the migrated microload note named pronated */
     .map((x) => ({ id: x.e.id, n: x.e.n, w: x.e.w, step: x.w.step, pct: x.w.pct, lost: x.w.lost, hi: x.e.hi, lo: x.w.lo }));
 }
 
@@ -1253,7 +1253,7 @@ function atTopOfWindow(reps, ex) {
 /* pick THE structural change for a session (one per session, hard rule) */
 function pickStructural(s, iso, slp) {
   const dt = dayType(iso, s);
-  const candidates = s.queue.filter((q) => !q.done && q.state !== "PROPOSED" && (q.kind === "debut" || q.kind === "unlock") && q.exId && exById(s, q.exId) && exById(s, q.exId).day === dt);
+  const candidates = s.queue.filter((q) => !q.done && q.state !== "PROPOSED" && (q.kind === "debut" || q.kind === "unlock") && q.exId && exActive(s, q.exId) && exById(s, q.exId) && exById(s, q.exId).day === dt);   /* FIX split-1 (P1-1): a retired lift wins no structural slot */
   const passes = candidates.filter((q) => !(q.exId === "hack" && slp.last && slp.last.h < 4.5));
   const main = passes.find((q) => !q.coApproved) || null;
   const riders = passes.filter((q) => q.coApproved && q !== main);
@@ -1275,13 +1275,25 @@ function genSession(s, iso, slp) {
     const isDebutNow = active.has(e.id);
     const q = isDebutNow ? s.queue.find((x) => x.exId === e.id && !x.done && (x.kind === "debut" || x.kind === "unlock")) : null;
     const w = q && q.newW != null ? q.newW : e.w;
-    let tgt, note;
-    if (e.id === "hack" && e.pendingThird && isDebutNow) { tgt = [...targetsFor(e, s), Math.max(8, e.hi - 3)]; note = "DEBUT — third set banks whatever it gives"; }
+    let tgt, note, baselineAsk = false;
+    if (typeof e.w !== "number" && !e.lastMeta && !e.last) {
+      /* FIX split-1 (P0-2) — THE DEBUT/BASELINE ASK (R20b register): a lift
+         with no completed entry and no working load gets NO numeric chase
+         targets — hi-2 would be a fabricated prescription for a machine never
+         touched. The slots render open, the load entry renders in both session
+         modes, and the first completed entry carries the load through the REAL
+         flow (completeSession's adoption branch stamps it). */
+      baselineAsk = true;
+      tgt = new Array(Math.max(1, e.sets || 1)).fill(0);
+      note = "DEBUT — find the working weight: pick a load you can control for about " + (e.hi != null ? e.hi : "the target") + " reps, enter the load and log what it gives. Zero expectations — everything banks.";
+    }
+    else if (e.id === "hack" && e.pendingThird && isDebutNow) { tgt = [...targetsFor(e, s), Math.max(8, e.hi - 3)]; note = "DEBUT — third set banks whatever it gives"; }
     else if (q && q.kind === "debut" && e.last) { tgt = e.last.map((r) => Math.max(6, r - 1)); note = `DEBUT at ${w} — smallest honest jump: expect to keep almost every rep`; }
     else if (q && !e.last) { tgt = targetsFor(e, s); note = e.debutNote || `DEBUT at ${w}`; }
     else { tgt = targetsFor(e, s); note = e.own ? `OWN-IT — ${e.ownNote}` : e.reclaim ? "RECLAIM — the exact standard" : e.ladder ? `set ${e.ladder.set + 1} is the ladder — top of rung ${e.ladder.top}` : e.note; }
     if (e.holdFlag) note = "HELD — opener ran 0 RIR twice · one honest session releases it";
     const live = (() => {
+      if (baselineAsk) return "baseline ask — enter the load you used; what it gives today IS the line";
       if (e.holdFlag) return "HELD — one honest opener (RIR ≥1) releases the load";
       if (isDebutNow && q) return `debut at ${w} — log what it gives, zero expectations`;
       if (e.std && e.own) return `${e.std.join(",")} clean owns it — honest opener, controlled every rep`;
@@ -1314,7 +1326,7 @@ function genSession(s, iso, slp) {
       const blind9 = rungsUp9 != null && rungsUp9 <= 1 ? " · the ladder goes blind above " + up9 + " — file the machine's next rungs in SETUP (uneven ✎) so the earn after this one has a price" : "";
       return up9 + " EARNS AT THE TOP OF THE WINDOW (" + win9.lo + "-" + win9.hi + ") — " + (dist9 === 0 ? "you are there" : "you are " + dist9 + " rep" + (dist9 === 1 ? "" : "s") + " away") + " · " + (sight9 ? "one sighting banked — one more banks it" : "two sightings bank it") + (te9 ? ", or one that beats your ±" + te9 + " spread" : "") + blind9;
     })();
-    return { id: e.id, n: e.n, w, tgt, note, isDebutNow, setup: e.setup, live, runway, prev: eraFresh(s, e.id) ? null : e.lastMeta };   /* FIX 3c — a fresh era has no "last time" to beat; the baseline banner carries the why */
+    return { id: e.id, n: e.n, w, tgt, note, isDebutNow, ...(baselineAsk ? { baselineAsk: true } : {}), setup: e.setup, live, runway, prev: eraFresh(s, e.id) ? null : e.lastMeta };   /* FIX 3c — a fresh era has no "last time" to beat; the baseline banner carries the why */
   });
   /* R18a — the header's no-debut claim carries a receipt: the nearest earn on THIS card,
      named with its measured distance, so "rep progression day" reads as a location. */
@@ -1325,6 +1337,26 @@ function genSession(s, iso, slp) {
   return { name: dt === "U" ? "UPPER" : "LOWER", structural: main ? main.t : "none queued — rep progression day" + nearest, structuralId: main ? main.id : null, riderIds: riders.map((r) => r.id), ex };
 }
 
+/* FIX split-1 (P0-3) — sessionFromDraft: a live draft owns its TEMPLATE, not
+   just its date. Resume rebuilds the session from the draft's frozen ordered
+   ids — a captured retired lift resolves from the PRESERVED record (never
+   orphaned) — instead of regenerating the current template mid-session. A
+   draft without frozen ids (pre-contract) passes through unchanged. */
+function sessionFromDraft(s, iso, slp, dr, base) {
+  if (!base || !dr || !Array.isArray(dr.ids) || !dr.ids.length) return base;
+  const byId = {};
+  for (const e9 of (base.ex || [])) byId[e9.id] = e9;
+  const ex9 = dr.ids.map((id9) => {
+    if (byId[id9]) return byId[id9];
+    const rec9 = (s.exercises || []).find((x9) => x9 && x9.id === id9);
+    if (!rec9) return null;
+    /* the captured lift finishes under the plan it started on: targets from
+       its own last line, no chase invented, nothing quarantined */
+    const tgt9 = Array.isArray(rec9.last) && rec9.last.length ? rec9.last.slice(0, rec9.sets || rec9.last.length) : new Array(Math.max(1, rec9.sets || 1)).fill(0);
+    return { id: rec9.id, n: rec9.n, w: rec9.w, tgt: tgt9, note: "captured mid-session before the plan changed — it finishes under the plan it started on", isDebutNow: false, setup: rec9.setup, live: null, runway: null, prev: rec9.lastMeta || null };
+  }).filter(Boolean);
+  return ex9.length ? { ...base, ex: ex9, frozenIds: true } : base;
+}
 /* evaluate a completed session — transitions, earns, own-flips, refills */
 /* ---------- per-set RIR ----------
    `rir` has always meant the OPENER's reps-in-reserve, and every existing
@@ -1530,8 +1562,61 @@ const RULED_ORDER = {
   U: ["lateral", "press", "fly", "pulldown", "rows", "rearDelt", "curl", "tricep", "sulek"],
   L: ["hack", "hipthrust", "extension", "ham", "abs", "hanging", "calves"],
 };
+function canonicalizePlan(s) {
+  /* FIX split-1 (P0-5) — canonicalization is its OWN pass and never stands
+     down; only ruled-order enforcement is generation-gated. Deterministic, so
+     both merge directions land deeply equal. */
+  if (!s) return s;
+  /* FIX split-1 (P1-2/P1-8) — tombstone cleanup reruns at every boundary: a
+     stale replica whose copy of a retired lift wins the wholesale per-lift
+     merge cannot restore the standards the retirement already swept. The
+     receipt exists (op-guarded); this is the mechanism staying true to it. */
+  for (const id9 of Object.keys(s.retirements || {})) {
+    const e9 = (s.exercises || []).find((x) => x && x.id === id9);
+    if (e9 && (e9.std || e9.own || e9.reclaim)) { e9.std = null; e9.own = false; e9.reclaim = null; }
+  }
+  for (const e of (s.exercises || [])) {
+    if (!e || !Array.isArray(e.forks) || !e.forks.length) continue;
+    /* legacy restatement: a pre-fix runtime insertion fork carried its why but
+       no ops identity — the why has always MEANT the operation, so lifting it
+       into ops is a restatement, not an invention. Cue seams are untouched. */
+    for (const f of e.forks) { if (f && !f.ops && f.why && / inserted upstream$/.test(String(f.why))) { f.ops = [f.why]; f.split = true; } }
+    for (const f of e.forks) {
+      if (!f || !f.split) continue;   /* only split seams re-date; ruled 8/13 seams are history */
+      let latestOld = null;
+      for (const d of Object.keys(s.sessionLog || {})) {
+        const en = ((s.sessionLog[d] || {}).entries || []).find((x) => x && x.id === e.id);
+        if (en && d >= f.from && (en.og == null || en.og < 51)) { if (!latestOld || d > latestOld) latestOld = d; }
+      }
+      if (latestOld) { const nd = new Date(latestOld + "T12:00:00Z"); nd.setUTCDate(nd.getUTCDate() + 1); f.from = nd.toISOString().slice(0, 10); }
+    }
+    if (e.forks.length > 1) {
+      /* same-OPERATION different-date seams collapse to the EARLIEST sighting
+         (two devices firing the same insertion offline saw one event twice);
+         then same-date composites union deterministically. */
+      const byOp = new Map(); const keep = [];
+      for (const f of e.forks.slice().sort((a, b) => (a.from < b.from ? -1 : 1))) {
+        const opKey = f && f.split && (f.ops || f.why) ? [...new Set(f.ops || [f.why])].sort().join("+") : null;
+        if (opKey == null) { keep.push(f); continue; }
+        if (!byOp.has(opKey)) { byOp.set(opKey, f); keep.push(f); }
+      }
+      const byFrom = new Map();
+      for (const f of keep) {
+        if (byFrom.has(f.from)) {
+          const p = byFrom.get(f.from);
+          const ops = [...new Set([...(p.ops || [p.why]), ...(f.ops || [f.why])])].sort();
+          byFrom.set(f.from, { from: f.from, why: ops.join(" + "), ops, prevN: p.prevN || f.prevN, split: p.split || f.split });
+        } else byFrom.set(f.from, f);
+      }
+      e.forks = [...byFrom.values()].sort((a, b) => (a.from < b.from ? -1 : 1));
+    } else e.forks = e.forks.slice().sort((a, b) => (a.from < b.from ? -1 : 1));
+  }
+  return s;
+}
 function normalizePlan(s) {
-  if (!s || s.planGen !== 51) return s;
+  if (!s) return s;
+  canonicalizePlan(s);
+  if (s.planGen !== 51) return s;   /* ruled-ORDER enforcement alone stands down past the ruling's generation */
   const have = new Set((s.exercises || []).filter((e) => e && exActive(s, e.id)).map((e) => e.id));
   const ord = {};
   for (const day of ["U", "L"]) {
@@ -1546,35 +1631,30 @@ function normalizePlan(s) {
     ord[day] = [...ruled, ...unknown.filter((id, i, a) => a.indexOf(id) === i)];
   }
   s.exOrder = ord;
-  /* item i — per-lift boundary dating: a seam must sit AFTER the latest entry
-     performed under the old order (og < 51, or legacy og-less entries on/after
-     the boundary date — the today-entry rule, which also covers N stale
-     old-order sessions cross-device, not one). Composite same-date boundaries
-     collapse to ONE canonical fork: sorted deduped ops, deterministic reason. */
-  for (const e of (s.exercises || [])) {
-    if (!e || !Array.isArray(e.forks) || !e.forks.length) continue;
-    let moved = false;
-    for (const f of e.forks) {
-      if (!f || !f.split) continue;   /* only split seams re-date; ruled 8/13 seams are history */
-      let latestOld = null;
-      for (const d of Object.keys(s.sessionLog || {})) {
-        const en = ((s.sessionLog[d] || {}).entries || []).find((x) => x && x.id === e.id);
-        if (en && d >= f.from && (en.og == null || en.og < 51)) { if (!latestOld || d > latestOld) latestOld = d; }
-      }
-      if (latestOld) { const nd = new Date(latestOld + "T12:00:00Z"); nd.setUTCDate(nd.getUTCDate() + 1); f.from = nd.toISOString().slice(0, 10); moved = true; }
+  return s;
+}
+/* FIX split-1 (P1-3) — THE ONE INSERTION IMPLEMENTATION. patchV51 and the
+   runtime sweep both call this; there is no second seam-writer with weaker
+   rules. Idempotent by OPS IDENTITY (this operation forks this lift once EVER,
+   wherever the date lands — an unrelated same-date seam no longer causes a
+   permanent skip), receipts op-id guarded, registry recorded AFTER the seams
+   so a half-applied insertion cannot mark itself done. */
+function applyInsertionSeams(s, newId, affected, dateISO) {
+  if (!Array.isArray(s.feed)) s.feed = [];
+  const why9 = newId === "fly" ? "fly inserted upstream" : newId === "hipthrust" ? "hip thrust inserted upstream" : newId + " inserted upstream";
+  const label9 = newId === "fly" ? "machine fly" : newId === "hipthrust" ? "hip thrust" : (((s.exercises || []).find((x) => x && x.id === newId) || {}).n || newId);
+  for (const affId of affected) {
+    const e = (s.exercises || []).find((x) => x && x.id === affId);
+    if (!e) continue;
+    const fks = Array.isArray(e.forks) ? e.forks : (e.fork && e.fork.from ? [e.fork] : []);
+    if (e.fork) delete e.fork;
+    if (!fks.some((f) => f && ((f.ops && f.ops.indexOf(why9) > -1) || f.why === why9))) {
+      fks.push({ from: dateISO, why: why9, ops: [why9], prevN: e.n, split: true });
     }
-    if (moved || e.forks.length > 1) {
-      const byFrom = new Map();
-      for (const f of e.forks.sort((a, b) => (a.from < b.from ? -1 : 1))) {
-        if (byFrom.has(f.from)) {
-          const p = byFrom.get(f.from);
-          const ops = [...new Set([...(p.ops || [p.why]), ...(f.ops || [f.why])])].sort();
-          byFrom.set(f.from, { from: f.from, why: ops.join(" + "), ops, prevN: p.prevN || f.prevN, split: p.split || f.split });
-        } else byFrom.set(f.from, f);
-      }
-      e.forks = [...byFrom.values()].sort((a, b) => (a.from < b.from ? -1 : 1));
-    }
+    e.forks = fks.sort((a, b) => (a.from < b.from ? -1 : 1));
+    if (!s.feed.some((f9) => f9 && f9.op === "seam:" + newId + ":" + affId)) s.feed.unshift({ op: "seam:" + newId + ":" + affId, d: dateISO, t: e.n.toUpperCase() + " — FRESH BASELINE", how: "The " + label9 + " enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change." });
   }
+  s.insertions = { ...(s.insertions || {}), [newId]: (s.insertions || {})[newId] || dateISO };
   return s;
 }
 /* FIX 3c — a forked lift with no session of its own inside the current era.
@@ -1677,7 +1757,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
   const s = JSON.parse(JSON.stringify(state));
   const lines = [];
   let dipCount = 0;
-  const push = (t, how) => lines.push({ t, how });
+  const push = (t, how, op9) => lines.push({ t, how, ...(op9 ? { op: op9 } : {}) });   /* FIX split-1 (P1-8): once-per-operation receipts carry their op id into the feed */
   const debtTag = slp.clean ? "" : " · short sleep, logged as such";
   const qFind = (pred) => s.queue.find(pred);
 
@@ -1711,11 +1791,11 @@ function completeSession(state, iso, entries, slp, extras = {}) {
          falls through to the generic path, which logs and sets the line. */
       if (ex.reclaim) {
         ex.reclaim = null;
-        push(`${ex.n.toUpperCase()} — RECLAIM LINE RETIRED`, "the line was set under the previous setup; the first session under the new one sets the line, and nothing needs winning back across a technique change");
+        push(`${ex.n.toUpperCase()} — RECLAIM LINE RETIRED`, "the line was set under the previous setup; the first session under the new one sets the line, and nothing needs winning back across a technique change", "reclaimretire:" + ex.id);   /* FIX split-1 (P1-8): one receipt per lift across offline replicas */
       }
       if (ex.std || ex.own) {
         ex.std = null; ex.own = false;
-        push(`${ex.n.toUpperCase()} — STANDARD RETIRED`, "the standard was set under the previous setup; the first session under the new one sets the line");
+        push(`${ex.n.toUpperCase()} — STANDARD RETIRED`, "the standard was set under the previous setup; the first session under the new one sets the line", "stdretire:" + ex.id);   /* FIX split-1 (P1-8): one receipt per lift across offline replicas */
       }
     }
     /* debut lands */
@@ -1793,7 +1873,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
        blank-load completion does not consume adoption. */
     if (typeof en.w === "number" && ex.w == null) {
       ex.w = en.w; ex.wAt = new Date().toISOString();
-      push(`${ex.n.toUpperCase()} — LOAD ADOPTED AT ${en.w}`, "First completed load under the new lift: " + en.w + " is the working load now; targets build from what this session gives.");
+      push(`${ex.n.toUpperCase()} — LOAD ADOPTED AT ${en.w}`, "First completed load under the new lift: " + en.w + " is the working load now; targets build from what this session gives.", "adopt:" + ex.id);   /* FIX split-1 (P1-8): op-keyed — post-merge, exactly ONE debut receipt survives (the earliest), and the other session reconciles to session two */
     } else if (typeof en.w === "number" && typeof ex.w === "number" && en.w !== ex.w) {
       const r0 = loadRungs(ex);
       if (r0 && r0.indexOf(en.w) < 0) ex.steps = [...new Set([...r0, en.w])].sort((a9, b9) => a9 - b9);
@@ -1902,7 +1982,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
   /* `pace` — see PACE_NOTE. Written on every session from here on; deliberately
      NOT back-filled onto older ones, because there is nothing to back-fill and
      law 12 forbids a field that buys no attribution. Absent reads as unknown. */
-  s.sessionLog[iso] = { entries: entries.map((e) => { const ex2 = s.exercises.find((x) => x.id === e.id); return { id: e.id, reps: e.reps, rir: e.rir ?? null, rirSets: buildRirSets(e), w: ex2 && typeof ex2.w === "number" ? ex2.w : null }; }), at: Date.now(), note: extras.note || "", niggles, dips: dipCount, skipped: extras.skipped || [], pace: extras.pace === "rushed" || extras.pace === "normal" ? extras.pace : null };
+  s.sessionLog[iso] = { entries: entries.map((e) => { const ex2 = s.exercises.find((x) => x.id === e.id); return { id: e.id, reps: e.reps, rir: e.rir ?? null, rirSets: buildRirSets(e), w: ex2 && typeof ex2.w === "number" ? ex2.w : null, ...(e.wKey != null ? { wKey: e.wKey } : {}), ...(e.og != null ? { og: e.og } : {}) }; }), at: Date.now(), note: extras.note || "", niggles, dips: dipCount, skipped: extras.skipped || [], pace: extras.pace === "rushed" || extras.pace === "normal" ? extras.pace : null };
   if (extras.pace === "rushed") push("RUSHED SESSION — LOGGED AS SUCH", "reps still count; this day cannot count toward a stall, because short rest lowers volume load on the later sets");
   if ((extras.skipped || []).length) push("SKIPPED — " + extras.skipped.map((k) => { const ex3 = exById(s, k.id); return ex3 ? ex3.n : k.id; }).join(", "), "your call, on the record — zero phantom reps, nothing counted");
   const cutoff = isoOf(new Date(mk(iso).getTime() - 21 * DAY));
@@ -1920,7 +2000,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
       if (!dup) s.feed.unshift({ d: iso, t: nTitle, how: `${j} has been flagged after ${c} sessions inside three weeks. Nothing changes automatically — a recurring niggle is information for you and your coach, and the pattern is the point: one sore day is a day, three is a signal.` });
     }
   });
-  lines.forEach((l) => s.feed.unshift({ d: iso, t: l.t, how: l.how }));
+  lines.forEach((l) => s.feed.unshift({ d: iso, t: l.t, how: l.how, ...(l.op ? { op: l.op } : {}) }));
   return { s, lines };
 }
 
@@ -5599,12 +5679,22 @@ function sessionDebrief(s, iso) {
     /* FIX P1-4 — retained, LABELED, never silently comparable: a session inside
        the latest era but before the pins were filled says what it is. */
     try {
+      const exL = (s.exercises || []).find((x9) => x9.id === e.id);
       const fkL = forkFrom(s, e.id);
-      if (fkL && iso >= fkL) {
-        const exL = (s.exercises || []).find((x9) => x9.id === e.id);
+      /* FIX split-1 (P1-6) — pin-gated, not fork-gated: a NEW lift (no fork,
+         unfilled pins) reads provisional exactly like a forked one. The stamp
+         still outranks live pins, and a pin-free unstamped lift was never
+         uncalibrated. */
+      /* the pins themselves have a birthday: the [PIN]-carrying cue arrived with
+         its setupAt. A session logged before the pinned cue EXISTED cannot be
+         "before calibration" — that gate is what keeps the label off pre-cue
+         history (and off the frozen words). The lift's own name rides the line
+         so the must-differ debrief law holds when several lifts qualify. */
+      const pinBorn = exL && exL.setupAt ? String(exL.setupAt).slice(0, 10) : null;
+      if (((fkL && iso >= fkL) || (!fkL && exL && pinsUnfilled(exL) > 0)) && (!pinBorn || iso >= pinBorn)) {
         const calL = exL && exL.calibratedAt ? String(exL.calibratedAt).slice(0, 10) : null;
         const hasPinsL = pinsUnfilled(exL) > 0;
-        if (calL ? iso < calL : hasPinsL) lines.push({ k: "note", t: "Logged before calibration — kept on the record, counted as provisional until the machine settings are pinned." });   /* FIX 3c item 5 — a pin-free lift with no stamp was never uncalibrated: no label; the label needs LIVE pins or a stamp this session predates */
+        if (calL ? iso < calL : hasPinsL) lines.push({ k: "note", t: name + " logged before calibration — kept on the record, counted as provisional until its machine settings are pinned." });
       }
     } catch (eL) {}
     let delivered = null, work = null, next = null;
@@ -5672,8 +5762,16 @@ function sessionDebrief(s, iso) {
       }
       const laterPrint = dates.some((d) => d > iso && (s.sessionLog[d].entries || []).some((x) => x.id === e.id));
       if (!laterPrint && ex) {
-        const step = progressStep(ex, s);
-        const t2 = targetsFor(ex, s);
+        /* FIX split-1 (P1-9) — the next-time line derives its SLOT COUNT from
+           the SESSION'S OWN entry, era-honestly: a historical debrief must not
+           grow or lose slots when the LIVE set count later changes (the frozen
+           8/04 calves line "11, 11, 7, 8" re-rendering as "11, 11, 7" under
+           the ruled 4→3 was the driven case — frozen history rewritten by a
+           live config). A session logged at the live shape reads identically. */
+        const slots9 = (reps && reps.length) || ex.sets;
+        const exN9 = slots9 === ex.sets ? ex : { ...ex, sets: slots9 };
+        const step = progressStep(exN9, s);
+        const t2 = targetsFor(exN9, s);
         /* The reason clause is collected, not printed, so that a reason shared by
            EVERY lift gets hoisted into the summary and said once. Six lifts on
            one short-sleep day used to print the same excuse six times. */
@@ -5681,7 +5779,7 @@ function sessionDebrief(s, iso) {
         next = { targets: t2.slice(), w: ex.w, add: step.add, why: step.why, window: null, shared: false, t: null };
         const upW = typeof ex.w === "number" ? nextLoad(ex) : null;
         if (ex.hi && upW != null && !ex.std && !ex.reclaim && !ex.ladder) {
-          const gate = Array.from({ length: ex.sets }, (_, i) => Math.max(1, ex.hi - i));
+          const gate = Array.from({ length: slots9 }, (_, i) => Math.max(1, ex.hi - i));   /* FIX split-1 (P1-9): the window gate sizes to the same era-honest slot count */
           const gap = gate.reduce((a2, g, i) => a2 + Math.max(0, g - (t2[i] ?? 0)), 0);
           if (gap === 0) next.window = `That line IS the top of the window — hit it on clean sleep without grinding the opener and ${upW} queues itself.`;
           else if (step.add > 0) { const n2 = Math.ceil(gap / step.add); next.window = `${gap} more rep${gap === 1 ? "" : "s"} above that and ${upW} queues itself — about ${n2} more session${n2 === 1 ? "" : "s"} at the current step.`; }
@@ -7719,11 +7817,11 @@ function muscleVolume(s) {
   const win = (backLo, backHi) => Object.keys(s.sessionLog).filter((d) => { const g = (mk(tISO6) - mk(d)) / DAY; return g >= backLo && g < backHi; });
   const count = (days2) => { const by = {}; days2.forEach((d) => { (s.sessionLog[d].entries || []).forEach((e) => { const ex6 = (s.exercises || []).find((x) => x.id === e.id); const b6 = volBucket(ex6); if (!b6) return; const n6 = (e.reps || []).length; by[b6] = (by[b6] || 0) + n6; const lend = INDIRECT[e.id]; if (lend) Object.entries(lend).forEach(([mg2, f2]) => { by[mg2] = (by[mg2] || 0) + n6 * f2; }); }); }); return by; };
   const now7 = count(win(0, 7)), prev7 = count(win(7, 14));
-  const mgs = [...new Set((s.exercises || []).map(volBucket).filter(Boolean))];
+  const mgs = [...new Set((s.exercises || []).filter((x) => exActive(s, x.id)).map(volBucket).filter(Boolean))];   /* FIX split-1 (P1-1): buckets come from ACTIVE lifts — logged history still counts above, but a retired-only bucket offers nothing to add sets to */
   return mgs.map((mg) => {
     const n7 = now7[mg] || 0, p7 = prev7[mg] || 0;
     const zone = n7 < VOL_BANDS.floor ? "UNDER" : n7 < VOL_BANDS.lo ? "LOW" : n7 <= VOL_BANDS.hi ? "IN-BAND" : n7 <= VOL_BANDS.ceil ? "HIGH" : "OVER";
-    const lifts = (s.exercises || []).filter((x) => volBucket(x) === mg && typeof x.w !== "undefined");
+    const lifts = (s.exercises || []).filter((x) => exActive(s, x.id) && volBucket(x) === mg && typeof x.w !== "undefined");   /* FIX split-1 (P1-1): candidate reconstruction is CURRENT-state — retired ids may never re-enter future offers */
     const vels = lifts.map((x) => ({ id: x.id, n: x.n, v: liftCall(s, x.id).vel })).filter((x) => x.v != null);
     const slipping = vels.filter((x) => x.v < -0.2).length;
     const gaining = vels.filter((x) => x.v > 0.2).length;
@@ -8296,7 +8394,7 @@ function sweepVolume(s, dow7 = new Date().getDay()) {
       const doorOpen9 = (s.proposals || []).some((p) => p && !p.resolved && p.rid && String(p.rid).indexOf("volpush_") === 0);   /* R18f fix2 — one door files: an open EARNED VOLUME card closes this one */
       if (!already9 && !doorOpen9 && !declined9 && !passed9) {
         ns = ns || JSON.parse(JSON.stringify(s));
-        ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + vp9.mg + Date.now(), kind: "volume", mg: vp9.mg, exId: vp9.exId, dir: 1, title: `VOLUME +1 — ${vp9.mg.toUpperCase()} via ${vp9.exName}`, body: "The desk is awake again — one chooser, house gates. " + vp9.routing + " Weekly " + vp9.fromWk + " → " + vp9.toWk + " sets; every gate (the regime or stall read, recovery, the sleep mean, the volume budget, spillover charges, the delivery read) passed before this filed." + (vp9.headroomNote ? " " + vp9.headroomNote : ""), gatesClosed: false }];
+        ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + vp9.mg + Date.now(), kind: "volume", pg: s.planGen || 0, mg: vp9.mg, exId: vp9.exId, dir: 1, title: `VOLUME +1 — ${vp9.mg.toUpperCase()} via ${vp9.exName}`, body: "The desk is awake again — one chooser, house gates. " + vp9.routing + " Weekly " + vp9.fromWk + " → " + vp9.toWk + " sets; every gate (the regime or stall read, recovery, the sleep mean, the volume budget, spillover charges, the delivery read) passed before this filed." + (vp9.headroomNote ? " " + vp9.headroomNote : ""), gatesClosed: false }];
       }
     }
     /* gates closed → silence: the ONE-CHANGE card owns that render, and the owner's-call
@@ -8306,7 +8404,7 @@ function sweepVolume(s, dow7 = new Date().getDay()) {
     const smw9 = structuralMovesThisWeek(s);
     if (smw9.sets.length) return;   /* R18f-3, evolved by A5 — the give-back waits out VOLUME move weeks only: sets left the scale's budget, so a calorie or step steer no longer holds it */
     ns = ns || JSON.parse(JSON.stringify(s));
-    ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + m.mg + Date.now(), kind: "volume", mg: m.mg, exId: pick.id, dir, title: `VOLUME ${dir > 0 ? "+1" : "−1"} — ${m.mg.toUpperCase()} via ${pick.n}`, body: why + ` ${dir > 0 ? "Adds one set to " + pick.n + ", its strongest mover. The new set arrives as the final set — the effort ladder re-keys itself: it becomes the all-out set, the old final pulls back to 1 in reserve, and its rep target seeds one under your current last set." : "Removes the final set from " + pick.n + ", its weakest mover — the effort ladder re-keys to the shorter shape automatically."} Two weeks of data before the ledger revisits this muscle.`, at: tISO7 }];
+    ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + m.mg + Date.now(), kind: "volume", pg: s.planGen || 0, mg: m.mg, exId: pick.id, dir, title: `VOLUME ${dir > 0 ? "+1" : "−1"} — ${m.mg.toUpperCase()} via ${pick.n}`, body: why + ` ${dir > 0 ? "Adds one set to " + pick.n + ", its strongest mover. The new set arrives as the final set — the effort ladder re-keys itself: it becomes the all-out set, the old final pulls back to 1 in reserve, and its rep target seeds one under your current last set." : "Removes the final set from " + pick.n + ", its weakest mover — the effort ladder re-keys to the shorter shape automatically."} Two weeks of data before the ledger revisits this muscle.`, at: tISO7 }];
   });
   return ns;
 }
@@ -8314,12 +8412,13 @@ function sweepStalls(s) {
   let ns = null;
   (s.exercises || []).forEach((ex) => {
     if (typeof ex.w !== "number") return;
+    if (!exActive(s, ex.id)) return;   /* FIX split-1 (P1-1): a retired lift takes no reset */
     const lc = liftCall(s, ex.id);
     if (lc.verdict !== "RESET" || !lc.newW) return;
     const already = (s.agentProposals || []).some((ap) => ap.kind === "reset" && ap.exId === ex.id) || (s.feed || []).slice(0, 40).some((f) => f.t && f.t.indexOf("RESET APPLIED — " + ex.n) === 0);
     if (already) return;
     ns = ns || JSON.parse(JSON.stringify(s));
-    ns.agentProposals = [...(ns.agentProposals || []), { id: "rs" + ex.id + Date.now(), kind: "reset", exId: ex.id, newW: lc.newW, title: `RESET ${ex.n} — ${ex.w} → ${lc.newW}`, body: lc.why + ` Rebuild the reps at ${lc.newW}; the bar comes back stronger than the stall left it.`, at: isoOf(todayStart()) }];
+    ns.agentProposals = [...(ns.agentProposals || []), { id: "rs" + ex.id + Date.now(), kind: "reset", pg: s.planGen || 0, exId: ex.id, newW: lc.newW, title: `RESET ${ex.n} — ${ex.w} → ${lc.newW}`, body: lc.why + ` Rebuild the reps at ${lc.newW}; the bar comes back stronger than the stall left it.`, at: isoOf(todayStart()) }];
   });
   return ns;
 }
@@ -8393,6 +8492,7 @@ function sweepLab(s, dow = new Date().getDay()) {
 /* the macro engine: snapshots + rule proposals. Idempotent per day. */
 function runAdaptive(state, todayISO, raOpts) {
   const s = JSON.parse(JSON.stringify(state));
+  normalizePlan(s);   /* FIX split-1 (P0-4) — THE SWEEP CALL SITE, moved to the head: a poisoned order must be repaired BEFORE any order-derived producer reasons about it, or the wrong card files first and normalization arrives too late to unfile it. Idempotent; ruled-order half is planGen-51-only. */
   const monday = (() => { const d = mk(todayISO); const off = (d.getDay() + 6) % 7; return isoOf(new Date(d - off * DAY)); })();
   if (!s.weekly.some((w) => w.wk === monday) && s.reads.some((r) => !r.sealed && !r.offWindow && weeksBetween(monday, r.d) >= 0 && weeksBetween(monday, r.d) < 1))
     s.weekly.push({ wk: monday, trend: s.trend });
@@ -8442,12 +8542,12 @@ function runAdaptive(state, todayISO, raOpts) {
     }
     if (applied(rid)) return;
     const open = s.proposals.find((p) => p && !p.resolved && subjectOf(p.rid) === subjectOf(rid));
-    if (open && open.rid === rid) { open.title = title; open.why = why; open.apply = apply; open.refreshed = todayISO; return; }
+    if (open && open.rid === rid) { open.title = title; open.why = why; open.apply = apply; open.refreshed = todayISO; open.pg = s.planGen || 0; return; }   /* FIX split-1 (P0-4): a refresh re-derives under the CURRENT plan */
     if (open) {
       open.resolved = true; open.resolvedHow = "superseded by " + rid;
       s.feed.unshift({ d: todayISO, t: "CARD SUPERSEDED — " + subjectOf(rid).toUpperCase(), how: "a newer card on the same subject replaced it; nothing was silently dropped" });
     }
-    s.proposals.push({ rid, id: `${rid}_${todayISO}`, d: todayISO, title, why, apply, resolved: false });
+    s.proposals.push({ rid, id: `${rid}_${todayISO}`, d: todayISO, title, why, apply, resolved: false, pg: s.planGen || 0 });   /* FIX split-1 (P0-4): provenance at creation — which plan generation this card reasoned about */
   };
   /* R9 — WITHDRAW ORPHANS. R4 deleted both body-fat producers (ease2 -> kind "phase",
      pivot -> kind "exit") but their INSTANCES persist in state with LIVE apply branches:
@@ -8683,6 +8783,7 @@ function runAdaptive(state, todayISO, raOpts) {
        (the governor — the immediate safety path), or recovery leaves GREEN. */
     (s.exercises || []).forEach((ex9) => {
       if (typeof ex9.w !== "number") return;
+      if (!exActive(s, ex9.id)) return;   /* FIX split-1 (P1-1): a retired lift files no rollback */
       const vc9 = volumeConversion(s, ex9.id);
       if (!(vc9.status === "LIVE" && vc9.subtract)) return;
       const rid9 = `volroll_${ex9.id}_${monday}`;
@@ -8734,7 +8835,6 @@ function runAdaptive(state, todayISO, raOpts) {
     });
   }
 
-  normalizePlan(s);   /* SPLIT item f — THE SWEEP CALL SITE: every open repairs the plan register in place (idempotent; planGen 51 only) */
   /* ---------- v7.53.0 A3 — THE INSERTION FORK TABLE, ARMED ----------
      Sol's fork table, build-ready: inserting a new lift into a session changes
      the fatigue context of every lift after it, so the affected lifts' baselines
@@ -8747,25 +8847,15 @@ function runAdaptive(state, todayISO, raOpts) {
       ["fly", ["rearDelt", "curl", "tricep", "sulek", "pulldown", "rows"], "fly inserted upstream"],
       ["hipthrust", ["extension", "ham", "abs", "hanging", "calves"], "hip thrust inserted upstream"],
     ];
-    for (const [newId, affected, why9] of INSERTION_FORKS) {
+    for (const [newId, affected] of INSERTION_FORKS) {
       if (!(s.exercises || []).some((x) => x && x.id === newId)) continue;
-      /* FIX 3a — the REGISTRY makes "once" mean once EVER: the first sweep that
-         sees the insertion records it, and no later sweep — however the forks
-         themselves are edited — can re-fire it or re-mint its receipts. */
+      /* FIX split-1 (P1-3): the registry stays as the fast-path, but it is no
+         longer load-bearing — the ONE implementation is idempotent by ops
+         identity and op-guarded receipts, so a re-fire adds zero, and an
+         unrelated same-date seam can no longer cause a permanent skip after
+         the marker was set (the old bespoke loop's defect). */
       if ((s.insertions || {})[newId]) continue;
-      s.insertions = { ...(s.insertions || {}), [newId]: todayISO };
-      for (const affId of affected) {
-        const e9 = (s.exercises || []).find((x) => x && x.id === affId);
-        if (!e9) continue;
-        /* APPEND an era — never overwrite one. A lift's forks are its whole
-           technique history; the insertion closes the current era under its
-           current name. */
-        const fks9 = Array.isArray(e9.forks) ? e9.forks : (e9.fork && e9.fork.from ? [e9.fork] : []);
-        if (fks9.some((f9) => f9 && f9.from === todayISO)) continue;
-        e9.forks = [...fks9, { from: todayISO, why: why9, prevN: e9.n }].sort((a9, b9) => (a9.from < b9.from ? -1 : 1));
-        delete e9.fork;
-        s.feed.unshift({ d: todayISO, t: e9.n.toUpperCase() + " — FRESH BASELINE", how: "The " + (newId === "fly" ? "machine fly" : "hip thrust") + " entered the programme ahead of this lift, so its context changed. History stays on the record under the old setup; the instruments start a fresh four-session baseline rather than comparing across the change." });
-      }
+      applyInsertionSeams(s, newId, affected, todayISO);
     }
     /* FIX 3a item 4 — calibration becomes STATE the day the pins are gone: a
        sweep detection, so ANY future setup writer (editor, patch, hand edit)
@@ -8981,6 +9071,21 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
   const dial = proposalDial(p);
   const adj = dial ? Math.max(-dial.max, Math.min(dial.max, Math.round(nudge / dial.step) * dial.step)) : 0;
   const today = isoOf(todayStart());
+  /* FIX split-1 (P0-4) — this lane is merge-closed too: a retired target takes
+     no proposal, and an order-derived card from an older plan generation (or
+     none at all — pre-51 by construction) supersedes at the tap with a
+     receipt rather than applying. A stale replica can restore the CARD; it
+     cannot make it actionable. */
+  if (p.apply && p.apply.exId && !exActive(s, p.apply.exId)) {
+    p.resolved = true; p.superseded = true;
+    s.feed.unshift({ d: today, t: "OFFER SUPERSEDED — " + String(p.title || p.rid).slice(0, 48), how: "The lift this card targets was retired; the card is preserved in history and closed without effect." });
+    return s;
+  }
+  if (p.apply && p.apply.kind === "sets" && s.planGen != null && (p.pg != null ? p.pg : 0) < s.planGen) {
+    p.resolved = true; p.superseded = true;
+    s.feed.unshift({ d: today, t: "OFFER SUPERSEDED — " + String(p.title || p.rid).slice(0, 48), how: "This card was derived from an earlier plan generation; the plan has since changed, so it closes without effect. Anything still earned re-files under the current plan." });
+    return s;
+  }
   p.resolved = true;
   p.nudge = adj;
   const row = { rid: p.rid, id: _freshId("adj_"), d: today, title: p.title, nudge: adj };
@@ -9166,7 +9271,9 @@ function applyAgentProposal(state, ap, tISO) {
       s0.feed.unshift({ d: tISO, t: "OFFER SUPERSEDED — " + (ap.title || ap.exId), how: "The lift this proposal targets was retired by the split ruling; the offer is preserved in history and closed without effect." });
       return s0;
     }
-    if (ap && ap.pg != null && state && state.planGen != null && ap.pg < state.planGen) {
+    const apOrder9 = ap && (ap.kind === "volume" || ap.kind === "reset");
+    const apPg9 = ap && ap.pg != null ? ap.pg : (apOrder9 ? 0 : null);   /* FIX split-1 (P0-4): a pg-ABSENT order-derived offer is pre-51 by construction — "rejects only a non-null older generation" was the hole */
+    if (ap && apPg9 != null && state && state.planGen != null && apPg9 < state.planGen) {
       const s0 = JSON.parse(JSON.stringify(state));
       s0.agentProposals = (s0.agentProposals || []).filter((x) => x.id !== ap.id);
       s0.feed.unshift({ d: tISO, t: "OFFER SUPERSEDED — " + (ap.title || "plan change"), how: "This offer was derived from an earlier plan generation; the plan has since changed, so it closes without effect. A current offer must be re-earned under the current plan." });
@@ -9849,9 +9956,27 @@ function patchV51(s) {
      appended by THIS patch (not the runtime registry) so bodies and bytes are
      identical whichever device migrates first. */
   const EP = "2026-08-12T00:00:00.000Z";
+  if (!Array.isArray(s.feed)) s.feed = [];   /* FIX split-1 (P1-7): heal a hostile/missing container before any receipt lands */
   const exs = s.exercises || (s.exercises = []);
+  /* the shared canonical-birth validity predicate: what a walkable record of
+     this lift must carry. Consulted here, by exActive's projection sites via
+     the quarantine marker, and by normalization. */
+  const bornValid = (e) => e && typeof e.sets === "number" && typeof e.hi === "number" && typeof e.setup === "string" && (e.day === "U" || e.day === "L") && typeof e.mg === "string";
   const put = (spec, afterId) => {
-    if (exs.some((x) => x && x.id === spec.id)) return;
+    const have = exs.find((x) => x && x.id === spec.id);
+    if (have) {
+      /* FIX split-1 (P1-4): never trust a pre-existing object wearing the new
+         id. Compatibility is judged on what the object BROUGHT — the closure
+         matrix caught the first cut judging AFTER the fill, which manufactured
+         validity for a bare hostile fragment. Compatible → FILL-ONLY repair
+         (ruled fields land where absent; athlete-shaped fields untouched).
+         Incompatible → repaired for shape but preserved-INACTIVE: a malformed
+         {id:"fly",day:"U"} must not walk. */
+      const wasValid = bornValid(have);
+      for (const k of Object.keys(spec)) { if (have[k] == null) have[k] = spec[k]; }
+      if (!wasValid) { s.retirements = { ...(s.retirements || {}), [spec.id]: "invalid:" + "2026-08-12" }; }
+      return;
+    }
     const i = exs.findIndex((x) => x && x.id === afterId);
     exs.splice(i < 0 ? exs.length : i + 1, 0, spec);
   };
@@ -9872,27 +9997,58 @@ function patchV51(s) {
      sweep of active obligations; the record itself untouched forever. */
   s.retirements = { ...(s.retirements || {}), pronated: "2026-08-12" };
   const pr = exs.find((x) => x && x.id === "pronated");
-  if (pr && (pr.std || pr.own || pr.reclaim)) {
-    s.feed.unshift({ d: "2026-08-12", t: "PRONATED EZ CURL — RETIRED WITH ITS STANDARDS ON FILE", how: "The split ruling retires the lift; the standard" + (pr.reclaim ? " and the reclaim line" : "") + " it carried retire with it, preserved here: std " + JSON.stringify(pr.std) + ", reclaim " + JSON.stringify(pr.reclaim) + ". Every logged session stays on the record." });
+  if (pr && !s.feed.some((f9) => f9 && f9.op === "retire:pronated")) {
+    /* FIX split-1 (P1-2): UNCONDITIONAL — the live pronated carries no armed
+       standards, and the conditional receipt left the retirement unreceipted
+       on the very state it shipped for. Standards, when armed, ride the body. */
+    const hadStd = !!(pr.std || pr.own || pr.reclaim);
+    s.feed.unshift({ op: "retire:pronated", d: "2026-08-12", t: "PRONATED EZ CURL — RETIRED", how: "The split ruling retires the lift" + (hadStd ? "; the standard" + (pr.reclaim ? " and the reclaim line" : "") + " it carried retire with it, preserved here: std " + JSON.stringify(pr.std) + ", reclaim " + JSON.stringify(pr.reclaim) : "") + ". Every logged session stays on the record, and the record never closes." });
     pr.std = null; pr.own = false; pr.reclaim = null;
   }
   /* THE ELEVEN SEAMS + the registry (item i): canonical date, split-tagged so
      normalization may re-date each lift's boundary past its own last old-order
      entry. prevN = the current display name (the name the closing era used). */
-  s.insertions = { ...(s.insertions || {}), fly: "2026-08-14", hipthrust: "2026-08-14" };
-  const SEAMS = [["fly", ["pulldown", "rows", "rearDelt", "curl", "tricep", "sulek"]], ["hipthrust", ["extension", "ham", "abs", "hanging", "calves"]]];
-  for (const [nid, aff] of SEAMS) {
-    for (const affId of aff) {
-      const e = exs.find((x) => x && x.id === affId);
-      if (!e) continue;
-      const fks = Array.isArray(e.forks) ? e.forks : (e.fork && e.fork.from ? [e.fork] : []);
-      if (e.fork) delete e.fork;
-      const why51 = nid === "fly" ? "fly inserted upstream" : "hip thrust inserted upstream";
-      if (!fks.some((f) => f && f.ops && f.ops.indexOf(why51) > -1) && !fks.some((f) => f && f.why === why51)) {
-        fks.push({ from: "2026-08-14", why: why51, ops: [why51], prevN: e.n, split: true });
+  /* FIX split-1 (P0-3, day-granular): the seam sits past today's persisted
+     session AND any persisted in-flight draft — both were performed (or are
+     mid-performance) under the OLD order, wherever deploy day lands. Canonical
+     floor 2026-08-14; canonicalizePlan keeps re-dating past og<51 entries
+     thereafter (the draft self-heals through its og when it completes). */
+  const seamFrom = (() => {
+    let d0 = "2026-08-14";
+    const bump = (dd) => { const nd = new Date(dd + "T12:00:00Z"); nd.setUTCDate(nd.getUTCDate() + 1); return nd.toISOString().slice(0, 10); };
+    try { const t9 = isoOf(todayStart()); if ((s.sessionLog || {})[t9] && bump(t9) > d0) d0 = bump(t9); } catch (e9) {}
+    try {
+      for (let i9 = 0; i9 < localStorage.length; i9++) {
+        const k9 = localStorage.key(i9);
+        if (!k9 || (k9.indexOf("prep-ledger-draft-") !== 0 && k9.indexOf("prep-ledger-gymdraft-") !== 0)) continue;
+        const dd = k9.slice(-10);
+        if (/^d{4}-d{2}-d{2}$/.test(dd) && bump(dd) > d0) d0 = bump(dd);
       }
-      e.forks = fks.sort((a, b) => (a.from < b.from ? -1 : 1));
-      s.feed.unshift({ d: "2026-08-14", t: e.n.toUpperCase() + " — FRESH BASELINE", how: "The " + (nid === "fly" ? "machine fly" : "hip thrust") + " enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change." });
+    } catch (e9) {}
+    return d0;
+  })();
+  /* FIX split-1 (P1-3): the seams go through the ONE implementation */
+  applyInsertionSeams(s, "fly", ["pulldown", "rows", "rearDelt", "curl", "tricep", "sulek"], seamFrom);
+  applyInsertionSeams(s, "hipthrust", ["extension", "ham", "abs", "hanging", "calves"], seamFrom);
+  /* FIX split-1 (P0-4) — the pending pre-split ORDER-DERIVED offers are swept
+     with honest reasons: each proposed set counts through a chooser that
+     reasoned about the plan this ruling replaced (7 volume offers on the live
+     state). The calorie-band coach card is NOT order-derived and stands —
+     closing a live nutrition decision with a false reason would be the
+     refeed_review defect again. Adjudicated, on the record. */
+  {
+    const apKeep = [];
+    for (const ap of (s.agentProposals || [])) {
+      if (ap && ap.pg == null && (ap.kind === "volume" || ap.kind === "reset")) {
+        s.feed.unshift({ op: "supersede:" + (ap.id || ap.kind), d: "2026-08-12", t: "OFFER SUPERSEDED — " + String(ap.title || ap.kind).slice(0, 48), how: "This offer was derived from the pre-split plan — its set counts and its chooser both reasoned about an order this ruling replaced. It closes without effect; anything still earned re-files under the current plan on the next sweep." });
+      } else apKeep.push(ap);
+    }
+    if (Array.isArray(s.agentProposals)) s.agentProposals = apKeep;
+    for (const p of (s.proposals || [])) {
+      if (p && !p.resolved && p.pg == null && p.apply && p.apply.kind === "sets") {
+        p.resolved = true; p.superseded = true;
+        s.feed.unshift({ op: "supersede:" + (p.rid || p.id), d: "2026-08-12", t: "OFFER SUPERSEDED — " + String(p.title || p.rid).slice(0, 48), how: "This card was derived from the pre-split plan; the ruling changed the plan it reasoned about, so it closes without effect. Anything still earned re-files under the current plan." });
+      }
     }
   }
   /* THE PLAN REGISTER (item f): generation 51, ruled orders; normalizePlan
@@ -10167,7 +10323,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { PATCHES, SCHEMA_V, applyAgentProposal, mergeState, forkFrom, forksOf, eraIdx, sameEra, nameAt, pinsUnfilled, forkExposures, ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, stepValue, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { PATCHES, SCHEMA_V, applyAgentProposal, mergeState, exActive, canonicalizePlan, normalizePlan, applyInsertionSeams, sessionFromDraft, coarseLifts, muscleVolume, pickStructural, sweepStalls, forkFrom, forksOf, eraIdx, sameEra, nameAt, pinsUnfilled, forkExposures, ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, stepValue, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -10410,7 +10566,7 @@ function askContext(s, docs) {
   const suggSec = docs.suggestions ? `\n\n=== YOUR CURRENT APPROVE/DISMISS SUGGESTIONS (the NOW cards) ===\n${clip(docs.suggestions, 1800)}` : "";
   const briefSec = docs.brief ? `\n\n=== YOUR LATEST READ (brief.md — your own nightly words, the voice to match) ===\n${clip(docs.brief, 1800)}` : "";
   const caselawSec = docs.caselaw ? `\n\n=== CASE-LAW / MEMORY (what has held true before) ===\n${clip(docs.caselaw, 1800)}` : "";
-  return `You are Joe's Analyst — the same analyst that writes his nightly read. When Joe asks something here, he is asking you: answer in the same voice, from the same knowledge. Your one goal: the best body-composition change — fat down, lean held or built — as fast as he can sustain. Read everything through two lenses only: established sports-science research, and Joe's own data. HOW YOU TALK: plain conversational prose, exactly like your nightly read — the way you'd say it out loud to a sharp friend who lifts. Use no markdown at all — no # headers, no **bold**, no bullet lists or numbered scaffolding, no tables. No jargon, no (measured)/(speculation) tags, no "provisional". Lead with the answer and the one thing that matters, use his real numbers, keep it tight; if the data is thin, just say so in plain words. TWO LAWS: look at everything relevant and how the variables move each other; and weigh science and his own data together — where they agree, say it plainly, where they disagree, name the tension. Never go dark on a noisy number: a single scale reading is noise around a slow trend, so attribute spikes to their cause (water from sodium, carbs, a big meal, a short night) instead of hiding them. THE SCIENCE FLOOR (your prior): lean-safe loss is about 0.5–1.0%/wk (~1.0–1.4 lb/wk for him; 1.9+ is too fast) and deficit MAGNITUDE is the variable most tightly linked to lean-mass loss in trained people; protein ~2.3–3.1 g/kg fat-free mass, fixed daily, not varied by training vs rest day; sleep is a first-order fat-vs-LEAN lever in a deficit (Nedeltcheva 2010: 5.5 h vs 8.5 h shifted 60% more of the loss onto fat-free mass) but only a small SESSION lever (Craven 2022: −2.85% on strength — real, CI 1.23–4.47, smaller than his own day-to-day spread) — do not tell him a short night ruins a session or invalidates a record, because the app no longer treats it that way and the evidence never did; train to roughly 6–12 hard sets per muscle per week at 0–2 reps in reserve, where the dose-response return per set is highest. Things that DO NOT matter and must never be presented as if they do: rep tempo (meta-analytic SMD 0.09, and it favours going faster, not slower), slow or accentuated eccentrics (hypertrophy SMD −0.06 while perceived effort rises SMD +1.72 — a pure fatigue tax), periodisation model (d = −0.02 for linear vs undulating), machines vs free weights (SMD −0.055, p=0.751 — his machine-heavy programme costs him nothing), planned deloads (zero positive RCTs; the only trained-subject trial found a 3.6 kg squat 1RM decrement and reduced motivation), and lengthened partials (a 297-person multi-site trial found them practically equivalent to full range; trained-subject Bayes factors of 0.16–0.30 are moderate evidence FOR the null, and there are no range-of-motion studies at all in pecs, delts or lats). What DOES matter and is 5–15× larger: exercise selection for biarticular muscles, where the joint you are not training sets the muscle's length — standing vs seated calf raise d = 0.88–1.58, overhead vs pushdown triceps d = 0.54–0.61, seated vs lying ham curl. "Defend load on a cut" is folklore — the only trial that manipulated load under energy restriction (Carlson 2022, n=115 trained, 80% vs 60% 1RM both to failure) found no difference in fat or lean mass, so defend EFFORT and ${DEFICIT_CEILING.line()} instead; sodium, carbs and creatine move water, not fat; caffeine helps training but taken late steals sleep; DIET BREAKS (a full week at maintenance) have replicated adherence benefits and no metabolic ones in trained people; weekly REFEED DAYS have neither — the only matched-energy RCT was overturned on reanalysis and no isocaloric carbohydrate study has ever improved strength or hypertrophy, so never claim a refeed buys fat loss, lean retention, metabolism or next-day performance; adherence is the biggest lever; metabolic adaptation is real but small. A single set of reps carries his own measured set-to-set spread (the live figure in the canon — REPEATABILITY, not accuracy: pooled RIR reports run about 0.95 reps biased toward underprediction), so treat a one-rep change as weather, not signal. Answer only from the knowledge below plus that science. Never invent data, and when the evidence is absent say so — "nobody has tested this" is a better answer than a confident mechanism.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}${analysisSec}${suggSec}${briefSec}${caselawSec}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== MEDS (last 7 logged) ===\n${(s.medsLog || []).slice(-7).map((m8) => `${m8.d}: ${m8.taken ? "taken @ " + m8.at : "none"}`).join("\\n") || "none logged"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => e.last || e.std).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
+  return `You are Joe's Analyst — the same analyst that writes his nightly read. When Joe asks something here, he is asking you: answer in the same voice, from the same knowledge. Your one goal: the best body-composition change — fat down, lean held or built — as fast as he can sustain. Read everything through two lenses only: established sports-science research, and Joe's own data. HOW YOU TALK: plain conversational prose, exactly like your nightly read — the way you'd say it out loud to a sharp friend who lifts. Use no markdown at all — no # headers, no **bold**, no bullet lists or numbered scaffolding, no tables. No jargon, no (measured)/(speculation) tags, no "provisional". Lead with the answer and the one thing that matters, use his real numbers, keep it tight; if the data is thin, just say so in plain words. TWO LAWS: look at everything relevant and how the variables move each other; and weigh science and his own data together — where they agree, say it plainly, where they disagree, name the tension. Never go dark on a noisy number: a single scale reading is noise around a slow trend, so attribute spikes to their cause (water from sodium, carbs, a big meal, a short night) instead of hiding them. THE SCIENCE FLOOR (your prior): lean-safe loss is about 0.5–1.0%/wk (~1.0–1.4 lb/wk for him; 1.9+ is too fast) and deficit MAGNITUDE is the variable most tightly linked to lean-mass loss in trained people; protein ~2.3–3.1 g/kg fat-free mass, fixed daily, not varied by training vs rest day; sleep is a first-order fat-vs-LEAN lever in a deficit (Nedeltcheva 2010: 5.5 h vs 8.5 h shifted 60% more of the loss onto fat-free mass) but only a small SESSION lever (Craven 2022: −2.85% on strength — real, CI 1.23–4.47, smaller than his own day-to-day spread) — do not tell him a short night ruins a session or invalidates a record, because the app no longer treats it that way and the evidence never did; train to roughly 6–12 hard sets per muscle per week at 0–2 reps in reserve, where the dose-response return per set is highest. Things that DO NOT matter and must never be presented as if they do: rep tempo (meta-analytic SMD 0.09, and it favours going faster, not slower), slow or accentuated eccentrics (hypertrophy SMD −0.06 while perceived effort rises SMD +1.72 — a pure fatigue tax), periodisation model (d = −0.02 for linear vs undulating), machines vs free weights (SMD −0.055, p=0.751 — his machine-heavy programme costs him nothing), planned deloads (zero positive RCTs; the only trained-subject trial found a 3.6 kg squat 1RM decrement and reduced motivation), and lengthened partials (a 297-person multi-site trial found them practically equivalent to full range; trained-subject Bayes factors of 0.16–0.30 are moderate evidence FOR the null, and there are no range-of-motion studies at all in pecs, delts or lats). What DOES matter and is 5–15× larger: exercise selection for biarticular muscles, where the joint you are not training sets the muscle's length — standing vs seated calf raise d = 0.88–1.58, overhead vs pushdown triceps d = 0.54–0.61, seated vs lying ham curl. "Defend load on a cut" is folklore — the only trial that manipulated load under energy restriction (Carlson 2022, n=115 trained, 80% vs 60% 1RM both to failure) found no difference in fat or lean mass, so defend EFFORT and ${DEFICIT_CEILING.line()} instead; sodium, carbs and creatine move water, not fat; caffeine helps training but taken late steals sleep; DIET BREAKS (a full week at maintenance) have replicated adherence benefits and no metabolic ones in trained people; weekly REFEED DAYS have neither — the only matched-energy RCT was overturned on reanalysis and no isocaloric carbohydrate study has ever improved strength or hypertrophy, so never claim a refeed buys fat loss, lean retention, metabolism or next-day performance; adherence is the biggest lever; metabolic adaptation is real but small. A single set of reps carries his own measured set-to-set spread (the live figure in the canon — REPEATABILITY, not accuracy: pooled RIR reports run about 0.95 reps biased toward underprediction), so treat a one-rep change as weather, not signal. Answer only from the knowledge below plus that science. Never invent data, and when the evidence is absent say so — "nobody has tested this" is a better answer than a confident mechanism.\n\n${laws}\n\n${dict}\n\n=== CURRENT INSTRUMENT VERDICTS (the lab) ===\n${dossierText(s)}${analysisSec}${suggSec}${briefSec}${caselawSec}\n\n=== LAST 14 DAYS ===\n${days}\n\n=== LAST 14 NIGHTS ===\n${nights2}\n\n=== MORNING SIGNALS (last 7) ===\n${[...Array(7)].map((_, i8) => { const d8 = isoOf(new Date(Date.now() - (6 - i8) * 864e5)); const en = (s.energy || []).find((x) => x.d === d8); const so = (s.soreness || []).find((x) => x.d === d8); const gp = (s.grip || []).find((x) => x.d === d8); if (!en && !so && !gp) return null; return `${d8}: energy ${en ? en.v : "—"} · sore ${so ? (so.mgs.length ? so.mgs.join("/") : "none") : "—"} · grip ${gp ? `${gp.l ?? "—"}/${gp.r ?? "—"}` : "—"}`; }).filter(Boolean).join("\\n") || "none yet"}\n\n=== MEDS (last 7 logged) ===\n${(s.medsLog || []).slice(-7).map((m8) => `${m8.d}: ${m8.taken ? "taken @ " + m8.at : "none"}`).join("\\n") || "none logged"}\n\n=== CAFFEINE (last 7 logged) ===\n${(s.caffLog || []).slice(-7).map((c8) => `${c8.d}: ${c8.mg === 0 ? "none" : c8.mg + " mg @ " + c8.at}`).join("\\n") || "none logged"}\n\n=== LAST 6 SESSIONS ===\n${sess2}\n\n=== NEXT-SESSION CALLS (deterministic prescription desk) ===\n${(s.exercises || []).filter((e) => exActive(s, e.id) && (e.last || e.std)).slice(0, 12).map((e) => { const lc = liftCall(s, e.id); return `${e.n}: ${lc.verdict}${lc.vel != null ? ` (velocity ${lc.vel >= 0 ? "+" : ""}${lc.vel}/session)` : ""} — ${lc.why}`; }).join("\n")}`;
 }
 const AGENT_TOOLS = [
   { name: "get_range", description: "Fetch raw logs between ISO dates. kind: days|nights|sessions|pulse|temp|reads|feed. Feed = the app event log; amendments there override older raw rows. Day rows carry ⌁[flags] (estimate/event/sealwater/postrefeed) — respect the DATA WEATHER LAW when they appear.", input_schema: { type: "object", properties: { kind: { type: "string" }, from: { type: "string" }, to: { type: "string" } }, required: ["kind", "from", "to"] } },
@@ -11409,6 +11565,21 @@ function mergeState(local, remote) {
      feed line carries d, JS sort is stable so within-day emitted order survives, and the
      order-dependent consumer is the renderer. forecasts joins by date and does not care. */
   if (Array.isArray(out.feed)) out.feed = out.feed.map((x, i) => [x, i]).sort((a, b) => String((b[0] || {}).d || "").localeCompare(String((a[0] || {}).d || "")) || a[1] - b[1]).map((p) => p[0]);
+  /* FIX split-1 (P1-8) — OP-KEYED RECEIPTS RECONCILE TO ONE: two devices firing
+     the same operation offline (a seam, a retirement, an insertion receipt, an
+     adoption, a standard retirement) each minted a receipt; post-merge the
+     operation still happened ONCE. Keep the EARLIEST sighting; d-tie breaks to
+     the lexicographically smaller entry — direction-free. Op-less lines are
+     history and keep their multiplicity. */
+  if (Array.isArray(out.feed)) {
+    const opBest = new Map();
+    for (const f9 of out.feed) {
+      if (!(f9 && f9.op != null)) continue;
+      const cur = opBest.get(f9.op);
+      if (!cur || String(f9.d || "") < String(cur.d || "") || (String(f9.d || "") === String(cur.d || "") && JSON.stringify(f9) < JSON.stringify(cur))) opBest.set(f9.op, f9);
+    }
+    out.feed = out.feed.filter((f9) => !(f9 && f9.op != null) || opBest.get(f9.op) === f9);
+  }
   for (const k of MERGE_OBJ) out[k] = _unionObj(remote[k], local[k], k === "sessionLog" ? _richerSession : _richer);   // CORRECTION_MERGE — only sessionLog knows about deliberate corrections
   for (const k of Object.keys(MERGE_KEYED)) out[k] = _unionKeyed(remote[k], local[k], MERGE_KEYED[k].keyOf, MERGE_KEYED[k].scoreOf);   // exercises/queue: reconcile per lift, never wholesale
   /* AUDIT G (volume lever) — ex.sets must SURVIVE the wholesale per-lift merge. _unionKeyed
@@ -11443,6 +11614,7 @@ function mergeState(local, remote) {
       let w2 = w;
       for (const [f9, at9] of STAMPED_FIELDS) {
         if (_isoOr(other[at9]) > _isoOr(w2[at9])) w2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };
+        else if (_isoOr(other[at9]) !== "" && _isoOr(other[at9]) === _isoOr(w2[at9]) && JSON.stringify(other[f9]) > JSON.stringify(w2[f9])) w2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };   /* FIX split-1: equal stamps resolve by VALUE, direction-free — "local wins" flips with merge order */
       }
       /* FIX 3a — forks are UNION-BY-SEAM: a technique era is history, and a
          stale device that never learned a seam must not erase it. Keyed by
@@ -11452,7 +11624,18 @@ function mergeState(local, remote) {
         const fB = Array.isArray(other.forks) ? other.forks : (other.fork && other.fork.from ? [other.fork] : []);
         if (fA.length || fB.length) {
           const byFrom = new Map();
-          for (const f9 of [...fB, ...fA]) { if (f9 && f9.from) byFrom.set(f9.from, f9); }
+          for (const f9 of [...fB, ...fA]) {
+            if (!(f9 && f9.from)) continue;
+            if (byFrom.has(f9.from)) {
+              /* FIX split-1 (P0-5): same-date metadata unions DETERMINISTICALLY —
+                 ops set-union, why derived from ops, scalar conflicts to the
+                 lexicographically greater value (direction-free, like the
+                 stamp tie rule) instead of whichever side was local. */
+              const p9 = byFrom.get(f9.from);
+              const ops9 = [...new Set([...(p9.ops || (p9.why ? [p9.why] : [])), ...(f9.ops || (f9.why ? [f9.why] : []))])].sort();
+              byFrom.set(f9.from, { from: f9.from, why: ops9.length > 1 ? ops9.join(" + ") : (p9.why === f9.why ? p9.why : (String(p9.why || "") > String(f9.why || "") ? p9.why : f9.why)), ...(ops9.length ? { ops: ops9 } : {}), prevN: p9.prevN === f9.prevN ? p9.prevN : (String(p9.prevN || "") > String(f9.prevN || "") ? p9.prevN : f9.prevN), ...(p9.split || f9.split ? { split: true } : {}) });
+            } else byFrom.set(f9.from, f9);
+          }
           w2 = { ...w2, forks: [...byFrom.values()].sort((a9, b9) => (a9.from < b9.from ? -1 : 1)) };
         }
         const rA = Array.isArray(w2.renames) ? w2.renames : [], rB = Array.isArray(other.renames) ? other.renames : [];
@@ -11484,7 +11667,10 @@ function mergeState(local, remote) {
   /* SPLIT item d — the retirement register unions by key; absence never
      resurrects (a device that never learned the ruling contributes nothing). */
   out.retirements = { ...(remote.retirements || {}), ...(local.retirements || {}) };   // QUEUED #2 E — was riding the wholesale local-wins spread; an ordering needs newest-deliberate-wins + never-lose-a-lift
-  return out;
+  /* FIX split-1 (P0-5) — every merge boundary canonicalizes by construction:
+     the sync upload body, the 409 re-merge, the cloud restore and any future
+     caller all flow through here, so none can ship un-canonical seams. */
+  return canonicalizePlan(out);
 }
 
 /* ---------- derived ---------- */
@@ -14747,6 +14933,8 @@ function LogTab({ s, setS, save, slp }) {
      opener, which answers a different question (is the load still honest). */
   const [rirEnd, setRirEnd] = useState({});
   const [pace, setPace] = useState(null);
+  const [wIn, setWIn] = useState({});   /* FIX split-1 (P0-2) — the debut load entry: the first completed load rides the ENTRY and adopts through completeSession */
+  const [capPgT, setCapPgT] = useState(() => (s.planGen || 0));   /* FIX split-1 (P0-3) — the plan generation this in-flight session was captured under */
   const draftKey = "prep-ledger-draft-" + dateSel;
   useEffect(() => {
     try {
@@ -14756,11 +14944,13 @@ function LogTab({ s, setS, save, slp }) {
       const gd = JSON.parse(localStorage.getItem("prep-ledger-gymdraft-" + dateSel) || "null");
       const m = mergeSessionDrafts(sess && sess.ex, d, gd);
       setReps(m.reps); setRir(m.rir); setRirEnd(m.rirEnd); setSkipped(m.skipped); setNote(d && d.note ? d.note : ""); setNig(d && d.nig ? d.nig : []); setPace(d && d.pace ? d.pace : null);
+      setWIn(d && d.wIn ? d.wIn : {});
+      setCapPgT(d && d.pg != null ? d.pg : (gd && gd.pg != null ? gd.pg : (s.planGen || 0)));   /* FIX split-1 (P0-3) — a resumed draft restores ITS captured generation */
     } catch (e) {}
   }, [dateSel]);
   useEffect(() => {
-    try { localStorage.setItem(draftKey, JSON.stringify({ reps, rir, rirEnd, skipped, note, nig, pace })); } catch (e) {}
-  }, [reps, rir, rirEnd, skipped, note, nig, pace, draftKey]);
+    try { localStorage.setItem(draftKey, JSON.stringify({ reps, rir, rirEnd, skipped, note, nig, pace, wIn, pg: capPgT, ids: sess && sess.ex ? sess.ex.map((x9) => x9.id) : undefined })); } catch (e) {}   /* FIX split-1 (P0-3) — the draft carries its plan generation and its frozen ordered ids */
+  }, [reps, rir, rirEnd, skipped, note, nig, pace, wIn, capPgT, draftKey]);
   const [recap, setRecap] = useState(null);
   const [boosted, setBoosted] = useState(false);
   const hackPending = s.queue.some((q) => q.id === "q_hack3" && !q.done);
@@ -14795,10 +14985,10 @@ function LogTab({ s, setS, save, slp }) {
       const gd = JSON.parse(localStorage.getItem("prep-ledger-gymdraft-" + dateSel) || "null");
       if (gd) fin = mergeSessionDrafts(sess && sess.ex, { reps, rir, rirEnd, skipped }, gd, { final: true }).skipped;
     } catch (e) {}
-    const entries = sess.ex.filter((ex) => !fin[ex.id]).map((ex) => ({ id: ex.id, n: ex.n, w: ex.w, tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null, rirEnd: rirEnd[ex.id] ?? null }));
+    const entries = sess.ex.filter((ex) => !fin[ex.id]).map((ex) => ({ id: ex.id, n: ex.n, w: (typeof ex.w !== "number" && wIn[ex.id] != null && Number(wIn[ex.id]) > 0 ? Number(wIn[ex.id]) : ex.w), tgt: ex.tgt, reps: getReps(ex), isDebutNow: ex.isDebutNow, rir: rir[ex.id] ?? null, rirEnd: rirEnd[ex.id] ?? null }));   /* FIX split-1 (P0-2) — the typed debut load rides the entry; adoption fires in completeSession */
     const skippedList = sess.ex.filter((ex) => fin[ex.id]).map((ex) => ({ id: ex.id }));
-    const { s: ns, lines } = completeSession(s, fileISO, entries, slp, { note: note.trim(), niggles: nig, skipped: skippedList, pace });
-    setS(ns); save(ns); setRecap(lines); setBoosted(false); setReps({}); setRir({}); setRirEnd({}); setNote(""); setNig([]); setSkipped({}); setPace(null); try { localStorage.removeItem(draftKey); } catch (e) {}
+    const { s: ns, lines } = completeSession(s, fileISO, entries, slp, { note: note.trim(), niggles: nig, skipped: skippedList, pace, pg: capPgT });   /* FIX split-1 (P0-3) — the completion carries the CAPTURED generation */
+    setS(ns); save(ns); setRecap(lines); setBoosted(false); setReps({}); setRir({}); setRirEnd({}); setNote(""); setNig([]); setSkipped({}); setPace(null); setWIn({}); setCapPgT((ns.planGen || 0)); try { localStorage.removeItem(draftKey); } catch (e) {}
   };
 
   return (
@@ -14840,7 +15030,11 @@ function LogTab({ s, setS, save, slp }) {
            restore + resumePhase wiring runs on EVERY door — launcher and chip alike). */
         const live9 = findGymDraft(s);
         const gDate = live9 ? live9.iso : dateSel;
-        const gSess = (live9 && live9.iso !== dateSel ? genSession(s, live9.iso, slp) : sess) || sess;   /* v7.40.1 — R14: the tap may never mount NOTHING; an unresolvable draft date falls back to today's session */
+        const gSess = (() => {
+          const base9 = (live9 && live9.iso !== dateSel ? genSession(s, live9.iso, slp) : sess) || sess;   /* v7.40.1 — R14: the tap may never mount NOTHING; an unresolvable draft date falls back to today's session */
+          /* FIX split-1 (P0-3) — resume mounts the DRAFT'S frozen template */
+          return sessionFromDraft(s, live9 && live9.iso, slp, live9 && live9.dr, base9);
+        })();
         return gSess ? <GymMode s={s} setS={setS} save={save} slp={slp} sess={gSess} dateSel={gDate === dateSel ? fileISO : gDate} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} /> : null;
       })()}
       {sess && !s.sessionLog[dateSel] && (
@@ -15091,7 +15285,7 @@ function LogTab({ s, setS, save, slp }) {
                   style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: SP.sm, width: "100%", textAlign: "left", background: "none", border: "none", borderTop: i2 ? `1px solid ${T.hairline}` : "none", padding: `${SP.sm}px 0`, minHeight: 44, cursor: "pointer", opacity: skipped[ex.id] ? 0.45 : 1 }}>
                   <span style={{ minWidth: 0 }}>
                     <span style={{ fontFamily: lbl, fontWeight: 600, fontSize: TS.label, color: T.chalk, textTransform: "uppercase", letterSpacing: "0.04em" }}>{ex.n}</span>
-                    <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 2 }}>{ex.w} · target {ex.tgt.join(",")}</span>
+                    <span style={{ display: "block", fontFamily: mono, fontSize: TS.micro, color: T.steel, marginTop: 2 }}>{ex.baselineAsk ? "first session — enter the load used · zero expectations, everything banks" : ex.w + " · target " + ex.tgt.join(",")}</span>
                   </span>
                   <span style={{ display: "flex", alignItems: "center", gap: SP.xs, flexShrink: 0 }}>
                     {lc.verdict && !(lc.verdict === "PUSH" && !(lc.vel < -0.2)) ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: vc, whiteSpace: "nowrap" }}>{arrow} {lc.verdict}</span> : (typeof ex.w === "number" && nextLoad(ex) != null ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.dim, whiteSpace: "nowrap" }}>→ {nextLoad(ex)}</span> : null)}   {/* A6 — exceptions speak; a routine PUSH shows the next load on file instead */}
@@ -15209,7 +15403,7 @@ function LogTab({ s, setS, save, slp }) {
                 ) : (
                   <span onClick={() => { setWEdit(ex.id); /* was 180 — an authored default with nothing to do with the lift being edited: tapping it on the hanging raise ("BW") proposed 180 lb. There is no honest default for a non-numeric weight, so it opens at nothing rather than at a number the app made up. See [needs Joe] Q2·F. */ setWVal(typeof ex.w === "number" ? ex.w : 0); }} style={{ cursor: "pointer", color: typeof ex.w === "number" ? T.steel : T.brass }}>{typeof ex.w === "number" ? ex.w : "set weight"} ✎</span>
                 )}
-                <span>· tgt {ex.tgt.join(",")}</span>
+                <span>· tgt {ex.baselineAsk ? "open — banks what it gives" : ex.tgt.join(",")}</span>
                 <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, width: "100%" }}>
                   <Term k="rest" c={T.steel}>REST</Term> · {restLine(ex.id, ex.tgt.length)}
                 </span>
@@ -15268,6 +15462,17 @@ function LogTab({ s, setS, save, slp }) {
               {ex.runway && (
                 <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, marginTop: 4, lineHeight: 1.55 }}>RUNWAY ▸ {ex.runway}</div>
               )}
+            </div>
+          )}
+          {typeof ex.w !== "number" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+              {/* FIX split-1 (P0-2) — the load entry, in the manual mode too: 16px input (iOS zoom law) */}
+              <span style={{ fontFamily: mono, fontSize: TS.label, color: T.brass }}>LOAD USED (LB)</span>
+              <input value={wIn[ex.id] ?? ""} inputMode="decimal" aria-label="load used"
+                onChange={(e9) => setWIn({ ...wIn, [ex.id]: e9.target.value })}
+                onBlur={(e9) => { const v9 = stepValue(e9.target.value, 0, 1, 0); setWIn({ ...wIn, [ex.id]: v9 || "" }); }}
+                style={{ fontFamily: mono, fontSize: 16, color: T.chalk, background: "none", border: "none", borderBottom: `1px dashed ${T.line}`, width: 64, textAlign: "center", padding: 0 }} />
+              <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>first completed load becomes the working weight — logged, stamped, adopted</span>
             </div>
           )}
           <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
@@ -16698,7 +16903,14 @@ function findGymDraft(s9) {
         if (d && s9) {
           const iso0 = key.slice("prep-ledger-gymdraft-".length);
           const ids0 = Object.keys(d.reps || {});
-          const tpl0 = (() => { try { const g0 = genSession(s9, iso0); return g0 && g0.ex ? g0.ex.map((x) => x.id) : []; } catch (e) { return []; } })();
+          /* FIX split-1 (P0-3) — a frozen-contract draft validates against ITS
+             OWN captured ids: a captured pronated (any pre-51 order) resolves
+             from the preserved record and is never orphan-quarantined for
+             mismatching a template it predates. Only a legacy pre-contract
+             draft falls back to the live template. */
+          const tpl0 = Array.isArray(d.ids) && d.ids.length
+            ? d.ids.filter((id9) => ((s9 && s9.exercises) || []).some((x9) => x9 && x9.id === id9))
+            : (() => { try { const g0 = genSession(s9, iso0); return g0 && g0.ex ? g0.ex.map((x) => x.id) : []; } catch (e) { return []; } })();
           if (ids0.length && ids0.some((x) => tpl0.indexOf(x) < 0)) {
             try { localStorage.setItem("prep-ledger-gymdraft-orphan-" + iso0, JSON.stringify(d)); localStorage.removeItem(key); } catch (e) {}
             continue;
@@ -16780,10 +16992,11 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
      compressed. See PACE_NOTE for why the threshold is coarse: the evidence
      resolves "under about a minute" versus "not", and nothing finer. */
   const [rests, setRests] = useState({ n: 0, cut: 0 });
+  const [capPg, setCapPg] = useState(() => (s.planGen || 0));   /* FIX split-1 (P0-3) — frozen at capture; a resumed draft restores ITS generation */
   const [whyOpen9, setWhyOpen9] = useState(false);   /* M4 — the receipt stack's one disclosure */
   const gymKey = "prep-ledger-gymdraft-" + dateSel;
   useEffect(() => {
-    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { if (d.idx != null && sess && sess.ex && d.idx >= sess.ex.length) d.idx = Math.max(0, sess.ex.length - 1);   /* H1 */ setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.touched) setTouched(d.touched);   /* absent on a pre-TOUCH draft -> gymEntries falls back to gskip alone */ setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen);
+    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { if (d.idx != null && sess && sess.ex && d.idx >= sess.ex.length) d.idx = Math.max(0, sess.ex.length - 1);   /* H1 */ setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.touched) setTouched(d.touched);   /* absent on a pre-TOUCH draft -> gymEntries falls back to gskip alone */ setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen); if (d.pg != null) setCapPg(d.pg); if (d.wOver) setWOver(d.wOver);   /* FIX split-1 (P0-3/P0-2) — the captured generation and the typed debut load both survive a mid-session close */
       /* S4 — re-entry lands exactly where he left, through the resume law: mid-rest at the
          TRUE remaining; a stale ask auto-skips to null with the record showing unrecorded. */
       const rp9 = resumePhase(d, Date.now());
@@ -16792,8 +17005,8 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
     } } catch (e) {}
   }, []);
   useEffect(() => {
-    try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, rirEnd, gskip, touched, rests, idx, setN, restStart, restLen, phase })); } catch (e) {}
-  }, [reps, rir, rirEnd, gskip, rests, idx, setN, gymKey, phase]);
+    try { localStorage.setItem(gymKey, JSON.stringify({ reps, rir, rirEnd, gskip, touched, rests, idx, setN, restStart, restLen, phase, wOver, pg: capPg, ids: sess && sess.ex ? sess.ex.map((x9) => x9.id) : undefined })); } catch (e) {}   /* FIX split-1 (P0-3) — generation + frozen ids ride the draft */
+  }, [reps, rir, rirEnd, gskip, rests, idx, setN, gymKey, phase, wOver, capPg]);
   /* F1 — THE DOCUMENT SCROLL-LOCK (the modal pattern). The gym frame was overflow-hidden
      but the PAGE BEHIND it kept its 1772px of scroll — html/body read overflow-y auto and
      the wheel still moved scrollY under the overlay. Lock both while mounted, restore
@@ -16915,7 +17128,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
     const pace = rests.n >= 3 ? (rests.cut / rests.n >= 0.5 ? PACE.rushed : PACE.normal) : null;
     /* CAGE — the override rides into the record: reality outranks the filed ladder */
     split.entries = split.entries.map((e9) => (wOver[e9.id] != null && Number(wOver[e9.id]) > 0 && Number(wOver[e9.id]) !== Number(e9.w) ? { ...e9, w: Number(wOver[e9.id]) } : e9));
-    const { s: ns, lines } = completeSession(s, dateSel, split.entries, slp, { note: gNote.trim(), niggles: gNig, skipped: split.skipped, pace });
+    const { s: ns, lines } = completeSession(s, dateSel, split.entries, slp, { note: gNote.trim(), niggles: gNig, skipped: split.skipped, pace, pg: capPg });   /* FIX split-1 (P0-3) — the completion carries the CAPTURED generation */
     setS(ns); save(ns); onClose(lines);   // the WHAT MOVED recap was thrown away on the path Joe actually uses
   };
   const big = { fontFamily: mono, fontWeight: 800, letterSpacing: "-0.02em" };
@@ -17108,7 +17321,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
                     onChange={(e) => setWOver({ ...wOver, [ex.id]: e.target.value })}
                     onBlur={(e) => { let v9 = stepValue(e.target.value, 0, 1, 0); if (v9 !== 0 && typoKeep("weight", v9) === "abort") v9 = 0; setWOver({ ...wOver, [ex.id]: v9 === 0 ? ex.w : v9 }); markAdj(ex.id, 0); }}
                     style={{ ...tnum, fontSize: 14, color: Number(wOver[ex.id] ?? ex.w) === Number(ex.w) ? DT.steel : DT.amber, background: "none", border: "none", borderBottom: "1px dashed " + DT.hairline2, width: 56, padding: 0 }} />
-                  <span>LB{Number(wOver[ex.id] ?? ex.w) !== Number(ex.w) ? " — off-plan, logs as lifted" : ""}</span>
+                  <span>LB{ex.w == null ? (wOver[ex.id] != null && wOver[ex.id] !== "" && Number(wOver[ex.id]) > 0 ? " — first load, adopts on finish" : " — first session: enter the load you used") : (Number(wOver[ex.id] ?? ex.w) !== Number(ex.w) ? " — off-plan, logs as lifted" : "")}</span>
                 </>
               ) : ex.w}
               {ex.isDebutNow ? " · FIRST RUN — log what it gives" : ""}
