@@ -279,7 +279,7 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         const old = clone(SEED); delete old.skinfolds; old.v = 38;
         const up = __test.migrate(JSON.parse(JSON.stringify(old)));
         ok(Array.isArray(up.skinfolds) && up.skinfolds.length === 0, "R5 migration — patchV39 adds s.skinfolds = [] and nothing was there to restate");
-        ok(up.v === 48, "R5 migration — and bumps to 48 (v46 the dedupe · v47 the A/B retirement · v48 the cue bundle: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
+        ok(up.v === __test.SCHEMA_V, "R5 migration — and bumps to the chain top (v46 the dedupe · v47 the A/B retirement · v48 the cue bundle · v49 the baseline forks: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
                 ok(Array.isArray(up.split) && up.split.length === 1 && up.split[0].from === "2026-08-09" && up.split[0].map[0] === "U" && up.split[0].map[1] === "L" && up.split[0].map[4] === "U" && up.split[0].map[5] === "L" && up.split[0].map[3] === "REST", "R19c migration — patchV40 seeds the athlete-stated split, DATED from the day he said it: Sun U · Mon L · Thu U · Fri L, rest elsewhere");
         /* byte-identity is the wrong invariant: migrate() replays the WHOLE patch chain, so
            other idempotent patches legitimately touch the state. The invariant that matters
@@ -5574,7 +5574,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 48, "schema: SCHEMA_V is 48 (patchV48: the cue bundle — the deliberate census pin; bumping SCHEMA_V must touch this line)");
+  ok(SC === 49, "schema: SCHEMA_V is 49 (patchV49: the baseline forks — the deliberate census pin; bumping SCHEMA_V must touch this line)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
   ok(migd.v === SC && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
@@ -5876,7 +5876,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 48, "schema: SCHEMA_V is 48 (patchV48 on top of the chain — the second deliberate census pin)");
+  ok(__test.SCHEMA_V === 49, "schema: SCHEMA_V is 49 (patchV49 on top of the chain — the second deliberate census pin)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
@@ -8813,17 +8813,24 @@ if (fail) process.exit(1);
        drip remain the unruled sentinels — no patch in any window touches them */
     ok(exS.inc === 3.25,
       "E1 — the SENTINEL inc (3.25, nowhere in SEED) survives the bump: no ruled patch touches inc, so any change here is a phantom");
-    /* v7.53.0 — the byte-identity claim EVOLVES: patchV48 is a RULED setup
-       rewrite, so the honest assertion is that every setup lands on the ruled
-       text — which is SEED's text, because seed and patch are authored from the
-       same ruling. This is also the seed-agreement check the schema ritual
-       demands, run on every gate: if the patch map and the literal ever drift,
-       this fails. An UNRULED overwrite still fails it, because it would not
-       match SEED either. */
-    ok(out.exercises.every((x) => { const se9 = __test.SEED.exercises.find((y) => y.id === x.id); return !se9 || (x.setup === se9.setup && x.n === se9.n); }),
-      "E1 (v7.53.0) — through the bump, every setup and name lands on exactly the RULED text (=== SEED's authoring): patch map and seed literal agree, and nothing unruled touched them");
-    ok(out.exercises.every((x) => { const se9 = __test.SEED.exercises.find((y) => y.id === x.id); return !se9 || x.setupAt === "2026-08-13T12:00:00.000Z"; }),
-      "E1 (v7.53.0) — and every ruled rewrite carries the fixed adoption stamp, so a stale device's old cue loses the merge from both orders");
+    /* v7.53.0 — the one-below window now contains only V49 (the forks), which
+       touches NO setup: the sentinel must SURVIVE — the original E1 spirit,
+       restored by the chain moving on. The V48 rewrite + seed agreement get
+       their own deeper fixture below. */
+    const exSen = out.exercises.find((x) => x.id === ex0.id);
+    ok(exSen.setup === "E1-SENTINEL-SETUP · athlete-calibrated, appears nowhere else",
+      "E1 — the SENTINEL setup survives the one-below bump: no patch in the window touches setup, so any change is a phantom");
+    /* the deeper fixture: drop below V48 so the RULED rewrite runs */
+    {
+      const deep9 = clP(ns); deep9.v = 47;
+      const dOut = __test.migrate(clP(deep9));
+      ok(dOut.exercises.every((x) => { const se9 = __test.SEED.exercises.find((y) => y.id === x.id); return !se9 || (x.setup === se9.setup && x.n === se9.n); }),
+        "E1 (v7.53.0) — a bump crossing V48 lands every setup and name on exactly the RULED text (=== SEED's authoring): patch map and seed literal agree, and even the sentinel yields to the ruling");
+      ok(dOut.exercises.every((x) => { const se9 = __test.SEED.exercises.find((y) => y.id === x.id); return !se9 || x.setupAt === "2026-08-13T12:00:00.000Z"; }),
+        "E1 (v7.53.0) — and every ruled rewrite carries the fixed adoption stamp, so a stale device's old cue loses the merge from both orders");
+      ok(["pulldown", "rows", "calves"].every((id9) => { const e9 = dOut.exercises.find((y) => y.id === id9); return e9 && e9.fork && e9.fork.from === "2026-08-13"; }),
+        "E1 (v7.53.0) — and V49's forks land on exactly the three lifts whose technique actually changed (hooks x2, the 2s pause), dated the adoption");
+    }
     ok(out.model.drip === dripBefore && out.model.drip === 0.31,
       "E1 — the SENTINEL drip (0.31 — a future measured value, exactly what the old runner zeroed) is untouched by the bump");
   }
@@ -8944,6 +8951,51 @@ if (fail) process.exit(1);
   /* the scan must actually SEE the one live mutator, or it is scanning nothing */
   ok(srcD.indexOf("ex5.inc = jz; ex5.incAt = new Date().toISOString();") > -1,
     "FIX 2a item 6 — and the scan's one live subject exists: the jump-size chip stamps on the same line (delete that mutator and this pin forces the scan's coverage question to be re-asked)");
+}
+/* ============================================================================
+   v7.53.0 — THE FORK ACCEPTANCE (A3/R1/R2/R3), under ruling (b): era-aware.
+   ============================================================================ */
+{
+  const clF = (x) => JSON.parse(JSON.stringify(x));
+  /* Sol's fork test 1 — the closed fingerprint's HISTORY is byte-identical:
+     forking is scope, never deletion. */
+  const sF = clF(__test.SEED);
+  sF.v = 48;
+  const dPre = "2026-08-01";
+  sF.sessionLog[dPre] = { entries: [{ id: "rows", reps: [10, 10], w: 175, rir: 1 }], at: 1 };
+  const logBefore = JSON.stringify(sF.sessionLog);
+  const oF = __test.migrate(clF(sF));
+  ok(JSON.stringify(oF.sessionLog) === logBefore,
+    "FORK — the closed fingerprint's history is BYTE-IDENTICAL through the fork: scope moved, nothing was deleted");
+  /* test 2 — the new baseline starts EMPTY: at a post-fork query date the old
+     era's sessions do not feed the trend... */
+  ok(__test.forkFrom(oF, "rows") === "2026-08-13",
+    "FORK — rows carries the adoption fork");
+  /* ...and test 3 — ERA-AWARENESS (ruling b): the SAME state, queried at a
+     pre-fork date, still reads the old era — the dayType precedent at the lift
+     instruments. The suite's own pinned clock (2026-07-29, before the adoption)
+     is the standing proof: every pre-fork fixture in this file reads its own
+     era with NO special-casing, and the 17 words-identity pins above re-read
+     historical debriefs against the era each session was performed in. */
+  const teOld = __test.typicalError(oF, "rows", "2026-08-05");
+  const teNew = __test.typicalError(oF, "rows", "2026-08-20");
+  ok((teOld.n || 0) >= (teNew.n || 0),
+    "FORK (b) — a pre-fork query sees at least as many of this lift's own pairs as a post-fork query: the old era stays readable AT ITS OWN DATES while the new baseline accrues from zero");
+  /* the banner's counter */
+  ok(__test.forkExposures(oF, "rows") === 0,
+    "FORK — zero exposures at the fork: the four-session banner starts at session 1 of 4");
+  const sX = clF(oF); sX.sessionLog["2026-08-14"] = { entries: [{ id: "rows", reps: [10, 10], w: 175, rir: 1 }], at: 1 };
+  ok(__test.forkExposures(sX, "rows") === 1 && __test.forkExposures(sX, "press") === null,
+    "FORK — exposures count new-era sessions on the forked lift only; an unforked lift returns null and renders no banner");
+  /* R3 — the calibration blocker's arithmetic */
+  ok(__test.pinsUnfilled({ setup: "SET · grip [PIN] · pad [PIN]\ncue" }) === 2 && __test.pinsUnfilled({ setup: "SET · seat 4\ncue" }) === 0,
+    "R3 — pinsUnfilled counts exactly the unfilled [PIN]s; a fully pinned cue reads calibrated");
+  ok(__test.SEED.exercises.filter((e) => __test.pinsUnfilled(e) > 0).length >= 8,
+    "R3 — the blocker has real work on day one: the rewritten cues carry [PIN]s Joe fills at the machines, and until he does those lifts cannot read calibrated");
+  /* the armed insertion table stays ARMED, not fired: no fly, no hipthrust */
+  ok(!oF.exercises.some((e) => e.id === "fly" || e.id === "hipthrust")
+     && !oF.exercises.some((e) => e.fork && /inserted upstream/.test(e.fork.why)),
+    "A3 — the insertion table is armed and UNFIRED: forking on a change that has not happened would archive history against nothing");
 }
 console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

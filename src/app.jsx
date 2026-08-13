@@ -354,13 +354,13 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.52.0";
+const APP_V = "7.53.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 48;
+const SCHEMA_V = 49;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -510,6 +510,12 @@ const SEED = {
      under the v7.52.0 merge discipline, and the seed carries the SAME fixed
      stamp patchV48 writes, so a fresh install and a migrated state agree. */
   SEED.exercises.forEach((e0) => { e0.setupAt = "2026-08-13T12:00:00.000Z"; });   /* seed-authored — the fixed cue-adoption stamp */
+  /* v7.53.0 — the two technique changes that are REAL today fork their lifts:
+     hooks standardize on both pulls (R1) and the calf pause changes 5s → 2s
+     (R2). A word rewrite is not a technique change; these two are. */
+  [["pulldown", "hooks standardized"], ["rows", "hooks standardized"], ["calves", "2 s pause replaces 5 s"]].forEach(([id0, why0]) => {
+    const e0 = SEED.exercises.find((x) => x.id === id0); if (e0) e0.fork = { from: "2026-08-13", why: why0 };
+  });
   /* v43 — the seed is authored already-current: hack carries the 6-10 ruling */
   { const hk0 = SEED.exercises.find((x) => x.id === "hack"); if (hk0) hk0.hi = 10; }   /* seed-authored — unstamped by design */
   /* v45 — the seed carries the calves/rows ruling too */
@@ -1424,10 +1430,43 @@ function terminalRir(en) { const a = rirSetsOf(en); return a.length ? a[a.length
    only published precedent for this decision and carries no readiness
    qualifier of any kind. */
 const PUBLISHED_SET_SEM = 0.9;
-function typicalError(s, exId) {
+/* v7.53.0 — a lift's fork date, or null. One slot: the LATEST technique change
+   wins; everything before it is the old regime, retained, never compared. */
+function forkFrom(s, exId) {
+  try { const e9 = ((s && s.exercises) || []).find((x) => x && x.id === exId); return e9 && e9.fork && e9.fork.from ? e9.fork.from : null; } catch (e) { return null; }
+}
+/* v7.53.0 (b) — is a session dated d in the SAME era as the query date at?
+   No fork → always yes. With a fork: both before it, or both at/after it. */
+function sameEra(fk, d, at) {
+  if (!fk) return true;
+  return at < fk ? d < fk : d >= fk;
+}
+/* v7.53.0 R3 — unfilled machine pins in a lift's cue. While any remain, the
+   lift cannot read calibrated: the cue names a setting nobody has pinned. */
+function pinsUnfilled(ex) {
+  try { return ((ex && ex.setup ? String(ex.setup).match(/\[PIN\]/g) : null) || []).length; } catch (e) { return 0; }
+}
+/* v7.53.0 A3 — sessions on this lift since its fork: the banner's n of 4. */
+function forkExposures(s, exId) {
+  const from = forkFrom(s, exId);
+  if (!from) return null;
+  let n = 0;
+  for (const d of Object.keys((s && s.sessionLog) || {})) {
+    if (d >= from && (((s.sessionLog[d] || {}).entries) || []).some((e) => e && e.id === exId)) n++;
+  }
+  return n;
+}
+function typicalError(s, exId, asOf) {
   const byId = {};
+  const at9 = asOf || isoOf(todayStart());   /* v7.53.0 (b) — no date means "now", and now belongs to whichever era today is in */
+  const fkCache = {};
+  const fkOf = (id9) => (id9 in fkCache ? fkCache[id9] : (fkCache[id9] = forkFrom(s, id9)));
   Object.keys((s && s.sessionLog) || {}).sort().forEach((d) =>
-    ((s.sessionLog[d] || {}).entries || []).forEach((e) => { if (e && e.reps && e.reps.length) (byId[e.id] = byId[e.id] || []).push(e); }));
+    ((s.sessionLog[d] || {}).entries || []).forEach((e) => {
+      if (!(e && e.reps && e.reps.length)) return;
+      if (!sameEra(fkOf(e.id), d, at9)) return;   /* v7.53.0 (b) — pairs from a different technique era are a different lift's noise */
+      (byId[e.id] = byId[e.id] || []).push(e);
+    }));
   const pooled = [], mine = [];
   Object.keys(byId).forEach((id) => {
     const rs = byId[id];
@@ -2093,8 +2132,11 @@ function liftTrend(s, exId, opts) {
   const minN = (opts && opts.minN) || TREND_MIN_SESSIONS;
   const log = (s && s.sessionLog) || {};
   const days = Object.keys(log).sort();
+  const fkT = forkFrom(s, exId);
+  const atT = (opts && opts.asOf) || isoOf(todayStart());   /* v7.53.0 (b) — era-aware: the trend reads the regime containing the query date */
   const pts = [];
   for (const d of days) {
+    if (!sameEra(fkT, d, atT)) continue;
     const rec = log[d] || {};
     const en = (rec.entries || []).find((e) => e && e.id === exId);
     if (!en) continue;
@@ -5387,7 +5429,7 @@ function sessionDebrief(s, iso) {
              standard errors banks on the spot; one inside it waits for a repeat.
              Sleep is not part of this sentence any more — see NOISE_NOTE. */
           const prev9 = allTots.slice(0, -1);
-          const te9 = typicalError(s, e.id);
+          const te9 = typicalError(s, e.id, iso);   /* v7.53.0 (b) — a debrief re-reads its session against the era that session was performed in */
           /* P3 — unified with beatsNoise: the difference carries both sessions' error
              (the dead bn9 mis-scaled call is gone) */
           banked = !!(prev9.length && tot - Math.max(...prev9) >= 2 * Math.SQRT2 * te9.reps * Math.sqrt(Math.max(1, reps.length)));
@@ -8475,6 +8517,30 @@ function runAdaptive(state, todayISO, raOpts) {
     });
   }
 
+  /* ---------- v7.53.0 A3 — THE INSERTION FORK TABLE, ARMED ----------
+     Sol's fork table, build-ready: inserting a new lift into a session changes
+     the fatigue context of every lift after it, so the affected lifts' baselines
+     fork WHEN THE INSERTION HAPPENS — not before. Idempotent: each fork applies
+     once per insertion (keyed on the why), and a lift already forked by a LATER
+     event is left alone (one slot, latest wins). No causal language anywhere:
+     the banner says the context changed, not what it did. */
+  {
+    const INSERTION_FORKS = [
+      ["fly", ["rearDelt", "curl", "tricep", "sulek", "pulldown", "rows"], "fly inserted upstream"],
+      ["hipthrust", ["extension", "ham", "abs", "hanging", "calves"], "hip thrust inserted upstream"],
+    ];
+    for (const [newId, affected, why9] of INSERTION_FORKS) {
+      if (!(s.exercises || []).some((x) => x && x.id === newId)) continue;
+      for (const affId of affected) {
+        const e9 = (s.exercises || []).find((x) => x && x.id === affId);
+        if (!e9) continue;
+        if (e9.fork && (e9.fork.why === why9 || e9.fork.from >= todayISO)) continue;
+        e9.fork = { from: todayISO, why: why9 };
+        s.feed.unshift({ d: todayISO, t: e9.n.toUpperCase() + " — FRESH BASELINE", how: "The " + (newId === "fly" ? "machine fly" : "hip thrust") + " entered the programme ahead of this lift, so its context changed. History stays on the record under the old setup; the instruments start a fresh four-session baseline rather than comparing across the change." });
+      }
+    }
+  }
+
   /* ---------- v7.53.0 JOB 1 — THE FAILURE A/B PROPOSER LIVED HERE ----------
      Removed with the experiment (Joe's retirement ruling, zero sessions logged).
      patchV47 withdraws the pending consent card and disarms any approved trial;
@@ -9514,6 +9580,19 @@ function patchV45(s) {
   rule45("rows", 10, 9);
   s.v = 45; return s;
 }
+function patchV49(s) {
+  /* v7.53.0 — THE BASELINE FORKS (R1 + R2). Only the technique changes that are
+     real TODAY fork: hooks on both pulls, the 2s calf pause. The A3 insertion
+     table (fly / hip thrust) is ARMED in runAdaptive and fires when those lifts
+     actually enter the programme — forking on a change that has not happened
+     would archive history against nothing. History before the fork is retained,
+     never deleted; the instruments simply stop comparing across the seam. */
+  [["pulldown", "hooks standardized"], ["rows", "hooks standardized"], ["calves", "2 s pause replaces 5 s"]].forEach(([id9, why9]) => {
+    const e = (s.exercises || []).find((x) => x && x.id === id9);
+    if (e && !e.fork) e.fork = { from: "2026-08-13", why: why9 };
+  });
+  s.v = 49; return s;
+}
 function patchV48(s) {
   /* v7.53.0 JOB 2 — THE WORD BUNDLE reaches migrated states. SELF-CONTAINED on
      purpose: the first cut copied from module-level SEED, and SEED is a MUTABLE
@@ -9621,7 +9700,7 @@ function patchV38(s) {
    defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
    no longer as the only wall between a bump and his history. The gate asserts the
    pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
-const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48]];
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -9737,7 +9816,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { PATCHES, SCHEMA_V, applyAgentProposal, mergeState, ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, stepValue, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { PATCHES, SCHEMA_V, applyAgentProposal, mergeState, forkFrom, pinsUnfilled, forkExposures, ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, stepValue, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -14774,6 +14853,16 @@ function LogTab({ s, setS, save, slp }) {
             </div>
           )}
           {ex.note && <div style={{ fontFamily: mono, fontSize: TS.label, color: ex.isDebutNow || (ex.note || "").startsWith("OWN") ? T.orange : T.steel, marginTop: 3, letterSpacing: "0.04em" }}>{ex.note}</div>}
+          {/* v7.53.0 A3 — the fresh-baseline banner: temporary by construction
+              (renders only while exposures < 4), no causal language — it says
+              the context changed, never what the change did. */}
+          {(() => { try { const fx9 = (s.exercises || []).find((x9) => x9.id === ex.id); if (!fx9 || !fx9.fork) return null; const n9 = forkExposures(s, ex.id); if (n9 == null || n9 >= 4) return null;
+            return <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: 6, lineHeight: `${LH.micro}px` }}>NEW BASELINE — {fx9.fork.why} · session {Math.min(n9 + 1, 4)} of 4 · history stays on the record under the old setup</div>; } catch (e9) { return null; } })()}
+          {/* v7.53.0 R3 — the calibration blocker: while any [PIN] is unfilled
+              this lift cannot read calibrated — the cue names a setting nobody
+              has pinned. It never blocks logging; it blocks the CLAIM. */}
+          {(() => { try { const p9 = pinsUnfilled((s.exercises || []).find((x9) => x9.id === ex.id)); if (!p9) return null;
+            return <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.orange, marginTop: 5, lineHeight: `${LH.micro}px` }}>CALIBRATION INCOMPLETE — {p9} setting{p9 === 1 ? "" : "s"} to pin at the machine before this lift's numbers are comparable</div>; } catch (e9) { return null; } })()}
           {ex.setup && (
             <div style={{ marginTop: 7 }}>
               <button onClick={() => setShowSetup({ ...showSetup, [ex.id]: !showSetup[ex.id] })}
@@ -15977,6 +16066,26 @@ const COMPOUND_IDS = ["press", "row", "hack", "rdl", "pull", "bench", "dip", "sq
    the most. It is a small, cheap, reversible bet — not a finding. */
 const REST_BASE = { compound: 150, isolation: 90 };
 const REST_TERMINAL_BUMP = 30;
+/* v7.53.0 R2 — the 2-second pause clock, timed by gym mode. Tap starts a 2.0s
+   countdown at 100ms ticks; it renders the remaining time and re-arms on
+   finish. Deliberately dumb: no state written, no rep counted — it is a
+   metronome for the hold, not a judge of it. */
+function PauseChip() {
+  const [left, setLeft] = React.useState(null);
+  React.useEffect(() => {
+    if (left == null || left <= 0) return;
+    const t9 = setTimeout(() => setLeft(+(left - 0.1).toFixed(1)), 100);
+    return () => clearTimeout(t9);
+  }, [left]);
+  const running = left != null && left > 0;
+  return (
+    <button type="button" onClick={() => { try { hap(6); } catch (e) {} setLeft(2.0); }}
+      aria-label="Time the 2 second pause"
+      style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: 44, marginTop: 6, padding: "0 14px", background: running ? DT.card2 : "none", border: "1px solid " + DT.hairline, borderRadius: 8, fontFamily: mono, fontSize: TS.label, color: running ? DT.amber : T.gauge, cursor: "pointer" }}>
+      {running ? "HOLD · " + left.toFixed(1) + " s" : left === 0 ? "✓ 2 s — tap to re-time" : "⏱ time the 2 s pause"}
+    </button>
+  );
+}
 function restFor(exId, nextSetIdx, nSets) {
   const base = COMPOUND_IDS.some((c) => String(exId).indexOf(c) === 0) ? REST_BASE.compound : REST_BASE.isolation;
   const isBeforeTerminal = nSets != null && nextSetIdx != null && nSets >= 2 && nextSetIdx === nSets - 1;
@@ -16646,6 +16755,12 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             {/* R18a fix D3 — the runway rides gym mode too: the same engine words, under the live line */}
             {ex.runway ? <div style={{ fontFamily: mono, fontSize: 10.5, color: DT.steel, lineHeight: 1.5, marginTop: 5 }}>RUNWAY › {ex.runway}</div> : null}
             {ex.note ? <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, letterSpacing: "0.04em", marginTop: 6 }}>{ex.note}</div> : null}
+            {(() => { try { const p9 = pinsUnfilled((s.exercises || []).find((x9) => x9.id === ex.id)); if (!p9) return null;
+              return <div style={{ fontFamily: mono, fontSize: TS.micro, color: DT.amber, marginTop: 6 }}>CALIBRATION INCOMPLETE — {p9} [PIN]{p9 === 1 ? "" : "s"} to fill at the machine</div>; } catch (e9) { return null; } })()}
+            {/* v7.53.0 R2 — GYM MODE TIMES THE PAUSE: the 2 s anti-bounce hold is
+                part of what makes a calf rep a rep now, so the room that runs his
+                sets carries the clock for it. */}
+            {/pause 2 s/.test(ex.setup || "") && <PauseChip />}
             {ex.setup ? (
               <div style={{ marginTop: 8 }}>
                 <button onClick={() => setSetupOpen(!setupOpen)} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>{setupOpen ? "▾ setup" : "▸ setup"}</button>
