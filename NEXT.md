@@ -70,7 +70,17 @@ two rounds specced ahead of it. Cowork's amendment, verbatim:)*
    V46 feed dedupe + guard-block banner + thrown-getItem banner + corrupt-blob stash +
    hi/inc/setup merge stamps, root-caused to migrate() replaying the full chain with
    thirteen patches destructive against later state.
-2. **v7.53.0 — RETIREMENT + WORD BUNDLE** (owner-ruled R1–R4): retire the failure A/B cleanly, 14 rewritten SETUP cues + renames + THE READ corrections + hooks policy + 2s calf pause + baseline forks + the [PIN] calibration blocker. Builds only on merged v7.52.0. Cue texts: [docs/cue-texts-2026-08-12.md](docs/cue-texts-2026-08-12.md).
+2. **SHIPPED — v7.53.0 RETIREMENT + WORD BUNDLE** (merged 56c4e7c, live 2026-08-13;
+   base + fixes 3a–3d, cowork GREEN at fce45de). The A/B retired before it ran ·
+   the cue architecture law on all 15 setups + 6 renames · eras PLURAL with
+   era-truthful names (renames[] seams; the words fixture is the ORIGINAL again) ·
+   the era law through prescription AND earn (retirement, not evasion, of
+   prior-era standards) · calibration as transition state · "ever" era-bounded ·
+   superlatives out of every live generator · pauseSec structured · SCHEMA_V 50.
+   The original brief, for the record: retire the failure A/B cleanly, 14
+   rewritten SETUP cues + renames + THE READ corrections + hooks policy + 2s calf
+   pause + baseline forks + the [PIN] calibration blocker. Cue texts:
+   [docs/cue-texts-2026-08-12.md](docs/cue-texts-2026-08-12.md).
 3. **v7.54.0 — MOTION ROUND** (Sol-audited, cowork-adjudicated, Joe-ruled): every AGENT decision gets its promised one-tap undo (approve AND dismiss), per-species honest dismiss copy (the universal "Dismiss: nothing changes." is factually false), Section becomes a real keyboard control app-wide, **the FAB docks into the fixed-chrome band (Joe's ruling)**, the four quick-undo spans become real buttons, Escape closes the capture sheet, one back control per room. Absorbs and closes all four named motion items below.
 
 Do not start a QUEUED item without Joe's say-so.
