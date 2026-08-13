@@ -9094,5 +9094,38 @@ if (fail) process.exit(1);
   ok(__test.forkExposures(SP4, "rows") === 1,
     "3a item 4 — two sessions logged in-era but pre-calibration stay LOGGED and read provisional: only the post-calibration one counts toward comparable (calibration is state, not the absence of tokens)");
 }
+/* ==== FIX PACKAGE deltas: P1-5 acceptance, P1-4 label, P2-7 sweep, carry-check ==== */
+{
+  const clD = (x) => JSON.parse(JSON.stringify(x));
+  /* P1-5 acceptance — the FIRST new-era session's debrief carries NO old-era
+     comparison: prevD and allTots both stop at the seam. */
+  const SD5 = clD(__test.SEED);
+  const rx5 = SD5.exercises.find((x) => x.id === "rows");
+  rx5.forks = [{ from: "2026-08-13", why: "hooks standardized", prevN: "Rows (strapless)" }];
+  rx5.calibratedAt = "2026-08-13T12:00:00.000Z";
+  SD5.sessionLog = {};
+  SD5.sessionLog["2026-08-01"] = { entries: [{ id: "rows", reps: [12, 12], w: 175, rir: 1 }], at: 1 };   /* a BIG strapless total */
+  SD5.sessionLog["2026-08-14"] = { entries: [{ id: "rows", reps: [10, 10], w: 175, rir: 1 }], at: 1 };   /* the first hooked session, smaller */
+  const db5 = __test.sessionDebrief(SD5, "2026-08-14").lifts.find((l) => /row/i.test(l.n));
+  const all5 = JSON.stringify(db5);
+  ok(all5.indexOf("12,12") === -1 && all5.indexOf("24") === -1,
+    "P1-5 accept — the first hooked session's debrief carries NO strapless figure anywhere in its lines: nothing-to-compare is the honest read, not a comparison against the old era's 12,12");
+  /* P1-4 accept — logged-before-calibration label, and it names itself */
+  const SD4 = clD(SD5);
+  SD4.exercises.find((x) => x.id === "rows").calibratedAt = "2026-08-20T12:00:00.000Z";
+  const db4 = __test.sessionDebrief(SD4, "2026-08-14").lifts.find((l) => /row/i.test(l.n));
+  ok(db4 && (db4.lines || []).some((l9) => /Logged before calibration/.test(l9.t)),
+    "P1-4 accept — a new-era session logged before the pins were filled is retained AND labeled: kept on the record, counted as provisional, never silently comparable");
+  ok(!JSON.stringify(__test.sessionDebrief(SD5, "2026-08-14")).includes("Logged before calibration"),
+    "P1-4 accept — and a calibrated-era session carries NO such label: the label states a fact, not a fear");
+  /* P2-7 sweep — the ruled-cut phrases are extinct in template/render code */
+  const srcS = readFileSync("src/app.jsx", "utf8");
+  for (const phrase of ["largest training effect in anything", "largest single upgrade available", "IT IS THE BIGGEST ONE", "the most valuable thing in your training", "single largest effect anywhere"]) {
+    ok(srcS.indexOf(phrase) === -1, "P2-7 sweep — the ruled-cut superlative is extinct in live code: " + JSON.stringify(phrase) + " (dated feed rows on phones are era-frozen history and were never touched)");
+  }
+  /* CARRY-CHECK — the enumeration's one unfiltered reader, closed and pinned */
+  ok(srcS.indexOf('t3.declined ? (t3.retired ? "retired " + t3.retired : "declined") : "started "') > -1,
+    "CARRY — the analyst's trial dictionary names declined/retired trials as what they are instead of listing them as running (the census's one unfiltered reader, closed)");
+}
 console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
