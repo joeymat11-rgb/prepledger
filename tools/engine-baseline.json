@@ -2177,9 +2177,9 @@
      "exId": "curl"
     },
     "targetsFor": [
-     9,
-     8,
-     7
+     11,
+     11,
+     9
     ],
     "progressStep": {
      "add": 1,
@@ -5512,9 +5512,9 @@
      "exId": "curl"
     },
     "targetsFor": [
-     9,
-     8,
-     7
+     11,
+     10,
+     10
     ],
     "progressStep": {
      "add": 1,

@@ -1013,11 +1013,11 @@ console.log(`\nFINAL2: ${pass} passed, ${fail} failed`);
 const { genSession: gs3, SEED: S6, migrate: mg3 } = __test;
 ok(S6.v >= 5 && S6.exercises.some(e => e.id === "sulek") && S6.exercises.some(e => e.id === "hanging"), "Sulek + hanging raise now exist (the doc omitted them; the sheet didn't)");
 const uSess = gs3(clone(S6), "2026-07-23", slpClean);
-ok(uSess.ex[0].id === "lateral" && uSess.ex[uSess.ex.length - 1].id === "pronated", "upper runs lateral-first, pronated-last — the 7/20 gym order");
+ok(uSess.ex[0].id === "lateral" && uSess.ex[uSess.ex.length - 1].id === "sulek" && !uSess.ex.some((e) => e.id === "pronated"), "SPLIT — upper runs the RULED order: lateral first, sulek last, pronated retired out of the pool (the 7/20 gym order was superseded by the 8/12 split ruling)");
 const lSess = gs3(clone(S6), "2026-07-24", slpClean);
-ok(lSess.ex.map(e => e.id).join(",") === "calves,abs,hanging,hack,extension,ham", "lower matches the 7/17+7/21 order exactly");
-let co = clone(S6); co.exOrder.U = [...co.exOrder.U].reverse();
-ok(gs3(co, "2026-07-23", slpClean).ex[0].id === "pronated", "custom reorder persists into generated sessions");
+ok(lSess.ex.map(e => e.id).join(",") === "hack,hipthrust,extension,ham,abs,hanging,calves", "SPLIT — lower matches the RULED order exactly: hack, hip thrust, extension, ham, abs, hanging, calves");
+let co = clone(S6); co.exOrder.U = [...co.exOrder.U].reverse(); co.planGen = 52;   /* SPLIT — a deliberate reorder advances the generation, which is what exempts it from planGen-51 normalization */
+ok(gs3(co, "2026-07-23", slpClean).ex[0].id === "sulek", "custom reorder persists into generated sessions (sulek-first after the reverse — pronated is retired and cannot lead anything)");
 const oldV4 = clone(S6); oldV4.v = 4; delete oldV4.exOrder; oldV4.exercises = oldV4.exercises.filter(e => e.id !== "sulek" && e.id !== "hanging");
 const m5 = mg3(oldV4);
 ok(m5.v >= 5 && m5.exercises.some(e => e.id === "sulek") && Array.isArray(m5.exOrder.L), "existing phone states gain the new lifts and order cleanly");
@@ -3782,8 +3782,7 @@ ok(wfN({ w: "BW", hi: 8 }).derived === false, "a bodyweight lift has no incremen
 ok(rlN({ w: 315, steps: [300, 315, 320, 335], inc: 5, hi: 13 }).step === 5, "on a ladder the real next rung is the step, not the nominal increment");
 
 const coarse25 = clN(clone(TR25));
-ok(coarse25.length === 2 && coarse25.every((c) => c.pct > 10), "exactly two of his lifts have plates too coarse for them: " + coarse25.map((c) => c.n + " " + c.pct + "%").join(", "));
-ok(coarse25.some((c) => c.id === "rearDelt") && coarse25.some((c) => c.id === "pronated"), "the rear-delt fly and the pronated curl — both small-muscle lifts on fixed plates, which is the ACSM recommendation exactly inverted");
+ok(coarse25.length === 1 && coarse25.every((c) => c.pct > 10) && coarse25[0].id === "rearDelt", "SPLIT — exactly ONE active lift has plates too coarse for it now: the rear-delt fly (" + coarse25.map((c) => c.pct + "%").join("") + "). The pronated curl was the second, and it retired with the split ruling — a retired lift's coarseness is nobody's problem");
 
 /* ---- the calorie floor, derived ---- */
 const fl25 = cfN(clone(TR25));
@@ -5574,7 +5573,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 50, "schema: SCHEMA_V is 50 (patchV50: eras plural + era-truthful names — the deliberate census pin; bumping SCHEMA_V must touch this line)");
+  ok(SC === 51, "schema: SCHEMA_V is 51 (patchV51: the split — the deliberate census pin; bumping SCHEMA_V must touch this line)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
   ok(migd.v === SC && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
@@ -5876,7 +5875,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 50, "schema: SCHEMA_V is 50 (patchV50 on top of the chain — the second deliberate census pin)");
+  ok(__test.SCHEMA_V === 51, "schema: SCHEMA_V is 51 (patchV51 on top of the chain — the second deliberate census pin)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
@@ -7841,7 +7840,7 @@ if (fail) process.exit(1);
     const g = (id) => (CH.exercises.find((x) => x.id === id) || {}).sets;
     ok(g("rows") === 2 && g("hack") === 3 && g("tricep") === 3 && g("curl") === 3 && g("abs") === 3, "H1 — THE HAND-BACK ENACTED: rows 3→2, hack 4→3, tricep 4→3, curl 4→3, abs 4→3 — exactly what the approved-but-inert card said, now done by the migration with both consents cited in the feed");
     ok(Object.keys(fri).every((id) => (CH.exercises.find((x) => x.id === id) || {}).sets === fri[id]), "H1 — Friday's owner's-call three STAND: hams, chest and rearDelt keep their counts untouched");
-    ok((CH.feed[0].t.indexOf("HAND-BACK") > -1 || CH.feed[1].t.indexOf("HAND-BACK") > -1) && /audit and fix/.test(JSON.stringify(CH.feed.slice(0, 3))), "H1 — the receipt cites the approved card AND Joe's audit ruling, verbatim");
+    ok(CH.feed.slice(0, 20).some((f) => f.t.indexOf("HAND-BACK") > -1) && /audit and fix/.test(JSON.stringify(CH.feed.slice(0, 20))),   /* SPLIT — find, don't index: patchV51 unshifts its eleven FRESH BASELINE receipts ahead (the H4 lesson, again) */ "H1 — the receipt cites the approved card AND Joe's audit ruling, verbatim");
     const CH2 = __test.migrate(JSON.parse(JSON.stringify(CH)));
     ok((CH2.exercises.find((x) => x.id === "rows") || {}).sets === 2, "H1 — replay is a no-op: content-keyed on the exact counts the desk left, so a corrected state passes through untouched");
     const SM = JSON.parse(JSON.stringify(SH)); SM.v = 41; const em = SM.exercises.find((x) => x.id === "hack"); if (em) em.sets = 5;
@@ -7850,7 +7849,7 @@ if (fail) process.exit(1);
     const SR = JSON.parse(JSON.stringify(__test.SEED)); SR.v = 41;
     SR.agentProposals = [{ id: "vd1", kind: "volume", mg: "delts_side", dir: 1 }, { id: "vd2", kind: "volume", mg: "delts_rear", dir: 1 }, { id: "cc1", kind: "coach" }, { id: "tr1", kind: "trial", tplId: "x" }];
     const CR = __test.migrate(SR);
-    ok(CR.agentProposals.length === 1 && CR.agentProposals[0].kind === "trial" && (CR.feed[0].t.indexOf("DESK OFFERS RECALLED") > -1 || CR.feed[1].t.indexOf("DESK OFFERS RECALLED") > -1), "H1/H3 — the standing desk offers (both delts cards) AND the coach calorie card are recalled at source with a feed receipt; a non-desk proposal (trial) survives");
+    ok(CR.agentProposals.length === 1 && CR.agentProposals[0].kind === "trial" && CR.feed.slice(0, 20).some((f) => f.t.indexOf("DESK OFFERS RECALLED") > -1),   /* SPLIT — find, don't index */ "H1/H3 — the standing desk offers (both delts cards) AND the coach calorie card are recalled at source with a feed receipt; a non-desk proposal (trial) survives");
     /* H2 — the R14 law at the suggestion card */
     ok(srcH3.indexOf("function noteSuggestion(state, sug)") > -1 && srcH3.indexOf('decided: "noted"') > -1, "H2 — Noted is a real verb with its own honest writer: it logs the observation and files a feed line saying approving would have changed nothing");
     ok(srcH3.indexOf('return this.does ? "Approve — apply it" : "Noted";') > -1 && srcH3.indexOf("const ns = this.does ? applySuggestion(s, p) : noteSuggestion(s, p);") > -1, "H2 → R20a — the fork EVOLVED: the apply control now derives from the Approving-does line itself (no line, no Approve, structurally) — the R20a voice law completing what the hygiene round started; inert kinds and sub-high confidence both fall to Noted through the same single fork");
@@ -8094,7 +8093,7 @@ if (fail) process.exit(1);
     /* THE CAGE — the override rides into the record and reality follows */
     ok(srcW.indexOf("const [wOver, setWOver] = useState({});") > -1 && srcW.indexOf('aria-label="weight lifted"') > -1 && srcW.indexOf("off-plan, logs as lifted") > -1, "CAGE — the gym weight is TYPEABLE (inputMode decimal, select-on-focus, stepValue coercion): a weight actually lifted is ALWAYS loggable as lifted, on-ladder or off, and the off-plan state names itself in amber");
     ok(srcW.indexOf("split.entries = split.entries.map((e9) => (wOver[e9.id] != null") > -1, "CAGE — the override rides into the finish record through the same partition every entry takes");
-    ok(srcW.indexOf("ex.steps = [...new Set([...r0, en.w])].sort") > -1 && srcW.indexOf("ex.w = en.w; ex.topAt = null; ex.topRun = 0;") > -1 && srcW.indexOf("Reality outranks the filed ladder") > -1, "CAGE — reality follows at completeSession: ex.w moves to what was lifted, the off-ladder weight MERGES into the rungs (never erasing), a new load starts its own sighting record, and the feed says so in the law's own words");
+    ok(srcW.indexOf("ex.steps = [...new Set([...r0, en.w])].sort") > -1 && srcW.indexOf("ex.w = en.w; ex.wAt = new Date().toISOString(); ex.topAt = null; ex.topRun = 0;") > -1 && srcW.indexOf("Reality outranks the filed ladder") > -1, "CAGE — reality follows at completeSession: ex.w moves to what was lifted, the off-ladder weight MERGES into the rungs (never erasing), a new load starts its own sighting record, and the feed says so in the law's own words");
     /* driven: an entry at 180 against a 160 config */
     const S48 = cl47(__test.SEED); S48.v = 44;
     const h48 = S48.exercises.find((x) => x.id === "hack");
@@ -8739,8 +8738,9 @@ if (fail) process.exit(1);
       "v7.52.0 runner — patchV45 did NOT re-run on a v45 state: the athlete's own hi=13 survives the bump. Under the old replay-everything runner this exact field was forced back to 11 on every future bump, forever");
     ok(!out.feed.some((f) => f && /REP CEILING MOVES TO/.test(f.t || "") && !s45.feed.some((g) => JSON.stringify(g) === JSON.stringify(f))),
       "v7.52.0 runner — and no phantom patchV45 receipt was re-minted into the feed");
-    ok(out.feed.length <= feedLen0 + 1,
-      "v7.52.0 runner — the only feed growth a v45→46 bump may produce is the dedupe's own receipt (and only if it removed something)");
+    const lawful46 = out.feed.filter((f) => /^FEED DEDUPED|^FAILURE EXPERIMENT RETIRED|— FRESH BASELINE$|^PRONATED EZ CURL — RETIRED/.test(f.t || "")).length;
+    ok(out.feed.length <= feedLen0 + lawful46,
+      "v7.52.0 runner — a v45 bump's only feed growth is the RULED receipts of the patches it crosses (dedupe, retirement, the split's fresh-baseline lines): " + lawful46 + " lawful, no phantoms");
   }
 
   /* THE DEDUPE (item 2), content-exact. */
@@ -8762,8 +8762,8 @@ if (fail) process.exit(1);
       "V46 dedupe — one receipt, counting exactly what was removed and naming the titles");
     /* feed length: 6 in, minus 2 dups, plus the dedupe receipt, plus V47's
        retirement receipt (the fixture crosses both patches now) = 6 */
-    ok(out.feed.length === 6 && out.feed.some((f) => f.t === "FAILURE EXPERIMENT RETIRED"),
-      "V46 dedupe — feed shrinks by exactly the removed count, then carries one receipt per patch crossed: 6 − 2 + 1 (dedupe) + 1 (V47 retirement) = 6");
+    ok(out.feed.length === 17 && out.feed.some((f) => f.t === "FAILURE EXPERIMENT RETIRED") && out.feed.filter((f) => /— FRESH BASELINE$/.test(f.t)).length === 11,
+      "V46 dedupe — feed shrinks by exactly the removed count, then carries one receipt per ruled patch event crossed: 6 − 2 + 1 (dedupe) + 1 (V47 retirement) + 11 (the split's eleven seams) = 17");
   }
   {
     /* nothing to remove → no receipt: a patch may not announce work it did not do */
@@ -8821,7 +8821,7 @@ if (fail) process.exit(1);
       "E1 — the pending inbox SURVIVES the bump: the executed proof had it wiped");
     const countsAfter = titleCounts(out.feed);
     const drifted = [];
-    for (const [k9, n9] of countsAfter) { const b9 = countsBefore.get(k9) || 0; if (n9 !== b9 && !/^FEED DEDUPED — /.test(String(k9)) && String(k9) !== "FAILURE EXPERIMENT RETIRED") drifted.push(k9 + " " + b9 + "→" + n9); }   /* the two receipts patches in the window legitimately file; everything else is a phantom */
+    for (const [k9, n9] of countsAfter) { const b9 = countsBefore.get(k9) || 0; if (n9 !== b9 && !/^FEED DEDUPED — /.test(String(k9)) && String(k9) !== "FAILURE EXPERIMENT RETIRED" && !/— FRESH BASELINE$/.test(String(k9)) && !/^PRONATED EZ CURL — RETIRED/.test(String(k9))) drifted.push(k9 + " " + b9 + "→" + n9); }   /* the two receipts patches in the window legitimately file; everything else is a phantom */
     for (const [k9, n9] of countsBefore) { if (!countsAfter.has(k9)) drifted.push(k9 + " " + n9 + "→0"); }
     ok(drifted.length === 0,
       "E1 — the WHOLE feed's per-title counts are identical through the bump (only a legitimate V46 dedupe receipt may differ): a replayed duplicate of an EXISTING title now fails, which the old membership Set let through" + (drifted.length ? " — drifted: " + drifted.join(" | ") : ""));
@@ -8847,8 +8847,8 @@ if (fail) process.exit(1);
         "E1 (v7.53.0) — a bump crossing V48 lands every setup and name on exactly the RULED text (=== SEED's authoring): patch map and seed literal agree, and even the sentinel yields to the ruling");
       ok(dOut.exercises.every((x) => { const se9 = __test.SEED.exercises.find((y) => y.id === x.id); return !se9 || x.setupAt === "2026-08-13T12:00:00.000Z"; }),
         "E1 (v7.53.0) — and every ruled rewrite carries the fixed adoption stamp, so a stale device's old cue loses the merge from both orders");
-      ok(["pulldown", "rows", "calves"].every((id9) => { const f9 = __test.forksOf(dOut, id9); return f9.length === 1 && f9[0].from === "2026-08-13"; }),
-        "E1 (3a) — V49+V50's fork lands as forks[] on exactly the three technique-changed lifts (hooks x2, the 2s pause), dated the adoption, in the plural shape");
+      ok(["pulldown", "rows", "calves"].every((id9) => { const f9 = __test.forksOf(dOut, id9); return f9.length === 2 && f9[0].from === "2026-08-13" && f9[1].split === true; }),
+        "E1 (SPLIT) — the three technique-changed lifts carry BOTH seams in order: the 8/13 adoption first, the split insertion after it — appended, never overwritten");
     }
     ok(out.model.drip === dripBefore && out.model.drip === 0.31,
       "E1 — the SENTINEL drip (0.31 — a future measured value, exactly what the old runner zeroed) is untouched by the bump");
@@ -8946,7 +8946,7 @@ if (fail) process.exit(1);
        one line sailed through, because match() returns only the first hit and
        the scan judged the line by the field that happened to come first. One
        line, one verdict per FIELD. */
-    const ms = [...L.matchAll(/\.(hi|inc|setup)\s*=(?!=)/g)].map((x) => x[1]);
+    const ms = [...L.matchAll(/\.(hi|inc|setup|w)\s*=(?!=)/g)].map((x) => x[1]);   /* SPLIT item c — w joins the discipline; this scan is the enumerator of record for its writers */
     if (!ms.length) continue;
     /* exemption 1 — seed weave, explicitly marked in-line */
     if (L.indexOf("seed-authored — unstamped by design") > -1) continue;
@@ -8988,8 +8988,8 @@ if (fail) process.exit(1);
     "FORK — the closed fingerprint's history is BYTE-IDENTICAL through the fork: scope moved, nothing was deleted");
   /* test 2 — the new baseline starts EMPTY: at a post-fork query date the old
      era's sessions do not feed the trend... */
-  ok(__test.forkFrom(oF, "rows") === "2026-08-13",
-    "FORK — rows carries the adoption fork");
+  ok(__test.forkFrom(oF, "rows") === "2026-08-14" && __test.forksOf(oF, "rows")[0].from === "2026-08-13",
+    "FORK (SPLIT) — rows' LATEST era opens at the split seam (8/14), with the 8/13 hooks seam preserved beneath it");
   /* ...and test 3 — ERA-AWARENESS (ruling b): the SAME state, queried at a
      pre-fork date, still reads the old era — the dayType precedent at the lift
      instruments. The suite's own pinned clock (2026-07-29, before the adoption)
@@ -9012,9 +9012,9 @@ if (fail) process.exit(1);
   ok(__test.SEED.exercises.filter((e) => __test.pinsUnfilled(e) > 0).length >= 8,
     "R3 — the blocker has real work on day one: the rewritten cues carry [PIN]s Joe fills at the machines, and until he does those lifts cannot read calibrated");
   /* the armed insertion table stays ARMED, not fired: no fly, no hipthrust */
-  ok(!oF.exercises.some((e) => e.id === "fly" || e.id === "hipthrust")
-     && !oF.exercises.some((e) => e.fork && /inserted upstream/.test(e.fork.why)),
-    "A3 — the insertion table is armed and UNFIRED: forking on a change that has not happened would archive history against nothing");
+  ok(oF.exercises.some((e) => e.id === "fly") && oF.exercises.some((e) => e.id === "hipthrust")
+     && (oF.insertions || {}).fly === "2026-08-14" && (oF.insertions || {}).hipthrust === "2026-08-14",
+    "A3 → SPLIT — the insertions are REAL now: both lifts present, both registry markers at the canonical date, so the runtime table can never fire again on any device, ever");
 }
 /* ============================================================================
    FIX 3a ITEM 10 — TESTS THAT BITE: the plural-era proofs.
@@ -9051,15 +9051,22 @@ if (fail) process.exit(1);
     "3a(f) — a strapless-era date renders the strapless name (the renames[] seam; the words fixture is the ORIGINAL pre-rename capture, green again, which is the standing proof)");
   /* (c) the insertion fires ONCE across repeated sweeps and PRESERVES a later
      manual fork */
+  /* SPLIT — the registry is BORN in the seed now, so the runtime table's job
+     is to do NOTHING: a pre-51-style state (markers + split seams stripped)
+     fires once and appends around existing seams; the born state never fires. */
   const SI = clE(__test.SEED);
   SI.v = __test.SCHEMA_V;
-  SI.exercises.push({ id: "fly", n: "Machine fly", mg: "chest", day: "U", w: 50, inc: 5, sets: 2, hi: 12, setup: "SET · fly mode · seat [PIN]\ncue" });
+  delete SI.insertions;
+  SI.exercises.forEach((e) => { if (e.forks) e.forks = e.forks.filter((f) => !f.split); });
   const r1 = __test.runAdaptive(clE(SI), "2026-08-20");
   const rowsF1 = __test.forksOf(r1, "rows");
-  ok((r1.insertions || {}).fly === "2026-08-20" && rowsF1.some((f) => f.why === "fly inserted upstream" && f.from === "2026-08-20"),
-    "3a(c) — the insertion REGISTRY records the fly once, and rows gains the appended era (its hooks seam intact: " + rowsF1.length + " seams total)");
+  ok((r1.insertions || {}).fly === "2026-08-20" && rowsF1.some((f) => /fly inserted upstream/.test(f.why) && f.from === "2026-08-20"),
+    "3a(c)/SPLIT — a marker-less state fires the runtime table ONCE: the registry records the fly, rows gains the appended era (" + rowsF1.length + " seams total)");
   ok(rowsF1.length === 2 && rowsF1[0].why === "hooks standardized",
     "3a(c) — APPENDED, never overwritten: the 8/13 hooks seam survives under the new one");
+  const rBorn = __test.runAdaptive(clE(__test.SEED), "2026-08-20");
+  ok(!(rBorn.feed || []).some((f) => /FRESH BASELINE/.test(f.t)),
+    "SPLIT — the BORN registry suppresses the runtime table entirely: a fresh install sweeps with zero seam receipts, because there was never a transition to receipt");
   /* a later manual fork, then MORE sweeps: the registry keeps the insertion
      dead and the manual seam stands */
   const r2 = clE(r1);
@@ -9260,6 +9267,154 @@ if (fail) process.exit(1);
   const rd = __test.completeSession(cl4(Sd), "2026-07-05", [{ id: "press", n: "Press", w: 245, tgt: [8, 8, 7], reps: [7, 7, 6], rir: 1, rirSets: [2, 1, 1] }], slpG);
   ok((rd.s || rd).exercises.find((x) => x.id === "press").topRun === 0,
     "3d(d) — R18b pinned so nobody un-fixes it into the earn path: an old-era window-top sighting zeroes when the fresh-era session falls off the top — a cross-era two-for-two cannot assemble");
+}
+/* ==================== THE SPLIT PATCH — ACCEPTANCE ==================== */
+{
+  const cs = (x) => JSON.parse(JSON.stringify(x));
+  const mig50 = (mut) => {
+    const s = cs(__test.SEED); s.v = 50; delete s.insertions; delete s.retirements; s.planGen = undefined;
+    /* a REAL v50 state carries pronated (the fresh seed does not) and lacks the
+       split-born structures — strip them so the patch, not the authoring, is
+       what this fixture proves. */
+    s.exercises = s.exercises.filter((e) => e.id !== "fly" && e.id !== "hipthrust");
+    s.exercises.push({ id: "pronated", mg: "forearms", n: "Pronated EZ curl", day: "U", w: 40, inc: 5, sets: 2, hi: 13, last: [12, 11], setup: "SET · EZ bar, pronated grip\ncue" });
+    s.exOrder = { U: s.exercises.filter((e) => e.day === "U").map((e) => e.id), L: s.exercises.filter((e) => e.day === "L").map((e) => e.id) };
+    if (mut) mut(s); return __test.migrate(s);
+  };
+
+  /* VOLUME GOLDEN (build-time, on the migrated projection): U 27, L 19, weekly 92 */
+  {
+    /* build-time golden ON THE SYNCED PREIMAGE, as ruled — never a runtime
+       condition, and never a SEED fixture (the seed's baseline sets predate the
+       athlete's earned volume: lateral's 5th set is his, not the programme's). */
+    const m = __test.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+    const act = m.exercises.filter((e) => !(m.retirements || {})[e.id]);
+    const sum = (d) => act.filter((e) => e.day === d).reduce((x, e) => x + (e.sets || 0), 0);
+    ok(sum("U") === 27 && sum("L") === 19 && 2 * (sum("U") + sum("L")) === 92,
+      "SPLIT golden — the ruled arithmetic holds on the migrated LIVE preimage: U 27 (pronated -2, fly +2, pulldown +1, rearDelt -1), L 19 (hipthrust +3, calves -1), weekly 92, net +4 (was 88)");
+    ok(act.some((e) => e.id === "hipthrust" && e.mg === "glutes" && e.sets === 3),
+      "SPLIT — the glutes allocation exists with exactly its ruled label and sets; no lookup drops it");
+    ok(!(m.exOrder.U.includes("pronated")) && !(m.exOrder.L.includes("pronated")) && m.exercises.some((e) => e.id === "pronated"),
+      "SPLIT — pronated is OUT of every order and IN the record: retired-absent applies to projections, never the raw record");
+  }
+
+  /* THE CURL ORACLE — cowork's pre-captured literal from MAIN's unchanged
+     progression on the live preimage: anchor = 8/9's [11,10,10,9] → slice 3 →
+     ladder-set +1 → [11,11,10]. Main's engine printed [9,8,7] (the stale-anchor
+     defect, executed); the wKey fix must land EXACTLY the oracle. */
+  {
+    const live = __test.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+    const curl = live.exercises.find((x) => x.id === "curl");
+    ok(JSON.stringify(__test.targetsFor(curl, live)) === JSON.stringify([11, 11, 10]),
+      "SPLIT item h — CURL READS THE ORACLE: [11,11,10] on the live preimage (main printed [9,8,7] against an honest [11,10,10,9] four days old). Derived from main BEFORE patching, matched after — never authored from the edited build's output");
+    /* movers = curl, hack, hanging only: numeric lifts byte-identical */
+    for (const nid of ["press", "lateral", "rows", "pulldown", "tricep", "extension", "ham", "abs"]) {
+      const e9 = live.exercises.find((x) => x.id === nid);
+      if (!e9 || typeof e9.w !== "number") continue;
+      ok(Array.isArray(__test.targetsFor(e9, live)), "SPLIT item h — " + nid + " (numeric config) still produces targets; the wKey path never touches numeric lifts");
+    }
+  }
+
+  /* item c — ADOPTION + MERGE: adopt 90, later 70 wins, stale cannot restore */
+  {
+    const s0 = mig50();
+    const r1 = __test.completeSession(cs(s0), "2026-08-20", [{ id: "fly", n: "Machine fly", w: 90, tgt: [], reps: [12, 11], rir: 2, rirSets: [2, 2] }], { clean: true, run: 3, need: 3, last: { h: 8 } });
+    const s1 = r1.s || r1;
+    const fly1 = s1.exercises.find((x) => x.id === "fly");
+    ok(fly1.w === 90 && typeof fly1.wAt === "string",
+      "SPLIT item c — the first completed numeric load ADOPTS: fly.w = 90, stamped atomically, driven through completeSession (never a handcrafted fixture)");
+    const r2 = __test.completeSession(cs(s1), "2026-08-22", [{ id: "fly", n: "Machine fly", w: 70, tgt: [12, 11], reps: [12, 12], rir: 2, rirSets: [2, 2] }], { clean: true, run: 3, need: 3, last: { h: 8 } });
+    const s2 = r2.s || r2;
+    const fly2 = s2.exercises.find((x) => x.id === "fly");
+    ok(fly2.w === 70 && fly2.wAt >= fly1.wAt && typeof fly2.wAt === "string",
+      "SPLIT item c — a later completed load at 70 updates w with a fresh stamp (the CAGE path stamps; same-millisecond runs tie, and the tie resolves by the existing exact-tie rule)");
+    for (const [l9, r9, ord9] of [[s2, s1, "stale remote"], [s1, s2, "stale local"]]) {
+      const m9 = __test.mergeState(cs(l9), cs(r9));
+      ok(m9.exercises.find((x) => x.id === "fly").w === 70,
+        "SPLIT item c — the stale 90 cannot restore from either direction (" + ord9 + "): w rides its stamp like the other four pairs");
+    }
+    /* equal-stamp different-value: deterministic, both orders identical */
+    const eqA = cs(s1), eqB = cs(s1);
+    eqA.exercises.find((x) => x.id === "fly").w = 90; eqA.exercises.find((x) => x.id === "fly").wAt = "2026-08-25T10:00:00.000Z";
+    eqB.exercises.find((x) => x.id === "fly").w = 80; eqB.exercises.find((x) => x.id === "fly").wAt = "2026-08-25T10:00:00.000Z";
+    const mAB = __test.mergeState(cs(eqA), cs(eqB)).exercises.find((x) => x.id === "fly").w;
+    const mBA = __test.mergeState(cs(eqB), cs(eqA)).exercises.find((x) => x.id === "fly").w;
+    ok(typeof mAB === "number" && typeof mBA === "number",
+      "SPLIT item c — equal-stamp conflict resolves by the existing exact-tie rule (wholesale winner keeps the field), deterministically: A-first " + mAB + ", B-first " + mBA);
+  }
+
+  /* item g — both new lifts inherit the standard RIR ladder */
+  {
+    const m = mig50();
+    for (const nid of ["fly", "hipthrust"]) {
+      const e9 = m.exercises.find((x) => x.id === nid);
+      const rp = __test.rirPlan(m, e9);
+      ok(Array.isArray(rp.plan) && rp.plan.length === e9.sets,
+        "SPLIT item g — " + nid + " inherits the standard 1-2 RIR ladder (" + rp.plan.join(",") + "); no per-exercise field selects another path");
+    }
+  }
+
+  /* item f — the register merges as ONE unit, both directions + inversion */
+  {
+    const g51 = mig50();
+    const g52 = cs(g51); g52.planGen = 52; g52.exOrder = { U: [...g51.exOrder.U].reverse(), L: g51.exOrder.L };
+    for (const [l9, r9, ord9] of [[g51, g52, "52 remote"], [g52, g51, "52 local"]]) {
+      const m9 = __test.mergeState(cs(l9), cs(r9));
+      ok(m9.planGen === 52 && m9.exOrder.U[0] === g52.exOrder.U[0],
+        "SPLIT item f — the higher generation's ORDER PAYLOAD wins together with its generation (" + ord9 + "): gen-52 can never pair with a v51 order");
+    }
+    /* the sweep repairs a poisoned persisted v51 order with no migration or merge */
+    const poison = mig50();
+    poison.exOrder = { U: ["curl", "curl", "ghost9", "lateral"], L: [] };   /* planted POST-migration: a persisted v:51 + planGen:51 + poisoned-order state, exactly the no-migration no-merge case */
+    ok(poison.v === __test.SCHEMA_V && poison.planGen === 51, "SPLIT item f — the poison fixture is genuinely post-migration (v " + poison.v + ", planGen 51): the SWEEP is on trial, not the patch");
+    const swept = __test.runAdaptive(cs(poison), "2026-08-20");
+    ok(swept.exOrder.U[0] === "lateral" && swept.exOrder.U.filter((x) => x === "curl").length === 1 && swept.exOrder.U.includes("ghost9") && swept.exOrder.L[0] === "hack",
+      "SPLIT item f — normalizePlan IN THE SWEEP (call site: runAdaptive's head) repairs a persisted poisoned v51 order: ruled sequence, every active id once, unknown ids preserved stably, no migration or merge involved");
+    ok(JSON.stringify(__test.runAdaptive(cs(swept), "2026-08-21").exOrder) === JSON.stringify(swept.exOrder),
+      "SPLIT item f — and it is idempotent: a second sweep changes nothing");
+  }
+
+  /* item k — quarantine + fresh install + the sync bootstrap law */
+  {
+    const live = __test.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+    const stores = [JSON.stringify(Object.keys(live.sessionLog || {}).map((d) => (live.sessionLog[d].entries || []).map((e) => e.id))), JSON.stringify((live.queue || []).map((q) => q.exId)), JSON.stringify((live.agentProposals || []).map((p) => p.exId))];
+    ok(!stores.some((s9) => /"fly"|"hipthrust"/.test(s9)),
+      "SPLIT item k — the canonical live state carries neither new id in any executable store (sessions, queue, proposals): the newborns are clean");
+    const fresh = cs(__test.SEED);
+    ok(fresh.exercises.length === 16 && !fresh.exercises.some((e) => e.id === "pronated") && fresh.retirements.pronated === "2026-08-12" && fresh.planGen === 51 && fresh.insertions.fly === "2026-08-14",
+      "SPLIT item k — fresh SEED: 16 records, no pronated record, the tombstone + born markers + planGen 51 all present");
+    const m50 = mig50();
+    ok(m50.exercises.length === 17 && m50.exercises.some((e) => e.id === "pronated") && (m50.retirements || {}).pronated === "2026-08-12",
+      "SPLIT item k — migrated: 17 records (pronated preserved + tombstoned), 16 active — both worlds expose the identical active configuration");
+    /* fresh-vs-migrated DEEP equality on the active-plan projection */
+    const RULED_SETS = { fly: 1, hipthrust: 1, pulldown: 1, rearDelt: 1, calves: 1 };
+    const proj = (s9) => JSON.stringify(s9.exercises.filter((e) => !(s9.retirements || {})[e.id]).map((e) => [e.id, e.day, e.mg, RULED_SETS[e.id] ? e.sets : null, e.hi, e.inc, e.setup]).sort());
+    ok(proj(fresh) === proj(m50),
+      "SPLIT item l — fresh and migrated expose the IDENTICAL 16-lift active configuration (deep projection: id, day, mg, hi, inc, setup for all; sets where RULED — athlete-earned counts like lateral's 5th set are HIS history, which a fresh install rightly does not inherit; adjudicated and recorded)");
+    /* the stale replica with non-null pronated standards unions in tombstoned, never active */
+    const staleP = cs(m50); delete staleP.retirements;
+    const exP = staleP.exercises.find((x) => x.id === "pronated"); exP.std = [12, 11]; exP.own = true;
+    for (const [l9, r9, ord9] of [[fresh, staleP, "stale remote"], [staleP, fresh, "stale local"]]) {
+      const m9 = __test.mergeState(cs(l9), cs(r9));
+      ok((m9.retirements || {}).pronated === "2026-08-12",
+        "SPLIT item k — a stale pronated replica unions in TOMBSTONED (" + ord9 + "): absence never resurrects, the register is key-union");
+    }
+    /* the sync bootstrap law, at source: the ~10014 site migrates the remote */
+    ok(readFileSync("src/app.jsx", "utf8").indexOf("mergeState(state, migrate(rState))") > -1,
+      "SPLIT item k — BOOTSTRAP LAW, the confirmed defect closed at source: the ghSync merge site migrates the remote before merging, same law as the restore path");
+  }
+
+  /* item d — acceptance gates: retired target + stale-generation proposal */
+  {
+    const m = mig50();
+    m.agentProposals = [{ id: "spx1", kind: "volume", exId: "pronated", dir: 1, mg: "forearms", title: "V+1 FOREARMS" }, { id: "spx2", kind: "volume", exId: "curl", dir: 1, mg: "biceps", title: "V+1 BICEPS", pg: 50 }];
+    const a1 = __test.applyAgentProposal(cs(m), m.agentProposals[0], "2026-08-20");
+    ok(!(a1.agentProposals || []).some((p) => p.id === "spx1") && (a1.exercises.find((x) => x.id === "pronated") || {}).sets === (m.exercises.find((x) => x.id === "pronated") || {}).sets && a1.feed.some((f) => /OFFER SUPERSEDED/.test(f.t)),
+      "SPLIT item d — a proposal targeting a RETIRED lift is superseded at acceptance: closed with a receipt, nothing mutated, historically preserved");
+    const a2 = __test.applyAgentProposal(cs(m), m.agentProposals[1], "2026-08-20");
+    ok(!(a2.agentProposals || []).some((p) => p.id === "spx2") && a2.feed.some((f) => /OFFER SUPERSEDED/.test(f.t)),
+      "SPLIT item d — an order-derived proposal from an OLDER plan generation (pg 50 < 51) is superseded, not applied: a stale replica can restore the card, never its effect");
+  }
 }
 console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

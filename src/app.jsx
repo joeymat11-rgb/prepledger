@@ -354,13 +354,13 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.53.0";
+const APP_V = "7.53.1";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 50;
+const SCHEMA_V = 51;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -387,24 +387,26 @@ const EXERCISES = [
   /* UPPER — order per the 7/20 session note */
   { id: "lateral", mg: "delts", head: "delts_side", lastMeta: { d: "2026-07-20", w: 80, reps: [14, 13, 13], debt: true }, n: "Lateral machine", day: "U", w: 80, inc: 5, sets: 4, hi: 15, last: [14, 13, 13],
     setup: "SET · resistance profile 5 · seat 5\nRaise elbow-first through your full pain-free arc to the same height · keep torso fixed—no swing or late-rep shoulder hike" },
-  { id: "rearDelt", mg: "delts", head: "delts_rear", lastMeta: { d: "2026-07-20", w: 20, reps: [10, 10], debt: true }, n: "Rear-delt fly (cable, unilateral)", day: "U", w: 20, inc: 2.5, sets: 3, hi: 12, last: [10, 10], note: "honest 10s — no hot opener · 3 sets per side, log the weaker side",
+  { id: "rearDelt", mg: "delts", head: "delts_rear", lastMeta: { d: "2026-07-20", w: 20, reps: [10, 10], debt: true }, n: "Rear-delt fly (cable, unilateral)", day: "U", w: 20, inc: 2.5, sets: 3, setsAt: "2026-08-12T00:00:00.000Z", hi: 12, last: [10, 10], note: "honest 10s — no hot opener · 3 sets per side, log the weaker side",
     setup: "SET · unilateral · cable highest · handle [PIN] · stance [PIN]\nSweep through your full pain-free arc to the same endpoint · keep torso fixed—no twist or swing" },
   { id: "rows", mg: "back", lastMeta: { d: "2026-07-20", w: 175, reps: [10, 10], debt: true }, n: "Prime seated row (hooks)", day: "U", w: 175, inc: 5, sets: 2, hi: 10, last: [10, 10],
     setup: "SET · seat 4 · chest pad 7 · resistance profile 1 · grip [PIN] · Gymreapers hooks fitted the same way\nUse your full pain-free reach and finish at the same points with chest on pad · keep torso still—no pad lift" },
   { id: "curl", mg: "biceps", lastMeta: { d: "2026-07-20", w: "55·55·50", reps: [12, 8, 10], debt: true }, n: "Curls (preacher)", day: "U", w: "55·55·50", inc: 5, sets: 3, hi: 12, last: [12, 8, 10], ladder: { set: 1, top: 12 },
     setup: "SET · resistance profile 5 · seat 3\nKeep upper arms on the pad through your full pain-free elbow range · stop before a shoulder roll starts" },
+  { id: "fly", mg: "chest", n: "Machine fly", day: "U", w: null, wAt: "2026-08-12T00:00:00.000Z", inc: 5, incAt: "2026-08-12T00:00:00.000Z", sets: 2, setsAt: "2026-08-12T00:00:00.000Z", hi: 20, hiAt: "2026-08-12T00:00:00.000Z", last: null,
+    setup: "SET · fly mode · seat [PIN] · start [PIN] · resistance profile [PIN]\nKeep back on pad and elbows at the same bend through your full pain-free range · open and close to the same endpoints—no bounce", setupAt: "2026-08-12T00:00:00.000Z" },
   { id: "press", mg: "chest", lastMeta: { d: "2026-07-20", w: 245, reps: [8, 7, 6], debt: true }, n: "Press", day: "U", w: 245, inc: 5, sets: 3, hi: 9, last: [8, 7, 6], std: [8, 8, 7], own: true, ownNote: "repeat 8,8,7 — no load until owned",
     setup: "SET · cam 5 · lowest seat · neutral grip\nLower through your full pain-free range to the same depth with upper back on pad · press on the same elbow path—no bounce" },
-  { id: "pulldown", mg: "back", lastMeta: { d: "2026-07-20", w: 160, reps: [8, 8], debt: true }, n: "Pulldown", day: "U", w: 160, inc: 5, sets: 2, hi: 10, last: [8, 8],
+  { id: "pulldown", mg: "back", lastMeta: { d: "2026-07-20", w: 160, reps: [8, 8], debt: true }, n: "Pulldown", day: "U", w: 160, inc: 5, sets: 3, setsAt: "2026-08-12T00:00:00.000Z", hi: 10, last: [8, 8],
     setup: "SET · silver bar · Gymreapers hooks fitted the same way · thumbs at the same marks\nUse your full pain-free reach at the top and pull to the same body landmark · keep torso angle fixed—no swing" },
   { id: "sulek", mg: "forearms", lastMeta: { d: "2026-07-20", w: 87.5, reps: [12, 8], debt: true }, n: "Sulek wrist curl (high cable)", day: "U", w: 87.5, inc: 2.5, sets: 2, hi: 15, last: [12, 8],
     setup: "SET · cable highest rung · straight bar · grip [PIN]\nBend only the wrists—palms curl toward the inner forearm through your full pain-free range · elbows still at sides, no swing" },
   { id: "tricep", mg: "triceps", lastMeta: { d: "2026-07-20", w: 55, reps: [12, 11, 10], debt: true }, n: "Tricep", day: "U", w: 55, inc: 5, sets: 3, hi: 13, last: [12, 11, 10],
     setup: "SET · seat 4 · back pad fully forward · middle peg\nKeep upper arms supported through your full pain-free elbow range · stop before shoulder roll or bounce" },
-  { id: "pronated", mg: "forearms", lastMeta: { d: "2026-07-20", w: 40, reps: [12, 11], debt: true }, n: "Pronated EZ curl", day: "U", w: 40, inc: 5, sets: 2, hi: 13, last: [12, 11],
-    setup: "SET · EZ bar, pronated grip\nElbows pinned to sides, zero swing · wrists locked—don't let them bend back under load" },
-  /* LOWER — order per the 7/17 & 7/21 notes, identical both days */
-  { id: "calves", mg: "calves", lastMeta: { d: "2026-07-21", w: 315, reps: [12, 10, 9, 8], debt: true }, n: "Calves", day: "L", w: 315, inc: 5, sets: 4, hi: 13, last: [12, 10, 9, 8], reclaim: [13, 12, 11, 10],
+  /* SPLIT — pronated EZ curl leaves the FRESH seed: retired by the owner's
+     8/12 split ruling. Migrated states keep the full record, tombstoned; the
+     retirements marker below is what a fresh install ships instead. */
+  { id: "calves", mg: "calves", lastMeta: { d: "2026-07-21", w: 315, reps: [12, 10, 9, 8], debt: true }, n: "Calves", day: "L", w: 315, inc: 5, sets: 3, setsAt: "2026-08-12T00:00:00.000Z", hi: 13, last: [12, 10, 9, 8],
     setup: "SET · shoulder height 4 · foot placement [PIN]\nWith the same near-straight knee angle, pause 2 s (gym-mode timed) at the same deepest pain-free point · rise to the same top height—no bounce" },
   { id: "abs", mg: "abs", lastMeta: { d: "2026-07-21", w: 95, reps: [14, 13, 13], debt: true }, n: "Prime abdominal crunch", day: "L", w: 100, inc: 5, sets: 3, hi: 14, last: null, first: [12, 12, 12], debutNote: "DEBUT — new baseline, log honest",
     setup: "SET · resistance profile [PIN] · back pad A · seat 6\nCurl ribs toward pelvis through your full pain-free range · keep hips on pad" },
@@ -412,6 +414,8 @@ const EXERCISES = [
     setup: "SET · bodyweight · medicine-ball pad at [PIN] · knee bend [PIN]\nStart with low back rounded against the pad and raise through your full pain-free range to the same height · keep knee bend fixed—no swing" },
   { id: "hack", mg: "quads", lastMeta: { d: "2026-07-21", w: "hold", reps: [13, 12], debt: true }, n: "Hack squat", day: "L", w: "hold",   /* hi is authored 10 below by weave (the 2026-08-10 ruling) — the seed is already-current */ inc: 10, sets: 2, hi: 12, last: null, pendingThird: true,
     setup: "SET · foot placement = pinned photo\nMatch the photo and descend through your full pain-free range to the same depth · keep feet, hips, and back contact unchanged" },
+  { id: "hipthrust", mg: "glutes", n: "Hip thrust machine", day: "L", w: null, wAt: "2026-08-12T00:00:00.000Z", inc: 5, incAt: "2026-08-12T00:00:00.000Z", sets: 3, setsAt: "2026-08-12T00:00:00.000Z", hi: 12, hiAt: "2026-08-12T00:00:00.000Z", last: null,
+    setup: "SET · machine setting [PIN] · belt/pad landmark [PIN] · foot marks [PIN]\nUse your full pain-free hip range to the same depth and finish height · keep upper back on pad—do not arch the low back to finish", setupAt: "2026-08-12T00:00:00.000Z" },
   { id: "extension", mg: "quads", lastMeta: { d: "2026-07-21", w: 155, reps: [9, 6], debt: true }, n: "Leg extension", day: "L", w: 150, inc: 5, sets: 2, hi: 10, last: [9, 6], std: [9, 9], own: true, ownNote: "own 150×9,9 — then the 155 gate reopens",
     setup: "SET · shin pad A · start range 3 · seat fully reclined · load peg/profile [PIN]\nKeep hips and back on pad through your full pain-free knee range · extend smoothly—no kick or lockout jerk" },
   { id: "ham", mg: "hams", lastMeta: { d: "2026-07-21", w: 120, reps: [10, 10], debt: true }, n: "Ham curl", day: "L", w: 120, inc: 5, sets: 2, hi: 12, last: [10, 10],
@@ -516,7 +520,13 @@ const SEED = {
   [["pulldown", "hooks standardized", "Pulldown"], ["rows", "hooks standardized", "Rows (strapless)"], ["calves", "2 s pause replaces 5 s", "Calves"]].forEach(([id0, why0, pn0]) => {
     const e0 = SEED.exercises.find((x) => x.id === id0); if (e0) e0.forks = [{ from: "2026-08-13", why: why0, prevN: pn0 }];
   });
-  { const c0 = SEED.exercises.find((x) => x.id === "calves"); if (c0) c0.pauseSec = 2; }   /* FIX 3a item 8 — the pause is a FIELD, not prose */
+  { const c0 = SEED.exercises.find((x) => x.id === "calves"); if (c0) c0.pauseSec = 2; }
+  /* SPLIT — fresh installs are BORN split: plan register, insertion markers,
+     and the retirement tombstone, with NO transition seams or receipts (there
+     is nothing to transition FROM on a fresh install). */
+  SEED.planGen = 51;
+  SEED.insertions = { fly: "2026-08-14", hipthrust: "2026-08-14" };
+  SEED.retirements = { pronated: "2026-08-12" };   /* FIX 3a item 8 — the pause is a FIELD, not prose */
   [["rows", "Rows (strapless)"], ["rearDelt", "Rear-delt fly (cable · uni)"], ["curl", "Curls"], ["sulek", "Sulek curl (forearm)"], ["abs", "Abs"], ["hanging", "Hanging raise"]].forEach(([id0, pn0]) => {
     const e0 = SEED.exercises.find((x) => x.id === id0); if (e0) e0.renames = [{ from: "2026-08-13", prevN: pn0 }];
   });
@@ -545,7 +555,8 @@ const SEED = {
   SEED.creatine = null;
   SEED.photos = [];
   SEED.sync = { last: null, status: "" };
-  SEED.exOrder = { U: SEED.exercises.filter((e) => e.day === "U").map((e) => e.id), L: SEED.exercises.filter((e) => e.day === "L").map((e) => e.id) };
+  /* SPLIT — the fresh seed is BORN on the ruled orders, not the literal's layout */
+  SEED.exOrder = { U: ["lateral", "press", "fly", "pulldown", "rows", "rearDelt", "curl", "tricep", "sulek"], L: ["hack", "hipthrust", "extension", "ham", "abs", "hanging", "calves"] };
   SEED.waist = [];
   SEED.plan = { goals: [], ifthen: [], share: false, autonomy: "propose", phaseLog: [] };
   SEED.exercises.forEach((e) => { e.rirHist = []; });
@@ -937,8 +948,16 @@ function progressStep(ex, s) {
  *  cannot set the line (changed rest = changed test); short sleep still can (the
  *  retired upside gate stays retired). */
 function progressAnchor(ex, s) {
+  /* SPLIT item h — THE STALE-ANCHOR FIX. Non-numeric configs ("55·55·50",
+     "hold", "BW") log entries with en.w null, so the same-load test below
+     could never match and the anchor silently fell to a stale fill (curl
+     prescribed [9,8,7] on the live record against an honest [11,10,10,9] four
+     days old). Entries now carry wKey = String(config) at log time; a
+     non-numeric config anchors ONLY on its own wKey; legacy null/string
+     entries never match and the fallback stays ex.last. */
   const base = (ex.last || []).slice();
   if (!s || !base.length) return base;
+  const numericCfg = typeof ex.w === "number";
   const days9 = Object.keys(s.sessionLog || {}).sort();
   const fkA = forksOf(s, ex.id);
   const atA = isoOf(todayStart());
@@ -947,7 +966,9 @@ function progressAnchor(ex, s) {
     const sl = s.sessionLog[days9[i]];
     if (paceRushed(sl)) continue;
     const en = (sl.entries || []).find((x) => x.id === ex.id);
-    if (!en || !en.reps || !en.reps.length || String(en.w) !== String(ex.w)) continue;
+    if (!en || !en.reps || !en.reps.length) continue;
+    if (numericCfg) { if (String(en.w) !== String(ex.w)) continue; }
+    else { if (en.wKey !== String(ex.w)) continue; }
     return en.reps.slice();
   }
   return base;
@@ -1246,7 +1267,7 @@ function genSession(s, iso, slp) {
   const { main, riders } = pickStructural(s, iso, slp);
   const active = new Set([main, ...riders].filter(Boolean).map((q) => q.exId));
   const ord = (s.exOrder && s.exOrder[dt]) || [];
-  const pool = s.exercises.filter((e) => e.day === dt).sort((a, b) => {
+  const pool = s.exercises.filter((e) => e.day === dt && exActive(s, e.id)).sort((a, b) => {   /* SPLIT item d — retired lifts leave the day pool; the raw record is never filtered */
     const ia = ord.indexOf(a.id), ib = ord.indexOf(b.id);
     return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
   });
@@ -1492,6 +1513,70 @@ function nameAt(s, exId, d) {
 function pinsUnfilled(ex) {
   try { return ((ex && ex.setup ? String(ex.setup).match(/\[PIN\]/g) : null) || []).length; } catch (e) { return 0; }
 }
+const RULING_EPOCH = "2026-08-12T00:00:00.000Z";   /* split ruling closed — the ruling-write boundary */
+const SPLIT_DATE = "2026-08-14";                     /* canonical insertion-effective date (constant, never fire-time) */
+/* SPLIT — the retirement register. A tombstone is state: absence never
+   resurrects a lift, key-union merged, reactivation only by a future schema op.
+   exActive is the ONE predicate every projection consults; the raw record
+   (sessionLog, history, receipts) is NEVER filtered by it. */
+function exActive(s, id) {
+  try { return !((s && s.retirements) || {})[id]; } catch (e) { return true; }
+}
+/* SPLIT item f — the plan register: { planGen, exOrder } merge as ONE unit.
+   Normalization (idempotent, sweep-run, planGen 51 only): ruled sequences for
+   known ids, retired absent, every active id exactly once, unknown preserved
+   stably at the tail. */
+const RULED_ORDER = {
+  U: ["lateral", "press", "fly", "pulldown", "rows", "rearDelt", "curl", "tricep", "sulek"],
+  L: ["hack", "hipthrust", "extension", "ham", "abs", "hanging", "calves"],
+};
+function normalizePlan(s) {
+  if (!s || s.planGen !== 51) return s;
+  const have = new Set((s.exercises || []).filter((e) => e && exActive(s, e.id)).map((e) => e.id));
+  const ord = {};
+  for (const day of ["U", "L"]) {
+    const ruled = RULED_ORDER[day].filter((id) => have.has(id));
+    /* unknown ids are preserved STABLY even without a local record — a foreign
+       lift's record can arrive by merge, and dropping its order slot would be
+       the walk deciding what exists. Retired ids are the one exclusion. The
+       first cut have-filtered BEFORE this step, which made preservation dead
+       code; the sweep pin caught ghost9 vanishing. */
+    const cur = ((s.exOrder || {})[day] || []).filter((id) => exActive(s, id));
+    const unknown = cur.filter((id) => RULED_ORDER.U.indexOf(id) < 0 && RULED_ORDER.L.indexOf(id) < 0);
+    ord[day] = [...ruled, ...unknown.filter((id, i, a) => a.indexOf(id) === i)];
+  }
+  s.exOrder = ord;
+  /* item i — per-lift boundary dating: a seam must sit AFTER the latest entry
+     performed under the old order (og < 51, or legacy og-less entries on/after
+     the boundary date — the today-entry rule, which also covers N stale
+     old-order sessions cross-device, not one). Composite same-date boundaries
+     collapse to ONE canonical fork: sorted deduped ops, deterministic reason. */
+  for (const e of (s.exercises || [])) {
+    if (!e || !Array.isArray(e.forks) || !e.forks.length) continue;
+    let moved = false;
+    for (const f of e.forks) {
+      if (!f || !f.split) continue;   /* only split seams re-date; ruled 8/13 seams are history */
+      let latestOld = null;
+      for (const d of Object.keys(s.sessionLog || {})) {
+        const en = ((s.sessionLog[d] || {}).entries || []).find((x) => x && x.id === e.id);
+        if (en && d >= f.from && (en.og == null || en.og < 51)) { if (!latestOld || d > latestOld) latestOld = d; }
+      }
+      if (latestOld) { const nd = new Date(latestOld + "T12:00:00Z"); nd.setUTCDate(nd.getUTCDate() + 1); f.from = nd.toISOString().slice(0, 10); moved = true; }
+    }
+    if (moved || e.forks.length > 1) {
+      const byFrom = new Map();
+      for (const f of e.forks.sort((a, b) => (a.from < b.from ? -1 : 1))) {
+        if (byFrom.has(f.from)) {
+          const p = byFrom.get(f.from);
+          const ops = [...new Set([...(p.ops || [p.why]), ...(f.ops || [f.why])])].sort();
+          byFrom.set(f.from, { from: f.from, why: ops.join(" + "), ops, prevN: p.prevN || f.prevN, split: p.split || f.split });
+        } else byFrom.set(f.from, f);
+      }
+      e.forks = [...byFrom.values()].sort((a, b) => (a.from < b.from ? -1 : 1));
+    }
+  }
+  return s;
+}
 /* FIX 3c — a forked lift with no session of its own inside the current era.
    beforeISO (exclusive) lets completeSession ask the question AS OF the session
    being logged, so the first era session itself banks nothing. */
@@ -1577,6 +1662,18 @@ function beatsNoise(s, exId, reps, prev) {
 }
 
 function completeSession(state, iso, entries, slp, extras = {}) {
+  /* SPLIT items h + i — every booked entry carries its provenance: wKey (the
+     config string it was performed under, for non-numeric configs) and og (the
+     plan generation it was performed under; a captured draft's generation
+     rides in extras.pg). Historical entries are never rewritten. */
+  try {
+    for (const en0 of (entries || [])) {
+      if (!en0) continue;
+      const ex0 = (state.exercises || []).find((x) => x && x.id === en0.id);
+      if (ex0 && typeof ex0.w !== "number" && ex0.w != null && en0.wKey == null) en0.wKey = String(ex0.w);
+      if (en0.og == null) en0.og = (extras && extras.pg != null) ? extras.pg : (state.planGen || 0);
+    }
+  } catch (e0) {}
   const s = JSON.parse(JSON.stringify(state));
   const lines = [];
   let dipCount = 0;
@@ -1624,7 +1721,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     /* debut lands */
     if (q && en.isDebutNow) {
       q.done = true; q.state = "ESTABLISH";
-      if (q.newW != null) ex.w = q.newW;
+      if (q.newW != null) { ex.w = q.newW; ex.wAt = new Date().toISOString(); }   /* SPLIT: the debut-land writer stamps */
       if (ex.id === "hack" && ex.pendingThird) { ex.pendingThird = false; ex.sets = 3; ex.setsAt = new Date().toISOString(); }
       ex.last = r.slice(); ex.own = false; ex.std = null;
       q.gate = `Debuted ${r.join(",")}`;
@@ -1691,11 +1788,17 @@ function completeSession(state, iso, entries, slp, extras = {}) {
        the config did not hold moves the config to reality — ex.w follows what was
        lifted, and an off-ladder weight MERGES into the rungs (never erasing them),
        so the ask/ladder machinery prices the next earn from where he actually is. */
-    if (typeof en.w === "number" && typeof ex.w === "number" && en.w !== ex.w) {
+    /* SPLIT item c — DEBUT LOAD ADOPTION: the first COMPLETED entry carrying a
+       numeric load becomes the lift's load, atomically with its stamp. A
+       blank-load completion does not consume adoption. */
+    if (typeof en.w === "number" && ex.w == null) {
+      ex.w = en.w; ex.wAt = new Date().toISOString();
+      push(`${ex.n.toUpperCase()} — LOAD ADOPTED AT ${en.w}`, "First completed load under the new lift: " + en.w + " is the working load now; targets build from what this session gives.");
+    } else if (typeof en.w === "number" && typeof ex.w === "number" && en.w !== ex.w) {
       const r0 = loadRungs(ex);
       if (r0 && r0.indexOf(en.w) < 0) ex.steps = [...new Set([...r0, en.w])].sort((a9, b9) => a9 - b9);
       push(`${ex.n.toUpperCase()} — LOGGED AT ${en.w} (plan said ${ex.w})`, "Reality outranks the filed ladder: the lift now lives at " + en.w + (r0 ? ", and the rung joined the ladder" : "") + ".");
-      ex.w = en.w; ex.topAt = null; ex.topRun = 0;   /* a new load starts its own sighting record */
+      ex.w = en.w; ex.wAt = new Date().toISOString(); ex.topAt = null; ex.topRun = 0;   /* a new load starts its own sighting record; SPLIT: every w-writer stamps */
     }
     /* generic progression + earn */
     /* R20b — NEW-SET GRACE. A slot with NO prior value on file (created by an approved
@@ -7670,7 +7773,7 @@ function programmeVolume(s) {
      are 5-7 each: the highest-return tier. Bench press is indirect for the
      ANTERIOR head only, which is what INDIRECT already encodes. */
   const bucket = (e) => e.head || e.mg;
-  (s.exercises || []).forEach((e) => {
+  (s.exercises || []).filter((eA) => exActive(s, eA.id)).forEach((e) => {   /* SPLIT — a retired lift's sets stopped being designed the day it retired */
     const days = perWeek[e.day] || 0;
     if (!days || !e.sets) return;
     const n = e.sets * days;
@@ -8631,6 +8734,7 @@ function runAdaptive(state, todayISO, raOpts) {
     });
   }
 
+  normalizePlan(s);   /* SPLIT item f — THE SWEEP CALL SITE: every open repairs the plan register in place (idempotent; planGen 51 only) */
   /* ---------- v7.53.0 A3 — THE INSERTION FORK TABLE, ARMED ----------
      Sol's fork table, build-ready: inserting a new lift into a session changes
      the fatigue context of every lift after it, so the affected lifts' baselines
@@ -8942,7 +9046,7 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
     const ex7 = (s.exercises || []).find((e) => e && e.id === p.apply.exId);
     if (ex7) {
       ex7.steps = p.apply.rungs.slice().sort((a, b) => a - b);
-      if (typeof ex7.w === "number") ex7.w = snapLoad(ex7, ex7.w);
+      if (typeof ex7.w === "number") { ex7.w = snapLoad(ex7, ex7.w); ex7.wAt = new Date().toISOString(); }
       s.feed.unshift({ d: isoOf(todayStart()), t: `LADDER SET — ${String(ex7.n).toUpperCase()} ${ex7.steps.length} rungs`, how: `${ex7.steps[0]} to ${ex7.steps[ex7.steps.length - 1]}, read off the weights you have actually used — every earn, reset and forecast now lands on a weight this machine makes` });
     }
     p.resolved = true; p.at = new Date().toISOString();
@@ -9051,6 +9155,24 @@ function dismissSuggestion(state, sug) {
    clears it from the inbox; dismiss clears it (volume records a two-week cooldown).
    Extracted verbatim from the old inline NOW block so the one-door inbox can reuse it. */
 function applyAgentProposal(state, ap, tISO) {
+  /* SPLIT item d — acceptance is merge-closed: a retired lift takes no
+     proposal, and an order-derived proposal from an older plan generation is
+     superseded rather than applied (a stale replica can restore the CARD; it
+     cannot make it actionable). */
+  try {
+    if (ap && ap.exId && !exActive(state, ap.exId)) {
+      const s0 = JSON.parse(JSON.stringify(state));
+      s0.agentProposals = (s0.agentProposals || []).filter((x) => x.id !== ap.id);
+      s0.feed.unshift({ d: tISO, t: "OFFER SUPERSEDED — " + (ap.title || ap.exId), how: "The lift this proposal targets was retired by the split ruling; the offer is preserved in history and closed without effect." });
+      return s0;
+    }
+    if (ap && ap.pg != null && state && state.planGen != null && ap.pg < state.planGen) {
+      const s0 = JSON.parse(JSON.stringify(state));
+      s0.agentProposals = (s0.agentProposals || []).filter((x) => x.id !== ap.id);
+      s0.feed.unshift({ d: tISO, t: "OFFER SUPERSEDED — " + (ap.title || "plan change"), how: "This offer was derived from an earlier plan generation; the plan has since changed, so it closes without effect. A current offer must be re-earned under the current plan." });
+      return s0;
+    }
+  } catch (e) {}
   const s = JSON.parse(JSON.stringify(state));
   if (ap.kind === "volume" && ap.exId && ap.dir) {
     /* R18f fix2 (c) — the desk's tap re-checks the budget too, and speaks */
@@ -9064,7 +9186,7 @@ function applyAgentProposal(state, ap, tISO) {
     if (ex7) { ex7.sets = Math.max(1, (ex7.sets || 1) + ap.dir); ex7.setsAt = new Date().toISOString();   /* AUDIT G — every sets mutator stamps, or the merge reverts the change */ s.feed.unshift({ d: tISO, t: `VOLUME ${ap.dir > 0 ? "+1" : "−1"} — ${ap.mg.toUpperCase()} via ${ex7.n} (now ${ex7.sets} sets)`, how: "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited" }); }
   } else if (ap.kind === "reset" && ap.exId && ap.newW) {
     const ex3 = s.exercises.find((x) => x.id === ap.exId);
-    if (ex3) { const oldW = ex3.w; ex3.w = ap.newW; ex3.last = null; s.feed.unshift({ d: tISO, t: "RESET APPLIED — " + ex3.n + " " + oldW + " → " + ap.newW, how: "3-session stall, evidence-based back-off, your consent — rebuild starts next session" }); }
+    if (ex3) { const oldW = ex3.w; ex3.w = ap.newW; ex3.wAt = new Date().toISOString(); ex3.last = null; s.feed.unshift({ d: tISO, t: "RESET APPLIED — " + ex3.n + " " + oldW + " → " + ap.newW, how: "3-session stall, evidence-based back-off, your consent — rebuild starts next session" }); }
   } else if (ap.kind === "trial") {
     const rec = ap.custom ? { custom: ap.custom, started: tISO } : { tplId: ap.tplId, started: tISO };
     s.trials = [...(s.trials || []), rec];
@@ -9217,6 +9339,9 @@ function patchV5(s) {
     if (!s.exercises.some((e) => e.id === se.id)) s.exercises.splice(Math.min(i, s.exercises.length), 0, JSON.parse(JSON.stringify(se)));
   });
   if (!s.exOrder) s.exOrder = JSON.parse(JSON.stringify(SEED.exOrder));
+  /* SPLIT item d — retired lifts leave every ACTIVE projection (the raw record
+     is never filtered): the pool below is order-driven, so the order filter is
+     the one gate. */
   s.v = 5;
   return s;
 }
@@ -9718,6 +9843,64 @@ function patchV45(s) {
   rule45("rows", 10, 9);
   s.v = 45; return s;
 }
+function patchV51(s) {
+  /* THE SPLIT PATCH (owner-ruled 8/12). Deterministic: canonical dates, never
+     fire-time; every authored field stamped at RULING_EPOCH; the eleven seams
+     appended by THIS patch (not the runtime registry) so bodies and bytes are
+     identical whichever device migrates first. */
+  const EP = "2026-08-12T00:00:00.000Z";
+  const exs = s.exercises || (s.exercises = []);
+  const put = (spec, afterId) => {
+    if (exs.some((x) => x && x.id === spec.id)) return;
+    const i = exs.findIndex((x) => x && x.id === afterId);
+    exs.splice(i < 0 ? exs.length : i + 1, 0, spec);
+  };
+  put({ id: "fly", mg: "chest", n: "Machine fly", day: "U", w: null, wAt: EP, inc: 5, incAt: EP, sets: 2, setsAt: EP, hi: 20, hiAt: EP, last: null,
+    setup: "SET · fly mode · seat [PIN] · start [PIN] · resistance profile [PIN]\nKeep back on pad and elbows at the same bend through your full pain-free range · open and close to the same endpoints—no bounce", setupAt: EP }, "press");
+  put({ id: "hipthrust", mg: "glutes", n: "Hip thrust machine", day: "L", w: null, wAt: EP, inc: 5, incAt: EP, sets: 3, setsAt: EP, hi: 12, hiAt: EP, last: null,
+    setup: "SET · machine setting [PIN] · belt/pad landmark [PIN] · foot marks [PIN]\nUse your full pain-free hip range to the same depth and finish height · keep upper back on pad—do not arch the low back to finish", setupAt: EP }, "hack");
+  /* THE RULING-WRITE RULE (item e): a target lands only where the field's stamp
+     is absent or pre-epoch; an athlete's at-or-after-epoch word survives. Live
+     evidence (cowork, executed): pulldown setsAt ABSENT, calves ABSENT,
+     rearDelt 2026-08-07 (pre-ruling) — all three take the ruling; lateral's
+     8/13 stamp is untouched by construction. */
+  for (const [id51, n51] of [["pulldown", 3], ["rearDelt", 3], ["calves", 3]]) {
+    const e = exs.find((x) => x && x.id === id51);
+    if (e && (!e.setsAt || e.setsAt < EP)) { e.sets = n51; e.setsAt = EP; }
+  }
+  /* THE RETIREMENT (item d): tombstone at the canonical ruling date; immediate
+     sweep of active obligations; the record itself untouched forever. */
+  s.retirements = { ...(s.retirements || {}), pronated: "2026-08-12" };
+  const pr = exs.find((x) => x && x.id === "pronated");
+  if (pr && (pr.std || pr.own || pr.reclaim)) {
+    s.feed.unshift({ d: "2026-08-12", t: "PRONATED EZ CURL — RETIRED WITH ITS STANDARDS ON FILE", how: "The split ruling retires the lift; the standard" + (pr.reclaim ? " and the reclaim line" : "") + " it carried retire with it, preserved here: std " + JSON.stringify(pr.std) + ", reclaim " + JSON.stringify(pr.reclaim) + ". Every logged session stays on the record." });
+    pr.std = null; pr.own = false; pr.reclaim = null;
+  }
+  /* THE ELEVEN SEAMS + the registry (item i): canonical date, split-tagged so
+     normalization may re-date each lift's boundary past its own last old-order
+     entry. prevN = the current display name (the name the closing era used). */
+  s.insertions = { ...(s.insertions || {}), fly: "2026-08-14", hipthrust: "2026-08-14" };
+  const SEAMS = [["fly", ["pulldown", "rows", "rearDelt", "curl", "tricep", "sulek"]], ["hipthrust", ["extension", "ham", "abs", "hanging", "calves"]]];
+  for (const [nid, aff] of SEAMS) {
+    for (const affId of aff) {
+      const e = exs.find((x) => x && x.id === affId);
+      if (!e) continue;
+      const fks = Array.isArray(e.forks) ? e.forks : (e.fork && e.fork.from ? [e.fork] : []);
+      if (e.fork) delete e.fork;
+      const why51 = nid === "fly" ? "fly inserted upstream" : "hip thrust inserted upstream";
+      if (!fks.some((f) => f && f.ops && f.ops.indexOf(why51) > -1) && !fks.some((f) => f && f.why === why51)) {
+        fks.push({ from: "2026-08-14", why: why51, ops: [why51], prevN: e.n, split: true });
+      }
+      e.forks = fks.sort((a, b) => (a.from < b.from ? -1 : 1));
+      s.feed.unshift({ d: "2026-08-14", t: e.n.toUpperCase() + " — FRESH BASELINE", how: "The " + (nid === "fly" ? "machine fly" : "hip thrust") + " enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change." });
+    }
+  }
+  /* THE PLAN REGISTER (item f): generation 51, ruled orders; normalizePlan
+     (sweep-run) keeps them lawful thereafter. */
+  s.planGen = 51;
+  s.exOrder = { U: ["lateral", "press", "fly", "pulldown", "rows", "rearDelt", "curl", "tricep", "sulek"], L: ["hack", "hipthrust", "extension", "ham", "abs", "hanging", "calves"] };
+  s.v = 51; return s;
+}
 function patchV50(s) {
   /* FIX 3a — ERAS BECOME PLURAL AND NAMES BECOME ERA-TRUTHFUL. fork → forks[]
      (additive restatement); the 8/13 seams record the name their old era used
@@ -9868,7 +10051,7 @@ function patchV38(s) {
    defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
    no longer as the only wall between a bump and his history. The gate asserts the
    pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
-const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50]];
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -10011,7 +10194,7 @@ async function ghSync(state) {
     } catch (e) { return { sha: null, state: undefined }; }
   };
   const buildBody = (rState, rSha) => {
-    const merged = rState && typeof rState === "object" ? mergeState(state, rState) : state;
+    const merged = rState && typeof rState === "object" ? mergeState(state, migrate(rState)) : state;   /* SPLIT item k (bootstrap law) — CONFIRMED defect, fixed: this site merged the RAW remote; a v50 replica met v51 structures un-migrated. The restore path already migrated first (~10890); now both obey the same law. */
     if (rState && typeof rState === "object" && !dataLossGuard(rState, merged).safe) return null;   // never write a state smaller than the remote
     return { message: "ledger auto-sync " + isoOf(todayStart()) + " [skip ci]", content: btoa(unescape(encodeURIComponent(JSON.stringify({ ...merged, _dictionary: LEDGER_DICT })))), ...(rSha ? { sha: rSha } : {}) };
   };
@@ -11251,7 +11434,7 @@ function mergeState(local, remote) {
        exact tie keeps the wholesale winner. rirHist is deliberately NOT here
        this round (filed): it is a series, not a scalar, and needs a union, not
        a stamp. */
-    const STAMPED_FIELDS = [["sets", "setsAt"], ["hi", "hiAt"], ["inc", "incAt"], ["setup", "setupAt"]];
+    const STAMPED_FIELDS = [["sets", "setsAt"], ["hi", "hiAt"], ["inc", "incAt"], ["setup", "setupAt"], ["w", "wAt"]];   /* SPLIT item c — the load joins the discipline; legacy absent stamps behave exactly as the other four */
     out.exercises = (out.exercises || []).map((w) => {
       if (!w || w.id == null) return w;
       const r0 = pick(remote.exercises, w.id), l0 = pick(local.exercises, w.id);
@@ -11289,7 +11472,18 @@ function mergeState(local, remote) {
   out.sleep = { ...(remote.sleep || {}), ...(local.sleep || {}), nights: _unionBy(rn, ln, (n) => n && n.d) };
   out.plan = _unionPlan(remote.plan, local.plan);   // v7.2.0 Slice 3 — goals/ifthen keyed-union + policy scalars newest-deliberate-wins (was wholesale local-wins)
   out.learned = _unionLearned(remote.learned, local.learned);   // v7.3.0 Slice 4 — learned TDEE series + anchor log keyed-union (never clobbered by a stale sync)
-  out.exOrder = _unionExOrder(remote.exOrder, local.exOrder);   // QUEUED #2 E — was riding the wholesale local-wins spread; an ordering needs newest-deliberate-wins + never-lose-a-lift
+  out.exOrder = _unionExOrder(remote.exOrder, local.exOrder);
+  /* SPLIT item f — { planGen, exOrder } are ONE register: the higher
+     generation's order payload wins TOGETHER, independent of wall clock or
+     merge direction. Equal generations keep the union above. */
+  {
+    const gL = (local && local.planGen) || 0, gR = (remote && remote.planGen) || 0;
+    if (gL !== gR) { const win = gL > gR ? local : remote; out.planGen = win.planGen; out.exOrder = JSON.parse(JSON.stringify(win.exOrder || {})); }
+    else if (gL) out.planGen = gL;
+  }
+  /* SPLIT item d — the retirement register unions by key; absence never
+     resurrects (a device that never learned the ruling contributes nothing). */
+  out.retirements = { ...(remote.retirements || {}), ...(local.retirements || {}) };   // QUEUED #2 E — was riding the wholesale local-wins spread; an ordering needs newest-deliberate-wins + never-lose-a-lift
   return out;
 }
 
@@ -14949,6 +15143,11 @@ function LogTab({ s, setS, save, slp }) {
                     [arr[i], arr[j]] = [arr[j], arr[i]];
                     /* stamp the deliberate reorder so a stale device cannot revert it — see _unionExOrder */
                     ns.exOrder.setAt = { ...(ns.exOrder.setAt || {}), [dayType(dateSel, s)]: new Date().toISOString() };
+                    /* SPLIT item f — a deliberate reorder ADVANCES THE PLAN GENERATION:
+                       normalization only governs planGen 51 (the ruling's own order), so
+                       the athlete's word immediately outranks it, and the register merge
+                       carries the newer generation's order whole. */
+                    ns.planGen = Math.max(52, (ns.planGen || 51) + 1);
                     setS(ns); save(ns);
                   }} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.chalk, fontFamily: mono, fontSize: TS.label }}>{g}</button>
                 ))}
@@ -14982,7 +15181,7 @@ function LogTab({ s, setS, save, slp }) {
                       style={{ fontFamily: mono, fontSize: TS.label, color: loadRungs(ex) ? T.jade : T.steel, border: `1px solid ${loadRungs(ex) ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>
                       {loadRungs(ex) ? `uneven · ${loadRungs(ex).length} rungs ✎` : "uneven ✎"}
                     </span>
-                    <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id); const oldW = ex4.w; ex4.w = loadRungs(ex4) ? snapLoad(ex4, wVal) : wVal; if (oldW !== ex4.w) ex4.last = null; ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${ex4.w}`, how: "athlete entry on the card — targets re-seeded for the new load" }); setS(ns); save(ns); setWEdit(null); setRungEdit(null); }}>Save</Btn>
+                    <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id); const oldW = ex4.w; ex4.wAt = new Date().toISOString(); ex4.w = loadRungs(ex4) ? snapLoad(ex4, wVal) : wVal; if (oldW !== ex4.w) ex4.last = null; ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${ex4.w}`, how: "athlete entry on the card — targets re-seeded for the new load" }); setS(ns); save(ns); setWEdit(null); setRungEdit(null); }}>Save</Btn>
                     {rungEdit === ex.id && (
                       <div style={{ width: "100%", marginTop: 6, padding: "9px 10px", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8 }}>
                         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, letterSpacing: "0.08em", lineHeight: 1.6 }}>
@@ -14998,7 +15197,7 @@ function LogTab({ s, setS, save, slp }) {
                             const parsed = parseRungs(el ? el.value : "");
                             const ns = JSON.parse(JSON.stringify(s)); const ex6 = ns.exercises.find((x) => x.id === ex.id);
                             if (!parsed) { delete ex6.steps; ns.feed.unshift({ d: isoOf(todayStart()), t: `LADDER CLEARED — ${ex6.n.toUpperCase()}`, how: `back to even ${ex6.inc || 5} lb jumps` }); }
-                            else { ex6.steps = parsed; ex6.w = snapLoad(ex6, typeof ex6.w === "number" ? ex6.w : parsed[0]); setWVal(ex6.w); ns.feed.unshift({ d: isoOf(todayStart()), t: `LADDER SET — ${ex6.n.toUpperCase()} ${parsed.length} rungs`, how: `${parsed[0]} to ${parsed[parsed.length - 1]} — every earn, reset and forecast now lands on a weight this machine makes` }); }
+                            else { ex6.steps = parsed; ex6.wAt = new Date().toISOString(); ex6.w = snapLoad(ex6, typeof ex6.w === "number" ? ex6.w : parsed[0]); setWVal(ex6.w); ns.feed.unshift({ d: isoOf(todayStart()), t: `LADDER SET — ${ex6.n.toUpperCase()} ${parsed.length} rungs`, how: `${parsed[0]} to ${parsed[parsed.length - 1]} — every earn, reset and forecast now lands on a weight this machine makes` }); }
                             setS(ns); save(ns); setRungEdit(null);
                           }}>Save ladder</Btn>
                           <button onClick={() => setRungEdit(null)} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "7px 12px" }}>cancel</button>
