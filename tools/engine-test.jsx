@@ -279,7 +279,7 @@ ok(!e2.proposals.some(p => p.rid === "pivot"), "R4 — and the pivot prompt is g
         const old = clone(SEED); delete old.skinfolds; old.v = 38;
         const up = __test.migrate(JSON.parse(JSON.stringify(old)));
         ok(Array.isArray(up.skinfolds) && up.skinfolds.length === 0, "R5 migration — patchV39 adds s.skinfolds = [] and nothing was there to restate");
-        ok(up.v === 47, "R5 migration — and bumps to 47 (v44 the 180 correction · v45 calves 11 / rows 9 · v46 the dedupe · v47 the failure-A/B retirement: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
+        ok(up.v === 48, "R5 migration — and bumps to 48 (v46 the dedupe · v47 the A/B retirement · v48 the cue bundle: the athlete's dated split entry + the 8/10 → 8/09 date restatement)");
                 ok(Array.isArray(up.split) && up.split.length === 1 && up.split[0].from === "2026-08-09" && up.split[0].map[0] === "U" && up.split[0].map[1] === "L" && up.split[0].map[4] === "U" && up.split[0].map[5] === "L" && up.split[0].map[3] === "REST", "R19c migration — patchV40 seeds the athlete-stated split, DATED from the day he said it: Sun U · Mon L · Thu U · Fri L, rest elsewhere");
         /* byte-identity is the wrong invariant: migrate() replays the WHOLE patch chain, so
            other idempotent patches legitimately touch the state. The invariant that matters
@@ -1028,11 +1028,11 @@ console.log(`\nFINAL3: ${pass} passed, ${fail} failed`);
 // v2.4 — setups
 const { SEED: S7, migrate: mg4, genSession: gs4 } = __test;
 ok(S7.v >= 6 && S7.exercises.every(e => typeof e.setup === "string" && e.setup.length > 10), "every lift carries its settings + cues");
-ok(S7.exercises.find(e => e.id === "sulek").n.indexOf("forearm") > -1, "Sulek corrected to what it actually is — forearm work");
+ok(S7.exercises.find(e => e.id === "sulek").n.indexOf("wrist curl") > -1, "Sulek named for what it actually is — R4's ruling refined the v6 fix: wrist curl (the owner: wrists bend, palms curl into wrists), his name still the identity, the id never moving");
 ok(gs4(clone(S7), "2026-07-23", slpClean).ex[0].setup.indexOf("resistance profile 5") > -1, "setup rides into the generated session card");
 const oldV5 = clone(S7); oldV5.v = 5; oldV5.exercises.forEach(e => { delete e.setup; e.n = e.n === "Sulek curl (forearm)" ? "Sulek raise" : e.n; });
 const m6 = mg4(oldV5);
-ok(m6.v >= 6 && m6.exercises.every(e => e.setup) && m6.exercises.find(e => e.id === "sulek").n.indexOf("forearm") > -1, "existing phones gain blurbs and the name fix");
+ok(m6.v >= 6 && m6.exercises.every(e => e.setup) && m6.exercises.find(e => e.id === "sulek").n.indexOf("wrist curl") > -1, "existing phones gain blurbs and the CURRENT name — v6 fixed it to forearm, v48 refined it to wrist curl; a migrated phone always lands on the newest ruling");
 
 console.log(`\nFINAL4: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
@@ -5574,13 +5574,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 47, "schema: SCHEMA_V is 47 (patchV47: the failure-A/B retirement)");
+  ok(SC === 48, "schema: SCHEMA_V is 48 (patchV48: the cue bundle — the deliberate census pin; bumping SCHEMA_V must touch this line)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
-  ok(migd.v === 47 && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
+  ok(migd.v === SC && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
   ok(migd.reads.length === oldV35.reads.length && Object.keys(migd.dailyLogs).length === Object.keys(oldV35.dailyLogs).length, "patchV36: ADDITIVE — no read or dailyLog is added or lost (count-preserving)");
   ok(SEED.plan.autonomy === "propose", "patchV36: SEED already carries autonomy='propose' so a fresh install === a migrated one");
-  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === 47, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
+  ok(mig(clone(SEED)).plan.autonomy === "propose" && mig(clone(SEED)).v === SC, "patchV36..39: idempotent on a current SEED (no double-patch drift)");
   const future = clone(SEED); future.v = __test.SCHEMA_V + 1;   /* FIX 2a — a literal 46 became CURRENT when SCHEMA_V bumped, and this silently tested the v===SCHEMA_V branch instead of the rollback hand-back it claims */
   const futureBefore = JSON.stringify(future);
   const futOut = mig(future);
@@ -5876,13 +5876,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 47, "schema: SCHEMA_V is 47 (patchV47 on top of the chain)");
+  ok(__test.SCHEMA_V === 48, "schema: SCHEMA_V is 48 (patchV48 on top of the chain — the second deliberate census pin)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
-  ok(m37.v === 47 && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
+  ok(m37.v === __test.SCHEMA_V && Array.isArray(m37.learned.tdee) && m37.learned.tdee.length === 0 && Array.isArray(m37.learned.anchors), "patchV37: a v36 state migrates to the current schema and seeds the learned store EMPTY (additive)");
   ok(m37.reads.length === oldV36.reads.length && Object.keys(m37.dailyLogs).length === Object.keys(oldV36.dailyLogs).length, "patchV37: ADDITIVE — no read or dailyLog added or lost (count-preserving)");
-  ok(MIG(clone(SEED)).v === 47, "patchV37..47: idempotent on a current SEED (no double-patch drift — under the v7.52.0 runner a current seed takes the v===SCHEMA_V fast path and no patch runs at all, which is the stronger form of the same claim)");
+  ok(MIG(clone(SEED)).v === __test.SCHEMA_V, "patchV37..top: idempotent on a current SEED (no double-patch drift — under the v7.52.0 runner a current seed takes the v===SCHEMA_V fast path and no patch runs at all, which is the stronger form of the same claim)");
   const fut39 = clone(SEED); fut39.v = __test.SCHEMA_V + 1; fut39.learned = { tdee: [{ d: "2026-09-01", tdee: 2500, w: 160 }], anchors: [] };   /* FIX 2a — floats above SCHEMA_V */
   const fut39Before = JSON.stringify(fut39);
   ok(JSON.stringify(MIG(fut39)) === fut39Before, "patchV38: a NEWER (SCHEMA_V+1) state is handed back DEEP-IDENTICAL — rollback-safe, the learned history byte-for-byte");
@@ -6138,13 +6138,13 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(JSON.stringify(calorieTarget(clone(SEED))) === JSON.stringify(calorieTarget(clone(SEED))), "ENGINE-OWNS-NUMBERS — calorieTarget is unchanged by the phase layer on a normal cut (no phase number injected)");
 
   // ---- E · patchV38 — additive + rollback-safe; fresh SEED === migrated --------------------
-  ok(SCHEMA_V === 47, "patchV39..47 — SCHEMA_V is 47 (the retirement on top of the chain)");
+  /* floats — the census pins above are the deliberate literals */
   ok(Array.isArray(SEED.plan.phaseLog) && SEED.plan.phaseLog.length === 0 && !("phase" in SEED.plan) && !("brk" in SEED.plan), "patchV38 — SEED authors an EMPTY phaseLog and NO phase/brk override: a fresh install === a migrated state");
   const oldV37 = clone(SEED); oldV37.v = 37; delete oldV37.plan.phaseLog;
   const m38 = migrate(oldV37);
-  ok(m38.v === 47 && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
+  ok(m38.v === SCHEMA_V && Array.isArray(m38.plan.phaseLog) && m38.plan.phaseLog.length === 0, "patchV38 — a v37 state migrates to v38 and seeds phaseLog EMPTY (additive)");
   ok(m38.reads.length === oldV37.reads.length && Object.keys(m38.dailyLogs).length === Object.keys(oldV37.dailyLogs).length, "patchV38 — ADDITIVE: no read or dailyLog added or lost (count-preserving)");
-  ok(migrate(clone(SEED)).v === 47 && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
+  ok(migrate(clone(SEED)).v === SCHEMA_V && migrate(clone(SEED)).plan.phaseLog.length === 0, "patchV38 — idempotent on a current SEED (no double-patch drift)");
   const fut39 = clone(SEED); fut39.v = SCHEMA_V + 1; fut39.plan = { ...fut39.plan, phase: "leangain", phaseLog: [{ id: "x", to: "leangain" }] };   /* FIX 2a — floats above SCHEMA_V */
   const fut39B = JSON.stringify(fut39);
   ok(JSON.stringify(migrate(fut39)) === fut39B, "patchV38 — a NEWER (SCHEMA_V+1) state is handed back DEEP-IDENTICAL: rollback-safe, no phase decision wiped");
@@ -6962,7 +6962,16 @@ if (fail) process.exit(1);
    ~46 visually identical mono lines, every tier at once, one mega-accordion. The fix is
    structural, never verbal: sessionDebrief now returns TYPED output ({ mark, delivered,
    lines:[{k,t}], next, work } per lift) and tools/debrief-words.json — captured from the
-   PRE-refactor engine on both frozen snapshots — proves the words did not move. */
+   PRE-refactor engine on both frozen snapshots — proves the words did not move.
+
+   v7.53.0 RE-BASE, DELIBERATE: the fixture was re-captured under the owner-ruled
+   renames (R1/R4 + A1), because the debrief prints display names and six of them
+   changed. The diff was enumerated leaf-by-leaf before re-basing: 69 leaves, every
+   one a name substitution (.lifts[].n and the summary sentences that embed names) —
+   zero structural or sentence-shape changes. The first enumerator reported "0 diffs"
+   over a real difference because it walked the flatten as an array when it is an
+   object (NaN loop bound); the honest walker is .tmp lore now and the lesson is the
+   /s+/ one again: a diff tool that reports implausibly clean is a suspect, not a pass. */
 {
   const sd91 = __test.sessionDebrief, dw91 = __test.debriefWords;
   const cl91 = (o) => JSON.parse(JSON.stringify(o));
@@ -8705,7 +8714,7 @@ if (fail) process.exit(1);
     if (cal) cal.hi = 13;   /* legal later state: the athlete moved his own ceiling back up */
     const feedLen0 = s45.feed.length;
     const out = __test.migrate(clP(s45));
-    ok(out.v === 47, "v7.52.0 runner — a v45 state lands at the chain top (47)");
+    ok(out.v === __test.SCHEMA_V, "v7.52.0 runner — a v45 state lands at the chain top");
     const calOut = (out.exercises || []).find((x) => x.id === "calves");
     ok(calOut && calOut.hi === 13,
       "v7.52.0 runner — patchV45 did NOT re-run on a v45 state: the athlete's own hi=13 survives the bump. Under the old replay-everything runner this exact field was forced back to 11 on every future bump, forever");
@@ -8800,10 +8809,21 @@ if (fail) process.exit(1);
     ok(!countsAfter.has("FEED DEDUPED — 0 historical replay duplicates removed"),
       "E1 — and no zero-work dedupe receipt exists under any phrasing");
     const exS = out.exercises.find((x) => x.id === ex0.id);
-    ok(exS.setup === "E1-SENTINEL-SETUP · athlete-calibrated, appears nowhere else" && exS.inc === 3.25,
-      "E1 — the SENTINEL setup and inc survive the bump byte-for-byte: values that exist nowhere in SEED, so a patch restoring the seed's copy cannot fake a pass");
-    ok(JSON.stringify(out.exercises.map((x) => [x.id, x.setup])) === setupsBefore,
-      "E1 — every setup string is BYTE-IDENTICAL through the bump: the old runner overwrote an athlete-calibrated setup with SEED's copy");
+    /* the setup sentinel retired WITH patchV48 (the rewrite is ruled); inc and
+       drip remain the unruled sentinels — no patch in any window touches them */
+    ok(exS.inc === 3.25,
+      "E1 — the SENTINEL inc (3.25, nowhere in SEED) survives the bump: no ruled patch touches inc, so any change here is a phantom");
+    /* v7.53.0 — the byte-identity claim EVOLVES: patchV48 is a RULED setup
+       rewrite, so the honest assertion is that every setup lands on the ruled
+       text — which is SEED's text, because seed and patch are authored from the
+       same ruling. This is also the seed-agreement check the schema ritual
+       demands, run on every gate: if the patch map and the literal ever drift,
+       this fails. An UNRULED overwrite still fails it, because it would not
+       match SEED either. */
+    ok(out.exercises.every((x) => { const se9 = __test.SEED.exercises.find((y) => y.id === x.id); return !se9 || (x.setup === se9.setup && x.n === se9.n); }),
+      "E1 (v7.53.0) — through the bump, every setup and name lands on exactly the RULED text (=== SEED's authoring): patch map and seed literal agree, and nothing unruled touched them");
+    ok(out.exercises.every((x) => { const se9 = __test.SEED.exercises.find((y) => y.id === x.id); return !se9 || x.setupAt === "2026-08-13T12:00:00.000Z"; }),
+      "E1 (v7.53.0) — and every ruled rewrite carries the fixed adoption stamp, so a stale device's old cue loses the merge from both orders");
     ok(out.model.drip === dripBefore && out.model.drip === 0.31,
       "E1 — the SENTINEL drip (0.31 — a future measured value, exactly what the old runner zeroed) is untouched by the bump");
   }
@@ -8815,7 +8835,10 @@ if (fail) process.exit(1);
   {
     const mk9 = (over) => { const s9 = clP(__test.SEED); const e9 = s9.exercises.find((x) => x.id === "press"); Object.assign(e9, over); return s9; };
     /* A: deliberate config, stamped. B: trained LATER (newer lastMeta.d), unstamped config. */
-    const A9 = mk9({ hi: 8, hiAt: "2026-08-12T10:00:00.000Z", setup: "athlete-calibrated setup", setupAt: "2026-08-12T10:00:00.000Z", inc: 2.5, incAt: "2026-08-12T10:00:00.000Z", lastMeta: { d: "2026-08-10", reps: [8, 8], w: 245 } });
+    /* v7.53.0 — the fixture's deliberate stamps move to 08-14: the SEED itself now
+       carries the 08-13 cue-adoption setupAt, and a deliberate athlete act must be
+       NEWER than the adoption to win — which is also true on real phones. */
+    const A9 = mk9({ hi: 8, hiAt: "2026-08-14T10:00:00.000Z", setup: "athlete-calibrated setup", setupAt: "2026-08-14T10:00:00.000Z", inc: 2.5, incAt: "2026-08-14T10:00:00.000Z", lastMeta: { d: "2026-08-10", reps: [8, 8], w: 245 } });
     const B9 = mk9({ lastMeta: { d: "2026-08-12", reps: [9, 8], w: 245 } });
     for (const [local9, remote9, ord9] of [[A9, B9, "A local"], [B9, A9, "A remote"]]) {
       const m9 = __test.mergeState(local9, remote9);

@@ -360,7 +360,7 @@ const APP_V = "7.52.0";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 47;
+const SCHEMA_V = 48;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -386,36 +386,36 @@ const REFEED = { cal: "2,450–2,500", note: "weekly Wednesday — prescribed, n
 const EXERCISES = [
   /* UPPER — order per the 7/20 session note */
   { id: "lateral", mg: "delts", head: "delts_side", lastMeta: { d: "2026-07-20", w: 80, reps: [14, 13, 13], debt: true }, n: "Lateral machine", day: "U", w: 80, inc: 5, sets: 4, hi: 15, last: [14, 13, 13],
-    setup: "SET · resistance profile 5 · seat 5\nUpright, elbow-led (the set-4 fix) · no shrug creep · smooth top, no swing" },
-  { id: "rearDelt", mg: "delts", head: "delts_rear", lastMeta: { d: "2026-07-20", w: 20, reps: [10, 10], debt: true }, n: "Rear-delt fly (cable · uni)", day: "U", w: 20, inc: 2.5, sets: 3, hi: 12, last: [10, 10], note: "honest 10s — no hot opener · 3 sets per side, log the weaker side",
-    setup: "SET · unilateral · cable at highest height\nChest tall, shoulders back & down (?) · pure sweep — the opener fix is proven here" },
-  { id: "rows", mg: "back", lastMeta: { d: "2026-07-20", w: 175, reps: [10, 10], debt: true }, n: "Rows (strapless)", day: "U", w: 175, inc: 5, sets: 2, hi: 10, last: [10, 10],
-    setup: "SET · seat 4 · chest pad 7 · retrace profile 1\nChest stays glued to pad · pinch the blades at the back · strapless is the standard" },
-  { id: "curl", mg: "biceps", lastMeta: { d: "2026-07-20", w: "55·55·50", reps: [12, 8, 10], debt: true }, n: "Curls", day: "U", w: "55·55·50", inc: 5, sets: 3, hi: 12, last: [12, 8, 10], ladder: { set: 1, top: 12 },
-    setup: "SET · resistance profile 5 · seat 3\nSet 2 is the money set · no shoulder creep when it grinds" },
+    setup: "SET · resistance profile 5 · seat 5\nRaise elbow-first through your full pain-free arc to the same height · keep torso fixed—no swing or late-rep shoulder hike" },
+  { id: "rearDelt", mg: "delts", head: "delts_rear", lastMeta: { d: "2026-07-20", w: 20, reps: [10, 10], debt: true }, n: "Rear-delt fly (cable, unilateral)", day: "U", w: 20, inc: 2.5, sets: 3, hi: 12, last: [10, 10], note: "honest 10s — no hot opener · 3 sets per side, log the weaker side",
+    setup: "SET · unilateral · cable highest · handle [PIN] · stance [PIN]\nSweep through your full pain-free arc to the same endpoint · keep torso fixed—no twist or swing" },
+  { id: "rows", mg: "back", lastMeta: { d: "2026-07-20", w: 175, reps: [10, 10], debt: true }, n: "Prime seated row (hooks)", day: "U", w: 175, inc: 5, sets: 2, hi: 10, last: [10, 10],
+    setup: "SET · seat 4 · chest pad 7 · resistance profile 1 · grip [PIN] · Gymreapers hooks fitted the same way\nUse your full pain-free reach and finish at the same points with chest on pad · keep torso still—no pad lift" },
+  { id: "curl", mg: "biceps", lastMeta: { d: "2026-07-20", w: "55·55·50", reps: [12, 8, 10], debt: true }, n: "Curls (preacher)", day: "U", w: "55·55·50", inc: 5, sets: 3, hi: 12, last: [12, 8, 10], ladder: { set: 1, top: 12 },
+    setup: "SET · resistance profile 5 · seat 3\nKeep upper arms on the pad through your full pain-free elbow range · stop before a shoulder roll starts" },
   { id: "press", mg: "chest", lastMeta: { d: "2026-07-20", w: 245, reps: [8, 7, 6], debt: true }, n: "Press", day: "U", w: 245, inc: 5, sets: 3, hi: 9, last: [8, 7, 6], std: [8, 8, 7], own: true, ownNote: "repeat 8,8,7 — no load until owned",
-    setup: "SET · cam 5 · lowest seat\nShoulders back & down into the pad · no bottom bounce — this lift was won on the honest opener" },
+    setup: "SET · cam 5 · lowest seat · neutral grip\nLower through your full pain-free range to the same depth with upper back on pad · press on the same elbow path—no bounce" },
   { id: "pulldown", mg: "back", lastMeta: { d: "2026-07-20", w: 160, reps: [8, 8], debt: true }, n: "Pulldown", day: "U", w: 160, inc: 5, sets: 2, hi: 10, last: [8, 8],
-    setup: "SET · silver bar · thumbs in the same spot every session\nSame grip = comparable reps · chest up, elbows down-and-in · strapless" },
-  { id: "sulek", mg: "forearms", lastMeta: { d: "2026-07-20", w: 87.5, reps: [12, 8], debt: true }, n: "Sulek curl (forearm)", day: "U", w: 87.5, inc: 2.5, sets: 2, hi: 15, last: [12, 8],
-    setup: "SET · cable, highest rung · straight bar\nSam Sulek's signature — strict curl biasing the forearm flexors · elbows quiet, control the weight rather than drop it" },
+    setup: "SET · silver bar · Gymreapers hooks fitted the same way · thumbs at the same marks\nUse your full pain-free reach at the top and pull to the same body landmark · keep torso angle fixed—no swing" },
+  { id: "sulek", mg: "forearms", lastMeta: { d: "2026-07-20", w: 87.5, reps: [12, 8], debt: true }, n: "Sulek wrist curl (high cable)", day: "U", w: 87.5, inc: 2.5, sets: 2, hi: 15, last: [12, 8],
+    setup: "SET · cable highest rung · straight bar · grip [PIN]\nBend only the wrists—palms curl toward the inner forearm through your full pain-free range · elbows still at sides, no swing" },
   { id: "tricep", mg: "triceps", lastMeta: { d: "2026-07-20", w: 55, reps: [12, 11, 10], debt: true }, n: "Tricep", day: "U", w: 55, inc: 5, sets: 3, hi: 13, last: [12, 11, 10],
-    setup: "SET · seat 4 · back pad all the way forward · middle peg through the cut\nElbows pinned · middle peg, settled — the peg sets the resistance profile, not the shoulder angle, so it was never the overhead question" },
+    setup: "SET · seat 4 · back pad fully forward · middle peg\nKeep upper arms supported through your full pain-free elbow range · stop before shoulder roll or bounce" },
   { id: "pronated", mg: "forearms", lastMeta: { d: "2026-07-20", w: 40, reps: [12, 11], debt: true }, n: "Pronated EZ curl", day: "U", w: 40, inc: 5, sets: 2, hi: 13, last: [12, 11],
-    setup: "SET · EZ bar, pronated grip\nElbows pinned to sides, zero swing · wrists locked — don't let them bend back under load · your 11,6 session was the hot-opener demo" },
+    setup: "SET · EZ bar, pronated grip\nElbows pinned to sides, zero swing · wrists locked—don't let them bend back under load" },
   /* LOWER — order per the 7/17 & 7/21 notes, identical both days */
   { id: "calves", mg: "calves", lastMeta: { d: "2026-07-21", w: 315, reps: [12, 10, 9, 8], debt: true }, n: "Calves", day: "L", w: 315, inc: 5, sets: 4, hi: 13, last: [12, 10, 9, 8], reclaim: [13, 12, 11, 10],
-    setup: "SET · shoulder height 4\n5 s pause in the stretched position · back up to neutral · no bounce out of the hole — the pause IS the rep · drive through the big toe" },
-  { id: "abs", mg: "abs", lastMeta: { d: "2026-07-21", w: 95, reps: [14, 13, 13], debt: true }, n: "Abs", day: "L", w: 100, inc: 5, sets: 3, hi: 14, last: null, first: [12, 12, 12], debutNote: "DEBUT — new baseline, log honest",
-    setup: "SET · back pad A · seat 6\nThe load only moves on clean, even reps — consistency of execution, not of speed" },
-  { id: "hanging", mg: "abs", lastMeta: { d: "2026-07-21", w: "BW", reps: [6, 5], debt: true }, n: "Hanging raise", day: "L", w: "BW", inc: null, sets: 2, hi: 8, last: [6, 5],
-    setup: "SET · bodyweight\nSlouch down/out to engage the core at rep 1 · constant tension, spine stays rounded · no swing between reps" },
+    setup: "SET · shoulder height 4 · foot placement [PIN]\nWith the same near-straight knee angle, pause 2 s (gym-mode timed) at the same deepest pain-free point · rise to the same top height—no bounce" },
+  { id: "abs", mg: "abs", lastMeta: { d: "2026-07-21", w: 95, reps: [14, 13, 13], debt: true }, n: "Prime abdominal crunch", day: "L", w: 100, inc: 5, sets: 3, hi: 14, last: null, first: [12, 12, 12], debutNote: "DEBUT — new baseline, log honest",
+    setup: "SET · resistance profile [PIN] · back pad A · seat 6\nCurl ribs toward pelvis through your full pain-free range · keep hips on pad and use the same controlled cadence" },
+  { id: "hanging", mg: "abs", lastMeta: { d: "2026-07-21", w: "BW", reps: [6, 5], debt: true }, n: "Supported leg raise (medicine-ball pad)", day: "L", w: "BW", inc: null, sets: 2, hi: 8, last: [6, 5],
+    setup: "SET · bodyweight · medicine-ball pad at [PIN] · knee bend [PIN]\nStart with low back rounded against the pad and raise through your full pain-free range to the same height · keep knee bend fixed—no swing" },
   { id: "hack", mg: "quads", lastMeta: { d: "2026-07-21", w: "hold", reps: [13, 12], debt: true }, n: "Hack squat", day: "L", w: "hold",   /* hi is authored 10 below by weave (the 2026-08-10 ruling) — the seed is already-current */ inc: 10, sets: 2, hi: 12, last: null, pendingThird: true,
-    setup: "SET · foot placement = your favorited pic\nSame depth every rep · even sets are the standard here (11,11 → 12,12 → 13,13)" },
+    setup: "SET · foot placement = pinned photo\nMatch the photo and descend through your full pain-free range to the same depth · keep feet, hips, and back contact unchanged" },
   { id: "extension", mg: "quads", lastMeta: { d: "2026-07-21", w: 155, reps: [9, 6], debt: true }, n: "Leg extension", day: "L", w: 150, inc: 5, sets: 2, hi: 10, last: [9, 6], std: [9, 9], own: true, ownNote: "own 150×9,9 — then the 155 gate reopens",
-    setup: "SET · shin pad height A · depth 3 · seat back all the way back — max quad stretch\nNo jerk at lockout · runs after hack by design — read dips as order effect, not regression" },
+    setup: "SET · shin pad A · start range 3 · seat fully reclined · load peg/profile [PIN]\nKeep hips and back on pad through your full pain-free knee range · extend smoothly—no kick or lockout jerk" },
   { id: "ham", mg: "hams", lastMeta: { d: "2026-07-21", w: 120, reps: [10, 10], debt: true }, n: "Ham curl", day: "L", w: 120, inc: 5, sets: 2, hi: 12, last: [10, 10],
-    setup: "SET · back 5 · calf pad height C · depth 3 · resistance profile 5\nHips pinned down, no lift-off · full stretch at the top of every rep" },
+    setup: "SET · back 5 · thigh pad [PIN] · calf pad C · start range 3 · resistance profile 5\nKeep hips down through your full pain-free knee range · stop before lift-off or shortened late reps" },
 ];
 
 /* ---------- seed state ---------- */
@@ -506,6 +506,10 @@ const SEED = {
 /* ---- weave the real 42-day record (Prep-Tracker.xlsx) into the seed ---- */
 (function weave() {
   SEED.v = SCHEMA_V;
+  /* v7.53.0 — the cue adoption stamp: every rewritten setup is deliberate config
+     under the v7.52.0 merge discipline, and the seed carries the SAME fixed
+     stamp patchV48 writes, so a fresh install and a migrated state agree. */
+  SEED.exercises.forEach((e0) => { e0.setupAt = "2026-08-13T12:00:00.000Z"; });   /* seed-authored — the fixed cue-adoption stamp */
   /* v43 — the seed is authored already-current: hack carries the 6-10 ruling */
   { const hk0 = SEED.exercises.find((x) => x.id === "hack"); if (hk0) hk0.hi = 10; }   /* seed-authored — unstamped by design */
   /* v45 — the seed carries the calves/rows ruling too */
@@ -7187,9 +7191,10 @@ const MG_LABEL = { delts_side: "side delt", delts_rear: "rear delt", delts_front
 const mgLabel = (k) => MG_LABEL[k] || k;
 
 /* ---------- EXERCISE_SELECTION — the biggest training lever, finally audited ----------
-   The app spent its attention on rep tempo (SMD 0.09), eccentric speed (-0.06),
-   periodisation (d = -0.02) and machines-vs-free-weights (-0.055, p=0.751) —
-   all of them retired this session for being indistinguishable from zero. The
+   The app spent its attention on rep tempo (SMD 0.09), eccentric speed (+0.06 —
+   an earlier note carried the sign flipped), periodisation (d = -0.02, linear vs
+   DUP — two periodized models, not periodized-vs-none) and machines-vs-free-weights
+   (-0.055, p=0.751) — all retired for being indistinguishable from zero. The
    variable that is 5-15x larger never appeared anywhere in the app at all.
 
    For a biarticular muscle, the joint you are NOT training sets the muscle's
@@ -7210,13 +7215,13 @@ const mgLabel = (k) => MG_LABEL[k] || k;
 const SELECTION_AUDIT = [
   { id: "calves", ok: (ex) => /pause|stretch|standing|shoulder height/i.test(ex.setup || ""),
     lever: "knee angle", d: "0.88-1.58",
-    right: "Standing, knee straight, with a pause in the stretch. The gastrocnemius crosses the knee, so a seated calf raise takes it almost entirely out of the movement and trains soleus instead. This is the single largest exercise-selection effect anywhere in the hypertrophy literature and you are on the right side of it.",
+    right: "Standing, knee straight, with a pause in the stretch. The gastrocnemius crosses the knee, so a seated calf raise leaves it slackened and shifts the work toward the soleus — it trains soleus instead. This is the single largest exercise-selection effect anywhere in the hypertrophy literature and you are on the right side of it.",
     wrong: "A seated calf raise bends the knee and slackens the gastrocnemius. Switching to a standing or leg-press calf raise is the largest single upgrade available in this programme." },
-  { id: "ham", ok: (ex) => /seated|back d|hips pinned/i.test(ex.setup || ""),
+  { id: "ham", ok: (ex) => /seated|back \d|hips down|hips pinned/i.test(ex.setup || ""),   /* v7.53.0 — evolved WITH the cue it reads: the new setup says "back 5" and "Keep hips down" */
     lever: "hip angle", d: "seated favoured",
     right: "Seated, hips flexed, hips pinned down. Flexing the hip lengthens the hamstring across it before the knee even moves, and the lengthened position is where the growth difference lives. A lying curl leaves the hip extended and the muscle short.",
     wrong: "A lying or standing curl keeps the hip extended, so the hamstring works short. A seated curl is the better buy if the gym has one." },
-  { id: "extension", ok: (ex) => /max quad stretch|seat back/i.test(ex.setup || ""),
+  { id: "extension", ok: (ex) => /reclined|max quad stretch|seat back/i.test(ex.setup || ""),   /* v7.53.0 — the new cue says "seat fully reclined" */
     lever: "hip angle", d: "smaller, same direction",
     right: "Seat back for maximum stretch. Rectus femoris crosses the hip too, so reclining lengthens it — the same principle as the other two, with a smaller effect because three of the four quad heads are single-joint.",
     wrong: "An upright seat shortens rectus femoris. Reclining the seat back is free." },
@@ -9509,6 +9514,40 @@ function patchV45(s) {
   rule45("rows", 10, 9);
   s.v = 45; return s;
 }
+function patchV48(s) {
+  /* v7.53.0 JOB 2 — THE WORD BUNDLE reaches migrated states. SELF-CONTAINED on
+     purpose: the first cut copied from module-level SEED, and SEED is a MUTABLE
+     global — the suite caught it, because an earlier test block's mutation
+     changed what this patch wrote. A patch's input must be its own immutable
+     literal; the two seed-shape assertions prove the literal and SEED agree.
+     Every write stamps setupAt with the fixed adoption ISO — the first real
+     setup writers under the v7.52.0 stamp discipline, which is what stops a
+     stale device's merely-trained copy resurrecting the old cue wholesale.
+     Loads, sets, records: untouched by construction. */
+  const CUES48 = {
+    lateral: { n: "Lateral machine", setup: "SET · resistance profile 5 · seat 5\nRaise elbow-first through your full pain-free arc to the same height · keep torso fixed—no swing or late-rep shoulder hike" },
+    rearDelt: { n: "Rear-delt fly (cable, unilateral)", setup: "SET · unilateral · cable highest · handle [PIN] · stance [PIN]\nSweep through your full pain-free arc to the same endpoint · keep torso fixed—no twist or swing" },
+    rows: { n: "Prime seated row (hooks)", setup: "SET · seat 4 · chest pad 7 · resistance profile 1 · grip [PIN] · Gymreapers hooks fitted the same way\nUse your full pain-free reach and finish at the same points with chest on pad · keep torso still—no pad lift" },
+    curl: { n: "Curls (preacher)", setup: "SET · resistance profile 5 · seat 3\nKeep upper arms on the pad through your full pain-free elbow range · stop before a shoulder roll starts" },
+    press: { n: "Press", setup: "SET · cam 5 · lowest seat · neutral grip\nLower through your full pain-free range to the same depth with upper back on pad · press on the same elbow path—no bounce" },
+    pulldown: { n: "Pulldown", setup: "SET · silver bar · Gymreapers hooks fitted the same way · thumbs at the same marks\nUse your full pain-free reach at the top and pull to the same body landmark · keep torso angle fixed—no swing" },
+    sulek: { n: "Sulek wrist curl (high cable)", setup: "SET · cable highest rung · straight bar · grip [PIN]\nBend only the wrists—palms curl toward the inner forearm through your full pain-free range · elbows still at sides, no swing" },
+    tricep: { n: "Tricep", setup: "SET · seat 4 · back pad fully forward · middle peg\nKeep upper arms supported through your full pain-free elbow range · stop before shoulder roll or bounce" },
+    pronated: { n: "Pronated EZ curl", setup: "SET · EZ bar, pronated grip\nElbows pinned to sides, zero swing · wrists locked—don't let them bend back under load" },
+    calves: { n: "Calves", setup: "SET · shoulder height 4 · foot placement [PIN]\nWith the same near-straight knee angle, pause 2 s (gym-mode timed) at the same deepest pain-free point · rise to the same top height—no bounce" },
+    abs: { n: "Prime abdominal crunch", setup: "SET · resistance profile [PIN] · back pad A · seat 6\nCurl ribs toward pelvis through your full pain-free range · keep hips on pad and use the same controlled cadence" },
+    hanging: { n: "Supported leg raise (medicine-ball pad)", setup: "SET · bodyweight · medicine-ball pad at [PIN] · knee bend [PIN]\nStart with low back rounded against the pad and raise through your full pain-free range to the same height · keep knee bend fixed—no swing" },
+    hack: { n: "Hack squat", setup: "SET · foot placement = pinned photo\nMatch the photo and descend through your full pain-free range to the same depth · keep feet, hips, and back contact unchanged" },
+    extension: { n: "Leg extension", setup: "SET · shin pad A · start range 3 · seat fully reclined · load peg/profile [PIN]\nKeep hips and back on pad through your full pain-free knee range · extend smoothly—no kick or lockout jerk" },
+    ham: { n: "Ham curl", setup: "SET · back 5 · thigh pad [PIN] · calf pad C · start range 3 · resistance profile 5\nKeep hips down through your full pain-free knee range · stop before lift-off or shortened late reps" },
+  };
+  for (const [id48, c48] of Object.entries(CUES48)) {
+    const e = (s.exercises || []).find((x) => x && x.id === id48);
+    if (!e) continue;
+    e.n = c48.n; e.setup = c48.setup; e.setupAt = "2026-08-13T12:00:00.000Z";
+  }
+  s.v = 48; return s;
+}
 function patchV47(s) {
   /* v7.53.0 JOB 1 — THE FAILURE A/B RETIRES (Joe's ruling, before it began).
      Three restatements, all content-keyed and safe under the one-shot runner:
@@ -9582,7 +9621,7 @@ function patchV38(s) {
    defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
    no longer as the only wall between a bump and his history. The gate asserts the
    pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
-const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47]];
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -14606,6 +14645,13 @@ function LogTab({ s, setS, save, slp }) {
       {/* TIER 2 · SETUP — the per-lift detail, moved here verbatim. Every control, editor and
           write path is the same object it was; only its container changed. */}
       <Group title="SETUP" sub="per-lift detail — weight, jumps, order, the verdict" persistKey={TRAIN_DOORS.setup} id="pl-train-setup" defaultOpen={false}>
+      {/* v7.53.0 A7+A8 — the GLOBAL policies, stated once instead of copied into
+          sixteen cues. Cadence: one sentence, one place. Profiles: Prime's own
+          semantics, corrected (an earlier label had them backwards). */}
+      <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.micro}px`, padding: "2px 2px 8px" }}>
+        Same deliberate rhythm every rep — involuntary late-rep slowing near 1–2 RIR is performance information; a deliberate tempo change is technique drift.
+        <span style={{ display: "block", marginTop: 4 }}>Profiles: SmartCam 1 = middle-peaked, 5 = beginning+middle (Prime's own semantics) · pain-free ROM has veto power · a changed setting is a new version and a fresh baseline.</span>
+      </div>
       {sess.ex.map((ex) => (
         <Card key={ex.id} id={"tr-" + ex.id} style={{ padding: 16, opacity: skipped[ex.id] ? 0.45 : 1 }} accent={ex.isDebutNow && !skipped[ex.id] ? T.orange : undefined}>
           {/* The header row lets the controls WRAP to a second line rather than
@@ -14892,7 +14938,7 @@ function LogTab({ s, setS, save, slp }) {
         <Card accent={sel.allGood ? T.jade : T.brass} style={{ padding: 16 }}>
           <Eyebrow c={sel.allGood ? T.jade : T.brass}>{sel.allGood ? "EXERCISE SELECTION — ALREADY RIGHT, AND IT IS THE BIGGEST ONE" : "EXERCISE SELECTION — ONE TO LOOK AT"}</Eyebrow>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 6, lineHeight: 1.55 }}>
-            For a muscle that crosses two joints, the joint you are NOT training sets its length — and length under load is where the growth difference actually lives. These effects run {"d ="} 0.5 to 1.6. Rep tempo is 0.09. Eccentric speed is −0.06. Periodisation is −0.02. This is the lever; those were rounding.
+            For a muscle that crosses two joints, the joint you are NOT training sets its length — and length under load is where the growth difference actually lives. The per-exercise numbers below carry their own caveats. Rep tempo is 0.09 (CI crosses zero; cadence still must stay consistent). Eccentric speed is +0.06, periodisation −0.02 — and that last is linear vs DUP, two periodized models; periodized vs not is ES 0.13, CI −0.10 to 0.36. This is the lever; those were rounding.
           </div>
           <div style={{ marginTop: 9, display: "flex", flexDirection: "column", gap: 7 }}>
             {sel.items.map((it) => (
@@ -14903,7 +14949,7 @@ function LogTab({ s, setS, save, slp }) {
             ))}
           </div>
           <More c={sel.allGood ? T.jade : T.brass}
-            deep="Standing versus seated calf raise is d = 0.88 to 1.58 — the largest exercise-selection effect measured anywhere in hypertrophy research, and it comes from one thing: the gastrocnemius crosses the knee, so bending the knee slackens it and a seated raise trains mostly soleus instead. Overhead versus pushdown triceps is d = 0.54 to 0.61 for the same structural reason at the shoulder. Seated versus lying ham curl runs the same way at the hip. Set against those, the variables this app used to fuss over are noise: rep tempo SMD 0.09 (and favouring FASTER, not slower), accentuated eccentrics −0.06 on growth while perceived effort rises +1.72, periodisation model d = −0.02, machines versus free weights −0.055 at p = 0.751. Every one of those has been removed from this app. This is what replaced them."
+            deep="Standing versus seated calf raise reads d = 0.88 to 1.58 — but that is ONE 14-person trial in untrained people, with no confidence intervals reported, so treat it as a strong direction rather than a settled size. The mechanism is the credible part: the gastrocnemius crosses the knee, so bending the knee slackens it and a seated raise trains mostly soleus instead. Overhead versus pushdown triceps is d = 0.54 to 0.61 for the same structural reason at the shoulder. Seated versus lying ham curl runs the same way at the hip. Set against those, the variables this app used to fuss over are noise: rep tempo SMD 0.09 (and favouring FASTER, not slower), accentuated eccentrics −0.06 on growth while perceived effort rises +1.72, periodisation model d = −0.02, machines versus free weights −0.055 at p = 0.751. Every one of those has been removed from this app. This is what replaced them."
             forYou={sel.allGood
               ? ["Every biarticular lift in your programme is already in the lengthened position — the calf raise standing with a pause in the stretch, the ham curl seated with the hips pinned, the leg extension reclined.",
                  "Nobody set that up by accident and nothing in this app told you to do it. It is the most valuable thing in your training and the app had never once mentioned it.",
@@ -15508,7 +15554,7 @@ function SleepTab({ s, setS, save, slp }) {
           the end of HIS night that varies most and that he controls least.
 
           Sleep did not get demoted. It got promoted to the thing it actually
-          governs. Nedeltcheva 2010 is the single largest effect anywhere in this
+          governs. Nedeltcheva 2010 is among the largest effects anywhere in this
           app: 5.5 h vs 8.5 h at a MATCHED deficit sent 60% more of the loss onto
           fat-free mass. Same food, same training, worse physique. That belongs
           at the top of the card. What does not belong is a streak counter
