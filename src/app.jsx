@@ -360,7 +360,7 @@ const APP_V = "7.53.0";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 49;
+const SCHEMA_V = 50;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -407,7 +407,7 @@ const EXERCISES = [
   { id: "calves", mg: "calves", lastMeta: { d: "2026-07-21", w: 315, reps: [12, 10, 9, 8], debt: true }, n: "Calves", day: "L", w: 315, inc: 5, sets: 4, hi: 13, last: [12, 10, 9, 8], reclaim: [13, 12, 11, 10],
     setup: "SET · shoulder height 4 · foot placement [PIN]\nWith the same near-straight knee angle, pause 2 s (gym-mode timed) at the same deepest pain-free point · rise to the same top height—no bounce" },
   { id: "abs", mg: "abs", lastMeta: { d: "2026-07-21", w: 95, reps: [14, 13, 13], debt: true }, n: "Prime abdominal crunch", day: "L", w: 100, inc: 5, sets: 3, hi: 14, last: null, first: [12, 12, 12], debutNote: "DEBUT — new baseline, log honest",
-    setup: "SET · resistance profile [PIN] · back pad A · seat 6\nCurl ribs toward pelvis through your full pain-free range · keep hips on pad and use the same controlled cadence" },
+    setup: "SET · resistance profile [PIN] · back pad A · seat 6\nCurl ribs toward pelvis through your full pain-free range · keep hips on pad" },
   { id: "hanging", mg: "abs", lastMeta: { d: "2026-07-21", w: "BW", reps: [6, 5], debt: true }, n: "Supported leg raise (medicine-ball pad)", day: "L", w: "BW", inc: null, sets: 2, hi: 8, last: [6, 5],
     setup: "SET · bodyweight · medicine-ball pad at [PIN] · knee bend [PIN]\nStart with low back rounded against the pad and raise through your full pain-free range to the same height · keep knee bend fixed—no swing" },
   { id: "hack", mg: "quads", lastMeta: { d: "2026-07-21", w: "hold", reps: [13, 12], debt: true }, n: "Hack squat", day: "L", w: "hold",   /* hi is authored 10 below by weave (the 2026-08-10 ruling) — the seed is already-current */ inc: 10, sets: 2, hi: 12, last: null, pendingThird: true,
@@ -513,8 +513,12 @@ const SEED = {
   /* v7.53.0 — the two technique changes that are REAL today fork their lifts:
      hooks standardize on both pulls (R1) and the calf pause changes 5s → 2s
      (R2). A word rewrite is not a technique change; these two are. */
-  [["pulldown", "hooks standardized"], ["rows", "hooks standardized"], ["calves", "2 s pause replaces 5 s"]].forEach(([id0, why0]) => {
-    const e0 = SEED.exercises.find((x) => x.id === id0); if (e0) e0.fork = { from: "2026-08-13", why: why0 };
+  [["pulldown", "hooks standardized", "Pulldown"], ["rows", "hooks standardized", "Rows (strapless)"], ["calves", "2 s pause replaces 5 s", "Calves"]].forEach(([id0, why0, pn0]) => {
+    const e0 = SEED.exercises.find((x) => x.id === id0); if (e0) e0.forks = [{ from: "2026-08-13", why: why0, prevN: pn0 }];
+  });
+  { const c0 = SEED.exercises.find((x) => x.id === "calves"); if (c0) c0.pauseSec = 2; }   /* FIX 3a item 8 — the pause is a FIELD, not prose */
+  [["rows", "Rows (strapless)"], ["rearDelt", "Rear-delt fly (cable · uni)"], ["curl", "Curls"], ["sulek", "Sulek curl (forearm)"], ["abs", "Abs"], ["hanging", "Hanging raise"]].forEach(([id0, pn0]) => {
+    const e0 = SEED.exercises.find((x) => x.id === id0); if (e0) e0.renames = [{ from: "2026-08-13", prevN: pn0 }];
   });
   /* v43 — the seed is authored already-current: hack carries the 6-10 ruling */
   { const hk0 = SEED.exercises.find((x) => x.id === "hack"); if (hk0) hk0.hi = 10; }   /* seed-authored — unstamped by design */
@@ -1433,13 +1437,47 @@ const PUBLISHED_SET_SEM = 0.9;
 /* v7.53.0 — a lift's fork date, or null. One slot: the LATEST technique change
    wins; everything before it is the old regime, retained, never compared. */
 function forkFrom(s, exId) {
-  try { const e9 = ((s && s.exercises) || []).find((x) => x && x.id === exId); return e9 && e9.fork && e9.fork.from ? e9.fork.from : null; } catch (e) { return null; }
+  const fks = forksOf(s, exId);
+  return fks.length ? fks[fks.length - 1].from : null;
 }
-/* v7.53.0 (b) — is a session dated d in the SAME era as the query date at?
-   No fork → always yes. With a fork: both before it, or both at/after it. */
-function sameEra(fk, d, at) {
-  if (!fk) return true;
-  return at < fk ? d < fk : d >= fk;
+/* FIX 3a — ERAS ARE INTERVALS, PLURAL. ex.forks[] is ordered ascending; the
+   era of a date is the interval containing it (index = how many seams lie at
+   or before it), and two dates are comparable iff they share an interval. The
+   one-boundary sameEra was approved for one seam while the same commit armed a
+   second (the insertion table) — a strapless read would have pooled with a
+   hooked one the day the fly landed. */
+function forksOf(s, exId) {
+  try {
+    const e9 = ((s && s.exercises) || []).find((x) => x && x.id === exId);
+    if (!e9) return [];
+    if (Array.isArray(e9.forks)) return e9.forks;
+    return e9.fork && e9.fork.from ? [e9.fork] : [];   /* pre-V50 shape, read-compatible */
+  } catch (e) { return []; }
+}
+function eraIdx(forks, d) {
+  let i = 0;
+  for (const f of (forks || [])) { if (f && f.from <= d) i++; }
+  return i;
+}
+function sameEra(forks, d, at) {
+  if (!forks || !forks.length) return true;
+  return eraIdx(forks, d) === eraIdx(forks, at);
+}
+/* FIX 3a item 2 — the name a lift used at a date: each fork carries prevN, the
+   name of the era it closed. Era k (k < forks.length) reads forks[k].prevN;
+   the open era reads the live name. A July strapless session stays strapless. */
+function nameAt(s, exId, d) {
+  try {
+    const e9 = ((s && s.exercises) || []).find((x) => x && x.id === exId);
+    if (!e9) return exId;
+    /* FIX 3a — names ride their OWN seams (e.renames[], ascending {from, prevN}),
+       independent of the technique forks: four of the six renamed lifts have no
+       fork, and forking them to archive a word would have reset instruments that
+       measured nothing new. Era k of the NAME history reads renames[k].prevN. */
+    const rns = Array.isArray(e9.renames) ? e9.renames : [];
+    const i9 = eraIdx(rns, d);
+    return i9 < rns.length ? (rns[i9].prevN || e9.n) : e9.n;
+  } catch (e) { return exId; }
 }
 /* v7.53.0 R3 — unfilled machine pins in a lift's cue. While any remain, the
    lift cannot read calibrated: the cue names a setting nobody has pinned. */
@@ -1450,9 +1488,18 @@ function pinsUnfilled(ex) {
 function forkExposures(s, exId) {
   const from = forkFrom(s, exId);
   if (!from) return null;
+  /* FIX 3a item 4 — calibration is STATE, not the absence of tokens. Sessions
+     logged inside the era but before the pins were filled stay logged and read
+     provisional: the comparable window opens at whichever is later. */
+  let cntFrom = from;
+  try {
+    const e9 = ((s && s.exercises) || []).find((x) => x && x.id === exId);
+    const cal = e9 && e9.calibratedAt ? String(e9.calibratedAt).slice(0, 10) : null;
+    if (cal && cal > cntFrom) cntFrom = cal;
+  } catch (e) {}
   let n = 0;
   for (const d of Object.keys((s && s.sessionLog) || {})) {
-    if (d >= from && (((s.sessionLog[d] || {}).entries) || []).some((e) => e && e.id === exId)) n++;
+    if (d >= cntFrom && (((s.sessionLog[d] || {}).entries) || []).some((e) => e && e.id === exId)) n++;
   }
   return n;
 }
@@ -1460,7 +1507,7 @@ function typicalError(s, exId, asOf) {
   const byId = {};
   const at9 = asOf || isoOf(todayStart());   /* v7.53.0 (b) — no date means "now", and now belongs to whichever era today is in */
   const fkCache = {};
-  const fkOf = (id9) => (id9 in fkCache ? fkCache[id9] : (fkCache[id9] = forkFrom(s, id9)));
+  const fkOf = (id9) => (id9 in fkCache ? fkCache[id9] : (fkCache[id9] = forksOf(s, id9)));
   Object.keys((s && s.sessionLog) || {}).sort().forEach((d) =>
     ((s.sessionLog[d] || {}).entries || []).forEach((e) => {
       if (!(e && e.reps && e.reps.length)) return;
@@ -2132,7 +2179,7 @@ function liftTrend(s, exId, opts) {
   const minN = (opts && opts.minN) || TREND_MIN_SESSIONS;
   const log = (s && s.sessionLog) || {};
   const days = Object.keys(log).sort();
-  const fkT = forkFrom(s, exId);
+  const fkT = forksOf(s, exId);
   const atT = (opts && opts.asOf) || isoOf(todayStart());   /* v7.53.0 (b) — era-aware: the trend reads the regime containing the query date */
   const pts = [];
   for (const d of days) {
@@ -5386,7 +5433,8 @@ function sessionDebrief(s, iso) {
   const whys = [];
   const lifts = (sess.entries || []).map((e) => {
     const ex = exById(s, e.id);
-    const name = ex ? ex.n : e.id;
+    const name = nameAt(s, e.id, iso);   /* FIX 3a item 2 — the name the ERA used: a July strapless session never re-renders under the hooks name */
+    const eraOk = (d9) => sameEra(forksOf(s, e.id), d9, iso);   /* FIX 3a item 3 — one era test for every historical walk below */
     const reps = e.reps || [];
     const tot = reps.reduce((a, b) => a + b, 0);
     /* R15 DEBRIEF CONTRACT — typed output, identical words. lines[] carries only the
@@ -5398,7 +5446,7 @@ function sessionDebrief(s, iso) {
     let delivered = null, work = null, next = null;
     let banked = false, pending = false, hot = false, dTotL = null, heavierL = false;
     try {
-      const prevD = dates.filter((d) => d < iso && (s.sessionLog[d].entries || []).some((x) => x.id === e.id)).pop();
+      const prevD = dates.filter((d) => d < iso && eraOk(d) && (s.sessionLog[d].entries || []).some((x) => x.id === e.id)).pop();   /* FIX 3a item 3 — "vs last time" means last time under the SAME technique */
       const prev = prevD ? (s.sessionLog[prevD].entries || []).find((x) => x.id === e.id) : null;
       const meta = ex && ex.lastMeta && ex.lastMeta.d < iso ? ex.lastMeta : null;
       const baseReps = prev ? prev.reps || [] : meta ? meta.reps : null;
@@ -5421,7 +5469,7 @@ function sessionDebrief(s, iso) {
         const pLoad = typeof baseW === "number" && baseTot != null ? baseW * baseTot : null;
         if (pLoad) { prevSessLoad += pLoad; const pc = Math.round(((load - pLoad) / pLoad) * 100); work = { t: `Work done: ${load.toLocaleString()} lb (${pc >= 0 ? "+" : ""}${pc}% vs last time)${heavier && pc < 0 ? " — the heavier bar has not paid for the lost reps yet; on a jump this usually turns positive within two sessions" : ""}.`, load, pc, tail: heavier && pc < 0 ? "the heavier bar has not paid for the lost reps yet; on a jump this usually turns positive within two sessions" : null }; }
         else work = { t: `Work done: ${load.toLocaleString()} lb.`, load, pc: null, tail: null };
-        const allTots = dates.filter((d) => d <= iso).map((d) => { const x = (s.sessionLog[d].entries || []).find((y) => y.id === e.id); return x && String(x.w) === String(e.w) ? (x.reps || []).reduce((a, b) => a + b, 0) : null; }).filter((x) => x != null);
+        const allTots = dates.filter((d) => d <= iso && eraOk(d)).map((d) => {   /* FIX 3a item 3 (P1-5, confirmed) — the banked/PR comparator pools ONE era's totals: a hooked total is not a strapless PR */ const x = (s.sessionLog[d].entries || []).find((y) => y.id === e.id); return x && String(x.w) === String(e.w) ? (x.reps || []).reduce((a, b) => a + b, 0) : null; }).filter((x) => x != null);
         if (allTots.length >= 2 && tot >= Math.max(...allTots)) {
           marks.pr.push(name);
           /* The confirmation line is now sized against HIS measured spread, and
@@ -7255,10 +7303,10 @@ const mgLabel = (k) => MG_LABEL[k] || k;
    The triceps are the one deliberate exception and stay that way by his call.
    See TRICEP_NOTE. */
 const SELECTION_AUDIT = [
-  { id: "calves", ok: (ex) => /pause|stretch|standing|shoulder height/i.test(ex.setup || ""),
+  { id: "calves", ok: (ex) => /near-straight knee|knee straight|standing/i.test(ex.setup || "") && !/seated|bent[- ]knee/i.test(ex.setup || ""),   /* FIX 3a item 7 — the predicate validates the LEVER (knee angle), not incidental words: seated/bent-knee wording REJECTS */
     lever: "knee angle", d: "0.88-1.58",
     right: "Standing, knee straight, with a pause in the stretch. The gastrocnemius crosses the knee, so a seated calf raise leaves it slackened and shifts the work toward the soleus — it trains soleus instead. This is the single largest exercise-selection effect anywhere in the hypertrophy literature and you are on the right side of it.",
-    wrong: "A seated calf raise bends the knee and slackens the gastrocnemius. Switching to a standing or leg-press calf raise is the largest single upgrade available in this programme." },
+    wrong: "A seated calf raise bends the knee and slackens the gastrocnemius. Switching to a standing or leg-press calf raise is the highest-return selection change this programme has open to it (d = 0.88-1.58 in the one small untrained trial) — see the calf note in this programme." },
   { id: "ham", ok: (ex) => /seated|back \d|hips down|hips pinned/i.test(ex.setup || ""),   /* v7.53.0 — evolved WITH the cue it reads: the new setup says "back 5" and "Keep hips down" */
     lever: "hip angle", d: "seated favoured",
     right: "Seated, hips flexed, hips pinned down. Flexing the hip lengthens the hamstring across it before the knee even moves, and the lengthened position is where the growth difference lives. A lying curl leaves the hip extended and the muscle short.",
@@ -8531,13 +8579,29 @@ function runAdaptive(state, todayISO, raOpts) {
     ];
     for (const [newId, affected, why9] of INSERTION_FORKS) {
       if (!(s.exercises || []).some((x) => x && x.id === newId)) continue;
+      /* FIX 3a — the REGISTRY makes "once" mean once EVER: the first sweep that
+         sees the insertion records it, and no later sweep — however the forks
+         themselves are edited — can re-fire it or re-mint its receipts. */
+      if ((s.insertions || {})[newId]) continue;
+      s.insertions = { ...(s.insertions || {}), [newId]: todayISO };
       for (const affId of affected) {
         const e9 = (s.exercises || []).find((x) => x && x.id === affId);
         if (!e9) continue;
-        if (e9.fork && (e9.fork.why === why9 || e9.fork.from >= todayISO)) continue;
-        e9.fork = { from: todayISO, why: why9 };
+        /* APPEND an era — never overwrite one. A lift's forks are its whole
+           technique history; the insertion closes the current era under its
+           current name. */
+        const fks9 = Array.isArray(e9.forks) ? e9.forks : (e9.fork && e9.fork.from ? [e9.fork] : []);
+        if (fks9.some((f9) => f9 && f9.from === todayISO)) continue;
+        e9.forks = [...fks9, { from: todayISO, why: why9, prevN: e9.n }].sort((a9, b9) => (a9.from < b9.from ? -1 : 1));
+        delete e9.fork;
         s.feed.unshift({ d: todayISO, t: e9.n.toUpperCase() + " — FRESH BASELINE", how: "The " + (newId === "fly" ? "machine fly" : "hip thrust") + " entered the programme ahead of this lift, so its context changed. History stays on the record under the old setup; the instruments start a fresh four-session baseline rather than comparing across the change." });
       }
+    }
+    /* FIX 3a item 4 — calibration becomes STATE the day the pins are gone: a
+       sweep detection, so ANY future setup writer (editor, patch, hand edit)
+       gets it for free. Stamped once; deleting tokens later cannot un-know it. */
+    for (const eC of (s.exercises || [])) {
+      if (eC && !eC.calibratedAt && !(String(eC.setup || "").match(/\[PIN\]/))) eC.calibratedAt = todayISO + "T12:00:00.000Z";
     }
   }
 
@@ -9580,6 +9644,27 @@ function patchV45(s) {
   rule45("rows", 10, 9);
   s.v = 45; return s;
 }
+function patchV50(s) {
+  /* FIX 3a — ERAS BECOME PLURAL AND NAMES BECOME ERA-TRUTHFUL. fork → forks[]
+     (additive restatement); the 8/13 seams record the name their old era used
+     (prevN), so a July "Rows (strapless)" session can never re-render under the
+     hooks name; the calf pause becomes a structured field. */
+  const PREV_N = { pulldown: "Pulldown", rows: "Rows (strapless)", calves: "Calves" };
+  const RENAMED = { rows: "Rows (strapless)", rearDelt: "Rear-delt fly (cable · uni)", curl: "Curls", sulek: "Sulek curl (forearm)", abs: "Abs", hanging: "Hanging raise" };
+  for (const e of (s.exercises || [])) {
+    if (!e) continue;
+    if (!Array.isArray(e.forks) && e.fork && e.fork.from) e.forks = [e.fork];
+    if (e.fork) delete e.fork;
+    if (Array.isArray(e.forks)) {
+      for (const f9 of e.forks) { if (f9 && f9.from === "2026-08-13" && !f9.prevN && PREV_N[e.id]) f9.prevN = PREV_N[e.id]; }
+    }
+    /* the NAME seams: all six renamed lifts, dated the adoption, archived
+       wording exact — a July session renders under the name July used */
+    if (RENAMED[e.id] && !Array.isArray(e.renames)) e.renames = [{ from: "2026-08-13", prevN: RENAMED[e.id] }];
+    if (e.id === "calves" && e.pauseSec == null) e.pauseSec = 2;
+  }
+  s.v = 50; return s;
+}
 function patchV49(s) {
   /* v7.53.0 — THE BASELINE FORKS (R1 + R2). Only the technique changes that are
      real TODAY fork: hooks on both pulls, the 2s calf pause. The A3 insertion
@@ -9614,7 +9699,7 @@ function patchV48(s) {
     tricep: { n: "Tricep", setup: "SET · seat 4 · back pad fully forward · middle peg\nKeep upper arms supported through your full pain-free elbow range · stop before shoulder roll or bounce" },
     pronated: { n: "Pronated EZ curl", setup: "SET · EZ bar, pronated grip\nElbows pinned to sides, zero swing · wrists locked—don't let them bend back under load" },
     calves: { n: "Calves", setup: "SET · shoulder height 4 · foot placement [PIN]\nWith the same near-straight knee angle, pause 2 s (gym-mode timed) at the same deepest pain-free point · rise to the same top height—no bounce" },
-    abs: { n: "Prime abdominal crunch", setup: "SET · resistance profile [PIN] · back pad A · seat 6\nCurl ribs toward pelvis through your full pain-free range · keep hips on pad and use the same controlled cadence" },
+    abs: { n: "Prime abdominal crunch", setup: "SET · resistance profile [PIN] · back pad A · seat 6\nCurl ribs toward pelvis through your full pain-free range · keep hips on pad" },
     hanging: { n: "Supported leg raise (medicine-ball pad)", setup: "SET · bodyweight · medicine-ball pad at [PIN] · knee bend [PIN]\nStart with low back rounded against the pad and raise through your full pain-free range to the same height · keep knee bend fixed—no swing" },
     hack: { n: "Hack squat", setup: "SET · foot placement = pinned photo\nMatch the photo and descend through your full pain-free range to the same depth · keep feet, hips, and back contact unchanged" },
     extension: { n: "Leg extension", setup: "SET · shin pad A · start range 3 · seat fully reclined · load peg/profile [PIN]\nKeep hips and back on pad through your full pain-free knee range · extend smoothly—no kick or lockout jerk" },
@@ -9641,7 +9726,16 @@ function patchV47(s) {
     if (t9 && !t9.declined && t9.custom && t9.custom.abId === "failureAB1") { t9.declined = true; t9.retired = "2026-08-13"; }
   }
   if (!(s.feed || []).some((f9) => f9 && f9.t === "FAILURE EXPERIMENT RETIRED")) {
-    s.feed.unshift({ d: "2026-08-13", t: "FAILURE EXPERIMENT RETIRED", how: "Your call, before it began. The research default stands: train 1–2 reps shy; an occasional all-out last set keeps your effort reporting honest. No session ever ran under the experiment, so nothing is lost." });
+    /* FIX 3a item 5 — the receipt states THIS ledger's truth, not the spec's
+       assumption: a stale device that approved and trained files the count. */
+    let ran47 = 0;
+    try {
+      const tr47 = (s.trials || []).find((t9) => t9 && t9.custom && t9.custom.abId === "failureAB1" && t9.started);
+      if (tr47) { for (const d47 of Object.keys(s.sessionLog || {})) { if (d47 >= tr47.started && ((s.sessionLog[d47] || {}).entries || []).some((e47) => e47 && (e47.id === "tricep" || e47.id === "sulek"))) ran47++; } }
+    } catch (e47) {}
+    s.feed.unshift({ d: "2026-08-13", t: "FAILURE EXPERIMENT RETIRED", how: ran47 === 0
+      ? "Your call, before it began. The research default stands: train 1–2 reps shy; an occasional all-out last set keeps your effort reporting honest. No session ever ran under the experiment, so nothing is lost."
+      : "Your call. " + ran47 + " session" + (ran47 === 1 ? "" : "s") + " ran under the experiment before retirement; those sessions stay on the record and count normally. The research default stands: train 1–2 reps shy; an occasional all-out last set keeps your effort reporting honest." });
   }
   s.v = 47; return s;
 }
@@ -9700,7 +9794,7 @@ function patchV38(s) {
    defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
    no longer as the only wall between a bump and his history. The gate asserts the
    pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
-const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49]];
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -9816,7 +9910,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { PATCHES, SCHEMA_V, applyAgentProposal, mergeState, forkFrom, pinsUnfilled, forkExposures, ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, stepValue, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { PATCHES, SCHEMA_V, applyAgentProposal, mergeState, forkFrom, forksOf, eraIdx, sameEra, nameAt, pinsUnfilled, forkExposures, ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, stepValue, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -11093,9 +11187,30 @@ function mergeState(local, remote) {
       for (const [f9, at9] of STAMPED_FIELDS) {
         if (_isoOr(other[at9]) > _isoOr(w2[at9])) w2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };
       }
+      /* FIX 3a — forks are UNION-BY-SEAM: a technique era is history, and a
+         stale device that never learned a seam must not erase it. Keyed by
+         from; first writer's why/prevN stand. */
+      {
+        const fA = Array.isArray(w2.forks) ? w2.forks : (w2.fork && w2.fork.from ? [w2.fork] : []);
+        const fB = Array.isArray(other.forks) ? other.forks : (other.fork && other.fork.from ? [other.fork] : []);
+        if (fA.length || fB.length) {
+          const byFrom = new Map();
+          for (const f9 of [...fB, ...fA]) { if (f9 && f9.from) byFrom.set(f9.from, f9); }
+          w2 = { ...w2, forks: [...byFrom.values()].sort((a9, b9) => (a9.from < b9.from ? -1 : 1)) };
+        }
+        const rA = Array.isArray(w2.renames) ? w2.renames : [], rB = Array.isArray(other.renames) ? other.renames : [];
+        if (rA.length || rB.length) {
+          const byF2 = new Map();
+          for (const r9 of [...rB, ...rA]) { if (r9 && r9.from) byF2.set(r9.from, r9); }
+          w2 = { ...w2, renames: [...byF2.values()].sort((a9, b9) => (a9.from < b9.from ? -1 : 1)) };
+        }
+      }
       return w2;
     });
   }
+  /* FIX 3a — the insertion registry unions too: once fired anywhere, fired
+     everywhere, or a stale device would re-run the insertion sweep. */
+  out.insertions = { ...(remote.insertions || {}), ...(local.insertions || {}) };
   const rn = (remote.sleep && remote.sleep.nights) || [], ln = (local.sleep && local.sleep.nights) || [];
   out.sleep = { ...(remote.sleep || {}), ...(local.sleep || {}), nights: _unionBy(rn, ln, (n) => n && n.d) };
   out.plan = _unionPlan(remote.plan, local.plan);   // v7.2.0 Slice 3 — goals/ifthen keyed-union + policy scalars newest-deliberate-wins (was wholesale local-wins)
@@ -14856,8 +14971,8 @@ function LogTab({ s, setS, save, slp }) {
           {/* v7.53.0 A3 — the fresh-baseline banner: temporary by construction
               (renders only while exposures < 4), no causal language — it says
               the context changed, never what the change did. */}
-          {(() => { try { const fx9 = (s.exercises || []).find((x9) => x9.id === ex.id); if (!fx9 || !fx9.fork) return null; const n9 = forkExposures(s, ex.id); if (n9 == null || n9 >= 4) return null;
-            return <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: 6, lineHeight: `${LH.micro}px` }}>NEW BASELINE — {fx9.fork.why} · session {Math.min(n9 + 1, 4)} of 4 · history stays on the record under the old setup</div>; } catch (e9) { return null; } })()}
+          {(() => { try { const fks9 = forksOf(s, ex.id); if (!fks9.length) return null; const n9 = forkExposures(s, ex.id); if (n9 == null || n9 >= 4) return null;
+            return <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.brass, marginTop: 6, lineHeight: `${LH.micro}px` }}>NEW BASELINE — {fks9[fks9.length - 1].why} · session {Math.min(n9 + 1, 4)} of 4 · history stays on the record under the old setup</div>; } catch (e9) { return null; } })()}
           {/* v7.53.0 R3 — the calibration blocker: while any [PIN] is unfilled
               this lift cannot read calibrated — the cue names a setting nobody
               has pinned. It never blocks logging; it blocks the CLAIM. */}
@@ -15025,7 +15140,7 @@ function LogTab({ s, setS, save, slp }) {
           it. See EXERCISE_SELECTION. */}
       {(() => { const sel = exerciseSelection(s); if (!sel.items.length) return null; return (
         <Card accent={sel.allGood ? T.jade : T.brass} style={{ padding: 16 }}>
-          <Eyebrow c={sel.allGood ? T.jade : T.brass}>{sel.allGood ? "EXERCISE SELECTION — ALREADY RIGHT, AND IT IS THE BIGGEST ONE" : "EXERCISE SELECTION — ONE TO LOOK AT"}</Eyebrow>
+          <Eyebrow c={sel.allGood ? T.jade : T.brass}>{sel.allGood ? "EXERCISE SELECTION — ALREADY RIGHT, AND IT MATTERS MOST" : "EXERCISE SELECTION — ONE TO LOOK AT"}</Eyebrow>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.chalk, marginTop: 6, lineHeight: 1.55 }}>
             For a muscle that crosses two joints, the joint you are NOT training sets its length — and length under load is where the growth difference actually lives. The per-exercise numbers below carry their own caveats. Rep tempo is 0.09 (CI crosses zero; cadence still must stay consistent). Eccentric speed is +0.06, periodisation −0.02 — and that last is linear vs DUP, two periodized models; periodized vs not is ES 0.13, CI −0.10 to 0.36. This is the lever; those were rounding.
           </div>
@@ -15041,7 +15156,7 @@ function LogTab({ s, setS, save, slp }) {
             deep="Standing versus seated calf raise reads d = 0.88 to 1.58 — but that is ONE 14-person trial in untrained people, with no confidence intervals reported, so treat it as a strong direction rather than a settled size. The mechanism is the credible part: the gastrocnemius crosses the knee, so bending the knee slackens it and a seated raise trains mostly soleus instead. Overhead versus pushdown triceps is d = 0.54 to 0.61 for the same structural reason at the shoulder. Seated versus lying ham curl runs the same way at the hip. Set against those, the variables this app used to fuss over are noise: rep tempo SMD 0.09 (and favouring FASTER, not slower), accentuated eccentrics −0.06 on growth while perceived effort rises +1.72, periodisation model d = −0.02, machines versus free weights −0.055 at p = 0.751. Every one of those has been removed from this app. This is what replaced them."
             forYou={sel.allGood
               ? ["Every biarticular lift in your programme is already in the lengthened position — the calf raise standing with a pause in the stretch, the ham curl seated with the hips pinned, the leg extension reclined.",
-                 "Nobody set that up by accident and nothing in this app told you to do it. It is the most valuable thing in your training and the app had never once mentioned it.",
+                 "Nobody set that up by accident and nothing in this app told you to do it. It is among the highest-value choices in your training and the app had never once mentioned it.",
                  "What it means practically: there is no training-side upgrade left worth chasing here. The remaining levers are volume where a muscle is short, and everything on the nutrition side."]
               : sel.items.filter((x) => !x.good).map((x) => x.n + ": " + x.why)} />
         </Card>
@@ -16070,19 +16185,24 @@ const REST_TERMINAL_BUMP = 30;
    countdown at 100ms ticks; it renders the remaining time and re-arms on
    finish. Deliberately dumb: no state written, no rep counted — it is a
    metronome for the hold, not a judge of it. */
-function PauseChip() {
-  const [left, setLeft] = React.useState(null);
+function PauseChip({ sec = 2 }) {
+  /* FIX 3a item 8 — the countdown computes from a STORED DEADLINE, never from
+     per-callback decrements: a delayed tick under load loses display frames,
+     not time. The duration is the lift's own field, not parsed prose. */
+  const [deadline, setDeadline] = React.useState(null);
+  const [, force] = React.useState(0);
   React.useEffect(() => {
-    if (left == null || left <= 0) return;
-    const t9 = setTimeout(() => setLeft(+(left - 0.1).toFixed(1)), 100);
-    return () => clearTimeout(t9);
-  }, [left]);
+    if (deadline == null || Date.now() >= deadline) return;
+    const t9 = setInterval(() => force((x) => x + 1), 100);
+    return () => clearInterval(t9);
+  }, [deadline]);
+  const left = deadline == null ? null : Math.max(0, (deadline - Date.now()) / 1000);
   const running = left != null && left > 0;
   return (
-    <button type="button" onClick={() => { try { hap(6); } catch (e) {} setLeft(2.0); }}
-      aria-label="Time the 2 second pause"
+    <button type="button" onClick={() => { try { hap(6); } catch (e) {} setDeadline(Date.now() + sec * 1000); }}
+      aria-label={"Time the " + sec + " second pause"}
       style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: 44, marginTop: 6, padding: "0 14px", background: running ? DT.card2 : "none", border: "1px solid " + DT.hairline, borderRadius: 8, fontFamily: mono, fontSize: TS.label, color: running ? DT.amber : T.gauge, cursor: "pointer" }}>
-      {running ? "HOLD · " + left.toFixed(1) + " s" : left === 0 ? "✓ 2 s — tap to re-time" : "⏱ time the 2 s pause"}
+      {running ? "HOLD · " + left.toFixed(1) + " s" : left === 0 ? "✓ " + sec + " s — tap to re-time" : "⏱ time the " + sec + " s pause"}
     </button>
   );
 }
@@ -16760,7 +16880,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             {/* v7.53.0 R2 — GYM MODE TIMES THE PAUSE: the 2 s anti-bounce hold is
                 part of what makes a calf rep a rep now, so the room that runs his
                 sets carries the clock for it. */}
-            {/pause 2 s/.test(ex.setup || "") && <PauseChip />}
+            {(() => { try { const pz = ((s.exercises || []).find((x9) => x9.id === ex.id) || {}).pauseSec; return pz ? <PauseChip sec={pz} /> : null; } catch (e9) { return null; } })()}
             {ex.setup ? (
               <div style={{ marginTop: 8 }}>
                 <button onClick={() => setSetupOpen(!setupOpen)} style={{ ...slop9, fontFamily: mono, fontSize: TS.micro, color: DT.steel }}>{setupOpen ? "▾ setup" : "▸ setup"}</button>

@@ -4038,7 +4038,7 @@ const seatedS = clone(SD37);
 const cx38 = seatedS.exercises.find((e) => e.id === "calves");
 cx38.setup = "SET · seated · knee pad snug\\nControlled reps";
 ok(es38(seatedS).allGood === false, "swap in a seated calf raise and the audit catches it");
-ok(es38(seatedS).items.find((i) => i.id === "calves").why.indexOf("largest single upgrade") > -1, "naming it as the biggest available upgrade rather than a footnote");
+ok(es38(seatedS).items.find((i) => i.id === "calves").why.indexOf("highest-return selection change") > -1, "FIX 3a item 6 — the wrong-setup line names the return honestly (d-range, small untrained trial) — the ruled-cut superlative is out of the live generator");
 /* head keys must never reach a screen raw */
 ok(ml38("delts_side") === "side delt" && ml38("delts_rear") === "rear delt", "head buckets get readable labels — without these the TRAIN chip row would have printed delts_side");
 ok(ml38("hams") === "hams", "and anything without a mapping passes through unchanged");
@@ -5574,7 +5574,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 49, "schema: SCHEMA_V is 49 (patchV49: the baseline forks — the deliberate census pin; bumping SCHEMA_V must touch this line)");
+  ok(SC === 50, "schema: SCHEMA_V is 50 (patchV50: eras plural + era-truthful names — the deliberate census pin; bumping SCHEMA_V must touch this line)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
   ok(migd.v === SC && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
@@ -5876,7 +5876,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 49, "schema: SCHEMA_V is 49 (patchV49 on top of the chain — the second deliberate census pin)");
+  ok(__test.SCHEMA_V === 50, "schema: SCHEMA_V is 50 (patchV50 on top of the chain — the second deliberate census pin)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
@@ -8412,10 +8412,29 @@ if (fail) process.exit(1);
   const rt9 = (ret9.trials || []).find((x) => x && x.custom && x.custom.abId === "failureAB1");
   ok(!!rt9 && rt9.declined === true && rt9.retired === "2026-08-13",
     "RETIRE — the approved trial is DISARMED, not deleted: declined + a retirement date. The tap was athlete history; the mark silences every reader, because they all filter !declined");
-  ok((ret9.feed || []).filter((f) => f && f.t === "FAILURE EXPERIMENT RETIRED").length === 1
-     && /No session ever ran under the experiment, so nothing is lost/.test((ret9.feed.find((f) => f.t === "FAILURE EXPERIMENT RETIRED") || {}).how)
-     && /1–2 reps shy/.test((ret9.feed.find((f) => f.t === "FAILURE EXPERIMENT RETIRED") || {}).how),
-    "RETIRE — ONE receipt, house voice, Joe's ruling verbatim: the default stands, the occasional all-out set is the honesty tool, nothing is lost");
+  /* FIX 3a item 5 + test (e) — THIS fixture is genuinely mid-flight: its log
+     carries tricep/sulek sessions after the trial's start, so the receipt must
+     tell THAT ledger's truth with the neutral copy and the count, not the
+     spec's zero-session assumption. */
+  const recMid = (ret9.feed || []).filter((f) => f && f.t === "FAILURE EXPERIMENT RETIRED");
+  ok(recMid.length === 1 && /session/.test(recMid[0].how) && /ran under the experiment before retirement/.test(recMid[0].how) && /stay on the record and count normally/.test(recMid[0].how) && /1–2 reps shy/.test(recMid[0].how),
+    "RETIRE (e) — a MID-FLIGHT retirement files the neutral receipt: it names the post-start session count, keeps those sessions on the record, and still states the research default — it does not claim nothing is lost when something ran");
+  ok(!/No session ever ran/.test(recMid[0].how),
+    "RETIRE (e) — and the zero-session sentence is ABSENT on a ledger where sessions ran: the receipt tells the ledger's truth, not the spec's assumption");
+  /* the ZERO case, on its own fixture: trial approved, nothing trained after */
+  {
+    const z9 = clV(stale9);
+    for (const dz of Object.keys(z9.sessionLog || {})) {
+      const rz = z9.sessionLog[dz];
+      if (dz >= z9.trials[0].started && (rz.entries || []).some((e9) => e9.id === "tricep" || e9.id === "sulek")) {
+        rz.entries = (rz.entries || []).filter((e9) => !(e9.id === "tricep" || e9.id === "sulek"));
+      }
+    }
+    const zOut = __test.migrate(clV(z9));
+    const recZ = (zOut.feed || []).filter((f) => f && f.t === "FAILURE EXPERIMENT RETIRED");
+    ok(recZ.length === 1 && /No session ever ran under the experiment, so nothing is lost/.test(recZ[0].how) && /1–2 reps shy/.test(recZ[0].how),
+      "RETIRE — the ZERO-session ledger (today's live devices, all of them) gets Joe's ruling verbatim: no session ever ran, nothing is lost, the default stands");
+  }
   /* zero-session early end ERRORS NOWHERE: every reader of the retired trial
      returns instead of throwing. */
   /* no try/catch here ON PURPOSE (the vacuity gate bans the shape): if either
@@ -8828,8 +8847,8 @@ if (fail) process.exit(1);
         "E1 (v7.53.0) — a bump crossing V48 lands every setup and name on exactly the RULED text (=== SEED's authoring): patch map and seed literal agree, and even the sentinel yields to the ruling");
       ok(dOut.exercises.every((x) => { const se9 = __test.SEED.exercises.find((y) => y.id === x.id); return !se9 || x.setupAt === "2026-08-13T12:00:00.000Z"; }),
         "E1 (v7.53.0) — and every ruled rewrite carries the fixed adoption stamp, so a stale device's old cue loses the merge from both orders");
-      ok(["pulldown", "rows", "calves"].every((id9) => { const e9 = dOut.exercises.find((y) => y.id === id9); return e9 && e9.fork && e9.fork.from === "2026-08-13"; }),
-        "E1 (v7.53.0) — and V49's forks land on exactly the three lifts whose technique actually changed (hooks x2, the 2s pause), dated the adoption");
+      ok(["pulldown", "rows", "calves"].every((id9) => { const f9 = __test.forksOf(dOut, id9); return f9.length === 1 && f9[0].from === "2026-08-13"; }),
+        "E1 (3a) — V49+V50's fork lands as forks[] on exactly the three technique-changed lifts (hooks x2, the 2s pause), dated the adoption, in the plural shape");
     }
     ok(out.model.drip === dripBefore && out.model.drip === 0.31,
       "E1 — the SENTINEL drip (0.31 — a future measured value, exactly what the old runner zeroed) is untouched by the bump");
@@ -8996,6 +9015,84 @@ if (fail) process.exit(1);
   ok(!oF.exercises.some((e) => e.id === "fly" || e.id === "hipthrust")
      && !oF.exercises.some((e) => e.fork && /inserted upstream/.test(e.fork.why)),
     "A3 — the insertion table is armed and UNFIRED: forking on a change that has not happened would archive history against nothing");
+}
+/* ============================================================================
+   FIX 3a ITEM 10 — TESTS THAT BITE: the plural-era proofs.
+   ============================================================================ */
+{
+  const clE = (x) => JSON.parse(JSON.stringify(x));
+  const S0 = clE(__test.SEED);
+  const ex9 = S0.exercises.find((x) => x.id === "rows");
+  /* (b) THREE ERAS: strapless -> hooks (8/13) -> fly insertion (8/20). A
+     middle-era read pools ONLY its own era, with (a)'s exact boundaries. */
+  ex9.forks = [{ from: "2026-08-13", why: "hooks standardized", prevN: "Rows (strapless)" }, { from: "2026-08-20", why: "fly inserted upstream", prevN: "Prime seated row (hooks)" }];
+  S0.sessionLog = {};
+  /* reps VARY within each era — identical reps give zero spread, and
+     typicalError refuses own = 0 (a spread of nothing is not a measurement). */
+  const REPQ = { "01": [10, 10], "03": [9, 10], "05": [10, 9], "07": [10, 10], "13": [10, 10], "14": [9, 10], "15": [10, 9], "16": [10, 10], "20": [10, 10], "21": [9, 10], "22": [10, 9], "23": [10, 10] };
+  const put9 = (d) => { S0.sessionLog[d] = { entries: [{ id: "rows", reps: REPQ[d.slice(8)] || [10, 10], w: 175, rir: 1 }], at: 1 }; };
+  /* FOUR sessions per era: typicalError's own-lift read needs >= 6 deltas
+     (3 consecutive pairs x 2 reps) before it speaks — a thinner fixture falls
+     back to the published prior with n=0 and proves nothing (the first cut of
+     this pin did exactly that). */
+  ["2026-08-01", "2026-08-03", "2026-08-05", "2026-08-07"].forEach(put9);           /* era 0 — strapless */
+  ["2026-08-13", "2026-08-14", "2026-08-15", "2026-08-16"].forEach(put9);           /* era 1 — hooks */
+  ["2026-08-20", "2026-08-21", "2026-08-22", "2026-08-23"].forEach(put9);           /* era 2 — fly upstream */
+  const nAt = (q9) => { const te9 = __test.typicalError(S0, "rows", q9); return /own repeats/.test(te9.src || "") ? te9.n : -1; };
+  ok(nAt("2026-08-08") === 6 && nAt("2026-08-17") === 6 && nAt("2026-08-25") === 6,
+    "3a(b) — THREE ERAS: a query in each era reads the lift's OWN repeats and pools exactly its own era's six deltas — the middle era neither reaches back to strapless nor forward across the fly seam (12 cross-era pairs exist and none is counted)");
+  /* (a) the EXACT boundary, both sides of both seams: 8/12 is era 0, 8/13 is
+     era 1; 8/19 is era 1, 8/20 is era 2. */
+  ok(__test.eraIdx(ex9.forks, "2026-08-12") === 0 && __test.eraIdx(ex9.forks, "2026-08-13") === 1
+     && __test.eraIdx(ex9.forks, "2026-08-19") === 1 && __test.eraIdx(ex9.forks, "2026-08-20") === 2,
+    "3a(a) — the fork-day boundary is exact on both sides of both seams: the seam day belongs to the NEW era, the day before to the old");
+  /* era-truthful names across all three eras */
+  ok(__test.nameAt(S0, "rows", "2026-08-10") === "Rows (strapless)",
+    "3a(f) — a strapless-era date renders the strapless name (the renames[] seam; the words fixture is the ORIGINAL pre-rename capture, green again, which is the standing proof)");
+  /* (c) the insertion fires ONCE across repeated sweeps and PRESERVES a later
+     manual fork */
+  const SI = clE(__test.SEED);
+  SI.v = __test.SCHEMA_V;
+  SI.exercises.push({ id: "fly", n: "Machine fly", mg: "chest", day: "U", w: 50, inc: 5, sets: 2, hi: 12, setup: "SET · fly mode · seat [PIN]\ncue" });
+  const r1 = __test.runAdaptive(clE(SI), "2026-08-20");
+  const rowsF1 = __test.forksOf(r1, "rows");
+  ok((r1.insertions || {}).fly === "2026-08-20" && rowsF1.some((f) => f.why === "fly inserted upstream" && f.from === "2026-08-20"),
+    "3a(c) — the insertion REGISTRY records the fly once, and rows gains the appended era (its hooks seam intact: " + rowsF1.length + " seams total)");
+  ok(rowsF1.length === 2 && rowsF1[0].why === "hooks standardized",
+    "3a(c) — APPENDED, never overwritten: the 8/13 hooks seam survives under the new one");
+  /* a later manual fork, then MORE sweeps: the registry keeps the insertion
+     dead and the manual seam stands */
+  const r2 = clE(r1);
+  const rx2 = r2.exercises.find((x) => x.id === "rows");
+  rx2.forks = [...rx2.forks, { from: "2026-08-25", why: "manual regrip", prevN: rx2.n }];
+  const fires1 = (r2.feed || []).filter((f) => /FRESH BASELINE/.test(f.t)).length;
+  const r3 = __test.runAdaptive(__test.runAdaptive(clE(r2), "2026-08-26"), "2026-08-27");
+  const fires2 = (r3.feed || []).filter((f) => /FRESH BASELINE/.test(f.t)).length;
+  ok(fires2 === fires1,
+    "3a(c) — repeated sweeps after the insertion re-mint NOTHING: the registry makes once mean once EVER (" + fires1 + " receipts before, " + fires2 + " after two more sweeps)");
+  ok(__test.forksOf(r3, "rows").some((f) => f.why === "manual regrip"),
+    "3a(c) — and the later manual seam SURVIVES the sweeps: the table appends around it, never over it");
+  /* (d) exposures 2-4 and expiry at 4 (calibration already stamped: no [PIN]
+     on this fixture's rows era... rows HAS grip [PIN] — stamp it) */
+  const SD = clE(r1);
+  const rxD = SD.exercises.find((x) => x.id === "rows");
+  rxD.calibratedAt = "2026-08-20T12:00:00.000Z";
+  ["2026-08-21", "2026-08-22", "2026-08-23", "2026-08-24"].forEach((d, k) => {
+    SD.sessionLog[d] = { entries: [{ id: "rows", reps: [10, 10], w: 175, rir: 1 }], at: 1 };
+  });
+  ok([1, 2, 3, 4].every((k) => {
+    const Sk = clE(SD);
+    for (const d of ["2026-08-21", "2026-08-22", "2026-08-23", "2026-08-24"].slice(k)) delete Sk.sessionLog[d];
+    return __test.forkExposures(Sk, "rows") === k;
+  }),
+    "3a(d) — exposures count 1..4 exactly, from max(era start, calibration): the banner walks 1-of-4 to 4-of-4 and then renders nothing (the surface hides at >= 4)");
+  /* item 4 — sessions inside the era but BEFORE calibration do not count */
+  const SP4 = clE(r1);
+  const rxP = SP4.exercises.find((x) => x.id === "rows");
+  rxP.calibratedAt = "2026-08-23T12:00:00.000Z";
+  ["2026-08-21", "2026-08-22", "2026-08-23"].forEach((d) => { SP4.sessionLog[d] = { entries: [{ id: "rows", reps: [10, 10], w: 175, rir: 1 }], at: 1 }; });
+  ok(__test.forkExposures(SP4, "rows") === 1,
+    "3a item 4 — two sessions logged in-era but pre-calibration stay LOGGED and read provisional: only the post-calibration one counts toward comparable (calibration is state, not the absence of tokens)");
 }
 console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
