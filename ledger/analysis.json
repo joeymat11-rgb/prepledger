@@ -1,16 +1,16 @@
 {
-  "gen": "2026-08-12T09:07:00.720Z",
+  "gen": "2026-08-13T09:05:33.138Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 163.75,
-    "lastRaw": 164.2,
-    "appTrend": 163.6,
+    "soft": 163.99,
+    "lastRaw": 164.7,
+    "appTrend": 163.9,
     "noiseFloor": 1.5,
-    "gap": -0.45
+    "gap": -0.71
   },
   "rate": {
-    "perWeekLb": 0.62,
-    "perWeekPct": 0.38,
+    "perWeekLb": 0.36,
+    "perWeekPct": 0.22,
     "bandLb": 0.88,
     "personalBand": [
       1,
@@ -19,9 +19,9 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2747,
+    "tdee": 2660,
     "tdeeWinDays": 20,
-    "meanCal": 2421,
+    "meanCal": 2408,
     "waterSensitivityLb": 1.11,
     "waterSensDays": 4,
     "meanSleepH": 7.1,
@@ -31,7 +31,7 @@
   },
   "regime": {
     "regime": "plateau",
-    "why": "water masking (recent sodium/alcohol/event) - a whoosh likely pending"
+    "why": "check adherence/logging first, then consider a diet break"
   },
   "weeks": [
     {
@@ -71,10 +71,10 @@
     },
     {
       "wk": "2026-08-10",
-      "meanCal": 2255,
-      "meanPro": 175,
+      "meanCal": 2253,
+      "meanPro": 170,
       "proHitPct": 100,
-      "meanSteps": 18500
+      "meanSteps": 18667
     }
   ],
   "priorDecisions": [
