@@ -16,6 +16,9 @@ listed so the same thing cannot happen again silently:
 | v7.49.0 | design — one token system + contrast auditor, tap-color grammar + affordance lint, answer-first decisions, record anatomy | 643013f |
 | v7.50.0 | mini-pass — gate holes closed, fixed-chrome zone, gym command-first, owed-editor labels, collapsed decision cards | bc987d8 |
 | v7.51.0 | **round 6 — THE PROGRESS TAB** (see below) | c15d5ef |
+| v7.52.0 | persistence — patch-runner version-skip, feed dedupe, storage banners, hardened reset, hi/inc/setup merge stamps | c25a1ab |
+| v7.53.0 | retirement + word bundle — A/B retired, cue architecture on all 15 setups, eras plural with era-truthful names, calibration as transition state | 56c4e7c |
+| v7.53.1 | **the split patch** — fly + hip thrust in, pronated retired, plan register, era seams, debut adoption; seven fix rounds of merge/era/calibration hardening (see below) | 8d5f6b3 |
 
 **MAINTENANCE RULE FOR THIS FILE, from the failure above:** when a round merges, its
 header changes from NEXT/BUILDING to SHIPPED *in the same session as the merge*. A
@@ -56,14 +59,33 @@ what was deliberately left; the stage-4 block further down carries the deferrals
 
 **NOW — THE PLAN OF RECORD IS [docs/pipeline-2026-08-12.md](docs/pipeline-2026-08-12.md). Work it top to bottom; one part per go.**
 
-**INSERTED AHEAD OF PART 4 — THE SPLIT PATCH (branch feat/split-patch, v7.53.1,
-SCHEMA_V 51, built from SPLIT-PATCH-FINAL-BUILD-ORDER v5): fly + hip thrust enter
-in ruled positions, pronated retires (tombstoned, record intact), ruled orders +
-set counts under the ruling-write rule (epoch 2026-08-12), the plan register
+**SHIPPED — THE SPLIT PATCH (v7.53.1, SCHEMA_V 51, merged 8d5f6b3 on 2026-08-14).**
+Inserted ahead of Part 4 and built from SPLIT-PATCH-FINAL-BUILD-ORDER v5: fly + hip
+thrust enter in ruled positions, pronated retires (tombstoned, record intact), ruled
+orders + set counts under the ruling-write rule (epoch 2026-08-12), the plan register
 (planGen + exOrder as one unit), debut load adoption with w/wAt joining the stamp
 discipline, the wKey stale-anchor fix (curl reads [11,11,10] per the oracle), og
-provenance, born fresh installs. STATUS: pushed, awaiting Sol's diff leg + cowork's
-re-drive; headers flip at merge.**
+provenance, born fresh installs. Weekly volume 88 → 92 (U 27, L 19).
+
+**SEVEN FIX ROUNDS followed the first push, each fail-first with recorded signatures**
+(9e40815 → 554c5b7 → 0c4c2a0 → fd3f1a7 → 458c3c6 → d115b3d → ad09f61 → 771a4fa):
+provenance persisted and the real debut path built · the production-boundary test law
+(real UI handlers, real drafts, real merges — source-string assertions are a named
+straw class) · quarantine moved off the athlete register · the earn walk extracted so
+merged two-device execution equals serial execution · canonicalization reached every
+merge AND no-merge boundary (import, first-ever sync, the dated snapshot vault) · the
+pin birthday made immutable and **the pin-fill surface finally built** (R3's own
+directive, ordered long before and never built — [PIN]s could not be filled on any
+device, so calibration could never stamp) · the provisional label made a pure function
+of two immutable boundaries in BOTH lanes · and the gate itself made portable, after it
+turned out to run esbuild's binary through node, which is a shim on Windows and a
+native ELF on the Linux runner CI uses.
+
+Engine baseline byte-identical through all seven rounds; words freeze = the original
+bytes plus exactly two owner-ruled leaves; sessionLog byte-identical through migration;
+athlete data untouched at every step.
+
+**→ THE NOW ITEM IS NOW PART 4 OF THE PIPELINE: v7.54.0 MOTION (item 3 below).**
 
 *(The block below replaces "NOTHING IS ASSIGNED", which was stale the moment it was
 written — the motion pass had already been briefed, blind-audited and Joe-ruled, with
