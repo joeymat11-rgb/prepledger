@@ -91,6 +91,97 @@ export function runClosureSF2(T, ok, readFileSync) {
       "R5b — a planGen-52 custom order passes the same boundary UNREPAIRED: the athlete's word outranks the ruling's order (observed: " + J(m52.exOrder.U.slice(0, 3)) + "...)");
   });
 
+  /* ---- R5b (round 4) — the NO-MERGE boundaries: import + the no-remote PUT ---- */
+  t("R5-round4", () => {
+    const m = mig50();
+    const POISON = ["press", "lateral", "pulldown", "curl"];
+    const backup = cl(m); backup.exOrder = { U: POISON.slice(), L: cl(m.exOrder.L) };
+    /* (i) THE REAL IMPORT PATH: doImport is exactly migrate(parse) -> save, so
+       the same-schema entry boundary IS the import boundary. Run it on the
+       serialized bytes a backup file actually carries. */
+    const imported = T.migrate(JSON.parse(JSON.stringify(backup)));
+    const ruled9 = (o) => o.U[0] === "lateral" && o.U[1] === "press" && o.U[2] === "fly" && new Set(o.U).size === o.U.length;
+    ok(ruled9(imported.exOrder) && imported.planGen === 51,
+      "R5-r4a — a poisoned planGen-51 BACKUP through the real import path (migrate same-schema fast path) renders and persists the RULED order (observed: " + J(imported.exOrder.U) + ")");
+    const again = T.migrate(JSON.parse(JSON.stringify(imported)));
+    ok(JSON.stringify(again.exOrder) === JSON.stringify(imported.exOrder),
+      "R5-r4b — and it is IDEMPOTENT: importing the repaired backup a second time moves nothing (observed: " + J(again.exOrder.U) + ")");
+    /* (ii) lives in runClosureSF2Sync below — driven through the REAL ghSync
+       against a mocked reachable 404, capturing the actual serialized wire
+       body. Calling normalizePlan here instead would be the source-assert
+       straw class again (and it passed on fd3f1a7, which is how it was
+       caught). */
+    /* (iii) planGen-52 negative control through BOTH paths */
+    const c52 = cl(m); c52.planGen = 52; c52.exOrder = { U: cl(m.exOrder.U).reverse(), L: cl(m.exOrder.L) };
+    const imp52 = T.migrate(JSON.parse(JSON.stringify(c52)));
+    const wire52 = T.normalizePlan(JSON.parse(JSON.stringify(c52)));
+    ok(JSON.stringify(imp52.exOrder.U) === JSON.stringify(c52.exOrder.U) && JSON.stringify(wire52.exOrder.U) === JSON.stringify(c52.exOrder.U),
+      "R5-r4d — a planGen-52 custom order passes BOTH new boundaries unrepaired: the athlete's word outranks the ruling's order everywhere (observed import: " + J(imp52.exOrder.U.slice(0, 3)) + "... wire: " + J(wire52.exOrder.U.slice(0, 3)) + "...)");
+  });
+
+  /* ---- R4b (round 4) — the kind classification gates the pg check itself ---- */
+  t("R4-round4", () => {
+    const base = mig50();
+    /* PRODUCER-SHAPED: exactly what sweepStalls stamps (kind reset + pg) */
+    const mkReset = (pg9) => ({ id: "rs_press_r4", kind: "reset", pg: pg9, exId: "press", newW: 200, title: "RESET Chest press — 250 → 200", body: "b", at: "2026-08-20" });
+    const at52 = cl(base); at52.planGen = 52;
+    const pressW = (s9) => (s9.exercises.find((x) => x.id === "press") || {}).w;
+    at52.exercises.find((x) => x.id === "press").w = 250;
+    const r52 = T.applyAgentProposal(cl(at52), mkReset(51), "2026-08-20");
+    ok(pressW(r52) === 200 && (r52.feed || []).some((f) => f && String(f.t).indexOf("RESET APPLIED") === 0),
+      "R4-r4a — a producer-shaped pg-51 RESET at planGen 52 APPLIES (a reset is stall-derived; sweepStalls never consults the order, so no plan generation can invalidate it) (observed press w: " + J(pressW(r52)) + ", RESET APPLIED line: " + (r52.feed || []).some((f) => f && String(f.t).indexOf("RESET APPLIED") === 0) + ")");
+    const at51 = cl(base); at51.exercises.find((x) => x.id === "press").w = 250;
+    const r51 = T.applyAgentProposal(cl(at51), mkReset(51), "2026-08-20");
+    ok(pressW(r51) === 200,
+      "R4-r4b — control: the same reset at planGen 51 still applies (observed press w: " + J(pressW(r51)) + ")");
+    /* negative controls — the round-1/2 laws stand */
+    const volAt52 = T.applyAgentProposal(cl(at52), { id: "v_r4", kind: "volume", pg: 51, mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }, "2026-08-20");
+    const hackSets = (s9) => (s9.exercises.find((x) => x.id === "hack") || {}).sets;
+    ok(hackSets(volAt52) === hackSets(at52) && (volAt52.feed || []).some((f) => f && String(f.t).indexOf("OFFER SUPERSEDED") === 0),
+      "R4-r4c — negative control: a pg-51 VOLUME offer at planGen 52 is STILL superseded (order-derived, stale generation) (observed hack sets: " + J([hackSets(at52), hackSets(volAt52)]) + ")");
+    const volAbsent = T.applyAgentProposal(cl(base), { id: "v_r4b", kind: "volume", mg: "quads", exId: "hack", dir: 1, title: "VOLUME +1" }, "2026-08-20");
+    ok(hackSets(volAbsent) === hackSets(base) && (volAbsent.feed || []).some((f) => f && String(f.t).indexOf("OFFER SUPERSEDED") === 0),
+      "R4-r4d — negative control: a pg-ABSENT order-derived offer still classifies pre-51 (the round-1 law) (observed hack sets: " + J([hackSets(base), hackSets(volAbsent)]) + ")");
+    const retired = T.applyAgentProposal(cl(base), { id: "v_r4c", kind: "reset", pg: 51, exId: "pronated", newW: 35, title: "RESET pronated" }, "2026-08-20");
+    ok((retired.exercises.find((x) => x.id === "pronated") || {}).w === 40 && (retired.feed || []).some((f) => f && String(f.t).indexOf("OFFER SUPERSEDED") === 0),
+      "R4-r4e — negative control: the RETIRED-lift guard is untouched — a reset targeting a tombstoned lift still supersedes (observed pronated w: " + J((retired.exercises.find((x) => x.id === "pronated") || {}).w) + ")");
+  });
+
+  /* ---- R11c (round 4) — the pin birthday is IMMUTABLE (engine leg) ---- */
+  t("R11-round4", () => {
+    const m = mig50();
+    const fly = m.exercises.find((x) => x.id === "fly");
+    ok(fly && fly.pinsBornAt === "2026-08-12T00:00:00.000Z",
+      "R11-r4a — the newborns carry an authored pin birthday at RULING_EPOCH (observed: " + J(fly && fly.pinsBornAt) + ")");
+    const pinned = m.exercises.filter((e) => T.pinsUnfilled(e) > 0);
+    ok(pinned.length > 0 && pinned.every((e) => !!e.pinsBornAt),
+      "R11-r4b — every [PIN]-carrying record is backfilled fill-if-absent (observed " + pinned.length + " pinned records, all with a birthday: " + pinned.every((e) => !!e.pinsBornAt) + ")");
+    /* the LAWFUL fill write advances setupAt; the birthday may not move */
+    /* SOL'S EXACT CHRONOLOGY — and the rig error cowork owned in round 2, not
+       repeated: the FIRST sweep must ARM pinsSeen while the pins are still
+       live, or calibratedAt can never stamp and the test proves nothing.
+       8/20 sweep (arms) -> 8/20 session -> 8/21 lawful fill -> 8/22 sweep. */
+    const armed = T.runAdaptive(cl(m), "2026-08-20");
+    const f2 = armed.exercises.find((x) => x.id === "fly");
+    const born0 = f2.pinsBornAt;
+    ok(f2.pinsSeen === true, "R11-r4c precondition — the first sweep ARMS pinsSeen while the pins are live (observed: " + J(f2.pinsSeen) + ")");
+    const logged = T.completeSession(armed, "2026-08-20", [{ id: "fly", reps: [12, 11], rir: 2, w: 90 }], slp, { pg: 51 }).s;
+    const filled = cl(logged); const f2b = filled.exercises.find((x) => x.id === "fly");
+    f2b.setup = String(f2b.setup).replace(/\[PIN\]/g, "3"); f2b.setupAt = "2026-08-21T10:00:00.000Z";
+    const swept = T.runAdaptive(filled, "2026-08-22");
+    const f3 = swept.exercises.find((x) => x.id === "fly");
+    const lab3 = JSON.stringify(T.sessionDebrief(swept, "2026-08-20") || {}).toLowerCase().indexOf("logged before calibration") > -1;
+    ok(f3.pinsBornAt === born0 && born0 != null && lab3 === true,
+      "R11-r4c — SOL'S CHRONOLOGY at the engine boundary: after the LAWFUL fill write (tokens replaced, setupAt advanced per the stamp discipline) and the stamping sweep, the pin birthday has NOT moved AND the pre-fill session still reads provisional — asserting the consequence, not just the field, so a tip with no birthday at all cannot pass vacuously (observed birthday: " + J(f3.pinsBornAt) + " vs authored " + J(born0) + " · label present: " + lab3 + ")");
+    /* merge: earliest-wins, both orders */
+    const A = cl(m), B = cl(m);
+    A.exercises.find((x) => x.id === "fly").pinsBornAt = "2026-08-12T00:00:00.000Z";
+    B.exercises.find((x) => x.id === "fly").pinsBornAt = "2026-08-25T00:00:00.000Z";
+    const ab = T.mergeState(cl(A), cl(B)), ba = T.mergeState(cl(B), cl(A));
+    ok((ab.exercises.find((x) => x.id === "fly") || {}).pinsBornAt === "2026-08-12T00:00:00.000Z" && (ba.exercises.find((x) => x.id === "fly") || {}).pinsBornAt === "2026-08-12T00:00:00.000Z",
+      "R11-r4d — the birthday merges EARLIEST-WINS, direction-free (observed: " + J([(ab.exercises.find((x) => x.id === "fly") || {}).pinsBornAt, (ba.exercises.find((x) => x.id === "fly") || {}).pinsBornAt]) + ")");
+  });
+
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
   t("R6", () => {
     const m = mig50((s) => { const sk = s.exercises.find((x) => x.id === "sulek"); if (sk) sk.sets = 3; });
@@ -209,4 +300,60 @@ export function runClosureSF2(T, ok, readFileSync) {
     ok(J(view(selfM)) === J(vS) && earnT(selfM) === earnT(serial),
       "R13d — idempotent: a serial state merged with its own replica re-folds to itself, zero duplicate receipts or queue items (observed: " + J(view(selfM)) + ")");
   });
+}
+
+/* THE NO-REMOTE PUT BODY, driven through the REAL ghSync (async — the caller
+   awaits it). A reachable 404 is the first-ever sync: buildBody's no-remote
+   arm used to upload raw local, so a poisoned order reached the wire. This
+   captures the ACTUAL PUT body the function serializes. */
+export async function runClosureSF2Sync(T, ok) {
+  const cl = (x) => JSON.parse(JSON.stringify(x));
+  const J = (x) => { try { return JSON.stringify(x); } catch (e) { return String(x); } };
+  const g = globalThis;
+  const POISON = ["press", "lateral", "pulldown", "curl"];
+  const mk = () => {
+    const s = cl(T.SEED); s.v = 50; delete s.insertions; delete s.retirements; s.planGen = undefined;
+    s.exercises = s.exercises.filter((e) => e.id !== "fly" && e.id !== "hipthrust");
+    s.exercises.push({ id: "pronated", mg: "forearms", n: "Pronated EZ curl", day: "U", w: 40, inc: 5, sets: 2, hi: 13, last: [12, 11], setup: "SET\ncue" });
+    s.exOrder = { U: s.exercises.filter((e) => e.day === "U").map((e) => e.id), L: s.exercises.filter((e) => e.day === "L").map((e) => e.id) };
+    return T.migrate(s);
+  };
+  /* both upload boundaries are captured BY URL: the ledger PUT and the dated
+     snapshot vault (the drive's first cut captured only the LAST PUT, which is
+     how the vault's raw-state write was found). */
+  const drive = async (state) => {
+    const caught = { ledger: null, snap: null };
+    const save = { fetch: g.fetch, localStorage: g.localStorage, btoa: g.btoa, atob: g.atob };
+    const store = {};
+    g.localStorage = { getItem: (k) => (k === "prep-ledger-ghtoken" ? "smoke-token" : (k in store ? store[k] : null)), setItem: (k, v) => { store[k] = String(v); }, removeItem: (k) => { delete store[k]; } };
+    g.btoa = save.btoa || ((x) => Buffer.from(x, "binary").toString("base64"));
+    g.atob = save.atob || ((x) => Buffer.from(x, "base64").toString("binary"));
+    g.fetch = async (u, o) => {
+      if (!o || o.method !== "PUT") return { ok: false, status: 404, json: async () => ({}) };   /* REACHABLE 404 — no remote yet */
+      const body = JSON.parse(o.body);
+      if (String(u).indexOf("/snapshots/") > -1) caught.snap = body; else caught.ledger = body;
+      return { ok: true, status: 201, json: async () => ({ content: { sha: "x" } }) };
+    };
+    try { await T.ghSync(state); } catch (e) { /* the assertions read the captured bodies */ }
+    await new Promise((r) => setTimeout(r, 30));   /* snapshotMaybe is fired, not awaited, by the sync */
+    g.fetch = save.fetch; g.localStorage = save.localStorage; g.btoa = save.btoa; g.atob = save.atob;
+    const dec = (b) => { try { return b ? JSON.parse(Buffer.from(b.content, "base64").toString("utf8")) : null; } catch (e) { return null; } };
+    return { ledger: dec(caught.ledger), snap: dec(caught.snap) };
+  };
+  if (typeof T.ghSync !== "function") {
+    ok(false, "R5-r4c — THE REAL ghSync leg cannot execute here: this engine does not export ghSync (a harness limitation of the tip under test, NOT evidence about its wire bytes — the substantive old-tip evidence is cowork's own execution plus R5-r4a's verbatim poisoned import signature)");
+    return;
+  }
+  const base = mk();
+  const poisoned = cl(base); poisoned.exOrder = { U: POISON.slice(), L: cl(base.exOrder.L) };
+  const wire = await drive(poisoned);
+  const ruled = (o) => o && o.U && o.U[0] === "lateral" && o.U[1] === "press" && o.U[2] === "fly" && new Set(o.U).size === o.U.length;
+  ok(!!(wire && wire.ledger) && ruled(wire.ledger.exOrder) && J(poisoned.exOrder.U) === J(POISON),
+    "R5-r4c — THE REAL ghSync on a reachable 404 (first-ever sync) PUTs the RULED order to the ledger, and the caller's own state object is untouched by the normalization copy (observed ledger body order: " + J(wire && wire.ledger && wire.ledger.exOrder && wire.ledger.exOrder.U) + " · caller after: " + J(poisoned.exOrder.U) + ")");
+  ok(!!(wire && wire.snap) && ruled(wire.snap.exOrder),
+    "R5-r4c2 — and the DATED SNAPSHOT VAULT carries the ruled order too: the third upload boundary, found by this drive when it captured the last PUT and saw raw state going into the archive a restore would read back (observed vault order: " + J(wire && wire.snap && wire.snap.exOrder && wire.snap.exOrder.U) + ")");
+  const c52 = cl(base); c52.planGen = 52; c52.exOrder = { U: cl(base.exOrder.U).reverse(), L: cl(base.exOrder.L) };
+  const wire52 = await drive(c52);
+  ok(!!(wire52 && wire52.ledger) && J(wire52.ledger.exOrder.U) === J(c52.exOrder.U),
+    "R5-r4e — and a planGen-52 custom order rides the same wire UNREPAIRED (observed: " + J(wire52 && wire52.ledger && wire52.ledger.exOrder && wire52.ledger.exOrder.U.slice(0, 3)) + "...)");
 }

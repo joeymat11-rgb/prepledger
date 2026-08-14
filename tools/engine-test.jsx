@@ -4,7 +4,7 @@ import "./_fixed-now.mjs";
 import { readFileSync } from "node:fs";
 import { __test } from "../src/app.jsx";
 import { runClosureSF1 } from "./closure-sf1.mjs";
-import { runClosureSF2 } from "./closure-sf2.mjs";
+import { runClosureSF2, runClosureSF2Sync } from "./closure-sf2.mjs";
 const { targetsFor, genSession, completeSession, runAdaptive, bfEst, migrate, SEED } = __test;
 let pass = 0, fail = 0;
 const ok = (cond, name) => { cond ? pass++ : fail++; console.log((cond ? "PASS" : "FAIL") + " — " + name); };
@@ -9444,5 +9444,9 @@ if (fail) process.exit(1);
    messages (the fail-first signatures). The UI legs live in tools/split-smoke.mjs
    against the SHIPPED bundle. */
 runClosureSF2(__test, ok, readFileSync);
-console.log(`\nFINAL108: ${pass} passed, ${fail} failed`);
-if (fail) process.exit(1);
+/* the real-ghSync leg is async, and the suite bundles to CJS (no top-level
+   await) — so the tally and the exit code ride its promise. */
+runClosureSF2Sync(__test, ok).then(() => {
+  console.log(`\nFINAL108: ${pass} passed, ${fail} failed`);
+  if (fail) process.exit(1);
+}, (e) => { console.log("FAIL — the real-ghSync closure leg THREW: " + (e && e.message)); process.exit(1); });

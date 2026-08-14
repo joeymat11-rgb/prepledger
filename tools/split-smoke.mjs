@@ -15,6 +15,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { JSDOM } from "jsdom";
 import { at } from "../scripts/lib.mjs";
+import { execFileSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 
 const bundlePath = process.env.PL_BUNDLE ? path.resolve(process.env.PL_BUNDLE) : at("app.js");
 if (!fs.existsSync(bundlePath)) { console.error("SPLIT-SMOKE FAIL: bundle missing at " + bundlePath); process.exit(1); }
@@ -25,7 +27,7 @@ let failed = 0;
 const check = (ok, good, bad) => { console.log(ok ? "  OK: " + good : "  FAIL: " + bad); if (!ok) failed++; };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-function boot(prep) {
+function boot(prep, isoDay) {
   const dom = new JSDOM(`<!doctype html><html><body><div id="root"></div></body></html>`,
     { url: "https://smoke.local/", runScripts: "outside-only", pretendToBeVisual: true });
   const w = dom.window;
@@ -34,7 +36,7 @@ function boot(prep) {
   w.fetch = () => Promise.resolve({ ok: false, status: 0, json: async () => ({}), text: async () => "" });
   /* THE PINNED CLOCK — with a mutable offset so rest timers can be advanced */
   const RealDate = w.Date;
-  const BASE = new RealDate(PIN_ISO + "T15:00:00").getTime();
+  const BASE = new RealDate((isoDay || PIN_ISO) + "T15:00:00").getTime();
   const clock = { offset: 0 };
   function FakeDate(...a) { return a.length ? new RealDate(...a) : new RealDate(BASE + clock.offset); }
   FakeDate.now = () => BASE + clock.offset;
@@ -60,7 +62,7 @@ const typeInto = async (w, el, v) => {
   await sleep(60);
 };
 const stored = (w) => { try { return JSON.parse(w.localStorage.getItem(KEY) || "null"); } catch (e) { return null; } };
-const openGroup = async (w, gid) => { const g = w.document.getElementById(gid); const hd = g && g.querySelector("[role=button]"); if (hd) { hd.click(); await sleep(160); return true; } return false; };
+const openGroup = async (w, gid) => { const g = w.document.getElementById(gid); const hd = g && g.querySelector("[role=button]"); if (!hd) return false; if (hd.getAttribute("aria-expanded") === "true") return true; hd.click(); await sleep(160); return true; };   /* the header TOGGLES — re-calling it on an open room closed it and the surface under test went unrendered (caught by the R11 drive) */
 const ruleSuspects = async (w) => { let n = 0; for (const b of q(w, "button").filter((x) => (x.textContent || "") === "I did this")) { b.click(); n++; await sleep(50); } return n; };
 
 /* ================= DRIVE A — R2 TRAIN: typed debut load, real handler ================= */
@@ -244,9 +246,88 @@ async function driveOldDraft() {
   }
 }
 
+/* ============ DRIVE E — R11: Sol's chronology through the REAL fill surface ============
+   8/20 session logged -> 8/21 pins filled BY CLICKING the surface (not a state
+   write) -> 8/22 sweep stamps calibratedAt -> the 8/20 session must STILL read
+   provisional. Round 2's rig wrote setupAt directly under the frozen clock and
+   passed falsely; this drives the writer that actually exists. */
+async function drivePinFill() {
+  console.log("[R11/pin-fill surface]");
+  /* leg 1 — log the 8/20 fly session */
+  const b1 = boot();
+  await sleep(500);
+  await clickText(b1.w, "TRAIN", "tab nav");
+  await openGroup(b1.w, "pl-train-setup");
+  const card0 = b1.w.document.getElementById("tr-fly");
+  const wIn0 = card0 && card0.querySelector('input[aria-label="load used"]');
+  if (wIn0) await typeInto(b1.w, wIn0, "90");
+  await clickText(b1.w, "Complete session — what moved?", "log the 8/20 session");
+  await sleep(300);
+  const st0 = stored(b1.w);
+  check(!!(st0 && st0.sessionLog && st0.sessionLog[PIN_ISO]), "the 8/20 session is on the record", "no 8/20 session logged");
+  b1.dom.window.close();
+  /* leg 2 — THE FILL SURFACE, on the next unlogged U day (8/23). In production
+     the SETUP room renders the CURRENT unlogged session's lifts, so a day
+     already logged unmounts it; Joe fills at the machine on a training day.
+     Same real surface, same real clicks. */
+  const FILL_ISO = "2026-08-23";
+  const b2 = boot((w9) => { w9.localStorage.setItem(KEY, JSON.stringify(st0)); }, FILL_ISO);
+  const w = b2.w, dom = b2.dom;
+  await sleep(500);
+  await clickText(w, "TRAIN", "tab nav");
+  await openGroup(w, "pl-train-setup");
+  await sleep(150);
+  const pinInputs = q(w, 'input[aria-label^="pin "]');
+  check(pinInputs.length > 0, "the SETUP room renders a fill input per unfilled [PIN] (R11b — the surface the R3 ruling ordered)", "no pin-fill surface exists in the SETUP room ([PIN]s can never be filled on a device, so calibratedAt can never stamp)");
+  if (!pinInputs.length) { dom.window.close(); return; }
+  const beforeBorn = (stored(w).exercises.find((e) => e.id === "fly") || {}).pinsBornAt;
+  /* fill EVERY pin on the fly card by clicking Pin it, one at a time */
+  for (let g = 0; g < 8; g++) {
+    const cardP = w.document.getElementById("tr-fly");
+    const inp = cardP && cardP.querySelector('input[aria-label^="pin "]');
+    if (!inp) break;
+    await typeInto(w, inp, "3");
+    const row = inp.closest("div");
+    const btn = row && [...row.querySelectorAll("button")].find((b) => (b.textContent || "").indexOf("Pin it") > -1);
+    if (!btn) { check(false, "", "the Pin it control is missing beside the input"); break; }
+    btn.click(); await sleep(160);
+  }
+  const st1 = stored(w);
+  const fly1 = st1.exercises.find((e) => e.id === "fly");
+  check(String(fly1.setup).indexOf("[PIN]") < 0, "every [PIN] token is filled through the real surface", "tokens remain after the fill walk (observed setup: " + String(fly1.setup).slice(0, 90) + ")");
+  check(fly1.pinsBornAt === beforeBorn, "the fill did NOT move the pin birthday (pinsBornAt immutable)", "the fill moved pinsBornAt (observed " + JSON.stringify(fly1.pinsBornAt) + " was " + JSON.stringify(beforeBorn) + ")");
+  const cardAfter = w.document.getElementById("tr-fly");
+  check(!!cardAfter && (cardAfter.textContent || "").indexOf("CALIBRATION INCOMPLETE") < 0, "the blocker line is gone after the last pin", "the blocker line survives a complete fill");
+  dom.window.close();
+  /* the SWEEP stamps calibratedAt, then the 8/20 debrief must still be provisional.
+     runAdaptive is the same sweep the app runs on open — driven here on the
+     PERSISTED bytes the browser just wrote, which is the production artifact. */
+  const engPath = process.env.PL_ENGINE ? path.resolve(process.env.PL_ENGINE) : (() => {
+    const out = at(".tmp/_smoke-engine.mjs");
+    execFileSync(process.execPath, [at("node_modules/esbuild/bin/esbuild"), at("src/app.jsx"), "--loader:.jsx=jsx", "--bundle", "--platform=node", "--format=esm", "--outfile=" + out, "--external:react", "--external:react-dom", "--external:react/jsx-runtime"], { stdio: "ignore" });
+    return out;
+  })();
+  const eng = await import(pathToFileURL(engPath).href).catch((e) => { check(false, "", "could not load the engine for the post-fill sweep: " + (e && e.message)); return null; });
+  const T2 = eng && eng.__test;
+  if (!T2) return;
+  const swept = T2.runAdaptive(JSON.parse(JSON.stringify(st1)), "2026-08-22");
+  const flyS = swept.exercises.find((e) => e.id === "fly");
+  check(!!flyS.calibratedAt, "the sweep stamps calibratedAt with no new mechanism (observed " + JSON.stringify(flyS.calibratedAt) + ")", "calibratedAt never stamped after a complete fill");
+  const db = T2.sessionDebrief(swept, PIN_ISO);
+  const lab = JSON.stringify(db || {}).toLowerCase().indexOf("logged before calibration") > -1;
+  check(lab === true, "SOL'S CHRONOLOGY: the 8/20 session STILL reads provisional after the pins were filled and the stamp landed", "the pre-calibration session lost its provisional status (the exact R11 defect: observed label present: " + lab + ")");
+  const swept2 = T2.completeSession(swept, "2026-08-23", [{ id: "fly", reps: [13, 12], rir: 2 }], { clean: true, last: { h: 8 }, mean3: 8 }, { pg: 51 }).s;
+  const lab2 = JSON.stringify(T2.sessionDebrief(swept2, "2026-08-23") || {}).toLowerCase().indexOf("logged before calibration") > -1;
+  check(lab2 === false, "a POST-calibration session reads normal", "a post-calibration session is wrongly labeled provisional");
+  const preCue = JSON.parse(JSON.stringify(swept));
+  const lab3 = JSON.stringify(T2.sessionDebrief(preCue, "2026-08-06") || {}).toLowerCase().indexOf("logged before calibration") > -1;
+  check(lab3 === false, "a PRE-CUE session (before the pin birthday) is never labeled", "a pre-cue session is wrongly labeled provisional");
+}
+
 await driveTrainTyped();
 await driveTrainBlank();
 await driveGymTyped();
 await driveOldDraft();
+await drivePinFill();
 if (failed) { console.log("SPLIT-SMOKE: " + failed + " check(s) failed"); process.exit(1); }
 console.log("SPLIT-SMOKE: both modes drive the debut load and the pre-upgrade draft through the REAL handlers — render, type, finish, persist");

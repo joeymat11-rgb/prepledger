@@ -514,6 +514,10 @@ const SEED = {
      under the v7.52.0 merge discipline, and the seed carries the SAME fixed
      stamp patchV48 writes, so a fresh install and a migrated state agree. */
   SEED.exercises.forEach((e0) => { if (!e0.setupAt) e0.setupAt = "2026-08-13T12:00:00.000Z"; });   /* seed-authored — the cue-adoption stamp; lifts that carry their OWN authored stamp (the split's newborns at RULING_EPOCH) keep it, so a real 8/13 athlete edit outranks a fresh device's unfilled setup */
+  /* R11 fix-4 — the pin BIRTHDAY, authored on the seed exactly as patchV51
+     backfills it, so a fresh install and a migrated state agree (the seed is
+     authored already-current and never walks the patch chain). */
+  SEED.exercises.forEach((e0) => { if (!e0.pinsBornAt && ((e0.setup ? String(e0.setup).indexOf("[PIN]") > -1 : false) || e0.pinsSeen || e0.calibratedAt)) e0.pinsBornAt = e0.setupAt; });   /* seed-authored — unstamped by design */
   /* v7.53.0 — the two technique changes that are REAL today fork their lifts:
      hooks standardize on both pulls (R1) and the calf pause changes 5s → 2s
      (R2). A word rewrite is not a technique change; these two are. */
@@ -1561,6 +1565,17 @@ function nameAt(s, exId, d) {
    lift cannot read calibrated: the cue names a setting nobody has pinned. */
 function pinsUnfilled(ex) {
   try { return ((ex && ex.setup ? String(ex.setup).match(/\[PIN\]/g) : null) || []).length; } catch (e) { return 0; }
+}
+/* R11 fix-4 — THE PIN BIRTHDAY IS IMMUTABLE. The provisional label needs to
+   know when the [PIN]-carrying cue ARRIVED, and that question has one honest
+   answer forever. It used to be derived from setupAt — which the lawful
+   pin-fill write advances — so filling the pins moved the birthday forward
+   and silently un-labeled the history logged before it. pinsBornAt is
+   authored once (patchV51 for the newborns; a fill-if-absent backfill for
+   every pinned/pin-seen record), never written by an editor, and merges
+   earliest-wins. Nothing derives it from an editable field. */
+function pinsBornOf(ex) {
+  try { return ex && ex.pinsBornAt ? String(ex.pinsBornAt).slice(0, 10) : null; } catch (e) { return null; }
 }
 const RULING_EPOCH = "2026-08-12T00:00:00.000Z";   /* split ruling closed — the ruling-write boundary */
 const SPLIT_DATE = "2026-08-14";                     /* canonical insertion-effective date (constant, never fire-time) */
@@ -5822,7 +5837,7 @@ function sessionDebrief(s, iso) {
          "before calibration" — that gate is what keeps the label off pre-cue
          history (and off the frozen words). The lift's own name rides the line
          so the must-differ debrief law holds when several lifts qualify. */
-      const pinBorn = exL && exL.setupAt ? String(exL.setupAt).slice(0, 10) : null;
+      const pinBorn = pinsBornOf(exL);   /* R11 fix-4: the IMMUTABLE birthday — reading setupAt let the lawful pin-fill write move the boundary and erase history's provisional status */
       if (((fkL && iso >= fkL) || (!fkL && exL && (pinsUnfilled(exL) > 0 || exL.calibratedAt))) && (!pinBorn || iso >= pinBorn)) {   /* R11 fix-2: history KEEPS its provisional status after the pins fill — the stamp (calibratedAt) holds the boundary once it exists; live pins gate only the stampless interim */
         const calL = exL && exL.calibratedAt ? String(exL.calibratedAt).slice(0, 10) : null;
         const hasPinsL = pinsUnfilled(exL) > 0;
@@ -9403,8 +9418,14 @@ function applyAgentProposal(state, ap, tISO) {
       s0.feed.unshift({ d: tISO, t: "OFFER SUPERSEDED — " + (ap.title || ap.exId), how: "The lift this proposal targets was retired by the split ruling; the offer is preserved in history and closed without effect." });
       return s0;
     }
-    const apOrder9 = ap && ap.kind === "volume";   /* R4 fix-2: a RESET is stall-derived, not order-derived — sweepStalls never consults the order, so a legitimate reset must survive the plan changing under it */
-    const apPg9 = ap && ap.pg != null ? ap.pg : (apOrder9 ? 0 : null);   /* FIX split-1 (P0-4): a pg-ABSENT order-derived offer is pre-51 by construction — "rejects only a non-null older generation" was the hole */
+    /* R4 fix-4: the KIND gates the generation check ITSELF. Round 2 narrowed
+       only the pg-ABSENT default, while the check still read ap.pg from every
+       kind — so a producer-shaped reset (kind "reset", pg 51, exactly what
+       sweepStalls stamps) was falsely superseded the moment the athlete
+       reordered his own plan. A reset is stall-derived: sweepStalls never
+       consults the order, so no plan generation can invalidate it. */
+    const apOrder9 = ap && ap.kind === "volume";
+    const apPg9 = apOrder9 ? (ap.pg != null ? ap.pg : 0) : null;   /* FIX split-1 (P0-4): a pg-ABSENT ORDER-DERIVED offer is pre-51 by construction — "rejects only a non-null older generation" was the hole */
     if (ap && apPg9 != null && state && state.planGen != null && apPg9 < state.planGen) {
       const s0 = JSON.parse(JSON.stringify(state));
       s0.agentProposals = (s0.agentProposals || []).filter((x) => x.id !== ap.id);
@@ -10115,10 +10136,21 @@ function patchV51(s) {
     exs.splice(i < 0 ? exs.length : i + 1, 0, spec);
     return true;
   };
-  const flyBorn = put({ id: "fly", mg: "chest", n: "Machine fly", day: "U", w: null, wAt: EP, inc: 5, incAt: EP, sets: 2, setsAt: EP, hi: 20, hiAt: EP, last: null,
+  const flyBorn = put({ id: "fly", mg: "chest", n: "Machine fly", day: "U", w: null, wAt: EP, inc: 5, incAt: EP, sets: 2, setsAt: EP, hi: 20, hiAt: EP, last: null, pinsBornAt: EP,
     setup: "SET · fly mode · seat [PIN] · start [PIN] · resistance profile [PIN]\nKeep back on pad and elbows at the same bend through your full pain-free range · open and close to the same endpoints—no bounce", setupAt: EP }, "press");
-  const htBorn = put({ id: "hipthrust", mg: "glutes", n: "Hip thrust machine", day: "L", w: null, wAt: EP, inc: 5, incAt: EP, sets: 3, setsAt: EP, hi: 12, hiAt: EP, last: null,
+  const htBorn = put({ id: "hipthrust", mg: "glutes", n: "Hip thrust machine", day: "L", w: null, wAt: EP, inc: 5, incAt: EP, sets: 3, setsAt: EP, hi: 12, hiAt: EP, last: null, pinsBornAt: EP,
     setup: "SET · machine setting [PIN] · belt/pad landmark [PIN] · foot marks [PIN]\nUse your full pain-free hip range to the same depth and finish height · keep upper back on pad—do not arch the low back to finish", setupAt: EP }, "hack");
+  /* R11 fix-4 — PINS-BORN BACKFILL, fill-if-absent and idempotent. A record
+     whose cue carries [PIN]s (or which has already been seen with them, or
+     stamped calibrated) gets its birthday := the record's CURRENT setupAt —
+     honest for every live state, because no pin-fill surface has ever existed
+     on a device and the only .setup writers in the tree are schema patches, so
+     today's setupAt IS when the pinned cue arrived. Never rewritten
+     afterwards, by anything. */
+  for (const eB of exs) {
+    if (!eB || eB.pinsBornAt) continue;
+    if (pinsUnfilled(eB) > 0 || eB.pinsSeen || eB.calibratedAt) eB.pinsBornAt = eB.setupAt || EP;
+  }
   /* THE RULING-WRITE RULE (item e): a target lands only where the field's stamp
      is absent or pre-epoch; an athlete's at-or-after-epoch word survives. Live
      evidence (cowork, executed): pulldown setsAt ABSENT, calves ABSENT,
@@ -10398,7 +10430,7 @@ function migrate(old) {
   /* RB-6 — the one-line container heal: a malformed store missing a container must
      not crash the chain; the arrays it holds stay exactly as found. */
   if (old && typeof old === "object") { old.sleep = old.sleep || { nights: [], needed: 3 }; old.sleep.nights = old.sleep.nights || []; old.dailyLogs = old.dailyLogs || {}; old.sessionLog = old.sessionLog || {}; old.reads = old.reads || []; }
-  if (old && old.v === SCHEMA_V) { reconcileLiftCaches(old); return old; }   // a corrected log must not leave a stale derived cache behind
+  if (old && old.v === SCHEMA_V) { reconcileLiftCaches(old); normalizePlan(old); return old; }   /* R5 fix-4: the SAME-SCHEMA entry boundary normalizes too — this fast path IS the import path (doImport = migrate(parse) -> save), and a poisoned planGen-51 backup used to render and persist verbatim until the next sweep. Idempotent; the ruled-order half stands down at planGen 52. */
   /* A state NEWER than this build — he upgraded, then the app was rolled back.
      Hand it back untouched: no patch here understands schema n+1, and the only
      other exit below is a fresh SEED, which would wipe every read, night,
@@ -10460,7 +10492,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { PATCHES, SCHEMA_V, applyAgentProposal, mergeState, exActive, programmeVolume, volumePush, reconcileEraTransitions, earnWalk, canonicalizePlan, normalizePlan, applyInsertionSeams, sessionFromDraft, coarseLifts, muscleVolume, pickStructural, sweepStalls, forkFrom, forksOf, eraIdx, sameEra, nameAt, pinsUnfilled, forkExposures, ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, stepValue, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { PATCHES, SCHEMA_V, applyAgentProposal, mergeState, exActive, ghSync, pinsBornOf, programmeVolume, volumePush, reconcileEraTransitions, earnWalk, canonicalizePlan, normalizePlan, applyInsertionSeams, sessionFromDraft, coarseLifts, muscleVolume, pickStructural, sweepStalls, forkFrom, forksOf, eraIdx, sameEra, nameAt, pinsUnfilled, forkExposures, ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, stepValue, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -10487,7 +10519,7 @@ async function ghSync(state) {
     } catch (e) { return { sha: null, state: undefined }; }
   };
   const buildBody = (rState, rSha) => {
-    const merged = rState && typeof rState === "object" ? mergeState(state, migrate(rState)) : state;   /* SPLIT item k (bootstrap law) — CONFIRMED defect, fixed: this site merged the RAW remote; a v50 replica met v51 structures un-migrated. The restore path already migrated first (~10890); now both obey the same law. */
+    const merged = rState && typeof rState === "object" ? mergeState(state, migrate(rState)) : normalizePlan(JSON.parse(JSON.stringify(state)));   /* SPLIT item k (bootstrap law) — CONFIRMED defect, fixed: this site merged the RAW remote; a v50 replica met v51 structures un-migrated. R5 fix-4: the NO-REMOTE branch (a reachable 404 — first-ever sync) used to PUT raw local, so a poisoned order reached the wire; it normalizes on a copy, leaving the caller's state untouched. */
     if (rState && typeof rState === "object" && !dataLossGuard(rState, merged).safe) return null;   // never write a state smaller than the remote
     return { message: "ledger auto-sync " + isoOf(todayStart()) + " [skip ci]", content: btoa(unescape(encodeURIComponent(JSON.stringify({ ...merged, _dictionary: LEDGER_DICT })))), ...(rSha ? { sha: rSha } : {}) };
   };
@@ -10875,7 +10907,13 @@ async function snapshotMaybe(state, tok) {
   const d = isoOf(todayStart());
   const url2 = `https://api.github.com/repos/joeymat11-rgb/prepledger/contents/ledger/snapshots/state-${d}.json`;
   const hdr2 = { Authorization: "Bearer " + tok, Accept: "application/vnd.github+json", "Content-Type": "application/json" };
-  try { await fetch(url2, { method: "PUT", headers: hdr2, body: JSON.stringify({ message: `weekly snapshot ${d} [skip ci]`, content: btoa(unescape(encodeURIComponent(JSON.stringify(state)))) }) }); } catch (e) {}
+  /* R5 fix-4 (the THIRD upload boundary, found by this round's own pin — the
+     drive captured the LAST PUT and it was this one): the vault must not
+     archive an un-canonical order, or a restore reads the poison back. Same
+     remedy as buildBody's no-remote arm — normalized on a copy, so the
+     caller's state is untouched by an archival write. */
+  const snapBody = normalizePlan(JSON.parse(JSON.stringify(state)));
+  try { await fetch(url2, { method: "PUT", headers: hdr2, body: JSON.stringify({ message: `weekly snapshot ${d} [skip ci]`, content: btoa(unescape(encodeURIComponent(JSON.stringify(snapBody)))) }) }); } catch (e) {}
 }
 async function listSnapshots() {
   const tok = localStorage.getItem(TOKEN_KEY);
@@ -11749,6 +11787,10 @@ function mergeState(local, remote) {
       const other = w === r0 ? l0 : r0;
       if (!other) return w;
       let w2 = w;
+      /* R11 fix-4 — the pin BIRTHDAY merges EARLIEST-WINS: it is a first
+         sighting, like the insertion registry's date, and one replica that
+         learned the pinned cue later must never move it forward. */
+      if (_isoOr(other.pinsBornAt) !== "" && (_isoOr(w2.pinsBornAt) === "" || _isoOr(other.pinsBornAt) < _isoOr(w2.pinsBornAt))) w2 = { ...w2, pinsBornAt: other.pinsBornAt };
       /* R9 fix-2 — HEALTH BEATS QUARANTINE, direction-free: when exactly one
          side's copy of a lift is quarantined, the unquarantined copy prevails
          wholesale — a valid record existing anywhere proves the lift walkable,
@@ -15088,6 +15130,7 @@ function LogTab({ s, setS, save, slp }) {
   const [nig, setNig] = useState([]);
   const [reorder, setReorder] = useState(false);
   const [showSetup, setShowSetup] = useState({});
+  const [pinVal, setPinVal] = useState({});   /* R11b — the pin-fill inputs' local buffer, keyed exId:index */
   const [skipped, setSkipped] = useState({});
   const [callOpen, setCallOpen] = useState(null);
   const [wEdit, setWEdit] = useState(null);
@@ -15610,8 +15653,44 @@ function LogTab({ s, setS, save, slp }) {
           {/* v7.53.0 R3 — the calibration blocker: while any [PIN] is unfilled
               this lift cannot read calibrated — the cue names a setting nobody
               has pinned. It never blocks logging; it blocks the CLAIM. */}
-          {(() => { try { const p9 = pinsUnfilled((s.exercises || []).find((x9) => x9.id === ex.id)); if (!p9) return null;
-            return <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.orange, marginTop: 5, lineHeight: `${LH.micro}px` }}>CALIBRATION INCOMPLETE — {p9} setting{p9 === 1 ? "" : "s"} to pin at the machine before this lift's numbers are comparable</div>; } catch (e9) { return null; } })()}
+          {(() => { try { const exP = (s.exercises || []).find((x9) => x9.id === ex.id); const p9 = pinsUnfilled(exP); if (!p9) return null;
+            /* R11b fix-4 — THE PIN-FILL SURFACE (the R3 ruling's own
+               directive, ordered and never built: the [PIN]s could not be
+               filled on any device, so calibratedAt could never stamp).
+               One input per unfilled token, in the room's existing grammar:
+               16px (the iOS zoom law), 44px targets, gauge for the tappable.
+               Committing replaces THAT token and advances setupAt per the
+               stamp discipline; pinsBornAt is never touched, so filling the
+               pins cannot move the pin birthday. The existing sweep does the
+               rest — blocker clears, calibratedAt stamps, no new mechanism. */
+            const label9 = (i9) => { try { const seg9 = String(exP.setup).split("\n")[0].split("·").find((sg) => sg.indexOf("[PIN]") > -1 && String(exP.setup).split("[PIN]").slice(0, i9 + 1).join("[PIN]").indexOf(sg.split("[PIN]")[0].trim()) > -1); return (seg9 || "").replace("[PIN]", "").trim() || "setting " + (i9 + 1); } catch (e8) { return "setting " + (i9 + 1); } };
+            const fill9 = (i9, val9) => {
+              const v9 = String(val9 || "").trim();
+              if (!v9) return;
+              const ns = JSON.parse(JSON.stringify(s));
+              const ex9 = ns.exercises.find((x9) => x9.id === ex.id);
+              let seen9 = -1;
+              ex9.setup = String(ex9.setup).replace(/\[PIN\]/g, (m9) => { seen9++; return seen9 === i9 ? v9 : m9; });
+              ex9.setupAt = new Date().toISOString();   /* the cue changed — every live setup writer stamps */
+              ns.feed.unshift({ d: isoOf(todayStart()), t: `PIN FILLED — ${String(ex9.n).toUpperCase()}`, how: `${label9(i9) || "a machine setting"} is now on the record as "${v9}". ${pinsUnfilled(ex9) ? pinsUnfilled(ex9) + " setting" + (pinsUnfilled(ex9) === 1 ? "" : "s") + " still to pin." : "Every setting is pinned — this lift's numbers are comparable from here, and the sessions logged before this stay on the record as provisional."}` });
+              setS(ns); save(ns); setPinVal({ ...pinVal, [ex.id + ":" + i9]: "" });
+            };
+            return (
+              <div style={{ marginTop: 5 }}>
+                <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.orange, lineHeight: `${LH.micro}px` }}>CALIBRATION INCOMPLETE — {p9} setting{p9 === 1 ? "" : "s"} to pin at the machine before this lift's numbers are comparable</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 7 }}>
+                  {Array.from({ length: p9 }, (_, i9) => (
+                    <div key={i9} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, minWidth: 0 }}>{label9(i9)}</span>
+                      <input value={pinVal[ex.id + ":" + i9] ?? ""} aria-label={"pin " + label9(i9)} placeholder="what the machine says"
+                        onChange={(e8) => setPinVal({ ...pinVal, [ex.id + ":" + i9]: e8.target.value })}
+                        style={{ fontFamily: mono, fontSize: 16, color: T.chalk, background: "none", border: "none", borderBottom: `1px dashed ${T.line}`, minHeight: 44, width: 120, padding: 0 }} />
+                      <Btn small tone="gauge" onClick={() => fill9(i9, pinVal[ex.id + ":" + i9])}>Pin it</Btn>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ); } catch (e9) { return null; } })()}
           {ex.setup && (
             <div style={{ marginTop: 7 }}>
               <button onClick={() => setShowSetup({ ...showSetup, [ex.id]: !showSetup[ex.id] })}
