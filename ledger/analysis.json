@@ -1,16 +1,16 @@
 {
-  "gen": "2026-08-13T09:05:33.138Z",
+  "gen": "2026-08-14T09:05:44.293Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 163.99,
-    "lastRaw": 164.7,
-    "appTrend": 163.9,
+    "soft": 163.81,
+    "lastRaw": 163.3,
+    "appTrend": 163.7,
     "noiseFloor": 1.5,
-    "gap": -0.71
+    "gap": 0.51
   },
   "rate": {
-    "perWeekLb": 0.36,
-    "perWeekPct": 0.22,
+    "perWeekLb": 0.16,
+    "perWeekPct": 0.1,
     "bandLb": 0.88,
     "personalBand": [
       1,
@@ -19,13 +19,13 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2660,
+    "tdee": 2693,
     "tdeeWinDays": 20,
-    "meanCal": 2408,
-    "waterSensitivityLb": 1.11,
+    "meanCal": 2439,
+    "waterSensitivityLb": 1.14,
     "waterSensDays": 4,
-    "meanSleepH": 7.1,
-    "sleepDebt7H": 0,
+    "meanSleepH": 6.9,
+    "sleepDebt7H": 1.7,
     "ffmKg": 63.4,
     "proteinTargetG": 146
   },
@@ -175,5 +175,23 @@
       "predict": ""
     }
   ],
-  "suggestions": []
+  "suggestions": [
+    {
+      "sid": "sug_2026-08-13_sleep",
+      "title": "Protect sleep: aim 7.5 h, cap afternoon caffeine",
+      "apply": {
+        "kind": "sleep",
+        "to": 7.5
+      },
+      "rationale": {
+        "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss 55% and raised lean-mass loss 60% (Nedeltcheva 2010).",
+        "data": "Last 12 nights average 6.9 h (7-night debt 1.7 h); 0 recent days had >=300 mg or afternoon caffeine.",
+        "relationship": "Short sleep + late caffeine track with your low recovery score and rep dips - the lever that protects lean while you cut."
+      },
+      "predict": "Higher share of loss as fat; lean protected; better session quality.",
+      "confidence": "high",
+      "gate": "approve",
+      "rank": 1
+    }
+  ]
 }
