@@ -182,6 +182,74 @@ export function runClosureSF2(T, ok, readFileSync) {
       "R11-r4d — the birthday merges EARLIEST-WINS, direction-free (observed: " + J([(ab.exercises.find((x) => x.id === "fly") || {}).pinsBornAt, (ba.exercises.find((x) => x.id === "fly") || {}).pinsBornAt]) + ")");
   });
 
+  /* ---- R11-A (round 6) — the birthday is guaranteed at the canonical boundary ---- */
+  t("R11-A", () => {
+    const m = mig50();
+    /* a v51 BACKUP from the interim tips: same schema, birthdays stripped —
+       exactly what migrate's fast path used to hand straight back */
+    const backup = cl(m);
+    for (const e of backup.exercises) delete e.pinsBornAt;
+    const imported = T.migrate(JSON.parse(JSON.stringify(backup)));   /* THE REAL IMPORT BOUNDARY: doImport is migrate(parse) -> save */
+    const qual = imported.exercises.filter((e) => T.pinsUnfilled(e) > 0 || e.pinsSeen || e.calibratedAt);
+    const bornOK = qual.every((e) => e.pinsBornAt === e.setupAt);
+    ok(qual.length > 0 && bornOK,
+      "R11-A a — a no-birthday v51 backup through the REAL import boundary exits with every qualifying record carrying pinsBornAt := its own setupAt (observed " + qual.length + " qualifying records, all matching: " + bornOK + ")");
+    const calves = imported.exercises.find((e) => e.id === "calves");
+    const flyI = imported.exercises.find((e) => e.id === "fly");
+    ok(!!(calves && calves.pinsBornAt === "2026-08-13T12:00:00.000Z") && !!(flyI && flyI.pinsBornAt === "2026-08-12T00:00:00.000Z"),
+      "R11-A b — the values are the ruled ones: calves at the cue-adoption stamp, the newborns at RULING_EPOCH (observed calves " + J(calves && calves.pinsBornAt) + " · fly " + J(flyI && flyI.pinsBornAt) + ")");
+    const twice = T.migrate(JSON.parse(JSON.stringify(imported)));
+    ok(JSON.stringify(twice.exercises.map((e) => [e.id, e.pinsBornAt])) === JSON.stringify(imported.exercises.map((e) => [e.id, e.pinsBornAt])),
+      "R11-A c — IDEMPOTENT: importing the healed backup again moves no birthday");
+    /* a birthday-carrying replica merges EARLIEST-WINS from both orders */
+    const older = cl(imported); older.exercises.find((e) => e.id === "fly").pinsBornAt = "2026-08-01T00:00:00.000Z";
+    const ab = T.mergeState(cl(imported), cl(older)), ba = T.mergeState(cl(older), cl(imported));
+    ok((ab.exercises.find((e) => e.id === "fly") || {}).pinsBornAt === "2026-08-01T00:00:00.000Z" && (ba.exercises.find((e) => e.id === "fly") || {}).pinsBornAt === "2026-08-01T00:00:00.000Z",
+      "R11-A d — a subsequent merge with a birthday-carrying replica stays EARLIEST-WINS, both orders (observed " + J([(ab.exercises.find((e) => e.id === "fly") || {}).pinsBornAt, (ba.exercises.find((e) => e.id === "fly") || {}).pinsBornAt]) + ")");
+    const c52 = cl(backup); c52.planGen = 52; c52.exOrder = { U: cl(m.exOrder.U).reverse(), L: cl(m.exOrder.L) };
+    const i52 = T.migrate(JSON.parse(JSON.stringify(c52)));
+    ok(JSON.stringify(i52.exOrder.U) === JSON.stringify(c52.exOrder.U) && (i52.exercises.find((e) => e.id === "fly") || {}).pinsBornAt === "2026-08-12T00:00:00.000Z",
+      "R11-A e — a planGen-52 state takes the birthday heal with its CUSTOM ORDER untouched (observed order head " + J(i52.exOrder.U.slice(0, 2)) + " · fly birthday " + J((i52.exercises.find((e) => e.id === "fly") || {}).pinsBornAt) + ")");
+    /* the DISSOLUTION, as a negative control: post-heal, pre-cue history on a
+       forked pinned lift still carries NO label — the fork shield and the
+       birthday agree (Sol's own example, driven) */
+    const lab = JSON.stringify(T.sessionDebrief(imported, "2026-08-06") || {}).toLowerCase().indexOf("logged before calibration") > -1;
+    ok(lab === false,
+      "R11-A f — the dissolution holds post-heal: rearDelt's 2026-08-06 session still shows NO label (observed label present: " + lab + ")");
+  });
+
+  /* ---- R11-C (round 6) — the label leaves the LIVE pin count ---- */
+  t("R11-C", () => {
+    const m = mig50();
+    /* Sol's chronology, with the arming sweep first (the rig error cowork
+       owned in round 2, not repeated) */
+    const armed = T.runAdaptive(cl(m), "2026-08-20");
+    const born = (armed.exercises.find((x) => x.id === "fly") || {}).pinsBornAt;
+    const logged = T.completeSession(armed, "2026-08-20", [{ id: "fly", reps: [12, 11], rir: 2, w: 90 }], slp, { pg: 51 }).s;
+    const lab = (st, iso) => JSON.stringify(T.sessionDebrief(st, iso) || {}).toLowerCase().indexOf("logged before calibration") > -1;
+    ok(lab(logged, "2026-08-20") === true,
+      "R11-C a — PRE-FILL: the session reads provisional while the pins are live (observed: " + lab(logged, "2026-08-20") + ")");
+    /* THE FLIP — pins filled, NO sweep yet: the stampless interim */
+    const filled = cl(logged); const f9 = filled.exercises.find((x) => x.id === "fly");
+    f9.setup = String(f9.setup).replace(/\[PIN\]/g, "3"); f9.setupAt = "2026-08-21T10:00:00.000Z";
+    ok(lab(filled, "2026-08-20") === true,
+      "R11-C b — THE FLIP: filled-but-UNSWEPT, the session STILL reads provisional — the live pin count has left the condition (red on d115b3d: the label vanished for the whole stretch between the last Pin-it tap and the next open) (observed: " + lab(filled, "2026-08-20") + ")");
+    const swept = T.runAdaptive(filled, "2026-08-22");
+    const cal = (swept.exercises.find((x) => x.id === "fly") || {}).calibratedAt;
+    ok(!!cal && lab(swept, "2026-08-20") === true,
+      "R11-C c — POST-STAMP: sessions predating calibratedAt still read provisional (observed stamp " + J(cal) + " · label " + lab(swept, "2026-08-20") + ")");
+    const after = T.completeSession(swept, "2026-08-23", [{ id: "fly", reps: [13, 12], rir: 2 }], slp, { pg: 51 }).s;
+    ok(lab(after, "2026-08-23") === false,
+      "R11-C d — POST-CALIBRATION sessions read normal (observed: " + lab(after, "2026-08-23") + ")");
+    ok(lab(swept, "2026-08-06") === false,
+      "R11-C e — PRE-BIRTHDAY sessions are NEVER labeled (observed: " + lab(swept, "2026-08-06") + ")");
+    /* the retired escape hatch: a record with no birthday never labels */
+    const noBorn = cl(logged); const nb = noBorn.exercises.find((x) => x.id === "fly");
+    delete nb.pinsBornAt; delete nb.calibratedAt;
+    ok(lab(noBorn, "2026-08-20") === false && born != null,
+      "R11-C f — the !pinBorn-or escape hatch is RETIRED: a birthday-less record simply never labels (observed: " + lab(noBorn, "2026-08-20") + ")");
+  });
+
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
   t("R6", () => {
     const m = mig50((s) => { const sk = s.exercises.find((x) => x.id === "sulek"); if (sk) sk.sets = 3; });

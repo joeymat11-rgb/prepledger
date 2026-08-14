@@ -340,10 +340,92 @@ async function drivePinFill() {
   check(lab3 === false, "a PRE-CUE session (before the pin birthday) is never labeled", "a pre-cue session is wrongly labeled provisional");
 }
 
+/* ============ DRIVE F — R11-B: the fill surface, NON-SERIALLY ============
+   The round-4 smoke always filled the FIRST input and so masked both defects
+   Sol and cowork then found in the browser: every input carried the FIRST
+   token's label, and the buffers were keyed by index in the SHRINKING
+   unfilled list, so committing an earlier token slid a later token's typed
+   value onto the wrong setting and orphaned the last.
+
+   THE CONTRACT, not the shape: every sentinel is typed EXACTLY ONCE, for its
+   own token ordinal, and is never re-typed after a commit — so a design that
+   displaces values cannot be rescued by the driver. Each pass types the next
+   untyped sentinel into any EMPTY rendered input (in DOM order), then commits
+   the first rendered input. Works against one input or three. */
+async function drivePinTokens() {
+  console.log("[R11-B/pin tokens, non-serial]");
+  const L_ISO = "2026-08-21";   /* an L day — hip thrust and hanging both live there */
+  const CASES = [
+    { id: "hipthrust", labels: ["machine setting", "belt/pad landmark", "foot marks"] },
+    { id: "hanging", labels: ["medicine-ball pad at", "knee bend"] },
+  ];
+  const { dom, w } = boot(null, L_ISO);
+  await sleep(500);
+  await clickText(w, "TRAIN", "tab nav");
+  await openGroup(w, "pl-train-setup");
+  await sleep(150);
+  for (const c of CASES) {
+    const card0 = w.document.getElementById("tr-" + c.id);
+    if (!card0) { check(false, "", "[" + c.id + "] no card in the SETUP room"); continue; }
+    const n0 = (String((stored(w).exercises.find((e) => e.id === c.id) || {}).setup || "").match(/\[PIN\]/g) || []).length;
+    const sent = Array.from({ length: n0 }, (_, i) => "FOR-TOKEN-" + (i + 1));
+    const typed = new Set();
+    const seenLabels = [];
+    for (let pass = 0; pass < n0 + 2; pass++) {
+      const card = w.document.getElementById("tr-" + c.id);
+      const inputs = card ? [...card.querySelectorAll('input[aria-label^="pin "]')] : [];
+      if (!inputs.length) break;
+      for (const inp of inputs) {
+        const lb = (inp.getAttribute("aria-label") || "").replace(/^pin /, "");
+        if (seenLabels.indexOf(lb) < 0) seenLabels.push(lb);
+      }
+      const before = String((stored(w).exercises.find((e) => e.id === c.id) || {}).setup || "");
+      for (const inp of inputs) {
+        if (inp.value) continue;                      /* never overwrite what is already on screen */
+        const next = sent.find((x) => !typed.has(x));
+        if (!next) continue;                          /* every sentinel has been typed ONCE — no re-typing rescues a displacing design */
+        typed.add(next);
+        await typeInto(w, inp, next);
+      }
+      const card2 = w.document.getElementById("tr-" + c.id);
+      const first = card2 && card2.querySelector('input[aria-label^="pin "]');
+      const row = first && first.closest("div");
+      const btn = row && [...row.querySelectorAll("button")].find((b) => (b.textContent || "").indexOf("Pin it") > -1);
+      if (!btn) break;
+      btn.click(); await sleep(160);
+      const after = String((stored(w).exercises.find((e) => e.id === c.id) || {}).setup || "");
+      if (after === before) break;                    /* no progress — a swallowed commit */
+    }
+    const cue = String((stored(w).exercises.find((e) => e.id === c.id) || {}).setup || "");
+    const placed = c.labels.map((lb, i) => cue.indexOf(lb + " FOR-TOKEN-" + (i + 1)) > -1);
+    check(placed.every(Boolean),
+      "[" + c.id + "] every typed value commits to the token it was typed for, under a non-serial fill (" + c.labels.map((lb, i) => lb + "=" + (placed[i] ? "ok" : "WRONG")).join(" · ") + ")",
+      "[" + c.id + "] a value landed on the wrong setting or was lost (cue now: " + cue.split(String.fromCharCode(10))[0] + ")");
+    check(cue.indexOf("[PIN]") < 0, "[" + c.id + "] no token left unfilled — nothing was silently dropped", "[" + c.id + "] a token is still unfilled after the walk (cue: " + cue.split(String.fromCharCode(10))[0] + ")");
+    check(seenLabels.length === c.labels.length && new Set(seenLabels).size === seenLabels.length,
+      "[" + c.id + "] each token's input carried ITS OWN label — " + seenLabels.length + " distinct across the walk",
+      "[" + c.id + "] labels repeated across tokens (observed: " + JSON.stringify(seenLabels) + ")");
+    const rec = stored(w).exercises.find((e) => e.id === c.id) || {};
+    check(rec.pinsBornAt === "2026-08-12T00:00:00.000Z" || (rec.pinsBornAt || "").indexOf("2026-08-13") === 0,
+      "[" + c.id + "] pinsBornAt untouched by every commit (observed " + JSON.stringify(rec.pinsBornAt) + ")",
+      "[" + c.id + "] a commit moved the pin birthday (observed " + JSON.stringify(rec.pinsBornAt) + ")");
+  }
+  const stF = stored(w);
+  dom.window.close();
+  const engPath2 = process.env.PL_ENGINE ? path.resolve(process.env.PL_ENGINE) : tmp("_smoke-engine.mjs");
+  const eng2 = await import(pathToFileURL(engPath2).href).catch(() => null);
+  const T3 = eng2 && eng2.__test;
+  if (!T3) { check(false, "", "could not load the engine for the post-fill calibration sweep"); return; }
+  const swept = T3.runAdaptive(JSON.parse(JSON.stringify(stF)), "2026-08-23");
+  const ht = swept.exercises.find((e) => e.id === "hipthrust") || {};
+  check(!!ht.calibratedAt, "the calibration sweep still stamps after the last token (observed " + JSON.stringify(ht.calibratedAt) + ")", "calibratedAt never stamped after a complete non-serial fill");
+}
+
 await driveTrainTyped();
 await driveTrainBlank();
 await driveGymTyped();
 await driveOldDraft();
 await drivePinFill();
+await drivePinTokens();
 if (failed) { console.log("SPLIT-SMOKE: " + failed + " check(s) failed"); process.exit(1); }
 console.log("SPLIT-SMOKE: both modes drive the debut load and the pre-upgrade draft through the REAL handlers — render, type, finish, persist");

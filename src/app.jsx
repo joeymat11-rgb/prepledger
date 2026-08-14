@@ -1632,6 +1632,20 @@ function canonicalizePlan(s) {
      every state that ran them. Deterministic on record shape, so both merge
      orders converge by construction. */
   for (const eH of (s.exercises || [])) { if (eH && eH.quarantined && _bornValid(eH)) delete eH.quarantined; }
+  /* R11-A fix-6 — THE PIN BIRTHDAY, GUARANTEED AT EVERY BOUNDARY. patchV51's
+     own backfill only fires for a device crossing v50 -> v51; a v51 backup
+     from the interim tips imports through migrate's same-schema fast path
+     with birthdays ABSENT, and R11-C's label condition needs the field to be
+     well-defined everywhere. Fill-if-absent, never overwritten, idempotent,
+     value := the record's own setupAt (else RULING_EPOCH) — the same rule
+     patchV51 applies, at the pass that already reaches import, merge, sync and
+     restore (verified: a round-2-era poisoned backup heals through this exact
+     chain). Deterministic on record shape, so both merge orders agree, and
+     the earliest-wins union then reconciles replicas. */
+  for (const eB of (s.exercises || [])) {
+    if (!eB || eB.pinsBornAt) continue;
+    if (pinsUnfilled(eB) > 0 || eB.pinsSeen || eB.calibratedAt) eB.pinsBornAt = eB.setupAt || RULING_EPOCH;
+  }
   /* FIX split-1 (P1-2/P1-8) — tombstone cleanup reruns at every boundary: a
      stale replica whose copy of a retired lift wins the wholesale per-lift
      merge cannot restore the standards the retirement already swept. The
@@ -5838,10 +5852,22 @@ function sessionDebrief(s, iso) {
          history (and off the frozen words). The lift's own name rides the line
          so the must-differ debrief law holds when several lifts qualify. */
       const pinBorn = pinsBornOf(exL);   /* R11 fix-4: the IMMUTABLE birthday — reading setupAt let the lawful pin-fill write move the boundary and erase history's provisional status */
-      if (((fkL && iso >= fkL) || (!fkL && exL && (pinsUnfilled(exL) > 0 || exL.calibratedAt))) && (!pinBorn || iso >= pinBorn)) {   /* R11 fix-2: history KEEPS its provisional status after the pins fill — the stamp (calibratedAt) holds the boundary once it exists; live pins gate only the stampless interim */
-        const calL = exL && exL.calibratedAt ? String(exL.calibratedAt).slice(0, 10) : null;
-        const hasPinsL = pinsUnfilled(exL) > 0;
-        if (calL ? iso < calL : hasPinsL) lines.push({ k: "note", t: name + " logged before calibration — kept on the record, counted as provisional until its machine settings are pinned." });
+      const calL = exL && exL.calibratedAt ? String(exL.calibratedAt).slice(0, 10) : null;
+      /* R11-C fix-6 — THE LIVE PIN COUNT LEAVES THE CONDITION. It used to sit
+         in the outer gate, so for the whole stretch between the last Pin-it
+         tap and the next sweep (which is what stamps calibratedAt) the label
+         VANISHED and history's provisional status flickered: present, absent,
+         present. For a non-forked lift the answer is now a pure function of
+         the two boundaries this round made immutable — born before it, not yet
+         calibrated at it — both of which R11-A guarantees exist at every
+         boundary. The birthday is REQUIRED (the old !pinBorn-or escape hatch
+         is retired), so a record with no pinned cue on file never labels.
+         The fork branch is unchanged. */
+      if (pinBorn && iso >= pinBorn) {
+        const provisional = fkL
+          ? (iso >= fkL && (calL ? iso < calL : pinsUnfilled(exL) > 0))
+          : (calL ? iso < calL : true);
+        if (provisional) lines.push({ k: "note", t: name + " logged before calibration — kept on the record, counted as provisional until its machine settings are pinned." });
       }
     } catch (eL) {}
     let delivered = null, work = null, next = null;
@@ -15663,31 +15689,51 @@ function LogTab({ s, setS, save, slp }) {
                stamp discipline; pinsBornAt is never touched, so filling the
                pins cannot move the pin birthday. The existing sweep does the
                rest — blocker clears, calibratedAt stamps, no new mechanism. */
-            const label9 = (i9) => { try { const seg9 = String(exP.setup).split("\n")[0].split("·").find((sg) => sg.indexOf("[PIN]") > -1 && String(exP.setup).split("[PIN]").slice(0, i9 + 1).join("[PIN]").indexOf(sg.split("[PIN]")[0].trim()) > -1); return (seg9 || "").replace("[PIN]", "").trim() || "setting " + (i9 + 1); } catch (e8) { return "setting " + (i9 + 1); } };
-            const fill9 = (i9, val9) => {
+            /* the label of the FIRST UNFILLED token, read off the cue itself:
+               the segment (between the surrounding separators) that carries
+               that [PIN]. No index arithmetic — the token under the cursor is
+               always the first one left, so the label cannot drift onto
+               another setting. */
+            const nextLabel9 = (setup9) => {
+              try {
+                const s8 = String(setup9 || "");
+                const at8 = s8.indexOf("[PIN]");
+                if (at8 < 0) return null;
+                const start8 = Math.max(s8.lastIndexOf("·", at8), s8.lastIndexOf("\n", at8));
+                const d8 = s8.indexOf("·", at8 + 5), n8 = s8.indexOf("\n", at8 + 5);
+                const end8 = Math.min(d8 < 0 ? s8.length : d8, n8 < 0 ? s8.length : n8);
+                return s8.slice(start8 + 1, end8).replace("[PIN]", "").trim() || null;
+              } catch (e8) { return null; }
+            };
+            const lbl9x = nextLabel9(exP.setup) || "the next machine setting";
+            const fill9 = (val9) => {
               const v9 = String(val9 || "").trim();
               if (!v9) return;
               const ns = JSON.parse(JSON.stringify(s));
               const ex9 = ns.exercises.find((x9) => x9.id === ex.id);
-              let seen9 = -1;
-              ex9.setup = String(ex9.setup).replace(/\[PIN\]/g, (m9) => { seen9++; return seen9 === i9 ? v9 : m9; });
+              const was9 = nextLabel9(ex9.setup) || "a machine setting";
+              ex9.setup = String(ex9.setup).replace("[PIN]", v9);   /* the FIRST token — the only one on screen, so a value can only ever land where it was typed */
               ex9.setupAt = new Date().toISOString();   /* the cue changed — every live setup writer stamps */
-              ns.feed.unshift({ d: isoOf(todayStart()), t: `PIN FILLED — ${String(ex9.n).toUpperCase()}`, how: `${label9(i9) || "a machine setting"} is now on the record as "${v9}". ${pinsUnfilled(ex9) ? pinsUnfilled(ex9) + " setting" + (pinsUnfilled(ex9) === 1 ? "" : "s") + " still to pin." : "Every setting is pinned — this lift's numbers are comparable from here, and the sessions logged before this stay on the record as provisional."}` });
-              setS(ns); save(ns); setPinVal({ ...pinVal, [ex.id + ":" + i9]: "" });
+              ns.feed.unshift({ d: isoOf(todayStart()), t: `PIN FILLED — ${String(ex9.n).toUpperCase()}`, how: `${was9} is now on the record as "${v9}". ${pinsUnfilled(ex9) ? pinsUnfilled(ex9) + " setting" + (pinsUnfilled(ex9) === 1 ? "" : "s") + " still to pin." : "Every setting is pinned — this lift's numbers are comparable from here, and the sessions logged before this stay on the record as provisional."}` });
+              setS(ns); save(ns); setPinVal({ ...pinVal, [ex.id]: "" });
             };
+            /* ONE TOKEN AT A TIME (fix-6). The simultaneous inputs had two
+               structural defects, both browser-confirmed: every input showed
+               the FIRST segment's label, and the buffers were keyed by index
+               in the SHRINKING unfilled list — so committing an earlier token
+               slid a later token's typed value onto the wrong setting and
+               dropped the last one. One input has no index and no second
+               buffer: the value on screen belongs to the token on screen. */
             return (
               <div style={{ marginTop: 5 }}>
                 <div style={{ fontFamily: mono, fontSize: TS.micro, color: T.orange, lineHeight: `${LH.micro}px` }}>CALIBRATION INCOMPLETE — {p9} setting{p9 === 1 ? "" : "s"} to pin at the machine before this lift's numbers are comparable</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 7 }}>
-                  {Array.from({ length: p9 }, (_, i9) => (
-                    <div key={i9} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, minWidth: 0 }}>{label9(i9)}</span>
-                      <input value={pinVal[ex.id + ":" + i9] ?? ""} aria-label={"pin " + label9(i9)} placeholder="what the machine says"
-                        onChange={(e8) => setPinVal({ ...pinVal, [ex.id + ":" + i9]: e8.target.value })}
-                        style={{ fontFamily: mono, fontSize: 16, color: T.chalk, background: "none", border: "none", borderBottom: `1px dashed ${T.line}`, minHeight: 44, width: 120, padding: 0 }} />
-                      <Btn small tone="gauge" onClick={() => fill9(i9, pinVal[ex.id + ":" + i9])}>Pin it</Btn>
-                    </div>
-                  ))}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 7, flexWrap: "wrap" }}>
+                  <span style={{ fontFamily: mono, fontSize: TS.label, color: T.chalk, minWidth: 0 }}>{lbl9x}</span>
+                  <input value={pinVal[ex.id] ?? ""} aria-label={"pin " + lbl9x} placeholder="what the machine says"
+                    onChange={(e8) => setPinVal({ ...pinVal, [ex.id]: e8.target.value })}
+                    style={{ fontFamily: mono, fontSize: 16, color: T.chalk, background: "none", border: "none", borderBottom: `1px dashed ${T.line}`, minHeight: 44, width: 120, padding: 0 }} />
+                  <Btn small tone="gauge" onClick={() => fill9(pinVal[ex.id])}>Pin it</Btn>
+                  {p9 > 1 ? <span style={{ fontFamily: mono, fontSize: TS.micro, color: T.steel }}>{p9 - 1} more after this one</span> : null}
                 </div>
               </div>
             ); } catch (e9) { return null; } })()}
