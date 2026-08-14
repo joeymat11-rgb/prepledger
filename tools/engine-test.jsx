@@ -8953,10 +8953,15 @@ if (fail) process.exit(1);
        one line sailed through, because match() returns only the first hit and
        the scan judged the line by the field that happened to come first. One
        line, one verdict per FIELD. */
-    const ms = [...L.matchAll(/\.(hi|inc|setup|w)\s*=(?!=)/g)].map((x) => x[1]);   /* SPLIT item c — w joins the discipline; this scan is the enumerator of record for its writers */
+    const ms = [...L.matchAll(/\.(hi|inc|setup|w|steps)\s*=(?!=)/g)].map((x) => x[1]);   /* SPLIT item c — w joins the discipline; LEG 2 — steps joins it, because the ladder merges by stamp now and the next writer that forgets must fail HERE. This scan is the enumerator of record for those writers. */
     if (!ms.length) continue;
     /* exemption 1 — seed weave, explicitly marked in-line */
     if (L.indexOf("seed-authored — unstamped by design") > -1) continue;
+    /* exemption 1b — a field that merely SHARES A NAME with a stamped one. The
+       daily log's step field is his walking count, not a lift's rung ladder; it is
+       not an exercise field and has no stamp to write. Marked in-line so the
+       scan stays textual and the exemption stays visible. */
+    if (L.indexOf("not a lift field — unstamped by design") > -1) continue;
     /* exemption 2 — patches and the migration runner: pre-stamp era by doctrine
        (stamping them would move the frozen baseline; a NEW patch that wants its
        write protected stamps deliberately, with a fixed ISO literal) */
@@ -8973,7 +8978,7 @@ if (fail) process.exit(1);
     }
   }
   ok(offenders.length === 0,
-    "FIX 2a item 6 — THE STAMP DISCIPLINE, as a gate: every LIVE assignment to .hi/.inc/.setup outside the seed weave and the patch chain writes its *At stamp in the same statement block. Offenders: " + (offenders.join(" | ") || "none") + ". This is how Sol's P0 stays retired: the machinery shipped ahead of its writers, and the first writer that forgets the stamp fails HERE, not in a two-phone merge");
+    "FIX 2a item 6 — THE STAMP DISCIPLINE, as a gate: every LIVE assignment to .hi/.inc/.setup/.w/.steps outside the seed weave and the patch chain writes its *At stamp in the same statement block. Offenders: " + (offenders.join(" | ") || "none") + ". This is how Sol's P0 stays retired: the machinery shipped ahead of its writers, and the first writer that forgets the stamp fails HERE, not in a two-phone merge");
   /* the scan must actually SEE the one live mutator, or it is scanning nothing */
   ok(srcD.indexOf("ex5.inc = jz; ex5.incAt = new Date().toISOString();") > -1,
     "FIX 2a item 6 — and the scan's one live subject exists: the jump-size chip stamps on the same line (delete that mutator and this pin forces the scan's coverage question to be re-asked)");

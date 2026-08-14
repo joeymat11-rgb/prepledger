@@ -2093,7 +2093,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
       push(`${ex.n.toUpperCase()} — LOAD ADOPTED AT ${en.w}`, "First completed load under the new lift: " + en.w + " is the working load now; targets build from what this session gives.", "adopt:" + ex.id, en.w);   /* FIX split-1 (P1-8): op-keyed — post-merge, exactly ONE debut receipt survives (the earliest), and the other session reconciles to session two */
     } else if (typeof en.w === "number" && typeof ex.w === "number" && en.w !== ex.w) {
       const r0 = loadRungs(ex);
-      if (r0 && r0.indexOf(en.w) < 0) ex.steps = [...new Set([...r0, en.w])].sort((a9, b9) => a9 - b9);
+      if (r0 && r0.indexOf(en.w) < 0) { ex.steps = [...new Set([...r0, en.w])].sort((a9, b9) => a9 - b9); ex.stepsAt = new Date().toISOString(); }
       push(`${ex.n.toUpperCase()} — LOGGED AT ${en.w} (plan said ${ex.w})`, "Reality outranks the filed ladder: the lift now lives at " + en.w + (r0 ? ", and the rung joined the ladder" : "") + ".");
       ex.w = en.w; ex.wAt = new Date().toISOString(); ex.topAt = null; ex.topRun = 0;   /* a new load starts its own sighting record; SPLIT: every w-writer stamps */
     }
@@ -9332,7 +9332,7 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
   if (p.apply.kind === "ladder" && Array.isArray(p.apply.rungs) && p.apply.rungs.length >= 2 && p.apply.exId) {
     const ex7 = (s.exercises || []).find((e) => e && e.id === p.apply.exId);
     if (ex7) {
-      ex7.steps = p.apply.rungs.slice().sort((a, b) => a - b);
+      ex7.steps = p.apply.rungs.slice().sort((a, b) => a - b); ex7.stepsAt = new Date().toISOString();
       if (typeof ex7.w === "number") { ex7.w = snapLoad(ex7, ex7.w); ex7.wAt = new Date().toISOString(); }
       s.feed.unshift({ d: isoOf(todayStart()), t: `LADDER SET — ${String(ex7.n).toUpperCase()} ${ex7.steps.length} rungs`, how: `${ex7.steps[0]} to ${ex7.steps[ex7.steps.length - 1]}, read off the weights you have actually used — every earn, reset and forecast now lands on a weight this machine makes` });
     }
@@ -10619,9 +10619,9 @@ function reconcileCorrectedLoads(s) {
       if (!(at > String(ex.wAt || ""))) continue;                       /* absent wAt reads as the epoch and loses; a newer athlete edit wins */
       const from = ex.w;
       const rungs = loadRungs(ex);
-      if (rungs) ex.steps = [...new Set([...rungs, lm.w])].sort((a9, b9) => a9 - b9);   /* merge, never erase — the ladder law */
+      if (rungs) { ex.steps = [...new Set([...rungs, lm.w])].sort((a9, b9) => a9 - b9); ex.stepsAt = at; }   /* merge, never erase — the ladder law. The LADDER stamp is the correction's own at, exactly like the load's: migrate-twice must stay byte-identical, and a wall-clock stamp here would break that. */
       ex.w = lm.w; ex.wAt = at;                                         /* every w-writer stamps, and this one stamps deterministically */
-      ex.topAt = null; ex.topRun = 0;                                   /* a new load starts its own sighting record */
+      if (ex.topAt != null || (ex.topRun || 0) !== 0) { ex.topAt = null; ex.topRun = 0; }   /* a new load starts its own sighting record — but only WRITE when there is a sighting to clear. Writing null/0 over absent keys is semantically identical and merge-visibly different: topAt/topRun are unstamped, so they ride whichever whole record wins, and manufacturing them made the two merge orders differ on a lift that had never banked a sighting. Deep order-equality is the stronger claim; this is what makes it true. */
       if (!Array.isArray(s.feed)) s.feed = [];
       const op = "adopt:corr:" + ex.id + ":" + lm.d;
       if (!s.feed.some((f9) => f9 && f9.op === op)) s.feed.unshift({ op, d: lm.d, t: "WORKING LOAD RECONCILED — " + String(ex.n || ex.id).toUpperCase() + " " + from + " → " + lm.w, how: "The corrected record says " + lm.w + " was lifted on " + lm.d + "; the plan follows the record." + (rungs ? " The rung joined the ladder." : "") });
@@ -11983,7 +11983,7 @@ function mergeState(local, remote) {
        exact tie keeps the wholesale winner. rirHist is deliberately NOT here
        this round (filed): it is a series, not a scalar, and needs a union, not
        a stamp. */
-    const STAMPED_FIELDS = [["sets", "setsAt"], ["hi", "hiAt"], ["inc", "incAt"], ["setup", "setupAt"], ["w", "wAt"]];   /* SPLIT item c — the load joins the discipline; legacy absent stamps behave exactly as the other four */
+    const STAMPED_FIELDS = [["sets", "setsAt"], ["hi", "hiAt"], ["inc", "incAt"], ["setup", "setupAt"], ["w", "wAt"], ["steps", "stepsAt"]];   /* SPLIT item c — the load joins the discipline; legacy absent stamps behave exactly as the other four. LEG 2 — the LADDER joins it too: w moved on its stamp while steps stayed with the merge base, so a stale-first merge returned a working load that is not on its own ladder (snapLoad(200) -> 190, and every snapper downstream reads a weight the machine does not make). Whole-field-by-stamp is the accepted trade, the same one the other five make: two devices adding different rungs offline resolve to the newer writer's whole ladder. A keyed union is REJECTED because it cannot express a deliberate DELETION — the cleared ladder would resurrect on every merge. */
     out.exercises = (out.exercises || []).map((w) => {
       if (!w || w.id == null) return w;
       const r0 = pick(remote.exercises, w.id), l0 = pick(local.exercises, w.id);
@@ -15642,7 +15642,7 @@ function LogTab({ s, setS, save, slp }) {
                 {/* one heavier number seeds the ladder's first rungs [w, next]; several seed
                     the ladder outright. inc stays untouched — a machine that needed asking
                     is exactly the machine whose increments are uneven. */}
-                ex4.steps = [...new Set([...(loadRungs(ex4) || []), ex4.w, ...ups])].sort((a9, b9) => a9 - b9);   /* MERGE — an answer above an exhausted ladder must not erase the rungs already priced */
+                ex4.steps = [...new Set([...(loadRungs(ex4) || []), ex4.w, ...ups])].sort((a9, b9) => a9 - b9); ex4.stepsAt = new Date().toISOString();   /* MERGE — an answer above an exhausted ladder must not erase the rungs already priced. (LEG 2: this seventh writer is not on the directive's list of six — found by enumerating every .steps writer instead of trusting the list, and stamped like the rest.) */
                 let banked = false;
                 if (ex4.last && atTopOfWindow(ex4.last, ex4) && !(String(ex4.topAt) === String(ex4.w) && (ex4.topRun || 0) >= 1)) { ex4.topAt = ex4.w; ex4.topRun = 1; banked = true; }
                 ns.feed.unshift({ d: isoOf(todayStart()), t: askEx.n.toUpperCase() + " — NEXT LOAD ON FILE: " + ups[0], how: "You told the app this machine's ladder (" + [ex4.w, ...ups].join(", ") + ")." + ((banked || (String(ex4.topAt) === String(ex4.w) && (ex4.topRun || 0) >= 1)) ? " The top-of-window session already on your record counts as sighting one — one more honest top, or one that beats your own spread, earns the " + ups[0] + " debut." : " Top the window twice at " + ex4.w + " — or once beating your own spread — and " + ups[0] + " queues itself.") });
@@ -15793,7 +15793,7 @@ function LogTab({ s, setS, save, slp }) {
                     )}
                     <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>jump:</span>
                     {[2.5, 5, 10].map((jz) => (
-                      <span key={jz} onClick={() => { const had = Array.isArray(exCfg.steps) && exCfg.steps.length >= 2; if (had && !window.confirm(`${ex.n} has a ${exCfg.steps.length}-rung ladder on file. Setting an even ${jz} lb jump deletes it. Keep the ladder?\n\nOK = delete the ladder\nCancel = keep it`)) return; const ns = JSON.parse(JSON.stringify(s)); const ex5 = ns.exercises.find((x) => x.id === ex.id); ex5.inc = jz; ex5.incAt = new Date().toISOString();   /* v7.52.0 — every live inc mutator stamps */ if (had) delete ex5.steps; ns.feed.unshift({ d: isoOf(todayStart()), t: `JUMP SIZE — ${ex5.n.toUpperCase()} steps by ${jz}`, how: "athlete set the machine's smallest honest increment — even ladder" }); setS(ns); save(ns); }}
+                      <span key={jz} onClick={() => { const had = Array.isArray(exCfg.steps) && exCfg.steps.length >= 2; if (had && !window.confirm(`${ex.n} has a ${exCfg.steps.length}-rung ladder on file. Setting an even ${jz} lb jump deletes it. Keep the ladder?\n\nOK = delete the ladder\nCancel = keep it`)) return; const ns = JSON.parse(JSON.stringify(s)); const ex5 = ns.exercises.find((x) => x.id === ex.id); ex5.inc = jz; ex5.incAt = new Date().toISOString();   /* v7.52.0 — every live inc mutator stamps */ if (had) { delete ex5.steps; ex5.stepsAt = new Date().toISOString(); }   /* LEG 2: a DELETION stamps too, or a deliberately cleared ladder loses to an old rung-carrying replica */ ns.feed.unshift({ d: isoOf(todayStart()), t: `JUMP SIZE — ${ex5.n.toUpperCase()} steps by ${jz}`, how: "athlete set the machine's smallest honest increment — even ladder" }); setS(ns); save(ns); }}
                         style={{ fontFamily: mono, fontSize: TS.label, color: !loadRungs(exCfg) && (exCfg.inc || 5) === jz ? T.jade : T.steel, border: `1px solid ${!loadRungs(exCfg) && (exCfg.inc || 5) === jz ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>{jz}</span>
                     ))}
                     <span onClick={() => setRungEdit(rungEdit === ex.id ? null : ex.id)}
@@ -15821,7 +15821,7 @@ function LogTab({ s, setS, save, slp }) {
                       if (v4 === oldW) { setWEdit(null); setRungEdit(null); return; }   /* nothing moved — no receipt; the "190 → 190" line dies here */
                       const r4 = loadRungs(ex4);
                       const joined4 = !!(r4 && r4.indexOf(v4) < 0);
-                      if (joined4) ex4.steps = [...new Set([...r4, v4])].sort((a9, b9) => a9 - b9);   /* merge, never erase a rung */
+                      if (joined4) { ex4.steps = [...new Set([...r4, v4])].sort((a9, b9) => a9 - b9); ex4.stepsAt = new Date().toISOString(); }   /* merge, never erase a rung */
                       ex4.w = v4; ex4.wAt = new Date().toISOString();   /* NEVER snapped, and every w-writer stamps */
                       ex4.last = null; ex4.topAt = null; ex4.topRun = 0;   /* CAGE parity — a new load starts its own sighting record */
                       ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${v4}${joined4 ? " · the " + v4 + " rung joined the ladder" : ""}`, how: "athlete entry on the card — targets re-seeded for the new load" });
@@ -15841,8 +15841,8 @@ function LogTab({ s, setS, save, slp }) {
                             const el = document.getElementById("rungs-" + ex.id);
                             const parsed = parseRungs(el ? el.value : "");
                             const ns = JSON.parse(JSON.stringify(s)); const ex6 = ns.exercises.find((x) => x.id === ex.id);
-                            if (!parsed) { delete ex6.steps; ns.feed.unshift({ d: isoOf(todayStart()), t: `LADDER CLEARED — ${ex6.n.toUpperCase()}`, how: `back to even ${ex6.inc || 5} lb jumps` }); }
-                            else { ex6.steps = parsed; ex6.wAt = new Date().toISOString(); ex6.w = snapLoad(ex6, typeof ex6.w === "number" ? ex6.w : parsed[0]); setWVal(ex6.w); ns.feed.unshift({ d: isoOf(todayStart()), t: `LADDER SET — ${ex6.n.toUpperCase()} ${parsed.length} rungs`, how: `${parsed[0]} to ${parsed[parsed.length - 1]} — every earn, reset and forecast now lands on a weight this machine makes` }); }
+                            if (!parsed) { delete ex6.steps; ex6.stepsAt = new Date().toISOString();   /* LEG 2: the clear is a DECISION and carries a stamp, so it beats an old rung-carrying replica in both merge orders */ ns.feed.unshift({ d: isoOf(todayStart()), t: `LADDER CLEARED — ${ex6.n.toUpperCase()}`, how: `back to even ${ex6.inc || 5} lb jumps` }); }
+                            else { ex6.steps = parsed; ex6.stepsAt = new Date().toISOString(); ex6.wAt = new Date().toISOString(); ex6.w = snapLoad(ex6, typeof ex6.w === "number" ? ex6.w : parsed[0]); setWVal(ex6.w); ns.feed.unshift({ d: isoOf(todayStart()), t: `LADDER SET — ${ex6.n.toUpperCase()} ${parsed.length} rungs`, how: `${parsed[0]} to ${parsed[parsed.length - 1]} — every earn, reset and forecast now lands on a weight this machine makes` }); }
                             setS(ns); save(ns); setRungEdit(null);
                           }}>Save ladder</Btn>
                           <button onClick={() => setRungEdit(null)} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, background: "none", border: `1px solid ${T.line}`, borderRadius: 8, padding: "7px 12px" }}>cancel</button>
@@ -18624,7 +18624,7 @@ function writeDaily(s, iso, v) {
   const row = { ...prev };
   if (has("cal")) row.cal = num(v.cal);
   if (has("pro")) row.pro = num(v.pro);
-  if (has("steps")) row.steps = num(v.steps);
+  if (has("steps")) row.steps = num(v.steps);   /* his walking step COUNT — not a lift field — unstamped by design */
   if (has("sodium")) row.sodium = v.sodium || null;
   if (has("alc")) row.alc = +v.alc || 0;
   ns.dailyLogs = { ...ns.dailyLogs, [iso]: row };

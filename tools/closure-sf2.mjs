@@ -541,6 +541,64 @@ export function runClosureSF2(T, ok, readFileSync) {
     }
   });
 
+  /* ---- v7.53.4 LEG 2 — THE LADDER TRAVELS WITH THE LOAD ---- */
+  t("LADDER-STAMP", () => {
+    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const stale = JSON.parse(JSON.stringify(live));      /* the un-adopted replica: his repo-synced copy */
+    const adopted = T.migrate(JSON.parse(JSON.stringify(live)));
+    const hk = (s9) => s9.exercises.find((e) => e && e.id === "hack") || {};
+    const ex9 = (s9) => s9.exercises.find((e) => e && e.id === "extension") || {};
+    const corrAt = ((live.sessionLog["2026-08-14"] || {}).corr || {}).at;
+    /* THE FINDING, both orders. Stale-FIRST is the one that was broken: the load
+       moved on its stamp while the ladder stayed with the merge base, returning a
+       working load that is not on its own ladder. */
+    const sa = T.mergeState(cl(stale), cl(adopted));     /* un-adopted replica as BASE — the red */
+    const as = T.mergeState(cl(adopted), cl(stale));
+    ok(hk(sa).w === 200 && J(hk(sa).steps) === J([160, 170, 180, 190, 200]),
+      "LADDER a — STALE-FIRST merge: the adopted load brings its rung WITH it (the red on a26e1bd was w 200 beside steps [160,170,180,190] — a working load the machine does not make, and snapLoad would read it as 190) (observed w " + J(hk(sa).w) + " steps " + J(hk(sa).steps) + ")");
+    ok(hk(as).w === 200 && J(hk(as).steps) === J([160, 170, 180, 190, 200]),
+      "LADDER b — ADOPTED-FIRST merge agrees: both orders land the same ladder (observed " + J(hk(as).steps) + ")");
+    ok(hk(sa).wAt === corrAt && hk(sa).stepsAt === corrAt && hk(as).stepsAt === corrAt,
+      "LADDER c — the ladder carries the CORRECTION'S OWN stamp, exactly like the load: deterministic, and it wins the merge for the same reason the load does (observed " + J([hk(sa).stepsAt, hk(as).stepsAt]) + ")");
+    ok(ex9(sa).w === 160 && ex9(as).w === 160 && ex9(sa).steps == null,
+      "LADDER d — the no-ladder lift is unchanged by any of this: extension adopts 160 in both orders and gains no phantom rungs (observed " + J([ex9(sa).w, ex9(as).w, ex9(sa).steps]) + ")");
+    ok(J(hk(sa)) === J(hk(as)) && J(ex9(sa)) === J(ex9(as)),
+      "LADDER e — the two merge orders are DEEPLY equal on both lifts, not merely agreeing on the fields under test");
+    /* DETERMINISM — the reason the adopted stamp is corr.at and not wall-clock */
+    const twice = T.migrate(JSON.parse(JSON.stringify(adopted)));
+    ok(JSON.stringify(twice) === JSON.stringify(adopted),
+      "LADDER f — migrate-twice stays BYTE-IDENTICAL with the ladder stamped: a wall-clock stepsAt here would have broken the determinism doctrine");
+    /* THE ANTI-UNION PIN — the case a keyed union cannot express */
+    const cleared = JSON.parse(JSON.stringify(adopted));
+    const ch = cleared.exercises.find((e) => e.id === "hack");
+    delete ch.steps; ch.stepsAt = "2026-08-20T10:00:00.000Z";   /* a deliberate LADDER CLEARED, newer than the adoption */
+    const rung = JSON.parse(JSON.stringify(adopted));           /* a replica still carrying the rungs, older stamp */
+    const cr = T.mergeState(cl(cleared), cl(rung)), rc = T.mergeState(cl(rung), cl(cleared));
+    ok(!(hk(cr).steps && hk(cr).steps.length) && !(hk(rc).steps && hk(rc).steps.length),
+      "LADDER g — ANTI-UNION: a ladder CLEARED with a newer stamp beats an old rung-carrying replica in BOTH orders. This is why the field merges whole rather than by keyed union — a union cannot express a deliberate deletion, and the cleared ladder would resurrect on every merge (observed " + J([hk(cr).steps, hk(rc).steps]) + ")");
+    ok(hk(cr).inc === hk(rung).inc && hk(rc).inc === hk(rung).inc,
+      "LADDER h — and with the ladder gone the even increment rules, as the clear intends (observed inc " + J(hk(cr).inc) + ")");
+    /* THE LEGACY PAIR — two states that predate the stamp merge exactly as before */
+    const l1 = JSON.parse(JSON.stringify(live)), l2 = JSON.parse(JSON.stringify(live));
+    for (const s9 of [l1, l2]) for (const e of s9.exercises) delete e.stepsAt;
+    l2.exercises.find((e) => e.id === "hack").steps = [160, 170, 180, 190, 999];
+    const legacyAB = T.mergeState(cl(l1), cl(l2)), legacyBA = T.mergeState(cl(l2), cl(l1));
+    ok(J(hk(legacyAB).steps) === J(l1.exercises.find((e) => e.id === "hack").steps)
+      && J(hk(legacyBA).steps) === J(l2.exercises.find((e) => e.id === "hack").steps),
+      "LADDER i — a LEGACY pair (neither side stamped) keeps the pre-existing local-wins-the-base semantics exactly: an absent stamp behaves as it always did, so no state that predates this round changes shape (observed " + J([hk(legacyAB).steps, hk(legacyBA).steps]) + ")");
+    /* THE RUNTIME WRITERS STAMP — CAGE and the editor, driven not asserted by source */
+    const base = mig50();
+    const bh = base.exercises.find((e) => e.id === "hack");
+    bh.w = 160; bh.steps = [160, 170]; delete bh.stepsAt;
+    const done = T.completeSession(base, "2026-08-21", [{ id: "hack", reps: [10, 9, 9], rir: 2, w: 180 }], slp, { pg: 51 }).s;
+    const dh = done.exercises.find((e) => e.id === "hack");
+    ok(J(dh.steps) === J([160, 170, 180]) && typeof dh.stepsAt === "string",
+      "LADDER j — the CAGE rung-merge STAMPS: logging 180 against a 160/170 ladder joins the rung and dates the ladder, so the join survives a merge with the device that never saw it (observed " + J(dh.steps) + " at " + J(dh.stepsAt) + ")");
+    const src = readFileSync("src/app.jsx", "utf8");
+    ok(src.indexOf("[\"steps\", \"stepsAt\"]") > -1 && (src.match(/stepsAt = /g) || []).length >= 7,
+      "LADDER k — the field is in STAMPED_FIELDS and EVERY writer stamps: eight sites, one of them (the TRAIN next-load ask card) not on the directive's list of six and found by enumerating the writers instead of trusting the list. The scan at FIX 2a item 6 now covers .steps, and it was mutation-tested red before this shipped (observed " + (src.match(/stepsAt = /g) || []).length + " stamp writes)");
+  });
+
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
   t("R6", () => {
     const m = mig50((s) => { const sk = s.exercises.find((x) => x.id === "sulek"); if (sk) sk.sets = 3; });
