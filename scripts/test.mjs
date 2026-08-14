@@ -91,6 +91,7 @@ const SUITES = [
   ["engine suite", engineSuite],
   ["render smoke", child("tools/render-smoke.mjs", "render smoke")],
   ["dom smoke", child("tools/dom-smoke.mjs", "dom smoke")],
+  ["split smoke", child("tools/split-smoke.mjs", "split smoke")],
   ["beacon smoke", child("tools/beacon-smoke.mjs", "beacon smoke")],
 ];
 

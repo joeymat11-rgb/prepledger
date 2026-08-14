@@ -56,6 +56,15 @@ what was deliberately left; the stage-4 block further down carries the deferrals
 
 **NOW — THE PLAN OF RECORD IS [docs/pipeline-2026-08-12.md](docs/pipeline-2026-08-12.md). Work it top to bottom; one part per go.**
 
+**INSERTED AHEAD OF PART 4 — THE SPLIT PATCH (branch feat/split-patch, v7.53.1,
+SCHEMA_V 51, built from SPLIT-PATCH-FINAL-BUILD-ORDER v5): fly + hip thrust enter
+in ruled positions, pronated retires (tombstoned, record intact), ruled orders +
+set counts under the ruling-write rule (epoch 2026-08-12), the plan register
+(planGen + exOrder as one unit), debut load adoption with w/wAt joining the stamp
+discipline, the wKey stale-anchor fix (curl reads [11,11,10] per the oracle), og
+provenance, born fresh installs. STATUS: pushed, awaiting Sol's diff leg + cowork's
+re-drive; headers flip at merge.**
+
 *(The block below replaces "NOTHING IS ASSIGNED", which was stale the moment it was
 written — the motion pass had already been briefed, blind-audited and Joe-ruled, with
 two rounds specced ahead of it. Cowork's amendment, verbatim:)*

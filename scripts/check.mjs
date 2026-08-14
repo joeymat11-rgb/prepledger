@@ -50,6 +50,28 @@ export async function freshness() {
 /* A1 (design round) — the contrast auditor runs as a hard gate: two token systems
    collided once (V1: 1.10:1 hero numbers in light mode) and no hand recolor ships
    without every resolved pair clearing 4.5:1 in BOTH themes. */
+/* PORTABILITY (fix-5) — THE PATTERN IS THE DEFECT. Round 4's split-smoke ran
+   esbuild by handing node_modules/esbuild/bin/esbuild to node. That file is a
+   JS shim on Windows and the NATIVE ELF binary on Linux, so the gate passed on
+   the dev machine and died on ubuntu — where CI runs, which would have blocked
+   the deploy on the merge commit. esbuild has a JS API and scripts/build.mjs
+   already uses it; nothing here may reach for the binary through node again.
+   Scanned as a class, not as one site. */
+function esbuildBinaryGate() {
+  const hits = [];
+  for (const dir of ["scripts", "tools"]) {
+    for (const f of fs.readdirSync(at(dir))) {
+      if (!/\.(mjs|js|jsx)$/.test(f)) continue;
+      const src = fs.readFileSync(at(dir, f), "utf8");
+      src.split("\n").forEach((ln, i) => {
+        if (/esbuild[\\/]bin[\\/]esbuild/.test(ln) && /execPath|spawn|exec|fork/.test(ln)) hits.push(dir + "/" + f + ":" + (i + 1));
+      });
+    }
+  }
+  return hits.length
+    ? { ok: false, detail: "a tool invokes esbuild's BINARY through node — that path is a JS shim on Windows and a native ELF on Linux, so this passes here and dies in CI: " + hits.join(", ") + ". Use esbuild's JS API, as scripts/build.mjs does." }
+    : { ok: true, detail: "no tool runs esbuild's binary through node — the build API is the only path, so the gate means the same thing on Windows, Linux and CI" };
+}
 function contrastGate() {
   const r = spawnSync(process.execPath, [at("tools", "contrast-audit.mjs")], { cwd: ROOT, encoding: "utf8" });
   const out = ((r.stdout || "") + (r.stderr || "")).trim().split(String.fromCharCode(10)).pop() || "contrast audit";
@@ -213,6 +235,7 @@ export async function check({ strict = false } = {}) {
   else { warn(fresh.detail); note("run `npm run build` — or just `npm run ship`, which rebuilds for you"); soft++; }
 
   for (const [label, fn] of [
+    ["portability", esbuildBinaryGate],   /* fix-5 — the gate must mean the same thing on Linux, where CI runs */
     ["contrast", contrastGate],   /* A1 (design round) — resolved pairs, both themes */
     ["affordance", affordanceGate],   /* A4 — the tap-color grammar, lint-enforced */
     ["sw version", swMatch],
