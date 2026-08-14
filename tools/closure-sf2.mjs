@@ -250,6 +250,40 @@ export function runClosureSF2(T, ok, readFileSync) {
       "R11-C f — the !pinBorn-or escape hatch is RETIRED: a birthday-less record simply never labels (observed: " + lab(noBorn, "2026-08-20") + ")");
   });
 
+  /* ---- R11-C fork lane (round 7) — the flicker fix reaches the FORKED lifts ---- */
+  t("R11-C-fork", () => {
+    const m = mig50();
+    const cv = m.exercises.find((x) => x.id === "calves");
+    ok(!!(cv && T.pinsUnfilled(cv) > 0 && (cv.forks || []).length > 0),
+      "R11-C-fork precondition — calves is the right witness: FORKED and PINNED (observed forks " + J((cv.forks || []).map((f) => f.from)) + " · unfilled pins " + J(T.pinsUnfilled(cv)) + ")");
+    const fk = T.forkFrom(m, "calves");
+    const lab = (st, iso) => JSON.stringify(T.sessionDebrief(st, iso) || {}).toLowerCase().indexOf("logged before calibration") > -1;
+    /* the arming sweep first (the rig error cowork owned in round 2, not repeated) */
+    const armed = T.runAdaptive(cl(m), "2026-08-20");
+    const logged = T.completeSession(armed, "2026-08-20", [{ id: "calves", reps: [15, 14, 13], rir: 2 }], slp, { pg: 51 }).s;
+    ok(lab(logged, "2026-08-20") === true,
+      "R11-C-fork a — PRE-FILL: the post-fork session reads provisional while the pin is live (observed: " + lab(logged, "2026-08-20") + ")");
+    const filled = cl(logged); const c9 = filled.exercises.find((x) => x.id === "calves");
+    c9.setup = String(c9.setup).replace(/\[PIN\]/g, "3"); c9.setupAt = "2026-08-21T10:00:00.000Z";
+    ok(lab(filled, "2026-08-20") === true,
+      "R11-C-fork b — THE FLIP, FORKED LANE: filled-but-UNSWEPT still reads provisional (the ad09f61 signature was true/false/true — eight of the ten pinned lifts are forked, so this was the athlete's whole legacy set) (observed: " + lab(filled, "2026-08-20") + ")");
+    const swept = T.runAdaptive(filled, "2026-08-22");
+    const cal = (swept.exercises.find((x) => x.id === "calves") || {}).calibratedAt;
+    ok(!!cal && lab(swept, "2026-08-20") === true,
+      "R11-C-fork c — POST-STAMP: the pre-stamp session still reads provisional (observed stamp " + J(cal) + " · label " + lab(swept, "2026-08-20") + ")");
+    const after = T.completeSession(swept, "2026-08-24", [{ id: "calves", reps: [16, 15, 14], rir: 2 }], slp, { pg: 51 }).s;
+    ok(lab(after, "2026-08-24") === false,
+      "R11-C-fork d — a POST-CALIBRATION calves session reads normal (observed: " + lab(after, "2026-08-24") + ")");
+    /* the seed carries no calves session before the fork, so the pre-fork case
+       is PLANTED rather than hunted — a real one from the athlete's own log is
+       what the words freeze already covers. */
+    const preIso = (() => { const d = new Date(fk + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() - 7); return d.toISOString().slice(0, 10); })();
+    const withPre = cl(swept);
+    withPre.sessionLog[preIso] = { entries: [{ id: "calves", reps: [15, 14, 13], rir: 2, w: (withPre.exercises.find((x) => x.id === "calves") || {}).w ?? null }], at: 0, note: "", niggles: [], dips: 0, skipped: [], pace: null };
+    ok(preIso < fk && lab(withPre, preIso) === false,
+      "R11-C-fork e — a PRE-FORK calves session is never labeled: the iso >= fkL gate is untouched (observed date " + J(preIso) + " vs fork " + J(fk) + " · label " + lab(withPre, preIso) + ")");
+  });
+
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
   t("R6", () => {
     const m = mig50((s) => { const sk = s.exercises.find((x) => x.id === "sulek"); if (sk) sk.sets = 3; });

@@ -5862,11 +5862,20 @@ function sessionDebrief(s, iso) {
          calibrated at it — both of which R11-A guarantees exist at every
          boundary. The birthday is REQUIRED (the old !pinBorn-or escape hatch
          is retired), so a record with no pinned cue on file never labels.
-         The fork branch is unchanged. */
+
+         fix-7 — BOTH LANES. Round 6 left the forked branch reading the live
+         pin count, so the flicker survived there: eight of the ten pinned
+         lifts are forked, and the athlete's whole legacy set kept the window
+         the round had just closed for the two newborns (calves, executed:
+         PRESENT / ABSENT / PRESENT across fill-then-sweep). The no-stamp case
+         is now the same pure two-boundary answer in both lanes. Lane safety,
+         on the record: pins still unfilled -> unchanged (was true via the
+         count, now true directly) · never had a pinned cue -> no pinsBornAt,
+         the outer gate already blocks · pre-fork sessions -> the iso >= fkL
+         gate is untouched · stamped -> unchanged. The only behavior that
+         moves is the filled-but-unswept window, which now holds the label. */
       if (pinBorn && iso >= pinBorn) {
-        const provisional = fkL
-          ? (iso >= fkL && (calL ? iso < calL : pinsUnfilled(exL) > 0))
-          : (calL ? iso < calL : true);
+        const provisional = (!fkL || iso >= fkL) && (calL ? iso < calL : true);
         if (provisional) lines.push({ k: "note", t: name + " logged before calibration — kept on the record, counted as provisional until its machine settings are pinned." });
       }
     } catch (eL) {}
