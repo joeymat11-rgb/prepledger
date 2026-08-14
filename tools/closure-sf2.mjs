@@ -151,6 +151,26 @@ export function runClosureSF2(T, ok, readFileSync) {
       "R11b — a POST-calibration session reads normal (observed label present: " + lab2 + ")");
   });
 
+  /* ---- F1 (round 3) — the legacy healer judges before it restates ---- */
+  t("F1", () => {
+    const healthy = mig50();
+    /* a replica that ran round-1 bytes: the register marker present while the
+       fly RECORD itself is fully VALID (cowork's executed F1) */
+    const legacy = mig50();
+    legacy.retirements = { ...(legacy.retirements || {}), fly: "invalid:2026-08-12" };
+    const hl = T.mergeState(cl(healthy), cl(legacy)), lh = T.mergeState(cl(legacy), cl(healthy));
+    const flag = (s9) => (s9.exercises.find((e) => e && e.id === "fly") || {}).quarantined;
+    ok(T.exActive(hl, "fly") === true && T.exActive(lh, "fly") === true && !flag(hl) && !flag(lh)
+      && hl.exOrder.U.indexOf("fly") > -1 && lh.exOrder.U.indexOf("fly") > -1
+      && !(hl.retirements || {}).fly && !(lh.retirements || {}).fly
+      && (T.genSession(hl, "2026-08-20", slp).ex || []).some((x) => x.id === "fly"),
+      "F1 — a stale round-1 register marker over a fully VALID fly record cannot retire a healthy replica's fly: the healer JUDGES with the shared predicate before restating — BOTH orders active, in exOrder.U and the generated card, register clean, no record flag (observed active: " + J([T.exActive(hl, "fly"), T.exActive(lh, "fly")]) + ", flags: " + J([flag(hl), flag(lh)]) + ", exOrder has fly: " + J([hl.exOrder.U.indexOf("fly") > -1, lh.exOrder.U.indexOf("fly") > -1]) + ")");
+    const bad = T.migrate(rawV50((s) => { s.exercises.push({ id: "fly", day: "U" }); }));
+    const badM = T.mergeState(cl(bad), cl(bad));
+    ok(((flag(bad) || "").indexOf("invalid:") === 0) && T.exActive(bad, "fly") === false && ((flag(badM) || "").indexOf("invalid:") === 0),
+      "F1 negative control — a genuinely malformed {id:'fly',day:'U'} still quarantines through the same path and STAYS quarantined across a merge boundary: preserved as brought, inert, no walk (observed flag: " + J(flag(bad)) + ", post-merge: " + J(flag(badM)) + ")");
+  });
+
   /* ---- R13 — merged two-device execution EQUALS serial chronological execution ---- */
   t("R13", () => {
     const base = mig50();

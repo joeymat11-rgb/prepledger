@@ -1568,6 +1568,12 @@ const SPLIT_DATE = "2026-08-14";                     /* canonical insertion-effe
    resurrects a lift, key-union merged, reactivation only by a future schema op.
    exActive is the ONE predicate every projection consults; the raw record
    (sessionLog, history, receipts) is NEVER filtered by it. */
+/* THE CANONICAL-BIRTH VALIDITY PREDICATE — what a walkable record of a lift
+   must carry. One implementation: patchV51's put() flags with it, and
+   canonicalizePlan's healer judges with it (F1). The invariant it anchors:
+   a record is quarantined IFF it fails this predicate — which is what makes
+   the healer's clearing pass sound. */
+function _bornValid(e) { return !!(e && typeof e.sets === "number" && typeof e.hi === "number" && typeof e.setup === "string" && (e.day === "U" || e.day === "L") && typeof e.mg === "string"); }
 function exActive(s, id) {
   /* R9 fix-2: quarantine is a RECORD-level fact, not a register entry — see
      patchV51's put(). Both projections answer here. */
@@ -1590,16 +1596,27 @@ function canonicalizePlan(s) {
      down; only ruled-order enforcement is generation-gated. Deterministic, so
      both merge directions land deeply equal. */
   if (!s) return s;
-  /* R9 fix-2 — LEGACY HEALER: round-1 code wrote quarantine into the athlete
-     register (s.retirements, key-union merged — the poison vector). Restate
-     the same fact onto the record and clear the register entry, so no state
-     that passed through round-1 bytes can keep poisoning merges. */
+  /* R9 fix-2 / F1 fix-3 — LEGACY HEALER, now JUDGING BEFORE IT RESTATES:
+     round-1 wrote quarantine into the athlete register (key-union merged — the
+     poison vector); round-2's healer restated the marker onto WHATEVER record
+     was present, so a stale replica's marker stamped a fully VALID fly on both
+     sides of a merge and the record-preference rule had no healthy copy left
+     to prefer (cowork's executed F1, both orders). The shared predicate rules
+     every conversion: marker + VALID record -> heal CLEAN (no flag) · marker +
+     invalid record -> flag (earned) · marker + no record -> dropped. */
   for (const [idQ, vQ] of Object.entries(s.retirements || {})) {
     if (String(vQ).indexOf("invalid:") !== 0) continue;
     const eQ = (s.exercises || []).find((x9) => x9 && x9.id === idQ);
-    if (eQ && !eQ.quarantined) eQ.quarantined = vQ;
+    if (eQ && !_bornValid(eQ) && !eQ.quarantined) eQ.quarantined = vQ;
     delete s.retirements[idQ];
   }
+  /* F1 generalization — quarantined IFF invalid, enforced at every boundary:
+     put() only ever flags records that fail the predicate (and preserves them
+     as brought), so a flag on a bornValid record can only be healer poison
+     from the defective round-2 bytes or a stale copy — clearing it self-heals
+     every state that ran them. Deterministic on record shape, so both merge
+     orders converge by construction. */
+  for (const eH of (s.exercises || [])) { if (eH && eH.quarantined && _bornValid(eH)) delete eH.quarantined; }
   /* FIX split-1 (P1-2/P1-8) — tombstone cleanup reruns at every boundary: a
      stale replica whose copy of a retired lift wins the wholesale per-lift
      merge cannot restore the standards the retirement already swept. The
@@ -10076,7 +10093,7 @@ function patchV51(s) {
   /* the shared canonical-birth validity predicate: what a walkable record of
      this lift must carry. Consulted here, by exActive's projection sites via
      the quarantine marker, and by normalization. */
-  const bornValid = (e) => e && typeof e.sets === "number" && typeof e.hi === "number" && typeof e.setup === "string" && (e.day === "U" || e.day === "L") && typeof e.mg === "string";
+  const bornValid = _bornValid;   /* F1: the ONE predicate — the healer judges with the same rule this flags with */
   const put = (spec, afterId) => {
     const have = exs.find((x) => x && x.id === spec.id);
     if (have) {
@@ -10090,8 +10107,8 @@ function patchV51(s) {
          copy simply win. An invalid birth also returns false so the caller
          fires NO seams, insertion markers or FRESH BASELINE receipts. */
       const wasValid = bornValid(have);
+      if (!wasValid) { have.quarantined = "invalid:" + "2026-08-12"; return false; }   /* F1: preserved AS BROUGHT — filling a flagged record would manufacture the very shape the healer's clearing pass trusts (quarantined IFF invalid) */
       for (const k of Object.keys(spec)) { if (have[k] == null) have[k] = spec[k]; }
-      if (!wasValid) { have.quarantined = "invalid:" + "2026-08-12"; return false; }
       return true;
     }
     const i = exs.findIndex((x) => x && x.id === afterId);
@@ -17145,6 +17162,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [rests, setRests] = useState({ n: 0, cut: 0 });
   const [capPg, setCapPg] = useState(() => (s.planGen || 0));   /* FIX split-1 (P0-3) — frozen at capture; a resumed draft restores ITS generation */
   const [whyOpen9, setWhyOpen9] = useState(false);   /* M4 — the receipt stack's one disclosure */
+  const effW = (e2) => { const v9 = wOver[e2.id]; return v9 != null && v9 !== "" && Number(v9) > 0 ? Number(v9) : (e2.w == null ? "—" : e2.w); };   /* F2 — the EFFECTIVE load: exactly what the finish mapping persists; null prints an honest dash */
   const gymKey = "prep-ledger-gymdraft-" + dateSel;
   useEffect(() => {
     try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { if (d.idx != null && sess && sess.ex && d.idx >= sess.ex.length) d.idx = Math.max(0, sess.ex.length - 1);   /* H1 */ setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.touched) setTouched(d.touched);   /* absent on a pre-TOUCH draft -> gymEntries falls back to gskip alone */ setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen); setCapPg(d.pg != null ? d.pg : 50); if (d.wOver) setWOver(d.wOver);   /* R3(c) fix-2 — an existing draft with no pg is pre-upgrade: 50, never the current generation */   /* FIX split-1 (P0-3/P0-2) — the captured generation and the typed debut load both survive a mid-session close */
@@ -17402,7 +17420,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
           <div style={{ flex: 0.35, minHeight: 0 }} />
           <div style={card9}>
             <div style={{ fontFamily: disp, fontSize: 23, fontWeight: 700, letterSpacing: "0.04em" }}>{ex.n} — done</div>
-            <div style={{ ...tnum, fontSize: 12, color: DT.steel, marginTop: 5 }}>logged: {getR(ex).join(" · ")} at {ex.w}</div>
+            <div style={{ ...tnum, fontSize: 12, color: DT.steel, marginTop: 5 }}>logged: {getR(ex).join(" · ")} at {effW(ex)}</div>
             <div style={{ ...lbl9, marginTop: 12 }}>OPENER · LAST SET</div>
             <div style={{ ...tnum, fontSize: 12.5, marginTop: 5 }}>
               <span style={{ color: rir[ex.id] == null ? DT.dim : DT.jade }}>{rir[ex.id] == null ? "opener not recorded" : "opener " + (rir[ex.id] === 3 ? "3+" : rir[ex.id]) + " in the tank"}</span>
@@ -17422,7 +17440,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 10 }}>
               {sess.ex.map((e2) => (
                 <div key={e2.id} style={{ ...tnum, fontSize: 12.5, color: doneSkip[e2.id] ? DT.dim : DT.ink, textDecoration: doneSkip[e2.id] ? "line-through" : "none" }}>
-                  {e2.n}: {doneSkip[e2.id] ? "skipped — on record" : getR(e2).join(",") + " @ " + e2.w}
+                  {e2.n}: {doneSkip[e2.id] ? "skipped — on record" : getR(e2).join(",") + " @ " + effW(e2)}
                 </div>
               ))}
             </div>

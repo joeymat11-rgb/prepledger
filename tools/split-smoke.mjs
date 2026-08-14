@@ -138,8 +138,12 @@ async function driveGymTyped() {
   clock.offset += 10 * 60 * 1000;   /* the rest expires under the pinned clock */
   await sleep(900);
   await clickText(w, "LOG SET", "bank set 2 (terminal)");
+  const preDone = body();
   const rirEndBtn = q(w, "button").filter((b) => (b.textContent || "").trim() === "1").pop();
   if (rirEndBtn) { rirEndBtn.click(); await sleep(90); }
+  /* F2 (round 3): the lift-done receipt prints the EFFECTIVE load — the typed
+     90, not the null config (which rendered as "at " on 0c4c2a0) */
+  check(body().includes("at 90"), "the lift-done receipt prints the TYPED load (at 90) — F2", "the lift-done receipt does not print the typed load — 'at 90' absent (old bytes printed 'at ' from the null config)");
   /* fly is 3rd of 9 — walk the tail: NEXT LIFT off fly's done screen, then
      "skip lift" through each remaining lift (the honest skip path), and the
      last skip lands on the all-done screen */
@@ -154,6 +158,10 @@ async function driveGymTyped() {
     if (nx) { nx.click(); await sleep(80); continue; }
     break;
   }
+  /* F2 (round 3): the session-complete belt prints the EFFECTIVE load too —
+     "@ 90", and the word null appears NOWHERE on the attestation screen */
+  check(body().includes("@ 90"), "the all-done belt prints the TYPED load (@ 90) — F2", "the all-done belt does not print the typed load (old bytes printed '@ null')");
+  check(!body().includes("@ null") && !body().includes("at null"), "no 'null' anywhere on the attestation screens — F2", "the attestation screen prints the word null (observed '@ null': " + body().includes("@ null") + ")");
   await ruleSuspects(w);
   await clickText(w, "LOG IT — RECEIPT + DEBRIEF", "the gym finish handler");
   await sleep(300);
