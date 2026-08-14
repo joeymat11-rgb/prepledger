@@ -20,6 +20,7 @@ listed so the same thing cannot happen again silently:
 | v7.53.0 | retirement + word bundle — A/B retired, cue architecture on all 15 setups, eras plural with era-truthful names, calibration as transition state | 56c4e7c |
 | v7.53.1 | **the split patch** — fly + hip thrust in, pronated retired, plan register, era seams, debut adoption; seven fix rounds of merge/era/calibration hardening (see below) | 8d5f6b3 |
 | v7.53.2 | data correction (SCHEMA_V 52) — the 2026-08-14 hack 190→200 and extension 155→160 entry weights, on the owner's chat attestation; caches re-derived, correction-stamped, idempotent. Skip state and config weights deliberately untouched | a6ef23a |
+| v7.53.3 | data correction (SCHEMA_V 53) — the two un-skipped 2026-08-14 lifts ran their last set to failure: terminal `rirSets` slot 0 for abs and hanging, on the owner's attestation. `en.rir` stays null (that field is the OPENER's, and `openerRir === 0` freezes the load). The debrief's "no last-set rating" line goes; the step size stays add:1 | a1cc402 |
 
 **MAINTENANCE RULE FOR THIS FILE, from the failure above:** when a round merges, its
 header changes from NEXT/BUILDING to SHIPPED *in the same session as the merge*. A
