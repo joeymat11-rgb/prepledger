@@ -14,8 +14,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { JSDOM } from "jsdom";
-import { at } from "../scripts/lib.mjs";
-import { execFileSync } from "node:child_process";
+import { at, tmp, ROOT } from "../scripts/lib.mjs";
 import { pathToFileURL } from "node:url";
 
 const bundlePath = process.env.PL_BUNDLE ? path.resolve(process.env.PL_BUNDLE) : at("app.js");
@@ -302,9 +301,26 @@ async function drivePinFill() {
   /* the SWEEP stamps calibratedAt, then the 8/20 debrief must still be provisional.
      runAdaptive is the same sweep the app runs on open — driven here on the
      PERSISTED bytes the browser just wrote, which is the production artifact. */
-  const engPath = process.env.PL_ENGINE ? path.resolve(process.env.PL_ENGINE) : (() => {
-    const out = at(".tmp/_smoke-engine.mjs");
-    execFileSync(process.execPath, [at("node_modules/esbuild/bin/esbuild"), at("src/app.jsx"), "--loader:.jsx=jsx", "--bundle", "--platform=node", "--format=esm", "--outfile=" + out, "--external:react", "--external:react-dom", "--external:react/jsx-runtime"], { stdio: "ignore" });
+  /* PORTABILITY (fix-5): this bundle is built through esbuild's JS API — the
+     same library scripts/build.mjs uses — and NEVER by invoking
+     node_modules/esbuild/bin/esbuild through node. On Windows that file is a
+     JS shim, so the child process worked here and the gate read ALL GREEN; on
+     Linux esbuild's install replaces it with the NATIVE ELF binary, node
+     cannot execute ELF, and the child dies with "SyntaxError: Invalid or
+     unexpected token" — which is CI, on ubuntu, printing BLOCKED the moment
+     this merged. The API call has no platform surface at all.
+     PL_ENGINE still overrides: it is the fail-first lever, pointing these same
+     legs at another tip's engine bundle. */
+  const engPath = process.env.PL_ENGINE ? path.resolve(process.env.PL_ENGINE) : await (async () => {
+    const out = tmp("_smoke-engine.mjs");
+    const esbuild = (await import("esbuild")).default;
+    await esbuild.build({
+      entryPoints: [at("src/app.jsx")],
+      bundle: true, platform: "node", format: "esm", outfile: out,
+      loader: { ".jsx": "jsx" },
+      external: ["react", "react-dom", "react/jsx-runtime"],
+      absWorkingDir: ROOT, logLevel: "silent",
+    });
     return out;
   })();
   const eng = await import(pathToFileURL(engPath).href).catch((e) => { check(false, "", "could not load the engine for the post-fill sweep: " + (e && e.message)); return null; });
