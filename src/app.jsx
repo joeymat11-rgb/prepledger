@@ -1097,6 +1097,7 @@ function sweepLadders(s) {
     let touched = false;
     for (const ex of ((s && s.exercises) || [])) {
       if (!ex || !ex.id) continue;
+      if (!exActive(s, ex.id)) continue;   /* R6 fix-2: a retired record keeps its ladder history; the sweep never touches it */
       const pl = proposeLadder(s, ex.id);
       if (!pl) continue;
       const rid = `ladder_${ex.id}`;
@@ -1276,7 +1277,7 @@ function genSession(s, iso, slp) {
     const q = isDebutNow ? s.queue.find((x) => x.exId === e.id && !x.done && (x.kind === "debut" || x.kind === "unlock")) : null;
     const w = q && q.newW != null ? q.newW : e.w;
     let tgt, note, baselineAsk = false;
-    if (typeof e.w !== "number" && !e.lastMeta && !e.last) {
+    if (e.w == null) {   /* R2 fix-2: was gated on !lastMeta && !last, so a BLANK completion (honest log, no load) dropped the next card into hi-2 chase targets; the ask stands until a load exists */
       /* FIX split-1 (P0-2) — THE DEBUT/BASELINE ASK (R20b register): a lift
          with no completed entry and no working load gets NO numeric chase
          targets — hi-2 would be a fabricated prescription for a machine never
@@ -1343,17 +1344,33 @@ function genSession(s, iso, slp) {
    orphaned) — instead of regenerating the current template mid-session. A
    draft without frozen ids (pre-contract) passes through unchanged. */
 function sessionFromDraft(s, iso, slp, dr, base) {
-  if (!base || !dr || !Array.isArray(dr.ids) || !dr.ids.length) return base;
+  if (!base || !dr) return base;
+  /* R3(c) fix-2 — a REAL pre-upgrade draft carries no ids: its captured lifts
+     ARE its reps keys, in capture order, and the rest of its day rides behind
+     them (the untyped old order is genuinely unrecorded — appending the
+     current day's remaining lifts is the honest reconstruction, stated here
+     rather than invented). Captured SET SLOTS are preserved: a draft's reps
+     array length is its slot count, whatever the live config says now. */
+  const capIds = Array.isArray(dr.ids) && dr.ids.length ? dr.ids
+    : (dr.reps && typeof dr.reps === "object" && Object.keys(dr.reps).length
+        ? [...Object.keys(dr.reps), ...(base.ex || []).map((e9) => e9.id).filter((id9) => !(id9 in dr.reps))]
+        : null);
+  if (!capIds) return base;
   const byId = {};
   for (const e9 of (base.ex || [])) byId[e9.id] = e9;
-  const ex9 = dr.ids.map((id9) => {
-    if (byId[id9]) return byId[id9];
-    const rec9 = (s.exercises || []).find((x9) => x9 && x9.id === id9);
-    if (!rec9) return null;
-    /* the captured lift finishes under the plan it started on: targets from
-       its own last line, no chase invented, nothing quarantined */
-    const tgt9 = Array.isArray(rec9.last) && rec9.last.length ? rec9.last.slice(0, rec9.sets || rec9.last.length) : new Array(Math.max(1, rec9.sets || 1)).fill(0);
-    return { id: rec9.id, n: rec9.n, w: rec9.w, tgt: tgt9, note: "captured mid-session before the plan changed — it finishes under the plan it started on", isDebutNow: false, setup: rec9.setup, live: null, runway: null, prev: rec9.lastMeta || null };
+  const ex9 = capIds.map((id9) => {
+    let card9 = byId[id9];
+    if (!card9) {
+      const rec9 = (s.exercises || []).find((x9) => x9 && x9.id === id9);
+      if (!rec9) return null;
+      /* the captured lift finishes under the plan it started on: targets from
+         its own last line, no chase invented, nothing quarantined */
+      const tgt9 = Array.isArray(rec9.last) && rec9.last.length ? rec9.last.slice(0, rec9.sets || rec9.last.length) : new Array(Math.max(1, rec9.sets || 1)).fill(0);
+      card9 = { id: rec9.id, n: rec9.n, w: rec9.w, tgt: tgt9, note: "captured mid-session before the plan changed — it finishes under the plan it started on", isDebutNow: false, setup: rec9.setup, live: null, runway: null, prev: rec9.lastMeta || null };
+    }
+    const capN9 = dr.reps && Array.isArray(dr.reps[id9]) ? dr.reps[id9].length : null;
+    if (capN9 && Array.isArray(card9.tgt) && card9.tgt.length !== capN9) card9 = { ...card9, tgt: capN9 <= card9.tgt.length ? card9.tgt.slice(0, capN9) : [...card9.tgt, ...new Array(capN9 - card9.tgt.length).fill(0)] };
+    return card9;
   }).filter(Boolean);
   return ex9.length ? { ...base, ex: ex9, frozenIds: true } : base;
 }
@@ -1552,7 +1569,13 @@ const SPLIT_DATE = "2026-08-14";                     /* canonical insertion-effe
    exActive is the ONE predicate every projection consults; the raw record
    (sessionLog, history, receipts) is NEVER filtered by it. */
 function exActive(s, id) {
-  try { return !((s && s.retirements) || {})[id]; } catch (e) { return true; }
+  /* R9 fix-2: quarantine is a RECORD-level fact, not a register entry — see
+     patchV51's put(). Both projections answer here. */
+  try {
+    if (((s && s.retirements) || {})[id]) return false;
+    const e9 = ((s && s.exercises) || []).find((x9) => x9 && x9.id === id);
+    return !(e9 && e9.quarantined);
+  } catch (e) { return true; }
 }
 /* SPLIT item f — the plan register: { planGen, exOrder } merge as ONE unit.
    Normalization (idempotent, sweep-run, planGen 51 only): ruled sequences for
@@ -1567,6 +1590,16 @@ function canonicalizePlan(s) {
      down; only ruled-order enforcement is generation-gated. Deterministic, so
      both merge directions land deeply equal. */
   if (!s) return s;
+  /* R9 fix-2 — LEGACY HEALER: round-1 code wrote quarantine into the athlete
+     register (s.retirements, key-union merged — the poison vector). Restate
+     the same fact onto the record and clear the register entry, so no state
+     that passed through round-1 bytes can keep poisoning merges. */
+  for (const [idQ, vQ] of Object.entries(s.retirements || {})) {
+    if (String(vQ).indexOf("invalid:") !== 0) continue;
+    const eQ = (s.exercises || []).find((x9) => x9 && x9.id === idQ);
+    if (eQ && !eQ.quarantined) eQ.quarantined = vQ;
+    delete s.retirements[idQ];
+  }
   /* FIX split-1 (P1-2/P1-8) — tombstone cleanup reruns at every boundary: a
      stale replica whose copy of a retired lift wins the wholesale per-lift
      merge cannot restore the standards the retirement already swept. The
@@ -1741,6 +1774,144 @@ function beatsNoise(s, exId, reps, prev) {
   return { clear: margin >= need, te, margin, need, n };
 }
 
+/* R13 fix-2 — TRANSITION RECONCILIATION, NOT RECEIPT DEDUPE. Post-merge, a
+   lift's current (split-born) era is re-derived from the UNION log by folding
+   the era's sessions chronologically through the SAME earn walk the serial
+   run uses: session 1 is era-fresh and banks nothing; every later session
+   banks its sighting/earn exactly as the serial run would have — two devices
+   that each ran an "era session 1" offline converge to one debut and a
+   session-two treatment for the chronologically later one. The engine may not
+   be more conservative than its merged data. Deterministic fold from the
+   union log = identical from both merge directions, and idempotent (a serial
+   single-device state re-folds to itself; receipts are title- and op-guarded;
+   queue earns are guarded by the walk's own already-queued check).
+   KNOWN NARROWING, on the record: the fold reads en.rir for the hot-opener
+   arm and the LIVE holdFlag — a holdFlag that differed mid-era on one device
+   is not reconstructed. */
+function reconcileEraTransitions(s) {
+  try {
+    for (const ex of ((s && s.exercises) || [])) {
+      if (!ex || !Array.isArray(ex.forks) || !ex.forks.length) continue;
+      const lastFk = ex.forks[ex.forks.length - 1];
+      if (!(lastFk && lastFk.split && lastFk.from)) continue;
+      const days = Object.keys(s.sessionLog || {}).filter((d) => d >= lastFk.from && (((s.sessionLog[d] || {}).entries) || []).some((e) => e && e.id === ex.id)).sort();
+      if (days.length < 2) continue;
+      ex.topAt = null; ex.topRun = 0;   /* the fold owns the era's sighting record */
+      for (let i = 1; i < days.length; i++) {
+        const en = (((s.sessionLog[days[i]] || {}).entries) || []).find((e) => e && e.id === ex.id);
+        const prevEn = (((s.sessionLog[days[i - 1]] || {}).entries) || []).find((e) => e && e.id === ex.id);
+        if (!en || !Array.isArray(en.reps) || !en.reps.length) continue;
+        const r = en.reps.map((x) => Number(x) || 0);
+        try {
+          /* the walk runs against a per-session PROJECTION (the load and slot
+             count the session was actually performed at); only the sighting
+             record folds back. No live field is reassigned, so the stamp
+             discipline holds by construction. */
+          const exR = { ...ex, w: (typeof en.w === "number" ? en.w : ex.w), sets: r.length || ex.sets };
+          if (typeof exR.w === "number" && atTopOfWindow(r, exR)) {
+            const lines9 = [];
+            earnWalk(s, exR, en, r, prevEn ? { w: prevEn.w, reps: prevEn.reps } : null, (t9, how9) => lines9.push({ t: t9, how: how9 }));
+            for (const l9 of lines9) {
+              if ((s.feed || []).some((f9) => f9 && f9.t === l9.t)) continue;   /* the serial device already told this story */
+              const op9 = "replay:" + days[i] + ":" + ex.id + ":" + String(l9.t).slice(0, 32);
+              if ((s.feed || []).some((f9) => f9 && f9.op === op9)) continue;
+              s.feed.unshift({ d: days[i], t: l9.t, how: l9.how, op: op9 });
+            }
+          } else if (typeof exR.w === "number" && String(exR.topAt) === String(exR.w)) exR.topRun = 0;   /* falling off the top resets the run, exactly as the walk does */
+          /* CONSUMPTION: when the queue already holds the non-proposed debut
+             this sighting run would earn (minted serially, or by an earlier
+             fold), the earn is a FACT and the walk's own zeroing already
+             happened on the device that minted it — the fold consumes the run
+             the same way, or a self-merge would resurrect a spent sighting. */
+          const upC = typeof exR.w === "number" ? nextLoad(exR) : null;
+          if (upC != null && (s.queue || []).some((q9) => q9 && q9.exId === ex.id && q9.kind === "debut" && q9.state !== "PROPOSED" && String(q9.newW) === String(upC))) { exR.topAt = null; exR.topRun = 0; }
+          ex.topAt = exR.topAt; ex.topRun = exR.topRun;
+        } catch (e9) {}
+      }
+    }
+    /* THE ADOPTION STORY CONVERGES: the kept (earliest) adopt receipt names
+       its load; when the stamped config ended elsewhere (a second device
+       adopted a different first load offline), the transition is told once,
+       in the CAGE register the serial run would have used. */
+    for (const f of (s.feed || []).slice()) {
+      if (!(f && f.op && String(f.op).indexOf("adopt:") === 0 && typeof f.w === "number")) continue;
+      const idA = String(f.op).slice(6);
+      const eA = (s.exercises || []).find((x9) => x9 && x9.id === idA);
+      if (!eA || typeof eA.w !== "number" || eA.w === f.w) continue;
+      const tA = eA.n.toUpperCase() + " — LOGGED AT " + eA.w + " (plan said " + f.w + ")";
+      const opA = "adoptshift:" + idA + ":" + eA.w;
+      if ((s.feed || []).some((x9) => x9 && (x9.t === tA || x9.op === opA))) continue;
+      s.feed.unshift({ d: String(eA.wAt || "").slice(0, 10) || (Object.keys(s.sessionLog || {}).sort().pop() || ""), t: tA, how: "Reality outranks the filed plan: two devices adopted different first loads offline; the newer stamp holds the working load, and the story reconciles here. Every session stays on the record at the load it was lifted.", op: opA });
+    }
+  } catch (e) {}
+  return s;
+}
+
+/* R13 fix-2 — THE ONE EARN WALK. completeSession's two at-top arms, extracted
+   verbatim so the post-merge era reconciliation replays EXACTLY the code the
+   serial run executes — equality with the serial oracle by construction, not
+   by imitation. Caller guarantees atTopOfWindow and a numeric ex.w. */
+function earnWalk(s, ex, en, r, prevMeta, push) {
+  const upNext = nextLoad(ex);
+  if (upNext == null) {
+      const topRun0 = String(ex.topAt) === String(ex.w) ? (ex.topRun || 0) + 1 : 1;
+      ex.topAt = ex.w; ex.topRun = topRun0;
+      if (!loadRungs(ex)) push(ex.n.toUpperCase() + " — TOP OF WINDOW, NO NEXT LOAD ON FILE", ex.w + "×" + r.join(",") + " tops the window (sighting " + topRun0 + " banked). No next weight is on file for this machine — answer the next-load ask and this sighting already counts toward the earn.");
+    }
+  if (upNext != null) {
+      /* R18 fix — PROPOSED items neither block the classic earn nor survive it: an
+         untapped offer is superseded the moment the two-for-two law earns the same
+         lift's debut properly. Consent stays with the tap; the floor stays automatic. */
+      const already = s.queue.some((x) => x.exId === ex.id && !x.done && x.kind === "debut" && x.state !== "PROPOSED");
+      /* Two-for-two, from measurement error rather than sleep. Topping the rep
+         window once at a given load can be a good day: Mitter 2022 puts a single
+         set's prediction error at 0.9-1.4 reps, and his own repeats put it at
+         0.75, so the last rep of a window is routinely inside the noise. Two
+         sightings at the same load is the ACSM rule (Ratamess 2009) and is the
+         only published precedent — applied there, as here, with no readiness
+         qualifier. The escape hatch is size: a session that clears the previous
+         line by two standard errors of the session total is not a good day, it
+         is a different capacity, and it banks on the spot. */
+      /* SIGHTING-WINDOW LAW (R18 fix round, ruled with Cowork): a sighting is a claim
+         about a specific window — any writer that moves ex.hi MUST reset topAt/topRun.
+         No live hi-writer exists today (only a frozen patch); the law binds the next one. */
+      const topRun = String(ex.topAt) === String(ex.w) ? (ex.topRun || 0) + 1 : 1;
+      ex.topAt = ex.w; ex.topRun = topRun;
+      const bn = beatsNoise(s, ex.id, r, (prevMeta && String(prevMeta.w) === String(en.w) && prevMeta.reps) || null);
+      const confirmed = topRun >= 2 || bn.clear;
+      if (en.rir === 0 || ex.holdFlag) {
+        if (!already) push(`${ex.n.toUpperCase()} — TOP OF WINDOW, BUT HOT`, `${r.join(",")} at RIR 0 — a grind is not an earn; repeat it honest and the load queues itself`);
+      } else if (confirmed && !already) {
+        ex.topRun = 0; ex.topAt = null;
+        /* R18d — THE JUMP SIZES ITSELF, but only where a measured ladder exists and only
+           as a PROPOSAL when it goes beyond today's behaviour. Terminal RIR (the failure
+           set's answer): 1-2 → one rung, exactly as before. ≥3 with a rung ladder → the
+           TWO-rung debut MAY be proposed — the athlete consents by tapping it, the
+           structural budget is untouched, and even-inc lifts keep today's behaviour
+           byte-identical. Never prescribe below what was delivered. */
+        const rirT9 = (() => { const a9 = Array.isArray(en.rirSets) ? en.rirSets : []; const v9 = a9.length ? a9[a9.length - 1] : null; return v9 != null ? v9 : (en.rirEnd != null ? en.rirEnd : null); })();
+        const rung2 = loadRungs(ex) && rirT9 != null && rirT9 >= 3 ? nextLoad(ex, upNext) : null;
+        const how = bn.clear && topRun < 2
+          ? `${ex.w}×${r.join(",")} — ${bn.margin} reps clear of last time, and two standard errors of the new-minus-old difference (both sessions carry error) is ${bn.need}. That is outside the noise, so it banks on one sighting.`
+          : `${ex.w}×${r.join(",")} — second session at the top of the window at this load. One is inside your ±${(typicalError(s, ex.id).reps).toFixed(2)}-rep spread; two is not.`;
+        s.queue.forEach((x) => { if (x.exId === ex.id && x.state === "PROPOSED" && !x.done) { x.done = true; x.state = "SUPERSEDED"; } });   /* the classic earn outranks any standing offer */
+        if (rung2 != null) s.queue.push({ id: `q_${ex.id}_${rung2}_2r`, kind: "debut", exId: ex.id, newW: rung2, done: false, rule: "Rides only on your tap — the single-rung debut queues automatically either way.", t: `${ex.n.toUpperCase()} ${rung2} — TWO-RUNG DEBUT PROPOSED`, state: "PROPOSED", gate: `Terminal set had ${rirT9} in reserve at the top of the window — the one-rung jump underprices what was delivered. Your call: this rides only if you tap it, and the ${upNext} single-rung debut queues either way.` });
+        s.queue.push({ id: `q_${ex.id}_${upNext}`, kind: "debut", exId: ex.id, newW: upNext, t: `${ex.n.toUpperCase()} ${upNext} DEBUT`, state: "DEBUT", gate: `Earned via ${ex.w}×${r.join(",")}`, rule: "Auto-queued — runs when it wins the structural slot", done: false });
+        push(`${ex.n.toUpperCase()} ${upNext} EARNED`, how + (loadRungs(ex) ? " Next rung this machine makes." : " Confirm the rung: does this machine actually make " + upNext + " next? If not, fix the ladder in SETUP (uneven ✎) before the debut."));   /* R18c — the EARNED banner asks for rung confirmation where no ladder is on file */
+      } else if (!already) {
+        /* R18d AMENDMENT (Joe's ruling, 2026-08-10): at the top of the window with the
+           terminal set reporting ≥2 in reserve, ONE sighting may earn — as a PROPOSAL.
+           The two-for-two law stands for the automatic queue; this arm only offers, and
+           only when the athlete's own terminal answer says the top was not a grind. */
+        const rirT8 = (() => { const a9 = Array.isArray(en.rirSets) ? en.rirSets : []; const v9 = a9.length ? a9[a9.length - 1] : null; return v9 != null ? v9 : (en.rirEnd != null ? en.rirEnd : null); })();
+        if (rirT8 != null && rirT8 >= 2) {
+          s.queue.push({ id: `q_${ex.id}_${upNext}_1s`, kind: "debut", exId: ex.id, newW: upNext, done: false, rule: "Rides only on your tap — untapped, the two-for-two law runs as always.", t: `${ex.n.toUpperCase()} ${upNext} — EARN PROPOSED OFF ONE SIGHTING`, state: "PROPOSED", gate: `${ex.w}×${r.join(",")} tops the window with ${rirT8} in reserve on the failure set. One sighting is inside your own spread, so the automatic earn still waits for the second — but an honest top with reps in reserve is your call to take early. Tap it and ${upNext} debuts; skip it and the two-for-two law runs as always.` });
+        }
+        const te = typicalError(s, ex.id);
+        push(`${ex.n.toUpperCase()} — TOP OF WINDOW, PROVISIONAL`, `${r.join(",")} tops the window${bn.margin > 0 ? `, ${bn.margin} rep${bn.margin === 1 ? "" : "s"} up on last time` : ""} — but your own set-to-set spread is ±${te.reps.toFixed(2)} reps (${te.src}), so one sighting cannot be told apart from a good day. Repeat it and the load queues itself. Sleep does not enter into it.`);
+      }
+  }
+}
 function completeSession(state, iso, entries, slp, extras = {}) {
   /* SPLIT items h + i — every booked entry carries its provenance: wKey (the
      config string it was performed under, for non-numeric configs) and og (the
@@ -1757,7 +1928,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
   const s = JSON.parse(JSON.stringify(state));
   const lines = [];
   let dipCount = 0;
-  const push = (t, how, op9) => lines.push({ t, how, ...(op9 ? { op: op9 } : {}) });   /* FIX split-1 (P1-8): once-per-operation receipts carry their op id into the feed */
+  const push = (t, how, op9, w9) => lines.push({ t, how, ...(op9 ? { op: op9 } : {}), ...(w9 != null ? { w: w9 } : {}) });   /* FIX split-1 (P1-8): once-per-operation receipts carry their op id into the feed; R13 fix-2: the adopt receipt carries its LOAD so the merged story can reconcile */
   const debtTag = slp.clean ? "" : " · short sleep, logged as such";
   const qFind = (pred) => s.queue.find(pred);
 
@@ -1873,7 +2044,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
        blank-load completion does not consume adoption. */
     if (typeof en.w === "number" && ex.w == null) {
       ex.w = en.w; ex.wAt = new Date().toISOString();
-      push(`${ex.n.toUpperCase()} — LOAD ADOPTED AT ${en.w}`, "First completed load under the new lift: " + en.w + " is the working load now; targets build from what this session gives.", "adopt:" + ex.id);   /* FIX split-1 (P1-8): op-keyed — post-merge, exactly ONE debut receipt survives (the earliest), and the other session reconciles to session two */
+      push(`${ex.n.toUpperCase()} — LOAD ADOPTED AT ${en.w}`, "First completed load under the new lift: " + en.w + " is the working load now; targets build from what this session gives.", "adopt:" + ex.id, en.w);   /* FIX split-1 (P1-8): op-keyed — post-merge, exactly ONE debut receipt survives (the earliest), and the other session reconciles to session two */
     } else if (typeof en.w === "number" && typeof ex.w === "number" && en.w !== ex.w) {
       const r0 = loadRungs(ex);
       if (r0 && r0.indexOf(en.w) < 0) ex.steps = [...new Set([...r0, en.w])].sort((a9, b9) => a9 - b9);
@@ -1905,64 +2076,8 @@ function completeSession(state, iso, entries, slp, extras = {}) {
        hack sighting was never banked — demanding two NEW ones later would prescribe
        below what was delivered. The earn itself still waits for a load to earn INTO;
        the RECORD of having topped the window does not. */
-    if (atTop && typeof ex.w === "number" && upNext == null) {
-      const topRun0 = String(ex.topAt) === String(ex.w) ? (ex.topRun || 0) + 1 : 1;
-      ex.topAt = ex.w; ex.topRun = topRun0;
-      if (!loadRungs(ex)) push(ex.n.toUpperCase() + " — TOP OF WINDOW, NO NEXT LOAD ON FILE", ex.w + "×" + r.join(",") + " tops the window (sighting " + topRun0 + " banked). No next weight is on file for this machine — answer the next-load ask and this sighting already counts toward the earn.");
-    }
-    if (atTop && typeof ex.w === "number" && upNext != null) {
-      /* R18 fix — PROPOSED items neither block the classic earn nor survive it: an
-         untapped offer is superseded the moment the two-for-two law earns the same
-         lift's debut properly. Consent stays with the tap; the floor stays automatic. */
-      const already = s.queue.some((x) => x.exId === ex.id && !x.done && x.kind === "debut" && x.state !== "PROPOSED");
-      /* Two-for-two, from measurement error rather than sleep. Topping the rep
-         window once at a given load can be a good day: Mitter 2022 puts a single
-         set's prediction error at 0.9-1.4 reps, and his own repeats put it at
-         0.75, so the last rep of a window is routinely inside the noise. Two
-         sightings at the same load is the ACSM rule (Ratamess 2009) and is the
-         only published precedent — applied there, as here, with no readiness
-         qualifier. The escape hatch is size: a session that clears the previous
-         line by two standard errors of the session total is not a good day, it
-         is a different capacity, and it banks on the spot. */
-      /* SIGHTING-WINDOW LAW (R18 fix round, ruled with Cowork): a sighting is a claim
-         about a specific window — any writer that moves ex.hi MUST reset topAt/topRun.
-         No live hi-writer exists today (only a frozen patch); the law binds the next one. */
-      const topRun = String(ex.topAt) === String(ex.w) ? (ex.topRun || 0) + 1 : 1;
-      ex.topAt = ex.w; ex.topRun = topRun;
-      const bn = beatsNoise(s, ex.id, r, (prevMeta && String(prevMeta.w) === String(en.w) && prevMeta.reps) || null);
-      const confirmed = topRun >= 2 || bn.clear;
-      if (en.rir === 0 || ex.holdFlag) {
-        if (!already) push(`${ex.n.toUpperCase()} — TOP OF WINDOW, BUT HOT`, `${r.join(",")} at RIR 0 — a grind is not an earn; repeat it honest and the load queues itself`);
-      } else if (confirmed && !already) {
-        ex.topRun = 0; ex.topAt = null;
-        /* R18d — THE JUMP SIZES ITSELF, but only where a measured ladder exists and only
-           as a PROPOSAL when it goes beyond today's behaviour. Terminal RIR (the failure
-           set's answer): 1-2 → one rung, exactly as before. ≥3 with a rung ladder → the
-           TWO-rung debut MAY be proposed — the athlete consents by tapping it, the
-           structural budget is untouched, and even-inc lifts keep today's behaviour
-           byte-identical. Never prescribe below what was delivered. */
-        const rirT9 = (() => { const a9 = Array.isArray(en.rirSets) ? en.rirSets : []; const v9 = a9.length ? a9[a9.length - 1] : null; return v9 != null ? v9 : (en.rirEnd != null ? en.rirEnd : null); })();
-        const rung2 = loadRungs(ex) && rirT9 != null && rirT9 >= 3 ? nextLoad(ex, upNext) : null;
-        const how = bn.clear && topRun < 2
-          ? `${ex.w}×${r.join(",")} — ${bn.margin} reps clear of last time, and two standard errors of the new-minus-old difference (both sessions carry error) is ${bn.need}. That is outside the noise, so it banks on one sighting.`
-          : `${ex.w}×${r.join(",")} — second session at the top of the window at this load. One is inside your ±${(typicalError(s, ex.id).reps).toFixed(2)}-rep spread; two is not.`;
-        s.queue.forEach((x) => { if (x.exId === ex.id && x.state === "PROPOSED" && !x.done) { x.done = true; x.state = "SUPERSEDED"; } });   /* the classic earn outranks any standing offer */
-        if (rung2 != null) s.queue.push({ id: `q_${ex.id}_${rung2}_2r`, kind: "debut", exId: ex.id, newW: rung2, done: false, rule: "Rides only on your tap — the single-rung debut queues automatically either way.", t: `${ex.n.toUpperCase()} ${rung2} — TWO-RUNG DEBUT PROPOSED`, state: "PROPOSED", gate: `Terminal set had ${rirT9} in reserve at the top of the window — the one-rung jump underprices what was delivered. Your call: this rides only if you tap it, and the ${upNext} single-rung debut queues either way.` });
-        s.queue.push({ id: `q_${ex.id}_${upNext}`, kind: "debut", exId: ex.id, newW: upNext, t: `${ex.n.toUpperCase()} ${upNext} DEBUT`, state: "DEBUT", gate: `Earned via ${ex.w}×${r.join(",")}`, rule: "Auto-queued — runs when it wins the structural slot", done: false });
-        push(`${ex.n.toUpperCase()} ${upNext} EARNED`, how + (loadRungs(ex) ? " Next rung this machine makes." : " Confirm the rung: does this machine actually make " + upNext + " next? If not, fix the ladder in SETUP (uneven ✎) before the debut."));   /* R18c — the EARNED banner asks for rung confirmation where no ladder is on file */
-      } else if (!already) {
-        /* R18d AMENDMENT (Joe's ruling, 2026-08-10): at the top of the window with the
-           terminal set reporting ≥2 in reserve, ONE sighting may earn — as a PROPOSAL.
-           The two-for-two law stands for the automatic queue; this arm only offers, and
-           only when the athlete's own terminal answer says the top was not a grind. */
-        const rirT8 = (() => { const a9 = Array.isArray(en.rirSets) ? en.rirSets : []; const v9 = a9.length ? a9[a9.length - 1] : null; return v9 != null ? v9 : (en.rirEnd != null ? en.rirEnd : null); })();
-        if (rirT8 != null && rirT8 >= 2) {
-          s.queue.push({ id: `q_${ex.id}_${upNext}_1s`, kind: "debut", exId: ex.id, newW: upNext, done: false, rule: "Rides only on your tap — untapped, the two-for-two law runs as always.", t: `${ex.n.toUpperCase()} ${upNext} — EARN PROPOSED OFF ONE SIGHTING`, state: "PROPOSED", gate: `${ex.w}×${r.join(",")} tops the window with ${rirT8} in reserve on the failure set. One sighting is inside your own spread, so the automatic earn still waits for the second — but an honest top with reps in reserve is your call to take early. Tap it and ${upNext} debuts; skip it and the two-for-two law runs as always.` });
-        }
-        const te = typicalError(s, ex.id);
-        push(`${ex.n.toUpperCase()} — TOP OF WINDOW, PROVISIONAL`, `${r.join(",")} tops the window${bn.margin > 0 ? `, ${bn.margin} rep${bn.margin === 1 ? "" : "s"} up on last time` : ""} — but your own set-to-set spread is ±${te.reps.toFixed(2)} reps (${te.src}), so one sighting cannot be told apart from a good day. Repeat it and the load queues itself. Sleep does not enter into it.`);
-      }
-    } else {
+    if (atTop && typeof ex.w === "number") earnWalk(s, ex, en, r, prevMeta, push);   /* R13 fix-2 — the ONE walk; the replay calls the same function */
+    if (!(atTop && typeof ex.w === "number" && upNext != null)) {
       if (!atTop && typeof ex.w === "number" && String(ex.topAt) === String(ex.w)) { ex.topRun = 0; }   /* R18b — reset only on falling OFF the top; a no-next-load sighting banked above must survive this line */
       /* R20b ruling (audit low note, ruled at merge): a lift with NO history grades every
          slot as graced — DEBUT-consistent — but TARGET MET would overclaim: no line
@@ -2000,7 +2115,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
       if (!dup) s.feed.unshift({ d: iso, t: nTitle, how: `${j} has been flagged after ${c} sessions inside three weeks. Nothing changes automatically — a recurring niggle is information for you and your coach, and the pattern is the point: one sore day is a day, three is a signal.` });
     }
   });
-  lines.forEach((l) => s.feed.unshift({ d: iso, t: l.t, how: l.how, ...(l.op ? { op: l.op } : {}) }));
+  lines.forEach((l) => s.feed.unshift({ d: iso, t: l.t, how: l.how, ...(l.op ? { op: l.op } : {}), ...(l.w != null ? { w: l.w } : {}) }));
   return { s, lines };
 }
 
@@ -5691,7 +5806,7 @@ function sessionDebrief(s, iso) {
          history (and off the frozen words). The lift's own name rides the line
          so the must-differ debrief law holds when several lifts qualify. */
       const pinBorn = exL && exL.setupAt ? String(exL.setupAt).slice(0, 10) : null;
-      if (((fkL && iso >= fkL) || (!fkL && exL && pinsUnfilled(exL) > 0)) && (!pinBorn || iso >= pinBorn)) {
+      if (((fkL && iso >= fkL) || (!fkL && exL && (pinsUnfilled(exL) > 0 || exL.calibratedAt))) && (!pinBorn || iso >= pinBorn)) {   /* R11 fix-2: history KEEPS its provisional status after the pins fill — the stamp (calibratedAt) holds the boundary once it exists; live pins gate only the stampless interim */
         const calL = exL && exL.calibratedAt ? String(exL.calibratedAt).slice(0, 10) : null;
         const hasPinsL = pinsUnfilled(exL) > 0;
         if (calL ? iso < calL : hasPinsL) lines.push({ k: "note", t: name + " logged before calibration — kept on the record, counted as provisional until its machine settings are pinned." });
@@ -7883,7 +7998,7 @@ function programmeVolume(s) {
     const sets = +by[mg].toFixed(1);
     const zone = sets < VOL_BANDS.floor ? "UNDER" : sets < VOL_BANDS.lo ? "LOW" : sets <= VOL_BANDS.hi ? "IN-BAND" : sets <= VOL_BANDS.ceil ? "HIGH" : "OVER";
     const tier = sets <= 10 ? "highest return per set" : sets <= 18 ? "intermediate return" : "lowest return";
-    const lifts = (s.exercises || []).filter((x) => (x.head || x.mg) === mg);
+    const lifts = (s.exercises || []).filter((x) => exActive(s, x.id) && (x.head || x.mg) === mg);   /* R6 fix-2: the candidate REBUILD projects through exActive too — the totals filter alone still let tombstoned pronated re-enter lifts[] and become a routing target */
     /* A bucket fed only by what compounds lend has no exercise to add sets to,
        so it cannot be the subject of a volume recommendation — the anterior delt
        here is pressing, and the honest lever on it is the press. */
@@ -8285,7 +8400,7 @@ function volumePush(s) {
   const skips = [];
   const picks = [];
   for (const m of cands) {
-    const lifts = (m.lifts || []).map((x) => (s.exercises || []).find((e) => e && e.id === x.id)).filter(Boolean);
+    const lifts = (m.lifts || []).map((x) => (s.exercises || []).find((e) => e && e.id === x.id)).filter((e) => e && exActive(s, e.id));   /* R6 fix-2: consumption re-projects — belt and braces with the rebuild filter */
     const direct = lifts.filter((e) => typeof e.w === "number");
     if (!direct.length) { skips.push({ mg: m.mg, why: "trend-blind — its only lift carries a non-numeric load, so the delivery read is structurally impossible; effort lives there, measurement does not" }); continue; }
     const ex = direct.reduce((a, b) => (((a.sets || 0) <= (b.sets || 0)) ? a : b));
@@ -8848,7 +8963,7 @@ function runAdaptive(state, todayISO, raOpts) {
       ["hipthrust", ["extension", "ham", "abs", "hanging", "calves"], "hip thrust inserted upstream"],
     ];
     for (const [newId, affected] of INSERTION_FORKS) {
-      if (!(s.exercises || []).some((x) => x && x.id === newId)) continue;
+      if (!(s.exercises || []).some((x) => x && x.id === newId && exActive(s, x.id))) continue;   /* R9 fix-2: a quarantined birth must not fire the runtime sweep either */
       /* FIX split-1 (P1-3): the registry stays as the fast-path, but it is no
          longer load-bearing — the ONE implementation is idempotent by ops
          identity and op-guarded receipts, so a re-fire adds zero, and an
@@ -9081,7 +9196,7 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
     s.feed.unshift({ d: today, t: "OFFER SUPERSEDED — " + String(p.title || p.rid).slice(0, 48), how: "The lift this card targets was retired; the card is preserved in history and closed without effect." });
     return s;
   }
-  if (p.apply && p.apply.kind === "sets" && s.planGen != null && (p.pg != null ? p.pg : 0) < s.planGen) {
+  if (p.apply && p.apply.kind === "sets" && !p.apply.owner && s.planGen != null && (p.pg != null ? p.pg : 0) < s.planGen) {   /* R4 fix-2: an owner's-call card carries Joe's ask, not the chooser's routing — it is not order-derived and never dies of a generation */
     p.resolved = true; p.superseded = true;
     s.feed.unshift({ d: today, t: "OFFER SUPERSEDED — " + String(p.title || p.rid).slice(0, 48), how: "This card was derived from an earlier plan generation; the plan has since changed, so it closes without effect. Anything still earned re-files under the current plan." });
     return s;
@@ -9271,7 +9386,7 @@ function applyAgentProposal(state, ap, tISO) {
       s0.feed.unshift({ d: tISO, t: "OFFER SUPERSEDED — " + (ap.title || ap.exId), how: "The lift this proposal targets was retired by the split ruling; the offer is preserved in history and closed without effect." });
       return s0;
     }
-    const apOrder9 = ap && (ap.kind === "volume" || ap.kind === "reset");
+    const apOrder9 = ap && ap.kind === "volume";   /* R4 fix-2: a RESET is stall-derived, not order-derived — sweepStalls never consults the order, so a legitimate reset must survive the plan changing under it */
     const apPg9 = ap && ap.pg != null ? ap.pg : (apOrder9 ? 0 : null);   /* FIX split-1 (P0-4): a pg-ABSENT order-derived offer is pre-51 by construction — "rejects only a non-null older generation" was the hole */
     if (ap && apPg9 != null && state && state.planGen != null && apPg9 < state.planGen) {
       const s0 = JSON.parse(JSON.stringify(state));
@@ -9966,23 +10081,26 @@ function patchV51(s) {
     const have = exs.find((x) => x && x.id === spec.id);
     if (have) {
       /* FIX split-1 (P1-4): never trust a pre-existing object wearing the new
-         id. Compatibility is judged on what the object BROUGHT — the closure
-         matrix caught the first cut judging AFTER the fill, which manufactured
-         validity for a bare hostile fragment. Compatible → FILL-ONLY repair
-         (ruled fields land where absent; athlete-shaped fields untouched).
-         Incompatible → repaired for shape but preserved-INACTIVE: a malformed
-         {id:"fly",day:"U"} must not walk. */
+         id. Compatibility is judged on what the object BROUGHT. Compatible →
+         FILL-ONLY repair. Incompatible → repaired for shape but INACTIVE.
+         R9 fix-2: the marker rides the RECORD, never s.retirements — the
+         athlete tombstone register is key-union merged, so one corrupt replica
+         would have retired every healthy device's valid fly FOREVER. On the
+         record, the wholesale per-lift merge lets a healthy replica's valid
+         copy simply win. An invalid birth also returns false so the caller
+         fires NO seams, insertion markers or FRESH BASELINE receipts. */
       const wasValid = bornValid(have);
       for (const k of Object.keys(spec)) { if (have[k] == null) have[k] = spec[k]; }
-      if (!wasValid) { s.retirements = { ...(s.retirements || {}), [spec.id]: "invalid:" + "2026-08-12" }; }
-      return;
+      if (!wasValid) { have.quarantined = "invalid:" + "2026-08-12"; return false; }
+      return true;
     }
     const i = exs.findIndex((x) => x && x.id === afterId);
     exs.splice(i < 0 ? exs.length : i + 1, 0, spec);
+    return true;
   };
-  put({ id: "fly", mg: "chest", n: "Machine fly", day: "U", w: null, wAt: EP, inc: 5, incAt: EP, sets: 2, setsAt: EP, hi: 20, hiAt: EP, last: null,
+  const flyBorn = put({ id: "fly", mg: "chest", n: "Machine fly", day: "U", w: null, wAt: EP, inc: 5, incAt: EP, sets: 2, setsAt: EP, hi: 20, hiAt: EP, last: null,
     setup: "SET · fly mode · seat [PIN] · start [PIN] · resistance profile [PIN]\nKeep back on pad and elbows at the same bend through your full pain-free range · open and close to the same endpoints—no bounce", setupAt: EP }, "press");
-  put({ id: "hipthrust", mg: "glutes", n: "Hip thrust machine", day: "L", w: null, wAt: EP, inc: 5, incAt: EP, sets: 3, setsAt: EP, hi: 12, hiAt: EP, last: null,
+  const htBorn = put({ id: "hipthrust", mg: "glutes", n: "Hip thrust machine", day: "L", w: null, wAt: EP, inc: 5, incAt: EP, sets: 3, setsAt: EP, hi: 12, hiAt: EP, last: null,
     setup: "SET · machine setting [PIN] · belt/pad landmark [PIN] · foot marks [PIN]\nUse your full pain-free hip range to the same depth and finish height · keep upper back on pad—do not arch the low back to finish", setupAt: EP }, "hack");
   /* THE RULING-WRITE RULE (item e): a target lands only where the field's stamp
      is absent or pre-epoch; an athlete's at-or-after-epoch word survives. Live
@@ -10022,14 +10140,16 @@ function patchV51(s) {
         const k9 = localStorage.key(i9);
         if (!k9 || (k9.indexOf("prep-ledger-draft-") !== 0 && k9.indexOf("prep-ledger-gymdraft-") !== 0)) continue;
         const dd = k9.slice(-10);
-        if (/^d{4}-d{2}-d{2}$/.test(dd) && bump(dd) > d0) d0 = bump(dd);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dd) && bump(dd) > d0) d0 = bump(dd);   /* R3(a) fix-2: round 1 shipped this as /^d{4}-…/ — the surgery script's template literal ate the backslashes and no date ever matched */
       }
     } catch (e9) {}
     return d0;
   })();
-  /* FIX split-1 (P1-3): the seams go through the ONE implementation */
-  applyInsertionSeams(s, "fly", ["pulldown", "rows", "rearDelt", "curl", "tricep", "sulek"], seamFrom);
-  applyInsertionSeams(s, "hipthrust", ["extension", "ham", "abs", "hanging", "calves"], seamFrom);
+  /* FIX split-1 (P1-3): the seams go through the ONE implementation.
+     R9 fix-2: an INVALID birth fires nothing — no seams, no registry marker,
+     no receipts; round 1 fired all eleven unconditionally. */
+  if (flyBorn) applyInsertionSeams(s, "fly", ["pulldown", "rows", "rearDelt", "curl", "tricep", "sulek"], seamFrom);
+  if (htBorn) applyInsertionSeams(s, "hipthrust", ["extension", "ham", "abs", "hanging", "calves"], seamFrom);
   /* FIX split-1 (P0-4) — the pending pre-split ORDER-DERIVED offers are swept
      with honest reasons: each proposed set counts through a chooser that
      reasoned about the plan this ruling replaced (7 volume offers on the live
@@ -10039,13 +10159,13 @@ function patchV51(s) {
   {
     const apKeep = [];
     for (const ap of (s.agentProposals || [])) {
-      if (ap && ap.pg == null && (ap.kind === "volume" || ap.kind === "reset")) {
+      if (ap && ap.pg == null && ap.kind === "volume") {   /* R4 fix-2: resets are stall-derived and survive; only the chooser's volume offers reasoned about the replaced plan */
         s.feed.unshift({ op: "supersede:" + (ap.id || ap.kind), d: "2026-08-12", t: "OFFER SUPERSEDED — " + String(ap.title || ap.kind).slice(0, 48), how: "This offer was derived from the pre-split plan — its set counts and its chooser both reasoned about an order this ruling replaced. It closes without effect; anything still earned re-files under the current plan on the next sweep." });
       } else apKeep.push(ap);
     }
     if (Array.isArray(s.agentProposals)) s.agentProposals = apKeep;
     for (const p of (s.proposals || [])) {
-      if (p && !p.resolved && p.pg == null && p.apply && p.apply.kind === "sets") {
+      if (p && !p.resolved && p.pg == null && p.apply && p.apply.kind === "sets" && !p.apply.owner) {   /* R4 fix-2: owner's-call decisions survive the migration sweep */
         p.resolved = true; p.superseded = true;
         s.feed.unshift({ op: "supersede:" + (p.rid || p.id), d: "2026-08-12", t: "OFFER SUPERSEDED — " + String(p.title || p.rid).slice(0, 48), how: "This card was derived from the pre-split plan; the ruling changed the plan it reasoned about, so it closes without effect. Anything still earned re-files under the current plan." });
       }
@@ -10323,7 +10443,7 @@ const GLOSSARY = {
   noise: ["Noise floor", "Your scale's day-to-day static, measured from your own deltas rather than assumed — the trend absorbs it so a single morning never moves a decision. Any single-morning move inside it is not information, and the app stamps it so."],
 };
 
-export const __test = { PATCHES, SCHEMA_V, applyAgentProposal, mergeState, exActive, canonicalizePlan, normalizePlan, applyInsertionSeams, sessionFromDraft, coarseLifts, muscleVolume, pickStructural, sweepStalls, forkFrom, forksOf, eraIdx, sameEra, nameAt, pinsUnfilled, forkExposures, ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, stepValue, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
+export const __test = { PATCHES, SCHEMA_V, applyAgentProposal, mergeState, exActive, programmeVolume, volumePush, reconcileEraTransitions, earnWalk, canonicalizePlan, normalizePlan, applyInsertionSeams, sessionFromDraft, coarseLifts, muscleVolume, pickStructural, sweepStalls, forkFrom, forksOf, eraIdx, sameEra, nameAt, pinsUnfilled, forkExposures, ciOf, LAB_MIN_N, tCrit, coFlagRate, bhFDR, twoTail, chanceWords, weightNoise, nextEvent, lastEvent, nextDow, nextMonthFirst, targetsFor, genSession, completeSession, runAdaptive, bfEst, currentRate, paceProjection, PACE_PROJ_WKS, readRecency, etaWeeks, migrate, applyProposal, undoRead, recoveryIndex, applyRead, observedTDEE, labAnalytics, shelfItems, debtLedger, liveRollups, weekDigest, theOneThing, owedNights, sleepSpanH, caffAt, medianSOL, lightsOutT, trendSeries, closeEvent, refeedBumps, weekReview, rirPlan, sessionDebrief, debriefWords, expDigest, writeDaily, captureAsk, readWindow, stepValue, sleepLab, labAnalytics2, labGroups, labDocket, labStatusList, labSections, prophetGrades, plainify, dayProtocol, trialProposals, trialArmOn, trialVerdict, activeTrial, dossierText, dossierData, pulseRead, tempRead, bodyAlarm, restFor, askContext, agentToolExec, trialTpl, kitLetter, dayWeather, weekWeather, sweepLab, isLabFeedLine, diaryFeed, GLOSSARY, anchorDexa, SEED, dayType, HISTORY, ROLLUPS };
 
 /* ---------- github self-filing (token never enters exportable state) ---------- */
 const TOKEN_KEY = "prep-ledger-ghtoken";
@@ -11612,6 +11732,13 @@ function mergeState(local, remote) {
       const other = w === r0 ? l0 : r0;
       if (!other) return w;
       let w2 = w;
+      /* R9 fix-2 — HEALTH BEATS QUARANTINE, direction-free: when exactly one
+         side's copy of a lift is quarantined, the unquarantined copy prevails
+         wholesale — a valid record existing anywhere proves the lift walkable,
+         and the wholesale winner must not smuggle the corrupt flag past it.
+         (The round's own closure pin caught this step designed but unwritten:
+         merge order decided whether the healthy fly survived.) */
+      if (w2.quarantined && !other.quarantined) w2 = { ...other };
       for (const [f9, at9] of STAMPED_FIELDS) {
         if (_isoOr(other[at9]) > _isoOr(w2[at9])) w2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };
         else if (_isoOr(other[at9]) !== "" && _isoOr(other[at9]) === _isoOr(w2[at9]) && JSON.stringify(other[f9]) > JSON.stringify(w2[f9])) w2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };   /* FIX split-1: equal stamps resolve by VALUE, direction-free — "local wins" flips with merge order */
@@ -11649,8 +11776,14 @@ function mergeState(local, remote) {
     });
   }
   /* FIX 3a — the insertion registry unions too: once fired anywhere, fired
-     everywhere, or a stale device would re-run the insertion sweep. */
-  out.insertions = { ...(remote.insertions || {}), ...(local.insertions || {}) };
+     everywhere, or a stale device would re-run the insertion sweep.
+     R8-rider fix-2: the DATE resolves earliest-wins (the first sighting of the
+     event), identically from both directions — it was local-wins on conflict. */
+  out.insertions = (() => {
+    const m9 = { ...(remote.insertions || {}) };
+    for (const [k9, v9] of Object.entries(local.insertions || {})) { if (!(k9 in m9) || String(v9) < String(m9[k9])) m9[k9] = v9; }
+    return m9;
+  })();
   const rn = (remote.sleep && remote.sleep.nights) || [], ln = (local.sleep && local.sleep.nights) || [];
   out.sleep = { ...(remote.sleep || {}), ...(local.sleep || {}), nights: _unionBy(rn, ln, (n) => n && n.d) };
   out.plan = _unionPlan(remote.plan, local.plan);   // v7.2.0 Slice 3 — goals/ifthen keyed-union + policy scalars newest-deliberate-wins (was wholesale local-wins)
@@ -11667,10 +11800,13 @@ function mergeState(local, remote) {
   /* SPLIT item d — the retirement register unions by key; absence never
      resurrects (a device that never learned the ruling contributes nothing). */
   out.retirements = { ...(remote.retirements || {}), ...(local.retirements || {}) };   // QUEUED #2 E — was riding the wholesale local-wins spread; an ordering needs newest-deliberate-wins + never-lose-a-lift
-  /* FIX split-1 (P0-5) — every merge boundary canonicalizes by construction:
-     the sync upload body, the 409 re-merge, the cloud restore and any future
-     caller all flow through here, so none can ship un-canonical seams. */
-  return canonicalizePlan(out);
+  /* R5 fix-2 (was P0-5) — every merge boundary NORMALIZES by construction:
+     seams canonicalize always, and ruled-ORDER enforcement runs exactly where
+     it is lawful (planGen 51 — a 52 custom order passes through unrepaired).
+     Round 1 returned through canonicalizePlan alone, so a poisoned 51 order
+     survived every merge and sync upload until the next sweep. */
+  reconcileEraTransitions(normalizePlan(out));
+  return out;
 }
 
 /* ---------- derived ---------- */
@@ -14901,7 +15037,21 @@ function LogTab({ s, setS, save, slp }) {
   const fileISO = fileAs || dateSel;
   /* §5 move 1 — was rebuilt on EVERY render, including every keystroke in the notes
      textarea and every stepper tap. slp is sleepInfo(s), so s is the only real input. */
-  const sess = useMemo(() => (dateSel && !s.sessionLog[dateSel] ? genSession(s, dateSel, slp) : null), [s, dateSel, slp]);
+  const sess = useMemo(() => {
+    if (!(dateSel && !s.sessionLog[dateSel])) return null;
+    const base9 = genSession(s, dateSel, slp);
+    /* R3(b) fix-2 — CLASSIC MODE routes through the frozen contract too: a live
+       draft owns its template in both modes, or the v51 order regenerates
+       around a mid-upgrade session and completes the wrong lifts. */
+    try {
+      const d9 = JSON.parse(localStorage.getItem("prep-ledger-draft-" + dateSel) || "null");
+      const gd9 = JSON.parse(localStorage.getItem("prep-ledger-gymdraft-" + dateSel) || "null");
+      const hasCap = (x9) => x9 && ((Array.isArray(x9.ids) && x9.ids.length) || (x9.reps && Object.keys(x9.reps).length));
+      const dr9 = hasCap(gd9) ? gd9 : hasCap(d9) ? d9 : null;
+      if (dr9) return sessionFromDraft(s, dateSel, slp, dr9, base9);
+    } catch (e9) {}
+    return base9;
+  }, [s, dateSel, slp]);
   /* §5 move 1 — liftCall traverses sessionLog x exercises and was called once per
      exercise per render, so a fifteen-lift page paid fifteen traversals for every
      keystroke in the notes textarea and every stepper tap. Computed once per state here.
@@ -14945,7 +15095,7 @@ function LogTab({ s, setS, save, slp }) {
       const m = mergeSessionDrafts(sess && sess.ex, d, gd);
       setReps(m.reps); setRir(m.rir); setRirEnd(m.rirEnd); setSkipped(m.skipped); setNote(d && d.note ? d.note : ""); setNig(d && d.nig ? d.nig : []); setPace(d && d.pace ? d.pace : null);
       setWIn(d && d.wIn ? d.wIn : {});
-      setCapPgT(d && d.pg != null ? d.pg : (gd && gd.pg != null ? gd.pg : (s.planGen || 0)));   /* FIX split-1 (P0-3) — a resumed draft restores ITS captured generation */
+      setCapPgT(d && d.pg != null ? d.pg : (gd && gd.pg != null ? gd.pg : ((d || gd) ? 50 : (s.planGen || 0))));   /* R3(c) fix-2 — a draft that EXISTS without provenance is pre-upgrade by construction: generation 50, the same rule the proposals follow. Only a fresh session (no draft at all) captures the current generation. */
     } catch (e) {}
   }, [dateSel]);
   useEffect(() => {
@@ -15033,7 +15183,7 @@ function LogTab({ s, setS, save, slp }) {
         const gSess = (() => {
           const base9 = (live9 && live9.iso !== dateSel ? genSession(s, live9.iso, slp) : sess) || sess;   /* v7.40.1 — R14: the tap may never mount NOTHING; an unresolvable draft date falls back to today's session */
           /* FIX split-1 (P0-3) — resume mounts the DRAFT'S frozen template */
-          return sessionFromDraft(s, live9 && live9.iso, slp, live9 && live9.dr, base9);
+          return sessionFromDraft(s, live9 && live9.iso, slp, live9, base9);   /* R3(b) fix-2: findGymDraft returns { ...draft, iso } — .dr never existed, so round 1's frozen mount was dead code in production */
         })();
         return gSess ? <GymMode s={s} setS={setS} save={save} slp={slp} sess={gSess} dateSel={gDate === dateSel ? fileISO : gDate} onClose={(lines) => { setGym(false); if (lines && lines.length) setRecap(lines); }} /> : null;
       })()}
@@ -15472,7 +15622,7 @@ function LogTab({ s, setS, save, slp }) {
                 onChange={(e9) => setWIn({ ...wIn, [ex.id]: e9.target.value })}
                 onBlur={(e9) => { const v9 = stepValue(e9.target.value, 0, 1, 0); setWIn({ ...wIn, [ex.id]: v9 || "" }); }}
                 style={{ fontFamily: mono, fontSize: 16, color: T.chalk, background: "none", border: "none", borderBottom: `1px dashed ${T.line}`, width: 64, textAlign: "center", padding: 0 }} />
-              <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>first completed load becomes the working weight — logged, stamped, adopted</span>
+              <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>{ex.w == null ? "first completed load becomes the working weight — logged, stamped, adopted" : "logs as lifted — the " + String(ex.w) + " config stays"}</span>
             </div>
           )}
           <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
@@ -16910,7 +17060,7 @@ function findGymDraft(s9) {
              draft falls back to the live template. */
           const tpl0 = Array.isArray(d.ids) && d.ids.length
             ? d.ids.filter((id9) => ((s9 && s9.exercises) || []).some((x9) => x9 && x9.id === id9))
-            : (() => { try { const g0 = genSession(s9, iso0); return g0 && g0.ex ? g0.ex.map((x) => x.id) : []; } catch (e) { return []; } })();
+            : ((s9 && s9.exercises) || []).map((x9) => x9 && x9.id).filter(Boolean);   /* R3 fix-2: a LEGACY draft validates against the RECORD (retired lifts included) — the frozen contract mounts its own capture, so mismatching the live template stopped being the failure mode */
           if (ids0.length && ids0.some((x) => tpl0.indexOf(x) < 0)) {
             try { localStorage.setItem("prep-ledger-gymdraft-orphan-" + iso0, JSON.stringify(d)); localStorage.removeItem(key); } catch (e) {}
             continue;
@@ -16924,7 +17074,8 @@ function findGymDraft(s9) {
            ZERO reps holds zero athlete data and is removed as noise. */
         if (d && s9) {
           const iso1 = key.slice("prep-ledger-gymdraft-".length);
-          const tplOk = (() => { try { return !!genSession(s9, iso1); } catch (e) { return false; } })();
+          const tplOk = (() => { try { return !!genSession(s9, iso1); } catch (e) { return false; } })()
+            || (Object.keys(d.reps || {}).length > 0 && Object.keys(d.reps || {}).every((id9) => ((s9 && s9.exercises) || []).some((x9) => x9 && x9.id === id9)));   /* R3 fix-2: a with-reps draft fully resolvable from the record mounts through the R14 fallback + frozen contract — only zero-data or unknown-id drafts fall to the belt */
           if (!tplOk) {
             try { if (Object.keys(d.reps || {}).length) { localStorage.setItem("prep-ledger-gymdraft-orphan-" + iso1, JSON.stringify(d)); } localStorage.removeItem(key); } catch (e) {}
             continue;
@@ -16996,7 +17147,7 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
   const [whyOpen9, setWhyOpen9] = useState(false);   /* M4 — the receipt stack's one disclosure */
   const gymKey = "prep-ledger-gymdraft-" + dateSel;
   useEffect(() => {
-    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { if (d.idx != null && sess && sess.ex && d.idx >= sess.ex.length) d.idx = Math.max(0, sess.ex.length - 1);   /* H1 */ setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.touched) setTouched(d.touched);   /* absent on a pre-TOUCH draft -> gymEntries falls back to gskip alone */ setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen); if (d.pg != null) setCapPg(d.pg); if (d.wOver) setWOver(d.wOver);   /* FIX split-1 (P0-3/P0-2) — the captured generation and the typed debut load both survive a mid-session close */
+    try { const d = JSON.parse(localStorage.getItem(gymKey) || "null"); if (d) { if (d.idx != null && sess && sess.ex && d.idx >= sess.ex.length) d.idx = Math.max(0, sess.ex.length - 1);   /* H1 */ setReps(d.reps || {}); setRir(d.rir || {}); setRirEnd(d.rirEnd || {}); setGskip(d.gskip || {}); if (d.touched) setTouched(d.touched);   /* absent on a pre-TOUCH draft -> gymEntries falls back to gskip alone */ setRests(d.rests || { n: 0, cut: 0 }); if (d.idx != null) setIdx(d.idx); if (d.setN != null) setSetN(d.setN); if (d.restStart != null) setRestStart(d.restStart); if (d.restLen != null) setRestLen(d.restLen); setCapPg(d.pg != null ? d.pg : 50); if (d.wOver) setWOver(d.wOver);   /* R3(c) fix-2 — an existing draft with no pg is pre-upgrade: 50, never the current generation */   /* FIX split-1 (P0-3/P0-2) — the captured generation and the typed debut load both survive a mid-session close */
       /* S4 — re-entry lands exactly where he left, through the resume law: mid-rest at the
          TRUE remaining; a stale ask auto-skips to null with the record showing unrecorded. */
       const rp9 = resumePhase(d, Date.now());
@@ -17314,16 +17465,16 @@ function GymMode({ s, setS, save, slp, sess, dateSel, onClose }) {
                 as the plan's 160 because no path could say what was actually lifted. A
                 weight actually lifted is ALWAYS loggable as lifted, on-ladder or off. */}
             <div style={{ ...tnum, fontSize: 14, color: DT.steel, marginTop: 3, display: "flex", alignItems: "baseline", gap: 6 }}>
-              {typeof ex.w === "number" ? (
-                <>
-                  <input value={wOver[ex.id] ?? ex.w} inputMode="decimal" aria-label="weight lifted"
-                    onFocus={(e) => { try { e.target.select(); } catch (err) {} }}
-                    onChange={(e) => setWOver({ ...wOver, [ex.id]: e.target.value })}
-                    onBlur={(e) => { let v9 = stepValue(e.target.value, 0, 1, 0); if (v9 !== 0 && typoKeep("weight", v9) === "abort") v9 = 0; setWOver({ ...wOver, [ex.id]: v9 === 0 ? ex.w : v9 }); markAdj(ex.id, 0); }}
-                    style={{ ...tnum, fontSize: 14, color: Number(wOver[ex.id] ?? ex.w) === Number(ex.w) ? DT.steel : DT.amber, background: "none", border: "none", borderBottom: "1px dashed " + DT.hairline2, width: 56, padding: 0 }} />
-                  <span>LB{ex.w == null ? (wOver[ex.id] != null && wOver[ex.id] !== "" && Number(wOver[ex.id]) > 0 ? " — first load, adopts on finish" : " — first session: enter the load you used") : (Number(wOver[ex.id] ?? ex.w) !== Number(ex.w) ? " — off-plan, logs as lifted" : "")}</span>
-                </>
-              ) : ex.w}
+              {/* R2 fix-2 — the input leaves the numeric gate: round 1 wrote the
+                  debut copy INSIDE typeof ex.w === "number", where ex.w == null is
+                  unreachable — a null-w fly rendered nothing at all. */}
+              {typeof ex.w !== "number" && ex.w != null ? <span>{String(ex.w)}</span> : null}
+              <input value={wOver[ex.id] ?? (typeof ex.w === "number" ? ex.w : "")} inputMode="decimal" aria-label="weight lifted"
+                onFocus={(e) => { try { e.target.select(); } catch (err) {} }}
+                onChange={(e) => setWOver({ ...wOver, [ex.id]: e.target.value })}
+                onBlur={(e) => { let v9 = stepValue(e.target.value, 0, 1, 0); if (v9 !== 0 && typoKeep("weight", v9) === "abort") v9 = 0; setWOver({ ...wOver, [ex.id]: v9 === 0 ? (typeof ex.w === "number" ? ex.w : "") : v9 }); markAdj(ex.id, 0); }}
+                style={{ ...tnum, fontSize: 16, color: (wOver[ex.id] == null || wOver[ex.id] === "" || Number(wOver[ex.id]) === Number(ex.w)) ? DT.steel : DT.amber, background: "none", border: "none", borderBottom: "1px dashed " + DT.hairline2, width: 56, padding: 0 }} />
+              <span>LB{ex.w == null ? (wOver[ex.id] != null && wOver[ex.id] !== "" && Number(wOver[ex.id]) > 0 ? " — first load, adopts on finish" : " — first session: enter the load you used") : (typeof ex.w !== "number" ? (wOver[ex.id] != null && wOver[ex.id] !== "" && Number(wOver[ex.id]) > 0 ? " — logs as lifted; the config stays" : "") : (Number(wOver[ex.id] ?? ex.w) !== Number(ex.w) ? " — off-plan, logs as lifted" : ""))}</span>
               {ex.isDebutNow ? " · FIRST RUN — log what it gives" : ""}
             </div>
             <div style={{ display: "flex", gap: 8, marginTop: 14 }}>

@@ -29,9 +29,11 @@ export function runClosureSF1(T, ok, readFileSync) {
     const fly = sessU.ex.find((x) => x.id === "fly");
     ok(!!(fly && fly.baselineAsk === true && fly.w == null && fly.tgt.every((x) => x === 0)),
       "CLOSURE 1a — the fly card is the DEBUT/BASELINE ASK: no chase targets fabricated from hi-2 (tgt [18,18] with no load path on 9e40815)");
-    const src1 = readFileSync("src/app.jsx", "utf8");
-    ok(src1.indexOf("LOAD USED (LB)") > -1 && src1.indexOf("first session: enter the load you used") > -1,
-      "CLOSURE 1b — BOTH session modes render a load entry for null-w configs (TRAIN's input + Gym Mode's CAGE copy; neither existed on 9e40815)");
+    /* CLOSURE 1b REPLACED (round-2 test law): the source-string search was a
+       named straw class — Sol's spot-execution proved the gym copy it matched
+       was dead code inside a numeric gate. The load-entry render is now proven
+       by tools/split-smoke.mjs, which types into the REAL mounted inputs in
+       both modes and finishes through the real handlers. */
     const r1 = T.completeSession(m, "2026-08-20", [{ id: "fly", reps: [14, 12], rir: 2, rirEnd: 1, w: 90 }], slp, { pg: m.planGen });
     const flyEx = r1.s.exercises.find((x) => x.id === "fly");
     const flyEn = (r1.s.sessionLog["2026-08-20"].entries || []).find((e) => e.id === "fly");
@@ -159,9 +161,18 @@ export function runClosureSF1(T, ok, readFileSync) {
     ok(JSON.stringify(sw52.exOrder.U) === JSON.stringify(g52.exOrder.U)
       && sw52.exercises.find((x) => x.id === "rows").forks.filter((f) => f.ops && f.ops.indexOf("ghost2 inserted upstream") > -1).length === 1,
       "CLOSURE 5d — at planGen 52 the custom order STANDS while seams still canonicalize (the whole pass stood down together on 9e40815)");
-    const srcB = readFileSync("src/app.jsx", "utf8");
-    ok(srcB.indexOf("return canonicalizePlan(out);") > -1,
-      "CLOSURE 5e — mergeState returns through canonicalizePlan, so the sync upload body, the 409 re-merge and the cloud restore are canonical BY CONSTRUCTION (ghSync uploaded raw merge output on 9e40815)");
+    /* CLOSURE 5e REPLACED (round-2 test law): the source-assert was the other
+       named straw class. The behavior itself: a poisoned planGen-51 order fed
+       through the REAL merge comes out ruled (order enforcement joined the
+       boundary in R5), while a planGen-52 custom order passes through. */
+    const pois = cl(m); pois.exOrder = { U: ["curl", "ghost9", "lateral"], L: pois.exOrder.L };
+    const mm5 = T.mergeState(cl(pois), cl(m));
+    ok(mm5.exOrder.U[0] === "lateral" && mm5.exOrder.U.indexOf("fly") > -1 && mm5.exOrder.U.indexOf("ghost9") > mm5.exOrder.U.indexOf("sulek"),
+      "CLOSURE 5e — a poisoned planGen-51 order through the REAL merge comes out RULED (unknowns preserved at the tail): order enforcement lives at the boundary, not only in the sweep");
+    const c52 = cl(m); c52.planGen = 52; c52.exOrder = { U: cl(m.exOrder.U).reverse(), L: c52.exOrder.L };
+    const mm52 = T.mergeState(cl(c52), cl(c52));
+    ok(JSON.stringify(mm52.exOrder.U) === JSON.stringify(c52.exOrder.U),
+      "CLOSURE 5e2 — and a planGen-52 custom order passes the same boundary unrepaired: the athlete's word outranks the ruling's order");
   });
 
   /* ---- CLOSURE 6 — migrated pronated through every generator/acceptor ---- */
@@ -189,8 +200,9 @@ export function runClosureSF1(T, ok, readFileSync) {
   /* ---- CLOSURE 7 — hostile ID, missing containers, patch rerun, equal-stamp ties ---- */
   t("CLOSURE 7", () => {
     const mBad = T.migrate(rawV50((s) => { s.exercises.push({ id: "fly", day: "U" }); }));
-    ok((mBad.retirements || {}).fly === "invalid:2026-08-12" && mBad.exercises.some((e) => e && e.id === "fly"),
-      "CLOSURE 7a — a malformed pre-existing {id:'fly',day:'U'} is preserved-but-INACTIVE via the shared validity predicate (the early return let it WALK on 9e40815)");
+    const badFly = mBad.exercises.find((e) => e && e.id === "fly");
+    ok(!!(badFly && badFly.quarantined === "invalid:2026-08-12") && !(mBad.retirements || {}).fly && T.exActive && T.exActive(mBad, "fly") === false,
+      "CLOSURE 7a (evolved by R9) — a malformed pre-existing {id:'fly',day:'U'} is preserved-but-INACTIVE via a RECORD-level marker, never the athlete tombstone register (key-union merged — one corrupt replica would have retired every healthy device's fly forever)");
     const mNf = T.migrate(rawV50((s) => { delete s.feed; }));
     ok(Array.isArray(mNf.feed) && mNf.feed.length > 0,
       "CLOSURE 7b — migration heals a missing feed container before any receipt lands");

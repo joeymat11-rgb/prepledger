@@ -4,6 +4,7 @@ import "./_fixed-now.mjs";
 import { readFileSync } from "node:fs";
 import { __test } from "../src/app.jsx";
 import { runClosureSF1 } from "./closure-sf1.mjs";
+import { runClosureSF2 } from "./closure-sf2.mjs";
 const { targetsFor, genSession, completeSession, runAdaptive, bfEst, migrate, SEED } = __test;
 let pass = 0, fail = 0;
 const ok = (cond, name) => { cond ? pass++ : fail++; console.log((cond ? "PASS" : "FAIL") + " — " + name); };
@@ -4339,8 +4340,12 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
     ok(JSON.stringify(UX({ U: ["a", "b"] }, { U: ["b", "a"] }).U) === JSON.stringify(["b", "a"]), "EXORDER — with neither side stamped, local still wins: no behaviour change for states that predate the stamp");
     ok(UX(null, { U: ["a"] }).U.length === 1 && UX({ U: ["a"] }, null).U.length === 1, "EXORDER — total: a missing side is not a crash");
 
-    // and through the real mergeState, both orders, with a second day key untouched
-    const mkO = (o) => { const st = clone(SEED); st.exOrder = o; return st; };
+    // and through the real mergeState, both orders, with a second day key untouched.
+    // R5 fix-2 evolution: a deliberate stamped reorder rides planGen >= 52 in
+    // production (the UI bumps the register on every reorder), and merge
+    // boundaries now enforce the ruled order at planGen 51 — so the fixture
+    // carries the register shape a real stamped reorder actually has.
+    const mkO = (o) => { const st = clone(SEED); st.exOrder = o; st.planGen = 52; return st; };
     const l1 = mkO({ U: ["b", "a"], L: ["x", "y"], setAt: { U: NEW } });
     const r1 = mkO({ U: ["a", "b"], L: ["x", "y"] });
     ok(JSON.stringify(__test.mergeState(l1, r1).exOrder.U) === JSON.stringify(["b", "a"]), "EXORDER — mergeState honours the stamp");
@@ -7973,7 +7978,7 @@ if (fail) process.exit(1);
   /* ---------- v7.40.1 — a dead draft can never hold the launcher (Joe, live, 12:25) ---------- */
   {
     const srcDD = readFileSync("src/app.jsx", "utf8");
-    ok(srcDD.indexOf("const tplOk = (() => { try { return !!genSession(s9, iso1); } catch (e) { return false; } })();") > -1 && srcDD.indexOf("if (Object.keys(d.reps || {}).length) { localStorage.setItem(\"prep-ledger-gymdraft-orphan-\" + iso1,") > -1, "v7.40.1 — a draft keyed to a template-null date never reaches the launcher: with banked reps it quarantines like any orphan, with ZERO reps it is removed as noise (it holds no athlete data). The empty draft had no ids to mismatch, so every earlier belt was blind to it");
+    ok(srcDD.indexOf("const tplOk = (() => { try { return !!genSession(s9, iso1); } catch (e) { return false; } })()") > -1 && srcDD.indexOf(".every((id9) => ((s9 && s9.exercises) || []).some((x9) => x9 && x9.id === id9)));") > -1 && srcDD.indexOf("if (Object.keys(d.reps || {}).length) { localStorage.setItem(\"prep-ledger-gymdraft-orphan-\" + iso1,") > -1, "v7.40.1 evolved by R3 fix-2 — a template-null-date draft whose reps ALL resolve from the record mounts through the frozen contract (the R14 fallback carries it); one with unknown ids quarantines with its reps preserved, and a ZERO-rep draft is removed as noise. The belt now keys on record-resolvability, not template shape");
     ok(srcDD.indexOf(": sess) || sess;   /* v7.40.1") > -1, "v7.40.1 — R14 at the gym door: the tap may never mount NOTHING — an unresolvable draft date falls back to today's session");
   }
 
@@ -9432,4 +9437,12 @@ if (fail) process.exit(1);
    the round report. See tools/closure-sf1.mjs for the tests. */
 runClosureSF1(__test, ok, readFileSync);
 console.log(`\nFINAL107: ${pass} passed, ${fail} failed`);
+if (fail) process.exit(1);
+
+/* ==================== SPLIT FIX-ROUND 2 · PRODUCTION-BOUNDARY CLOSURE (FINAL108) ====================
+   The eight repairs at real migrate/merge boundaries with observation-embedding
+   messages (the fail-first signatures). The UI legs live in tools/split-smoke.mjs
+   against the SHIPPED bundle. */
+runClosureSF2(__test, ok, readFileSync);
+console.log(`\nFINAL108: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
