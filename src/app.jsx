@@ -360,7 +360,7 @@ const APP_V = "7.53.4";
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 53;
+const SCHEMA_V = 54;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -10138,6 +10138,30 @@ function patchV45(s) {
   rule45("rows", 10, 9);
   s.v = 45; return s;
 }
+function patchV54(s) {
+  /* PER-ENTRY LOAD-CORRECTION PROVENANCE (leg 3). patchV52 amended the two
+     attested 2026-08-14 loads; the reconciler now keys on the ENTRY that was
+     amended rather than on the session's correction stamp, because the session
+     stamp is also written by skip corrections that change no load. This stamps
+     the two entries patchV52 changed, with the record's own correction instant
+     — a deterministic literal, and later than hack's pre-correction wAt
+     (21:52:54.838Z) by five minutes, which is what makes the adoption legal.
+     Absent-only, so it is idempotent; a device whose ledger never held the
+     session takes nothing.
+
+     THE RITUAL, permanently: a data patch that changes an entry's w stamps
+     that entry's wCorrAt in the same breath. The plan follows a corrected
+     load only when the correction says which load it corrected. */
+  const AT54 = "2026-08-14T21:57:13.968Z";
+  const rec54 = ((s && s.sessionLog) || {})["2026-08-14"];
+  if (rec54 && Array.isArray(rec54.entries)) {
+    for (const id54 of ["hack", "extension"]) {
+      const en54 = rec54.entries.find((e9) => e9 && e9.id === id54);
+      if (en54 && !en54.wCorrAt) en54.wCorrAt = AT54;
+    }
+  }
+  s.v = 54; return s;
+}
 function patchV53(s) {
   /* THE TERMINAL-SET AMENDMENT — owner attestation, 2026-08-14. The debrief
      asked: "2 lifts have no last-set rating (Prime abdominal crunch,
@@ -10216,6 +10240,10 @@ function patchV52(s) {
        deciding a progression he did not attest to.
      · it amends ONE date and TWO entries. Any other date, any other lift, and
        every other field of these two entries stay byte-identical. */
+  /* LEG 3 — THE RITUAL THIS PATCH SET THE PRECEDENT FOR: a patch that changes
+     an entry's w must also stamp that entry's wCorrAt, which is what the
+     load reconciler keys on. patchV54 does it for these two entries
+     retroactively; a future amendment does it inline. */
   const AMEND52 = [["hack", 190, 200], ["extension", 155, 160]];
   const rec52 = ((s && s.sessionLog) || {})["2026-08-14"];
   if (rec52 && Array.isArray(rec52.entries)) {
@@ -10526,7 +10554,7 @@ function patchV38(s) {
    defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
    no longer as the only wall between a bump and his history. The gate asserts the
    pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
-const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52], [53, patchV53]];
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52], [53, patchV53], [54, patchV54]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -10576,6 +10604,29 @@ function reconcileLiftCaches(s) {
   return healed;
 }
 
+/* FIX 3 (leg 3) — THE LOAD IS ALWAYS ON ITS OWN LADDER. w and steps resolve
+   INDEPENDENTLY (each on its own stamp), so a merge can recombine a load from
+   one replica with a ladder from another and land a working load that is not a
+   rung — executed both orders: adopted w 200 + an ask-card ladder
+   [...,190,210] with a newer stepsAt gave steps [160,170,180,190,210] beside
+   w 200, and snapLoad then reads the working load as 190. Stamps cannot fix
+   this: both sides are legitimately newer at what they wrote. So the invariant
+   is restored where the fields RECOMBINE, as a pure function of the resolved
+   pair — which is what makes both merge orders converge on the same answer.
+   Deliberately non-mutating: it returns a new record only when it repairs one,
+   so an untouched lift keeps object identity and no merge order can differ. */
+function ensureLoadOnLadder(ex) {
+  try {
+    if (!ex || typeof ex.w !== "number") return ex;
+    const r9 = loadRungs(ex);
+    if (!r9 || r9.indexOf(ex.w) > -1) return ex;
+    const steps9 = [...new Set([...r9, ex.w])].sort((a9, b9) => a9 - b9);
+    /* the ladder now carries a rung the load's own stamp vouches for, so the
+       ladder is at least as recent as the load: max(stepsAt, wAt). */
+    const later9 = String(ex.stepsAt || "") > String(ex.wAt || "") ? ex.stepsAt : ex.wAt;
+    return later9 == null ? { ...ex, steps: steps9 } : { ...ex, steps: steps9, stepsAt: later9 };
+  } catch (e) { return ex; }
+}
 /* PART A (v7.53.4) — THE PLAN FOLLOWS THE CORRECTED RECORD.
    completeSession's CAGE ("reality outranks the filed ladder") runs at
    COMPLETION only. An AMENDMENT writes the record afterwards, so it
@@ -10614,18 +10665,41 @@ function reconcileCorrectedLoads(s) {
       const lm = ex.lastMeta;
       if (!lm || !lm.d || typeof lm.w !== "number" || lm.w === ex.w) continue;   /* the equality guard IS the idempotence guard */
       const rec = log[lm.d];
-      const at = rec && rec.corr && typeof rec.corr === "object" && typeof rec.corr.at === "string" && isFinite(Date.parse(rec.corr.at)) ? rec.corr.at : null;
-      if (!at) continue;                                                /* only a CORRECTED record may lead the plan */
+      /* FIX 1 (leg 3) — THE GATE KEYS ON PER-ENTRY LOAD PROVENANCE, not the
+         session stamp. A session's corr is written by ✕ and ↩ too, which
+         change no load at all — so (executed) a deliberate editor set of hack
+         200 -> 190 at 09:00 followed by an UNRELATED un-skip at 10:00 made the
+         sweep re-adopt 200 over the athlete's own word, with a receipt claiming
+         the record said so. The session corr stays exactly what it is —
+         CORRECTION_MERGE ordering for the RECORD — and is no longer adoption
+         authority. Only an amendment that changed THIS ENTRY'S LOAD stamps
+         wCorrAt, so a skip-correction can never trigger an adoption again.
+         THE RITUAL, permanently: any future data patch that changes an entry's
+         w MUST stamp that entry's wCorrAt (see patchV54). */
+      const enC = rec && Array.isArray(rec.entries) ? rec.entries.find((e9) => e9 && e9.id === ex.id) : null;
+      const at = enC && typeof enC.wCorrAt === "string" && isFinite(Date.parse(enC.wCorrAt)) ? enC.wCorrAt : null;
+      if (!at) continue;                                                /* only a LOAD-corrected entry may lead the plan */
       if (!(at > String(ex.wAt || ""))) continue;                       /* absent wAt reads as the epoch and loses; a newer athlete edit wins */
       const from = ex.w;
       const rungs = loadRungs(ex);
-      if (rungs) { ex.steps = [...new Set([...rungs, lm.w])].sort((a9, b9) => a9 - b9); ex.stepsAt = at; }   /* merge, never erase — the ladder law. The LADDER stamp is the correction's own at, exactly like the load's: migrate-twice must stay byte-identical, and a wall-clock stamp here would break that. */
+      /* FIX 2 (leg 3) — THE STAMP NEVER MOVES BACKWARD. Writing the correction's
+         at unconditionally RESTAMPED a newer athlete ladder with an older date
+         (executed: an Aug-15 15:00 ladder restamped to Aug-14 21:57, after which
+         an OLDER 220-rung replica beat his own newer decision in the merge).
+         max(existing, at) — still a pure function of state, so migrate-twice
+         stays byte-identical. */
+      if (rungs) { ex.steps = [...new Set([...rungs, lm.w])].sort((a9, b9) => a9 - b9); ex.stepsAt = String(ex.stepsAt || "") > at ? ex.stepsAt : at; }   /* merge, never erase — the ladder law */
       ex.w = lm.w; ex.wAt = at;                                         /* every w-writer stamps, and this one stamps deterministically */
       if (ex.topAt != null || (ex.topRun || 0) !== 0) { ex.topAt = null; ex.topRun = 0; }   /* a new load starts its own sighting record — but only WRITE when there is a sighting to clear. Writing null/0 over absent keys is semantically identical and merge-visibly different: topAt/topRun are unstamped, so they ride whichever whole record wins, and manufacturing them made the two merge orders differ on a lift that had never banked a sighting. Deep order-equality is the stronger claim; this is what makes it true. */
       if (!Array.isArray(s.feed)) s.feed = [];
       const op = "adopt:corr:" + ex.id + ":" + lm.d;
       if (!s.feed.some((f9) => f9 && f9.op === op)) s.feed.unshift({ op, d: lm.d, t: "WORKING LOAD RECONCILED — " + String(ex.n || ex.id).toUpperCase() + " " + from + " → " + lm.w, how: "The corrected record says " + lm.w + " was lifted on " + lm.d + "; the plan follows the record." + (rungs ? " The rung joined the ladder." : "") });
     }
+    /* FIX 3 — every lift self-heals at the boundary, adopted or not: a hybrid
+       that a past merge already wrote into the state is repaired the next time
+       it is loaded, not left for a future snapper to trip over. */
+    const exs9 = (s && s.exercises) || [];
+    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = ensureLoadOnLadder(exs9[i9]);
   } catch (e) {}
   return s;
 }
@@ -11733,6 +11807,11 @@ function _corrOf(v) {
   const rev = isFinite(+c.rev) ? +c.rev : 0;
   return { at, rev };
 }
+/* LEG 3 FIX 4 — the canonical missing-value serializer for the stamped-field
+   tie-break. undefined is UNORDERABLE against a string, so it must be given a
+   value that loses to every present one: "". Shared by every STAMPED_FIELDS
+   row, because the same hole sits under all of them. */
+function _valOr(x) { return x === undefined ? "" : JSON.stringify(x); }
 function _sessionAtMs(v) { const n = v && +v.at; return isFinite(n) ? n : 0; }
 function _richerSession(x, y) {
   const cx = _corrOf(x), cy = _corrOf(y);
@@ -12003,7 +12082,7 @@ function mergeState(local, remote) {
       if (w2.quarantined && !other.quarantined) w2 = { ...other };
       for (const [f9, at9] of STAMPED_FIELDS) {
         if (_isoOr(other[at9]) > _isoOr(w2[at9])) w2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };
-        else if (_isoOr(other[at9]) !== "" && _isoOr(other[at9]) === _isoOr(w2[at9]) && JSON.stringify(other[f9]) > JSON.stringify(w2[f9])) w2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };   /* FIX split-1: equal stamps resolve by VALUE, direction-free — "local wins" flips with merge order */
+        else if (_isoOr(other[at9]) !== "" && _isoOr(other[at9]) === _isoOr(w2[at9]) && _valOr(other[f9]) > _valOr(w2[f9])) w2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };   /* FIX split-1: equal stamps resolve by VALUE, direction-free — "local wins" flips with merge order. LEG 3 FIX 4: through _valOr, because JSON.stringify(undefined) is undefined and EVERY comparison with it is false — so on equal stamps the merge BASE always won and a cleared ladder kept whichever side it started from. Absent serializes as "", so the PRESENT value wins a tie, direction-free. A DELETION therefore needs a STRICTLY newer stamp, which is the doctrine the cleared-ladder pin already asserts. */
       }
       /* FIX 3a — forks are UNION-BY-SEAM: a technique era is history, and a
          stale device that never learned a seam must not erase it. Keyed by
@@ -12034,7 +12113,7 @@ function mergeState(local, remote) {
           w2 = { ...w2, renames: [...byF2.values()].sort((a9, b9) => (a9.from < b9.from ? -1 : 1)) };
         }
       }
-      return w2;
+      return ensureLoadOnLadder(w2);   /* FIX 3 — w and steps resolved independently; this is where the pair is made coherent again */
     });
   }
   /* FIX 3a — the insertion registry unions too: once fired anywhere, fired
@@ -15781,7 +15860,7 @@ function LogTab({ s, setS, save, slp }) {
                         <input value={wVal} inputMode="decimal" aria-label="weight value"
                           onFocus={(e) => { try { e.target.select(); } catch (err) {} }}
                           onChange={(e) => setWVal(e.target.value)}
-                          onBlur={(e) => { const v9 = stepValue(e.target.value, 0, 1, 0); setWVal(v9 && typoKeep("weight", v9) !== "abort" ? v9 : wVal); }}
+                          onBlur={(e) => { const t9 = String(e.target.value == null ? "" : e.target.value).trim(); if (/^\d+(\.\d+)?$/.test(t9)) { const v9 = stepValue(t9, 0, 1, 0); if (v9) setWVal(v9); } }}   /* LEG 3 FIX 5: display normalization ONLY, and only for clean numeric input. The sanity net used to fire here — where a Cancel raced the Save's own closure and lost, so the app persisted a load the athlete had just refused. Save is the single authority now, and garbage stays visible in the box for it to reject. */
                           style={{ fontFamily: mono, fontSize: 16, color: T.chalk, background: "none", border: "none", borderBottom: `1px dashed ${T.line}`, width: 56, textAlign: "center", padding: 0 }} />
                         <button onClick={() => setWVal(nextLoad(exCfg, wVal) ?? wVal)} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
                         {/* honest for an off-ladder entry: a typed 200 on a
@@ -15814,17 +15893,31 @@ function LogTab({ s, setS, save, slp }) {
                         parity now: never snap, merge the new rung, reset the sighting,
                         and say nothing when nothing changed. */}
                     <Btn small tone="gauge" onClick={() => {
-                      const v4 = Number(wVal);
-                      if (!isFinite(v4) || v4 <= 0) return;   /* garbage: keep the old load, file nothing, leave the editor open so he can correct it */
+                      /* LEG 3 FIX 5 — ONE ATOMIC DECISION, in the handler that
+                         owns the write. STRICT parse first: "200abc" used to
+                         normalize silently to 200 and save; it is refused
+                         outright now, with the editor left open showing exactly
+                         what he typed. Then the sanity net, HERE — it used to
+                         run on blur, where the athlete's Cancel raced this
+                         handler's own closure and lost: he said no to 20 and
+                         the app wrote 20, merged it as a rung, and filed a
+                         receipt saying the rung joined the ladder. */
+                      const raw4 = String(wVal == null ? "" : wVal).trim();
+                      if (!/^\d+(\.\d+)?$/.test(raw4)) return;   /* not a number at all: no mutation, no receipt, the box keeps his text */
+                      const v4 = Number(raw4);
+                      if (!isFinite(v4) || v4 <= 0) return;
                       const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id);
                       const oldW = ex4.w;
                       if (v4 === oldW) { setWEdit(null); setRungEdit(null); return; }   /* nothing moved — no receipt; the "190 → 190" line dies here */
+                      const tk4 = typoKeep("weight", v4);
+                      if (tk4 === "abort") return;   /* HE SAID NO: nothing mutates — not w, not the ladder, not the feed — and the editor stays open */
                       const r4 = loadRungs(ex4);
                       const joined4 = !!(r4 && r4.indexOf(v4) < 0);
                       if (joined4) { ex4.steps = [...new Set([...r4, v4])].sort((a9, b9) => a9 - b9); ex4.stepsAt = new Date().toISOString(); }   /* merge, never erase a rung */
                       ex4.w = v4; ex4.wAt = new Date().toISOString();   /* NEVER snapped, and every w-writer stamps */
                       ex4.last = null; ex4.topAt = null; ex4.topRun = 0;   /* CAGE parity — a new load starts its own sighting record */
                       ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${v4}${joined4 ? " · the " + v4 + " rung joined the ladder" : ""}`, how: "athlete entry on the card — targets re-seeded for the new load" });
+                      if (tk4 === "keep") typoReceipt(ns, "weight", v4);   /* his override, on the record beside the WEIGHT SET line */
                       setS(ns); save(ns); setWEdit(null); setRungEdit(null);
                     }}>Save</Btn>
                     {rungEdit === ex.id && (

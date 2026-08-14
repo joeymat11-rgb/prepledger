@@ -440,7 +440,16 @@ async function driveWeightBox() {
      reconciler abstains and hack sits at 190 with its four-rung ladder — which
      is exactly the state Joe was looking at when the box refused his entry. */
   const preCorr = JSON.parse(JSON.stringify(live));
+  /* LEG 3 — the gate is PER-ENTRY provenance now, so deleting the session corr
+     no longer holds the load still (patchV54 stamps the entries whatever the
+     session says — which is the doctrine change working). The robust way to
+     express "the plan must not move here" is the athlete's OWN word being the
+     newer one: his load stamps post-date any correction, so the reconciler
+     abstains by its own rule and hack sits at 190 with its four-rung ladder —
+     exactly the state he was looking at when the box refused his entry. This
+     also survives a future schema bump, which stripping provenance would not. */
   delete preCorr.sessionLog["2026-08-14"].corr;
+  for (const id9 of ["hack", "extension"]) { const e9 = preCorr.exercises.find((x) => x && x.id === id9); if (e9) e9.wAt = "2026-08-20T09:00:00.000Z"; }
   const openBox = async (w, id) => {
     await openGroup(w, "pl-train-setup");
     await sleep(120);
@@ -544,6 +553,72 @@ async function driveWeightBox() {
     check(addedSince(w, n1).length === 0 && wOf(w, "hack").w === 190,
       "PART B — a garbage entry keeps the old load and files nothing",
       "garbage moved the load or filed a receipt (observed w " + JSON.stringify(wOf(w, "hack").w) + ", new rows " + JSON.stringify(addedSince(w, n1).map((f) => f.t)) + ")");
+    dom.window.close();
+  }
+  /* ---- leg 3 (v7.53.4 FIX 5): the Save owns validation ATOMICALLY ----
+     Executed on main: typed 20, CANCELED the "reads like a typo" confirm, and
+     the app persisted 20 anyway, merged it as a rung and filed a receipt
+     saying the rung joined the ladder. The sanity net ran on BLUR, where the
+     Cancel raced the Save handler's own closure and lost. */
+  {
+    const { dom, w } = boot((w9) => { w9.localStorage.setItem(KEY, JSON.stringify(preCorr)); }, L_ISO);
+    await sleep(600);
+    await clickText(w, "TRAIN", "tab nav");
+    const card = await openBox(w, "hack");
+    if (!card) { dom.window.close(); return; }
+    const asked = [];
+    const typeSave = async (val, answer) => {
+      w.confirm = (msg) => { asked.push(String(msg)); return answer; };
+      const c = w.document.getElementById("tr-hack");
+      const inp = c.querySelector('input[aria-label="weight value"]');
+      if (inp) await typeInto(w, inp, val);
+      const c2 = w.document.getElementById("tr-hack");
+      const b = [...c2.querySelectorAll("button")].find((x) => (x.textContent || "").trim() === "Save");
+      if (b) { b.click(); await sleep(200); }
+    };
+    /* (a) HE SAYS NO — nothing may move */
+    const snap0 = JSON.stringify(stored(w));
+    await typeSave("20", false);
+    check(JSON.stringify(stored(w)) === snap0,
+      "FIX 5 — CANCEL means CANCEL: the persisted state is BYTE-IDENTICAL after refusing the typo net (the executed red persisted w 20, merged 20 as a rung and filed a receipt)",
+      "a refused entry still changed the state (hack now " + JSON.stringify(wOf(w, "hack").w) + ", steps " + JSON.stringify(wOf(w, "hack").steps) + ")");
+    check(asked.length === 1 && /reads like a typo/.test(asked[0]),
+      "FIX 5 — and the net asked EXACTLY ONCE, at the save (it used to fire on blur as well)",
+      "the sanity net asked " + asked.length + " time(s): " + JSON.stringify(asked));
+    check(!!w.document.getElementById("tr-hack").querySelector('input[aria-label="weight value"]'),
+      "FIX 5 — the editor stays OPEN so he can correct it", "the editor closed on a refused entry");
+    /* (b) HE SAYS YES — his word stands, and the override is on the record */
+    const n0 = feedLen(w);
+    asked.length = 0;
+    await typeSave("20", true);
+    const kept = wOf(w, "hack");
+    const rows = addedSince(w, n0);
+    check(kept.w === 20 && rows.some((f) => /^WEIGHT SET — /.test(f.t)) && rows.some((f) => /KEPT AN UNUSUAL NUMBER/.test(f.t)),
+      "FIX 5 — CONFIRM means confirm: 20 persists on his say-so, with the unusual-number receipt beside the weight receipt",
+      "the confirmed entry did not persist or lost its receipt (w " + JSON.stringify(kept.w) + ", rows " + JSON.stringify(rows.map((f) => f.t)) + ")");
+    dom.window.close();
+  }
+  /* ---- leg 3: a strictly-numeric parse, at the save ---- */
+  {
+    const { dom, w } = boot((w9) => { w9.localStorage.setItem(KEY, JSON.stringify(preCorr)); }, L_ISO);
+    await sleep(600);
+    await clickText(w, "TRAIN", "tab nav");
+    const card = await openBox(w, "hack");
+    if (!card) { dom.window.close(); return; }
+    let asked2 = 0;
+    w.confirm = () => { asked2++; return true; };
+    const snap1 = JSON.stringify(stored(w));
+    const inp = card.querySelector('input[aria-label="weight value"]');
+    if (inp) await typeInto(w, inp, "200abc");
+    const b = [...w.document.getElementById("tr-hack").querySelectorAll("button")].find((x) => (x.textContent || "").trim() === "Save");
+    if (b) { b.click(); await sleep(200); }
+    check(JSON.stringify(stored(w)) === snap1 && asked2 === 0,
+      "FIX 5 — \"200abc\" is REJECTED outright: it used to normalize silently to 200 and save with no dialog and no receipt. No mutation, no prompt",
+      "garbage-with-digits still moved the state (w " + JSON.stringify(wOf(w, "hack").w) + ", prompts " + asked2 + ")");
+    const still = w.document.getElementById("tr-hack").querySelector('input[aria-label="weight value"]');
+    check(!!still && String(still.value) === "200abc",
+      "FIX 5 — and the box still shows exactly what he typed, for him to fix",
+      "the box lost or normalized his text (shows " + JSON.stringify(still && still.value) + ")");
     dom.window.close();
   }
   /* ---- leg 3: a JUMP lift (no ladder) still saves, as a NUMBER ---- */
