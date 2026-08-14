@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.53.3";
+const APP_V = "7.53.4";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -10576,11 +10576,64 @@ function reconcileLiftCaches(s) {
   return healed;
 }
 
+/* PART A (v7.53.4) — THE PLAN FOLLOWS THE CORRECTED RECORD.
+   completeSession's CAGE ("reality outranks the filed ladder") runs at
+   COMPLETION only. An AMENDMENT writes the record afterwards, so it
+   manufactures entry != config in the one place the CAGE never looks: the
+   8/14 chain corrected the diary to hack 200 and extension 160 while the
+   configs still said 190 and 155, and the cards then prescribed the 200
+   session's reps at 190 and — worse — anchored extension on the older 155
+   line, prescribing BELOW a delivered session. This is the standing sweep
+   that closes it, at both migrate entry boundaries.
+
+   THE COUNTER-RULING, stated where the rule it refines lives (see patchV52's
+   header, which says a correction patch must never move the config): that
+   rule stands and is unchanged — an amendment patch does not decide
+   progression. What was missing is that the PLAN must not be left
+   contradicting the RECORD forever. So the adoption is not the patch's; it is
+   a reconciler with its own gate: it moves only when the athlete's own last
+   word on that load (ex.wAt) is OLDER than the correction. If he has set a
+   load since — by the editor, a debut, a reset — his word is newer and
+   NOTHING moves. The record leads the plan; the athlete outranks both.
+
+   CAGE PARITY, deliberately: the lifted load merges into the ladder (never
+   erasing a rung), w moves, wAt stamps, and the sighting record resets
+   because a new load starts its own. DETERMINISM: the stamp is the
+   CORRECTION'S OWN at — never wall-clock. That keeps migrate idempotent (two
+   passes are byte-identical, which the idempotence pins demand) and it orders
+   correctly by construction: the gate proves it is later than the old wAt, so
+   an adopted state beats an un-adopted replica through STAMPED_FIELDS, while
+   any future real edit is later still and beats the adoption.
+   DIRECTION-AGNOSTIC: a corrected LIGHTER load adopts too. The corr gate — not
+   a direction test — is what shields deloads and ordinary history. */
+function reconcileCorrectedLoads(s) {
+  try {
+    const log = (s && s.sessionLog) || {};
+    for (const ex of ((s && s.exercises) || [])) {
+      if (!ex || typeof ex.w !== "number") continue;                    /* "BW" and other configs have no load to reconcile */
+      const lm = ex.lastMeta;
+      if (!lm || !lm.d || typeof lm.w !== "number" || lm.w === ex.w) continue;   /* the equality guard IS the idempotence guard */
+      const rec = log[lm.d];
+      const at = rec && rec.corr && typeof rec.corr === "object" && typeof rec.corr.at === "string" && isFinite(Date.parse(rec.corr.at)) ? rec.corr.at : null;
+      if (!at) continue;                                                /* only a CORRECTED record may lead the plan */
+      if (!(at > String(ex.wAt || ""))) continue;                       /* absent wAt reads as the epoch and loses; a newer athlete edit wins */
+      const from = ex.w;
+      const rungs = loadRungs(ex);
+      if (rungs) ex.steps = [...new Set([...rungs, lm.w])].sort((a9, b9) => a9 - b9);   /* merge, never erase — the ladder law */
+      ex.w = lm.w; ex.wAt = at;                                         /* every w-writer stamps, and this one stamps deterministically */
+      ex.topAt = null; ex.topRun = 0;                                   /* a new load starts its own sighting record */
+      if (!Array.isArray(s.feed)) s.feed = [];
+      const op = "adopt:corr:" + ex.id + ":" + lm.d;
+      if (!s.feed.some((f9) => f9 && f9.op === op)) s.feed.unshift({ op, d: lm.d, t: "WORKING LOAD RECONCILED — " + String(ex.n || ex.id).toUpperCase() + " " + from + " → " + lm.w, how: "The corrected record says " + lm.w + " was lifted on " + lm.d + "; the plan follows the record." + (rungs ? " The rung joined the ladder." : "") });
+    }
+  } catch (e) {}
+  return s;
+}
 function migrate(old) {
   /* RB-6 — the one-line container heal: a malformed store missing a container must
      not crash the chain; the arrays it holds stay exactly as found. */
   if (old && typeof old === "object") { old.sleep = old.sleep || { nights: [], needed: 3 }; old.sleep.nights = old.sleep.nights || []; old.dailyLogs = old.dailyLogs || {}; old.sessionLog = old.sessionLog || {}; old.reads = old.reads || []; }
-  if (old && old.v === SCHEMA_V) { reconcileLiftCaches(old); normalizePlan(old); return old; }   /* R5 fix-4: the SAME-SCHEMA entry boundary normalizes too — this fast path IS the import path (doImport = migrate(parse) -> save), and a poisoned planGen-51 backup used to render and persist verbatim until the next sweep. Idempotent; the ruled-order half stands down at planGen 52. */
+  if (old && old.v === SCHEMA_V) { reconcileLiftCaches(old); reconcileCorrectedLoads(old); normalizePlan(old); return old; }   /* R5 fix-4: the SAME-SCHEMA entry boundary normalizes too — this fast path IS the import path (doImport = migrate(parse) -> save), and a poisoned planGen-51 backup used to render and persist verbatim until the next sweep. Idempotent; the ruled-order half stands down at planGen 52. */
   /* A state NEWER than this build — he upgraded, then the app was rolled back.
      Hand it back untouched: no patch here understands schema n+1, and the only
      other exit below is a fresh SEED, which would wipe every read, night,
@@ -10588,7 +10641,7 @@ function migrate(old) {
      may read oddly on fields this code does not know; re-upgrading restores full
      function. A visible misbehaviour is recoverable — a wipe is not. */
   if (old && old.v > SCHEMA_V) return old;
-  if (old && old.v >= 3 && old.v < SCHEMA_V) { const st = PATCHES.filter(([n]) => n > old.v).reduce((s, [, p]) => p(s), JSON.parse(JSON.stringify(old))); reconcileLiftCaches(st); return st; }
+  if (old && old.v >= 3 && old.v < SCHEMA_V) { const st = PATCHES.filter(([n]) => n > old.v).reduce((s, [, p]) => p(s), JSON.parse(JSON.stringify(old))); reconcileLiftCaches(st); reconcileCorrectedLoads(st); return st; }
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -15710,9 +15763,19 @@ function LogTab({ s, setS, save, slp }) {
               <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 {wEdit === ex.id ? (
                   <span style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                    {loadRungs(ex) ? (
+                    {/* PART C (v7.53.4) — THE EDITOR MUST SEE THE REAL LADDER.
+                        This room maps genSession's DAY-TEMPLATE cards, and that
+                        object carries neither steps nor inc — so loadRungs read
+                        null for every lift, the free-entry input never rendered,
+                        and the −/+ stepped by a hardcoded 5 while the SAVE
+                        re-resolved the STORE record, found a ladder, and snapped.
+                        The editor and the save disagreed about whether a ladder
+                        existed and the athlete paid for it. Every ladder-aware
+                        affordance below now reads the live store config. */}
+                    {(() => { const exCfg = ((s.exercises || []).find((x9) => x9 && x9.id === ex.id)) || ex; return (<>
+                    {loadRungs(exCfg) ? (
                       <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <button onClick={() => setWVal(prevLoad(ex, wVal) ?? wVal)} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>−</button>
+                        <button onClick={() => setWVal(prevLoad(exCfg, wVal) ?? wVal)} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>−</button>
                         {/* CAGE follow-up — free entry in SETUP too: reality outranks the
                             filed ladder here as everywhere. */}
                         <input value={wVal} inputMode="decimal" aria-label="weight value"
@@ -15720,29 +15783,57 @@ function LogTab({ s, setS, save, slp }) {
                           onChange={(e) => setWVal(e.target.value)}
                           onBlur={(e) => { const v9 = stepValue(e.target.value, 0, 1, 0); setWVal(v9 && typoKeep("weight", v9) !== "abort" ? v9 : wVal); }}
                           style={{ fontFamily: mono, fontSize: 16, color: T.chalk, background: "none", border: "none", borderBottom: `1px dashed ${T.line}`, width: 56, textAlign: "center", padding: 0 }} />
-                        <button onClick={() => setWVal(nextLoad(ex, wVal) ?? wVal)} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
-                        <span style={{ fontFamily: mono, fontSize: TS.label, color: T.jade }}>rung {loadRungs(ex).indexOf(snapLoad(ex, wVal)) + 1}/{loadRungs(ex).length}</span>
+                        <button onClick={() => setWVal(nextLoad(exCfg, wVal) ?? wVal)} style={{ width: 40, height: 40, borderRadius: 6, border: `1px solid ${T.line}`, background: T.plate2, color: T.steel, fontFamily: mono }}>+</button>
+                        {/* honest for an off-ladder entry: a typed 200 on a
+                            160/170/180/190 stack is a NEW rung, not a wrong n/n */}
+                        <span style={{ fontFamily: mono, fontSize: TS.label, color: T.jade }}>{(() => { const r9 = loadRungs(exCfg) || []; const v9 = Number(wVal); if (!isFinite(v9) || v9 <= 0) return "rung —"; const sn9 = snapLoad(exCfg, v9); return sn9 !== v9 ? "new rung" : "rung " + (r9.indexOf(sn9) + 1) + "/" + r9.length; })()}</span>
                       </span>
                     ) : (
-                      <Stepper v={wVal} set={setWVal} step={ex.inc || 5} min={5} />
+                      <Stepper v={wVal} set={setWVal} step={exCfg.inc || 5} min={5} />
                     )}
                     <span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>jump:</span>
                     {[2.5, 5, 10].map((jz) => (
-                      <span key={jz} onClick={() => { const had = Array.isArray(ex.steps) && ex.steps.length >= 2; if (had && !window.confirm(`${ex.n} has a ${ex.steps.length}-rung ladder on file. Setting an even ${jz} lb jump deletes it. Keep the ladder?\n\nOK = delete the ladder\nCancel = keep it`)) return; const ns = JSON.parse(JSON.stringify(s)); const ex5 = ns.exercises.find((x) => x.id === ex.id); ex5.inc = jz; ex5.incAt = new Date().toISOString();   /* v7.52.0 — every live inc mutator stamps */ if (had) delete ex5.steps; ns.feed.unshift({ d: isoOf(todayStart()), t: `JUMP SIZE — ${ex5.n.toUpperCase()} steps by ${jz}`, how: "athlete set the machine's smallest honest increment — even ladder" }); setS(ns); save(ns); }}
-                        style={{ fontFamily: mono, fontSize: TS.label, color: !loadRungs(ex) && (ex.inc || 5) === jz ? T.jade : T.steel, border: `1px solid ${!loadRungs(ex) && (ex.inc || 5) === jz ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>{jz}</span>
+                      <span key={jz} onClick={() => { const had = Array.isArray(exCfg.steps) && exCfg.steps.length >= 2; if (had && !window.confirm(`${ex.n} has a ${exCfg.steps.length}-rung ladder on file. Setting an even ${jz} lb jump deletes it. Keep the ladder?\n\nOK = delete the ladder\nCancel = keep it`)) return; const ns = JSON.parse(JSON.stringify(s)); const ex5 = ns.exercises.find((x) => x.id === ex.id); ex5.inc = jz; ex5.incAt = new Date().toISOString();   /* v7.52.0 — every live inc mutator stamps */ if (had) delete ex5.steps; ns.feed.unshift({ d: isoOf(todayStart()), t: `JUMP SIZE — ${ex5.n.toUpperCase()} steps by ${jz}`, how: "athlete set the machine's smallest honest increment — even ladder" }); setS(ns); save(ns); }}
+                        style={{ fontFamily: mono, fontSize: TS.label, color: !loadRungs(exCfg) && (exCfg.inc || 5) === jz ? T.jade : T.steel, border: `1px solid ${!loadRungs(exCfg) && (exCfg.inc || 5) === jz ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>{jz}</span>
                     ))}
                     <span onClick={() => setRungEdit(rungEdit === ex.id ? null : ex.id)}
-                      style={{ fontFamily: mono, fontSize: TS.label, color: loadRungs(ex) ? T.jade : T.steel, border: `1px solid ${loadRungs(ex) ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>
-                      {loadRungs(ex) ? `uneven · ${loadRungs(ex).length} rungs ✎` : "uneven ✎"}
+                      style={{ fontFamily: mono, fontSize: TS.label, color: loadRungs(exCfg) ? T.jade : T.steel, border: `1px solid ${loadRungs(exCfg) ? T.jade : T.line}`, borderRadius: 999, padding: "3px 8px", cursor: "pointer" }}>
+                      {loadRungs(exCfg) ? `uneven · ${loadRungs(exCfg).length} rungs ✎` : "uneven ✎"}
                     </span>
-                    <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id); const oldW = ex4.w; ex4.wAt = new Date().toISOString(); ex4.w = loadRungs(ex4) ? snapLoad(ex4, wVal) : wVal; if (oldW !== ex4.w) ex4.last = null; ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${ex4.w}`, how: "athlete entry on the card — targets re-seeded for the new load" }); setS(ns); save(ns); setWEdit(null); setRungEdit(null); }}>Save</Btn>
+                    {/* PART B (v7.53.4) — THE SAVE HONORS WHAT HE ENTERED.
+                        It used to take the load from `loadRungs(ex4) ? snapLoad(ex4,
+                        wVal) : wVal` (written without the assignment here, because
+                        the stamp-discipline scan reads this file as TEXT and a quoted
+                        assignment in a comment is an offender to it — which is the
+                        gate working as designed),
+                        and snapLoad keeps only rungs <= w — so an off-ladder entry
+                        SNAPPED DOWN to the highest rung already on file and the feed
+                        filed "190 → 190 · athlete entry on the card", a receipt
+                        describing a discarded entry as an adoption. The input's own
+                        comment three lines up declares the opposite intent. CAGE
+                        parity now: never snap, merge the new rung, reset the sighting,
+                        and say nothing when nothing changed. */}
+                    <Btn small tone="gauge" onClick={() => {
+                      const v4 = Number(wVal);
+                      if (!isFinite(v4) || v4 <= 0) return;   /* garbage: keep the old load, file nothing, leave the editor open so he can correct it */
+                      const ns = JSON.parse(JSON.stringify(s)); const ex4 = ns.exercises.find((x) => x.id === ex.id);
+                      const oldW = ex4.w;
+                      if (v4 === oldW) { setWEdit(null); setRungEdit(null); return; }   /* nothing moved — no receipt; the "190 → 190" line dies here */
+                      const r4 = loadRungs(ex4);
+                      const joined4 = !!(r4 && r4.indexOf(v4) < 0);
+                      if (joined4) ex4.steps = [...new Set([...r4, v4])].sort((a9, b9) => a9 - b9);   /* merge, never erase a rung */
+                      ex4.w = v4; ex4.wAt = new Date().toISOString();   /* NEVER snapped, and every w-writer stamps */
+                      ex4.last = null; ex4.topAt = null; ex4.topRun = 0;   /* CAGE parity — a new load starts its own sighting record */
+                      ns.feed.unshift({ d: isoOf(todayStart()), t: `WEIGHT SET — ${ex4.n.toUpperCase()} ${typeof oldW === "number" ? oldW + " → " : ""}${v4}${joined4 ? " · the " + v4 + " rung joined the ladder" : ""}`, how: "athlete entry on the card — targets re-seeded for the new load" });
+                      setS(ns); save(ns); setWEdit(null); setRungEdit(null);
+                    }}>Save</Btn>
                     {rungEdit === ex.id && (
                       <div style={{ width: "100%", marginTop: 6, padding: "9px 10px", background: T.plate2, border: `1px solid ${T.line}`, borderRadius: 8 }}>
                         <div style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, letterSpacing: "0.08em", lineHeight: 1.6 }}>
                           EVERY WEIGHT THIS MACHINE CAN ACTUALLY MAKE — commas or spaces.<br />
                           For a stack with hang-on attachments, list the real rungs: 80, 82.5, 85, 90, 92.5, 95, 100…
                         </div>
-                        <textarea defaultValue={(loadRungs(ex) || []).join(", ")} rows={2} id={"rungs-" + ex.id}
+                        <textarea defaultValue={(loadRungs(exCfg) || []).join(", ")} rows={2} id={"rungs-" + ex.id}
                           placeholder="80, 82.5, 85, 90, 100"
                           style={{ width: "100%", boxSizing: "border-box", marginTop: 7, background: T.ink, border: `1px solid ${T.line}`, borderRadius: 6, color: T.chalk, fontFamily: mono, fontSize: 13, padding: 8, outline: "none", resize: "vertical" }} />
                         <div style={{ display: "flex", gap: 8, marginTop: 7, flexWrap: "wrap" }}>
@@ -15759,6 +15850,7 @@ function LogTab({ s, setS, save, slp }) {
                         </div>
                       </div>
                     )}
+                    </>); })()}
                   </span>
                 ) : (
                   <span onClick={() => { setWEdit(ex.id); /* was 180 — an authored default with nothing to do with the lift being edited: tapping it on the hanging raise ("BW") proposed 180 lb. There is no honest default for a non-numeric weight, so it opens at nothing rather than at a number the app made up. See [needs Joe] Q2·F. */ setWVal(typeof ex.w === "number" ? ex.w : 0); }} style={{ cursor: "pointer", color: typeof ex.w === "number" ? T.steel : T.brass }}>{typeof ex.w === "number" ? ex.w : "set weight"} ✎</span>

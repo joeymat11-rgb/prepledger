@@ -323,10 +323,24 @@ export function runClosureSF2(T, ok, readFileSync) {
     ok(hk.lastMeta && hk.lastMeta.d === "2026-08-14" && hk.lastMeta.w === 200 && J(hk.last) === J([10, 9, 9])
       && ext.lastMeta && ext.lastMeta.w === 160 && J(ext.last) === J([10, 10]),
       "AMEND f — lastMeta and ex.last are RE-DERIVED to the corrected weights, so no stale 190/155 keeps driving a target (observed hack " + J(hk.lastMeta && [hk.lastMeta.d, hk.lastMeta.w]) + " · extension " + J(ext.lastMeta && ext.lastMeta.w) + ")");
-    /* the config is deliberately NOT moved */
+    /* THE PATCH does not move the config — and v7.53.4 REFINES rather than
+       reverses that: an amendment patch still never decides progression. What
+       v7.53.4 added is a separate standing reconciler (reconcileCorrectedLoads)
+       with its own gate — the plan follows a corrected record only when the
+       athlete's own last word on that load is OLDER than the correction. The
+       distinction is load-bearing and is asserted here in both directions:
+       the PATCH leaves the config alone; the RECONCILER, running in the same
+       migrate call, is what makes the plan stop contradicting the record. */
     const raw0 = rawV50();
-    ok(hk.w === (raw0.exercises.find((e) => e.id === "hack") || {}).w,
-      "AMEND g — the CONFIG w is untouched: the earn machinery reads the corrected entry and does its own honest work next session (observed " + J(hk.w) + ")");
+    const cfgAfterPatchOnly = (() => {
+      const st = cl(withSess());
+      /* strip the correction stamp: with no corr, the reconciler abstains and
+         what remains is the PATCH's own effect on the config — nothing. */
+      delete st.sessionLog["2026-08-14"].corr;
+      return T.migrate(JSON.parse(JSON.stringify({ ...st, v: 51 })));
+    })();
+    ok((cfgAfterPatchOnly.exercises.find((e) => e.id === "hack") || {}).w === (raw0.exercises.find((e) => e.id === "hack") || {}).w,
+      "AMEND g (refined by v7.53.4) — THE PATCH still never moves the CONFIG w: with the correction stamp absent the reconciler abstains and the config is exactly where the athlete left it. A correction patch does not decide progression (observed " + J((cfgAfterPatchOnly.exercises.find((e) => e.id === "hack") || {}).w) + ")");
     /* receipts: one per lift, once */
     const rcp = (m.feed || []).filter((f) => f && f.op && String(f.op).indexOf("amend:2026-08-14:") === 0);
     ok(rcp.length === 2 && rcp.some((f) => /190 → 200/.test(f.t)) && rcp.some((f) => /155 → 160/.test(f.t)),
@@ -454,6 +468,77 @@ export function runClosureSF2(T, ok, readFileSync) {
     const before = cnt(withSess()), after = cnt(m);
     ok(after.every((v, i) => v >= before[i]),
       "RIR r — the counts law holds across the amendment (observed " + J(before) + " -> " + J(after) + ")");
+  });
+
+  /* ---- v7.53.4 PART A — THE PLAN FOLLOWS THE CORRECTED RECORD ---- */
+  t("LOAD-RECONCILE", () => {
+    /* driven on the LIVE PREIMAGE — the athlete's own synced state, which
+       carries BOTH guard shapes: hack has a wAt five minutes OLDER than the
+       correction (a real ladder-approval edit), extension has NO wAt at all. */
+    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const before = JSON.parse(JSON.stringify(live));
+    const out = T.migrate(JSON.parse(JSON.stringify(live)));
+    const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
+    const corrAt = ((before.sessionLog["2026-08-14"] || {}).corr || {}).at;
+    ok(g(before, "hack").wAt && g(before, "hack").wAt < corrAt && g(before, "extension").wAt == null,
+      "LOAD-A precondition — the preimage carries BOTH guard shapes: hack's wAt " + J(g(before, "hack").wAt) + " is older than the correction " + J(corrAt) + ", and extension has NO wAt");
+    ok(g(out, "hack").w === 200 && J(g(out, "hack").steps) === J([160, 170, 180, 190, 200]),
+      "LOAD-A a — hack adopts the corrected 200 and the lifted load JOINS the ladder, never erasing a rung (observed w " + J(g(out, "hack").w) + " steps " + J(g(out, "hack").steps) + ")");
+    ok(g(out, "hack").wAt === corrAt && g(out, "hack").wAt > g(before, "hack").wAt,
+      "LOAD-A b — the stamp is the CORRECTION'S OWN at, not wall-clock: deterministic under a replayed migrate, and later than the athlete's pre-correction edit by the gate's own construction (observed " + J(g(out, "hack").wAt) + ")");
+    ok(g(out, "hack").topAt === null && g(out, "hack").topRun === 0,
+      "LOAD-A c — CAGE parity: a new load starts its own sighting record (observed topAt " + J(g(out, "hack").topAt) + " topRun " + J(g(out, "hack").topRun) + ")");
+    ok(g(out, "extension").w === 160 && g(out, "extension").wAt === corrAt && g(out, "extension").steps == null,
+      "LOAD-A d — the ABSENT-wAt shape adopts too, and a lift with no ladder gains no phantom one (observed w " + J(g(out, "extension").w) + " wAt " + J(g(out, "extension").wAt) + " steps " + J(g(out, "extension").steps) + ")");
+    /* THE CARDS — the defect Joe reported, in the numbers he would see */
+    const tHack = T.targetsFor(g(out, "hack"), out), tExt = T.targetsFor(g(out, "extension"), out), tHam = T.targetsFor(g(out, "ham"), out);
+    ok(J(tHack) === J([8, 7, 8]) && g(out, "hack").w === 200,
+      "LOAD-A e — the hack card now prescribes the 200 session's reps AT 200, not at an outgrown 190 (observed " + J(tHack) + " @ " + J(g(out, "hack").w) + ")");
+    ok(J(tExt) === J([9, 9]) && g(out, "extension").w === 160,
+      "LOAD-A f — the extension card anchors on the 160 session instead of the older 155 line: it can no longer prescribe BELOW a delivered session (observed " + J(tExt) + " @ " + J(g(out, "extension").w) + ")");
+    ok(g(out, "ham").w === 125 && J(tHam) === J([11, 10, 9]) && J(g(out, "ham")) === J(g(before, "ham")),
+      "LOAD-A g — ham is BYTE-IDENTICAL: its record and its config already agree, so the equality guard abstains (observed " + J(tHam) + " @ " + J(g(out, "ham").w) + ")");
+    ok(J(g(out, "abs")) === J(g(before, "abs")),
+      "LOAD-A h — abs is an equality no-op and keeps its banked sighting: the sweep must not churn topAt/topRun on every schema bump (observed " + J([g(out, "abs").topAt, g(out, "abs").topRun]) + ")");
+    ok(g(out, "hanging").w === "BW" && J(g(out, "hanging")) === J(g(before, "hanging")),
+      "LOAD-A i — a non-numeric config ('BW') is skipped entirely (observed " + J(g(out, "hanging").w) + ")");
+    const rcp = (out.feed || []).filter((f) => f && f.op && String(f.op).indexOf("adopt:corr:") === 0);
+    ok(rcp.length === 2 && rcp.some((f) => /HACK SQUAT 190 → 200/.test(f.t)) && rcp.some((f) => /155 → 160/.test(f.t)) && rcp.some((f) => /The rung joined the ladder/.test(f.how)) && !rcp.filter((f) => /155 → 160/.test(f.t))[0].how.match(/rung joined/),
+      "LOAD-A j — one op-keyed receipt per adoption, and the ladder sentence appears ONLY where a ladder exists (observed " + J(rcp.map((f) => f.t)) + ")");
+    /* IDEMPOTENCE — the equality guard plus the deterministic stamp */
+    const twice = T.migrate(JSON.parse(JSON.stringify(out)));
+    ok(JSON.stringify(twice) === JSON.stringify(out),
+      "LOAD-A k — a replayed migrate is BYTE-IDENTICAL: the equality guard stops the adoption and the correction-stamped wAt makes the write deterministic (a wall-clock stamp would fail this line)");
+    ok(JSON.stringify(out.sessionLog) === JSON.stringify(before.sessionLog),
+      "LOAD-A l — the sweep never touches a sessionLog entry: it reads the record and moves the PLAN");
+    /* NEGATIVE CONTROLS */
+    const newer = JSON.parse(JSON.stringify(live));
+    newer.exercises.find((e) => e.id === "hack").wAt = "2026-08-15T09:00:00.000Z";   /* the athlete set a load AFTER the correction */
+    const nOut = T.migrate(newer);
+    ok(g(nOut, "hack").w === 190 && !(nOut.feed || []).some((f) => f && f.op === "adopt:corr:hack:2026-08-14"),
+      "LOAD-A m — NEGATIVE: a wAt NEWER than the correction abstains — the athlete's own later word outranks the record (observed w " + J(g(nOut, "hack").w) + ")");
+    const noCorr = JSON.parse(JSON.stringify(live));
+    delete noCorr.sessionLog["2026-08-14"].corr;
+    const ncOut = T.migrate(noCorr);
+    ok(g(ncOut, "hack").w === 190 && g(ncOut, "extension").w === 155,
+      "LOAD-A n — NEGATIVE: a divergent lastMeta with NO correction stamp abstains — ordinary history and deloads are shielded by the corr gate, not by a direction test (observed " + J([g(ncOut, "hack").w, g(ncOut, "extension").w]) + ")");
+    const lighter = JSON.parse(JSON.stringify(live));
+    lighter.exercises.find((e) => e.id === "hack").w = 210;
+    const lOut = T.migrate(lighter);
+    ok(g(lOut, "hack").w === 200,
+      "LOAD-A o — DIRECTION-AGNOSTIC: a corrected LIGHTER load adopts too (210 -> 200). The gate is the correction, never the direction (observed " + J(g(lOut, "hack").w) + ")");
+    /* THE MERGE — assert the existing STAMPED_FIELDS discipline carries it */
+    const un = JSON.parse(JSON.stringify(live));
+    const ab = T.mergeState(cl(out), cl(un)), ba = T.mergeState(cl(un), cl(out));
+    ok(g(ab, "hack").w === 200 && g(ba, "hack").w === 200 && g(ab, "extension").w === 160 && g(ba, "extension").w === 160,
+      "LOAD-A p — adopted vs un-adopted replica, BOTH merge orders: the adoption wins on its stamp through the existing STAMPED_FIELDS rule (observed A<-B " + J([g(ab, "hack").w, g(ab, "extension").w]) + " · B<-A " + J([g(ba, "hack").w, g(ba, "extension").w]) + ")");
+    /* THE FREEZE FIXTURES — measured, not assumed */
+    for (const snap of ["2026-08-06", "2026-08-07"]) {
+      const st = T.migrate(JSON.parse(readFileSync("tools/snapshots/" + snap + "-ledger.json", "utf8")));
+      const adopts = (st.feed || []).filter((f) => f && f.op && String(f.op).indexOf("adopt:corr:") === 0);
+      ok(adopts.length === 0,
+        "LOAD-A q — the " + snap + " words/baseline fixture takes NO adoption: it carries corr-stamped records, but on days that are not any lift's LATEST session, so the lastMeta rule abstains. (A broader all-records sweep DOES fire here and moves two frozen debriefs — measured during the build, and why the rule reads lastMeta only.) (observed " + adopts.length + ")");
+    }
   });
 
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
