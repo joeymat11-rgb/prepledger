@@ -354,13 +354,13 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.53.2";
+const APP_V = "7.53.3";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 52;
+const SCHEMA_V = 53;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -10138,6 +10138,64 @@ function patchV45(s) {
   rule45("rows", 10, 9);
   s.v = 45; return s;
 }
+function patchV53(s) {
+  /* THE TERMINAL-SET AMENDMENT — owner attestation, 2026-08-14. The debrief
+     asked: "2 lifts have no last-set rating (Prime abdominal crunch,
+     Supported leg raise) — those default to the smallest step until the
+     terminal set is on file." Joe answered: "The lifts on record were at 0
+     RIR." Both lifts reached the log through the ↩ un-skip control, which
+     writes rir null and an all-null rirSets under an honest receipt ("RIR is
+     left unrecorded because it was never captured"). It is captured now — for
+     the TERMINAL set, which is the set the question was about.
+
+     WHAT THIS WRITES, AND WHAT IT REFUSES TO WRITE:
+     · the terminal rirSets slot becomes 0. Every other slot stays null.
+     · en.rir stays NULL. That field is the OPENER's rating, and the opener
+       was never asked. Writing 0 there would manufacture a grind reading —
+       openerRir === 0 is the hot-opener load-freeze signal — from an
+       attestation that was only ever about the last set.
+     · reps, w, og, wKey, skipped[], every other entry, every other date and
+       every config: byte-identical.
+
+     IDEMPOTENT BY CONSTRUCTION: the guard is the NULL terminal slot itself,
+     so a rerun, a device that took the amendment through a merge, or a fresh
+     install whose ledger never held the 8/14 session all take nothing. */
+  const rec53 = ((s && s.sessionLog) || {})["2026-08-14"];
+  if (rec53 && Array.isArray(rec53.entries)) {
+    const moved53 = [];
+    for (const id53 of ["abs", "hanging"]) {
+      const en53 = rec53.entries.find((e9) => e9 && e9.id === id53);
+      const len53 = en53 && Array.isArray(en53.reps) ? en53.reps.length : 0;
+      if (!len53) continue;
+      /* shaped exactly as rirSetsOf shapes it — sliced to the rep count and
+         padded with nulls — but WITHOUT its opener mirroring, which is a read
+         convenience and must never be persisted into the record. */
+      const arr53 = (Array.isArray(en53.rirSets) ? en53.rirSets.slice(0, len53) : []);
+      while (arr53.length < len53) arr53.push(null);
+      if (arr53[len53 - 1] != null) continue;   /* already rated — the guard */
+      arr53[len53 - 1] = 0;
+      en53.rirSets = arr53;
+      moved53.push(id53);
+    }
+    if (moved53.length) {
+      /* the CORRECTION_MERGE stamp, refreshed: a replica carrying the
+         v52-corrected-but-unrated copy must lose from both directions. */
+      _stampCorr(rec53);
+      if (!Array.isArray(s.feed)) s.feed = [];
+      for (const id53 of moved53) {
+        /* the cache discipline the correction handlers follow: progressStep
+           and the debrief read lastMeta/ex.last, not the log, so a stale
+           all-null copy would keep them saying "nothing rated last time". */
+        const ex53 = (s.exercises || []).find((e9) => e9 && e9.id === id53);
+        if (ex53) { const dm53 = deriveLastMeta(s, id53); if (dm53) { ex53.lastMeta = dm53; ex53.last = dm53.reps.slice(); } }
+        const nm53 = ex53 && ex53.n ? String(ex53.n).toUpperCase() : id53.toUpperCase();
+        const op53 = "amend:2026-08-14:" + id53 + ":rir";
+        if (!s.feed.some((f9) => f9 && f9.op === op53)) s.feed.unshift({ op: op53, d: "2026-08-14", t: "RECORD AMENDED — " + nm53 + " 2026-08-14: the last set ran to failure (0 RIR)", how: "on the owner's word. Reps and weight untouched; the opener stays unrated because it was never asked." });
+      }
+    }
+  }
+  s.v = 53; return s;
+}
 function patchV52(s) {
   /* THE DATA AMENDMENT — owner attestation, 2026-08-14 (the standing precedent:
      a chat attestation corrects the record). On the 2026-08-14 session Joe
@@ -10468,7 +10526,7 @@ function patchV38(s) {
    defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
    no longer as the only wall between a bump and his history. The gate asserts the
    pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
-const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52]];
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52], [53, patchV53]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
