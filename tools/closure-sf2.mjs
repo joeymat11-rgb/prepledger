@@ -284,6 +284,82 @@ export function runClosureSF2(T, ok, readFileSync) {
       "R11-C-fork e — a PRE-FORK calves session is never labeled: the iso >= fkL gate is untouched (observed date " + J(preIso) + " vs fork " + J(fk) + " · label " + lab(withPre, preIso) + ")");
   });
 
+  /* ---- v7.53.2 — THE 2026-08-14 DATA AMENDMENT (owner attestation) ---- */
+  t("AMEND-0814", () => {
+    /* The synced ledger in this repo ends 2026-08-10 — his phone had not yet
+       carried the 8/14 session up when this shipped — so the session is
+       PLANTED here in the shape the app writes, and stated as planted. The
+       patch's own guard is the stale value, so the planted record is the
+       honest way to drive it. */
+    const withSess = (mut) => {
+      const raw = rawV50();
+      raw.sessionLog["2026-08-14"] = {
+        entries: [
+          { id: "hack", reps: [10, 9, 9], rir: 2, rirSets: [2, null, 0], w: 190 },
+          { id: "extension", reps: [10, 10], rir: null, rirSets: [null, null], w: 155 },
+          { id: "ham", reps: [12, 12, 11], rir: null, rirSets: [null, null, null], w: 120 },
+        ],
+        at: 0, note: "", niggles: [], dips: 0, skipped: [{ id: "abs" }, { id: "hanging" }], pace: null,
+      };
+      if (mut) mut(raw);
+      return T.migrate(raw);
+    };
+    const m = withSess();
+    const rec = m.sessionLog["2026-08-14"];
+    const en = (id) => (rec.entries || []).find((e) => e && e.id === id);
+    ok(en("hack").w === 200 && en("extension").w === 160,
+      "AMEND a — the two attested weights are amended to the exact literals (observed hack " + J(en("hack").w) + " · extension " + J(en("extension").w) + ")");
+    ok(J(en("hack").reps) === J([10, 9, 9]) && en("hack").rir === 2 && J(en("hack").rirSets) === J([2, null, 0])
+      && J(en("extension").reps) === J([10, 10]) && en("extension").rir === null,
+      "AMEND b — reps, rir and rirSets are BYTE-IDENTICAL: the attestation was about the weight, and nothing else moved (observed " + J([en("hack").reps, en("hack").rir, en("extension").reps, en("extension").rir]) + ")");
+    ok(J(en("ham")) === J({ id: "ham", reps: [12, 12, 11], rir: null, rirSets: [null, null, null], w: 120 }),
+      "AMEND c — the third entry on the same session is untouched (observed " + J(en("ham")) + ")");
+    ok(J(rec.skipped) === J([{ id: "abs" }, { id: "hanging" }]),
+      "AMEND d — skipped[] is NOT touched by this patch: Joe is un-skipping those two in-app, and a patch racing his own correction is how a record gets a value nobody chose (observed " + J(rec.skipped) + ")");
+    ok(!!(rec.corr && rec.corr.at && rec.corr.rev >= 1),
+      "AMEND e — the record carries the CORRECTION_MERGE stamp, so a replica holding the old copy cannot revert it (observed " + J(rec.corr) + ")");
+    /* THE CACHE DISCIPLINE — the class the earlier ledger repairs missed */
+    const hk = m.exercises.find((e) => e.id === "hack"), ext = m.exercises.find((e) => e.id === "extension");
+    ok(hk.lastMeta && hk.lastMeta.d === "2026-08-14" && hk.lastMeta.w === 200 && J(hk.last) === J([10, 9, 9])
+      && ext.lastMeta && ext.lastMeta.w === 160 && J(ext.last) === J([10, 10]),
+      "AMEND f — lastMeta and ex.last are RE-DERIVED to the corrected weights, so no stale 190/155 keeps driving a target (observed hack " + J(hk.lastMeta && [hk.lastMeta.d, hk.lastMeta.w]) + " · extension " + J(ext.lastMeta && ext.lastMeta.w) + ")");
+    /* the config is deliberately NOT moved */
+    const raw0 = rawV50();
+    ok(hk.w === (raw0.exercises.find((e) => e.id === "hack") || {}).w,
+      "AMEND g — the CONFIG w is untouched: the earn machinery reads the corrected entry and does its own honest work next session (observed " + J(hk.w) + ")");
+    /* receipts: one per lift, once */
+    const rcp = (m.feed || []).filter((f) => f && f.op && String(f.op).indexOf("amend:2026-08-14:") === 0);
+    ok(rcp.length === 2 && rcp.some((f) => /190 → 200/.test(f.t)) && rcp.some((f) => /155 → 160/.test(f.t)),
+      "AMEND h — two receipts, one per lift, naming the before and after (observed " + J(rcp.map((f) => f.t)) + ")");
+    /* IDEMPOTENT: a rerun over the amended state amends nothing, files nothing */
+    const again = T.migrate(JSON.parse(JSON.stringify({ ...cl(m), v: 51 })));
+    const rcp2 = (again.feed || []).filter((f) => f && f.op && String(f.op).indexOf("amend:2026-08-14:") === 0);
+    const rev2 = ((again.sessionLog["2026-08-14"] || {}).corr || {}).rev, rev1 = (rec.corr || {}).rev;
+    ok(rcp2.length === 2 && (again.sessionLog["2026-08-14"].entries.find((e) => e.id === "hack") || {}).w === 200 && rev2 != null && rev2 === rev1,
+      "AMEND i — IDEMPOTENT: a rerun finds the corrected values, amends nothing, files no second receipt and does not re-stamp (observed receipts " + rcp2.length + " · rev " + J(rev2) + " vs " + J(rev1) + ")");
+    /* every OTHER date byte-identical through the amendment */
+    const noSess = T.migrate(rawV50());
+    const others = (st) => JSON.stringify(Object.keys(st.sessionLog).filter((d) => d !== "2026-08-14").sort().map((d) => [d, st.sessionLog[d]]));
+    ok(others(m) === others(noSess),
+      "AMEND j — sessionLog for every OTHER date is byte-identical through the patch");
+    /* a session that never carried the stale values is left entirely alone */
+    const already = withSess((raw) => { raw.sessionLog["2026-08-14"].entries.find((e) => e.id === "hack").w = 200; raw.sessionLog["2026-08-14"].entries.find((e) => e.id === "extension").w = 160; });
+    const rcp3 = (already.feed || []).filter((f) => f && f.op && String(f.op).indexOf("amend:2026-08-14:") === 0);
+    ok(rcp3.length === 0 && !already.sessionLog["2026-08-14"].corr,
+      "AMEND k — a state that already holds the attested weights takes NO amendment, NO stamp and NO receipt: the guard is the stale value itself (observed receipts " + rcp3.length + ")");
+    /* THE MERGE: corrected <-> stale-uncorrected replica, both orders */
+    const stale = T.migrate(rawV50((r) => { r.sessionLog["2026-08-14"] = JSON.parse(JSON.stringify(withSess().sessionLog["2026-08-14"])); r.sessionLog["2026-08-14"].entries.find((e) => e.id === "hack").w = 190; r.sessionLog["2026-08-14"].entries.find((e) => e.id === "extension").w = 155; delete r.sessionLog["2026-08-14"].corr; r.v = 51; }));
+    const wOf = (st, id) => ((st.sessionLog["2026-08-14"] || {}).entries || []).find((e) => e && e.id === id);
+    const ab = T.mergeState(cl(m), cl(stale)), ba = T.mergeState(cl(stale), cl(m));
+    ok(wOf(ab, "hack").w === 200 && wOf(ab, "extension").w === 160 && wOf(ba, "hack").w === 200 && wOf(ba, "extension").w === 160,
+      "AMEND l — corrected vs stale-uncorrected replica, BOTH merge orders: the correction wins on its stamp (observed A<-B " + J([wOf(ab, "hack").w, wOf(ab, "extension").w]) + " · B<-A " + J([wOf(ba, "hack").w, wOf(ba, "extension").w]) + ")");
+    /* the counts law across the amendment */
+    const cnt = (st) => [(st.reads || []).length, ((st.sleep || {}).nights || []).length, Object.keys(st.dailyLogs || {}).length, Object.keys(st.sessionLog || {}).length, (st.queue || []).length];
+    const before = cnt(withSess()), after = cnt(m);
+    ok(after.every((v, i) => v >= before[i]),
+      "AMEND m — the counts law holds across the amendment (observed " + J(before) + " -> " + J(after) + ")");
+  });
+
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
   t("R6", () => {
     const m = mig50((s) => { const sk = s.exercises.find((x) => x.id === "sulek"); if (sk) sk.sets = 3; });

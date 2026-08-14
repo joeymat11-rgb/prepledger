@@ -354,13 +354,13 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.53.1";
+const APP_V = "7.53.2";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 51;
+const SCHEMA_V = 52;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -10138,6 +10138,63 @@ function patchV45(s) {
   rule45("rows", 10, 9);
   s.v = 45; return s;
 }
+function patchV52(s) {
+  /* THE DATA AMENDMENT — owner attestation, 2026-08-14 (the standing precedent:
+     a chat attestation corrects the record). On the 2026-08-14 session Joe
+     lifted the hack squat at 200 and the leg extension at 160; the session
+     banked 190 and 155 — he answered the ladder ask with 200 and reasonably
+     expected it to carry into the session. Reps, RIR and every effort answer
+     are CORRECT as logged and are not touched here.
+
+     WHAT THIS PATCH DELIBERATELY DOES NOT DO:
+     · it never touches skipped[] or any lift's skip state. Joe is un-skipping
+       two lifts in-app through the ↩ control, before or after this runs, and a
+       patch racing an athlete's own correction is how a record gets a value
+       nobody chose. Whatever state those lifts are in when this runs is his.
+     · it never touches the CONFIG w. hack's config stays where it is; the
+       earn and prescription machinery reads the corrected ENTRY and does its
+       own honest work next session, and the ladder he saved already carries
+       200 as the next rung. A patch that also moved the config would be
+       deciding a progression he did not attest to.
+     · it amends ONE date and TWO entries. Any other date, any other lift, and
+       every other field of these two entries stay byte-identical. */
+  const AMEND52 = [["hack", 190, 200], ["extension", 155, 160]];
+  const rec52 = ((s && s.sessionLog) || {})["2026-08-14"];
+  if (rec52 && Array.isArray(rec52.entries)) {
+    const moved52 = [];
+    for (const [id52, from52, to52] of AMEND52) {
+      const en52 = rec52.entries.find((e9) => e9 && e9.id === id52);
+      /* IDEMPOTENT BY CONSTRUCTION: the guard is the stale value itself, so a
+         rerun (or a device that already took the amendment through a merge)
+         finds 200/160, amends nothing and files nothing. An absent entry —
+         a session that never carried this lift, or one the athlete has since
+         corrected himself — is also left alone. */
+      if (!en52 || en52.w !== from52) continue;
+      en52.w = to52;
+      moved52.push([id52, from52, to52]);
+    }
+    if (moved52.length) {
+      /* the CORRECTION_MERGE stamp: without it this is an unmarked change and
+         a replica carrying the old copy reverts it on the next sync. rev
+         orders it against any other correction on the same record. */
+      _stampCorr(rec52);
+      if (!Array.isArray(s.feed)) s.feed = [];
+      for (const [id52, from52, to52] of moved52) {
+        /* THE CACHE DISCIPLINE the ✕ and ↩ handlers already follow: lastMeta
+           and ex.last are denormalised copies of the log that progressStep and
+           targetsFor actually read. Re-derived here, or a stale 190/155 keeps
+           driving a target — the exact class the earlier ledger repairs
+           missed. deriveLastMeta reads the log and invents nothing. */
+        const ex52 = (s.exercises || []).find((e9) => e9 && e9.id === id52);
+        if (ex52) { const dm52 = deriveLastMeta(s, id52); if (dm52) { ex52.lastMeta = dm52; ex52.last = dm52.reps.slice(); } }
+        const nm52 = ex52 && ex52.n ? String(ex52.n).toUpperCase() : id52.toUpperCase();
+        const op52 = "amend:2026-08-14:" + id52;
+        if (!s.feed.some((f9) => f9 && f9.op === op52)) s.feed.unshift({ op: op52, d: "2026-08-14", t: "RECORD AMENDED — " + nm52 + " 2026-08-14 logged " + from52 + " → " + to52, how: "the weight actually lifted. Corrected on the owner's word; reps and effort answers untouched." });
+      }
+    }
+  }
+  s.v = 52; return s;
+}
 function patchV51(s) {
   /* THE SPLIT PATCH (owner-ruled 8/12). Deterministic: canonical dates, never
      fire-time; every authored field stamped at RULING_EPOCH; the eleven seams
@@ -10411,7 +10468,7 @@ function patchV38(s) {
    defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
    no longer as the only wall between a bump and his history. The gate asserts the
    pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
-const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51]];
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
