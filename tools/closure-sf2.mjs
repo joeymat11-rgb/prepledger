@@ -360,6 +360,102 @@ export function runClosureSF2(T, ok, readFileSync) {
       "AMEND m — the counts law holds across the amendment (observed " + J(before) + " -> " + J(after) + ")");
   });
 
+  /* ---- v7.53.3 — THE 2026-08-14 TERMINAL-SET ATTESTATION ---- */
+  t("AMEND-0814-RIR", () => {
+    /* the 8/14 record in the SHAPE HIS LEDGER ACTUALLY CARRIES IT (he
+       un-skipped abs and hanging in-app, which writes rir null and an all-null
+       rirSets; hack/extension still hold the pre-v52 weights, so a v51 device
+       runs BOTH patches — that is the real chain and it is what this drives). */
+    const withSess = (mut) => {
+      const raw = rawV50();
+      raw.sessionLog["2026-08-14"] = {
+        entries: [
+          { id: "hack", reps: [7, 7, 8], rir: 2, rirSets: [2, null, 0], w: 190, og: 50 },
+          { id: "extension", reps: [8, 9], rir: 2, rirSets: [2, 0], w: 155, og: 50 },
+          { id: "ham", reps: [11, 9, 9], rir: 1, rirSets: [1, null, 0], w: 125, og: 50 },
+          { id: "abs", reps: [14, 14, 14], rir: null, rirSets: [null, null, null], w: 100 },
+          { id: "hanging", reps: [7, 6], rir: null, rirSets: [null, null], w: null },
+        ],
+        at: 0, note: "", niggles: [], dips: 0, skipped: [{ id: "hipthrust" }, { id: "calves" }], pace: null,
+        corr: { at: "2026-07-28T10:00:00.000Z", rev: 2 },   /* his own ↩ correction, dated before the suite's frozen clock so the patch stamps AFTER it — see the note above this block */
+      };
+      if (mut) mut(raw);
+      return T.migrate(raw);
+    };
+    const m = withSess();
+    const rec = m.sessionLog["2026-08-14"];
+    const en = (id) => (rec.entries || []).find((e) => e && e.id === id);
+    ok(T.terminalRir(en("abs")) === 0 && T.terminalRir(en("hanging")) === 0,
+      "RIR a — the terminal set reads 0 for BOTH lifts through terminalRir (observed abs " + J(T.terminalRir(en("abs"))) + " · hanging " + J(T.terminalRir(en("hanging"))) + ")");
+    ok(J(en("abs").rirSets) === J([null, null, 0]) && J(en("hanging").rirSets) === J([null, 0]),
+      "RIR b — every OTHER slot stays null: the attestation was about the last set only (observed " + J([en("abs").rirSets, en("hanging").rirSets]) + ")");
+    ok(en("abs").rir === null && en("hanging").rir === null && T.openerRir(en("abs")) === null,
+      "RIR c — en.rir stays NULL: that field is the OPENER's rating and openerRir === 0 is the hot-opener load-freeze signal — writing it would manufacture a grind reading he never attested (observed " + J([en("abs").rir, en("hanging").rir, T.openerRir(en("abs"))]) + ")");
+    ok(J(en("abs").reps) === J([14, 14, 14]) && en("abs").w === 100 && en("abs").og === undefined
+      && J(en("hanging").reps) === J([7, 6]) && en("hanging").w === null,
+      "RIR d — reps, w and og byte-identical on both amended entries (observed abs " + J([en("abs").reps, en("abs").w, en("abs").og]) + " · hanging " + J([en("hanging").reps, en("hanging").w]) + ")");
+    ok(J(en("ham")) === J({ id: "ham", reps: [11, 9, 9], rir: 1, rirSets: [1, null, 0], w: 125, og: 50 }),
+      "RIR e — the un-amended entries on the same session are untouched (observed ham " + J(en("ham")) + ")");
+    ok(J(rec.skipped) === J([{ id: "hipthrust" }, { id: "calves" }]),
+      "RIR f — skipped[] untouched (observed " + J(rec.skipped) + ")");
+    ok(!!(rec.corr && rec.corr.rev > 2 && rec.corr.at > "2026-07-28T10:00:00.000Z"),
+      "RIR g — the correction stamp is REFRESHED and orders AFTER the athlete's own on both fields the merge reads, at then rev (his rev 2 at 07-28 -> observed rev " + J(rec.corr && rec.corr.rev) + " at " + J(rec.corr && rec.corr.at) + ")");
+    /* the cache discipline */
+    const ab = m.exercises.find((e) => e.id === "abs"), hg = m.exercises.find((e) => e.id === "hanging");
+    ok(ab.lastMeta && ab.lastMeta.d === "2026-08-14" && J(T.rirSetsOf(ab.lastMeta)) === J([null, null, 0])
+      && hg.lastMeta && J(T.rirSetsOf(hg.lastMeta)) === J([null, 0]),
+      "RIR h — lastMeta re-derived so the CACHES carry the terminal 0 (progressStep and the debrief read these, not the log) (observed abs " + J(ab.lastMeta && T.rirSetsOf(ab.lastMeta)) + " · hanging " + J(hg.lastMeta && T.rirSetsOf(hg.lastMeta)) + ")");
+    /* receipts — filtered BY OP, never by title: his real feed already carries
+       prior RECORD AMENDED rows, which is the trap the first data rig fell into */
+    const rcp = (m.feed || []).filter((f) => f && f.op && /^amend:2026-08-14:(abs|hanging):rir$/.test(f.op));
+    ok(rcp.length === 2,
+      "RIR i — exactly two op-guarded receipts (matched on the op, not the title — the feed carries earlier RECORD AMENDED rows) (observed " + rcp.length + ": " + J(rcp.map((f) => f.op)) + ")");
+    /* THE DEBRIEF CONSEQUENCE — the line that asked the question */
+    const db = T.sessionDebrief(m, "2026-08-14");
+    const flat = JSON.stringify(db || {});
+    const taper = (db.lifts || []).filter((l) => (l.lines || []).some((x) => /went to failure/.test(x.t || x)));
+    ok(flat.indexOf("no last-set rating") < 0,
+      "RIR j — the debrief's 'N lifts have no last-set rating' summary line is GONE (observed present: " + (flat.indexOf("no last-set rating") > -1) + ")");
+    const named = (db.lifts || []).filter((l) => /crunch|leg raise/i.test(l.n || "")).every((l) => (l.lines || []).some((x) => /went to failure/.test(x.t || x)));
+    ok(named && taper.length >= 2,
+      "RIR k — both amended lifts now print the taper line ('went to failure ... the set that buys the next weight') (observed taper lines on " + taper.length + " lifts)");
+    /* progressStep: the BRANCH changes, the NUMBER does not */
+    const stAb = T.progressStep(ab, m), stHg = T.progressStep(hg, m);
+    ok(stAb.add === 1 && stHg.add === 1,
+      "RIR l — the step SIZE is unchanged at add:1 — identical to the unrated default; the attestation sharpens the REASON, it does not move what he lifts (observed " + J([stAb.add, stHg.add]) + ")");
+    ok(/took the last set to failure/.test(stAb.why) && /took the last set to failure/.test(stHg.why),
+      "RIR m — and the WHY is now the term===0 branch, not the 'nothing rated last time' default (observed " + J(stAb.why.slice(0, 52)) + ")");
+    /* IDEMPOTENT + the v52-device path (only this patch runs) */
+    const again = T.migrate(JSON.parse(JSON.stringify({ ...cl(m), v: 52 })));
+    const rcp2 = (again.feed || []).filter((f) => f && f.op && /^amend:2026-08-14:(abs|hanging):rir$/.test(f.op));
+    ok(rcp2.length === 2 && J((again.sessionLog["2026-08-14"].entries.find((e) => e.id === "abs") || {}).rirSets) === J([null, null, 0])
+      && again.sessionLog["2026-08-14"].corr.rev === rec.corr.rev,
+      "RIR n — IDEMPOTENT: a rerun (and a v52 device, which runs ONLY this patch) finds the rated slot, writes nothing, files no second receipt and does not re-stamp (observed receipts " + rcp2.length + " · rev " + J(again.sessionLog["2026-08-14"].corr.rev) + ")");
+    /* every other date, and a FRESH DEVICE */
+    const noSess = T.migrate(rawV50());
+    const others = (st) => JSON.stringify(Object.keys(st.sessionLog).filter((d) => d !== "2026-08-14").sort().map((d) => [d, st.sessionLog[d]]));
+    ok(others(m) === others(noSess),
+      "RIR o — sessionLog for every OTHER date byte-identical through the patch");
+    const fresh = T.migrate(cl(T.SEED));
+    const rcpF = (fresh.feed || []).filter((f) => f && f.op && /^amend:2026-08-14:/.test(f.op));
+    ok(!fresh.sessionLog["2026-08-14"] && rcpF.length === 0,
+      "RIR p — a FRESH INSTALL whose ledger never held the 8/14 session takes nothing and files nothing (observed receipts " + rcpF.length + ")");
+    /* THE MERGE: rated <-> a replica still carrying null slots, both orders */
+    const stale = withSess();
+    stale.sessionLog["2026-08-14"].entries.find((e) => e.id === "abs").rirSets = [null, null, null];
+    stale.sessionLog["2026-08-14"].entries.find((e) => e.id === "hanging").rirSets = [null, null];
+    stale.sessionLog["2026-08-14"].corr = { at: "2026-07-28T10:00:00.000Z", rev: 2 };
+    const tOf = (st, id) => T.terminalRir(((st.sessionLog["2026-08-14"] || {}).entries || []).find((e) => e && e.id === id));
+    const ab2 = T.mergeState(cl(m), cl(stale)), ba2 = T.mergeState(cl(stale), cl(m));
+    ok(tOf(ab2, "abs") === 0 && tOf(ab2, "hanging") === 0 && tOf(ba2, "abs") === 0 && tOf(ba2, "hanging") === 0,
+      "RIR q — rated vs a replica still carrying null slots, BOTH merge orders: the correction wins on its stamp (observed A<-B " + J([tOf(ab2, "abs"), tOf(ab2, "hanging")]) + " · B<-A " + J([tOf(ba2, "abs"), tOf(ba2, "hanging")]) + ")");
+    /* counts law */
+    const cnt = (st) => [(st.reads || []).length, ((st.sleep || {}).nights || []).length, Object.keys(st.dailyLogs || {}).length, Object.keys(st.sessionLog || {}).length, (st.queue || []).length];
+    const before = cnt(withSess()), after = cnt(m);
+    ok(after.every((v, i) => v >= before[i]),
+      "RIR r — the counts law holds across the amendment (observed " + J(before) + " -> " + J(after) + ")");
+  });
+
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
   t("R6", () => {
     const m = mig50((s) => { const sk = s.exercises.find((x) => x.id === "sulek"); if (sk) sk.sets = 3; });
