@@ -843,6 +843,57 @@ export function runClosureSF2(T, ok, readFileSync) {
       "VALUE h — REGRESSION on the live preimage: 200·[8,7,8] and 160·[9,9], one receipt each, exactly as the shipped round left it (observed " + J([g(real, "hack").w, g(real, "extension").w]) + ")");
   });
 
+  /* ---- v7.53.5 leg 6 — TRUTH FIRST: the derived date is THE date ---- */
+  t("LOAD-LEG6", () => {
+    const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
+    const rcp = (s9, id9) => (s9.feed || []).filter((f) => f && f.op && String(f.op).indexOf("adopt:corr:" + id9 + ":") === 0);
+    /* the shapes cowork executed at 42f429c: a NEWER Aug-15 session (hack
+       210), the config already following it (foreign/import shape, no wAt),
+       and the stamped Aug-14 amendment sitting one day back in the log. */
+    const mk = (mut9) => {
+      const s9 = preAdoption();
+      s9.sessionLog["2026-08-15"] = { d: "2026-08-15", entries: [{ id: "hack", w: 210, reps: [8, 8, 8], rirSets: [2, 2, 2] }] };
+      const h9 = s9.exercises.find((e) => e && e.id === "hack");
+      h9.w = 210; delete h9.wAt;
+      if (mut9) mut9(h9);
+      return s9;
+    };
+    /* (a,b) THE MATCH SHAPE — lastMeta agrees with the entry it points at, it
+       just points at YESTERDAY. No heal ever fired in the old code; the stale
+       date alone bypassed the newest session. */
+    const mOut = T.migrate(mk());
+    ok(g(mOut, "hack").w === 210 && rcp(mOut, "hack").length === 0,
+      "LEG6 a — a NEWER session outranks an older stamped amendment: the config is never dragged backward off the athlete's newest word (executed red: 210 -> 200 with a '210 → 200' receipt) (observed w " + J(g(mOut, "hack").w) + ", receipts " + rcp(mOut, "hack").length + ")");
+    ok(g(mOut, "hack").lastMeta && g(mOut, "hack").lastMeta.d === "2026-08-15" && g(mOut, "hack").lastMeta.w === 210,
+      "LEG6 b — and the cache heals to the lift's actual newest line, because the truth is derived FIRST and everything reads it (observed " + J([g(mOut, "hack").lastMeta && g(mOut, "hack").lastMeta.d, g(mOut, "hack").lastMeta && g(mOut, "hack").lastMeta.w]) + ")");
+    /* (c) THE MISMATCH SHAPE — the old code healed the cache to 8/15 @ 210 and
+       then adjudicated on the PRE-HEAL entry anyway, leaving the state
+       self-contradictory: cache 8/15 @ 210 beside config 200. */
+    const xOut = T.migrate(mk((h9) => { h9.lastMeta = { ...h9.lastMeta, d: "2026-08-14", w: 210 }; }));
+    ok(g(xOut, "hack").w === 210 && rcp(xOut, "hack").length === 0 && g(xOut, "hack").lastMeta.d === "2026-08-15" && g(xOut, "hack").lastMeta.w === 210,
+      "LEG6 c — the MISMATCH shape ends coherent: config 210 beside a cache saying 8/15 @ 210 — the heal and the adjudication read the SAME entry, so the state can no longer contradict itself (observed w " + J(g(xOut, "hack").w) + ", cache " + J([g(xOut, "hack").lastMeta.d, g(xOut, "hack").lastMeta.w]) + ", receipts " + rcp(xOut, "hack").length + ")");
+    ok(JSON.stringify(T.migrate(JSON.parse(JSON.stringify(mOut)))) === JSON.stringify(mOut)
+      && JSON.stringify(T.migrate(JSON.parse(JSON.stringify(xOut)))) === JSON.stringify(xOut),
+      "LEG6 d — reruns are byte-identical on both shapes: derive-first is a pure function of the log, so migrate stays idempotent");
+    /* (e) THE INTENDED CASE, intact: on the real pre-adoption state 8/14 IS
+       the newest line for both lifts, so the amendment still governs. */
+    const rOut = T.migrate(preAdoption());
+    ok(g(rOut, "hack").w === 200 && g(rOut, "extension").w === 160
+      && J(T.targetsFor(g(rOut, "hack"), rOut)) === J([8, 7, 8]) && J(T.targetsFor(g(rOut, "extension"), rOut)) === J([9, 9])
+      && rcp(rOut, "hack").length === 1 && rcp(rOut, "extension").length === 1,
+      "LEG6 e — the amendment still governs while the amended session is the newest word: 200·[8,7,8] and 160·[9,9] with one truthful receipt each (observed " + J([g(rOut, "hack").w, g(rOut, "extension").w]) + ")");
+    /* (f) A STALE CACHE POINTING ELSEWHERE — at a date with no entry at all.
+       The old code looked up log[lm.d], found nothing, and ABSTAINED: the
+       stamped amendment was invisible behind a bad pointer. The derived date
+       finds it. */
+    const fS = preAdoption();
+    const fh = fS.exercises.find((e) => e && e.id === "hack");
+    fh.lastMeta = { ...fh.lastMeta, d: "2020-01-01" };
+    const fOut = T.migrate(fS);
+    ok(g(fOut, "hack").w === 200 && rcp(fOut, "hack").length === 1 && g(fOut, "hack").lastMeta.d === "2026-08-14" && g(fOut, "hack").lastMeta.w === 200,
+      "LEG6 f — a stamped amendment at the TRUE newest date is found even when the cache points at a date holding nothing: heals AND adopts (executed red: the bad pointer hid the amendment and the sweep abstained at 190) (observed w " + J(g(fOut, "hack").w) + ", receipts " + rcp(fOut, "hack").length + ", cache d " + J(g(fOut, "hack").lastMeta.d) + ")");
+  });
+
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
   t("R6", () => {
     const m = mig50((s) => { const sk = s.exercises.find((x) => x.id === "sulek"); if (sk) sk.sets = 3; });

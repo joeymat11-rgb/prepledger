@@ -10679,9 +10679,34 @@ function reconcileCorrectedLoads(s) {
     const log = (s && s.sessionLog) || {};
     for (const ex of ((s && s.exercises) || [])) {
       if (!ex || typeof ex.w !== "number") continue;                    /* "BW" and other configs have no load to reconcile */
-      const lm = ex.lastMeta;
-      if (!lm || !lm.d) continue;   /* the cache's ONLY job here is locating the newest session date */
-      const rec = log[lm.d];
+      /* v7.53.5 leg 6 — TRUTH FIRST; then everything reads the truth. The
+         sweep let the CACHE choose the date: it healed a stale lastMeta and
+         then kept adjudicating on the PRE-HEAL entry. Executed at 42f429c,
+         both shapes: a newer Aug-15 session (210) was dragged BACKWARD to the
+         stamped Aug-14 amendment's 200 with a receipt calling it
+         reconciliation — and in the mismatch shape the heal DID re-derive the
+         cache to Aug-15 @ 210 while the adoption still used the old entry,
+         leaving the state self-contradictory (cache 8/15 @ 210 beside config
+         200). The match shape is the deeper defect: a stale cache date
+         bypasses the newest session with no heal involved at all. So the log
+         is derived FIRST and the derived date is THE date; the cache never
+         chooses the entry again. THE DOCTRINE: an amendment governs the plan
+         only while the amended session is still the lift's newest word — a
+         newer session already spoke for itself (the CAGE handled it at
+         completion), so an older stamped correction is history, not
+         authority. */
+      const dm = deriveLastMeta(s, ex.id);
+      if (!dm) continue;                                                /* no logged line with reps — nothing to reconcile against */
+      /* CACHE HONESTY — unconditional-VERIFIED now, not mismatch-triggered.
+         lastMeta is a DENORMALISED COPY of the log; when it disagrees with
+         what the log derives it is stale or foreign, and it must not survive
+         the boot — every downstream reader (progressStep, the anchor, the
+         debrief) reads the cache, not the log. Silent by design (it restates
+         the record, which the migration law permits without a receipt) and
+         deterministic: derived from the log, so a replayed migrate lands the
+         same bytes. */
+      if (JSON.stringify(ex.lastMeta) !== JSON.stringify(dm) || JSON.stringify(ex.last) !== JSON.stringify(dm.reps)) { ex.lastMeta = dm; ex.last = dm.reps.slice(); }
+      const rec = log[dm.d];
       /* FIX 1 (leg 3) — THE GATE KEYS ON PER-ENTRY LOAD PROVENANCE, not the
          session stamp. A session's corr is written by ✕ and ↩ too, which
          change no load at all — so (executed) a deliberate editor set of hack
@@ -10694,17 +10719,7 @@ function reconcileCorrectedLoads(s) {
          THE RITUAL, permanently: any future data patch that changes an entry's
          w MUST stamp that entry's wCorrAt (see patchV54). */
       const enC = rec && Array.isArray(rec.entries) ? rec.entries.find((e9) => e9 && e9.id === ex.id) : null;
-      if (!enC) continue;
-      /* v7.53.5 — CACHE HONESTY, and it runs whether or not anything adopts.
-         lastMeta is a DENORMALISED COPY of the log; when it contradicts the
-         entry it claims to summarise it is stale or foreign, and it must not
-         survive the boot — every downstream reader (progressStep, the anchor,
-         the debrief) reads the cache, not the log. Silent by design: this
-         restates the record rather than deciding anything, which is what the
-         migration law permits without a receipt. Deterministic — derived from
-         the log, so a replayed migrate lands the same bytes. */
-      if (lm.w !== enC.w) { const dm9 = deriveLastMeta(s, ex.id); if (dm9) { ex.lastMeta = dm9; ex.last = dm9.reps.slice(); } }
-      if (typeof enC.w !== "number") continue;                          /* a non-numeric entry has no load to adopt */
+      if (!enC || typeof enC.w !== "number") continue;                  /* the derived line exists here by construction; a non-numeric entry has no load to adopt */
       const at = typeof enC.wCorrAt === "string" && isFinite(Date.parse(enC.wCorrAt)) ? enC.wCorrAt : null;
       if (!at) continue;                                                /* only a LOAD-corrected entry may lead the plan */
       /* v7.53.5 — THE AUTHORITY'S VALUE IS THE AUTHORITY. The sweep verified
@@ -10732,8 +10747,8 @@ function reconcileCorrectedLoads(s) {
       ex.w = enC.w; ex.wAt = at;                                        /* every w-writer stamps, and this one stamps deterministically */
       if (ex.topAt != null || (ex.topRun || 0) !== 0) { ex.topAt = null; ex.topRun = 0; }   /* a new load starts its own sighting record — but only WRITE when there is a sighting to clear. Writing null/0 over absent keys is semantically identical and merge-visibly different: topAt/topRun are unstamped, so they ride whichever whole record wins, and manufacturing them made the two merge orders differ on a lift that had never banked a sighting. Deep order-equality is the stronger claim; this is what makes it true. */
       if (!Array.isArray(s.feed)) s.feed = [];
-      const op = "adopt:corr:" + ex.id + ":" + lm.d;
-      if (!s.feed.some((f9) => f9 && f9.op === op)) s.feed.unshift({ op, d: lm.d, t: "WORKING LOAD RECONCILED — " + String(ex.n || ex.id).toUpperCase() + " " + from + " → " + enC.w, how: "The corrected record says " + enC.w + " was lifted on " + lm.d + "; the plan follows the record." + (rungs ? " The rung joined the ladder." : "") });   /* the receipt names the STAMPED value — receipt truth is the law this defect broke */
+      const op = "adopt:corr:" + ex.id + ":" + dm.d;
+      if (!s.feed.some((f9) => f9 && f9.op === op)) s.feed.unshift({ op, d: dm.d, t: "WORKING LOAD RECONCILED — " + String(ex.n || ex.id).toUpperCase() + " " + from + " → " + enC.w, how: "The corrected record says " + enC.w + " was lifted on " + dm.d + "; the plan follows the record." + (rungs ? " The rung joined the ladder." : "") });   /* the receipt names the STAMPED value — receipt truth is the law this defect broke */
     }
     /* FIX 3 — every lift self-heals at the boundary, adopted or not: a hybrid
        that a past merge already wrote into the state is repaired the next time
