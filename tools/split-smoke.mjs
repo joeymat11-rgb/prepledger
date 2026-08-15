@@ -448,8 +448,24 @@ async function driveWeightBox() {
      abstains by its own rule and hack sits at 190 with its four-rung ladder —
      exactly the state he was looking at when the box refused his entry. This
      also survives a future schema bump, which stripping provenance would not. */
+  /* LEG 9 — AND THE LEDGER MOVED UNDER IT. ledger/state.json syncs from his
+     phone: once v7.53.4 shipped, his device ADOPTED, and the file now arrives
+     with hack already at 200 on a five-rung ladder. Suppressing the reconciler
+     no longer produces the pre-correction shape, because there is nothing left
+     to suppress — so this fixture RESTATES the documented shape on top of the
+     real record, the same repair the engine pins took in preAdoption(). Caught
+     by the gate at the merge boundary, which is exactly where it should be. */
   delete preCorr.sessionLog["2026-08-14"].corr;
-  for (const id9 of ["hack", "extension"]) { const e9 = preCorr.exercises.find((x) => x && x.id === id9); if (e9) e9.wAt = "2026-08-20T09:00:00.000Z"; }
+  const backTo = (id9, w9, steps9) => {
+    const e9 = preCorr.exercises.find((x) => x && x.id === id9);
+    if (!e9) return;
+    e9.w = w9;
+    if (steps9) e9.steps = steps9.slice(); else delete e9.steps;
+    delete e9.stepsAt;
+    e9.wAt = "2026-08-20T09:00:00.000Z";   /* his OWN word, newer than any correction: the reconciler abstains by its own rule, so the restated shape survives the boot */
+  };
+  backTo("hack", 190, [160, 170, 180, 190]);
+  backTo("extension", 155, null);
   const openBox = async (w, id) => {
     await openGroup(w, "pl-train-setup");
     await sleep(120);
