@@ -1,16 +1,16 @@
 {
-  "gen": "2026-08-14T09:05:44.293Z",
+  "gen": "2026-08-15T09:05:56.542Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 163.81,
-    "lastRaw": 163.3,
-    "appTrend": 163.7,
+    "soft": 164.07,
+    "lastRaw": 164.7,
+    "appTrend": 164,
     "noiseFloor": 1.5,
-    "gap": 0.51
+    "gap": -0.63
   },
   "rate": {
-    "perWeekLb": 0.16,
-    "perWeekPct": 0.1,
+    "perWeekLb": -0.06,
+    "perWeekPct": -0.04,
     "bandLb": 0.88,
     "personalBand": [
       1,
@@ -19,19 +19,19 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2693,
+    "tdee": 2634,
     "tdeeWinDays": 20,
-    "meanCal": 2439,
-    "waterSensitivityLb": 1.14,
+    "meanCal": 2442,
+    "waterSensitivityLb": 1.1,
     "waterSensDays": 4,
-    "meanSleepH": 6.9,
+    "meanSleepH": 7.3,
     "sleepDebt7H": 1.7,
     "ffmKg": 63.4,
     "proteinTargetG": 146
   },
   "regime": {
     "regime": "plateau",
-    "why": "check adherence/logging first, then consider a diet break"
+    "why": "deficit has shrunk - intake near your TDEE"
   },
   "weeks": [
     {
@@ -71,43 +71,13 @@
     },
     {
       "wk": "2026-08-10",
-      "meanCal": 2253,
-      "meanPro": 170,
+      "meanCal": 2242,
+      "meanPro": 168,
       "proHitPct": 100,
-      "meanSteps": 18667
+      "meanSteps": 18250
     }
   ],
   "priorDecisions": [
-    {
-      "sid": "sug_2026-08-05_hamcounter",
-      "decided": "approved",
-      "d": "2026-08-05",
-      "title": "Ham's top-of-window counter is a fourth cache — it is one sighting ahead of the log",
-      "apply": {
-        "kind": "note"
-      },
-      "predict": "Clear topRun (or let a filed non-top ham session clear it) and 125 waits for two real sightings, the way the rule intends. Leave it and the very next good ham day queues a 4% jump on a lift that just did 10,10 after a week off."
-    },
-    {
-      "sid": "sug_2026-08-05_extlog",
-      "decided": "approved",
-      "d": "2026-08-05",
-      "title": "Put Tuesday's leg extension back — with the load on it",
-      "apply": {
-        "kind": "note"
-      },
-      "predict": "Re-enter it with the weight and one of two things settles tonight. At 155, 8,8 meets the clean-debut threshold this loop named on 8/1, q_ext155 closes and the gate CL-2 shut on 7/21 is earned. At 150, it is three reps off your 10,9 and the gate stays shut. Either way exercises.extension.lastMeta moves off 2026-07-31 and your next lower day stops prescribing from a nine-day-old card."
-    },
-    {
-      "sid": "sug_2026-08-06_sleep",
-      "decided": "approved",
-      "d": "2026-08-06",
-      "title": "Bed by 00:30 tonight — and log the night. The debt went up, not down.",
-      "apply": {
-        "kind": "note"
-      },
-      "predict": "Bed by 00:30 puts tonight at 7.0-7.5 h. Grade it on sleep.nights gaining entries for 8/5 and 8/6, and on the 7-night debt falling under 3.0 h by Saturday. If the nights get logged and the debt still climbs, the ask is wrong and I stop making it."
-    },
     {
       "sid": "sug_2026-08-08_volstack",
       "decided": "approved",
@@ -173,25 +143,31 @@
       "title": "Check the ham machine actually makes 125 before you debut it — the hack number went wrong exactly this way",
       "apply": null,
       "predict": ""
+    },
+    {
+      "sid": "sug_2026-08-14_fillthursday",
+      "decided": "noted",
+      "d": "2026-08-14",
+      "title": "Fill in Thursday — rough numbers are fine. It is the day the scale finally moved and the only day with nothing behind it.",
+      "apply": null,
+      "predict": ""
+    },
+    {
+      "sid": "sug_2026-08-14_ham125rung",
+      "decided": "noted",
+      "d": "2026-08-14",
+      "title": "Ham curl: check in SETUP that the machine actually makes 125 before you load it today.",
+      "apply": null,
+      "predict": ""
+    },
+    {
+      "sid": "sug_2026-08-14_bedtime",
+      "decided": "noted",
+      "d": "2026-08-14",
+      "title": "One short night, worth naming: 02:30 to bed on Tuesday put your sleep debt back on the board after eleven clean days.",
+      "apply": null,
+      "predict": ""
     }
   ],
-  "suggestions": [
-    {
-      "sid": "sug_2026-08-13_sleep",
-      "title": "Protect sleep: aim 7.5 h, cap afternoon caffeine",
-      "apply": {
-        "kind": "sleep",
-        "to": 7.5
-      },
-      "rationale": {
-        "science": "At equal deficits, 5.5 vs 8.5 h sleep cut fat loss 55% and raised lean-mass loss 60% (Nedeltcheva 2010).",
-        "data": "Last 12 nights average 6.9 h (7-night debt 1.7 h); 0 recent days had >=300 mg or afternoon caffeine.",
-        "relationship": "Short sleep + late caffeine track with your low recovery score and rep dips - the lever that protects lean while you cut."
-      },
-      "predict": "Higher share of loss as fat; lean protected; better session quality.",
-      "confidence": "high",
-      "gate": "approve",
-      "rank": 1
-    }
-  ]
+  "suggestions": []
 }

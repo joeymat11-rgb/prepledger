@@ -1,54 +1,48 @@
 {
-  "gen": "2026-08-14T09:05:44.293Z",
+  "gen": "2026-08-15T09:05:56.542Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-14_fillthursday",
-      "title": "Fill in Thursday — rough numbers are fine. It is the day the scale finally moved and the only day with nothing behind it.",
-      "apply": {
-        "kind": "note"
-      },
+      "sid": "sug_2026-08-15_dexa",
+      "rank": 1,
+      "title": "Book the DEXA. The scale can't answer this week's question and a scan answers it in one morning.",
+      "apply": { "kind": "note" },
       "rationale": {
-        "science": "When a rate stalls, check adherence and logging before blaming metabolism — the logging gap is the first thing to rule out, not the last (Alhassan 2008).",
-        "data": "8/13 has a weight read of 163.3 and nothing else: no calories, protein, sodium or steps in dailyLogs, no entry in sleep.nights for Wednesday night, and no session on an upper day. 8/12 sodium is still blank too.",
-        "relationship": "Monday 8/17 is when the rate window finally empties of the 8/5-8/8 maintenance days, and I committed to a real test on it — under 0.6 lb/wk with a clean window means the deficit is not what I think and the food log is wrong. A missing Thursday sits inside that window and makes the test unanswerable either way."
+        "science": "At a rate near zero the scale tells you nothing about the fat/lean split. The protective range on a cut is 0.5-0.7% of bodyweight a week (Garthe 2011); you're at 0.04%, so the question isn't whether you're losing too fast — it's what the flat number is made of, and only a body-composition measurement answers that.",
+        "data": "Trend 163.6 to 164.07 over a fortnight on a logged mean of 2,263 calories against measured maintenance of 2,634-2,708. Over the same days, in one session on 8/14: hack 180 to 200 (7,7,8), extension 155 to 160 (8,9), ham 120 to 125 (11,9,9), abs 100 x 14,14,14. Protein averaging 180 g, eleven weeks at 100%.",
+        "relationship": "A food log that's short by ~400 a day and a genuine recomp produce the identical flat scale and mean opposite things about your fat. Rising loads point at recomp — but loads rise on a mis-counted diet too. q_dexa has sat UNBOOKED since it was queued: Jericho NY, fasted, normal day, two days clear of a refeed."
       },
-      "predict": "Fill it in and Monday's rate is a verdict I can be wrong about. Leave it blank and Monday's number cannot be assigned to the body or to the bookkeeping, and this week's argument closes without an answer.",
+      "predict": "The scan re-anchors the body-fat model and decides which of the two explanations I've been arguing with myself about is right. I'm not predicting the scale — I'm saying the scale can't settle this and I've spent a week proving it.",
       "confidence": "high",
-      "gate": "approve",
-      "rank": 1
+      "gate": "coach"
     },
     {
-      "sid": "sug_2026-08-14_ham125rung",
-      "title": "Ham curl: check in SETUP that the machine actually makes 125 before you load it today.",
-      "apply": {
-        "kind": "note"
-      },
+      "sid": "sug_2026-08-15_samedaylog",
+      "rank": 2,
+      "title": "For seven days, log anything you didn't cook yourself on the day you eat it.",
+      "apply": { "kind": "note" },
       "rationale": {
-        "science": "On a cut, defend load — a progression you have to retract costs more than the one you never took (Schoenfeld 2017; Robinson 2024).",
-        "data": "q_ham_125 is state DEBUT, done false, earned off 120 x 12,12,11 on 8/10. Today is your lower day under the split you set on 8/9 (Fri = L), so it is the first day it is actually due.",
-        "relationship": "The hack ladder went wrong in exactly this way — a rung assumed rather than checked, then a retracted earn. Ten seconds in SETUP either confirms 125 exists or tells you the real next rung before you build a session on it."
+        "science": "When a rate stalls, logging drift and portion creep explain it far more often than metabolism. Metabolic adaptation is real but modest, roughly 50-100 calories a day for moderate loss, and it fades (Alhassan 2008; Nunes 2021).",
+        "data": "8/9-8/13 logged 2,350 / 2,231 / 2,279 / 2,249 / 2,208 (mean 2,263) on 14,700-19,500 steps. Against maintenance of 2,634 (my fit) or 2,708 (your app's) that's a stated 370-445 calorie deficit, which should read 0.75-0.9 lb a week down. The trend went up 0.3 lb instead. The gap is 400-475 calories a day. Sodium is blank on 8/9, 8/10, 8/12 and 8/13 — four of those six days.",
+        "relationship": "The blank sodium days are the days you ate something you didn't make, and those are exactly the days a calorie count is a guess rather than a measurement. Same-day logging is the only one of the two explanations for this stall that you can test this week — and it costs nothing if the log is already right."
       },
-      "predict": "If 125 is a real rung, it debuts today and q_ham_125 closes clean. If it is not, you find out standing at the machine instead of two sessions later, and the queue gets the honest number.",
-      "confidence": "high",
-      "gate": "approve",
-      "rank": 2
-    },
-    {
-      "sid": "sug_2026-08-14_bedtime",
-      "title": "One short night, worth naming: 02:30 to bed on Tuesday put your sleep debt back on the board after eleven clean days.",
-      "apply": {
-        "kind": "note"
-      },
-      "rationale": {
-        "science": "At matched deficits, short sleep cut fat loss about 55% and raised lean-mass loss about 60% — it is a first-order body-composition lever, not a footnote (Nedeltcheva 2010; Wang 2018).",
-        "data": "8/12 night: bed 02:30, 5.33 h — against 23:55 and 7.67 h the night before. Seven-night debt went 0 to 1.7 h on that one night; twelve-night mean is 6.9 h. Wednesday night was never logged.",
-        "relationship": "It is one night out of five and four of the five were good, so this is a flag and not an alarm. What makes it worth saying is the sequence: the short night sits directly in front of the blank Thursday and the skipped upper session. That is the ordinary way a bad night costs you — through the day after, not through your metabolism."
-      },
-      "predict": "Back to a midnight-ish bedtime tonight and the seven-night debt is under 1.0 h by Sunday. Your sleep target is already 7.5 h so there is nothing to change and no button here — the target was never the problem, and if the debt keeps climbing on logged nights then this ask is wrong and I will stop making it.",
+      "predict": "If the log is accurate as written, seven same-day days change the mean by less than 100 and the trend reads at or under 163.4 by Saturday 8/22 — which puts the error on my maintenance estimate instead, and I'll say so. If the logged mean rises 200 or more, the gap was bookkeeping and neither of us knew the real deficit.",
       "confidence": "medium",
-      "gate": "approve",
-      "rank": 3
+      "gate": "approve"
+    },
+    {
+      "sid": "sug_2026-08-15_press4th",
+      "rank": 3,
+      "title": "Press tomorrow: run three honest sets, or make the fourth one honest. Your best press scored nothing.",
+      "apply": { "kind": "note" },
+      "rationale": {
+        "science": "On a cut, defend load rather than chase volume, and take working sets to about 1-3 reps in reserve (Schoenfeld 2017; Robinson 2024).",
+        "data": "On 8/9 press ran 250 x 8,8,7,4 — the best press in your file — and drew no feed row at all, while rows, tricep, sulek and lateral each drew one from the same session. Press is still on file at 4 sets at 250, unchanged since.",
+        "relationship": "My read is that the fourth set adds a fourth target the short set fails, which sinks the whole lift's score no matter how good the first three were. That is a best guess, not a measurement — the target array isn't saved, so I can't check it. Tomorrow matters because it's your first upper day in a week, no volume push lands until Monday, and press is one of the few lifts Monday's two new exercises do NOT re-baseline."
+      },
+      "predict": "Three sets at 250 x 8,8,7 draws a press row. Four sets with a short fourth draws nothing again. If four sets with a short fourth does draw a row, my reading of the scoring is wrong and I withdraw it.",
+      "confidence": "medium",
+      "gate": "approve"
     }
   ]
 }
