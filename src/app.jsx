@@ -10150,14 +10150,27 @@ function patchV54(s) {
      session takes nothing.
 
      THE RITUAL, permanently: a data patch that changes an entry's w stamps
-     that entry's wCorrAt in the same breath. The plan follows a corrected
-     load only when the correction says which load it corrected. */
+     that entry's wCorrAt in the same breath — and stamps it ONLY on an entry
+     carrying the load the amendment attests. The attestation is about the
+     VALUE on the record; an entry that contradicts it earns no provenance,
+     because the plan may only follow a correction that says which load it
+     corrected. */
   const AT54 = "2026-08-14T21:57:13.968Z";
+  /* LEG 4 — THE GUARD IS THE VALUE, NOT THE ID. An ID-based stamp fabricated
+     provenance no amendment ever earned: an entry the athlete had himself
+     diverged to 210 (which patchV52's stale-value guard rightly leaves alone)
+     still received wCorrAt, and the reconciler then moved the config 190 -> 210
+     with a receipt claiming the corrected record said so. The attestation is
+     about the VALUE on the record — hack at 200, extension at 160 — so an
+     entry carrying anything else earns nothing. An entry the athlete
+     coincidentally typed at 200 is stamped, and that is the honest reading:
+     it is indistinguishable from, and identical to, what the attestation says. */
+  const ATTESTED54 = [["hack", 200], ["extension", 160]];
   const rec54 = ((s && s.sessionLog) || {})["2026-08-14"];
   if (rec54 && Array.isArray(rec54.entries)) {
-    for (const id54 of ["hack", "extension"]) {
+    for (const [id54, w54] of ATTESTED54) {
       const en54 = rec54.entries.find((e9) => e9 && e9.id === id54);
-      if (en54 && !en54.wCorrAt) en54.wCorrAt = AT54;
+      if (en54 && en54.w === w54 && !en54.wCorrAt) en54.wCorrAt = AT54;
     }
   }
   s.v = 54; return s;
@@ -10241,9 +10254,13 @@ function patchV52(s) {
      · it amends ONE date and TWO entries. Any other date, any other lift, and
        every other field of these two entries stay byte-identical. */
   /* LEG 3 — THE RITUAL THIS PATCH SET THE PRECEDENT FOR: a patch that changes
-     an entry's w must also stamp that entry's wCorrAt, which is what the
-     load reconciler keys on. patchV54 does it for these two entries
-     retroactively; a future amendment does it inline. */
+     an entry's w must also stamp that entry's wCorrAt, which is what the load
+     reconciler keys on. LEG 4 completes it: the stamp lands only where the
+     entry carries the attested VALUE. This patch's own stale-value guard is
+     the same rule one step earlier — an entry the athlete has since diverged
+     is left alone, and must not then be handed provenance it never earned.
+     patchV54 does both for these two entries retroactively; a future amendment
+     does them inline. */
   const AMEND52 = [["hack", 190, 200], ["extension", 155, 160]];
   const rec52 = ((s && s.sessionLog) || {})["2026-08-14"];
   if (rec52 && Array.isArray(rec52.entries)) {

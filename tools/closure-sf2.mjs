@@ -688,6 +688,67 @@ export function runClosureSF2(T, ok, readFileSync) {
       "LEG3 j — and the DOCTRINE holds: a deletion still wins with a STRICTLY newer stamp, both orders. A clear is a decision; a tie is not (observed " + J([g(c1, "hack").steps, g(c2, "hack").steps]) + ")");
   });
 
+  /* ---- v7.53.4 LEG 4 — PROVENANCE IS EARNED BY THE VALUE, NOT THE ID ---- */
+  t("LOAD-LEG4", () => {
+    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
+    const enOf = (s9, id9) => (((s9.sessionLog || {})["2026-08-14"] || {}).entries || []).find((e) => e && e.id === id9) || {};
+    const adopts = (s9, id9) => (s9.feed || []).filter((f) => f && f.op === "adopt:corr:" + id9 + ":2026-08-14").length;
+    /* (a) THE WITNESS, on the real v53 shape: the athlete diverged the entry to
+       210 himself. patchV52's stale-value guard rightly takes nothing on it —
+       and patchV54 must not then hand it provenance the amendment never
+       earned. Every real device's lastMeta follows its own completion, so the
+       consequence is a config move, not just a stray field. */
+    const div = JSON.parse(JSON.stringify(live));
+    const de = (div.sessionLog["2026-08-14"].entries || []).find((e) => e.id === "hack");
+    de.w = 210; delete de.wCorrAt;
+    const dh = div.exercises.find((e) => e.id === "hack");
+    dh.lastMeta = { ...(dh.lastMeta || {}), d: "2026-08-14", w: 210 };
+    const dOut = T.migrate(div);
+    ok(enOf(dOut, "hack").wCorrAt === undefined,
+      "LEG4 a — an entry the athlete diverged to 210 earns NO provenance: the stamp keys on the attested VALUE, and 210 is a load no amendment ever wrote (observed wCorrAt " + J(enOf(dOut, "hack").wCorrAt) + ")");
+    ok(g(dOut, "hack").w === 190 && adopts(dOut, "hack") === 0,
+      "LEG4 b — so the plan never moves and no receipt claims the record said so (executed red: config 190 -> 210 with a '190 → 210' RECONCILED line) (observed w " + J(g(dOut, "hack").w) + ", adopt receipts " + adopts(dOut, "hack") + ")");
+    /* (b) the STALE-CACHE shape, v51: the whole chain runs, patchV52 abstains on
+       the diverged entry, and lastMeta does NOT follow — so on the old bytes the
+       fabricated stamp is the ONLY visible consequence. Pinned so the stamp
+       itself is the claim, not merely its downstream effect. */
+    const stale51 = JSON.parse(JSON.stringify(live));
+    stale51.v = 51;
+    const se = (stale51.sessionLog["2026-08-14"].entries || []).find((e) => e.id === "hack");
+    se.w = 210; delete se.wCorrAt;
+    const sOut = T.migrate(stale51);
+    ok(enOf(sOut, "hack").wCorrAt === undefined && enOf(sOut, "hack").w === 210,
+      "LEG4 c — the STALE-CACHE variant: the diverged 210 entry survives patchV52's stale-value guard untouched AND takes no stamp, so the fabrication is dead at its source (observed w " + J(enOf(sOut, "hack").w) + " wCorrAt " + J(enOf(sOut, "hack").wCorrAt) + ")");
+    /* (c) extension, symmetric */
+    const divX = JSON.parse(JSON.stringify(live));
+    const xe = (divX.sessionLog["2026-08-14"].entries || []).find((e) => e.id === "extension");
+    xe.w = 158; delete xe.wCorrAt;
+    const xh = divX.exercises.find((e) => e.id === "extension");
+    xh.lastMeta = { ...(xh.lastMeta || {}), d: "2026-08-14", w: 158 };
+    const xOut = T.migrate(divX);
+    ok(enOf(xOut, "extension").wCorrAt === undefined && g(xOut, "extension").w === 155 && adopts(xOut, "extension") === 0,
+      "LEG4 d — extension is symmetric: a diverged 158 earns nothing and the plan holds at 155 (observed w " + J(g(xOut, "extension").w) + ", wCorrAt " + J(enOf(xOut, "extension").wCorrAt) + ")");
+    /* (d) THE COINCIDENCE, ruled: an entry the athlete typed at exactly the
+       attested load is stamped. It is indistinguishable from — and identical
+       to — what the attestation says, which is the honest reading. */
+    const coin = JSON.parse(JSON.stringify(live));
+    coin.v = 51;
+    const ce = (coin.sessionLog["2026-08-14"].entries || []).find((e) => e.id === "hack");
+    ce.w = 200; delete ce.wCorrAt;   /* he typed 200 himself; patchV52 abstains, the value still matches */
+    const cOut = T.migrate(coin);
+    ok(enOf(cOut, "hack").wCorrAt === "2026-08-14T21:57:13.968Z" && g(cOut, "hack").w === 200,
+      "LEG4 e — THE COINCIDENCE stamps and adopts: an entry carrying exactly the attested load is the attested truth, whoever typed it (observed wCorrAt " + J(enOf(cOut, "hack").wCorrAt) + ", w " + J(g(cOut, "hack").w) + ")");
+    /* (e) THE REGRESSION — the real ledger still stamps both entries and adopts */
+    const real = T.migrate(JSON.parse(JSON.stringify(live)));
+    ok(enOf(real, "hack").wCorrAt === "2026-08-14T21:57:13.968Z" && enOf(real, "extension").wCorrAt === "2026-08-14T21:57:13.968Z"
+      && g(real, "hack").w === 200 && g(real, "extension").w === 160 && adopts(real, "hack") === 1 && adopts(real, "extension") === 1,
+      "LEG4 f — REGRESSION: the real ledger's two entries carry exactly 200 and 160, so both are stamped and both adopt, with one receipt each (observed " + J([g(real, "hack").w, g(real, "extension").w]) + ")");
+    const twice = T.migrate(JSON.parse(JSON.stringify(real)));
+    ok(JSON.stringify(twice) === JSON.stringify(real),
+      "LEG4 g — and a rerun is still byte-identical: the value guard is idempotent like the absent-only guard it tightens");
+  });
+
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
   t("R6", () => {
     const m = mig50((s) => { const sk = s.exercises.find((x) => x.id === "sulek"); if (sk) sk.sets = 3; });
