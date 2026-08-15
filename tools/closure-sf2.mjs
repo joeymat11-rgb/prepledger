@@ -564,8 +564,8 @@ export function runClosureSF2(T, ok, readFileSync) {
       }
       return diffs;
     })();
-    ok(Array.isArray(entryDelta) && JSON.stringify(entryDelta.sort()) === JSON.stringify(["2026-08-14:extension:wCorrAt", "2026-08-14:hack:wCorrAt"]),
-      "LOAD-A l (evolved by leg 3) — the ONLY field any of this writes into the log is the two amended entries' wCorrAt provenance: no rep, no weight, no rirSets, no other date, and the sweep itself still writes nothing at all (observed " + J(entryDelta) + ")");
+    ok(Array.isArray(entryDelta) && JSON.stringify(entryDelta.sort()) === JSON.stringify(["2026-08-09:curl:reps", "2026-08-09:curl:rirSets", "2026-08-09:rows:reps", "2026-08-09:rows:rirSets", "2026-08-09:tricep:reps", "2026-08-09:tricep:rirSets", "2026-08-14:extension:wCorrAt", "2026-08-14:hack:wCorrAt"]),
+      "LOAD-A l (evolved by legs 3+8) — the COMPLETE enumeration of what migrate writes into the log, at field grain: the two 8/14 entries' wCorrAt provenance and the six 8/09 re-strike fields (the attested tails and their rirSets, per patchV55), no other field, no other date — and the sweep itself still writes nothing at all (observed " + J(entryDelta) + ")");
     /* NEGATIVE CONTROLS */
     const newer = JSON.parse(JSON.stringify(live));
     newer.exercises.find((e) => e.id === "hack").wAt = "2026-08-15T09:00:00.000Z";   /* the athlete set a load AFTER the correction */
@@ -962,6 +962,57 @@ export function runClosureSF2(T, ok, readFileSync) {
     const b3 = T.migrate(JSON.parse(JSON.stringify(b2)));
     ok(JSON.stringify(b3) === JSON.stringify(b2) && rcpAll(b3).length === 2,
       "LEG7 i — boot 3: byte-identical to boot 2 — the sequence converges and the receipts stay op-deduped at exactly two");
+  });
+
+  /* ---- v7.53.6 leg 8 — THE RE-STRIKE: the log agrees with the attestation ---- */
+  t("LOAD-LEG8", () => {
+    const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
+    const en9 = (s9, id9) => (((s9.sessionLog || {})["2026-08-09"] || {}).entries || []).find((e) => e && e.id === id9) || {};
+    const rcp9 = (s9) => (s9.feed || []).filter((f9) => f9 && f9.op === "restrike:2026-08-09:arms");
+    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    /* (a) COWORK'S LIVE LITERAL — Joe's real ledger carries the half-applied
+       correction: phantom tails in the LOG ([9,9,8] / [12,12,11,10] /
+       [11,10,10,9]), the struck values in the caches. Executed red at
+       be72df5: derive-first trusted the corrupt log and resurrected the tails
+       into last/lastMeta — the app would have prescribed against sets he
+       attested he did not do. The patch finishes the attestation IN the log,
+       so there is nothing to resurrect. */
+    const out = T.migrate(JSON.parse(JSON.stringify(live)));
+    ok(J(en9(out, "rows").reps) === J([9, 9]) && J(en9(out, "rows").rirSets) === J([1, 0])
+      && J(en9(out, "tricep").reps) === J([12, 12]) && J(en9(out, "tricep").rirSets) === J([null, null])
+      && J(en9(out, "curl").reps) === J([11, 10, 10]) && J(en9(out, "curl").rirSets) === J([2, null, null]),
+      "LEG8 a — the LOG now reads the attested values: the 8/09 tails patchV41 struck and a merge resurrected are struck again, rirSets matching (executed red at be72df5: last resurrected to [9,9,8] / [12,12,11,10] / [11,10,10,9]) (observed " + J([en9(out, "rows").reps, en9(out, "tricep").reps, en9(out, "curl").reps]) + ")");
+    ok(J(g(out, "rows").last) === J([9, 9]) && J(g(out, "rows").lastMeta.reps) === J([9, 9])
+      && J(g(out, "tricep").last) === J([12, 12]) && J(g(out, "curl").last) === J([11, 10, 10]),
+      "LEG8 b — and the caches derive to the SAME values, so cache and log agree and the boot heal has no divergence left to act on (observed " + J([g(out, "rows").last, g(out, "tricep").last, g(out, "curl").last]) + ")");
+    ok(((out.sessionLog["2026-08-09"] || {}).corr || {}).rev === 2 && ((out.sessionLog["2026-08-09"] || {}).corr || {}).at === "2026-08-09T21:56:31.672Z",
+      "LEG8 c — the record's corr keeps its OWN at and bumps rev to 2: equal at, higher rev wins CORRECTION_MERGE, so this strike beats any lingering un-struck replica by ordering — deterministically, with no wall-clock stamp, which under the frozen suite clock would have LOST to the 8/09 at (observed " + J(out.sessionLog["2026-08-09"].corr) + ")");
+    ok(rcp9(out).length === 1 && /RE-STRUCK/.test(rcp9(out)[0].t) && /I didn't do the 3rd set of arms/.test(rcp9(out)[0].how),
+      "LEG8 d — one op-guarded receipt names the standing attestation (observed " + J(rcp9(out).map((f9) => f9.t)) + ")");
+    /* (b) the boot no longer CHANGES the arm caches — once and twice both
+       leave the attested values, and the rerun files nothing */
+    const twice = T.migrate(JSON.parse(JSON.stringify(out)));
+    ok(J(g(twice, "rows").last) === J([9, 9]) && J(g(twice, "tricep").last) === J([12, 12]) && J(g(twice, "curl").last) === J([11, 10, 10]) && rcp9(twice).length === 1,
+      "LEG8 e — a rerun leaves the attested values and files nothing: the strike is content-keyed and the receipt is op-guarded (observed " + J([g(twice, "rows").last, rcp9(twice).length]) + ")");
+    const thrice = T.migrate(JSON.parse(JSON.stringify(twice)));
+    ok(JSON.stringify(thrice) === JSON.stringify(twice),
+      "LEG8 f — and migrate converges: byte-identical from the second boot");
+    /* (c) a device whose entries no longer carry the phantom shape — the
+       restore case patchV41's own comment reserves, and any fresh install —
+       takes nothing and files nothing */
+    const clean9 = JSON.parse(JSON.stringify(live));
+    for (const [id9, ar9, as9] of [["rows", [9, 9], [1, 0]], ["tricep", [12, 12], [null, null]], ["curl", [11, 10, 10], [2, null, null]]]) {
+      const e9 = (clean9.sessionLog["2026-08-09"].entries || []).find((z9) => z9 && z9.id === id9);
+      e9.reps = ar9; e9.rirSets = as9;                       /* the strike already true in the log — nothing left to do */
+    }
+    const cOut = T.migrate(clean9);
+    ok(((cOut.sessionLog["2026-08-09"] || {}).corr || {}).rev === 1 && rcp9(cOut).length === 0,
+      "LEG8 g — CONTENT-KEYED: a log already at the attested values takes no strike, no corr bump and no receipt — a restored or never-corrupt device is untouched (observed corr " + J(cOut.sessionLog["2026-08-09"].corr) + ", receipts " + rcp9(cOut).length + ")");
+    const bare9 = JSON.parse(JSON.stringify(live));
+    delete bare9.sessionLog["2026-08-09"];
+    const bOut = T.migrate(bare9);
+    ok(rcp9(bOut).length === 0 && !bOut.sessionLog["2026-08-09"],
+      "LEG8 h — a device without the 8/09 session at all is a clean no-op: no receipt, no session manufactured (observed receipts " + rcp9(bOut).length + ")");
   });
 
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */

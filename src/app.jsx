@@ -354,13 +354,13 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.53.5";
+const APP_V = "7.53.6";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 54;
+const SCHEMA_V = 55;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -10138,6 +10138,54 @@ function patchV45(s) {
   rule45("rows", 10, 9);
   s.v = 45; return s;
 }
+function patchV55(s) {
+  /* THE RE-STRIKE (leg 8) — finish the attested correction IN THE LOG,
+     durably. patchV41 struck these exact tails on Joe's attestation ("I
+     didn't do the 3rd set of arms"), and a later mergeState "richer session
+     wins" resurrected them in the LOG while the caches kept the strike — a
+     half-applied correction the shipped reconcileLiftCaches tolerated because
+     it never re-reads the log. Derive-first (legs 5-7) is correct to trust
+     the log, so the LOG itself must be made to agree with the attestation,
+     or the boot resurrects sets he said he did not do. Same content-keyed
+     pattern as patchV41, re-applied at the current schema: an entry that no
+     longer carries the exact phantom shape no-ops (replay-safe,
+     restore-safe, and a device that never had the phantom is untouched).
+     THE DEEPER CLASS IS NOT BUILT HERE: a session merge must not let a
+     richer replica resurrect a tail struck under a corr stamp — that is the
+     convergence harness round's session-merge law. This patch heals the live
+     instance.
+     DETERMINISM: the corr bump keeps the record's OWN at and raises rev —
+     equal at, higher rev wins CORRECTION_MERGE, so this strike beats any
+     lingering un-struck replica by ordering without a wall-clock stamp
+     (which under the frozen suite clock would LOSE to the 8/09 at). */
+  const rec55 = ((s && s.sessionLog) || {})["2026-08-09"];
+  if (rec55 && Array.isArray(rec55.entries)) {
+    const eq55 = (a9, b9) => JSON.stringify(a9) === JSON.stringify(b9);
+    const STRIKE55 = [
+      ["rows", [9, 9, 8], [1, null, 0], [9, 9], [1, 0]],
+      ["tricep", [12, 12, 11, 10], [null, null, null, null], [12, 12], [null, null]],
+      ["curl", [11, 10, 10, 9], [2, null, null, null], [11, 10, 10], [2, null, null]],
+    ];
+    let moved55 = false;
+    for (const [id9, pr9, ps9, ar9, as9] of STRIKE55) {
+      const e9 = rec55.entries.find((z9) => z9 && z9.id === id9);
+      if (e9 && eq55(e9.reps, pr9) && eq55(e9.rirSets, ps9)) { e9.reps = ar9.slice(); e9.rirSets = as9.slice(); moved55 = true; }
+    }
+    if (moved55) {
+      /* recompute the caches through the existing machinery — never hand-edit */
+      for (const id9 of ["rows", "tricep", "curl"]) {
+        const exL9 = (s.exercises || []).find((z9) => z9 && z9.id === id9);
+        if (exL9) { const dm9 = deriveLastMeta(s, id9); if (dm9) { exL9.lastMeta = dm9; exL9.last = dm9.reps.slice(); } }
+      }
+      const prev9 = rec55.corr && typeof rec55.corr === "object" && typeof rec55.corr.at === "string" && isFinite(Date.parse(rec55.corr.at)) ? rec55.corr : null;
+      rec55.corr = { at: prev9 ? prev9.at : "2026-08-09T21:56:31.672Z", rev: (prev9 && isFinite(+prev9.rev) ? +prev9.rev : 0) + 1 };
+      if (!Array.isArray(s.feed)) s.feed = [];
+      const op9 = "restrike:2026-08-09:arms";
+      if (!s.feed.some((f9) => f9 && f9.op === op9)) s.feed.unshift({ op: op9, d: "2026-08-09", t: "RECORD RE-STRUCK — Sunday 8/09 arm tails a merge had resurrected are removed again", how: "On the standing attestation: 'I didn't do the 3rd set of arms'. Reps match what you logged." });
+    }
+  }
+  s.v = 55; return s;
+}
 function patchV54(s) {
   /* PER-ENTRY LOAD-CORRECTION PROVENANCE (leg 3). patchV52 amended the two
      attested 2026-08-14 loads; the reconciler now keys on the ENTRY that was
@@ -10571,7 +10619,7 @@ function patchV38(s) {
    defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
    no longer as the only wall between a bump and his history. The gate asserts the
    pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
-const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52], [53, patchV53], [54, patchV54]];
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52], [53, patchV53], [54, patchV54], [55, patchV55]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
