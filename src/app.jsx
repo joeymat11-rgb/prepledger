@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.53.4";
+const APP_V = "7.53.5";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -10680,7 +10680,7 @@ function reconcileCorrectedLoads(s) {
     for (const ex of ((s && s.exercises) || [])) {
       if (!ex || typeof ex.w !== "number") continue;                    /* "BW" and other configs have no load to reconcile */
       const lm = ex.lastMeta;
-      if (!lm || !lm.d || typeof lm.w !== "number" || lm.w === ex.w) continue;   /* the equality guard IS the idempotence guard */
+      if (!lm || !lm.d) continue;   /* the cache's ONLY job here is locating the newest session date */
       const rec = log[lm.d];
       /* FIX 1 (leg 3) — THE GATE KEYS ON PER-ENTRY LOAD PROVENANCE, not the
          session stamp. A session's corr is written by ✕ and ↩ too, which
@@ -10694,8 +10694,31 @@ function reconcileCorrectedLoads(s) {
          THE RITUAL, permanently: any future data patch that changes an entry's
          w MUST stamp that entry's wCorrAt (see patchV54). */
       const enC = rec && Array.isArray(rec.entries) ? rec.entries.find((e9) => e9 && e9.id === ex.id) : null;
-      const at = enC && typeof enC.wCorrAt === "string" && isFinite(Date.parse(enC.wCorrAt)) ? enC.wCorrAt : null;
+      if (!enC) continue;
+      /* v7.53.5 — CACHE HONESTY, and it runs whether or not anything adopts.
+         lastMeta is a DENORMALISED COPY of the log; when it contradicts the
+         entry it claims to summarise it is stale or foreign, and it must not
+         survive the boot — every downstream reader (progressStep, the anchor,
+         the debrief) reads the cache, not the log. Silent by design: this
+         restates the record rather than deciding anything, which is what the
+         migration law permits without a receipt. Deterministic — derived from
+         the log, so a replayed migrate lands the same bytes. */
+      if (lm.w !== enC.w) { const dm9 = deriveLastMeta(s, ex.id); if (dm9) { ex.lastMeta = dm9; ex.last = dm9.reps.slice(); } }
+      if (typeof enC.w !== "number") continue;                          /* a non-numeric entry has no load to adopt */
+      const at = typeof enC.wCorrAt === "string" && isFinite(Date.parse(enC.wCorrAt)) ? enC.wCorrAt : null;
       if (!at) continue;                                                /* only a LOAD-corrected entry may lead the plan */
+      /* v7.53.5 — THE AUTHORITY'S VALUE IS THE AUTHORITY. The sweep verified
+         the ENTRY'S stamp and then adopted the CACHE'S number: executed at the
+         shipped tip, a stamped 200 entry beside a lastMeta of 210 moved the
+         config to 210 and filed "190 → 210" — the stamp vouched for 200, the
+         plan took 210, and the receipt said something untrue. The comparison
+         and the adoption both read the entry the stamp actually covers.
+         (Cowork could not reach the completing shape through the shipped
+         mergeState in two attempts; this round has already produced four
+         "unreachable" shapes that were later reached, so it ships on the
+         mechanism. The live ledger was inspected and is clean — hardening,
+         not remediation.) */
+      if (enC.w === ex.w) continue;                                     /* the equality guard IS the idempotence guard, now against the ENTRY */
       if (!(at > String(ex.wAt || ""))) continue;                       /* absent wAt reads as the epoch and loses; a newer athlete edit wins */
       const from = ex.w;
       const rungs = loadRungs(ex);
@@ -10705,12 +10728,12 @@ function reconcileCorrectedLoads(s) {
          an OLDER 220-rung replica beat his own newer decision in the merge).
          max(existing, at) — still a pure function of state, so migrate-twice
          stays byte-identical. */
-      if (rungs) { ex.steps = [...new Set([...rungs, lm.w])].sort((a9, b9) => a9 - b9); ex.stepsAt = String(ex.stepsAt || "") > at ? ex.stepsAt : at; }   /* merge, never erase — the ladder law */
-      ex.w = lm.w; ex.wAt = at;                                         /* every w-writer stamps, and this one stamps deterministically */
+      if (rungs) { ex.steps = [...new Set([...rungs, enC.w])].sort((a9, b9) => a9 - b9); ex.stepsAt = String(ex.stepsAt || "") > at ? ex.stepsAt : at; }   /* merge, never erase — the ladder law */
+      ex.w = enC.w; ex.wAt = at;                                        /* every w-writer stamps, and this one stamps deterministically */
       if (ex.topAt != null || (ex.topRun || 0) !== 0) { ex.topAt = null; ex.topRun = 0; }   /* a new load starts its own sighting record — but only WRITE when there is a sighting to clear. Writing null/0 over absent keys is semantically identical and merge-visibly different: topAt/topRun are unstamped, so they ride whichever whole record wins, and manufacturing them made the two merge orders differ on a lift that had never banked a sighting. Deep order-equality is the stronger claim; this is what makes it true. */
       if (!Array.isArray(s.feed)) s.feed = [];
       const op = "adopt:corr:" + ex.id + ":" + lm.d;
-      if (!s.feed.some((f9) => f9 && f9.op === op)) s.feed.unshift({ op, d: lm.d, t: "WORKING LOAD RECONCILED — " + String(ex.n || ex.id).toUpperCase() + " " + from + " → " + lm.w, how: "The corrected record says " + lm.w + " was lifted on " + lm.d + "; the plan follows the record." + (rungs ? " The rung joined the ladder." : "") });
+      if (!s.feed.some((f9) => f9 && f9.op === op)) s.feed.unshift({ op, d: lm.d, t: "WORKING LOAD RECONCILED — " + String(ex.n || ex.id).toUpperCase() + " " + from + " → " + enC.w, how: "The corrected record says " + enC.w + " was lifted on " + lm.d + "; the plan follows the record." + (rungs ? " The rung joined the ladder." : "") });   /* the receipt names the STAMPED value — receipt truth is the law this defect broke */
     }
     /* FIX 3 — every lift self-heals at the boundary, adopted or not: a hybrid
        that a past merge already wrote into the state is repaired the next time

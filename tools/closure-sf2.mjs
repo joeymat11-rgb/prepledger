@@ -18,6 +18,39 @@ export function runClosureSF2(T, ok, readFileSync) {
     if (mut) mut(s); return s;
   };
   const mig50 = (mut) => T.migrate(rawV50(mut));
+  /* THE PRE-ADOPTION PREIMAGE — and why it exists. ledger/state.json is a
+     MOVING file: it syncs from his phone. Once v7.53.4 ran there it arrived
+     already adopted, and thirteen adoption pins silently became assertions
+     about nothing — measured, not guessed (the whole set was re-run against
+     the newer sync and went red for the right reason). Anchoring a pin to a
+     file the athlete can change is the class this repo names as its dominant
+     defect, so the fixture RESTATES the documented pre-adoption shape on top
+     of the real record: his real entries, reps and history stay exactly as
+     synced — only the config, its stamps and the entry provenance are set
+     back to what they were before this round. The pins are now invariant to
+     whatever his phone has done since. */
+  const preAdoption = () => {
+    const s9 = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    s9.v = 53;                                                   /* before patchV54 stamped provenance */
+    for (const e9 of (((s9.sessionLog || {})["2026-08-14"] || {}).entries || [])) delete e9.wCorrAt;
+    const back = (id9, w9, wAt9, steps9) => {
+      const x9 = (s9.exercises || []).find((e) => e && e.id === id9);
+      if (!x9) return;
+      x9.w = w9;
+      if (wAt9) x9.wAt = wAt9; else delete x9.wAt;
+      if (steps9) x9.steps = steps9; else delete x9.steps;
+      delete x9.stepsAt;
+      if (x9.lastMeta) x9.lastMeta = { ...x9.lastMeta, d: "2026-08-14" };
+    };
+    /* and the reconciliation had NOT happened yet, so its receipts do not
+       exist. Once v7.53.4 ran on his phone the synced feed carried them for
+       real, and every "zero adopt receipts" pin was reading production history
+       instead of its own drive. */
+    if (Array.isArray(s9.feed)) s9.feed = s9.feed.filter((f9) => !(f9 && f9.op && String(f9.op).indexOf("adopt:corr:") === 0));
+    back("hack", 190, "2026-08-14T21:52:54.838Z", [160, 170, 180, 190]);   /* his ladder-approval edit, five minutes before the correction */
+    back("extension", 155, null, null);                                    /* the ABSENT-wAt guard shape */
+    return s9;
+  };
   const t = (label, fn) => { try { fn(); } catch (e) { ok(false, label + " — THREW: " + String(e && e.message).slice(0, 140)); } };
   const J = (x) => { try { return JSON.stringify(x); } catch (e) { return String(x); } };
 
@@ -475,7 +508,7 @@ export function runClosureSF2(T, ok, readFileSync) {
     /* driven on the LIVE PREIMAGE — the athlete's own synced state, which
        carries BOTH guard shapes: hack has a wAt five minutes OLDER than the
        correction (a real ladder-approval edit), extension has NO wAt at all. */
-    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const live = preAdoption();   /* the documented pre-adoption shape on the real record — see preAdoption() */
     const before = JSON.parse(JSON.stringify(live));
     const out = T.migrate(JSON.parse(JSON.stringify(live)));
     const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
@@ -565,7 +598,7 @@ export function runClosureSF2(T, ok, readFileSync) {
 
   /* ---- v7.53.4 LEG 2 — THE LADDER TRAVELS WITH THE LOAD ---- */
   t("LADDER-STAMP", () => {
-    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const live = preAdoption();   /* the documented pre-adoption shape on the real record — see preAdoption() */
     const stale = JSON.parse(JSON.stringify(live));      /* the un-adopted replica: his repo-synced copy */
     const adopted = T.migrate(JSON.parse(JSON.stringify(live)));
     const hk = (s9) => s9.exercises.find((e) => e && e.id === "hack") || {};
@@ -623,7 +656,7 @@ export function runClosureSF2(T, ok, readFileSync) {
 
   /* ---- v7.53.4 LEG 3 — Sol's five, every one cowork-confirmed by execution ---- */
   t("LOAD-LEG3", () => {
-    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const live = preAdoption();   /* the documented pre-adoption shape on the real record — see preAdoption() */
     const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
     const AT = "2026-08-14T21:57:13.968Z";
     /* FIX 1 — THE BLEED. A deliberate editor set, then an UNRELATED skip
@@ -690,7 +723,7 @@ export function runClosureSF2(T, ok, readFileSync) {
 
   /* ---- v7.53.4 LEG 4 — PROVENANCE IS EARNED BY THE VALUE, NOT THE ID ---- */
   t("LOAD-LEG4", () => {
-    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const live = preAdoption();   /* the documented pre-adoption shape on the real record — see preAdoption() */
     const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
     const enOf = (s9, id9) => (((s9.sessionLog || {})["2026-08-14"] || {}).entries || []).find((e) => e && e.id === id9) || {};
     const adopts = (s9, id9) => (s9.feed || []).filter((f) => f && f.op === "adopt:corr:" + id9 + ":2026-08-14").length;
@@ -747,6 +780,67 @@ export function runClosureSF2(T, ok, readFileSync) {
     const twice = T.migrate(JSON.parse(JSON.stringify(real)));
     ok(JSON.stringify(twice) === JSON.stringify(real),
       "LEG4 g — and a rerun is still byte-identical: the value guard is idempotent like the absent-only guard it tightens");
+  });
+
+  /* ---- v7.53.5 — THE AUTHORITY'S VALUE IS THE AUTHORITY ---- */
+  t("LOAD-VALUE", () => {
+    const live = preAdoption();   /* the documented pre-adoption shape on the real record — see preAdoption() */
+    const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
+    const enOf = (s9, id9) => (((s9.sessionLog || {})["2026-08-14"] || {}).entries || []).find((e) => e && e.id === id9) || {};
+    const rcpOf = (s9, id9) => (s9.feed || []).filter((f) => f && f.op === "adopt:corr:" + id9 + ":2026-08-14");
+    const AT = "2026-08-14T21:57:13.968Z";
+    /* THE WITNESS: the stamp vouches for 200; the CACHE says 210. The sweep
+       verified the entry and then adopted the cache's number. */
+    const split9 = JSON.parse(JSON.stringify(live));
+    split9.v = T.SCHEMA_V;                                   /* fast path: the entry already carries its stamp */
+    const se = (split9.sessionLog["2026-08-14"].entries || []).find((e) => e.id === "hack");
+    se.w = 200; se.wCorrAt = AT;                             /* the stamped, attested entry */
+    const sh = split9.exercises.find((e) => e.id === "hack");
+    sh.w = 190; sh.wAt = "2026-08-14T21:52:54.838Z";
+    sh.lastMeta = { ...(sh.lastMeta || {}), d: "2026-08-14", w: 210 };   /* the cache disagrees with its own record */
+    const out = T.migrate(split9);
+    ok(g(out, "hack").w === 200,
+      "VALUE a — the config takes the STAMPED entry's load, not the cache's: 200, never 210 (executed red at the shipped tip: config 210) (observed " + J(g(out, "hack").w) + ")");
+    ok(rcpOf(out, "hack").length === 1 && /190 → 200/.test(rcpOf(out, "hack")[0].t) && /says 200 was lifted/.test(rcpOf(out, "hack")[0].how),
+      "VALUE b — and the receipt names that same value: the red filed '190 → 210' while the stamp vouched for 200 — receipt truth is the law this defect broke (observed " + J(rcpOf(out, "hack").map((f) => f.t)) + ")");
+    ok(g(out, "hack").lastMeta && g(out, "hack").lastMeta.w === 200 && J(g(out, "hack").last) === J(enOf(out, "hack").reps),
+      "VALUE c — CACHE HONESTY: a lastMeta that contradicted its own record is re-derived from the log, because every downstream reader reads the cache and not the log (observed " + J(g(out, "hack").lastMeta && g(out, "hack").lastMeta.w) + ")");
+    const twice = T.migrate(JSON.parse(JSON.stringify(out)));
+    ok(JSON.stringify(twice) === JSON.stringify(out),
+      "VALUE d — and a replayed migrate is byte-identical: the heal restates the log, so it is deterministic");
+    /* THE REACHABLE SHAPE (cowork's witness 2, both orders): config ALREADY
+       adopted, cache stale at 210. Nothing may adopt — but the cache must
+       still be told the truth. */
+    for (const [lbl, order] of [["A", 0], ["B", 1]]) {
+      const done9 = JSON.parse(JSON.stringify(live));
+      done9.v = T.SCHEMA_V;
+      const de = (done9.sessionLog["2026-08-14"].entries || []).find((e) => e.id === "hack");
+      de.w = 200; de.wCorrAt = AT;
+      const dh = done9.exercises.find((e) => e.id === "hack");
+      dh.w = 200; dh.wAt = AT;                               /* already adopted — the post-merge shape */
+      dh.lastMeta = { ...(dh.lastMeta || {}), d: "2026-08-14", w: 210 };
+      const dOut = order ? T.mergeState(cl(T.migrate(done9)), cl(T.migrate(JSON.parse(JSON.stringify(done9))))) : T.migrate(done9);
+      ok(g(dOut, "hack").w === 200 && rcpOf(dOut, "hack").length === 0 && g(dOut, "hack").lastMeta.w === 200,
+        "VALUE e" + lbl + " — the REACHABLE post-merge shape (config already 200, cache stale at 210): NO adoption, NO receipt, and the cache silently re-derived to 200 (observed w " + J(g(dOut, "hack").w) + ", receipts " + rcpOf(dOut, "hack").length + ", cache " + J(g(dOut, "hack").lastMeta.w) + ")");
+    }
+    /* THE HEAL IS PROVENANCE-INDEPENDENT; THE ADOPTION IS NOT. */
+    const noProv = JSON.parse(JSON.stringify(live));
+    noProv.v = T.SCHEMA_V;
+    const ne = (noProv.sessionLog["2026-08-14"].entries || []).find((e) => e.id === "hack");
+    ne.w = 200; delete ne.wCorrAt;                           /* a divergence with NO stamp */
+    const nh = noProv.exercises.find((e) => e.id === "hack");
+    nh.w = 190; nh.lastMeta = { ...(nh.lastMeta || {}), d: "2026-08-14", w: 210 };
+    const nOut = T.migrate(noProv);
+    ok(g(nOut, "hack").w === 190 && rcpOf(nOut, "hack").length === 0,
+      "VALUE f — with no stamp the plan does NOT move and no receipt is filed: adoption still needs provenance (observed w " + J(g(nOut, "hack").w) + ", receipts " + rcpOf(nOut, "hack").length + ")");
+    ok(g(nOut, "hack").lastMeta.w === 200,
+      "VALUE g — but the CACHE is still re-derived from the log: a cache that contradicts its own record is wrong whoever wrote it, and correcting it decides nothing (observed " + J(g(nOut, "hack").lastMeta.w) + ")");
+    /* REGRESSION — the real ledger is untouched by any of this */
+    const real = T.migrate(JSON.parse(JSON.stringify(live)));
+    ok(g(real, "hack").w === 200 && g(real, "extension").w === 160
+      && J(T.targetsFor(g(real, "hack"), real)) === J([8, 7, 8]) && J(T.targetsFor(g(real, "extension"), real)) === J([9, 9])
+      && rcpOf(real, "hack").length === 1 && rcpOf(real, "extension").length === 1,
+      "VALUE h — REGRESSION on the live preimage: 200·[8,7,8] and 160·[9,9], one receipt each, exactly as the shipped round left it (observed " + J([g(real, "hack").w, g(real, "extension").w]) + ")");
   });
 
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
