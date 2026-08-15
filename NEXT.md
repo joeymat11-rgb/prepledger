@@ -22,6 +22,7 @@ listed so the same thing cannot happen again silently:
 | v7.53.2 | data correction (SCHEMA_V 52) — the 2026-08-14 hack 190→200 and extension 155→160 entry weights, on the owner's chat attestation; caches re-derived, correction-stamped, idempotent. Skip state and config weights deliberately untouched | a6ef23a |
 | v7.53.3 | data correction (SCHEMA_V 53) — the two un-skipped 2026-08-14 lifts ran their last set to failure: terminal `rirSets` slot 0 for abs and hanging, on the owner's attestation. `en.rir` stays null (that field is the OPENER's, and `openerRir === 0` freezes the load). The debrief's "no last-set rating" line goes; the step size stays add:1 | a1cc402 |
 | v7.53.4 | **the load round** (SCHEMA_V 54, four legs) — the plan follows the corrected record (a standing reconciler adopts a load-corrected entry, gated so the athlete's own later word outranks it), and the weight box saves what he entered (the editor read a ladder-less day template while the Save snapped against the real ladder; a canceled typo confirm still persisted). Also: `steps` joins the stamp discipline, the load/ladder invariant is restored where fields recombine, and load provenance is earned by the VALUE, not the id | 6a93ff6 |
+| v7.53.7 | **the load round, legs 5–9** (SCHEMA_V 55) — all one question: WHO decides what the plan believes about the last session. The adopted value comes from the entry the stamp covers, not the cache beside it (5) · the log is derived FIRST and the derived date is the date, so an older amendment can no longer drag the plan off his newest session (6) · a null `last` at a load the log does not describe is a DECISION, not a gap — the editor's reseed survives the boot, and `last` rides the load through a merge (7) · patchV55 finishes the attested 8/09 arm strike in the LOG, so derive-first has nothing to resurrect (8) · the boot's first sweep judges same-load by the log instead of the cache's own claim, and the duplicate copy of that rule is gone (9). **HELD, deferred by Joe to the convergence-harness round:** the v40-restore route arrives struck but unordered, and that ordering cannot live in the record's shared `corr` slot without reverting his Pronated EZ curl skip — it needs its own key, or the session-merge law | 87143ac |
 
 **MAINTENANCE RULE FOR THIS FILE, from the failure above:** when a round merges, its
 header changes from NEXT/BUILDING to SHIPPED *in the same session as the merge*. A
@@ -118,6 +119,30 @@ two rounds specced ahead of it. Cowork's amendment, verbatim:)*
 3. **v7.54.0 — MOTION ROUND** (Sol-audited, cowork-adjudicated, Joe-ruled): every AGENT decision gets its promised one-tap undo (approve AND dismiss), per-species honest dismiss copy (the universal "Dismiss: nothing changes." is factually false), Section becomes a real keyboard control app-wide, **the FAB docks into the fixed-chrome band (Joe's ruling)**, the four quick-undo spans become real buttons, Escape closes the capture sheet, one back control per room. Absorbs and closes all four named motion items below.
 
 Do not start a QUEUED item without Joe's say-so.
+
+## QUEUED — THE SESSION-MERGE LAW (deferred by Joe from v7.53.7, filed 2026-08-15; belongs to the convergence-harness round)
+
+**A session merge must not let a "richer" replica resurrect a tail struck under
+a `corr` stamp.** This surfaced twice in the load round and was deferred both
+times, so it is written down rather than re-derived a third time.
+
+The live 8/09 record carries TWO independent corrections — the arm-tail strike
+and the ✕ that marked Pronated EZ curl skipped — and `corr` is a single
+`(at, rev)` pair. `_richerSession` rule 4 falls through to `_richer` on an exact
+tie, and `_richer` prefers more entries. So:
+
+- a replica reaching the current schema struck-but-unstamped (patchV41 predates
+  CORRECTION_MERGE) LOSES to an un-struck rev-1 replica, and the phantom tails
+  come back in both merge orders; but
+- **any fix that stamps it to compete reverts the other correction** — measured
+  on his real ledger during leg 9: giving the un-corrected replica a rev floor
+  made both sides tie, `_richer` chose the 9-entry side, `skipped` disappeared
+  and pronated was resurrected in BOTH orders. `dataLossGuard` does not catch it
+  (it only refuses shrinks), so it would have reached the cloud ledger.
+
+The ordering therefore needs its own key — per-strike provenance, the way
+`wCorrAt` gave loads theirs — or the merge itself must refuse to un-strike.
+A single scalar cannot order two independent corrections on one record.
 
 **FILED BY v7.53.0 (retirement + words), NOT BUILT — the A10 LOOK-DON'T-ACT list
 minus the two built (the 2s gym-timed pause, the [PIN] calibration blocker):**
