@@ -1,5 +1,5 @@
 /* EARNED service worker — bump CACHE on every redeploy */
-const CACHE = "earned-v7.53.4";
+const CACHE = "earned-v7.53.7";
 const ASSETS = [
   "./",
   "./index.html",

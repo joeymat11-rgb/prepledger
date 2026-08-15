@@ -354,13 +354,13 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.53.4";
+const APP_V = "7.53.7";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 54;
+const SCHEMA_V = 55;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -10138,6 +10138,54 @@ function patchV45(s) {
   rule45("rows", 10, 9);
   s.v = 45; return s;
 }
+function patchV55(s) {
+  /* THE RE-STRIKE (leg 8) — finish the attested correction IN THE LOG,
+     durably. patchV41 struck these exact tails on Joe's attestation ("I
+     didn't do the 3rd set of arms"), and a later mergeState "richer session
+     wins" resurrected them in the LOG while the caches kept the strike — a
+     half-applied correction the shipped reconcileLiftCaches tolerated because
+     it never re-reads the log. Derive-first (legs 5-7) is correct to trust
+     the log, so the LOG itself must be made to agree with the attestation,
+     or the boot resurrects sets he said he did not do. Same content-keyed
+     pattern as patchV41, re-applied at the current schema: an entry that no
+     longer carries the exact phantom shape no-ops (replay-safe,
+     restore-safe, and a device that never had the phantom is untouched).
+     THE DEEPER CLASS IS NOT BUILT HERE: a session merge must not let a
+     richer replica resurrect a tail struck under a corr stamp — that is the
+     convergence harness round's session-merge law. This patch heals the live
+     instance.
+     DETERMINISM: the corr bump keeps the record's OWN at and raises rev —
+     equal at, higher rev wins CORRECTION_MERGE, so this strike beats any
+     lingering un-struck replica by ordering without a wall-clock stamp
+     (which under the frozen suite clock would LOSE to the 8/09 at). */
+  const rec55 = ((s && s.sessionLog) || {})["2026-08-09"];
+  if (rec55 && Array.isArray(rec55.entries)) {
+    const eq55 = (a9, b9) => JSON.stringify(a9) === JSON.stringify(b9);
+    const STRIKE55 = [
+      ["rows", [9, 9, 8], [1, null, 0], [9, 9], [1, 0]],
+      ["tricep", [12, 12, 11, 10], [null, null, null, null], [12, 12], [null, null]],
+      ["curl", [11, 10, 10, 9], [2, null, null, null], [11, 10, 10], [2, null, null]],
+    ];
+    let moved55 = false;
+    for (const [id9, pr9, ps9, ar9, as9] of STRIKE55) {
+      const e9 = rec55.entries.find((z9) => z9 && z9.id === id9);
+      if (e9 && eq55(e9.reps, pr9) && eq55(e9.rirSets, ps9)) { e9.reps = ar9.slice(); e9.rirSets = as9.slice(); moved55 = true; }
+    }
+    if (moved55) {
+      /* recompute the caches through the existing machinery — never hand-edit */
+      for (const id9 of ["rows", "tricep", "curl"]) {
+        const exL9 = (s.exercises || []).find((z9) => z9 && z9.id === id9);
+        if (exL9) { const dm9 = deriveLastMeta(s, id9); if (dm9) { exL9.lastMeta = dm9; exL9.last = dm9.reps.slice(); } }
+      }
+      const prev9 = rec55.corr && typeof rec55.corr === "object" && typeof rec55.corr.at === "string" && isFinite(Date.parse(rec55.corr.at)) ? rec55.corr : null;
+      rec55.corr = { at: prev9 ? prev9.at : "2026-08-09T21:56:31.672Z", rev: (prev9 && isFinite(+prev9.rev) ? +prev9.rev : 0) + 1 };
+      if (!Array.isArray(s.feed)) s.feed = [];
+      const op9 = "restrike:2026-08-09:arms";
+      if (!s.feed.some((f9) => f9 && f9.op === op9)) s.feed.unshift({ op: op9, d: "2026-08-09", t: "RECORD RE-STRUCK — Sunday 8/09 arm tails a merge had resurrected are removed again", how: "On the standing attestation: 'I didn't do the 3rd set of arms'. Reps match what you logged." });
+    }
+  }
+  s.v = 55; return s;
+}
 function patchV54(s) {
   /* PER-ENTRY LOAD-CORRECTION PROVENANCE (leg 3). patchV52 amended the two
      attested 2026-08-14 loads; the reconciler now keys on the ENTRY that was
@@ -10571,7 +10619,7 @@ function patchV38(s) {
    defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
    no longer as the only wall between a bump and his history. The gate asserts the
    pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
-const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52], [53, patchV53], [54, patchV54]];
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52], [53, patchV53], [54, patchV54], [55, patchV55]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -10606,9 +10654,22 @@ function reconcileLiftCaches(s) {
        OUTSIDE the field, so lastMeta.w equality proves nothing about staleness — the v24
        ruling's own deliberate null had "hold" === "hold". Where w is a number, a same-load
        null is definitionally stale: every deliberate reseed changes w first. */
-    if (typeof ex.w === "number" && ex.last == null && lm0 && Array.isArray(lm0.reps) && lm0.reps.length && String(lm0.w) === String(ex.w)) {
-      ex.last = lm0.reps.slice();
-      healed++;
+    /* v7.53.7 FIX A — SAME-LOAD IS JUDGED BY THE LOG, NOT BY THE CACHE'S OWN
+       CLAIM. This sweep runs BEFORE reconcileCorrectedLoads, so it used to
+       read a lie before derive-first could correct it: executed at 6b633c7,
+       a config set to 210 in the editor (newer wAt, last nulled for the
+       reseed) beside a stale lastMeta claiming {8/14, w 210, reps [7,7,8]}
+       matched "same load" against the CLAIM, refilled [7,7,8], and the card
+       then prescribed the old load's reps at the new one — derive-first
+       healed lastMeta a moment later, but last was live by then and followed
+       the log. Leg 7's law was right and simply ran second. Now BOTH
+       authorities read the same source, so exactly one answer is possible:
+       the derived line decides whether this null is a stale cache or a
+       deliberate reseed. (The pin on this branch has always SAID "healed
+       from the log"; now it is literally true.) */
+    if (typeof ex.w === "number" && ex.last == null) {
+      const dm0 = deriveLastMeta(s, ex.id);
+      if (dm0 && Array.isArray(dm0.reps) && dm0.reps.length && String(dm0.w) === String(ex.w)) { ex.last = dm0.reps.slice(); healed++; }
       continue;
     }
     if (!ex.last || !Array.isArray(ex.last)) continue;
@@ -10679,9 +10740,55 @@ function reconcileCorrectedLoads(s) {
     const log = (s && s.sessionLog) || {};
     for (const ex of ((s && s.exercises) || [])) {
       if (!ex || typeof ex.w !== "number") continue;                    /* "BW" and other configs have no load to reconcile */
-      const lm = ex.lastMeta;
-      if (!lm || !lm.d || typeof lm.w !== "number" || lm.w === ex.w) continue;   /* the equality guard IS the idempotence guard */
-      const rec = log[lm.d];
+      /* v7.53.5 leg 6 — TRUTH FIRST; then everything reads the truth. The
+         sweep let the CACHE choose the date: it healed a stale lastMeta and
+         then kept adjudicating on the PRE-HEAL entry. Executed at 42f429c,
+         both shapes: a newer Aug-15 session (210) was dragged BACKWARD to the
+         stamped Aug-14 amendment's 200 with a receipt calling it
+         reconciliation — and in the mismatch shape the heal DID re-derive the
+         cache to Aug-15 @ 210 while the adoption still used the old entry,
+         leaving the state self-contradictory (cache 8/15 @ 210 beside config
+         200). The match shape is the deeper defect: a stale cache date
+         bypasses the newest session with no heal involved at all. So the log
+         is derived FIRST and the derived date is THE date; the cache never
+         chooses the entry again. THE DOCTRINE: an amendment governs the plan
+         only while the amended session is still the lift's newest word — a
+         newer session already spoke for itself (the CAGE handled it at
+         completion), so an older stamped correction is history, not
+         authority. */
+      const dm = deriveLastMeta(s, ex.id);
+      if (!dm) continue;                                                /* no logged line with reps — nothing to reconcile against */
+      /* CACHE HONESTY — unconditional-VERIFIED now, not mismatch-triggered.
+         lastMeta is a DENORMALISED COPY of the log; when it disagrees with
+         what the log derives it is stale or foreign, and it must not survive
+         the boot — every downstream reader (progressStep, the anchor, the
+         debrief) reads the cache, not the log. Silent by design (it restates
+         the record, which the migration law permits without a receipt) and
+         deterministic: derived from the log, so a replayed migrate lands the
+         same bytes. */
+      /* leg 7 — THE HEAL OWNS lastMeta; ex.last FOLLOWS THE SAME-LOAD LAW.
+         Leg 6 wrote ex.last unconditionally and defeated the app's own reseed
+         law: a null last is a DECISION — the weight editor Save, RESET and
+         the CAGE all null it on a load change so targets reseed at the new
+         load. Executed at 8c70af8: an editor-set 210 (newer wAt, last null)
+         booted, the sweep resurrected last from the 8/14 line, and the card
+         prescribed the OLD load's reps at the new load — the reseed silently
+         defeated, no receipt. reconcileLiftCaches already states the law: a
+         deliberate reseed always changes w BEFORE nulling, so a null last
+         beside a derived line at the SAME load is definitionally stale and
+         refills — while A NULL last AT A LOAD THE LOG DOES NOT DESCRIBE IS A
+         DECISION, NOT A GAP, and it is preserved. */
+      if (JSON.stringify(ex.lastMeta) !== JSON.stringify(dm)) ex.lastMeta = dm;             /* the cache must describe the log — unconditional */
+      if (ex.last != null) { if (JSON.stringify(ex.last) !== JSON.stringify(dm.reps)) ex.last = dm.reps.slice(); }   /* a live cache follows the log — and it follows the HEALED lastMeta, which is why this is not the same statement reconcileLiftCaches ran */
+      /* leg 9 — THE NULL-REFILL LIVES IN EXACTLY ONE PLACE, AND IT IS NOT HERE.
+         A same-load refill also stood here, byte-identical in effect to
+         reconcileLiftCaches' branch, which runs FIRST on every boundary with
+         the same inputs and the same numeric-w gate — so it could never fire.
+         Two copies of one rule is how the rule drifts: the leg-9 audit found
+         the pair shadowing each other so completely that deleting either one
+         alone left the whole suite green. The reseed decision now has one
+         author, and it reads the log. */
+      const rec = log[dm.d];
       /* FIX 1 (leg 3) — THE GATE KEYS ON PER-ENTRY LOAD PROVENANCE, not the
          session stamp. A session's corr is written by ✕ and ↩ too, which
          change no load at all — so (executed) a deliberate editor set of hack
@@ -10694,8 +10801,21 @@ function reconcileCorrectedLoads(s) {
          THE RITUAL, permanently: any future data patch that changes an entry's
          w MUST stamp that entry's wCorrAt (see patchV54). */
       const enC = rec && Array.isArray(rec.entries) ? rec.entries.find((e9) => e9 && e9.id === ex.id) : null;
-      const at = enC && typeof enC.wCorrAt === "string" && isFinite(Date.parse(enC.wCorrAt)) ? enC.wCorrAt : null;
+      if (!enC || typeof enC.w !== "number") continue;                  /* the derived line exists here by construction; a non-numeric entry has no load to adopt */
+      const at = typeof enC.wCorrAt === "string" && isFinite(Date.parse(enC.wCorrAt)) ? enC.wCorrAt : null;
       if (!at) continue;                                                /* only a LOAD-corrected entry may lead the plan */
+      /* v7.53.5 — THE AUTHORITY'S VALUE IS THE AUTHORITY. The sweep verified
+         the ENTRY'S stamp and then adopted the CACHE'S number: executed at the
+         shipped tip, a stamped 200 entry beside a lastMeta of 210 moved the
+         config to 210 and filed "190 → 210" — the stamp vouched for 200, the
+         plan took 210, and the receipt said something untrue. The comparison
+         and the adoption both read the entry the stamp actually covers.
+         (Cowork could not reach the completing shape through the shipped
+         mergeState in two attempts; this round has already produced four
+         "unreachable" shapes that were later reached, so it ships on the
+         mechanism. The live ledger was inspected and is clean — hardening,
+         not remediation.) */
+      if (enC.w === ex.w) continue;                                     /* the equality guard IS the idempotence guard, now against the ENTRY */
       if (!(at > String(ex.wAt || ""))) continue;                       /* absent wAt reads as the epoch and loses; a newer athlete edit wins */
       const from = ex.w;
       const rungs = loadRungs(ex);
@@ -10705,12 +10825,13 @@ function reconcileCorrectedLoads(s) {
          an OLDER 220-rung replica beat his own newer decision in the merge).
          max(existing, at) — still a pure function of state, so migrate-twice
          stays byte-identical. */
-      if (rungs) { ex.steps = [...new Set([...rungs, lm.w])].sort((a9, b9) => a9 - b9); ex.stepsAt = String(ex.stepsAt || "") > at ? ex.stepsAt : at; }   /* merge, never erase — the ladder law */
-      ex.w = lm.w; ex.wAt = at;                                         /* every w-writer stamps, and this one stamps deterministically */
+      if (rungs) { ex.steps = [...new Set([...rungs, enC.w])].sort((a9, b9) => a9 - b9); ex.stepsAt = String(ex.stepsAt || "") > at ? ex.stepsAt : at; }   /* merge, never erase — the ladder law */
+      ex.w = enC.w; ex.wAt = at;                                        /* every w-writer stamps, and this one stamps deterministically */
+      ex.last = null;                                                   /* leg 7 — the load MOVED: the same event class as the editor Save and the CAGE, so the same consequence — the corrected load reseeds. The NEXT boot's same-load rule refills from the log, which at the adopted load is the honest anchor. */
       if (ex.topAt != null || (ex.topRun || 0) !== 0) { ex.topAt = null; ex.topRun = 0; }   /* a new load starts its own sighting record — but only WRITE when there is a sighting to clear. Writing null/0 over absent keys is semantically identical and merge-visibly different: topAt/topRun are unstamped, so they ride whichever whole record wins, and manufacturing them made the two merge orders differ on a lift that had never banked a sighting. Deep order-equality is the stronger claim; this is what makes it true. */
       if (!Array.isArray(s.feed)) s.feed = [];
-      const op = "adopt:corr:" + ex.id + ":" + lm.d;
-      if (!s.feed.some((f9) => f9 && f9.op === op)) s.feed.unshift({ op, d: lm.d, t: "WORKING LOAD RECONCILED — " + String(ex.n || ex.id).toUpperCase() + " " + from + " → " + lm.w, how: "The corrected record says " + lm.w + " was lifted on " + lm.d + "; the plan follows the record." + (rungs ? " The rung joined the ladder." : "") });
+      const op = "adopt:corr:" + ex.id + ":" + dm.d;
+      if (!s.feed.some((f9) => f9 && f9.op === op)) s.feed.unshift({ op, d: dm.d, t: "WORKING LOAD RECONCILED — " + String(ex.n || ex.id).toUpperCase() + " " + from + " → " + enC.w, how: "The corrected record says " + enC.w + " was lifted on " + dm.d + "; the plan follows the record." + (rungs ? " The rung joined the ladder." : "") });   /* the receipt names the STAMPED value — receipt truth is the law this defect broke */
     }
     /* FIX 3 — every lift self-heals at the boundary, adopted or not: a hybrid
        that a past merge already wrote into the state is repaired the next time
@@ -11829,6 +11950,20 @@ function _corrOf(v) {
    value that loses to every present one: "". Shared by every STAMPED_FIELDS
    row, because the same hole sits under all of them. */
 function _valOr(x) { return x === undefined ? "" : JSON.stringify(x); }
+/* leg 7 — `last` RIDES THE LOAD. ex.last means "the reps last done at THIS
+   load, or null: a deliberate reseed" — it is meaningful only beside the w it
+   describes. It carries no stamp of its own, so it used to ride whichever
+   whole record won the merge: an adopting replica (last nulled by the reseed)
+   and a stale replica (last still live at the old load) then disagreed BY
+   MERGE ORDER on an unstamped field — the exact class the deep order-equality
+   pins exist to kill, re-manufactured by leg 7's own null. When w moves on
+   its stamp, the winner's last state moves with it, including an absent key —
+   the pair travels together, exactly as steps was made to travel in leg 2. */
+function _takeStamped(w2, other, f9, at9) {
+  const n2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };
+  if (f9 === "w") { if ("last" in other) n2.last = other.last; else delete n2.last; }
+  return n2;
+}
 function _sessionAtMs(v) { const n = v && +v.at; return isFinite(n) ? n : 0; }
 function _richerSession(x, y) {
   const cx = _corrOf(x), cy = _corrOf(y);
@@ -12098,8 +12233,8 @@ function mergeState(local, remote) {
          merge order decided whether the healthy fly survived.) */
       if (w2.quarantined && !other.quarantined) w2 = { ...other };
       for (const [f9, at9] of STAMPED_FIELDS) {
-        if (_isoOr(other[at9]) > _isoOr(w2[at9])) w2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };
-        else if (_isoOr(other[at9]) !== "" && _isoOr(other[at9]) === _isoOr(w2[at9]) && _valOr(other[f9]) > _valOr(w2[f9])) w2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };   /* FIX split-1: equal stamps resolve by VALUE, direction-free — "local wins" flips with merge order. LEG 3 FIX 4: through _valOr, because JSON.stringify(undefined) is undefined and EVERY comparison with it is false — so on equal stamps the merge BASE always won and a cleared ladder kept whichever side it started from. Absent serializes as "", so the PRESENT value wins a tie, direction-free. A DELETION therefore needs a STRICTLY newer stamp, which is the doctrine the cleared-ladder pin already asserts. */
+        if (_isoOr(other[at9]) > _isoOr(w2[at9])) w2 = _takeStamped(w2, other, f9, at9);
+        else if (_isoOr(other[at9]) !== "" && _isoOr(other[at9]) === _isoOr(w2[at9]) && _valOr(other[f9]) > _valOr(w2[f9])) w2 = _takeStamped(w2, other, f9, at9);   /* FIX split-1: equal stamps resolve by VALUE, direction-free — "local wins" flips with merge order. LEG 3 FIX 4: through _valOr, because JSON.stringify(undefined) is undefined and EVERY comparison with it is false — so on equal stamps the merge BASE always won and a cleared ladder kept whichever side it started from. Absent serializes as "", so the PRESENT value wins a tie, direction-free. A DELETION therefore needs a STRICTLY newer stamp, which is the doctrine the cleared-ladder pin already asserts. */
       }
       /* FIX 3a — forks are UNION-BY-SEAM: a technique era is history, and a
          stale device that never learned a seam must not erase it. Keyed by
