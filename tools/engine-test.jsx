@@ -5579,7 +5579,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 53, "schema: SCHEMA_V is 53 (patchV53: the 2026-08-14 terminal-set attestation — the deliberate census pin; bumping SCHEMA_V must touch this line)");
+  ok(SC === 54, "schema: SCHEMA_V is 54 (patchV54: per-entry load-correction provenance — the deliberate census pin; bumping SCHEMA_V must touch this line)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
   ok(migd.v === SC && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
@@ -5881,7 +5881,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 53, "schema: SCHEMA_V is 53 (patchV53 on top of the chain — the second deliberate census pin)");
+  ok(__test.SCHEMA_V === 54, "schema: SCHEMA_V is 54 (patchV54 on top of the chain — the second deliberate census pin)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
@@ -8090,7 +8090,16 @@ if (fail) process.exit(1);
     const e47 = C47.sessionLog["2026-08-10"].entries.find((e) => e.id === "hack");
     const x47 = C47.exercises.find((x) => x.id === "hack");
     ok(e47.w === 180 && JSON.stringify(e47.reps) === "[9,9,10]" && JSON.stringify(e47.rirSets) === "[2,null,0]", "v7.42.1 — the record says what he did: 180 × 9,9,10 with his own RIR answers standing (they were about THESE sets). Content-keyed on the exact synced plan-record; his attestation is the receipt");
-    ok(x47.w === 180 && x47.topAt === null && x47.topRun === 0 && JSON.stringify(x47.steps) === "[160,170]", "v7.42.1 — POST-CORRECTION STATE IS SHAPE B, the shape the last audit drove green: w 180, ladder exhausted (ask open for the rung after 180), NO sighting banked (the honest 9,9,10 opener is under the 10,9,8 line), windowFor fallback until a rung is priced");
+    /* LEG 3 EVOLUTION — this pin froze an INSTANCE OF THE DEFECT: w 180 beside a
+       ladder of [160,170] is a working load that is not on its own ladder, and
+       snapLoad would have read it as 170. ensureLoadOnLadder now inserts the
+       corrected load as a rung. The CLAIM the pin was written to make is
+       unchanged and is now asserted behaviourally rather than by the missing
+       rung: the ladder is still EXHAUSTED at the working load, so the next-load
+       ask stays open. */
+    const rungsOK47 = JSON.stringify(x47.steps) === "[160,170,180]";
+    const exhausted47 = (__test.loadRungs(x47) || []).every((r) => r <= x47.w) && __test.nextLoad(x47) == null;
+    ok(x47.w === 180 && x47.topAt === null && x47.topRun === 0 && rungsOK47 && exhausted47, "v7.42.1 (evolved by leg 3) — POST-CORRECTION STATE IS SHAPE B: w 180, the corrected load ON its own ladder [160,170,180] (it used to sit OFF it — the very class ensureLoadOnLadder kills), the ladder still EXHAUSTED so the ask for the rung after 180 stays open, NO sighting banked, windowFor fallback until a rung is priced");
     const q47 = C47.queue.find((x) => x.id === "q_hack_170");
     ok(q47.done === true && q47.state === "RETRACTED" && C47.feed.some((f) => f.t === "HACK 170 EARN RETRACTED"), "v7.42.1 — THE PHANTOM EARN RETRACTS with its receipt: earned on reps since corrected — on the record, never deleted");
     ok(C47.feed.some((f) => f.t === "RECORD CORRECTED — HACK 180 × 9,9,10" && /I just hit hack 180/.test(f.how)), "v7.42.1 — the correction receipt cites his attestation verbatim and names the cage that caused it");
@@ -8953,10 +8962,15 @@ if (fail) process.exit(1);
        one line sailed through, because match() returns only the first hit and
        the scan judged the line by the field that happened to come first. One
        line, one verdict per FIELD. */
-    const ms = [...L.matchAll(/\.(hi|inc|setup|w)\s*=(?!=)/g)].map((x) => x[1]);   /* SPLIT item c — w joins the discipline; this scan is the enumerator of record for its writers */
+    const ms = [...L.matchAll(/\.(hi|inc|setup|w|steps)\s*=(?!=)/g)].map((x) => x[1]);   /* SPLIT item c — w joins the discipline; LEG 2 — steps joins it, because the ladder merges by stamp now and the next writer that forgets must fail HERE. This scan is the enumerator of record for those writers. */
     if (!ms.length) continue;
     /* exemption 1 — seed weave, explicitly marked in-line */
     if (L.indexOf("seed-authored — unstamped by design") > -1) continue;
+    /* exemption 1b — a field that merely SHARES A NAME with a stamped one. The
+       daily log's step field is his walking count, not a lift's rung ladder; it is
+       not an exercise field and has no stamp to write. Marked in-line so the
+       scan stays textual and the exemption stays visible. */
+    if (L.indexOf("not a lift field — unstamped by design") > -1) continue;
     /* exemption 2 — patches and the migration runner: pre-stamp era by doctrine
        (stamping them would move the frozen baseline; a NEW patch that wants its
        write protected stamps deliberately, with a fixed ISO literal) */
@@ -8973,7 +8987,7 @@ if (fail) process.exit(1);
     }
   }
   ok(offenders.length === 0,
-    "FIX 2a item 6 — THE STAMP DISCIPLINE, as a gate: every LIVE assignment to .hi/.inc/.setup outside the seed weave and the patch chain writes its *At stamp in the same statement block. Offenders: " + (offenders.join(" | ") || "none") + ". This is how Sol's P0 stays retired: the machinery shipped ahead of its writers, and the first writer that forgets the stamp fails HERE, not in a two-phone merge");
+    "FIX 2a item 6 — THE STAMP DISCIPLINE, as a gate: every LIVE assignment to .hi/.inc/.setup/.w/.steps outside the seed weave and the patch chain writes its *At stamp in the same statement block. Offenders: " + (offenders.join(" | ") || "none") + ". This is how Sol's P0 stays retired: the machinery shipped ahead of its writers, and the first writer that forgets the stamp fails HERE, not in a two-phone merge");
   /* the scan must actually SEE the one live mutator, or it is scanning nothing */
   ok(srcD.indexOf("ex5.inc = jz; ex5.incAt = new Date().toISOString();") > -1,
     "FIX 2a item 6 — and the scan's one live subject exists: the jump-size chip stamps on the same line (delete that mutator and this pin forces the scan's coverage question to be re-asked)");

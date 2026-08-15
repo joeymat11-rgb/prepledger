@@ -421,11 +421,251 @@ async function drivePinTokens() {
   check(!!ht.calibratedAt, "the calibration sweep still stamps after the last token (observed " + JSON.stringify(ht.calibratedAt) + ")", "calibratedAt never stamped after a complete non-serial fill");
 }
 
+/* ============ DRIVE G — v7.53.4 PARTS B + C: THE WEIGHT BOX ============
+   Joe: "I can't save the weights in the weight box." Walked here on his OWN
+   synced ledger, through the real SETUP-room controls.
+
+   Part C: the room maps genSession's day-template cards, which carry no steps
+   and no inc — so loadRungs read null, the free-entry input never rendered at
+   all, and the -/+ stepped by a hardcoded 5. Part B: the Save then re-resolved
+   the STORE record, found a ladder, and ran the entry through snapLoad, which
+   keeps only rungs <= w — so an off-ladder 200 snapped DOWN to 190 and the feed
+   filed "190 -> 190 · athlete entry on the card": a receipt describing a
+   discarded entry as an adoption. */
+async function driveWeightBox() {
+  console.log("[B+C/weight box]");
+  const L_ISO = "2026-08-21";   /* an unlogged LOWER day — hack and extension both live there */
+  const live = JSON.parse(fs.readFileSync(at("ledger/state.json"), "utf8"));
+  /* the pre-correction shape: with the 8/14 correction stamp removed, Part A's
+     reconciler abstains and hack sits at 190 with its four-rung ladder — which
+     is exactly the state Joe was looking at when the box refused his entry. */
+  const preCorr = JSON.parse(JSON.stringify(live));
+  /* LEG 3 — the gate is PER-ENTRY provenance now, so deleting the session corr
+     no longer holds the load still (patchV54 stamps the entries whatever the
+     session says — which is the doctrine change working). The robust way to
+     express "the plan must not move here" is the athlete's OWN word being the
+     newer one: his load stamps post-date any correction, so the reconciler
+     abstains by its own rule and hack sits at 190 with its four-rung ladder —
+     exactly the state he was looking at when the box refused his entry. This
+     also survives a future schema bump, which stripping provenance would not. */
+  delete preCorr.sessionLog["2026-08-14"].corr;
+  for (const id9 of ["hack", "extension"]) { const e9 = preCorr.exercises.find((x) => x && x.id === id9); if (e9) e9.wAt = "2026-08-20T09:00:00.000Z"; }
+  const openBox = async (w, id) => {
+    await openGroup(w, "pl-train-setup");
+    await sleep(120);
+    const card = w.document.getElementById("tr-" + id);
+    if (!card) { check(false, "", "[" + id + "] no card in the SETUP room on " + L_ISO); return null; }
+    const pencil = [...card.querySelectorAll("span")].find((s) => /✎/.test(s.textContent || "") && !/rungs/.test(s.textContent || ""));
+    if (!pencil) { check(false, "", "[" + id + "] no weight ✎ control on the card"); return null; }
+    pencil.click(); await sleep(140);
+    return w.document.getElementById("tr-" + id);
+  };
+  const wOf = (w, id) => ((stored(w).exercises || []).find((e) => e && e.id === id) || {});
+  const feedLen = (w) => ((stored(w).feed || []).length);
+  /* count only rows THIS action added (the feed unshifts, so new rows are at
+     the head). His real feed already carries WEIGHT SET history — including
+     two "HACK SQUAT 190 → 190" rows, the discarded-entry receipts this round
+     kills — so a title filter would count production evidence as test output. */
+  const addedSince = (w, n) => (stored(w).feed || []).slice(0, Math.max(0, feedLen(w) - n));
+
+  /* ---- leg 1: the ladder lift, off-ladder entry ---- */
+  {
+    const { dom, w } = boot((w9) => { w9.localStorage.setItem(KEY, JSON.stringify(preCorr)); }, L_ISO);
+    await sleep(600);
+    await clickText(w, "TRAIN", "tab nav");
+    const card = await openBox(w, "hack");
+    if (!card) { dom.window.close(); return; }
+    const nBefore = feedLen(w);
+    const before = wOf(w, "hack");
+    check(before.w === 190 && JSON.stringify(before.steps) === JSON.stringify([160, 170, 180, 190]),
+      "the walk starts from the reported state: hack 190 on a four-rung ladder",
+      "the fixture is not the reported state (observed w " + JSON.stringify(before.w) + " steps " + JSON.stringify(before.steps) + ")");
+    const input = card.querySelector('input[aria-label="weight value"]');
+    check(!!input, "PART C — the free-entry weight input RENDERS for a ladder lift (zero of these existed on the day-template read)", "no weight-value input in the SETUP room — the editor still cannot see the ladder");
+    if (!input) {
+      /* FAIL-FIRST EVIDENCE, not a fallback for the repaired build: on bytes
+         where Part C has not landed the editor shows a Stepper instead, so the
+         only reachable path is step-then-save. Drive it and RECORD what the
+         save does with the displayed value — this is where the reported
+         "190 → 190" receipt comes from, and the repaired build never reaches
+         this branch because its input always renders. */
+      const plusOld = [...card.querySelectorAll("button")].find((b) => (b.textContent || "").trim() === "+");
+      if (plusOld) { for (let k = 0; k < 2; k++) { plusOld.click(); await sleep(70); } }
+      const shown = (w.document.getElementById("tr-hack").textContent || "").match(/\b(\d{2,3}(?:\.\d+)?)\b/g);
+      const nB = feedLen(w);
+      const sv = [...w.document.getElementById("tr-hack").querySelectorAll("button")].find((b) => (b.textContent || "").trim() === "Save");
+      if (sv) { sv.click(); await sleep(220); }
+      const got = wOf(w, "hack");
+      const rows = addedSince(w, nB);
+      check(false, "", "SIGNATURE — stepped the box up and saved: persisted w " + JSON.stringify(got.w) + " (the entry was discarded by the snap), receipt filed " + JSON.stringify(rows.map((f) => f.t)) + " — a receipt describing a discarded entry as an adoption; displayed values on the card were " + JSON.stringify(shown && shown.slice(0, 4)));
+      dom.window.close(); return;
+    }
+    check((card.textContent || "").indexOf("rung 4/4") > -1, "PART C — the rung chip reads the REAL ladder position: rung 4/4", "the rung chip is wrong or absent (card says: " + (card.textContent || "").slice(0, 120) + ")");
+    await typeInto(w, input, "200");
+    const card2 = w.document.getElementById("tr-hack");
+    check(/new rung/.test(card2.textContent || ""), "PART C — an off-ladder 200 reads 'new rung', never a wrong n/n", "the chip did not say 'new rung' for an off-ladder entry");
+    const saveBtn = [...card2.querySelectorAll("button")].find((b) => (b.textContent || "").trim() === "Save");
+    check(!!saveBtn, "the Save control is present", "no Save control on the open editor");
+    saveBtn.click(); await sleep(220);
+    const after = wOf(w, "hack");
+    check(after.w === 200 && typeof after.w === "number",
+      "PART B — the entry SAVES: persisted w is the number 200, never snapped down to 190",
+      "the entry was discarded (observed w " + JSON.stringify(after.w) + ", type " + typeof after.w + ")");
+    check(JSON.stringify(after.steps) === JSON.stringify([160, 170, 180, 190, 200]),
+      "PART B — the 200 rung JOINED the ladder, and no rung was erased",
+      "the ladder did not take the new rung (observed " + JSON.stringify(after.steps) + ")");
+    check(typeof after.wAt === "string" && after.last === null && after.topAt === null && after.topRun === 0,
+      "PART B — CAGE parity: stamped, the old line cleared, and the sighting record reset for the new load",
+      "the save skipped the stamp or the sighting reset (observed wAt " + JSON.stringify(after.wAt) + " last " + JSON.stringify(after.last) + " topAt " + JSON.stringify(after.topAt) + ")");
+    const rcp = addedSince(w, nBefore);
+    check(rcp.length === 1 && /190 → 200/.test(rcp[0].t) && /the 200 rung joined the ladder/.test(rcp[0].t),
+      "PART B — exactly ONE new receipt, and it names what actually happened: " + JSON.stringify(rcp.map((f) => f.t)),
+      "the receipt is wrong or duplicated (observed new rows " + JSON.stringify(rcp.map((f) => f.t)) + ")");
+    /* the row re-reads at the new load */
+    await sleep(80);
+    const card3 = w.document.getElementById("tr-hack");
+    check(/200/.test(card3.textContent || ""), "PART B — the row re-reads at 200", "the row still shows the old load");
+    dom.window.close();
+  }
+  /* ---- leg 2: the no-op and garbage saves file NOTHING ---- */
+  {
+    const { dom, w } = boot((w9) => { w9.localStorage.setItem(KEY, JSON.stringify(preCorr)); }, L_ISO);
+    await sleep(600);
+    await clickText(w, "TRAIN", "tab nav");
+    const card = await openBox(w, "hack");
+    if (!card) { dom.window.close(); return; }
+    const saveOnce = async (val) => {
+      const c = w.document.getElementById("tr-hack");
+      const inp = c.querySelector('input[aria-label="weight value"]');
+      if (inp) await typeInto(w, inp, val);
+      const c2 = w.document.getElementById("tr-hack");
+      const b = [...c2.querySelectorAll("button")].find((x) => (x.textContent || "").trim() === "Save");
+      if (b) { b.click(); await sleep(200); }
+    };
+    const n0 = feedLen(w);
+    await saveOnce("190");   /* the SAME load he is already on */
+    check(addedSince(w, n0).length === 0 && wOf(w, "hack").w === 190,
+      "PART B — a no-change save files NOTHING: the '190 → 190' receipt that described a discarded entry as an adoption is gone (his own feed carries two of them)",
+      "a no-change save still filed a receipt (observed new rows " + JSON.stringify(addedSince(w, n0).map((f) => f.t)) + ")");
+    const n1 = feedLen(w);
+    await openBox(w, "hack");
+    await saveOnce("abc");   /* garbage */
+    check(addedSince(w, n1).length === 0 && wOf(w, "hack").w === 190,
+      "PART B — a garbage entry keeps the old load and files nothing",
+      "garbage moved the load or filed a receipt (observed w " + JSON.stringify(wOf(w, "hack").w) + ", new rows " + JSON.stringify(addedSince(w, n1).map((f) => f.t)) + ")");
+    dom.window.close();
+  }
+  /* ---- leg 3 (v7.53.4 FIX 5): the Save owns validation ATOMICALLY ----
+     Executed on main: typed 20, CANCELED the "reads like a typo" confirm, and
+     the app persisted 20 anyway, merged it as a rung and filed a receipt
+     saying the rung joined the ladder. The sanity net ran on BLUR, where the
+     Cancel raced the Save handler's own closure and lost. */
+  {
+    const { dom, w } = boot((w9) => { w9.localStorage.setItem(KEY, JSON.stringify(preCorr)); }, L_ISO);
+    await sleep(600);
+    await clickText(w, "TRAIN", "tab nav");
+    const card = await openBox(w, "hack");
+    if (!card) { dom.window.close(); return; }
+    const asked = [];
+    const typeSave = async (val, answer) => {
+      w.confirm = (msg) => { asked.push(String(msg)); return answer; };
+      const c = w.document.getElementById("tr-hack");
+      const inp = c.querySelector('input[aria-label="weight value"]');
+      if (inp) await typeInto(w, inp, val);
+      const c2 = w.document.getElementById("tr-hack");
+      const b = [...c2.querySelectorAll("button")].find((x) => (x.textContent || "").trim() === "Save");
+      if (b) { b.click(); await sleep(200); }
+    };
+    /* (a) HE SAYS NO — nothing may move */
+    const snap0 = JSON.stringify(stored(w));
+    await typeSave("20", false);
+    check(JSON.stringify(stored(w)) === snap0,
+      "FIX 5 — CANCEL means CANCEL: the persisted state is BYTE-IDENTICAL after refusing the typo net (the executed red persisted w 20, merged 20 as a rung and filed a receipt)",
+      "a refused entry still changed the state (hack now " + JSON.stringify(wOf(w, "hack").w) + ", steps " + JSON.stringify(wOf(w, "hack").steps) + ")");
+    check(asked.length === 1 && /reads like a typo/.test(asked[0]),
+      "FIX 5 — and the net asked EXACTLY ONCE, at the save (it used to fire on blur as well)",
+      "the sanity net asked " + asked.length + " time(s): " + JSON.stringify(asked));
+    check(!!w.document.getElementById("tr-hack").querySelector('input[aria-label="weight value"]'),
+      "FIX 5 — the editor stays OPEN so he can correct it", "the editor closed on a refused entry");
+    /* (b) HE SAYS YES — his word stands, and the override is on the record */
+    const n0 = feedLen(w);
+    asked.length = 0;
+    await typeSave("20", true);
+    const kept = wOf(w, "hack");
+    const rows = addedSince(w, n0);
+    check(kept.w === 20 && rows.some((f) => /^WEIGHT SET — /.test(f.t)) && rows.some((f) => /KEPT AN UNUSUAL NUMBER/.test(f.t)),
+      "FIX 5 — CONFIRM means confirm: 20 persists on his say-so, with the unusual-number receipt beside the weight receipt",
+      "the confirmed entry did not persist or lost its receipt (w " + JSON.stringify(kept.w) + ", rows " + JSON.stringify(rows.map((f) => f.t)) + ")");
+    dom.window.close();
+  }
+  /* ---- leg 3: a strictly-numeric parse, at the save ---- */
+  {
+    const { dom, w } = boot((w9) => { w9.localStorage.setItem(KEY, JSON.stringify(preCorr)); }, L_ISO);
+    await sleep(600);
+    await clickText(w, "TRAIN", "tab nav");
+    const card = await openBox(w, "hack");
+    if (!card) { dom.window.close(); return; }
+    let asked2 = 0;
+    w.confirm = () => { asked2++; return true; };
+    const snap1 = JSON.stringify(stored(w));
+    const inp = card.querySelector('input[aria-label="weight value"]');
+    if (inp) await typeInto(w, inp, "200abc");
+    const b = [...w.document.getElementById("tr-hack").querySelectorAll("button")].find((x) => (x.textContent || "").trim() === "Save");
+    if (b) { b.click(); await sleep(200); }
+    check(JSON.stringify(stored(w)) === snap1 && asked2 === 0,
+      "FIX 5 — \"200abc\" is REJECTED outright: it used to normalize silently to 200 and save with no dialog and no receipt. No mutation, no prompt",
+      "garbage-with-digits still moved the state (w " + JSON.stringify(wOf(w, "hack").w) + ", prompts " + asked2 + ")");
+    const still = w.document.getElementById("tr-hack").querySelector('input[aria-label="weight value"]');
+    check(!!still && String(still.value) === "200abc",
+      "FIX 5 — and the box still shows exactly what he typed, for him to fix",
+      "the box lost or normalized his text (shows " + JSON.stringify(still && still.value) + ")");
+    dom.window.close();
+  }
+  /* ---- leg 3: a JUMP lift (no ladder) still saves, as a NUMBER ---- */
+  {
+    const { dom, w } = boot((w9) => { w9.localStorage.setItem(KEY, JSON.stringify(preCorr)); }, L_ISO);
+    await sleep(600);
+    await clickText(w, "TRAIN", "tab nav");
+    const card = await openBox(w, "extension");
+    if (!card) { dom.window.close(); return; }
+    check(!card.querySelector('input[aria-label="weight value"]'),
+      "PART C — a lift with NO ladder still gets the Stepper, not the free input: the branch follows the real config both ways",
+      "a jump lift wrongly rendered the ladder branch");
+    const plus = [...card.querySelectorAll("button")].find((b) => (b.textContent || "").trim() === "+");
+    if (plus) { plus.click(); await sleep(90); }
+    const b = [...w.document.getElementById("tr-extension").querySelectorAll("button")].find((x) => (x.textContent || "").trim() === "Save");
+    if (b) { b.click(); await sleep(200); }
+    const ext = wOf(w, "extension");
+    check(typeof ext.w === "number" && ext.w === 160,
+      "PART B — the Stepper path saves a NUMBER (155 + one 5 lb jump = 160), never the input string",
+      "the jump-lift save persisted the wrong type or value (observed " + JSON.stringify(ext.w) + ", type " + typeof ext.w + ")");
+    dom.window.close();
+  }
+  /* ---- leg 4: A+B together on the REAL state — the box opens at the adopted load ---- */
+  {
+    const { dom, w } = boot((w9) => { w9.localStorage.setItem(KEY, JSON.stringify(live)); }, L_ISO);
+    await sleep(600);
+    await clickText(w, "TRAIN", "tab nav");
+    const hk = wOf(w, "hack");
+    check(hk.w === 200 && JSON.stringify(hk.steps) === JSON.stringify([160, 170, 180, 190, 200]),
+      "PART A through the REAL BOOT: the reconciler runs on load and the plan follows the corrected record (200, rung joined)",
+      "the boot did not reconcile the corrected load (observed w " + JSON.stringify(hk.w) + " steps " + JSON.stringify(hk.steps) + ")");
+    const card = await openBox(w, "hack");
+    if (!card) { dom.window.close(); return; }
+    const inp = card.querySelector('input[aria-label="weight value"]');
+    check(!!inp && Number(inp.value) === 200 && (card.textContent || "").indexOf("rung 5/5") > -1,
+      "A+B INTERACTION — the box OPENS at 200 with the ladder already carrying the rung (rung 5/5)",
+      "the box did not open at the adopted load (observed value " + JSON.stringify(inp && inp.value) + ", card: " + (card.textContent || "").slice(0, 100) + ")");
+    dom.window.close();
+  }
+}
+
 await driveTrainTyped();
 await driveTrainBlank();
 await driveGymTyped();
 await driveOldDraft();
 await drivePinFill();
 await drivePinTokens();
+await driveWeightBox();
 if (failed) { console.log("SPLIT-SMOKE: " + failed + " check(s) failed"); process.exit(1); }
 console.log("SPLIT-SMOKE: both modes drive the debut load and the pre-upgrade draft through the REAL handlers — render, type, finish, persist");

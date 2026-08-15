@@ -323,10 +323,24 @@ export function runClosureSF2(T, ok, readFileSync) {
     ok(hk.lastMeta && hk.lastMeta.d === "2026-08-14" && hk.lastMeta.w === 200 && J(hk.last) === J([10, 9, 9])
       && ext.lastMeta && ext.lastMeta.w === 160 && J(ext.last) === J([10, 10]),
       "AMEND f — lastMeta and ex.last are RE-DERIVED to the corrected weights, so no stale 190/155 keeps driving a target (observed hack " + J(hk.lastMeta && [hk.lastMeta.d, hk.lastMeta.w]) + " · extension " + J(ext.lastMeta && ext.lastMeta.w) + ")");
-    /* the config is deliberately NOT moved */
+    /* THE PATCH does not move the config — and v7.53.4 REFINES rather than
+       reverses that: an amendment patch still never decides progression. What
+       v7.53.4 added is a separate standing reconciler (reconcileCorrectedLoads)
+       with its own gate — the plan follows a corrected record only when the
+       athlete's own last word on that load is OLDER than the correction. The
+       distinction is load-bearing and is asserted here in both directions:
+       the PATCH leaves the config alone; the RECONCILER, running in the same
+       migrate call, is what makes the plan stop contradicting the record. */
     const raw0 = rawV50();
-    ok(hk.w === (raw0.exercises.find((e) => e.id === "hack") || {}).w,
-      "AMEND g — the CONFIG w is untouched: the earn machinery reads the corrected entry and does its own honest work next session (observed " + J(hk.w) + ")");
+    const cfgAfterPatchOnly = (() => {
+      const st = cl(withSess());
+      /* strip the correction stamp: with no corr, the reconciler abstains and
+         what remains is the PATCH's own effect on the config — nothing. */
+      delete st.sessionLog["2026-08-14"].corr;
+      return T.migrate(JSON.parse(JSON.stringify({ ...st, v: 51 })));
+    })();
+    ok((cfgAfterPatchOnly.exercises.find((e) => e.id === "hack") || {}).w === (raw0.exercises.find((e) => e.id === "hack") || {}).w,
+      "AMEND g (refined by v7.53.4) — THE PATCH still never moves the CONFIG w: with the correction stamp absent the reconciler abstains and the config is exactly where the athlete left it. A correction patch does not decide progression (observed " + J((cfgAfterPatchOnly.exercises.find((e) => e.id === "hack") || {}).w) + ")");
     /* receipts: one per lift, once */
     const rcp = (m.feed || []).filter((f) => f && f.op && String(f.op).indexOf("amend:2026-08-14:") === 0);
     ok(rcp.length === 2 && rcp.some((f) => /190 → 200/.test(f.t)) && rcp.some((f) => /155 → 160/.test(f.t)),
@@ -454,6 +468,285 @@ export function runClosureSF2(T, ok, readFileSync) {
     const before = cnt(withSess()), after = cnt(m);
     ok(after.every((v, i) => v >= before[i]),
       "RIR r — the counts law holds across the amendment (observed " + J(before) + " -> " + J(after) + ")");
+  });
+
+  /* ---- v7.53.4 PART A — THE PLAN FOLLOWS THE CORRECTED RECORD ---- */
+  t("LOAD-RECONCILE", () => {
+    /* driven on the LIVE PREIMAGE — the athlete's own synced state, which
+       carries BOTH guard shapes: hack has a wAt five minutes OLDER than the
+       correction (a real ladder-approval edit), extension has NO wAt at all. */
+    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const before = JSON.parse(JSON.stringify(live));
+    const out = T.migrate(JSON.parse(JSON.stringify(live)));
+    const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
+    const corrAt = ((before.sessionLog["2026-08-14"] || {}).corr || {}).at;
+    ok(g(before, "hack").wAt && g(before, "hack").wAt < corrAt && g(before, "extension").wAt == null,
+      "LOAD-A precondition — the preimage carries BOTH guard shapes: hack's wAt " + J(g(before, "hack").wAt) + " is older than the correction " + J(corrAt) + ", and extension has NO wAt");
+    ok(g(out, "hack").w === 200 && J(g(out, "hack").steps) === J([160, 170, 180, 190, 200]),
+      "LOAD-A a — hack adopts the corrected 200 and the lifted load JOINS the ladder, never erasing a rung (observed w " + J(g(out, "hack").w) + " steps " + J(g(out, "hack").steps) + ")");
+    ok(g(out, "hack").wAt === corrAt && g(out, "hack").wAt > g(before, "hack").wAt,
+      "LOAD-A b — the stamp is the CORRECTION'S OWN at, not wall-clock: deterministic under a replayed migrate, and later than the athlete's pre-correction edit by the gate's own construction (observed " + J(g(out, "hack").wAt) + ")");
+    ok(g(out, "hack").topAt === null && g(out, "hack").topRun === 0,
+      "LOAD-A c — CAGE parity: a new load starts its own sighting record (observed topAt " + J(g(out, "hack").topAt) + " topRun " + J(g(out, "hack").topRun) + ")");
+    ok(g(out, "extension").w === 160 && g(out, "extension").wAt === corrAt && g(out, "extension").steps == null,
+      "LOAD-A d — the ABSENT-wAt shape adopts too, and a lift with no ladder gains no phantom one (observed w " + J(g(out, "extension").w) + " wAt " + J(g(out, "extension").wAt) + " steps " + J(g(out, "extension").steps) + ")");
+    /* THE CARDS — the defect Joe reported, in the numbers he would see */
+    const tHack = T.targetsFor(g(out, "hack"), out), tExt = T.targetsFor(g(out, "extension"), out), tHam = T.targetsFor(g(out, "ham"), out);
+    ok(J(tHack) === J([8, 7, 8]) && g(out, "hack").w === 200,
+      "LOAD-A e — the hack card now prescribes the 200 session's reps AT 200, not at an outgrown 190 (observed " + J(tHack) + " @ " + J(g(out, "hack").w) + ")");
+    ok(J(tExt) === J([9, 9]) && g(out, "extension").w === 160,
+      "LOAD-A f — the extension card anchors on the 160 session instead of the older 155 line: it can no longer prescribe BELOW a delivered session (observed " + J(tExt) + " @ " + J(g(out, "extension").w) + ")");
+    ok(g(out, "ham").w === 125 && J(tHam) === J([11, 10, 9]) && J(g(out, "ham")) === J(g(before, "ham")),
+      "LOAD-A g — ham is BYTE-IDENTICAL: its record and its config already agree, so the equality guard abstains (observed " + J(tHam) + " @ " + J(g(out, "ham").w) + ")");
+    ok(J(g(out, "abs")) === J(g(before, "abs")),
+      "LOAD-A h — abs is an equality no-op and keeps its banked sighting: the sweep must not churn topAt/topRun on every schema bump (observed " + J([g(out, "abs").topAt, g(out, "abs").topRun]) + ")");
+    ok(g(out, "hanging").w === "BW" && J(g(out, "hanging")) === J(g(before, "hanging")),
+      "LOAD-A i — a non-numeric config ('BW') is skipped entirely (observed " + J(g(out, "hanging").w) + ")");
+    const rcp = (out.feed || []).filter((f) => f && f.op && String(f.op).indexOf("adopt:corr:") === 0);
+    ok(rcp.length === 2 && rcp.some((f) => /HACK SQUAT 190 → 200/.test(f.t)) && rcp.some((f) => /155 → 160/.test(f.t)) && rcp.some((f) => /The rung joined the ladder/.test(f.how)) && !rcp.filter((f) => /155 → 160/.test(f.t))[0].how.match(/rung joined/),
+      "LOAD-A j — one op-keyed receipt per adoption, and the ladder sentence appears ONLY where a ladder exists (observed " + J(rcp.map((f) => f.t)) + ")");
+    /* IDEMPOTENCE — the equality guard plus the deterministic stamp */
+    const twice = T.migrate(JSON.parse(JSON.stringify(out)));
+    ok(JSON.stringify(twice) === JSON.stringify(out),
+      "LOAD-A k — a replayed migrate is BYTE-IDENTICAL: the equality guard stops the adoption and the correction-stamped wAt makes the write deterministic (a wall-clock stamp would fail this line)");
+    /* LEG 3 — the SWEEP still never touches an entry, but patchV54 now writes
+       per-entry load provenance, so the claim is asserted at field grain
+       instead of by whole-object identity. */
+    const entryDelta = (() => {
+      const b9 = before.sessionLog, a9 = out.sessionLog;
+      if (JSON.stringify(Object.keys(b9).sort()) !== JSON.stringify(Object.keys(a9).sort())) return "date set changed";
+      const diffs = [];
+      for (const d9 of Object.keys(b9)) {
+        const eb = (b9[d9].entries || []), ea = (a9[d9].entries || []);
+        if (eb.length !== ea.length) return "entry count changed on " + d9;
+        for (let i9 = 0; i9 < eb.length; i9++) {
+          const kb = Object.keys(eb[i9]), ka = Object.keys(ea[i9]);
+          for (const k9 of new Set([...kb, ...ka])) if (JSON.stringify(eb[i9][k9]) !== JSON.stringify(ea[i9][k9])) diffs.push(d9 + ":" + ea[i9].id + ":" + k9);
+        }
+      }
+      return diffs;
+    })();
+    ok(Array.isArray(entryDelta) && JSON.stringify(entryDelta.sort()) === JSON.stringify(["2026-08-14:extension:wCorrAt", "2026-08-14:hack:wCorrAt"]),
+      "LOAD-A l (evolved by leg 3) — the ONLY field any of this writes into the log is the two amended entries' wCorrAt provenance: no rep, no weight, no rirSets, no other date, and the sweep itself still writes nothing at all (observed " + J(entryDelta) + ")");
+    /* NEGATIVE CONTROLS */
+    const newer = JSON.parse(JSON.stringify(live));
+    newer.exercises.find((e) => e.id === "hack").wAt = "2026-08-15T09:00:00.000Z";   /* the athlete set a load AFTER the correction */
+    const nOut = T.migrate(newer);
+    ok(g(nOut, "hack").w === 190 && !(nOut.feed || []).some((f) => f && f.op === "adopt:corr:hack:2026-08-14"),
+      "LOAD-A m — NEGATIVE: a wAt NEWER than the correction abstains — the athlete's own later word outranks the record (observed w " + J(g(nOut, "hack").w) + ")");
+    /* LEG 3 — the gate is PER-ENTRY provenance now, so the negative control is
+       an entry that carries none. (Deleting the session corr no longer matters,
+       which is the whole point of the doctrine change.) v54 takes the fast
+       path, so no patch stamps it. */
+    const noProv = JSON.parse(JSON.stringify(live));
+    noProv.v = T.SCHEMA_V;
+    for (const e9 of (noProv.sessionLog["2026-08-14"].entries || [])) delete e9.wCorrAt;
+    const ncOut = T.migrate(noProv);
+    ok(g(ncOut, "hack").w === 190 && g(ncOut, "extension").w === 155,
+      "LOAD-A n (evolved by leg 3) — NEGATIVE: a divergent lastMeta whose ENTRY carries no load-correction provenance abstains. Ordinary history and deloads are shielded by that gate, never by a direction test (observed " + J([g(ncOut, "hack").w, g(ncOut, "extension").w]) + ")");
+    const lighter = JSON.parse(JSON.stringify(live));
+    lighter.exercises.find((e) => e.id === "hack").w = 210;
+    const lOut = T.migrate(lighter);
+    ok(g(lOut, "hack").w === 200,
+      "LOAD-A o — DIRECTION-AGNOSTIC: a corrected LIGHTER load adopts too (210 -> 200). The gate is the correction, never the direction (observed " + J(g(lOut, "hack").w) + ")");
+    /* THE MERGE — assert the existing STAMPED_FIELDS discipline carries it */
+    const un = JSON.parse(JSON.stringify(live));
+    const ab = T.mergeState(cl(out), cl(un)), ba = T.mergeState(cl(un), cl(out));
+    ok(g(ab, "hack").w === 200 && g(ba, "hack").w === 200 && g(ab, "extension").w === 160 && g(ba, "extension").w === 160,
+      "LOAD-A p — adopted vs un-adopted replica, BOTH merge orders: the adoption wins on its stamp through the existing STAMPED_FIELDS rule (observed A<-B " + J([g(ab, "hack").w, g(ab, "extension").w]) + " · B<-A " + J([g(ba, "hack").w, g(ba, "extension").w]) + ")");
+    /* THE FREEZE FIXTURES — measured, not assumed */
+    for (const snap of ["2026-08-06", "2026-08-07"]) {
+      const st = T.migrate(JSON.parse(readFileSync("tools/snapshots/" + snap + "-ledger.json", "utf8")));
+      const adopts = (st.feed || []).filter((f) => f && f.op && String(f.op).indexOf("adopt:corr:") === 0);
+      ok(adopts.length === 0,
+        "LOAD-A q — the " + snap + " words/baseline fixture takes NO adoption: it carries corr-stamped records, but on days that are not any lift's LATEST session, so the lastMeta rule abstains. (A broader all-records sweep DOES fire here and moves two frozen debriefs — measured during the build, and why the rule reads lastMeta only.) (observed " + adopts.length + ")");
+    }
+  });
+
+  /* ---- v7.53.4 LEG 2 — THE LADDER TRAVELS WITH THE LOAD ---- */
+  t("LADDER-STAMP", () => {
+    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const stale = JSON.parse(JSON.stringify(live));      /* the un-adopted replica: his repo-synced copy */
+    const adopted = T.migrate(JSON.parse(JSON.stringify(live)));
+    const hk = (s9) => s9.exercises.find((e) => e && e.id === "hack") || {};
+    const ex9 = (s9) => s9.exercises.find((e) => e && e.id === "extension") || {};
+    const corrAt = ((live.sessionLog["2026-08-14"] || {}).corr || {}).at;
+    /* THE FINDING, both orders. Stale-FIRST is the one that was broken: the load
+       moved on its stamp while the ladder stayed with the merge base, returning a
+       working load that is not on its own ladder. */
+    const sa = T.mergeState(cl(stale), cl(adopted));     /* un-adopted replica as BASE — the red */
+    const as = T.mergeState(cl(adopted), cl(stale));
+    ok(hk(sa).w === 200 && J(hk(sa).steps) === J([160, 170, 180, 190, 200]),
+      "LADDER a — STALE-FIRST merge: the adopted load brings its rung WITH it (the red on a26e1bd was w 200 beside steps [160,170,180,190] — a working load the machine does not make, and snapLoad would read it as 190) (observed w " + J(hk(sa).w) + " steps " + J(hk(sa).steps) + ")");
+    ok(hk(as).w === 200 && J(hk(as).steps) === J([160, 170, 180, 190, 200]),
+      "LADDER b — ADOPTED-FIRST merge agrees: both orders land the same ladder (observed " + J(hk(as).steps) + ")");
+    ok(hk(sa).wAt === corrAt && hk(sa).stepsAt === corrAt && hk(as).stepsAt === corrAt,
+      "LADDER c — the ladder carries the CORRECTION'S OWN stamp, exactly like the load: deterministic, and it wins the merge for the same reason the load does (observed " + J([hk(sa).stepsAt, hk(as).stepsAt]) + ")");
+    ok(ex9(sa).w === 160 && ex9(as).w === 160 && ex9(sa).steps == null,
+      "LADDER d — the no-ladder lift is unchanged by any of this: extension adopts 160 in both orders and gains no phantom rungs (observed " + J([ex9(sa).w, ex9(as).w, ex9(sa).steps]) + ")");
+    ok(J(hk(sa)) === J(hk(as)) && J(ex9(sa)) === J(ex9(as)),
+      "LADDER e — the two merge orders are DEEPLY equal on both lifts, not merely agreeing on the fields under test");
+    /* DETERMINISM — the reason the adopted stamp is corr.at and not wall-clock */
+    const twice = T.migrate(JSON.parse(JSON.stringify(adopted)));
+    ok(JSON.stringify(twice) === JSON.stringify(adopted),
+      "LADDER f — migrate-twice stays BYTE-IDENTICAL with the ladder stamped: a wall-clock stepsAt here would have broken the determinism doctrine");
+    /* THE ANTI-UNION PIN — the case a keyed union cannot express */
+    const cleared = JSON.parse(JSON.stringify(adopted));
+    const ch = cleared.exercises.find((e) => e.id === "hack");
+    delete ch.steps; ch.stepsAt = "2026-08-20T10:00:00.000Z";   /* a deliberate LADDER CLEARED, newer than the adoption */
+    const rung = JSON.parse(JSON.stringify(adopted));           /* a replica still carrying the rungs, older stamp */
+    const cr = T.mergeState(cl(cleared), cl(rung)), rc = T.mergeState(cl(rung), cl(cleared));
+    ok(!(hk(cr).steps && hk(cr).steps.length) && !(hk(rc).steps && hk(rc).steps.length),
+      "LADDER g — ANTI-UNION: a ladder CLEARED with a newer stamp beats an old rung-carrying replica in BOTH orders. This is why the field merges whole rather than by keyed union — a union cannot express a deliberate deletion, and the cleared ladder would resurrect on every merge (observed " + J([hk(cr).steps, hk(rc).steps]) + ")");
+    ok(hk(cr).inc === hk(rung).inc && hk(rc).inc === hk(rung).inc,
+      "LADDER h — and with the ladder gone the even increment rules, as the clear intends (observed inc " + J(hk(cr).inc) + ")");
+    /* THE LEGACY PAIR — two states that predate the stamp merge exactly as before */
+    const l1 = JSON.parse(JSON.stringify(live)), l2 = JSON.parse(JSON.stringify(live));
+    for (const s9 of [l1, l2]) for (const e of s9.exercises) delete e.stepsAt;
+    l2.exercises.find((e) => e.id === "hack").steps = [160, 170, 180, 190, 999];
+    const legacyAB = T.mergeState(cl(l1), cl(l2)), legacyBA = T.mergeState(cl(l2), cl(l1));
+    ok(J(hk(legacyAB).steps) === J(l1.exercises.find((e) => e.id === "hack").steps)
+      && J(hk(legacyBA).steps) === J(l2.exercises.find((e) => e.id === "hack").steps),
+      "LADDER i — a LEGACY pair (neither side stamped) keeps the pre-existing local-wins-the-base semantics exactly: an absent stamp behaves as it always did, so no state that predates this round changes shape (observed " + J([hk(legacyAB).steps, hk(legacyBA).steps]) + ")");
+    /* THE RUNTIME WRITERS STAMP — CAGE and the editor, driven not asserted by source */
+    const base = mig50();
+    const bh = base.exercises.find((e) => e.id === "hack");
+    bh.w = 160; bh.steps = [160, 170]; delete bh.stepsAt;
+    const done = T.completeSession(base, "2026-08-21", [{ id: "hack", reps: [10, 9, 9], rir: 2, w: 180 }], slp, { pg: 51 }).s;
+    const dh = done.exercises.find((e) => e.id === "hack");
+    ok(J(dh.steps) === J([160, 170, 180]) && typeof dh.stepsAt === "string",
+      "LADDER j — the CAGE rung-merge STAMPS: logging 180 against a 160/170 ladder joins the rung and dates the ladder, so the join survives a merge with the device that never saw it (observed " + J(dh.steps) + " at " + J(dh.stepsAt) + ")");
+    const src = readFileSync("src/app.jsx", "utf8");
+    ok(src.indexOf("[\"steps\", \"stepsAt\"]") > -1 && (src.match(/stepsAt = /g) || []).length >= 7,
+      "LADDER k — the field is in STAMPED_FIELDS and EVERY writer stamps: eight sites, one of them (the TRAIN next-load ask card) not on the directive's list of six and found by enumerating the writers instead of trusting the list. The scan at FIX 2a item 6 now covers .steps, and it was mutation-tested red before this shipped (observed " + (src.match(/stepsAt = /g) || []).length + " stamp writes)");
+  });
+
+  /* ---- v7.53.4 LEG 3 — Sol's five, every one cowork-confirmed by execution ---- */
+  t("LOAD-LEG3", () => {
+    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
+    const AT = "2026-08-14T21:57:13.968Z";
+    /* FIX 1 — THE BLEED. A deliberate editor set, then an UNRELATED skip
+       correction on the same record. Under session-scoped keying the sweep
+       re-adopted 200 over his own word, with a receipt claiming the record
+       said so. */
+    const bleed = JSON.parse(JSON.stringify(live));
+    bleed.exercises.find((e) => e.id === "hack").w = 190;
+    bleed.exercises.find((e) => e.id === "hack").wAt = "2026-08-15T09:00:00.000Z";   /* his deliberate set, 09:00 */
+    bleed.sessionLog["2026-08-14"].corr = { at: "2026-08-15T10:00:00.000Z", rev: 9 };   /* an UNRELATED un-skip, 10:00 — changes no load */
+    const bOut = T.migrate(bleed);
+    ok(g(bOut, "hack").w === 190 && !(bOut.feed || []).some((f) => f && f.op === "adopt:corr:hack:2026-08-14"),
+      "LEG3 a — THE BLEED IS CLOSED: a skip correction newer than his deliberate load set does NOT re-adopt. The session stamp orders the RECORD; only an entry's own wCorrAt can move the PLAN (observed w " + J(g(bOut, "hack").w) + ", adopt receipts " + (bOut.feed || []).filter((f) => f && f.op === "adopt:corr:hack:2026-08-14").length + ")");
+    ok(g(bOut, "hack").wAt === "2026-08-15T09:00:00.000Z",
+      "LEG3 b — and his own stamp is left exactly where he put it (observed " + J(g(bOut, "hack").wAt) + ")");
+    /* the REAL amendment still adopts through the full chain */
+    const real = T.migrate(JSON.parse(JSON.stringify(live)));
+    ok(g(real, "hack").w === 200 && g(real, "extension").w === 160 && g(real, "hack").wAt === AT
+      && (real.feed || []).filter((f) => f && f.op && String(f.op).indexOf("adopt:corr:") === 0).length === 2,
+      "LEG3 c — the REAL 8/14 amendment still adopts end to end: patchV54 stamps the two entries, the sweep keys on them, 200 and 160 with wAt at the correction instant and two receipts (observed " + J([g(real, "hack").w, g(real, "extension").w, g(real, "hack").wAt]) + ")");
+    const twice = T.migrate(JSON.parse(JSON.stringify(real)));
+    ok(JSON.stringify(twice) === JSON.stringify(real),
+      "LEG3 d — migrate-twice stays BYTE-IDENTICAL under the new keying and the monotone stamp");
+    /* FIX 2 — THE STAMP NEVER MOVES BACKWARD */
+    const ladder = JSON.parse(JSON.stringify(live));
+    const lh = ladder.exercises.find((e) => e.id === "hack");
+    lh.steps = [160, 170, 180, 190, 205]; lh.stepsAt = "2026-08-15T15:00:00.000Z";   /* his own ladder, the day after */
+    const lOut = T.migrate(ladder);
+    ok(g(lOut, "hack").stepsAt === "2026-08-15T15:00:00.000Z" && J(g(lOut, "hack").steps) === J([160, 170, 180, 190, 200, 205]),
+      "LEG3 e — the sweep merges its rung WITHOUT moving the ladder's stamp backward: his 15:00 decision keeps its date and gains the 200 (executed red: restamped to 21:57 the previous day) (observed " + J(g(lOut, "hack").stepsAt) + " " + J(g(lOut, "hack").steps) + ")");
+    const older = JSON.parse(JSON.stringify(lOut));
+    const oh = older.exercises.find((e) => e.id === "hack");
+    oh.steps = [160, 170, 180, 190, 220]; oh.stepsAt = "2026-08-15T00:00:00.000Z";   /* an OLDER replica */
+    const m1 = T.mergeState(cl(lOut), cl(older)), m2 = T.mergeState(cl(older), cl(lOut));
+    ok(J(g(m1, "hack").steps) === J([160, 170, 180, 190, 200, 205]) && J(g(m2, "hack").steps) === J([160, 170, 180, 190, 200, 205]),
+      "LEG3 f — and his newer ladder beats the older 220-rung replica in BOTH orders, which the backward restamp had reversed (observed " + J([g(m1, "hack").steps, g(m2, "hack").steps]) + ")");
+    /* FIX 3 — THE HYBRID. Adopted load from one replica, ask-card ladder from another. */
+    const adopted = T.migrate(JSON.parse(JSON.stringify(live)));
+    const askCard = JSON.parse(JSON.stringify(live));
+    askCard.v = T.SCHEMA_V;   /* fast path: this replica never adopted */
+    const ah = askCard.exercises.find((e) => e.id === "hack");
+    ah.steps = [160, 170, 180, 190, 210]; ah.stepsAt = "2026-08-16T12:00:00.000Z";   /* he answered the next-load ask; w still 190 here */
+    const h1 = T.mergeState(cl(adopted), cl(askCard)), h2 = T.mergeState(cl(askCard), cl(adopted));
+    ok(g(h1, "hack").w === 200 && J(g(h1, "hack").steps) === J([160, 170, 180, 190, 200, 210])
+      && g(h2, "hack").w === 200 && J(g(h2, "hack").steps) === J([160, 170, 180, 190, 200, 210]),
+      "LEG3 g — THE HYBRID SELF-HEALS: a load from one replica and a newer ladder from another recombine into a load that IS on its ladder, identically from both orders (executed red: steps [160,170,180,190,210] beside w 200) (observed " + J([g(h1, "hack").steps, g(h2, "hack").steps]) + ")");
+    ok(J(g(h1, "hack")) === J(g(h2, "hack")),
+      "LEG3 h — and the two orders are DEEPLY equal on the repaired lift: the repair is a pure function of the resolved pair, not a race");
+    /* FIX 4 — the canonical missing-value rule on EQUAL stamps */
+    const same = "2026-08-17T08:00:00.000Z";
+    const withR = JSON.parse(JSON.stringify(live)); const wr = withR.exercises.find((e) => e.id === "hack");
+    wr.w = 190; wr.steps = [160, 170, 180, 190]; wr.stepsAt = same;
+    const cleared = JSON.parse(JSON.stringify(withR)); const cr = cleared.exercises.find((e) => e.id === "hack");
+    delete cr.steps; cr.stepsAt = same;
+    const t1 = T.mergeState(cl(withR), cl(cleared)), t2 = T.mergeState(cl(cleared), cl(withR));
+    ok(J(g(t1, "hack").steps) === J([160, 170, 180, 190]) && J(g(t2, "hack").steps) === J([160, 170, 180, 190]),
+      "LEG3 i — EQUAL stamps: the PRESENT value wins in both orders. JSON.stringify(undefined) is unorderable, so every comparison against it was false and the merge BASE always won — the cleared ladder kept whichever side it started from (observed " + J([g(t1, "hack").steps, g(t2, "hack").steps]) + ")");
+    const newClear = JSON.parse(JSON.stringify(withR)); const nc = newClear.exercises.find((e) => e.id === "hack");
+    delete nc.steps; nc.stepsAt = "2026-08-18T08:00:00.000Z";
+    const c1 = T.mergeState(cl(withR), cl(newClear)), c2 = T.mergeState(cl(newClear), cl(withR));
+    ok(!(g(c1, "hack").steps && g(c1, "hack").steps.length) && !(g(c2, "hack").steps && g(c2, "hack").steps.length),
+      "LEG3 j — and the DOCTRINE holds: a deletion still wins with a STRICTLY newer stamp, both orders. A clear is a decision; a tie is not (observed " + J([g(c1, "hack").steps, g(c2, "hack").steps]) + ")");
+  });
+
+  /* ---- v7.53.4 LEG 4 — PROVENANCE IS EARNED BY THE VALUE, NOT THE ID ---- */
+  t("LOAD-LEG4", () => {
+    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
+    const enOf = (s9, id9) => (((s9.sessionLog || {})["2026-08-14"] || {}).entries || []).find((e) => e && e.id === id9) || {};
+    const adopts = (s9, id9) => (s9.feed || []).filter((f) => f && f.op === "adopt:corr:" + id9 + ":2026-08-14").length;
+    /* (a) THE WITNESS, on the real v53 shape: the athlete diverged the entry to
+       210 himself. patchV52's stale-value guard rightly takes nothing on it —
+       and patchV54 must not then hand it provenance the amendment never
+       earned. Every real device's lastMeta follows its own completion, so the
+       consequence is a config move, not just a stray field. */
+    const div = JSON.parse(JSON.stringify(live));
+    const de = (div.sessionLog["2026-08-14"].entries || []).find((e) => e.id === "hack");
+    de.w = 210; delete de.wCorrAt;
+    const dh = div.exercises.find((e) => e.id === "hack");
+    dh.lastMeta = { ...(dh.lastMeta || {}), d: "2026-08-14", w: 210 };
+    const dOut = T.migrate(div);
+    ok(enOf(dOut, "hack").wCorrAt === undefined,
+      "LEG4 a — an entry the athlete diverged to 210 earns NO provenance: the stamp keys on the attested VALUE, and 210 is a load no amendment ever wrote (observed wCorrAt " + J(enOf(dOut, "hack").wCorrAt) + ")");
+    ok(g(dOut, "hack").w === 190 && adopts(dOut, "hack") === 0,
+      "LEG4 b — so the plan never moves and no receipt claims the record said so (executed red: config 190 -> 210 with a '190 → 210' RECONCILED line) (observed w " + J(g(dOut, "hack").w) + ", adopt receipts " + adopts(dOut, "hack") + ")");
+    /* (b) the STALE-CACHE shape, v51: the whole chain runs, patchV52 abstains on
+       the diverged entry, and lastMeta does NOT follow — so on the old bytes the
+       fabricated stamp is the ONLY visible consequence. Pinned so the stamp
+       itself is the claim, not merely its downstream effect. */
+    const stale51 = JSON.parse(JSON.stringify(live));
+    stale51.v = 51;
+    const se = (stale51.sessionLog["2026-08-14"].entries || []).find((e) => e.id === "hack");
+    se.w = 210; delete se.wCorrAt;
+    const sOut = T.migrate(stale51);
+    ok(enOf(sOut, "hack").wCorrAt === undefined && enOf(sOut, "hack").w === 210,
+      "LEG4 c — the STALE-CACHE variant: the diverged 210 entry survives patchV52's stale-value guard untouched AND takes no stamp, so the fabrication is dead at its source (observed w " + J(enOf(sOut, "hack").w) + " wCorrAt " + J(enOf(sOut, "hack").wCorrAt) + ")");
+    /* (c) extension, symmetric */
+    const divX = JSON.parse(JSON.stringify(live));
+    const xe = (divX.sessionLog["2026-08-14"].entries || []).find((e) => e.id === "extension");
+    xe.w = 158; delete xe.wCorrAt;
+    const xh = divX.exercises.find((e) => e.id === "extension");
+    xh.lastMeta = { ...(xh.lastMeta || {}), d: "2026-08-14", w: 158 };
+    const xOut = T.migrate(divX);
+    ok(enOf(xOut, "extension").wCorrAt === undefined && g(xOut, "extension").w === 155 && adopts(xOut, "extension") === 0,
+      "LEG4 d — extension is symmetric: a diverged 158 earns nothing and the plan holds at 155 (observed w " + J(g(xOut, "extension").w) + ", wCorrAt " + J(enOf(xOut, "extension").wCorrAt) + ")");
+    /* (d) THE COINCIDENCE, ruled: an entry the athlete typed at exactly the
+       attested load is stamped. It is indistinguishable from — and identical
+       to — what the attestation says, which is the honest reading. */
+    const coin = JSON.parse(JSON.stringify(live));
+    coin.v = 51;
+    const ce = (coin.sessionLog["2026-08-14"].entries || []).find((e) => e.id === "hack");
+    ce.w = 200; delete ce.wCorrAt;   /* he typed 200 himself; patchV52 abstains, the value still matches */
+    const cOut = T.migrate(coin);
+    ok(enOf(cOut, "hack").wCorrAt === "2026-08-14T21:57:13.968Z" && g(cOut, "hack").w === 200,
+      "LEG4 e — THE COINCIDENCE stamps and adopts: an entry carrying exactly the attested load is the attested truth, whoever typed it (observed wCorrAt " + J(enOf(cOut, "hack").wCorrAt) + ", w " + J(g(cOut, "hack").w) + ")");
+    /* (e) THE REGRESSION — the real ledger still stamps both entries and adopts */
+    const real = T.migrate(JSON.parse(JSON.stringify(live)));
+    ok(enOf(real, "hack").wCorrAt === "2026-08-14T21:57:13.968Z" && enOf(real, "extension").wCorrAt === "2026-08-14T21:57:13.968Z"
+      && g(real, "hack").w === 200 && g(real, "extension").w === 160 && adopts(real, "hack") === 1 && adopts(real, "extension") === 1,
+      "LEG4 f — REGRESSION: the real ledger's two entries carry exactly 200 and 160, so both are stamped and both adopt, with one receipt each (observed " + J([g(real, "hack").w, g(real, "extension").w]) + ")");
+    const twice = T.migrate(JSON.parse(JSON.stringify(real)));
+    ok(JSON.stringify(twice) === JSON.stringify(real),
+      "LEG4 g — and a rerun is still byte-identical: the value guard is idempotent like the absent-only guard it tightens");
   });
 
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
