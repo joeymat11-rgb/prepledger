@@ -10705,7 +10705,21 @@ function reconcileCorrectedLoads(s) {
          the record, which the migration law permits without a receipt) and
          deterministic: derived from the log, so a replayed migrate lands the
          same bytes. */
-      if (JSON.stringify(ex.lastMeta) !== JSON.stringify(dm) || JSON.stringify(ex.last) !== JSON.stringify(dm.reps)) { ex.lastMeta = dm; ex.last = dm.reps.slice(); }
+      /* leg 7 — THE HEAL OWNS lastMeta; ex.last FOLLOWS THE SAME-LOAD LAW.
+         Leg 6 wrote ex.last unconditionally and defeated the app's own reseed
+         law: a null last is a DECISION — the weight editor Save, RESET and
+         the CAGE all null it on a load change so targets reseed at the new
+         load. Executed at 8c70af8: an editor-set 210 (newer wAt, last null)
+         booted, the sweep resurrected last from the 8/14 line, and the card
+         prescribed the OLD load's reps at the new load — the reseed silently
+         defeated, no receipt. reconcileLiftCaches already states the law: a
+         deliberate reseed always changes w BEFORE nulling, so a null last
+         beside a derived line at the SAME load is definitionally stale and
+         refills — while A NULL last AT A LOAD THE LOG DOES NOT DESCRIBE IS A
+         DECISION, NOT A GAP, and it is preserved. */
+      if (JSON.stringify(ex.lastMeta) !== JSON.stringify(dm)) ex.lastMeta = dm;             /* the cache must describe the log — unconditional */
+      if (ex.last != null) { if (JSON.stringify(ex.last) !== JSON.stringify(dm.reps)) ex.last = dm.reps.slice(); }   /* a live cache follows the log */
+      else if (String(dm.w) === String(ex.w)) ex.last = dm.reps.slice();                    /* the same-load null: stale by the existing law even when a stale cache hid it, so refill */
       const rec = log[dm.d];
       /* FIX 1 (leg 3) — THE GATE KEYS ON PER-ENTRY LOAD PROVENANCE, not the
          session stamp. A session's corr is written by ✕ and ↩ too, which
@@ -10745,6 +10759,7 @@ function reconcileCorrectedLoads(s) {
          stays byte-identical. */
       if (rungs) { ex.steps = [...new Set([...rungs, enC.w])].sort((a9, b9) => a9 - b9); ex.stepsAt = String(ex.stepsAt || "") > at ? ex.stepsAt : at; }   /* merge, never erase — the ladder law */
       ex.w = enC.w; ex.wAt = at;                                        /* every w-writer stamps, and this one stamps deterministically */
+      ex.last = null;                                                   /* leg 7 — the load MOVED: the same event class as the editor Save and the CAGE, so the same consequence — the corrected load reseeds. The NEXT boot's same-load rule refills from the log, which at the adopted load is the honest anchor. */
       if (ex.topAt != null || (ex.topRun || 0) !== 0) { ex.topAt = null; ex.topRun = 0; }   /* a new load starts its own sighting record — but only WRITE when there is a sighting to clear. Writing null/0 over absent keys is semantically identical and merge-visibly different: topAt/topRun are unstamped, so they ride whichever whole record wins, and manufacturing them made the two merge orders differ on a lift that had never banked a sighting. Deep order-equality is the stronger claim; this is what makes it true. */
       if (!Array.isArray(s.feed)) s.feed = [];
       const op = "adopt:corr:" + ex.id + ":" + dm.d;
@@ -11867,6 +11882,20 @@ function _corrOf(v) {
    value that loses to every present one: "". Shared by every STAMPED_FIELDS
    row, because the same hole sits under all of them. */
 function _valOr(x) { return x === undefined ? "" : JSON.stringify(x); }
+/* leg 7 — `last` RIDES THE LOAD. ex.last means "the reps last done at THIS
+   load, or null: a deliberate reseed" — it is meaningful only beside the w it
+   describes. It carries no stamp of its own, so it used to ride whichever
+   whole record won the merge: an adopting replica (last nulled by the reseed)
+   and a stale replica (last still live at the old load) then disagreed BY
+   MERGE ORDER on an unstamped field — the exact class the deep order-equality
+   pins exist to kill, re-manufactured by leg 7's own null. When w moves on
+   its stamp, the winner's last state moves with it, including an absent key —
+   the pair travels together, exactly as steps was made to travel in leg 2. */
+function _takeStamped(w2, other, f9, at9) {
+  const n2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };
+  if (f9 === "w") { if ("last" in other) n2.last = other.last; else delete n2.last; }
+  return n2;
+}
 function _sessionAtMs(v) { const n = v && +v.at; return isFinite(n) ? n : 0; }
 function _richerSession(x, y) {
   const cx = _corrOf(x), cy = _corrOf(y);
@@ -12136,8 +12165,8 @@ function mergeState(local, remote) {
          merge order decided whether the healthy fly survived.) */
       if (w2.quarantined && !other.quarantined) w2 = { ...other };
       for (const [f9, at9] of STAMPED_FIELDS) {
-        if (_isoOr(other[at9]) > _isoOr(w2[at9])) w2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };
-        else if (_isoOr(other[at9]) !== "" && _isoOr(other[at9]) === _isoOr(w2[at9]) && _valOr(other[f9]) > _valOr(w2[f9])) w2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };   /* FIX split-1: equal stamps resolve by VALUE, direction-free — "local wins" flips with merge order. LEG 3 FIX 4: through _valOr, because JSON.stringify(undefined) is undefined and EVERY comparison with it is false — so on equal stamps the merge BASE always won and a cleared ladder kept whichever side it started from. Absent serializes as "", so the PRESENT value wins a tie, direction-free. A DELETION therefore needs a STRICTLY newer stamp, which is the doctrine the cleared-ladder pin already asserts. */
+        if (_isoOr(other[at9]) > _isoOr(w2[at9])) w2 = _takeStamped(w2, other, f9, at9);
+        else if (_isoOr(other[at9]) !== "" && _isoOr(other[at9]) === _isoOr(w2[at9]) && _valOr(other[f9]) > _valOr(w2[f9])) w2 = _takeStamped(w2, other, f9, at9);   /* FIX split-1: equal stamps resolve by VALUE, direction-free — "local wins" flips with merge order. LEG 3 FIX 4: through _valOr, because JSON.stringify(undefined) is undefined and EVERY comparison with it is false — so on equal stamps the merge BASE always won and a cleared ladder kept whichever side it started from. Absent serializes as "", so the PRESENT value wins a tie, direction-free. A DELETION therefore needs a STRICTLY newer stamp, which is the doctrine the cleared-ladder pin already asserts. */
       }
       /* FIX 3a — forks are UNION-BY-SEAM: a technique era is history, and a
          stale device that never learned a seam must not erase it. Keyed by

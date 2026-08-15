@@ -353,9 +353,12 @@ export function runClosureSF2(T, ok, readFileSync) {
       "AMEND e — the record carries the CORRECTION_MERGE stamp, so a replica holding the old copy cannot revert it (observed " + J(rec.corr) + ")");
     /* THE CACHE DISCIPLINE — the class the earlier ledger repairs missed */
     const hk = m.exercises.find((e) => e.id === "hack"), ext = m.exercises.find((e) => e.id === "extension");
+    const m2 = T.migrate(JSON.parse(JSON.stringify(m)));
+    const hk2 = m2.exercises.find((e) => e.id === "hack"), ext2 = m2.exercises.find((e) => e.id === "extension");
     ok(hk.lastMeta && hk.lastMeta.d === "2026-08-14" && hk.lastMeta.w === 200 && J(hk.last) === J([10, 9, 9])
-      && ext.lastMeta && ext.lastMeta.w === 160 && J(ext.last) === J([10, 10]),
-      "AMEND f — lastMeta and ex.last are RE-DERIVED to the corrected weights, so no stale 190/155 keeps driving a target (observed hack " + J(hk.lastMeta && [hk.lastMeta.d, hk.lastMeta.w]) + " · extension " + J(ext.lastMeta && ext.lastMeta.w) + ")");
+      && ext.lastMeta && ext.lastMeta.w === 160 && ext.last === null
+      && J(hk2.last) === J([10, 9, 9]) && J(ext2.last) === J([10, 10]),
+      "AMEND f (evolved by leg 7) — lastMeta re-derives to the corrected weights at once. This fixture builds on SEED, where hack's config ALREADY reads 200 — an equality no-op, so its live cache simply follows the log — while extension's 155 ADOPTS and reseeds (last null: the load moved, the editor's own event class), and the second boot refills it by the same-load rule (observed hack " + J([hk.lastMeta && hk.lastMeta.w, hk.last, hk2.last]) + " · extension " + J([ext.lastMeta && ext.lastMeta.w, ext.last, ext2.last]) + ")");
     /* THE PATCH does not move the config — and v7.53.4 REFINES rather than
        reverses that: an amendment patch still never decides progression. What
        v7.53.4 added is a separate standing reconciler (reconcileCorrectedLoads)
@@ -524,11 +527,12 @@ export function runClosureSF2(T, ok, readFileSync) {
     ok(g(out, "extension").w === 160 && g(out, "extension").wAt === corrAt && g(out, "extension").steps == null,
       "LOAD-A d — the ABSENT-wAt shape adopts too, and a lift with no ladder gains no phantom one (observed w " + J(g(out, "extension").w) + " wAt " + J(g(out, "extension").wAt) + " steps " + J(g(out, "extension").steps) + ")");
     /* THE CARDS — the defect Joe reported, in the numbers he would see */
-    const tHack = T.targetsFor(g(out, "hack"), out), tExt = T.targetsFor(g(out, "extension"), out), tHam = T.targetsFor(g(out, "ham"), out);
-    ok(J(tHack) === J([8, 7, 8]) && g(out, "hack").w === 200,
-      "LOAD-A e — the hack card now prescribes the 200 session's reps AT 200, not at an outgrown 190 (observed " + J(tHack) + " @ " + J(g(out, "hack").w) + ")");
-    ok(J(tExt) === J([9, 9]) && g(out, "extension").w === 160,
-      "LOAD-A f — the extension card anchors on the 160 session instead of the older 155 line: it can no longer prescribe BELOW a delivered session (observed " + J(tExt) + " @ " + J(g(out, "extension").w) + ")");
+    const out2 = T.migrate(JSON.parse(JSON.stringify(out)));
+    const tHack = T.targetsFor(g(out2, "hack"), out2), tExt = T.targetsFor(g(out2, "extension"), out2), tHam = T.targetsFor(g(out, "ham"), out);
+    ok(g(out, "hack").last === null && J(T.targetsFor(g(out, "hack"), out)) === J([8, 8, 8]) && J(tHack) === J([8, 7, 8]) && g(out2, "hack").w === 200,
+      "LOAD-A e (evolved by leg 7) — the adopted load RESEEDS first (last null, targets [8,8,8] — the editor's own event class), then the second boot anchors the card on the 200 session's reps AT 200: never at an outgrown 190 (observed boot1 " + J(T.targetsFor(g(out, "hack"), out)) + " boot2 " + J(tHack) + " @ " + J(g(out2, "hack").w) + ")");
+    ok(g(out, "extension").last === null && J(tExt) === J([9, 9]) && g(out2, "extension").w === 160,
+      "LOAD-A f (evolved by leg 7) — extension the same: reseed at adoption, then anchored on the 160 session from boot 2 — it can no longer prescribe BELOW a delivered session (observed " + J(tExt) + " @ " + J(g(out2, "extension").w) + ")");
     ok(g(out, "ham").w === 125 && J(tHam) === J([11, 10, 9]) && J(g(out, "ham")) === J(g(before, "ham")),
       "LOAD-A g — ham is BYTE-IDENTICAL: its record and its config already agree, so the equality guard abstains (observed " + J(tHam) + " @ " + J(g(out, "ham").w) + ")");
     ok(J(g(out, "abs")) === J(g(before, "abs")),
@@ -540,8 +544,9 @@ export function runClosureSF2(T, ok, readFileSync) {
       "LOAD-A j — one op-keyed receipt per adoption, and the ladder sentence appears ONLY where a ladder exists (observed " + J(rcp.map((f) => f.t)) + ")");
     /* IDEMPOTENCE — the equality guard plus the deterministic stamp */
     const twice = T.migrate(JSON.parse(JSON.stringify(out)));
-    ok(JSON.stringify(twice) === JSON.stringify(out),
-      "LOAD-A k — a replayed migrate is BYTE-IDENTICAL: the equality guard stops the adoption and the correction-stamped wAt makes the write deterministic (a wall-clock stamp would fail this line)");
+    const thrice = T.migrate(JSON.parse(JSON.stringify(twice)));
+    ok(JSON.stringify(thrice) === JSON.stringify(twice),
+      "LOAD-A k (evolved by leg 7) — migrate CONVERGES BY THE SECOND BOOT and is byte-identical from there: boot 1 adopts and reseeds, boot 2 refills last by the same-load rule, boot 3 changes nothing — the equality guard and the correction-stamped wAt still make every write deterministic");
     /* LEG 3 — the SWEEP still never touches an entry, but patchV54 now writes
        per-entry load provenance, so the claim is asserted at field grain
        instead of by whole-object identity. */
@@ -621,8 +626,8 @@ export function runClosureSF2(T, ok, readFileSync) {
       "LADDER e — the two merge orders are DEEPLY equal on both lifts, not merely agreeing on the fields under test");
     /* DETERMINISM — the reason the adopted stamp is corr.at and not wall-clock */
     const twice = T.migrate(JSON.parse(JSON.stringify(adopted)));
-    ok(JSON.stringify(twice) === JSON.stringify(adopted),
-      "LADDER f — migrate-twice stays BYTE-IDENTICAL with the ladder stamped: a wall-clock stepsAt here would have broken the determinism doctrine");
+    ok(JSON.stringify(T.migrate(JSON.parse(JSON.stringify(twice)))) === JSON.stringify(twice),
+      "LADDER f (evolved by leg 7) — migrate converges by the second boot with the ladder stamped and is byte-identical from there: a wall-clock stepsAt would still fail this line");
     /* THE ANTI-UNION PIN — the case a keyed union cannot express */
     const cleared = JSON.parse(JSON.stringify(adopted));
     const ch = cleared.exercises.find((e) => e.id === "hack");
@@ -678,8 +683,8 @@ export function runClosureSF2(T, ok, readFileSync) {
       && (real.feed || []).filter((f) => f && f.op && String(f.op).indexOf("adopt:corr:") === 0).length === 2,
       "LEG3 c — the REAL 8/14 amendment still adopts end to end: patchV54 stamps the two entries, the sweep keys on them, 200 and 160 with wAt at the correction instant and two receipts (observed " + J([g(real, "hack").w, g(real, "extension").w, g(real, "hack").wAt]) + ")");
     const twice = T.migrate(JSON.parse(JSON.stringify(real)));
-    ok(JSON.stringify(twice) === JSON.stringify(real),
-      "LEG3 d — migrate-twice stays BYTE-IDENTICAL under the new keying and the monotone stamp");
+    ok(JSON.stringify(T.migrate(JSON.parse(JSON.stringify(twice)))) === JSON.stringify(twice),
+      "LEG3 d (evolved by leg 7) — migrate converges by the second boot under the new keying and the monotone stamp, and is byte-identical from there");
     /* FIX 2 — THE STAMP NEVER MOVES BACKWARD */
     const ladder = JSON.parse(JSON.stringify(live));
     const lh = ladder.exercises.find((e) => e.id === "hack");
@@ -778,8 +783,8 @@ export function runClosureSF2(T, ok, readFileSync) {
       && g(real, "hack").w === 200 && g(real, "extension").w === 160 && adopts(real, "hack") === 1 && adopts(real, "extension") === 1,
       "LEG4 f — REGRESSION: the real ledger's two entries carry exactly 200 and 160, so both are stamped and both adopt, with one receipt each (observed " + J([g(real, "hack").w, g(real, "extension").w]) + ")");
     const twice = T.migrate(JSON.parse(JSON.stringify(real)));
-    ok(JSON.stringify(twice) === JSON.stringify(real),
-      "LEG4 g — and a rerun is still byte-identical: the value guard is idempotent like the absent-only guard it tightens");
+    ok(JSON.stringify(T.migrate(JSON.parse(JSON.stringify(twice)))) === JSON.stringify(twice),
+      "LEG4 g (evolved by leg 7) — migrate converges by the second boot: the value guard is idempotent like the absent-only guard it tightens, and the reseed's refill is the deterministic same-load rule");
   });
 
   /* ---- v7.53.5 — THE AUTHORITY'S VALUE IS THE AUTHORITY ---- */
@@ -803,11 +808,11 @@ export function runClosureSF2(T, ok, readFileSync) {
       "VALUE a — the config takes the STAMPED entry's load, not the cache's: 200, never 210 (executed red at the shipped tip: config 210) (observed " + J(g(out, "hack").w) + ")");
     ok(rcpOf(out, "hack").length === 1 && /190 → 200/.test(rcpOf(out, "hack")[0].t) && /says 200 was lifted/.test(rcpOf(out, "hack")[0].how),
       "VALUE b — and the receipt names that same value: the red filed '190 → 210' while the stamp vouched for 200 — receipt truth is the law this defect broke (observed " + J(rcpOf(out, "hack").map((f) => f.t)) + ")");
-    ok(g(out, "hack").lastMeta && g(out, "hack").lastMeta.w === 200 && J(g(out, "hack").last) === J(enOf(out, "hack").reps),
-      "VALUE c — CACHE HONESTY: a lastMeta that contradicted its own record is re-derived from the log, because every downstream reader reads the cache and not the log (observed " + J(g(out, "hack").lastMeta && g(out, "hack").lastMeta.w) + ")");
-    const twice = T.migrate(JSON.parse(JSON.stringify(out)));
-    ok(JSON.stringify(twice) === JSON.stringify(out),
-      "VALUE d — and a replayed migrate is byte-identical: the heal restates the log, so it is deterministic");
+    const outB2 = T.migrate(JSON.parse(JSON.stringify(out)));
+    ok(g(out, "hack").lastMeta && g(out, "hack").lastMeta.w === 200 && g(out, "hack").last === null && J(g(outB2, "hack").last) === J(enOf(outB2, "hack").reps),
+      "VALUE c (evolved by leg 7) — CACHE HONESTY plus the reseed: lastMeta re-derives at once (every downstream reader reads the cache), the adoption nulls last because the load MOVED, and the second boot refills it from the log (observed lastMeta.w " + J(g(out, "hack").lastMeta && g(out, "hack").lastMeta.w) + ", boot1 last " + J(g(out, "hack").last) + ", boot2 last " + J(g(outB2, "hack").last) + ")");
+    ok(JSON.stringify(T.migrate(JSON.parse(JSON.stringify(outB2)))) === JSON.stringify(outB2),
+      "VALUE d (evolved by leg 7) — migrate converges by the second boot and is byte-identical from there: the heal restates the log and the refill is the same-load rule, both deterministic");
     /* THE REACHABLE SHAPE (cowork's witness 2, both orders): config ALREADY
        adopted, cache stale at 210. Nothing may adopt — but the cache must
        still be told the truth. */
@@ -837,10 +842,11 @@ export function runClosureSF2(T, ok, readFileSync) {
       "VALUE g — but the CACHE is still re-derived from the log: a cache that contradicts its own record is wrong whoever wrote it, and correcting it decides nothing (observed " + J(g(nOut, "hack").lastMeta.w) + ")");
     /* REGRESSION — the real ledger is untouched by any of this */
     const real = T.migrate(JSON.parse(JSON.stringify(live)));
+    const real2 = T.migrate(JSON.parse(JSON.stringify(real)));
     ok(g(real, "hack").w === 200 && g(real, "extension").w === 160
-      && J(T.targetsFor(g(real, "hack"), real)) === J([8, 7, 8]) && J(T.targetsFor(g(real, "extension"), real)) === J([9, 9])
+      && J(T.targetsFor(g(real2, "hack"), real2)) === J([8, 7, 8]) && J(T.targetsFor(g(real2, "extension"), real2)) === J([9, 9])
       && rcpOf(real, "hack").length === 1 && rcpOf(real, "extension").length === 1,
-      "VALUE h — REGRESSION on the live preimage: 200·[8,7,8] and 160·[9,9], one receipt each, exactly as the shipped round left it (observed " + J([g(real, "hack").w, g(real, "extension").w]) + ")");
+      "VALUE h (evolved by leg 7) — REGRESSION on the live preimage: 200 and 160 with one receipt each at boot 1, and the steady state the phone settles in — 200·[8,7,8] and 160·[9,9] — from boot 2 (observed " + J([g(real, "hack").w, g(real, "extension").w]) + ")");
   });
 
   /* ---- v7.53.5 leg 6 — TRUTH FIRST: the derived date is THE date ---- */
@@ -872,16 +878,18 @@ export function runClosureSF2(T, ok, readFileSync) {
     const xOut = T.migrate(mk((h9) => { h9.lastMeta = { ...h9.lastMeta, d: "2026-08-14", w: 210 }; }));
     ok(g(xOut, "hack").w === 210 && rcp(xOut, "hack").length === 0 && g(xOut, "hack").lastMeta.d === "2026-08-15" && g(xOut, "hack").lastMeta.w === 210,
       "LEG6 c — the MISMATCH shape ends coherent: config 210 beside a cache saying 8/15 @ 210 — the heal and the adjudication read the SAME entry, so the state can no longer contradict itself (observed w " + J(g(xOut, "hack").w) + ", cache " + J([g(xOut, "hack").lastMeta.d, g(xOut, "hack").lastMeta.w]) + ", receipts " + rcp(xOut, "hack").length + ")");
-    ok(JSON.stringify(T.migrate(JSON.parse(JSON.stringify(mOut)))) === JSON.stringify(mOut)
-      && JSON.stringify(T.migrate(JSON.parse(JSON.stringify(xOut)))) === JSON.stringify(xOut),
-      "LEG6 d — reruns are byte-identical on both shapes: derive-first is a pure function of the log, so migrate stays idempotent");
+    const mB2 = T.migrate(JSON.parse(JSON.stringify(mOut))), xB2 = T.migrate(JSON.parse(JSON.stringify(xOut)));
+    ok(JSON.stringify(T.migrate(JSON.parse(JSON.stringify(mB2)))) === JSON.stringify(mB2)
+      && JSON.stringify(T.migrate(JSON.parse(JSON.stringify(xB2)))) === JSON.stringify(xB2),
+      "LEG6 d (evolved by leg 7) — migrate converges by the second boot on both shapes (extension adopts inside these fixtures and reseeds at boot 1; the same-load rule refills at boot 2) and is byte-identical from there");
     /* (e) THE INTENDED CASE, intact: on the real pre-adoption state 8/14 IS
        the newest line for both lifts, so the amendment still governs. */
     const rOut = T.migrate(preAdoption());
+    const rOut2 = T.migrate(JSON.parse(JSON.stringify(rOut)));
     ok(g(rOut, "hack").w === 200 && g(rOut, "extension").w === 160
-      && J(T.targetsFor(g(rOut, "hack"), rOut)) === J([8, 7, 8]) && J(T.targetsFor(g(rOut, "extension"), rOut)) === J([9, 9])
+      && J(T.targetsFor(g(rOut2, "hack"), rOut2)) === J([8, 7, 8]) && J(T.targetsFor(g(rOut2, "extension"), rOut2)) === J([9, 9])
       && rcp(rOut, "hack").length === 1 && rcp(rOut, "extension").length === 1,
-      "LEG6 e — the amendment still governs while the amended session is the newest word: 200·[8,7,8] and 160·[9,9] with one truthful receipt each (observed " + J([g(rOut, "hack").w, g(rOut, "extension").w]) + ")");
+      "LEG6 e (evolved by leg 7) — the amendment still governs while the amended session is the newest word: adopted at boot 1 with one truthful receipt each, steady at 200·[8,7,8] and 160·[9,9] from boot 2 (observed " + J([g(rOut, "hack").w, g(rOut, "extension").w]) + ")");
     /* (f) A STALE CACHE POINTING ELSEWHERE — at a date with no entry at all.
        The old code looked up log[lm.d], found nothing, and ABSTAINED: the
        stamped amendment was invisible behind a bad pointer. The derived date
@@ -892,6 +900,68 @@ export function runClosureSF2(T, ok, readFileSync) {
     const fOut = T.migrate(fS);
     ok(g(fOut, "hack").w === 200 && rcp(fOut, "hack").length === 1 && g(fOut, "hack").lastMeta.d === "2026-08-14" && g(fOut, "hack").lastMeta.w === 200,
       "LEG6 f — a stamped amendment at the TRUE newest date is found even when the cache points at a date holding nothing: heals AND adopts (executed red: the bad pointer hid the amendment and the sweep abstained at 190) (observed w " + J(g(fOut, "hack").w) + ", receipts " + rcp(fOut, "hack").length + ", cache d " + J(g(fOut, "hack").lastMeta.d) + ")");
+  });
+
+  /* ---- v7.53.5 leg 7 — THE HEAL RESPECTS THE RESEED LAW ---- */
+  t("LOAD-LEG7", () => {
+    const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
+    const rcpH = (s9) => (s9.feed || []).filter((f) => f && f.op && String(f.op).indexOf("adopt:corr:hack:") === 0);
+    const rcpAll = (s9) => (s9.feed || []).filter((f) => f && f.op && String(f.op).indexOf("adopt:corr:") === 0);
+    const NEWER = "2026-08-20T09:00:00.000Z";
+    /* (a) THE WITNESS — hack set to 210 in the weight editor: w changed FIRST,
+       wAt stamped, last nulled so targets reseed at the new load; lastMeta
+       still describes 8/14 @ 200 [7,7,8]. Executed red at 8c70af8: the boot
+       sweep resurrected last = [7,7,8] and the card prescribed the OLD load's
+       reps at the new load — the reseed silently defeated, no receipt. */
+    const ed = preAdoption();
+    const eh = ed.exercises.find((e) => e && e.id === "hack");
+    eh.w = 210; eh.wAt = NEWER; eh.last = null;
+    const ee = ed.exercises.find((e) => e && e.id === "extension");
+    ee.wAt = NEWER;                                          /* neutralize the OTHER pending adoption so this fixture is truly non-adopting — LEG7 c's twice-identity claim is about a boot where nothing adopts */
+    const eOut = T.migrate(ed);
+    ok(g(eOut, "hack").last === null && J(T.targetsFor(g(eOut, "hack"), eOut)) === J([8, 8, 8]),
+      "LEG7 a — A NULL last AT A LOAD THE LOG DOES NOT DESCRIBE IS A DECISION, NOT A GAP: the editor's reseed survives the boot and the card reads [8,8,8] at 210 (executed red: last resurrected to [7,7,8], targets [8,7,8]) (observed last " + J(g(eOut, "hack").last) + ", targets " + J(T.targetsFor(g(eOut, "hack"), eOut)) + ")");
+    ok(g(eOut, "hack").lastMeta && g(eOut, "hack").lastMeta.d === "2026-08-14" && g(eOut, "hack").lastMeta.w === 200 && rcpH(eOut).length === 0,
+      "LEG7 b — while lastMeta still heals to the derived line (the cache must describe the log) and nothing adopts against his newer word (observed " + J([g(eOut, "hack").lastMeta.d, g(eOut, "hack").lastMeta.w]) + ", receipts " + rcpH(eOut).length + ")");
+    ok(JSON.stringify(T.migrate(JSON.parse(JSON.stringify(eOut)))) === JSON.stringify(eOut),
+      "LEG7 c — and the rerun is byte-identical: no adoption happens here, so the strict twice-identity law still holds on a non-adopting boot");
+    /* (b) THE RESET PATH — the same event class, load DOWN (the
+       applyAgentProposal reset writes exactly this shape: w lowered and
+       stamped BEFORE last is nulled). */
+    const rs = preAdoption();
+    const rh = rs.exercises.find((e) => e && e.id === "hack");
+    rh.w = 180; rh.wAt = NEWER; rh.last = null;
+    const rOut9 = T.migrate(rs);
+    ok(g(rOut9, "hack").w === 180 && g(rOut9, "hack").last === null && rcpH(rOut9).length === 0,
+      "LEG7 d — RESET is the same event class (w down before nulling): the reseed is preserved and nothing adopts (executed red: the null overwritten with [7,7,8]) (observed w " + J(g(rOut9, "hack").w) + ", last " + J(g(rOut9, "hack").last) + ")");
+    /* (c) THE SAME-LOAD NULL — the maxed-ladder class: definitionally stale
+       (every deliberate reseed changes w first), so it STILL refills. Green
+       on both tips — the pre-existing reconcileLiftCaches law stands. */
+    const sl = preAdoption();
+    const sh9 = sl.exercises.find((e) => e && e.id === "hack");
+    sh9.w = 200; sh9.wAt = NEWER; sh9.last = null;
+    const sOut = T.migrate(sl);
+    ok(J(g(sOut, "hack").last) === J([7, 7, 8]) && J(T.targetsFor(g(sOut, "hack"), sOut)) === J([8, 7, 8]),
+      "LEG7 e — a null last at the load the log DOES describe is a stale cache, never a reseed: it refills and the card anchors on the line (observed " + J(g(sOut, "hack").last) + ")");
+    /* (d) a LIVE stale last still follows the log — leg 6's behaviour stands */
+    const lv = preAdoption();
+    const lh = lv.exercises.find((e) => e && e.id === "hack");
+    lh.w = 210; lh.wAt = NEWER; lh.last = [9, 9, 9];
+    const lOut = T.migrate(lv);
+    ok(J(g(lOut, "hack").last) === J([7, 7, 8]),
+      "LEG7 f — a LIVE cache that disagrees with the log still follows the log: only the null is a decision (observed " + J(g(lOut, "hack").last) + ")");
+    /* (e) THE ADOPTION TWO-BOOT SEQUENCE — the corrected load is a load
+       CHANGE, so it reseeds like one; the next boot's same-load rule refills
+       from the log, which at the adopted load IS the honest anchor. */
+    const b1 = T.migrate(preAdoption());
+    ok(g(b1, "hack").w === 200 && g(b1, "hack").last === null && g(b1, "extension").last === null && rcpAll(b1).length === 2,
+      "LEG7 g — boot 1: the adoption RESEEDS — the same event class as the editor Save and the CAGE (executed red: last inherited [7,7,8] straight through the adoption) (observed hack last " + J(g(b1, "hack").last) + ", ext last " + J(g(b1, "extension").last) + ", receipts " + rcpAll(b1).length + ")");
+    const b2 = T.migrate(JSON.parse(JSON.stringify(b1)));
+    ok(J(g(b2, "hack").last) === J([7, 7, 8]) && J(T.targetsFor(g(b2, "hack"), b2)) === J([8, 7, 8]) && J(T.targetsFor(g(b2, "extension"), b2)) === J([9, 9]),
+      "LEG7 h — boot 2: the same-load rule refills from the log and the cards settle at 200·[8,7,8] / 160·[9,9] (observed " + J([g(b2, "hack").last, T.targetsFor(g(b2, "hack"), b2)]) + ")");
+    const b3 = T.migrate(JSON.parse(JSON.stringify(b2)));
+    ok(JSON.stringify(b3) === JSON.stringify(b2) && rcpAll(b3).length === 2,
+      "LEG7 i — boot 3: byte-identical to boot 2 — the sequence converges and the receipts stay op-deduped at exactly two");
   });
 
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
