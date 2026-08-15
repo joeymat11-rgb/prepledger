@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.53.6";
+const APP_V = "7.53.7";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -10654,9 +10654,22 @@ function reconcileLiftCaches(s) {
        OUTSIDE the field, so lastMeta.w equality proves nothing about staleness — the v24
        ruling's own deliberate null had "hold" === "hold". Where w is a number, a same-load
        null is definitionally stale: every deliberate reseed changes w first. */
-    if (typeof ex.w === "number" && ex.last == null && lm0 && Array.isArray(lm0.reps) && lm0.reps.length && String(lm0.w) === String(ex.w)) {
-      ex.last = lm0.reps.slice();
-      healed++;
+    /* v7.53.7 FIX A — SAME-LOAD IS JUDGED BY THE LOG, NOT BY THE CACHE'S OWN
+       CLAIM. This sweep runs BEFORE reconcileCorrectedLoads, so it used to
+       read a lie before derive-first could correct it: executed at 6b633c7,
+       a config set to 210 in the editor (newer wAt, last nulled for the
+       reseed) beside a stale lastMeta claiming {8/14, w 210, reps [7,7,8]}
+       matched "same load" against the CLAIM, refilled [7,7,8], and the card
+       then prescribed the old load's reps at the new one — derive-first
+       healed lastMeta a moment later, but last was live by then and followed
+       the log. Leg 7's law was right and simply ran second. Now BOTH
+       authorities read the same source, so exactly one answer is possible:
+       the derived line decides whether this null is a stale cache or a
+       deliberate reseed. (The pin on this branch has always SAID "healed
+       from the log"; now it is literally true.) */
+    if (typeof ex.w === "number" && ex.last == null) {
+      const dm0 = deriveLastMeta(s, ex.id);
+      if (dm0 && Array.isArray(dm0.reps) && dm0.reps.length && String(dm0.w) === String(ex.w)) { ex.last = dm0.reps.slice(); healed++; }
       continue;
     }
     if (!ex.last || !Array.isArray(ex.last)) continue;
@@ -10766,8 +10779,15 @@ function reconcileCorrectedLoads(s) {
          refills — while A NULL last AT A LOAD THE LOG DOES NOT DESCRIBE IS A
          DECISION, NOT A GAP, and it is preserved. */
       if (JSON.stringify(ex.lastMeta) !== JSON.stringify(dm)) ex.lastMeta = dm;             /* the cache must describe the log — unconditional */
-      if (ex.last != null) { if (JSON.stringify(ex.last) !== JSON.stringify(dm.reps)) ex.last = dm.reps.slice(); }   /* a live cache follows the log */
-      else if (String(dm.w) === String(ex.w)) ex.last = dm.reps.slice();                    /* the same-load null: stale by the existing law even when a stale cache hid it, so refill */
+      if (ex.last != null) { if (JSON.stringify(ex.last) !== JSON.stringify(dm.reps)) ex.last = dm.reps.slice(); }   /* a live cache follows the log — and it follows the HEALED lastMeta, which is why this is not the same statement reconcileLiftCaches ran */
+      /* leg 9 — THE NULL-REFILL LIVES IN EXACTLY ONE PLACE, AND IT IS NOT HERE.
+         A same-load refill also stood here, byte-identical in effect to
+         reconcileLiftCaches' branch, which runs FIRST on every boundary with
+         the same inputs and the same numeric-w gate — so it could never fire.
+         Two copies of one rule is how the rule drifts: the leg-9 audit found
+         the pair shadowing each other so completely that deleting either one
+         alone left the whole suite green. The reseed decision now has one
+         author, and it reads the log. */
       const rec = log[dm.d];
       /* FIX 1 (leg 3) — THE GATE KEYS ON PER-ENTRY LOAD PROVENANCE, not the
          session stamp. A session's corr is written by ✕ and ↩ too, which

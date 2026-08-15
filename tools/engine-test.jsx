@@ -4487,7 +4487,14 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
     // repaired and the other was not — which is exactly what happened to ham after 07-31.
     {
       const RC = __test.reconcileLiftCaches;
-      const mk = (last, reps) => ({ exercises: [{ id: "ham", w: 120, last, lastMeta: { d: "2026-08-04", w: 120, reps, rir: null, rirSets: [], debt: false } }] });
+      /* leg 9 FIX A — THE FIXTURE NOW CARRIES THE LOG IT ALWAYS CLAIMED TO READ.
+         This pin's own message says "healed from the log", but the fixture had no
+         sessionLog at all and the branch judged same-load against lastMeta.w — the
+         cache's own claim about itself. A stale cache could therefore assert a load
+         it never held and be believed. The branch reads deriveLastMeta now, so the
+         fixture supplies the record: same evidence the app has, same authority
+         derive-first uses. */
+      const mk = (last, reps) => ({ exercises: [{ id: "ham", w: 120, last, lastMeta: { d: "2026-08-04", w: 120, reps, rir: null, rirSets: [], debt: false } }], sessionLog: { "2026-08-04": { d: "2026-08-04", entries: [{ id: "ham", w: 120, reps, rir: null, rirSets: [] }] } } });
       const stale = mk([12, 12], [10, 10]);
       ok(RC(stale) === 1 && JSON.stringify(stale.exercises[0].last) === JSON.stringify([10, 10]), "RECONCILE — a stale ex.last is brought back in line with lastMeta: the exact ham case after the 07-31 correction");
       const agree = mk([10, 10], [10, 10]);
@@ -4500,9 +4507,16 @@ ok(__test.NOW_DOORS.capture === "now.capture2" && __test.NOW_DOORS.briefing === 
          hack card for weeks. */
       const reseeded = mk(null, [10, 10]);
       reseeded.exercises[0].w = 125;   /* the load changed under the cache — the TRUE reseed shape */
-      ok(RC(reseeded) === 0 && reseeded.exercises[0].last === null, "RECONCILE — a DELIBERATE null survives in its TRUE shape: the reseed paths change w first, so lastMeta.w ≠ w marks it and the heal leaves it alone");
+      ok(RC(reseeded) === 0 && reseeded.exercises[0].last === null, "RECONCILE — a DELIBERATE null survives in its TRUE shape: the reseed paths change w first, so the LOG's line is at a different load and the heal leaves it alone (leg 9: judged against the record, not against the cache's claim)");
       const sameLoadNull = mk(null, [10, 10]);
       ok(RC(sameLoadNull) === 1 && JSON.stringify(sameLoadNull.exercises[0].last) === JSON.stringify([10, 10]), "RECONCILE — a SAME-LOAD null on a numeric lift is healed from the log: the patch-replay erasure class (the hack card's true mechanism), dead at the cache layer");
+      /* leg 9 — and the LIE is no longer believed: a cache claiming the load it
+         wants (w 210, reps [7,7,8]) while the log's line sits at 120 refills
+         NOTHING. This is the shape that defeated the reseed at 6b633c7. */
+      const lying = mk(null, [10, 10]);
+      lying.exercises[0].w = 210;
+      lying.exercises[0].lastMeta = { d: "2026-08-04", w: 210, reps: [7, 7, 8], rir: null, rirSets: [], debt: false };
+      ok(RC(lying) === 0 && lying.exercises[0].last === null, "RECONCILE — a cache CLAIMING the current load while the record shows another is not evidence: the same-load rule is judged by the log, so a stale claim can no longer resurrect a reseeded lift");
       const noMeta = { exercises: [{ id: "ham", last: [12, 12], lastMeta: { d: null, reps: [] } }] };
       ok(RC(noMeta) === 0 && JSON.stringify(noMeta.exercises[0].last) === JSON.stringify([12, 12]), "RECONCILE — an empty lastMeta is not evidence and does not clobber ex.last");
       ok(RC({}) === 0 && RC(null) === 0, "RECONCILE is total");
@@ -6925,9 +6939,26 @@ if (fail) process.exit(1);
     last: null, lastMeta: { d: isoL(Date.now() - 3 * 864e5), w: 160, reps: [11, 11, 10], rir: 1, rirSets: [1, null, 0], debt: false } };
   ok(JSON.stringify(__test.targetsFor(cl90(prodHack), cl90(SEED))) === JSON.stringify([10, 10, 10]), "FIX ROUND — the PHOTOGRAPH, reproduced from the MEASURED live shape (w 160, hi 12, last NULL, lastMeta 11·11·10 at the same load): the hi-2 fill prints 10·10·10 beside a beat-line built from the log — the first fixture fixed the hi-clamp, which was real but not the mechanism running");
   const stH = cl90(SEED); stH.exercises = [...stH.exercises.filter((e) => e.id !== "hack"), cl90(prodHack)]; stH.v = __test.SCHEMA_V;
+  /* leg 9 FIX A — this pin calls the heal "a restatement of the log", and now it
+     literally is one: the same-load rule is judged by deriveLastMeta, so the
+     PHOTOGRAPH's record has to exist. Every other hack line is cleared first, so
+     the injected session IS the lift's newest word and the fixture proves the
+     heal on the evidence it names rather than on the cache's claim about itself. */
+  stH.sessionLog = Object.fromEntries(Object.entries(stH.sessionLog || {}).map(([d9, r9]) => [d9, { ...r9, entries: (r9.entries || []).filter((e9) => e9 && e9.id !== "hack") }]));
+  stH.sessionLog[prodHack.lastMeta.d] = { d: prodHack.lastMeta.d, entries: [{ id: "hack", w: 160, reps: [11, 11, 10], rir: 1, rirSets: [1, null, 0] }] };
   const healed90 = __test.migrate(cl90(stH));
   const hkH = healed90.exercises.find((e) => e.id === "hack");
-  ok(JSON.stringify(hkH.last) === JSON.stringify([11, 11, 10]) && __test.targetsFor(hkH, healed90).every((t9, i9) => t9 >= [11, 11, 10][i9]), "FIX ROUND — THE HEAL: a same-load null is definitionally a stale cache (a deliberate reseed changes w first), so reconcileLiftCaches restores last from lastMeta and the card reads 11·11·11-class on next open — a restatement of the log, lawful under the migration law");
+  /* leg 9 — THIS PIN NAMES reconcileLiftCaches, SO IT MUST CALL IT. Measured
+     during the leg-9 audit: with a sessionLog present, migrate's SECOND
+     reconciler performs the identical refill one statement later, so asserting
+     on migrate's output left the pin green even with the named branch deleted
+     outright — it had stopped guarding what it claims. The direct call isolates
+     the branch; the migrate assertion stays underneath it as the end-to-end
+     claim about the card Joe actually sees. */
+  const isoH = cl90(stH);
+  ok(__test.reconcileLiftCaches(isoH) === 1 && JSON.stringify(isoH.exercises.find((e) => e.id === "hack").last) === JSON.stringify([11, 11, 10]),
+    "FIX ROUND — THE HEAL: a same-load null is definitionally a stale cache (a deliberate reseed changes w first), so reconcileLiftCaches ITSELF restores last from the log — the patch-replay erasure class, pinned at the reconciler that owns it");
+  ok(JSON.stringify(hkH.last) === JSON.stringify([11, 11, 10]) && __test.targetsFor(hkH, healed90).every((t9, i9) => t9 >= [11, 11, 10][i9]), "FIX ROUND — THE HEAL, end to end: the card reads 11·11·11-class on next open — a restatement of the log, lawful under the migration law");
   const stR = cl90(stH); stR.exercises.find((e) => e.id === "hack").last = [11, 11, 10]; stR.v = __test.SCHEMA_V - 1;
   const mR = __test.migrate(cl90(stR));
   ok(JSON.stringify(mR.exercises.find((e) => e.id === "hack").last) === JSON.stringify([11, 11, 10]), "FIX ROUND — THE RECURRENCE, DEAD: a full patch replay (v one behind runs the whole reduce, patchV24 included) no longer erases the banked delivery — the patch is idempotent against later states, which the PATCHES law now demands of every patch");

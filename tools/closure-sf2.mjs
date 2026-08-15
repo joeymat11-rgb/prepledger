@@ -1006,13 +1006,52 @@ export function runClosureSF2(T, ok, readFileSync) {
       e9.reps = ar9; e9.rirSets = as9;                       /* the strike already true in the log — nothing left to do */
     }
     const cOut = T.migrate(clean9);
-    ok(((cOut.sessionLog["2026-08-09"] || {}).corr || {}).rev === 1 && rcp9(cOut).length === 0,
-      "LEG8 g — CONTENT-KEYED: a log already at the attested values takes no strike, no corr bump and no receipt — a restored or never-corrupt device is untouched (observed corr " + J(cOut.sessionLog["2026-08-09"].corr) + ", receipts " + rcp9(cOut).length + ")");
+    ok(rcp9(cOut).length === 0 && J(en9(cOut, "rows").reps) === J([9, 9]),
+      "LEG8 g (evolved by leg 9) — CONTENT-KEYED STRIKE: a log already at the attested values takes NO strike and files NO receipt — patchV55 is keyed on the phantom shape, so a restored or never-corrupt device is not re-struck (observed receipts " + rcp9(cOut).length + ")");
+    ok(((cOut.sessionLog["2026-08-09"] || {}).corr || {}).rev === 1,
+      "LEG8 g2 — and its corr is left exactly as found: the STRIKE is what stamps, and this device had nothing to strike. (The unconditional ordering invariant that would also stamp here is HELD — it cannot be expressed in the shared corr slot without reverting the athlete's OTHER 8/09 correction. See the leg-9 handoff.) (observed " + J(cOut.sessionLog["2026-08-09"].corr) + ")");
     const bare9 = JSON.parse(JSON.stringify(live));
     delete bare9.sessionLog["2026-08-09"];
     const bOut = T.migrate(bare9);
     ok(rcp9(bOut).length === 0 && !bOut.sessionLog["2026-08-09"],
       "LEG8 h — a device without the 8/09 session at all is a clean no-op: no receipt, no session manufactured (observed receipts " + rcp9(bOut).length + ")");
+  });
+
+  /* ---- v7.53.7 leg 9 — ONE AUTHORITY, AND IT READS THE LOG ---- */
+  t("LOAD-LEG9", () => {
+    const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
+    const en9 = (s9, id9) => (((s9.sessionLog || {})["2026-08-09"] || {}).entries || []).find((e) => e && e.id === id9) || {};
+    const corr9 = (s9) => ((s9.sessionLog || {})["2026-08-09"] || {}).corr || {};
+    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    /* ===== FIX A — the boot's FIRST sweep no longer believes a stale claim ===== */
+    /* cowork's witness: hack set to 210 in the editor (newer wAt, last nulled
+       for the reseed) beside a FOREIGN lastMeta asserting the 8/14 line was at
+       210 with reps [7,7,8]. reconcileLiftCaches runs BEFORE derive-first, so
+       its same-load rule matched the CLAIM and refilled — derive-first then
+       healed lastMeta to the truth, but last was live by then and followed the
+       log. Targets read [8,7,8] at 210: the reseed defeated, no receipt. */
+    const lie = preAdoption();
+    const lh = lie.exercises.find((e) => e && e.id === "hack");
+    lh.w = 210; lh.wAt = "2026-08-20T09:00:00.000Z"; lh.last = null;
+    lh.lastMeta = { d: "2026-08-14", w: 210, reps: [7, 7, 8], rir: null, rirSets: [null, null, null], debt: false };
+    lie.exercises.find((e) => e && e.id === "extension").wAt = "2026-08-20T09:00:00.000Z";   /* neutralize the OTHER pending adoption: LEG9 C's twice-identity claim is about a boot where nothing adopts */
+    const lOut = T.migrate(lie);
+    ok(g(lOut, "hack").last === null && J(T.targetsFor(g(lOut, "hack"), lOut)) === J([8, 8, 8]),
+      "LEG9 A — a cache CLAIMING the current load cannot resurrect a reseed: same-load is judged by the derived line, so the editor's null survives the boot's FIRST sweep and the card reads [8,8,8] at 210 (executed red at 6b633c7: refilled [7,7,8], targets [8,7,8]) (observed last " + J(g(lOut, "hack").last) + ", targets " + J(T.targetsFor(g(lOut, "hack"), lOut)) + ")");
+    ok(g(lOut, "hack").lastMeta && g(lOut, "hack").lastMeta.d === "2026-08-14" && g(lOut, "hack").lastMeta.w === 200 && J(g(lOut, "hack").lastMeta.reps) === J([7, 7, 8]),
+      "LEG9 B — and the lying cache is still healed to the truth: the record says the 8/14 line was at 200, whatever the cache claimed (observed " + J([g(lOut, "hack").lastMeta.w, g(lOut, "hack").lastMeta.reps]) + ")");
+    ok(JSON.stringify(T.migrate(JSON.parse(JSON.stringify(lOut)))) === JSON.stringify(lOut),
+      "LEG9 C — byte-identical on rerun: nothing adopts here, so the strict twice-identity law still holds");
+    /* the STANDING same-load class still refills — when the LOG agrees */
+    const sl = preAdoption();
+    const sh = sl.exercises.find((e) => e && e.id === "hack");
+    sh.w = 200; sh.wAt = "2026-08-20T09:00:00.000Z"; sh.last = null;
+    const sOut = T.migrate(sl);
+    ok(J(g(sOut, "hack").last) === J([7, 7, 8]),
+      "LEG9 D — the standing class is untouched: a null at the load the LOG describes is still definitionally stale and still refills (observed " + J(g(sOut, "hack").last) + ")");
+    /* FIX B (the 8/09 ordering invariant) IS HELD — see the leg-9 handoff. Its
+       pins are withdrawn with it rather than left asserting a behaviour the
+       tree no longer has. */
   });
 
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
