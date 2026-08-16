@@ -1147,6 +1147,35 @@ export function runClosureSF2(T, ok, readFileSync) {
     const canOut = T._replayCorrections ? T._replayCorrections(JSON.parse(JSON.stringify(cancel))) : {};
     ok(!("skipped" in canOut) && (canOut.entries || []).some((e) => e && e.id === "pronated"),
       "LAW l — when the corrections cancel out, the replay DELETES the skip list rather than leaving an empty one: absent is the canonical 'nothing skipped', and a record that merges into a shape instead of a value is a merge-order bug waiting (observed skipped " + J(canOut.skipped) + ")");
+    /* leg 3 — THE UNION IS COMMUTATIVE, asserted rather than asserted-about.
+       Executed at 4d41e2d: one key carrying two different payloads resolved by
+       ARRIVAL — union(x,y).to was [11,10] and union(y,x).to was [6,6]. */
+    if (typeof T._unionCorrLog === "function") {
+      const mk9 = (to9) => ({ corrLog: [{ op: "unskip:2026-08-09:ham:2026-08-10T08:00:00.000Z", kind: "unskip", id: "ham", at: "2026-08-10T08:00:00.000Z", to: { id: "ham", reps: to9 } }] });
+      const p9 = mk9([11, 10]), q9 = mk9([6, 6]);
+      ok(J(T._unionCorrLog(p9, q9)) === J(T._unionCorrLog(q9, p9)),
+        "LAW m — the corrLog union is COMMUTATIVE even when one key arrives with two payloads: resolved by canonical value, never by which side got there first (observed " + J((T._unionCorrLog(p9, q9)[0] || {}).to) + " vs " + J((T._unionCorrLog(q9, p9)[0] || {}).to) + ")");
+    } else ok(false, "LAW m — _unionCorrLog is not exported");
+    /* leg 3 — THE UN-SKIP PAYLOAD IS AUTHORITATIVE. Executed at 4d41e2d: a base
+       still holding a stale ham [6,6] under an un-skip carrying [11,10,9] kept
+       the stale copy — the payload was inserted only when nothing was there. */
+    if (typeof T._replayCorrections === "function") {
+      const st9 = { d: "2026-08-09", entries: [{ id: "ham", w: 120, reps: [6, 6], rir: null, rirSets: [null, null] }],
+        corrLog: [{ op: "unskip:2026-08-09:ham:2026-08-10T08:00:00.000Z", kind: "unskip", id: "ham", at: "2026-08-10T08:00:00.000Z", to: { id: "ham", w: 120, reps: [11, 10, 9], rir: null, rirSets: [null, null, null] } }] };
+      const o9 = T._replayCorrections(JSON.parse(JSON.stringify(st9)));
+      ok(J(((o9.entries || []).find((e) => e && e.id === "ham") || {}).reps) === J([11, 10, 9]),
+        "LAW n — an un-skip RESTATES an entry that is already there, the same way strike and amend do: a restore that cannot overwrite is a delete wearing a correction's name, one step later (observed " + J(((o9.entries || []).find((e) => e && e.id === "ham") || {}).reps) + ")");
+    } else ok(false, "LAW n — _replayCorrections is not exported");
+    /* leg 3 — THE CORRECTION LEDGER IS APPEND-ONLY UNDER LAW. Executed at
+       4d41e2d: every corrLog entry in his state could be deleted and
+       dataLossGuard still returned {safe:true,lost:[]} — it counts sessionLog
+       DATES and never looks inside a record. */
+    const liveG = T.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+    const wiped = JSON.parse(JSON.stringify(liveG));
+    for (const r9 of Object.values(wiped.sessionLog || {})) delete r9.corrLog;
+    const g9 = T.dataLossGuard(liveG, wiped);
+    ok(!g9.safe && (g9.lost || []).some((x) => /^corrections /.test(x)),
+      "LAW o — deleting the correction ledger is now REFUSED and named: a promise no guard enforces is a comment (observed " + J(g9) + ")");
     /* SKIP then UNSKIP — the round-trip that proves replay restores rather than deletes */
     const rt = REC();
     rt.corrLog = [...rt.corrLog, { op: "unskip:2026-08-09:pronated", kind: "unskip", id: "pronated", at: "2026-08-10T08:00:00.000Z", to: { id: "pronated", w: 40, reps: [12, 11], rir: null, rirSets: [null, null] } }];
@@ -1169,11 +1198,22 @@ export function runClosureSF2(T, ok, readFileSync) {
     /* THE BACKFILL, on the live ledger — asserted on what survives its own healing */
     const liveOut = T.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
     const ops9 = (d9) => (((liveOut.sessionLog || {})[d9] || {}).corrLog || []).map((c) => c.op).sort();
-    ok(J(ops9("2026-08-09")) === J(["restrike:2026-08-09:arms", "skip:2026-08-09:pronated"]) && J(ops9("2026-08-14")) === J(["amend:2026-08-14:loads"]),
-      "LAW i — THE BACKFILL: his two corrected records carry their corrections, derived from what is knowable and keyed on the values the record CARRIES (observed 8/09 " + J(ops9("2026-08-09")) + " · 8/14 " + J(ops9("2026-08-14")) + ")");
-    const others9 = Object.keys(liveOut.sessionLog || {}).filter((d9) => d9 !== "2026-08-09" && d9 !== "2026-08-14" && ops9(d9).length);
-    ok(others9.length === 0,
-      "LAW j — and NOTHING else is stamped: value-keyed means a record that does not carry the correction earns nothing, which is the leg-4 lesson applied to a second kind of provenance (observed " + J(others9) + ")");
+    ok(J(ops9("2026-08-09")) === J(["restrike:2026-08-09:arms", "skip:2026-08-09:pronated"])
+      && J(ops9("2026-08-14")) === J(["amend:2026-08-14:loads", "skip:2026-08-14:calves:2026-08-14T21:57:13.968Z", "skip:2026-08-14:hipthrust:2026-08-14T21:57:13.968Z"]),
+      "LAW i (evolved by leg 3) — THE BACKFILL, now DERIVED rather than listed: the two payload-carrying ops stay hand-written because their values cannot be read off the shape, and every lift sitting in a skipped[] gets its own replayable op. 8/14 carried rev 4 with ONE replayable correction; it has three now (observed 8/09 " + J(ops9("2026-08-09")) + " · 8/14 " + J(ops9("2026-08-14")) + ")");
+    const covered9 = Object.keys(liveOut.sessionLog || {}).filter((d9) => ops9(d9).length).sort();
+    const corrDates9 = Object.keys(liveOut.sessionLog || {}).filter((d9) => ((liveOut.sessionLog[d9] || {}).corr || {}).at).sort();
+    ok(covered9.every((d9) => corrDates9.indexOf(d9) > -1) && covered9.length === 4 && corrDates9.length === 5,
+      "LAW j (evolved by leg 3) — the backfill covered 2 of his 5 corrected records; it covers 4 now, and only corrected records are touched. THE FIFTH IS DELIBERATE: 2026-08-10 carries a correction that removed nothing and skipped nothing (skipped[] is empty), so its shape proves no act — and inventing an op for it would be the leg-4 mistake in a second currency. What is derivable is derived; what is not is left alone and protected by the accumulating base instead (observed covered " + J(covered9) + " · corrected " + J(corrDates9) + ")");
+    ok((((liveOut.sessionLog || {})["2026-08-10"] || {}).skipped || []).length === 0,
+      "LAW j3 — and that is checked, not assumed: 8/10 has an empty skipped[], which is exactly why nothing could be derived from it");
+    for (const d9 of corrDates9) {
+      const rec9 = liveOut.sessionLog[d9] || {};
+      const skips9 = (rec9.skipped || []).map((z) => z.id).sort();
+      const named9 = (rec9.corrLog || []).filter((c) => c && c.kind === "skip").map((c) => c.id).sort();
+      ok(J(skips9) === J(named9),
+        "LAW j2 — " + d9 + ": every skipped lift has an op that can put it back where it sits, which is the direction that loses data silently (observed skipped " + J(skips9) + " · described " + J(named9) + ")");
+    }
     const twice9 = T.migrate(JSON.parse(JSON.stringify(liveOut)));
     ok(J(twice9.sessionLog) === J(liveOut.sessionLog),
       "LAW k — the backfill is idempotent: a replayed migrate files nothing new and re-dates nothing");

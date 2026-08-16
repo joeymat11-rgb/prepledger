@@ -354,13 +354,13 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.0";
+const APP_V = "7.54.1";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 56;
+const SCHEMA_V = 57;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -10138,6 +10138,41 @@ function patchV45(s) {
   rule45("rows", 10, 9);
   s.v = 45; return s;
 }
+function patchV57(s) {
+  /* THE BACKFILL COMPLETED, and derived rather than listed. patchV56 named
+     three ops by hand and covered 2 of the 5 records that carry corr: 7/23,
+     7/31 and 8/10 were replayable not at all, and 8/14 carried rev 4 — four
+     deliberate corrections — with exactly one replayable. A record whose
+     corrections cannot be replayed loses them to the first merge with a device
+     that never learned them.
+     WHAT IS DERIVABLE: every id sitting in rec.skipped[] IS a correction the
+     athlete made, and it is exactly the direction that loses data silently. So
+     each one gets its op. It is an idempotent restatement of where the lift
+     already sits — a lift in skipped[] replays to skipped[] — which is what
+     makes it safe to derive.
+     WHAT IS NOT: an entry that was hand-added is indistinguishable from one
+     logged in session, so no op is invented for it. Fabricating provenance is
+     the leg-4 mistake; the accumulating base (FIX 2) protects those entries
+     instead, without claiming to know how they got there.
+     Records with no corr take nothing. _fileCorr is first-sighting, so a
+     re-run re-dates nothing and the ops patchV56 already filed stand. */
+  const log9 = (s && s.sessionLog) || {};
+  for (const d9 of Object.keys(log9)) {
+    const rec9 = log9[d9];
+    if (!rec9 || typeof rec9 !== "object") continue;
+    const at9 = rec9.corr && typeof rec9.corr.at === "string" && isFinite(Date.parse(rec9.corr.at)) ? rec9.corr.at : null;
+    if (!at9) continue;                                                            /* no stamp, no correction to describe */
+    for (const z9 of (Array.isArray(rec9.skipped) ? rec9.skipped : [])) {
+      if (!z9 || !z9.id) continue;
+      /* one act, one entry: patchV56 already described some of these under the
+         older state-shaped key, and filing a second op for the same act would
+         put the same correction in the ledger twice. */
+      if ((rec9.corrLog || []).some((c9) => c9 && c9.kind === "skip" && c9.id === z9.id)) continue;
+      _fileCorr(rec9, "skip:" + d9 + ":" + z9.id + ":" + at9, "skip", z9.id, at9);
+    }
+  }
+  s.v = 57; return s;
+}
 function patchV56(s) {
   /* THE BACKFILL (v7.54.0) — corrections made before corrLog existed get their
      entry, derived from what is KNOWABLE and stamped idempotently. Value-keyed,
@@ -10663,7 +10698,7 @@ function patchV38(s) {
    defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
    no longer as the only wall between a bump and his history. The gate asserts the
    pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
-const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52], [53, patchV53], [54, patchV54], [55, patchV55], [56, patchV56]];
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52], [53, patchV53], [54, patchV54], [55, patchV55], [56, patchV56], [57, patchV57]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -10780,6 +10815,7 @@ function ensureLoadOnLadder(ex) {
    DIRECTION-AGNOSTIC: a corrected LIGHTER load adopts too. The corr gate — not
    a direction test — is what shields deloads and ordinary history. */
 function reconcileCorrectedLoads(s) {
+  let filed9 = false;
   try {
     const log = (s && s.sessionLog) || {};
     for (const ex of ((s && s.exercises) || [])) {
@@ -10875,8 +10911,17 @@ function reconcileCorrectedLoads(s) {
       if (ex.topAt != null || (ex.topRun || 0) !== 0) { ex.topAt = null; ex.topRun = 0; }   /* a new load starts its own sighting record — but only WRITE when there is a sighting to clear. Writing null/0 over absent keys is semantically identical and merge-visibly different: topAt/topRun are unstamped, so they ride whichever whole record wins, and manufacturing them made the two merge orders differ on a lift that had never banked a sighting. Deep order-equality is the stronger claim; this is what makes it true. */
       if (!Array.isArray(s.feed)) s.feed = [];
       const op = "adopt:corr:" + ex.id + ":" + dm.d;
-      if (!s.feed.some((f9) => f9 && f9.op === op)) s.feed.unshift({ op, d: dm.d, t: "WORKING LOAD RECONCILED — " + String(ex.n || ex.id).toUpperCase() + " " + from + " → " + enC.w, how: "The corrected record says " + enC.w + " was lifted on " + dm.d + "; the plan follows the record." + (rungs ? " The rung joined the ladder." : "") });   /* the receipt names the STAMPED value — receipt truth is the law this defect broke */
+      if (!s.feed.some((f9) => f9 && f9.op === op)) { filed9 = true; s.feed.unshift({ op, d: dm.d, t: "WORKING LOAD RECONCILED — " + String(ex.n || ex.id).toUpperCase() + " " + from + " → " + enC.w, how: "The corrected record says " + enC.w + " was lifted on " + dm.d + "; the plan follows the record." + (rungs ? " The rung joined the ladder." : "") }); }   /* the receipt names the STAMPED value — receipt truth is the law this defect broke */
     }
+    /* v7.54.1 — AND THE FEED KEEPS THE ORDER THE MERGE GIVES IT. Receipts are
+       unshifted as they are filed, but mergeState sorts the feed by date; so a
+       boot that files a receipt left the feed in a shape the NEXT merge would
+       reorder, and merge-then-settle stopped being a fixed point at the first
+       depth (measured: stable at depth 1 before this round's accumulating base
+       made a second adoption reachable, stable only at depth 2 after). Applying
+       the merge's own stable sort here costs nothing when nothing was filed and
+       keeps the two paths agreeing. */
+    if (filed9 && Array.isArray(s.feed)) s.feed = s.feed.map((x9, i9) => [x9, i9]).sort((a9, b9) => String((b9[0] || {}).d || "").localeCompare(String((a9[0] || {}).d || "")) || a9[1] - b9[1]).map((p9) => p9[0]);
     /* FIX 3 — every lift self-heals at the boundary, adopted or not: a hybrid
        that a past merge already wrote into the state is repaired the next time
        it is loaded, not left for a future snapper to trip over. */
@@ -11917,6 +11962,7 @@ function recordCounts(st) {
     adjustments: arr(st.adjustments),   // v7.2.0 audit — the Auto-Pilot decision log is load-bearing (track record + undo + once/day guard) and only grows; guard it like the other append-only records so a shrink can't be silent
     learnedTdee: arr(st.learned && st.learned.tdee),      // v7.3.0 Slice 4 — the learned TDEE drift series only grows; a stale device must not shrink it
     learnedAnchors: arr(st.learned && st.learned.anchors), // v7.3.0 Slice 4 — DEXA anchor history only grows; guard it too
+    corrections: Object.values((st.sessionLog && typeof st.sessionLog === "object") ? st.sessionLog : {}).reduce((n9, r9) => n9 + ((r9 && Array.isArray(r9.corrLog)) ? r9.corrLog.length : 0), 0),   // v7.54.1 — the correction ledger is APPEND-ONLY and was protected by nothing: every corrLog entry in his state could be deleted and dataLossGuard still returned {safe:true,lost:[]}, because it counts sessionLog DATES and never looks inside a record. A promise no guard enforces is a comment.
   };
 }
 function dataLossGuard(prev, next) {
@@ -12045,7 +12091,18 @@ const CACHE_RIDERS = ["last", "lastMeta"];
    that deliberately changes an already-logged session files a corrLog entry in
    the same breath, and an entry that REMOVES something carries what it removed
    (`to`), because a replay that cannot restore is a delete wearing a
-   correction's name. */
+   correction's name. THE RITUAL EXTENDS (v7.54.1) to any writer that REWRITES
+   an already-logged entry: it files an `amend` in the same breath, so a later
+   re-log can be ordered against an earlier correction's payload instead of
+   racing it.
+
+   THE KEY NAMES AN ACT, NOT A STATE (v7.54.1). It used to be
+   `<kind>:<date>:<id>`, so a third deliberate act on one lift COLLIDED with
+   the first and was dropped: skip, un-skip, skip replayed to un-skipped and the
+   record contradicted the athlete's last word. The instant is part of the key
+   now. The same act sighted on two devices is the same object with the same
+   instant, so it still collapses to one entry, and the derived backfill
+   produces the same key everywhere. */
 const CORR_KINDS = ["skip", "unskip", "strike", "amend"];
 function _fileCorr(rec, op, kind, id, at, to) {
   try {
@@ -12074,12 +12131,26 @@ function _unionCorrLog(x, y) {
     if (!c9 || !c9.op) continue;
     const p9 = seen9.get(c9.op);
     if (!p9) { seen9.set(c9.op, { ...c9 }); continue; }
-    if (String(c9.at || "") < String(p9.at || "")) p9.at = c9.at;                 /* earliest at wins */
-    if (p9.to === undefined && c9.to !== undefined) p9.to = c9.to;                /* whichever side carries the payload keeps it */
+    if (String(c9.at || "") < String(p9.at || "")) p9.at = c9.at;                 /* earliest at wins — the tiebreak, now that the key names the act */
+    /* COMMUTATIVE BY CONSTRUCTION. "first seen keeps its payload" is not: the
+       same key arriving with two different payloads resolved by ARRIVAL, so
+       union(x,y).to and union(y,x).to differed (executed: [11,10] vs [6,6]).
+       Resolve by canonical value instead, the same direction-free rule the
+       stamped fields use. */
+    if (c9.to !== undefined) {
+      if (p9.to === undefined) p9.to = c9.to;
+      else if (_canonJ(c9.to) > _canonJ(p9.to)) p9.to = c9.to;
+    }
   }
   for (const v9 of seen9.values()) out9.push(v9);
-  out9.sort((a9, b9) => (String(a9.at) + "|" + a9.op < String(b9.at) + "|" + b9.op ? -1 : 1));   /* CHRONOLOGICAL, then op: a later correction restates an earlier one, deterministically */
+  out9.sort((a9, b9) => (String(a9.at) + "|" + a9.op < String(b9.at) + "|" + b9.op ? -1 : 1));   /* THE SORT IS THE SEMANTICS, not cosmetics: chronological then op is what makes a later act restate an earlier one, and it is why the key must name the act. */
   return out9;
+}
+/* canonical serialisation — key order is not information, so a value compare
+   must not depend on it. */
+function _canonJ(v) {
+  const c9 = (x) => { if (Array.isArray(x)) return x.map(c9); if (x && typeof x === "object") { const o = {}; for (const k of Object.keys(x).sort()) o[k] = c9(x[k]); return o; } return x; };
+  try { return JSON.stringify(c9(v)); } catch (e) { return ""; }
 }
 function _replayCorrections(rec) {
   try {
@@ -12094,10 +12165,25 @@ function _replayCorrections(rec) {
         if (!skip.some((z9) => z9 && z9.id === c9.id)) skip = [...skip, { id: c9.id }];
       } else if (c9.kind === "unskip" && c9.id) {
         skip = skip.filter((z9) => !(z9 && z9.id === c9.id));
-        /* the entry it restored travels WITH it — otherwise replaying a skip
-           then an un-skip would leave the lift neither skipped nor logged, and
-           the reps he typed by hand would be gone. */
-        if (!ents.some((e9) => e9 && e9.id === c9.id) && c9.to && c9.to.id) ents = [...ents, JSON.parse(JSON.stringify(c9.to))];
+        /* THE PAYLOAD IS AUTHORITATIVE, inserting when absent and RESTATING
+           when present — the same shape strike and amend already have. It used
+           to insert only when no entry existed, so against a base that still
+           held a stale copy of the lift the reps he typed by hand were quietly
+           ignored (executed: a stale [6,6] survived an un-skip carrying
+           [11,10,9]). A removal that cannot restore is a delete wearing a
+           correction's name, and a restore that cannot overwrite is the same
+           thing one step later.
+           THE TENSION, named rather than hidden: a plain re-log of that lift
+           AFTER the un-skip carries no correction, so chronology cannot order
+           it against this payload and the payload would win. THE RITUAL
+           EXTENDS to cover it — any writer that rewrites an already-logged
+           entry files an amend in the same breath — which is the ritual this
+           header already declares, applied to the one writer that did not yet
+           observe it. */
+        if (c9.to && c9.to.id) {
+          if (!ents.some((e9) => e9 && e9.id === c9.id)) ents = [...ents, JSON.parse(JSON.stringify(c9.to))];
+          else ents = ents.map((e9) => (e9 && e9.id === c9.id ? { ...e9, ...JSON.parse(JSON.stringify(c9.to)) } : e9));
+        }
       } else if ((c9.kind === "strike" || c9.kind === "amend") && Array.isArray(c9.to)) {
         for (const t9 of c9.to) {
           if (!t9 || !t9.id) continue;
@@ -12125,8 +12211,38 @@ function _replayCorrections(rec) {
 function _mergeSession(x, y) {
   const base = _richerSession(x, y);
   const union = _unionCorrLog(x, y);
-  if (!union.length) return base;                                                  /* records with no corrections merge EXACTLY as they always did */
-  return _replayCorrections({ ...JSON.parse(JSON.stringify(base)), corrLog: union });
+  if (!union.length) return base;                                                  /* records with no corrections merge EXACTLY as they always did — the uncorrected path is byte-for-byte the old one */
+  /* THE BODY ACCUMULATES, THE CORRECTIONS DECIDE — the round's own slogan,
+     finally true. Replaying over a body that one side WON meant every lift the
+     winning side happened not to have was silently gone: executed on his real
+     8/14 record against a pre-correction backup carrying ONE new correction,
+     two lifts he had ✕'d came back and two hand-added entries were deleted —
+     7 entries to 5 — and because the loss is deterministic BOTH orders agreed,
+     so the convergence law reported green over it and dataLossGuard, which
+     counts sessionLog dates, never looked inside.
+     So a lift present on EITHER side survives into the base, and only a
+     correction may remove it. _richerSession still picks the per-lift winner on
+     a genuine collision; the tie is broken by canonical value, never by side,
+     because _richer ties to its second argument and that is merge order. */
+  const merged = { ...JSON.parse(JSON.stringify(base)), corrLog: union };
+  /* ACCUMULATE WITHOUT OVERRIDING. The base is still the record the ordering
+     law chose, and on a lift BOTH sides carry, the base's copy stands — that is
+     what keeps a correction to an entry (a rating, a restated load) from being
+     out-voted lift-by-lift by a longer stale copy. The other side contributes
+     only the lifts the base does not have, which is the whole loss this fixes.
+     Order-free by construction: the base is chosen order-free, and the
+     contributed set is a pure union. */
+  const byId = (arr9) => { const m9 = new Map(); for (const e9 of (Array.isArray(arr9) ? arr9 : [])) if (e9 && e9.id != null) m9.set(e9.id, e9); return m9; };
+  const other9 = base === x ? y : x;
+  const addMissing = (field9) => {
+    const have9 = byId(base && base[field9]), extra9 = byId(other9 && other9[field9]);
+    const add9 = [...extra9.keys()].filter((k9) => !have9.has(k9)).sort();
+    if (!add9.length) return Array.isArray(base[field9]) ? base[field9].slice() : undefined;
+    return [...(Array.isArray(base[field9]) ? base[field9] : []), ...add9.map((k9) => JSON.parse(JSON.stringify(extra9.get(k9))))];
+  };
+  const ents9 = addMissing("entries"); if (ents9 !== undefined) merged.entries = ents9;
+  const skip9 = addMissing("skipped"); if (skip9 !== undefined) merged.skipped = skip9;
+  return _replayCorrections(merged);
 }
 function _sessionAtMs(v) { const n = v && +v.at; return isFinite(n) ? n : 0; }
 function _richerSession(x, y) {
@@ -15912,7 +16028,7 @@ function LogTab({ s, setS, save, slp }) {
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: TS.label, alignItems: "center" }}>
                     <span style={{ color: T.chalk }}>{ex ? ex.n : e.id}</span>
                     <span style={{ color: T.steel, display: "flex", gap: 8, alignItems: "center" }}>{e.w != null ? e.w + " × " : ""}{(e.reps || []).join(",")}{rirTxt ? " · " + rirTxt : ""}
-                      <span onClick={() => { if (((done.entries || []).length) <= 1) { window.alert((ex ? ex.n : e.id) + " is the only lift left on this session.\n\nRemoving it would leave the day empty, and an empty session cannot be told apart from a sync artefact later. Voiding a whole day is a separate, deliberate act — this control will not do it.\n\nNothing has been changed."); return; }   /* DECIDED: refuse, and refuse VISIBLY — a rule that silently declines is the same failure class as one that silently reverts */ if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); _stampCorr(rec); _fileCorr(rec, "skip:" + dateSel + ":" + e.id, "skip", e.id, rec.corr && rec.corr.at);   /* CORRECTION_MERGE — without this the removal is an unmarked shrink and the phone reverts it. v7.54.0: and the corrLog entry is what makes it survive a merge against a replica that never learned it — the record-level stamp cannot, because this record carries more than one correction. */ const exL = (ns.exercises || []).find((z) => z.id === e.id); if (exL) { const dm = deriveLastMeta(ns, e.id); if (dm) { exL.lastMeta = dm; exL.last = dm.reps.slice(); } else { exL.lastMeta = { d: null, w: exL.w, reps: [], rir: null, rirSets: [], debt: false }; exL.last = null; }   /* ex.last is the SECOND denormalised cache completeSession writes, and targetsFor gates on it. Re-derived with lastMeta or they drift apart — which is how a removed entry kept driving a target. */ }   /* the cache progressStep reads must follow the log — the earlier ledger repairs did not do this and the phantom kept driving targets */ ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
+                      <span onClick={() => { if (((done.entries || []).length) <= 1) { window.alert((ex ? ex.n : e.id) + " is the only lift left on this session.\n\nRemoving it would leave the day empty, and an empty session cannot be told apart from a sync artefact later. Voiding a whole day is a separate, deliberate act — this control will not do it.\n\nNothing has been changed."); return; }   /* DECIDED: refuse, and refuse VISIBLY — a rule that silently declines is the same failure class as one that silently reverts */ if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); _stampCorr(rec); _fileCorr(rec, "skip:" + dateSel + ":" + e.id + ":" + ((rec.corr && rec.corr.at) || ""), "skip", e.id, rec.corr && rec.corr.at);   /* CORRECTION_MERGE — without this the removal is an unmarked shrink and the phone reverts it. v7.54.0: and the corrLog entry is what makes it survive a merge against a replica that never learned it — the record-level stamp cannot, because this record carries more than one correction. */ const exL = (ns.exercises || []).find((z) => z.id === e.id); if (exL) { const dm = deriveLastMeta(ns, e.id); if (dm) { exL.lastMeta = dm; exL.last = dm.reps.slice(); } else { exL.lastMeta = { d: null, w: exL.w, reps: [], rir: null, rirSets: [], debt: false }; exL.last = null; }   /* ex.last is the SECOND denormalised cache completeSession writes, and targetsFor gates on it. Re-derived with lastMeta or they drift apart — which is how a removed entry kept driving a target. */ }   /* the cache progressStep reads must follow the log — the earlier ledger repairs did not do this and the phantom kept driving targets */ ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
                     </span>
                   </div>
                 ); })}
@@ -15938,7 +16054,7 @@ function LogTab({ s, setS, save, slp }) {
                           rec.skipped = (rec.skipped || []).filter((z) => z.id !== k.id);
                           const exN = (ns.exercises || []).find((z) => z.id === k.id) || {};
                           const en = { id: k.id, reps, rir: null, rirSets: buildRirSets({ reps, rir: null, rirEnd: null }, reps.length), w: typeof exN.w === "number" ? exN.w : null };
-                          rec.entries = [...(rec.entries || []), en]; _stampCorr(rec); _fileCorr(rec, "unskip:" + dateSel + ":" + k.id, "unskip", k.id, rec.corr && rec.corr.at, en);   /* CORRECTION_MERGE — un-skipping already wins on score, but the stamp makes it deliberate to a third device and orders it against any competing correction. v7.54.0: the entry travels with the correction, so a replay can restore the reps he typed rather than merely un-marking the skip. */
+                          rec.entries = [...(rec.entries || []), en]; _stampCorr(rec); _fileCorr(rec, "unskip:" + dateSel + ":" + k.id + ":" + ((rec.corr && rec.corr.at) || ""), "unskip", k.id, rec.corr && rec.corr.at, en);   /* CORRECTION_MERGE — un-skipping already wins on score, but the stamp makes it deliberate to a third device and orders it against any competing correction. v7.54.0: the entry travels with the correction, so a replay can restore the reps he typed rather than merely un-marking the skip. */
                           const dm = deriveLastMeta(ns, k.id); if (exN) { if (dm) { exN.lastMeta = dm; exN.last = dm.reps.slice(); } else { exN.lastMeta = { d: null, w: exN.w, reps: [], rir: null, rirSets: [], debt: false }; exN.last = null; } }   /* ex.last too — see the ✕ handler. The else now ALSO empties lastMeta like that handler: the maxed-ladder heal restores any same-load null from lastMeta.reps, so leaving stale reps behind a null would resurrect them at the next schema bump */
                           ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + ex.n + " UN-SKIPPED on " + fmtShort(dateSel), how: `logged ${reps.join(",")} — it was on the record as skipped and it should not have been. Reps entered by hand, not inferred; RIR is left unrecorded because it was never captured.` });
                           setS(ns); save(ns);
