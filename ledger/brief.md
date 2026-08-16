@@ -1,199 +1,164 @@
-<!-- 2026-08-15 -->
+<!-- 2026-08-16 -->
 
-# I was wrong about the water, and the stall is real. Here is the honest version.
+# The trend turned down, and Friday's log is the first receipt for the theory I've been arguing with myself about.
 
-Last night I told you the next clean morning read would land between **163.0 and
-164.0**, and I wrote down what it would mean if it came in at 164.5 or higher:
-*Wednesday's rise wasn't water, and three nights of briefs were built on a story
-that is wrong.*
+Two things changed overnight and they point the same way.
 
-You read **164.7** yesterday morning. Clean, in-window, nothing wrong with it.
+Saturday's read came in at **163.3** — clean, in-window, nothing wrong with it.
+Your soft trend went **164.07 → 163.84**. And **Friday finally got logged: 2,800
+calories, 180 g protein, 16,500 steps.**
 
-So I'm taking my own deal. The water story is off the table, and I'm not going
-to spend another night explaining the scale away.
+That 2,800 is the whole story tonight. Your four days before it ran **2,231 /
+2,279 / 2,249 / 2,208** — a mean of **2,242**. Friday came in **558 above** it.
 
-## What actually happened
+That is exactly the shape the under-logging case predicts, and it is the first
+day in the file that behaves the way the theory says it should.
 
-Your last four mornings went **164.2 → 164.7 → 163.3 → 164.7**. That is a
-1.4 lb drop and a 1.4 lb rebound in 48 hours, and your daily noise floor is
-±1.5 lb. Both moves fit inside noise. Neither needed a story.
+## What I'm not going to claim
 
-I gave one anyway. Your water coefficient — **+1.1 lb the morning after a salty
-or boozy day** — is a good number, but it was measured on days where the sodium
-box was actually **filled in**. On 8/12 and 8/13 that box is blank. I saw a
-1.4 lb drop, recognised the size of it, and worked backwards to a salty Wednesday
-that nobody ever recorded. That is running the coefficient in reverse, and it is
-the wrong direction. I'll not do it again.
+Friday's 2,800 is one day, and one day above the line does not prove a
+400-calorie gap across five. It could just as easily be an honest, genuinely
+bigger Friday. I want that on the record before I lean on it.
 
-## The trend, and the number I can't explain away
+Two honest cautions:
 
-Soft trend **164.07**, up from 163.81. Your app reads 164. Measured rate
-**−0.06 lb a week** — that is not slow, that is very slightly the wrong way.
+**One.** A bigger Friday makes the deficit *smaller*, not larger — and yet the
+scale fell 1.4 lb from Friday morning to Saturday morning. Your noise floor is
+±1.5 lb. That drop is inside noise and I am not building anything on it. What I
+am reading is the **trend**, which moved 0.23 lb down — small, but the right
+direction for the first time in a week.
 
-Here is the arithmetic, so you can check it rather than take my word for it.
-Your last five logged days ran **2,350 / 2,231 / 2,279 / 2,249 / 2,208** — mean
-**2,263** — on **14,700 / 19,500 / 17,500 / 19,000 / 17,000** steps. Measured
-maintenance sits at **2,634** on my fit and **2,708** on your app's. That is a
-stated deficit of **370–445 calories a day**, which should read as **0.75–0.9 lb
-a week down**. Over those same five days the trend went **up 0.3 lb**.
+**Two.** The rate moved **−0.06 → −0.24 lb a week**. Better. Still nowhere near
+your band of **1.0–1.4 lb a week**, and still under the **0.5–0.7% of bodyweight**
+that research treats as the protective cut speed (Garthe 2011). At 163.8 lb
+that band is roughly 0.8–1.1 lb a week. You are at **0.24**.
 
-Call it a **400–475 calorie a day gap** between what the log says and what your
-body is doing.
+## The three that matter this week
 
-For three nights I've said the rate is a lagging window — the 8/5–8/8 maintenance
-stretch still sitting in the fit at full weight. That was true and it is still
-partly true, but I shipped it with a deadline of Monday 8/17 precisely so it
-couldn't absorb everything forever. It is Saturday, the rate has gone
-0.62 → 0.36 → 0.16 → **−0.06**, and a window artefact does not make your raw
-morning reads climb. They climbed. I'm calling the test early and calling it
-against myself.
+**1. Saturday is blank, and Saturday is the day that decides this.**
 
-There's a second thing you should know about the maintenance number, because it
-will quietly make me look right later for the wrong reason. Both maintenance
-estimates are *fitted from your weight series*. When weight stops falling, the
-fit slides down toward whatever you're eating — yours has gone **2,886 → 2,793
-→ 2,752 → 2,708** in four days. Give it another fortnight and it will meet your
-intake and declare the deficit gone. That would be the arithmetic chasing its
-own tail, not your metabolism changing. Read the range as a **ceiling that is
-drifting**, not as a measurement.
+`dailyLogs` runs 8/10, 8/11, 8/12, 8/13, 8/14 — and stops. **8/15 has no
+entry at all.** No sleep logged for it either.
 
-## The three that matter
+Of every day of the week, that is the worst one to lose. Your own lab read on
+this file says Saturday owns **8 of your 17 logging misses**, and your weekend
+protein hit rate is **50%** against **81%** on weekdays. Saturday is not a
+random missing day. It's the day the log is least likely to be right even when
+it exists.
 
-**1. Either the food log is short by about 400 a day, or you're recomping. Both
-look exactly like this.**
+So the week's whole question — is the gap bookkeeping or is it me — currently
+rests on two days I can't see: Friday, which I only got yesterday and which came
+in 558 high, and Saturday, which isn't there.
 
-I can't tell you which from here, and I want to be plain that I can't.
+**2. My maintenance number is still sliding, and it is sliding toward your
+intake.**
 
-The under-logging case: five days is enough to notice a 400-calorie gap, and
-400 calories is one restaurant plate, one heavy pour, one rice portion eyeballed
-instead of weighed. Research is blunt about this — when a rate stalls, logging
-drift explains it far more often than metabolism, and metabolic adaptation is
-real but modest, roughly 50–100 calories a day (Alhassan 2008; Nunes 2021). The
-tell that makes me lean this way: the sodium box is blank on **8/9, 8/10, 8/12
-and 8/13**, four of your last six logged days. Days you don't fill sodium in on
-tend to be days you ate something you didn't cook — which are also the days a
-calorie count is a guess.
+I flagged this yesterday and it kept going: **2,886 → 2,793 → 2,752 → 2,708 →
+2,646** over five days. Tonight's engine fit reads **2,669** against a 20-day
+mean intake of **2,452**.
 
-The recomp case is just as strong on the training side. On Friday, in one
-session: **hack 180 → 200** (7,7,8), **extension 155 → 160** (8,9), **ham
-120 → 125** (11,9,9), **abs 100 × 14,14,14**, hanging up to 7,6. Protein
-averaging **180 g** with eleven straight weeks at 100%. That is the textbook
-signature of muscle going on while fat comes off, and your own app's regime
-detector has been calling it for three days.
+Watch what happened mechanically. Friday's 2,800 entered the log, the 20-day
+mean rose, weight didn't fall — so the fit lowered maintenance to reconcile.
+That is the arithmetic chasing its own tail. **Read that number as a ceiling
+that is drifting down, not as a measurement of your metabolism.** If it keeps
+sliding it will eventually meet your intake and announce there is no deficit,
+which would be a statement about my fit and not about you.
 
-The problem is that rising loads also happen on a mis-counted diet. **The scale
-cannot separate these two, and I've now spent a week proving it.**
+**3. Tomorrow is the seam, so today is the last clean upper day.**
 
-**2. Friday's session was your best lower day on file, and the record fought you
-for it.**
+The hip thrust and the machine fly enter on **Monday 8/17**. Because they sit
+ahead of other lifts in the order, **eleven** lifts start fresh four-session
+baselines: calves, hanging, abs, ham and extension on the lower day; rows,
+pulldown, rear delt, curls, triceps and sulek on the upper. Their history stays
+on file — comparisons restart.
 
-You entered hack at **190**; your app announced *the stack tops out at 190*;
-you corrected it to the **200** you actually lifted, and the ladder learned the
-rung. Same for extension, 155 → 160. Then abs and the leg raise came back as
-*skipped* and you un-skipped both by hand.
+**Press and hack are not re-baselined.** Those two stay readable. That matters
+because the training record is the only evidence I have for the recomp case, and
+from tomorrow most of it goes quiet for four sessions.
 
-Four corrections in one session — and every one of them landed in your favour.
-That is the exact failure I carded on Thursday about the ham machine, showing up
-on a different lift the same night. The ham check itself came back clean: 125
-exists, you ran it 11,9,9 at 1 rep in reserve, and the thigh pad is now pinned.
-
-I'm not asking you to do anything about this. I'm recording that your training
-numbers are real and hard-won, and that they're the strongest thing on the page
-this week.
-
-**3. Sleep broke for one night and you fixed it the same day.**
-
-Tuesday: bed 02:30, **5.33 h**. Wednesday: bed 23:30, **9.08 h**. I flagged it
-Thursday; it was already corrected. Your seven-night debt still reads 1.7 h
-because that one short night hasn't aged out yet, and it will by midweek. Mean
-**7.3 h**. Nothing to do here.
+One practical thing about Monday: **the hip thrust has no starting load on
+file** (`w: null`), and you skipped it on Thursday. It debuts cold otherwise.
+That's the card below.
 
 ## Is lean safe?
 
-Yes, and it is the least worrying it has been all month.
+Yes. Comfortably.
 
-You're moving at **0.04% of bodyweight a week** against the **0.5–0.7%** that
-protects lean on a cut (Garthe 2011). The danger at that speed is not that
-you're stripping muscle — it's that you're barely moving. Five lifts advanced in
-one session, protein is at 180 g inside your 146–196 window with eleven weeks at
-100%, and both old holds (abs, rows) are still released.
+Protein is averaging **179 g** inside your **146–196 g** window (Helms 2014),
+and Friday came back to **180** after the 160/160 pair I nudged you on — that
+one landed without a card. Loads went up across a whole session on Friday.
+Sleep averages **7.4 h**.
 
-One small thing to nudge, not to card: your last two protein days read **160 and
-160**, your lowest pair since early August. Still in band. Aim it back at 180.
+The honest framing: at 0.24 lb a week you are not stripping muscle, you're
+barely moving. The cost of this stall is **time**, not lean mass. That is the
+better of the two ways to be stuck, and it's why I'm not touching training
+volume or protein tonight.
+
+**Sleep, for the watch list, not for a card.** Friday you slept 8.0 h — but bed
+was **02:30** and wake was **10:40**. Total is fine; the anchor isn't. Your
+target wake is 06:45 and your last four wakes read 07:45, 08:00, 08:45, 10:40.
+Duration is not broken, so I'm not carding it for the seventeenth run. If a
+short night follows a late one, that changes.
 
 ## The one move
 
-**Book the DEXA.**
+**Log Saturday.** Rough numbers are fine.
 
-I've listed it as "the highest-value non-food item" for weeks and treated it as a
-nice-to-have. Tonight it stopped being one. There are two live explanations for a
-flat scale on a stated deficit, they mean opposite things about your body, and
-the scale is structurally incapable of choosing between them. A scan settles it
-in one morning. It's in your own queue as `q_dexa` — Jericho NY, fasted, normal
-day, two days clear of a refeed.
+That's it. It is the cheapest thing on this page and it is the only thing that
+turns this week from a guess into a measurement. If Saturday reads like your
+Monday-to-Thursday days, the log is holding and the problem is my maintenance
+estimate — which I have said twice now I would take as a result. If it reads
+like Friday, then two of your last seven days are running well above the rest
+and neither of us knew the week's real average.
 
-That's a call for you and your coach, not a button in the app, so it's on the
-tab as a coach card.
+**Yesterday's three cards are all still undecided** — the DEXA, the seven-day
+same-day logging test, and the press set count. None of them have come back in
+`suggestionLog` yet. I'm not re-carding any of them; they're live and they say
+what I'd say tonight. Two of them expire on their own timetable: the press one
+lands **today**, and the DEXA gets harder to skip once the lift record goes
+quiet tomorrow.
 
-Behind it, the cheap test you can start today: **for the next seven days, log
-anything you didn't cook yourself on the day you eat it, and fill the sodium
-box every day.** If the log is already accurate, this costs you nothing and
-hands the problem to my maintenance estimate instead — which is a result I'd
-take. If the logged mean comes up 200 or more, we found the 400.
+**An observation, not a card, on the calorie side.** Your app derives your
+intake band live from measured maintenance and it re-derives it every day — it
+already absorbed the step rise to ~17,900 a week. I'm not offering a second
+number and I never will. What I'm telling you is which *input* I distrust: the
+20-day mean intake of 2,452 is built partly on days that were estimated rather
+than measured, and that mean is what the band is computed from. Fix the input
+and the band fixes itself.
 
 ## The horizon
 
-**Tomorrow is an upper day, and it's the last clean one.** Two new lifts — the
-hip thrust and the machine fly — enter the programme on **Monday 8/17**, and
-because they sit ahead of other lifts in the order, your app is starting a fresh
-four-session baseline on **eleven** of them: calves, hanging, abs, ham and
-extension on the lower day; rows, pulldown, rear delt, curls, triceps and sulek
-on the upper. Their history stays on the record, but comparisons restart.
+**Today** is an upper day and the last one on the current order. Press is the
+live question — yesterday's card covers it and I'm not repeating it.
 
-That matters more than usual this week, because the training record is currently
-the *only* evidence I have that this is a recomp — and from Monday, most of it
-goes quiet for four sessions. **Press and hack are not re-baselined.** Those two
-stay readable, which is lucky, because they're the two that carry the most
-information.
+**Tomorrow** the seam lands. When Monday's numbers come in low on eleven lifts,
+that is a fresh baseline, **not a regression**. I'll be reading them that way
+and you should too.
 
-**Press is the live question tomorrow.** It's still on file at four sets at 250.
-On 8/9 you put up **250 × 8,8,7,4** — the best press in your record — and it
-scored nothing at all, while four other lifts from the same session drew rows.
-My read is that the fourth set adds a fourth target the short set fails, which
-sinks the whole lift. That's a best guess, not a measurement — the target array
-isn't saved, so I can't check it. Either way the fix is the same: **run three
-honest sets, or make the fourth one honest.** No volume push lands until Monday,
-so tomorrow reads clean.
+**Thursday** the machine fly makes its first appearance on an upper day. Same
+problem as the hip thrust — no load on file yet, but you have until Thursday.
 
-**Your app raised your step target on Friday** — under the corridor, steps first,
-+1,000 to about 16,500. Worth knowing where that came from: the proposal was
-drafted on **8/10**, when you were averaging 13,500 steps a week. It applied on
-**8/14**, by which point you'd averaged **17,540** over five days. It's asking
-for a correction you already made, four days late. That's the second time this
-week a proposal has carried a stale condition into the day it fired. The target
-is your app's to set and I'm not offering a competing number — I'm telling you
-which input it's working from.
+**By Saturday 8/22** the live forecast resolves: if the food log is accurate as
+written, the trend reads **at or under 163.4**. It is at 163.84 tonight and
+falling, so that one is now in play rather than dead.
 
-**Still open:** `targets.progression` is still showing the volume-unwind
-instruction you enacted on 8/10 — fifth run, cosmetic. Caffeine hasn't been
-logged since 8/4. Waist, skinfolds and photos are empty, which matters a bit
-more now that the scale has stopped being informative.
+**Still open, still cosmetic:** `targets.progression` is still displaying the
+8/10 volume-unwind instruction you enacted six days ago. Caffeine hasn't been
+logged since **8/4**. Sodium is blank on 8/9, 8/12, 8/13 and 8/14. `q_dexa`
+is still **UNBOOKED**. Waist, skinfolds and photos are still empty.
 
 ## Open forecasts
 
-- **Rate back over 0.8 lb/wk by Monday 8/17** (filed 8/12): **called early, and
-  it's a miss.** −0.06 and falling. That's a third weight-or-rate call in this
-  class that ran optimistic, against three that ran pessimistic and two that were
-  accurate — no usable pattern, so I'm closing that watch as noise rather than
-  narrowing it a fourth time.
-- **Next clean read 163.0–164.0** (filed 8/14): **miss**, 164.7. The two-sided
-  clause fired and I've honoured it above.
-- **New:** if the food log is accurate as written, the trend starts falling and
-  reads **at or under 163.4 by Saturday 8/22** with nothing changed. If it's flat
-  or higher on 8/22 with seven days of same-day logging behind it, the intake
-  number is not the problem and my maintenance estimate is — and I'll say so
-  there.
+- **Trend at or under 163.4 by Saturday 8/22** (filed 8/15): **live and
+  improving.** 164.07 → 163.84 in one day. The two-sided clause stands — if it
+  is flat or higher on 8/22 with same-day logging behind it, the intake number
+  isn't the problem and my maintenance estimate is.
+- **New:** if Saturday 8/15 lands within about 150 calories of your Monday-to-
+  Thursday mean, I'll say the log is holding and move my suspicion onto the
+  maintenance fit. If it lands near Friday's number, the week's real average was
+  never what the four clean days said, and the gap is bookkeeping after all.
+  Either answer is useful; only a blank Saturday is useless.
 
-Three things to watch: whether the sodium box gets filled, what press does
-tomorrow, and whether the logged calorie mean moves once meals are logged the
-day they're eaten.
+Three things to watch: whether 8/15 gets an entry, whether press draws a feed
+row from today's session, and whether Monday's fresh baselines get read as
+regressions by either of us.
