@@ -178,6 +178,13 @@ const OPS = {
   },
   /* the transport is JSON: a law that only holds in memory is not a law. */
   roundtrip: (s) => JSON.parse(JSON.stringify(s)),
+  /* A DEVICE REJOINS CARRYING AN OLDER BODY — restore from a backup. Every
+     other op only ever adds to or corrects a replica, so every replica
+     descended from world() and the whole "older body rejoins" class was
+     UNREACHABLE: the restore drill, the v40 witness this round wrote into its
+     own pins, and the loss that FIX 2 closes all live in that class. A law
+     that cannot be reached is a law that cannot fail. */
+  restore: (s, r, ctx) => (ctx.snaps && ctx.snaps.length ? cl(pick(r, ctx.snaps)) : s),
 };
 const OP_NAMES = Object.keys(OPS);
 
@@ -198,12 +205,66 @@ function reDerive(s, id) {
    actually suffered gets a seed that FORCES its shape, through the same
    production writers the random ops compose, and the mutation table below is
    re-run whenever the generator changes. */
+/* the shape 14411/14412 exist for, stated as a predicate: one stamp, one
+   field, present on exactly one side. */
+const sameStampOneAbsent = (out, id) => {
+  const g = (s) => (s.exercises || []).find((e) => e && e.id === id) || {};
+  const a = g(out[0]), b = g(out[1]);
+  return _isoEq(a.stepsAt, b.stepsAt) && (Array.isArray(a.steps) ? 1 : 0) + (Array.isArray(b.steps) ? 1 : 0) === 1;
+};
+const _isoEq = (x, y) => String(x || "") === String(y || "") && String(x || "") !== "";
 const AIM = {
+  /* THE RESTORE DRILL — cowork's witness, committed. A pre-correction backup of
+     the 8/14 record rejoins today, and on it the athlete makes ONE legitimate
+     new correction. Before FIX 2, his newer stamp correctly made the restored
+     body the base and then everything the base happened to lack was gone: two
+     lifts he had ✕'d came back as entries and two hand-added entries were
+     deleted, 7 down to 5, in BOTH orders — so the convergence law reported
+     green over the loss and dataLossGuard, counting dates, never looked in. */
+  14420: { apply: (out) => {
+      const D = "2026-08-14";
+      const full = [
+        { id: "hack", w: 200, reps: [7, 7, 8], rir: 2, rirSets: [2, null, 0] },
+        { id: "extension", w: 160, reps: [8, 9], rir: 2, rirSets: [2, 0] },
+        { id: "abs", w: 45, reps: [15, 15], rir: 0, rirSets: [null, 0] },
+        { id: "hanging", w: "BW", reps: [12], rir: 0, rirSets: [0] },
+      ];
+      /* the live device: two lifts ✕'d, two hand-added entries, corrections filed */
+      const a = out[0].sessionLog[D];
+      a.entries = JSON.parse(JSON.stringify(full));
+      a.skipped = [{ id: "hipthrust" }, { id: "calves" }];
+      a.corr = { at: "2026-08-14T21:57:13.968Z", rev: 4 };
+      a.corrLog = [];
+      for (const z of a.skipped) if (T._fileCorr) T._fileCorr(a, "skip:" + D + ":" + z.id + ":" + a.corr.at, "skip", z.id, a.corr.at);
+      /* the restored backup: pre-correction body, then ONE new ✕ on ham */
+      const b = out[1].sessionLog[D];
+      b.entries = [
+        { id: "hack", w: 190, reps: [7, 7, 8], rir: 2, rirSets: [2, null, 0] },
+        { id: "extension", w: 150, reps: [8, 9], rir: 2, rirSets: [2, 0] },
+        { id: "hipthrust", w: 135, reps: [10, 10], rir: null, rirSets: [null, null] },
+        { id: "calves", w: 60, reps: [12, 12], rir: null, rirSets: [null, null] },
+      ];
+      b.skipped = [{ id: "ham" }];
+      b.corr = { at: "2026-08-16T10:00:00.000Z", rev: 1 };
+      b.corrLog = [];
+      if (T._fileCorr) T._fileCorr(b, "skip:" + D + ":ham:" + b.corr.at, "skip", "ham", b.corr.at);
+      return ["live 8/14: hipthrust+calves ✕'d, abs+hanging logged", "restored backup + one new ✕ on ham", "(untouched)"]; },
+    /* it only means anything if the restored side really is older and really
+       does carry the newer stamp */
+    assert: (out) => {
+      const D = "2026-08-14";
+      const a = out[0].sessionLog[D], b = out[1].sessionLog[D];
+      return (a.corrLog || []).length === 2 && (b.corrLog || []).length === 1
+        && String(b.corr.at) > String(a.corr.at)
+        && !(b.entries || []).some((e) => e.id === "abs")
+        && (a.entries || []).some((e) => e.id === "abs"); } },
   /* the equal-stamp tie: one stamp, one field, absent on one side, present on the other */
-  14411: (out) => { const s = { stamp: "2026-08-17T12:00:00.000Z", lift: "hack", rung: 200 };
-    OPS.ladderSet(out[0], rng(1), s); OPS.ladderClear(out[1], rng(1), s); return ["ladderSet@same-stamp[hack]", "ladderClear@same-stamp[hack]"]; },
-  14412: (out) => { const s = { stamp: "2026-08-17T12:00:00.000Z", lift: "rows", rung: 185 };
-    OPS.ladderSet(out[0], rng(1), s); OPS.ladderClear(out[1], rng(1), s); return ["ladderSet@same-stamp[rows]", "ladderClear@same-stamp[rows]"]; },
+  14411: { apply: (out) => { const s = { stamp: "2026-08-17T12:00:00.000Z", lift: "hack", rung: 200 };
+      OPS.ladderSet(out[0], rng(1), s); OPS.ladderClear(out[1], rng(1), s); return ["ladderSet@same-stamp[hack]", "ladderClear@same-stamp[hack]"]; },
+    assert: (out) => sameStampOneAbsent(out, "hack") },
+  14412: { apply: (out) => { const s = { stamp: "2026-08-17T12:00:00.000Z", lift: "rows", rung: 185 };
+      OPS.ladderSet(out[0], rng(1), s); OPS.ladderClear(out[1], rng(1), s); return ["ladderSet@same-stamp[rows]", "ladderClear@same-stamp[rows]"]; },
+    assert: (out) => sameStampOneAbsent(out, "rows") },
   /* AN ADOPTION: an entry carrying load provenance NEWER than the athlete's own
      stamp, beside a cache that disagrees with it. This is legs 4-5's shape —
      the value must come from the stamped ENTRY and the receipt must name it. */
@@ -319,9 +380,11 @@ function replicas(seed) {
     const steps = aimed ? 0 : 1 + Math.floor(r() * 8);
     const mine = [];
     const did = [];
+    const snaps = [];
     for (let k = 0; k < steps; k++) {
       const name = pick(r, OP_NAMES);
-      const ctx = { date: pick(r, [D1, D2]), stamp: pick(r, STAMPS), did };
+      snaps.push(cl(s));                                                   /* the backup this replica could be restored from */
+      const ctx = { date: pick(r, [D1, D2]), stamp: pick(r, STAMPS), did, snaps };
       try { s = OPS[name](s, r, ctx) || s; } catch (e) { mine.push(name + "!ERR:" + (e && e.message)); continue; }
       mine.push(name + "(" + ctx.date.slice(5) + "," + ctx.stamp.slice(5, 10) + ")");
     }
@@ -335,10 +398,17 @@ function replicas(seed) {
      not the law. Both sides go through the real editor paths. */
   const aim = AIM[seed];
   if (aim && out.length >= 2) {
-    const notes = aim(out, seed) || [];
+    const notes = (typeof aim === "function" ? aim : aim.apply)(out, seed) || [];
     notes.forEach((n9, i9) => { if (trace[i9]) trace[i9].push("AIMED:" + n9); });
+    /* THE SEED-TO-LAW BINDING IS STRUCTURAL. A one-character edit used to
+       disarm an aimed seed in silence — point 14411 at a lift that does not
+       exist and the collision never forms, yet the harness still printed "10
+       laws hold" and exited 0. A seed that no longer means what it says must be
+       an ERROR, not a silence. */
+    const assertFn = typeof aim === "object" && aim.assert;
+    if (assertFn && !assertFn(out)) return { reps: out, trace, dids, formed: false };
   }
-  return { reps: out, trace, dids };
+  return { reps: out, trace, dids, formed: true };
 }
 
 /* ---------- THE LAWS ---------- */
@@ -348,6 +418,7 @@ const stores = (s) => ({
   reads: (s.reads || []).length, nights: ((s.sleep || {}).nights || []).length,
   dailyLogs: Object.keys(s.dailyLogs || {}).length, sessionLog: Object.keys(s.sessionLog || {}).length,
   queue: (s.queue || []).length, feed: new Set((s.feed || []).map((f) => J(f))).size,
+  corrections: Object.values(s.sessionLog || {}).reduce((n, r) => n + ((r && Array.isArray(r.corrLog)) ? r.corrLog.length : 0), 0),   /* the correction ledger is append-only and was covered by no law here either — the same hole dataLossGuard had */
 });
 const corrOps = (s) => { const o = []; for (const r of Object.values(s.sessionLog || {})) for (const c of (r.corrLog || [])) o.push(c.op); return o.sort(); };
 
@@ -407,6 +478,15 @@ const LAWS = [
         else if (owner.get(k).i !== i) owner.set(k, { i: -1, last: c });
         else owner.get(k).last = c;
       }));
+      /* R-2(a): the corrLog's OWN append-only promise, machine-checked. This
+         helper existed and was referenced nowhere — no law observed the
+         ledger's contents, so "the union never shrinks" was a comment. */
+      for (const [nm9, m9] of [["A<-B", settle(T.mergeState(cl(A), cl(B)))], ["B<-A", settle(T.mergeState(cl(B), cl(A)))]]) {
+        const want9 = [...new Set([...corrOps(A), ...corrOps(B)])].sort();
+        const got9 = corrOps(m9);
+        const lost9 = want9.filter((o9) => got9.indexOf(o9) < 0);
+        if (lost9.length) return { got: nm9 + ": the merged corrLog is not a superset of both sides — lost " + J(lost9) };
+      }
       const sides = [A, B, C].filter(Boolean);
       for (const [k, v] of owner) {
         if (v.i < 0 || v.i >= sides.length) continue;                       /* concurrent on the same lift, or a replica outside this pair */
@@ -557,6 +637,7 @@ const SEEDS = [
   { seed: 14414, why: "a deliberate reseed beside a cache CLAIMING the current load. MUTATION: the same-load refill judged by lastMeta.w instead of the derived line (leg 9)", redAt: "6b633c7" },
   { seed: 14415, why: "a load and a ladder resolving from different sides, each newer at what it wrote. MUTATION: ensureLoadOnLadder removed from the recombination point (leg 3)", redAt: "a26e1bd" },
   { seed: 14416, why: "two devices correcting the SAME session differently, three replicas. MUTATION: replay leaving a non-canonical empty skipped[] — the bug this harness found in its own round", redAt: "87143ac" },
+  { seed: 14420, why: "THE RESTORE DRILL: a pre-correction backup rejoins carrying ONE legitimate new correction. MUTATION IT GUARDS: replaying the union over a body one side WON instead of over the accumulated body — which silently reverted two ✕s and deleted two entries, 7 to 5, identically in both orders, so convergence reported green over the loss", redAt: "4d41e2d" },
   { seed: 14419, why: "a lift whose only logged line is skipped away on both sides, so the boot cannot re-derive its caches, with the same load stamp on each so nothing rides. MUTATIONS: the unstamped-cache tie left to arrival order, and the caches not riding the load at all — both of which put lastMeta.rir/rirSets on the merge order", redAt: "87143ac" },
   { seed: 14418, why: "one device's corrections cancelling out, merged against a device that never heard of them. MUTATION: replay writing an empty skipped[] instead of deleting the key — an empty array and an absent one carry the same information but not the same shape, and the difference is visible by merge order", redAt: "87143ac" },
   { seed: 14417, why: "the corrLog ordering rule: the same correction filed at two instants with a third correction between them. MUTATIONS: earliest-wins flipped to latest, in _fileCorr or in the union. Not an equivalent mutant — it only looked like one while every correction shared the frozen suite clock", redAt: "87143ac" },
@@ -566,11 +647,68 @@ const SEEDS = [
   { seed: 13579, why: "general convergence, fourth shape", redAt: "—" },
 ];
 
+/* ---------- THE MUTATION TABLE, EXECUTABLE ----------
+   A historical-tip red proves the harness caught a bug AS IT WAS; a mutation
+   red proves it catches the bug COMING BACK. Leg 2 ran this by hand and that is
+   the only reason it noticed two of its own guards had evaporated — and hands
+   do not run in CI. Each entry is a one-line edit to a copy of src/app.jsx and
+   the law that must go red. Not gate-blocking (it rebuilds the bundle per
+   mutation, well outside the 30 s row budget): `node tools/sync-laws.mjs
+   --mutations`. */
+const MUTATIONS = [
+  ["valOr-raw", "the equal-stamp tie compares raw JSON.stringify again, so absent is unorderable and the base always wins", `_valOr(other[f9]) > _valOr(w2[f9])`, `JSON.stringify(other[f9]) > JSON.stringify(w2[f9])`],
+  ["union-drops-remote", "the corrLog union reads only one side", `for (const c9 of [...(Array.isArray(x && x.corrLog) ? x.corrLog : []), ...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`, `for (const c9 of [...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`],
+  ["replay-disabled", "the union is carried but never replayed", `  return _replayCorrections(merged);`, `  return merged;`],
+  ["base-votes", "the base stops accumulating — the defect this leg closes", `  const ents9 = addMissing("entries"); if (ents9 !== undefined) merged.entries = ents9;`, `  const ents9 = undefined; if (ents9 !== undefined) merged.entries = ents9;`],
+  ["ladder-repair-off", "the load/ladder invariant is dropped at the recombination point", `      return ensureLoadOnLadder(w2);`, `      return w2;`],
+  ["sameload-cache-claim", "the same-load refill trusts the cache's own claim again", `      const dm0 = deriveLastMeta(s, ex.id);`, `      const dm0 = ex.lastMeta;`],
+  ["reseed-overwrite", "the heal overwrites a deliberate reseed", `      if (ex.last != null) { if (JSON.stringify(ex.last) !== JSON.stringify(dm.reps)) ex.last = dm.reps.slice(); }`, `      ex.last = dm.reps.slice();`],
+  ["steps-unstamped", "the ladder leaves the stamp discipline", `["w", "wAt"], ["steps", "stepsAt"]];`, `["w", "wAt"]];`],
+  ["caches-do-not-ride", "last and lastMeta stop riding the load", `  if (f9 === "w") for (const c9 of CACHE_RIDERS) { if (c9 in other) n2[c9] = other[c9]; else delete n2[c9]; }`, `  /* mutant */`],
+  ["cache-tie-nondeterministic", "the unstamped cache tie goes back to arrival order", `        for (const c9 of CACHE_RIDERS) if (_valOr(other[c9]) > _valOr(w2[c9])) w2 = { ...w2, [c9]: other[c9] };`, `        /* mutant */`],
+  ["union-payload-by-arrival", "one key with two payloads resolves by arrival instead of by value", `      else if (_canonJ(c9.to) > _canonJ(p9.to)) p9.to = c9.to;`, `      else if (false) p9.to = c9.to;`],
+  ["unskip-not-authoritative", "the un-skip payload stops restating an existing entry", `          else ents = ents.map((e9) => (e9 && e9.id === c9.id ? { ...e9, ...JSON.parse(JSON.stringify(c9.to)) } : e9));`, `          else ents = ents;`],
+  ["backfill-partial", "the derived backfill covers nothing", `      if ((rec9.corrLog || []).some((c9) => c9 && c9.kind === "skip" && c9.id === z9.id)) continue;`, `      if (true) continue;`],
+  ["corrections-unguarded", "the correction ledger leaves recordCounts", `    corrections: Object.values((st.sessionLog && typeof st.sessionLog === "object") ? st.sessionLog : {}).reduce((n9, r9) => n9 + ((r9 && Array.isArray(r9.corrLog)) ? r9.corrLog.length : 0), 0),`, `    corrections: 0,`],
+];
+async function runMutations() {
+  const { execFileSync } = await import("node:child_process");
+  const { unlinkSync, existsSync } = await import("node:fs");
+  const src0 = fs.readFileSync(at("src/app.jsx"), "utf8");
+  const tmpSrc = at("src", "_mutant_sync.jsx");
+  const rows = [];
+  for (const [name, says, from, to] of MUTATIONS) {
+    const n = src0.split(from).length - 1;
+    if (n !== 1) { rows.push([name, "ANCHOR x" + n, says]); continue; }
+    fs.writeFileSync(tmpSrc, src0.replace(from, to));
+    const out = tmp("_mut-" + name + ".mjs");
+    try {
+      const esbuild = (await import("esbuild")).default;
+      await esbuild.build({ entryPoints: [tmpSrc], bundle: true, format: "esm", platform: "node", outfile: out, loader: { ".jsx": "jsx" }, logLevel: "silent", external: ["react", "react-dom", "react/jsx-runtime"] });
+    } catch (e) { rows.push([name, "BUILD FAILED", says]); if (existsSync(tmpSrc)) unlinkSync(tmpSrc); continue; }
+    if (existsSync(tmpSrc)) unlinkSync(tmpSrc);
+    let status = 0, txt = "";
+    try { txt = execFileSync(process.execPath, [at("tools", "sync-laws.mjs"), "--verbose"], { encoding: "utf8", env: { ...process.env, PL_ENGINE: out } }); }
+    catch (e) { status = 1; txt = (e.stdout || "") + (e.stderr || ""); }
+    const laws = [...new Set([...txt.matchAll(/LAW BROKEN: ([a-z-]+)/g)].map((m) => m[1]))];
+    rows.push([name, status ? "CAUGHT by " + (laws.join(", ") || "the shape guard") : "NOT CAUGHT", says]);
+  }
+  const missed = rows.filter((r) => r[1] === "NOT CAUGHT" || String(r[1]).indexOf("ANCHOR") === 0);
+  for (const [a9, b9, c9] of rows) console.log("  " + a9.padEnd(28) + b9.padEnd(46) + c9);
+  const covered = new Set(rows.flatMap((r) => String(r[1]).replace("CAUGHT by ", "").split(", ")).filter((x) => x && x !== "NOT CAUGHT"));
+  const bare = LAWS.map((l) => l.name).filter((n) => !covered.has(n));
+  console.log("\n  LAWS WITH NO REGISTERED MUTATION THAT BREAKS THEM: " + (bare.length ? bare.join(", ") + " — a known gap is worth more than a hidden one" : "none"));
+  console.log("\nMUTATION TABLE: " + (rows.length - missed.length) + "/" + rows.length + " caught" + (missed.length ? " · UNCAUGHT: " + missed.map((m) => m[0]).join(", ") : ""));
+  return missed.length;
+}
+if (process.argv.includes("--mutations")) { const m = await runMutations(); process.exit(0); }
+
 /* ---------- the run ---------- */
 function runSeed(seed) {
-  const { reps, trace, dids } = replicas(seed);
+  const { reps, trace, dids, formed } = replicas(seed);
   const [A, B, C] = reps;
   const out = [];
+  if (formed === false) return [{ law: "aimed-scenario", says: "an aimed seed must actually produce the shape it names", seed, trace, got: "aimed scenario " + seed + " did not form — its own assertion is false, so whatever it was written to guard is now unguarded" }];
   for (const law of LAWS) {
     let bad = null;
     try { bad = law.check(A, B, C, { dids, trace }); } catch (e) { bad = { got: "THREW: " + (e && e.message) }; }
