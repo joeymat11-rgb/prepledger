@@ -1054,6 +1054,109 @@ export function runClosureSF2(T, ok, readFileSync) {
        tree no longer has. */
   });
 
+  /* ---- v7.54.0 — THE SESSION-MERGE LAW: corrections replay, bodies do not vote ---- */
+  t("SESSION-LAW", () => {
+    /* FROZEN LITERALS, deliberately. ledger/state.json syncs from his phone and
+       has already turned pins vacuous once this round; the 8/09 phantoms in it
+       will DISAPPEAR the moment he opens v7.53.7. So the witness is frozen here
+       at the shape it had when cowork executed it, and the live ledger is
+       asserted separately, on properties that survive its own healing. */
+    const REC = () => ({
+      d: "2026-08-09",
+      at: 1786311986964,
+      entries: [
+        { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] },
+        { id: "tricep", w: 55, reps: [12, 12], rir: null, rirSets: [null, null] },
+        { id: "curl", w: 50, reps: [11, 10, 10], rir: 2, rirSets: [2, null, null] },
+      ],
+      skipped: [{ id: "pronated" }],
+      corr: { at: "2026-08-09T21:56:31.672Z", rev: 1 },
+      corrLog: [
+        { op: "restrike:2026-08-09:arms", kind: "strike", at: "2026-08-09T21:56:31.672Z", to: [{ id: "rows", reps: [9, 9], rirSets: [1, 0] }, { id: "tricep", reps: [12, 12], rirSets: [null, null] }, { id: "curl", reps: [11, 10, 10], rirSets: [2, null, null] }] },
+        { op: "skip:2026-08-09:pronated", kind: "skip", id: "pronated", at: "2026-08-09T21:56:31.672Z" },
+      ],
+    });
+    /* THE REPLICA — a SECOND DEVICE that never learned either of those
+       corrections and made one of its OWN, later. This is the ordinary shape,
+       not a contrived one: two phones, one session, two deliberate edits. On a
+       single (at, rev) scalar the later stamp wins the WHOLE record, so the
+       other device's two corrections are silently reverted — the phantom tails
+       come back and the skip is undone, with no receipt and nothing to notice.
+       It is also RICHER by an entry, so the fallback would not have saved it
+       either. */
+    const REP = () => ({
+      d: "2026-08-09",
+      at: 1786311986964,
+      entries: [
+        { id: "rows", w: 185, reps: [9, 9, 8], rir: 1, rirSets: [1, null, 0] },
+        { id: "tricep", w: 55, reps: [12, 12, 11, 10], rir: null, rirSets: [null, null, null, null] },
+        { id: "curl", w: 50, reps: [11, 10, 10, 9], rir: 2, rirSets: [2, null, null, null] },
+        { id: "pronated", w: 40, reps: [12, 11], rir: 1, rirSets: [1, 0] },
+      ],
+      corr: { at: "2026-08-10T09:00:00.000Z", rev: 1 },
+      corrLog: [{ op: "amend:2026-08-09:rows", kind: "amend", at: "2026-08-10T09:00:00.000Z", to: [{ id: "rows", w: 185 }] }],
+    });
+    /* the UNSTAMPED replica — the v40-restore route: struck by an old patch that
+       predates CORRECTION_MERGE, so it arrives carrying no ordering at all. */
+    const BARE = () => { const r9 = REP(); delete r9.corr; delete r9.corrLog; return r9; };
+    const mk = (rec9) => { const s9 = cl(T.SEED); s9.v = T.SCHEMA_V; s9.sessionLog = { "2026-08-09": rec9 }; return s9; };
+    const r09 = (s9) => (s9.sessionLog || {})["2026-08-09"] || {};
+    const reps9 = (s9, id9) => J((((r09(s9).entries) || []).find((e) => e && e.id === id9) || {}).reps);
+    const has9 = (s9, id9) => ((r09(s9).entries) || []).some((e) => e && e.id === id9);
+    const skp9 = (s9, id9) => ((r09(s9).skipped) || []).some((z) => z && z.id === id9);
+    const A = mk(REC()), B = mk(REP());
+    const ab = T.mergeState(cl(A), cl(B)), ba = T.mergeState(cl(B), cl(A));
+    ok(reps9(ab, "rows") === J([9, 9]) && reps9(ab, "tricep") === J([12, 12]) && reps9(ab, "curl") === J([11, 10, 10])
+      && reps9(ba, "rows") === J([9, 9]) && reps9(ba, "tricep") === J([12, 12]) && reps9(ba, "curl") === J([11, 10, 10]),
+      "LAW a — THE STRIKE SURVIVES A SECOND DEVICE'S UNRELATED, LATER CORRECTION: the attested tails stand in both orders (executed red at 87143ac: the later stamp took the WHOLE record and the phantoms came back — [9,9,8] / [12,12,11,10]) (observed A<-B " + reps9(ab, "rows") + " · B<-A " + reps9(ba, "rows") + ")");
+    const wOf9 = (s9) => (((r09(s9).entries) || []).find((e) => e && e.id === "rows") || {}).w;
+    ok(wOf9(ab) === 185 && wOf9(ba) === 185,
+      "LAW a2 — and the OTHER device's correction survives too: both are applied, neither device's edit is the price of the other's (observed rows w " + J([wOf9(ab), wOf9(ba)]) + ")");
+    const bare9 = mk(BARE());
+    const cab = T.mergeState(cl(A), cl(bare9)), cba = T.mergeState(cl(bare9), cl(A));
+    ok(reps9(cab, "rows") === J([9, 9]) && reps9(cba, "rows") === J([9, 9]) && !has9(cab, "pronated") && !has9(cba, "pronated"),
+      "LAW a3 — the v40-RESTORE route: an UNSTAMPED replica carrying the phantoms cannot revert the corrections either. This is the residual the load round deferred twice, closed by the same mechanism rather than by another scalar (observed " + reps9(cab, "rows") + " / " + reps9(cba, "rows") + ")");
+    ok(!has9(ab, "pronated") && skp9(ab, "pronated") && !has9(ba, "pronated") && skp9(ba, "pronated"),
+      "LAW b — and BOTH of that device's corrections survive: pronated stays skipped in both orders. One (at, rev) scalar cannot order two independent corrections on one record — that is the whole reason the shared slot was never enough (executed red at 87143ac: the skip was reverted and pronated came back logged) (observed pronated logged? " + has9(ab, "pronated") + "/" + has9(ba, "pronated") + ", skipped? " + skp9(ab, "pronated") + "/" + skp9(ba, "pronated") + ")");
+    ok(J(r09(ab)) === J(r09(ba)),
+      "LAW c — the two orders produce a DEEPLY IDENTICAL record, not merely one that agrees on the fields under test");
+    /* the union is append-only and first-sighting */
+    const late = mk(REC()); r09(late).corrLog = r09(late).corrLog.map((c) => ({ ...c, at: "2026-08-20T00:00:00.000Z" }));
+    const un9 = typeof T._unionCorrLog === "function" ? T._unionCorrLog(r09(A), r09(late)) : [];   /* defensive: on a tip without the law this reports the absence instead of throwing and stealing the behavioural reds below */
+    ok(un9.length === 2 && un9.every((c) => c.at === "2026-08-09T21:56:31.672Z"),
+      "LAW d — the corrLog is a KEYED UNION and a correction is a FIRST SIGHTING: a device that learns it late cannot re-date it (observed " + J(un9.map((c) => c.at)) + ")");
+    /* SKIP then UNSKIP — the round-trip that proves replay restores rather than deletes */
+    const rt = REC();
+    rt.corrLog = [...rt.corrLog, { op: "unskip:2026-08-09:pronated", kind: "unskip", id: "pronated", at: "2026-08-10T08:00:00.000Z", to: { id: "pronated", w: 40, reps: [12, 11], rir: null, rirSets: [null, null] } }];
+    const U = mk(rt);
+    const uab = T.mergeState(cl(U), cl(B)), uba = T.mergeState(cl(B), cl(U));
+    ok(has9(uab, "pronated") && !skp9(uab, "pronated") && J(uab.sessionLog["2026-08-09"]) === J(uba.sessionLog["2026-08-09"]),
+      "LAW e — a LATER un-skip beats the earlier skip chronologically, and the reps he typed by hand come back with it: replay RESTORES, so a correction that removes is never a delete (observed logged " + has9(uab, "pronated") + " skipped " + skp9(uab, "pronated") + ")");
+    ok(J((r09(uab).entries || []).find((e) => e && e.id === "pronated")) === J({ id: "pronated", w: 40, reps: [12, 11], rir: null, rirSets: [null, null] }),
+      "LAW f — and it restores the value the CORRECTION carried, not a guess: the payload rides with the entry (observed " + J((r09(uab).entries || []).find((e) => e && e.id === "pronated")) + ")");
+    /* NON-SHRINK — entries + skipped combined never falls below either side */
+    const tot = (s9) => ((r09(s9).entries || []).length) + ((r09(s9).skipped || []).length);
+    ok(tot(ab) >= tot(A) && tot(ab) >= tot(B) && tot(ba) >= tot(A) && tot(ba) >= tot(B),
+      "LAW g — COUNTS LAW at session grain: entries + skipped in the result is >= both inputs. A skip MOVES a lift, a strike changes reps — neither is a delete (observed merged " + tot(ab) + " vs A " + tot(A) + " / B " + tot(B) + ")");
+    /* the no-correction path is UNTOUCHED */
+    const plain = () => ({ d: "2026-08-05", at: 1785000000000, entries: [{ id: "hack", w: 190, reps: [8, 8], rir: 2, rirSets: [2, 0] }] });
+    const p1 = mk(plain()), p2 = mk(plain()); p2.sessionLog["2026-08-09"].entries.push({ id: "ham", w: 120, reps: [12], rir: null, rirSets: [null] });
+    const pab = T.mergeState(cl(p1), cl(p2)), pba = T.mergeState(cl(p2), cl(p1));
+    ok(J(pab.sessionLog["2026-08-09"]) === J(pba.sessionLog["2026-08-09"]) && (pab.sessionLog["2026-08-09"].entries || []).length === 2 && !pab.sessionLog["2026-08-09"].corrLog,
+      "LAW h — a record with NO corrections merges exactly as it always did: the richer body still wins, no corrLog is manufactured, and the path is byte-for-byte the old one (observed n " + (pab.sessionLog["2026-08-09"].entries || []).length + ", corrLog " + J(pab.sessionLog["2026-08-09"].corrLog) + ")");
+    /* THE BACKFILL, on the live ledger — asserted on what survives its own healing */
+    const liveOut = T.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+    const ops9 = (d9) => (((liveOut.sessionLog || {})[d9] || {}).corrLog || []).map((c) => c.op).sort();
+    ok(J(ops9("2026-08-09")) === J(["restrike:2026-08-09:arms", "skip:2026-08-09:pronated"]) && J(ops9("2026-08-14")) === J(["amend:2026-08-14:loads"]),
+      "LAW i — THE BACKFILL: his two corrected records carry their corrections, derived from what is knowable and keyed on the values the record CARRIES (observed 8/09 " + J(ops9("2026-08-09")) + " · 8/14 " + J(ops9("2026-08-14")) + ")");
+    const others9 = Object.keys(liveOut.sessionLog || {}).filter((d9) => d9 !== "2026-08-09" && d9 !== "2026-08-14" && ops9(d9).length);
+    ok(others9.length === 0,
+      "LAW j — and NOTHING else is stamped: value-keyed means a record that does not carry the correction earns nothing, which is the leg-4 lesson applied to a second kind of provenance (observed " + J(others9) + ")");
+    const twice9 = T.migrate(JSON.parse(JSON.stringify(liveOut)));
+    ok(J(twice9.sessionLog) === J(liveOut.sessionLog),
+      "LAW k — the backfill is idempotent: a replayed migrate files nothing new and re-dates nothing");
+  });
+
   /* ---- R6 — retired-ID generation holes, driven consequences ---- */
   t("R6", () => {
     const m = mig50((s) => { const sk = s.exercises.find((x) => x.id === "sulek"); if (sk) sk.sets = 3; });
