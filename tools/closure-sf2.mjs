@@ -1125,6 +1125,28 @@ export function runClosureSF2(T, ok, readFileSync) {
     const un9 = typeof T._unionCorrLog === "function" ? T._unionCorrLog(r09(A), r09(late)) : [];   /* defensive: on a tip without the law this reports the absence instead of throwing and stealing the behavioural reds below */
     ok(un9.length === 2 && un9.every((c) => c.at === "2026-08-09T21:56:31.672Z"),
       "LAW d — the corrLog is a KEYED UNION and a correction is a FIRST SIGHTING: a device that learns it late cannot re-date it (observed " + J(un9.map((c) => c.at)) + ")");
+    /* leg 2 — THE WRITER'S OWN first-sighting rule, pinned separately from the
+       union's. Mutation-measured: flipping earliest-to-latest inside _fileCorr
+       was caught by NOTHING (the union's copy of the rule is pinned by LAW d,
+       the writer's was not), and no convergence law can ever see it — both
+       rules are deterministic and order-free, so what differs is which
+       correction wins, which is semantics, not convergence. */
+    if (typeof T._fileCorr === "function") {
+      const wr = { d: "2026-08-09", entries: [], corr: { at: "2026-08-09T21:56:31.672Z", rev: 1 } };
+      T._fileCorr(wr, "skip:2026-08-09:rows", "skip", "rows", "2026-08-10T08:00:00.000Z");
+      T._fileCorr(wr, "skip:2026-08-09:rows", "skip", "rows", "2026-08-12T08:00:00.000Z");   /* the same correction, learned later */
+      ok((wr.corrLog || []).length === 1 && wr.corrLog[0].at === "2026-08-10T08:00:00.000Z",
+        "LAW d2 — the WRITER keeps the earliest sighting too: re-filing a correction it already has cannot re-date it, so a device that learns it late does not reorder the replay (observed " + J((wr.corrLog || []).map((c) => c.at)) + ")");
+    } else ok(false, "LAW d2 — _fileCorr is not exported: the writer's first-sighting rule cannot be pinned");
+    /* leg 2 — CANONICAL SHAPE, pinned. Mutation-measured: reverting the replay
+       to write an empty skipped[] instead of deleting the key was caught by
+       nothing, because an empty array and an absent one differ only in shape —
+       and shape is exactly what a merge-order comparison is made of. */
+    const cancel = REC();
+    cancel.corrLog = [...cancel.corrLog, { op: "unskip:2026-08-09:pronated", kind: "unskip", id: "pronated", at: "2026-08-11T08:00:00.000Z", to: { id: "pronated", w: 40, reps: [12, 11], rir: null, rirSets: [null, null] } }];
+    const canOut = T._replayCorrections ? T._replayCorrections(JSON.parse(JSON.stringify(cancel))) : {};
+    ok(!("skipped" in canOut) && (canOut.entries || []).some((e) => e && e.id === "pronated"),
+      "LAW l — when the corrections cancel out, the replay DELETES the skip list rather than leaving an empty one: absent is the canonical 'nothing skipped', and a record that merges into a shape instead of a value is a merge-order bug waiting (observed skipped " + J(canOut.skipped) + ")");
     /* SKIP then UNSKIP — the round-trip that proves replay restores rather than deletes */
     const rt = REC();
     rt.corrLog = [...rt.corrLog, { op: "unskip:2026-08-09:pronated", kind: "unskip", id: "pronated", at: "2026-08-10T08:00:00.000Z", to: { id: "pronated", w: 40, reps: [12, 11], rir: null, rirSets: [null, null] } }];

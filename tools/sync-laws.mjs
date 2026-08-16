@@ -103,7 +103,7 @@ const OPS = {
     const e = pick(r, rec.entries);
     rec.skipped = [...(rec.skipped || []), { id: e.id }];
     rec.entries = rec.entries.filter((x) => x.id !== e.id);
-    T._stampCorr(rec);
+    T._stampCorr(rec); rec.corr = { at: ctx.stamp, rev: (rec.corr || {}).rev };   /* DIFFERENT DEVICES HAVE DIFFERENT CLOCKS. _stampCorr reads the wall clock, which the suite freezes — so composed faithfully, every correction in a run would stamp the SAME instant and no law could ever distinguish an ordering rule from its opposite. (That is precisely why the corrLog earliest-wins rule looked like an equivalent mutant: min and max coincide when every at is equal.) The generator supplies the instant, per this harness's own determinism rule. */
     if (T._fileCorr) T._fileCorr(rec, "skip:" + d + ":" + e.id, "skip", e.id, rec.corr && rec.corr.at);
     ctx.did.push({ d, id: e.id, kind: "skip" });
     reDerive(s, e.id);
@@ -119,7 +119,7 @@ const OPS = {
     const reps = [pick(r, [8, 9, 10, 11])];
     const en = { id: k.id, reps, rir: null, rirSets: T.buildRirSets({ reps, rir: null, rirEnd: null }, reps.length), w: typeof exN.w === "number" ? exN.w : null };
     rec.entries = [...(rec.entries || []), en];
-    T._stampCorr(rec);
+    T._stampCorr(rec); rec.corr = { at: ctx.stamp, rev: (rec.corr || {}).rev };   /* the device's own clock — see the skip op */
     if (T._fileCorr) T._fileCorr(rec, "unskip:" + d + ":" + k.id, "unskip", k.id, rec.corr && rec.corr.at, en);
     ctx.did.push({ d, id: k.id, kind: "unskip" });
     reDerive(s, k.id);
@@ -142,14 +142,28 @@ const OPS = {
     ex.wAt = ctx.stamp; ex.last = null;
     return s;
   },
-  /* the ladder: a rung joins, or the whole thing is cleared (a DELETION, which
-     needs a strictly newer stamp to win — law 7's hard half). */
-  ladder: (s, r, ctx) => {
-    const ex = pick(r, s.exercises);
-    if (r() < 0.5) { const rungs = T.loadRungs(ex) || []; ex.steps = [...new Set([...rungs, pick(r, [155, 165, 205, 215])])].sort((a, b) => a - b); ex.stepsAt = ctx.stamp; }
-    else { delete ex.steps; ex.stepsAt = ctx.stamp; }
+  /* THE LADDER EDITOR'S TWO PATHS, split so they can be aimed. Both stamp —
+     src/app.jsx:16242 clears (`delete ex6.steps; ex6.stepsAt = ...`) and :16243
+     sets (`ex6.steps = parsed; ex6.stepsAt = ...`) — and together they are the
+     canonical ABSENT-vs-PRESENT pair on one stamped field, which is the shape
+     the equal-stamp tie-break exists for. Aimed at the same lift with the same
+     stamp, they are the collision the committed seeds could never reach by
+     chance (leg 2's finding: what was pinned was the tip, not the law). */
+  ladderSet: (s, r, ctx) => {
+    const ex = ctx.lift ? (s.exercises || []).find((z) => z && z.id === ctx.lift) : pick(r, s.exercises);
+    if (!ex) return s;
+    const rungs = T.loadRungs(ex) || [];
+    ex.steps = [...new Set([...rungs, ctx.rung || pick(r, [155, 165, 205, 215])])].sort((a, b) => a - b);
+    ex.stepsAt = ctx.stamp;
     return s;
   },
+  ladderClear: (s, r, ctx) => {
+    const ex = ctx.lift ? (s.exercises || []).find((z) => z && z.id === ctx.lift) : pick(r, s.exercises);
+    if (!ex) return s;
+    delete ex.steps; ex.stepsAt = ctx.stamp;
+    return s;
+  },
+  ladder: (s, r, ctx) => (r() < 0.5 ? OPS.ladderSet(s, r, ctx) : OPS.ladderClear(s, r, ctx)),
   /* a data-amendment patch: an entry's load is restated, with its provenance. */
   amend: (s, r, ctx) => {
     const d = ctx.date, rec = s.sessionLog[d];
@@ -158,7 +172,7 @@ const OPS = {
     if (typeof e.w !== "number") return s;
     e.w = e.w + pick(r, [5, 10, -10]);
     e.wCorrAt = ctx.stamp;
-    T._stampCorr(rec);
+    T._stampCorr(rec); rec.corr = { at: ctx.stamp, rev: (rec.corr || {}).rev };   /* the device's own clock — see the skip op */
     if (T._fileCorr) T._fileCorr(rec, "amend:" + d + ":" + e.id, "amend", e.id, rec.corr && rec.corr.at, [{ id: e.id, w: e.w }]);
     return s;
   },
@@ -175,16 +189,134 @@ function reDerive(s, id) {
   else { ex.lastMeta = { d: null, w: ex.w, reps: [], rir: null, rirSets: [], debt: false }; ex.last = null; }
 }
 
+/* AIMED SEEDS — the durable lesson of leg 2, generalised. A random op stream
+   reaches a shape only by luck, and luck is not coverage: seed 70426 went red
+   at the historical tip yet did NOT re-catch the tie-break when it was reverted
+   at HEAD, so what it pinned was the tip, not the law. Worse, changing the
+   generator silently re-rolls every seed's meaning — the seeds that once caught
+   a class stop catching it and nothing says so. So each class the app has
+   actually suffered gets a seed that FORCES its shape, through the same
+   production writers the random ops compose, and the mutation table below is
+   re-run whenever the generator changes. */
+const AIM = {
+  /* the equal-stamp tie: one stamp, one field, absent on one side, present on the other */
+  14411: (out) => { const s = { stamp: "2026-08-17T12:00:00.000Z", lift: "hack", rung: 200 };
+    OPS.ladderSet(out[0], rng(1), s); OPS.ladderClear(out[1], rng(1), s); return ["ladderSet@same-stamp[hack]", "ladderClear@same-stamp[hack]"]; },
+  14412: (out) => { const s = { stamp: "2026-08-17T12:00:00.000Z", lift: "rows", rung: 185 };
+    OPS.ladderSet(out[0], rng(1), s); OPS.ladderClear(out[1], rng(1), s); return ["ladderSet@same-stamp[rows]", "ladderClear@same-stamp[rows]"]; },
+  /* AN ADOPTION: an entry carrying load provenance NEWER than the athlete's own
+     stamp, beside a cache that disagrees with it. This is legs 4-5's shape —
+     the value must come from the stamped ENTRY and the receipt must name it. */
+  14413: (out) => {
+    for (const s9 of out) {
+      const rec = s9.sessionLog["2026-08-14"];
+      const en = (rec.entries || []).find((e) => e && e.id === "hack");
+      if (en) { en.w = 200; en.wCorrAt = "2026-08-20T10:00:00.000Z"; }
+      const ex = (s9.exercises || []).find((e) => e && e.id === "hack");
+      if (ex) { ex.w = 190; ex.wAt = "2026-08-14T21:52:54.838Z"; ex.lastMeta = { ...(ex.lastMeta || {}), d: "2026-08-14", w: 210, reps: [7, 7, 8] }; }
+    }
+    OPS.ladderClear(out[1], rng(2), { stamp: "2026-08-21T09:00:00.000Z", lift: "hack" });
+    return ["adoption(entry 200 stamped newer, cache lying at 210)", "ladderClear[hack]"]; },
+  /* A LYING CACHE beside a deliberate reseed: last nulled by a load change,
+     lastMeta claiming the new load while the log describes another (leg 9). */
+  14414: (out) => {
+    for (const s9 of out) {
+      const ex = (s9.exercises || []).find((e) => e && e.id === "hack");
+      if (ex) { ex.w = 210; ex.wAt = "2026-08-20T09:00:00.000Z"; ex.last = null; ex.lastMeta = { d: "2026-08-14", w: 210, reps: [7, 7, 8], rir: null, rirSets: [null, null, null], debt: false }; }
+    }
+    OPS.wsave(out[1], rng(3), { stamp: "2026-08-21T09:00:00.000Z" });
+    return ["reseed@210 with a cache CLAIMING 210 (log says 190)", "wsave"]; },
+  /* A LOAD OFF ITS LADDER at the recombination point: one side's w, another's
+     ladder, each newer at what it wrote (leg 3's ensureLoadOnLadder). */
+  14415: (out) => {
+    const a = (out[0].exercises || []).find((e) => e && e.id === "hack");
+    const b = (out[1].exercises || []).find((e) => e && e.id === "hack");
+    if (a) { a.w = 205; a.wAt = "2026-08-22T09:00:00.000Z"; }
+    if (b) { b.steps = [160, 170, 180, 190]; b.stepsAt = "2026-08-23T09:00:00.000Z"; }
+    return ["w 205 (newest w)", "ladder without 205 (newest steps)"]; },
+  /* THE corrLog ORDERING RULE. Two devices file the SAME correction at
+     DIFFERENT instants, and a third correction on the same lift sits between
+     them — so whether the union keeps the earliest or the latest `at` decides
+     whether the skip replays before or after the un-skip, and therefore whether
+     the lift ends logged or skipped. (Cowork read this as an equivalent mutant;
+     it is not — it only looks equivalent while every correction shares the
+     suite's frozen instant, which is exactly what the device-clock fix above
+     removed.) */
+  14417: (out) => {
+    const mk = (s9, at9) => { const rec = s9.sessionLog["2026-08-09"];
+      rec.skipped = [...(rec.skipped || []), { id: "rows" }];
+      rec.entries = (rec.entries || []).filter((e) => e.id !== "rows");
+      rec.corr = { at: at9, rev: 1 };
+      if (T._fileCorr) T._fileCorr(rec, "skip:2026-08-09:rows", "skip", "rows", at9);
+      return s9; };
+    mk(out[0], "2026-08-10T08:00:00.000Z");                /* one device skipped early */
+    mk(out[1], "2026-08-12T08:00:00.000Z");                /* the other, later — same op key */
+    const rec2 = out[1].sessionLog["2026-08-09"];          /* and an un-skip BETWEEN the two */
+    rec2.skipped = (rec2.skipped || []).filter((z) => z.id !== "rows");
+    const en2 = { id: "rows", w: 180, reps: [9, 9], rir: null, rirSets: [null, null] };
+    rec2.entries = [...(rec2.entries || []), en2];
+    if (T._fileCorr) T._fileCorr(rec2, "unskip:2026-08-09:rows", "unskip", "rows", "2026-08-11T08:00:00.000Z", en2);
+    return ["skip[rows]@08-10", "skip[rows]@08-12 + unskip[rows]@08-11", "(untouched)"]; },
+  /* A LIFT THE LOG CAN NO LONGER DESCRIBE. Its only logged line is skipped
+     away on both sides, so deriveLastMeta returns null and the boot's heal does
+     `continue` — leaving the unstamped caches exactly as the merge handed them
+     over. Both sides carry a DIFFERENT stale cache and the SAME load stamp, so
+     nothing rides and nothing re-derives: whatever arrives first would win.
+     This is the shape that exposed the divergence in the first place, and it
+     has to be forced, because a random stream reaches it only by luck. */
+  14419: (out) => {
+    for (let i = 0; i < out.length; i++) {
+      const rec = out[i].sessionLog["2026-08-14"];
+      rec.skipped = [{ id: "hack" }];
+      rec.entries = (rec.entries || []).filter((e) => e.id !== "hack");
+      rec.corr = { at: "2026-08-1" + (i + 5) + "T08:00:00.000Z", rev: 1 };
+      if (T._fileCorr) T._fileCorr(rec, "skip:2026-08-14:hack", "skip", "hack", rec.corr.at);
+      const ex = (out[i].exercises || []).find((e) => e && e.id === "hack");
+      /* same load, same stamp — so no STAMPED_FIELDS winner and no rider */
+      if (ex) { ex.w = 190; ex.wAt = "2026-08-14T21:52:54.838Z"; ex.lastMeta = { d: "2026-08-14", w: 190, reps: [7, 7, 8], rir: i === 0 ? null : 2, rirSets: i === 0 ? [] : [2, null, 0], debt: false }; ex.last = [7, 7, 8]; }
+    }
+    return ["hack skipped away; cache says rir null", "hack skipped away; cache says rir 2", "(same)"]; },
+  /* ONE DEVICE CORRECTS, THE OTHER NEVER HEARD OF IT — and the corrections
+     cancel out, so the correcting side ends with an EMPTY skip list while the
+     untouched side has no such key at all. That asymmetry is what makes an
+     empty-array-vs-absent difference observable by merge order; a seed where
+     both sides carry the key can never see it. */
+  14418: (out) => {
+    const rec = out[0].sessionLog["2026-08-09"];
+    rec.skipped = [...(rec.skipped || []), { id: "rows" }];
+    rec.entries = (rec.entries || []).filter((e) => e.id !== "rows");
+    rec.corr = { at: "2026-08-10T08:00:00.000Z", rev: 1 };
+    if (T._fileCorr) T._fileCorr(rec, "skip:2026-08-09:rows", "skip", "rows", "2026-08-10T08:00:00.000Z");
+    rec.skipped = rec.skipped.filter((z) => z.id !== "rows");
+    const en = { id: "rows", w: 180, reps: [9, 9], rir: null, rirSets: [null, null] };
+    rec.entries = [...rec.entries, en];
+    if (T._fileCorr) T._fileCorr(rec, "unskip:2026-08-09:rows", "unskip", "rows", "2026-08-11T08:00:00.000Z", en);
+    return ["skip[rows]@08-10 then unskip[rows]@08-11 (net: empty skip list)", "(untouched — no skipped key at all)", "(untouched)"]; },
+  /* TWO DEVICES, DIFFERENT CORRECTIONS, THREE REPLICAS — the shape that proved
+     the replay's non-canonical empty `skipped` (found by law 2 on the first
+     build, and it must keep being findable). */
+  14416: (out, seed) => {
+    if (out.length < 3) return [];
+    OPS.skip(out[0], rng(seed ^ 7), { date: "2026-08-09", stamp: "2026-08-18T09:00:00.000Z", did: [] });
+    OPS.amend(out[1], rng(seed ^ 8), { date: "2026-08-09", stamp: "2026-08-19T09:00:00.000Z", did: [] });
+    return ["skip[08-09]", "amend[08-09]", "(untouched)"]; },
+};
 function replicas(seed) {
   const r = rng(seed);
-  const n = 2 + Math.floor(r() * 2);                       /* 2 or 3 replicas */
+  const aimed = !!AIM[seed];
+  const n = aimed ? 3 : 2 + Math.floor(r() * 2);           /* 2 or 3 replicas — aimed scenarios always get 3, so the associativity law has something to group */
   const base = world();
   const out = [];
   const trace = [];
   const dids = [];
   for (let i = 0; i < n; i++) {
     let s = cl(base);
-    const steps = 1 + Math.floor(r() * 8);
+    /* AN AIMED SEED CARRIES NO NOISE. Measured the hard way: the first aimed
+       scenarios were applied ON TOP of a random op stream, and the stream had
+       already skipped away the very entry the scenario needed, so the shape
+       never formed and the mutation it was written to catch went green. A
+       scenario seed is a designed state, not a decorated one. */
+    const steps = aimed ? 0 : 1 + Math.floor(r() * 8);
     const mine = [];
     const did = [];
     for (let k = 0; k < steps; k++) {
@@ -194,6 +326,17 @@ function replicas(seed) {
       mine.push(name + "(" + ctx.date.slice(5) + "," + ctx.stamp.slice(5, 10) + ")");
     }
     out.push(s); trace.push(mine); dids.push(did);
+  }
+  /* THE CLASH — an equal-stamp collision on a field that is ABSENT on one side
+     and PRESENT on the other, forced rather than hoped for. Leg 2's finding:
+     seed 70426 went red at the historical tip but did NOT re-catch the tie-break
+     when it was reverted at HEAD, because the op stream never happened to land
+     two ladder writers on one stamp. A law pinned only by history pins the tip,
+     not the law. Both sides go through the real editor paths. */
+  const aim = AIM[seed];
+  if (aim && out.length >= 2) {
+    const notes = aim(out, seed) || [];
+    notes.forEach((n9, i9) => { if (trace[i9]) trace[i9].push("AIMED:" + n9); });
   }
   return { reps: out, trace, dids };
 }
@@ -323,11 +466,19 @@ const LAWS = [
 
   { name: "load-on-ladder",
     says: "after any merge and boot, a numeric working load is a rung of its own ladder",
-    check: (A, B) => { const m = settle(T.mergeState(cl(A), cl(B)));
-      for (const ex of m.exercises || []) {
-        if (typeof ex.w !== "number") continue;
-        const r9 = T.loadRungs(ex);
-        if (r9 && r9.length && r9.indexOf(ex.w) < 0) return { got: ex.id + " w " + ex.w + " is not on " + J(r9) };
+    /* CHECKED AT BOTH SITES, and the second one is why: the invariant is
+       restored where the fields recombine (mergeState) AND again across every
+       lift at the reconcile boundary. Measured — with the merge-side repair
+       deleted, the boot's repair silently covered for it and this law stayed
+       green, so a law that only looks at the settled state cannot see the first
+       site fail at all. */
+    check: (A, B) => { const raw = T.mergeState(cl(A), cl(B));
+      for (const [when, m] of [["straight out of the merge", raw], ["after the boot", settle(cl(raw))]]) {
+        for (const ex of m.exercises || []) {
+          if (typeof ex.w !== "number") continue;
+          const r9 = T.loadRungs(ex);
+          if (r9 && r9.length && r9.indexOf(ex.w) < 0) return { got: ex.id + " w " + ex.w + " is not on " + J(r9) + " (" + when + ")" };
+        }
       }
       return null; } },
 
@@ -400,6 +551,15 @@ const SEEDS = [
   { seed: 60155, why: "the ladder losing a rung on a stale-first merge", redAt: "a26e1bd" },
   { seed: 70426, why: "the equal-stamp tie — absent serialising as undefined, so the base always won", redAt: "c66aea4" },
   { seed: 80912, why: "the session-merge law — one device's correction reverted by another's", redAt: "87143ac" },
+  { seed: 14411, why: "THE EQUAL-STAMP TIE, forced: two replicas write hack.steps at ONE stamp, one clearing it and one carrying rungs. MUTATION IT GUARDS: revert _valOr to raw JSON.stringify — JSON.stringify(undefined) is undefined and every comparison against it is false, so the merge BASE always wins and the cleared ladder resolves differently by order (executed: order1 steps undefined, order2 steps [160,170,180,190,200])", redAt: "c66aea4 + any revert of _valOr" },
+  { seed: 14412, why: "the same collision on the no-ladder lift, where the PRESENT side is the one that must win a tie. MUTATION: _valOr reverted", redAt: "c66aea4 + any revert of _valOr" },
+  { seed: 14413, why: "AN ADOPTION with a lying cache. MUTATIONS IT GUARDS: adopting dm.w instead of the stamped enC.w (leg 4's value coupling), and a receipt naming the cache's number instead of the value written (leg 5's receipt truth)", redAt: "5940442" },
+  { seed: 14414, why: "a deliberate reseed beside a cache CLAIMING the current load. MUTATION: the same-load refill judged by lastMeta.w instead of the derived line (leg 9)", redAt: "6b633c7" },
+  { seed: 14415, why: "a load and a ladder resolving from different sides, each newer at what it wrote. MUTATION: ensureLoadOnLadder removed from the recombination point (leg 3)", redAt: "a26e1bd" },
+  { seed: 14416, why: "two devices correcting the SAME session differently, three replicas. MUTATION: replay leaving a non-canonical empty skipped[] — the bug this harness found in its own round", redAt: "87143ac" },
+  { seed: 14419, why: "a lift whose only logged line is skipped away on both sides, so the boot cannot re-derive its caches, with the same load stamp on each so nothing rides. MUTATIONS: the unstamped-cache tie left to arrival order, and the caches not riding the load at all — both of which put lastMeta.rir/rirSets on the merge order", redAt: "87143ac" },
+  { seed: 14418, why: "one device's corrections cancelling out, merged against a device that never heard of them. MUTATION: replay writing an empty skipped[] instead of deleting the key — an empty array and an absent one carry the same information but not the same shape, and the difference is visible by merge order", redAt: "87143ac" },
+  { seed: 14417, why: "the corrLog ordering rule: the same correction filed at two instants with a third correction between them. MUTATIONS: earliest-wins flipped to latest, in _fileCorr or in the union. Not an equivalent mutant — it only looked like one while every correction shared the frozen suite clock", redAt: "87143ac" },
   { seed: 91337, why: "general convergence over the whole op set", redAt: "—" },
   { seed: 11021, why: "general convergence, second shape", redAt: "—" },
   { seed: 12408, why: "general convergence, third shape", redAt: "—" },
@@ -434,6 +594,9 @@ const shapeMiss = (() => {
     ["the ✕ handler still stamps AND files its correction", /rec\.entries = rec\.entries\.filter\(\(x2\) => x2\.id !== e\.id\); _stampCorr\(rec\); _fileCorr\(rec, "skip:"/],
     ["the ↩ handler still stamps AND files, carrying the entry", /rec\.entries = \[\.\.\.\(rec\.entries \|\| \[\]\), en\]; _stampCorr\(rec\); _fileCorr\(rec, "unskip:"/],
     ["sessionLog still merges through the session law", /k === "sessionLog" \? _mergeSession : _richer/],
+    ["the ladder editor still CLEARS with a stamp (the absent half of the tie)", /delete ex6\.steps; ex6\.stepsAt = new Date\(\)\.toISOString\(\)/],
+    ["the ladder editor still SETS with a stamp (the present half)", /ex6\.steps = parsed; ex6\.stepsAt = new Date\(\)\.toISOString\(\)/],
+    ["the equal-stamp tie still resolves through _valOr, not raw stringify", /_valOr\(other\[f9\]\) > _valOr\(w2\[f9\]\)/],
   ];
   return need.filter(([, re]) => !re.test(src)).map(([w]) => w);
 })();

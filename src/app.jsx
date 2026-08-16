@@ -12005,9 +12005,21 @@ function _valOr(x) { return x === undefined ? "" : JSON.stringify(x); }
    the pair travels together, exactly as steps was made to travel in leg 2. */
 function _takeStamped(w2, other, f9, at9) {
   const n2 = { ...w2, [f9]: other[f9], [at9]: other[at9] };
-  if (f9 === "w") { if ("last" in other) n2.last = other.last; else delete n2.last; }
+  if (f9 === "w") for (const c9 of CACHE_RIDERS) { if (c9 in other) n2[c9] = other[c9]; else delete n2[c9]; }
   return n2;
 }
+/* THE CACHES THAT RIDE THE LOAD. Both are denormalised copies of the lift's
+   newest logged line, both are written together by completeSession, and NEITHER
+   carries a stamp of its own — so each rides whichever whole record wins the
+   merge. That is safe only while the boot can re-derive them, and it cannot
+   when the lift has no logged line left: deriveLastMeta returns null, the heal
+   does `continue`, and the cache keeps whatever the merge happened to hand it.
+   FOUND BY THE HARNESS (v7.54.0 leg 2, aimed seed 14413): after a lift's only
+   session entry was skipped away, the two merge orders settled with different
+   lastMeta.rir and lastMeta.rirSets on the same lift. `last` was given this
+   treatment in leg 7 for the identical reason; lastMeta is its twin and was
+   simply not noticed then. */
+const CACHE_RIDERS = ["last", "lastMeta"];
 /* ---------- THE SESSION-MERGE LAW (v7.54.0) — PER-CORRECTION PROVENANCE ----------
    WHY THIS EXISTS, measured, twice. A session record's `corr` is ONE (at, rev)
    scalar, and the 8/09 record carries TWO independent corrections: the ✕ that
@@ -12416,6 +12428,20 @@ function mergeState(local, remote) {
           for (const r9 of [...rB, ...rA]) { if (r9 && r9.from) byF2.set(r9.from, r9); }
           w2 = { ...w2, renames: [...byF2.values()].sort((a9, b9) => (a9.from < b9.from ? -1 : 1)) };
         }
+      }
+      /* AND WHEN NEITHER SIDE WON THE LOAD, the caches did not ride with it —
+         so they are still whichever base arrived first, which is merge ORDER.
+         Normally harmless because the boot re-derives them from the log; but
+         when the lift has no logged line left (its only entry was skipped away)
+         deriveLastMeta returns null, the heal does `continue`, and the arrival
+         order survives into the settled state. Resolve them the way this app
+         already resolves every other tie: by VALUE, direction-free, through
+         _valOr. Arbitrary between two equally stale claims — but DETERMINISTIC,
+         which is the whole property, and the boot still overrides both the
+         moment the log can say anything at all.
+         FOUND BY THE HARNESS, aimed seed 14413. */
+      if (_isoOr(other.wAt) === _isoOr(w2.wAt) && _valOr(other.w) === _valOr(w2.w)) {
+        for (const c9 of CACHE_RIDERS) if (_valOr(other[c9]) > _valOr(w2[c9])) w2 = { ...w2, [c9]: other[c9] };
       }
       return ensureLoadOnLadder(w2);   /* FIX 3 — w and steps resolved independently; this is where the pair is made coherent again */
     });
