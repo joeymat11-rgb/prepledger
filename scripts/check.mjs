@@ -82,6 +82,20 @@ function affordanceGate() {
   const out = ((r.stdout || "") + (r.stderr || "")).trim().split(String.fromCharCode(10)).pop() || "affordance lint";
   return r.status === 0 ? { ok: true, detail: out } : { ok: false, detail: out };
 }
+/* v7.54.0 — THE CONVERGENCE HARNESS. Ten named sync laws over a committed seed
+   set, driven through the production merge and boot. It exists because four of
+   the six defects the load round confirmed were one machine-findable class: two
+   independently-correct rules disagreeing under a merge order, found one at a
+   time by hand over nine legs. On failure the tool prints the seed, the
+   operation sequence and the differing paths, so a counterexample is
+   reproducible by paste. The wider rotating sweep lives in --explore and is
+   deliberately NOT gate-blocking. */
+function syncLaws() {
+  const r = spawnSync(process.execPath, [at("tools", "sync-laws.mjs")], { cwd: ROOT, encoding: "utf8" });
+  const all = ((r.stdout || "") + (r.stderr || "")).trim();
+  const out = all.split(String.fromCharCode(10)).filter((l) => l.indexOf("SYNC-LAWS") > -1).pop() || all.split(String.fromCharCode(10)).pop() || "sync laws";
+  return r.status === 0 ? { ok: true, detail: out } : { ok: false, detail: out + " — run `node tools/sync-laws.mjs --verbose` for the seed and the operation sequence" };
+}
 function swMatch() {
   const app = appVersion();
   const sw = swVersion();
@@ -238,6 +252,7 @@ export async function check({ strict = false } = {}) {
     ["portability", esbuildBinaryGate],   /* fix-5 — the gate must mean the same thing on Linux, where CI runs */
     ["contrast", contrastGate],   /* A1 (design round) — resolved pairs, both themes */
     ["affordance", affordanceGate],   /* A4 — the tap-color grammar, lint-enforced */
+    ["sync-laws", syncLaws],   /* v7.54.0 — the ten sync laws, committed seeds, production merge */
     ["sw version", swMatch],
     ["lockdown", lockdown],
     ["secrets", secretScan],
