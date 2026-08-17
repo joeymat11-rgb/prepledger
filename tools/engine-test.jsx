@@ -5593,7 +5593,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 57, "schema: SCHEMA_V is 57 (patchV57: the derived correction backfill — every skipped lift on a corrected record gets its replayable op (patchV56: the corrLog backfill — per-correction provenance, so a merge replays corrections instead of letting the richer body decide which survive — the deliberate census pin; bumping SCHEMA_V must touch this line)");
+  ok(SC === 58, "schema: SCHEMA_V is 58 (patchV58: the corrections the app's own receipts prove, filed at last (patchV57: the derived correction backfill — every skipped lift on a corrected record gets its replayable op (patchV56: the corrLog backfill — per-correction provenance, so a merge replays corrections instead of letting the richer body decide which survive — the deliberate census pin; bumping SCHEMA_V must touch this line)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
   ok(migd.v === SC && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
@@ -5895,7 +5895,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 57, "schema: SCHEMA_V is 57 (patchV57 on top of the chain — the second deliberate census pin)");
+  ok(__test.SCHEMA_V === 58, "schema: SCHEMA_V is 58 (patchV58 on top of the chain — the second deliberate census pin)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);

@@ -704,10 +704,10 @@ export function runClosureSF2(T, ok, readFileSync) {
     askCard.v = T.SCHEMA_V;   /* fast path: this replica never adopted */
     const ah = askCard.exercises.find((e) => e.id === "hack");
     ah.steps = [160, 170, 180, 190, 210]; ah.stepsAt = "2026-08-16T12:00:00.000Z";   /* he answered the next-load ask; w still 190 here */
-    const h1 = T.mergeState(cl(adopted), cl(askCard)), h2 = T.mergeState(cl(askCard), cl(adopted));
+    const h1 = T.migrate(T.mergeState(cl(adopted), cl(askCard))), h2 = T.migrate(T.mergeState(cl(askCard), cl(adopted)));   /* SETTLED: the merge is pure since v7.54.3 and the boot is where the pair is made coherent — one repair, on the final pair, which is what makes three-way merges associative */
     ok(g(h1, "hack").w === 200 && J(g(h1, "hack").steps) === J([160, 170, 180, 190, 200, 210])
       && g(h2, "hack").w === 200 && J(g(h2, "hack").steps) === J([160, 170, 180, 190, 200, 210]),
-      "LEG3 g — THE HYBRID SELF-HEALS: a load from one replica and a newer ladder from another recombine into a load that IS on its ladder, identically from both orders (executed red: steps [160,170,180,190,210] beside w 200) (observed " + J([g(h1, "hack").steps, g(h2, "hack").steps]) + ")");
+      "LEG3 g (evolved by leg 5) — THE HYBRID SELF-HEALS AT THE BOOT: a load from one replica and a newer ladder from another are left alone by the merge, which is now pure, and made coherent once on the settled pair — identically from both orders. The repair moved because running it at every intermediate binary merge is not associative (observed " + J([g(h1, "hack").steps, g(h2, "hack").steps]) + ")");
     ok(J(g(h1, "hack")) === J(g(h2, "hack")),
       "LEG3 h — and the two orders are DEEPLY equal on the repaired lift: the repair is a pure function of the resolved pair, not a race");
     /* FIX 4 — the canonical missing-value rule on EQUAL stamps */
@@ -1231,34 +1231,26 @@ export function runClosureSF2(T, ok, readFileSync) {
     /* THE BACKFILL, on the live ledger — asserted on what survives its own healing */
     const liveOut = T.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
     const ops9 = (d9) => (((liveOut.sessionLog || {})[d9] || {}).corrLog || []).map((c) => c.op).sort();
-    ok(J(ops9("2026-08-09")) === J(["restrike:2026-08-09:arms", "skip:2026-08-09:pronated"]) && J(ops9("2026-08-14")) === J(["amend:2026-08-14:loads"]),
-      "LAW i (leg 4 — ROLLED BACK) — the backfill names KNOWN corrections and derives nothing: the two value-keyed ops whose payloads cannot be read off the shape, plus the one skip that patchV56 proves by shape. A general sweep over skipped[] was the overreach and it is gone (observed 8/09 " + J(ops9("2026-08-09")) + " · 8/14 " + J(ops9("2026-08-14")) + ")");
-    /* THE DISTINCTION THE WHOLE LEG IS ABOUT: skipped[] holds an INITIAL skip
-       (completeSession, part of the body, no provenance) and a CORRECTION skip
-       (the ✕ handler, a deliberate act) in one shape. His real records carry
-       both, so membership can never be read as provenance. */
-    const initial9 = [["2026-07-23", "pronated"], ["2026-07-31", "ham"], ["2026-08-14", "hipthrust"]];
+    /* LEG 5 — A RECEIPT IS PROVENANCE; MEMBERSHIP IS NOT. Leg 4 stopped
+       inventing ops from skipped[] membership, correctly. It also left unfiled
+       the corrections the app's OWN FEED names outright — and those resurrect
+       exactly like any other unprovenanced correction. The feed distinguishes
+       them: "SKIPPED — <lifts>" is the completion receipt; "RECORD AMENDED —
+       <lift> marked skipped / UN-SKIPPED" is the ✕ / ↩ handler. */
+    const ops9all = (d9) => (((liveOut.sessionLog || {})[d9] || {}).corrLog || []).map((c9) => c9.kind + ":" + c9.id).sort();
+    ok(J(ops9all("2026-07-23")) === J(["skip:pronated"]) && J(ops9all("2026-07-31")) === J(["skip:ham"]),
+      "LAW i (leg 5) — the two ✕ corrections the feed names are FILED: without an op a stale body re-saved after the correction instant takes the base and resurrects them, which is the harm 8/09 is spared only because it has one (observed 7/23 " + J(ops9all("2026-07-23")) + " · 7/31 " + J(ops9all("2026-07-31")) + ")");
+    ok(J(ops9all("2026-08-14")).indexOf("unskip:abs") > -1 && J(ops9all("2026-08-14")).indexOf("unskip:hanging") > -1,
+      "LAW i2 (leg 5) — and so are the two ↩ corrections on 8/14, which had no op either: an un-skip is a deliberate act exactly like a skip (observed " + J(ops9all("2026-08-14")) + ")");
+    const initial9 = [["2026-08-06", "pronated"], ["2026-08-14", "hipthrust"], ["2026-08-14", "calves"]];
     for (const [d9, id9] of initial9) {
-      const has9 = (((liveOut.sessionLog || {})[d9] || {}).corrLog || []).some((c9) => c9 && c9.kind === "skip" && c9.id === id9);
+      const has9 = (((liveOut.sessionLog || {})[d9] || {}).corrLog || []).some((c9) => c9 && c9.id === id9);
       ok(!has9,
-        "LAW j (leg 4) — " + d9 + " " + id9 + " sits in skipped[] and earns NO correction op: nothing in the record proves it was a later act rather than a skip made while logging (8/14's own feed says \"SKIPPED — Hip thrust machine…\" at completion). Inventing one dates a fabricated skip to an unrelated correction, and a fabricated skip stamped later than a genuine un-skip DELETES the athlete's only real word on that lift (observed op present: " + has9 + ")");
+        "LAW j (leg 5) — " + d9 + " " + id9 + " is an INITIAL skip and still earns nothing: its receipt is the completion line, not an amendment. That half of leg 4 is untouched — the rule is the receipt, never the membership (observed op present: " + has9 + ")");
     }
-    /* THE WITNESS ITSELF, on frozen literals — his 8/16 record's shape, which
-       the tree's ledger copy may not carry yet (it syncs from his phone, and a
-       pin that waits for a date is a pin that reports nothing until it does). */
-    const w16 = cl(T.SEED); w16.v = 56;
-    w16.sessionLog = { "2026-08-16": { d: "2026-08-16", at: 1786900000000,
-      entries: [{ id: "hack", w: 200, reps: [7, 7, 8], rir: 2, rirSets: [2, null, 0] }],
-      skipped: [{ id: "rows" }, { id: "sulek" }],
-      corr: { at: "2026-08-17T09:00:00.000Z", rev: 1 },
-      corrLog: [{ op: "skip:2026-08-16:ham:2026-08-17T09:00:00.000Z", kind: "skip", id: "ham", at: "2026-08-17T09:00:00.000Z" }] } };
-    const o16 = T.migrate(w16);
-    const ops16 = (((o16.sessionLog || {})["2026-08-16"] || {}).corrLog || []).map((c) => c.op).sort();
-    ok(J(ops16) === J(["skip:2026-08-16:ham:2026-08-17T09:00:00.000Z"]),
-      "LAW j2 (leg 4) — THE WITNESS: a record carrying two INITIAL skips plus ONE unrelated correction files nothing for those two. Executed red at dd29e8a, where the boot invented skip ops for rows and sulek dated to the ham correction — and a fabricated skip stamped later than a genuine un-skip deletes the athlete's only real word on the lift, in both merge orders (observed " + J(ops16) + ")");
-    const covered9 = Object.keys(liveOut.sessionLog || {}).filter((d9) => ops9(d9).length).sort();
-    ok(J(covered9) === J(["2026-08-09", "2026-08-14"]),
-      "LAW j3 (leg 4) — exactly the two records whose corrections are provable by shape are replayable, and an initial skip needs no op: it is in skipped[] on every replica and survives a merge because of that (observed " + J(covered9) + ")");
+    const covered9 = Object.keys(liveOut.sessionLog || {}).filter((d9) => (((liveOut.sessionLog[d9] || {}).corrLog) || []).length).sort();
+    ok(J(covered9) === J(["2026-07-23", "2026-07-31", "2026-08-04", "2026-08-09", "2026-08-14"]),
+      "LAW j3 (leg 5) — exactly the five records whose corrections the feed proves, and no others. 8/04 IS included: it predates the corr stamp, so its receipts are the only witness — but they name the lift and the act as plainly as any other, and the honest floor for an instant the app never recorded is the day it did (observed " + J(covered9) + ")");
     const twice9 = T.migrate(JSON.parse(JSON.stringify(liveOut)));
     ok(J(twice9.sessionLog) === J(liveOut.sessionLog),
       "LAW k — the backfill is idempotent: a replayed migrate files nothing new and re-dates nothing");

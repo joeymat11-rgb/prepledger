@@ -354,13 +354,13 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.2";
+const APP_V = "7.54.3";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 57;
+const SCHEMA_V = 58;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -10138,6 +10138,68 @@ function patchV45(s) {
   rule45("rows", 10, 9);
   s.v = 45; return s;
 }
+/* THE KNOWN CORRECTIONS — one home, so the list cannot drift between patches.
+   A RECEIPT IS PROVENANCE; MEMBERSHIP IS NOT. That is legs 4 and 5 in one line,
+   and the app's own feed is what tells them apart: "SKIPPED — <lifts>" is the
+   completion receipt, an INITIAL skip that is part of the body and needs no op;
+   "RECORD AMENDED — <lift> marked skipped" is the ✕ handler and "… UN-SKIPPED"
+   is the ↩ handler — deliberate later acts, each of which DOES deserve an op
+   and, before this patch, had none unless patchV56 happened to name it.
+   Leg 4 stopped inventing ops from membership. This files the ones the app
+   already wrote down, and only those: each is value-keyed on the record still
+   carrying the shape that correction produced, so a device that never had it,
+   or has since undone it, takes nothing. */
+const KNOWN_CORR = [
+  /* the ✕ corrections the feed names, whose records carry a corr stamp */
+  { d: "2026-07-23", kind: "skip", id: "pronated", why: "RECORD AMENDED — Pronated EZ curl marked skipped on Thu 7/23" },
+  { d: "2026-07-31", kind: "skip", id: "ham", why: "RECORD AMENDED — Ham curl marked skipped on Fri 7/31" },
+  /* the two ↩ corrections on 8/14 — real acts, and they had no op either */
+  { d: "2026-08-14", kind: "unskip", id: "abs", why: "RECORD AMENDED — Prime abdominal crunch UN-SKIPPED on Fri 8/14" },
+  { d: "2026-08-14", kind: "unskip", id: "hanging", why: "RECORD AMENDED — Supported leg raise UN-SKIPPED on Fri 8/14" },
+  /* 8/04 — THE RULING, stated because it is a judgement call. This record
+     PREDATES the corr stamp, so its receipts are the only witness. They are
+     still witnesses: each names the lift and the act explicitly, which is the
+     same standard 7/23 and 7/31 are held to — the difference is only that the
+     instant was never recorded, so the honest floor is the day the app itself
+     filed. Without ops these two corrections resurrect exactly like the others,
+     which is the harm this fix exists to stop, so they are filed. The stamp is
+     used only to order acts within this record. */
+  { d: "2026-08-04", kind: "skip", id: "extension", at: "2026-08-04T23:59:59.999Z", why: "RECORD AMENDED — Leg extension marked skipped on Tue 8/4 (record predates corr; day-resolution stamp)" },
+  { d: "2026-08-04", kind: "unskip", id: "ham", at: "2026-08-04T23:59:59.999Z", why: "RECORD AMENDED — Ham curl UN-SKIPPED on Tue 8/4 (same)" },
+];
+function _fileKnownCorr(s) {
+  const log9 = (s && s.sessionLog) || {};
+  for (const k9 of KNOWN_CORR) {
+    const rec9 = log9[k9.d];
+    if (!rec9 || !Array.isArray(rec9.entries)) continue;
+    const inE9 = rec9.entries.some((e9) => e9 && e9.id === k9.id);
+    const inS9 = (rec9.skipped || []).some((z9) => z9 && z9.id === k9.id);
+    /* VALUE-KEYED: the op is filed only while the record still shows the shape
+       that correction produced. A skip that has since been undone, or an
+       un-skip since re-skipped, takes nothing — the record no longer proves it. */
+    if (k9.kind === "skip" && !(inS9 && !inE9)) continue;
+    if (k9.kind === "unskip" && !(inE9 && !inS9)) continue;
+    const at9 = k9.at || ((rec9.corr && typeof rec9.corr.at === "string" && isFinite(Date.parse(rec9.corr.at))) ? rec9.corr.at : null);
+    if (!at9) continue;
+    if ((rec9.corrLog || []).some((c9) => c9 && c9.kind === k9.kind && c9.id === k9.id)) continue;   /* one act, one entry */
+    const to9 = k9.kind === "unskip" ? JSON.parse(JSON.stringify(rec9.entries.find((e9) => e9 && e9.id === k9.id))) : undefined;
+    _fileCorr(rec9, k9.kind + ":" + k9.d + ":" + k9.id + ":" + at9, k9.kind, k9.id, at9, to9);
+  }
+  return s;
+}
+function patchV58(s) {
+  /* THE OTHER HALF OF LEG 4. That leg stopped fabricating corrections from
+     membership — correctly, it was inventing them for initial skips. But it
+     also left the REAL ones unfiled: two ✕ corrections (7/23 pronated, 7/31
+     ham) and two ↩ corrections (8/14 abs, hanging) that the feed names outright.
+     Executed on his ledger: a stale replica that never learned the ✕, re-saved
+     after the correction instant, takes the base by _richerSession's own rule
+     and RESURRECTS both — while 8/09's pronated, which has its op, holds. The
+     control is the whole argument: provenance is what saves it, and nothing
+     else. */
+  _fileKnownCorr(s);
+  s.v = 58; return s;
+}
 function patchV57(s) {
   /* THE BACKFILL COMPLETED, and derived rather than listed. patchV56 named
      three ops by hand and covered 2 of the 5 records that carry corr: 7/23,
@@ -10145,17 +10207,9 @@ function patchV57(s) {
      deliberate corrections — with exactly one replayable. A record whose
      corrections cannot be replayed loses them to the first merge with a device
      that never learned them.
-     WHAT IS DERIVABLE: every id sitting in rec.skipped[] IS a correction the
-     athlete made, and it is exactly the direction that loses data silently. So
-     each one gets its op. It is an idempotent restatement of where the lift
-     already sits — a lift in skipped[] replays to skipped[] — which is what
-     makes it safe to derive.
-     WHAT IS NOT: an entry that was hand-added is indistinguishable from one
-     logged in session, so no op is invented for it. Fabricating provenance is
-     the leg-4 mistake; the accumulating base (FIX 2) protects those entries
-     instead, without claiming to know how they got there.
-     Records with no corr take nothing. _fileCorr is first-sighting, so a
-     re-run re-dates nothing and the ops patchV56 already filed stand. */
+     (The paragraph that stood here claimed deriving from every skipped[]
+     member was safe. It was not, and the explanation of why sits immediately
+     below — a stale claim living one screen above its own refutation.) */
   /* ROLLED BACK, AND THE ROLLBACK IS THE POINT. skipped[] holds TWO DIFFERENT
      THINGS wearing one shape: an INITIAL skip, written by completeSession while
      the session was logged (no correction, no provenance, part of the body),
@@ -10705,7 +10759,7 @@ function patchV38(s) {
    defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
    no longer as the only wall between a bump and his history. The gate asserts the
    pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
-const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52], [53, patchV53], [54, patchV54], [55, patchV55], [56, patchV56], [57, patchV57]];
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52], [53, patchV53], [54, patchV54], [55, patchV55], [56, patchV56], [57, patchV57], [58, patchV58]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -12267,7 +12321,12 @@ function _mergeSession(x, y) {
     const skips = Array.isArray(out9.skipped) ? out9.skipped : [];
     const dup9 = ents.filter((e9) => e9 && skips.some((z9) => z9 && z9.id === e9.id)).map((e9) => e9.id);
     if (dup9.length) {
-      const named9 = new Set((out9.corrLog || []).map((c9) => c9 && c9.id).filter(Boolean));
+      /* ONLY A PLACEMENT CORRECTION DECIDES PLACEMENT. "any correction naming
+         this lift" swept in strike and amend, which restate VALUES and say
+         nothing about where the lift sits — so an amend on a lift that one side
+         had skipped and the other had logged was read as having settled the
+         question, and it left the lift in BOTH arrays. */
+      const named9 = new Set((out9.corrLog || []).filter((c9) => c9 && (c9.kind === "skip" || c9.kind === "unskip")).map((c9) => c9.id).filter(Boolean));
       const baseSkip9 = new Set((Array.isArray(base.skipped) ? base.skipped : []).map((z9) => z9 && z9.id));
       for (const id9 of dup9) {
         if (named9.has(id9)) continue;                                             /* a correction already decided this one */
@@ -12602,7 +12661,18 @@ function mergeState(local, remote) {
       if (_isoOr(other.wAt) === _isoOr(w2.wAt) && _valOr(other.w) === _valOr(w2.w)) {
         for (const c9 of CACHE_RIDERS) if (_valOr(other[c9]) > _valOr(w2[c9])) w2 = { ...w2, [c9]: other[c9] };
       }
-      return ensureLoadOnLadder(w2);   /* FIX 3 — w and steps resolved independently; this is where the pair is made coherent again */
+      /* THE MERGE IS PURE (v7.54.3). This returned ensureLoadOnLadder(w2), so
+         every BINARY merge repaired the pair — and a repair that writes at an
+         intermediate step is not associative: with three replicas, B+C inserted
+         a rung for a load that only existed in that transient pair, and the rung
+         outlived the load, so (A+B)+C and A+(B+C) settled with different
+         ladders and the persistent state depended on sync topology.
+         The invariant is not lost: boot runs the same repair across every lift
+         on the SETTLED state, and every merged state is booted before use —
+         ghSync migrates the merge result, and the reconcile boundary repairs
+         there. One repair, on the final pair, is both sufficient and
+         order-free; a repair per intermediate pair is neither. */
+      return w2;
     });
   }
   /* FIX 3a — the insertion registry unions too: once fired anywhere, fired
