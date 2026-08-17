@@ -1,17 +1,17 @@
 {
-  "gen": "2026-08-16T09:04:55.900Z",
+  "gen": "2026-08-17T09:06:51.213Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 163.84,
-    "lastRaw": 163.3,
-    "appTrend": 163.8,
+    "soft": 164.13,
+    "lastRaw": 164.8,
+    "appTrend": 164.1,
     "noiseFloor": 1.5,
-    "gap": 0.54
+    "gap": -0.67
   },
   "rate": {
-    "perWeekLb": -0.24,
-    "perWeekPct": -0.15,
-    "bandLb": 0.88,
+    "perWeekLb": -0.3,
+    "perWeekPct": -0.18,
+    "bandLb": 0.78,
     "personalBand": [
       1,
       1.4
@@ -19,19 +19,19 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2669,
+    "tdee": 2653,
     "tdeeWinDays": 20,
-    "meanCal": 2452,
-    "waterSensitivityLb": 1.13,
+    "meanCal": 2527,
+    "waterSensitivityLb": 1.09,
     "waterSensDays": 4,
-    "meanSleepH": 7.4,
+    "meanSleepH": 7.5,
     "sleepDebt7H": 1.7,
     "ffmKg": 63.4,
     "proteinTargetG": 146
   },
   "regime": {
     "regime": "plateau",
-    "why": "check adherence/logging first, then consider a diet break"
+    "why": "deficit has shrunk - intake near your TDEE"
   },
   "weeks": [
     {
@@ -71,10 +71,10 @@
     },
     {
       "wk": "2026-08-10",
-      "meanCal": 2353,
-      "meanPro": 170,
+      "meanCal": 2495,
+      "meanPro": 168,
       "proHitPct": 100,
-      "meanSteps": 17900
+      "meanSteps": 17583
     }
   ],
   "priorDecisions": [
