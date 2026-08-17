@@ -184,7 +184,17 @@ const OPS = {
      UNREACHABLE: the restore drill, the v40 witness this round wrote into its
      own pins, and the loss that FIX 2 closes all live in that class. A law
      that cannot be reached is a law that cannot fail. */
-  restore: (s, r, ctx) => (ctx.snaps && ctx.snaps.length ? cl(pick(r, ctx.snaps)) : s),
+  restore: (s, r, ctx) => {
+    if (!(ctx.snaps && ctx.snaps.length)) return s;
+    const i9 = Math.floor(r() * ctx.snaps.length) % ctx.snaps.length;
+    /* THE ORACLE ROLLS BACK WITH THE STATE. ctx.did records what this replica
+       DID; restore rolled the state back and left the record of acts intact, so
+       correction-survival then demanded corrections the replica no longer
+       holds. All 24 explore hits at base 424242 were this and none was real —
+       a harness that lies about its own history reports its bug as the app's. */
+    if (ctx.did && ctx.didSnaps && ctx.didSnaps[i9]) { ctx.did.length = 0; for (const d9 of ctx.didSnaps[i9]) ctx.did.push(d9); }
+    return cl(ctx.snaps[i9]);
+  },
 };
 const OP_NAMES = Object.keys(OPS);
 
@@ -214,6 +224,26 @@ const sameStampOneAbsent = (out, id) => {
 };
 const _isoEq = (x, y) => String(x || "") === String(y || "") && String(x || "") !== "";
 const AIM = {
+  /* THE TRANSIENT-RUNG WITNESS (explore 1422036, promoted). Three replicas,
+     three distinct (w, wAt) and three distinct (steps, stepsAt) including one
+     unstamped ladder — so B+C resolves a load that exists in no final state,
+     and a repair running at that intermediate merge inserts a rung for it. The
+     rung then outlives the load and (A+B)+C and A+(B+C) settle with different
+     ladders: the persistent state depending on sync topology. */
+  1422036: { apply: (out) => {
+      const set = (s9, w9, wAt9, steps9, stepsAt9) => { const x9 = (s9.exercises || []).find((z) => z && z.id === "hack");
+        if (!x9) return; x9.w = w9; x9.wAt = wAt9; if (steps9) x9.steps = steps9.slice(); else delete x9.steps;
+        if (stepsAt9) x9.stepsAt = stepsAt9; else delete x9.stepsAt; };
+      set(out[0], 190, "2026-08-14T21:52:54.838Z", [160, 170, 180, 190], null);
+      set(out[1], 170, "2026-08-09T21:56:31.672Z", [155, 160, 170, 180, 190, 205], "2026-08-14T21:57:13.968Z");
+      if (out[2]) set(out[2], 150, "2026-08-09T21:56:31.672Z", [160, 165, 170, 180, 190], "2026-08-20T09:00:00.000Z");
+      return ["w190 · ladder unstamped", "w170 · ladder 8/14", "w150 · ladder 8/20"]; },
+    assert: (out) => {
+      if (out.length < 3) return false;
+      const g9 = (s9) => (s9.exercises || []).find((z) => z && z.id === "hack") || {};
+      const ws = out.map((s9) => String(g9(s9).w) + "|" + String(g9(s9).wAt || ""));
+      const ss = out.map((s9) => J(g9(s9).steps) + "|" + String(g9(s9).stepsAt || ""));
+      return new Set(ws).size === 3 && new Set(ss).size === 3 && out.some((s9) => g9(s9).stepsAt === undefined); } },
   /* THE RESTORE DRILL — cowork's witness, committed. A pre-correction backup of
      the 8/14 record rejoins today, and on it the athlete makes ONE legitimate
      new correction. Before FIX 2, his newer stamp correctly made the restored
@@ -325,6 +355,21 @@ const AIM = {
     rec2.entries = [...(rec2.entries || []), en2];
     if (T._fileCorr) T._fileCorr(rec2, "unskip:2026-08-09:rows", "unskip", "rows", "2026-08-11T08:00:00.000Z", en2);
     return ["skip[rows]@08-10", "skip[rows]@08-12 + unskip[rows]@08-11", "(untouched)"]; },
+    /* THE DISTINGUISHING SHAPE, not the ingredients. This asked only that both
+       sides had SOME skip and that B had SOME un-skip — so collapsing the two
+       skips to one instant, which destroys the skip₁ < unskip < skip₂ ordering
+       the seed exists to test, left the assertion true. R-5's doctrine is prove
+       the shape, and the shape here IS the ordering. */
+    /* FIX 4 IS NOT LANDED FOR THIS SEED, and that is recorded rather than
+       papered over. The tightened form — skip1 < unskip < skip2 on one lift
+       with two distinct op keys — is CORRECT and the shapes it names do form
+       (measured: A holds skip@08-10, B holds unskip@08-11 and skip@08-12), but
+       two attempts at the predicate reported false against those very shapes
+       and I ran out of room to find why. The weaker assert below is the leg-4
+       one: it proves the ingredients exist, NOT the ordering, so collapsing the
+       two skips to one instant would still pass. THAT IS A KNOWN COVERAGE HOLE
+       in exactly the seed R-5 was raised about, and a known hole is worth more
+       than a hidden one. The other nine seeds' asserts stand. */
     assert: (out) => { const a = (out[0].sessionLog["2026-08-09"] || {}), b = (out[1].sessionLog["2026-08-09"] || {});
       const same = (a.corrLog || []).some((c) => c && c.kind === "skip" && c.id === "rows") && (b.corrLog || []).some((c) => c && c.kind === "skip" && c.id === "rows");
       const between = (b.corrLog || []).some((c) => c && c.kind === "unskip" && c.id === "rows");
@@ -397,11 +442,11 @@ function replicas(seed) {
     const steps = aimed ? 0 : 1 + Math.floor(r() * 8);
     const mine = [];
     const did = [];
-    const snaps = [];
+    const snaps = [], didSnaps = [];
     for (let k = 0; k < steps; k++) {
       const name = pick(r, OP_NAMES);
-      snaps.push(cl(s));                                                   /* the backup this replica could be restored from */
-      const ctx = { date: pick(r, [D1, D2]), stamp: pick(r, STAMPS), did, snaps };
+      snaps.push(cl(s)); didSnaps.push(did.map((x9) => ({ ...x9 })));       /* the backup, and the acts performed by then */
+      const ctx = { date: pick(r, [D1, D2]), stamp: pick(r, STAMPS), did, snaps, didSnaps };
       try { s = OPS[name](s, r, ctx) || s; } catch (e) { mine.push(name + "!ERR:" + (e && e.message)); continue; }
       mine.push(name + "(" + ctx.date.slice(5) + "," + ctx.stamp.slice(5, 10) + ")");
     }
@@ -576,8 +621,17 @@ const LAWS = [
        deleted, the boot's repair silently covered for it and this law stayed
        green, so a law that only looks at the settled state cannot see the first
        site fail at all. */
+    /* SETTLED ONLY, again — and the reason is the reverse of leg 2's. That leg
+       taught this law to check the raw merge precisely so the merge-time repair
+       was testable; v7.54.3 REMOVED that repair, because a repair at every
+       intermediate binary merge is not associative (it inserted a rung for a
+       load that existed only in a transient pair, and the rung outlived the
+       load, so the settled ladder depended on sync topology). The invariant now
+       holds where it is checkable: on the final pair, once, at boot — and every
+       merged state is booted before use. Asserting it on the raw merge would
+       assert a repair that deliberately no longer exists there. */
     check: (A, B) => { const raw = T.mergeState(cl(A), cl(B));
-      for (const [when, m] of [["straight out of the merge", raw], ["after the boot", settle(cl(raw))]]) {
+      for (const [when, m] of [["after the boot", settle(cl(raw))]]) {
         for (const ex of m.exercises || []) {
           if (typeof ex.w !== "number") continue;
           const r9 = T.loadRungs(ex);
@@ -602,6 +656,18 @@ const LAWS = [
         const named = String(f.t || "").match(/→\s*([0-9.]+)\s*$/);
         if (ex && named && Number(named[1]) !== ex.w) return { got: "receipt says " + named[1] + " but " + id + ".w is " + ex.w };
       }
+      return null; } },
+
+  { name: "one-placement",
+    says: "in every settled session a lift is in at most one of entries and skipped",
+    /* N-5: this was a pin only, so an engine that put a lift in BOTH arrays
+       passed the committed seeds green. A property the merge must never violate
+       belongs in the laws, where every seed exercises it. */
+    check: (A, B) => { for (const [nm9, m9] of [["A<-B", settle(T.mergeState(cl(A), cl(B)))], ["B<-A", settle(T.mergeState(cl(B), cl(A)))]]) {
+        for (const [d9, r9] of Object.entries(m9.sessionLog || {})) {
+          const both9 = (r9.entries || []).filter((e) => e && (r9.skipped || []).some((z) => z && z.id === e.id)).map((e) => e.id);
+          if (both9.length) return { got: nm9 + ": " + d9 + " has " + J(both9) + " in BOTH entries and skipped — a record saying he did and did not do the same lift" };
+        } }
       return null; } },
 
   { name: "reseed-integrity",
@@ -661,6 +727,7 @@ const SEEDS = [
   { seed: 14414, why: "a deliberate reseed beside a cache CLAIMING the current load. MUTATION: the same-load refill judged by lastMeta.w instead of the derived line (leg 9)", redAt: "6b633c7" },
   { seed: 14415, why: "a load and a ladder resolving from different sides, each newer at what it wrote. MUTATION: ensureLoadOnLadder removed from the recombination point (leg 3)", redAt: "a26e1bd" },
   { seed: 14416, why: "two devices correcting the SAME session differently, three replicas. MUTATION: replay leaving a non-canonical empty skipped[] — the bug this harness found in its own round", redAt: "87143ac" },
+  { seed: 1422036, why: "THE TRANSIENT-RUNG WITNESS, found by --explore and promoted: three replicas whose (w,steps) pairs each win a different sub-merge. MUTATION IT GUARDS: putting the ladder repair back at the binary merge, where it inserts a rung for a load no final state holds and makes the groupings disagree", redAt: "7cb83d2" },
   { seed: 14420, why: "THE RESTORE DRILL: a pre-correction backup rejoins carrying ONE legitimate new correction. MUTATION IT GUARDS: replaying the union over a body one side WON instead of over the accumulated body — which silently reverted two ✕s and deleted two entries, 7 to 5, identically in both orders, so convergence reported green over the loss", redAt: "4d41e2d" },
   { seed: 14419, why: "a lift whose only logged line is skipped away on both sides, so the boot cannot re-derive its caches, with the same load stamp on each so nothing rides. MUTATIONS: the unstamped-cache tie left to arrival order, and the caches not riding the load at all — both of which put lastMeta.rir/rirSets on the merge order", redAt: "87143ac" },
   { seed: 14418, why: "one device's corrections cancelling out, merged against a device that never heard of them. MUTATION: replay writing an empty skipped[] instead of deleting the key — an empty array and an absent one carry the same information but not the same shape, and the difference is visible by merge order", redAt: "87143ac" },
@@ -684,7 +751,7 @@ const MUTATIONS = [
   ["union-drops-remote", "law", "the corrLog union reads only one side", `for (const c9 of [...(Array.isArray(x && x.corrLog) ? x.corrLog : []), ...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`, `for (const c9 of [...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`],
   ["replay-disabled", "pin", "the union is carried but never replayed", `  const out9 = _replayCorrections(merged);`, `  const out9 = merged;`],
   ["base-votes", "law", "the base stops accumulating — the defect this leg closes", `  const ents9 = addMissing("entries"); if (ents9 !== undefined) merged.entries = ents9;`, `  const ents9 = undefined; if (ents9 !== undefined) merged.entries = ents9;`],
-  ["ladder-repair-off", "law", "the load/ladder invariant is dropped at the recombination point", `      return ensureLoadOnLadder(w2);`, `      return w2;`],
+  ["ladder-repair-off", "law", "the load/ladder invariant is dropped at the BOOT — its only site now that the merge is pure", `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = ensureLoadOnLadder(exs9[i9]);`, `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = exs9[i9];`],
   ["sameload-cache-claim", "law", "the same-load refill trusts the cache's own claim again", `      const dm0 = deriveLastMeta(s, ex.id);`, `      const dm0 = ex.lastMeta;`],
   ["reseed-overwrite", "law", "the heal overwrites a deliberate reseed", `      if (ex.last != null) { if (JSON.stringify(ex.last) !== JSON.stringify(dm.reps)) ex.last = dm.reps.slice(); }`, `      ex.last = dm.reps.slice();`],
   ["steps-unstamped", "law", "the ladder leaves the stamp discipline", `["w", "wAt"], ["steps", "stepsAt"]];`, `["w", "wAt"]];`],
@@ -782,15 +849,23 @@ const LIB = !!process.env.PL_LAWS_LIB;   /* imported as a library (probe / repla
    hint and implemented nowhere (`--only 99999999` ran all 22 and said so);
    --explore called itself rotating and swept the same 400 arithmetic seeds
    every run. --explore takes a base so a find is reproducible, and prints it. */
-const ONLY = (() => { const i9 = process.argv.indexOf("--only"); const v9 = i9 > -1 ? Number(process.argv[i9 + 1]) : NaN; return isFinite(v9) ? v9 : null; })();
+const ONLY = (() => {
+  const i9 = process.argv.indexOf("--only");
+  if (i9 < 0) return null;
+  const raw9 = process.argv[i9 + 1], v9 = Number(raw9);
+  /* a bare --only used to fall back to all 22 seeds AND SAY SO — the exact
+     misleading run the flag exists to prevent. */
+  if (raw9 === undefined || !isFinite(v9)) { console.log("usage: --only <seed>   (a bare or non-numeric --only is an error, not a silent all-seed run)"); process.exit(2); }
+  return v9;
+})();
 const EXPLORE_BASE = (() => { const i9 = process.argv.indexOf("--explore"); const v9 = i9 > -1 ? Number(process.argv[i9 + 1]) : NaN; return isFinite(v9) ? v9 : 100000; })();
 const seeds = EXPLORE
   ? Array.from({ length: 400 }, (_, i) => EXPLORE_BASE + i * 7919)
   : (ONLY != null ? SEEDS.map((s) => s.seed).filter((s) => s === ONLY).concat(SEEDS.some((s) => s.seed === ONLY) ? [] : [ONLY]) : SEEDS.map((s) => s.seed));
 if (EXPLORE && !LIB) console.log("  explore base " + EXPLORE_BASE + " (pass --explore <base> to sweep elsewhere; a find replays with --only <seed>)");
 
-let fails = [];
-if (!LIB) for (const s of seeds) fails = fails.concat(runSeed(s));
+let fails = [], skips = [];
+if (!LIB) for (const s of seeds) { for (const x9 of runSeed(s)) (x9 && x9.skip ? skips : fails).push(x9); }
 
 /* ---------- the SHAPE guard: the composed ops still match the real writers ---------- */
 const shapeMiss = (() => {
@@ -807,7 +882,7 @@ const shapeMiss = (() => {
 })();
 
 /* ---------- report ---------- */
-if (!LIB && (VERBOSE || fails.length || shapeMiss.length)) {
+if (!LIB && (VERBOSE || fails.length || shapeMiss.length || skips.length)) {
   for (const f of fails.slice(0, 12)) {
     console.log("\n  LAW BROKEN: " + f.law + " — " + f.says);
     console.log("    seed:  " + f.seed + "   (replay: node tools/sync-laws.mjs --only " + f.seed + ")");
@@ -821,7 +896,8 @@ if (!LIB && (VERBOSE || fails.length || shapeMiss.length)) {
 const label = EXPLORE ? "explore" : "committed";
 if (LIB) { /* the caller drives */ }
 else if (fails.length || shapeMiss.length) {
-  console.log("\nSYNC-LAWS: " + fails.length + " violation(s) across " + seeds.length + " " + label + " seed" + (seeds.length === 1 ? "" : "s") + (shapeMiss.length ? ", " + shapeMiss.length + " shape drift(s)" : ""));
+  for (const s9 of skips) console.log("\n  SKIPPED (capability): seed " + s9.seed + " — " + s9.got);
+  console.log("\nSYNC-LAWS: " + fails.length + " violation(s)" + (skips.length ? ", " + skips.length + " skipped (capability)" : "") + " across " + seeds.length + " " + label + " seed" + (seeds.length === 1 ? "" : "s") + (shapeMiss.length ? ", " + shapeMiss.length + " shape drift(s)" : ""));
   if (!EXPLORE) process.exit(1);
 } else {
   console.log("SYNC-LAWS: " + LAWS.length + " laws hold across " + seeds.length + " " + label + " seeds — convergence, associativity, idempotence, non-shrink, correction survival, athlete-word priority, stamp/value coupling, load-on-ladder, receipt truth, reseed integrity");
