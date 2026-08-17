@@ -224,6 +224,68 @@ const sameStampOneAbsent = (out, id) => {
 };
 const _isoEq = (x, y) => String(x || "") === String(y || "") && String(x || "") !== "";
 const AIM = {
+  /* N-5(a) — TWO CORRECTED RECORDS THAT TIE ON EVERYTHING THE ORDERING LAW
+     READS: same corr.at, same rev, same _mergeScore, different bodies. Nothing
+     in the committed set forced this, so an engine whose base tie fell back to
+     _richer (which ties to its second argument, i.e. merge order) passed green. */
+  14421: { apply: (out) => {
+      const mk = (s9, reps9) => { s9.sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964,
+        entries: [{ id: "curl", w: 50, reps: reps9, rir: 2, rirSets: [2, null, null] }],
+        corr: { at: "2026-08-10T08:00:00.000Z", rev: 1 },
+        corrLog: [{ op: "amend:2026-08-09:curl:2026-08-10T08:00:00.000Z", kind: "amend", id: "curl", at: "2026-08-10T08:00:00.000Z", to: [{ id: "curl", w: 50 }] }] }; };
+      mk(out[0], [12, 12, 9]); mk(out[1], [12, 12, 8]); if (out[2]) mk(out[2], [12, 12, 9]);
+      /* THE THIRD REPLICA MATCHES A's BODY ON PURPOSE. With a DIFFERENT third
+         body this seed goes red on the TIP for associativity — a real, open
+         defect this seed found and this leg does not close: accumulation adds
+         lifts to the intermediate record, which changes _mergeScore, which the
+         (at, rev) tie then reads — so (A+B)+C and A+(B+C) can pick different
+         bodies. The pairwise rule is order-free; it is not associative once the
+         body it compares has grown. Reported in the handoff for the next leg
+         rather than papered over; the seed keeps guarding the pairwise tie
+         (R-1 / N-5a), which is what it was asked for. */
+      return ["curl [12,12,9]", "curl [12,12,8] — same at, same rev, same score", "curl [12,12,9]"]; },
+    assert: (out) => {
+      const a = out[0].sessionLog["2026-08-09"], b = out[1].sessionLog["2026-08-09"];
+      return a.corr.at === b.corr.at && a.corr.rev === b.corr.rev
+        && J(a).length === J(b).length && J(a) !== J(b); } },
+  /* N-5(b) — THE AMEND WITNESS: rows skipped on one side WITH an amend naming
+     it, logged on the other with no placement op. An amend restates a value and
+     says nothing about placement, so nothing here decides where rows sits — and
+     an engine that read "any correction naming the lift" as deciding left it in
+     both arrays. */
+  14422: { apply: (out) => {
+      out[0].sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964,
+        entries: [{ id: "hack", w: 200, reps: [7, 7], rir: 2, rirSets: [2, 0] }],
+        skipped: [{ id: "rows" }],
+        corr: { at: "2026-08-10T08:00:00.000Z", rev: 1 },
+        corrLog: [{ op: "amend:2026-08-09:rows:2026-08-10T08:00:00.000Z", kind: "amend", id: "rows", at: "2026-08-10T08:00:00.000Z", to: [{ id: "rows", w: 185 }] }] };
+      out[1].sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964,
+        entries: [{ id: "hack", w: 200, reps: [7, 7], rir: 2, rirSets: [2, 0] }, { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] }] };
+      return ["rows SKIPPED + an amend naming rows", "rows LOGGED, no op", "(untouched)"]; },
+    assert: (out) => {
+      const a = out[0].sessionLog["2026-08-09"], b = out[1].sessionLog["2026-08-09"];
+      return (a.skipped || []).some((z) => z.id === "rows")
+        && (a.corrLog || []).some((c) => c.kind === "amend" && c.id === "rows")
+        && (b.entries || []).some((e) => e.id === "rows")
+        && !(b.corrLog || []).some((c) => c.kind === "skip" || c.kind === "unskip"); } },
+  /* item 4 — THE NON-MONOTONE CLOCK, committed. A later act with an earlier
+     stamp: the device's body says logged (last act wins there) and a replay of
+     its own corrLog says skipped. The generator hands this shape in directly
+     because the production writer can no longer produce it. */
+  883544: { apply: (out) => {
+      const rec = out[0].sessionLog["2026-08-09"];
+      rec.entries = [...(rec.entries || []).filter((e) => e.id !== "rows"), { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] }];
+      rec.skipped = [];
+      rec.corr = { at: "2026-08-20T08:00:00.000Z", rev: 2 };
+      rec.corrLog = [
+        { op: "skip:2026-08-09:rows:2026-08-20T08:00:00.000Z", kind: "skip", id: "rows", at: "2026-08-20T08:00:00.000Z" },
+        { op: "unskip:2026-08-09:rows:2026-08-09T08:00:00.000Z", kind: "unskip", id: "rows", at: "2026-08-09T08:00:00.000Z", to: { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] } },
+      ];
+      return ["rows: skip@08-20 then unskip@08-09 — a later act with an earlier stamp", "(untouched)", "(untouched)"]; },
+    assert: (out) => {
+      const l = ((out[0].sessionLog["2026-08-09"] || {}).corrLog) || [];
+      const sk = l.find((c) => c.kind === "skip" && c.id === "rows"), un = l.find((c) => c.kind === "unskip" && c.id === "rows");
+      return !!sk && !!un && String(un.at) < String(sk.at); } },
   /* THE TRANSIENT-RUNG WITNESS (explore 1422036, promoted). Three replicas,
      three distinct (w, wAt) and three distinct (steps, stepsAt) including one
      unstamped ladder — so B+C resolves a load that exists in no final state,
@@ -235,15 +297,22 @@ const AIM = {
         if (!x9) return; x9.w = w9; x9.wAt = wAt9; if (steps9) x9.steps = steps9.slice(); else delete x9.steps;
         if (stepsAt9) x9.stepsAt = stepsAt9; else delete x9.stepsAt; };
       set(out[0], 190, "2026-08-14T21:52:54.838Z", [160, 170, 180, 190], null);
-      set(out[1], 170, "2026-08-09T21:56:31.672Z", [155, 160, 170, 180, 190, 205], "2026-08-14T21:57:13.968Z");
+      set(out[1], 170, "2026-08-09T20:00:00.000Z", [155, 160, 170, 180, 190, 205], "2026-08-14T21:57:13.968Z");   /* STRICTLY OLDER than C: with equal wAt the sub-merge load tied by value to 170, which IS a rung of C's ladder, so nothing inserted and the seed proved nothing */
       if (out[2]) set(out[2], 150, "2026-08-09T21:56:31.672Z", [160, 165, 170, 180, 190], "2026-08-20T09:00:00.000Z");
       return ["w190 · ladder unstamped", "w170 · ladder 8/14", "w150 · ladder 8/20"]; },
+    /* THE PROPERTY, not the ingredients: the SUB-MERGE must want an insertion
+       the final state does not. Three distinct stamps proved nothing — with B
+       and C tied on wAt the sub-merge load was already a rung and the defect
+       never formed, which is how this seed sat green on the very engine it was
+       promoted to catch. */
     assert: (out) => {
       if (out.length < 3) return false;
       const g9 = (s9) => (s9.exercises || []).find((z) => z && z.id === "hack") || {};
-      const ws = out.map((s9) => String(g9(s9).w) + "|" + String(g9(s9).wAt || ""));
-      const ss = out.map((s9) => J(g9(s9).steps) + "|" + String(g9(s9).stepsAt || ""));
-      return new Set(ws).size === 3 && new Set(ss).size === 3 && out.some((s9) => g9(s9).stepsAt === undefined); } },
+      const newer9 = (p, q) => (String(g9(p).wAt || "") > String(g9(q).wAt || "") ? p : q);
+      const subLoad = g9(newer9(out[1], out[2])).w;                                  /* what B+C resolves to */
+      const subLad = g9(String(g9(out[1]).stepsAt || "") > String(g9(out[2]).stepsAt || "") ? out[1] : out[2]).steps || [];
+      const finalLoad = g9(out.reduce((p, q) => newer9(p, q))).w;                    /* what the whole merge resolves to */
+      return subLad.indexOf(subLoad) < 0 && subLad.indexOf(finalLoad) > -1; } },
   /* THE RESTORE DRILL — cowork's witness, committed. A pre-correction backup of
      the 8/14 record rejoins today, and on it the athlete makes ONE legitimate
      new correction. Before FIX 2, his newer stamp correctly made the restored
@@ -345,7 +414,7 @@ const AIM = {
       rec.skipped = [...(rec.skipped || []), { id: "rows" }];
       rec.entries = (rec.entries || []).filter((e) => e.id !== "rows");
       rec.corr = { at: at9, rev: 1 };
-      if (T._fileCorr) T._fileCorr(rec, "skip:2026-08-09:rows", "skip", "rows", at9);
+      if (T._fileCorr) T._fileCorr(rec, "skip:2026-08-09:rows:" + at9, "skip", "rows", at9);
       return s9; };
     mk(out[0], "2026-08-10T08:00:00.000Z");                /* one device skipped early */
     mk(out[1], "2026-08-12T08:00:00.000Z");                /* the other, later — same op key */
@@ -353,27 +422,26 @@ const AIM = {
     rec2.skipped = (rec2.skipped || []).filter((z) => z.id !== "rows");
     const en2 = { id: "rows", w: 180, reps: [9, 9], rir: null, rirSets: [null, null] };
     rec2.entries = [...(rec2.entries || []), en2];
-    if (T._fileCorr) T._fileCorr(rec2, "unskip:2026-08-09:rows", "unskip", "rows", "2026-08-11T08:00:00.000Z", en2);
+    /* HANDED IN DIRECTLY, not filed — and the reason is this leg's own app fix:
+       _fileCorr now makes a new act at least a millisecond after the latest act
+       already on the record, so filing an un-skip stamped 08-11 onto a record
+       whose skip is stamped 08-12 pushes it PAST the skip and destroys the very
+       ordering this seed tests. The writer can no longer produce the shape (by
+       design); the generator hands it in, exactly like seed 883544. */
+    rec2.corrLog = [...(rec2.corrLog || []), { op: "unskip:2026-08-09:rows:2026-08-11T08:00:00.000Z", kind: "unskip", id: "rows", at: "2026-08-11T08:00:00.000Z", to: en2 }]
+      .sort((p, q) => (String(p.at) + "|" + p.op < String(q.at) + "|" + q.op ? -1 : 1));
     return ["skip[rows]@08-10", "skip[rows]@08-12 + unskip[rows]@08-11", "(untouched)"]; },
-    /* THE DISTINGUISHING SHAPE, not the ingredients. This asked only that both
-       sides had SOME skip and that B had SOME un-skip — so collapsing the two
-       skips to one instant, which destroys the skip₁ < unskip < skip₂ ordering
-       the seed exists to test, left the assertion true. R-5's doctrine is prove
-       the shape, and the shape here IS the ordering. */
-    /* FIX 4 IS NOT LANDED FOR THIS SEED, and that is recorded rather than
-       papered over. The tightened form — skip1 < unskip < skip2 on one lift
-       with two distinct op keys — is CORRECT and the shapes it names do form
-       (measured: A holds skip@08-10, B holds unskip@08-11 and skip@08-12), but
-       two attempts at the predicate reported false against those very shapes
-       and I ran out of room to find why. The weaker assert below is the leg-4
-       one: it proves the ingredients exist, NOT the ordering, so collapsing the
-       two skips to one instant would still pass. THAT IS A KNOWN COVERAGE HOLE
-       in exactly the seed R-5 was raised about, and a known hole is worth more
-       than a hidden one. The other nine seeds' asserts stand. */
-    assert: (out) => { const a = (out[0].sessionLog["2026-08-09"] || {}), b = (out[1].sessionLog["2026-08-09"] || {});
-      const same = (a.corrLog || []).some((c) => c && c.kind === "skip" && c.id === "rows") && (b.corrLog || []).some((c) => c && c.kind === "skip" && c.id === "rows");
-      const between = (b.corrLog || []).some((c) => c && c.kind === "unskip" && c.id === "rows");
-      return same && between; } },
+    /* THE DISTINGUISHING SHAPE, not the ingredients — and the reason two
+       attempts read false against a shape that forms: the fixture was still
+       filing the OLD state-shaped key, so both skips shared one op and the
+       "two distinct keys" half was correctly false. hunt 1 reached the
+       generator's writers and stopped short of the aimed scenarios' own calls. */
+    assert: (out) => {
+      const all = out.flatMap((s) => ((s.sessionLog["2026-08-09"] || {}).corrLog) || []).filter((c) => c && c.id === "rows");
+      const sk = [...new Map(all.filter((c) => c.kind === "skip").map((c) => [c.op, c])).values()].sort((p, q) => (String(p.at) < String(q.at) ? -1 : 1));
+      const un = all.find((c) => c.kind === "unskip");
+      if (sk.length !== 2 || !un) return false;
+      return String(sk[0].at) < String(un.at) && String(un.at) < String(sk[1].at); } },
   /* A LIFT THE LOG CAN NO LONGER DESCRIBE. Its only logged line is skipped
      away on both sides, so deriveLastMeta returns null and the boot's heal does
      `continue` — leaving the unstamped caches exactly as the merge handed them
@@ -727,6 +795,9 @@ const SEEDS = [
   { seed: 14414, why: "a deliberate reseed beside a cache CLAIMING the current load. MUTATION: the same-load refill judged by lastMeta.w instead of the derived line (leg 9)", redAt: "6b633c7" },
   { seed: 14415, why: "a load and a ladder resolving from different sides, each newer at what it wrote. MUTATION: ensureLoadOnLadder removed from the recombination point (leg 3)", redAt: "a26e1bd" },
   { seed: 14416, why: "two devices correcting the SAME session differently, three replicas. MUTATION: replay leaving a non-canonical empty skipped[] — the bug this harness found in its own round", redAt: "87143ac" },
+  { seed: 14421, why: "two corrected records tying on corr.at, rev AND _mergeScore with different bodies. MUTATION: the base tie falling back to _richer, which ties to its second argument — merge order", redAt: "dd29e8a" },
+  { seed: 14422, why: "rows skipped WITH an amend naming it on one side, logged with no placement op on the other. MUTATION: reading 'any correction naming this lift' as deciding placement, which leaves the lift in both arrays", redAt: "dd29e8a" },
+  { seed: 883544, why: "a later act carrying an earlier stamp (a non-monotone device clock), so the replica's own body and the replay of its own corrLog disagree. Found by --explore; 17 of 17 remaining hits were this one class", redAt: "3a7edc4" },
   { seed: 1422036, why: "THE TRANSIENT-RUNG WITNESS, found by --explore and promoted: three replicas whose (w,steps) pairs each win a different sub-merge. MUTATION IT GUARDS: putting the ladder repair back at the binary merge, where it inserts a rung for a load no final state holds and makes the groupings disagree", redAt: "7cb83d2" },
   { seed: 14420, why: "THE RESTORE DRILL: a pre-correction backup rejoins carrying ONE legitimate new correction. MUTATION IT GUARDS: replaying the union over a body one side WON instead of over the accumulated body — which silently reverted two ✕s and deleted two entries, 7 to 5, identically in both orders, so convergence reported green over the loss", redAt: "4d41e2d" },
   { seed: 14419, why: "a lift whose only logged line is skipped away on both sides, so the boot cannot re-derive its caches, with the same load stamp on each so nothing rides. MUTATIONS: the unstamped-cache tie left to arrival order, and the caches not riding the load at all — both of which put lastMeta.rir/rirSets on the merge order", redAt: "87143ac" },
@@ -765,6 +836,7 @@ const MUTATIONS = [
   ["mutual-exclusion-off", "pin", "a lift is allowed to sit in entries AND skipped at once", `      if (named9.has(id9)) continue;`, `      if (true) continue;`],
   ["base-tie-by-order", "pin", "the base tie falls back to _richer, which ties to its second argument — merge order", `    return _canonJ(x) >= _canonJ(y) ? x : y;`, `    return _richer(x, y);`],
   ["fabricate-skip-provenance", "pin", "the backfill invents a correction for every id in skipped[] — P0#1, membership read as provenance", `  s.v = 57; return s;`, `  for (const d9 of Object.keys((s && s.sessionLog) || {})) { const r9 = s.sessionLog[d9]; const a9 = r9 && r9.corr && r9.corr.at; if (!a9) continue; for (const z9 of (r9.skipped || [])) if (z9 && z9.id) _fileCorr(r9, "skip:" + d9 + ":" + z9.id + ":" + a9, "skip", z9.id, a9); } s.v = 57; return s;`],
+  ["one-placement-off", "law", "the exclusion step is skipped, so a lift may sit in entries and skipped at once", `      if (dup9.length) {`, `      if (false) {`],
   ["corrections-unguarded", "pin", "the correction ledger leaves recordCounts", `    corrections: Object.values((st.sessionLog && typeof st.sessionLog === "object") ? st.sessionLog : {}).reduce((n9, r9) => n9 + ((r9 && Array.isArray(r9.corrLog)) ? r9.corrLog.length : 0), 0),`, `    corrections: 0,`],
 ];
 async function runMutations() {

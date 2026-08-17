@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.3";
+const APP_V = "7.54.4";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -12168,9 +12168,22 @@ const CORR_KINDS = ["skip", "unskip", "strike", "amend"];
 function _fileCorr(rec, op, kind, id, at, to) {
   try {
     if (!rec || typeof rec !== "object" || !op || CORR_KINDS.indexOf(kind) < 0) return rec;
-    const at9 = typeof at === "string" && isFinite(Date.parse(at)) ? at : ((rec.corr && rec.corr.at) || null);
+    let at9 = typeof at === "string" && isFinite(Date.parse(at)) ? at : ((rec.corr && rec.corr.at) || null);
     if (!at9) return rec;
     const log9 = Array.isArray(rec.corrLog) ? rec.corrLog.slice() : [];
+    /* v7.54.4 — THE RECORD'S OWN HISTORY IS THE CLOCK. Replay orders corrections
+       by `at`, and `at` comes from new Date() — but a device's clock is not
+       monotone: an NTP correction or a hand-set clock gives a LATER act an
+       EARLIER stamp, and then the device's own body disagrees with the replay of
+       its own corrLog. Found by --explore: seed 883544's replica skipped rows at
+       08-20 and un-skipped it at 08-09, ended with rows logged (last act wins on
+       the device), and replayed to skipped — every merge from then on carried
+       the contradiction. 17 of 17 remaining explore hits were this one class.
+       So a new act on a record is at least one millisecond after the latest act
+       already on it. Cross-device first-sighting is untouched: that path is
+       value-keyed on the op and returns before this. */
+    const latest9 = log9.reduce((m9, c9) => (c9 && String(c9.at || "") > m9 ? String(c9.at) : m9), "");
+    if (latest9 && String(at9) <= latest9) at9 = new Date(Date.parse(latest9) + 1).toISOString();
     const i9 = log9.findIndex((c9) => c9 && c9.op === op);
     if (i9 > -1) {
       /* a correction is a FIRST SIGHTING, like pinsBornAt: the earliest witness
