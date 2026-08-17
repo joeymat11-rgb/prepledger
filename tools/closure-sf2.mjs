@@ -1176,6 +1176,39 @@ export function runClosureSF2(T, ok, readFileSync) {
     const g9 = T.dataLossGuard(liveG, wiped);
     ok(!g9.safe && (g9.lost || []).some((x) => /^corrections /.test(x)),
       "LAW o — deleting the correction ledger is now REFUSED and named: a promise no guard enforces is a comment (observed " + J(g9) + ")");
+    /* leg 4 — THE BASE TIE IS ORDER-FREE. Executed at dd29e8a: two equally
+       corrected records — same corr.at, same rev, same byte score — resolved by
+       _richer, which ties to its SECOND argument, so curl came back [12,12,9]
+       one way and [12,12,8] the other. The header promised "never by side"; that
+       governed only the per-lift accumulation, not the choice of body. */
+    const tieRec = (curl9) => ({ d: "2026-08-09", at: 1786311986964,
+      entries: [{ id: "curl", w: 50, reps: curl9, rir: 2, rirSets: [2, null, null] }],
+      corr: { at: "2026-08-10T08:00:00.000Z", rev: 1 },
+      corrLog: [{ op: "amend:2026-08-09:curl:2026-08-10T08:00:00.000Z", kind: "amend", id: "curl", at: "2026-08-10T08:00:00.000Z", to: [{ id: "curl", w: 50 }] }] });
+    const tA = mk(tieRec([12, 12, 9])), tB = mk(tieRec([12, 12, 8]));
+    const tab = T.mergeState(cl(tA), cl(tB)), tba = T.mergeState(cl(tB), cl(tA));
+    ok(J(r09(tab)) === J(r09(tba)),
+      "LAW p — two equally-corrected records with an equal score resolve the SAME WAY from either side: the base is picked by canonical value once the stamps and revs agree, so the whole merge is order-free rather than just its second half (observed " + J(reps9(tab, "curl")) + " vs " + J(reps9(tba, "curl")) + ")");
+    /* leg 4 — A LIFT IS IN EXACTLY ONE ARRAY. entries and skipped accumulate
+       independently and replay only moves what a correction names, so a lift
+       skipped on one side and logged on the other — both INITIAL, no op either
+       way — survived into BOTH: a record saying he did and did not do the same
+       lift, which the non-shrink law then protected as if the phantom were
+       data. */
+    const dupA = mk({ d: "2026-08-09", at: 1786311986964,
+      entries: [{ id: "hack", w: 200, reps: [7, 7], rir: 2, rirSets: [2, 0] }],
+      skipped: [{ id: "rows" }],
+      corr: { at: "2026-08-10T08:00:00.000Z", rev: 1 },
+      corrLog: [{ op: "skip:2026-08-09:ham:2026-08-10T08:00:00.000Z", kind: "skip", id: "ham", at: "2026-08-10T08:00:00.000Z" }] });
+    const dupB = mk({ d: "2026-08-09", at: 1786311986964,
+      entries: [{ id: "hack", w: 200, reps: [7, 7], rir: 2, rirSets: [2, 0] }, { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] }] });
+    for (const [lbl, m9] of [["A<-B", T.mergeState(cl(dupA), cl(dupB))], ["B<-A", T.mergeState(cl(dupB), cl(dupA))]]) {
+      const inE = has9(m9, "rows"), inS = skp9(m9, "rows");
+      ok(inE !== inS,
+        "LAW q " + lbl + " — a lift ends in EXACTLY ONE of entries/skipped: an initial skip on one side and a logged entry on the other is a disagreement, not a licence to record both (observed logged " + inE + " skipped " + inS + ")");
+      ok(((r09(m9).entries) || []).length + ((r09(m9).skipped) || []).length === 3,
+        "LAW q2 " + lbl + " — and nothing is dropped to achieve it: hack, rows and the ham the correction skips — three lifts, each in exactly one place. Exclusion resolves a disagreement; it never resolves it by deleting (observed total " + (((r09(m9).entries) || []).length + ((r09(m9).skipped) || []).length) + ")");
+    }
     /* SKIP then UNSKIP — the round-trip that proves replay restores rather than deletes */
     const rt = REC();
     rt.corrLog = [...rt.corrLog, { op: "unskip:2026-08-09:pronated", kind: "unskip", id: "pronated", at: "2026-08-10T08:00:00.000Z", to: { id: "pronated", w: 40, reps: [12, 11], rir: null, rirSets: [null, null] } }];
@@ -1198,22 +1231,34 @@ export function runClosureSF2(T, ok, readFileSync) {
     /* THE BACKFILL, on the live ledger — asserted on what survives its own healing */
     const liveOut = T.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
     const ops9 = (d9) => (((liveOut.sessionLog || {})[d9] || {}).corrLog || []).map((c) => c.op).sort();
-    ok(J(ops9("2026-08-09")) === J(["restrike:2026-08-09:arms", "skip:2026-08-09:pronated"])
-      && J(ops9("2026-08-14")) === J(["amend:2026-08-14:loads", "skip:2026-08-14:calves:2026-08-14T21:57:13.968Z", "skip:2026-08-14:hipthrust:2026-08-14T21:57:13.968Z"]),
-      "LAW i (evolved by leg 3) — THE BACKFILL, now DERIVED rather than listed: the two payload-carrying ops stay hand-written because their values cannot be read off the shape, and every lift sitting in a skipped[] gets its own replayable op. 8/14 carried rev 4 with ONE replayable correction; it has three now (observed 8/09 " + J(ops9("2026-08-09")) + " · 8/14 " + J(ops9("2026-08-14")) + ")");
-    const covered9 = Object.keys(liveOut.sessionLog || {}).filter((d9) => ops9(d9).length).sort();
-    const corrDates9 = Object.keys(liveOut.sessionLog || {}).filter((d9) => ((liveOut.sessionLog[d9] || {}).corr || {}).at).sort();
-    ok(covered9.every((d9) => corrDates9.indexOf(d9) > -1) && covered9.length === 4 && corrDates9.length === 5,
-      "LAW j (evolved by leg 3) — the backfill covered 2 of his 5 corrected records; it covers 4 now, and only corrected records are touched. THE FIFTH IS DELIBERATE: 2026-08-10 carries a correction that removed nothing and skipped nothing (skipped[] is empty), so its shape proves no act — and inventing an op for it would be the leg-4 mistake in a second currency. What is derivable is derived; what is not is left alone and protected by the accumulating base instead (observed covered " + J(covered9) + " · corrected " + J(corrDates9) + ")");
-    ok((((liveOut.sessionLog || {})["2026-08-10"] || {}).skipped || []).length === 0,
-      "LAW j3 — and that is checked, not assumed: 8/10 has an empty skipped[], which is exactly why nothing could be derived from it");
-    for (const d9 of corrDates9) {
-      const rec9 = liveOut.sessionLog[d9] || {};
-      const skips9 = (rec9.skipped || []).map((z) => z.id).sort();
-      const named9 = (rec9.corrLog || []).filter((c) => c && c.kind === "skip").map((c) => c.id).sort();
-      ok(J(skips9) === J(named9),
-        "LAW j2 — " + d9 + ": every skipped lift has an op that can put it back where it sits, which is the direction that loses data silently (observed skipped " + J(skips9) + " · described " + J(named9) + ")");
+    ok(J(ops9("2026-08-09")) === J(["restrike:2026-08-09:arms", "skip:2026-08-09:pronated"]) && J(ops9("2026-08-14")) === J(["amend:2026-08-14:loads"]),
+      "LAW i (leg 4 — ROLLED BACK) — the backfill names KNOWN corrections and derives nothing: the two value-keyed ops whose payloads cannot be read off the shape, plus the one skip that patchV56 proves by shape. A general sweep over skipped[] was the overreach and it is gone (observed 8/09 " + J(ops9("2026-08-09")) + " · 8/14 " + J(ops9("2026-08-14")) + ")");
+    /* THE DISTINCTION THE WHOLE LEG IS ABOUT: skipped[] holds an INITIAL skip
+       (completeSession, part of the body, no provenance) and a CORRECTION skip
+       (the ✕ handler, a deliberate act) in one shape. His real records carry
+       both, so membership can never be read as provenance. */
+    const initial9 = [["2026-07-23", "pronated"], ["2026-07-31", "ham"], ["2026-08-14", "hipthrust"]];
+    for (const [d9, id9] of initial9) {
+      const has9 = (((liveOut.sessionLog || {})[d9] || {}).corrLog || []).some((c9) => c9 && c9.kind === "skip" && c9.id === id9);
+      ok(!has9,
+        "LAW j (leg 4) — " + d9 + " " + id9 + " sits in skipped[] and earns NO correction op: nothing in the record proves it was a later act rather than a skip made while logging (8/14's own feed says \"SKIPPED — Hip thrust machine…\" at completion). Inventing one dates a fabricated skip to an unrelated correction, and a fabricated skip stamped later than a genuine un-skip DELETES the athlete's only real word on that lift (observed op present: " + has9 + ")");
     }
+    /* THE WITNESS ITSELF, on frozen literals — his 8/16 record's shape, which
+       the tree's ledger copy may not carry yet (it syncs from his phone, and a
+       pin that waits for a date is a pin that reports nothing until it does). */
+    const w16 = cl(T.SEED); w16.v = 56;
+    w16.sessionLog = { "2026-08-16": { d: "2026-08-16", at: 1786900000000,
+      entries: [{ id: "hack", w: 200, reps: [7, 7, 8], rir: 2, rirSets: [2, null, 0] }],
+      skipped: [{ id: "rows" }, { id: "sulek" }],
+      corr: { at: "2026-08-17T09:00:00.000Z", rev: 1 },
+      corrLog: [{ op: "skip:2026-08-16:ham:2026-08-17T09:00:00.000Z", kind: "skip", id: "ham", at: "2026-08-17T09:00:00.000Z" }] } };
+    const o16 = T.migrate(w16);
+    const ops16 = (((o16.sessionLog || {})["2026-08-16"] || {}).corrLog || []).map((c) => c.op).sort();
+    ok(J(ops16) === J(["skip:2026-08-16:ham:2026-08-17T09:00:00.000Z"]),
+      "LAW j2 (leg 4) — THE WITNESS: a record carrying two INITIAL skips plus ONE unrelated correction files nothing for those two. Executed red at dd29e8a, where the boot invented skip ops for rows and sulek dated to the ham correction — and a fabricated skip stamped later than a genuine un-skip deletes the athlete's only real word on the lift, in both merge orders (observed " + J(ops16) + ")");
+    const covered9 = Object.keys(liveOut.sessionLog || {}).filter((d9) => ops9(d9).length).sort();
+    ok(J(covered9) === J(["2026-08-09", "2026-08-14"]),
+      "LAW j3 (leg 4) — exactly the two records whose corrections are provable by shape are replayable, and an initial skip needs no op: it is in skipped[] on every replica and survives a merge because of that (observed " + J(covered9) + ")");
     const twice9 = T.migrate(JSON.parse(JSON.stringify(liveOut)));
     ok(J(twice9.sessionLog) === J(liveOut.sessionLog),
       "LAW k — the backfill is idempotent: a replayed migrate files nothing new and re-dates nothing");

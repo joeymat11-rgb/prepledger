@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.1";
+const APP_V = "7.54.2";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -10156,21 +10156,28 @@ function patchV57(s) {
      instead, without claiming to know how they got there.
      Records with no corr take nothing. _fileCorr is first-sighting, so a
      re-run re-dates nothing and the ops patchV56 already filed stand. */
-  const log9 = (s && s.sessionLog) || {};
-  for (const d9 of Object.keys(log9)) {
-    const rec9 = log9[d9];
-    if (!rec9 || typeof rec9 !== "object") continue;
-    const at9 = rec9.corr && typeof rec9.corr.at === "string" && isFinite(Date.parse(rec9.corr.at)) ? rec9.corr.at : null;
-    if (!at9) continue;                                                            /* no stamp, no correction to describe */
-    for (const z9 of (Array.isArray(rec9.skipped) ? rec9.skipped : [])) {
-      if (!z9 || !z9.id) continue;
-      /* one act, one entry: patchV56 already described some of these under the
-         older state-shaped key, and filing a second op for the same act would
-         put the same correction in the ledger twice. */
-      if ((rec9.corrLog || []).some((c9) => c9 && c9.kind === "skip" && c9.id === z9.id)) continue;
-      _fileCorr(rec9, "skip:" + d9 + ":" + z9.id + ":" + at9, "skip", z9.id, at9);
-    }
-  }
+  /* ROLLED BACK, AND THE ROLLBACK IS THE POINT. skipped[] holds TWO DIFFERENT
+     THINGS wearing one shape: an INITIAL skip, written by completeSession while
+     the session was logged (no correction, no provenance, part of the body),
+     and a CORRECTION skip, written by the ✕ handler as a deliberate later act.
+     Membership cannot tell them apart, so a sweep over skipped[] invents
+     corrections for the first kind — and it fired on his REAL data: 8/16 holds
+     rows and sulek, both initial (the feed says "SKIPPED — Prime seated row,
+     Sulek wrist curl", not "RECORD AMENDED"), and 8/14's hipthrust is initial
+     too. One unrelated correction to such a record would file skip ops dated to
+     that unrelated act, and a fabricated skip stamped LATER than a genuine
+     un-skip deletes the athlete's only real word on the lift, in both orders.
+     That is this round's own bug pointed the other way: last leg a stale
+     replica RESURRECTED a struck lift; here a fabricated skip DELETES a real
+     un-skip. Both are membership read as provenance.
+     So nothing is derived. The specific, value-keyed backfills stay in
+     patchV56 — they name known historical corrections and are provable by
+     shape. From v57 forward every genuine correction-skip files its own op
+     through the ✕ handler and needs no backfill; an initial skip is part of the
+     session body, sits in skipped[] on every replica, and survives a merge
+     because of that — it never needed an op, and giving it one is the
+     fabrication. SCHEMA_V stays 57: the step still exists, it just no longer
+     claims to know something the record cannot prove. */
   s.v = 57; return s;
 }
 function patchV56(s) {
@@ -12242,7 +12249,35 @@ function _mergeSession(x, y) {
   };
   const ents9 = addMissing("entries"); if (ents9 !== undefined) merged.entries = ents9;
   const skip9 = addMissing("skipped"); if (skip9 !== undefined) merged.skipped = skip9;
-  return _replayCorrections(merged);
+  const out9 = _replayCorrections(merged);
+  /* MUTUAL EXCLUSION, and it is a SEMANTICS CALL so here is the choice and the
+     reason. entries and skipped accumulate independently, and replay only moves
+     the lifts a correction names — so a lift skipped on one side and logged on
+     the other, with no op either way (both INITIAL, per FIX 1), survived into
+     BOTH arrays: a record saying he did and did not do the same lift, which the
+     non-shrink law then dutifully protected as if the phantom were data.
+     THE RULE: a correction decides placement where one exists — replay has
+     already applied it, so the arrays it touched are right. Otherwise the lift
+     stays where the BASE put it, the base being the order-free pick from FIX 4.
+     Never "whichever array was filled last", and never dropped from both: a
+     lift present on either side must remain present somewhere, which is the
+     non-shrink law's whole point and is correct. */
+  try {
+    const ents = Array.isArray(out9.entries) ? out9.entries : [];
+    const skips = Array.isArray(out9.skipped) ? out9.skipped : [];
+    const dup9 = ents.filter((e9) => e9 && skips.some((z9) => z9 && z9.id === e9.id)).map((e9) => e9.id);
+    if (dup9.length) {
+      const named9 = new Set((out9.corrLog || []).map((c9) => c9 && c9.id).filter(Boolean));
+      const baseSkip9 = new Set((Array.isArray(base.skipped) ? base.skipped : []).map((z9) => z9 && z9.id));
+      for (const id9 of dup9) {
+        if (named9.has(id9)) continue;                                             /* a correction already decided this one */
+        if (baseSkip9.has(id9)) out9.entries = out9.entries.filter((e9) => !(e9 && e9.id === id9));
+        else out9.skipped = out9.skipped.filter((z9) => !(z9 && z9.id === id9));
+      }
+      if (Array.isArray(out9.skipped) && !out9.skipped.length && !Array.isArray(base.skipped)) delete out9.skipped;
+    }
+  } catch (e) {}
+  return out9;
 }
 function _sessionAtMs(v) { const n = v && +v.at; return isFinite(n) ? n : 0; }
 function _richerSession(x, y) {
@@ -12251,7 +12286,15 @@ function _richerSession(x, y) {
   if (cx && cy) {                                                              // 4
     if (cx.at !== cy.at) return cx.at > cy.at ? x : y;
     if (cx.rev !== cy.rev) return cx.rev > cy.rev ? x : y;
-    return _richer(x, y);
+    /* v7.54.2 — AND THE LAST TIE IS ORDER-FREE TOO. _richer ties to its SECOND
+       argument, which is merge order, so two equally-corrected records with an
+       equal byte score resolved by which side arrived: executed, curl came back
+       [12,12,9] one way and [12,12,8] the other. The per-lift accumulation was
+       already broken by canonical value; the BASE selection was not, so half
+       the merge was order-free and the half that chooses the body was not. */
+    const rr9 = _richer(x, y), other9 = rr9 === x ? y : x;
+    if (_mergeScore(rr9) !== _mergeScore(other9)) return rr9;
+    return _canonJ(x) >= _canonJ(y) ? x : y;
   }
   const stamped = cx ? x : y, plain = cx ? y : x, c = cx || cy;
   return _sessionAtMs(plain) > Date.parse(c.at) ? plain : stamped;             // 3 : 2
