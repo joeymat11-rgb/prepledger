@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.7";
+const APP_V = "7.54.8";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -12165,7 +12165,16 @@ const CACHE_RIDERS = ["last", "lastMeta"];
    instant, so it still collapses to one entry, and the derived backfill
    produces the same key everywhere. */
 const CORR_KINDS = ["skip", "unskip", "strike", "amend"];
-function _fileCorr(rec, op, kind, id, at, to) {   /* op is a REQUEST: _fileCorr owns the effective stamp and rebuilds the key from it when the record's own history forces one */
+/* live: true means an act happening NOW, through a handler, on a device whose
+   clock cannot be trusted to move forward. A PATCH filing is a historical
+   restatement — several ops sharing one instant is that record's history, not a
+   clock fault — so it files at the record's own stamp, bumps nothing, and never
+   touches rec.corr. Without this split a boot REWROTE his correction stamps
+   (8/09 …31.672Z -> …31.673Z, 8/14 …13.968Z -> …13.970Z) because the backfill
+   files several ops at one at: idempotent, but a boot must not rewrite an
+   athlete stamp, and a migrated replica would out-order an un-migrated one on
+   at alone. */
+function _fileCorr(rec, op, kind, id, at, to, opts) {   /* op is a REQUEST: on a LIVE act _fileCorr owns the effective stamp and rebuilds the key from it when the record's own history forces one */
   try {
     if (!rec || typeof rec !== "object" || !op || CORR_KINDS.indexOf(kind) < 0) return rec;
     let at9 = typeof at === "string" && isFinite(Date.parse(at)) ? at : ((rec.corr && rec.corr.at) || null);
@@ -12183,7 +12192,7 @@ function _fileCorr(rec, op, kind, id, at, to) {   /* op is a REQUEST: _fileCorr 
        already on it. Cross-device first-sighting is untouched: that path is
        value-keyed on the op and returns before this. */
     const latest9 = log9.reduce((m9, c9) => (c9 && String(c9.at || "") > m9 ? String(c9.at) : m9), "");
-    if (latest9 && String(at9) <= latest9) {
+    if ((opts && opts.live) && latest9 && String(at9) <= latest9) {
       at9 = new Date(Date.parse(latest9) + 1).toISOString();
       /* AND THE KEY CARRIES THE EFFECTIVE STAMP. The bump used to happen AFTER
          the caller had already built the op from its RAW wall stamp, and the
@@ -12317,8 +12326,18 @@ function _mergeSession(x, y) {
      it is pinned. Differing bodies accumulate and resolve per lift. */
   const bodyOf9 = (v9) => _canonJ({ e: (Array.isArray(v9 && v9.entries) ? v9.entries : []), s: (Array.isArray(v9 && v9.skipped) ? v9.skipped : []) });
   const sameBody9 = bodyOf9(x) === bodyOf9(y);
+  /* IDENTICAL BODIES ARE RETURNED VERBATIM ON EVERY PATH — order and all.
+     This short-circuit only guarded the no-correction path, so a CORRECTED
+     record whose two copies were already identical still went through replay
+     and the id-sort, and every sync reordered five of his real sessions:
+     8/14's entries came back [abs, extension, …] instead of [hack, extension,
+     …] and its skipped list flipped to [calves, hipthrust]. Sol's id-order
+     ruling was for DIFFERING bodies on the tie path; nothing about it asked a
+     merge to rewrite a record both sides already agree on. The corrLog union
+     still travels — dropping it would lose a correction one side had learned —
+     but the body is not touched. */
+  if (sameBody9) return union.length ? { ...JSON.parse(JSON.stringify(base)), corrLog: union } : base;
   if (!union.length) {
-    if (sameBody9) return base;                                                    /* identical bodies: the base, with its order preserved */
     /* A RECORD-LEVEL corr WITH NO OPS IS STILL AN AUTHORITY. Measured the hard
        way: accumulating here resurrected the very phantom a pre-corrLog
        correction had removed — the stamp is the only evidence such a record
@@ -16247,7 +16266,7 @@ function LogTab({ s, setS, save, slp }) {
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontFamily: mono, fontSize: TS.label, alignItems: "center" }}>
                     <span style={{ color: T.chalk }}>{ex ? ex.n : e.id}</span>
                     <span style={{ color: T.steel, display: "flex", gap: 8, alignItems: "center" }}>{e.w != null ? e.w + " × " : ""}{(e.reps || []).join(",")}{rirTxt ? " · " + rirTxt : ""}
-                      <span onClick={() => { if (((done.entries || []).length) <= 1) { window.alert((ex ? ex.n : e.id) + " is the only lift left on this session.\n\nRemoving it would leave the day empty, and an empty session cannot be told apart from a sync artefact later. Voiding a whole day is a separate, deliberate act — this control will not do it.\n\nNothing has been changed."); return; }   /* DECIDED: refuse, and refuse VISIBLY — a rule that silently declines is the same failure class as one that silently reverts */ if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); _stampCorr(rec); _fileCorr(rec, "skip:" + dateSel + ":" + e.id + ":" + ((rec.corr && rec.corr.at) || ""), "skip", e.id, rec.corr && rec.corr.at);   /* CORRECTION_MERGE — without this the removal is an unmarked shrink and the phone reverts it. v7.54.0: and the corrLog entry is what makes it survive a merge against a replica that never learned it — the record-level stamp cannot, because this record carries more than one correction. */ const exL = (ns.exercises || []).find((z) => z.id === e.id); if (exL) { const dm = deriveLastMeta(ns, e.id); if (dm) { exL.lastMeta = dm; exL.last = dm.reps.slice(); } else { exL.lastMeta = { d: null, w: exL.w, reps: [], rir: null, rirSets: [], debt: false }; exL.last = null; }   /* ex.last is the SECOND denormalised cache completeSession writes, and targetsFor gates on it. Re-derived with lastMeta or they drift apart — which is how a removed entry kept driving a target. */ }   /* the cache progressStep reads must follow the log — the earlier ledger repairs did not do this and the phantom kept driving targets */ ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
+                      <span onClick={() => { if (((done.entries || []).length) <= 1) { window.alert((ex ? ex.n : e.id) + " is the only lift left on this session.\n\nRemoving it would leave the day empty, and an empty session cannot be told apart from a sync artefact later. Voiding a whole day is a separate, deliberate act — this control will not do it.\n\nNothing has been changed."); return; }   /* DECIDED: refuse, and refuse VISIBLY — a rule that silently declines is the same failure class as one that silently reverts */ if (!window.confirm("Mark " + (ex ? ex.n : e.id) + " as skipped? Its reps leave the record.")) return; const ns = JSON.parse(JSON.stringify(s)); const rec = ns.sessionLog[dateSel]; rec.skipped = [...(rec.skipped || []), { id: e.id }]; rec.entries = rec.entries.filter((x2) => x2.id !== e.id); _stampCorr(rec); _fileCorr(rec, "skip:" + dateSel + ":" + e.id + ":" + ((rec.corr && rec.corr.at) || ""), "skip", e.id, rec.corr && rec.corr.at, undefined, { live: true });   /* CORRECTION_MERGE — without this the removal is an unmarked shrink and the phone reverts it. v7.54.0: and the corrLog entry is what makes it survive a merge against a replica that never learned it — the record-level stamp cannot, because this record carries more than one correction. */ const exL = (ns.exercises || []).find((z) => z.id === e.id); if (exL) { const dm = deriveLastMeta(ns, e.id); if (dm) { exL.lastMeta = dm; exL.last = dm.reps.slice(); } else { exL.lastMeta = { d: null, w: exL.w, reps: [], rir: null, rirSets: [], debt: false }; exL.last = null; }   /* ex.last is the SECOND denormalised cache completeSession writes, and targetsFor gates on it. Re-derived with lastMeta or they drift apart — which is how a removed entry kept driving a target. */ }   /* the cache progressStep reads must follow the log — the earlier ledger repairs did not do this and the phantom kept driving targets */ ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + (ex ? ex.n : e.id) + " marked skipped on " + fmtShort(dateSel), how: "honesty over history — phantom reps removed from every instrument" }); setS(ns); save(ns); }} style={{ fontFamily: mono, fontSize: TS.label, color: T.steel, border: `1px solid ${T.line}`, borderRadius: 999, padding: "2px 7px", cursor: "pointer" }}>✕</span>
                     </span>
                   </div>
                 ); })}
@@ -16273,7 +16292,7 @@ function LogTab({ s, setS, save, slp }) {
                           rec.skipped = (rec.skipped || []).filter((z) => z.id !== k.id);
                           const exN = (ns.exercises || []).find((z) => z.id === k.id) || {};
                           const en = { id: k.id, reps, rir: null, rirSets: buildRirSets({ reps, rir: null, rirEnd: null }, reps.length), w: typeof exN.w === "number" ? exN.w : null };
-                          rec.entries = [...(rec.entries || []), en]; _stampCorr(rec); _fileCorr(rec, "unskip:" + dateSel + ":" + k.id + ":" + ((rec.corr && rec.corr.at) || ""), "unskip", k.id, rec.corr && rec.corr.at, en);   /* CORRECTION_MERGE — un-skipping already wins on score, but the stamp makes it deliberate to a third device and orders it against any competing correction. v7.54.0: the entry travels with the correction, so a replay can restore the reps he typed rather than merely un-marking the skip. */
+                          rec.entries = [...(rec.entries || []), en]; _stampCorr(rec); _fileCorr(rec, "unskip:" + dateSel + ":" + k.id + ":" + ((rec.corr && rec.corr.at) || ""), "unskip", k.id, rec.corr && rec.corr.at, en, { live: true });   /* CORRECTION_MERGE — un-skipping already wins on score, but the stamp makes it deliberate to a third device and orders it against any competing correction. v7.54.0: the entry travels with the correction, so a replay can restore the reps he typed rather than merely un-marking the skip. */
                           const dm = deriveLastMeta(ns, k.id); if (exN) { if (dm) { exN.lastMeta = dm; exN.last = dm.reps.slice(); } else { exN.lastMeta = { d: null, w: exN.w, reps: [], rir: null, rirSets: [], debt: false }; exN.last = null; } }   /* ex.last too — see the ✕ handler. The else now ALSO empties lastMeta like that handler: the maxed-ladder heal restores any same-load null from lastMeta.reps, so leaving stale reps behind a null would resurrect them at the next schema bump */
                           ns.feed.unshift({ d: isoOf(todayStart()), t: "RECORD AMENDED — " + ex.n + " UN-SKIPPED on " + fmtShort(dateSel), how: `logged ${reps.join(",")} — it was on the record as skipped and it should not have been. Reps entered by hand, not inferred; RIR is left unrecorded because it was never captured.` });
                           setS(ns); save(ns);
