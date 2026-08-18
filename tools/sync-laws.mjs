@@ -104,7 +104,7 @@ const OPS = {
     rec.skipped = [...(rec.skipped || []), { id: e.id }];
     rec.entries = rec.entries.filter((x) => x.id !== e.id);
     T._stampCorr(rec); rec.corr = { at: ctx.stamp, rev: (rec.corr || {}).rev };   /* DIFFERENT DEVICES HAVE DIFFERENT CLOCKS. _stampCorr reads the wall clock, which the suite freezes — so composed faithfully, every correction in a run would stamp the SAME instant and no law could ever distinguish an ordering rule from its opposite. (That is precisely why the corrLog earliest-wins rule looked like an equivalent mutant: min and max coincide when every at is equal.) The generator supplies the instant, per this harness's own determinism rule. */
-    if (T._fileCorr) T._fileCorr(rec, "skip:" + d + ":" + e.id + ":" + ((rec.corr && rec.corr.at) || ""), "skip", e.id, rec.corr && rec.corr.at);   /* the PRODUCTION key shape (src/app.jsx) — testing a key the app no longer writes is testing nothing */
+    if (T._fileCorr) T._fileCorr(rec, "skip:" + d + ":" + e.id + ":" + ((rec.corr && rec.corr.at) || ""), "skip", e.id, rec.corr && rec.corr.at, undefined, { live: true });   /* the PRODUCTION key shape (src/app.jsx) — testing a key the app no longer writes is testing nothing */
     ctx.did.push({ d, id: e.id, kind: "skip" });
     reDerive(s, e.id);
     return s;
@@ -120,7 +120,7 @@ const OPS = {
     const en = { id: k.id, reps, rir: null, rirSets: T.buildRirSets({ reps, rir: null, rirEnd: null }, reps.length), w: typeof exN.w === "number" ? exN.w : null };
     rec.entries = [...(rec.entries || []), en];
     T._stampCorr(rec); rec.corr = { at: ctx.stamp, rev: (rec.corr || {}).rev };   /* the device's own clock — see the skip op */
-    if (T._fileCorr) T._fileCorr(rec, "unskip:" + d + ":" + k.id + ":" + ((rec.corr && rec.corr.at) || ""), "unskip", k.id, rec.corr && rec.corr.at, en);
+    if (T._fileCorr) T._fileCorr(rec, "unskip:" + d + ":" + k.id + ":" + ((rec.corr && rec.corr.at) || ""), "unskip", k.id, rec.corr && rec.corr.at, en, { live: true });
     ctx.did.push({ d, id: k.id, kind: "unskip" });
     reDerive(s, k.id);
     return s;
@@ -173,7 +173,7 @@ const OPS = {
     e.w = e.w + pick(r, [5, 10, -10]);
     e.wCorrAt = ctx.stamp;
     T._stampCorr(rec); rec.corr = { at: ctx.stamp, rev: (rec.corr || {}).rev };   /* the device's own clock — see the skip op */
-    if (T._fileCorr) T._fileCorr(rec, "amend:" + d + ":" + e.id + ":" + ((rec.corr && rec.corr.at) || ""), "amend", e.id, rec.corr && rec.corr.at, [{ id: e.id, w: e.w }]);
+    if (T._fileCorr) T._fileCorr(rec, "amend:" + d + ":" + e.id + ":" + ((rec.corr && rec.corr.at) || ""), "amend", e.id, rec.corr && rec.corr.at, [{ id: e.id, w: e.w }], { live: true });
     return s;
   },
   /* the transport is JSON: a law that only holds in memory is not a law. */
@@ -258,11 +258,14 @@ const AIM = {
       rec.entries = rec.entries.filter((e) => e.id !== "rows"); rec.skipped = [{ id: "rows" }];
       fire("skip", "2026-08-10T09:00:00.000Z");
       return ["skip@09:00 then unskip@09:10 then skip@09:00 again (backward clock)", "(untouched)", "(untouched)"]; },
+    /* THE INPUT SHAPE ONLY. Asserting the OUTPUT (three ops strictly
+       increasing) meant breaking the writer made this "did not form" — a
+       scenario failure, not a law — so the mutation it exists to catch could
+       never be credited. A formation check answers "did the scenario happen",
+       never "did the system behave"; that second question is self-consistent's. */
     assert: (out) => {
-      const l = ((out[0].sessionLog["2026-08-09"] || {}).corrLog) || [];
-      if (l.length !== 3) return false;
-      for (let i = 1; i < l.length; i++) if (!(String(l[i].at) > String(l[i - 1].at))) return false;
-      return (out[0].sessionLog["2026-08-09"].skipped || []).some((z) => z.id === "rows"); } },
+      const r9 = out[0].sessionLog["2026-08-09"] || {};
+      return ((r9.corrLog || []).length >= 2) && (r9.skipped || []).some((z) => z.id === "rows"); } },
   /* THE ATHLETE'S LATER WORD: a lift whose own wAt post-dates the entry's
      wCorrAt. The correction is real, he has since said something newer, and the
      reconciler must leave it. */
@@ -544,6 +547,14 @@ const AIM = {
        design); the generator hands it in, exactly like seed 883544. */
     rec2.corrLog = [...(rec2.corrLog || []), { op: "unskip:2026-08-09:rows:2026-08-11T08:00:00.000Z", kind: "unskip", id: "rows", at: "2026-08-11T08:00:00.000Z", to: en2 }]
       .sort((p, q) => (String(p.at) + "|" + p.op < String(q.at) + "|" + q.op ? -1 : 1));
+    /* and the BODY reflects this replica's own last act — the skip at 08-12,
+       which is later than the un-skip at 08-11. Handing in a corrLog whose
+       replay disagrees with the body handed in beside it made the replica
+       self-inconsistent by construction, and the self-consistent law caught it
+       the moment that law existed. The seed tests replay ORDER; it never needed
+       the replica to contradict itself to do that. */
+    rec2.entries = (rec2.entries || []).filter((e) => e.id !== "rows");
+    rec2.skipped = [...(rec2.skipped || []), { id: "rows" }];
     return ["skip[rows]@08-10", "skip[rows]@08-12 + unskip[rows]@08-11", "(untouched)"]; },
     /* THE DISTINGUISHING SHAPE, not the ingredients — and the reason two
        attempts read false against a shape that forms: the fixture was still
@@ -864,6 +875,27 @@ const LAWS = [
         } }
       return null; } },
 
+  { name: "self-consistent",
+    says: "a record agrees with its own history: replaying its corrLog over its own body changes no placement",
+    /* THE INVARIANT L5-b BREAKS, stated as a law at last. It was only ever an
+       aimed seed's ASSERT, so breaking the writer made the scenario fail to
+       form — an aimed-scenario, which N-1 rightly refuses to credit as a law,
+       and which reads as harness noise on an old engine rather than as the
+       defect it is. Cheap and exact: if a device's own acts do not order
+       themselves, its body and a replay of its own corrLog disagree, and every
+       merge from then on carries the contradiction. */
+    check: (A, B, C) => {
+      const place9 = (r9) => J({ e: ((r9 && r9.entries) || []).map((e) => e && e.id).sort(), s: ((r9 && r9.skipped) || []).map((z) => z && z.id).sort() });
+      for (const [nm9, s9] of [["A", A], ["B", B], ["C", C]]) {
+        if (!s9) continue;
+        for (const [d9, r9] of Object.entries(s9.sessionLog || {})) {
+          if (!((r9 && r9.corrLog) || []).length) continue;
+          if (typeof T._replayCorrections !== "function") continue;
+          const after9 = T._replayCorrections(cl(r9));
+          if (place9(r9) !== place9(after9)) return { got: nm9 + ": " + d9 + " — the body says " + place9(r9) + " and a replay of its OWN corrLog says " + place9(after9) };
+        } }
+      return null; } },
+
   { name: "one-placement",
     says: "in every settled session a lift is in at most one of entries and skipped",
     /* N-5: this was a pin only, so an engine that put a lift in BOTH arrays
@@ -968,7 +1000,7 @@ const MUTATIONS = [
   ["idempotence-normalizes-forever", "law", "the plan normalizer re-stamps on every merge, so merge(A,A) never reaches a fixed point", `  out.plan = _unionPlan(remote.plan, local.plan);`, `  out.plan = { ..._unionPlan(remote.plan, local.plan), rev: ((local.plan || {}).rev || 0) + 1 };`],
   ["athlete-word-ignored", "law", "the reconciler adopts even when the athlete's own stamp is newer than the correction's", `      if (!(at > String(ex.wAt || ""))) continue;`, `      if (false) continue;`],
   ["receipt-names-the-old-load", "law", "the reconciliation receipt names the load being replaced instead of the one written", `" " + from + " → " + enC.w, how: "The corrected record says " + enC.w`, `" " + from + " → " + from, how: "The corrected record says " + from`],
-  ["fileCorr-not-monotone", "law", "a live act filed with a backward wall stamp keeps it, so a record's own acts stop ordering themselves", `    if ((opts && opts.live) && latest9 && String(at9) <= latest9) {`, `    if (false) {`],
+  ["fileCorr-not-monotone", "law", "a live act filed with a backward wall stamp keeps it, so a record's own acts stop ordering themselves and its body contradicts a replay of its own corrLog", `    if ((opts && opts.live) && latest9 && String(at9) <= latest9) {`, `    if (false) {`],
   ["ladder-repair-at-merge", "law", "the ladder repair is put BACK at the binary merge, where it inserts a rung for a load only the transient pair holds", `      return w2;`, `      return ensureLoadOnLadder(w2);`],
   ["ladder-repair-off", "law", "the load/ladder invariant is dropped at the BOOT — its only site now that the merge is pure", `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = ensureLoadOnLadder(exs9[i9]);`, `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = exs9[i9];`],
   ["sameload-cache-claim", "law", "the same-load refill trusts the cache's own claim again", `      const dm0 = deriveLastMeta(s, ex.id);`, `      const dm0 = ex.lastMeta;`],
@@ -1122,7 +1154,16 @@ const shapeMiss = (() => {
   const Q = String.fromCharCode(34);
   for (const [k9, v9] of [["skip", "e"], ["unskip", "k"], ["amend", "e"]]) {
     const needle = "T._fileCorr(rec, " + Q + k9 + ":" + Q + " + d + " + Q + ":" + Q + " + " + v9 + ".id + " + Q + ":" + Q;
-    if (self.indexOf(needle) < 0) selfMiss.push("the harness's own " + k9 + " writer no longer uses the act-shaped key the app writes");
+    const at9 = self.indexOf(needle);
+    if (at9 < 0) { selfMiss.push("the harness's own " + k9 + " writer no longer uses the act-shaped key the app writes"); continue; }
+    /* AND THE CALL, not just the key. The guard checked the key string only, so
+       when the monotone bump became live-only at leg 10 the three generator
+       writers kept calling _fileCorr WITHOUT opts — modelling a writer the app
+       no longer has — and the guard said nothing. Twelve explore hits later,
+       all of them that one drift. Sol's hunt (1) said this class recurs unless
+       the guard reads the writers; it recurred one leg on. */
+    const line9 = self.slice(at9, self.indexOf(String.fromCharCode(10), at9));
+    if (line9.indexOf("live: true") < 0) selfMiss.push("the harness's own " + k9 + " writer no longer declares { live: true } — it is modelling a writer the app does not have");
   }
   const src = fs.readFileSync(at("src/app.jsx"), "utf8");
   const need = [
