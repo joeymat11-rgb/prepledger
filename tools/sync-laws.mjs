@@ -326,19 +326,31 @@ const AIM = {
        and C tied on wAt the sub-merge load was already a rung and the defect
        never formed, which is how this seed sat green on the very engine it was
        promoted to catch. */
-    /* THE ASSERT CALLS PRODUCTION. It used to hand-model the merge — and its
-       model returned the second argument on an equal wAt while production
-       tie-breaks equal stamps by VALUE, so with B and C tied the assert said
-       "formed" while production resolved a load that was already a rung and the
-       mutation went uncaught. An assert that models the system under test is
-       the rig-first hazard this round exists to kill. */
+    /* THE ASSERT READS THE INPUTS, AND ONLY THE INPUTS — the third position it
+       has held, and the reasoning is worth keeping because both earlier ones
+       were wrong in opposite directions.
+       It first hand-MODELLED the merge, and the model disagreed with production
+       on an equal stamp, so it reported "formed" on a shape that had not.
+       It was then anchored to T.mergeState — and that is worse in a way that is
+       easy to miss: on the very engine this seed exists to catch, the one that
+       still repairs at merge, the production sub-merge ALREADY CONTAINS the
+       repaired ladder, so the assert read "no insertion wanted" and reported
+       'did not form'. The associativity law then never ran there at all. An
+       assert that calls the system under test cannot tell "the shape did not
+       form" from "the system hides the shape."
+       So every clause below is a fact about the three inputs. Strict, because
+       an equal wAt is exactly the disarm this seed must refuse. */
     assert: (out) => {
       if (out.length < 3) return false;
       const g9 = (s9) => (s9.exercises || []).find((z) => z && z.id === "hack") || {};
-      const bc = T.mergeState(cl(out[1]), cl(out[2]));                               /* the real sub-merge */
-      const all = T.mergeState(cl(out[0]), cl(bc));                                  /* and the real whole */
-      const bcL = g9(bc), allL = g9(all);
-      return (bcL.steps || []).indexOf(bcL.w) < 0 && (allL.steps || []).indexOf(allL.w) > -1; } },
+      const a9 = g9(out[0]), b9 = g9(out[1]), c9 = g9(out[2]);
+      const at = (x9) => String(x9 || "");
+      return at(c9.wAt) > at(b9.wAt)                                   /* C's load wins B+C */
+        && at(c9.stepsAt) > at(b9.stepsAt)                             /* C's ladder wins B+C */
+        && (c9.steps || []).indexOf(c9.w) < 0                          /* so the sub-merge pair WANTS an insertion */
+        && at(a9.wAt) > at(c9.wAt)                                     /* A's load wins the whole */
+        && (c9.steps || []).indexOf(a9.w) > -1                         /* which the final pair does NOT want */
+        && a9.stepsAt === undefined; } },
   /* THE RESTORE DRILL — cowork's witness, committed. A pre-correction backup of
      the 8/14 record rejoins today, and on it the athlete makes ONE legitimate
      new correction. Before FIX 2, his newer stamp correctly made the restored
@@ -849,6 +861,7 @@ const MUTATIONS = [
   ["union-drops-remote", "law", "the corrLog union reads only one side", `for (const c9 of [...(Array.isArray(x && x.corrLog) ? x.corrLog : []), ...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`, `for (const c9 of [...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`],
   ["replay-disabled", "pin", "the union is carried but never replayed", `  const out9 = _replayCorrections(merged);`, `  const out9 = merged;`],
   ["base-votes", "law", "the base stops accumulating — the defect this leg closes", `  const ents9 = addMissing("entries"); if (ents9 !== undefined) merged.entries = ents9;`, `  const ents9 = undefined; if (ents9 !== undefined) merged.entries = ents9;`],
+  ["ladder-repair-at-merge", "law", "the ladder repair is put BACK at the binary merge, where it inserts a rung for a load only the transient pair holds", `      return w2;`, `      return ensureLoadOnLadder(w2);`],
   ["ladder-repair-off", "law", "the load/ladder invariant is dropped at the BOOT — its only site now that the merge is pure", `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = ensureLoadOnLadder(exs9[i9]);`, `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = exs9[i9];`],
   ["sameload-cache-claim", "law", "the same-load refill trusts the cache's own claim again", `      const dm0 = deriveLastMeta(s, ex.id);`, `      const dm0 = ex.lastMeta;`],
   ["reseed-overwrite", "law", "the heal overwrites a deliberate reseed", `      if (ex.last != null) { if (JSON.stringify(ex.last) !== JSON.stringify(dm.reps)) ex.last = dm.reps.slice(); }`, `      ex.last = dm.reps.slice();`],
