@@ -1,47 +1,33 @@
 {
-  "gen": "2026-08-17T09:06:51.213Z",
+  "gen": "2026-08-18T09:07:03.615Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-17_hipthrustload",
+      "sid": "sug_2026-08-18_fillmonday",
       "rank": 1,
-      "title": "Check the hip thrust load in SETUP before you train today — it debuts with no weight on file, on the one day a wrong number can't be untangled.",
+      "title": "Monday is blank except the scale — fill in 8/17. Rough numbers count.",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Progression on a cut is defended through load, and load only means something against a baseline you can compare to (Schoenfeld 2017; Robinson 2024). A debut whose weight goes onto the record wrong has no baseline to defend.",
-        "data": "exercises.hipthrust.w is null. It sits in Thursday's skipped list, its settings are pinned, and insertions has it entering today, 2026-08-17.",
-        "relationship": "Two debuts, two outcomes, both yours. Hack went in at 190 on Friday, the app answered that the stack tops out there, and the record had to be corrected to the 200 you actually lifted — twice. Ham curl you checked in SETUP first and it debuted clean at 125 x 11,9,9. Today the hip thrust is also the lift that re-baselines calves, hanging, abs, ham and extension, so a wrong number lands in the middle of five other lifts starting fresh and can't be separated out later."
+        "science": "Adherence is the meta-lever: when a rate stalls, check the log before blaming metabolism — and you cannot check a log with a hole in it (Alhassan 2008).",
+        "data": "2026-08-17 has your 164.2 weigh-in and nothing else — no calories, no protein, no steps, no sleep night, and no session on a lower day. Every other day from 8/9 to 8/16 is complete.",
+        "relationship": "The forecast I filed for Friday rests on four clean weekday logs and Monday is one of the four. A missing day does not push the answer one way or the other — it makes the test unanswerable in both directions. You filled 8/13 in the day after I asked and that is the entry that made last week readable at all."
       },
-      "predict": "Check the rung first and the hip thrust debuts with a real load on the record and no correction behind it. Guess it and I expect a WORKING LOAD RECONCILED row for hipthrust inside a week, the way hack drew two on Friday. Grade it on exercises.hipthrust.w carrying a value after tonight's session, and on whether any correction row follows it.",
+      "predict": "Put Monday in — food, protein, steps, and whether you trained — and Friday's test gives a real verdict either way. Leave it blank and the honest answer on Friday is 'untestable', not a number, and a fourth week goes by without a clean read on your own weekday pace.",
       "confidence": "high",
       "gate": "approve"
     },
     {
-      "sid": "sug_2026-08-17_logsunday",
+      "sid": "sug_2026-08-18_hipthrustload",
       "rank": 2,
-      "title": "Log Sunday's food — rough numbers are fine. It decides whether the weekend is two days or three.",
+      "title": "Pick the hip thrust's load in SETUP before Friday — it debuts on the one session five other lifts restart from.",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "When a rate stalls, the first thing to check is adherence and the logging gaps, before reaching for metabolism (Alhassan 2008).",
-        "data": "dailyLogs runs through 2026-08-15 and stops. Sunday 8/16 has a weigh-in and a full training session on it, but no calories, protein, steps or sodium.",
-        "relationship": "The whole read tonight is that Friday's 2,800 and Saturday's 3,200 spend the deficit your Monday-to-Thursday days build at 2,242. That is two points. Sunday is the third, and it is the one that says whether this is a weekend pattern or a Friday-Saturday pattern — which changes what, if anything, is worth doing about it."
+        "science": "On a cut you defend load rather than chase volume, and a lift you cannot compare across sessions cannot tell you whether you are defending it (Schoenfeld 2017; Robinson 2024).",
+        "data": "exercises.hipthrust.w is still null. It sat in the 8/14 skipped list, its start date (8/17) passed with no session logged, and its arrival is what started fresh four-session baselines on calves, hanging, abs, ham and extension.",
+        "relationship": "Your record already has both outcomes of this exact decision. Hack squat was entered at 190 on the gym floor, the app said the stack topped out there, and the record had to be corrected to the 200 you actually lifted. Ham curl was checked in SETUP first and debuted clean at 125 x 11,9,9."
       },
-      "predict": "dailyLogs gains a 2026-08-16 key. Near 2,242 and the weekend is two days, exactly as priced. Near 3,000 and it is a three-day weekend, the gap is bigger than I said tonight, and Friday's forecast should be read as optimistic. Either answer is useful; a blank Sunday is the only useless one.",
+      "predict": "Check the machine's rungs and set the load before Friday and the hip thrust's first outing banks a clean line the seam can measure everything else from. Guess it on the floor and you get either a WORKING LOAD RECONCILED amendment like the hack, or a debut that lands wrong on the single session where five other lifts are also starting over — which is the one place a wrong number cannot be untangled afterwards.",
       "confidence": "high",
-      "gate": "approve"
-    },
-    {
-      "sid": "sug_2026-08-17_wakeanchor",
-      "rank": 3,
-      "title": "Set the alarm tomorrow for the same time you'd set it on a Tuesday — your wake time has slid three hours in five nights.",
-      "apply": { "kind": "note" },
-      "rationale": {
-        "science": "Sleep is a first-order body-composition lever, not a footnote: at matched deficits, short sleep cut fat loss about 55% and raised lean-mass loss about 60% (Nedeltcheva 2010; Wang 2018). Your hours are currently fine, so this is about the timing drift, not the duration.",
-        "data": "Your last five wake times read 07:45, 08:00, 08:45, 10:40, 10:45 against a 06:45 target, with bed times of 23:55, 02:30, 23:30, 02:30, 01:30. Sunday night is not logged. Hours themselves were 9.08, 8.0 and 9.08 — not short.",
-        "relationship": "This is a hunch and I am labelling it one: your two latest nights sit right on your two biggest days — 02:30 to bed then 2,800 calories, 01:30 to bed then 3,200. Two nights is not evidence. What is measured is the slide itself, and your own history says where it ends: the 02:30 bed on 8/12 is the night that came in at 5.33 hours and put your sleep debt back on the board."
-      },
-      "predict": "Hold the wake time and sleep.nights gains 8/16 and 8/17 with a wake before 08:30 by Wednesday, and the seven-night debt comes off 1.7 h. Grade it on wake time, not on hours — the hours have been fine throughout and are not what I am asking about. If the anchor comes back and the weekday calories drift up anyway, the link I am drawing between the two is wrong and I will say so.",
-      "confidence": "medium",
       "gate": "approve"
     }
   ]
