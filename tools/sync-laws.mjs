@@ -361,6 +361,102 @@ const AIM = {
      ordinary concurrent lines, a whole-state convergence failure the suite
      could not form (world() starts with an empty feed; no seed gave two
      replicas distinct same-day lines). */
+  /* SOL'S PASS-6 — KEY ORDER IS NOT IDENTITY. MERGE_MULTI keyed the max-multiset
+     union on raw JSON.stringify, so a line canonically equal to another but
+     carrying its keys in a different order counted as a SECOND identity: two
+     copies on A against one canonically-equal copy on B emitted THREE, in the
+     feed and in forecasts, and every later merge carried all three. Here A has
+     two copies in one key order, B one copy in another, C one copy in a third. */
+  14442: { apply: (out) => {
+      const L1 = { d: "2026-08-18", t: "MARKER — KEY ORDER", how: "the same line, keys in one order" }, L2 = { how: "the same line, keys in one order", t: "MARKER — KEY ORDER", d: "2026-08-18" }, L3 = { t: "MARKER — KEY ORDER", d: "2026-08-18", how: "the same line, keys in one order" };
+      const F1 = { d: "2026-08-17", trend: 163.2, rate: -0.4, pred7: 162.8, sealed: false }, F2 = { sealed: false, pred7: 162.8, rate: -0.4, trend: 163.2, d: "2026-08-17" }, F3 = { pred7: 162.8, d: "2026-08-17", sealed: false, trend: 163.2, rate: -0.4 };
+      out[0].feed = [cl(L1), cl(L1)]; out[0].forecasts = [cl(F1), cl(F1)];
+      out[1].feed = [cl(L2)]; out[1].forecasts = [cl(F2)];
+      if (out[2]) { out[2].feed = [cl(L3)]; out[2].forecasts = [cl(F3)]; }
+      return ["feed [L, L] · forecasts [F, F] (keys d,t,how)", "feed [L] · forecasts [F] — canonically equal, keys how,t,d", "feed [L] · forecasts [F] — keys t,d,how"]; },
+    assert: (out) => { const c9 = (v) => J(canon(v)); const a = out[0], b = out[1];
+      return a.feed.length === 2 && J(a.feed[0]) === J(a.feed[1]) && b.feed.length === 1 && c9(a.feed[0]) === c9(b.feed[0]) && J(a.feed[0]) !== J(b.feed[0]) && a.feed[0].op == null
+        && a.forecasts.length === 2 && J(a.forecasts[0]) === J(a.forecasts[1]) && b.forecasts.length === 1 && c9(a.forecasts[0]) === c9(b.forecasts[0]) && J(a.forecasts[0]) !== J(b.forecasts[0])
+        && (!out[2] || (out[2].feed.length === 1 && c9(out[2].feed[0]) === c9(a.feed[0]) && J(out[2].feed[0]) !== J(a.feed[0]) && J(out[2].feed[0]) !== J(b.feed[0]))); } },
+  /* COWORK, WHILE GENERALISING SOL'S PASS-6 REPAIR — A DAY ONLY ONE SIDE CARRIES.
+     _feedDayOrder's differ branch fired whenever the two sides' sequences were
+     not equal, and a day the other side had NO lines for is not equal to
+     anything: the most common sync there is (one device a day ahead; a second
+     device's first sync; a restore after a wipe) put the athlete's own within-day
+     chronology in canonical — alphabetical — order, and the rewrite was sticky.
+     Executed on his ledger: the live copy against the branch's older copy moved
+     every day only the live copy carried. main kept these days (its union
+     emits a one-sided day in its own order); the tip regressed them. Three
+     story lines, newest first as every writer leaves them; B and C silent. */
+  14443: { apply: (out) => {
+      const D9 = "2026-08-18";
+      out[0].feed = [{ d: D9, t: "EARNED — hack squat +10", how: "the walk's own line" }, { d: D9, t: "HACK SQUAT — 200 × 7,7,8", how: "session line" }, { d: D9, t: "WEIGH-IN — 163.2", how: "morning reading" }];
+      out[1].feed = []; if (out[2]) out[2].feed = [];
+      return ["feed [EARNED, HACK SQUAT, WEIGH-IN] @08-18 — the day only this device carries", "no lines that day", "no lines that day"]; },
+    assert: (out) => out[0].feed.length === 3 && out[0].feed.every((f) => f.d === "2026-08-18" && f.op == null) && new Set(out[0].feed.map((f) => f.t)).size === 3 && out.slice(1).every((s9) => Array.isArray(s9.feed) && s9.feed.length === 0) },
+  /* AND THE EQUAL BRANCH'S OWN IDENTITY: it compared the two sides' day RAW, so
+     one day carried by two devices with a line's keys in different orders was
+     "different" — canonicalised, and the interleaved repeat both carried was
+     regrouped. Same sequence [X, Y, X] on every replica, three key orders. */
+  14444: { apply: (out) => {
+      const D9 = "2026-08-18";
+      const X1 = { d: D9, t: "X — REPEATED", how: "a keyless line that legitimately repeats" }, Y1 = { d: D9, t: "Y — OTHER", how: "another line the same day" };
+      const X2 = { how: "a keyless line that legitimately repeats", d: D9, t: "X — REPEATED" }, Y2 = { t: "Y — OTHER", how: "another line the same day", d: D9 };
+      const X3 = { t: "X — REPEATED", how: "a keyless line that legitimately repeats", d: D9 }, Y3 = { how: "another line the same day", d: D9, t: "Y — OTHER" };
+      out[0].feed = [cl(X1), cl(Y1), cl(X1)]; out[1].feed = [cl(X2), cl(Y2), cl(X2)]; if (out[2]) out[2].feed = [cl(X3), cl(Y3), cl(X3)];
+      return ["feed [X, Y, X] (keys d,t,how)", "feed [X, Y, X] (keys how,d,t / t,how,d)", "feed [X, Y, X] (keys t,how,d / how,d,t)"]; },
+    assert: (out) => { const c9 = (v) => J(canon(v));
+      return out.every((s9) => s9.feed.length === 3 && s9.feed.every((f) => f.d === "2026-08-18" && f.op == null) && c9(s9.feed[0]) === c9(s9.feed[2]) && c9(s9.feed[0]) !== c9(s9.feed[1]))
+        && new Set(out.map((s9) => c9(s9.feed))).size === 1 && new Set(out.map((s9) => J(s9.feed))).size === out.length; } },
+  /* THE OP-DEDUP'S TIE, ONCE THE UNION'S IDENTITY IS CANONICAL (cowork, leg 19,
+     found by enumeration while closing Sol's pass-6 row): two devices fire the
+     same op on the same day with DIFFERENT content and the d-tie breaks to the
+     smaller entry. The spelling that reaches the tie is whichever the day rule
+     and the union carried forward (the remote side's on an equal day, the
+     local side's copies on a differing one), so a RAW comparison made the pick
+     a function of grouping. A and B carry one telling of a standard's
+     retirement in two key orders (A's spelling sorts first, B's last); C
+     carries a different telling whose spelling sorts between them — under a
+     raw tie (A+B)+C keeps C's telling and A+(B+C) keeps A's. Never red at a
+     committed tip (the raw union kept both spellings and the raw tie was a
+     min over the whole set); red under its mutation. */
+  14445: { apply: (out) => {
+      const D9 = "2026-08-18", tt = "HACK SQUAT — STANDARD RETIRED", how9 = "the standard was set under the previous setup; the first session under the new one sets the line";
+      out[0].feed = [{ d: D9, op: "stdretire:hack", t: tt, how: how9 }];
+      out[1].feed = [{ how: how9, op: "stdretire:hack", t: tt, d: D9 }];
+      if (out[2]) out[2].feed = [{ how: "a different telling — the laptop retired it under its own setup note", op: "stdretire:hack", t: tt, d: D9 }];
+      return ["feed [stdretire:hack — keys d,op,t,how]", "feed [the same line — keys how,op,t,d]", "feed [stdretire:hack, a different telling — keys how,op,t,d]"]; },
+    assert: (out) => { const c9 = (v) => J(canon(v)); const a = out[0].feed, b = out[1].feed, c = out[2] && out[2].feed;
+      return a.length === 1 && b.length === 1 && c9(a[0]) === c9(b[0]) && J(a[0]) !== J(b[0]) && Object.keys(a[0])[0] === "d" && Object.keys(b[0])[0] === "how" && a[0].op === "stdretire:hack"
+        && !!c && c.length === 1 && c[0].op === a[0].op && c[0].d === a[0].d && c9(c[0]) !== c9(a[0]) && J(a[0]) < J(c[0]) && J(c[0]) < J(b[0]); } },
+  /* THE MERGE'S OTHER RECEIPT IS NOT A PROJECTION (cowork, leg 19, by
+     enumeration): the adoptshift line is filed by an intermediate merge on
+     THAT merge's op-dedup pick, and a later merge can overturn the pick — the
+     dedup is a min over every input's receipts. A adopted hack at 200 (its
+     receipt sorts last), C at 190 (sorts first), B is silent; the working load
+     is 190 everywhere. (A+B) keeps 200 ≠ 190 and files the line; +C overturns
+     the pick to 190 — the line stays, describing a receipt that no longer
+     stands. A+(B+C) never files it. Red at every tip since the writer. */
+  14446: { apply: (out) => {
+      const D9 = "2026-08-18";
+      out[0].feed = [{ d: D9, op: "adopt:hack", t: "HACK SQUAT — LOAD ADOPTED AT 200", how: "z — the laptop's receipt (its canonical form sorts last)", w: 200 }];
+      out[1].feed = [];
+      if (out[2]) out[2].feed = [{ d: D9, op: "adopt:hack", t: "HACK SQUAT — LOAD ADOPTED AT 190", how: "a — the phone's receipt (its canonical form sorts first)", w: 190 }];
+      return ["feed [adopt:hack @200]", "no lines", "feed [adopt:hack @190 — same op, same day; sorts first]"]; },
+    assert: (out) => { const c9 = (v) => J(canon(v)); const a = out[0].feed, c = out[2] && out[2].feed;
+      const h = (s9) => (s9.exercises || []).find((e) => e && e.id === "hack");
+      return a.length === 1 && a[0].op === "adopt:hack" && a[0].w === 200 && out[1].feed.length === 0 && !!c && c.length === 1 && c[0].op === "adopt:hack" && c[0].w === 190 && c[0].d === a[0].d && c9(c[0]) < c9(a[0])
+        && out.every((s9) => h(s9) && h(s9).w === 190); } },
+  /* AND A REPLICA ALREADY CARRYING A STALE ONE — the two-replica face of the
+     same defect: a merge on an older tip filed adoptshift:hack:190 when the
+     kept receipt said 200; the receipt was later overturned to 190 (= the
+     working load) and the line stayed. Every replica agrees; the line's
+     warrant is gone; a projection drops it, history keeps it. */
+  14447: { apply: (out) => {
+      const D9 = "2026-08-18";
+      for (const s9 of out) s9.feed = [{ d: D9, op: "adopt:hack", t: "HACK SQUAT — LOAD ADOPTED AT 190", how: "the kept receipt — it agrees with the working load", w: 190 }, { d: "2026-08-14", t: "HACK SQUAT — LOGGED AT 190 (plan said 200)", how: "Reality outranks the filed plan: two devices adopted different first loads offline; the newer stamp holds the working load, and the story reconciles here. Every session stays on the record at the load it was lifted.", op: "adoptshift:hack:190" }];
+      return ["feed [adopt:hack @190, a STALE adoptshift:hack:190 from an older merge]", "(same)", "(same)"]; },
+    assert: (out) => out.every((s9) => { const h = (s9.exercises || []).find((e) => e && e.id === "hack"); return !!h && h.w === 190 && s9.feed.length === 2 && s9.feed[0].op === "adopt:hack" && s9.feed[0].w === 190 && s9.feed[1].op === "adoptshift:hack:190"; }) },
   /* SOL'S PASS-5 — INTERLEAVED REPEATS. The keyless feed allows an identical
      line to repeat; _unionMulti groups a day's lines by identity before it
      emits them, so [X, Y, X] came out of a merge with ITSELF as [X, X, Y]:
@@ -913,12 +1009,14 @@ function replicas(seed) {
 /* ---------- THE LAWS ---------- */
 const settle = (s) => T.migrate(T.migrate(cl(s)));           /* leg-7 doctrine: an ADOPTING boot is not idempotent by design; the state settles by the second */
 const sessTotals = (s) => Object.fromEntries(Object.entries(s.sessionLog || {}).map(([d, r]) => [d, ((r.entries || []).length) + ((r.skipped || []).length) + ((Array.isArray(r.dropped) ? r.dropped : []).length)]));   /* a lift the carve discarded is still ACCOUNTED FOR by name in dropped — the record does not shrink, it tells; a silent carve shrinks and fails here too */
+/* the merge's PROJECTIONS — receipts re-derived from the merged state on every merge (the carve line since Sol's pass 4, the adoptshift line since leg 19): they go when their warrant goes and land at the front of their day, so every clause about "the lines a side already had" sets them aside */
+const isProjection = (f) => !!(f && typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0));
 const stores = (s) => ({
   reads: (s.reads || []).length, nights: ((s.sleep || {}).nights || []).length,
   dailyLogs: Object.keys(s.dailyLogs || {}).length, sessionLog: Object.keys(s.sessionLog || {}).length,
   queue: (s.queue || []).length,
   /* the carve receipt is a PROJECTION of a session record, not an appended fact: it goes when the record's dropped set empties (Sol, pass 4), so it is not counted as history here */
-  feed: new Set((s.feed || []).filter((f) => !(f && typeof f.op === "string" && f.op.indexOf("carve:") === 0)).map((f) => J(f))).size,
+  feed: new Set((s.feed || []).filter((f) => !isProjection(f)).map((f) => J(canon(f)))).size,   /* by CANONICAL identity (Sol, pass 6): key order is not information here any more than in DEQ; projections (carve, adoptshift) are derived state, not history */
   corrections: Object.values(s.sessionLog || {}).reduce((n, r) => n + ((r && Array.isArray(r.corrLog)) ? r.corrLog.length : 0), 0),   /* the correction ledger is append-only and was covered by no law here either — the same hole dataLossGuard had */
 });
 const corrOps = (s) => { const o = []; for (const r of Object.values(s.sessionLog || {})) for (const c of (r.corrLog || [])) o.push(c.op); return o.sort(); };
@@ -956,7 +1054,7 @@ const LAWS = [
       return DEQ(ab, abab) ? null : { got: "merge(A,B) is not a fixed point at " + firstDiff(ab, abab), paths: deepPaths(ab, abab) }; } },
 
   { name: "merge-fixed-point",
-    says: "the state a two-device merge produces is byte-stable under a second merge, and its feed is newest-first",
+    says: "the state a two-device merge produces is byte-stable under a second merge, its feed is newest-first, and its receipts (carve, adoptshift) are projections of it",
     /* SOL'S PASS-3 HUNT: the carve receipt was prepended AFTER the feed's
        canonical newest-first sort, so the first merge left an 8/09 line above
        an 8/18 one and merge(m,m) moved it — the serialized state changed on the
@@ -985,6 +1083,87 @@ const LAWS = [
           const ls9 = (m.feed || []).filter((f9) => f9 && f9.op === "carve:" + d9);
           if (!want9.length && ls9.length) return { got: nm9 + ": " + d9 + " has no dropped lifts but " + ls9.length + " carve line(s) still name " + J(ls9.map((f9) => f9.ids)) + " — a receipt that outlived its record" };
           if (want9.length && (ls9.length !== 1 || J(ls9[0].ids || []) !== J(want9) || ls9[0].kept !== (r9.corr ? "corrected" : "later"))) return { got: nm9 + ": " + d9 + " dropped=" + J(want9) + " but the feed carries " + J(ls9.map((f9) => [f9.ids, f9.kept])) + " — the receipt is not the record's projection" };
+        }
+        /* AND THE MERGE'S OTHER RECEIPT (leg 19): for every lift, exactly one
+           adoptshift line iff the KEPT adopt receipt names a load that is not
+           the working load — naming that working load — unless a serial line
+           already tells it (the writer's own title guard); none for a lift
+           whose receipt agrees, none for a lift with no receipt. A line filed
+           on an intermediate merge's pick must go when a later merge overturns
+           the pick. */
+        const adopts9 = new Map(); for (const f9 of (m.feed || [])) if (f9 && typeof f9.op === "string" && f9.op.indexOf("adopt:") === 0 && typeof f9.w === "number") adopts9.set(f9.op.slice(6), f9);
+        const shifts9 = (m.feed || []).filter((f9) => f9 && typeof f9.op === "string" && f9.op.indexOf("adoptshift:") === 0);
+        const lifts9 = new Set([...adopts9.keys(), ...shifts9.map((f9) => f9.op.split(":")[1])]);
+        for (const id9 of lifts9) {
+          const ex9 = (m.exercises || []).find((e9) => e9 && e9.id === id9), f9 = adopts9.get(id9);
+          const mine9 = shifts9.filter((x9) => x9.op.split(":")[1] === id9);
+          const warranted9 = !!(f9 && ex9 && typeof ex9.w === "number" && ex9.w !== f9.w);
+          if (!warranted9 && mine9.length) return { got: nm9 + ": " + id9 + " carries " + mine9.length + " adoptshift line(s) " + J(mine9.map((x9) => x9.op)) + " but " + (f9 ? "its kept adopt receipt (" + f9.w + ") agrees with the working load (" + (ex9 && ex9.w) + ")" : "it has no adopt receipt") + " — a receipt that outlived its warrant" };
+          if (warranted9) {
+            const t9 = String(ex9.n || "").toUpperCase() + " — LOGGED AT " + ex9.w + " (plan said " + f9.w + ")";
+            const serial9 = (m.feed || []).some((x9) => x9 && x9.t === t9 && !(typeof x9.op === "string" && x9.op.indexOf("adoptshift:") === 0));
+            if (!serial9 && (mine9.length !== 1 || mine9[0].op !== "adoptshift:" + id9 + ":" + ex9.w)) return { got: nm9 + ": " + id9 + " — the kept adopt receipt says " + f9.w + " and the working load is " + ex9.w + ", so exactly one adoptshift:" + id9 + ":" + ex9.w + " line is due; the feed carries " + J(mine9.map((x9) => x9.op)) };
+            if (serial9 && mine9.length) return { got: nm9 + ": " + id9 + " — a serial line already tells the transition, yet " + mine9.length + " adoptshift line(s) stand beside it" };
+          }
+        }
+      }
+      return null; } },
+
+  { name: "keyless-max-multiset",
+    says: "a keyless store (op-less feed lines, forecasts) merges as a max-multiset by CANONICAL identity — per line, the merged count is the larger side's count, and key order is not identity",
+    /* SOL'S PASS-6 HUNT: MERGE_MULTI keyed the union on raw JSON.stringify, so a
+       canonically-equal line in another key order was a second identity — two
+       copies against one emitted three, in the feed and in forecasts, and the
+       inflation was permanent. No law counted: non-shrink asks only that the
+       result is not SMALLER, and DEQ, which ignores key order, saw the two
+       directions agree. Judged on the raw merge (before settling), so what is
+       counted is exactly what the union emitted; op-keyed lines are reconciled
+       to one per op by the dedup and are not a multiset. */
+    check: (A, B) => {
+      const c9 = (v) => J(canon(v));
+      const tally = (arr, keep) => { const m = new Map(); for (const x of (Array.isArray(arr) ? arr : [])) { if (!keep(x)) continue; const k = c9(x); m.set(k, (m.get(k) || 0) + 1); } return m; };
+      const opless = (x) => !(x && x.op != null), all = () => true;
+      for (const [nm9, x9, y9] of [["A<-B", A, B], ["B<-A", B, A]]) {
+        const m = T.mergeState(cl(x9), cl(y9));
+        for (const [store, keep] of [["feed", opless], ["forecasts", all]]) {
+          const ta = tally(x9[store], keep), tb = tally(y9[store], keep), tm = tally(m[store], keep);
+          for (const k of new Set([...ta.keys(), ...tb.keys(), ...tm.keys()])) {
+            const want = Math.max(ta.get(k) || 0, tb.get(k) || 0), got = tm.get(k) || 0;
+            if (got !== want) return { got: nm9 + ": " + store + " carries " + got + " of " + k.slice(0, 90) + " — the sides carry " + (ta.get(k) || 0) + " and " + (tb.get(k) || 0) + ", so the max-multiset union says " + want };
+          }
+        }
+      }
+      return null; } },
+
+  { name: "day-order-kept",
+    says: "a day's within-day sequence is kept when the sides do not disagree about it — both carry the same sequence, or only one carries the day — and is put in one canonical order only when they differ",
+    /* COWORK, generalising Sol's pass-6 repair: _feedDayOrder's differ branch
+       fired for a day the OTHER side had no lines for, so the most common sync
+       (one device a day ahead; a second device's first sync; a restore) put the
+       athlete's own within-day chronology in alphabetical order — sticky, and
+       a regression against main, whose union emits a one-sided day as it is.
+       And its equal branch compared the sides RAW, so a day two devices carried
+       with a line's keys in different orders was "different" and canonicalised.
+       The law: for every day where a side is silent or both carry canonically
+       the same sequence, the merged day, read through the lines that side
+       carried, is that side's sequence — merge-time receipts may be added and
+       an op line may be reconciled away, so both are read through each other's
+       multiset; carve and adoptshift lines are projections (merge-fixed-point)
+       and set aside. */
+    check: (A, B) => {
+      const c9 = (v) => J(canon(v));
+      const noCarve = (f) => (Array.isArray(f) ? f : []).filter((x) => !isProjection(x));
+      const days = (f) => { const m = new Map(); for (const x of noCarve(f)) { const d = String((x && x.d) || ""); if (!m.has(d)) m.set(d, []); m.get(d).push(x); } return m; };
+      const through = (seq, other) => { const have = new Map(); for (const x of other) { const k = c9(x); have.set(k, (have.get(k) || 0) + 1); } const out = []; for (const x of seq) { const k = c9(x), n = have.get(k) || 0; if (n > 0) { out.push(x); have.set(k, n - 1); } } return out; };
+      for (const [nm9, x9, y9] of [["A<-B", A, B], ["B<-A", B, A]]) {
+        const m = T.mergeState(cl(x9), cl(y9));
+        const dx = days(x9.feed), dy = days(y9.feed), dm = days(m.feed);
+        for (const d of new Set([...dx.keys(), ...dy.keys()])) {
+          const a = dx.get(d) || [], b = dy.get(d) || [];
+          if (!(c9(a) === c9(b) || !a.length || !b.length)) continue;   /* the sides disagree — canonical order is the rule there, and convergence judges it */
+          const side = a.length ? a : b, got = dm.get(d) || [];
+          const want9 = through(side, got), got9 = through(got, side);
+          if (c9(want9) !== c9(got9)) return { got: nm9 + ": " + d + " — " + (a.length && b.length ? "both sides carry the same sequence" : "only one side carries the day") + " " + J(side.map((f) => f && String(f.t || f.op || "").slice(0, 14))).slice(0, 110) + " but the merge emitted " + J(got9.map((f) => f && String(f.t || f.op || "").slice(0, 14))).slice(0, 110) };
         }
       }
       return null; } },
@@ -1209,9 +1388,9 @@ const LAWS = [
       /* AND THE LINES A ALREADY HAD KEEP THEIR ORDER AND MULTIPLICITY (Sol, pass 5):
          a self-merge may ADD a merge-time receipt, but the lines A carried must
          come out in A's order — [X, Y, X] came out [X, X, Y] once the equal-day
-         branch kept the union's grouped order. Carve lines are projections
-         (judged by merge-fixed-point) and are set aside here. */
-      const noCarve9 = (f) => (Array.isArray(f) ? f : []).filter((x) => !(x && typeof x.op === "string" && x.op.indexOf("carve:") === 0));
+         branch kept the union's grouped order. Carve and adoptshift lines are
+         projections (judged by merge-fixed-point) and are set aside here. */
+      const noCarve9 = (f) => (Array.isArray(f) ? f : []).filter((x) => !isProjection(x));   /* projections (carve, and since leg 19 adoptshift) are re-derived and re-placed by every merge */
       const had9 = new Map(); for (const f of noCarve9(s9.feed)) { const k = J(f); had9.set(k, (had9.get(k) || 0) + 1); }
       const kept9 = []; for (const f of noCarve9(self9.feed)) { const k = J(f), c = had9.get(k) || 0; if (c > 0) { kept9.push(f); had9.set(k, c - 1); } }
       if (J(kept9) !== J(noCarve9(s9.feed))) return { got: "merge(A,A) rewrote the order or multiplicity of the lines A already had: " + J(noCarve9(s9.feed).map((f) => f && (f.t || "").slice(0, 12))).slice(0, 120) + " -> " + J(kept9.map((f) => f && (f.t || "").slice(0, 12))).slice(0, 120) };
@@ -1344,6 +1523,12 @@ const SEEDS = [
   { seed: 14434, why: "RECEIPT TRUTH: a plain copy completed AFTER the correction wins (the standing rule) — the receipt must say the later copy stood, not the corrected one. MUTATION IT GUARDS: receipt-claims-corrected", redAt: "4de310e" },
   { seed: 14437, why: "SOL'S PASS-4 P0 (A): the FULL RETURN — a carve state (dropped [rows] + receipt) meets a correction that restores rows; the record's dropped set empties and the receipt must go with it. MUTATION IT GUARDS: receipt-not-cleared", redAt: "2c157a6" },
   { seed: 14438, why: "SOL'S PASS-4 P0 (B): PARTIAL RETURN + STALE REJOIN — stale [hack,rows] against current [hack]; the writer trusted the first matching line and the op-dedup kept the stale duplicate, so the receipt differed by direction and changed on self-merge. MUTATION IT GUARDS: receipt-keeps-others", redAt: "2c157a6" },
+  { seed: 14442, why: "SOL'S PASS-6: two copies of a line against one canonically-equal copy in another key order emitted THREE, in the feed and in forecasts — MERGE_MULTI keyed the max-multiset union on raw JSON. MUTATION IT GUARDS: keyless-raw-json-identity", redAt: "0c0c11c" },
+  { seed: 14443, why: "COWORK (leg 19): a day only ONE side carries took _feedDayOrder's differ branch and came out alphabetical — the one-device-ahead sync rewrote his within-day chronology, and main kept it. MUTATION IT GUARDS: one-sided-day-canonicalized", redAt: "0c0c11c" },
+  { seed: 14444, why: "COWORK (leg 19): the equal branch compared the sides RAW, so one day carried in two key orders was canonicalised and its interleaved repeat regrouped. MUTATION IT GUARDS: equal-day-raw-identity", redAt: "0c0c11c" },
+  { seed: 14445, why: "COWORK (leg 19): the op-dedup's d-tie compared RAW entries; with the union's identity canonical the spelling that reaches the tie is the local side's, so one receipt in two key orders against a different telling of the same op settled differently by grouping. MUTATION IT GUARDS: dedup-tie-raw", redAt: "— (opened by the identity repair; red under its mutation, never at a committed tip)" },
+  { seed: 14447, why: "COWORK (leg 19): a replica already carrying a stale adoptshift line (its kept receipt agrees with the working load) — every merge kept it. MUTATION IT GUARDS: adoptshift-not-projected", redAt: "0c0c11c (and every tip since the writer)" },
+  { seed: 14446, why: "COWORK (leg 19): the adoptshift receipt was filed on an intermediate merge's pick and outlived the pick when a later merge overturned it — (A+B)+C carried a line A+(B+C) never filed. MUTATION IT GUARDS: adoptshift-not-projected", redAt: "0c0c11c (and every tip since the writer)" },
   { seed: 14440, why: "SOL'S PASS-5: interleaved repeats — [X, Y, X] on every replica came out of merge(A,A) as [X, X, Y]: the equal-day branch kept the union's identity-grouped order instead of the sequence both sides carried. MUTATION IT GUARDS: equal-day-uses-grouped-union", redAt: "6081f7f" },
   { seed: 14441, why: "SOL'S PASS-5 ASSOCIATIVITY WITNESS: A [Y,Y,X] · B [Y,X,Y] · C [Y,X,Y] — (A+B)+C settled [X,Y,Y] and A+(B+C) [Y,Y,X]. MUTATION IT GUARDS: equal-day-uses-grouped-union", redAt: "6081f7f" },
   { seed: 14439, why: "SOL'S PASS-4 HUNT: two replicas each wrote a DIFFERENT line on the same day; the union put the remote side first and the within-day sort kept arrival order, so the feed reversed by direction. MUTATION IT GUARDS: same-day-by-arrival", redAt: "2c157a6" },
@@ -1408,7 +1593,12 @@ const MUTATIONS = [
   ["receipt-claims-corrected", "law", "the carve receipt always says the corrected copy stood, even when the later plain copy did", `kept8 = r8.corr ? "corrected" : "later";`, `kept8 = "corrected";`, "session-superset"],
   ["receipt-not-cleared", "law", "a record whose dropped set has emptied keeps its obsolete carve line — the receipt outlives what it described", `      if (!ids8.length) { next8 = rest8; continue; }`, `      if (!ids8.length) { continue; }`, "merge-fixed-point"],
   ["receipt-keeps-others", "law", "the writer inserts the projection but no longer removes the carve lines already there — a stale line from the other side (or an obsolete one) stands beside it or outlives its record", `      const rest8 = next8.filter((f8) => !(f8 && f8.op === op8));`, `      const rest8 = next8;`, "merge-fixed-point"],
-  ["equal-day-uses-grouped-union", "law", "the equal-sequence branch keeps the union's identity-grouped order instead of the sequence both sides carried — an interleaved repeat is regrouped by a merge with oneself, and groupings disagree", `      if (JSON.stringify(dr.get(d) || []) === JSON.stringify(dl.get(d) || [])) { out.push(...(dr.get(d) || [])); continue; }`, `      if (JSON.stringify(dr.get(d) || []) === JSON.stringify(dl.get(d) || [])) { out.push(...ls); continue; }`, ["session-fixed-point", "associativity"]],
+  ["equal-day-uses-grouped-union", "law", "the equal-sequence branch keeps the union's identity-grouped order instead of the sequence both sides carried — an interleaved repeat is regrouped by a merge with oneself, and groupings disagree", `      if (_canonJ(rd) === _canonJ(ld)) { out.push(...rd); continue; }`, `      if (_canonJ(rd) === _canonJ(ld)) { out.push(...ls); continue; }`, ["session-fixed-point", "associativity"]],
+  ["keyless-raw-json-identity", "law", "the keyless stores key their max-multiset union on raw JSON again, so a canonically-equal line in another key order is a second identity and two-against-one emits three", `const MERGE_MULTI = { feed: (f) => _canonJ(f), forecasts: (f) => _canonJ(f) };`, `const MERGE_MULTI = { feed: (f) => JSON.stringify(f), forecasts: (f) => JSON.stringify(f) };`, "keyless-max-multiset"],
+  ["one-sided-day-canonicalized", "law", "a day only one side carries takes the differ branch again — nothing to reconcile, and the athlete's own within-day chronology comes out alphabetical", `      if (!rd.length || !ld.length) { out.push(...(rd.length ? rd : ld)); continue; }`, `      /* mutant: a one-sided day is a disagreement */`, "day-order-kept"],
+  ["adoptshift-not-projected", "law", "the adoptshift line is no longer dropped and re-derived — a line filed on an intermediate merge's pick outlives the pick when a later merge overturns it, and groupings disagree", `    if (Array.isArray(s.feed)) s.feed = s.feed.filter((x9) => !(x9 && typeof x9.op === "string" && x9.op.indexOf("adoptshift:") === 0));`, `    /* mutant: the adoptshift line is history */`, ["associativity", "merge-fixed-point"]],
+  ["dedup-tie-raw", "law", "the op-dedup's d-tie compares raw entries again — with the union's identity canonical, one op line in two key orders against a different one settles by grouping", `(String(f9.d || "") === String(cur.d || "") && _canonJ(f9) < _canonJ(cur))`, `(String(f9.d || "") === String(cur.d || "") && JSON.stringify(f9) < JSON.stringify(cur))`, "associativity"],
+  ["equal-day-raw-identity", "law", "the equal branch compares the sides' day raw again, so one day carried in two key orders is canonicalised and its interleaved repeat regrouped", `      if (_canonJ(rd) === _canonJ(ld)) { out.push(...rd); continue; }`, `      if (JSON.stringify(rd) === JSON.stringify(ld)) { out.push(...rd); continue; }`, "day-order-kept"],
   ["same-day-by-arrival", "law", "a day's lines keep arrival order even when the two sides disagree, so concurrent same-day lines reverse with merge direction", `  if (Array.isArray(out.feed)) out.feed = _feedDayOrder(remote.feed, local.feed, out.feed);`, `  /* mutant: arrival order */`, "convergence"],
   ["merge-sort-not-last", "law", "the merge sorts its feed BEFORE reconcileEraTransitions files its past-dated lines, so the merged feed is not newest-first and the next merge moves them", `  reconcileEraTransitions(normalizePlan(out));\n  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);`, `  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);\n  reconcileEraTransitions(normalizePlan(out));`, "merge-fixed-point"],
   ["feed-unsorted", "law", "the feed's canonical newest-first sort becomes the identity, so a receipt filed at the session's date sits above newer lines and the next merge moves it", `.sort((a, b) => String((b[0] || {}).d || "").localeCompare(String((a[0] || {}).d || "")) || a[1] - b[1])`, `.sort((a, b) => 0)`, "merge-fixed-point"],

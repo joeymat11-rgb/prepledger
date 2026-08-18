@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.16";
+const APP_V = "7.54.17";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -1878,7 +1878,17 @@ function reconcileEraTransitions(s) {
     /* THE ADOPTION STORY CONVERGES: the kept (earliest) adopt receipt names
        its load; when the stamped config ended elsewhere (a second device
        adopted a different first load offline), the transition is told once,
-       in the CAGE register the serial run would have used. */
+       in the CAGE register the serial run would have used.
+       FIX-18 — AND IT IS A PROJECTION, the carve receipt's rule (Sol, pass 4)
+       applied to the merge's other receipt: every adoptshift line is dropped
+       here and re-derived from the merged state — the kept adopt receipt
+       against the working load — so the line stands iff its warrant does. An
+       intermediate merge's pick can be overturned by a later merge (the
+       op-dedup is a min over every input's receipts), and the line it filed
+       then described a receipt that no longer stood: (A+B)+C carried it and
+       A+(B+C) never filed it (cowork, leg 19, by enumeration). Re-filed at the
+       front of its day, where a merge-time receipt always lands. */
+    if (Array.isArray(s.feed)) s.feed = s.feed.filter((x9) => !(x9 && typeof x9.op === "string" && x9.op.indexOf("adoptshift:") === 0));
     for (const f of (s.feed || []).slice()) {
       if (!(f && f.op && String(f.op).indexOf("adopt:") === 0 && typeof f.w === "number")) continue;
       const idA = String(f.op).slice(6);
@@ -12713,7 +12723,14 @@ const MERGE_ARR = {   // one logical entry per key (date / id) — the richer co
   events: (e) => e && (e.id || e.d + "|" + e.t), trials: (t) => t && (t.id || t.d),
   agentProposals: (a) => a && a.id, weekly: (w) => w && w.wk,
 };
-const MERGE_MULTI = { feed: (f) => JSON.stringify(f), forecasts: (f) => JSON.stringify(f) };   // keyless — identical entries may legitimately repeat, so preserve multiplicity
+/* MERGE_MULTI — keyless: identical entries may legitimately repeat, so preserve multiplicity.
+   IDENTITY IS CANONICAL (Sol, pass 6): keyed on raw JSON.stringify, a line that is
+   canonically equal but carries its keys in another order counted as a SECOND
+   identity, so the max-multiset union of two copies against one canonically-equal
+   copy emitted three — in the feed and in forecasts — and the inflation was
+   permanent (every later merge carried all three). Key order is not information
+   anywhere else in the merge; it is not identity here either. */
+const MERGE_MULTI = { feed: (f) => _canonJ(f), forecasts: (f) => _canonJ(f) };
 const MERGE_OBJ = ["dailyLogs", "sessionLog", "dayCtx", "labSeen"];
 /* _feedSorted — THE FEED'S ONE CANONICAL ORDER: newest-first by d, stable (so
    within-day emitted order survives). Every path that can write a feed line
@@ -12731,14 +12748,20 @@ const MERGE_OBJ = ["dailyLogs", "sessionLog", "dayCtx", "labSeen"];
    on the same day came out reversed by merge direction (Sol, pass 4: [B, A]
    one way, [A, B] the other — a whole-state convergence failure the harness
    could not form because no seed gave two replicas distinct same-day lines).
-   THE RULE: for each day, if both sides carry the SAME sequence, keep it — that
-   is every merge on his ledger, and it preserves the within-day chronology his
-   story reads in; if they differ, the day is put in one canonical order (the
-   line's canonical JSON), the one case where no chronology exists to keep.
-   Symmetric by construction; associative because "differ" is sticky — once any
-   two inputs disagree the day is canonical, and canonical ∪ anything is
-   canonical unless it already equals it. A stable per-line stamp on NEW lines
-   would be the stronger long-run design and belongs to the writer sweep. */
+   THE RULE: for each day, if both sides carry the SAME sequence (judged
+   canonically — FIX-18), keep it — that is every merge on his ledger, and it
+   preserves the within-day chronology his story reads in; if only ONE side
+   carries the day (FIX-18), keep that side's sequence — there is nothing to
+   reconcile; if they differ, the day is put in one canonical order (the line's
+   canonical JSON), the one case where no chronology exists to keep — and that
+   includes the everyday push-again shape (a device merging with its own
+   earlier push of the same day), which no rule without a per-line stamp can
+   order: main scrambles it by grouping, this puts it in one order. Symmetric by
+   construction; associative because "differ" is sticky and an empty side is
+   the rule's identity — the merged day is a function of the distinct
+   non-empty sequences seen: one, kept; more than one, canonical over the
+   max-multiset. A stable per-line stamp on NEW lines is the stronger long-run
+   design and belongs to the writer sweep. */
 function _feedDayOrder(remoteFeed, localFeed, unioned) {
   try {
     const days = (arr) => { const m = new Map(); for (const f of (Array.isArray(arr) ? arr : [])) { const d = String((f && f.d) || ""); if (!m.has(d)) m.set(d, []); m.get(d).push(f); } return m; };
@@ -12752,7 +12775,23 @@ function _feedDayOrder(remoteFeed, localFeed, unioned) {
          it, and A=[Y,Y,X] · B=[Y,X,Y] · C=[Y,X,Y] settled differently by
          grouping. Either side is valid here; the branch has just proved them
          byte-identical. */
-      if (JSON.stringify(dr.get(d) || []) === JSON.stringify(dl.get(d) || [])) { out.push(...(dr.get(d) || [])); continue; }
+      const rd = dr.get(d) || [], ld = dl.get(d) || [];
+      /* FIX-18 — "the same sequence" is judged CANONICALLY, like the union's identity
+         (Sol, pass 6): two devices carrying one day's lines with their keys in
+         different orders carry the same chronology. */
+      if (_canonJ(rd) === _canonJ(ld)) { out.push(...rd); continue; }
+      /* FIX-18 (cowork, while generalising the identity repair) — A DAY ONLY ONE SIDE
+         CARRIES IS NOT A DISAGREEMENT. It took the differ branch and was put in
+         canonical (alphabetical) order: the most common sync there is — one device a
+         day ahead of the other — rewrote the athlete's own within-day chronology,
+         and the rewrite was sticky (the day came back canonical to the device that
+         wrote it). Executed on his ledger: the live copy against the branch's older
+         copy moved the order of every day only the live copy carried. There is
+         nothing to reconcile when the other side is silent: that side's sequence
+         stands. Still symmetric; still associative — an empty side is the identity
+         of the day rule, so the merged day is a function of the DISTINCT non-empty
+         sequences seen: one, kept; more than one, canonical over the max-multiset. */
+      if (!rd.length || !ld.length) { out.push(...(rd.length ? rd : ld)); continue; }
       out.push(...ls.slice().sort((a, b) => { const ka = _canonJ(a), kb = _canonJ(b); return ka < kb ? -1 : ka > kb ? 1 : 0; }));
     }
     return out;
@@ -12774,14 +12813,14 @@ function mergeState(local, remote) {
      the same operation offline (a seam, a retirement, an insertion receipt, an
      adoption, a standard retirement) each minted a receipt; post-merge the
      operation still happened ONCE. Keep the EARLIEST sighting; d-tie breaks to
-     the lexicographically smaller entry — direction-free. Op-less lines are
-     history and keep their multiplicity. */
+     the CANONICALLY smaller entry — direction-free, and (FIX-18) spelling-free.
+     Op-less lines are history and keep their multiplicity. */
   if (Array.isArray(out.feed)) {
     const opBest = new Map();
     for (const f9 of out.feed) {
       if (!(f9 && f9.op != null)) continue;
       const cur = opBest.get(f9.op);
-      if (!cur || String(f9.d || "") < String(cur.d || "") || (String(f9.d || "") === String(cur.d || "") && JSON.stringify(f9) < JSON.stringify(cur))) opBest.set(f9.op, f9);
+      if (!cur || String(f9.d || "") < String(cur.d || "") || (String(f9.d || "") === String(cur.d || "") && _canonJ(f9) < _canonJ(cur))) opBest.set(f9.op, f9);   /* FIX-18 — the d-tie breaks on the CANONICAL entry: once the union's identity is canonical, ONE spelling of a line reaches this tie — whichever the day rule and the union carried forward (the remote side's on an equal day, the local side's copies on a differing one) — and a raw comparison made the pick a function of grouping (three replicas, one receipt in two key orders against a different telling of the same op: one grouping kept the one, the other grouping the other) */
     }
     out.feed = out.feed.filter((f9) => !(f9 && f9.op != null) || opBest.get(f9.op) === f9);
   }
