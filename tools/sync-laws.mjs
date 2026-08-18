@@ -278,6 +278,58 @@ const AIM = {
      so the union is NOT empty and the carve must NOT fire: both lifts survive.
      A law exemption wider than the production predicate hid a mutant that
      carved here. */
+  /* SOL'S PASS-3 P0 — THE EXACT-AUTHORITY TIE. Three LEGACY corrected copies of
+     one date (corr, NO ops) with the same corr.at, rev and non-body fields, and
+     disjoint single-lift bodies. Nothing but the bodies can decide, and the
+     carve keeps ONE whole record: the winner must be a function of the bodies
+     — argument position kept rows one way and curl the other. */
+  14433: { expectsCarve: true, apply: (out) => {
+      const mk = (s9, e9) => { s9.sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, entries: [e9], corr: { at: "2026-08-10T08:00:00.000Z", rev: 1 } }; };
+      mk(out[0], { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] });
+      mk(out[1], { id: "curl", w: 50, reps: [12, 12, 9], rir: 2, rirSets: [2, null, null] });
+      if (out[2]) mk(out[2], { id: "hack", w: 200, reps: [7, 7, 8], rir: 2, rirSets: [2, null, 0] });
+      return ["legacy corr@08-10 rev 1 · rows", "legacy corr@08-10 rev 1 · curl", "legacy corr@08-10 rev 1 · hack"]; },
+    assert: (out) => {
+      const r9 = (s9) => s9.sessionLog["2026-08-09"] || {};
+      const rs = out.map(r9);
+      const meta = (r) => J({ d: r.d, at: r.at, corr: r.corr });
+      return rs.every((r) => r.corr && r.corr.at === "2026-08-10T08:00:00.000Z" && r.corr.rev === 1 && !r.corrLog && (r.entries || []).length === 1)
+        && new Set(rs.map(meta)).size === 1
+        && new Set(rs.map((r) => r.entries[0].id)).size === rs.length; } },
+  /* RECEIPT TRUTH — THE LATER PLAIN COPY WINS. A: legacy corr@08-10 · rows.
+     B and C: plain copies COMPLETED AFTER the correction (at 08-11), curl and
+     hack. The rule that a completion after the correction is the newer word
+     stands; the receipt must then say the LATER copy stood, not the corrected
+     one (Sol, pass 3: it always said "corrected"). */
+  14434: { expectsCarve: true, apply: (out) => {
+      out[0].sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, entries: [{ id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] }], corr: { at: "2026-08-10T08:00:00.000Z", rev: 1 } };
+      out[1].sessionLog["2026-08-09"] = { d: "2026-08-09", at: Date.parse("2026-08-11T08:00:00.000Z"), entries: [{ id: "curl", w: 50, reps: [12, 12, 9], rir: 2, rirSets: [2, null, null] }] };
+      if (out[2]) out[2].sessionLog["2026-08-09"] = { d: "2026-08-09", at: Date.parse("2026-08-11T08:00:00.000Z"), entries: [{ id: "hack", w: 200, reps: [7, 7, 8], rir: 2, rirSets: [2, null, 0] }] };
+      return ["legacy corr@08-10 · rows", "plain, completed 08-11 (after the correction) · curl", "plain, completed 08-11 · hack"]; },
+    assert: (out) => {
+      const r9 = (s9) => s9.sessionLog["2026-08-09"] || {};
+      const a = r9(out[0]), b = r9(out[1]);
+      return !!(a.corr && a.corr.at) && !a.corrLog && !b.corr && !b.corrLog
+        && new Date(b.at).toISOString() > String(a.corr.at)
+        && J((a.entries || []).map((e) => e.id)) === J(["rows"]) && J((b.entries || []).map((e) => e.id)) === J(["curl"]); } },
+  /* THE FEED'S FIXED POINT — a carve conflict beside a feed line NEWER than the
+     session date. The receipt is dated at the session; the feed is newest-first
+     by contract; a receipt prepended AFTER the canonical sort sat above the
+     newer line and the next merge moved it — merge(m,m) ≠ m (Sol's hunt). */
+  14435: { expectsCarve: true, apply: (out) => {
+      const rows9 = { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] }, curl9 = { id: "curl", w: 50, reps: [12, 12, 9], rir: 2, rirSets: [2, null, null] };
+      const line9 = { d: "2026-08-18", t: "WEIGH-IN — 163.2", how: "a story line newer than the session the merge will carve" };
+      out[0].sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, entries: [cl(rows9)], corr: { at: "2026-08-10T08:00:00.000Z", rev: 1 } };
+      out[1].sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, entries: [cl(rows9), cl(curl9)] };
+      if (out[2]) out[2].sessionLog["2026-08-09"] = cl(out[0].sessionLog["2026-08-09"]);
+      for (const s9 of out) s9.feed = [cl(line9)];
+      return ["legacy corr, no ops · rows · feed has an 08-18 line", "plain · rows + curl · same feed", "legacy · same feed"]; },
+    assert: (out) => {
+      const r9 = (s9) => s9.sessionLog["2026-08-09"] || {};
+      const a = r9(out[0]), b = r9(out[1]);
+      return !!(a.corr && a.corr.at) && !a.corrLog && !b.corr && !b.corrLog
+        && J((a.entries || []).map((e) => e.id)) === J(["rows"]) && J((b.entries || []).map((e) => e.id)) === J(["rows", "curl"])
+        && out.every((s9) => Array.isArray(s9.feed) && s9.feed.length === 1 && String(s9.feed[0].d) > "2026-08-09" && s9.feed[0].op == null); } },
   14432: { apply: (out) => {
       out[0].sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, entries: [{ id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] }], corr: { at: "2026-08-10T08:00:00.000Z", rev: 1 } };
       out[1].sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, entries: [{ id: "curl", w: 50, reps: [12, 12, 9], rir: 2, rirSets: [2, null, null] }], corr: { at: "2026-08-11T08:00:00.000Z", rev: 1 },
@@ -810,10 +862,36 @@ const LAWS = [
        is pre-existing on main and adds no information. So the property is a
        fixed point from the first merge, not "merge is a no-op on a virgin
        state" — the latter would be asserting a normalizer never normalizes. */
-    check: (A) => { const once = settle(T.mergeState(cl(A), cl(A)));
+    check: (A, B) => { const once = settle(T.mergeState(cl(A), cl(A)));
       const twice = settle(T.mergeState(cl(once), cl(once)));
       if (!DEQ(once, twice)) return { got: "merge(A,A) is not a fixed point at " + firstDiff(once, twice), paths: deepPaths(once, twice) };
-      return DEQ(T.migrate(cl(once)), once) ? null : { got: "a settled state is not a fixed point at " + firstDiff(T.migrate(cl(once)), once), paths: deepPaths(T.migrate(cl(once)), once) }; } },
+      if (!DEQ(T.migrate(cl(once)), once)) return { got: "a settled state is not a fixed point at " + firstDiff(T.migrate(cl(once)), once), paths: deepPaths(T.migrate(cl(once)), once) };
+      /* AND THE RESULT OF A TWO-DEVICE MERGE (Sol, pass 3): merge(A,A) is the
+         degenerate case; the state a real sync produces must itself be a fixed
+         point, or the second sync rewrites what the first one wrote. */
+      if (!B) return null;
+      const ab = settle(T.mergeState(cl(A), cl(B))), abab = settle(T.mergeState(cl(ab), cl(ab)));
+      return DEQ(ab, abab) ? null : { got: "merge(A,B) is not a fixed point at " + firstDiff(ab, abab), paths: deepPaths(ab, abab) }; } },
+
+  { name: "merge-fixed-point",
+    says: "the state a two-device merge produces is byte-stable under a second merge, and its feed is newest-first",
+    /* SOL'S PASS-3 HUNT: the carve receipt was prepended AFTER the feed's
+       canonical newest-first sort, so the first merge left an 8/09 line above
+       an 8/18 one and merge(m,m) moved it — the serialized state changed on the
+       second sync. idempotence looked only at merge(A,A) and settled states,
+       and the carve seed had an empty feed. This is the byte-level promise the
+       app's own header makes: sessionLog and feed byte-identical through
+       merge(m,m), and the feed in the order every unshift assumes. */
+    check: (A, B) => {
+      const desc = (f) => (Array.isArray(f) ? f : []).every((x, i, a) => i === 0 || String((a[i - 1] || {}).d || "") >= String((x || {}).d || ""));
+      for (const [nm9, x9, y9] of [["A<-B", A, B], ["B<-A", B, A]]) {
+        const m = T.mergeState(cl(x9), cl(y9));
+        if (!desc(m.feed)) return { got: nm9 + ": the merged feed is not newest-first: " + J((m.feed || []).map((f) => f && f.d)).slice(0, 160) };
+        const mm = T.mergeState(cl(m), cl(m));
+        if (J(mm.feed) !== J(m.feed)) return { got: nm9 + ": merge(m,m) rewrote the feed: " + J((m.feed || []).map((f) => f && (f.d + (f.op ? "(" + f.op + ")" : "")))).slice(0, 120) + " -> " + J((mm.feed || []).map((f) => f && (f.d + (f.op ? "(" + f.op + ")" : "")))).slice(0, 120) };
+        if (J(mm.sessionLog) !== J(m.sessionLog)) return { got: nm9 + ": merge(m,m) rewrote sessionLog at " + firstDiff(m.sessionLog, mm.sessionLog) };
+      }
+      return null; } },
 
   { name: "non-shrink",
     says: "every append-only store in the result is at least as large as both inputs",
@@ -993,6 +1071,13 @@ const LAWS = [
           if (!miss.every((i9) => dr9.indexOf(i9) >= 0)) return { got: nm9 + ": " + d9 + " carved " + J(miss) + " and the record's dropped receipt says " + J(dr9) + " — a silent carve" };
           const fl9 = (m9.feed || []).filter((f9) => f9 && f9.op === "carve:" + d9);
           if (fl9.length !== 1 || J(fl9[0].ids || []) !== J(dr9)) return { got: nm9 + ": " + d9 + " carved " + J(miss) + " and the feed does not carry exactly one carve line naming " + J(dr9) + " (found " + fl9.length + ": " + J(fl9.map((f9) => f9.ids)) + ") — a silent or a doubled carve" };
+          /* RECEIPT TRUTH (Sol, pass 3): the line says which copy stood. It must
+             match the record it describes — a record that kept its corr was the
+             corrected copy; a record without one was the copy completed after
+             the correction. And the title claims nothing it cannot know. */
+          const kept9 = rm && rm.corr ? "corrected" : "later";
+          if (fl9[0].kept !== kept9) return { got: nm9 + ": " + d9 + " the receipt says kept=" + J(fl9[0].kept) + " but the record that stood is the " + kept9 + " copy — a false receipt" };
+          if (fl9[0].t !== "MERGE KEPT ONE WHOLE SESSION — " + d9) return { got: nm9 + ": " + d9 + " the receipt's title claims more than the merge knows: " + J(fl9[0].t) };
           /* DECLARED AND COUNTED: an aimed seed says it expects the carve; any other firing is a finding */
           CARVE_FIRINGS.push((ctx && ctx.seed) + ":" + nm9 + ":" + d9);
           if (!(ctx && ctx.aim && ctx.aim.expectsCarve)) return { got: nm9 + ": " + d9 + " the carve fired (" + J(miss) + ") in a seed that does not declare it — an undeclared superset exception" };
@@ -1136,6 +1221,9 @@ const SEEDS = [
   { seed: 14429, why: "SOL'S PASS-2 P0: correction-free session METADATA — three uncorrected copies with equal-score bodies; the note (every non-body field) rode the base pick, which read the body's size, which is a function of the grouping. MUTATION IT GUARDS: meta-by-size (case 1 back to _richer)", redAt: "7ef2079" },
   { seed: 14430, why: "the same body with a different note: the identical-bodies short-circuit returned a base chosen by size, so equal-length notes resolved by merge order. MUTATION IT GUARDS: meta-by-size", redAt: "7ef2079" },
   { seed: 14431, why: "THE CARVE, DECLARED: a legacy corr-no-ops record against a plain replica with an unrelated extra lift — the wholesale pick keeps the corrected body, files dropped=[curl] on the record and ONE feed line keyed on the date naming the set; a third plain replica with another extra makes the three groupings agree on dropped=[curl,hack] and on that one line. MUTATION IT GUARDS: carve-silent (the receipt not written)", redAt: "7ef2079 (no receipt)" },
+  { seed: 14433, why: "SOL'S PASS-3 P0: the exact-authority tie — three legacy corrected copies with equal (corr.at, rev, non-body fields) and disjoint bodies; the carve kept whichever record was the FIRST ARGUMENT. MUTATION IT GUARDS: tie-by-argument-order", redAt: "4de310e" },
+  { seed: 14434, why: "RECEIPT TRUTH: a plain copy completed AFTER the correction wins (the standing rule) — the receipt must say the later copy stood, not the corrected one. MUTATION IT GUARDS: receipt-claims-corrected", redAt: "4de310e" },
+  { seed: 14435, why: "THE FEED'S FIXED POINT: a carve beside a feed line newer than the session — the receipt was prepended after the newest-first sort, so merge(m,m) moved it. MUTATION IT GUARDS: feed-unsorted", redAt: "4de310e" },
   { seed: 14432, why: "legacy vs modern: a corr-no-ops record against a corrLog-carrying one — the union is non-empty, so the carve must NOT fire and both lifts survive. MUTATION IT GUARDS: carve-ignores-union", redAt: "—" },
   { seed: 91337, why: "general convergence over the whole op set", redAt: "—" },
   { seed: 11021, why: "general convergence, second shape", redAt: "—" },
@@ -1161,11 +1249,11 @@ const MUTATIONS = [
   ["valOr-raw", "law", "the equal-stamp tie compares raw JSON.stringify again, so absent is unorderable and the base always wins", `_valOr(other[f9]) > _valOr(w2[f9])`, `JSON.stringify(other[f9]) > JSON.stringify(w2[f9])`, "convergence"],
   ["union-drops-remote", "law", "the corrLog union reads only one side — a correction one device filed is gone and the ledger shrinks", `for (const c9 of [...(Array.isArray(x && x.corrLog) ? x.corrLog : []), ...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`, `for (const c9 of [...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`, ["correction-survival", "non-shrink"]],
   ["replay-disabled", "pin", "the union is carried but never replayed", `  const out9 = _replayCorrections(merged);`, `  const out9 = merged;`],
-  ["base-votes", "law", "the base stops accumulating — a lift only one side had is gone and the date's count shrinks", `  const ents9 = addMissing("entries"); if (ents9 !== undefined) merged.entries = ents9;`, `  const ents9 = undefined; if (ents9 !== undefined) merged.entries = ents9;`, ["session-superset", "non-shrink"]],
+  ["base-votes", "law", "the base stops accumulating — a lift only one side had is gone and the date's count shrinks", `  const ents9 = addMissing("entries"); if (ents9 !== undefined) merged.entries = ents9;`, `  const ents9 = undefined; if (ents9 !== undefined) merged.entries = ents9;`, "session-superset"],   /* non-shrink no longer sees this one: the receipt now accounts for a lift lost on ANY path by name, so the count holds — session-superset judges the predicate and is red regardless */
   ["idempotence-normalizes-forever", "law", "the plan normalizer re-stamps on every merge, so merge(A,A) never reaches a fixed point", `  out.plan = _unionPlan(remote.plan, local.plan);`, `  out.plan = { ..._unionPlan(remote.plan, local.plan), rev: ((local.plan || {}).rev || 0) + 1 };`, "idempotence"],
   ["athlete-word-ignored", "law", "the reconciler adopts even when the athlete's own stamp is newer than the correction's", `      if (!(at > String(ex.wAt || ""))) continue;`, `      if (false) continue;`, "athlete-word-priority"],
   ["receipt-names-the-old-load", "law", "the reconciliation receipt names the load being replaced instead of the one written", `" " + from + " → " + enC.w, how: "The corrected record says " + enC.w`, `" " + from + " → " + from, how: "The corrected record says " + from`, "receipt-truth"],
-  ["merge-self-reorders", "law", "the identical-bodies short-circuit is dropped, so a merge with oneself replays and id-sorts a record both sides already agree on", `  if (sameBody9) return withDrops9(union.length`, `  if (false) return withDrops9(union.length`, "session-fixed-point"],
+  ["merge-self-reorders", "law", "the identical-bodies short-circuit is dropped, so a merge with oneself replays and id-sorts a record both sides already agree on", `  if (sameBody9) return finish9(union.length`, `  if (false) return finish9(union.length`, "session-fixed-point"],
   ["boot-restamps", "law", "the monotone bump is applied to PATCH filings too, so a boot rewrites the athlete's own correction stamps", `    if ((opts && opts.live) && latest9 && String(at9) <= latest9) {`, `    if (latest9 && String(at9) <= latest9) {`, "session-fixed-point"],
   ["fileCorr-not-monotone", "law", "a live act filed with a backward wall stamp keeps it, so a record's own acts stop ordering themselves and its body contradicts a replay of its own corrLog", `    if ((opts && opts.live) && latest9 && String(at9) <= latest9) {`, `    if (false) {`, "self-consistent"],
   ["ladder-repair-at-merge", "law", "the ladder repair is put BACK at the binary merge, where it inserts a rung for a load only the transient pair holds", `      return w2;`, `      return ensureLoadOnLadder(w2);`, "associativity"],
@@ -1190,7 +1278,10 @@ const MUTATIONS = [
   ["tie-reads-record-size", "law", "the (at,rev) tie resolves the body per RECORD again instead of per lift — and a record-level pick stops being associative once the record it compares has grown", `    merged.entries = perLift("entries");`, `    merged.entries = (Array.isArray(base.entries) ? base.entries.slice() : []);`, "convergence"],
   ["one-placement-off", "law", "the exclusion step is skipped, so a lift may sit in entries and skipped at once", `      for (const id9 of dup9) {`, `      for (const id9 of []) {`, "one-placement"],
   ["meta-by-size", "law", "case 1 of _richerSession picks the base by _mergeScore again — the record's non-body fields ride the body's size, which is a function of the grouping", `  if (!cx && !cy) return _tieKey(x) >= _tieKey(y) ? x : y;`, `  if (!cx && !cy) return _richer(x, y);`, "associativity"],
-  ["carve-silent", "law", "the wholesale pick keeps the corrected body but files no receipt for what it discarded", `return withDrops9(base, [...idsOf9(other8)].filter((i8) => !have8.has(i8))); }`, `return base; }`, "session-superset"],
+  ["carve-silent", "law", "the wholesale pick keeps the corrected body but files no receipt for what it discarded", `    if (cx9 || cy9) return finish9(base);`, `    if (cx9 || cy9) return base;`, "session-superset"],
+  ["tie-by-argument-order", "law", "the exact-authority tie is answered by argument position again — the carve keeps whichever record arrived first", `    return bx9 >= by9 ? x : y;`, `    return x;`, "convergence"],
+  ["receipt-claims-corrected", "law", "the carve receipt always says the corrected copy stood, even when the later plain copy did", `kept8 = r8.corr ? "corrected" : "later";`, `kept8 = "corrected";`, "session-superset"],
+  ["feed-unsorted", "law", "the feed's canonical newest-first sort becomes the identity, so a receipt filed at the session's date sits above newer lines and the next merge moves it", `.sort((a, b) => String((b[0] || {}).d || "").localeCompare(String((a[0] || {}).d || "")) || a[1] - b[1])`, `.sort((a, b) => 0)`, "merge-fixed-point"],
   ["carve-ignores-union", "law", "the carve fires whenever a side carries a corr, even when the other side's corrLog says a correction exists — the union is ignored", `  if (!union.length) {`, `  if (true) {`, "session-superset"],
   ["corrections-unguarded", "pin", "the correction ledger leaves recordCounts", `    corrections: Object.values((st.sessionLog && typeof st.sessionLog === "object") ? st.sessionLog : {}).reduce((n9, r9) => n9 + ((r9 && Array.isArray(r9.corrLog)) ? r9.corrLog.length : 0), 0),`, `    corrections: 0,`],
 ];

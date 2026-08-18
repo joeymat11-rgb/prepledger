@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.12";
+const APP_V = "7.54.13";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -12336,11 +12336,24 @@ function _mergeSession(x, y) {
      merge to rewrite a record both sides already agree on. The corrLog union
      still travels — dropping it would lose a correction one side had learned —
      but the body is not touched. */
-  /* FIX-13 — THE CARVE LEAVES A RECEIPT. dropped = the sorted SET of lift ids a wholesale pick discarded on this date, ever, on any device: a set union is associative and commutative, so every grouping and both orders carry the same receipt. */
-  const dropUnion9 = (...ls9) => { const s9 = new Set(); for (const l9 of ls9) for (const i9 of (Array.isArray(l9) ? l9 : [])) if (i9 != null) s9.add(String(i9)); return [...s9].sort(); };
-  const withDrops9 = (rec9, extra9) => { const dr9 = dropUnion9(x && x.dropped, y && y.dropped, extra9); if (!dr9.length) return rec9; const o9 = JSON.parse(JSON.stringify(rec9)); o9.dropped = dr9; return o9; };
-  const idsOf9 = (v9) => new Set([...(Array.isArray(v9 && v9.entries) ? v9.entries : []), ...(Array.isArray(v9 && v9.skipped) ? v9.skipped : [])].map((e9) => e9 && e9.id).filter((i9) => i9 != null));
-  if (sameBody9) return withDrops9(union.length ? { ...JSON.parse(JSON.stringify(base)), corrLog: union } : base);
+  /* FIX-13/14 — THE CARVE LEAVES A RECEIPT, AND THE RECEIPT IS CURRENT STATE.
+     dropped = every lift id this date has EVER carried on any copy that is not
+     on the record now — (ids of both bodies ∪ both sides' dropped) minus the ids
+     of the result. Sol (pass 3) executed the previous form (a union that only
+     grew) and found the dropped set could name a lift the winner carries once
+     an exact-authority tie let the winner change between groupings; as
+     "seen minus present" it is a function of the SET of inputs and the final
+     body, so every grouping and both orders agree, and a lift that comes back
+     (a modern replica's correction restating it) leaves the receipt. */
+  const idsOf9 = (v9) => new Set([...(Array.isArray(v9 && v9.entries) ? v9.entries : []), ...(Array.isArray(v9 && v9.skipped) ? v9.skipped : [])].map((e9) => e9 && e9.id).filter((i9) => i9 != null).map(String));
+  const seen9 = new Set([...idsOf9(x), ...idsOf9(y), ...(Array.isArray(x && x.dropped) ? x.dropped : []), ...(Array.isArray(y && y.dropped) ? y.dropped : [])].map(String));
+  const finish9 = (rec9) => {
+    const have9 = idsOf9(rec9); const dr9 = [...seen9].filter((i9) => !have9.has(i9)).sort();
+    const cur9 = Array.isArray(rec9 && rec9.dropped) ? rec9.dropped : [];
+    if (JSON.stringify(cur9) === JSON.stringify(dr9)) return rec9;                 /* nothing to say that is not already said — the record is returned as it is (byte-identity for a merge with oneself) */
+    const o9 = JSON.parse(JSON.stringify(rec9)); if (dr9.length) o9.dropped = dr9; else delete o9.dropped; return o9;
+  };
+  if (sameBody9) return finish9(union.length ? { ...JSON.parse(JSON.stringify(base)), corrLog: union } : base);
   if (!union.length) {
     /* A RECORD-LEVEL corr WITH NO OPS IS STILL AN AUTHORITY. Measured the hard
        way: accumulating here resurrected the very phantom a pre-corrLog
@@ -12360,7 +12373,7 @@ function _mergeSession(x, y) {
        HOW BIG THE CLASS IS on his ledger: one record, 2026-08-10 — the only one
        carrying a corr with no derivable ops. Every correction made from v58
        forward files its own op and never reaches this branch. */
-    if (cx9 || cy9) { const other8 = base === x ? y : x; const have8 = idsOf9(base); return withDrops9(base, [...idsOf9(other8)].filter((i8) => !have8.has(i8))); }
+    if (cx9 || cy9) return finish9(base);
   }
   /* THE BODY ACCUMULATES, THE CORRECTIONS DECIDE — the round's own slogan,
      finally true. Replaying over a body that one side WON meant every lift the
@@ -12472,7 +12485,7 @@ function _mergeSession(x, y) {
       if (Array.isArray(out9.skipped) && !out9.skipped.length) delete out9.skipped;
     }
   } catch (e) {}
-  return withDrops9(out9);
+  return finish9(out9);
 }
 function _sessionAtMs(v) { const n = v && +v.at; return isFinite(n) ? n : 0; }
 function _richerSession(x, y) {
@@ -12505,7 +12518,17 @@ function _richerSession(x, y) {
        _tieKey is a total order on exactly the fields the pick decides, so it is
        associative and commutative; in practice it prefers the later completion
        (at sorts first in the canonical key). */
-    return _tieKey(x) >= _tieKey(y) ? x : y;
+    /* FIX-14 (Sol, pass 3): two legacy corrected copies with EQUAL (at, rev) AND
+       equal non-body fields but different bodies — the exact-authority tie.
+       ">= ? x : y" answered by ARGUMENT position, and the carve then returned
+       that whole record: merge(A,B) kept rows and dropped curl, merge(B,A) the
+       reverse. A stable canonical order on the BODY is a function of the two
+       records; the per-lift path is not used here on purpose (a legacy carve
+       must not accumulate — that resurrects the phantom it exists to suppress). */
+    const kx9 = _tieKey(x), ky9 = _tieKey(y);
+    if (kx9 !== ky9) return kx9 > ky9 ? x : y;
+    const bx9 = _canonJ({ e: Array.isArray(x && x.entries) ? x.entries : [], s: Array.isArray(x && x.skipped) ? x.skipped : [] }), by9 = _canonJ({ e: Array.isArray(y && y.entries) ? y.entries : [], s: Array.isArray(y && y.skipped) ? y.skipped : [] });
+    return bx9 >= by9 ? x : y;                                                    /* equal bodies too → the records are the same body under the same authority; either is the base */
   }
   const stamped = cx ? x : y, plain = cx ? y : x, c = cx || cy;
   return _sessionAtMs(plain) > Date.parse(c.at) ? plain : stamped;             // 3 : 2
@@ -12698,6 +12721,19 @@ function mergeState(local, remote) {
   const out = { ...remote, ...local };                       // scalars: local wins; remote-only keys kept
   for (const k of Object.keys(MERGE_ARR)) out[k] = _unionBy(remote[k], local[k], MERGE_ARR[k]);
   for (const k of Object.keys(MERGE_MULTI)) out[k] = _unionMulti(remote[k], local[k], MERGE_MULTI[k]);
+  for (const k of MERGE_OBJ) out[k] = _unionObj(remote[k], local[k], k === "sessionLog" ? _mergeSession : _richer);   // CORRECTION_MERGE — only sessionLog knows about deliberate corrections. v7.54.0: _mergeSession = the ordering law for the BODY + a keyed replay of every correction either side knows about, so the entry set no longer rides on which copy happened to be richer.
+  /* FIX-13/14 — A CARVE IS TOLD, NOT SWALLOWED, AND TOLD TRUTHFULLY. Every date
+     whose record carries a merge receipt gets ONE feed line keyed on the DATE
+     (op "carve:<date>"): a pure function of the merged record — the dropped
+     set AND which copy stood (the corrected copy, or a copy completed AFTER the
+     correction — the plain-postdates-correction case, in which "the corrected
+     record stood whole" was false; Sol, pass 3). When a later merge changes
+     either, the line is restated: one line per date, never two, so the story is
+     the same in every grouping. Filed BEFORE the feed's canonical sort below, so
+     the sorted, newest-first feed is the fixed point (prepending after the sort
+     put an 8/09 line above an 8/18 one and the next merge moved it — Sol's
+     hunt). Dated at the record's own date: a merge has no clock. */
+  try { for (const d8 of Object.keys(out.sessionLog || {})) { const r8 = out.sessionLog[d8]; if (!(r8 && Array.isArray(r8.dropped) && r8.dropped.length)) continue; const op8 = "carve:" + d8, ids8 = r8.dropped.slice(), kept8 = r8.corr ? "corrected" : "later"; const feed8 = Array.isArray(out.feed) ? out.feed : []; const cur8 = feed8.find((f8) => f8 && f8.op === op8); if (cur8 && JSON.stringify(cur8.ids || []) === JSON.stringify(ids8) && cur8.kept === kept8) continue; const how8 = kept8 === "corrected" ? "Two copies of this session disagreed. One was a correction made before the app kept correction receipts, so the merge could not combine them lift by lift; it kept the corrected copy whole. The other copy carried " + ids8.join(", ") + ", which were not added. If they were real, log them again." : "Two copies of this session disagreed. One carried a correction made before the app kept correction receipts; the other was completed after that correction, so the merge kept the later copy whole. The corrected copy carried " + ids8.join(", ") + ", which were not added. If they were real, log them again."; out.feed = [{ op: op8, d: d8, ids: ids8, kept: kept8, t: "MERGE KEPT ONE WHOLE SESSION — " + d8, how: how8 }, ...feed8.filter((f8) => !(f8 && f8.op === op8))]; } } catch (e) {}
   /* THE FEED MERGE BURIED NOVEL ENTRIES AT THE TAIL (pre-existing, v6.2 era; surfaced in
      production by the withdrawal receipt). _unionMulti iterates remote keys first, so every
      identity the remote knew rendered in remote order and LOCAL-ONLY entries appended at the
@@ -12723,16 +12759,6 @@ function mergeState(local, remote) {
     }
     out.feed = out.feed.filter((f9) => !(f9 && f9.op != null) || opBest.get(f9.op) === f9);
   }
-  for (const k of MERGE_OBJ) out[k] = _unionObj(remote[k], local[k], k === "sessionLog" ? _mergeSession : _richer);   // CORRECTION_MERGE — only sessionLog knows about deliberate corrections. v7.54.0: _mergeSession = the ordering law for the BODY + a keyed replay of every correction either side knows about, so the entry set no longer rides on which copy happened to be richer.
-  /* FIX-13 — A CARVE IS TOLD, NOT SWALLOWED. Every date whose record carries a
-     merge receipt gets ONE op-keyed feed line, keyed on the DATE and naming the
-     record's whole dropped set. The line is a pure function of the record: when
-     a later merge grows the set, the line is restated to name the grown set —
-     one line per date, never two, so the story is the same in every grouping
-     (keying on the ids gave (A+B)+C a "curl" line AND a "curl+hack" line where
-     A+(B+C) had only the second — the receipt was associative and the feed was
-     not). Dated at the record's own date: a merge has no clock. */
-  try { for (const d8 of Object.keys(out.sessionLog || {})) { const r8 = out.sessionLog[d8]; if (!(r8 && Array.isArray(r8.dropped) && r8.dropped.length)) continue; const op8 = "carve:" + d8, ids8 = r8.dropped.slice(); const feed8 = Array.isArray(out.feed) ? out.feed : []; const cur8 = feed8.find((f8) => f8 && f8.op === op8); if (cur8 && JSON.stringify(cur8.ids || []) === JSON.stringify(ids8)) continue; out.feed = [{ op: op8, d: d8, ids: ids8, t: "MERGE KEPT THE CORRECTED RECORD — " + d8, how: "Another copy of this session carried " + ids8.join(", ") + " and the corrected copy did not. That correction was made before the app kept correction receipts, so the corrected record stands whole and those lifts were not added back. If they were real, log them again." }, ...feed8.filter((f8) => !(f8 && f8.op === op8))]; } } catch (e) {}
   for (const k of Object.keys(MERGE_KEYED)) out[k] = _unionKeyed(remote[k], local[k], MERGE_KEYED[k].keyOf, MERGE_KEYED[k].scoreOf);   // exercises/queue: reconcile per lift, never wholesale
   /* AUDIT G (volume lever) — ex.sets must SURVIVE the wholesale per-lift merge. _unionKeyed
      keeps ONE whole exercise object per id, judged by lastMeta.d — the right clock for
