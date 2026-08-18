@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.4";
+const APP_V = "7.54.5";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -12222,6 +12222,11 @@ function _unionCorrLog(x, y) {
 }
 /* canonical serialisation — key order is not information, so a value compare
    must not depend on it. */
+/* the record stripped of everything a merge can grow — what is left is stable
+   under accumulation, so a tie broken on it is associative. */
+function _tieKey(rec) {
+  try { const { entries, skipped, corrLog, ...rest } = rec || {}; return _canonJ(rest); } catch (e) { return ""; }
+}
 function _canonJ(v) {
   const c9 = (x) => { if (Array.isArray(x)) return x.map(c9); if (x && typeof x === "object") { const o = {}; for (const k of Object.keys(x).sort()) o[k] = c9(x[k]); return o; } return x; };
   try { return JSON.stringify(c9(v)); } catch (e) { return ""; }
@@ -12283,6 +12288,7 @@ function _replayCorrections(rec) {
 /* the pick sessionLog actually uses: the ordering law chooses the BODY, then
    every correction either side knows about is replayed over it. */
 function _mergeSession(x, y) {
+  const cx9 = _corrOf(x), cy9 = _corrOf(y);
   const base = _richerSession(x, y);
   const union = _unionCorrLog(x, y);
   if (!union.length) return base;                                                  /* records with no corrections merge EXACTLY as they always did — the uncorrected path is byte-for-byte the old one */
@@ -12314,8 +12320,38 @@ function _mergeSession(x, y) {
     if (!add9.length) return Array.isArray(base[field9]) ? base[field9].slice() : undefined;
     return [...(Array.isArray(base[field9]) ? base[field9] : []), ...add9.map((k9) => JSON.parse(JSON.stringify(extra9.get(k9))))];
   };
-  const ents9 = addMissing("entries"); if (ents9 !== undefined) merged.entries = ents9;
-  const skip9 = addMissing("skipped"); if (skip9 !== undefined) merged.skipped = skip9;
+  /* THE TIE PATH RESOLVES PER LIFT. A shared lift takes the canonical max of
+     the two copies — max is associative and commutative, which a record-level
+     pick stops being the moment the record it compares has grown — and the rest
+     is the union either side has.
+     ENTRY ORDER, and the choice is deliberate: plain id order. The merged
+     sequence must be a function of the SET of copies, not of which side was
+     base, and id order is exactly that. The alternative — the day's plan order
+     — reads better on the card, but it depends on exOrder, which is itself
+     merged and can differ by grouping, so it would reintroduce the defect it
+     was meant to dress. Checked before choosing: nothing computes on entry
+     POSITION (the only positional read in the file is the skinfold series);
+     two display maps render in array order, and this branch fires only when two
+     devices corrected the same record to an exact (at, rev) tie — which no
+     record of his has ever been in. */
+  const tie9 = cx9 && cy9 && cx9.at === cy9.at && cx9.rev === cy9.rev;
+  if (tie9) {
+    const perLift = (field9) => {
+      const m9 = new Map();
+      for (const side9 of [x, y]) for (const e9 of (Array.isArray(side9 && side9[field9]) ? side9[field9] : [])) {
+        if (!e9 || e9.id == null) continue;
+        const prev9 = m9.get(e9.id);
+        if (prev9 === undefined || _canonJ(e9) > _canonJ(prev9)) m9.set(e9.id, e9);
+      }
+      return [...m9.keys()].sort().map((k9) => JSON.parse(JSON.stringify(m9.get(k9))));
+    };
+    merged.entries = perLift("entries");
+    const sk9 = perLift("skipped");
+    if (sk9.length) merged.skipped = sk9; else delete merged.skipped;
+  } else {
+    const ents9 = addMissing("entries"); if (ents9 !== undefined) merged.entries = ents9;
+    const skip9 = addMissing("skipped"); if (skip9 !== undefined) merged.skipped = skip9;
+  }
   const out9 = _replayCorrections(merged);
   /* MUTUAL EXCLUSION, and it is a SEMANTICS CALL so here is the choice and the
      reason. entries and skipped accumulate independently, and replay only moves
@@ -12358,15 +12394,20 @@ function _richerSession(x, y) {
   if (cx && cy) {                                                              // 4
     if (cx.at !== cy.at) return cx.at > cy.at ? x : y;
     if (cx.rev !== cy.rev) return cx.rev > cy.rev ? x : y;
-    /* v7.54.2 — AND THE LAST TIE IS ORDER-FREE TOO. _richer ties to its SECOND
-       argument, which is merge order, so two equally-corrected records with an
-       equal byte score resolved by which side arrived: executed, curl came back
-       [12,12,9] one way and [12,12,8] the other. The per-lift accumulation was
-       already broken by canonical value; the BASE selection was not, so half
-       the merge was order-free and the half that chooses the body was not. */
-    const rr9 = _richer(x, y), other9 = rr9 === x ? y : x;
-    if (_mergeScore(rr9) !== _mergeScore(other9)) return rr9;
-    return _canonJ(x) >= _canonJ(y) ? x : y;
+    /* v7.54.5 — ON A TIE, SIZE IS NOT EVIDENCE. This consulted _mergeScore
+       first, and once bodies ACCUMULATE that is a function of the grouping, not
+       of the records: with three corrected replicas, the intermediate record
+       has more entries than any single input, so it won the base by size and
+       which pair merged first decided both the shared lift's copy and the entry
+       order. (A+B)+C gave curl [12,12,9] and A+(B+C) gave [12,12,8] — order-free
+       pairwise, not associative once a compared body had grown.
+       So the tie is resolved on a view accumulation cannot change: the record
+       WITHOUT its entries, skipped and corrLog. That picks the non-body fields
+       deterministically; the body itself is resolved per LIFT by _mergeSession,
+       because a canonical max per lift is associative and a record-level pick
+       is not. _mergeScore keeps its job in case 1, where no correction exists
+       anywhere and refuse-to-shrink is still the right law. */
+    return _tieKey(x) >= _tieKey(y) ? x : y;
   }
   const stamped = cx ? x : y, plain = cx ? y : x, c = cx || cy;
   return _sessionAtMs(plain) > Date.parse(c.at) ? plain : stamped;             // 3 : 2

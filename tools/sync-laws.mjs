@@ -224,6 +224,27 @@ const sameStampOneAbsent = (out, id) => {
 };
 const _isoEq = (x, y) => String(x || "") === String(y || "") && String(x || "") !== "";
 const AIM = {
+  /* THE THREE-REPLICA TIE (cowork's construction, committed). Three corrected
+     copies of one record, equal (corr.at, rev), each holding a different copy of
+     the shared lift AND one lift the others lack. Two replicas can never show
+     this: it takes a third for an intermediate record to grow past a single
+     input and win the base by size. */
+  14423: { apply: (out) => {
+      const mk = (s9, curl9, extra9) => { s9.sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964,
+        entries: [{ id: "curl", w: 50, reps: curl9, rir: 2, rirSets: [2, null, null] }, extra9],
+        corr: { at: "2026-08-10T08:00:00.000Z", rev: 1 },
+        corrLog: [{ op: "amend:2026-08-09:curl:2026-08-10T08:00:00.000Z", kind: "amend", id: "curl", at: "2026-08-10T08:00:00.000Z", to: [{ id: "curl", w: 50 }] }] }; };
+      mk(out[0], [12, 12, 9], { id: "press", w: 95, reps: [8, 8], rir: 1, rirSets: [1, 0] });
+      mk(out[1], [12, 12, 8], { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] });
+      if (out[2]) mk(out[2], [12, 12, 7], { id: "fly", w: 40, reps: [12, 12], rir: 2, rirSets: [2, 0] });
+      return ["curl [12,12,9] + press", "curl [12,12,8] + rows", "curl [12,12,7] + fly"]; },
+    assert: (out) => {
+      if (out.length < 3) return false;
+      const r9 = (s9) => s9.sessionLog["2026-08-09"] || {};
+      const curls = out.map((s9) => J((r9(s9).entries || []).find((e) => e && e.id === "curl")));
+      const ats = out.map((s9) => String((r9(s9).corr || {}).at) + "|" + String((r9(s9).corr || {}).rev));
+      const uniq = out.map((s9) => (r9(s9).entries || []).map((e) => e.id).filter((i9) => i9 !== "curl").join());
+      return new Set(ats).size === 1 && new Set(curls).size === 3 && new Set(uniq).size === 3; } },
   /* N-5(a) — TWO CORRECTED RECORDS THAT TIE ON EVERYTHING THE ORDERING LAW
      READS: same corr.at, same rev, same _mergeScore, different bodies. Nothing
      in the committed set forced this, so an engine whose base tie fell back to
@@ -305,14 +326,19 @@ const AIM = {
        and C tied on wAt the sub-merge load was already a rung and the defect
        never formed, which is how this seed sat green on the very engine it was
        promoted to catch. */
+    /* THE ASSERT CALLS PRODUCTION. It used to hand-model the merge — and its
+       model returned the second argument on an equal wAt while production
+       tie-breaks equal stamps by VALUE, so with B and C tied the assert said
+       "formed" while production resolved a load that was already a rung and the
+       mutation went uncaught. An assert that models the system under test is
+       the rig-first hazard this round exists to kill. */
     assert: (out) => {
       if (out.length < 3) return false;
       const g9 = (s9) => (s9.exercises || []).find((z) => z && z.id === "hack") || {};
-      const newer9 = (p, q) => (String(g9(p).wAt || "") > String(g9(q).wAt || "") ? p : q);
-      const subLoad = g9(newer9(out[1], out[2])).w;                                  /* what B+C resolves to */
-      const subLad = g9(String(g9(out[1]).stepsAt || "") > String(g9(out[2]).stepsAt || "") ? out[1] : out[2]).steps || [];
-      const finalLoad = g9(out.reduce((p, q) => newer9(p, q))).w;                    /* what the whole merge resolves to */
-      return subLad.indexOf(subLoad) < 0 && subLad.indexOf(finalLoad) > -1; } },
+      const bc = T.mergeState(cl(out[1]), cl(out[2]));                               /* the real sub-merge */
+      const all = T.mergeState(cl(out[0]), cl(bc));                                  /* and the real whole */
+      const bcL = g9(bc), allL = g9(all);
+      return (bcL.steps || []).indexOf(bcL.w) < 0 && (allL.steps || []).indexOf(allL.w) > -1; } },
   /* THE RESTORE DRILL — cowork's witness, committed. A pre-correction backup of
      the 8/14 record rejoins today, and on it the athlete makes ONE legitimate
      new correction. Before FIX 2, his newer stamp correctly made the restored
@@ -795,6 +821,7 @@ const SEEDS = [
   { seed: 14414, why: "a deliberate reseed beside a cache CLAIMING the current load. MUTATION: the same-load refill judged by lastMeta.w instead of the derived line (leg 9)", redAt: "6b633c7" },
   { seed: 14415, why: "a load and a ladder resolving from different sides, each newer at what it wrote. MUTATION: ensureLoadOnLadder removed from the recombination point (leg 3)", redAt: "a26e1bd" },
   { seed: 14416, why: "two devices correcting the SAME session differently, three replicas. MUTATION: replay leaving a non-canonical empty skipped[] — the bug this harness found in its own round", redAt: "87143ac" },
+  { seed: 14423, why: "THREE corrected replicas tying on (corr.at, rev), each with a different copy of the shared lift and one lift the others lack. MUTATION IT GUARDS: letting the (at,rev) tie consult _mergeScore — once bodies accumulate, size is a function of the GROUPING, so the intermediate record wins the base and (A+B)+C disagrees with A+(B+C)", redAt: "4b5704a" },
   { seed: 14421, why: "two corrected records tying on corr.at, rev AND _mergeScore with different bodies. MUTATION: the base tie falling back to _richer, which ties to its second argument — merge order", redAt: "dd29e8a" },
   { seed: 14422, why: "rows skipped WITH an amend naming it on one side, logged with no placement op on the other. MUTATION: reading 'any correction naming this lift' as deciding placement, which leaves the lift in both arrays", redAt: "dd29e8a" },
   { seed: 883544, why: "a later act carrying an earlier stamp (a non-monotone device clock), so the replica's own body and the replay of its own corrLog disagree. Found by --explore; 17 of 17 remaining hits were this one class", redAt: "3a7edc4" },
@@ -834,9 +861,14 @@ const MUTATIONS = [
      and FIX 1 deleted that sweep — the row would be testing code the leg removed on
      purpose. A stale mutation is worse than none, because it reads as coverage. */
   ["mutual-exclusion-off", "pin", "a lift is allowed to sit in entries AND skipped at once", `      if (named9.has(id9)) continue;`, `      if (true) continue;`],
-  ["base-tie-by-order", "pin", "the base tie falls back to _richer, which ties to its second argument — merge order", `    return _canonJ(x) >= _canonJ(y) ? x : y;`, `    return _richer(x, y);`],
+  /* base-tie-by-order is RETIRED and the reason matters: once the tie path
+     resolves the body PER LIFT, the base pick no longer reaches entries at
+     all, so reverting it to _richer is an equivalent mutant on every committed
+     shape. tie-reads-record-size is the row that guards this property now. A
+     row that cannot fail reads as coverage and is worse than no row. */
   ["fabricate-skip-provenance", "pin", "the backfill invents a correction for every id in skipped[] — P0#1, membership read as provenance", `  s.v = 57; return s;`, `  for (const d9 of Object.keys((s && s.sessionLog) || {})) { const r9 = s.sessionLog[d9]; const a9 = r9 && r9.corr && r9.corr.at; if (!a9) continue; for (const z9 of (r9.skipped || [])) if (z9 && z9.id) _fileCorr(r9, "skip:" + d9 + ":" + z9.id + ":" + a9, "skip", z9.id, a9); } s.v = 57; return s;`],
-  ["one-placement-off", "law", "the exclusion step is skipped, so a lift may sit in entries and skipped at once", `      if (dup9.length) {`, `      if (false) {`],
+  ["tie-reads-record-size", "law", "the (at,rev) tie resolves the body per RECORD again instead of per lift — and a record-level pick stops being associative once the record it compares has grown", `    merged.entries = perLift("entries");`, `    merged.entries = (Array.isArray(base.entries) ? base.entries.slice() : []);`],
+  ["one-placement-off", "law", "the exclusion step is skipped, so a lift may sit in entries and skipped at once", `      for (const id9 of dup9) {`, `      for (const id9 of []) {`],
   ["corrections-unguarded", "pin", "the correction ledger leaves recordCounts", `    corrections: Object.values((st.sessionLog && typeof st.sessionLog === "object") ? st.sessionLog : {}).reduce((n9, r9) => n9 + ((r9 && Array.isArray(r9.corrLog)) ? r9.corrLog.length : 0), 0),`, `    corrections: 0,`],
 ];
 async function runMutations() {
