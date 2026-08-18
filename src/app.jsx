@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.13";
+const APP_V = "7.54.14";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -10982,7 +10982,7 @@ function reconcileCorrectedLoads(s) {
        made a second adoption reachable, stable only at depth 2 after). Applying
        the merge's own stable sort here costs nothing when nothing was filed and
        keeps the two paths agreeing. */
-    if (filed9 && Array.isArray(s.feed)) s.feed = s.feed.map((x9, i9) => [x9, i9]).sort((a9, b9) => String((b9[0] || {}).d || "").localeCompare(String((a9[0] || {}).d || "")) || a9[1] - b9[1]).map((p9) => p9[0]);
+    if (filed9 && Array.isArray(s.feed)) s.feed = _feedSorted(s.feed);
     /* FIX 3 — every lift self-heals at the boundary, adopted or not: a hybrid
        that a past merge already wrote into the state is repaired the next time
        it is loaded, not left for a future snapper to trip over. */
@@ -10995,7 +10995,7 @@ function migrate(old) {
   /* RB-6 — the one-line container heal: a malformed store missing a container must
      not crash the chain; the arrays it holds stay exactly as found. */
   if (old && typeof old === "object") { old.sleep = old.sleep || { nights: [], needed: 3 }; old.sleep.nights = old.sleep.nights || []; old.dailyLogs = old.dailyLogs || {}; old.sessionLog = old.sessionLog || {}; old.reads = old.reads || []; }
-  if (old && old.v === SCHEMA_V) { reconcileLiftCaches(old); reconcileCorrectedLoads(old); normalizePlan(old); return old; }   /* R5 fix-4: the SAME-SCHEMA entry boundary normalizes too — this fast path IS the import path (doImport = migrate(parse) -> save), and a poisoned planGen-51 backup used to render and persist verbatim until the next sweep. Idempotent; the ruled-order half stands down at planGen 52. */
+  if (old && old.v === SCHEMA_V) { reconcileLiftCaches(old); reconcileCorrectedLoads(old); normalizePlan(old); if (Array.isArray(old.feed)) old.feed = _feedSorted(old.feed); return old; }   /* R5 fix-4: the SAME-SCHEMA entry boundary normalizes too — this fast path IS the import path (doImport = migrate(parse) -> save), and a poisoned planGen-51 backup used to render and persist verbatim until the next sweep. Idempotent; the ruled-order half stands down at planGen 52. */
   /* A state NEWER than this build — he upgraded, then the app was rolled back.
      Hand it back untouched: no patch here understands schema n+1, and the only
      other exit below is a fresh SEED, which would wipe every read, night,
@@ -11003,7 +11003,7 @@ function migrate(old) {
      may read oddly on fields this code does not know; re-upgrading restores full
      function. A visible misbehaviour is recoverable — a wipe is not. */
   if (old && old.v > SCHEMA_V) return old;
-  if (old && old.v >= 3 && old.v < SCHEMA_V) { const st = PATCHES.filter(([n]) => n > old.v).reduce((s, [, p]) => p(s), JSON.parse(JSON.stringify(old))); reconcileLiftCaches(st); reconcileCorrectedLoads(st); return st; }
+  if (old && old.v >= 3 && old.v < SCHEMA_V) { const st = PATCHES.filter(([n]) => n > old.v).reduce((s, [, p]) => p(s), JSON.parse(JSON.stringify(old))); reconcileLiftCaches(st); reconcileCorrectedLoads(st); if (Array.isArray(st.feed)) st.feed = _feedSorted(st.feed); return st; }   /* FIX-15 — A BOOT ENDS WITH THE FEED IN ITS ONE ORDER. A patch unshifts its receipt at the head regardless of date (patchV55's 8/09 re-strike line landed above 8/17 seams on the branch's own v54 ledger copy — CC's leg-15 finding), and the next sync would move it: the boot was not a fixed point of the merge. Same sort, last, both exits. */
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -11029,7 +11029,7 @@ function migrate(old) {
     if (oq.id === "ext150") { const e = exById(s, "extension"); e.own = false; e.std = null; s.queue.find((x) => x.id === "q_ext").done = true; }
     if (oq.id === "dexa") { s.queue.find((x) => x.id === "q_dexa").state = "BOOKED"; }
   });
-  return PATCHES.reduce((acc, [, p]) => p(acc), s);   /* v1/v2 only: a legacy state predates every patch, so the full chain over a fresh seed is correct here — this is also why idempotency stays demanded */
+  const s2 = PATCHES.reduce((acc, [, p]) => p(acc), s); if (Array.isArray(s2.feed)) s2.feed = _feedSorted(s2.feed); return s2;   /* v1/v2 only: a legacy state predates every patch, so the full chain over a fresh seed is correct here — this is also why idempotency stays demanded */
 }
 
 const GLOSSARY = {
@@ -12715,6 +12715,20 @@ const MERGE_ARR = {   // one logical entry per key (date / id) — the richer co
 };
 const MERGE_MULTI = { feed: (f) => JSON.stringify(f), forecasts: (f) => JSON.stringify(f) };   // keyless — identical entries may legitimately repeat, so preserve multiplicity
 const MERGE_OBJ = ["dailyLogs", "sessionLog", "dayCtx", "labSeen"];
+/* _feedSorted — THE FEED'S ONE CANONICAL ORDER: newest-first by d, stable (so
+   within-day emitted order survives). Every path that can write a feed line
+   ends by calling this — a merge (after its receipts AND after
+   reconcileEraTransitions, whose replay/adoptshift lines are dated in the past)
+   and a boot (after its patches and reconcilers) — so a settled or merged state
+   is a fixed point of the next merge and the renderer's array order is the
+   order every unshift assumes. Sol's pass-3 hunt: a receipt filed AFTER the
+   sort put an 8/09 line above an 8/18 one; CC's leg-15 finding: patchV55's
+   unshift did the same at a v54 boot; cowork's probe: reconcileEraTransitions'
+   adoptshift line did it at merge. One sort, last, on every path. */
+function _feedSorted(arr) {
+  if (!Array.isArray(arr)) return arr;
+  return arr.map((x, i) => [x, i]).sort((a, b) => String((b[0] || {}).d || "").localeCompare(String((a[0] || {}).d || "")) || a[1] - b[1]).map((p) => p[0]);
+}
 function mergeState(local, remote) {
   if (!remote || typeof remote !== "object") return local;   // no remote / junk remote -> keep local
   if (!local || typeof local !== "object") return remote;    // never write junk over a real remote
@@ -12734,16 +12748,6 @@ function mergeState(local, remote) {
      put an 8/09 line above an 8/18 one and the next merge moved it — Sol's
      hunt). Dated at the record's own date: a merge has no clock. */
   try { for (const d8 of Object.keys(out.sessionLog || {})) { const r8 = out.sessionLog[d8]; if (!(r8 && Array.isArray(r8.dropped) && r8.dropped.length)) continue; const op8 = "carve:" + d8, ids8 = r8.dropped.slice(), kept8 = r8.corr ? "corrected" : "later"; const feed8 = Array.isArray(out.feed) ? out.feed : []; const cur8 = feed8.find((f8) => f8 && f8.op === op8); if (cur8 && JSON.stringify(cur8.ids || []) === JSON.stringify(ids8) && cur8.kept === kept8) continue; const how8 = kept8 === "corrected" ? "Two copies of this session disagreed. One was a correction made before the app kept correction receipts, so the merge could not combine them lift by lift; it kept the corrected copy whole. The other copy carried " + ids8.join(", ") + ", which were not added. If they were real, log them again." : "Two copies of this session disagreed. One carried a correction made before the app kept correction receipts; the other was completed after that correction, so the merge kept the later copy whole. The corrected copy carried " + ids8.join(", ") + ", which were not added. If they were real, log them again."; out.feed = [{ op: op8, d: d8, ids: ids8, kept: kept8, t: "MERGE KEPT ONE WHOLE SESSION — " + d8, how: how8 }, ...feed8.filter((f8) => !(f8 && f8.op === op8))]; } } catch (e) {}
-  /* THE FEED MERGE BURIED NOVEL ENTRIES AT THE TAIL (pre-existing, v6.2 era; surfaced in
-     production by the withdrawal receipt). _unionMulti iterates remote keys first, so every
-     identity the remote knew rendered in remote order and LOCAL-ONLY entries appended at the
-     tail: the 2026-08-06 CARD WITHDRAWN receipt sat at index 189 of 191, under July lines,
-     and the feed head was 08-04. Every unshift assumes newest-first; one sync against a
-     stale remote destroyed it — the withdrawal convention held in STATE and failed in
-     DISPLAY, which is where he reads. Stable sort by d descending, scoped to feed: every
-     feed line carries d, JS sort is stable so within-day emitted order survives, and the
-     order-dependent consumer is the renderer. forecasts joins by date and does not care. */
-  if (Array.isArray(out.feed)) out.feed = out.feed.map((x, i) => [x, i]).sort((a, b) => String((b[0] || {}).d || "").localeCompare(String((a[0] || {}).d || "")) || a[1] - b[1]).map((p) => p[0]);
   /* FIX split-1 (P1-8) — OP-KEYED RECEIPTS RECONCILE TO ONE: two devices firing
      the same operation offline (a seam, a retirement, an insertion receipt, an
      adoption, a standard retirement) each minted a receipt; post-merge the
@@ -12892,7 +12896,17 @@ function mergeState(local, remote) {
      it is lawful (planGen 51 — a 52 custom order passes through unrepaired).
      Round 1 returned through canonicalizePlan alone, so a poisoned 51 order
      survived every merge and sync upload until the next sweep. */
+  /* THE FEED MERGE BURIED NOVEL ENTRIES AT THE TAIL (pre-existing, v6.2 era; surfaced in
+     production by the withdrawal receipt). _unionMulti iterates remote keys first, so every
+     identity the remote knew rendered in remote order and LOCAL-ONLY entries appended at the
+     tail: the 2026-08-06 CARD WITHDRAWN receipt sat at index 189 of 191, under July lines,
+     and the feed head was 08-04. Every unshift assumes newest-first; one sync against a
+     stale remote destroyed it — the withdrawal convention held in STATE and failed in
+     DISPLAY, which is where he reads. Stable sort by d descending, scoped to feed, and LAST — after every writer this function runs (the carve receipt, the op-dedup, reconcileEraTransitions' replay and adoptshift lines, all of which unshift a line dated in the past): every
+     feed line carries d, JS sort is stable so within-day emitted order survives, and the
+     order-dependent consumer is the renderer. forecasts joins by date and does not care. */
   reconcileEraTransitions(normalizePlan(out));
+  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);
   return out;
 }
 

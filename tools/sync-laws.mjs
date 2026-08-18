@@ -316,6 +316,21 @@ const AIM = {
      session date. The receipt is dated at the session; the feed is newest-first
      by contract; a receipt prepended AFTER the canonical sort sat above the
      newer line and the next merge moved it — merge(m,m) ≠ m (Sol's hunt). */
+  /* THE MERGE'S OWN LATE WRITER. reconcileEraTransitions runs at the END of
+     mergeState and files the adoptshift line ("HACK — LOGGED AT 200 (plan said
+     190)") dated at the lift's wAt — a PAST date — by unshift. With a newer
+     line already in the feed the merged feed was not newest-first and the next
+     merge moved it: the same fixed-point class as Sol's hunt and CC's v54
+     finding, on a writer that predates both. The sort must be the LAST feed
+     step of the merge. Found by cowork's probe while generalising the fix. */
+  14436: { apply: (out) => {
+      for (const s9 of out) {
+        const hack9 = (s9.exercises || []).find((e) => e && e.id === "hack");
+        if (hack9) { hack9.w = 200; hack9.wAt = "2026-08-15T09:00:00.000Z"; }
+        s9.feed = [{ d: "2026-08-18", t: "WEIGH-IN — 163.2", how: "a story line newer than the adoption's date" }, { d: "2026-08-14", t: "HACK SQUAT — LOAD ADOPTED AT 190", how: "the kept (earliest) adopt receipt names its load", op: "adopt:hack", w: 190 }];
+      }
+      return ["hack 200 @08-15 · feed [08-18 line, adopt:hack@190 08-14]", "(same)", "(same)"]; },
+    assert: (out) => out.every((s9) => { const h = (s9.exercises || []).find((e) => e && e.id === "hack"); return !!h && h.w === 200 && String(h.wAt) > "2026-08-14" && Array.isArray(s9.feed) && s9.feed.length === 2 && String(s9.feed[0].d) > String(s9.feed[1].d) && s9.feed[1].op === "adopt:hack" && s9.feed[1].w === 190; }) },
   14435: { expectsCarve: true, apply: (out) => {
       const rows9 = { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] }, curl9 = { id: "curl", w: 50, reps: [12, 12, 9], rir: 2, rirSets: [2, null, null] };
       const line9 = { d: "2026-08-18", t: "WEIGH-IN — 163.2", how: "a story line newer than the session the merge will carve" };
@@ -1098,6 +1113,20 @@ const LAWS = [
     check: (A) => {
       const s9 = settle(A);
       const self9 = T.mergeState(cl(s9), cl(s9));
+      /* AND THE FEED (Sol pass 3, CC leg 15, cowork's probe): a settled state's
+         feed is newest-first, and a merge with oneself does not touch it — a
+         boot that files a receipt at the head regardless of date, or a merge
+         that files one after its sort, leaves a feed the next merge rewrites. */
+      const desc9 = (f) => (Array.isArray(f) ? f : []).every((x, i, a) => i === 0 || String((a[i - 1] || {}).d || "") >= String((x || {}).d || ""));
+      if (!desc9(s9.feed)) return { got: "a settled state's feed is not newest-first: " + J((s9.feed || []).map((f) => f && f.d)).slice(0, 160) };
+      /* the FIRST self-merge may file a receipt a boot does not (the adoptshift
+         line is a merge-time writer) — so the promise is the same one idempotence
+         makes: newest-first, and a fixed point FROM the first merge. */
+      if (!desc9(self9.feed)) return { got: "merge(A,A) left the feed out of newest-first order: " + J((self9.feed || []).map((f) => f && f.d)).slice(0, 160) };
+      const again9 = T.mergeState(cl(self9), cl(self9));
+      if (J(again9.feed) !== J(self9.feed)) return { got: "merge(A,A) is not a feed fixed point: " + J((self9.feed || []).map((f) => f && f.d)).slice(0, 100) + " -> " + J((again9.feed || []).map((f) => f && f.d)).slice(0, 100) };
+      const booted8 = T.migrate(cl(A));
+      if (!desc9(booted8.feed)) return { got: "a boot left the feed out of newest-first order: " + J((booted8.feed || []).map((f) => f && f.d)).slice(0, 160) };
       for (const d9 of Object.keys(s9.sessionLog || {})) {
         if (J((self9.sessionLog || {})[d9]) !== J((s9.sessionLog || {})[d9])) {
           return { got: "merge(A,A) rewrote " + d9 + ": " + J((s9.sessionLog || {})[d9]).slice(0, 120) + " -> " + J((self9.sessionLog || {})[d9]).slice(0, 120) };
@@ -1223,6 +1252,7 @@ const SEEDS = [
   { seed: 14431, why: "THE CARVE, DECLARED: a legacy corr-no-ops record against a plain replica with an unrelated extra lift — the wholesale pick keeps the corrected body, files dropped=[curl] on the record and ONE feed line keyed on the date naming the set; a third plain replica with another extra makes the three groupings agree on dropped=[curl,hack] and on that one line. MUTATION IT GUARDS: carve-silent (the receipt not written)", redAt: "7ef2079 (no receipt)" },
   { seed: 14433, why: "SOL'S PASS-3 P0: the exact-authority tie — three legacy corrected copies with equal (corr.at, rev, non-body fields) and disjoint bodies; the carve kept whichever record was the FIRST ARGUMENT. MUTATION IT GUARDS: tie-by-argument-order", redAt: "4de310e" },
   { seed: 14434, why: "RECEIPT TRUTH: a plain copy completed AFTER the correction wins (the standing rule) — the receipt must say the later copy stood, not the corrected one. MUTATION IT GUARDS: receipt-claims-corrected", redAt: "4de310e" },
+  { seed: 14436, why: "THE MERGE'S OWN LATE WRITER: reconcileEraTransitions files the adoptshift line (dated at the lift's wAt) at the END of mergeState by unshift — after the sort, the merged feed was not newest-first and the next merge moved it. MUTATION IT GUARDS: merge-sort-not-last", redAt: "489e892" },
   { seed: 14435, why: "THE FEED'S FIXED POINT: a carve beside a feed line newer than the session — the receipt was prepended after the newest-first sort, so merge(m,m) moved it. MUTATION IT GUARDS: feed-unsorted", redAt: "4de310e" },
   { seed: 14432, why: "legacy vs modern: a corr-no-ops record against a corrLog-carrying one — the union is non-empty, so the carve must NOT fire and both lifts survive. MUTATION IT GUARDS: carve-ignores-union", redAt: "—" },
   { seed: 91337, why: "general convergence over the whole op set", redAt: "—" },
@@ -1281,6 +1311,7 @@ const MUTATIONS = [
   ["carve-silent", "law", "the wholesale pick keeps the corrected body but files no receipt for what it discarded", `    if (cx9 || cy9) return finish9(base);`, `    if (cx9 || cy9) return base;`, "session-superset"],
   ["tie-by-argument-order", "law", "the exact-authority tie is answered by argument position again — the carve keeps whichever record arrived first", `    return bx9 >= by9 ? x : y;`, `    return x;`, "convergence"],
   ["receipt-claims-corrected", "law", "the carve receipt always says the corrected copy stood, even when the later plain copy did", `kept8 = r8.corr ? "corrected" : "later";`, `kept8 = "corrected";`, "session-superset"],
+  ["merge-sort-not-last", "law", "the merge sorts its feed BEFORE reconcileEraTransitions files its past-dated lines, so the merged feed is not newest-first and the next merge moves them", `  reconcileEraTransitions(normalizePlan(out));\n  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);`, `  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);\n  reconcileEraTransitions(normalizePlan(out));`, "merge-fixed-point"],
   ["feed-unsorted", "law", "the feed's canonical newest-first sort becomes the identity, so a receipt filed at the session's date sits above newer lines and the next merge moves it", `.sort((a, b) => String((b[0] || {}).d || "").localeCompare(String((a[0] || {}).d || "")) || a[1] - b[1])`, `.sort((a, b) => 0)`, "merge-fixed-point"],
   ["carve-ignores-union", "law", "the carve fires whenever a side carries a corr, even when the other side's corrLog says a correction exists — the union is ignored", `  if (!union.length) {`, `  if (true) {`, "session-superset"],
   ["corrections-unguarded", "pin", "the correction ledger leaves recordCounts", `    corrections: Object.values((st.sessionLog && typeof st.sessionLog === "object") ? st.sessionLog : {}).reduce((n9, r9) => n9 + ((r9 && Array.isArray(r9.corrLog)) ? r9.corrLog.length : 0), 0),`, `    corrections: 0,`],
