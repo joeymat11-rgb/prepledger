@@ -323,6 +323,50 @@ const AIM = {
      merge moved it: the same fixed-point class as Sol's hunt and CC's v54
      finding, on a writer that predates both. The sort must be the LAST feed
      step of the merge. Found by cowork's probe while generalising the fix. */
+  /* SOL'S PASS-4 P0 (A) — THE FULL RETURN. A replica carrying a carve state
+     (body [curl], dropped [rows], one receipt naming rows) meets a modern
+     replica whose correction RESTORES rows: the record's dropped set empties,
+     so the receipt must go with it. The old writer skipped records with no
+     dropped set and left the obsolete line standing — and it was false. */
+  14437: { apply: (out) => {
+      const D9 = "2026-08-09", curl9 = { id: "curl", w: 50, reps: [12, 12, 9], rir: 2, rirSets: [2, null, null] }, rows9 = { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] };
+      const line9 = { op: "carve:" + D9, d: D9, ids: ["rows"], kept: "later", t: "MERGE KEPT ONE WHOLE SESSION — " + D9, how: "(the receipt a previous merge wrote)" };
+      out[0].sessionLog[D9] = { d: D9, at: 1786311986964, entries: [cl(curl9)], dropped: ["rows"] }; out[0].feed = [cl(line9)];
+      out[1].sessionLog[D9] = { d: D9, at: 1786311986964, entries: [cl(rows9), cl(curl9)], corr: { at: "2026-08-12T08:00:00.000Z", rev: 1 }, corrLog: [{ op: "amend:" + D9 + ":rows:2026-08-12T08:00:00.000Z", kind: "amend", id: "rows", at: "2026-08-12T08:00:00.000Z", to: [{ id: "rows", w: 180 }] }] }; out[1].feed = [cl(line9)];
+      if (out[2]) { out[2].sessionLog[D9] = cl(out[0].sessionLog[D9]); out[2].feed = [cl(line9)]; }
+      return ["carve state: curl · dropped [rows] · receipt [rows]", "modern replica: rows RESTORED by a correction (corrLog) · same stale receipt", "(as A)"]; },
+    assert: (out) => { const a = out[0].sessionLog["2026-08-09"] || {}, b = out[1].sessionLog["2026-08-09"] || {};
+      return J(a.dropped) === J(["rows"]) && !(a.entries || []).some((e) => e.id === "rows") && (out[0].feed || []).some((f) => f && f.op === "carve:2026-08-09" && J(f.ids) === J(["rows"]))
+        && (b.entries || []).some((e) => e.id === "rows") && Array.isArray(b.corrLog) && b.corrLog.some((c) => c && c.id === "rows") && !b.dropped; } },
+  /* SOL'S PASS-4 P0 (B) — PARTIAL RETURN + STALE REJOIN. STALE: body [curl],
+     dropped [hack, rows], receipt [hack, rows]. CURRENT: body [rows, curl],
+     dropped [hack], receipt [hack]. Both plain. The record converged (seen −
+     present = [hack]) but the feed did not: the writer trusted the FIRST
+     matching line and the op-dedup then kept the stale duplicate by its
+     unrelated tie rule — direction-dependent, and merge(m,m) changed it. */
+  14438: { apply: (out) => {
+      const D9 = "2026-08-09", curl9 = { id: "curl", w: 50, reps: [12, 12, 9], rir: 2, rirSets: [2, null, null] }, rows9 = { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] };
+      const mkLine = (ids9) => ({ op: "carve:" + D9, d: D9, ids: ids9, kept: "later", t: "MERGE KEPT ONE WHOLE SESSION — " + D9, how: "(the receipt a previous merge wrote)" });
+      out[0].sessionLog[D9] = { d: D9, at: 1786311986964, entries: [cl(curl9)], dropped: ["hack", "rows"] }; out[0].feed = [mkLine(["hack", "rows"])];
+      out[1].sessionLog[D9] = { d: D9, at: 1786311986964, entries: [cl(rows9), cl(curl9)], dropped: ["hack"] }; out[1].feed = [mkLine(["hack"])];
+      if (out[2]) { out[2].sessionLog[D9] = cl(out[1].sessionLog[D9]); out[2].feed = [mkLine(["hack"])]; }
+      return ["STALE: curl · dropped [hack,rows] · receipt [hack,rows]", "CURRENT: rows,curl · dropped [hack] · receipt [hack]", "(as CURRENT)"]; },
+    assert: (out) => { const a = out[0].sessionLog["2026-08-09"] || {}, b = out[1].sessionLog["2026-08-09"] || {};
+      return J(a.dropped) === J(["hack", "rows"]) && J(b.dropped) === J(["hack"]) && !a.corr && !b.corr && !a.corrLog && !b.corrLog
+        && (b.entries || []).some((e) => e.id === "rows") && !(a.entries || []).some((e) => e.id === "rows")
+        && J(((out[0].feed || [])[0] || {}).ids) === J(["hack", "rows"]) && J(((out[1].feed || [])[0] || {}).ids) === J(["hack"]); } },
+  /* SOL'S PASS-4 HUNT — SAME-DAY LINES. Each replica wrote a DIFFERENT line
+     on the same day. _feedSorted keeps arrival order within a day and the
+     union put the remote side first, so [B, A] one way and [A, B] the other —
+     ordinary concurrent lines, a whole-state convergence failure the suite
+     could not form (world() starts with an empty feed; no seed gave two
+     replicas distinct same-day lines). */
+  14439: { apply: (out) => {
+      out[0].feed = [{ d: "2026-08-18", t: "A — PHONE", how: "a line only the phone wrote" }];
+      out[1].feed = [{ d: "2026-08-18", t: "B — CLOUD", how: "a line only the laptop wrote" }];
+      if (out[2]) out[2].feed = [{ d: "2026-08-18", t: "C — TABLET", how: "a line only the tablet wrote" }];
+      return ["feed [A — PHONE @08-18]", "feed [B — CLOUD @08-18]", "feed [C — TABLET @08-18]"]; },
+    assert: (out) => out.every((s9) => Array.isArray(s9.feed) && s9.feed.length === 1 && s9.feed[0].d === "2026-08-18") && new Set(out.map((s9) => s9.feed[0].t)).size === out.length },
   14436: { apply: (out) => {
       for (const s9 of out) {
         const hack9 = (s9.exercises || []).find((e) => e && e.id === "hack");
@@ -851,7 +895,9 @@ const sessTotals = (s) => Object.fromEntries(Object.entries(s.sessionLog || {}).
 const stores = (s) => ({
   reads: (s.reads || []).length, nights: ((s.sleep || {}).nights || []).length,
   dailyLogs: Object.keys(s.dailyLogs || {}).length, sessionLog: Object.keys(s.sessionLog || {}).length,
-  queue: (s.queue || []).length, feed: new Set((s.feed || []).map((f) => J(f))).size,
+  queue: (s.queue || []).length,
+  /* the carve receipt is a PROJECTION of a session record, not an appended fact: it goes when the record's dropped set empties (Sol, pass 4), so it is not counted as history here */
+  feed: new Set((s.feed || []).filter((f) => !(f && typeof f.op === "string" && f.op.indexOf("carve:") === 0)).map((f) => J(f))).size,
   corrections: Object.values(s.sessionLog || {}).reduce((n, r) => n + ((r && Array.isArray(r.corrLog)) ? r.corrLog.length : 0), 0),   /* the correction ledger is append-only and was covered by no law here either — the same hole dataLossGuard had */
 });
 const corrOps = (s) => { const o = []; for (const r of Object.values(s.sessionLog || {})) for (const c of (r.corrLog || [])) o.push(c.op); return o.sort(); };
@@ -905,6 +951,20 @@ const LAWS = [
         const mm = T.mergeState(cl(m), cl(m));
         if (J(mm.feed) !== J(m.feed)) return { got: nm9 + ": merge(m,m) rewrote the feed: " + J((m.feed || []).map((f) => f && (f.d + (f.op ? "(" + f.op + ")" : "")))).slice(0, 120) + " -> " + J((mm.feed || []).map((f) => f && (f.d + (f.op ? "(" + f.op + ")" : "")))).slice(0, 120) };
         if (J(mm.sessionLog) !== J(m.sessionLog)) return { got: nm9 + ": merge(m,m) rewrote sessionLog at " + firstDiff(m.sessionLog, mm.sessionLog) };
+        /* THE RECEIPT IS A PROJECTION OF THE RECORD (Sol, pass 4): for every
+           date, the feed carries exactly one carve line iff the record carries a
+           dropped set, naming exactly that set and the copy that stood — and no
+           carve line names a date whose record has nothing dropped. Checked here
+           on the merged state, unconditionally, because session-superset only
+           looks at a date that lost a lift, and a lift that CAME BACK is the case
+           where the receipt must shrink or vanish. */
+        const dates9 = new Set([...Object.keys(m.sessionLog || {}), ...(m.feed || []).filter((f9) => f9 && typeof f9.op === "string" && f9.op.indexOf("carve:") === 0).map((f9) => f9.op.slice(6))]);
+        for (const d9 of dates9) {
+          const r9 = (m.sessionLog || {})[d9], want9 = r9 && Array.isArray(r9.dropped) ? r9.dropped : [];
+          const ls9 = (m.feed || []).filter((f9) => f9 && f9.op === "carve:" + d9);
+          if (!want9.length && ls9.length) return { got: nm9 + ": " + d9 + " has no dropped lifts but " + ls9.length + " carve line(s) still name " + J(ls9.map((f9) => f9.ids)) + " — a receipt that outlived its record" };
+          if (want9.length && (ls9.length !== 1 || J(ls9[0].ids || []) !== J(want9) || ls9[0].kept !== (r9.corr ? "corrected" : "later"))) return { got: nm9 + ": " + d9 + " dropped=" + J(want9) + " but the feed carries " + J(ls9.map((f9) => [f9.ids, f9.kept])) + " — the receipt is not the record's projection" };
+        }
       }
       return null; } },
 
@@ -1252,6 +1312,9 @@ const SEEDS = [
   { seed: 14431, why: "THE CARVE, DECLARED: a legacy corr-no-ops record against a plain replica with an unrelated extra lift — the wholesale pick keeps the corrected body, files dropped=[curl] on the record and ONE feed line keyed on the date naming the set; a third plain replica with another extra makes the three groupings agree on dropped=[curl,hack] and on that one line. MUTATION IT GUARDS: carve-silent (the receipt not written)", redAt: "7ef2079 (no receipt)" },
   { seed: 14433, why: "SOL'S PASS-3 P0: the exact-authority tie — three legacy corrected copies with equal (corr.at, rev, non-body fields) and disjoint bodies; the carve kept whichever record was the FIRST ARGUMENT. MUTATION IT GUARDS: tie-by-argument-order", redAt: "4de310e" },
   { seed: 14434, why: "RECEIPT TRUTH: a plain copy completed AFTER the correction wins (the standing rule) — the receipt must say the later copy stood, not the corrected one. MUTATION IT GUARDS: receipt-claims-corrected", redAt: "4de310e" },
+  { seed: 14437, why: "SOL'S PASS-4 P0 (A): the FULL RETURN — a carve state (dropped [rows] + receipt) meets a correction that restores rows; the record's dropped set empties and the receipt must go with it. MUTATION IT GUARDS: receipt-not-cleared", redAt: "2c157a6" },
+  { seed: 14438, why: "SOL'S PASS-4 P0 (B): PARTIAL RETURN + STALE REJOIN — stale [hack,rows] against current [hack]; the writer trusted the first matching line and the op-dedup kept the stale duplicate, so the receipt differed by direction and changed on self-merge. MUTATION IT GUARDS: receipt-keeps-others", redAt: "2c157a6" },
+  { seed: 14439, why: "SOL'S PASS-4 HUNT: two replicas each wrote a DIFFERENT line on the same day; the union put the remote side first and the within-day sort kept arrival order, so the feed reversed by direction. MUTATION IT GUARDS: same-day-by-arrival", redAt: "2c157a6" },
   { seed: 14436, why: "THE MERGE'S OWN LATE WRITER: reconcileEraTransitions files the adoptshift line (dated at the lift's wAt) at the END of mergeState by unshift — after the sort, the merged feed was not newest-first and the next merge moved it. MUTATION IT GUARDS: merge-sort-not-last", redAt: "489e892" },
   { seed: 14435, why: "THE FEED'S FIXED POINT: a carve beside a feed line newer than the session — the receipt was prepended after the newest-first sort, so merge(m,m) moved it. MUTATION IT GUARDS: feed-unsorted", redAt: "4de310e" },
   { seed: 14432, why: "legacy vs modern: a corr-no-ops record against a corrLog-carrying one — the union is non-empty, so the carve must NOT fire and both lifts survive. MUTATION IT GUARDS: carve-ignores-union", redAt: "—" },
@@ -1311,6 +1374,9 @@ const MUTATIONS = [
   ["carve-silent", "law", "the wholesale pick keeps the corrected body but files no receipt for what it discarded", `    if (cx9 || cy9) return finish9(base);`, `    if (cx9 || cy9) return base;`, "session-superset"],
   ["tie-by-argument-order", "law", "the exact-authority tie is answered by argument position again — the carve keeps whichever record arrived first", `    return bx9 >= by9 ? x : y;`, `    return x;`, "convergence"],
   ["receipt-claims-corrected", "law", "the carve receipt always says the corrected copy stood, even when the later plain copy did", `kept8 = r8.corr ? "corrected" : "later";`, `kept8 = "corrected";`, "session-superset"],
+  ["receipt-not-cleared", "law", "a record whose dropped set has emptied keeps its obsolete carve line — the receipt outlives what it described", `      if (!ids8.length) { next8 = rest8; continue; }`, `      if (!ids8.length) { continue; }`, "merge-fixed-point"],
+  ["receipt-keeps-others", "law", "the writer inserts the projection but no longer removes the carve lines already there — a stale line from the other side (or an obsolete one) stands beside it or outlives its record", `      const rest8 = next8.filter((f8) => !(f8 && f8.op === op8));`, `      const rest8 = next8;`, "merge-fixed-point"],
+  ["same-day-by-arrival", "law", "a day's lines keep arrival order even when the two sides disagree, so concurrent same-day lines reverse with merge direction", `  if (Array.isArray(out.feed)) out.feed = _feedDayOrder(remote.feed, local.feed, out.feed);`, `  /* mutant: arrival order */`, "convergence"],
   ["merge-sort-not-last", "law", "the merge sorts its feed BEFORE reconcileEraTransitions files its past-dated lines, so the merged feed is not newest-first and the next merge moves them", `  reconcileEraTransitions(normalizePlan(out));\n  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);`, `  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);\n  reconcileEraTransitions(normalizePlan(out));`, "merge-fixed-point"],
   ["feed-unsorted", "law", "the feed's canonical newest-first sort becomes the identity, so a receipt filed at the session's date sits above newer lines and the next merge moves it", `.sort((a, b) => String((b[0] || {}).d || "").localeCompare(String((a[0] || {}).d || "")) || a[1] - b[1])`, `.sort((a, b) => 0)`, "merge-fixed-point"],
   ["carve-ignores-union", "law", "the carve fires whenever a side carries a corr, even when the other side's corrLog says a correction exists — the union is ignored", `  if (!union.length) {`, `  if (true) {`, "session-superset"],

@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.14";
+const APP_V = "7.54.15";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -12725,6 +12725,32 @@ const MERGE_OBJ = ["dailyLogs", "sessionLog", "dayCtx", "labSeen"];
    sort put an 8/09 line above an 8/18 one; CC's leg-15 finding: patchV55's
    unshift did the same at a v54 boot; cowork's probe: reconcileEraTransitions'
    adoptshift line did it at merge. One sort, last, on every path. */
+/* _feedDayOrder — WITHIN A DAY, ONE ORDER TOO. _feedSorted keeps a day's lines in
+   arrival order (the athlete's own chronology on one device), but the union
+   puts the remote side first, so two devices that each wrote a DIFFERENT line
+   on the same day came out reversed by merge direction (Sol, pass 4: [B, A]
+   one way, [A, B] the other — a whole-state convergence failure the harness
+   could not form because no seed gave two replicas distinct same-day lines).
+   THE RULE: for each day, if both sides carry the SAME sequence, keep it — that
+   is every merge on his ledger, and it preserves the within-day chronology his
+   story reads in; if they differ, the day is put in one canonical order (the
+   line's canonical JSON), the one case where no chronology exists to keep.
+   Symmetric by construction; associative because "differ" is sticky — once any
+   two inputs disagree the day is canonical, and canonical ∪ anything is
+   canonical unless it already equals it. A stable per-line stamp on NEW lines
+   would be the stronger long-run design and belongs to the writer sweep. */
+function _feedDayOrder(remoteFeed, localFeed, unioned) {
+  try {
+    const days = (arr) => { const m = new Map(); for (const f of (Array.isArray(arr) ? arr : [])) { const d = String((f && f.d) || ""); if (!m.has(d)) m.set(d, []); m.get(d).push(f); } return m; };
+    const dr = days(remoteFeed), dl = days(localFeed), du = days(unioned);
+    const out = [];
+    for (const [d, ls] of du) {
+      if (JSON.stringify(dr.get(d) || []) === JSON.stringify(dl.get(d) || [])) { out.push(...ls); continue; }
+      out.push(...ls.slice().sort((a, b) => { const ka = _canonJ(a), kb = _canonJ(b); return ka < kb ? -1 : ka > kb ? 1 : 0; }));
+    }
+    return out;
+  } catch (e) { return unioned; }
+}
 function _feedSorted(arr) {
   if (!Array.isArray(arr)) return arr;
   return arr.map((x, i) => [x, i]).sort((a, b) => String((b[0] || {}).d || "").localeCompare(String((a[0] || {}).d || "")) || a[1] - b[1]).map((p) => p[0]);
@@ -12735,19 +12761,8 @@ function mergeState(local, remote) {
   const out = { ...remote, ...local };                       // scalars: local wins; remote-only keys kept
   for (const k of Object.keys(MERGE_ARR)) out[k] = _unionBy(remote[k], local[k], MERGE_ARR[k]);
   for (const k of Object.keys(MERGE_MULTI)) out[k] = _unionMulti(remote[k], local[k], MERGE_MULTI[k]);
+  if (Array.isArray(out.feed)) out.feed = _feedDayOrder(remote.feed, local.feed, out.feed);   /* FIX-16 — a day's order is a function of the two sides, never of which arrived first */
   for (const k of MERGE_OBJ) out[k] = _unionObj(remote[k], local[k], k === "sessionLog" ? _mergeSession : _richer);   // CORRECTION_MERGE — only sessionLog knows about deliberate corrections. v7.54.0: _mergeSession = the ordering law for the BODY + a keyed replay of every correction either side knows about, so the entry set no longer rides on which copy happened to be richer.
-  /* FIX-13/14 — A CARVE IS TOLD, NOT SWALLOWED, AND TOLD TRUTHFULLY. Every date
-     whose record carries a merge receipt gets ONE feed line keyed on the DATE
-     (op "carve:<date>"): a pure function of the merged record — the dropped
-     set AND which copy stood (the corrected copy, or a copy completed AFTER the
-     correction — the plain-postdates-correction case, in which "the corrected
-     record stood whole" was false; Sol, pass 3). When a later merge changes
-     either, the line is restated: one line per date, never two, so the story is
-     the same in every grouping. Filed BEFORE the feed's canonical sort below, so
-     the sorted, newest-first feed is the fixed point (prepending after the sort
-     put an 8/09 line above an 8/18 one and the next merge moved it — Sol's
-     hunt). Dated at the record's own date: a merge has no clock. */
-  try { for (const d8 of Object.keys(out.sessionLog || {})) { const r8 = out.sessionLog[d8]; if (!(r8 && Array.isArray(r8.dropped) && r8.dropped.length)) continue; const op8 = "carve:" + d8, ids8 = r8.dropped.slice(), kept8 = r8.corr ? "corrected" : "later"; const feed8 = Array.isArray(out.feed) ? out.feed : []; const cur8 = feed8.find((f8) => f8 && f8.op === op8); if (cur8 && JSON.stringify(cur8.ids || []) === JSON.stringify(ids8) && cur8.kept === kept8) continue; const how8 = kept8 === "corrected" ? "Two copies of this session disagreed. One was a correction made before the app kept correction receipts, so the merge could not combine them lift by lift; it kept the corrected copy whole. The other copy carried " + ids8.join(", ") + ", which were not added. If they were real, log them again." : "Two copies of this session disagreed. One carried a correction made before the app kept correction receipts; the other was completed after that correction, so the merge kept the later copy whole. The corrected copy carried " + ids8.join(", ") + ", which were not added. If they were real, log them again."; out.feed = [{ op: op8, d: d8, ids: ids8, kept: kept8, t: "MERGE KEPT ONE WHOLE SESSION — " + d8, how: how8 }, ...feed8.filter((f8) => !(f8 && f8.op === op8))]; } } catch (e) {}
   /* FIX split-1 (P1-8) — OP-KEYED RECEIPTS RECONCILE TO ONE: two devices firing
      the same operation offline (a seam, a retirement, an insertion receipt, an
      adoption, a standard retirement) each minted a receipt; post-merge the
@@ -12763,6 +12778,34 @@ function mergeState(local, remote) {
     }
     out.feed = out.feed.filter((f9) => !(f9 && f9.op != null) || opBest.get(f9.op) === f9);
   }
+  /* FIX-13/14/16 — A CARVE IS TOLD, NOT SWALLOWED, TOLD TRUTHFULLY, AND TOLD
+     ONCE FROM THE RECORD. For every date, the feed's carve line is a PROJECTION
+     of the merged record and nothing else: every existing "carve:<date>" line
+     is removed, and exactly one is written back if the record still has a
+     dropped set — none if it does not (a lift that came back leaves the
+     receipt with it). Sol, pass 4: the previous writer skipped records whose
+     dropped set had emptied (the obsolete line stayed, and it was false), and
+     it trusted the FIRST matching line it found (a stale duplicate from the
+     other side survived the op-dedup by its unrelated tie rule, so the receipt
+     differed by merge direction and changed on self-merge). Placed AFTER the
+     op-dedup, so nothing can re-select a stale line; before
+     reconcileEraTransitions and the final sort. Dated at the record's date: a
+     merge has no clock. */
+  try {
+    const feed8 = Array.isArray(out.feed) ? out.feed : [];
+    const dates8 = new Set([...Object.keys(out.sessionLog || {}), ...feed8.filter((f8) => f8 && typeof f8.op === "string" && f8.op.indexOf("carve:") === 0).map((f8) => f8.op.slice(6))]);
+    let next8 = feed8;
+    for (const d8 of dates8) {
+      const op8 = "carve:" + d8, r8 = (out.sessionLog || {})[d8];
+      const rest8 = next8.filter((f8) => !(f8 && f8.op === op8));
+      const ids8 = r8 && Array.isArray(r8.dropped) ? r8.dropped.slice() : [];
+      if (!ids8.length) { next8 = rest8; continue; }
+      const kept8 = r8.corr ? "corrected" : "later";
+      const how8 = kept8 === "corrected" ? "Two copies of this session disagreed. One was a correction made before the app kept correction receipts, so the merge could not combine them lift by lift; it kept the corrected copy whole. The other copy carried " + ids8.join(", ") + ", which were not added. If they were real, log them again." : "Two copies of this session disagreed. One carried a correction made before the app kept correction receipts; the other was completed after that correction, so the merge kept the later copy whole. The corrected copy carried " + ids8.join(", ") + ", which were not added. If they were real, log them again.";
+      next8 = [{ op: op8, d: d8, ids: ids8, kept: kept8, t: "MERGE KEPT ONE WHOLE SESSION — " + d8, how: how8 }, ...rest8];
+    }
+    out.feed = next8;
+  } catch (e) {}
   for (const k of Object.keys(MERGE_KEYED)) out[k] = _unionKeyed(remote[k], local[k], MERGE_KEYED[k].keyOf, MERGE_KEYED[k].scoreOf);   // exercises/queue: reconcile per lift, never wholesale
   /* AUDIT G (volume lever) — ex.sets must SURVIVE the wholesale per-lift merge. _unionKeyed
      keeps ONE whole exercise object per id, judged by lastMeta.d — the right clock for
