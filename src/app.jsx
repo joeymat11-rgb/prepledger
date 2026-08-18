@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.15";
+const APP_V = "7.54.16";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -12745,7 +12745,14 @@ function _feedDayOrder(remoteFeed, localFeed, unioned) {
     const dr = days(remoteFeed), dl = days(localFeed), du = days(unioned);
     const out = [];
     for (const [d, ls] of du) {
-      if (JSON.stringify(dr.get(d) || []) === JSON.stringify(dl.get(d) || [])) { out.push(...ls); continue; }
+      /* FIX-17 (Sol, pass 5): the SAME sequence is kept AS THE SIDES CARRY IT, not
+         as the union groups it. _unionMulti groups a day's lines by identity
+         before emitting them, so an interleaved repeat — [X, Y, X], which the
+         keyless feed explicitly allows — came out [X, X, Y]: merge(A,A) rewrote
+         it, and A=[Y,Y,X] · B=[Y,X,Y] · C=[Y,X,Y] settled differently by
+         grouping. Either side is valid here; the branch has just proved them
+         byte-identical. */
+      if (JSON.stringify(dr.get(d) || []) === JSON.stringify(dl.get(d) || [])) { out.push(...(dr.get(d) || [])); continue; }
       out.push(...ls.slice().sort((a, b) => { const ka = _canonJ(a), kb = _canonJ(b); return ka < kb ? -1 : ka > kb ? 1 : 0; }));
     }
     return out;

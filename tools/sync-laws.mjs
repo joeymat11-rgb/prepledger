@@ -361,6 +361,27 @@ const AIM = {
      ordinary concurrent lines, a whole-state convergence failure the suite
      could not form (world() starts with an empty feed; no seed gave two
      replicas distinct same-day lines). */
+  /* SOL'S PASS-5 — INTERLEAVED REPEATS. The keyless feed allows an identical
+     line to repeat; _unionMulti groups a day's lines by identity before it
+     emits them, so [X, Y, X] came out of a merge with ITSELF as [X, X, Y]:
+     the equal-sequence branch kept the union's grouped order instead of the
+     sequence both sides carried. Every replica identical here — the promise is
+     that merge(A,A) preserves the athlete's own within-day chronology byte for
+     byte. */
+  14440: { apply: (out) => {
+      const X9 = { d: "2026-08-18", t: "X — REPEATED", how: "a keyless line that legitimately repeats" }, Y9 = { d: "2026-08-18", t: "Y — OTHER", how: "another line the same day" };
+      for (const s9 of out) s9.feed = [cl(X9), cl(Y9), cl(X9)];
+      return ["feed [X, Y, X]", "(same)", "(same)"]; },
+    assert: (out) => out.every((s9) => Array.isArray(s9.feed) && s9.feed.length === 3 && J(s9.feed[0]) === J(s9.feed[2]) && J(s9.feed[0]) !== J(s9.feed[1]) && s9.feed.every((f) => f.d === "2026-08-18" && f.op == null)) },
+  /* SOL'S PASS-5 ASSOCIATIVITY WITNESS: the same two Y lines and one X line on
+     every replica, in different within-day orders — (A+B)+C settled [X,Y,Y]
+     and A+(B+C) settled [Y,Y,X] because B+C were identical (kept, but from the
+     grouped union) and A+B differed (canonical). */
+  14441: { apply: (out) => {
+      const X9 = { d: "2026-08-18", t: "X — REPEATED", how: "a keyless line that legitimately repeats" }, Y9 = { d: "2026-08-18", t: "Y — OTHER", how: "another line the same day" };
+      out[0].feed = [cl(Y9), cl(Y9), cl(X9)]; out[1].feed = [cl(Y9), cl(X9), cl(Y9)]; if (out[2]) out[2].feed = [cl(Y9), cl(X9), cl(Y9)];
+      return ["feed [Y, Y, X]", "feed [Y, X, Y]", "feed [Y, X, Y]"]; },
+    assert: (out) => out.length === 3 && out.every((s9) => Array.isArray(s9.feed) && s9.feed.length === 3 && s9.feed.every((f) => f.d === "2026-08-18" && f.op == null)) && J(out[1].feed) === J(out[2].feed) && J(out[0].feed) !== J(out[1].feed) && J([...out[0].feed].map((f) => f.t).sort()) === J([...out[1].feed].map((f) => f.t).sort()) },
   14439: { apply: (out) => {
       out[0].feed = [{ d: "2026-08-18", t: "A — PHONE", how: "a line only the phone wrote" }];
       out[1].feed = [{ d: "2026-08-18", t: "B — CLOUD", how: "a line only the laptop wrote" }];
@@ -1185,6 +1206,15 @@ const LAWS = [
       if (!desc9(self9.feed)) return { got: "merge(A,A) left the feed out of newest-first order: " + J((self9.feed || []).map((f) => f && f.d)).slice(0, 160) };
       const again9 = T.mergeState(cl(self9), cl(self9));
       if (J(again9.feed) !== J(self9.feed)) return { got: "merge(A,A) is not a feed fixed point: " + J((self9.feed || []).map((f) => f && f.d)).slice(0, 100) + " -> " + J((again9.feed || []).map((f) => f && f.d)).slice(0, 100) };
+      /* AND THE LINES A ALREADY HAD KEEP THEIR ORDER AND MULTIPLICITY (Sol, pass 5):
+         a self-merge may ADD a merge-time receipt, but the lines A carried must
+         come out in A's order — [X, Y, X] came out [X, X, Y] once the equal-day
+         branch kept the union's grouped order. Carve lines are projections
+         (judged by merge-fixed-point) and are set aside here. */
+      const noCarve9 = (f) => (Array.isArray(f) ? f : []).filter((x) => !(x && typeof x.op === "string" && x.op.indexOf("carve:") === 0));
+      const had9 = new Map(); for (const f of noCarve9(s9.feed)) { const k = J(f); had9.set(k, (had9.get(k) || 0) + 1); }
+      const kept9 = []; for (const f of noCarve9(self9.feed)) { const k = J(f), c = had9.get(k) || 0; if (c > 0) { kept9.push(f); had9.set(k, c - 1); } }
+      if (J(kept9) !== J(noCarve9(s9.feed))) return { got: "merge(A,A) rewrote the order or multiplicity of the lines A already had: " + J(noCarve9(s9.feed).map((f) => f && (f.t || "").slice(0, 12))).slice(0, 120) + " -> " + J(kept9.map((f) => f && (f.t || "").slice(0, 12))).slice(0, 120) };
       const booted8 = T.migrate(cl(A));
       if (!desc9(booted8.feed)) return { got: "a boot left the feed out of newest-first order: " + J((booted8.feed || []).map((f) => f && f.d)).slice(0, 160) };
       for (const d9 of Object.keys(s9.sessionLog || {})) {
@@ -1314,6 +1344,8 @@ const SEEDS = [
   { seed: 14434, why: "RECEIPT TRUTH: a plain copy completed AFTER the correction wins (the standing rule) — the receipt must say the later copy stood, not the corrected one. MUTATION IT GUARDS: receipt-claims-corrected", redAt: "4de310e" },
   { seed: 14437, why: "SOL'S PASS-4 P0 (A): the FULL RETURN — a carve state (dropped [rows] + receipt) meets a correction that restores rows; the record's dropped set empties and the receipt must go with it. MUTATION IT GUARDS: receipt-not-cleared", redAt: "2c157a6" },
   { seed: 14438, why: "SOL'S PASS-4 P0 (B): PARTIAL RETURN + STALE REJOIN — stale [hack,rows] against current [hack]; the writer trusted the first matching line and the op-dedup kept the stale duplicate, so the receipt differed by direction and changed on self-merge. MUTATION IT GUARDS: receipt-keeps-others", redAt: "2c157a6" },
+  { seed: 14440, why: "SOL'S PASS-5: interleaved repeats — [X, Y, X] on every replica came out of merge(A,A) as [X, X, Y]: the equal-day branch kept the union's identity-grouped order instead of the sequence both sides carried. MUTATION IT GUARDS: equal-day-uses-grouped-union", redAt: "6081f7f" },
+  { seed: 14441, why: "SOL'S PASS-5 ASSOCIATIVITY WITNESS: A [Y,Y,X] · B [Y,X,Y] · C [Y,X,Y] — (A+B)+C settled [X,Y,Y] and A+(B+C) [Y,Y,X]. MUTATION IT GUARDS: equal-day-uses-grouped-union", redAt: "6081f7f" },
   { seed: 14439, why: "SOL'S PASS-4 HUNT: two replicas each wrote a DIFFERENT line on the same day; the union put the remote side first and the within-day sort kept arrival order, so the feed reversed by direction. MUTATION IT GUARDS: same-day-by-arrival", redAt: "2c157a6" },
   { seed: 14436, why: "THE MERGE'S OWN LATE WRITER: reconcileEraTransitions files the adoptshift line (dated at the lift's wAt) at the END of mergeState by unshift — after the sort, the merged feed was not newest-first and the next merge moved it. MUTATION IT GUARDS: merge-sort-not-last", redAt: "489e892" },
   { seed: 14435, why: "THE FEED'S FIXED POINT: a carve beside a feed line newer than the session — the receipt was prepended after the newest-first sort, so merge(m,m) moved it. MUTATION IT GUARDS: feed-unsorted", redAt: "4de310e" },
@@ -1376,6 +1408,7 @@ const MUTATIONS = [
   ["receipt-claims-corrected", "law", "the carve receipt always says the corrected copy stood, even when the later plain copy did", `kept8 = r8.corr ? "corrected" : "later";`, `kept8 = "corrected";`, "session-superset"],
   ["receipt-not-cleared", "law", "a record whose dropped set has emptied keeps its obsolete carve line — the receipt outlives what it described", `      if (!ids8.length) { next8 = rest8; continue; }`, `      if (!ids8.length) { continue; }`, "merge-fixed-point"],
   ["receipt-keeps-others", "law", "the writer inserts the projection but no longer removes the carve lines already there — a stale line from the other side (or an obsolete one) stands beside it or outlives its record", `      const rest8 = next8.filter((f8) => !(f8 && f8.op === op8));`, `      const rest8 = next8;`, "merge-fixed-point"],
+  ["equal-day-uses-grouped-union", "law", "the equal-sequence branch keeps the union's identity-grouped order instead of the sequence both sides carried — an interleaved repeat is regrouped by a merge with oneself, and groupings disagree", `      if (JSON.stringify(dr.get(d) || []) === JSON.stringify(dl.get(d) || [])) { out.push(...(dr.get(d) || [])); continue; }`, `      if (JSON.stringify(dr.get(d) || []) === JSON.stringify(dl.get(d) || [])) { out.push(...ls); continue; }`, ["session-fixed-point", "associativity"]],
   ["same-day-by-arrival", "law", "a day's lines keep arrival order even when the two sides disagree, so concurrent same-day lines reverse with merge direction", `  if (Array.isArray(out.feed)) out.feed = _feedDayOrder(remote.feed, local.feed, out.feed);`, `  /* mutant: arrival order */`, "convergence"],
   ["merge-sort-not-last", "law", "the merge sorts its feed BEFORE reconcileEraTransitions files its past-dated lines, so the merged feed is not newest-first and the next merge moves them", `  reconcileEraTransitions(normalizePlan(out));\n  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);`, `  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);\n  reconcileEraTransitions(normalizePlan(out));`, "merge-fixed-point"],
   ["feed-unsorted", "law", "the feed's canonical newest-first sort becomes the identity, so a receipt filed at the session's date sits above newer lines and the next merge moves it", `.sort((a, b) => String((b[0] || {}).d || "").localeCompare(String((a[0] || {}).d || "")) || a[1] - b[1])`, `.sort((a, b) => 0)`, "merge-fixed-point"],
