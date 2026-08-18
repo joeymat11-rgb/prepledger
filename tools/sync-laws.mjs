@@ -224,6 +224,61 @@ const sameStampOneAbsent = (out, id) => {
 };
 const _isoEq = (x, y) => String(x || "") === String(y || "") && String(x || "") !== "";
 const AIM = {
+  /* SOL'S R-1 PROBE. Equal (corr.at, rev, tieKey) with an identical unrelated
+     amend on both sides, rows LOGGED on A and initially SKIPPED on B — nothing
+     but the placement rule can decide, and a base-order fallback answers
+     differently by direction. */
+  14425: { apply: (out) => {
+      const mk = (s9, withRows) => { s9.sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964,
+        entries: [{ id: "hack", w: 200, reps: [7, 7], rir: 2, rirSets: [2, 0] }].concat(withRows ? [{ id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] }] : []),
+        corr: { at: "2026-08-10T08:00:00.000Z", rev: 1 },
+        corrLog: [{ op: "amend:2026-08-09:hack:2026-08-10T08:00:00.000Z", kind: "amend", id: "hack", at: "2026-08-10T08:00:00.000Z", to: [{ id: "hack", w: 200 }] }] };
+        if (!withRows) s9.sessionLog["2026-08-09"].skipped = [{ id: "rows" }]; };
+      mk(out[0], true); mk(out[1], false); if (out[2]) mk(out[2], true);
+      return ["rows LOGGED", "rows initially SKIPPED", "rows LOGGED"]; },
+    assert: (out) => { const r9 = (s9) => s9.sessionLog["2026-08-09"] || {};
+      const a = r9(out[0]), b = r9(out[1]);
+      return a.corr.at === b.corr.at && a.corr.rev === b.corr.rev
+        && (a.entries || []).some((e) => e.id === "rows") && !((a.skipped || []).length)
+        && (b.skipped || []).some((z) => z.id === "rows") && !(b.entries || []).some((e) => e.id === "rows")
+        && !(a.corrLog || []).some((c) => c.kind === "skip" || c.kind === "unskip"); } },
+  /* THE L5-b PROBE, THROUGH THE PRODUCTION WRITER. Three acts on one lift where
+     the third's WALL stamp repeats the first's — a clock that went backwards —
+     filed with live:true exactly as a handler would. */
+  14426: { apply: (out) => {
+      const rec = out[0].sessionLog["2026-08-09"];
+      rec.entries = (rec.entries || []).filter((e) => e.id !== "rows");
+      rec.skipped = [{ id: "rows" }];
+      rec.corr = { at: "2026-08-10T09:00:00.000Z", rev: 1 };
+      const en = { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] };
+      const fire = (kind, wall, to) => { if (T._fileCorr) T._fileCorr(rec, kind + ":2026-08-09:rows:" + wall, kind, "rows", wall, to, { live: true }); };
+      fire("skip", "2026-08-10T09:00:00.000Z");
+      rec.skipped = []; rec.entries = rec.entries.concat([en]);
+      fire("unskip", "2026-08-10T09:10:00.000Z", en);
+      rec.entries = rec.entries.filter((e) => e.id !== "rows"); rec.skipped = [{ id: "rows" }];
+      fire("skip", "2026-08-10T09:00:00.000Z");
+      return ["skip@09:00 then unskip@09:10 then skip@09:00 again (backward clock)", "(untouched)", "(untouched)"]; },
+    assert: (out) => {
+      const l = ((out[0].sessionLog["2026-08-09"] || {}).corrLog) || [];
+      if (l.length !== 3) return false;
+      for (let i = 1; i < l.length; i++) if (!(String(l[i].at) > String(l[i - 1].at))) return false;
+      return (out[0].sessionLog["2026-08-09"].skipped || []).some((z) => z.id === "rows"); } },
+  /* THE ATHLETE'S LATER WORD: a lift whose own wAt post-dates the entry's
+     wCorrAt. The correction is real, he has since said something newer, and the
+     reconciler must leave it. */
+  14427: { apply: (out) => {
+      for (const s9 of out) {
+        const rec = s9.sessionLog["2026-08-14"];
+        const en = ((rec && rec.entries) || []).find((e) => e && e.id === "hack");
+        if (en) { en.w = 200; en.wCorrAt = "2026-08-15T09:00:00.000Z"; }
+        const ex = (s9.exercises || []).find((e) => e && e.id === "hack");
+        if (ex) { ex.w = 190; ex.wAt = "2026-08-20T09:00:00.000Z"; }
+      }
+      return ["hack 190 stamped AFTER the entry's correction", "(same)", "(same)"]; },
+    assert: (out) => {
+      const en = ((((out[0].sessionLog || {})["2026-08-14"] || {}).entries) || []).find((e) => e && e.id === "hack");
+      const ex = (out[0].exercises || []).find((e) => e && e.id === "hack");
+      return !!en && !!ex && en.w === 200 && ex.w === 190 && String(ex.wAt) > String(en.wCorrAt); } },
   /* HUNT 1's SHAPE, committed. Two devices each logged a DIFFERENT session on
      one date and neither carries a correction — the class the generator can
      never reach on its own, because every replica descends from one body. The
@@ -313,15 +368,21 @@ const AIM = {
       rec.entries = [...(rec.entries || []).filter((e) => e.id !== "rows"), { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] }];
       rec.skipped = [];
       rec.corr = { at: "2026-08-20T08:00:00.000Z", rev: 2 };
-      rec.corrLog = [
-        { op: "skip:2026-08-09:rows:2026-08-20T08:00:00.000Z", kind: "skip", id: "rows", at: "2026-08-20T08:00:00.000Z" },
-        { op: "unskip:2026-08-09:rows:2026-08-09T08:00:00.000Z", kind: "unskip", id: "rows", at: "2026-08-09T08:00:00.000Z", to: { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] } },
-      ];
+      /* DRIVEN THROUGH THE PRODUCTION WRITER, not injected. Injecting the bad
+         corrLog proved only that the timestamps it injected existed — reverting
+         the writer fix could not affect it, so the seed guarded nothing. */
+      const en0 = { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] };
+      if (T._fileCorr) {
+        T._fileCorr(rec, "skip:2026-08-09:rows:2026-08-20T08:00:00.000Z", "skip", "rows", "2026-08-20T08:00:00.000Z", undefined, { live: true });
+        T._fileCorr(rec, "unskip:2026-08-09:rows:2026-08-09T08:00:00.000Z", "unskip", "rows", "2026-08-09T08:00:00.000Z", en0, { live: true });
+      }
       return ["rows: skip@08-20 then unskip@08-09 — a later act with an earlier stamp", "(untouched)", "(untouched)"]; },
     assert: (out) => {
       const l = ((out[0].sessionLog["2026-08-09"] || {}).corrLog) || [];
       const sk = l.find((c) => c.kind === "skip" && c.id === "rows"), un = l.find((c) => c.kind === "unskip" && c.id === "rows");
-      return !!sk && !!un && String(un.at) < String(sk.at); } },
+      /* the RESULT, not the injection: a later act filed with an earlier wall
+         stamp still lands later, so a record's own acts order themselves. */
+      return !!sk && !!un && String(un.at) > String(sk.at); } },
   /* THE TRANSIENT-RUNG WITNESS (explore 1422036, promoted). Three replicas,
      three distinct (w, wAt) and three distinct (steps, stepsAt) including one
      unstamped ladder — so B+C resolves a load that exists in no final state,
@@ -779,6 +840,30 @@ const LAWS = [
       }
       return null; } },
 
+  { name: "session-superset",
+    says: "every lift either side had on a date is still on that date after the merge",
+    /* mergeState's own header promises a SUPERSET of both sides and nothing
+       checked it at session grain: non-shrink compares COUNTS against max(A,B),
+       so {rows} vs {curl} landing on {curl} reads as 1 >= 1 and passes while a
+       whole session is gone. Counts are not identities.
+       THE ONE EXEMPTION, checked and counted rather than trusted: a record
+       carrying a corr and NO corrLog wins wholesale, so the plain side's lifts
+       can be dropped. That carve-out is deliberate (see _mergeSession) and the
+       law asserts it is only ever taken in exactly that shape. */
+    check: (A, B) => {
+      for (const [nm9, m9] of [["A<-B", settle(T.mergeState(cl(A), cl(B)))], ["B<-A", settle(T.mergeState(cl(B), cl(A)))]]) {
+        for (const d9 of new Set([...Object.keys(A.sessionLog || {}), ...Object.keys(B.sessionLog || {})])) {
+          const ids = (r9) => new Set([...((r9 && r9.entries) || []), ...((r9 && r9.skipped) || [])].map((e) => e && e.id).filter(Boolean));
+          const ra = (A.sessionLog || {})[d9], rb = (B.sessionLog || {})[d9], rm = (m9.sessionLog || {})[d9];
+          const want = new Set([...ids(ra), ...ids(rb)]), got = ids(rm);
+          const miss = [...want].filter((i9) => !got.has(i9));
+          if (!miss.length) continue;
+          const carve = (v9) => !!(v9 && v9.corr && !(Array.isArray(v9.corrLog) && v9.corrLog.length));
+          if (carve(ra) || carve(rb)) continue;
+          return { got: nm9 + ": " + d9 + " lost " + J(miss) + " — mergeState promises a superset of both sides" };
+        } }
+      return null; } },
+
   { name: "one-placement",
     says: "in every settled session a lift is in at most one of entries and skipped",
     /* N-5: this was a pin only, so an engine that put a lift in BOTH arrays
@@ -848,6 +933,9 @@ const SEEDS = [
   { seed: 14414, why: "a deliberate reseed beside a cache CLAIMING the current load. MUTATION: the same-load refill judged by lastMeta.w instead of the derived line (leg 9)", redAt: "6b633c7" },
   { seed: 14415, why: "a load and a ladder resolving from different sides, each newer at what it wrote. MUTATION: ensureLoadOnLadder removed from the recombination point (leg 3)", redAt: "a26e1bd" },
   { seed: 14416, why: "two devices correcting the SAME session differently, three replicas. MUTATION: replay leaving a non-canonical empty skipped[] — the bug this harness found in its own round", redAt: "87143ac" },
+  { seed: 14425, why: "Sol's R-1 probe: equal (corr.at, rev, tieKey), rows logged on one side and initially skipped on the other. MUTATION IT GUARDS: deciding placement from the base, whose last tie returns its first argument — merge order", redAt: "b9dd905" },
+  { seed: 14426, why: "the L5-b probe THROUGH the production writer: three acts whose third wall stamp repeats the first. MUTATION IT GUARDS: the monotone rule not reaching the op KEY, so the third act collides with the first and is dropped", redAt: "b9dd905" },
+  { seed: 14427, why: "a lift whose own wAt post-dates the entry's wCorrAt — the athlete's later word. MUTATION IT GUARDS: the reconciler adopting anyway, which is the leg-3 bleed pointed at his own edit", redAt: "—" },
   { seed: 14424, why: "two devices logging DIFFERENT sessions on one date with no corrections anywhere. MUTATION IT GUARDS: returning the record-level pick early whenever no side carries a correction — which loses one device's session outright, in both orders, and is not associative", redAt: "b9dd905" },
   { seed: 14423, why: "THREE corrected replicas tying on (corr.at, rev), each with a different copy of the shared lift and one lift the others lack. MUTATION IT GUARDS: letting the (at,rev) tie consult _mergeScore — once bodies accumulate, size is a function of the GROUPING, so the intermediate record wins the base and (A+B)+C disagrees with A+(B+C)", redAt: "4b5704a" },
   { seed: 14421, why: "two corrected records tying on corr.at, rev AND _mergeScore with different bodies. MUTATION: the base tie falling back to _richer, which ties to its second argument — merge order", redAt: "dd29e8a" },
@@ -880,6 +968,7 @@ const MUTATIONS = [
   ["idempotence-normalizes-forever", "law", "the plan normalizer re-stamps on every merge, so merge(A,A) never reaches a fixed point", `  out.plan = _unionPlan(remote.plan, local.plan);`, `  out.plan = { ..._unionPlan(remote.plan, local.plan), rev: ((local.plan || {}).rev || 0) + 1 };`],
   ["athlete-word-ignored", "law", "the reconciler adopts even when the athlete's own stamp is newer than the correction's", `      if (!(at > String(ex.wAt || ""))) continue;`, `      if (false) continue;`],
   ["receipt-names-the-old-load", "law", "the reconciliation receipt names the load being replaced instead of the one written", `" " + from + " → " + enC.w, how: "The corrected record says " + enC.w`, `" " + from + " → " + from, how: "The corrected record says " + from`],
+  ["fileCorr-not-monotone", "law", "a live act filed with a backward wall stamp keeps it, so a record's own acts stop ordering themselves", `    if ((opts && opts.live) && latest9 && String(at9) <= latest9) {`, `    if (false) {`],
   ["ladder-repair-at-merge", "law", "the ladder repair is put BACK at the binary merge, where it inserts a rung for a load only the transient pair holds", `      return w2;`, `      return ensureLoadOnLadder(w2);`],
   ["ladder-repair-off", "law", "the load/ladder invariant is dropped at the BOOT — its only site now that the merge is pure", `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = ensureLoadOnLadder(exs9[i9]);`, `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = exs9[i9];`],
   ["sameload-cache-claim", "law", "the same-load refill trusts the cache's own claim again", `      const dm0 = deriveLastMeta(s, ex.id);`, `      const dm0 = ex.lastMeta;`],

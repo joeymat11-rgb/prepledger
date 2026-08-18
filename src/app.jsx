@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.8";
+const APP_V = "7.54.9";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -12344,6 +12344,18 @@ function _mergeSession(x, y) {
        carries, and it says "this body is the corrected one". Only when NEITHER
        side claims a correction is there no author, and only then do the bodies
        accumulate. */
+    /* THE SUPERSET EXCEPTION, named so it stays visible.
+       WHAT IT PROTECTS: a pre-corrLog correction carries no ops, so the record
+       cannot tell a phantom it deliberately removed from a lift the other side
+       concurrently logged — accumulating resurrects the phantom, the harm this
+       whole round exists to stop.
+       WHAT IT COSTS: a plain replica's UNRELATED extra lift is lost against
+       such a record. That is a real hole in mergeState's superset promise, and
+       the session-superset law asserts the exemption is only ever taken in
+       exactly this shape.
+       HOW BIG THE CLASS IS on his ledger: one record, 2026-08-10 — the only one
+       carrying a corr with no derivable ops. Every correction made from v58
+       forward files its own op and never reaches this branch. */
     if (cx9 || cy9) return base;
   }
   /* THE BODY ACCUMULATES, THE CORRECTIONS DECIDE — the round's own slogan,
