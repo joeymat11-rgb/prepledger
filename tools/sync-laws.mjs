@@ -224,6 +224,71 @@ const sameStampOneAbsent = (out, id) => {
 };
 const _isoEq = (x, y) => String(x || "") === String(y || "") && String(x || "") !== "";
 const AIM = {
+  /* SOL'S PASS-2 P0 — CORRECTION-FREE METADATA. Three uncorrected copies of one
+     date whose BODIES differ but SCORE equal (same JSON length): case 1 of
+     _richerSession picked the base by _mergeScore, so a tie went to the second
+     argument (merge order) and, once an intermediate had accumulated two lifts,
+     its size won the next base — the NOTE, the at, every non-body field rode
+     the grouping. (A+B)+C carried B's note and A+(B+C) carried A's. The body was
+     already per-lift and order-free; the record around it was not. */
+  14429: { apply: (out) => {
+      const mk = (s9, note9, e9) => { s9.sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, note: note9, entries: [e9], skipped: [] }; };
+      mk(out[0], "A", { id: "rows", w: 180, reps: [9, 9], rirSets: [1, 0] });
+      mk(out[1], "B", { id: "curl", w: 150, reps: [9, 9], rirSets: [1, 0] });      /* the SAME JSON length as rows — a _mergeScore tie */
+      if (out[2]) mk(out[2], "A", { id: "rows", w: 180, reps: [9, 9], rirSets: [1, 0] });
+      return ["note A · rows", "note B · curl (equal-length body)", "note A · rows"]; },
+    assert: (out) => {
+      const r9 = (s9) => s9.sessionLog["2026-08-09"] || {};
+      const a = r9(out[0]), b = r9(out[1]), c = r9(out[2] || out[0]);
+      return a.note === "A" && b.note === "B" && c.note === "A"
+        && J((a.entries || []).map((e) => e.id)) === J(["rows"]) && J((b.entries || []).map((e) => e.id)) === J(["curl"]) && J((c.entries || []).map((e) => e.id)) === J(["rows"])
+        && J(a.entries[0]).length === J(b.entries[0]).length                          /* the tie, stated on the INPUTS */
+        && [a, b, c].every((r) => !r.corr && !r.corrLog); } },
+  /* THE SAME BODY, A DIFFERENT NOTE — the identical-bodies short-circuit returns
+     the BASE, and case 1 chose it by size: two equal-length notes resolved by
+     merge order, so A<-B said one thing and B<-A the other. */
+  14430: { apply: (out) => {
+      const mk = (s9, note9) => { s9.sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, note: note9, entries: [{ id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] }], skipped: [] }; };
+      mk(out[0], "A"); mk(out[1], "B"); if (out[2]) mk(out[2], "A");
+      return ["note A", "note B (same body)", "note A"]; },
+    assert: (out) => {
+      const r9 = (s9) => s9.sessionLog["2026-08-09"] || {};
+      const a = r9(out[0]), b = r9(out[1]);
+      return a.note === "A" && b.note === "B" && a.note.length === b.note.length && J(a.entries) === J(b.entries) && J(a.skipped) === J(b.skipped) && !a.corr && !b.corr && !a.corrLog && !b.corrLog; } },
+  /* THE CARVE, FIRED ON PURPOSE AND DECLARED. A: a legacy record — corr, NO
+     ops (his 8/10 class). B: a plain replica carrying an UNRELATED extra lift.
+     The wholesale pick keeps A's body and drops curl; the law allows that here
+     ONLY because this seed declares it, and only with the receipt on the record
+     and in the feed. */
+  14431: { expectsCarve: true, apply: (out) => {
+      const rows9 = { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] }, curl9 = { id: "curl", w: 50, reps: [12, 12, 9], rir: 2, rirSets: [2, null, null] };
+      out[0].sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, entries: [cl(rows9)], corr: { at: "2026-08-10T08:00:00.000Z", rev: 1 } };
+      out[1].sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, entries: [cl(rows9), cl(curl9)] };
+      /* C: a plain replica with a DIFFERENT unrelated extra — the three-way that showed a feed keyed on the ids was not associative (two lines one way, one the other) */
+      if (out[2]) out[2].sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, entries: [cl(rows9), { id: "hack", w: 200, reps: [7, 7, 8], rir: 2, rirSets: [2, null, 0] }] };
+      return ["legacy corr, no ops · rows", "plain · rows + curl (unrelated extra)", "plain · rows + hack (another unrelated extra)"]; },
+    assert: (out) => {
+      const r9 = (s9) => s9.sessionLog["2026-08-09"] || {};
+      const a = r9(out[0]), b = r9(out[1]);
+      const c = r9(out[2] || out[1]);
+      return !!(a.corr && a.corr.at) && !a.corrLog && !b.corr && !b.corrLog && !c.corr && !c.corrLog
+        && J((a.entries || []).map((e) => e.id)) === J(["rows"]) && J((b.entries || []).map((e) => e.id)) === J(["rows", "curl"]) && (out[2] ? J((c.entries || []).map((e) => e.id)) === J(["rows", "hack"]) : true)
+        && String(a.corr.at) > new Date(b.at).toISOString(); } },                    /* the plain body predates the correction, so the stamped side is the base */
+  /* LEGACY vs MODERN. A: corr with no ops. B: a corrLog (an amend on curl) —
+     so the union is NOT empty and the carve must NOT fire: both lifts survive.
+     A law exemption wider than the production predicate hid a mutant that
+     carved here. */
+  14432: { apply: (out) => {
+      out[0].sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, entries: [{ id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] }], corr: { at: "2026-08-10T08:00:00.000Z", rev: 1 } };
+      out[1].sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, entries: [{ id: "curl", w: 50, reps: [12, 12, 9], rir: 2, rirSets: [2, null, null] }], corr: { at: "2026-08-11T08:00:00.000Z", rev: 1 },
+        corrLog: [{ op: "amend:2026-08-09:curl:2026-08-11T08:00:00.000Z", kind: "amend", id: "curl", at: "2026-08-11T08:00:00.000Z", to: [{ id: "curl", w: 50 }] }] };
+      if (out[2]) out[2].sessionLog["2026-08-09"] = cl(out[0].sessionLog["2026-08-09"]);
+      return ["legacy corr, no ops · rows", "modern corrLog · curl", "legacy corr, no ops · rows"]; },
+    assert: (out) => {
+      const r9 = (s9) => s9.sessionLog["2026-08-09"] || {};
+      const a = r9(out[0]), b = r9(out[1]);
+      return !!a.corr && !a.corrLog && !!b.corr && Array.isArray(b.corrLog) && b.corrLog.length === 1
+        && J((a.entries || []).map((e) => e.id)) === J(["rows"]) && J((b.entries || []).map((e) => e.id)) === J(["curl"]); } },
   /* THE PATCH-BACKFILL SHAPE. patchV58 files the two 8/14 un-skip corrections
      the feed proves, and both carry that record's single corr.at — so if the
      monotone bump reached patch filings, a BOOT would space them a millisecond
@@ -270,18 +335,19 @@ const AIM = {
   /* THE L5-b PROBE, THROUGH THE PRODUCTION WRITER. Three acts on one lift where
      the third's WALL stamp repeats the first's — a clock that went backwards —
      filed with live:true exactly as a handler would. */
-  14426: { apply: (out) => {
+  14426: { walls: ["2026-08-10T09:00:00.000Z", "2026-08-10T09:10:00.000Z", "2026-08-10T09:00:00.000Z"], requires: ["_fileCorr"], apply: (out) => {
       const rec = out[0].sessionLog["2026-08-09"];
+      const W = AIM[14426].walls;
       rec.entries = (rec.entries || []).filter((e) => e.id !== "rows");
       rec.skipped = [{ id: "rows" }];
       rec.corr = { at: "2026-08-10T09:00:00.000Z", rev: 1 };
       const en = { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] };
       const fire = (kind, wall, to) => { if (T._fileCorr) T._fileCorr(rec, kind + ":2026-08-09:rows:" + wall, kind, "rows", wall, to, { live: true }); };
-      fire("skip", "2026-08-10T09:00:00.000Z");
+      fire("skip", W[0]);
       rec.skipped = []; rec.entries = rec.entries.concat([en]);
-      fire("unskip", "2026-08-10T09:10:00.000Z", en);
+      fire("unskip", W[1], en);
       rec.entries = rec.entries.filter((e) => e.id !== "rows"); rec.skipped = [{ id: "rows" }];
-      fire("skip", "2026-08-10T09:00:00.000Z");
+      fire("skip", W[2]);
       return ["skip@09:00 then unskip@09:10 then skip@09:00 again (backward clock)", "(untouched)", "(untouched)"]; },
     /* THE INPUT SHAPE ONLY. Asserting the OUTPUT (three ops strictly
        increasing) meant breaking the writer made this "did not form" — a
@@ -290,7 +356,14 @@ const AIM = {
        never "did the system behave"; that second question is self-consistent's. */
     assert: (out) => {
       const r9 = out[0].sessionLog["2026-08-09"] || {};
-      return ((r9.corrLog || []).length >= 2) && (r9.skipped || []).some((z) => z.id === "rows"); } },
+      const W = AIM[14426].walls;
+      /* R-5 — THE REQUESTED WALLS ARE THE FIXTURE, and the RELATION between
+         them is asserted STRICTLY: the third act repeats the first's wall and
+         the second is later than both. Change one literal and this is false and
+         the seed says so; break the writer and this is still true — the laws
+         judge the writer. */
+      return W.length === 3 && W[2] === W[0] && W[1] > W[0]
+        && ((r9.corrLog || []).length >= 2) && (r9.skipped || []).some((z) => z.id === "rows"); } },
   /* THE ATHLETE'S LATER WORD: a lift whose own wAt post-dates the entry's
      wCorrAt. The correction is real, he has since said something newer, and the
      reconciler must leave it. */
@@ -391,7 +464,8 @@ const AIM = {
      stamp: the device's body says logged (last act wins there) and a replay of
      its own corrLog says skipped. The generator hands this shape in directly
      because the production writer can no longer produce it. */
-  883544: { apply: (out) => {
+  883544: { walls: ["2026-08-20T08:00:00.000Z", "2026-08-09T08:00:00.000Z"], requires: ["_fileCorr"], apply: (out) => {
+      const W = AIM[883544].walls;
       const rec = out[0].sessionLog["2026-08-09"];
       rec.entries = [...(rec.entries || []).filter((e) => e.id !== "rows"), { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] }];
       rec.skipped = [];
@@ -401,8 +475,8 @@ const AIM = {
          the writer fix could not affect it, so the seed guarded nothing. */
       const en0 = { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] };
       if (T._fileCorr) {
-        T._fileCorr(rec, "skip:2026-08-09:rows:2026-08-20T08:00:00.000Z", "skip", "rows", "2026-08-20T08:00:00.000Z", undefined, { live: true });
-        T._fileCorr(rec, "unskip:2026-08-09:rows:2026-08-09T08:00:00.000Z", "unskip", "rows", "2026-08-09T08:00:00.000Z", en0, { live: true });
+        T._fileCorr(rec, "skip:2026-08-09:rows:" + W[0], "skip", "rows", W[0], undefined, { live: true });
+        T._fileCorr(rec, "unskip:2026-08-09:rows:" + W[1], "unskip", "rows", W[1], en0, { live: true });
       }
       return ["rows: skip@08-20 then unskip@08-09 — a later act with an earlier stamp", "(untouched)", "(untouched)"]; },
     assert: (out) => {
@@ -415,7 +489,8 @@ const AIM = {
          the scenario "not form" and four old engines reported aimed-scenario
          where the law should have spoken. The same R-5 residue that 14426 shed
          one leg ago, left standing here. */
-      return !!sk && !!un; } },
+      const W = AIM[883544].walls;
+      return W.length === 2 && W[1] < W[0] && !!sk && !!un; } },   /* R-5 — the second act was REQUESTED with an earlier wall than the first, asserted on the fixture itself */
   /* THE TRANSIENT-RUNG WITNESS (explore 1422036, promoted). Three replicas,
      three distinct (w, wAt) and three distinct (steps, stepsAt) including one
      unstamped ladder — so B+C resolves a load that exists in no final state,
@@ -467,7 +542,7 @@ const AIM = {
      lifts he had ✕'d came back as entries and two hand-added entries were
      deleted, 7 down to 5, in BOTH orders — so the convergence law reported
      green over the loss and dataLossGuard, counting dates, never looked in. */
-  14420: { apply: (out) => {
+  14420: { requires: ["_fileCorr"], apply: (out) => {
       const D = "2026-08-14";
       const full = [
         { id: "hack", w: 200, reps: [7, 7, 8], rir: 2, rirSets: [2, null, 0] },
@@ -556,7 +631,7 @@ const AIM = {
      it is not — it only looks equivalent while every correction shares the
      suite's frozen instant, which is exactly what the device-clock fix above
      removed.) */
-  14417: { apply: (out) => {
+  14417: { requires: ["_fileCorr"], apply: (out) => {
     const mk = (s9, at9) => { const rec = s9.sessionLog["2026-08-09"];
       rec.skipped = [...(rec.skipped || []), { id: "rows" }];
       rec.entries = (rec.entries || []).filter((e) => e.id !== "rows");
@@ -623,7 +698,7 @@ const AIM = {
      untouched side has no such key at all. That asymmetry is what makes an
      empty-array-vs-absent difference observable by merge order; a seed where
      both sides carry the key can never see it. */
-  14418: { apply: (out) => {
+  14418: { requires: ["_fileCorr"], apply: (out) => {
     const rec = out[0].sessionLog["2026-08-09"];
     rec.skipped = [...(rec.skipped || []), { id: "rows" }];
     rec.entries = (rec.entries || []).filter((e) => e.id !== "rows");
@@ -639,7 +714,7 @@ const AIM = {
   /* TWO DEVICES, DIFFERENT CORRECTIONS, THREE REPLICAS — the shape that proved
      the replay's non-canonical empty `skipped` (found by law 2 on the first
      build, and it must keep being findable). */
-  14416: { apply: (out, seed) => {
+  14416: { requires: ["_fileCorr"], apply: (out, seed) => {
     if (out.length < 3) return [];
     OPS.skip(out[0], rng(seed ^ 7), { date: "2026-08-09", stamp: "2026-08-18T09:00:00.000Z", did: [] });
     OPS.amend(out[1], rng(seed ^ 8), { date: "2026-08-09", stamp: "2026-08-19T09:00:00.000Z", did: [] });
@@ -705,7 +780,7 @@ function replicas(seed) {
 
 /* ---------- THE LAWS ---------- */
 const settle = (s) => T.migrate(T.migrate(cl(s)));           /* leg-7 doctrine: an ADOPTING boot is not idempotent by design; the state settles by the second */
-const sessTotals = (s) => Object.fromEntries(Object.entries(s.sessionLog || {}).map(([d, r]) => [d, ((r.entries || []).length) + ((r.skipped || []).length)]));
+const sessTotals = (s) => Object.fromEntries(Object.entries(s.sessionLog || {}).map(([d, r]) => [d, ((r.entries || []).length) + ((r.skipped || []).length) + ((Array.isArray(r.dropped) ? r.dropped : []).length)]));   /* a lift the carve discarded is still ACCOUNTED FOR by name in dropped — the record does not shrink, it tells; a silent carve shrinks and fails here too */
 const stores = (s) => ({
   reads: (s.reads || []).length, nights: ((s.sleep || {}).nights || []).length,
   dailyLogs: Object.keys(s.dailyLogs || {}).length, sessionLog: Object.keys(s.sessionLog || {}).length,
@@ -714,6 +789,7 @@ const stores = (s) => ({
 });
 const corrOps = (s) => { const o = []; for (const r of Object.values(s.sessionLog || {})) for (const c of (r.corrLog || [])) o.push(c.op); return o.sort(); };
 
+const CARVE_FIRINGS = [];   /* every time the superset exemption is taken, by seed and direction — printed with the verdict */
 const LAWS = [
   { name: "convergence",
     says: "both merge orders settle on the same state",
@@ -891,7 +967,7 @@ const LAWS = [
        carrying a corr and NO corrLog wins wholesale, so the plain side's lifts
        can be dropped. That carve-out is deliberate (see _mergeSession) and the
        law asserts it is only ever taken in exactly that shape. */
-    check: (A, B) => {
+    check: (A, B, C, ctx) => {
       for (const [nm9, m9] of [["A<-B", settle(T.mergeState(cl(A), cl(B)))], ["B<-A", settle(T.mergeState(cl(B), cl(A)))]]) {
         for (const d9 of new Set([...Object.keys(A.sessionLog || {}), ...Object.keys(B.sessionLog || {})])) {
           const ids = (r9) => new Set([...((r9 && r9.entries) || []), ...((r9 && r9.skipped) || [])].map((e) => e && e.id).filter(Boolean));
@@ -899,9 +975,27 @@ const LAWS = [
           const want = new Set([...ids(ra), ...ids(rb)]), got = ids(rm);
           const miss = [...want].filter((i9) => !got.has(i9));
           if (!miss.length) continue;
-          const carve = (v9) => !!(v9 && v9.corr && !(Array.isArray(v9.corrLog) && v9.corrLog.length));
-          if (carve(ra) || carve(rb)) continue;
-          return { got: nm9 + ": " + d9 + " lost " + J(miss) + " — mergeState promises a superset of both sides" };
+          /* THE EXEMPTION IS THE PRODUCTION PREDICATE, NOTHING WIDER: the two
+             bodies differ, NEITHER side carries a corrLog (so the union is
+             empty), and a side carries a corr. Sol's counterexample: a mutant
+             that carved with the union non-empty stayed green because the old
+             exemption asked only whether some side had a corr and no corrLog. */
+          const validCorr = (v9) => !!(v9 && v9.corr && v9.corr.at && isFinite(Date.parse(v9.corr.at)));
+          const hasLog = (v9) => !!(v9 && Array.isArray(v9.corrLog) && v9.corrLog.length);
+          const canonBody = (v9) => J(canon({ e: (v9 && v9.entries) || [], s: (v9 && v9.skipped) || [] }));
+          const predicate = canonBody(ra) !== canonBody(rb) && !hasLog(ra) && !hasLog(rb) && (validCorr(ra) || validCorr(rb));
+          if (!predicate) return { got: nm9 + ": " + d9 + " lost " + J(miss) + " — mergeState promises a superset of both sides (and the carve predicate does not hold here)" };
+          /* the miss must be exactly what a wholesale pick could discard: lifts of the side that lost */
+          const fromA = miss.every((i9) => ids(rb).has(i9) && !ids(ra).has(i9)), fromB = miss.every((i9) => ids(ra).has(i9) && !ids(rb).has(i9));
+          if (!(fromA || fromB)) return { got: nm9 + ": " + d9 + " lost " + J(miss) + " — not the shape of a wholesale pick (lifts missing from both sides' contributions)" };
+          /* A CARVE MUST LEAVE ITS RECEIPT — on the record and in the feed */
+          const dr9 = Array.isArray(rm && rm.dropped) ? rm.dropped : [];
+          if (!miss.every((i9) => dr9.indexOf(i9) >= 0)) return { got: nm9 + ": " + d9 + " carved " + J(miss) + " and the record's dropped receipt says " + J(dr9) + " — a silent carve" };
+          const fl9 = (m9.feed || []).filter((f9) => f9 && f9.op === "carve:" + d9);
+          if (fl9.length !== 1 || J(fl9[0].ids || []) !== J(dr9)) return { got: nm9 + ": " + d9 + " carved " + J(miss) + " and the feed does not carry exactly one carve line naming " + J(dr9) + " (found " + fl9.length + ": " + J(fl9.map((f9) => f9.ids)) + ") — a silent or a doubled carve" };
+          /* DECLARED AND COUNTED: an aimed seed says it expects the carve; any other firing is a finding */
+          CARVE_FIRINGS.push((ctx && ctx.seed) + ":" + nm9 + ":" + d9);
+          if (!(ctx && ctx.aim && ctx.aim.expectsCarve)) return { got: nm9 + ": " + d9 + " the carve fired (" + J(miss) + ") in a seed that does not declare it — an undeclared superset exception" };
         } }
       return null; } },
 
@@ -1039,6 +1133,10 @@ const SEEDS = [
   { seed: 14419, why: "a lift whose only logged line is skipped away on both sides, so the boot cannot re-derive its caches, with the same load stamp on each so nothing rides. MUTATIONS: the unstamped-cache tie left to arrival order, and the caches not riding the load at all — both of which put lastMeta.rir/rirSets on the merge order", redAt: "87143ac" },
   { seed: 14418, why: "one device's corrections cancelling out, merged against a device that never heard of them. MUTATION: replay writing an empty skipped[] instead of deleting the key — an empty array and an absent one carry the same information but not the same shape, and the difference is visible by merge order", redAt: "87143ac" },
   { seed: 14417, why: "the corrLog ordering rule: the same correction filed at two instants with a third correction between them. MUTATIONS: earliest-wins flipped to latest, in _fileCorr or in the union. Not an equivalent mutant — it only looked like one while every correction shared the frozen suite clock", redAt: "87143ac" },
+  { seed: 14429, why: "SOL'S PASS-2 P0: correction-free session METADATA — three uncorrected copies with equal-score bodies; the note (every non-body field) rode the base pick, which read the body's size, which is a function of the grouping. MUTATION IT GUARDS: meta-by-size (case 1 back to _richer)", redAt: "7ef2079" },
+  { seed: 14430, why: "the same body with a different note: the identical-bodies short-circuit returned a base chosen by size, so equal-length notes resolved by merge order. MUTATION IT GUARDS: meta-by-size", redAt: "7ef2079" },
+  { seed: 14431, why: "THE CARVE, DECLARED: a legacy corr-no-ops record against a plain replica with an unrelated extra lift — the wholesale pick keeps the corrected body, files dropped=[curl] on the record and ONE feed line keyed on the date naming the set; a third plain replica with another extra makes the three groupings agree on dropped=[curl,hack] and on that one line. MUTATION IT GUARDS: carve-silent (the receipt not written)", redAt: "7ef2079 (no receipt)" },
+  { seed: 14432, why: "legacy vs modern: a corr-no-ops record against a corrLog-carrying one — the union is non-empty, so the carve must NOT fire and both lifts survive. MUTATION IT GUARDS: carve-ignores-union", redAt: "—" },
   { seed: 91337, why: "general convergence over the whole op set", redAt: "—" },
   { seed: 11021, why: "general convergence, second shape", redAt: "—" },
   { seed: 12408, why: "general convergence, third shape", redAt: "—" },
@@ -1053,24 +1151,30 @@ const SEEDS = [
    the law that must go red. Not gate-blocking (it rebuilds the bundle per
    mutation, well outside the 30 s row budget): `node tools/sync-laws.mjs
    --mutations`. */
+/* N-1 — EACH LAW-OWNED ROW NAMES THE LAW IT GUARDS (6th field). It is credited
+   ONLY when THAT law goes red; other laws that happen to break are printed as
+   "also" and credit nothing, and the covered-law set is built from declared,
+   matched expectations only. Sol's counterexample: a row saying athlete-word
+   was credited by convergence, and every incidentally broken law was counted
+   as "having a mutation". */
 const MUTATIONS = [
-  ["valOr-raw", "law", "the equal-stamp tie compares raw JSON.stringify again, so absent is unorderable and the base always wins", `_valOr(other[f9]) > _valOr(w2[f9])`, `JSON.stringify(other[f9]) > JSON.stringify(w2[f9])`],
-  ["union-drops-remote", "law", "the corrLog union reads only one side", `for (const c9 of [...(Array.isArray(x && x.corrLog) ? x.corrLog : []), ...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`, `for (const c9 of [...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`],
+  ["valOr-raw", "law", "the equal-stamp tie compares raw JSON.stringify again, so absent is unorderable and the base always wins", `_valOr(other[f9]) > _valOr(w2[f9])`, `JSON.stringify(other[f9]) > JSON.stringify(w2[f9])`, "convergence"],
+  ["union-drops-remote", "law", "the corrLog union reads only one side — a correction one device filed is gone and the ledger shrinks", `for (const c9 of [...(Array.isArray(x && x.corrLog) ? x.corrLog : []), ...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`, `for (const c9 of [...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`, ["correction-survival", "non-shrink"]],
   ["replay-disabled", "pin", "the union is carried but never replayed", `  const out9 = _replayCorrections(merged);`, `  const out9 = merged;`],
-  ["base-votes", "law", "the base stops accumulating — the defect this leg closes", `  const ents9 = addMissing("entries"); if (ents9 !== undefined) merged.entries = ents9;`, `  const ents9 = undefined; if (ents9 !== undefined) merged.entries = ents9;`],
-  ["idempotence-normalizes-forever", "law", "the plan normalizer re-stamps on every merge, so merge(A,A) never reaches a fixed point", `  out.plan = _unionPlan(remote.plan, local.plan);`, `  out.plan = { ..._unionPlan(remote.plan, local.plan), rev: ((local.plan || {}).rev || 0) + 1 };`],
-  ["athlete-word-ignored", "law", "the reconciler adopts even when the athlete's own stamp is newer than the correction's", `      if (!(at > String(ex.wAt || ""))) continue;`, `      if (false) continue;`],
-  ["receipt-names-the-old-load", "law", "the reconciliation receipt names the load being replaced instead of the one written", `" " + from + " → " + enC.w, how: "The corrected record says " + enC.w`, `" " + from + " → " + from, how: "The corrected record says " + from`],
-  ["merge-self-reorders", "law", "the identical-bodies short-circuit is dropped, so a merge with oneself replays and id-sorts a record both sides already agree on", `  if (sameBody9) return union.length`, `  if (false) return union.length`],
-  ["boot-restamps", "law", "the monotone bump is applied to PATCH filings too, so a boot rewrites the athlete's own correction stamps", `    if ((opts && opts.live) && latest9 && String(at9) <= latest9) {`, `    if (latest9 && String(at9) <= latest9) {`],
-  ["fileCorr-not-monotone", "law", "a live act filed with a backward wall stamp keeps it, so a record's own acts stop ordering themselves and its body contradicts a replay of its own corrLog", `    if ((opts && opts.live) && latest9 && String(at9) <= latest9) {`, `    if (false) {`],
-  ["ladder-repair-at-merge", "law", "the ladder repair is put BACK at the binary merge, where it inserts a rung for a load only the transient pair holds", `      return w2;`, `      return ensureLoadOnLadder(w2);`],
-  ["ladder-repair-off", "law", "the load/ladder invariant is dropped at the BOOT — its only site now that the merge is pure", `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = ensureLoadOnLadder(exs9[i9]);`, `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = exs9[i9];`],
-  ["sameload-cache-claim", "law", "the same-load refill trusts the cache's own claim again", `      const dm0 = deriveLastMeta(s, ex.id);`, `      const dm0 = ex.lastMeta;`],
-  ["reseed-overwrite", "law", "the heal overwrites a deliberate reseed", `      if (ex.last != null) { if (JSON.stringify(ex.last) !== JSON.stringify(dm.reps)) ex.last = dm.reps.slice(); }`, `      ex.last = dm.reps.slice();`],
-  ["steps-unstamped", "law", "the ladder leaves the stamp discipline", `["w", "wAt"], ["steps", "stepsAt"]];`, `["w", "wAt"]];`],
-  ["caches-do-not-ride", "law", "last and lastMeta stop riding the load", `  if (f9 === "w") for (const c9 of CACHE_RIDERS) { if (c9 in other) n2[c9] = other[c9]; else delete n2[c9]; }`, `  /* mutant */`],
-  ["cache-tie-nondeterministic", "law", "the unstamped cache tie goes back to arrival order", `        for (const c9 of CACHE_RIDERS) if (_valOr(other[c9]) > _valOr(w2[c9])) w2 = { ...w2, [c9]: other[c9] };`, `        /* mutant */`],
+  ["base-votes", "law", "the base stops accumulating — a lift only one side had is gone and the date's count shrinks", `  const ents9 = addMissing("entries"); if (ents9 !== undefined) merged.entries = ents9;`, `  const ents9 = undefined; if (ents9 !== undefined) merged.entries = ents9;`, ["session-superset", "non-shrink"]],
+  ["idempotence-normalizes-forever", "law", "the plan normalizer re-stamps on every merge, so merge(A,A) never reaches a fixed point", `  out.plan = _unionPlan(remote.plan, local.plan);`, `  out.plan = { ..._unionPlan(remote.plan, local.plan), rev: ((local.plan || {}).rev || 0) + 1 };`, "idempotence"],
+  ["athlete-word-ignored", "law", "the reconciler adopts even when the athlete's own stamp is newer than the correction's", `      if (!(at > String(ex.wAt || ""))) continue;`, `      if (false) continue;`, "athlete-word-priority"],
+  ["receipt-names-the-old-load", "law", "the reconciliation receipt names the load being replaced instead of the one written", `" " + from + " → " + enC.w, how: "The corrected record says " + enC.w`, `" " + from + " → " + from, how: "The corrected record says " + from`, "receipt-truth"],
+  ["merge-self-reorders", "law", "the identical-bodies short-circuit is dropped, so a merge with oneself replays and id-sorts a record both sides already agree on", `  if (sameBody9) return withDrops9(union.length`, `  if (false) return withDrops9(union.length`, "session-fixed-point"],
+  ["boot-restamps", "law", "the monotone bump is applied to PATCH filings too, so a boot rewrites the athlete's own correction stamps", `    if ((opts && opts.live) && latest9 && String(at9) <= latest9) {`, `    if (latest9 && String(at9) <= latest9) {`, "session-fixed-point"],
+  ["fileCorr-not-monotone", "law", "a live act filed with a backward wall stamp keeps it, so a record's own acts stop ordering themselves and its body contradicts a replay of its own corrLog", `    if ((opts && opts.live) && latest9 && String(at9) <= latest9) {`, `    if (false) {`, "self-consistent"],
+  ["ladder-repair-at-merge", "law", "the ladder repair is put BACK at the binary merge, where it inserts a rung for a load only the transient pair holds", `      return w2;`, `      return ensureLoadOnLadder(w2);`, "associativity"],
+  ["ladder-repair-off", "law", "the load/ladder invariant is dropped at the BOOT — its only site now that the merge is pure", `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = ensureLoadOnLadder(exs9[i9]);`, `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = exs9[i9];`, "load-on-ladder"],
+  ["sameload-cache-claim", "law", "the same-load refill trusts the cache's own claim again", `      const dm0 = deriveLastMeta(s, ex.id);`, `      const dm0 = ex.lastMeta;`, "reseed-integrity"],
+  ["reseed-overwrite", "law", "the heal overwrites a deliberate reseed", `      if (ex.last != null) { if (JSON.stringify(ex.last) !== JSON.stringify(dm.reps)) ex.last = dm.reps.slice(); }`, `      ex.last = dm.reps.slice();`, "reseed-integrity"],
+  ["steps-unstamped", "law", "the ladder leaves the stamp discipline", `["w", "wAt"], ["steps", "stepsAt"]];`, `["w", "wAt"]];`, "convergence"],
+  ["caches-do-not-ride", "law", "last and lastMeta stop riding the load", `  if (f9 === "w") for (const c9 of CACHE_RIDERS) { if (c9 in other) n2[c9] = other[c9]; else delete n2[c9]; }`, `  /* mutant */`, "stamp-value-coupling"],
+  ["cache-tie-nondeterministic", "law", "the unstamped cache tie goes back to arrival order", `        for (const c9 of CACHE_RIDERS) if (_valOr(other[c9]) > _valOr(w2[c9])) w2 = { ...w2, [c9]: other[c9] };`, `        /* mutant */`, "convergence"],
   ["union-payload-by-arrival", "pin", "one key with two payloads resolves by arrival instead of by value", `      else if (_canonJ(c9.to) > _canonJ(p9.to)) p9.to = c9.to;`, `      else if (false) p9.to = c9.to;`],
   ["unskip-not-authoritative", "pin", "the un-skip payload stops restating an existing entry", `          else ents = ents.map((e9) => (e9 && e9.id === c9.id ? { ...e9, ...JSON.parse(JSON.stringify(c9.to)) } : e9));`, `          else ents = ents;`],
   /* backfill-partial is RETIRED: it mutated patchV57's general sweep over skipped[],
@@ -1083,8 +1187,11 @@ const MUTATIONS = [
      shape. tie-reads-record-size is the row that guards this property now. A
      row that cannot fail reads as coverage and is worse than no row. */
   ["fabricate-skip-provenance", "pin", "the backfill invents a correction for every id in skipped[] — P0#1, membership read as provenance", `  s.v = 57; return s;`, `  for (const d9 of Object.keys((s && s.sessionLog) || {})) { const r9 = s.sessionLog[d9]; const a9 = r9 && r9.corr && r9.corr.at; if (!a9) continue; for (const z9 of (r9.skipped || [])) if (z9 && z9.id) _fileCorr(r9, "skip:" + d9 + ":" + z9.id + ":" + a9, "skip", z9.id, a9); } s.v = 57; return s;`],
-  ["tie-reads-record-size", "law", "the (at,rev) tie resolves the body per RECORD again instead of per lift — and a record-level pick stops being associative once the record it compares has grown", `    merged.entries = perLift("entries");`, `    merged.entries = (Array.isArray(base.entries) ? base.entries.slice() : []);`],
-  ["one-placement-off", "law", "the exclusion step is skipped, so a lift may sit in entries and skipped at once", `      for (const id9 of dup9) {`, `      for (const id9 of []) {`],
+  ["tie-reads-record-size", "law", "the (at,rev) tie resolves the body per RECORD again instead of per lift — and a record-level pick stops being associative once the record it compares has grown", `    merged.entries = perLift("entries");`, `    merged.entries = (Array.isArray(base.entries) ? base.entries.slice() : []);`, "convergence"],
+  ["one-placement-off", "law", "the exclusion step is skipped, so a lift may sit in entries and skipped at once", `      for (const id9 of dup9) {`, `      for (const id9 of []) {`, "one-placement"],
+  ["meta-by-size", "law", "case 1 of _richerSession picks the base by _mergeScore again — the record's non-body fields ride the body's size, which is a function of the grouping", `  if (!cx && !cy) return _tieKey(x) >= _tieKey(y) ? x : y;`, `  if (!cx && !cy) return _richer(x, y);`, "associativity"],
+  ["carve-silent", "law", "the wholesale pick keeps the corrected body but files no receipt for what it discarded", `return withDrops9(base, [...idsOf9(other8)].filter((i8) => !have8.has(i8))); }`, `return base; }`, "session-superset"],
+  ["carve-ignores-union", "law", "the carve fires whenever a side carries a corr, even when the other side's corrLog says a correction exists — the union is ignored", `  if (!union.length) {`, `  if (true) {`, "session-superset"],
   ["corrections-unguarded", "pin", "the correction ledger leaves recordCounts", `    corrections: Object.values((st.sessionLog && typeof st.sessionLog === "object") ? st.sessionLog : {}).reduce((n9, r9) => n9 + ((r9 && Array.isArray(r9.corrLog)) ? r9.corrLog.length : 0), 0),`, `    corrections: 0,`],
 ];
 async function runMutations() {
@@ -1093,7 +1200,7 @@ async function runMutations() {
   const src0 = fs.readFileSync(at("src/app.jsx"), "utf8");
   const tmpSrc = at("src", "_mutant_sync.jsx");
   const rows = [];
-  for (const [name, owner, says, from, to] of MUTATIONS) {
+  for (const [name, owner, says, from, to, expect] of MUTATIONS) {
     const n = src0.split(from).length - 1;
     if (n !== 1) { rows.push([name, "ANCHOR x" + n + " — the mutation no longer applies; the code moved and the row is stale", says, false]); continue; }
     fs.writeFileSync(tmpSrc, src0.replace(from, to));
@@ -1110,12 +1217,20 @@ async function runMutations() {
     let lawStatus = 0, lawTxt = "";
     try { lawTxt = execFileSync(process.execPath, [at("tools", "sync-laws.mjs"), "--verbose"], { encoding: "utf8", env: { ...process.env, PL_ENGINE: out } }); }
     catch (e) { lawStatus = 1; lawTxt = (e.stdout || "") + (e.stderr || ""); }
-    const laws = [...new Set([...lawTxt.matchAll(/LAW BROKEN: ([a-z-]+)/g)].map((m) => m[1]))].filter((l) => l !== "aimed-scenario");
+    const bl = lawTxt.match(/^BROKEN-LAWS: (.*)$/m);
+    const laws = (bl && bl[1] !== "none" ? bl[1].split(", ") : []).filter((l) => l && l !== "aimed-scenario");
     /* N-1 — A LAW OWNER IS CREDITED ONLY BY A NAMED LAW. This took the
        harness's EXIT CODE as proof, so a shape-only failure or an
        aimed-scenario break printed "caught-by: law (the shape guard)" with zero
        laws broken — the row read as covered while nothing had judged it. */
-    let ownerRed = laws.length ? 1 : 0, by = laws.join(", ");
+    let ownerRed = 0, by = "";
+    if (owner === "law") {
+      if (!expect) { rows.push([name, "UNDECLARED — a law-owned row must name the law it guards", says, false]); continue; }
+      const want = Array.isArray(expect) ? expect : [expect];
+      ownerRed = want.every((w) => laws.indexOf(w) >= 0) ? 1 : 0;
+      const extra = laws.filter((l) => want.indexOf(l) < 0);
+      by = ownerRed ? want.join(" + ") + (extra.length ? "; also " + extra.join(", ") : "") : (laws.length ? "expected " + want.join(" + ") + ", got " + laws.join(", ") : "");
+    }
     if (owner === "suite") {
       /* a declared owner that cannot be dispatched is the N-1 hole again */
       let stxt = "";
@@ -1140,11 +1255,11 @@ async function runMutations() {
       ownerRed = /PINRED/.test(ptxt) ? 1 : 0;
       by = (ptxt.match(/PINRED (.*)/) || [, ""])[1].trim();
     }
-    rows.push([name, ownerRed ? "caught-by: " + owner + " (" + by + ")" : "UNCOVERED — its declared owner (" + owner + ") stayed green", says, !!ownerRed]);
+    rows.push([name, ownerRed ? "caught-by: " + owner + " (" + by + ")" : "UNCOVERED — its declared owner (" + owner + (by ? ": " + by : "") + ") stayed green", says, !!ownerRed, owner === "law" && ownerRed ? (Array.isArray(expect) ? expect : [expect]) : null]);
   }
   const missed = rows.filter((r) => !r[3]);
   for (const [a9, b9, c9] of rows) console.log("  " + a9.padEnd(28) + String(b9).padEnd(54) + c9);
-  const covered = new Set(rows.flatMap((r) => { const m = String(r[1]).match(/caught-by: \w+ \((.*)\)$/); return m ? m[1].split(", ") : []; }).filter(Boolean));
+  const covered = new Set(rows.flatMap((r) => r[4] || []));   /* declared AND matched — an incidental red is not coverage */
   const bare = LAWS.map((l) => l.name).filter((n) => !covered.has(n));
   console.log("\n  LAWS WITH NO REGISTERED MUTATION THAT BREAKS THEM: " + (bare.length ? bare.join(", ") + " — a known gap is worth more than a hidden one" : "none"));
   console.log("\nMUTATION TABLE: " + (rows.length - missed.length) + "/" + rows.length + " caught by their declared owner" + (missed.length ? " · UNCOVERED: " + missed.map((m) => m[0]).join(", ") : ""));
@@ -1163,13 +1278,18 @@ function runSeed(seed) {
        That is a SKIP, named and counted, never printed as a defect: an
        acceptance red must mean a law failed, not that history predates the
        feature. */
-    const capMiss = !!process.env.PL_ENGINE && (typeof T._fileCorr !== "function" || typeof T._replayCorrections !== "function");
-    if (capMiss) return [{ skip: true, seed, law: "aimed-scenario", says: "scenario needs a capability this engine does not have", trace, got: "SKIPPED on this engine — no _fileCorr/_replayCorrections" }];
+    /* N-2 — PER AIM, never engine-global: an AIM declares what it needs
+       (requires: [...members of __test]) and is skipped ONLY when the engine
+       under test lacks one of those. A seed that needs nothing and fails to
+       form is a disarmed seed on every engine, old or new. */
+    const need9 = (AIM[seed] && Array.isArray(AIM[seed].requires)) ? AIM[seed].requires : [];
+    const lack9 = need9.filter((f9) => typeof T[f9] !== "function");
+    if (process.env.PL_ENGINE && lack9.length) return [{ skip: true, seed, law: "aimed-scenario", says: "scenario needs a capability this engine does not have", trace, got: "SKIPPED on this engine — it lacks " + lack9.join(", ") + " which seed " + seed + " declares it requires" }];
     return [{ law: "aimed-scenario", says: "an aimed seed must actually produce the shape it names", seed, trace, got: "aimed scenario " + seed + " did not form — " + (why || "unknown") }];
   }
   for (const law of LAWS) {
     let bad = null;
-    try { bad = law.check(A, B, C, { dids, trace }); } catch (e) { bad = { got: "THREW: " + (e && e.message) }; }
+    try { bad = law.check(A, B, C, { dids, trace, seed, aim: AIM[seed] || null }); } catch (e) { bad = { got: "THREW: " + (e && e.message) }; }
     if (bad) out.push({ law: law.name, says: law.says, seed, trace, got: bad.got, paths: bad.paths });
   }
   return out;
@@ -1253,11 +1373,13 @@ if (!LIB && (VERBOSE || fails.length || shapeMiss.length)) {
   for (const m of shapeMiss) console.log("\n  SHAPE DRIFT: " + m);
 }
 
+/* N-1 (found by execution): the mutation runner parsed "LAW BROKEN:" lines out of a report that prints at most 12 failures — a mutant that broke many seeds could have its declared law fall past the cap and read as UNCOVERED, or an incidental law read as the catch. One complete line, always printed, is what the runner reads. */
+if (!LIB) console.log("BROKEN-LAWS: " + ([...new Set(fails.map((f) => f.law))].sort().join(", ") || "none"));
 const label = EXPLORE ? "explore" : "committed";
 if (LIB) { /* the caller drives */ }
 else if (fails.length || shapeMiss.length) {
-  console.log("\nSYNC-LAWS: " + fails.length + " violation(s)" + (skips.length ? ", " + skips.length + " skipped (capability)" : "") + " across " + seeds.length + " " + label + " seed" + (seeds.length === 1 ? "" : "s") + (shapeMiss.length ? ", " + shapeMiss.length + " shape drift(s)" : ""));
+  console.log("\nSYNC-LAWS: " + fails.length + " violation(s)" + (skips.length ? ", " + skips.length + " skipped (capability)" : "") + " · superset exemption taken " + CARVE_FIRINGS.length + "×" + " across " + seeds.length + " " + label + " seed" + (seeds.length === 1 ? "" : "s") + (shapeMiss.length ? ", " + shapeMiss.length + " shape drift(s)" : ""));
   if (!EXPLORE) process.exit(1);
 } else {
-  console.log("SYNC-LAWS: " + LAWS.length + " laws hold across " + seeds.length + " " + label + " seeds" + (skips.length ? ", " + skips.length + " skipped (capability)" : "") + " — convergence, associativity, idempotence, non-shrink, correction survival, athlete-word priority, stamp/value coupling, load-on-ladder, receipt truth, reseed integrity");
+  console.log("SYNC-LAWS: " + LAWS.length + " laws hold across " + seeds.length + " " + label + " seeds" + (skips.length ? ", " + skips.length + " skipped (capability)" : "") + " · superset exemption taken " + CARVE_FIRINGS.length + "× (" + ([...new Set(CARVE_FIRINGS.map((c) => c.split(":")[0]))].join(", ") || "never") + ")" + " — convergence, associativity, idempotence, non-shrink, correction survival, athlete-word priority, stamp/value coupling, load-on-ladder, receipt truth, reseed integrity");
 }

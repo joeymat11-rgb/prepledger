@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.11";
+const APP_V = "7.54.12";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -12248,7 +12248,7 @@ function _unionCorrLog(x, y) {
 /* the record stripped of everything a merge can grow — what is left is stable
    under accumulation, so a tie broken on it is associative. */
 function _tieKey(rec) {
-  try { const { entries, skipped, corrLog, ...rest } = rec || {}; return _canonJ(rest); } catch (e) { return ""; }
+  try { const { entries, skipped, corrLog, dropped, ...rest } = rec || {}; return _canonJ(rest); } catch (e) { return ""; }   /* dropped is merge provenance, not athlete metadata — a key that includes it changes with the grouping */
 }
 function _canonJ(v) {
   const c9 = (x) => { if (Array.isArray(x)) return x.map(c9); if (x && typeof x === "object") { const o = {}; for (const k of Object.keys(x).sort()) o[k] = c9(x[k]); return o; } return x; };
@@ -12336,7 +12336,11 @@ function _mergeSession(x, y) {
      merge to rewrite a record both sides already agree on. The corrLog union
      still travels — dropping it would lose a correction one side had learned —
      but the body is not touched. */
-  if (sameBody9) return union.length ? { ...JSON.parse(JSON.stringify(base)), corrLog: union } : base;
+  /* FIX-13 — THE CARVE LEAVES A RECEIPT. dropped = the sorted SET of lift ids a wholesale pick discarded on this date, ever, on any device: a set union is associative and commutative, so every grouping and both orders carry the same receipt. */
+  const dropUnion9 = (...ls9) => { const s9 = new Set(); for (const l9 of ls9) for (const i9 of (Array.isArray(l9) ? l9 : [])) if (i9 != null) s9.add(String(i9)); return [...s9].sort(); };
+  const withDrops9 = (rec9, extra9) => { const dr9 = dropUnion9(x && x.dropped, y && y.dropped, extra9); if (!dr9.length) return rec9; const o9 = JSON.parse(JSON.stringify(rec9)); o9.dropped = dr9; return o9; };
+  const idsOf9 = (v9) => new Set([...(Array.isArray(v9 && v9.entries) ? v9.entries : []), ...(Array.isArray(v9 && v9.skipped) ? v9.skipped : [])].map((e9) => e9 && e9.id).filter((i9) => i9 != null));
+  if (sameBody9) return withDrops9(union.length ? { ...JSON.parse(JSON.stringify(base)), corrLog: union } : base);
   if (!union.length) {
     /* A RECORD-LEVEL corr WITH NO OPS IS STILL AN AUTHORITY. Measured the hard
        way: accumulating here resurrected the very phantom a pre-corrLog
@@ -12356,7 +12360,7 @@ function _mergeSession(x, y) {
        HOW BIG THE CLASS IS on his ledger: one record, 2026-08-10 — the only one
        carrying a corr with no derivable ops. Every correction made from v58
        forward files its own op and never reaches this branch. */
-    if (cx9 || cy9) return base;
+    if (cx9 || cy9) { const other8 = base === x ? y : x; const have8 = idsOf9(base); return withDrops9(base, [...idsOf9(other8)].filter((i8) => !have8.has(i8))); }
   }
   /* THE BODY ACCUMULATES, THE CORRECTIONS DECIDE — the round's own slogan,
      finally true. Replaying over a body that one side WON meant every lift the
@@ -12468,12 +12472,12 @@ function _mergeSession(x, y) {
       if (Array.isArray(out9.skipped) && !out9.skipped.length) delete out9.skipped;
     }
   } catch (e) {}
-  return out9;
+  return withDrops9(out9);
 }
 function _sessionAtMs(v) { const n = v && +v.at; return isFinite(n) ? n : 0; }
 function _richerSession(x, y) {
   const cx = _corrOf(x), cy = _corrOf(y);
-  if (!cx && !cy) return _richer(x, y);                                        // 1
+  if (!cx && !cy) return _tieKey(x) >= _tieKey(y) ? x : y;                     // 1 — FIX-13: the same order-free rule as the tie; see the note below
   if (cx && cy) {                                                              // 4
     if (cx.at !== cy.at) return cx.at > cy.at ? x : y;
     if (cx.rev !== cy.rev) return cx.rev > cy.rev ? x : y;
@@ -12488,8 +12492,19 @@ function _richerSession(x, y) {
        WITHOUT its entries, skipped and corrLog. That picks the non-body fields
        deterministically; the body itself is resolved per LIFT by _mergeSession,
        because a canonical max per lift is associative and a record-level pick
-       is not. _mergeScore keeps its job in case 1, where no correction exists
-       anywhere and refuse-to-shrink is still the right law. */
+       is not.
+       FIX-13 (Sol, closure pass 2): case 1 now takes the SAME rule. It kept
+       _mergeScore — "no correction exists, refuse-to-shrink is the law" — but
+       refuse-to-shrink is carried by the per-lift accumulate below, so the
+       score's only remaining job was choosing the NON-BODY fields (note, at,
+       niggles, dips, pace) — by the body's size, which is a function of the
+       grouping once an intermediate has accumulated two lifts, and by argument
+       order on a tie. Executed: three uncorrected copies with equal-length
+       bodies, notes A/B/A — (A+B)+C carried "B", A+(B+C) carried "A"; and two
+       copies with the SAME body and equal-length notes disagreed by direction.
+       _tieKey is a total order on exactly the fields the pick decides, so it is
+       associative and commutative; in practice it prefers the later completion
+       (at sorts first in the canonical key). */
     return _tieKey(x) >= _tieKey(y) ? x : y;
   }
   const stamped = cx ? x : y, plain = cx ? y : x, c = cx || cy;
@@ -12709,6 +12724,15 @@ function mergeState(local, remote) {
     out.feed = out.feed.filter((f9) => !(f9 && f9.op != null) || opBest.get(f9.op) === f9);
   }
   for (const k of MERGE_OBJ) out[k] = _unionObj(remote[k], local[k], k === "sessionLog" ? _mergeSession : _richer);   // CORRECTION_MERGE — only sessionLog knows about deliberate corrections. v7.54.0: _mergeSession = the ordering law for the BODY + a keyed replay of every correction either side knows about, so the entry set no longer rides on which copy happened to be richer.
+  /* FIX-13 — A CARVE IS TOLD, NOT SWALLOWED. Every date whose record carries a
+     merge receipt gets ONE op-keyed feed line, keyed on the DATE and naming the
+     record's whole dropped set. The line is a pure function of the record: when
+     a later merge grows the set, the line is restated to name the grown set —
+     one line per date, never two, so the story is the same in every grouping
+     (keying on the ids gave (A+B)+C a "curl" line AND a "curl+hack" line where
+     A+(B+C) had only the second — the receipt was associative and the feed was
+     not). Dated at the record's own date: a merge has no clock. */
+  try { for (const d8 of Object.keys(out.sessionLog || {})) { const r8 = out.sessionLog[d8]; if (!(r8 && Array.isArray(r8.dropped) && r8.dropped.length)) continue; const op8 = "carve:" + d8, ids8 = r8.dropped.slice(); const feed8 = Array.isArray(out.feed) ? out.feed : []; const cur8 = feed8.find((f8) => f8 && f8.op === op8); if (cur8 && JSON.stringify(cur8.ids || []) === JSON.stringify(ids8)) continue; out.feed = [{ op: op8, d: d8, ids: ids8, t: "MERGE KEPT THE CORRECTED RECORD — " + d8, how: "Another copy of this session carried " + ids8.join(", ") + " and the corrected copy did not. That correction was made before the app kept correction receipts, so the corrected record stands whole and those lifts were not added back. If they were real, log them again." }, ...feed8.filter((f8) => !(f8 && f8.op === op8))]; } } catch (e) {}
   for (const k of Object.keys(MERGE_KEYED)) out[k] = _unionKeyed(remote[k], local[k], MERGE_KEYED[k].keyOf, MERGE_KEYED[k].scoreOf);   // exercises/queue: reconcile per lift, never wholesale
   /* AUDIT G (volume lever) — ex.sets must SURVIVE the wholesale per-lift merge. _unionKeyed
      keeps ONE whole exercise object per id, judged by lastMeta.d — the right clock for
