@@ -224,6 +224,31 @@ const sameStampOneAbsent = (out, id) => {
 };
 const _isoEq = (x, y) => String(x || "") === String(y || "") && String(x || "") !== "";
 const AIM = {
+  /* THE PATCH-BACKFILL SHAPE. patchV58 files the two 8/14 un-skip corrections
+     the feed proves, and both carry that record's single corr.at — so if the
+     monotone bump reached patch filings, a BOOT would space them a millisecond
+     apart and move the athlete's own correction stamp. No other committed seed
+     goes near the backfill (they all start from world(), which has none of his
+     corrected dates), which is why the boot-restamps mutation had nothing to
+     break until this seed existed. */
+  14428: { apply: (out) => {
+      for (const s9 of out) {
+        s9.v = 57;                                                         /* so patchV58 runs on the boot */
+        s9.sessionLog["2026-08-14"] = { d: "2026-08-14", at: 1786826000000,
+          entries: [
+            { id: "hack", w: 200, reps: [7, 7, 8], rir: 2, rirSets: [2, null, 0] },
+            { id: "abs", w: 45, reps: [15, 15], rir: 0, rirSets: [null, 0] },
+            { id: "hanging", w: "BW", reps: [12], rir: 0, rirSets: [0] },
+          ],
+          corr: { at: "2026-08-14T21:57:13.968Z", rev: 4 } };
+      }
+      return ["8/14 with abs+hanging logged and one corr stamp — the backfill files two ops at that instant", "(same)", "(same)"]; },
+    assert: (out) => {
+      const r9 = out[0].sessionLog["2026-08-14"] || {};
+      return out[0].v === 57 && String((r9.corr || {}).at) === "2026-08-14T21:57:13.968Z"
+        && (r9.entries || []).some((e) => e && e.id === "abs")
+        && (r9.entries || []).some((e) => e && e.id === "hanging")
+        && !((r9.corrLog || []).length); } },
   /* SOL'S R-1 PROBE. Equal (corr.at, rev, tieKey) with an identical unrelated
      amend on both sides, rows LOGGED on A and initially SKIPPED on B — nothing
      but the placement rule can decide, and a base-order fallback answers
@@ -383,9 +408,14 @@ const AIM = {
     assert: (out) => {
       const l = ((out[0].sessionLog["2026-08-09"] || {}).corrLog) || [];
       const sk = l.find((c) => c.kind === "skip" && c.id === "rows"), un = l.find((c) => c.kind === "unskip" && c.id === "rows");
-      /* the RESULT, not the injection: a later act filed with an earlier wall
-         stamp still lands later, so a record's own acts order themselves. */
-      return !!sk && !!un && String(un.at) > String(sk.at); } },
+      /* THE INPUT SHAPE ONLY — both acts filed through the production writer,
+         the second REQUESTED with an earlier wall stamp than the first. This
+         asserted the RESULT (that the later act still lands later), which is
+         exactly what self-consistent now judges, so breaking the writer made
+         the scenario "not form" and four old engines reported aimed-scenario
+         where the law should have spoken. The same R-5 residue that 14426 shed
+         one leg ago, left standing here. */
+      return !!sk && !!un; } },
   /* THE TRANSIENT-RUNG WITNESS (explore 1422036, promoted). Three replicas,
      three distinct (w, wAt) and three distinct (steps, stepsAt) including one
      unstamped ladder — so B+C resolves a load that exists in no final state,
@@ -875,6 +905,36 @@ const LAWS = [
         } }
       return null; } },
 
+  { name: "session-fixed-point",
+    says: "a merge with oneself touches no session record, and a boot changes nothing but the additive corrLog",
+    /* THE LAW LEG 9's TWO REGRESSIONS NEEDED. Both were real, both were caught
+       on his live ledger by hand, both were fixed at leg 10 — and the harness
+       could not see either: idempotence compares settle(merge(A,A)) to
+       settle(merge(once,once)), and a deterministic id-sort passes that
+       happily while reordering five of his sessions on every sync. The round's
+       doctrine is that every fixed defect gets a witness that goes red on the
+       pre-fix engine, so here it is, stated as the two promises those fixes
+       restored: a sync must not rewrite a record both sides already agree on,
+       and a boot must not rewrite an athlete's stamp. */
+    check: (A) => {
+      const s9 = settle(A);
+      const self9 = T.mergeState(cl(s9), cl(s9));
+      for (const d9 of Object.keys(s9.sessionLog || {})) {
+        if (J((self9.sessionLog || {})[d9]) !== J((s9.sessionLog || {})[d9])) {
+          return { got: "merge(A,A) rewrote " + d9 + ": " + J((s9.sessionLog || {})[d9]).slice(0, 120) + " -> " + J((self9.sessionLog || {})[d9]).slice(0, 120) };
+        } }
+      const strip9 = (x9) => Object.fromEntries(Object.entries(x9.sessionLog || {}).map(([d9, r9]) => { const c9 = { ...r9 }; delete c9.corrLog; return [d9, c9]; }));
+      /* the boot half is judged on the RAW replica, not the settled one: by the
+         time a state is settled the patch backfill has already run, so a boot
+         that rewrites stamps has already done it and comparing after is
+         comparing a state to itself. "A boot must not rewrite what he has"
+         is a claim about the FIRST boot. */
+      const booted9 = T.migrate(cl(A));
+      if (J(strip9(booted9)) !== J(strip9(A))) {
+        for (const d9 of Object.keys(strip9(A))) if (J(strip9(booted9)[d9]) !== J(strip9(A)[d9])) return { got: "a boot rewrote " + d9 + " beyond the additive corrLog: " + J(strip9(A)[d9]).slice(0, 110) + " -> " + J(strip9(booted9)[d9]).slice(0, 110) };
+      }
+      return null; } },
+
   { name: "self-consistent",
     says: "a record agrees with its own history: replaying its corrLog over its own body changes no placement",
     /* THE INVARIANT L5-b BREAKS, stated as a law at last. It was only ever an
@@ -965,6 +1025,7 @@ const SEEDS = [
   { seed: 14414, why: "a deliberate reseed beside a cache CLAIMING the current load. MUTATION: the same-load refill judged by lastMeta.w instead of the derived line (leg 9)", redAt: "6b633c7" },
   { seed: 14415, why: "a load and a ladder resolving from different sides, each newer at what it wrote. MUTATION: ensureLoadOnLadder removed from the recombination point (leg 3)", redAt: "a26e1bd" },
   { seed: 14416, why: "two devices correcting the SAME session differently, three replicas. MUTATION: replay leaving a non-canonical empty skipped[] — the bug this harness found in its own round", redAt: "87143ac" },
+  { seed: 14428, why: "the 8/14 patch-backfill shape: two un-skip corrections the feed proves, both carrying that record's single corr.at. MUTATION IT GUARDS: applying the monotone bump to PATCH filings, which spaces them a millisecond apart and moves the athlete's own correction stamp on every boot", redAt: "87ced89" },
   { seed: 14425, why: "Sol's R-1 probe: equal (corr.at, rev, tieKey), rows logged on one side and initially skipped on the other. MUTATION IT GUARDS: deciding placement from the base, whose last tie returns its first argument — merge order", redAt: "b9dd905" },
   { seed: 14426, why: "the L5-b probe THROUGH the production writer: three acts whose third wall stamp repeats the first. MUTATION IT GUARDS: the monotone rule not reaching the op KEY, so the third act collides with the first and is dropped", redAt: "b9dd905" },
   { seed: 14427, why: "a lift whose own wAt post-dates the entry's wCorrAt — the athlete's later word. MUTATION IT GUARDS: the reconciler adopting anyway, which is the leg-3 bleed pointed at his own edit", redAt: "—" },
@@ -1000,6 +1061,8 @@ const MUTATIONS = [
   ["idempotence-normalizes-forever", "law", "the plan normalizer re-stamps on every merge, so merge(A,A) never reaches a fixed point", `  out.plan = _unionPlan(remote.plan, local.plan);`, `  out.plan = { ..._unionPlan(remote.plan, local.plan), rev: ((local.plan || {}).rev || 0) + 1 };`],
   ["athlete-word-ignored", "law", "the reconciler adopts even when the athlete's own stamp is newer than the correction's", `      if (!(at > String(ex.wAt || ""))) continue;`, `      if (false) continue;`],
   ["receipt-names-the-old-load", "law", "the reconciliation receipt names the load being replaced instead of the one written", `" " + from + " → " + enC.w, how: "The corrected record says " + enC.w`, `" " + from + " → " + from, how: "The corrected record says " + from`],
+  ["merge-self-reorders", "law", "the identical-bodies short-circuit is dropped, so a merge with oneself replays and id-sorts a record both sides already agree on", `  if (sameBody9) return union.length`, `  if (false) return union.length`],
+  ["boot-restamps", "law", "the monotone bump is applied to PATCH filings too, so a boot rewrites the athlete's own correction stamps", `    if ((opts && opts.live) && latest9 && String(at9) <= latest9) {`, `    if (latest9 && String(at9) <= latest9) {`],
   ["fileCorr-not-monotone", "law", "a live act filed with a backward wall stamp keeps it, so a record's own acts stop ordering themselves and its body contradicts a replay of its own corrLog", `    if ((opts && opts.live) && latest9 && String(at9) <= latest9) {`, `    if (false) {`],
   ["ladder-repair-at-merge", "law", "the ladder repair is put BACK at the binary merge, where it inserts a rung for a load only the transient pair holds", `      return w2;`, `      return ensureLoadOnLadder(w2);`],
   ["ladder-repair-off", "law", "the load/ladder invariant is dropped at the BOOT — its only site now that the merge is pure", `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = ensureLoadOnLadder(exs9[i9]);`, `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = exs9[i9];`],
