@@ -224,6 +224,21 @@ const sameStampOneAbsent = (out, id) => {
 };
 const _isoEq = (x, y) => String(x || "") === String(y || "") && String(x || "") !== "";
 const AIM = {
+  /* HUNT 1's SHAPE, committed. Two devices each logged a DIFFERENT session on
+     one date and neither carries a correction — the class the generator can
+     never reach on its own, because every replica descends from one body. The
+     early return sent this to a record-level pick and one session was simply
+     gone, in BOTH orders, against mergeState's own superset promise. */
+  14424: { apply: (out) => {
+      const mk = (s9, e9) => { s9.sessionLog["2026-08-09"] = { d: "2026-08-09", at: 1786311986964, entries: [e9] }; };
+      mk(out[0], { id: "rows", w: 180, reps: [9, 9], rir: 1, rirSets: [1, 0] });
+      mk(out[1], { id: "curl", w: 50, reps: [12, 12], rir: 2, rirSets: [2, 0] });
+      if (out[2]) mk(out[2], { id: "hack", w: 200, reps: [7, 7, 8], rir: 2, rirSets: [2, null, 0] });
+      return ["logged rows only", "logged curl only", "logged hack only"]; },
+    assert: (out) => {
+      const r9 = (s9) => s9.sessionLog["2026-08-09"] || {};
+      const ids = out.map((s9) => (r9(s9).entries || []).map((e) => e.id).join());
+      return new Set(ids).size === out.length && out.every((s9) => !(r9(s9).corr) && !(r9(s9).corrLog)); } },
   /* THE THREE-REPLICA TIE (cowork's construction, committed). Three corrected
      copies of one record, equal (corr.at, rev), each holding a different copy of
      the shared lift AND one lift the others lack. Two replicas can never show
@@ -833,6 +848,7 @@ const SEEDS = [
   { seed: 14414, why: "a deliberate reseed beside a cache CLAIMING the current load. MUTATION: the same-load refill judged by lastMeta.w instead of the derived line (leg 9)", redAt: "6b633c7" },
   { seed: 14415, why: "a load and a ladder resolving from different sides, each newer at what it wrote. MUTATION: ensureLoadOnLadder removed from the recombination point (leg 3)", redAt: "a26e1bd" },
   { seed: 14416, why: "two devices correcting the SAME session differently, three replicas. MUTATION: replay leaving a non-canonical empty skipped[] — the bug this harness found in its own round", redAt: "87143ac" },
+  { seed: 14424, why: "two devices logging DIFFERENT sessions on one date with no corrections anywhere. MUTATION IT GUARDS: returning the record-level pick early whenever no side carries a correction — which loses one device's session outright, in both orders, and is not associative", redAt: "b9dd905" },
   { seed: 14423, why: "THREE corrected replicas tying on (corr.at, rev), each with a different copy of the shared lift and one lift the others lack. MUTATION IT GUARDS: letting the (at,rev) tie consult _mergeScore — once bodies accumulate, size is a function of the GROUPING, so the intermediate record wins the base and (A+B)+C disagrees with A+(B+C)", redAt: "4b5704a" },
   { seed: 14421, why: "two corrected records tying on corr.at, rev AND _mergeScore with different bodies. MUTATION: the base tie falling back to _richer, which ties to its second argument — merge order", redAt: "dd29e8a" },
   { seed: 14422, why: "rows skipped WITH an amend naming it on one side, logged with no placement op on the other. MUTATION: reading 'any correction naming this lift' as deciding placement, which leaves the lift in both arrays", redAt: "dd29e8a" },
@@ -861,6 +877,9 @@ const MUTATIONS = [
   ["union-drops-remote", "law", "the corrLog union reads only one side", `for (const c9 of [...(Array.isArray(x && x.corrLog) ? x.corrLog : []), ...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`, `for (const c9 of [...(Array.isArray(y && y.corrLog) ? y.corrLog : [])]) {`],
   ["replay-disabled", "pin", "the union is carried but never replayed", `  const out9 = _replayCorrections(merged);`, `  const out9 = merged;`],
   ["base-votes", "law", "the base stops accumulating — the defect this leg closes", `  const ents9 = addMissing("entries"); if (ents9 !== undefined) merged.entries = ents9;`, `  const ents9 = undefined; if (ents9 !== undefined) merged.entries = ents9;`],
+  ["idempotence-normalizes-forever", "law", "the plan normalizer re-stamps on every merge, so merge(A,A) never reaches a fixed point", `  out.plan = _unionPlan(remote.plan, local.plan);`, `  out.plan = { ..._unionPlan(remote.plan, local.plan), rev: ((local.plan || {}).rev || 0) + 1 };`],
+  ["athlete-word-ignored", "law", "the reconciler adopts even when the athlete's own stamp is newer than the correction's", `      if (!(at > String(ex.wAt || ""))) continue;`, `      if (false) continue;`],
+  ["receipt-names-the-old-load", "law", "the reconciliation receipt names the load being replaced instead of the one written", `" " + from + " → " + enC.w, how: "The corrected record says " + enC.w`, `" " + from + " → " + from, how: "The corrected record says " + from`],
   ["ladder-repair-at-merge", "law", "the ladder repair is put BACK at the binary merge, where it inserts a rung for a load only the transient pair holds", `      return w2;`, `      return ensureLoadOnLadder(w2);`],
   ["ladder-repair-off", "law", "the load/ladder invariant is dropped at the BOOT — its only site now that the merge is pure", `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = ensureLoadOnLadder(exs9[i9]);`, `    for (let i9 = 0; i9 < exs9.length; i9++) exs9[i9] = exs9[i9];`],
   ["sameload-cache-claim", "law", "the same-load refill trusts the cache's own claim again", `      const dm0 = deriveLastMeta(s, ex.id);`, `      const dm0 = ex.lastMeta;`],
@@ -908,7 +927,18 @@ async function runMutations() {
     try { lawTxt = execFileSync(process.execPath, [at("tools", "sync-laws.mjs"), "--verbose"], { encoding: "utf8", env: { ...process.env, PL_ENGINE: out } }); }
     catch (e) { lawStatus = 1; lawTxt = (e.stdout || "") + (e.stderr || ""); }
     const laws = [...new Set([...lawTxt.matchAll(/LAW BROKEN: ([a-z-]+)/g)].map((m) => m[1]))].filter((l) => l !== "aimed-scenario");
-    let ownerRed = lawStatus, by = laws.join(", ") || "the shape guard";
+    /* N-1 — A LAW OWNER IS CREDITED ONLY BY A NAMED LAW. This took the
+       harness's EXIT CODE as proof, so a shape-only failure or an
+       aimed-scenario break printed "caught-by: law (the shape guard)" with zero
+       laws broken — the row read as covered while nothing had judged it. */
+    let ownerRed = laws.length ? 1 : 0, by = laws.join(", ");
+    if (owner === "suite") {
+      /* a declared owner that cannot be dispatched is the N-1 hole again */
+      let stxt = "";
+      try { stxt = execFileSync(process.execPath, [at("scripts", "test.mjs")], { encoding: "utf8", env: { ...process.env, PL_ENGINE: out } }); }
+      catch (e) { stxt = (e.stdout || "") + (e.stderr || ""); }
+      ownerRed = /FAIL/.test(stxt) ? 1 : 0; by = "engine suite";
+    }
     if (owner === "pin") {
       const probe = tmp("_pinprobe.mjs");
       const fwd = (p) => p.split(String.fromCharCode(92)).join("/");
@@ -986,6 +1016,25 @@ if (!LIB) for (const s of seeds) { for (const x9 of runSeed(s)) (x9 && x9.skip ?
 
 /* ---------- the SHAPE guard: the composed ops still match the real writers ---------- */
 const shapeMiss = (() => {
+  /* THE GUARD READS THE HARNESS TOO — and this time it is implemented rather
+     than described. Sol found the claim standing with no code behind it: the
+     leg that was meant to add it aborted before writing, the follow-up applied
+     a subset that left it out, and the handoff reported it closed. Reverting
+     all three generator writers to state-shaped keys left the guard empty, so
+     the harness could drift from the app it tests and say nothing. Literal
+     substrings — no regex escaping to get subtly wrong, which is how the first
+     attempt would have failed even if it had landed. */
+  const self = fs.readFileSync(at("tools", "sync-laws.mjs"), "utf8");
+  const selfMiss = [];
+  /* the needle is ASSEMBLED AT RUNTIME so it never appears verbatim in this
+     file — the first version stored the literals in a list and then searched
+     the file for them, so it found its own list and reported fine forever. A
+     guard that reads the file it lives in has to be written not to see itself. */
+  const Q = String.fromCharCode(34);
+  for (const [k9, v9] of [["skip", "e"], ["unskip", "k"], ["amend", "e"]]) {
+    const needle = "T._fileCorr(rec, " + Q + k9 + ":" + Q + " + d + " + Q + ":" + Q + " + " + v9 + ".id + " + Q + ":" + Q;
+    if (self.indexOf(needle) < 0) selfMiss.push("the harness's own " + k9 + " writer no longer uses the act-shaped key the app writes");
+  }
   const src = fs.readFileSync(at("src/app.jsx"), "utf8");
   const need = [
     ["the ✕ handler still stamps AND files its correction, keyed on the ACT", /_fileCorr\(rec, "skip:" \+ dateSel \+ ":" \+ e\.id \+ ":"/],
@@ -995,11 +1044,12 @@ const shapeMiss = (() => {
     ["the ladder editor still SETS with a stamp (the present half)", /ex6\.steps = parsed; ex6\.stepsAt = new Date\(\)\.toISOString\(\)/],
     ["the equal-stamp tie still resolves through _valOr, not raw stringify", /_valOr\(other\[f9\]\) > _valOr\(w2\[f9\]\)/],
   ];
-  return need.filter(([, re]) => !re.test(src)).map(([w]) => w);
+  return [...selfMiss, ...need.filter(([, re]) => !re.test(src)).map(([w]) => w)];
 })();
 
 /* ---------- report ---------- */
-if (!LIB && (VERBOSE || fails.length || shapeMiss.length || skips.length)) {
+if (!LIB && skips.length) for (const s9 of skips) console.log("  SKIPPED (capability): seed " + s9.seed + " — " + s9.got);
+if (!LIB && (VERBOSE || fails.length || shapeMiss.length)) {
   for (const f of fails.slice(0, 12)) {
     console.log("\n  LAW BROKEN: " + f.law + " — " + f.says);
     console.log("    seed:  " + f.seed + "   (replay: node tools/sync-laws.mjs --only " + f.seed + ")");
@@ -1013,9 +1063,8 @@ if (!LIB && (VERBOSE || fails.length || shapeMiss.length || skips.length)) {
 const label = EXPLORE ? "explore" : "committed";
 if (LIB) { /* the caller drives */ }
 else if (fails.length || shapeMiss.length) {
-  for (const s9 of skips) console.log("\n  SKIPPED (capability): seed " + s9.seed + " — " + s9.got);
   console.log("\nSYNC-LAWS: " + fails.length + " violation(s)" + (skips.length ? ", " + skips.length + " skipped (capability)" : "") + " across " + seeds.length + " " + label + " seed" + (seeds.length === 1 ? "" : "s") + (shapeMiss.length ? ", " + shapeMiss.length + " shape drift(s)" : ""));
   if (!EXPLORE) process.exit(1);
 } else {
-  console.log("SYNC-LAWS: " + LAWS.length + " laws hold across " + seeds.length + " " + label + " seeds — convergence, associativity, idempotence, non-shrink, correction survival, athlete-word priority, stamp/value coupling, load-on-ladder, receipt truth, reseed integrity");
+  console.log("SYNC-LAWS: " + LAWS.length + " laws hold across " + seeds.length + " " + label + " seeds" + (skips.length ? ", " + skips.length + " skipped (capability)" : "") + " — convergence, associativity, idempotence, non-shrink, correction survival, athlete-word priority, stamp/value coupling, load-on-ladder, receipt truth, reseed integrity");
 }
