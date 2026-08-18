@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.6";
+const APP_V = "7.54.7";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -12165,7 +12165,7 @@ const CACHE_RIDERS = ["last", "lastMeta"];
    instant, so it still collapses to one entry, and the derived backfill
    produces the same key everywhere. */
 const CORR_KINDS = ["skip", "unskip", "strike", "amend"];
-function _fileCorr(rec, op, kind, id, at, to) {
+function _fileCorr(rec, op, kind, id, at, to) {   /* op is a REQUEST: _fileCorr owns the effective stamp and rebuilds the key from it when the record's own history forces one */
   try {
     if (!rec || typeof rec !== "object" || !op || CORR_KINDS.indexOf(kind) < 0) return rec;
     let at9 = typeof at === "string" && isFinite(Date.parse(at)) ? at : ((rec.corr && rec.corr.at) || null);
@@ -12183,7 +12183,21 @@ function _fileCorr(rec, op, kind, id, at, to) {
        already on it. Cross-device first-sighting is untouched: that path is
        value-keyed on the op and returns before this. */
     const latest9 = log9.reduce((m9, c9) => (c9 && String(c9.at || "") > m9 ? String(c9.at) : m9), "");
-    if (latest9 && String(at9) <= latest9) at9 = new Date(Date.parse(latest9) + 1).toISOString();
+    if (latest9 && String(at9) <= latest9) {
+      at9 = new Date(Date.parse(latest9) + 1).toISOString();
+      /* AND THE KEY CARRIES THE EFFECTIVE STAMP. The bump used to happen AFTER
+         the caller had already built the op from its RAW wall stamp, and the
+         dedup matched on that key — so a third act repeating the first raw
+         stamp collided with it and was DROPPED: two ops filed for three acts,
+         and the record's body said skipped while a replay of its own corrLog
+         said logged. The monotone rule has to reach the identity of the act,
+         not just its sort position, or the last word is lost.
+         Only rebuilt when the bump actually fires, so every key already on a
+         device stays exactly as it was. */
+      op = String(op).split(":").slice(0, 3).join(":") + ":" + at9;
+      /* and the record-level stamp agrees with its own newest act */
+      if (rec.corr && typeof rec.corr === "object" && String(rec.corr.at || "") < at9) rec.corr = { ...rec.corr, at: at9 };
+    }
     const i9 = log9.findIndex((c9) => c9 && c9.op === op);
     if (i9 > -1) {
       /* a correction is a FIRST SIGHTING, like pinsBornAt: the earliest witness
@@ -12291,7 +12305,28 @@ function _mergeSession(x, y) {
   const cx9 = _corrOf(x), cy9 = _corrOf(y);
   const base = _richerSession(x, y);
   const union = _unionCorrLog(x, y);
-  if (!union.length) return base;                                                  /* records with no corrections merge EXACTLY as they always did — the uncorrected path is byte-for-byte the old one */
+  /* THE LAW IS THE SAME EVERYWHERE NOW. This returned early whenever neither
+     side carried a correction — "leave the uncorrected path alone" — and that
+     instinct preserved the exact data loss the round was built to kill: two
+     devices that each logged a DIFFERENT session on one date fell to the
+     pre-round record-level pick, so one session was simply gone, in BOTH
+     orders, against mergeState's own promise of a superset. It was not
+     associative either.
+     IDENTICAL BODIES STILL SHORT-CIRCUIT, order preserved — that is what keeps
+     his fourteen real records byte-identical through a phone/cloud merge, and
+     it is pinned. Differing bodies accumulate and resolve per lift. */
+  const bodyOf9 = (v9) => _canonJ({ e: (Array.isArray(v9 && v9.entries) ? v9.entries : []), s: (Array.isArray(v9 && v9.skipped) ? v9.skipped : []) });
+  const sameBody9 = bodyOf9(x) === bodyOf9(y);
+  if (!union.length) {
+    if (sameBody9) return base;                                                    /* identical bodies: the base, with its order preserved */
+    /* A RECORD-LEVEL corr WITH NO OPS IS STILL AN AUTHORITY. Measured the hard
+       way: accumulating here resurrected the very phantom a pre-corrLog
+       correction had removed — the stamp is the only evidence such a record
+       carries, and it says "this body is the corrected one". Only when NEITHER
+       side claims a correction is there no author, and only then do the bodies
+       accumulate. */
+    if (cx9 || cy9) return base;
+  }
   /* THE BODY ACCUMULATES, THE CORRECTIONS DECIDE — the round's own slogan,
      finally true. Replaying over a body that one side WON meant every lift the
      winning side happened not to have was silently gone: executed on his real
@@ -12304,7 +12339,8 @@ function _mergeSession(x, y) {
      correction may remove it. _richerSession still picks the per-lift winner on
      a genuine collision; the tie is broken by canonical value, never by side,
      because _richer ties to its second argument and that is merge order. */
-  const merged = { ...JSON.parse(JSON.stringify(base)), corrLog: union };
+  const merged = JSON.parse(JSON.stringify(base));
+  if (union.length) merged.corrLog = union; else delete merged.corrLog;   /* an EMPTY corrLog is not a correction ledger — writing [] onto a record that has none is a shape the rest of the app never produces */
   /* ACCUMULATE WITHOUT OVERRIDING. The base is still the record the ordering
      law chose, and on a lift BOTH sides carry, the base's copy stands — that is
      what keeps a correction to an entry (a rating, a restated load) from being
@@ -12334,7 +12370,11 @@ function _mergeSession(x, y) {
      two display maps render in array order, and this branch fires only when two
      devices corrected the same record to an exact (at, rev) tie — which no
      record of his has ever been in. */
-  const tie9 = cx9 && cy9 && cx9.at === cy9.at && cx9.rev === cy9.rev;
+  /* per-lift resolution whenever no side is the clear author of the body: an
+     (at,rev) tie, or no correction anywhere. Both are cases where a
+     record-level pick would be arbitrary, and arbitrary is what stops a
+     three-way merge being associative. */
+  const tie9 = (cx9 && cy9 && cx9.at === cy9.at && cx9.rev === cy9.rev) || (!cx9 && !cy9);
   if (tie9) {
     const perLift = (field9) => {
       const m9 = new Map();
@@ -12376,13 +12416,25 @@ function _mergeSession(x, y) {
          had skipped and the other had logged was read as having settled the
          question, and it left the lift in BOTH arrays. */
       const named9 = new Set((out9.corrLog || []).filter((c9) => c9 && (c9.kind === "skip" || c9.kind === "unskip")).map((c9) => c9.id).filter(Boolean));
-      const baseSkip9 = new Set((Array.isArray(base.skipped) ? base.skipped : []).map((z9) => z9 && z9.id));
       for (const id9 of dup9) {
         if (named9.has(id9)) continue;                                             /* a correction already decided this one */
-        if (baseSkip9.has(id9)) out9.entries = out9.entries.filter((e9) => !(e9 && e9.id === id9));
-        else out9.skipped = out9.skipped.filter((z9) => !(z9 && z9.id === id9));
+        /* R-1 — LOGGED WINS, and never the base. "the base decides" read
+           _richerSession, whose last tie returns its FIRST argument on an exact
+           tieKey tie — argument order, i.e. merge order: executed, rows came
+           back skipped one way and logged the other. With no placement op on
+           either side there is no evidence a correction ever moved this lift,
+           and a skip nothing vouches for is the ABSENCE of evidence, not a
+           record of removal — so the reps stay, which is refuse-to-shrink
+           applied at lift grain. A function of the two bodies, so order-free
+           and associative by construction. */
+        out9.skipped = out9.skipped.filter((z9) => !(z9 && z9.id === id9));
       }
-      if (Array.isArray(out9.skipped) && !out9.skipped.length && !Array.isArray(base.skipped)) delete out9.skipped;
+      /* CANONICAL, UNCONDITIONALLY. This asked whether the BASE had a skip list
+         — which is a question about which side arrived, so an emptied list came
+         out as [] one way and absent the other. Absent is the canonical
+         "nothing skipped"; leg 3 learned this once at the replay and it is the
+         same rule here. */
+      if (Array.isArray(out9.skipped) && !out9.skipped.length) delete out9.skipped;
     }
   } catch (e) {}
   return out9;

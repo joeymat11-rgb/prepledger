@@ -985,8 +985,8 @@ export function runClosureSF2(T, ok, readFileSync) {
     ok(J(g(out, "rows").last) === J([9, 9]) && J(g(out, "rows").lastMeta.reps) === J([9, 9])
       && J(g(out, "tricep").last) === J([12, 12]) && J(g(out, "curl").last) === J([11, 10, 10]),
       "LEG8 b — and the caches derive to the SAME values, so cache and log agree and the boot heal has no divergence left to act on (observed " + J([g(out, "rows").last, g(out, "tricep").last, g(out, "curl").last]) + ")");
-    ok(((out.sessionLog["2026-08-09"] || {}).corr || {}).rev === 2 && ((out.sessionLog["2026-08-09"] || {}).corr || {}).at === "2026-08-09T21:56:31.672Z",
-      "LEG8 c — the record's corr keeps its OWN at and bumps rev to 2: equal at, higher rev wins CORRECTION_MERGE, so this strike beats any lingering un-struck replica by ordering — deterministically, with no wall-clock stamp, which under the frozen suite clock would have LOST to the 8/09 at (observed " + J(out.sessionLog["2026-08-09"].corr) + ")");
+    ok(((out.sessionLog["2026-08-09"] || {}).corr || {}).rev === 2 && String(((out.sessionLog["2026-08-09"] || {}).corr || {}).at).indexOf("2026-08-09T21:56:31.67") === 0,
+      "LEG8 c (evolved by leg 9) — the record's corr stays on its OWN INSTANT (to the millisecond it was already on) and bumps rev to 2. It no longer asserts the exact millisecond because the record's stamp now follows its own newest act: filing several acts that share one wall stamp spaces them a millisecond apart, and the record's corr goes with them, so its stamp can never be older than a correction it carries. Still deterministic, still that day, still beats a lingering un-struck replica by ordering: equal at, higher rev wins CORRECTION_MERGE, so this strike beats any lingering un-struck replica by ordering — deterministically, with no wall-clock stamp, which under the frozen suite clock would have LOST to the 8/09 at (observed " + J(out.sessionLog["2026-08-09"].corr) + ")");
     ok(rcp9(out).length === 1 && /RE-STRUCK/.test(rcp9(out)[0].t) && /I didn't do the 3rd set of arms/.test(rcp9(out)[0].how),
       "LEG8 d — one op-guarded receipt names the standing attestation (observed " + J(rcp9(out).map((f9) => f9.t)) + ")");
     /* (b) the boot no longer CHANGES the arm caches — once and twice both
@@ -1227,7 +1227,7 @@ export function runClosureSF2(T, ok, readFileSync) {
     const p1 = mk(plain()), p2 = mk(plain()); p2.sessionLog["2026-08-09"].entries.push({ id: "ham", w: 120, reps: [12], rir: null, rirSets: [null] });
     const pab = T.mergeState(cl(p1), cl(p2)), pba = T.mergeState(cl(p2), cl(p1));
     ok(J(pab.sessionLog["2026-08-09"]) === J(pba.sessionLog["2026-08-09"]) && (pab.sessionLog["2026-08-09"].entries || []).length === 2 && !pab.sessionLog["2026-08-09"].corrLog,
-      "LAW h — a record with NO corrections merges exactly as it always did: the richer body still wins, no corrLog is manufactured, and the path is byte-for-byte the old one (observed n " + (pab.sessionLog["2026-08-09"].entries || []).length + ", corrLog " + J(pab.sessionLog["2026-08-09"].corrLog) + ")");
+      "LAW h (evolved by leg 9, per Sol's ruling) — IDENTICAL bodies merge byte-identically, order preserved; DIFFERING bodies accumulate. The old claim — 'a record with no corrections merges exactly as it always did' — was the instinct that preserved a data-loss bug this round exists to kill: two devices each logging a DIFFERENT session on one date fell to a record-level pick and one session was simply gone, both orders, against mergeState's own promise of a superset (observed n " + (pab.sessionLog["2026-08-09"].entries || []).length + ", corrLog " + J(pab.sessionLog["2026-08-09"].corrLog) + ")");
     /* THE BACKFILL, on the live ledger — asserted on what survives its own healing */
     const liveOut = T.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
     const ops9 = (d9) => (((liveOut.sessionLog || {})[d9] || {}).corrLog || []).map((c) => c.op).sort();
