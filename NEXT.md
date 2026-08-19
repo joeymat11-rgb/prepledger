@@ -23,6 +23,11 @@ listed so the same thing cannot happen again silently:
 | v7.53.3 | data correction (SCHEMA_V 53) — the two un-skipped 2026-08-14 lifts ran their last set to failure: terminal `rirSets` slot 0 for abs and hanging, on the owner's attestation. `en.rir` stays null (that field is the OPENER's, and `openerRir === 0` freezes the load). The debrief's "no last-set rating" line goes; the step size stays add:1 | a1cc402 |
 | v7.53.4 | **the load round** (SCHEMA_V 54, four legs) — the plan follows the corrected record (a standing reconciler adopts a load-corrected entry, gated so the athlete's own later word outranks it), and the weight box saves what he entered (the editor read a ladder-less day template while the Save snapped against the real ladder; a canceled typo confirm still persisted). Also: `steps` joins the stamp discipline, the load/ladder invariant is restored where fields recombine, and load provenance is earned by the VALUE, not the id | 6a93ff6 |
 | v7.53.7 | **the load round, legs 5–9** (SCHEMA_V 55) — all one question: WHO decides what the plan believes about the last session. The adopted value comes from the entry the stamp covers, not the cache beside it (5) · the log is derived FIRST and the derived date is the date, so an older amendment can no longer drag the plan off his newest session (6) · a null `last` at a load the log does not describe is a DECISION, not a gap — the editor's reseed survives the boot, and `last` rides the load through a merge (7) · patchV55 finishes the attested 8/09 arm strike in the LOG, so derive-first has nothing to resurrect (8) · the boot's first sweep judges same-load by the log instead of the cache's own claim, and the duplicate copy of that rule is gone (9). **HELD, deferred by Joe to the convergence-harness round:** the v40-restore route arrives struck but unordered, and that ordering cannot live in the record's shared `corr` slot without reverting his Pronated EZ curl skip — it needs its own key, or the session-merge law | 87143ac |
+| v7.54.18 | **the convergence-harness round** (SCHEMA_V 58, twenty-one legs, Sol closure passes 1–8) — the session-merge law (corrLog provenance replayed over an accumulated body; base by tieKey; exact-authority tie by canonical body; carve receipt + adoptshift receipt as PROJECTIONS), the feed's one order (newest-first, sort last on every path; per-day rule: kept when the sides agree or one is silent, canonical when they differ, projections set aside), keyless stores as canonical max-multisets, and tools/sync-laws.mjs as a gate row: 17 laws · 52 committed seeds · 41 declared mutations · explore ×4 · a 22-engine acceptance table. The suite reads no moving file (frozen preimage + gate row). | f1e86bc |
+
+## NEXT — OWNER RULES THE ORDER (filed 2026-08-18)
+
+Three rounds are specced or seeded; nothing starts without the owner's word: (1) THE STAMP ROUND — every feed writer stamps a per-line `at` at ONE choke point (design brief + a Sol pre-build pass first; ~100 writer sites, so a single choke point, not a sweep); it retires the last known chronology limitation (a device merging with a stale copy of the same day still takes the canonical branch — rig98/rig100 in the closure packs); (2) THE PROGRESSION AUDIT round (plan pack → Sol AND Grok blind → adjudicate → owner's go): 10 of 16 lifts prescribing exact repeats, one ladder on file; (3) THE HEALTH round (feed-writer sweep, back-dated-line display, empty catches). The sync/correction/feed-merge subsystem is FROZEN: any change to mergeState, _feedDayOrder, the receipt writers or the day rule needs a red-first seed and a Sol pass.
 
 **MAINTENANCE RULE FOR THIS FILE, from the failure above:** when a round merges, its
 header changes from NEXT/BUILDING to SHIPPED *in the same session as the merge*. A
@@ -120,7 +125,7 @@ two rounds specced ahead of it. Cowork's amendment, verbatim:)*
 
 Do not start a QUEUED item without Joe's say-so.
 
-## QUEUED — THE SESSION-MERGE LAW (deferred by Joe from v7.53.7, filed 2026-08-15; belongs to the convergence-harness round)
+## SHIPPED — THE SESSION-MERGE LAW (v7.54.18, merged f1e86bc; the filing below is kept verbatim as the spec of record)
 
 **A session merge must not let a "richer" replica resurrect a tail struck under
 a `corr` stamp.** This surfaced twice in the load round and was deferred both
@@ -533,6 +538,8 @@ untouched otherwise, CC's branch untouched. Awaiting Joe's word on merge-vs-fix-
 
 
 ## STANDING RULE (from the verdict's low notes, pinned here): any patch that mutates ex.sets must also write a record structuralMovesThisWeek can see — the 8/10 hand-back stamped setsAt while smw read an empty week. And the owner's-call pre-file on virgin ledgers is an R16 rails item.
+
+## STANDING RULE (harness merge boundary, 2026-08-18): the gate never reads ledger/state.json — it moves under [skip ci] syncs, and main's own suite was red on eight pins against its own ledger with CI still green. Pins read tools/fixtures/ledger-preimage-<date>.json (re-pin deliberately, in one commit, re-deriving every literal); the `frozen preimage` gate row enforces it; the live ledger is exercised out of band by the standing rigs. A red section no longer exits the suite early.
 
 ---
 
