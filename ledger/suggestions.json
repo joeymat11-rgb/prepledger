@@ -1,32 +1,32 @@
 {
-  "gen": "2026-08-18T09:07:03.615Z",
+  "gen": "2026-08-19T09:05:41.278Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-18_fillmonday",
+      "sid": "sug_2026-08-19_morningread",
       "rank": 1,
-      "title": "Monday is blank except the scale — fill in 8/17. Rough numbers count.",
+      "title": "Weigh in tomorrow morning — your three best eating days have no clean read behind them",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Adherence is the meta-lever: when a rate stalls, check the log before blaming metabolism — and you cannot check a log with a hole in it (Alhassan 2008).",
-        "data": "2026-08-17 has your 164.2 weigh-in and nothing else — no calories, no protein, no steps, no sleep night, and no session on a lower day. Every other day from 8/9 to 8/16 is complete.",
-        "relationship": "The forecast I filed for Friday rests on four clean weekday logs and Monday is one of the four. A missing day does not push the answer one way or the other — it makes the test unanswerable in both directions. You filled 8/13 in the day after I asked and that is the entry that made last week readable at all."
+        "science": "A single scale reading is noise around a slow trend, so a trend only means something when its reads are taken the same way each time. Standardising the conditions of the measurement is what makes a small real change visible above day-to-day water (Article III; DASH-Sodium / Juraschek 2020 on how far sodium and food volume move scale weight without moving fat).",
+        "data": "You ate 2,122 / 2,300 / 2,081 on 8/16, 8/17 and 8/18 — your best three-day stretch in the file. The only weigh-in behind them was yesterday's, and it was an evening read: your app posted EVENING READ — SET ASIDE five times and binned it. Your last clean morning read is 8/17 at 164.2.",
+        "relationship": "Morning reads are the only ones your trend can use, so an evening read costs you the whole day's evidence, not just some of it. Two clean mornings — tomorrow and Thursday — are the first and only look at whether those three days moved anything, and Friday's call rests on them."
       },
-      "predict": "Put Monday in — food, protein, steps, and whether you trained — and Friday's test gives a real verdict either way. Leave it blank and the honest answer on Friday is 'untestable', not a number, and a fourth week goes by without a clean read on your own weekday pace.",
+      "predict": "A morning read on 8/19 and 8/20. If the three low days are real, the trend reads at or under 163.8 by Friday 8/21. At or above 164.3 with those days logged clean, my read of your weekdays is wrong and I will say so.",
       "confidence": "high",
       "gate": "approve"
     },
     {
-      "sid": "sug_2026-08-18_hipthrustload",
+      "sid": "sug_2026-08-19_hipthrustload",
       "rank": 2,
-      "title": "Pick the hip thrust's load in SETUP before Friday — it debuts on the one session five other lifts restart from.",
+      "title": "Hip thrust: check in SETUP what the machine actually makes before you load it Friday",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "On a cut you defend load rather than chase volume, and a lift you cannot compare across sessions cannot tell you whether you are defending it (Schoenfeld 2017; Robinson 2024).",
-        "data": "exercises.hipthrust.w is still null. It sat in the 8/14 skipped list, its start date (8/17) passed with no session logged, and its arrival is what started fresh four-session baselines on calves, hanging, abs, ham and extension.",
-        "relationship": "Your record already has both outcomes of this exact decision. Hack squat was entered at 190 on the gym floor, the app said the stack topped out there, and the record had to be corrected to the 200 you actually lifted. Ham curl was checked in SETUP first and debuted clean at 125 x 11,9,9."
+        "science": "On a cut you defend load rather than chase volume, which means every working load has to be a real number you can progress from — a guessed opener has nothing to progress against (Schoenfeld 2017; Robinson 2024).",
+        "data": "exercises.hipthrust.w is still null with its pins unfilled, and Friday 8/21 is its debut. It is also the lift five others are seamed behind — calves, hanging, abs, ham and extension all start fresh baselines on that session.",
+        "relationship": "A guessed load on the one session that re-anchors five other lifts lands somewhere you can never untangle later. The hack went in at 190 and had to be corrected to 200; the ham was checked in SETUP first and debuted clean at 125. Thirty seconds on the pins before the first set is the difference."
       },
-      "predict": "Check the machine's rungs and set the load before Friday and the hip thrust's first outing banks a clean line the seam can measure everything else from. Guess it on the floor and you get either a WORKING LOAD RECONCILED amendment like the hack, or a debut that lands wrong on the single session where five other lifts are also starting over — which is the one place a wrong number cannot be untangled afterwards.",
+      "predict": "hipthrust.w carries a real number before Friday's first set, and Friday's five seamed lower lifts open against a load you can progress from. Left null, the debut logs a number neither of us can trust and five fresh baselines inherit it.",
       "confidence": "high",
       "gate": "approve"
     }

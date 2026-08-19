@@ -1,17 +1,17 @@
 {
-  "gen": "2026-08-18T09:07:03.615Z",
+  "gen": "2026-08-19T09:05:41.278Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 164.15,
-    "lastRaw": 164.2,
+    "soft": 163.87,
+    "lastRaw": 163.2,
     "appTrend": 164.1,
-    "noiseFloor": 1.48,
-    "gap": -0.05
+    "noiseFloor": 1.47,
+    "gap": 0.67
   },
   "rate": {
-    "perWeekLb": -0.35,
-    "perWeekPct": -0.21,
-    "bandLb": 0.69,
+    "perWeekLb": -0.39,
+    "perWeekPct": -0.24,
+    "bandLb": 0.68,
     "personalBand": [
       1,
       1.4
@@ -19,12 +19,12 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2638,
+    "tdee": 2633,
     "tdeeWinDays": 20,
-    "meanCal": 2545,
-    "waterSensitivityLb": 1.1,
+    "meanCal": 2538,
+    "waterSensitivityLb": 1.12,
     "waterSensDays": 4,
-    "meanSleepH": 7.7,
+    "meanSleepH": 7.8,
     "sleepDebt7H": 1.7,
     "ffmKg": 63.4,
     "proteinTargetG": 146
@@ -34,13 +34,6 @@
     "why": "deficit has shrunk - intake near your TDEE"
   },
   "weeks": [
-    {
-      "wk": "2026-07-06",
-      "meanCal": 2197,
-      "meanPro": 173,
-      "proHitPct": 100,
-      "meanSteps": 18686
-    },
     {
       "wk": "2026-07-13",
       "meanCal": 1903,
@@ -75,6 +68,13 @@
       "meanPro": 167,
       "proHitPct": 100,
       "meanSteps": 17643
+    },
+    {
+      "wk": "2026-08-17",
+      "meanCal": 2191,
+      "meanPro": 170,
+      "proHitPct": 100,
+      "meanSteps": 19000
     }
   ],
   "priorDecisions": [
