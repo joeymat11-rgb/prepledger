@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.54.17";
+const APP_V = "7.54.18";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -12761,10 +12761,22 @@ const MERGE_OBJ = ["dailyLogs", "sessionLog", "dayCtx", "labSeen"];
    the rule's identity — the merged day is a function of the distinct
    non-empty sequences seen: one, kept; more than one, canonical over the
    max-multiset. A stable per-line stamp on NEW lines is the stronger long-run
-   design and belongs to the writer sweep. */
+   design and belongs to the writer sweep.
+   PROJECTIONS NEVER ENTER THE DAY RULE (FIX-19 — Sol, pass 7): the carve and
+   adoptshift lines are DERIVED state, re-derived from the merged record by the
+   writers that run after this (the carve projection after the op-dedup, the
+   adoptshift projection in reconcileEraTransitions), so they are set aside
+   from the comparison and the ordering here — on both sides and in the union
+   — and ride through to those writers untouched, which own their lifecycle
+   (remove every one, re-derive exactly what the merged state warrants). A
+   stale one carried by ONE replica made two otherwise identical days
+   "differ", the differ branch canonicalised the athlete's permanent lines,
+   and the writer then removed the stale line correctly — the chronology
+   damage outlived it. */
+const _isFeedProjection = (f) => !!(f && typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0));
 function _feedDayOrder(remoteFeed, localFeed, unioned) {
   try {
-    const days = (arr) => { const m = new Map(); for (const f of (Array.isArray(arr) ? arr : [])) { const d = String((f && f.d) || ""); if (!m.has(d)) m.set(d, []); m.get(d).push(f); } return m; };
+    const days = (arr) => { const m = new Map(); for (const f of (Array.isArray(arr) ? arr : [])) { if (_isFeedProjection(f)) continue; const d = String((f && f.d) || ""); if (!m.has(d)) m.set(d, []); m.get(d).push(f); } return m; };
     const dr = days(remoteFeed), dl = days(localFeed), du = days(unioned);
     const out = [];
     for (const [d, ls] of du) {
@@ -12794,6 +12806,10 @@ function _feedDayOrder(remoteFeed, localFeed, unioned) {
       if (!rd.length || !ld.length) { out.push(...(rd.length ? rd : ld)); continue; }
       out.push(...ls.slice().sort((a, b) => { const ka = _canonJ(a), kb = _canonJ(b); return ka < kb ? -1 : ka > kb ? 1 : 0; }));
     }
+    /* FIX-19 — the projections ride through: set aside from the day rule, not from
+       the feed. The carve writer and the adoptshift writer below remove every one
+       and re-derive what the merged record warrants; nothing here is history. */
+    for (const f of (Array.isArray(unioned) ? unioned : [])) if (_isFeedProjection(f)) out.push(f);
     return out;
   } catch (e) { return unioned; }
 }
