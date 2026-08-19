@@ -82,6 +82,20 @@ function affordanceGate() {
   const out = ((r.stdout || "") + (r.stderr || "")).trim().split(String.fromCharCode(10)).pop() || "affordance lint";
   return r.status === 0 ? { ok: true, detail: out } : { ok: false, detail: out };
 }
+/* v7.54.0 — THE CONVERGENCE HARNESS. Ten named sync laws over a committed seed
+   set, driven through the production merge and boot. It exists because four of
+   the six defects the load round confirmed were one machine-findable class: two
+   independently-correct rules disagreeing under a merge order, found one at a
+   time by hand over nine legs. On failure the tool prints the seed, the
+   operation sequence and the differing paths, so a counterexample is
+   reproducible by paste. The wider rotating sweep lives in --explore and is
+   deliberately NOT gate-blocking. */
+function syncLaws() {
+  const r = spawnSync(process.execPath, [at("tools", "sync-laws.mjs")], { cwd: ROOT, encoding: "utf8" });
+  const all = ((r.stdout || "") + (r.stderr || "")).trim();
+  const out = all.split(String.fromCharCode(10)).filter((l) => l.indexOf("SYNC-LAWS") > -1).pop() || all.split(String.fromCharCode(10)).pop() || "sync laws";
+  return r.status === 0 ? { ok: true, detail: out } : { ok: false, detail: out + " — run `node tools/sync-laws.mjs --verbose` for the seed and the operation sequence" };
+}
 function swMatch() {
   const app = appVersion();
   const sw = swVersion();
@@ -111,6 +125,33 @@ function lockdown() {
   }
   if (missing.length) return { ok: false, detail: missing.join("; ") };
   return { ok: true, detail: "health data stays unreadable from the public site" };
+}
+
+// ------------------------------------------------- 4b. the suite reads no moving file --
+/* THE LEDGER MOVES UNDER THE PINS. ledger/state.json syncs from his phone and
+   those syncs are [skip ci], so a pin that reads it changes meaning without a
+   commit and, in time, goes red without one — measured at the harness merge
+   boundary: main's own suite was red on eight pins against main's own ledger
+   with main's last CI still green. Every gate reader is pinned to a FROZEN
+   preimage under tools/fixtures/; this row keeps it that way. The live ledger is
+   exercised out of band by the standing rigs, every round. (scripts/prod-check
+   is the production LOCKDOWN probe — it fetches the URL to prove it 404s — and
+   is not a reader.) */
+const SUITE_READERS = ["tools/engine-test.jsx", "tools/closure-sf1.mjs", "tools/closure-sf2.mjs", "tools/split-smoke.mjs", "tools/sync-laws.mjs", "tools/engine-diff.mjs", "tools/render-smoke.mjs", "tools/dom-smoke.mjs", "tools/beacon-smoke.mjs"];
+function noMovingLedger() {
+  const hits = [];
+  for (const rel of SUITE_READERS) {
+    const f = at(rel);
+    if (!fs.existsSync(f)) continue;
+    const text = fs.readFileSync(f, "utf8");
+    /* a READ, not a mention: the path inside a readFileSync/at() call */
+    if (/readFileSync\(\s*(?:at\()?\s*["'`]ledger\/state\.json["'`]/.test(text)) hits.push(rel + " reads ledger/state.json — pin it to tools/fixtures/ledger-preimage-<date>.json");
+  }
+  const fx = at("tools", "fixtures");
+  const pins = fs.existsSync(fx) ? fs.readdirSync(fx).filter((n) => /^ledger-preimage-\d{4}-\d{2}-\d{2}\.json$/.test(n)) : [];
+  if (!pins.length) hits.push("tools/fixtures carries no ledger-preimage-<date>.json — the suite's pins have nothing frozen to read");
+  if (hits.length) return { ok: false, detail: hits.join("; ") };
+  return { ok: true, detail: `the suite reads no moving file — ${SUITE_READERS.filter((r) => fs.existsSync(at(r))).length} gate readers pinned to the frozen preimage (${pins.join(", ")}); ledger/state.json is exercised out of band` };
 }
 
 // ---------------------------------------------------------------- 5. secrets --
@@ -238,6 +279,8 @@ export async function check({ strict = false } = {}) {
     ["portability", esbuildBinaryGate],   /* fix-5 — the gate must mean the same thing on Linux, where CI runs */
     ["contrast", contrastGate],   /* A1 (design round) — resolved pairs, both themes */
     ["affordance", affordanceGate],   /* A4 — the tap-color grammar, lint-enforced */
+    ["sync-laws", syncLaws],   /* v7.54.0 — the ten sync laws, committed seeds, production merge */
+    ["frozen preimage", noMovingLedger],   /* v7.54.18 merge boundary — the suite never reads the moving ledger */
     ["sw version", swMatch],
     ["lockdown", lockdown],
     ["secrets", secretScan],

@@ -435,7 +435,7 @@ async function drivePinTokens() {
 async function driveWeightBox() {
   console.log("[B+C/weight box]");
   const L_ISO = "2026-08-21";   /* an unlogged LOWER day — hack and extension both live there */
-  const live = JSON.parse(fs.readFileSync(at("ledger/state.json"), "utf8"));
+  const live = JSON.parse(fs.readFileSync(at("tools/fixtures/ledger-preimage-2026-08-15.json"), "utf8"));   /* the FROZEN preimage — see tools/engine-test.jsx: the smoke never reads the moving ledger/state.json */
   /* the pre-correction shape: with the 8/14 correction stamp removed, Part A's
      reconciler abstains and hack sits at 190 with its four-rung ladder — which
      is exactly the state Joe was looking at when the box refused his entry. */
