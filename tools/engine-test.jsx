@@ -2,6 +2,23 @@
 // for why a suite that derives dates from the real clock cannot be trusted.
 import "./_fixed-now.mjs";
 import { readFileSync } from "node:fs";
+/* THE LEDGER PREIMAGE, FROZEN. Every pin in this suite that used to read
+   ledger/state.json now reads THIS file: his ledger as it stood at 7dd2d4b
+   (2026-08-15, the harness branch's base — v54, 13 sessions, feed 323), the
+   exact tree ledger every gate of that branch ran green against. Why frozen:
+   ledger/state.json is a MOVING file — it syncs from his phone, and those
+   syncs are [skip ci] — so a pin that reads it changes meaning without a
+   commit and, in time, goes red without one. Measured at the harness merge
+   boundary: main's own suite, run against main's own current ledger, was red
+   on EIGHT pins (the SPLIT curl oracle and "newborns are clean", then the
+   LOAD-A/LEG8 family behind them, hidden by the section exit) with main's last
+   CI still green. This is the class the repo names as its dominant defect
+   (closure-sf2's preAdoption, split-smoke's LEG 9), closed at the root: the
+   gate never reads the moving file; the LIVE ledger is exercised out of band,
+   every round, by the standing rigs (merge-with-self, migrate, counts law).
+   TO RE-PIN (deliberately, in one commit): copy ledger/state.json here under a
+   new date, point PREIMAGE at it, and re-derive every literal the pins carry. */
+const PREIMAGE = "tools/fixtures/ledger-preimage-2026-08-15.json";
 import { __test } from "../src/app.jsx";
 import { runClosureSF1 } from "./closure-sf1.mjs";
 import { runClosureSF2, runClosureSF2Sync } from "./closure-sf2.mjs";
@@ -8263,7 +8280,7 @@ if (fail) process.exit(1);
     ok(srcF.indexOf("let g; try { g = labGroups(s); } catch (e) { g = []; } _labMemo.set(s, g);") > -1, "BOARD FIX 1 — THE MEMO LANDS ON EVERY OUTCOME: the set-only-on-success gap that made every caller re-pay the full 49-instrument compute is structurally dead");
     /* the LIVE-shaped acceptance — the fixture law honored: the real ledger, absurd
        values injected, and the SECOND call must be memo-instant */
-    const rawL = JSON.parse(readFileSync("ledger/state.json", "utf8")); delete rawL._dictionary;
+    const rawL = JSON.parse(readFileSync(PREIMAGE, "utf8")); delete rawL._dictionary;
     let SL = __test.migrate(rawL);
     SL.dailyLogs = { ...SL.dailyLogs, "2026-08-05": { ...(SL.dailyLogs["2026-08-05"] || {}), cal: 10000000 } };
     SL.reads = [...SL.reads, { d: "2026-08-06", w: 500 }];
@@ -8567,7 +8584,7 @@ if (fail) process.exit(1);
   const clP = (o) => JSON.parse(JSON.stringify(o));
   /* P1 — THE FRANKENSTEIN ACCEPTANCE, on the LIVE ledger (fixture law): the two known
      composite anchors (rear delt, abs) must now be lines delivered in ONE session */
-  const LV = __test.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+  const LV = __test.migrate(JSON.parse(readFileSync(PREIMAGE, "utf8")));
   const oldRatchet = (ex) => { const base = (ex.last || []).slice(); const seen = [];
     Object.keys(LV.sessionLog).sort().forEach((d) => { const sl = LV.sessionLog[d]; if ((sl.pace || null) === "rushed") return;
       const en = (sl.entries || []).find((x) => x.id === ex.id); if (!en || !en.reps || String(en.w) !== String(ex.w)) return; seen.push(en.reps); });
@@ -8629,7 +8646,7 @@ if (fail) process.exit(1);
   const clN = (o) => JSON.parse(JSON.stringify(o));
   const srcN = readFileSync("src/app.jsx", "utf8");
   /* THE HOLD, MEASURED ON THE LIVE LEDGER: no live number moved except protein */
-  const LVN = __test.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+  const LVN = __test.migrate(JSON.parse(readFileSync(PREIMAGE, "utf8")));
   const ebL = __test.energyBalanceTarget(LVN);
   const stL = __test.stepTarget(LVN);
   ok(ebL.lo === 2240 || (ebL.lo != null && ebL.hi != null), "HOLD — the live calorie band computes (" + ebL.lo + "–" + ebL.hi + ")");
@@ -9339,7 +9356,7 @@ if (fail) process.exit(1);
     /* build-time golden ON THE SYNCED PREIMAGE, as ruled — never a runtime
        condition, and never a SEED fixture (the seed's baseline sets predate the
        athlete's earned volume: lateral's 5th set is his, not the programme's). */
-    const m = __test.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+    const m = __test.migrate(JSON.parse(readFileSync(PREIMAGE, "utf8")));
     const act = m.exercises.filter((e) => !(m.retirements || {})[e.id]);
     const sum = (d) => act.filter((e) => e.day === d).reduce((x, e) => x + (e.sets || 0), 0);
     ok(sum("U") === 27 && sum("L") === 19 && 2 * (sum("U") + sum("L")) === 92,
@@ -9355,7 +9372,7 @@ if (fail) process.exit(1);
      ladder-set +1 → [11,11,10]. Main's engine printed [9,8,7] (the stale-anchor
      defect, executed); the wKey fix must land EXACTLY the oracle. */
   {
-    const live = __test.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+    const live = __test.migrate(JSON.parse(readFileSync(PREIMAGE, "utf8")));
     const curl = live.exercises.find((x) => x.id === "curl");
     ok(JSON.stringify(__test.targetsFor(curl, live)) === JSON.stringify([11, 11, 10]),
       "SPLIT item h — CURL READS THE ORACLE: [11,11,10] on the live preimage (main printed [9,8,7] against an honest [11,10,10,9] four days old). Derived from main BEFORE patching, matched after — never authored from the edited build's output");
@@ -9433,7 +9450,7 @@ if (fail) process.exit(1);
 
   /* item k — quarantine + fresh install + the sync bootstrap law */
   {
-    const live = __test.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+    const live = __test.migrate(JSON.parse(readFileSync(PREIMAGE, "utf8")));
     const stores = [JSON.stringify(Object.keys(live.sessionLog || {}).map((d) => (live.sessionLog[d].entries || []).map((e) => e.id))), JSON.stringify((live.queue || []).map((q) => q.exId)), JSON.stringify((live.agentProposals || []).map((p) => p.exId))];
     ok(!stores.some((s9) => /"fly"|"hipthrust"/.test(s9)),
       "SPLIT item k — the canonical live state carries neither new id in any executable store (sessions, queue, proposals): the newborns are clean");
@@ -9474,7 +9491,7 @@ if (fail) process.exit(1);
   }
 }
 console.log(`\nFINAL106: ${pass} passed, ${fail} failed`);
-if (fail) process.exit(1);
+/* no early exit here (or after FINAL107): a red section used to stop the run and HIDE every section behind it — the LOAD-A/LEG8 family sat unseen behind two SPLIT reds. The tally is cumulative; FINAL108 exits. */
 
 /* ==================== SPLIT FIX-ROUND 1 · THE CLOSURE MATRIX (FINAL107) ====================
    Sol's eight, adopted verbatim as the pin set. The SAME module runs against
@@ -9482,7 +9499,6 @@ if (fail) process.exit(1);
    the round report. See tools/closure-sf1.mjs for the tests. */
 runClosureSF1(__test, ok, readFileSync);
 console.log(`\nFINAL107: ${pass} passed, ${fail} failed`);
-if (fail) process.exit(1);
 
 /* ==================== SPLIT FIX-ROUND 2 · PRODUCTION-BOUNDARY CLOSURE (FINAL108) ====================
    The eight repairs at real migrate/merge boundaries with observation-embedding

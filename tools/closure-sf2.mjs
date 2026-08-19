@@ -7,6 +7,8 @@
 
    Every message EMBEDS ITS OBSERVATION, so a fail-first run against 554c5b7
    records the failure SIGNATURE, not just a status. */
+/* THE LEDGER PREIMAGE, FROZEN — see tools/engine-test.jsx (same file, same reason): every pin here reads his ledger as it stood at 7dd2d4b (2026-08-15), never the moving ledger/state.json. */
+const PREIMAGE = "tools/fixtures/ledger-preimage-2026-08-15.json";
 export function runClosureSF2(T, ok, readFileSync) {
   const cl = (x) => JSON.parse(JSON.stringify(x));
   const slp = { clean: true, last: { h: 8 }, mean3: 8 };
@@ -30,7 +32,7 @@ export function runClosureSF2(T, ok, readFileSync) {
      back to what they were before this round. The pins are now invariant to
      whatever his phone has done since. */
   const preAdoption = () => {
-    const s9 = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const s9 = JSON.parse(readFileSync(PREIMAGE, "utf8"));
     s9.v = 53;                                                   /* before patchV54 stamped provenance */
     for (const e9 of (((s9.sessionLog || {})["2026-08-14"] || {}).entries || [])) delete e9.wCorrAt;
     const back = (id9, w9, wAt9, steps9) => {
@@ -969,7 +971,7 @@ export function runClosureSF2(T, ok, readFileSync) {
     const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
     const en9 = (s9, id9) => (((s9.sessionLog || {})["2026-08-09"] || {}).entries || []).find((e) => e && e.id === id9) || {};
     const rcp9 = (s9) => (s9.feed || []).filter((f9) => f9 && f9.op === "restrike:2026-08-09:arms");
-    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const live = JSON.parse(readFileSync(PREIMAGE, "utf8"));
     /* (a) COWORK'S LIVE LITERAL — Joe's real ledger carries the half-applied
        correction: phantom tails in the LOG ([9,9,8] / [12,12,11,10] /
        [11,10,10,9]), the struck values in the caches. Executed red at
@@ -1022,7 +1024,7 @@ export function runClosureSF2(T, ok, readFileSync) {
     const g = (s9, id9) => s9.exercises.find((e) => e && e.id === id9) || {};
     const en9 = (s9, id9) => (((s9.sessionLog || {})["2026-08-09"] || {}).entries || []).find((e) => e && e.id === id9) || {};
     const corr9 = (s9) => ((s9.sessionLog || {})["2026-08-09"] || {}).corr || {};
-    const live = JSON.parse(readFileSync("ledger/state.json", "utf8"));
+    const live = JSON.parse(readFileSync(PREIMAGE, "utf8"));
     /* ===== FIX A — the boot's FIRST sweep no longer believes a stale claim ===== */
     /* cowork's witness: hack set to 210 in the editor (newer wAt, last nulled
        for the reseed) beside a FOREIGN lastMeta asserting the 8/14 line was at
@@ -1170,7 +1172,7 @@ export function runClosureSF2(T, ok, readFileSync) {
        4d41e2d: every corrLog entry in his state could be deleted and
        dataLossGuard still returned {safe:true,lost:[]} — it counts sessionLog
        DATES and never looks inside a record. */
-    const liveG = T.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+    const liveG = T.migrate(JSON.parse(readFileSync(PREIMAGE, "utf8")));
     const wiped = JSON.parse(JSON.stringify(liveG));
     for (const r9 of Object.values(wiped.sessionLog || {})) delete r9.corrLog;
     const g9 = T.dataLossGuard(liveG, wiped);
@@ -1229,7 +1231,7 @@ export function runClosureSF2(T, ok, readFileSync) {
     ok(J(pab.sessionLog["2026-08-09"]) === J(pba.sessionLog["2026-08-09"]) && (pab.sessionLog["2026-08-09"].entries || []).length === 2 && !pab.sessionLog["2026-08-09"].corrLog,
       "LAW h (evolved by leg 9, per Sol's ruling) — IDENTICAL bodies merge byte-identically, order preserved; DIFFERING bodies accumulate. The old claim — 'a record with no corrections merges exactly as it always did' — was the instinct that preserved a data-loss bug this round exists to kill: two devices each logging a DIFFERENT session on one date fell to a record-level pick and one session was simply gone, both orders, against mergeState's own promise of a superset (observed n " + (pab.sessionLog["2026-08-09"].entries || []).length + ", corrLog " + J(pab.sessionLog["2026-08-09"].corrLog) + ")");
     /* THE BACKFILL, on the live ledger — asserted on what survives its own healing */
-    const liveOut = T.migrate(JSON.parse(readFileSync("ledger/state.json", "utf8")));
+    const liveOut = T.migrate(JSON.parse(readFileSync(PREIMAGE, "utf8")));
     const ops9 = (d9) => (((liveOut.sessionLog || {})[d9] || {}).corrLog || []).map((c) => c.op).sort();
     /* LEG 5 — A RECEIPT IS PROVENANCE; MEMBERSHIP IS NOT. Leg 4 stopped
        inventing ops from skipped[] membership, correctly. It also left unfiled

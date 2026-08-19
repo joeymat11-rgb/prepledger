@@ -127,6 +127,33 @@ function lockdown() {
   return { ok: true, detail: "health data stays unreadable from the public site" };
 }
 
+// ------------------------------------------------- 4b. the suite reads no moving file --
+/* THE LEDGER MOVES UNDER THE PINS. ledger/state.json syncs from his phone and
+   those syncs are [skip ci], so a pin that reads it changes meaning without a
+   commit and, in time, goes red without one — measured at the harness merge
+   boundary: main's own suite was red on eight pins against main's own ledger
+   with main's last CI still green. Every gate reader is pinned to a FROZEN
+   preimage under tools/fixtures/; this row keeps it that way. The live ledger is
+   exercised out of band by the standing rigs, every round. (scripts/prod-check
+   is the production LOCKDOWN probe — it fetches the URL to prove it 404s — and
+   is not a reader.) */
+const SUITE_READERS = ["tools/engine-test.jsx", "tools/closure-sf1.mjs", "tools/closure-sf2.mjs", "tools/split-smoke.mjs", "tools/sync-laws.mjs", "tools/engine-diff.mjs", "tools/render-smoke.mjs", "tools/dom-smoke.mjs", "tools/beacon-smoke.mjs"];
+function noMovingLedger() {
+  const hits = [];
+  for (const rel of SUITE_READERS) {
+    const f = at(rel);
+    if (!fs.existsSync(f)) continue;
+    const text = fs.readFileSync(f, "utf8");
+    /* a READ, not a mention: the path inside a readFileSync/at() call */
+    if (/readFileSync\(\s*(?:at\()?\s*["'`]ledger\/state\.json["'`]/.test(text)) hits.push(rel + " reads ledger/state.json — pin it to tools/fixtures/ledger-preimage-<date>.json");
+  }
+  const fx = at("tools", "fixtures");
+  const pins = fs.existsSync(fx) ? fs.readdirSync(fx).filter((n) => /^ledger-preimage-\d{4}-\d{2}-\d{2}\.json$/.test(n)) : [];
+  if (!pins.length) hits.push("tools/fixtures carries no ledger-preimage-<date>.json — the suite's pins have nothing frozen to read");
+  if (hits.length) return { ok: false, detail: hits.join("; ") };
+  return { ok: true, detail: `the suite reads no moving file — ${SUITE_READERS.filter((r) => fs.existsSync(at(r))).length} gate readers pinned to the frozen preimage (${pins.join(", ")}); ledger/state.json is exercised out of band` };
+}
+
 // ---------------------------------------------------------------- 5. secrets --
 const SECRET_RX = /(github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|sk-ant-[A-Za-z0-9_-]{20,})/;
 const SKIP_DIRS = new Set(["node_modules", ".git", ".tmp", "tmp"]);
@@ -253,6 +280,7 @@ export async function check({ strict = false } = {}) {
     ["contrast", contrastGate],   /* A1 (design round) — resolved pairs, both themes */
     ["affordance", affordanceGate],   /* A4 — the tap-color grammar, lint-enforced */
     ["sync-laws", syncLaws],   /* v7.54.0 — the ten sync laws, committed seeds, production merge */
+    ["frozen preimage", noMovingLedger],   /* v7.54.18 merge boundary — the suite never reads the moving ledger */
     ["sw version", swMatch],
     ["lockdown", lockdown],
     ["secrets", secretScan],
