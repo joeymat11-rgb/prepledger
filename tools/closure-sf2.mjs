@@ -1178,6 +1178,33 @@ export function runClosureSF2(T, ok, readFileSync) {
     const g9 = T.dataLossGuard(liveG, wiped);
     ok(!g9.safe && (g9.lost || []).some((x) => /^corrections /.test(x)),
       "LAW o — deleting the correction ledger is now REFUSED and named: a promise no guard enforces is a comment (observed " + J(g9) + ")");
+    /* leg 3.5 — THE GUARD COUNTS RECORDS, NOT RECEIPTS. Executed red at
+       418e9fb: patchV59's receipt sweep shrank the RAW feed (his live ledger
+       352→344; this frozen preimage 323→321) and dataLossGuard read the app's
+       own migration as data loss — {"safe":false,"lost":["feed 352→344"]} — so
+       ghSync returned null ("merge would shrink the remote") and the local
+       save set offline: v7.55.x could not reach his phone. Every removed line
+       is a machine receipt (a projection reconcileReadReceipts re-derives from
+       reads[]); the athlete's permanent lines GROW across the same migration
+       (342→343 live, 318→320 here). The guard now counts only permanent
+       lines — the app-side mirror of the harness's isProjection carve-out. */
+    const rawPre = JSON.parse(readFileSync(PREIMAGE, "utf8"));
+    const gMig = T.dataLossGuard(rawPre, liveG);
+    ok(gMig.safe === true && (gMig.lost || []).length === 0,
+      "LAW r — a migration whose only feed shrink is the machine's own receipts is SAFE: the guard counts the athlete's permanent lines, never derived state, so the app can never refuse its own migration (observed " + J(gMig) + ")");
+    const isP9 = T._isFeedProjection;
+    ok(typeof isP9 === "function",
+      "LAW r2a — _isFeedProjection is exported: the pin asserts the app's own projection class, not a rig's re-spelling of it");
+    if (typeof isP9 === "function") {
+      const np9 = (s) => (Array.isArray(s.feed) ? s.feed.filter((f) => !isP9(f)).length : 0);
+      ok(np9(liveG) >= np9(rawPre),
+        "LAW r2 — the guard passes because the PERMANENT count did not shrink (" + np9(rawPre) + "→" + np9(liveG) + "), not because feed went uncounted");
+    }
+    const cutG = JSON.parse(JSON.stringify(liveG));
+    cutG.feed.splice(Math.max(0, cutG.feed.findIndex((f) => !(typeof isP9 === "function" && isP9(f)))), 1);
+    const gCut = T.dataLossGuard(liveG, cutG);
+    ok(!gCut.safe && (gCut.lost || []).some((x) => /^feed /.test(x)),
+      "LAW r3 — deleting one PERMANENT line is still REFUSED and named: the projection carve-out narrows what the guard counts, never what it protects (observed " + J(gCut) + ")");
     /* leg 4 — THE BASE TIE IS ORDER-FREE. Executed at dd29e8a: two equally
        corrected records — same corr.at, same rev, same byte score — resolved by
        _richer, which ties to its SECOND argument, so curl came back [12,12,9]

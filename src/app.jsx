@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.55.1";
+const APP_V = "7.55.2";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -12222,7 +12222,7 @@ function recordCounts(st) {
     sessionLog: keys(st.sessionLog),
     waist: arr(st.waist),
     photos: arr(st.photos),
-    feed: arr(st.feed),
+    feed: (Array.isArray(st.feed) ? st.feed.filter((f9) => !_isFeedProjection(f9)).length : 0),   // v7.55.2 — the guard counts the athlete's PERMANENT lines, never the machine's receipts: projections (carve/adoptshift/lateread lines, set-aside and missed/gap receipts) are DERIVED state that migrations and reconcilers legitimately remove or re-derive, so counting them raw made patchV59's receipt sweep read as data loss ({"safe":false,"lost":["feed 352→344"]} on his live ledger) and both call sites refused the write — v7.55.x could not reach his phone. The non-projection count only grows.
     adjustments: arr(st.adjustments),   // v7.2.0 audit — the Auto-Pilot decision log is load-bearing (track record + undo + once/day guard) and only grows; guard it like the other append-only records so a shrink can't be silent
     learnedTdee: arr(st.learned && st.learned.tdee),      // v7.3.0 Slice 4 — the learned TDEE drift series only grows; a stale device must not shrink it
     learnedAnchors: arr(st.learned && st.learned.anchors), // v7.3.0 Slice 4 — DEXA anchor history only grows; guard it too
@@ -13417,6 +13417,7 @@ __test.stepTarget = stepTarget;
 __test.signalState = signalState;
 __test.signalReadCopy = signalReadCopy;   // v7.5 — so the suite can prove showRate and currentRate.measured diverge
 __test.dataLossGuard = dataLossGuard;
+__test._isFeedProjection = _isFeedProjection;   /* v7.55.2 — the guard pin asserts the app's own projection class, not a rig's re-spelling of it */
 __test.mergeState = mergeState;
 __test.fiveLevers = fiveLevers;
 __test.theOneFix = theOneFix;
