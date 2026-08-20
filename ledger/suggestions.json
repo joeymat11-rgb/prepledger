@@ -1,33 +1,47 @@
 {
-  "gen": "2026-08-19T09:05:41.278Z",
+  "gen": "2026-08-20T14:07:57.894Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-19_morningread",
+      "sid": "sug_2026-08-20_fillwednesday",
       "rank": 1,
-      "title": "Weigh in tomorrow morning — your three best eating days have no clean read behind them",
+      "title": "Log yesterday tonight — it is one of the four days Friday's verdict stands on",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "A single scale reading is noise around a slow trend, so a trend only means something when its reads are taken the same way each time. Standardising the conditions of the measurement is what makes a small real change visible above day-to-day water (Article III; DASH-Sodium / Juraschek 2020 on how far sodium and food volume move scale weight without moving fat).",
-        "data": "You ate 2,122 / 2,300 / 2,081 on 8/16, 8/17 and 8/18 — your best three-day stretch in the file. The only weigh-in behind them was yesterday's, and it was an evening read: your app posted EVENING READ — SET ASIDE five times and binned it. Your last clean morning read is 8/17 at 164.2.",
-        "relationship": "Morning reads are the only ones your trend can use, so an evening read costs you the whole day's evidence, not just some of it. Two clean mornings — tomorrow and Thursday — are the first and only look at whether those three days moved anything, and Friday's call rests on them."
+        "science": "Adherence data beats metabolic stories: logging gaps cluster exactly when intake shifts, and an unlogged day inside a test window makes the test unanswerable rather than passed (Alhassan 2008).",
+        "data": "Wednesday 8/19 has no food, steps or sleep row. The Friday call — trend at or under 163.8 with the weekdays logged clean — has 8/17 (2,300) and 8/18 (2,081) in, and 8/19 blank.",
+        "relationship": "Five fill-in asks in three weeks have each converted inside a day, and every one settled a question the scale alone could not. This one completes the window so tomorrow's read grades the week instead of voiding it. Nothing in the app changes — the act is the log row itself, and rough numbers marked as estimates count."
       },
-      "predict": "A morning read on 8/19 and 8/20. If the three low days are real, the trend reads at or under 163.8 by Friday 8/21. At or above 164.3 with those days logged clean, my read of your weekdays is wrong and I will say so.",
+      "predict": "8/19 lands tonight or tomorrow morning with rough numbers, and Friday's verdict is answerable whichever way it goes.",
       "confidence": "high",
       "gate": "approve"
     },
     {
-      "sid": "sug_2026-08-19_hipthrustload",
+      "sid": "sug_2026-08-20_hipthrustload",
       "rank": 2,
-      "title": "Hip thrust: check in SETUP what the machine actually makes before you load it Friday",
+      "title": "Pick the hip thrust's opening load before you leave for the gym — the debut is tomorrow",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "On a cut you defend load rather than chase volume, which means every working load has to be a real number you can progress from — a guessed opener has nothing to progress against (Schoenfeld 2017; Robinson 2024).",
-        "data": "exercises.hipthrust.w is still null with its pins unfilled, and Friday 8/21 is its debut. It is also the lift five others are seamed behind — calves, hanging, abs, ham and extension all start fresh baselines on that session.",
-        "relationship": "A guessed load on the one session that re-anchors five other lifts lands somewhere you can never untangle later. The hack went in at 190 and had to be corrected to 200; the ham was checked in SETUP first and debuted clean at 125. Thirty seconds on the pins before the first set is the difference."
+        "science": "A debut anchors every later comparison on the lift. Progression guidance wants small planned jumps from a known start (ACSM progression stand); a guessed opener on a new machine spends the first of its four baseline sessions on the guess.",
+        "data": "The hip thrust still has no working load and unfilled setup pins, four days after entering the programme. Tomorrow is its debut — on the same session where calves, abs, ham curl, extension and the leg raise all open on fresh baselines.",
+        "relationship": "Tomorrow is the most misreadable session in the file: five lifts re-anchoring plus one debut. The load is the only unknown you can remove tonight — the same way the ham 125 check turned that debut into a clean 11,9,9. Enter it in SETUP when you pick it; this card just puts the decision on the record."
       },
-      "predict": "hipthrust.w carries a real number before Friday's first set, and Friday's five seamed lower lifts open against a load you can progress from. Left null, the debut logs a number neither of us can trust and five fresh baselines inherit it.",
+      "predict": "Load set before the session, and the debut banks a usable baseline in the 8–12 rep window at 1–2 in reserve. If the session runs with it still blank, the first baseline session is spent guessing — the exact cost this card exists to avoid.",
       "confidence": "high",
+      "gate": "approve"
+    },
+    {
+      "sid": "sug_2026-08-20_machinecheck",
+      "rank": 3,
+      "title": "Three machines might be training the short half of the muscle — answer three questions in SETUP",
+      "apply": { "kind": "note" },
+      "rationale": {
+        "science": "A muscle that crosses two joints grows where the other joint holds it long. Straight-knee calf work grew the gastrocnemius +9–12% against +0.6–1.7% seated in a within-person MRI trial (n=14, untrained — direction more than size); overhead triceps work grew the long head +28.5% vs +19.6% for pushdowns; a seated ham curl trains the hamstrings at length where a lying one does not.",
+        "data": "Your SETUP cards do not record which variant each machine is. Calves note a near-straight knee — likely already the right version. The triceps and ham cards read either way, and those two are where the answer is genuinely unknown.",
+        "relationship": "On a cut with capped sets, yield per set is the lever — and if any answer comes back the short version, the switch is free and worth more than any rep-mechanics tweak. Nothing changes tonight; the ask is three answers next time you are at the machines."
+      },
+      "predict": "Calves pass. At least one of triceps or ham comes back short-muscle — and if one does, the switch becomes its own card with a fresh-baseline warning attached. If all three pass, this closes for good and machine selection never bothers you again.",
+      "confidence": "medium",
       "gate": "approve"
     }
   ]

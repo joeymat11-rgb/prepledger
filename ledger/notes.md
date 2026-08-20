@@ -388,3 +388,26 @@
 **No new forecast entered**, deliberately: three are in flight, two resolve inside 48 h, and run 28's working practice says a fourth on a shared axis measures the same thing again. The thing to do is let Friday land.
 
 **Next run should check first:** is there an **8/19 morning read**, and — before reading anything into it — **did my soft trend converge back toward his 164.1** ([[CL-27]]'s withdrawal clause); where that read sits against **164.1**; did `hipthrust.w` gain a value before Friday ([[W-10]], and remember the **void** branch if no session runs); did `dailyLogs` gain 8/19 and did protein come back to 180; did Thursday or Friday's session run and, if so, **read the seamed lifts as fresh baselines, not declines** ([[W-8]]); did any of the ten undecided cards reach `priorDecisions`; did `sync.last` move off 8/16.
+
+
+---
+
+## Run 30 — 2026-08-20 (Thu, rest day; engine 14:07Z, no 8/20 read yet)
+
+**The night in one line.** The morning read the last card asked for arrived at **162.4** — lowest in the file, damped by both instruments, and even damped it moved his trend 164.1 → **163.7**: the arithmetic of the three lean days finally has a measurement under it, and the brief says so plainly.
+
+**Checked first, per run 29's order: [[CL-27]]'s clause.** Clean 8/19 morning read → trends converged (gap 0.23 → 0.10) → ruling stands, clause did not fire. His app damped the read as *"spike"* and that word happens to sit in my engine's note regex, so both sides treated it the same way by vocabulary coincidence. Reconciliation duty unchanged; quoted his 163.7 everywhere in the brief.
+
+**The read, honestly handled.** One morning inside a ±1.5 noise floor is not a result on its own — what makes tonight a result is agreement: 8/16–8/18 mean **2,168** against engine maintenance **2,660** ≈ 490/day predicted exactly this shape, and run 29 explicitly withheld the finding for want of a clean read. The read came. Regime label still says `plateau — whoosh pending` on the night it started landing; windowed label, run behind, noted in scorecard, kept out of the brief.
+
+**Embarrassment owned in the open: the resurrected forecast.** ≤163.4-by-8/22, graded dead in run 29 at 164.1, is alive at 163.7 needing 0.3 in two days. Brief confesses it; caselaw takes the working practice (*dying* may be said early, *dead* happens on the date).
+
+**Cards: three, all `note`, all `approve`.** #1 `fillwednesday` (high) — 8/19 blank on food/steps/sleep and it gates Friday's verdict; the fill-in genre is five for five inside 24 h. #2 `hipthrustload` (high, **fourth issue**, sid chain 8/16→8/19 recorded in scorecard) — due tomorrow, and tomorrow also decides [[W-10]] (void branch restated so it cannot be rationalised after). #3 `machinecheck` (medium) — from today's lab row: calf/triceps/ham may be short-muscle variants; calves likely pass on their own setup note ("near-straight knee"); free, three answers in SETUP. **Flood control:** the second lab row (12.5% graduation jumps on rearDelt and pronated; 1.25 lb magnets) held to a brief note — three cards, one headline. Card it on a quiet night if unacted.
+
+**Restraint streaks:** cal **12th** (engine drafted zero, fifth run running) · step **16th** (7/29 proposal 22 days stale, [[CL-25]]) · protein none (170 in-band; brief line at 180, third time) · sleep **21st** (debt 0, anchor 23:30–23:40 three nights) · scale none needed (behaviour holding) · progression stale **10th** · DEXA not re-carded (live, still right).
+
+**Gaps.** `dailyLogs` 8/19 absent · sodium blank 8/9, 8/12–8/18 · no session since 8/16 (seam still uncollected) · `hipthrust.w` null · `sync.last` 8/16 vs file carrying 8/19 · `suggestionLog` stops 8/14, twelve undecided ([[W-9]] fifth untapped conversion) · caffeine/energy/soreness/pulse/temp all stale since late July · `learned.tdee` 2,595, moved with its fitted mean, ceiling as always.
+
+**Forecasts in flight, none added:** ≤163.8 Fri (at 163.7, grades tomorrow, needs 8/19–8/20 logged clean — hence card #1) · ≤163.4 Sat (alive again, grade at deadline) · weekend >2,600 both days (grades Sunday; brief asks him to beat it, and I want to lose that one).
+
+**Next run, in order:** reconcile trend vs his first ([[CL-27]]) · Friday read vs 163.8 · did the session run — no session = [[W-10]] **void**; session = `hipthrust.w` first, then **five re-anchors read as fresh baselines, not declines** ([[W-8]]) · `dailyLogs` 8/19+8/20 (card #1; weekend forecast starts) · Friday intake vs 2,600 · protein toward 180 · [[W-9]]/`sync.last` movement · any SETUP answers on machinecheck.

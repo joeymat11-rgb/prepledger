@@ -1,39 +1,31 @@
-<!-- 2026-08-19 -->
+<!-- 2026-08-20 -->
 
 # The read
 
-Three days running now: **2,122 / 2,300 / 2,081**. That is the best stretch of eating in this file, and it came straight off a 3,200-calorie Saturday without anyone asking for it. Against a maintenance near 2,633 that is a deficit of about **465 a day — roughly 0.9 lb a week** if it holds.
+The scale answered. Yesterday morning you stepped on it — first thing, like the card asked — and it said **162.4**. That is the lowest read in the file.
 
-The scale has not seen it yet, and I want to be straight about that before anything else.
+Now the honest handling. One read is one read: your morning-to-morning noise runs about a pound and a half, so nobody sane trades on a single weigh-in. Your app called it a spike and damped it; so did I. But even damped, it moved your trend from 164.1 to **163.7** — and it landed exactly where the arithmetic said it should. Three days at 2,122 / 2,300 / 2,081 against a maintenance near 2,660 is a deficit close to 490 a day. The water that has been sitting on the scale for two weeks finally let go of the rope. When the numbers and the scale say the same thing on the same morning, I am allowed to say it plainly: **the loss is real and it is finally showing.**
 
-**One correction, and it is mine.** My number tonight says the trend fell to 163.9 and the rate picked up to 0.39 lb/wk. Do not spend that. Yesterday's weigh-in was an evening read — your app flagged it *"evening read — set aside"* five separate times — and my engine counted it anyway, at full weight. Your app's trend is the honest one: **still 164.1**. The improvement in my number is my instrument, not your body. The fix is written into my notes so it does not happen twice.
-
-So the real position: **trend flat at 164.1, and the three good days are still unmeasured.**
+My Friday call — trend at or under 163.8 with the weekdays logged clean — sits at 163.7 with a day to spare. Tomorrow morning's read makes it official. And a confession that cuts the other way: on the 15th I filed "163.4 by Saturday," then called it dead two days ago at 164.1. At 163.7 it is suddenly back in reach. The lesson is mine — a call gets graded at its deadline, not before — and both calls get graded this weekend, in the open.
 
 ## What matters this week
 
-**The eating is fixed, and the fix was yours.** Weekend runs high, weekdays run lean — you spotted that and pulled it back yourself, two Sundays in a row. Nothing for me to add to it. Your intake band is the engine's, it is re-derived every morning from your own maintenance, and it has not changed.
+**The weekend is the whole game now.** Two Fridays and Saturdays running you went 2,800–3,200, and the weekdays had to buy it back. I have a bet on the record: both days over 2,600 unless something deliberate changes. **Beat my bet.** You do not need weekday numbers — under 2,500 both days keeps the 162s, and being wrong about you would be the best grade I could take all week.
 
-**Steps hit 22,000 on Monday** — the highest day on record. Meanwhile your app raised your step target to about 16,500 twice in the last week, working off a step baseline from three weeks ago that you are now well past. Nothing for you to do here. I am naming it so the number on screen does not confuse you.
+**Wednesday is blank.** Food, steps, sleep — nothing logged yesterday. It is one of the four weekday logs Friday's verdict stands on, and rough numbers count. That is tonight's one move; the card is on your NOW tab.
 
-**The sleep anchor held.** Wake times had drifted out to 10:45; you came back to 07:45, then 07:00, two nights, both with a 23:30 bedtime. That is the second-biggest lever you own after food and it is sitting where it should. Monday ran 7.33 h — a shade under your 7.5 — but the *timing* is what was broken and the timing is fixed.
+**Friday's session will look worse than it is.** The hip thrust debuts, and five lower lifts — calves, abs, ham curl, extension, the leg raise — open on fresh baselines behind it. Openers will read low **by design**. That is the re-anchor, not a decline; I will be reading them that way and so should you. Pick the hip thrust's opening load before you leave the house — that card is back for the fourth time because Friday is the day it is due.
 
-**Protein wobbled and came back.** Monday you hit 180. Tuesday back to 160. The week averages 170, still inside your 146–196 window, so nothing is wrong — but 180 is where you want to sit while the deficit is this size. That is the number that protects lean, and it is the only one worth nudging.
+**Two findings from the lab landed today; one is worth a card.** Your calf raise, triceps machine and ham curl might be the short-muscle versions of those machines — the check is free, takes three answers in SETUP, and the science behind switching is the strongest machine-selection evidence I have read for you. The second finding rides here as a note: your rear-delt fly and pronated curl jump 12.5% every time they graduate, which is a big part of why those ladders keep resetting — a pair of 1.25 lb magnet plates halves the jump. Cheap fix, no urgency, it will keep.
 
 ## Is lean safe
 
-Yes. Protein has held its window for twelve weeks straight, you are training, and even at 0.9 lb/wk you sit at the gentle end of what the research calls safe for a trained lifter — 0.5 to 1.0% of bodyweight per week, which for you is 0.8 to 1.6 lb *(Garthe 2011; Helms 2014)*. Nothing in this week is fast enough to cost you muscle.
+Yes. Protein averaged 170 this week, twelve straight weeks inside your 146–196 window — 180 is where I want you while the deficit runs this size, same line as yesterday. Sleep debt is back to zero and the bedtime anchor has held three nights, all between 23:30 and 23:40. Even if the measured rate speeds up as the water clears, you are at the gentle end of what the research calls safe for a trained lifter, and the training record shows lifts advancing, not sliding. Nothing this week threatens muscle.
 
 ## The one move
 
-**Step on the scale tomorrow morning, before anything else.**
-
-Three of the best eating days you have ever logged have no clean measurement behind them. Yesterday's read got binned for being an evening read. The next two mornings are the only thing that can tell either of us whether those three days did what the arithmetic says they should — and I have a call riding on Friday that they settle.
-
-Sixty seconds. It is the highest-value thing you will do today.
+**Log yesterday tonight — rough numbers, five minutes, before bed.** Every fill-in card in three weeks has converted inside a day. This one completes the window that Friday's verdict stands on.
 
 ## Horizon
 
-If the three low days are real, the trend reads **at or under 163.8 by Friday**. If it reads **164.3 or above** with those days logged clean, then it is my reading of your weekdays that is wrong, not your behaviour — and I will say so plainly when it lands.
-
-Friday is also the hip thrust's debut and the first session behind the eleven lifts that reset their baselines on Monday. Expect those to open low. **That is the reset, not a decline.** I will be reading them that way, and so should you.
+Tomorrow morning's read grades the Friday call. Saturday grades the resurrected one. Sunday grades my weekend bet. The next milestone is holding the 162s through the weekend — do that and the next pound is in sight by month's end at the current arithmetic. Further out: the DEXA is still unbooked, and it is the one measurement that settles composition rather than weight — the queue card has the conditions. The curl 60 graduation stays a coach call, not mine.
