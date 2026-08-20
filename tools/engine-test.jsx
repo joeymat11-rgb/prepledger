@@ -6905,7 +6905,7 @@ if (fail) process.exit(1);
   /* the laws */
   const src89 = readFileSync("src/app.jsx", "utf8");
   ok((src89.split(".reads.push(").length - 1) === 2, "MISSED-READ LAW — reads[] has exactly TWO writers, both characterized: applyRead (the log path) and the v1-state replay that copies EXISTING recorded reads forward. Neither synthesizes a point; the counterfactual's synthetic read lives and dies inside missedReadCost's clone");
-  ok((src89.split("!r.sealed && !r.offWindow").length - 1) === 25, "MISSED-READ LAW — the off-window exclusion rides the sealed predicate at all 25 reader sites (SCALE-1: +2 — patchV59's trend replay and its weekly first-clean-read finder): the 21 pre-existing readers (including steer reconciliation, which simply WAITS for a live read — the audit's verify-it clause) plus the rider's own two last-live-read finders, which must obey the same law they enforce");
+  ok((src89.split("!r.sealed && !r.offWindow").length - 1) === 27, "MISSED-READ LAW — the off-window exclusion rides the sealed predicate at all 27 reader sites (SCALE-1: +2 — patchV59's replay and weekly finder; SCALE-2: +2 — reconcileTrendChain's step and its weekly finder): the 21 pre-existing readers (including steer reconciliation, which simply WAITS for a live read — the audit's verify-it clause) plus the rider's own two last-live-read finders, which must obey the same law they enforce");
   /* the live replay: the snapshot carries the real incident */
   ok(S7m.reads[S7m.reads.length - 1].d === "2026-08-06", "MISSED-READ — the frozen 08-07 snapshot's last read is 08-06: the live incident is IN the fixture");
   ok(__test.runAdaptive(cl89(S7m), "2026-08-07").feed.filter((f) => f.d === "2026-08-07" && /^MORNING READ MISSED/.test(f.t)).length === 1, "MISSED-READ — REPLAYED: the real missed morning now files its one priced line on the real ledger — the incident that motivated the rider, closed by the rider, on the record");
@@ -6956,7 +6956,7 @@ if (fail) process.exit(1);
   const bareAgain = (() => { const ns = cl91(one); ns.reads = ns.reads.filter((r) => r.d !== tI); Object.assign(ns, __test.applyRead(ns, tI, 161.0, { hour: 8 })); return ns; })();
   ok(minuteAgain.trend === one.trend && bareAgain.trend !== one.trend, "SCALE-1 — the same morning number logged twice through the minute's new shape (undo first) leaves the trend where one log put it; the old bare-filter shape stepped it again (" + one.trend + " → " + bareAgain.trend + ") — which is why the UI changed");
   const src91 = readFileSync("src/app.jsx", "utf8");
-  ok(src91.indexOf("const r2 = applyRead(undoRead(ns, t9), t9, +wt9); Object.assign(ns, r2);") > -1 && src91.indexOf("ns.reads = ns.reads.filter((r) => r.d !== t9); const r2 = applyRead(ns, t9, +wt9);") === -1, "SCALE-1 — the morning minute's weight button undoes first (source-pinned: the bare filter is gone)");
+  ok(src91.indexOf("const r2 = runAdaptive(applyRead(undoRead(ns, t9), t9, +wt9), t9); Object.assign(ns, r2);") > -1 && src91.indexOf("ns.reads = ns.reads.filter((r) => r.d !== t9); const r2 = applyRead(ns, t9, +wt9);") === -1, "SCALE-1/2 — the morning minute's weight button undoes first AND runs the adaptive sweep (Sol's H3: undoRead can drop the week's only snapshot and bare applyRead never recreates it — runAdaptive does; source-pinned, the bare filter is gone)");
   /* 5 · patchV59 on the frozen preimage (08-15: carries 8/8 and 8/10, not 8/18) — value-keyed, replayed, receipted, idempotent, merge-stable */
   const rawP = JSON.parse(readFileSync(PREIMAGE, "utf8"));
   const P0 = cl91(rawP), P1 = __test.migrate(cl91(rawP));
@@ -6986,6 +6986,73 @@ if (fail) process.exit(1);
   Y.suggestionLog = [...(Y.suggestionLog || []), { sid: "sug_test_b", decided: "dismissed", d: "2026-08-17", title: "b" }];
   const xy = __test.mergeState(cl91(X), cl91(Y)), yx = __test.mergeState(cl91(Y), cl91(X));
   ok(xy.suggestionLog.filter((x) => x.sid === "sug_test_b").length === 1 && xy.suggestionLog.find((x) => x.sid === "sug_test_b").decided === "noted" && yx.suggestionLog.find((x) => x.sid === "sug_test_b").decided === "noted", "SCALE-1 — the same card decided on two devices offline: the EARLIER decision stands, both orders (the athlete's first word), one entry per sid");
+}
+
+/* ==================== SCALE-2 · SOL'S CLOSURE PASS-1 ROWS (2026-08-20) ====================
+   Four opens from Sol's post-build pass, every witness executed by cowork before the fix
+   and re-executed after: the mixed-version receipt pair, the partial-replica replay, the
+   patchV59 lateread sweep, the decision whose EFFECT rode the merge — plus the hunt's
+   three: the unhealed missed line, the clean-vs-late read tie, the MinuteView sweep.
+   Every pin here was RED on 0d1719b except where it says it pins a law that held. */
+{
+  const cl92 = (o) => JSON.parse(JSON.stringify(o));
+  const canon92 = (v) => { const c9 = (x) => Array.isArray(x) ? x.map(c9) : (x && typeof x === "object") ? Object.fromEntries(Object.keys(x).sort().map((k) => [k, c9(x[k])])) : x; return JSON.stringify(c9(v)); };
+  const rawP = JSON.parse(readFileSync(PREIMAGE, "utf8"));
+  const base = __test.migrate(cl92(rawP));
+  const DL = "2026-08-21";
+  /* row 2 — ONE receipt across the mixed-version boundary */
+  const A2 = cl92(base), B2 = cl92(base);
+  const rd2 = { d: DL, w: 163.0, sealed: false, pt: 163.5, note: "evening read — set aside", offWindow: true };
+  A2.reads = [...A2.reads, cl92(rd2)]; A2.feed = [{ d: DL, t: "EVENING READ — SET ASIDE", how: "evening reads run 1–2 lb heavy against a morning-standardized trend — recorded, set aside; tomorrow morning is the instrument." }, ...A2.feed];
+  const rdN = cl92(rd2); rdN.note = "late read — set aside";
+  B2.reads = [...B2.reads, rdN]; B2.feed = [{ d: DL, op: "lateread:" + DL, t: "LATE READ — SET ASIDE", how: "a read after the morning window — local noon, or once today's session is logged — runs 1–2 lb heavy against a morning-standardized trend; recorded, set aside; tomorrow morning is the instrument." }, ...B2.feed];
+  const m2a = __test.mergeState(cl92(A2), cl92(B2)), m2b = __test.mergeState(cl92(B2), cl92(A2));
+  const nRec = (s) => s.feed.filter((f) => f.d === DL && (/SET ASIDE$/.test(String(f.t || "")) || (typeof f.op === "string" && f.op.indexOf("lateread:") === 0))).length;
+  ok(nRec(m2a) === 1 && nRec(m2b) === 1 && m2a.feed.some((f) => f.op === "lateread:" + DL), "SCALE-2 row 2 — a v7.54.18 replica's op-less EVENING line and the op-keyed LATE line merge to EXACTLY ONE op-keyed receipt, both orders (on 0d1719b: two receipts for one read — the max-multiset saw two identities and the op-dedup cannot touch an op-less line)");
+  /* row 3a — the partial replica: trend, pt chain and weekly follow the MERGED reads, both orders */
+  const A3 = cl92(rawP), B3 = cl92(rawP);
+  B3.reads = B3.reads.filter((r) => r.d !== "2026-08-10"); B3.feed = B3.feed.filter((f) => f.d !== "2026-08-10");
+  const mA3 = __test.migrate(cl92(A3)), mB3 = __test.migrate(cl92(B3));
+  ok(mA3.trend !== mB3.trend, "SCALE-2 row 3a (the shape) — the partial replica's honest replay differs before any merge: " + mA3.trend + " vs " + mB3.trend);
+  const m3a = __test.mergeState(cl92(mA3), cl92(mB3)), m3b = __test.mergeState(cl92(mB3), cl92(mA3));
+  ok(m3a.reads.some((r) => r.d === "2026-08-10") && m3b.reads.some((r) => r.d === "2026-08-10") && m3a.trend === m3b.trend && canon92(m3a.weekly) === canon92(m3b.weekly) && canon92(m3a.reads) === canon92(m3b.reads), "SCALE-2 row 3a — the read union carries the superset and the trend, every pt and every weekly row follow it IDENTICALLY in both directions (on 0d1719b: weekly wk 8/17 was 164.2 or 164.1 by merge direction — the generic richer-copy union had no post-union replay)");
+  /* row 3b — patchV59 sweeps the NEW spelling too */
+  const S3 = cl92(rawP); S3.feed = [{ d: "2026-08-08", op: "lateread:2026-08-08", t: "LATE READ — SET ASIDE", how: "x" }, ...S3.feed];
+  const m3s = __test.migrate(cl92(S3));
+  ok(!m3s.feed.some((f) => f.op === "lateread:2026-08-08") && !m3s.reads.find((r) => r.d === "2026-08-08").offWindow, "SCALE-2 row 3b — a state that already carries an op-keyed LATE line for a re-classed date loses it at patchV59 (belt) or the receipt projection (suspenders): a re-classed read leaves NO set-aside receipt behind");
+  /* row 4 — the decision's EFFECT converges with it */
+  const P4 = cl92(base), Q4 = cl92(base);
+  P4.targets = { ...(P4.targets || {}), proteinG: 200 };
+  P4.suggestionLog = [...P4.suggestionLog, { sid: "sug_t4", decided: "approved", d: "2026-08-20", title: "protein to 200", apply: { kind: "protein", to: 200 }, predict: "" }];
+  P4.adjustments = [...(P4.adjustments || []), { rid: "sug_t4", id: "adjT4", d: "2026-08-20", title: "protein to 200" }];
+  const m4a = __test.mergeState(cl92(Q4), cl92(P4)), m4b = __test.mergeState(cl92(P4), cl92(Q4));
+  ok(m4a.targets.proteinG === 200 && m4b.targets.proteinG === 200 && m4a.suggestionLog.find((x) => x.sid === "sug_t4").decided === "approved", "SCALE-2 row 4 — an approved protein suggestion's EFFECT survives the stale device's later sync, both orders (on 0d1719b: proteinG was 175 or 200 by direction while the decision converged)");
+  /* row 4, the reversal: the same card dismissed EARLIER on another device wins, and the effect reverses */
+  const X4 = cl92(base), Y4 = cl92(base);
+  X4.suggestionLog = [...X4.suggestionLog, { sid: "sug_t5", decided: "dismissed", d: "2026-08-16", title: "protein to 200", apply: { kind: "protein" } }];
+  Y4.suggestionLog = [...Y4.suggestionLog, { sid: "sug_t5", decided: "approved", d: "2026-08-17", title: "protein to 200", apply: { kind: "protein", to: 200 }, predict: "" }];
+  Y4.targets = { ...(Y4.targets || {}), proteinG: 200 };
+  Y4.adjustments = [...(Y4.adjustments || []), { rid: "sug_t5", id: "adjT5", d: "2026-08-17", title: "protein to 200" }];
+  const m5a = __test.mergeState(cl92(X4), cl92(Y4)), m5b = __test.mergeState(cl92(Y4), cl92(X4));
+  ok(m5a.suggestionLog.find((x) => x.sid === "sug_t5").decided === "dismissed" && m5b.suggestionLog.find((x) => x.sid === "sug_t5").decided === "dismissed" && m5a.targets.proteinG === undefined && m5b.targets.proteinG === undefined && m5a.adjustments.find((a) => a.rid === "sug_t5").dismissed === true, "SCALE-2 row 4 — the same card decided both ways offline: the earlier word (dismissed) wins, the losing approval's TARGET is reversed (the kind travels on every decision row) and its adjustment marks dismissed — whole-state, both orders");
+  ok((() => { const s9 = cl92(base); const before9 = canon92(s9.targets); const out9 = __test.migrate(cl92(s9)); return canon92(out9.targets) === before9; })(), "SCALE-2 row 4 — the derivation is byte-neutral on the preimage's own targets: every live value traces to an approved row (sleepH 7.5, the 8/10 progression string), so deriving them changes nothing");
+  /* H1 — the disproven miss heals */
+  const A6 = cl92(base), B6 = cl92(base);
+  A6.feed = [{ d: DL, t: "MORNING READ MISSED", how: "the trend carries. Today it cost 0.02 lb/wk of rate precision — priced by the engine." }, ...A6.feed];
+  B6.reads = [...B6.reads, { d: DL, w: 163.0, sealed: false, pt: 163.5, note: "" }];
+  const m6a = __test.mergeState(cl92(A6), cl92(B6)), m6b = __test.mergeState(cl92(B6), cl92(A6));
+  const nMiss = (s) => s.feed.filter((f) => f.d === DL && /^(MORNING READ MISSED|READ GAP)/.test(String(f.t || ""))).length;
+  ok(nMiss(m6a) === 0 && nMiss(m6b) === 0 && m6a.reads.some((r) => r.d === DL && !r.offWindow), "SCALE-2 H1 — a stale replica's false MORNING READ MISSED line dies when the merged reads carry that day's clean read, both orders (the read IS the disproof); a legit miss (no clean read) keeps its priced line — the 08-07 replay pin above still passes");
+  /* H2 — the clean classification wins the read tie */
+  const A7 = cl92(base), B7 = cl92(base);
+  A7.reads = [...A7.reads, { d: DL, w: 163.0, sealed: false, pt: 163.5, note: "" }];
+  B7.reads = [...B7.reads, { d: DL, w: 163.0, sealed: false, pt: 163.5, note: "late read — set aside", offWindow: true }];
+  const m7a = __test.mergeState(cl92(A7), cl92(B7)), m7b = __test.mergeState(cl92(B7), cl92(A7));
+  ok(!m7a.reads.find((r) => r.d === DL).offWindow && !m7b.reads.find((r) => r.d === DL).offWindow, "SCALE-2 H2 — same date, same weight, one clean, one late: the CLEAN classification wins both orders (on 0d1719b the late copy won both ways — offWindow plus its note made it the longer JSON and _richer read length as authority)");
+  /* H3 — the MinuteView writer runs the adaptive sweep (source pin above); the engine shape */
+  const s8 = __test.runAdaptive(__test.applyRead(cl92(base), "2026-08-24", 162.7, { hour: 8 }), "2026-08-24");
+  const re8 = __test.runAdaptive(__test.applyRead(__test.undoRead(cl92(s8), "2026-08-24"), "2026-08-24", 162.7, { hour: 8 }), "2026-08-24");
+  ok(JSON.stringify((re8.weekly || []).find((w) => w.wk === "2026-08-24")) === JSON.stringify((s8.weekly || []).find((w) => w.wk === "2026-08-24")), "SCALE-2 H3 — the repaired MinuteView shape (undoRead → applyRead → runAdaptive) leaves the week's snapshot exactly where one log put it; without the sweep, undoRead dropped the week's only clean row and nothing recreated it");
 }
 console.log(`\nFINAL90: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

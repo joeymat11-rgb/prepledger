@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.55.0";
+const APP_V = "7.55.1";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -3095,7 +3095,7 @@ function applyRead(state, iso, w, opts) {
      read. "LATE", not "EVENING": the window can close at noon or after a session, and
      the line must not claim an hour it did not see. */
   s.feed = s.feed.filter((f) => !(f && f.op === "lateread:" + iso));
-  if (offW) s.feed.unshift({ d: iso, op: "lateread:" + iso, t: "LATE READ — SET ASIDE", how: "a read after the morning window — local noon, or once today's session is logged — runs 1–2 lb heavy against a morning-standardized trend; recorded, set aside; tomorrow morning is the instrument." });
+  if (offW) s.feed.unshift({ d: iso, op: "lateread:" + iso, t: "LATE READ — SET ASIDE", how: LATE_READ_HOW });
   if (!sealed && !offW) s.trend = +(s.trend + 0.3 * dCl).toFixed(1);
   return s;
 }
@@ -9451,7 +9451,7 @@ function noteSuggestion(state, sug) {
   s.suggestionLog = s.suggestionLog || [];
   if (s.suggestionLog.some((x) => x.sid === sug.sid)) return s;
   const d = isoOf(todayStart());
-  s.suggestionLog.push({ sid: sug.sid, decided: "noted", d, title: sug.title });
+  s.suggestionLog.push({ sid: sug.sid, decided: "noted", d, title: sug.title, ...(sug.apply && sug.apply.kind ? { apply: { kind: sug.apply.kind } } : {}) });   /* SCALE-2 — the kind travels with every decision, so a losing approval's effect can be reversed by derivation */
   s.feed.unshift({ d, t: "ANALYST SUGGESTION NOTED", how: sug.title + " — an observation, filed; approving it would have changed nothing, so nothing wears an apply button" });
   return s;
 }
@@ -9460,7 +9460,7 @@ function dismissSuggestion(state, sug) {
   s.suggestionLog = s.suggestionLog || [];
   if (s.suggestionLog.some((x) => x.sid === sug.sid)) return s;
   const d = isoOf(todayStart());
-  s.suggestionLog.push({ sid: sug.sid, decided: "dismissed", d, title: sug.title });
+  s.suggestionLog.push({ sid: sug.sid, decided: "dismissed", d, title: sug.title, ...(sug.apply && sug.apply.kind ? { apply: { kind: sug.apply.kind } } : {}) });   /* SCALE-2 — same provenance on a dismissal */
   s.feed.unshift({ d, t: "ANALYST SUGGESTION DISMISSED", how: sug.title });
   return s;
 }
@@ -9629,6 +9629,115 @@ function undoRead(state, iso) {
   const d = mk(iso); const off = (d.getDay() + 6) % 7; const monday = isoOf(new Date(d - off * DAY));
   const stillClean = s.reads.some((x) => !x.sealed && x.d >= monday && weeksBetween(monday, x.d) < 1);
   if (!stillClean) s.weekly = s.weekly.filter((w) => w.wk !== monday);
+  return s;
+}
+const LATE_READ_HOW = "a read after the morning window — local noon, or once today's session is logged — runs 1–2 lb heavy against a morning-standardized trend; recorded, set aside; tomorrow morning is the instrument.";
+/* SCALE-2 (Sol's closure pass 1, rows 2/3b + hunt H1) — THE READ RECEIPTS ARE PROJECTIONS
+   OF reads[]. A v7.54.18 replica's op-less "EVENING READ — SET ASIDE" line beside a
+   v7.55.0 replica's op-keyed line survived the merge as TWO receipts for one read (the
+   max-multiset union sees two identities; the op-dedup cannot touch an op-less line);
+   patchV59 swept only the old spelling; and a stale replica's false "MORNING READ
+   MISSED" line outlived the clean read that disproves it. One reconciler, run at merge
+   and both boot exits: every set-aside receipt (either spelling) is removed and exactly
+   one op-keyed line re-derived per surviving off-window read; a MISSED/GAP line on a
+   date whose reads[] carries a clean (non-late, non-sealed) read is removed — the read
+   IS the disproof. Legit misses (dates with no clean read) keep their priced lines. */
+function reconcileReadReceipts(s) {
+  if (!Array.isArray(s.feed) || !Array.isArray(s.reads)) return s;
+  const lateD = []; const cleanD = new Set();
+  for (const r of s.reads) { if (!r || !r.d || r.sealed) continue; if (r.offWindow) { if (lateD.indexOf(r.d) < 0) lateD.push(r.d); } else cleanD.add(r.d); }
+  /* the whole receipt family comes OUT and the warranted members go back at ONE
+     canonical position (their day's tail, in one order) — the merge's ride-through
+     appends projections while a boot leaves stored positions; without the
+     re-position, boot(m) and merge(m,m) disagreed on a MISSED line's slot. */
+  const kept9 = [];
+  s.feed = s.feed.filter((f) => {
+    if (!f) return false;
+    if (typeof f.op === "string" && f.op.indexOf("lateread:") === 0) return false;
+    if (f.t === "LATE READ — SET ASIDE" || f.t === "EVENING READ — SET ASIDE") return false;
+    if (typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0)) {
+      if (!cleanD.has(f.d)) kept9.push(f);   /* warranted: no clean read disproves it */
+      return false;
+    }
+    return true;
+  });
+  for (const d of lateD) kept9.push({ d, op: "lateread:" + d, t: "LATE READ — SET ASIDE", how: LATE_READ_HOW });
+  kept9.sort((a, b) => { const ka = String(a.d) + "|" + String(a.t) + "|" + _canonJ(a), kb = String(b.d) + "|" + String(b.t) + "|" + _canonJ(b); return ka < kb ? -1 : ka > kb ? 1 : 0; });
+  const seen9 = new Set();
+  for (const f of kept9) { const k9 = _canonJ(f); if (seen9.has(k9)) continue; seen9.add(k9); s.feed.push(f); }
+  return s;
+}
+/* SCALE-2 (Sol's row 3a + the queued "derive the trend at merge" leg, pulled in) — THE
+   TREND, EVERY READ'S pt AND THE WEEKLY SNAPSHOTS ARE THE REPLAY OF reads[]. Two
+   replicas that disagreed on the read set each carried their own honest replay; the
+   read UNION then carried the superset while the trend scalar and the weekly rows rode
+   {...remote, ...local} / the richer copy — the merged state contradicted its own
+   reads, differently by direction. Derive-truth-first: after the read union, replay
+   applyRead's own step (0.3 × clamp ±1.5, one decimal) from the earliest read that
+   carries a pt; every later pt, the trend scalar and every weekly row whose week's
+   first clean read sits in the replay follow the chain. Reads are put in date order
+   first — the one canonical order the chain and the renderer both want. Rows before
+   the chain (the seeded weeks) keep their stored values. Runs at BOTH boot exits too,
+   so a booted state is a fixed point of the next merge — which surfaces three
+   historical pt anomalies on his ledger (7/30, 8/03, 8/11: stored pt did not match the
+   pure replay of the stored reads, vintage of pre-v50 undo/redo flows) and settles
+   them to the replay: pt is a derived cache of the trend before the read, never an
+   athlete word, and derive-truth-first owns it now. */
+function reconcileTrendChain(s) {
+  if (!Array.isArray(s.reads) || !s.reads.length) return s;
+  s.reads = s.reads.slice().sort((a, b) => { const ka = String((a && a.d) || ""), kb = String((b && b.d) || ""); return ka < kb ? -1 : ka > kb ? 1 : 0; });
+  const step9 = (t9, w9) => +(t9 + 0.3 * Math.max(-1.5, Math.min(1.5, w9 - t9))).toFixed(1);
+  const i0 = s.reads.findIndex((r) => r && typeof r.pt === "number" && typeof r.w === "number");
+  if (i0 < 0) return s;
+  let t9 = s.reads[i0].pt; const after9 = {};
+  for (let i = i0; i < s.reads.length; i++) { const r = s.reads[i]; if (!r || typeof r.w !== "number") continue; r.pt = t9; if (!r.sealed && !r.offWindow) { t9 = step9(t9, r.w); after9[r.d] = t9; } }
+  if (typeof s.trend === "number") s.trend = t9;
+  const start9 = s.reads[i0].d;
+  for (const w of (Array.isArray(s.weekly) ? s.weekly : [])) {
+    if (!w || typeof w.wk !== "string") continue;
+    const first = s.reads.find((r) => r && !r.sealed && !r.offWindow && typeof r.w === "number" && r.d >= w.wk && weeksBetween(w.wk, r.d) < 1);
+    if (first && first.d >= start9 && after9[first.d] != null) w.trend = after9[first.d];
+  }
+  return s;
+}
+/* SCALE-2 (Sol's row 4) — THE SUGGESTION EFFECTS ARE A PROJECTION OF THE DECISION LOG.
+   applySuggestion wrote four coupled stores; only suggestionLog got the merge rule, so
+   the DECISION converged while targets.* rode local-wins — approved on one device,
+   proteinG differed by merge direction. The four suggestion kinds (protein, sleep,
+   dietbreak, progression) have NO other writer in the tree (grep-verified), so they are
+   derived outright: the last approved row per kind (in the log's one order) sets the
+   value; no approved row on file deletes the key — which is also the honest REVERSAL
+   when a same-card conflict settles on the dismissing device's word. An approval's
+   adjustment whose sid lost the decision merge is marked dismissed (terminal, so it
+   converges and the track record stays honest). Runs at merge and both boot exits;
+   byte-identical on his live ledger (sleepH 7.5 and the 8/10 progression string both
+   derive to exactly the stored values). */
+function reconcileSuggestionEffects(s) {
+  const log9 = Array.isArray(s.suggestionLog) ? _sugSorted(s.suggestionLog) : [];
+  const K9 = { protein: "proteinG", sleep: "sleepH", dietbreak: "dietBreak", progression: "progression" };
+  const seen9 = {}; const last9 = {};
+  for (const x of log9) {
+    if (!x || !x.apply || !K9[x.apply.kind]) continue;
+    const f9 = K9[x.apply.kind];
+    seen9[f9] = true;   /* the kind is on the log's record (note/dismiss rows carry it too, so a losing approval reverses) */
+    if (x.decided !== "approved") continue;
+    const a9 = x.apply;
+    if (a9.kind === "protein" && a9.to != null) last9.proteinG = a9.to;
+    else if (a9.kind === "sleep" && a9.to != null) last9.sleepH = a9.to;
+    else if (a9.kind === "dietbreak") last9.dietBreak = x.d;
+    else if (a9.kind === "progression") last9.progression = a9.to || true;
+  }
+  s.targets = s.targets || {};
+  /* a kind the log has NEVER mentioned is left alone — a restored pre-log state's scalar
+     is not the derivation's to delete; every production write of these four keys files a
+     log row, so mentioned-kinds cover every live path */
+  for (const k9 of ["proteinG", "sleepH", "dietBreak", "progression"]) { if (k9 in last9) s.targets[k9] = last9[k9]; else if (seen9[k9]) delete s.targets[k9]; }
+  const bySid9 = new Map(); for (const x of log9) if (x && x.sid) bySid9.set(x.sid, x);
+  for (const adj of (Array.isArray(s.adjustments) ? s.adjustments : [])) {
+    if (!adj || adj.dismissed || adj.undone) continue;
+    const row9 = adj.rid != null ? bySid9.get(adj.rid) : null;
+    if (row9 && row9.decided !== "approved") adj.dismissed = true;
+  }
   return s;
 }
 
@@ -10272,7 +10381,7 @@ function patchV59(s) {
       const dates = new Set(hits.map((k) => k.d));
       const missedOn = new Set(hits.filter((k) => k.d !== "2026-08-18").map((k) => k.d));   /* 8/8 and 8/10 filed a MORNING READ MISSED before the read; 8/18 did not */
       const n0 = (s.feed || []).length;
-      s.feed = (s.feed || []).filter((f) => !(f && dates.has(f.d) && f.t === "EVENING READ — SET ASIDE") && !(f && missedOn.has(f.d) && typeof f.t === "string" && f.t.indexOf("MORNING READ MISSED") === 0));
+      s.feed = (s.feed || []).filter((f) => !(f && dates.has(f.d) && (f.t === "EVENING READ — SET ASIDE" || f.t === "LATE READ — SET ASIDE" || (typeof f.op === "string" && f.op.indexOf("lateread:") === 0 && dates.has(f.op.slice(9))))) && !(f && missedOn.has(f.d) && typeof f.t === "string" && f.t.indexOf("MORNING READ MISSED") === 0));
       const removed = n0 - s.feed.length;
       const dd = (iso) => +iso.slice(5, 7) + "/" + +iso.slice(8, 10);
       if (!(s.feed || []).some((f) => f && f.op === "patch59:scale"))
@@ -11089,7 +11198,7 @@ function migrate(old) {
   /* RB-6 — the one-line container heal: a malformed store missing a container must
      not crash the chain; the arrays it holds stay exactly as found. */
   if (old && typeof old === "object") { old.sleep = old.sleep || { nights: [], needed: 3 }; old.sleep.nights = old.sleep.nights || []; old.dailyLogs = old.dailyLogs || {}; old.sessionLog = old.sessionLog || {}; old.reads = old.reads || []; }
-  if (old && old.v === SCHEMA_V) { reconcileLiftCaches(old); reconcileCorrectedLoads(old); normalizePlan(old); if (Array.isArray(old.feed)) old.feed = _feedSorted(old.feed); if (Array.isArray(old.suggestionLog)) old.suggestionLog = _sugSorted(old.suggestionLog); return old; }   /* R5 fix-4: the SAME-SCHEMA entry boundary normalizes too — this fast path IS the import path (doImport = migrate(parse) -> save), and a poisoned planGen-51 backup used to render and persist verbatim until the next sweep. Idempotent; the ruled-order half stands down at planGen 52. */
+  if (old && old.v === SCHEMA_V) { reconcileLiftCaches(old); reconcileCorrectedLoads(old); normalizePlan(old); reconcileTrendChain(old); reconcileReadReceipts(old); reconcileSuggestionEffects(old); if (Array.isArray(old.feed)) old.feed = _feedSorted(old.feed); if (Array.isArray(old.suggestionLog)) old.suggestionLog = _sugSorted(old.suggestionLog); return old; }   /* R5 fix-4: the SAME-SCHEMA entry boundary normalizes too — this fast path IS the import path (doImport = migrate(parse) -> save), and a poisoned planGen-51 backup used to render and persist verbatim until the next sweep. Idempotent; the ruled-order half stands down at planGen 52. */
   /* A state NEWER than this build — he upgraded, then the app was rolled back.
      Hand it back untouched: no patch here understands schema n+1, and the only
      other exit below is a fresh SEED, which would wipe every read, night,
@@ -11097,7 +11206,7 @@ function migrate(old) {
      may read oddly on fields this code does not know; re-upgrading restores full
      function. A visible misbehaviour is recoverable — a wipe is not. */
   if (old && old.v > SCHEMA_V) return old;
-  if (old && old.v >= 3 && old.v < SCHEMA_V) { const st = PATCHES.filter(([n]) => n > old.v).reduce((s, [, p]) => p(s), JSON.parse(JSON.stringify(old))); reconcileLiftCaches(st); reconcileCorrectedLoads(st); if (Array.isArray(st.feed)) st.feed = _feedSorted(st.feed); if (Array.isArray(st.suggestionLog)) st.suggestionLog = _sugSorted(st.suggestionLog); return st; }   /* FIX-15 — A BOOT ENDS WITH THE FEED IN ITS ONE ORDER. A patch unshifts its receipt at the head regardless of date (patchV55's 8/09 re-strike line landed above 8/17 seams on the branch's own v54 ledger copy — CC's leg-15 finding), and the next sync would move it: the boot was not a fixed point of the merge. Same sort, last, both exits. */
+  if (old && old.v >= 3 && old.v < SCHEMA_V) { const st = PATCHES.filter(([n]) => n > old.v).reduce((s, [, p]) => p(s), JSON.parse(JSON.stringify(old))); reconcileLiftCaches(st); reconcileCorrectedLoads(st); reconcileTrendChain(st); reconcileReadReceipts(st); reconcileSuggestionEffects(st); if (Array.isArray(st.feed)) st.feed = _feedSorted(st.feed); if (Array.isArray(st.suggestionLog)) st.suggestionLog = _sugSorted(st.suggestionLog); return st; }   /* FIX-15 — A BOOT ENDS WITH THE FEED IN ITS ONE ORDER. A patch unshifts its receipt at the head regardless of date (patchV55's 8/09 re-strike line landed above 8/17 seams on the branch's own v54 ledger copy — CC's leg-15 finding), and the next sync would move it: the boot was not a fixed point of the merge. Same sort, last, both exits. */
   const s = JSON.parse(JSON.stringify(SEED));
   if (!old || (old.v !== 1 && old.v !== 2)) return s;
   ["feed", "sessionLog", "events", "boosts", "thesisConfirms", "lastThesisWk", "zeroComp", "fixWindow"].forEach((k) => { if (old[k] !== undefined) s[k] = old[k]; });
@@ -11689,7 +11798,7 @@ function MinuteView({ s, setS, save, onClose }) {
           <div style={{ fontFamily: disp, fontWeight: 600, fontSize: 20, color: T.chalk }}>Scale, fasted</div>
           <Cond how="Same scale, minimal clothing, same spot on the floor." when="After the bathroom, before food or water. Same order every morning or the number drifts for reasons that are not you." />
           <div style={{ display: "flex", gap: 10, marginTop: 12, alignItems: "center" }}><Stepper v={wt9} set={setWt9} step={0.1} min={100} /><span style={{ fontFamily: mono, fontSize: TS.label, color: T.steel }}>lb</span></div>
-          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={() => w9((ns) => { const r2 = applyRead(undoRead(ns, t9), t9, +wt9); Object.assign(ns, r2); })}>{blackoutOn(s, t9) ? "Log weight (quarantined) →" : "Log weight →"}</Btn>   {/* SCALE-1 — a re-tap UNDOES first (trend restored, receipt removed) — the bare filter re-stepped the trend on the same reading and left the old receipt standing */}
+          <Btn full tone="gauge" style={{ marginTop: 14 }} onClick={() => w9((ns) => { const r2 = runAdaptive(applyRead(undoRead(ns, t9), t9, +wt9), t9); Object.assign(ns, r2); })}>{blackoutOn(s, t9) ? "Log weight (quarantined) →" : "Log weight →"}</Btn>   {/* SCALE-1 — a re-tap UNDOES first (trend restored, receipt removed) — the bare filter re-stepped the trend on the same reading and left the old receipt standing */}
         </div>
       )}
       {cur === "energy" && (
@@ -12865,7 +12974,7 @@ const MERGE_OBJ = ["dailyLogs", "sessionLog", "dayCtx", "labSeen"];
    "differ", the differ branch canonicalised the athlete's permanent lines,
    and the writer then removed the stale line correctly — the chronology
    damage outlived it. */
-const _isFeedProjection = (f) => !!(f && typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0));
+const _isFeedProjection = (f) => !!(f && ((typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0 || f.op.indexOf("lateread:") === 0)) || f.t === "EVENING READ — SET ASIDE" || f.t === "LATE READ — SET ASIDE" || (typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0))));   /* SCALE-2 — the READ RECEIPTS join the projection class: set-aside lines (either vintage's spelling) and missed/gap lines are machine receipts that reconcileReadReceipts removes or re-derives from reads[], so they may neither manufacture a day disagreement (the rig101 class, via a stale receipt on one replica) nor be canonicalised with the athlete's permanent lines; they ride through to the reconciler exactly as the carve and adoptshift lines ride to their writers */
 function _feedDayOrder(remoteFeed, localFeed, unioned) {
   try {
     const days = (arr) => { const m = new Map(); for (const f of (Array.isArray(arr) ? arr : [])) { if (_isFeedProjection(f)) continue; const d = String((f && f.d) || ""); if (!m.has(d)) m.set(d, []); m.get(d).push(f); } return m; };
@@ -12924,6 +13033,23 @@ function mergeState(local, remote) {
   if (!local || typeof local !== "object") return remote;    // never write junk over a real remote
   const out = { ...remote, ...local };                       // scalars: local wins; remote-only keys kept
   for (const k of Object.keys(MERGE_ARR)) out[k] = _unionBy(remote[k], local[k], MERGE_ARR[k]);
+  /* SCALE-2 (hunt H2) — a read collision where the two copies agree on the number but
+     disagree on the CLASSIFICATION resolves to the clean one: offWindow plus its note
+     makes the late copy the longer JSON, so generic _richer discarded the valid morning
+     classification in BOTH directions. Same date, same weight, one clean, one late (and
+     neither sealed) → the clean copy wins; anything else keeps _richer exactly. */
+  if (Array.isArray(out.reads)) {
+    const byD9 = new Map();
+    for (const src9 of [remote.reads, local.reads]) for (const r9 of (Array.isArray(src9) ? src9 : [])) {
+      if (!r9 || r9.d == null) continue;
+      const cur9 = byD9.get(r9.d);
+      if (!cur9) { byD9.set(r9.d, r9); continue; }
+      if (String(cur9.w) === String(r9.w) && !cur9.sealed && !r9.sealed && !!cur9.offWindow !== !!r9.offWindow) byD9.set(r9.d, cur9.offWindow ? r9 : cur9);
+      else byD9.set(r9.d, _richer(cur9, r9));
+    }
+    out.reads = [...byD9.values()];
+  }
+  reconcileTrendChain(out);   /* SCALE-2 row 3a — trend, pt chain and weekly follow the merged reads */
   for (const k of Object.keys(MERGE_MULTI)) out[k] = _unionMulti(remote[k], local[k], MERGE_MULTI[k]);
   if (Array.isArray(out.feed)) out.feed = _feedDayOrder(remote.feed, local.feed, out.feed);   /* FIX-16 — a day's order is a function of the two sides, never of which arrived first */
   for (const k of MERGE_OBJ) out[k] = _unionObj(remote[k], local[k], k === "sessionLog" ? _mergeSession : _richer);   // CORRECTION_MERGE — only sessionLog knows about deliberate corrections. v7.54.0: _mergeSession = the ordering law for the BODY + a keyed replay of every correction either side knows about, so the entry set no longer rides on which copy happened to be richer.
@@ -13114,6 +13240,8 @@ function mergeState(local, remote) {
      feed line carries d, JS sort is stable so within-day emitted order survives, and the
      order-dependent consumer is the renderer. forecasts joins by date and does not care. */
   reconcileEraTransitions(normalizePlan(out));
+  reconcileReadReceipts(out);          /* SCALE-2 — the read receipts re-derive from the merged reads */
+  reconcileSuggestionEffects(out);     /* SCALE-2 — the suggestion effects re-derive from the merged log */
   if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);
   return out;
 }

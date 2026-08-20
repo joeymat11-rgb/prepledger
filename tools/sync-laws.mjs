@@ -475,6 +475,58 @@ const AIM = {
     assert: (out) => { const proj9 = (f) => f && typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0); const a = out[0].feed, b = out[1].feed;
       return a.length === 5 && proj9(a[0]) && proj9(a[1]) && a[0].op !== a[1].op && J(a.slice(2)) === J(b) && b.length === 3 && b.every((f) => f.d === "2026-08-18" && f.op == null)
         && (!out[2] || J(out[2].feed) === J(b)) && out.every((s9) => !Object.values(s9.sessionLog || {}).some((r) => Array.isArray(r.dropped) && r.dropped.length) && !(s9.feed || []).some((f) => f && typeof f.op === "string" && f.op.indexOf("adopt:") === 0)); } },
+  /* SCALE-2 (Sol's closure pass 1, rows 2 + H1) — MIXED-VERSION READ RECEIPTS AND THE
+     DISPROVEN MISS. A: a v7.54.18 replica carrying an off-window read with the OLD
+     op-less "EVENING READ — SET ASIDE" line AND a false "MORNING READ MISSED" line on a
+     day it later read cleanly; B: a v7.55.x replica with the same off-window read
+     carrying the NEW op-keyed line, and the clean read that disproves A's missed line;
+     C: clean. The merged state must carry exactly ONE set-aside receipt for the
+     off-window day and NO missed line on the clean-read day. */
+  14450: { apply: (out) => {
+      const DL = "2026-08-21", DC = "2026-08-22";
+      out[0].reads = [...(out[0].reads || []), { d: DL, w: 163.0, sealed: false, pt: 163.5, note: "evening read — set aside", offWindow: true }];
+      out[0].feed = [{ d: DL, t: "EVENING READ — SET ASIDE", how: "evening reads run 1–2 lb heavy against a morning-standardized trend — recorded, set aside; tomorrow morning is the instrument." }, { d: DC, t: "MORNING READ MISSED", how: "the trend carries. Today it cost 0.02 lb/wk of rate precision — priced by the engine." }, ...(out[0].feed || [])];
+      out[1].reads = [...(out[1].reads || []), { d: DL, w: 163.0, sealed: false, pt: 163.5, note: "late read — set aside", offWindow: true }, { d: DC, w: 162.8, sealed: false, pt: 163.4, note: "" }];
+      out[1].feed = [{ d: DL, op: "lateread:" + DL, t: "LATE READ — SET ASIDE", how: "a read after the morning window — local noon, or once today's session is logged — runs 1–2 lb heavy against a morning-standardized trend; recorded, set aside; tomorrow morning is the instrument." }, ...(out[1].feed || [])];
+      return ["off-window read " + DL + " with the OLD op-less receipt + a false MISSED line on " + DC, "the same read with the NEW op-keyed receipt + the clean " + DC + " read", "(clean)"]; },
+    assert: (out) => { const a = out[0], b = out[1];
+      return (a.reads || []).some((r) => r.d === "2026-08-21" && r.offWindow) && (a.feed || []).some((f) => f.t === "EVENING READ — SET ASIDE" && !f.op) && (a.feed || []).some((f) => f.d === "2026-08-22" && f.t === "MORNING READ MISSED") && !(a.reads || []).some((r) => r.d === "2026-08-22")
+        && (b.reads || []).some((r) => r.d === "2026-08-21" && r.offWindow) && (b.feed || []).some((f) => f.op === "lateread:2026-08-21") && (b.reads || []).some((r) => r.d === "2026-08-22" && !r.offWindow); } },
+  /* SCALE-2 (Sol's closure pass 1, row 3a) — A PARTIAL REPLICA'S REPLAY MEETS THE FULL
+     SET. A: all reads through a week with a weekly row; B: the same state missing ONE
+     mid-chain read, its trend/pt/weekly honestly replayed without it. The read union
+     carries the superset; the trend, the pt chain and the weekly row must follow the
+     merged reads identically in both directions. */
+  14451: { apply: (out) => {
+      const RS = [["2026-08-11", 163.0], ["2026-08-12", 161.5], ["2026-08-13", 163.5], ["2026-08-18", 163.0]];
+      const chain = (rows) => { let t9 = 164.0; const rr = []; for (const [d, w] of rows) { rr.push({ d, w, sealed: false, pt: t9, note: "" }); t9 = +(t9 + 0.3 * Math.max(-1.5, Math.min(1.5, w - t9))).toFixed(1); } return { rr, t9 }; };
+      const A = chain(RS); out[0].reads = [...(out[0].reads || []), ...A.rr]; out[0].trend = A.t9; out[0].weekly = [...(out[0].weekly || []), { wk: "2026-08-10", trend: A.rr[0] ? +(164.0 + 0.3 * Math.max(-1.5, Math.min(1.5, RS[0][1] - 164.0))).toFixed(1) : 164.0 }, { wk: "2026-08-17", trend: A.t9 }];
+      const B = chain(RS.filter(([d]) => d !== "2026-08-12"));
+      out[1].reads = [...(out[1].reads || []), ...B.rr]; out[1].trend = B.t9; out[1].weekly = [...(out[1].weekly || []), { wk: "2026-08-10", trend: B.rr.length ? +(164.0 + 0.3 * Math.max(-1.5, Math.min(1.5, RS[0][1] - 164.0))).toFixed(1) : 164.0 }, { wk: "2026-08-17", trend: B.t9 }];
+      if (out[2]) { out[2].reads = [...(out[2].reads || [])]; }
+      return ["reads 8/11–8/18 + honest replay (trend " + A.t9 + ", wk rows)", "the same minus the 8/12 read (trend " + B.t9 + ")", "(clean)"]; },
+    assert: (out) => { const a = out[0], b = out[1];
+      return (a.reads || []).some((r) => r.d === "2026-08-12") && !(b.reads || []).some((r) => r.d === "2026-08-12") && a.trend !== b.trend
+        && (a.weekly || []).some((w) => w.wk === "2026-08-17") && (b.weekly || []).some((w) => w.wk === "2026-08-17")
+        && J((a.weekly || []).find((w) => w.wk === "2026-08-17")) !== J((b.weekly || []).find((w) => w.wk === "2026-08-17")); } },
+  /* SCALE-2 (Sol's closure pass 1, row 4) — THE DECISION'S EFFECT RIDES THE MERGE. A:
+     approved a protein suggestion (log row, targets.proteinG written, the adjustment);
+     B: the stale pre-decision copy. And the same-card conflict: A dismissed the card on
+     8/16 (kind provenance on the row), B approved it on 8/17 (proteinG 200). The
+     decision AND its effect must converge whole-state in both directions. */
+  14452: { apply: (out) => {
+      out[0].suggestionLog = [...(out[0].suggestionLog || []), { sid: "sug_2026-08-20_p", decided: "approved", d: "2026-08-20", title: "protein to 200", apply: { kind: "protein", to: 200 }, predict: "" }, { sid: "sug_2026-08-16_x", decided: "dismissed", d: "2026-08-16", title: "sleep to 8", apply: { kind: "sleep" } }];
+      out[0].targets = { ...(out[0].targets || {}), proteinG: 200 };
+      out[0].adjustments = [...(out[0].adjustments || []), { rid: "sug_2026-08-20_p", id: "adjSEED14452", d: "2026-08-20", title: "protein to 200" }];
+      out[1].suggestionLog = [...(out[1].suggestionLog || []), { sid: "sug_2026-08-16_x", decided: "approved", d: "2026-08-17", title: "sleep to 8", apply: { kind: "sleep", to: 8 } }];
+      out[1].targets = { ...(out[1].targets || {}), sleepH: 8 };
+      if (out[2]) out[2].suggestionLog = [...(out[2].suggestionLog || [])];
+      return ["approved protein→200 (log+target+adjustment) + dismissed sleep card 8/16", "the same sleep card APPROVED 8/17 (target sleepH 8); no protein decision", "(clean)"]; },
+    assert: (out) => { const a = out[0], b = out[1];
+      return (a.suggestionLog || []).some((x) => x.sid === "sug_2026-08-20_p" && x.decided === "approved") && a.targets && a.targets.proteinG === 200
+        && (a.suggestionLog || []).some((x) => x.sid === "sug_2026-08-16_x" && x.decided === "dismissed" && x.d === "2026-08-16")
+        && (b.suggestionLog || []).some((x) => x.sid === "sug_2026-08-16_x" && x.decided === "approved" && x.d === "2026-08-17") && b.targets && b.targets.sleepH === 8
+        && !(b.suggestionLog || []).some((x) => x.sid === "sug_2026-08-20_p") && (b.targets || {}).proteinG === undefined; } },
   /* SCALE-1 (cowork, 2026-08-19) — THE ANALYST-CARD DECISIONS RODE THE MERGE
      WHOLESALE. s.suggestionLog (approved / noted / dismissed per card) was in no
      MERGE_* table: {...remote, ...local} — local wins — so a decision tapped on
@@ -1046,7 +1098,7 @@ function replicas(seed) {
 const settle = (s) => T.migrate(T.migrate(cl(s)));           /* leg-7 doctrine: an ADOPTING boot is not idempotent by design; the state settles by the second */
 const sessTotals = (s) => Object.fromEntries(Object.entries(s.sessionLog || {}).map(([d, r]) => [d, ((r.entries || []).length) + ((r.skipped || []).length) + ((Array.isArray(r.dropped) ? r.dropped : []).length)]));   /* a lift the carve discarded is still ACCOUNTED FOR by name in dropped — the record does not shrink, it tells; a silent carve shrinks and fails here too */
 /* the merge's PROJECTIONS — receipts re-derived from the merged state on every merge (the carve line since Sol's pass 4, the adoptshift line since leg 19): they go when their warrant goes and land at the front of their day, so every clause about "the lines a side already had" sets them aside */
-const isProjection = (f) => !!(f && typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0));
+const isProjection = (f) => !!(f && ((typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0 || f.op.indexOf("lateread:") === 0)) || f.t === "EVENING READ — SET ASIDE" || f.t === "LATE READ — SET ASIDE" || (typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0))));   /* SCALE-2 — the read receipts join the projection class (see _isFeedProjection) */
 const stores = (s) => ({
   reads: (s.reads || []).length, nights: ((s.sleep || {}).nights || []).length,
   dailyLogs: Object.keys(s.dailyLogs || {}).length, sessionLog: Object.keys(s.sessionLog || {}).length,
@@ -1142,6 +1194,19 @@ const LAWS = [
             if (serial9 && mine9.length) return { got: nm9 + ": " + id9 + " — a serial line already tells the transition, yet " + mine9.length + " adoptshift line(s) stand beside it" };
           }
         }
+        /* AND THE READ RECEIPTS (SCALE-2, Sol's closure pass 1): for every date, exactly
+           one set-aside line (op-keyed, the one spelling) iff reads[] carries an
+           unsealed off-window read for that date — a v7.54.18 replica's op-less
+           "EVENING READ — SET ASIDE" beside the op-keyed line survived as TWO receipts
+           for one read; and NO missed/gap line may stand on a date whose reads[]
+           carries a clean read — the read is the disproof of the priced miss. */
+        const lateWant9 = new Set(); const cleanHave9 = new Set();
+        for (const r9 of (m.reads || [])) { if (!r9 || !r9.d || r9.sealed) continue; if (r9.offWindow) lateWant9.add(r9.d); else cleanHave9.add(r9.d); }
+        const aside9 = (m.feed || []).filter((f9) => f9 && (f9.t === "LATE READ — SET ASIDE" || f9.t === "EVENING READ — SET ASIDE" || (typeof f9.op === "string" && f9.op.indexOf("lateread:") === 0)));
+        for (const f9 of aside9) { if (!lateWant9.has(f9.d)) return { got: nm9 + ": a set-aside receipt stands on " + f9.d + " (" + (f9.op || f9.t) + ") but reads[] has no off-window read that day" }; }
+        for (const d9 of lateWant9) { const n9 = aside9.filter((f9) => f9.d === d9).length; if (n9 !== 1) return { got: nm9 + ": " + d9 + " has " + n9 + " set-aside receipts for its one off-window read" }; }
+        const missed9 = (m.feed || []).filter((f9) => f9 && typeof f9.t === "string" && (f9.t.indexOf("MORNING READ MISSED") === 0 || f9.t.indexOf("READ GAP") === 0) && cleanHave9.has(f9.d));
+        if (missed9.length) return { got: nm9 + ": " + missed9.length + " missed/gap line(s) stand on a date with a clean read (" + missed9[0].d + ") — the merge did not heal the disproven receipt" };
       }
       return null; } },
 
@@ -1158,7 +1223,7 @@ const LAWS = [
     check: (A, B) => {
       const c9 = (v) => J(canon(v));
       const tally = (arr, keep) => { const m = new Map(); for (const x of (Array.isArray(arr) ? arr : [])) { if (!keep(x)) continue; const k = c9(x); m.set(k, (m.get(k) || 0) + 1); } return m; };
-      const opless = (x) => !(x && x.op != null), all = () => true;
+      const opless = (x) => !(x && x.op != null) && !isProjection(x), all = () => true;   /* SCALE-2 — a projection (incl. the op-less legacy set-aside spelling and missed/gap receipts) is derived state, not a multiset member: reconcileReadReceipts removes and re-derives it from the merged reads */
       for (const [nm9, x9, y9] of [["A<-B", A, B], ["B<-A", B, A]]) {
         const m = T.mergeState(cl(x9), cl(y9));
         for (const [store, keep] of [["feed", opless], ["forecasts", all]]) {
@@ -1564,6 +1629,9 @@ const SEEDS = [
   { seed: 14444, why: "COWORK (leg 19): the equal branch compared the sides RAW, so one day carried in two key orders was canonicalised and its interleaved repeat regrouped. MUTATION IT GUARDS: equal-day-raw-identity", redAt: "0c0c11c" },
   { seed: 14445, why: "COWORK (leg 19): the op-dedup's d-tie compared RAW entries; with the union's identity canonical the spelling that reaches the tie is the local side's, so one receipt in two key orders against a different telling of the same op settled differently by grouping. MUTATION IT GUARDS: dedup-tie-raw", redAt: "— (opened by the identity repair; red under its mutation, never at a committed tip)" },
   { seed: 14448, why: "SOL'S PASS-7 HUNT: a stale projection (carve AND adoptshift) carried by ONE replica made two identical days differ; the day was canonicalised, the stale lines then removed correctly, and the permanent lines stayed alphabetical. MUTATION IT GUARDS: projections-enter-day-order", redAt: "3e544d0" },
+  { seed: 14450, why: "SCALE-2 (Sol pass 1, rows 2+H1): a v7.54.18 replica's op-less EVENING line beside the op-keyed LATE line survived as two receipts for one read, and a false MORNING READ MISSED outlived the clean read that disproves it. MUTATIONS IT GUARDS: lateread-not-projected, missed-not-healed", redAt: "0d1719b" },
+  { seed: 14451, why: "SCALE-2 (Sol pass 1, row 3a): a partial replica's honest replay met the full read set; the union carried the superset while trend/pt/weekly rode the richer copy — divergent by direction. MUTATION IT GUARDS: trend-chain-not-derived", redAt: "0d1719b" },
+  { seed: 14452, why: "SCALE-2 (Sol pass 1, row 4): the decision converged while its EFFECT (targets.*) rode local-wins; and a same-card conflict left the losing approval's target standing. MUTATION IT GUARDS: effects-not-derived", redAt: "0d1719b" },
   { seed: 14449, why: "SCALE-1 (cowork, 2026-08-19, live): the analyst-card decisions (suggestionLog) rode {...remote, ...local} — a decision tapped on one device was reverted when a stale device synced after it, and the same card decided on two devices settled by merge direction. MUTATIONS IT GUARDS: decisions-wholesale, decision-tie-by-device (both → convergence)", redAt: "f72dbf7 (main at v7.54.18)" },
   { seed: 14447, why: "COWORK (leg 19): a replica already carrying a stale adoptshift line (its kept receipt agrees with the working load) — every merge kept it. MUTATION IT GUARDS: adoptshift-not-projected", redAt: "0c0c11c (and every tip since the writer)" },
   { seed: 14446, why: "COWORK (leg 19): the adoptshift receipt was filed on an intermediate merge's pick and outlived the pick when a later merge overturned it — (A+B)+C carried a line A+(B+C) never filed. MUTATION IT GUARDS: adoptshift-not-projected", redAt: "0c0c11c (and every tip since the writer)" },
@@ -1636,12 +1704,16 @@ const MUTATIONS = [
   ["one-sided-day-canonicalized", "law", "a day only one side carries takes the differ branch again — nothing to reconcile, and the athlete's own within-day chronology comes out alphabetical", `      if (!rd.length || !ld.length) { out.push(...(rd.length ? rd : ld)); continue; }`, `      /* mutant: a one-sided day is a disagreement */`, "day-order-kept"],
   ["adoptshift-not-projected", "law", "the adoptshift line is no longer dropped and re-derived — a line filed on an intermediate merge's pick outlives the pick when a later merge overturns it, and groupings disagree", `    if (Array.isArray(s.feed)) s.feed = s.feed.filter((x9) => !(x9 && typeof x9.op === "string" && x9.op.indexOf("adoptshift:") === 0));`, `    /* mutant: the adoptshift line is history */`, ["associativity", "merge-fixed-point"]],
   ["projections-enter-day-order", "law", "projections take part in the day rule again — a stale carve or adoptshift line on one replica makes two identical days differ, and the athlete's permanent lines are canonicalised before the stale line is removed", `if (_isFeedProjection(f)) continue; `, ``, "day-order-kept"],
+  ["lateread-not-projected", "law", "the read receipts stop re-deriving at merge — a legacy op-less set-aside line and the op-keyed line both survive as receipts for one read", `  reconcileReadReceipts(out);          /* SCALE-2 — the read receipts re-derive from the merged reads */`, `  /* mutant: receipts are history */`, "merge-fixed-point"],
+  ["missed-not-healed", "law", "a disproven missed/gap line outlives the clean read that disproves it", `      if (!cleanD.has(f.d)) kept9.push(f);   /* warranted: no clean read disproves it */`, `      kept9.push(f);   /* mutant: the miss stands beside its disproof */`, "merge-fixed-point"],
+  ["trend-chain-not-derived", "law", "the trend, the pt chain and the weekly rows stop following the merged reads — a partial replica's replay survives beside the superset, differently by direction", `function reconcileTrendChain(s) {\n  if (!Array.isArray(s.reads) || !s.reads.length) return s;`, `function reconcileTrendChain(s) {\n  if (s) return s;`, "convergence"],
+  ["effects-not-derived", "law", "the suggestion effects stop deriving from the decision log — the decision converges while targets.* rides local-wins", `function reconcileSuggestionEffects(s) {\n  const log9 = Array.isArray(s.suggestionLog) ? _sugSorted(s.suggestionLog) : [];`, `function reconcileSuggestionEffects(s) {\n  if (s) return s;\n  const log9 = Array.isArray(s.suggestionLog) ? _sugSorted(s.suggestionLog) : [];`, "convergence"],
   ["decisions-wholesale", "law", "the analyst-card decisions ride {...remote, ...local} again — a decision one device tapped is reverted by a stale device's later sync, and which list survives depends on merge direction", `  suggestionLog: { keyOf: (x) => x && x.sid, scoreOf: _sugRank },`, `  /* mutant: the decisions ride wholesale, local-wins */`, "convergence"],
   ["decision-tie-by-device", "law", "two devices that decided the same card on the same day settle by which one is local — the canonical-body tiebreak is gone", `"|" + _canonJ(x); }`, `"|"; }`, "convergence"],
   ["dedup-tie-raw", "law", "the op-dedup's d-tie compares raw entries again — with the union's identity canonical, one op line in two key orders against a different one settles by grouping", `(String(f9.d || "") === String(cur.d || "") && _canonJ(f9) < _canonJ(cur))`, `(String(f9.d || "") === String(cur.d || "") && JSON.stringify(f9) < JSON.stringify(cur))`, "associativity"],
   ["equal-day-raw-identity", "law", "the equal branch compares the sides' day raw again, so one day carried in two key orders is canonicalised and its interleaved repeat regrouped", `      if (_canonJ(rd) === _canonJ(ld)) { out.push(...rd); continue; }`, `      if (JSON.stringify(rd) === JSON.stringify(ld)) { out.push(...rd); continue; }`, "day-order-kept"],
   ["same-day-by-arrival", "law", "a day's lines keep arrival order even when the two sides disagree, so concurrent same-day lines reverse with merge direction", `  if (Array.isArray(out.feed)) out.feed = _feedDayOrder(remote.feed, local.feed, out.feed);`, `  /* mutant: arrival order */`, "convergence"],
-  ["merge-sort-not-last", "law", "the merge sorts its feed BEFORE reconcileEraTransitions files its past-dated lines, so the merged feed is not newest-first and the next merge moves them", `  reconcileEraTransitions(normalizePlan(out));\n  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);`, `  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);\n  reconcileEraTransitions(normalizePlan(out));`, "merge-fixed-point"],
+  ["merge-sort-not-last", "law", "the merge sorts its feed BEFORE reconcileEraTransitions files its past-dated lines, so the merged feed is not newest-first and the next merge moves them", `  reconcileEraTransitions(normalizePlan(out));\n  reconcileReadReceipts(out);          /* SCALE-2 — the read receipts re-derive from the merged reads */\n  reconcileSuggestionEffects(out);     /* SCALE-2 — the suggestion effects re-derive from the merged log */\n  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);`, `  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);\n  reconcileEraTransitions(normalizePlan(out));\n  reconcileReadReceipts(out);\n  reconcileSuggestionEffects(out);`, "merge-fixed-point"],
   ["feed-unsorted", "law", "the feed's canonical newest-first sort becomes the identity, so a receipt filed at the session's date sits above newer lines and the next merge moves it", `.sort((a, b) => String((b[0] || {}).d || "").localeCompare(String((a[0] || {}).d || "")) || a[1] - b[1])`, `.sort((a, b) => 0)`, "merge-fixed-point"],
   ["carve-ignores-union", "law", "the carve fires whenever a side carries a corr, even when the other side's corrLog says a correction exists — the union is ignored", `  if (!union.length) {`, `  if (true) {`, "session-superset"],
   ["corrections-unguarded", "pin", "the correction ledger leaves recordCounts", `    corrections: Object.values((st.sessionLog && typeof st.sessionLog === "object") ? st.sessionLog : {}).reduce((n9, r9) => n9 + ((r9 && Array.isArray(r9.corrLog)) ? r9.corrLog.length : 0), 0),`, `    corrections: 0,`],
