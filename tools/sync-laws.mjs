@@ -475,6 +475,24 @@ const AIM = {
     assert: (out) => { const proj9 = (f) => f && typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0); const a = out[0].feed, b = out[1].feed;
       return a.length === 5 && proj9(a[0]) && proj9(a[1]) && a[0].op !== a[1].op && J(a.slice(2)) === J(b) && b.length === 3 && b.every((f) => f.d === "2026-08-18" && f.op == null)
         && (!out[2] || J(out[2].feed) === J(b)) && out.every((s9) => !Object.values(s9.sessionLog || {}).some((r) => Array.isArray(r.dropped) && r.dropped.length) && !(s9.feed || []).some((f) => f && typeof f.op === "string" && f.op.indexOf("adopt:") === 0)); } },
+  /* SCALE-1 (cowork, 2026-08-19) — THE ANALYST-CARD DECISIONS RODE THE MERGE
+     WHOLESALE. s.suggestionLog (approved / noted / dismissed per card) was in no
+     MERGE_* table: {...remote, ...local} — local wins — so a decision tapped on
+     one device was reverted on the ledger when a stale device synced after it,
+     and the card came back there. A: decided X on 8/16 (noted) and Z on 8/17
+     (noted); B: decided X on 8/17 (dismissed — the same card, a day later,
+     offline), Y on 8/17, and Z on 8/17 (dismissed — same day, other word); C:
+     nothing. Keyed by sid: never lost; X → the EARLIER day's word (noted); Z →
+     same day, canonical body decides, the same whichever device is local. */
+  14449: { apply: (out) => {
+      out[0].suggestionLog = [{ sid: "sug_2026-08-16_x", decided: "noted", d: "2026-08-16", title: "x" }, { sid: "sug_2026-08-17_z", decided: "noted", d: "2026-08-17", title: "z" }];
+      out[1].suggestionLog = [{ sid: "sug_2026-08-16_x", decided: "dismissed", d: "2026-08-17", title: "x" }, { sid: "sug_2026-08-17_y", decided: "noted", d: "2026-08-17", title: "y" }, { sid: "sug_2026-08-17_z", decided: "dismissed", d: "2026-08-17", title: "z" }];
+      if (out[2]) out[2].suggestionLog = [];
+      return ["suggestionLog [x noted 8/16, z noted 8/17]", "suggestionLog [x dismissed 8/17, y noted 8/17, z dismissed 8/17]", "suggestionLog []"]; },
+    assert: (out) => { const a = out[0].suggestionLog, b = out[1].suggestionLog;
+      return Array.isArray(a) && a.length === 2 && a[0].sid === "sug_2026-08-16_x" && a[0].decided === "noted" && a[0].d === "2026-08-16" && a[1].sid === "sug_2026-08-17_z" && a[1].d === "2026-08-17"
+        && Array.isArray(b) && b.length === 3 && b[0].sid === "sug_2026-08-16_x" && b[0].decided === "dismissed" && b[0].d === "2026-08-17" && b[1].sid === "sug_2026-08-17_y" && b[2].sid === "sug_2026-08-17_z" && b[2].decided === "dismissed" && b[2].d === "2026-08-17"
+        && (!out[2] || (Array.isArray(out[2].suggestionLog) && out[2].suggestionLog.length === 0)); } },
   /* SOL'S PASS-5 — INTERLEAVED REPEATS. The keyless feed allows an identical
      line to repeat; _unionMulti groups a day's lines by identity before it
      emits them, so [X, Y, X] came out of a merge with ITSELF as [X, X, Y]:
@@ -1546,6 +1564,7 @@ const SEEDS = [
   { seed: 14444, why: "COWORK (leg 19): the equal branch compared the sides RAW, so one day carried in two key orders was canonicalised and its interleaved repeat regrouped. MUTATION IT GUARDS: equal-day-raw-identity", redAt: "0c0c11c" },
   { seed: 14445, why: "COWORK (leg 19): the op-dedup's d-tie compared RAW entries; with the union's identity canonical the spelling that reaches the tie is the local side's, so one receipt in two key orders against a different telling of the same op settled differently by grouping. MUTATION IT GUARDS: dedup-tie-raw", redAt: "— (opened by the identity repair; red under its mutation, never at a committed tip)" },
   { seed: 14448, why: "SOL'S PASS-7 HUNT: a stale projection (carve AND adoptshift) carried by ONE replica made two identical days differ; the day was canonicalised, the stale lines then removed correctly, and the permanent lines stayed alphabetical. MUTATION IT GUARDS: projections-enter-day-order", redAt: "3e544d0" },
+  { seed: 14449, why: "SCALE-1 (cowork, 2026-08-19, live): the analyst-card decisions (suggestionLog) rode {...remote, ...local} — a decision tapped on one device was reverted when a stale device synced after it, and the same card decided on two devices settled by merge direction. MUTATIONS IT GUARDS: decisions-wholesale, decision-tie-by-device (both → convergence)", redAt: "f72dbf7 (main at v7.54.18)" },
   { seed: 14447, why: "COWORK (leg 19): a replica already carrying a stale adoptshift line (its kept receipt agrees with the working load) — every merge kept it. MUTATION IT GUARDS: adoptshift-not-projected", redAt: "0c0c11c (and every tip since the writer)" },
   { seed: 14446, why: "COWORK (leg 19): the adoptshift receipt was filed on an intermediate merge's pick and outlived the pick when a later merge overturned it — (A+B)+C carried a line A+(B+C) never filed. MUTATION IT GUARDS: adoptshift-not-projected", redAt: "0c0c11c (and every tip since the writer)" },
   { seed: 14440, why: "SOL'S PASS-5: interleaved repeats — [X, Y, X] on every replica came out of merge(A,A) as [X, X, Y]: the equal-day branch kept the union's identity-grouped order instead of the sequence both sides carried. MUTATION IT GUARDS: equal-day-uses-grouped-union", redAt: "6081f7f" },
@@ -1617,6 +1636,8 @@ const MUTATIONS = [
   ["one-sided-day-canonicalized", "law", "a day only one side carries takes the differ branch again — nothing to reconcile, and the athlete's own within-day chronology comes out alphabetical", `      if (!rd.length || !ld.length) { out.push(...(rd.length ? rd : ld)); continue; }`, `      /* mutant: a one-sided day is a disagreement */`, "day-order-kept"],
   ["adoptshift-not-projected", "law", "the adoptshift line is no longer dropped and re-derived — a line filed on an intermediate merge's pick outlives the pick when a later merge overturns it, and groupings disagree", `    if (Array.isArray(s.feed)) s.feed = s.feed.filter((x9) => !(x9 && typeof x9.op === "string" && x9.op.indexOf("adoptshift:") === 0));`, `    /* mutant: the adoptshift line is history */`, ["associativity", "merge-fixed-point"]],
   ["projections-enter-day-order", "law", "projections take part in the day rule again — a stale carve or adoptshift line on one replica makes two identical days differ, and the athlete's permanent lines are canonicalised before the stale line is removed", `if (_isFeedProjection(f)) continue; `, ``, "day-order-kept"],
+  ["decisions-wholesale", "law", "the analyst-card decisions ride {...remote, ...local} again — a decision one device tapped is reverted by a stale device's later sync, and which list survives depends on merge direction", `  suggestionLog: { keyOf: (x) => x && x.sid, scoreOf: _sugRank },`, `  /* mutant: the decisions ride wholesale, local-wins */`, "convergence"],
+  ["decision-tie-by-device", "law", "two devices that decided the same card on the same day settle by which one is local — the canonical-body tiebreak is gone", `"|" + _canonJ(x); }`, `"|"; }`, "convergence"],
   ["dedup-tie-raw", "law", "the op-dedup's d-tie compares raw entries again — with the union's identity canonical, one op line in two key orders against a different one settles by grouping", `(String(f9.d || "") === String(cur.d || "") && _canonJ(f9) < _canonJ(cur))`, `(String(f9.d || "") === String(cur.d || "") && JSON.stringify(f9) < JSON.stringify(cur))`, "associativity"],
   ["equal-day-raw-identity", "law", "the equal branch compares the sides' day raw again, so one day carried in two key orders is canonicalised and its interleaved repeat regrouped", `      if (_canonJ(rd) === _canonJ(ld)) { out.push(...rd); continue; }`, `      if (JSON.stringify(rd) === JSON.stringify(ld)) { out.push(...rd); continue; }`, "day-order-kept"],
   ["same-day-by-arrival", "law", "a day's lines keep arrival order even when the two sides disagree, so concurrent same-day lines reverse with merge direction", `  if (Array.isArray(out.feed)) out.feed = _feedDayOrder(remote.feed, local.feed, out.feed);`, `  /* mutant: arrival order */`, "convergence"],
