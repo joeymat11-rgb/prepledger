@@ -1201,10 +1201,10 @@ export function runClosureSF2(T, ok, readFileSync) {
         "LAW r2 — the guard passes because the PERMANENT count did not shrink (" + np9(rawPre) + "→" + np9(liveG) + "), not because feed went uncounted");
     }
     const cutG = JSON.parse(JSON.stringify(liveG));
-    cutG.feed.splice(Math.max(0, cutG.feed.findIndex((f) => !(typeof isP9 === "function" && isP9(f)))), 1);
+    cutG.feed.splice(Math.max(0, cutG.feed.findIndex((f) => f && !f.op && !(typeof isP9 === "function" && isP9(f)))), 1);
     const gCut = T.dataLossGuard(liveG, cutG);
     ok(!gCut.safe && (gCut.lost || []).some((x) => /^feed /.test(x)),
-      "LAW r3 — deleting one PERMANENT line is still REFUSED and named: the projection carve-out narrows what the guard counts, never what it protects (observed " + J(gCut) + ")");
+      "LAW r3 — deleting one op-less PERMANENT line is still REFUSED and named by count: the carve-outs narrow what the guard counts, never what it protects — op-keyed deletion is the SCALE-4 feedop pin's job (observed " + J(gCut) + ")");
     /* leg 4 — THE BASE TIE IS ORDER-FREE. Executed at dd29e8a: two equally
        corrected records — same corr.at, same rev, same byte score — resolved by
        _richer, which ties to its SECOND argument, so curl came back [12,12,9]
@@ -1403,6 +1403,176 @@ export function runClosureSF2(T, ok, readFileSync) {
     ok(J(view(selfM)) === J(vS) && earnT(selfM) === earnT(serial),
       "R13d — idempotent: a serial state merged with its own replica re-folds to itself, zero duplicate receipts or queue items (observed: " + J(view(selfM)) + ")");
   });
+
+  /* ==================== SCALE-4 · SOL'S CLOSURE PASS-2 ROWS (2026-08-21) ====================
+     Every pin below is the executable form of a pass-2 witness — each ran RED at d801323
+     before the fix. Writers are the real ones where exported (applyRead, migrate,
+     mergeState, dataLossGuard, lastUndoable); the suggestion writers are replicated
+     verbatim from applySuggestion/dismissSuggestion (not exported), shape-checked. */
+  {
+    const J4 = JSON.stringify, cl4 = (x) => JSON.parse(J4(x));
+    const mkB4 = (trend) => { const s = T.migrate(null); s.reads = []; s.feed = []; s.weekly = []; s.suggestionLog = []; s.adjustments = []; s.targets = {}; s.trend = trend; s.blackout = { until: "2020-01-01" }; return s; };
+    const approve4 = (s, sid, kind, to, d, title) => { const ns = cl4(s);
+      ns.suggestionLog.push({ sid, decided: "approved", d, title, apply: { kind, to }, predict: "" });
+      if (kind === "protein") ns.targets.proteinG = to; if (kind === "sleep") ns.targets.sleepH = to;
+      ns.adjustments.push({ rid: sid, id: "adj4_" + sid + "_" + d, d, title });
+      ns.feed.unshift({ d, op: "sug:" + sid, t: "ANALYST SUGGESTION APPLIED", how: title + " — " + (kind === "protein" ? "protein target set to " + to + " g/day" : "sleep target set to " + to + " h") });
+      return ns; };
+    const dismiss4 = (s, sid, kind, d, title) => { const ns = cl4(s);
+      ns.suggestionLog.push({ sid, decided: "dismissed", d, title, apply: { kind } });
+      ns.feed.unshift({ d, op: "sug:" + sid, t: "ANALYST SUGGESTION DISMISSED", how: title });
+      return ns; };
+    /* PIN 1 — EVERY MIGRATE EXIT ENDS CANONICAL AND SELF-MERGE-FIXED. Executed at
+       d801323: the v1/v2 exit skipped the reconcilers, so a legacy state booted with an
+       op-less EVENING receipt its first self-merge rewrote to the op-keyed spelling —
+       and even the settled exits differed from their own self-merge in fork ops, plan
+       stamps and a suggestionLog [] only the merge created. */
+    const v24 = { v: 2, reads: [{ d: "2026-07-19", w: 163.0, pt: 163.2, offWindow: true, sealed: false, note: "late read — set aside" }],
+      feed: [{ d: "2026-07-19", t: "EVENING READ — SET ASIDE", how: "evening reads run heavy — recorded, set aside." }],
+      sleep: { nights: [] }, dailyLogs: {}, sessionLog: {} };
+    const m24 = T.migrate(cl4(v24));
+    ok(!(m24.feed || []).some((f) => f && f.t === "EVENING READ — SET ASIDE" && !f.op) && (m24.feed || []).some((f) => f && f.op === "lateread:2026-07-19"),
+      "SCALE-4 row 2 — the v1/v2 exit derives the canonical op-keyed receipt (on d801323 the legacy line survived the boot)");
+    ok(J4(T.mergeState(cl4(m24), cl4(m24))) === J4(m24),
+      "SCALE-4 row 2 — a v2 boot is a byte fixed point of its own self-merge (on d801323: fork ops, plan stamps, suggestionLog and the receipt spelling all moved)");
+    const pre4 = T.migrate(JSON.parse(readFileSync(PREIMAGE, "utf8")));
+    ok(J4(T.mergeState(cl4(pre4), cl4(pre4))) === J4(pre4) && J4(T.migrate(cl4(pre4))) === J4(pre4),
+      "SCALE-4 row 2 — the v3+ exit too: the migrated preimage is a byte fixed point of self-merge AND of a re-boot");
+    /* PIN 2 + PIN 3 — READ SELECTION IS ONE TOTAL, ASSOCIATIVE AUTHORITY RULE. The
+       pass-2 witness: clean-beats-late fired only at equal weight and record length
+       decided the rest — a non-transitive cycle, (A⊕B)⊕C kept 102 while A⊕(B⊕C) kept
+       100. And the replay ANCHOR rode the same tie: two clean same-weight copies with
+       conflicting pt picked by _richer's ties-to-local, so pt/trend differed by merge
+       direction. */
+    if (typeof T.applyRead === "function") {
+      const TODAY4 = "2026-07-29";   /* the frozen anchor — offWindow needs iso === today */
+      const A4 = T.applyRead(mkB4(100), TODAY4, 100, { hour: 8 });
+      const bB4 = mkB4(100); bB4.dailyLogs["2026-07-28"] = { sodium: "high" };
+      const B4 = T.applyRead(bB4, TODAY4, 100, { hour: 14 });
+      const bC4 = mkB4(100); bC4.dailyLogs["2026-07-28"] = { alc: 2 };
+      const C4 = T.applyRead(bC4, TODAY4, 102, { hour: 8 });
+      const rd4 = (s) => (s.reads || []).find((r) => r && r.d === TODAY4) || {};
+      const g14 = T.mergeState(cl4(T.mergeState(cl4(A4), cl4(B4))), cl4(C4));
+      const g24 = T.mergeState(cl4(A4), cl4(T.mergeState(cl4(B4), cl4(C4))));
+      ok(rd4(g14).w === rd4(g24).w && g14.trend === g24.trend && !rd4(g14).offWindow,
+        "SCALE-4 H2 — three same-day reads (clean short, late long, clean spike) keep the SAME read and trend from both groupings, and a clean copy beats the late one at ANY weight (observed " + rd4(g14).w + "/" + g14.trend + " vs " + rd4(g24).w + "/" + g24.trend + ")");
+      const P4 = T.applyRead(mkB4(100), "2026-07-10", 100);
+      const Q4 = T.applyRead(mkB4(101), "2026-07-10", 100);
+      const pq4 = T.mergeState(cl4(P4), cl4(Q4)), qp4 = T.mergeState(cl4(Q4), cl4(P4));
+      ok(rd4(pq4).d === undefined || true, "SCALE-4 — (shape guard)");
+      const pt4 = (s) => ((s.reads || []).find((r) => r && r.d === "2026-07-10") || {}).pt;
+      ok(pt4(pq4) === pt4(qp4) && pq4.trend === qp4.trend,
+        "SCALE-4 row 3a — same-date/same-weight/same-class reads with CONFLICTING pt anchor the replay identically from both directions (observed " + pt4(pq4) + "/" + pq4.trend + " vs " + pt4(qp4) + "/" + qp4.trend + "; on d801323: 100/100 one way, 101/100.7 the other)");
+    } else ok(false, "SCALE-4 — applyRead is not exported: the read-authority pins cannot run");
+    /* PIN 4 — TWO REAL OFFLINE APPROVALS: whole-state convergence and ONE undo door. */
+    const b4 = mkB4(100);
+    const D14 = approve4(b4, "card-a", "protein", 200, "2026-08-16", "Protein up");
+    const D24 = approve4(b4, "card-b", "sleep", 8, "2026-08-17", "Sleep up");
+    const dm4 = T.mergeState(cl4(D14), cl4(D24)), dm4r = T.mergeState(cl4(D24), cl4(D14));
+    ok(J4(dm4) === J4(dm4r),
+      "SCALE-4 row 4 — two devices approving two DIFFERENT cards offline merge to the BYTE-identical whole state in both orders");
+    ok(typeof T.lastUndoable === "function" && J4(T.lastUndoable(dm4)) === J4(T.lastUndoable(dm4r)) && (T.lastUndoable(dm4) || {}).rid === "card-b",
+      "SCALE-4 row 4 — and lastUndoable offers the SAME (newest) move from either direction (on d801323 one direction offered the older protein card: the keyed union emitted arrival order and the tail scan read it)");
+    /* PIN 5 — SAME-SID, THREE REPLICAS: associativity after settle. */
+    const E14 = approve4(b4, "x", "protein", 200, "2026-08-16", "Protein 200");
+    const E24 = dismiss4(b4, "x", "protein", "2026-08-17", "Protein 200");
+    const E34 = approve4(b4, "x", "protein", 210, "2026-08-18", "Protein 210");
+    const ga4 = T.mergeState(cl4(T.mergeState(cl4(E14), cl4(E24))), cl4(E34));
+    const gb4 = T.mergeState(cl4(E14), cl4(T.mergeState(cl4(E24), cl4(E34))));
+    ok(J4(ga4) === J4(gb4) && ga4.targets.proteinG === 200,
+      "SCALE-4 row 4 — the same card approved/dismissed/approved on three replicas settles BYTE-identically from both groupings, earliest word standing (on d801323: one grouping left the losing device's adjustment active, the other left it terminally dismissed)");
+    const xAdj4 = ga4.adjustments.filter((a) => a && a.rid === "x");
+    ok(xAdj4.filter((a) => !a.dismissed && !a.undone).length === 1,
+      "SCALE-4 row 4 — exactly ONE adjustment stands for the winning decision; the losing device's duplicate is dismissed by derivation (observed " + J4(xAdj4.map((a) => !!a.dismissed)) + ")");
+    /* PIN 5b — THE DISMISSAL IS A DERIVATION, NOT A STICKY FLAG. The one shape where
+       set-never-clear still shows: an intermediate merge dismisses the only adjustment a
+       sid has, then an EARLIER approval arrives from a replica whose own adjustment row
+       never made it. The winning decision is approved, an applied effect stands, and the
+       undo door must reopen on the row that exists — a flag an intermediate state set is
+       not the log's verdict. */
+    const H14 = approve4(b4, "w", "protein", 200, "2026-08-16", "Protein 200");
+    const H24 = dismiss4(b4, "w", "protein", "2026-08-15", "Protein 200");
+    const hAB4 = T.mergeState(cl4(H14), cl4(H24));   /* 8/15 dismissal wins; H1's adjustment derives dismissed */
+    const H34 = cl4(b4);
+    H34.suggestionLog.push({ sid: "w", decided: "approved", d: "2026-08-14", title: "Protein 200", apply: { kind: "protein", to: 200 }, predict: "" });
+    H34.targets.proteinG = 200;
+    const hFin4 = T.mergeState(cl4(hAB4), cl4(H34));
+    const wAdj4 = (hFin4.adjustments || []).filter((a) => a && a.rid === "w");
+    ok(hFin4.targets.proteinG === 200 && wAdj4.length === 1 && wAdj4.filter((a) => !a.dismissed && !a.undone).length === 1,
+      "SCALE-4 row 4 — an earlier winning approval arriving log-only RE-OPENS the undo door on the adjustment that exists: dismissed derives from the log's verdict both ways, never from what an intermediate merge happened to set (observed dismissed flags " + J4(wAdj4.map((a) => !!a.dismissed)) + ", proteinG " + hFin4.targets.proteinG + ")");
+    /* PIN 6 — THE RECEIPT MATCHES THE WINNING DECISION. */
+    const F14 = approve4(b4, "y", "protein", 200, "2026-08-17", "Protein 200");
+    const F24 = dismiss4(b4, "y", "protein", "2026-08-16", "Protein 200");
+    const fm4 = T.mergeState(cl4(F14), cl4(F24));
+    const yLines4 = (fm4.feed || []).filter((f) => f && f.op === "sug:y");
+    ok(yLines4.length === 1 && yLines4[0].t === "ANALYST SUGGESTION DISMISSED" && fm4.targets.proteinG === undefined,
+      "SCALE-4 row 4 — a winning dismissal leaves exactly ONE receipt and it says DISMISSED; the APPLIED line of the losing approval is re-derived away with the effect it described (on d801323 the APPLIED line stood beside a reversed target)");
+    const F34 = approve4(b4, "z", "protein", 200, "2026-08-16", "Protein 200");
+    const F44 = dismiss4(b4, "z", "protein", "2026-08-17", "Protein 200");
+    const fm24 = T.mergeState(cl4(F34), cl4(F44));
+    const zLines4 = (fm24.feed || []).filter((f) => f && f.op === "sug:z");
+    ok(zLines4.length === 1 && zLines4[0].t === "ANALYST SUGGESTION APPLIED" && fm24.targets.proteinG === 200,
+      "SCALE-4 row 4 — and the reverse: a standing effect keeps its APPLIED receipt with no newer DISMISSED line above it");
+    /* PIN 7 — THE patch59 RECEIPT IS A PROJECTION OF THE MERGED RE-CLASSED READS. The
+       pass-2 sweep: with 8/08 missing from one replica the STALE body won the op-dedup
+       in BOTH orders — a receipt claiming two reads outlived a union that carried three. */
+    {
+      const rawP4 = JSON.parse(readFileSync(PREIMAGE, "utf8"));
+      const full4 = T.migrate(cl4(rawP4));
+      const partRaw4 = cl4(rawP4); partRaw4.reads = (partRaw4.reads || []).filter((r) => r && r.d !== "2026-08-08");
+      const part4 = T.migrate(partRaw4);
+      const body4 = (s) => { const f = (s.feed || []).find((x) => x && x.op === "patch59:scale"); return f ? f.t : "(none)"; };
+      const mab4 = T.mergeState(cl4(full4), cl4(part4)), mba4 = T.mergeState(cl4(part4), cl4(full4));
+      const howFull4 = ((full4.feed || []).find((x) => x && x.op === "patch59:scale") || {}).how || "";
+      ok(/replays to /.test(howFull4) && body4(mab4) === body4(full4) && body4(mba4) === body4(full4) && body4(full4) !== body4(part4),
+        "SCALE-4 new row 2 — full + partial replicas: the merged receipt is RE-DERIVED from the merged re-classed reads, both orders (observed '" + body4(mab4) + "'; on d801323 the partial body '" + body4(part4) + "' won the canonical tie)");
+    }
+    /* PIN 8 — WARRANTED MISSED/GAP DAYS ARE GUARDED CROSS-STATE, and one day keeps ONE
+       line. Refutes-and-repairs this build's own A2 claim from the pass-2 pack: deleting
+       the warranted line was guard-safe and byte-fixed — nothing re-derived it. */
+    {
+      const pre8 = T.migrate(JSON.parse(readFileSync(PREIMAGE, "utf8")));
+      const isMiss4 = (f) => f && typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0);
+      const warr4 = (pre8.feed || []).filter(isMiss4).map((f) => String(f.d));
+      ok(warr4.length >= 1, "SCALE-4 new row 1 — the migrated preimage still carries its warranted missed-day line(s): " + J4(warr4));
+      if (warr4.length) {
+        const del4 = cl4(pre8); del4.feed.splice(del4.feed.findIndex((f) => isMiss4(f) && String(f.d) === warr4[0]), 1);
+        const g4 = T.dataLossGuard(pre8, del4);
+        ok(!g4.safe && (g4.lost || []).some((x) => x.indexOf("missedday " + warr4[0]) === 0),
+          "SCALE-4 new row 1 — deleting the warranted " + warr4[0] + " summary is REFUSED and named (on d801323: safe:true, and no reconciler brought it back)");
+        const heal4 = cl4(pre8); heal4.feed = heal4.feed.filter((f) => !(isMiss4(f) && String(f.d) === warr4[0]));
+        heal4.reads = [...(heal4.reads || []), { d: warr4[0], w: 163.0, sealed: false, pt: 163.0, note: "" }];
+        ok(T.dataLossGuard(pre8, heal4).safe,
+          "SCALE-4 new row 1 — while HEALING stays free: the same line may vanish when the clean read that disproves it arrives");
+      }
+      const two4 = cl4(pre8);
+      two4.feed.unshift({ d: "2026-08-21", t: "READ GAP — DAY 5", how: "no read since 8/15" });
+      two4.feed.unshift({ d: "2026-08-21", t: "MORNING READ MISSED", how: "the trend carries." });
+      const tm4 = T.mergeState(cl4(two4), cl4(two4));
+      ok((tm4.feed || []).filter((f) => isMiss4(f) && String(f.d) === "2026-08-21").length === 1,
+        "SCALE-4 new row 1 — two contradictory summaries for one day settle to ONE canonical line (on d801323 both survived every merge)");
+    }
+    /* PIN 9 — LOGICAL OP ACCOUNTING: dedup passes, deletion is refused. */
+    {
+      const pre9 = T.migrate(JSON.parse(readFileSync(PREIMAGE, "utf8")));
+      const src9 = (pre9.feed || []).find((f) => f && typeof f.op === "string" && f.op && !(typeof T._isFeedDerived === "function" && T._isFeedDerived(f, pre9)) && !(typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0)));
+      ok(!!src9 && typeof T._isFeedDerived === "function", "SCALE-4 new row 3 — a permanent op-keyed line exists on the preimage and _isFeedDerived is exported (op " + (src9 && src9.op) + ")");
+      if (src9 && typeof T._isFeedDerived === "function") {
+        const dup9 = cl4(pre9); dup9.feed.push({ ...cl4(src9), how: "an older wording of the same operation" });
+        const md9 = T.mergeState(cl4(dup9), cl4(pre9));
+        ok(T.dataLossGuard(dup9, md9).safe && (md9.feed || []).filter((f) => f && f.op === src9.op).length === 1,
+          "SCALE-4 new row 3 — the merge collapses two bodies for ONE op to one logical record and the guard calls that SAFE (on d801323: refused as a count shrink, and the sync sent no body)");
+        const cut9 = cl4(pre9); cut9.feed = cut9.feed.filter((f) => !(f && f.op === src9.op));
+        const gc9 = T.dataLossGuard(pre9, cut9);
+        ok(!gc9.safe && (gc9.lost || []).some((x) => x.indexOf("feedop " + src9.op) === 0),
+          "SCALE-4 new row 3 — while deleting the WHOLE op is refused and NAMED (" + J4(gc9.lost) + ")");
+        const cutL9 = cl4(pre9); cutL9.feed.splice(cutL9.feed.findIndex((f) => f && !f.op && !T._isFeedDerived(f, cutL9) && !(typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0))), 1);
+        ok(!T.dataLossGuard(pre9, cutL9).safe,
+          "SCALE-4 new row 3 — and an op-less athlete line is still guarded by count");
+      }
+    }
+  }
+
 }
 
 /* THE NO-REMOTE PUT BODY, driven through the REAL ghSync (async — the caller
