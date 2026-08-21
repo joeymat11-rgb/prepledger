@@ -1,32 +1,32 @@
 {
-  "gen": "2026-08-20T14:07:57.894Z",
+  "gen": "2026-08-21T09:41:00.000Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-20_fillwednesday",
+      "sid": "sug_2026-08-20_hipthrustload",
       "rank": 1,
-      "title": "Log yesterday tonight — it is one of the four days Friday's verdict stands on",
+      "title": "Hip thrust debuts today — pick its opening load before you leave the house",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Adherence data beats metabolic stories: logging gaps cluster exactly when intake shifts, and an unlogged day inside a test window makes the test unanswerable rather than passed (Alhassan 2008).",
-        "data": "Wednesday 8/19 has no food, steps or sleep row. The Friday call — trend at or under 163.8 with the weekdays logged clean — has 8/17 (2,300) and 8/18 (2,081) in, and 8/19 blank.",
-        "relationship": "Five fill-in asks in three weeks have each converted inside a day, and every one settled a question the scale alone could not. This one completes the window so tomorrow's read grades the week instead of voiding it. Nothing in the app changes — the act is the log row itself, and rough numbers marked as estimates count."
+        "science": "A new lift's first day is for setting a starting number, not testing a limit: open about two reps shy of failure and the weight you write down is one you can build on next week (RIR-based load selection; Schoenfeld 2017 on what makes a hard set count).",
+        "data": "The app still has no opening load for the hip thrust this morning — fifth day this card has been up, and today is the lower day it debuts. Last lower day, 8/14, it was skipped.",
+        "relationship": "In your file, debuts without a chosen number end as a skip (hip thrust, 8/14) or as a number that later had to be taken back (hack squat's 170). A weight picked at the kitchen table costs nothing and turns today's first sets into a starting point that holds."
       },
-      "predict": "8/19 lands tonight or tomorrow morning with rough numbers, and Friday's verdict is answerable whichever way it goes.",
+      "predict": "Pick it before the session and the debut opens at 1–2 reps in reserve and stands as a clean baseline. Walk in blank and I expect another skip, or a number we end up correcting.",
       "confidence": "high",
       "gate": "approve"
     },
     {
-      "sid": "sug_2026-08-20_hipthrustload",
+      "sid": "sug_2026-08-21_fillthursday",
       "rank": 2,
-      "title": "Pick the hip thrust's opening load before you leave for the gym — the debut is tomorrow",
+      "title": "Fill in Thursday — rough numbers, five minutes. It is the one blank day under this morning's verdict.",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "A debut anchors every later comparison on the lift. Progression guidance wants small planned jumps from a known start (ACSM progression stand); a guessed opener on a new machine spends the first of its four baseline sessions on the guess.",
-        "data": "The hip thrust still has no working load and unfilled setup pins, four days after entering the programme. Tomorrow is its debut — on the same session where calves, abs, ham curl, extension and the leg raise all open on fresh baselines.",
-        "relationship": "Tomorrow is the most misreadable session in the file: five lifts re-anchoring plus one debut. The load is the only unknown you can remove tonight — the same way the ham 125 check turned that debut into a clean 11,9,9. Enter it in SETUP when you pick it; this card just puts the decision on the record."
+        "science": "Keeping the log itself is the strongest single predictor of losing on plan — gaps get filled by guesswork, and guesswork flatters (Alhassan 2008 on adherence as the meta-lever).",
+        "data": "Thursday 8/20 has no food, steps or sleep behind it. Wednesday's blank was filled within a day of being asked — the sixth fill-in in a row that converted inside 24 hours.",
+        "relationship": "The scale moved two pounds in two days while you were sick; how much of that was fat is decided by the intake record around it. Thursday is that record — and it closes the 'weekdays logged clean' condition the Friday call was graded under."
       },
-      "predict": "Load set before the session, and the debut banks a usable baseline in the 8–12 rep window at 1–2 in reserve. If the session runs with it still blank, the first baseline session is spent guessing — the exact cost this card exists to avoid.",
+      "predict": "Filled tonight — the streak says inside a day — and the Friday call's asterisk clears; the weekend read stands on whole data.",
       "confidence": "high",
       "gate": "approve"
     },
@@ -36,11 +36,11 @@
       "title": "Three machines might be training the short half of the muscle — answer three questions in SETUP",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "A muscle that crosses two joints grows where the other joint holds it long. Straight-knee calf work grew the gastrocnemius +9–12% against +0.6–1.7% seated in a within-person MRI trial (n=14, untrained — direction more than size); overhead triceps work grew the long head +28.5% vs +19.6% for pushdowns; a seated ham curl trains the hamstrings at length where a lying one does not.",
-        "data": "Your SETUP cards do not record which variant each machine is. Calves note a near-straight knee — likely already the right version. The triceps and ham cards read either way, and those two are where the answer is genuinely unknown.",
-        "relationship": "On a cut with capped sets, yield per set is the lever — and if any answer comes back the short version, the switch is free and worth more than any rep-mechanics tweak. Nothing changes tonight; the ask is three answers next time you are at the machines."
+        "science": "Training a muscle at long lengths grows it measurably faster per set than at short lengths — the strongest machine-selection finding in the current literature, though the trained-lifter cohorts are small.",
+        "data": "Your calf raise, triceps machine and ham curl are the three lifts where the answer is unknown; the check is three questions in SETUP and changes nothing until you say so. Still unanswered since yesterday.",
+        "relationship": "If any of the three is the short-length version, every set on it has been buying less than it should — on a cut, where sets are expensive, knowing is free and switching is where the same effort pays more."
       },
-      "predict": "Calves pass. At least one of triceps or ham comes back short-muscle — and if one does, the switch becomes its own card with a fresh-baseline warning attached. If all three pass, this closes for good and machine selection never bothers you again.",
+      "predict": "Three answers in SETUP inside a couple of days; if any machine turns out short-length, a switch proposal follows with the science attached.",
       "confidence": "medium",
       "gate": "approve"
     }

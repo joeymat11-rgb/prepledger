@@ -411,3 +411,24 @@
 **Forecasts in flight, none added:** ≤163.8 Fri (at 163.7, grades tomorrow, needs 8/19–8/20 logged clean — hence card #1) · ≤163.4 Sat (alive again, grade at deadline) · weekend >2,600 both days (grades Sunday; brief asks him to beat it, and I want to lose that one).
 
 **Next run, in order:** reconcile trend vs his first ([[CL-27]]) · Friday read vs 163.8 · did the session run — no session = [[W-10]] **void**; session = `hipthrust.w` first, then **five re-anchors read as fresh baselines, not declines** ([[W-8]]) · `dailyLogs` 8/19+8/20 (card #1; weekend forecast starts) · Friday intake vs 2,600 · protein toward 180 · [[W-9]]/`sync.last` movement · any SETUP answers on machinecheck.
+
+
+---
+
+## Run 31 — 2026-08-21 (pre-dawn; lower day + hip thrust debut later today)
+
+**The night's headline fact is a six-word session note: "Was sick the past few days."** It arrived attached to a strong 8/20 upper session and it re-prices everything else on the page: the back-to-back record lows (162.4, 161.8), the 1,925-kcal Wednesday, the 02:00 bedtime, and the weekend forecast's fairness. The brief leads with the whoosh and hands the illness its share in the same breath — Article III applied to lows for once, and said so in exactly those terms ("the same rule that damped the wedding highs damps the sick lows").
+
+**[[W-11]] — NEW WATCH: the sick-water giveback.** Prediction-shaped but deliberately not a numbered forecast (no measured illness constant exists for him; Article IX forbids inventing one). Claim: some fraction of the 8/19–8/20 drop is gut content, glycogen and water, and it prints back within days of appetite normalising. Grading frame: if trend holds ≤163.5 through ~8/28 on normal intake, the drop was mostly real and the whoosh stands as fat; if a pound-plus returns and *then* resumes falling, the giveback read was right and nobody flinched because the brief called it in advance; if a pound returns and the trend stalls above 163.5 into September on clean logs, the whoosh was mostly water and I over-read it — say so. Resolve ~8/28–9/01.
+
+**Graded tonight:** Friday ≤163.8 — **HIT at deadline by damping arithmetic** (163.3, margin 0.5, no single read can flip it), asterisk named: Thursday blank leaves "weekdays logged clean" at 3 of 4. `fillwednesday` — **sixth consecutive fill-in conversion inside 24 h, untapped** ([[W-9]] sixth instance; `suggestionLog` still ends 8/14; **fifteen** cards now undecided). Tally moved: 57 called / 25 graded / 11 hits / 8 misses.
+
+**Not graded, rolling:** ≤163.4 Sat (sits at 163.3 — needs only to hold; deadline grading, per the run-30 lesson, no early verdicts in either direction) · weekend >2,600 bet (fairness pre-committed in scorecard: sick appetite is not a "deliberate change", so a cheap win gets an honest footnote) · [[W-10]] (8/20 was an upper day — no occasion; branches roll verbatim to today's lower session; load still `null` at engine time).
+
+**Cards: three, same slate shape as last night** — `hipthrustload` rank 1 (fifth day, sid carried, due today), `fillthursday` rank 2 (fresh sid — Wednesday filled while Thursday blanked; the genre converts, the specific day rotates), `machinecheck` rank 3 (carried, unanswered). Flood control: the new 8/21 lab row (volume band 8–14 vs the 5–10 high-return region, proposal 6–12) is a **programme change and went to the brief flagged for the coach conversation**, not to a card — the row itself says the app will not move it alone, and it pulls the same direction as the whole volstack saga: defend load, don't stack sets. Magnet note keeps a second night unacted.
+
+**Session intelligence from 8/20 worth carrying:** press's fourth set finally produced (6 @ RIR 0 — the press4th withdrawal ages well); rows 180 debut 10,11 at RIR 0/1 → [[CL-28]] filed (holds attach to 0-RIR *misses*, not 0-RIR per se); curl 55 straight across, rung complete, 60 stays COACH FLAG; **rearDelt skipped a second consecutive upper day** — third skip becomes a named pattern, check first thing next run.
+
+**Instrument quirks unchanged:** `sync.last` frozen at 8/16 while the file carries 8/20 data (stamp is decorative; the tripwire remains "did the inputs advance", never the stamp) · sodium blank since 8/12 · caffeine/energy/soreness/pulse/temp stale since late July/early Aug · engine regime label still "plateau, whoosh pending" two mornings after the whoosh started printing — windowed label, known lag, brief overrides in plain words as before.
+
+**For tomorrow's run, the short version:** Saturday read vs 163.4 first (reconcile vs his trend, [[CL-27]]) · did the lower session run (W-10 branches; void means void) · `hipthrust.w` · five re-anchors read as fresh baselines on a sick week · `dailyLogs` 8/20 + 8/21 · Friday intake vs 2,600 · SETUP answers · rearDelt third skip · [[W-9]]/[[W-11]] movement.
