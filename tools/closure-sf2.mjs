@@ -1573,6 +1573,111 @@ export function runClosureSF2(T, ok, readFileSync) {
     }
   }
 
+
+  /* ==================== SCALE-5 · SOL'S CLOSURE PASS-3 ROWS (2026-08-21) ====================
+     Six blockers, every pin below executed RED at 7d74b3d first. */
+  {
+    const J5 = JSON.stringify, cl5 = (x) => JSON.parse(J5(x));
+    const mkB5 = () => { const s = T.migrate(null); s.reads = []; s.feed = []; s.weekly = []; s.suggestionLog = []; s.adjustments = []; s.targets = {}; s.trend = 100; s.blackout = { until: "2020-01-01" }; return s; };
+    const approve5 = (s, sid, kind, to, d, title) => { const ns = cl5(s);
+      ns.suggestionLog.push({ sid, decided: "approved", d, title, apply: { kind, to }, predict: "" });
+      if (kind === "protein") ns.targets.proteinG = to;
+      ns.adjustments.push({ rid: sid, id: "adj5_" + sid + "_" + d + "_" + to, d, title });
+      ns.feed.unshift({ d, op: "sug:" + sid, t: "ANALYST SUGGESTION APPLIED", how: title + " — protein target set to " + to + " g/day" });
+      return ns; };
+    const dismiss5 = (s, sid, kind, d, title) => { const ns = cl5(s);
+      ns.suggestionLog.push({ sid, decided: "dismissed", d, title, apply: { kind } });
+      ns.feed.unshift({ d, op: "sug:" + sid, t: "ANALYST SUGGESTION DISMISSED", how: title });
+      return ns; };
+    /* BLOCKER 1 — the FOURTH exit settles too. */
+    const f5 = T.migrate(null);
+    ok(J5(T.mergeState(cl5(f5), cl5(f5))) === J5(f5),
+      "SCALE-5 row 2 — a FRESH INSTALL is a byte fixed point of its first self-merge (at 7d74b3d: exercises, plan, suggestionLog and targets all moved on the very first sync)");
+    const imp5 = T.migrate(null); { const e5 = imp5.exercises.find((x) => x && x.id === "rows"); e5.forks = [{ from: "2026-08-13", why: "z", ops: ["z", "a"], prevN: "old" }]; }
+    const impM5 = T.migrate(cl5(imp5));
+    const impE5 = impM5.exercises.find((x) => x.id === "rows");
+    ok(J5(impE5.forks[0].ops) === J5(["a", "z"]) && impE5.forks[0].why === "a + z" && J5(T.mergeState(cl5(impM5), cl5(impM5))) === J5(impM5),
+      "SCALE-5 row 2 — an imported fork with unsorted ops is canonical AFTER MIGRATE (sorted set, derived why — the fork union's own math), not only after the first merge (observed ops " + J5(impE5.forks[0].ops) + " why '" + impE5.forks[0].why + "')");
+    /* BLOCKER 6 — equal logical read payloads in different raw key orders. */
+    {
+      const A5 = mkB5(); A5.reads = [{ d: "2026-08-20", w: 100, sealed: false, pt: 100, note: "same" }];
+      const B5 = mkB5(); B5.reads = [JSON.parse('{"note":"same","pt":100,"sealed":false,"w":100,"d":"2026-08-20"}')];
+      const ab5 = T.mergeState(cl5(A5), cl5(B5)), ba5 = T.mergeState(cl5(B5), cl5(A5));
+      ok(J5(ab5) === J5(ba5) && J5(T.migrate(cl5(A5))) === J5(T.migrate(cl5(B5))),
+        "SCALE-5 read-tie — one logical read in two raw key orders merges to the SAME BYTES from both directions and boots to the same bytes (at 7d74b3d each direction kept its local operand's key order, forever)");
+    }
+    /* BLOCKER 4 — suggestion Undo is truthful and direction-free. */
+    {
+      const A5 = approve5(mkB5(), "x", "protein", 200, "2026-08-16", "Protein 200");
+      const U5 = T.undoAdjustment(cl5(A5), "x");
+      const S5 = T.migrate(cl5(U5));
+      const row5 = S5.suggestionLog.find((r) => r.sid === "x");
+      ok(row5.undone === true && S5.targets.proteinG === undefined && (S5.feed || []).filter((f) => f.t === "ANALYST SUGGESTION APPLIED").length === 0 && (S5.feed || []).some((f) => f.op === "sug:x" && f.t === "ANALYST SUGGESTION UNDONE"),
+        "SCALE-5 row 4 — the one-tap Undo UNDOES: the decision row carries the athlete's monotone undone flag, the target reverses, and the receipt re-derives as UNDONE — surviving boot (at 7d74b3d the control hid itself, printed 'reversed', and proteinG stayed 200)");
+      const st5 = T.mergeState(cl5(S5), cl5(A5)), st5b = T.mergeState(cl5(A5), cl5(S5));
+      ok(st5.suggestionLog.find((r) => r.sid === "x").undone === true && st5b.suggestionLog.find((r) => r.sid === "x").undone === true && st5.targets.proteinG === undefined && st5b.targets.proteinG === undefined,
+        "SCALE-5 row 4 — a stale not-yet-undone replica cannot resurrect the effect: the undone copy outranks its twin from both directions");
+      const B5 = dismiss5(mkB5(), "x", "protein", "2026-08-15", "Protein 200");
+      const D5 = T.mergeState(cl5(A5), cl5(B5));
+      const m15 = T.mergeState(cl5(U5), cl5(D5)), m25 = T.mergeState(cl5(D5), cl5(U5));
+      ok(J5(m15) === J5(m25),
+        "SCALE-5 row 4 — explicit Undo and derived dismissal converge BYTE-identically from both directions (at 7d74b3d _adjRank tied undone and dismissed at equal rank and local won)");
+    }
+    /* BLOCKER 5 — same-day equal-sid approvals couple the winner to its own adjustment. */
+    {
+      const A5 = approve5(mkB5(), "x", "protein", 200, "2026-08-16", "Protein 200");
+      const B5 = approve5(mkB5(), "x", "protein", 210, "2026-08-16", "Protein 210");
+      const ab5 = T.mergeState(cl5(A5), cl5(B5)), ba5 = T.mergeState(cl5(B5), cl5(A5));
+      const act5 = (s) => s.adjustments.filter((a) => a.rid === "x" && !a.dismissed && !a.undone).map((a) => a.title);
+      ok(J5(ab5) === J5(ba5) && act5(ab5).length === 1 && act5(ab5)[0] === ab5.suggestionLog.find((r) => r.sid === "x").title,
+        "SCALE-5 row 4 — two same-day approvals for one card: the ACTIVE adjustment carries the WINNING decision's title, both directions (at 7d74b3d a 'Protein 200' undo door stood under a 210 decision — the selector matched day then id, and the id fingerprints nothing)");
+    }
+    /* BLOCKER 3 — the attestation is monotone (reclassLog) and enforcement reverses a resurrected classification. */
+    {
+      const rawP5 = JSON.parse(readFileSync(PREIMAGE, "utf8"));
+      const full5 = T.migrate(cl5(rawP5));
+      ok(Array.isArray(full5.reclassLog) && full5.reclassLog.indexOf("2026-08-08") >= 0 && full5.reclassLog.indexOf("2026-08-10") >= 0 && !full5.reads.some((r) => r && r.reclassed),
+        "SCALE-5 new row 2 — the attestation lives in s.reclassLog (set-union store), not in a per-read flag an old client's union can strip; the legacy flags are absorbed and retired (observed " + J5(full5.reclassLog) + ")");
+      const strip5 = cl5(full5); for (const r of strip5.reads) delete r.reclassed; delete strip5.reclassLog;
+      const p5 = cl5(rawP5); p5.reads = (p5.reads || []).filter((r) => r && r.d !== "2026-08-10");
+      const part5 = T.migrate(p5);
+      const body5 = (s) => { const f = (s.feed || []).find((x) => x && x.op === "patch59:scale"); return f ? f.t : "(none)"; };
+      const mm5 = T.mergeState(cl5(strip5), cl5(part5)), mm5b = T.mergeState(cl5(part5), cl5(strip5));
+      ok(body5(mm5) === body5(full5) && body5(mm5b) === body5(full5),
+        "SCALE-5 new row 2 — a marker-stripped full replica merged with a partial one still yields the TRUTHFUL receipt: the value-keyed table re-derives the attested dates at every settle (at 7d74b3d the merge said '2 MORNING READS' over a union carrying all three)");
+      const flip5 = cl5(strip5);
+      const old10 = (rawP5.reads || []).find((r) => r && r.d === "2026-08-10");
+      flip5.reads = flip5.reads.map((r) => (r && r.d === "2026-08-10" ? cl5(old10) : r));
+      const fm5 = T.mergeState(cl5(flip5), cl5(part5)), fm5b = T.mergeState(cl5(part5), cl5(flip5));
+      const r105 = (s) => s.reads.find((x) => x && x.d === "2026-08-10");
+      ok(!r105(fm5).offWindow && !r105(fm5b).offWindow && !(fm5.feed || []).some((f) => f && f.op === "lateread:2026-08-10"),
+        "SCALE-5 new row 2 — the owner-attested 8/10 morning read can NEVER revert: a resurrected offWindow body is re-classed at the next settle, both directions (at 7d74b3d it went late again, lateread re-derived, the trend re-stepped and the receipt named one fewer read)");
+      /* and the STORE ITSELF is a set union — the shipped table covers today's three
+         dates, but a FUTURE attestation exists only in the store, so two replicas each
+         carrying one future date must keep both, both orders */
+      const fu5 = cl5(full5), fv5 = cl5(full5);
+      fu5.reclassLog = [...fu5.reclassLog, "2026-09-01"].sort();
+      fv5.reclassLog = [...fv5.reclassLog, "2026-09-02"].sort();
+      const um5 = T.mergeState(cl5(fu5), cl5(fv5)), um5b = T.mergeState(cl5(fv5), cl5(fu5));
+      ok(um5.reclassLog.indexOf("2026-09-01") >= 0 && um5.reclassLog.indexOf("2026-09-02") >= 0 && J5(um5.reclassLog) === J5(um5b.reclassLog),
+        "SCALE-5 new row 2 — two future attestations, one per replica, BOTH survive the merge from both directions: the store unions, it does not ride the scalar spread (observed " + J5(um5.reclassLog) + ")");
+    }
+    /* BLOCKER 2 — a sealed morning read disproves a false MISSED/GAP line. */
+    {
+      const A5 = mkB5(); A5.blackout = { until: "2027-01-01" };
+      const A25 = T.applyRead(cl5(A5), "2026-08-20", 100, { hour: 8 });
+      const rA5 = A25.reads.find((r) => r.d === "2026-08-20");
+      const B5 = mkB5(); B5.feed.unshift({ d: "2026-08-20", t: "MORNING READ MISSED", how: "the trend carries." });
+      const m5 = T.mergeState(cl5(A25), cl5(B5)), m5b = T.mergeState(cl5(B5), cl5(A25));
+      const miss5 = (s) => (s.feed || []).filter((f) => f && typeof f.t === "string" && f.t.indexOf("MORNING READ MISSED") === 0 && f.d === "2026-08-20").length;
+      ok(!!(rA5 && rA5.sealed && !rA5.offWindow) && miss5(m5) === 0 && miss5(m5b) === 0,
+        "SCALE-5 new row 1 — a same-day SEALED morning read is the disproof: sealing sets the value aside from the trend, it does not mean the weigh-in was missed — the false summary dies at the merge, both directions (at 7d74b3d it survived and the guard protected the contradiction)");
+      const prev5 = cl5(A25); prev5.feed.unshift({ d: "2026-08-20", t: "MORNING READ MISSED", how: "the trend carries." });
+      ok(T.dataLossGuard(prev5, cl5(A25)).safe,
+        "SCALE-5 new row 1 — and the guard authorizes the removal: a missed-day line may vanish when the same day carries a sealed read (the missedday clause counts sealed non-late reads as the disproof)");
+    }
+  }
+
 }
 
 /* THE NO-REMOTE PUT BODY, driven through the REAL ghSync (async — the caller
