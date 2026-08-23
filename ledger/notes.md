@@ -432,3 +432,24 @@
 **Instrument quirks unchanged:** `sync.last` frozen at 8/16 while the file carries 8/20 data (stamp is decorative; the tripwire remains "did the inputs advance", never the stamp) · sodium blank since 8/12 · caffeine/energy/soreness/pulse/temp stale since late July/early Aug · engine regime label still "plateau, whoosh pending" two mornings after the whoosh started printing — windowed label, known lag, brief overrides in plain words as before.
 
 **For tomorrow's run, the short version:** Saturday read vs 163.4 first (reconcile vs his trend, [[CL-27]]) · did the lower session run (W-10 branches; void means void) · `hipthrust.w` · five re-anchors read as fresh baselines on a sick week · `dailyLogs` 8/20 + 8/21 · Friday intake vs 2,600 · SETUP answers · rearDelt third skip · [[W-9]]/[[W-11]] movement.
+
+
+---
+
+## Run 32 — 2026-08-23 (Sun morning; upper day later today; no run fired 8/22, two days graded tonight)
+
+**The night in one line.** The file went dark after Friday's session — no reads, food or nights since — so tonight was a grading night, and the grades were kind: the resurrected forecast **HIT at its deadline** (163.0 vs ≤163.4 — the run-30 practice paid in full, confirmation filed in caselaw), the fill-in genre went **seven for seven** (Thursday landed at 2,700/180/18,000, clearing run 31's asterisk → the Friday call now stands clean 4-of-4), and the hip thrust **debuted clean at 90 × 7,8,7** with the load chosen and every pin filled before the first rep — [[W-10]] closed on its pre-committed branch, [[CL-29]] filed: session cards convert in *occasions*, not days.
+
+**[[W-11]] printed on script:** 8/21 read 162.4 = +0.6 off the low, the morning after appetite returned — the giveback named in advance, and the trend fell to **163.0 (record low)** anyway. Frame stands: ≤163.5 through ~8/28 → whoosh confirmed as fat.
+
+**The weekend bet came due UNGRADEABLE — both legs blank.** Second instance of the missing-branch design flaw (run 27's lesson), on his most-missed day of all days. Working practice filed: log-dependent forecasts carry a blank branch and an expiry *at filing*. This one: grades on fill, **expires 8/30 → VOID**. Fairness pre-committed both ways: appetite was back Thursday, so a >2,600 win needs no asterisk; an under-2,500 loss is my over-fit, said plainly.
+
+**Cards: three, all note, none apply-bearing** — `fillweekend` (rank 1, high: the blanks gate the bet, W-11, and the week), `morningread` (rank 2, high: scale silent since Friday, trend running on a stale read; 8/19 precedent converted in a day), `machinecheck` (rank 3, medium, sid `sug_2026-08-20_machinecheck` carried, third issue, setup stamps unmoved).
+
+**Watch for today/tomorrow:** rearDelt third consecutive upper-day skip = pattern gets a name (Prime switch PARKED, coach conversation, no card) · Monday = four fresh baselines (ham, abs, hanging, calves) + hip thrust's first real target — **baselines, not declines** ([[W-8]], resolve ~8/31) · [[W-9]] unchanged and darker: sixteen cards undecided, `suggestionLog` frozen at 8/14, `sync.last` at 8/16, data channel delivering throughout (deadline ~9/05).
+
+**Restraint streaks:** cal **14th** (engine drafted zero, seventh straight) · step **18th** (7/29 proposal 25 days stale, premise backwards, [[CL-25]]; dropped from the brief entirely tonight — chronic, not news) · protein none (174 logged-week, 180-line in brief a fifth time) · sleep **23rd** (debt 0 on logged nights; two blanks named, not nagged) · progression stale **12th** · DEXA not re-carded (UNBOOKED).
+
+**Gaps:** dailyLogs 8/21–8/22 · reads 8/22–8/23 · nights 8/21–8/22 · sodium since 8/12 · caffeine/meds/energy/soreness/pulse/temp stale since late July–8/4 · sessions: none since 8/21 at engine time.
+
+**Next run, in order:** rearDelt (did the third skip happen?) · weekend fills (bet grades the moment both legs exist) · morning read vs 163.0 (mid-162s = on script) · Monday's lower read as baselines ([[W-8]] guard) · SETUP answers · [[W-9]]/[[W-11]] movement · reconcile trend vs his before quoting ([[CL-27]], standing).

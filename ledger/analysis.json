@@ -1,16 +1,16 @@
 {
-  "gen": "2026-08-21T09:05:58.123Z",
+  "gen": "2026-08-23T14:41:05.145Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 163.33,
-    "lastRaw": 161.8,
-    "appTrend": 163.3,
+    "soft": 163.05,
+    "lastRaw": 162.4,
+    "appTrend": 163,
     "noiseFloor": 1.47,
-    "gap": 1.53
+    "gap": 0.65
   },
   "rate": {
-    "perWeekLb": -0.27,
-    "perWeekPct": -0.17,
+    "perWeekLb": -0.14,
+    "perWeekPct": -0.09,
     "bandLb": 0.68,
     "personalBand": [
       1,
@@ -19,12 +19,12 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2661,
-    "tdeeWinDays": 20,
-    "meanCal": 2502,
-    "waterSensitivityLb": 1.14,
+    "tdee": 2663,
+    "tdeeWinDays": 18,
+    "meanCal": 2437,
+    "waterSensitivityLb": 1.13,
     "waterSensDays": 4,
-    "meanSleepH": 7.8,
+    "meanSleepH": 7.9,
     "sleepDebt7H": 0,
     "ffmKg": 63.4,
     "proteinTargetG": 146
@@ -71,10 +71,10 @@
     },
     {
       "wk": "2026-08-17",
-      "meanCal": 2102,
-      "meanPro": 172,
+      "meanCal": 2252,
+      "meanPro": 174,
       "proHitPct": 100,
-      "meanSteps": 18167
+      "meanSteps": 18125
     }
   ],
   "priorDecisions": [

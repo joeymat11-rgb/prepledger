@@ -1,46 +1,46 @@
 {
-  "gen": "2026-08-21T09:41:00.000Z",
+  "gen": "2026-08-23T14:41:05.145Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-20_hipthrustload",
+      "sid": "sug_2026-08-23_fillweekend",
       "rank": 1,
-      "title": "Hip thrust debuts today — pick its opening load before you leave the house",
+      "title": "Fill in Friday and Saturday — rough numbers count; the whole weekend is blank",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "A new lift's first day is for setting a starting number, not testing a limit: open about two reps shy of failure and the weight you write down is one you can build on next week (RIR-based load selection; Schoenfeld 2017 on what makes a hard set count).",
-        "data": "The app still has no opening load for the hip thrust this morning — fifth day this card has been up, and today is the lower day it debuts. Last lower day, 8/14, it was skipped.",
-        "relationship": "In your file, debuts without a chosen number end as a skip (hip thrust, 8/14) or as a number that later had to be taken back (hack squat's 170). A weight picked at the kitchen table costs nothing and turns today's first sets into a starting point that holds."
+        "science": "Across diet trials, the logging itself is the strongest single predictor of results — stronger than which diet was chosen (Alhassan 2008). The days that go missing are the days that decide weeks.",
+        "data": "Nothing is logged after Thursday: no food or steps Friday or Saturday, no nights since Thursday, no weigh-in since Friday morning. Thursday closed at 2,700 with protein 180. Your own record says Saturday is the day that slips — 8 of your 17 lifetime misses.",
+        "relationship": "Those two blanks sit exactly where this week's verdicts live: the weekend bet (both days over 2,600) grades on them, and the size of the sick-week giveback cannot be read without them. Filled, the week settles itself; blank, everything from here is a guess."
       },
-      "predict": "Pick it before the session and the debut opens at 1–2 reps in reserve and stands as a clean baseline. Walk in blank and I expect another skip, or a number we end up correcting.",
+      "predict": "Both days appear in the log inside 24 hours — this exact ask has converted seven times in a row inside a day. When they land, the weekend bet grades honestly, win or lose.",
       "confidence": "high",
       "gate": "approve"
     },
     {
-      "sid": "sug_2026-08-21_fillthursday",
+      "sid": "sug_2026-08-23_morningread",
       "rank": 2,
-      "title": "Fill in Thursday — rough numbers, five minutes. It is the one blank day under this morning's verdict.",
+      "title": "Step on the scale tomorrow morning — it has been silent since Friday",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Keeping the log itself is the strongest single predictor of losing on plan — gaps get filled by guesswork, and guesswork flatters (Alhassan 2008 on adherence as the meta-lever).",
-        "data": "Thursday 8/20 has no food, steps or sleep behind it. Wednesday's blank was filled within a day of being asked — the sixth fill-in in a row that converted inside 24 hours.",
-        "relationship": "The scale moved two pounds in two days while you were sick; how much of that was fat is decided by the intake record around it. Thursday is that record — and it closes the 'weekdays logged clean' condition the Friday call was graded under."
+        "science": "Regular morning weigh-ins are one of the most consistent habits in people who lose weight and keep it off (Zheng 2015, review of 17 studies) — and a trend can only be as current as its last read.",
+        "data": "Last read: Friday morning, 162.4. Your trend sits at 163.0 — the lowest on your record — and by tomorrow it will be running on a read three days old.",
+        "relationship": "The two live questions — did the whoosh stick, and how much sick water came home — are answered by the next two mornings, not by anything I can compute tonight. The August 19 version of this same ask produced a read inside 24 hours."
       },
-      "predict": "Filled tonight — the streak says inside a day — and the Friday call's asterisk clears; the weekend read stands on whole data.",
+      "predict": "A morning read lands tomorrow, most likely mid-162s as the giveback settles — that number is on script, not a stall. If it prints higher for a day or two, that was called on August 21 and changes nothing.",
       "confidence": "high",
       "gate": "approve"
     },
     {
       "sid": "sug_2026-08-20_machinecheck",
       "rank": 3,
-      "title": "Three machines might be training the short half of the muscle — answer three questions in SETUP",
+      "title": "Two minutes in SETUP: answer the three machine questions — calf raise, triceps, ham curl",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Training a muscle at long lengths grows it measurably faster per set than at short lengths — the strongest machine-selection finding in the current literature, though the trained-lifter cohorts are small.",
-        "data": "Your calf raise, triceps machine and ham curl are the three lifts where the answer is unknown; the check is three questions in SETUP and changes nothing until you say so. Still unanswered since yesterday.",
-        "relationship": "If any of the three is the short-length version, every set on it has been buying less than it should — on a cut, where sets are expensive, knowing is free and switching is where the same effort pays more."
+        "science": "Working a muscle at long lengths grows it faster than the same work at short lengths — clearest on calves, where the straight-knee version roughly doubled growth in the head-to-head trial (Kassiano 2023; small untrained group, so direction more than size).",
+        "data": "The three questions from Thursday's finding are still open, and the setup notes on those three machines have not changed since August 13–14.",
+        "relationship": "If any of the three is the short-length version, every hard set on it buys less muscle than the identical set on the right machine — and on a cut, that is recovery spent at a discount. A settings check costs two minutes and changes no loads."
       },
-      "predict": "Three answers in SETUP inside a couple of days; if any machine turns out short-length, a switch proposal follows with the science attached.",
+      "predict": "Three answers appear in SETUP this week. If a machine turns out to be the short version, swapping it shows up as easier rep growth at the same load within a month.",
       "confidence": "medium",
       "gate": "approve"
     }
