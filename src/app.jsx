@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.55.5";
+const APP_V = "7.55.6";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -9582,7 +9582,13 @@ function lastUndoable(s) {
     const a = adj[i];
     if (!a || a.undone || a.dismissed) continue;      // only APPLIED moves are undoable (a decline changed nothing)
     if (structural(a.rid)) continue;
-    return { rid: a.rid, d: a.d, title: a.title, auto: !!a.auto };
+    /* SCALE-7 (Sol's pass 5, P1) — "last" is a CLAIM, and a claim needs proof: a
+       stamped tap carries its instant, and a sole candidate on its day needs none.
+       Same-day legacy rows order deterministically (id class, then ord class) but that
+       order is per-device recovered, not the athlete's proven sequence — so the door
+       says "most recent on file" instead of "last" when orderSure is false. */
+    const day7 = adj.filter((x) => x && !x.undone && !x.dismissed && !structural(x.rid) && String(x.d) === String(a.d));
+    return { rid: a.rid, d: a.d, title: a.title, auto: !!a.auto, orderSure: !!a.at || day7.length <= 1 };
   }
   return null;
 }
@@ -9605,7 +9611,17 @@ function undoAdjustment(state, rid) {
      approval's effect is off" — target reversed, receipt re-derived as UNDONE. The
      athlete's word, durable across every sync. */
   const sugRow9 = (Array.isArray(s.suggestionLog) ? s.suggestionLog : []).find((x) => x && x.sid === a.rid);
-  if (sugRow9 && sugRow9.decided === "approved") { sugRow9.undone = true; reconcileSuggestionEffects(s); }
+  if (sugRow9 && sugRow9.decided === "approved") { sugRow9.undone = true;
+    /* SCALE-7 (Sol's pass 5, P0) — the undo files its own op-keyed FACT line, the
+       attestation pattern (his A3: the pattern is the template): value-independent,
+       unionable, feedop-guarded by presence, and NEVER swept by the receipt projection
+       (its op is `sugundo:`, outside the `sug:` sweep) — so the tap survives any braid
+       that erases the decision row, and the orphan absorption can re-materialize the
+       tombstone from this line alone. `ti` carries the title as a machine field: no
+       text is ever parsed back out of the athlete-facing copy. */
+    s.feed = s.feed || [];
+    if (!s.feed.some((f) => f && f.op === "sugundo:" + a.rid)) s.feed.unshift({ d: isoOf(todayStart()), op: "sugundo:" + a.rid, ti: String(a.title || ""), t: "SUGGESTION UNDO ATTESTED — " + String(a.title || a.rid).slice(0, 48), how: "You reversed this analyst move by one tap. This line is the record of that word — it travels with the data, so no older copy of the app can unsay it." });
+    reconcileSuggestionEffects(s); }
   if (a.planUndo && a.planUndo.field) _stampPlan(s, { [a.planUndo.field]: a.planUndo.prev }, { kind: "undo", field: a.planUndo.field });
   /* VOLUME LEVER — the exercise-field mirror of planUndo: revert the exact count and STAMP
      it (AUDIT G — a synced device must not resurrect the undone count), and the revert is
@@ -9800,6 +9816,42 @@ function reconcileSuggestionEffects(s) {
      adjustment id. */
   if (Array.isArray(s.suggestionLog)) s.suggestionLog = _unionKeyed(s.suggestionLog, [], (x) => x && x.sid, _sugRank);
   if (Array.isArray(s.adjustments)) s.adjustments = _unionKeyed(s.adjustments, [], (a) => a && (a.id || (a.rid + "|" + a.d)), _adjRank);
+  /* SCALE-7 (Sol's pass 5, P0 — CONFIRMED end to end on the real f72dbf7 engine: the
+     old client's wholesale suggestionLog spread erased a decided row while its keyed
+     adjustments union carried the undo flag on, the old dataLossGuard called the push
+     safe, the fresh device re-offered the card, and a re-approval was killed at its
+     next settle by the stale undone adjustment). ORPHAN ABSORPTION, before any
+     pending/effect derivation: an undo whose decision row is gone re-materializes as a
+     canonical tombstone row, from evidence that measurably survives every braid — the
+     keyed adjustment (never-drop union on every client since v7.2.0) plus the sid's
+     op-keyed feed line (the `sug:` receipt, or the `sugundo:` FACT the undo writer now
+     files). Without one of those ops the rid is not provably suggestion-origin and is
+     not ours to invent — a tombstone on a proposal-family rid would print an analyst
+     line over an engine record. The tombstone is approved+undone: the card stays
+     decided, a re-approval stays refused, the UNDONE receipt re-derives below, the
+     feedop guard keeps its op alive, and the true row outranks the tombstone in the
+     union (the non-orphan bit in _sugRank) the moment any replica still carrying it
+     syncs. */
+  { const sids7 = new Set(); for (const x of (Array.isArray(s.suggestionLog) ? s.suggestionLog : [])) if (x && x.sid) sids7.add(x.sid);
+    const ops7 = new Map();
+    for (const f of (Array.isArray(s.feed) ? s.feed : [])) {
+      if (!f || typeof f.op !== "string") continue;
+      if (f.op.indexOf("sugundo:") === 0) ops7.set(f.op.slice(8), f);
+      else if (f.op.indexOf("sug:") === 0) { const k7 = f.op.slice(4); if (!ops7.has(k7)) ops7.set(k7, f); }
+    }
+    for (const a of (Array.isArray(s.adjustments) ? s.adjustments : [])) {
+      if (!a || !a.undone || a.rid == null) continue;
+      const sid7 = String(a.rid);
+      if (sids7.has(sid7) || !ops7.has(sid7)) continue;
+      s.suggestionLog.push({ sid: sid7, decided: "approved", undone: true, orphan: true, d: a.d, ...(a.at ? { at: a.at } : {}), title: a.title || "" });
+      sids7.add(sid7);
+    }
+    for (const [sid7, f7] of ops7) {   /* FACT-only belt: the undo attestation alone proves an approved-then-undone decision */
+      if (sids7.has(sid7) || String(f7.op || "").indexOf("sugundo:") !== 0) continue;
+      s.suggestionLog.push({ sid: sid7, decided: "approved", undone: true, orphan: true, d: f7.d, title: f7.ti != null ? String(f7.ti) : "" });
+      sids7.add(sid7);
+    }
+  }
   /* SCALE-6 (Sol's pass 4, B4 — his required belt, shipped although his exact witness
      REFUTED on the real v7.54.18 engine: the old client's suggestionLog spread is
      measured REMOTE-wins wholesale, which preserves the cloud's undone flag. The belt
@@ -9910,11 +9962,28 @@ function reconcileSuggestionEffects(s) {
      pass-2 witness: the keyed union emitted arrival order, so one direction offered the
      older protein card and the other the newer sleep card. Day, then rid, then id —
      deterministic, latest day last. */
-  if (Array.isArray(s.adjustments)) s.adjustments = s.adjustments.slice().sort((a, b) => {
-    const ka = String((a && a.d) || "") + "|" + String((a && a.at) || "") + "|" + String((a && a.rid) || "") + "|" + String((a && a.id) || "");
-    const kb = String((b && b.d) || "") + "|" + String((b && b.at) || "") + "|" + String((b && b.rid) || "") + "|" + String((b && b.id) || "");
-    return ka < kb ? -1 : ka > kb ? 1 : 0;
-  }).map((a) => (a && typeof a === "object" && !Array.isArray(a) ? JSON.parse(_canonJ(a)) : a));   /* SCALE-6 — the instant orders the day (lastUndoable's tail = the LAST TAP, not the last rid alphabetically); canonical bytes for every row */
+  if (Array.isArray(s.adjustments)) {
+    /* SCALE-7 (Sol's pass 5, P1 — CONFIRMED with the real f72dbf7 writer: two same-day
+       applyProposal taps whose rid spelling opposed call order upgraded into a new
+       client whose Undo reversed the FIRST tap while the old device's own Undo got the
+       second). The old writer never stamped `at` — but it always recorded its instant
+       INSIDE the id (_freshId embeds Date.now in base36, lexically monotone), so the
+       causal order Sol requires preserved was on every row all along; the sort just
+       compared rid first and threw it away. The day now orders by provenance class:
+       "2"+at (stamped tap), else "1"+id (the legacy writer's own embedded instant, per
+       device), else "0"+ord (array position recovered at first settle — the 13 id-less
+       suggestion-era records). Cross-class and cross-device order is deterministic and
+       byte-convergent, and where it is not the athlete's proven order, lastUndoable
+       says so (orderSure) instead of claiming "last". `ord` is minted at the BOOT
+       exit only (_settleExit) — this function also runs on the merge path, where
+       arrival order depends on direction and a mint would break byte convergence. */
+    const c7 = (x) => (x && x.at) ? "2" + String(x.at) : (x && x.id) ? "1" + String(x.id) : "0" + String((x && x.ord) || "");
+    s.adjustments = s.adjustments.slice().sort((a, b) => {
+      const ka = String((a && a.d) || "") + "|" + c7(a) + "|" + String((a && a.rid) || "") + "|" + String((a && a.id) || "");
+      const kb = String((b && b.d) || "") + "|" + c7(b) + "|" + String((b && b.rid) || "") + "|" + String((b && b.id) || "");
+      return ka < kb ? -1 : ka > kb ? 1 : 0;
+    }).map((a) => (a && typeof a === "object" && !Array.isArray(a) ? JSON.parse(_canonJ(a)) : a));   /* SCALE-6 — the instant orders the day (lastUndoable's tail = the LAST TAP, not the last rid alphabetically); canonical bytes for every row */
+  }
   return s;
 }
 
@@ -11387,6 +11456,15 @@ function _settleExit(st) {
   reconcileLiftCaches(st); reconcileCorrectedLoads(st);
   reconcileEraTransitions(normalizePlan(st));
   if (!Array.isArray(st.suggestionLog)) st.suggestionLog = [];
+  /* SCALE-7 (Sol's pass 5, P1) — recover the single-writer legacy order HERE, at the
+     boot exit, before any sort ever runs on the stored arrays: every production row
+     predating the stamped writers was appended in decision order, so storage position
+     at first boot IS the recoverable causal order. Minted once, idempotently, and only
+     here — the merge path's arrival order depends on direction, so a mint there would
+     break byte convergence (a raw pin-state merged without booting simply keeps the
+     old deterministic sid/rid tie until its first boot). */
+  st.suggestionLog.forEach((x, i) => { if (x && typeof x === "object" && !Array.isArray(x) && !x.at && x.ord == null) x.ord = String(i).padStart(4, "0"); });
+  if (Array.isArray(st.adjustments)) st.adjustments.forEach((a, i) => { if (a && typeof a === "object" && !Array.isArray(a) && !a.at && !a.id && a.ord == null) a.ord = String(i).padStart(4, "0"); });
   /* the merge's own canonical shapes, mirrored at boot: every fork carries its ops
      identity (the why has always MEANT the operation — the fork union restates it the
      same way), and the plan carries the per-field stamp map and revision the plan union
@@ -13066,7 +13144,7 @@ function _isoOr(x) { return (typeof x === "string" && x) ? x : ""; }
 function _exDate(e) { return e && e.lastMeta ? _isoOr(e.lastMeta.d) : ""; }   // a lift's newest real session
 function _queueRank(q) { return q && q.done ? 1 : 0; }                        // done is terminal — it wins
 function _adjRank(a) { return ((a && a.undone) ? "2" : (a && a.dismissed) ? "1" : "0") + "|" + _canonJ(a); }   /* SCALE-5 — undone (the athlete's word) outranks dismissed (a derivation the reconciler recomputes anyway), and equal ranks settle by canonical body, never by which side was local: the pass-3 witness had merge(U,D) keep {undone} and merge(D,U) keep {dismissed} */
-function _sugRank(x) { const d9 = String((x && x.d) || "").replace(/-/g, ""); return (/^\d{8}$/.test(d9) ? String(99999999 - +d9).padStart(8, "0") : "00000000") + "|" + (x && x.undone ? "1" : "0") + "|" + _canonJ(x); }   /* SCALE-5 — within a day, the undone copy of a decision outranks its not-yet-undone twin: the athlete's undo is monotone, a stale device cannot resurrect the effect */   /* SCALE-1 — earlier decision outranks later; same day: canonical body; compared as strings by _unionKeyed */     // v7.2.0 audit — an UNDONE/declined adjustment is TERMINAL: a stale not-undone copy can never resurrect it (mirrors _queueRank)
+function _sugRank(x) { const d9 = String((x && x.d) || "").replace(/-/g, ""); return (/^\d{8}$/.test(d9) ? String(99999999 - +d9).padStart(8, "0") : "00000000") + "|" + (x && x.undone ? "1" : "0") + "|" + (x && x.orphan ? "0" : "1") + "|" + _canonJ(x); }   /* SCALE-7 — the true row outranks its absorbed tombstone: an orphan is a stand-in, never the record's better copy */   /* SCALE-5 — within a day, the undone copy of a decision outranks its not-yet-undone twin: the athlete's undo is monotone, a stale device cannot resurrect the effect */   /* SCALE-1 — earlier decision outranks later; same day: canonical body; compared as strings by _unionKeyed */     // v7.2.0 audit — an UNDONE/declined adjustment is TERMINAL: a stale not-undone copy can never resurrect it (mirrors _queueRank)
 function _unionKeyed(remoteArr, localArr, keyOf, scoreOf) {
   // keyed union for non-append-only state: on a collision the higher score wins, ties -> local.
   // score is any value comparable with > / === (an ISO date string OR a numeric rank). Ids on only
@@ -13338,7 +13416,18 @@ function _sugSorted(arr) {
      before). And every row is materialized in canonical key order — re-keying the same
      production row on another replica used to yield canonically-equal but
      byte-different merges that no boot repaired. */
-  const k9 = (x) => String((x && x.d) || "") + "|" + String((x && x.at) || "") + "|" + String((x && x.sid) || "") + "|" + _canonJ(x);
+  /* SCALE-7 (Sol's pass 5, P1) — RECOVER the single-writer legacy order before any
+     sort destroys it: every production row predating the stamped writers was appended
+     in decision order, so the array position at the FIRST settle IS the recoverable
+     causal order. A row lacking `at` gets a durable `ord` from that position — minted
+     at the BOOT exit only (_settleExit), never here: this sort also runs on merge
+     outputs, whose arrival order depends on merge direction, and an ord minted there
+     would break byte convergence. The day then orders by instant for stamped rows
+     ("1"+at) and by recovered position for legacy rows ("0"+ord), never by sid
+     spelling. Legacy rows minted concurrently on two replicas collide on ord and fall
+     to sid/body — deterministic, byte-convergent, and never CLAIMED as the athlete's
+     order (that claim is lastUndoable's, which carries orderSure for exactly this). */
+  const k9 = (x) => String((x && x.d) || "") + "|" + (x && x.at ? "1" + String(x.at) : "0" + String((x && x.ord) || "")) + "|" + String((x && x.sid) || "") + "|" + _canonJ(x);
   return arr.slice().sort((a, b) => { const ka = k9(a), kb = k9(b); return ka < kb ? -1 : ka > kb ? 1 : 0; }).map((x) => (x && typeof x === "object" && !Array.isArray(x) ? JSON.parse(_canonJ(x)) : x));
 }
 function mergeState(local, remote) {
@@ -14926,7 +15015,7 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
       {/* ALWAYS-VISIBLE UNDO — every applied move one tap reversible (Dietvorst 2018) */}
       {undoable && (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm, marginTop: SP.sm, padding: `${SP.sm}px ${SP.md}px`, border: `1px solid ${T.line}`, borderRadius: 8, background: T.plate }}>
-          <span style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.micro}px` }}>{undoable.auto ? "Auto-Pilot handled a routine move" : "Last move applied"}: {String(undoable.title || "").replace(/^AUTO-PILOT · /i, "").toLowerCase()}</span>
+          <span style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.micro}px` }}>{undoable.auto ? "Auto-Pilot handled a routine move" : (undoable.orderSure === false ? "Most recent move on file — same-day order unproven" : "Last move applied")}: {String(undoable.title || "").replace(/^AUTO-PILOT · /i, "").toLowerCase()}</span>
           {/* R15f — painted-control split: the painted chip rides the inner span; hit 36+8=44 */}
           <button onClick={() => { hap(10); const ns = undoAdjustment(s, undoable.rid); setS(ns); save(ns); }} aria-label="undo last move"
             style={{ background: "none", border: "none", padding: "4px 0", margin: "-4px 0", cursor: "pointer", flexShrink: 0 }}>

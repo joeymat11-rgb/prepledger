@@ -1791,6 +1791,133 @@ export function runClosureSF2(T, ok, readFileSync) {
     }
   }
 
+  /* ==================== SCALE-7 · SOL'S CLOSURE PASS-5 ROWS (2026-08-23) ====================
+     Two blockers, both executed CONFIRMED with the real f72dbf7 (v7.54.18) engine before
+     any fix was designed (cowork rigs 122a/122b/123/124). P0: the old client's wholesale
+     suggestionLog spread erased a decided row while its keyed adjustments union carried
+     the undo on — a TWO-replica ordinary ghSync flow, no race — the old guard called the
+     push safe, the fresh device re-offered the card, and a re-approval was killed at its
+     next settle by the stale undone adjustment. P1: two same-day taps by the real old
+     applyProposal writer (which never stamped `at` but always embedded its instant in the
+     id) upgraded into a new client whose Undo reversed the FIRST tap. Sol's bare
+     []+adjustment witness (no op line) is REFUTED as unreachable: the op-keyed line is
+     born with the approval on the same device and survives every measured braid beside
+     the adjustment. */
+  {
+    const J7 = JSON.stringify, cl7 = (x) => JSON.parse(J7(x));
+    const mkB7 = () => { const s = T.migrate(null); s.reads = []; s.feed = []; s.weekly = []; s.suggestionLog = []; s.adjustments = []; s.targets = {}; s.trend = 100; s.blackout = { until: "2020-01-01" }; return s; };
+    /* P0-a — the braid-shaped orphan heals at one boot: no row, an undone adjustment, the
+       op-keyed sug: receipt. Tombstone appears, card stays decided, effect off, UNDONE
+       receipt derives, byte fixed point. */
+    {
+      const s7 = mkB7();
+      s7.adjustments.push({ rid: "sug_o1", id: "adj_o1", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "Protein 205 g", undone: true });
+      s7.feed.push({ d: "2026-07-20", op: "sug:sug_o1", t: "ANALYST SUGGESTION APPLIED", how: "Protein 205 g — protein target set to 205 g/day" });
+      const b7 = T.migrate(cl7(s7));
+      const t7 = (b7.suggestionLog || []).find((x) => x && x.sid === "sug_o1");
+      ok(!!t7 && t7.decided === "approved" && t7.undone === true && t7.orphan === true && (b7.targets || {}).proteinG == null,
+        "SCALE-7 P0 — an orphan undo re-materializes as an approved+undone tombstone at boot: the card stays decided and no effect stands (at b68ed36 the sid vanished, the guard called it safe, and the card was re-offered)");
+      ok((b7.feed || []).some((f) => f && f.op === "sug:sug_o1" && f.t === "ANALYST SUGGESTION UNDONE"),
+        "SCALE-7 P0 — the UNDONE receipt re-derives from the tombstone");
+      ok(J7(T.migrate(cl7(b7))) === J7(b7),
+        "SCALE-7 P0 — the healed state is a byte fixed point of its next boot");
+    }
+    /* P0-b — the true row outranks its tombstone in the union, both directions, one row. */
+    {
+      const s7 = mkB7();
+      s7.adjustments.push({ rid: "sug_o2", id: "adj_o2", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "Protein 205 g", undone: true });
+      s7.feed.push({ d: "2026-07-20", op: "sug:sug_o2", t: "ANALYST SUGGESTION APPLIED", how: "Protein 205 g — protein target set to 205 g/day" });
+      const F7 = T.migrate(cl7(s7));
+      const R7 = mkB7();
+      R7.suggestionLog.push({ sid: "sug_o2", decided: "approved", undone: true, d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "Protein 205 g", apply: { kind: "protein", to: 205 }, predict: "" });
+      R7.adjustments.push({ rid: "sug_o2", id: "adj_o2", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "Protein 205 g", undone: true });
+      const m1 = T.mergeState(cl7(F7), cl7(R7)), m2 = T.mergeState(cl7(R7), cl7(F7));
+      const w7 = (m1.suggestionLog || []).filter((x) => x && x.sid === "sug_o2");
+      ok(w7.length === 1 && !!w7[0].apply && !w7[0].orphan && w7[0].undone === true && J7(m1) === J7(m2),
+        "SCALE-7 P0 — the true decision row beats its tombstone on the union's non-orphan bit (the tombstone's canonical bytes happen to outrank the richer row, so without the bit the apply body is stripped), byte-identical both directions");
+    }
+    /* P0-c — the REAL undo files the sugundo FACT line; it survives the receipt sweep and
+       the guard refuses its deletion BY NAME. */
+    {
+      const s7 = mkB7();
+      s7.suggestionLog.push({ sid: "sug_o3", decided: "approved", d: "2026-07-19", at: "2026-07-19T09:00:00.000Z", title: "Protein 205 g", apply: { kind: "protein", to: 205 }, predict: "" });
+      s7.adjustments.push({ rid: "sug_o3", id: "adj_o3", d: "2026-07-19", at: "2026-07-19T09:00:00.000Z", title: "Protein 205 g" });
+      const b7 = T.migrate(cl7(s7));
+      const u7 = T.undoAdjustment(cl7(b7), "sug_o3");
+      const f7 = (u7.feed || []).find((f) => f && f.op === "sugundo:sug_o3");
+      ok(!!f7 && f7.ti === "Protein 205 g" && (T.migrate(cl7(u7)).feed || []).some((f) => f && f.op === "sugundo:sug_o3"),
+        "SCALE-7 P0 — the undo tap files its own op-keyed FACT line (machine title in ti, never parsed from copy) and the receipt sweep does not touch it");
+      const g7 = cl7(T.migrate(cl7(u7)));
+      const cut7 = cl7(g7); cut7.feed = cut7.feed.filter((f) => !(f && f.op === "sugundo:sug_o3"));
+      const res7 = T.dataLossGuard(cl7(g7), cut7);
+      ok(!res7.safe && (res7.lost || []).some((x) => String(x) === "feedop sugundo:sug_o3"),
+        "SCALE-7 P0 — deleting the undo FACT is refused BY NAME (feedop clause)");
+    }
+    /* P0-d — the FACT line ALONE re-materializes the tombstone (row and adjustment both gone). */
+    {
+      const s7 = mkB7();
+      s7.feed.push({ d: "2026-07-20", op: "sugundo:sug_o4", ti: "Protein 205 g", t: "SUGGESTION UNDO ATTESTED — Protein 205 g", how: "You reversed this analyst move by one tap. This line is the record of that word — it travels with the data, so no older copy of the app can unsay it." });
+      const b7 = T.migrate(cl7(s7));
+      const t7 = (b7.suggestionLog || []).find((x) => x && x.sid === "sug_o4");
+      ok(!!t7 && t7.decided === "approved" && t7.undone === true && t7.orphan === true && t7.title === "Protein 205 g",
+        "SCALE-7 P0 — the sugundo FACT alone proves an approved-then-undone decision: the tombstone derives from the word, not from any survivor it happens to travel with");
+    }
+    /* P0-e — no invention: an undone adjustment with NO sug op is not absorbed (a
+       tombstone on a proposal-family rid would print an analyst line over an engine record). */
+    {
+      const s7 = mkB7();
+      s7.adjustments.push({ rid: "steppush_2026-07-13", id: "adj_o5", d: "2026-07-20", title: "Step push", undone: true });
+      const b7 = T.migrate(cl7(s7));
+      ok(!(b7.suggestionLog || []).some((x) => x && x.sid === "steppush_2026-07-13"),
+        "SCALE-7 P0 — an undone adjustment without the sid's op line is not provably suggestion-origin and mints nothing");
+    }
+    /* P1-a — the rig123 wound as a pin: two same-day UNSTAMPED taps by the old writer's
+       shape (ids embed the instant; rid spelling opposes call order). The undo door offers
+       the SECOND tap, does not claim proven order, and both directions agree. */
+    {
+      const s7 = mkB7();
+      s7.adjustments.push({ rid: "zz_first_tap", id: "adj_aaa000", d: "2026-07-20", title: "FIRST TAP" });
+      s7.adjustments.push({ rid: "aa_second_tap", id: "adj_bbb111", d: "2026-07-20", title: "SECOND TAP" });
+      const b7 = T.migrate(cl7(s7));
+      const lu7 = T.lastUndoable(b7);
+      ok(!!lu7 && lu7.rid === "aa_second_tap" && lu7.orderSure === false,
+        "SCALE-7 P1 — same-day unstamped taps order by the legacy writer's own embedded instant (the id), not rid spelling: Undo offers the SECOND tap (at b68ed36 it reversed the first — executed with the real f72dbf7 applyProposal in rig123) — and the door does not claim a proven order");
+      const p7 = mkB7();
+      const x1 = T.mergeState(cl7(b7), cl7(p7)), x2 = T.mergeState(cl7(p7), cl7(b7));
+      ok((T.lastUndoable(x1) || {}).rid === "aa_second_tap" && (T.lastUndoable(x2) || {}).rid === "aa_second_tap",
+        "SCALE-7 P1 — the pick is the same from both merge directions");
+    }
+    /* P1-b — the id-less suggestion-era records (13 live rows have no id and no at):
+       storage order is recovered at boot (ord), and a double boot is byte-stable. */
+    {
+      const s7 = mkB7();
+      s7.adjustments.push({ rid: "zz_first", d: "2026-07-20", title: "FIRST" });
+      s7.adjustments.push({ rid: "aa_second", d: "2026-07-20", title: "SECOND" });
+      const b7 = T.migrate(cl7(s7));
+      const day7 = (b7.adjustments || []).filter((a) => a && a.d === "2026-07-20");
+      ok(day7.length === 2 && day7[0].rid === "zz_first" && day7[1].rid === "aa_second" && day7.every((a) => a.ord != null),
+        "SCALE-7 P1 — id-less unstamped rows recover their storage order at boot (ord minted once), not rid order");
+      ok(J7(T.migrate(cl7(b7))) === J7(b7),
+        "SCALE-7 P1 — and the minted order is a byte fixed point");
+    }
+    /* P1-c — the decision log: two same-day UNSTAMPED approvals of one kind, array order
+       opposing sid order. The LATER decision keeps the effect (at b68ed36, sid spelling
+       reversed it), and the recovered order survives an old client's wholesale round trip. */
+    {
+      const s7 = mkB7();
+      s7.suggestionLog.push({ sid: "z_early", decided: "approved", d: "2026-07-20", title: "Protein 200", apply: { kind: "protein", to: 200 }, predict: "" });
+      s7.suggestionLog.push({ sid: "a_late", decided: "approved", d: "2026-07-20", title: "Protein 210", apply: { kind: "protein", to: 210 }, predict: "" });
+      const b7 = T.migrate(cl7(s7));
+      ok((b7.targets || {}).proteinG === 210,
+        "SCALE-7 P1 — the log's recovered storage order decides a same-day same-kind pair: the LATER decision's 210 stands (at b68ed36 sid spelling handed the effect back to 200)");
+      const ord7 = (b7.suggestionLog || []).filter((x) => x && x.d === "2026-07-20").map((x) => x.sid);
+      ok(J7(ord7) === J7(["z_early", "a_late"]) && (b7.suggestionLog || []).every((x) => x.at || x.ord != null),
+        "SCALE-7 P1 — storage order recovered as ord at the boot exit, before any sort runs");
+      ok(J7(T.migrate(cl7(b7))) === J7(b7) && (T.migrate(T.mergeState(cl7(b7), cl7(b7))).targets || {}).proteinG === 210,
+        "SCALE-7 P1 — fixed point, and the self-merge keeps the athlete's later decision");
+    }
+  }
+
 }
 
 /* THE NO-REMOTE PUT BODY, driven through the REAL ghSync (async — the caller
