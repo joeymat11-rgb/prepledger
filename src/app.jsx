@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.55.6";
+const APP_V = "7.55.7";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -9297,7 +9297,7 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
   }
   p.resolved = true;
   p.nudge = adj;
-  const row = { rid: p.rid, id: _freshId("adj_"), d: today, title: p.title, nudge: adj };
+  const row = { rid: p.rid, id: _freshId("adj_"), d: today, at: new Date().toISOString(), title: p.title, nudge: adj };   /* SCALE-8 — every writer stamps its instant (the id already embedded it; now it is first-class) */
   if ((p.apply || {}).kind === "cal") {
     /* v7.3.1 — APPROVAL TAKES EFFECT. Record the engine's own steer as a tracked, reversible offset
        (calorie band OR step target — the athlete's pick), which calorieTarget/stepTarget add on top of
@@ -9539,7 +9539,7 @@ function dismissProposal(state, pid) {
   const p = s.proposals.find((x) => x.id === pid);
   if (!p || p.resolved) return s;
   p.resolved = true; p.dismissed = true;
-  s.adjustments.push({ rid: p.rid, id: _freshId("adj_"), d: isoOf(todayStart()), title: p.title, dismissed: true });
+  s.adjustments.push({ rid: p.rid, id: _freshId("adj_"), d: isoOf(todayStart()), at: new Date().toISOString(), title: p.title, dismissed: true });   /* SCALE-8 — stamped like every other writer */
   /* R14 — WHAT A DECLINE BUYS, STATED PER KIND, so copy and mechanism agree from birth.
        The mechanism (since the applied() fix) is: a declined rid re-arms whenever its
        condition still holds on a later sweep. That is the honest default. Kinds whose
@@ -9582,13 +9582,16 @@ function lastUndoable(s) {
     const a = adj[i];
     if (!a || a.undone || a.dismissed) continue;      // only APPLIED moves are undoable (a decline changed nothing)
     if (structural(a.rid)) continue;
-    /* SCALE-7 (Sol's pass 5, P1) — "last" is a CLAIM, and a claim needs proof: a
-       stamped tap carries its instant, and a sole candidate on its day needs none.
-       Same-day legacy rows order deterministically (id class, then ord class) but that
-       order is per-device recovered, not the athlete's proven sequence — so the door
-       says "most recent on file" instead of "last" when orderSure is false. */
+    /* SCALE-7/8 (Sol's passes 5–6, P1) — "last" is a CLAIM, and a claim needs proof.
+       SCALE-8: sureness is a property of the COMPETING SET, not of the selected row —
+       "stamped" only proves the winner's own clock, and two same-day taps from two
+       devices order by wall clocks that carry no causal provenance (the executed skew
+       witness: a stamped winner claimed 'Last move applied' over an order its skewed
+       peer contradicted). A sole candidate needs no proof; any multi-candidate day is
+       ordered deterministically (one instant scale, then rid/id) but explicitly
+       UNPROVEN — the door says "most recent on file" instead of "last". */
     const day7 = adj.filter((x) => x && !x.undone && !x.dismissed && !structural(x.rid) && String(x.d) === String(a.d));
-    return { rid: a.rid, d: a.d, title: a.title, auto: !!a.auto, orderSure: !!a.at || day7.length <= 1 };
+    return { rid: a.rid, d: a.d, title: a.title, auto: !!a.auto, orderSure: day7.length <= 1 };
   }
   return null;
 }
@@ -9977,7 +9980,16 @@ function reconcileSuggestionEffects(s) {
        says so (orderSure) instead of claiming "last". `ord` is minted at the BOOT
        exit only (_settleExit) — this function also runs on the merge path, where
        arrival order depends on direction and a mint would break byte convergence. */
-    const c7 = (x) => (x && x.at) ? "2" + String(x.at) : (x && x.id) ? "1" + String(x.id) : "0" + String((x && x.ord) || "");
+    /* SCALE-8 (Sol's pass 6, P1 — CONFIRMED at 2e92fd0, and STRONGER than his witness:
+       three current writers file no `at` either, so a 9am suggestion approval and a 5pm
+       proposal tap on ONE v7.55.6 device already picked the 9am move as "last". The
+       provenance CLASS was ranking above recoverable TIME. Every source is now
+       normalized onto ONE comparable instant before ordering: `at` parses to epoch ms;
+       a legacy id's embedded _freshId timestamp (base36, chars 4–12, sanity-windowed
+       2001–2096) parses to the SAME scale; only a row with neither falls to its
+       recovered storage position. Stamped and legacy taps interleave by when they
+       actually happened, as recorded by their own writer. */
+    const c7 = (x) => { const t7 = _adjInstant(x); return t7 != null ? "1" + String(t7).padStart(15, "0") : "0" + String((x && x.ord) || ""); };
     s.adjustments = s.adjustments.slice().sort((a, b) => {
       const ka = String((a && a.d) || "") + "|" + c7(a) + "|" + String((a && a.rid) || "") + "|" + String((a && a.id) || "");
       const kb = String((b && b.d) || "") + "|" + c7(b) + "|" + String((b && b.rid) || "") + "|" + String((b && b.id) || "");
@@ -11464,7 +11476,7 @@ function _settleExit(st) {
      break byte convergence (a raw pin-state merged without booting simply keeps the
      old deterministic sid/rid tie until its first boot). */
   st.suggestionLog.forEach((x, i) => { if (x && typeof x === "object" && !Array.isArray(x) && !x.at && x.ord == null) x.ord = String(i).padStart(4, "0"); });
-  if (Array.isArray(st.adjustments)) st.adjustments.forEach((a, i) => { if (a && typeof a === "object" && !Array.isArray(a) && !a.at && !a.id && a.ord == null) a.ord = String(i).padStart(4, "0"); });
+  if (Array.isArray(st.adjustments)) st.adjustments.forEach((a, i) => { if (a && typeof a === "object" && !Array.isArray(a) && _adjInstant(a) == null && a.ord == null) a.ord = String(i).padStart(4, "0"); });   /* SCALE-8 — the mint mirrors _adjInstant exactly: a row with an unparseable id needs its position as much as an id-less one */
   /* the merge's own canonical shapes, mirrored at boot: every fork carries its ops
      identity (the why has always MEANT the operation — the fork union restates it the
      same way), and the plan carries the per-field stamp map and revision the plan union
@@ -13144,6 +13156,18 @@ function _isoOr(x) { return (typeof x === "string" && x) ? x : ""; }
 function _exDate(e) { return e && e.lastMeta ? _isoOr(e.lastMeta.d) : ""; }   // a lift's newest real session
 function _queueRank(q) { return q && q.done ? 1 : 0; }                        // done is terminal — it wins
 function _adjRank(a) { return ((a && a.undone) ? "2" : (a && a.dismissed) ? "1" : "0") + "|" + _canonJ(a); }   /* SCALE-5 — undone (the athlete's word) outranks dismissed (a derivation the reconciler recomputes anyway), and equal ranks settle by canonical body, never by which side was local: the pass-3 witness had merge(U,D) keep {undone} and merge(D,U) keep {dismissed} */
+/* SCALE-8 (Sol's pass 6, P1) — ONE COMPARABLE INSTANT for every adjustment source:
+   `at` parses to epoch ms; a legacy id's embedded _freshId timestamp (base36, the eight
+   chars after the prefix, sanity-windowed 2001–2096) parses to the SAME scale — the old
+   writer always recorded its instant there. A row with neither returns null and falls
+   to its recovered storage position (`ord`, minted at the boot exit under exactly this
+   predicate, so no row is ever left with neither an instant nor a position). */
+function _adjInstant(x) {
+  if (x && x.at) { const t7 = Date.parse(x.at); if (isFinite(t7)) return t7; }
+  const m7 = x && x.id ? /^adj_([0-9a-z]{8})/.exec(String(x.id)) : null;
+  if (m7) { const t7 = parseInt(m7[1], 36); if (t7 >= 1e12 && t7 < 4e12) return t7; }
+  return null;
+}
 function _sugRank(x) { const d9 = String((x && x.d) || "").replace(/-/g, ""); return (/^\d{8}$/.test(d9) ? String(99999999 - +d9).padStart(8, "0") : "00000000") + "|" + (x && x.undone ? "1" : "0") + "|" + (x && x.orphan ? "0" : "1") + "|" + _canonJ(x); }   /* SCALE-7 — the true row outranks its absorbed tombstone: an orphan is a stand-in, never the record's better copy */   /* SCALE-5 — within a day, the undone copy of a decision outranks its not-yet-undone twin: the athlete's undo is monotone, a stale device cannot resurrect the effect */   /* SCALE-1 — earlier decision outranks later; same day: canonical body; compared as strings by _unionKeyed */     // v7.2.0 audit — an UNDONE/declined adjustment is TERMINAL: a stale not-undone copy can never resurrect it (mirrors _queueRank)
 function _unionKeyed(remoteArr, localArr, keyOf, scoreOf) {
   // keyed union for non-append-only state: on a collision the higher score wins, ties -> local.
@@ -14974,7 +14998,7 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
     ns.proposals = ns.proposals || []; ns.adjustments = ns.adjustments || []; ns.feed = ns.feed || [];
     const effAuto = { calDelta: ap.action === "ease" ? Math.abs(ap.corrKcal) : -Math.abs(ap.corrKcal), stepsDelta: ap.dir === "cut" ? (ap.action === "ease" ? -Math.abs(ap.stepsAdd) : Math.abs(ap.stepsAdd)) : 0 };
     ns.proposals.push({ rid, id: rid + "_" + tISO, d: tISO, title, why: `Routine in-corridor move: ~${ap.pctRate}%BW/wk vs your ${modeLabel} target ~${ap.targetPct}% (~${ap.corrKcal} kcal). Handled at ${meta.short}.`, apply: { kind: "cal", delta: ap.corrKcal, dir: ap.action, calDelta: effAuto.calDelta, stepsDelta: effAuto.stepsDelta }, resolved: true, auto: true });
-    ns.adjustments.push({ rid, id: _freshId("adj_"), d: tISO, title, nudge: 0, auto: true, level, via: "cal", calDelta: effAuto.calDelta, from: tISO });   // v7.3.1 — the routine steer TAKES EFFECT (tracked, reversible, reconciles next weigh-in); v7.2.0 audit — stable id so the keyed-union merge collapses this record across devices
+    ns.adjustments.push({ rid, id: _freshId("adj_"), d: tISO, at: new Date().toISOString(), title, nudge: 0, auto: true, level, via: "cal", calDelta: effAuto.calDelta, from: tISO });   /* SCALE-8 — stamped like every other writer */   // v7.3.1 — the routine steer TAKES EFFECT (tracked, reversible, reconciles next weigh-in); v7.2.0 audit — stable id so the keyed-union merge collapses this record across devices
     const ctAuto = energyBalanceTarget(ns);
     ns.feed.unshift({ d: tISO, t: "AUTO-PILOT HANDLED IT", how: `${title} — ${meta.tag}. Band ${effAuto.calDelta < 0 ? "down" : "up"} ${Math.abs(effAuto.calDelta)} kcal${ctAuto && !ctAuto.gated ? ` → ${ctAuto.lo}–${ctAuto.hi}` : ""}; it holds until your next weigh-in and it's one tap to undo.` });
     setS(ns); save(ns);

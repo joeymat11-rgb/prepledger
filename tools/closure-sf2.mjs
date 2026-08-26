@@ -1918,6 +1918,92 @@ export function runClosureSF2(T, ok, readFileSync) {
     }
   }
 
+  /* ==================== SCALE-8 · SOL'S CLOSURE PASS-6 ROW (2026-08-24) ====================
+     One open row: mixed-era ordering ranked provenance CLASS above recoverable TIME, and
+     orderSure was a property of the selected row. Executed CONFIRMED at 2e92fd0 (rig126):
+     his exact witness (stamped 9am + real old applyProposal 5pm → Undo targeted 9am,
+     "Last move applied" claimed), a STRONGER one-device form (three current writers filed
+     no `at`, so a 9am suggestion approval + 5pm proposal tap on ONE v7.55.6 device did the
+     same), and the disclosed clock-skew witness (stamped winner claimed sureness over a
+     skew-dependent order — the A6 contradiction). Every source now normalizes onto ONE
+     instant scale; sureness is computed from the competing set. */
+  {
+    const J8 = JSON.stringify, cl8 = (x) => JSON.parse(J8(x));
+    const mkB8 = () => { const s = T.migrate(null); s.reads = []; s.feed = []; s.weekly = []; s.suggestionLog = []; s.adjustments = []; s.targets = {}; s.trend = 100; s.blackout = { until: "2020-01-01" }; return s; };
+    /* P6-a — SOL'S WITNESS: a stamped 09:00 tap and a LEGACY-SHAPE 17:00 tap (no at; the
+       instant lives in the id, as the real old writer always recorded it). The later tap
+       is targeted, the claim is withheld, both directions agree, fixed point. */
+    {
+      const s8 = mkB8();
+      const ms17 = Date.parse("2026-07-20T17:00:00.000Z");
+      s8.suggestionLog.push({ sid: "sugA8", decided: "approved", d: "2026-07-20", at: "2026-07-20T09:00:00.000Z", title: "A STAMPED 9AM", apply: { kind: "protein", to: 205 }, predict: "" });
+      s8.adjustments.push({ rid: "sugA8", id: "adj_" + Date.parse("2026-07-20T09:00:00.000Z").toString(36) + "0aaaa", d: "2026-07-20", at: "2026-07-20T09:00:00.000Z", title: "A STAMPED 9AM" });
+      s8.adjustments.push({ rid: "bb_old_5pm", id: "adj_" + ms17.toString(36) + "0bbbb", d: "2026-07-20", title: "B OLD 5PM" });
+      const b8 = T.migrate(cl8(s8));
+      const lu8 = T.lastUndoable(b8);
+      ok(!!lu8 && lu8.rid === "bb_old_5pm" && lu8.orderSure === false,
+        "SCALE-8 P1 — a legacy 5pm tap outranks a stamped 9am tap: one instant scale, class never beats time (at 2e92fd0 the stamped earlier move was targeted AND 'Last move applied' was claimed — Sol's witness, executed)");
+      const p8 = mkB8();
+      const x1 = T.mergeState(cl8(b8), cl8(p8)), x2 = T.mergeState(cl8(p8), cl8(b8));
+      ok((T.lastUndoable(x1) || {}).rid === "bb_old_5pm" && (T.lastUndoable(x2) || {}).rid === "bb_old_5pm" && J8(T.migrate(cl8(b8))) === J8(b8),
+        "SCALE-8 P1 — same pick from both merge directions, and the state is a byte fixed point");
+    }
+    /* P6-b — THE STRONGER ONE-DEVICE FORM, through the REAL current writer: a stamped
+       morning approval, then T.applyProposal in the afternoon. The proposal row now
+       carries its own stamp, and the later tap is the one Undo offers. */
+    {
+      const s8 = mkB8();
+      s8.proposals = [...(s8.proposals || []), { id: "pc8", rid: "bb_cur_pm", d: "2026-07-20", title: "B CURRENT PM", why: "w", apply: { kind: "note" } }];
+      const s8b = T.applyProposal(cl8(s8), "pc8");
+      const rowB = (s8b.adjustments || []).find((a) => a && a.rid === "bb_cur_pm");
+      ok(!!rowB && typeof rowB.at === "string" && isFinite(Date.parse(rowB.at)),
+        "SCALE-8 P1 — the REAL applyProposal stamps its instant (at 2e92fd0 it filed no at, so its taps ranked below every stamped row regardless of time)");
+      const at8 = rowB && typeof rowB.at === "string" && isFinite(Date.parse(rowB.at)) ? Date.parse(rowB.at) : Date.now();   /* crash-proof under the proposal-at-dropped mutant — a red must read as CAUGHT, never abort the run (the SCALE-5 pin-3b lesson) */
+      const earlier8 = new Date(at8 - 3600000).toISOString();
+      s8b.suggestionLog.push({ sid: "sugA8b", decided: "approved", d: rowB.d, at: earlier8, title: "A EARLIER", apply: { kind: "protein", to: 205 }, predict: "" });
+      s8b.adjustments.push({ rid: "sugA8b", id: "adj_" + (Date.parse(earlier8)).toString(36) + "0cccc", d: rowB.d, at: earlier8, title: "A EARLIER" });
+      const b8 = T.migrate(cl8(s8b));
+      const lu8 = T.lastUndoable(b8);
+      ok(!!lu8 && lu8.rid === "bb_cur_pm" && lu8.orderSure === false,
+        "SCALE-8 P1 — one current device, mixed writers: the afternoon proposal tap is the one Undo offers, and no claim is made over a multi-candidate day");
+    }
+    /* P6-c — THE SKEW WITNESS, EXECUTED AS REQUIRED: two stamped same-day taps from two
+       replicas whose clocks disagree. The pick stays deterministic by the recorded
+       instants (both directions), and sureness is NOT claimed — the recorded clock is
+       each device's own, not causal provenance. */
+    {
+      const A8 = mkB8();
+      A8.suggestionLog.push({ sid: "sugX8", decided: "approved", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "X", apply: { kind: "protein", to: 200 }, predict: "" });
+      A8.adjustments.push({ rid: "sugX8", id: "adj_x8", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "X" });
+      const B8 = mkB8();
+      B8.suggestionLog.push({ sid: "sugY8", decided: "approved", d: "2026-07-20", at: "2026-07-20T09:30:00.000Z", title: "Y", apply: { kind: "sleep", to: 7.5 }, predict: "" });
+      B8.adjustments.push({ rid: "sugY8", id: "adj_y8", d: "2026-07-20", at: "2026-07-20T09:30:00.000Z", title: "Y" });
+      const m1 = T.migrate(T.mergeState(T.migrate(cl8(A8)), T.migrate(cl8(B8)))), m2 = T.migrate(T.mergeState(T.migrate(cl8(B8)), T.migrate(cl8(A8))));
+      const l1 = T.lastUndoable(m1), l2 = T.lastUndoable(m2);
+      ok(!!l1 && l1.rid === (l2 || {}).rid && l1.orderSure === false,
+        "SCALE-8 P1 — two stamped taps under clock skew: deterministic pick from both directions, and 'Last move applied' is NOT claimed (at 2e92fd0 the stamped winner claimed it — the A6 contradiction, closed)");
+    }
+    /* P6-d — restraint: a sole candidate needs no proof, and the claim survives. */
+    {
+      const s8 = mkB8();
+      s8.suggestionLog.push({ sid: "solo8", decided: "approved", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "SOLO", apply: { kind: "protein", to: 205 }, predict: "" });
+      s8.adjustments.push({ rid: "solo8", id: "adj_s8", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "SOLO" });
+      const lu8 = T.lastUndoable(T.migrate(cl8(s8)));
+      ok(!!lu8 && lu8.rid === "solo8" && lu8.orderSure === true,
+        "SCALE-8 P1 — a sole candidate on its day keeps 'Last move applied': the honesty gate does not over-soften");
+    }
+    /* P6-e — an id outside the _freshId window falls to storage order, never to a fake instant. */
+    {
+      const s8 = mkB8();
+      s8.adjustments.push({ rid: "weird8", id: "adj_00000001wxyz", d: "2026-07-20", title: "WEIRD ID" });
+      s8.adjustments.push({ rid: "real8", id: "adj_" + Date.parse("2026-07-20T08:00:00.000Z").toString(36) + "0dddd", d: "2026-07-20", title: "REAL 8AM" });
+      const b8 = T.migrate(cl8(s8));
+      const day8 = (b8.adjustments || []).filter((a) => a && a.d === "2026-07-20");
+      ok(day8.length === 2 && day8[0].rid === "weird8" && day8[0].ord != null && day8[1].rid === "real8" && J8(T.migrate(cl8(b8))) === J8(b8),
+        "SCALE-8 P1 — an unparseable id is not an instant: the row keeps its recovered storage position (ord), the parsed row keeps its time, fixed point");
+    }
+  }
+
 }
 
 /* THE NO-REMOTE PUT BODY, driven through the REAL ghSync (async — the caller
