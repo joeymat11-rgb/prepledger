@@ -2105,8 +2105,82 @@ export function runClosureSF2(T, ok, readFileSync) {
       s9.adjustments.push({ rid: "far_old", id: ID9("2026-07-10T10:00:00.000Z"), d: "2026-07-10", at: "2026-07-10T10:00:00.000Z", title: "OLD" });
       s9.adjustments.push({ rid: "solo9", id: ID9("2026-07-20T10:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "SOLO" });
       const lu9 = T.lastUndoable(T.migrate(cl9(s9)));
-      ok(!!lu9 && lu9.rid === "solo9" && lu9.orderSure === true,
-        "SCALE-9 P1 — a move with no neighbour inside the skew window keeps 'Last move applied': the widened check does not silence every claim (his live steppush_2026-08-17 is exactly this shape)");
+      ok(!!lu9 && lu9.rid === "solo9" && lu9.orderSure === false,
+        "SCALE-10 — a second move on file, however far away, retires the causal claim: SCALE-9's isolated-move exemption was a finite window, and Sol's pass-8 witness steps past any finite window (this pin's SCALE-9 form asserted the exemption; it now asserts its retirement)");
+    }
+  }
+
+  /* ==================== SCALE-10 · SOL'S CLOSURE PASS-8 ROWS (2026-08-28) ====================
+     His argument is unanswerable and was not argued with: a FINITE WINDOW MOVES THE
+     BOUNDARY, IT DOES NOT CLOSE IT. Executed at 5c25ace (rig129): his exact
+     current-writer witness — X first on a fast clock records d 08-28 / at 01:01Z, Y ten
+     minutes LATER on a slow clock records d 08-27 / at 00:00Z, recorded separation
+     25h01m — sits outside the 24h neighbourhood, on different days, both stamped, so
+     every arm missed it and the door claimed "Last move applied" over the wrong move.
+     Closure (his option two, plus option one's restraint): the causal claim survives ONLY
+     where there is nothing to be wrong about — a single undoable move on file. Everywhere
+     else the surface reads RECORDED-ORDER semantics, which is what the deterministic
+     d-first selection actually computes. Also closed here: his two required boundary
+     pins — the previously UNPINNED adjoining-day arm, and the per-day mode transition,
+     which his refutation clause predicted exactly (mode was decided over every row, so an
+     undone fallback row reversed a day's timed rows forever). */
+  {
+    const J10 = JSON.stringify, cl10 = (x) => JSON.parse(J10(x));
+    const mk10 = () => { const s = T.migrate(null); s.reads = []; s.feed = []; s.weekly = []; s.suggestionLog = []; s.adjustments = []; s.targets = {}; s.trend = 100; s.blackout = { until: "2020-01-01" }; return s; };
+    const ID10 = (iso) => "adj_" + Date.parse(iso).toString(36);
+    /* P8-a — SOL'S EXACT WITNESS, just beyond the retired window. */
+    {
+      const s10 = mk10();
+      s10.adjustments.push({ rid: "y_true_later", id: ID10("2026-07-19T00:00:00.000Z"), d: "2026-07-19", at: "2026-07-19T00:00:00.000Z", title: "Y TRUE LATER" });
+      s10.adjustments.push({ rid: "x_true_earlier", id: ID10("2026-07-20T01:01:00.000Z"), d: "2026-07-20", at: "2026-07-20T01:01:00.000Z", title: "X TRUE EARLIER" });
+      const b10 = T.migrate(cl10(s10));
+      const lu10 = T.lastUndoable(b10);
+      ok(!!lu10 && lu10.orderSure === false,
+        "SCALE-10 — two stamped moves whose recorded separation exceeds any finite window are NOT claimed as ordered (at 5c25ace this rendered 'Last move applied' over the wrong move: 25h01m apart, different days, every arm missed it)");
+      const p10 = mk10();
+      const m1 = T.migrate(T.mergeState(cl10(b10), cl10(p10))), m2 = T.migrate(T.mergeState(cl10(p10), cl10(b10)));
+      ok((T.lastUndoable(m1) || {}).rid === (T.lastUndoable(m2) || {}).rid && (T.lastUndoable(m1) || {}).orderSure === false && J10(T.migrate(cl10(b10))) === J10(b10),
+        "SCALE-10 — selection stays deterministic from both merge directions and through a reboot; only the claim is retired");
+    }
+    /* P8-b — the ADJOINING-DAY ARM, previously unpinned (his required boundary pin 1). */
+    {
+      const s10 = mk10();
+      s10.adjustments.push({ rid: "noinst_D", d: "2026-07-19", title: "NO-INSTANT on D" });
+      s10.adjustments.push({ rid: "stamped_D1", id: ID10("2026-07-20T10:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "STAMPED on D+1" });
+      const b10 = T.migrate(cl10(s10));
+      const p10 = mk10();
+      const m2 = T.migrate(T.mergeState(cl10(p10), cl10(b10)));
+      ok((T.lastUndoable(b10) || {}).orderSure === false && (T.lastUndoable(m2) || {}).orderSure === false,
+        "SCALE-10 — a stamped row on D+1 beside a no-instant row on D is unclaimed in both merge directions (the arm SCALE-9 shipped without a witness)");
+    }
+    /* P8-c — THE PER-DAY MODE TRANSITION (his required boundary pin 2). */
+    {
+      const s10 = mk10();
+      s10.adjustments.push({ rid: "later_pm", id: ID10("2026-07-20T17:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T17:00:00.000Z", title: "PM" });
+      s10.adjustments.push({ rid: "earlier_am", id: ID10("2026-07-20T09:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T09:00:00.000Z", title: "AM" });
+      const base10 = T.migrate(cl10(s10));
+      ok((T.lastUndoable(base10) || {}).rid === "later_pm",
+        "SCALE-10 — an all-instant day whose storage order contradicts its instants resolves by instant");
+      const with10 = cl10(base10);
+      with10.adjustments.push({ rid: "fallback", d: "2026-07-20", title: "FALLBACK" });
+      const b1 = T.migrate(cl10(with10));
+      ok((T.lastUndoable(b1) || {}).rid === "fallback",
+        "SCALE-10 — adding a no-instant row moves that day to its shared recorded sequence, as SCALE-9 requires");
+      const und10 = cl10(b1);
+      und10.adjustments = und10.adjustments.map((a) => (a.rid === "fallback" ? { ...a, undone: true } : a));
+      const b2 = T.migrate(cl10(und10));
+      ok((T.lastUndoable(b2) || {}).rid === "later_pm" && J10(T.migrate(cl10(b2))) === J10(b2),
+        "SCALE-10 — and UNDOING that fallback row returns the day to its instants: the mode is read from the ACTIVE candidate set, so a retired row cannot permanently reverse the timed rows it never belonged to (at 5c25ace the reversal was permanent — Sol's own refutation clause, executed)");
+      const rem10 = cl10(b1); rem10.adjustments = rem10.adjustments.filter((a) => a.rid !== "fallback");
+      ok((T.lastUndoable(T.migrate(cl10(rem10))) || {}).rid === "later_pm",
+        "SCALE-10 — removing it outright does the same");
+    }
+    /* P8-d — the claim still EXISTS where it is provable: one move, nothing to be wrong about. */
+    {
+      const s10 = mk10();
+      s10.adjustments.push({ rid: "only10", id: ID10("2026-07-20T10:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "ONLY" });
+      ok((T.lastUndoable(T.migrate(cl10(s10))) || {}).orderSure === true,
+        "SCALE-10 — a single undoable move on file is still claimed as the last one: the retirement is of unprovable claims, not of the affordance");
     }
   }
 

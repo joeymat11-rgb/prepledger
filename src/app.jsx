@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.55.8";
+const APP_V = "7.55.9";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -9590,29 +9590,20 @@ function lastUndoable(s) {
        peer contradicted). A sole candidate needs no proof; any multi-candidate day is
        ordered deterministically (one instant scale, then rid/id) but explicitly
        UNPROVEN — the door says "most recent on file" instead of "last". */
-    /* SCALE-9 (Sol's pass 7, second row — CONFIRMED at 3ecf189, rig128 B): the day-scoped
-       check leaked across a DATE BOUNDARY. `d` carries no authority independent of `at`:
-       every writer sets it from the same device clock (isoOf(todayStart())), so a fast
-       replica's 00:05 tap files under D+1 while a slow replica's later 23:50 tap files
-       under D — the d-first key picks the earlier tap, and one-candidate-per-day called
-       it proven. Certainty is now judged against every NEARBY candidate, not the day
-       box: another undoable move counts as competing when it shares the day, when both
-       instants sit within SKEW_MS of each other, or when either lacks an instant and the
-       days adjoin. Only a move standing alone in that neighbourhood is claimed as the
-       last one. (The PICK is unchanged — deterministic, d-first; it is the CLAIM that
-       must not outrun the evidence.) */
-    const SKEW_MS = 24 * 60 * 60 * 1000;
-    const dayN9 = (iso) => { const t = Date.parse(String(iso) + "T00:00:00Z"); return isFinite(t) ? t / 86400000 : null; };
-    const tSel9 = _adjInstant(a), dSel9 = dayN9(a.d);
-    const near9 = (x) => {
-      if (String(x.d) === String(a.d)) return true;
-      const tx = _adjInstant(x);
-      if (tSel9 != null && tx != null) return Math.abs(tSel9 - tx) <= SKEW_MS;
-      const dx = dayN9(x.d);
-      return (dSel9 != null && dx != null) ? Math.abs(dSel9 - dx) <= 1 : true;
-    };
-    const day7 = adj.filter((x) => x && x !== a && !x.undone && !x.dismissed && !structural(x.rid) && near9(x));
-    return { rid: a.rid, d: a.d, title: a.title, auto: !!a.auto, orderSure: day7.length === 0 };
+    /* SCALE-10 (Sol's pass 8 — CONFIRMED at 5c25ace, rig129 A): a FINITE WINDOW MOVES THE
+       BOUNDARY, IT DOES NOT CLOSE IT. His witness: X on a fast clock records d 08-28 /
+       at 01:01Z; Y ten minutes LATER on a slow clock records d 08-27 / at 00:00Z. The
+       recorded separation is 25h01m — outside any 24-hour neighbourhood, different days,
+       both stamped — so the old check proved "certainty" and the door claimed "Last move
+       applied" over the wrong move. The same witness steps past ANY finite cutoff, so
+       widening or adapting the window cannot help. Until STAMP adds durable device/causal
+       provenance, the app does not get to assert causal recency at all: a claim survives
+       ONLY where there is nothing to be wrong about — a single undoable move on file.
+       Everywhere else the surface is RECORDED-ORDER semantics ("Latest dated move on
+       file"), which is exactly what the deterministic d-first selection computes. The
+       PICK is unchanged; the CLAIM is retired. */
+    const others10 = adj.filter((x) => x && x !== a && !x.undone && !x.dismissed && !structural(x.rid));
+    return { rid: a.rid, d: a.d, title: a.title, auto: !!a.auto, orderSure: others10.length === 0 };
   }
   return null;
 }
@@ -10021,8 +10012,24 @@ function reconcileSuggestionEffects(s) {
        orders by its persisted storage rank (ord, minted for every row at the boot exit
        — see _settleExit), which is the one scale every row in that sequence shares.
        Never a ladder between the two. */
+    /* SCALE-10 (Sol's pass 8, his third item — CONFIRMED at 5c25ace, rig129 C): the mode
+       was decided over EVERY row on the day, so a no-instant row that was added and then
+       UNDONE left its day in recovered-sequence mode forever, permanently reversing the
+       timed rows that remained. His own refutation clause names the fix: mode selection
+       runs over the EXACT ACTIVE CANDIDATE SET — the rows that can still be selected. A
+       day whose only fallback row has been undone or dismissed returns to its instants; a
+       day with no active rows at all keeps the whole-day reading, so the stored order of
+       a fully-retired day stays stable. */
+    const act10 = s.adjustments.filter((x) => x && !x.undone && !x.dismissed);
+    const byD10 = new Map();
+    for (const x of act10) { const d = String((x && x.d) || ""); if (!byD10.has(d)) byD10.set(d, []); byD10.get(d).push(x); }
     const mixed9 = new Set();
-    for (const a of s.adjustments) { if (a && _adjInstant(a) == null) mixed9.add(String((a && a.d) || "")); }
+    for (const a of s.adjustments) {
+      if (!a) continue;
+      const d = String((a && a.d) || "");
+      const pool = byD10.has(d) ? byD10.get(d) : s.adjustments.filter((x) => x && String((x && x.d) || "") === d);
+      if (pool.some((x) => _adjInstant(x) == null)) mixed9.add(d);
+    }
     const c7 = (x) => { const d9 = String((x && x.d) || ""); const t7 = _adjInstant(x);
       return (mixed9.has(d9) || t7 == null) ? "0" + String((x && x.ord) || "") : "1" + String(t7).padStart(15, "0"); };
     s.adjustments = s.adjustments.slice().sort((a, b) => {
@@ -15074,7 +15081,7 @@ function AutoPilotTrust({ s, setS, save, tISO }) {
       {/* ALWAYS-VISIBLE UNDO — every applied move one tap reversible (Dietvorst 2018) */}
       {undoable && (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: SP.sm, marginTop: SP.sm, padding: `${SP.sm}px ${SP.md}px`, border: `1px solid ${T.line}`, borderRadius: 8, background: T.plate }}>
-          <span style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.micro}px` }}>{undoable.auto ? "Auto-Pilot handled a routine move" : (undoable.orderSure === false ? "Most recent move on file — same-day order unproven" : "Last move applied")}: {String(undoable.title || "").replace(/^AUTO-PILOT · /i, "").toLowerCase()}</span>
+          <span style={{ fontFamily: body, fontSize: TS.micro, color: T.steel, lineHeight: `${LH.micro}px` }}>{undoable.auto ? "Auto-Pilot handled a routine move" : (undoable.orderSure === false ? "Latest dated move on file" : "Last move applied")}: {String(undoable.title || "").replace(/^AUTO-PILOT · /i, "").toLowerCase()}</span>
           {/* R15f — painted-control split: the painted chip rides the inner span; hit 36+8=44 */}
           <button onClick={() => { hap(10); const ns = undoAdjustment(s, undoable.rid); setS(ns); save(ns); }} aria-label="undo last move"
             style={{ background: "none", border: "none", padding: "4px 0", margin: "-4px 0", cursor: "pointer", flexShrink: 0 }}>
