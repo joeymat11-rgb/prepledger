@@ -2004,6 +2004,112 @@ export function runClosureSF2(T, ok, readFileSync) {
     }
   }
 
+  /* ==================== SCALE-9 · SOL'S CLOSURE PASS-7 ROWS (2026-08-27) ====================
+     Two rows, both EXECUTED CONFIRMED at 3ecf189 (rig128) before any design.
+     (1) SCALE-8 retired the at-vs-id ladder but left an instant-vs-ord one: a day holding
+     both an instant-bearing row and a no-instant row compared epoch ms against a storage
+     position, so the ord row sorted first whatever the recovered sequence said and Undo
+     offered the EARLIER move (rig128 A1). (2) The day-scoped certainty check leaked across
+     a DATE BOUNDARY: `d` is written from the same device clock as `at` (every writer uses
+     isoOf(todayStart())), so it carries no independent authority — a fast replica's 00:05
+     tap files under D+1, a slow replica's later 23:50 tap under D, the d-first key picks
+     the earlier one, and one-candidate-per-day called it PROVEN (rig128 B). Sol's
+     reachability out was declined: the ladder is real in code, so it is closed in code. */
+  {
+    const J9 = JSON.stringify, cl9 = (x) => JSON.parse(J9(x));
+    const mkB9 = () => { const s = T.migrate(null); s.reads = []; s.feed = []; s.weekly = []; s.suggestionLog = []; s.adjustments = []; s.targets = {}; s.trend = 100; s.blackout = { until: "2020-01-01" }; return s; };
+    const ID9 = (iso) => "adj_" + Date.parse(iso).toString(36);
+    /* P7-a — A(valid instant, position 0) then B(no instant, position 1): B is LATER. */
+    {
+      const s9 = mkB9();
+      s9.adjustments.push({ rid: "a_first", id: ID9("2026-07-20T09:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T09:00:00.000Z", title: "A FIRST" });
+      s9.adjustments.push({ rid: "b_second", d: "2026-07-20", title: "B SECOND" });
+      const b9 = T.migrate(cl9(s9));
+      const lu9 = T.lastUndoable(b9);
+      ok(!!lu9 && lu9.rid === "b_second" && lu9.orderSure === false,
+        "SCALE-9 P1 — a mixed day orders on ONE scale: the later no-instant row is targeted over the earlier stamped row (at 3ecf189 the ord row sorted first by class and Undo reversed A — Sol's witness, executed), and the claim is withheld");
+      ok(J9(T.migrate(cl9(b9))) === J9(b9) && (b9.adjustments || []).every((a) => a.ord != null),
+        "SCALE-9 P1 — every row in the sequence carries the one comparable rank, and the state is a byte fixed point of its next boot");
+      const p9 = mkB9();
+      const x1 = T.migrate(T.mergeState(cl9(b9), cl9(p9))), x2 = T.migrate(T.mergeState(cl9(p9), cl9(b9)));
+      ok((T.lastUndoable(x1) || {}).rid === "b_second" && (T.lastUndoable(x2) || {}).rid === "b_second",
+        "SCALE-9 P1 — same target from both merge directions, and through a reboot");
+    }
+    /* P7-b — the reverse order: B(no instant) first, A(instant) later. A must be targeted. */
+    {
+      const s9 = mkB9();
+      s9.adjustments.push({ rid: "b_first", d: "2026-07-20", title: "B FIRST" });
+      s9.adjustments.push({ rid: "a_second", id: ID9("2026-07-20T17:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T17:00:00.000Z", title: "A SECOND" });
+      const lu9 = T.lastUndoable(T.migrate(cl9(s9)));
+      ok(!!lu9 && lu9.rid === "a_second" && lu9.orderSure === false,
+        "SCALE-9 P1 — reversed: the later stamped row is targeted over the earlier no-instant row (the rank follows the sequence, not the class)");
+    }
+    /* P7-c — an OUTSIDE-WINDOW id is a no-instant row for the whole day's ordering. */
+    {
+      const s9 = mkB9();
+      s9.adjustments.push({ rid: "a_first", id: ID9("2026-07-20T09:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T09:00:00.000Z", title: "A FIRST" });
+      s9.adjustments.push({ rid: "b_weird", id: "adj_00000001wxyz", d: "2026-07-20", title: "B WEIRD ID" });
+      const lu9 = T.lastUndoable(T.migrate(cl9(s9)));
+      ok(!!lu9 && lu9.rid === "b_weird",
+        "SCALE-9 P1 — an id outside the _freshId window makes its day a recovered-sequence day: no fabricated instant, and no ladder against the rows that have one");
+    }
+    /* P7-d — positions 9 and 10 (Sol's unpadded-lexical trap), all no-instant. */
+    {
+      const s9 = mkB9();
+      for (let i = 0; i < 11; i++) s9.adjustments.push({ rid: "z" + i, d: "2026-07-20", title: "ROW " + i });
+      const b9 = T.migrate(cl9(s9));
+      const seq9 = (b9.adjustments || []).filter((a) => a.d === "2026-07-20").map((a) => a.title);
+      ok(J9(seq9) === J9(["ROW 0", "ROW 1", "ROW 2", "ROW 3", "ROW 4", "ROW 5", "ROW 6", "ROW 7", "ROW 8", "ROW 9", "ROW 10"]) && (T.lastUndoable(b9) || {}).rid === "z10",
+        "SCALE-9 P1 — position 10 sorts after position 9, not between 1 and 2: the rank is zero-padded (Sol's unpadded-lexical trap)");
+    }
+    /* P7-e — mixed day, 11 rows, crossing 9/10 with an instant row in the middle. */
+    {
+      const s9 = mkB9();
+      for (let i = 0; i < 11; i++) {
+        if (i === 5) s9.adjustments.push({ rid: "m5", id: ID9("2026-07-20T23:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T23:00:00.000Z", title: "STAMPED LATE-LOOKING" });
+        else s9.adjustments.push({ rid: "z" + i, d: "2026-07-20", title: "ROW " + i });
+      }
+      const b9 = T.migrate(cl9(s9));
+      ok((T.lastUndoable(b9) || {}).rid === "z10",
+        "SCALE-9 P1 — a stamped row's late-looking instant does not jump the recovered sequence on a mixed day: position, consistently, for every row in it");
+    }
+    /* P7-f — THE DATE BOUNDARY (Sol's required W3 extension). */
+    {
+      const s9 = mkB9();
+      s9.adjustments.push({ rid: "y_later", id: ID9("2026-07-20T23:50:00.000Z"), d: "2026-07-20", at: "2026-07-20T23:50:00.000Z", title: "Y TRUE LATER (slow clock)" });
+      s9.adjustments.push({ rid: "x_earlier", id: ID9("2026-07-21T00:05:00.000Z"), d: "2026-07-21", at: "2026-07-21T00:05:00.000Z", title: "X TRUE EARLIER (fast clock)" });
+      const b9 = T.migrate(cl9(s9));
+      const lu9 = T.lastUndoable(b9);
+      ok(!!lu9 && lu9.orderSure === false,
+        "SCALE-9 P1 — two taps minutes apart across a skewed midnight are NOT claimed as ordered: `d` comes from the same clock as `at`, so the day box proves nothing (at 3ecf189 one-candidate-per-day rendered 'Last move applied' over exactly this)");
+      const x1 = T.mergeState(cl9(b9), cl9(mkB9())), x2 = T.mergeState(cl9(mkB9()), cl9(b9));
+      ok((T.lastUndoable(T.migrate(x1)) || {}).rid === (T.lastUndoable(T.migrate(x2)) || {}).rid,
+        "SCALE-9 P1 — and the pick across that boundary is still deterministic from both directions");
+    }
+    /* P7-h — the id's embedded instant is still AUTHORITATIVE when the whole day can
+       supply instants: storage order deliberately contradicts the clock here, and the
+       clock wins. (This is what keeps the SCALE-8 normalization falsifiable now that a
+       mixed day falls to storage rank: kill the id parse and this day becomes a
+       recovered-sequence day, which reverses the answer.) */
+    {
+      const s9 = mkB9();
+      s9.adjustments.push({ rid: "a_stamped_pm", id: ID9("2026-07-20T17:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T17:00:00.000Z", title: "A STAMPED 5PM" });
+      s9.adjustments.push({ rid: "b_legacy_am", id: ID9("2026-07-20T09:00:00.000Z"), d: "2026-07-20", title: "B LEGACY 9AM (id only)" });
+      const lu9 = T.lastUndoable(T.migrate(cl9(s9)));
+      ok(!!lu9 && lu9.rid === "a_stamped_pm",
+        "SCALE-9 P1 — when every row in the day has a derivable instant, the instants rule even against storage order: the legacy id's own recorded 9am does not become 'last' by sitting later in the array");
+    }
+    /* P7-g — restraint: a genuinely isolated move keeps its claim. */
+    {
+      const s9 = mkB9();
+      s9.adjustments.push({ rid: "far_old", id: ID9("2026-07-10T10:00:00.000Z"), d: "2026-07-10", at: "2026-07-10T10:00:00.000Z", title: "OLD" });
+      s9.adjustments.push({ rid: "solo9", id: ID9("2026-07-20T10:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "SOLO" });
+      const lu9 = T.lastUndoable(T.migrate(cl9(s9)));
+      ok(!!lu9 && lu9.rid === "solo9" && lu9.orderSure === true,
+        "SCALE-9 P1 — a move with no neighbour inside the skew window keeps 'Last move applied': the widened check does not silence every claim (his live steppush_2026-08-17 is exactly this shape)");
+    }
+  }
+
 }
 
 /* THE NO-REMOTE PUT BODY, driven through the REAL ghSync (async — the caller

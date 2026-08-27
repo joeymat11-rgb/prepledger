@@ -354,7 +354,7 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.55.7";
+const APP_V = "7.55.8";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
@@ -9590,8 +9590,29 @@ function lastUndoable(s) {
        peer contradicted). A sole candidate needs no proof; any multi-candidate day is
        ordered deterministically (one instant scale, then rid/id) but explicitly
        UNPROVEN — the door says "most recent on file" instead of "last". */
-    const day7 = adj.filter((x) => x && !x.undone && !x.dismissed && !structural(x.rid) && String(x.d) === String(a.d));
-    return { rid: a.rid, d: a.d, title: a.title, auto: !!a.auto, orderSure: day7.length <= 1 };
+    /* SCALE-9 (Sol's pass 7, second row — CONFIRMED at 3ecf189, rig128 B): the day-scoped
+       check leaked across a DATE BOUNDARY. `d` carries no authority independent of `at`:
+       every writer sets it from the same device clock (isoOf(todayStart())), so a fast
+       replica's 00:05 tap files under D+1 while a slow replica's later 23:50 tap files
+       under D — the d-first key picks the earlier tap, and one-candidate-per-day called
+       it proven. Certainty is now judged against every NEARBY candidate, not the day
+       box: another undoable move counts as competing when it shares the day, when both
+       instants sit within SKEW_MS of each other, or when either lacks an instant and the
+       days adjoin. Only a move standing alone in that neighbourhood is claimed as the
+       last one. (The PICK is unchanged — deterministic, d-first; it is the CLAIM that
+       must not outrun the evidence.) */
+    const SKEW_MS = 24 * 60 * 60 * 1000;
+    const dayN9 = (iso) => { const t = Date.parse(String(iso) + "T00:00:00Z"); return isFinite(t) ? t / 86400000 : null; };
+    const tSel9 = _adjInstant(a), dSel9 = dayN9(a.d);
+    const near9 = (x) => {
+      if (String(x.d) === String(a.d)) return true;
+      const tx = _adjInstant(x);
+      if (tSel9 != null && tx != null) return Math.abs(tSel9 - tx) <= SKEW_MS;
+      const dx = dayN9(x.d);
+      return (dSel9 != null && dx != null) ? Math.abs(dSel9 - dx) <= 1 : true;
+    };
+    const day7 = adj.filter((x) => x && x !== a && !x.undone && !x.dismissed && !structural(x.rid) && near9(x));
+    return { rid: a.rid, d: a.d, title: a.title, auto: !!a.auto, orderSure: day7.length === 0 };
   }
   return null;
 }
@@ -9989,7 +10010,21 @@ function reconcileSuggestionEffects(s) {
        2001–2096) parses to the SAME scale; only a row with neither falls to its
        recovered storage position. Stamped and legacy taps interleave by when they
        actually happened, as recorded by their own writer. */
-    const c7 = (x) => { const t7 = _adjInstant(x); return t7 != null ? "1" + String(t7).padStart(15, "0") : "0" + String((x && x.ord) || ""); };
+    /* SCALE-9 (Sol's pass 7, P1 — CONFIRMED at 3ecf189, rig128 A1): SCALE-8 retired the
+       at-vs-id class ladder but left an instant-vs-ord one. A day holding BOTH an
+       instant-bearing row and a no-instant row compared epoch milliseconds ("1"+ms)
+       against a storage position ("0"+ord) — so the ord row always sorted first
+       whatever the recovered sequence said, and a row written FIRST was offered as the
+       last move. The classes are no longer compared: ONE rank per day, chosen by what
+       the whole day can support. Every row in a day whose instants are complete orders
+       by instant; if ANY row in that day lacks a derivable instant, the WHOLE day
+       orders by its persisted storage rank (ord, minted for every row at the boot exit
+       — see _settleExit), which is the one scale every row in that sequence shares.
+       Never a ladder between the two. */
+    const mixed9 = new Set();
+    for (const a of s.adjustments) { if (a && _adjInstant(a) == null) mixed9.add(String((a && a.d) || "")); }
+    const c7 = (x) => { const d9 = String((x && x.d) || ""); const t7 = _adjInstant(x);
+      return (mixed9.has(d9) || t7 == null) ? "0" + String((x && x.ord) || "") : "1" + String(t7).padStart(15, "0"); };
     s.adjustments = s.adjustments.slice().sort((a, b) => {
       const ka = String((a && a.d) || "") + "|" + c7(a) + "|" + String((a && a.rid) || "") + "|" + String((a && a.id) || "");
       const kb = String((b && b.d) || "") + "|" + c7(b) + "|" + String((b && b.rid) || "") + "|" + String((b && b.id) || "");
@@ -11476,7 +11511,7 @@ function _settleExit(st) {
      break byte convergence (a raw pin-state merged without booting simply keeps the
      old deterministic sid/rid tie until its first boot). */
   st.suggestionLog.forEach((x, i) => { if (x && typeof x === "object" && !Array.isArray(x) && !x.at && x.ord == null) x.ord = String(i).padStart(4, "0"); });
-  if (Array.isArray(st.adjustments)) st.adjustments.forEach((a, i) => { if (a && typeof a === "object" && !Array.isArray(a) && _adjInstant(a) == null && a.ord == null) a.ord = String(i).padStart(4, "0"); });   /* SCALE-8 — the mint mirrors _adjInstant exactly: a row with an unparseable id needs its position as much as an id-less one */
+  if (Array.isArray(st.adjustments)) st.adjustments.forEach((a, i) => { if (a && typeof a === "object" && !Array.isArray(a) && a.ord == null) a.ord = String(i).padStart(4, "0"); });   /* SCALE-9 (Sol's pass 7) — EVERY row gets its storage rank, not just the no-instant ones: a mixed day must order all of its rows on ONE scale, so the rank has to exist on the instant-bearing rows too (SCALE-8 minted only where _adjInstant was null, which is what left the ladder). Padded, so position 10 never sorts before 9. */
   /* the merge's own canonical shapes, mirrored at boot: every fork carries its ops
      identity (the why has always MEANT the operation — the fork union restates it the
      same way), and the plan carries the per-field stamp map and revision the plan union
