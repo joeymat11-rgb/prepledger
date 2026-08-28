@@ -514,6 +514,26 @@ const AIM = {
      B: the stale pre-decision copy. And the same-card conflict: A dismissed the card on
      8/16 (kind provenance on the row), B approved it on 8/17 (proteinG 200). The
      decision AND its effect must converge whole-state in both directions. */
+  /* PROGRESSION-1 (2026-08-19 rulings) — A RETIRED SEAM MUST NOT COME BACK. Eleven lifts
+     carried an insertion fork stamped with the day the code ran, and each of them read it as
+     a fresh baseline and repeated its own last line. The seams are retired by ruling — but a
+     one-time deletion would not have survived: forks merge union-by-date and the feed is a
+     max-multiset, so a replica that still carried one would hand it straight back on the next
+     sync. The repair is that a context seam is DERIVED at every boundary from the plan
+     marker, the ruled pair table and actual exposure. A: a stale replica still carrying the
+     8/17 fly seam on rows and its feed line. B: the corrected state. C: clean. */
+  14453: { apply: (out) => {
+      const D9 = "2026-08-17";
+      const rowsOf = (s9) => (s9.exercises || []).find((e) => e && e.id === "rows");
+      const r9 = rowsOf(out[0]);
+      if (r9) r9.forks = [...(r9.forks || []), { from: D9, why: "fly inserted upstream", ops: ["fly inserted upstream"], prevN: r9.n, split: true, kind: "context" }];
+      out[0].feed = [{ op: "seam:fly:rows", d: D9, t: "PRIME SEATED ROW (HOOKS) — FRESH BASELINE", how: "(the seam a previous version wrote on the day the code ran)" }, ...(out[0].feed || [])];
+      out[0].insertions = { ...(out[0].insertions || {}), fly: D9 };
+      return ["rows carries the retired 8/17 fly seam + its feed line, marker 8/17", "(corrected: no seam, marker 8/14)", "(clean)"]; },
+    assert: (out) => { const r9 = (out[0].exercises || []).find((e) => e && e.id === "rows");
+      return !!r9 && (r9.forks || []).some((f) => f && f.from === "2026-08-17" && f.split)
+        && (out[0].feed || []).some((f) => f && f.op === "seam:fly:rows")
+        && !((out[1].exercises || []).find((e) => e && e.id === "rows").forks || []).some((f) => f && f.split); } },
   14452: { apply: (out) => {
       out[0].suggestionLog = [...(out[0].suggestionLog || []), { sid: "sug_2026-08-20_p", decided: "approved", d: "2026-08-20", title: "protein to 200", apply: { kind: "protein", to: 200 }, predict: "" }, { sid: "sug_2026-08-16_x", decided: "dismissed", d: "2026-08-16", title: "sleep to 8", apply: { kind: "sleep" } }];
       out[0].targets = { ...(out[0].targets || {}), proteinG: 200 };
@@ -1098,7 +1118,7 @@ function replicas(seed) {
 const settle = (s) => T.migrate(T.migrate(cl(s)));           /* leg-7 doctrine: an ADOPTING boot is not idempotent by design; the state settles by the second */
 const sessTotals = (s) => Object.fromEntries(Object.entries(s.sessionLog || {}).map(([d, r]) => [d, ((r.entries || []).length) + ((r.skipped || []).length) + ((Array.isArray(r.dropped) ? r.dropped : []).length)]));   /* a lift the carve discarded is still ACCOUNTED FOR by name in dropped — the record does not shrink, it tells; a silent carve shrinks and fails here too */
 /* the merge's PROJECTIONS — receipts re-derived from the merged state on every merge (the carve line since Sol's pass 4, the adoptshift line since leg 19): they go when their warrant goes and land at the front of their day, so every clause about "the lines a side already had" sets them aside */
-const isProjection = (f) => !!(f && ((typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0 || f.op.indexOf("lateread:") === 0 || f.op.indexOf("sug:") === 0 || f.op === "patch59:scale")) || f.t === "EVENING READ — SET ASIDE" || f.t === "LATE READ — SET ASIDE" || f.t === "ANALYST SUGGESTION APPLIED" || f.t === "ANALYST SUGGESTION DISMISSED" || f.t === "ANALYST SUGGESTION NOTED" || f.t === "ANALYST SUGGESTION UNDONE" || (typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0))));   /* SCALE-2 — the read receipts join the projection class; SCALE-4 — the analyst-suggestion receipts and the patch59 receipt join it too (see _isFeedProjection) */
+const isProjection = (f) => !!(f && ((typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0 || f.op.indexOf("lateread:") === 0 || f.op.indexOf("sug:") === 0 || f.op.indexOf("seam:") === 0 || f.op === "patch59:scale")) || f.t === "EVENING READ — SET ASIDE" || f.t === "LATE READ — SET ASIDE" || f.t === "ANALYST SUGGESTION APPLIED" || f.t === "ANALYST SUGGESTION DISMISSED" || f.t === "ANALYST SUGGESTION NOTED" || f.t === "ANALYST SUGGESTION UNDONE" || (typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0))));   /* SCALE-2 — the read receipts join the projection class; SCALE-4 — the analyst-suggestion receipts and the patch59 receipt join it too (see _isFeedProjection) */
 const stores = (s) => ({
   reads: (s.reads || []).length, nights: ((s.sleep || {}).nights || []).length,
   dailyLogs: Object.keys(s.dailyLogs || {}).length, sessionLog: Object.keys(s.sessionLog || {}).length,
@@ -1631,6 +1651,7 @@ const SEEDS = [
   { seed: 14448, why: "SOL'S PASS-7 HUNT: a stale projection (carve AND adoptshift) carried by ONE replica made two identical days differ; the day was canonicalised, the stale lines then removed correctly, and the permanent lines stayed alphabetical. MUTATION IT GUARDS: projections-enter-day-order", redAt: "3e544d0" },
   { seed: 14450, why: "SCALE-2 (Sol pass 1, rows 2+H1): a v7.54.18 replica's op-less EVENING line beside the op-keyed LATE line survived as two receipts for one read, and a false MORNING READ MISSED outlived the clean read that disproves it. MUTATIONS IT GUARDS: lateread-not-projected, missed-not-healed", redAt: "0d1719b" },
   { seed: 14451, why: "SCALE-2 (Sol pass 1, row 3a): a partial replica's honest replay met the full read set; the union carried the superset while trend/pt/weekly rode the richer copy — divergent by direction. MUTATION IT GUARDS: trend-chain-not-derived", redAt: "0d1719b" },
+  { seed: 14453, why: "PROGRESSION-1: a stale replica carrying an insertion seam stamped by the day the code ran (the eleven that froze his lifts) meets the corrected state — the seam and its feed line must not come back from either direction, which is why a context seam is DERIVED at every boundary rather than deleted once. MUTATIONS IT GUARDS: seams-not-projected, seam-derivation-uses-marker-date", redAt: "7676140 (main at v7.55.9)" },
   { seed: 14452, why: "SCALE-2 (Sol pass 1, row 4): the decision converged while its EFFECT (targets.*) rode local-wins; and a same-card conflict left the losing approval's target standing. MUTATION IT GUARDS: effects-not-derived", redAt: "0d1719b" },
   { seed: 14449, why: "SCALE-1 (cowork, 2026-08-19, live): the analyst-card decisions (suggestionLog) rode {...remote, ...local} — a decision tapped on one device was reverted when a stale device synced after it, and the same card decided on two devices settled by merge direction. MUTATIONS IT GUARDS: decisions-wholesale, decision-tie-by-device (both → convergence)", redAt: "f72dbf7 (main at v7.54.18)" },
   { seed: 14447, why: "COWORK (leg 19): a replica already carrying a stale adoptshift line (its kept receipt agrees with the working load) — every merge kept it. MUTATION IT GUARDS: adoptshift-not-projected", redAt: "0c0c11c (and every tip since the writer)" },
@@ -1781,6 +1802,11 @@ const MUTATIONS = [
   ["fork-ops-not-canonical", "pin", "the boot stops restating fork ops — a boot differs from its own self-merge in bytes no reconciler owns", `      const ops9 = [...new Set(Array.isArray(f9.ops) && f9.ops.length ? f9.ops.map(String) : (f9.why ? [String(f9.why)] : []))].sort();
       const why9 = ops9.length > 1 ? ops9.join(" + ") : (f9.why != null ? f9.why : ops9[0]);`, `      const ops9 = [];   /* mutant: no restatement */
       const why9 = f9.why;`],
+  ["seams-not-projected", "pin", "the insertion seams stop being derived at every boundary — a stale replica hands a retired seam straight back through the fork union and the feed's max-multiset, and the eleven lifts freeze again (the fork union is deterministic either way, so the LAWS cannot see this: the pins are the owner)", `  deriveInsertionSeams(s);`, `  /* mutant: a seam is a stored fact */`],
+  ["seam-derivation-uses-marker-date", "pin", "the seam is dated at the plan marker again instead of at ACTUAL EXPOSURE — the day the plan changed is not the day the lift was first performed under it, which is the whole defect (eleven seams stamped 8/17 for lifts that trained under nothing that day)", `        for (const d of dates9) { if (d < marker9) continue; if (didOn9(d, newId) && didOn9(d, affId)) { seamD9 = d; break; } }`, `        seamD9 = marker9;   /* mutant: the plan's date is the seam's date */`],
+  ["settle-fork-kind-dropped", "pin", "the boot exit's fork restatement rebuilds from a fixed key set again and silently drops the fork KIND — the first-class classifier vanishes and only the legacy split marker carries the reading", `...(f9.kind ? { kind: f9.kind } : {}), ...(f9.split ? { split: true } : {}) };`, `...(f9.split ? { split: true } : {}) };   /* mutant: kind is not a fork field */`],
+  ["patch60-mints-marker", "pin", "patchV60 MINTS an insertion marker instead of only lowering an existing one — a quarantined, invalid fly birth is handed the registry entry the quarantine exists to withhold", `      if (seed9 && ins9[k9] != null && String(ins9[k9]) > String(seed9)) ins9[k9] = seed9;`, `      if (seed9 && (ins9[k9] == null || String(ins9[k9]) > String(seed9))) ins9[k9] = seed9;   /* mutant: mint it */`],
+  ["sighting-resurrected", "pin", "the per-lift merge prefers the HIGHER sighting run — a stale replica's banked sighting revives a record the earn already spent, and a second debut can mint off it (the only direction that could buy an unearned load: R13a-3's fence)", `  exercises: { keyOf: (e) => e && e.id, scoreOf: _exDate },`, `  exercises: { keyOf: (e) => e && e.id, scoreOf: (e) => String((e && e.topRun) || 0) },   /* mutant: the bigger run wins the lift */`],
   ["corrections-unguarded", "pin", "the correction ledger leaves recordCounts", `    corrections: Object.values((st.sessionLog && typeof st.sessionLog === "object") ? st.sessionLog : {}).reduce((n9, r9) => n9 + ((r9 && Array.isArray(r9.corrLog)) ? r9.corrLog.length : 0), 0),`, `    corrections: 0,`],
 ];
 async function runMutations() {

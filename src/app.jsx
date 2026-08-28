@@ -354,13 +354,13 @@ if (typeof document !== "undefined" && reduceMotionOn()) {
    the way to light (or the reverse). Runs here rather than beside applyTheme's
    definition because it depends on SEM and REDLINE_TEXT already existing. */
 if (typeof document !== "undefined") { try { applyTheme(readThemeChoice()); } catch (e) {} }
-const APP_V = "7.55.9";
+const APP_V = "7.56.0";
 /* The schema version, declared once. Two places must agree: the SEED (which is
    authored already-current) and migrate() (which walks old states up to it).
    They used to carry the number independently and drifted — the seed sat a
    version behind for a whole release. Bumping this constant plus appending to
    PATCHES is now the entire ritual. */
-const SCHEMA_V = 59;
+const SCHEMA_V = 60;
 const START = "2026-06-10";
 const SEAL_UNTIL = "2026-07-27";
 const CROSSOVER = "2026-08-28";
@@ -391,7 +391,16 @@ const EXERCISES = [
     setup: "SET · unilateral · cable highest · handle [PIN] · stance [PIN]\nSweep through your full pain-free arc to the same endpoint · keep torso fixed—no twist or swing" },
   { id: "rows", mg: "back", lastMeta: { d: "2026-07-20", w: 175, reps: [10, 10], debt: true }, n: "Prime seated row (hooks)", day: "U", w: 175, inc: 5, sets: 2, hi: 10, last: [10, 10],
     setup: "SET · seat 4 · chest pad 7 · resistance profile 1 · grip [PIN] · Gymreapers hooks fitted the same way\nUse your full pain-free reach and finish at the same points with chest on pad · keep torso still—no pad lift" },
-  { id: "curl", mg: "biceps", lastMeta: { d: "2026-07-20", w: "55·55·50", reps: [12, 8, 10], debt: true }, n: "Curls (preacher)", day: "U", w: "55·55·50", inc: 5, sets: 3, hi: 12, last: [12, 8, 10], ladder: { set: 1, top: 12 },
+  /* C5/Q4 (PROGRESSION-1) — THE WORKING LOAD IS A NUMBER; THE PER-SET LINE RIDES BESIDE IT.
+     "55·55·50" was a string, so every numeric path skipped this lift: nextLoad returned
+     null, the earn walk was gated on typeof ex.w === "number", and the ladder branch
+     returned before the walk ever ran — two top sessions at [12,12,12] banked nothing and
+     q_curl_grad sat as a coach flag forever. That is not a viable steady state (both
+     auditors). ex.w is the working load, ex.wSets is the per-set vector the card, the gym
+     screen and the receipts print, and the vector steps UNIFORMLY by inc — the owner's
+     graduation line 60·60·55 is exactly 55·55·50 + 5. Historical entries keep the w/wKey
+     they were logged with; history is never rewritten. */
+  { id: "curl", mg: "biceps", lastMeta: { d: "2026-07-20", w: "55·55·50", reps: [12, 8, 10], debt: true }, n: "Curls (preacher)", day: "U", w: 55, wSets: [55, 55, 50], inc: 5, sets: 3, hi: 12, last: [12, 8, 10],
     setup: "SET · resistance profile 5 · seat 3\nKeep upper arms on the pad through your full pain-free elbow range · stop before a shoulder roll starts" },
   { id: "fly", mg: "chest", n: "Machine fly", day: "U", w: null, wAt: "2026-08-12T00:00:00.000Z", inc: 5, incAt: "2026-08-12T00:00:00.000Z", sets: 2, setsAt: "2026-08-12T00:00:00.000Z", hi: 20, hiAt: "2026-08-12T00:00:00.000Z", last: null,
     setup: "SET · fly mode · seat [PIN] · start [PIN] · resistance profile [PIN]\nKeep back on pad and elbows at the same bend through your full pain-free range · open and close to the same endpoints—no bounce", setupAt: "2026-08-12T00:00:00.000Z" },
@@ -915,7 +924,14 @@ function liftCall(s, exId, opts = {}) {
    protection a rushed session already gets. The flag now shields him from being
    punished for a bad night instead of blocking him from gaining on one. */
 function progressStep(ex, s) {
-  if (ex.holdFlag) return { add: 0, why: "governor hold — the opener has run hot two sessions straight, so nothing climbs until an honest one lands" };
+  /* Q8b (PROGRESSION-1) — THE HOLD HOLDS THE LOAD, NOT THE REPS. This early return zeroed
+     the rep step too, so a held lift was prescribed its own last line and the instrument the
+     governor is waiting for — an honest opener at a climbing target — was never asked for.
+     The hold keeps blocking the automatic load earn (earnWalk), the two-grind-opener trigger
+     and the opener->=1 release are untouched, and rirPlan still clamps the OPENER to two in
+     reserve; the rep step reads the delivered line's terminal RIR as normal. Witness: abs's
+     08-10 card was held at [14,12,14]; the ruled card is [14,13,14], which is what he
+     delivered. */
   /* FIX 3c — no step sizes off a cross-era comparison: the last known numbers
      prescribe as a baseline plan, and progression resumes from what the new
      era's own first session says. One era's worth of patience, bought by his
@@ -987,6 +1003,10 @@ function progressAnchor(ex, s) {
 function maxedOut(ex) {
   return typeof ex.w === "number" && ex.hi != null && nextLoad(ex) == null;
 }
+/* C7/Q5 — the ruled set reallocations, keyed on the ruling that made them: the lift, and the
+   stamp the set-count change carries. Nothing else in the app may print this line, and it
+   speaks only while the card and the last delivered line still disagree. */
+const SET_REALLOCATIONS = [{ id: "calves", setsAt: "2026-08-12T00:00:00.000Z", line: "3 sets today — one calf set was deliberately reallocated to hip thrust in the approved split." }];
 function targetsFor(ex, s) {
   /* OWNER'S CALL rider — std/reclaim are AUTHORED target arrays sized for the set count
      they were written at. A set-count change must not silently shrink or crash the
@@ -1002,10 +1022,22 @@ function targetsFor(ex, s) {
   while (t.length < ex.sets) t.push(Math.max(1, (t[t.length - 1] || ex.hi - 2) - 1));
   const { add } = progressStep(ex, s);
   const cap9 = maxedOut(ex) ? Infinity : ex.hi;   /* MAXED-LADDER — reps are the ladder past the top of a maxed stack */
+  /* Q7a (PROGRESSION-1, order G): climb TOWARD the shape the earn accepts — atTopOfWindow's
+     taper (r[0] >= hi, r[i] >= hi - i) — never toward flat. A dropped set fills only while it is
+     below the set before it AND below its own taper ceiling; the opener goes last, so the
+     2-RIR opener is never the set asked to carry the climb. A line that already IS the taper
+     eats the add and repeats until its sighting confirms. On a maxed ladder every ceiling is
+     Infinity and the loop is byte-identical to the old one. Executed on the live ledger: the
+     shipped loop took an 87.5 lateral debut through TEN chases to [15,14,14,14,14] — about six
+     reps at a load the window never asked for — while the top was four reps away; this reaches
+     it in four. C15: the add is distributed over the PROGRESSION-BEARING PREFIX only; slots a
+     later volume push added keep their delivered floor and bank without gating this load. */
+  const pref9 = progressionSetCount(ex, s);
+  const ceilI = (i) => maxedOut(ex) ? Infinity : ex.hi - i;
   for (let n = 0; n < add; n++) {
     let idx = -1;
-    for (let i = 1; i < t.length; i++) if (t[i] < t[i - 1]) { idx = i; break; }
-    if (idx === -1 && t[0] < cap9) idx = 0;
+    for (let i = 1; i < Math.min(t.length, pref9); i++) if (t[i] < t[i - 1] && t[i] < ceilI(i)) { idx = i; break; }
+    if (idx === -1 && t[0] < cap9 && t[0] < ceilI(0)) idx = 0;
     if (idx < 0) break;
     t[idx] = Math.min(cap9, t[idx] + 1);
   }
@@ -1126,8 +1158,25 @@ function loadRungs(ex) {
   return [...new Set(r)].sort((a, b) => a - b);
 }
 /** The next load up, or null when there is none — the top of the stack is real. */
+/* Q8a (PROGRESSION-1) — THE DEBUT EXPECTATION SCALES WITH THE JUMP. His measured slope
+   over seven non-calves load jumps is about ONE REP PER 5% OF LOAD; that debit's per-set
+   error is 0.00 mean / 0.50 MAE, while the textbook failure-set slope (pct/2.75) asks below
+   what he actually keeps and the shipped flat -1 asked above it on a big jump. A debut line
+   is a 2-RIR opener's line, not a failure-set table. Fallback debit 1 when a valid numeric
+   old/new pair is absent — a debut with no comparable prior load is the smallest honest
+   jump by construction. */
+function debutDebit(from9, to9) {
+  if (!(typeof from9 === "number" && typeof to9 === "number" && from9 > 0 && to9 > from9)) return 1;
+  return Math.max(1, Math.round(100 * (to9 - from9) / from9 / 5));
+}
 function nextLoad(ex, from) {
-  const w = Number(from != null ? from : ex.w);
+  /* C6 (PROGRESSION-1) — a MISSING load is not a load of zero. Number(null) and
+     Number("") are both 0, so a lift with no working weight on file reported a next
+     load of `inc` — the live hip thrust, never performed, advertised "5". Absent is
+     absent: the card shows no next load until a real one lands. */
+  const raw9 = from != null ? from : ex.w;
+  if (raw9 == null || raw9 === "") return null;
+  const w = Number(raw9);
   if (!isFinite(w)) return null;
   const rungs = loadRungs(ex);
   if (rungs) { const up = rungs.find((x) => x > w); return up == null ? null : up; }
@@ -1135,7 +1184,10 @@ function nextLoad(ex, from) {
 }
 /** The next load down. Used by RESET, which must never invent a weight either. */
 function prevLoad(ex, from) {
-  const w = Number(from != null ? from : ex.w);
+  /* C6 — the same guard on the way down: RESET must not invent a weight either. */
+  const raw9 = from != null ? from : ex.w;
+  if (raw9 == null || raw9 === "") return null;
+  const w = Number(raw9);
   if (!isFinite(w)) return null;
   const rungs = loadRungs(ex);
   if (rungs) { const down = rungs.filter((x) => x < w); return down.length ? down[down.length - 1] : null; }
@@ -1245,9 +1297,41 @@ function coarseLifts(s) {
     .map((x) => ({ id: x.e.id, n: x.e.n, w: x.e.w, step: x.w.step, pct: x.w.pct, lost: x.w.lost, hi: x.e.hi, lo: x.w.lo }));
 }
 
-function atTopOfWindow(reps, ex) {
-  const r = (reps || []).slice(0, ex.sets);
-  if (r.length < ex.sets) return false;
+/* Q8c (PROGRESSION-1, Sol's shape) — THE WINDOW TOP IS JUDGED ON THE SETS THAT WERE THE
+   TEST. A volume push adds a set mid-load; the window then demanded a taper across a slot
+   that did not exist when the current load's line was set, so a lift could sit permanently
+   one set short of a top it had already reached. The PROGRESSION-BEARING PREFIX is the set
+   count that existed when the CURRENT load first produced a completed line in the current
+   TECHNIQUE era — derived from sessionLog at judgment time, never stored, so it needs no
+   migration and cannot go stale. A later slot BANKS (R20b) but does not gate this load's
+   earn; it graduates into the test at the next load, whose first completed line includes it
+   by construction. A maxed ladder always uses every configured set (reps ARE the ladder
+   there), and a load with no line yet falls back to ex.sets. Total-reps substitution stays
+   rejected: the prefix is a PREFIX, and the taper still applies across it. */
+function progressionSetCount(ex, s, through) {
+  try {
+    if (!ex || !ex.sets) return (ex && ex.sets) || 0;
+    if (maxedOut(ex)) return ex.sets;
+    if (ex.w == null || ex.w === "") return ex.sets;
+    const key9 = String(ex.w);
+    const fks9 = resetForksOf(s, ex.id);
+    const ref9 = through || isoOf(todayStart());
+    const dates9 = Object.keys((s && s.sessionLog) || {}).filter((d) => d <= ref9).sort();
+    for (const d of dates9) {
+      if (fks9.length && !sameEra(fks9, d, ref9)) continue;
+      const en9 = (((s.sessionLog[d] || {}).entries) || []).find((e) => e && e.id === ex.id && Array.isArray(e.reps) && e.reps.length);
+      if (!en9) continue;
+      if (String(en9.w != null ? en9.w : en9.wKey) !== key9) continue;
+      return Math.min(ex.sets, en9.reps.length);
+    }
+  } catch (e) {}
+  return ex.sets;
+}
+function atTopOfWindow(reps, ex, s, through) {
+  /* Q8c — judged on the progression-bearing prefix, not on every configured set. */
+  const pref9 = s ? progressionSetCount(ex, s, through) : ex.sets;
+  const r = (reps || []).slice(0, pref9);
+  if (r.length < pref9) return false;
   /* MAXED-LADDER — on a maxed stack the window top is the MOVING DELIVERED CEILING (the
      best opener on file), so the two-sightings discipline, the hot-guard and the banked
      records keep their meaning above the old hi instead of going dark at it. */
@@ -1293,9 +1377,43 @@ function genSession(s, iso, slp) {
       note = "DEBUT — find the working weight: pick a load you can control for about " + (e.hi != null ? e.hi : "the target") + " reps, enter the load and log what it gives. Zero expectations — everything banks.";
     }
     else if (e.id === "hack" && e.pendingThird && isDebutNow) { tgt = [...targetsFor(e, s), Math.max(8, e.hi - 3)]; note = "DEBUT — third set banks whatever it gives"; }
-    else if (q && q.kind === "debut" && e.last) { tgt = e.last.map((r) => Math.max(6, r - 1)); note = `DEBUT at ${w} — smallest honest jump: expect to keep almost every rep`; }
+    else if (q && q.kind === "debut" && e.last) {
+      /* C12 — FIT THE PRIOR LINE TO THE SET COUNT FIRST. e.last is the line at the OLD
+         load and may carry a different number of sets than this lift now runs: a 4-set
+         last line on a 5-set lift produced four targets. Same pad-and-truncate rule the
+         anchor path uses.
+         C13 (Q8a) — THEN DEBIT BY THE SIZE OF THE JUMP. A debut line is a 2-RIR opener's
+         line, not a failure-set table, so the textbook 2.5-3%-per-rep slope over-debits it;
+         his own measured slope over seven non-calves load jumps is about ONE REP PER 5% OF
+         LOAD (that debit's per-set error is 0.00 mean / 0.50 MAE). The old flat -1 floored
+         at 6 was wrong in both directions: it under-debited an 11% jump (hack 180->200 was
+         asked [8,8,9] and delivered [7,7,8]) and the floor could ask a COLLAPSED set for
+         MORE at a heavier load (press [8,9,8,4] -> [7,8,7,6]). The floor of 6 is deleted;
+         every target still floors at 1. */
+      const base9 = e.last.slice(0, e.sets);
+      while (base9.length < e.sets) base9.push(Math.max(1, (base9[base9.length - 1] || e.hi - 2) - 1));
+      const vecOld9 = Array.isArray(e.wSets) ? e.wSets : null;
+      const vecNew9 = Array.isArray(q.newWSets) ? q.newWSets : null;
+      const d9 = debutDebit(e.w, w);
+      tgt = base9.map((r, i) => {
+        const di9 = (vecOld9 && vecNew9 && vecOld9[i] != null && vecNew9[i] != null) ? debutDebit(vecOld9[i], vecNew9[i]) : d9;
+        return Math.max(1, r - di9);
+      });
+      const pct9 = (typeof e.w === "number" && typeof w === "number" && e.w > 0) ? Math.round(100 * (w - e.w) / e.w * 10) / 10 : null;
+      note = d9 <= 1
+        ? `DEBUT at ${w} — smallest honest jump: expect to keep almost every rep`
+        : `DEBUT at ${w} — honest jump: about ${d9} fewer per set${pct9 != null ? " at +" + pct9 + "%" : ""}`;
+    }
     else if (q && !e.last) { tgt = targetsFor(e, s); note = e.debutNote || `DEBUT at ${w}`; }
     else { tgt = targetsFor(e, s); note = e.own ? `OWN-IT — ${e.ownNote}` : e.reclaim ? "RECLAIM — the exact standard" : e.ladder ? `set ${e.ladder.set + 1} is the ladder — top of rung ${e.ladder.top}` : e.note; }
+    /* C7/Q5 (PROGRESSION-1, the owner's exact words) — ONE LINE FOR THE RULED REALLOCATION.
+       Calves shows three sets where its last delivered line has four, and the card said
+       nothing: the fourth set was deliberately moved to the hip thrust in the approved
+       split, and a silent drop reads as a mistake. Display only — the 08-10 line is not
+       rewritten and the set does not come back. It retires itself the moment a three-set
+       line exists, because then the card and the record agree without explanation. */
+    const realloc9 = SET_REALLOCATIONS.find((x) => x.id === e.id && String(e.setsAt || "") === x.setsAt);
+    if (realloc9 && e.sets < ((e.last || []).length || 0)) note = realloc9.line;
     if (e.holdFlag) note = "HELD — opener ran 0 RIR twice · one honest session releases it";
     const live = (() => {
       if (baselineAsk) return "baseline ask — enter the load you used; what it gives today IS the line";
@@ -1312,6 +1430,12 @@ function genSession(s, iso, slp) {
        line the earn block already tests, restated as reps remaining. */
     const runway = (() => {
       if (typeof e.w !== "number") return null;
+      /* Q7d (PROGRESSION-1) — a DEBUT card's runway priced the OLD load: the distance was
+         computed from e.last (the previous load's line) against e.w, so the 87.5 debut card
+         itself read "87.5 EARNS AT THE TOP OF THE WINDOW ... you are there". Nothing is
+         earned on the session that sets a new line. Short-circuit before any distance
+         arithmetic. */
+      if (isDebutNow && q) return `DEBUT at ${w} — this session sets the line at the new load; the runway prices itself after it lands`;
       if (e.holdFlag) return "HELD — an honest opener (RIR ≥1) releases the load; the runway resumes where it left off";
       const up9 = nextLoad(e);
       const win9 = windowFor(e);
@@ -1528,6 +1652,21 @@ function forkFrom(s, exId) {
    one-boundary sameEra was approved for one seam while the same commit armed a
    second (the insertion table) — a strapless read would have pooled with a
    hooked one the day the fly landed. */
+/* C1 (PROGRESSION-1, Q2) — TWO FORK KINDS, TWO JOBS.
+   A fork has always done two things at once: it partitions COMPARABILITY (records, the
+   anchor's window, stalls, calibration banners, exposure counts) and it drives a RESET
+   (eraFresh -> add 0 for one session, standards retire, the sighting record clears). That
+   bundle was correct for a TECHNIQUE change — a new grip is a different lift, so nothing
+   before it compares and nothing before it is owed. It was wrong for a CONTEXT change: an
+   insertion upstream changes what a session costs, not what the lift is, and eleven lifts
+   repeated their last line for a month because a context seam claimed a fresh baseline.
+   forksOf stays "all forks" (comparability, unchanged everywhere). resetForksOf is the
+   TECHNIQUE-only set, and only the reset decisions read it. Back-compat: a fork with no
+   kind is classified by its split marker, which is exactly how the two shipped insertion
+   seams were written. */
+function resetForksOf(s, exId) {
+  return forksOf(s, exId).filter((f) => f && (f.kind ? f.kind !== "context" : !f.split));
+}
 function forksOf(s, exId) {
   try {
     const e9 = ((s && s.exercises) || []).find((x) => x && x.id === exId);
@@ -1654,21 +1793,23 @@ function canonicalizePlan(s) {
     const e9 = (s.exercises || []).find((x) => x && x.id === id9);
     if (e9 && (e9.std || e9.own || e9.reclaim)) { e9.std = null; e9.own = false; e9.reclaim = null; }
   }
+  /* C2/Q3 — THE INSERTION SEAMS ARE DERIVED HERE, at the one pass boot, merge and import
+     all go through. Runs BEFORE the fork housekeeping below so the collapse and sort see
+     the derived set. */
+  deriveInsertionSeams(s);
   for (const e of (s.exercises || [])) {
     if (!e || !Array.isArray(e.forks) || !e.forks.length) continue;
     /* legacy restatement: a pre-fix runtime insertion fork carried its why but
        no ops identity — the why has always MEANT the operation, so lifting it
        into ops is a restatement, not an invention. Cue seams are untouched. */
     for (const f of e.forks) { if (f && !f.ops && f.why && / inserted upstream$/.test(String(f.why))) { f.ops = [f.why]; f.split = true; } }
-    for (const f of e.forks) {
-      if (!f || !f.split) continue;   /* only split seams re-date; ruled 8/13 seams are history */
-      let latestOld = null;
-      for (const d of Object.keys(s.sessionLog || {})) {
-        const en = ((s.sessionLog[d] || {}).entries || []).find((x) => x && x.id === e.id);
-        if (en && d >= f.from && (en.og == null || en.og < 51)) { if (!latestOld || d > latestOld) latestOld = d; }
-      }
-      if (latestOld) { const nd = new Date(latestOld + "T12:00:00Z"); nd.setUTCDate(nd.getUTCDate() + 1); f.from = nd.toISOString().slice(0, 10); }
-    }
+    /* C2/Q3 — THE LEGACY RE-DATER IS RETIRED. It pushed a split seam past the latest
+       entry on/after it whose `og` was null or < 51 — the in-flight rule, written to keep a
+       STORED seam ahead of a session already on the record. Derived seams have no such job:
+       the date IS the exposure, computed from sessionLog every time, so a rule that moved
+       it could only move it away from the truth. Executed: this rule alone re-dated
+       extension/ham/abs/hanging to 08-15 at the next boot and brought the repeats back,
+       in both merge directions. Its removal is source-pinned (T5). */
     if (e.forks.length > 1) {
       /* same-OPERATION different-date seams collapse to the EARLIEST sighting
          (two devices firing the same insertion offline saw one event twice);
@@ -1718,6 +1859,61 @@ function normalizePlan(s) {
    wherever the date lands — an unrelated same-date seam no longer causes a
    permanent skip), receipts op-id guarded, registry recorded AFTER the seams
    so a half-applied insertion cannot mark itself done. */
+/* C2/Q1/Q2c (PROGRESSION-1) — THE PAIR TABLE. A context seam exists ONLY where the
+   inserted lift shares a WORKING MUSCLE with the lift that follows it. The machine fly is
+   a pec fly: pecs and anterior delt share nothing with a rear-delt fly, a pulldown, rows,
+   a curl, a tricep pushdown or a wrist curl — so the fly seams NOTHING, and the six seams
+   it wrote were six lifts told to start over for a change that never touched them. The hip
+   thrust is hip extension, so it shares with the ham curl and with nothing else on that
+   day. A lift with an empty list still records its plan marker and seams nothing. */
+const INSERTION_PAIRS = [["fly", []], ["hipthrust", ["ham"]]];
+/* C2/Q1/Q3 — THE SEAM IS DERIVED, AND IT STARTS AT ACTUAL EXPOSURE.
+   Both writers dated a seam by the DAY THE CODE RAN: the runtime sweep passed todayISO,
+   and patchV51 passed max(2026-08-14, the day after a persisted session or in-flight
+   draft) — which on his phone made 2026-08-17 for eleven lifts, none of which had trained
+   under any change on that day. A seam's date is a FACT ABOUT TRAINING: the first session
+   on which the new lift was actually performed AND the affected lift was actually
+   performed. A skipped lift was not exposed (Grok's sharpening), and a lift the athlete
+   has never done cannot have changed anyone's context — the hip thrust has never been
+   performed, so it seams nothing yet.
+   The seams are PROJECTIONS, exactly like the carve, adoptshift and read receipts: every
+   context fork and every seam:<new>:<aff> line is removed at each boundary and re-derived
+   from s.insertions (the plan marker) + the pair table + sessionLog. A one-time deletion
+   would not have survived — forks merge union-by-date and the feed is a max-multiset, so a
+   stale replica carrying a retired seam would resurrect it on the next sync. Derived, it
+   cannot: both replicas compute the same set from the same evidence. */
+function deriveInsertionSeams(s) {
+  try {
+    if (!Array.isArray(s.feed)) s.feed = [];
+    /* out first: every context fork and every seam line, whatever wrote them */
+    for (const e of (s.exercises || [])) {
+      if (!e || !Array.isArray(e.forks)) continue;
+      const keep9 = e.forks.filter((f) => f && (f.kind ? f.kind !== "context" : !f.split));
+      if (keep9.length !== e.forks.length) e.forks = keep9;
+    }
+    s.feed = s.feed.filter((f) => !(f && typeof f.op === "string" && f.op.indexOf("seam:") === 0));
+    const dates9 = Object.keys((s && s.sessionLog) || {}).sort();
+    const didOn9 = (d, id) => (((s.sessionLog[d] || {}).entries) || []).some((e) => e && e.id === id && Array.isArray(e.reps) && e.reps.length);
+    for (const [newId, affected] of INSERTION_PAIRS) {
+      const marker9 = (s.insertions || {})[newId];
+      if (!marker9) continue;                     /* no plan marker: the insertion is not on this state's record */
+      const label9 = newId === "fly" ? "machine fly" : newId === "hipthrust" ? "hip thrust" : (((s.exercises || []).find((x) => x && x.id === newId) || {}).n || newId);
+      const why9 = newId === "fly" ? "fly inserted upstream" : newId === "hipthrust" ? "hip thrust inserted upstream" : newId + " inserted upstream";
+      for (const affId of affected) {
+        const e = (s.exercises || []).find((x) => x && x.id === affId);
+        if (!e) continue;
+        let seamD9 = null;
+        for (const d of dates9) { if (d < marker9) continue; if (didOn9(d, newId) && didOn9(d, affId)) { seamD9 = d; break; } }
+        if (!seamD9) continue;                    /* never performed together: no fork, no line */
+        const fks9 = Array.isArray(e.forks) ? e.forks : [];
+        fks9.push({ from: seamD9, kind: "context", split: true, ops: [why9], why: why9, prevN: e.n });
+        e.forks = fks9.sort((a, b) => (a.from < b.from ? -1 : 1));
+        s.feed.unshift({ op: "seam:" + newId + ":" + affId, d: seamD9, t: e.n.toUpperCase() + " — NEW CONTEXT", how: "The " + label9 + " now runs ahead of this lift and works a muscle it shares, so what a session costs here changed. This marks what is comparable — records and stalls read either side of it separately. Nothing is owed and no sighting is lost: the line carries on from where it was." });
+      }
+    }
+  } catch (e) {}
+  return s;
+}
 function applyInsertionSeams(s, newId, affected, dateISO) {
   if (!Array.isArray(s.feed)) s.feed = [];
   const why9 = newId === "fly" ? "fly inserted upstream" : newId === "hipthrust" ? "hip thrust inserted upstream" : newId + " inserted upstream";
@@ -1746,7 +1942,9 @@ function eraFresh(s, exId, asOf) {
      clock lives there, and so does every frozen fixture). The first cut
      anchored on the LATEST era unconditionally and skipped the earn on
      pre-fork fixtures; six pins caught it before it left the tree. */
-  const fks = forksOf(s, exId);
+  /* C1 — the RESET question reads the TECHNIQUE set only: a context seam (an insertion
+     upstream) never makes a lift's next session a fresh baseline. */
+  const fks = resetForksOf(s, exId);
   if (!fks.length) return false;
   const ref = asOf || isoOf(todayStart());
   if (eraIdx(fks, ref) === 0) return false;
@@ -1838,7 +2036,14 @@ function reconcileEraTransitions(s) {
   try {
     for (const ex of ((s && s.exercises) || [])) {
       if (!ex || !Array.isArray(ex.forks) || !ex.forks.length) continue;
-      const lastFk = ex.forks[ex.forks.length - 1];
+      /* C1/Q2 — the clear-and-replay of the sighting record is a RESET behaviour, so it
+         reads the TECHNIQUE set. Every seam it used to fire on was a context seam (split),
+         and a context seam no longer wipes a sighting — that is the defect this round
+         closes. No technique fork on file carries split, so this block is dormant today
+         and stays the mechanism for a future technique writer that marks a hard baseline
+         reset; every existing technique fork behaves exactly as before (T6). */
+      const rfk9 = resetForksOf(s, ex.id);
+      const lastFk = rfk9.length ? rfk9[rfk9.length - 1] : null;
       if (!(lastFk && lastFk.split && lastFk.from)) continue;
       const days = Object.keys(s.sessionLog || {}).filter((d) => d >= lastFk.from && (((s.sessionLog[d] || {}).entries) || []).some((e) => e && e.id === ex.id)).sort();
       if (days.length < 2) continue;
@@ -1854,7 +2059,7 @@ function reconcileEraTransitions(s) {
              record folds back. No live field is reassigned, so the stamp
              discipline holds by construction. */
           const exR = { ...ex, w: (typeof en.w === "number" ? en.w : ex.w), sets: r.length || ex.sets };
-          if (typeof exR.w === "number" && atTopOfWindow(r, exR)) {
+          if (typeof exR.w === "number" && atTopOfWindow(r, exR, s, days[i])) {
             const lines9 = [];
             earnWalk(s, exR, en, r, prevEn ? { w: prevEn.w, reps: prevEn.reps } : null, (t9, how9) => lines9.push({ t: t9, how: how9 }));
             for (const l9 of lines9) {
@@ -1935,8 +2140,24 @@ function earnWalk(s, ex, en, r, prevMeta, push) {
       ex.topAt = ex.w; ex.topRun = topRun;
       const bn = beatsNoise(s, ex.id, r, (prevMeta && String(prevMeta.w) === String(en.w) && prevMeta.reps) || null);
       const confirmed = topRun >= 2 || bn.clear;
-      if (en.rir === 0 || ex.holdFlag) {
-        if (!already) push(`${ex.n.toUpperCase()} — TOP OF WINDOW, BUT HOT`, `${r.join(",")} at RIR 0 — a grind is not an earn; repeat it honest and the load queues itself`);
+      /* Q7c (PROGRESSION-1) — "HOT" MEANS THE OPENER WAS HOT. `en.rir` IS the opener's
+         rating; the prescribed terminal set goes to 0 BY DESIGN (rirPlan tapers 2...0), and
+         a terminal 0 must never gate the earn — it is the instrument that SIZES the step.
+         The two are different questions and the copy used to conflate them. */
+      const openRir9 = en.rir;   /* the OPENER's rating — never the terminal set's */
+      if (openRir9 === 0 || ex.holdFlag) {
+        if (!already) push(`${ex.n.toUpperCase()} — TOP OF WINDOW, BUT HOT`, `${r.join(",")} with the opener at RIR 0 — a grind is not an earn; repeat it honest and the load queues itself`);
+        /* Q7c, owner ruled YES — a hot OPENER blocks the automatic earn, but if the
+           TERMINAL set still reported two or more in reserve at the top of the window, the
+           R18d one-sighting offer is still made: the athlete consents by tapping it. The
+           automatic earn keeps waiting for an honest opener, and the
+           hold-after-two-grind-openers governor is untouched. Live witnesses: 08-03 rows
+           [9,9] rirSets [0,2], 07-31 hack [11,10,11] [0,null,2], 07-31 extension [10,9] [0,2]. */
+        const rirH9 = (() => { const a9 = Array.isArray(en.rirSets) ? en.rirSets : []; const v9 = a9.length ? a9[a9.length - 1] : null; return v9 != null ? v9 : (en.rirEnd != null ? en.rirEnd : null); })();
+        if (!already && rirH9 != null && rirH9 >= 2 && upNext != null && !s.queue.some((x) => x.exId === ex.id && !x.done && (x.kind === "debut" || x.kind === "unlock"))) {
+          s.queue.push({ id: `q_${ex.id}_${upNext}_1s`, kind: "debut", exId: ex.id, newW: upNext, done: false, state: "PROPOSED", t: `${ex.n.toUpperCase()} ${upNext} — EARN PROPOSED OFF ONE SIGHTING`, rule: "Rides only on your tap — the automatic earn still waits for an honest opener.", gate: `Top of the window at ${ex.w}, terminal set with ${rirH9} in reserve — the line was there even though the opener was a grind. Your call: tap to take it, or repeat it honest and it queues itself.` });
+          push(`${ex.n.toUpperCase()} ${upNext} — EARN PROPOSED OFF ONE SIGHTING`, `${ex.w}×${r.join(",")} — the opener ran hot, so this does not queue itself; the terminal set had ${rirH9} in reserve at the top of the window, so the offer stands on your tap.`);
+        }
       } else if (confirmed && !already) {
         ex.topRun = 0; ex.topAt = null;
         /* R18d — THE JUMP SIZES ITSELF, but only where a measured ladder exists and only
@@ -2076,7 +2297,12 @@ function completeSession(state, iso, entries, slp, extras = {}) {
       return;
     }
 
-    /* ladder (curl set-2) */
+    /* C5/Q4 — THE LADDER BRANCH IS RETIRED. It was curl's alone (set-2 to the top of a
+       rung) and it RETURNED before the earn walk, so the one lift it governed could never
+       bank a sighting, never price a next load, and never graduate except by a coach flag
+       a human had to read. Curl is a numeric lift now and runs the same walk as every other
+       lift. The branch is kept only for a state that still carries ex.ladder from before
+       the migration — patchV60 removes it, so this is dead on any migrated state. */
     if (ex.ladder && !eraFirst9) {   /* FIX 3d — a rung verdict is a comparison, and era session 1 has nothing of its own to compare against; the generic path logs and sets the line */
       const li = ex.ladder.set, val = r[li] ?? 0, prev = ex.last ? ex.last[li] : 0;
       ex.last = r.slice();
@@ -2124,7 +2350,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
        (ex.last, lastMeta, topRun, beatsNoise's prev) is a prior-era cache, and
        an earn against a different technique is a protocol change wearing a
        strength costume. The session logs normally and BECOMES the line. */
-    const atTop = !eraFirst9 && atTopOfWindow(r, ex);   /* eraFirst9 hoisted above the reclaim branch — one guard, every earn */
+    const atTop = !eraFirst9 && atTopOfWindow(r, ex, s, iso);   /* eraFirst9 hoisted above the reclaim branch — one guard, every earn; C15 — judged on the progression-bearing prefix */
     ex.last = r.slice();
     const upNext = typeof ex.w === "number" ? nextLoad(ex) : null;
     /* R18b — A SIGHTING BANKS EVEN WHEN NO NEXT LOAD IS ON FILE. upNext==null used to
@@ -2138,8 +2364,12 @@ function completeSession(state, iso, entries, slp, extras = {}) {
       /* R20b ruling (audit low note, ruled at merge): a lift with NO history grades every
          slot as graced — DEBUT-consistent — but TARGET MET would overclaim: no line
          existed to meet. The first outing gets its own honest receipt instead. */
-      if (tgtMet && graceFrom === 0 && r.length) push(`${ex.n.toUpperCase()} — FIRST OUTING, BANKS WHAT IT GIVES`, `${en.w} × ${r.join(",")} — no line existed to meet; this IS the line everything later is measured against.`);
-      else if (tgtMet) push(`${ex.n.toUpperCase()} — TARGET MET`, `${en.w} × ${r.join(",")}`);
+      /* C6 — a bodyweight lift has no numeric load, and ${en.w} printed the string "null"
+         on hanging's receipts. Print the load if there is one, the key if that is what the
+         lift carries, and an em dash otherwise — never the word null. */
+      const wShow9 = en.w != null && en.w !== "" ? en.w : (en.wKey != null && en.wKey !== "" ? en.wKey : "—");
+      if (tgtMet && graceFrom === 0 && r.length) push(`${ex.n.toUpperCase()} — FIRST OUTING, BANKS WHAT IT GIVES`, `${wShow9} × ${r.join(",")} — no line existed to meet; this IS the line everything later is measured against.`);
+      else if (tgtMet) push(`${ex.n.toUpperCase()} — TARGET MET`, `${wShow9} × ${r.join(",")}`);
     }
 
     /* rows special: establish → earn 185 via 10,10 handled by generic atTop (hi=10) */
@@ -6079,7 +6309,10 @@ function rirPlan(s, ex, slp) {
      real (CI 1.23-4.47), but smaller than his own set-to-set spread. It also fired on roughly one morning in
      three, which made "the set that reaches failure" a set that often did not.
      Effort is defended; the night is a receipt, not a governor. */
-  if (ex.holdFlag) { plan = plan.map((r) => Math.max(r, 2)); why.push("governor hold — stay two clean reps back"); }
+  /* Q8b — the hold asks the OPENER for two clean reps in reserve; the middle and terminal
+     taper continues 1...0 so the instrument the rep step reads keeps reporting. Clamping the
+     whole plan to 2 silenced the terminal RIR that sizes the next step. */
+  if (ex.holdFlag) { plan[0] = Math.max(plan[0], 2); why.push("governor hold — opener stays two clean reps back; the terminal taper and the rep step continue"); }
   /* ALARM DAY (P5) — the every-0-becomes-1 rule lived only in copy; now the terminal
      set actually floors at 1 on an alarm day. Effort is modified; validity is not —
      what he delivers still counts and still banks. */
@@ -9063,8 +9296,16 @@ function runAdaptive(state, todayISO, raOpts) {
          identity and op-guarded receipts, so a re-fire adds zero, and an
          unrelated same-date seam can no longer cause a permanent skip after
          the marker was set (the old bespoke loop's defect). */
+      /* C2/Q1 — THE SWEEP NO LONGER DATES ANYTHING. It used to pass todayISO into the
+         seam writer, so a plan change discovered on any later day was stamped with the day
+         the code ran. All it does now is record the PLAN MARKER — the day the plan changed,
+         which for the two shipped insertions is SEED's own 2026-08-14 — and the derivation
+         in canonicalizePlan turns markers into seams at actual exposure. A future insertion
+         writer sets this marker to the day the plan changed, never to todayISO for a past
+         change. */
       if ((s.insertions || {})[newId]) continue;
-      applyInsertionSeams(s, newId, affected, todayISO);
+      const seed9 = ((SEED || {}).insertions || {})[newId];
+      s.insertions = { ...(s.insertions || {}), [newId]: seed9 || todayISO };
     }
     /* FIX 3a item 4 — calibration becomes STATE the day the pins are gone: a
        sweep detection, so ANY future setup writer (editor, patch, hand edit)
@@ -10695,6 +10936,83 @@ function patchV59(s) {
   } catch (e) {}
   s.v = 59; return s;
 }
+/* C3 (PROGRESSION-1) — THE ELEVEN SEAMS RETIRE, ON THE OWNER'S WORD (ruled 2026-08-19 on
+   two independent blind audits). Eleven lifts carried an insertion seam dated 2026-08-17 —
+   the day the code ran, not a day anything changed for them — and every one of them
+   repeated its last line for weeks because eraFresh read that seam as a fresh baseline.
+   The seams are DERIVED from this version on (deriveInsertionSeams: actual exposure, and
+   only where the two lifts share a working muscle), so this patch's job is to clear the
+   stored ones and set the plan markers to what the plan actually says. The derivation then
+   produces what the rulings warrant, which on his ledger today is NO insertion seam at all:
+   the fly shares no working muscle with anything downstream of it, and the hip thrust has
+   never been performed. Value-keyed on the shape the defect produced, so a state that
+   never carried it takes nothing; idempotent, because the second run finds no 08-17 seam
+   and the receipt is already filed. */
+function patchV60(s) {
+  try {
+    /* the stored seams, whatever wrote them (the derivation re-creates the warranted set) */
+    let hits9 = 0;
+    for (const e of (s.exercises || [])) {
+      if (!e || !Array.isArray(e.forks)) continue;
+      const keep9 = e.forks.filter((f) => !(f && f.split && String(f.from) === "2026-08-17"));
+      if (keep9.length !== e.forks.length) { hits9 += e.forks.length - keep9.length; e.forks = keep9; }
+    }
+    const n0 = (s.feed || []).length;
+    if (Array.isArray(s.feed)) s.feed = s.feed.filter((f) => !(f && typeof f.op === "string" && f.op.indexOf("seam:") === 0 && String(f.d) === "2026-08-17"));
+    const gone9 = n0 - ((s.feed || []).length);
+    /* the plan marker means "the plan changed on", nothing else — the 08-17 marker IS the
+       clock defect. SEED's own dates are the plan's dates. */
+    /* CORRECT an existing marker; never MINT one. The 08-17 marker is the clock defect and
+       this patch lowers it to the plan's own date — but a state that carries no marker at all
+       is a state where the insertion has not been recorded, and R9b's law stands: an INVALID
+       birth fires no seams and no insertion marker. Minting here would have handed a
+       quarantined fly the very registry entry the quarantine exists to withhold. */
+    const ins9 = { ...(s.insertions || {}) };
+    for (const k9 of ["fly", "hipthrust"]) {
+      const seed9 = ((SEED || {}).insertions || {})[k9];
+      if (seed9 && ins9[k9] != null && String(ins9[k9]) > String(seed9)) ins9[k9] = seed9;
+    }
+    s.insertions = ins9;
+    /* C5 — curl's string load becomes a number with a per-set vector, value-keyed. */
+    /* C5 — curl becomes numeric with its per-set vector beside it. TWO shapes reach this
+       patch and both are his: the frozen 08-15 preimage still carries the STRING config
+       ("55·55·50"), while his live ledger has already adopted a numeric 55 through the CAGE
+       (reality outranks the filed ladder) and kept the ladder marker. The vector is never
+       invented — it is RESTATED from what was recorded: his 2026-08-16 entry carries
+       wKey "55·55·50", and a patch may only restate what the record already holds. A curl
+       with no such record anywhere keeps whatever it has and gains no phantom vector. */
+    const cu9 = (s.exercises || []).find((x) => x && x.id === "curl");
+    if (cu9) {
+      const vecOf9 = (v) => {
+        if (v == null || typeof v === "number") return null;
+        const parts9 = String(v).split("·");
+        if (parts9.length < 2) return null;
+        const nums9 = parts9.map((x) => Number(String(x).trim()));
+        return nums9.every((n) => isFinite(n) && n > 0) ? nums9 : null;
+      };
+      let vec9 = vecOf9(cu9.w);
+      if (!vec9) {
+        for (const d9 of Object.keys(s.sessionLog || {}).sort().reverse()) {
+          const en9 = (((s.sessionLog[d9] || {}).entries) || []).find((e) => e && e.id === "curl");
+          const v9 = en9 && (vecOf9(en9.w) || vecOf9(en9.wKey));
+          if (v9) { vec9 = v9; break; }
+        }
+      }
+      if (vec9 && (vecOf9(cu9.w) || cu9.ladder)) { cu9.w = vec9[0]; cu9.wSets = vec9.slice(); }
+      if (cu9.ladder) delete cu9.ladder;
+    }
+    for (const q9 of (s.queue || [])) {
+      if (q9 && q9.id === "q_curl_grad" && !q9.done) {
+        q9.done = true; q9.state = "SUPERSEDED";
+        if (!(s.feed || []).some((f) => f && f.op === "patch60:curlgrad"))
+          (s.feed = s.feed || []).unshift({ d: "2026-08-19", op: "patch60:curlgrad", t: "CURL GRADUATION — THE WALK OWNS IT NOW", how: "The curl's per-set loads are numbers from this version on, so the same earn walk every other lift runs now runs here: two sessions at the top of the window bank the graduation and price the next line at 60·60·55. The coach flag is superseded — nothing is lost, the rule just stopped being a human's to carry." });
+      }
+    }
+    if ((hits9 || gone9) && !(s.feed || []).some((f) => f && f.op === "patch60:seams"))
+      (s.feed = s.feed || []).unshift({ d: "2026-08-19", op: "patch60:seams", t: "INSERTION SEAMS RE-DERIVED", how: "The eleven seams stamped 8/17 by the day the code ran are retired; a seam now starts when the new lift is actually performed with the lift it affects, and only where the two share a working muscle (hip thrust → ham curl). Today that is none: the fly shares no working muscle with what follows it, and the hip thrust has not been performed. Ruled by the owner on 2026-08-19 on two independent audits." });
+  } catch (e) {}
+  s.v = 60; return s;
+}
 function patchV58(s) {
   /* THE OTHER HALF OF LEG 4. That leg stopped fabricating corrections from
      membership — correctly, it was inventing them for initial skips. But it
@@ -11267,7 +11585,7 @@ function patchV38(s) {
    defense-in-depth (the v1/v2 legacy path still replays the chain over a fresh seed),
    no longer as the only wall between a bump and his history. The gate asserts the
    pair list is contiguous 4..SCHEMA_V, so a misordered insert fails loudly. */
-const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52], [53, patchV53], [54, patchV54], [55, patchV55], [56, patchV56], [57, patchV57], [58, patchV58], [59, patchV59]];
+const PATCHES = [[4, patchV4], [5, patchV5], [6, patchV6], [7, patchV7], [8, patchV8], [9, patchV9], [10, patchV10], [11, patchV11], [12, patchV12], [13, patchV13], [14, patchV14], [15, patchV15], [16, patchV16], [17, patchV17], [18, patchV18], [19, patchV19], [20, patchV20], [21, patchV21], [22, patchV22], [23, patchV23], [24, patchV24], [25, patchV25], [26, patchV26], [27, patchV27], [28, patchV28], [29, patchV29], [30, patchV30], [31, patchV31], [32, patchV32], [33, patchV33], [34, patchV34], [35, patchV35], [36, patchV36], [37, patchV37], [38, patchV38], [39, patchV39], [40, patchV40], [41, patchV41], [42, patchV42], [43, patchV43], [44, patchV44], [45, patchV45], [46, patchV46], [47, patchV47], [48, patchV48], [49, patchV49], [50, patchV50], [51, patchV51], [52, patchV52], [53, patchV53], [54, patchV54], [55, patchV55], [56, patchV56], [57, patchV57], [58, patchV58], [59, patchV59], [60, patchV60]];
 /* reconcileLiftCaches — `ex.last` and `ex.lastMeta.reps` are written TOGETHER by
    completeSession and must therefore always agree. Disagreement means one of them was
    repaired and the other was not.
@@ -11533,7 +11851,7 @@ function _settleExit(st) {
          set and rewrote why — boot and merge must run the same restatement) */
       const ops9 = [...new Set(Array.isArray(f9.ops) && f9.ops.length ? f9.ops.map(String) : (f9.why ? [String(f9.why)] : []))].sort();
       const why9 = ops9.length > 1 ? ops9.join(" + ") : (f9.why != null ? f9.why : ops9[0]);
-      return { from: f9.from, why: why9, ...(ops9.length ? { ops: ops9 } : {}), prevN: f9.prevN, ...(f9.split ? { split: true } : {}) };
+      return { from: f9.from, why: why9, ...(ops9.length ? { ops: ops9 } : {}), prevN: f9.prevN, ...(f9.kind ? { kind: f9.kind } : {}), ...(f9.split ? { split: true } : {}) };   /* C1 (PROGRESSION-1) — the restatement must carry the fork KIND: it is the first-class classifier now, and rebuilding a fork from a fixed key set silently dropped it. split still carries the back-compat reading, so this was benign today and fragile tomorrow. */
     });
   }
   if (st.plan && typeof st.plan === "object") {
@@ -13407,7 +13725,7 @@ const MERGE_OBJ = ["dailyLogs", "sessionLog", "dayCtx", "labSeen"];
    "differ", the differ branch canonicalised the athlete's permanent lines,
    and the writer then removed the stale line correctly — the chronology
    damage outlived it. */
-const _isFeedProjection = (f) => !!(f && ((typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0 || f.op.indexOf("lateread:") === 0 || f.op.indexOf("sug:") === 0 || f.op === "patch59:scale")) || f.t === "EVENING READ — SET ASIDE" || f.t === "LATE READ — SET ASIDE" || f.t === "ANALYST SUGGESTION APPLIED" || f.t === "ANALYST SUGGESTION DISMISSED" || f.t === "ANALYST SUGGESTION NOTED" || f.t === "ANALYST SUGGESTION UNDONE" || (typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0))));   /* SCALE-2 — the READ RECEIPTS join the projection class: set-aside lines (either vintage's spelling) and missed/gap lines are machine receipts that reconcileReadReceipts removes or re-derives from reads[], so they may neither manufacture a day disagreement (the rig101 class, via a stale receipt on one replica) nor be canonicalised with the athlete's permanent lines; they ride through to the reconciler exactly as the carve and adoptshift lines ride to their writers */
+const _isFeedProjection = (f) => !!(f && ((typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0 || f.op.indexOf("lateread:") === 0 || f.op.indexOf("sug:") === 0 || f.op.indexOf("seam:") === 0 || f.op === "patch59:scale")) || f.t === "EVENING READ — SET ASIDE" || f.t === "LATE READ — SET ASIDE" || f.t === "ANALYST SUGGESTION APPLIED" || f.t === "ANALYST SUGGESTION DISMISSED" || f.t === "ANALYST SUGGESTION NOTED" || f.t === "ANALYST SUGGESTION UNDONE" || (typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0))));   /* SCALE-2 — the READ RECEIPTS join the projection class: set-aside lines (either vintage's spelling) and missed/gap lines are machine receipts that reconcileReadReceipts removes or re-derives from reads[], so they may neither manufacture a day disagreement (the rig101 class, via a stale receipt on one replica) nor be canonicalised with the athlete's permanent lines; they ride through to the reconciler exactly as the carve and adoptshift lines ride to their writers */
 /* SCALE-4 — the projection class SPLITS for the guard (Sol's pass 2, new row 1, which
    refuted this build's own A2 claim on the record). _isFeedProjection is the DAY-ORDER
    class: any machine line that must not manufacture a day disagreement or be
@@ -13419,7 +13737,7 @@ const _isFeedProjection = (f) => !!(f && ((typeof f.op === "string" && (f.op.ind
    exactly when its marked reads are present to derive from. */
 function _isFeedDerived(f, st) {
   if (!f) return false;
-  if (typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0 || f.op.indexOf("lateread:") === 0 || f.op.indexOf("sug:") === 0)) return true;
+  if (typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0 || f.op.indexOf("lateread:") === 0 || f.op.indexOf("sug:") === 0 || f.op.indexOf("seam:") === 0)) return true;   /* C2 (PROGRESSION-1) — the insertion seam line is a PROJECTION: deriveInsertionSeams removes and re-derives it from the plan marker, the pair table and actual exposure at every boundary, so counting it as history made the guard refuse the very correction the round ships (the same lesson the read receipts taught at SCALE-3) */
   if (f.t === "EVENING READ — SET ASIDE" || f.t === "LATE READ — SET ASIDE") return true;
   if (f.t === "ANALYST SUGGESTION APPLIED" || f.t === "ANALYST SUGGESTION DISMISSED" || f.t === "ANALYST SUGGESTION NOTED" || f.t === "ANALYST SUGGESTION UNDONE") return true;
   if (f.op === "patch59:scale" && st && ((Array.isArray(st.reclassLog) && st.reclassLog.length) || (Array.isArray(st.reads) && st.reads.some((r) => r && r.reclassed)))) return true;   /* SCALE-5 — the attestation store is the authority; the legacy flag test stays for in-flight states */
@@ -17271,7 +17589,7 @@ function LogTab({ s, setS, save, slp }) {
         const askEx = (s.exercises || []).find((e) => typeof e.w === "number" && e.hi != null && nextLoad(e) == null && (!loadRungs(e) || loadRungs(e).every((x) => x <= e.w)));   /* an EXHAUSTED ladder (Joe jumped past its rungs) needs the ask as much as a bare one */
         if (!askEx) return null;
         const sighted = String(askEx.topAt) === String(askEx.w) && (askEx.topRun || 0) >= 1;
-        const histTop = !sighted && askEx.last ? atTopOfWindow(askEx.last, askEx) : false;
+        const histTop = !sighted && askEx.last ? atTopOfWindow(askEx.last, askEx, s) : false;
         return (
           <Card accent={T.brass}>
             <Eyebrow c={T.brass}>{askEx.n.toUpperCase()} — WHAT IS THE NEXT WEIGHT THIS MACHINE MAKES AFTER {askEx.w}?</Eyebrow>
@@ -17294,7 +17612,7 @@ function LogTab({ s, setS, save, slp }) {
                     is exactly the machine whose increments are uneven. */}
                 ex4.steps = [...new Set([...(loadRungs(ex4) || []), ex4.w, ...ups])].sort((a9, b9) => a9 - b9); ex4.stepsAt = new Date().toISOString();   /* MERGE — an answer above an exhausted ladder must not erase the rungs already priced. (LEG 2: this seventh writer is not on the directive's list of six — found by enumerating every .steps writer instead of trusting the list, and stamped like the rest.) */
                 let banked = false;
-                if (ex4.last && atTopOfWindow(ex4.last, ex4) && !(String(ex4.topAt) === String(ex4.w) && (ex4.topRun || 0) >= 1)) { ex4.topAt = ex4.w; ex4.topRun = 1; banked = true; }
+                if (ex4.last && atTopOfWindow(ex4.last, ex4, s) && !(String(ex4.topAt) === String(ex4.w) && (ex4.topRun || 0) >= 1)) { ex4.topAt = ex4.w; ex4.topRun = 1; banked = true; }
                 ns.feed.unshift({ d: isoOf(todayStart()), t: askEx.n.toUpperCase() + " — NEXT LOAD ON FILE: " + ups[0], how: "You told the app this machine's ladder (" + [ex4.w, ...ups].join(", ") + ")." + ((banked || (String(ex4.topAt) === String(ex4.w) && (ex4.topRun || 0) >= 1)) ? " The top-of-window session already on your record counts as sighting one — one more honest top, or one that beats your own spread, earns the " + ups[0] + " debut." : " Top the window twice at " + ex4.w + " — or once beating your own spread — and " + ups[0] + " queues itself.") });
                 setS(ns); save(ns); hap(12);
               }}>Save the ladder</Btn>

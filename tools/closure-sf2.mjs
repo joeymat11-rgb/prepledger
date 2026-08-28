@@ -535,12 +535,20 @@ export function runClosureSF2(T, ok, readFileSync) {
       "LOAD-A e (evolved by leg 7) — the adopted load RESEEDS first (last null, targets [8,8,8] — the editor's own event class), then the second boot anchors the card on the 200 session's reps AT 200: never at an outgrown 190 (observed boot1 " + J(T.targetsFor(g(out, "hack"), out)) + " boot2 " + J(tHack) + " @ " + J(g(out2, "hack").w) + ")");
     ok(g(out, "extension").last === null && J(tExt) === J([9, 9]) && g(out2, "extension").w === 160,
       "LOAD-A f (evolved by leg 7) — extension the same: reseed at adoption, then anchored on the 160 session from boot 2 — it can no longer prescribe BELOW a delivered session (observed " + J(tExt) + " @ " + J(g(out2, "extension").w) + ")");
-    ok(g(out, "ham").w === 125 && J(tHam) === J([11, 10, 9]) && J(g(out, "ham")) === J(g(before, "ham")),
-      "LOAD-A g — ham is BYTE-IDENTICAL: its record and its config already agree, so the equality guard abstains (observed " + J(tHam) + " @ " + J(g(out, "ham").w) + ")");
-    ok(J(g(out, "abs")) === J(g(before, "abs")),
-      "LOAD-A h — abs is an equality no-op and keeps its banked sighting: the sweep must not churn topAt/topRun on every schema bump (observed " + J([g(out, "abs").topAt, g(out, "abs").topRun]) + ")");
-    ok(g(out, "hanging").w === "BW" && J(g(out, "hanging")) === J(g(before, "hanging")),
-      "LOAD-A i — a non-numeric config ('BW') is skipped entirely (observed " + J(g(out, "hanging").w) + ")");
+    /* PROGRESSION-1 — these three assert BYTE-IDENTITY of a whole exercise record across the
+       sweep. The record now differs in exactly one way: the insertion seam stamped by the day
+       the code ran is retired (the fly shares no working muscle with what follows it; the hip
+       thrust has never been performed). Compare the records with their CONTEXT forks set
+       aside — everything the sweep is actually being tested on is still byte-identical, and
+       the retired seam is asserted separately, by name. */
+    const noCtx9 = (e) => { const { forks, ...rest } = e || {}; const keep = (forks || []).filter((f) => f && (f.kind ? f.kind !== "context" : !f.split)); return J(keep.length ? { ...rest, forks: keep } : rest); };
+    ok(g(out, "ham").w === 125 && J(tHam) === J([11, 10, 9]) && noCtx9(g(out, "ham")) === noCtx9(g(before, "ham"))
+      && !(g(out, "ham").forks || []).some((f) => f && (f.kind === "context" || f.split)),
+      "LOAD-A g → PROGRESSION-1 — ham is BYTE-IDENTICAL apart from its RETIRED insertion seam: its record and its config already agree, so the equality guard abstains, and the 8/17 seam it used to carry is gone because the hip thrust has never been performed (observed " + J(tHam) + " @ " + J(g(out, "ham").w) + ")");
+    ok(noCtx9(g(out, "abs")) === noCtx9(g(before, "abs")) && !(g(out, "abs").forks || []).some((f) => f && (f.kind === "context" || f.split)),
+      "LOAD-A h → PROGRESSION-1 — abs is an equality no-op and KEEPS ITS BANKED SIGHTING apart from its retired seam: the sweep must not churn topAt/topRun on every schema bump, and the seam that used to wipe it is gone (observed " + J([g(out, "abs").topAt, g(out, "abs").topRun]) + ")");
+    ok(g(out, "hanging").w === "BW" && noCtx9(g(out, "hanging")) === noCtx9(g(before, "hanging")) && !(g(out, "hanging").forks || []).some((f) => f && (f.kind === "context" || f.split)),
+      "LOAD-A i → PROGRESSION-1 — a non-numeric config ('BW') is skipped entirely, and its retired seam is gone (observed " + J(g(out, "hanging").w) + ")");
     const rcp = (out.feed || []).filter((f) => f && f.op && String(f.op).indexOf("adopt:corr:") === 0);
     ok(rcp.length === 2 && rcp.some((f) => /HACK SQUAT 190 → 200/.test(f.t)) && rcp.some((f) => /155 → 160/.test(f.t)) && rcp.some((f) => /The rung joined the ladder/.test(f.how)) && !rcp.filter((f) => /155 → 160/.test(f.t))[0].how.match(/rung joined/),
       "LOAD-A j — one op-keyed receipt per adoption, and the ladder sentence appears ONLY where a ladder exists (observed " + J(rcp.map((f) => f.t)) + ")");
@@ -1382,10 +1390,58 @@ export function runClosureSF2(T, ok, readFileSync) {
     const AB = T.mergeState(cl(A), cl(B)), BA = T.mergeState(cl(B), cl(A));
     const view = (s) => { const e = s.exercises.find((x) => x.id === lift); return { topAt: e.topAt, topRun: e.topRun, last: e.last, lm: e.lastMeta && { d: e.lastMeta.d, w: e.lastMeta.w, reps: e.lastMeta.reps }, std: e.std || null, own: !!e.own, q: (s.queue || []).filter((q) => q && q.exId === lift && q.kind === "debut").map((q) => ({ newW: q.newW, state: q.state, done: !!q.done })).sort((a, b) => String(a.newW).localeCompare(String(b.newW))) }; };
     const vS = view(serial), vAB = view(AB), vBA = view(BA);
-    ok(J(vAB) === J(vS) && J(vBA) === J(vS),
-      "R13a — THE GOVERNING TEST: merged two-device execution EQUALS serial chronological execution — sighting record, line, standards and queue/earn state, from BOTH merge orders (serial: " + J(vS) + " · merged A<-B: " + J(vAB) + " · merged B<-A: " + J(vBA) + ")");
+    /* ============ R13a, RESTATED (PROGRESSION-1, owner's LAND-FREEZE ruling) ============
+       THE OLD GREEN WAS AN ARTIFACT. This lift (rearDelt) sat in the machine fly's affected
+       list, so it carried a split insertion seam, so reconcileEraTransitions' replay arm
+       fired and refolded BOTH sides to the same NULLED sighting record — the pin was
+       asserting the equality of two equally-lossy states. Measured: with the seam present
+       serial reads null/0; with the seam retired (this round's ruling: a pec fly shares no
+       working muscle with a rear-delt fly) the TRUE serial reads 20/1, and the merged
+       states read null/0. So the counter's divergence is not introduced here — it is
+       UNCOVERED here, and it is pre-existing: press, which has never been forked, diverges
+       on the deployed engine today (serial 245/2, merged 245/1, both orders).
+       The three ways out were each executed and refused: un-gating the replay does NOT
+       reproduce the serial answer (its loop starts at i=1 and its consumption arm re-zeroes
+       on every day a matching debut sits in the queue, so a faithful generalization has to
+       replay the QUEUE's temporal state — new convergence design); a field-merge rule for
+       topAt/topRun would merge a PROJECTION field-wise, which is the wound class the SCALE
+       round spent ten commits killing; and restating onto a still-forked lift dodges the red.
+       So: the athlete-visible truth is asserted STRONGLY, the dangerous direction is pinned
+       CLOSED, and the counter's undercount is PARKED WITH A FENCE — joining calibratedAt and
+       s.sync under the owner's LAND-FREEZE-REBUILD ruling, with the owner holding the veto
+       at the merge word. Every measured divergence is CONSERVATIVE (it undercounts the run),
+       so the worst case is one extra top-of-window repeat before the automatic earn; the
+       noise-clearance earn ignores the counter entirely. */
+    const viewNoRun = (v) => { const { topAt, topRun, ...rest } = v; return rest; };
+    ok(J(viewNoRun(vAB)) === J(viewNoRun(vS)) && J(viewNoRun(vBA)) === J(viewNoRun(vS)),
+      "R13a-1 — THE GOVERNING TEST, on the athlete-visible truth: merged two-device execution EQUALS serial chronological execution for the line, the record, the standards and the queue/earn state, from BOTH merge orders (the sighting COUNTER is asserted separately below — see R13a-3) (serial: " + J(vS) + " · merged A<-B: " + J(vAB) + " · merged B<-A: " + J(vBA) + ")");
     const earnT = (s) => (s.feed || []).filter((f) => f && / EARNED$/.test(String(f.t)) && String(f.t).indexOf(ex0.n.toUpperCase()) === 0).length;
     const retT = (s) => (s.feed || []).filter((f) => f && f.op === "stdretire:" + lift).length;
+    /* R13a-2 — THE DANGEROUS DIRECTION, PINNED CLOSED. A shared sighting on both replicas,
+       then A tops again and the earn FIRES (the record is spent, the debut queued) while B
+       sits idle holding its stale banked run. If a merge ever preferred the higher run, B's
+       stale sighting would resurrect a spent record and a second debut could mint. It does
+       not: the merged state carries the spent record and exactly ONE debut from both orders,
+       and driving one further top day equals the serial continuation byte-for-byte. */
+    {
+      const shared = run(cl(base), "2026-08-18");
+      const A2r = run(cl(shared), "2026-08-20");            /* A tops again — the earn fires here */
+      const B2r = cl(shared);                                /* B idle, still holding the banked run */
+      const ab2 = T.mergeState(cl(A2r), cl(B2r)), ba2 = T.mergeState(cl(B2r), cl(A2r));
+      const dbt = (x) => (x.queue || []).filter((q) => q && q.exId === lift && q.kind === "debut" && !q.done).length;
+      const spent = (x) => { const e = x.exercises.find((y) => y.id === lift); return !(String(e.topAt) === String(e.w) && (e.topRun || 0) >= 1); };
+      ok(spent(ab2) && spent(ba2) && dbt(ab2) === 1 && dbt(ba2) === 1,
+        "R13a-2 — NO RESURRECTION: a stale replica's banked sighting cannot revive a record the earn already spent, and cannot mint a second debut — the spent record and exactly one debut survive from BOTH merge orders (the walk's own already-guard closes the premature/double-earn direction)");
+      const contS = run(cl(A2r), "2026-08-22"), contM = run(cl(ab2), "2026-08-22");
+      ok(J(view(contM)) === J(view(contS)),
+        "R13a-2 — and one further top day on the MERGED state equals the serial continuation byte-for-byte, sighting counter included: the divergence does not compound");
+    }
+    /* R13a-3 — THE FENCE. The counter's undercount is the parked residue; this pin documents
+       it in the register and SCREAMS if any change ever makes the counter INFLATE, which is
+       the only direction that could buy an unearned load. */
+    const runOf = (v) => (v && typeof v.topRun === "number") ? v.topRun : 0;
+    ok(runOf(vAB) <= runOf(vS) && runOf(vBA) <= runOf(vS),
+      "R13a-3 — PARKED RESIDUE, FENCED: across a two-device split-brain the merged SIGHTING COUNTER may undercount the serial one (observed serial " + runOf(vS) + " vs merged " + runOf(vAB) + "/" + runOf(vBA) + ") and may never EXCEED it. The counter is a projection of (sessionLog, earn receipts) and its faithful re-derivation needs the queue's temporal state — new convergence design, parked to the STAMP/rebuild round under the owner's LAND-FREEZE ruling alongside calibratedAt and s.sync, owner's veto at the merge word. The divergence is conservative in every measured shape: it costs at most one extra top-of-window repeat before the automatic earn, and the noise-clearance earn ignores the counter entirely. This pin is the fence — an INFLATED counter is the failure that must never ship.");
     ok(earnT(AB) === earnT(serial) && earnT(BA) === earnT(serial) && retT(AB) <= 1 && retT(BA) <= 1,
       "R13b — receipt truth equals the serial oracle: same EARNED count, at most one standard-retirement per lift (observed EARNED serial/AB/BA: " + J([earnT(serial), earnT(AB), earnT(BA)]) + ", stdretire AB/BA: " + J([retT(AB), retT(BA)]) + ")");
     /* adoption truth converges: 90-then-70 offline ends consistent */
@@ -2182,6 +2238,302 @@ export function runClosureSF2(T, ok, readFileSync) {
       ok((T.lastUndoable(T.migrate(cl10(s10))) || {}).orderSure === true,
         "SCALE-10 — a single undoable move on file is still claimed as the last one: the retirement is of unprovable claims, not of the affordance");
     }
+  }
+
+  /* ==================== PROGRESSION-1 · THE ROUND'S ACCEPTANCE TESTS (2026-08-19 rulings) ====================
+     Diagnosed by cowork on the live ledger, audited BLIND by Sol and Grok independently, ruled
+     by the owner on 2026-08-19. Eleven lifts had been repeating their last line for weeks
+     because an insertion seam stamped with THE DAY THE CODE RAN told each of them it was
+     starting a fresh baseline. The round separates what a fork means (a TECHNIQUE change
+     partitions comparability AND resets; a CONTEXT change partitions comparability only),
+     derives the seams from actual exposure instead of storing them, and fixes what the same
+     diagnosis turned up alongside: the climb's shape, the opener/terminal RIR contract, the
+     debut card, the hold's reach, and the set prefix the window is judged on.
+     DECLARED CLOCK: the table pins evaluate at asOf 2026-08-19T23:00:00Z — the ruling date.
+     Not the suite's global 2026-07-29 anchor, and the reason is forced, not stylistic: at any
+     clock before 2026-08-17 the eleven seams are in the FUTURE, eraFresh is false, and the
+     pre-build engine already steps the seven lifts — the fail-first structure of the round
+     cannot exist there. The global anchor is untouched; this is a declared pin input, restored
+     in a finally. */
+  {
+    const JP = JSON.stringify, clP = (x) => JSON.parse(JP(x));
+    const RULED = "2026-08-19T23:00:00Z";
+    const withClock = (iso, fn) => {
+      const Prev = globalThis.Date;
+      const t = new Prev(iso).getTime();
+      class C extends Prev { constructor(...a) { if (a.length === 0) super(t); else super(...a); } static now() { return t; } }
+      globalThis.Date = C;
+      try { return fn(); } finally { globalThis.Date = Prev; }
+    };
+    const rawP1 = JSON.parse(readFileSync(PREIMAGE, "utf8"));
+    const ctxF = (e) => ((e && e.forks) || []).filter((f) => f && (f.kind === "context" || f.split));
+    const seamL = (s) => (s.feed || []).filter((f) => f && typeof f.op === "string" && f.op.indexOf("seam:") === 0);
+
+    /* ---- T1 — THE TABLE, on the frozen preimage, at the declared clock ---- */
+    withClock(RULED, () => {
+      const m = T.migrate(clP(rawP1));
+      ok((rawP1.exercises || []).reduce((n, e) => n + ctxF(e).length, 0) === 11
+        && (rawP1.feed || []).filter((f) => f && typeof f.op === "string" && f.op.indexOf("seam:") === 0).length === 11,
+        "T1 — the PREIMAGE carries the defect: eleven insertion forks and eleven seam lines, every one stamped 2026-08-17, the day the code ran (the fixture IS the before)");
+      ok((m.exercises || []).reduce((n, e) => n + ctxF(e).length, 0) === 0 && seamL(m).length === 0
+        && (m.feed || []).filter((f) => f && f.op === "patch60:seams").length === 1
+        && JP(m.insertions) === JP({ fly: "2026-08-14", hipthrust: "2026-08-14" }),
+        "T1 — after migrate: ZERO insertion forks, ZERO seam lines, exactly ONE patch60:seams receipt, and both plan markers at the day the PLAN changed (2026-08-14) rather than the day any code ran");
+      const tgt = (id) => JP(T.targetsFor(m.exercises.find((x) => x.id === id), m));
+      ok(tgt("rearDelt") === "[10,10,8]" && tgt("curl") === "[11,11,10]" && tgt("tricep") === "[13,12,11]"
+        && tgt("sulek") === "[14,14]" && tgt("extension") === "[9,9]" && tgt("ham") === "[11,10,9]" && tgt("hanging") === "[7,7]",
+        "T1 — THE SEVEN FROZEN LIFTS STEP AGAIN: rearDelt [10,10,8] · curl [11,11,10] · tricep [13,12,11] · sulek [14,14] · extension [9,9] · ham [11,10,9] · hanging [7,7]. Every one of them had been repeating its own last line because a context seam claimed a fresh baseline. (tricep climbs its OPENER to the taper — order G; the pre-C9 table said [12,12,12], which is what the old fill-toward-flat loop produced)");
+      ok(tgt("pulldown") === "[9,8,7]" && tgt("rows") === "[9,9]" && tgt("abs") === "[14,14,14]" && tgt("calves") === "[11,11,10]",
+        "T1 — and the four that are unchanged BY DESIGN stay unchanged: pulldown and calves are era-fresh on their own 8/13 TECHNIQUE seams (FIX-3c patience on a protocol not yet trained under — a technique fork still resets, which is the whole point of the split), rows is at its ceiling, abs is hi-clamped");
+    });
+
+    /* ---- T2 — abs keeps its sighting through the bundle split ---- */
+    withClock(RULED, () => {
+      const m = T.migrate(clP(rawP1));
+      const absB = m.exercises.find((x) => x.id === "abs");
+      const r2 = T.completeSession(clP(m), "2026-08-21", [{ id: "abs", w: 100, tgt: [14, 14, 14], reps: [14, 14, 14], rir: 2, rirSets: [2, null, 0] }], { clean: true, last: { h: 8 }, mean3: 8 }, { pg: 52 });
+      const out2 = r2.s || r2;
+      const absA = out2.exercises.find((x) => x.id === "abs");
+      ok(!!absB && String(absB.topAt) === String(absB.w) && (absB.topRun || 0) >= 1,
+        "T2 — abs enters this session with a banked sighting at its window top (that is the thing the seam was wiping)");
+      ok((out2.feed || []).some((f) => f && /ABDOMINAL CRUNCH 105 EARNED/i.test(String(f.t || "")))
+        && (out2.queue || []).some((q) => q && q.exId === "abs" && q.kind === "debut" && !q.done),
+        "T2 — a second top-of-window session EARNS 105 and queues the debut: on the pre-build engine the same call filed TARGET MET and reset topRun 1 → 0, because eraFresh drove add:0, atTop and the fall-off arm all at once. An insertion seam never resets progression and never wipes a sighting (Q2)");
+      ok(!(absA && String(absA.topAt) === String(absA.w) && (absA.topRun || 0) >= 1),
+        "T2 — and the earn SPENDS the record, exactly as it does for any other lift");
+    });
+
+    /* ---- T3 — the derivation: exposure, the pair table, and a skipped lift ---- */
+    withClock(RULED, () => {
+      const m = T.migrate(clP(rawP1));
+      ok(ctxF(m.exercises.find((x) => x.id === "ham")).length === 0 && !seamL(m).length && m.insertions.hipthrust === "2026-08-14",
+        "T3 — the hip thrust has NEVER been performed, so it seams nothing while its plan marker stands: a lift the athlete has not done cannot have changed anyone's context (Q1)");
+      const s3 = clP(m);
+      s3.sessionLog["2026-08-21"] = { d: "2026-08-21", entries: [{ id: "hipthrust", w: 100, reps: [10, 10] }, { id: "ham", w: 70, reps: [11, 10, 9] }] };
+      const d3 = T.migrate(clP(s3));
+      const hf = ctxF(d3.exercises.find((x) => x.id === "ham"));
+      ok(hf.length === 1 && hf[0].from === "2026-08-21" && hf[0].kind === "context"
+        && seamL(d3).filter((f) => f.op === "seam:hipthrust:ham" && f.d === "2026-08-21").length === 1,
+        "T3 — the first session on which BOTH the new lift and the affected lift are actually performed opens the seam, dated THERE: one context fork, one line (Q1, Grok's sharpening of Sol's rule)");
+      const s4 = clP(m);
+      s4.sessionLog["2026-08-21"] = { d: "2026-08-21", entries: [{ id: "hipthrust", w: 100, reps: [10, 10] }], skipped: [{ id: "ham" }] };
+      ok(ctxF(T.migrate(clP(s4)).exercises.find((x) => x.id === "ham")).length === 0,
+        "T3 — a SKIPPED ham is not exposure: no fork, no line (a lift that was not performed did not meet the new one)");
+      const s5 = clP(m);
+      s5.sessionLog["2026-08-21"] = { d: "2026-08-21", entries: [{ id: "fly", w: 90, reps: [12, 11] }, { id: "pulldown", w: 150, reps: [9, 8] }, { id: "rows", w: 180, reps: [9, 9] }, { id: "curl", w: 55, reps: [11, 10, 10] }] };
+      const d5 = T.migrate(clP(s5));
+      ok(["pulldown", "rows", "curl", "tricep", "sulek", "rearDelt"].every((id) => ctxF(d5.exercises.find((x) => x.id === id)).length === 0) && !seamL(d5).length,
+        "T3 — and the FLY seams nothing even when it is performed beside every lift below it: the owner's pair table says a pec fly shares no working muscle with a rear-delt fly, a pulldown, rows, a curl, a tricep pushdown or a wrist curl (Q2c). Six of the eleven seams existed for a change that never touched those lifts");
+    });
+
+    /* ---- T4 — stale-safe: a retired seam cannot come back ---- */
+    withClock(RULED, () => {
+      const m = T.migrate(clP(rawP1));
+      const stale = clP(rawP1);                                  /* still carrying all eleven 8/17 seams */
+      const ab = T.mergeState(clP(m), T.migrate(clP(stale))), ba = T.mergeState(T.migrate(clP(stale)), clP(m));
+      const clean = (x) => (x.exercises || []).reduce((n, e) => n + ctxF(e).length, 0) === 0 && seamL(x).length === 0;
+      ok(clean(ab) && clean(ba) && JP(T.mergeState(clP(m), clP(m))) === JP(m),
+        "T4 — a stale replica carrying the retired seams meets the corrected state: neither the forks nor the lines come back, from EITHER merge order, and merge(m,m) = m. This is why the seams had to become a DERIVATION and not a one-time deletion — forks union by date and the feed is a max-multiset, so a stored deletion would have been undone by the first sync");
+    });
+
+    /* ---- T5 — the legacy re-dater is retired (source-pinned) ---- */
+    {
+      const srcP1 = readFileSync("src/app.jsx", "utf8");
+      ok(srcP1.indexOf("only split seams re-date") === -1 && srcP1.indexOf("THE LEGACY RE-DATER IS RETIRED") > -1,
+        "T5 — the legacy re-dater is GONE (source-pinned): its in-flight rule pushed a split seam past the latest old-order entry, which re-dated extension/ham/abs/hanging to 8/15 at the next boot and brought the repeats back in both merge directions. A derived seam has no such job — its date IS the exposure, recomputed every boundary");
+      ok(srcP1.indexOf("function deriveInsertionSeams") > -1 && srcP1.indexOf("const INSERTION_PAIRS") > -1,
+        "T5 — and the derivation and its ruled pair table are the only seam authority in the tree");
+    }
+
+    /* ---- T7 — curl is a numeric lift ---- */
+    withClock(RULED, () => {
+      const m = T.migrate(clP(rawP1));
+      const rawG = clP(rawP1); rawG.queue = [...(rawG.queue || []), { id: "q_curl_grad", kind: "info", t: "CURL 60 GRADUATION CANDIDATE", state: "COACH FLAG", done: false }];
+      const mG = T.migrate(rawG);
+      const cu = m.exercises.find((x) => x.id === "curl");
+      ok(cu.w === 55 && JP(cu.wSets) === JP([55, 55, 50]) && !cu.ladder && T.nextLoad(cu) === 60,
+        "T7 — curl's working load is a NUMBER with the per-set line beside it (55 · [55,55,50]), the bespoke ladder branch is gone, and it prices a next load like every other lift: 60. The string '55·55·50' was why this one lift skipped every numeric path — two top sessions banked nothing and its graduation sat as a coach flag forever (Q4)");
+      /* HIS LIVE SHAPE, which the frozen preimage cannot carry: by the time this round runs
+         his device has already adopted a NUMERIC 55 through the CAGE and kept only the ladder
+         marker, so a migration value-keyed on the string "55·55·50" alone would never fire on
+         the state that matters. The vector is restated from his own record — his 2026-08-16
+         entry carries wKey "55·55·50" — never invented. */
+      const liveShape = clP(rawP1);
+      const cuL = liveShape.exercises.find((x) => x.id === "curl");
+      cuL.w = 55; delete cuL.wSets; cuL.ladder = { set: 1, top: 12 };
+      liveShape.sessionLog["2026-08-16"] = { d: "2026-08-16", entries: [{ id: "curl", w: null, wKey: "55·55·50", reps: [12, 12, 10] }] };
+      const mL = T.migrate(liveShape);
+      const cuM = mL.exercises.find((x) => x.id === "curl");
+      ok(cuM.w === 55 && JP(cuM.wSets) === JP([55, 55, 50]) && !cuM.ladder && T.nextLoad(cuM) === 60,
+        "T7 — and the LIVE shape converts too: a curl that already carries a numeric 55 with the ladder marker gains its per-set vector by RESTATING the one his own record holds (the 8/16 entry wKey), not by inventing one — a migration may only restate what was recorded");
+      const noRec = clP(rawP1);
+      const cuN = noRec.exercises.find((x) => x.id === "curl");
+      cuN.w = 55; delete cuN.wSets; cuN.ladder = { set: 1, top: 12 };
+      for (const d of Object.keys(noRec.sessionLog || {})) noRec.sessionLog[d].entries = ((noRec.sessionLog[d] || {}).entries || []).filter((e) => !(e && e.id === "curl"));
+      ok(!(T.migrate(noRec).exercises.find((x) => x.id === "curl").wSets),
+        "T7 — and a curl with NO per-set line anywhere in its record gains no phantom vector: absent stays absent");
+      ok(!(mG.queue || []).some((q) => q && q.id === "q_curl_grad" && !q.done) && (mG.feed || []).some((f) => f && f.op === "patch60:curlgrad"),
+        "T7 — and the coach flag closes with a receipt: the earn walk owns the graduation now");
+    });
+
+    /* ---- T8 — the two string-load defects ---- */
+    {
+      ok(T.nextLoad({ w: null, inc: 5 }) === null && T.nextLoad({ w: "", inc: 5 }) === null && T.nextLoad({ w: undefined, inc: 5 }) === null && T.nextLoad({ w: "BW", inc: 5 }) === null,
+        "T8 — a MISSING load is not a load of zero: Number(null) and Number('') are both 0, so the live hip thrust — never performed — advertised a next load of 5. Absent is absent, on every absent shape");
+      ok(T.prevLoad({ w: null, inc: 5 }) === null && T.prevLoad({ w: "", inc: 5 }) === null,
+        "T8 — and the same guard on the way down: RESET may not invent a weight either");
+      ok(T.nextLoad({ w: 150, inc: 5 }) === 155 && T.prevLoad({ w: 150, inc: 5 }) === 145,
+        "T8 — a real load is unaffected");
+    }
+
+    /* ---- T10 — replica identity against a fresh SEED ---- */
+    withClock(RULED, () => {
+      const m = T.migrate(clP(rawP1)), seed = T.migrate(null);
+      const r1 = T.mergeState(clP(m), clP(seed)), r2 = T.mergeState(clP(seed), clP(m));
+      ok(JP(r1.insertions) === JP({ fly: "2026-08-14", hipthrust: "2026-08-14" }) && JP(r2.insertions) === JP(r1.insertions)
+        && [r1, r2].every((x) => (x.exercises || []).reduce((n, e) => n + ctxF(e).length, 0) === 0 && seamL(x).length === 0),
+        "T10 — the live state and a fresh install agree on the plan markers and on the empty seam set, from both merge orders");
+      ok((seed.exercises || []).reduce((n, e) => n + ctxF(e).length, 0) === 0 && !seamL(seed).length,
+        "T10 — and a fresh install derives no seam of its own: the marker says the plan changed, the session log says nothing has been performed under it yet");
+    });
+
+    /* ---- T18 — the debut debit scales with the jump ---- */
+    {
+      const mkDeb = (w0, wN, last, sets, hi) => {
+        const s9 = T.migrate(null);
+        const ex = s9.exercises.find((x) => x.id === "press") || s9.exercises[0];
+        ex.w = w0; ex.last = last.slice(); ex.sets = sets; ex.hi = hi; ex.lastMeta = { d: "2026-08-10", w: w0, reps: last.slice() };
+        s9.queue = [{ id: "q_t18", kind: "debut", exId: ex.id, newW: wN, state: "DEBUT", done: false }];
+        const g = T.genSession(s9, "2026-08-20", { clean: true, last: { h: 8 }, mean3: 8 });   /* an UPPER day — press is a U lift, and a debut card only renders on its own day */
+        const card = (g.ex || []).find((x) => x.id === ex.id);
+        return card ? card.tgt : null;
+      };
+      ok(JP(mkDeb(250, 255, [8, 9, 8, 4], 4, 9)) === JP([7, 8, 7, 3]),
+        "T18 — press 250 → 255 is +2%, so the debit is ONE per set: [8,9,8,4] → [7,8,7,3]. The old flat −1 floored at 6 turned a collapsed 4 into a 6 — asking a set for MORE reps at a HEAVIER load; the floor of 6 is dead");
+      ok(JP(mkDeb(180, 200, [9, 9, 10], 3, 12)) === JP([7, 7, 8]),
+        "T18 — hack 180 → 200 is +11.1%, so the debit is TWO: [9,9,10] → [7,7,8], which is exactly the line he delivered at 200. The shipped −1 asked [8,8,9] and the textbook failure-set slope would have asked below what he keeps: his own measured slope is about one rep per 5% of load (Q8a)");
+      ok(JP(mkDeb(85, 87.5, [14, 14, 12, 12, 11], 5, 15)) === JP([13, 13, 11, 11, 10]),
+        "T18 — lateral 85 → 87.5 is +2.9%: debit one, unchanged from the shipped behaviour on a small jump");
+      ok(JP(mkDeb(150, 155, [15, 14, 13, 12], 5, 15)) === JP([14, 13, 12, 11, 10]),
+        "T18 — and the fit runs FIRST: a 4-set last line on a 5-set lift is padded to five before the debit, so the card carries a target for every set the session will run (C12 + C13 compose)");
+      ok(JP(mkDeb(250, 245, [8, 9, 8, 4], 4, 9)) === JP([7, 8, 7, 3]),
+        "T18 — and a debut without a valid POSITIVE jump (a deload debut) falls back to a debit of one: the smallest honest expectation, by construction. (A lift with NO load on file does not reach this branch at all — it takes the baseline ask, which is the honest answer when the app has never seen a working weight)");
+    }
+
+    /* ---- the kind-drop defect, found while building and required as its own pin ---- */
+    withClock(RULED, () => {
+      const s9 = T.migrate(null);
+      const ex = s9.exercises.find((x) => x.id === "rows");
+      ex.forks = [{ from: "2026-08-13", why: "hooks standardized", ops: ["hooks standardized"], prevN: ex.n, kind: "technique" }];
+      const booted = T.migrate(clP(s9));
+      const f = ((booted.exercises.find((x) => x.id === "rows") || {}).forks || [])[0];
+      ok(!!f && f.kind === "technique",
+        "PROGRESSION-1 (found while building) — a fork's KIND survives the boot exit's restatement: _settleExit rebuilds every fork from a fixed key set {from, why, ops, prevN, split} and was silently dropping `kind`. Benign only while `split` carries the back-compat reading — and `kind` is the first-class classifier from this round on, so the drop had to close before it could bite");
+    });
+
+    /* ---- T9 — the calves reallocation line ---- */
+    withClock(RULED, () => {
+      const m = T.migrate(clP(rawP1));
+      const g9 = T.genSession(clP(m), "2026-08-21", { clean: true, last: { h: 8 }, mean3: 8 });
+      const card = (g9 && (g9.ex || []).find((x) => x.id === "calves")) || null;
+      ok(!!card && card.note === "3 sets today — one calf set was deliberately reallocated to hip thrust in the approved split.",
+        "T9 — the calves card says exactly what the owner ruled, once and in the card's own voice: three sets where the last delivered line has four is not a mistake, it is the approved split, and a silent drop reads as a bug. Display only — the 8/10 line is not rewritten and the set does not come back (observed: " + JP(card && card.note) + ")");
+      const m2 = clP(m);
+      const cv = m2.exercises.find((x) => x.id === "calves");
+      cv.last = [11, 11, 10];                                   /* a three-set line now exists */
+      const g10 = T.genSession(m2, "2026-08-21", { clean: true, last: { h: 8 }, mean3: 8 });
+      const card2 = (g10 && (g10.ex || []).find((x) => x.id === "calves")) || null;
+      ok(!!card2 && card2.note !== "3 sets today — one calf set was deliberately reallocated to hip thrust in the approved split.",
+        "T9 — and it retires itself the moment a three-set line exists: the card and the record agree then, so the explanation stops being owed");
+    });
+
+    /* ---- T13 — the climb moves toward the taper, not toward flat ---- */
+    {
+      const mkClimb = (last, sets, hi, w) => { const s9 = T.migrate(null); const ex = s9.exercises.find((x) => x.id === "lateral") || s9.exercises[0];
+        ex.w = w; ex.sets = sets; ex.hi = hi; ex.last = last.slice(); ex.lastMeta = { d: "2026-08-10", w, reps: last.slice(), rirSets: [2, null, null, null, 0] };
+        return JP(T.targetsFor(ex, s9)); };
+      ok(mkClimb([14, 14, 12, 11, 10], 5, 15, 87.5) === JP([14, 14, 13, 11, 10]),
+        "T13 (Q7a, order G) — the climb fills the FIRST set that is both below the set before it AND below its own taper ceiling: [14,14,12,11,10] → [14,14,13,11,10]. The shipped loop filled toward FLAT, which walked an 87.5 debut through ten chases to [15,14,14,14,14] — about six reps at a load the window never asked for — while the top was four reps away");
+      ok(mkClimb([15, 14, 13, 12, 11], 5, 15, 87.5) === JP([15, 14, 13, 12, 11]),
+        "T13 — a line that already IS the taper eats the add and repeats itself: there is nothing left to climb toward, so the sighting is what it now waits for (the two-for-two the earn walk already describes)");
+      ok(mkClimb([8, 8, 7, 4], 4, 9, 250) === JP([8, 8, 7, 5]),
+        "T13 — and the opener is filled LAST: it keeps its 2-RIR job and is never the set asked to carry the climb (order G, the owner's choice)");
+    }
+
+    /* ---- T16 — the opener-hot contract, and the consent-gated offer behind it ---- */
+    withClock(RULED, () => {
+      const mkHot = (openRir, termRir) => {
+        const s9 = T.migrate(null);
+        const ex = s9.exercises.find((x) => x.id === "press");
+        /* a bare numeric lift: no standard, no own-hold, no reclaim, no technique era — the
+           point here is the opener/terminal contract, and those branches return before it */
+        ex.forks = []; ex.std = null; ex.own = false; ex.reclaim = null; ex.ladder = null;
+        ex.w = 250; ex.sets = 2; ex.hi = 9; ex.last = [9, 9]; ex.topAt = 250; ex.topRun = 1; ex.inc = 5;
+        ex.lastMeta = { d: "2026-08-10", w: 250, reps: [9, 9] };
+        const r = T.completeSession(s9, "2026-08-20", [{ id: "press", w: 250, tgt: [9, 9], reps: [9, 9], rir: openRir, rirSets: [openRir, termRir] }], { clean: true, last: { h: 8 }, mean3: 8 }, { pg: 52 });
+        return r.s || r;
+      };
+      const honest = mkHot(2, 0);
+      ok((honest.feed || []).some((f) => f && / EARNED$/.test(String(f.t || ""))),
+        "T16 — opener 2, TERMINAL 0: the earn fires. The prescribed last set goes to 0 by design, so a terminal 0 must never gate an earn — it is the instrument that SIZES the step");
+      const hot = mkHot(0, 0);
+      ok((hot.feed || []).some((f) => f && /TOP OF WINDOW, BUT HOT/.test(String(f.t || "")) && /opener at RIR 0/.test(String(f.how || ""))),
+        "T16 — opener 0: the earn is refused and the receipt NAMES THE OPENER as the reason. 'Hot' has always meant the opener; the copy used to conflate it with the terminal set");
+      const offered = mkHot(0, 2);
+      ok((offered.queue || []).some((q) => q && q.exId === "press" && q.state === "PROPOSED" && !q.done)
+        && (offered.feed || []).some((f) => f && /EARN PROPOSED OFF ONE SIGHTING/.test(String(f.t || ""))),
+        "T16 (Q7c, owner ruled YES) — opener 0 but the TERMINAL set had 2 in reserve at the top of the window: the automatic earn still waits for an honest opener, and the one-sighting offer is made for the athlete to take by tap. Live witnesses: 08-03 rows [9,9] rirSets [0,2], 07-31 hack [0,null,2], 07-31 extension [0,2]");
+      const srcT16 = readFileSync("src/app.jsx", "utf8");
+      ok(srcT16.indexOf("const openRir9 = en.rir") > -1,
+        "T16 — and the opener is named explicitly in the walk, so the contract is readable where it is enforced");
+    });
+
+    /* ---- T17 — the debut card's runway tells the truth ---- */
+    {
+      const s9 = T.migrate(null);
+      const ex = s9.exercises.find((x) => x.id === "press");
+      ex.w = 250; ex.last = [8, 9, 8, 4]; ex.sets = 4; ex.hi = 9; ex.lastMeta = { d: "2026-08-10", w: 250, reps: [8, 9, 8, 4] };
+      s9.queue = [{ id: "q_t17", kind: "debut", exId: "press", newW: 255, state: "DEBUT", done: false }];
+      const g = T.genSession(s9, "2026-08-20", { clean: true, last: { h: 8 }, mean3: 8 });
+      const card = (g && (g.ex || []).find((x) => x.id === "press")) || {};
+      ok(/^DEBUT at 255 — this session sets the line/.test(String(card.runway || "")) && !/you are there/.test(String(card.runway || "")),
+        "T17 (Q7d) — a DEBUT card's runway prices nothing: it says this session SETS the line at the new load. The shipped runway computed the distance from the OLD load's last line against the new one, so the 87.5 debut card itself read '87.5 EARNS AT THE TOP OF THE WINDOW … you are there' — on the very session that had earned nothing (observed: " + JP(String(card.runway || "").slice(0, 60)) + ")");
+    }
+
+    /* ---- T19 — the hold frees the rep step, and keeps everything else ---- */
+    {
+      const mkHeld = (last, sets, hi, rirSets) => { const s9 = T.migrate(null); const ex = s9.exercises.find((x) => x.id === "abs") || s9.exercises[0];
+        ex.w = 100; ex.sets = sets; ex.hi = hi; ex.last = last.slice(); ex.holdFlag = true;
+        ex.lastMeta = { d: "2026-08-08", w: 100, reps: last.slice(), rirSets: rirSets.slice() };
+        const free = clP(ex); delete free.holdFlag;
+        return [JP(T.targetsFor(ex, s9)), JP(T.targetsFor(free, s9))]; };
+      const [heldT, freeT] = mkHeld([14, 12, 14], 3, 14, [2, null, 0]);
+      ok(heldT === freeT,
+        "T19 (Q8b) — a HELD lift is prescribed the same climbing line as an unheld one: abs's 08-10 card was held at [14,12,14] and the ruled card steps it, which is what he actually delivered. The hold holds the LOAD; zeroing the rep step also switched off the terminal RIR the governor is waiting to read (observed held " + heldT + " vs free " + freeT + ")");
+      const F = T.migrate(null);
+      ok(JP(T.rirPlan(F, { sets: 4, hi: 12, holdFlag: true }).plan) === JP(T.rirPlan(F, { sets: 4, hi: 12 }).plan)
+        && T.rirPlan(F, { sets: 4, hi: 12, holdFlag: true }).plan[0] >= 2,
+        "T19 — and the hold's RIR clamp is the OPENER's alone: the middle and terminal taper continue, so the set that reports reserve keeps reporting it");
+    }
+
+    /* ---- T20 — the window top is judged on the progression-bearing prefix ---- */
+    withClock(RULED, () => {
+      const s9 = T.migrate(null);
+      const ex = s9.exercises.find((x) => x.id === "press");
+      ex.w = 250; ex.sets = 4; ex.hi = 9; ex.last = [8, 9, 8, 4];
+      s9.sessionLog["2026-08-06"] = { d: "2026-08-06", entries: [{ id: "press", w: 250, reps: [9, 9, 8] }] };      /* 250's first line: THREE sets */
+      s9.sessionLog["2026-08-09"] = { d: "2026-08-09", entries: [{ id: "press", w: 250, reps: [9, 9, 8, 4] }] };   /* the 4th set arrives later, by a volume push */
+      ok(T.atTopOfWindow([9, 9, 8, 4], ex, s9) === true,
+        "T20 (Q8c) — the window top is judged on the sets that WERE the test: 250's first completed line had three sets, so the fourth — added later by a volume push — banks but does not gate this load's earn. [9,9,8,4] IS at the top (observed prefix judgement over the first three)");
+      ok(T.atTopOfWindow([8, 9, 8, 4], ex, s9) === false,
+        "T20 — and the opener still gates: 8 < 9 fails the taper's first term, prefix or no prefix");
+      ok(T.atTopOfWindow([12, 12, 6, 0], ex, s9) === false,
+        "T20 — a total-reps substitution is still rejected: the prefix is a PREFIX, and the taper applies across it");
+      const maxed = clP(ex); maxed.steps = [240, 250]; maxed.w = 250;
+      ok(T.atTopOfWindow([9, 9, 8], maxed, s9) === false,
+        "T20 — and a maxed ladder always uses every configured set: reps ARE the ladder there, so a short line cannot pass");
+    });
+
   }
 
 }

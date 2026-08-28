@@ -1777,7 +1777,17 @@ ok(rp24(clone(SV), latX, debtSlp).why.every(w => w.indexOf("debt") === -1), "no 
 const rowsEx = clone(SV).exercises.find(e => e.id === "rows");
 ok(rp24(clone(SV), rowsEx, cleanSlp).plan.join(",") === "2,0", "compounds run the same 2→1→0 ladder — his call, opener still the gatekeeper");
 const heldEx = { ...latX, holdFlag: true };
-ok(rp24(clone(SV), heldEx, cleanSlp).plan.every(r => r >= 2), "governor hold floors every set at 2");
+{
+  /* Q8b (PROGRESSION-1) — THE HOLD CLAMPS THE OPENER, NOT THE WHOLE PLAN. Flooring every
+     slot at 2 silenced the terminal RIR, which is the reading the rep step is sized from —
+     the governor was waiting for an instrument it had switched off. The opener still stays
+     two clean reps back; the middle and terminal taper continue. */
+  const heldPlan24 = rp24(clone(SV), heldEx, cleanSlp).plan;
+  const freePlan24 = rp24(clone(SV), latX, cleanSlp).plan;
+  ok(heldPlan24[0] >= 2, "governor hold — the OPENER still stays two clean reps back");
+  ok(heldPlan24[heldPlan24.length - 1] === freePlan24[freePlan24.length - 1] && heldPlan24[heldPlan24.length - 1] < 2,
+    "governor hold — the terminal taper CONTINUES under the hold (Q8b): the set that reports reserve is not floored to 2, so the rep step keeps its instrument");
+}
 const oldV15 = clone(SV); oldV15.v = 15; oldV15.exercises.find(e => e.id === "lateral").sets = 3;
 const m16 = mg24(oldV15);
 ok(m16.v >= 16 && m16.exercises.find(e => e.id === "lateral").sets === 4 && m16.feed.some(f => f.t.indexOf("LATERAL 4TH SET") === 0), "phones get the 4th set with the honesty note filed");
@@ -2889,7 +2899,9 @@ ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, null]) })).add === 1,
 ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [3, null, null, null]) })).add === 2, "opener at 3 says headroom even without a terminal rating");
 ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [0, null, null, null]) })).add === 1, "a hot opener holds the step at one");
 ok(ps(lift({})).add === 1 && ps(lift({ lastMeta: meta([10, 8], [null, null]) })).add === 1, "nothing rated → the old default, unchanged");
-ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3]), holdFlag: true })).add === 0, "the governor hold outranks every reserve reading — nothing climbs");
+ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3]), holdFlag: true })).add === ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3]) })).add
+   && ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3]), holdFlag: true })).add > 0,
+   "Q8b — the governor hold no longer outranks the reserve reading: the hold holds the LOAD, and the rep step reads the terminal RIR exactly as it does unheld (the automatic load earn stays blocked in earnWalk)");
 /* The short-sleep short-circuit is gone. It sat above every RIR branch, so on a
    record where every session carried debt it made all of them unreachable — and
    it had no evidence behind it: Craven 2022 puts acute sleep loss at -2.85% on
@@ -2904,7 +2916,8 @@ ok(ps(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 2]) })).why.indexOf("
 ok(JSON.stringify(tfA(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 0]) }))) === "[10,9,7,7]", "RIR 0 reproduces the old single-rep behaviour exactly");
 ok(JSON.stringify(tfA(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3]) }))) === "[10,10,8,7]",
    "three reps of reserve buys three reps of target, and they spread across the faded sets rather than spiking one: 10,8,7,7 → 10,10,8,7");
-ok(JSON.stringify(tfA(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3]), holdFlag: true }))) === "[10,8,7,7]", "held lifts repeat the line exactly — no climb");
+ok(JSON.stringify(tfA(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3]), holdFlag: true }))) === JSON.stringify(tfA(lift({ lastMeta: meta([10, 8, 7, 7], [2, null, null, 3]) }))),
+   "Q8b — a held lift is prescribed the SAME climbing line as an unheld one: repeating its own last line was how the hold made itself permanent (abs's 08-10 card was held at [14,12,14]; the ruled card is [14,13,14], which is what he delivered)");
 ok(JSON.stringify(tfA({ last: [14, 13, 13], hi: 15, sets: 3 })) === "[14,14,13]", "the original rule still holds when nothing is rated");
 ok(JSON.stringify(tfA({ last: [10, 10], hi: 10, sets: 2 })) === "[10,10]", "and a full window still refuses to invent reps above the ceiling");
 ok(JSON.stringify(tfA(lift({ hi: 9, last: [9, 9, 9, 9], lastMeta: meta([9, 9, 9, 9], [2, null, null, 3]) }))) === "[9,9,9,9]", "at the ceiling the step has nowhere to go and stops cleanly");
@@ -5610,7 +5623,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
 // --- migration patchV36 — additive + migratable + rollback-safe ---
 {
   const mig = __test.migrate, SC = __test.SCHEMA_V, ms = __test.mergeState;
-  ok(SC === 59, "schema: SCHEMA_V is 59 (patchV59: SCALE-1 — three morning reads re-classed on the owner's word, trend replayed (patchV58: the corrections the app's own receipts prove, filed at last (patchV57: the derived correction backfill — every skipped lift on a corrected record gets its replayable op (patchV56: the corrLog backfill — per-correction provenance, so a merge replays corrections instead of letting the richer body decide which survive — the deliberate census pin; bumping SCHEMA_V must touch this line)");
+  ok(SC === 60, "schema: SCHEMA_V is 60 (patchV60: PROGRESSION-1 — the eleven insertion seams stamped by the day the code ran are retired and seams become DERIVED from actual exposure (patchV59: SCALE-1 — three morning reads re-classed on the owner's word, trend replayed (patchV58: the corrections the app's own receipts prove, filed at last (patchV57: the derived correction backfill — every skipped lift on a corrected record gets its replayable op (patchV56: the corrLog backfill — per-correction provenance, so a merge replays corrections instead of letting the richer body decide which survive — the deliberate census pin; bumping SCHEMA_V must touch this line)");
   const oldV35 = clone(SEED); oldV35.v = 35; delete oldV35.plan.autonomy;
   const migd = mig(oldV35);
   ok(migd.v === SC && migd.plan.autonomy === "propose", "patchV36→39: a v35 state migrates up to the current schema and patchV36 still defaults autonomy to the most-supervised 'propose'");
@@ -5912,7 +5925,7 @@ ok(UIK63 !== "prep-ledger-v1", "…and NOT under prep-ledger-v1 — so they neve
   ok(anchored.learned.anchors.some((a) => a.src === "DEXA"), "DEXA: anchorDexa RECORDS the anchor in the learned history, so partitionPrior/energyDensity can narrow + personalise as anchors accumulate");
 
   // -------- SCHEMA patchV37 — additive + migratable + rollback-safe; fresh SEED === migrated --------
-  ok(__test.SCHEMA_V === 59, "schema: SCHEMA_V is 59 (patchV59 on top of the chain — the second deliberate census pin)");
+  ok(__test.SCHEMA_V === 60, "schema: SCHEMA_V is 60 (patchV60 on top of the chain — the second deliberate census pin)");
   ok(Array.isArray(SEED.learned.tdee) && SEED.learned.tdee.length === 0 && Array.isArray(SEED.learned.anchors) && SEED.learned.anchors.length === 0, "patchV37: SEED carries an EMPTY learned store — a fresh install === a migrated state");
   const oldV36 = clone(SEED); oldV36.v = 36; delete oldV36.learned;
   const m37 = MIG(oldV36);
@@ -6497,7 +6510,8 @@ if (fail) process.exit(1);
   {
     const F = mkFree();
     ok(JSON.stringify(__test.rirPlan(F, { sets: 4, hi: 12 }).plan) === "[2,1,1,0]", "RIR — an added set re-keys the taper to [2,1,1,0]: the new set arrives as a hard 1-in-the-tank set and failure stays spent exactly once, on the final set — no new wiring, verified rather than trusted");
-    ok(JSON.stringify(__test.rirPlan(F, { sets: 4, hi: 12, holdFlag: true }).plan) === "[2,2,2,2]", "RIR — and the governor hold still floors every slot at 2 across the new count: holdFlag machinery follows the set count");
+    ok(JSON.stringify(__test.rirPlan(F, { sets: 4, hi: 12, holdFlag: true }).plan) === JSON.stringify(__test.rirPlan(F, { sets: 4, hi: 12 }).plan),
+      "RIR — and under the governor hold the added set keeps that same taper (Q8b): the clamp is the OPENER's alone, so a held lift's terminal set still reports the reserve the step is sized from");
     const wing82 = __test.labAnalytics2(cl82(SEED));
     const vcCard = wing82.find((c) => c.id === "volconv");
     ok(!!vcCard && vcCard.status === "ARMED" && vcCard.t === "VOLUME VERDICTS", "LAB — the VOLUME VERDICTS instrument (renamed from VOLUME CONVERSION: the old title claimed a read the instrument cannot make) exists and arms cold: no set-count change on record yet, counting only, no verdict");
@@ -6967,7 +6981,7 @@ if (fail) process.exit(1);
   ok(JSON.stringify(P1.weekly.filter((w) => w.wk >= "2026-08-03")) === JSON.stringify([{ wk: "2026-08-03", trend: 163.9 }, { wk: "2026-08-10", trend: 163.6 }]), "SCALE-1 — weekly snapshots re-derive by the stated rule (the trend after the week's FIRST clean read) — on the preimage neither moves: wk 8/3's first clean read (8/3) precedes the replay, wk 8/10's first clean read is now 8/10 itself and lands on the same 163.6");
   const gone = (s) => s.feed.filter((f) => /^EVENING READ/.test(String(f.t || "")) || (/^MORNING READ MISSED/.test(String(f.t || "")) && (f.d === "2026-08-08" || f.d === "2026-08-10"))).length;
   const sugDerived91 = P1.feed.filter((f) => typeof f.op === "string" && f.op.indexOf("sug:") === 0).length;
-  ok(gone(P0) === 4 && gone(P1) === 0 && P1.feed.filter((f) => /^MORNING READ MISSED/.test(f.t) && f.d === "2026-08-07").length === 1 && sugDerived91 === (P1.suggestionLog || []).length && P1.feed.length === 321 && P1.feed.length === P0.feed.length + 1 - 4 + 1 - 2 + 2, "SCALE-1/4/6 — the four false receipts go; 8/7's real miss stays; ONE correction line arrives; the 26 op-less analyst lines re-derive to one op-keyed receipt per logged decision (two ledger duplicates collapse); and (SCALE-6) TWO permanent attestation FACT lines arrive — one per re-classed date, the record no old client can unsay (323 + 1 re-strike − 4 + 1 − 2 + 2 = 321)");
+  ok(gone(P0) === 4 && gone(P1) === 0 && P1.feed.filter((f) => /^MORNING READ MISSED/.test(f.t) && f.d === "2026-08-07").length === 1 && sugDerived91 === (P1.suggestionLog || []).length && P1.feed.length === 311 && P1.feed.length === P0.feed.length + 1 - 4 + 1 - 2 + 2 - 11 + 1, "SCALE-1/4/6 — the four false receipts go; 8/7's real miss stays; ONE correction line arrives; the 26 op-less analyst lines re-derive to one op-keyed receipt per logged decision (two ledger duplicates collapse); and (SCALE-6) TWO permanent attestation FACT lines arrive — one per re-classed date, the record no old client can unsay (323 + 1 re-strike − 4 + 1 − 2 + 2 − 11 seams + 1 patch60 receipt = 311 — PROGRESSION-1 retires the eleven insertion seams stamped by the day the code ran and files one op-keyed receipt for the correction)");
   const corr = P1.feed.filter((f) => f.op === "patch59:scale");
   ok(corr.length === 1 && corr[0].d === "2026-08-19" && corr[0].t === "2 MORNING READS RE-CLASSED — 8/8, 8/10" && /replays to 163\.9/.test(corr[0].how) && /attested on 2026-08-19/.test(corr[0].how) && P1.feed.indexOf(corr[0]) >= 0 && P1.feed.indexOf(corr[0]) <= 3 && P1.feed.slice(0, 3).every((f) => f && f.d === "2026-08-19"), "SCALE-1/4/6 — the correction line: op-keyed patch59:scale, dated at the ATTESTATION, names the reads, the settled replay and the owner's word; it sits in the 8/19 head group beneath the two attestation FACT lines (SCALE-6 — the facts outrank the summary because the summary derives FROM them). (SCALE-4 made the body a PROJECTION of the re-classed reads — Sol's pass-2 new row 2: the per-replica replay figures and removal count left the body because a receipt authored from local knowledge lost the canonical tie to a staler replica's copy.)");
   const P2 = __test.migrate(cl91(P1));
@@ -7075,7 +7089,8 @@ if (fail) process.exit(1);
   /* the hot grind still refuses the step */
   const held = mkMaxed({ holdFlag: true });
   const tH = __test.targetsFor(held, S);
-  ok(tH.reduce((a, b) => a + b, 0) === 32 && tH.every((t9, i9) => t9 >= held.last[i9]), "MAXED — a HELD maxed lift gets no step (the governor's refusal survives above the old top) yet still never prescribes below delivered: protection and the law, together");
+  ok(JSON.stringify(tH) === JSON.stringify(__test.targetsFor(mkMaxed({}), S)) && tH.every((t9, i9) => t9 >= held.last[i9]),
+    "MAXED — a HELD maxed lift now gets the SAME step as an unheld one (Q8b: the hold holds the load, and on a maxed stack reps ARE the ladder) and still never prescribes below delivered: the law and the protection, together");
   /* a runged lift keeps hi's whole job */
   const runged = mkMaxed({ steps: [100, 120, 140, 160, 180] });
   const tR = __test.targetsFor(runged, S);
@@ -8229,7 +8244,7 @@ if (fail) process.exit(1);
     /* the ladder nudge — the runway warns where the ladder goes blind */
     const g43 = __test.genSession(C43, "2026-08-14", { last: null });
     const l43 = g43 && g43.ex.find((x) => x.id === "hack");
-    ok(!l43 || !l43.runway || /the ladder goes blind above 170/.test(l43.runway) || /arming:|tops out|no next load/.test(l43.runway), "HACK 6-10 — the runway names the blind ladder on the live shape (one rung above 160): file the next rungs in SETUP so the earn after 170 has a price. At ceiling 10 the debuts come faster; the runway must not go dark above the ladder — " + (l43 && l43.runway ? l43.runway.slice(0, 90) : "(not on this day)"));
+    ok(!l43 || !l43.runway || /the ladder goes blind above 170/.test(l43.runway) || /arming:|tops out|no next load/.test(l43.runway) || /^DEBUT at /.test(l43.runway), "HACK 6-10 (+ PROGRESSION-1 Q7d) — the runway names the blind ladder, or says it is a DEBUT card and prices nothing: a debut sets the line at the NEW load, so pricing the old one printed 'you are there' on the very session that had earned nothing. The runway names the blind ladder on the live shape (one rung above 160): file the next rungs in SETUP so the earn after 170 has a price. At ceiling 10 the debuts come faster; the runway must not go dark above the ladder — " + (l43 && l43.runway ? l43.runway.slice(0, 90) : "(not on this day)"));
   }
 
   /* ---------- HACK 6-10 REVISION — the state moved under the round (180 × 9,9,10) ---------- */
@@ -8716,7 +8731,8 @@ if (fail) process.exit(1);
     "RETIRE — and targetsFor carries the difference to the actual numbers: +2 total on the tricep, +1 on the sulek");
   /* the governor still outranks everything — that never belonged to the trial */
   const exH = clU(exT); exH.holdFlag = true;
-  ok(__test.progressStep(exH, SU1).add === 0, "RETIRE — the governor hold still outranks all of it: safety above progression, exactly as before the experiment and exactly as after it");
+  ok(__test.progressStep(exH, SU1).add === __test.progressStep(clU(exT), SU1).add,
+    "RETIRE — the governor hold no longer zeroes the rep step (Q8b): it still refuses the automatic LOAD earn, which is where safety actually sits, and the step reads the same reserve it reads unheld");
 }
 console.log(`\nFINAL104: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
@@ -8967,8 +8983,8 @@ if (fail) process.exit(1);
       "V46 dedupe — one receipt, counting exactly what was removed and naming the titles");
     /* feed length: 6 in, minus 2 dups, plus the dedupe receipt, plus V47's
        retirement receipt (the fixture crosses both patches now) = 6 */
-    ok(out.feed.length === 17 && out.feed.some((f) => f.t === "FAILURE EXPERIMENT RETIRED") && out.feed.filter((f) => /— FRESH BASELINE$/.test(f.t)).length === 11,
-      "V46 dedupe — feed shrinks by exactly the removed count, then carries one receipt per ruled patch event crossed: 6 − 2 + 1 (dedupe) + 1 (V47 retirement) + 11 (the split's eleven seams) = 17");
+    ok(out.feed.length === 6 && out.feed.some((f) => f.t === "FAILURE EXPERIMENT RETIRED") && out.feed.filter((f) => /— FRESH BASELINE$/.test(f.t)).length === 0,
+      "V46 dedupe → PROGRESSION-1 — feed shrinks by exactly the removed count, then carries one receipt per ruled patch event crossed: 6 − 2 + 1 (dedupe) + 1 (V47 retirement) = 6. The eleven insertion seams that used to ride here are gone — they were never facts about training, and a seam is derived now, so no FRESH BASELINE line is minted at all (the split's eleven seams) = 17");
   }
   {
     /* nothing to remove → no receipt: a patch may not announce work it did not do */
@@ -9052,8 +9068,8 @@ if (fail) process.exit(1);
         "E1 (v7.53.0) — a bump crossing V48 lands every setup and name on exactly the RULED text (=== SEED's authoring): patch map and seed literal agree, and even the sentinel yields to the ruling");
       ok(dOut.exercises.every((x) => { const se9 = __test.SEED.exercises.find((y) => y.id === x.id); return !se9 || x.setupAt === "2026-08-13T12:00:00.000Z" || ((x.id === "fly" || x.id === "hipthrust") && x.setupAt === "2026-08-12T00:00:00.000Z"); }),
         "E1 (split fix-1) — every ruled rewrite carries ITS OWN fixed stamp: the cue adoption at 8/13, the split newborns at the 8/12 RULING_EPOCH (so a genuine 8/13 athlete pin-edit beats a fresh device's unfilled setup)");
-      ok(["pulldown", "rows", "calves"].every((id9) => { const f9 = __test.forksOf(dOut, id9); return f9.length === 2 && f9[0].from === "2026-08-13" && f9[1].split === true; }),
-        "E1 (SPLIT) — the three technique-changed lifts carry BOTH seams in order: the 8/13 adoption first, the split insertion after it — appended, never overwritten");
+      ok(["pulldown", "rows", "calves"].every((id9) => { const f9 = __test.forksOf(dOut, id9); return f9.length === 1 && f9[0].from === "2026-08-13" && !f9[0].split; }),
+        "E1 (SPLIT → PROGRESSION-1) — the three technique-changed lifts carry ONLY their 8/13 TECHNIQUE seam: the fly's insertion seam is retired by the owner's pair table (a pec fly shares no working muscle with a pulldown, rows or calves), and a technique fork is untouched by any of it");
     }
     ok(out.model.drip === dripBefore && out.model.drip === 0.31,
       "E1 — the SENTINEL drip (0.31 — a future measured value, exactly what the old runner zeroed) is untouched by the bump");
@@ -9199,8 +9215,8 @@ if (fail) process.exit(1);
     "FORK — the closed fingerprint's history is BYTE-IDENTICAL through the fork: scope moved, nothing was deleted");
   /* test 2 — the new baseline starts EMPTY: at a post-fork query date the old
      era's sessions do not feed the trend... */
-  ok(__test.forkFrom(oF, "rows") === "2026-08-14" && __test.forksOf(oF, "rows")[0].from === "2026-08-13",
-    "FORK (SPLIT) — rows' LATEST era opens at the split seam (8/14), with the 8/13 hooks seam preserved beneath it");
+  ok(__test.forkFrom(oF, "rows") === "2026-08-13" && __test.forksOf(oF, "rows").length === 1,
+    "FORK (SPLIT → PROGRESSION-1) — rows' latest era opens at its own 8/13 HOOKS seam and nothing else: the fly's insertion seam never existed to open one (pair table, fly → none), so the technique change is the only thing that partitions this lift");
   /* ...and test 3 — ERA-AWARENESS (ruling b): the SAME state, queried at a
      pre-fork date, still reads the old era — the dayType precedent at the lift
      instruments. The suite's own pinned clock (2026-07-29, before the adoption)
@@ -9271,10 +9287,10 @@ if (fail) process.exit(1);
   SI.exercises.forEach((e) => { if (e.forks) e.forks = e.forks.filter((f) => !f.split); });
   const r1 = __test.runAdaptive(clE(SI), "2026-08-20");
   const rowsF1 = __test.forksOf(r1, "rows");
-  ok((r1.insertions || {}).fly === "2026-08-20" && rowsF1.some((f) => /fly inserted upstream/.test(f.why) && f.from === "2026-08-20"),
-    "3a(c)/SPLIT — a marker-less state fires the runtime table ONCE: the registry records the fly, rows gains the appended era (" + rowsF1.length + " seams total)");
-  ok(rowsF1.length === 2 && rowsF1[0].why === "hooks standardized",
-    "3a(c) — APPENDED, never overwritten: the 8/13 hooks seam survives under the new one");
+  ok((r1.insertions || {}).fly === "2026-08-14" && !rowsF1.some((f) => /fly inserted upstream/.test(f.why)),
+    "3a(c)/SPLIT → PROGRESSION-1 — a marker-less state records the PLAN MARKER at the day the plan changed (SEED's 2026-08-14), never at the day the sweep happened to run, and rows gains NO era: the fly seams nothing (" + rowsF1.length + " seam(s) total)");
+  ok(rowsF1.length === 1 && rowsF1[0].why === "hooks standardized",
+    "3a(c) → PROGRESSION-1 — the 8/13 hooks seam survives the sweep untouched: a technique fork is never rewritten, and the insertion that used to append beside it is retired");
   const rBorn = __test.runAdaptive(clE(__test.SEED), "2026-08-20");
   ok(!(rBorn.feed || []).some((f) => /FRESH BASELINE/.test(f.t)),
     "SPLIT — the BORN registry suppresses the runtime table entirely: a fresh install sweeps with zero seam receipts, because there was never a transition to receipt");
