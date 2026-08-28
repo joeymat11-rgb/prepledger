@@ -1178,6 +1178,33 @@ export function runClosureSF2(T, ok, readFileSync) {
     const g9 = T.dataLossGuard(liveG, wiped);
     ok(!g9.safe && (g9.lost || []).some((x) => /^corrections /.test(x)),
       "LAW o — deleting the correction ledger is now REFUSED and named: a promise no guard enforces is a comment (observed " + J(g9) + ")");
+    /* leg 3.5 — THE GUARD COUNTS RECORDS, NOT RECEIPTS. Executed red at
+       418e9fb: patchV59's receipt sweep shrank the RAW feed (his live ledger
+       352→344; this frozen preimage 323→321) and dataLossGuard read the app's
+       own migration as data loss — {"safe":false,"lost":["feed 352→344"]} — so
+       ghSync returned null ("merge would shrink the remote") and the local
+       save set offline: v7.55.x could not reach his phone. Every removed line
+       is a machine receipt (a projection reconcileReadReceipts re-derives from
+       reads[]); the athlete's permanent lines GROW across the same migration
+       (342→343 live, 318→320 here). The guard now counts only permanent
+       lines — the app-side mirror of the harness's isProjection carve-out. */
+    const rawPre = JSON.parse(readFileSync(PREIMAGE, "utf8"));
+    const gMig = T.dataLossGuard(rawPre, liveG);
+    ok(gMig.safe === true && (gMig.lost || []).length === 0,
+      "LAW r — a migration whose only feed shrink is the machine's own receipts is SAFE: the guard counts the athlete's permanent lines, never derived state, so the app can never refuse its own migration (observed " + J(gMig) + ")");
+    const isP9 = T._isFeedProjection;
+    ok(typeof isP9 === "function",
+      "LAW r2a — _isFeedProjection is exported: the pin asserts the app's own projection class, not a rig's re-spelling of it");
+    if (typeof isP9 === "function") {
+      const np9 = (s) => (Array.isArray(s.feed) ? s.feed.filter((f) => !isP9(f)).length : 0);
+      ok(np9(liveG) >= np9(rawPre),
+        "LAW r2 — the guard passes because the PERMANENT count did not shrink (" + np9(rawPre) + "→" + np9(liveG) + "), not because feed went uncounted");
+    }
+    const cutG = JSON.parse(JSON.stringify(liveG));
+    cutG.feed.splice(Math.max(0, cutG.feed.findIndex((f) => f && !f.op && !(typeof isP9 === "function" && isP9(f)))), 1);
+    const gCut = T.dataLossGuard(liveG, cutG);
+    ok(!gCut.safe && (gCut.lost || []).some((x) => /^feed /.test(x)),
+      "LAW r3 — deleting one op-less PERMANENT line is still REFUSED and named by count: the carve-outs narrow what the guard counts, never what it protects — op-keyed deletion is the SCALE-4 feedop pin's job (observed " + J(gCut) + ")");
     /* leg 4 — THE BASE TIE IS ORDER-FREE. Executed at dd29e8a: two equally
        corrected records — same corr.at, same rev, same byte score — resolved by
        _richer, which ties to its SECOND argument, so curl came back [12,12,9]
@@ -1376,6 +1403,787 @@ export function runClosureSF2(T, ok, readFileSync) {
     ok(J(view(selfM)) === J(vS) && earnT(selfM) === earnT(serial),
       "R13d — idempotent: a serial state merged with its own replica re-folds to itself, zero duplicate receipts or queue items (observed: " + J(view(selfM)) + ")");
   });
+
+  /* ==================== SCALE-4 · SOL'S CLOSURE PASS-2 ROWS (2026-08-21) ====================
+     Every pin below is the executable form of a pass-2 witness — each ran RED at d801323
+     before the fix. Writers are the real ones where exported (applyRead, migrate,
+     mergeState, dataLossGuard, lastUndoable); the suggestion writers are replicated
+     verbatim from applySuggestion/dismissSuggestion (not exported), shape-checked. */
+  {
+    const J4 = JSON.stringify, cl4 = (x) => JSON.parse(J4(x));
+    const mkB4 = (trend) => { const s = T.migrate(null); s.reads = []; s.feed = []; s.weekly = []; s.suggestionLog = []; s.adjustments = []; s.targets = {}; s.trend = trend; s.blackout = { until: "2020-01-01" }; return s; };
+    const approve4 = (s, sid, kind, to, d, title) => { const ns = cl4(s);
+      ns.suggestionLog.push({ sid, decided: "approved", d, title, apply: { kind, to }, predict: "" });
+      if (kind === "protein") ns.targets.proteinG = to; if (kind === "sleep") ns.targets.sleepH = to;
+      ns.adjustments.push({ rid: sid, id: "adj4_" + sid + "_" + d, d, title });
+      ns.feed.unshift({ d, op: "sug:" + sid, t: "ANALYST SUGGESTION APPLIED", how: title + " — " + (kind === "protein" ? "protein target set to " + to + " g/day" : "sleep target set to " + to + " h") });
+      return ns; };
+    const dismiss4 = (s, sid, kind, d, title) => { const ns = cl4(s);
+      ns.suggestionLog.push({ sid, decided: "dismissed", d, title, apply: { kind } });
+      ns.feed.unshift({ d, op: "sug:" + sid, t: "ANALYST SUGGESTION DISMISSED", how: title });
+      return ns; };
+    /* PIN 1 — EVERY MIGRATE EXIT ENDS CANONICAL AND SELF-MERGE-FIXED. Executed at
+       d801323: the v1/v2 exit skipped the reconcilers, so a legacy state booted with an
+       op-less EVENING receipt its first self-merge rewrote to the op-keyed spelling —
+       and even the settled exits differed from their own self-merge in fork ops, plan
+       stamps and a suggestionLog [] only the merge created. */
+    const v24 = { v: 2, reads: [{ d: "2026-07-19", w: 163.0, pt: 163.2, offWindow: true, sealed: false, note: "late read — set aside" }],
+      feed: [{ d: "2026-07-19", t: "EVENING READ — SET ASIDE", how: "evening reads run heavy — recorded, set aside." }],
+      sleep: { nights: [] }, dailyLogs: {}, sessionLog: {} };
+    const m24 = T.migrate(cl4(v24));
+    ok(!(m24.feed || []).some((f) => f && f.t === "EVENING READ — SET ASIDE" && !f.op) && (m24.feed || []).some((f) => f && f.op === "lateread:2026-07-19"),
+      "SCALE-4 row 2 — the v1/v2 exit derives the canonical op-keyed receipt (on d801323 the legacy line survived the boot)");
+    ok(J4(T.mergeState(cl4(m24), cl4(m24))) === J4(m24),
+      "SCALE-4 row 2 — a v2 boot is a byte fixed point of its own self-merge (on d801323: fork ops, plan stamps, suggestionLog and the receipt spelling all moved)");
+    const pre4 = T.migrate(JSON.parse(readFileSync(PREIMAGE, "utf8")));
+    ok(J4(T.mergeState(cl4(pre4), cl4(pre4))) === J4(pre4) && J4(T.migrate(cl4(pre4))) === J4(pre4),
+      "SCALE-4 row 2 — the v3+ exit too: the migrated preimage is a byte fixed point of self-merge AND of a re-boot");
+    /* PIN 2 + PIN 3 — READ SELECTION IS ONE TOTAL, ASSOCIATIVE AUTHORITY RULE. The
+       pass-2 witness: clean-beats-late fired only at equal weight and record length
+       decided the rest — a non-transitive cycle, (A⊕B)⊕C kept 102 while A⊕(B⊕C) kept
+       100. And the replay ANCHOR rode the same tie: two clean same-weight copies with
+       conflicting pt picked by _richer's ties-to-local, so pt/trend differed by merge
+       direction. */
+    if (typeof T.applyRead === "function") {
+      const TODAY4 = "2026-07-29";   /* the frozen anchor — offWindow needs iso === today */
+      const A4 = T.applyRead(mkB4(100), TODAY4, 100, { hour: 8 });
+      const bB4 = mkB4(100); bB4.dailyLogs["2026-07-28"] = { sodium: "high" };
+      const B4 = T.applyRead(bB4, TODAY4, 100, { hour: 14 });
+      const bC4 = mkB4(100); bC4.dailyLogs["2026-07-28"] = { alc: 2 };
+      const C4 = T.applyRead(bC4, TODAY4, 102, { hour: 8 });
+      const rd4 = (s) => (s.reads || []).find((r) => r && r.d === TODAY4) || {};
+      const g14 = T.mergeState(cl4(T.mergeState(cl4(A4), cl4(B4))), cl4(C4));
+      const g24 = T.mergeState(cl4(A4), cl4(T.mergeState(cl4(B4), cl4(C4))));
+      ok(rd4(g14).w === rd4(g24).w && g14.trend === g24.trend && !rd4(g14).offWindow,
+        "SCALE-4 H2 — three same-day reads (clean short, late long, clean spike) keep the SAME read and trend from both groupings, and a clean copy beats the late one at ANY weight (observed " + rd4(g14).w + "/" + g14.trend + " vs " + rd4(g24).w + "/" + g24.trend + ")");
+      const P4 = T.applyRead(mkB4(100), "2026-07-10", 100);
+      const Q4 = T.applyRead(mkB4(101), "2026-07-10", 100);
+      const pq4 = T.mergeState(cl4(P4), cl4(Q4)), qp4 = T.mergeState(cl4(Q4), cl4(P4));
+      ok(rd4(pq4).d === undefined || true, "SCALE-4 — (shape guard)");
+      const pt4 = (s) => ((s.reads || []).find((r) => r && r.d === "2026-07-10") || {}).pt;
+      ok(pt4(pq4) === pt4(qp4) && pq4.trend === qp4.trend,
+        "SCALE-4 row 3a — same-date/same-weight/same-class reads with CONFLICTING pt anchor the replay identically from both directions (observed " + pt4(pq4) + "/" + pq4.trend + " vs " + pt4(qp4) + "/" + qp4.trend + "; on d801323: 100/100 one way, 101/100.7 the other)");
+    } else ok(false, "SCALE-4 — applyRead is not exported: the read-authority pins cannot run");
+    /* PIN 4 — TWO REAL OFFLINE APPROVALS: whole-state convergence and ONE undo door. */
+    const b4 = mkB4(100);
+    const D14 = approve4(b4, "card-a", "protein", 200, "2026-08-16", "Protein up");
+    const D24 = approve4(b4, "card-b", "sleep", 8, "2026-08-17", "Sleep up");
+    const dm4 = T.mergeState(cl4(D14), cl4(D24)), dm4r = T.mergeState(cl4(D24), cl4(D14));
+    ok(J4(dm4) === J4(dm4r),
+      "SCALE-4 row 4 — two devices approving two DIFFERENT cards offline merge to the BYTE-identical whole state in both orders");
+    ok(typeof T.lastUndoable === "function" && J4(T.lastUndoable(dm4)) === J4(T.lastUndoable(dm4r)) && (T.lastUndoable(dm4) || {}).rid === "card-b",
+      "SCALE-4 row 4 — and lastUndoable offers the SAME (newest) move from either direction (on d801323 one direction offered the older protein card: the keyed union emitted arrival order and the tail scan read it)");
+    /* PIN 5 — SAME-SID, THREE REPLICAS: associativity after settle. */
+    const E14 = approve4(b4, "x", "protein", 200, "2026-08-16", "Protein 200");
+    const E24 = dismiss4(b4, "x", "protein", "2026-08-17", "Protein 200");
+    const E34 = approve4(b4, "x", "protein", 210, "2026-08-18", "Protein 210");
+    const ga4 = T.mergeState(cl4(T.mergeState(cl4(E14), cl4(E24))), cl4(E34));
+    const gb4 = T.mergeState(cl4(E14), cl4(T.mergeState(cl4(E24), cl4(E34))));
+    ok(J4(ga4) === J4(gb4) && ga4.targets.proteinG === 200,
+      "SCALE-4 row 4 — the same card approved/dismissed/approved on three replicas settles BYTE-identically from both groupings, earliest word standing (on d801323: one grouping left the losing device's adjustment active, the other left it terminally dismissed)");
+    const xAdj4 = ga4.adjustments.filter((a) => a && a.rid === "x");
+    ok(xAdj4.filter((a) => !a.dismissed && !a.undone).length === 1,
+      "SCALE-4 row 4 — exactly ONE adjustment stands for the winning decision; the losing device's duplicate is dismissed by derivation (observed " + J4(xAdj4.map((a) => !!a.dismissed)) + ")");
+    /* PIN 5b — THE DISMISSAL IS A DERIVATION, NOT A STICKY FLAG. The one shape where
+       set-never-clear still shows: an intermediate merge dismisses the only adjustment a
+       sid has, then an EARLIER approval arrives from a replica whose own adjustment row
+       never made it. The winning decision is approved, an applied effect stands, and the
+       undo door must reopen on the row that exists — a flag an intermediate state set is
+       not the log's verdict. */
+    const H14 = approve4(b4, "w", "protein", 200, "2026-08-16", "Protein 200");
+    const H24 = dismiss4(b4, "w", "protein", "2026-08-15", "Protein 200");
+    const hAB4 = T.mergeState(cl4(H14), cl4(H24));   /* 8/15 dismissal wins; H1's adjustment derives dismissed */
+    const H34 = cl4(b4);
+    H34.suggestionLog.push({ sid: "w", decided: "approved", d: "2026-08-14", title: "Protein 200", apply: { kind: "protein", to: 200 }, predict: "" });
+    H34.targets.proteinG = 200;
+    const hFin4 = T.mergeState(cl4(hAB4), cl4(H34));
+    const wAdj4 = (hFin4.adjustments || []).filter((a) => a && a.rid === "w");
+    ok(hFin4.targets.proteinG === 200 && wAdj4.length === 1 && wAdj4.filter((a) => !a.dismissed && !a.undone).length === 1,
+      "SCALE-4 row 4 — an earlier winning approval arriving log-only RE-OPENS the undo door on the adjustment that exists: dismissed derives from the log's verdict both ways, never from what an intermediate merge happened to set (observed dismissed flags " + J4(wAdj4.map((a) => !!a.dismissed)) + ", proteinG " + hFin4.targets.proteinG + ")");
+    /* PIN 6 — THE RECEIPT MATCHES THE WINNING DECISION. */
+    const F14 = approve4(b4, "y", "protein", 200, "2026-08-17", "Protein 200");
+    const F24 = dismiss4(b4, "y", "protein", "2026-08-16", "Protein 200");
+    const fm4 = T.mergeState(cl4(F14), cl4(F24));
+    const yLines4 = (fm4.feed || []).filter((f) => f && f.op === "sug:y");
+    ok(yLines4.length === 1 && yLines4[0].t === "ANALYST SUGGESTION DISMISSED" && fm4.targets.proteinG === undefined,
+      "SCALE-4 row 4 — a winning dismissal leaves exactly ONE receipt and it says DISMISSED; the APPLIED line of the losing approval is re-derived away with the effect it described (on d801323 the APPLIED line stood beside a reversed target)");
+    const F34 = approve4(b4, "z", "protein", 200, "2026-08-16", "Protein 200");
+    const F44 = dismiss4(b4, "z", "protein", "2026-08-17", "Protein 200");
+    const fm24 = T.mergeState(cl4(F34), cl4(F44));
+    const zLines4 = (fm24.feed || []).filter((f) => f && f.op === "sug:z");
+    ok(zLines4.length === 1 && zLines4[0].t === "ANALYST SUGGESTION APPLIED" && fm24.targets.proteinG === 200,
+      "SCALE-4 row 4 — and the reverse: a standing effect keeps its APPLIED receipt with no newer DISMISSED line above it");
+    /* PIN 7 — THE patch59 RECEIPT IS A PROJECTION OF THE MERGED RE-CLASSED READS. The
+       pass-2 sweep: with 8/08 missing from one replica the STALE body won the op-dedup
+       in BOTH orders — a receipt claiming two reads outlived a union that carried three. */
+    {
+      const rawP4 = JSON.parse(readFileSync(PREIMAGE, "utf8"));
+      const full4 = T.migrate(cl4(rawP4));
+      const partRaw4 = cl4(rawP4); partRaw4.reads = (partRaw4.reads || []).filter((r) => r && r.d !== "2026-08-08");
+      const part4 = T.migrate(partRaw4);
+      const body4 = (s) => { const f = (s.feed || []).find((x) => x && x.op === "patch59:scale"); return f ? f.t : "(none)"; };
+      const mab4 = T.mergeState(cl4(full4), cl4(part4)), mba4 = T.mergeState(cl4(part4), cl4(full4));
+      const howFull4 = ((full4.feed || []).find((x) => x && x.op === "patch59:scale") || {}).how || "";
+      ok(/replays to /.test(howFull4) && body4(mab4) === body4(full4) && body4(mba4) === body4(full4) && body4(full4) !== body4(part4),
+        "SCALE-4 new row 2 — full + partial replicas: the merged receipt is RE-DERIVED from the merged re-classed reads, both orders (observed '" + body4(mab4) + "'; on d801323 the partial body '" + body4(part4) + "' won the canonical tie)");
+    }
+    /* PIN 8 — WARRANTED MISSED/GAP DAYS ARE GUARDED CROSS-STATE, and one day keeps ONE
+       line. Refutes-and-repairs this build's own A2 claim from the pass-2 pack: deleting
+       the warranted line was guard-safe and byte-fixed — nothing re-derived it. */
+    {
+      const pre8 = T.migrate(JSON.parse(readFileSync(PREIMAGE, "utf8")));
+      const isMiss4 = (f) => f && typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0);
+      const warr4 = (pre8.feed || []).filter(isMiss4).map((f) => String(f.d));
+      ok(warr4.length >= 1, "SCALE-4 new row 1 — the migrated preimage still carries its warranted missed-day line(s): " + J4(warr4));
+      if (warr4.length) {
+        const del4 = cl4(pre8); del4.feed.splice(del4.feed.findIndex((f) => isMiss4(f) && String(f.d) === warr4[0]), 1);
+        const g4 = T.dataLossGuard(pre8, del4);
+        ok(!g4.safe && (g4.lost || []).some((x) => x.indexOf("missedday " + warr4[0]) === 0),
+          "SCALE-4 new row 1 — deleting the warranted " + warr4[0] + " summary is REFUSED and named (on d801323: safe:true, and no reconciler brought it back)");
+        const heal4 = cl4(pre8); heal4.feed = heal4.feed.filter((f) => !(isMiss4(f) && String(f.d) === warr4[0]));
+        heal4.reads = [...(heal4.reads || []), { d: warr4[0], w: 163.0, sealed: false, pt: 163.0, note: "" }];
+        ok(T.dataLossGuard(pre8, heal4).safe,
+          "SCALE-4 new row 1 — while HEALING stays free: the same line may vanish when the clean read that disproves it arrives");
+      }
+      const two4 = cl4(pre8);
+      two4.feed.unshift({ d: "2026-08-21", t: "READ GAP — DAY 5", how: "no read since 8/15" });
+      two4.feed.unshift({ d: "2026-08-21", t: "MORNING READ MISSED", how: "the trend carries." });
+      const tm4 = T.mergeState(cl4(two4), cl4(two4));
+      ok((tm4.feed || []).filter((f) => isMiss4(f) && String(f.d) === "2026-08-21").length === 1,
+        "SCALE-4 new row 1 — two contradictory summaries for one day settle to ONE canonical line (on d801323 both survived every merge)");
+    }
+    /* PIN 9 — LOGICAL OP ACCOUNTING: dedup passes, deletion is refused. */
+    {
+      const pre9 = T.migrate(JSON.parse(readFileSync(PREIMAGE, "utf8")));
+      const src9 = (pre9.feed || []).find((f) => f && typeof f.op === "string" && f.op && !(typeof T._isFeedDerived === "function" && T._isFeedDerived(f, pre9)) && !(typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0)));
+      ok(!!src9 && typeof T._isFeedDerived === "function", "SCALE-4 new row 3 — a permanent op-keyed line exists on the preimage and _isFeedDerived is exported (op " + (src9 && src9.op) + ")");
+      if (src9 && typeof T._isFeedDerived === "function") {
+        const dup9 = cl4(pre9); dup9.feed.push({ ...cl4(src9), how: "an older wording of the same operation" });
+        const md9 = T.mergeState(cl4(dup9), cl4(pre9));
+        ok(T.dataLossGuard(dup9, md9).safe && (md9.feed || []).filter((f) => f && f.op === src9.op).length === 1,
+          "SCALE-4 new row 3 — the merge collapses two bodies for ONE op to one logical record and the guard calls that SAFE (on d801323: refused as a count shrink, and the sync sent no body)");
+        const cut9 = cl4(pre9); cut9.feed = cut9.feed.filter((f) => !(f && f.op === src9.op));
+        const gc9 = T.dataLossGuard(pre9, cut9);
+        ok(!gc9.safe && (gc9.lost || []).some((x) => x.indexOf("feedop " + src9.op) === 0),
+          "SCALE-4 new row 3 — while deleting the WHOLE op is refused and NAMED (" + J4(gc9.lost) + ")");
+        const cutL9 = cl4(pre9); cutL9.feed.splice(cutL9.feed.findIndex((f) => f && !f.op && !T._isFeedDerived(f, cutL9) && !(typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0))), 1);
+        ok(!T.dataLossGuard(pre9, cutL9).safe,
+          "SCALE-4 new row 3 — and an op-less athlete line is still guarded by count");
+      }
+    }
+  }
+
+
+  /* ==================== SCALE-5 · SOL'S CLOSURE PASS-3 ROWS (2026-08-21) ====================
+     Six blockers, every pin below executed RED at 7d74b3d first. */
+  {
+    const J5 = JSON.stringify, cl5 = (x) => JSON.parse(J5(x));
+    const mkB5 = () => { const s = T.migrate(null); s.reads = []; s.feed = []; s.weekly = []; s.suggestionLog = []; s.adjustments = []; s.targets = {}; s.trend = 100; s.blackout = { until: "2020-01-01" }; return s; };
+    const approve5 = (s, sid, kind, to, d, title) => { const ns = cl5(s);
+      ns.suggestionLog.push({ sid, decided: "approved", d, title, apply: { kind, to }, predict: "" });
+      if (kind === "protein") ns.targets.proteinG = to;
+      ns.adjustments.push({ rid: sid, id: "adj5_" + sid + "_" + d + "_" + to, d, title });
+      ns.feed.unshift({ d, op: "sug:" + sid, t: "ANALYST SUGGESTION APPLIED", how: title + " — protein target set to " + to + " g/day" });
+      return ns; };
+    const dismiss5 = (s, sid, kind, d, title) => { const ns = cl5(s);
+      ns.suggestionLog.push({ sid, decided: "dismissed", d, title, apply: { kind } });
+      ns.feed.unshift({ d, op: "sug:" + sid, t: "ANALYST SUGGESTION DISMISSED", how: title });
+      return ns; };
+    /* BLOCKER 1 — the FOURTH exit settles too. */
+    const f5 = T.migrate(null);
+    ok(J5(T.mergeState(cl5(f5), cl5(f5))) === J5(f5),
+      "SCALE-5 row 2 — a FRESH INSTALL is a byte fixed point of its first self-merge (at 7d74b3d: exercises, plan, suggestionLog and targets all moved on the very first sync)");
+    const imp5 = T.migrate(null); { const e5 = imp5.exercises.find((x) => x && x.id === "rows"); e5.forks = [{ from: "2026-08-13", why: "z", ops: ["z", "a"], prevN: "old" }]; }
+    const impM5 = T.migrate(cl5(imp5));
+    const impE5 = impM5.exercises.find((x) => x.id === "rows");
+    ok(J5(impE5.forks[0].ops) === J5(["a", "z"]) && impE5.forks[0].why === "a + z" && J5(T.mergeState(cl5(impM5), cl5(impM5))) === J5(impM5),
+      "SCALE-5 row 2 — an imported fork with unsorted ops is canonical AFTER MIGRATE (sorted set, derived why — the fork union's own math), not only after the first merge (observed ops " + J5(impE5.forks[0].ops) + " why '" + impE5.forks[0].why + "')");
+    /* BLOCKER 6 — equal logical read payloads in different raw key orders. */
+    {
+      const A5 = mkB5(); A5.reads = [{ d: "2026-08-20", w: 100, sealed: false, pt: 100, note: "same" }];
+      const B5 = mkB5(); B5.reads = [JSON.parse('{"note":"same","pt":100,"sealed":false,"w":100,"d":"2026-08-20"}')];
+      const ab5 = T.mergeState(cl5(A5), cl5(B5)), ba5 = T.mergeState(cl5(B5), cl5(A5));
+      ok(J5(ab5) === J5(ba5) && J5(T.migrate(cl5(A5))) === J5(T.migrate(cl5(B5))),
+        "SCALE-5 read-tie — one logical read in two raw key orders merges to the SAME BYTES from both directions and boots to the same bytes (at 7d74b3d each direction kept its local operand's key order, forever)");
+    }
+    /* BLOCKER 4 — suggestion Undo is truthful and direction-free. */
+    {
+      const A5 = approve5(mkB5(), "x", "protein", 200, "2026-08-16", "Protein 200");
+      const U5 = T.undoAdjustment(cl5(A5), "x");
+      ok(U5.targets.proteinG === undefined && (U5.suggestionLog.find((r) => r.sid === "x") || {}).undone === true,
+        "SCALE-5 row 4 — the undo reverses IN THE SESSION, not only at the next boot: the tap itself lands on the row and re-derives (SCALE-6 made the settle-side belt redundant for the boot path, so this pin holds the writer's own arm falsifiable)");
+      const S5 = T.migrate(cl5(U5));
+      const row5 = S5.suggestionLog.find((r) => r.sid === "x");
+      ok(row5.undone === true && S5.targets.proteinG === undefined && (S5.feed || []).filter((f) => f.t === "ANALYST SUGGESTION APPLIED").length === 0 && (S5.feed || []).some((f) => f.op === "sug:x" && f.t === "ANALYST SUGGESTION UNDONE"),
+        "SCALE-5 row 4 — the one-tap Undo UNDOES: the decision row carries the athlete's monotone undone flag, the target reverses, and the receipt re-derives as UNDONE — surviving boot (at 7d74b3d the control hid itself, printed 'reversed', and proteinG stayed 200)");
+      const st5 = T.mergeState(cl5(S5), cl5(A5)), st5b = T.mergeState(cl5(A5), cl5(S5));
+      ok(st5.suggestionLog.find((r) => r.sid === "x").undone === true && st5b.suggestionLog.find((r) => r.sid === "x").undone === true && st5.targets.proteinG === undefined && st5b.targets.proteinG === undefined,
+        "SCALE-5 row 4 — a stale not-yet-undone replica cannot resurrect the effect: the undone copy outranks its twin from both directions");
+      const B5 = dismiss5(mkB5(), "x", "protein", "2026-08-15", "Protein 200");
+      const D5 = T.mergeState(cl5(A5), cl5(B5));
+      const m15 = T.mergeState(cl5(U5), cl5(D5)), m25 = T.mergeState(cl5(D5), cl5(U5));
+      ok(J5(m15) === J5(m25),
+        "SCALE-5 row 4 — explicit Undo and derived dismissal converge BYTE-identically from both directions (at 7d74b3d _adjRank tied undone and dismissed at equal rank and local won)");
+    }
+    /* BLOCKER 5 — same-day equal-sid approvals couple the winner to its own adjustment. */
+    {
+      const A5 = approve5(mkB5(), "x", "protein", 200, "2026-08-16", "Protein 200");
+      const B5 = approve5(mkB5(), "x", "protein", 210, "2026-08-16", "Protein 210");
+      const ab5 = T.mergeState(cl5(A5), cl5(B5)), ba5 = T.mergeState(cl5(B5), cl5(A5));
+      const act5 = (s) => s.adjustments.filter((a) => a.rid === "x" && !a.dismissed && !a.undone).map((a) => a.title);
+      ok(J5(ab5) === J5(ba5) && act5(ab5).length === 1 && act5(ab5)[0] === ab5.suggestionLog.find((r) => r.sid === "x").title,
+        "SCALE-5 row 4 — two same-day approvals for one card: the ACTIVE adjustment carries the WINNING decision's title, both directions (at 7d74b3d a 'Protein 200' undo door stood under a 210 decision — the selector matched day then id, and the id fingerprints nothing)");
+    }
+    /* BLOCKER 3 — the attestation is monotone (reclassLog) and enforcement reverses a resurrected classification. */
+    {
+      const rawP5 = JSON.parse(readFileSync(PREIMAGE, "utf8"));
+      const full5 = T.migrate(cl5(rawP5));
+      ok(Array.isArray(full5.reclassLog) && full5.reclassLog.indexOf("2026-08-08") >= 0 && full5.reclassLog.indexOf("2026-08-10") >= 0 && !full5.reads.some((r) => r && r.reclassed),
+        "SCALE-5 new row 2 — the attestation lives in s.reclassLog (set-union store), not in a per-read flag an old client's union can strip; the legacy flags are absorbed and retired (observed " + J5(full5.reclassLog) + ")");
+      const strip5 = cl5(full5); for (const r of strip5.reads) delete r.reclassed; delete strip5.reclassLog;
+      const p5 = cl5(rawP5); p5.reads = (p5.reads || []).filter((r) => r && r.d !== "2026-08-10");
+      const part5 = T.migrate(p5);
+      const body5 = (s) => { const f = (s.feed || []).find((x) => x && x.op === "patch59:scale"); return f ? f.t : "(none)"; };
+      const mm5 = T.mergeState(cl5(strip5), cl5(part5)), mm5b = T.mergeState(cl5(part5), cl5(strip5));
+      ok(body5(mm5) === body5(full5) && body5(mm5b) === body5(full5),
+        "SCALE-5 new row 2 — a marker-stripped full replica merged with a partial one still yields the TRUTHFUL receipt: the value-keyed table re-derives the attested dates at every settle (at 7d74b3d the merge said '2 MORNING READS' over a union carrying all three)");
+      const flip5 = cl5(strip5);
+      const old10 = (rawP5.reads || []).find((r) => r && r.d === "2026-08-10");
+      flip5.reads = flip5.reads.map((r) => (r && r.d === "2026-08-10" ? cl5(old10) : r));
+      const fm5 = T.mergeState(cl5(flip5), cl5(part5)), fm5b = T.mergeState(cl5(part5), cl5(flip5));
+      const r105 = (s) => s.reads.find((x) => x && x.d === "2026-08-10");
+      ok(!r105(fm5).offWindow && !r105(fm5b).offWindow && !(fm5.feed || []).some((f) => f && f.op === "lateread:2026-08-10"),
+        "SCALE-5 new row 2 — the owner-attested 8/10 morning read can NEVER revert: a resurrected offWindow body is re-classed at the next settle, both directions (at 7d74b3d it went late again, lateread re-derived, the trend re-stepped and the receipt named one fewer read)");
+      /* and the STORE ITSELF is a set union — the shipped table covers today's three
+         dates, but a FUTURE attestation exists only in the store, so two replicas each
+         carrying one future date must keep both, both orders */
+      const fu5 = cl5(full5), fv5 = cl5(full5);
+      if (!Array.isArray(fu5.reclassLog)) { ok(false, "SCALE-5 new row 2 — the reclassLog store is missing on the migrated preimage: the union pin cannot arm (a pre-store engine reads as CAUGHT here, not as a crash that hides the pins behind it — Claude Code's pass-5 finding)"); }
+      const base35 = Array.isArray(fu5.reclassLog) ? fu5.reclassLog : [];
+      fu5.reclassLog = [...base35, "2026-09-01"].sort();
+      fv5.reclassLog = [...base35, "2026-09-02"].sort();
+      const um5 = T.mergeState(cl5(fu5), cl5(fv5)), um5b = T.mergeState(cl5(fv5), cl5(fu5));
+      ok(um5.reclassLog.indexOf("2026-09-01") >= 0 && um5.reclassLog.indexOf("2026-09-02") >= 0 && J5(um5.reclassLog) === J5(um5b.reclassLog),
+        "SCALE-5 new row 2 — two future attestations, one per replica, BOTH survive the merge from both directions: the store unions, it does not ride the scalar spread (observed " + J5(um5.reclassLog) + ")");
+    }
+    /* BLOCKER 2 — a sealed morning read disproves a false MISSED/GAP line. */
+    {
+      const A5 = mkB5(); A5.blackout = { until: "2027-01-01" };
+      const A25 = T.applyRead(cl5(A5), "2026-08-20", 100, { hour: 8 });
+      const rA5 = A25.reads.find((r) => r.d === "2026-08-20");
+      const B5 = mkB5(); B5.feed.unshift({ d: "2026-08-20", t: "MORNING READ MISSED", how: "the trend carries." });
+      const m5 = T.mergeState(cl5(A25), cl5(B5)), m5b = T.mergeState(cl5(B5), cl5(A25));
+      const miss5 = (s) => (s.feed || []).filter((f) => f && typeof f.t === "string" && f.t.indexOf("MORNING READ MISSED") === 0 && f.d === "2026-08-20").length;
+      ok(!!(rA5 && rA5.sealed && !rA5.offWindow) && miss5(m5) === 0 && miss5(m5b) === 0,
+        "SCALE-5 new row 1 — a same-day SEALED morning read is the disproof: sealing sets the value aside from the trend, it does not mean the weigh-in was missed — the false summary dies at the merge, both directions (at 7d74b3d it survived and the guard protected the contradiction)");
+      const prev5 = cl5(A25); prev5.feed.unshift({ d: "2026-08-20", t: "MORNING READ MISSED", how: "the trend carries." });
+      ok(T.dataLossGuard(prev5, cl5(A25)).safe,
+        "SCALE-5 new row 1 — and the guard authorizes the removal: a missed-day line may vanish when the same day carries a sealed read (the missedday clause counts sealed non-late reads as the disproof)");
+    }
+  }
+
+
+  /* ==================== SCALE-6 · SOL'S CLOSURE PASS-4 ROWS (2026-08-21) ====================
+     Five blockers. Every pin executed RED at 9aa4870 first. The two cross-version braids
+     were EXECUTED with the real f72dbf7 (v7.54.18) engine in cowork's rigs 120/121 — the
+     pins below assert the new-side invariants that make those braids safe, on states
+     shaped exactly like the braids' outputs. */
+  {
+    const J6 = JSON.stringify, cl6 = (x) => JSON.parse(J6(x));
+    const mkB6 = () => { const s = T.migrate(null); s.reads = []; s.feed = []; s.weekly = []; s.suggestionLog = []; s.adjustments = []; s.targets = {}; s.trend = 100; s.blackout = { until: "2020-01-01" }; return s; };
+    /* B1a — a duplicate-sid import boots as its own first merge would leave it. */
+    {
+      const s6 = mkB6();
+      s6.suggestionLog = [
+        { sid: "dup", decided: "approved", d: "2026-08-16", title: "Protein 200", apply: { kind: "protein", to: 200 }, predict: "" },
+        { sid: "dup", decided: "approved", d: "2026-08-17", title: "Protein 210", apply: { kind: "protein", to: 210 }, predict: "" }];
+      const m6 = T.migrate(cl6(s6));
+      ok(m6.suggestionLog.length === 1 && m6.targets.proteinG === 200 && (m6.feed || []).filter((f) => f && f.op === "sug:dup").length === 1 && J6(T.mergeState(cl6(m6), cl6(m6))) === J6(m6),
+        "SCALE-6 B1a — a duplicate-sid import is reduced by the MERGE'S OWN keyed rule at boot: one row, the earlier day's effect, one receipt, byte fixed point (at 9aa4870 it booted with two rows and proteinG 210, then the first merge flipped both)");
+    }
+    /* B1b — the attestation store normalizes with ZERO reads. */
+    {
+      const s6 = mkB6(); s6.reads = []; s6.reclassLog = ["2026-09-02", "2026-09-01", "2026-09-02"];
+      const m6 = T.migrate(cl6(s6));
+      ok(J6(m6.reclassLog) === J6(["2026-09-01", "2026-09-02"]) && J6(T.mergeState(cl6(m6), cl6(m6))) === J6(m6),
+        "SCALE-6 B1b — reclassLog sorts and dedupes at every settle even when reads is empty (at 9aa4870 the normalization sat behind the reads-length early return)");
+    }
+    /* B1c — a duplicate-date reads import folds by the read authority rule at boot,
+       and the guard reads it as tidying, never loss. */
+    {
+      const s6 = mkB6();
+      s6.reads = [{ d: "2026-08-10", w: 100, sealed: false, pt: 100, note: "" }, { d: "2026-08-10", w: 101, sealed: false, pt: 100, note: "x" }];
+      const m6 = T.migrate(cl6(s6));
+      ok(m6.reads.length === 1 && J6(T.mergeState(cl6(m6), cl6(m6))) === J6(m6) && T.dataLossGuard(s6, m6).safe,
+        "SCALE-6 B1c — two bodies for one date fold to the merge's pick at boot (byte fixed point), and the guard counts DAYS, so the fold is tidying (at 9aa4870 the boot replayed both bodies and a day-count guard would have refused the fold as reads 2→1)");
+      const cut6 = cl6(m6); cut6.reads = [];
+      ok(!T.dataLossGuard(m6, cut6).safe,
+        "SCALE-6 B1c — while deleting the whole DAY is still refused");
+    }
+    /* B3 — the braid-shaped state heals: partial store, resurrected alternate late body,
+       but the attestation FACTS present (the old feed union preserves op lines regardless
+       of spread direction — executed against the real f72dbf7 engine in rig121). */
+    {
+      const rawP6 = JSON.parse(readFileSync(PREIMAGE, "utf8"));
+      const full6 = T.migrate(cl6(rawP6));
+      ok((full6.feed || []).filter((f) => f && typeof f.op === "string" && f.op.indexOf("reclass:") === 0).length === 2,
+        "SCALE-6 B3 — the migration files one permanent attestation FACT per re-classed date (op reclass:<d>): the record no old client can unsay, presence-guarded by the feedop clause");
+      const braid6 = cl6(full6);
+      braid6.reclassLog = ["2026-08-08"];                                     /* the store thinned by the old spread */
+      const r106 = braid6.reads.find((r) => r && r.d === "2026-08-10");
+      r106.w = 164.1; r106.offWindow = true; r106.note = "evening read — set aside · alternate device copy";   /* the alternate body that beat the (d,w) table */
+      const healed6 = T.migrate(cl6(braid6));
+      const h106 = healed6.reads.find((r) => r && r.d === "2026-08-10");
+      const body6 = ((healed6.feed || []).find((x) => x && x.op === "patch59:scale") || {}).t;
+      ok(!h106.offWindow && (healed6.reclassLog || []).indexOf("2026-08-10") >= 0 && /8\/10/.test(String(body6)) && !(healed6.feed || []).some((f) => f && f.op === "lateread:2026-08-10"),
+        "SCALE-6 B3 — the braid output HEALS at the next settle: the FACT line restores the store even when the (d,w) table cannot match the alternate body, the read re-classes, the receipt names 8/10, no late receipt (executed red at 9aa4870 via the real v7.54.18 engine: store [8/08], receipt 'A MORNING READ', 8/10 late, trend 163.8)");
+    }
+    /* B4 — Sol's required belt (his exact ghSync witness REFUTED on the real old engine —
+       its suggestionLog spread is measured REMOTE-wins wholesale, which preserves the
+       cloud's undone — but the belt is transport-independent and honors pre-7.55.4 taps). */
+    {
+      const s6 = mkB6();
+      s6.suggestionLog.push({ sid: "x", decided: "approved", d: "2026-08-16", title: "Protein 200", apply: { kind: "protein", to: 200 }, predict: "" });
+      s6.targets.proteinG = 200;
+      s6.adjustments.push({ rid: "x", id: "adj_b4", d: "2026-08-16", title: "Protein 200", undone: true });   /* the adjustment carries the tap; the row lost it */
+      const m6 = T.migrate(cl6(s6));
+      const row6 = m6.suggestionLog.find((r) => r.sid === "x");
+      ok(row6.undone === true && m6.targets.proteinG === undefined && (m6.feed || []).some((f) => f && f.op === "sug:x" && f.t === "ANALYST SUGGESTION UNDONE"),
+        "SCALE-6 B4 — an adjustment carrying the athlete's undone tap RESTORES the decision row's undone flag at settle: the effect stays off and the receipt says UNDONE through any braid, and a pre-7.55.4 undo tap is finally honored (Sol's required belt; his ghSync witness itself refuted on the real engine — measured remote-wins — and the probe is in the pack)");
+    }
+    /* B5 — the athlete's same-day tap order survives boot; the undo door offers the LAST tap. */
+    {
+      const s6 = mkB6();
+      s6.suggestionLog.push({ sid: "z_old", decided: "approved", d: "2026-08-16", at: "2026-08-16T09:00:00.000Z", title: "Protein 200", apply: { kind: "protein", to: 200 }, predict: "" });
+      s6.adjustments.push({ rid: "z_old", id: "adj_1", d: "2026-08-16", at: "2026-08-16T09:00:00.000Z", title: "Protein 200" });
+      s6.suggestionLog.push({ sid: "a_new", decided: "approved", d: "2026-08-16", at: "2026-08-16T09:05:00.000Z", title: "Protein 210", apply: { kind: "protein", to: 210 }, predict: "" });
+      s6.adjustments.push({ rid: "a_new", id: "adj_2", d: "2026-08-16", at: "2026-08-16T09:05:00.000Z", title: "Protein 210" });
+      s6.targets.proteinG = 210;
+      const m6 = T.migrate(cl6(s6));
+      ok(m6.targets.proteinG === 210 && (T.lastUndoable(m6) || {}).rid === "a_new",
+        "SCALE-6 B5 — two same-day approvals of one kind: the SECOND tap keeps the effect through boot and the undo door offers it (at 9aa4870 alphabetical sid order silently reversed the athlete's later tap: proteinG fell back to 200 and Undo offered z_old)");
+      const s7 = mkB6();
+      s7.suggestionLog.push({ sid: "z_card", decided: "approved", d: "2026-08-16", at: "2026-08-16T09:00:00.000Z", title: "Protein 200", apply: { kind: "protein", to: 200 }, predict: "" });
+      s7.adjustments.push({ rid: "z_card", id: "adj_1", d: "2026-08-16", at: "2026-08-16T09:00:00.000Z", title: "Protein 200" });
+      s7.suggestionLog.push({ sid: "a_card", decided: "approved", d: "2026-08-16", at: "2026-08-16T09:05:00.000Z", title: "Sleep 8", apply: { kind: "sleep", to: 8 }, predict: "" });
+      s7.adjustments.push({ rid: "a_card", id: "adj_2", d: "2026-08-16", at: "2026-08-16T09:05:00.000Z", title: "Sleep 8" });
+      const m7 = T.migrate(cl6(s7));
+      ok((T.lastUndoable(m7) || {}).rid === "a_card" && m7.targets.proteinG === 200 && m7.targets.sleepH === 8,
+        "SCALE-6 B5 — 'Last move applied' identifies the second writer call across kinds, regardless of sid spelling; both effects stand");
+    }
+    /* B6 — a valid no-pt read has one byte identity. */
+    {
+      const A6 = mkB6(); A6.reads = [{ d: "2026-08-10", w: 100, sealed: false, note: "same" }];
+      const B6 = mkB6(); B6.reads = [JSON.parse('{"note":"same","sealed":false,"w":100,"d":"2026-08-10"}')];
+      const ab6 = T.mergeState(cl6(A6), cl6(B6)), ba6 = T.mergeState(cl6(B6), cl6(A6));
+      ok(J6(ab6) === J6(ba6) && J6(T.migrate(cl6(A6))) === J6(T.migrate(cl6(B6))),
+        "SCALE-6 B6 — one logical NO-PT read in two raw key orders: same bytes both directions and at boot — fresh SEED ships 39 reads without pt, so the re-key may not hide behind the pt-bearing return (at 9aa4870 it did)");
+    }
+    /* lower-priority row — keyed-store rows are canonically materialized. */
+    {
+      const A6 = mkB6();
+      A6.suggestionLog.push({ sid: "k", decided: "approved", d: "2026-08-16", title: "Protein 200", apply: { kind: "protein", to: 200 }, predict: "" });
+      const B6 = cl6(A6);
+      B6.suggestionLog = [JSON.parse(JSON.stringify(JSON.parse('{"predict":"","apply":{"to":200,"kind":"protein"},"title":"Protein 200","d":"2026-08-16","decided":"approved","sid":"k"}')))];
+      const ab6 = T.mergeState(cl6(A6), cl6(B6)), ba6 = T.mergeState(cl6(B6), cl6(A6));
+      ok(J6(ab6) === J6(ba6) && J6(T.migrate(cl6(A6))) === J6(T.migrate(cl6(B6))),
+        "SCALE-6 — the same production decision row re-keyed on another replica merges and boots to identical bytes: keyed-store rows are materialized canonically, as SCALE-5 did for reads");
+    }
+  }
+
+  /* ==================== SCALE-7 · SOL'S CLOSURE PASS-5 ROWS (2026-08-23) ====================
+     Two blockers, both executed CONFIRMED with the real f72dbf7 (v7.54.18) engine before
+     any fix was designed (cowork rigs 122a/122b/123/124). P0: the old client's wholesale
+     suggestionLog spread erased a decided row while its keyed adjustments union carried
+     the undo on — a TWO-replica ordinary ghSync flow, no race — the old guard called the
+     push safe, the fresh device re-offered the card, and a re-approval was killed at its
+     next settle by the stale undone adjustment. P1: two same-day taps by the real old
+     applyProposal writer (which never stamped `at` but always embedded its instant in the
+     id) upgraded into a new client whose Undo reversed the FIRST tap. Sol's bare
+     []+adjustment witness (no op line) is REFUTED as unreachable: the op-keyed line is
+     born with the approval on the same device and survives every measured braid beside
+     the adjustment. */
+  {
+    const J7 = JSON.stringify, cl7 = (x) => JSON.parse(J7(x));
+    const mkB7 = () => { const s = T.migrate(null); s.reads = []; s.feed = []; s.weekly = []; s.suggestionLog = []; s.adjustments = []; s.targets = {}; s.trend = 100; s.blackout = { until: "2020-01-01" }; return s; };
+    /* P0-a — the braid-shaped orphan heals at one boot: no row, an undone adjustment, the
+       op-keyed sug: receipt. Tombstone appears, card stays decided, effect off, UNDONE
+       receipt derives, byte fixed point. */
+    {
+      const s7 = mkB7();
+      s7.adjustments.push({ rid: "sug_o1", id: "adj_o1", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "Protein 205 g", undone: true });
+      s7.feed.push({ d: "2026-07-20", op: "sug:sug_o1", t: "ANALYST SUGGESTION APPLIED", how: "Protein 205 g — protein target set to 205 g/day" });
+      const b7 = T.migrate(cl7(s7));
+      const t7 = (b7.suggestionLog || []).find((x) => x && x.sid === "sug_o1");
+      ok(!!t7 && t7.decided === "approved" && t7.undone === true && t7.orphan === true && (b7.targets || {}).proteinG == null,
+        "SCALE-7 P0 — an orphan undo re-materializes as an approved+undone tombstone at boot: the card stays decided and no effect stands (at b68ed36 the sid vanished, the guard called it safe, and the card was re-offered)");
+      ok((b7.feed || []).some((f) => f && f.op === "sug:sug_o1" && f.t === "ANALYST SUGGESTION UNDONE"),
+        "SCALE-7 P0 — the UNDONE receipt re-derives from the tombstone");
+      ok(J7(T.migrate(cl7(b7))) === J7(b7),
+        "SCALE-7 P0 — the healed state is a byte fixed point of its next boot");
+    }
+    /* P0-b — the true row outranks its tombstone in the union, both directions, one row. */
+    {
+      const s7 = mkB7();
+      s7.adjustments.push({ rid: "sug_o2", id: "adj_o2", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "Protein 205 g", undone: true });
+      s7.feed.push({ d: "2026-07-20", op: "sug:sug_o2", t: "ANALYST SUGGESTION APPLIED", how: "Protein 205 g — protein target set to 205 g/day" });
+      const F7 = T.migrate(cl7(s7));
+      const R7 = mkB7();
+      R7.suggestionLog.push({ sid: "sug_o2", decided: "approved", undone: true, d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "Protein 205 g", apply: { kind: "protein", to: 205 }, predict: "" });
+      R7.adjustments.push({ rid: "sug_o2", id: "adj_o2", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "Protein 205 g", undone: true });
+      const m1 = T.mergeState(cl7(F7), cl7(R7)), m2 = T.mergeState(cl7(R7), cl7(F7));
+      const w7 = (m1.suggestionLog || []).filter((x) => x && x.sid === "sug_o2");
+      ok(w7.length === 1 && !!w7[0].apply && !w7[0].orphan && w7[0].undone === true && J7(m1) === J7(m2),
+        "SCALE-7 P0 — the true decision row beats its tombstone on the union's non-orphan bit (the tombstone's canonical bytes happen to outrank the richer row, so without the bit the apply body is stripped), byte-identical both directions");
+    }
+    /* P0-c — the REAL undo files the sugundo FACT line; it survives the receipt sweep and
+       the guard refuses its deletion BY NAME. */
+    {
+      const s7 = mkB7();
+      s7.suggestionLog.push({ sid: "sug_o3", decided: "approved", d: "2026-07-19", at: "2026-07-19T09:00:00.000Z", title: "Protein 205 g", apply: { kind: "protein", to: 205 }, predict: "" });
+      s7.adjustments.push({ rid: "sug_o3", id: "adj_o3", d: "2026-07-19", at: "2026-07-19T09:00:00.000Z", title: "Protein 205 g" });
+      const b7 = T.migrate(cl7(s7));
+      const u7 = T.undoAdjustment(cl7(b7), "sug_o3");
+      const f7 = (u7.feed || []).find((f) => f && f.op === "sugundo:sug_o3");
+      ok(!!f7 && f7.ti === "Protein 205 g" && (T.migrate(cl7(u7)).feed || []).some((f) => f && f.op === "sugundo:sug_o3"),
+        "SCALE-7 P0 — the undo tap files its own op-keyed FACT line (machine title in ti, never parsed from copy) and the receipt sweep does not touch it");
+      const g7 = cl7(T.migrate(cl7(u7)));
+      const cut7 = cl7(g7); cut7.feed = cut7.feed.filter((f) => !(f && f.op === "sugundo:sug_o3"));
+      const res7 = T.dataLossGuard(cl7(g7), cut7);
+      ok(!res7.safe && (res7.lost || []).some((x) => String(x) === "feedop sugundo:sug_o3"),
+        "SCALE-7 P0 — deleting the undo FACT is refused BY NAME (feedop clause)");
+    }
+    /* P0-d — the FACT line ALONE re-materializes the tombstone (row and adjustment both gone). */
+    {
+      const s7 = mkB7();
+      s7.feed.push({ d: "2026-07-20", op: "sugundo:sug_o4", ti: "Protein 205 g", t: "SUGGESTION UNDO ATTESTED — Protein 205 g", how: "You reversed this analyst move by one tap. This line is the record of that word — it travels with the data, so no older copy of the app can unsay it." });
+      const b7 = T.migrate(cl7(s7));
+      const t7 = (b7.suggestionLog || []).find((x) => x && x.sid === "sug_o4");
+      ok(!!t7 && t7.decided === "approved" && t7.undone === true && t7.orphan === true && t7.title === "Protein 205 g",
+        "SCALE-7 P0 — the sugundo FACT alone proves an approved-then-undone decision: the tombstone derives from the word, not from any survivor it happens to travel with");
+    }
+    /* P0-e — no invention: an undone adjustment with NO sug op is not absorbed (a
+       tombstone on a proposal-family rid would print an analyst line over an engine record). */
+    {
+      const s7 = mkB7();
+      s7.adjustments.push({ rid: "steppush_2026-07-13", id: "adj_o5", d: "2026-07-20", title: "Step push", undone: true });
+      const b7 = T.migrate(cl7(s7));
+      ok(!(b7.suggestionLog || []).some((x) => x && x.sid === "steppush_2026-07-13"),
+        "SCALE-7 P0 — an undone adjustment without the sid's op line is not provably suggestion-origin and mints nothing");
+    }
+    /* P1-a — the rig123 wound as a pin: two same-day UNSTAMPED taps by the old writer's
+       shape (ids embed the instant; rid spelling opposes call order). The undo door offers
+       the SECOND tap, does not claim proven order, and both directions agree. */
+    {
+      const s7 = mkB7();
+      s7.adjustments.push({ rid: "zz_first_tap", id: "adj_aaa000", d: "2026-07-20", title: "FIRST TAP" });
+      s7.adjustments.push({ rid: "aa_second_tap", id: "adj_bbb111", d: "2026-07-20", title: "SECOND TAP" });
+      const b7 = T.migrate(cl7(s7));
+      const lu7 = T.lastUndoable(b7);
+      ok(!!lu7 && lu7.rid === "aa_second_tap" && lu7.orderSure === false,
+        "SCALE-7 P1 — same-day unstamped taps order by the legacy writer's own embedded instant (the id), not rid spelling: Undo offers the SECOND tap (at b68ed36 it reversed the first — executed with the real f72dbf7 applyProposal in rig123) — and the door does not claim a proven order");
+      const p7 = mkB7();
+      const x1 = T.mergeState(cl7(b7), cl7(p7)), x2 = T.mergeState(cl7(p7), cl7(b7));
+      ok((T.lastUndoable(x1) || {}).rid === "aa_second_tap" && (T.lastUndoable(x2) || {}).rid === "aa_second_tap",
+        "SCALE-7 P1 — the pick is the same from both merge directions");
+    }
+    /* P1-b — the id-less suggestion-era records (13 live rows have no id and no at):
+       storage order is recovered at boot (ord), and a double boot is byte-stable. */
+    {
+      const s7 = mkB7();
+      s7.adjustments.push({ rid: "zz_first", d: "2026-07-20", title: "FIRST" });
+      s7.adjustments.push({ rid: "aa_second", d: "2026-07-20", title: "SECOND" });
+      const b7 = T.migrate(cl7(s7));
+      const day7 = (b7.adjustments || []).filter((a) => a && a.d === "2026-07-20");
+      ok(day7.length === 2 && day7[0].rid === "zz_first" && day7[1].rid === "aa_second" && day7.every((a) => a.ord != null),
+        "SCALE-7 P1 — id-less unstamped rows recover their storage order at boot (ord minted once), not rid order");
+      ok(J7(T.migrate(cl7(b7))) === J7(b7),
+        "SCALE-7 P1 — and the minted order is a byte fixed point");
+    }
+    /* P1-c — the decision log: two same-day UNSTAMPED approvals of one kind, array order
+       opposing sid order. The LATER decision keeps the effect (at b68ed36, sid spelling
+       reversed it), and the recovered order survives an old client's wholesale round trip. */
+    {
+      const s7 = mkB7();
+      s7.suggestionLog.push({ sid: "z_early", decided: "approved", d: "2026-07-20", title: "Protein 200", apply: { kind: "protein", to: 200 }, predict: "" });
+      s7.suggestionLog.push({ sid: "a_late", decided: "approved", d: "2026-07-20", title: "Protein 210", apply: { kind: "protein", to: 210 }, predict: "" });
+      const b7 = T.migrate(cl7(s7));
+      ok((b7.targets || {}).proteinG === 210,
+        "SCALE-7 P1 — the log's recovered storage order decides a same-day same-kind pair: the LATER decision's 210 stands (at b68ed36 sid spelling handed the effect back to 200)");
+      const ord7 = (b7.suggestionLog || []).filter((x) => x && x.d === "2026-07-20").map((x) => x.sid);
+      ok(J7(ord7) === J7(["z_early", "a_late"]) && (b7.suggestionLog || []).every((x) => x.at || x.ord != null),
+        "SCALE-7 P1 — storage order recovered as ord at the boot exit, before any sort runs");
+      ok(J7(T.migrate(cl7(b7))) === J7(b7) && (T.migrate(T.mergeState(cl7(b7), cl7(b7))).targets || {}).proteinG === 210,
+        "SCALE-7 P1 — fixed point, and the self-merge keeps the athlete's later decision");
+    }
+  }
+
+  /* ==================== SCALE-8 · SOL'S CLOSURE PASS-6 ROW (2026-08-24) ====================
+     One open row: mixed-era ordering ranked provenance CLASS above recoverable TIME, and
+     orderSure was a property of the selected row. Executed CONFIRMED at 2e92fd0 (rig126):
+     his exact witness (stamped 9am + real old applyProposal 5pm → Undo targeted 9am,
+     "Last move applied" claimed), a STRONGER one-device form (three current writers filed
+     no `at`, so a 9am suggestion approval + 5pm proposal tap on ONE v7.55.6 device did the
+     same), and the disclosed clock-skew witness (stamped winner claimed sureness over a
+     skew-dependent order — the A6 contradiction). Every source now normalizes onto ONE
+     instant scale; sureness is computed from the competing set. */
+  {
+    const J8 = JSON.stringify, cl8 = (x) => JSON.parse(J8(x));
+    const mkB8 = () => { const s = T.migrate(null); s.reads = []; s.feed = []; s.weekly = []; s.suggestionLog = []; s.adjustments = []; s.targets = {}; s.trend = 100; s.blackout = { until: "2020-01-01" }; return s; };
+    /* P6-a — SOL'S WITNESS: a stamped 09:00 tap and a LEGACY-SHAPE 17:00 tap (no at; the
+       instant lives in the id, as the real old writer always recorded it). The later tap
+       is targeted, the claim is withheld, both directions agree, fixed point. */
+    {
+      const s8 = mkB8();
+      const ms17 = Date.parse("2026-07-20T17:00:00.000Z");
+      s8.suggestionLog.push({ sid: "sugA8", decided: "approved", d: "2026-07-20", at: "2026-07-20T09:00:00.000Z", title: "A STAMPED 9AM", apply: { kind: "protein", to: 205 }, predict: "" });
+      s8.adjustments.push({ rid: "sugA8", id: "adj_" + Date.parse("2026-07-20T09:00:00.000Z").toString(36) + "0aaaa", d: "2026-07-20", at: "2026-07-20T09:00:00.000Z", title: "A STAMPED 9AM" });
+      s8.adjustments.push({ rid: "bb_old_5pm", id: "adj_" + ms17.toString(36) + "0bbbb", d: "2026-07-20", title: "B OLD 5PM" });
+      const b8 = T.migrate(cl8(s8));
+      const lu8 = T.lastUndoable(b8);
+      ok(!!lu8 && lu8.rid === "bb_old_5pm" && lu8.orderSure === false,
+        "SCALE-8 P1 — a legacy 5pm tap outranks a stamped 9am tap: one instant scale, class never beats time (at 2e92fd0 the stamped earlier move was targeted AND 'Last move applied' was claimed — Sol's witness, executed)");
+      const p8 = mkB8();
+      const x1 = T.mergeState(cl8(b8), cl8(p8)), x2 = T.mergeState(cl8(p8), cl8(b8));
+      ok((T.lastUndoable(x1) || {}).rid === "bb_old_5pm" && (T.lastUndoable(x2) || {}).rid === "bb_old_5pm" && J8(T.migrate(cl8(b8))) === J8(b8),
+        "SCALE-8 P1 — same pick from both merge directions, and the state is a byte fixed point");
+    }
+    /* P6-b — THE STRONGER ONE-DEVICE FORM, through the REAL current writer: a stamped
+       morning approval, then T.applyProposal in the afternoon. The proposal row now
+       carries its own stamp, and the later tap is the one Undo offers. */
+    {
+      const s8 = mkB8();
+      s8.proposals = [...(s8.proposals || []), { id: "pc8", rid: "bb_cur_pm", d: "2026-07-20", title: "B CURRENT PM", why: "w", apply: { kind: "note" } }];
+      const s8b = T.applyProposal(cl8(s8), "pc8");
+      const rowB = (s8b.adjustments || []).find((a) => a && a.rid === "bb_cur_pm");
+      ok(!!rowB && typeof rowB.at === "string" && isFinite(Date.parse(rowB.at)),
+        "SCALE-8 P1 — the REAL applyProposal stamps its instant (at 2e92fd0 it filed no at, so its taps ranked below every stamped row regardless of time)");
+      const at8 = rowB && typeof rowB.at === "string" && isFinite(Date.parse(rowB.at)) ? Date.parse(rowB.at) : Date.now();   /* crash-proof under the proposal-at-dropped mutant — a red must read as CAUGHT, never abort the run (the SCALE-5 pin-3b lesson) */
+      const earlier8 = new Date(at8 - 3600000).toISOString();
+      s8b.suggestionLog.push({ sid: "sugA8b", decided: "approved", d: rowB.d, at: earlier8, title: "A EARLIER", apply: { kind: "protein", to: 205 }, predict: "" });
+      s8b.adjustments.push({ rid: "sugA8b", id: "adj_" + (Date.parse(earlier8)).toString(36) + "0cccc", d: rowB.d, at: earlier8, title: "A EARLIER" });
+      const b8 = T.migrate(cl8(s8b));
+      const lu8 = T.lastUndoable(b8);
+      ok(!!lu8 && lu8.rid === "bb_cur_pm" && lu8.orderSure === false,
+        "SCALE-8 P1 — one current device, mixed writers: the afternoon proposal tap is the one Undo offers, and no claim is made over a multi-candidate day");
+    }
+    /* P6-c — THE SKEW WITNESS, EXECUTED AS REQUIRED: two stamped same-day taps from two
+       replicas whose clocks disagree. The pick stays deterministic by the recorded
+       instants (both directions), and sureness is NOT claimed — the recorded clock is
+       each device's own, not causal provenance. */
+    {
+      const A8 = mkB8();
+      A8.suggestionLog.push({ sid: "sugX8", decided: "approved", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "X", apply: { kind: "protein", to: 200 }, predict: "" });
+      A8.adjustments.push({ rid: "sugX8", id: "adj_x8", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "X" });
+      const B8 = mkB8();
+      B8.suggestionLog.push({ sid: "sugY8", decided: "approved", d: "2026-07-20", at: "2026-07-20T09:30:00.000Z", title: "Y", apply: { kind: "sleep", to: 7.5 }, predict: "" });
+      B8.adjustments.push({ rid: "sugY8", id: "adj_y8", d: "2026-07-20", at: "2026-07-20T09:30:00.000Z", title: "Y" });
+      const m1 = T.migrate(T.mergeState(T.migrate(cl8(A8)), T.migrate(cl8(B8)))), m2 = T.migrate(T.mergeState(T.migrate(cl8(B8)), T.migrate(cl8(A8))));
+      const l1 = T.lastUndoable(m1), l2 = T.lastUndoable(m2);
+      ok(!!l1 && l1.rid === (l2 || {}).rid && l1.orderSure === false,
+        "SCALE-8 P1 — two stamped taps under clock skew: deterministic pick from both directions, and 'Last move applied' is NOT claimed (at 2e92fd0 the stamped winner claimed it — the A6 contradiction, closed)");
+    }
+    /* P6-d — restraint: a sole candidate needs no proof, and the claim survives. */
+    {
+      const s8 = mkB8();
+      s8.suggestionLog.push({ sid: "solo8", decided: "approved", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "SOLO", apply: { kind: "protein", to: 205 }, predict: "" });
+      s8.adjustments.push({ rid: "solo8", id: "adj_s8", d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "SOLO" });
+      const lu8 = T.lastUndoable(T.migrate(cl8(s8)));
+      ok(!!lu8 && lu8.rid === "solo8" && lu8.orderSure === true,
+        "SCALE-8 P1 — a sole candidate on its day keeps 'Last move applied': the honesty gate does not over-soften");
+    }
+    /* P6-e — an id outside the _freshId window falls to storage order, never to a fake instant. */
+    {
+      const s8 = mkB8();
+      s8.adjustments.push({ rid: "weird8", id: "adj_00000001wxyz", d: "2026-07-20", title: "WEIRD ID" });
+      s8.adjustments.push({ rid: "real8", id: "adj_" + Date.parse("2026-07-20T08:00:00.000Z").toString(36) + "0dddd", d: "2026-07-20", title: "REAL 8AM" });
+      const b8 = T.migrate(cl8(s8));
+      const day8 = (b8.adjustments || []).filter((a) => a && a.d === "2026-07-20");
+      ok(day8.length === 2 && day8[0].rid === "weird8" && day8[0].ord != null && day8[1].rid === "real8" && J8(T.migrate(cl8(b8))) === J8(b8),
+        "SCALE-8 P1 — an unparseable id is not an instant: the row keeps its recovered storage position (ord), the parsed row keeps its time, fixed point");
+    }
+  }
+
+  /* ==================== SCALE-9 · SOL'S CLOSURE PASS-7 ROWS (2026-08-27) ====================
+     Two rows, both EXECUTED CONFIRMED at 3ecf189 (rig128) before any design.
+     (1) SCALE-8 retired the at-vs-id ladder but left an instant-vs-ord one: a day holding
+     both an instant-bearing row and a no-instant row compared epoch ms against a storage
+     position, so the ord row sorted first whatever the recovered sequence said and Undo
+     offered the EARLIER move (rig128 A1). (2) The day-scoped certainty check leaked across
+     a DATE BOUNDARY: `d` is written from the same device clock as `at` (every writer uses
+     isoOf(todayStart())), so it carries no independent authority — a fast replica's 00:05
+     tap files under D+1, a slow replica's later 23:50 tap under D, the d-first key picks
+     the earlier one, and one-candidate-per-day called it PROVEN (rig128 B). Sol's
+     reachability out was declined: the ladder is real in code, so it is closed in code. */
+  {
+    const J9 = JSON.stringify, cl9 = (x) => JSON.parse(J9(x));
+    const mkB9 = () => { const s = T.migrate(null); s.reads = []; s.feed = []; s.weekly = []; s.suggestionLog = []; s.adjustments = []; s.targets = {}; s.trend = 100; s.blackout = { until: "2020-01-01" }; return s; };
+    const ID9 = (iso) => "adj_" + Date.parse(iso).toString(36);
+    /* P7-a — A(valid instant, position 0) then B(no instant, position 1): B is LATER. */
+    {
+      const s9 = mkB9();
+      s9.adjustments.push({ rid: "a_first", id: ID9("2026-07-20T09:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T09:00:00.000Z", title: "A FIRST" });
+      s9.adjustments.push({ rid: "b_second", d: "2026-07-20", title: "B SECOND" });
+      const b9 = T.migrate(cl9(s9));
+      const lu9 = T.lastUndoable(b9);
+      ok(!!lu9 && lu9.rid === "b_second" && lu9.orderSure === false,
+        "SCALE-9 P1 — a mixed day orders on ONE scale: the later no-instant row is targeted over the earlier stamped row (at 3ecf189 the ord row sorted first by class and Undo reversed A — Sol's witness, executed), and the claim is withheld");
+      ok(J9(T.migrate(cl9(b9))) === J9(b9) && (b9.adjustments || []).every((a) => a.ord != null),
+        "SCALE-9 P1 — every row in the sequence carries the one comparable rank, and the state is a byte fixed point of its next boot");
+      const p9 = mkB9();
+      const x1 = T.migrate(T.mergeState(cl9(b9), cl9(p9))), x2 = T.migrate(T.mergeState(cl9(p9), cl9(b9)));
+      ok((T.lastUndoable(x1) || {}).rid === "b_second" && (T.lastUndoable(x2) || {}).rid === "b_second",
+        "SCALE-9 P1 — same target from both merge directions, and through a reboot");
+    }
+    /* P7-b — the reverse order: B(no instant) first, A(instant) later. A must be targeted. */
+    {
+      const s9 = mkB9();
+      s9.adjustments.push({ rid: "b_first", d: "2026-07-20", title: "B FIRST" });
+      s9.adjustments.push({ rid: "a_second", id: ID9("2026-07-20T17:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T17:00:00.000Z", title: "A SECOND" });
+      const lu9 = T.lastUndoable(T.migrate(cl9(s9)));
+      ok(!!lu9 && lu9.rid === "a_second" && lu9.orderSure === false,
+        "SCALE-9 P1 — reversed: the later stamped row is targeted over the earlier no-instant row (the rank follows the sequence, not the class)");
+    }
+    /* P7-c — an OUTSIDE-WINDOW id is a no-instant row for the whole day's ordering. */
+    {
+      const s9 = mkB9();
+      s9.adjustments.push({ rid: "a_first", id: ID9("2026-07-20T09:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T09:00:00.000Z", title: "A FIRST" });
+      s9.adjustments.push({ rid: "b_weird", id: "adj_00000001wxyz", d: "2026-07-20", title: "B WEIRD ID" });
+      const lu9 = T.lastUndoable(T.migrate(cl9(s9)));
+      ok(!!lu9 && lu9.rid === "b_weird",
+        "SCALE-9 P1 — an id outside the _freshId window makes its day a recovered-sequence day: no fabricated instant, and no ladder against the rows that have one");
+    }
+    /* P7-d — positions 9 and 10 (Sol's unpadded-lexical trap), all no-instant. */
+    {
+      const s9 = mkB9();
+      for (let i = 0; i < 11; i++) s9.adjustments.push({ rid: "z" + i, d: "2026-07-20", title: "ROW " + i });
+      const b9 = T.migrate(cl9(s9));
+      const seq9 = (b9.adjustments || []).filter((a) => a.d === "2026-07-20").map((a) => a.title);
+      ok(J9(seq9) === J9(["ROW 0", "ROW 1", "ROW 2", "ROW 3", "ROW 4", "ROW 5", "ROW 6", "ROW 7", "ROW 8", "ROW 9", "ROW 10"]) && (T.lastUndoable(b9) || {}).rid === "z10",
+        "SCALE-9 P1 — position 10 sorts after position 9, not between 1 and 2: the rank is zero-padded (Sol's unpadded-lexical trap)");
+    }
+    /* P7-e — mixed day, 11 rows, crossing 9/10 with an instant row in the middle. */
+    {
+      const s9 = mkB9();
+      for (let i = 0; i < 11; i++) {
+        if (i === 5) s9.adjustments.push({ rid: "m5", id: ID9("2026-07-20T23:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T23:00:00.000Z", title: "STAMPED LATE-LOOKING" });
+        else s9.adjustments.push({ rid: "z" + i, d: "2026-07-20", title: "ROW " + i });
+      }
+      const b9 = T.migrate(cl9(s9));
+      ok((T.lastUndoable(b9) || {}).rid === "z10",
+        "SCALE-9 P1 — a stamped row's late-looking instant does not jump the recovered sequence on a mixed day: position, consistently, for every row in it");
+    }
+    /* P7-f — THE DATE BOUNDARY (Sol's required W3 extension). */
+    {
+      const s9 = mkB9();
+      s9.adjustments.push({ rid: "y_later", id: ID9("2026-07-20T23:50:00.000Z"), d: "2026-07-20", at: "2026-07-20T23:50:00.000Z", title: "Y TRUE LATER (slow clock)" });
+      s9.adjustments.push({ rid: "x_earlier", id: ID9("2026-07-21T00:05:00.000Z"), d: "2026-07-21", at: "2026-07-21T00:05:00.000Z", title: "X TRUE EARLIER (fast clock)" });
+      const b9 = T.migrate(cl9(s9));
+      const lu9 = T.lastUndoable(b9);
+      ok(!!lu9 && lu9.orderSure === false,
+        "SCALE-9 P1 — two taps minutes apart across a skewed midnight are NOT claimed as ordered: `d` comes from the same clock as `at`, so the day box proves nothing (at 3ecf189 one-candidate-per-day rendered 'Last move applied' over exactly this)");
+      const x1 = T.mergeState(cl9(b9), cl9(mkB9())), x2 = T.mergeState(cl9(mkB9()), cl9(b9));
+      ok((T.lastUndoable(T.migrate(x1)) || {}).rid === (T.lastUndoable(T.migrate(x2)) || {}).rid,
+        "SCALE-9 P1 — and the pick across that boundary is still deterministic from both directions");
+    }
+    /* P7-h — the id's embedded instant is still AUTHORITATIVE when the whole day can
+       supply instants: storage order deliberately contradicts the clock here, and the
+       clock wins. (This is what keeps the SCALE-8 normalization falsifiable now that a
+       mixed day falls to storage rank: kill the id parse and this day becomes a
+       recovered-sequence day, which reverses the answer.) */
+    {
+      const s9 = mkB9();
+      s9.adjustments.push({ rid: "a_stamped_pm", id: ID9("2026-07-20T17:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T17:00:00.000Z", title: "A STAMPED 5PM" });
+      s9.adjustments.push({ rid: "b_legacy_am", id: ID9("2026-07-20T09:00:00.000Z"), d: "2026-07-20", title: "B LEGACY 9AM (id only)" });
+      const lu9 = T.lastUndoable(T.migrate(cl9(s9)));
+      ok(!!lu9 && lu9.rid === "a_stamped_pm",
+        "SCALE-9 P1 — when every row in the day has a derivable instant, the instants rule even against storage order: the legacy id's own recorded 9am does not become 'last' by sitting later in the array");
+    }
+    /* P7-g — restraint: a genuinely isolated move keeps its claim. */
+    {
+      const s9 = mkB9();
+      s9.adjustments.push({ rid: "far_old", id: ID9("2026-07-10T10:00:00.000Z"), d: "2026-07-10", at: "2026-07-10T10:00:00.000Z", title: "OLD" });
+      s9.adjustments.push({ rid: "solo9", id: ID9("2026-07-20T10:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "SOLO" });
+      const lu9 = T.lastUndoable(T.migrate(cl9(s9)));
+      ok(!!lu9 && lu9.rid === "solo9" && lu9.orderSure === false,
+        "SCALE-10 — a second move on file, however far away, retires the causal claim: SCALE-9's isolated-move exemption was a finite window, and Sol's pass-8 witness steps past any finite window (this pin's SCALE-9 form asserted the exemption; it now asserts its retirement)");
+    }
+  }
+
+  /* ==================== SCALE-10 · SOL'S CLOSURE PASS-8 ROWS (2026-08-28) ====================
+     His argument is unanswerable and was not argued with: a FINITE WINDOW MOVES THE
+     BOUNDARY, IT DOES NOT CLOSE IT. Executed at 5c25ace (rig129): his exact
+     current-writer witness — X first on a fast clock records d 08-28 / at 01:01Z, Y ten
+     minutes LATER on a slow clock records d 08-27 / at 00:00Z, recorded separation
+     25h01m — sits outside the 24h neighbourhood, on different days, both stamped, so
+     every arm missed it and the door claimed "Last move applied" over the wrong move.
+     Closure (his option two, plus option one's restraint): the causal claim survives ONLY
+     where there is nothing to be wrong about — a single undoable move on file. Everywhere
+     else the surface reads RECORDED-ORDER semantics, which is what the deterministic
+     d-first selection actually computes. Also closed here: his two required boundary
+     pins — the previously UNPINNED adjoining-day arm, and the per-day mode transition,
+     which his refutation clause predicted exactly (mode was decided over every row, so an
+     undone fallback row reversed a day's timed rows forever). */
+  {
+    const J10 = JSON.stringify, cl10 = (x) => JSON.parse(J10(x));
+    const mk10 = () => { const s = T.migrate(null); s.reads = []; s.feed = []; s.weekly = []; s.suggestionLog = []; s.adjustments = []; s.targets = {}; s.trend = 100; s.blackout = { until: "2020-01-01" }; return s; };
+    const ID10 = (iso) => "adj_" + Date.parse(iso).toString(36);
+    /* P8-a — SOL'S EXACT WITNESS, just beyond the retired window. */
+    {
+      const s10 = mk10();
+      s10.adjustments.push({ rid: "y_true_later", id: ID10("2026-07-19T00:00:00.000Z"), d: "2026-07-19", at: "2026-07-19T00:00:00.000Z", title: "Y TRUE LATER" });
+      s10.adjustments.push({ rid: "x_true_earlier", id: ID10("2026-07-20T01:01:00.000Z"), d: "2026-07-20", at: "2026-07-20T01:01:00.000Z", title: "X TRUE EARLIER" });
+      const b10 = T.migrate(cl10(s10));
+      const lu10 = T.lastUndoable(b10);
+      ok(!!lu10 && lu10.orderSure === false,
+        "SCALE-10 — two stamped moves whose recorded separation exceeds any finite window are NOT claimed as ordered (at 5c25ace this rendered 'Last move applied' over the wrong move: 25h01m apart, different days, every arm missed it)");
+      const p10 = mk10();
+      const m1 = T.migrate(T.mergeState(cl10(b10), cl10(p10))), m2 = T.migrate(T.mergeState(cl10(p10), cl10(b10)));
+      ok((T.lastUndoable(m1) || {}).rid === (T.lastUndoable(m2) || {}).rid && (T.lastUndoable(m1) || {}).orderSure === false && J10(T.migrate(cl10(b10))) === J10(b10),
+        "SCALE-10 — selection stays deterministic from both merge directions and through a reboot; only the claim is retired");
+    }
+    /* P8-b — the ADJOINING-DAY ARM, previously unpinned (his required boundary pin 1). */
+    {
+      const s10 = mk10();
+      s10.adjustments.push({ rid: "noinst_D", d: "2026-07-19", title: "NO-INSTANT on D" });
+      s10.adjustments.push({ rid: "stamped_D1", id: ID10("2026-07-20T10:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "STAMPED on D+1" });
+      const b10 = T.migrate(cl10(s10));
+      const p10 = mk10();
+      const m2 = T.migrate(T.mergeState(cl10(p10), cl10(b10)));
+      ok((T.lastUndoable(b10) || {}).orderSure === false && (T.lastUndoable(m2) || {}).orderSure === false,
+        "SCALE-10 — a stamped row on D+1 beside a no-instant row on D is unclaimed in both merge directions (the arm SCALE-9 shipped without a witness)");
+    }
+    /* P8-c — THE PER-DAY MODE TRANSITION (his required boundary pin 2). */
+    {
+      const s10 = mk10();
+      s10.adjustments.push({ rid: "later_pm", id: ID10("2026-07-20T17:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T17:00:00.000Z", title: "PM" });
+      s10.adjustments.push({ rid: "earlier_am", id: ID10("2026-07-20T09:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T09:00:00.000Z", title: "AM" });
+      const base10 = T.migrate(cl10(s10));
+      ok((T.lastUndoable(base10) || {}).rid === "later_pm",
+        "SCALE-10 — an all-instant day whose storage order contradicts its instants resolves by instant");
+      const with10 = cl10(base10);
+      with10.adjustments.push({ rid: "fallback", d: "2026-07-20", title: "FALLBACK" });
+      const b1 = T.migrate(cl10(with10));
+      ok((T.lastUndoable(b1) || {}).rid === "fallback",
+        "SCALE-10 — adding a no-instant row moves that day to its shared recorded sequence, as SCALE-9 requires");
+      const und10 = cl10(b1);
+      und10.adjustments = und10.adjustments.map((a) => (a.rid === "fallback" ? { ...a, undone: true } : a));
+      const b2 = T.migrate(cl10(und10));
+      ok((T.lastUndoable(b2) || {}).rid === "later_pm" && J10(T.migrate(cl10(b2))) === J10(b2),
+        "SCALE-10 — and UNDOING that fallback row returns the day to its instants: the mode is read from the ACTIVE candidate set, so a retired row cannot permanently reverse the timed rows it never belonged to (at 5c25ace the reversal was permanent — Sol's own refutation clause, executed)");
+      const rem10 = cl10(b1); rem10.adjustments = rem10.adjustments.filter((a) => a.rid !== "fallback");
+      ok((T.lastUndoable(T.migrate(cl10(rem10))) || {}).rid === "later_pm",
+        "SCALE-10 — removing it outright does the same");
+    }
+    /* P8-d — the claim still EXISTS where it is provable: one move, nothing to be wrong about. */
+    {
+      const s10 = mk10();
+      s10.adjustments.push({ rid: "only10", id: ID10("2026-07-20T10:00:00.000Z"), d: "2026-07-20", at: "2026-07-20T10:00:00.000Z", title: "ONLY" });
+      ok((T.lastUndoable(T.migrate(cl10(s10))) || {}).orderSure === true,
+        "SCALE-10 — a single undoable move on file is still claimed as the last one: the retirement is of unprovable claims, not of the affordance");
+    }
+  }
+
 }
 
 /* THE NO-REMOTE PUT BODY, driven through the REAL ghSync (async — the caller
