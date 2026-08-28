@@ -1,46 +1,46 @@
 {
-  "gen": "2026-08-23T14:41:05.145Z",
+  "gen": "2026-08-28T09:12:55.549Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-23_fillweekend",
-      "rank": 1,
-      "title": "Fill in Friday and Saturday — rough numbers count; the whole weekend is blank",
-      "apply": { "kind": "note" },
-      "rationale": {
-        "science": "Across diet trials, the logging itself is the strongest single predictor of results — stronger than which diet was chosen (Alhassan 2008). The days that go missing are the days that decide weeks.",
-        "data": "Nothing is logged after Thursday: no food or steps Friday or Saturday, no nights since Thursday, no weigh-in since Friday morning. Thursday closed at 2,700 with protein 180. Your own record says Saturday is the day that slips — 8 of your 17 lifetime misses.",
-        "relationship": "Those two blanks sit exactly where this week's verdicts live: the weekend bet (both days over 2,600) grades on them, and the size of the sick-week giveback cannot be read without them. Filled, the week settles itself; blank, everything from here is a guess."
-      },
-      "predict": "Both days appear in the log inside 24 hours — this exact ask has converted seven times in a row inside a day. When they land, the weekend bet grades honestly, win or lose.",
-      "confidence": "high",
-      "gate": "approve"
-    },
-    {
       "sid": "sug_2026-08-23_morningread",
-      "rank": 2,
-      "title": "Step on the scale tomorrow morning — it has been silent since Friday",
+      "rank": 1,
+      "title": "Step on the scale tomorrow morning — one read re-anchors the trend and grades the whoosh",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Regular morning weigh-ins are one of the most consistent habits in people who lose weight and keep it off (Zheng 2015, review of 17 studies) — and a trend can only be as current as its last read.",
-        "data": "Last read: Friday morning, 162.4. Your trend sits at 163.0 — the lowest on your record — and by tomorrow it will be running on a read three days old.",
-        "relationship": "The two live questions — did the whoosh stick, and how much sick water came home — are answered by the next two mornings, not by anything I can compute tonight. The August 19 version of this same ask produced a read inside 24 hours."
+        "science": "A single weigh-in is noise, but a trend needs a fresh anchor to mean anything — and regular morning weigh-ins are one of the best-evidenced habits in weight management (Steinberg 2015). Your app already priced this gap itself: six missed mornings have widened its measured rate to 0.15–1.13 lb/wk.",
+        "data": "Last read 8/21: 162.4, trend 162.9 — a record low, now carried six days on nothing. The 8/19 precedent: this same ask converted inside 24 hours.",
+        "relationship": "One morning read collapses that rate interval back to a number and settles the giveback watch: a trend at or under 163.5 confirms last week's drop as fat, not water. Mid-162s is on script. Nothing else tonight can move that verdict."
       },
-      "predict": "A morning read lands tomorrow, most likely mid-162s as the giveback settles — that number is on script, not a stall. If it prints higher for a day or two, that was called on August 21 and changes nothing.",
-      "confidence": "high",
+      "predict": "A read lands within a day or two and the trend prints 162s, confirming the whoosh. Blank branch, named at filing: no read by 9/01 and the whoosh watch files VOID.",
+      "confidence": "medium",
       "gate": "approve"
     },
     {
-      "sid": "sug_2026-08-20_machinecheck",
-      "rank": 3,
-      "title": "Two minutes in SETUP: answer the three machine questions — calf raise, triceps, ham curl",
+      "sid": "sug_2026-08-23_fillweekend",
+      "rank": 2,
+      "title": "Fill last Friday and Saturday's food — the weekend bet voids Sunday 8/30",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Working a muscle at long lengths grows it faster than the same work at short lengths — clearest on calves, where the straight-knee version roughly doubled growth in the head-to-head trial (Kassiano 2023; small untrained group, so direction more than size).",
-        "data": "The three questions from Thursday's finding are still open, and the setup notes on those three machines have not changed since August 13–14.",
-        "relationship": "If any of the three is the short-length version, every hard set on it buys less muscle than the identical set on the right machine — and on a cut, that is recovery spent at a discount. A settings check costs two minutes and changes no loads."
+        "science": "When a rate looks slow, the first check is the log, not the metabolism (Alhassan 2008) — and a week that isn't on paper can't be checked at all.",
+        "data": "Food logging stops at 8/20. The bet's two legs — 8/21 and 8/22, each over 2,600 — are still blank, along with every day since. The fill-in habit was seven-for-seven inside 24 hours before this week's first miss.",
+        "relationship": "Two rough numbers grade a standing forecast honestly: over 2,600 both and my read of your weekends stands; under 2,500 both and I over-fit and will say so. No fill by Sunday and it files VOID — which teaches neither of us anything."
       },
-      "predict": "Three answers appear in SETUP this week. If a machine turns out to be the short version, swapping it shows up as easier rep growth at the same load within a month.",
+      "predict": "Both legs land by Saturday and the bet finally grades on its letter. Blank branch, already filed: still blank Sunday 8/30 → VOID, recorded as a design lesson, not a win or a loss.",
+      "confidence": "medium",
+      "gate": "approve"
+    },
+    {
+      "sid": "sug_2026-08-28_trainingweek",
+      "rank": 3,
+      "title": "Put the training week on paper either way — sessions if they happened, a rest week if they didn't",
+      "apply": { "kind": "note" },
+      "rationale": {
+        "science": "A layoff of a week or two doesn't measurably cost a trained lifter muscle or strength, especially with protein kept high (Bosquet 2013; Ogasawara 2013). A sick week off reads as recovery, not damage.",
+        "data": "Your last session is 8/21 — 'didn't feel great, left early' — after 8/20's 'was sick the past few days'. Six-plus days without a session is the longest gap in your file; the previous longest was four.",
+        "relationship": "If you trained unlogged, the entries keep every ladder honest — rear-delt's two-skip watch and four fresh baselines are waiting on the next real sessions. If you rested, one line saying so converts a scary-looking blank into what it probably was: a deload after being sick. Then the first session back gets read as a comeback against baselines, not a decline against last month's peaks."
+      },
+      "predict": "A session entry or an explicit rest-week note lands within three days, and the first session back opens at 1–2 reps in reserve and meets or resets its lines without any hold flags.",
       "confidence": "medium",
       "gate": "approve"
     }

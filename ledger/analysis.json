@@ -1,10 +1,10 @@
 {
-  "gen": "2026-08-23T14:41:05.145Z",
+  "gen": "2026-08-28T09:06:06.081Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
     "soft": 163.05,
     "lastRaw": 162.4,
-    "appTrend": 163,
+    "appTrend": 162.9,
     "noiseFloor": 1.47,
     "gap": 0.65
   },

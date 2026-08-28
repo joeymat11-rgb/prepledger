@@ -453,3 +453,24 @@
 **Gaps:** dailyLogs 8/21–8/22 · reads 8/22–8/23 · nights 8/21–8/22 · sodium since 8/12 · caffeine/meds/energy/soreness/pulse/temp stale since late July–8/4 · sessions: none since 8/21 at engine time.
 
 **Next run, in order:** rearDelt (did the third skip happen?) · weekend fills (bet grades the moment both legs exist) · morning read vs 163.0 (mid-162s = on script) · Monday's lower read as baselines ([[W-8]] guard) · SETUP answers · [[W-9]]/[[W-11]] movement · reconcile trend vs his before quoting ([[CL-27]], standing).
+
+
+---
+
+## Run 33 — 2026-08-28 (Fri pre-dawn; first run from the dedicated prepledger-nightly clone; no runs fired 8/24–8/27)
+
+**The night in one line.** Six days of athlete silence against a provably healthy pipe — `sync.last` healed 8/16 → 8/23 and carried the 8/21 session and read; `learned.tdee` stamped 8/23/24/27 with n frozen at 39; the feed self-narrated READ GAP day 3 and day 6 — so the story is not lost data, it is entries that stopped, five days after "was sick the past few days." Trend carries at a record 162.9 (his; mine 163.05, reconciled), rate interval blown out to 0.15–1.13 by the app's own accounting.
+
+**Graded:** run 32's card-conversion bet ("fills inside 24 h, read tomorrow") — **MISS**, the retrospective genre's first, filed against my filing discipline rather than the genre ([[CL-30]] ruled: card conversions are log-dependent forecasts and carry blank branches at filing; a dark file stalls both genres because conversion needs contact-days). Tally reconstructed openly in the scorecard: 58 called / 27 graded / 12 hits / 9 misses.
+
+**Not graded, on clocks:** [[W-11]] on script on every existing read (+0.6 giveback printed 8/21 as called, trend fell anyway) — grades on the first read to land, **VOID if none by 9/01** · weekend bet both legs still blank, **VOID at 8/30** · [[W-8]] zero occasions, slides to ~9/07 · rearDelt third-skip rides the next upper occasion.
+
+**Cards: three, all note, none apply-bearing** — `morningread` rank 1 (sid `sug_2026-08-23_morningread` carried; confidence downgraded to medium because the 24-h claim just missed; leverage unchanged: one read collapses the interval and grades W-11) · `fillweekend` rank 2 (sid carried; expiry clock in the title) · `trainingweek` rank 3 (fresh sid; the week goes on paper either way — sessions or a rest-week line; layoff ≤2 wk costs ~nothing, Bosquet 2013 / Ogasawara 2013, which makes the ask cheap and the blank expensive). `machinecheck` parked, not dropped — zero occasions ([[CL-29]]).
+
+**Band-adjacent, brief-only (consent-hygiene law):** the app's 8/27 "TWO SLOW WEEKS — YOUR RULE KICKS IN" row (weeks read 0.3 and −0.5 lb/wk; steps at baseline → steps-vs-~50-kcal-trim framed by the app itself as an adherence experiment) plus WK 11's "adjustments armed on NOW." One brief paragraph: the band is the app's call, the slow-week windows straddle the water mask and a six-day read gap, the level itself is a record low, clean mornings re-price it. No card, no number, no lever.
+
+**Instrument state (deltas only):** reads 67, last 8/21 162.4 · dailyLogs end 8/20 · nights end 8/20 · sessions end 8/21 · `suggestionLog` 24 entries, still ends 8/14 — nineteen cards undecided ([[W-9]] sharpened: a healed sync carried no taps; deadline ~9/05) · agentProposals: the 7/29 step/band proposal now 30 days unresolved, [[CL-25]] standing, not re-narrated · engine regime label "plateau — water masking, whoosh pending" stale a second week; overridden in plain words (the current state is a carried trend on a read gap, not masking) · engine drafted zero suggestions, eighth straight · caffeine/meds/energy/soreness/pulse/temp stale since late July/8-04 · phase EASE 1, band [1.0–1.4] floor 0.8, `learned.tdee` 2624 vs engine 2663.
+
+**Worth remembering for next time:** this was the first run from the dedicated `prepledger-nightly` clone (recipe still says prepledger-dev; substituted throughout per standing orders). The pull brought heavy app-side development (src/app.jsx +771 lines, new tools/closure-sf2.mjs) — none of it touches the nightly contract, but if card rendering changes shape, re-verify the suggestions.json schema against the app before assuming. And the four-day scheduler gap (8/24–8/27 never fired) is itself why tonight graded a five-day-old bet: if a night is ever skipped again, grade on the dates the file shows, not on "last night."
+
+**Next run, in order:** the read vs 162.9 ([[W-11]] grades on it; mid-162s pre-called; above 163.5 = I over-read the whoosh and say so) · 8/21–8/22 food (bet letter: >2,600 both = stands, <2,500 both = my over-fit, split = its letter; VOID 8/30) · session or rest note (comeback sheet = baselines, 1–2 RIR openers, [[CL-28]] narrow form) · `suggestionLog`/`priorDecisions` movement ([[W-9]], the pre-gap sixteen are the clean test) · `sync.last` currency · reconcile trend vs his before quoting ([[CL-27]], standing).
