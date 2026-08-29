@@ -474,3 +474,22 @@
 **Worth remembering for next time:** this was the first run from the dedicated `prepledger-nightly` clone (recipe still says prepledger-dev; substituted throughout per standing orders). The pull brought heavy app-side development (src/app.jsx +771 lines, new tools/closure-sf2.mjs) — none of it touches the nightly contract, but if card rendering changes shape, re-verify the suggestions.json schema against the app before assuming. And the four-day scheduler gap (8/24–8/27 never fired) is itself why tonight graded a five-day-old bet: if a night is ever skipped again, grade on the dates the file shows, not on "last night."
 
 **Next run, in order:** the read vs 162.9 ([[W-11]] grades on it; mid-162s pre-called; above 163.5 = I over-read the whoosh and say so) · 8/21–8/22 food (bet letter: >2,600 both = stands, <2,500 both = my over-fit, split = its letter; VOID 8/30) · session or rest note (comeback sheet = baselines, 1–2 RIR openers, [[CL-28]] narrow form) · `suggestionLog`/`priorDecisions` movement ([[W-9]], the pre-gap sixteen are the clean test) · `sync.last` currency · reconcile trend vs his before quoting ([[CL-27]], standing).
+
+
+---
+
+## Run 34 — 2026-08-29 (Sat pre-dawn; gap day 8; second consecutive nightly run — first back-to-back firing since 8/23)
+
+**The night in one line.** Eight days of athlete silence; the machine side moved exactly four keys overnight (READ GAP day-7 feed row, an 8/28 forecast row, a 2,624→2,429 `learned.tdee` window-slide, a cosmetic proposal `refreshed` bump) — so tonight's work was holding the frame steady: same three cards carried, no new forecast, the brief escalating only the one thing that actually escalated (the layoff clock).
+
+**What the brief leads with.** The app's own gap row now prices the rate at −0.1 to 0.74 lb/wk — an interval containing zero — which let the brief say "your own app no longer knows whether you're losing" in the app's own numbers. Trend quoted at his 162.9 with my 163.05 named as agreeing within a couple tenths ([[CL-27]] duty done). The tone deliberately keeps "resting, not quitting" from run 33 and adds the week-two line: day 8 of a ≤14-day cheap window, Monday makes 10.
+
+**The tdee slide got the consent-hygiene treatment.** 2,429 is band-input territory (the app derives the band from measured maintenance), and the slide is artifact-of-the-gap, not physiology — filed in caselaw as the working constant's fourth confirmation (new variant: window-slide, not entry-driven). Brief handling: observation only, input named (empty mornings/meals), no number, band cited as the app's call. Watch next run: if the gap continues the fit should keep sliding as more matched days fall out — predicted here so the next move grades as expected-artifact, not news.
+
+**Cards: three, unchanged sids, all carried (undecided → carry).** morningread #1 (third issue), fillweekend #2 (third issue, expiry tomorrow in the title), trainingweek #3 (second issue). All medium, all note-kind, no apply buttons, blank branches in every predict ([[CL-30]]). Nothing new to say meant not inventing a new card to say it.
+
+**Nothing graded** — no contact-day since the run-33 cards went up, so their conversion predictions roll ([[CL-30]]: the gap grades, the genre doesn't). Tally holds at 58 / 27 / 12 / 9. Two clocks converge this weekend: bet VOID at 8/30, [[W-11]] VOID at 9/01 — if the scheduler skips a night again, grade both on the dates the file shows (run-33 practice).
+
+**Worth remembering for next time:** the state-diff probe needs raw-byte extraction — `git show` piped through PowerShell `Out-File` mangles em-dashes and makes every key look changed; `cmd /c "git show ... > file"` gives the clean diff. Four-key nights like this one are exactly when that matters: the real story ("almost nothing moved") only appears once the artifact is excluded. Second: `sync.last` (8/23) now lags the auto-sync commits (8/28) — the stamp measures athlete-data sync, not repo sync; keep reading the commit log, not the stamp, for pipe health.
+
+**Next run, in order:** the read vs 162.9 ([[W-11]] grades on it; VOID 9/01) · 8/21–8/22 food (bet: VOID files at 8/30 if blank — on its letter if filled) · session or rest note (comeback sheet = baselines, not declines) · `suggestionLog`/`priorDecisions` past 8/14 ([[W-9]], nineteen undecided, deadline ~9/05) · next `learned.tdee` stamp (expect continued artifact slide while dark) · reconcile trend vs his before quoting ([[CL-27]], standing).

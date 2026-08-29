@@ -1,46 +1,46 @@
 {
-  "gen": "2026-08-28T09:12:55.549Z",
+  "gen": "2026-08-29T09:20:00.000Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
       "sid": "sug_2026-08-23_morningread",
       "rank": 1,
-      "title": "Step on the scale tomorrow morning — one read re-anchors the trend and grades the whoosh",
+      "title": "Step on the scale in the morning — one read turns four guesses back into numbers",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "A single weigh-in is noise, but a trend needs a fresh anchor to mean anything — and regular morning weigh-ins are one of the best-evidenced habits in weight management (Steinberg 2015). Your app already priced this gap itself: six missed mornings have widened its measured rate to 0.15–1.13 lb/wk.",
-        "data": "Last read 8/21: 162.4, trend 162.9 — a record low, now carried six days on nothing. The 8/19 precedent: this same ask converted inside 24 hours.",
-        "relationship": "One morning read collapses that rate interval back to a number and settles the giveback watch: a trend at or under 163.5 confirms last week's drop as fat, not water. Mid-162s is on script. Nothing else tonight can move that verdict."
+        "science": "Day-to-day scale moves are mostly water, which is why a missed day costs little — but a trend only exists if reads keep arriving. Eight days without one and the trend is a guess being carried, not a measurement (the same water-vs-fat logic behind DASH-Sodium/Juraschek 2020 cuts both ways).",
+        "data": "No weigh-in since 8/21 (162.4). Your app's own gap note now prices your rate anywhere from -0.1 to +0.74 lb/wk — an interval that includes 'not losing at all'.",
+        "relationship": "Reads are the one input the trend, the rate, the whoosh verdict and the maintenance estimate all share. One morning read narrows all four at once; nothing else in the app does that."
       },
-      "predict": "A read lands within a day or two and the trend prints 162s, confirming the whoosh. Blank branch, named at filing: no read by 9/01 and the whoosh watch files VOID.",
+      "predict": "A read lands within a day of this card and the rate interval collapses to a usable number; mid-162s confirms the 8/19-8/21 drop as fat and makes the record official. Blank branch, filed now: no read by 9/01 and the whoosh verdict files VOID - unanswered, not wrong.",
       "confidence": "medium",
       "gate": "approve"
     },
     {
       "sid": "sug_2026-08-23_fillweekend",
       "rank": 2,
-      "title": "Fill last Friday and Saturday's food — the weekend bet voids Sunday 8/30",
+      "title": "Last call: rough numbers for Fri 8/21 and Sat 8/22 — the weekend bet files void tomorrow",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "When a rate looks slow, the first check is the log, not the metabolism (Alhassan 2008) — and a week that isn't on paper can't be checked at all.",
-        "data": "Food logging stops at 8/20. The bet's two legs — 8/21 and 8/22, each over 2,600 — are still blank, along with every day since. The fill-in habit was seven-for-seven inside 24 hours before this week's first miss.",
-        "relationship": "Two rough numbers grade a standing forecast honestly: over 2,600 both and my read of your weekends stands; under 2,500 both and I over-fit and will say so. No fill by Sunday and it files VOID — which teaches neither of us anything."
+        "science": "Estimates beat blanks: logging consistency, not logging precision, is what tracks with outcomes (Alhassan 2008). Your own file already treats declared estimate days as first-class — 8/09 is on the books as 'backfilled, rough numbers count'.",
+        "data": "Food log ends 8/20. The bet needs exactly two days — Fri 8/21 and Sat 8/22, each over 2,600 to stand — and its hard expiry is 8/30, tomorrow.",
+        "relationship": "Those two entries grade the bet on its letter, and they're also the first meals the app's slow-week arithmetic would get to chew on instead of guessing. Two rough entries, two instruments fed."
       },
-      "predict": "Both legs land by Saturday and the bet finally grades on its letter. Blank branch, already filed: still blank Sunday 8/30 → VOID, recorded as a design lesson, not a win or a loss.",
+      "predict": "If both land by tomorrow the bet grades on its letter: both over 2,600 and my call stands; both under 2,500 and it's my over-fit, said plainly. Blank branch, pre-filed at the original filing: still blank at tomorrow's run and it files VOID - a design lesson against the forecaster, not a data point about you.",
       "confidence": "medium",
       "gate": "approve"
     },
     {
       "sid": "sug_2026-08-28_trainingweek",
       "rank": 3,
-      "title": "Put the training week on paper either way — sessions if they happened, a rest week if they didn't",
+      "title": "Put the week on paper — sessions if they happened, one 'rest week' line if they didn't",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "A layoff of a week or two doesn't measurably cost a trained lifter muscle or strength, especially with protein kept high (Bosquet 2013; Ogasawara 2013). A sick week off reads as recovery, not damage.",
-        "data": "Your last session is 8/21 — 'didn't feel great, left early' — after 8/20's 'was sick the past few days'. Six-plus days without a session is the longest gap in your file; the previous longest was four.",
-        "relationship": "If you trained unlogged, the entries keep every ladder honest — rear-delt's two-skip watch and four fresh baselines are waiting on the next real sessions. If you rested, one line saying so converts a scary-looking blank into what it probably was: a deload after being sick. Then the first session back gets read as a comeback against baselines, not a decline against last month's peaks."
+        "science": "Layoffs under about two weeks cost a trained lifter essentially nothing — strength and size rebound as if it never happened (Bosquet 2013; Ogasawara 2013). Past that line the losses start to be real. The window is what makes the ask cheap now and expensive later.",
+        "data": "Last logged session 8/21 — Monday makes 10 days. No sessions since, and no rest note either, so the file cannot tell a planned deload from a slide.",
+        "relationship": "One line converts an unreadable gap into a planned deload, keeps the comeback sheet honest (fresh baselines, openers at 1-2 in reserve), and stops the analysis from inventing stories in the dark."
       },
-      "predict": "A session entry or an explicit rest-week note lands within three days, and the first session back opens at 1–2 reps in reserve and meets or resets its lines without any hold flags.",
+      "predict": "A session or a rest line lands on the next day you touch the app, and next week's brief reads 'deload, resumed on script'. Blank branch: still dark by 9/05 and this stops being a logging ask - the next brief treats it as a real layoff and plans the comeback.",
       "confidence": "medium",
       "gate": "approve"
     }
