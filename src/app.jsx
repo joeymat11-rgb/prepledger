@@ -1820,15 +1820,39 @@ function canonicalizePlan(s) {
         if (opKey == null) { keep.push(f); continue; }
         if (!byOp.has(opKey)) { byOp.set(opKey, f); keep.push(f); }
       }
-      const byFrom = new Map();
+      /* PROGRESSION-1 FIX-1 (Grok's H2, executed) — A COMPOSITE MAY ONLY EAT ITS OWN CLASS.
+         This union was written when every same-date pair was one thing: two devices seeing one
+         insertion twice. This round made CROSS-CLASS same-date pairs reachable — a context seam
+         now DERIVES at a runtime date (ham's, on the first hip-thrust-and-ham co-performance
+         day), and that is exactly the day the athlete is most likely to also change the ham
+         setup. The union then built a fresh literal with no `kind` and inherited split from the
+         seam, so the athlete's TECHNIQUE fork was absorbed into a kind-less split composite that
+         the back-compat cut reads as context — and the next boot's deriver, seeing a context
+         fork it did not derive, deleted it. Executed on his live blob: boot 1 absorbed "pause
+         added", boot 2 destroyed it, boots 2 and 3 converged on the loss, silently and with no
+         receipt. A technique change is athlete-authored protocol history and carries semantics a
+         context seam does not (standards retire, the era resets); it is never the union's to eat.
+         So: only PROJECTION-class forks composite. A reset-bearing fork — kind "technique", or
+         kind-less and unsplit — passes through untouched even when it shares a date with a seam.
+         Same-class composites now carry `kind` explicitly, so a genuine two-device double
+         sighting of one derived seam stays "context" instead of falling back to the legacy
+         kind-less encoding. Two forks on one date is a legal shape (a zero-width era), ordered
+         deterministically: by date, then reset-bearing before projection. */
+      const isProj9 = (f) => !!(f && (f.kind ? f.kind === "context" : f.split));
+      const byFrom = new Map(); const solo9 = [];
       for (const f of keep) {
+        if (!isProj9(f)) { solo9.push(f); continue; }   /* a reset-bearing fork is never absorbed */
         if (byFrom.has(f.from)) {
           const p = byFrom.get(f.from);
           const ops = [...new Set([...(p.ops || [p.why]), ...(f.ops || [f.why])])].sort();
-          byFrom.set(f.from, { from: f.from, why: ops.join(" + "), ops, prevN: p.prevN || f.prevN, split: p.split || f.split });
+          byFrom.set(f.from, { from: f.from, why: ops.join(" + "), ops, prevN: p.prevN || f.prevN, ...((p.kind || f.kind) ? { kind: p.kind || f.kind } : {}), split: p.split || f.split });
         } else byFrom.set(f.from, f);
       }
-      e.forks = [...byFrom.values()].sort((a, b) => (a.from < b.from ? -1 : 1));
+      e.forks = [...solo9, ...byFrom.values()].sort((a, b) => {
+        if (a.from !== b.from) return a.from < b.from ? -1 : 1;
+        const pa = isProj9(a) ? 1 : 0, pb = isProj9(b) ? 1 : 0;   /* reset-bearing first on a tie */
+        return pa - pb;
+      });
     } else e.forks = e.forks.slice().sort((a, b) => (a.from < b.from ? -1 : 1));
   }
   return s;
@@ -1906,7 +1930,10 @@ function deriveInsertionSeams(s) {
         for (const d of dates9) { if (d < marker9) continue; if (didOn9(d, newId) && didOn9(d, affId)) { seamD9 = d; break; } }
         if (!seamD9) continue;                    /* never performed together: no fork, no line */
         const fks9 = Array.isArray(e.forks) ? e.forks : [];
-        fks9.push({ from: seamD9, kind: "context", split: true, ops: [why9], why: why9, prevN: e.n });
+        /* the same FIELD ORDER _settleExit's restatement produces, so one logical fork has one
+           byte identity whichever path finalised it — boot restates, merge does not, and a
+           key-order difference alone made merge(m,m) != m (the SCALE-5/6 lesson, here for forks) */
+        fks9.push({ from: seamD9, why: why9, ops: [why9], prevN: e.n, kind: "context", split: true });
         e.forks = fks9.sort((a, b) => (a.from < b.from ? -1 : 1));
         s.feed.unshift({ op: "seam:" + newId + ":" + affId, d: seamD9, t: e.n.toUpperCase() + " — NEW CONTEXT", how: "The " + label9 + " now runs ahead of this lift and works a muscle it shares, so what a session costs here changed. This marks what is comparable — records and stalls read either side of it separately. Nothing is owed and no sighting is lost: the line carries on from where it was." });
       }
@@ -13940,20 +13967,33 @@ function mergeState(local, remote) {
         const fA = Array.isArray(w2.forks) ? w2.forks : (w2.fork && w2.fork.from ? [w2.fork] : []);
         const fB = Array.isArray(other.forks) ? other.forks : (other.fork && other.fork.from ? [other.fork] : []);
         if (fA.length || fB.length) {
+          /* PROGRESSION-1 FIX-1 — KEYED BY DATE **AND CLASS**. This union predates fork kinds:
+             it assumed every same-date pair was one event seen twice. A derived context seam
+             and an athlete-authored TECHNIQUE fork can now legitimately share a date, and
+             keying on `from` alone composited them into one record — the same defect Grok's H2
+             found in canonicalizePlan's union, on the other path. A reset-bearing fork carries
+             semantics a context seam does not, and it is athlete-authored history besides; the
+             two never merge into each other. Same-class pairs still union deterministically,
+             and now carry their kind rather than falling back to the legacy kind-less shape. */
+          const cls9 = (f9) => (f9 && (f9.kind ? f9.kind === "context" : !!f9.split)) ? "ctx" : "tech";
           const byFrom = new Map();
           for (const f9 of [...fB, ...fA]) {
             if (!(f9 && f9.from)) continue;
-            if (byFrom.has(f9.from)) {
+            const key9 = f9.from + "|" + cls9(f9);
+            if (byFrom.has(key9)) {
               /* FIX split-1 (P0-5): same-date metadata unions DETERMINISTICALLY —
                  ops set-union, why derived from ops, scalar conflicts to the
                  lexicographically greater value (direction-free, like the
                  stamp tie rule) instead of whichever side was local. */
-              const p9 = byFrom.get(f9.from);
+              const p9 = byFrom.get(key9);
               const ops9 = [...new Set([...(p9.ops || (p9.why ? [p9.why] : [])), ...(f9.ops || (f9.why ? [f9.why] : []))])].sort();
-              byFrom.set(f9.from, { from: f9.from, why: ops9.length > 1 ? ops9.join(" + ") : (p9.why === f9.why ? p9.why : (String(p9.why || "") > String(f9.why || "") ? p9.why : f9.why)), ...(ops9.length ? { ops: ops9 } : {}), prevN: p9.prevN === f9.prevN ? p9.prevN : (String(p9.prevN || "") > String(f9.prevN || "") ? p9.prevN : f9.prevN), ...(p9.split || f9.split ? { split: true } : {}) });
-            } else byFrom.set(f9.from, f9);
+              byFrom.set(key9, { from: f9.from, why: ops9.length > 1 ? ops9.join(" + ") : (p9.why === f9.why ? p9.why : (String(p9.why || "") > String(f9.why || "") ? p9.why : f9.why)), ...(ops9.length ? { ops: ops9 } : {}), prevN: p9.prevN === f9.prevN ? p9.prevN : (String(p9.prevN || "") > String(f9.prevN || "") ? p9.prevN : f9.prevN), ...((p9.kind || f9.kind) ? { kind: p9.kind || f9.kind } : {}), ...(p9.split || f9.split ? { split: true } : {}) });
+            } else byFrom.set(key9, f9);
           }
-          w2 = { ...w2, forks: [...byFrom.values()].sort((a9, b9) => (a9.from < b9.from ? -1 : 1)) };
+          w2 = { ...w2, forks: [...byFrom.values()].sort((a9, b9) => {
+            if (a9.from !== b9.from) return a9.from < b9.from ? -1 : 1;
+            return (cls9(a9) === "ctx" ? 1 : 0) - (cls9(b9) === "ctx" ? 1 : 0);   /* reset-bearing first on a tie, as canonicalizePlan orders it */
+          }) };
         }
         const rA = Array.isArray(w2.renames) ? w2.renames : [], rB = Array.isArray(other.renames) ? other.renames : [];
         if (rA.length || rB.length) {
@@ -14207,7 +14247,8 @@ __test.stepTarget = stepTarget;
 __test.signalState = signalState;
 __test.signalReadCopy = signalReadCopy;   // v7.5 — so the suite can prove showRate and currentRate.measured diverge
 __test.dataLossGuard = dataLossGuard;
-__test._isFeedProjection = _isFeedProjection;   /* v7.55.2 — the guard pin asserts the app's own projection class, not a rig's re-spelling of it */
+__test._isFeedProjection = _isFeedProjection;
+__test.resetForksOf = resetForksOf;   /* PROGRESSION-1 — the TECHNIQUE-only fork set: the pins assert the reset-bearing class directly rather than re-spelling its predicate */   /* v7.55.2 — the guard pin asserts the app's own projection class, not a rig's re-spelling of it */
 __test._isFeedDerived = _isFeedDerived;   /* v7.55.3 — and the guard's strictly smaller derived class */
 __test.mergeState = mergeState;
 __test.fiveLevers = fiveLevers;

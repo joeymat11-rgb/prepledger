@@ -2534,6 +2534,43 @@ export function runClosureSF2(T, ok, readFileSync) {
         "T20 — and a maxed ladder always uses every configured set: reps ARE the ladder there, so a short line cannot pass");
     });
 
+    /* ---- FIX-1 (Grok's H2, executed) — a composite may only eat its own class ---- */
+    withClock("2026-09-01T20:00:00Z", () => {
+      const base = T.migrate(clP(rawP1));
+      /* real co-performance of the hip thrust and the ham curl: the day ham's context seam
+         DERIVES — and exactly the day the athlete is most likely to also change the ham setup */
+      const rF = T.completeSession(clP(base), "2026-09-01",
+        [{ id: "hipthrust", w: 90, tgt: [10, 10, 10], reps: [10, 10, 10], rir: 2, rirSets: [2, null, 0] },
+         { id: "ham", w: 125, tgt: [11, 10, 9], reps: [10, 9, 9], rir: 2, rirSets: [2, null, 0] }],
+        { clean: true, last: { h: 8 }, mean3: 8 }, { pg: 52 });
+      const sF = rF.s || rF;
+      const hamF = sF.exercises.find((x) => x.id === "ham");
+      hamF.forks = [...(hamF.forks || []), { from: "2026-09-01", why: "pause added", ops: ["pause added"], prevN: hamF.n, kind: "technique" }];
+      const b1 = T.migrate(clP(sF)), b2 = T.migrate(clP(b1)), b3 = T.migrate(clP(b2));
+      const fks = (s) => ((s.exercises.find((x) => x.id === "ham") || {}).forks) || [];
+      ok(fks(b1).length === 2
+        && fks(b1)[0].kind === "technique" && /pause added/.test(String(fks(b1)[0].why))
+        && fks(b1)[1].kind === "context" && /hip thrust inserted upstream/.test(String(fks(b1)[1].why)),
+        "FIX-1 — a TECHNIQUE fork sharing a date with a DERIVED CONTEXT SEAM is never absorbed into it: both survive, each carrying its own kind, reset-bearing first on the tie. On 7af1d8f the same-date union built a kind-less split composite ('hip thrust inserted upstream + pause added') that the back-compat cut read as context, and the next boot's deriver — seeing a context fork it had not derived — DELETED it. The athlete's protocol history was destroyed silently, with no receipt");
+      /* a pre-export engine reads as CAUGHT here, never as a crash that hides the pins behind
+         it — the SCALE-5 pin-3b lesson, applied where the new export would otherwise throw */
+      ok(typeof T.resetForksOf === "function" && T.resetForksOf(b1, "ham").length === 1,
+        "FIX-1 — and the technique fork keeps its RESET semantics through the composite: standards retire and the era resets off it, which a context seam must never do (absorbed, it read as context and the count was 0)");
+      ok(JP(b2) === JP(b1) && JP(b3) === JP(b2),
+        "FIX-1 — boots 2 and 3 are byte-identical to boot 1: the old shape was non-idempotent (boot 1 absorbed, boot 2 destroyed) and then converged on the loss");
+      ok(JP(T.mergeState(clP(b1), clP(b1))) === JP(b1),
+        "FIX-1 — and merge(m,m) = m on that state: a zero-width era (two forks on one date) is a legal shape the era machinery tolerates");
+      /* the SAME-CLASS control: two replicas each carrying the derived seam composite to ONE */
+      const A = clP(b1), B = clP(b1);
+      const ah = A.exercises.find((x) => x.id === "ham");
+      ah.forks = [...ah.forks, { from: "2026-09-01", why: "hip thrust inserted upstream", ops: ["hip thrust inserted upstream"], prevN: ah.n, kind: "context", split: true }];
+      const mAB = T.migrate(T.mergeState(clP(A), clP(B)));
+      const ctxAB = fks(mAB).filter((f) => f && (f.kind === "context" || f.split));
+      ok(ctxAB.length === 1 && ctxAB[0].kind === "context",
+        "FIX-1 — the same-class control still composites: two sightings of ONE derived context seam collapse to a single fork that CARRIES kind 'context', instead of falling back to the legacy kind-less encoding the old literal produced");
+    });
+
+
   }
 
 }
