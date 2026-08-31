@@ -2699,6 +2699,51 @@ export function runClosureSF2(T, ok, readFileSync) {
         "R13a-3's fence, re-aimed at FIX-2 — THE PER-LIFT MERGE IS ORDERED BY RECENCY, NOT BY THE SIGHTING RUN. This fence used to guard the counter itself; A6 DERIVES the counter now, so the resurrection it named can no longer happen that way and the fence had to be re-aimed rather than left standing over an empty field. What the ordering still decides is the WHOLE record: score the lift by its run and a stale replica wins it outright, reinstating the governor hold, the retired ladder and the ownership flag the newer device had released — the same revival, one level up. Recency is the only honest order, and it holds from both merge directions (observed " + shape(fresh(), stale()) + " / " + shape(stale(), fresh()) + ")");
     });
 
+
+    /* ---- FIX-3 §1 — the completeness exemption is PRECISE: reps.length >= setsAtTime(d) ---- */
+    withClock(RULED, () => {
+      /* Sol's partial witness, with the push that FIX-2's loose exemption let it ride on.
+         A [9]-only line is one set of a four-set lift; one volume push after it proves the
+         lift ran THREE at the time, not one. The loose rule ("any volume receipt after the
+         entry") exempted the line entirely, so a bare opener at a new load established a
+         prefix of 1 and [9,1,1,1] read as a top of the window. */
+      const p9 = T.migrate(null);
+      const e9 = p9.exercises.find((x) => x.id === "press");
+      e9.forks = []; e9.std = null; e9.own = false; e9.reclaim = null; e9.ladder = null;
+      e9.w = 260; e9.sets = 4; e9.hi = 9; e9.last = [9, 9, 8, 8]; e9.inc = 5;
+      p9.feed = [{ d: "2026-08-07", t: "VOLUME +1 — via " + e9.n, how: "the approved push" }];
+      p9.sessionLog["2026-07-20"] = { d: "2026-07-20", entries: [{ id: "press", w: 260, reps: [9] }] };
+      ok(T.progressionSetCount(e9, p9) === 4,
+        "FIX-3 §1 (cowork's own spec error) — THE COMPLETENESS EXEMPTION IS COUNTED, NOT ASSUMED. FIX-2 said a short line establishes if 'a volume receipt is dated after it' — which exempts ANY short line, however short. A [9]-only entry at a new load, with one push happening to follow it, established a prefix of 1. The rule is now arithmetic: setsAtTime(d) = ex.sets minus the volume deltas filed after d, and a line establishes only if it is complete AT ITS OWN TIME. One set is not three (observed prefix " + T.progressionSetCount(e9, p9) + ", setsAtTime(07-20) = 4 - 1 = 3)");
+      ok(T.atTopOfWindow([9, 1, 1, 1], e9, p9) === false,
+        "FIX-3 §1 — so [9,1,1,1] is NOT a top of the window: three of its four sets are collapses, and on 89fc13c the loose exemption judged it on the opener alone");
+      /* and the walk agrees: no sighting banked, no PROVISIONAL receipt filed */
+      const rP = T.completeSession(clP(p9), "2026-08-12", [{ id: "press", w: 260, tgt: [9, 9, 8, 8], reps: [9, 1, 1, 1], rir: 2, rirSets: [2, null, null, 0] }], { clean: true, last: { h: 8 }, mean3: 8 }, { pg: 52 });
+      const sP = rP.s || rP;
+      const eP = sP.exercises.find((x) => x.id === "press");
+      ok((eP.topRun || 0) === 0 && !(sP.feed || []).some((f) => f && /TOP OF WINDOW, PROVISIONAL$/.test(String(f.t || ""))),
+        "FIX-3 §1 — and the WALK agrees: no sighting is banked and no PROVISIONAL receipt is filed off a line that collapsed on three of its four sets (observed run " + JP(eP.topRun || 0) + ")");
+      /* the CONTROL, and the shape T20 actually holds: complete AT ITS OWN TIME establishes */
+      const c9 = T.migrate(null);
+      const ec9 = c9.exercises.find((x) => x.id === "press");
+      ec9.forks = []; ec9.std = null; ec9.own = false; ec9.reclaim = null; ec9.ladder = null;
+      ec9.w = 250; ec9.sets = 4; ec9.hi = 9; ec9.last = [9, 9, 8, 8]; ec9.inc = 5;
+      c9.feed = [{ d: "2026-08-07", t: "VOLUME +1 — via " + ec9.n, how: "the approved push" }];
+      c9.sessionLog["2026-08-03"] = { d: "2026-08-03", entries: [{ id: "press", w: 250, reps: [9, 0, 0] }] };
+      ok(T.progressionSetCount(ec9, c9) === 3,
+        "FIX-3 §1 — the CONTROL: a [9,0,0] line dated BEFORE the push is three sets long, and the lift ran three sets then, so it establishes a prefix of 3 exactly as T20 requires. The rule turns on the count the lift CARRIED at the time, never on the reps delivered — a delivered zero is still a set that was part of the test (observed " + T.progressionSetCount(ec9, c9) + ")");
+      /* a MINUS receipt moves the count the other way, and both spellings are on file:
+         the agent lane writes U+2212, the analyst lane interpolates an ASCII hyphen */
+      const m9 = T.migrate(null);
+      const em9 = m9.exercises.find((x) => x.id === "press");
+      em9.forks = []; em9.std = null; em9.own = false; em9.reclaim = null; em9.ladder = null;
+      em9.w = 250; em9.sets = 2; em9.hi = 9; em9.last = [9, 9]; em9.inc = 5;
+      m9.feed = [{ d: "2026-08-07", t: "VOLUME −1 — CHEST via " + em9.n + " (now 2 sets)", how: "the approved cut" }];
+      m9.sessionLog["2026-08-03"] = { d: "2026-08-03", entries: [{ id: "press", w: 250, reps: [9, 9, 8] }] };
+      ok(T.progressionSetCount(em9, m9) === 2,
+        "FIX-3 §1 — and a VOLUME MINUS receipt counts the other way: the lift ran THREE sets on 08-03 and a set was removed after, so setsAtTime(08-03) = 2 + 1 = 3, the three-set line establishes, and the prefix is capped at the two sets the lift runs today. Both minus spellings are on file — the agent lane writes U+2212 and the analyst lane interpolates an ASCII hyphen — so the count reads either (observed " + T.progressionSetCount(em9, m9) + ")");
+    });
+
     /* ---- A9 — the curl restatement is tied to the current load ---- */
     withClock(RULED, () => {
       const race = clP(rawP1);

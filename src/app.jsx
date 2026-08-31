@@ -1353,10 +1353,42 @@ function progressionSetCount(ex, s, through) {
     while (i0 > 0 && String(mine9[i0 - 1][1].w != null ? mine9[i0 - 1][1].w : mine9[i0 - 1][1].wKey) === key9) i0--;
     const tenure9 = mine9.slice(i0);                       /* the contiguous run at the current load */
     if (!tenure9.length) return ex.sets;
-    const grewAfter9 = (d9) => (s.feed || []).some((f9) => f9 && typeof f9.t === "string" && f9.t.indexOf("VOLUME ") === 0
-      && String(f9.t).indexOf("via " + ex.n) > -1 && String(f9.d || "") > String(d9));
+    /* FIX-3 §1 — AND "COMPLETE" MEANS COMPLETE AT ITS OWN TIME. FIX-2 exempted a short line
+       whenever any volume receipt was dated after it, which exempts ANY short line however
+       short: a bare [9] opener at a new load, with one push happening to follow it, established
+       a prefix of 1 and [9,1,1,1] read as a top of the window. The set count the lift carried on
+       a past day is not a guess — it is ex.sets walked back through the volume receipts filed
+       since. So: setsAtTime(d) = ex.sets minus the deltas dated after d, and an entry establishes
+       iff it carries at least that many reps. T20 is unchanged (250's first line is three long
+       and one push followed it, so setsAtTime is 3 and 3 >= 3), and a delivered ZERO still
+       counts toward the length — it was a set that was part of the test, which is the same
+       ruling A8 makes about the pad.
+       BOTH MINUS SPELLINGS ARE ON FILE: the agent lane writes U+2212 ("VOLUME −1") and the
+       analyst lane interpolates a negative number ("VOLUME -1"), so the sign is read from
+       either. A decline ("VOLUME PASSED") carries no "via" and no sign, and is not a move. */
+    const volNames9 = new Set([String(ex.n || "")]);
+    for (const f9 of ((ex.forks) || [])) if (f9 && f9.prevN) volNames9.add(String(f9.prevN));
+    for (const r9 of ((ex.renames) || [])) if (r9 && r9.from) volNames9.add(String(r9.from));
+    const volDeltas9 = [];
+    for (const f9 of ((s && s.feed) || [])) {
+      if (!f9 || typeof f9.t !== "string" || f9.t.indexOf("VOLUME ") !== 0) continue;
+      let named9 = false;
+      for (const n9 of volNames9) if (n9 && f9.t.indexOf("via " + n9) > -1) named9 = true;
+      if (!named9) continue;
+      const body9 = f9.t.slice(7).trim();
+      const sign9 = body9.charAt(0) === "+" ? 1 : (body9.charAt(0) === "-" || body9.charAt(0) === "\u2212") ? -1 : 0;
+      if (!sign9) continue;
+      const mag9 = parseInt(body9.slice(1), 10);
+      if (!isFinite(mag9) || mag9 <= 0) continue;
+      volDeltas9.push([String(f9.d || ""), sign9 * mag9]);
+    }
+    const setsAtTime9 = (d9) => {
+      let n9 = ex.sets;
+      for (const [fd9, dv9] of volDeltas9) if (fd9 > String(d9)) n9 -= dv9;
+      return Math.max(1, n9);
+    };
     for (const [d9, en9] of tenure9) {
-      if (en9.reps.length >= ex.sets || grewAfter9(d9)) return Math.min(ex.sets, en9.reps.length);
+      if (en9.reps.length >= setsAtTime9(d9)) return Math.min(ex.sets, en9.reps.length);
     }
   } catch (e) {}
   return ex.sets;
