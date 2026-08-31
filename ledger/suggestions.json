@@ -1,46 +1,46 @@
 {
-  "gen": "2026-08-30T09:06:24.318Z",
+  "gen": "2026-08-31T09:06:20.918Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
       "sid": "sug_2026-08-23_morningread",
       "rank": 1,
-      "title": "Weigh in tomorrow morning — nine days carried, and the fat-or-water verdict dies Tuesday",
+      "title": "Last call: step on the scale tomorrow morning — the fat-or-water verdict dies with it",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "A morning weight — after the bathroom, before food — is comparable day to day because normal water swings run a pound or two on their own (sodium, carbs and creatine move scale weight, not fat; DASH-Sodium/Juraschek 2020 family). That consistency is what lets a single read re-anchor a damped trend.",
-        "data": "Last read 8/21 at 162.4. The trend has been carried at 162.9 for nine days, and your app's own gap row prices your rate anywhere from standing still to about 0.75 lb/wk of loss — a range that includes zero.",
-        "relationship": "One read collapses that range back to a number, grades the fat-or-water verdict before it files unanswered on Tuesday, and — with a meal log beside it — hands the maintenance fit its first matched day in ten. No other single entry does that much."
+        "science": "Scale weight is noisy day to day — water, sodium and glycogen swing it without any fat change (Powers 2003) — which is exactly why one morning read against a carried trend is enough: a single number grades a two-week question that no amount of waiting can.",
+        "data": "Last read 8/21 at 162.4; trend carried at 162.9 for ten days; your measured rate currently reads anywhere from standing still to ~0.74 lb/wk — an interval your own app now prints too.",
+        "relationship": "One read collapses that interval and grades the late-August drop: mid-162s means fat, confirmed; low 163s means water giveback, on script; above 163.5 means I over-read it. Tomorrow is the deadline I set — after that the verdict files unanswered."
       },
-      "predict": "Mid-162s: the drop was fat, and low-162s comes into play. Low 163s: the water giveback ran bigger than the tape caught — still on script. Above 163.5: I over-read it and will say so. No read by Tuesday: the verdict files void — unanswered, not wrong.",
+      "predict": "A read tomorrow lands mid-162s (162.2–163.1) and the verdict files as fat. If the morning passes blank, the verdict files unanswered tomorrow night — no penalty, but the claim dies untested. If it lands above 163.5, I over-read the whoosh and will say so in the next brief.",
       "confidence": "medium",
       "gate": "approve"
     },
     {
       "sid": "sug_2026-08-28_trainingweek",
       "rank": 2,
-      "title": "Put the week on paper — sessions if any happened, or one line: 'rest week'",
+      "title": "Four days left in the free layoff — log sessions if any happened, or write \"rest week\" and make it a planned deload",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Layoffs up to about two weeks cost a trained lifter essentially nothing, and what is lost returns quickly (Bosquet 2013; Ogasawara 2013). Your cheap window runs to about Friday.",
-        "data": "Last session 8/21 — day nine with nothing on the sheet, and four fresh baselines plus the hip-thrust target still waiting for their first occasion.",
-        "relationship": "One line turns an unreadable hole into a planned deload and sets the comeback session up to grade as baselines, not declines — openers at 1–2 reps in reserve, the rule that released the last two holds."
+        "science": "Trained lifters give back essentially nothing in the first ~2 weeks away, and what little goes returns fast (Mujika & Padilla 2000, detraining review). Past that window, real strength and size start to go.",
+        "data": "Last logged session 8/21 — hack squat 200 × 8,7,8 and the hip thrust machine's first outing. Today is day ten. The window closes about Friday.",
+        "relationship": "A one-line entry decides which story this is: a planned deload inside the free window, or an unplanned slide past it. Either way the comeback opens at 1–2 reps in reserve against your 8/21 baselines — declines assumed nowhere."
       },
-      "predict": "With the line written, the comeback session reads clean against fresh baselines. Still blank by Friday: the free window closes and the next brief becomes a comeback plan.",
+      "predict": "A session or a rest-week line lands by Friday and the layoff files as cheap, comeback starting from your existing baselines. If the file stays dark past Friday, the next briefs start pricing real strength cost — and next weekend's brief becomes a comeback plan, as promised.",
       "confidence": "medium",
       "gate": "approve"
     },
     {
       "sid": "sug_2026-08-30_foodforward",
       "rank": 3,
-      "title": "Restart the food log today — forward only, don't reconstruct the nine blank days",
+      "title": "Log today's food — forward only, no reconstructing last week",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Self-monitoring is the strongest single predictor of results on a cut — when a rate stalls, adherence explains it far more often than metabolism (Alhassan 2008). Meals reconstructed from a week-old memory are guesswork, and bad entries are worse than blanks.",
-        "data": "Last meal on paper is 8/20 — 2,700 kcal, 180 g protein. The 8/21–8/22 back-fill window expired today with both days still blank, and the app's maintenance estimate has already slid on the empty stretch.",
-        "relationship": "The maintenance math runs on matched days — a meal log and a weigh-in together. Every clean day from today forward rebuilds it; the old blanks can stay blank."
+        "science": "Food recalled days later runs badly under-reported — it's the norm, not the exception (Lichtman 1992) — and adherence gaps, not metabolism, explain most stalls (Alhassan 2008). Fresh entries are trustworthy; reconstructed ones aren't.",
+        "data": "No food logged since 8/20 — eleven days. On Sunday your app re-checked its maintenance estimate and wrote the same number it had Friday: nothing new to chew on.",
+        "relationship": "The maintenance math behind your calorie band only learns from matched days — food beside a morning weight. Every fresh logged day feeds it; guessed back-fill poisons it. The band stays the app's call; the job here is just feeding it true days."
       },
-      "predict": "Two or three matched days and the maintenance estimate stops sliding and re-prices on real food. Still dark: it keeps drifting, and I keep reading every move in it as an artifact of the empty window, not news about your body.",
+      "predict": "The first matched day lands and the maintenance estimate starts moving again within a couple of updates. If matched days return and it stays frozen anyway, my read of how it learns is wrong and I'll say so. If no food lands this week, this card rides until it does.",
       "confidence": "medium",
       "gate": "approve"
     }

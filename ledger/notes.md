@@ -510,3 +510,20 @@
 **Worth remembering for next time.** (1) The state probe ran clean via a temp node script (`%TEMP%\probe35*.js`) — `dailyLogs`/`sessionLog` are date-keyed OBJECTS, not arrays, and `feed` is newest-first, so tail-slicing it shows July; read it from the head. No git-show diff was needed tonight: with zero commits since the last run, the commit log alone proves nothing moved — cheapest possible delta check, use it first. (2) The scheduled-task wrapper now points at `prepledger-nightly` and the recipe's hardcoded `prepledger-dev` paths were substituted throughout, second run in a row — recipe text itself still says dev, keep substituting until Joe edits it. (3) W-9 rule refinement filed in caselaw: no carrier, no grade — extends past 9/05 if the transport stays dark.
 
 **Next run, in order:** the read vs 162.9 ([[W-11]] grades on it or files VOID at 9/01 — tomorrow night is the decision) · any food dated 8/30+ (foodforward's matched-days predict) · session or rest-week line (comeback sheet = baselines, 1–2 RIR openers) · did ANY auto-sync commit land (transport watch; W-9 extends if dark through ~9/05) · next `learned.tdee` stamp if syncing resumes (slide predicted, artifact handling) · reconcile trend vs his before quoting ([[CL-27]], standing).
+
+
+---
+
+## Run 36 — 2026-08-31 (Mon pre-dawn; gap day 10; fourth consecutive firing)
+
+**The night in one line.** The transport came back — one auto-sync dated 8/30, machine bookkeeping only, zero athlete inputs — so tonight's brief leads with the one new fact ("the connection works; the scale and food log are waiting on you") and last-calls the verdict clock that dies tomorrow.
+
+**What the brief leads with.** Pipe-works told plainly, no plumbing words. Trend quoted at his 162.9, mine 163.05 named as agreeing within a couple tenths ([[CL-27]] done). The clocks by day: verdict dies tomorrow (last call), cheap layoff closes about Friday, comeback-plan promise restated for next weekend. The frozen maintenance estimate (2,429, re-stamped Sunday unchanged) used as the plain receipt for what blank days cost — observation only, band named as the app's call, no number proposed. "Resting, not quitting" tone held a fourth night.
+
+**Cards: three, all carried sids.** morningread fifth issue (last call in the title), trainingweek fourth issue (four days left), foodforward second issue (the flat stamp is now its data line). All note-kind, no apply buttons, blank branches in every predict.
+
+**Graded: two watches, one admitted miss.** Transport watch resolved (carrier live, taps still frozen — W-9's strongest data point yet, deadline ~9/05 still governs). The run-34 tdee-slide prediction was WRONG — stamp landed flat at 2,429, no further slide, n held 36 — graded in prose, tally untouched (59/28/12/9), and the lesson filed: don't predict a mechanism (window slide) I haven't actually verified; ceiling handling survives, the slide claim doesn't. Nothing hardened into case-law tonight — a missed watch can't harden anything.
+
+**Worth remembering for next time.** (1) Cheapest delta check when a commit HAS landed: parse old (git show) vs new state.json in node and diff top-level keys by JSON.stringify — five changed keys found instantly; raw git diff is useless (state.json is one giant line, 355K chars). (2) `learned.tdee` can re-stamp an unchanged value during darkness — a new stamp is not evidence of new learning; check the value, not the date. (3) Engine's regime line ("water masking, whoosh pending") is still running on pre-gap flags eleven days stale — don't let it leak into the brief while the file is dark. (4) Recipe still hardcodes prepledger-dev; substituted nightly, third run in a row.
+
+**Next run, in order:** read vs 162.9 ([[W-11]] — grades or files VOID, this is the decision night) · food 8/31+ (foodforward matched-days) · session or rest-week line (Friday close) · tdee stamp value-vs-date if a sync lands · `suggestionLog` past 8/14 (W-9, carrier proven) · reconcile trend before quoting ([[CL-27]]).
