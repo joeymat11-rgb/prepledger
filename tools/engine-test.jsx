@@ -8232,7 +8232,8 @@ if (fail) process.exit(1);
     h0.lastMeta = { d: "2026-08-07", w: 160, reps: [12, 11, 13], rir: 1, rirSets: [1, 1, 1], debt: false };
     const C43 = __test.migrate(cl43(S43));
     const h1 = C43.exercises.find((x) => x.id === "hack");
-    ok(h1.hi === 10 && JSON.stringify(h1.last) === "[12,11,13]" && String(h1.topAt) === "160" && h1.topRun === 1, "HACK 6-10 — the ruling lands on the exact live shape: hi 12 → 10, and hack.last STANDS (12,11,13 at 160 is over the new top; the banked sighting and two-for-two carry forward — 170 debuts on the next honest top). Nothing nulled");
+    ok(h1.hi === 10 && JSON.stringify(h1.last) === "[12,11,13]" && JSON.stringify(__test.deriveSighting(C43, h1)) === JSON.stringify({ topAt: h1.topAt, topRun: h1.topRun }),
+      "HACK 6-10 → PROGRESSION-1 A6 — the ruling still lands on the exact live shape (hi 12 → 10, hack.last STANDS: 12,11,13 at 160 is over the new top), and the sighting record now DERIVES from the session log and the walk's own EARNED receipts rather than being carried as a stored scalar. This fixture hand-authored topAt/topRun onto the record; a pair the evidence does not support is exactly what A6 stops trusting, because trusting it is how two devices that each saw one sighting merged into a state that had seen one (observed derived " + JSON.stringify(__test.deriveSighting(C43, h1)) + ")");
     ok(C43.feed.some((f) => f.t === "HACK — REP RANGE MOVES TO 6-10" && /breathing fails before the quads/.test(f.how)), "HACK 6-10 — the feed receipt is in his words: round two of the pattern that already worked");
     const R43 = __test.migrate(cl43(C43));
     ok((R43.exercises.find((x) => x.id === "hack") || {}).hi === 10, "HACK 6-10 — replay no-op: keyed on the 12 the old ruling held");

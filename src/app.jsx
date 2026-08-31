@@ -1007,6 +1007,19 @@ function maxedOut(ex) {
    stamp the set-count change carries. Nothing else in the app may print this line, and it
    speaks only while the card and the last delivered line still disagree. */
 const SET_REALLOCATIONS = [{ id: "calves", setsAt: "2026-08-12T00:00:00.000Z", line: "3 sets today — one calf set was deliberately reallocated to hip thrust in the approved split." }];
+/* A8 (Sol, PROGRESSION-1 FIX-2) — ZERO IS A DELIVERED VALUE. completeSession writes
+   Number(x) || 0, so a set he could not start is RECORDED as 0 — real history, not a gap. Every
+   pad read it through `||`, which is false for 0, so a line ending in a delivered zero padded
+   the remaining slots from hi−2 as if nothing had been delivered at all: [8,0] on a 4-set lift
+   padded to [8,0,5,4] territory instead of continuing the line he actually ran. The pad now
+   walks back to the last POSITIVE delivered value and steps down from there, falling to hi−2
+   only when no positive value exists anywhere in the line. A delivered 0 stays 0 in the base —
+   it is what happened — and the target for that slot floors at 1, which asks him to attempt the
+   set rather than prescribing a zero. */
+function _padFrom9(arr, hi) {
+  for (let i = arr.length - 1; i >= 0; i--) { const v = arr[i]; if (typeof v === "number" && v > 0) return v; }
+  return hi - 2;
+}
 function targetsFor(ex, s) {
   /* OWNER'S CALL rider — std/reclaim are AUTHORED target arrays sized for the set count
      they were written at. A set-count change must not silently shrink or crash the
@@ -1014,12 +1027,12 @@ function targetsFor(ex, s) {
      anchor path uses below), truncate when sets fall. The own-hold survives — the
      authored slots are untouched; the added slot banks whatever it gives. Identity on
      every current lift (each std/reclaim already matches its ex.sets), asserted. */
-  const fitN = (arr) => { const t9 = arr.slice(0, ex.sets); while (t9.length < ex.sets) t9.push(Math.max(1, (t9[t9.length - 1] || ex.hi - 2) - 1)); return t9; };
+  const fitN = (arr) => { const t9 = arr.slice(0, ex.sets); while (t9.length < ex.sets) t9.push(Math.max(1, _padFrom9(t9, ex.hi) - 1)); return t9; };
   if (ex.std) return fitN(ex.std);
   if (ex.reclaim) return fitN(ex.reclaim);
   if (!ex.last) return (ex.first || Array(ex.sets).fill(Math.max(1, ex.hi - 2))).slice();
   const t = progressAnchor(ex, s).slice(0, ex.sets);
-  while (t.length < ex.sets) t.push(Math.max(1, (t[t.length - 1] || ex.hi - 2) - 1));
+  while (t.length < ex.sets) t.push(Math.max(1, _padFrom9(t, ex.hi) - 1));
   const { add } = progressStep(ex, s);
   const cap9 = maxedOut(ex) ? Infinity : ex.hi;   /* MAXED-LADDER — reps are the ladder past the top of a maxed stack */
   /* Q7a (PROGRESSION-1, order G): climb TOWARD the shape the earn accepts — atTopOfWindow's
@@ -1317,12 +1330,33 @@ function progressionSetCount(ex, s, through) {
     const fks9 = resetForksOf(s, ex.id);
     const ref9 = through || isoOf(todayStart());
     const dates9 = Object.keys((s && s.sessionLog) || {}).filter((d) => d <= ref9).sort();
+    /* A5 (Sol, FIX-2) — THE PREFIX COMES FROM THE CURRENT TENURE, NOT THE EARLIEST SIGHTING OF
+       THE LOAD. Taking the first-ever entry at this load reached back past an intervening
+       deload: press ran 250 at three sets, grew to four, dropped to 245 and came back to 250 —
+       and the prefix was still 3, so the climb went to the opener and a genuine four-set top
+       could not read as one. The tenure is the maximal contiguous suffix of THIS lift's entries
+       whose load key is the current load; an off-load session of this lift ends the previous
+       tenure (other lifts are irrelevant).
+       AND THE ESTABLISHING LINE MUST BE COMPLETE. A partial entry — one set logged of four —
+       would otherwise establish a prefix of 1, and [9,1,1,1] would read as a top of window. An
+       entry establishes only if it carries at least ex.sets reps, OR a volume receipt for this
+       lift is dated after it (proof the set count grew later — T20's own case: 250's first line
+       precedes the push). Otherwise take the next tenure entry that does; if none does, every
+       set is progression-bearing, which is the conservative answer. */
+    const mine9 = [];
     for (const d of dates9) {
       if (fks9.length && !sameEra(fks9, d, ref9)) continue;
       const en9 = (((s.sessionLog[d] || {}).entries) || []).find((e) => e && e.id === ex.id && Array.isArray(e.reps) && e.reps.length);
-      if (!en9) continue;
-      if (String(en9.w != null ? en9.w : en9.wKey) !== key9) continue;
-      return Math.min(ex.sets, en9.reps.length);
+      if (en9) mine9.push([d, en9]);
+    }
+    let i0 = mine9.length;
+    while (i0 > 0 && String(mine9[i0 - 1][1].w != null ? mine9[i0 - 1][1].w : mine9[i0 - 1][1].wKey) === key9) i0--;
+    const tenure9 = mine9.slice(i0);                       /* the contiguous run at the current load */
+    if (!tenure9.length) return ex.sets;
+    const grewAfter9 = (d9) => (s.feed || []).some((f9) => f9 && typeof f9.t === "string" && f9.t.indexOf("VOLUME ") === 0
+      && String(f9.t).indexOf("via " + ex.n) > -1 && String(f9.d || "") > String(d9));
+    for (const [d9, en9] of tenure9) {
+      if (en9.reps.length >= ex.sets || grewAfter9(d9)) return Math.min(ex.sets, en9.reps.length);
     }
   } catch (e) {}
   return ex.sets;
@@ -1391,7 +1425,7 @@ function genSession(s, iso, slp) {
          MORE at a heavier load (press [8,9,8,4] -> [7,8,7,6]). The floor of 6 is deleted;
          every target still floors at 1. */
       const base9 = e.last.slice(0, e.sets);
-      while (base9.length < e.sets) base9.push(Math.max(1, (base9[base9.length - 1] || e.hi - 2) - 1));
+      while (base9.length < e.sets) base9.push(Math.max(1, _padFrom9(base9, e.hi) - 1));
       const vecOld9 = Array.isArray(e.wSets) ? e.wSets : null;
       const vecNew9 = Array.isArray(q.newWSets) ? q.newWSets : null;
       const d9 = debutDebit(e.w, w);
@@ -2059,19 +2093,131 @@ function beatsNoise(s, exId, reps, prev) {
    KNOWN NARROWING, on the record: the fold reads en.rir for the hot-opener
    arm and the LIVE holdFlag — a holdFlag that differed mid-era on one device
    is not reconstructed. */
+/* A6 (Sol's High row, owner-ruled — PROGRESSION-1 FIX-2) — THE SIGHTING RECORD BECOMES A
+   DERIVATION. topAt/topRun were stored scalars on the exercise record, and the per-lift merge
+   picks ONE whole record: two devices that each banked "sighting 1" for the same load merged to
+   a state that had seen one sighting, not two, so the earn the serial walk fires never fired.
+   Sol's witness, reproduced byte-for-byte: forkless press, A tops [9,9]@250 on 8/20, B tops
+   independently on 8/22; serial earns 255 and queues the debut, both merge orders keep 250/1
+   with no earn. The SCALE round's own answer applies — a value that summarises a store is the
+   store's replay, not the last writer's word — and the stores it summarises (sessionLog and the
+   walk's own EARNED receipts) already converge. The counter now derives from them at every
+   reconcile exit. Nothing here re-decides beatsNoise, the hold or the already-guard: those were
+   the walk's decisions and they are read back from the receipts the walk filed.
+   Cowork's prototype of this exact rule matched the stored record on every scenario state of
+   the round and on 14 of his 15 live lifts; the 15th (abs 100/1 stored vs 100/2 derived) is
+   legacy-engine drift, not derivation error — the tip walk replaying abs's own shape banks 1
+   then earns, and the derivation matches the tip walk. */
+function deriveSighting(s, ex) {
+  try {
+    if (!ex || typeof ex.w !== "number" || !isFinite(ex.w)) return { topAt: null, topRun: 0 };
+    const names9 = new Set([String(ex.n || "").toUpperCase()]);
+    for (const f9 of ((ex.forks) || [])) if (f9 && f9.prevN) names9.add(String(f9.prevN).toUpperCase());
+    const tech9 = resetForksOf(s, ex.id).slice().sort((a9, b9) => (a9.from < b9.from ? -1 : 1));
+    const eraFrom9 = tech9.length ? tech9[tech9.length - 1].from : null;
+    /* the walk's own receipts are the record of what it decided — an EARNED line SPENDS the
+       sighting record, so the derivation starts counting after the last one */
+    let lastEarn9 = null;
+    for (const f9 of ((s && s.feed) || [])) {
+      if (!f9 || typeof f9.t !== "string" || !/ EARNED$/.test(f9.t)) continue;
+      let hit9 = false;
+      for (const n9 of names9) if (f9.t.indexOf(n9) === 0) hit9 = true;
+      if (hit9 && f9.d && (!lastEarn9 || String(f9.d) > String(lastEarn9))) lastEarn9 = String(f9.d);
+    }
+    const start9 = [eraFrom9, lastEarn9].filter((x9) => x9 != null).sort().pop() || null;
+    let topAt9 = null, topRun9 = 0, firstInEra9 = eraFrom9 != null;
+    for (const d9 of Object.keys((s && s.sessionLog) || {}).sort()) {
+      const en9 = (((s.sessionLog[d9] || {}).entries) || []).find((e9) => e9 && e9.id === ex.id && Array.isArray(e9.reps) && e9.reps.length);
+      if (!en9) continue;
+      if (start9 != null && d9 < start9) continue;
+      if (eraFrom9 != null && firstInEra9) { firstInEra9 = false; continue; }   /* FIX 3c — the first era session banks nothing */
+      if (lastEarn9 != null && d9 === lastEarn9) { topAt9 = null; topRun9 = 0; continue; }   /* the earn day ends spent */
+      const w9 = typeof en9.w === "number" ? en9.w : ex.w;
+      const r9 = en9.reps.map((x9) => Number(x9) || 0);
+      const exR9 = { ...ex, w: w9, sets: r9.length || ex.sets };
+      if (atTopOfWindow(r9, exR9, s, d9)) { topRun9 = String(topAt9) === String(w9) ? topRun9 + 1 : 1; topAt9 = w9; }
+      else if (String(topAt9) === String(w9)) topRun9 = 0;   /* fell off the top at this load */
+    }
+    if (topRun9 === 0 || String(topAt9) !== String(ex.w)) return { topAt: null, topRun: 0 };
+    return { topAt: topAt9, topRun: topRun9 };
+  } catch (e) { return { topAt: (ex && ex.topAt) != null ? ex.topAt : null, topRun: (ex && ex.topRun) || 0 }; }
+}
+/* THE JOINT-SIGHTING MINT (A6, merge exit only). Deriving the counter makes the merged state
+   AGREE that two sightings happened — but the earn itself is a decision the walk makes when it
+   sees the pair, and neither device ever saw it. Sol's witness: A tops on 8/20, B tops
+   independently on 8/22, each files "TOP OF WINDOW, PROVISIONAL" and banks sighting 1; serial
+   earns 255 and queues the debut. The merge now carries run 2 and no earn — right about the
+   evidence, one session late on the decision.
+   So the merge replays the walk, but ONLY under the signature that says exactly this happened:
+   two walks that each saw a first sighting and neither saw the pair. Both days must carry the
+   provisional receipt, the later day must carry no EARNED and no HOT line, no debut may already
+   be queued for the next load, and the opener must not have been a grind. Legacy history never
+   carries paired PROVISIONAL receipts, so a boot over old data can never mint retroactively —
+   and the mint runs at the merge exit only, never at boot. Idempotent by construction: once the
+   EARNED receipt exists the derivation reads it and the signature no longer matches. */
+function _mintJointEarn(s, ex) {
+  try {
+    if (!ex || typeof ex.w !== "number" || (ex.topRun || 0) < 2) return false;
+    if (String(ex.topAt) !== String(ex.w)) return false;
+    const upNext9 = nextLoad(ex);
+    if (upNext9 == null) return false;
+    if ((s.queue || []).some((q9) => q9 && q9.exId === ex.id && q9.kind === "debut" && !q9.done)) return false;
+    const nm9 = String(ex.n || "").toUpperCase();
+    const tops9 = [];
+    for (const d9 of Object.keys(s.sessionLog || {}).sort()) {
+      const en9 = (((s.sessionLog[d9] || {}).entries) || []).find((e9) => e9 && e9.id === ex.id && Array.isArray(e9.reps) && e9.reps.length);
+      if (!en9) continue;
+      const w9 = typeof en9.w === "number" ? en9.w : ex.w;
+      if (String(w9) !== String(ex.w)) continue;
+      if (atTopOfWindow(en9.reps.map((x9) => Number(x9) || 0), { ...ex, w: w9, sets: en9.reps.length || ex.sets }, s, d9)) tops9.push([d9, en9]);
+    }
+    if (tops9.length < 2) return false;
+    const [dPrev9, enPrev9] = tops9[tops9.length - 2], [dK9, enK9] = tops9[tops9.length - 1];
+    const lineOn9 = (d9, re9) => (s.feed || []).some((f9) => f9 && String(f9.d) === String(d9) && typeof f9.t === "string" && f9.t.indexOf(nm9) === 0 && re9.test(f9.t));
+    const prov9 = /(TOP OF WINDOW, PROVISIONAL|NO NEXT LOAD ON FILE)$/;
+    if (!lineOn9(dPrev9, prov9) || !lineOn9(dK9, prov9)) return false;          /* both walks saw a first sighting */
+    if (lineOn9(dK9, / EARNED$/) || lineOn9(dK9, /BUT HOT$/)) return false;      /* neither already decided */
+    if (enK9.rir === 0) return false;                                            /* a grind is not an earn */
+    const exR9 = { ...ex, topAt: ex.w, topRun: tops9.length - 1, sets: enK9.reps.length || ex.sets };
+    const lines9 = [];
+    earnWalk(s, exR9, enK9, enK9.reps.map((x9) => Number(x9) || 0), { w: enPrev9.w, reps: enPrev9.reps }, (t9, how9) => lines9.push({ t: t9, how: how9 }));
+    for (const l9 of lines9) {
+      const op9 = "replay:" + dK9 + ":" + ex.id + ":" + String(l9.t).slice(0, 32);
+      if ((s.feed || []).some((f9) => f9 && (f9.op === op9 || f9.t === l9.t))) continue;
+      s.feed.unshift({ d: dK9, t: l9.t, how: l9.how, op: op9 });
+    }
+    return lines9.length > 0;
+  } catch (e) { return false; }
+}
+/* the stored pair is REPLACED by the derived pair at every reconcile exit — boot and merge — so
+   both replicas compute the same answer from the same evidence, whichever order they synced in */
+function reconcileSightings(s, opts) {
+  try {
+    for (const ex of ((s && s.exercises) || [])) {
+      if (!ex || !exActive(s, ex.id)) continue;
+      const d9 = deriveSighting(s, ex);
+      if (d9.topAt == null) { if (ex.topAt != null) ex.topAt = null; if ((ex.topRun || 0) !== 0) ex.topRun = 0; }
+      else { ex.topAt = d9.topAt; ex.topRun = d9.topRun; }
+      if (opts && opts.mint && _mintJointEarn(s, ex)) {
+        const d2 = deriveSighting(s, ex);                    /* the earn spends the record — re-derive */
+        if (d2.topAt == null) { ex.topAt = null; ex.topRun = 0; } else { ex.topAt = d2.topAt; ex.topRun = d2.topRun; }
+      }
+    }
+  } catch (e) {}
+  return s;
+}
 function reconcileEraTransitions(s) {
   try {
     for (const ex of ((s && s.exercises) || [])) {
       if (!ex || !Array.isArray(ex.forks) || !ex.forks.length) continue;
-      /* C1/Q2 — the clear-and-replay of the sighting record is a RESET behaviour, so it
-         reads the TECHNIQUE set. Every seam it used to fire on was a context seam (split),
-         and a context seam no longer wipes a sighting — that is the defect this round
-         closes. No technique fork on file carries split, so this block is dormant today
-         and stays the mechanism for a future technique writer that marks a hard baseline
-         reset; every existing technique fork behaves exactly as before (T6). */
-      const rfk9 = resetForksOf(s, ex.id);
-      const lastFk = rfk9.length ? rfk9[rfk9.length - 1] : null;
-      if (!(lastFk && lastFk.split && lastFk.from)) continue;
+      /* A6 (FIX-2) — THE REPLAY ARM IS RETIRED. It cleared and replayed the sighting record
+         off a split seam; this round proved it unreachable (a technique fork never carries
+         split) and then SUPERSEDED it outright — deriveSighting recomputes the record from the
+         session log and the walk's receipts at every exit, for every lift, which is what this
+         arm was reaching for and never generalised to. The adoption-story half of this
+         function below is untouched and stays live. */
+      const lastFk = null;
+      if (!lastFk) continue;
       const days = Object.keys(s.sessionLog || {}).filter((d) => d >= lastFk.from && (((s.sessionLog[d] || {}).entries) || []).some((e) => e && e.id === ex.id)).sort();
       if (days.length < 2) continue;
       ex.topAt = null; ex.topRun = 0;   /* the fold owns the era's sighting record */
@@ -2173,7 +2319,15 @@ function earnWalk(s, ex, en, r, prevMeta, push) {
          The two are different questions and the copy used to conflate them. */
       const openRir9 = en.rir;   /* the OPENER's rating — never the terminal set's */
       if (openRir9 === 0 || ex.holdFlag) {
-        if (!already) push(`${ex.n.toUpperCase()} — TOP OF WINDOW, BUT HOT`, `${r.join(",")} with the opener at RIR 0 — a grind is not an earn; repeat it honest and the load queues itself`);
+        /* Hunt 3 (Grok, executed) — THE LINE MAY ONLY CLAIM WHAT THE RECORD HOLDS. This arm
+           fires for two different reasons — a hot opener, or the governor's hold — and it said
+           "with the opener at RIR 0" for both. Under a hold with no opener rating on file
+           (rirSets [null, null, 2]) that is a claim the record does not support. Say which
+           reason actually fired. */
+        const openKnown9 = openRir9 === 0 || (Array.isArray(en.rirSets) && en.rirSets[0] === 0);
+        if (!already) push(`${ex.n.toUpperCase()} — TOP OF WINDOW, BUT HOT`, openKnown9
+          ? `${r.join(",")} with the opener at RIR 0 — a grind is not an earn; repeat it honest and the load queues itself`
+          : `${r.join(",")} at the top of the window, but the load is held — one honest opener releases it and the load queues itself`);
         /* Q7c, owner ruled YES — a hot OPENER blocks the automatic earn, but if the
            TERMINAL set still reported two or more in reserve at the top of the window, the
            R18d one-sighting offer is still made: the athlete consents by tapping it. The
@@ -2200,7 +2354,14 @@ function earnWalk(s, ex, en, r, prevMeta, push) {
           : `${ex.w}×${r.join(",")} — second session at the top of the window at this load. One is inside your ±${(typicalError(s, ex.id).reps).toFixed(2)}-rep spread; two is not.`;
         s.queue.forEach((x) => { if (x.exId === ex.id && x.state === "PROPOSED" && !x.done) { x.done = true; x.state = "SUPERSEDED"; } });   /* the classic earn outranks any standing offer */
         if (rung2 != null) s.queue.push({ id: `q_${ex.id}_${rung2}_2r`, kind: "debut", exId: ex.id, newW: rung2, done: false, rule: "Rides only on your tap — the single-rung debut queues automatically either way.", t: `${ex.n.toUpperCase()} ${rung2} — TWO-RUNG DEBUT PROPOSED`, state: "PROPOSED", gate: `Terminal set had ${rirT9} in reserve at the top of the window — the one-rung jump underprices what was delivered. Your call: this rides only if you tap it, and the ${upNext} single-rung debut queues either way.` });
-        s.queue.push({ id: `q_${ex.id}_${upNext}`, kind: "debut", exId: ex.id, newW: upNext, t: `${ex.n.toUpperCase()} ${upNext} DEBUT`, state: "DEBUT", gate: `Earned via ${ex.w}×${r.join(",")}`, rule: "Auto-queued — runs when it wins the structural slot", done: false });
+        /* Hunt 4 (Grok, executed) — THE VECTOR ADVANCES WITH THE LOAD. genSession has a
+           per-slot debut arm that reads q.newWSets, and nothing ever wrote it: the curl earned
+           60, the card rendered at 60, and after the debut completed ex.wSets was STILL
+           [55,55,50] — the lift's per-set line frozen a load behind its own working weight. The
+           earn now mints the vector the same way the owner ruled the graduation: uniformly, by
+           the load's own step (55·55·50 + 5 = 60·60·55). A lift with no wSets mints nothing and
+           is byte-identical to today. */
+        s.queue.push({ id: `q_${ex.id}_${upNext}`, kind: "debut", exId: ex.id, newW: upNext, ...(Array.isArray(ex.wSets) && typeof ex.w === "number" && typeof upNext === "number" ? { newWSets: ex.wSets.map((x9) => x9 + (upNext - ex.w)) } : {}), t: `${ex.n.toUpperCase()} ${upNext} DEBUT`, state: "DEBUT", gate: `Earned via ${ex.w}×${r.join(",")}`, rule: "Auto-queued — runs when it wins the structural slot", done: false });
         push(`${ex.n.toUpperCase()} ${upNext} EARNED`, how + (loadRungs(ex) ? " Next rung this machine makes." : " Confirm the rung: does this machine actually make " + upNext + " next? If not, fix the ladder in SETUP (uneven ✎) before the debut."));   /* R18c — the EARNED banner asks for rung confirmation where no ladder is on file */
       } else if (!already) {
         /* R18d AMENDMENT (Joe's ruling, 2026-08-10): at the top of the window with the
@@ -2357,6 +2518,10 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     } else if (typeof en.w === "number" && typeof ex.w === "number" && en.w !== ex.w) {
       const r0 = loadRungs(ex);
       if (r0 && r0.indexOf(en.w) < 0) { ex.steps = [...new Set([...r0, en.w])].sort((a9, b9) => a9 - b9); ex.stepsAt = new Date().toISOString(); }
+      /* Hunt 4 — the vector shifts by the same delta the load moved, whether the load arrived
+         through a queued debut or through the athlete simply logging a different weight. The
+         per-set line is a shape, not a set of independent numbers: it steps uniformly. */
+      if (Array.isArray(ex.wSets) && typeof ex.w === "number") ex.wSets = ex.wSets.map((x9) => x9 + (en.w - ex.w));
       push(`${ex.n.toUpperCase()} — LOGGED AT ${en.w} (plan said ${ex.w})`, "Reality outranks the filed ladder: the lift now lives at " + en.w + (r0 ? ", and the rung joined the ladder" : "") + ".");
       ex.w = en.w; ex.wAt = new Date().toISOString(); ex.topAt = null; ex.topRun = 0;   /* a new load starts its own sighting record; SPLIT: every w-writer stamps */
     }
@@ -10981,7 +11146,15 @@ function patchV60(s) {
     let hits9 = 0;
     for (const e of (s.exercises || [])) {
       if (!e || !Array.isArray(e.forks)) continue;
-      const keep9 = e.forks.filter((f) => !(f && f.split && String(f.from) === "2026-08-17"));
+      /* A3 (Sol) — DELETE BY IDENTITY, NOT BY DATE. A date plus a split marker is not
+         provenance: a fork that merely happens to sit on 2026-08-17 and carry split would be
+         swept with the eleven. No writer can produce that shape today (kind did not exist at
+         v59, and split is written only by the insertion writers — both real states hold 11 of
+         11 insertion seams on that date), so this is doctrine rather than a live defect. The
+         patch now requires the insertion IDENTITY the seams actually carry. */
+      const isSeam9 = (f) => !!(f && f.split && String(f.from) === "2026-08-17"
+        && [...(f.ops || (f.why ? [f.why] : []))].some((o) => / inserted upstream$/.test(String(o))));
+      const keep9 = e.forks.filter((f) => !isSeam9(f));
       if (keep9.length !== e.forks.length) { hits9 += e.forks.length - keep9.length; e.forks = keep9; }
     }
     const n0 = (s.feed || []).length;
@@ -11025,7 +11198,16 @@ function patchV60(s) {
           if (v9) { vec9 = v9; break; }
         }
       }
-      if (vec9 && (vecOf9(cu9.w) || cu9.ladder)) { cu9.w = vec9[0]; cu9.wSets = vec9.slice(); }
+      /* A9 (Sol, live-race relevant) — THE RESTATEMENT MAY NEVER LOWER A LIVE LOAD. Executed
+         on his v59 blob with curl already advanced to a numeric 60: the patch rewrote 60 back
+         to 55 and installed the older string's vector. If he logs a curl at a new load before
+         this deploys, the deploy rolls him back. A restatement is only honest while the record
+         it restates still describes the CURRENT load: either ex.w IS the string vector, or ex.w
+         is numeric and the vector's own opener equals it. The vector must also fit the set
+         count. The ladder goes regardless — the walk owns the graduation now. */
+      const fits9 = !!(vec9 && vec9.length === cu9.sets);
+      const tied9 = !!(vec9 && (vecOf9(cu9.w) || (typeof cu9.w === "number" && vec9[0] === cu9.w)));
+      if (vec9 && fits9 && tied9) { cu9.w = vec9[0]; cu9.wSets = vec9.slice(); }
       if (cu9.ladder) delete cu9.ladder;
     }
     for (const q9 of (s.queue || [])) {
@@ -11433,8 +11615,15 @@ function patchV51(s) {
   /* FIX split-1 (P1-3): the seams go through the ONE implementation.
      R9 fix-2: an INVALID birth fires nothing — no seams, no registry marker,
      no receipts; round 1 fired all eleven unconditionally. */
-  if (flyBorn) applyInsertionSeams(s, "fly", ["pulldown", "rows", "rearDelt", "curl", "tricep", "sulek"], seamFrom);
-  if (htBorn) applyInsertionSeams(s, "hipthrust", ["extension", "ham", "abs", "hanging", "calves"], seamFrom);
+  /* Hunt 1 (Grok) — THE BIRTH CALLERS TAKE THEIR AFFECTED LISTS FROM THE RULED TABLE. These
+     two are birth-gated and their output is dead on arrival — the deriver strips any mint in
+     the same boot, measured — so this is hardening, not a stop-the-line. But a caller carrying
+     the OLD six-lift fly list is a second source of truth about which lifts an insertion
+     touches, and this round made INSERTION_PAIRS the only one. Even the transient mint now
+     obeys it. */
+  const pairsOf9 = (id9) => (INSERTION_PAIRS.find((p9) => p9[0] === id9) || [id9, []])[1];
+  if (flyBorn) applyInsertionSeams(s, "fly", pairsOf9("fly"), seamFrom);
+  if (htBorn) applyInsertionSeams(s, "hipthrust", pairsOf9("hipthrust"), seamFrom);
   /* FIX split-1 (P0-4) — the pending pre-split ORDER-DERIVED offers are swept
      with honest reasons: each proposed set counts through a chooser that
      reasoned about the plan this ruling replaced (7 volume offers on the live
@@ -11887,7 +12076,7 @@ function _settleExit(st) {
     st.plan.setAt = set9;
     st.plan.rev = +st.plan.rev || 0;
   }
-  reconcileTrendChain(st); reconcileReadReceipts(st); reconcileSuggestionEffects(st);
+  reconcileTrendChain(st); reconcileReadReceipts(st); reconcileSuggestionEffects(st); reconcileSightings(st);   /* A6 — the sighting record derives at the BOOT exit */
   if (Array.isArray(st.feed)) st.feed = _feedSorted(st.feed);
   st.suggestionLog = _sugSorted(st.suggestionLog);
   return st;
@@ -14070,6 +14259,7 @@ function mergeState(local, remote) {
      feed line carries d, JS sort is stable so within-day emitted order survives, and the
      order-dependent consumer is the renderer. forecasts joins by date and does not care. */
   reconcileEraTransitions(normalizePlan(out));
+  reconcileSightings(out, { mint: true });   /* A6 — the sighting record derives at the MERGE exit, and the joint-sighting mint fires HERE ONLY (a boot over legacy data can never mint) */
   reconcileReadReceipts(out);          /* SCALE-2 — the read receipts re-derive from the merged reads */
   reconcileSuggestionEffects(out);     /* SCALE-2 — the suggestion effects re-derive from the merged log */
   if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);
@@ -14248,7 +14438,9 @@ __test.signalState = signalState;
 __test.signalReadCopy = signalReadCopy;   // v7.5 — so the suite can prove showRate and currentRate.measured diverge
 __test.dataLossGuard = dataLossGuard;
 __test._isFeedProjection = _isFeedProjection;
-__test.resetForksOf = resetForksOf;   /* PROGRESSION-1 — the TECHNIQUE-only fork set: the pins assert the reset-bearing class directly rather than re-spelling its predicate */   /* v7.55.2 — the guard pin asserts the app's own projection class, not a rig's re-spelling of it */
+__test.resetForksOf = resetForksOf;
+__test.deriveSighting = deriveSighting;
+__test.progressionSetCount = progressionSetCount;   /* A5 — the pins assert the prefix rule directly */   /* A6 — the pins assert the derivation directly */   /* PROGRESSION-1 — the TECHNIQUE-only fork set: the pins assert the reset-bearing class directly rather than re-spelling its predicate */   /* v7.55.2 — the guard pin asserts the app's own projection class, not a rig's re-spelling of it */
 __test._isFeedDerived = _isFeedDerived;   /* v7.55.3 — and the guard's strictly smaller derived class */
 __test.mergeState = mergeState;
 __test.fiveLevers = fiveLevers;
