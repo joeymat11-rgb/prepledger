@@ -2744,6 +2744,209 @@ export function runClosureSF2(T, ok, readFileSync) {
         "FIX-3 §1 — and a VOLUME MINUS receipt counts the other way: the lift ran THREE sets on 08-03 and a set was removed after, so setsAtTime(08-03) = 2 + 1 = 3, the three-set line establishes, and the prefix is capped at the two sets the lift runs today. Both minus spellings are on file — the agent lane writes U+2212 and the analyst lane interpolates an ASCII hyphen — so the count reads either (observed " + T.progressionSetCount(em9, m9) + ")");
     });
 
+
+    /* ---- FIX-4 §1 [P0] — the derivation is bounded by the LOAD TENURE ---- */
+    {
+      const mkT4 = () => {
+        const s9 = T.migrate(null);
+        const ex = s9.exercises.find((x) => x.id === "press");
+        ex.forks = []; ex.std = null; ex.own = false; ex.reclaim = null; ex.ladder = null;
+        ex.w = 250; ex.sets = 2; ex.hi = 9; ex.last = [9, 9]; ex.inc = 5; ex.topAt = null; ex.topRun = 0;
+        ex.lastMeta = { d: "2026-08-18", w: 250, reps: [9, 9] };
+        s9.queue = []; s9.feed = [];
+        return s9;
+      };
+      const runT4 = (s9, d9, w9, reps9) => T.completeSession(s9, d9, [{ id: "press", w: w9, tgt: reps9, reps: reps9, rir: 2, rirSets: [2, 0] }], { clean: true, last: { h: 8 }, mean3: 8 }, { pg: 52 }).s;
+      const viewT4 = (s9) => { const e = s9.exercises.find((x) => x.id === "press");
+        return JP({ topAt: e.topAt == null ? null : e.topAt, topRun: e.topRun || 0,
+          earned: (s9.feed || []).filter((f) => f && / EARNED$/.test(String(f.t || ""))).length,
+          debut: (s9.queue || []).filter((q) => q && q.exId === "press" && q.kind === "debut" && !q.done).length }); };
+      let w4 = mkT4();
+      w4 = runT4(w4, "2026-08-20", 250, [9, 9]);   /* top at 250 — the walk banks sighting 1 */
+      w4 = runT4(w4, "2026-08-22", 245, [1, 1]);   /* an OFF-LOAD non-top: the walk adopts 245 and resets the run */
+      w4 = runT4(w4, "2026-08-24", 250, [9, 9]);   /* back at 250 and topping again — sighting 1 of a NEW tenure */
+      const walk4 = viewT4(w4);
+      ok(walk4 === JP({ topAt: 250, topRun: 1, earned: 0, debut: 0 }),
+        "FIX-4 §1 (Sol A6-1) — THE WALK'S OWN ANSWER, for the record: a top at 250, an off-load session at 245, then a top back at 250 is sighting ONE. The load adoption ended the run — the two tops are not two sightings of the same tenure, they are one sighting each side of an excursion (observed " + walk4 + ")");
+      const boot4 = T.migrate(clP(w4));
+      ok(viewT4(boot4) === walk4,
+        "FIX-4 §1 [P0] — AND A PLAIN BOOT MUST NOT DISAGREE WITH THE WALK. On c0bb384 the derivation counted straight across the 245 excursion — its fall-off rule only fires when the failed line's load EQUALS topAt, and 245 is not 250, so the excursion was invisible and the boot rewrote 250/1 to 250/2. A derivation that re-reads history has to read the load-identity boundary with it: it now walks only the MAXIMAL CONTIGUOUS TENURE at the current load, and the first entry at a different load (numeric or wKey) is a hard stop (observed " + viewT4(boot4) + ")");
+      const self4 = T.mergeState(clP(w4), clP(w4));
+      ok(viewT4(self4) === walk4,
+        "FIX-4 §1 [P0] — AND merge(m,m) MUST NOT BUY A LOAD. This is the worse half: _mintJointEarn rescanned ALL historical tops at the current load, so any two PROVISIONAL days paired whatever lay between them — a ONE-device history minted 'PRESS 255 EARNED', queued the 255 debut and spent the record, on a self-merge. The mint now consumes the derivation's own tenure-bounded trace — the very run and the very pair it counted — never a rescan (observed " + viewT4(self4) + ")");
+      const b1 = T.migrate(clP(w4)), b2 = T.migrate(clP(b1)), b3 = T.migrate(clP(b2));
+      ok(JP(b2) === JP(b1) && JP(b3) === JP(b2),
+        "FIX-4 §1 — and the state is byte-stable across three boots: the excursion is read the same way every time");
+      /* §5 (Sol hunt 1, REFUTED at the engine) — pin the good behaviour so it cannot regress */
+      let n4 = mkT4();
+      const e4 = n4.exercises.find((x) => x.id === "press");
+      e4.w = 60; e4.hi = 12; e4.last = [12, 12]; e4.inc = 5; e4.lastMeta = { d: "2026-08-18", w: 60, reps: [12, 12] };
+      n4.sessionLog["2026-08-16"] = { d: "2026-08-16", entries: [{ id: "press", w: null, wKey: "55·50", reps: [12, 12] }] };
+      n4 = runT4(n4, "2026-08-20", 60, [12, 12]);
+      ok(viewT4(n4) === JP({ topAt: 60, topRun: 1, earned: 0, debut: 0 }) && viewT4(T.migrate(clP(n4))) === viewT4(n4),
+        "FIX-4 §5 (Sol hunt 1 — REFUTED, so the good behaviour is pinned) — A NON-NUMERIC LOAD ROW IS NOT EVIDENCE AT THE CURRENT LOAD. A legacy per-set row carrying wKey '55·50' followed by a numeric-60 top counts ONE sighting, not two: the old row is a different load identity, so it is a tenure boundary rather than a second sighting of 60. The hunt supposed the engine read it as current-load evidence; it does not, and this pin is why it cannot start (observed " + viewT4(n4) + ")");
+    }
+
+    /* ---- FIX-4 §2 [P0] — a legitimate RE-EARN files, and graduations do not share an id ---- */
+    {
+      const mkR4 = () => {
+        const s9 = T.migrate(null);
+        const ex = s9.exercises.find((x) => x.id === "press");
+        ex.forks = []; ex.std = null; ex.own = false; ex.reclaim = null; ex.ladder = null;
+        ex.w = 250; ex.sets = 2; ex.hi = 9; ex.last = [9, 9]; ex.inc = 5; ex.topAt = null; ex.topRun = 0;
+        ex.lastMeta = { d: "2026-08-06", w: 250, reps: [9, 9] };
+        s9.queue = []; s9.feed = [];
+        return s9;
+      };
+      const runR4 = (s9, d9, w9, reps9) => T.completeSession(s9, d9, [{ id: "press", w: w9, tgt: reps9, reps: reps9, rir: 2, rirSets: [2, 0] }], { clean: true, last: { h: 8 }, mean3: 8 }, { pg: 52 }).s;
+      /* the FIRST graduation, completed: two tops at 250 earn 255, the debut runs, the load moves */
+      let g4 = mkR4();
+      g4 = runR4(g4, "2026-08-08", 250, [9, 9]);
+      g4 = runR4(g4, "2026-08-10", 250, [9, 9]);          /* EARNS 255 on 08-10 */
+      g4 = runR4(g4, "2026-08-12", 255, [7, 6]);          /* the debut runs: the load is now 255 */
+      for (const q of (g4.queue || [])) if (q && q.exId === "press" && q.kind === "debut") q.done = true;
+      g4 = runR4(g4, "2026-08-14", 250, [8, 9]);          /* a DELOAD back to 250: the load adoption opens a NEW tenure. The opener is one short of the window, so nothing is banked AND the next top stays inside the noise band — the two-for-two law decides this, not the beats-noise escape hatch */
+      const gradId4 = (g4.queue || []).filter((q) => q && q.exId === "press" && q.kind === "debut").map((q) => q.id);
+      /* two replicas each bank ONE further top at 250; neither alone re-earns */
+      const A4 = runR4(clP(g4), "2026-08-16", 250, [9, 9]);
+      const B4 = runR4(clP(g4), "2026-08-18", 250, [9, 9]);
+      const serial4 = runR4(runR4(clP(g4), "2026-08-16", 250, [9, 9]), "2026-08-18", 250, [9, 9]);
+      const ab4 = T.mergeState(clP(A4), clP(B4)), ba4 = T.mergeState(clP(B4), clP(A4));
+      const earn4 = (s9) => (s9.feed || []).filter((f) => f && / EARNED$/.test(String(f.t || "")));
+      const act4 = (s9) => (s9.queue || []).filter((q) => q && q.exId === "press" && q.kind === "debut" && !q.done);
+      const done4 = (s9) => (s9.queue || []).filter((q) => q && q.exId === "press" && q.kind === "debut" && q.done);
+      ok(earn4(serial4).length === 2 && earn4(ab4).length === 2 && earn4(ba4).length === 2,
+        "FIX-4 §2 [P0] — A LEGITIMATE RE-EARN MUST FILE. Press graduated to 255, ran it, deloaded to 250 and topped it twice again. The serial walk files a SECOND 'PRESS 255 EARNED'; on c0bb384 the mint's dedupe compared the DISPLAY TITLE, which matched the old receipt word for word, and the second earn was suppressed on both merge orders. A receipt is deduped by FACT IDENTITY — its op — never by the sentence it prints (observed serial " + earn4(serial4).length + ", merged " + earn4(ab4).length + " / " + earn4(ba4).length + ")");
+      const view4 = (s9) => { const e = s9.exercises.find((x) => x.id === "press"); return JP([e.topAt == null ? null : e.topAt, e.topRun || 0]); };
+      ok(view4(ab4) === view4(serial4) && view4(ba4) === view4(serial4),
+        "FIX-4 §2 — and the record is SPENT by the re-earn, exactly as the serial walk spends it: suppressing the receipt left the merged state claiming an unspent 250/2, one honest session from buying 255 a second time (observed merged " + view4(ab4) + " vs serial " + view4(serial4) + ")");
+      ok(done4(ab4).length >= 1 && done4(ba4).length >= 1 && act4(ab4).length === 1 && act4(ba4).length === 1,
+        "FIX-4 §2 — the COMPLETED first graduation is preserved and exactly ONE debut is active, both orders. The old id reused `q_press_255` for both graduations, so a done item and an active item shared a key and were one MERGE_KEYED pass away from collapsing into each other — the completed history erased, or the new debut marked done before it ran (observed done " + done4(ab4).length + ", active " + act4(ab4).length + ")");
+      const idOf4 = (s9) => JP(act4(s9).map((q) => q.id));
+      ok(idOf4(ab4) === idOf4(serial4) && idOf4(ba4) === idOf4(serial4),
+        "FIX-4 §2 — and the SAME GRADUATION GETS THE SAME ID whichever path reached it: the serial walk decides the earn on its session date and the merge replays it on the same day, so the debut the merge queues IS the debut the walk queues, not a second one wearing a different key (observed merged " + idOf4(ab4) + " vs serial " + idOf4(serial4) + ")");
+      ok(JP(T.mergeState(clP(ab4), clP(ab4))) === JP(ab4),
+        "FIX-4 §2 — self-merge is exact on the re-earned state");
+      const twice4 = T.mergeState(T.mergeState(clP(ab4), clP(ba4)), clP(serial4));
+      ok((twice4.queue || []).filter((q) => q && q.exId === "press" && q.kind === "debut" && !q.done).length === 1
+        && (twice4.queue || []).filter((q) => q && q.exId === "press" && q.kind === "debut" && q.done).length >= 1,
+        "FIX-4 §2 — and a FURTHER merge across all three does not collapse the done and the active debut into one: every graduation carries its own identity, so the queue's own keyed union cannot confuse them (observed " + JP(gradId4) + " -> " + JP((twice4.queue || []).filter((q) => q && q.exId === "press" && q.kind === "debut").map((q) => q.id + (q.done ? " (done)" : " (active)"))) + ")");
+    }
+
+
+    /* ---- FIX-4 §3 [P1] — a same-day apply/undo cannot reclassify a partial as complete ---- */
+    {
+      const mk3 = () => {
+        const s9 = T.migrate(null);
+        const e9 = s9.exercises.find((x) => x.id === "press");
+        e9.forks = []; e9.std = null; e9.own = false; e9.reclaim = null; e9.ladder = null;
+        e9.w = 250; e9.sets = 3; e9.hi = 9; e9.last = [9, 9, 8]; e9.inc = 5; e9.topAt = null; e9.topRun = 0;
+        e9.lastMeta = { d: "2026-08-18", w: 250, reps: [9, 9, 8] };
+        s9.queue = [];
+        /* the set count went to FOUR and came back to THREE on the same day */
+        s9.feed = [
+          { d: "2026-08-20", t: "VOLUME −1 — CHEST via " + e9.n + " (now 3 sets)", how: "undone the same day" },
+          { d: "2026-08-20", t: "VOLUME +1 — CHEST via " + e9.n + " (now 4 sets)", how: "the approved push" },
+        ];
+        /* the 08-20 session ran while the lift was a FOUR-set lift and delivered three:
+           the walk correctly banked nothing */
+        s9.sessionLog["2026-08-20"] = { d: "2026-08-20", entries: [{ id: "press", w: 250, reps: [9, 9, 8] }] };
+        return s9;
+      };
+      const run3 = (s9, d9) => T.completeSession(s9, d9, [{ id: "press", w: 250, tgt: [9, 9, 8], reps: [9, 9, 8], rir: 2, rirSets: [2, null, 0] }], { clean: true, last: { h: 8 }, mean3: 8 }, { pg: 52 }).s;
+      const v3 = (s9) => { const e9 = s9.exercises.find((x) => x.id === "press");
+        return JP({ rec: [e9.topAt == null ? null : e9.topAt, e9.topRun || 0],
+          earned: (s9.feed || []).filter((f) => f && / EARNED$/.test(String(f.t || ""))).length,
+          debut: (s9.queue || []).filter((q) => q && q.exId === "press" && q.kind === "debut" && !q.done).length }); };
+      const boot3 = T.migrate(clP(mk3()));
+      ok(v3(boot3) === JP({ rec: [null, 0], earned: 0, debut: 0 }),
+        "FIX-4 §3 (Sol A5, P1) — A SAME-DAY APPLY AND UNDO CANNOT RECLASSIFY A PARTIAL AS COMPLETE. The receipts carry a DATE, not an instant, so a +1 and a −1 filed on 08-20 are indistinguishable in order — and the naive walk-back saw only the net zero, judged the three-of-four line against three, and called it complete. The lift ran FOUR sets when that session happened; three is partial. Completeness on a day is now judged against the MAXIMUM count plausibly active during it: the count the receipts after that day imply, PLUS every +1 filed on the day itself. A day the count may have been four is a day a three-set line proves nothing (observed " + v3(boot3) + ")");
+      const s22 = run3(clP(boot3), "2026-08-22");
+      ok(v3(s22) === JP({ rec: [250, 1], earned: 0, debut: 0 }),
+        "FIX-4 §3 — so the first COMPLETE line, on 08-22, is sighting ONE. On c0bb384 the reclassified partial had already banked one, and this session earned 255 — a whole session early, off a line the walk itself refused to count");
+      const s24 = run3(clP(s22), "2026-08-24");
+      ok(v3(s24) === JP({ rec: [null, 0], earned: 1, debut: 1 }),
+        "FIX-4 §3 — and the earn fires on 08-24, the second complete line, exactly when the two-for-two law says it should: the fix delays the graduation by one session, it does not cancel it (observed " + v3(s24) + ")");
+      /* T20's shape is untouched: its push receipts are on LATER days, never the entry's own */
+      const t20 = mk3();
+      t20.feed = [{ d: "2026-08-22", t: "VOLUME +1 — CHEST via " + t20.exercises.find((x) => x.id === "press").n, how: "the approved push" }];
+      t20.exercises.find((x) => x.id === "press").sets = 4;
+      /* judged AS OF the entry own day: the suite clock is frozen before these dates, and the
+         derivation always asks the question at the session date rather than at today */
+      ok(T.progressionSetCount(t20.exercises.find((x) => x.id === "press"), t20, "2026-08-20") === 3,
+        "FIX-4 §3 — and T20's own shape is untouched: a push dated AFTER the establishing line still walks the count back, because a receipt on a later day cannot have been active during an earlier one. Only same-day PLUS receipts widen the maximum");
+    }
+
+    /* ---- FIX-4 §4 [P1] — the PROPOSED debut writers carry the per-set vector ---- */
+    {
+      const mk4 = () => {
+        const s9 = T.migrate(null);
+        const e9 = s9.exercises.find((x) => x.id === "press");
+        e9.forks = []; e9.std = null; e9.own = false; e9.reclaim = null; e9.ladder = null;
+        e9.w = 55; e9.sets = 3; e9.hi = 12; e9.last = [12, 12, 12]; e9.inc = 5;
+        e9.wSets = [55, 55, 50]; e9.steps = [55, 60, 65, 70];
+        e9.topAt = 55; e9.topRun = 1; e9.lastMeta = { d: "2026-08-18", w: 55, reps: [12, 12, 12] };
+        s9.queue = []; s9.feed = [];
+        return s9;
+      };
+      /* terminal RIR 3 with a rung ladder: the classic 60 debut queues AND the two-rung 65 is offered */
+      const r4 = T.completeSession(mk4(), "2026-08-20", [{ id: "press", w: 55, tgt: [12, 12, 12], reps: [12, 12, 12], rir: 2, rirSets: [2, null, 3] }], { clean: true, last: { h: 8 }, mean3: 8 }, { pg: 52 });
+      const s4 = r4.s || r4;
+      const two4 = (s4.queue || []).find((q) => q && q.exId === "press" && q.state === "PROPOSED" && q.newW === 65);
+      ok(!!two4 && JP((two4 || {}).newWSets) === JP([65, 65, 60]),
+        "FIX-4 §4 (Sol hunt 2, P1) — THE PROPOSED DEBUT WRITERS CARRY THE VECTOR TOO. FIX-2 taught the CLASSIC earn to mint newWSets and stopped there, so the two-rung offer and the one-sighting offer still queued with none: approved, the card fell back to a scalar debit and rendered one weight for a lift that runs three different ones. The vector shifts by the offer's own jump — two rungs for the two-rung offer (observed " + JP(two4 && two4.newWSets) + ")");
+      /* taking the offer: the engine owns the decision, and a lower standing graduation goes */
+      /* a pre-export engine reads as CAUGHT rather than throwing and hiding every pin
+         behind it — the SCALE-5 pin-3b lesson */
+      const taken4 = (typeof T.takeProposedDebut === "function" && two4) ? T.takeProposedDebut(clP(s4), two4.id) : clP(s4);
+      const act4b = (taken4.queue || []).filter((q) => q && q.exId === "press" && q.kind === "debut" && !q.done);
+      ok(act4b.length === 1 && (act4b[0] || {}).newW === 65 && (act4b[0] || {}).state === "DEBUT"
+        && (taken4.queue || []).some((q) => q && q.newW === 60 && q.state === "SUPERSEDED" && q.done),
+        "FIX-4 §4 — and TAKING the two-rung offer SUPERSEDES the automatic one-rung debut still standing for the same lift. Both were queued by the same session; running the 60 afterwards would prescribe below the load he already bought, and the queue had no rule against it. A taken graduation outranks every lower one for that lift — enforced in takeProposedDebut, which is the engine's own decision rather than a gesture living in the tap handler (observed " + JP(act4b.map((q) => q.newW + ":" + q.state)) + ")");
+      /* the card renders PER SLOT, and completing adopts the vector */
+      const fin4 = T.completeSession(clP(taken4), "2026-08-22", [{ id: "press", w: 65, tgt: [10, 10, 10], reps: [10, 10, 10], rir: 2, rirSets: [2, null, 0] }], { clean: true, last: { h: 8 }, mean3: 8 }, { pg: 52 });
+      const e4f = (fin4.s || fin4).exercises.find((x) => x.id === "press");
+      ok(e4f.w === 65 && JP(e4f.wSets) === JP([65, 65, 60]),
+        "FIX-4 §4 — and completing the taken debut adopts the vector: the lift lives at 65 with its per-set line 65·65·60, not a load behind (observed w " + JP(e4f.w) + ", wSets " + JP(e4f.wSets) + ")");
+      /* the ONE-SIGHTING offer carries it too — the other proposal writer */
+      const hot4 = T.completeSession(mk4(), "2026-08-20", [{ id: "press", w: 55, tgt: [12, 12, 12], reps: [12, 12, 12], rir: 0, rirSets: [0, null, 3] }], { clean: true, last: { h: 8 }, mean3: 8 }, { pg: 52 });
+      const one4 = ((hot4.s || hot4).queue || []).find((q) => q && q.exId === "press" && q.state === "PROPOSED" && /ONE SIGHTING/.test(String(q.t)));
+      ok(!!one4 && JP(one4.newWSets) === JP([60, 60, 55]),
+        "FIX-4 §4 — and the ONE-SIGHTING offer carries it too: it is the other writer of the same kind of card, and a fix that reached only one of them would leave the same blank card behind on the hot-opener path (observed " + JP(one4 && one4.newWSets) + ")");
+    }
+
+    /* ---- FIX-4 §6 — the PARKED offline duplicate-earn residual, fenced ---- */
+    {
+      const mk6 = () => {
+        const s9 = T.migrate(null);
+        const ex = s9.exercises.find((x) => x.id === "press");
+        ex.forks = []; ex.std = null; ex.own = false; ex.reclaim = null; ex.ladder = null;
+        ex.w = 250; ex.sets = 2; ex.hi = 9; ex.last = [9, 9]; ex.inc = 5; ex.topAt = null; ex.topRun = 0;
+        ex.lastMeta = { d: "2026-08-18", w: 250, reps: [9, 9] };
+        s9.queue = []; s9.feed = [];
+        return s9;
+      };
+      const top6 = (s9, d9) => T.completeSession(s9, d9, [{ id: "press", w: 250, tgt: [9, 9], reps: [9, 9], rir: 2, rirSets: [2, 0] }], { clean: true, last: { h: 8 }, mean3: 8 }, { pg: 52 }).s;
+      /* each device saw its OWN pair and earned 255 on its own day — the parked shape */
+      const A6d = top6(top6(mk6(), "2026-08-20"), "2026-08-22");
+      const B6d = top6(top6(mk6(), "2026-08-24"), "2026-08-26");
+      const serial6 = top6(top6(clP(A6d), "2026-08-24"), "2026-08-26");
+      const ab6 = T.mergeState(clP(A6d), clP(B6d)), ba6 = T.mergeState(clP(B6d), clP(A6d));
+      const eL = (s9) => (s9.feed || []).filter((f) => f && / EARNED$/.test(String(f.t || "")));
+      const inputs6 = [...eL(A6d), ...eL(B6d)].map((f) => String(f.d) + "|" + String(f.t));
+      const survives6 = (m9) => inputs6.every((k9) => eL(m9).some((f) => String(f.d) + "|" + String(f.t) === k9));
+      ok(survives6(ab6) && survives6(ba6),
+        "FIX-4 §6 (Sol's park pins) — EVERY INPUT EARN RECEIPT SURVIVES the merge, both orders. The offline duplicate-earn residual stays PARKED — two devices that each independently earned the same load still leave two receipts — and these four fences are the terms the park was accepted under. Losing a receipt is the failure that would make the park unsafe, so it is pinned rather than trusted");
+      ok(eL(ab6).length >= eL(serial6).length && eL(ba6).length >= eL(serial6).length,
+        "FIX-4 §6 — the merged EARNED count is never BELOW the serial walk's: the residual may over-tell the story, never under-tell it (observed merged " + eL(ab6).length + " / " + eL(ba6).length + " vs serial " + eL(serial6).length + ")");
+      const run6 = (s9) => { const e9 = s9.exercises.find((x) => x.id === "press"); return (String(e9.topAt) === String(e9.w)) ? (e9.topRun || 0) : 0; };
+      ok(run6(ab6) <= run6(serial6) && run6(ba6) <= run6(serial6),
+        "FIX-4 §6 — and the merged counter is never ABOVE the serial walk's: the residual can never buy a load the serial history did not (observed merged " + run6(ab6) + " / " + run6(ba6) + " vs serial " + run6(serial6) + ")");
+      const act6 = (s9) => (s9.queue || []).filter((q) => q && q.exId === "press" && q.kind === "debut" && !q.done);
+      ok(act6(ab6).length === 1 && act6(ba6).length === 1,
+        "FIX-4 §6 — and EXACTLY ONE debut is active, both orders: two receipts telling one graduation must still put one load on the bar (observed " + JP(act6(ab6).map((q) => q.id)) + ")");
+    }
+
     /* ---- A9 — the curl restatement is tied to the current load ---- */
     withClock(RULED, () => {
       const race = clP(rawP1);

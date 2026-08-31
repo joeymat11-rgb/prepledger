@@ -1020,6 +1020,66 @@ function _padFrom9(arr, hi) {
   for (let i = arr.length - 1; i >= 0; i--) { const v = arr[i]; if (typeof v === "number" && v > 0) return v; }
   return hi - 2;
 }
+/* FIX-3 §1 / FIX-4 §3 — THE SET COUNT A LIFT CARRIED ON A PAST DAY, read back from its own
+   volume receipts. Both spellings of the minus sign are live (the agent lane writes U+2212, the
+   analyst lane interpolates a negative number) and a decline ("VOLUME PASSED") carries no "via"
+   and no sign. Receipts are matched against the lift's former names too, so a rename does not
+   lose its own volume history. */
+/* FIX-4 §1 — THE MAXIMAL CONTIGUOUS LOAD TENURE, in one place. The prefix rule and the sighting
+   derivation both need "this lift's entries at the current load, contiguous back from the
+   latest, stopping hard at the first entry whose load identity differs". Written twice they
+   would drift, and the whole defect this section closes was two readers of the same history
+   disagreeing. The optional fork set applies the era filter the prefix rule wants; the
+   derivation handles its era rule separately and passes none. */
+function _loadTenure(ex, s, ref, fks) {
+  const all9 = [];
+  for (const d9 of Object.keys((s && s.sessionLog) || {}).sort()) {
+    if (ref != null && d9 > String(ref)) continue;
+    if (fks && fks.length && !sameEra(fks, d9, ref)) continue;
+    const en9 = (((s.sessionLog[d9] || {}).entries) || []).find((e9) => e9 && e9.id === ex.id && Array.isArray(e9.reps) && e9.reps.length);
+    if (en9) all9.push([d9, en9]);
+  }
+  const key9 = String(ex.w);
+  let i0 = all9.length;
+  while (i0 > 0 && String(all9[i0 - 1][1].w != null ? all9[i0 - 1][1].w : all9[i0 - 1][1].wKey) === key9) i0--;
+  return { all: all9, tenure: all9.slice(i0) };
+}
+function _volDeltas(ex, s) {
+  const names9 = new Set([String((ex && ex.n) || "")]);
+  for (const f9 of (((ex && ex.forks)) || [])) if (f9 && f9.prevN) names9.add(String(f9.prevN));
+  for (const r9 of (((ex && ex.renames)) || [])) if (r9 && r9.from) names9.add(String(r9.from));
+  const out9 = [];
+  for (const f9 of ((s && s.feed) || [])) {
+    if (!f9 || typeof f9.t !== "string" || f9.t.indexOf("VOLUME ") !== 0) continue;
+    let named9 = false;
+    for (const n9 of names9) if (n9 && f9.t.indexOf("via " + n9) > -1) named9 = true;
+    if (!named9) continue;
+    const body9 = f9.t.slice(7).trim();
+    const sign9 = body9.charAt(0) === "+" ? 1 : (body9.charAt(0) === "-" || body9.charAt(0) === "\u2212") ? -1 : 0;
+    if (!sign9) continue;
+    const mag9 = parseInt(body9.slice(1), 10);
+    if (!isFinite(mag9) || mag9 <= 0) continue;
+    out9.push([String(f9.d || ""), sign9 * mag9]);
+  }
+  return out9;
+}
+/* FIX-4 §3 (Sol A5) — AND A SAME-DAY APPLY AND UNDO CANNOT RECLASSIFY A PARTIAL AS COMPLETE.
+   The receipts carry a DATE, not an instant, so a +1 and a -1 filed on the same day are
+   indistinguishable in order: the naive walk-back saw the net zero, judged a three-of-four line
+   against three, and called it complete — and a line the WALK refused to count then banked a
+   sighting at the next boot, earning the load a whole session early. Completeness on a day is
+   judged against the MAXIMUM count plausibly active during it: what the receipts AFTER that day
+   imply, plus every +1 filed ON it. A day the count may have been four is a day a three-set line
+   proves nothing. (Receipts written from here on also carry an "at" instant, so a future rebuild
+   can order same-day events exactly; nothing reads it yet.) */
+function _setsAtTime(baseSets, deltas, d) {
+  let n9 = baseSets, plus9 = 0;
+  for (const p9 of (deltas || [])) {
+    if (p9[0] > String(d)) n9 -= p9[1];
+    else if (p9[0] === String(d) && p9[1] > 0) plus9 += p9[1];
+  }
+  return Math.max(1, n9 + plus9);
+}
 function targetsFor(ex, s) {
   /* OWNER'S CALL rider — std/reclaim are AUTHORED target arrays sized for the set count
      they were written at. A set-count change must not silently shrink or crash the
@@ -1329,7 +1389,7 @@ function progressionSetCount(ex, s, through) {
     const key9 = String(ex.w);
     const fks9 = resetForksOf(s, ex.id);
     const ref9 = through || isoOf(todayStart());
-    const dates9 = Object.keys((s && s.sessionLog) || {}).filter((d) => d <= ref9).sort();
+    const tenure9 = _loadTenure(ex, s, ref9, fks9).tenure;   /* the contiguous run at the current load */
     /* A5 (Sol, FIX-2) — THE PREFIX COMES FROM THE CURRENT TENURE, NOT THE EARLIEST SIGHTING OF
        THE LOAD. Taking the first-ever entry at this load reached back past an intervening
        deload: press ran 250 at three sets, grew to four, dropped to 245 and came back to 250 —
@@ -1343,15 +1403,6 @@ function progressionSetCount(ex, s, through) {
        lift is dated after it (proof the set count grew later — T20's own case: 250's first line
        precedes the push). Otherwise take the next tenure entry that does; if none does, every
        set is progression-bearing, which is the conservative answer. */
-    const mine9 = [];
-    for (const d of dates9) {
-      if (fks9.length && !sameEra(fks9, d, ref9)) continue;
-      const en9 = (((s.sessionLog[d] || {}).entries) || []).find((e) => e && e.id === ex.id && Array.isArray(e.reps) && e.reps.length);
-      if (en9) mine9.push([d, en9]);
-    }
-    let i0 = mine9.length;
-    while (i0 > 0 && String(mine9[i0 - 1][1].w != null ? mine9[i0 - 1][1].w : mine9[i0 - 1][1].wKey) === key9) i0--;
-    const tenure9 = mine9.slice(i0);                       /* the contiguous run at the current load */
     if (!tenure9.length) return ex.sets;
     /* FIX-3 §1 — AND "COMPLETE" MEANS COMPLETE AT ITS OWN TIME. FIX-2 exempted a short line
        whenever any volume receipt was dated after it, which exempts ANY short line however
@@ -1366,27 +1417,8 @@ function progressionSetCount(ex, s, through) {
        BOTH MINUS SPELLINGS ARE ON FILE: the agent lane writes U+2212 ("VOLUME −1") and the
        analyst lane interpolates a negative number ("VOLUME -1"), so the sign is read from
        either. A decline ("VOLUME PASSED") carries no "via" and no sign, and is not a move. */
-    const volNames9 = new Set([String(ex.n || "")]);
-    for (const f9 of ((ex.forks) || [])) if (f9 && f9.prevN) volNames9.add(String(f9.prevN));
-    for (const r9 of ((ex.renames) || [])) if (r9 && r9.from) volNames9.add(String(r9.from));
-    const volDeltas9 = [];
-    for (const f9 of ((s && s.feed) || [])) {
-      if (!f9 || typeof f9.t !== "string" || f9.t.indexOf("VOLUME ") !== 0) continue;
-      let named9 = false;
-      for (const n9 of volNames9) if (n9 && f9.t.indexOf("via " + n9) > -1) named9 = true;
-      if (!named9) continue;
-      const body9 = f9.t.slice(7).trim();
-      const sign9 = body9.charAt(0) === "+" ? 1 : (body9.charAt(0) === "-" || body9.charAt(0) === "\u2212") ? -1 : 0;
-      if (!sign9) continue;
-      const mag9 = parseInt(body9.slice(1), 10);
-      if (!isFinite(mag9) || mag9 <= 0) continue;
-      volDeltas9.push([String(f9.d || ""), sign9 * mag9]);
-    }
-    const setsAtTime9 = (d9) => {
-      let n9 = ex.sets;
-      for (const [fd9, dv9] of volDeltas9) if (fd9 > String(d9)) n9 -= dv9;
-      return Math.max(1, n9);
-    };
+    const volDeltas9 = _volDeltas(ex, s);
+    const setsAtTime9 = (d9) => _setsAtTime(ex.sets, volDeltas9, d9);
     for (const [d9, en9] of tenure9) {
       if (en9.reps.length >= setsAtTime9(d9)) return Math.min(ex.sets, en9.reps.length);
     }
@@ -2140,9 +2172,24 @@ function beatsNoise(s, exId, reps, prev) {
    the round and on 14 of his 15 live lifts; the 15th (abs 100/1 stored vs 100/2 derived) is
    legacy-engine drift, not derivation error — the tip walk replaying abs's own shape banks 1
    then earns, and the derivation matches the tip walk. */
-function deriveSighting(s, ex) {
+/* FIX-4 §1 (Sol A6-1, P0) — THE LOAD TENURE IS THE WINDOW, and the mint reads the same trace.
+   Two defects, one root. The derivation walked every session at the current load and its
+   fall-off rule fired only when the FAILED line's load equalled topAt — so an excursion to a
+   different load was invisible: a top at 250, a non-top at 245, a top back at 250 read as TWO
+   sightings where the walk (which adopts the new load and resets the run) reads one. The boot
+   then disagreed with the walk on a single device. And _mintJointEarn rescanned ALL historical
+   tops at the current load, pairing any two PROVISIONAL days whatever lay between them, so
+   merge(m,m) on that one-device history MINTED an earn and bought 255.
+   A load identity change ends the run. The derivation now walks only the MAXIMAL CONTIGUOUS
+   TENURE at the current load — this lift's entries, contiguous back from the latest, stopping
+   hard at the first entry whose load identity differs (numeric or wKey; a legacy per-set row is
+   a boundary, never current-load evidence — Sol hunt 1, pinned). The earn window applies WITHIN
+   the tenure. And the mint consumes THIS function's own trace — the run it counted and the pair
+   it counted it from — so the two can no longer disagree by construction.
+   The full form returns the trace; deriveSighting keeps the two-field shape its callers read. */
+function _deriveSightingFull(s, ex) {
   try {
-    if (!ex || typeof ex.w !== "number" || !isFinite(ex.w)) return { topAt: null, topRun: 0 };
+    if (!ex || typeof ex.w !== "number" || !isFinite(ex.w)) return { topAt: null, topRun: 0, tops: [] };
     const names9 = new Set([String(ex.n || "").toUpperCase()]);
     for (const f9 of ((ex.forks) || [])) if (f9 && f9.prevN) names9.add(String(f9.prevN).toUpperCase());
     const tech9 = resetForksOf(s, ex.id).slice().sort((a9, b9) => (a9.from < b9.from ? -1 : 1));
@@ -2157,23 +2204,34 @@ function deriveSighting(s, ex) {
       if (hit9 && f9.d && (!lastEarn9 || String(f9.d) > String(lastEarn9))) lastEarn9 = String(f9.d);
     }
     const start9 = [eraFrom9, lastEarn9].filter((x9) => x9 != null).sort().pop() || null;
-    let topAt9 = null, topRun9 = 0, firstInEra9 = eraFrom9 != null;
-    for (const d9 of Object.keys((s && s.sessionLog) || {}).sort()) {
-      const en9 = (((s.sessionLog[d9] || {}).entries) || []).find((e9) => e9 && e9.id === ex.id && Array.isArray(e9.reps) && e9.reps.length);
-      if (!en9) continue;
+    const lt9 = _loadTenure(ex, s, null, null);
+    const mine9 = lt9.all;
+    const tenure9 = lt9.tenure;
+    /* the era's opening session is a fact about the ERA, not about the tenure: it is found over
+       the lift's whole history, so a tenure that begins later does not skip its own first day */
+    const eraFirst9 = eraFrom9 != null ? ((mine9.find((p9) => p9[0] >= eraFrom9) || [null])[0]) : null;
+    const volD9 = _volDeltas(ex, s);
+    let topAt9 = null, topRun9 = 0; const tops9 = [];
+    for (const p9 of tenure9) {
+      const d9 = p9[0], en9 = p9[1];
       if (start9 != null && d9 < start9) continue;
-      if (eraFrom9 != null && firstInEra9) { firstInEra9 = false; continue; }   /* FIX 3c — the first era session banks nothing */
-      if (lastEarn9 != null && d9 === lastEarn9) { topAt9 = null; topRun9 = 0; continue; }   /* the earn day ends spent */
-      const w9 = typeof en9.w === "number" ? en9.w : ex.w;
+      if (eraFirst9 != null && d9 === eraFirst9) continue;                       /* FIX 3c — the first era session banks nothing */
+      if (lastEarn9 != null && d9 === lastEarn9) { topAt9 = null; topRun9 = 0; tops9.length = 0; continue; }   /* the earn day ends spent */
       const r9 = en9.reps.map((x9) => Number(x9) || 0);
-      const exR9 = { ...ex, w: w9, sets: r9.length || ex.sets };
-      if (atTopOfWindow(r9, exR9, s, d9)) { topRun9 = String(topAt9) === String(w9) ? topRun9 + 1 : 1; topAt9 = w9; }
-      else if (String(topAt9) === String(w9)) topRun9 = 0;   /* fell off the top at this load */
+      const exR9 = { ...ex, w: ex.w, sets: r9.length || ex.sets };               /* inside the tenure the load IS the current load */
+      /* FIX-4 §3 — a line that was INCOMPLETE at its own time is not a sighting of anything.
+         The derivation used to judge every entry against its own delivered length, which makes
+         any line trivially complete — so a three-of-four session read as a top of a three-set
+         window. It is judged against the count the lift actually carried that day. */
+      if (r9.length < _setsAtTime(ex.sets, volD9, d9)) { topAt9 = null; topRun9 = 0; tops9.length = 0; continue; }
+      if (atTopOfWindow(r9, exR9, s, d9)) { topRun9 = topRun9 + 1; topAt9 = ex.w; tops9.push(d9); }
+      else { topAt9 = null; topRun9 = 0; tops9.length = 0; }                     /* fell off the top */
     }
-    if (topRun9 === 0 || String(topAt9) !== String(ex.w)) return { topAt: null, topRun: 0 };
-    return { topAt: topAt9, topRun: topRun9 };
-  } catch (e) { return { topAt: (ex && ex.topAt) != null ? ex.topAt : null, topRun: (ex && ex.topRun) || 0 }; }
+    if (topRun9 === 0 || String(topAt9) !== String(ex.w)) return { topAt: null, topRun: 0, tops: [] };
+    return { topAt: topAt9, topRun: topRun9, tops: tops9 };
+  } catch (e) { return { topAt: (ex && ex.topAt) != null ? ex.topAt : null, topRun: (ex && ex.topRun) || 0, tops: [] }; }
 }
+function deriveSighting(s, ex) { const f9 = _deriveSightingFull(s, ex); return { topAt: f9.topAt, topRun: f9.topRun }; }
 /* THE JOINT-SIGHTING MINT (A6, merge exit only). Deriving the counter makes the merged state
    AGREE that two sightings happened — but the earn itself is a decision the walk makes when it
    sees the pair, and neither device ever saw it. Sol's witness: A tops on 8/20, B tops
@@ -2189,33 +2247,41 @@ function deriveSighting(s, ex) {
    EARNED receipt exists the derivation reads it and the signature no longer matches. */
 function _mintJointEarn(s, ex) {
   try {
-    if (!ex || typeof ex.w !== "number" || (ex.topRun || 0) < 2) return false;
+    if (!ex || typeof ex.w !== "number") return false;   /* FIX-4 §1 — the RUN is not a second gate: the trace below is the one source of truth, so the mint cannot pass a test the derivation failed */
     if (String(ex.topAt) !== String(ex.w)) return false;
     const upNext9 = nextLoad(ex);
     if (upNext9 == null) return false;
     if ((s.queue || []).some((q9) => q9 && q9.exId === ex.id && q9.kind === "debut" && !q9.done)) return false;
     const nm9 = String(ex.n || "").toUpperCase();
-    const tops9 = [];
-    for (const d9 of Object.keys(s.sessionLog || {}).sort()) {
-      const en9 = (((s.sessionLog[d9] || {}).entries) || []).find((e9) => e9 && e9.id === ex.id && Array.isArray(e9.reps) && e9.reps.length);
-      if (!en9) continue;
-      const w9 = typeof en9.w === "number" ? en9.w : ex.w;
-      if (String(w9) !== String(ex.w)) continue;
-      if (atTopOfWindow(en9.reps.map((x9) => Number(x9) || 0), { ...ex, w: w9, sets: en9.reps.length || ex.sets }, s, d9)) tops9.push([d9, en9]);
-    }
-    if (tops9.length < 2) return false;
-    const [dPrev9, enPrev9] = tops9[tops9.length - 2], [dK9, enK9] = tops9[tops9.length - 1];
+    /* FIX-4 §1 — THE MINT CONSUMES THE DERIVATION'S OWN TENURE-BOUNDED TRACE. It used to rescan
+       every session at the current load and pair the last two tops, so any two PROVISIONAL days
+       paired whatever lay between them — a load excursion, an earn, an era boundary. The run and
+       the pair now come from the same walk that produced the counter, so the mint cannot fire on
+       a pair the derivation did not count. */
+    const full9 = _deriveSightingFull(s, ex);
+    const tdays9 = full9.tops || [];
+    if (tdays9.length < 2 || String(full9.topAt) !== String(ex.w)) return false;
+    const entOn9 = (d9) => (((s.sessionLog[d9] || {}).entries) || []).find((e9) => e9 && e9.id === ex.id && Array.isArray(e9.reps) && e9.reps.length);
+    const dPrev9 = tdays9[tdays9.length - 2], dK9 = tdays9[tdays9.length - 1];
+    const enPrev9 = entOn9(dPrev9), enK9 = entOn9(dK9);
+    if (!enPrev9 || !enK9) return false;
     const lineOn9 = (d9, re9) => (s.feed || []).some((f9) => f9 && String(f9.d) === String(d9) && typeof f9.t === "string" && f9.t.indexOf(nm9) === 0 && re9.test(f9.t));
     const prov9 = /(TOP OF WINDOW, PROVISIONAL|NO NEXT LOAD ON FILE)$/;
     if (!lineOn9(dPrev9, prov9) || !lineOn9(dK9, prov9)) return false;          /* both walks saw a first sighting */
     if (lineOn9(dK9, / EARNED$/) || lineOn9(dK9, /BUT HOT$/)) return false;      /* neither already decided */
     if (enK9.rir === 0) return false;                                            /* a grind is not an earn */
-    const exR9 = { ...ex, topAt: ex.w, topRun: tops9.length - 1, sets: enK9.reps.length || ex.sets };
+    const exR9 = { ...ex, topAt: ex.w, topRun: tdays9.length - 1, sets: enK9.reps.length || ex.sets };   /* FIX-4 §1 — the run the walk should SEE is the one before this session, off the derivation trace */
     const lines9 = [];
-    earnWalk(s, exR9, enK9, enK9.reps.map((x9) => Number(x9) || 0), { w: enPrev9.w, reps: enPrev9.reps }, (t9, how9) => lines9.push({ t: t9, how: how9 }));
+    earnWalk(s, exR9, enK9, enK9.reps.map((x9) => Number(x9) || 0), { w: enPrev9.w, reps: enPrev9.reps }, (t9, how9) => lines9.push({ t: t9, how: how9 }), dK9);
     for (const l9 of lines9) {
       const op9 = "replay:" + dK9 + ":" + ex.id + ":" + String(l9.t).slice(0, 32);
-      if ((s.feed || []).some((f9) => f9 && (f9.op === op9 || f9.t === l9.t))) continue;
+      /* FIX-4 §2 (Sol A6-2, P0) — DEDUPE BY FACT IDENTITY, NEVER BY THE SENTENCE IT PRINTS.
+         "PRESS 255 EARNED" is a display title, and a lift that graduates to 255, runs it,
+         deloads and earns 255 again prints exactly the same words — so the title test silently
+         suppressed a LEGITIMATE re-earn and left the record unspent, one honest session from
+         buying the load a second time. The op is dated, so the same fact dedupes and a new
+         fact files. */
+      if ((s.feed || []).some((f9) => f9 && f9.op === op9)) continue;
       s.feed.unshift({ d: dK9, t: l9.t, how: l9.how, op: op9 });
     }
     return lines9.length > 0;
@@ -2234,6 +2300,51 @@ function reconcileSightings(s, opts) {
         const d2 = deriveSighting(s, ex);                    /* the earn spends the record — re-derive */
         if (d2.topAt == null) { ex.topAt = null; ex.topRun = 0; } else { ex.topAt = d2.topAt; ex.topRun = d2.topRun; }
       }
+    }
+  } catch (e) {}
+  return s;
+}
+/* FIX-4 §4 (Sol hunt 2) — TAKING AN OFFER IS AN ENGINE DECISION, not a tap-handler gesture.
+   The consent stays with the tap; what the consent MEANS belongs here, where it can be pinned.
+   And a graduation the athlete has taken outranks every LOWER one still standing for that lift:
+   the two-rung offer and the automatic one-rung debut are queued by the same session, and
+   running the 60 after taking the 65 would prescribe below the load he already bought. */
+function takeProposedDebut(s, id) {
+  try {
+    const q9 = (s.queue || []).find((x9) => x9 && x9.id === id && !x9.done && x9.state === "PROPOSED");
+    if (!q9) return s;
+    q9.state = "DEBUT";
+    q9.t = String(q9.t).replace(" — TWO-RUNG DEBUT PROPOSED", " DEBUT (two-rung, your call)").replace(" — EARN PROPOSED OFF ONE SIGHTING", " DEBUT (early, your call)");
+    for (const x9 of (s.queue || [])) {
+      if (!x9 || x9 === q9 || x9.done || x9.kind !== "debut" || x9.exId !== q9.exId) continue;
+      if (!(typeof x9.newW === "number" && typeof q9.newW === "number" && x9.newW < q9.newW)) continue;
+      x9.done = true; x9.state = "SUPERSEDED";
+    }
+    return s;
+  } catch (e) { return s; }
+}
+/* FIX-4 §6 — ONE GRADUATION PUTS ONE LOAD ON THE BAR. Debut ids carry the earn day now (§2), so
+   two devices that each independently earned the SAME load offline queue two ids for what is one
+   physical graduation — the parked duplicate-earn residual, one level down in the queue. The
+   receipts stay parked and both survive; the QUEUE reconciles, keeping the earliest graduation
+   (the adopt-receipt rule, direction-free) and closing the rest as superseded rather than
+   deleting them. A DONE debut is never touched: a completed graduation and a later re-earn of
+   the same load are two different events and both belong on the record. */
+function reconcileDebutQueue(s) {
+  try {
+    const best9 = new Map();
+    for (const q9 of ((s && s.queue) || [])) {
+      if (!q9 || q9.done || q9.kind !== "debut" || q9.state === "PROPOSED") continue;
+      if (q9.exId == null || typeof q9.newW !== "number") continue;
+      const k9 = String(q9.exId) + "|" + String(q9.newW);
+      const cur9 = best9.get(k9);
+      if (!cur9 || String(q9.id) < String(cur9.id)) best9.set(k9, q9);
+    }
+    for (const q9 of ((s && s.queue) || [])) {
+      if (!q9 || q9.done || q9.kind !== "debut" || q9.state === "PROPOSED") continue;
+      if (q9.exId == null || typeof q9.newW !== "number") continue;
+      const k9 = String(q9.exId) + "|" + String(q9.newW);
+      if (best9.get(k9) !== q9) { q9.done = true; q9.state = "SUPERSEDED"; }
     }
   } catch (e) {}
   return s;
@@ -2266,9 +2377,8 @@ function reconcileEraTransitions(s) {
           const exR = { ...ex, w: (typeof en.w === "number" ? en.w : ex.w), sets: r.length || ex.sets };
           if (typeof exR.w === "number" && atTopOfWindow(r, exR, s, days[i])) {
             const lines9 = [];
-            earnWalk(s, exR, en, r, prevEn ? { w: prevEn.w, reps: prevEn.reps } : null, (t9, how9) => lines9.push({ t: t9, how: how9 }));
+            earnWalk(s, exR, en, r, prevEn ? { w: prevEn.w, reps: prevEn.reps } : null, (t9, how9) => lines9.push({ t: t9, how: how9 }), days[i]);
             for (const l9 of lines9) {
-              if ((s.feed || []).some((f9) => f9 && f9.t === l9.t)) continue;   /* the serial device already told this story */
               const op9 = "replay:" + days[i] + ":" + ex.id + ":" + String(l9.t).slice(0, 32);
               if ((s.feed || []).some((f9) => f9 && f9.op === op9)) continue;
               s.feed.unshift({ d: days[i], t: l9.t, how: l9.how, op: op9 });
@@ -2317,7 +2427,15 @@ function reconcileEraTransitions(s) {
    verbatim so the post-merge era reconciliation replays EXACTLY the code the
    serial run executes — equality with the serial oracle by construction, not
    by imitation. Caller guarantees atTopOfWindow and a numeric ex.w. */
-function earnWalk(s, ex, en, r, prevMeta, push) {
+/* FIX-4 §2 — dEarn is the DAY THIS GRADUATION WAS DECIDED, and it rides into every debut id.
+   The id "q_press_255" was reused by every graduation to 255 the lift ever made, so a COMPLETED
+   debut from the first one and an ACTIVE debut from a re-earn shared a key — one MERGE_KEYED pass
+   from collapsing into each other (the completed history erased, or the new debut marked done
+   before it ran). Keyed by the earn day, the serial walk and the merge's replay produce the SAME
+   id for the same graduation and different ids for different ones. Existing queue items are never
+   rewritten, and every already-check is id-independent. */
+function earnWalk(s, ex, en, r, prevMeta, push, dEarn) {
+  const grad9 = String(dEarn || (en && en.d) || "");
   const upNext = nextLoad(ex);
   if (upNext == null) {
       const topRun0 = String(ex.topAt) === String(ex.w) ? (ex.topRun || 0) + 1 : 1;
@@ -2368,7 +2486,7 @@ function earnWalk(s, ex, en, r, prevMeta, push) {
            [9,9] rirSets [0,2], 07-31 hack [11,10,11] [0,null,2], 07-31 extension [10,9] [0,2]. */
         const rirH9 = (() => { const a9 = Array.isArray(en.rirSets) ? en.rirSets : []; const v9 = a9.length ? a9[a9.length - 1] : null; return v9 != null ? v9 : (en.rirEnd != null ? en.rirEnd : null); })();
         if (!already && rirH9 != null && rirH9 >= 2 && upNext != null && !s.queue.some((x) => x.exId === ex.id && !x.done && (x.kind === "debut" || x.kind === "unlock"))) {
-          s.queue.push({ id: `q_${ex.id}_${upNext}_1s`, kind: "debut", exId: ex.id, newW: upNext, done: false, state: "PROPOSED", t: `${ex.n.toUpperCase()} ${upNext} — EARN PROPOSED OFF ONE SIGHTING`, rule: "Rides only on your tap — the automatic earn still waits for an honest opener.", gate: `Top of the window at ${ex.w}, terminal set with ${rirH9} in reserve — the line was there even though the opener was a grind. Your call: tap to take it, or repeat it honest and it queues itself.` });
+          s.queue.push({ id: `q_${ex.id}_${upNext}_${grad9}_1s`, kind: "debut", exId: ex.id, newW: upNext, ...(Array.isArray(ex.wSets) && typeof ex.w === "number" && typeof upNext === "number" ? { newWSets: ex.wSets.map((x9) => x9 + (upNext - ex.w)) } : {}), done: false, state: "PROPOSED", t: `${ex.n.toUpperCase()} ${upNext} — EARN PROPOSED OFF ONE SIGHTING`, rule: "Rides only on your tap — the automatic earn still waits for an honest opener.", gate: `Top of the window at ${ex.w}, terminal set with ${rirH9} in reserve — the line was there even though the opener was a grind. Your call: tap to take it, or repeat it honest and it queues itself.` });
           push(`${ex.n.toUpperCase()} ${upNext} — EARN PROPOSED OFF ONE SIGHTING`, `${ex.w}×${r.join(",")} — the opener ran hot, so this does not queue itself; the terminal set had ${rirH9} in reserve at the top of the window, so the offer stands on your tap.`);
         }
       } else if (confirmed && !already) {
@@ -2385,7 +2503,7 @@ function earnWalk(s, ex, en, r, prevMeta, push) {
           ? `${ex.w}×${r.join(",")} — ${bn.margin} reps clear of last time, and two standard errors of the new-minus-old difference (both sessions carry error) is ${bn.need}. That is outside the noise, so it banks on one sighting.`
           : `${ex.w}×${r.join(",")} — second session at the top of the window at this load. One is inside your ±${(typicalError(s, ex.id).reps).toFixed(2)}-rep spread; two is not.`;
         s.queue.forEach((x) => { if (x.exId === ex.id && x.state === "PROPOSED" && !x.done) { x.done = true; x.state = "SUPERSEDED"; } });   /* the classic earn outranks any standing offer */
-        if (rung2 != null) s.queue.push({ id: `q_${ex.id}_${rung2}_2r`, kind: "debut", exId: ex.id, newW: rung2, done: false, rule: "Rides only on your tap — the single-rung debut queues automatically either way.", t: `${ex.n.toUpperCase()} ${rung2} — TWO-RUNG DEBUT PROPOSED`, state: "PROPOSED", gate: `Terminal set had ${rirT9} in reserve at the top of the window — the one-rung jump underprices what was delivered. Your call: this rides only if you tap it, and the ${upNext} single-rung debut queues either way.` });
+        if (rung2 != null) s.queue.push({ id: `q_${ex.id}_${rung2}_${grad9}_2r`, kind: "debut", exId: ex.id, newW: rung2, ...(Array.isArray(ex.wSets) && typeof ex.w === "number" && typeof rung2 === "number" ? { newWSets: ex.wSets.map((x9) => x9 + (rung2 - ex.w)) } : {}), done: false, rule: "Rides only on your tap — the single-rung debut queues automatically either way.", t: `${ex.n.toUpperCase()} ${rung2} — TWO-RUNG DEBUT PROPOSED`, state: "PROPOSED", gate: `Terminal set had ${rirT9} in reserve at the top of the window — the one-rung jump underprices what was delivered. Your call: this rides only if you tap it, and the ${upNext} single-rung debut queues either way.` });
         /* Hunt 4 (Grok, executed) — THE VECTOR ADVANCES WITH THE LOAD. genSession has a
            per-slot debut arm that reads q.newWSets, and nothing ever wrote it: the curl earned
            60, the card rendered at 60, and after the debut completed ex.wSets was STILL
@@ -2393,7 +2511,7 @@ function earnWalk(s, ex, en, r, prevMeta, push) {
            earn now mints the vector the same way the owner ruled the graduation: uniformly, by
            the load's own step (55·55·50 + 5 = 60·60·55). A lift with no wSets mints nothing and
            is byte-identical to today. */
-        s.queue.push({ id: `q_${ex.id}_${upNext}`, kind: "debut", exId: ex.id, newW: upNext, ...(Array.isArray(ex.wSets) && typeof ex.w === "number" && typeof upNext === "number" ? { newWSets: ex.wSets.map((x9) => x9 + (upNext - ex.w)) } : {}), t: `${ex.n.toUpperCase()} ${upNext} DEBUT`, state: "DEBUT", gate: `Earned via ${ex.w}×${r.join(",")}`, rule: "Auto-queued — runs when it wins the structural slot", done: false });
+        s.queue.push({ id: `q_${ex.id}_${upNext}_${grad9}`, kind: "debut", exId: ex.id, newW: upNext, ...(Array.isArray(ex.wSets) && typeof ex.w === "number" && typeof upNext === "number" ? { newWSets: ex.wSets.map((x9) => x9 + (upNext - ex.w)) } : {}), t: `${ex.n.toUpperCase()} ${upNext} DEBUT`, state: "DEBUT", gate: `Earned via ${ex.w}×${r.join(",")}`, rule: "Auto-queued — runs when it wins the structural slot", done: false });
         push(`${ex.n.toUpperCase()} ${upNext} EARNED`, how + (loadRungs(ex) ? " Next rung this machine makes." : " Confirm the rung: does this machine actually make " + upNext + " next? If not, fix the ladder in SETUP (uneven ✎) before the debut."));   /* R18c — the EARNED banner asks for rung confirmation where no ladder is on file */
       } else if (!already) {
         /* R18d AMENDMENT (Joe's ruling, 2026-08-10): at the top of the window with the
@@ -2402,7 +2520,7 @@ function earnWalk(s, ex, en, r, prevMeta, push) {
            only when the athlete's own terminal answer says the top was not a grind. */
         const rirT8 = (() => { const a9 = Array.isArray(en.rirSets) ? en.rirSets : []; const v9 = a9.length ? a9[a9.length - 1] : null; return v9 != null ? v9 : (en.rirEnd != null ? en.rirEnd : null); })();
         if (rirT8 != null && rirT8 >= 2) {
-          s.queue.push({ id: `q_${ex.id}_${upNext}_1s`, kind: "debut", exId: ex.id, newW: upNext, done: false, rule: "Rides only on your tap — untapped, the two-for-two law runs as always.", t: `${ex.n.toUpperCase()} ${upNext} — EARN PROPOSED OFF ONE SIGHTING`, state: "PROPOSED", gate: `${ex.w}×${r.join(",")} tops the window with ${rirT8} in reserve on the failure set. One sighting is inside your own spread, so the automatic earn still waits for the second — but an honest top with reps in reserve is your call to take early. Tap it and ${upNext} debuts; skip it and the two-for-two law runs as always.` });
+          s.queue.push({ id: `q_${ex.id}_${upNext}_${grad9}_1s`, kind: "debut", exId: ex.id, newW: upNext, ...(Array.isArray(ex.wSets) && typeof ex.w === "number" && typeof upNext === "number" ? { newWSets: ex.wSets.map((x9) => x9 + (upNext - ex.w)) } : {}), done: false, rule: "Rides only on your tap — untapped, the two-for-two law runs as always.", t: `${ex.n.toUpperCase()} ${upNext} — EARN PROPOSED OFF ONE SIGHTING`, state: "PROPOSED", gate: `${ex.w}×${r.join(",")} tops the window with ${rirT8} in reserve on the failure set. One sighting is inside your own spread, so the automatic earn still waits for the second — but an honest top with reps in reserve is your call to take early. Tap it and ${upNext} debuts; skip it and the two-for-two law runs as always.` });
         }
         const te = typicalError(s, ex.id);
         push(`${ex.n.toUpperCase()} — TOP OF WINDOW, PROVISIONAL`, `${r.join(",")} tops the window${bn.margin > 0 ? `, ${bn.margin} rep${bn.margin === 1 ? "" : "s"} up on last time` : ""} — but your own set-to-set spread is ±${te.reps.toFixed(2)} reps (${te.src}), so one sighting cannot be told apart from a good day. Repeat it and the load queues itself. Sleep does not enter into it.`);
@@ -2582,7 +2700,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
        hack sighting was never banked — demanding two NEW ones later would prescribe
        below what was delivered. The earn itself still waits for a load to earn INTO;
        the RECORD of having topped the window does not. */
-    if (atTop && typeof ex.w === "number") earnWalk(s, ex, en, r, prevMeta, push);   /* R13 fix-2 — the ONE walk; the replay calls the same function */
+    if (atTop && typeof ex.w === "number") earnWalk(s, ex, en, r, prevMeta, push, iso);   /* R13 fix-2 — the ONE walk; the replay calls the same function */
     if (!(atTop && typeof ex.w === "number" && upNext != null)) {
       if (!atTop && typeof ex.w === "number" && String(ex.topAt) === String(ex.w)) { ex.topRun = 0; }   /* R18b — reset only on falling OFF the top; a no-next-load sighting banked above must survive this line */
       /* R20b ruling (audit low note, ruled at merge): a lift with NO history grades every
@@ -9812,7 +9930,7 @@ function applyProposal(state, pid, nudge = 0, via = "cal") {
         exS.setsAt = new Date().toISOString();   /* AUDIT G — every sets mutator stamps */
         row.exUndo = { exId: exS.id, field: "sets", prev };
         row.setsDelta = d9;
-        s.feed.unshift({ d: today, t: `VOLUME ${d9 > 0 ? "+" + d9 : d9} — ${mgLabel(p.apply.mg || exS.head || exS.mg).toUpperCase()} via ${exS.n} (now ${exS.sets} sets)`, how: `${p.title} — the count changes next session; the effort ladder re-keys itself, and the trend window restarts so the read is honest. The next push on this muscle waits for that read. One tap to undo.` });
+        s.feed.unshift({ d: today, at: new Date().toISOString(), t: `VOLUME ${d9 > 0 ? "+" + d9 : d9} — ${mgLabel(p.apply.mg || exS.head || exS.mg).toUpperCase()} via ${exS.n} (now ${exS.sets} sets)`, how: `${p.title} — the count changes next session; the effort ladder re-keys itself, and the trend window restarts so the read is honest. The next push on this muscle waits for that read. One tap to undo.` });
       } else {
         s.feed.unshift({ d: today, t: "ADJUSTMENT LOGGED — YOUR VERSION WAS ZERO", how: `${p.title} — you dialed the change to zero; nothing moved, and the card closed as your call.` });
       }
@@ -9970,7 +10088,7 @@ function applyAgentProposal(state, ap, tISO) {
       return s;
     }
     const ex7 = s.exercises.find((x) => x.id === ap.exId);
-    if (ex7) { ex7.sets = Math.max(1, (ex7.sets || 1) + ap.dir); ex7.setsAt = new Date().toISOString();   /* AUDIT G — every sets mutator stamps, or the merge reverts the change */ s.feed.unshift({ d: tISO, t: `VOLUME ${ap.dir > 0 ? "+1" : "−1"} — ${ap.mg.toUpperCase()} via ${ex7.n} (now ${ex7.sets} sets)`, how: "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited" }); }
+    if (ex7) { ex7.sets = Math.max(1, (ex7.sets || 1) + ap.dir); ex7.setsAt = new Date().toISOString();   /* AUDIT G — every sets mutator stamps, or the merge reverts the change */ s.feed.unshift({ d: tISO, at: new Date().toISOString(), t: `VOLUME ${ap.dir > 0 ? "+1" : "−1"} — ${ap.mg.toUpperCase()} via ${ex7.n} (now ${ex7.sets} sets)`, how: "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited" }); }
   } else if (ap.kind === "reset" && ap.exId && ap.newW) {
     const ex3 = s.exercises.find((x) => x.id === ap.exId);
     if (ex3) { const oldW = ex3.w; ex3.w = ap.newW; ex3.wAt = new Date().toISOString(); ex3.last = null; s.feed.unshift({ d: tISO, t: "RESET APPLIED — " + ex3.n + " " + oldW + " → " + ap.newW, how: "3-session stall, evidence-based back-off, your consent — rebuild starts next session" }); }
@@ -12108,7 +12226,7 @@ function _settleExit(st) {
     st.plan.setAt = set9;
     st.plan.rev = +st.plan.rev || 0;
   }
-  reconcileTrendChain(st); reconcileReadReceipts(st); reconcileSuggestionEffects(st); reconcileSightings(st);   /* A6 — the sighting record derives at the BOOT exit */
+  reconcileTrendChain(st); reconcileReadReceipts(st); reconcileSuggestionEffects(st); reconcileSightings(st); reconcileDebutQueue(st);   /* A6 — the sighting record derives at the BOOT exit; FIX-4 §6 — and one graduation keeps one active debut */
   if (Array.isArray(st.feed)) st.feed = _feedSorted(st.feed);
   st.suggestionLog = _sugSorted(st.suggestionLog);
   return st;
@@ -14292,6 +14410,7 @@ function mergeState(local, remote) {
      order-dependent consumer is the renderer. forecasts joins by date and does not care. */
   reconcileEraTransitions(normalizePlan(out));
   reconcileSightings(out, { mint: true });   /* A6 — the sighting record derives at the MERGE exit, and the joint-sighting mint fires HERE ONLY (a boot over legacy data can never mint) */
+  reconcileDebutQueue(out);                  /* FIX-4 §6 — two devices, one graduation, one load on the bar */
   reconcileReadReceipts(out);          /* SCALE-2 — the read receipts re-derive from the merged reads */
   reconcileSuggestionEffects(out);     /* SCALE-2 — the suggestion effects re-derive from the merged log */
   if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);
@@ -14472,7 +14591,9 @@ __test.dataLossGuard = dataLossGuard;
 __test._isFeedProjection = _isFeedProjection;
 __test.resetForksOf = resetForksOf;
 __test.deriveSighting = deriveSighting;
-__test.progressionSetCount = progressionSetCount;   /* A5 — the pins assert the prefix rule directly */   /* A6 — the pins assert the derivation directly */   /* PROGRESSION-1 — the TECHNIQUE-only fork set: the pins assert the reset-bearing class directly rather than re-spelling its predicate */   /* v7.55.2 — the guard pin asserts the app's own projection class, not a rig's re-spelling of it */
+__test.progressionSetCount = progressionSetCount;
+__test.takeProposedDebut = takeProposedDebut;   /* FIX-4 §4 — the consent's MEANING is engine law, so the pins drive it directly */
+__test.reconcileDebutQueue = reconcileDebutQueue;   /* A5 — the pins assert the prefix rule directly */   /* A6 — the pins assert the derivation directly */   /* PROGRESSION-1 — the TECHNIQUE-only fork set: the pins assert the reset-bearing class directly rather than re-spelling its predicate */   /* v7.55.2 — the guard pin asserts the app's own projection class, not a rig's re-spelling of it */
 __test._isFeedDerived = _isFeedDerived;   /* v7.55.3 — and the guard's strictly smaller derived class */
 __test.mergeState = mergeState;
 __test.fiveLevers = fiveLevers;
@@ -17839,7 +17960,7 @@ function LogTab({ s, setS, save, slp }) {
           <Eyebrow c={T.brass}>{q.t}</Eyebrow>
           <div style={{ fontFamily: body, fontSize: TS.body, color: T.steel, marginTop: 6, lineHeight: 1.55 }}>{q.gate}</div>
           <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-            <Btn small tone="gauge" onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const q2 = ns.queue.find((x) => x.id === q.id); if (q2) { q2.state = "DEBUT"; q2.t = q2.t.replace(" — TWO-RUNG DEBUT PROPOSED", " DEBUT (two-rung, your call)").replace(" — EARN PROPOSED OFF ONE SIGHTING", " DEBUT (early, your call)"); } ns.feed.unshift({ d: isoOf(todayStart()), t: q.t + " — TAKEN", how: "Your tap is the consent on the record; it queues like any earned debut from here." }); setS(ns); save(ns); hap(12); }}>Take it</Btn>
+            <Btn small tone="gauge" onClick={() => { const ns = takeProposedDebut(JSON.parse(JSON.stringify(s)), q.id); ns.feed.unshift({ d: isoOf(todayStart()), t: q.t + " — TAKEN", how: "Your tap is the consent on the record; it queues like any earned debut from here." }); setS(ns); save(ns); hap(12); }}>Take it</Btn>
             <Btn small onClick={() => { const ns = JSON.parse(JSON.stringify(s)); const q2 = ns.queue.find((x) => x.id === q.id); if (q2) { q2.done = true; q2.state = "DECLINED"; } setS(ns); save(ns); }}>Not today</Btn>
           </div>
         </Card>

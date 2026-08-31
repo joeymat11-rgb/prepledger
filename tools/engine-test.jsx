@@ -8012,7 +8012,7 @@ if (fail) process.exit(1);
       const deb = NS.queue.find((x) => x.exId === ex.id && x.state === "DEBUT");
       ok(!!deb && sup && sup.done === true && sup.state === "SUPERSEDED", "R18 fix D1 — the two-for-two earn SUPERSEDES the standing offer: it goes done/SUPERSEDED and the automatic debut queues, so an offer can never double-fire after the law has run");
     }
-    ok(srcF8.indexOf('q2.state = "DEBUT"') > -1 && srcF8.indexOf("Take it") > -1 && srcF8.indexOf('q2.state = "DECLINED"') > -1, "R18 fix D1 — PROPOSED items render as tappable cards on TRAIN: Take it flips to a normal DEBUT, Not today declines on the record");
+    ok(srcF8.indexOf("takeProposedDebut(JSON.parse") > -1 && srcF8.indexOf('q9.state = "DEBUT"') > -1 && srcF8.indexOf("Take it") > -1 && srcF8.indexOf('q2.state = "DECLINED"') > -1, "R18 fix D1 → FIX-4 §4 — PROPOSED items still render as tappable cards on TRAIN, but the TAP now delegates to takeProposedDebut and the state change is ENGINE law: Take it flips to a normal DEBUT and supersedes every lower graduation still standing for that lift, Not today declines on the record. This pin used to assert the inline `q2.state = \"DEBUT\"` in the handler — a census pin written against the old shape, re-aimed rather than deleted");
     /* D2 — the single-weight answer */
     ok(srcF8.indexOf("const one9 = parsed ? null : Number(String(raw9).replace(") > -1 && srcF8.indexOf("one number (the next step up) or the whole ladder") > -1, "R18 fix D2 — the advertised single-weight answer works (parseRungs needs 2+; one number is the COMMON case and seeds [w, n]) and an unparseable answer speaks instead of no-oping");
     /* D3 — both surfaces */
