@@ -2947,6 +2947,69 @@ export function runClosureSF2(T, ok, readFileSync) {
         "FIX-4 §6 — and EXACTLY ONE debut is active, both orders: two receipts telling one graduation must still put one load on the bar (observed " + JP(act6(ab6).map((q) => q.id)) + ")");
     }
 
+
+    /* ---- FIX-4b §1 (Grok hunt-2) — both name scans see the lift's FORMER names ---- */
+    {
+      const mkN = () => {
+        const s9 = T.migrate(null);
+        const ex = s9.exercises.find((x) => x.id === "press");
+        ex.forks = []; ex.std = null; ex.own = false; ex.reclaim = null; ex.ladder = null;
+        ex.w = 250; ex.sets = 2; ex.hi = 9; ex.last = [9, 9]; ex.inc = 5; ex.topAt = null; ex.topRun = 0;
+        ex.lastMeta = { d: "2026-08-16", w: 250, reps: [9, 9] };
+        s9.queue = []; s9.feed = [];
+        return s9;
+      };
+      const topN = (s9, d9) => T.completeSession(s9, d9, [{ id: "press", w: 250, tgt: [9, 9], reps: [9, 9], rir: 2, rirSets: [2, 0] }], { clean: true, last: { h: 8 }, mean3: 8 }, { pg: 52 }).s;
+      const vN = (s9) => { const e9 = s9.exercises.find((x) => x.id === "press");
+        return JP({ rec: [e9.topAt == null ? null : e9.topAt, e9.topRun || 0],
+          earned: (s9.feed || []).filter((f) => f && / EARNED$/.test(String(f.t || ""))).length,
+          debut: (s9.queue || []).filter((q) => q && q.exId === "press" && q.kind === "debut" && !q.done).length }); };
+      /* two tops earn 255 on 08-20; the debut is queued and NEVER RUN */
+      let n9 = topN(topN(mkN(), "2026-08-18"), "2026-08-20");
+      /* then the lift is RENAMED — a pure rename, which lives in renames[] and nowhere else */
+      const exN = n9.exercises.find((x) => x.id === "press");
+      exN.renames = [{ from: "2026-08-22", prevN: exN.n }];
+      exN.n = "Overhead press (Prime)";
+      exN.lastMeta = { d: "2026-08-20", w: 250, reps: [9, 9] };
+      n9 = topN(n9, "2026-08-24");                    /* one top since the earn: sighting ONE */
+      const booted = T.migrate(clP(n9));
+      ok(vN(booted) === JP({ rec: [250, 1], earned: 1, debut: 1 }),
+        "FIX-4b §1 (Grok hunt-2) — THE EARN-WINDOW SCAN MUST SEE THE LIFT'S OLD NAME. A pure rename lives in renames[] and nowhere else, and the derivation's name set was built from ex.n and forks[].prevN only — so after a rename the spend receipt 'PRESS 255 EARNED' became invisible, the earn window vanished, and a PLAIN BOOT re-counted the pair the earn had already spent: the record was rewritten from 250/1 to 250/3. Five live lifts carry old names visible only through renames (rearDelt, curl, sulek, abs, hanging), so this is his data, not a synthetic shape (observed " + vN(booted) + ")");
+      const more = topN(clP(booted), "2026-08-26");
+      ok(vN(more) === JP({ rec: [250, 2], earned: 1, debut: 1 }),
+        "FIX-4b §1 — and the next top is sighting TWO, not four: EXACTLY ONE earn receipt still stands and exactly one debut is queued. The duplicate earn is blocked today only because the pending debut sits in the already-guard — dismiss that debut and the inflated record buys a load it already banked, which is why the count itself has to be right rather than merely fenced (observed " + vN(more) + ")");
+      /* the junk add this replaces: renames[].from is a DATE, so the old set was adding
+         "2026-08-13" to a set of NAMES and matching nothing */
+      ok(typeof T._formerNames === "function"
+        && T._formerNames(exN).indexOf("Overhead press (Prime)") > -1
+        && T._formerNames(exN).indexOf(String((exN.renames || [])[0].prevN)) > -1
+        && T._formerNames(exN).every((x) => !/^\d{4}-\d{2}-\d{2}$/.test(String(x))),
+        "FIX-4b §1 — one helper answers 'what has this lift been called', and it reads renames[].prevN. The old _volDeltas set added renames[].from — the DATE — to a set of names, so it matched nothing and merely looked as though renames were handled (observed " + JP(typeof T._formerNames === "function" ? T._formerNames(exN) : null) + ")");
+    }
+    /* ---- FIX-4b §1 — on his own history: three receipts that were invisible ---- */
+    withClock(RULED, () => {
+      const m9 = T.migrate(clP(rawP1));
+      const g9 = (id) => m9.exercises.find((x) => x.id === id);
+      const has9 = (id, needle) => typeof T._formerNames === "function" && T._formerNames(g9(id)).some((x) => String(x).indexOf(needle) > -1);
+      ok(has9("abs", "Abs") && has9("curl", "Curls") && has9("rearDelt", "cable · uni"),
+        "FIX-4b §1 LIVE — the three receipts his ledger actually carries under old names are reachable again: abs was renamed to 'Prime abdominal crunch' but its VOLUME line and its 'ABS 100 EARNED' receipt both say ABS; curl became 'Curls (preacher)' while its push says 'via Curls'; and rearDelt's rename changed a '·' to a ',' — punctuation alone defeated the match (observed " + JP(typeof T._formerNames === "function" ? T._formerNames(g9("rearDelt")) : null) + ")");
+      const dv9 = typeof T._volDeltas === "function" ? T._volDeltas(g9("curl"), m9) : [];
+      /* and the records themselves do not move: the receipts becoming visible must CHANGE
+         WHAT THE ENGINE CAN SEE without changing what it currently says */
+      const norm4b = (a, w) => { const t = a && a.topAt != null ? a.topAt : null, r = (a && a.topRun) || 0;
+        return (r === 0 || String(t) !== String(w)) ? JP({ topAt: null, topRun: 0 }) : JP({ topAt: t, topRun: r }); };
+      const drift4b = [];
+      for (const ex of m9.exercises) {
+        if (!T.exActive(m9, ex.id)) continue;
+        const b4 = (clP(rawP1).exercises || []).find((x) => x.id === ex.id) || {};
+        if (norm4b(b4, ex.w) !== norm4b(ex, ex.w)) drift4b.push(ex.id);
+      }
+      ok(JP(drift4b) === JP(["abs"]),
+        "FIX-4b §1 LIVE — and NO LIVE RECORD MOVES. Every active lift still derives what it stores, with the single enumerated abs exception A6 already carries — including abs itself, whose 2026-07-21 EARNED receipt this fix makes visible for the first time. The receipts becoming readable changes what the engine CAN see, not what it currently says: the affected earns all had their debuts completed, so the load boundary already bounded the tenure before the invisible receipt could matter. That is why this was a defect held off by coincidence rather than a live wrong number, and it is pinned so the coincidence is no longer what protects him (observed drift " + JP(drift4b) + ")");
+      ok(dv9.some((p) => String(p[0]) === "2026-08-09" && p[1] > 0),
+        "FIX-4b §1 LIVE — and curl's own 2026-08-09 volume push is counted again, so the set count it carried before that day is read back correctly instead of being assumed to be today's (observed " + JP(dv9) + ")");
+    });
+
     /* ---- A9 — the curl restatement is tied to the current load ---- */
     withClock(RULED, () => {
       const race = clP(rawP1);

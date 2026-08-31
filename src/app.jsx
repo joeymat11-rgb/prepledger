@@ -1044,10 +1044,32 @@ function _loadTenure(ex, s, ref, fks) {
   while (i0 > 0 && String(all9[i0 - 1][1].w != null ? all9[i0 - 1][1].w : all9[i0 - 1][1].wKey) === key9) i0--;
   return { all: all9, tenure: all9.slice(i0) };
 }
+/* FIX-4b §1 (Grok hunt-2) — WHAT HAS THIS LIFT BEEN CALLED. Two scans needed the answer and each
+   rolled its own set, and both were wrong in a different way: the derivation's EARNED scan read
+   ex.n and forks[].prevN and never looked at renames at all, and _volDeltas added
+   renames[].from — which is the DATE — to a set of NAMES, so it matched nothing while looking
+   as though renames were handled. A PURE rename lives in renames[] and nowhere else, and five of
+   his lifts carry old names only there (rearDelt, curl, sulek, abs, hanging; rows also has a fork
+   with the same prevN, which is why it was accidentally covered).
+   The consequences are not cosmetic. His ledger holds "VOLUME +1 — BICEPS via Curls" under a
+   lift now called "Curls (preacher)", a rear-delt push whose rename changed a "·" to a "," —
+   punctuation alone defeated the match — and "ABS 100 EARNED" under a lift now called "Prime
+   abdominal crunch". An invisible EARNED receipt is an invisible earn WINDOW, so the derivation
+   re-counts the pair the earn already spent: measured, a renamed press went from 250/1 to 250/3
+   on a plain boot, and to 250/4 on the next top. Today's outputs happen not to move only because
+   every affected earn's debut completed and the load boundary bounds the tenure first — a defect
+   held off by coincidence.
+   One helper, both callers, casing at the call site — the same consolidation the load tenure
+   got, and for the same reason: two readers of one fact drift. */
+function _formerNames(ex) {
+  const out9 = new Set([String((ex && ex.n) || "")]);
+  for (const f9 of (((ex && ex.forks)) || [])) if (f9 && f9.prevN) out9.add(String(f9.prevN));
+  for (const r9 of (((ex && ex.renames)) || [])) if (r9 && r9.prevN) out9.add(String(r9.prevN));
+  out9.delete("");
+  return [...out9];
+}
 function _volDeltas(ex, s) {
-  const names9 = new Set([String((ex && ex.n) || "")]);
-  for (const f9 of (((ex && ex.forks)) || [])) if (f9 && f9.prevN) names9.add(String(f9.prevN));
-  for (const r9 of (((ex && ex.renames)) || [])) if (r9 && r9.from) names9.add(String(r9.from));
+  const names9 = _formerNames(ex);
   const out9 = [];
   for (const f9 of ((s && s.feed) || [])) {
     if (!f9 || typeof f9.t !== "string" || f9.t.indexOf("VOLUME ") !== 0) continue;
@@ -2190,8 +2212,7 @@ function beatsNoise(s, exId, reps, prev) {
 function _deriveSightingFull(s, ex) {
   try {
     if (!ex || typeof ex.w !== "number" || !isFinite(ex.w)) return { topAt: null, topRun: 0, tops: [] };
-    const names9 = new Set([String(ex.n || "").toUpperCase()]);
-    for (const f9 of ((ex.forks) || [])) if (f9 && f9.prevN) names9.add(String(f9.prevN).toUpperCase());
+    const names9 = _formerNames(ex).map((n9) => n9.toUpperCase());   /* FIX-4b §1 — including every renames[].prevN, or an earn filed under the old name is an invisible spend */
     const tech9 = resetForksOf(s, ex.id).slice().sort((a9, b9) => (a9.from < b9.from ? -1 : 1));
     const eraFrom9 = tech9.length ? tech9[tech9.length - 1].from : null;
     /* the walk's own receipts are the record of what it decided — an EARNED line SPENDS the
@@ -14592,6 +14613,8 @@ __test._isFeedProjection = _isFeedProjection;
 __test.resetForksOf = resetForksOf;
 __test.deriveSighting = deriveSighting;
 __test.progressionSetCount = progressionSetCount;
+__test._formerNames = _formerNames;   /* FIX-4b §1 — the pins assert the name family directly, on his own blob */
+__test._volDeltas = _volDeltas;
 __test.takeProposedDebut = takeProposedDebut;   /* FIX-4 §4 — the consent's MEANING is engine law, so the pins drive it directly */
 __test.reconcileDebutQueue = reconcileDebutQueue;   /* A5 — the pins assert the prefix rule directly */   /* A6 — the pins assert the derivation directly */   /* PROGRESSION-1 — the TECHNIQUE-only fork set: the pins assert the reset-bearing class directly rather than re-spelling its predicate */   /* v7.55.2 — the guard pin asserts the app's own projection class, not a rig's re-spelling of it */
 __test._isFeedDerived = _isFeedDerived;   /* v7.55.3 — and the guard's strictly smaller derived class */
