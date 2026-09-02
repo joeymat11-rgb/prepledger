@@ -1,17 +1,17 @@
 {
-  "gen": "2026-08-31T09:06:20.918Z",
+  "gen": "2026-09-02T09:05:17.457Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 163.05,
-    "lastRaw": 162.4,
-    "appTrend": 162.9,
-    "noiseFloor": 1.47,
-    "gap": 0.65
+    "soft": 163.36,
+    "lastRaw": 163.4,
+    "appTrend": 163.3,
+    "noiseFloor": 1.46,
+    "gap": -0.04
   },
   "rate": {
-    "perWeekLb": -0.14,
-    "perWeekPct": -0.09,
-    "bandLb": 0.68,
+    "perWeekLb": 0.25,
+    "perWeekPct": 0.15,
+    "bandLb": 2.44,
     "personalBand": [
       1,
       1.4
@@ -19,28 +19,21 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2663,
-    "tdeeWinDays": 18,
-    "meanCal": 2437,
+    "tdee": 2484,
+    "tdeeWinDays": 20,
+    "meanCal": 2374,
     "waterSensitivityLb": 1.13,
     "waterSensDays": 4,
-    "meanSleepH": 7.9,
+    "meanSleepH": 7.7,
     "sleepDebt7H": 0,
     "ffmKg": 63.4,
     "proteinTargetG": 146
   },
   "regime": {
     "regime": "plateau",
-    "why": "water masking (recent sodium/alcohol/event) - a whoosh likely pending"
+    "why": "deficit has shrunk - intake near your TDEE"
   },
   "weeks": [
-    {
-      "wk": "2026-07-13",
-      "meanCal": 1903,
-      "meanPro": 173,
-      "proHitPct": 100,
-      "meanSteps": 15117
-    },
     {
       "wk": "2026-07-20",
       "meanCal": 2091,
@@ -75,6 +68,13 @@
       "meanPro": 174,
       "proHitPct": 100,
       "meanSteps": 18125
+    },
+    {
+      "wk": "2026-08-31",
+      "meanCal": 2150,
+      "meanPro": 175,
+      "proHitPct": 100,
+      "meanSteps": 20000
     }
   ],
   "priorDecisions": [

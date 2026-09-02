@@ -1,47 +1,47 @@
 {
-  "gen": "2026-08-31T09:06:20.918Z",
+  "gen": "2026-09-02T09:05:17.457Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-23_morningread",
-      "rank": 1,
-      "title": "Last call: step on the scale tomorrow morning — the fat-or-water verdict dies with it",
-      "apply": { "kind": "note" },
-      "rationale": {
-        "science": "Scale weight is noisy day to day — water, sodium and glycogen swing it without any fat change (Powers 2003) — which is exactly why one morning read against a carried trend is enough: a single number grades a two-week question that no amount of waiting can.",
-        "data": "Last read 8/21 at 162.4; trend carried at 162.9 for ten days; your measured rate currently reads anywhere from standing still to ~0.74 lb/wk — an interval your own app now prints too.",
-        "relationship": "One read collapses that interval and grades the late-August drop: mid-162s means fat, confirmed; low 163s means water giveback, on script; above 163.5 means I over-read it. Tomorrow is the deadline I set — after that the verdict files unanswered."
-      },
-      "predict": "A read tomorrow lands mid-162s (162.2–163.1) and the verdict files as fat. If the morning passes blank, the verdict files unanswered tomorrow night — no penalty, but the claim dies untested. If it lands above 163.5, I over-read the whoosh and will say so in the next brief.",
-      "confidence": "medium",
-      "gate": "approve"
-    },
-    {
       "sid": "sug_2026-08-28_trainingweek",
-      "rank": 2,
-      "title": "Four days left in the free layoff — log sessions if any happened, or write \"rest week\" and make it a planned deload",
+      "rank": 1,
+      "title": "Train once before Friday — day twelve since your last session, and Friday is where the free part of the layoff ends",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Trained lifters give back essentially nothing in the first ~2 weeks away, and what little goes returns fast (Mujika & Padilla 2000, detraining review). Past that window, real strength and size start to go.",
-        "data": "Last logged session 8/21 — hack squat 200 × 8,7,8 and the hip thrust machine's first outing. Today is day ten. The window closes about Friday.",
-        "relationship": "A one-line entry decides which story this is: a planned deload inside the free window, or an unplanned slide past it. Either way the comeback opens at 1–2 reps in reserve against your 8/21 baselines — declines assumed nowhere."
+        "science": "A trained lifter loses essentially no strength or size in the first ~2 weeks off, then losses start and run faster inside a calorie deficit — a deficit with no training is the one pairing that spends muscle. (Mujika & Padilla 2000; Bosquet 2013; Garthe 2011)",
+        "data": "Last session 8/21 (lower: hack 200, hip thrust 90, extension 160 — left early). Twelve days, zero sessions. Meanwhile the deficit is live: 8/31 logged 2,150 kcal at 20,000 steps.",
+        "relationship": "Every day past Friday the layoff stops being free and the deficit starts drawing on lean instead of fat. One logged session — any length — closes the window and gives me the first honest strength read since 8/21. Open every lift at 1–2 reps in reserve; every number is a baseline, not a decline."
       },
-      "predict": "A session or a rest-week line lands by Friday and the layoff files as cheap, comeback starting from your existing baselines. If the file stays dark past Friday, the next briefs start pricing real strength cost — and next weekend's brief becomes a comeback plan, as promised.",
+      "predict": "A session logged by 9/04 with 1–2 RIR openers lands within roughly 5–10% of the 8/21 loads with no hold flags — rust, not loss. No session by 9/04: this card retires and the next brief becomes the comeback plan I promised, framed as baselines.",
       "confidence": "medium",
       "gate": "approve"
     },
     {
       "sid": "sug_2026-08-30_foodforward",
-      "rank": 3,
-      "title": "Log today's food — forward only, no reconstructing last week",
+      "rank": 2,
+      "title": "Keep logging food forward — one matched day just moved the maintenance math; give it five more",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Food recalled days later runs badly under-reported — it's the norm, not the exception (Lichtman 1992) — and adherence gaps, not metabolism, explain most stalls (Alhassan 2008). Fresh entries are trustworthy; reconstructed ones aren't.",
-        "data": "No food logged since 8/20 — eleven days. On Sunday your app re-checked its maintenance estimate and wrote the same number it had Friday: nothing new to chew on.",
-        "relationship": "The maintenance math behind your calorie band only learns from matched days — food beside a morning weight. Every fresh logged day feeds it; guessed back-fill poisons it. The band stays the app's call; the job here is just feeding it true days."
+        "science": "Consistent self-monitoring is the strongest single predictor of fat-loss success; gaps, not metabolism, explain most stalls. (Alhassan 2008; Burke 2011)",
+        "data": "8/31: 2,150 kcal, 175 g protein, 20,000 steps — first food beside a morning weight in eleven days. On that single day the app's maintenance estimate moved 2,429 → 2,353 (range 2,272–2,543, 35 matched days). 9/01 has a weight and no food.",
+        "relationship": "The maintenance fit reprices on every matched day. One day makes it jump; five make it settle. The band is the app's call — the only input you control is whether the day exists. A hunch, not a measurement: the estimate keeps wobbling until the window refills."
       },
-      "predict": "The first matched day lands and the maintenance estimate starts moving again within a couple of updates. If matched days return and it stays frozen anyway, my read of how it learns is wrong and I'll say so. If no food lands this week, this card rides until it does.",
+      "predict": "Five of the next seven days logged with food: the maintenance range narrows from ~270 kcal wide and stops moving more than ~50 kcal on any single day. Fewer than three logged by 9/09: this files as a miss on the ask, not on you.",
       "confidence": "medium",
+      "gate": "approve"
+    },
+    {
+      "sid": "sug_2026-09-02_tapone",
+      "rank": 3,
+      "title": "Tap Approve or Dismiss on one card — nineteen have sat untouched since 8/14 and I can't tell whether that's you or the button",
+      "apply": { "kind": "note" },
+      "rationale": {
+        "science": "Only graded predictions sharpen a model; an untested proposal teaches nothing either way. This is about the feedback loop, not your body.",
+        "data": "Your decision log ends 8/14 (24 entries). Since then nineteen cards went up. You opened the app 8/31 and 9/01 — weight and food landed, the sync carried them — and no card was tapped.",
+        "relationship": "A working pipe carried everything except decisions. If the buttons work and you're choosing not to tap, fine — I'll stop counting silence against my record. If they don't work, that's a bug worth one line to the developer. One tap, even Dismiss, answers it. This is a hunch about the app, not a read on you."
+      },
+      "predict": "Any decision dated 9/02 or later appears in the log: the channel works and the freeze was a choice — I stop grading non-decisions. Nothing by 9/05 despite more contact days: I report the button as likely broken and retire this card.",
+      "confidence": "low",
       "gate": "approve"
     }
   ]

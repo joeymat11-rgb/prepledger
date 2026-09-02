@@ -527,3 +527,21 @@
 **Worth remembering for next time.** (1) Cheapest delta check when a commit HAS landed: parse old (git show) vs new state.json in node and diff top-level keys by JSON.stringify — five changed keys found instantly; raw git diff is useless (state.json is one giant line, 355K chars). (2) `learned.tdee` can re-stamp an unchanged value during darkness — a new stamp is not evidence of new learning; check the value, not the date. (3) Engine's regime line ("water masking, whoosh pending") is still running on pre-gap flags eleven days stale — don't let it leak into the brief while the file is dark. (4) Recipe still hardcodes prepledger-dev; substituted nightly, third run in a row.
 
 **Next run, in order:** read vs 162.9 ([[W-11]] — grades or files VOID, this is the decision night) · food 8/31+ (foodforward matched-days) · session or rest-week line (Friday close) · tdee stamp value-vs-date if a sync lands · `suggestionLog` past 8/14 (W-9, carrier proven) · reconcile trend before quoting ([[CL-27]]).
+
+
+
+---
+
+## Run 37 — 2026-09-02 (Wed pre-dawn; the gap ended; fifth consecutive firing)
+
+**The night in one line.** Joe came back — two reads (8/31 164.0, 9/01 163.4; trend 163.2) and one logged day (8/31: 2,150 / 175 g / 20k steps) — so the brief leads with "you held" (three-tenths on the trend after ten dark days), owns the W-11 miss in the open, and puts the whole weight of the night on the one thing still dark: no session in twelve days, Friday is the line.
+
+**What the brief leads with.** The return, the number, the honest miss ("I said mid-162s, got 164.0, that's a miss on my card"), then the in-between truth (second read low-163s, first-morning-back is the noisiest read there is). Trend quoted at his 163.2, mine 163.4 named as the same number ([[CL-27]]). Drivers: training (day 12, Friday close — the only live lean risk), food-forward already working (the 2,429→2,353 move named as math reacting to one day, band = app's call, no number), steps high not low (the app's 8/27 "two slow weeks" rule was built on the dark stretch). Engine's "plateau / near TDEE" regime explicitly disowned in the brief — window half blank. Horizon restated with branches for the next three reads.
+
+**Cards: three — two carried, one fresh, one retired.** trainingweek #1 (fifth issue, sid carried). foodforward #2 (third issue, sid carried, graded HIT tonight, re-armed 5-of-7). tapone #3 (fresh `sug_2026-09-02_tapone`, low confidence, labelled a hunch — the W-9 test asked to his face). morningread retired, converted. All note-kind, no apply buttons, blank branches in every predict.
+
+**Graded.** W-11 MISS by the letter (164.0 > 163.5 on the first read); foodforward HIT; morningread converted (prose only, pre-dates counting rule). Tally: **62 called / 30 graded / 13 hits / 10 misses** (+3 called for tonight's three fresh predicts, run-35 rule). Nothing hardened from the miss; CL-30's mechanism half confirmed (two conversions on the first contact-day). New working practice: read-gated verdicts that survive a gap need a gap branch re-filed *before* the read lands.
+
+**Worth remembering for next time.** (1) Desktop Commander's `start_process` with inline PowerShell mangles `$` variables — write the block to a `.ps1` (I used `C:\Users\joeym\Documents\prepledger-nightly-step1.ps1`, outside the repo so nothing stray gets staged) and run it with `-File`. Same for the probe: `%TEMP%\probe37.js`. (2) The recipe still hardcodes prepledger-dev; substituted, fourth run in a row. (3) `learned.tdee` n can *fall* while a matched day is added (36→35) — the window slides at the back as it fills at the front; don't read n as "days logged." (4) The 8/31 dailyLog has no sleep/sodium fields — sleep blanks continue even on logged food days; keep naming them as blanks, not clean nights. (5) The app superseded its own STEPPUSH proposal 8/31 — the [[CL-25]] family finally resolved itself; nothing to narrate.
+
+**Next run, in order:** reads 9/02+ vs 163.2 (three-morning frame) · food 9/01–9/02 (foodforward 5/7, window 9/02–9/08) · **any session** (trainingweek grades 9/04 — the decision night for the comeback-plan promise) · `suggestionLog` past 8/14 (tapone / W-9, deadline 9/05) · learned.tdee value-vs-date, observation only · reconcile trend before quoting ([[CL-27]]).
