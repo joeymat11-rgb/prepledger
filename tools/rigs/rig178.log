@@ -1,0 +1,27 @@
+== T1 — exact replay by CLAIMED identity bypasses verification
+   v1.29  R→G: ["STORED","REPLAY→STORED"] | G→R: ["REJECTION_STUB","STORED"]
+   v1.30  R→G: ["STORED","REJECTION_STUB"] | G→R: ["REJECTION_STUB","STORED"]
+PASS — v1.29: R→G records NO stub (G is answered as a STORED replay for bytes that do not verify) while G→R records one — two ledgers by order
+PASS — v1.30: verification precedes any content-identity replay — G is a transport-identity stub and R is STORED in both orders
+
+== T2 — a removed source's collision component as a permanent hard blocker
+   route active: {"v29":true,"v30":true} | removed: {"v29":true,"v30":false} | reactivated: {"v29":true,"v30":true}
+PASS — v1.29: with r removed the component still binds SOURCE_ITEM_IDENTITY_COLLISION on d — and the source, unregistered, cannot send the withdrawal the copy demands: a permanent blocker
+PASS — v1.30: component_scope_current(C, d) is false once no member's stamp is registration-current → diagnostics only; reactivation brings the blocker back
+
+== T4 — the collision copy is false for N > 2 and for cross-kind components
+PASS — v1.29 copy says 'two' and 'either' for a legal 3-member, 2-kind component — false
+PASS — v1.30 copy is count- and kind-neutral: "{source} sent conflicting submissions under one item ID. Earned isn't using any of them until {source} corrects it."
+
+== X5 — a content replay returns the HOLDER's disposition whatever it is (member / shape stub); reduction is order-free
+   order 1: ["SHAPE_STUB","STORED","COLLISION_MEMBER","C-REPLAY→SHAPE_STUB","C-REPLAY→COLLISION_MEMBER"] [["y",["4420b89b","a61637b2"]]]
+   order 2: ["STORED","SHAPE_STUB","C-REPLAY→STORED","COLLISION_MEMBER","C-REPLAY→SHAPE_STUB"] [["y",["4420b89b","a61637b2"]]]
+PASS — v1.30: a resend in a new envelope is a CONTENT replay returning the holder's disposition — the shape stub's, the member's, the stored item's alike; nothing re-tested
+PASS — v1.30: the component for y (sorted commitments) and the held ids are identical in both orders; x is never consumed by the shape stub (which member carries the MEMBER label is arrival metadata — the reduction hides both)
+
+== X6 — an idempotency key ALONE vs a key bound to the canonical submission digest
+   key alone: ["REJECTION_STUB","REPLAY→REJECTION_STUB"] | key bound to digest: ["REJECTION_STUB","STORED"]
+PASS — key alone: the corrected bytes are answered as a replay of the STUB — a valid record is lost behind a stale key
+PASS — v1.30: the key is bound to the canonical submission digest, so the corrected bytes are a new submission and are STORED
+
+10 passed, 0 failed

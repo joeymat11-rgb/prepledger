@@ -1,0 +1,33 @@
+== S1 — a VERIFIED but shape-malformed proof S(x) vs the valid proof R(x): collision by arrival order
+   v1.28  S→R: ZERO_ATTESTED via 09bd94b6 | R→S: BLOCKED SOURCE_ITEM_IDENTITY_COLLISION
+   v1.29  S→R: ZERO_ATTESTED via 09bd94b6 | R→S: ZERO_ATTESTED via 09bd94b6
+PASS — v1.28: the same two submissions give STORED evidence in one order and a hard collision in the other
+PASS — v1.29: shape validation before the identity test — the malformed proof is a stub that never consumes x; R stands in both orders (ZERO_ATTESTED via 09bd94b6)
+
+== S2 — the withdrawal / reference kind rules were not one function
+   v1.28 witness A: reading 'nothing under x in force' → 2001 | reading 'a withdrawal is not withdrawable' → ABSTAIN
+PASS — v1.28: the two sentences give 2001 and ABSTAIN for one admitted set
+PASS — v1.29: the closed matrix gives ONE answer — W1→W2 is INERT, W2→y APPLIES, so y is withdrawn (ABSTAIN) in every reading
+PASS — v1.29: a supersedes pointer to a proof is CANDIDATE_MALFORMED at the screen (v1.28 had both 'INERT, the record stands' and 'CANDIDATE_MALFORMED')
+
+== S3 — component retirement: durable event vs evaluation-current withdrawal
+   before r1 goes inactive: {"durable":"no blocker","eff":"no blocker"} | after: {"durable":"no blocker","eff":"BLOCKED"}
+PASS — v1.28: after r1 goes inactive the durable-event reading says 'no blocker' and the current-withdrawal reading says 'BLOCKED' — no rule chose
+PASS — v1.29: retirement_effective is derived at every basis — the blocker returns when W stops being current and is suppressed while it is; the epoch covers either transition
+
+== S4 — authority-atomic groups are not client-atomic without boundaries
+   cut after receipt 2 — v1.28 client frontier: 2 | v1.29 client frontier: 1
+PASS — v1.28: consecutive numbers alone let the client reduce through receipt 2 — its frontier points INSIDE the group (the STORED item visible without the formation)
+PASS — v1.29: with authenticated {group_id, first, last} the client stages the group and its frontier stays at first_receipt − 1 = 1 until receipt 3 lands
+
+== S5 — AUTHORITATIVE_RECORD input-domain commitment: EMPTY vs the union of semantic dependency domains
+   EMPTY sentence → PRODUCER_DOMAINS_OK | generic rule → EXERCISE_PLAN_UNRESOLVED_OR_SUSPENDED {lift:press}
+PASS — v1.28: the two definitions give different P0b bases and faces for one class held by records of two sources
+PASS — v1.29: the commitment is the canonical union of every held record's semantic dependency domains — P0b validates lift:press before P2 reports the record conflict
+
+== S6 — SOURCE_ITEM_UNREADABLE keyed by receipt: an unrelated stub moves day A's basis
+   by receipt: [{"receipt":1,"scope":"dayA"}] vs [{"receipt":2,"scope":"dayA"}] | by keyed replay identity: [{"id":"ec590cc2","scope":"dayA"}] vs [{"id":"ec590cc2","scope":"dayA"}]
+PASS — v1.28: day A's ledger record differs (receipt 1 vs 2) solely because unrelated stub B arrived first
+PASS — v1.29: keyed per-athlete per-source replay-identity commitment — day A's ledger is identical in both orders; the receipt stays in diagnostics and Why
+
+13 passed, 0 failed

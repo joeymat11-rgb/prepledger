@@ -1,0 +1,25 @@
+
+[1mSuite[0m
+  [32mPASS[0m  engine suite — 3060 assertions passed
+  [32mPASS[0m  render smoke — RENDER-SMOKE: all tabs alive in all states — no silent fallbacks
+  [32mPASS[0m  dom smoke — DOM-SMOKE: the shipped bundle boots clean, both hostile-storage boots banner without touching the blob, and reset over a corrupt blob stashes before it overwrites
+  [32mPASS[0m  split smoke — SPLIT-SMOKE: both modes drive the debut load and the pre-upgrade draft through the REAL handlers — render, type, finish, persist
+  [32mPASS[0m  beacon smoke — BEACON-SMOKE: records faults, redacts tokens, and cannot break the app
+
+[1mGate[0m
+  [32mPASS[0m  app.js matches a fresh build of src/ (1081 KB)
+  [32mPASS[0m  no tool runs esbuild's binary through node — the build API is the only path, so the gate means the same thing on Windows, Linux and CI
+  [32mPASS[0m  contrast audit: 124 resolved pairs, both themes, all >= 4.5:1
+  [32mPASS[0m  affordance lint: the tap-color grammar holds (gauge tappable, jade/orange state, brass never a control)
+  [32mPASS[0m  SYNC-LAWS: 18 laws hold across 59 committed seeds · superset exemption taken 8× (14431, 14433, 14434, 14435) — convergence, associativity, idempotence, non-shrink, correction survival, athlete-word priority, stamp/value coupling, load-on-ladder, receipt truth, reseed integrity
+  [32mPASS[0m  the suite reads no moving file — 9 gate readers pinned to the frozen preimage (ledger-preimage-2026-08-15.json); ledger/state.json is exercised out of band
+  [32mPASS[0m  APP_V 7.56.0 === sw cache earned-v7.56.0
+  [32mPASS[0m  health data stays unreadable from the public site
+  [32mPASS[0m  no token-shaped string anywhere in the tree
+  [32mPASS[0m  18 files ship; ledger/, src/, tools/ and scripts/ stay off the CDN
+  [32mPASS[0m  CI parses, deploy needs test, production is main-only, ship merges and never rebases
+  [32mPASS[0m  engine outputs byte-identical to the frozen baseline (R15 freeze)
+
+[32m[1mAll checks passed. Safe to ship.[0m[0m
+
+EXIT 0

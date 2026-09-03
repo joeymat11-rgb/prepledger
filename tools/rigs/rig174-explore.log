@@ -1,0 +1,20 @@
+=== base 174001
+  explore base 174001 (pass --explore <base> to sweep elsewhere; a find replays with --only <seed>)
+BROKEN-LAWS: none
+SYNC-LAWS: 18 laws hold across 400 explore seeds · superset exemption taken 0× (never) — convergence, associativity, idempotence, non-shrink, correction survival, athlete-word priority, stamp/value coupling, load-on-ladder, receipt truth, reseed integrity
+EXIT 0
+=== base 274001
+  explore base 274001 (pass --explore <base> to sweep elsewhere; a find replays with --only <seed>)
+BROKEN-LAWS: none
+SYNC-LAWS: 18 laws hold across 400 explore seeds · superset exemption taken 0× (never) — convergence, associativity, idempotence, non-shrink, correction survival, athlete-word priority, stamp/value coupling, load-on-ladder, receipt truth, reseed integrity
+EXIT 0
+=== base 374001
+  explore base 374001 (pass --explore <base> to sweep elsewhere; a find replays with --only <seed>)
+BROKEN-LAWS: none
+SYNC-LAWS: 18 laws hold across 400 explore seeds · superset exemption taken 0× (never) — convergence, associativity, idempotence, non-shrink, correction survival, athlete-word priority, stamp/value coupling, load-on-ladder, receipt truth, reseed integrity
+EXIT 0
+=== base 474001
+  explore base 474001 (pass --explore <base> to sweep elsewhere; a find replays with --only <seed>)
+BROKEN-LAWS: none
+SYNC-LAWS: 18 laws hold across 400 explore seeds · superset exemption taken 0× (never) — convergence, associativity, idempotence, non-shrink, correction survival, athlete-word priority, stamp/value coupling, load-on-ladder, receipt truth, reseed integrity
+EXIT 0

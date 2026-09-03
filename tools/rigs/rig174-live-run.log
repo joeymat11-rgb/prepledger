@@ -1,0 +1,66 @@
+== R1 — counts law on the live blob (raw → migrate on each engine)
+   raw: {"reads":70,"nights":71,"dailyLogs":73,"sessionLog":16,"queue":19,"feed":370,"earned":4,"debuts":9,"pendingDebuts":0,"volume":15}
+   fix4b: {"reads":70,"nights":71,"dailyLogs":73,"sessionLog":16,"queue":19,"feed":361,"earned":4,"debuts":9,"pendingDebuts":0,"volume":15} v=60
+   fix4: {"reads":70,"nights":71,"dailyLogs":73,"sessionLog":16,"queue":19,"feed":361,"earned":4,"debuts":9,"pendingDebuts":0,"volume":15} v=60
+   main: {"reads":70,"nights":71,"dailyLogs":73,"sessionLog":16,"queue":19,"feed":370,"earned":4,"debuts":9,"pendingDebuts":0,"volume":15} v=59
+PASS — fix4b — counts held through migrate: reads/nights/dailyLogs/sessionLog/queue equal, EARNED 4→4, debuts 9→9 (feed 370→361)
+PASS — fix4 — counts held through migrate: reads/nights/dailyLogs/sessionLog/queue equal, EARNED 4→4, debuts 9→9 (feed 370→361)
+
+== R2 — the name family per lift (fix4b _formerNames) and the INPUT truth of old-name receipts
+   rearDelt  ["Rear-delt fly (cable, unilateral)","Rear-delt fly (cable · uni)"]
+   curl      ["Curls (preacher)","Curls"]
+   sulek     ["Sulek wrist curl (high cable)","Sulek curl (forearm)"]
+   abs       ["Prime abdominal crunch","Abs"]
+   hanging   ["Supported leg raise (medicine-ball pad)","Hanging raise"]
+   rows      ["Prime seated row (hooks)","Rows (strapless)"]
+   VOLUME lines whose via-name is NOT a current name: [["2026-08-09","VOLUME +1 — ABS via Abs (now 4 sets)"],["2026-08-09","VOLUME +1 — BACK via Rows (strapless) (now 3 sets)"],["2026-08-09","VOLUME +1 — BICEPS via Curls (now 4 sets)"],["2026-08-07","VOLUME +1 — REAR DELT via Rear-delt fly (cable · uni) (now 4 sets)"]]
+   EARNED lines whose leading name is NOT a current name: [["2026-07-21","ABS 100 EARNED"]]
+   INVISIBLE to the pre-fix family (ex.n + forks[].prevN): [["2026-08-09","VOLUME +1 — ABS via Abs (now 4 sets)"],["2026-08-09","VOLUME +1 — BICEPS via Curls (now 4 sets)"],["2026-08-07","VOLUME +1 — REAR DELT via Rear-delt fly (cable · uni) (now 4 sets)"],["2026-07-21","ABS 100 EARNED"]]
+PASS — INPUT — five receipts sit under former names; FOUR were invisible pre-fix (curl 8/09, rearDelt 8/07, abs 8/09, abs 7/21 EARNED) and one (rows 8/09) was reachable only through a fork's prevN (observed 4 invisible of 5)
+   reach: 2026-08-09 "VOLUME +1 — ABS via Abs (now 4 sets)" → ["abs"]
+   reach: 2026-08-09 "VOLUME +1 — BACK via Rows (strapless) (now 3 sets)" → ["rows"]
+   reach: 2026-08-09 "VOLUME +1 — BICEPS via Curls (now 4 sets)" → ["curl"]
+   reach: 2026-08-07 "VOLUME +1 — REAR DELT via Rear-delt fly (cable · uni) (now 4 sets)" → ["rearDelt"]
+   reach: 2026-07-21 "ABS 100 EARNED" → ["abs"]
+PASS — fix4b — each former-name receipt is reached by EXACTLY ONE lift's name family (no orphan, no double attribution)
+
+== R3 — _volDeltas on fix4b: curl 8/09, rearDelt 8/07, abs 8/09 now counted
+PASS — fix4b _volDeltas(curl) counts the 2026-08-09 push (observed [["2026-08-09",1]])
+PASS — fix4b _volDeltas(rearDelt) counts the 2026-08-07 push (observed [["2026-08-07",1]])
+PASS — fix4b _volDeltas(abs) counts the 2026-08-09 push (observed [["2026-08-09",1]])
+
+== R4 — records: stored vs derived on fix4b AND fix4 (nothing he sees moves; drift set = [abs])
+   fix4b drift: ["abs:[100,1]→[100,2]"]
+   fix4 drift: ["abs:[100,1]→[100,2]"]
+PASS — fix4b derives the SAME record as fix4 for every active lift on the live blob (the receipts becoming visible changes nothing he sees) {"rows":"[null,0]","press":"[null,0]","fly":"[null,0]","lateral":"[null,0]","curl":"[null,0]","rearDelt":"[null,0]","pulldown":"[null,0]","sulek":"[null,0]","tricep":"[null,0]","hack":"[null,0]","hipthrust":"[null,0]","abs":"[100,2]","hanging":"[null,0]","extension":"[null,0]","calves":"[null,0]","ham":"[null,0]"}
+PASS — fix4b — the only stored≠derived lift is abs, the A6-enumerated legacy drift (observed ["abs:[100,1]→[100,2]"])
+
+== R5 — targets per lift: fix4b vs fix4 (identical) and vs deployed main (deltas listed)
+PASS — fix4b targets byte-identical to fix4 on the live blob
+   vs deployed main — lifts whose (load, targets) differ: 6
+     press      main [250,[8,9,8,6]] → tip [250,[9,9,7,6]]
+     lateral    main [85,[15,15,15,11,11]] → tip [85,[15,15,13,12,11]]
+     rearDelt   main [20,[10,10,8]] → tip [20,[10,10,9]]
+     sulek      main [87.5,[14,13]] → tip [87.5,[14,14]]
+     hanging    main ["BW",[7,6]] → tip ["BW",[7,7]]
+     ham        main [125,[11,9,9]] → tip [125,[11,10,9]]
+   unchanged: ["rows","fly","curl","pulldown","tricep","hack","hipthrust","abs","extension","calves"]
+
+== R6 — merge-with-self on fix4b (zero mints, records unchanged, queue count held)
+PASS — merge(m,m) mints nothing: EARNED 4→4, debuts 9→9, queue 19→19
+PASS — merge(m,m) leaves every stored record unchanged
+PASS — boot after merge(m,m) still mints nothing (EARNED 4, debuts 9)
+
+== R7 — RED-FIRST: the earn→rename→top→BOOT witness on the PRE-FIX engine vs the tip
+   pre-fix 7ff2c62: {"afterEarn":{"rec":[250,1],"earned":1,"debut":1},"booted":{"rec":[250,3],"earned":1,"debut":1},"nextTop":{"rec":[250,4],"earned":1,"debut":1}}
+   tip 66bc7c3:    {"afterEarn":{"rec":[250,1],"earned":1,"debut":1},"booted":{"rec":[250,1],"earned":1,"debut":1},"nextTop":{"rec":[250,2],"earned":1,"debut":1}}
+PASS — RED on the pre-fix engine — a plain boot inflates the spent record to 250/3 and the next top to 250/4 (observed [250,3] / [250,4])
+PASS — GREEN at the tip — boot keeps 250/1, next top is sighting TWO, one earn receipt, one debut (observed {"rec":[250,1],"earned":1,"debut":1} / {"rec":[250,2],"earned":1,"debut":1})
+
+== R8 — HUNT: cross-attribution census — can one feed line be claimed by two lifts' name families?
+   lines claimed by >1 lift: 0 
+   prefix collisions between families: 0 
+PASS — no live feed line is claimed by two lifts (observed 0)
+PASS — no lift's family name is a prefix of another lift's family name on the live roster (observed [])
+
+17 passed, 0 failed

@@ -1,0 +1,31 @@
+== T1 — incarnation cardinality keyed by an UNTYPED producer_id
+   v1.34 'per producer_id': D14.1 supplies a different bound (source record stale) | 'per {kind, producer_id}': floor 2001 (source RECORD governs)
+PASS — v1.34: source_id = p and method_id = p — one reading REMOVES the source incarnation when the method registers, the other keeps both; different evidence, different floors
+PASS — v1.35: producer_key = {kind, producer_id}; instance ids and the one-PRESENT rule are per producer_key; both registrations coexist and the source RECORD phase still governs
+PASS — v1.35: current_submission_route_id[p] selects the unique PRESENT {AUTHORITATIVE_SOURCE, p} incarnation, never the method
+
+== T2 — fixed-schedule envelope vs late serialized exact selection
+   v1.34: [{"t":3500,"r":"REFUSED (CAS restart) → envelope? exact refusal? both? block revocation?"}]
+PASS — v1.34: nothing is released at the deadline (the credential was authorized) and the later refusal has four candidate behaviours — a late envelope, an exact refusal, two responses, or blocking the revocation
+   v1.35 slow+authorized: [{"t":2000,"r":"ENVELOPE"},{"t":3500,"r":"(completed internally — retrievable by replay; nothing sent)"}]
+   v1.35 fast+authorized: [{"t":900,"r":"EXACT"}]
+   v1.35 unauthorized: [{"t":2000,"r":"ENVELOPE"}] | slow then revoked: [{"t":2000,"r":"ENVELOPE"},{"t":3500,"r":"(completed internally — retrievable by replay; nothing sent)"}]
+PASS — v1.35: every request has exactly ONE terminal response — EXACT_RELEASED or ENVELOPE_RELEASED — never two, never none
+PASS — v1.35: an unauthorized request gets the envelope at exactly the fixed time, and an authorized-but-slow request gets the SAME envelope at the same time — recovery, commit and the revocation race are unobservable
+PASS — v1.35: 'an authorized principal receives the exact result' is now CONDITIONAL — only when its prerequisite completes before the deadline; otherwise it replays under the ordinary rule
+
+== T3 — the presence defect is unreachable under filter-first validation
+   v1.34 filter-first: {"registry":[],"defects":[]} | structure-first: {"registry":[],"defects":["REGISTRATION_PRESENCE_MISSING_OR_INVALID{{\"kind\":\"AUTHORITATIVE_SOURCE\",\"producer_id\":\"s\",\"version\":7,\"inst\":1}}"]}
+PASS — v1.34: 'every test ranges only over PRESENT incarnations' lets a filter-first reducer return an EMPTY non-defective registry while a structure-first one emits the defect — two textual results
+   v1.35 stage 1: ["REGISTRATION_PRESENCE_MISSING_OR_INVALID{identity}"] | stage 2 PRESENT set: 0 | stage 3: []
+PASS — v1.35: stage 1 validates identity, instance id and presence over EVERY raw entry and emits the structural defect BEFORE any filtering — one result
+   two PRESENT incarnations of one producer_key + a REMOVED D14.1: ["PRESENT_INCARNATION_CARDINALITY{{\"kind\":\"AUTHORITATIVE_SOURCE\",\"producer_id\":\"s\"}, 2}"]
+PASS — v1.35: PRESENT_INCARNATION_CARDINALITY {producer_key, count} is a closed defect, and the REMOVED D14.1 incarnation never enters the cardinality test (history participates only in identity / non-reuse validation)
+
+== T4 — the EMISSION candidate identity still carried the three-field route identity
+   v1.34 emission identity r1 == r2: true | v1.35: false
+PASS — v1.34: the explicit emission identity ALIASES r1 and r2 — an identity-keyed cache, candidate identity or membership reuses one identifier across the same-version reincarnation v1.34 separated
+PASS — v1.35: {kind: EMISSION, route_identity: the quadruple, emitting_phase, class_id} distinguishes them; every explicit route tuple, sorting key, active-route record and identity-keyed cache carries the quadruple
+PASS — v1.35: the route stamp stays OUT of the source-authored content commitment (intentional exclusion unchanged)
+
+13 passed, 0 failed
