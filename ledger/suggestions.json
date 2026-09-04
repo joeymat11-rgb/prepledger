@@ -1,46 +1,46 @@
 {
-  "gen": "2026-09-02T09:05:17.457Z",
+  "gen": "2026-09-04T09:05:56.967Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-08-28_trainingweek",
+      "sid": "sug_2026-09-04_confirmread",
       "rank": 1,
-      "title": "Train once before Friday — day twelve since your last session, and Friday is where the free part of the layoff ends",
+      "title": "Weigh in Friday and Saturday — Thursday's 161.1 is the lowest read on file, and one morning can't confirm itself",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "A trained lifter loses essentially no strength or size in the first ~2 weeks off, then losses start and run faster inside a calorie deficit — a deficit with no training is the one pairing that spends muscle. (Mujika & Padilla 2000; Bosquet 2013; Garthe 2011)",
-        "data": "Last session 8/21 (lower: hack 200, hip thrust 90, extension 160 — left early). Twelve days, zero sessions. Meanwhile the deficit is live: 8/31 logged 2,150 kcal at 20,000 steps.",
-        "relationship": "Every day past Friday the layoff stops being free and the deficit starts drawing on lean instead of fat. One logged session — any length — closes the window and gives me the first honest strength read since 8/21. Open every lift at 1–2 reps in reserve; every number is a baseline, not a decline."
+        "science": "Day-to-day scale weight moves with water, not fat — sodium and carbohydrate alone can swing it a pound or more overnight — so a single morning is a data point, not a verdict; the trend only moves when consecutive clean mornings agree. (Juraschek 2020, DASH-Sodium; Powers 2003)",
+        "data": "Thu 9/03 read 161.1 — lowest in the file (prior low 161.8 on 8/20) and 2.2 lb under your 163.3 trend. Wed 9/02 had no read. Your app damped it as a spike; so did I. Your own day-to-day noise is ±1.46 lb.",
+        "relationship": "Two mornings at or under the low 162s pull the trend down most of a pound and settle the August fat-or-water question for good; two mornings back near 163 file Thursday as water leaving. Either way the rate — which neither your app nor I can price on a half-blank window — comes back on the board. My lean: confirm, about 60/40."
       },
-      "predict": "A session logged by 9/04 with 1–2 RIR openers lands within roughly 5–10% of the 8/21 loads with no hold flags — rust, not loss. No session by 9/04: this card retires and the next brief becomes the comeback plan I promised, framed as baselines.",
+      "predict": "Both mornings logged: the trend lands 162.5–163.0 by Saturday if the reads confirm, or holds near 163.3 if they don't — I'm calling confirm. Neither morning logged by Sunday 9/06: this files as a miss on the ask, not a read on you, and the card retires.",
       "confidence": "medium",
       "gate": "approve"
     },
     {
       "sid": "sug_2026-08-30_foodforward",
       "rank": 2,
-      "title": "Keep logging food forward — one matched day just moved the maintenance math; give it five more",
+      "title": "Keep logging food forward — three days in, the maintenance math is already settling; give it four more",
       "apply": { "kind": "note" },
       "rationale": {
         "science": "Consistent self-monitoring is the strongest single predictor of fat-loss success; gaps, not metabolism, explain most stalls. (Alhassan 2008; Burke 2011)",
-        "data": "8/31: 2,150 kcal, 175 g protein, 20,000 steps — first food beside a morning weight in eleven days. On that single day the app's maintenance estimate moved 2,429 → 2,353 (range 2,272–2,543, 35 matched days). 9/01 has a weight and no food.",
-        "relationship": "The maintenance fit reprices on every matched day. One day makes it jump; five make it settle. The band is the app's call — the only input you control is whether the day exists. A hunch, not a measurement: the estimate keeps wobbling until the window refills."
+        "data": "8/31 2,150 · 9/01 2,275 · 9/02 2,300 kcal; protein 175 / 175 / 200 g; steps 20,000 / 19,500 / 19,000. Across those days the app's maintenance estimate moved 2,429 → 2,353 → 2,321 and its range tightened from ~270 to ~200 kcal wide (36 matched days). 9/03 has no food yet.",
+        "relationship": "Every matched day reprices the fit — it moved 76, then 32, then 0. The first few days make it jump; the next few make it settle. The band is the app's call; the only input you control is whether the day exists."
       },
-      "predict": "Five of the next seven days logged with food: the maintenance range narrows from ~270 kcal wide and stops moving more than ~50 kcal on any single day. Fewer than three logged by 9/09: this files as a miss on the ask, not on you.",
+      "predict": "Five of the seven days 9/02–9/08 logged with food: the range stays ~200 kcal wide or tighter and no single day moves the estimate more than ~50 kcal. Fewer than three logged by 9/09: this files as a miss on the ask, not on you.",
       "confidence": "medium",
       "gate": "approve"
     },
     {
       "sid": "sug_2026-09-02_tapone",
       "rank": 3,
-      "title": "Tap Approve or Dismiss on one card — nineteen have sat untouched since 8/14 and I can't tell whether that's you or the button",
+      "title": "Last call: tap Approve or Dismiss on one card — you were in the app four days this week and no card was touched",
       "apply": { "kind": "note" },
       "rationale": {
         "science": "Only graded predictions sharpen a model; an untested proposal teaches nothing either way. This is about the feedback loop, not your body.",
-        "data": "Your decision log ends 8/14 (24 entries). Since then nineteen cards went up. You opened the app 8/31 and 9/01 — weight and food landed, the sync carried them — and no card was tapped.",
-        "relationship": "A working pipe carried everything except decisions. If the buttons work and you're choosing not to tap, fine — I'll stop counting silence against my record. If they don't work, that's a bug worth one line to the developer. One tap, even Dismiss, answers it. This is a hunch about the app, not a read on you."
+        "data": "Your decision log ends 8/14 (24 entries). Contact days since: 8/31, 9/01, 9/02, 9/03 — reads, three food days and a full session all carried by the sync. Every card issued since 8/14 is undecided.",
+        "relationship": "A working pipe carried everything except decisions. If the buttons work and you're choosing not to tap, fine — I stop counting silence against my record. If they don't work, that's a bug worth one line to the developer. One tap, even Dismiss, answers it. This is a hunch about the app, not a read on you."
       },
-      "predict": "Any decision dated 9/02 or later appears in the log: the channel works and the freeze was a choice — I stop grading non-decisions. Nothing by 9/05 despite more contact days: I report the button as likely broken and retire this card.",
+      "predict": "Any decision dated 9/02 or later in the log by tomorrow's run: the channel works and the freeze was a choice — I stop grading non-decisions. Nothing by 9/05: I report the button as likely broken in the brief and retire this card.",
       "confidence": "low",
       "gate": "approve"
     }

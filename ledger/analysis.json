@@ -1,17 +1,17 @@
 {
-  "gen": "2026-09-02T09:05:17.457Z",
+  "gen": "2026-09-04T09:05:56.967Z",
   "stateRead": "C:\\Users\\joeym\\Documents\\prepledger-nightly\\ledger\\state.json",
   "trend": {
-    "soft": 163.36,
-    "lastRaw": 163.4,
-    "appTrend": 163.3,
+    "soft": 163.09,
+    "lastRaw": 161.1,
+    "appTrend": 162.9,
     "noiseFloor": 1.46,
-    "gap": -0.04
+    "gap": 1.99
   },
   "rate": {
-    "perWeekLb": 0.25,
-    "perWeekPct": 0.15,
-    "bandLb": 2.44,
+    "perWeekLb": -0.01,
+    "perWeekPct": -0.01,
+    "bandLb": 3.23,
     "personalBand": [
       1,
       1.4
@@ -19,19 +19,19 @@
     "window": 14
   },
   "coefficients": {
-    "tdee": 2484,
+    "tdee": 2557,
     "tdeeWinDays": 20,
-    "meanCal": 2374,
+    "meanCal": 2385,
     "waterSensitivityLb": 1.13,
     "waterSensDays": 4,
-    "meanSleepH": 7.7,
+    "meanSleepH": 7.6,
     "sleepDebt7H": 0,
     "ffmKg": 63.4,
     "proteinTargetG": 146
   },
   "regime": {
-    "regime": "plateau",
-    "why": "deficit has shrunk - intake near your TDEE"
+    "regime": "whoosh pending",
+    "why": "raw weight is 2 lb below trend after a water event - the trend should catch down as clean reads confirm"
   },
   "weeks": [
     {
@@ -71,10 +71,10 @@
     },
     {
       "wk": "2026-08-31",
-      "meanCal": 2150,
-      "meanPro": 175,
+      "meanCal": 2242,
+      "meanPro": 183,
       "proHitPct": 100,
-      "meanSteps": 20000
+      "meanSteps": 19500
     }
   ],
   "priorDecisions": [
