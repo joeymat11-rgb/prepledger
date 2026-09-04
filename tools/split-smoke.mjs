@@ -238,9 +238,15 @@ async function driveOldDraft() {
       "the pre-upgrade draft finishes with OLD-ERA provenance (og=50 — absent draft provenance classifies old, the proposals' own rule)",
       "the completion carried the WRONG generation (observed entry=" + JSON.stringify(en) + " of " + JSON.stringify((sess && (sess.entries || []).map((e) => e.id)) || null) + ")");
     const pd = st && (st.exercises || []).find((e) => e.id === "pulldown");
-    check(!!(pd && (pd.forks || []).some((f) => f && f.ops && f.ops.indexOf("fly inserted upstream") > -1)),
-      "the V51 seams are intact after the old-draft completion",
-      "a seam was lost finishing the old draft (pulldown forks: " + JSON.stringify(pd && pd.forks) + ")");
+    /* PROGRESSION-1 — the point of this check is that FINISHING AN OLD DRAFT MUST NOT LOSE A
+       SEAM. Its witness used to be the fly's insertion seam; the owner's pair table retires
+       that one (a pec fly shares no working muscle with a pulldown), so the witness moves to
+       the seam pulldown actually has and keeps: its 8/13 hooks TECHNIQUE seam. The stronger
+       half is asserted too — no retired insertion seam comes back through this path. */
+    check(!!(pd && (pd.forks || []).some((f) => f && f.from === "2026-08-13" && !f.split))
+      && !(pd && (pd.forks || []).some((f) => f && (f.kind === "context" || f.split))),
+      "the seams are intact after the old-draft completion: the 8/13 technique seam survives and no retired insertion seam is resurrected",
+      "a seam was lost or resurrected finishing the old draft (pulldown forks: " + JSON.stringify(pd && pd.forks) + ")");
     dom.window.close();
   }
 }
