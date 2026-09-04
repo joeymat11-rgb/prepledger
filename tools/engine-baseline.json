@@ -2114,16 +2114,16 @@
      "exId": "rows"
     },
     "targetsFor": [
-     9,
+     10,
      9
     ],
     "progressStep": {
-     "add": 0,
-     "why": "governor hold — the opener has run hot two sessions straight, so nothing climbs until an honest one lands"
+     "add": 2,
+     "why": "two reps left on the set meant to reach failure — there is room above, and a token single rep would waste it"
     },
     "rirPlan": [
      2,
-     2
+     0
     ]
    },
    "press": {
@@ -2156,7 +2156,7 @@
     "targetsFor": [
      15,
      15,
-     14,
+     13,
      12
     ],
     "progressStep": {
@@ -2435,7 +2435,7 @@
     },
     "targetsFor": [
      10,
-     10
+     9
     ],
     "progressStep": {
      "add": 2,
@@ -5374,15 +5374,15 @@
     },
     "targetsFor": [
      9,
-     8
+     9
     ],
     "progressStep": {
-     "add": 0,
-     "why": "governor hold — the opener has run hot two sessions straight, so nothing climbs until an honest one lands"
+     "add": 1,
+     "why": "you took the last set to failure exactly as prescribed — one rep is the honest step from there"
     },
     "rirPlan": [
      2,
-     2
+     0
     ]
    },
    "press": {
@@ -5430,9 +5430,9 @@
      "exId": "press"
     },
     "targetsFor": [
+     9,
      8,
-     8,
-     8
+     7
     ],
     "progressStep": {
      "add": 1,
@@ -5922,7 +5922,7 @@
     },
     "targetsFor": [
      10,
-     10
+     9
     ],
     "progressStep": {
      "add": 2,

@@ -60,8 +60,8 @@ export function runClosureSF1(T, ok, readFileSync) {
     ], slp, { pg: 51 });
     const enC = (r.s.sessionLog["2026-08-20"].entries || []).find((e) => e.id === "curl");
     const enHg = (r.s.sessionLog["2026-08-20"].entries || []).find((e) => e.id === "hanging");
-    ok(!!(enC && enC.wKey === String(curlW) && enC.og === 51),
-      "CLOSURE 2a — a REAL curl completion persists wKey (the non-numeric config) and og (both DISCARDED by the projection at ~1905 on 9e40815)");
+    ok(!!(enC && enC.wKey == null && enC.w === 55 && enC.og === 51),
+      "CLOSURE 2a → PROGRESSION-1 — a REAL curl completion now persists a NUMERIC w and og, and no wKey at all: the per-set string '55·55·50' was the reason this lift alone anchored on a key, and Q4 made the working load a number with the vector beside it (og was DISCARDED by the projection at ~1905 on 9e40815 — that half of the pin is unchanged)");
     ok(!!(enHg && enHg.wKey === String(m.exercises.find((x) => x.id === "hanging").w) && enHg.og === 51),
       "CLOSURE 2b — hanging (BW) persists its config wKey the same way");
     const rHk = T.completeSession(m, "2026-08-21", [{ id: "hack", reps: [10, 9, 8], rir: 2 }], slp, { pg: 51 });
@@ -77,8 +77,8 @@ export function runClosureSF1(T, ok, readFileSync) {
     const before = seamOf(r.s, "curl");
     const r2 = T.completeSession(r.s, "2026-08-23", [{ id: "curl", reps: [11, 11, 10], rir: 2 }], slp, { pg: 51 });
     const swept = T.runAdaptive(r2.s, "2026-08-24");
-    ok(seamOf(swept, "curl") === before && before.length > 0,
-      "CLOSURE 2d — two new-order (og 51) sessions leave the seam FIXED: re-dating consumes only old-order entries (og-less persistence dragged the seam past NEW sessions on 9e40815)");
+    ok(seamOf(swept, "curl") === before,
+      "CLOSURE 2d → PROGRESSION-1 — two further sessions cannot drag the seam, and now by construction rather than by a rule about which entries the re-dater may consume: the seam is a pure function of the plan marker, the ruled pair table and actual exposure, recomputed at every boundary. The legacy re-dater — whose in-flight rule is what dragged a seam past new sessions on 554c5b7, and which re-dated eleven of his lifts to 8/17 — is retired. Curl carries no seam at all here: the machine fly shares no working muscle with it (the owner's pair table).");
   });
 
   /* ---- CLOSURE 3 — a persisted pg-50 draft across the migration ---- */
@@ -139,17 +139,17 @@ export function runClosureSF1(T, ok, readFileSync) {
     ok(JSON.stringify(ab.exercises.find((x) => x.id === "curl").forks) === JSON.stringify(ba.exercises.find((x) => x.id === "curl").forks),
       "CLOSURE 5a — both merge orders land deeply equal fork sets");
     const gf = ab.exercises.find((x) => x.id === "curl").forks.filter((f) => f.ops && f.ops.indexOf("ghost inserted upstream") > -1);
-    ok(gf.length === 1 && gf[0].from === "2026-08-20",
-      "CLOSURE 5b — same-operation different-date seams collapse to ONE at the earliest sighting (from-keyed union kept both on 9e40815)");
+    const gfB = ba.exercises.find((x) => x.id === "curl").forks.filter((f) => f.ops && f.ops.indexOf("ghost inserted upstream") > -1);
+    ok(gf.length === 0 && gfB.length === 0,
+      "CLOSURE 5b → PROGRESSION-1 — two replicas carrying the SAME insertion op at different dates no longer need collapsing: a context seam is DERIVED from the plan marker, the ruled pair table and actual exposure, so an op that is in no pair table produces no seam on either side and neither replica can carry one back (the from-keyed union kept both on 9e40815; the collapse-to-earliest that replaced it is now unnecessary machinery)");
     /* same-date composite metadata */
     const C = cl(m), D = cl(m);
     seed(C, "ham", [{ from: "2026-08-25", why: "opX inserted upstream", ops: ["opX inserted upstream"], prevN: "Ham", split: true }]);
     seed(D, "ham", [{ from: "2026-08-25", why: "opY inserted upstream", ops: ["opY inserted upstream"], prevN: "Ham", split: true }]);
     const cd = T.mergeState(cl(C), cl(D)), dc = T.mergeState(cl(D), cl(C));
-    const hf = cd.exercises.find((x) => x.id === "ham").forks.find((f) => f.from === "2026-08-25");
     ok(JSON.stringify(cd.exercises.find((x) => x.id === "ham").forks) === JSON.stringify(dc.exercises.find((x) => x.id === "ham").forks)
-      && !!hf && JSON.stringify((hf.ops || []).slice().sort()) === JSON.stringify(["opX inserted upstream", "opY inserted upstream"]),
-      "CLOSURE 5c — same-date metadata UNIONS deterministically, both orders (the byFrom overwrite let the local side's metadata win on 9e40815)");
+      && !cd.exercises.find((x) => x.id === "ham").forks.some((f) => /op[XY] inserted upstream/.test(String(f.why))),
+      "CLOSURE 5c → PROGRESSION-1 — both merge orders still land DEEPLY EQUAL fork sets, and two same-date synthetic insertions no longer need their metadata unioned: neither op is in the ruled pair table, so the derivation emits neither, from either direction (the byFrom overwrite let the local side's metadata win on 9e40815 — that class cannot arise on derived state)");
     /* planGen 52: order enforcement stands down; canonicalization does not */
     const g52 = cl(m); g52.planGen = 52;
     g52.exOrder = { U: cl(m.exOrder.U).reverse(), L: cl(m.exOrder.L) };
@@ -159,8 +159,8 @@ export function runClosureSF1(T, ok, readFileSync) {
     ]);
     const sw52 = T.normalizePlan(cl(g52));
     ok(JSON.stringify(sw52.exOrder.U) === JSON.stringify(g52.exOrder.U)
-      && sw52.exercises.find((x) => x.id === "rows").forks.filter((f) => f.ops && f.ops.indexOf("ghost2 inserted upstream") > -1).length === 1,
-      "CLOSURE 5d — at planGen 52 the custom order STANDS while seams still canonicalize (the whole pass stood down together on 9e40815)");
+      && sw52.exercises.find((x) => x.id === "rows").forks.filter((f) => f.ops && f.ops.indexOf("ghost2 inserted upstream") > -1).length === 0,
+      "CLOSURE 5d → PROGRESSION-1 — at planGen 52 the custom order STILL STANDS while the seam pass still runs: canonicalization never stood down with order enforcement (the 9e40815 defect), and the seam pass now DERIVES — both synthetic ghost2 forks are gone rather than collapsed to one");
     /* CLOSURE 5e REPLACED (round-2 test law): the source-assert was the other
        named straw class. The behavior itself: a poisoned planGen-51 order fed
        through the REAL merge comes out ruled (order enforcement joined the

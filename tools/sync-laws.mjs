@@ -514,6 +514,95 @@ const AIM = {
      B: the stale pre-decision copy. And the same-card conflict: A dismissed the card on
      8/16 (kind provenance on the row), B approved it on 8/17 (proteinG 200). The
      decision AND its effect must converge whole-state in both directions. */
+  /* PROGRESSION-1 (2026-08-19 rulings) — A RETIRED SEAM MUST NOT COME BACK. Eleven lifts
+     carried an insertion fork stamped with the day the code ran, and each of them read it as
+     a fresh baseline and repeated its own last line. The seams are retired by ruling — but a
+     one-time deletion would not have survived: forks merge union-by-date and the feed is a
+     max-multiset, so a replica that still carried one would hand it straight back on the next
+     sync. The repair is that a context seam is DERIVED at every boundary from the plan
+     marker, the ruled pair table and actual exposure. A: a stale replica still carrying the
+     8/17 fly seam on rows and its feed line. B: the corrected state. C: clean. */
+  /* PROGRESSION-1 FIX-4 §1 — THE LOAD EXCURSION, AS A SEED. A top at the working load, an
+     off-load session that did NOT top, then a top back at the working load. The walk reads that
+     as ONE sighting — adopting a different load ends the run — but the derivation counted
+     straight across the excursion, because its fall-off rule only fired when the failed line's
+     load EQUALLED topAt. sighting-faithful was green through the whole defect for the plainest
+     reason: no committed seed had an off-load session in it, so the law had nothing to be false
+     about. It has one now. MUTATIONS IT GUARDS: sighting-crosses-load-tenure. */
+  14455: { apply: (out) => {
+      const cfg9 = (st9) => {
+        const r9 = (st9.exercises || []).find((e) => e && e.id === "rows");
+        if (!r9 || typeof r9.w !== "number") return;
+        r9.forks = []; r9.std = null; r9.own = false; r9.reclaim = null; r9.ladder = null;
+        r9.sets = 2; r9.last = [r9.hi, r9.hi];
+        r9.topAt = r9.w; r9.topRun = 1;                      /* the WALK's answer: one sighting */
+        r9.lastMeta = { d: "2026-08-14", w: r9.w, reps: [r9.hi, r9.hi] };
+        const sl9 = {};
+        for (const k9 of Object.keys(st9.sessionLog || {})) {
+          const row9 = st9.sessionLog[k9] || {};
+          sl9[k9] = { ...row9, entries: ((row9.entries) || []).filter((e9) => !(e9 && e9.id === "rows")) };
+        }
+        const put9 = (d9, w9, reps9) => { sl9[d9] = { ...(sl9[d9] || { d: d9 }), d: d9, entries: [...(((sl9[d9] || {}).entries) || []), { id: "rows", w: w9, reps: reps9 }] }; };
+        put9("2026-08-10", r9.w, [r9.hi, r9.hi]);            /* a top */
+        put9("2026-08-12", r9.w - 5, [1, 1]);                /* an OFF-LOAD session that did not top */
+        put9("2026-08-14", r9.w, [r9.hi, r9.hi]);            /* a top again, back at the working load */
+        st9.sessionLog = sl9;
+      };
+      cfg9(out[0]); cfg9(out[1]); if (out[2]) cfg9(out[2]);
+      return ["rows topped, went off-load without topping, then topped again — ONE sighting", "(the same excursion)", "(the same excursion)"]; },
+    assert: (out) => {
+      const r9 = (out[0].exercises || []).find((e) => e && e.id === "rows") || {};
+      const at9 = (d9) => (((out[0].sessionLog || {})[d9] || {}).entries || []).find((e) => e && e.id === "rows");
+      return r9.topRun === 1 && !!at9("2026-08-10") && !!at9("2026-08-12") && !!at9("2026-08-14")
+        && at9("2026-08-12").w === r9.w - 5; } },
+  /* PROGRESSION-1 FIX-2 (A6) — SOL'S R13 SPLIT-BRAIN, AS A SEED. Two devices each
+     saw the SAME load top out, on different days, and each banked its own first
+     sighting. Serially those are two sightings and the lift earns; merged, the
+     counter rode inside whichever whole lift record won and the merged state
+     claimed ONE — a number its own merged history could not produce. The seed
+     exists so sighting-faithful has something to be false about: without it the
+     law is green on every seed under every mutant, which is a law that checks
+     nothing. MUTATIONS IT GUARDS: derive-not-at-merge. */
+  14454: { apply: (out) => {
+      const cfg9 = (st9, d9) => {
+        const p9 = (st9.exercises || []).find((e) => e && e.id === "rows");
+        if (!p9) return;
+        p9.forks = []; p9.std = null; p9.own = false; p9.reclaim = null; p9.ladder = null;
+        p9.sets = 2; p9.last = [p9.hi, p9.hi];               /* the lift keeps its OWN load and ceiling */
+        p9.topAt = p9.w; p9.topRun = 1;                      /* each device banked ITS OWN first sighting */
+        p9.lastMeta = { d: d9, w: p9.w, reps: [p9.hi, p9.hi] };
+        /* press must appear on EXACTLY ONE day per replica, or each side is already
+           carrying more than the one sighting it is meant to have banked */
+        const sl9 = {};
+        for (const k9 of Object.keys(st9.sessionLog || {})) {
+          const row9 = st9.sessionLog[k9] || {};
+          sl9[k9] = { ...row9, entries: ((row9.entries) || []).filter((e9) => !(e9 && e9.id === "rows")) };
+        }
+        sl9[d9] = { ...(sl9[d9] || { d: d9 }), d: d9, entries: [...(((sl9[d9] || {}).entries) || []), { id: "rows", w: p9.w, reps: [p9.hi, p9.hi] }] };
+        st9.sessionLog = sl9;
+      };
+      cfg9(out[0], "2026-08-14");
+      cfg9(out[1], "2026-08-16");
+      if (out[2]) cfg9(out[2], "2026-08-14");
+      return ["rows topped its load on 8/14 — one sighting banked", "rows topped the SAME load on 8/16 — its own first sighting banked", "(the 8/14 sighting again)"]; },
+    assert: (out) => {
+      const p9 = (st9) => (st9.exercises || []).find((e) => e && e.id === "rows") || {};
+      const days9 = (st9) => Object.keys(st9.sessionLog || {}).filter((k9) => (((st9.sessionLog[k9] || {}).entries) || []).some((e9) => e9 && e9.id === "rows"));
+      return p9(out[0]).topRun === 1 && p9(out[1]).topRun === 1
+        && JSON.stringify(days9(out[0])) === JSON.stringify(["2026-08-14"])
+        && JSON.stringify(days9(out[1])) === JSON.stringify(["2026-08-16"]); } },
+  14453: { apply: (out) => {
+      const D9 = "2026-08-17";
+      const rowsOf = (s9) => (s9.exercises || []).find((e) => e && e.id === "rows");
+      const r9 = rowsOf(out[0]);
+      if (r9) r9.forks = [...(r9.forks || []), { from: D9, why: "fly inserted upstream", ops: ["fly inserted upstream"], prevN: r9.n, split: true, kind: "context" }];
+      out[0].feed = [{ op: "seam:fly:rows", d: D9, t: "PRIME SEATED ROW (HOOKS) — FRESH BASELINE", how: "(the seam a previous version wrote on the day the code ran)" }, ...(out[0].feed || [])];
+      out[0].insertions = { ...(out[0].insertions || {}), fly: D9 };
+      return ["rows carries the retired 8/17 fly seam + its feed line, marker 8/17", "(corrected: no seam, marker 8/14)", "(clean)"]; },
+    assert: (out) => { const r9 = (out[0].exercises || []).find((e) => e && e.id === "rows");
+      return !!r9 && (r9.forks || []).some((f) => f && f.from === "2026-08-17" && f.split)
+        && (out[0].feed || []).some((f) => f && f.op === "seam:fly:rows")
+        && !((out[1].exercises || []).find((e) => e && e.id === "rows").forks || []).some((f) => f && f.split); } },
   14452: { apply: (out) => {
       out[0].suggestionLog = [...(out[0].suggestionLog || []), { sid: "sug_2026-08-20_p", decided: "approved", d: "2026-08-20", title: "protein to 200", apply: { kind: "protein", to: 200 }, predict: "" }, { sid: "sug_2026-08-16_x", decided: "dismissed", d: "2026-08-16", title: "sleep to 8", apply: { kind: "sleep" } }];
       out[0].targets = { ...(out[0].targets || {}), proteinG: 200 };
@@ -1098,7 +1187,7 @@ function replicas(seed) {
 const settle = (s) => T.migrate(T.migrate(cl(s)));           /* leg-7 doctrine: an ADOPTING boot is not idempotent by design; the state settles by the second */
 const sessTotals = (s) => Object.fromEntries(Object.entries(s.sessionLog || {}).map(([d, r]) => [d, ((r.entries || []).length) + ((r.skipped || []).length) + ((Array.isArray(r.dropped) ? r.dropped : []).length)]));   /* a lift the carve discarded is still ACCOUNTED FOR by name in dropped — the record does not shrink, it tells; a silent carve shrinks and fails here too */
 /* the merge's PROJECTIONS — receipts re-derived from the merged state on every merge (the carve line since Sol's pass 4, the adoptshift line since leg 19): they go when their warrant goes and land at the front of their day, so every clause about "the lines a side already had" sets them aside */
-const isProjection = (f) => !!(f && ((typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0 || f.op.indexOf("lateread:") === 0 || f.op.indexOf("sug:") === 0 || f.op === "patch59:scale")) || f.t === "EVENING READ — SET ASIDE" || f.t === "LATE READ — SET ASIDE" || f.t === "ANALYST SUGGESTION APPLIED" || f.t === "ANALYST SUGGESTION DISMISSED" || f.t === "ANALYST SUGGESTION NOTED" || f.t === "ANALYST SUGGESTION UNDONE" || (typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0))));   /* SCALE-2 — the read receipts join the projection class; SCALE-4 — the analyst-suggestion receipts and the patch59 receipt join it too (see _isFeedProjection) */
+const isProjection = (f) => !!(f && ((typeof f.op === "string" && (f.op.indexOf("carve:") === 0 || f.op.indexOf("adoptshift:") === 0 || f.op.indexOf("lateread:") === 0 || f.op.indexOf("sug:") === 0 || f.op.indexOf("seam:") === 0 || f.op === "patch59:scale")) || f.t === "EVENING READ — SET ASIDE" || f.t === "LATE READ — SET ASIDE" || f.t === "ANALYST SUGGESTION APPLIED" || f.t === "ANALYST SUGGESTION DISMISSED" || f.t === "ANALYST SUGGESTION NOTED" || f.t === "ANALYST SUGGESTION UNDONE" || (typeof f.t === "string" && (f.t.indexOf("MORNING READ MISSED") === 0 || f.t.indexOf("READ GAP") === 0))));   /* SCALE-2 — the read receipts join the projection class; SCALE-4 — the analyst-suggestion receipts and the patch59 receipt join it too (see _isFeedProjection) */
 const stores = (s) => ({
   reads: (s.reads || []).length, nights: ((s.sleep || {}).nights || []).length,
   dailyLogs: Object.keys(s.dailyLogs || {}).length, sessionLog: Object.keys(s.sessionLog || {}).length,
@@ -1111,6 +1200,42 @@ const corrOps = (s) => { const o = []; for (const r of Object.values(s.sessionLo
 
 const CARVE_FIRINGS = [];   /* every time the superset exemption is taken, by seed and direction — printed with the verdict */
 const LAWS = [
+  /* PROGRESSION-1 FIX-2 (A6) — THE SIGHTING RECORD IS A PROJECTION, SO SAY SO AS A LAW.
+     Before A6 the two-sightings counter was a STORED fact that only the walk that
+     happened to be running could write, and the split-brain followed directly: two
+     devices each banking one sighting merged to a state claiming one, because the
+     merge picked a whole lift record and the counter rode along inside it. The fix
+     was to stop storing an answer nobody could re-derive — topAt/topRun now come out
+     of the sessionLog and the lift's own EARNED receipts, at every exit.
+     That makes a property available that was not before, and it is the strongest one
+     this round has: THE STORE EQUALS THE DERIVATION. A counter no walk could
+     reproduce from the history on file is not a record, it is a claim — and the whole
+     point of deriving is that there is no longer anywhere for such a claim to hide.
+     Checked on each settled replica AND on the settled merge, because the merge is
+     where the claim used to be minted. */
+  { name: "sighting-faithful",
+    says: "every lift's stored sighting record is exactly what the derivation reads out of that same state's own history — on each replica and on the merge",
+    check: (A, B) => {
+      const norm9 = (t, r, w) => (!(r > 0) || String(t) !== String(w)) ? "-/0" : (String(t) + "/" + r);
+      const bad9 = [];
+      const scan9 = (nm9, st9) => {
+        if (!st9 || typeof T.deriveSighting !== "function") return;
+        for (const ex9 of (st9.exercises || [])) {
+          if (!ex9 || (typeof T.exActive === "function" && !T.exActive(st9, ex9.id))) continue;
+          const d9 = T.deriveSighting(st9, ex9) || {};
+          const got9 = norm9(ex9.topAt, ex9.topRun, ex9.w), want9 = norm9(d9.topAt, d9.topRun, ex9.w);
+          if (got9 !== want9) bad9.push(nm9 + " " + ex9.id + ": stored " + got9 + ", history derives " + want9);
+        }
+      };
+      scan9("A", settle(cl(A)));
+      if (B) { scan9("B", settle(cl(B)));
+        /* RAW, before any settling boot: a merged state is handed to the running app
+           as-is, and merge-fixed-point already holds the merge to a settled output. */
+        scan9("A<-B raw", T.mergeState(cl(A), cl(B)));
+        scan9("B<-A raw", T.mergeState(cl(B), cl(A)));
+        scan9("A<-B", settle(T.mergeState(cl(A), cl(B))));
+        scan9("B<-A", settle(T.mergeState(cl(B), cl(A)))); }
+      return bad9.length ? { got: bad9.join(" | ") } : null; } },
   { name: "convergence",
     says: "both merge orders settle on the same state",
     check: (A, B) => { const ab = settle(T.mergeState(cl(A), cl(B))), ba = settle(T.mergeState(cl(B), cl(A)));
@@ -1631,6 +1756,9 @@ const SEEDS = [
   { seed: 14448, why: "SOL'S PASS-7 HUNT: a stale projection (carve AND adoptshift) carried by ONE replica made two identical days differ; the day was canonicalised, the stale lines then removed correctly, and the permanent lines stayed alphabetical. MUTATION IT GUARDS: projections-enter-day-order", redAt: "3e544d0" },
   { seed: 14450, why: "SCALE-2 (Sol pass 1, rows 2+H1): a v7.54.18 replica's op-less EVENING line beside the op-keyed LATE line survived as two receipts for one read, and a false MORNING READ MISSED outlived the clean read that disproves it. MUTATIONS IT GUARDS: lateread-not-projected, missed-not-healed", redAt: "0d1719b" },
   { seed: 14451, why: "SCALE-2 (Sol pass 1, row 3a): a partial replica's honest replay met the full read set; the union carried the superset while trend/pt/weekly rode the richer copy — divergent by direction. MUTATION IT GUARDS: trend-chain-not-derived", redAt: "0d1719b" },
+  { seed: 14455, why: "PROGRESSION-1 FIX-4 §1 (Sol A6-1): a top at the working load, an off-load session that did not top, then a top again. The walk reads ONE sighting; the derivation counted across the excursion because its fall-off rule only fired when the failed line's load equalled topAt, so a plain boot rewrote the record and merge(m,m) minted an earn off the pair. sighting-faithful was green through the whole defect because no committed seed had an off-load session in it. MUTATIONS IT GUARDS: sighting-crosses-load-tenure", redAt: "c0bb384 (feat/progression-1, before FIX-4)" },
+  { seed: 14454, why: "PROGRESSION-1 FIX-2 (A6): two devices each banked their own FIRST sighting of the same load on different days. Serially that is two sightings and the lift earns; the merge picked one whole lift record and the counter rode inside it, so the merged state claimed one — a number its own merged history cannot produce. The corpus had no seed where the stored record and the derivation could disagree, so sighting-faithful was green under every mutant and checked nothing. MUTATIONS IT GUARDS: derive-not-at-merge", redAt: "f3254f1 (feat/progression-1, before A6)" },
+  { seed: 14453, why: "PROGRESSION-1: a stale replica carrying an insertion seam stamped by the day the code ran (the eleven that froze his lifts) meets the corrected state — the seam and its feed line must not come back from either direction, which is why a context seam is DERIVED at every boundary rather than deleted once. MUTATIONS IT GUARDS: seams-not-projected, seam-derivation-uses-marker-date", redAt: "7676140 (main at v7.55.9)" },
   { seed: 14452, why: "SCALE-2 (Sol pass 1, row 4): the decision converged while its EFFECT (targets.*) rode local-wins; and a same-card conflict left the losing approval's target standing. MUTATION IT GUARDS: effects-not-derived", redAt: "0d1719b" },
   { seed: 14449, why: "SCALE-1 (cowork, 2026-08-19, live): the analyst-card decisions (suggestionLog) rode {...remote, ...local} — a decision tapped on one device was reverted when a stale device synced after it, and the same card decided on two devices settled by merge direction. MUTATIONS IT GUARDS: decisions-wholesale, decision-tie-by-device (both → convergence)", redAt: "f72dbf7 (main at v7.54.18)" },
   { seed: 14447, why: "COWORK (leg 19): a replica already carrying a stale adoptshift line (its kept receipt agrees with the working load) — every merge kept it. MUTATION IT GUARDS: adoptshift-not-projected", redAt: "0c0c11c (and every tip since the writer)" },
@@ -1713,7 +1841,7 @@ const MUTATIONS = [
   ["dedup-tie-raw", "law", "the op-dedup's d-tie compares raw entries again — with the union's identity canonical, one op line in two key orders against a different one settles by grouping", `(String(f9.d || "") === String(cur.d || "") && _canonJ(f9) < _canonJ(cur))`, `(String(f9.d || "") === String(cur.d || "") && JSON.stringify(f9) < JSON.stringify(cur))`, "associativity"],
   ["equal-day-raw-identity", "law", "the equal branch compares the sides' day raw again, so one day carried in two key orders is canonicalised and its interleaved repeat regrouped", `      if (_canonJ(rd) === _canonJ(ld)) { out.push(...rd); continue; }`, `      if (JSON.stringify(rd) === JSON.stringify(ld)) { out.push(...rd); continue; }`, "day-order-kept"],
   ["same-day-by-arrival", "law", "a day's lines keep arrival order even when the two sides disagree, so concurrent same-day lines reverse with merge direction", `  if (Array.isArray(out.feed)) out.feed = _feedDayOrder(remote.feed, local.feed, out.feed);`, `  /* mutant: arrival order */`, "convergence"],
-  ["merge-sort-not-last", "law", "the merge sorts its feed BEFORE reconcileEraTransitions files its past-dated lines, so the merged feed is not newest-first and the next merge moves them", `  reconcileEraTransitions(normalizePlan(out));\n  reconcileReadReceipts(out);          /* SCALE-2 — the read receipts re-derive from the merged reads */\n  reconcileSuggestionEffects(out);     /* SCALE-2 — the suggestion effects re-derive from the merged log */\n  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);`, `  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);\n  reconcileEraTransitions(normalizePlan(out));\n  reconcileReadReceipts(out);\n  reconcileSuggestionEffects(out);`, "merge-fixed-point"],
+  ["merge-sort-not-last", "law", "the merge sorts its feed BEFORE reconcileEraTransitions files its past-dated lines, so the merged feed is not newest-first and the next merge moves them (re-anchored at PROGRESSION-1 FIX-2: A6 added the sighting derivation to the same exit list)", `  reconcileReadReceipts(out);          /* SCALE-2 — the read receipts re-derive from the merged reads */\n  reconcileSuggestionEffects(out);     /* SCALE-2 — the suggestion effects re-derive from the merged log */\n  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);`, `  if (Array.isArray(out.feed)) out.feed = _feedSorted(out.feed);\n  reconcileReadReceipts(out);          /* SCALE-2 — the read receipts re-derive from the merged reads */\n  reconcileSuggestionEffects(out);     /* SCALE-2 — the suggestion effects re-derive from the merged log */`, "merge-fixed-point"],
   ["feed-unsorted", "law", "the feed's canonical newest-first sort becomes the identity, so a receipt filed at the session's date sits above newer lines and the next merge moves it", `.sort((a, b) => String((b[0] || {}).d || "").localeCompare(String((a[0] || {}).d || "")) || a[1] - b[1])`, `.sort((a, b) => 0)`, "merge-fixed-point"],
   ["carve-ignores-union", "law", "the carve fires whenever a side carries a corr, even when the other side's corrLog says a correction exists — the union is ignored", `  if (!union.length) {`, `  if (true) {`, "session-superset"],
   ["guard-counts-receipts", "pin", "the guard counts derived receipts as history again — the app refuses its own migration and the scale fixes never reach his phone", `        if (!f9 || _isFeedDerived(f9, st)) continue;`, `        if (!f9) continue;   /* mutant: derived lines are history */`],
@@ -1781,6 +1909,41 @@ const MUTATIONS = [
   ["fork-ops-not-canonical", "pin", "the boot stops restating fork ops — a boot differs from its own self-merge in bytes no reconciler owns", `      const ops9 = [...new Set(Array.isArray(f9.ops) && f9.ops.length ? f9.ops.map(String) : (f9.why ? [String(f9.why)] : []))].sort();
       const why9 = ops9.length > 1 ? ops9.join(" + ") : (f9.why != null ? f9.why : ops9[0]);`, `      const ops9 = [];   /* mutant: no restatement */
       const why9 = f9.why;`],
+  ["derive-counts-era-first", "pin", "the sighting derivation counts the FIRST session of a technique era again — FIX 3c says the era's opening session banks nothing, and counting it hands a lift a sighting it never earned under the new setup", `      if (eraFirst9 != null && d9 === eraFirst9) continue;                       /* FIX 3c — the first era session banks nothing */`, `      /* mutant: the era's first session banks */`],
+  ["derive-ignores-earn-receipt", "pin", "the derivation stops reading the walk's own EARNED receipts — the record is no longer spent by the earn that spent it, so a lift keeps banking past its own graduation", `      if (lastEarn9 != null && d9 === lastEarn9) { topAt9 = null; topRun9 = 0; tops9.length = 0; continue; }   /* the earn day ends spent */`, `      /* mutant: the earn does not spend */`],
+  ["mint-without-signature", "pin", "the joint-sighting mint fires on any run of two instead of on the signature of two walks that each saw a first sighting — legacy history mints retroactive earns", `    if (!lineOn9(dPrev9, prov9) || !lineOn9(dK9, prov9)) return false;          /* both walks saw a first sighting */`, `    /* mutant: a run of two is signature enough */`],
+  ["derive-not-at-merge", "law", "the sighting record stops deriving at the MERGE exit — two devices that each banked one sighting merge to a state claiming one, and the earn the serial walk fires never fires (Sol's A6 witness)", `  reconcileSightings(out, { mint: true });`, `  /* mutant: the merge keeps the winner's stored counter */`, "sighting-faithful"],
+  ["prefix-from-stale-tenure", "pin", "the progression prefix reaches back past a deload to the earliest sighting of the load — a lift that grew a set, dropped a load and came back is judged on a set count it no longer runs", `  let i0 = all9.length;
+  while (i0 > 0 && String(all9[i0 - 1][1].w != null ? all9[i0 - 1][1].w : all9[i0 - 1][1].wKey) === key9) i0--;`, `  let i0 = 0;   /* mutant: the whole history is one tenure */`],
+  ["prefix-from-partial-line", "pin", "the completeness exemption goes back to FIX-2's loose form — ANY volume receipt dated after an entry exempts ANY short line, however short, so a bare [9] opener at a new load establishes a prefix of 1 and [9,1,1,1] reads as a top of the window (re-aimed at FIX-3 §1: the breaker is the loose rule itself, and the old anchor no longer exists)", `      if (en9.reps.length >= setsAtTime9(d9)) return Math.min(ex.sets, en9.reps.length);`, `      if (en9.reps.length >= ex.sets || volDeltas9.some((v9) => v9[0] > String(d9))) return Math.min(ex.sets, en9.reps.length);   /* mutant: FIX-2's loose exemption */`],
+  ["prefix-counts-no-receipts", "pin", "setsAtTime stops walking the volume receipts back and reads today's set count for every past day — T20's three-set establishing line, filed before the push that made the lift a four-set lift, is judged against four and rejected (re-anchored at FIX-4 §3: the walk-back is a shared helper now, read by the prefix AND by the derivation)", `  let end9 = baseSets, dec9 = 0;`, `  let end9 = baseSets, dec9 = 0; return baseSets;   /* mutant: the count never moved */`],
+  ["names-miss-renames", "pin", "the former-names helper drops renames[].prevN — a PURE rename lives in renames[] and nowhere else, so after one the lift EARNED receipt becomes invisible, the earn window vanishes, and a plain boot re-counts the pair the earn already spent (a renamed press goes 250/1 -> 250/3, and its volume pushes stop counting too)", `  for (const r9 of (((ex && ex.renames)) || [])) if (r9 && r9.prevN) out9.add(String(r9.prevN));`, `  /* mutant: a pure rename is not part of the name family */`],
+  ["setsattime-ignores-sameday-push", "pin", "a VOLUME −1 filed on the entry's OWN day stops widening the maximum (re-anchored at FIX-4c §1 to the DECREASE branch — the same-day +1 is already inside the end-of-day count). The −1 says the lift stood one set larger before the undo: with the lift at three a same-day −1 reads three, a three-set line is judged complete on a day the lift may have been four, and a session the walk refused to count banks a sighting at the next boot", `    else if (p9[0] === String(d) && p9[1] < 0) dec9 += -p9[1];`, `    /* mutant: a same-day decrease is invisible */`],
+  ["setsattime-adds-sameday-increases", "pin", "the 66bc7c3 formula — same-day INCREASES widen the maximum and same-day decreases are invisible. The end-of-day count already includes a same-day push, so a +1 with the lift at four reads five, a count the lift never carried; a −1 with the lift at three reads three instead of four (rig185 W1)", `    else if (p9[0] === String(d) && p9[1] < 0) dec9 += -p9[1];`, `    else if (p9[0] === String(d) && p9[1] > 0) dec9 += p9[1];   /* mutant: the fix4b formula */`],
+  ["sighting-crosses-load-tenure", "pin", "the derivation stops bounding itself to the current LOAD TENURE — a top, an off-load session, and a top again read as two sightings where the walk reads one, so a plain boot rewrites the record and the mint can buy a load off the pair (Sol A6-1)", `    const tenure9 = lt9.tenure;`, `    const tenure9 = lt9.all;   /* mutant: the derivation ignores the load boundary */`],
+  ["mint-rescans-history", "pin", "the joint-sighting mint goes back to rescanning ALL historical tops at the current load instead of consuming the derivation's own tenure-bounded trace — any two PROVISIONAL days pair, whatever lies between them, and a ONE-device history mints an earn on a self-merge", `    const tdays9 = full9.tops || [];`, `    const tdays9 = Object.keys(s.sessionLog || {}).sort().filter((d9) => { const e9 = (((s.sessionLog[d9] || {}).entries) || []).find((x9) => x9 && x9.id === ex.id && Array.isArray(x9.reps) && x9.reps.length); return !!e9 && String(typeof e9.w === "number" ? e9.w : ex.w) === String(ex.w) && atTopOfWindow(e9.reps.map((x9) => Number(x9) || 0), { ...ex, sets: e9.reps.length || ex.sets }, s, d9); });   /* mutant: rescan history */`],
+  ["mint-dedupes-by-title", "pin", "the mint's receipt dedupe compares the DISPLAY TITLE again — a lift that graduates to a load, runs it, deloads and earns the same load again prints the identical sentence, so the legitimate re-earn is suppressed and the record is left unspent", `      if ((s.feed || []).some((f9) => f9 && f9.op === op9)) continue;
+      s.feed.unshift({ d: dK9, t: l9.t, how: l9.how, op: op9 });`, `      if ((s.feed || []).some((f9) => f9 && (f9.op === op9 || f9.t === l9.t))) continue;   /* mutant: the sentence is the identity */
+      s.feed.unshift({ d: dK9, t: l9.t, how: l9.how, op: op9 });`],
+  ["mint-current-name-only", "pin", "the joint-sighting mint's PROVISIONAL scan matches feed lines by the CURRENT name only again (the 66bc7c3 line) — a day-1 line written under a FORMER name never matches, so a former-name pair goes unminted (EARNED 0, debuts 0 on a run of two) while the serial walk earns; the third name scan FIX-4b missed (rig185 W2)", `    const names9 = _formerNames(ex).map((n9) => n9.toUpperCase());   /* FIX-4c §2 (rig185 W2) — the PROVISIONAL scan reads the whole name family: a day-1 line filed under a FORMER name is the same walk's receipt, and matching the current name only left the merged pair unminted while the serial walk earned */`, `    const names9 = [String(ex.n || "").toUpperCase()];   /* mutant: the current name only */`],
+  ["debut-id-collapses-graduations", "pin", "the classic debut id drops the graduation day — every graduation to a given load reuses one key, so a COMPLETED debut and an ACTIVE one share it and are a single MERGE_KEYED pass from collapsing into each other", "s.queue.push({ id: `q_${ex.id}_${upNext}_${grad9}`, kind: \"debut\"", "s.queue.push({ id: `q_${ex.id}_${upNext}`, kind: \"debut\""],
+  ["proposal-debut-without-vector", "pin", "the two-rung offer stops minting its per-set vector — approved, the card falls back to a scalar debit and renders one weight for a lift that runs three different ones (Sol hunt 2)", "newW: rung2, ...(Array.isArray(ex.wSets)", "newW: rung2, ...({}), ...(false && Array.isArray(ex.wSets)"],
+  ["pad-zero-as-absence", "pin", "the pad reads a delivered 0 as absence again and pads from hi-2, so a line ending in a set he could not start is continued from nowhere", `function _padFrom9(arr, hi) {
+  for (let i = arr.length - 1; i >= 0; i--) { const v = arr[i]; if (typeof v === "number" && v > 0) return v; }
+  return hi - 2;
+}`, `function _padFrom9(arr, hi) {
+  return (arr[arr.length - 1] || hi - 2);   /* mutant: zero is absence */
+}`],
+  ["curl-restate-untied", "pin", "the curl restatement stops being tied to the current load — a lift already advanced to a new numeric weight is rolled back to the older recorded vector", `      if (vec9 && fits9 && tied9) { cu9.w = vec9[0]; cu9.wSets = vec9.slice(); }`, `      if (vec9) { cu9.w = vec9[0]; cu9.wSets = vec9.slice(); }   /* mutant: restate regardless */`],
+  ["seam-retire-by-date-only", "pin", "the seam retirement keys on date and split alone — a fork that merely shares the date is swept with the eleven, without carrying the insertion identity", `        && [...(f.ops || (f.why ? [f.why] : []))].some((o) => / inserted upstream$/.test(String(o))));`, `        );   /* mutant: the date is the provenance */`],
+  ["wsets-not-advanced", "pin", "the earn stops minting the advanced per-set vector — the lift graduates its load and leaves its per-set line a load behind", "...(Array.isArray(ex.wSets) && typeof ex.w === \"number\" && typeof upNext === \"number\" ? { newWSets: ex.wSets.map((x9) => x9 + (upNext - ex.w)) } : {}), t: `${ex.n.toUpperCase()} ${upNext} DEBUT`", "...({}), t: `${ex.n.toUpperCase()} ${upNext} DEBUT`"],
+  ["hot-copy-claims-opener", "pin", "the HOT line claims 'the opener at RIR 0' even when the arm fired because of the governor hold and no opener rating is on file — a claim the record does not support", `        const openKnown9 = openRir9 === 0 || (Array.isArray(en.rirSets) && en.rirSets[0] === 0);`, `        const openKnown9 = true;   /* mutant: always blame the opener */`],
+  ["composite-eats-reset", "pin", "the same-date fork union stops partitioning by class — a technique fork sharing a date with a derived context seam is absorbed into a kind-less split composite, the next boot deletes it as an underived seam, and the athlete authored protocol history is destroyed silently", `        if (!isProj9(f)) { solo9.push(f); continue; }   /* a reset-bearing fork is never absorbed */`, `        /* mutant: every fork composites */`],
+  ["seams-not-projected", "pin", "the insertion seams stop being derived at every boundary — a stale replica hands a retired seam straight back through the fork union and the feed's max-multiset, and the eleven lifts freeze again (the fork union is deterministic either way, so the LAWS cannot see this: the pins are the owner)", `  deriveInsertionSeams(s);`, `  /* mutant: a seam is a stored fact */`],
+  ["seam-derivation-uses-marker-date", "pin", "the seam is dated at the plan marker again instead of at ACTUAL EXPOSURE — the day the plan changed is not the day the lift was first performed under it, which is the whole defect (eleven seams stamped 8/17 for lifts that trained under nothing that day)", `        for (const d of dates9) { if (d < marker9) continue; if (didOn9(d, newId) && didOn9(d, affId)) { seamD9 = d; break; } }`, `        seamD9 = marker9;   /* mutant: the plan's date is the seam's date */`],
+  ["settle-fork-kind-dropped", "pin", "the boot exit's fork restatement rebuilds from a fixed key set again and silently drops the fork KIND — the first-class classifier vanishes and only the legacy split marker carries the reading", `...(f9.kind ? { kind: f9.kind } : {}), ...(f9.split ? { split: true } : {}) };`, `...(f9.split ? { split: true } : {}) };   /* mutant: kind is not a fork field */`],
+  ["patch60-mints-marker", "pin", "patchV60 MINTS an insertion marker instead of only lowering an existing one — a quarantined, invalid fly birth is handed the registry entry the quarantine exists to withhold", `      if (seed9 && ins9[k9] != null && String(ins9[k9]) > String(seed9)) ins9[k9] = seed9;`, `      if (seed9 && (ins9[k9] == null || String(ins9[k9]) > String(seed9))) ins9[k9] = seed9;   /* mutant: mint it */`],
+  ["sighting-resurrected", "pin", "the per-lift merge prefers the HIGHER sighting run instead of the newer record — re-aimed at FIX-2: A6 derives the counter, so the counter itself can no longer be revived this way, but the ordering still decides the WHOLE lift record, and a stale replica winning it reinstates the governor hold, the retired ladder and the ownership flag the newer device released (R13a-3's fence, one level up)", `  exercises: { keyOf: (e) => e && e.id, scoreOf: _exDate },`, `  exercises: { keyOf: (e) => e && e.id, scoreOf: (e) => String((e && e.topRun) || 0) },   /* mutant: the bigger run wins the lift */`],
   ["corrections-unguarded", "pin", "the correction ledger leaves recordCounts", `    corrections: Object.values((st.sessionLog && typeof st.sessionLog === "object") ? st.sessionLog : {}).reduce((n9, r9) => n9 + ((r9 && Array.isArray(r9.corrLog)) ? r9.corrLog.length : 0), 0),`, `    corrections: 0,`],
 ];
 async function runMutations() {
