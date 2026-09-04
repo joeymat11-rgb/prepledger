@@ -207,7 +207,7 @@ function deployManifest() {
   if (missing.length) {
     return { ok: false, detail: `the app cannot boot without: ${missing.join(", ")}` };
   }
-  return { ok: true, detail: `${files.length} files ship; ledger/, src/, tools/ and scripts/ stay off the CDN` };
+  return { ok: true, detail: `${files.length} files ship; ledger/, src/, tools/, scripts/, docs/ and rebuild/ stay off the CDN` };
 }
 
 // -------------------------------------------------------------- 7. pipeline --

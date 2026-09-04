@@ -24,6 +24,8 @@ const PRIVATE = [
   /^tools\//,      // test + maintenance scripts
   /^scripts\//,    // build + ship scripts
   /^\.github\//,   // CI
+  /^docs\//,      // ratified documents, review packs (docs/ratified, docs/packs) — the repo's durable home, never site content
+  /^rebuild\//,   // the public REBUILD (conformance suite, new client, rigs) — a separate product; nothing here is this site
   /* Any _-prefixed root DIRECTORY is working material, never site content (Joe's
      ruling, 2026-08-12: commit + never ship — filed for _design-proposal-now/ and
      _handoff/, written as a class so the next scratch folder is covered on arrival).
