@@ -351,7 +351,7 @@ witness exposes an unchanged assumption rather than expanding certification.
 
 ## 8. Time and executed review
 
-Approximately 25 minutes from this run's initial fetch through final report review;
+Approximately 16 minutes from this run's initial fetch through final report review;
 the source checkout was created 21:31:55 UTC. The earlier prerequisite stop and the
 separate process audit are not included. Publication may follow this report.
 Exact model token usage is unavailable. Independent copy/dependency/instance/clock
