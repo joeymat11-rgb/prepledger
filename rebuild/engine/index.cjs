@@ -9,6 +9,7 @@ const modules = [
   require("./sleep.cjs"),
   require("./energy.cjs"),
   require("./policy.cjs"),
+  require("./today.cjs"),
 ];
 
 function createEngine({ clock, ids } = {}) {
