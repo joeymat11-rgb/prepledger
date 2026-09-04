@@ -1,9 +1,11 @@
-# EARNED — REBUILD ROADMAP v1.1 (2026-09-04, evening)
+# EARNED — REBUILD ROADMAP v1.2 (2026-09-04, night)
 
 The durable plan. A chat can die; this file cannot. Every Claude Code handoff that changes the plan updates this file.
-Owner: Joe (rules). Build chat (cowork) = senior developer / project manager + execution audits. Builders: Claude Code
-(on the owner's PC) and, from T3, OpenAI Codex (GPT-6 Astra) in a bake-off. Sol + Grok = blind reviewers (one round per
-milestone, told to disagree). Dad = first real user.
+Owner: Joe (rules). Build chat (cowork) = senior developer / project manager + execution audits + the cross-family check
+(every claim re-run, never read). Builders: OpenAI Codex (GPT-6 Astra) builds modules against the suite (won T3);
+Claude Code (on the owner's PC) integrates, cuts goldens and ships. Sol = the blind reviewer (one round per milestone,
+told to disagree); Grok is retired from the standing loop (2026-09-04 ruling) and may be called for risky rounds only.
+Dad = first real user.
 
 ## Where we are (2026-09-04, evening)
 - FROZEN APP (Measured): PROGRESSION-1 merged (main 8610bd1), v7.56.0 LIVE and tail-verified; CDN denylist on main
@@ -40,12 +42,15 @@ milestone, told to disagree). Dad = first real user.
   objections + the T2 findings: B-durability must restart from the store; canonical-v2 for the decimal defects; rig185's
   rename shape) → the suite FREEZES like the sheet.
 - M1 · SEE IT (now, in parallel). Mock LIVE → dad test → rulings. Backend RULED.
-- T3 · THE AUTHORITY (bake-off, now). rebuild/t3/BRIEF.md: the server authority's core against the 34 §A laws + the §C
-  soak law, plus a local transport so the T2 client and the T3 authority run end-to-end. Two builders, one brief; the
-  owner's rigs (bite checks, interop, break tests) score both; reviewers see both blind (A/B).
+- T3 · THE AUTHORITY — DONE 2026-09-04, RULED. Two builders, one brief. Pre-registered scorecard (rebuild/t3/SCORECARD.md):
+  gate, independence, interop = tie; ten breaks 10/10 vs 9/9 effective; SEAMS Astra 9 vs Claude 13 (one omitted fixture
+  constant, ×2). Owner ruled ASTRA the winner; rebuild/t3-authority-astra is merged into rebuild/t2-client-core; the
+  Claude branch is KEPT (its suite findings 6a–6g go into suite v4). Sol's blind A/B read is a check on the scorecard, not
+  a blocker. The same scorecard is re-run on M2 module 1 before any further change of builder.
 - M2 · THE ENGINE (1–2 weeks). Cut the FINAL golden from the frozen v7.56.0 first; extract the decision engine as pure
   modules (rebuild/m2/RECON.md: 12 modules, clock injected, ≈ 30 agent-hours); the port oracle proves identical reads
-  on the owner's real ledger. The winner of T3 builds module 1.
+  on the owner's real ledger. FINAL golden cut from fe516c1 (v7.56.0) by Claude Code; ASTRA builds module 1
+  (rebuild/m2/BRIEF-1.md: dates + constants + seed + plan + progression read-side, partial census as the gate).
 - M3 · WALKING SKELETON (1–2 weeks). The authority on Cloudflare Workers + D1 (owner creates the accounts; deploy token
   to the builder), real on-device storage, ONE screen (Today) end-to-end on the owner's phone with his ported data.
 - M4 · THE THREE MOMENTS (2 weeks). Gym card + set logging, proposals + consent, Review/Re-entry; second device; the
