@@ -1,8 +1,8 @@
 {
  "stamp": {
   "engine": "main",
-  "engineSha256": "adf6ab1c8e80086f94771ddeaace712f9a286093d82ddb2f018e4b868f1e16b4",
-  "engineCommit": "a0009c3 (v7.55.9, deployed main)",
+  "engineSha256": "21a95f492de8965fd877d0ea7df875b1c2caee3a72b592c41c8326e9000fd8f0",
+  "engineCommit": "fe516c1 (v7.56.0, frozen main)",
   "clock": "2026-09-03",
   "tz": "America/New_York",
   "censusVersion": 3
@@ -19,11 +19,11 @@
      "foodDays": 0,
      "nights": 0,
      "sessions": 1,
-     "lifts": 0,
+     "lifts": 11,
      "queue": 0,
      "feed": 209,
      "volumeReceipts": 0,
-     "sightings": 0,
+     "sightings": 1,
      "events": 0,
      "waist": 0,
      "plan": 0
@@ -2590,13 +2590,7 @@
         "at": ""
        }
       ],
-      "forks": [
-       {
-        "prevN": "Prime abdominal crunch",
-        "from": "2026-08-17",
-        "kind": ""
-       }
-      ],
+      "forks": [],
       "last": {
        "date": "",
        "load": null,
@@ -2620,11 +2614,6 @@
         "prevN": "Calves",
         "from": "2026-08-13",
         "kind": ""
-       },
-       {
-        "prevN": "Calves",
-        "from": "2026-08-17",
-        "kind": ""
        }
       ],
       "last": {
@@ -2638,7 +2627,7 @@
       "name": "Curls (preacher)",
       "muscle": "biceps",
       "day": "U",
-      "load": null,
+      "load": 55,
       "inc": 5,
       "sets": 3,
       "hi": 12,
@@ -2650,13 +2639,7 @@
         "at": ""
        }
       ],
-      "forks": [
-       {
-        "prevN": "Curls (preacher)",
-        "from": "2026-08-17",
-        "kind": ""
-       }
-      ],
+      "forks": [],
       "last": {
        "date": "",
        "load": null,
@@ -2675,13 +2658,7 @@
       "lo": null,
       "retired": false,
       "renames": [],
-      "forks": [
-       {
-        "prevN": "Leg extension",
-        "from": "2026-08-17",
-        "kind": ""
-       }
-      ],
+      "forks": [],
       "last": {
        "date": "",
        "load": null,
@@ -2734,13 +2711,7 @@
       "lo": null,
       "retired": false,
       "renames": [],
-      "forks": [
-       {
-        "prevN": "Ham curl",
-        "from": "2026-08-17",
-        "kind": ""
-       }
-      ],
+      "forks": [],
       "last": {
        "date": "",
        "load": null,
@@ -2764,13 +2735,7 @@
         "at": ""
        }
       ],
-      "forks": [
-       {
-        "prevN": "Supported leg raise (medicine-ball pad)",
-        "from": "2026-08-17",
-        "kind": ""
-       }
-      ],
+      "forks": [],
       "last": {
        "date": "",
        "load": null,
@@ -2866,11 +2831,6 @@
         "prevN": "Pulldown",
         "from": "2026-08-13",
         "kind": ""
-       },
-       {
-        "prevN": "Pulldown",
-        "from": "2026-08-17",
-        "kind": ""
        }
       ],
       "last": {
@@ -2896,13 +2856,7 @@
         "at": ""
        }
       ],
-      "forks": [
-       {
-        "prevN": "Rear-delt fly (cable, unilateral)",
-        "from": "2026-08-17",
-        "kind": ""
-       }
-      ],
+      "forks": [],
       "last": {
        "date": "",
        "load": null,
@@ -2931,11 +2885,6 @@
         "prevN": "Rows (strapless)",
         "from": "2026-08-13",
         "kind": ""
-       },
-       {
-        "prevN": "Prime seated row (hooks)",
-        "from": "2026-08-17",
-        "kind": ""
        }
       ],
       "last": {
@@ -2961,13 +2910,7 @@
         "at": ""
        }
       ],
-      "forks": [
-       {
-        "prevN": "Sulek wrist curl (high cable)",
-        "from": "2026-08-17",
-        "kind": ""
-       }
-      ],
+      "forks": [],
       "last": {
        "date": "",
        "load": null,
@@ -2986,13 +2929,7 @@
       "lo": null,
       "retired": false,
       "renames": [],
-      "forks": [
-       {
-        "prevN": "Tricep",
-        "from": "2026-08-17",
-        "kind": ""
-       }
-      ],
+      "forks": [],
       "last": {
        "date": "",
        "load": null,
@@ -5062,76 +4999,16 @@
       "op": "adopt:corr:extension:2026-08-14"
      },
      {
-      "date": "2026-08-17",
-      "text": "CALVES — FRESH BASELINE",
-      "how": "The hip thrust enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
-      "op": "seam:hipthrust:calves"
-     },
-     {
-      "date": "2026-08-17",
-      "text": "CURLS (PREACHER) — FRESH BASELINE",
-      "how": "The machine fly enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
-      "op": "seam:fly:curl"
-     },
-     {
-      "date": "2026-08-17",
-      "text": "HAM CURL — FRESH BASELINE",
-      "how": "The hip thrust enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
-      "op": "seam:hipthrust:ham"
-     },
-     {
-      "date": "2026-08-17",
-      "text": "LEG EXTENSION — FRESH BASELINE",
-      "how": "The hip thrust enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
-      "op": "seam:hipthrust:extension"
-     },
-     {
-      "date": "2026-08-17",
-      "text": "PRIME ABDOMINAL CRUNCH — FRESH BASELINE",
-      "how": "The hip thrust enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
-      "op": "seam:hipthrust:abs"
-     },
-     {
-      "date": "2026-08-17",
-      "text": "PRIME SEATED ROW (HOOKS) — FRESH BASELINE",
-      "how": "The machine fly enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
-      "op": "seam:fly:rows"
-     },
-     {
-      "date": "2026-08-17",
-      "text": "PULLDOWN — FRESH BASELINE",
-      "how": "The machine fly enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
-      "op": "seam:fly:pulldown"
-     },
-     {
-      "date": "2026-08-17",
-      "text": "REAR-DELT FLY (CABLE, UNILATERAL) — FRESH BASELINE",
-      "how": "The machine fly enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
-      "op": "seam:fly:rearDelt"
-     },
-     {
-      "date": "2026-08-17",
-      "text": "SULEK WRIST CURL (HIGH CABLE) — FRESH BASELINE",
-      "how": "The machine fly enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
-      "op": "seam:fly:sulek"
-     },
-     {
-      "date": "2026-08-17",
-      "text": "SUPPORTED LEG RAISE (MEDICINE-BALL PAD) — FRESH BASELINE",
-      "how": "The hip thrust enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
-      "op": "seam:hipthrust:hanging"
-     },
-     {
-      "date": "2026-08-17",
-      "text": "TRICEP — FRESH BASELINE",
-      "how": "The machine fly enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
-      "op": "seam:fly:tricep"
-     },
-     {
       "date": "2026-08-19",
       "text": "2 MORNING READS RE-CLASSED — 8/8, 8/10",
       "how": "The window rule read ‘today's numbers are typed’ as ‘breakfast happened’ and set these morning weigh-ins aside as evening reads; the owner attested on 2026-08-19 that all were morning reads. They count now: the trend replays to 163.9; the false receipts from those mornings are removed. Forecasts and the TDEE log keep what the app said on the day.",
       "op": "patch59:scale"
+     },
+     {
+      "date": "2026-08-19",
+      "text": "INSERTION SEAMS RE-DERIVED",
+      "how": "The eleven seams stamped 8/17 by the day the code ran are retired; a seam now starts when the new lift is actually performed with the lift it affects, and only where the two share a working muscle (hip thrust → ham curl). Today that is none: the fly shares no working muscle with what follows it, and the hip thrust has not been performed. Ruled by the owner on 2026-08-19 on two independent audits.",
+      "op": "patch60:seams"
      },
      {
       "date": "2026-08-19",
@@ -5278,7 +5155,7 @@
      {
       "id": "abs",
       "topAt": 100,
-      "topRun": 1
+      "topRun": 2
      },
      {
       "id": "calves",
@@ -5437,7 +5314,7 @@
     "sets": 246,
     "exercises": 17,
     "queue": 18,
-    "feed": 321,
+    "feed": 311,
     "earned": 4,
     "debuts": 9,
     "pendingDebuts": 0,
@@ -5460,9 +5337,9 @@
      "load": 250,
      "sets": 4,
      "targets": [
+      9,
       8,
-      8,
-      8,
+      7,
       4
      ]
     },
@@ -5489,11 +5366,11 @@
     },
     "curl": {
      "name": "Curls (preacher)",
-     "load": null,
+     "load": 55,
      "sets": 3,
      "targets": [
       11,
-      10,
+      11,
       10
      ]
     },
@@ -5503,7 +5380,7 @@
      "sets": 3,
      "targets": [
       10,
-      9,
+      10,
       8
      ]
     },
@@ -5523,7 +5400,7 @@
      "sets": 2,
      "targets": [
       14,
-      13
+      14
      ]
     },
     "tricep": {
@@ -5531,7 +5408,7 @@
      "load": 55,
      "sets": 3,
      "targets": [
-      12,
+      13,
       12,
       11
      ]
@@ -5572,7 +5449,7 @@
      "sets": 2,
      "targets": [
       7,
-      6
+      7
      ]
     },
     "extension": {
@@ -5580,7 +5457,7 @@
      "load": 160,
      "sets": 2,
      "targets": [
-      8,
+      9,
       9
      ]
     },
@@ -5600,7 +5477,7 @@
      "sets": 3,
      "targets": [
       11,
-      9,
+      10,
       9
      ]
     }
@@ -5696,12 +5573,12 @@
      "to": "2026-08-15"
     },
     "regime": {
-     "key": "unknown",
-     "confirmed": false,
+     "key": "free",
+     "confirmed": true,
      "pending": null,
      "pendingSince": null,
      "prog": {
-      "nLifts": 2,
+      "nLifts": 5,
       "nExcludedNonNumeric": 2,
       "excludedIds": [
        "curl",
@@ -5757,6 +5634,102 @@
         "resetAt": null
        },
        {
+        "id": "sulek",
+        "n": 5,
+        "nSoft": 4,
+        "pct": 5.785,
+        "se": 0.826,
+        "lo": 3.155,
+        "hi": 8.415,
+        "from": "2026-07-23",
+        "to": "2026-08-09",
+        "pts": [
+         {
+          "d": "2026-07-23",
+          "y": 1925,
+          "soft": true,
+          "k": 2
+         },
+         {
+          "d": "2026-07-30",
+          "y": 1925,
+          "soft": true,
+          "k": 2
+         },
+         {
+          "d": "2026-08-03",
+          "y": 2100,
+          "soft": true,
+          "k": 2
+         },
+         {
+          "d": "2026-08-06",
+          "y": 2275,
+          "soft": true,
+          "k": 2
+         },
+         {
+          "d": "2026-08-09",
+          "y": 2362.5,
+          "soft": false,
+          "k": 2
+         }
+        ],
+        "k": 2,
+        "resetAt": null
+       },
+       {
+        "id": "abs",
+        "n": 6,
+        "nSoft": 2,
+        "pct": 4.012,
+        "se": 1.483,
+        "lo": -0.105,
+        "hi": 8.129,
+        "from": "2026-07-28",
+        "to": "2026-08-14",
+        "pts": [
+         {
+          "d": "2026-07-28",
+          "y": 3200,
+          "soft": true,
+          "k": 3
+         },
+         {
+          "d": "2026-07-31",
+          "y": 3900,
+          "soft": false,
+          "k": 3
+         },
+         {
+          "d": "2026-08-04",
+          "y": 4100,
+          "soft": true,
+          "k": 3
+         },
+         {
+          "d": "2026-08-07",
+          "y": 4000,
+          "soft": false,
+          "k": 3
+         },
+         {
+          "d": "2026-08-10",
+          "y": 4100,
+          "soft": false,
+          "k": 3
+         },
+         {
+          "d": "2026-08-14",
+          "y": 4200,
+          "soft": false,
+          "k": 3
+         }
+        ],
+        "k": 3,
+        "resetAt": null
+       },
+       {
         "id": "hack",
         "n": 6,
         "nSoft": 2,
@@ -5806,20 +5779,102 @@
         ],
         "k": 3,
         "resetAt": null
+       },
+       {
+        "id": "extension",
+        "n": 6,
+        "nSoft": 1,
+        "pct": 4.154,
+        "se": 1.828,
+        "lo": -0.919,
+        "hi": 9.228,
+        "from": "2026-07-24",
+        "to": "2026-08-14",
+        "pts": [
+         {
+          "d": "2026-07-24",
+          "y": 2250,
+          "soft": false,
+          "k": 2
+         },
+         {
+          "d": "2026-07-28",
+          "y": 2250,
+          "soft": true,
+          "k": 2
+         },
+         {
+          "d": "2026-07-31",
+          "y": 2850,
+          "soft": false,
+          "k": 2
+         },
+         {
+          "d": "2026-08-07",
+          "y": 2635,
+          "soft": false,
+          "k": 2
+         },
+         {
+          "d": "2026-08-10",
+          "y": 2790,
+          "soft": false,
+          "k": 2
+         },
+         {
+          "d": "2026-08-14",
+          "y": 2720,
+          "soft": false,
+          "k": 2
+         }
+        ],
+        "k": 2,
+        "resetAt": null
        }
       ],
-      "state": "unknown",
-      "pct": null,
-      "lo": null,
-      "hi": null,
-      "why": "only 2 lift(s) carry a usable trend — 4 needed before this reads anything"
+      "state": "rising",
+      "protectedBy": null,
+      "confidence": "normal",
+      "nSoft": 13,
+      "pct": 3.742,
+      "se": 0.536,
+      "lo": 2.691,
+      "hi": 4.794,
+      "why": "pooled 3.74 %/session across 5 lifts"
      },
-     "rate": null,
-     "why": "only 2 lift(s) carry a usable trend — 4 needed before this reads anything"
+     "rate": {
+      "scale": 0.73,
+      "fat": 0.73,
+      "measured": true,
+      "rates": [
+       1.799999999999983,
+       0.8000000000000114,
+       0.19999999999998863,
+       0.4000000000000057,
+       1.8000000000000114,
+       1.299999999999983,
+       0.4000000000000057,
+       0.30000000000001137
+      ],
+      "method": "regression",
+      "n": 28,
+      "ci": 0.43,
+      "lo": 0.3,
+      "hi": 1.16,
+      "sigma": 1.66,
+      "ciOls": 0.34,
+      "hacL": 3,
+      "rho1": 0.45,
+      "hacInflation": 1.24,
+      "from": "2026-07-08",
+      "to": "2026-08-15",
+      "span": "2026-07-08 → 2026-08-15"
+     },
+     "why": "lifts rising and fat still falling — both terms improving at once"
     }
    },
    "progression": {
-    "nLifts": 2,
+    "nLifts": 5,
     "excludedIds": [
      "curl",
      "hanging"
@@ -5828,6 +5883,22 @@
      "2026-07-27"
     ],
     "lifts": [
+     {
+      "id": "abs",
+      "n": 6,
+      "nSoft": 2,
+      "pct": 4.012,
+      "lo": -0.105,
+      "hi": 8.129
+     },
+     {
+      "id": "extension",
+      "n": 6,
+      "nSoft": 1,
+      "pct": 4.154,
+      "lo": -0.919,
+      "hi": 9.228
+     },
      {
       "id": "hack",
       "n": 6,
@@ -5843,6 +5914,14 @@
       "pct": 1.239,
       "lo": -1.748,
       "hi": 4.226
+     },
+     {
+      "id": "sulek",
+      "n": 5,
+      "nSoft": 4,
+      "pct": 5.785,
+      "lo": 3.155,
+      "hi": 8.415
      }
     ]
    },
@@ -5861,12 +5940,137 @@
    }
   },
   "optional": {
-   "internalSchema": 59,
-   "records": {},
-   "volDeltas": {},
+   "internalSchema": 60,
+   "records": {
+    "rows": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "press": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "fly": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "lateral": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "curl": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "rearDelt": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "pulldown": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "sulek": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "tricep": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "hack": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "hipthrust": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "abs": {
+     "topAt": 100,
+     "topRun": 2
+    },
+    "hanging": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "extension": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "calves": {
+     "topAt": null,
+     "topRun": 0
+    },
+    "ham": {
+     "topAt": null,
+     "topRun": 0
+    }
+   },
+   "volDeltas": {
+    "rows": [
+     [
+      "2026-08-09",
+      1
+     ]
+    ],
+    "press": [
+     [
+      "2026-08-07",
+      1
+     ]
+    ],
+    "fly": [],
+    "lateral": [
+     [
+      "2026-08-13",
+      1
+     ]
+    ],
+    "curl": [
+     [
+      "2026-08-09",
+      1
+     ]
+    ],
+    "rearDelt": [
+     [
+      "2026-08-07",
+      1
+     ]
+    ],
+    "pulldown": [],
+    "sulek": [],
+    "tricep": [
+     [
+      "2026-08-09",
+      1
+     ]
+    ],
+    "hack": [
+     [
+      "2026-08-09",
+      1
+     ]
+    ],
+    "hipthrust": [],
+    "abs": [
+     [
+      "2026-08-09",
+      1
+     ]
+    ],
+    "hanging": [],
+    "extension": [],
+    "calves": [],
+    "ham": [
+     [
+      "2026-08-07",
+      1
+     ]
+    ]
+   },
    "absent": [
-    "deriveSighting",
-    "_volDeltas",
     "records"
    ]
   }

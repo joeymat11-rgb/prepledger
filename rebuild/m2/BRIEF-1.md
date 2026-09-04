@@ -50,7 +50,11 @@ partial census go RED; restore byte-for-byte and show the SHA.
 (1) module map with line counts and, per function, the app.jsx line range it was copied from; (2) the gate output tails verbatim (partial
 census on the two public blobs; run.cjs SUMMARY block; check.mjs tail; live-blob verdict line); (3) every clock site you rewrote (count +
 list) and every memo/WeakMap you met; (4) the bite check; (5) SEAMS — anything shaped by the oracle rather than by the product; (6) anything
-in RECON.md you believe is wrong (not edited); (7) what module 1 does NOT cover; (8) wall-clock and, if exposed, tokens.
+in RECON.md you believe is wrong (not edited); (7) what module 1 does NOT cover; (8) wall-clock and, if exposed, tokens;
+(9) DEFECT LOG — anything in the code you copied that you would change (a wrong rule, a hidden assumption, a value that should be
+derived, a bug): file it with the app.jsx line and the evidence, and DO NOT change it. Module 1 must reproduce the frozen engine
+byte-for-byte — the golden is the proof, and one changed word fails it by design. Every entry in this log becomes a candidate
+red-first law for the audit that follows extraction; the owner rules on each. An improvement smuggled into a copy is a defect here.
 Same honesty bar as T3: the owner's scorecard counts seams you omit at double weight.
 
 ## 5. Never

@@ -1,8 +1,8 @@
 {
  "stamp": {
   "engine": "main",
-  "engineSha256": "adf6ab1c8e80086f94771ddeaace712f9a286093d82ddb2f018e4b868f1e16b4",
-  "engineCommit": "a0009c3 (v7.55.9, deployed main)",
+  "engineSha256": "21a95f492de8965fd877d0ea7df875b1c2caee3a72b592c41c8326e9000fd8f0",
+  "engineCommit": "fe516c1 (v7.56.0, frozen main)",
   "clock": "2026-09-03",
   "tz": "America/New_York",
   "censusVersion": 3
@@ -23,7 +23,7 @@
      "queue": 0,
      "feed": 0,
      "volumeReceipts": 0,
-     "sightings": 0,
+     "sightings": 1,
      "events": 0,
      "waist": 0,
      "plan": 0
@@ -914,8 +914,8 @@
      },
      {
       "id": "rows",
-      "topAt": null,
-      "topRun": 0
+      "topAt": 180,
+      "topRun": 2
      }
     ],
     "events": [],
@@ -982,7 +982,7 @@
      "sets": 2,
      "targets": [
       9,
-      9
+      8
      ]
     }
    },
@@ -1105,12 +1105,22 @@
    }
   },
   "optional": {
-   "internalSchema": 59,
-   "records": {},
-   "volDeltas": {},
+   "internalSchema": 60,
+   "records": {
+    "press": {
+     "topAt": 55,
+     "topRun": 2
+    },
+    "rows": {
+     "topAt": 180,
+     "topRun": 2
+    }
+   },
+   "volDeltas": {
+    "press": [],
+    "rows": []
+   },
    "absent": [
-    "deriveSighting",
-    "_volDeltas",
     "records"
    ]
   }

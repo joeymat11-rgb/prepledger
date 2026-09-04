@@ -259,15 +259,15 @@
    "PORT-preimage-2026-08-15-manifest-pins-fixture-golden-engine-and-stamp",
    "PORT-preimage-2026-08-15-every-required-leaf-is-compared-perturbation-detected",
    "PORT-preimage-2026-08-15-semantic-engine-and-input-mutants-change-the-required-census",
-   "PORT-preimage-2026-08-15-real-change-probe-fix4b-vs-golden-main-differs",
+   "PORT-preimage-2026-08-15-real-change-probe-old-vs-golden-main-differs",
    "PORT-synthetic-pending-debut-manifest-pins-fixture-golden-engine-and-stamp",
    "PORT-synthetic-pending-debut-every-required-leaf-is-compared-perturbation-detected",
    "PORT-synthetic-pending-debut-semantic-engine-and-input-mutants-change-the-required-census",
-   "PORT-synthetic-pending-debut-real-change-probe-fix4b-vs-golden-main-differs",
+   "PORT-synthetic-pending-debut-real-change-probe-old-vs-golden-main-differs",
    "PORT-live-manifest-pins-fixture-golden-engine-and-stamp",
    "PORT-live-every-required-leaf-is-compared-perturbation-detected",
    "PORT-live-semantic-engine-and-input-mutants-change-the-required-census",
-   "PORT-live-real-change-probe-fix4b-vs-golden-main-differs"
+   "PORT-live-real-change-probe-old-vs-golden-main-differs"
   ]
  },
  "totalLaws": 99

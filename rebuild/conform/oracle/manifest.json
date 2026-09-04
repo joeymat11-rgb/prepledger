@@ -4,11 +4,11 @@
   "preimage-2026-08-15.main": {
    "blob": "preimage-2026-08-15",
    "blobSha256": "b5eb62d459d6e58bfb26bfa65f772db193998825166d7538403dad41eddda499",
-   "goldenSha256": "8a6e7dad6ee275f5ecfa2a82511aeff989f253f603df0ed3ac0463a6b820c232",
+   "goldenSha256": "890683a26dc8e2b5f353e94b268cf9e75623877a91f6dd7cdb287beebf481bfb",
    "privacy": "PUBLIC (repo tools/fixtures/ledger-preimage-2026-08-15.json)",
    "engine": "main",
-   "engineSha256": "adf6ab1c8e80086f94771ddeaace712f9a286093d82ddb2f018e4b868f1e16b4",
-   "engineCommit": "a0009c3 (v7.55.9, deployed main)",
+   "engineSha256": "21a95f492de8965fd877d0ea7df875b1c2caee3a72b592c41c8326e9000fd8f0",
+   "engineCommit": "fe516c1 (v7.56.0, frozen main)",
    "clock": "2026-09-03",
    "tz": "America/New_York",
    "censusVersion": 3,
@@ -17,11 +17,11 @@
   "synthetic-pending-debut.main": {
    "blob": "synthetic-pending-debut",
    "blobSha256": "653d4c99ca3a4b5103fe8f1c0d2dc965a6c531922a286c35f705c3d5df8e738e",
-   "goldenSha256": "87dea9472516a5ee3f492522c799c920e34eb3459eeaa0c18e510c290ddc5852",
+   "goldenSha256": "194a38df3b4f8e87f8690a09c21c042e4f319b9d3f604cd06f3c018db6a84a2f",
    "privacy": "SYNTHETIC (oracle/make-synthetic.cjs; pending debuts with newWSets, a former name, a volume receipt)",
    "engine": "main",
-   "engineSha256": "adf6ab1c8e80086f94771ddeaace712f9a286093d82ddb2f018e4b868f1e16b4",
-   "engineCommit": "a0009c3 (v7.55.9, deployed main)",
+   "engineSha256": "21a95f492de8965fd877d0ea7df875b1c2caee3a72b592c41c8326e9000fd8f0",
+   "engineCommit": "fe516c1 (v7.56.0, frozen main)",
    "clock": "2026-09-03",
    "tz": "America/New_York",
    "censusVersion": 3,
@@ -29,12 +29,12 @@
   },
   "live.main": {
    "blob": "live",
-   "blobSha256": "be74d85a89a16f90e98ae4d3e38f44e3bee067b516d93581273339aba93e0900",
-   "goldenSha256": "8924f21adfd2507a9a24767413147cfebe9653c79695bbeb278d7471f88d0a61",
+   "blobSha256": "dbb2d582e915a9ed153847329907dd797bd0470a16821539270aebafe1228845",
+   "goldenSha256": "3218ad7576defc54c60dca4f193b4c13f4052db17b3a6289855732b7ed22255e",
    "privacy": "PRIVATE — the athlete's live ledger, never shipped; verdict lines only",
    "engine": "main",
-   "engineSha256": "adf6ab1c8e80086f94771ddeaace712f9a286093d82ddb2f018e4b868f1e16b4",
-   "engineCommit": "a0009c3 (v7.55.9, deployed main)",
+   "engineSha256": "21a95f492de8965fd877d0ea7df875b1c2caee3a72b592c41c8326e9000fd8f0",
+   "engineCommit": "fe516c1 (v7.56.0, frozen main)",
    "clock": "2026-09-03",
    "tz": "America/New_York",
    "censusVersion": 3,
@@ -44,5 +44,5 @@
  "censusVersion": 3,
  "clock": "2026-09-03",
  "tz": "America/New_York",
- "status": "PROVISIONAL — the FINAL golden is cut from the frozen old engine after the PROGRESSION-1 decision (owner); this golden is from main a0009c3 (v7.55.9, deployed main)"
+ "status": "PROVISIONAL — the FINAL golden is cut from the frozen old engine after the PROGRESSION-1 decision (owner); this golden is from main fe516c1 (v7.56.0, frozen main)"
 }

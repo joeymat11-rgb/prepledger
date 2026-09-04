@@ -63,7 +63,7 @@ if (mode === "golden") {
           const results = muts.map(([name, mk]) => { const m = mk(); if (!m) return { name, status: "NOT_APPLICABLE (fixture lacks the feature)" }; const c = required(census(m.T, m.raw)); const d = diffPaths(base, c); return { name, status: d.length ? "DETECTED" : "MISSED", paths: d.length }; });
           const applicable = results.filter((r) => r.status !== "NOT_APPLICABLE (fixture lacks the feature)"); const missed = applicable.filter((r) => r.status === "MISSED");
           return { ok: missed.length === 0 && applicable.length >= 4, detail: priv(b, results.map((r) => r.name + ":" + r.status.split(" ")[0] + (r.paths ? "(" + r.paths + ")" : "")).join(" · ")) }; } });
-      laws.push({ id: `PORT-${b.name}-real-change-probe-${label}-vs-golden-main-differs`, cite: "a changed engine must be DETECTED by the required census (fix4b is PACK 3's real change)", expect: "GREEN",
+      laws.push({ id: `PORT-${b.name}-real-change-probe-${label}-vs-golden-main-differs`, cite: "a changed engine must be DETECTED by the required census (the old engine is the last pre-PROGRESSION-1 main a0009c3; real change)", expect: "GREEN",
         run: () => { const g = JSON.parse(fs.readFileSync(gPath, "utf8")); const c = census(T, JSON.parse(fs.readFileSync(b.file, "utf8"))); const d = diffPaths(required(g.census), required(c)); const groups = {}; for (const x of d) { const grp = x.path.split("/")[1]; groups[grp] = (groups[grp] || 0) + 1; } return { ok: d.length > 0, detail: priv(b, d.length + " differing paths by group " + JP(groups) + " (values withheld in code)") }; } });
     }
   }

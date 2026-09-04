@@ -94,7 +94,7 @@ THE 12-POINT BAR, EACH WITH THE CODE THAT PROVES IT
 
 PACK-3 CARRY-FORWARD (engine track, unchanged): FIX AGAIN stands; FIX-4c is with Claude Code (same-day maximum,
 former-name mint, and the §6 prose: the queue-order divergence does NOT settle — a disclosed REBUILD obligation,
-law P5). rig185 on fix4b: W1 FAIL, W2 FAIL (informational step 9).
+law P5). rig185 on the old engine (a0009c3): W1 FAIL, W2 FAIL (informational step 9).
 
 WHAT THE SUITE FOUND THIS ROUND (its own defects, fixed): the v2 comparator re-canonicalized every subtree at
 every level (quadratic); the reference authority's global op-owner map (Sol's finding 6a); the undo law's and the
