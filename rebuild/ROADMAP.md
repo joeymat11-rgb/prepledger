@@ -1,11 +1,19 @@
-# EARNED — REBUILD ROADMAP v1.2 (2026-09-04, night)
+# EARNED — REBUILD ROADMAP v1.3 (2026-09-05)
 
 The durable plan. A chat can die; this file cannot. Every Claude Code handoff that changes the plan updates this file.
 Owner: Joe (rules). Build chat (cowork) = senior developer / project manager + execution audits + the cross-family check
 (every claim re-run, never read). Builders: OpenAI Codex (GPT-6 Astra) builds modules against the suite (won T3);
 Claude Code (on the owner's PC) integrates, cuts goldens and ships. Sol = the blind reviewer (one round per milestone,
-told to disagree); Grok is retired from the standing loop (2026-09-04 ruling) and may be called for risky rounds only.
-Dad = first real user.
+told to disagree) and the tie-breaker on disputes about cowork's own judgment; Grok is retired from the standing loop
+(2026-09-04 ruling; the T3 pre-registration promised two blind reviewers — this is a RECORDED change of plan, not its
+fulfilment). The integrator seat (secrets, private-golden custody, releases) is a ROLE with a runbook, not a model; a
+backup-integrator rehearsal is queued for M3. Dad = first real user.
+
+## Now (the task index — brief · base · next actor)
+- M2 module 2 · rebuild/m2/BRIEF-2.md (to be committed) · base = rebuild/t2-client-core after this handoff · ASTRA builds, cowork scores.
+- Phone storage soak · rebuild/m3/SOAK-1.md (to be committed) · owner supplies the phone · starts in parallel with M2.
+- Sol: blind T3 read (in flight) → then PROCESS AUDIT 1 + cowork's answers (rebuild/audit/) for the F8/F9 tie-break.
+- Owner rulings open: (1) is the source-ingestion protocol required for beta? (2) defect log D1–D10 (after module 2, one ruling pass).
 
 ## Where we are (2026-09-04, evening)
 - FROZEN APP (Measured): PROGRESSION-1 merged (main 8610bd1), v7.56.0 LIVE and tail-verified; CDN denylist on main
@@ -47,14 +55,30 @@ Dad = first real user.
   constant, ×2). Owner ruled ASTRA the winner; rebuild/t3-authority-astra is merged into rebuild/t2-client-core; the
   Claude branch is KEPT (its suite findings 6a–6g go into suite v4). Sol's blind A/B read is a check on the scorecard, not
   a blocker. The same scorecard is re-run on M2 module 1 before any further change of builder.
-- M2 · THE ENGINE (1–2 weeks). Cut the FINAL golden from the frozen v7.56.0 first; extract the decision engine as pure
-  modules (rebuild/m2/RECON.md: 12 modules, clock injected, ≈ 30 agent-hours); the port oracle proves identical reads
-  on the owner's real ledger. FINAL golden cut from fe516c1 (v7.56.0) by Claude Code; ASTRA builds module 1
-  (rebuild/m2/BRIEF-1.md: dates + constants + seed + plan + progression read-side, partial census as the gate).
-- M3 · WALKING SKELETON (1–2 weeks). The authority on Cloudflare Workers + D1 (owner creates the accounts; deploy token
-  to the builder), real on-device storage, ONE screen (Today) end-to-end on the owner's phone with his ported data.
+- M2 · THE ENGINE (engineering ≈ 30 agent-hours; calendar 1–2 weeks). FINAL golden cut from fe516c1 — DONE (38741fb).
+  Module 1 (dates, constants, seed, plan, progression read-side) — DONE by ASTRA, PR #11, scored and merged
+  (rebuild/m2/SCORECARD-M2-1.md; 10-entry DEFECT LOG preserved, nothing fixed). Modules 2–7 follow RECON §4's order.
+  M2 CLOSES only when BOTH gates hold: the census on all three blobs AND the second gate (engine-test.jsx ≈ 2,600
+  assertions + sync-laws + engine-surface baseline re-pointed at the module) — the census alone cannot see a broken
+  writer (audit F5, proven by cowork's bite on module 1). Then the post-extraction AUDIT: every defect-log entry → a
+  red-first law → owner ruling → fix in the module (never in the frozen app).
+- PROCESS AUDIT 1 (ASTRA, PR #12) — ten findings, seven disagreements; cowork's execution answers in
+  rebuild/audit/ANSWERS-1.md. Accepted: F1 (soak now), F2 (M3 acceptance gates), F3 (family inventory), F4/F5/F7
+  (suite v3.2 + v4 items), F6 (branch tracks frozen main), F10 (AGENTS.md, one-PR-link relay). F8/F9 to Sol.
+- M3 · WALKING SKELETON (calendar 1–2 weeks + the 30-day soak clock, which starts NOW in parallel with M2: a stub PWA on
+  the owner's phone writes an outbox, is left untouched, and is read back after ≥ 30 idle days — device/OS, start date,
+  pressure protocol and earliest verdict date recorded in rebuild/m3/SOAK-1.md). The authority on Cloudflare Workers +
+  D1 (owner creates the accounts; deploy token to the integrator), real on-device storage, ONE screen (Today) end-to-end
+  on the owner's phone with his ported data. DEFINITION OF DONE adds (audit F2): two-athlete isolation test on the real
+  backend · restore into an isolated account · recorded loss/recovery objectives · key-rotation + account-recovery drill ·
+  import checkpoint + rollback rehearsal that preserves new writes · privacy-safe error/version telemetry · an OBSERVED
+  spending alert with what "$5" actually stops written down · backup-integrator rehearsal.
 - M4 · THE THREE MOMENTS (2 weeks). Gym card + set logging, proposals + consent, Review/Re-entry; second device; the
-  30-day soak on the store stub; restore drill. Dad beta starts here.
+  soak VERDICT (started in M3) and the restore drill are inputs here, not started here. REQUIRED FAMILIES for beta (audit
+  F3): authority + client + policy (D13/D14) + progression adapters GREEN — "absent family, RED as specified" is not
+  beta-ready. Contract → module → milestone: §A authority → rebuild/authority (T3, done) · §B client → rebuild/client
+  (T2, done) · D13/D14 policy → rebuild/policy (M4) · progression laws → rebuild/engine/progression + the M4 adapter ·
+  A6 consent halves (deferred) → M4 · source-ingestion protocol → owner to rule whether beta needs it. Dad beta starts here.
 - M5 · LAUNCH PREP. Hardening from beta; equipment-agnostic onboarding; priority muscles and training days as per-athlete
   setup; trademark clearance for "Earned"; staged reversible release.
 

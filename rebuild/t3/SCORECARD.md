@@ -13,7 +13,7 @@ and every rig below was RUN by cowork — nothing here is taken from a builder's
 | 4 | rig191 TEN BREAKS (scored)           | 10/10 BITE                               | 9/10 BITE — the one NO-BITE (B1 replay) was probed and is INEFFECTIVE: its later accept path is idempotent (1 log entry, identical disposition), so the break never changed behaviour. Effective score 9/9. Not a suite gap. |
 | 5 | SEAMS (scored, lower better)         | listed 11 (a–k) · cowork-found omission **1** → penalty 2 → **13** | listed 9 · cowork-found omissions **0** → **9** |
 | 6 | SIZE / SHAPE (info)                  | 637 lines · 10 modules · store = createStore(backend) with transaction(fn) rollback — D1-implementable · clock injected · no Node-only API in core · adapter imports only ../lib/ops.cjs | 898 lines (report says 998) · 11 modules (+validate.cjs) · store = copied rows, staged writes, rollback, README specifies the D1 bridge — D1-implementable · clock injected · no Node-only API in core · adapter imports product internals (store.copy, crypto.signLease/verifyLease/signServerTime) |
-| 7 | COST (info, reported)                | 13 min · ≈230k tokens                    | ≈18 min · tokens not exposed              |
+| 7 | COST (info, reported)                | ≈43 min incl. ~30 min reading (build 13 min) · ≈230k tokens | ≈18 min incl. reading · tokens not exposed |
 
 ## The seam CLAUDE's report omits (item 5)
 `plan.cjs:14  const DEFAULT_PLAN = { protein_g: 150, steps: 8000 };` — the A5 undo law's fixture plan is baked into the PRODUCT and
