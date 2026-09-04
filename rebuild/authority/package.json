@@ -1,0 +1,9 @@
+{
+  "name": "earned-authority",
+  "version": "0.1.0",
+  "description": "Earned — the server authority's core (tranche T3, builder CLAUDE): pure logic over an injected store, zero dependencies",
+  "main": "index.cjs",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": { "node": ">=18" }
+}
