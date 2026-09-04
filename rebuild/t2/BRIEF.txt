@@ -1,0 +1,137 @@
+EARNED — TRANCHE T2 BUILD BRIEF: THE NEW CLIENT'S CORE, BUILT AGAINST THE 35 §B LAWS
+=====================================================================================
+Date 2026-09-04. Owner ruling (Joe): "START T2 NOW — the new client's core built against the 35 §B laws by a
+parallel cloud build agent with the suite as the gate." You are that build agent. Read this whole brief first.
+
+0. WHAT EXISTS (read-only for you)
+----------------------------------
+/home/claude/conform/                       the CONFORMANCE SUITE v3 (spec-as-tests; 99 laws; SUITE CONSISTENT)
+  run.cjs                                   the runner (steps 0–9 + --selftest). THE GATE.
+  laws/sheet-B-client.cjs                   THE 35 §B LAWS your client must satisfy (read every law; the exact
+                                            strings, numbers and shapes in them are the contract)
+  reference/client.cjs                      the REFERENCE client (an in-memory MODEL that proves the laws
+                                            satisfiable; NOT the product). Read it to understand semantics.
+                                            You may NOT re-export it, copy it wholesale, or require it from
+                                            product code or from the adapter.
+  lib/canonical.cjs, lib/ops.cjs            the suite's canonical-v1 encoder + op fixtures (A3/A4 envelope,
+                                            HMAC commitment, signed leases, AUTH_KEY, K_IDENTITY)
+  lib/harness.cjs                           NotImplemented, runLaws, runMutants
+  gates/inputs/EARNED-RUNTIME-SHEET-v1.7.38.txt   the ratified runtime sheet (the law `cite:` fields point at its
+                                            line numbers — read the cited lines when a law's intent is unclear)
+Every file under /home/claude/conform EXCEPT the new adapters/client.cjs is FROZEN for this tranche:
+  DO NOT modify laws/, reference/, oracle/, lib/, coverage/, gates/, fixtures/, golden/, private/, run.cjs,
+  rig185.cjs, README-suite.txt. A hash snapshot exists (/tmp/conform-pre-t2.sha) and will be checked after you
+  finish. If a law seems wrong, DO NOT edit it — write it up in your report (Sol's v3 objections become law edits
+  later; the build never edits the law it is gated by).
+NEVER read or copy /home/claude/conform/private/* (production health data). Synthetic fixtures only.
+
+1. WHAT YOU BUILD
+-----------------
+(a) THE PRODUCT: /home/claude/rebuild/client/   — the new client's core, as REAL PRODUCT MODULES (CommonJS,
+    Node ≥ 18, zero npm dependencies, node:crypto only). Suggested decomposition (you may refine, but keep one
+    responsibility per module and keep the store/backend seam real):
+      canonical.cjs   canonical-v1 encoder — an INDEPENDENT implementation of the spec in §3 below (do not
+                      require the suite's lib/canonical.cjs; the suite compares your commitments to its own
+                      encoder byte-for-byte — two implementations that agree is the point)
+      ops.cjs         A3/A4 operation envelope construction + commitment = HMAC-SHA256(K_identity,
+                      "earned/op/v1" || canonical_encode(envelope EXCLUDING canonical_content_commitment,
+                      authority_signature, athlete_log_seq, accepted_at, decided_at, sealing_transitions, sealed))
+      store.cjs       the DURABLE LOCAL STORE with real all-or-nothing transactions over a pluggable BACKEND
+                      interface (begin/write/commit/rollback or equivalent). The in-memory backend ships with the
+                      product. Atomicity must be REAL: if the backend fails part-way through a transaction the
+                      store rolls back everything staged in that transaction. Test fault injection happens by
+                      supplying a faulty backend FROM THE ADAPTER — the product contains no test hooks.
+      outbox.cjs      the outbox (op_id-keyed), attempts, backoff schedule [0, 1000, 2000, 4000] ms, retry of the
+                      SAME op_id, sent log
+      sync.cjs        dispositions (authority-signed; verify signature over "earned/disposition/v1" ||
+                      canonical_encode(disposition minus authority_signature) with the authority key, verify the
+                      op_id is in the outbox and the canonical_content_commitment equals the stored op's;
+                      WAITING stored/not drained; ACCEPTED stored+drained; REJECTED/REJECTED_DEPENDENCY = ONE
+                      atomic transaction: disposition + rejected-ledger entry + outbox removal), receipts and the
+                      CONTIGUOUS frontier W, reduce-through-W, plan-transaction Applied tracking
+      lease.cjs       offline-write lease: signature check (authority key, "earned/lease/v1"), time window
+                      against the local clock, range
+      plan.cjs        the accepted plan, Layer-1 live edits (touched domains), plan-history projection and the
+                      state-5 FALLBACK (effective complete projection immediately before the suspended
+                      transaction, excluding values introduced only by it and inherited descendants), conflict
+                      suspension, proposal ISSUANCE (instance derived from offer content), answers
+      session.cjs     sessions from devices, the ambiguity component + COMPLETE-PARTITION resolution, candidate
+                      edges (same slot or AD_HOC, same date or adjacent only across the 23:00→01:00 skew
+                      envelope), generations, SAME-WORKOUT basis selection, set collisions, conflict copy
+      face.cjs        the governing state machine (precedence: 18 > 17 > 20 > 3 for writes; machine output:
+                      session ambiguity 14 > contract currency 7 > sync currency 6/2/1), the two-layer face,
+                      the D7 board ladder (NO_WEIGH_IN_TODAY < 3 missing days · STALE 3–6 "Keep for now" ·
+                      RE_ENTRY ≥ 7), the four copy labels (Saved / Sent / Synced / Applied), restore flow,
+                      resume-after-kill, every exact copy string the laws assert
+      index.cjs       createClient(config) — composition root. config: { deviceId, athleteId, identityKey,
+                      authorityKey, backend, clock: { now() → ISO, today() → YYYY-MM-DD, tz }, lease,
+                      transport/online state, lastSync snapshot, reads, ... }
+    The product must be usable WITHOUT the suite: `node -e "require('/home/claude/rebuild/client')"` loads with
+    no reference to /home/claude/conform. Put a short README.md in /home/claude/rebuild/client/ (module map, the
+    backend interface, how fault injection is done from outside).
+
+(b) THE ADAPTER: /home/claude/conform/adapters/client.cjs — `module.exports = { create(opts, hooks) }`.
+    It maps the suite's synthetic opts (see reference/client.cjs `opts.*`: online, lastSync{plan, W, trend, rate,
+    maintenance, asOf, time, instruction, instructionDeps, outputs, proposals, actionLoci, proposal,
+    planProvenance, planVersion}, storage: "refuse-writes" | "crash-after-op-before-outbox" |
+    "crash-in-rejected-ledger", lease, now, today, tz, reads, coldStart, emptyAccount, hiddenAcceptedPlan,
+    loggedIntake, maintenanceDays, restoreRequired, revoked, contractObsolete, identityKey, device_id,
+    signInRequired) onto the product's createClient config, supplies the faulty backend and the test clock, and
+    returns the API object the laws call (the method list is in laws/sheet-B-client.cjs; the reference's `api`
+    object is the normalized shape — same method names, same return shapes). `hooks` is ignored (mutants apply
+    only to the reference). The adapter MAY require ../lib/ops.cjs for the shared test constants (AUTH_KEY,
+    K_IDENTITY, O.lease default) — it MUST NOT require ../reference/* and product code must not require anything
+    under /home/claude/conform. hiddenAcceptedPlan: seed the store with a plan record that has NO consent
+    transaction; the product must never surface it (that is the law's point).
+
+2. THE GATE (must pass before you report)
+-----------------------------------------
+  cd /home/claude/conform && MEASURED_TEST_NOW=2026-09-03 TZ=America/New_York node run.cjs
+    → "6 adapters laws/sheet-B-client.cjs: family client present → all GREEN" with 35 GREEN · 0 FAIL · 0 DEFECT ·
+      0 HARNESS_ERROR; every other family still "absent → all RED(as specified)"; final line
+      "SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 64 RED-first against absent families · 35 GREEN against
+      present families"; exit code 0.
+  cd /home/claude/conform && MEASURED_TEST_NOW=2026-09-03 TZ=America/New_York node run.cjs --selftest
+    → SELFTEST PASS (10/10) — unchanged.
+  Independence checks (run them; put the output in your report):
+    grep -rn "conform" /home/claude/rebuild/client/            → nothing
+    grep -n "reference" /home/claude/conform/adapters/client.cjs → nothing
+    cd /tmp && node -e "require('/home/claude/rebuild/client')"  → loads
+  Bite check (prove the laws test YOUR client, not the reference): temporarily break ONE product behaviour (e.g.
+  make the outbox drain on send instead of on a stored ACCEPTED disposition), run the gate, confirm the matching
+  law goes FAIL, then restore it. Report which law bit.
+  Save the final gate output: cp /home/claude/conform/run.log /home/claude/t2/run.log
+
+3. CANONICAL-v1 (what your encoder must produce — same bytes as lib/canonical.cjs, implemented independently)
+--------------------------------------------------------------------------------------------------------------
+  strings   → Unicode NFC, then JSON string quoting (JSON.stringify)
+  numbers   → canonical decimal: 0 and -0 → "0"; no exponent (1e21 → "1000000000000000000000",
+              1e-7 → "0.0000001"); no trailing zeros after the point; integers without ".0";
+              non-finite → the JSON string of its name ("NaN", "Infinity") so it is encodable but never equal
+              to a finite encoding
+  booleans  → true | false
+  null      → the literal null; undefined (absent) → the key is OMITTED. absent ≠ null ≠ value
+  arrays    → "[" + items joined by "," + "]" (undefined items dropped); a declared SET field (causal_parents)
+              is de-duplicated and sorted by the items' canonical encodings
+  maps      → "{" + "\"key\":" + encoding, keys sorted by code point, joined by "," + "}"; quantities {value,
+              unit} are maps (the unit is part of the encoding)
+  commitment = hex HMAC-SHA256(K_identity, "earned/op/v1" + encode(envelope))
+
+4. DELIVERABLE
+--------------
+  /home/claude/t2/REPORT.txt — (1) module map with one line per module and line counts; (2) the gate output tail
+  (the 6-adapters line for §B, the SUMMARY block, the SELFTEST line); (3) the independence check outputs;
+  (4) the bite check (what you broke, which law FAILed, restored); (5) every place where a law forced a
+  test-shaped seam into the product (name the law id, what the seam is, and how the adapter absorbs it) — be
+  honest, this list goes to two blind reviewers; (6) anything in a law you believe is wrong (do NOT edit it);
+  (7) what T2 does NOT yet cover (e.g. no UI, no real persistence backend, no transport).
+  Keep the report factual and short. No claims you did not execute.
+
+5. RULES
+--------
+  - No network. No npm installs. No git operations in /home/claude/conform. Do not create files outside
+    /home/claude/rebuild/, /home/claude/conform/adapters/, /home/claude/t2/ and /tmp.
+  - Never print or reference anything from /home/claude/conform/private/.
+  - Work until the gate passes. If a specific law resists after real effort, leave the adapter in place (the
+    runner will show that law FAIL), and say exactly which law and why in the report — a FAIL that is explained
+    beats a hack that makes it green.

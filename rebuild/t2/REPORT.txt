@@ -1,0 +1,127 @@
+EARNED — TRANCHE T2 REPORT: the new client's core against the 35 §B laws
+Date 2026-09-04. Build agent output. Gate: cd /home/claude/conform && MEASURED_TEST_NOW=2026-09-03 TZ=America/New_York node run.cjs
+Frozen-suite check: sha256sum -c /tmp/conform-pre-t2.sha → 53/53 OK (nothing under /home/claude/conform modified except the
+new adapters/client.cjs; run.log / rig185.log are written by the runner itself). private/* never read.
+
+(1) MODULE MAP — /home/claude/rebuild/client/  (CommonJS, Node ≥ 18, node:crypto only; total 1,056 lines of product code)
+  canonical.cjs  102  canonical-v1 encoder, independent implementation (NFC, canonical decimals, UTF-16-ordered maps, de-duplicated
+                      sorted SET fields, absent ≠ null ≠ value); fuzzed against lib/canonical.cjs: 500,000 random values, 0 mismatches
+  ops.cjs         83  A3 envelope builder + A4 presence validation + A1 commitment (HMAC over the envelope minus commitment and
+                      authority metadata) + signatureOver() for authority-signed records
+  store.cjs       89  durable store: real all-or-nothing transactions over the BACKEND interface (begin/write/remove/commit/rollback/
+                      get/keys/clear), integrity checkpoint written inside every transaction, integrity(); in-memory backend with an
+                      undo journal (writes apply immediately, rollback reverts them — proven by a mid-transaction crash test)
+  outbox.cjs      40  op_id-keyed accounting: attempts, backoff [0,1000,2000,4000], eligibility, same-op_id retry, sent log
+  sync.cjs       126  send, authenticated dispositions (WAITING / ACCEPTED / REJECTED as ONE atomic transaction or paint BLOCKED behind
+                      idempotent recovery), receipts, contiguous frontier W, reduce-through-W, plan-transaction Applied tracking,
+                      the four copy-law labels
+  lease.cjs       29  lease signature, device/athlete binding, time window by the local clock, device_seq range
+  plan.cjs        69  projection, state-5 fallback (transitive exclusion of inherited values), issuance instance from offer content,
+                      initial-plan offer with equal unselected choices, members from session facts, domain units
+  session.cjs     90  candidate edge + components, generations, complete-partition validation/canonical form, SAME-WORKOUT basis
+                      selection, set-collision resolution
+  face.cjs       110  governing state machine (write 18 > 17 > 20 > 3; machine output 14 > 7 > 11 > 6/2/1), two-layer face,
+                      dependency-aware withdrawal, D7 boards, state-4 conflict copy, SKELETON before boot
+  copy.cjs        62  every exact face string
+  bodycomp.cjs    14  lean mass = W × (1 − bf); "midpoint" when no central estimate
+  index.cjs      242  createClient(config): boot/restart from the store, the durability rule (one transaction: operation(s) + outbox
+                      entry(ies) + device seq), the API
+  README.md       86  module map, backend interface, fault injection from outside     package.json 9 (main: index.cjs)
+  /home/claude/conform/adapters/client.cjs  83  the adapter (requires ../lib/ops.cjs for AUTH_KEY, K_IDENTITY, O.lease, hmac/encode
+                      to sign the fake authority's dispositions; nothing else from the suite)
+
+(2) GATE OUTPUT TAIL (final run; full log copied to /home/claude/t2/run.log)
+  OK   6 adapter loading: only an exact MODULE_NOT_FOUND counts as absent; any other load failure is HARNESS_ERROR — present: client
+  OK   4 reference laws/sheet-B-client.cjs: all GREEN — 35/35 GREEN · 0 FAIL · 0 HARNESS_ERROR
+  OK   5 mutants laws/sheet-B-client.cjs: every law STRONG — 35 STRONG · 0 WEAK · 0 NO_MUTANT · 0 REFERENCE_FAIL · 0 HARNESS_ERROR
+  OK   6 adapters laws/sheet-B-client.cjs: family client present → all GREEN, 0 DEFECT, 0 HARNESS_ERROR — 35 GREEN · 0 RED · 0 FAIL · 0 DEFECT · 0 HARNESS_ERROR
+  (every other family: "absent → all RED(as specified)": authority 34, policy 20, progression 9, soak 1)
+  OK   7 privacy · OK 8 gate artifacts (10 gates) · OK 8 coverage {"TESTED":26,"SEPARATELY_GATED":2,"DEFERRED":2} · INFO 9 rig185: W1 FAIL, W2 FAIL
+  SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 64 RED-first against absent families · 35 GREEN against present families   (exit 0)
+  node run.cjs --selftest (same env): (a) ×3 OK · (b) ×4 OK · (c) ×2 OK · (d) 0 leaked → SELFTEST PASS   (exit 0)
+
+(3) INDEPENDENCE CHECKS (executed)
+  grep -rn "conform" /home/claude/rebuild/client/            → (no output, exit 1)
+  grep -n "reference" /home/claude/conform/adapters/client.cjs → (no output, exit 1)
+  cd /tmp && node -e "require('/home/claude/rebuild/client')"  → loads (exports: createClient, memoryBackend, Store, canonical, ops, copy)
+  Product requires: only ./*.cjs and node:crypto (grep of require( in the product shows no other module).
+
+(4) BITE CHECK
+  Broke: sync.cjs syncOnce() — after each send, delete the outbox entry (drain on send completion instead of on a stored ACCEPTED
+  disposition). Gate → SUITE INCONSISTENT, §B 31 GREEN · 4 FAIL:
+    FAIL B2-drain-point-is-the-stored-AUTHENTICATED-disposition-…   (detail o1:0 — the outbox was empty after the send)
+    FAIL B-copy-law-Saved-Sent-Synced-Applied-…                    FAIL B2-a-lost-acknowledgement-retries-the-SAME-op-id-…
+    FAIL B-state-19-a-rejected-disposition-is-ONE-atomic-local-transaction-…
+  Restored from the backup; sha256 of sync.cjs before/after identical (af12351a…2fba); gate re-run → 35 GREEN, exit 0.
+
+(5) TEST-SHAPED SEAMS (law id → the seam in the product → how the adapter absorbs it)
+  a. B-copy-law, B2-drain, B2-retry, B-state-19 → the product has no authority; config.transport { send(op) → {disposition}|undefined,
+     pull(W) → {receipts} } is the seam. The adapter's fake authority loses every acknowledgement by default and, after
+     goOnline({acceptButDoNotReduce}), answers send() with a signed ACCEPTED disposition (athlete_log_seq = its log head) and pull()
+     with receipts. reduceThroughW() pulls then folds. Not test-only, but the transport is a stub.
+  b. B-copy-law → authorityPlanTransaction(op_id, {committed, effective, at}) becomes client.receivePlanTransaction(): the authority's
+     plan-transaction record is handed to the client out of band instead of arriving inside a pulled log entry. "Applied" =
+     committed ∧ effective ∧ received, where received = folded by reduceThroughW().
+  c. B-durability, B-state-19 (storage modes) → no product seam; the adapter wraps memoryBackend() in a write-failing backend
+     ("refuse-writes" fails every write; "crash-after-op-before-outbox" fails writes to the outbox collection; "crash-in-rejected-ledger"
+     fails writes to rejected). The store's rollback does the rest. Rollback was verified to revert the ops write and the device seq too.
+  d. B-state-12-18 → storageLost({ledgerSurvived}) is the adapter clearing backend collections (ops, and outbox when the ledger did not
+     survive) then client.restart(); restoreRequired:true is the adapter seeding meta/checkpoint {ops:1,outbox:0} over an empty store.
+     The product decides 18 from its own checkpoint-vs-counts integrity() at boot; the declared count is the outbox entries whose
+     operation is missing when the outbox count still matches the checkpoint, else "can't tell".
+  e. B-state-13 → resumeAfterKill({durableDraftMarker}) → the adapter calls client.beginEntry({kind:"set"}) (the real durable
+     draft-marker write) when the flag is set, then client.resumeAfterKill(), which restarts the client from the store.
+  f. B-durability (exactly 7 outbox entries for 7 actions) → LOG SET cannot lazily emit a session-start operation, so a set logged
+     outside an active session carries no session_start_id (the payload omits it; logSession() does write a session-start op and its
+     sets in one transaction). This is a tension with A3 "every set targets an immutable session-start identity" — see (6d).
+  g. B10 (emptyAccount, hiddenAcceptedPlan) → emptyAccount maps to nothing: the product reads "first use, no accepted plan" whenever no
+     accepted plan exists (snapshot plan, applied transaction, or local consent record), which also covers a synced account with no
+     plan. hiddenAcceptedPlan is seeded by the adapter as plan/accepted with no txn_id and no planTransactions record; boot() drops any
+     accepted-plan record whose consent transaction is absent.
+  h. B-presence-law → loggedIntake is delivered through client.deliverReceipts() as pulled log entries (receipt + food-day op, seqs
+     1..n, commitment computed under K), which advances W; maintenanceDays (when given) are passed to maintenanceInputs(dates); the
+     product's default window is the 14 days before today.
+  i. B14 ambiguity → sessionsFromDevices() items carry no slot/date/time; receiveSessionStarts() defaults slot "AD_HOC", date today,
+     time now, so they form one component. resolveAmbiguity() commits a session-relationship-resolution operation (durable, outbox).
+     resolveCollisions() takes the downstream gate outcomes (completion/safety/lineage/planBasis/evidence) as INPUT — those gates run
+     in the engine/authority, not in the client; the function only refuses to call the line progression-bearing unless all pass.
+  j. B-state-5 (literal "Applied at W1 · conflict-suspended at W2") → the delivered plan-history transactions carry no frontier, so the
+     product stamps appliedAtW = applied_at_w ?? athlete_log_seq ?? (max(W, reductions) + 1) — a count of authority reductions stands
+     in for the frontier number; conflictSuspend stamps suspendedAtW the same way. The adapter drops the law's fallback argument: the
+     product derives the fallback itself from complete-group provenance.
+  k. B-state-8 → issue(proposal, accepted, instance) becomes client.recordIssuance({id, accepted, instance}): the issuance result is
+     told to the client rather than pulled. Snapshot proposals flagged unissued:true stay hidden until then.
+  l. B-state-7, B-precedence → contractObsolete:true maps to config.contract {client:"1", required:"2"}; the product compares versions.
+  m. B-state-17, B-precedence → revoked:true maps to config.standing "revoked"; revoke() is a product method (the device learned it was
+     removed) that persists meta/standing.
+  n. B1/D7/B9/B-machine-precedence → lastSync.* and reads are seeded by the adapter into the store as sync/snapshot (the last-sync
+     snapshot a previous run would have persisted) and sync/frontier {W:0, authorityW: lastSync.W}. Layer 2 is snapshot-only (no engine).
+     coldStart:true = the adapter does not call boot(); the SKELETON reads the persisted snapshot directly.
+  o. B2-retry → tick(ms) advances the adapter's clock.monotonicMs; the lease is the suite's O.lease(dev) unless the law supplies one.
+  p. B-A1-canonical → the product encoder reproduces the ratified v1 profile byte-for-byte, including its defects (see 6a/6b).
+
+(6) LAWS / SUITE LIBRARY I BELIEVE ARE WRONG (not edited)
+  a. lib/canonical.cjs decimal(): (i) |n| ≥ 1e21 is emitted in exponent form ("1e+21") because Number.prototype.toFixed returns
+     ToString for such magnitudes — contradicting sheet line 100 ("decimal representation"), the law's own comment ("canonical decimal,
+     never '1e+21'") and brief §3; (ii) the trailing-zero strip is applied to that exponent form, so 1.5e30 and 1.5e300 BOTH encode as
+     "1.5e+3" — two values, one commitment; (iii) |n| < 1e-6 is rounded to 20 fractional places, so 1e-21 → "0" (collides with 0) and
+     -1e-21 → "-0" while -0 → "0". Law B-A1-canonical-v1 binds the candidate to these bytes through fixture e1 (1e21), so the product
+     reproduces the profile (documented in canonical.cjs). Fix needs a canonical-v2 profile in lib + the law (A1 says the encoding is
+     versioned, so this is an encoding-version bump, not a silent edit).
+  b. lib/canonical.cjs sorts map keys by UTF-16 code units (JS default sort), not code points as brief §3 says (U+1F600 sorts before
+     U+FF01); map keys are not NFC-normalized (values are). The product matches the suite; the brief's wording is the inaccurate side.
+  c. B-state-5 asserts the literal frontier numbers "W1"/"W2" while its inputs (planHistory transactions) carry no frontier; any product
+     must invent them (seam 5j). The law should either supply applied_at_w in the fixture or assert the shape, not the numbers.
+  d. B-durability's exact outbox count (7 for 7 actions) makes a lazily-created session-start operation for LOG SET impossible (seam 5f);
+     the sheet's A3 rule "every set targets an immutable session-start identity" then has to be met by an explicit start action.
+  e. reference/client.cjs (model only, not a law): candidateEdge accepts the 23:00→01:00 skew envelope in either date direction; a
+     single session start yields an ambiguity component of one and governing state 14. The laws pass with the strict rules too.
+
+(7) NOT COVERED BY T2
+  No UI. Only the in-memory backend (the interface is real; no SQLite/IndexedDB/file backend). No real transport or authority: the
+  adapter's fake authority accepts or loses; no pull of other devices' operations except via deliverReceipts. No engine: Layer-2
+  numbers, instructions, proposals and dependency sets come from the last-sync snapshot. No P1/P2 sealing, key-epoch rotation or
+  encryption. State 4 lineage-key reduction (only the copy), state-5 decision reduction over responses and resolutions (only the
+  fallback and the suspension record; one suspension governs at a time), state 15/16, A2 WAITING-for-dependency parent tracking, undo
+  application, the export appendix, and proposal supersession are not implemented. Outbox attempt counters and the sent log are
+  in-memory (a restart retries immediately). The state-14 collision gates are inputs, not evaluated.

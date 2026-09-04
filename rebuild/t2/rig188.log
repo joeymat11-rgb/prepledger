@@ -1,0 +1,7 @@
+rig188 — suite-library claims, executed
+  6a(i) 1e21 encodes in exponent form under lib/canonical.cjs → "1e+21"
+  6a(ii) 1.5e30 and 1.5e300 collide → ["1.5e+3","1.5e+3"]
+  6a(iii) 1e-21 → '0' (collides with 0); -1e-21 → '-0' while -0 → '0' → ["0","0","-0","0"]
+  6b map keys: UTF-16 order (U+1F600 before U+FF01)? → "{\"😀\":1,\"！\":2}"
+  fuzz: 20000 values, 0 mismatches
+rig188 ⇒ PASS — the 6a/6b claims are TRUE (lib/canonical.cjs defects; canonical-v2 candidate) and the product encoder matches the suite byte-for-byte

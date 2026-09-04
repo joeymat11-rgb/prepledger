@@ -1,0 +1,43 @@
+rig187 — durability seen through RESTART (what the suite's B-durability law does not test)
+{
+ "real": {
+  "acknowledged": false,
+  "stateOnWrite": 3,
+  "onDisk": {
+   "ops": 0,
+   "outbox": 0,
+   "checkpoint": null
+  },
+  "afterRestart": {
+   "ops": 0,
+   "outbox": 0,
+   "state": 0,
+   "reads": 0,
+   "integrityIntact": true,
+   "restore": "NONE"
+  }
+ },
+ "mutant": {
+  "acknowledged": false,
+  "stateOnWrite": 3,
+  "onDisk": {
+   "ops": 1,
+   "outbox": 0,
+   "checkpoint": null
+  },
+  "afterRestart": {
+   "ops": 0,
+   "outbox": 0,
+   "state": 18,
+   "reads": 0,
+   "integrityIntact": false,
+   "restore": "RESTORE_REQUIRED"
+  }
+ }
+}
+OK   real: the crashed write is NOT acknowledged (state 3)
+OK   real: nothing on disk after the crash (0 ops, 0 outbox)
+OK   real: a restart on the same storage finds 0 ops, 0 outbox, integrity intact, not state 18, no ghost read
+OK   mutant: leaves the half-written op ON DISK (1 op, 0 outbox)
+OK   mutant: a restart detects it — integrity NOT intact → state 18 (never a silent ghost read)
+rig187 ⇒ PASS  — SUITE GAP: both subjects are 35 GREEN under run.cjs; B-durability never restarts from the store (law-edit candidate for suite v4)

@@ -1,0 +1,25 @@
+rig186 product=/home/claude/rebuild/client suite=/home/claude/conform
+M1 BITE — frontier = high-water, not contiguous  [sync.cjs]  exit=1
+     BAD  6 adapters laws/sheet-B-client.cjs: family client present → all GREEN, 0 DEFECT, 0 HARNESS_ERROR — 34 GREEN · 0 RED · 1 FAIL · 0 DEFECT · 0 HARNESS_ERROR
+     FAIL B-frontier-W-is-the-CONTIGUOUS-reduced-through-watermark-an-out-of-order-receipt-does-not-
+M2 BITE — canonical: no NFC  [canonical.cjs]  exit=1
+     BAD  6 adapters laws/sheet-B-client.cjs: family client present → all GREEN, 0 DEFECT, 0 HARNESS_ERROR — 34 GREEN · 0 RED · 1 FAIL · 0 DEFECT · 0 HARNESS_ERROR
+     FAIL B-A1-canonical-v1-map-permutation-set-permutation-Unicode-NFC-decimal-edge-cases-units-and
+M3 BITE — state 7 keeps proposals + instruction  [face.cjs]  exit=1
+     BAD  6 adapters laws/sheet-B-client.cjs: family client present → all GREEN, 0 DEFECT, 0 HARNESS_ERROR — 34 GREEN · 0 RED · 1 FAIL · 0 DEFECT · 0 HARNESS_ERROR
+     FAIL B-state-7-suppresses-obsolete-machine-output-only-Layer-1-edits-stay-live-and-the-accepted
+M4 BITE — lease: expiry ignored  [lease.cjs]  exit=1
+     BAD  6 adapters laws/sheet-B-client.cjs: family client present → all GREEN, 0 DEFECT, 0 HARNESS_ERROR — 33 GREEN · 0 RED · 2 FAIL · 0 DEFECT · 0 HARNESS_ERROR
+     FAIL B20-lease-expired-refuses-writes-keeps-the-entered-value-names-the-resolution
+     FAIL B-precedence-data-paint-18-over-17-write-permission-17-over-20-over-3-and-20-composes-with
+M5 BITE — fallback: inherited values not excluded  [plan.cjs]  exit=1
+     BAD  6 adapters laws/sheet-B-client.cjs: family client present → all GREEN, 0 DEFECT, 0 HARNESS_ERROR — 34 GREEN · 0 RED · 1 FAIL · 0 DEFECT · 0 HARNESS_ERROR
+     FAIL B-state-5-contradictory-responses-conflict-suspend-the-transaction-and-the-fallback-is-DER
+M6 NO-BITE — store: rollback is a no-op  [store.cjs]  exit=0
+     OK   6 adapters laws/sheet-B-client.cjs: family client present → all GREEN, 0 DEFECT, 0 HARNESS_ERROR — 35 GREEN · 0 RED · 0 FAIL · 0 DEFECT · 0 HARNESS_ERROR
+     FAIL 
+M7 BITE — dispositions: signature unverified  [sync.cjs]  exit=1
+     BAD  6 adapters laws/sheet-B-client.cjs: family client present → all GREEN, 0 DEFECT, 0 HARNESS_ERROR — 34 GREEN · 0 RED · 1 FAIL · 0 DEFECT · 0 HARNESS_ERROR
+     FAIL B2-drain-point-is-the-stored-AUTHENTICATED-disposition-forged-wrong-op-wrong-commitment-an
+== rig186: 6/7 mutants bitten by the gate (product untouched: gate exit 0)
+rig186 ⇒ 6/7 BITE — each NO-BITE is a SUITE GAP to be characterised by its own rig (M6 → rig187: the law never restarts from the store) or a product defect; never both unexamined

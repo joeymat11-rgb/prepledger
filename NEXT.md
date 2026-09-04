@@ -1,3 +1,5 @@
+REBUILD: read rebuild/ROADMAP.md first — the durable plan and status.
+
 ## SHIPPED — THE VOLUME ENGINE (v7.46.0, merged 0d513a8) · and the five rounds after it
 
 **THIS HEADER READ "NEXT ROUND ... VERDICT: NOT YET BUILT" UNTIL 2026-08-12, LONG AFTER

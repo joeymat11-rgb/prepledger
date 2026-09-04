@@ -1,0 +1,4 @@
+private/
+engines/*.cjs
+run.log
+rig185.log

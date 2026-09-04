@@ -1,0 +1,9 @@
+{
+  "name": "earned-client-core",
+  "version": "0.1.0-t2",
+  "description": "Earned — the new client's core (sheet v1.7.38 §B). CommonJS, Node >= 18, zero dependencies.",
+  "main": "index.cjs",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": { "node": ">=18" }
+}
